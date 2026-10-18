@@ -342,18 +342,20 @@ type PedidoMp = { id: string; email: string; produto: string; valor: number; sta
 // ⏱️ ANÚNCIOS PAGOS DE 24 H (16/10, Diego: "todo anúncio dura 24h desde que colocado no ar"): ⚡ Dia da marca (Copa dos 8
 // "apresentada por…") e 📣 Anúncio do dia (letreiro). O Diego escolhe QUANDO entra no ar (padrão: agora) e ele sai sozinho 24 h
 // depois. Os manuais (mensal, como a Vadico) continuam no código (`patrocinio.ts`), até ele trocar.
-type AnuncioAdm = { id: number; tipo: string; texto: string; emoji: string; inicio: string; fim: string }
+type AnuncioAdm = { id: number; tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null }
 const agoraLocal = () => { const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000); return d.toISOString().slice(0, 16) }
 const quando = (iso: string) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' }) {
+// 💬 18/10: tipo 'recado' = os recados pagos dos jogadores (sem formulário: só a lista pra TIRAR do ar o que ofender)
+function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
   const marca = tipo === 'marca'
+  const recado = tipo === 'recado'
   const [lista, setLista] = useState<AnuncioAdm[]>([])
   const [inicio, setInicio] = useState(agoraLocal)
   const [texto, setTexto] = useState('')
   const [emoji, setEmoji] = useState('⭐')
   const [msg, setMsg] = useState('')
   const carregar = async () => {
-    const { data } = await supabase.from('esc_anuncios').select('id, tipo, texto, emoji, inicio, fim').eq('tipo', tipo).gt('fim', new Date().toISOString()).order('inicio')
+    const { data } = await supabase.from('esc_anuncios').select('id, tipo, texto, emoji, inicio, fim, autor').eq('tipo', tipo).gt('fim', new Date().toISOString()).order('inicio')
     setLista((data ?? []) as AnuncioAdm[])
   }
   useEffect(() => { carregar() }, [])
@@ -371,8 +373,9 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' }) {
   const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
   const agora = Date.now()
   return (
-    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>{marca ? '⚡ Dia da marca · Copa dos 8' : '📣 Anúncio do dia · letreiro'}</p>
+    <div style={{ border: `2px solid ${recado ? '#FF5FA2' : '#FFC400'}`, borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: recado ? '#FF5FA2' : '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>{recado ? '💬 Recados dos jogadores · letreiro' : marca ? '⚡ Dia da marca · Copa dos 8' : '📣 Anúncio do dia · letreiro'}</p>
+      {recado ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Recados pagos que estão no ar (1 h ou dia todo). Ofendeu alguém? Aperte "tirar". {lista.length === 0 ? 'Nenhum no ar agora.' : ''}</p> : <>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>{marca
         ? 'A Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO por 24 h, contando de quando entra no ar.'
         : 'O texto passa no letreiro "Anúncio do dia" de TODO MUNDO por 24 h, contando de quando entra no ar, antes da Vadico. Até 120 letras.'}</p>
@@ -381,11 +384,11 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' }) {
         {marca && <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />}
         <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={marca ? 40 : 120} placeholder={marca ? 'Nome da marca' : 'Marca · Oferta do dia: …'} style={{ ...inp, flex: 1, minWidth: 160 }} />
         <button disabled={texto.trim().length < (marca ? 2 : 4)} onClick={salvar} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Pôr no ar</button>
-      </div>
+      </div></>}
       {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
       {lista.map(r => <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
         <b style={{ flex: 'none' }}>{Date.parse(r.inicio) <= agora ? '🟢 no ar' : '⏳ ' + quando(r.inicio)}</b>
-        <span style={{ flex: 1 }}>{marca ? r.emoji + ' ' : ''}{r.texto} <small style={{ opacity: .6 }}>· até {quando(r.fim)}</small></span>
+        <span style={{ flex: 1 }}>{marca ? r.emoji + ' ' : ''}{recado && r.autor ? <b>{r.autor}: </b> : null}{r.texto} <small style={{ opacity: .6 }}>· até {quando(r.fim)}</small></span>
         <button onClick={() => tirar(r)} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
       </div>)}
     </div>
@@ -1313,7 +1316,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><CliquesAnunciosAdmin /><TemasAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

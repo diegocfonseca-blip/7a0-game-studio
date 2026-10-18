@@ -96,7 +96,7 @@ function ResgateFicha() {
 }
 
 // 💳 item da Loja → produto do Pix do Mercado Pago (15/10): salas extras, canto e moedas já vão pelo Pix novo
-const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : id === 'giro-dia' ? 'giro_dia' : id === 'ficha' ? 'ficha_carreira' : null
+const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : id === 'giro-dia' ? 'giro_dia' : id === 'giro-hora' ? 'giro_hora' : id === 'recado-hora' ? 'recado_hora' : id === 'recado-dia' ? 'recado_dia' : id === 'ficha' ? 'ficha_carreira' : null
 function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; naCarreira?: boolean; ancora?: string }) {
   const pixMp = usePixMp()
   useEffect(() => {
@@ -248,6 +248,28 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         {/* 🎨 TEMA DA SALA (18/10, Diego): ❤️ time de coração pra qualquer um · 🛡️ do clube só Batismo/Fundador · Fundador ganha 1 */}
         {pixMp && <TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} />}
 
+        {/* 💬 SEU RECADO NO JOGO (18/10, Diego: "tipo um super chat… com cor diferente"; mockup `recado-destaque.png`): o jogador
+            escreve um recado que gira no letreiro, em rosa, com o nome do time — 1 hora R$ 2,99 ou o dia todo R$ 9,90 */}
+        {pixMp && <>
+          <h2 id="loja-recado" style={h2}>{tr('💬 Seu recado no jogo', '💬 Your shout-out in the game')}</h2>
+          <div style={{ ...card }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <span style={{ fontSize: 30 }}>💬</span>
+              <div style={{ flex: 1 }}>
+                <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Recado em destaque', 'Shout-out')}</b>
+                <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Escreva um recado (até 60 letras) e ele gira no letreiro de todas as salas, na cor de recado e com o nome do seu time. Zoeira, parabéns, convite pro pregão…', 'Write a shout-out (up to 60 characters) and it runs on the ticker in every room, in the shout-out colour and with your team name. Banter, congrats, an invite to the auction…')}</small>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
+              <button onClick={() => setComprando({ id: 'recado-hora', amount: 2.99, ctx: 'loja · recado 1h', msgPt: 'Opa! Comprei o 💬 RECADO (1 h). Meu recado: ____', msgEn: 'Hey! I bought the 💬 SHOUT-OUT (1 h). My message: ____' })} style={{ ...preco, background: '#FF5FA2', padding: '6px 8px' }}>
+                <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('1 HORA', '1 HOUR')}</small>{reais(2.99)}</button>
+              <button onClick={() => setComprando({ id: 'recado-dia', amount: 9.9, ctx: 'loja · recado dia todo', msgPt: 'Opa! Comprei o 💬 RECADO (dia todo). Meu recado: ____', msgEn: 'Hey! I bought the 💬 SHOUT-OUT (all day). My message: ____' })} style={{ ...preco, background: '#FF5FA2', padding: '6px 8px', outline: `3px solid ${GOLD}`, outlineOffset: -5 }}>
+                <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('DIA TODO · 24 H', 'ALL DAY · 24 H')}</small>{reais(9.9)}</button>
+            </div>
+          </div>
+          <AnunciosPendentes />
+        </>}
+
         {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que
             vem no pacote e o contato. Começa só nas contas do Diego (`patrocinioLojaOk`). */}
         {patrocinioLojaOk() && <>
@@ -262,15 +284,22 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           </div>
           {/* 📣 ANÚNCIO NO GIRO, 1 DIA (16/10, Diego: "por 25 na lojinha embaixo do anúncio do dia de 50"; o "Anuncie aqui" do giro
               abre a Loja nesta seção) */}
-          <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', marginTop: 8 }}>
-            <span style={{ fontSize: 30 }}>📣</span>
-            <div style={{ flex: 1 }}>
-              <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Anúncio do dia · 24 h', 'Ad of the day · 24 h')}</b>
-              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Você mesmo escreve (até 82 letras) logo depois do Pix. Ele entra no ar na hora e passa por 24 horas no letreiro "Anúncio do dia" de todas as salas, revezando com os outros anúncios. Ex.: "Sua marca · Oferta do dia: …".', 'You write it yourself (up to 82 characters) right after the Pix. It goes live right away and runs for 24 hours on the "Ad of the day" ticker in every room, taking turns with the other ads. E.g. "Your brand · Deal of the day: …".')}</small>
+          {/* 📣 18/10 (Diego: "tanto empresa também 1h ou dia todo"): o anúncio ganha o de 1 hora por R$ 4,99 */}
+          <div style={{ ...card, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <span style={{ fontSize: 30 }}>📣</span>
+              <div style={{ flex: 1 }}>
+                <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Anúncio do dia', 'Ad of the day')}</b>
+                <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Você mesmo escreve (até 82 letras) logo depois do Pix. Ele entra no ar na hora no letreiro "Anúncio do dia" de todas as salas, revezando com os outros anúncios. Ex.: "Sua marca · Oferta do dia: …".', 'You write it yourself (up to 82 characters) right after the Pix. It goes live right away on the "Ad of the day" ticker in every room, taking turns with the other ads. E.g. "Your brand · Deal of the day: …".')}</small>
+              </div>
             </div>
-            <button onClick={() => setComprando({ id: 'giro-dia', amount: 25, ctx: 'loja · anúncio no giro', msgPt: 'Opa! Comprei o 📣 ANÚNCIO NO GIRO (R$ 25). Meu texto: ____', msgEn: 'Hey! I bought the 📣 TICKER AD (R$ 25). My text: ____' })} style={preco}>{reais(25)}</button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
+              <button onClick={() => setComprando({ id: 'giro-hora', amount: 4.99, ctx: 'loja · anúncio 1h', msgPt: 'Opa! Comprei o 📣 ANÚNCIO (1 h). Meu texto: ____', msgEn: 'Hey! I bought the 📣 AD (1 h). My text: ____' })} style={{ ...preco, padding: '6px 8px' }}>
+                <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('1 HORA', '1 HOUR')}</small>{reais(4.99)}</button>
+              <button onClick={() => setComprando({ id: 'giro-dia', amount: 25, ctx: 'loja · anúncio no giro', msgPt: 'Opa! Comprei o 📣 ANÚNCIO NO GIRO (R$ 25). Meu texto: ____', msgEn: 'Hey! I bought the 📣 TICKER AD (R$ 25). My text: ____' })} style={{ ...preco, padding: '6px 8px', outline: `3px solid ${GOLD}`, outlineOffset: -5 }}>
+                <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('DIA TODO · 24 H', 'ALL DAY · 24 H')}</small>{reais(25)}</button>
+            </div>
           </div>
-          <AnunciosPendentes />
           <div style={{ ...card, marginTop: 8 }}>
             <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('📅 Patrocínio mensal', '📅 Monthly sponsorship')}</b>
             <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, fontWeight: 700, lineHeight: 1.55 }}>

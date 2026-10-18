@@ -850,6 +850,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   divisão), Copa (ganhar · final · artilheiro), Supercopa, e na A/B da temporada 40+ (solo) Libertadores/Champions · Mundial ·
   artilheiro internacional. As do fecho usam as `conquistas` que a tela manda (as mesmas que pagam os prêmios das copas); as
   internacionais pagam em `FINISH_INTERNATIONAL_CAMPAIGN`. Tudo vira linha "🎯 Meta batida" no extrato.
+- **💬 RECADO EM DESTAQUE + ANÚNCIO DE 1 HORA (18/10, mockup `scripts/mockups/recado-destaque.png`, *"ok pode fazer"*).** O
+  "super chat" do letreiro: o JOGADOR escreve um recado (60 letras, nome do time, sem link e sem palavrão — o banco barra) que gira
+  no MESMO letreiro do Anúncio do dia, em ROSA, com o selo "💬 RECADO DE TORCEDOR". Preços: **recado 1 h R$ 2,99 · dia todo
+  R$ 9,90** · **anúncio de empresa 1 h R$ 4,99 · dia todo R$ 25** (produtos `recado_hora`/`recado_dia`/`giro_hora`/`giro_dia`,
+  preço em `esc_mp_preco_ref`). Escreve depois do Pix (`esc_mp_anuncio_escrever`, `EscreveAnuncio` em pix-mp.tsx); quem fechou a
+  tela acha o campo de novo na Loja (`esc_mp_anuncio_pendentes2`). O Diego tira do ar pelo #admin ("💬 Recados dos jogadores").
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,

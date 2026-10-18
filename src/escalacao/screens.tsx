@@ -7652,6 +7652,8 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
 .placa-m{position:absolute;left:14px;right:14px;top:20px;font:700 19px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
 .placa-o{position:absolute;left:14px;right:14px;top:45px;font:500 13px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:30px;overflow:hidden}
 .placa-o.so{top:22px;font-size:15px;max-height:52px}
+.placa-quem{position:absolute;left:14px;right:14px;top:19px;font:700 11px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#F4ECD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.placa-m.placa-rec{top:35px;font-size:16px;white-space:normal;max-height:36px;line-height:1.08}
 .placa-l{display:inline-block;transform-origin:50% 60%;animation:placaVira .38s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
 .placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
@@ -7660,9 +7662,15 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
       {/* 17/10 (Diego): saiu a faixa creme de título ("pra ser mais discreto e um pouco menor") — o "Anúncio do dia" mora DENTRO da placa */}
       <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
         onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
-        <span className="placa-tag">{en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA'}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
-        {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 16 : undefined }}><LetrasVirando texto={marca} /></div>}
-        <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
+        <span className="placa-tag" style={ad.recado ? { color: '#FF9CC8' } : undefined}>{ad.recado ? (en ? '💬 FAN SHOUT-OUT' : '💬 RECADO DE TORCEDOR') : (en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA')}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
+        {ad.recado ? <>
+          {/* 💬 RECADO (18/10): quem mandou em cima, o recado em rosa embaixo, em até 2 linhas */}
+          <div className="placa-quem">{ad.recado.autor}</div>
+          <div className="placa-m placa-rec" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99` }}><LetrasVirando texto={ad.texto} /></div>
+        </> : <>
+          {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 16 : undefined }}><LetrasVirando texto={marca} /></div>}
+          <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
+        </>}
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
     </div>

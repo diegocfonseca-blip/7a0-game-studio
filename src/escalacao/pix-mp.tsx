@@ -21,7 +21,7 @@ import { ANUNCIO_MAX, releAnuncios } from './patrocinio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
@@ -29,6 +29,7 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'], dia_marca: ['⚡ Dia da marca', '⚡ Brand day'], giro_dia: ['📣 Anúncio no giro', '📣 Ticker ad'],
   ficha_carreira: ['💾 Ficha extra de carreira', '💾 Extra career slot'],
   tema_coracao: ['❤️ Tema do time de coração', '❤️ Team theme'], tema_clube: ['🛡️ Tema do seu clube', '🛡️ Club theme'],
+  giro_hora: ['📣 Anúncio no giro · 1 h', '📣 Ticker ad · 1 h'], recado_hora: ['💬 Recado em destaque · 1 h', '💬 Shout-out · 1 h'], recado_dia: ['💬 Recado em destaque · dia todo', '💬 Shout-out · all day'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -49,6 +50,9 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   presente: ['Presente entregue! Seu amigo recebe com o seu recado quando entrar no jogo. 🎁', 'Gift delivered! Your friend gets it with your message when they open the game. 🎁'],
   dia_marca: ['Pagamento recebido! Agora chama o Diego pra combinar o dia e mandar o nome, a bio e o cupom da sua marca.', 'Payment received! Now message Diego to pick the day and send your brand’s name, bio and coupon.'],
   giro_dia: ['Pagamento recebido! Agora escreva o seu anúncio: ele entra no ar na hora e passa por 24 h.', 'Payment received! Now write your ad: it goes live right away and runs for 24 h.'],
+  giro_hora: ['Pagamento recebido! Agora escreva o seu anúncio: ele entra no ar na hora e passa por 1 hora.', 'Payment received! Now write your ad: it goes live right away and runs for 1 hour.'],
+  recado_hora: ['Pagamento recebido! Agora escreva o seu recado: ele entra no letreiro na hora e fica 1 hora.', 'Payment received! Now write your shout-out: it goes on the ticker right away and stays 1 hour.'],
+  recado_dia: ['Pagamento recebido! Agora escreva o seu recado: ele entra no letreiro na hora e fica o dia todo (24 h).', 'Payment received! Now write your shout-out: it goes on the ticker right away and stays all day (24 h).'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)
 export const WHATSAPP_CONTATO = '5521998886982' // 16/10: número que o Diego passou (batismo, Fundador e Dia da marca)
@@ -191,7 +195,7 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
       {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
         {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
       </p>}
-      {produto === 'giro_dia' ? <EscreveAnuncio pedido={pedido} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
+      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>
@@ -301,50 +305,77 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
 
 /** 📣 ANÚNCIO DO DIA escrito pelo próprio comprador (16/10, Diego: "a pessoa escreve o que quer… e caso escreva e dê ok vai
  *  passar a aparecer junto com o texto da Vadico, um depois do outro"). Só com o Pix CONFIRMADO: quem decide é o servidor
- *  (`esc_mp_anuncio_giro` confere dono, produto e status do pedido). Entra no ar na hora e sai sozinho 24 h depois. */
-export function EscreveAnuncio({ pedido, aoPublicar }: { pedido: string; aoPublicar?: () => void }) {
+ *  (`esc_mp_anuncio_escrever` confere dono, produto e status do pedido). Entra no ar na hora e sai sozinho no fim do tempo.
+ *  💬 18/10: o mesmo campo serve o RECADO EM DESTAQUE do jogador (60 letras, nome do time, sem link e sem palavrão) e o
+ *  anúncio de 1 hora (mockup `scripts/mockups/recado-destaque.png`). */
+type ProdutoAnuncio = 'giro_dia' | 'giro_hora' | 'recado_hora' | 'recado_dia'
+export const RECADO_MAX = 60
+const RECADO_TIME_KEY = 'esc-recado-time'
+export function EscreveAnuncio({ pedido, produto = 'giro_dia', aoPublicar }: { pedido: string; produto?: ProdutoAnuncio; aoPublicar?: () => void }) {
+  const recado = produto === 'recado_hora' || produto === 'recado_dia'
+  const umaHora = produto === 'giro_hora' || produto === 'recado_hora'
+  const max = recado ? RECADO_MAX : ANUNCIO_MAX
+  const tempo = umaHora ? tr('1 hora', '1 hour') : tr('24 h', '24 h')
   const [texto, setTexto] = useState('')
+  const [time, setTime] = useState(() => { try { return localStorage.getItem(RECADO_TIME_KEY) ?? '' } catch { return '' } })
   const [estado, setEstado] = useState<'escrevendo' | 'enviando' | 'no_ar' | 'erro'>('escrevendo')
   const [erro, setErro] = useState('')
   const t = texto.replace(/\s+/g, ' ').trim()
+  const tm = time.replace(/\s+/g, ' ').trim()
+  const pronto = t.length >= 4 && (!recado || tm.length >= 2)
   const enviar = async () => {
-    if (t.length < 4 || estado === 'enviando') return
-    if (!window.confirm(tr(`Pôr no ar agora, por 24 h?\n\n"${t}"`, `Go live now, for 24 h?\n\n"${t}"`))) return
+    if (!pronto || estado === 'enviando') return
+    if (!window.confirm(tr(`Pôr no ar agora, por ${tempo}?\n\n"${t}"`, `Go live now, for ${tempo}?\n\n"${t}"`))) return
     setEstado('enviando')
-    const { data, error } = await supabase.rpc('esc_mp_anuncio_giro', { p_id: pedido, p_texto: t })
-    if (!error && data === 'ok') { setEstado('no_ar'); logApoio(`📣 anúncio no ar: ${t}`); releAnuncios(); aoPublicar?.() }
+    if (recado) { try { localStorage.setItem(RECADO_TIME_KEY, tm) } catch { /* ignora */ } }
+    const { data, error } = await supabase.rpc('esc_mp_anuncio_escrever', { p_id: pedido, p_texto: t, p_autor: recado ? tm : null })
+    if (!error && data === 'ok') { setEstado('no_ar'); logApoio(`${recado ? '💬 recado' : '📣 anúncio'} no ar (${tempo}): ${recado ? tm + ' · ' : ''}${t}`); releAnuncios(); aoPublicar?.() }
     else if (data === 'ja_tem') { setEstado('no_ar') }
-    else { setEstado('erro'); setErro(data === 'sem_pedido' ? tr('O pagamento ainda não foi confirmado. Espere uns segundos e tente de novo.', 'Payment not confirmed yet. Wait a few seconds and try again.') : tr('Não deu pra pôr no ar. Tente de novo.', 'Couldn’t go live. Try again.')) }
+    else {
+      setEstado('erro')
+      setErro(data === 'sem_pedido' ? tr('O pagamento ainda não foi confirmado. Espere uns segundos e tente de novo.', 'Payment not confirmed yet. Wait a few seconds and try again.')
+        : data === 'link' ? tr('Recado não leva link nem site. Tira o endereço e tenta de novo.', 'Shout-outs can’t have links or websites. Remove it and try again.')
+        : data === 'palavrao' ? tr('Sem palavrão no recado 🙂 Troca a palavra e tenta de novo.', 'No swearing in the shout-out 🙂 Change the word and try again.')
+        : data === 'sem_time' ? tr('Escreve o nome do seu time.', 'Type your team name.')
+        : tr('Não deu pra pôr no ar. Tente de novo.', 'Couldn’t go live. Try again.'))
+    }
   }
+  const cor = recado ? '#FF5FA2' : GREEN
   if (estado === 'no_ar') return (
     <div className="mt-3 rounded-xl p-3 text-left" style={{ background: CREAM, color: INK, border: `2px solid ${INK}` }}>
-      <p className="font-black uppercase text-[16px]" style={{ ...OSW, color: GREEN }}>{tr('📣 Seu anúncio está no ar!', '📣 Your ad is live!')}</p>
-      <p className="text-[12.5px] font-bold mt-1 leading-snug">{tr('Ele passa no letreiro "Anúncio do dia" de todas as salas pelas próximas 24 h, revezando com os outros anúncios.', 'It runs on the "Ad of the day" ticker in every room for the next 24 h, taking turns with the other ads.')}</p>
+      <p className="font-black uppercase text-[16px]" style={{ ...OSW, color: cor }}>{recado ? tr('💬 Seu recado está no ar!', '💬 Your shout-out is live!') : tr('📣 Seu anúncio está no ar!', '📣 Your ad is live!')}</p>
+      <p className="text-[12.5px] font-bold mt-1 leading-snug">{tr(`Ele passa no letreiro de todas as salas pelas próximas ${tempo}, revezando com os anúncios.`, `It runs on the ticker in every room for the next ${tempo}, taking turns with the ads.`)}</p>
     </div>
   )
   return (
     <div className="mt-3 rounded-xl p-3 text-left" style={{ background: CREAM, color: INK, border: `2px solid ${INK}` }}>
-      <p className="font-black uppercase text-[16px]" style={OSW}>{tr('📣 Escreva o seu anúncio', '📣 Write your ad')}</p>
-      <p className="text-[11.5px] font-bold mt-1 leading-snug">{tr(`Até ${ANUNCIO_MAX} letras. Ex.: "Sua marca · Oferta do dia: … · @seuinsta". Ele entra no ar assim que você confirmar e fica 24 h.`, `Up to ${ANUNCIO_MAX} characters. E.g. "Your brand · Deal of the day: … · @yourinsta". It goes live as soon as you confirm and stays 24 h.`)}</p>
-      <textarea value={texto} onChange={e => setTexto(e.target.value.slice(0, ANUNCIO_MAX))} maxLength={ANUNCIO_MAX} rows={2}
+      <p className="font-black uppercase text-[16px]" style={OSW}>{recado ? tr('💬 Escreva o seu recado', '💬 Write your shout-out') : tr('📣 Escreva o seu anúncio', '📣 Write your ad')}</p>
+      <p className="text-[11.5px] font-bold mt-1 leading-snug">{recado
+        ? tr(`Até ${max} letras. Zoeira, parabéns, convite pro pregão… Sem link e sem palavrão. Entra no ar assim que você confirmar e fica ${tempo}.`, `Up to ${max} characters. Banter, congrats, an invite to the auction… No links, no swearing. It goes live as soon as you confirm and stays ${tempo}.`)
+        : tr(`Até ${max} letras. Ex.: "Sua marca · Oferta do dia: … · @seuinsta". Ele entra no ar assim que você confirmar e fica ${tempo}.`, `Up to ${max} characters. E.g. "Your brand · Deal of the day: … · @yourinsta". It goes live as soon as you confirm and stays ${tempo}.`)}</p>
+      {recado && <input value={time} onChange={e => setTime(e.target.value.slice(0, 30))} maxLength={30} placeholder={tr('Nome do seu time', 'Your team name')}
+        className="w-full mt-2 rounded-lg p-2 text-[13px] font-bold" style={{ border: `2px solid ${INK}`, background: '#fff', color: INK }} />}
+      <textarea value={texto} onChange={e => setTexto(e.target.value.slice(0, max))} maxLength={max} rows={2} placeholder={recado ? tr('Seu recado', 'Your shout-out') : undefined}
         className="w-full mt-2 rounded-lg p-2 text-[13px] font-bold" style={{ border: `2px solid ${INK}`, background: '#fff', color: INK, resize: 'none' }} />
       <div className="flex items-center justify-between mt-1 text-[11px] font-bold" style={{ color: 'rgba(12,12,12,.55)' }}>
-        <span>{t.length}/{ANUNCIO_MAX}</span>
-        {t.length >= 4 && <span style={{ background: '#0a0a0a', color: '#5CFF8A', fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', padding: '2px 8px', borderRadius: 6, maxWidth: '75%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>📣 {t}</span>}
+        <span>{t.length}/{max}</span>
+        {t.length >= 4 && <span style={{ background: '#0a0a0a', color: recado ? '#FF5FA2' : '#5CFF8A', fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', padding: '2px 8px', borderRadius: 6, maxWidth: '75%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{recado ? '💬' : '📣'} {t}</span>}
       </div>
       {estado === 'erro' && <p className="text-[11.5px] font-black mt-1" style={{ color: '#C2452F' }}>{erro}</p>}
-      <button disabled={t.length < 4 || estado === 'enviando'} onClick={enviar} className="w-full rounded-xl py-2 mt-2 text-[16px] uppercase"
-        style={{ ...OSW, background: t.length < 4 ? '#ccc' : GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{estado === 'enviando' ? tr('⏳ pondo no ar…', '⏳ going live…') : tr('✅ OK, pôr no ar', '✅ OK, go live')}</button>
+      <button disabled={!pronto || estado === 'enviando'} onClick={enviar} className="w-full rounded-xl py-2 mt-2 text-[16px] uppercase"
+        style={{ ...OSW, background: !pronto ? '#ccc' : cor, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{estado === 'enviando' ? tr('⏳ pondo no ar…', '⏳ going live…') : recado ? tr('📣 Soltar no letreiro', '📣 Put it on the ticker') : tr('✅ OK, pôr no ar', '✅ OK, go live')}</button>
     </div>
   )
 }
 
-/** 📣 quem pagou o anúncio e fechou a tela antes de escrever: a Loja mostra o campo de novo (o pedido fica guardado no servidor) */
+/** 📣 quem pagou o anúncio/recado e fechou a tela antes de escrever: a Loja mostra o campo de novo (o pedido fica guardado no servidor) */
 export function AnunciosPendentes() {
-  const [ids, setIds] = useState<string[]>([])
-  useEffect(() => { supabase.rpc('esc_mp_anuncio_pendente').then(({ data }) => setIds(Array.isArray(data) ? (data as unknown[]).map(String) : []), () => {}) }, [])
-  if (!ids.length) return null
-  return <>{ids.map(id => <EscreveAnuncio key={id} pedido={id} />)}</>
+  const [itens, setItens] = useState<{ id: string; produto: ProdutoAnuncio }[]>([])
+  useEffect(() => {
+    supabase.rpc('esc_mp_anuncio_pendentes2').then(({ data }) => setItens(Array.isArray(data) ? (data as { id: string; produto: string }[]).map(r => ({ id: String(r.id), produto: (['giro_dia', 'giro_hora', 'recado_hora', 'recado_dia'].includes(r.produto) ? r.produto : 'giro_dia') as ProdutoAnuncio })) : []), () => {})
+  }, [])
+  if (!itens.length) return null
+  return <>{itens.map(i => <EscreveAnuncio key={i.id} pedido={i.id} produto={i.produto} />)}</>
 }
 
 /** ⚡ Dia da marca (16/10, Diego: "precisa passar meu telefone pra eles entrarem em contato após pagar"): o Diego combina o

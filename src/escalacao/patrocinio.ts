@@ -57,7 +57,7 @@ export function patrocinioLojaOk(): boolean {
 // como da Vadico ficam direto até eu alterar"*). O Diego põe no ar pelo #admin (`esc_anuncios`: tipo 'marca' = Dia da marca na
 // Copa dos 8 · tipo 'giro' = Anúncio do dia no letreiro) e cada um vale 24 h a partir do `inicio`. Os MANUAIS (mensal, como a
 // Vadico) moram no código e ficam até ele trocar. Leitura pequena: uma por sessão, refeita no máximo a cada 30 min (tráfego).
-type Avulso = { tipo: 'giro' | 'marca'; texto: string; emoji: string; inicio: number; fim: number }
+type Avulso = { tipo: 'giro' | 'marca' | 'recado'; texto: string; emoji: string; inicio: number; fim: number; autor?: string } // 💬 recado (18/10): o jogador escreve, com o nome do time
 let avulsos: Avulso[] = []
 let lidoEm = 0
 let pedindo: Promise<void> | null = null
@@ -67,9 +67,9 @@ function carregaAvulsos(): Promise<void> {
   if (pedindo) return pedindo
   pedindo = (async () => {
     try {
-      const { data } = await supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim').gt('fim', new Date().toISOString()).order('inicio').limit(20)
-      avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string }[])
-        .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim) }) as Avulso)
+      const { data } = await supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor').gt('fim', new Date().toISOString()).order('inicio').limit(20)
+      avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null }[])
+        .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : r.tipo === 'recado' ? 'recado' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim), autor: r.autor ? String(r.autor) : undefined }) as Avulso)
     } catch { avulsos = [] }
     lidoEm = Date.now(); pedindo = null
     ouvintes.forEach(f => { try { f() } catch { /* ignora */ } })
@@ -108,11 +108,13 @@ const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
-export type AnuncioGiro = { texto: string; cor: string; link?: string }
+export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string } } // 💬 recado de jogador: rosa + nome do time
 export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número máximo de caracteres… tipo o da Vadico")
 export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
   const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
+  // 💬 RECADO EM DESTAQUE (18/10): gira no mesmo letreiro, em rosa, com o nome do time de quem mandou (mockup `recado-destaque.png`)
+  out.push(...noAr('recado').map(a => ({ texto: a.texto, cor: '#FF5FA2', recado: { autor: a.autor ?? '' } })))
   if (espacosOk()) {
     if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
     out.push(...GIRO_MANUAIS)

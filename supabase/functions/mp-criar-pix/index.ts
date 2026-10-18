@@ -17,6 +17,7 @@ const NOMES: Record<string, string> = {
   giro_dia: 'Anúncio no giro (1 dia)', // 16/10: Diego pediu o anúncio de 25 na Loja
   ficha_carreira: 'Ficha extra de carreira', // 17/10: +1 carreira salva, R$ 9,99
   tema_coracao: 'Tema da sala · time de coração', tema_clube: 'Tema da sala · seu clube', // 18/10: temas da sala de espera, R$ 9,90
+  giro_hora: 'Anúncio no giro (1 hora)', recado_hora: 'Recado em destaque (1 hora)', recado_dia: 'Recado em destaque (dia todo)', // 18/10: recado de jogador + anúncio de 1 h
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60
