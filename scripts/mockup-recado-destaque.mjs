@@ -26,14 +26,16 @@ const c1 = col('1 · NO LETREIRO', '#7C3AED', `
   <p class="leg">O recado de um jogador, girando no MESMO letreiro:</p>
   ${placa({ tag: '💬 RECADO DE TORCEDOR · 3/3', marca: 'PARABÉNS THE WOLF, PAPOU TUDO HOJE 🐺', oferta: '', cor: '#FF5FA2', recado: true, quem: { time: 'CHELSÃO DA MASSA FC', cor: '#9BD6A5' } })}
   ${placa({ tag: '💬 RECADO DE TORCEDOR · 1/4', marca: 'BOM DIA GRUPO DA VÁRZEA ☀️ HOJE TEM PREGÃO ABERTO 21H', oferta: '', cor: '#FF5FA2', recado: true, quem: { time: 'MANFRÉ FC', cor: '#FFC400' } })}
-  <ul class="notas"><li>Cor própria (rosa) e o selo <b>💬 RECADO</b> — ninguém confunde com propaganda.</li><li>Em cima vai o nome do time de quem mandou, com a bolinha na cor do plano dele.</li><li>Fica <b>1 hora</b> girando junto com os anúncios, em todas as salas.</li></ul>`)
+  <ul class="notas"><li>Cor própria (rosa) e o selo <b>💬 RECADO</b> — ninguém confunde com propaganda.</li><li>Em cima vai o nome do time de quem mandou, com a bolinha na cor do plano dele.</li><li>Fica <b>1 hora ou o dia todo</b> girando junto com os anúncios, em todas as salas.</li></ul>`)
 
 const c2 = col('2 · NA LOJA', '#1B7A3D', `
   <div class="sec">💬 SEU RECADO NO JOGO</div>
-  <div class="card"><div class="ic">💬</div><div class="tx"><b>RECADO EM DESTAQUE</b><span>Escreva um recado (até 60 letras) e ele passa 1 hora no letreiro de todas as salas, na cor de recado e com o nome do seu time. Zoeira, parabéns, convite pro pregão…</span></div><button>R$ 2,99</button></div>
+  <div class="card col2"><div class="topo"><div class="ic">💬</div><div class="tx"><b>RECADO EM DESTAQUE</b><span>Escreva um recado (até 60 letras) e ele gira no letreiro de todas as salas, na cor de recado e com o nome do seu time.</span></div></div>
+    <div class="dois"><button class="rosa"><small>1 HORA</small>R$ 2,99</button><button class="rosa forte"><small>DIA TODO · 24 H</small>R$ 9,90</button></div></div>
   <div class="sec" style="margin-top:14px">💼 SUA MARCA NO JOGO <small>pra empresas</small></div>
-  <div class="card cinza"><div class="ic">📣</div><div class="tx"><b>ANÚNCIO DO DIA · 24 H</b><span>Como já é hoje — o de empresa continua igual.</span></div><button class="g">R$ 25,00</button></div>
-  <ul class="notas"><li>Fica numa seção própria, <b>em cima</b> da de empresas, porque é coisa de jogador.</li><li>Recado ofensivo: você tira do ar pelo #admin, igual ao destaque.</li></ul>`)
+  <div class="card col2"><div class="topo"><div class="ic">📣</div><div class="tx"><b>ANÚNCIO DO DIA</b><span>Sua marca no letreiro de todas as salas, com link (toque pra ver).</span></div></div>
+    <div class="dois"><button class="g"><small>1 HORA</small>R$ 4,99</button><button class="g forte"><small>DIA TODO · 24 H</small>R$ 25,00</button></div></div>
+  <ul class="notas"><li><b>Novo:</b> as duas opções ganham o <b>1 hora</b>. O dia todo do anúncio continua R$ 25.</li><li>Recado de 24 h = R$ 9,90 (sai mais barato que 24 recados de 1 hora).</li><li>Recado ofensivo: você tira do ar pelo #admin.</li></ul>`)
 
 const c3 = col('3 · DEPOIS DO PIX', '#C2452F', `
   <div class="box"><b class="tt">💬 ESCREVA SEU RECADO</b>
@@ -41,7 +43,7 @@ const c3 = col('3 · DEPOIS DO PIX', '#C2452F', `
     <p class="leg">Assim vai aparecer:</p>
     ${placa({ tag: '💬 RECADO DE TORCEDOR', marca: 'PARABÉNS THE WOLF, PAPOU TUDO HOJE 🐺', oferta: '', cor: '#FF5FA2', recado: true, quem: { time: 'CHELSÃO DA MASSA FC', cor: '#9BD6A5' } })}
     <button class="pub">📣 SOLTAR NO LETREIRO</button>
-    <p class="mini">Entra no ar na hora e fica 1 hora. Sem link e sem palavrão — recado que ofender alguém sai do ar.</p></div>`)
+    <p class="mini">Entra no ar na hora e fica o tempo que você comprou (1 hora ou o dia todo). Sem link e sem palavrão — recado que ofender alguém sai do ar.</p></div>`)
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box}body{margin:0;background:#F4ECD6;font-family:Arial,sans-serif;color:${INK};padding:22px;width:1270px}
@@ -66,13 +68,14 @@ h1{font:700 30px Oswald;text-transform:uppercase;margin:0 0 4px}.sub{margin:0 0 
 .sec{font:700 18px Oswald;text-transform:uppercase;margin:4px 0 8px;display:flex;justify-content:space-between;align-items:baseline}.sec small{font:600 12px Arial;color:#7a7364;text-transform:none}
 .card{display:flex;gap:10px;align-items:center;background:#fff;border:3px solid ${INK};border-radius:14px;box-shadow:4px 4px 0 ${INK};padding:12px}
 .card.cinza{opacity:.75}.ic{font-size:30px}.tx{flex:1}.tx b{display:block;font:700 17px Oswald}.tx span{font-size:12.5px;font-weight:600;line-height:1.35}
+.card.col2{flex-direction:column;align-items:stretch}.topo{display:flex;gap:10px;align-items:center}.dois{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.dois button small{display:block;font:700 10px Oswald;letter-spacing:.08em;opacity:.9}.dois button.forte{outline:3px solid #FFC400;outline-offset:-6px}.card button.rosa{background:#FF5FA2}
 .card button{font:700 17px Oswald;background:#FF5FA2;color:#fff;border:3px solid ${INK};border-radius:12px;padding:10px 12px;box-shadow:3px 3px 0 ${INK};white-space:nowrap}.card button.g{background:#1B7A3D}
 .box{background:#fff;border:3px solid ${INK};border-radius:14px;box-shadow:4px 4px 0 ${INK};padding:14px}
 .tt{font:700 19px Oswald}.campo{position:relative;margin:10px 0;border:3px solid ${INK};border-radius:10px;padding:12px 10px 22px;font:700 15px Oswald;text-transform:uppercase}
 .cont{position:absolute;right:8px;bottom:4px;font:600 10px Arial;color:#7a7364}
 .pub{width:100%;font:700 18px Oswald;background:#FF5FA2;color:#fff;border:3px solid ${INK};border-radius:12px;padding:12px;box-shadow:3px 3px 0 ${INK};margin-top:4px}
 .mini{font-size:11.5px;font-weight:600;color:#5a5446;margin:10px 0 0;line-height:1.4}
-</style></head><body><h1>💬 Recado em destaque — o "super chat" do letreiro</h1><p class="sub">O jogador paga R$ 2,99, escreve um recado curto e ele passa 1 hora no letreiro de todas as salas, com cor própria e o nome do time dele.</p>
+</style></head><body><h1>💬 Recado em destaque — o "super chat" do letreiro</h1><p class="sub">Recado de jogador e anúncio de empresa, os dois com <b>1 hora</b> ou <b>dia todo</b>.</p>
 <div class="wrap">${c1}${c2}${c3}</div></body></html>`
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const p = await b.newPage({ viewport: { width: 1270, height: 900 }, deviceScaleFactor: 2 })
