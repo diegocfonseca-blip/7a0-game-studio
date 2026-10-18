@@ -1,10 +1,12 @@
-import {VelocidadeEstadio} from './presidencia-velocidade'
+import {RitmoCampoProvider} from './presidencia-velocidade'
+import {useAssistindoCampo} from './presidencia-campo-observacao'
+import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
 import {DiaDoEstadio} from './presidencia-estadio-dia'
 import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import { placarParaK } from './kings-liga'
 import {PresidenciaPartida} from './presidencia-partida'
-import {usePartidaNoMapa,partidaPublicada} from './presidencia-partida-sincronia'
+import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio} from './presidencia-partida-model'
 import {criarRelogioLance} from './presidencia-lance-tempo'
 import {acompanharLance} from './presidencia-lance-apresentacao'
@@ -3106,6 +3108,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
   const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket
+  const watchingField=useAssistindoCampo()
+  const watchedField=useRef({id:stadiumMatch?.id,watched:false})
+  if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}
+  if(privateField&&watchingField)watchedField.current.watched=true
+  const fieldDuration=duracaoPartidaCampo(roundMs,fieldSpeed,privateField&&watchedField.current.watched)
   // Speed controls playback, never which chances exist. Freeze the base
   // duration per fixture; rounding roundMs at another speed must not reseed it.
   const incidentKey=`${privateField}:${stadiumMatch?.id??''}:${roundKey}`
@@ -3134,10 +3141,13 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const [confirmados, setConfirmados] = useState(0)
   const [voo, setVoo] = useState<(ApresentacaoLanceEstadio&{ side: 'h' | 'a'; key: number; dentro: boolean; startedAt: number; speed:number; txt?:string }) | null>(null)
   const [lance, setLance] = useState<(ApresentacaoLanceEstadio&{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number }) | null>(null)
-  const privatePlayback=useRef({goalGeneration:0,chanceGeneration:0,cancelGoal:(()=>{}) as ()=>void,cancelChance:(()=>{}) as ()=>void})
+  const privatePlayback=useRef({goalGeneration:0,chanceGeneration:0,goalPlanning:false,chancePlanning:false,cancelGoal:(()=>{}) as ()=>void,cancelChance:(()=>{}) as ()=>void})
+  const fieldTimeline=useRef({held:false,nextGoal:93})
+  fieldTimeline.current={held:!!voo||!!lance,nextGoal:[...goals].sort((a,b)=>a.min-b.min)[confirmados]?.min??93}
   const fieldSettings=useRef({rate:fieldSpeed,running:true})
-  fieldSettings.current={rate:fieldSpeed,running:!(pauseAtHalf&&!resumeHalf&&min>=45)}
-  useEffect(()=>()=>{const p=privatePlayback.current;p.goalGeneration++;p.chanceGeneration++;p.cancelGoal();p.cancelChance()},[roundKey,privateField])
+  const atHalf=!!pauseAtHalf&&!resumeHalf&&min>=45&&(controlledMinute||!privateField||(!fieldTimeline.current.held&&fieldTimeline.current.nextGoal>45))
+  fieldSettings.current={rate:fieldSpeed,running:!atHalf}
+  useEffect(()=>()=>{const p=privatePlayback.current;p.goalGeneration++;p.chanceGeneration++;p.goalPlanning=false;p.chancePlanning=false;p.cancelGoal();p.cancelChance()},[roundKey,privateField])
   const vooTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playbackMode = useRef(privateField)
@@ -3159,6 +3169,22 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
     if (controlledMinute) return
     if (finished) { setMin(93); return }
+    if(privateField&&stadiumMatch){
+      const same=fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
+      fieldMinute.current={round:roundKey,half:!!resumeHalf,minute:same?fieldMinute.current.minute:resumeHalf?45:0}
+      let previous=performance.now()
+      const iv=setInterval(()=>{
+        const now=performance.now(),delta=now-previous;previous=now
+        const clock=fieldMinute.current,timeline=fieldTimeline.current,p=privatePlayback.current
+        const held=timeline.held||p.goalPlanning||p.chancePlanning||(clock.minute>=1&&!(pauseAtHalf&&!resumeHalf&&clock.minute>=45)&&reinicioPartidaPendente(stadiumMatch.id))
+        clock.minute=avancarMinutoCampo(clock.minute,delta,fieldDuration,{held,nextGoal:Math.min(93,timeline.nextGoal),half:pauseAtHalf&&!resumeHalf?45:93})
+        const next=Math.floor(clock.minute)
+        setMin(next)
+        if(pauseAtHalf&&!resumeHalf&&next>=45&&!held&&timeline.nextGoal>45){clearInterval(iv);onReachHalf?.()}
+        else if(next>=93)clearInterval(iv)
+      },40)
+      return()=>clearInterval(iv)
+    }
     // relógio por TEMPO (não por passo fixo): sobe 0→93' ao longo de `dur`. Assim
     // cada velocidade é REALMENTE diferente — o passo fixo batia num piso (30ms) e
     // 2× e 4× ficavam iguais. E termina EXATO no fim do jogo (nada de liberar o
@@ -3183,7 +3209,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute])
+  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration])
   const done = min >= 93
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
@@ -3219,13 +3245,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   useEffect(() => { onMinuteChange?.(minAvisado) }, [minAvisado, roundKey, onMinuteChange])
   useEffect(() => {
     if (!proximoGol) return
-    if (voo && !voo.dentro) return // bola no ar: o próximo espera ela entrar
+    if (voo && (privateField || !voo.dentro)) return // no campo a próxima jogada espera a cena inteira
     if (vooTimer.current) clearTimeout(vooTimer.current)
     if(privateField&&stadiumMatch){
       const p=privatePlayback.current,generation=++p.goalGeneration
-      p.cancelGoal();p.chanceGeneration++;p.cancelChance();setLance(null)
+      p.goalPlanning=true;p.cancelGoal();p.chanceGeneration++;p.chancePlanning=false;p.cancelChance();setLance(null)
       const start=(plan?:ApresentacaoLanceEstadio['plan'])=>{
         if(generation!==p.goalGeneration)return
+        p.goalPlanning=false
         const now=performance.now(),settings=fieldSettings.current,clock=criarRelogioLance(now,settings.rate,settings.running)
         const club=nomeLimpo(proximoGol.home?homeName:awayName),en=getLang()==='en'
         let text=narrarEtapaLanceEstadio(plan,0,club,en)
@@ -3305,7 +3332,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
   // vira o rótulo certo por esporte.
   // (a conta mora em `sportcfg.ts` pra TODA tela do basquete marcar o mesmo quarto)
-  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : relogioKings ? `${placarParaK(min)}'` : min > 90 ? `90+${min - 90}'` : `${min}'`)
+  const displayClock=privateField?minAvisado:min
+  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : relogioKings ? `${placarParaK(displayClock)}'` : displayClock > 90 ? `90+${displayClock - 90}'` : `${displayClock}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor
@@ -3367,9 +3395,10 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     lancesVistos.current.mins.push(c.min)
     const clube = nomeLimpo(c.home ? homeName : awayName)
     if(privateField&&stadiumMatch){
-      const p=privatePlayback.current,generation=++p.chanceGeneration;p.cancelChance()
+      const p=privatePlayback.current,generation=++p.chanceGeneration;p.chancePlanning=true;p.cancelChance()
       const start=(plan?:ApresentacaoLanceEstadio['plan'])=>{
         if(generation!==p.chanceGeneration)return
+        p.chancePlanning=false
         const now=performance.now(),settings=fieldSettings.current,clock=criarRelogioLance(now,settings.rate,settings.running)
         const en=getLang()==='en';let text=narrarEtapaLanceEstadio(plan,0,clube,en)??narrarChanceEstadio(c.fim,clube,en,false)
         setLance({minute:c.min,startedAt:now,speed:settings.rate,roundKey,side:c.home?'h':'a',fim:c.fim,key:c.min*10+(c.home?1:2),txt:text,plan,clock})
@@ -3540,7 +3569,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
-    {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:min,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:!!pauseAtHalf&&!resumeHalf&&min>=45,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
+    {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
@@ -6809,21 +6838,28 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
 // tamanho da liga"). Antes era o `CopaLiveMatch` grande, um card diferente,
 // menor e com outra cara. Agora vem tudo de graça: escudo maior, goleadores
 // deslizando, narração do apito, cor/brilho da competição no rodapé.
-// ⏱️ Sincronia: o LiveScoreCard tem relógio PRÓPRIO (0→93' em `roundMs*0.82`),
-// e a lista dos outros jogos anda no `copaPos`. Pra os dois baterem, o roundMs
-// é calculado ao contrário (COPA_LEG_MS ÷ 0.82) — mesmo padrão que a Copa do
-// Mundo já usa há tempo (`useLiveMin` lá em copa-mundo.tsx).
+// ⏱️ Na prévia física, o minuto confirmado pelo LiveScoreCard também move
+// `copaPos`: ida, volta e pênaltis esperam a última jogada no campo. Fora dela,
+// o relógio público conserva a duração COPA_LEG_MS ÷ 0.82.
 // 🔁 Ida e volta: o card mostra UM jogo por vez. Quando o relógio passa dos 90'
 // (vira a volta), o `roundKey` muda e ele reinicia com os gols do 2º jogo — e
 // os lados trocam, porque na volta quem manda é o outro.
 // 🛟 (13/09) o SEU jogo da Copa também fica numa zona segura — mesmo motivo da lista.
 type ContextoCopaEstadio={id:string;stadiums?:Record<number,import('./estadiodata').StadiumSave>;calendar?:{seasonKey:string;previousMatchdays:number;phaseMatchdays:number[];phaseIndex:number}}
-export function MyCopaMatch(props: { stadiumContext?:ContextoCopaEstadio; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+/** O 93 só é publicado depois de confirmar todos os gols e encerrar a jogada. */
+export function posicaoCopaNoCampo(legIndex:number,minute:number,nLegs:number){
+  const legs=Math.max(1,Math.floor(nLegs)),leg=Math.max(0,Math.min(legs-1,Math.floor(legIndex)))
+  const min=Number.isFinite(minute)?Math.max(0,Math.min(93,minute)):0
+  return Math.min(legs*90,leg*90+min*90/93)
+}
+type MinutoCopaCampo=(legIndex:number,minute:number)=>void
+export function MyCopaMatch(props: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
-function MyCopaMatchInner({ stadiumContext, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { stadiumContext?:ContextoCopaEstadio; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
   const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
+  const presidentFieldAccount=usePresidentPreview()
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
   const total = nLegs * 90
@@ -6841,6 +6877,11 @@ function MyCopaMatchInner({ stadiumContext, tie, pos, phase, colors, safName, my
   if(!done)liveField.current=stadiumMatch?.id
   const presenting=!!stadiumMatch&&liveField.current===stadiumMatch.id
   const showDone=done&&(!presenting||finishedField===stadiumMatch?.id)
+  const fieldClock=!!stadiumMatch&&presidentFieldAccount&&!!onFieldMinute
+  const reportFieldMinute=useCallback((minute:number)=>{
+    if(minute>=93&&stadiumMatch)setFinishedField(stadiumMatch.id)
+    if(fieldClock)onFieldMinute?.(legIdx,minute)
+  },[stadiumMatch?.id,fieldClock,onFieldMinute,legIdx])
   const colOf = (t: SimTeam) => t.you || (safName && t.name === safName) ? myColor : (colors[t.teamId]?.solid ?? copaSideColor(t.name))
   const sf = simSpeed && simSpeed > 0 ? simSpeed : 1
   // `legMs` vem da tela (COPA_LEG_MS, +1s quando está no AUTO) — os DOIS relógios,
@@ -6864,8 +6905,8 @@ function MyCopaMatchInner({ stadiumContext, tie, pos, phase, colors, safName, my
           via escudo genérico e gol sem mascote NA COPA, enquanto na liga (que
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
-      <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} displayMinute={privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
-        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done&&!presenting} onMinuteChange={presenting?minute=>{if(minute>=93)setFinishedField(stadiumMatch!.id)}:undefined} footTint={footTint} />
+      <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
       {showDone && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
           {/* 🧮 os TRÊS placares na MESMA ordem (A × B), com os nomes em cima —
@@ -7892,6 +7933,8 @@ export function PyramidSeasonScreen() {
   const [divisionView, setDivisionView] = useState<Div | null>(null)
   const [scoreClock, setScoreClock] = useState({ round: -1, minute: 0 })
   const reportMinute = useCallback((minute:number) => setScoreClock({round:state.round,minute}),[state.round])
+  const privateLeagueClock=presidentAvailable&&privateCareer&&state.onlineMode!=='online'
+  const privateLeagueFinished=privateLeagueClock&&scoreClock.round===state.round&&scoreClock.minute>=93
   // 📣 A TORCIDA E O APITO, TAMBÉM NA CARREIRA (Diego 18/09: *"precisamos colocar
   // som de torcida nos jogos, seja online ou offline… apito sempre que iniciar
   // partida e cantos de torcida durante o jogo"*).
@@ -7942,9 +7985,13 @@ export function PyramidSeasonScreen() {
   const [endShown, setEndShown] = useState(() => round >= 38)
   useEffect(() => {
     if (!seasonOver) { setEndShown(false); return }
+    if(privateLeagueClock){
+      if(privateLeagueFinished)setEndShown(true)
+      return
+    }
     const t = setTimeout(() => setEndShown(true), Math.round((baseRoundMs / speedFactor) * 0.95))
     return () => clearTimeout(t)
-  }, [seasonOver, speedFactor, baseRoundMs])
+  }, [seasonOver, speedFactor, baseRoundMs,privateLeagueClock,privateLeagueFinished])
   const done = seasonOver && endShown
   const [tab, setTab] = useState<AbaCarr>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
@@ -8649,6 +8696,14 @@ export function PyramidSeasonScreen() {
   const copaFaseTotal = copaNLegs * 90
   const myCopaTie = copaFase?.ties.find(t => t.a.you || t.b.you) ?? null
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
+  // Só a conta autorizada e os XI válidos usam o relógio físico. A Copa online
+  // mantém o relógio e a autoridade do host; os resultados não são recalculados.
+  const copaCampo=!!myCopaTie&&!!contextoPartidaCompeticao({enabled:presidentAvailable&&state.onlineMode!=='online',id:'validar-copa',home:myCopaTie.a,away:myCopaTie.b})
+  const reportMinuteCopaCampo=useCallback((legIndex:number,minute:number)=>{
+    if(copaRoundRef.current!==copaRound)return
+    setCopaPos(previous=>Math.max(previous,posicaoCopaNoCampo(legIndex,minute,copaNLegs)))
+  },[copaRound,copaNLegs])
+  const copaCampoEncerrado=copaPos>=copaFaseTotal
   // ⏱️ quanto o relógio da fase espera pelos SEUS pênaltis (número, pra entrar como
   // dependência estável do efeito do relógio logo abaixo)
   const copaPenMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens, copaTemGente(myCopaTie)) * 1000) : 0
@@ -8666,8 +8721,13 @@ export function PyramidSeasonScreen() {
     if (!copaPlaying) return
     const clockKey=`${seasonSeed}:${copaRound}:${copaNLegs}:${copaFaseTotal}`
     if(copaClock.current.key!==clockKey){copaClock.current={key:clockKey,elapsed:0};setCopaPos(0);setCopaReady(false)}
+    // LiveScoreCard publica cada minuto e só libera a próxima perna no apito.
+    // Um segundo timer aqui faria a volta começar com a bola da ida no ar.
+    if(copaCampo)return
     const sf = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1 // ⏩ marcha escolhida
     const dur = Math.round((copaNLegs * copaLegMs) / sf)
+    // Se a autorização da prévia mudar, continua de onde a Copa estava.
+    copaClock.current.elapsed=Math.max(copaClock.current.elapsed,copaPos/copaFaseTotal*copaNLegs*copaLegMs)
     const t0 = Date.now(),already=copaClock.current.elapsed/sf
     const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((already+Date.now() - t0) / dur) * copaFaseTotal)), 90)
     // 🎯 SE O SEU JOGO FOI PRA PÊNALTIS, A FASE ESPERA A DISPUTA ACABAR.
@@ -8691,7 +8751,15 @@ export function PyramidSeasonScreen() {
     return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo])
+  useEffect(()=>{
+    if(!copaPlaying||!copaCampo||!copaCampoEncerrado)return
+    // Pênaltis só entram depois do fim físico da última perna. Os mesmos
+    // tempos de revelação continuam valendo antes de liberar/avançar a fase.
+    const rdy=setTimeout(()=>setCopaReady(true),250+copaPenMs)
+    const adv=manual?null:setTimeout(()=>setCopaRound(r=>r+1),2200+copaPenMs)
+    return()=>{clearTimeout(rdy);if(adv)clearTimeout(adv)}
+  },[copaPlaying,copaCampo,copaCampoEncerrado,copaRound,manual,copaPenMs])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -9260,9 +9328,13 @@ export function PyramidSeasonScreen() {
     if (done || round <= 0) { setRevealed(round); return }
     setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
     if ((halfMode && !halftimeDone) || (penMode && !penaltyDone)) return // pausado esperando o técnico — não arma
+    if(privateLeagueClock&&stadiumMatch){
+      if(privateLeagueFinished)setRevealed(round)
+      return
+    }
     const t = setTimeout(() => setRevealed(round), Math.round((baseRoundMs / speedFactor) * 0.86))
     return () => clearTimeout(t)
-  }, [round, done, speedFactor, baseRoundMs, halfMode, halftimeDone, penMode, penaltyDone])
+  }, [round, done, speedFactor, baseRoundMs, halfMode, halftimeDone, penMode, penaltyDone,privateLeagueClock,stadiumMatch?.id,privateLeagueFinished])
   // 🐊 mascote do usuário pra comemorar o gol de pênalti (SÓ quem tem mascote)
   const penMascArt = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? MASCOTES[meuSocFesta.mascoteKey] : null
 
@@ -9320,12 +9392,14 @@ export function PyramidSeasonScreen() {
   // caminho da decisão e vira linha depois do botão verde.
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
-  const [roundReady, setRoundReady] = useState(false)
+  const [timedRoundReady, setRoundReady] = useState(false)
+  const roundReady=privateLeagueClock&&stadiumMatch?privateLeagueFinished:timedRoundReady
   useEffect(() => {
     setRoundReady(false)
+    if(privateLeagueClock&&stadiumMatch)return
     const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
-  }, [round, roundMs])
+  }, [round, roundMs,privateLeagueClock,stadiumMatch?.id])
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
@@ -9786,6 +9860,7 @@ export function PyramidSeasonScreen() {
       caixas={econBots ? [...(tables[myDiv] ?? [])].map(t => ({ name: t.name, you: t.you, caixa: Math.round(t.human ? (state.careerCoins?.[t.teamId] ?? 0) : (state.clubCash?.[teamKey(t)] ?? 0)) })).sort((a, b) => b.caixa - a.caixa) : undefined} />
   }
   return (
+    <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
       <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
@@ -10411,7 +10486,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
+        {copaPlaying && myCopaTie && <MyCopaMatch onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
@@ -11012,7 +11087,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><>{state.onlineMode!=='online'&&<VelocidadeEstadio speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}/>}<PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
@@ -11455,6 +11530,7 @@ export function PyramidSeasonScreen() {
         )}
       </div>
     </div>
+    </RitmoCampoProvider>
   )
 }
 

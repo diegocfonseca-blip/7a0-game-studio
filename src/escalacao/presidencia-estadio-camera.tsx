@@ -12,6 +12,8 @@ import type {ControleComplexo} from './presidencia-complexo-3d'
 import {Btn} from './ui-primitives'
 import {usePresidenteConta,presidenteContaLiberado} from './presidente-conta'
 import {artesIdentidadeSala} from './presidencia-sala-identidade-assets'
+import {useVistaCampo} from './presidencia-campo-observacao'
+import {RitmoCampo} from './presidencia-velocidade'
 const Campo=lazy(()=>import('./presidencia-partida').then(module=>({default:module.Campo})))
 const Complexo=lazy(()=>import('./presidencia-complexo-3d'))
 export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string}
@@ -19,6 +21,7 @@ export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'
 export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,career,onReady}:{stadium?:StadiumSave;matchId?:string;homeClubId?:number;onRoof?:(closed:boolean)=>void;career?:CarreiraCameraEstadio;onReady?:(api:ControleComplexo|null)=>void}){
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),[field,setField]=useState(false),[illustrated,setIllustrated]=useState(false),t=useT()
  const account=usePresidentPreview(),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
+ const watching=useVistaCampo<HTMLElement>(account)
  const accountPresident=usePresidenteConta()
  const identityArt=useMemo(()=>artesIdentidadeSala(career?.identity),[career?.identity])
  if(last.current?.key!==career?.key)last.current=null
@@ -30,7 +33,8 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const adapted=career&&account?adaptarCarreiraAoComplexo({...career,enabled:true,match:retained,
   agenda:retained?.context.agenda??career.agenda}):null
  if(career&&!account)return null
- if(adapted)return <section data-presidencia-complexo-carreira>
+ if(adapted)return <section ref={watching} data-presidencia-complexo-carreira>
+  <RitmoCampo/>
   <Suspense fallback={<p role="status">{t('Carregando seu estádio e a região…','Loading your stadium and its surroundings…')}</p>}>
    <Complexo {...adapted.complexo} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady}/>
   </Suspense>
@@ -40,7 +44,8 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
    {illustrated&&<PresidenciaEstadioMapa stadium={stadium} match={match&&!match.finished?match:null}/>}
   </details>
  </section>
- return <section>
+ return <section ref={watching}>
+  <RitmoCampo/>
   <PresidenciaEstadioMapa stadium={stadium} match={match}/>
   {match&&<><button type="button" onClick={()=>setField(v=>!v)}>{field?t('FECHAR CAMPO 3D','CLOSE 3D PITCH'):t('ACOMPANHAR EM 3D','WATCH IN 3D')}</button>{field&&<Suspense fallback={<p>{t('Carregando campo…','Loading pitch…')}</p>}><Campo state={match} three/></Suspense>}</>}
   <div style={{margin:'12px 0'}}><PresidenciaEstadioAerea match={match} stadium={stadium} onRoof={onRoof}/></div>

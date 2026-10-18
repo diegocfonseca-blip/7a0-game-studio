@@ -19,6 +19,8 @@ import {jornadaDoComplexo} from './presidencia-complexo-jornada'
 import {estadioVisualValido} from './presidencia-estadio-validacao'
 import type {ControleComplexo} from './presidencia-complexo-3d'
 import {artesIdentidadeSala} from './presidencia-sala-identidade-assets'
+import {useVistaCampo} from './presidencia-campo-observacao'
+import {RitmoCampo} from './presidencia-velocidade'
 
 const Sala3D=lazy(()=>import('./presidencia-complexo-3d'))
 type SalaProps={state:CarreiraComEstadio&ConquistasCarreira;mgrId:number;president:PresidenteBaseSave;identity?:IdentidadePresidencia;onReady?:(api:ControleComplexo|null)=>void}
@@ -32,6 +34,7 @@ class SalaProtegida extends Component<{children:ReactNode;fallback:ReactNode},{f
  * available only as compatibility fallback; no wallet or character is written. */
 export function SalaMontagem(props:SalaProps){
  const {state,mgrId,president,identity,onReady}=props,allowed=usePresidentPreview(),t=useT()
+ const watching=useVistaCampo<HTMLElement>(allowed)
  const match=usePartidaNoMapa(undefined,mgrId),[failed,setFailed]=useState(false),[attempt,setAttempt]=useState(0)
  const [trophyPage,setTrophyPage]=useState(0)
  const identityArt=useMemo(()=>artesIdentidadeSala(identity),[identity?.name,identity?.crest,identity?.shirt,identity?.mascot,identity?.color])
@@ -42,7 +45,8 @@ export function SalaMontagem(props:SalaProps){
  if(stadium!==undefined&&!estadioVisualValido(stadium))return <p role="alert">{t('Não foi possível conferir as obras do estádio. Reabra sua carreira.','Could not verify stadium construction. Reopen your career.')}</p>
  const agenda=match?.context.agenda,journey=agenda?jornadaDoComplexo({agenda,match,stadiumClubId:mgrId}):undefined
  const trophies=conquistasDaCarreira(state,mgrId,getLang()==='en')
- return <section data-presidencia-sala-3d aria-label={t('Sala da Presidência','President’s office')}>
+ return <section ref={watching} data-presidencia-sala-3d aria-label={t('Sala da Presidência','President’s office')}>
+  <RitmoCampo/>
   {failed?<>{compatible}<Btn onClick={()=>{setFailed(false);setAttempt(n=>n+1)}}>{t('TENTAR ABRIR EM 3D','RETRY 3D OFFICE')}</Btn></>:<SalaProtegida key={attempt} fallback={compatible}>
    <Suspense fallback={<p role="status">{t('Abrindo sua sala…','Opening your office…')}</p>}>
     <Sala3D stadium={stadium} presidency={wallet} president={president} identityArt={identityArt} trophies={trophies} trophyPage={trophyPage} presentation="office" match={match??undefined} journey={journey} onReady={onReady} onUnavailable={()=>setFailed(true)}/>

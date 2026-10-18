@@ -1,17 +1,46 @@
-const assert=require('node:assert/strict');const {loadDependency,browserOptions}=require('./presidencia-runtime.cjs');
-(async()=>{const browser=await loadDependency('playwright').chromium.launch(browserOptions());try{const p=await browser.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(()=>localStorage.setItem('bl_lang','pt'));await p.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4196/')?r.continue():r.abort());await p.goto('http://127.0.0.1:4196/7a0-game-studio/qa-presidencia-velocidade.html');
-assert.equal(await p.getByRole('button',{name:'0,5× · Lento',exact:true}).count(),0);
-await p.getByRole('button',{name:'Abrir estádio'}).click();
-for(const [name,speed] of [['0,5× · Lento','0.5'],['0,25× · Bem lento','0.25']]){await p.getByRole('button',{name,exact:true}).click();await p.waitForFunction(v=>document.querySelector('#speed').textContent===v,speed);assert.equal(await p.getByRole('button',{name,exact:true}).getAttribute('aria-pressed'),'true')}
-await p.getByRole('button',{name:'Ritmo anterior'}).click();await p.waitForFunction(()=>document.querySelector('#speed').textContent==='4');
-await p.getByRole('button',{name:'0,25× · Bem lento',exact:true}).click();await p.getByRole('button',{name:'Sair do estádio'}).click();await p.waitForFunction(()=>document.querySelector('#speed').textContent==='4');
-assert.equal(await p.locator('fieldset').count(),0);
-await p.getByRole('button',{name:'Abrir estádio'}).click();
-await p.getByRole('button',{name:'0,5× · Lento',exact:true}).click();
-await p.getByRole('button',{name:'Ritmo anterior'}).click();
-await p.getByRole('button',{name:'Simulação 2×'}).click();
-await p.getByRole('button',{name:'0,25× · Bem lento',exact:true}).click();
-await p.getByRole('button',{name:'Sair do estádio'}).click();
-await p.waitForFunction(()=>document.querySelector('#speed').textContent==='2');
-assert.deepEqual(errors,[]);console.log('PASS: slow rates without tier/manual dependencies; latest previous speed restored and controls removed on exit.');
-}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
+const assert=require('node:assert/strict');
+const {loadDependency,browserOptions}=require('./presidencia-runtime.cjs');
+(async()=>{
+ const browser=await loadDependency('playwright').chromium.launch(browserOptions());
+ try{
+  const page=await browser.newPage(),errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>localStorage.setItem('bl_lang','pt'));
+  await page.route('**/*',route=>route.request().url().startsWith('http://127.0.0.1:4196/')?route.continue():route.abort());
+  await page.goto('http://127.0.0.1:4196/7a0-game-studio/qa-presidencia-velocidade.html');
+  const click=name=>page.getByRole('button',{name,exact:true}).click();
+  const value=async(id,expected)=>page.waitForFunction(({id,expected})=>document.querySelector('#'+id).textContent===expected,{id,expected:String(expected)});
+  assert.equal(await page.locator('fieldset').count(),0);
+  await click('Abrir estádio');await value('watching',true);await value('speed',.25);await value('calls',1);
+  // Both rates are freely selectable. Manual choices survive updates/rounds.
+  await click('0,5× · Lento');await value('speed',.5);await click('Nova rodada');await value('calls',2);await value('speed',.5);
+  await click('1× · Normal');await value('speed',1);
+  await click('Ritmo anterior (4×)');await value('speed',4);
+  await click('0,25× · Bem lento');await value('speed',.25);
+  await click('Sair do estádio');await value('watching',false);await value('speed',.25);
+  assert.equal(await page.locator('fieldset').count(),0);
+  await click('Simulação 2×');await value('speed',2);
+  await click('Abrir estádio');await value('speed',.25);
+  await click('1× · Normal');await value('speed',1);
+  // Hidden PlacarQueEncolhe ancestors do not hold the match in viewing mode.
+  await click('Ocultar ancestral');await value('watching',false);await value('speed',1);
+  await click('Simulação 2×');await value('speed',2);
+  await click('Nova rodada');await value('speed',2);
+  await click('Mostrar ancestral');await value('watching',true);await value('speed',.25);
+  // Mounting under a hidden ancestor is not a field entry until shown.
+  await click('Sair do estádio');await click('Ocultar ancestral');await click('Simulação 2×');
+  await click('Abrir estádio');await value('watching',false);await value('speed',2);
+  await click('Mostrar ancestral');await value('watching',true);await value('speed',.25);
+  // Gate disabled: never change source speed or expose these local controls.
+  await click('Sair do estádio');await click('Desligar prévia');await click('Simulação 2×');await click('Abrir estádio');
+  await value('speed',2);assert.equal(await page.locator('fieldset').count(),0);
+  // Authentication can finish after a view is already mounted. Regranting
+  // permission must initialize its rate without relying on a new DOM entry.
+  await click('Ligar prévia');await value('speed',.25);
+  await click('1× · Normal');await click('Nova rodada');await value('speed',1);
+  await click('Desligar prévia');await click('Simulação 2×');await value('speed',2);
+  await click('Ligar prévia');await value('speed',.25);
+  assert.deepEqual(errors,[]);
+  console.log('PASS: entrada0.25, duas lentas/normal livres, escolhas preservadas nas rodadas/saída, ancestral oculto sem observador, gateoff sem alterar ritmo e grant tardio com inicialização única.');
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exitCode=1});

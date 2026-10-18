@@ -6,15 +6,18 @@ export type ContextoPartidaEstadio={id:string;homeClubId?:number;awayClubId?:num
 export type ApresentacaoLanceEstadio={plan?:PlanoLanceFutebol;clock?:RelogioLance}
 export type GolEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;name:string;scorerId?:string;assist?:string;assistId?:string;minute?:number;startedAt?:number;speed?:number;phase:'shot'|'confirmed'}
 export type ChanceEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;minute:number;startedAt:number;speed?:number;outcome:'defendeu'|'trave'|'fora'|'isolou'}
-export type EstadoPartidaEstadio={visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
+export type EstadoPartidaEstadio={visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;period?:1|2;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
 export function escalaValida(players:readonly AtletaEstadio[]):boolean{
  return players.length===11&&new Set(players.map(p=>p.id)).size===11&&players.filter(p=>p.pos==='GOL').length===1&&players.every(p=>!p.fake&&p.id.trim()&&p.name.trim()&&['GOL','LAT','ZAG','MEI','ATA'].includes(p.pos))
 }
-export function atletasEmCampo(state:EstadoPartidaEstadio,incidentMinute?:number){
+export function segundoTempoPartida(state:EstadoPartidaEstadio,incidentMinute?:number){
  // A fila do placar pode terminar um lance de 45' com o relógio já em 46'.
  // Preserva os participantes e o lado desse lance até a apresentação terminar.
  const event=state.goal??state.chance
- const second=incidentMinute!==undefined?incidentMinute>45:event?.minute!==undefined?event.minute>45:(state.minute>45||(state.minute===45&&!state.paused))
+ return incidentMinute!==undefined?incidentMinute>45:event?.minute!==undefined?event.minute>45:state.period!==undefined?state.period===2:(state.minute>45||(state.minute===45&&!state.paused))
+}
+export function atletasEmCampo(state:EstadoPartidaEstadio,incidentMinute?:number){
+ const second=segundoTempoPartida(state,incidentMinute)
  const home=second&&state.context.homeSecondHalf?state.context.homeSecondHalf:state.context.home
  const away=second&&state.context.awaySecondHalf?state.context.awaySecondHalf:state.context.away
  if(!escalaValida(home)||!escalaValida(away))return []
@@ -56,7 +59,7 @@ export function quadroPartida(state:EstadoPartidaEstadio,seconds:number,shotProg
  const players=atletasEmCampo(state)
  const t=Number.isFinite(seconds)?Math.max(0,seconds):0
  const goal=state.goal,scorer=goal?players.find(p=>p.side===(goal.home?'home':'away')&&p.name===goal.name):undefined
- const goalSecondHalf=goal?.minute!==undefined?goal.minute>45:(state.minute>45||(state.minute===45&&!state.paused))
+ const goalSecondHalf=segundoTempoPartida(state)
  const targetRight=(goal?.home??true)!==goalSecondHalf
  const positioned=state.minute>0
  const actors=players.map((p,i)=>{

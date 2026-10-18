@@ -1,6 +1,20 @@
 <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module">
-import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {VelocidadeEstadio} from './src/escalacao/presidencia-velocidade.tsx';
+import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {RitmoCampo,RitmoCampoProvider} from './src/escalacao/presidencia-velocidade.tsx';
+import {useVistaCampo,useAssistindoCampo} from './src/escalacao/presidencia-campo-observacao.ts';
 const h=React.createElement;
-function Test(){const [speed,setSpeed]=useState(4),[open,setOpen]=useState(false);return h('main',null,h('button',{onClick:()=>setOpen(v=>!v)},open?'Sair do estádio':'Abrir estádio'),h('button',{onClick:()=>setSpeed(2)},'Simulação 2×'),h('output',{id:'speed'},String(speed)),open&&h(VelocidadeEstadio,{speed,onSet:setSpeed}))}
+function Vista({round}){const ref=useVistaCampo(true);return h('section',{ref},h('p',null,'Rodada ',round),h(RitmoCampo))}
+function Estado(){return h('output',{id:'watching'},String(useAssistindoCampo()))}
+function Test(){
+ const [speed,setSpeed]=useState(4),[open,setOpen]=useState(false),[hidden,setHidden]=useState(false),[round,setRound]=useState(1),[enabled,setEnabled]=useState(true),[calls,setCalls]=useState(0);
+ const change=value=>{setSpeed(value);setCalls(n=>n+1)};
+ return h(RitmoCampoProvider,{enabled,speed,onSet:change},h('main',null,
+  h('button',{onClick:()=>setOpen(v=>!v)},open?'Sair do estádio':'Abrir estádio'),
+  h('button',{onClick:()=>change(2)},'Simulação 2×'),
+  h('button',{onClick:()=>setHidden(v=>!v)},hidden?'Mostrar ancestral':'Ocultar ancestral'),
+  h('button',{onClick:()=>setRound(n=>n+1)},'Nova rodada'),
+  h('button',{onClick:()=>setEnabled(v=>!v)},enabled?'Desligar prévia':'Ligar prévia'),
+  h('output',{id:'speed'},String(speed)),h('output',{id:'calls'},String(calls)),h(Estado),
+  h('div',{style:{display:hidden?'none':undefined}},open&&h(Vista,{round}))))
+}
 createRoot(document.getElementById('root')).render(h(Test));
 </script></html>

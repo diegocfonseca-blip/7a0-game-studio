@@ -6,6 +6,10 @@ let active:Publicacao|null=null
 const listeners=new Set<()=>void>()
 const notify=()=>listeners.forEach(fn=>fn())
 const subscribe=(fn:()=>void)=>{listeners.add(fn);return()=>{listeners.delete(fn)}}
+let engine:typeof import('./presidencia-futebol-motor')|undefined
+/** A restart is physical play too; the match clock waits while the ball is
+ * retrieved and the teams take their legal positions. */
+export function reinicioPartidaPendente(id:string){return engine?.aguardandoReinicioFutebol(id)??false}
 /** Somente a apresentação privada usa esta leitura ao preparar um lance.
  * O id impede reaproveitar posições de outra partida. */
 export function partidaPublicada(id:string){return active?.state.context.id===id?active.state:null}
@@ -19,7 +23,23 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
  clock.current={id:state.context.id,seconds,sampledAt:now,running,rate}
  const frame={...state,visualClock:{seconds,sampledAt:now,running,rate}}
  // Apenas mudanças do placar/modelo notificam assinantes; câmera/zoom não cria outro motor.
- useEffect(()=>{active={owner:owner.current,state:frame};notify()})
+ useEffect(()=>{active={owner:owner.current,state:frame};engine?.quadroFutebol3D(frame,performance.now());notify()})
+ // One CPU simulation belongs to the scoreboard, not to a visible camera.
+ // It must cross half-time and process incidents even with the details closed.
+ useEffect(()=>{
+  let cancelled=false,raf=0
+  import('./presidencia-futebol-motor').then(module=>{
+   if(cancelled)return
+   engine=module
+   const draw=(now:number)=>{
+    if(cancelled||active?.owner!==owner.current)return
+    module.quadroFutebol3D(active.state,now)
+    if(active.state.visualClock?.running)raf=requestAnimationFrame(draw)
+   }
+   draw(performance.now())
+  })
+  return()=>{cancelled=true;cancelAnimationFrame(raf)}
+ },[state.context.id,running])
  useEffect(()=>{const token=owner.current;return()=>{if(active?.owner===token){active=null;notify()}}},[])
  return frame
 }

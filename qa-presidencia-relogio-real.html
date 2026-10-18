@@ -1,0 +1,30 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA local: relógio real do estádio</title><style>body{margin:0;background:#f4ecd6;font-family:system-ui}main{max-width:760px;margin:auto;padding:12px}</style></head><body><main id="root"></main><script type="module">
+import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';
+import{usePartidaNoMapa}from'./src/escalacao/presidencia-partida-sincronia.ts';
+import{RitmoCampoProvider}from'./src/escalacao/presidencia-velocidade.tsx';
+import{quadroFutebol3D}from'./src/escalacao/presidencia-futebol-motor.ts';
+const h=React.createElement,root=createRoot(document.getElementById('root'));
+const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'].map((pos,i)=>({id:s+i,name:s+i,pos}));
+window.qaClockTeam=team;window.qaClockHistory=[];window.qaClockNotifications=[];
+function Probe({id}){
+ const state=usePartidaNoMapa(id);window.qaClockState=state;
+ useEffect(()=>{if(state){const event=state.goal??state.chance;window.qaClockHistory.push({at:performance.now(),minute:state.minute,homeScore:state.homeScore,awayScore:state.awayScore,finished:state.finished,event:event?.id,phase:state.goal?.phase,clockSeconds:state.visualClock?.seconds});}},[state]);
+ return h('output',{id:'qa-clock-state',hidden:true},state?`${state.context.id}:${state.minute}:${state.homeScore}:${state.finished}`:'none');
+}
+function Harness({Card,props,initialSpeed,viewerAllowed}){
+ const[speed,setSpeed]=useState(initialSpeed),[extra,setExtra]=useState({});window.qaClockSetExtra=setExtra;window.qaClockSpeed=speed;window.qaClockSetSpeed=setSpeed;
+ const p={homeName:'Casa',awayName:'Visitante',homeColor:'#1b7a3d',awayColor:'#c2452f',youIsHome:true,enhancedCareer:true,...props,...extra,onReachHalf:()=>{window.qaClockHalftimes.push(performance.now())},roundMs:11000/speed,stadiumMatch:{id:'clock-real',homeClubId:17,awayClubId:18,home:team('h'),away:team('a'),...props.stadiumMatch,speed},onMinuteChange:minute=>{window.qaClockReady=minute>=93;window.qaClockNotifications.push({at:performance.now(),minute});}};
+ return h(RitmoCampoProvider,{enabled:viewerAllowed,speed,onSet:setSpeed},h(Card,p),h(Probe,{id:p.stadiumMatch.id}));
+}
+window.mountRealScore=async(props,initialSpeed=1,viewerAllowed=true)=>{
+ if('displayMinute'in props)throw Error('O teste de integração exige relógio real, sem displayMinute');
+ await import('./src/escalacao/screens.tsx');const{LiveScoreCard}=await import('./src/escalacao/pyramidseason.tsx');
+ window.qaClockHistory=[];window.qaClockNotifications=[];window.qaClockReady=false;window.qaClockHalftimes=[];
+ root.render(h(Harness,{key:props.roundKey,Card:LiveScoreCard,props,initialSpeed,viewerAllowed}));
+};
+window.qaClockRead=()=>{
+ const state=window.qaClockState;if(!state)return null;
+ const now=performance.now(),frame=quadroFutebol3D(state,now),event=state.goal??state.chance;
+ return{now,id:state.context.id,minute:state.minute,period:state.period,homeScore:state.homeScore,awayScore:state.awayScore,finished:state.finished,paused:state.paused,ready:window.qaClockReady,speed:window.qaClockSpeed,clockSeconds:state.visualClock?.seconds,frame:{phase:frame.phase,time:frame.time,ball:frame.ball,players:frame.players.map(p=>({key:p.key,x:p.mx,z:p.mz}))},event:event?{id:event.id,goal:!!state.goal,phase:state.goal?.phase,minute:event.minute,impactMs:event.plan?.durationMs,elapsedMs:event.clock?event.clock.elapsedMs+(event.clock.running?Math.max(0,now-event.clock.sampledAt)*event.clock.rate:0):null}:null};
+};
+</script></body></html>

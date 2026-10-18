@@ -1,5 +1,11 @@
 # Velocidades lentas no estádio — 12/10/2026
 
+> Atualização de 18/10/2026: a regra de restaurar velocidade ao sair descrita
+> abaixo foi substituída. Abrir campo, mapa ou sala seleciona 0,25× uma vez;
+> a escolha manual seguinte permanece, inclusive ao sair. As três vistas
+> oferecem 0,25×, 0,5× e Normal, sem exigir plano. Ver
+> [correção do relógio e distribuição](presidencia-sincronia-campo-20261018.md).
+
 Implementadas 0,5× (Lento) e 0,25× (Bem lento) na aba do estádio da carreira
 solo. Sem dependência de tier ou Modo Manual: disponíveis para gratuito e
 pagante quando a funcionalidade de estádio estiver acessível. O gate privado

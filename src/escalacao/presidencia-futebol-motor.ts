@@ -52,7 +52,13 @@ export class MotorFutebol {
  private lastOfficial=''
  private referee={x:0,z:10,heading:Math.PI,distance:0,speed:0}
  private lineup=''
- constructor(state:EstadoPartidaEstadio){this.syncLineup(state);this.prepareRestart('saida',{x:0,z:0},'home')}
+ private stopped=false
+ constructor(state:EstadoPartidaEstadio){
+  this.syncLineup(state);this.stopped=state.finished
+  if(state.finished){this.phase='dominio';return}
+  this.prepareRestart('saida',{x:0,z:0},(this.players.find(p=>p.side==='home'&&p.keeper)?.x??0)>.5?'away':'home')
+ }
+ get aguardandoReinicio(){return !this.stopped&&this.phase==='saida'&&!!this.restart}
  private syncLineup(state:EstadoPartidaEstadio){
   const lineup=atletasEmCampo(state),sig=lineup.map(p=>p.key+':'+p.x).join('|')
   if(sig===this.lineup)return
@@ -62,7 +68,16 @@ export class MotorFutebol {
   this.lineup=sig
   if(!this.players.some(p=>p.key===this.owner))this.owner=''
   const newHalf=this.players.find(p=>p.side==='home'&&p.keeper)?.x
-  if(oldHalf!==undefined&&newHalf!==undefined&&oldHalf!==newHalf){this.official=null;this.prepareRestart('saida',{x:0,z:0},'away')}
+  if(oldHalf!==undefined&&newHalf!==undefined&&oldHalf!==newHalf){
+   // The interval is a break in play, not 22 simultaneous runs through the
+   // centre circle. In a compressed match that crossing consumed the entire
+   // second half and froze everybody in a huddle at 93'. Resume with the new
+   // XI already in its own half, as it is at the second-half whistle.
+   this.official=null;this.recovery=null;this.ball={x:0,y:.11,z:0}
+   for(const p of this.players){p.mx=(p.x-.5)*105;p.mz=(p.y-.5)*68;p.heading=p.x<.5?Math.PI/2:-Math.PI/2;p.speed=0;p.kick=0;p.throwing=0;p.control=0;p.save=0;p.dive=0}
+   this.referee={x:0,z:10,heading:Math.PI,distance:this.referee.distance,speed:0}
+   this.prepareRestart('saida',{x:0,z:0},newHalf<.5?'home':'away')
+  }
   else if(this.keeperRelease&&releasingKeeper&&!this.players.some(p=>p.key===this.keeperRelease!.key)){
    const replacement=this.players.find(p=>p.keeper&&p.side===releasingKeeper.side)
    if(replacement){this.keeperRelease.key=replacement.key;this.owner=replacement.key;replacement.heading=releasingKeeper.heading}else this.keeperRelease=null
@@ -190,7 +205,7 @@ export class MotorFutebol {
     if(this.restart.taker===p.key){const target=this.restart.recovery?.stage==='fetch'?this.ball:this.restart.point;tx=target.x;tz=target.z}
     else if(this.phase==='saida'){tx=(p.x-.5)*105;tz=(p.y-.5)*68}
    }
-   if(this.restart&&this.restart.taker!==p.key&&this.phase!=='dominio'){
+   if(this.restart&&this.restart.taker!==p.key&&p.side!==this.restart.side&&this.phase!=='dominio'){
     const r=this.phase==='lateral'?2:9.15,spot=this.restart.point
     const dx=p.mx-spot.x,dz=p.mz-spot.z,d=Math.hypot(dx,dz)
     // Keep the destination outside too: otherwise a player who has just left
@@ -315,10 +330,15 @@ export class MotorFutebol {
   }}
  }
  sample(state:EstadoPartidaEstadio,seconds:number,now:number):QuadroFutebol{
-  this.syncLineup(state)
-  if(this.players.length!==22)return {players:[],ball:{...this.ball},phase:this.phase,referee:{...this.referee},time:this.time}
-  const target=Math.max(this.tickIndex,Math.floor(Math.max(0,seconds)*60+1e-7))
   const event=state.goal??state.chance
+  this.stopped=state.finished&&!event
+  // Reopening a completed match is a frozen view, never a newly simulated
+  // kickoff. Keep the last physical frame when one exists; a cold view keeps
+  // its valid distributed XI without sending anybody towards the ball.
+  if(!this.stopped)this.syncLineup(state)
+  if(this.players.length!==22)return {players:[],ball:{...this.ball},phase:this.phase,referee:{...this.referee},time:this.time}
+  if(this.stopped)return {players:this.players.map(p=>({...p})),ball:{...this.ball},phase:this.phase,owner:this.owner||undefined,referee:{...this.referee},time:this.time}
+  const target=Math.max(this.tickIndex,Math.floor(Math.max(0,seconds)*60+1e-7))
   if(event?.plan?.sequence){this.tickIndex=target;this.time=target*step}
   else while(this.tickIndex<target)this.tick()
   if(event&&this.official?.id!==event.id){
@@ -440,6 +460,9 @@ export class MotorFutebol {
  }
 }
 let active:{id:string;motor:MotorFutebol;state:EstadoPartidaEstadio}|undefined
+/** The match clock may hold its minute while the physical ball is retrieved
+ * and the teams take legal kickoff positions. This does not advance the motor. */
+export function aguardandoReinicioFutebol(id:string){return active?.id===id&&active.motor.aguardandoReinicio}
 export function quadroFutebol3D(state:EstadoPartidaEstadio,now:number){
  if(active?.id!==state.context.id)active={id:state.context.id,motor:new MotorFutebol(state),state}
  // React can paint the old map prop once after the scoreboard publishes a new

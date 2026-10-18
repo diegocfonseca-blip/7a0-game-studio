@@ -1,0 +1,31 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relógio local da Copa no campo</title><div id="root"></div><script type="module">
+import './src/index.css';
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+await import('./src/escalacao/screens.tsx');
+const {MyCopaMatch,posicaoCopaNoCampo}=await import('./src/escalacao/pyramidseason.tsx');
+const {usePartidaNoMapa,partidaPublicada}=await import('./src/escalacao/presidencia-partida-sincronia.ts');
+const root=createRoot(document.getElementById('root'));
+window.cupClockFrames=[];window.cupClockMinutes=[];
+function Probe({id}){
+ const state=usePartidaNoMapa(id);
+ React.useEffect(()=>{if(state)window.cupClockFrames.push({state,pos:window.cupClockPos,time:performance.now()})},[state]);
+ return React.createElement('output',{id:'cup-clock-probe',hidden:true},JSON.stringify(state));
+}
+function Fixture({props}){
+ const [pos,setPos]=React.useState(0),[speed,setSpeed]=React.useState(props.simSpeed);
+ window.cupClockPos=pos;window.setCupClockSpeed=setSpeed;
+ const report=React.useCallback((leg,minute)=>{
+  const home=leg===1?props.tie.b:props.tie.a,away=leg===1?props.tie.a:props.tie.b;
+  const id=`${props.stadiumContext.id}:leg:${leg}:${home.teamId}:${away.teamId}`;
+  window.cupClockMinutes.push({leg,minute,time:performance.now(),state:partidaPublicada(id)});
+  setPos(previous=>Math.max(previous,posicaoCopaNoCampo(leg,minute,props.tie.legGoals.length)));
+ },[props.tie.legGoals.length]);
+ const leg=Math.min(props.tie.legGoals.length-1,Math.floor(pos/90));
+ const home=leg===1?props.tie.b:props.tie.a,away=leg===1?props.tie.a:props.tie.b;
+ const id=`${props.stadiumContext.id}:leg:${leg}:${home.teamId}:${away.teamId}`;
+ return React.createElement('main',null,React.createElement(MyCopaMatch,{...props,pos,simSpeed:speed,onFieldMinute:report}),React.createElement(Probe,{id}));
+}
+window.renderCupClock=props=>root.render(React.createElement(Fixture,{key:props.stadiumContext.id,props}));
+window.positionCupClock=posicaoCopaNoCampo;
+</script></html>
