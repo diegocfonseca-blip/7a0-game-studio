@@ -163,7 +163,6 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ textAlign: 'center', minWidth: 92 }}>
             <div style={{ ...OSW, fontSize: 34, lineHeight: 1, color: INK }}>{p.rank ? `${p.rank.pos}º` : '—'}</div>
-            {p.rank && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{tr('de', 'of')} {p.rank.total.toLocaleString('pt-BR')}</div>}
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ ...h3, margin: 0 }}>📊 {tr('Ranking global da carreira', 'Global career ranking')}</p>
@@ -206,7 +205,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
               <div key={rot} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: r ? '#FFF7DA' : '#f3eee0' }}>
                 <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{rot}</div>
                 <div style={{ ...OSW, fontSize: 24, lineHeight: 1.05, color: INK }}>{r ? `${r.pos}º` : '—'}</div>
-                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{r ? tr(`${r.titulos} ${r.titulos === 1 ? 'título' : 'títulos'} · de ${r.total}`, `${r.titulos} ${r.titulos === 1 ? 'title' : 'titles'} · of ${r.total}`) : tr('sem título ainda', 'no title yet')}</div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{r ? tr(`${r.titulos} ${r.titulos === 1 ? 'título' : 'títulos'}`, `${r.titulos} ${r.titulos === 1 ? 'title' : 'titles'}`) : tr('sem título ainda', 'no title yet')}</div>
               </div>
             ))}
           </div>
