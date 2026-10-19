@@ -48,6 +48,28 @@ o outro dorme; troca no fim (SWITCH_MULTICLUBE). saf2On ganhou exceção pro bas
 DOIS clubes no mesmo assento ao subir de andar (caminho de 1 clube fica byte-idêntico). Aba 🏛️ 2º Clube no
 overlay + botão de troca na tela de fim. Reusa as ações testadas do futebol.
 
+**VARREDURA (19/10) — 3 auditorias (texto · modos futebol × basquete · home/nav/bilíngue). CONSERTADO:**
+- 🧹 **Lobby não mostra NEM aplica config de futebol no basquete** (commit `4ad2f633`): tipo de leilão
+  (Jogador/Clubes), formação 4-3-3/4-4-2 e o seletor de baralho somem no basquete; "Depois da liga" vira
+  card de PLAYOFFS. MOTOR: START_ONLINE **sanitiza o copaMode do basquete** (nunca roda Libertadores/
+  Champions/Copa do Mundo, mesmo que o game_state mande). Carreira online agora aparece no card de criar
+  sala NOVO também (antes só no modo-aba).
+- 🧹 **Textos "futebolês" fora das telas de basquete** (commit `8598e8a7`): Série D→Street League,
+  estádio/SAF→arena (o basquete não tem SAF), Patrocínio mostra o ANDAR (Street/G League/NBA) no lugar de
+  "Série D/B/A", e o aviso de "G4/zona de rebaixamento" vira "TOP 4 = subir de andar" (basquete não rebaixa).
+- 🧹 **Botão MEU ÁLBUM na home** (commit `db5ca916`): a home prometia álbum e não abria — agora abre.
+- ✅ **Bilíngue OK**: a auditoria não achou texto PT-only nas telas de basquete.
+- ✅ **Features só do futebol (Central, Coletiva, Presidente, Copas internacionais, Kings, roteiro de fim,
+  pirâmide de 4 divisões) estão TODAS bem trancadas** — o basquete nunca entra no pyramidseason.
+
+**FALTA DA VARREDURA (home build-out — precisa decisão de escopo do Diego):**
+- A **home do BidLegends** ainda é enxuta vs a do futebol: falta **conta/login, ranking, amigos, novidades,
+  salão, regras/manual e lista de várias carreiras**. Álbum e Pix já estão. Decidir COM o Diego o que o
+  basquete precisa (e como ranking/álbum se separam por esporte).
+- Textos menores que sobraram: label 'Obra no estádio' no extrato (FinancasTab, sem prop bb), "Sua escalação"
+  no reveal (→ "Seu quinteto"), "artilheiro" em 2 modais de entrar na liga, e o corpo da aba Arena ainda diz
+  "estádio" em alguns parágrafos secundários (o título já virou "arena").
+
 **FALTA / PENDENTE DE TESTE:**
 - **Teste de 2 aparelhos** da carreira ONLINE do basquete (Diego) — único jeito de validar o online.
 - **Teste em jogo** do Patrocínio e do 2º Clube offline (eu valido só até o leilão; a partir do Monte o
