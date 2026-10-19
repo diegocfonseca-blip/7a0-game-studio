@@ -98,7 +98,7 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'matheussoaresg2018@gmail.com': ['cuiudos'],
   'glaucomiranda@outlook.com': ['seven'],
   'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
-  'vittor@tidex.com.br': ['wenmilan'], // 😈 Wen Milan B (conta criada em 19/10)
+  'vittor@tidex.com.br': ['wenmilan', 'tidex'], // 😈 Wen Milan B (conta criada em 19/10) + 🤖 tema da Tidex, a empresa dele que patrocina o jogo (19/10, aprovado pelo Diego)
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {

@@ -1,3 +1,8 @@
+## 🤖 Tema da Tidex na sala (19/10) — ✅ NO AR (mockup `scripts/mockups/tema-tidex-cel.png`, "tá aprovado")
+- O dono do Wen Milan B (vittor@tidex) é dono da Tidex, patrocinadora do jogo. A conta dele tem 2 temas: 😈 Wen Milan B (o do
+  Fundador) e 🤖 Tidex (azul-marinho + turquesa, grade de IA, logo embaixo, faixa "sua marca dentro das IAs"). Vale em sala rápida e
+  Minhas Ligas. Código: `TEMAS_SALA.tidex` + `TEMAS_DA_CONTA` (temas-sala.tsx).
+
 ## 🤝 Dupla cruzada virava DOIS times (19/10, sala WUQGBH do Futpoint) — ✅ CONSERTADO
 - Relato (Matheus Barros, via Diego): campeão em dupla, não conseguiu escolher clube/convocar no Rio × São Paulo; o time aparecia
   duas vezes ("Quase nada|Quebrador d" 1º e "Quebrador d|Quase nada" 13º). Causa: os dois pediram dupla um ao outro e os dois
