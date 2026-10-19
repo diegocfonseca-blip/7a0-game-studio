@@ -109,7 +109,7 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
     a MESMA régua do futebol (`careerSlotLimit`), contada SÓ entre carreiras de basquete — ou seja, quem é grátis tem
     1 de futebol E 1 de basquete (Diego aprovou a tela em 19/10; contar separado foi decisão minha — ele pode mudar). LARGAR saiu da home (apagar = 🗑️ em dois
     toques na lista). Trava: `npm run nba-carreiras`.
-  · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
+  · ⏸️ Salão dos Batismos / Loja / Amigos: **o Diego AINDA NÃO DECIDIU (19/10)** se cada jogo terá os seus ou se são da conta. Até lá ficam como estão (os mesmos do futebol) — não mexer nem perguntar de novo; esperar ele trazer.
 
 **FALTA / PENDENTE DE TESTE:**
 - ✅ **PARTIDA RÁPIDA DO BASQUETE COM TELA DE AJUSTES (19/10)**: antes o botão começava direto (3 rivais, envelope).
