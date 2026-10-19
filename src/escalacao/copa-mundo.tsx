@@ -33,7 +33,7 @@ import { copaStats } from './copa-stats'
 import { RODADAS_GRUPO, PASSO_COPA, passoRodaBola, respiroAntes, passoComResumo } from './copa-passos'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
-import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
+import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt, GiroDaRodada } from './screens'
 import { useHasManual, stripEmoji } from './apoio'
 import { resilientWrite } from './pending'
 import { supabase } from '../lib/supabase'
@@ -1394,6 +1394,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, forte, onPriz
       </div>}
 
       {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= OITAVAS ? 'step' : undefined}>{tr('OITAVAS', 'ROUND OF 16')}</span><span aria-current={step === QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
+      {/* 📢 19/10 (Diego: "o telão… deve ser em todas as competições… Copa do Mundo"): o MESMO telão da liga, só na sala online */}
+      {online && <GiroDaRodada cinema={privateVisual} />}
       {step === SORTEIO && onlineWorldControls}
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}

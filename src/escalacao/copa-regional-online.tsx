@@ -25,7 +25,7 @@ import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, Artilheir
 import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { ChatWidget } from './screens'
+import { ChatWidget, GiroDaRodada } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
@@ -688,6 +688,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   return (
     <>
       <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
+      {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
+      <GiroDaRodada cinema />
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]

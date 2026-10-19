@@ -1,3 +1,8 @@
+## 📢 Telão (Anúncio do dia/Super Chat/pódio) em TODAS as competições do online (19/10) — ✅ NO AR
+- Pedido: *"aquele telão… deve ser em todas as competições… Copa do Mundo, Copa dos Oito, qualquer tipo de Copa, regional"*.
+- Liga e Champions já tinham. Agora também: Copa dos 8/Kings/Liberta do mata-mata (subiu pra cima dos jogos; o de baixo some na
+  copa), fase de grupos da Libertadores, Copa do Mundo da sala (`CupScreen` com `online`) e copas regionais. Componente: `GiroDaRodada`.
+
 ## 🚫 Faixa de LED verde (Vadico) tirada (19/10) — ✅ NO AR
 *"esse lugar de verde da Vadico Veículos pode tirar que não tô gostando"* → `LED_LIGADO = false` (patrocinio.ts). Some do topo de
 todas as competições (online e carreira). A Vadico continua no telão, na placa do campinho e na Champions. Voltar = `true`.

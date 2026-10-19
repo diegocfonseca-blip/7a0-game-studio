@@ -7070,6 +7070,9 @@ export function EscSeason() {
                 ritmo → conteúdo. Os mesmos comandos continuam conduzindo a sala. */}
             {cinemaPreview && copaRhythmControls}
             {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+            {/* 📢 19/10 (Diego: "o telão… deve ser em todas as competições… qualquer tipo de Copa"): na Copa dos 8 / Liberta / Kings
+                ele sobe pra cá, em cima dos jogos, igual à liga (antes ficava lá embaixo, depois do chaveamento) */}
+            {(!privateVisual || visualTab === 'jogos') && <GiroDaRodada cinema={cinemaPreview} />}
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
@@ -7329,6 +7332,7 @@ export function EscSeason() {
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         // 📢 17/10: o letreiro virou só ANÚNCIO (não mostra mais manchete) — então aparece sempre, até antes do 1º jogo
+        if (copaLive) return null // 📢 19/10: na copa o telão já aparece em cima dos jogos (não repetir aqui embaixo)
         return <GiroDaRodada news={shownNews} isCopa={copaLive} cinema={cinemaPreview} />
       })()}
 
@@ -8330,6 +8334,9 @@ export function EscLiberta() {
           {LB('32 clubes · 8 grupos de 4 · passam os 2 primeiros', '32 clubs · 8 groups of 4 · top 2 go through')}
         </p>
       </Box>}
+
+      {/* 📢 19/10 (Diego: "deve ser em todas as competições"): o MESMO telão da liga, em cima da fase de grupos */}
+      <GiroDaRodada cinema={cinemaOnline} />
 
       {/* 📺 O SEU jogo da rodada, com o placar subindo — igual a liga */}
       {meuJogo ? (() => {
