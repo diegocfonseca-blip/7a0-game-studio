@@ -115,6 +115,24 @@
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
 
+## 🎙️ COLETIVA DE IMPRENSA NA CARREIRA (19/10) — ⏳ MOCKUP ENVIADO, esperando OK
+- Contexto: ele sente que a galera está largando a carreira pelo online (números: solo caiu ~30% desde o pico de fim de
+  setembro, online ~25%; contas salvando carreira na nuvem caíram de ~750 → ~410/semana, a queda forte começa na semana de
+  05/10, quando grátis ficou com 1 ficha e sem nuvem). Ele escolheu **entrevistas**, com a condição: *"se não tiver variedade
+  não quero… se não tiver histórias e com MUITA variedade não quero"*.
+- Mockup `scripts/mockups/coletiva.png`: ① coletiva pós-jogo (1 toque ou pular, só quando TEM assunto — nunca todo jogo) com
+  3 respostas (😈 provoca · 🧊 diplomata · 🚪 desconversa) · ② resposta vira história (manchete no Martelo + efeito PEQUENO e
+  explicado: rival motivado, +renda, repórter cobra depois — dá pra desligar o efeito) · ③ 4 repórteres com personalidade
+  (Rogério Provoca · Clarice Planilha · Tião Puxa-Saco · Mila Vestiário) × ~40 situações, 3+ perguntas cada e 3+ frases por
+  resposta = ~300 textos PT+EN, sem repetir na mesma temporada · ④ Sala de imprensa: contagem por estilo, fama do presidente
+  (Polemista · Diplomata · Mudo · Sonhador · Pão-duro) e frases que marcaram; promessa feita volta como manchete.
+- Regras de ouro que já valem: nada atrasa o ritmo (tempo morto, 1 toque), nomes dos repórteres são INVENTADOS (nada de gente
+  real), textos em PT e EN.
+- Outras ideias que ofereci no mesmo dia e ficaram de fora (ele escolheu entrevista): 📞 propostas de bots pelos seus jogadores ·
+  🏟️ estadual curto antes da liga · 🎲 bastidores com escolha rápida. Vale lembrar se ele pedir "mais coisas na carreira".
+- Também ofereci (e ele disse NÃO, *"quero coisas no modo carreira"*): desafios da semana, ranking semanal da carreira, nuvem
+  pro grátis em 1 carreira. Não repropor como está.
+
 ## 👥 AMIGOS + PERFIL ("estilo Orkut", ideia do Diego 18/10) — ✅ LIBERADO PRA TODOS EM 19/10 (`AMIGOS_GERAL = true`)
 - **v2 (19/10, *"pode fazer p todos"*, mockup `scripts/mockups/amigos-todos.png`)**: abas Amigos / 🏆 Ranking dos amigos (títulos de
   sala da semana) · 📣 CHAMAR amigo online (só quando EU estou numa sala de espera; botão "👥 Chamar amigos online" no convite da
