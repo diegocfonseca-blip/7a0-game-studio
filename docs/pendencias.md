@@ -1,3 +1,9 @@
+## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR
+- Pedido: *"como eu faço p tirar e escrever novas?? Deveria aparecer no painel as três p eu remover editar ou add nova"*.
+- Vadico, K9 e Max Joias saíram do código e foram pro banco (`esc_anuncios_fixos`). No #admin, caixa "📌 Anúncios fixos · telão":
+  editar texto/link, ⬆️ subir na fila, tirar, e ➕ novo. Até 90 letras; link só https://. Quem está com o jogo aberto vê em até 30 min.
+- Se o banco não responder, o jogo mostra os 3 antigos do código (reserva). As PLACAS do campinho (logo Vadico/Max Joias) continuam no código.
+
 ## 📧 E-mail da campanha com as novidades de outubro (19/10) — ✅ NO AR (Diego: "Pode"), vale a partir do próximo disparo
 - Pedido: *"atualizamos MT coisas já… vc deveria mudar o visual do e-mail"*. O texto no ar ainda fala de Várzea/técnicos/Copa do Brasil.
 - Novo: 6 blocos só com o que está liberado pra todos (pregão aberto · Liberta/Champions/Mundial na carreira · Central Legends ·

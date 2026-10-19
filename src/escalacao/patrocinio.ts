@@ -60,6 +60,7 @@ export function patrocinioLojaOk(): boolean {
 // Vadico) moram no código e ficam até ele trocar. Leitura pequena: uma por sessão, refeita no máximo a cada 30 min (tráfego).
 type Avulso = { tipo: 'giro' | 'marca' | 'recado'; texto: string; emoji: string; inicio: number; fim: number; autor?: string } // 💬 recado (18/10): o jogador escreve, com o nome do time
 let avulsos: Avulso[] = []
+let fixos: { texto: string; cor: string; link?: string }[] | null | undefined = undefined // 📌 undefined = lendo (nada) · null = a leitura falhou (reserva do código)
 let lidoEm = 0
 let pedindo: Promise<void> | null = null
 const ouvintes = new Set<() => void>()
@@ -68,10 +69,17 @@ function carregaAvulsos(): Promise<void> {
   if (pedindo) return pedindo
   pedindo = (async () => {
     try {
-      const { data } = await supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor').gt('fim', new Date().toISOString()).order('inicio').limit(20)
+      const [{ data }, fx] = await Promise.all([
+        supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor').gt('fim', new Date().toISOString()).order('inicio').limit(20),
+        supabase.from('esc_anuncios_fixos').select('texto, link').eq('ativo', true).order('ordem').order('id').limit(12),
+      ])
+      // 📌 fixos do banco: lista vazia = o Diego tirou todos (vale vazio); erro de leitura = fica a reserva do código
+      if (!fx.error && Array.isArray(fx.data)) fixos = (fx.data as { texto: string; link: string | null }[])
+        .map(r => ({ texto: String(r.texto), cor: '#FFC400', ...(r.link && /^https:\/\//.test(r.link) ? { link: String(r.link) } : {}) }))
+      else if (fixos === undefined) fixos = null
       avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null }[])
         .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : r.tipo === 'recado' ? 'recado' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim), autor: r.autor ? String(r.autor) : undefined }) as Avulso)
-    } catch { avulsos = [] }
+    } catch { avulsos = []; if (fixos === undefined) fixos = null }
     lidoEm = Date.now(); pedindo = null
     ouvintes.forEach(f => { try { f() } catch { /* ignora */ } })
   })()
@@ -97,7 +105,9 @@ export function usePatrocinio(kind: Competicao): Patrocinio | null {
 }
 
 // 📢 ANÚNCIO DO DIA (o letreiro que era o giro da rodada): o avulso pago (24 h) passa antes do manual.
-const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // manual: fica até o Diego trocar
+// 📌 19/10 (Diego: "deveria aparecer no painel as três p eu remover editar ou add nova"): os MANUAIS agora moram no banco
+// (`esc_anuncios_fixos`, editados no #admin → "📌 Anúncios fixos"). A lista abaixo virou só RESERVA, usada quando a leitura falha.
+const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // reserva
 // 🔗 17/10 (Diego): tocar na Vadico abre a oferta do carro do anúncio no site dela. Só anúncio MANUAL leva link (o pago de 24 h é
 // texto escrito pelo comprador e vai pro ar sem ninguém olhar — link ali seria porta pra golpe).
 // 📢 MAIS ANÚNCIOS MANUAIS (17/10, Diego), passando depois da Vadico, cada um com o próprio link:
@@ -126,8 +136,11 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   const podio = usePodioPassado()
   if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true })
   if (espacosOk()) {
-    if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
-    out.push(...GIRO_MANUAIS)
+    if (fixos) out.push(...fixos)
+    else if (fixos === null) {
+      if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
+      out.push(...GIRO_MANUAIS)
+    }
   }
   return out
 }
