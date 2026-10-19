@@ -13,6 +13,14 @@
 - 🔁 **19/10, regra do Diego: é um modo INDEPENDENTE** — nada da carreira online pode mexer nas salas rápidas, Minhas Ligas ou outro
   modo online. Então a base nova é um caminho PRÓPRIO (canal e tabela só dela; cada aparelho roda o PRÓPRIO clube como na solo e o servidor
   guarda o que é de todos: calendário, resultados, leilão), e o envio das salas de hoje fica intocado.
+- ✅ **DECISÕES DO DIEGO (19/10, "ok pode começar"):**
+  · o DONO da sala manda no tempo: começa a rodada, automático/manual, velocidade, pausa. Antes de cada rodada cada um tem um tempo pra
+    mexer no time e aperta PRONTO; a partida roda igual pra todos, ao mesmo tempo. Cada um mexe SÓ no próprio clube.
+  · SALVA SOZINHO, NA HORA, NA NUVEM DO JOGO (não no celular nem na nuvem do dono): cada clube tem a "gaveta" dele no servidor, ligada à
+    CONTA de quem joga; mexeu no time → só aquela gaveta atualiza (pedaço pequeno, não o save inteiro de 1 MB). Sem botão de salvar, só
+    "Sair". Entra em qualquer aparelho (celular, PC) com a mesma conta e está tudo lá. A solo NÃO muda (continua com o botão).
+  · No dia seguinte: SÓ O DONO abre (regra da coroa). Todo mundo entra numa SALA DE ESPERA da carreira (igual Minhas Ligas), vê quem
+    chegou, e o dono aperta "▶️ Continuar carreira". Quem faltou continua com o clube guardado e joga com a última escalação.
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
