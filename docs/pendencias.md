@@ -1,4 +1,4 @@
-## 📧 E-mail da campanha com as novidades de outubro (19/10) — ⏳ PRÉVIA ENVIADA, esperando OK do Diego
+## 📧 E-mail da campanha com as novidades de outubro (19/10) — ✅ NO AR (Diego: "Pode"), vale a partir do próximo disparo
 - Pedido: *"atualizamos MT coisas já… vc deveria mudar o visual do e-mail"*. O texto no ar ainda fala de Várzea/técnicos/Copa do Brasil.
 - Novo: 6 blocos só com o que está liberado pra todos (pregão aberto · Liberta/Champions/Mundial na carreira · Central Legends ·
   SAF 2º clube + rivais com banco · Champions de 36 + leilão de clubes · Amigos + medalha da semana), assunto novo.
