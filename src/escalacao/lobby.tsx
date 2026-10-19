@@ -39,7 +39,8 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
+import { getSport, useSport, usePregaoAberto, useAmigos, useLigaDraftLiberada } from './sport'
+import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
@@ -811,6 +812,11 @@ export function EscLobby() {
   // Pra voltar ao que era: `true` aqui.
   const LIGA_SO_LENDA_ENTRA = false
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
+  // 📋 LIGA DRAFT (19/10, só a conta do Diego): por baixo é uma liga do Minhas Ligas (`roomMode === 'liga'`) com a marca
+  // `ligaDraftSel` — assim a casa da turma (senha, dia/hora, troféus, dono fixo) vem inteira, sem caminho novo.
+  const draftOn = useLigaDraftLiberada()
+  const [ligaDraftSel, setLigaDraftSel] = useState(false)
+  const ehDraft = draftOn && ligaDraftSel
   const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
   const [verAmigos, setVerAmigos] = useState(false) // 👥 19/10: "Chamar amigos" na sala de espera abre a lista com 📣 CHAMAR
@@ -1630,6 +1636,9 @@ export function EscLobby() {
         ? (((gs as GS & { seasonNo?: number })?.seasonNo ?? 0) + ((gs as GS & { ligaRepeteTemporada?: boolean })?.ligaRepeteTemporada ? 0 : 1)) || 1
         : undefined,
       liga: gs?.mode === 'liga', // 🏆 o estado passa a saber que é Minhas Ligas (13/09)
+      // 📋 LIGA DRAFT: os elencos da partida anterior voltam (o reducer só usa se TODO MUNDO já tinha time)
+      ligaDraft: !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft,
+      draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
     })
     return true
   }
@@ -1827,7 +1836,7 @@ export function EscLobby() {
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
     // temporada. O campo fica no quadro da liga, lá na criação.
-    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? 'League' : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? 'Liga' : 'Sala'} do ${nameOf()}`))
+    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
@@ -1901,7 +1910,9 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
+      // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
+      ...(liga && ehDraft ? { ligaDraft: true, deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1988,7 +1999,7 @@ export function EscLobby() {
     // 🏟️ 12/10: + `ls_copa2` (estadual / Copa do Mundo depois da liga) no degrau mais alto — sem ela a sala
     // aparecia como "só liga" (Diego: *"criei uma sala do Rio SP e apareceu só Liga"*).
     if (!semColunaPregaoAb) {
-      const rp = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live, gcopa2:ls_copa2, gpregao:ls_pregao`)
+      const rp = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live, gcopa2:ls_copa2, gpregao:ls_pregao, gdraft:ls_draft`) // 📋 19/10: + ls_draft (a Liga Draft some da lista)
       if (rp.error) semColunaPregaoAb = true
       else rooms = rp.data as unknown[]
     }
@@ -2013,8 +2024,9 @@ export function EscLobby() {
       else rooms = r1.data as unknown[]
     }
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null }
-    const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null; gdraft?: string | null }
+    // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
+    const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).filter(r => r.gdraft !== 'true').map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
       game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined, pregaoAberto: r.gpregao === 'true' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as GS,
     }))
@@ -3142,9 +3154,10 @@ export function EscLobby() {
         // vocês vão JOGAR", e a Copa não é um jeito de jogar — é o que acontece
         // DEPOIS da liga, igual à Copa dos 8 e à Libertadores. O lugar dela é o
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
-        const TODOS_MODOS: { v: typeof roomMode; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
+        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, selo: tr('👑 LENDA', '👑 LEGEND') },
+          ...(draftOn ? [{ v: 'liga' as const, draft: true, ic: '📋', nome: 'Liga Draft', frase: tr('Todo mundo começa fraco. A cada temporada, 1 jogador no draft.', 'Everyone starts weak. Every season, 1 player in the draft.'), on: ligaOn, selo: tr('NOVO', 'NEW') }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true },
         ]
@@ -3290,7 +3303,7 @@ export function EscLobby() {
               </p>
               <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">{tr('Escolhe um. O resto já está no ponto.', 'Pick one. The rest is ready to go.')}</p>
               {MODOS.map(m => {
-                const sel = roomMode === m.v
+                const sel = roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft) // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
                 // teste, então pra ele o cartão continua clicável — mas leva o selo,
                 // porque ele pediu pra ver a tela como quem não pode jogar
@@ -3301,7 +3314,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button key={m.v} onClick={() => setRoomMode(m.v)}
+                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => { setRoomMode(m.v); setLigaDraftSel(!!m.draft) }}
                     className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
                     style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
                     <span style={{ fontSize: 24 }}>{m.ic}</span>
@@ -3319,7 +3332,7 @@ export function EscLobby() {
               })}
               {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
               <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-1" style={{ background: 'rgba(0,0,0,.3)' }}>
-                <p className="text-white/65 text-[11px] font-bold leading-snug">{EXPLICA[roomMode]}</p>
+                <p className="text-white/65 text-[11px] font-bold leading-snug">{ehDraft && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : EXPLICA[roomMode]}</p>
                 {MODOS.find(m => m.v === roomMode)?.emTeste && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
                     {getLang() === 'en' ? <>🔜 Still under construction — <b>creating</b> this mode unlocks soon. Keep an eye on the news!</> : <>🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!</>}
@@ -3391,7 +3404,7 @@ export function EscLobby() {
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
                 lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
-            {!isCareer && roomMode !== 'mundo' && (
+            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -3413,7 +3426,7 @@ export function EscLobby() {
                 rápidos e minhas ligas"). O padrão é sempre Jogador. `CLUBES_GERAL` segue sendo o
                 interruptor: desligado, a opção aparece com NOVO mas travada.
                 Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido. */}
-            {(roomMode === 'rapido' || roomMode === 'liga') && (
+            {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga') && (
               <SegField label={tr('Tipo de leilão', 'Auction type')}>
                 <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
                   travados={clubesOn ? [] : ['true']} /> {/* 🏷️ 12/10: selo NOVO tirado (ordem do Diego) */}
@@ -3430,6 +3443,16 @@ export function EscLobby() {
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho fixo: Brasil + Europa', '🌎 Fixed deck: Brazil + Europe')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.', 'Career uses both together (~700 names) to fill the 80 teams of the 4 divisions.')}</p>
+              </div>
+            ) : (ehDraft && roomMode === 'liga') ? (
+              // 📋 LIGA DRAFT: tipo, baralho e categoria já vêm prontos (mockup aprovado, caixa "Já vem pronto")
+              <div className="border-[2.5px] border-black rounded-xl p-2.5 space-y-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('📋 Já vem pronto', '📋 Already set')}</p>
+                <p className="text-white/70 text-[10.5px] font-bold leading-snug">🃏 {tr('Leilão de jogador (sem Clubes)', 'Player auction (no Clubs)')}</p>
+                <p className="text-white/70 text-[10.5px] font-bold leading-snug">🌎 {tr('Baralho Todos (Brasil + Europa + Mundo)', 'All decks (Brazil + Europe + World)')}</p>
+                <p className="text-white/70 text-[10.5px] font-bold leading-snug">🪵 {tr('1ª temporada só com profissional e bom — ninguém começa com craque', 'Season 1 only with ex-pros and good players — nobody starts with a star')}</p>
+                <p className="text-white/70 text-[10.5px] font-bold leading-snug">📋 {tr('Entre as temporadas: draft, 1 jogador por técnico, de todo o jogo · 60s pra escolher · ordem da tabela', 'Between seasons: draft, 1 player per manager, from the whole game · 60s to pick · table order')}</p>
+                <p className="text-white/70 text-[10.5px] font-bold leading-snug">☝️ {tr('Cada jogador é único na liga', 'Each player is unique in the league')}</p>
               </div>
             ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes) ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -3554,6 +3577,13 @@ export function EscLobby() {
                   </p>
                 </SegField>
                 </>
+              ) : (ehDraft && roomMode === 'liga') ? (
+                <SegField label={tr('Depois da liga', 'After the league')}>
+                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 A liga · depois, 📋 a noite do draft', '📊 The league · then 📋 draft night')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Sem Copa: acabou a tabela, vem o draft e a próxima temporada.', 'No Cup: the table ends, then the draft and the next season.')}</p>
+                  </div>
+                </SegField>
               ) : (
                 <SegField label={tr('Depois da liga', 'After the league')}>
                   {/* 🌎 A Libertadores é a TERCEIRA opção — e nunca vem junto com a

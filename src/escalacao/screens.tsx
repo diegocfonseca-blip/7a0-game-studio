@@ -10483,6 +10483,18 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     }
     dispatch({ type: 'REPLAY_SEASON' })
   }
+  // 📋 LIGA DRAFT (19/10): no fim da temporada não tem "mesmo time × novo leilão" — tem a NOITE DO DRAFT. Mesma régua do
+  // começar: sozinho não abre (volta pra espera) e quem saiu de vez é tirado antes (fantasma não segura a fila do draft).
+  const abrirDraft = async () => {
+    const { data } = await supabase.from('room_players').select('player_index, user_id').eq('room_id', state.roomId)
+    if (data && new Set((data as { user_id: string }[]).map(p => p.user_id)).size < 2) { await vaiPraEsperaSozinho(); return }
+    if (data) {
+      const ativos = new Set((data as { player_index: number }[]).map(p => p.player_index))
+      for (const m of state.managers.filter(m => m.isHuman && m.id !== youId)) if (!ativos.has(m.id)) kickPlayer(m.id)
+      await new Promise(r => setTimeout(r, 120))
+    }
+    dispatch({ type: 'DRAFT_ABRIR' })
+  }
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
   // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
   // convidados seguem via SYNC_STATE. Fallback seguro: qualquer erro → fluxo
@@ -10641,7 +10653,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                   {/* status: saiu · voto de cada um (▶️/🔨) · ainda não votou. Host não vota (decide). */}
                   {(() => {
                     if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>{V('🚪 saiu', '🚪 left')}</span>
-                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: onlineNow ? '#166534' : '#92600A' }}>{onlineNow ? V('🟢 na sala', '🟢 in the room') : V('🟡 reconectando', '🟡 reconnecting')}</span>
+                    if (m.id === hostId || state.ligaDraft) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: onlineNow ? '#166534' : '#92600A' }}>{onlineNow ? V('🟢 na sala', '🟢 in the room') : V('🟡 reconectando', '🟡 reconnecting')}</span>
                     const v = votes[m.id]
                     return v
                       ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? V('✅ ▶️ mesmo time', '✅ ▶️ same team') : V('✅ 🔨 novo leilão', '✅ 🔨 new auction')}</span>
@@ -10662,9 +10674,9 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         </div>
       ) : isHost ? (
         <>
-          <p className="text-center text-xs font-bold text-white/85">{enV ? <>Keep the <b>same team</b> or open a <b>new auction</b>? You (host) decide 👇</> : <>Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</>}</p>
+          <p className="text-center text-xs font-bold text-white/85">{state.ligaDraft ? V('📋 A temporada acabou. Você (dono) abre a noite do draft 👇', '📋 The season is over. You (owner) open draft night 👇') : enV ? <>Keep the <b>same team</b> or open a <b>new auction</b>? You (host) decide 👇</> : <>Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</>}</p>
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
-          {guests.length > 0 && (
+          {guests.length > 0 && !state.ligaDraft && (
             <div className="online-vote-repeat space-y-1.5">
               {guests.map(m => { const v = votes[m.id]; const here = members.has(m.id); const onlineNow = connected.has(m.id); return (
                 <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
@@ -10677,7 +10689,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
               <p className="text-center text-[11px] font-black text-white/75" style={OSWALD}>{nVoted}/{guests.length} {V('prontos', 'ready')} · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
-          {pend.length > 0 && (
+          {pend.length > 0 && !state.ligaDraft && (
             <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{enV ? `⏳ Waiting for ${pend.map(m => m.teamName).join(', ')} to vote…` : `⏳ Aguardando ${pend.map(m => m.teamName).join(', ')} votar${pend.length > 1 ? 'em' : ''}…`}</p>
           )}
           {partnerPending && (
@@ -10687,10 +10699,15 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             <p className="text-center text-[12px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{V('🚫 Você ficou sozinho na sala. Pra jogar de novo no online precisa de pelo menos 2 pessoas.', '🚫 You are alone in the room. Playing again online needs at least 2 people.')}</p>
             <Btn onClick={() => void vaiPraEsperaSozinho()} bg={GOLD} className="w-full text-lg"><span>{V('📣 Ir pra sala de espera chamar gente', '📣 Go to the waiting room and invite people')}</span></Btn>
           </> : <>
+          {state.ligaDraft ? <>
+            <Btn onClick={() => void abrirDraft()} bg={GREEN} className="w-full text-lg"><span className="text-white">{V('📋 Abrir a noite do draft', '📋 Open draft night')}</span></Btn>
+            <p className="text-center text-[10.5px] font-bold text-white/80">{V('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Depois começa a próxima temporada.', 'Each manager picks 1 player from the whole game. The champion picks first and every pick is announced to the whole room. Then the next season starts.')}</p>
+          </> : <>
           <Btn onClick={() => podeComecarDireto ? startMesmo() : setAskStart('mesmo')} bg={podeComecarDireto ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? 'text-white' : 'text-black/50'}>{podeComecarDireto ? '▶️' : '🔒'} {V('Começar (mesmo time)', 'Start (same team)')}</span></Btn>
           <Btn onClick={() => podeComecarDireto ? startLeilao() : setAskStart('leilao')} bg={podeComecarDireto ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? '' : 'text-black/50'}>{podeComecarDireto ? '🔨' : '🔒'} {V('Abrir novo leilão', 'Open a new auction')}</span></Btn>
           </>}
-          {!podeComecarDireto && !sozinho && (
+          </>}
+          {!podeComecarDireto && !sozinho && !state.ligaDraft && (
             <p className="text-center text-[10px] font-bold text-white/70">{V('O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.', 'The start unlocks once everyone has voted — or tap a button to decide what to do.')}</p>
           )}
           {/* 📣 CHAMAR MAIS GENTE (13/09 — liga do Bruno): a turma terminou a temporada e
@@ -10710,6 +10727,12 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         </>
       ) : (
         <>
+          {state.ligaDraft ? (
+            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
+              <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{V('📋 Agora vem a NOITE DO DRAFT', '📋 Next up: DRAFT NIGHT')}</p>
+              <p className="text-[11px] font-bold text-black/65">{V('O dono abre quando a galera estiver aqui. Cada um pega 1 jogador de todo o jogo, na ordem da tabela.', 'The owner opens it when the crew is here. Everyone picks 1 player from the whole game, in table order.')}</p>
+            </div>
+          ) : <>
           <p className="text-center text-xs font-bold text-white/85">{V('Vote no que você quer — o host começa quando decidir.', 'Vote for what you want — the host starts when they decide.')}</p>
           <div className="flex gap-2">
             {voteBtn('mesmo', V('▶️ Mesmo time', '▶️ Same team'), GREEN, '#fff')}
@@ -10724,6 +10747,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             <p className="text-center text-sm font-black" style={{ color: '#FFDD70', ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{V('👆 Toque no seu voto pra ficar PRONTO!', '👆 Tap your vote to be READY!')}</p>
           )}
           {/* explica a espera quando um campeão (às vezes o próprio host) tá pegando a carta */}
+          </>}
           {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>{V('🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!', '🏆 A champion is grabbing their card — the host starts right after. Hang tight!')}</p>}
         </>
       )}

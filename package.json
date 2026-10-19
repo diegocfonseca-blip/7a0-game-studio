@@ -94,6 +94,7 @@
     "kings-regras": "npx tsx scripts/testa-kings-regras.mts",
     "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts",
     "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts",
+    "liga-draft": "npx tsx scripts/testa-liga-draft.mts",
     "master-historia": "npx tsx scripts/testa-master-historia.mts",
     "coletiva": "npx tsx scripts/testa-coletiva.mts",
     "artilheiro-premios": "npx tsx scripts/testa-artilheiro-premios.mts"

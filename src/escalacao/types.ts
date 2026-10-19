@@ -638,6 +638,7 @@ export type Screen =
   | 'season'
   | 'liberta' // 🌎 fase de grupos da Libertadores (o mata-mata dela roda na 'season')
   | 'champions' // ⭐ a TABELA ÚNICA de 36 da Champions (o repescão e o mata-mata rodam na 'season')
+  | 'draft' // 📋 a noite do draft da Liga Draft (entre uma temporada e outra)
   | 'end'
   | 'album'
   | 'ranking'
@@ -875,6 +876,11 @@ export interface EscState {
   // passa a coroa ao sair, e o "📣 Chamar mais gente" só existe nela (ordem do Diego:
   // "é apenas Minhas Ligas e não modo rápido online").
   ligaMode?: boolean
+  // 📋 LIGA DRAFT (19/10, só a conta do Diego): liga do "Minhas Ligas" que começa com time fraco e, entre as temporadas,
+  // abre a noite do draft (1 jogador por técnico, de todo o jogo, campeão primeiro). Regras em `liga-draft.ts`.
+  ligaDraft?: boolean
+  draft?: import('./liga-draft').DraftEstado | null
+  draftFeito?: number // a temporada cujo draft já aconteceu (não abre duas vezes)
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
   // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
   bafoOn?: boolean

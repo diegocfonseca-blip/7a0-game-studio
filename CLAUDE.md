@@ -907,6 +907,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **👥 AMIGOS (19/10, liberado pra todos): SEM CHAT 1:1 e ENTRAR SÓ EM SALA QUE ESPERA.** *"tenho uma comunidade no zap"* → a
   conversa é lá (botão da comunidade). *"Entrar só dá se a sala tiver aberta… se já iniciou não dá"*. Rival = 1 por pessoa, só
   zoeira. Avisos por leitura a cada 60s (nada de canal). Detalhe em `docs/pendencias.md`.
+- **📋 LIGA DRAFT (19/10, ideia DELE — PES 19 com os amigos): modo próprio ao lado de Rápido/Minhas ligas/Carreira/Bafo.**
+  Começa todo mundo fraco (leilão só profissional e bom, no baralho Todos, SEM campo de terra); entre as temporadas, a noite do
+  draft: **1 jogador por técnico, de TODOS do jogo, campeão escolhe primeiro, 60s**, cada jogador **único na liga** (pelo nome).
+  O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
+  carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).

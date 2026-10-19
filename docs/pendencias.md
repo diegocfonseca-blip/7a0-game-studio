@@ -9473,3 +9473,11 @@ Lembrança dele do PES 19 com os amigos: *"tinha só um Neymar pra todo mundo…
 - Anúncio com suspense (pedido dele: *"o suspense tem q ser grande"*): pistas a cada 2s — posição → cor da categoria → país+década com as cores do clube → vira a carta. `scripts/mockup-draft-anuncio.mjs` → `scripts/mockups/draft-anuncio.png`.
 - A carta que vira é a CARTA REAL do jogo (`CollectibleCard`: lenda com avatar, craque prata com a inicial) — pedido dele: *"o resultado tem q ser a carta real do jogador"*. No mockup, cartas de verdade do baralho (Romário Vasco 2000, Thiago Silva Fluminense 2008, Alex Muralha Flamengo 2017).
 - 🔁 Virou MODO PRÓPRIO "📋 Liga Draft" (ao lado de Rápido/Minhas ligas/Carreira/Bafo), que fica de pé igual Minhas Ligas. Criar: nome + senha + jeito do lance (Envelope/Tocaia/Pregão aberto). Fixo: só jogador (sem Clubes), baralho Todos, 1ª temporada só profissional e bom, campo normal. Mockup `scripts/mockup-draft-criar.mjs` → `scripts/mockups/draft-criar.png`.
+- ✅ **PUBLICADO 19/10 SÓ NA CONTA DO DIEGO** (*"pode publicar só pro meu usuário… ninguém pode ver"*). Trava `LIGA_DRAFT_GERAL = false` +
+  `LIGA_DRAFT_TESTERS` (sport.ts). Quem ele chamar com código + senha entra e joga; a sala NÃO aparece na lista de salas abertas
+  (coluna `ls_draft`, migration `20261019200000_ls_draft.sql`). Código: `liga-draft.ts` (regras), `liga-draft-tela.tsx` (tela),
+  DRAFT_ABRIR/ESCOLHER/TICK no store, botão "📋 Abrir a noite do draft" no fim da temporada. Trava: `npm run liga-draft`.
+  Bancada de print: `scripts/teste-draft/` (`DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npx vite`, abrir `/scripts/teste-draft/?cena=revela&t=5000`).
+  Decisões MINHAS (confirmar com ele no 1º teste): **bots não escolhem no draft** (só gente) · quem sai do time fica livre na liga ·
+  sem Copa (só a liga) · solo (sem duplas) · se entrar gente nova (ou alguém sair) a liga recomeça no leilão fraco (troféus ficam).
+  Pra liberar geral: `LIGA_DRAFT_GERAL = true` + linha em `novidades.ts`.
