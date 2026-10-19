@@ -141,6 +141,14 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   **tema do Fundador Wen Milan B** (commit `7ac20672`, `temas-sala.tsx`): quando a conta do dono (vittor@tidex.com.br) existir,
   `git cherry-pick 7ac20672` (ou refazer pelo padrão `temaFundador`) junto com o batismo. Não se perdeu nada da main.
 
+## 🗳️ PRESIDENTE VIRA POLÍTICO (19/10) — 💛 ELE GOSTOU (*"gostei"*), mockup ainda não feito
+- Pedido de origem: *"história da vida do presidente pessoal e coisas no jogo pra vida dele pessoal"* + *"me surpreenda"*.
+- Escada: Vereador (verba pro estádio) → Deputado (lei de incentivo = patrocínio extra) → Presidente da Federação (sede da final da
+  Copa / horário do clássico) → Presidente da CBF (Supercopa no seu estádio, entrega o troféu) → Presidente da FIFA (Copa do Mundo no
+  seu estádio, o "zerei"). Eleição pelo que fez (títulos, caixa, fama da coletiva: Polemista = povão, Diplomata = cartolas), santinho com
+  o boneco, debate contra o presidente do arquirrival, apuração ao vivo. Risco: CPI (promessa quebrada, caixa vermelho, polêmica) com 1
+  toque (nega/acordo/culpa o técnico); perde o mandato, nunca a carreira. Poder = regra explícita (nada de efeito escondido).
+
 ## 🧠 IDEIAS PRA CARREIRA (19/10, depois da coletiva) — ❌ NENHUMA APROVADA (*"não gostei de nada… tá foda"*)
 - Ele quer **"algo mais real, igual vida real de futebol, na qual o usuário é presidente do time"**. Recusou TODAS, em 4 rodadas:
   propostas de bot pelos seus jogadores · estadual no começo da temporada · bastidores com escolha rápida · entrevista do jogador ·
