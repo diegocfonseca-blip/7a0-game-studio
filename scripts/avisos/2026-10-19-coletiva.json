@@ -1,0 +1,21 @@
+{
+  "data": "19 de outubro de 2026",
+  "titulo": "Chegou a coletiva de imprensa no Modo Carreira",
+  "destaque": {
+    "passos": [
+      { "emoji": "🎙️", "titulo": "Acabou o jogo", "sub": "o repórter pergunta" },
+      { "emoji": "👆", "titulo": "Um toque", "sub": "provoca · diplomata · desconversa" },
+      { "emoji": "📰", "titulo": "Vira história", "sub": "manchete, efeito e cobrança" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Depois de jogos **com assunto** (clássico, goleada, 5 sem vencer, Copa, caixa…), um repórter aparece no tempo morto. Você responde com **um toque** ou pula. **Nunca segura o jogo.**" },
+    { "tag": "novidade", "texto": "São **4 repórteres** com mania própria (o provocador, a do dinheiro, o puxa-saco e a dos bastidores), **36 situações** e **mais de 600 frases** — a mesma não repete na temporada." },
+    { "tag": "lenda", "texto": "A resposta vira **manchete no Martelo** e tem **efeito pequeno e explicado**: rival motivado no clássico, torcida em festa (+bilheteria) ou a imprensa cobrando depois." },
+    { "tag": "novidade", "texto": "🔥 **Arquirrival**: agora a carreira sabe quem é o seu rival de verdade, com retrospecto. É contra ele que a coletiva fala em **clássico**. Troca só na virada da temporada." },
+    { "tag": "regra", "texto": "**Promessa feita volta cobrada** no jornal do fim da temporada, e o presidente ganha **fama**: Polemista, Diplomata, Escorregadio, Mudo, Sonhador ou Pão-duro. Pulou 3 seguidas? \"Presidente foge da imprensa\"." }
+  ],
+  "rodape": "Já está no ar no Modo Carreira!",
+  "rodapeSub": "Abra a Central Legends: o quadro 🎙️ Imprensa mostra sua fama e a Sala de imprensa.",
+  "saida": "scripts/posts/aviso-2026-10-19-coletiva.png"
+}
