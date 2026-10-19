@@ -7926,18 +7926,17 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
   const { state, dispatch } = useEsc()
   const en = getLang() === 'en'
   const L = (pt: string, e: string) => en ? e : pt
-  const [sub, setSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio')
+  const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio'>('estadio')
   const youId = state.managers[state.youIdx]?.id ?? state.youIdx
   const coins = state.careerCoins?.[youId] ?? 0
   const myCards = state.empresarioCards ?? []
   const myLedger = state.careerLedger ?? []
-  // 🏛️ 2º Clube do basquete fica pra uma próxima fatia: no futebol ele hoje NASCE da
-  // SAF (SAF2), e o basquete não tem SAF — e o ciclo de vida (comprar → dormir →
-  // trocar comando entre temporadas) ainda não está ligado no avanço de temporada do
-  // basquete. Botão só entra quando funcionar inteiro (regra #3 do Diego: nada de
-  // estado quebrado). Por isso aqui vão só as 3 abas que funcionam 100%.
+  // 👕 patrocínio: o MESMO Patrocinador Master do futebol (4 papéis, meta, renovação por
+  // ligação) — a marca paga pela DIVISÃO do andar (tierDivKey já está em careerPlacements).
+  const div = (state.careerPlacements?.[`m${youId}`] ?? 'D') as string
   const tabs: [typeof sub, string, string][] = [
     ['estadio', '🏟️', L('Arena', 'Arena')],
+    ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
     ['financas', '💰', L('Finanças', 'Finances')],
     ['escritorio', '💼', L('Agência', 'Agency')],
   ]
@@ -7957,6 +7956,17 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
           {sub === 'escritorio' ? (
             <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb />
+          ) : sub === 'patrocinio' ? (
+            // 👕 Patrocinador Master do basquete: mesmos 4 papéis do futebol, pagando pelo
+            // ANDAR (Street=D não tem marca; G League=B e NBA=A pagam). intl=false (o basquete
+            // não tem carreira internacional). A marca cai no caixa na virada (applyMasterHistoria).
+            <div style={{ paddingTop: 8 }}>
+              <MasterBanner div={div} seasonNo={state.seasonNo ?? 1} contrato={state.careerMaster?.[youId]}
+                seed={state.seed} mgrId={youId} intl={false}
+                onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
+                onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
+                onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
+            </div>
           ) : sub === 'financas' ? (
             <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
           ) : (
