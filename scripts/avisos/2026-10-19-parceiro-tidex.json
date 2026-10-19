@@ -1,0 +1,17 @@
+{
+  "data": "🤝 Parceiro do Leilão Legends · 19 de outubro de 2026",
+  "titulo": "Tidex: sua marca dentro das IAs 🤖",
+  "destaque": {
+    "mascote": "scripts/parceiros/tidex-faixa.png",
+    "nome": "Sua marca no ChatGPT, no Claude e em outras IAs",
+    "linha": "marketing · sites · presença nas IAs"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Quando alguém pergunta pro **ChatGPT** \"qual o melhor [seu negócio] na minha cidade\", a IA responde **com ou sem a sua marca**. A **Tidex** ajuda a sua empresa a **aparecer no ChatGPT, no Claude e em outras IAs**." },
+    { "tag": "melhoria", "texto": "**Diagnóstico**: eles medem como as IAs enxergam a sua marca hoje, dão uma **nota de 0 a 10** e mostram **o que fazer pra melhorar**." },
+    { "tag": "apoio", "texto": "Também fazem **marketing** e **sites**. Tem empresa, loja ou serviço? **Chama a Tidex.**" }
+  ],
+  "rodape": "🌐 tidex.com.br · app.tidex.com.br",
+  "rodapeSub": "Obrigado, Tidex, por fortalecer o Leilão Legends 💛",
+  "saida": "scripts/posts/aviso-2026-10-19-parceiro-tidex.png"
+}
