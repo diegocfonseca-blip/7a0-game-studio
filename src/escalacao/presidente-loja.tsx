@@ -13,8 +13,9 @@ import { PresidenteCamadas } from './presidente-camadas'
 import { camadasDoPresidente } from './presidente-aparencia'
 import { sugestaoPresidente, presidenteCadastrado } from './presidencia-entrada-model'
 import { aguardarGravacao } from './presidente-gravacao'
-import { presidenteContaLiberado, salvarPresidenteConta, usePlanoConta, usePresidenteConta } from './presidente-conta'
-import { motivoTrava, podeSalvarPresidente } from './presidente-plano'
+import { getPosseConta, presidenteContaLiberado, salvarPresidenteConta, usePosseConta, usePresidenteConta } from './presidente-conta'
+import { podeVestirComPosse, temBoneco } from './presidente-avulsas'
+import { aparenciaInicial, aparenciaModular } from './presidente-aparencia'
 import type { PresidenteBaseSave } from './presidencia-carreira'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
@@ -23,10 +24,10 @@ const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 /** o cartão "Meu presidente" da Loja (só pra conta liberada) */
 export function MeuPresidenteLoja() {
   const t = useT()
-  const conta = usePresidenteConta(), plano = usePlanoConta()
+  const conta = usePresidenteConta(), posse = usePosseConta(), boneco = temBoneco(posse)
   const [editando, setEditando] = useState(false)
   if (!presidenteContaLiberado()) return null
-  const v = conta.value, trava = motivoTrava(plano)
+  const v = conta.value
   const card: React.CSSProperties = { background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, display: 'flex', gap: 12, alignItems: 'center' }
   return <>
     <h2 style={{ ...OSW, fontSize: 19, textTransform: 'uppercase', margin: '18px 0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
@@ -41,12 +42,12 @@ export function MeuPresidenteLoja() {
         <small style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.35, display: 'block', color: 'rgba(12,12,12,.7)' }}>
           {conta.status === 'carregando' ? t('Carregando…', 'Loading…')
             : v ? t('É você em todo canto do jogo: sala, chat, pódio e jornal. Troque roupa, cabelo e barba quando quiser.', 'It’s you everywhere in the game: room, chat, podium and newspaper. Change outfit, hair and beard whenever you like.')
-            : trava ? t(...trava)
+            : !boneco ? t('🛍️ Compre sua primeira roupa e ganhe seu presidente: careca, do seu tom de pele. Depois é só ir montando.', '🛍️ Buy your first outfit and get your president: bald, in your skin tone. Then keep building it up.')
             : t('Pele, cabelo, barba e roupas do seu plano. Fica salvo na sua conta e vale pra carreira e pro online.', 'Skin, hair, beard and your plan’s outfits. Saved on your account, for career and online.')}
         </small>
       </div>
-      <button onClick={() => setEditando(true)} style={{ ...OSW, fontSize: 14, background: v ? '#fff' : podeSalvarPresidente(plano) ? GREEN : GOLD, color: v ? INK : podeSalvarPresidente(plano) ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 10px', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap', cursor: 'pointer' }}>
-        {v ? t('EDITAR', 'EDIT') : podeSalvarPresidente(plano) ? t('CRIAR', 'CREATE') : t('VER', 'VIEW')}
+      <button onClick={() => setEditando(true)} style={{ ...OSW, fontSize: 14, background: v ? '#fff' : boneco ? GREEN : GOLD, color: v ? INK : boneco ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 10px', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap', cursor: 'pointer' }}>
+        {v ? t('EDITAR', 'EDIT') : boneco ? t('CRIAR', 'CREATE') : t('MONTAR', 'BUILD')}
       </button>
     </div>
     {editando && <PresidenteContaEditor saved={v} onClose={() => setEditando(false)} />}
@@ -56,7 +57,14 @@ export function MeuPresidenteLoja() {
 /** o editor em tela cheia, gravando na CONTA */
 function PresidenteContaEditor({ saved, onClose }: { saved: PresidenteBaseSave | null; onClose: () => void }) {
   const t = useT()
-  const [draft, setDraft] = useState<PresidenteBaseSave>(() => sugestaoPresidente(saved ?? undefined))
+  // 🆓 sem plano: o boneco que vem com a 1ª roupa é CARECA e sem barba (19/10) — o rascunho já nasce assim
+  const [draft, setDraft] = useState<PresidenteBaseSave>(() => {
+    const d = sugestaoPresidente(saved ?? undefined)
+    const posse = getPosseConta()
+    if (saved || posse.plano) return d
+    const minha = posse.compradas.find(r => r.startsWith('r-'))?.slice(2) // já comprou roupa: começa vestido com ela
+    return { ...d, ...(minha && podeVestirComPosse(minha, posse) ? { outfit: minha } : {}), appearance: { ...aparenciaModular(d.appearance ?? aparenciaInicial()), hair: 'none', beard: 'none', accessories: [] } }
+  })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const confirmar = async () => {
@@ -67,7 +75,7 @@ function PresidenteContaEditor({ saved, onClose }: { saved: PresidenteBaseSave |
     if (r === 'accepted') { onClose(); return }
     setError(r === 'timeout'
       ? t('A gravação está demorando. Suas escolhas continuam aqui; tente de novo.', 'Saving is taking longer than expected. Your choices are still here; try again.')
-      : t('Não foi possível salvar na sua conta. Confira o plano e tente de novo.', 'Could not save to your account. Check your plan and try again.'))
+      : t('Não foi possível salvar na sua conta. Confira se todas as peças já são suas e tente de novo.', 'Could not save to your account. Check that every item is yours and try again.'))
   }
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 99998, background: CREAM, color: INK, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>

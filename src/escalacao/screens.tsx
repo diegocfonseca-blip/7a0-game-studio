@@ -33,10 +33,10 @@ import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
 import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
-import {usePlanoConta,getPlanoConta} from './presidente-conta'
+import {usePlanoConta,getPosseConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
 import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
-import {podeVestirModular} from './presidente-vestuario-acesso'
+import {podeVestirComPosse} from './presidente-avulsas'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {identidadeDaConta} from './presidencia-identidade-conta'
@@ -2709,7 +2709,7 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
-      if(modularSetup&&!podeVestirModular(presidentDraft.outfit,getPlanoConta())){
+      if(modularSetup&&!podeVestirComPosse(presidentDraft.outfit,getPosseConta())){
         setNameErr(tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
         setPrivateStep(2);return
       }

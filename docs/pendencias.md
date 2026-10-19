@@ -1,3 +1,33 @@
+## 📊 Perfil: ranking da ÚLTIMA carreira (19/10) — ✅ NO AR
+- Pedido: *"ranking da pessoa na temporada que ela tá da última carreira… tipo 43 da temporada 360"*. `esc_perfil_rank` agora pega a
+  última carreira que subiu pro ranking (antes: a melhor) e conta com `esc_pyramid_career_rank` (a mesma do ranking global).
+- ⏳ Ranking ONLINE de todos os tempos: proposta mandada ao Diego (somar desde 02/09, quando o jogo começou a guardar os títulos das salas).
+
+## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR
+- Pedido: *"como eu faço p tirar e escrever novas?? Deveria aparecer no painel as três p eu remover editar ou add nova"*.
+- Vadico, K9 e Max Joias saíram do código e foram pro banco (`esc_anuncios_fixos`). No #admin, caixa "📌 Anúncios fixos · telão":
+  editar texto/link, ⬆️ subir na fila, tirar, e ➕ novo. Até 90 letras; link só https://. Quem está com o jogo aberto vê em até 30 min.
+- Se o banco não responder, o jogo mostra os 3 antigos do código (reserva). As PLACAS do campinho (logo Vadico/Max Joias) continuam no código.
+- 💬 Mesmo dia: Super Chat MANUAL no #admin (caixa rosa "Recados dos jogadores"): o Diego escreve como um time, 1 h ou dia todo (`esc_admin_recado`).
+
+## 📧 E-mail da campanha com as novidades de outubro (19/10) — ✅ NO AR (Diego: "Pode"), vale a partir do próximo disparo
+- Pedido: *"atualizamos MT coisas já… vc deveria mudar o visual do e-mail"*. O texto no ar ainda fala de Várzea/técnicos/Copa do Brasil.
+- Novo: 6 blocos só com o que está liberado pra todos (pregão aberto · Liberta/Champions/Mundial na carreira · Central Legends ·
+  SAF 2º clube + rivais com banco · Champions de 36 + leilão de clubes · Amigos + medalha da semana), assunto novo.
+- Gerador: `node scripts/email/campanha-volta.mjs --foto <pasta>` (faz a foto e o `campanha-volta.sql`). Com o OK: rodar o SQL no banco
+  (troca só `esc_email_html`/`esc_email_assunto`; fila, disparo e medidor iguais). Voltar: `scripts/email/campanha-volta-antes.sql`.
+- 👀 O placar mostra Abriu 0 / Clicou 0 em todos os dias: o rastreio de abertura e clique do Resend parece desligado (o "voltou" funciona).
+
+## 🧑‍💼🛍️ Peças avulsas do presidente no Pix (19/10) — ✅ NO AR pra todos
+- Pedido: *"ok pode fazer tudo nisso já pelo pix do mercado pago"*. Preço pelo nível: Craque 1,99 · Lenda 2,99 · Batismo 3,99 · Fundador 4,99.
+- Grátis: 1ª compra = roupa, que dá o boneco careca (pele à vontade); depois cabelo/barba/acessório a 1,99. Com plano: compra as de cima.
+- Editor: toda peça fora do que a conta tem mostra 🛒 preço e dá pra PROVAR; a caixa "🛒 Ainda não é seu" lista o que falta, com
+  COMPRAR (Pix numa janela) e ✕ pra tirar a peça do rosto. Salvar só com tudo comprado (`visualCabeNaPosse`, mesma régua no salvar da conta).
+- Banco: catálogo (61 peças) + `esc_presidente_pecas` + `esc_preco_peca` (só o servidor ou o dono perguntam) + `esc_mp_preco_ref`/`esc_mp_entregar`.
+  Edge `mp-criar-pix` v10 (nome da peça, ref até 40 letras). Fotos: `node scripts/foto-pecas-presidente.mjs`.
+- ⏳ Falta: carreira de quem é grátis com boneco comprado usa o presidente da conta? (a régua da carreira já aceita a roupa comprada).
+- 🔙 Reverter: tirar a caixa de compra = voltar o commit; o banco pode ficar (sem a tela, ninguém gera Pix de peça).
+
 ## 🏀💵 Basquete: preços em dólar (19/10) — ⏳ BASE COMBINADA, cobrança NÃO feita
 Craque US$ 9,99 · Lenda 19,99 · Batismo 49,99 · Fundador 79,99 (*"isso aí, mais ou menos isso!"*). Detalhe em
 `docs/conceito-basquete.md` (§ Preços nos EUA). Falta: conta Stripe ou PayPal do Diego + ligar a cobrança em cartão no jogo.

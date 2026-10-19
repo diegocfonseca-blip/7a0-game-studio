@@ -80,7 +80,47 @@ try {
 
   // a gravação na conta usa a MESMA régua (botão mudo, nunca)
   const conta = readFileSync('src/escalacao/presidente-conta.ts', 'utf8')
-  assert.ok(conta.includes('podeSalvarPresidente(plano)') && conta.includes('podeVestirModular(v.outfit, plano)'), 'salvar na conta confere plano e roupa')
+  assert.ok(conta.includes('visualCabeNaPosse(v, posse)'), 'salvar na conta confere plano, roupa e peças compradas')
 
-  console.log('✅ presidente × plano: grátis só olha · Craque 14 · Lenda 23 · Batismo 30 · Fundador 33 (astronauta, gala dourada e traje real só no Fundador) · sem GRÁTIS · sorteio no plano · conta com a mesma régua')
+  // 🛍️ PEÇAS AVULSAS (19/10): preço pelo nível, grátis só ganha boneco com a 1ª ROUPA, e o banco tem o MESMO catálogo
+  const V = await vite.ssrLoadModule('/src/escalacao/presidente-avulsas.ts')
+  const C = await vite.ssrLoadModule('/src/escalacao/presidente-conta.ts').catch(() => null)
+  const gratis = { plano: null, compradas: [] }
+  assert.equal(V.temBoneco(gratis), false, 'grátis sem compra não tem boneco')
+  assert.deepEqual(V.compraPossivel('p-classic-hair', gratis), { ok: false, motivo: 'roupa_primeiro' }, 'grátis: cabelo antes da roupa, não')
+  assert.deepEqual(V.compraPossivel('r-polo', gratis), { ok: true, preco: 1.99 }, 'roupa de Craque = 1,99')
+  assert.deepEqual(V.compraPossivel('r-jaqueta-couro', gratis), { ok: true, preco: 2.99 }, 'roupa de Lenda = 2,99')
+  assert.deepEqual(V.compraPossivel('r-rei-pregao', gratis), { ok: true, preco: 3.99 }, 'roupa de Batismo = 3,99')
+  assert.deepEqual(V.compraPossivel('r-astronauta', gratis), { ok: true, preco: 4.99 }, 'roupa de Fundador = 4,99 (liberada no avulso em 19/10)')
+  const comRoupa = { plano: null, compradas: ['r-polo'] }
+  assert.equal(V.temBoneco(comRoupa), true, 'comprou roupa = ganhou boneco')
+  assert.equal(V.podeUsarPecaAvulsa('none', comRoupa), true, 'careca e sem barba sempre pode com boneco')
+  assert.equal(V.podeUsarPecaAvulsa('classic-hair', comRoupa), false, 'cabelo não vem junto')
+  assert.deepEqual(V.compraPossivel('p-classic-hair', comRoupa), { ok: true, preco: 1.99 }, 'depois da roupa, cabelo a 1,99')
+  assert.deepEqual(V.compraPossivel('r-polo', comRoupa), { ok: false, motivo: 'ja_tem' }, 'não vende de novo')
+  assert.deepEqual(V.compraPossivel('r-polo', { plano: 'craque', compradas: [] }), { ok: false, motivo: 'ja_tem' }, 'o plano já cobre')
+  assert.deepEqual(V.compraPossivel('r-astronauta', { plano: 'batismo', compradas: [] }), { ok: true, preco: 4.99 }, 'Batismo compra a do Fundador')
+  assert.equal(V.podeVestirComPosse('astronauta', { plano: 'craque', compradas: ['r-astronauta'] }), true, 'Craque com o astronauta comprado veste')
+  for (let i = 0; i < 40; i++) {
+    const v = S.sortearPresidente(base, Math.random, comRoupa)
+    assert.equal(v.outfit, 'polo', 'grátis sorteia só a roupa que comprou')
+    assert.ok(v.appearance.hair === 'none' && v.appearance.beard === 'none', 'grátis sem peça comprada sorteia careca')
+  }
+  console.log(C ? '  (conta carregada: régua de salvar conferida)' : '  ⚠️ presidente-conta não carregou no teste')
+  if (C) {
+    const careca = { version: 5, name: 'Zé', outfit: 'polo', appearance: { version: 22, hair: 'none', beard: 'none', accessories: [] } }
+    assert.equal(C.visualCabeNaPosse(careca, comRoupa), true, 'boneco careca com a roupa comprada salva')
+    assert.equal(C.visualCabeNaPosse({ ...careca, appearance: { ...careca.appearance, hair: 'classic-hair' } }, comRoupa), false, 'com cabelo não comprado não salva')
+    assert.equal(C.visualCabeNaPosse(careca, gratis), false, 'sem roupa comprada não salva')
+  }
+  // o catálogo do banco (migration) é o MESMO do código: nem peça a mais, nem nível diferente
+  const sql = readFileSync('supabase/migrations/20261019180000_presidente_pecas_avulsas.sql', 'utf8')
+  const doBanco = new Map([...sql.matchAll(/\('([rp]-[a-z0-9-]+)', ([1-4])\)/g)].map(m => [m[1], Number(m[2])]))
+  const doCodigo = V.catalogoAvulsas()
+  assert.equal(doBanco.size, doCodigo.length, `catálogo: banco ${doBanco.size} × código ${doCodigo.length} — rode scripts/gera-catalogo-presidente.mts e atualize o banco`)
+  for (const c of doCodigo) assert.equal(doBanco.get(c.ref), c.nivel, `catálogo: ${c.ref} nível ${c.nivel} no código, ${doBanco.get(c.ref)} no banco`)
+  const telaF = readFileSync('src/escalacao/presidente-formulario.tsx', 'utf8')
+  assert.ok(telaF.includes('visualCabeNaPosse(value,getPosseConta())') && telaF.includes('produto="peca_presidente"'), 'o editor salva com a mesma régua e compra pelo Pix')
+
+  console.log('✅ presidente × plano: grátis só olha · Craque 14 · Lenda 23 · Batismo 30 · Fundador 33 (astronauta, gala dourada e traje real só no Fundador) · sem GRÁTIS · sorteio no plano · conta com a mesma régua · peças avulsas 1,99/2,99/3,99/4,99 com catálogo igual ao banco')
 } finally { await vite.close() }

@@ -341,7 +341,7 @@ function SalasExtrasAdmin() {
 type PedidoMp = { id: string; email: string; produto: string; valor: number; status: string; telefone: string | null; criado_em: string; pago_em: string | null; liberado_por: string | null; briefing: Record<string, string> | null }
 // ⏱️ ANÚNCIOS PAGOS DE 24 H (16/10, Diego: "todo anúncio dura 24h desde que colocado no ar"): ⚡ Dia da marca (Copa dos 8
 // "apresentada por…") e 📣 Anúncio do dia (letreiro). O Diego escolhe QUANDO entra no ar (padrão: agora) e ele sai sozinho 24 h
-// depois. Os manuais (mensal, como a Vadico) continuam no código (`patrocinio.ts`), até ele trocar.
+// depois. Os manuais (mensal, como a Vadico) moram em `esc_anuncios_fixos` desde 19/10 (caixa 📌 Anúncios fixos, abaixo).
 type AnuncioAdm = { id: number; tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null }
 const agoraLocal = () => { const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000); return d.toISOString().slice(0, 16) }
 const quando = (iso: string) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
@@ -354,6 +354,8 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
   const [texto, setTexto] = useState('')
   const [emoji, setEmoji] = useState('⭐')
   const [msg, setMsg] = useState('')
+  const [autor, setAutor] = useState('') // 💬 recado manual (19/10): o time que "assina"
+  const [horas, setHoras] = useState<1 | 24>(1)
   const carregar = async () => {
     const { data } = await supabase.from('esc_anuncios').select('id, tipo, texto, emoji, inicio, fim, autor').eq('tipo', tipo).gt('fim', new Date().toISOString()).order('inicio')
     setLista((data ?? []) as AnuncioAdm[])
@@ -365,6 +367,16 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
     setMsg(error ? `❌ ${error.message}` : `✅ no ar de ${quando(ini.toISOString())} até 24 h depois`)
     setTexto(''); setInicio(agoraLocal()); carregar()
   }
+  // 💬 SUPER CHAT MANUAL (19/10, Diego: "as vezes eu posso dar recado do dia se passando por algum time. Faça ali manual")
+  const salvarRecado = async () => {
+    const ini = new Date(inicio)
+    const { data, error } = await supabase.rpc('esc_admin_recado', { p_inicio: isNaN(ini.getTime()) ? null : ini.toISOString(), p_horas: horas, p_autor: autor, p_texto: texto })
+    const R: Record<string, string> = { ok: `✅ no ar de ${quando(ini.toISOString())} por ${horas === 1 ? '1 hora' : '24 h'}`, time_tamanho: '❌ o nome do time precisa ter de 2 a 30 letras',
+      texto_tamanho: '❌ o recado precisa ter de 2 a 60 letras', sem_permissao: '❌ só a sua conta pode mexer aqui', duracao: '❌ escolha 1 hora ou dia todo' }
+    setMsg(error ? `❌ ${error.message}` : R[String(data)] ?? String(data))
+    if (data === 'ok') { setTexto(''); setAutor(''); setInicio(agoraLocal()) }
+    carregar()
+  }
   const tirar = async (r: AnuncioAdm) => {
     if (!window.confirm(`Tirar "${r.texto}" do ar?`)) return
     const { error } = await supabase.rpc('esc_admin_anuncio_tirar', { p_id: r.id })
@@ -375,10 +387,24 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
   return (
     <div style={{ border: `2px solid ${recado ? '#FF5FA2' : '#FFC400'}`, borderRadius: 16, padding: 14, marginTop: 16 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: recado ? '#FF5FA2' : '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>{recado ? '💬 Recados dos jogadores · letreiro' : marca ? '⚡ Dia da marca · Copa dos 8' : '📣 Anúncio do dia · letreiro'}</p>
-      {recado ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Recados pagos que estão no ar (1 h ou dia todo). Ofendeu alguém? Aperte "tirar". {lista.length === 0 ? 'Nenhum no ar agora.' : ''}</p> : <>
+      {recado ? <>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Recados que estão no ar (1 h ou dia todo), pagos ou seus. Ofendeu alguém? Aperte "tirar". {lista.length === 0 ? 'Nenhum no ar agora.' : ''}</p>
+      <div style={{ display: 'grid', gap: 6, borderTop: '2px dashed rgba(255,95,162,.4)', paddingTop: 10 }}>
+        <b style={{ ...OSWALD, color: '#F2E8CF', fontSize: 13, textTransform: 'uppercase' }}>✍️ Mandar um recado como um time</b>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <input type="datetime-local" value={inicio} onChange={e => setInicio(e.target.value)} style={inp} />
+          <input value={autor} onChange={e => setAutor(e.target.value)} maxLength={30} placeholder="Nome do time" style={{ ...inp, flex: 1, minWidth: 120 }} />
+        </div>
+        <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={60} placeholder="O recado (até 60 letras)" style={inp} />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {([1, 24] as const).map(h => <button key={h} onClick={() => setHoras(h)} style={{ ...inp, background: horas === h ? '#FF5FA2' : '#fff', color: horas === h ? '#fff' : '#0C0C0C', cursor: 'pointer' }}>{h === 1 ? '1 hora' : 'Dia todo'}</button>)}
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', flex: 1 }}>{texto.length}/60</span>
+          <button disabled={autor.trim().length < 2 || texto.trim().length < 2} onClick={salvarRecado} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer', opacity: autor.trim().length < 2 || texto.trim().length < 2 ? .5 : 1 }}>Pôr no ar</button>
+        </div>
+      </div></> : <>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>{marca
         ? 'A Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO por 24 h, contando de quando entra no ar.'
-        : 'O texto passa no letreiro "Anúncio do dia" de TODO MUNDO por 24 h, contando de quando entra no ar, antes da Vadico. Até 120 letras.'}</p>
+        : 'O texto passa no letreiro "Anúncio do dia" de TODO MUNDO por 24 h, contando de quando entra no ar, antes dos fixos. Até 120 letras.'}</p>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <input type="datetime-local" value={inicio} onChange={e => setInicio(e.target.value)} style={inp} />
         {marca && <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />}
@@ -391,6 +417,69 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
         <span style={{ flex: 1 }}>{marca ? r.emoji + ' ' : ''}{recado && r.autor ? <b>{r.autor}: </b> : null}{r.texto} <small style={{ opacity: .6 }}>· até {quando(r.fim)}</small></span>
         <button onClick={() => tirar(r)} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
       </div>)}
+    </div>
+  )
+}
+
+// 📌 ANÚNCIOS FIXOS DO TELÃO (19/10, Diego: "deveria aparecer no painel as três p eu remover editar ou add nova"). São os que
+// ficam no ar até ele mudar (Vadico, K9, Max Joias…), na ordem da lista, depois dos pagos de 24 h. Moram em `esc_anuncios_fixos`;
+// quem lê é o `patrocinio.ts`. Só a conta do Diego grava (as funções conferem o e-mail). Quem já está com o jogo aberto vê a
+// mudança em até 30 min; quem abre depois vê na hora.
+type FixoAdm = { id: number; texto: string; link: string | null }
+export function AnunciosFixosAdmin() {
+  const [lista, setLista] = useState<FixoAdm[]>([])
+  const [rasc, setRasc] = useState<Record<number, { texto: string; link: string }>>({})
+  const [novo, setNovo] = useState({ texto: '', link: '' })
+  const [msg, setMsg] = useState('')
+  const carregar = async () => {
+    const { data, error } = await supabase.from('esc_anuncios_fixos').select('id, texto, link').eq('ativo', true).order('ordem').order('id')
+    if (error) { setMsg(`❌ ${error.message}`); return }
+    const l = (data ?? []) as FixoAdm[]
+    setLista(l); setRasc(Object.fromEntries(l.map(r => [r.id, { texto: r.texto, link: r.link ?? '' }])))
+  }
+  useEffect(() => { carregar() }, [])
+  const RESP: Record<string, string> = { criado: '✅ anúncio novo no ar', salvo: '✅ salvo', tirado: '🗑️ tirado do ar', subiu: '⬆️ subiu na fila', ja_primeiro: 'já é o primeiro',
+    texto_tamanho: '❌ o texto precisa ter de 4 a 90 letras', link_https: '❌ o link tem que começar com https://', sem_permissao: '❌ só a sua conta pode mexer aqui', nao_achou: '❌ não achei esse anúncio' }
+  const roda = async (fn: string, args: Record<string, unknown>) => {
+    const { data, error } = await supabase.rpc(fn, args)
+    setMsg(error ? `❌ ${error.message}` : RESP[String(data)] ?? String(data))
+    await carregar()
+    return !error && ['criado', 'salvo', 'tirado', 'subiu'].includes(String(data))
+  }
+  const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700, minWidth: 0 }
+  const bt = (bg: string, cor = '#fff'): React.CSSProperties => ({ ...inp, background: bg, color: cor, cursor: 'pointer', whiteSpace: 'nowrap' })
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>📌 Anúncios fixos · telão</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Ficam no ar até você mudar, nessa ordem, depois dos anúncios de 24 h. Até 90 letras. O link é opcional e tem que começar com https:// (site, WhatsApp, YouTube). Quem está com o jogo aberto vê a mudança em até 30 min.</p>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('❌') ? '#ff8a75' : '#6fdb8f', margin: '0 0 8px' }}>{msg}</p>}
+      {lista.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#F2E8CF', margin: '0 0 8px' }}>Nenhum anúncio fixo no ar.</p>}
+      {lista.map((r, i) => {
+        const d = rasc[r.id] ?? { texto: r.texto, link: r.link ?? '' }
+        const mudou = d.texto !== r.texto || d.link !== (r.link ?? '')
+        return <div key={r.id} style={{ borderTop: '1px solid rgba(242,232,207,.15)', padding: '8px 0', display: 'grid', gap: 5 }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <b style={{ color: '#FFC400', fontSize: 12, flex: 'none' }}>{i + 1}º</b>
+            <textarea value={d.texto} maxLength={90} rows={2} onChange={e => setRasc({ ...rasc, [r.id]: { ...d, texto: e.target.value.replace(/\n/g, ' ') } })} style={{ ...inp, flex: 1, resize: 'none', fontFamily: 'inherit' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <input value={d.link} placeholder="link (opcional) https://…" onChange={e => setRasc({ ...rasc, [r.id]: { ...d, link: e.target.value } })} style={{ ...inp, flex: 1, minWidth: 160, fontWeight: 600 }} />
+            <button disabled={!mudou} onClick={() => roda('esc_admin_fixo_salvar', { p_id: r.id, p_texto: d.texto, p_link: d.link })} style={{ ...bt(mudou ? '#1B7A3D' : '#555'), opacity: mudou ? 1 : .6 }}>Salvar</button>
+            {i > 0 && <button onClick={() => roda('esc_admin_fixo_subir', { p_id: r.id })} style={bt('#fff', '#0C0C0C')} aria-label="subir">⬆️</button>}
+            <button onClick={() => { if (window.confirm(`Tirar do ar?\n\n${r.texto}`)) roda('esc_admin_fixo_tirar', { p_id: r.id }) }} style={{ ...bt('transparent', '#ff9b8a'), border: '1px solid #ff9b8a' }}>tirar</button>
+          </div>
+          <span style={{ fontSize: 10.5, color: 'rgba(242,232,207,.5)', fontWeight: 700 }}>{d.texto.length}/90 letras{r.link ? '' : ' · sem link'}</span>
+        </div>
+      })}
+      <div style={{ borderTop: '2px dashed rgba(255,196,0,.4)', paddingTop: 10, marginTop: 6, display: 'grid', gap: 6 }}>
+        <b style={{ ...OSWALD, color: '#F2E8CF', fontSize: 13, textTransform: 'uppercase' }}>➕ Novo anúncio fixo</b>
+        <textarea value={novo.texto} maxLength={90} rows={2} placeholder="🛒 Marca · Oferta: …" onChange={e => setNovo({ ...novo, texto: e.target.value.replace(/\n/g, ' ') })} style={{ ...inp, resize: 'none', fontFamily: 'inherit' }} />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <input value={novo.link} placeholder="link (opcional) https://…" onChange={e => setNovo({ ...novo, link: e.target.value })} style={{ ...inp, flex: 1, minWidth: 160, fontWeight: 600 }} />
+          <button disabled={novo.texto.trim().length < 4} onClick={async () => { if (await roda('esc_admin_fixo_salvar', { p_id: null, p_texto: novo.texto, p_link: novo.link })) setNovo({ texto: '', link: '' }) }} style={{ ...bt('#1B7A3D'), opacity: novo.texto.trim().length < 4 ? .5 : 1 }}>Pôr no ar</button>
+        </div>
+        <span style={{ fontSize: 10.5, color: 'rgba(242,232,207,.5)', fontWeight: 700 }}>{novo.texto.length}/90 letras · entra no fim da fila</span>
+      </div>
     </div>
   )
 }
@@ -1316,7 +1405,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

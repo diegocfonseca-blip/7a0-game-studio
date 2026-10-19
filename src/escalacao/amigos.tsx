@@ -27,7 +27,7 @@ export const contaValida = (uid: string | null | undefined): uid is string => !!
 type Titulos = { ligas: number; serie_a: number; copas: number; supercopas: number; libertadores: number; champions: number; mundial: number; copa_mundo: number; salas: number; temporadas: number }
 type Perfil = {
   uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null
-  titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
+  titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null; ultima?: boolean } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
   // 👥 v2 (19/10): ranking do online da semana/mês, medalhas do pódio semanal e o rival
   semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null
@@ -173,7 +173,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
           </div>
         )}
-        {/* 📊 a melhor carreira no ranking global, na temporada em que ela está (mesma conta do ranking da carreira) */}
+        {/* 📊 19/10: a ÚLTIMA carreira no ranking global, na temporada em que ela está (mesma conta do ranking da carreira) */}
         <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ textAlign: 'center', minWidth: 92 }}>
             <div style={{ ...OSW, fontSize: 34, lineHeight: 1, color: INK }}>{p.rank ? `${p.rank.pos}º` : '—'}</div>
@@ -181,7 +181,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
           <div style={{ minWidth: 0 }}>
             <p style={{ ...h3, margin: 0 }}>📊 {tr('Ranking global da carreira', 'Global career ranking')}</p>
             <p style={{ fontSize: 12, fontWeight: 700, color: '#555', margin: '3px 0 0', lineHeight: 1.35 }}>{p.rank
-              ? <>{tr('Melhor carreira', 'Best career')}{p.rank.clube ? <> · <b style={{ color: INK }}>{p.rank.clube}</b></> : null} · {tr('temporada', 'season')} {p.rank.temporada}</>
+              ? <>{p.rank.ultima ? tr('Última carreira', 'Latest career') : tr('Melhor carreira', 'Best career')}{p.rank.clube ? <> · <b style={{ color: INK }}>{p.rank.clube}</b></> : null} · {tr('na temporada', 'in season')} <b style={{ color: INK }}>{p.rank.temporada}</b></>
               : tr('Ainda sem carreira no ranking (só conta carreira salva na nuvem).', 'No career in the ranking yet (only cloud-saved careers count).')}</p>
           </div>
         </div>
