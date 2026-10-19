@@ -1,6 +1,7 @@
 ## 📊 Perfil: ranking da ÚLTIMA carreira (19/10) — ✅ NO AR
 - Pedido: *"ranking da pessoa na temporada que ela tá da última carreira… tipo 43 da temporada 360"*. `esc_perfil_rank` agora pega a
   última carreira que subiu pro ranking (antes: a melhor) e conta com `esc_pyramid_career_rank` (a mesma do ranking global).
+- Mesmo dia, 2º recado dele: embaixo vai a 🏅 MELHOR posição que a pessoa já teve (entre as 8 carreiras mais recentes, cada uma na temporada dela).
 - ⏳ Ranking ONLINE de todos os tempos: proposta mandada ao Diego (somar desde 02/09, quando o jogo começou a guardar os títulos das salas).
 
 ## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR

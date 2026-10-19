@@ -27,7 +27,7 @@ export const contaValida = (uid: string | null | undefined): uid is string => !!
 type Titulos = { ligas: number; serie_a: number; copas: number; supercopas: number; libertadores: number; champions: number; mundial: number; copa_mundo: number; salas: number; temporadas: number }
 type Perfil = {
   uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null
-  titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null; ultima?: boolean } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
+  titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null; ultima?: boolean; melhor?: { pos: number; temporada: number; clube: string | null } | null } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
   // 👥 v2 (19/10): ranking do online da semana/mês, medalhas do pódio semanal e o rival
   semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null
@@ -183,6 +183,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             <p style={{ fontSize: 12, fontWeight: 700, color: '#555', margin: '3px 0 0', lineHeight: 1.35 }}>{p.rank
               ? <>{p.rank.ultima ? tr('Última carreira', 'Latest career') : tr('Melhor carreira', 'Best career')}{p.rank.clube ? <> · <b style={{ color: INK }}>{p.rank.clube}</b></> : null} · {tr('na temporada', 'in season')} <b style={{ color: INK }}>{p.rank.temporada}</b></>
               : tr('Ainda sem carreira no ranking (só conta carreira salva na nuvem).', 'No career in the ranking yet (only cloud-saved careers count).')}</p>
+            {p.rank?.melhor && <p style={{ fontSize: 11.5, fontWeight: 800, color: '#7a5a00', margin: '4px 0 0', lineHeight: 1.35 }}>🏅 {tr('Melhor posição', 'Best position')}: <b style={{ color: INK }}>{p.rank.melhor.pos}º</b> {tr('na temporada', 'in season')} {p.rank.melhor.temporada}</p>}
           </div>
         </div>
 
