@@ -95,3 +95,38 @@ export function mesclaClubes(managers: readonly Manager[], gavetas: readonly Gav
 export function minhaGaveta(me: Manager, e: EntradasMundo): GavetaPublica {
   return { mgrId: me.id, nome: me.teamName, formation: me.formation, formationView: me.formationView, squad: me.squad, entradas: entradasDoClube(e, me.id, me.teamName) }
 }
+
+/**
+ * 🧊 O MEU clube também é CONGELADO na hora em que a rodada começa. Quem não apertou PRONTO a tempo pode ter mexido no
+ * time depois da última gaveta subir — e os outros aparelhos só conhecem a gaveta. Então, pras rodadas até `ate`
+ * (índice do jogo que começou), o meu aparelho usa a MINHA gaveta como ela estava no banco naquela hora; o que eu mexer
+ * pra frente (chave > ate) continua valendo daqui. Assim os 20 aparelhos simulam com os MESMOS números.
+ */
+export function congelaMeu(base: EntradasMundo, minha: GavetaPublica | null | undefined, meuId: number, ate: number): EntradasMundo {
+  if (!minha) return base
+  const e = minha.entradas ?? {}
+  const junta = <T,>(local: Record<number, T> | undefined, banco: Record<number, T> | undefined): Record<number, T> | undefined => {
+    const out: Record<number, T> = {}
+    for (const [k, v] of Object.entries(banco ?? {})) if (+k <= ate) out[+k] = v
+    for (const [k, v] of Object.entries(local ?? {})) if (+k > ate) out[+k] = v
+    return Object.keys(out).length ? out : undefined
+  }
+  const poe = <T,>(mapa: Record<number, Record<number, T>>, v: Record<number, T> | undefined): Record<number, Record<number, T>> => {
+    const out = { ...mapa }
+    if (v) out[meuId] = v; else delete out[meuId]
+    return out
+  }
+  return {
+    tactics: poe(base.tactics, junta(base.tactics[meuId], e.tac)),
+    lineups: poe(base.lineups, junta(base.lineups[meuId], e.xi)),
+    halftime: poe(base.halftime, junta(base.halftime[meuId], e.ht)),
+    penalty: poe(base.penalty, junta(base.penalty[meuId], e.pen)),
+    mods: poe(base.mods, junta(base.mods[meuId], e.mods)),
+    cardMods: poe(base.cardMods, junta(base.cardMods[meuId], e.card)),
+    tecs: (() => {
+      const t = { ...(base.tecs ?? {}) }
+      if (e.tec) t[minha.nome] = e.tec; else delete t[minha.nome]
+      return Object.keys(t).length ? t : undefined
+    })(),
+  }
+}

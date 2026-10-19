@@ -1,5 +1,5 @@
 import {RitmoCampoProvider} from './presidencia-velocidade'
-import { mesclaEntradas, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
+import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
 import {DiaDoEstadio} from './presidencia-estadio-dia'
@@ -8184,10 +8184,13 @@ export function PyramidSeasonScreen() {
   // gás, técnico) vêm das gavetas — senão cada aparelho simularia uma temporada diferente. Solo: `co2` ausente = nada muda.
   const co2Gavetas = state.co2?.gavetas
   const co2MeuId = state.managers[state.youIdx]?.id ?? 0
+  const co2Minha = state.co2?.minha
+  const co2Ate = state.co2?.congeladoAte
   const entradasSim = useMemo<EntradasMundo>(() => {
     const base: EntradasMundo = { tactics: careerTactics, lineups: careerLineup, halftime: careerHalftime, penalty: careerPenalty, mods: simMods, cardMods: condMods, tecs: simTecs }
-    return co2Gavetas ? mesclaEntradas(base, co2Gavetas, co2MeuId) : base
-  }, [careerTactics, careerLineup, careerHalftime, careerPenalty, simMods, condMods, simTecs, co2Gavetas, co2MeuId])
+    if (!co2Gavetas) return base
+    return mesclaEntradas(congelaMeu(base, co2Minha, co2MeuId, co2Ate ?? -1), co2Gavetas, co2MeuId)
+  }, [careerTactics, careerLineup, careerHalftime, careerPenalty, simMods, condMods, simTecs, co2Gavetas, co2MeuId, co2Minha, co2Ate])
   const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans),
     [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])

@@ -72,6 +72,18 @@ try {
     const s38 = simula(ms, e, R)
     assert.deepEqual(s38.scorers.slice(0, 15).map(x => `${x.name}:${x.goals}`), juiz[R - 1].scorers.slice(0, 15).map(x => `${x.name}:${x.goals}`), `aparelho ${k}: artilharia igual`)
   }
+  // 🧊 quem mexeu no time DEPOIS da gaveta subir: até a rodada que começou vale a gaveta do banco (o que os outros veem)
+  for (const k of [0, 7, 13]) {
+    const me = managers[k], d = decisoes[k]
+    const mexido = { ...d.tac, 3: 'ataque', 5: 'retranca', 9: 'ataque', 25: 'retranca' }
+    const local = { tactics: { [k]: mexido }, lineups: { [k]: d.xi }, halftime: { [k]: d.ht }, penalty: { [k]: d.pen }, mods: { [k]: { ...d.mods, 4: -2 } }, cardMods: { [k]: d.card }, tecs: d.tec ? { ...tecsBots, [me.teamName]: d.tec } : { ...tecsBots } }
+    const ate = 12
+    const e = G.mesclaEntradas(G.congelaMeu(local, gavetas[k], k, ate), gavetas, k)
+    const s = simula(managers, e, ate + 1)
+    assert.equal(placar(s.matches), placar(juiz[ate].matches), `aparelho ${k}: com o time mexido depois da gaveta, até a rodada ${ate + 1} vale a gaveta`)
+    const semCongelar = simula(managers, G.mesclaEntradas(local, gavetas, k), ate + 1)
+    assert.notEqual(tabela(semCongelar.tables), tabela(juiz[ate].tables), 'sem congelar, o aparelho que mexeu sairia diferente')
+  }
   // e o contrário: SEM a mistura, os aparelhos discordam (senão o teste não prova nada)
   const semMistura = simula(managers.map(m => m.id === 3 ? m : { ...m, squad: m.squad.slice(0, 20) }), { tactics: { 3: decisoes[3].tac }, lineups: {}, halftime: {}, penalty: {}, mods: {}, cardMods: {}, tecs: tecsBots }, R)
   assert.notEqual(tabela(semMistura.tables), tabela(juiz[R - 1].tables), 'sem as gavetas a temporada TEM que sair diferente')
