@@ -13,6 +13,8 @@ import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
+import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
+import { NBA_POS_ORDER } from './basquete-deck'
 import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
@@ -8999,6 +9001,21 @@ const ALL_POOL: WonCard[] = (() => {
   }
   return out
 })()
+// 🏀 ÁLBUM DA NBA (19/10): o pacote do basquete sai do baralho da NBA e mora numa gaveta PRÓPRIA
+// (`user_cards_nba`) — o futebol nunca lê essa tabela, então o álbum/coleções/trocas dele ficam
+// intocados. `pos` = setor do motor (GOL..ATA ↔ PG..C), igual às cartas do pregão do basquete;
+// `posTag` mostra PG/SG/SF/PF/C. A bio sai na língua de agora (por isso é função, não constante).
+const NBA_TABELA = 'user_cards_nba'
+function nbaPool(): WonCard[] {
+  const en = getLang() === 'en'
+  return SECTORS.flatMap((s, i) => CATALOG_NBA[NBA_POS_ORDER[i]].map((c, j) => ({
+    id: `nba-${i}-${j}`, name: c.name, club: c.club, year: c.year, pos: s, fame: c.fame as Card['fame'],
+    folk: c.folk, promessa: c.promessa, bio: en ? c.bioEn : c.bioPt, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)))
+}
+function nbaMeta(name: string, club: string, year: number): { bio?: string; folk?: boolean; promessa?: boolean } {
+  const c = nbaPool().find(x => x.name === name && x.club === club && x.year === year)
+  return c ? { bio: c.bio, folk: c.folk, promessa: c.promessa } : {}
+}
 // 📚 o pacote das COLEÇÕES: os três baralhos, uma entrada por carta (nome+clube+ano)
 const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' }))
 
@@ -9013,7 +9030,8 @@ const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`,
 // fecha o popup depressa (ou ganha duas de uma vez) acha as cartas no álbum depois e
 // não tem como ligar uma coisa na outra. Agora o pacote anuncia o título, e a pílula
 // de reabrir também.
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, saveCards, motivo }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; saveCards?: { name: string; club: string; year: number }[]; motivo?: string }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, saveCards, motivo, nba = false }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; saveCards?: { name: string; club: string; year: number }[]; motivo?: string; nba?: boolean }) {
+  const tabela = nba ? NBA_TABELA : 'user_cards' // 🏀 basquete = gaveta própria (default → futebol idêntico)
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -9044,11 +9062,11 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
       if (!uid) { setStatus('noauth'); return } // sem cadastro (de verdade) não ganha carta
       userIdRef.current = uid
       // o que o usuário já tem no álbum — pra não oferecer repetida
-      const { data: ownedRows } = await supabase.from('user_cards').select('card_name').eq('user_id', uid)
+      const { data: ownedRows } = await supabase.from(tabela).select('card_name').eq('user_id', uid)
       setOwned(new Set((ownedRows ?? []).map((r: { card_name: string }) => r.card_name)))
-      const { data } = await supabase.from('user_cards').select('*').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
+      const { data } = await supabase.from(tabela).select('*').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
       if (data) {
-        const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
+        const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(nba ? nbaMeta(data.card_name, data.card_club, data.card_year) : (CARD_META.get(data.card_name) ?? {})), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
         setClaimed(cc); onClaimed?.(cc); onGuaranteed?.(cc)
         setStatus('revealed')
       } else {
@@ -9070,6 +9088,13 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
   const colecoesOn = useColecoesLiberadas()
   const packPool = useMemo(() => {
+    // 🏀 basquete: só o baralho da NBA, sem repetir o que já está no álbum da NBA (ou no save da carreira)
+    if (nba) {
+      const pool = nbaPool()
+      const tenho = saveCards ? new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`)) : null
+      const un = pool.filter(c => tenho ? !tenho.has(`${c.name}|${c.club}|${c.year}`) : !owned.has(c.name))
+      return un.length ? un : pool
+    }
     // 📚 COLEÇÕES (04/10): o sorteio usa os TRÊS baralhos (o Mundo entrou — sem ele Boca, River e
     // outros 22 clubes nunca fechavam) e PODE REPETIR fora da carreira: a repetida é o que deixa
     // fechar o mesmo clube de novo e é a moeda das trocas. Na carreira segue a regra da Agência.
@@ -9094,7 +9119,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned, saveCards, colecoesOn])
+  }, [owned, saveCards, colecoesOn, nba])
   const [opening, setOpening] = useState(false)
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
@@ -9108,7 +9133,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     // season_key INTEIRA: a coluna é `text` (sem limite). Cortar em 48 quebrava a
     // dedup (a leitura usa a chave inteira) e colava temporadas na mesma chave.
     const key = seasonKey
-    await resilientWrite({ table: 'user_cards', row: {
+    await resilientWrite({ table: tabela, row: {
       user_id: uid, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     } })
@@ -9124,7 +9149,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
     if (status !== 'picking' || savedRef.current || !packPool.length) return
-    const pick = colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
+    const pick = colecoesOn && !nba ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
     if (!pick) return
     savedRef.current = true
     setPendingPick(pick)
@@ -9135,7 +9160,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
 
   const openPack = () => {
     if (opening) return
-    const card = pendingPick ?? (colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)])
+    const card = pendingPick ?? (colecoesOn && !nba ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)])
     if (!card) return
     if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
     setOpening(true)
@@ -9159,7 +9184,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
         <p className="text-sm font-bold text-black/75 mt-1 mb-3">Todo campeão abre um <b>PACOTE SURPRESA</b> e leva uma carta colecionável pro álbum — tipo essa 👇</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto mb-3" style={{ maxWidth: 220 }}>
-          <CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} big />
+          {nba ? (() => { const ex = nbaPool().find(c => c.fame === 5) ?? nbaPool()[0]; return <CollectibleCard name={ex.name} club={ex.club} year={ex.year} pos={ex.pos} fame={ex.fame} bio={ex.bio} big /> })()
+            : <CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} big />}
         </motion.div>
         <p className="text-xs font-bold text-black/65 mb-3">☝️ Exemplo. A sua é <b>sorteada entre TODAS as cartas do jogo</b> — pode vir uma lenda dourada dessas! Mas <b>só quem tem conta guarda a carta</b>.</p>
         <Btn onClick={() => setAuthOpen(true)} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e abrir o pacote 🎁</span></Btn>
@@ -9364,7 +9390,115 @@ export function VoltarInicio() {
   )
 }
 
+// 🏀 PORTEIRO DO ÁLBUM (19/10): no basquete abre o ÁLBUM DA NBA (gaveta `user_cards_nba`); no futebol,
+// o álbum de sempre (`EscAlbumFutebol`, intocado — só ganhou nome próprio).
 export function EscAlbum() {
+  const [sport] = useSport()
+  return sport === 'basquete' ? <EscAlbumNba /> : <EscAlbumFutebol />
+}
+
+// 🏀 ÁLBUM DA NBA — a MESMA cara do álbum do futebol (título, contador, abas Todos/Offline/Online,
+// "Organizar por", grade de 2 cartas). Sem Coleções e Trocas: essas são do baralho de futebol.
+function EscAlbumNba() {
+  const { dispatch } = useEsc()
+  const [cards, setCards] = useState<AlbumCard[] | null>(null)
+  const [anon, setAnon] = useState(false)
+  const [down, setDown] = useState(false)
+  const [filter, setFilter] = useState<AlbumFilter>('all')
+  const [sort, setSort] = useState<AlbumSort>('tier')
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setCards([]); setAnon(true); return }
+        const { data } = await supabase.from(NBA_TABELA).select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
+        setCards(((data ?? []) as UserCardRow[]).map(c => ({
+          name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
+          ...nbaMeta(c.card_name, c.card_club, c.card_year),
+          origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
+          at: new Date(c.obtained_at).getTime(),
+        })))
+      } catch { setDown(true); setCards([]) }
+    })()
+  }, [])
+  const loading = cards === null
+  const cardKey = (c: AlbumCard) => `${c.name}|${c.club}|${c.year}`
+  const shown = useMemo(() => {
+    const all = cards ?? []
+    const byFilter = filter === 'all' ? all : all.filter(c => c.origin === filter)
+    const seen = new Set<string>()
+    return sortAlbum(byFilter.filter(c => { const k = cardKey(c); return seen.has(k) ? false : (seen.add(k), true) }), sort)
+  }, [cards, filter, sort])
+  const all = cards ?? []
+  const uniqBy = (list: AlbumCard[]) => new Set(list.map(cardKey)).size
+  const TABS: { id: AlbumFilter; label: string }[] = [
+    { id: 'all', label: `${tr('Todos', 'All')} (${uniqBy(all)})` },
+    { id: 'cpu', label: `⚡ Offline (${uniqBy(all.filter(c => c.origin === 'cpu'))})` },
+    { id: 'online', label: `👥 Online (${uniqBy(all.filter(c => c.origin === 'online'))})` },
+  ]
+  const exemplo = nbaPool().find(c => c.fame === 5) ?? nbaPool()[0]
+  return (
+    <Shell>
+      <div className="pt-4"><VoltarInicio /></div>
+      <div className="text-center -mt-1">
+        <h2 className="font-black text-4xl" style={OSWALD}>{tr('📖 MEU ÁLBUM', '📖 MY ALBUM')}</h2>
+        <p className="font-semibold text-black/60 mt-1">{tr('Campeão ganha uma carta-lembrança da NBA por título — no CPU ou no online. Vai colecionando as lendas.', 'A champion earns one NBA keepsake card per title — vs CPU or online. Keep collecting the legends.')}</p>
+        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{NBA_TOTAL} {tr('lendas da NBA', 'NBA legends')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
+      </div>
+      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)}
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: filter === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {!loading && !anon && shown.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-black uppercase text-black/45 tracking-wide" style={OSWALD}>{tr('🗂️ Organizar por', '🗂️ Sort by')}</p>
+          <AlbumSortBar value={sort} onChange={setSort} />
+        </div>
+      )}
+      {loading && <p className="text-center font-bold text-black/60">{tr('Carregando…', 'Loading…')}</p>}
+      {down && (
+        <div className="rounded-xl border-2 border-amber-400/70 bg-amber-400/10 px-4 py-3 text-center">
+          <p className="font-black text-sm" style={OSWALD}>{tr('🔧 Servidor fora do ar por uns minutos', '🔧 Server down for a few minutes')}</p>
+          <p className="font-bold text-black/60 text-xs mt-1">{tr('Seu álbum está a salvo — é só instabilidade. Volta daqui a pouquinho 💛', 'Your album is safe — just a hiccup. Come back in a little while 💛')}</p>
+        </div>
+      )}
+      {!loading && anon && (
+        <div className="space-y-3">
+          <Box bg={GOLD} className="p-3 text-center">
+            <p className="font-black text-sm" style={OSWALD}>{tr('👀 Exemplo de carta-lembrança', '👀 Example keepsake card')}</p>
+            <p className="font-bold text-black/70 text-xs mt-1">{tr('Faça seu cadastro pra começar a SUA coleção de verdade. Esta carta some quando você logar.', 'Sign up to start YOUR real collection. This card disappears once you sign in.')}</p>
+          </Box>
+          <div className="grid grid-cols-2 gap-3">
+            <CollectibleCard name={exemplo.name} club={exemplo.club} year={exemplo.year} pos={exemplo.pos} fame={exemplo.fame} bio={exemplo.bio} showBio />
+          </div>
+        </div>
+      )}
+      {!loading && !anon && shown.length === 0 && (
+        <Box bg="#fff" className="p-6 text-center">
+          <p className="font-bold text-black/70">
+            {filter === 'online' ? tr('Ainda sem cartas do online. Seja campeão de uma sala de basquete pra ganhar a primeira!', 'No online cards yet. Win a basketball room to earn the first one!')
+              : filter === 'cpu' ? tr('Ainda sem cartas do CPU. Seja campeão no basquete contra a CPU pra ganhar a primeira!', 'No CPU cards yet. Win at basketball against the CPU to earn the first one!')
+              : tr('Ainda sem cartas da NBA. Seja campeão no basquete (no CPU ou online) pra ganhar a primeira!', 'No NBA cards yet. Win at basketball (vs CPU or online) to earn the first one!')}
+          </p>
+        </Box>
+      )}
+      {!anon && (
+        <div className="grid grid-cols-2 gap-3">
+          {shown.map((c, i) => (
+            <div key={i}><CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} bio={(c as AlbumCard & { bio?: string }).bio} folk={c.folk} promessa={c.promessa} showBio /></div>
+          ))}
+        </div>
+      )}
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
+    </Shell>
+  )
+}
+
+function EscAlbumFutebol() {
   const { dispatch } = useEsc()
   const [cards, setCards] = useState<AlbumCard[] | null>(null)
   const [anon, setAnon] = useState(false)
@@ -11211,6 +11345,12 @@ export function EscEnd() {
   // quando o campeão abre o pacote, além de gravar no álbum dele, joga a carta no
   // estado → o host retransmite e a sala TODA vê a mesma carta (só no stream).
   const bcastCard = (slot: 'liga' | 'copa') => (c: WonCard) => { setMyCard(c); if (streamRoom) dispatch({ type: 'SET_STREAM_CHAMP_CARD', slot, card: c }) }
+  // 🏀💼 carreira do basquete: a carta do pacote também entra na Agência (mesma ação do futebol, chave =
+  // o bilhete da temporada → nunca conta duas vezes). Fora da carreira do basquete não passa nada.
+  const agenciaNba = (bilhete: string) => state.nbaCareer && bbEnd ? {
+    saveCards: (online ? state.careerEmpresario?.[you.id] : state.empresarioCards) ?? [],
+    onGuaranteed: (c: WonCard) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: you.id, key: bilhete, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } }),
+  } : {}
   // 🎥 STREAM · se o CAMPEÃO saiu da sala e não abriu o pacote, o HOST abre no lugar
   // dele (sorteio) — a sala não fica travada esperando uma carta que não vem. Espera
   // uma folga (presence é instável) e não age se a carta já existe ou se o campeão voltou.
@@ -11272,17 +11412,17 @@ export function EscEnd() {
   // montar a ordem do fim conforme teve Copa ou não.
   const ligaChampionCard = (
     <>
-      {/* 🏀 a carta do pacote é do baralho de FUTEBOL — o basquete ainda não tem álbum próprio, então
-          campeão do basquete não leva carta (antes levava uma de futebol). Ver pendencias.md. */}
-      {online && youWon && state.roomId && !bbEnd && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} />
+      {/* 🏀 no basquete o pacote sai do baralho da NBA e vai pro ÁLBUM DA NBA (`nba`); na carreira a
+          carta também entra na 💼 Agência (`agenciaNba`), igual ao futebol */}
+      {online && youWon && state.roomId && (
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}`)} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
       {streamRoom && !youWon && ligaChampHuman && (
         <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
-      {!online && youWon && !bbEnd && (
-        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
+      {!online && youWon && (
+        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} nba={bbEnd} {...agenciaNba(state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`)} />
       )}
     </>
   )
@@ -11298,6 +11438,7 @@ export function EscEnd() {
   // então dá pra levar Cup + anel na mesma temporada, igual liga + Copa dos 8 no
   // futebol. O sufixo é a chave de idempotência: mesma temporada nunca paga duas.
   const cupChamp = state.nbaCup?.champion
+  const cupChampIsYou = !!cupChamp?.you && cupChamp.id === you.id
   const nbaCupBlocks = state.sport === 'basquete' && cupChamp ? (
     <>
       <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
@@ -11305,7 +11446,11 @@ export function EscEnd() {
         <p className="font-black text-base" style={OSWALD}>{LE('Campeão', 'Champion')}: {cupChamp.name}</p>
         <p className="text-[10px] font-bold text-black/55">{LE('Copa do meio da temporada — não conta pra tabela.', 'Midseason cup — it does not count toward the standings.')}</p>
       </Box>
-      {/* 🏀 carta da NBA Cup: volta quando existir o álbum da NBA (o pacote hoje é do baralho de futebol) */}
+      {cupChampIsYou && (online && state.roomId
+        ? <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:nbacup`} origin="online" onClaimed={bcastCard('copa')} nba {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}:nbacup`)} />
+        : !online
+          ? <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:nbacup`} origin="cpu" onClaimed={setMyCard} nba {...agenciaNba(`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:nbacup`)} />
+          : null)}
     </>
   ) : null
   const copaBlocks = (
@@ -11320,11 +11465,11 @@ export function EscEnd() {
           nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
           sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
       })()}
-      {copaChampIsYou && !bbEnd && (
+      {copaChampIsYou && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}:copa`)} />
         ) : !online ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
+          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} nba={bbEnd} {...agenciaNba(`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`)} />
         ) : null
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}

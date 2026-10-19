@@ -86,9 +86,12 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   Tudo guardado por `bbEnd`/`state.sport`/`bb`/`nbaSala` → futebol idêntico. Testes ok: monte cartinha pernadepau
   sala fim telas saf2 master-historia jornal.
 - 🏀 FALTA (decisão do Diego, mexe em coisa compartilhada com o futebol):
-  · **Álbum da NBA** + carta de prêmio do basquete (o conceito promete carta). Hoje `user_cards` é lida em ~23
-    lugares do futebol (álbum, coleções, trocas); carta da NBA ali dentro apareceria no álbum do futebol. Precisa
-    separar por esporte antes de voltar a dar carta. Com isso a 💼 Agência do basquete também passa a encher.
+  · ✅ **Álbum da NBA (19/10)**: gaveta PRÓPRIA no banco (`user_cards_nba`, `docs/sql/bidlegends-user-cards-nba.sql`) —
+    o futebol nunca lê. O pacote do campeão do basquete (liga, NBA Cup, playoffs; offline e online) sorteia do
+    baralho da NBA (`nbaPool`, sem repetir o que já tem) e grava lá (`CardCollectPrompt nba`). `EscAlbum` virou
+    porteiro: basquete → `EscAlbumNba` (mesma cara, contador /432 lendas, sem Coleções/Trocas), futebol →
+    `EscAlbumFutebol` (o de sempre). Na carreira a carta entra na 💼 Agência (`agenciaNba`, chave = bilhete).
+    FALTA: perfil de outro técnico no Ranking mostra só cartas de futebol (o basquete não tem ranking ainda).
   · **REGRAS (ManualDoTecnico)** e as Dúvidas só falam de futebol (11, 38 rodadas, Série D→A, Copa dos 8).
   · **O MARTELO** (jornal da sala) e o painel de COMPARTILHAR aparecem no basquete com texto de futebol
     (pênaltis, artilheiro "N gols", "lendas do futebol brasileiro").
