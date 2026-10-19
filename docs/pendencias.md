@@ -112,6 +112,13 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
 
 **FALTA / PENDENTE DE TESTE:**
+- ✅ **PARTIDA RÁPIDA DO BASQUETE COM TELA DE AJUSTES (19/10)**: antes o botão começava direto (3 rivais, envelope).
+  Agora passa pela MESMA `EscSetup` do futebol: tipo (Jogador/🧱 Clubes da NBA), jeito do lance (Envelope/Tocaia/
+  Pregão aberto), nome do time e rivais (3·5·7·9; 7+ = Playoffs, a régua do START_NBA). Saem Kings, baralho, "depois
+  da liga" e formação. Sem a tela de regras (ela usa exemplos do futebol — Romário, Kaká; as salas de basquete já
+  pulavam). ⚠️ Lição: na tela de ajustes o esporte vem da ESCOLHA da home (`useSport`), NUNCA do `state.sport` — ele
+  guarda a partida ANTERIOR e no 1º teste a home do basquete abriu uma partida de futebol.
+  FALTA (se o Diego quiser): tela de regras do pregão com exemplos da NBA.
 - ✅ **MODOS ONLINE DO BASQUETE (19/10, Diego: "de resto já pode criar todos os modos do online")** — auditoria +
   conserto. Rápido e Minhas Ligas com os 3 jeitos de lance: ✉️ Envelope ok · 🐊 Tocaia ok (abre em 50; os textos
   diziam 100) · 🔨 **Pregão aberto LIGADO** (a sala oferecia e o START_ONLINE desligava calado — rodava envelope).

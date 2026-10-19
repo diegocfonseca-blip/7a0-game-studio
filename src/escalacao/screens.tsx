@@ -1795,7 +1795,7 @@ function BidLegendsHome() {
       <section className="ll-choices" aria-label="Escolha como jogar">
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
-          <button className="ll-mode" onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu quinteto e enfrente a CPU.', 'Build your five and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode" onClick={() => dispatch({ type: 'GO_SETUP' })}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu quinteto e enfrente a CPU.', 'Build your five and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-online" onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-career" onClick={() => setCarreiras(listaNbaCarreiras().length ? 'lista' : 'nova')}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Suba da Street League à NBA.', 'Climb from the Street League to the NBA.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
@@ -2757,6 +2757,12 @@ export function EscSetup() {
   const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
   const [kings, setKings] = useState(false) // ligado = o MESMO leilão escolhido embaixo, com a formação 'kings' e 10 times
   const kingsLigado = kingsOn && kings
+  // 🏀 19/10: a Partida Rápida do basquete passa por AQUI também (antes começava direto, sempre 3 rivais e envelope).
+  // Mesma tela; no basquete saem Kings, baralho, "depois da liga" e formação (o resto é igual).
+  // ⚠️ o esporte vem da ESCOLHA da home (useSport), não do `state.sport`: aqui a partida ainda não começou e o
+  // estado guarda o esporte da partida ANTERIOR — com ele, a home do basquete abria uma partida de futebol.
+  const [sportUi] = useSport()
+  const bbSetup = sportUi === 'basquete' && !career
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2829,6 +2835,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
+    else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes })
     else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
@@ -2963,7 +2970,7 @@ export function EscSetup() {
       )}
       {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
           conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
-      {!career && kingsOn && (
+      {!career && kingsOn && !bbSetup && (
         <button onClick={() => setKings(k => !k)} className="w-full text-left active:translate-y-0.5"
           style={{ background: kings ? '#0C0C0C' : '#fff', color: kings ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: kings ? '4px 4px 0 #C2452F' : 'none', padding: '12px 14px' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: kings ? '#FFC400' : INK, display: 'block' }}>{kings ? '✅' : '⬜'} 👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
@@ -2993,7 +3000,9 @@ export function EscSetup() {
               ))}
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
-              {clubes
+              {clubes && bbSetup
+                ? t('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Você leva o pacote inteiro e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto. Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). You take the whole pack and, at the end, CALL UP who plays — 1 per position, your starting five. Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
+                : clubes
                 ? t('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Você leva o pacote inteiro e, no fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Dá pra jogar com envelope cego ou com Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). You take the whole pack and, at the end, CALL UP who plays in your formation. Leftovers go to the bots. Uses all 3 decks together. Works with sealed bid or Ambush.')
                 : t('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')}
             </p>
@@ -3003,6 +3012,11 @@ export function EscSetup() {
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? tr('🌎 Baralho: Brasileirão + Europa + MUNDO juntos', '🌎 Deck: Brasileirão + Europe + WORLD together') : tr('🌎 Baralho fixo: Brasileirão + Europa juntos', '🌎 Fixed deck: Brasileirão + Europe together')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{getLang() === 'en' ? (escadaLiberada() ? <>In Career the deck is <b>Brasileirão + Europe + World together</b> (~850 names) — it takes all of them to properly fill the <b>100 teams across 5 tiers</b> (from Várzea to Série A). Each tier's market only trades its own categories.</> : <>In Career the deck is always the <b>Brasileirão peaks + the Europe peaks together</b> (~700 names) — it takes both to properly fill the <b>80 teams across 4 tiers</b>. There is no BR-only or Europe-only deck here.</>) : escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
+          </div>
+        ) : bbSetup ? (
+          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+            <p className="font-black text-sm" style={OSWALD}>{t('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{t('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
           </div>
         ) : clubesOn && clubes ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
@@ -3030,7 +3044,17 @@ export function EscSetup() {
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
-        {!career && !kingsLigado && (
+        {bbSetup && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
+            {/* a MESMA régua do START_NBA: 7+ rivais = Playoffs (top 8); menos = só a liga */}
+            <div className="border-[3px] border-black rounded-xl px-3 py-2" style={{ background: '#fff' }}>
+              <p className="font-black text-sm" style={OSWALD}>{rivals >= 7 ? t('🏀 Liga + Playoffs', '🏀 League + Playoffs') : t('📊 Só a liga', '📊 League only')}</p>
+              <p className="text-[11px] font-semibold text-black/55 mt-0.5">{rivals >= 7 ? t('Os 8 melhores vão aos PLAYOFFS (melhor de 3) e o campeão leva o anel 💍.', 'The top 8 go to the PLAYOFFS (best of 3) and the champion takes the ring 💍.') : t('Com 3 ou 5 rivais é só a tabela. Escolha 7 ou 9 rivais pra ter Playoffs.', 'With 3 or 5 rivals it is just the table. Pick 7 or 9 rivals to get Playoffs.')}</p>
+            </div>
+          </div>
+        )}
+        {!career && !kingsLigado && !bbSetup && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
             {/* ⭐ 25/09 — as MESMAS opções do online (Diego: *"tem que ter todos também… liga
@@ -3121,7 +3145,7 @@ export function EscSetup() {
         {kingsLigado ? (
           <p className="text-[11px] font-bold text-black/65">{t('👑 Kings League: formação travada em goleiro + 2 zagueiros + 2 meias + 2 atacantes, e 10 times (você + 9 rivais).', '👑 Kings League: formation locked at keeper + 2 defenders + 2 midfielders + 2 forwards, and 10 teams (you + 9 rivals).')}</p>
         ) : <>
-        <div>
+        {!bbSetup && <div>
           <p className="text-xs font-black uppercase mb-1">{t('Formação (travada antes do pregão)', 'Formation (locked before the auction)')}</p>
           <div className="grid grid-cols-4 gap-2">
             {/* INÍCIO: só 4-3-3 e 4-4-2 (base do leilão). O 4-5-1 é troca TÁTICA na
@@ -3134,7 +3158,7 @@ export function EscSetup() {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
         <div>
           <p className="text-xs font-black uppercase mb-1">{t('Rivais na sala (CPUs)', 'Rivals in the room (CPUs)')}</p>
           <div className="grid grid-cols-4 gap-2">
