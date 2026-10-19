@@ -23,6 +23,8 @@
     chegou, e o dono aperta "▶️ Continuar carreira". Quem faltou continua com o clube guardado e joga com a última escalação.
 - ✅ **PROVA FEITA (19/10)**: o motor da solo é determinístico — 20 clubes, dois aparelhos só com os pedaços chegaram na MESMA temporada.
   Gaveta de 1 clube 4,4 KB · o que é de todos 0,3 KB · escalação da rodada 0,1 KB. Desenho completo: `docs/carreira-online-v2.md`.
+- ✅ **19/10: mockups APROVADOS** (`carreira-online-espera.png` e `carreira-online-pronto.png`) + **VICE** igual ao das Minhas Ligas: o dono escolhe 1 vice;
+  o vice só continua/manda no tempo quando o dono NÃO está; quando o dono chega, volta a ser dele; vice não apaga nem muda regra.
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
@@ -368,7 +370,7 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
      gente", sala de espera com 1 pessoa não avisa nada.
 - Proposta (esperando OK): liga GUARDA a cadeira de todo mundo ao sair; "Voltar" que falha avisa e tenta o caminho de reabrir;
   os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
-- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"* — a fazer): dono escolhe 1 vice; vice abre o pregão só na sala de
+- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"*, reconfirmado 19/10 *"aprova o da minhas ligas tb"* — FAZENDO): dono escolhe 1 vice; vice abre o pregão só na sala de
   espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
 - ✅ **Trocar o modo da liga: NO AR 17/10** (*"perfeito, pode fazer, pode publicar"*). Caixa "🎮 Modo da próxima temporada" na
   sala de espera da liga (lobby.tsx); só o dono troca, pela função do banco `esc_liga_modo` (recusa não-dono e partida rolando;
