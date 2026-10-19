@@ -92,13 +92,17 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
     porteiro: basquete → `EscAlbumNba` (mesma cara, contador /432 lendas, sem Coleções/Trocas), futebol →
     `EscAlbumFutebol` (o de sempre). Na carreira a carta entra na 💼 Agência (`agenciaNba`, chave = bilhete).
     FALTA: perfil de outro técnico no Ranking mostra só cartas de futebol (o basquete não tem ranking ainda).
-  · **REGRAS (ManualDoTecnico)** e as Dúvidas só falam de futebol (11, 38 rodadas, Série D→A, Copa dos 8).
-  · **O MARTELO** (jornal da sala) e o painel de COMPARTILHAR aparecem no basquete com texto de futebol
-    (pênaltis, artilheiro "N gols", "lendas do futebol brasileiro").
+  · ✅ **REGRAS do basquete (19/10)**: `ManualDoTecnico bb` (home do basquete) — 50 moedas, PG·SG·SF·PF·C, quinteto,
+    sem empate (prorrogação), Street League só pontos corridos, top 4 sobe, ninguém cai, G League/NBA com Playoffs e
+    NBA Cup, banco 10→15. Tudo conferido no código (`NEXT_NBA_SEASON`, `simMatch`). As Dúvidas (FAQ) ficaram de fora
+    no basquete (são de futebol).
+  · ✅ **O MARTELO e COMPARTILHAR no basquete (19/10)**: "🏀 O DIÁRIO DO BIDLEGENDS", pós-temporada no lugar de Copa dos 8,
+    CESTINHA/pontos, sem frase de rebaixamento nem de "primeiro de fora" (vaga é por conferência). Imagem/texto de
+    compartilhar com BidLegends/NBA, V-D sem empate, cestinha. ⚠️ O link que vai junto ainda é o leilaolegends.com —
+    trocar pro bidlegendsarena.com quando o basquete for liberado (hoje ninguém além do Diego veria o basquete lá).
+  · ✅ Zoeira do Monte online no basquete: 🧱 Tijoleiro e 🤡 Rei do air ball. Final dos playoffs mostra JOGOS na série.
   · Mais de UMA carreira de basquete (hoje 1 ficha só, sem "Minhas carreiras") e escolher o nome do time.
   · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
-  · Botões de zoeira do Monte online ("Perna-de-pau", "Adriano Gol Contra") e placar da final dos playoffs
-    (soma pontos da série; melhor mostrar vitórias na série).
 
 **FALTA / PENDENTE DE TESTE:**
 - **Teste de 2 aparelhos** da carreira ONLINE do basquete (Diego) — único jeito de validar o online.

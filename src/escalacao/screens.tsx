@@ -1706,7 +1706,7 @@ function BidLegendsHome() {
         <div className="ll-web"><span>bidlegendsarena.com</span> · {t('Seu quinteto. Sua lenda.', 'Your five. Your legend.')}</div>
       </footer>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
-      {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo />}
+      {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo bb />}
     </div><div className="ll-support-home-tail"><ApoieButton trigger={open => <SupportFooter onOpen={open} />} /></div></>
   )
 }
@@ -2473,7 +2473,7 @@ export function EscIntro() {
 // o que muda. Modos ainda não liberados (Dinastia/Carreira online/Liga Fechada)
 // ficam de fora até o Diego liberar. É um complemento — o ensino de verdade
 // continua sendo contextual, dentro do jogo.
-function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: boolean }) {
+function ManualDoTecnico({ onClose, limpo, bb = false }: { onClose: () => void; limpo?: boolean; bb?: boolean }) {
   const t = useT() // 🌐 BR/EN
   const fases: [string, string, string][] = [
     ['✉️', t('Envelope', 'Envelope'), t('lance secreto — ninguém vê o seu', 'secret bid — nobody sees yours')],
@@ -2496,7 +2496,39 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
         {/* 🧼 VERSÃO LIMPA (home nova) — sem firula: a MESMA lista de passos da
             home, e os modos na mesma linha. O manual velho continua igual pra
             quem ainda está na home de hoje. */}
-        {limpo ? (
+        {/* 🏀 REGRAS DO BASQUETE (19/10): mesma cara da versão limpa, com o que vale no código do basquete
+            hoje — 50 moedas, quinteto (5), Street League só pontos corridos, G League/NBA com playoffs
+            (top 8) e NBA Cup no meio da temporada, top 4 sobe de andar e ninguém cai. */}
+        {bb ? (
+          <>
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>{t('Como funciona uma partida', 'How a match works')}</p>
+            {getLang() === 'en' ? <div className="space-y-2">
+              <PassoLinha n={1} ic="🪙" titulo="50 coins">The deck comes by position (PG · SG · SF · PF · C). You only see the <b>name</b>, never the level.</PassoLinha>
+              <PassoLinha n={2} ic="✉️" titulo="Secret bid">Write what each name is worth and seal the envelope. Nobody sees anyone's bid.</PassoLinha>
+              <PassoLinha n={3} ic="👀" titulo="All open together">At the Ceremony the envelopes open at once — and <b>only then</b> you see whether it was a legend or a brick.</PassoLinha>
+              <PassoLinha n={4} ic="🔨" titulo="The hammer falls">Whoever paid the most wins. Tied on the highest bid? There is a <b>tie-break</b>, also blind.</PassoLinha>
+              <PassoLinha n={5} ic="🃏" titulo="Fill your five from the Pile">Player left without an owner? On your turn you grab him <b>for free</b>, until your five is complete.</PassoLinha>
+              <PassoLinha n={6} ic="🏀" titulo="The season runs">Points on the scoreboard, live, and no ties (overtime). The champion takes <b>an NBA card</b> for the album.</PassoLinha>
+            </div> : <div className="space-y-2">
+              <PassoLinha n={1} ic="🪙" titulo="50 moedas">O baralho vem por posição (PG · SG · SF · PF · C). Você só vê o <b>nome</b>, nunca o nível.</PassoLinha>
+              <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale cada nome e lacra o envelope. Ninguém vê o lance de ninguém.</PassoLinha>
+              <PassoLinha n={3} ic="👀" titulo="Abrem todos juntos">Na Cerimônia os envelopes abrem de uma vez — e <b>só aí</b> aparece se era lenda ou tijolo.</PassoLinha>
+              <PassoLinha n={4} ic="🔨" titulo="O martelo bate">Quem pagou mais leva. Empatou no maior lance? Tem <b>desempate</b>, também às cegas.</PassoLinha>
+              <PassoLinha n={5} ic="🃏" titulo="Fecha o quinteto no Monte">Sobrou jogador sem dono? Na sua vez você pega <b>de graça</b>, até fechar os 5.</PassoLinha>
+              <PassoLinha n={6} ic="🏀" titulo="A temporada roda">Placar em pontos, subindo ao vivo, e sem empate (tem prorrogação). Campeão leva <b>uma carta da NBA</b> pro álbum.</PassoLinha>
+            </div>}
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-6 mb-2.5" style={OSWALD}>{t('Onde dá pra jogar isso', 'Where you can play it')}</p>
+            {getLang() === 'en' ? <div className="space-y-2">
+              <PassoLinha ic="⚡" titulo="Quick (offline)">You against the CPU. Just one season. Good to get the hang of it.</PassoLinha>
+              <PassoLinha ic="👥" titulo="Online">Same thing, but the bids come from your friends in the room. With more teams the season ends in the <b>Playoffs</b> (top 8) and has the <b>NBA Cup</b> midway.</PassoLinha>
+              <PassoLinha ic="★" titulo="Career">Start in the <b>Street League</b> (league only). Finish in the <b>top 4</b> and you move up: <b>G League</b>, then the <b>NBA</b> 💍 — up there with Playoffs and NBA Cup. Nobody goes down. Season by season it opens the bench (10, then 15), arena, sponsor, agency and a 2nd club.</PassoLinha>
+            </div> : <div className="space-y-2">
+              <PassoLinha ic="⚡" titulo="Rápido (offline)">Você contra a CPU. Uma temporada só. Bom pra pegar o jeito.</PassoLinha>
+              <PassoLinha ic="👥" titulo="Online">Mesma coisa, mas os lances são dos seus amigos na sala. Com mais times a temporada termina nos <b>Playoffs</b> (top 8) e tem a <b>NBA Cup</b> no meio.</PassoLinha>
+              <PassoLinha ic="★" titulo="Carreira">Começa na <b>Street League</b> (só pontos corridos). Terminou no <b>top 4</b>, sobe de andar: <b>G League</b> e depois <b>NBA</b> 💍 — lá em cima com Playoffs e NBA Cup. Ninguém cai. Temporada a temporada abre o banco (10, depois 15), arena, patrocínio, agência e 2º clube.</PassoLinha>
+            </div>}
+          </>
+        ) : limpo ? (
           <>
             <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>{t('Como funciona uma partida', 'How a match works')}</p>
             {getLang() === 'en' ? <div className="space-y-2">
@@ -5684,8 +5716,13 @@ export function EscMonte() {
         ] : [
           { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
           { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
-          { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: x => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
-          { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: x => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
+          ...(state.sport === 'basquete' ? [ // 🏀 a zoeira do basquete: tijolo e air ball no lugar de perna-de-pau e gol contra
+            { ic: '🧱', label: tr('Tijoleiro', 'Brick layer'), mk: (x: string) => getLang() === 'en' ? `Only brick layers will be left for ${x}!` : `Só vai sobrar tijoleiro pro ${x}!` },
+            { ic: '🤡', label: tr('Rei do air ball', 'Air-ball king'), mk: (x: string) => getLang() === 'en' ? `The air-ball king will be left for ${x} 😂` : `Vai sobrar o rei do air ball pro ${x} 😂` },
+          ] : [
+            { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: (x: string) => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
+            { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: (x: string) => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
+          ]),
         ]
         return (
           <div className="mt-1">
@@ -7873,12 +7910,13 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
 }
 
 // ─── card de resultado pra compartilhar ────────────────────────────────
-type ShareCard = { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }
+type ShareCard = { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean; bio?: string }
 type ShareBlobOpts = {
   teamName: string; youPos: number; youWon: boolean; champName: string
   pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
   nTeams?: number // tamanho da liga (pra faixa 🏅/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
+  bb?: boolean // 🏀 BidLegends: marca, cestinha/pontos, sem empate (ausente → futebol idêntico)
 }
 // 🪜 "GOSTOU? COMECE UMA CARREIRA" — o convite no fim da partida rápida OFFLINE
 // (online tem a votação da sala; dinastia, NBA e carreira já têm o próprio caminho).
@@ -7993,7 +8031,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
     x.fillStyle = hg; x.fillRect(M, OY + M, cw, ch); x.restore()
   }
   x.fillStyle = '#0C0C0C'; rrp(M + 34, OY + M + 34, 108, 62, 16); x.fill()
-  x.fillStyle = '#fff'; x.font = `900 38px ${OSW}`; x.textAlign = 'center'; x.fillText(c.pos, M + 88, OY + M + 78)
+  x.fillStyle = '#fff'; x.font = `900 38px ${OSW}`; x.textAlign = 'center'; x.fillText(opts.bb ? posTag(c.pos) : c.pos, M + 88, OY + M + 78)
   x.textAlign = 'right'; x.font = `900 34px ${OSW}`; x.fillStyle = dark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.62)'
   x.fillText(tierLabel, M + cw - 36, OY + M + 76)
   if (c.folk) {
@@ -8015,7 +8053,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   x.fillText(`${c.club} · ${c.year}`, W / 2, OY + M + ch * 0.66 + 48)
   x.font = `700 36px Arial`
   x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, OY + M + ch * 0.66 + 104)
-  const bioText = BIOS[c.name] // bio REAL (sem inventar); vazio se não tiver
+  const bioText = opts.bb ? c.bio : BIOS[c.name] // bio REAL (sem inventar); vazio se não tiver — 🏀 a da carta da NBA
   if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
     const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
@@ -8026,7 +8064,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   // rodapé da marca
   x.fillStyle = '#0C0C0C'; x.fillRect(0, TOP + CH, W, FOOT)
   x.fillStyle = '#F5B301'; x.font = `900 28px ${OSW}`; x.textAlign = 'center'
-  x.fillText('🏆 campeão do Leilão Legends · leilaolegends.com 🔨', W / 2, TOP + CH + 60)
+  x.fillText(opts.bb ? '🏆 campeão do BidLegends 🏀🔨' : '🏆 campeão do Leilão Legends · leilaolegends.com 🔨', W / 2, TOP + CH + 60)
   return new Promise(resolve => cv.toBlob(b => resolve(b), 'image/png'))
 }
 async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
@@ -8056,7 +8094,7 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   // medalha "2º lugar" no desenho do emoji) pra QUALQUER posição dentro da
   // zona de cima — um 3º lugar aparecia com "2" na medalha. Trocado por 🏅
   // (medalha sem número), que não promete uma posição que não é a de verdade.
-  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🏅' : opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
+  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🏅' : !opts.bb && opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : opts.bb ? '🏀' : '⚽', 450, hasCard ? 296 : 400)
 
   ctx.font = '900 72px Oswald, sans-serif'
   ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, hasCard ? 366 : 500)
@@ -8074,14 +8112,14 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
     ctx.lineWidth = 8; ctx.strokeStyle = INK; ctx.stroke()
     ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(cx + 22, top + 22, 92, 44, 22); ctx.fill()
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '900 24px Oswald, sans-serif'
-    ctx.fillText(c.pos, cx + 22 + 46, top + 52)
+    ctx.fillText(opts.bb ? posTag(c.pos) : c.pos, cx + 22 + 46, top + 52)
     ctx.fillStyle = INK
     let nameFont = 46; ctx.font = `900 ${nameFont}px Oswald, sans-serif`
     while (ctx.measureText(c.name).width > cw - 48 && nameFont > 24) { nameFont -= 2; ctx.font = `900 ${nameFont}px Oswald, sans-serif` }
     ctx.fillText(c.name, 450, top + 132)
     ctx.font = '600 26px Inter, sans-serif'; ctx.fillStyle = 'rgba(0,0,0,0.6)'
     ctx.fillText(`${c.club} · ${c.year}`, 450, top + 174)
-    const tier = c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.promessa ? '💎 PROMESSA' : c.folk ? '🃏 FOLCLÓRICO' : '⚽ BOM JOGADOR'
+    const tier = c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.promessa ? '💎 PROMESSA' : c.folk ? '🃏 FOLCLÓRICO' : opts.bb ? '🏀 BOM JOGADOR' : '⚽ BOM JOGADOR'
     ctx.font = '900 30px Oswald, sans-serif'; ctx.fillStyle = INK
     ctx.fillText(tier, 450, top + 244)
     statsY = top + chh + 66
@@ -8090,14 +8128,14 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   ctx.textAlign = 'left'
   ctx.font = '600 32px Inter, sans-serif'
   let y = statsY
-  ctx.fillText(`Pontos: ${opts.pts} (${opts.w}V ${opts.d}E ${opts.l}D)`, 90, y)
+  ctx.fillText(opts.bb ? `Campanha: ${opts.w}V ${opts.l}D` : `Pontos: ${opts.pts} (${opts.w}V ${opts.d}E ${opts.l}D)`, 90, y)
   y += 50
-  if (opts.scorerName) { ctx.fillText(`Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 50 }
+  if (opts.scorerName) { ctx.fillText(opts.bb ? `Cestinha: ${opts.scorerName} — ${opts.scorerGoals} pontos` : `Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 50 }
   if (!opts.youWon) ctx.fillText(`Campeão da temporada: ${opts.champName}`, 90, y)
 
   ctx.textAlign = 'center'
   ctx.font = '700 30px Oswald, sans-serif'
-  ctx.fillText('LEILÃO LEGENDS', 450, 1125)
+  ctx.fillText(opts.bb ? 'BIDLEGENDS' : 'LEILÃO LEGENDS', 450, 1125)
   ctx.font = '400 22px Inter, sans-serif'
   ctx.fillText(GAME_URL.replace('https://', ''), 450, 1156)
 
@@ -8131,6 +8169,9 @@ async function shareResult(opts: ShareOpts) {
 // baixa a imagem e o usuário posta no story/feed.
 type ShareOpts = Parameters<typeof buildShareCardBlob>[0]
 function shareTextFor(o: ShareOpts) {
+  if (o.bb) return o.youWon // 🏀 BidLegends
+    ? `🏆 Fui CAMPEÃO com o ${o.teamName} no BidLegends! Leilão às cegas de lendas da NBA 🔨🏀`
+    : `Terminei em ${o.youPos}º com o ${o.teamName} no BidLegends 🔨🏀 Bora jogar?`
   return o.youWon
     ? `🏆 Fui CAMPEÃO com o ${o.teamName} no Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨`
     : `Terminei em ${o.youPos}º com o ${o.teamName} no Leilão Legends 🔨 Bora jogar?`
@@ -11231,7 +11272,8 @@ export function EscEnd() {
     teamName: you.teamName, youPos, youWon, champName: champ.name, nTeams: table.length,
     pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
     scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
-    card: featured ? { name: featured.name, club: featured.club, year: featured.year, pos: featured.pos, fame: featured.fame, folk: featured.folk, promessa: featured.promessa } : undefined,
+    card: featured ? { name: featured.name, club: featured.club, year: featured.year, pos: featured.pos, fame: featured.fame, folk: featured.folk, promessa: featured.promessa, ...(bbEnd ? { bio: featured.bio } : {}) } : undefined,
+    ...(bbEnd ? { bb: true } : {}),
   }
   // check de prontidão do "Reiniciar com novos times": TODOS os participantes
   // humanos precisam clicar "estou pronto" (não depende do presence, instável)
@@ -11460,7 +11502,10 @@ export function EscEnd() {
         const qc = state.quickCopa, ch = qc.champion!
         const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
         const dono = state.managers.find(m => m.id === ch.id)
-        const finalTxt = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : null
+        const finalTxt = !fin ? null
+          // 🏀 final dos playoffs é SÉRIE: o placar é de JOGOS ganhos (2×1), não a soma dos pontos
+          : bbEnd && fin.legs.length > 1 ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.filter(g => g[0] > g[1]).length} × ${fin.legs.filter(g => g[1] > g[0]).length} ${fin.bName} (${LE('jogos na série', 'games in the series')})`
+          : `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}`
         return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : bbEnd ? LE('💍 CAMPEÃO DOS PLAYOFFS', '💍 PLAYOFF CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
           nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
           sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
@@ -11775,7 +11820,7 @@ export function EscEnd() {
           nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
       {/* ⭐ Só Champions: o jornal tem EDIÇÃO CHAMPIONS (`montaEdicaoChampions`) — pedido do Diego 25/09 */}
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
+        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
