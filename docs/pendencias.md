@@ -9415,3 +9415,12 @@ qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque com 5s apenas pra 
 montado lá sem condição, então não nasce botão mudo) e ganhou `MASC_JAB_COOLDOWN_S = 5` com contagem no botão,
 igual ao lobby. O pregão do envelope cego continua com a mascote na barra "😈 CUTUCA". Só pra clube batizado.
 ✅ 29/09 — 🔁 Rafael Vaz: Flamengo 2016 → VASCO 2015 (auge, bi carioca) · Erazo: Flamengo 2014 → GRÊMIO 2016 (Copa do Brasil). Mesma força, baralho BR; troca no mesmo baralho não vira novidade.
+
+## 📋 DRAFT nas Minhas Ligas (19/10) — ideia do Diego, MOCKUP enviado, aguardando OK
+Lembrança dele do PES 19 com os amigos: *"tinha só um Neymar pra todo mundo… o primeiro escolhia primeiro"*.
+- Cada jogador é ÚNICO na liga.
+- Temporada 1 = leilão de sempre, mas só com jogador FRACO (*"todo mundo começou com time ruim"*).
+- A cada temporada: noite do draft, **1 jogador por técnico**, de **TODOS os jogadores do jogo** (lenda inclusa).
+- Ordem = tabela, **campeão escolhe primeiro**.
+- Cada escolha é revelada na hora pra sala inteira (carta coberta → vira), suspense.
+- Mockup: `scripts/mockup-draft.mjs` → `scripts/mockups/draft.png` (tempo de 45s, "quem sai pra ele entrar" são propostas minhas).
