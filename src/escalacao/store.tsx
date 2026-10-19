@@ -3120,7 +3120,10 @@ export function temSafAgencia(s: EscState): boolean {
   return !!s.careerFilial || (saf2On(s) && !!s.saf2?.origemSaf && !!segundoClube(s))
 }
 export function saf2On(s: EscState): boolean {
-  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online'
+  // 🏀 o basquete não tem SAF: o 2º clube dele nasce da COMPRA direta (BUY_MULTICLUBE,
+  // 4.000 🪙, Lenda), o modelo pré-SAF2. `sport !== 'basquete'` é sempre true no futebol,
+  // então isto NÃO muda nada pro futebol.
+  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online' && s.sport !== 'basquete'
 }
 export function saf2Janela(s: EscState): boolean {
   return janelaAberta({ careerOnline: s.careerOnline, online: s.onlineMode === 'online', screen: s.screen, round: s.round })
@@ -7901,14 +7904,54 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
         s.liberta = null; s.champions = null // 🌎 e a Libertadores da temporada passada junto
         const tierTeams = NBA_TIERS[newTier].teams
-        // novos adversários do andar (CPUs recebem elenco, não dão lance); VOCÊ fica.
-        const { managers, botPlans } = makeManagers([you.teamName], '4-3-3', 0, tierTeams.length, rng, tierTeams)
-        managers[0] = you // mantém você (elenco, nbaSlots, money, id 0)
-        s.managers = managers; s.youIdx = 0
-        s.careerRivalCount = tierTeams.length - 1
-        const usedP = new Set<string>()
-        for (const c of you.squad) usedP.add(ident(c))
-        dealBotSquads(s.managers, botPlans, rng, usedP)
+        const humanClubs = s.managers.filter(m => m.isHuman)
+        if (humanClubs.length <= 1) {
+          // caminho de SEMPRE (1 clube) — intocado, já validado.
+          const { managers, botPlans } = makeManagers([you.teamName], '4-3-3', 0, tierTeams.length, rng, tierTeams)
+          managers[0] = you // mantém você (elenco, nbaSlots, money, id 0)
+          s.managers = managers; s.youIdx = 0
+          s.careerRivalCount = tierTeams.length - 1
+          const usedP = new Set<string>()
+          for (const c of you.squad) usedP.add(ident(c))
+          dealBotSquads(s.managers, botPlans, rng, usedP)
+        } else {
+          // 🏛️ 2º CLUBE: a crew sobe JUNTA, e os DOIS clubes seus sobem (o que dorme também).
+          // Pin de AMBOS no MESMO índice (só os bots trocam de assento) — mesma blindagem
+          // do online: pool sem os nomes dos humanos, id de bot nunca colide, e só COMETE
+          // a subida se o array ficou 100% preenchido (senão mantém o andar, nunca um buraco).
+          const newSize = tierTeams.length
+          const humanEntries = s.managers.map((m, i) => ({ m, i })).filter(x => x.m.isHuman)
+          const humanIds = new Set(humanEntries.map(x => x.m.id))
+          const humanTeams = new Set(humanEntries.map(x => x.m.teamName))
+          const botTeamPool = tierTeams.filter(t => !humanTeams.has(t.team))
+          const { managers: gen, botPlans: genPlans } = makeManagers(['__ph__'], '4-3-3', 0, botTeamPool.length + 1, rng, botTeamPool)
+          const genBots = gen.filter(m => !m.isHuman)
+          const newManagers: Manager[] = new Array(newSize)
+          for (const { m, i } of humanEntries) if (i < newSize) newManagers[i] = m
+          let nextBotId = 0
+          const freshId = () => { while (humanIds.has(nextBotId)) nextBotId++; return nextBotId++ }
+          const newPlans: BotPlan[] = []
+          let bc = 0
+          for (let i = 0; i < newSize; i++) {
+            if (newManagers[i]) continue
+            const b = genBots[bc++]; if (!b) break
+            const id = freshId()
+            const plan = genPlans.find(p => p.id === b.id)
+            newManagers[i] = { ...b, id }
+            if (plan) newPlans.push({ ...plan, id })
+          }
+          const filledOk = newManagers.every(m => !!m) && newManagers.filter(m => m.isHuman).length === humanEntries.length
+          if (filledOk) {
+            s.managers = newManagers
+            s.youIdx = newManagers.findIndex(m => m.id === you.id) // você continua no seu assento
+            s.careerRivalCount = newSize - humanEntries.length
+            const usedP = new Set<string>()
+            for (const { m } of humanEntries) for (const c of m.squad) usedP.add(ident(c))
+            dealBotSquads(s.managers, newPlans, rng, usedP)
+          } else {
+            s.nbaTier = tier // não deu pra subir com segurança: fica no andar atual (nunca trava)
+          }
+        }
       }
       // 🧾 economia por ANDAR: recoloca todos na divisão do andar ATUAL (patrocínio/SAF/
       // caixa-base seguem o andar) e garante o caixa-base dos bots novos que subiram junto.

@@ -10251,6 +10251,13 @@ function NbaCareerEndPanel() {
           <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
         </Btn>
       )}
+      {/* 🏛️ 2º CLUBE: na virada dá pra passar o comando pro outro clube (o que sai DORME,
+          joga sozinho). Só offline e só quem comprou um 2º clube. */}
+      {!online && state.multiClube && (
+        <Btn onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} bg={PURPLE} className="w-full text-sm">
+          <span className="text-white">🔄 {t('Jogar a próxima com', 'Next season play as')} {state.multiClube.team}</span>
+        </Btn>
+      )}
       <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">{note}</p>
       {/* 🔄 VENDER (T3+): dispensa reservas fracas — nunca abaixo do quinteto */}
       {canSell && (

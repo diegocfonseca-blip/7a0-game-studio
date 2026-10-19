@@ -7926,7 +7926,7 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
   const { state, dispatch } = useEsc()
   const en = getLang() === 'en'
   const L = (pt: string, e: string) => en ? e : pt
-  const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio'>('estadio')
+  const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi'>('estadio')
   const youId = state.managers[state.youIdx]?.id ?? state.youIdx
   const coins = state.careerCoins?.[youId] ?? 0
   const myCards = state.empresarioCards ?? []
@@ -7934,11 +7934,19 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
   // 👕 patrocínio: o MESMO Patrocinador Master do futebol (4 papéis, meta, renovação por
   // ligação) — a marca paga pela DIVISÃO do andar (tierDivKey já está em careerPlacements).
   const div = (state.careerPlacements?.[`m${youId}`] ?? 'D') as string
+  // 🏛️ 2º clube: crews da Street League (placement 'D') que ainda são livres. A compra
+  // (BUY_MULTICLUBE) só acha crew na 'D', então no G League/NBA a lista vem vazia — o 2º
+  // clube se compra na base, e depois sobe junto com você.
+  const multiOpcoes = state.managers
+    .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D')
+    .map(m => m.teamName)
+  const isLenda = myApoioPerk()?.tier === 'ouro'
   const tabs: [typeof sub, string, string][] = [
     ['estadio', '🏟️', L('Arena', 'Arena')],
     ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
     ['financas', '💰', L('Finanças', 'Finances')],
     ['escritorio', '💼', L('Agência', 'Agency')],
+    ['multi', '🏛️', L('2º Clube', '2nd Club')],
   ]
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
@@ -7969,6 +7977,12 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
             </div>
           ) : sub === 'financas' ? (
             <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
+          ) : sub === 'multi' ? (
+            // 🏛️ 2º Clube do basquete: compra direta de uma crew (4.000 🪙, regalia Lenda),
+            // igual ao multiclube pré-SAF do futebol. Os dois clubes jogam a MESMA liga; você
+            // comanda um por temporada e troca no fim (botão na tela de fim). Sobem juntos.
+            <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={isLenda}
+              onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} bb />
           ) : (
             <StadiumTab st={state.stadiums?.[youId]} coins={coins}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
