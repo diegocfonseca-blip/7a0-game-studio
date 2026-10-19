@@ -906,6 +906,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   motor só aplica com 4+ times de gente (`LIGA_FECHADA_MIN`, START_ONLINE) — com menos, completa até 20 com bots. Aviso escrito embaixo
   da opção (criar e editar) e na sala de espera.
 
+- **🧩 IDEIA NOVA TEM QUE TER SENTIDO COM O JOGO (19/10, depois de 5 rodadas recusadas).** Palavras dele: *"muita coisa não tem
+  sentido… a base não é boa no jogo e não tem aposentadoria porque são jogadores já definidos… quero algo que tenha sentido com o
+  jogo"*. As cartas são jogadores REAIS congelados num clube e num ano (não envelhecem, não se aposentam, não engordam, não têm
+  família no jogo), e a Cria da Base é fraca de propósito. **Antes de propor qualquer história/feature, ancorar no que o jogo JÁ é**:
+  leilão às cegas, cartas reais com bio, categorias (lenda/craque…), rivais bots com perfil, contratos/piso, divisões e copas,
+  caixa, estádio, Master, Agência, presidente. Nada de "vida real" que a carta não tem.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
