@@ -123,6 +123,9 @@
   técnicos + placar de títulos no perfil + 1 zoeira no chat quando ganho título com ele na sala) · perfil "📊 No online" (posição
   da semana e do mês + medalhas 🥇🥈🥉 do pódio semanal) · 🔔 sininho embaixo de MINHA CONTA (convites, pedidos, aceitos) · aviso
   "fulano entrou no jogo" (1 por amigo a cada 30 min) · convite em janela em qualquer tela, MENOS partida/leilão.
+- ⏳ **ÁLBUM DENTRO DOS AMIGOS (pedido 19/10, *"seria mais fácil fazer a troca de cartas por lá"*)** — mockup enviado,
+  ESPERANDO OK: `scripts/mockups/amigos-album.png` (aba 📖 Álbum nos Amigos = o mesmo `EscAlbum`/`AbaTrocas`; no perfil do amigo
+  "📖 Ver cartas dele" + "🤝 Propor troca" abrindo `NovaTroca` com ele já escolhido; nas trocas, amigos primeiro). Home mantém o MEU ÁLBUM.
 - 🚫 **SEM CHAT 1:1** (*"tenho uma comunidade no zap"*): vai o botão "💬 Entrar na comunidade do zap". Não repropor chat.
 - Tráfego: `esc_avisos` ao abrir + a cada 60s só com a aba visível (nada de canal). Banco: migration `20261019120000_amigos_v2.sql`.
 - 🚫 **COMUNIDADES: NÃO FAZER** (*"esse negócio de comunidade é doideira, melhor não"*). Não repropor.
