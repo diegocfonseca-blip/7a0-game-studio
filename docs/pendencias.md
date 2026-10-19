@@ -1,3 +1,11 @@
+## 📧 E-mail da campanha com as novidades de outubro (19/10) — ⏳ PRÉVIA ENVIADA, esperando OK do Diego
+- Pedido: *"atualizamos MT coisas já… vc deveria mudar o visual do e-mail"*. O texto no ar ainda fala de Várzea/técnicos/Copa do Brasil.
+- Novo: 6 blocos só com o que está liberado pra todos (pregão aberto · Liberta/Champions/Mundial na carreira · Central Legends ·
+  SAF 2º clube + rivais com banco · Champions de 36 + leilão de clubes · Amigos + medalha da semana), assunto novo.
+- Gerador: `node scripts/email/campanha-volta.mjs --foto <pasta>` (faz a foto e o `campanha-volta.sql`). Com o OK: rodar o SQL no banco
+  (troca só `esc_email_html`/`esc_email_assunto`; fila, disparo e medidor iguais). Voltar: `scripts/email/campanha-volta-antes.sql`.
+- 👀 O placar mostra Abriu 0 / Clicou 0 em todos os dias: o rastreio de abertura e clique do Resend parece desligado (o "voltou" funciona).
+
 ## 🧑‍💼🛍️ Peças avulsas do presidente no Pix (19/10) — ✅ NO AR pra todos
 - Pedido: *"ok pode fazer tudo nisso já pelo pix do mercado pago"*. Preço pelo nível: Craque 1,99 · Lenda 2,99 · Batismo 3,99 · Fundador 4,99.
 - Grátis: 1ª compra = roupa, que dá o boneco careca (pele à vontade); depois cabelo/barba/acessório a 1,99. Com plano: compra as de cima.
