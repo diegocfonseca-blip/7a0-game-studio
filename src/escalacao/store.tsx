@@ -5444,7 +5444,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
@@ -7810,6 +7810,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
       s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}; s.seasonNo = 1
+      if (action.intro) { s.screen = 'streamIntro'; return s } // 🔨 a tela de regras do leilão (com exemplos da NBA) antes do pregão, igual ao rápido do futebol
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s

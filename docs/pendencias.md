@@ -118,7 +118,10 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   da liga" e formação. Sem a tela de regras (ela usa exemplos do futebol — Romário, Kaká; as salas de basquete já
   pulavam). ⚠️ Lição: na tela de ajustes o esporte vem da ESCOLHA da home (`useSport`), NUNCA do `state.sport` — ele
   guarda a partida ANTERIOR e no 1º teste a home do basquete abriu uma partida de futebol.
-  FALTA (se o Diego quiser): tela de regras do pregão com exemplos da NBA.
+  ✅ Tela de regras do pregão no basquete (19/10, Diego: "regra pode fazer"): a Partida Rápida passa pela `EscStreamIntro`
+  com cartas DA NBA (Marcelinho Huertas no envelope; Nash/Lin/Raul Neto na Tocaia). No baralho da NBA cada jogador
+  tem UMA carta, então a lição "mesmo jogador, dois níveis" (Kaká) virou "🎭 O nome engana": Magic Johnson (Lenda) ×
+  Jeremy Lin (Linsanity = Folclórico). As salas online de basquete continuam pulando essa tela.
 - ✅ **MODOS ONLINE DO BASQUETE (19/10, Diego: "de resto já pode criar todos os modos do online")** — auditoria +
   conserto. Rápido e Minhas Ligas com os 3 jeitos de lance: ✉️ Envelope ok · 🐊 Tocaia ok (abre em 50; os textos
   diziam 100) · 🔨 **Pregão aberto LIGADO** (a sala oferecia e o START_ONLINE desligava calado — rodava envelope).

@@ -2835,7 +2835,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
-    else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes })
+    else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, intro: true })
     else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
@@ -3273,6 +3273,8 @@ export function EscStreamIntro() {
   const tocaia = !!state.holandes // 🐊 o pregão é o do preço caindo (chave do save: `holandes`)
   const abertura = HOL_ABERTURA(state) // 100 no futebol · 50 no basquete
   const isCareer = !!state.careerOnline // 🏆 banner "vira o clube mais bem-sucedido" — na carreira solo E online
+  // 🏀 19/10: no basquete os exemplos são cartas DA NBA (as do futebol eram Romário, Alex Muralha, Kaká…)
+  const bbI = state.sport === 'basquete'
   const isHost = !online || state.isHost
   const you = state.managers[state.youIdx]
   const humans = state.managers.filter(m => m.isHuman)
@@ -3329,13 +3331,13 @@ export function EscStreamIntro() {
             <div className="h-2 border-2 border-black rounded-full mt-1 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
               <div style={{ width: '24%', height: '100%', background: INK }} />
             </div>
-            <p className="text-[10px] font-bold text-black/60 mt-1">{tr('3 na mesa · setor: ATACANTES', '3 on the table · sector: FORWARDS')}</p>
+            <p className="text-[10px] font-bold text-black/60 mt-1">{bbI ? tr('3 na mesa · posição: ARMADORES', '3 on the table · position: POINT GUARDS') : tr('3 na mesa · setor: ATACANTES', '3 on the table · sector: FORWARDS')}</p>
           </div>
-          {([['Romário', 'Vasco · 2000'], ['Obina', 'Flamengo · 2005'], ['Dodô', 'São Paulo · 1997']] as [string, string][]).map(([nome, clube], i) => (
+          {(bbI ? [['Steve Nash', 'Suns · 2005'], ['Jeremy Lin', 'Knicks · 2012'], ['Raul Neto', 'Jazz · 2016']] : [['Romário', 'Vasco · 2000'], ['Obina', 'Flamengo · 2005'], ['Dodô', 'São Paulo · 1997']] as [string, string][]).map(([nome, clube], i) => (
             <div key={nome} className="border-[3px] border-black rounded-xl p-2.5 flex items-center justify-between gap-2 mt-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>ATA</span>
+                  <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>{bbI ? 'PG' : 'ATA'}</span>
                   <span className="font-black text-sm truncate" style={OSWALD}>{nome}</span>
                 </div>
                 <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>{clube} {i === 0 && <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span>}</p>
@@ -3369,10 +3371,10 @@ export function EscStreamIntro() {
           <div className="border-[3px] border-black rounded-xl p-3 flex items-center justify-between gap-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
-                <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
+                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>{bbI ? 'PG' : 'GOL'}</span>
+                <span className="font-black text-sm truncate" style={OSWALD}>{bbI ? 'Marcelinho Huertas' : 'Alex Muralha'}</span>
               </div>
-              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
+              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ {bbI ? 'Lakers · 2016' : 'Flamengo · 2017'} <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
             </div>
             <div className="flex flex-col items-center flex-shrink-0">
               <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>{tr('seu lance', 'your bid')}</span>
@@ -3387,6 +3389,26 @@ export function EscStreamIntro() {
         </Box>
       </>)}
 
+      {bbI ? (
+      // 🏀 no baralho da NBA cada jogador tem UMA carta, então a lição não é "o mesmo jogador vale diferente":
+      // é que O NOME ENGANA — famoso nem sempre é lenda (cartas e bios de verdade do baralho)
+      <Box bg="#EDE7FF" className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>{tr('🎭 O nome engana', '🎭 The name can fool you')}</p>
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{tocaia
+          ? (getLang() === 'en' ? <>Some names everybody knows are <b>cult cards</b>, not legends. You tap on the name — <b>the level only opens when the player is yours</b>. Read the team and the year before you pounce!</> : <>Tem nome que todo mundo conhece e é <b>carta de resenha</b>, não lenda. Você aperta no nome — <b>o nível só abre quando o jogador é seu</b>. Leia o time e o ano antes de dar o bote!</>)
+          : (getLang() === 'en' ? <>Some names everybody knows are <b>cult cards</b>, not legends. You bet on the name — the level only opens at the reveal!</> : <>Tem nome que todo mundo conhece e é <b>carta de resenha</b>, não lenda. Você aposta no nome — o nível só abre na revelação!</>)}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <CollectibleCard name="Magic Johnson" club="Lakers" year={1987} pos="GOL" fame={5} bio={nbaMeta('Magic Johnson', 'Lakers', 1987).bio} />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>{getLang() === 'en' ? <>👑 Showtime Lakers<br />= LEGEND</> : <>👑 Lakers do Showtime<br />= LENDA</>}</p>
+          </div>
+          <div>
+            <CollectibleCard name="Jeremy Lin" club="Knicks" year={2012} pos="GOL" fame={2} folk bio={nbaMeta('Jeremy Lin', 'Knicks', 2012).bio} />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>{getLang() === 'en' ? <>🃏 Linsanity<br />= CULT CARD</> : <>🃏 Linsanity<br />= FOLCLÓRICO</>}</p>
+          </div>
+        </div>
+      </Box>
+      ) : (
       <Box bg="#EDE7FF" className="p-4" shadow={6}>
         <p className="font-black text-lg" style={OSWALD}>{tr('🎭 O nível é o AUGE do craque', '🎭 The level is the star\'s PEAK')}</p>
         {/* 🐊 na Tocaia não existe "revelação": a carta é sua no toque, e é aí que
@@ -3406,6 +3428,7 @@ export function EscStreamIntro() {
           </div>
         </div>
       </Box>
+      )}
 
       {online && (
       <Box bg={INK} className="p-4" shadow={6}>
