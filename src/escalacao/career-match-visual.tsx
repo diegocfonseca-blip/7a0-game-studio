@@ -6,7 +6,8 @@ import { Escudo } from './escudos'
 import './career-match-visual.css'
 
 export function CareerCompetitionStage(p: { kind: 'league'|'copa'|'brasil'|'super'|'liberta'|'champions'|'mundial'; title: string; phase: string; detail: string; status: string; children?: ReactNode }) {
-  return <div className={`ll29-stage ll29-stage-${p.kind}`}><CompetitionStage kind="league" title={p.title} phase={p.phase} detail={p.detail} status={p.status}>{p.children}</CompetitionStage></div>
+  // 💼 19/10: só a Liga Legends da carreira tem "apresentada por" (Tidex); copas e internacionais ficam sem
+  return <div className={`ll29-stage ll29-stage-${p.kind}`}><CompetitionStage kind="league" patroKind={p.kind === 'league' ? 'career-league' : null} title={p.title} phase={p.phase} detail={p.detail} status={p.status}>{p.children}</CompetitionStage></div>
 }
 
 export function CareerCompetitionHelp({ kind }: { kind: 'super'|'brasil'|'copa' }) {

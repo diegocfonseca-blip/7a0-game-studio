@@ -14,14 +14,15 @@ import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
 
 export type Patrocinio = { nome: string; emoji: string }
-type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'
+export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' // career-league = a Liga Legends da CARREIRA (19/10)
 
 const PATROCINIO_GERAL = true // 16/10: Diego "pode liberar tudo já pro geral, mostrar pra todos, e Pix também"
 const ESPACOS_GERAL = true
 const PATROCINIO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
   champions: { nome: 'Vadico Veículos', emoji: '🚗' }, // 🚗 Vadico Veículos (Itaguaí e Barra da Tijuca) — 16/10
-  copa8: { nome: 'Tidex', emoji: '🤖' }, // 🤖 Tidex — sua marca dentro das IAs (19/10, Diego: "add a Tidex na copa dos 8 apresentado por")
+  copa8: { nome: 'Tidex', emoji: '🤖' },
+  'career-league': { nome: 'Tidex', emoji: '🤖' }, // 🤖 19/10 (Diego: "no modo carreira também na Liga Legends apresentado por Tidex") // 🤖 Tidex — sua marca dentro das IAs (19/10, Diego: "add a Tidex na copa dos 8 apresentado por")
 }
 
 /** a marca que apresenta esta competição (null = sem patrocinador, ou ainda escondido pra esta conta) */
@@ -98,8 +99,9 @@ function useAvulsos(ligado = true) {
 }
 
 /** hook do palco: a marca do mês (código) ou, na Copa dos 8, o ⚡ Dia da marca que está no ar (banco, 24 h) */
-export function usePatrocinio(kind: Competicao): Patrocinio | null {
+export function usePatrocinio(kind: Competicao | null): Patrocinio | null {
   useAvulsos(kind === 'copa8')
+  if (!kind) return null
   const m = kind === 'copa8' ? noAr('marca')[0] : undefined
   if (m) return { nome: m.texto, emoji: m.emoji }
   return patrocinioDe(kind)
