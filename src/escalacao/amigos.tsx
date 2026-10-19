@@ -30,7 +30,7 @@ type Perfil = {
   titulos: Titulos; rank: { pos: number; total: number; temporada: number } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
   // 👥 v2 (19/10): ranking do online da semana/mês, medalhas do pódio semanal e o rival
-  semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null
+  semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null; sempre?: { pos: number; titulos: number } | null
   medalhas?: { ouro: number; prata: number; bronze: number } | null; meu_rival?: boolean
   rival?: { uid: string; nome: string; eu: number; ele: number } | null
 }
@@ -211,11 +211,11 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
         </div>
 
-        {/* 📊 a posição no ranking do online (títulos de sala) na semana e no mês + as medalhas do pódio semanal */}
+        {/* 📊 a posição no ranking do online (títulos de sala) na semana, no mês e de TODOS OS TEMPOS (19/10, desde 02/09) + as medalhas do pódio semanal */}
         <div style={caixa}>
           <p style={h3}>📊 {tr('No online', 'Online')}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {([[tr('Esta semana', 'This week'), p.semana], [tr('Este mês', 'This month'), p.mes]] as const).map(([rot, r]) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+            {([[tr('Esta semana', 'This week'), p.semana], [tr('Este mês', 'This month'), p.mes], [tr('Todos os tempos', 'All time'), p.sempre]] as const).map(([rot, r]) => (
               <div key={rot} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: r ? '#FFF7DA' : '#f3eee0' }}>
                 <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{rot}</div>
                 <div style={{ ...OSW, fontSize: 24, lineHeight: 1.05, color: INK }}>{r ? `${r.pos}º` : '—'}</div>

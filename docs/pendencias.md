@@ -9,7 +9,7 @@ Pendente: passe mensal (mockup `passes-mensais.png`) entra como 3ª opção aqui
 - *"o save dele atual que tá com melhor ranking em temporada"*: cada save tem a posição dele no ranking global NA temporada em que
   está (`esc_pyramid_career_rank`); o perfil mostra o save com a MELHOR posição. Na tela: só o número grande e a temporada embaixo
   (nada de clube, save ou total). `esc_perfil_rank`, até as 8 carreiras mais recentes.
-- ⏳ Online "todos os tempos" (desde 02/09): proposta feita, Diego não respondeu ainda — não fazer sem o OK.
+- ✅ Online "Todos os tempos" (desde 02/09): 3ª caixa ao lado de semana e mês (Diego: "Ok"). Chave `sempre` em `esc_perfil_publico2`.
 
 ## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR
 - Pedido: *"como eu faço p tirar e escrever novas?? Deveria aparecer no painel as três p eu remover editar ou add nova"*.

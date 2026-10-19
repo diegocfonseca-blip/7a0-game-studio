@@ -1,0 +1,4 @@
+-- 🌐 19/10 (Diego: "Ok"): o perfil ganha o ranking online de TODOS OS TEMPOS ('sempre'), desde 02/09 — quando o jogo começou a
+-- guardar os títulos das salas. Mesmo `esc_rank_online` da semana e do mês, só com a data de início fixa.
+-- (aplicado no banco como `perfil_online_todos_os_tempos`: esc_perfil_publico2 ganhou a chave
+--  'sempre', (select jsonb_build_object('pos', pos, 'titulos', titulos) from esc_rank_online('2026-09-01'::timestamptz) where uid = p_uid::text))
