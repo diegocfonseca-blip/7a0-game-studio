@@ -1746,6 +1746,12 @@ function BidLegendsHome() {
           </div>
         ))}
       </div>
+      {/* 📖 ÁLBUM — a home promete cartas/álbum (acima); aqui está a PORTA. Mostra as
+          cartas da conta (as lendas da NBA que você ganhar de campeão entram aqui). */}
+      <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} className="w-full text-lg" bg="#FFC400">
+        <span>📖 {t('MEU ÁLBUM', 'MY ALBUM')}</span>
+      </Btn>
+      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('As lendas da NBA que você coleciona — cada anel vira carta.', 'The NBA legends you collect — each ring becomes a card.')}</p>
     </Shell>
   )
 }
