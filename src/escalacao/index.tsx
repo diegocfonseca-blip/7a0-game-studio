@@ -282,6 +282,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
 // aparecendo toda hora, com o tanto de deploy que rola por dia). Guarda a hora
 // do último auto-reload pra nunca entrar em loop (no máx. 1 auto-reload a cada
 // 5 min).
+/** alguma janela (Loja, Amigos, Pix, Carreiras, perfil…) cobrindo a tela? = elemento FIXO do tamanho da tela quase toda */
+function temJanelaAberta(): boolean {
+  try {
+    const w = window.innerWidth, h = window.innerHeight
+    for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('div,section,aside'))) {
+      if (getComputedStyle(el).position !== 'fixed') continue
+      const r = el.getBoundingClientRect()
+      if (r.width >= w * 0.8 && r.height >= h * 0.6) return true
+    }
+  } catch { return true } // na dúvida, não recarrega
+  return false
+}
 function VersionWatcher() {
   const { state } = useEsc()
   // guarda o ARQUIVO NOVO detectado no servidor (o hash muda a cada deploy).
@@ -312,16 +324,24 @@ function VersionWatcher() {
   // AUTO-atualiza em silêncio quando a pessoa está numa tela segura (rede de
   // segurança pra quem não recarrega sozinho). Anti-loop: no máx. 1x/5min.
   // Espera uns segundos pra não recarregar no instante exato que abriu.
+  // 🪟 19/10 (Diego: *"vira e mexe a página do amigos ou loja fecha depois de alguns segundos"*): era ESTE recarregamento. A tela
+  // continuava sendo a home ('intro'), então ele recarregava com a Loja, os Amigos, o Pix ou as Carreiras abertos POR CIMA. Agora
+  // ele só recarrega com a home LIMPA (nenhuma janela cobrindo a tela) e a pessoa parada há 15 s; senão tenta de novo depois.
   useEffect(() => {
     if (!newBundle || !safe) return
     let last = 0
     try { last = +(sessionStorage.getItem('esc-auto-upd-at') || 0) } catch { /* ignora */ }
     if (Date.now() - last < 300_000) return
-    const t = setTimeout(() => {
+    let mexeu = Date.now()
+    const marca = () => { mexeu = Date.now() }
+    const evs = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const
+    evs.forEach(e => window.addEventListener(e, marca, { passive: true, capture: true }))
+    const iv = setInterval(() => {
+      if (Date.now() - mexeu < 15_000 || temJanelaAberta()) return
       try { sessionStorage.setItem('esc-auto-upd-at', String(Date.now())) } catch { /* ignora */ }
       window.location.reload()
-    }, 6000)
-    return () => clearTimeout(t)
+    }, 3000)
+    return () => { clearInterval(iv); evs.forEach(e => window.removeEventListener(e, marca, { capture: true })) }
   }, [newBundle, safe])
   return null
 }

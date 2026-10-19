@@ -1,3 +1,9 @@
+## 🪟 Loja/Amigos fechando sozinhos (19/10) — ✅ CONSERTADO
+Relato do Diego: *"vira e mexe a página do amigos ou loja fecha depois de alguns segundos"*. Causa: o `VersionWatcher` (index.tsx)
+recarrega a página sozinho 6 s depois de achar versão nova, sempre que a tela é a home ('intro') — e a Loja/Amigos/Pix/Carreiras são
+janelas POR CIMA da home, então a tela continuava 'intro'. Com muita publicação no dia, quem estava na Loja via ela sumir. Agora só
+recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo a tela) e a pessoa parada há 15 s.
+
 ## 📅 Patrocínio mensal na Loja com números e fotos (18/10) — PUBLICADO pra todos
 - `marca-mensal.tsx` + fotos em `public/patrocinio-mensal/`. Números medidos no banco em 18/10 e escritos à mão (`NUMEROS`):
   atualizar de tempos em tempos (só os GRANDES — regra do Diego). Fotos do LED, Master e vitrine ainda são dos mockups
