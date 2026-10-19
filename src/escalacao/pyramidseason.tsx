@@ -1372,6 +1372,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy, bb = false
   jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void; bb?: boolean // 🏀 basquete: escudo de quadra no lugar do estádio
 }) {
   const [pick, setPick] = useState<string | null>(null)
+  const baseNm = bb ? 'Street League' : 'Série D' // 🏀 o andar-base do basquete no lugar da Série D
   const lock: React.CSSProperties = { fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 800, background: '#CBBF9E', color: 'rgba(0,0,0,.65)', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 8 }
   if (jaTem) return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
@@ -1383,7 +1384,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy, bb = false
   return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>{tr('🏛️ Compre um SEGUNDO CLUBE', '🏛️ Buy a SECOND CLUB')}</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{planos2Liberado() ? (getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>⭐ Full Star</b> perk (or Club naming).</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do <b>⭐ Craque completo</b> (ou do Batismo).</>) : (getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>Legend 👑</b> tier perk.</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</>)}</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{planos2Liberado() ? (getLang() === 'en' ? <>Pick a club that <b>plays {baseNm} today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>⭐ Full Star</b> perk (or Club naming).</> : <>Escolha um clube que <b>hoje joga a {baseNm}</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do <b>⭐ Craque completo</b> (ou do Batismo).</>) : (getLang() === 'en' ? <>Pick a club that <b>plays {baseNm} today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>Legend 👑</b> tier perk.</> : <>Escolha um clube que <b>hoje joga a {baseNm}</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</>)}</p>
       {!isLenda && (
         <>
           <div style={lock}>{planos2Liberado() ? (getLang() === 'en' ? <>🔒 <b>⭐ Full Star</b> perk — subscribe to manage 2 clubs.</> : <>🔒 Regalia do <b>⭐ Craque completo</b> — assine pra comandar 2 clubes.</>) : (getLang() === 'en' ? <>🔒 <b>Legend 👑</b> perk — become Legend to manage 2 clubs.</> : <>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</>)}</div>
@@ -1396,7 +1397,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy, bb = false
       {isLenda && faltam <= 0 && (
         <>
           <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto' }}>
-            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>{tr('Nenhum clube da Série D disponível agora.', 'No Série D club available right now.')}</p>}
+            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>{tr(`Nenhum clube da ${baseNm} disponível agora.`, `No ${baseNm} club available right now.`)}</p>}
             {opcoes.map(t => (
               <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{bb ? '🏀' : '🏟️'} {t}{pick === t ? '  ✓' : ''}</button>
             ))}
@@ -1419,14 +1420,19 @@ function EscritorioTab({ cards, st, hasFilial, bb = false }: { cards: EmpCard[];
   const { total, by } = empresarioIncome(cards, st, hasFilial, bb)
   const catCards = (k: EmpCat) => cards.filter(c => empCat(c) === k)
   // 🏀 no basquete a LENDA destrava pela arena cheia — o texto do cadeado diz isso.
-  const reqOf = (k: EmpCat) => (bb && k === 'lenda') ? tr('arena 100% completa', 'full arena (100%)') : empMeta(k).req
+  const reqOf = (k: EmpCat) => {
+    if (!bb) return empMeta(k).req
+    if (k === 'lenda') return tr('arena 100% completa', 'full arena (100%)')
+    // 🏀 "estádio/stadium/setor" viram "arena" nos requisitos do basquete
+    return empMeta(k).req.replace(/do estádio/gi, 'da arena').replace(/estádio/gi, 'arena').replace(/stadium stand|stadium/gi, 'arena').replace(/stands?/gi, 'arena')
+  }
   return (
     <>
       {/* RESUMO: renda por temporada */}
       <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💼 Renda do Empresário', '💼 Agent income')}</div>
         <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>+{total} 🪙 <span style={{ fontSize: 13, fontWeight: 700, opacity: .75 }}>/ {tr('temporada', 'season')}</span></div>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the stadium and the SAF to unlock the rare ones.</> : <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</>}</div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>{getLang() === 'en' ? (bb ? <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the <b>arena</b> to unlock the rare ones.</> : <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the stadium and the SAF to unlock the rare ones.</>) : (bb ? <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — construa a <b>arena</b> pra liberar as raras.</> : <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</>)}</div>
       </div>
 
       {/* CATEGORIAS: quanto tem, o que rende, o que falta destravar */}

@@ -24,7 +24,7 @@ import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
-import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
+import { lojaLiberada, getSport } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09) · getSport: nome do andar no basquete
 import { fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
@@ -223,7 +223,11 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
 //    valor total e o que ele ganhará por temporada, que é só dividir"*);
 //  · COM contrato → só a faixa de leitura (quanto paga · temporada n de N).
 //  `cinematic` = a cena do escritório (mesmas classes do Pontual); senão, caixinha.
-const divNome = (div: string) => (div === 'V' ? tr('Várzea', 'Várzea') : `Série ${div}`)
+// 🏀 no basquete o "div" é o ANDAR (tierDivKey: D=Street, B=G League, A=NBA) — o
+// Patrocinador Master mostra o nome do andar, não "Série X". Futebol: getSport()!=='basquete'.
+const divNome = (div: string) => getSport() === 'basquete'
+  ? (div === 'A' ? 'NBA' : div === 'B' || div === 'C' ? 'G League' : 'Street League')
+  : (div === 'V' ? tr('Várzea', 'Várzea') : `Série ${div}`)
 // 🎯 a meta da marca, no papel e na faixa (17/10)
 function MetaCaixa({ meta, bonus, compacta = false }: { meta: MasterMetaId; bonus: number; compacta?: boolean }) {
   const m = MASTER_METAS[meta]
@@ -826,7 +830,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
               ? <>This is <b>how many people support your club</b> — not how many fit in the ground. It grows two ways: <b>the division you play in</b> and <b>every seat you build</b>. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
               : <>Isto é <b>quanta gente torce pelo seu clube</b> — não é quanta gente cabe no estádio. Ela cresce de dois jeitos: <b>a divisão em que você joga</b> e <b>cada lugar que você constrói</b>. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
         </div>
-        <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={tr('Seu estádio já rende', 'Your stadium already earns')}>
+        <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={bb ? tr('Sua arena já rende', 'Your arena already earns') : tr('Seu estádio já rende', 'Your stadium already earns')}>
           {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}
         </UnlockBanner>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>

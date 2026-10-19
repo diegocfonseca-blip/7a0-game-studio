@@ -6530,6 +6530,9 @@ export function EscSeason() {
     let msg: string | null = null
     if (youPosShown === 1 && prev !== 1) msg = LS('👑 Você é o novo LÍDER do campeonato!', '👑 You are the new league LEADER!')
     else if (kingsS) msg = null // 👑 na Kings não tem G4 nem rebaixamento — só a liderança vira manchete
+    // 🏀 basquete NÃO tem rebaixamento (ninguém cai). O TOP 4 é a zona de SUBIR DE ANDAR
+    // (Street → G League → NBA). Sem faixa de "zona de rebaixamento".
+    else if (bbS) { if (youPosShown <= 4 && prev > 4) msg = LS('📈 Você entrou no TOP 4 — zona de SUBIR DE ANDAR!', '📈 You are in the TOP 4 — the PROMOTION zone!'); else if (youPosShown > 4 && prev <= 4) msg = LS('😮‍💨 Você caiu do TOP 4 — corre pra voltar pra zona de subir!', '😮‍💨 You dropped out of the TOP 4 — climb back into the promotion zone!') }
     else if (youPosShown <= zTop && prev > zTop) msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`)
     else if (youPosShown >= zBot && prev < zBot) msg = LS(`⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`, `⚠️ DANGER! You dropped into the relegation zone (bottom ${zTop})!`)
     else if (youPosShown < zBot && prev >= zBot) msg = LS(`😮‍💨 Você escapou do Z${zTop}!`, `😮‍💨 You escaped the bottom ${zTop}!`)
