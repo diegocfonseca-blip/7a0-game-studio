@@ -173,8 +173,8 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
           </div>
         )}
-        {/* 📊 19/10 (Diego, regra final): na temporada em que a pessoa está jogando agora, a MELHOR posição dela no ranking global
-            somando todos os saves. Só o número grande e a temporada embaixo — nada de carreira, clube ou save. */}
+        {/* 📊 19/10 (Diego, regra final): o save com a MELHOR posição no ranking global, na temporada em que esse save está
+            (esc_perfil_rank). Só o número grande e a temporada embaixo — nada de carreira, clube ou save. */}
         <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ textAlign: 'center', minWidth: 92 }}>
             <div style={{ ...OSW, fontSize: 34, lineHeight: 1, color: INK }}>{p.rank ? `${p.rank.pos}º` : '—'}</div>

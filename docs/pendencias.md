@@ -5,11 +5,11 @@ salvar (pyramidseason) sem plano: só ⭐ Craque · 👑 Lenda (Pix na hora) + "
 NÃO falar "salvo no celular". Fechar a janela do "Sair e salvar" sai pro menu, como antes. Mockup `scripts/mockups/salvar-gratis.png`.
 Pendente: passe mensal (mockup `passes-mensais.png`) entra como 3ª opção aqui quando sair.
 
-## 📊 Perfil: ranking da ÚLTIMA carreira (19/10) — ✅ NO AR
-- Pedido: *"ranking da pessoa na temporada que ela tá da última carreira… tipo 43 da temporada 360"*. `esc_perfil_rank` agora pega a
-  última carreira que subiu pro ranking (antes: a melhor) e conta com `esc_pyramid_career_rank` (a mesma do ranking global).
-- Mesmo dia, 2º recado dele: embaixo vai a 🏅 MELHOR posição que a pessoa já teve (entre as 8 carreiras mais recentes, cada uma na temporada dela).
-- ⏳ Ranking ONLINE de todos os tempos: proposta mandada ao Diego (somar desde 02/09, quando o jogo começou a guardar os títulos das salas).
+## 📊 Perfil: ranking global da carreira (19/10) — ✅ NO AR (regra final do Diego)
+- *"o save dele atual que tá com melhor ranking em temporada"*: cada save tem a posição dele no ranking global NA temporada em que
+  está (`esc_pyramid_career_rank`); o perfil mostra o save com a MELHOR posição. Na tela: só o número grande e a temporada embaixo
+  (nada de clube, save ou total). `esc_perfil_rank`, até as 8 carreiras mais recentes.
+- ⏳ Online "todos os tempos" (desde 02/09): proposta feita, Diego não respondeu ainda — não fazer sem o OK.
 
 ## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR
 - Pedido: *"como eu faço p tirar e escrever novas?? Deveria aparecer no painel as três p eu remover editar ou add nova"*.
