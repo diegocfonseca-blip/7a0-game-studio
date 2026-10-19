@@ -6332,7 +6332,10 @@ export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?
   if (!duplaPodeAgir(state.duplas, mgrId, card.pos, uid)) return false
   if (openSlots(m, card.pos) <= 0) return false
   if (mv.M.lider === mgrId) return false // já está na frente: não cobre o próprio lance
-  if (mv.M.viraAte && Date.now() < mv.M.viraAte) return false // a carta anterior ainda está virando na mesa
+  // ⏱️ 19/10 (sala QUG8OC, Diego: "a carta nova aparece com a contagem 5, 4, 3… mas ninguém pode dar lance"): o `viraAte` é a hora
+  // do DONO; comparar com a hora do celular do CONVIDADO travava o botão a carta inteira quando o relógio dele estava atrasado.
+  // Agora usa a hora da sala, a MESMA da contagem na tela. Pro dono `agoraSala() === Date.now()`: nada muda pra ele.
+  if (mv.M.viraAte && agoraSala() < mv.M.viraAte) return false // a carta anterior ainda está virando na mesa
   const v = Math.floor(Number(valor))
   if (!Number.isFinite(v) || v < paMinimo(state, k)) return false
   return v <= Math.floor(m.money) - paComprometido(state, mgrId, k) // 🔨🔨 o que já está preso na outra mesa não conta
