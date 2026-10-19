@@ -20,17 +20,30 @@ Save do basquete isolado em `bl-nba-career`.
 LENDA da agência destrava pela ARENA 100% (não pela SAF, que o basquete não tem). Tudo com default
 `bb=false` → futebol idêntico. Builda limpo.
 
-**EM ANDAMENTO:** tela 🏢 Clube do basquete (BbClubeOverlay) com abas Arena · Finanças · Agência ·
-2º Clube, reusando os componentes atuais do futebol (StadiumTab/EscritorioTab/FinancasTab/MultiClubeBuy).
+**FEITO (tela 🏢 Clube, commit `b814f265`):** BbClubeOverlay (pyramidseason.tsx) com 3 abas que
+funcionam 100% — 🏟️ Arena (StadiumTab bb, investir/construir a quadra), 💰 Finanças (extrato/caixa),
+💼 Agência (cartas ganhas + renda; LENDA destrava pela arena 100%). Botão 🏢 Clube no EscSeason só no
+basquete solo. Reusa os componentes do futebol com `bb` (default false → futebol idêntico).
 
-**FALTA (próximas fatias, nesta ordem):**
+**FEITO (CARREIRA ONLINE do basquete, commit `41c120f0`):** a sala de basquete ganhou o modo 🌐 Carreira
+(só testers; basquete já é da conta do Diego). START_ONLINE semeia a economia por andar + crews da Street
+League; NEXT_NBA_SEASON_ONLINE (host-autoritativo) avança a temporada, sobe de andar com SEGURANÇA DE
+ASSENTO; fim de temporada = host avança, convidado espera. Lobby: aba 🌐 Carreira no basquete, config
+football-only escondida. Tudo guardado por `nbaCareerRoom`/`onlineNba` (false no futebol → byte-idêntico).
+⚠️ **NÃO TESTADO AO VIVO** (online precisa de Supabase realtime + 2 aparelhos) — precisa do teste do Diego.
+
+**VALIDADO OFFLINE (Playwright headless):** home do BidLegends + começar carreira + leilão inteiro (PG/SG,
+cartas reais da NBA, lendas, pote crescente) = **0 erros de console**; economia certa (caixa 50, posições
+PG/SG/SF/PF/C). A quadra (StadiumSvg bb) renderizada e aprovada pelo Diego (19/10).
+
+**FALTA (próximas fatias):**
 - Aba **Patrocínio** do basquete: a main trocou o SponsorCard pelo sistema de APOSTA (master história,
-  17/10) — precisa portar esse fluxo pro basquete (feature à parte).
-- **Carreira ONLINE do basquete** (nbaCareerRoom/NEXT_NBA_SEASON_ONLINE): a main NÃO tem o encanamento
-  de carreira online do basquete (lá o online do basquete é só rápido + Minhas Ligas). Trazer com
-  cuidado — e **não dá pra testar aqui** (Supabase realtime não roda headless). Fica pra 2 aparelhos.
-- O RESTO de "tudo igual ao futebol" (pedido do Diego 19/10): varrer modo a modo/aba a aba o que o
-  futebol tem e o basquete ainda não — com REGRA de basquete, sem encostar no futebol.
+  17/10) — portar esse fluxo pro basquete (feature à parte).
+- **2º Clube** do basquete: hoje nasce da SAF no futebol, e o basquete não tem SAF; ligar o ciclo de vida
+  (comprar → dormir → trocar comando) no avanço de temporada do basquete antes de mostrar o botão.
+- **Teste de 2 aparelhos** da carreira online (Diego) — único jeito de validar o online.
+- Varredura final "tudo igual ao futebol": conferir modo a modo/aba a aba o que ainda falta, com regra
+  de basquete, sem encostar no futebol.
 
 ## 🚫🤖 "Sem bots" só com 4+ pessoas (19/10) — ✅ NO AR
 `LIGA_FECHADA_MIN = 4` (store). START_ONLINE: `ligaFechada` = escolha do dono E 4+ times; a escolha fica em `ligaFechadaEscolha` e o
