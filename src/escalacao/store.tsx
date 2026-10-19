@@ -7415,7 +7415,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (pay <= 0) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - pay }
-      logFin(s, 'stadium', `🏟️ Obra: ${sec.n}`, -pay, undefined, action.mgrId) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
+      logFin(s, 'stadium', `🏟️ Obra: ${s.sport === 'basquete' && sec.k === 'grama' ? '🪵 Piso da quadra' : sec.n}`, -pay, undefined, action.mgrId) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
       return s
     }
     // 🏟️ compra uma melhoria DESTRAVADA (árvore de requisitos em estadiodata)
@@ -14132,7 +14132,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.onlineMode === 'online' || state.sport !== 'basquete' || !state.nbaCareer) return
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}`
+    // + o que o 🏢 Clube mexe sem mudar tela/rodada (obra na arena, patrocínio, 2º clube, caixa):
+    // sem isso, quem investia na tela de fim e fechava o app perdia a mudança ao voltar.
+    const clubeSig = JSON.stringify([state.careerCoins, state.careerLedger?.length, state.stadiums, state.careerMaster, state.multiClube])
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${clubeSig}`
     if (sig === nbaSigRef.current) return
     nbaSigRef.current = sig
     try { localStorage.setItem('bl-nba-career', JSON.stringify(state)); localStorage.setItem('bl-nba-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }

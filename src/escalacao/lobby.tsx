@@ -1881,7 +1881,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     if (liga && !canLiga) {
-      setRoomError((planos2Liberado() ? tr('🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".', '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
+      setRoomError((planos2Liberado() ? tr((nbaSala ? '🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e cestinha temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.' : '🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.'), '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr((nbaSala ? '🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e cestinha temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".' : '🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".'), '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
       setLoading(false); return
     }
     // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
@@ -4029,7 +4029,7 @@ export function EscLobby() {
             {pwModal.game_state?.mode === 'liga' ? (
               <>
                 <p className="text-black/70 text-xs font-bold leading-snug mb-1.5">
-                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> {tr('é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.', 'is a league: always the same room, with the shelf keeping champion and top scorer season after season.')}
+                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> {tr((nbaSala ? 'é uma liga: a mesma sala sempre, com a estante guardando campeão e cestinha temporada após temporada.' : 'é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.'), 'is a league: always the same room, with the shelf keeping champion and top scorer season after season.')}
                 </p>
                 <p className="text-black/50 text-[11px] font-bold leading-snug mb-2">
                   {getLang() === 'en' ? <>🔑 It belongs to its crew only — <b>ask whoever invited you for the password</b>. No password? You can play now in a ⚡ Quick room, or have your own league as a 👑 Legend.</> : <>🔑 Ela é só da turma dela — <b>peça a senha pra quem te chamou</b>. Não tem a senha? Dá pra jogar agora numa sala ⚡ Rápida, ou ter a sua própria liga sendo 👑 Lenda.</>}
@@ -4240,22 +4240,23 @@ export function EscLobby() {
                   <Seg small options={[['envelope', tr('✉️ Envelope', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as [LanceLiga, string][]}
                     value={modoEdit.lance} onSet={v => setModoEdit(m => m && { ...m, lance: v })} travados={champ || !pregaoAbertoOk ? ['pregao'] : undefined} />
                 </div>
-                {clubesOn && (
+                {clubesOn && !nbaSala && (
                   <div>
                     <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('O que vai a leilão', 'What goes up for auction')}</p>
                     <Seg small options={[[false, tr('🃏 Jogador', '🃏 Player')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]}
                       value={modoEdit.clubes} onSet={v => setModoEdit(m => m && { ...m, clubes: v })} />
                   </div>
                 )}
-                <div>
+                {/* 🏀 baralho Brasil/Europa é do futebol — liga de basquete usa o baralho da NBA */}
+                {!nbaSala && <div>
                   <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Baralho', 'Deck')}</p>
                   <Seg small options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as ['br' | 'eu' | 'both', string][]}
                     value={modoEdit.clubes ? 'both' : modoEdit.deck} onSet={v => setModoEdit(m => m && { ...m, deck: v })} travados={modoEdit.clubes ? ['br', 'eu'] : undefined} />
                   {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
                   {champ && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
-                </div>
+                </div>}
                 <div className="rounded-xl border-2 border-black px-2.5 py-2 text-[11.5px] font-bold leading-snug" style={{ background: '#FFF3C4' }}>
-                  {tr('🏆 Fica tudo: troféus, ranking, campeões e artilheiros da liga. Vale a partir da próxima temporada.', '🏆 Everything stays: trophies, ranking, champions and top scorers. It applies from the next season.')}
+                  {tr((nbaSala ? '🏆 Fica tudo: troféus, ranking, campeões e cestinhas da liga. Vale a partir da próxima temporada.' : '🏆 Fica tudo: troféus, ranking, campeões e artilheiros da liga. Vale a partir da próxima temporada.'), '🏆 Everything stays: trophies, ranking, champions and top scorers. It applies from the next season.')}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => setModoEdit(null)} className="border-2 border-black rounded-xl py-2 font-black text-[12px] uppercase bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>

@@ -75,9 +75,27 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   é a própria arte desfocada. Consertado junto: o botão ⚽ ficava escondido embaixo do 🔇 (som é fixo na tela).
 - ⚠️ A arte tem o **logo oficial da NBA** (bandeiras e cartas). Avisado ao Diego: ok enquanto só ele vê; antes de
   liberar o basquete pra todos, trocar por versão sem o logo.
-- Textos menores que sobraram: label 'Obra no estádio' no extrato (FinancasTab, sem prop bb), "Sua escalação"
-  no reveal (→ "Seu quinteto"), "artilheiro" em 2 modais de entrar na liga, e o corpo da aba Arena ainda diz
-  "estádio" em alguns parágrafos secundários (o título já virou "arena").
+- ✅ 19/10 (2ª varredura, 19 achados): CONSERTADO — (1) o convite "COMECE UMA CARREIRA" no fim da partida
+  rápida abria a carreira de FUTEBOL com o save marcado basquete → some no basquete; (2) campeão do basquete
+  (liga, NBA Cup, playoffs) ganhava carta do baralho de FUTEBOL → sem carta até existir o álbum da NBA; (3) o
+  autosave do basquete não via obra/patrocínio/2º clube/caixa (mudança no 🏢 Clube se perdia) → entra na
+  assinatura; (4) LARGAR apagava a carreira sem perguntar → confirma; (5) textos: fim de temporada (Playoffs, sem
+  "Rebaixado"/🪦, "Fora dos playoffs", "💍 CAMPEÃO DOS PLAYOFFS"), revelação "Seu quinteto", Monte "time completo"
+  no lugar de "os 11", prêmio "Tijolo no quinteto", extrato "Obra na arena", aba Arena sem "estádio"/"Z4" e
+  Gramado → "🪵 Piso da quadra", ligas "cestinha", e o painel "Trocar o modo" da liga sem baralho BR/EU e sem Clubes.
+  Tudo guardado por `bbEnd`/`state.sport`/`bb`/`nbaSala` → futebol idêntico. Testes ok: monte cartinha pernadepau
+  sala fim telas saf2 master-historia jornal.
+- 🏀 FALTA (decisão do Diego, mexe em coisa compartilhada com o futebol):
+  · **Álbum da NBA** + carta de prêmio do basquete (o conceito promete carta). Hoje `user_cards` é lida em ~23
+    lugares do futebol (álbum, coleções, trocas); carta da NBA ali dentro apareceria no álbum do futebol. Precisa
+    separar por esporte antes de voltar a dar carta. Com isso a 💼 Agência do basquete também passa a encher.
+  · **REGRAS (ManualDoTecnico)** e as Dúvidas só falam de futebol (11, 38 rodadas, Série D→A, Copa dos 8).
+  · **O MARTELO** (jornal da sala) e o painel de COMPARTILHAR aparecem no basquete com texto de futebol
+    (pênaltis, artilheiro "N gols", "lendas do futebol brasileiro").
+  · Mais de UMA carreira de basquete (hoje 1 ficha só, sem "Minhas carreiras") e escolher o nome do time.
+  · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
+  · Botões de zoeira do Monte online ("Perna-de-pau", "Adriano Gol Contra") e placar da final dos playoffs
+    (soma pontos da série; melhor mostrar vitórias na série).
 
 **FALTA / PENDENTE DE TESTE:**
 - **Teste de 2 aparelhos** da carreira ONLINE do basquete (Diego) — único jeito de validar o online.

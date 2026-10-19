@@ -2434,9 +2434,10 @@ function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: 
     </div>
   )
 }
-function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
+function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false }: {
   ledger: LedgerEntry[]; caixa: number; seasonNo: number
   squad: WonCard[]; marketValues: Record<string, number>
+  bb?: boolean // 🏀 basquete: a obra é na ARENA (default false → futebol idêntico)
 }) {
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
   // extrato: do mais novo pro mais antigo, agrupado por temporada
@@ -2463,7 +2464,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
     '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
   }
   const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? (bb ? tr('🏟️ Obra na arena', '🏟️ Arena works') : tr('🏟️ Obra no estádio', '🏟️ Stadium works')) : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -7982,7 +7983,7 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
                 onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
             </div>
           ) : sub === 'financas' ? (
-            <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
+            <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} bb />
           ) : sub === 'multi' ? (
             // 🏛️ 2º Clube do basquete: compra direta de uma crew (4.000 🪙, regalia Lenda),
             // igual ao multiclube pré-SAF do futebol. Os dois clubes jogam a MESMA liga; você

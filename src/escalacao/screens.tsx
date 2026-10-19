@@ -1679,7 +1679,8 @@ function BidLegendsHome() {
       </section>
       {nbaSolo && <div className="ll-resume">
         <button onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
-        <button onClick={nbaSolo.discard}>{t('LARGAR', 'DROP')}</button>
+        {/* 🔒 a carreira do basquete tem UMA ficha só: largar apaga de vez — pergunta antes */}
+        <button onClick={() => { if (window.confirm(t(`Apagar a carreira do ${nbaSolo.teamName} (T${nbaSolo.seasonNo})? Não dá pra desfazer.`, `Delete the ${nbaSolo.teamName} career (S${nbaSolo.seasonNo})? This can't be undone.`))) nbaSolo.discard() }}>{t('LARGAR', 'DROP')}</button>
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
@@ -3631,6 +3632,7 @@ export function premiosDaResenha(mgrs: Manager[], resenha?: EscState['resenha'])
 function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscState['resenha'] }) {
   const pr = premiosDaResenha(mgrs, resenha)
   if (!pr) return null
+  const bbPr = getSport() === 'basquete' // 🏀 "perna-de-pau"/"titular" é coisa de futebol
 
   const item = (bg: string, ic: string, titulo: string, quem: string, detalhe: React.ReactNode) => (
     <div className="border-[2.5px] border-black rounded-xl overflow-hidden" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
@@ -3656,14 +3658,14 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
         {pr.furada && item('#C2452F', '💸', 'Money down the drain', pr.furada.time,
           <>Paid <b>{pr.furada.pago}</b> for {pr.furada.nome} and the 2nd bid was <b>{pr.furada.segundo}</b>. Threw <b>{pr.furada.total} 🪙</b> away at the auction.</>)}
         {pr.vaca && item('#B45309', '🤏', 'Tightwad', pr.vaca.time, <>Ended the auction with <b>{pr.vaca.sobrou} 🪙</b> in the pocket. Saving it for what?</>)}
-        {pr.pau && item('#6B7280', '🗑️', 'Dud in the starting XI', pr.pau.time, <>Started <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). On purpose?</>)}
+        {pr.pau && item('#6B7280', '🗑️', bbPr ? 'Dud in the starting five' : 'Dud in the starting XI', pr.pau.time, <>Started <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). On purpose?</>)}
       </> : <>
         {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
         {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
         {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
           <>Pagou <b>{pr.furada.pago}</b> em {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
         {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
-        {pr.pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
+        {pr.pau && item('#6B7280', '🗑️', bbPr ? 'Tijolo no quinteto' : 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
       </>}
     </div>
   )
@@ -5468,7 +5470,7 @@ function Reveal() {
       </p>
       {/* 🏟️ rótulo do campinho: sem ele o gramado aparecia solto e não ficava claro
           que aquele time é o SEU (outra ideia boa do GPT, 17/08). */}
-      <p className="text-center font-black uppercase" style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>Sua escalação</p>
+      <p className="text-center font-black uppercase" style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>{state.sport === 'basquete' ? tr('Seu quinteto', 'Your five') : 'Sua escalação'}</p>
       <YourPitch small />
     </Shell>
   )
@@ -5556,7 +5558,7 @@ export function EscMonte() {
       {online && (
         <p className="text-xs font-semibold text-black/60">
           ⏱️ {remaining ?? monteMsDe(state) / 1000}s {tr('por vez', 'per turn')}. {state.careerOnline
-            ? (getLang() === 'en' ? <>If time runs out, you <b>take nobody</b> and pass — no penalty (your team already has the 11).</> : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>)
+            ? (getLang() === 'en' ? <>If time runs out, you <b>take nobody</b> and pass — no penalty ({state.sport === 'basquete' ? 'your team is already complete' : 'your team already has the 11'}).</> : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa ({state.sport === 'basquete' ? 'seu time já está completo' : 'seu time já tem os 11'}).</>)
             : (getLang() === 'en' ? <>Time ran out (bathroom break?), the game picks the worst leftover for you and passes the turn. <b>Costs no coins</b>: leftovers are free.</> : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e passa a vez. <b>Não custa moeda</b>: as sobras são de graça.</>)}
         </p>
       )}
@@ -5651,11 +5653,11 @@ export function EscMonte() {
                 style={{ color: '#B23B2E', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
                 {tr('🙅 PASSAR A VEZ — não quero nenhuma sobra', '🙅 PASS — I don\'t want any leftover')}
               </button>
-              <p className="text-[10px] font-bold text-black/45 text-center">{tr('Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.', 'Your team already has the 11 — leftovers are optional, nobody is forced to pay.')}</p>
+              <p className="text-[10px] font-bold text-black/45 text-center">{state.sport === 'basquete' ? tr('Seu time já está completo — sobra é opcional, ninguém é obrigado a pagar.', 'Your team is already complete — leftovers are optional, nobody is forced to pay.') : tr('Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.', 'Your team already has the 11 — leftovers are optional, nobody is forced to pay.')}</p>
             </>
           ) : (
             <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3" style={{ background: '#FFE9B0', ...OSWALD }}>
-              {tr('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!', '⚠️ You have a HOLE in the starting XI — you can\'t pass here: grab someone to complete the 11!')}
+              {state.sport === 'basquete' ? tr('⚠️ Você tem BURACO no quinteto — aqui não dá pra passar: pega alguém pra fechar o time!', '⚠️ You have a HOLE in your five — you can\'t pass here: grab someone to complete the team!') : tr('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!', '⚠️ You have a HOLE in the starting XI — you can\'t pass here: grab someone to complete the 11!')}
             </p>
           ))}
         </div>
@@ -11126,10 +11128,10 @@ export function EscEnd() {
       {/* 🐛 CORRIGIDO (relato do Diego 12/08): 🥈 é a medalha "2º lugar" de
           verdade (tem um "2" desenhado nela) — usar pra QUALQUER posição da
           zona de cima mostrava "2" pra quem ficou em 3º ou 4º. Trocado por 🏅. */}
-      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
+      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : !bbEnd && youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
       <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? LE('CAMPEÃO!', 'CHAMPION!') : `${ordinal(youPos, endLang)} ${LE('LUGAR', 'PLACE')}`}</h2>
       <p className="font-semibold text-black/60 mt-1">
-        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
+        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
       </p>
     </div>
   )
@@ -11182,7 +11184,7 @@ export function EscEnd() {
   // nome e a cor nos quadros do fim; o resto do fluxo é o mesmo.
   const libEnd = state.copaMode === 'liga_liberta'
   const chEnd = state.copaMode === 'liga_champions' || state.copaMode === 'champions'
-  const copaNome = libEnd ? 'Libertadores' : chEnd ? 'Champions League' : kEnd ? 'Kings League' : LE('Copa dos 8', 'Cup of 8')
+  const copaNome = libEnd ? 'Libertadores' : chEnd ? 'Champions League' : kEnd ? 'Kings League' : bbEnd ? 'Playoffs' : LE('Copa dos 8', 'Cup of 8')
   // até onde VOCÊ foi na Copa (pro resuminho do topo)
   const myCopaRun = (() => {
     const qc = state.quickCopa
@@ -11191,7 +11193,7 @@ export function EscEnd() {
     // 🌎 'oitavas' só aparece na Libertadores (a Copa dos 8 começa nas quartas)
     let last: 'repescao' | 'oitavas' | 'quartas' | 'semis' | 'final' | null = null, lost = false
     for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
-    if (!last) return state.copaMode === 'liga_liberta' ? LE('Não se classificou', 'Did not qualify') : chEnd ? LE('Caiu antes das oitavas', 'Out before the round of 16') : LE('Fora do top 8', 'Outside the top 8')
+    if (!last) return state.copaMode === 'liga_liberta' ? LE('Não se classificou', 'Did not qualify') : chEnd ? LE('Caiu antes das oitavas', 'Out before the round of 16') : bbEnd ? LE('Fora dos playoffs', 'Missed the playoffs') : LE('Fora do top 8', 'Outside the top 8')
     if (last === 'final') return lost ? LE('🥈 Vice', '🥈 Runner-up') : LE('🏆 Campeão!', '🏆 Champion!')
     return last === 'repescao' ? LE('Caiu no repescão', 'Out in the playoff') : last === 'semis' ? LE('Caiu na semi', 'Out in the semis') : last === 'quartas' ? LE('Caiu nas quartas', 'Out in the quarters') : LE('Caiu nas oitavas', 'Out in the round of 16')
   })()
@@ -11260,7 +11262,7 @@ export function EscEnd() {
           <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
           <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
-            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
+            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
           </p>
         </div>
       </Box>
@@ -11270,14 +11272,16 @@ export function EscEnd() {
   // montar a ordem do fim conforme teve Copa ou não.
   const ligaChampionCard = (
     <>
-      {online && youWon && state.roomId && (
+      {/* 🏀 a carta do pacote é do baralho de FUTEBOL — o basquete ainda não tem álbum próprio, então
+          campeão do basquete não leva carta (antes levava uma de futebol). Ver pendencias.md. */}
+      {online && youWon && state.roomId && !bbEnd && (
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
       {streamRoom && !youWon && ligaChampHuman && (
         <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
-      {!online && youWon && (
+      {!online && youWon && !bbEnd && (
         <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
       )}
     </>
@@ -11294,7 +11298,6 @@ export function EscEnd() {
   // então dá pra levar Cup + anel na mesma temporada, igual liga + Copa dos 8 no
   // futebol. O sufixo é a chave de idempotência: mesma temporada nunca paga duas.
   const cupChamp = state.nbaCup?.champion
-  const cupChampIsYou = !!cupChamp?.you && cupChamp.id === you.id
   const nbaCupBlocks = state.sport === 'basquete' && cupChamp ? (
     <>
       <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
@@ -11302,11 +11305,7 @@ export function EscEnd() {
         <p className="font-black text-base" style={OSWALD}>{LE('Campeão', 'Champion')}: {cupChamp.name}</p>
         <p className="text-[10px] font-bold text-black/55">{LE('Copa do meio da temporada — não conta pra tabela.', 'Midseason cup — it does not count toward the standings.')}</p>
       </Box>
-      {cupChampIsYou && (online && state.roomId
-        ? <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:nbacup`} origin="online" onClaimed={bcastCard('copa')} />
-        : !online
-          ? <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:nbacup`} origin="cpu" onClaimed={setMyCard} />
-          : null)}
+      {/* 🏀 carta da NBA Cup: volta quando existir o álbum da NBA (o pacote hoje é do baralho de futebol) */}
     </>
   ) : null
   const copaBlocks = (
@@ -11317,11 +11316,11 @@ export function EscEnd() {
         const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
         const dono = state.managers.find(m => m.id === ch.id)
         const finalTxt = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : null
-        return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
+        return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : bbEnd ? LE('💍 CAMPEÃO DOS PLAYOFFS', '💍 PLAYOFF CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
           nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
           sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
       })()}
-      {copaChampIsYou && (
+      {copaChampIsYou && !bbEnd && (
         online && state.roomId ? (
           <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} />
         ) : !online ? (
@@ -11718,7 +11717,8 @@ export function EscEnd() {
           jogo descartava tudo. Medido: 56% de quem joga nunca abre uma carreira,
           e quem abre volta 3× mais. Aqui a liga inteira vira a divisão de estreia
           — com os MESMOS adversários, então o equilíbrio fica de pé. */}
-      <ContinuarComEsseTime />
+      {/* 🏀 este convite abre a carreira de FUTEBOL (EscSetup) — no basquete a carreira começa pela home */}
+      {!bbEnd && <ContinuarComEsseTime />}
       <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">{LE('NOVO PREGÃO 🔨', 'NEW AUCTION 🔨')}</Btn>
       </>)}
     </Shell>

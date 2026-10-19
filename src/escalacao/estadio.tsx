@@ -795,7 +795,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} bb={bb} /></CareerStadiumView> : <StadiumSvg st={st} bb={bb} />)}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
-            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>
+            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{bb ? tr('🎫 Batiza tua arena — mimo de sócio', '🎫 Name your arena — member perk') : tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>
             <input value={nomeTmp} maxLength={24} placeholder={tr('Ex.: Caldeirão do Alface', 'E.g.: The Lettuce Cauldron')}
               onChange={e => setNomeTmp(stripEmoji(e.target.value))}
               style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontWeight: 900, fontSize: 14, marginTop: 6, background: '#FBF6E9', ...OSW }} />
@@ -827,8 +827,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </div>
           <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 1px 0', lineHeight: 1.35 }}>
             {getLang() === 'en'
-              ? <>This is <b>how many people support your club</b> — not how many fit in the ground. It grows two ways: <b>the division you play in</b> and <b>every seat you build</b>. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
-              : <>Isto é <b>quanta gente torce pelo seu clube</b> — não é quanta gente cabe no estádio. Ela cresce de dois jeitos: <b>a divisão em que você joga</b> e <b>cada lugar que você constrói</b>. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
+              ? <>This is <b>how many people support your club</b> — not how many fit in the {bb ? 'arena' : 'ground'}. It grows two ways: <b>the division you play in</b> and <b>every seat you build</b>. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
+              : <>Isto é <b>quanta gente torce pelo seu clube</b> — não é quanta gente cabe {bb ? 'na arena' : 'no estádio'}. Ela cresce de dois jeitos: <b>a divisão em que você joga</b> e <b>cada lugar que você constrói</b>. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
         </div>
         <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={bb ? tr('Sua arena já rende', 'Your arena already earns') : tr('Seu estádio já rende', 'Your stadium already earns')}>
           {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}
@@ -840,11 +840,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
           {getLang() === 'en'
             ? (medicoOn
-              ? <><b>Guaranteed floor +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> if SOLD OUT. 🎟️ You earn as your <b>league position</b> fills the stadium: Top 4 sells out (full income), bottom 4 empties (floor only). The floor never drops.</>
-              : <><b>Stadium base +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/season</b>. Every club already sells tickets — building <b>adds on top of the base</b>. Lands in the till by itself at the end of each season; a finished upgrade earns forever.</>)
+              ? <><b>Guaranteed floor +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> if SOLD OUT. 🎟️ You earn as your <b>league position</b> fills the {bb ? 'arena' : 'stadium'}: Top 4 sells out (full income), bottom 4 empties (floor only). The floor never drops.</>
+              : <><b>{bb ? 'Arena base' : 'Stadium base'} +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/season</b>. Every club already sells tickets — building <b>adds on top of the base</b>. Lands in the till by itself at the end of each season; a finished upgrade earns forever.</>)
             : medicoOn
-            ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche o estádio: Top 4 lota (renda cheia), Z4 esvazia (só o piso). O piso nunca cai.</>
-            : <><b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
+            ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche {bb ? 'a arena' : 'o estádio'}: Top 4 lota (renda cheia), {bb ? 'os 4 últimos esvaziam' : 'Z4 esvazia'} (só o piso). O piso nunca cai.</>
+            : <><b>{bb ? 'Base da arena' : 'Base do estádio'} +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
       </div>
 
       {/* 🎟️ LOTAÇÃO (Diego 12/08): só clima do próximo jogo — nunca desconta a
@@ -883,7 +883,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         )
       })()}
 
-      {cinematic && <nav className="ll32-structure-tabs" aria-label="Obras do estádio"><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
+      {cinematic && <nav className="ll32-structure-tabs" aria-label={bb ? 'Obras da arena' : 'Obras do estádio'}><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
       <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{tr('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
       {/* 🌱 O GRAMADO SAIU DAQUI (Diego 16/09). Ele tem ZERO lugares — não é
@@ -912,7 +912,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           <div key={s.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : sectorNome(s)}</span>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
@@ -942,7 +942,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{sectorNome(s)}</span>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
