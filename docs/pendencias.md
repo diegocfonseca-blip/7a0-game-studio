@@ -1,4 +1,6 @@
 ## 😈🔴⚫ BATISMO WEN MILAN B (17/10, plano 🖋 Fundador) — ⛔ PRONTO NO BRANCH, **NÃO PUBLICADO**: falta a CONTA
+- ✅ **19/10: NO AR.** A conta foi criada às 14:49 (Brasília); código publicado na main + banco feito: `user_colors` ouro manual, `esc_socios` nº76,
+  `esc_fundadores` nº92, `esc_compras_batismo` plano Fundador (plus), `esc_nomes_batismo` (Wen Milan B + FC + EC). Tema do Fundador junto.
 - Dono: **vittor@tidex.com.br** (coração São Paulo). ⛔ Em 17/10 esse e-mail NÃO existe em `auth.users` → regra de 07/09: nada no
   banco e nada na main até a conta existir (o `apoio.tsx`/`manto.ts` também seguem o e-mail). Assim que a conta aparecer:
   publicar o commit + banco: `esc_socios` (sócio nº76, manto #DF1224/#180F0E, mascote_key `wenmilan_diaba`, escudo_time
@@ -95,7 +97,7 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
 ## 🎨 Tema do Fundador (18/10)
 - PUBLICADO: 1 tema por Fundador, uma versão, com as cores do manto + escudo + mascote — Tricolor do Arruda, Fabulous,
   Gaviões SCCP, Cuiudos, Seven City (`temas-sala.tsx`, mockup `scripts/mockups/temas-fundadores.png`). Rei do K9 maior também.
-- Wen Milan B: tema pronto num commit à parte no branch, sobe junto com o batismo (conta do dono ainda não existe).
+- ✅ Wen Milan B: tema subiu junto com o batismo em 19/10 (a conta do dono existe).
 - Bug "lance bugando no online" (18/10): sem causa achada, esperando o Diego dizer sala/tipo.
 
 ## 🎨 TEMA DA SALA NA LOJA (18/10) — ✅ NO AR
