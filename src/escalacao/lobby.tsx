@@ -720,7 +720,11 @@ export function EscLobby() {
   // de 4 divisões, Bafo, Copa do Mundo) e o texto fala de quinteto em vez de XI.
   const [esporteSala] = useSport()
   const nbaSala = esporteSala === 'basquete'
-  const canCareer = useCanCareerOnline() && !nbaSala
+  // 🌐🏀 carreira online agora existe no basquete também (tester). `nbaSala` é sempre
+  // false no futebol, então tirar o `&& !nbaSala` NÃO muda nada pro futebol; só libera
+  // a aba 🌐 Carreira na sala de basquete. O conteúdo football-only da config (escolher
+  // rivais da Série D, baralho) fica escondido no basquete (gate `!nbaSala` abaixo).
+  const canCareer = useCanCareerOnline()
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
@@ -3362,8 +3366,8 @@ export function EscLobby() {
                     { v: 'carreira', label: tr('🌐 Carreira', '🌐 Career'), liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
-                  // 🏀 idem aos cartões: no basquete só os dois modos que existem lá
-                  const abas = abasTodas.filter(a => !nbaSala || a.v === 'rapido' || a.v === 'liga')
+                  // 🏀 no basquete: Rápido, Minhas ligas e a 🌐 Carreira (online do basquete). Bafo fica fora.
+                  const abas = abasTodas.filter(a => !nbaSala || a.v === 'rapido' || a.v === 'liga' || a.v === 'carreira')
                   return (
                     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
                       {abas.map((a, i) => (a.liberado && a.v) ? (
@@ -3384,7 +3388,7 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
+                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer && nbaSala ? tr('🏀 Carreira do basquete: a turma começa na Street League e SOBE junta até a NBA. Economia igual à do futebol.', '🏀 Basketball career: the crew starts in the Street League and CLIMBS together up to the NBA. Economy just like football.') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
               </p>
               </>)}
               {!criar2 && quadroLiga}
@@ -3426,7 +3430,14 @@ export function EscLobby() {
                 </p>
               </SegField>
             )}
-            {isCareer ? (
+            {isCareer && nbaSala ? (
+              // 🏀 carreira ONLINE do basquete: começa na Street League (crews), sobe pra
+              // G League e NBA. Sem escolher baralho nem rivais (a liga enche de crews sozinha).
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🛝 Começa na Street League', '🛝 Starts in the Street League')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('Liga cheia de 20 crews, pontos corridos. Indo bem, a turma SOBE junta: Street → G League → NBA (o anel). A economia é a mesma do futebol — arena, agência e caixa.', 'A full 20-crew league, round-robin. Do well and the crew climbs together: Street → G League → NBA (the ring). Same economy as football — arena, agency and cash.')}</p>
+              </div>
+            ) : isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho fixo: Brasil + Europa', '🌎 Fixed deck: Brazil + Europe')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.', 'Career uses both together (~700 names) to fill the 80 teams of the 4 divisions.')}</p>
@@ -3456,8 +3467,9 @@ export function EscLobby() {
             )}
           </Section>
 
-          {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
-          {isCareer && (
+          {/* ② OS RIVAIS — só na carreira do FUTEBOL (igual offline: host escolhe os CPUs do
+              leilão). 🏀 No basquete a liga enche de crews sozinha (sem escolher rivais). */}
+          {isCareer && !nbaSala && (
             <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥">
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>

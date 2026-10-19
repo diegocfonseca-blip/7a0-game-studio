@@ -10200,6 +10200,9 @@ function NbaCareerEndPanel() {
   const { state, dispatch } = useEsc()
   const t = useT()
   const [showSell, setShowSell] = useState(false)
+  const [advancing, setAdvancing] = useState(false) // 🌐 trava duplo-toque no "próxima temporada" online
+  const online = state.onlineMode === 'online'
+  const isHost = state.isHost
   const you = state.managers[state.youIdx]
   const real = (you?.squad ?? []).filter(c => !c.fake)
   const roster = real.length
@@ -10233,9 +10236,21 @@ function NbaCareerEndPanel() {
       {!willPromote && tier !== 'nba' && (
         <p className="text-center text-[11px] font-bold text-black/45">{t(`${youPos}º na ${tierInfo.pt} — top 4 sobe de liga.`, `${youPos}${youPos === 1 ? 'st' : 'th'} in ${tierInfo.en} — top 4 gets promoted.`)}</p>
       )}
-      <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
-        <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
-      </Btn>
+      {/* 🌐 ONLINE: só o HOST avança a temporada (host-autoritativo); o convidado espera.
+          OFFLINE: o botão de sempre. Trava de duplo-toque pra não rodar o caixa 2×. */}
+      {online ? (isHost ? (
+        <Btn onClick={() => { if (advancing) return; setAdvancing(true); dispatch({ type: 'NEXT_NBA_SEASON_ONLINE' }) }} bg={GREEN} className="w-full text-lg" disabled={advancing}>
+          <span className="text-white">▶️ {advancing ? t('Avançando…', 'Advancing…') : t('Próxima temporada', 'Next season')}</span>
+        </Btn>
+      ) : (
+        <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={OSWALD}>⏳ {t('Esperando o host começar a próxima temporada…', 'Waiting for the host to start the next season…')}</p>
+        </div>
+      )) : (
+        <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
+          <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
+        </Btn>
+      )}
       <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">{note}</p>
       {/* 🔄 VENDER (T3+): dispensa reservas fracas — nunca abaixo do quinteto */}
       {canSell && (
@@ -11698,7 +11713,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !state.nbaCareer && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
