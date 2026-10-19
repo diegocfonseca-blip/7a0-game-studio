@@ -36,14 +36,24 @@ football-only escondida. Tudo guardado por `nbaCareerRoom`/`onlineNba` (false no
 cartas reais da NBA, lendas, pote crescente) = **0 erros de console**; economia certa (caixa 50, posições
 PG/SG/SF/PF/C). A quadra (StadiumSvg bb) renderizada e aprovada pelo Diego (19/10).
 
-**FALTA (próximas fatias):**
-- Aba **Patrocínio** do basquete: a main trocou o SponsorCard pelo sistema de APOSTA (master história,
-  17/10) — portar esse fluxo pro basquete (feature à parte).
-- **2º Clube** do basquete: hoje nasce da SAF no futebol, e o basquete não tem SAF; ligar o ciclo de vida
-  (comprar → dormir → trocar comando) no avanço de temporada do basquete antes de mostrar o botão.
-- **Teste de 2 aparelhos** da carreira online (Diego) — único jeito de validar o online.
-- Varredura final "tudo igual ao futebol": conferir modo a modo/aba a aba o que ainda falta, com regra
-  de basquete, sem encostar no futebol.
+**FEITO (👕 Patrocínio, commit `ac12cde5`):** aba 👕 Patrocínio no BbClubeOverlay com o MESMO Patrocinador
+Master do futebol (MasterBanner — 4 papéis, meta, renovação por ligada). Paga pela divisão do andar
+(tierDivKey: Street=D sem marca, G League=B e NBA=A pagam); cai no caixa na virada (applyMasterIncome, que
+já roda pro basquete). Motor intocado — SET_MASTER/MASTER_RENOVAR/MASTER_MERCADO já valiam com careerOnline.
+⚠️ As marcas são as paródias do futebol (placeholder) — marcas com cara de NBA são conteúdo do Diego ('não inventar').
+
+**FEITO (🏛️ 2º Clube, commit `8c31a62d`):** o basquete ganhou o 2º clube no modelo pré-SAF (compra direta,
+4.000 🪙, Lenda — o basquete não tem SAF). Os dois clubes jogam a MESMA liga de 20; comanda um por temporada,
+o outro dorme; troca no fim (SWITCH_MULTICLUBE). saf2On ganhou exceção pro basquete; NEXT_NBA_SEASON pina os
+DOIS clubes no mesmo assento ao subir de andar (caminho de 1 clube fica byte-idêntico). Aba 🏛️ 2º Clube no
+overlay + botão de troca na tela de fim. Reusa as ações testadas do futebol.
+
+**FALTA / PENDENTE DE TESTE:**
+- **Teste de 2 aparelhos** da carreira ONLINE do basquete (Diego) — único jeito de validar o online.
+- **Teste em jogo** do Patrocínio e do 2º Clube offline (eu valido só até o leilão; a partir do Monte o
+  harness headless não navega — mas as duas abas reusam componentes do futebol já aprovados).
+- **Marcas de patrocínio com cara de NBA** (conteúdo do Diego).
+- Varredura final "tudo igual ao futebol": conferir modo a modo/aba a aba o que ainda falta.
 
 ## 🚫🤖 "Sem bots" só com 4+ pessoas (19/10) — ✅ NO AR
 `LIGA_FECHADA_MIN = 4` (store). START_ONLINE: `ligaFechada` = escolha do dono E 4+ times; a escolha fica em `ligaFechadaEscolha` e o
