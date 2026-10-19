@@ -39,7 +39,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos, useLigaDraftLiberada } from './sport'
+import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada } from './sport'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -93,7 +93,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
 type GS = EscState & { __game?: string; pregaoAberto?: boolean; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean; liveUrl?: string }
-interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
+interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string; liga_dono?: string | null; liga_vice?: string | null } // ⭐ liga_dono/liga_vice: vice das Minhas Ligas (19/10)
 type OpenRoom = RoomInfo & { count: number }
 
 const INK = '#0C0C0C'
@@ -1206,7 +1206,9 @@ export function EscLobby() {
           // e o elenco dentro), e `{ ...prev, host_id: undefined }` APAGAVA o dono
           // da cópia local — daí em diante toda comparação com `host_id` responde
           // "não é o dono". Guardar custa nada e fecha a porta.
-          if (r.host_id) setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id } : prev)
+          // ⭐ e o vice da liga, quando o aviso traz a coluna (aviso picado não apaga nada)
+          if (r.host_id) setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id,
+            ...('liga_vice' in r ? { liga_vice: r.liga_vice ?? null } : {}), ...(r.liga_dono ? { liga_dono: r.liga_dono } : {}) } : prev)
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
       // aviso na hora; a exclusão da sala é a rede de segurança).
@@ -2157,7 +2159,69 @@ export function EscLobby() {
   // 👑 só o DONO manda na liga (Diego 23/08: *"só quem manda é o host mesmo, não
   // tem adm não"*). Antes um "adm" da lista `ligaAdmins` também mandava; a lista
   // ficou no banco pra não quebrar liga antiga, mas NÃO dá mais poder nenhum.
-  const mandaNaLiga = !!user && !!room && room.host_id === user.id
+  // ⭐ 19/10: o DONO é `liga_dono` (nunca muda); `host_id` é quem COMANDA a partida — o vice, no dia em que o dono não veio.
+  const mandaNaLiga = !!user && !!room && (room.liga_dono ?? room.host_id) === user.id
+  const ligaViceOn = useLigaVice()
+  const [viceErro, setViceErro] = useState('')
+  const viceAbrirRef = useRef(false)
+  const ehLigaEspera = phase === 'waiting' && room?.game_state?.mode === 'liga'
+  // 👑 na espera da LIGA, quem comanda é quem o BANCO diz (host_id), e muda na hora: o vice assume, o dono retoma.
+  // O valor vem do aviso do banco (prova) — nunca de palpite do aparelho.
+  useEffect(() => {
+    if (!ehLigaEspera || !user || !room?.host_id) return
+    setIsHost(room.host_id === user.id)
+  }, [ehLigaEspera, room?.host_id, user]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ⭐ ao entrar na espera da liga: lê dono/vice frescos (a lista de ligas traz a sala "magra")
+  useEffect(() => {
+    if (!ehLigaEspera || !room?.id) return
+    let vivo = true
+    supabase.from('game_rooms').select('host_id, liga_dono, liga_vice').eq('id', room.id).maybeSingle()
+      .then(({ data }) => {
+        const d = data as { host_id?: string; liga_dono?: string | null; liga_vice?: string | null } | null
+        if (!vivo || !d?.host_id) return
+        setRoom(prev => prev && prev.id === room.id ? { ...prev, host_id: d.host_id!, liga_dono: d.liga_dono ?? null, liga_vice: d.liga_vice ?? null } : prev)
+      }, () => {})
+    return () => { vivo = false }
+  }, [ehLigaEspera, room?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 👑 o DONO na espera: avisa o banco que está aqui (a cada 60s, só se a liga tem vice ou outro no comando)
+  // e, se o vice estava no comando, o comando VOLTA pra ele — só na espera, nunca no meio do pregão.
+  const donoDaLigaAqui = ehLigaEspera && !!user && !!room && (room.liga_dono ?? room.host_id) === user.id && (!!room.liga_vice || room.host_id !== user.id)
+  useEffect(() => {
+    if (!donoDaLigaAqui || !room?.id || !user) return
+    const rid = room.id, eu = user.id
+    const bate = () => supabase.rpc('esc_liga_dono_aqui', { p_room: rid, p_aqui: true }).then(({ data }) => {
+      if (data === 'voltou') setRoom(prev => prev && prev.id === rid ? { ...prev, host_id: eu } : prev)
+    }, () => {})
+    bate()
+    const iv = setInterval(bate, 60_000)
+    return () => clearInterval(iv)
+  }, [donoDaLigaAqui, room?.id, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ⭐ o vice apertou "abrir como vice": o banco passou o comando → abre o pregão pelo caminho de sempre
+  useEffect(() => {
+    if (isHost && viceAbrirRef.current) { viceAbrirRef.current = false; void startOnline() }
+  }, [isHost]) // eslint-disable-line react-hooks/exhaustive-deps
+  async function abrirComoVice() {
+    if (!room || !user) return
+    setViceErro('')
+    const { data, error } = await supabase.rpc('esc_liga_vice_abrir', { p_room: room.id })
+    if (error || data !== 'ok') {
+      setViceErro(data === 'dono_aqui' ? tr('👑 O dono está na sala (ou acabou de sair). Só ele abre — se ele saiu, espera 2 minutinhos.', '👑 The owner is in the room (or just left). Only they open — if they left, wait 2 minutes.')
+        : data === 'rolando' ? tr('A partida já começou.', 'The match already started.')
+        : data === 'nao_vice' ? tr('Você não é mais o vice desta liga.', 'You are no longer this league\'s vice.')
+        : tr('Não deu agora. Tenta de novo.', 'Didn\'t work. Try again.'))
+      return
+    }
+    viceAbrirRef.current = true
+    setRoom(prev => prev && prev.id === room.id ? { ...prev, host_id: user.id } : prev)
+    if (isHost) { viceAbrirRef.current = false; void startOnline() }
+  }
+  async function marcarVice(uid: string | null) {
+    if (!room) return
+    setViceErro('')
+    const { data } = await supabase.rpc('esc_liga_vice', { p_room: room.id, p_vice: uid })
+    if (data !== 'ok') { setViceErro(data === 'fora' ? tr('Essa pessoa precisa estar na sala.', 'That person needs to be in the room.') : tr('Só o dono escolhe o vice.', 'Only the owner picks the vice.')); return }
+    setRoom(prev => prev && prev.id === room.id ? { ...prev, liga_vice: uid } : prev)
+  }
   // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
   // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
   const [cardEdit, setCardEdit] = useState<string | null>(null)
@@ -2258,7 +2322,7 @@ export function EscLobby() {
   async function excluirLiga() {
     if (!room || !user) return
     const nome = (room.game_state as GS)?.roomName ?? room.code
-    if (!await excluirLigaId(room.id, nome, room.host_id === user.id)) return
+    if (!await excluirLigaId(room.id, nome, (room.liga_dono ?? room.host_id) === user.id)) return
     clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu')
   }
 
@@ -2285,19 +2349,19 @@ export function EscLobby() {
   // todo — que é justamente o ponto da liga.
   async function fetchMyLigas() {
     if (!user) { setMyLigas([]); return }
-    const sel = 'id, code, host_id, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada'
+    const sel = 'id, code, host_id, liga_dono, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada'
     const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
     const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
     const [hosted, member] = await Promise.all([
-      supabase.from('game_rooms').select(sel).eq('host_id', user.id).eq('game_state->>mode', 'liga').limit(30),
+      supabase.from('game_rooms').select(sel).or(`host_id.eq.${user.id},liga_dono.eq.${user.id}`).eq('game_state->>mode', 'liga').limit(30), // ⭐ com o vice no comando, o dono continua achando a liga dele
       memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('game_state->>mode', 'liga').limit(30) : Promise.resolve({ data: [] }),
     ])
-    type SlimLiga = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null }
+    type SlimLiga = { id: string; code: string; host_id: string; liga_dono?: string | null; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null }
     const seen = new Set<string>(); const rooms: RoomInfo[] = []
     for (const r of [...((hosted.data ?? []) as unknown as SlimLiga[]), ...((member.data ?? []) as unknown as SlimLiga[])]) {
       if (seen.has(r.id) || r.gtag !== tagAtual()) continue
       seen.add(r.id)
-      rooms.push({ id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
+      rooms.push({ id: r.id, code: r.code, host_id: r.host_id, liga_dono: r.liga_dono ?? null, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
         game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined } as GS })
     }
     // a próxima da agenda primeiro (liga sem horário vai pro fim)
@@ -2481,7 +2545,7 @@ export function EscLobby() {
     if (mine) { saveRoom(rd.id); setRoom(rd); setIsHost(rd.host_id === user.id); setPhase('waiting'); setLoading(false); return }
     // sala FECHADA: quem ainda não está dentro precisa da senha (o host entra direto)
     const locked = !!rd.game_state?.locked && !!rd.game_state?.pwHash
-    const amHost = rd.host_id === user.id
+    const amHost = rd.host_id === user.id || rd.liga_dono === user.id // ⭐ o dono da liga entra sem senha mesmo com o vice no comando
     if (locked && !amHost) {
       const pwT = (pw ?? '').trim()
       if (!pwT) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
@@ -2644,6 +2708,9 @@ export function EscLobby() {
     // sai, volta semana que vem e está tudo lá. (Bug achado em 20/08 pelo Diego:
     // como sala comum some quando o dono sai, a liga inteira — troféus incluídos —
     // ia junto. Uma saída da sala apagava meses de história da turma.)
+    if (room.game_state?.mode === 'liga' && room.liga_vice && (room.liga_dono ?? room.host_id) === user.id) {
+      await supabase.rpc('esc_liga_dono_aqui', { p_room: room.id, p_aqui: false }).then(() => {}, () => {}) // ⭐ o vice já pode abrir
+    }
     if (room.host_id === user.id && room.game_state?.mode === 'liga') {
       await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', user.id).then(() => {}, () => {})
       clearSavedRoom(); setRoom(null); setPlayers([]); setPhase('menu'); fetchMyLigas()
@@ -2969,7 +3036,7 @@ export function EscLobby() {
             const gs = r.game_state as GS
             const nm = gs?.roomName ?? r.code
             const q = quandoLiga(gs?.ligaAt)
-            const souDono = r.host_id === user?.id
+            const souDono = (r.liga_dono ?? r.host_id) === user?.id
             return (
               <div key={r.id} className="border-2 border-black rounded-xl px-3 py-2 bg-white">
                 <div className="flex items-center gap-2">
@@ -4500,8 +4567,15 @@ export function EscLobby() {
                     {p.bafo ? `✅ ${p.bafo.squad?.length ?? 0} ${tr('jog.', 'pl.')}` : tr('⏳ montando', '⏳ building')}
                   </span>
                 )}
-                {p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
-                {isHost && p.user_id !== user?.id && (
+                {ligaViceOn && room.game_state?.mode === 'liga' && room.liga_dono ? (<>
+                  {/* ⭐ vice da liga (19/10): 👑 DONO e ⭐ VICE no lugar do HOST; só o dono marca/tira */}
+                  {p.user_id === room.liga_dono && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">👑 {tr('DONO', 'OWNER')}</span>}
+                  {p.user_id === room.liga_vice && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full text-white" style={{ background: '#7C3AED' }}>⭐ VICE</span>}
+                  {mandaNaLiga && p.user_id !== room.liga_dono && (p.user_id === room.liga_vice
+                    ? <button onClick={() => void marcarVice(null)} className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5 bg-white active:translate-y-0.5" style={OSWALD}>{tr('Tirar vice', 'Remove vice')}</button>
+                    : <button onClick={() => void marcarVice(p.user_id)} className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5 text-white active:translate-y-0.5" style={{ background: '#7C3AED', boxShadow: '2px 2px 0 #000', ...OSWALD }}>⭐ {tr('Fazer vice', 'Make vice')}</button>)}
+                </>) : p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
+                {isHost && p.user_id !== user?.id && p.user_id !== room.liga_dono && (
                   <button onClick={() => kickFromRoom(p)} aria-label={`${tr('Remover', 'Remove')} ${p.manager_name}`}
                     className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
                     style={{ background: '#fff' }}>✕</button>
@@ -4660,6 +4734,12 @@ export function EscLobby() {
             )
           })}
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">{tr('Aguardando mais técnicos…', 'Waiting for more managers…')}</p>}
+          {ligaViceOn && room.game_state?.mode === 'liga' && mandaNaLiga && (
+            <p className="text-black/55 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
+              {tr('⭐ Vice = quem toca a liga no dia em que você não vier. Só UM por vez. Quando você voltar, o comando é seu de novo.', '⭐ Vice = who runs the league on a day you don\'t show up. Only ONE at a time. When you\'re back, command is yours again.')}
+            </p>
+          )}
+          {viceErro && <p className="text-[11.5px] font-black mt-2" style={{ color: '#B23B2E' }}>{viceErro}</p>}
           {duplasOn && (
             <p className="text-black/45 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
               {tr('🤝 Aqui se joga de dois: um cuida de 3 posições, o outro das outras 3. Qualquer um da sala pode entrar no seu time; se quiser guardar a vaga pro seu amigo, é só pôr o 🔒 cadeado. O pregão abre com 2 duplas fechadas — então corre atrás do seu parceiro antes.', '🤝 Here you play in pairs: one handles 3 positions, the other the other 3. Anyone in the room can join your team; to save the spot for your friend, just put the 🔒 lock on. The auction opens with 2 complete duos — so find your partner first.')}
@@ -4791,6 +4871,37 @@ export function EscLobby() {
         // 🃏 se falta alguém montar, o toque abre o banner em vez de começar
         const onStart = () => { if (elencoOn && bafoFaltam.length > 0) setBafoAviso(true); else void startOnline() }
         if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
+        // ⭐ VICE DA LIGA (19/10): mockup `scripts/mockups/liga-vice.png`
+        if (ligaViceOn && ligaOnSala && room.liga_vice && user) {
+          const souVice = room.liga_vice === user.id
+          const donoPresente = players.some(p => p.user_id === (room.liga_dono ?? room.host_id))
+          const vicePresente = players.some(p => p.user_id === room.liga_vice)
+          const nomeVice = stripEmoji(players.find(p => p.user_id === room.liga_vice)?.manager_name ?? '').trim() || tr('o vice', 'the vice')
+          const viceManda = room.host_id === room.liga_vice
+          const faixa = (fundo: string, txt: React.ReactNode) => <div className="rounded-xl border-[3px] border-black px-3 py-2.5 mb-2 text-[13px] font-bold text-black leading-snug" style={{ background: fundo }}>{txt}</div>
+          if (souVice && !isHost) {
+            if (donoPresente) return <p className="text-white/60 text-sm font-bold text-center py-3">{tr('👑 O dono da liga está aqui — ele abre o pregão. Você é o ⭐ vice: só comanda quando ele não vem.', '👑 The league owner is here — they open the auction. You\'re the ⭐ vice: you only run it when they don\'t show.')}</p>
+            return <>
+              {faixa('#EDE4FF', tr('⭐ O dono não está na sala. Você é o VICE — pode abrir o pregão e tocar a liga hoje.', '⭐ The owner isn\'t in the room. You\'re the VICE — you can open the auction and run the league today.'))}
+              <Big onClick={() => void abrirComoVice()} disabled={!ready} color={ready ? GOLD : '#ccc'}><span style={{ color: '#000' }}>{ready ? tr('⭐ Abrir o pregão como vice', '⭐ Open the auction as vice') : esperaLabel}</span></Big>
+              <p className="text-white/55 text-[11.5px] font-bold text-center leading-snug mt-1.5 px-2">{tr('Tudo fica salvo na liga, igual sempre. Se o dono entrar antes do pregão começar, o botão volta pra ele.', 'Everything stays saved in the league, as always. If the owner arrives before the auction starts, the button goes back to them.')}</p>
+              {viceErro && <p className="text-[11.5px] font-black text-center mt-1" style={{ color: '#FF9A88' }}>{viceErro}</p>}
+            </>
+          }
+          if (isHost && souVice) return <>
+            {faixa('#EDE4FF', tr('⭐ Você está no comando hoje, como vice. Se o dono entrar antes do pregão, o comando volta pra ele.', '⭐ You\'re in command today, as vice. If the owner arrives before the auction, command goes back to them.'))}
+            <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'} fundo={ready && temaSala ? temaSala.botao : undefined}><span style={{ color: ready ? (temaSala ? temaSala.botaoTxt : '#fff') : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
+            {!ready && !!travaMsg && <p className="text-white/60 text-[11.5px] font-bold text-center leading-snug mt-1.5 px-2">{travaMsg}</p>}
+          </>
+          if (!isHost && !donoPresente) {
+            return <>
+              {faixa('#FFF3C4', viceManda || vicePresente
+                ? (getLang() === 'en' ? <>👑 The owner isn't here today. The ⭐ vice <b>{nomeVice}</b> is in command — wait for them to open the auction.</> : <>👑 O dono não está hoje. Quem comanda é o ⭐ vice <b>{nomeVice}</b> — espera ele abrir o pregão.</>)
+                : tr('Sem dono e sem vice na sala: ninguém pode abrir hoje — chama o dono ou o vice no zap.', 'No owner and no vice in the room: nobody can open today — call the owner or the vice.'))}
+              <div className="rounded-xl border-[3px] border-black py-3 text-center font-black text-black/50 uppercase" style={{ background: '#D9D0B4', ...OSWALD }}>{tr('⏳ Esperando o vice abrir', '⏳ Waiting for the vice to open')}</div>
+            </>
+          }
+        }
         return isHost
           ? <>
               <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'} fundo={ready && temaSala ? temaSala.botao : undefined}><span style={{ color: ready ? (temaSala ? temaSala.botaoTxt : '#fff') : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
@@ -4822,16 +4933,16 @@ export function EscLobby() {
         const rotuloSair = ehLiga ? tr('✅ Guardar e sair', '✅ Save and leave') : !souDonoAqui ? tr('🚪 Sair da sala', '🚪 Leave the room') : tr('🚪 Sair e encerrar a sala', '🚪 Leave and close the room')
         return (
           <div className="space-y-1.5">
-            {ehLiga && isHost ? (
+            {ehLiga && (isHost || mandaNaLiga) ? (
               <div className="flex gap-2">
                 <button onClick={leaveRoom}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white/70 border-2 border-dashed border-white/30 active:opacity-60" style={OSWALD}>
                   {tr('✅ Guardar e sair', '✅ Save and leave')}
                 </button>
-                <button onClick={excluirLiga}
+                {mandaNaLiga && <button onClick={excluirLiga}
                   className="flex-1 rounded-xl py-2 font-black text-[12px] text-white border-2 border-black active:translate-y-0.5" style={{ background: '#C2452F', ...OSWALD }}>
                   {tr('🗑️ Excluir a liga', '🗑️ Delete the league')}
-                </button>
+                </button>}
               </div>
             ) : (
               <button onClick={leaveRoom} className="text-white/75 text-[13px] font-black underline w-full text-center active:opacity-60">{rotuloSair}</button>

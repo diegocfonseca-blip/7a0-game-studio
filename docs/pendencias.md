@@ -373,8 +373,14 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
      gente", sala de espera com 1 pessoa não avisa nada.
 - Proposta (esperando OK): liga GUARDA a cadeira de todo mundo ao sair; "Voltar" que falha avisa e tenta o caminho de reabrir;
   os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
-- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"*, reconfirmado 19/10 *"aprova o da minhas ligas tb"* — FAZENDO): dono escolhe 1 vice; vice abre o pregão só na sala de
-  espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
+- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"*, reconfirmado 19/10 *"aprova o da minhas ligas tb"*).
+  ✅ **FEITO 19/10, em teste SÓ nas contas do Diego** (`LIGA_VICE_GERAL = false` em `sport.ts`; true = todos). Banco
+  (`20261019260000_liga_vice.sql`): `game_rooms.liga_dono` (o dono pra sempre; `host_id` = quem comanda a partida) e `liga_vice`;
+  `esc_liga_vice` (só o dono marca/tira) · `esc_liga_vice_abrir` (só o vice, só na espera, dono sem sinal há 2 min) ·
+  `esc_liga_dono_aqui` (o dono na espera avisa a cada 60s e RETOMA o comando — só na espera, nunca no meio do pregão; ao
+  "Guardar e sair" avisa que saiu e o vice não espera os 2 min). `liga_patch`/`esc_liga_modo` = só o DONO. O vice não exclui
+  a liga (RLS) e não tira o dono da sala (`players_delete`). Testado no banco: as 14 regras deram certo.
+  ⏳ Falta: o Diego testar com as 2 contas dele (diego e diego2) e dar OK pra liberar pra todos.
 - ✅ **Trocar o modo da liga: NO AR 17/10** (*"perfeito, pode fazer, pode publicar"*). Caixa "🎮 Modo da próxima temporada" na
   sala de espera da liga (lobby.tsx); só o dono troca, pela função do banco `esc_liga_modo` (recusa não-dono e partida rolando;
   Clubes força baralho Todos; Só Champions não aceita pregão aberto). Amigos recebem UM aviso no canal (`liga_modo`). O save do
