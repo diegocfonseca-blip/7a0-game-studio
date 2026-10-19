@@ -932,6 +932,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   que interferir nos outros modos online que já existe"*. É a carreira da solo virando online (até 20 amigos), com TUDO que a solo tem.
   Regra de construção: caminho PRÓPRIO (canal, tabelas e envio próprios). **Nunca mexer no envio/canal/coroa das salas rápidas e das
   Minhas Ligas pra fazer a carreira online funcionar.** Plano e levantamento em `docs/pendencias.md` (19/10).
+  🔒 **E SÓ NA CONTA DELE até ele mandar, IGUAL À SOLO EM TUDO, MENOS O 2º CLUBE** (19/10: *"tem que ser igual a carreira que temos
+  hoje em tudo. Menos ter segundo clube"*). Nada de "versão simplificada": cada coisa da solo entra na lista `docs/carreira-online-checklist.md`.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
