@@ -62,10 +62,14 @@ overlay + botão de troca na tela de fim. Reusa as ações testadas do futebol.
 - ✅ **Features só do futebol (Central, Coletiva, Presidente, Copas internacionais, Kings, roteiro de fim,
   pirâmide de 4 divisões) estão TODAS bem trancadas** — o basquete nunca entra no pyramidseason.
 
-**FALTA DA VARREDURA (home build-out — precisa decisão de escopo do Diego):**
-- A **home do BidLegends** ainda é enxuta vs a do futebol: falta **conta/login, ranking, amigos, novidades,
-  salão, regras/manual e lista de várias carreiras**. Álbum e Pix já estão. Decidir COM o Diego o que o
-  basquete precisa (e como ranking/álbum se separam por esporte).
+**✅ HOME DO BIDLEGENDS = IGUAL À DO FUTEBOL (19/10, commit `a752313d`, OK do Diego).** Diego cobrou DUAS
+vezes que a home tinha que ser EXATAMENTE a home ilustrada do futebol (ll-home, arte cinematográfica), só com
+conteúdo de basquete — *"não é pra mudar visual, não é pra mudar nada"*. `BidLegendsHome` (screens.tsx) agora
+é uma réplica fiel de `HomeIlustradaDiego`: mesmo header (marca BIDLEGENDS / "NBA ÀS CEGAS", BR/EN, ⚽ volta
+pro futebol, MINHA CONTA), mesma arte de fundo (a do futebol **por enquanto** — ainda não há arte de basquete,
+OpenArt sem crédito), 3 modos (Partida Rápida · Jogar Online · Modo Carreira "Street League à NBA"), **Loja do
+Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a conta do Diego vê (BASQUETE_TESTERS).
+- FALTA: a **arte cinematográfica de basquete** pro fundo (quando o OpenArt tiver crédito ou o Diego mandar).
 - Textos menores que sobraram: label 'Obra no estádio' no extrato (FinancasTab, sem prop bb), "Sua escalação"
   no reveal (→ "Seu quinteto"), "artilheiro" em 2 modais de entrar na liga, e o corpo da aba Arena ainda diz
   "estádio" em alguns parágrafos secundários (o título já virou "arena").
