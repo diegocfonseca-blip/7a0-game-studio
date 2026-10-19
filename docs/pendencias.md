@@ -146,6 +146,12 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   propostas de bot pelos seus jogadores · estadual no começo da temporada · bastidores com escolha rápida · entrevista do jogador ·
   técnico com voz · linha do tempo do clube · recordes do clube · torcida viva · excursão de pré-temporada · conselho com meta ·
   Copa das Carreiras (seu clube × carreira de outros usuários) · Mesa do Presidente (negociação, empresário, eleição do clube).
+- 5ª rodada (mesmo dia, ele pediu *"analise tudo que tem de histórias… base, boate, entrevista… o que dá pra implementar e acrescentar"*):
+  levantamento completo feito (causos noitada 10 · expulsão 8 · lesão 9 · desgaste 5, 1 por temporada; Cria 9 PT-only; Central 17 tipos
+  com 1 frase cada; manchete do causo FIXA; crise 1 texto; jornal 100 manchetes presas à posição). Propus contos novos no banner do causo
+  (filho nascendo · polêmica na rede · briga no treino · acima do peso · carrão batido · pai reclama no rádio · veterano se aposenta · lei
+  do ex · peneira) + subir pra 2–3 causos/temporada e variar manchete/Central/Cria. Resposta: *"não gostei"*. O inventário fica valendo
+  como mapa (o que é fino e repete), mas a proposta foi recusada.
 - ⚠️ MESMA LIÇÃO de 04/10 (cartas do álbum): rodada de ideias seguidas trava ele. **Não despejar lista de novo.** Esperar ele trazer a
   ideia, ou fazer UMA pergunta sobre o que ele imagina (um exemplo de jogo/momento que ele gostaria de viver como presidente).
 
