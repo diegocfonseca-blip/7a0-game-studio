@@ -12,7 +12,7 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
+import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
 import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
@@ -10498,7 +10498,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       // montava os assentos numa ordem diferente do jogo 1 e o "quem sou eu" (youIdx)
       // deslizava pra um BOT (o bug do "virei o Biriba United"). Assim a ordem dos
       // assentos é IDÊNTICA à do jogo anterior e ninguém desliza.
-      const sorted = ((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[])
+      const sorted = desfazParCruzado((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[]) // 🤝 19/10: par cruzado vira UMA dupla
       // 🤝 DUPLA (08/08, relato do Diego: "virei rival do meu parceiro no novo
       // leilão"): esse rebuild ignorava dupla_partner_of e transformava a linha do
       // PARCEIRO num time próprio — EXATAMENTE o mesmo cano que a sala de espera já

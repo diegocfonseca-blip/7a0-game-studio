@@ -1,3 +1,10 @@
+## 🤝 Dupla cruzada virava DOIS times (19/10, sala WUQGBH do Futpoint) — ✅ CONSERTADO
+- Relato (Matheus Barros, via Diego): campeão em dupla, não conseguiu escolher clube/convocar no Rio × São Paulo; o time aparecia
+  duas vezes ("Quase nada|Quebrador d" 1º e "Quebrador d|Quase nada" 13º). Causa: os dois pediram dupla um ao outro e os dois
+  aceitaram → cada um virou parceiro do outro → dois assentos espelhados; quando o parceiro saiu, o `soloUid` do assento do Matheus
+  ficou com o OUTRO e ele perdeu o comando. Conserto (OK do Diego): banco barra o par cruzado (`dupla_responder`) e a largada junta
+  qualquer par cruzado numa dupla só (`desfazParCruzado`, dono = cadeira mais baixa). Trava `npm run dupla-cruzada`.
+
 ## 😈🔴⚫ BATISMO WEN MILAN B (17/10, plano 🖋 Fundador) — ⛔ PRONTO NO BRANCH, **NÃO PUBLICADO**: falta a CONTA
 - ✅ **19/10: NO AR.** A conta foi criada às 14:49 (Brasília); código publicado na main + banco feito: `user_colors` ouro manual, `esc_socios` nº76,
   `esc_fundadores` nº92, `esc_compras_batismo` plano Fundador (plus), `esc_nomes_batismo` (Wen Milan B + FC + EC). Tema do Fundador junto.
