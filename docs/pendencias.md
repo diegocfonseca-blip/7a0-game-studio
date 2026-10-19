@@ -126,6 +126,10 @@
 - ⏳ **ÁLBUM DENTRO DOS AMIGOS (pedido 19/10, *"seria mais fácil fazer a troca de cartas por lá"*)** — mockup enviado,
   ESPERANDO OK: `scripts/mockups/amigos-album.png` (aba 📖 Álbum nos Amigos = o mesmo `EscAlbum`/`AbaTrocas`; no perfil do amigo
   "📖 Ver cartas dele" + "🤝 Propor troca" abrindo `NovaTroca` com ele já escolhido; nas trocas, amigos primeiro). Home mantém o MEU ÁLBUM.
+- ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
+  entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
+  semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem
+  mexer no jogo. Lembrar: ele cortou "comunidades" em 18/10 — torcida é só placar, sem post.
 - 🚫 **SEM CHAT 1:1** (*"tenho uma comunidade no zap"*): vai o botão "💬 Entrar na comunidade do zap". Não repropor chat.
 - Tráfego: `esc_avisos` ao abrir + a cada 60s só com a aba visível (nada de canal). Banco: migration `20261019120000_amigos_v2.sql`.
 - 🚫 **COMUNIDADES: NÃO FAZER** (*"esse negócio de comunidade é doideira, melhor não"*). Não repropor.
