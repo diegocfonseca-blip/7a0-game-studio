@@ -10,6 +10,9 @@
   carreira de 20 clubes ≈ 1,5–2 MB cru / 250–450 KB comprimido → passa do limite do canal (mensagem some e a sala trava, como a de 27
   da Champions) e estoura a cota; (2) várias ações da carreira solo mexem em `managers[youIdx]` (o time de quem está no aparelho): no
   online o reducer roda no DONO, então a compra do convidado cairia no time do dono (BUY_PREPARADOR, RENOVAR_TECNICO, ALICIAR_*…).
+- 🔁 **19/10, regra do Diego: é um modo INDEPENDENTE** — nada da carreira online pode mexer nas salas rápidas, Minhas Ligas ou outro
+  modo online. Então a base nova é um caminho PRÓPRIO (canal e tabela só dela; cada aparelho roda o PRÓPRIO clube como na solo e o servidor
+  guarda o que é de todos: calendário, resultados, leilão), e o envio das salas de hoje fica intocado.
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
