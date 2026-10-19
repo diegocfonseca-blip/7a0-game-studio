@@ -94,6 +94,7 @@
     "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts",
     "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts",
     "master-historia": "npx tsx scripts/testa-master-historia.mts",
+    "coletiva": "npx tsx scripts/testa-coletiva.mts",
     "artilheiro-premios": "npx tsx scripts/testa-artilheiro-premios.mts"
   },
   "dependencies": {

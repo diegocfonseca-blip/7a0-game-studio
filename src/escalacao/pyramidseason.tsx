@@ -110,6 +110,9 @@ import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoD
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
+import { coletivaSana, modsDaColetiva, montaColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
+import { ColetivaBanner, SalaImprensa } from './coletiva-ui'
+import { useColetiva } from './sport'
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -8051,6 +8054,18 @@ export function PyramidSeasonScreen() {
     if (!state.agenciaOn || !ev || ev.season !== state.seasonNo || ev.status !== 'campo') return {}
     return { [ev.mgrId]: { [ev.round]: -2 } }
   }, [state.eventoTemporada, state.seasonNo, state.agenciaOn])
+  // 🎙️ COLETIVA (19/10): o que a resposta fez à força do time (moral no próximo jogo · clássico mais duro) entra pela
+  // MESMA porta do evento (`RoundMods`, só humano). Save sem coletiva = {} = simulação idêntica.
+  const coletivaOn = useColetiva() && state.onlineMode !== 'online' && state.sport !== 'basquete'
+  const coletivaMeId = state.managers[state.youIdx]?.id ?? 0
+  const coletivaSave = useMemo(() => coletivaSana(state.careerColetiva?.[coletivaMeId]), [state.careerColetiva, coletivaMeId])
+  const simMods = useMemo<RoundMods>(() => {
+    const cm = coletivaOn ? modsDaColetiva(state.careerColetiva?.[coletivaMeId], state.seasonNo ?? 1) : {}
+    if (!Object.keys(cm).length) return eventoMods
+    const out: RoundMods = { ...eventoMods, [coletivaMeId]: { ...(eventoMods[coletivaMeId] ?? {}) } }
+    for (const [r, d] of Object.entries(cm)) out[coletivaMeId][+r] = (out[coletivaMeId][+r] ?? 0) + d
+    return out
+  }, [eventoMods, coletivaOn, state.careerColetiva, coletivaMeId, state.seasonNo])
   // 🧢 mapa dos técnicos ATIVOS pra simulação (só conta liberada nas 15; vazio =
   // simulação idêntica à de sempre). Contratação no meio da temporada só vale da
   // rodada em diante (desdeR) — placar já visto nunca muda.
@@ -8158,8 +8173,8 @@ export function PyramidSeasonScreen() {
     }
     return out
   }, [botFadigaOn, world, planosBots])
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans),
-    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans])
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, simMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans),
+    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, simMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -9394,6 +9409,9 @@ export function PyramidSeasonScreen() {
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [timedRoundReady, setRoundReady] = useState(false)
   const roundReady=privateLeagueClock&&stadiumMatch?privateLeagueFinished:timedRoundReady
+  // 🎙️ a coletiva aberta (o bloco dela vem logo abaixo; declarada aqui porque o automático precisa saber antes)
+  const [coletivaPronta, setColetivaPronta] = useState<{ pronta: ColetivaPronta; ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null }; chave: string } | null>(null)
+  const coletivaOpen = coletivaOn && !!coletivaPronta
   useEffect(() => {
     setRoundReady(false)
     if(privateLeagueClock&&stadiumMatch)return
@@ -9418,14 +9436,166 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (!state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady) return
+    if (!state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
+
+  // ═══ 🎙️ COLETIVA DE IMPRENSA (19/10) ═══════════════════════════════════════════════════════════════════════════
+  // Acorda no TEMPO MORTO (mesmo sinal do pênalti: `roundReady`), só quando a rodada tem assunto (`montaColetiva`
+  // decide). Nunca segura o jogo: no manual espera um toque ou o "pular"; no automático fecha sozinha em 12s sem
+  // contar como pulada. "Próxima rodada" com ela aberta = pulou. Pedido do Diego: *"se não tiver variedade não quero"*.
+  const coletivaOfertada = useRef(new Set<string>()) // "t:r" já oferecidas nesta sessão (fechou sozinha no auto = não repete)
+  const [salaImprensaOpen, setSalaImprensaOpen] = useState(false)
+  const sn = state.seasonNo ?? 1
+  const rivaisDaCarreira = useMemo(() => state.managers.filter(m => m.rival && !m.isHuman).map(m => m.teamName), [state.managers])
+  // 🔥 o arquirrival nasce com a carreira (1º rival escolhido / rival na mesma divisão) e só troca na virada, pela Sala
+  useEffect(() => {
+    if (!coletivaOn || !myDiv || coletivaSave.arquirrival || !rivaisDaCarreira.length) return
+    const rv = rivaisDaCarreira.map(team => { const m = state.managers.find(x => x.teamName === team)!; return { team, division: state.careerPlacements?.[`m${m.id}`] ?? 'D', h2h: coletivaSave.h2hPor[team] ?? [0, 0, 0] as [number, number, number], lastPos: null } })
+    const team = escolheArquirrival(rv, myDiv, null)
+    if (team) dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })
+  }, [coletivaOn, myDiv, coletivaSave.arquirrival, rivaisDaCarreira, youId, sn]) // eslint-disable-line react-hooks/exhaustive-deps
+  // o próximo adversário na liga (índice do jogo = rodada − 1) e o próximo clássico, pro efeito saber onde entrar
+  const proximoJogoDe = useCallback((rodada: number): string | null => {
+    if (!myDiv || rodada < 1 || rodada > 38) return null
+    const divSeed = (seasonSeed ^ (myDiv.charCodeAt(0) * 2654435761)) >>> 0
+    const par = confrontoDaRodada(world[myDiv] ?? [], divSeed, rodada).find(([h, a]) => h.teamId === youId || a.teamId === youId)
+    return par ? (par[0].teamId === youId ? par[1].name : par[0].name) : null
+  }, [myDiv, seasonSeed, world, youId])
+  const proximoClassicoIdx = useCallback((desde: number): number | null => {
+    if (!coletivaSave.arquirrival) return null
+    for (let rr = desde; rr <= 38; rr++) if (proximoJogoDe(rr) === coletivaSave.arquirrival) return rr - 1
+    return null
+  }, [coletivaSave.arquirrival, proximoJogoDe])
+  // 🆚 retrospecto contra CADA rival (a pirâmide não guardava): soma o jogo quando ele termina de animar
+  useEffect(() => {
+    if (!coletivaOn || !myMatch || !me || !roundReady || revealed < round || round < 1 || copaPlaying) return
+    const casa = myMatch.h === me.team
+    const adv = casa ? myMatch.a : myMatch.h
+    if (!rivaisDaCarreira.includes(adv)) return
+    const gf = casa ? myMatch.hg : myMatch.ag, ga = casa ? myMatch.ag : myMatch.hg
+    dispatch({ type: 'COLETIVA_H2H', mgrId: youId, rival: adv, chave: `${sn}:${round}`, res: gf > ga ? 'V' : gf === ga ? 'E' : 'D', arqui: adv === coletivaSave.arquirrival, temporada: sn })
+  }, [coletivaOn, myMatch, me, roundReady, revealed, round, copaPlaying, rivaisDaCarreira, youId, sn, coletivaSave.arquirrival]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 📋 monta o contexto da rodada (o que aconteceu) — tudo do que a tela JÁ revelou
+  const montaCtxLiga = useCallback((): { ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null } } | null => {
+    if (!myMatch || !me || !myDiv) return null
+    const casa = myMatch.h === me.team
+    const adv = casa ? myMatch.a : myMatch.h
+    const gf = casa ? myMatch.hg : myMatch.ag, ga = casa ? myMatch.ag : myMatch.hg
+    // virada: em algum momento estive atrás e terminei na frente
+    let meuG = 0, deleG = 0, estiveAtras = false
+    for (const g of [...myMatch.goals].sort((a, b) => a.min - b.min)) { if (g.home === casa) meuG++; else deleG++; if (deleG > meuG) estiveAtras = true }
+    // forma recente (até 5 rodadas, só as reveladas) → sequências e gols sofridos
+    let semVencer = 0, vitoriasSeguidas = 0, jogosSofrendo = 0, parouSV = false, parouVS = false, parouJS = false
+    for (let rr = round; rr >= Math.max(1, round - 4); rr--) {
+      const sim = rr === round ? live : simulaAte(rr)
+      const m = sim.matches[myDiv]?.find(x => x.you); if (!m) break
+      const c = m.h === me.team, f = c ? m.hg : m.ag, s2 = c ? m.ag : m.hg
+      if (!parouSV) { if (f > s2) parouSV = true; else semVencer++ }
+      if (!parouVS) { if (f > s2) vitoriasSeguidas++; else parouVS = true }
+      if (!parouJS) { if (s2 >= 2) jogosSofrendo++; else parouJS = true }
+    }
+    const minha = tables[myDiv] ?? []
+    const pos = me.pos, total = minha.length
+    const zonaSubir = pos <= 4 && !!UP_OF[myDiv], zonaCair = pos >= total - 3 && !!DOWN_OF[myDiv], lider = pos === 1
+    const top = live.divTop[myDiv]
+    const caixa = Math.round(state.careerCoins?.[youId] ?? 0)
+    const cansadoId = (() => { const m = condMods[youId]?.[round - 1]; if (!m) return null; let pior: [string, number] | null = null; for (const [id, d] of Object.entries(m)) if (d < 0 && (!pior || d < pior[1])) pior = [id, d]; return pior && pior[1] <= -1 ? pior[0] : null })()
+    const cansado = cansadoId ? mgrMe?.squad.find(c => c.id === cansadoId)?.name : undefined
+    const prox = proximoJogoDe(round + 1)
+    const proximoClassico = !!prox && prox === coletivaSave.arquirrival
+    const decisivo = round >= 30 || zonaSubir || zonaCair || lider
+    const ctx: ColetivaCtx = {
+      rodada: round, totalRodadas: 38, temporada: sn, div: myDiv, clube: me.team,
+      placar: { gf, ga, adv, casa, virada: estiveAtras && gf > ga, arquirrival: adv === coletivaSave.arquirrival },
+      semVencer, vitoriasSeguidas, pos, total, zonaSubir, zonaCair, lider,
+      artilheiro: top?.you ? { nome: top.name, gols: top.goals } : undefined,
+      jogosSofrendo, cansado, lesionado: suspenso?.tipo === 'lesao' ? suspenso.nome : undefined,
+      criaEstreou: (myXI as WonCard[]).find(c => c.cria)?.name,
+      caixa, caixaAlto: caixa >= 300, caixaBaixo: caixa < 0,
+      proximoClassico, rival: coletivaSave.arquirrival ?? undefined,
+      vespera: proximoClassico && decisivo ? 'classico' : undefined,
+      pulosSeguidos: coletivaSave.pulosSeguidos,
+    }
+    return { ctx, alvo: { proximo: round < 38 ? round : null, classico: proximoClassicoIdx(round + 1) } }
+  }, [myMatch, me, myDiv, round, live, simulaAte, tables, state.careerCoins, youId, condMods, mgrMe, proximoJogoDe, coletivaSave, sn, suspenso, myXI, proximoClassicoIdx])
+  // 🏆 na Copa: eliminado · véspera da final (ganhou a semi) · campeão
+  const montaCtxCopa = useCallback((): { ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null } } | null => {
+    if (!copa || !copaFase || !myCopaTie || !me || !myDiv) return null
+    const youIsA = !!myCopaTie.a.you
+    const won = (myCopaTie.win === 'a') === youIsA
+    const ehFinal = copaFase.name === 'Final' || copaFase.name === 'Supercopa'
+    const prox = copa.rounds[copaRound + 1]
+    let st: ColetivaCtx['copa'] | undefined, vespera: ColetivaCtx['vespera']
+    if (ehFinal) st = won ? 'campeao' : 'eliminado'
+    else if (!won) st = 'eliminado'
+    else if (prox?.name === 'Final') { st = 'final'; vespera = ((state.seed ?? 0) + sn) % 2 === 0 ? 'final' : undefined }
+    if (!st) return null
+    const opp = youIsA ? myCopaTie.b : myCopaTie.a
+    const ctx: ColetivaCtx = {
+      rodada: 38 + copaRound + 1, totalRodadas: 38, temporada: sn, div: myDiv, clube: me.team,
+      placar: { gf: youIsA ? myCopaTie.aggA : myCopaTie.aggB, ga: youIsA ? myCopaTie.aggB : myCopaTie.aggA, adv: opp.name, casa: true, virada: false, arquirrival: opp.name === coletivaSave.arquirrival },
+      semVencer: 0, vitoriasSeguidas: 0, pos: me.pos, total: (tables[myDiv] ?? []).length, zonaSubir: false, zonaCair: false, lider: me.pos === 1,
+      caixa: Math.round(state.careerCoins?.[youId] ?? 0), caixaAlto: false, caixaBaixo: false, copa: st, vespera,
+      rival: coletivaSave.arquirrival ?? undefined, pulosSeguidos: coletivaSave.pulosSeguidos,
+    }
+    return { ctx, alvo: { proximo: null, classico: null } }
+  }, [copa, copaFase, myCopaTie, me, myDiv, copaRound, state.seed, sn, coletivaSave, tables, state.careerCoins, youId])
+  // ⏰ quando a rodada (ou a fase da Copa) termina de animar, vê se tem coletiva
+  useEffect(() => {
+    if (!coletivaOn || coletivaPronta || done && !copaPlaying) return
+    const naLiga = !copaPlaying && round >= 1 && roundReady && revealed >= round && !!myMatch && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
+    const naCopa = copaPlaying && copaReady && !!myCopaTie
+    if (!naLiga && !naCopa) return
+    const chave = naCopa ? `${sn}:c${copaRound}` : `${sn}:${round}`
+    if (coletivaOfertada.current.has(chave)) return
+    if (coletivaSave.ultimaTemporada === sn && coletivaSave.ultimaRodada === (naCopa ? 38 + copaRound + 1 : round)) return // já respondida
+    coletivaOfertada.current.add(chave)
+    const feito = naCopa ? montaCtxCopa() : montaCtxLiga()
+    if (!feito) return
+    const pronta = montaColetiva(feito.ctx, coletivaSave, state.seed ?? 1)
+    if (pronta) setColetivaPronta({ pronta, ctx: feito.ctx, alvo: feito.alvo, chave })
+  }, [coletivaOn, coletivaPronta, done, copaPlaying, round, roundReady, revealed, myMatch, halfMode, halftimeDone, penMode, penaltyDone, copaReady, myCopaTie, copaRound, sn, coletivaSave, montaCtxCopa, montaCtxLiga, state.seed])
+  useEffect(() => { setColetivaPronta(null) }, [state.seasonNo]) // temporada nova, mesa limpa
+  const responderColetiva = (estilo: ColetivaEstilo | null, registra = true) => {
+    if (!coletivaPronta) return
+    if (registra) dispatch({ type: 'COLETIVA_RESPONDE', mgrId: youId, pronta: coletivaPronta.pronta, estilo, ctx: coletivaPronta.ctx, alvo: coletivaPronta.alvo })
+    setColetivaPronta(null)
+  }
+  // 📰 a cobrança das promessas e as frases da temporada (página do jornal do fim)
+  const coletivaJornal = useMemo(() => {
+    if (!coletivaOn || !me || !copaFinished) return undefined
+    const res = { campeao: me.pos === 1, subiu: me.pos <= 4 && !!UP_OF[me.div], caiu: me.pos >= (tables[me.div]?.length ?? 20) - 3 && !!DOWN_OF[me.div], copaCampeao: !!(copa?.champion && (copa.champion as { you?: boolean }).you), ganhouClassicos: coletivaSave.ultimoClassico?.t === sn && coletivaSave.ultimoClassico.res === 'V' }
+    const cobradas = fechaPromessas(coletivaSave, sn, res).manchetes
+    const frases = melhoresFrases(coletivaSave, sn, 4)
+    if (!cobradas.length && !frases.length) return undefined
+    const en = getLang() === 'en'
+    const itens: { ic: string; titulo: string; sub: string }[] = [
+      ...cobradas.map(m => ({ ic: '📝', titulo: en ? m[1] : m[0], sub: tr('A imprensa guardou a frase. E cobrou.', 'The press kept the line. And called it in.') })),
+      ...frases.map(f => ({ ic: f.estilo === 'provoca' ? '😈' : f.estilo === 'diplomata' ? '🧊' : '🚪', titulo: `“${en ? f.frase![1] : f.frase![0]}”`, sub: `${tr('Rodada', 'Round')} ${f.r > 38 ? tr('da Copa', 'of the Cup') : f.r} · ${tr('pergunta de', 'asked by')} ${f.rep === 'rogerio' ? 'Rogério Provoca' : f.rep === 'clarice' ? 'Clarice Planilha' : f.rep === 'tiao' ? 'Tião Puxa-Saco' : 'Mila Vestiário'}` })),
+    ]
+    const fama = famaDoPresidente(coletivaSave)
+    const capa = { ic: '🎙️', titulo: cobradas.length ? (en ? cobradas[0][1] : cobradas[0][0]) : (en ? `The season in the president’s words` : `A temporada nas palavras do presidente`), sub: tr(`Fama do presidente ao fim da temporada: ${fama === 'polemista' ? 'O Polemista' : fama === 'diplomata' ? 'O Diplomata' : fama === 'mudo' ? 'O Mudo' : fama === 'sonhador' ? 'O Sonhador' : fama === 'paoduro' ? 'O Pão-duro' : fama === 'escorregadio' ? 'O Escorregadio' : 'Novato na imprensa'}.`, `The president’s reputation at season’s end: ${fama}.`) }
+    return [capa, ...itens]
+  }, [coletivaOn, me, copaFinished, tables, copa, coletivaSave, sn])
+  useEffect(() => {
+    if (!coletivaOn || !me || !copaFinished || !coletivaSave.promessas.some(p => p.t === sn && p.cumprida === undefined)) return
+    dispatch({ type: 'COLETIVA_FECHA', mgrId: youId, temporada: sn, res: { campeao: me.pos === 1, subiu: me.pos <= 4 && !!UP_OF[me.div], caiu: me.pos >= (tables[me.div]?.length ?? 20) - 3 && !!DOWN_OF[me.div], copaCampeao: !!(copa?.champion && (copa.champion as { you?: boolean }).you), ganhouClassicos: coletivaSave.ultimoClassico?.t === sn && coletivaSave.ultimoClassico.res === 'V' } })
+  }, [coletivaOn, me, copaFinished, coletivaSave, sn, tables, copa, youId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 📺 o quadro da Central + a manchete da coletiva desta rodada no Martelo
+  const coletivaUltima = coletivaSave.feitas.length ? coletivaSave.feitas[coletivaSave.feitas.length - 1] : null
+  const coletivaCentral = coletivaOn && myDiv ? {
+    fama: famaDoPresidente(coletivaSave),
+    ultima: coletivaUltima?.manchete ? (getLang() === 'en' ? coletivaUltima.manchete[1] : coletivaUltima.manchete[0]) : null,
+    arquirrival: coletivaSave.arquirrival,
+    retro: coletivaSave.arquirrival && coletivaSave.h2hPor[coletivaSave.arquirrival] ? retrospectoTexto(coletivaSave.h2hPor[coletivaSave.arquirrival], coletivaSave.arquirrival) : null,
+    onAbrir: () => setSalaImprensaOpen(true),
+  } : undefined
   // 🔴 SINCRONIA (Diego 13/08 — "não vi o tempo começar, já apareceu 1x1"): assim que
   // a rodada é decisiva pra pênalti, volta pra aba Jogos NA HORA (igual a Copa faz).
   // Sem isto o técnico podia estar em Tabelas/Elenco/Rank enquanto o placar corria —
@@ -9658,7 +9828,7 @@ export function PyramidSeasonScreen() {
   // partida e o camarote da Central). Regra de ouro contra botão mudo (19/09): tela e
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
-  const avancarRodada = () => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  const avancarRodada = () => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) responderColetiva(null) /* 🎙️ avançou com a coletiva aberta = pulou */; if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -9829,6 +9999,11 @@ export function PyramidSeasonScreen() {
       ],
     })
     if (compManchete) jornal.manchete = compManchete
+    // 🎙️ a coletiva desta rodada vira manchete do Martelo (e notícia no topo)
+    if (coletivaOn && coletivaUltima?.manchete && coletivaUltima.t === sn && coletivaUltima.r === revCentral) {
+      jornal.noticias.unshift({ emoji: '🎙️', pt: coletivaUltima.manchete[0], en: coletivaUltima.manchete[1], tag: ['coletiva', 'presser'] })
+      if (!compManchete) jornal.manchete = { pt: coletivaUltima.manchete[0], en: coletivaUltima.manchete[1], sub: [coletivaUltima.frase ? `“${coletivaUltima.frase[0]}”` : '', coletivaUltima.frase ? `“${coletivaUltima.frase[1]}”` : ''] }
+    }
     // 🗓️ agenda: a Copa nacional, a Libertadores (quando a carreira já tem) e a Copa do Mundo
     const agenda: CentralAgenda[] = []
     agenda.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
@@ -9855,7 +10030,7 @@ export function PyramidSeasonScreen() {
       if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
     })()
-    return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    return <CentralCarreira coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       caixas={econBots ? [...(tables[myDiv] ?? [])].map(t => ({ name: t.name, you: t.you, caixa: Math.round(t.human ? (state.careerCoins?.[t.teamId] ?? 0) : (state.clubCash?.[teamKey(t)] ?? 0)) })).sort((a, b) => b.caixa - a.caixa) : undefined} />
   }
@@ -9921,6 +10096,8 @@ export function PyramidSeasonScreen() {
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
       <div className={`max-w-xl mx-auto ll-cx${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
+        {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
+          onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
@@ -10168,6 +10345,7 @@ export function PyramidSeasonScreen() {
             })()}
             /* 🎭 EVENTOS: manchetes do "Aconteceu na temporada" (página própria do jornal) */
             eventos={eventosOn ? (state.eventoManchetes ?? []).filter(m => m.season === state.seasonNo).map(m => ({ ic: m.emoji, titulo: m.titulo, sub: m.sub })) : undefined}
+            coletiva={coletivaJornal} /* 🎙️ promessas cobradas + frases da temporada (19/10) */
             /* 🕴️ AGÊNCIA 2.0: notícias dos agenciados pra página 2 do jornal —
                SÓ emoção, sem moeda (decisão do Diego). Artilheiro desta temporada
                + negociações do último mercado (agenciado CAMPEÃO saiu do jornal em
@@ -10316,6 +10494,16 @@ export function PyramidSeasonScreen() {
                 </div>
               </div>
             ),
+          })
+          // 🎙️ COLETIVA (19/10): entra na fila como qualquer aviso; no automático fecha sozinha em 12s (sem contar pulo)
+          if (coletivaOpen && coletivaPronta && me) fila.push({
+            key: 'coletiva', render: () => {
+              const pl = coletivaPronta.ctx.placar
+              const placarTxt = pl && !coletivaPronta.ctx.vespera ? `⚽ ${pl.gf} × ${pl.ga} · ${pl.gf > pl.ga ? tr('vitória', 'win') : pl.gf === pl.ga ? tr('empate', 'draw') : tr('derrota', 'loss')}${pl.arquirrival ? tr(' no clássico', ' in the derby') : ''}` : null
+              const rod = coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
+              return <ColetivaBanner pronta={coletivaPronta.pronta} clube={me.team} placar={placarTxt} rodadaTxt={rod} autoSeg={manual ? null : 12}
+                onEscolhe={estilo => responderColetiva(estilo, estilo !== null || manual)} />
+            },
           })
           if (!fila.length) return null
           return (

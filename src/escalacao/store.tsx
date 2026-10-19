@@ -1045,6 +1045,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala onlin
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
+import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
@@ -5530,6 +5531,11 @@ type Action =
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
+  // 🎙️ COLETIVA DE IMPRENSA (19/10): a resposta (ou o pulo), o arquirrival, o retrospecto contra rival e a cobrança das promessas
+  | { type: 'COLETIVA_RESPONDE'; mgrId: number; pronta: ColetivaPronta; estilo: ColetivaEstilo | null; ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null } }
+  | { type: 'COLETIVA_ARQUIRRIVAL'; mgrId: number; team: string; temporada: number }
+  | { type: 'COLETIVA_H2H'; mgrId: number; rival: string; chave: string; res: 'V' | 'E' | 'D'; arqui: boolean; temporada: number }
+  | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
@@ -7516,6 +7522,39 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.medicoDevolvido = undefined
       return s
     }
+    // 🎙️ COLETIVA DE IMPRENSA (19/10). O motor é puro (`coletiva.ts`); aqui só guarda no save e paga a bilheteria
+    // da "torcida em festa" (10% da renda de UM jogo em casa, na hora, com linha no Extrato). Moral e rival viram
+    // `efeitos` pendentes que a simulação lê como RoundMods (ver pyramidseason `coletivaMods`).
+    case 'COLETIVA_RESPONDE': {
+      const atual = coletivaSana(s.careerColetiva?.[action.mgrId])
+      const r = respondeColetiva(atual, action.pronta, action.estilo, action.ctx, s.seed ?? 1, action.alvo)
+      s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: r.save }
+      if (r.efeito?.tipo === 'renda') {
+        const bilhete = Math.max(2, Math.round(stadiumIncome(s.stadiums?.[action.mgrId], !!s.careerLoja?.[action.mgrId]) / 19 * r.efeito.valor / 100))
+        s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + bilhete }
+        logFin(s, 'reward', '🎙️ Coletiva: torcida em festa', bilhete, undefined, action.mgrId)
+      }
+      return s
+    }
+    case 'COLETIVA_ARQUIRRIVAL': {
+      const atual = coletivaSana(s.careerColetiva?.[action.mgrId])
+      if (atual.arquirrival === action.team) return s
+      s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: { ...atual, arquirrival: action.team, arquirrivalDesde: action.temporada } }
+      return s
+    }
+    case 'COLETIVA_H2H': {
+      const atual = coletivaSana(s.careerColetiva?.[action.mgrId])
+      const novo = somaH2H(atual, action.rival, action.chave, action.res)
+      if (novo === atual) return s
+      s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: action.arqui ? { ...novo, ultimoClassico: { t: action.temporada, res: action.res } } : novo }
+      return s
+    }
+    case 'COLETIVA_FECHA': {
+      const atual = coletivaSana(s.careerColetiva?.[action.mgrId])
+      if (!atual.promessas.some(p => p.t === action.temporada && p.cumprida === undefined)) return s
+      s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: fechaPromessas(atual, action.temporada, action.res).save }
+      return s
+    }
     // 🏋️💸 idem pro troco do preparador: o aviso só some da tela — a moeda já entrou
     // em `devolvePreparadorUmaVez`, e a marca impede pagar de novo.
     case 'PREPARADOR_AVISO_VISTO': {
@@ -7666,7 +7705,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // eventos de jogador de uma carreira anterior — senão a historinha do Sub-20
       // aparece na Cerimônia de um rápido (relato do Diego, 11/09).
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
-      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined
       s.reserveAuction = false; s.reserveListed = {} // e nem o "modo reservas" da carreira
       // 🔨 tela de regras antes do pregão (rápido): explica moedas/auge; o jogador
       // toca "Começar o leilão" (START_STREAM_AUCTION) quando quiser. Sem intro
@@ -7974,7 +8013,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.copaMundoStats = undefined
       s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
-      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.criaDeEvento = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
@@ -8087,7 +8126,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.copaMundoMural = undefined // 🌍 idem: título de Copa do Mundo não atravessa pra carreira nova
       s.copaMundoStats = undefined
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
-      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.agenciaDividir = false
@@ -8349,7 +8388,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Ligas"*). Fora do if, TODO jogo online nasce limpo — mesma família do
       // conserto do `reserveAuction` aqui de cima.
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
-      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
+      s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined
       s.tactics = {}; s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       // carreira: cada técnico COMEÇA com 100 moedas (uma vez). Depois só ganha por
       // desempenho (título por série, acesso) e perde na queda — sem base recorrente.

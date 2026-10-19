@@ -16,6 +16,7 @@
 // Tudo que aparece aqui JÁ apareceu em outra aba — a Central não sabe de nada
 // que a tela não saiba. 🔒 Só a conta do Diego vê (`useCentralCarreira`).
 import { useState } from 'react'
+import { CardColetiva, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
 import { Escudo } from './escudos'
 import { getLang, useT } from './lang'
 import type { Jornal, Contratacao } from './central-noticias'
@@ -71,6 +72,8 @@ export type CentralProps = {
    *  'deslogado' (só o aparelho) · 'salvando' · 'salvo' (acabou de subir, 2s). `ha` = minutos desde a
    *  última subida; `rodadas` = quantas rodadas jogou desde então. */
   salvar?: FaixaSalvarProps
+  /** 🎙️ COLETIVA (19/10): fama do presidente, última manchete e o arquirrival; abre a Sala de imprensa */
+  coletiva?: CardColetivaProps
 }
 export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
@@ -289,6 +292,7 @@ export function CentralCarreira(p: CentralProps) {
             {!p.jornal.noticias.length && <p style={{ padding: '10px 13px', font: 'italic 12px Georgia, serif', color: '#555', margin: 0 }}>{t('As notícias começam a sair depois da 1ª rodada.', 'The news starts after round 1.')}</p>}
             <button type="button" className="ll-central-link" onClick={() => p.onTab('ranking')} style={{ width: '100%', textAlign: 'center', fontSize: 10, fontWeight: 800, color: '#666', background: '#fff', padding: 7 }}>{t('ver artilharia e rank', 'see top scorers and rank')} ›</button>
           </div>
+          {p.coletiva && <CardColetiva {...p.coletiva} />}
           {/* 💸 MERCADO: a sala de leilão */}
           <div className="ll-central-card ll-c-mercado" style={{ background: `#1a120a url(${leilaoArt}) 85% center / cover`, color: CREME, borderColor: '#847657' }}>
             <div style={{ background: 'linear-gradient(90deg,#0C0C0Cf2 45%,#0C0C0C8c)' }}>

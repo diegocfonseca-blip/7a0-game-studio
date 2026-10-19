@@ -132,7 +132,26 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
 
-## 🎙️ COLETIVA DE IMPRENSA NA CARREIRA (19/10) — ⏳ MOCKUP ENVIADO, esperando OK
+## 🎙️ COLETIVA DE IMPRENSA NA CARREIRA (19/10) — ✅ APROVADA (*"adorei… quero sim efeito"*), CODADA, SÓ NA CONTA DO DIEGO
+- Decisões dele na aprovação: **com efeito** no jogo (pequeno e explicado) · **pular** não pune, mas 3 pulos seguidos acordam o
+  Rogério e a fama vira "O Mudo" · junto vão o **item 2** (coletiva antes da final) e o **4** (frases da temporada no jornal do fim).
+  Ficaram pra depois: 🎤 entrevista do jogador (é um CARTÃO na Central com 1 toque, não vídeo — ele perguntou *"tenho que
+  assistir?"*) e 🧢 técnico respondendo junto.
+- 🔥 **ARQUIRRIVAL** (ele notou: *"o jogo não sabe quem é o rival de verdade"*): um só, escolhido entre os rivais da carreira
+  (mesma divisão / quem mais enfrentou), trocável só na virada (round 0) pela Sala de imprensa. A pirâmide não guardava
+  retrospecto: agora `careerColetiva[mgr].h2hPor` soma cada jogo contra rival uma vez.
+- Código: `coletiva.ts` (motor puro: 36 situações · 4 repórteres · 648 textos PT+EN · efeito · fama · promessas · arquirrival),
+  `coletiva-ui.tsx` (cartão pós-jogo na fila de avisos, Sala de imprensa, quadro da Central), `store.tsx` (COLETIVA_*),
+  `pyramidseason.tsx` (contexto da rodada no tempo morto, mods na simulação, Copa, jornal), `jornal.tsx` (página 🎙️),
+  `central.tsx` (quadro). Gate `COLETIVA_GERAL` em sport.ts; bancada `esc-coletiva-dev`. Trava `npm run coletiva`.
+  Foto real: `node scripts/foto-coletiva.mjs` (precisa do save do `navega-carreira.mjs --fase nova`).
+- Efeitos: moral ±2 de força no próximo jogo · clássico −3 pra você (= rival motivado) · renda = 10% da bilheteria de 1 jogo,
+  na hora, com linha no Extrato. Entram pela MESMA porta do evento (`RoundMods`): save sem coletiva = simulação idêntica.
+- Automático: a coletiva fecha sozinha em 12s sem contar pulo. Manual: espera o toque; "Próxima rodada" com ela aberta = pulou.
+- Ainda sem gatilho (o contexto não tem o dado barato): goleiro pegou pênalti · reserva reclamando · proposta por craque ·
+  patrocinador cobrando · internacional · Copa do Mundo · Bola de Ouro. Os textos já existem; ligar quando tiver o dado.
+- (histórico do mockup abaixo)
+## 🎙️ COLETIVA — mockup (19/10)
 - Contexto: ele sente que a galera está largando a carreira pelo online (números: solo caiu ~30% desde o pico de fim de
   setembro, online ~25%; contas salvando carreira na nuvem caíram de ~750 → ~410/semana, a queda forte começa na semana de
   05/10, quando grátis ficou com 1 ficha e sem nuvem). Ele escolheu **entrevistas**, com a condição: *"se não tiver variedade

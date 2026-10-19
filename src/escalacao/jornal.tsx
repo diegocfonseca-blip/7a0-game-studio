@@ -458,7 +458,9 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, privateVisual = false }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, coletiva, privateVisual = false }: {
+  /** 🎙️ COLETIVA (19/10): promessas cobradas + frases que marcaram a temporada (página própria) */
+  coletiva?: AgNews[]
   privateVisual?: boolean
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
@@ -503,13 +505,16 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   // 🥇 a página dos PRÊMIOS só existe quando houve Bola de Ouro na temporada
   // (temporada sem gol nenhum no mundo não premia ninguém — ver `melhorDoMundo`).
   const prem = melhor ?? null
-  const pags: ('capa' | 'premios' | 'agencia' | 'eventos' | 'memoria')[] = ['capa', ...(prem ? ['premios' as const] : []), ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : []), ...(mem ? ['memoria' as const] : [])]
+  // 🎙️ a página da IMPRENSA só existe quando houve coletiva na temporada
+  const col = coletiva && coletiva.length > 0 ? coletiva : null
+  const pags: ('capa' | 'premios' | 'agencia' | 'eventos' | 'coletiva' | 'memoria')[] = ['capa', ...(prem ? ['premios' as const] : []), ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : []), ...(col ? ['coletiva' as const] : []), ...(mem ? ['memoria' as const] : [])]
   // 📖 o nome de cada página, pra a chamada de capa e pra barra de virar
   const NOME_PAG: Record<typeof pags[number], { t: string; s: string }> = {
     capa: { t: tr('A capa', 'The cover'), s: tr('A manchete e os seus números.', 'The headline and your numbers.') },
     premios: { t: tr('🥇 A Bola de Ouro', '🥇 The Golden Ball'), s: tr('Ele não foi o artilheiro. Nem o garçom.', 'He wasn’t the top scorer. Nor the assist king.') },
     agencia: { t: tr('🕴️ O Caderno do Empresário', '🕴️ The Agent’s Pages'), s: tr('Os seus agenciados nas manchetes.', 'Your clients in the headlines.') },
     eventos: { t: tr('📻 Aconteceu na temporada', '📻 What happened this season'), s: tr('Os causos que o vestiário viveu.', 'The stories the dressing room lived.') },
+    coletiva: { t: tr('🎙️ O que o presidente disse', '🎙️ What the president said'), s: tr('As frases da temporada — e as promessas cobradas.', 'The season’s lines — and the promises called in.') },
     memoria: { t: tr('📼 O jornal lembra', '📼 The paper remembers'), s: tr('O que a sua história já escreveu.', 'What your story has written so far.') },
   }
   const [page, setPage] = useState(0)
@@ -839,13 +844,13 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   return (
     <div className={privateVisual ? 'jornal-v22 ll34-career-jornal' : undefined} style={privateVisual ? undefined : { background: '#F7F1DD', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 0 ${INK}`, borderRadius: 6, padding: '13px 13px 11px', marginBottom: 12, backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.012) 3px 4px)' }}>
       {/* cabeçalho do jornal (a pág. 2 vira "Caderno 2 · Negócios") */}
-      {privateVisual ? <header className="jv-masthead"><h1>O MARTELO</h1><p>TEMPORADA {seasonNo} · {J_DIV_NAME[me.div].toUpperCase()}</p><div><span>O DIÁRIO DO LEILÃO LEGENDS</span><span>{pk === 'agencia' ? 'NEGÓCIOS' : pk === 'eventos' ? 'BASTIDORES' : pk === 'memoria' ? 'MEMÓRIA' : 'FIM DE TEMPORADA'}</span></div></header> : <>
+      {privateVisual ? <header className="jv-masthead"><h1>O MARTELO</h1><p>TEMPORADA {seasonNo} · {J_DIV_NAME[me.div].toUpperCase()}</p><div><span>O DIÁRIO DO LEILÃO LEGENDS</span><span>{pk === 'agencia' ? 'NEGÓCIOS' : pk === 'eventos' ? 'BASTIDORES' : pk === 'coletiva' ? 'IMPRENSA' : pk === 'memoria' ? 'MEMÓRIA' : 'FIM DE TEMPORADA'}</span></div></header> : <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px double ${INK}`, paddingBottom: 6 }}>
         <div style={{ ...SERIF, fontWeight: 900, fontSize: 26, letterSpacing: 1 }}>O <span style={{ color: '#B23A2A' }}>MARTELO</span></div>
-        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'premios' ? tr('CADERNO · OS PRÊMIOS', 'SECTION · THE AWARDS') : pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : pk === 'memoria' ? 'CADERNO · MEMÓRIA' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
+        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'premios' ? tr('CADERNO · OS PRÊMIOS', 'SECTION · THE AWARDS') : pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : pk === 'coletiva' ? 'CADERNO · IMPRENSA' : pk === 'memoria' ? 'CADERNO · MEMÓRIA' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', borderBottom: `1.5px solid ${INK}`, padding: '3px 1px', color: '#3a3527' }}>
-        {pk === 'premios' ? <><span>🥇 OS PRÊMIOS DO ANO</span><span>{tr('O MELHOR DO MUNDO', 'THE WORLD’S BEST')}</span></> : pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : pk === 'memoria' ? <><span>📼 O JORNAL LEMBRA</span><span>A HISTÓRIA DO CLUBE</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
+        {pk === 'premios' ? <><span>🥇 OS PRÊMIOS DO ANO</span><span>{tr('O MELHOR DO MUNDO', 'THE WORLD’S BEST')}</span></> : pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : pk === 'coletiva' ? <><span>🎙️ O QUE O PRESIDENTE DISSE</span><span>{tr('A IMPRENSA COBRA', 'THE PRESS CALLS IN')}</span></> : pk === 'memoria' ? <><span>📼 O JORNAL LEMBRA</span><span>A HISTÓRIA DO CLUBE</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
       </div>
 
       </>}
@@ -930,6 +935,25 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
                 </div>
               </div>
             ))}
+          </div>
+        </>
+      ) : pk === 'coletiva' && col ? (
+        <>
+          {/* ── 🎙️ "O QUE O PRESIDENTE DISSE": promessas cobradas primeiro, depois as frases que marcaram ── */}
+          <h2 style={{ ...SERIF, fontWeight: 900, fontSize: 24, lineHeight: 1.05, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{col[0].titulo.toUpperCase()}</h2>
+          <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{col[0].sub}</p>
+          <div style={{ border: `2.5px solid ${INK}`, background: '#fff' }}>
+            <div style={{ background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🎙️ {tr('O presidente na coletiva', 'The president at the presser')}</div>
+            {col.slice(1).map((n, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 9px', borderTop: i > 0 ? '1.5px solid rgba(0,0,0,.12)' : 'none' }}>
+                <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: '#F7F1DD' }}>{n.ic}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.15 }}>{n.titulo}</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5, lineHeight: 1.3 }}>{n.sub}</div>
+                </div>
+              </div>
+            ))}
+            {col.length === 1 && <p style={{ padding: '8px 9px', margin: 0, fontSize: 11, fontWeight: 700, color: '#3a3527' }}>{tr('Só uma frase marcou a temporada — e já está na manchete.', 'Only one line made the season — and it’s already the headline.')}</p>}
           </div>
         </>
       ) : pk === 'eventos' && evs ? (
