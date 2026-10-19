@@ -10,11 +10,16 @@ import { playTick, playHammer } from './sound'
 import type { Sector, Card } from './types'
 import { openSlots } from './store'
 import { agoraSala } from './relogio'
+import { getSport } from './sport'
+import { POS_LABELS } from './sportcfg'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
 const PA_ALERTA_FIM = 11 // ⏳ a partir de quantas cartas pro fim o alerta aparece
 const POS_PT: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goalkeeper'], LAT: ['lateral', 'full-back'], ZAG: ['zagueiro', 'centre-back'], MEI: ['meia', 'midfielder'], ATA: ['atacante', 'forward'] }
+// 🏀 19/10: no basquete o setor do motor vira a posição da NBA (PG/SG/SF/PF/C · armador, ala…) — o futebol segue igual
+const bbPA = () => getSport() === 'basquete'
+const tagPos = (p: string) => bbPA() && p in POS_LABELS.basquete ? POS_LABELS.basquete[p as Sector].tag : p
 
 export function PregaoAberto() {
   const { state, dispatch } = useEsc()
@@ -110,7 +115,7 @@ export function PregaoAberto() {
 
         {/* 🟩 o campinho PADRÃO do leilão (17/10, Diego: "deve ser os campinhos padrões igual os outros modos… quando
             aparece uma lenda aparece o avatar da lenda") — o MESMO `YourPitch` do envelope e da Tocaia, com rosto e manto */}
-        <p style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{t('Sua escalação', 'Your lineup')}</p>
+        <p style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{bbPA() ? t('Seu quinteto', 'Your five') : t('Sua escalação', 'Your lineup')}</p>
         <YourPitch small />
         <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{state.leilaoClubes
           ? t('Um pacote por setor: quem já tem o do setor não dá lance. Depois do pregão vem a convocação.', 'One pack per sector: if you have that sector’s pack, no more bids there. The call-up comes after the auction.')
@@ -168,7 +173,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
   }
   // 🃏 a carta que acabou de sair DESTA mesa vira no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`
   const virada = M.viraAte && agora < M.viraAte && M.viraId ? pa.fila.find(x => x.id === M.viraId) ?? null : null
-  const posNome = card ? t(POS_PT[card.pos][0], POS_PT[card.pos][1]) : ''
+  const posNome = !card ? '' : bbPA() ? t(POS_LABELS.basquete[card.pos].singular.pt.toLowerCase(), POS_LABELS.basquete[card.pos].singular.en.toLowerCase()) : t(POS_PT[card.pos][0], POS_PT[card.pos][1])
   const contagem = seg <= 1 ? t('TRÊS… VENDIDO!', 'THREE… SOLD!') : seg <= 2 ? t('DUAS…', 'TWICE…') : seg <= 3 ? t('UMA…', 'ONCE…') : ''
   return <div style={{ display: 'flex', flexDirection: 'column', gap: compacto ? 7 : 12, minWidth: 0 }}>{card ? (
           <>
@@ -272,7 +277,7 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
   const n = c.pacote?.cartas.length ?? 0
   return (
     <div style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
-      <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{c.pos}</span>
+      <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{tagPos(c.pos)}</span>
       <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloClube clube={c.pacote?.clube ?? c.club} size={compacto ? 58 : 96} /></div>
       {/* 📐 17/10 (Diego, print da mesa dupla): o nome ocupa SEMPRE 2 linhas na mesa dupla — senão "Goleiros do Everton"
           (2 linhas) empurrava o lance atual dele pra baixo do "Meio do Newcastle" (1 linha) e as duas mesas desalinhavam */}
@@ -289,7 +294,7 @@ export function CartaCoberta({ name, club, year, pos }: { name: string; club: st
   const t = useT()
   return (
     <div style={{ position: 'relative', aspectRatio: '5 / 7', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, overflow: 'hidden', background: 'repeating-linear-gradient(135deg,#E7DEC6 0 14px,#DED3B6 14px 28px)' }}>
-      <span style={{ position: 'absolute', top: 10, left: 10, background: INK, color: '#fff', borderRadius: 7, padding: '1px 7px', ...OSW, fontWeight: 900, fontSize: 13 }}>{pos}</span>
+      <span style={{ position: 'absolute', top: 10, left: 10, background: INK, color: '#fff', borderRadius: 7, padding: '1px 7px', ...OSW, fontWeight: 900, fontSize: 13 }}>{tagPos(pos)}</span>
       <span style={{ position: 'absolute', top: 10, right: 10, background: '#fff', border: `2px solid ${INK}`, borderRadius: 7, padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 11 }}>{t('❓ categoria', '❓ tier')}</span>
       <div style={{ position: 'absolute', top: '22%', left: '50%', transform: 'translateX(-50%)', width: '46%', aspectRatio: '1', borderRadius: '50%', background: '#C9BD9C', border: '3px dashed #8a7d59', display: 'grid', placeItems: 'center', ...OSW, fontWeight: 900, fontSize: 44, color: '#8a7d59' }}>?</div>
       <div style={{ position: 'absolute', left: 12, right: 10, bottom: 12 }}>

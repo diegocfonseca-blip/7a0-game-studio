@@ -2991,7 +2991,7 @@ export function EscSetup() {
               {pregaoAb
                 ? t('🔨 Uma carta por vez, lance ABERTO na frente de todos: dou 10… 11… 12… uma, duas, três, vendido! A ordem das posições vem embaralhada (ninguém sabe a próxima carta), 5 segundos sem lance novo bate o martelo, e quem já fechou a posição só assiste. Não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, OPEN bidding in front of everyone: 10… 11… 12… going once, twice, sold! Positions come shuffled (nobody knows the next card), 5 seconds without a new bid drops the hammer, and whoever already filled the position just watches. No pile: empty slots at the end get a free player.')
                 : holandes
-                ? t('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                ? t(`🐊 A leva inteira na tela com UM preço só, abrindo em ${getSport() === 'basquete' ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${getSport() === 'basquete' ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
             </p>
           </div>
@@ -3174,7 +3174,7 @@ export function EscStreamIntro() {
       {tocaia ? (<>
         <Box bg={GOLD} className="p-4" shadow={6}>
           <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Um preço só — e ele CAI', '🪙 One price — and it DROPS')}</p>
-          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. The players of the batch go on the table with <b>a single price for everyone</b>, opening at <b>{abertura} 🪙</b> and <b>falling</b> on everyone's screen. <b>Nobody writes a bid</b>: whoever taps <b>TAKE</b> first gets the player for the price on screen.</> : <>Cada técnico começa com <b>100 moedas</b>. Os jogadores da leva vão pra mesa com <b>um preço só, igual pra todo mundo</b>, que abre em <b>{abertura} 🪙</b> e vai <b>CAINDO</b> na tela de todos. <b>Ninguém escreve lance</b>: quem apertar <b>PEGAR</b> primeiro leva o jogador pelo preço que está na tela.</>}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>{state.sport === 'basquete' ? 50 : 100} coins</b>. The players of the batch go on the table with <b>a single price for everyone</b>, opening at <b>{abertura} 🪙</b> and <b>falling</b> on everyone's screen. <b>Nobody writes a bid</b>: whoever taps <b>TAKE</b> first gets the player for the price on screen.</> : <>Cada técnico começa com <b>{state.sport === 'basquete' ? 50 : 100} moedas</b>. Os jogadores da leva vão pra mesa com <b>um preço só, igual pra todo mundo</b>, que abre em <b>{abertura} 🪙</b> e vai <b>CAINDO</b> na tela de todos. <b>Ninguém escreve lance</b>: quem apertar <b>PEGAR</b> primeiro leva o jogador pelo preço que está na tela.</>}</p>
         </Box>
 
         {/* 👇 mock do que ela vai ver: o preço caindo em cima e a MESA com vários
@@ -3226,7 +3226,7 @@ export function EscStreamIntro() {
       </>) : (<>
         <Box bg={GOLD} className="p-4" shadow={6}>
           <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Moedas = seu lance', '🪙 Coins = your bid')}</p>
-          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>{state.sport === 'basquete' ? 50 : 100} coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>{state.sport === 'basquete' ? 50 : 100} moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
         </Box>
 
         {/* 👇 mock da linha do jogador: mostra ONDE se põe as moedas (com 7, não 1!)
@@ -11340,7 +11340,7 @@ export function EscEnd() {
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
   useEffect(() => {
-    if (!online || !state.roomId) return
+    if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
     let vivo = true
     void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga, reg:game_state->>regionalNaLiga').eq('id', state.roomId).maybeSingle()
       .then(({ data }) => {

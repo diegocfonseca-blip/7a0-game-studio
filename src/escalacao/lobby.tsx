@@ -33,6 +33,9 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { POS_LABELS } from './sportcfg'
+// 🏀 19/10: nas Duplas do basquete cada metade escolhe POSIÇÕES DA NBA (o setor do motor GOL..ATA = PG..C)
+const DUPLA_BB_ICON: Record<string, string> = { GOL: '🧠', LAT: '🎯', ZAG: '🦅', MEI: '💪', ATA: '🗼', MONTE: '📦' }
 import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { LojaButton } from './loja-clube'
@@ -1906,6 +1909,9 @@ export function EscLobby() {
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }) }
+    // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
+    // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
+    if (getSport() === 'basquete') for (const k of ['mundoNaLiga', 'regionalNaLiga', 'varzea', 'clubes'] as const) delete (gs as Record<string, unknown>)[k]
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3451,7 +3457,7 @@ export function EscLobby() {
               // 🏀 basquete: o baralho é SEMPRE a NBA (franquias reais) — nada de escolher BR/Europa/Várzea.
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
-                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no pregão cego.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the blind auction.')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
               </div>
             ) : (
               <SegField label={tr('Baralho de craques', 'Deck of stars')}>
@@ -3533,7 +3539,7 @@ export function EscLobby() {
                     {pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions'
                       ? tr('🔨 Uma carta por vez, com o lance À VISTA de todos. Cada lance novo zera o relógio; 5s sem lance = vendido. A ordem das posições é embaralhada e não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, with bids IN THE OPEN. Every new bid resets the clock; 5s without a bid = sold. Positions come in shuffled order and there is no pile: empty slots at the end get a free player.')
                       : rapidoHolandes
-                      ? tr('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                      ? tr(`🐊 A leva inteira na tela com UM preço só, abrindo em ${nbaSala ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${nbaSala ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
                       : tr('✉️ O leilão de sempre: cada um escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: everyone writes a secret bid and the highest wins at the hammer.')}
                   </p>
                 </SegField>
@@ -4561,7 +4567,7 @@ export function EscLobby() {
                             color: meu(c) ? '#fff' : doOutro(c) ? 'rgba(0,0,0,.45)' : '#000',
                             cursor: doOutro(c) ? 'default' : 'pointer',
                           }}>
-                          <span style={{ fontSize: 13 }}>{DUPLA_CAT_ICON[c]}</span><br />{DUPLA_CAT_LABEL[c]}
+                          <span style={{ fontSize: 13 }}>{nbaSala ? DUPLA_BB_ICON[c] : DUPLA_CAT_ICON[c]}</span><br />{!nbaSala ? DUPLA_CAT_LABEL[c] : c === 'MONTE' ? tr('Monte (sobras)', 'Pile (leftovers)') : `${POS_LABELS.basquete[c].tag} · ${tr(POS_LABELS.basquete[c].singular.pt, POS_LABELS.basquete[c].singular.en)}`}
                         </button>
                       ))}
                     </div>

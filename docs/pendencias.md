@@ -105,6 +105,18 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
 
 **FALTA / PENDENTE DE TESTE:**
+- ✅ **MODOS ONLINE DO BASQUETE (19/10, Diego: "de resto já pode criar todos os modos do online")** — auditoria +
+  conserto. Rápido e Minhas Ligas com os 3 jeitos de lance: ✉️ Envelope ok · 🐊 Tocaia ok (abre em 50; os textos
+  diziam 100) · 🔨 **Pregão aberto LIGADO** (a sala oferecia e o START_ONLINE desligava calado — rodava envelope).
+  Motor conferido com a NBA: fila e sobras saem do ACTIVE_CATALOG, nunca entra jogador de futebol (trava nova
+  `npm run pregao-aberto-nba`: 4, 10 e 16 times). Tela do pregão com PG/SG/SF/PF/C e "Seu quinteto". 🤝 Duplas
+  ok, agora com as posições da NBA na escolha. Sala de basquete não leva mais marca de Copa do Mundo/regional/
+  várzea/clubes de uma sala de futebol mexida antes, e a tela final nunca abre a Copa do Mundo no basquete.
+  Partida Rápida offline do basquete não herda mais o jeito de lance da última partida de futebol.
+  Fora do basquete (são do futebol): Copa do Mundo, Libertadores, Champions, Kings League, Bafo.
+  🧱 **Leilão de Clubes com franquias da NBA: DÁ PRA FAZER** (bom até ~13 na sala; 21 franquias têm as 5 posições)
+  — falta nome de pacote do basquete ("Armadores dos Lakers") e não misturar com o histórico de clubes do futebol.
+  Esperando o Diego dizer se quer.
 - ⏸️ **CARREIRA ONLINE DO BASQUETE: ESPERAR A DO FUTEBOL (19/10, ordem do Diego).** Palavras dele: *"eu ainda tô
   construindo lá no do futebol. Quando eu terminar do futebol, aí você faz aqui no basquete também"*. A do futebol
   está sendo refeita (Carreira Online v2 na main: sala, clube, dono/vice/comandante do dia, PRONTO). A versão do

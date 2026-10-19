@@ -5427,7 +5427,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
@@ -7751,6 +7751,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerOnline = false; s.careerLedger = []
       s.reserveAuction = false; s.reserveListed = {} // não herda "modo reservas" de um jogo anterior (mesmo fix do rápido)
       s.sport = 'basquete'; s.nbaCareer = false // jogo rápido (não é carreira)
+      // 🔨 o jeito do lance é DESTA partida: antes ele vinha da última partida de futebol (ficava ligado no estado)
+      s.pregaoAberto = !!action.pregaoAberto; s.holandes = !s.pregaoAberto && !!action.holandes; s.pa = undefined
       setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição
       s.deckLeague = 'br' // não usado no basquete (o baralho é o NBA), mas mantém o campo válido
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
@@ -8446,8 +8448,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🚫 Fora da CARREIRA online: lá o pregão é o de sempre, sem novidade.
       s.holandes = !action.career && !!action.holandes // 🧱 Clubes e Tocaia são escolhas SEPARADAS (Diego 27/09: "uma coisa não tem nada a ver com a outra")
       // 🔨 PREGÃO ABERTO NA SALA (17/10, Diego: "ok"): escolha do dono gravada na sala, igual à Tocaia. Fora da carreira
-      // e do basquete; e com as duas ligadas (sala estranha), vale o pregão aberto.
-      s.pregaoAberto = !action.career && !onlineNba && !!action.pregaoAberto
+      // e com as duas ligadas (sala estranha), vale o pregão aberto.
+      // 🏀 19/10: vale no basquete também (Rápido e Minhas Ligas) — a sala oferecia e o jogo ignorava, rodando o
+      // envelope. O motor é seguro com a NBA: fila e sobras saem do ACTIVE_CATALOG (trava `npm run pregao-aberto-nba`).
+      s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
