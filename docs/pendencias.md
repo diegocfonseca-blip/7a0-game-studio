@@ -105,7 +105,12 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
 
 **FALTA / PENDENTE DE TESTE:**
-- **Teste de 2 aparelhos** da carreira ONLINE do basquete (Diego) — único jeito de validar o online.
+- ⏸️ **CARREIRA ONLINE DO BASQUETE: ESPERAR A DO FUTEBOL (19/10, ordem do Diego).** Palavras dele: *"eu ainda tô
+  construindo lá no do futebol. Quando eu terminar do futebol, aí você faz aqui no basquete também"*. A do futebol
+  está sendo refeita (Carreira Online v2 na main: sala, clube, dono/vice/comandante do dia, PRONTO). A versão do
+  basquete de hoje (commit `41c120f0`, `NEXT_NBA_SEASON_ONLINE`) foi feita em cima da carreira online VELHA — **não
+  mexer nem testar até a v2 do futebol fechar**; aí refazer o basquete copiando a v2.
+- ~~Teste de 2 aparelhos da carreira ONLINE do basquete~~ → espera a v2 do futebol (nota acima).
 - **Teste em jogo** do Patrocínio e do 2º Clube offline (eu valido só até o leilão; a partir do Monte o
   harness headless não navega — mas as duas abas reusam componentes do futebol já aprovados).
 - **Marcas de patrocínio com cara de NBA** (conteúdo do Diego).
