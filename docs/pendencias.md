@@ -21,6 +21,8 @@
     "Sair". Entra em qualquer aparelho (celular, PC) com a mesma conta e está tudo lá. A solo NÃO muda (continua com o botão).
   · No dia seguinte: SÓ O DONO abre (regra da coroa). Todo mundo entra numa SALA DE ESPERA da carreira (igual Minhas Ligas), vê quem
     chegou, e o dono aperta "▶️ Continuar carreira". Quem faltou continua com o clube guardado e joga com a última escalação.
+- ✅ **PROVA FEITA (19/10)**: o motor da solo é determinístico — 20 clubes, dois aparelhos só com os pedaços chegaram na MESMA temporada.
+  Gaveta de 1 clube 4,4 KB · o que é de todos 0,3 KB · escalação da rodada 0,1 KB. Desenho completo: `docs/carreira-online-v2.md`.
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
