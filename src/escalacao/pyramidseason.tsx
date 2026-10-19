@@ -1,4 +1,5 @@
 import {RitmoCampoProvider} from './presidencia-velocidade'
+import { mesclaEntradas, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
 import {DiaDoEstadio} from './presidencia-estadio-dia'
@@ -8151,11 +8152,15 @@ export function PyramidSeasonScreen() {
   const planosBots = useMemo<Record<string, PlanoBot>>(() => {
     if (!botFadigaOn) return {}
     const me = state.managers[state.youIdx]
-    const minhaDiv = (Object.keys(world) as Div[]).find(d => world[d].some(t => t.human && t.teamId === me?.id))
-    if (!minhaDiv) return {}
+    // 🌐 carreira online v2: o cansaço dos bots tem que ser IGUAL em todo aparelho → vale em TODA divisão que tem clube
+    // de gente (na solo é só a sua, que é a única com gente). Solo: exatamente como antes.
+    const divsComPlano = state.co2
+      ? (Object.keys(world) as Div[]).filter(d => world[d].some(t => t.human))
+      : (Object.keys(world) as Div[]).filter(d => world[d].some(t => t.human && t.teamId === me?.id)).slice(0, 1)
+    if (!divsComPlano.length) return {}
     const carry = state.botCarry ?? {}
     const out: Record<string, PlanoBot> = {}
-    for (const t of world[minhaDiv]) {
+    for (const t of divsComPlano.flatMap(d => world[d])) {
       if (t.human) continue
       const inicio: Record<string, number> = {}
       for (const c of t.squad as WonCard[]) { const g = carry[chaveCarry(c)]; if (g != null) inicio[c.id] = g }
@@ -8175,8 +8180,16 @@ export function PyramidSeasonScreen() {
     }
     return out
   }, [botFadigaOn, world, planosBots])
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, simMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans),
-    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, simMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans])
+  // 🌐 CARREIRA ONLINE v2: as entradas dos OUTROS clubes de gente (tática, escalação, intervalo, pênalti, força do dia,
+  // gás, técnico) vêm das gavetas — senão cada aparelho simularia uma temporada diferente. Solo: `co2` ausente = nada muda.
+  const co2Gavetas = state.co2?.gavetas
+  const co2MeuId = state.managers[state.youIdx]?.id ?? 0
+  const entradasSim = useMemo<EntradasMundo>(() => {
+    const base: EntradasMundo = { tactics: careerTactics, lineups: careerLineup, halftime: careerHalftime, penalty: careerPenalty, mods: simMods, cardMods: condMods, tecs: simTecs }
+    return co2Gavetas ? mesclaEntradas(base, co2Gavetas, co2MeuId) : base
+  }, [careerTactics, careerLineup, careerHalftime, careerPenalty, simMods, condMods, simTecs, co2Gavetas, co2MeuId])
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans),
+    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -8391,11 +8404,12 @@ export function PyramidSeasonScreen() {
   // mexendo no time à vontade, que nada disso alcança o que já foi decidido.
   const copaXiFixo = state.copaXiSeason === state.seasonNo ? state.copaXi : undefined
   const lineupsCopa = useMemo<RoundLineups>(() => {
-    if (!copaXiFixo) return careerLineup // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
-    const out: RoundLineups = { ...careerLineup }
+    // 🌐 `entradasSim.lineups` = a escalação de sempre na solo; na carreira online v2 já vem com a dos outros clubes
+    if (!copaXiFixo) return entradasSim.lineups // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
+    const out: RoundLineups = { ...entradasSim.lineups }
     for (const k in copaXiFixo) out[+k] = { ...(out[+k] ?? {}), 38: copaXiFixo[+k] }
     return out
-  }, [careerLineup, copaXiFixo])
+  }, [entradasSim.lineups, copaXiFixo])
   useEffect(() => {
     if (!done || !state.careerOnline || state.copaXiSeason === state.seasonNo) return
     const xi: Record<number, string[]> = {}
@@ -9295,8 +9309,8 @@ export function PyramidSeasonScreen() {
   const stadiumMatch:ContextoPartidaEstadio|undefined=presidentAvailable&&myMatch?(()=>{
     const teams=Object.values(live.tables).flat(),home=teams.find(t=>t.teamId===myMatch.hId),away=teams.find(t=>t.teamId===myMatch.aId)
     if(!home||!away)return undefined
-    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
-    const second=(t:SimTeam)=>{const ids=careerHalftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
+    const xi=(t:SimTeam)=>t.human?lineupAt(entradasSim.lineups,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
+    const second=(t:SimTeam)=>{const ids=entradasSim.halftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
     return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,agenda:agendaLigaComplexo({fixtureId:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,seasonKey:`${state.seed}:${state.seasonNo??1}`,round,homeClubId:home.teamId}),awayClubId:away.teamId,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
   })():undefined
 

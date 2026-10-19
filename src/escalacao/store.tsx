@@ -1045,6 +1045,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala onlin
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
+import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
@@ -5540,6 +5541,7 @@ type Action =
   | { type: 'COLETIVA_ARQUIRRIVAL'; mgrId: number; team: string; temporada: number }
   | { type: 'COLETIVA_H2H'; mgrId: number; rival: string; chave: string; res: 'V' | 'E' | 'D'; arqui: boolean; temporada: number }
   | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
+  | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[] } // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
@@ -7605,6 +7607,16 @@ function reducerBase(state: EscState, action: Action): EscState {
       const novo = somaH2H(atual, action.rival, action.chave, action.res)
       if (novo === atual) return s
       s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: action.arqui ? { ...novo, ultimoClassico: { t: action.temporada, res: action.res } } : novo }
+      return s
+    }
+    // 🌐 CARREIRA ONLINE v2: os clubes dos OUTROS (elenco, formação, nome) entram na lista; o MEU nunca é tocado. As
+    // entradas de simulação deles ficam em `co2.gavetas` e a tela mistura na hora de simular (`mesclaEntradas`).
+    case 'CO2_GAVETAS': {
+      if (!s.co2) return s
+      const meuId = s.managers[s.youIdx]?.id
+      if (meuId == null) return s
+      s.managers = mesclaClubes(s.managers, action.gavetas, meuId)
+      s.co2 = { ...s.co2, gavetas: action.gavetas.filter(g => g.mgrId !== meuId) }
       return s
     }
     case 'COLETIVA_FECHA': {
