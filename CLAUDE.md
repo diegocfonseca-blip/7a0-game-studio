@@ -898,6 +898,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **👥 AMIGOS (19/10, liberado pra todos): SEM CHAT 1:1 e ENTRAR SÓ EM SALA QUE ESPERA.** *"tenho uma comunidade no zap"* → a
   conversa é lá (botão da comunidade). *"Entrar só dá se a sala tiver aberta… se já iniciou não dá"*. Rival = 1 por pessoa, só
   zoeira. Avisos por leitura a cada 60s (nada de canal). Detalhe em `docs/pendencias.md`.
+- **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
+  online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
+  alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

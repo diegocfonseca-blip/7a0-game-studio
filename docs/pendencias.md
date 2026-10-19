@@ -1,3 +1,9 @@
+## 🚫👤 Sala online não recomeça com 1 pessoa só (19/10) — ✅ CONSERTADO
+Relato do Diego: dois jogam liga + copa, um sai no fim e o que ficou *"consegue reiniciar sozinho e joga com a máquina… só dá pra jogar
+com mínimo de 2"*. O "Abrir novo leilão" já barrava; o furo era o **"Começar (mesmo time)"** (`startMesmo` → REPLAY_SEASON). Agora o fim
+da partida conta as PESSOAS da sala no banco (`room_players`, por conta, a cada 3 s): sozinho, os dois botões somem e aparece
+"📣 Ir pra sala de espera chamar gente"; e o `startMesmo` confere o banco de novo no toque (mesma régua do novo leilão).
+
 ## 🪟 Loja/Amigos fechando sozinhos (19/10) — ✅ CONSERTADO
 Relato do Diego: *"vira e mexe a página do amigos ou loja fecha depois de alguns segundos"*. Causa: o `VersionWatcher` (index.tsx)
 recarrega a página sozinho 6 s depois de achar versão nova, sempre que a tela é a home ('intro') — e a Loja/Amigos/Pix/Carreiras são

@@ -10418,6 +10418,10 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // Membro da sala vem da linha durável em room_players. Só o botão SAIR ou uma
   // remoção do host apaga essa linha; portanto é a única régua para "🚪 saiu".
   const [memberIds, setMemberIds] = useState<number[]>(() => humans.map(m => m.id))
+  // 🚫👤 19/10 (Diego: *"só dá pra jogar com mínimo de 2 numa sala de usuários no online"*): o outro saiu no fim e quem ficou
+  // recomeçava SOZINHO contra a máquina pelo "Começar (mesmo time)". Quem conta é o BANCO (pessoas na sala, por conta).
+  const [pessoas, setPessoas] = useState<number>(() => humans.length)
+  const sozinho = pessoas < 2
   const members = new Set(memberIds)
   const pend = pendTodos.filter(m => members.has(m.id))
   // 🤝 DUPLA (09/08, relato do Diego jogando com o Didico): o parceiro do HOST
@@ -10444,6 +10448,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           .map(p => state.managers.find(m => m.id === p.player_index)?.id)
           .filter((id): id is number => id != null))]
         setMemberIds(ids)
+        setPessoas(new Set(((pls ?? []) as { user_id: string }[]).map(p => p.user_id)).size)
         const hid = (room as { host_id?: string } | null)?.host_id
         const row = ((pls ?? []) as { user_id: string; player_index: number }[]).find(p => p.user_id === hid)
         if (row) setHostId(state.managers[row.player_index]?.id ?? row.player_index)
@@ -10453,10 +10458,17 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     const timer = window.setInterval(() => void carregarMembros(), 3000)
     return () => { vivo = false; window.clearInterval(timer) }
   }, [state.roomId, state.managers])
+  const vaiPraEsperaSozinho = async () => {
+    await voltaEsperaNoBanco(state.roomId)
+    try { alert(V('Você ficou sozinho na sala — pra jogar de novo precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣', 'You are alone in the room — playing again needs at least 2 people. I took you to the waiting room: call the crew from there! 📣')) } catch { /* ignora */ }
+    dispatch({ type: 'REMATCH' })
+  }
   const startMesmo = async () => {
     // Segunda conferência no toque: se alguém saiu explicitamente e o broadcast
     // falhou, o banco ainda impede que ele volte como humano fantasma.
-    const { data } = await supabase.from('room_players').select('player_index').eq('room_id', state.roomId)
+    const { data } = await supabase.from('room_players').select('player_index, user_id').eq('room_id', state.roomId)
+    // 🚫👤 19/10: mesma régua do "novo leilão" — sozinho não recomeça; volta pra sala de espera
+    if (data && new Set((data as { user_id: string }[]).map(p => p.user_id)).size < 2) { await vaiPraEsperaSozinho(); return }
     if (data) {
       const ativos = new Set((data as { player_index: number }[]).map(p => p.player_index))
       for (const m of state.managers.filter(m => m.isHuman && m.id !== youId)) if (!ativos.has(m.id)) kickPlayer(m.id)
@@ -10664,9 +10676,14 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {partnerPending && (
             <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{V(`🤝 Aguardando seu parceiro (${myDupla?.partnerName}) votar…`, `🤝 Waiting for your partner (${myDupla?.partnerName}) to vote…`)}</p>
           )}
+          {sozinho ? <>
+            <p className="text-center text-[12px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{V('🚫 Você ficou sozinho na sala. Pra jogar de novo no online precisa de pelo menos 2 pessoas.', '🚫 You are alone in the room. Playing again online needs at least 2 people.')}</p>
+            <Btn onClick={() => void vaiPraEsperaSozinho()} bg={GOLD} className="w-full text-lg"><span>{V('📣 Ir pra sala de espera chamar gente', '📣 Go to the waiting room and invite people')}</span></Btn>
+          </> : <>
           <Btn onClick={() => podeComecarDireto ? startMesmo() : setAskStart('mesmo')} bg={podeComecarDireto ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? 'text-white' : 'text-black/50'}>{podeComecarDireto ? '▶️' : '🔒'} {V('Começar (mesmo time)', 'Start (same team)')}</span></Btn>
           <Btn onClick={() => podeComecarDireto ? startLeilao() : setAskStart('leilao')} bg={podeComecarDireto ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? '' : 'text-black/50'}>{podeComecarDireto ? '🔨' : '🔒'} {V('Abrir novo leilão', 'Open a new auction')}</span></Btn>
-          {!podeComecarDireto && (
+          </>}
+          {!podeComecarDireto && !sozinho && (
             <p className="text-center text-[10px] font-bold text-white/70">{V('O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.', 'The start unlocks once everyone has voted — or tap a button to decide what to do.')}</p>
           )}
           {/* 📣 CHAMAR MAIS GENTE (13/09 — liga do Bruno): a turma terminou a temporada e
