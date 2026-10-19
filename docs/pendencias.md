@@ -1,3 +1,19 @@
+## 🌐 CARREIRA ONLINE COMPLETA, ATÉ 20 AMIGOS (19/10) — ⏳ LEVANTAMENTO FEITO, esperando OK do Diego pra etapa 1
+- Pedido: *"tudo que existe no modo carreira offline… tem que funcionar no modo carreira online… até 20 amigos"*.
+- HOJE: a Carreira Online existe, mas só a conta do Diego cria (`CAREER_ONLINE_TESTERS`); 0 salas de carreira no banco. Sala já aceita 20
+  (`MAX_PLAYERS`). Funciona: pirâmide (todos começam na D), leilão da virada, contratos/renovação, Copa do Brasil/Legends/Supercopa,
+  dinheiro por clube, Master/fornecedor/estádio básico, Cria da Base, votação no fim da temporada, Copa do Mundo (cada um no seu aparelho).
+- DESLIGADO no online (portão `onlineMode !== 'online'` ou `agenciaOn`, que o START_ONLINE nunca liga): Central, roteiro, Agência,
+  gás/lesão/rodízio, técnicos/preparadores/olheiros, 15 formações, SAF nova, 2º clube, obras novas, Presidência, internacional, coletiva,
+  coleções, ranking global, Banco Legends/Pix, bots com banco.
+- ⚠️ DOIS BLOQUEIOS antes de ligar qualquer coisa: (1) o dono manda o ESTADO INTEIRO comprimido a cada mudança (até 2,5×/s) pra todos;
+  carreira de 20 clubes ≈ 1,5–2 MB cru / 250–450 KB comprimido → passa do limite do canal (mensagem some e a sala trava, como a de 27
+  da Champions) e estoura a cota; (2) várias ações da carreira solo mexem em `managers[youIdx]` (o time de quem está no aparelho): no
+  online o reducer roda no DONO, então a compra do convidado cairia no time do dono (BUY_PREPARADOR, RENOVAR_TECNICO, ALICIAR_*…).
+- PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
+  do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
+  4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
+
 ## 🤖 Tema da Tidex na sala (19/10) — ✅ NO AR (mockup `scripts/mockups/tema-tidex-cel.png`, "tá aprovado")
 - O dono do Wen Milan B (vittor@tidex) é dono da Tidex, patrocinadora do jogo. A conta dele tem 2 temas: 😈 Wen Milan B (o do
   Fundador) e 🤖 Tidex (azul-marinho + turquesa, grade de IA, logo embaixo, faixa "sua marca dentro das IAs"). Vale em sala rápida e
