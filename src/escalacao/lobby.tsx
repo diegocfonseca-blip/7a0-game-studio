@@ -32,7 +32,7 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 // cima. Tirar daqui = a sala volta a ser uma sala normal.
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
-import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat, desfazParCruzado } from './types'
 import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { LojaButton } from './loja-clube'
@@ -1430,7 +1430,7 @@ export function EscLobby() {
     // do zero" e resetaria a partida de todo mundo. Melhor falhar e tentar de novo.
     if (!freshRoom?.game_state && !(gs && Array.isArray((gs as GS).managers))) return false
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', roomData.id).order('player_index')
-    const sorted = (allPlayers ?? []) as RoomPlayer[]
+    const sorted = desfazParCruzado((allPlayers ?? []) as RoomPlayer[]) // 🤝 19/10: par cruzado vira UMA dupla (types.ts)
     const myPl = sorted.find(p => p.user_id === user.id)
     if (!myPl) return false
     // NÃO limpa a sala salva aqui: ela precisa sobreviver ao jogo inteiro pra

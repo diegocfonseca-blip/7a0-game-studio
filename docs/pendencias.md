@@ -1,3 +1,49 @@
+## 🌐 CARREIRA ONLINE COMPLETA, ATÉ 20 AMIGOS (19/10) — ⏳ LEVANTAMENTO FEITO, esperando OK do Diego pra etapa 1
+- Pedido: *"tudo que existe no modo carreira offline… tem que funcionar no modo carreira online… até 20 amigos"*.
+- HOJE: a Carreira Online existe, mas só a conta do Diego cria (`CAREER_ONLINE_TESTERS`); 0 salas de carreira no banco. Sala já aceita 20
+  (`MAX_PLAYERS`). Funciona: pirâmide (todos começam na D), leilão da virada, contratos/renovação, Copa do Brasil/Legends/Supercopa,
+  dinheiro por clube, Master/fornecedor/estádio básico, Cria da Base, votação no fim da temporada, Copa do Mundo (cada um no seu aparelho).
+- DESLIGADO no online (portão `onlineMode !== 'online'` ou `agenciaOn`, que o START_ONLINE nunca liga): Central, roteiro, Agência,
+  gás/lesão/rodízio, técnicos/preparadores/olheiros, 15 formações, SAF nova, 2º clube, obras novas, Presidência, internacional, coletiva,
+  coleções, ranking global, Banco Legends/Pix, bots com banco.
+- ⚠️ DOIS BLOQUEIOS antes de ligar qualquer coisa: (1) o dono manda o ESTADO INTEIRO comprimido a cada mudança (até 2,5×/s) pra todos;
+  carreira de 20 clubes ≈ 1,5–2 MB cru / 250–450 KB comprimido → passa do limite do canal (mensagem some e a sala trava, como a de 27
+  da Champions) e estoura a cota; (2) várias ações da carreira solo mexem em `managers[youIdx]` (o time de quem está no aparelho): no
+  online o reducer roda no DONO, então a compra do convidado cairia no time do dono (BUY_PREPARADOR, RENOVAR_TECNICO, ALICIAR_*…).
+- 🔁 **19/10, regra do Diego: é um modo INDEPENDENTE** — nada da carreira online pode mexer nas salas rápidas, Minhas Ligas ou outro
+  modo online. Então a base nova é um caminho PRÓPRIO (canal e tabela só dela; cada aparelho roda o PRÓPRIO clube como na solo e o servidor
+  guarda o que é de todos: calendário, resultados, leilão), e o envio das salas de hoje fica intocado.
+- ✅ **DECISÕES DO DIEGO (19/10, "ok pode começar"):**
+  · o DONO da sala manda no tempo: começa a rodada, automático/manual, velocidade, pausa. Antes de cada rodada cada um tem um tempo pra
+    mexer no time e aperta PRONTO; a partida roda igual pra todos, ao mesmo tempo. Cada um mexe SÓ no próprio clube.
+  · SALVA SOZINHO, NA HORA, NA NUVEM DO JOGO (não no celular nem na nuvem do dono): cada clube tem a "gaveta" dele no servidor, ligada à
+    CONTA de quem joga; mexeu no time → só aquela gaveta atualiza (pedaço pequeno, não o save inteiro de 1 MB). Sem botão de salvar, só
+    "Sair". Entra em qualquer aparelho (celular, PC) com a mesma conta e está tudo lá. A solo NÃO muda (continua com o botão).
+  · No dia seguinte: SÓ O DONO abre (regra da coroa). Todo mundo entra numa SALA DE ESPERA da carreira (igual Minhas Ligas), vê quem
+    chegou, e o dono aperta "▶️ Continuar carreira". Quem faltou continua com o clube guardado e joga com a última escalação.
+- ✅ **PROVA FEITA (19/10)**: o motor da solo é determinístico — 20 clubes, dois aparelhos só com os pedaços chegaram na MESMA temporada.
+  Gaveta de 1 clube 4,4 KB · o que é de todos 0,3 KB · escalação da rodada 0,1 KB. Desenho completo: `docs/carreira-online-v2.md`.
+- ✅ **19/10: mockups APROVADOS** (`carreira-online-espera.png` e `carreira-online-pronto.png`) + **VICE** igual ao das Minhas Ligas: o dono escolhe 1 vice;
+  o vice só continua/manda no tempo quando o dono NÃO está; quando o dono chega, volta a ser dele; vice não apaga nem muda regra.
+- 🔨 **19/10, etapa 1 em andamento**: banco feito e testado — tabelas `esc_carr_sala`/`esc_carr_clube`/`esc_carr_privado` + funções (criar,
+  entrar, vice, presença, continuar, pronto, começar, apito, ritmo, encerrar dia). Teste das regras (dono/vice/convidado): `scripts/carreira-online/testa-regras.sql`.
+  Falta: as telas (sala de espera e barra do PRONTO, mockups aprovados) + o motor rodando a rodada igual em todo aparelho.
+- PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
+  do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
+  4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
+
+## 🤖 Tema da Tidex na sala (19/10) — ✅ NO AR (mockup `scripts/mockups/tema-tidex-cel.png`, "tá aprovado")
+- O dono do Wen Milan B (vittor@tidex) é dono da Tidex, patrocinadora do jogo. A conta dele tem 2 temas: 😈 Wen Milan B (o do
+  Fundador) e 🤖 Tidex (azul-marinho + turquesa, grade de IA, logo embaixo, faixa "sua marca dentro das IAs"). Vale em sala rápida e
+  Minhas Ligas. Código: `TEMAS_SALA.tidex` + `TEMAS_DA_CONTA` (temas-sala.tsx).
+
+## 🤝 Dupla cruzada virava DOIS times (19/10, sala WUQGBH do Futpoint) — ✅ CONSERTADO
+- Relato (Matheus Barros, via Diego): campeão em dupla, não conseguiu escolher clube/convocar no Rio × São Paulo; o time aparecia
+  duas vezes ("Quase nada|Quebrador d" 1º e "Quebrador d|Quase nada" 13º). Causa: os dois pediram dupla um ao outro e os dois
+  aceitaram → cada um virou parceiro do outro → dois assentos espelhados; quando o parceiro saiu, o `soloUid` do assento do Matheus
+  ficou com o OUTRO e ele perdeu o comando. Conserto (OK do Diego): banco barra o par cruzado (`dupla_responder`) e a largada junta
+  qualquer par cruzado numa dupla só (`desfazParCruzado`, dono = cadeira mais baixa). Trava `npm run dupla-cruzada`.
+
 ## 😈🔴⚫ BATISMO WEN MILAN B (17/10, plano 🖋 Fundador) — ⛔ PRONTO NO BRANCH, **NÃO PUBLICADO**: falta a CONTA
 - ✅ **19/10: NO AR.** A conta foi criada às 14:49 (Brasília); código publicado na main + banco feito: `user_colors` ouro manual, `esc_socios` nº76,
   `esc_fundadores` nº92, `esc_compras_batismo` plano Fundador (plus), `esc_nomes_batismo` (Wen Milan B + FC + EC). Tema do Fundador junto.
@@ -327,7 +373,7 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
      gente", sala de espera com 1 pessoa não avisa nada.
 - Proposta (esperando OK): liga GUARDA a cadeira de todo mundo ao sair; "Voltar" que falha avisa e tenta o caminho de reabrir;
   os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
-- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"* — a fazer): dono escolhe 1 vice; vice abre o pregão só na sala de
+- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"*, reconfirmado 19/10 *"aprova o da minhas ligas tb"* — FAZENDO): dono escolhe 1 vice; vice abre o pregão só na sala de
   espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
 - ✅ **Trocar o modo da liga: NO AR 17/10** (*"perfeito, pode fazer, pode publicar"*). Caixa "🎮 Modo da próxima temporada" na
   sala de espera da liga (lobby.tsx); só o dono troca, pela função do banco `esc_liga_modo` (recusa não-dono e partida rolando;

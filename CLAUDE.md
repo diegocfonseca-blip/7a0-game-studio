@@ -922,6 +922,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   leilão às cegas, cartas reais com bio, categorias (lenda/craque…), rivais bots com perfil, contratos/piso, divisões e copas,
   caixa, estádio, Master, Agência, presidente. Nada de "vida real" que a carta não tem.
 
+- **🌐 CARREIRA ONLINE É UM MODO INDEPENDENTE (19/10, regra permanente).** Palavras dele: *"o modo carreira online é algo
+  independente… não tem relação nenhuma com as salas online, nem com Minhas Ligas, salas rápidas… nada que a gente for fazer dele tem
+  que interferir nos outros modos online que já existe"*. É a carreira da solo virando online (até 20 amigos), com TUDO que a solo tem.
+  Regra de construção: caminho PRÓPRIO (canal, tabelas e envio próprios). **Nunca mexer no envio/canal/coroa das salas rápidas e das
+  Minhas Ligas pra fazer a carreira online funcionar.** Plano e levantamento em `docs/pendencias.md` (19/10).
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

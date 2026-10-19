@@ -12,7 +12,7 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
+import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
 import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
@@ -2527,7 +2527,7 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
   ]
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, color: INK }}>{/* 🖋️ tinta explícita: aberto por cima da home ilustrada (que pinta tudo de branco) os títulos sumiam no creme */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{t('📖 Manual do Técnico', '📖 Manager\'s Handbook')}</p>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
@@ -10498,7 +10498,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       // montava os assentos numa ordem diferente do jogo 1 e o "quem sou eu" (youIdx)
       // deslizava pra um BOT (o bug do "virei o Biriba United"). Assim a ordem dos
       // assentos é IDÊNTICA à do jogo anterior e ninguém desliza.
-      const sorted = ((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[])
+      const sorted = desfazParCruzado((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[]) // 🤝 19/10: par cruzado vira UMA dupla
       // 🤝 DUPLA (08/08, relato do Diego: "virei rival do meu parceiro no novo
       // leilão"): esse rebuild ignorava dupla_partner_of e transformava a linha do
       // PARCEIRO num time próprio — EXATAMENTE o mesmo cano que a sala de espera já

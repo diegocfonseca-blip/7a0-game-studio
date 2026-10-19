@@ -62,3 +62,8 @@ end;
 $$;
 
 grant execute on function public.dupla_responder(uuid, uuid, boolean) to authenticated;
+
+-- 🤝 19/10 (sala WUQGBH): dupla_responder barra PAR CRUZADO — aplicado no banco como `dupla_responder_sem_par_cruzado`.
+-- Uma dupla só nasce se nenhum dos dois já está em dupla (nem parceiro de alguém, nem dono com parceiro); ao aceitar, o meu
+-- próprio pedido em aberto e os pedidos pra mim/pra ele somem. Pedido que não pode mais virar dupla é limpo e devolve false.
+-- Rede de segurança na largada: `desfazParCruzado` (types.ts), trava `npm run dupla-cruzada`.

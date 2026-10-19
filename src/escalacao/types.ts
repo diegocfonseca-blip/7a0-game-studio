@@ -55,6 +55,18 @@ export function duplaToggleCat(
   return n
 }
 
+// 🤝 PAR CRUZADO (19/10, sala WUQGBH): A parceiro de B E B parceiro de A (os dois pediram um ao outro e os dois aceitaram)
+// fazia a partida nascer com DOIS times espelhados. Aqui vira UMA dupla só: quem tem a cadeira mais baixa (`player_index`)
+// fica de DONO e o outro segue de parceiro. Determinístico: todo aparelho chega no MESMO resultado. Sem par cruzado,
+// devolve a lista como veio.
+export function desfazParCruzado<T extends { user_id: string; player_index: number; dupla_partner_of?: string | null }>(rows: readonly T[]): T[] {
+  return rows.map(p => {
+    const alvo = p.dupla_partner_of ? rows.find(d => d.user_id === p.dupla_partner_of) : undefined
+    if (alvo && alvo.dupla_partner_of === p.user_id && (p.player_index < alvo.player_index || (p.player_index === alvo.player_index && p.user_id < alvo.user_id))) return { ...p, dupla_partner_of: null }
+    return p
+  })
+}
+
 // ⚖️ A REGRA ÚNICA da dupla — usada pela TELA (pra mostrar 🔒) e pelo HOST (pra
 // recusar de verdade). Ter UMA função só é de propósito: se tela e host usassem
 // regras separadas, elas poderiam discordar — e é exatamente aí que nascem os

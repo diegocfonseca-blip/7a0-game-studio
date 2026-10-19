@@ -29,11 +29,12 @@ import futpointEscudo from './img/futpoint-escudo.webp'
 import futpointMascote from './img/futpoint-mascote.webp'
 import wenMilanEscudo from './img/wenmilan-escudo.webp'
 import wenMilanMascote from './img/wenmilan-mascote.webp'
+import tidexLogo from './img/patro-tidex.webp' // 🤖 tema da Tidex (19/10): o mesmo logo do patrocínio, 0 KB novo
 import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -71,6 +72,14 @@ function TEMAS_FUNDADOR_PRONTOS() {
 const GELO = 'linear-gradient(135deg,#ffffff 0%,#bfe6ff 35%,#ffffff 55%,#8fd0ff 80%,#e8f6ff 100%)'
 const CROMO = 'linear-gradient(135deg,#f5f5f5 0%,#9a9a9a 22%,#ffffff 45%,#6e6e6e 70%,#e6e6e6 100%)'
 export const TEMAS_SALA: Record<TemaClubeId, Tema> = {
+  // 🤖 TIDEX (19/10, Diego: "ele é dono da empresa Tidex, que patrocina nosso jogo… faz um tema da Tidex pra ele usar nas salas").
+  // Tema de MARCA, não de clube: o azul-marinho e o turquesa do logo deles, a grade de "IA" ao fundo e o logo grande; sem mascote.
+  tidex: {
+    id: 'tidex', nome: '🤖 Tidex', nomeEn: '🤖 Tidex', selo: '🤖 TEMA · TIDEX', escudo: tidexLogo, mascote: null, claro: false,
+    botao: 'linear-gradient(135deg,#7FF3F7 0%,#22CDD5 45%,#0FA3AB 100%)', botaoTxt: '#0B1220', enfeite: 'nenhum', seloBg: '#0B1220', seloBorda: '#22CDD5',
+    faixa: ['TIDEX · SUA MARCA DENTRO DAS IAs', 'TIDEX · YOUR BRAND INSIDE AI'],
+    pano: 'repeating-linear-gradient(0deg,rgba(34,205,213,.07) 0 1px,transparent 1px 44px),repeating-linear-gradient(90deg,rgba(34,205,213,.07) 0 1px,transparent 1px 44px),radial-gradient(ellipse at 50% 0%,rgba(34,205,213,.35) 0%,transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(34,205,213,.18) 0%,transparent 60%),#0B1220',
+  },
   neymarzetti_noite: { id: 'neymarzetti_noite', nome: '🦇 Noite do Morcego', nomeEn: '🦇 Bat Night', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: false, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'morcegos' },
   neymarzetti_branco: { id: 'neymarzetti_branco', nome: '⚪ Manto Branco', nomeEn: '⚪ White Kit', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: true, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'nenhum' },
   // 👑🧊 K9 FC (18/10, mockup `tema-k9.png`): a coroa com gelo do escudo, o Rei K9 com as taças, branco e azul royal
@@ -89,7 +98,7 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'matheussoaresg2018@gmail.com': ['cuiudos'],
   'glaucomiranda@outlook.com': ['seven'],
   'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
-  'vittor@tidex.com.br': ['wenmilan'], // 😈 Wen Milan B (conta criada em 19/10)
+  'vittor@tidex.com.br': ['wenmilan', 'tidex'], // 😈 Wen Milan B (conta criada em 19/10) + 🤖 tema da Tidex, a empresa dele que patrocina o jogo (19/10, aprovado pelo Diego)
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {

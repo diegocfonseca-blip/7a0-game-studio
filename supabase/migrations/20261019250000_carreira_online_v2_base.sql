@@ -1,0 +1,13 @@
+-- 🌐 CARREIRA ONLINE v2 — base no banco (19/10). Aplicado em 3 partes: carreira_online_v2_base, carreira_online_v2_membro,
+-- carreira_online_v2_funcoes. Modo INDEPENDENTE (regra do Diego): tabelas próprias, nada em game_rooms/room_players.
+-- Desenho: docs/carreira-online-v2.md. Teste das regras: scripts/carreira-online/testa-regras.sql (roda num bloco que se desfaz sozinho).
+--
+-- Tabelas: esc_carr_sala (o que é de todos: dono, vice, comandante do dia, semente, temporada, rodada, fase, prazo, ritmo, mundo)
+--          esc_carr_clube (o clube de cada um que todos veem: nome, público {elenco, formação, escala}, pronto_rodada, na_sala_em)
+--          esc_carr_privado (caixa, Agência, SAF… só o dono do clube lê e grava)
+-- RLS: membro lê sala e clubes (esc_carr_sou_membro); cada um atualiza SÓ o próprio clube; privado só o próprio.
+-- Funções: esc_carr_pode_criar (teste: só as contas do Diego) · esc_carr_criar · esc_carr_entrar (só na espera, até 20) ·
+--          esc_carr_presenca · esc_carr_vice (só o dono) · esc_carr_dono_aqui (presença 2 min) ·
+--          esc_carr_continuar (dono sempre; vice só sem o dono; quem aperta comanda o dia) · esc_carr_pronto (escala ≤ 4 KB) ·
+--          esc_carr_comecar / esc_carr_apito / esc_carr_ritmo / esc_carr_encerrar_dia (só o comandante do dia).
+-- O corpo completo de cada função está no banco; ver `select pg_get_functiondef('public.esc_carr_continuar'::regproc)`.
