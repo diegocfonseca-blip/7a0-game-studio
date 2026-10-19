@@ -852,6 +852,7 @@ export interface EscState {
   // o convidado continua no caminho de sempre (nunca manda lance pra uma caixa que ninguém lê).
   hostInbox?: boolean
   ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
+  ligaFechadaEscolha?: boolean // 🚫🤖 19/10: o que o DONO escolheu na criação ("Sem bots"); `ligaFechada` é o que VALE nesta partida (só com 4+ pessoas)
   // 📣 (13/09) o dono voltou pra sala de espera NO MEIO DO PREGÃO (antes da 1ª rodada)
   // pra chamar mais gente: a temporada que estava nascendo não aconteceu, então a
   // próxima abertura do pregão REPETE o número dela em vez de somar 1. START_ONLINE limpa.

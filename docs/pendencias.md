@@ -1,3 +1,8 @@
+## 🚫🤖 "Sem bots" só com 4+ pessoas (19/10) — ✅ NO AR
+`LIGA_FECHADA_MIN = 4` (store). START_ONLINE: `ligaFechada` = escolha do dono E 4+ times; a escolha fica em `ligaFechadaEscolha` e o
+"novo leilão" manda a ESCOLHA (com 4+ volta a valer). Avisos: embaixo do "Sem bots" ao criar/editar e na faixa da sala de espera
+("vale com 4+ pessoas — agora são N, então começa com bots"). Testado no motor: 3 pessoas → 20 times; 4 → 4 times.
+
 ## 🚫👤 Sala online não recomeça com 1 pessoa só (19/10) — ✅ CONSERTADO
 Relato do Diego: dois jogam liga + copa, um sai no fim e o que ficou *"consegue reiniciar sozinho e joga com a máquina… só dá pra jogar
 com mínimo de 2"*. O "Abrir novo leilão" já barrava; o furo era o **"Começar (mesmo time)"** (`startMesmo` → REPLAY_SEASON). Agora o fim

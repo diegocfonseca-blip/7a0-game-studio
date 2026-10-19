@@ -901,6 +901,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).
+- **🚫🤖 "SEM BOTS" (MINHAS LIGAS) SÓ VALE COM 4+ PESSOAS (19/10, regra dele).** *"só abre se tiver no mínimo 4 pessoas… o jogo já sabe
+  que se tiver menos de 4 vai com bots mesmo"*. A escolha continua sendo feita na criação (`ligaFechadaEscolha`); no início da partida o
+  motor só aplica com 4+ times de gente (`LIGA_FECHADA_MIN`, START_ONLINE) — com menos, completa até 20 com bots. Aviso escrito embaixo
+  da opção (criar e editar) e na sala de espera.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

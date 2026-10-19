@@ -323,6 +323,8 @@ export const SOCIO_MENSAL = 30       // 🪙 a cada 30 DIAS CORRIDOS desde o úl
 const ARTILHEIRO_MUNDO_MOEDAS = 30
 export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas; era 39 — Diego 23/08: "ele ganha 30 qd vira sócio")
 // 🏆🪙 PRÊMIO DO RANKING DA SEMANA (17/10, Diego: "1 lugar 20 moedas 2-10 moedas e 3-5 moedas"). O banco fecha a semana e
+/** 🚫🤖 "Sem bots" (Minhas Ligas) só vale com pelo menos 4 times de gente; com menos, a liga completa com bots (19/10) */
+export const LIGA_FECHADA_MIN = 4
 // guarda quem ficou no top 3 (`esc_premio_semana`, trava 1× por semana); o VALOR mora aqui, nunca vem de fora.
 export const RANKING_SEMANA_MOEDAS: Record<1 | 2 | 3, number> = { 1: 20, 2: 10, 3: 5 }
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
@@ -8191,11 +8193,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
       s.contratosOn = !!action.career // 📝 contratos: SÓ carreira NOVA nasce com eles (save antigo segue sem)
-      s.ligaFechada = !!action.ligaFechada // 🏆 liga só com humanos (sem bots na tabela)
+      // 🚫🤖 19/10 (Diego: *"a opção de Sem bots no Minhas Ligas só abre se tiver no mínimo 4 pessoas… o jogo já sabe que se tiver
+      // menos de 4 vai com bots mesmo"*): a escolha fica guardada (`ligaFechadaEscolha`) e só VALE com 4+ times de gente.
+      const fechada = !!action.ligaFechada && action.playerNames.length >= LIGA_FECHADA_MIN
+      s.ligaFechadaEscolha = !!action.ligaFechada
+      s.ligaFechada = fechada // 🏆 liga só com humanos (sem bots na tabela)
       s.ligaMode = !!action.liga // 🏆 é uma liga do "Minhas Ligas" (13/09): dono nunca passa a coroa; "📣 Chamar mais gente" só aqui
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
-      s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      s.copaMode = (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
       // 📮 TODA sala usa a caixa de entrada do host (04/10; antes só a Champions, desde 25/09). O
       // recado do convidado vai SÓ pro dono em vez de ser entregue pra sala inteira — numa sala de 5,
       // é 1 entrega em vez de 4 por lance. Mesma estrada da Champions, com os mesmos reservas: se a
@@ -8273,7 +8279,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // com as outras séries. Carreira online mantém a estrutura das divisões.
       // 🏆 LIGA FECHADA: a tabela é só a galera (leagueSize = nº de humanos) → sem
       // bots. Nos outros modos, completa até 20 como sempre.
-      const onlineLeagueSize = action.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
+      const onlineLeagueSize = s.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),

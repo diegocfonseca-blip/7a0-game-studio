@@ -10573,7 +10573,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // START_ONLINE zera o que não vier na ação, então TODAS as escolhas da sala
         // precisam ir junto de novo (stream, manual, chat, tempo, liga fechada, senha).
         stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff,
-        auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechada,
+        auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechadaEscolha ?? state.ligaFechada, // 🚫🤖 a ESCOLHA do dono: com 4+ volta a valer
         liga: state.ligaMode, // 🏆 continua sendo Minhas Ligas no novo leilão (13/09)
         locked: state.locked, pwHash: state.pwHash,
         // 🔻 O PREGÃO DA SALA CONTINUA O MESMO NO NOVO LEILÃO (20/09). Palavras

@@ -3054,6 +3054,7 @@ export function EscLobby() {
                         </button>
                       ))}
                     </div>
+                    {!cardBots && <p className="text-black/55 text-[10.5px] font-bold mt-1 leading-snug">{tr('⚠️ Sem bots só vale com 4 ou mais pessoas. Com menos, a liga completa com bots.', '⚠️ No bots only applies with 4 or more people. With fewer, the league fills up with bots.')}</p>}
                     <div className="flex gap-2 mt-2.5">
                       <button onClick={async () => {
                         const nome = cardNome.trim()
@@ -3227,7 +3228,7 @@ export function EscLobby() {
                   <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {ligaComBots
                       ? tr('🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.', '🤖 Default. 20-team table — the missing ones join as CPU, like the usual quick match.')
-                      : tr('🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores.', '🏆 Only your crew in the table. The league is as big as you are (home and away). Cup unlocks with 8+ players.')}
+                      : tr('🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores. ⚠️ Sem bots só vale com 4 ou mais pessoas: se começarem com menos, a liga completa com bots.', '🏆 Only your crew in the table. The league is as big as you are (home and away). Cup unlocks with 8+ players. ⚠️ No bots only applies with 4 or more people: start with fewer and the league fills up with bots.')}
                   </p>
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
                       com senha, mas deixe avisado que essa sala é somente com senha.
@@ -4250,7 +4251,7 @@ export function EscLobby() {
               <div className="min-w-0">
                 <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
                 <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
-                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table') : tr('🤖 com bots até 20 times', '🤖 with bots up to 20 teams')}</p>
+                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? (players.length < 4 ? tr(`🚫 sem bots (vale com 4+ pessoas) — agora são ${players.length}, então começa com bots`, `🚫 no bots (needs 4+ people) — there are ${players.length} now, so it starts with bots`) : tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table')) : tr('🤖 com bots até 20 times', '🤖 with bots up to 20 teams')}</p>
               </div>
             </div>
             {mandaNaLiga && (
