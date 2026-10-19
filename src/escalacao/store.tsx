@@ -7803,6 +7803,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'START_NBA_CAREER': {
       s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       s.seed = Math.floor(Math.random() * 1e9)
+      s.nbaCareerId = `nba-${Date.now().toString(36)}-${s.seed.toString(36)}` // 🏀 identidade fixa da carreira (Minhas Carreiras)
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
       // 🏀→⚽ CARREIRA DO BASQUETE = MESMA MÁQUINA DE ECONOMIA DO FUTEBOL (careerOnline):

@@ -96,7 +96,8 @@
     "master-historia": "npx tsx scripts/testa-master-historia.mts",
     "coletiva": "npx tsx scripts/testa-coletiva.mts",
     "artilheiro-premios": "npx tsx scripts/testa-artilheiro-premios.mts",
-    "pregao-aberto-nba": "npx tsx scripts/testa-pregao-aberto-nba.mts"
+    "pregao-aberto-nba": "npx tsx scripts/testa-pregao-aberto-nba.mts",
+    "nba-carreiras": "npx tsx scripts/testa-nba-carreiras.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

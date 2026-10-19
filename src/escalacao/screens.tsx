@@ -15,6 +15,7 @@ import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Se
 import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
+import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
 import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
@@ -1500,7 +1501,6 @@ function useResumableNbaCareer() {
     seasonNo: saved.seasonNo ?? 1,
     teamName: you?.teamName ?? 'Meu Time',
     resume: () => dispatch({ type: 'RESUME_NBA_CAREER', saved }),
-    discard: () => { try { localStorage.removeItem('bl-nba-career'); localStorage.removeItem('bl-nba-career-at') } catch { /* ignora */ } setSaved(null) },
   }
 }
 
@@ -1519,6 +1519,108 @@ function agoLabel(at: number): string {
   return d < 7 ? `há ${d} dia${d > 1 ? 's' : ''}` : `há ${Math.round(d / 7)} sem`
 }
 const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77B3C', D: '#1E7A3D' }
+// 🏀 MINHAS CARREIRAS DO BASQUETE (19/10) — a MESMA tela do futebol (cartão por carreira, ▶️ Continuar,
+// 🗑️ em dois toques, ➕ nova), com o ANDAR no lugar da Série. Guardar/trocar/apagar em `nba-carreiras.ts`
+// (grava antes de apagar: trocar nunca perde nada). Fichas: a MESMA régua do futebol (`careerSlotLimit`),
+// contada só entre as carreiras de basquete. ➕ abre o passo do NOME DO TIME.
+const NBA_ANDAR: Record<string, { pt: string; en: string; cor: string }> = {
+  street: { pt: '🛝 STREET LEAGUE', en: '🛝 STREET LEAGUE', cor: '#1E7A3D' },
+  gleague: { pt: '🔷 G LEAGUE', en: '🔷 G LEAGUE', cor: '#8C97A3' },
+  nba: { pt: '💍 NBA', en: '💍 NBA', cor: '#E7A21F' },
+}
+function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; comecaNova?: boolean }) {
+  const { dispatch } = useEsc()
+  const t = useT()
+  const [list, setList] = useState(() => listaNbaCarreiras())
+  const [, setExtras] = useState(0)
+  useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
+  const [confirmKey, setConfirmKey] = useState<string | null>(null)
+  const [aviso, setAviso] = useState(false)
+  const [nomeando, setNomeando] = useState(!!comecaNova)
+  const [nome, setNome] = useState('')
+  const [nomeErr, setNomeErr] = useState('')
+  const [checando, setChecando] = useState(false)
+  // o nome da conta já vem preenchido (igual ao futebol); dá pra trocar só pra esta carreira
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => { const dn = String(data?.user?.user_metadata?.display_name ?? '').trim(); if (dn) setNome(n => n.trim() ? n : dn) }, () => {}) }, [])
+  const lim = careerSlotLimit(list.length)
+  const cheio = list.length >= lim
+  const open = (slot: { save: EscState }, ativa: boolean) => {
+    const save = ativa ? slot.save : ativaNbaCarreira(idNbaCarreira(slot.save))
+    if (!save) { setAviso(true); setList(listaNbaCarreiras()); return }
+    dispatch({ type: 'RESUME_NBA_CAREER', saved: save })
+  }
+  const comecar = async () => {
+    if (checando) return
+    const limpo = stripEmoji(nome).trim()
+    // 🔒 nome de clube BATIZADO é do dono, e nome de outra conta também não passa — mesma checagem do futebol.
+    // (Não troca o nome da CONTA: ele vale pro futebol. O nome fica só nesta carreira.)
+    if (limpo) {
+      setChecando(true)
+      const chk = await nomeLivre(limpo)
+      setChecando(false)
+      if (!chk.livre) { setNomeErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
+    }
+    if (!guardaAtivaNba()) { setAviso(true); return }
+    dispatch({ type: 'START_NBA_CAREER', teamName: limpo || t('Meu Time', 'My Team') })
+  }
+  const botao = (bg: string, fg: string) => ({ background: bg, color: fg, border: `2px solid ${INK}`, borderRadius: 9, fontWeight: 900, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' as const })
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, color: INK }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{nomeando ? t('🏀 Nova carreira', '🏀 New career') : t('🪜 Minhas Carreiras', '🪜 My Careers')}</p>
+          {!nomeando && <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {lim}</span>}
+          <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+        </div>
+        {aviso && <p role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
+        {nomeando ? (<>
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '0 2px 8px', lineHeight: 1.4 }}>{t('Como vai se chamar o seu time? Ele começa na 🛝 Street League e sobe até a 💍 NBA.', 'What will your team be called? It starts in the 🛝 Street League and climbs to the 💍 NBA.')}</p>
+          <input value={nome} onChange={e => { setNome(stripEmoji(e.target.value)); setNomeErr('') }} maxLength={24} autoFocus placeholder={t('Ex.: Garrafão do Zé', 'e.g. Downtown Bricklayers')}
+            style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 16, background: '#fff', color: INK, ...OSWALD }} />
+          {nomeErr && <p role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: '#C2452F', margin: '6px 2px 0', lineHeight: 1.4 }}>{nomeErr}</p>}
+          <button onClick={() => void comecar()} disabled={checando} style={{ ...botao(GREEN, '#fff'), width: '100%', marginTop: 10, padding: 12, fontSize: 15 }}>{checando ? t('Conferindo o nome…', 'Checking the name…') : t('🏀 Começar carreira', '🏀 Start career')}</button>
+          {list.length > 0 && <button onClick={() => setNomeando(false)} style={{ width: '100%', marginTop: 8, background: 'transparent', border: 'none', fontWeight: 800, fontSize: 12, color: 'rgba(0,0,0,.55)', cursor: 'pointer' }}>{t('← voltar pras minhas carreiras', '← back to my careers')}</button>}
+          {list.length > 0 && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '6px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras.', 'Starting a new one does NOT delete the others.')}</p>}
+        </>) : (<>
+        {list.map(({ slot, ativa }, i) => {
+          const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+          const andar = NBA_ANDAR[slot.save.nbaTier ?? 'street'] ?? NBA_ANDAR.street
+          const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
+          const key = idNbaCarreira(slot.save) + i
+          return (
+            <div key={key} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${andar.cor}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: ativa ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              {ativa && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{you?.teamName ?? t('Meu Time', 'My Team')}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 9.5, fontWeight: 900, color: '#fff', background: andar.cor, padding: '2px 7px', borderRadius: 6, ...OSWALD }}>{t(andar.pt, andar.en)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
+                </div>
+                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
+                <button onClick={() => open(slot, ativa)} style={{ ...botao(GREEN, '#fff'), padding: '7px 11px', fontSize: 12.5 }}>{t('▶️ Continuar', '▶️ Continue')}</button>
+                {confirmKey === key ? (
+                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                    <button onClick={() => { apagaNbaCarreira(idNbaCarreira(slot.save)); setConfirmKey(null); setList(listaNbaCarreiras()) }} style={{ ...botao('#C2452F', '#fff'), padding: '6px 9px', fontSize: 11 }}>{t('🗑️ Apagar', '🗑️ Delete')}</button>
+                    <button onClick={() => setConfirmKey(null)} aria-label={t('Cancelar', 'Cancel')} style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmKey(key)} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        <button onClick={() => setNomeando(true)} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, compre uma 💾 ficha extra na 🛒 Loja do Clube, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4.', '🔒 Your career slots are full — delete a career you no longer use, buy an 💾 extra slot in the 🛒 Club Shop, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4.')}</p>}
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de carreira também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching careers doesn\'t either — only 🗑️ deletes.')}</p>
+        </>)}
+      </div>
+    </div>
+  )
+}
+
 // 🪜 MINHAS CARREIRAS — lista de todos os saves (ativa + arquivo). Começar uma nova
 // nunca apaga as outras; "Continuar" na home aponta pro último jogado. Excluir é na mão.
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
@@ -1660,6 +1762,7 @@ function BidLegendsHome() {
   const amigosOn = useAmigos()
   const [verAmigos, setVerAmigos] = useState(false)
   const [showManual, setShowManual] = useState(false)
+  const [carreiras, setCarreiras] = useState<null | 'lista' | 'nova'>(null) // 🪜 Minhas Carreiras do basquete (lista ou já no passo do nome)
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
     <><div className="ll-home ll-home-bb">
@@ -1681,15 +1784,14 @@ function BidLegendsHome() {
       </section>
       {nbaSolo && <div className="ll-resume">
         <button onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
-        {/* 🔒 a carreira do basquete tem UMA ficha só: largar apaga de vez — pergunta antes */}
-        <button onClick={() => { if (window.confirm(t(`Apagar a carreira do ${nbaSolo.teamName} (T${nbaSolo.seasonNo})? Não dá pra desfazer.`, `Delete the ${nbaSolo.teamName} career (S${nbaSolo.seasonNo})? This can't be undone.`))) nbaSolo.discard() }}>{t('LARGAR', 'DROP')}</button>
+        <button onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button>
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
           <button className="ll-mode" onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu quinteto e enfrente a CPU.', 'Build your five and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-online" onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-career" onClick={() => nbaSolo ? nbaSolo.resume() : dispatch({ type: 'START_NBA_CAREER', teamName: t('Meu Time', 'My Team') })}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Suba da Street League à NBA.', 'Climb from the Street League to the NBA.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-career" onClick={() => setCarreiras(listaNbaCarreiras().length ? 'lista' : 'nova')}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Suba da Street League à NBA.', 'Climb from the Street League to the NBA.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
         <div className={amigosOn ? 'll-loja-linha ll-com-amigos' : 'll-loja-linha'}>
           <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, canto da torcida e moedas', 'Move up a plan, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
@@ -1707,6 +1809,7 @@ function BidLegendsHome() {
       </footer>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
       {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo bb />}
+      {carreiras && <NbaMinhasCarreiras comecaNova={carreiras === 'nova'} onClose={() => setCarreiras(null)} />}
     </div><div className="ll-support-home-tail"><ApoieButton trigger={open => <SupportFooter onOpen={open} />} /></div></>
   )
 }

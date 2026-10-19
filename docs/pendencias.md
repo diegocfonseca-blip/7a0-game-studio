@@ -101,7 +101,14 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
     compartilhar com BidLegends/NBA, V-D sem empate, cestinha. ⚠️ O link que vai junto ainda é o leilaolegends.com —
     trocar pro bidlegendsarena.com quando o basquete for liberado (hoje ninguém além do Diego veria o basquete lá).
   · ✅ Zoeira do Monte online no basquete: 🧱 Tijoleiro e 🤡 Rei do air ball. Final dos playoffs mostra JOGOS na série.
-  · Mais de UMA carreira de basquete (hoje 1 ficha só, sem "Minhas carreiras") e escolher o nome do time.
+  · ✅ **Minhas Carreiras do basquete + nome do time (19/10)**: `NbaMinhasCarreiras` (screens.tsx) = a MESMA tela do
+    futebol, com o ANDAR no lugar da Série; ➕ abre o passo do NOME (pré-preenchido com o nome da conta, checado no
+    `nomeLivre` — batismo alheio não passa; NÃO troca o nome da conta, que é do futebol). Guardar/trocar/apagar em
+    `nba-carreiras.ts` (ativa `bl-nba-career` + arquivo `bl-nba-career-archive`, grava antes de apagar; aparelho
+    cheio = não troca e avisa). Cada carreira ganhou código fixo `nbaCareerId` (a seed muda por temporada). Fichas:
+    a MESMA régua do futebol (`careerSlotLimit`), contada SÓ entre carreiras de basquete — ou seja, quem é grátis tem
+    1 de futebol E 1 de basquete (Diego aprovou a tela em 19/10; contar separado foi decisão minha — ele pode mudar). LARGAR saiu da home (apagar = 🗑️ em dois
+    toques na lista). Trava: `npm run nba-carreiras`.
   · Salão dos Batismos / Loja / Amigos mostram o conteúdo do futebol (são da conta, não do esporte — decidir).
 
 **FALTA / PENDENTE DE TESTE:**
