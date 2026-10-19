@@ -1,0 +1,21 @@
+{
+  "data": "19 de outubro de 2026",
+  "titulo": "Chegou: AMIGOS no Leilão Legends",
+  "destaque": {
+    "passos": [
+      { "emoji": "➕", "titulo": "Adicione", "sub": "toque no nome na sala ou no chat" },
+      { "emoji": "📣", "titulo": "Chame", "sub": "amigo online pra sua sala" },
+      { "emoji": "🔥", "titulo": "Rival", "sub": "marque UM e zoe" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Botão **👥 AMIGOS** na home: veja **quem está online** e onde está jogando. Amizade só vale com os **dois aceitando**, e ninguém vê o seu e-mail." },
+    { "tag": "novidade", "texto": "Está numa sala de espera? Toque em **📣 CHAMAR** e o amigo recebe o convite na hora. A sala dele está esperando? **🚪 ENTRAR** leva você direto (começou o pregão, aí não entra mais)." },
+    { "tag": "novidade", "texto": "O **🔔 sininho** (embaixo de Minha Conta) avisa convite pra sala e pedido de amizade, e o jogo avisa quando um amigo **entra no jogo**." },
+    { "tag": "lenda", "texto": "**🏆 Ranking dos amigos** da semana, e no perfil a sua **posição no online da semana e do mês** com as **medalhas 🥇🥈🥉** do pódio semanal." },
+    { "tag": "regra", "texto": "**🔥 Rival** é um só e é zoeira: chama do lado do nome dele na sala, placar de títulos no perfil e o chat zoa quando você ganha com ele na sala." }
+  ],
+  "rodape": "Já está no ar pra todo mundo!",
+  "rodapeSub": "A resenha continua aqui na comunidade: o botão do zap fica dentro dos Amigos.",
+  "saida": "scripts/posts/aviso-2026-10-19-amigos.png"
+}
