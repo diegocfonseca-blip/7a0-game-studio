@@ -130,6 +130,9 @@
   enviado, ESPERANDO OK: `scripts/mockups/clas.png`. Qualquer um cria (nome com filtro + emblema pronto; batismo pode usar o
   escudo do clube), até 20 membros, líder, títulos online somam pro clã, ranking semanal de clãs, selo na sala. Criar = QUALQUER PLANO PAGO (Craque+ ou o mensal que vai sair) — ordem dele 19/10. APROVADO ("pode fazer os clãs assim").
   (ver acima: qualquer plano pago); entrar é grátis. ⑤ Procurar clã: busca + filtros (com vaga · mais títulos · batismo); líder escolhe 🔓 aberto (entra direto) ou 🔒 fechado (pede, chega no 🔔 do líder). Dono de batismo entra em qualquer clã como todo mundo.
+  🗂️ **GUARDADO (19/10, *"deixa guardado… em breve daremos os clãs"*)**. Selo do clã SÓ onde aparece a PESSOA: lista de técnicos da
+  sala, crachá do chat, perfil e lista de amigos — nunca em tabela/placar/jogo (lá é o escudo do clube). SQL do banco já escrito
+  (tentativa de aplicar foi cancelada; reaplicar só com OK dele).
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem
