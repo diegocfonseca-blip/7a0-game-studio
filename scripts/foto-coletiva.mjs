@@ -21,26 +21,25 @@ const save = JSON.parse(readFileSync(`${PASTA}/save.json`, 'utf8'))
 await p.goto(URL, { waitUntil: 'domcontentloaded' })
 await p.evaluate(s => { for (const [k, v] of Object.entries(s)) localStorage.setItem(k, v); localStorage.setItem('esc-coletiva-dev', '1'); localStorage.setItem('esc-sim-manual', '1'); localStorage.setItem('bl_lang', 'pt') }, save)
 await p.goto(URL, { waitUntil: 'networkidle' }); await p.waitForTimeout(2000)
-await p.getByText('LEILÃO LEGENDS 38').first().click().catch(() => {}); await p.waitForTimeout(2400)
-await p.getByText(/CONTINUAR · /i).first().click({ timeout: 8000 }).catch(() => {}); await p.waitForTimeout(4000)
-await clica(/^fechar$|^✕$/); await p.waitForTimeout(500)
+await p.getByText('LEILÃO LEGENDS 38').first().click().catch(() => {}); await p.waitForTimeout(2800)
+if (/CONTINUAR · /.test(await texto())) { await p.getByText(/CONTINUAR · /i).first().click({ timeout: 8000 }).catch(() => {}); await p.waitForTimeout(4000) }
+await clica(/^✕$/); await p.waitForTimeout(400)
 await aba('Jogos'); await p.waitForTimeout(800)
-// velocidade máxima se tiver botão
-await clica(/^⚡+$|^🐇$|rápido/i).catch(() => {})
-let achou = false
-for (let r = 0; r < 14 && !achou; r++) {
-  if (!await clica(/Próxima rodada/i)) { console.log('sem botão de próxima rodada'); break }
-  for (let k = 0; k < 40; k++) {
-    await p.waitForTimeout(1000)
-    const t = await texto()
-    if (/pular coletiva/i.test(t)) { achou = true; break }
-    if (/▶️ Próxima rodada/.test(t)) break
-  }
-  console.log('rodada', r + 1, achou ? '🎙️ coletiva!' : '…')
+// a virada (T1, rodada 0): assina o Master, o fornecedor e começa a temporada — igual ao navega-carreira
+for (let i = 0; i < 14 && !/Próxima rodada/i.test(await texto()); i++) {
+  const t = await texto()
+  if (/ESCOLHA UM CONTRATO/i.test(t)) await clica(/Vadico Veículos/)
+  else if (!await clica(/ASSINAR · |✍️ ASSINAR|ASSINAR CONTRATO|Não cair de divisão|PROPOSTA 1|Começar a temporada|CONTINUAR|ENTENDI|FECHAR/)) await clica(/PULAR|AVANÇAR|OK/)
+  await p.waitForTimeout(1300)
 }
-if (!achou) { console.log('❌ nenhuma coletiva em 14 rodadas'); await b.close(); process.exit(1) }
+console.log('início:', ((await texto()).match(/Próxima rodada|Começar a temporada|RODADA \d+|Rodada \d+/) ?? ['?'])[0])
+if (process.argv.includes('--probe')) { console.log((await botoes()).slice(0, 60)); await p.screenshot({ path: `${OUT}/probe.png`, fullPage: true }); await b.close(); process.exit(0) }
+// no automático a rodada anda sozinha e a coletiva fecha em 12s: fica de olho e fotografa na hora
+let achou = /pular coletiva/i.test(await texto())
+for (let k = 0; k < 300 && !achou; k++) { await p.waitForTimeout(1000); achou = /pular coletiva/i.test(await texto()); if (k % 20 === 19) await clica(/▶️ Próxima rodada/i) }
+if (!achou) { console.log('❌ nenhuma coletiva em 5 min'); await b.close(); process.exit(1) }
 const el = p.locator('text=pular coletiva').first()
-await el.scrollIntoViewIfNeeded(); await p.evaluate(() => window.scrollBy(0, -420)); await p.waitForTimeout(400)
+await el.scrollIntoViewIfNeeded(); await p.evaluate(d => window.scrollBy(0, -(d ? 560 : 470)), DESK); await p.waitForTimeout(300)
 await p.screenshot({ path: `${OUT}/coletiva-1-pergunta.png` })
 console.log(((await texto()).match(/🎙️ Coletiva[\s\S]{0,400}/) ?? [''])[0].replace(/\n+/g, ' | '))
 // responde provocando (1º botão da lista de respostas)
