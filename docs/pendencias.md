@@ -128,8 +128,8 @@
   "📖 Ver cartas dele" + "🤝 Propor troca" abrindo `NovaTroca` com ele já escolhido; nas trocas, amigos primeiro). Home mantém o MEU ÁLBUM.
 - ⏳ **⚔️ CLÃS (19/10, ele preferiu à Torcida, SEM rivalidade entre clãs: *"faça o mockup sem esse negócio de rival"*)** — mockup
   enviado, ESPERANDO OK: `scripts/mockups/clas.png`. Qualquer um cria (nome com filtro + emblema pronto; batismo pode usar o
-  escudo do clube), até 20 membros, líder, títulos online somam pro clã, ranking semanal de clãs, selo na sala. Criar = Lenda+
-  ou avulso (preço a definir); entrar é grátis. Dono de batismo entra em qualquer clã como todo mundo.
+  escudo do clube), até 20 membros, líder, títulos online somam pro clã, ranking semanal de clãs, selo na sala. Criar = QUALQUER PLANO PAGO (Craque+ ou o mensal que vai sair) — ordem dele 19/10. APROVADO ("pode fazer os clãs assim").
+  (ver acima: qualquer plano pago); entrar é grátis. ⑤ Procurar clã: busca + filtros (com vaga · mais títulos · batismo); líder escolhe 🔓 aberto (entra direto) ou 🔒 fechado (pede, chega no 🔔 do líder). Dono de batismo entra em qualquer clã como todo mundo.
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem
