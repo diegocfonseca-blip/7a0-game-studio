@@ -31,6 +31,8 @@
 - 🔒 **19/10, decisão do Diego**: *"carreira online só pra minha conta ainda… tem que ser igual a carreira que temos hoje em tudo, menos ter
   segundo clube"*. Então: **SEM 2º clube/SAF-2º clube** no online; TODO o resto da solo tem que existir. Antes de liberar pra qualquer
   um: lista completa do que a solo tem (`docs/carreira-online-checklist.md`) e cada item conferido + teste de 20 robôs.
+- 🏢 **19/10: SAF no online = a REGRA ANTIGA, da SAF sozinha** (*"a saf na regra antiga qd tinha saf sozinha"*): filial na D, 50% dos
+  prêmios, empréstimo, comissão e venda pelo `SELL_FILIAL` — nada da saf2 (venda pela divisão, assumir, 2º clube).
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
