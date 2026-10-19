@@ -35,15 +35,13 @@ h1{font:700 26px Oswald;text-transform:uppercase;margin:0 0 4px;color:#F4ECD6}.s
  </div>
  <div class="col"><span class="tag" style="background:#1B7A3D">COMO FICARIA (ao apertar 💾 Salvar)</span>
   <div class="janela">
-   <div class="topo"><span>💾 CARREIRA SALVA</span><span>✕</span></div>
-   <div class="ok"><b>✅ Salva neste celular</b>Pode fechar o jogo tranquilo: quando voltar <b style="display:inline;font:inherit;color:inherit">neste aparelho</b>, ela está aqui.</div>
-   <p class="risco">⚠️ Mas ela <b>não está na nuvem</b>. Se você trocar de celular, limpar o navegador ou jogar no PC, ela não vai junto.</p>
-   <p class="risco" style="margin-bottom:8px">☁️ Pra guardar na nuvem e jogar em qualquer aparelho:</p>
+   <div class="topo"><span>☁️ SALVAR NA NUVEM</span><span>✕</span></div>
+   <p class="risco" style="margin:12px 2px 10px">Pra salvar a sua carreira na nuvem, escolha um plano:</p>
    <div class="plano" style="background:linear-gradient(160deg,#F4F7FB,#CBD4DE 52%,#9BA7B5)"><span><b>⭐ CRAQUE</b><small>nuvem · Modo Manual · cor prata</small></span><span class="preco">R$ 29,90</span></div>
    <div class="plano" style="background:linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)"><span><b>👑 LENDA</b><small>tudo do Craque + salas à vontade · cor ouro</small></span><span class="preco">R$ 44,90</span></div>
-   <span class="depois">Agora não — continuar só no celular</span>
+   <span class="depois" style="font-size:15px;color:#7C3AED">Conheça todos os planos →</span>
   </div>
-  <p class="nota">Abre só pra quem NÃO tem plano. Quem paga continua vendo o "✅ Salvo na nuvem" de sempre. Os botões levam direto pro Pix do plano.</p>
+  <p class="nota">Abre só pra quem NÃO tem plano, ao apertar 💾 Salvar. Craque e Lenda vão direto pro Pix; "Conheça todos os planos" abre a vitrine com todos. Quem paga continua vendo o "✅ Salvo na nuvem" de sempre.</p>
  </div>
 </div>
 </body></html>`
