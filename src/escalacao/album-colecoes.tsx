@@ -274,12 +274,13 @@ type CartaInfo = { id: string; card_name: string; card_club: string; card_year: 
 const info2carta = (c: CartaInfo) => ({ name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos, fame: c.card_fame })
 const STATUS: Record<string, [string, string]> = { aceita: ['✅ aceita', '✅ accepted'], recusada: ['✖️ recusada', '✖️ declined'], cancelada: ['🚫 cancelada', '🚫 cancelled'], contra: ['🔁 virou contraproposta', '🔁 countered'], vencida: ['⌛ venceu', '⌛ expired'] }
 
-export function AbaTrocas({ meuId, meuNome, minhas, recarregar }: { meuId: string; meuNome: string; minhas: CartaDoAlbum[]; recarregar: () => void }) {
+export function AbaTrocas({ meuId, meuNome, minhas, recarregar, propor }: { meuId: string; meuNome: string; minhas: CartaDoAlbum[]; recarregar: () => void; propor?: { uid: string; nome: string } }) {
   const t = useT()
-  const [sub, setSub] = useState<'recebidas' | 'enviadas' | 'nova'>('recebidas')
+  // 👥 19/10: aberta pelo perfil do amigo ("🤝 Propor troca") já cai na proposta com ELE escolhido
+  const [sub, setSub] = useState<'recebidas' | 'enviadas' | 'nova'>(propor ? 'nova' : 'recebidas')
   const [trocas, setTrocas] = useState<Troca[] | null>(null)
   const [cartas, setCartas] = useState<Map<string, CartaInfo>>(new Map())
-  const [rascunho, setRascunho] = useState<{ para: string; paraNome: string; dou: string[]; quero: string[]; origem?: number } | null>(null)
+  const [rascunho, setRascunho] = useState<{ para: string; paraNome: string; dou: string[]; quero: string[]; origem?: number } | null>(propor ? { para: propor.uid, paraNome: propor.nome, dou: [], quero: [] } : null)
   const [aviso, setAviso] = useState('')
   async function carregar() {
     const { data } = await supabase.from('esc_trocas').select('*').or(`de.eq.${meuId},para.eq.${meuId}`).order('criada_em', { ascending: false }).limit(60)
@@ -363,7 +364,10 @@ function NovaTroca({ meuNome, minhas, inicial, onEnviada }: { meuNome: string; m
   const [recado, setRecado] = useState('')
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState('')
+  // 👥 19/10 (Diego: "seria mais fácil fazer a troca de cartas por lá"): os AMIGOS vêm primeiro, depois quem jogou com você
+  const [amigos, setAmigos] = useState<{ user_id: string; nome: string }[]>([])
   useEffect(() => { supabase.rpc('esc_troca_parceiros').then(({ data }) => setParceiros(((data ?? []) as { user_id: string; nome: string }[])), () => setParceiros([])) }, [])
+  useEffect(() => { supabase.rpc('esc_amigos_lista').then(({ data }) => setAmigos(((data ?? []) as { outro: string; nome: string; relacao: string }[]).filter(x => x.relacao === 'aceito').map(x => ({ user_id: x.outro, nome: x.nome }))), () => {}) }, [])
   useEffect(() => {
     if (!alvo) { setDele(null); return }
     let vivo = true
@@ -417,7 +421,17 @@ function NovaTroca({ meuNome, minhas, inicial, onEnviada }: { meuNome: string; m
         <input value={busca} onChange={e => setBusca(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void buscar() }} placeholder={t('🔎 Buscar pelo nome do time…', '🔎 Search by team name…')} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 10px', fontSize: 14 }} />
         <button onClick={() => void buscar()} style={{ ...OSW, border: `3px solid ${INK}`, borderRadius: 12, background: GOLD, padding: '0 12px', cursor: 'pointer' }}>{t('Buscar', 'Search')}</button>
       </div>
-      {(achados ?? parceiros ?? []).map(p => (
+      {!achados && amigos.length > 0 && <>
+        <p style={{ ...OSW, fontSize: 12, color: ROXO, margin: '2px 0 6px' }}>{t('👥 Seus amigos', '👥 Your friends')}</p>
+        {amigos.map(p => (
+          <button key={'a' + p.user_id} onClick={() => { setAlvo(p); setDou([]); setQuero([]) }} style={{ ...caixa({ display: 'block', width: '100%', textAlign: 'left', marginBottom: 8, boxShadow: 'none', cursor: 'pointer', borderColor: ROXO }) }}>
+            <b style={{ ...OSW, fontSize: 14 }}>{p.nome}</b>
+            <span style={{ display: 'block', fontSize: 11, color: 'rgba(0,0,0,.6)' }}>{t('amigo', 'friend')}</span>
+          </button>
+        ))}
+        <p style={{ ...OSW, fontSize: 12, color: 'rgba(0,0,0,.55)', margin: '4px 0 6px' }}>{t('🎮 Jogou com você', '🎮 Played with you')}</p>
+      </>}
+      {(achados ?? (parceiros ?? []).filter(p => !amigos.some(a => a.user_id === p.user_id))).map(p => (
         <button key={p.user_id} onClick={() => { setAlvo(p); setDou([]); setQuero([]) }} style={{ ...caixa({ display: 'block', width: '100%', textAlign: 'left', marginBottom: 8, boxShadow: 'none', cursor: 'pointer' }) }}>
           <b style={{ ...OSW, fontSize: 14 }}>{p.nome}</b>
           <span style={{ display: 'block', fontSize: 11, color: 'rgba(0,0,0,.6)' }}>{achados ? t('achado na busca', 'found in search') : t('jogou com você', 'played with you')}</span>
@@ -449,6 +463,78 @@ function NovaTroca({ meuNome, minhas, inicial, onEnviada }: { meuNome: string; m
       {erro && <p role="alert" style={{ fontSize: 12.5, color: VERM, fontWeight: 700, marginTop: 6 }}>{erro}</p>}
       <button disabled={busy || !dou.length || !quero.length} onClick={enviar} style={botao(ROXO, '#fff', { marginTop: 10, opacity: busy || !dou.length || !quero.length ? .55 : 1 })}>{busy ? t('Mandando…', 'Sending…') : inicial?.origem ? t('🔁 Mandar contraproposta', '🔁 Send counter-offer') : t('📨 Mandar proposta', '📨 Send offer')}</button>
       <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,.6)', marginTop: 6 }}>{t('A proposta vale 48 horas. Nada sai do seu álbum até o outro aceitar. Carta usada numa coleção não entra.', 'The offer lasts 48 hours. Nothing leaves your album until they accept. Cards used in a collection cannot be traded.')}</p>
+    </div>
+  )
+}
+
+// ─── 👥📖 ÁLBUM DENTRO DOS AMIGOS (19/10, mockup `scripts/mockups/amigos-album.png`, Diego: "ok pode fazer") ─────────────
+// É o MESMO álbum (as mesmas cópias, coleções e trocas) — só que dentro da janela dos Amigos, onde fica mais fácil trocar.
+// O 📖 MEU ÁLBUM da home continua lá.
+export function AlbumNosAmigos({ propor }: { propor?: { uid: string; nome: string } }) {
+  const t = useT()
+  const { copias, recarregar } = useMinhasCopias(true)
+  const [eu, setEu] = useState<{ id: string; nome: string } | null>(null)
+  const [aba, setAba] = useState<'cartas' | 'colecoes' | 'trocas'>(propor ? 'trocas' : 'cartas')
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => { if (user) setEu({ id: user.id, nome: String(user.user_metadata?.display_name ?? '').trim() || t('Técnico', 'Manager') }) }, () => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const unicas = useMemo(() => {
+    const n = new Map<string, { c: CartaDoAlbum; copias: number }>()
+    for (const c of copias ?? []) { const k = chaveCarta(c); const x = n.get(k); if (x) x.copias++; else n.set(k, { c, copias: 1 }) }
+    return [...n.values()].sort((a, b) => b.c.fame - a.c.fame || a.c.name.localeCompare(b.c.name))
+  }, [copias])
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {([['cartas', t('🃏 Cartas', '🃏 Cards')], ['colecoes', t('📚 Coleções', '📚 Collections')], ['trocas', t('🤝 Trocas', '🤝 Trades')]] as const).map(([k, rot]) => (
+          <button key={k} onClick={() => setAba(k)} style={{ ...OSW, flex: 1, fontSize: 12, padding: '7px 4px', border: `3px solid ${INK}`, borderRadius: 12, background: aba === k ? INK : '#fff', color: aba === k ? GOLD : INK, cursor: 'pointer' }}>{rot}</button>
+        ))}
+      </div>
+      {copias === null && <p style={{ fontSize: 13 }}>{t('Carregando…', 'Loading…')}</p>}
+      {copias && aba === 'cartas' && (unicas.length
+        ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 380, overflowY: 'auto', padding: 3 }}>{unicas.map(({ c, copias: n }) => <MiniCarta key={c.id} c={c} selo={n > 1 ? `x${n}` : undefined} />)}</div>
+        : <p style={{ fontSize: 13, color: 'rgba(0,0,0,.6)' }}>{t('Seu álbum ainda está vazio. Campeão ganha uma carta por título — no online ou contra a máquina.', 'Your album is still empty. A champion earns one card per title — online or vs the CPU.')}</p>)}
+      {copias && aba === 'colecoes' && <AbaColecoes minhas={copias} />}
+      {copias && aba === 'trocas' && eu && <AbaTrocas meuId={eu.id} meuNome={eu.nome} minhas={copias} recarregar={recarregar} propor={propor} />}
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 8 }}>{t('É o mesmo álbum da home (cartas, coleções e trocas), agora também aqui dentro.', 'It is the same album as on the home screen (cards, collections and trades), now in here too.')}</p>
+    </div>
+  )
+}
+
+/** 📖 as cartas LIVRES de outra pessoa (perfil do amigo). ⭐ = carta que falta nas MINHAS coleções (vem primeiro). */
+export function CartasDele({ uid }: { uid: string }) {
+  const t = useT()
+  const { copias: minhas } = useMinhasCopias(true)
+  const [dele, setDele] = useState<{ id: string; name: string; club: string; year: number; pos: string; fame: number }[] | null>(null)
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      const [{ data: cs }, { data: us }] = await Promise.all([
+        supabase.from('user_cards').select('id, card_name, card_club, card_year, card_pos, card_fame').eq('user_id', uid),
+        supabase.from('esc_cartas_usadas').select('card_id').eq('user_id', uid),
+      ])
+      if (!vivo) return
+      const usadas = new Set(((us ?? []) as { card_id: string }[]).map(u => u.card_id))
+      const vistas = new Set<string>()
+      setDele(((cs ?? []) as { id: string; card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number }[])
+        .filter(c => !usadas.has(c.id))
+        .map(c => ({ id: c.id, name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos, fame: c.card_fame }))
+        .filter(c => { const k = chaveCarta(c); return vistas.has(k) ? false : (vistas.add(k), true) }))
+    })().catch(() => { if (vivo) setDele([]) })
+    return () => { vivo = false }
+  }, [uid])
+  const meusLivres = useMemo(() => new Set((minhas ?? []).filter(m => !m.usadaEm && !m.presa).map(chaveCarta)), [minhas])
+  const clubesColec = useMemo(() => new Set(COLECOES.map(c => c.clube)), [])
+  const falta = (c: { name: string; club: string; year: number }) => clubesColec.has(c.club) && !meusLivres.has(chaveCarta(c))
+  if (dele === null) return <p style={{ fontSize: 13 }}>{t('Carregando as cartas…', 'Loading the cards…')}</p>
+  const ord = dele.slice().sort((a, b) => Number(falta(b)) - Number(falta(a)) || b.fame - a.fame)
+  return (
+    <div>
+      <p style={{ ...OSW, fontSize: 13, margin: '0 0 6px' }}>{t(`📖 Cartas dele (${dele.length})`, `📖 Their cards (${dele.length})`)}</p>
+      {ord.length
+        ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 300, overflowY: 'auto', padding: 3 }}>{ord.map(c => <MiniCarta key={c.id} c={c} selo={falta(c) ? '⭐' : undefined} />)}</div>
+        : <p style={{ fontSize: 12.5 }}>{t('Ele ainda não tem carta livre.', 'They have no free card yet.')}</p>}
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 6 }}>{t('⭐ = carta que falta nas SUAS coleções (aparece primeiro).', '⭐ = a card missing from YOUR collections (shown first).')}</p>
     </div>
   )
 }

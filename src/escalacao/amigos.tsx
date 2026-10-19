@@ -17,6 +17,7 @@ import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
+import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -92,6 +93,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
   const [p, setP] = useState<Perfil | null | 'erro'>(null)
   const [atual, setAtual] = useState(uid)
   const [ocupado, setOcupado] = useState(false)
+  const [albumDele, setAlbumDele] = useState<'cartas' | 'troca' | null>(null) // 📖 19/10: ver cartas / propor troca
   const carrega = (u: string) => {
     setP(null)
     supabase.rpc('esc_perfil_publico2', { p_uid: u }).then(({ data, error }) => setP(error || !data ? 'erro' : data as Perfil), () => setP('erro'))
@@ -157,6 +159,18 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
                 onClick={() => { if (window.confirm(tr(`Marcar ${p.nome} como seu rival? Você só pode ter UM rival — se já tinha outro, ele sai.`, `Mark ${p.nome} as your rival? You can only have ONE rival — any previous one is replaced.`))) void acao(async () => { await supabase.rpc('esc_rival_marcar', { p_outro: p.uid }); esqueceRival() }) }}>
                 🔥 {tr('Marcar como rival', 'Mark as rival')}</button>}
             <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '4px 0 0', textAlign: 'center' }}>{tr('Rival é só zoeira: aparece um 🔥 do lado dele na sala e o placar de títulos no seu perfil.', 'A rival is just banter: a 🔥 shows next to them in the room and the title score on your profile.')}</p>
+          </div>
+        )}
+        {/* 📖🤝 19/10 (mockup `amigos-album.png`): no perfil do AMIGO, ver as cartas dele e propor troca com ele já escolhido */}
+        {!p.sou_eu && p.relacao === 'aceito' && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={{ ...bt(albumDele === 'cartas' ? INK : GOLD, albumDele === 'cartas' ? GOLD : INK), flex: 1, padding: 9, fontSize: 13 }} onClick={() => setAlbumDele(v => v === 'cartas' ? null : 'cartas')}>📖 {tr('Ver cartas dele', 'See their cards')}</button>
+              <button style={{ ...bt(ROXO, '#fff'), flex: 1, padding: 9, fontSize: 13, outline: albumDele === 'troca' ? `3px solid ${GOLD}` : undefined }} onClick={() => setAlbumDele(v => v === 'troca' ? null : 'troca')}>🤝 {tr('Propor troca', 'Propose a trade')}</button>
+            </div>
+            {albumDele && <div style={{ marginTop: 8, background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 10 }}>
+              {albumDele === 'cartas' ? <CartasDele uid={p.uid} /> : <AlbumNosAmigos key={p.uid} propor={{ uid: p.uid, nome: p.nome }} />}
+            </div>}
           </div>
         )}
         {/* 📊 a melhor carreira no ranking global, na temporada em que ela está (mesma conta do ranking da carreira) */}
@@ -258,7 +272,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [busca, setBusca] = useState('')
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
-  const [aba, setAba] = useState<'amigos' | 'ranking'>('amigos')
+  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album'>('amigos')
   const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
   const [chamados, setChamados] = useState<Record<string, string>>({})
   const [semConta, setSemConta] = useState(false)
@@ -349,10 +363,11 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         ))}
       </div>}
       {Array.isArray(lista) && <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking dos amigos', 'Friends ranking')}`]] as const).map(([k, rot]) => (
+        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking', 'Ranking')}`], ['album', `📖 ${tr('Álbum', 'Album')}`]] as const).map(([k, rot]) => (
           <button key={k} onClick={() => setAba(k)} style={{ ...bt(aba === k ? INK : '#fff', aba === k ? GOLD : INK), flex: 1, padding: 8, fontSize: 12.5 }}>{rot}</button>
         ))}
       </div>}
+      {Array.isArray(lista) && aba === 'album' && <div style={{ marginTop: 10, background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 10 }}><AlbumNosAmigos /></div>}
       {Array.isArray(lista) && aba === 'ranking' && (() => {
         // títulos de sala online NESTA semana (segunda a domingo), eu + amigos aceitos
         const linhas = [

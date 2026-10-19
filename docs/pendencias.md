@@ -153,8 +153,8 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   técnicos + placar de títulos no perfil + 1 zoeira no chat quando ganho título com ele na sala) · perfil "📊 No online" (posição
   da semana e do mês + medalhas 🥇🥈🥉 do pódio semanal) · 🔔 sininho embaixo de MINHA CONTA (convites, pedidos, aceitos) · aviso
   "fulano entrou no jogo" (1 por amigo a cada 30 min) · convite em janela em qualquer tela, MENOS partida/leilão.
-- ⏳ **ÁLBUM DENTRO DOS AMIGOS (pedido 19/10, *"seria mais fácil fazer a troca de cartas por lá"*)** — mockup enviado,
-  ESPERANDO OK: `scripts/mockups/amigos-album.png` (aba 📖 Álbum nos Amigos = o mesmo `EscAlbum`/`AbaTrocas`; no perfil do amigo
+- ✅ **ÁLBUM DENTRO DOS AMIGOS (pedido 19/10, *"seria mais fácil fazer a troca de cartas por lá"*)** — APROVADO (*"ok pode fazer"*) e
+  NO AR em 19/10 (`AlbumNosAmigos` + `CartasDele` em album-colecoes.tsx; aba 📖 Álbum + botões no perfil do amigo em amigos.tsx): `scripts/mockups/amigos-album.png` (aba 📖 Álbum nos Amigos = o mesmo `EscAlbum`/`AbaTrocas`; no perfil do amigo
   "📖 Ver cartas dele" + "🤝 Propor troca" abrindo `NovaTroca` com ele já escolhido; nas trocas, amigos primeiro). Home mantém o MEU ÁLBUM.
 - ⏳ **⚔️ CLÃS (19/10, ele preferiu à Torcida, SEM rivalidade entre clãs: *"faça o mockup sem esse negócio de rival"*)** — mockup
   enviado, ESPERANDO OK: `scripts/mockups/clas.png`. Qualquer um cria (nome com filtro + emblema pronto; batismo pode usar o
