@@ -24,6 +24,22 @@ import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
 import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
 import { recarregaUmaVez } from './recarga' // 🔄 pedaço que sumiu: recarrega 1x
+import { AvisosAmigos, EVENTO_ENTRAR_SALA } from './amigos'
+
+// 👥 19/10: avisos dos amigos (convite pra sala, quem entrou online) em qualquer tela — menos no meio de partida/leilão —
+// e a ponte do "Entrar na sala": se o online não está aberto, abre; o lobby lê o código guardado e entra sozinho.
+const TELAS_LIVRES = new Set(['intro', 'lobby', 'setup', 'end', 'album', 'ranking'])
+function AmigosGlobal() {
+  const { state, dispatch } = useEsc()
+  const telaRef = useRef(state.screen)
+  telaRef.current = state.screen
+  useEffect(() => {
+    const h = () => { if (telaRef.current !== 'lobby') dispatch({ type: 'GO_LOBBY_ONLINE' }) }
+    window.addEventListener(EVENTO_ENTRAR_SALA, h)
+    return () => window.removeEventListener(EVENTO_ENTRAR_SALA, h)
+  }, [dispatch])
+  return <AvisosAmigos ocupado={!TELAS_LIVRES.has(state.screen)} />
+}
 
 function Router() {
   const { state } = useEsc()
@@ -516,6 +532,7 @@ export default function EscalacaoGame() {
         <AvisoDestaqueTirado />{/* 🚫🔴 o dono da sala fica sabendo que o destaque de live saiu (13/10) */}
         <AvisoSemEspaco />
         <PresenteRecebido />
+        <AmigosGlobal />
         <PresentesPregao />{/* 🎁 pregão aberto sem Monte: o que o time ganhou de graça no fim (some sozinho, 16/10) */}
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia

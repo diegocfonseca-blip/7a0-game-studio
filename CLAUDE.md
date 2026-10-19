@@ -889,6 +889,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
   tem a mesma espera do lobby. O pregão do envelope cego NÃO mudou (mascote na barra "😈 CUTUCA").
 
+- **👥 AMIGOS (19/10, liberado pra todos): SEM CHAT 1:1 e ENTRAR SÓ EM SALA QUE ESPERA.** *"tenho uma comunidade no zap"* → a
+  conversa é lá (botão da comunidade). *"Entrar só dá se a sala tiver aberta… se já iniciou não dá"*. Rival = 1 por pessoa, só
+  zoeira. Avisos por leitura a cada 60s (nada de canal). Detalhe em `docs/pendencias.md`.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

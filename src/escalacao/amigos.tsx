@@ -7,7 +7,7 @@
 // · "Online agora" = batida do jogo (`live_beats`) nos últimos 3 min, lida SÓ quando a lista abre — nada de canal nem
 //   mensagem periódica (regra do tráfego, 04/10).
 // · Cada um com a cor do PRÓPRIO plano (grátis = bege) e o presidente só de quem tem (Craque+); sem boneco, vai a inicial.
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
@@ -16,6 +16,7 @@ import { APOIO_PERKS, ApoioSheen, type ApoioTier } from './apoio'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
 import { useAmigos } from './sport'
+import { COMUNIDADE_LINK } from './comunidade'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -27,8 +28,15 @@ type Perfil = {
   uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null
   titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
+  // 👥 v2 (19/10): ranking do online da semana/mês, medalhas do pódio semanal e o rival
+  semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null
+  medalhas?: { ouro: number; prata: number; bronze: number } | null; meu_rival?: boolean
+  rival?: { uid: string; nome: string; eu: number; ele: number } | null
 }
-type Linha = { amizade_id: number; outro: string; nome: string; relacao: 'aceito' | 'enviado' | 'recebido'; visto_em: string | null; tela: string | null; online: boolean }
+type Linha = {
+  amizade_id: number; outro: string; nome: string; relacao: 'aceito' | 'enviado' | 'recebido'; visto_em: string | null; tela: string | null; online: boolean
+  sala_code?: string | null; sala_status?: string | null; titulos_semana?: number | null; rival?: boolean
+}
 
 const inicial = (nome: string) => (nome.replace(/[^\p{L}\p{N}]/gu, '')[0] ?? '?').toUpperCase()
 function Bolinha({ nome, size }: { nome: string; size: number }) {
@@ -86,7 +94,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
   const [ocupado, setOcupado] = useState(false)
   const carrega = (u: string) => {
     setP(null)
-    supabase.rpc('esc_perfil_publico', { p_uid: u }).then(({ data, error }) => setP(error || !data ? 'erro' : data as Perfil), () => setP('erro'))
+    supabase.rpc('esc_perfil_publico2', { p_uid: u }).then(({ data, error }) => setP(error || !data ? 'erro' : data as Perfil), () => setP('erro'))
   }
   useEffect(() => { carrega(atual) }, [atual])
   const abrir = (u: string) => { if (onAbrirOutro) onAbrirOutro(u); else setAtual(u) }
@@ -158,6 +166,39 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
         </div>
 
+        {/* 📊 a posição no ranking do online (títulos de sala) na semana e no mês + as medalhas do pódio semanal */}
+        <div style={caixa}>
+          <p style={h3}>📊 {tr('No online', 'Online')}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            {([[tr('Esta semana', 'This week'), p.semana], [tr('Este mês', 'This month'), p.mes]] as const).map(([rot, r]) => (
+              <div key={rot} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: r ? '#FFF7DA' : '#f3eee0' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{rot}</div>
+                <div style={{ ...OSW, fontSize: 24, lineHeight: 1.05, color: INK }}>{r ? `${r.pos}º` : '—'}</div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{r ? tr(`${r.titulos} ${r.titulos === 1 ? 'título' : 'títulos'} · de ${r.total}`, `${r.titulos} ${r.titulos === 1 ? 'title' : 'titles'} · of ${r.total}`) : tr('sem título ainda', 'no title yet')}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, ...OSW, fontSize: 15, color: INK }}>
+            <span title={tr('1º da semana', '1st of the week')}>🥇 {p.medalhas?.ouro ?? 0}</span>
+            <span title={tr('2º da semana', '2nd of the week')}>🥈 {p.medalhas?.prata ?? 0}</span>
+            <span title={tr('3º da semana', '3rd of the week')}>🥉 {p.medalhas?.bronze ?? 0}</span>
+          </div>
+          <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '4px 0 0', textAlign: 'center' }}>{tr('medalhas do pódio do ranking semanal', 'weekly ranking podium medals')}</p>
+        </div>
+
+        {/* 🔥 o rival que ESTA pessoa marcou, com o placar de títulos do online desde o dia em que marcou */}
+        {p.rival && <div style={{ ...caixa, background: '#FFE3D6' }}>
+          <p style={h3}>🔥 {tr('Rival', 'Rival')}</p>
+          <button onClick={() => abrir(p.rival!.uid)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left' }}>
+            <Rosto uid={p.rival.uid} nome={p.rival.nome} size={40} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <b style={{ display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.rival.nome}</b>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#7a2a12' }}>{tr('títulos no online desde que marcou', 'online titles since marked')}</span>
+            </span>
+            <span style={{ ...OSW, fontSize: 22, whiteSpace: 'nowrap' }}>{p.rival.eu} <span style={{ fontSize: 14 }}>×</span> {p.rival.ele}</span>
+          </button>
+        </div>}
+
         <div style={caixa}>
           <p style={h3}>👥 {tr('Amigos', 'Friends')} ({p.amigos_total})</p>
           {p.amigos.length === 0
@@ -189,6 +230,20 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </>}
           </div>
         )}
+        {/* 🔥 rival: UM por pessoa, só entre amigos, e é só zoeira (não muda nada no jogo) */}
+        {!p.sou_eu && p.relacao === 'aceito' && (
+          <div style={{ marginTop: 8 }}>
+            {p.meu_rival
+              ? <div style={{ display: 'flex', gap: 8 }}>
+                <span style={{ ...bt('#E8503A', '#fff'), flex: 1, padding: 9, fontSize: 13, textAlign: 'center' }}>🔥 {tr('É o seu rival', 'Your rival')}</span>
+                <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(async () => { await supabase.rpc('esc_rival_tirar'); esqueceRival() })}>{tr('tirar', 'remove')}</button>
+              </div>
+              : <button disabled={ocupado} style={{ ...bt('#fff', '#C2452F'), width: '100%', padding: 9, fontSize: 13 }}
+                onClick={() => { if (window.confirm(tr(`Marcar ${p.nome} como seu rival? Você só pode ter UM rival — se já tinha outro, ele sai.`, `Mark ${p.nome} as your rival? You can only have ONE rival — any previous one is replaced.`))) void acao(async () => { await supabase.rpc('esc_rival_marcar', { p_outro: p.uid }); esqueceRival() }) }}>
+                🔥 {tr('Marcar como rival', 'Mark as rival')}</button>}
+            <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '4px 0 0', textAlign: 'center' }}>{tr('Rival é só zoeira: aparece um 🔥 do lado dele na sala e o placar de títulos no seu perfil.', 'A rival is just banter: a 🔥 shows next to them in the room and the title score on your profile.')}</p>
+          </div>
+        )}
       </>}
     </Janela>
   )
@@ -203,12 +258,23 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [busca, setBusca] = useState('')
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
+  const [aba, setAba] = useState<'amigos' | 'ranking'>('amigos')
+  const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
+  const [chamados, setChamados] = useState<Record<string, string>>({})
+  const [semConta, setSemConta] = useState(false)
+  const chamar = async (uid: string) => {
+    if (!salaEspera) return
+    setChamados(c => ({ ...c, [uid]: '…' }))
+    const { data } = await supabase.rpc('esc_convite_enviar', { p_para: uid, p_room: salaEspera })
+    setChamados(c => ({ ...c, [uid]: textoConvite(String(data ?? 'erro')) }))
+  }
   useEffect(() => {
     let vivo = true
     supabase.auth.getUser().then(({ data }) => {
-      const uid = data?.user?.id; if (!uid || !vivo) return
+      const uid = data?.user?.id; if (!vivo) return
+      if (!uid) { setSemConta(true); return }
       setEu({ uid, p: null })
-      supabase.rpc('esc_perfil_publico', { p_uid: uid }).then(({ data: d }) => { if (vivo && d) setEu({ uid, p: d as Perfil }) }, () => {})
+      supabase.rpc('esc_perfil_publico2', { p_uid: uid }).then(({ data: d }) => { if (vivo && d) setEu({ uid, p: d as Perfil }) }, () => {})
     }, () => {})
     return () => { vivo = false }
   }, [])
@@ -220,7 +286,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
     }, 400) // espera parar de digitar
     return () => clearTimeout(t)
   }, [busca, refaz])
-  const carrega = () => { supabase.rpc('esc_amigos_lista').then(({ data, error }) => setLista(error ? 'erro' : (data ?? []) as Linha[]), () => setLista('erro')) }
+  const carrega = () => { supabase.rpc('esc_amigos_lista2').then(({ data, error }) => setLista(error ? 'erro' : (data ?? []) as Linha[]), () => setLista('erro')) }
   useEffect(carrega, [])
   const responder = async (id: number, sim: boolean) => { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); carrega() }
   const cancelar = async (uid: string) => { await supabase.rpc('esc_amigo_desfazer', { p_outro: uid }); carrega() }
@@ -229,19 +295,31 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const enviados = l.filter(x => x.relacao === 'enviado')
   const amigos = l.filter(x => x.relacao === 'aceito')
   const on = amigos.filter(x => x.online), off = amigos.filter(x => !x.online)
+  // 🚪 ENTRAR só se a sala do amigo ainda está na ESPERA (começou = não dá, regra do Diego) · 📣 CHAMAR só se EU estou numa espera
+  const botaoSala = (x: Linha): ReactNode => {
+    if (salaEspera && x.sala_code !== salaEspera) {
+      const r = chamados[x.outro]
+      return r ? <span style={{ fontSize: 10.5, fontWeight: 800, color: r.startsWith('✅') ? GREEN : '#7a4d00', maxWidth: 110, textAlign: 'right' }}>{r}</span>
+        : <button style={bt(ROXO, '#fff')} onClick={() => void chamar(x.outro)}>📣 {tr('Chamar', 'Invite')}</button>
+    }
+    if (!salaEspera && x.sala_code && x.sala_status === 'waiting') return <button style={bt(GREEN, '#fff')} onClick={() => { onClose(); entrarNaSala(x.sala_code!) }}>🚪 {tr('Entrar', 'Join')}</button>
+    return null
+  }
+  const nomeComRival = (x: Linha) => x.rival ? `🔥 ${x.nome}` : x.nome
   const linha = (x: Linha, direita: ReactNode, sub: ReactNode) => (
     <div key={x.amizade_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(x.outro)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: INK }}>
         <Rosto uid={x.outro} nome={x.nome} size={36} />
-        <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.nome}</b><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span>
+        <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeComRival(x)}</b><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span>
       </button>
       {direita}
     </div>
   )
   return (
     <Janela titulo={`${tr('👥 Meus amigos', '👥 My friends')}${amigos.length ? ` · ${amigos.length}` : ''}`} onClose={onClose}>
-      {lista === null && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
-      {lista === 'erro' && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Não consegui carregar agora. Tenta de novo.', 'Couldn’t load right now. Try again.')}</p>}
+      {lista === null && !semConta && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
+      {semConta ? <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Entre na sua conta (Jogar Online) pra adicionar amigos e ver quem está online.', 'Sign in (Play Online) to add friends and see who is online.')}</p>
+        : lista === 'erro' && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Não consegui carregar agora. Tenta de novo.', 'Couldn’t load right now. Try again.')}</p>}
       {eu && <button onClick={() => setPerfil(eu.uid)} style={{ ...caixa, width: '100%', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', background: APOIO_PERKS[eu.p?.tier && APOIO_PERKS[eu.p.tier] ? eu.p.tier : 'bege'].grad }}>
         <Rosto uid={eu.uid} nome={eu.p?.nome ?? '?'} size={54} />
         <span style={{ flex: 1, minWidth: 0 }}>
@@ -253,7 +331,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         </span>
         <span style={{ ...OSW, fontSize: 18, color: INK }}>›</span>
       </button>}
-      <div style={caixa}>
+      {!semConta && <div style={caixa}>
         <p style={h3}>🔎 {tr('Procurar técnico', 'Find a manager')}</p>
         <input value={busca} onChange={e => setBusca(e.target.value)} maxLength={30} placeholder={tr('digite o nome de técnico (3 letras ou mais)', 'type a manager name (3+ letters)')}
           style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 13.5, fontWeight: 700, color: INK, background: '#fff' }} />
@@ -269,8 +347,36 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
               : <button style={bt(GREEN, '#fff')} onClick={() => setPerfil(a.uid)}>{tr('ver perfil', 'view')}</button>}
           </div>
         ))}
-      </div>
-      {Array.isArray(lista) && <>
+      </div>}
+      {Array.isArray(lista) && <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking dos amigos', 'Friends ranking')}`]] as const).map(([k, rot]) => (
+          <button key={k} onClick={() => setAba(k)} style={{ ...bt(aba === k ? INK : '#fff', aba === k ? GOLD : INK), flex: 1, padding: 8, fontSize: 12.5 }}>{rot}</button>
+        ))}
+      </div>}
+      {Array.isArray(lista) && aba === 'ranking' && (() => {
+        // títulos de sala online NESTA semana (segunda a domingo), eu + amigos aceitos
+        const linhas = [
+          ...(eu ? [{ uid: eu.uid, nome: eu.p?.nome ?? tr('Você', 'You'), t: eu.p?.semana?.titulos ?? 0, souEu: true, rival: false }] : []),
+          ...amigos.map(x => ({ uid: x.outro, nome: x.nome, t: x.titulos_semana ?? 0, souEu: false, rival: !!x.rival })),
+        ].sort((a, b) => b.t - a.t || a.nome.localeCompare(b.nome))
+        let pos = 0, ant = -1
+        return <div style={caixa}>
+          <p style={h3}>🏆 {tr('Títulos no online · esta semana', 'Online titles · this week')}</p>
+          {amigos.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '0 0 6px' }}>{tr('Adicione amigos pra disputar o ranking entre vocês.', 'Add friends to compete in your own ranking.')}</p>}
+          {linhas.map((l, i) => {
+            if (l.t !== ant) { pos = i + 1; ant = l.t }
+            return <button key={l.uid} onClick={() => setPerfil(l.uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 6px', borderTop: i ? '1px dashed #d8ccaa' : 'none', background: l.souEu ? '#FFF7DA' : 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: INK, textAlign: 'left' }}>
+              <span style={{ ...OSW, fontSize: 16, width: 30, textAlign: 'center' }}>{pos <= 3 && l.t > 0 ? ['🥇', '🥈', '🥉'][pos - 1] : `${pos}º`}</span>
+              <Rosto uid={l.uid} nome={l.nome} size={32} />
+              <b style={{ flex: 1, minWidth: 0, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.rival ? '🔥 ' : ''}{l.nome}{l.souEu ? ` (${tr('você', 'you')})` : ''}</b>
+              <span style={{ ...OSW, fontSize: 16 }}>{l.t} 🏆</span>
+            </button>
+          })}
+          <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('Zera toda segunda-feira, igual ao ranking semanal.', 'Resets every Monday, like the weekly ranking.')}</p>
+        </div>
+      })()}
+      {Array.isArray(lista) && aba === 'amigos' && <>
+        {salaEspera && <p style={{ ...caixa, background: '#EFE6FF', fontSize: 12, fontWeight: 800, margin: '10px 0 0' }}>📣 {tr(`Você está na sala ${salaEspera}: toque em CHAMAR num amigo online e ele recebe o convite na hora.`, `You are in room ${salaEspera}: tap INVITE on an online friend and they get it right away.`)}</p>}
         {recebidos.length > 0 && <div style={{ ...caixa, background: '#FFF3C4' }}>
           <p style={h3}>📩 {recebidos.length === 1 ? tr('1 pedido de amizade', '1 friend request') : tr(`${recebidos.length} pedidos de amizade`, `${recebidos.length} friend requests`)}</p>
           {recebidos.map(x => linha(x, <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.amizade_id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.amizade_id, false)}>{tr('recusar', 'decline')}</button></span>, <span style={{ color: '#7a4d00' }}>{tr('quer ser seu amigo', 'wants to be your friend')}</span>))}
@@ -278,7 +384,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         <div style={caixa}>
           <p style={h3}>🟢 {tr('Online agora', 'Online now')} ({on.length})</p>
           {on.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nenhum amigo jogando agora.', 'No friends playing right now.')}</p>
-            : on.map(x => linha(x, null, <span style={{ color: GREEN }}>● {ondeEsta(x.tela)}</span>))}
+            : on.map(x => linha(x, botaoSala(x), <span style={{ color: x.sala_status && x.sala_status !== 'waiting' ? '#7a4d00' : GREEN }}>{x.sala_status && x.sala_status !== 'waiting' ? `🎮 ${tr('jogando agora · a sala já começou', 'playing now · the room already started')}` : `● ${ondeEsta(x.tela)}`}</span>))}
         </div>
         <div style={caixa}>
           <p style={h3}>⚪ {tr('Offline', 'Offline')} ({off.length})</p>
@@ -291,6 +397,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         </div>}
         <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '10px 2px 0', lineHeight: 1.4 }}>{tr('Amizade só vale com os dois lados aceitando, e dá pra desfazer quando quiser. Ninguém vê o seu e-mail.', 'A friendship needs both sides to accept, and you can undo it any time. Nobody sees your e-mail.')}</p>
       </>}
+      {Array.isArray(lista) && <BotaoComunidade />}
       {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); carrega(); setRefaz(n => n + 1) }} onAbrirOutro={u => setPerfil(u)} />}
     </Janela>
   )
@@ -332,4 +439,209 @@ function abrePerfilSolto(uid: string) {
   if (!raizPerfil) { const el = document.createElement('div'); el.id = 'perfil-solto'; document.body.appendChild(el); raizPerfil = createRoot(el) }
   vezPerfil++
   raizPerfil.render(<PerfilPublico key={vezPerfil} uid={uid} onClose={() => raizPerfil?.render(null)} />)
+}
+
+// ── 👥 v2 (19/10, liberado pra todos) ──────────────────────────────────────────────────────────────────────────────
+// Mockup aprovado: `scripts/mockups/amigos-todos.png`. Diego: *"entrar só dá se a sala tiver aberta"* e *"chat entre eles…
+// tenho uma comunidade no zap"* → nada de conversa 1:1, vai o botão da comunidade. Banco: migration 20261019…_amigos_v2.
+
+// 🚪 a sala de espera em que EU estou agora (o lobby avisa). Com ela, a lista mostra 📣 CHAMAR nos amigos online.
+let salaEsperaAtual: string | null = null
+const ouvSala = new Set<() => void>()
+export function marcaSalaEspera(code: string | null) {
+  if (salaEsperaAtual === code) return
+  salaEsperaAtual = code; ouvSala.forEach(f => f())
+}
+function useSalaEspera(): string | null {
+  return useSyncExternalStore(f => { ouvSala.add(f); return () => { ouvSala.delete(f) } }, () => salaEsperaAtual)
+}
+function textoConvite(r: string): string {
+  if (r === 'ok') return tr('✅ convite enviado', '✅ invite sent')
+  if (r === 'espera') return tr('⏳ já chamou, espera 1 min', '⏳ already invited, wait 1 min')
+  if (r === 'comecou') return tr('a sala já começou', 'the room already started')
+  if (r === 'nao_amigo') return tr('só dá pra chamar amigo', 'friends only')
+  return tr('não deu agora, tenta de novo', 'didn’t work, try again')
+}
+
+// 🚪 entrar na sala de um amigo: usa a MESMA porta do link de convite (?j=CODE) — o lobby lê o código guardado e entra.
+// Se o lobby já está aberto, ele ouve o evento; se não, a ponte do index.tsx abre o online e o lobby entra sozinho.
+export const EVENTO_ENTRAR_SALA = 'esc-entrar-sala'
+export function entrarNaSala(code: string) {
+  const c = code.trim().toUpperCase()
+  try { sessionStorage.setItem('esc_invite_code', c) } catch { /* ignora */ }
+  window.dispatchEvent(new CustomEvent(EVENTO_ENTRAR_SALA, { detail: c }))
+}
+
+// 💬 sem chat 1:1: a conversa entre amigos é na comunidade do zap (ordem do Diego, 19/10)
+export function BotaoComunidade() {
+  if (!COMUNIDADE_LINK) return null
+  return <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" style={{ ...caixa, display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', background: '#25D366', color: '#fff' }}>
+    <span style={{ fontSize: 26 }}>💬</span>
+    <span style={{ flex: 1 }}><span style={{ display: 'block', ...OSW, fontSize: 15, color: '#fff' }}>{tr('Entrar na comunidade do zap', 'Join the WhatsApp community')}</span>
+      <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#eafff1' }}>{tr('É lá que a galera conversa, marca sala e zoa.', 'That’s where everyone chats, sets up rooms and jokes around.')}</span></span>
+    <span style={{ ...OSW, fontSize: 18, color: '#fff' }}>›</span>
+  </a>
+}
+
+// 🔥 o MEU rival (uid + nome), lido uma vez por sessão — a sala desenha o 🔥 do lado dele
+type Rival = { uid: string; nome: string } | null
+let rivalAtual: Rival | undefined
+let rivalPedido: Promise<void> | null = null
+const ouvRival = new Set<() => void>()
+function buscaRival() {
+  if (rivalPedido) return
+  rivalPedido = (async () => {
+    const { data: s } = await supabase.auth.getSession()
+    if (!s.session) { rivalAtual = null; return }
+    const { data } = await supabase.rpc('esc_meu_rival')
+    rivalAtual = data && (data as { uid?: string }).uid ? data as Rival : null
+  })().catch(() => { rivalAtual = null }).finally(() => ouvRival.forEach(f => f()))
+}
+export function esqueceRival() { rivalPedido = null; rivalAtual = undefined; buscaRival() }
+export function meuRivalAgora(): Rival { return rivalAtual ?? null }
+export function useMeuRival(): Rival {
+  const on = useAmigos()
+  const r = useSyncExternalStore(f => { ouvRival.add(f); return () => { ouvRival.delete(f) } }, () => rivalAtual)
+  useEffect(() => { if (on) buscaRival() }, [on])
+  return on ? r ?? null : null
+}
+
+// 🔔 AVISOS: convites pra sala, pedidos de amizade, amizades aceitas e quem entrou online. UMA leitura (`esc_avisos`) ao abrir
+// e a cada 60s SÓ com a aba visível — nada de canal em tempo real (regra do tráfego, 04/10).
+type Avisos = {
+  convites: { id: number; de: string; nome: string; code: string; status: string | null; em: string }[]
+  pedidos: { id: number; de: string; nome: string; em: string }[]
+  aceitos: { uid: string; nome: string; em: string }[]
+  online: { uid: string; nome: string }[]
+}
+let avisosAtual: Avisos | null = null
+const ouvAvisos = new Set<() => void>()
+const pubAvisos = (a: Avisos | null) => { avisosAtual = a; ouvAvisos.forEach(f => f()) }
+function useAvisos(): Avisos | null { return useSyncExternalStore(f => { ouvAvisos.add(f); return () => { ouvAvisos.delete(f) } }, () => avisosAtual) }
+let lerAvisosAgora: () => void = () => {}
+const SINO_VISTO = 'esc_sino_visto' // quando abri o sininho pela última vez (as "amizades aceitas" antes disso não contam)
+const lerVisto = () => { try { return +(localStorage.getItem(SINO_VISTO) || 0) } catch { return 0 } }
+
+export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
+  const on = useAmigos()
+  const a = useAvisos()
+  const vistosOnline = useRef<Map<string, number>>(new Map()) // uid → quando avisei (máx. 1 aviso por amigo a cada 30 min)
+  const antes = useRef<Set<string> | null>(null)
+  const [toast, setToast] = useState<{ uid: string; nome: string } | null>(null)
+  const [fechados, setFechados] = useState<Set<number>>(new Set())
+  useEffect(() => {
+    if (!on) return
+    let vivo = true
+    const ler = async () => {
+      if (document.visibilityState !== 'visible') return
+      const { data: s } = await supabase.auth.getSession()
+      if (!s.session || !vivo) return
+      const { data } = await supabase.rpc('esc_avisos')
+      if (!vivo || !data) return
+      const av = data as Avisos
+      // 🟢 quem ENTROU online desde a última leitura (a 1ª leitura só tira a foto, não avisa ninguém)
+      const agora = new Set(av.online.map(o => o.uid))
+      if (antes.current) {
+        const novo = av.online.find(o => !antes.current!.has(o.uid) && Date.now() - (vistosOnline.current.get(o.uid) ?? 0) > 30 * 60_000)
+        if (novo) { vistosOnline.current.set(novo.uid, Date.now()); setToast(novo) }
+      } else av.online.forEach(o => vistosOnline.current.set(o.uid, Date.now()))
+      antes.current = agora
+      pubAvisos(av)
+    }
+    lerAvisosAgora = () => { void ler() }
+    void ler()
+    const t = setInterval(() => { void ler() }, 60_000)
+    const vis = () => { if (document.visibilityState === 'visible') void ler() }
+    document.addEventListener('visibilitychange', vis)
+    return () => { vivo = false; clearInterval(t); document.removeEventListener('visibilitychange', vis); lerAvisosAgora = () => {} }
+  }, [on])
+  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 6000); return () => clearTimeout(t) }, [toast])
+  if (!on || !a) return null
+  // ✉️ convite: aparece em qualquer tela, MENOS no meio de partida/leilão (aí espera; o sininho guarda)
+  const convite = ocupado ? null : a.convites.find(c => c.status === 'waiting' && !fechados.has(c.id) && c.code !== salaEsperaAtual) ?? null
+  const fecha = (id: number) => { setFechados(f => new Set(f).add(id)); void supabase.rpc('esc_convite_visto', { p_id: id }) }
+  return <>
+    {toast && !ocupado && createPortal(
+      <div style={{ position: 'fixed', left: '50%', top: 12, transform: 'translateX(-50%)', zIndex: 99970, width: 'calc(100% - 32px)', maxWidth: 360, display: 'flex', alignItems: 'center', gap: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px' }}>
+        <Rosto uid={toast.uid} nome={toast.nome} size={34} />
+        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800 }}><span style={{ color: GREEN }}>●</span> <b>{toast.nome}</b> {tr('entrou no jogo', 'just came online')}</span>
+        <button onClick={() => setToast(null)} aria-label={tr('Fechar', 'Close')} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 15, cursor: 'pointer', color: INK }}>✕</button>
+      </div>, document.body)}
+    {convite && <Janela titulo={tr('📣 Convite pra sala', '📣 Room invite')} onClose={() => fecha(convite.id)}>
+      <div style={{ ...caixa, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Rosto uid={convite.de} nome={convite.nome} size={56} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ ...OSW, fontSize: 18, lineHeight: 1.1 }}>{convite.nome}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginTop: 3 }}>{tr('te chamou pra sala', 'invited you to room')} <b>{convite.code}</b></div>
+        </div>
+      </div>
+      <p style={{ fontSize: 11.5, fontWeight: 700, color: '#555', margin: '8px 2px 0' }}>{salaEsperaAtual ? tr('Você já está numa sala. Saia dela primeiro pra entrar nesta.', 'You are already in a room. Leave it first to join this one.') : tr('A sala ainda está esperando a galera.', 'The room is still waiting for people.')}</p>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        {!salaEsperaAtual && <button style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 11, fontSize: 15 }} onClick={() => { fecha(convite.id); entrarNaSala(convite.code) }}>🚪 {tr('Entrar na sala', 'Join the room')}</button>}
+        <button style={{ ...bt('#fff', INK), padding: 11 }} onClick={() => fecha(convite.id)}>{tr('agora não', 'not now')}</button>
+      </div>
+    </Janela>}
+  </>
+}
+
+// 🔔 o sininho da home: soma convites abertos + pedidos + amizades aceitas desde a última vez que abriu
+export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
+  const on = useAmigos()
+  const a = useAvisos()
+  const [aberto, setAberto] = useState(false)
+  const [visto, setVisto] = useState(lerVisto)
+  const [perfil, setPerfil] = useState<string | null>(null)
+  if (!on || !a) return null // sem conta (ou antes da 1ª leitura): sem sininho
+  const convites = (a?.convites ?? []).filter(c => c.status === 'waiting')
+  const pedidos = a?.pedidos ?? []
+  const aceitos = (a?.aceitos ?? []).filter(x => new Date(x.em).getTime() > visto)
+  const n = convites.length + pedidos.length + aceitos.length
+  const abrir = () => { setAberto(true); const t = Date.now(); try { localStorage.setItem(SINO_VISTO, String(t)) } catch { /* ignora */ } }
+  const fechar = () => { setAberto(false); setVisto(lerVisto()) }
+  const responder = async (id: number, sim: boolean) => { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); lerAvisosAgora() }
+  const linha = (uid: string, nome: string, txt: ReactNode, dir: ReactNode, k: string) => (
+    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: '1px dashed #d8ccaa' }}>
+      <button onClick={() => setPerfil(uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left' }}>
+        <Rosto uid={uid} nome={nome} size={34} />
+        <span style={{ minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{nome}</b> {txt}</span>
+      </button>
+      {dir}
+    </div>
+  )
+  const todos = (a?.aceitos ?? [])
+  return <>
+    <button onClick={abrir} aria-label={tr('Avisos', 'Notifications')} style={{ position: 'relative', width: 40, minWidth: 40, height: 40, minHeight: 40, padding: 0, borderRadius: 12, border: `3px solid ${INK}`, background: '#fff', boxShadow: `2px 2px 0 ${INK}`, fontSize: 19, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      🔔
+      {n > 0 && <span style={{ position: 'absolute', top: -8, right: -8, minWidth: 20, height: 20, borderRadius: 10, background: RED, color: '#fff', border: `2px solid ${INK}`, ...OSW, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{n}</span>}
+    </button>
+    {aberto && <Janela titulo={tr('🔔 Avisos', '🔔 Notifications')} onClose={fechar}>
+      <div style={caixa}>
+        {convites.length + pedidos.length + todos.length === 0 && <p style={{ fontSize: 12.5, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nada novo por aqui. Quando um amigo te chamar pra sala ou te adicionar, aparece aqui.', 'Nothing new. When a friend invites you to a room or adds you, it shows up here.')}</p>}
+        {convites.map(c => linha(c.de, c.nome, <>{tr('te chamou pra sala', 'invited you to room')} <b>{c.code}</b></>,
+          salaEsperaAtual ? null : <button style={bt(GREEN, '#fff')} onClick={() => { void supabase.rpc('esc_convite_visto', { p_id: c.id }); fechar(); entrarNaSala(c.code) }}>🚪 {tr('Entrar', 'Join')}</button>, `c${c.id}`))}
+        {pedidos.map(x => linha(x.de, x.nome, tr('quer ser seu amigo', 'wants to be your friend'),
+          <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.id, false)}>✕</button></span>, `p${x.id}`))}
+        {todos.map(x => linha(x.uid, x.nome, <>{tr('aceitou sua amizade', 'accepted your friend request')} 🤝</>, null, `a${x.uid}`))}
+      </div>
+      <button onClick={() => { fechar(); onAbrirAmigos() }} style={{ ...bt(ROXO, '#fff'), width: '100%', marginTop: 10, padding: 10, fontSize: 13 }}>👥 {tr('Ver meus amigos', 'See my friends')}{a?.online.length ? ` · ${a.online.length} ${tr('online', 'online')}` : ''}</button>
+      {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); lerAvisosAgora() }} onAbrirOutro={u => setPerfil(u)} />}
+    </Janela>}
+  </>
+}
+
+// 🔥 zoeira do rival: ganhei um título numa sala em que o MEU rival está → uma mensagem no chat (uma vez por título)
+export async function zoeiraDoRival(roomId: string, chave: string, enviar: (txt: string) => void) {
+  const r = meuRivalAgora(); if (!r) return
+  try { if (sessionStorage.getItem('esc-rival-zoeira:' + chave)) return } catch { /* ignora */ }
+  const { data } = await supabase.from('room_players').select('user_id').eq('room_id', roomId).eq('user_id', r.uid).maybeSingle()
+  if (!data) return
+  try { sessionStorage.setItem('esc-rival-zoeira:' + chave, '1') } catch { /* ignora */ }
+  const frases: [string, string][] = [
+    [`🔥 Título na cara do rival ${r.nome}! Chora não, que tem mais 🏆`, `🔥 Title right in front of rival ${r.nome}! Don’t cry, there’s more 🏆`],
+    [`🔥 ${r.nome}, olha a taça passando aqui… é minha 😎🏆`, `🔥 ${r.nome}, see that trophy going by… it’s mine 😎🏆`],
+    [`🔥 Mais um pro placar contra o ${r.nome}. Anota aí! 📝🏆`, `🔥 One more on the scoreboard against ${r.nome}. Write it down! 📝🏆`],
+    [`🔥 ${r.nome}, rival bom é rival que assiste eu levantar a taça 🏆`, `🔥 ${r.nome}, a good rival is one who watches me lift the cup 🏆`],
+  ]
+  const f = frases[Math.floor(Math.random() * frases.length)]
+  enviar(tr(f[0], f[1]))
 }

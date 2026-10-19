@@ -40,7 +40,7 @@ import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
-import { PerfilPublico, contaValida, ComPerfil } from './amigos'
+import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA } from './amigos'
 import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
@@ -810,8 +810,10 @@ export function EscLobby() {
   // Pra voltar ao que era: `true` aqui.
   const LIGA_SO_LENDA_ENTRA = false
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
-  const amigosOn = useAmigos() // 👥 18/10: amigos + perfil, só a conta do Diego por enquanto
+  const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
+  const [verAmigos, setVerAmigos] = useState(false) // 👥 19/10: "Chamar amigos" na sala de espera abre a lista com 📣 CHAMAR
+  const meuRival = useMeuRival() // 🔥 o rival ganha uma chama do lado do nome na lista de técnicos
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const championsOn = useChampionsLiberada() // ⭐ Champions: EM BREVE pra geral; só a conta do Diego joga
   // 🏟️ COPAS REGIONAIS (10/10): só a conta do Diego vê, até o OK dele. Copa que o baralho
@@ -1051,6 +1053,31 @@ export function EscLobby() {
     })
     return () => { ativo = false; subscription.unsubscribe() }
   }, [startRecovery])
+
+  // 👥 19/10: a lista de amigos sabe em que sala de ESPERA eu estou (pra mostrar 📣 CHAMAR)
+  useEffect(() => {
+    marcaSalaEspera(phase === 'waiting' && room ? room.code : null)
+  }, [phase, room?.code]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => marcaSalaEspera(null), [])
+  // 🚪 "Entrar na sala" do amigo com o lobby JÁ aberto: mesma porta do link ?j=CODE. Já estou numa sala? Não sai sozinho
+  // (sair mexe na coroa) — avisa e deixa a pessoa decidir.
+  useEffect(() => {
+    const h = (e: Event) => {
+      const code = String((e as CustomEvent<string>).detail || '').toUpperCase()
+      if (!code || !user || recoveringRef.current) return // sem login: o código fica guardado e entra depois de logar
+      clearInvite()
+      if (room) { setRoomError(tr(`Você já está na sala ${room.code}. Saia dela primeiro pra entrar na ${code}.`, `You are already in room ${room.code}. Leave it first to join ${code}.`)); return }
+      void (async () => {
+        const { data: rd } = await supabase.from('game_rooms').select('*').eq('code', code).maybeSingle()
+        if (!rd || rd.game_state?.__game !== tagAtual()) { setRoomError(tr('Sala não encontrada.', 'Room not found.')); return }
+        if (rd.status !== 'waiting') { setRoomError(tr('Essa sala já começou — não dá mais pra entrar.', 'That room already started — you can’t join anymore.')); return }
+        setLoading(true)
+        await enterRoom(rd as RoomInfo)
+      })()
+    }
+    window.addEventListener(EVENTO_ENTRAR_SALA, h)
+    return () => window.removeEventListener(EVENTO_ENTRAR_SALA, h)
+  }, [user, room]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reconecta sozinho se a página recarregou com uma sala salva (ex.: o
   // navegador descartou a aba ao trocar pro WhatsApp e voltar).
@@ -4091,6 +4118,13 @@ export function EscLobby() {
             📋
           </button>
         </div>
+        {amigosOn && (
+          <button onClick={() => setVerAmigos(true)}
+            className="w-full border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}>
+            {tr('👥 Chamar amigos online', '👥 Invite online friends')}
+          </button>
+        )}
+        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
         {shareOk && (
           <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
             ✓ {shareOk === 'code' ? tr('Código copiado', 'Code copied') : ehLigaSala ? tr('Convite copiado — cola no zap', 'Invite copied — paste it in the chat') : tr('Link copiado — cola no zap', 'Link copied — paste it in the chat')}
@@ -4422,7 +4456,7 @@ export function EscLobby() {
                   </div>
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
                 {amigosOn && !duplasOn && contaValida(p.user_id)
-                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm flex-1 text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm flex-1 text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
                   : <span className="font-black text-black text-sm flex-1" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
                 {gala && <GalaMascoteMini clube={gala} />}
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}

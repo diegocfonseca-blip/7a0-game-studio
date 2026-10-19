@@ -35,7 +35,7 @@ import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
-import { ComPerfil, MeusAmigos } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
+import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -2108,6 +2108,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         <div className="ll-lang"><LangToggle /></div>
         <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
       </header>
+      {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
       <section className="ll-intro">
         <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
         <p>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
@@ -6322,7 +6323,7 @@ async function garanteCartaDoTitulo(seasonKey: string) {
   await resilientWrite({ table: 'user_cards', row: { user_id: uid, season_key: seasonKey, origin: 'online', card_name: c.name, card_club: c.club, card_year: c.year, card_pos: c.pos, card_fame: c.fame } })
 }
 function useTitulosNaHora() {
-  const { state } = useEsc()
+  const { state, sendChat } = useEsc()
   const feitos = useRef(new Set<string>())
   const online = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && state.copaMode !== 'champions'
   const ligaCamp = online ? state.champion : null
@@ -6337,6 +6338,9 @@ function useTitulosNaHora() {
     // 🃏 a carta, no aparelho de quem ganhou
     if (eu?.isHuman && eu.id === ligaCamp) vai(`carta:${base}`, () => garanteCartaDoTitulo(base))
     if (eu?.isHuman && copaCamp != null && eu.id === copaCamp) vai(`carta:${base}:copa`, () => garanteCartaDoTitulo(`${base}:copa`))
+    // 🔥 19/10: meu rival está na sala e eu fui campeão → uma zoeira no chat (uma vez por título)
+    if (eu?.isHuman && eu.id === ligaCamp) vai(`rival:${base}`, () => zoeiraDoRival(roomId, base, sendChat))
+    if (eu?.isHuman && copaCamp != null && eu.id === copaCamp) vai(`rival:${base}:copa`, () => zoeiraDoRival(roomId, `${base}:copa`, sendChat))
     // 🖊️ o título, gravado pelo dono da sala
     if (state.isHost) {
       const table = sortedTable(state.league)

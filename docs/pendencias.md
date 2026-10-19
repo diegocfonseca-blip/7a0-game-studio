@@ -115,7 +115,16 @@
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
 
-## 👥 AMIGOS + PERFIL ("estilo Orkut", ideia do Diego 18/10) — ✅ NO AR SÓ NA CONTA DO DIEGO (`AMIGOS_GERAL = false`)
+## 👥 AMIGOS + PERFIL ("estilo Orkut", ideia do Diego 18/10) — ✅ LIBERADO PRA TODOS EM 19/10 (`AMIGOS_GERAL = true`)
+- **v2 (19/10, *"pode fazer p todos"*, mockup `scripts/mockups/amigos-todos.png`)**: abas Amigos / 🏆 Ranking dos amigos (títulos de
+  sala da semana) · 📣 CHAMAR amigo online (só quando EU estou numa sala de espera; botão "👥 Chamar amigos online" no convite da
+  sala) · 🚪 ENTRAR na sala do amigo **só se ela ainda espera** (começou = "🎮 jogando agora · a sala já começou", sem botão) · já
+  estou numa sala? não sai sozinho (sair mexe na coroa) — avisa · 🔥 rival (1 por pessoa, só amigo, só zoeira: chama na lista de
+  técnicos + placar de títulos no perfil + 1 zoeira no chat quando ganho título com ele na sala) · perfil "📊 No online" (posição
+  da semana e do mês + medalhas 🥇🥈🥉 do pódio semanal) · 🔔 sininho embaixo de MINHA CONTA (convites, pedidos, aceitos) · aviso
+  "fulano entrou no jogo" (1 por amigo a cada 30 min) · convite em janela em qualquer tela, MENOS partida/leilão.
+- 🚫 **SEM CHAT 1:1** (*"tenho uma comunidade no zap"*): vai o botão "💬 Entrar na comunidade do zap". Não repropor chat.
+- Tráfego: `esc_avisos` ao abrir + a cada 60s só com a aba visível (nada de canal). Banco: migration `20261019120000_amigos_v2.sql`.
 - 🚫 **COMUNIDADES: NÃO FAZER** (*"esse negócio de comunidade é doideira, melhor não"*). Não repropor.
 - Feito: `amigos.tsx` (PerfilPublico · MeusAmigos · BotaoAmigos), botão "👥 AMIGOS" na HOME, do lado da Loja (18/10: Diego tirou da área de Minhas ligas — "não tem nada a ver"), toque no nome na sala de
   espera abre o perfil. Banco: `esc_amizades` + 5 funções (migration 20261018030000). Falta: "chamar pra sala"/"entrar" (precisa de

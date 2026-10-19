@@ -708,11 +708,11 @@ export function usePregaoAberto(): boolean {
   return pregaoAbertoOk
 }
 
-// ─── 👥 AMIGOS + PERFIL (18/10) — em construção, só pra conta do Diego ─────────────────────────────────────────
+// ─── 👥 AMIGOS + PERFIL (18/10) — LIBERADO PRA TODOS EM 19/10 (*"pode fazer p todos"*) ─────────────────────────
 // Ideia dele ("estilo Orkut", sem as comunidades, que ele cortou: *"é doideira, melhor não"*): toque no nome → adicionar
 // amigo / ver perfil com títulos; "👥 Amigos" na home. Mockup aprovado: `scripts/mockups/amigos-perfil.png`.
 // Pra abrir pra todos: AMIGOS_GERAL = true.
-const AMIGOS_GERAL = false
+const AMIGOS_GERAL = true
 const AMIGOS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let amigosOk = AMIGOS_GERAL
 function applyAmigos(email?: string | null): void {
