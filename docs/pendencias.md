@@ -1,3 +1,10 @@
+## ☁️ Salvar carreira sem plano → janela com os planos (19/10) — ✅ NO AR
+Amigo do Diego achou que o salvar estava com bug: conta grátis (carreira nova salva só no aparelho desde 07/10) e o aviso era uma
+faixinha que sumia. Agora `JanelaNuvemPlanos` (nuvem-planos.tsx) abre ao apertar 💾 Salvar (FaixaSalvar, central.tsx) ou 🚪 Sair e
+salvar (pyramidseason) sem plano: só ⭐ Craque · 👑 Lenda (Pix na hora) + "Conheça todos os planos" (`?apoie=nuvem`). Ordem dele:
+NÃO falar "salvo no celular". Fechar a janela do "Sair e salvar" sai pro menu, como antes. Mockup `scripts/mockups/salvar-gratis.png`.
+Pendente: passe mensal (mockup `passes-mensais.png`) entra como 3ª opção aqui quando sair.
+
 ## 📊 Perfil: ranking da ÚLTIMA carreira (19/10) — ✅ NO AR
 - Pedido: *"ranking da pessoa na temporada que ela tá da última carreira… tipo 43 da temporada 360"*. `esc_perfil_rank` agora pega a
   última carreira que subiu pro ranking (antes: a melhor) e conta com `esc_pyramid_career_rank` (a mesma do ranking global).

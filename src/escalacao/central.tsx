@@ -15,7 +15,8 @@
 //   📊 a TABELA resumida e a 🗓️ AGENDA das copas. Tocar leva pra aba certa.
 // Tudo que aparece aqui JÁ apareceu em outra aba — a Central não sabe de nada
 // que a tela não saiba. 🔒 Só a conta do Diego vê (`useCentralCarreira`).
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { CardColetiva, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
 import { Escudo } from './escudos'
 import { getLang, useT } from './lang'
@@ -103,17 +104,22 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
     }
   })()
   const ocupado = s.estado === 'salvando'
-  return (
+  // ☁️ 19/10 (Diego): conta sem plano apertou Salvar → abre os planos (a faixinha que sumia em 2 s parecia bug)
+  const [planos, setPlanos] = useState(false)
+  useEffect(() => { if (s.estado === 'salvo_aparelho') setPlanos(true) }, [s.estado])
+  const salvar = () => { const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
+  return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
       <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
       <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
       {s.onCraque && <button onClick={s.onCraque} style={{ ...OSW, fontSize: 11, letterSpacing: '.04em', color: '#fff', background: '#7C3AED', border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 9px', boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>{t('⭐ Craque', '⭐ Star')}</button>}
-      <button onClick={s.onClick} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
+      <button onClick={salvar} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
         {t('💾 Salvar', '💾 Save')}
       </button>
       </span>
     </div>
-  )
+    {planos && <JanelaNuvemPlanos onClose={() => setPlanos(false)} />}
+  </>)
 }
 
 const ordinal = (n: number) => getLang() === 'en' ? `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}` : `${n}º`

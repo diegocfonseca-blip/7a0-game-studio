@@ -80,6 +80,7 @@ import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLi
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
 import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps } from './central'
+import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
@@ -7924,6 +7925,7 @@ export function PyramidSeasonScreen() {
   const saf2Migrar = saf2Ui && precisaMigrar({ temSaf: !!state.careerFilial, tem2o: !!segundoClube(state), migrado: state.saf2?.migrado })
   const [saf2MigrarDepois, setSaf2MigrarDepois] = useState(false)
   const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
+  const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
@@ -11707,15 +11709,17 @@ export function PyramidSeasonScreen() {
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
         ) : (
           <button
-            onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); dispatch({ type: 'GO_LOBBY' }) }}
+            onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }}
             className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🚪 Sair e salvar carreira', '🚪 Exit and save career')}
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{soAparelhoPe
-              ? tr('Fica salva neste aparelho. Pra guardar na nuvem e continuar em outro celular, só no ⭐ Craque.', 'It stays saved on this device. To keep it in the cloud and continue on another phone, only with ⭐ Star.')
+              ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
         )}
+        {/* ☁️ 19/10: sem plano, o "Sair e salvar" mostra os planos antes de sair (fechar a janela = sai pro menu, como sempre) */}
+        {planosSair && <JanelaNuvemPlanos onClose={() => { setPlanosSair(false); dispatch({ type: 'GO_LOBBY' }) }} />}
       </div>
     </div>
     </RitmoCampoProvider>
