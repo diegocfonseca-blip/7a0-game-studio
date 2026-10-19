@@ -6,6 +6,7 @@
 import { readFileSync, mkdirSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 const b64 = f => readFileSync(f).toString('base64')
+const CARTA = n => `data:image/png;base64,${b64(`scripts/mockups/carta-${n}.png`)}`
 const FONTES = [500, 700].map(w => `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}) format('woff2');font-weight:${w}}`).join('')
 const G = { bege: 'linear-gradient(160deg,#DBD1B5,#CBBF9E 55%,#B2A583)', roxo: 'linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', prata: 'linear-gradient(160deg,#F4F7FB,#CBD4DE 52%,#9BA7B5)', ouro: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)' }
 
@@ -18,7 +19,7 @@ const ordem = (atual) => {
 const tela1 = `<div class="fone">
   ${topo('LIGA DA FIRMA · TEMPORADA 1', 'o começo: todo mundo no mesmo buraco')}
   <div class="aviso"><b>🔨 LEILÃO DOS PERNAS-DE-PAU</b><p>Na 1ª temporada só vão a leilão jogadores <b>fracos</b>. Ninguém começa com craque.</p></div>
-  <div class="carta"><div class="pos">ZAG</div><div class="nome">Zé Carlos</div><div class="clube">Juventus-SP · 1996</div><div class="nivel"><span style="color:#6B5E3F">PROFISSIONAL</span> 52–60</div></div>
+  <div class="real"><img src="${CARTA('muralha')}"></div>
   <div class="aviso verde"><b>📋 E DEPOIS?</b><p>Acabou a temporada, vem o <b>DRAFT</b>: cada técnico pega <b>1 jogador</b>, de <b>todos do jogo</b>. Lenda inclusa.</p></div>
   <div class="escada"><div><b>T1</b><small>leilão fraco</small></div><span>→</span><div><b>T2</b><small>+1 do draft</small></div><span>→</span><div><b>T3</b><small>+1 do draft</small></div><span>→</span><div><b>…</b><small>o time cresce</small></div></div>
   <p class="dica">Cada jogador é <b>único na liga</b>: tem um Neymar só, e é de quem pegar primeiro.</p>
@@ -36,7 +37,7 @@ const tela3 = `<div class="fone">
   ${topo('NOITE DO DRAFT · TEMPORADA 2', 'a carta virou pra sala inteira ao mesmo tempo')}
   ${ordem(2)}
   <div class="anuncio"><small>COM A 2ª ESCOLHA DO DRAFT, FABULOUS EC ESCOLHE…</small></div>
-  <div class="carta revelada"><div class="pos">ATA</div><div class="selo">2ª ESCOLHA</div><div class="nome">Romário</div><div class="clube">Vasco · 1993</div><div class="nivel"><span>LENDA</span> 90–96</div></div>
+  <div class="real"><img src="${CARTA('romario')}"></div>
   <p class="zoeira">😱 K9 FC: "ERA O MEU!!" — ele ia no Romário na 3ª.</p>
   <p class="dica">Agora é a vez do K9 FC. O Romário some da lista de todo mundo.</p>
 </div>`
@@ -49,13 +50,12 @@ const tela4 = `<div class="fone">
   <div class="filtros"><span class="on">Todos</span><span>GOL</span><span>LAT</span><span>ZAG</span><span>MEI</span><span>ATA</span></div>
   <div class="lista">
     ${lin('ATA', 'Neymar', 'Barcelona · 2015', '', '', 'Butinas FC')}
-    ${lin('ATA', 'Romário', 'Vasco · 1993', '', '', 'Fabulous EC')}
+    ${lin('ATA', 'Romário', 'Vasco · 2000', '', '', 'Fabulous EC')}
     ${lin('MEI', 'Zico', 'Flamengo · 1981', 'LENDA', '#FFE79A')}
-    ${lin('ATA', 'Ronaldo', 'Inter · 1998', 'LENDA', '#FFE79A')}
-    ${lin('ZAG', 'Thiago Silva', 'PSG · 2016', 'CRAQUE', '#E9DDFE')}
+    ${lin('ZAG', 'Thiago Silva', 'Fluminense · 2008', 'CRAQUE', '#E9DDFE')}
   </div>
   <div class="sai"><b>🔄 QUEM SAI PRA ELE ENTRAR?</b><p>O time tem vaga fixa. Escolhendo o Zico (MEI), sai um dos seus meias — e ele volta pro monte da liga.</p>
-    <div class="sais"><span>Zé Carlos · 58</span><span>Tião · 55</span><span>Bira · 53</span></div></div>
+    <div class="sais"><span>Léo Lima</span><span>Adryan</span><span>Perdigão</span></div></div>
 </div>`
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
@@ -99,6 +99,7 @@ h1{font:700 34px Oswald;text-transform:uppercase;margin:0 0 4px}.sub{margin:0 0 
 .li.tomado{opacity:.45;background:#eee}.li.tomado em{margin-left:auto;font-size:11px;font-weight:800;font-style:normal;color:#C2452F}
 .sai{background:#fff;border:3px solid #0C0C0C;border-radius:13px;padding:10px 12px}.sai b{font:700 15px Oswald}.sai p{margin:4px 0 8px;font-size:12px;font-weight:600;line-height:1.35}
 .sais{display:flex;gap:6px}.sais span{flex:1;text-align:center;font:700 13px Oswald;background:#F4ECD6;border:2px solid #0C0C0C;border-radius:9px;padding:6px 0;box-shadow:2px 2px 0 #000}
+.real{width:220px;margin:0 auto 10px;filter:drop-shadow(0 0 22px rgba(255,196,0,.75))}.real img{width:100%;display:block}
 .leg{margin-top:20px;background:#fff;border:3px solid #0C0C0C;border-radius:14px;padding:12px 16px;box-shadow:4px 4px 0 #000;font-size:13px;font-weight:700;line-height:1.55;max-width:866px}
 </style></head><body>
 <h1>📋 Draft · Minhas Ligas</h1>

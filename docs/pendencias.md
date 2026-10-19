@@ -9425,3 +9425,4 @@ Lembrança dele do PES 19 com os amigos: *"tinha só um Neymar pra todo mundo…
 - Cada escolha é revelada na hora pra sala inteira (carta coberta → vira), suspense.
 - Mockup: `scripts/mockup-draft.mjs` → `scripts/mockups/draft.png` (tempo de 60s (pedido dele), "quem sai pra ele entrar" são propostas minhas).
 - Anúncio com suspense (pedido dele: *"o suspense tem q ser grande"*): pistas a cada 2s — posição → cor da categoria → país+década com as cores do clube → vira a carta. `scripts/mockup-draft-anuncio.mjs` → `scripts/mockups/draft-anuncio.png`.
+- A carta que vira é a CARTA REAL do jogo (`CollectibleCard`: lenda com avatar, craque prata com a inicial) — pedido dele: *"o resultado tem q ser a carta real do jogador"*. No mockup, cartas de verdade do baralho (Romário Vasco 2000, Thiago Silva Fluminense 2008, Alex Muralha Flamengo 2017).
