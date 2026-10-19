@@ -8470,7 +8470,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.copaMode = (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
-      if (nbaCareerRoom) s.copaMode = (s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa'
+      // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
+      // (Libertadores/Champions/Copa do Mundo/regional). Carreira segue o andar (street =
+      // só liga; G League/NBA = playoffs); rápido/liga = playoffs com 8+, senão só liga.
+      // Futebol: onlineNba=false, não entra (idêntico).
+      if (onlineNba) s.copaMode = nbaCareerRoom
+        ? ((s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa')
+        : ((fechada && action.playerNames.length < 8) ? 'liga' : 'liga_copa')
       // 📮 TODA sala usa a caixa de entrada do host (04/10; antes só a Champions, desde 25/09). O
       // recado do convidado vai SÓ pro dono em vez de ser entregue pra sala inteira — numa sala de 5,
       // é 1 entrega em vez de 4 por lance. Mesma estrada da Champions, com os mesmos reservas: se a
