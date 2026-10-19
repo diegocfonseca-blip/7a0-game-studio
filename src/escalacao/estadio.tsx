@@ -568,7 +568,7 @@ const GRASS_HOLES: { x: number; y: number; rx: number; ry: number; at: number }[
   { x: .30, y: .62, rx: 14, ry: 9, at: 60 }, { x: .74, y: .80, rx: 11, ry: 7, at: 80 },
   { x: .12, y: .50, rx: 9, ry: 6, at: 100 },
 ]
-export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk }) {
+export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk; bb?: boolean }) {
   const night = hasExtra(st, 'refl')
   const gramaPct = sectorPct(st, 'grama')
   const gt = gramaPct / 100
@@ -582,7 +582,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   const parts: string[] = []
   parts.push('<defs>')
   for (const k in STANDS) parts.push(`<clipPath id="stc${k}"><polygon points="${P(STANDS[k].pts)}"/></clipPath>`)
-  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lerpHex(DIRT, GRASS, gt, 0)}"/><stop offset="1" stop-color="${lerpHex(DIRT, GRASS, gt, 1)}"/></linearGradient>`)
+  // 🏀 basquete = piso de MADEIRA (quadra); ⚽ futebol = gramado (terra→grama).
+  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bb ? '#d8ab68' : lerpHex(DIRT, GRASS, gt, 0)}"/><stop offset="1" stop-color="${bb ? '#b8894a' : lerpHex(DIRT, GRASS, gt, 1)}"/></linearGradient>`)
   parts.push(`<linearGradient id="stau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f0}"/><stop offset="1" stop-color="${f1}"/></linearGradient>`)
   parts.push(`<linearGradient id="stvd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${v0}"/><stop offset="1" stop-color="${v1}"/></linearGradient>`)
   parts.push('<pattern id="stcrowd" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#0C0C0C" opacity=".25"/><circle cx="6" cy="6" r="1.4" fill="#fff" opacity=".55"/></pattern>')
@@ -600,22 +601,34 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   parts.push('<ellipse cx="180" cy="298" rx="160" ry="10" fill="#000" opacity=".16"/>')
   // gramado
   const px = 105, py = 75, pw = 130, ph = 160, cx = px + pw / 2, cy = py + ph / 2
-  parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="#123f22" stroke-width="2.5"/>`)
-  for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${(0.02 + 0.07 * gt).toFixed(2)}"/>`)
-  // 🕳️ buracos de terra que vão fechando conforme o gramado melhora (0% = todos
-  // abertos, terra pura; 100% = nenhum, igual o campo bonito de sempre)
-  for (const h of GRASS_HOLES) {
-    const windowStart = h.at - 20
-    const scale = Math.max(0, Math.min(1, (h.at - gramaPct) / (h.at - windowStart)))
-    if (scale <= 0) continue
-    parts.push(`<ellipse cx="${(px + h.x * pw).toFixed(1)}" cy="${(py + h.y * ph).toFixed(1)}" rx="${(h.rx * scale).toFixed(1)}" ry="${(h.ry * scale).toFixed(1)}" fill="#5c4530" opacity="${(0.55 + 0.25 * scale).toFixed(2)}"/>`)
+  parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="${bb ? '#8a5f2c' : '#123f22'}" stroke-width="2.5"/>`)
+  if (!bb) {
+    for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${(0.02 + 0.07 * gt).toFixed(2)}"/>`)
+    // 🕳️ buracos de terra que vão fechando conforme o gramado melhora (0% = todos
+    // abertos, terra pura; 100% = nenhum, igual o campo bonito de sempre)
+    for (const h of GRASS_HOLES) {
+      const windowStart = h.at - 20
+      const scale = Math.max(0, Math.min(1, (h.at - gramaPct) / (h.at - windowStart)))
+      if (scale <= 0) continue
+      parts.push(`<ellipse cx="${(px + h.x * pw).toFixed(1)}" cy="${(py + h.y * ph).toFixed(1)}" rx="${(h.rx * scale).toFixed(1)}" ry="${(h.ry * scale).toFixed(1)}" fill="#5c4530" opacity="${(0.55 + 0.25 * scale).toFixed(2)}"/>`)
+    }
   }
   const W = 'rgba(255,255,255,.85)'
   parts.push(`<rect x="${px + 6}" y="${py + 6}" width="${pw - 12}" height="${ph - 12}" fill="none" stroke="${W}" stroke-width="1.6"/>`)
   parts.push(`<line x1="${px}" y1="${cy}" x2="${px + pw}" y2="${cy}" stroke="${W}" stroke-width="1.6"/>`)
-  parts.push(`<circle cx="${cx}" cy="${cy}" r="19" fill="none" stroke="${W}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="2.2" fill="${W}"/>`)
-  parts.push(`<rect x="${px + 34}" y="${py + 6}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
-  parts.push(`<rect x="${px + 34}" y="${py + ph - 23}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${bb ? 15 : 19}" fill="none" stroke="${W}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="2.2" fill="${W}"/>`)
+  if (bb) {
+    // 🏀 garrafão + círculo de lance livre + aro (dourado) nos dois lados da quadra
+    for (const top of [true, false]) {
+      const ky = top ? py + 6 : py + ph - 6 - 40
+      parts.push(`<rect x="${cx - 16}" y="${ky}" width="32" height="40" fill="rgba(255,255,255,.08)" stroke="${W}" stroke-width="1.6"/>`)
+      parts.push(`<circle cx="${cx}" cy="${top ? ky + 40 : ky}" r="12" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+      parts.push(`<circle cx="${cx}" cy="${top ? py + 12 : py + ph - 12}" r="3.6" fill="none" stroke="${GOLD}" stroke-width="2.4"/>`)
+    }
+  } else {
+    parts.push(`<rect x="${px + 34}" y="${py + 6}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+    parts.push(`<rect x="${px + 34}" y="${py + ph - 23}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+  }
   // arquibancadas (enchem de torcida conforme o investimento)
   for (const k in STANDS) {
     const s2 = STANDS[k], p = sectorPct(st, k), full = p >= 100
@@ -647,8 +660,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   }
   if (hasExtra(st, 'telao')) {
     parts.push(`<rect x="306" y="14" width="44" height="30" rx="4" fill="#0C0C0C" stroke="${INK}" stroke-width="3"/>`)
-    parts.push('<text x="328" y="30" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="11" fill="#37D067">1×0</text>')
-    parts.push(`<text x="328" y="41" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="7" fill="${GOLD}">GOL!</text>`)
+    parts.push(`<text x="328" y="30" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="11" fill="#37D067">${bb ? '88' : '1×0'}</text>`)
+    parts.push(`<text x="328" y="41" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="7" fill="${GOLD}">${bb ? 'CESTA!' : 'GOL!'}</text>`)
     parts.push(`<line x1="328" y1="44" x2="328" y2="54" stroke="${INK}" stroke-width="3"/>`)
   }
   if (hasExtra(st, 'loja')) {
@@ -668,9 +681,10 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2 }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2, bb = false }: {
   presidencyView?: ReactNode
   cinematic?: boolean
+  bb?: boolean // 🏀 basquete: quadra no lugar do gramado + nome de arena (texto já é bilíngue via getLang)
   // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com `useSaf2()`): troca as regras velhas pelas novas, mostra o
   // painel novo (relógio das 10 temporadas · assumir o comando · vender pela divisão) e a trava da janela
   // dos empréstimos. Sem esta prop a seção da SAF fica EXATAMENTE como sempre foi.
@@ -725,7 +739,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   const [travaCt, setTravaCt] = useState<{ cardId: string; nome: string; pos: string; clube: string; ano: number; jaVenceu: boolean; opcoes: { anos: number; custo: number }[] } | null>(null)
   const [pickIn, setPickIn] = useState(false)
   const [sellingSaf, setSellingSaf] = useState(false)
-  const lvl = stadiumLevel(st)
+  const lvl = stadiumLevel(st, bb)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
   // 🧍 A TORCIDA (Diego 16/09). O jogo JÁ calculava este número e nunca mostrava.
@@ -774,7 +788,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </span>
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>{tr('nível', 'level')} {lvl.n}</span>
         </div>
-        {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} /></CareerStadiumView> : <StadiumSvg st={st} />)}
+        {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} bb={bb} /></CareerStadiumView> : <StadiumSvg st={st} bb={bb} />)}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>

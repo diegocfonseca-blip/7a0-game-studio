@@ -1,3 +1,37 @@
+## 🏀 BidLegends: carreira solo = economia do futebol — REAPLICADA SOBRE A MAIN (19/10)
+
+**Contexto (importante pra outras sessões):** a branch `claude/bidlegends-fase-1-7vtrzu`
+estava com HISTÓRIA SEPARADA da main (sem ancestral comum) e ATRASADA ~177 mil linhas de
+futebol. Ela tinha a economia do basquete (Fatias 0–4) mas apagaria o futebol novo se fosse
+pra main. Decisão: **recriar a branch a partir da main de hoje** (backup da antiga guardado em
+`origin/backup/bidlegends-economia-ca33ac63`) e **reaplicar só a economia do basquete por cima**.
+Assim o futebol fica INTOCADO (é a base). Reverter = apontar pro backup.
+
+**FEITO (núcleo, commit `45268924`):** carreira do basquete agora usa `careerOnline=true` (a
+mesma máquina de economia do futebol: caixa, folha, prêmios por colocação, patrocínio, estádio,
+extrato). A SIMULAÇÃO segue a própria do basquete (EscSeason) — o roteador (index.tsx) bifurca por
+esporte. `tierDivKey` mapeia andar→divisão (street=D, gleague=B, nba=A) e liga as tabelas de
+economia de graça. Travas `sport!=='basquete'` em PLAY_ROUND/SET_TACTIC/FINISH_SEASON/SET_LINEUP/
+CHANGE_FORMATION/SEED_CPU_SQUADS + autosave do futebol: **todas inertes pro futebol** (byte-idêntico).
+Save do basquete isolado em `bl-nba-career`.
+
+**FEITO (arte da arena):** `StadiumSvg`/`StadiumTab`/`estadiodata` ganharam `bb` → QUADRA de madeira
+(garrafão, lance livre, aros dourados), nome de ARENA no lugar de estádio, telão "CESTA!/88", e a
+LENDA da agência destrava pela ARENA 100% (não pela SAF, que o basquete não tem). Tudo com default
+`bb=false` → futebol idêntico. Builda limpo.
+
+**EM ANDAMENTO:** tela 🏢 Clube do basquete (BbClubeOverlay) com abas Arena · Finanças · Agência ·
+2º Clube, reusando os componentes atuais do futebol (StadiumTab/EscritorioTab/FinancasTab/MultiClubeBuy).
+
+**FALTA (próximas fatias, nesta ordem):**
+- Aba **Patrocínio** do basquete: a main trocou o SponsorCard pelo sistema de APOSTA (master história,
+  17/10) — precisa portar esse fluxo pro basquete (feature à parte).
+- **Carreira ONLINE do basquete** (nbaCareerRoom/NEXT_NBA_SEASON_ONLINE): a main NÃO tem o encanamento
+  de carreira online do basquete (lá o online do basquete é só rápido + Minhas Ligas). Trazer com
+  cuidado — e **não dá pra testar aqui** (Supabase realtime não roda headless). Fica pra 2 aparelhos.
+- O RESTO de "tudo igual ao futebol" (pedido do Diego 19/10): varrer modo a modo/aba a aba o que o
+  futebol tem e o basquete ainda não — com REGRA de basquete, sem encostar no futebol.
+
 ## 🚫🤖 "Sem bots" só com 4+ pessoas (19/10) — ✅ NO AR
 `LIGA_FECHADA_MIN = 4` (store). START_ONLINE: `ligaFechada` = escolha do dono E 4+ times; a escolha fica em `ligaFechadaEscolha` e o
 "novo leilão" manda a ESCOLHA (com 4+ volta a valer). Avisos: embaixo do "Sem bots" ao criar/editar e na faixa da sala de espera
