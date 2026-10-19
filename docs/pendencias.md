@@ -137,7 +137,15 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   **tema do Fundador Wen Milan B** (commit `7ac20672`, `temas-sala.tsx`): quando a conta do dono (vittor@tidex.com.br) existir,
   `git cherry-pick 7ac20672` (ou refazer pelo padrão `temaFundador`) junto com o batismo. Não se perdeu nada da main.
 
-## 🎙️ COLETIVA DE IMPRENSA NA CARREIRA (19/10) — ✅ APROVADA (*"adorei… quero sim efeito"*), CODADA, SÓ NA CONTA DO DIEGO
+## 🧠 IDEIAS PRA CARREIRA (19/10, depois da coletiva) — ❌ NENHUMA APROVADA (*"não gostei de nada… tá foda"*)
+- Ele quer **"algo mais real, igual vida real de futebol, na qual o usuário é presidente do time"**. Recusou TODAS, em 4 rodadas:
+  propostas de bot pelos seus jogadores · estadual no começo da temporada · bastidores com escolha rápida · entrevista do jogador ·
+  técnico com voz · linha do tempo do clube · recordes do clube · torcida viva · excursão de pré-temporada · conselho com meta ·
+  Copa das Carreiras (seu clube × carreira de outros usuários) · Mesa do Presidente (negociação, empresário, eleição do clube).
+- ⚠️ MESMA LIÇÃO de 04/10 (cartas do álbum): rodada de ideias seguidas trava ele. **Não despejar lista de novo.** Esperar ele trazer a
+  ideia, ou fazer UMA pergunta sobre o que ele imagina (um exemplo de jogo/momento que ele gostaria de viver como presidente).
+
+ — ✅ APROVADA (*"adorei… quero sim efeito"*), CODADA, SÓ NA CONTA DO DIEGO
 - Decisões dele na aprovação: **com efeito** no jogo (pequeno e explicado) · **pular** não pune, mas 3 pulos seguidos acordam o
   Rogério e a fama vira "O Mudo" · junto vão o **item 2** (coletiva antes da final) e o **4** (frases da temporada no jornal do fim).
   Ficaram pra depois: 🎤 entrevista do jogador (é um CARTÃO na Central com 1 toque, não vídeo — ele perguntou *"tenho que
