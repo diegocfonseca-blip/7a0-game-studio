@@ -96,3 +96,17 @@
 /* 🔔 19/10: o sininho dos amigos, embaixo de MINHA CONTA (no header não cabia no celular) */
 .ll-sino{position:absolute;top:84px;right:34px;z-index:2}
 @media(max-width:650px){.ll-sino{top:68px;right:17px}}
+/* 🏀 19/10: arte própria do BidLegends (mandada pelo Diego). Só a home do basquete tem a classe
+   .ll-home-bb, então só quem abre o basquete baixa este arquivo — o futebol segue com a home-leilao.
+   A arte é em PÉ (a do futebol é deitada): pra cair nas MESMAS alturas do futebol no celular
+   (lustre embaixo do header, vitrines no meio, martelo logo acima de "ESCOLHA COMO…") ela desenha
+   com 660px de altura; a sobra dos lados é a própria arte, desfocada e escurecida (::before). */
+.ll-home-bb .ll-art{background:#0b0a10;overflow:hidden}
+.ll-home-bb .ll-art:before,.ll-home-bb .ll-art:after{content:'';position:absolute;inset:0;background:url('./img/home-bidlegends-v01.webp') center top / auto 100% no-repeat}
+.ll-home-bb .ll-art:before{background-size:cover;filter:blur(18px) brightness(.45);transform:scale(1.1)}
+@media(max-width:650px){.ll-home-bb .ll-art:after{background-size:auto 660px}}
+/* ⚽ botão de voltar pro futebol: o som do jogo é FIXO na tela, no vão logo à esquerda de MINHA
+   CONTA (é pra isso o padding-left do .ll-account). O ⚽ fica à esquerda do som: o vão vira margem dele. */
+.ll-home-bb .ll-account{padding-left:0}
+.ll-home .ll-account .ll-bb-futebol{min-width:0;width:44px;padding:0;font-size:21px;margin-right:44px}
+@media(max-width:650px){.ll-home .ll-account .ll-bb-futebol{width:36px;font-size:17px;margin-right:39px}}

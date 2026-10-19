@@ -69,7 +69,12 @@ conteúdo de basquete — *"não é pra mudar visual, não é pra mudar nada"*. 
 pro futebol, MINHA CONTA), mesma arte de fundo (a do futebol **por enquanto** — ainda não há arte de basquete,
 OpenArt sem crédito), 3 modos (Partida Rápida · Jogar Online · Modo Carreira "Street League à NBA"), **Loja do
 Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a conta do Diego vê (BASQUETE_TESTERS).
-- FALTA: a **arte cinematográfica de basquete** pro fundo (quando o OpenArt tiver crédito ou o Diego mandar).
+- ✅ 19/10: **arte de fundo própria do basquete** (o Diego mandou): `img/home-bidlegends-v01.webp` (900px, ~200 KB,
+  só baixa quem abre o basquete — classe `.ll-home-bb`). A arte é EM PÉ (a do futebol é deitada), então no celular
+  ela desenha com 660px de altura pra lustre/vitrines/martelo caírem nas MESMAS alturas do futebol; a sobra dos lados
+  é a própria arte desfocada. Consertado junto: o botão ⚽ ficava escondido embaixo do 🔇 (som é fixo na tela).
+- ⚠️ A arte tem o **logo oficial da NBA** (bandeiras e cartas). Avisado ao Diego: ok enquanto só ele vê; antes de
+  liberar o basquete pra todos, trocar por versão sem o logo.
 - Textos menores que sobraram: label 'Obra no estádio' no extrato (FinancasTab, sem prop bb), "Sua escalação"
   no reveal (→ "Seu quinteto"), "artilheiro" em 2 modais de entrar na liga, e o corpo da aba Arena ainda diz
   "estádio" em alguns parágrafos secundários (o título já virou "arena").

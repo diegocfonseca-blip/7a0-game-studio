@@ -1660,7 +1660,7 @@ function BidLegendsHome() {
   const [showManual, setShowManual] = useState(false)
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
-    <><div className="ll-home">
+    <><div className="ll-home ll-home-bb">
       <div className="ll-art" />
       <div className="ll-shade" />
       <header className="ll-header">
@@ -1668,7 +1668,7 @@ function BidLegendsHome() {
         <div className="ll-lang"><LangToggle /></div>
         <div className="ll-account">
           {/* 🏀 voltar pro futebol — o BidLegends é a aba de basquete */}
-          <button onClick={() => setSport('futebol')} title={t('Ir pro futebol', 'Go to soccer')} style={{ padding: '7px 11px' }}>⚽</button>
+          <button className="ll-bb-futebol" onClick={() => setSport('futebol')} title={t('Ir pro futebol', 'Go to soccer')}>⚽</button>
           <button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button>
         </div>
       </header>
