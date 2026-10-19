@@ -1,3 +1,7 @@
+## 🏀💵 Basquete: preços em dólar (19/10) — ⏳ BASE COMBINADA, cobrança NÃO feita
+Craque US$ 9,99 · Lenda 19,99 · Batismo 49,99 · Fundador 79,99 (*"isso aí, mais ou menos isso!"*). Detalhe em
+`docs/conceito-basquete.md` (§ Preços nos EUA). Falta: conta Stripe ou PayPal do Diego + ligar a cobrança em cartão no jogo.
+
 ## 🚫🤖 "Sem bots" só com 4+ pessoas (19/10) — ✅ NO AR
 `LIGA_FECHADA_MIN = 4` (store). START_ONLINE: `ligaFechada` = escolha do dono E 4+ times; a escolha fica em `ligaFechadaEscolha` e o
 "novo leilão" manda a ESCOLHA (com 4+ volta a valer). Avisos: embaixo do "Sem bots" ao criar/editar e na faixa da sala de espera
