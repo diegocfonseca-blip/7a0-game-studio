@@ -121,9 +121,16 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   várzea/clubes de uma sala de futebol mexida antes, e a tela final nunca abre a Copa do Mundo no basquete.
   Partida Rápida offline do basquete não herda mais o jeito de lance da última partida de futebol.
   Fora do basquete (são do futebol): Copa do Mundo, Libertadores, Champions, Kings League, Bafo.
-  🧱 **Leilão de Clubes com franquias da NBA: DÁ PRA FAZER** (bom até ~13 na sala; 21 franquias têm as 5 posições)
-  — falta nome de pacote do basquete ("Armadores dos Lakers") e não misturar com o histórico de clubes do futebol.
-  Esperando o Diego dizer se quer.
+  🧱 **Leilão de Clubes com franquias da NBA — FEITO (19/10, Diego: "quero da NBA"), esperando o OK visual.** Pacote =
+  POSIÇÃO de uma franquia ("🏀 Armadores dos Lakers" · "Lakers Point Guards", `nomePacote`). Memória de "franquias que
+  já saíram" PRÓPRIA do basquete (`bl-clubes-recentes-v1`, só no aparelho — não suja a do futebol nem a do servidor).
+  Convocação (`convocacao-clubes.tsx`) agora lê as vagas da MESMA régua do motor (`vagasBase` = `baseSlots`): 1 por
+  posição no basquete, com PG/SG/SF/PF/C e uma quadra de madeira no lugar do campo. Opção liberada na sala de basquete
+  (Rápido e Minhas Ligas). `START_NBA` aceita `clubes` por dentro (sem botão offline). Trava `npm run clubes-nba`:
+  4, 10, 16 e 20 times fecham o quinteto só com NBA, sem repetir jogador, sem tapa-buraco.
+  ❓ O Diego perguntou se o basquete tem baralho Europa/Mundo: NÃO — só a NBA (432 cartas, ~30 franquias). Fazer
+  EuroLeague/FIBA = cartas novas de gente real (lista por lote, com aprovação dele). Ele acha que o público dos EUA
+  conhece mais a NBA; ficou de decidir.
 - ⏸️ **CARREIRA ONLINE DO BASQUETE: ESPERAR A DO FUTEBOL (19/10, ordem do Diego).** Palavras dele: *"eu ainda tô
   construindo lá no do futebol. Quando eu terminar do futebol, aí você faz aqui no basquete também"*. A do futebol
   está sendo refeita (Carreira Online v2 na main: sala, clube, dono/vice/comandante do dia, PRONTO). A versão do

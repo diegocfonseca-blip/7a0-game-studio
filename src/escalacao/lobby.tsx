@@ -1911,7 +1911,8 @@ export function EscLobby() {
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
-    if (getSport() === 'basquete') for (const k of ['mundoNaLiga', 'regionalNaLiga', 'varzea', 'clubes'] as const) delete (gs as Record<string, unknown>)[k]
+    // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
+    if (getSport() === 'basquete') for (const k of ['mundoNaLiga', 'regionalNaLiga', 'varzea'] as const) delete (gs as Record<string, unknown>)[k]
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3422,13 +3423,15 @@ export function EscLobby() {
                 rápidos e minhas ligas"). O padrão é sempre Jogador. `CLUBES_GERAL` segue sendo o
                 interruptor: desligado, a opção aparece com NOVO mas travada.
                 Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido.
-                🏀 Leilão de CLUBES é do futebol (usa os 3 baralhos de clube) — não aparece no basquete. */}
-            {(roomMode === 'rapido' || roomMode === 'liga') && !nbaSala && (
+                🏀 19/10 (Diego: "quero da NBA"): no basquete o pacote é a POSIÇÃO de uma franquia ("Armadores dos Lakers"). */}
+            {(roomMode === 'rapido' || roomMode === 'liga') && (
               <SegField label={tr('Tipo de leilão', 'Auction type')}>
                 <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
                   travados={clubesOn ? [] : ['true']} /> {/* 🏷️ 12/10: selo NOVO tirado (ordem do Diego) */}
                 <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                  {rapidoClubes
+                  {rapidoClubes && nbaSala
+                    ? tr('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Cada um leva um pacote por posição e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto (90s). Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). Everyone takes one pack per position and, at the end, CALLS UP who plays — 1 per position, your starting five (90s). Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
+                    : rapidoClubes
                     ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
                     : clubesOn
                       ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
@@ -3448,7 +3451,7 @@ export function EscLobby() {
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho fixo: Brasil + Europa', '🌎 Fixed deck: Brazil + Europe')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.', 'Career uses both together (~700 names) to fill the 80 teams of the 4 divisions.')}</p>
               </div>
-            ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes) ? (
+            ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes && !nbaSala) ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho: Todos (BR+EU+Mundo)', '🌎 Deck: All (BR+EU+World)')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('No leilão de clubes precisa dos 3 baralhos: é o que dá clube suficiente pra cada setor ter pacotes diferentes.', 'The club auction needs all 3 decks: that is what gives each sector enough different clubs.')}</p>
@@ -4246,7 +4249,7 @@ export function EscLobby() {
                   <Seg small options={[['envelope', tr('✉️ Envelope', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as [LanceLiga, string][]}
                     value={modoEdit.lance} onSet={v => setModoEdit(m => m && { ...m, lance: v })} travados={champ || !pregaoAbertoOk ? ['pregao'] : undefined} />
                 </div>
-                {clubesOn && !nbaSala && (
+                {clubesOn && (
                   <div>
                     <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('O que vai a leilão', 'What goes up for auction')}</p>
                     <Seg small options={[[false, tr('🃏 Jogador', '🃏 Player')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]}

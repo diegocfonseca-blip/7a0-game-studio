@@ -1273,8 +1273,14 @@ const SETOR_PACOTE: Record<Sector, { ic: string; pt: string; en: string }> = {
 }
 /** "Goleiros do Palmeiras" — o nome do pacote no idioma da pessoa (o clube nunca traduz) */
 export function nomePacote(c: Card): string {
+  const clube = c.pacote?.clube ?? c.club
+  // 🏀 basquete: a posição da NBA + a franquia ("Armadores dos Lakers" · "Lakers Point Guards")
+  if (getSport() === 'basquete') {
+    const pl = POS_LABELS.basquete[c.pos].plural
+    return getLang() === 'en' ? `🏀 ${clube} ${pl.en}` : `🏀 ${pl.pt} dos ${clube}`
+  }
   const t = SETOR_PACOTE[c.pos]
-  return `${t.ic} ${getLang() === 'en' ? t.en : t.pt} ${c.pacote?.clube ?? c.club}`
+  return `${t.ic} ${getLang() === 'en' ? t.en : t.pt} ${clube}`
 }
 function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean; claro?: boolean }) {
   const cartas = c.pacote?.cartas ?? []

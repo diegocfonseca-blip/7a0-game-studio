@@ -131,6 +131,8 @@ function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' 
 function baseSlots(formation: FormationKey, pos: Sector): number {
   return ACTIVE_SPORT === 'basquete' ? NBA_BASE_SLOTS : FORMATIONS[formation][pos]
 }
+/** a MESMA régua de vagas que o motor usa (pra tela não ter regra própria — ver convocação dos Clubes) */
+export function vagasBase(formation: FormationKey, pos: Sector): number { return baseSlots(formation, pos) }
 // 🏀🌐 REANCORA O ESPORTE PELO ESTADO (14/09 — online do basquete).
 // `ACTIVE_SPORT`/`ACTIVE_CATALOG`/`NBA_BASE_SLOTS` são globais do MÓDULO: eles se
 // perdem num F5 e NÃO viajam no pacote que o host manda pro convidado. Até aqui todo
@@ -1960,6 +1962,19 @@ let RECENT_CLUBES: Map<string, Sector>[] = (() => {
     return Array.isArray(arr) ? arr.slice(-CLUBES_MEM_MAX).map(l => new Map(l)) : []
   } catch { return [] }
 })()
+// 🏀 19/10: o basquete tem memória PRÓPRIA (franquias da NBA), só no aparelho — senão as partidas de basquete
+// ocupariam as 8 vagas da memória do futebol (e a do servidor, que é de todo mundo) e o futebol voltaria a repetir clube.
+const CLUBES_MEM_KEY_NBA = 'bl-clubes-recentes-v1'
+let RECENT_CLUBES_NBA: Map<string, Sector>[] = (() => {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(CLUBES_MEM_KEY_NBA) : null
+    const arr = raw ? JSON.parse(raw) as [string, Sector][][] : []
+    return Array.isArray(arr) ? arr.slice(-CLUBES_MEM_MAX).map(l => new Map(l)) : []
+  } catch { return [] }
+})()
+function guardaClubesRecentesNba() {
+  try { localStorage.setItem(CLUBES_MEM_KEY_NBA, JSON.stringify(RECENT_CLUBES_NBA.map(m => [...m]))) } catch { /* fica só na memória */ }
+}
 function guardaClubesRecentes(nova?: Map<string, Sector>) {
   try { localStorage.setItem(CLUBES_MEM_KEY, JSON.stringify(RECENT_CLUBES.map(m => [...m]))) } catch { /* sem espaço/privado: fica só na memória */ }
   // 🌐 05/10: a partida também vai pro SERVIDOR — a próxima sala, de QUALQUER dono, lê
@@ -1989,7 +2004,9 @@ export function puxaClubesRecentes() {
 // Leilão de Clubes. Agora: no boot e logo depois de cada sala de clubes montada (pra próxima).
 if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500) }
 export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
-  if (typeof window !== 'undefined') setTimeout(puxaClubesRecentes, 3000) // atualiza a memória pra PRÓXIMA sala
+  const nba = ACTIVE_SPORT === 'basquete' // 🏀 pacotes = POSIÇÃO de uma franquia da NBA ("Armadores dos Lakers")
+  const RECENTES = nba ? RECENT_CLUBES_NBA : RECENT_CLUBES
+  if (typeof window !== 'undefined' && !nba) setTimeout(puxaClubesRecentes, 3000) // atualiza a memória pra PRÓXIMA sala
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const n = Math.max(1, managers.length)
@@ -2011,10 +2028,10 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
   // 8 partidas atrás quase nada). Menor nota = sai primeiro.
   const nota = (clube: string, pos: Sector) => {
     let t = 0
-    RECENT_CLUBES.forEach((mp, i) => {
+    RECENTES.forEach((mp, i) => {
       // formato novo (05/10): chave "clube·setor" (um clube pode sair em 2 setores);
       // formato velho: chave "clube" → setor. Os dois valem.
-      const w = (i + 1) / RECENT_CLUBES.length
+      const w = (i + 1) / RECENTES.length
       // ⚖️ só conta o MESMO setor: se contasse "saiu em outro setor", clube grande (que sai
       // em todo lugar) ficava sempre atrás de quem SÓ tem goleiro — era o Colo-Colo de novo
       if (mp.has(`${clube}·${pos}`) || mp.get(clube) === pos) t += w
@@ -2074,8 +2091,8 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
   }
   const mem = new Map<string, Sector>()
   for (const pos of SECTORS) for (const k of escolhidos[pos]) mem.set(`${k}·${pos}`, pos)
-  RECENT_CLUBES.push(mem); while (RECENT_CLUBES.length > CLUBES_MEM_MAX) RECENT_CLUBES.shift()
-  guardaClubesRecentes(mem)
+  RECENTES.push(mem); while (RECENTES.length > CLUBES_MEM_MAX) RECENTES.shift()
+  if (nba) guardaClubesRecentesNba(); else guardaClubesRecentes(mem)
   return deck
 }
 
@@ -5427,7 +5444,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
@@ -7744,7 +7761,9 @@ function reducerBase(state: EscState, action: Action): EscState {
     // conteúdo: baralho NBA, franquias como rivais e 1 vaga por posição (=5, o
     // quinteto). O futebol não passa por aqui.
     case 'START_NBA': {
-      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
+      // 🧱 Clubes no basquete (19/10): o pacote é a POSIÇÃO de uma franquia da NBA. Na tela offline ainda não tem o
+      // botão (é da sala online); o campo existe pro motor e pra trava `npm run clubes-nba`.
+      s.leilaoClubes = !!action.clubes; s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
@@ -7768,7 +7787,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const m of s.managers) m.money = NBA_QUICK_BUDGET
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -8417,8 +8437,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       return restored
     }
     case 'START_ONLINE': {
-      // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira nem basquete
-      s.leilaoClubes = !!action.clubes && !action.career && action.sport !== 'basquete'
+      // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira.
+      // 🏀 19/10: no basquete também — o pacote é a POSIÇÃO de uma franquia da NBA (o baralho ativo é o da NBA).
+      s.leilaoClubes = !!action.clubes && !action.career
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'

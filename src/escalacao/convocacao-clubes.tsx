@@ -8,27 +8,36 @@
 // VERDADE — nunca jogador de mentira.
 import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useEsc } from './store'
+import { useEsc, vagasBase } from './store'
+import { POS_LABELS } from './sportcfg'
 import { Shell, Box, nomePacote, CaixaDuplaTrava } from './screens'
 import { useT, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo' // 🧍 a MESMA peça do campinho da carreira (boneco solto na grama)
 import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { logTravaSalva } from './analytics'
-import { FORMATIONS, SECTORS, duplaPodeAgir, type Card, type Sector, type WonCard } from './types'
+import { SECTORS, duplaPodeAgir, type Card, type Sector, type WonCard } from './types'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 const SEC_PT: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goleiros'], LAT: ['lateral', 'laterais'], ZAG: ['zagueiro', 'zagueiros'], MEI: ['meia', 'meias'], ATA: ['atacante', 'atacantes'] }
 const SEC_EN: Record<Sector, [string, string]> = { GOL: ['goalkeeper', 'goalkeepers'], LAT: ['full-back', 'full-backs'], ZAG: ['centre-back', 'centre-backs'], MEI: ['midfielder', 'midfielders'], ATA: ['forward', 'forwards'] }
-const secNome = (s: Sector, n: number) => (getLang() === 'en' ? SEC_EN : SEC_PT)[s][n === 1 ? 0 : 1]
+const secNome = (s: Sector, n: number, bb = false) => {
+  if (bb) { const l = POS_LABELS.basquete[s][n === 1 ? 'singular' : 'plural']; return (getLang() === 'en' ? l.en : l.pt).toLowerCase() } // 🏀 armador(es), ala…
+  return (getLang() === 'en' ? SEC_EN : SEC_PT)[s][n === 1 ? 0 : 1]
+}
 
 export function EscConvocacaoClubes() {
   const { state, dispatch } = useEsc()
   const t = useT()
   const me = state.managers[state.youIdx]
-  const form = FORMATIONS[me?.formation ?? '4-3-3']
+  // 🏀 19/10: as vagas vêm da MESMA régua do motor (`aplicaConvocacao` usa `baseSlots`): formação no futebol,
+  // 1 por posição no quinteto do basquete. Antes a tela lia a formação e no basquete pediria 2 laterais.
+  const bb = state.sport === 'basquete'
+  const vagas = (s: Sector) => vagasBase(me?.formation ?? '4-3-3', s)
+  const tagDe = (s: Sector) => bb ? POS_LABELS.basquete[s].tag : s
+  const nomeSec = (s: Sector, n: number) => secNome(s, n, bb)
   // o pacote de cada setor (a carta-pacote que você arrematou)
   const lotes = useMemo(() => {
     const r: Partial<Record<Sector, WonCard>> = {}
@@ -50,14 +59,14 @@ export function EscConvocacaoClubes() {
   const parceiroSumiu = emDupla && !dupla?.soloUid && !!parceiroUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(parceiroUid)
   const poolDe = (s: Sector): Card[] => [...(lotes[s]?.pacote?.cartas ?? [])].sort((a, b) => a.name.localeCompare(b.name))
   // quantos DÁ pra convocar no setor (pacote menor que as vagas? o motor completa o resto)
-  const precisa = (s: Sector) => (meuSetor(s) ? Math.min(form[s], poolDe(s).length) : 0)
+  const precisa = (s: Sector) => (meuSetor(s) ? Math.min(vagas(s), poolDe(s).length) : 0)
   const [tab, setTab] = useState<Sector>(() => SECTORS.find(s => lotes[s] && meuSetor(s)) ?? SECTORS.find(s => lotes[s]) ?? 'GOL')
   const [sel, setSel] = useState<Record<string, Sector>>({}) // id da carta → setor
   const [aviso, setAviso] = useState<string | null>(null)
   const doSetor = (s: Sector) => poolDe(s).filter(c => sel[c.id])
   const total = Object.keys(sel).length
   const alvo = SECTORS.reduce((n, s) => n + precisa(s), 0)
-  const faltando = SECTORS.filter(s => doSetor(s).length < precisa(s)).map(s => `${precisa(s) - doSetor(s).length} ${secNome(s, precisa(s) - doSetor(s).length)}`)
+  const faltando = SECTORS.filter(s => doSetor(s).length < precisa(s)).map(s => `${precisa(s) - doSetor(s).length} ${nomeSec(s, precisa(s) - doSetor(s).length)}`)
   const pronto = faltando.length === 0
 
   // ⏱️ 90s (pedido do Diego 27/09). Acabou o tempo: manda o que já estiver marcado — a vaga
@@ -123,10 +132,10 @@ export function EscConvocacaoClubes() {
       const nx = { ...prev }
       if (nx[c.id]) { delete nx[c.id]; setAviso(null); return nx }
       const naPos = poolDe(s).filter(x => prev[x.id])
-      if (naPos.length >= form[s]) {
+      if (naPos.length >= vagas(s)) {
         setAviso(getLang() === 'en'
-          ? `Your ${me.formation} has room for ${form[s]} ${secNome(s, form[s])}. To call up ${c.name}, first tap ${naPos.map(x => x.name).join(' or ')} to remove.`
-          : `Seu ${me.formation} tem vaga pra ${form[s]} ${secNome(s, form[s])}. Pra convocar ${c.name}, toque primeiro em ${naPos.map(x => x.name).join(' ou ')} pra tirar.`)
+          ? `Your ${bb ? 'five' : me.formation} has room for ${vagas(s)} ${nomeSec(s, vagas(s))}. To call up ${c.name}, first tap ${naPos.map(x => x.name).join(' or ')} to remove.`
+          : `Seu ${bb ? 'quinteto' : me.formation} tem vaga pra ${vagas(s)} ${nomeSec(s, vagas(s))}. Pra convocar ${c.name}, toque primeiro em ${naPos.map(x => x.name).join(' ou ')} pra tirar.`)
         return prev
       }
       nx[c.id] = s; setAviso(null); return nx
@@ -142,7 +151,7 @@ export function EscConvocacaoClubes() {
           <span style={{ fontSize: 26 }}>🧱</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, color: '#fff', textTransform: 'uppercase' }}>{t('Convocação', 'Call-up')} · {me.teamName}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', margin: '2px 0 0' }}>{t(`Escolha quem joga dentro dos pacotes que você levou. Formação travada: ${me.formation}. Quem ficar de fora vai pros outros times.`, `Pick who plays from the packs you won. Formation locked: ${me.formation}. Whoever is left out goes to the other teams.`)}</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', margin: '2px 0 0' }}>{bb ? t('Escolha quem joga dentro dos pacotes que você levou: 1 por posição, o seu quinteto. Quem ficar de fora vai pros outros times.', 'Pick who plays from the packs you won: 1 per position, your starting five. Whoever is left out goes to the other teams.') : t(`Escolha quem joga dentro dos pacotes que você levou. Formação travada: ${me.formation}. Quem ficar de fora vai pros outros times.`, `Pick who plays from the packs you won. Formation locked: ${me.formation}. Whoever is left out goes to the other teams.`)}</p>
           </div>
           <div style={{ background: GOLD, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
             <b style={{ display: 'block', fontSize: 15, lineHeight: 1, ...OSWALD }}>{total}/{alvo}</b>
@@ -166,7 +175,7 @@ export function EscConvocacaoClubes() {
             const ok = meuSetor(s) && doSetor(s).length >= precisa(s)
             return (
               <button key={s} onClick={() => { setTab(s); setAviso(null) }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 11, ...OSWALD, cursor: 'pointer', background: ok ? GREEN : tab === s ? GOLD : '#fff', color: ok ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
-                {s}<span style={{ display: 'block', fontSize: 8, fontWeight: 800, opacity: 0.85 }}>{meuSetor(s) ? `${doSetor(s).length}/${form[s]}${ok ? ' ✓' : ''}` : `🔒 ${quemNoSetor(s).split(' ')[0] || '—'}`}</span>
+                {tagDe(s)}<span style={{ display: 'block', fontSize: 8, fontWeight: 800, opacity: 0.85 }}>{meuSetor(s) ? `${doSetor(s).length}/${vagas(s)}${ok ? ' ✓' : ''}` : `🔒 ${quemNoSetor(s).split(' ')[0] || '—'}`}</span>
               </button>
             )
           })}
@@ -175,11 +184,11 @@ export function EscConvocacaoClubes() {
         {emDupla && !meuSetor(tab) && (
           <CaixaDuplaTrava quem={quemNoSetor(tab)} parceiroSumiu={parceiroSumiu}
             assumir={() => dispatch({ type: 'DUPLA_SOLO', mgrId: me.id, ficouUid: state.youUid ?? '' })}
-            titulo={t(`🔒 Quem convoca os ${secNome(tab, 2)} é ${quemNoSetor(tab) || 'seu parceiro'}`, `🔒 ${quemNoSetor(tab) || 'Your partner'} calls up the ${secNome(tab, 2)}`)}
+            titulo={t(`🔒 Quem convoca os ${nomeSec(tab, 2)} é ${quemNoSetor(tab) || 'seu parceiro'}`, `🔒 ${quemNoSetor(tab) || 'Your partner'} calls up the ${nomeSec(tab, 2)}`)}
             texto={t('Você vê o pacote, mas quem marca aqui é ele. As abas sem 🔒 são as suas.', 'You can see the pack, but your partner picks here. The tabs without 🔒 are yours.')} />
         )}
         {emDupla && meuSetor(tab) && meusSetores.length < SECTORS.length && (
-          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5B3DB8', margin: 0 }}>{t(`🤝 Você convoca: ${meusSetores.join(' · ')}. O resto é com ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'seu parceiro'}.`, `🤝 You call up: ${meusSetores.join(' · ')}. The rest is up to ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'your partner'}.`)}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5B3DB8', margin: 0 }}>{t(`🤝 Você convoca: ${meusSetores.map(tagDe).join(' · ')}. O resto é com ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'seu parceiro'}.`, `🤝 You call up: ${meusSetores.map(tagDe).join(' · ')}. The rest is up to ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'your partner'}.`)}</p>
         )}
         <Box className="p-0 overflow-hidden" shadow={3}>
           {lote ? (
@@ -192,7 +201,7 @@ export function EscConvocacaoClubes() {
             </div>
           ) : (
             <p style={{ fontSize: 11.5, fontWeight: 800, padding: 12, margin: 0, lineHeight: 1.4 }}>
-              {t(`Você não levou pacote de ${secNome(tab, 2)} (nem no leilão, nem no monte). O jogo completa essas ${form[tab]} vagas com jogadores de verdade que sobraram — nada de perna-de-pau.`, `You didn't win a ${secNome(tab, 1)} pack (neither in the auction nor in the pile). The game fills these ${form[tab]} spots with real leftover players — no fillers.`)}
+              {t(`Você não levou pacote de ${nomeSec(tab, 2)} (nem no leilão, nem no monte). O jogo completa essas ${vagas(tab)} vagas com jogadores de verdade que sobraram — nada de perna-de-pau.`, `You didn't win a ${nomeSec(tab, 1)} pack (neither in the auction nor in the pile). The game fills these ${vagas(tab)} spots with real leftover players — no fillers.`)}
             </p>
           )}
           {aviso && (
@@ -200,7 +209,7 @@ export function EscConvocacaoClubes() {
           )}
           {lista.map(c => {
             const on = !!sel[c.id]
-            const cheio = !on && doSetor(tab).length >= form[tab]
+            const cheio = !on && doSetor(tab).length >= vagas(tab)
             const travado = !meuSetor(tab)
             return (
               <button key={c.id} onClick={() => toggle(c, tab)} disabled={travado}
@@ -213,7 +222,19 @@ export function EscConvocacaoClubes() {
           })}
         </Box>
 
-        {/* campinho: convocados por linha (ATA/MEI/DEF/GOL, padrão do pregão) */}
+        {/* 🏀 basquete: a QUADRA com o quinteto numa linha (PG · SG · SF · PF · C), madeira como a quadra da arena */}
+        {bb ? (
+        <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
+          <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {t('quinteto', 'starting five')}</span>
+          </div>
+          <div style={{ background: 'repeating-linear-gradient(90deg,#C98A4B 0 26px,#BF7F40 26px 52px)', padding: '14px 6px', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
+            {SECTORS.map(s => { const c = doSetor(s)[0]; return c
+              ? <JogadorNoCampo key={s} nome={c.name} clube={c.club} ano={c.year} tag={tagDe(s)} alt={52} fonteNome={10} rosto={false} />
+              : <VagaNoCampo key={s} tag={tagDe(s)} alt={52} /> })}
+          </div>
+        </div>
+        ) : (
         <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {me.formation}</span>
@@ -223,8 +244,8 @@ export function EscConvocacaoClubes() {
             {(['ATA', 'MEI', 'DEF', 'GOL'] as const).map(row => {
               const secs: Sector[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
               let slots: { s: Sector; c: Card | null }[] = []
-              for (const s of secs) { const p = doSetor(s); for (let i = 0; i < form[s]; i++) slots.push({ s, c: p[i] ?? null }) }
-              if (row === 'DEF' && form.LAT === 2) { const lat = slots.filter(x => x.s === 'LAT'), zag = slots.filter(x => x.s === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
+              for (const s of secs) { const p = doSetor(s); for (let i = 0; i < vagas(s); i++) slots.push({ s, c: p[i] ?? null }) }
+              if (row === 'DEF' && vagas('LAT') === 2) { const lat = slots.filter(x => x.s === 'LAT'), zag = slots.filter(x => x.s === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
               return (
                 <div key={row} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
                   {/* 🧍 igual ao campinho da carreira (Diego 27/09: "da mesma forma que do carreira, sem
@@ -238,6 +259,7 @@ export function EscConvocacaoClubes() {
           </div>
           <PlacaGol lado="baixo" alt={24} />
         </div>
+        )}
 
         {pronto ? (
           <button onClick={enviar} disabled={enviando}
