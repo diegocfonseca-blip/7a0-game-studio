@@ -54,7 +54,11 @@ function Router() {
     case 'cerimonia': return <EscCerimonia />
     case 'convocacao': return <EscConvocacaoClubes />
     case 'reserveList': return <ReserveListScreen />
-    case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : <EscSeason />
+    // 🏀 BIFURCAÇÃO POR ESPORTE (carreira): o futebol continua na tela de PIRÂMIDE
+    // (4 divisões) EXATAMENTE como hoje. A carreira do BASQUETE roda a economia da
+    // mesma máquina (careerOnline) mas com a SUA simulação (liga única + andares +
+    // playoffs por conferência) via EscSeason — não passa pela pirâmide de 4 séries.
+    case 'season':    return state.careerOnline ? (state.sport === 'basquete' ? <EscSeason /> : <PyramidSeasonScreen />) : <EscSeason />
     case 'liberta':   return <EscLiberta />
     case 'champions': return <EscChampions />
     case 'end':       return <EscEnd />
