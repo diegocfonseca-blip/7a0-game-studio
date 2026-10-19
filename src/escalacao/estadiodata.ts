@@ -124,7 +124,7 @@ export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: strin
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
@@ -140,6 +140,9 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   //    Uomo Concetto no lugar também como Master, sendo agora 5 marcas. Sendo a
   //    Vadico a mais cara ainda mesmo"*. Fica no nível 3 junto das outras grandes.
   { id: 'uomo',        name: 'Uomo Concetto',        emoji: '🅾️', color: '#0C0C0C', tier: 3, logo: 'uomo' },
+  // 🤖 6ª marca REAL do Master (19/10, Diego: "a Tidex agora é mais um patrocinador que entra lá na carreira pra ser escolhido junto
+  //    de Max Joias, Rei das Tintas…" → "ok" pra 2 temporadas). Paga igual à Rei das Tintas; a Vadico segue a mais cara.
+  { id: 'tidex',       name: 'Tidex',                emoji: '🤖', color: '#0B1220', tier: 2, logo: 'tidex' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -182,6 +185,7 @@ export function sponsorBetHit(tier: SponsorBetTier, pos: number, champDiv: boole
 export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   { brandId: 'maxjoias', anos: 1 },
   { brandId: 'reidastintas', anos: 2 },
+  { brandId: 'tidex', anos: 2 }, // 🤖 19/10: mesmo prazo (e mesmo valor) da Rei das Tintas
   { brandId: 'ero', anos: 3 },
   // 🅾️ 4 TEMPORADAS, e o número foi escolhido a dedo: a régua do Master é só
   //    divisão × prazo, então quem tem o prazo maior paga mais. Com 4, a Uomo

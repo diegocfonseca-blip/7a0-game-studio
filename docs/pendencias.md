@@ -7,6 +7,8 @@ Copa dos 8 "apresentada por Tidex" (`POR_COMPETICAO.copa8`) · Liga Legends da C
 escuro) · telão: a linha 3 de `esc_anuncios_fixos` (era a Max Joias) virou "🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui"
 → WhatsApp +55 11 98118-1888 com a mensagem pronta. Aviso da comunidade: `scripts/avisos/2026-10-19-parceiro-tidex.json`.
 A Max Joias saiu do campinho e do telão (o logo dela continua em `maxjoias.ts`, usado no estádio).
+**+ 6ª marca do Patrocinador Master na carreira** (*"ok"* pra 2 temporadas): `SPONSOR_BRANDS`/`MASTER_PRAZOS` (estadiodata) com prazo 2 =
+mesmo valor da Rei das Tintas; Vadico segue a mais cara. Travas `npm run master` e `master-historia` atualizadas pra 6.
 
 ## ☁️ Salvar carreira sem plano → janela com os planos (19/10) — ✅ NO AR
 Amigo do Diego achou que o salvar estava com bug: conta grátis (carreira nova salva só no aparelho desde 07/10) e o aviso era uma

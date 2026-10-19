@@ -9,9 +9,10 @@ const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++
 console.log('1) as 5 marcas reais, cada uma com o seu prazo (Vadico = mais grana, mais temporadas)')
 // 🅾️ 23/09: virou CINCO. Diego: *"coloque a Uomo Concetto também como Master,
 // sendo agora 5 marcas. Sendo a Vadico a mais cara ainda mesmo"*.
-ok(MASTER_PRAZOS.length === 5, 'são exatamente 5 contratos')
+// 🤖 19/10: virou SEIS — a Tidex entra com 2 temporadas (mesmo prazo e valor da Rei das Tintas, ok do Diego)
+ok(MASTER_PRAZOS.length === 6, 'são exatamente 6 contratos')
 ok(MASTER_PRAZOS.every(p => sponsorBrandOf(p.brandId)?.logo), 'todas são marcas REAIS do jogo (têm logo): ' + MASTER_PRAZOS.map(p => sponsorBrandOf(p.brandId).name).join(' · '))
-ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,3,4,5', 'prazos 1 · 2 · 3 · 4 · 5 temporadas')
+ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,2,3,4,5', 'prazos 1 · 2 · 2 · 3 · 4 · 5 temporadas (Tidex = 2, igual à Rei das Tintas)')
 // 🔒 A CONDIÇÃO QUE ELE PÔS, escrita como trava: a Vadico tem que pagar MAIS que
 // qualquer outra em TODA divisão. Como a régua é só divisão × prazo, isso é o
 // mesmo que a Vadico ter o maior prazo — mas a trava confere pelo DINHEIRO, que é
@@ -27,7 +28,7 @@ ok(vad && vad.anos === Math.max(...MASTER_PRAZOS.map(p => p.anos)), 'Vadico Veí
 for (const d of ['V', 'D', 'C', 'B', 'A']) {
   const vals = MASTER_PRAZOS.map(p => masterPorTemporada(d, p.anos))
   const tots = MASTER_PRAZOS.map(p => masterPorTemporada(d, p.anos) * p.anos)
-  ok(vals.every((v, i) => i === 0 || v > vals[i - 1]) && tots.every((v, i) => i === 0 || v > tots[i - 1]), `${d}: por temporada ${vals.join('/')} · total ${tots.join('/')} — Vadico é o maior nos dois`)
+  ok(vals.every((v, i) => i === 0 || v >= vals[i - 1]) && tots.every((v, i) => i === 0 || v >= tots[i - 1]) && vals.at(-1) > vals.at(-2) && tots.at(-1) > tots.at(-2), `${d}: por temporada ${vals.join('/')} · total ${tots.join('/')} — Vadico é o maior nos dois`)
 }
 
 console.log('2) a régua (13/09, 2ª versão — "aumente um pouco, quase nada"): base × (1,25 + (anos−1)/2)')
