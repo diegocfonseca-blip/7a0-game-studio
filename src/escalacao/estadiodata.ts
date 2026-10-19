@@ -140,9 +140,9 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   //    Uomo Concetto no lugar também como Master, sendo agora 5 marcas. Sendo a
   //    Vadico a mais cara ainda mesmo"*. Fica no nível 3 junto das outras grandes.
   { id: 'uomo',        name: 'Uomo Concetto',        emoji: '🅾️', color: '#0C0C0C', tier: 3, logo: 'uomo' },
-  // 🤖 6ª marca REAL do Master (19/10, Diego: "a Tidex agora é mais um patrocinador que entra lá na carreira pra ser escolhido junto
-  //    de Max Joias, Rei das Tintas…" → "ok" pra 2 temporadas). Paga igual à Rei das Tintas; a Vadico segue a mais cara.
-  { id: 'tidex',       name: 'Tidex',                emoji: '🤖', color: '#0B1220', tier: 2, logo: 'tidex' },
+  // 🤖 6ª marca REAL do Master (19/10, Diego: "a Tidex agora é mais um patrocinador que entra lá na carreira…" e depois "igual a
+  //    Vadico"). Paga o MESMO que a Vadico (5 temporadas); o que muda entre as duas é a meta/bônus sorteado.
+  { id: 'tidex',       name: 'Tidex',                emoji: '🤖', color: '#0B1220', tier: 3, logo: 'tidex' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -185,13 +185,15 @@ export function sponsorBetHit(tier: SponsorBetTier, pos: number, champDiv: boole
 export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   { brandId: 'maxjoias', anos: 1 },
   { brandId: 'reidastintas', anos: 2 },
-  { brandId: 'tidex', anos: 2 }, // 🤖 19/10: mesmo prazo (e mesmo valor) da Rei das Tintas
   { brandId: 'ero', anos: 3 },
   // 🅾️ 4 TEMPORADAS, e o número foi escolhido a dedo: a régua do Master é só
   //    divisão × prazo, então quem tem o prazo maior paga mais. Com 4, a Uomo
   //    entra ENTRE a ERO e a Vadico e a **Vadico continua sendo a mais cara**,
   //    que foi a condição que ele pôs. A escada virou 1 · 2 · 3 · 4 · 5.
   { brandId: 'uomo', anos: 4 },
+  // 🤖 19/10 (Diego: "igual a Vadico… porém a cada temporada uma pode ser melhor que a outra com base nos bônus"): mesmo prazo e
+  //    mesmo valor da Vadico; quem desempata é a META sorteada de cada uma (`masterMetaOferta` sorteia por marca).
+  { brandId: 'tidex', anos: 5 },
   { brandId: 'vadico', anos: 5 },
 ]
 export interface MasterContrato { brandId: string; anos: number; div: string; desde: number; porTemporada: number }
