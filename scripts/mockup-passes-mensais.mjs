@@ -17,7 +17,7 @@ h1{font:700 26px Oswald;text-transform:uppercase;margin:0 0 4px;color:#F4ECD6}.s
 .bt{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font:700 17px Oswald;text-transform:uppercase;border:3px solid #0C0C0C;border-radius:14px;padding:12px 10px;box-shadow:3px 3px 0 #000;margin-bottom:10px;position:relative}
 .ouro{background:linear-gradient(90deg,#FFD84D,#F2B705 60%,#FFE27A)}
 .branco{background:#fff}
-.roxo{background:#7C3AED;color:#fff}
+.roxo{background:linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0);color:#fff;overflow:hidden}.roxo:after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);left:58%}
 .novo{position:absolute;top:-11px;right:12px;font:700 10px Oswald;letter-spacing:.08em;background:#E8503A;color:#fff;border:2px solid #0C0C0C;border-radius:7px;padding:1px 7px}
 .peq{display:block;font:500 11px system-ui;text-transform:none;font-weight:700;opacity:.8;margin-top:1px}
 .nota{font-size:12.5px;font-weight:700;line-height:1.4;color:rgba(244,236,214,.8);margin-top:12px}
@@ -35,9 +35,10 @@ h1{font:700 26px Oswald;text-transform:uppercase;margin:0 0 4px;color:#F4ECD6}.s
    <p>Dá pra criar 1 sala por dia — amanhã libera outra. Mas <b>entrar em qualquer sala aberta é sempre de graça</b>: é só escolher uma em "Salas abertas".</p>
    <div class="bt ouro">👑 Criar quantas quiser · ver os planos</div>
    <div class="bt branco">🎟️ Ou 3 salas extras · R$ 4,90</div>
-   <div class="bt roxo"><span class="novo">NOVO</span><span style="text-align:center">🗓️ Salas à vontade · R$ 9,90/mês<span class="peq">cria quantas quiser por 30 dias</span></span></div>
+   <div style="position:relative"><span class="novo" style="z-index:2">NOVO</span><div class="bt roxo"><span style="text-align:center">🗓️ Salas à vontade · R$ 9,90/mês<span class="peq">cria quantas quiser por 30 dias · + 💎 cor roxa Promessa</span></span></div></div>
   </div>
-  <p class="nota">O roxo é o novo. Quem joga todo dia sai mais barato que ficar comprando 3 salas toda hora.</p>
+  <p class="nota">O roxo é o novo. Quem joga todo dia sai mais barato que ficar comprando 3 salas toda hora.<br>💎 Enquanto o passe vale, o nome fica <b>roxo brilhante</b> (o tier Promessa) em todo canto: sala, chat, lista de técnicos.</p>
+  <div style="margin-top:12px;display:flex;gap:10px;align-items:center"><span style="font:700 15px Oswald;border:2px solid #0C0C0C;border-radius:10px;padding:6px 12px;color:#fff;background:linear-gradient(160deg,#C9A9FF,#8B5CF6 52%,#5B2FB0);box-shadow:0 0 12px rgba(139,92,246,.8),2px 2px 0 #000">💎 BUTINAS FC</span><span style="font-size:12px;font-weight:700;color:rgba(244,236,214,.8)">← como o nome aparece com o passe</span></div>
  </div>
  <div class="col"><span class="tag">2 · MODO MANUAL (CARREIRA)</span>
   <div class="ctrl"><b>🎮 CONTROLE DA PARTIDA</b>
@@ -48,9 +49,9 @@ h1{font:700 26px Oswald;text-transform:uppercase;margin:0 0 4px;color:#F4ECD6}.s
    <p>No manual você <b>acelera, pula e assiste</b> os jogos no seu ritmo. Escolha como quer liberar:</p>
    <div class="bt ouro">⭐ Manual pra sempre · ver os planos</div>
    <div class="bt branco">⚡ Manual por 1 dia · R$ 4,90</div>
-   <div class="bt roxo"><span class="novo">NOVO</span><span style="text-align:center">🗓️ Manual o mês todo · R$ 9,90/mês<span class="peq">liberado por 30 dias, em todas as carreiras</span></span></div>
+   <div style="position:relative"><span class="novo" style="z-index:2">NOVO</span><div class="bt roxo"><span style="text-align:center">🗓️ Manual o mês todo · R$ 9,90/mês<span class="peq">30 dias, em todas as carreiras · + 💎 cor roxa Promessa</span></span></div></div>
   </div>
-  <p class="nota">Aparece quando a pessoa aperta o 🔒 Manual. A temporada continua rodando no Auto, nada trava.</p>
+  <p class="nota">Aparece quando a pessoa aperta o 🔒 Manual. A temporada continua rodando no Auto, nada trava.<br>💎 O passe do manual também deixa o nome <b>roxo brilhante</b> enquanto vale.</p>
  </div>
 </div>
 </body></html>`
