@@ -127,6 +127,38 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
           </div>
         </div>
 
+        {/* ➕ 19/10: os botões de amizade/rival vêm LOGO ABAIXO do cartão (antes ficavam no fim e ninguém achava) */}
+        {!p.sou_eu && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            {p.relacao === null && <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10, fontSize: 14 }} onClick={() => acao(() => supabase.rpc('esc_amigo_pedir', { p_para: p.uid }))}>➕ {tr('Adicionar amigo', 'Add friend')}</button>}
+            {p.relacao === 'enviado' && <>
+              <span style={{ ...bt('#e9dfc4', INK), flex: 1, padding: 10, fontSize: 13, textAlign: 'center', boxShadow: 'none' }}>⏳ {tr('Pedido enviado', 'Request sent')}</span>
+              <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(() => supabase.rpc('esc_amigo_desfazer', { p_outro: p.uid }))}>{tr('cancelar', 'cancel')}</button>
+            </>}
+            {p.relacao === 'recebido' && p.amizade_id != null && <>
+              <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10, fontSize: 14 }} onClick={() => acao(() => supabase.rpc('esc_amigo_responder', { p_id: p.amizade_id, p_aceita: true }))}>✅ {tr('Aceitar amizade', 'Accept')}</button>
+              <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(() => supabase.rpc('esc_amigo_responder', { p_id: p.amizade_id, p_aceita: false }))}>{tr('recusar', 'decline')}</button>
+            </>}
+            {p.relacao === 'aceito' && <>
+              <span style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10, fontSize: 14, textAlign: 'center' }}>✅ {tr('Amigos', 'Friends')}</span>
+              <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(tr(`Desfazer a amizade com ${p.nome}?`, `Unfriend ${p.nome}?`))) void acao(() => supabase.rpc('esc_amigo_desfazer', { p_outro: p.uid })) }}>{tr('desfazer', 'unfriend')}</button>
+            </>}
+          </div>
+        )}
+        {/* 🔥 rival: UM por pessoa, só entre amigos, e é só zoeira (não muda nada no jogo) */}
+        {!p.sou_eu && p.relacao === 'aceito' && (
+          <div style={{ marginTop: 8 }}>
+            {p.meu_rival
+              ? <div style={{ display: 'flex', gap: 8 }}>
+                <span style={{ ...bt('#E8503A', '#fff'), flex: 1, padding: 9, fontSize: 13, textAlign: 'center' }}>🔥 {tr('É o seu rival', 'Your rival')}</span>
+                <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(async () => { await supabase.rpc('esc_rival_tirar'); esqueceRival() })}>{tr('tirar', 'remove')}</button>
+              </div>
+              : <button disabled={ocupado} style={{ ...bt('#fff', '#C2452F'), width: '100%', padding: 9, fontSize: 13 }}
+                onClick={() => { if (window.confirm(tr(`Marcar ${p.nome} como seu rival? Você só pode ter UM rival — se já tinha outro, ele sai.`, `Mark ${p.nome} as your rival? You can only have ONE rival — any previous one is replaced.`))) void acao(async () => { await supabase.rpc('esc_rival_marcar', { p_outro: p.uid }); esqueceRival() }) }}>
+                🔥 {tr('Marcar como rival', 'Mark as rival')}</button>}
+            <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '4px 0 0', textAlign: 'center' }}>{tr('Rival é só zoeira: aparece um 🔥 do lado dele na sala e o placar de títulos no seu perfil.', 'A rival is just banter: a 🔥 shows next to them in the room and the title score on your profile.')}</p>
+          </div>
+        )}
         {/* 📊 a melhor carreira no ranking global, na temporada em que ela está (mesma conta do ranking da carreira) */}
         <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ textAlign: 'center', minWidth: 92 }}>
@@ -213,37 +245,6 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
         </div>
 
-        {!p.sou_eu && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            {p.relacao === null && <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10, fontSize: 14 }} onClick={() => acao(() => supabase.rpc('esc_amigo_pedir', { p_para: p.uid }))}>➕ {tr('Adicionar amigo', 'Add friend')}</button>}
-            {p.relacao === 'enviado' && <>
-              <span style={{ ...bt('#e9dfc4', INK), flex: 1, padding: 10, fontSize: 13, textAlign: 'center', boxShadow: 'none' }}>⏳ {tr('Pedido enviado', 'Request sent')}</span>
-              <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(() => supabase.rpc('esc_amigo_desfazer', { p_outro: p.uid }))}>{tr('cancelar', 'cancel')}</button>
-            </>}
-            {p.relacao === 'recebido' && p.amizade_id != null && <>
-              <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10, fontSize: 14 }} onClick={() => acao(() => supabase.rpc('esc_amigo_responder', { p_id: p.amizade_id, p_aceita: true }))}>✅ {tr('Aceitar amizade', 'Accept')}</button>
-              <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(() => supabase.rpc('esc_amigo_responder', { p_id: p.amizade_id, p_aceita: false }))}>{tr('recusar', 'decline')}</button>
-            </>}
-            {p.relacao === 'aceito' && <>
-              <span style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10, fontSize: 14, textAlign: 'center' }}>✅ {tr('Amigos', 'Friends')}</span>
-              <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(tr(`Desfazer a amizade com ${p.nome}?`, `Unfriend ${p.nome}?`))) void acao(() => supabase.rpc('esc_amigo_desfazer', { p_outro: p.uid })) }}>{tr('desfazer', 'unfriend')}</button>
-            </>}
-          </div>
-        )}
-        {/* 🔥 rival: UM por pessoa, só entre amigos, e é só zoeira (não muda nada no jogo) */}
-        {!p.sou_eu && p.relacao === 'aceito' && (
-          <div style={{ marginTop: 8 }}>
-            {p.meu_rival
-              ? <div style={{ display: 'flex', gap: 8 }}>
-                <span style={{ ...bt('#E8503A', '#fff'), flex: 1, padding: 9, fontSize: 13, textAlign: 'center' }}>🔥 {tr('É o seu rival', 'Your rival')}</span>
-                <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(async () => { await supabase.rpc('esc_rival_tirar'); esqueceRival() })}>{tr('tirar', 'remove')}</button>
-              </div>
-              : <button disabled={ocupado} style={{ ...bt('#fff', '#C2452F'), width: '100%', padding: 9, fontSize: 13 }}
-                onClick={() => { if (window.confirm(tr(`Marcar ${p.nome} como seu rival? Você só pode ter UM rival — se já tinha outro, ele sai.`, `Mark ${p.nome} as your rival? You can only have ONE rival — any previous one is replaced.`))) void acao(async () => { await supabase.rpc('esc_rival_marcar', { p_outro: p.uid }); esqueceRival() }) }}>
-                🔥 {tr('Marcar como rival', 'Mark as rival')}</button>}
-            <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '4px 0 0', textAlign: 'center' }}>{tr('Rival é só zoeira: aparece um 🔥 do lado dele na sala e o placar de títulos no seu perfil.', 'A rival is just banter: a 🔥 shows next to them in the room and the title score on your profile.')}</p>
-          </div>
-        )}
       </>}
     </Janela>
   )
@@ -433,9 +434,13 @@ export function ComPerfil({ uid, children }: { uid: string | null | undefined; c
 // 🪟 O PERFIL ABERTO PELO CHAT VIVE SOLTO (18/10, Diego: *"quando fecho o chat, fecha a tela de amigos também"*). Antes ele
 // morava dentro do `ComPerfil`, que mora dentro do chat: fechou o chat, o perfil sumia junto (e ainda ficava por baixo da
 // janela do chat). Agora ele tem uma raiz própria no <body>, fora de qualquer tela, e só fecha no X dele.
+// 19/10 (Diego: *"fica escondido o chat atrapalhando o modal… deveria fechar o chat e abrir o modal"*): abrir o perfil pelo
+// chat FECHA o chat (os dois chats ouvem este evento) — senão a janela do chat cobre o perfil e o botão de adicionar.
+export const EVENTO_PERFIL_ABERTO = 'esc-perfil-aberto'
 let raizPerfil: Root | null = null
 let vezPerfil = 0
 function abrePerfilSolto(uid: string) {
+  window.dispatchEvent(new Event(EVENTO_PERFIL_ABERTO))
   if (!raizPerfil) { const el = document.createElement('div'); el.id = 'perfil-solto'; document.body.appendChild(el); raizPerfil = createRoot(el) }
   vezPerfil++
   raizPerfil.render(<PerfilPublico key={vezPerfil} uid={uid} onClose={() => raizPerfil?.render(null)} />)

@@ -35,7 +35,7 @@ import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
-import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
+import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -704,6 +704,7 @@ export function ChatWidget() {
   const isHost = !!state.isHost
   const chatOff = !!state.chatOff
   useEffect(() => { if (chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen])
+  useEffect(() => { const f = () => setChatOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setChatOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   if (!inRoom) return null
   if (chatOff && !isHost) return null // host desligou → convidados não veem nada
   const send = (t: string) => { if (!t.trim()) return; sendChat(t, resp ?? undefined); setText(''); setResp(null) }

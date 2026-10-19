@@ -40,7 +40,7 @@ import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
-import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA } from './amigos'
+import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
@@ -125,6 +125,7 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
 }) {
   const [text, setText] = useState('')
   const [resp, setResp] = useState<ChatRe | null>(null)
+  useEffect(() => { const f = () => setOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   const send = (t: string) => { if (!t.trim()) return; onSend(t, resp ?? undefined); setText(''); setResp(null) }
   return (
     <>
