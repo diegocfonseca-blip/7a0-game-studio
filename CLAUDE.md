@@ -861,6 +861,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **🎨 TEMA DA SALA: PREÇOS (18/10).** ❤️ Time de coração **R$ 6,90** (todos) · 🛡️ tema do clube **R$ 6,90** pro Batismo · 🖋 **Fundador
   R$ 9,90** = o tema do clube + uma 2ª cor de fundo com a mascote (*"Fundador deixe 9,90 ganha clube + segunda cor de fundo do
   Mascote"*); ele já ganha 1 tema no plano. Régua no banco (`esc_mp_preco_ref`, rank 4 = Fundador) e na tela (`temas-loja.tsx`).
+- **🏅 PÓDIO DA SEMANA: MEDALHA DE 30 DIAS + AVISO (19/10, mockup `scripts/mockups/podio-30d.png`, *"pode fazer tudo isso sim"*).**
+  Quem FECHA a semana no top 3 fica com a medalha 🥇🥈🥉 no nome por 30 dias (`ganhas` na vitrine, lida de `esc_premio_semana`);
+  quem está no pódio AGORA leva medalha + moldura + fita na sala **e no chat** (linha miúda "1º DA SEMANA" em cima do crachá). ⚠️ A
+  moldura olha o **id da conta** (`podioDeUid`, vitrine-dados), nunca o emoji do nome — com medalha de 30 dias no nome, "tem 🥇"
+  não diz mais quem é o 1º de agora. Pódio da semana passada: caixa embaixo do ranking + telão **ROXO** nas salas (rosa é do Super
+  Chat, dourado é do anúncio), a semana inteira — e o texto do ranking promete isso como prêmio (*"propaganda da vitória no telão"*).
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,

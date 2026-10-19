@@ -8,7 +8,8 @@
 // competição, LED do estádio, anúncio no O MARTELO) foram pro ar pra todos em 16/10 (`ESPACOS_GERAL`, Diego: "pode publicar").
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { loggedEmail } from './apoio'
+import { loggedEmail, stripEmoji } from './apoio'
+import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da semana passada no letreiro (19/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import { MAXJOIAS_LOGO } from './maxjoias'
 
@@ -108,13 +109,22 @@ const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
-export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string } } // 💬 recado de jogador: rosa + nome do time
+export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string }; podio?: true } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
 export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número máximo de caracteres… tipo o da Vadico")
+function usePodioPassado() {
+  const [v, setV] = useState(podioPassada())
+  useEffect(() => { let vivo = true; void buscaVitrine().then(() => { if (vivo) setV(podioPassada()) }); return () => { vivo = false } }, [])
+  return v
+}
 export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
   const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
   // 💬 RECADO EM DESTAQUE (18/10): gira no mesmo letreiro, em rosa, com o nome do time de quem mandou (mockup `recado-destaque.png`)
   out.push(...noAr('recado').map(a => ({ texto: a.texto, cor: '#FF5FA2', recado: { autor: a.autor ?? '' } })))
+  // 🏆 PÓDIO DA SEMANA PASSADA (19/10, Diego: "no telão aparece os 3 primeiros da semana… com emoji de medalha"): roda a semana
+  // inteira, em roxo. Vem da vitrine (mesma leitura do ranking, cache de 60 s) — zero mensagem nova no canal.
+  const podio = usePodioPassado()
+  if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true })
   if (espacosOk()) {
     if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
     out.push(...GIRO_MANUAIS)

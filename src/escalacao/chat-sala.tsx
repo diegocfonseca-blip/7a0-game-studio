@@ -11,6 +11,8 @@
 // ⚠️ Nada aqui manda mensagem a mais pelo canal (sem "digitando") — ver a conta do realtime.
 import { APOIO_PERKS, type ApoioPerk, stripEmoji } from './apoio'
 import { tr } from './lang'
+import { podioDeUid } from './vitrine-dados'
+import { PodioChatSelo, PODIO_BORDA } from './podio-semana'
 
 export type ChatRe = { name: string; text: string }
 const INK = '#0C0C0C'
@@ -33,13 +35,22 @@ export function reValido(re: unknown): ChatRe | undefined {
   return r && typeof r.name === 'string' && typeof r.text === 'string' ? { name: r.name.slice(0, 40), text: r.text.slice(0, 80) } : undefined
 }
 
-export function ChatCracha({ name }: { name: string }) {
+// 🏅 19/10 (Diego: "no chat quem tiver atual da semana ganha medalha e moldura e escrito sutilmente em cima"): as medalhas
+// (🥇🥈🥉, de agora e as ganhas de 30 dias) voltam pro crachá, e quem está no pódio AGORA (pela conta) leva a borda de metal
+// + a linha miúda "1º DA SEMANA" em cima.
+const medalhasDoNome = (n: string) => (n.match(/[🥇🥈🥉]/gu) ?? []).join('')
+export function ChatCracha({ name, uid }: { name: string; uid?: string | null }) {
   const p = perkDoNome(name)
   const escuro = p.tier === 'roxo' || p.tier === 'verde'
+  const pos = podioDeUid(uid)
+  const med = medalhasDoNome(name)
   return (
-    <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, lineHeight: 1.2, textTransform: 'uppercase', background: p.grad, color: escuro ? '#fff' : INK, border: '1.5px solid #000', borderRadius: 6, padding: '1px 6px', marginBottom: 3, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-      {p.selo && p.tier !== 'verde' ? `${p.selo} ` : ''}{nomeSemSelo(name)}
-    </span>
+    <>
+      <PodioChatSelo pos={pos} />
+      <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, lineHeight: 1.2, textTransform: 'uppercase', background: p.grad, color: escuro ? '#fff' : INK, border: pos ? `2px solid ${PODIO_BORDA[pos]}` : '1.5px solid #000', boxShadow: pos ? `0 0 0 1px #000, 0 0 6px ${PODIO_BORDA[pos]}99` : undefined, borderRadius: 6, padding: '1px 6px', marginBottom: 3, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {p.selo && p.tier !== 'verde' ? `${p.selo} ` : ''}{nomeSemSelo(name)}{med ? ` ${med}` : ''}
+      </span>
+    </>
   )
 }
 

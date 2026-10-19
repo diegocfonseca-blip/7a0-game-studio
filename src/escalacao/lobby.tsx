@@ -158,7 +158,7 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
                       <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                       <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                         style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
-                        {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} /></ComPerfil>}
+                        {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} /></ComPerfil>}
                         {re && <ChatCita re={re} />}
                         <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                       </div>
@@ -4446,7 +4446,7 @@ export function EscLobby() {
             // 👑 dono de batismo: linha DOURADA, escudo no lugar da bolinha e a mascote
             // pulando na ponta (fora do modo duplas, que tem a linha própria dele)
             const gala = !duplasOn && getSport() !== 'basquete' ? (galaDaConta?.mapa.get(p.user_id) ?? null) : null // 📧 pela CONTA, nunca pelo nome
-            return (<PodioMoldura key={p.user_id} pos={posPodio(p.manager_name)}>{/* 🏆 top 3 da semana: moldura de metal POR FORA (15/10) */}
+            return (<PodioMoldura key={p.user_id} pos={posPodio(p.user_id)}>{/* 🏆 top 3 da semana: moldura de metal POR FORA (15/10) — pela CONTA desde 19/10 */}
             <div className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3" style={gala ? { position: 'relative', zIndex: 1 } : undefined}>
                 {gala ? <GalaEscudoBotao clube={gala} souEu={souEu} /> : (() => { const pkAv = pk ?? APOIO_PERKS.bege; const bolinha = (

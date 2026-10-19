@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { buscaVitrine, type Vitrine } from './vitrine-dados'
 import { tr, getLang } from './lang'
 import { PodioMoldura } from './podio-semana'
+import { stripEmoji } from './apoio'
 import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
@@ -82,8 +83,9 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           ))}
       </Caixa>
 
-      {v.semana.length > 0 && (
+      {(v.semana.length > 0 || (v.passada?.length ?? 0) > 0) && (
         <Caixa titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais títulos online nesta semana.', 'The managers with the most online titles this week.')}>
+          {v.semana.length === 0 && <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 800 }}>{tr('Semana nova, ranking zerado. O primeiro título é seu? ⚽', 'New week, fresh ranking. Will the first title be yours? ⚽')}</p>}
           {/* 🏆 16/10 (Diego: "no ranking coloque a moldura que falamos"): o top 3 aparece aqui com a MESMA moldura de
               metal + fita que ele já leva na lista de técnicos da sala (`podio-semana.tsx`). A posição vem do ranking. */}
           {v.semana.map((s, i) => (
@@ -102,9 +104,23 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
                 : <b style={{ ...OSW, flex: 1, fontSize: 12.5 }}>{tr('Você ainda não tem título nesta semana — bora pra uma sala! ⚽', 'No title for you this week yet — jump into a room! ⚽')}</b>}
             </div>
           )}
-          <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam a semana inteira com a medalha 🥇🥈🥉 ao lado do nome, a moldura de metal e a fita "1º DA SEMANA" nas salas online.', '⏳ Resets every Monday at midnight. The top 3 play all week with the 🥇🥈🥉 medal next to their name, the metal frame and the "#1 OF THE WEEK" ribbon in the online rooms.')}</p>
+          {/* 🏆 19/10 (Diego: "embaixo do ranking fica em uma linha listado os 3 primeiros da semana"): o pódio da última semana FECHADA,
+              fixo a semana inteira; na outra segunda troca sozinho. Mockup `scripts/mockups/podio-30d.png`. */}
+          {(v.passada?.length ?? 0) > 0 && (
+            <div style={{ marginTop: 10, border: `3px solid ${INK}`, borderRadius: 12, background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}`, padding: '7px 10px' }}>
+              <span style={{ ...OSW, display: 'block', fontSize: 10, letterSpacing: '.14em', color: '#7C3AED', marginBottom: 3 }}>{tr('🏆 PÓDIO DA SEMANA PASSADA', '🏆 LAST WEEK’S PODIUM')}</span>
+              {v.passada!.map((p, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.45 }}>
+                  <span style={{ fontSize: 13 }}>{medalha(p.pos)}</span>
+                  <b style={{ ...OSW, flex: 1, fontSize: 13.5, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stripEmoji(p.nome).trim()}</b>
+                  <span style={{ ...OSW, fontSize: 12 }}>{p.titulos} {p.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam a semana com a medalha 🥇🥈🥉 ao lado do nome, a moldura de metal e a fita "1º DA SEMANA" nas salas e no chat. Quem fecha a semana no pódio fica com a medalha no nome por 30 dias.', '⏳ Resets every Monday at midnight. The top 3 play the week with the 🥇🥈🥉 medal next to their name, the metal frame and the "#1 OF THE WEEK" ribbon in the rooms and the chat. Whoever closes the week on the podium keeps the medal on their name for 30 days.')}</p>
           {/* 🪙 17/10 (Diego: "encaixa sutilmente aí… 1º 20 · 2º 10 · 3º 5") — o mesmo número de RANKING_SEMANA_MOEDAS */}
-          <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]}.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]}.`)}</p>
+          <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]} — e 📺 propaganda da vitória no telão de TODAS as salas, a semana inteira.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]} — and 📺 your win advertised on the ticker in EVERY room, all week long.`)}</p>
         </Caixa>
       )}
 

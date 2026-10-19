@@ -992,6 +992,16 @@ pix-mp.tsx; sem número só aparece o e-mail); (3) ✅ LIBERADO PRA TODOS em 16/
 batismo ainda não vale no Pix novo (preço do servidor ignora cupom); (5) ✅ moedas (ficha do Banco Legends nasce sozinha), canto avulso (registra + "conta qual canto") e presente
 (entregue pro amigo) já vão pelo Pix novo (`…240000_mercado_pago_pix_v3.sql`); 2ª conta do Diego também testa; 🏦 moedas: comprou na Loja da home → escolhe a carreira na hora (cai sozinha quando ela abrir, `DepositoPix`); comprou pela 🛒 Loja aberta DE DENTRO da carreira (Clube › Finanças, no lugar do Banco Legends — Diego: "não deveria ter Banco Legends… apenas a loja direto"; só pra quem tem o Pix novo) → cai direto no caixa; o campo de código antigo mora dentro da Loja na carreira; sem escolher → aparece no Banco Legends com "Depositar neste clube" (`esc_mp_minhas_fichas` + `bl_redeem`) — Diego: "compra na tela que tá e depois escolhe o save" (creditar direto em save fechado = mexer em save guardado, não); (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
 
+## 🏅 Pódio da semana: medalha de 30 dias + avisos (19/10) — ✅ NO AR
+Diego, segunda 0h09: *"Labubu, Gama e Paçoca foram o pódio… nenhum aviso embaixo, nada?"*. Feito (mockup `scripts/mockups/podio-30d.png`):
+- `esc_vitrine_salas` ganhou `podio` (uids do top 3 de agora), `passada` (última semana fechada, de `esc_premio_semana`) e `ganhas`
+  (medalhas da conta nos últimos 30 dias). Migration `20261019140000_podio_semana_30d.sql`.
+- Nome = selo + medalha de agora + medalhas ganhas (`carregaMedalhaDaSemana`). Moldura/fita da sala e do chat pelo id (`podioDeUid`).
+- Chat: `ChatCracha` mostra as medalhas e, pra quem está no pódio agora, borda de metal + "1º DA SEMANA" em cima.
+- Ranking: caixa "🏆 PÓDIO DA SEMANA PASSADA" fixa; aparece mesmo com o ranking zerado na segunda.
+- Telão: `useAnunciosGiro` põe o pódio em roxo (`podio: true`), a semana toda, sem mensagem nova no canal.
+- Ainda não feito (não pedido): a moldura em outros lugares além de sala/chat (placar, martelo) — o nome com a medalha já vai.
+
 ## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
 Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).
 `podio-semana.tsx`: moldura de metal girando POR FORA da linha na lista de técnicos da sala (ouro · prata · bronze), coroinha

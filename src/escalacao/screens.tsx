@@ -754,7 +754,7 @@ export function ChatWidget() {
                           <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                           <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                             style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
-                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} /></ComPerfil>}
+                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} /></ComPerfil>}
                             {re && <ChatCita re={re} />}
                             <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                           </div>
@@ -7722,8 +7722,11 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16 }: { news?: str
       {/* 17/10 (Diego): saiu a faixa creme de título ("pra ser mais discreto e um pouco menor") — o "Anúncio do dia" mora DENTRO da placa */}
       <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
         onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
-        <span className="placa-tag" style={ad.recado ? { color: '#FF9CC8' } : undefined}>{ad.recado ? (en ? '💬 FAN SHOUT-OUT' : '💬 RECADO DE TORCEDOR') : (en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA')}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
-        {ad.recado ? <>
+        <span className="placa-tag" style={ad.recado ? { color: '#FF9CC8' } : ad.podio ? { color: '#C9A9FF' } : undefined}>{ad.podio ? (en ? '🏆 PODIUM OF THE WEEK' : '🏆 PÓDIO DA SEMANA') : ad.recado ? (en ? '💬 FAN SHOUT-OUT' : '💬 RECADO DE TORCEDOR') : (en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA')}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
+        {ad.podio ? <>
+          {/* 🏆 PÓDIO DA SEMANA (19/10): em ROXO (rosa é do Super Chat, dourado é do anúncio), 2 linhas, a semana inteira */}
+          <div className="placa-m placa-rec" style={{ top: 22, color: ad.cor, textShadow: `0 0 8px ${ad.cor}99` }}><LetrasVirando texto={ad.texto} /></div>
+        </> : ad.recado ? <>
           {/* 💬 RECADO (18/10): quem mandou em cima, o recado em rosa embaixo, em até 2 linhas */}
           <div className="placa-quem">{ad.recado.autor}</div>
           <div className="placa-m placa-rec" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99` }}><LetrasVirando texto={ad.texto} /></div>

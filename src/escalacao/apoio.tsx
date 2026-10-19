@@ -465,7 +465,8 @@ export function emailProblema(email: string): string | null {
 let medalhaSemana = ''
 export function minhaMedalhaDaSemana(): string { return medalhaSemana }
 export async function carregaMedalhaDaSemana(): Promise<void> {
-  try { const v = await buscaVitrine(); medalhaSemana = medalhaDaPos(v?.eu?.pos) } catch { /* sem banco: sem medalha */ }
+  // 🏅 19/10: a medalha de AGORA (top 3 da semana) + as GANHAS nos fechos dos últimos 30 dias (`ganhas`, mais nova primeiro)
+  try { const v = await buscaVitrine(); medalhaSemana = medalhaDaPos(v?.eu?.pos) + (v?.ganhas ?? '') } catch { /* sem banco: sem medalha */ }
 }
 export function apoioSelo(): string {
   const p = myApoioPerk()

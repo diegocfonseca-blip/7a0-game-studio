@@ -5,16 +5,11 @@
 // *"gostei da moldura, perfeito"*), com a fita "1º DA SEMANA" (ele chegou a pedir "1º RANKING SEMANAL" e voltou atrás: *"melhor do jeito que você falou mesmo"*).
 // O FUNDO continua sendo o do PLANO (regra sagrada do tier); o pódio vem POR FORA: moldura de metal girando
 // (ouro · prata · bronze), coroinha no 1º e a fita pendurada.
-// Quem diz a posição é a MEDALHA que já vai no nome (🥇🥈🥉, `apoioSelo`): ela vem do banco e o `stripEmoji` tira
-// medalha de nome digitado — ninguém se dá moldura escrevendo emoji.
+// 🔁 19/10: quem diz a posição é o BANCO, pelo id da conta (`podioDeUid`, vitrine-dados). Antes era a medalha no nome —
+// mas desde 19/10 o nome também carrega as medalhas GANHAS (30 dias), então o emoji deixou de dizer quem é o 1º de agora.
 import type { ReactNode } from 'react'
 import { tr } from './lang'
-
-/** 1 · 2 · 3 pela medalha no nome; 0 = fora do pódio */
-export function posPodio(nome: string | null | undefined): 0 | 1 | 2 | 3 {
-  if (!nome) return 0
-  return nome.includes('🥇') ? 1 : nome.includes('🥈') ? 2 : nome.includes('🥉') ? 3 : 0
-}
+export { podioDeUid as posPodio } from './vitrine-dados'
 
 const ANEL: Record<1 | 2 | 3, string> = {
   1: 'conic-gradient(#fff6c4,#FFC400,#b37a00,#FFE066,#fff6c4,#FFC400,#b37a00,#fff6c4)',
@@ -35,6 +30,15 @@ const CSS = `
 @keyframes podioGira{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.podio-m>.podio-anel::before{animation:none}}
 `
+
+/** 💬 no CHAT (19/10, Diego: "escrito sutilmente em cima 1 da semana"): uma linha miúda acima do crachá, na cor do metal */
+export function PodioChatSelo({ pos }: { pos: 0 | 1 | 2 | 3 }) {
+  if (!pos) return null
+  const cor = ['', '#b37a00', '#6f7a88', '#9a4f13'][pos]
+  return <span style={{ display: 'block', font: '700 8px Oswald, sans-serif', letterSpacing: '.14em', textTransform: 'uppercase', color: cor, lineHeight: 1.1, marginBottom: 1 }}>{['', '🥇', '🥈', '🥉'][pos]} {tr(`${pos}º DA SEMANA`, `#${pos} OF THE WEEK`)}</span>
+}
+/** borda de metal pro crachá do chat de quem está no pódio agora */
+export const PODIO_BORDA: Record<1 | 2 | 3, string> = { 1: '#FFC400', 2: '#C9D2DC', 3: '#D9822B' }
 
 /** envolve a linha de quem está no TOP 3 da semana; fora do pódio devolve a linha como está */
 export function PodioMoldura({ pos, children }: { pos: 0 | 1 | 2 | 3; children: ReactNode }) {
