@@ -152,6 +152,8 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   (filho nascendo · polêmica na rede · briga no treino · acima do peso · carrão batido · pai reclama no rádio · veterano se aposenta · lei
   do ex · peneira) + subir pra 2–3 causos/temporada e variar manchete/Central/Cria. Resposta: *"não gostei"*. O inventário fica valendo
   como mapa (o que é fino e repete), mas a proposta foi recusada.
+- 6ª rodada (ancorada no jogo, depois da regra "tem que ter sentido"): presidentes rivais (bots com perfil) com voz no leilão/Central ·
+  história real da carta (bio das 1.388 cartas) ao arrematar/brilhar. Resposta: *"não"*. **PAREI de propor.** Próximo passo é dele.
 - ⚠️ MESMA LIÇÃO de 04/10 (cartas do álbum): rodada de ideias seguidas trava ele. **Não despejar lista de novo.** Esperar ele trazer a
   ideia, ou fazer UMA pergunta sobre o que ele imagina (um exemplo de jogo/momento que ele gostaria de viver como presidente).
 
