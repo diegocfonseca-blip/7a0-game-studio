@@ -38,7 +38,10 @@ export type MarcaLed = Patrocinio & { chamada?: string }
 const LED_ESTADIO: MarcaLed[] = [
   { nome: 'Vadico Veículos', emoji: '🚗', chamada: 'Itaguaí · Barra da Tijuca · 45 anos' },
 ]
-export function ledDoEstadio(): MarcaLed[] { return espacosOk() ? LED_ESTADIO : [] }
+// 🚫 19/10 (Diego: "esse lugar de verde da Vadico Veículos pode tirar que não tô gostando"): a faixa de LED verde SAIU de todas as
+// competições. Pra voltar, `LED_LIGADO = true` (a lista de marcas acima continua guardada).
+const LED_LIGADO = false
+export function ledDoEstadio(): MarcaLed[] { return espacosOk() && LED_LIGADO ? LED_ESTADIO : [] }
 
 // 📰 Anúncio no O MARTELO (R$ 100/mês): um quadro no fim do jornal. Um anunciante por vez.
 export type AnuncioJornal = Patrocinio & { texto: string; contato?: string; logo?: string; logoProp?: number }

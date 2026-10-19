@@ -1,3 +1,7 @@
+## 🚫 Faixa de LED verde (Vadico) tirada (19/10) — ✅ NO AR
+*"esse lugar de verde da Vadico Veículos pode tirar que não tô gostando"* → `LED_LIGADO = false` (patrocinio.ts). Some do topo de
+todas as competições (online e carreira). A Vadico continua no telão, na placa do campinho e na Champions. Voltar = `true`.
+
 ## 🤖 Parceiro Tidex (19/10) — ✅ NO AR
 Copa dos 8 "apresentada por Tidex" (`POR_COMPETICAO.copa8`) · Liga Legends da CARREIRA também (`'career-league'`, só a liga — copas e internacionais da carreira ficam sem; `CareerCompetitionStage` passa `patroKind`) · placa atrás do gol no lugar da Max Joias (`patro-tidex.webp`, fundo
 escuro) · telão: a linha 3 de `esc_anuncios_fixos` (era a Max Joias) virou "🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui"
