@@ -354,6 +354,8 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
   const [texto, setTexto] = useState('')
   const [emoji, setEmoji] = useState('⭐')
   const [msg, setMsg] = useState('')
+  const [autor, setAutor] = useState('') // 💬 recado manual (19/10): o time que "assina"
+  const [horas, setHoras] = useState<1 | 24>(1)
   const carregar = async () => {
     const { data } = await supabase.from('esc_anuncios').select('id, tipo, texto, emoji, inicio, fim, autor').eq('tipo', tipo).gt('fim', new Date().toISOString()).order('inicio')
     setLista((data ?? []) as AnuncioAdm[])
@@ -365,6 +367,16 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
     setMsg(error ? `❌ ${error.message}` : `✅ no ar de ${quando(ini.toISOString())} até 24 h depois`)
     setTexto(''); setInicio(agoraLocal()); carregar()
   }
+  // 💬 SUPER CHAT MANUAL (19/10, Diego: "as vezes eu posso dar recado do dia se passando por algum time. Faça ali manual")
+  const salvarRecado = async () => {
+    const ini = new Date(inicio)
+    const { data, error } = await supabase.rpc('esc_admin_recado', { p_inicio: isNaN(ini.getTime()) ? null : ini.toISOString(), p_horas: horas, p_autor: autor, p_texto: texto })
+    const R: Record<string, string> = { ok: `✅ no ar de ${quando(ini.toISOString())} por ${horas === 1 ? '1 hora' : '24 h'}`, time_tamanho: '❌ o nome do time precisa ter de 2 a 30 letras',
+      texto_tamanho: '❌ o recado precisa ter de 2 a 60 letras', sem_permissao: '❌ só a sua conta pode mexer aqui', duracao: '❌ escolha 1 hora ou dia todo' }
+    setMsg(error ? `❌ ${error.message}` : R[String(data)] ?? String(data))
+    if (data === 'ok') { setTexto(''); setAutor(''); setInicio(agoraLocal()) }
+    carregar()
+  }
   const tirar = async (r: AnuncioAdm) => {
     if (!window.confirm(`Tirar "${r.texto}" do ar?`)) return
     const { error } = await supabase.rpc('esc_admin_anuncio_tirar', { p_id: r.id })
@@ -375,7 +387,21 @@ function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' | 'recado' }) {
   return (
     <div style={{ border: `2px solid ${recado ? '#FF5FA2' : '#FFC400'}`, borderRadius: 16, padding: 14, marginTop: 16 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: recado ? '#FF5FA2' : '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>{recado ? '💬 Recados dos jogadores · letreiro' : marca ? '⚡ Dia da marca · Copa dos 8' : '📣 Anúncio do dia · letreiro'}</p>
-      {recado ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Recados pagos que estão no ar (1 h ou dia todo). Ofendeu alguém? Aperte "tirar". {lista.length === 0 ? 'Nenhum no ar agora.' : ''}</p> : <>
+      {recado ? <>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Recados que estão no ar (1 h ou dia todo), pagos ou seus. Ofendeu alguém? Aperte "tirar". {lista.length === 0 ? 'Nenhum no ar agora.' : ''}</p>
+      <div style={{ display: 'grid', gap: 6, borderTop: '2px dashed rgba(255,95,162,.4)', paddingTop: 10 }}>
+        <b style={{ ...OSWALD, color: '#F2E8CF', fontSize: 13, textTransform: 'uppercase' }}>✍️ Mandar um recado como um time</b>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <input type="datetime-local" value={inicio} onChange={e => setInicio(e.target.value)} style={inp} />
+          <input value={autor} onChange={e => setAutor(e.target.value)} maxLength={30} placeholder="Nome do time" style={{ ...inp, flex: 1, minWidth: 120 }} />
+        </div>
+        <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={60} placeholder="O recado (até 60 letras)" style={inp} />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {([1, 24] as const).map(h => <button key={h} onClick={() => setHoras(h)} style={{ ...inp, background: horas === h ? '#FF5FA2' : '#fff', color: horas === h ? '#fff' : '#0C0C0C', cursor: 'pointer' }}>{h === 1 ? '1 hora' : 'Dia todo'}</button>)}
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', flex: 1 }}>{texto.length}/60</span>
+          <button disabled={autor.trim().length < 2 || texto.trim().length < 2} onClick={salvarRecado} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer', opacity: autor.trim().length < 2 || texto.trim().length < 2 ? .5 : 1 }}>Pôr no ar</button>
+        </div>
+      </div></> : <>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>{marca
         ? 'A Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO por 24 h, contando de quando entra no ar.'
         : 'O texto passa no letreiro "Anúncio do dia" de TODO MUNDO por 24 h, contando de quando entra no ar, antes dos fixos. Até 120 letras.'}</p>
