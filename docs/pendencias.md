@@ -25,6 +25,9 @@
   Gaveta de 1 clube 4,4 KB · o que é de todos 0,3 KB · escalação da rodada 0,1 KB. Desenho completo: `docs/carreira-online-v2.md`.
 - ✅ **19/10: mockups APROVADOS** (`carreira-online-espera.png` e `carreira-online-pronto.png`) + **VICE** igual ao das Minhas Ligas: o dono escolhe 1 vice;
   o vice só continua/manda no tempo quando o dono NÃO está; quando o dono chega, volta a ser dele; vice não apaga nem muda regra.
+- 🔨 **19/10, etapa 1 em andamento**: banco feito e testado — tabelas `esc_carr_sala`/`esc_carr_clube`/`esc_carr_privado` + funções (criar,
+  entrar, vice, presença, continuar, pronto, começar, apito, ritmo, encerrar dia). Teste das regras (dono/vice/convidado): `scripts/carreira-online/testa-regras.sql`.
+  Falta: as telas (sala de espera e barra do PRONTO, mockups aprovados) + o motor rodando a rodada igual em todo aparelho.
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
