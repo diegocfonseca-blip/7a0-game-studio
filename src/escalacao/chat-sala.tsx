@@ -44,13 +44,15 @@ export function ChatCracha({ name, uid }: { name: string; uid?: string | null })
   const escuro = p.tier === 'roxo' || p.tier === 'verde'
   const pos = podioDeUid(uid)
   const med = medalhasDoNome(name)
+  // 🔧 19/10 (Diego: "ficou meio quebrado"): dentro do botão do perfil a linha do pódio e o crachá ficavam lado a lado e se
+  // atropelavam. Agora é uma COLUNA: a linha "3º DA SEMANA" em cima, o crachá embaixo, os dois alinhados à esquerda.
   return (
-    <>
+    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '100%', verticalAlign: 'top' }}>
       <PodioChatSelo pos={pos} />
       <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, lineHeight: 1.2, textTransform: 'uppercase', background: p.grad, color: escuro ? '#fff' : INK, border: pos ? `2px solid ${PODIO_BORDA[pos]}` : '1.5px solid #000', boxShadow: pos ? `0 0 0 1px #000, 0 0 6px ${PODIO_BORDA[pos]}99` : undefined, borderRadius: 6, padding: '1px 6px', marginBottom: 3, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {p.selo && p.tier !== 'verde' ? `${p.selo} ` : ''}{nomeSemSelo(name)}{med ? ` ${med}` : ''}
       </span>
-    </>
+    </span>
   )
 }
 
