@@ -17,7 +17,9 @@ import { presidenteBaseValido, type PresidenteBaseSave } from './presidencia-car
 import { copiarAparencia } from './presidente-aparencia'
 import { podeSalvarPresidente } from './presidente-plano'
 import { esquecerPresidente } from './presidente-avatar'
-import { podeVestirModular } from './presidente-vestuario-acesso'
+import { podeUsarPecaAvulsa, podeVestirRoupaAvulsa, temBoneco, type PosseAvulsa } from './presidente-avulsas'
+import { aparenciaModular } from './presidente-aparencia'
+import { roupaModularValida } from './presidente-vestuario-modular'
 
 const PRESIDENTE_CONTA_GERAL = true // 🟢 16/10: liberado pra todos (Diego: "já pode publicar p todos p personagem")
 const PRESIDENTE_CONTA_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com']) // 16/10: + diego2 (grátis), pra ele ver como o plano gratuito enxerga o editor e os preços
@@ -65,10 +67,51 @@ export async function carregarPresidenteConta(force = false): Promise<Presidente
   }
 }
 
-/** grava o presidente da conta. Só com plano (Craque+) e roupa que o plano alcança — a MESMA régua da tela. */
+// ─── 🛍️ PEÇAS AVULSAS COMPRADAS (19/10) — refs `r-<roupa>`/`p-<peça>` que o Pix entregou em `esc_presidente_pecas` ─────
+// Quem grava é o BANCO (só quando o Pix cai). Aqui só se LÊ, uma vez por login; depois de pagar, `recarregarMinhasPecas()`.
+let pecas: { email: string | null; lista: readonly string[] } = { email: null, lista: [] }
+const ouvintesPecas = new Set<() => void>()
+let pedidoPecas = 0
+export function getMinhasPecas(): readonly string[] { return pecas.email && pecas.email === loggedEmail() ? pecas.lista : [] }
+export async function recarregarMinhasPecas(): Promise<readonly string[]> {
+  const email = loggedEmail()
+  const n = ++pedidoPecas
+  if (!email) { pecas = { email: null, lista: [] }; ouvintesPecas.forEach(f => f()); return [] }
+  try {
+    const { data, error } = await supabase.rpc('esc_minhas_pecas')
+    if (n !== pedidoPecas || error) return getMinhasPecas()
+    pecas = { email, lista: Array.isArray(data) ? data.filter((x): x is string => typeof x === 'string') : [] }
+    ouvintesPecas.forEach(f => { try { f() } catch { /* ignora */ } })
+  } catch { /* sem rede: fica o que tinha */ }
+  return getMinhasPecas()
+}
+/** o que a conta tem pra régua do presidente: plano + peças compradas */
+export function getPosseConta(): PosseAvulsa { return { plano: getPlanoConta(), compradas: getMinhasPecas() } }
+/** hook: plano + peças (carrega as peças na 1ª vez) */
+export function usePosseConta(): PosseAvulsa {
+  const plano = usePlanoConta()
+  const [, bump] = useState(0)
+  useEffect(() => {
+    const f = () => bump(n => n + 1)
+    ouvintesPecas.add(f)
+    if (pecas.email !== loggedEmail()) void recarregarMinhasPecas()
+    return () => { ouvintesPecas.delete(f) }
+  }, [])
+  return { plano, compradas: getMinhasPecas() }
+}
+/** o visual cabe no que a conta tem? (roupa, cabelo, barba e cada acessório) — a MESMA régua da tela e do Pix */
+export function visualCabeNaPosse(v: PresidenteBaseSave, p: PosseAvulsa): boolean {
+  if (!temBoneco(p) || !roupaModularValida(v.outfit) || !podeVestirRoupaAvulsa(v.outfit, p)) return false
+  if (podeSalvarPresidente(p.plano)) return true // plano: todo o rosto é dele
+  const a = v.appearance ? aparenciaModular(v.appearance) : null
+  if (!a) return false
+  return podeUsarPecaAvulsa(a.hair, p) && podeUsarPecaAvulsa(a.beard, p) && a.accessories.every(id => podeUsarPecaAvulsa(id, p))
+}
+
+/** grava o presidente da conta. Com plano (Craque+) ou com roupa avulsa comprada, e só com o que a conta tem — a MESMA régua da tela. */
 export async function salvarPresidenteConta(v: PresidenteBaseSave): Promise<boolean> {
-  const plano = getPlanoConta()
-  if (!presidenteBaseValido(v) || !v.name.trim() || !podeSalvarPresidente(plano) || !podeVestirModular(v.outfit, plano)) return false
+  const posse = getPosseConta()
+  if (!presidenteBaseValido(v) || !v.name.trim() || !visualCabeNaPosse(v, posse)) return false
   try {
     const { data: u } = await supabase.auth.getUser()
     const uid = u.user?.id, email = u.user?.email?.toLowerCase() ?? null
@@ -97,6 +140,7 @@ export function usePresidenteConta(): EstadoPresidenteConta {
 // trocou de conta / deslogou: zera e, se alguém está olhando, relê. Nunca espera o Supabase DENTRO do callback.
 supabase.auth.onAuthStateChange(() => {
   pedido++
+  if (pecas.email !== loggedEmail()) { pedidoPecas++; pecas = { email: null, lista: [] }; if (ouvintesPecas.size) queueMicrotask(() => { void recarregarMinhasPecas() }) }
   muda({ status: 'parado', value: null, email: null })
   if (ouvintes.size) queueMicrotask(() => { void carregarPresidenteConta() })
 })

@@ -1,3 +1,13 @@
+## 🧑‍💼🛍️ Peças avulsas do presidente no Pix (19/10) — ✅ NO AR pra todos
+- Pedido: *"ok pode fazer tudo nisso já pelo pix do mercado pago"*. Preço pelo nível: Craque 1,99 · Lenda 2,99 · Batismo 3,99 · Fundador 4,99.
+- Grátis: 1ª compra = roupa, que dá o boneco careca (pele à vontade); depois cabelo/barba/acessório a 1,99. Com plano: compra as de cima.
+- Editor: toda peça fora do que a conta tem mostra 🛒 preço e dá pra PROVAR; a caixa "🛒 Ainda não é seu" lista o que falta, com
+  COMPRAR (Pix numa janela) e ✕ pra tirar a peça do rosto. Salvar só com tudo comprado (`visualCabeNaPosse`, mesma régua no salvar da conta).
+- Banco: catálogo (61 peças) + `esc_presidente_pecas` + `esc_preco_peca` (só o servidor ou o dono perguntam) + `esc_mp_preco_ref`/`esc_mp_entregar`.
+  Edge `mp-criar-pix` v10 (nome da peça, ref até 40 letras). Fotos: `node scripts/foto-pecas-presidente.mjs`.
+- ⏳ Falta: carreira de quem é grátis com boneco comprado usa o presidente da conta? (a régua da carreira já aceita a roupa comprada).
+- 🔙 Reverter: tirar a caixa de compra = voltar o commit; o banco pode ficar (sem a tela, ninguém gera Pix de peça).
+
 ## 🏀💵 Basquete: preços em dólar (19/10) — ⏳ BASE COMBINADA, cobrança NÃO feita
 Craque US$ 9,99 · Lenda 19,99 · Batismo 49,99 · Fundador 79,99 (*"isso aí, mais ou menos isso!"*). Detalhe em
 `docs/conceito-basquete.md` (§ Preços nos EUA). Falta: conta Stripe ou PayPal do Diego + ligar a cobrança em cartão no jogo.
