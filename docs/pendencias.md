@@ -1,3 +1,8 @@
+## 📊 Perfil: ranking da ÚLTIMA carreira (19/10) — ✅ NO AR
+- Pedido: *"ranking da pessoa na temporada que ela tá da última carreira… tipo 43 da temporada 360"*. `esc_perfil_rank` agora pega a
+  última carreira que subiu pro ranking (antes: a melhor) e conta com `esc_pyramid_career_rank` (a mesma do ranking global).
+- ⏳ Ranking ONLINE de todos os tempos: proposta mandada ao Diego (somar desde 02/09, quando o jogo começou a guardar os títulos das salas).
+
 ## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR
 - Pedido: *"como eu faço p tirar e escrever novas?? Deveria aparecer no painel as três p eu remover editar ou add nova"*.
 - Vadico, K9 e Max Joias saíram do código e foram pro banco (`esc_anuncios_fixos`). No #admin, caixa "📌 Anúncios fixos · telão":
