@@ -1368,8 +1368,8 @@ const FIN_RED = '#C2452F'
 
 // 🏛️ MULTICLUBES · Fase 1 (a COMPRA): painel pra comprar um 2º clube da Série D por
 // 4.000 moedas (só Lenda). O seletor + "clube dormindo" vêm nas próximas fases.
-function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
-  jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void
+function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy, bb = false }: {
+  jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void; bb?: boolean // 🏀 basquete: escudo de quadra no lugar do estádio
 }) {
   const [pick, setPick] = useState<string | null>(null)
   const lock: React.CSSProperties = { fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 800, background: '#CBBF9E', color: 'rgba(0,0,0,.65)', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 8 }
@@ -1398,7 +1398,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
           <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto' }}>
             {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>{tr('Nenhum clube da Série D disponível agora.', 'No Série D club available right now.')}</p>}
             {opcoes.map(t => (
-              <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🏟️ {t}{pick === t ? '  ✓' : ''}</button>
+              <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{bb ? '🏀' : '🏟️'} {t}{pick === t ? '  ✓' : ''}</button>
             ))}
           </div>
           <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>{tr('💰 COMPRAR', '💰 BUY')} {pick ? pick.toUpperCase() : tr('POR', 'FOR')} · {preco.toLocaleString('pt-BR')} 🪙</button>
@@ -1412,10 +1412,14 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
 // Mostra as cartas ganhas NESTA carreira por raridade e a renda por temporada.
 // Cada categoria só rende quando desbloqueada (estádio/SAF). Tocar numa carta
 // abre a carta cheia com a bio (mesmo card do álbum).
-function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: StadiumSave | undefined; hasFilial: boolean }) {
+function EscritorioTab({ cards, st, hasFilial, bb = false }: { cards: EmpCard[]; st: StadiumSave | undefined; hasFilial: boolean; bb?: boolean }) {
   const [open, setOpen] = useState<EmpCard | null>(null)
-  const { total, by } = empresarioIncome(cards, st, hasFilial)
+  // 🏀 basquete: a renda usa a régua do basquete (LENDA destrava pela ARENA 100%,
+  // não pela SAF, que não existe). Futebol passa bb=false → idêntico.
+  const { total, by } = empresarioIncome(cards, st, hasFilial, bb)
   const catCards = (k: EmpCat) => cards.filter(c => empCat(c) === k)
+  // 🏀 no basquete a LENDA destrava pela arena cheia — o texto do cadeado diz isso.
+  const reqOf = (k: EmpCat) => (bb && k === 'lenda') ? tr('arena 100% completa', 'full arena (100%)') : empMeta(k).req
   return (
     <>
       {/* RESUMO: renda por temporada */}
@@ -1435,7 +1439,7 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
                 <span style={{ fontSize: 20 }}>{m.emoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{m.value}/{tr('carta', 'card')}</span></div>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}{b.unlocked ? '' : ` · 🔒 ${tr('destrava', 'unlocks')}: ${m.req}`}</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}{b.unlocked ? '' : ` · 🔒 ${tr('destrava', 'unlocks')}: ${reqOf(k)}`}</div>
                 </div>
                 <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: b.unlocked ? GREEN : '#b3a688', whiteSpace: 'nowrap' }}>{b.unlocked ? `+${b.income}` : '🔒'}</div>
               </div>
@@ -7912,6 +7916,59 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
 
 // ⭐ abre a tela com TODOS os planos, rolada até o Craque (Diego 07/10: "qd apertar em craque ele vê todos planos")
 const abreCraqueNuvem = () => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=nuvem` }
+
+// 🏀 CLUBE do BASQUETE (BidLegends) — a MESMA economia do futebol numa janela:
+// 🏟️ Arena (quadra) · 💰 Finanças · 💼 Agência · 🏛️ 2º Clube. Reusa os mesmos
+// componentes do futebol (StadiumTab/FinancasTab/EscritorioTab/MultiClubeBuy) com
+// bb={true} pro visual de quadra e a régua da arena. SÓ aparece na carreira do
+// basquete (EscSeason), nunca no futebol. Patrocínio fica pra uma próxima fatia.
+export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
+  const { state, dispatch } = useEsc()
+  const en = getLang() === 'en'
+  const L = (pt: string, e: string) => en ? e : pt
+  const [sub, setSub] = useState<'estadio' | 'financas' | 'escritorio'>('estadio')
+  const youId = state.managers[state.youIdx]?.id ?? state.youIdx
+  const coins = state.careerCoins?.[youId] ?? 0
+  const myCards = state.empresarioCards ?? []
+  const myLedger = state.careerLedger ?? []
+  // 🏛️ 2º Clube do basquete fica pra uma próxima fatia: no futebol ele hoje NASCE da
+  // SAF (SAF2), e o basquete não tem SAF — e o ciclo de vida (comprar → dormir →
+  // trocar comando entre temporadas) ainda não está ligado no avanço de temporada do
+  // basquete. Botão só entra quando funcionar inteiro (regra #3 do Diego: nada de
+  // estado quebrado). Por isso aqui vão só as 3 abas que funcionam 100%.
+  const tabs: [typeof sub, string, string][] = [
+    ['estadio', '🏟️', L('Arena', 'Arena')],
+    ['financas', '💰', L('Finanças', 'Finances')],
+    ['escritorio', '💼', L('Agência', 'Agency')],
+  ]
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
+      <div style={{ position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
+          <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+          {tabs.map(([s, ic, label]) => (
+            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
+          ))}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
+          {sub === 'escritorio' ? (
+            <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb />
+          ) : sub === 'financas' ? (
+            <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
+          ) : (
+            <StadiumTab st={state.stadiums?.[youId]} coins={coins}
+              onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()

@@ -56,7 +56,7 @@ import { CampinhoKings } from './kings-campinho'
 import { LigaHub, gravaTemporadaSala, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
-import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
@@ -6488,6 +6488,7 @@ export function EscSeason() {
   const seasonSettled = state.round >= totalRounds && (state.quickCopa != null || state.champion != null)
   const [resultRevealed, setResultRevealed] = useState(seasonSettled)
   const [showPyramid, setShowPyramid] = useState(false)
+  const [bbClube, setBbClube] = useState(false) // 🏀🏢 overlay da economia (Clube) na carreira do basquete
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
     setResultRevealed(false)
@@ -7334,13 +7335,23 @@ export function EscSeason() {
 
       </div>
       </div>
-      {state.careerOnline && (
+      {state.careerOnline && !bbS && (
         <button onClick={() => setShowPyramid(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
           style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
           {LS('🪜 Ver as 4 divisões', '🪜 See the 4 divisions')}
         </button>
       )}
+      {/* 🏀🏢 CLUBE (economia do basquete): arena, finanças, agência, 2º clube.
+          Só na carreira do basquete SOLO (careerOnline=true + nbaCareer). */}
+      {bbS && state.careerOnline && state.nbaCareer && (
+        <button onClick={() => setBbClube(true)}
+          className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
+          style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
+          🏢 {LS('Clube — arena, agência, 2º clube', 'Club — arena, agency, 2nd club')}
+        </button>
+      )}
+      {bbClube && <BbClubeOverlay onClose={() => setBbClube(false)} />}
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
@@ -7403,7 +7414,7 @@ export function EscSeason() {
       )}
       <CreditLine className="pt-4 pb-2" />
       </div>
-      {showPyramid && state.careerOnline && (
+      {showPyramid && state.careerOnline && !bbS && (
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
       )}
