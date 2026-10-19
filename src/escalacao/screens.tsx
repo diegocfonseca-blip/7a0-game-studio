@@ -1642,117 +1642,69 @@ function LangToggle() {
 // basquete ainda está em construção, esta é a tela "chegando": apresenta a
 // marca, o conceito (pirâmide + quinteto) e deixa claro que o FUTEBOL segue
 // 100% no ar na aba ⚽. Zero risco pro jogo ao vivo.
+// 🏀 HOME DO BIDLEGENDS = a MESMA home ilustrada do futebol (ll-home), só com o
+// conteúdo de basquete (decisão do Diego 19/10: *"é exatamente tudo igual… o que
+// muda só é… coisas que não é de futebol, é pra basquete"*). Reusa a arte de fundo
+// do futebol POR ENQUANTO (ele pediu: *"deixe a mesma do futebol por enquanto"* —
+// a arte cinematográfica de basquete entra quando ele mandar/gerar). Mesmos modos,
+// mesma Loja/Amigos/Salão/Regras/Álbum/Conta. Só a conta do Diego vê (sport.ts).
 function BidLegendsHome() {
   const t = useT()
   const { dispatch } = useEsc()
+  const [, setSport] = useSport()
   const nbaSolo = useResumableNbaCareer() // 🏀 carreira do basquete salva (continuar)
-  const PYR = [
-    ['🛝', 'STREET LEAGUE', t('A base. 20 times, pontos corridos. Sobem 4, ninguém cai.', 'The base. 20 teams, round-robin. Top 4 go up, nobody drops.')],
-    ['🔷', 'G LEAGUE', t('Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.', 'East × West, 82 games, playoffs. Go far and move up.')],
-    ['💍', 'NBA', t('O topo. Chegue às Finals e leve o anel pro seu álbum.', 'The top. Reach the Finals and take the ring to your album.')],
-  ] as [string, string, string][]
+  const [contaAberta, setContaAberta] = useState(false)
+  const [verSalao, setVerSalao] = useState(false)
+  const amigosOn = useAmigos()
+  const [verAmigos, setVerAmigos] = useState(false)
+  const [showManual, setShowManual] = useState(false)
+  if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
-    <Shell>
-      {/* header: botão de idioma BR/EN no canto direito (só o BidLegends tem) */}
-      <div className="flex justify-end pt-2"><LangToggle /></div>
-      <SportTabs />
-      {/* 🏀 carreira do basquete em andamento — continuar de onde parou (salvo local) */}
-      {nbaSolo && (
-        <div className="rounded-2xl border-4 border-black p-3 mt-2 space-y-2.5" style={{ background: PURPLE, boxShadow: `4px 4px 0 0 ${INK}` }}>
-          <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
-            🛝 {t('Carreira em andamento', 'Career in progress')}<br />
-            <span className="opacity-80 text-xs">{nbaSolo.teamName} · {t('Temporada', 'Season')} {nbaSolo.seasonNo}</span>
-          </p>
-          <button onClick={nbaSolo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-            ▶️ {t('Continuar carreira', 'Continue career')} ({nbaSolo.teamName})
-          </button>
-          <button onClick={nbaSolo.discard} className="w-full rounded-xl border-2 border-black font-black text-xs py-2 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-            🗑️ {t('Largar e começar outra', 'Drop and start a new one')}
-          </button>
+    <><div className="ll-home">
+      <div className="ll-art" />
+      <div className="ll-shade" />
+      <header className="ll-header">
+        <div className="ll-brand"><small>{t('NBA ÀS CEGAS', 'NBA BLIND AUCTION')}</small>BIDLEGENDS</div>
+        <div className="ll-lang"><LangToggle /></div>
+        <div className="ll-account">
+          {/* 🏀 voltar pro futebol — o BidLegends é a aba de basquete */}
+          <button onClick={() => setSport('futebol')} title={t('Ir pro futebol', 'Go to soccer')} style={{ padding: '7px 11px' }}>⚽</button>
+          <button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button>
         </div>
-      )}
-      <div className="text-center pt-6">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          🏀 {t('Leilão às cegas de lendas', 'Blind auction of legends')}
-        </span>
-        <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>BIDLEGENDS</h1>
-        <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: '#C2452F', border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
-        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">
-          {t('O leilão cego das lendas do ', 'The blind auction of ')}<b>{t('basquete', 'basketball')}</b>{t('. Monte seu quinteto no pregão, suba a pirâmide da NBA e colecione os craques no seu álbum.', ' legends. Draft your starting five, climb the NBA pyramid and collect the stars in your album.')}
-        </p>
-      </div>
-      {/* vitrine: as MESMAS cartas do futebol, só que de basquete (mesmo visual) */}
-      <div className="grid grid-cols-2 gap-3 grade-cartas">
-        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio={t('Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima.', 'The greatest of all time. Six rings, six Finals MVPs. Ended his career the way it began: on top.')} /></div>
-        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio={t('Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história.', 'Flash. Carried the Heat to the 2006 title in one of the greatest individual Finals ever.')} /></div>
-        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio={t('O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo.', 'The alien. 7-foot-4 that dunks and drains threes. The future came early.')} /></div>
-        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="JaVale McGee" club="Wizards" year={2011} pos="PIVÔ" fame={2} folk showBio bio={t("Rei do Shaqtin' a Fool. Errou uns, acertou anéis. Folclore puro do garrafão.", "King of Shaqtin' a Fool. Missed a few, won rings. Pure paint folklore.")} /></div>
-      </div>
-      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 cult hero — collect them all')}</p>
-      {/* ⚡ PARTIDA RÁPIDA (vs CPU) — pregão cego do basquete, MESMO motor do
-          futebol. Em teste (só o Diego vê). 3 rivais (franquias da NBA). */}
-      <Btn onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })} className="w-full text-lg">
-        ⚡ {t('PARTIDA RÁPIDA (VS CPU)', 'QUICK GAME (VS CPU)')}
-      </Btn>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Pregão cego do quinteto (5) — em teste 🔧', 'Blind auction for your five (5) — testing 🔧')}</p>
-      {/* 🌐 ONLINE DO BASQUETE (14/09) — MESMO lobby do futebol (salas, código,
-          senha, Minhas ligas). As salas ficam SEPARADAS por esporte: quem está no
-          BidLegends só vê/entra em sala de basquete. */}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
-        <span className="text-white">🌐 {t('JOGAR ONLINE', 'PLAY ONLINE')}</span>
-      </Btn>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Crie a sala e chame a galera — quinteto (5) no pregão cego, e a liga da turma em 🏆 Minhas ligas.', 'Create a room and call your crew — starting five (5) in the blind auction, and your crew\'s league in 🏆 My leagues.')}</p>
-      {/* 🛝 CARREIRA · STREET LEAGUE — a base da pirâmide, MESMO motor do futebol.
-          Rotação de 10 (2 por posição) e liga cheia de pontos corridos. Em teste. */}
-      <motion.div className="rounded-xl"
-        animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
-        <Btn onClick={() => dispatch({ type: 'START_NBA_CAREER', teamName: t('Meu Time', 'My Team') })} className="w-full text-lg" bg={PURPLE}>
-          <span className="text-white">🛝 {t('CARREIRA · STREET LEAGUE', 'CAREER · STREET LEAGUE')} <span className="text-yellow-300">(new)</span></span>
-        </Btn>
-      </motion.div>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('A base: quinteto (5), liga de 20 — cresce nas reservas 🔧 em construção', 'The base: starting five (5), 20-team league — grows in the reserve auction 🔧 building')}</p>
-      {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
-      <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
-        <div className="text-3xl">🚧</div>
-        <p className="font-black text-lg uppercase mt-1" style={OSWALD}>{t('Chegando ao BidLegends', 'Coming to BidLegends')}</p>
-        <p className="text-[13px] font-semibold text-black/60 mt-1 leading-snug">
-          {t('O basquete está em construção — o mesmo motor do Leilão Legends, agora com o quinteto e a pirâmide da NBA. Quer jogar HOJE? Toca em ', 'Basketball is under construction — the same engine as Leilão Legends, now with the starting five and the NBA pyramid. Want to play TODAY? Tap ')}<b>{t('⚽ Futebol', '⚽ Soccer')}</b>{t(' aí em cima: o jogo completo está no ar.', ' up top: the full game is live.')}
-        </p>
-      </div>
-      {/* a pirâmide (conceito) */}
-      <div className="space-y-2.5">
-        <p className="text-center text-[11px] font-black uppercase tracking-widest text-black/40" style={OSWALD}>{t('A pirâmide do basquete', 'The basketball pyramid')}</p>
-        {PYR.map(([ic, ti, d]) => (
-          <div key={ti} className="flex items-center gap-3 border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <div className="text-2xl shrink-0">{ic}</div>
-            <div>
-              <p className="font-black text-sm uppercase" style={OSWALD}>{ti}</p>
-              <p className="text-[11px] font-semibold text-black/60 leading-snug">{d}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* como funciona — espelha os 4 cartões do futebol, adaptado ao basquete */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {([['🏀', t('O Pregão', 'The Auction'), t('5 rodadas de leilão cego: armador, ala-armador, ala, ala-pivô e pivô. Ninguém vê o lance de ninguém.', '5 blind auction rounds: PG, SG, SF, PF and C. No one sees anyone else’s bid.')],
-           ['🎭', t('Níveis ocultos', 'Hidden ratings'), t('Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem noite boa e noite ruim.', 'You bet on the name. The rating only opens at the Ceremony — and every star has good and bad nights.')],
-           ['🪜', t('Pirâmide', 'The Pyramid'), t('Da Street League à NBA. Cada anel vira uma carta no seu álbum.', 'From the Street League to the NBA. Each ring becomes a card in your album.')],
-           ['💎', t('Vale o auge', 'Peak counts'), t('O nível é o auge do craque naquele ano/franquia (Jordan 1996 lenda; Wade 2006 craque).', 'The rating is the star’s peak that year/franchise (Jordan 1996 legend; Wade 2006 star).')]] as [string, string, string][]).map(([ic, ti, d]) => (
-          <div key={ti} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <div className="text-xl">{ic}</div>
-            <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{ti}</p>
-            <p className="text-[11px] font-semibold text-black/60 mt-0.5 leading-snug">{d}</p>
-          </div>
-        ))}
-      </div>
-      {/* 📖 ÁLBUM — a home promete cartas/álbum (acima); aqui está a PORTA. Mostra as
-          cartas da conta (as lendas da NBA que você ganhar de campeão entram aqui). */}
-      <Btn onClick={() => dispatch({ type: 'GO_ALBUM' })} className="w-full text-lg" bg="#FFC400">
-        <span>📖 {t('MEU ÁLBUM', 'MY ALBUM')}</span>
-      </Btn>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('As lendas da NBA que você coleciona — cada anel vira carta.', 'The NBA legends you collect — each ring becomes a card.')}</p>
-    </Shell>
+      </header>
+      {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}
+      <section className="ll-intro">
+        <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
+        <p>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
+      </section>
+      {nbaSolo && <div className="ll-resume">
+        <button onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
+        <button onClick={nbaSolo.discard}>{t('LARGAR', 'DROP')}</button>
+      </div>}
+      <section className="ll-choices" aria-label="Escolha como jogar">
+        <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
+        <div className="ll-modes">
+          <button className="ll-mode" onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu quinteto e enfrente a CPU.', 'Build your five and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-online" onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-career" onClick={() => nbaSolo ? nbaSolo.resume() : dispatch({ type: 'START_NBA_CAREER', teamName: t('Meu Time', 'My Team') })}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Suba da Street League à NBA.', 'Climb from the Street League to the NBA.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+        </div>
+        <div className={amigosOn ? 'll-loja-linha ll-com-amigos' : 'll-loja-linha'}>
+          <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, canto da torcida e moedas', 'Move up a plan, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
+          {amigosOn && <button className="ll-salao-entry ll-amigos-entry" onClick={() => setVerAmigos(true)}><span aria-hidden="true">👥</span><span><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Quem está online', 'Who is online')}</small></span><span aria-hidden="true">›</span></button>}
+        </div>
+        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
+        <div className="ll-extras ll-extras-3">
+          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-regras-entry" onClick={() => setShowManual(true)}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-album-entry" onClick={() => dispatch({ type: 'GO_ALBUM' })}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+        </div>
+      </section>
+      <footer className="ll-footer">
+        <div className="ll-web"><span>bidlegendsarena.com</span> · {t('Seu quinteto. Sua lenda.', 'Your five. Your legend.')}</div>
+      </footer>
+      {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
+      {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo />}
+    </div><div className="ll-support-home-tail"><ApoieButton trigger={open => <SupportFooter onOpen={open} />} /></div></>
   )
 }
 // 🗑️ A TELA CHEIA DE LOGIN DA CARREIRA SAIU (Diego 16/08, plano-crescimento §1).
