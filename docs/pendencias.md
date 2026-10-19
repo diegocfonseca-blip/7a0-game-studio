@@ -9423,4 +9423,5 @@ Lembrança dele do PES 19 com os amigos: *"tinha só um Neymar pra todo mundo…
 - A cada temporada: noite do draft, **1 jogador por técnico**, de **TODOS os jogadores do jogo** (lenda inclusa).
 - Ordem = tabela, **campeão escolhe primeiro**.
 - Cada escolha é revelada na hora pra sala inteira (carta coberta → vira), suspense.
-- Mockup: `scripts/mockup-draft.mjs` → `scripts/mockups/draft.png` (tempo de 45s, "quem sai pra ele entrar" são propostas minhas).
+- Mockup: `scripts/mockup-draft.mjs` → `scripts/mockups/draft.png` (tempo de 60s (pedido dele), "quem sai pra ele entrar" são propostas minhas).
+- Anúncio com suspense (pedido dele: *"o suspense tem q ser grande"*): pistas a cada 2s — posição → cor da categoria → país+década com as cores do clube → vira a carta. `scripts/mockup-draft-anuncio.mjs` → `scripts/mockups/draft-anuncio.png`.

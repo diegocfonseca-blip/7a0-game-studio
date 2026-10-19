@@ -44,7 +44,7 @@ const tela3 = `<div class="fone">
 const lin = (pos, nome, clube, cat, cor, dono) => `<div class="li ${dono ? 'tomado' : ''}"><span class="lpos">${pos}</span><span class="lnome"><b>${nome}</b><small>${clube}</small></span>${dono ? `<em>já é do ${dono}</em>` : `<span class="lcat" style="background:${cor}">${cat}</span>`}</div>`
 const tela4 = `<div class="fone">
   ${topo('SUA VEZ · 3ª ESCOLHA', 'K9 FC · escolha 1 jogador de todo o jogo')}
-  <div class="relogio">⏱ <b>45s</b> pra escolher · acabou o tempo, o jogo pega o melhor livre pra você</div>
+  <div class="relogio">⏱ <b>60s</b> pra escolher · acabou o tempo, o jogo pega o melhor livre pra você</div>
   <div class="busca">🔎 buscar jogador…</div>
   <div class="filtros"><span class="on">Todos</span><span>GOL</span><span>LAT</span><span>ZAG</span><span>MEI</span><span>ATA</span></div>
   <div class="lista">
