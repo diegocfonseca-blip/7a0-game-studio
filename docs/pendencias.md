@@ -132,6 +132,11 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
 
+## 🧹 Branch `claude/denis-save-file-x1osct` virou espelho da main (19/10)
+- O branch acumulava cherry-picks e brigava em todo merge. Resetei pra `origin/main`. O ÚNICO trabalho que só existia nele era o
+  **tema do Fundador Wen Milan B** (commit `7ac20672`, `temas-sala.tsx`): quando a conta do dono (vittor@tidex.com.br) existir,
+  `git cherry-pick 7ac20672` (ou refazer pelo padrão `temaFundador`) junto com o batismo. Não se perdeu nada da main.
+
 ## 🎙️ COLETIVA DE IMPRENSA NA CARREIRA (19/10) — ✅ APROVADA (*"adorei… quero sim efeito"*), CODADA, SÓ NA CONTA DO DIEGO
 - Decisões dele na aprovação: **com efeito** no jogo (pequeno e explicado) · **pular** não pune, mas 3 pulos seguidos acordam o
   Rogério e a fama vira "O Mudo" · junto vão o **item 2** (coletiva antes da final) e o **4** (frases da temporada no jornal do fim).
