@@ -5,6 +5,11 @@ A (lances, estilo FM) descartado. Calibração feita e medida (diário completo 
 ⚠️ **Teto estrutural medido**: em 90 s a bola voa ~55 s entre passes e fica ~15 s parada → 12–13 posses por jogo → 4–6 chutes é o
 máximo com velocidade de gente. Pra ter 2–3 gols por jogo (como o v1, que recebe o placar pronto) só com alavanca "de jogo":
 goleiro mais batível, chute de fora valendo mais ou relógio do 2D mais lento — **perguntar ao Diego** (uma frase, sim/não).
+✅ **Lendas uma a uma (20/10, *"não precisa montar, já pode fazer"*):** as 186 lendas agora têm 1ª marca (185; só o Zagallo
+fica neutro, com a 2ª marca "volta pra marcar"), golpe-assinatura (183) e **2ª marca** (143) em `campo2d-estilos.ts` — só fato
+conhecido, nunca chute. No v2 a 2ª marca entra com metade do peso nos atributos e nas tendências (`atributos.ts`). Gol não é
+número fixo (ordem dele): depende do goleiro (trocar o goleiro rival de profissional pra lenda: 0,85 → 0,55 gol sofrido), do
+elenco (lendas × profissionais 1,6 × 0,07, 55 vitórias em 60), do gás e das marcas de cada um.
 Pendente: virar os números em assert no `npm run motor2` quando ele cravar a meta; ligar o v2 na bancada visual e FILMAR
 (`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. Clima visual (sol/nublado/chuva) continua
 esperando o OK dele na foto (`clima-3.png`).

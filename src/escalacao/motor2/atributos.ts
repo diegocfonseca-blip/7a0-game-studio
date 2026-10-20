@@ -3,7 +3,7 @@
 // `campo2d-estilos.ts`). Daqui sai um perfil de 13 números + tendências — sem inventar atributo novo na carta e sem mexer
 // em save nenhum. Regra do Diego: lenda é única; mas também *"não inventar como uma pessoa real é"* — por isso o perfil só
 // usa o que já está escrito sobre ela (estilo + golpes). As "duas marcas por lenda" são da fase 2 (lista pra ele aprovar).
-import { estiloDe, golpesDe, peDe, type Estilo, type Golpe } from '../campo2d-estilos'
+import { estilo2De, estiloDe, golpesDe, peDe, type Estilo, type Golpe } from '../campo2d-estilos'
 import type { Atrib, CartaCampo, Grupo, Tendencia } from './tipos'
 
 const BASE_FAME: Record<number, number> = { 1: 54, 2: 63, 3: 71, 4: 81, 5: 91 }
@@ -62,26 +62,28 @@ export interface Perfil { at: Atrib; tend: Tendencia; estilo: Estilo; golpes: Go
 
 export function perfilDe(c: CartaCampo | undefined, grupo: Grupo): Perfil {
   const nome = c?.name ?? '', fame = c?.fame ?? 0, nivel = nivelDe(c)
-  const estilo = estiloDe(nome, fame), golpes = golpesDe(nome, fame), lenda = fame >= 5
+  const estilo = estiloDe(nome, fame), estilo2 = estilo2De(nome, fame), golpes = golpesDe(nome, fame), lenda = fame >= 5
   const at = { ...ZERO }
   const somas = [MOLDE[grupo], ESTILO[estilo], ...golpes.map(g => GOLPE[g] ?? {})]
   let i = 0
   for (const k of Object.keys(ZERO) as (keyof Atrib)[]) {
     let v = nivel
     for (const s of somas) v += s[k] ?? 0
+    v += (ESTILO[estilo2][k] ?? 0) * 0.5 // (a 2ª marca da lenda, com metade do peso)
     if (!lenda && nome) v += tempero(nome, i++)
     at[k] = Math.max(15, Math.min(99, v))
   }
   // TENDÊNCIAS: o que ele gosta de tentar (posição + estilo + golpes). Muda a CHANCE de escolher, nunca obriga.
   const tem = (...g: Golpe[]) => golpes.some(x => g.includes(x))
+  const e2 = (e: Estilo, v: number) => (estilo === e ? v : estilo2 === e ? v * 0.5 : 0) // (1ª marca inteira, 2ª pela metade)
   const tend: Tendencia = {
-    drible: (grupo === 'ATA' ? 0.35 : grupo === 'MEI' ? 0.2 : grupo === 'LAT' ? 0.15 : 0.05) + (estilo === 'driblador' ? 0.45 : estilo === 'velocista' ? 0.2 : 0)
+    drible: (grupo === 'ATA' ? 0.35 : grupo === 'MEI' ? 0.2 : grupo === 'LAT' ? 0.15 : 0.05) + e2('driblador', 0.45) + e2('velocista', 0.2)
       + (tem('elastico', 'pedalada', 'chapeu', 'roleta', 'slalom', 'croqueta', 'caneta', 'corta_pra_dentro') ? 0.15 : 0),
-    passeLongo: (grupo === 'DEF' ? 0.25 : grupo === 'MEI' ? 0.3 : 0.15) + (estilo === 'passador' ? 0.3 : 0) + (tem('lancamento') ? 0.25 : 0),
-    chuteLonge: (grupo === 'MEI' ? 0.25 : grupo === 'ATA' ? 0.2 : 0.05) + (estilo === 'chutador' ? 0.45 : 0) + (tem('bomba', 'folha_seca', 'tres_dedos') ? 0.15 : 0),
-    infiltra: (grupo === 'ATA' ? 0.55 : grupo === 'MEI' ? 0.2 : 0.02) + (estilo === 'finalizador' ? 0.3 : estilo === 'velocista' ? 0.35 : 0),
-    cruza: (grupo === 'LAT' ? 0.45 : grupo === 'ATA' ? 0.2 : 0.15) + (estilo === 'apoiador' ? 0.35 : 0) + (tem('cruzamento_curva') ? 0.25 : 0),
-    apoia: (grupo === 'LAT' ? 0.4 : grupo === 'MEI' ? 0.3 : 0.05) + (estilo === 'apoiador' ? 0.45 : 0),
+    passeLongo: (grupo === 'DEF' ? 0.25 : grupo === 'MEI' ? 0.3 : 0.15) + e2('passador', 0.3) + (tem('lancamento') ? 0.25 : 0),
+    chuteLonge: (grupo === 'MEI' ? 0.25 : grupo === 'ATA' ? 0.2 : 0.05) + e2('chutador', 0.45) + (tem('bomba', 'folha_seca', 'tres_dedos') ? 0.15 : 0),
+    infiltra: (grupo === 'ATA' ? 0.55 : grupo === 'MEI' ? 0.2 : 0.02) + e2('finalizador', 0.3) + e2('velocista', 0.35),
+    cruza: (grupo === 'LAT' ? 0.45 : grupo === 'ATA' ? 0.2 : 0.15) + e2('apoiador', 0.35) + (tem('cruzamento_curva') ? 0.25 : 0),
+    apoia: (grupo === 'LAT' ? 0.4 : grupo === 'MEI' ? 0.3 : 0.05) + e2('apoiador', 0.45),
   }
   for (const k of Object.keys(tend) as (keyof Tendencia)[]) tend[k] = Math.max(0, Math.min(1, tend[k]))
   return { at, tend, estilo, golpes, pe: peDe(nome, fame), nivel }

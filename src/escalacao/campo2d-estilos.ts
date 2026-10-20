@@ -22,18 +22,51 @@ const LISTA: [Estilo, string[]][] = [
   ['goleiro_linha', ['Rogério Ceni', 'Manuel Neuer', 'René Higuita', 'José Luis Chilavert']],
   ['apoiador', ['Carlos Alberto Torres', 'Nílton Santos', 'Júnior Maestro', 'Leandro', 'Arce', 'Cafu', 'Philipp Lahm', 'Dani Alves', 'Javier Zanetti', 'Marcelo', 'Ashley Cole']],
   ['chutador', ['Nelinho', 'Roberto Carlos', 'Ronald Koeman', 'Fernando Hierro', 'Zico', 'Rivelino', 'Marcelinho Carioca', 'Michel Platini', 'Rivaldo', 'Lothar Matthäus', 'Steven Gerrard', 'Frank Lampard', 'Juninho Pernambucano', 'Pavel Nedvěd', 'Bobby Charlton', 'Pepe', 'Ferenc Puskás', 'Eusébio', 'Gabriel Batistuta', 'Adriano Imperador', 'Wayne Rooney', 'Hristo Stoichkov']],
-  ['desarmador', ['Paolo Maldini', 'Domingos da Guia', 'Luís Pereira', 'Mauro Galvão', 'Gamarra', 'Hilderaldo Bellini', 'Franco Baresi', 'Fabio Cannavaro', 'Alessandro Nesta', 'Thiago Silva', 'Carles Puyol', 'Rio Ferdinand', 'Lúcio', 'Lilian Thuram', 'Bobby Moore', 'Marquinhos', 'Cerezo', 'Dunga', 'Zito', 'Patrick Vieira', 'Roy Keane', 'Johan Neeskens']],
+  ['desarmador', ['Paolo Maldini', 'Domingos da Guia', 'Luís Pereira', 'Mauro Galvão', 'Gamarra', 'Hilderaldo Bellini', 'Djalma Santos', 'Franco Baresi', 'Fabio Cannavaro', 'Alessandro Nesta', 'Thiago Silva', 'Carles Puyol', 'Rio Ferdinand', 'Lúcio', 'Lilian Thuram', 'Bobby Moore', 'Marquinhos', 'Cerezo', 'Dunga', 'Zito', 'Patrick Vieira', 'Roy Keane', 'Johan Neeskens']],
   ['cabeceador', ['Figueroa', 'Sergio Ramos', 'Nemanja Vidić', 'John Terry', 'Daniel Passarella', 'Michael Ballack', 'Ruud Gullit', 'Didier Drogba', 'Alan Shearer', 'Miroslav Klose', 'Alberto Spencer']],
   ['passador', ['Franz Beckenbauer', 'Didi', 'Sócrates', 'Ademir da Guia', 'Falcão', 'Gérson Canhotinha de Ouro', 'Alex', 'Xavi', 'Andrea Pirlo', 'Luka Modrić', 'Kevin De Bruyne', 'Paul Scholes', 'Toni Kroos', 'Francesco Totti', 'Clarence Seedorf', 'Sergio Busquets', 'Rodri', 'Gianni Rivera', 'Michael Laudrup', 'Fernando Redondo', 'David Beckham', 'Bastian Schweinsteiger', 'Giancarlo Antognoni', 'Juan Román Riquelme', 'Carlos Valderrama', 'Pedro Rocha', 'Zizinho', 'Dennis Bergkamp']],
-  ['driblador', ['Zinedine Zidane', 'Ronaldinho Gaúcho', 'Andrés Iniesta', 'Luís Figo', 'Ryan Giggs', 'Diego Maradona', 'Ángel Di María', 'Garrincha', 'Neymar', 'Edmundo', 'Renato Gaúcho', 'Marta', 'Dirceu Lopes', 'Eden Hazard', 'Lionel Messi', 'Ronaldo Fenômeno', 'Johan Cruyff', 'Roberto Baggio', 'Arjen Robben', 'Franck Ribéry', 'Vinícius Júnior', 'Ousmane Dembélé', 'George Best']],
+  ['driblador', ['Zinedine Zidane', 'Ronaldinho Gaúcho', 'Andrés Iniesta', 'Luís Figo', 'Ryan Giggs', 'Diego Maradona', 'Ángel Di María', 'Garrincha', 'Neymar', 'Edmundo', 'Renato Gaúcho', 'Marta', 'Dirceu Lopes', 'Eden Hazard', 'Lionel Messi', 'Ronaldo Fenômeno', 'Johan Cruyff', 'Roberto Baggio', 'Arjen Robben', 'Franck Ribéry', 'Vinícius Júnior', 'Ousmane Dembélé', 'George Best', 'Allan Simonsen']],
   ['velocista', ['Kaká', 'Jairzinho', 'Thierry Henry', 'George Weah', 'Kylian Mbappé', "Samuel Eto'o", 'Michael Owen']],
-  ['finalizador', ['Raí', 'Kenny Dalglish', 'Éric Cantona', 'Evaristo de Macedo', 'Ademir de Menezes', 'Pelé', 'Romário', 'Tostão', 'Bebeto', 'Careca', 'Reinaldo', 'Leônidas da Silva', 'Roberto Dinamite', 'Coutinho', 'Kelvin Oliveira (K9)', 'Thomas Müller', 'Cristiano Ronaldo', 'Alfredo Di Stéfano', 'Marco van Basten', 'Gerd Müller', 'Andriy Shevchenko', 'Zlatan Ibrahimović', 'Robert Lewandowski', 'Erling Haaland', 'Raúl', 'Ruud van Nistelrooy', 'Alessandro Del Piero', 'Karim Benzema', 'Harry Kane', 'Luis Suárez', 'Robin van Persie', 'Paolo Rossi', 'Mario Kempes', 'Hugo Sánchez', 'Denis Law', 'Jean-Pierre Papin']],
+  ['finalizador', ['Raí', 'Kenny Dalglish', 'Éric Cantona', 'Evaristo de Macedo', 'Ademir de Menezes', 'Pelé', 'Romário', 'Tostão', 'Bebeto', 'Careca', 'Reinaldo', 'Leônidas da Silva', 'Roberto Dinamite', 'Coutinho', 'Kelvin Oliveira (K9)', 'Thomas Müller', 'Cristiano Ronaldo', 'Alfredo Di Stéfano', 'Marco van Basten', 'Gerd Müller', 'Andriy Shevchenko', 'Zlatan Ibrahimović', 'Robert Lewandowski', 'Erling Haaland', 'Raúl', 'Ruud van Nistelrooy', 'Alessandro Del Piero', 'Karim Benzema', 'Harry Kane', 'Luis Suárez', 'Robin van Persie', 'Paolo Rossi', 'Mario Kempes', 'Hugo Sánchez', 'Denis Law', 'Jean-Pierre Papin', 'Rummenigge']],
 ]
 // 🤷 conhecidos, mas sem UMA marca clara pra eu escolher sem chutar: ficam no neutro da posição
-// (Djalma Santos, Zagallo — e quem mais aparecer como lenda nova sem estar nas listas acima)
+// (Zagallo — a marca dele, o "Formiguinha" que voltava pra marcar, está na 2ª marca abaixo; e quem mais aparecer como lenda nova)
 
 const MAPA = new Map<string, Estilo>()
 for (const [e, nomes] of LISTA) for (const n of nomes) MAPA.set(n, e)
+
+// ── 🎯 A SEGUNDA MARCA (Diego 20/10: *"cada jogador lenda tem a sua individualidade… Ronaldinho é driblador, Ronaldo finaliza
+// bem, Romário fica na pequena área… tem que fazer um a um"*). A 1ª marca é o que a lenda É; a 2ª é o que ela TAMBÉM faz
+// bem, com metade do peso (`atributos.ts`). Só fato conhecido — quem não tem uma 2ª marca clara fica só com a 1ª.
+const SEGUNDA: [Estilo, string[]][] = [
+  ['finalizador', ['Lionel Messi', 'Neymar', 'George Best', 'Roberto Baggio', 'Edmundo', 'Marta', 'Jairzinho', 'Thierry Henry', 'George Weah', 'Kylian Mbappé', "Samuel Eto'o",
+    'Michael Owen', 'Ferenc Puskás', 'Gabriel Batistuta', 'Adriano Imperador', 'Wayne Rooney', 'Eusébio', 'Miroslav Klose', 'Didier Drogba', 'Alan Shearer', 'Alberto Spencer',
+    'Sócrates', 'Frank Lampard', 'Francesco Totti', 'Dennis Bergkamp', 'Pedro Rocha', 'Zizinho', 'Eden Hazard', 'Ronaldo Fenômeno']],
+  ['driblador', ['Pelé', 'Romário', 'Luis Suárez', 'Bebeto', 'Reinaldo', 'Leônidas da Silva', 'Kaká', 'Rivaldo', 'Ademir da Guia', 'Michael Laudrup', 'Marcelo', 'Nílton Santos',
+    'Luka Modrić']],
+  ['passador', ['Diego Maradona', 'Zinedine Zidane', 'Ronaldinho Gaúcho', 'Johan Cruyff', 'Andrés Iniesta', 'Luís Figo', 'Dirceu Lopes', 'Ángel Di María', 'Karim Benzema', 'Harry Kane',
+    'Alfredo Di Stéfano', 'Thomas Müller', 'Tostão', 'Coutinho', 'Kenny Dalglish', 'Éric Cantona', 'Raí', 'Ruud Gullit', 'Zico', 'Rivelino', 'Marcelinho Carioca', 'Dunga', 'Cerezo',
+    'Michel Platini', 'Steven Gerrard', 'Bobby Charlton', 'Juninho Pernambucano', 'Dani Alves', 'Júnior Maestro', 'Franco Baresi', 'Thiago Silva', 'Rio Ferdinand', 'Marquinhos',
+    'Fernando Hierro', 'Ronald Koeman', 'Bobby Moore', 'Domingos da Guia', 'Luís Pereira']],
+  ['cabeceador', ['Cristiano Ronaldo', 'Marco van Basten', 'Gerd Müller', 'Robert Lewandowski', 'Denis Law', 'Lúcio', 'Carles Puyol', 'Fabio Cannavaro']],
+  ['chutador', ['Zlatan Ibrahimović', 'Alessandro Del Piero', 'Robin van Persie', 'Roberto Dinamite', 'Michael Ballack', 'Didi', 'Gérson Canhotinha de Ouro', 'Alex', 'Andrea Pirlo',
+    'David Beckham', 'Kevin De Bruyne', 'Toni Kroos', 'Paul Scholes', 'Clarence Seedorf', 'Carlos Alberto Torres', 'Arce']],
+  ['velocista', ['Andriy Shevchenko', 'Erling Haaland', 'Mario Kempes', 'Careca', 'Ademir de Menezes', 'Hristo Stoichkov', 'Ryan Giggs', 'Arjen Robben', 'Franck Ribéry',
+    'Ousmane Dembélé', 'Renato Gaúcho', 'Pavel Nedvěd', 'Cafu', 'Lilian Thuram', 'Rummenigge', 'Allan Simonsen', 'Vinícius Júnior']],
+  ['desarmador', ['Sergio Busquets', 'Rodri', 'Fernando Redondo', 'Bastian Schweinsteiger', 'Lothar Matthäus', 'Philipp Lahm', 'Javier Zanetti', 'Ashley Cole',
+    'Sergio Ramos', 'John Terry', 'Nemanja Vidić', 'Daniel Passarella', 'Figueroa', 'Zagallo', 'Franz Beckenbauer']],
+  ['apoiador', ['Roberto Carlos', 'Nelinho', 'Djalma Santos']],
+  ['goleiro_linha', ['Edwin van der Sar', 'Lev Yashin']],
+  ['paredao', ['Manuel Neuer', 'Rogério Ceni']],
+]
+const MAPA2 = new Map<string, Estilo>()
+for (const [e, nomes] of SEGUNDA) for (const n of nomes) { if (MAPA.get(n) === e) throw new Error(`2ª marca igual à 1ª: ${n}`); MAPA2.set(n, e) }
+/** a 2ª marca da lenda (metade do peso); 'normal' = não tem */
+export function estilo2De(nome: string, fame?: number): Estilo {
+  if ((fame ?? 0) < 5) return 'normal'
+  return MAPA2.get(nome) ?? 'normal'
+}
+export const LENDAS_COM_SEGUNDA = MAPA2.size
 
 /** estilo da carta: só lenda (fame 5) tem estilo próprio; o resto joga no neutro */
 export function estiloDe(nome: string, fame?: number): Estilo {
@@ -91,10 +124,28 @@ const GOLPES_LISTA: [string, Golpe[]][] = [
   ['Dunga', ['carrinho', 'lancamento']], ['Patrick Vieira', ['carrinho', 'arrancada']], ['Roy Keane', ['carrinho']], ['Cerezo', ['bote', 'passe_acucar']],
   ['Cafu', ['arrancada', 'cruzamento_curva']], ['Dani Alves', ['cruzamento_curva', 'arrancada']], ['Marcelo', ['elastico', 'cruzamento_curva']],
   ['Carlos Alberto Torres', ['arrancada', 'bomba']], ['Philipp Lahm', ['passe_acucar']], ['Javier Zanetti', ['arrancada']],
-  ['René Higuita', ['escorpiao', 'saida_pes']], ['Manuel Neuer', ['saida_pes', 'defesa_milagrosa']], ['Rogério Ceni', ['saida_pes', 'defesa_milagrosa']],
-  ['José Luis Chilavert', ['defesa_milagrosa', 'saida_pes']], ['Taffarel', ['defesa_milagrosa']], ['Gilmar', ['defesa_milagrosa']], ['Marcos', ['defesa_milagrosa']],
+  ['René Higuita', ['escorpiao', 'saida_pes', 'falta_curva']], ['Manuel Neuer', ['saida_pes', 'defesa_milagrosa']], ['Rogério Ceni', ['saida_pes', 'defesa_milagrosa', 'falta_curva']],
+  ['José Luis Chilavert', ['defesa_milagrosa', 'saida_pes', 'falta_bomba']], ['Taffarel', ['defesa_milagrosa']], ['Gilmar', ['defesa_milagrosa']], ['Marcos', ['defesa_milagrosa']],
   ['Dida', ['defesa_milagrosa']], ['Lev Yashin', ['defesa_milagrosa']], ['Gianluigi Buffon', ['defesa_milagrosa']], ['Iker Casillas', ['defesa_milagrosa']],
   ['Oliver Kahn', ['defesa_milagrosa']], ['Peter Schmeichel', ['defesa_milagrosa']], ['Gordon Banks', ['defesa_milagrosa']], ['Petr Čech', ['defesa_milagrosa']],
+  // (completado em 20/10, um a um — pedido do Diego)
+  ['Ademir de Menezes', ['arrancada', 'de_primeira']], ['Bebeto', ['colocado', 'arrancada']], ['Careca', ['arrancada', 'de_primeira']], ['Coutinho', ['de_primeira', 'passe_acucar']],
+  ['Dirceu Lopes', ['slalom', 'passe_acucar']], ['Evaristo de Macedo', ['cabecada', 'de_primeira']], ['Marta', ['slalom', 'colocado']], ['Reinaldo', ['colocado', 'chapeu']],
+  ['Roberto Dinamite', ['bomba', 'de_primeira']], ['Tostão', ['passe_acucar', 'de_primeira']], ['Zizinho', ['slalom', 'passe_acucar']], ['Adriano Imperador', ['bomba', 'falta_bomba']],
+  ['Allan Simonsen', ['arrancada', 'slalom']], ['Andriy Shevchenko', ['arrancada', 'colocado']], ['Denis Law', ['voleio', 'cabecada']], ['Dennis Bergkamp', ['cobertura', 'passe_acucar']],
+  ['Franck Ribéry', ['slalom', 'croqueta']], ['George Best', ['slalom', 'corta_pra_dentro']], ['Karim Benzema', ['de_primeira', 'passe_acucar']], ['Michael Owen', ['arrancada', 'colocado']],
+  ['Ousmane Dembélé', ['slalom', 'corta_pra_dentro']], ['Paolo Rossi', ['de_primeira', 'cabecada']], ['Raúl', ['colocado', 'de_primeira']], ['Rummenigge', ['arrancada', 'bomba']],
+  ['Ruud van Nistelrooy', ['de_primeira', 'de_bico']], ["Samuel Eto'o", ['arrancada', 'de_primeira']], ['Thomas Müller', ['de_primeira', 'passe_acucar']], ['Vinícius Júnior', ['pedalada', 'corta_pra_dentro']],
+  ['Castilho', ['defesa_milagrosa']], ['Emerson Leão', ['defesa_milagrosa']], ['Félix', ['defesa_milagrosa']], ['Manga', ['defesa_milagrosa']], ['Dino Zoff', ['defesa_milagrosa']],
+  ['Edwin van der Sar', ['saida_pes', 'defesa_milagrosa']],
+  ['Arce', ['falta_curva', 'cruzamento_curva']], ['Djalma Santos', ['cruzamento_curva', 'bote']], ['Júnior Maestro', ['passe_acucar', 'cruzamento_curva']], ['Leandro', ['cruzamento_curva', 'arrancada']],
+  ['Nílton Santos', ['arrancada', 'slalom']], ['Ashley Cole', ['carrinho', 'arrancada']],
+  ['Ademir da Guia', ['passe_acucar', 'slalom']], ['Falcão', ['passe_acucar', 'colocado']], ['Raí', ['colocado', 'cabecada']], ['Zito', ['bote', 'passe_acucar']],
+  ['Bastian Schweinsteiger', ['lancamento', 'bomba']], ['Giancarlo Antognoni', ['lancamento', 'passe_acucar']], ['Gianni Rivera', ['passe_acucar', 'colocado']], ['Johan Neeskens', ['carrinho', 'arrancada']],
+  ['Kenny Dalglish', ['colocado', 'passe_acucar']], ['Michael Laudrup', ['passe_acucar', 'slalom']], ['Sergio Busquets', ['passe_acucar', 'bote']], ['Rodri', ['passe_acucar', 'bomba']],
+  ['Pedro Rocha', ['colocado', 'passe_acucar']],
+  ['Domingos da Guia', ['bote', 'passe_acucar']], ['Gamarra', ['bote']], ['Hilderaldo Bellini', ['corte_cabeca', 'bote']], ['Luís Pereira', ['bote', 'passe_acucar']], ['Mauro Galvão', ['bote', 'corte_cabeca']],
+  ['Bobby Moore', ['bote', 'lancamento']], ['Marquinhos', ['bote', 'passe_acucar']], ['Rio Ferdinand', ['bote', 'passe_acucar']],
 ]
 const GOLPES = new Map<string, Golpe[]>()
 for (const [n, g] of GOLPES_LISTA) GOLPES.set(n, g)
