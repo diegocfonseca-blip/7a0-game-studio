@@ -9717,6 +9717,20 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ✅ **20/10 — 📺 MOTOR 2D OLHANDO O QUE A TELA MOSTRA** (Diego: *"ainda tá muito ruim… não tem sincronia… a bola às vezes para
+  do nada… dá uma congelada… jogador fazendo coisas que não têm sentido, goleiro também… precisa melhorar muito mais"*). Nova trava
+  `scripts/testa-campo2d-tela.mts` (vem no `npm run campo2d`): roda o motor a 60 quadros/s com o relógio do placar e mede o que o
+  olho vê; e filmei a bancada quadro a quadro. Achados e consertos (60 jogos, antes → depois):
+  ⚽ BOLA PARADA NO CHÃO 242 → ~20: o passe "na frente" saía a 27 m/s e a bola esperava 2–3 s parada o jogador correr 12 m —
+  agora bola e jogador CHEGAM JUNTOS (`encontro`) · 🏓 pingue-pongue (tocava pro companheiro, recebia e tocava de novo) — 1 vez
+  por jogada, e o companheiro com a bola sempre devolve · 🧍 34% → 4% de jogadores PLANTADOS com a bola rolando: cada um tem um
+  vaivém próprio em volta do lugar dele (atacante se desmarca mais), quem chegou no ponto da jogada briga por posição, e o dono da
+  bola que chegou no ponto protege andando · 🧱 a LINHA do time anda como bloco (~7 m/s) em vez de saltar 10–20 m quando a posse
+  troca · ↔️ o time desliza pro lado da bola ENCOLHENDO (antes 3–4 jogadores ficavam presos na lateral, longe da bola) · 🧩 dois
+  jogadores nunca ganham o mesmo lugar da formação, e companheiros ficam a 3,2 m (a bolinha tem ~4 m na tela) · 🫂 GOL: só os 4
+  mais perto abraçam e o abraço dura ~1,3 s; o resto já volta trotando, contornando o círculo — a saída caiu de 3,6 s pra 2,8 s
+  (máx. 5,3 → 3,5) e ninguém mais "pula" de volta pro campo do rival no meio segundo antes do toque · 🧤 sem MARCADOR na bola
+  parada (o atacante rival entrava na área no tiro de meta pra "marcar" o goleiro).
 - ✅ **20/10 — TORCIDA 70% DA CASA, PUBLICADA** (OK do Diego: *"ok pode fazer também"*). Uma arquibancada toda da casa; na outra,
   a rival em cima/à direita (60% de uma faixa = 30% do estádio) atrás de uma grade preta; no gol pula a torcida de quem fez. Tamanho
   da rival = `FRACAO_RIVAL` (`campo2d.tsx`).

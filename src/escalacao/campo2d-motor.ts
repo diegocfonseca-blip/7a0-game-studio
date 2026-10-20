@@ -86,7 +86,7 @@ export class Jogo2D {
   posse: Lado = 0
   tatica: [number, number] = [0, 0] // -1 retranca · 0 equilíbrio · 1 ataque (as 3 que o jogo já tem)
   narra = ''
-  festa: { curta?: boolean; ate: number; lado: Lado; autor: string; assist?: string; min: number } | null = null
+  festa: { de?: number; abraco?: Atleta[]; curta?: boolean; ate: number; lado: Lado; autor: string; assist?: string; min: number } | null = null
   rede: { y0: number; t0: number } | null = null
   placar: [number, number] = [0, 0]
   /** 🔎 conferência das REGRAS (o teste lê): bola colocada parada (saída, lateral, escanteio, tiro de meta, falta) ·
@@ -140,22 +140,54 @@ export class Jogo2D {
 
   // ── a forma do time: linhas sobem/descem com a bola, com a posse e com a tática ─────────────────────────────────────────
   private rel(l: Lado, x: number, y: number) { return l === 0 ? { x, y } : { x: W - x, y: L - y } }
-  private alvoForma(p: Atleta) {
-    const b = this.rel(p.lado, this.bola.x, this.bola.y), tac = this.tatica[p.lado], ataca = this.posse === p.lado
-    if (p.grupo === 'GOL') return this.rel(p.lado, 34 + (b.x - 34) * 0.12, ataca ? 99 : 101.5)
+  /** 🧱 onde o BLOCO do time quer estar (linha da frente, linha de trás, quanto ele puxa pro lado da bola) */
+  private blocoDesejado(l: Lado) {
+    const b = this.rel(l, this.bola.x, this.bola.y), tac = this.tatica[l], ataca = this.posse === l
     let frente: number, fundo: number
     if (ataca) { frente = clamp(b.y - 14 - 6 * tac, 6, 60); fundo = clamp(frente + 46 - 5 * tac, 38, 90) }
     else { frente = clamp(b.y + 2 - 6 * tac, 30, 78); fundo = clamp(frente + 30 - 2 * tac, 60, 96) }
+    return { frente, fundo, puxa: (b.x - 34) * (ataca ? 0.22 : 0.34), ataca: ataca ? 1 : 0, bx: b.x }
+  }
+  /** 🧱 o bloco ANDA junto e liso (Diego 20/10: *"não tem uma sincronia boa"*): antes a linha do time saltava 10–20 m toda
+   *  vez que a posse trocava, e com a bola indo e vindo o time inteiro ia e voltava (566 "vai-e-volta" em 60 jogos). Agora a
+   *  linha caminha até onde quer, a no máx. ~7 m/s, e a troca de posse vira uma transição, não um pulo. */
+  private bloco: { frente: number; fundo: number; puxa: number; ataca: number; bx: number }[] = []
+  private andaBloco(dt: number) {
+    for (const l of [0, 1] as Lado[]) {
+      const d = this.blocoDesejado(l), b = this.bloco[l]
+      if (!b) { this.bloco[l] = d; continue }
+      const anda = (de: number, para: number, v: number) => de + clamp(para - de, -v * dt, v * dt)
+      b.frente = anda(b.frente, d.frente, 7); b.fundo = anda(b.fundo, d.fundo, 7); b.puxa = anda(b.puxa, d.puxa, 6)
+      b.ataca = anda(b.ataca, d.ataca, 0.8); b.bx = anda(b.bx, d.bx, 12)
+    }
+  }
+  private alvoForma(p: Atleta) {
+    const blk = this.bloco[p.lado] ?? this.blocoDesejado(p.lado), tac = this.tatica[p.lado], ataca = blk.ataca > 0.5
+    if (p.grupo === 'GOL') return this.rel(p.lado, 34 + (blk.bx - 34) * 0.12 + Math.sin(this.t * 0.6 + p.lado * 1.7) * 0.7, 99 + 2.5 * (1 - blk.ataca)) // (o goleiro se ajeita na linha, nunca parado de estátua)
+    const frente = blk.frente, fundo = blk.fundo
     let y = frente + (fundo - frente) * p.dep
-    let x = p.bx + (b.x - 34) * (ataca ? 0.22 : 0.34)
-    if (ataca && p.grupo === 'ATA' && (p.bx < 20 || p.bx > 48)) x = p.bx + (b.x - 34) * 0.08
+    // ↔️ o time desliza pro lado da bola ENCOLHENDO a largura (Diego 20/10: *"não tem sincronia"*): antes ele só somava o
+    // deslize, e quem já estava aberto passava da linha e ficava preso na lateral — 3, 4 jogadores amontoados longe da bola
+    const largura = ataca ? 0.92 : 0.72
+    let x = 34 + (p.bx - 34) * largura + blk.puxa * 0.9
+    if (ataca && p.grupo === 'ATA' && (p.bx < 20 || p.bx > 48)) x = 34 + (p.bx - 34) * 0.95 + (blk.bx - 34) * 0.08
+    x = clamp(x, 4, W - 4)
     if (ataca && p.grupo === 'LAT' && tac >= 0) y -= p.estilo === 'apoiador' ? 12 : 6
+    // 🚶 NINGUÉM FICA PLANTADO (Diego 20/10: *"não parece que tá tendo futebol"*): um terço dos jogadores ficava parado com a
+    // bola rolando. Agora cada um tem um vaivém próprio em volta do lugar dele — atacante se desmarca mais (diagonal pra
+    // frente e pros lados), defensor só ajusta. Liso e igual em todo aparelho (depende só do relógio do jogo).
+    {
+      const ph = p.bx * 0.37 + p.dep * 5.1 + p.lado * 2.3 + (p.grupo === 'ATA' ? 1.1 : 0)
+      const amp = (ataca ? 1 : 0.6) * (p.grupo === 'ATA' ? 3.2 : p.grupo === 'MEI' ? 2.4 : 1.4)
+      x += Math.sin(this.t * 0.55 + ph) * amp
+      y += Math.cos(this.t * 0.41 + ph * 1.3) * amp * (ataca && p.grupo === 'ATA' ? 1.3 : 0.7)
+    }
     const r = this.rel(p.lado, x, y)
     return { x: clamp(r.x, 1.5, W - 1.5), y: clamp(r.y, 0.5, L - 0.5) } // ninguém se posiciona fora das linhas
   }
   private marcador(): Atleta | null {
     const d = this.bola.dono
-    if (!d) return null
+    if (!d || this.parada != null) return null // (bola parada não tem marcador: ninguém cola em quem vai cobrar — é regra)
     let best: Atleta | null = null, bd = 1e9
     for (const q of this.atl) if (q.lado !== d.lado && q.grupo !== 'GOL' && !q.ov) { const dd = dist(q, this.bola); if (dd < bd) { bd = dd; best = q } }
     return best
@@ -173,10 +205,15 @@ export class Jogo2D {
     if (this.festa) {
       // 🎉 comemoração: o time que marcou corre pro autor; o outro volta pro meio
       const autor = this.porNome(this.festa.lado, this.festa.autor) ?? this.gk(this.festa.lado)
-      const volta = this.t >= this.festa.ate - 2.2 || !!this.festa.curta // no finzinho da festa todo mundo corre pro próprio campo, pra saída do meio (festa curta: já volta direto)
+      const volta = this.t >= (this.festa.de ?? this.festa.ate) + 1.3 || this.t >= this.festa.ate - 3 || !!this.festa.curta // o abraço dura ~1,3 s e todo mundo volta pro próprio campo ainda com o GOL na tela (festa curta: já volta direto)
+      // 🫂 só quem está PERTO vai abraçar quem fez o gol (os 4 mais perto); o resto já volta trotando pro meio — como na TV.
+      // Antes o time inteiro ia lá na área do rival e depois tinha que correr 40 m: a saída demorava 3–5 s com o jogo parado.
+      if (!this.festa.abraco) this.festa.abraco = this.time(this.festa.lado).filter(p => p !== autor && p.grupo !== 'GOL').sort((a, b) => dist(a, autor) - dist(b, autor)).slice(0, 4)
       for (const p of this.atl) {
-        const a = !volta && p.lado === this.festa.lado && p.grupo !== 'GOL' ? { x: autor.x + (p.bx - 34) * 0.08, y: autor.y + (p.dep - 0.5) * 3 } : this.posSaida(p)
-        this.anda(p, a, p === autor && !volta ? 3 : 7, dt)
+        const abraca = !volta && p.lado === this.festa.lado && (p === autor || this.festa.abraco.includes(p))
+        const sai = (1 - this.festa.lado) as Lado, casa = this.posSaida(p), longe = dist(p, casa) > 15
+        const a = abraca ? { x: autor.x + (p.bx - 34) * 0.08, y: autor.y + (p.dep - 0.5) * 3 } : this.rotaSaida(p, casa, sai)
+        this.anda(p, a, p === autor && !volta ? 3 : abraca ? 7 : volta ? (longe ? 11 : 8) : (longe ? 8 : 5), dt)
       }
       if (volta) this.espaca(dt, null) // (na volta pro meio ninguém anda um em cima do outro; no abraço, pode)
       if (this.t >= this.festa.ate) {
@@ -254,7 +291,8 @@ export class Jogo2D {
     // (bola parada de cobrança, goleiro e acréscimos ficam como estão)
     {
       const d = this.bola.dono
-      if (d && (!d.ov || d.ov.v === 2.2) && !this.bola.voo && this.parada == null && !this.cur?.pos && d.grupo !== 'GOL' && !this.festa && this.t < 93.5 * SEG_POR_MIN) {
+      // (vale também pra quem JÁ CHEGOU no ponto que a jogada mandou e está esperando o próximo passo)
+      if (d && (!d.ov || d.ov.v === 2.2 || (!d.ov.busca && Math.hypot(d.x - d.ov.x, d.y - d.ov.y) < 0.8)) && !this.bola.voo && this.parada == null && !this.cur?.pos && d.grupo !== 'GOL' && !this.festa && this.t < 93.5 * SEG_POR_MIN) {
         this.angDono += 1.7 * dt
         const fr = this.frente(d.lado, d.y), sobe = fr > 30 ? (d.lado === 0 ? -1 : 1) * 0.9 : (fr < 18 ? (d.lado === 0 ? 1 : -1) * 0.6 : 0)
         d.ov = { x: clamp(d.x + Math.cos(this.angDono) * 1.6 + (34 - d.x) * 0.06, 3, W - 3), y: clamp(d.y + sobe + Math.sin(this.angDono) * 0.8, 3, L - 3), v: 2.2 }
@@ -273,10 +311,29 @@ export class Jogo2D {
       if (t0 == null) this.ovDesde.set(p.ov, this.t)
       else if (this.t - t0 > 3 && Math.hypot(p.x - p.ov.x, p.y - p.ov.y) < 1.2) p.ov = null
     }
+    this.andaBloco(dt)
     const mk = this.marcador()
+    // 🧩 os LUGARES da formação não podem coincidir (Diego 20/10: *"não tem sincronia"*): o lateral e o meia do mesmo lado às
+    // vezes ganhavam o mesmo ponto e passavam o jogo grudados (o espaçamento afastava, a formação puxava de volta). Antes de
+    // andar, os alvos que caem a menos de 3 m um do outro se afastam.
+    const forma = new Map<Atleta, { x: number; y: number }>()
+    for (const p of this.atl) if (!p.ov && p !== this.bola.dono) forma.set(p, this.alvoForma(p))
+    const fs = [...forma.entries()]
+    for (let it = 0; it < 2; it++) for (let i = 0; i < fs.length; i++) for (let k = i + 1; k < fs.length; k++) {
+      const A = fs[i][1], B = fs[k][1], dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy)
+      if (d >= 3.6 || fs[i][0].grupo === 'GOL' || fs[k][0].grupo === 'GOL') continue
+      const ux = d > 0.01 ? dx / d : 1, uy = d > 0.01 ? dy / d : 0, e = (3.6 - d) / 2
+      A.x = clamp(A.x - ux * e, 2, W - 2); A.y = clamp(A.y - uy * e, 0.5, L - 0.5); B.x = clamp(B.x + ux * e, 2, W - 2); B.y = clamp(B.y + uy * e, 0.5, L - 0.5)
+    }
     for (const p of this.atl) {
       if (p === this.bola.dono && !p.ov) continue
-      let a: { x: number; y: number } = p.ov ?? this.alvoForma(p)
+      let a: { x: number; y: number } = p.ov ?? forma.get(p) ?? this.alvoForma(p)
+      // 🤼 quem JÁ CHEGOU no ponto da jogada (esperando o cruzamento, o passe) não vira estátua: se mexe em volta dele,
+      // brigando por posição — só com a bola rolando (na bola parada cada um segura o seu lugar)
+      if (p.ov && !p.ov.busca && p !== this.bola.dono && this.parada == null && p.grupo !== 'GOL' && Math.hypot(p.x - p.ov.x, p.y - p.ov.y) < 1.2) {
+        const ph = p.bx * 0.71 + p.dep * 3.3 + p.lado
+        a = { x: p.ov.x + Math.sin(this.t * 1.1 + ph) * 0.9, y: p.ov.y + Math.cos(this.t * 0.9 + ph) * 0.7 }
+      }
       if (p === mk) { const d = this.bola.dono!; a = { x: d.x, y: d.y + (p.lado === 0 ? 2.4 : -2.4) } } // (na frente do atacante, entre ele e o gol — colado demais virava um boneco só)
       // 📏 REGRA da bola parada: o time que NÃO cobra fica longe — 9,15 m na falta e no escanteio, 2 m no lateral
       // (saída e tiro de meta têm regra própria: o círculo/o próprio campo e a grande área)
@@ -322,9 +379,11 @@ export class Jogo2D {
       const a = this.atl[i], b = this.atl[k]
       if (a.grupo === 'GOL' && b.grupo === 'GOL') continue
       // (o marcador fica colado no dono da bola, mas não DENTRO dele: 1,7 m)
-      const marca = (a === dono && b === mk) || (b === dono && a === mk), minD = marca ? 1.7 : 2.2
+      // (a bolinha do jogador tem ~4 m de diâmetro na tela: companheiros ficam a 3,2 m pra não virar um boneco só; rival a
+      // 2,6 m — marcação é perto mesmo; o marcador do dono da bola, 1,7 m)
+      const marca = (a === dono && b === mk) || (b === dono && a === mk), minD = marca ? 1.7 : a.lado === b.lado ? 3.2 : 2.6
       // duas ORDENS pro mesmo lugar (dois atacantes mandados pro mesmo ponto da área): o 2º vai pro lado
-      if (a.ov && b.ov && a.ov !== b.ov && Math.hypot(a.ov.x - b.ov.x, a.ov.y - b.ov.y) < 2.2 && !a.ov.busca && !b.ov.busca) {
+      if (a.ov && b.ov && a.ov !== b.ov && a.lado === b.lado && Math.hypot(a.ov.x - b.ov.x, a.ov.y - b.ov.y) < 3 && !a.ov.busca && !b.ov.busca) {
         const lado = b.ov.x >= 34 ? -1 : 1
         b.ov = { ...b.ov, x: clamp(b.ov.x + lado * 2.6, 2, W - 2) }
       }
@@ -416,6 +475,15 @@ export class Jogo2D {
   }
   /** quem tocou na bola por último (decide lateral/escanteio/tiro de meta) */
   private ultimoToque: Lado = 0
+  /** 🔄 caminho de volta pra saída: quem é do time que NÃO sai e está do outro lado contorna o círculo central (antes passava
+   *  em linha reta por cima da bola) */
+  private rotaSaida(p: Atleta, lugar: { x: number; y: number }, quemSai: Lado) {
+    if (p.lado === quemSai || p.grupo === 'GOL') return lugar
+    const doOutroLado = p.lado === 0 ? p.y < L / 2 + 1 : p.y > L / 2 - 1
+    if (!doOutroLado) return lugar
+    const lado = p.x < 34 ? -1 : 1
+    return Math.abs(p.x - 34) > 11 ? { x: p.x, y: L / 2 + (p.lado === 0 ? 2 : -2) } : { x: 34 + lado * 12, y: L / 2 + (p.lado === 0 ? 2 : -2) }
+  }
   private posSaida(p: Atleta) { return this.rel(p.lado, p.bx, p.grupo === 'GOL' ? 101 : 54 + 40 * p.dep) }
   /** ⚽ saída do meio: cada time no seu campo, bola no centro, quem dá a saída toca pra trás */
   saida(l: Lado, inicio = false) {
@@ -426,7 +494,7 @@ export class Jogo2D {
     for (const p of this.atl) {
       const r = this.posSaida(p)
       // quem NÃO dá a saída fica fora do círculo central (9,15 m)
-      if (p.lado !== l) { const dx = r.x - 34, dy = r.y - L / 2, d = Math.hypot(dx, dy); if (d < 9.8) { const k = Math.sqrt(Math.max(0, 9.8 * 9.8 - dx * dx)); r.y = L / 2 + (p.lado === 0 ? k : -k) } }
+      if (p.lado !== l) { const dx = r.x - 34, dy = r.y - L / 2, d = Math.hypot(dx, dy); if (d < 10.8) { const k = Math.sqrt(Math.max(0, 10.8 * 10.8 - dx * dx)); r.y = L / 2 + (p.lado === 0 ? k : -k) } }
       lugar.set(p, p === ca ? { x: 34, y: L / 2 + (l === 0 ? 0.8 : -0.8) } : r)
     }
     this.coloca(34, L / 2, l, ca)
@@ -436,7 +504,7 @@ export class Jogo2D {
       for (const p of this.atl) { const r = lugar.get(p)!; p.ov = null; p.x = r.x; p.y = r.y }
       this.pega(ca)
     } else {
-      for (const p of this.atl) p.ov = { ...lugar.get(p)!, v: 8 }
+      for (const p of this.atl) p.ov = { ...this.rotaSaida(p, lugar.get(p)!, l), v: dist(p, lugar.get(p)!) > 15 ? 11 : 8 }
       let t0 = 0
       this.acoes.push(...this.cobranca({
         ini: () => { t0 = this.t; this.narra = this.v('saida') + ' ' + this.v(l === 0 ? 'saida_casa' : 'saida_fora') },
@@ -444,16 +512,19 @@ export class Jogo2D {
           // REGRA: todo mundo no PRÓPRIO campo e o rival fora do círculo (perto do lugar já basta pra rolar)
           const noCampo = this.atl.every(p => p === ca || (p.lado === 0 ? p.y >= L / 2 + 0.3 : p.y <= L / 2 - 0.3))
           const circulo = this.atl.every(p => p.lado === l || Math.hypot(p.x - 34, p.y - L / 2) > 9.3)
-          const perto = this.atl.every(p => Math.hypot(p.x - lugar.get(p)!.x, p.y - lugar.get(p)!.y) < 4) && dist(ca, this.bola) < 1.6
+          // (quem já cruzou o meio segue pro lugar dele; a bola rola quando a REGRA está cumprida — não precisa todo mundo no lugar exato)
+          for (const p of this.atl) if (p.ov) { const r = this.rotaSaida(p, lugar.get(p)!, l); p.ov = { ...r, v: p.ov.v } }
+          const perto = dist(ca, this.bola) < 1.6
           if (!(noCampo && circulo && perto) && this.t - t0 < 5) { if (this.t - t0 > 1) for (const p of this.atl) if (p.ov) p.ov.v = 10; return false }
-          for (const p of this.atl) p.ov = null
+          // (as ordens só caem DEPOIS do toque: soltas aqui, no meio segundo de espera o time voltava pro campo do rival)
+          ca.ov = null
           this.pega(ca)
           return true
         },
       }))
     }
     // (a saída NUNCA é cortada: é curta e é regra — o próximo lance espera ela)
-    this.acoes.push(...this.cobranca(this.aEspera(inicio ? 0.4 : 0.5), this.aPasse(() => ca, () => rec, { adiante: -5, vel: 13 })))
+    this.acoes.push(...this.cobranca(this.aEspera(inicio ? 0.4 : 0.5), this.aPasse(() => ca, () => rec, { adiante: -5, vel: 13 })), this.soltaTodos())
   }
 
   // ── as AÇÕES (cada jogada é uma fila delas) ──────────────────────────────────────────────────────────────────────────────
@@ -619,6 +690,19 @@ export class Jogo2D {
     let t0 = 0
     return { ini: () => { t0 = this.t; this.foraDaArea(d) }, upd: () => this.t - t0 > 3 || !this.time((1 - d) as Lado).some(z => z.grupo !== 'GOL' && (d === 1 ? z.y : L - z.y) < 16.5 && Math.abs(z.x - 34) < 20.2) }
   }
+  /** ⏱️ passe NO TEMPO: o ponto (no caminho de quem corre até `alvo`) e a força pra bola e jogador chegarem juntos */
+  private encontro(bola: { x: number; y: number }, quem: Atleta, alvo: { x: number; y: number }): { pt: { x: number; y: number }; vel: number } {
+    const vr = 9.5, dr = dist(quem, alvo)
+    let f = 1, pt = alvo, vel = 27
+    for (let k = 0; k < 6; k++) {
+      pt = { x: quem.x + (alvo.x - quem.x) * f, y: quem.y + (alvo.y - quem.y) * f }
+      const tr = Math.max(0.35, (dr * f) / vr), db = dist(bola, pt)
+      vel = db / tr
+      if (vel >= 13) break
+      f *= 0.7 // a bola teria que ir devagar demais (ele está longe): encurta pro meio do caminho dele
+    }
+    return { pt, vel: clamp(vel, 13, 30) }
+  }
   private soltaTodos(): Acao { return { ini: () => { for (const z of this.atl) z.ov = null }, upd: () => true } }
 
   /** 🧤 TIRO DE META: a bola saiu pela linha de fundo de `d` (chute pra fora) → bola na pequena área, o goleiro bate longo */
@@ -722,7 +806,7 @@ export class Jogo2D {
             this.placar[p.lado]++
             // a festa encurta se o próximo lance do motor já está chegando (gols colados)
             const prox = this.evs[this.iev], folga = prox ? prox.min * SEG_POR_MIN - this.t - 6 : FESTA
-            this.festa = { curta: folga < 3.4, ate: this.t + clamp(folga, 1.6, FESTA), lado: p.lado, autor: ev?.autor ?? p.nome, assist: ev?.assist, min: ev?.min ?? 0 }
+            this.festa = { de: this.t, curta: folga < 3.4, ate: this.t + clamp(folga, 1.6, FESTA), lado: p.lado, autor: ev?.autor ?? p.nome, assist: ev?.assist, min: ev?.min ?? 0 }
             this.narra = this.tt(`GOOOOL! ${this.n(p)}, ${como}!`, `GOOOAL! ${this.n(p)}, ${como}!`)
             feito = true
           }, curva)
@@ -955,7 +1039,7 @@ export class Jogo2D {
     // TEM que estar a no máximo ~27 m do gol (chute de longe) ou ~18 m (chute de dentro). Se o enfeite foi cortado com a bola lá
     // atrás, quem vai bater ARRANCA com ela até a entrada da área (ou recebe um passe rápido lá) — custa 1–3 s, nunca um chute absurdo.
     const aLevaAte = (quem: () => Atleta, ponto: () => { x: number; y: number }, pronto: () => boolean, teto = 6, cortaNoLance = false): Acao => {
-      let alvo: { x: number; y: number } | null = null, t0 = -1, solta = -1
+      let alvo: { x: number; y: number } | null = null, t0 = -1, solta = -1, tabelou = false
       return { upd: () => {
         if (this.bola.voo) return false
         const p = quem()
@@ -971,18 +1055,25 @@ export class Jogo2D {
         if (h === p) {
           // atrasado e longe? toca pro companheiro mais perto e CORRE pra área — o companheiro devolve lá na frente (2 passes
           // rápidos são bem mais rápidos que conduzir 40 m)
-          if (this.t > tEv - 2.5 && dist(p, alvo!) > 22 && dist(p, this.bola) <= 1.8) {
+          // (UMA vez por jogada: antes virava pingue-pongue — tocava, recebia de volta e tocava de novo, e o gol atrasava)
+          if (!tabelou && this.t > tEv - 2.5 && dist(p, alvo!) > 22 && dist(p, this.bola) <= 1.8) {
             // (só pra quem está À FRENTE dele e perto — antes podia ser o zagueiro lá atrás, e a bola voltava 27 m pra depois
             // um chutão de 75 m)
             const frente = this.time(l).filter(z => z !== p && z.grupo !== 'GOL' && this.frente(l, z.y) < this.frente(l, p.y) - 4 && dist(z, p) < 25)
             const ap = frente.sort((a, b) => dist(a, p) - dist(b, p))[0]
-            if (ap) { this.viaja(ap.x + 0.4, ap.y, 24, 0, false, () => { this.pega(ap) }); p.ov = { ...alvo!, v: 10 }; return false }
+            if (ap) { tabelou = true; this.viaja(ap.x + 0.4, ap.y, 24, 0, false, () => { this.pega(ap) }); p.ov = { ...alvo!, v: 10 }; return false }
           }
           p.ov = { ...alvo!, v: 10 }; return false // conduz em velocidade
         }
-        if (h && h.lado === l && solta < 0) { // outro do time tem a bola: passe RÁPIDO pro ponto, quem recebe corre pra lá
-          p.ov = { ...alvo!, v: 10 }
-          this.viaja(alvo!.x, alvo!.y, 27, dist(this.bola, alvo!) > 25 ? 2.4 : 0.4, false, () => { solta = this.t })
+        if (h && h.lado === l && h !== p) { // outro do time tem a bola: passe RÁPIDO pro ponto, quem recebe corre pra lá
+          solta = -1 // (companheiro com a bola SEMPRE devolve — antes, depois do 1º passe, ele ficava parado segurando)
+          // ⏱️ a bola e quem corre CHEGAM JUNTOS (Diego 20/10: *"a bola às vezes para do nada"*): antes o passe saía a 27 m/s e
+          // a bola ficava 2–3 s parada no ponto esperando o jogador correr 12 m. Agora a força do passe sai do tempo da corrida, e
+          // se ele está longe demais, a bola cai num ponto mais perto dele, no caminho.
+          // (o DESTINO da jogada não muda: depois de dominar ele segue conduzindo até lá)
+          const enc = this.encontro(this.bola, p, alvo!)
+          p.ov = { ...enc.pt, v: 10 }
+          this.viaja(enc.pt.x, enc.pt.y, enc.vel, dist(this.bola, enc.pt) > 25 ? 2.4 : 0.4, false, () => { solta = this.t })
           return false
         }
         if (solta >= 0 || !h) { if (!h && !this.podePegar(p)) return false; p.ov = { x: this.bola.x, y: this.bola.y, v: 10 }; if (!h && dist(p, this.bola) < 1.3) this.pega(p); return false }
