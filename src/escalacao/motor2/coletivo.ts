@@ -1,0 +1,179 @@
+// 🧠 MOTOR 2D v2 — (C) inteligência COLETIVA. A formação é REFERÊNCIA flexível (um bloco que sobe, desce, estreita e desliza
+// com a bola), e cada jogador ganha um PAPEL a cada 0,25 s: com a bola o time dá 2 opções de passe em ângulo, o atacante
+// infiltra entre os zagueiros, o lateral que apoia ultrapassa; sem a bola, UM pressiona, UM cobre, os zagueiros marcam e
+// seguram a linha, o resto guarda a zona. Ninguém corre todo mundo atrás da bola.
+import { AREA_LARG, AREA_PROF, L, W, clamp, dist, frente, fundo, len, linhaAtaque, valor, yDe, aoSegmento } from './fisica'
+import type { Atleta, Lado } from './tipos'
+import type { Motor2 } from './motor'
+
+export interface Bloco { tras: number; frente: number; largura: number; desliza: number }
+
+/** onde o bloco do time QUER estar (linha de trás e da frente, em metros do PRÓPRIO gol) */
+export function blocoDesejado(m: Motor2, lado: Lado): Bloco {
+  const b = m.bola, bProf = fundo(lado, b.y), tac = m.tatica[lado], ataca = m.posseLado === lado
+  let tras: number, fr: number
+  if (ataca) { tras = clamp(bProf - 33 + 4 * tac, 14, 58); fr = clamp(bProf + 15 + 3 * tac, tras + 32, 97) }
+  else { tras = clamp(bProf - 23 + 4 * tac, 7, 46); fr = clamp(tras + 30, 32, 76) }
+  return { tras, frente: fr, largura: ataca ? 0.95 : 0.68, desliza: (b.x - 34) * (ataca ? 0.22 : 0.42) }
+}
+/** o bloco anda liso (no máx. ~7 m/s): troca de posse vira transição, não pulo */
+export function andaBloco(m: Motor2, dt: number) {
+  for (const l of [0, 1] as Lado[]) {
+    const d = blocoDesejado(m, l), b = m.bloco[l]
+    if (!b) { m.bloco[l] = d; continue }
+    const anda = (de: number, para: number, v: number) => de + clamp(para - de, -v * dt, v * dt)
+    // (quem perdeu a bola demora pra se recompor: a linha volta a ~5 m/s — é na transição que nasce o ataque)
+    const v = m.posseLado === l ? 7 : 5
+    b.tras = anda(b.tras, d.tras, v); b.frente = anda(b.frente, d.frente, v); b.largura = anda(b.largura, d.largura, 0.6); b.desliza = anda(b.desliza, d.desliza, 9)
+  }
+}
+/** o lugar do jogador na formação AGORA */
+export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
+  const b = m.bloco[p.lado] ?? blocoDesejado(m, p.lado), ataca = m.posseLado === p.lado
+  let dep = p.dep
+  if (p.grupo === 'LAT') dep = ataca ? 0.22 + 0.25 * p.tend.apoia : 0.03
+  const prof = b.tras + (b.frente - b.tras) * dep
+  let x = 34 + (p.bx - 34) * b.largura + b.desliza
+  // ponta abre o campo quando o time ataca
+  if (ataca && p.grupo === 'ATA' && (p.bx < 22 || p.bx > 46)) x = p.bx < 34 ? 7 : W - 7
+  return { x: clamp(x, 3, W - 3), y: yDe(p.lado, clamp(prof, 2, 101)) }
+}
+/** onde fica o goleiro: na linha entre a bola e o meio do gol, mais adiantado quanto mais longe a bola */
+export function lugarGoleiro(m: Motor2, gk: Atleta): { x: number; y: number } {
+  const lin = linhaAtaque((1 - gk.lado) as Lado), b = m.bola
+  const dx = b.x - 34, dy = b.y - lin, d = len(dx, dy) || 1
+  const dg = d > 50 ? 9 + gk.at.saida * 0.04 : clamp(1.6 + d * 0.07, 1.6, 6)
+  return { x: clamp(34 + (dx / d) * dg, 30.8, 37.2), y: lin + (dy / d) * dg }
+}
+/** a linha de impedimento de quem ATACA `lado`: o penúltimo adversário (em metros da linha de fundo atacada) */
+export function linhaImpedimento(m: Motor2, lado: Lado): number {
+  const fs = m.atl.filter(a => a.lado !== lado).map(a => frente(lado, a.y)).sort((a, b) => a - b)
+  return Math.min(fs[1] ?? 0, frente(lado, m.bola.y), L / 2)
+}
+
+// direções do "anel" de opções (no referencial do time: +y = pra frente) — sem trigonometria
+const ANEL: [number, number][] = [[0, 1], [0.7, 0.7], [-0.7, 0.7], [1, 0], [-1, 0], [0.7, -0.7], [-0.7, -0.7]]
+
+/** escolhe os papéis dos dois times (roda a cada 0,25 s) */
+export function planeja(m: Motor2) {
+  for (const l of [0, 1] as Lado[]) {
+    const time = m.atl.filter(a => a.lado === l), adv = m.atl.filter(a => a.lado !== l)
+    for (const p of time) { p.papel = p.grupo === 'GOL' ? 'goleiro' : 'forma'; p.marca = null }
+    if (m.parada) { for (const p of time) if (p.grupo !== 'GOL' || m.parada.cobrador === p) p.papel = 'cobranca'; continue }
+    const d = m.bola.dono, lance = m.bola.lance, comBola = m.posseLado === l
+    const alvoBola = d ? { x: d.x, y: d.y } : m.pontoBola()
+    const tempo = (p: Atleta) => dist(p, alvoBola) / m.vmax(p)
+    const campo = time.filter(p => p.grupo !== 'GOL' && p !== d)
+    if (!d && (!lance || lance.de.lado !== l || lance.tipo === 'chute')) {
+      // 🏃 bola solta / passe do RIVAL: o mais rápido até ela vai (1 só — 2 se ela está perto do nosso gol)
+      const ord = [...campo].sort((a, b) => tempo(a) - tempo(b))
+      const quantos = fundo(l, alvoBola.y) < 30 ? 2 : 1
+      ord.slice(0, quantos).forEach(p => (p.papel = 'bola_solta'))
+    }
+    if (lance && !d && lance.de.lado === l && lance.para && lance.tipo !== 'chute') lance.para.papel = 'recebe'
+    if (comBola && d && d.lado === l) {
+      // 🤝 2 opções em ângulo perto de quem tem a bola
+      const perto = campo.filter(p => p.papel === 'forma').sort((a, b) => dist(a, d) - dist(b, d)).slice(0, 2)
+      const usados: { x: number; y: number }[] = []
+      for (const s of perto) { const pt = melhorOpcao(m, d, s, adv, usados); if (pt) { usados.push(pt); s.papel = 'opcao'; m.opcaoDe.set(s, pt) } }
+      // 🏃 infiltração entre os zagueiros (quem gosta de atacar o espaço), com o portador de frente pro jogo
+      const linha = linhaImpedimento(m, l)
+      for (const p of campo) {
+        if (p.papel !== 'forma' || (p.grupo !== 'ATA' && p.grupo !== 'MEI')) continue
+        const fica = m.corrida.get(p)
+        if (fica && fica.ate > m.t) { p.papel = 'infiltra'; continue }
+        if (frente(l, d.y) > 70 || frente(l, p.y) < linha - 1.5) continue // (só começa a corrida em posição legal)
+        if (m.r() < p.tend.infiltra * 0.35) {
+          const zags = adv.filter(a => a.grupo === 'DEF' || a.grupo === 'LAT').sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x)).slice(0, 2)
+          const gx = zags.length === 2 ? (zags[0].x + zags[1].x) / 2 : p.x
+          const alvo = { x: clamp(p.x * 0.4 + gx * 0.6, 8, W - 8), y: yDe(((1 - l) as Lado), clamp(linha - 9, 4, 60)) }
+          // (yDe do RIVAL = metros a partir do gol que eu ataco)
+          m.corrida.set(p, { ate: m.t + 2.2, alvo }); p.papel = 'infiltra'
+        }
+      }
+      // ↗️ lateral que apoia passa por fora quando a bola está do lado dele
+      for (const p of campo) {
+        if (p.grupo !== 'LAT' || p.papel !== 'forma' || p.tend.apoia < 0.35) continue
+        if (Math.abs(d.x - p.bx) < 24 && frente(l, d.y) < 62) {
+          p.papel = 'ultrapassa'
+          m.opcaoDe.set(p, { x: p.bx < 34 ? 5 : W - 5, y: yDe(((1 - l) as Lado), clamp(frente(l, d.y) - 11, 6, 90)) })
+        }
+      }
+    } else if (!comBola || !d) {
+      // 🛡️ sem a bola: 1 pressiona, 1 cobre, zagueiros marcam
+      if (d && d.lado !== l && d.grupo !== 'GOL') {
+        const livres = campo.filter(p => p.papel === 'forma')
+        const ord = [...livres].sort((a, b) => tempo(a) - tempo(b))
+        const pres = ord[0]
+        if (pres) pres.papel = 'pressiona'
+        // pressão alta (tática "pra cima"): um segundo vai junto quando a bola está no campo deles
+        if (m.tatica[l] > 0 && fundo(l, d.y) > 60 && ord[1]) ord[1].papel = 'pressiona'
+        const cob = ord.find(p => p.papel === 'forma' && (p.grupo === 'MEI' || p.grupo === 'DEF'))
+        if (cob) cob.papel = 'cobre'
+      }
+      const atacantes = adv.filter(a => a.grupo === 'ATA' || (a.grupo === 'MEI' && fundo(l, a.y) < 35))
+      for (const z of campo.filter(p => (p.grupo === 'DEF' || p.grupo === 'LAT') && p.papel === 'forma')) {
+        const an = ancora(m, z)
+        const alvo = atacantes.filter(a => !time.some(t => t.marca === a)).sort((a, b) => dist(a, an) - dist(b, an))[0]
+        if (alvo && dist(alvo, an) < (z.grupo === 'LAT' ? 20 : 16)) { z.papel = 'marca'; z.marca = alvo }
+      }
+    }
+  }
+}
+
+/** um ponto LIVRE pra receber, perto do portador, em ângulo, de preferência pra frente */
+function melhorOpcao(m: Motor2, d: Atleta, s: Atleta, adv: Atleta[], usados: { x: number; y: number }[]) {
+  const fy = d.lado === 0 ? -1 : 1, an = ancora(m, s)
+  let melhor: { x: number; y: number } | null = null, nota = -9
+  for (const r of [10, 16]) for (const [ux, uy] of ANEL) {
+    const pt = { x: clamp(d.x + ux * r, 3, W - 3), y: clamp(d.y + uy * fy * r, 3, L - 3) }
+    if (usados.some(u => dist(u, pt) < 7)) continue
+    let livre = 9, linha = 5
+    for (const a of adv) { livre = Math.min(livre, dist(a, pt)); linha = Math.min(linha, aoSegmento(a, d, pt).q) }
+    const n = (livre / 9) * 0.5 + (linha / 5) * 0.45 + valor(d.lado, pt.x, pt.y) * 1.1 - dist(s, pt) / 45 - dist(pt, an) / 70
+    if (n > nota) { nota = n; melhor = pt }
+  }
+  return melhor
+}
+
+/** o alvo de movimento de cada jogador conforme o papel (roda todo passo — é barato) */
+export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number } {
+  const vmax = m.vmax(p)
+  const vaiPara = (pt: { x: number; y: number }, pressa = 1) => ({ x: pt.x, y: pt.y, v: Math.min(vmax, (dist(p, pt) > 9 ? 7.4 : 5.2) * pressa) })
+  switch (p.papel) {
+    case 'goleiro': {
+      const lance = m.bola.lance
+      // 🧤 chute vindo: vai pro ponto onde a bola cruza a linha dele (depois do tempo de reação)
+      if (lance && (lance.tipo === 'chute' || lance.tipo === 'cabeceio_gol') && lance.de.lado !== p.lado && !lance.defendido) {
+        const reage = 0.11 + (100 - p.at.reflexo) * 0.004
+        if (m.t - lance.t0 > reage && Math.abs(m.bola.vy) > 0.5) {
+          const tt = (p.y - m.bola.y) / m.bola.vy
+          if (tt > 0) return { x: clamp(m.bola.x + m.bola.vx * tt, 29.5, 38.5), y: p.y, v: 6 + p.at.reflexo * 0.03 }
+        }
+        return { x: p.x, y: p.y, v: 0 }
+      }
+      // bola solta perto dele, na área dele, e ele chega primeiro: sai e pega
+      if (!m.bola.dono && m.bola.h < 2.2 && fundo(p.lado, m.bola.y) < AREA_PROF - 1 && Math.abs(m.bola.x - 34) < AREA_LARG - 3 && m.goleiroSai(p)) return { x: m.bola.x, y: m.bola.y, v: vmax }
+      return vaiPara(lugarGoleiro(m, p))
+    }
+    case 'pressiona': {
+      const d = m.bola.dono
+      if (d) { const fy = p.lado === 0 ? 1 : -1; return { x: d.x, y: d.y + fy * 0.7, v: vmax } } // (fica do lado do gol dele)
+      return { ...m.pontoBola(), v: vmax }
+    }
+    case 'cobre': {
+      const b = m.bola.dono ?? m.bola, g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) }, d = dist(b, g) || 1
+      return vaiPara({ x: b.x + ((g.x - b.x) / d) * 8, y: b.y + ((g.y - b.y) / d) * 8 }, 1.15)
+    }
+    case 'marca': {
+      const a = p.marca!, g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) }, d = dist(a, g) || 1
+      return vaiPara({ x: a.x + ((g.x - a.x) / d) * 1.8, y: a.y + ((g.y - a.y) / d) * 1.8 }, 1.2)
+    }
+    case 'opcao': case 'ultrapassa': return vaiPara(m.opcaoDe.get(p) ?? ancora(m, p), p.papel === 'ultrapassa' ? 1.25 : 1.1)
+    case 'infiltra': { const c = m.corrida.get(p); return c ? { ...c.alvo, v: vmax } : vaiPara(ancora(m, p)) }
+    case 'recebe': return { ...m.pontoBola(p), v: vmax }
+    case 'bola_solta': return { ...m.pontoBola(p), v: vmax }
+    case 'cobranca': return m.parada ? m.lugarNaCobranca(p) : vaiPara(ancora(m, p))
+    default: return vaiPara(ancora(m, p))
+  }
+}

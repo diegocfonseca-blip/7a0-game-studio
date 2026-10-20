@@ -9717,6 +9717,14 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- 🧪 **20/10 — 📺 MOTOR 2D v2 (EXPERIMENTAL) — FASE 1 PRONTA, SÓ NO BRANCH, ESPERANDO DECISÃO DO DIEGO.** Pedido dele: motor
+  com inteligência (estilo CM/FM), jogadas que emergem dos atributos, resultado que NÃO é decidido antes, lendas únicas,
+  sem câmera lenta; **não publicar pra ninguém**. Diagnóstico, plano e números em `docs/motor-2d-v2.md`. Fase 1: `motor2/`
+  (decisão a cada 0,25 s, física, duelos por atributo, goleiro, impedimento, faltas/cartões, narração só de evento real,
+  estatística) + bancada `scripts/teste-campo2d/v2.html` + trava `npm run motor2`. Passes, física e determinismo OK.
+  ⏳ **FALTA A DECISÃO DELE (seção 8 do doc): formato A "lances estilo FM" (recomendado) × B "jogo corrido intenso"** — futebol
+  real dá ~1 chute por 1:30 de tela; sem roteiro, um dos dois. Depois: calibrar o bloco (hoje todo mundo embola no meio) e
+  as "2 marcas por lenda" (lista pra ele aprovar).
 - ✅ **20/10 — 🙂 ROSTINHO DAS LENDAS NAS COPAS DO 2D** (Diego: *"as lendas não estão aparecendo com rostinho… tô vendo só o
   Romário"*). Na liga o placar manda os 11 pro campinho; na Copa da carreira (Copa do Brasil/Legends, Supercopa) e nas
   internacionais (Liberta, Champions, Mundial) NÃO mandava — o campinho montava o time sem nome nem rosto. Agora vai o XI (e a

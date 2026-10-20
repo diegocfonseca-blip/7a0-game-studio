@@ -95,6 +95,7 @@
     "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts",
     "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts",
     "liga-draft": "npx tsx scripts/testa-liga-draft.mts",
+    "motor2": "npx tsx scripts/testa-motor2.mts",
     "campo2d": "npx tsx scripts/testa-campo2d.mts && npx tsx scripts/testa-campo2d-tela.mts",
     "master-historia": "npx tsx scripts/testa-master-historia.mts",
     "coletiva": "npx tsx scripts/testa-coletiva.mts",

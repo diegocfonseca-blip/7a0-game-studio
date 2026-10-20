@@ -38,6 +38,8 @@ export interface Campo2DProps {
   tatica?: [number, number]
   /** o placar de baixo já tem a 📻 Rádio Legends narrando: aqui a faixa some (o mesmo texto não aparece duas vezes) */
   semNarra?: boolean
+  /** 🧪 MOTOR EXPERIMENTAL (v2, `motor2/`): só a bancada passa isto. Sem ele (todo o jogo), é o motor de sempre. */
+  motorExperimental?: (seed: number, casa: CartaCampo[], fora: CartaCampo[], en: boolean, formacoes: [string?, string?]) => unknown
 }
 
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
@@ -76,7 +78,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental }: Campo2DProps) {
   const t = useT()
   const cv = useRef<HTMLCanvasElement | null>(null)
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -92,6 +94,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // o jogo do campinho: um por rodada (mesma semente das chances → o que a rádio narra é o que o campinho mostra)
   const jogo = useMemo(() => {
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
+    if (motorExperimental) return motorExperimental(seed, casa.cartas ?? [], fora.cartas ?? [], t('pt', 'en') === 'en', [casa.formacao, fora.formacao]) as Jogo2D
     const chances = chancesDoJogo(seed, gols, roundMs)
     const evs = eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
     return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en', [casa.formacao, fora.formacao])
@@ -106,7 +109,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     golsSigAnt.current = golsSig
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
     const chances = chancesDoJogo(seed, gols, roundMs)
-    jogo.trocaEventos(eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? (casa.cartas2 ?? casa.cartas) : (fora.cartas2 ?? fora.cartas), { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome)))
+    jogo.trocaEventos?.(eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? (casa.cartas2 ?? casa.cartas) : (fora.cartas2 ?? fora.cartas), { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome)))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [golsSig, jogo])
   useEffect(() => { golsSigAnt.current = golsSig }, [jogo]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -115,8 +118,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const st = segundoTempo.current
     if (st.jogo !== jogo) { st.jogo = jogo; st.casa = ''; st.fora = '' }
     const sig = (cs?: CartaCampo[]) => (cs ?? []).map(c => c.name).join('|')
-    if (casa.cartas2 && sig(casa.cartas2) !== st.casa) { st.casa = sig(casa.cartas2); if (st.casa !== sig(casa.cartas)) jogo.trocaTime(0, casa.cartas2, casa.formacao) }
-    if (fora.cartas2 && sig(fora.cartas2) !== st.fora) { st.fora = sig(fora.cartas2); if (st.fora !== sig(fora.cartas)) jogo.trocaTime(1, fora.cartas2, fora.formacao) }
+    if (casa.cartas2 && sig(casa.cartas2) !== st.casa) { st.casa = sig(casa.cartas2); if (st.casa !== sig(casa.cartas)) jogo.trocaTime?.(0, casa.cartas2, casa.formacao) }
+    if (fora.cartas2 && sig(fora.cartas2) !== st.fora) { st.fora = sig(fora.cartas2); if (st.fora !== sig(fora.cartas)) jogo.trocaTime?.(1, fora.cartas2, fora.formacao) }
   }
   if (tatica) jogo.tatica = tatica
   // ⏱️ o minuto do placar chega inteiro; aqui ele vira contínuo (até o próximo inteiro) pro campinho andar liso
