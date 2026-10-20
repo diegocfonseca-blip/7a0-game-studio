@@ -935,6 +935,19 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🔒 **E SÓ NA CONTA DELE até ele mandar, IGUAL À SOLO EM TUDO, MENOS O 2º CLUBE** (19/10: *"tem que ser igual a carreira que temos
   hoje em tudo. Menos ter segundo clube"*). Nada de "versão simplificada": cada coisa da solo entra na lista `docs/carreira-online-checklist.md`.
 
+- **📺 CAMPO 2D (20/10): o que já é LEI.** (1) *"serve pra tudo"*: liga, copas, Liberta, Champions, Mundial, Copa do Mundo,
+  regionais, online e offline — mora no `LiveScoreCard` e, escolhido, TOMA O LUGAR do placar (nunca os dois); na sala online o dono
+  escolha ao criar, na carreira o botão fica junto do Manual. (2) Celular em pé, desktop deitado — e **no celular o campo não
+  encolhe**. (3) As REGRAS do futebol valem (lateral, tiro de meta, escanteio com o time subindo, saída no meio depois do gol). (4)
+  *"Mais lances, mais jogadas"* e **golpes das lendas só com FATO conhecido** (`GOLPES` em `campo2d-estilos.ts`; na dúvida, neutro)
+  — e o pé só de quem a gente sabe. (5) **A narração acompanha TUDO e tem variedade**: frase nova entra em `campo2d-narracao.ts`,
+  PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) Só
+  a conta dele enquanto constrói; ao liberar é PAGO, do ⭐ Craque pra cima. Trava: `npm run campo2d` (300 jogos: placar bate, regras,
+  erros de motor).
+- **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, pedido dele, ainda a fazer).** *"não tá tendo sentido entrevista embaixo do jogo… tem
+  que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
+  visualmente, tá muito feio"*. Mockup antes de codar.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

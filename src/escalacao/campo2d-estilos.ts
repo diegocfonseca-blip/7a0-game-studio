@@ -41,3 +41,83 @@ export function estiloDe(nome: string, fame?: number): Estilo {
   return MAPA.get(nome) ?? 'normal'
 }
 export const LENDAS_COM_ESTILO = MAPA.size
+
+// ── 🎯 GOLPES: a jogada ASSINATURA de cada lenda (20/10). Diego: *"mano individuais únicos com as lendas, com base no que a
+// lenda realmente é, sua habilidade e função"*. Só o que é FATO conhecido de cada um (regra dele: não inventar como uma pessoa
+// real é) — quem não está aqui joga com os golpes gerais da posição. O motor sorteia entre os golpes da lenda quando ela
+// conduz/finaliza; o resultado (gol ou não) continua sendo o do jogo.
+export type Golpe =
+  // dribles
+  | 'elastico' | 'pedalada' | 'chapeu' | 'roleta' | 'cruyff' | 'caneta' | 'meia_lua' | 'slalom' | 'drible_goleiro' | 'arrancada' | 'corta_pra_dentro' | 'croqueta'
+  // finalizações
+  | 'colocado' | 'trivela' | 'folha_seca' | 'tres_dedos' | 'bomba' | 'cobertura' | 'cavadinha' | 'voleio' | 'bicicleta' | 'calcanhar' | 'cabecada' | 'de_bico' | 'de_primeira' | 'barriga'
+  // passes e bola parada
+  | 'passe_acucar' | 'lancamento' | 'passe_calcanhar' | 'cruzamento_curva' | 'falta_curva' | 'falta_bomba'
+  // defesa e goleiro
+  | 'carrinho' | 'bote' | 'corte_cabeca' | 'defesa_milagrosa' | 'saida_pes' | 'escorpiao'
+
+const GOLPES_LISTA: [string, Golpe[]][] = [
+  ['Ronaldinho Gaúcho', ['elastico', 'pedalada', 'chapeu', 'folha_seca']], ['Neymar', ['pedalada', 'chapeu', 'caneta']], ['Zinedine Zidane', ['roleta', 'voleio']],
+  ['Diego Maradona', ['slalom', 'drible_goleiro', 'falta_curva']], ['Lionel Messi', ['slalom', 'colocado', 'cavadinha']], ['Garrincha', ['corta_pra_dentro', 'elastico']],
+  ['Pelé', ['chapeu', 'cabecada', 'drible_goleiro']], ['Romário', ['cobertura', 'de_bico', 'chapeu']], ['Ronaldo Fenômeno', ['drible_goleiro', 'pedalada', 'arrancada']],
+  ['Roberto Carlos', ['tres_dedos', 'bomba', 'falta_bomba']], ['Juninho Pernambucano', ['folha_seca', 'falta_curva']], ['Rivelino', ['elastico', 'bomba', 'falta_curva']],
+  ['Zico', ['falta_curva', 'voleio', 'colocado']], ['David Beckham', ['cruzamento_curva', 'falta_curva']], ['Andrea Pirlo', ['lancamento', 'folha_seca']],
+  ['Cristiano Ronaldo', ['cabecada', 'folha_seca', 'bicicleta']], ['Zlatan Ibrahimović', ['bicicleta', 'voleio', 'calcanhar']], ['Rivaldo', ['bicicleta', 'bomba', 'colocado']],
+  ['Marco van Basten', ['voleio', 'de_primeira']], ['Ferenc Puskás', ['bomba', 'de_primeira']], ['Johan Cruyff', ['cruyff', 'passe_acucar']],
+  ['Thierry Henry', ['colocado', 'arrancada']], ['Alessandro Del Piero', ['colocado', 'falta_curva']], ['Francesco Totti', ['cavadinha', 'passe_acucar', 'calcanhar']],
+  ['Roberto Baggio', ['slalom', 'colocado']], ['Gabriel Batistuta', ['bomba', 'de_primeira']], ['Gerd Müller', ['de_primeira', 'barriga']],
+  ['Miroslav Klose', ['cabecada', 'de_primeira']], ['Didier Drogba', ['cabecada', 'bomba']], ['Kaká', ['arrancada', 'colocado']],
+  ['Arjen Robben', ['corta_pra_dentro', 'colocado']], ['Luís Figo', ['corta_pra_dentro', 'cruzamento_curva']], ['Ryan Giggs', ['arrancada', 'slalom']],
+  ['Luka Modrić', ['trivela', 'passe_acucar']], ['Ángel Di María', ['colocado', 'cruzamento_curva']], ['Eden Hazard', ['slalom', 'croqueta']],
+  ['Andrés Iniesta', ['croqueta', 'passe_acucar']], ['Xavi', ['passe_acucar', 'lancamento']], ['Juan Román Riquelme', ['passe_acucar', 'cavadinha']],
+  ['Carlos Valderrama', ['passe_acucar']], ['Fernando Redondo', ['passe_calcanhar', 'passe_acucar']], ['Sócrates', ['calcanhar', 'passe_calcanhar']],
+  ['Didi', ['folha_seca', 'lancamento']], ['Gérson Canhotinha de Ouro', ['lancamento', 'bomba']], ['Leônidas da Silva', ['bicicleta']],
+  ['Renato Gaúcho', ['barriga', 'corta_pra_dentro']], ['Edmundo', ['slalom', 'bomba']], ['Marcelinho Carioca', ['falta_curva', 'colocado']],
+  ['Nelinho', ['falta_bomba', 'tres_dedos']], ['Pepe', ['falta_bomba', 'bomba']], ['Alex', ['lancamento', 'colocado']],
+  ['Jairzinho', ['arrancada', 'bomba']], ['Eusébio', ['arrancada', 'bomba']], ['George Weah', ['arrancada', 'slalom']],
+  ['Kylian Mbappé', ['arrancada', 'colocado']], ['Erling Haaland', ['de_primeira', 'bomba']], ['Harry Kane', ['colocado', 'de_primeira']],
+  ['Robert Lewandowski', ['de_primeira', 'cabecada']], ['Luis Suárez', ['de_bico', 'colocado']], ['Wayne Rooney', ['bicicleta', 'voleio', 'bomba']],
+  ['Robin van Persie', ['voleio', 'colocado']], ['Hugo Sánchez', ['bicicleta', 'voleio']], ['Jean-Pierre Papin', ['voleio']],
+  ['Alan Shearer', ['bomba', 'cabecada']], ['Éric Cantona', ['cobertura', 'chapeu']], ['Hristo Stoichkov', ['bomba', 'falta_bomba']],
+  ['Ronald Koeman', ['falta_bomba', 'bomba']], ['Fernando Hierro', ['falta_bomba', 'cabecada']], ['Michel Platini', ['falta_curva', 'colocado']],
+  ['Lothar Matthäus', ['bomba', 'arrancada']], ['Steven Gerrard', ['bomba', 'lancamento']], ['Frank Lampard', ['bomba', 'de_primeira']],
+  ['Pavel Nedvěd', ['bomba', 'voleio']], ['Bobby Charlton', ['bomba']], ['Clarence Seedorf', ['bomba', 'passe_acucar']], ['Paul Scholes', ['voleio', 'bomba']],
+  ['Toni Kroos', ['lancamento', 'bomba']], ['Kevin De Bruyne', ['cruzamento_curva', 'passe_acucar', 'bomba']], ['Franz Beckenbauer', ['lancamento', 'arrancada']],
+  ['Mario Kempes', ['arrancada', 'bomba']], ['Alfredo Di Stéfano', ['arrancada', 'de_primeira']], ['Michael Ballack', ['cabecada', 'bomba']],
+  ['Ruud Gullit', ['cabecada', 'bomba']], ['Sergio Ramos', ['cabecada']], ['John Terry', ['cabecada', 'corte_cabeca']], ['Nemanja Vidić', ['corte_cabeca', 'cabecada']],
+  ['Daniel Passarella', ['cabecada', 'falta_bomba']], ['Figueroa', ['corte_cabeca', 'cabecada']], ['Alberto Spencer', ['cabecada']],
+  ['Paolo Maldini', ['bote', 'corte_cabeca']], ['Franco Baresi', ['bote']], ['Fabio Cannavaro', ['bote', 'corte_cabeca']], ['Alessandro Nesta', ['bote']],
+  ['Thiago Silva', ['bote', 'corte_cabeca']], ['Carles Puyol', ['carrinho', 'cabecada']], ['Lúcio', ['arrancada', 'cabecada']], ['Lilian Thuram', ['bote']],
+  ['Dunga', ['carrinho', 'lancamento']], ['Patrick Vieira', ['carrinho', 'arrancada']], ['Roy Keane', ['carrinho']], ['Cerezo', ['bote', 'passe_acucar']],
+  ['Cafu', ['arrancada', 'cruzamento_curva']], ['Dani Alves', ['cruzamento_curva', 'arrancada']], ['Marcelo', ['elastico', 'cruzamento_curva']],
+  ['Carlos Alberto Torres', ['arrancada', 'bomba']], ['Philipp Lahm', ['passe_acucar']], ['Javier Zanetti', ['arrancada']],
+  ['René Higuita', ['escorpiao', 'saida_pes']], ['Manuel Neuer', ['saida_pes', 'defesa_milagrosa']], ['Rogério Ceni', ['saida_pes', 'defesa_milagrosa']],
+  ['José Luis Chilavert', ['defesa_milagrosa', 'saida_pes']], ['Taffarel', ['defesa_milagrosa']], ['Gilmar', ['defesa_milagrosa']], ['Marcos', ['defesa_milagrosa']],
+  ['Dida', ['defesa_milagrosa']], ['Lev Yashin', ['defesa_milagrosa']], ['Gianluigi Buffon', ['defesa_milagrosa']], ['Iker Casillas', ['defesa_milagrosa']],
+  ['Oliver Kahn', ['defesa_milagrosa']], ['Peter Schmeichel', ['defesa_milagrosa']], ['Gordon Banks', ['defesa_milagrosa']], ['Petr Čech', ['defesa_milagrosa']],
+]
+const GOLPES = new Map<string, Golpe[]>()
+for (const [n, g] of GOLPES_LISTA) GOLPES.set(n, g)
+/** os golpes da lenda (vazio pra quem não é lenda ou não está na lista) */
+export function golpesDe(nome: string, fame?: number): Golpe[] {
+  if ((fame ?? 0) < 5) return []
+  return GOLPES.get(nome) ?? []
+}
+
+// 🦶 O PÉ: a narração só diz "de canhota"/"de direita" de quem a gente SABE (lenda com pé famoso); do resto, não fala do pé
+const CANHOTOS = new Set(['Diego Maradona', 'Lionel Messi', 'Rivaldo', 'Roberto Carlos', 'Arjen Robben', 'Ángel Di María', 'Ryan Giggs', 'Juan Román Riquelme',
+  'Ferenc Puskás', 'Hristo Stoichkov', 'Rivelino', 'Gérson Canhotinha de Ouro', 'Adriano Imperador', 'Mario Kempes', 'Robin van Persie', 'Erling Haaland', 'Pepe', 'Marcelo'])
+const DESTROS = new Set(['Pelé', 'Zico', 'Romário', 'Ronaldo Fenômeno', 'Cristiano Ronaldo', 'David Beckham', 'Kaká', 'Cafu', 'Thierry Henry', 'Frank Lampard',
+  'Steven Gerrard', 'Andriy Shevchenko', 'Gabriel Batistuta', 'Marco van Basten', 'Raúl', 'Didier Drogba', 'Robert Lewandowski', 'Karim Benzema', 'Harry Kane',
+  'Luis Suárez', 'Wayne Rooney', 'Zlatan Ibrahimović', 'Neymar', 'Ronaldinho Gaúcho', 'Garrincha', 'Eusébio', 'Johan Cruyff', 'Michel Platini', 'Roberto Baggio',
+  'Alessandro Del Piero', 'Francesco Totti', 'Andrea Pirlo', 'Luís Figo', 'Luka Modrić', 'Andrés Iniesta', 'Xavi', 'Toni Kroos', 'Kevin De Bruyne', 'Thomas Müller',
+  'Miroslav Klose', 'Tostão', 'Bebeto', 'Careca', 'Jairzinho', 'Sócrates', 'Falcão', 'Juninho Pernambucano', 'Marcelinho Carioca', 'Nelinho', 'George Weah',
+  'Kylian Mbappé', 'Michael Owen', 'Alan Shearer', 'Kenny Dalglish', 'Éric Cantona', 'Denis Law', 'Jean-Pierre Papin', 'Hugo Sánchez', 'Alfredo Di Stéfano',
+  'Paolo Rossi', 'Ruud van Nistelrooy', 'Vinícius Júnior', 'Lothar Matthäus', 'Pavel Nedvěd', 'Clarence Seedorf', 'Paul Scholes', 'Franz Beckenbauer',
+  'Dennis Bergkamp', 'Zinedine Zidane', 'Gerd Müller', 'Eden Hazard', 'Ronald Koeman', 'Fernando Hierro'])
+export type Pe = 'canhota' | 'direita' | null
+export function peDe(nome: string, fame?: number): Pe {
+  if ((fame ?? 0) < 5) return null
+  return CANHOTOS.has(nome) ? 'canhota' : DESTROS.has(nome) ? 'direita' : null
+}
+export const LENDAS_COM_GOLPE = GOLPES.size

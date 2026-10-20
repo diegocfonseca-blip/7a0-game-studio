@@ -9703,6 +9703,23 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — MOTOR 2D COM VARIEDADE + GOLPES DAS LENDAS + NARRAÇÃO VARIADA** (Diego: *"mais lances, mais jogadas… chute colocado,
+  trivela, gol de cabeça, bicicleta, barriga, canhota… mano individuais únicos com as lendas… narrações têm que acompanhar tudo
+  e ter variedade"*). `campo2d-estilos.ts`: `GOLPES` (122 lendas, 1–3 golpes cada, só FATO conhecido: elástico do Ronaldinho,
+  roleta do Zidane, folha seca do Juninho, três dedos do Roberto Carlos, bicicleta do Hugo Sánchez/Rooney/Ibra, barriga do Renato,
+  cobertura do Romário, drible no goleiro do Ronaldo…) + `CANHOTOS`/`DESTROS` (a narração só diz o pé de quem a gente SABE).
+  `campo2d-motor.ts`: 14 moldes de jogada (+ lançamento, passe na frente, jogada individual com 2 dribles nomeados, escanteio curto
+  ensaiado, erro da zaga, rebote, drible no goleiro), 15 acabamentos (`Acab`: rasteiro · colocado · trivela · folha seca · três dedos ·
+  bomba · cobertura · cavadinha · voleio · bicicleta · calcanhar · cabeça · bico · de primeira · barriga) com altura/força/CURVA
+  próprias (a bola faz curva de verdade: `Voo.curva`) e a jogada começa em lateral 40% das vezes. `campo2d-narracao.ts`: 50
+  acontecimentos × 3–5 frases PT/EN (a trava exige PT = EN e 3+). 🐛 Consertos da varredura: ações de reinício (`pos`) não são
+  mais apagadas pelo prazo do lance anterior (era isso que deixava a bola morta no tiro de meta); quem segura a bola roda em volta
+  de si (não fica plantado na linha de fundo); reinício apressado quando o lance seguinte está perto; festa do gol nos ACRÉSCIMOS
+  fecha depois do apito (bug "mascote travado") e o jogo congela sem saída fantasma; torcida visitante só no cantinho atrás do
+  próprio gol (nas duas faixas). Trava `npm run campo2d` agora também confere: jogador fora das linhas, bola parada 5s+,
+  narração repetida, gol nos acréscimos. ⏳ Falta: (a) 🎤 COLETIVA vira PASSO depois do jogo (aparece ao avançar/pular, sem mostrar o
+  próximo jogo) com visual novo — MOCKUP antes; (b) o mesmo golpe repetido nos 2 dribles de quem só tem 1; (c) jogadores um em
+  cima do outro na marcação do escanteio (cosmético).
 - ✅ **20/10 — CAMPO 2D COM CARA DE ESTÁDIO, DEITADO NO DESKTOP** (mockup `scripts/mockups/campo2d-desktop.png` aprovado:
   *"Sim"*; e *"no móvel não vai diminuir o espaço do campo?"* → não: em pé a torcida tem a largura de sempre e as placas ficam
   só atrás dos gols). `campo2d.tsx`: caixa ≥ 700 px → campo DEITADO (mandante ataca pra esquerda; `tr()`/`rect()` trocam os eixos,
