@@ -7,10 +7,10 @@ import { resolve } from 'node:path'
 const TMP = '/tmp/claude-0/video-jogo'
 rmSync(TMP, { recursive: true, force: true }); mkdirSync(TMP, { recursive: true }); mkdirSync('scripts/posts', { recursive: true })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const ctx = await b.newContext({ viewport: { width: 450, height: 960 }, deviceScaleFactor: 2, recordVideo: { dir: TMP, size: { width: 900, height: 1920 } } })
+const ctx = await b.newContext({ viewport: { width: 900, height: 1920 }, deviceScaleFactor: 1, recordVideo: { dir: TMP, size: { width: 900, height: 1920 } } })
 const p = await ctx.newPage()
 p.on('pageerror', e => console.log('ERR', e.message))
-await p.goto('file://' + resolve('scripts/prototipo-jogo-ao-vivo/index.html'))
+await p.goto('file://' + resolve('scripts/prototipo-jogo-ao-vivo/index.html') + '?z=2')
 await p.waitForFunction(() => window.__acabou === true, null, { timeout: 240000, polling: 500 })
 await p.waitForTimeout(2500)
 await ctx.close(); await b.close()

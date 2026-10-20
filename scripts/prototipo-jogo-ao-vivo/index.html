@@ -215,7 +215,7 @@ async function desarme(def, alvoP) {
   posseDe(def)
 }
 function relogio(m) { minuto = m; document.getElementById('min').textContent = m + "'" }
-async function minutos(ate, ms) { while (minuto < ate) { relogio(minuto + 1); await esp(ms) } }
+async function minutos(ate, ms) { while (minuto < ate) { relogio(minuto + 1); await esp(ms * 0.5) } } // o relógio corre rápido entre um lance e outro
 async function golDe(t, autor, assist) {
   placar[t]++
   await esp(350)
@@ -326,5 +326,7 @@ async function jogo() {
   narra('<b>Fim de jogo!</b> Fabulous EC 2 × 1 Chelsão.'); pausa = true; document.getElementById('fim').style.display = 'flex'
   window.__acabou = true
 }
+// ?z=2 → tudo em dobro (o gravador usa pra o vídeo sair nítido em 900×1920)
+if (new URLSearchParams(location.search).get('z') === '2') document.documentElement.style.zoom = '2'
 window.addEventListener('load', () => setTimeout(jogo, 400))
 </script></body></html>
