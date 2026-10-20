@@ -9495,3 +9495,16 @@ cada rodada vira ~90 s de jogo pra assistir (campo de cima, 22 com rosto das car
 (🔥 pra cima · ⚖️ · 🧱 fecha), preleção de 5 s no intervalo e a "rádio" com os jogos dos amigos. O gol mostrado é o que o motor
 já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base possível: a partida no estádio da Presidência
 (`presidencia-partida*.tsx`). Mockup: `scripts/mockup-jogo-ao-vivo.mjs` → `scripts/mockups/jogo-ao-vivo.png`.
+- ✅ **20/10 — ELE ADOROU O VÍDEO** (*"achei sensacional… gostei muito do motor, a bola batendo na trave"*). Decisões dele:
+  · Vira uma opção na hora de CRIAR A SALA: **⚡ Padrão rápido** (o de sempre, o de hoje) **ou 📺 2D** (o novo). Nome: "2D".
+  · **Velocidade do 2D no automático = a do vídeo.** Só no MODO MANUAL o dono muda a velocidade.
+  · **Estilo do jogador** (*"Ronaldinho, Neymar driblam; Xavi passa; Gattuso rouba bola"*): o lance que aparece puxa pelo estilo
+    da carta. ⚠️ Regra dele de não inventar pessoa real: estilo marcado À MÃO só pra quem é conhecido por aquilo; o resto fica no
+    estilo neutro da posição.
+  · **MUITA variedade de lance**: chute por cima, escanteio batido, gol de cabeça, falta, trave, defesa, desarme, contra-ataque…
+  · Gol: mascote grande (quem tem) ou "GOOOL" + escudo (quem não tem) + faixinha "⚽ AUTOR min · 🅰️ assist" — sem rosto.
+  · Bolinha na COR DA CAMISA do time (nunca da categoria); lenda = rostinho com anel na cor do time; camisa parecida → visitante
+    com a 2ª cor.
+  · Sem intervalo.
+  ⏳ Em aberto: tempo da partida no 2D (o vídeo tem ~2:50 → 38 rodadas ≈ 1h50). Proposta: ~1:30 por jogo na MESMA velocidade de
+  bola (menos lances por jogo) ≈ 1h a liga.
