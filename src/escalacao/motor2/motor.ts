@@ -540,7 +540,8 @@ export class Motor2 {
     const lin = linhaAtaque(lc.de.lado), tGol = Math.abs(b.vy) > 0.5 ? (lin - b.y) / b.vy : 9
     if (tGol > 0) { const xGol = b.x + b.vx * tGol, hGol = b.h + b.vh * tGol - 0.5 * G * tGol * tGol; if (Math.abs(xGol - 34) > GOL_MEIO + 0.3 || hGol > TRAVESSAO + 0.35) return }
     // (goleiro de jogo de 1:30: pega menos que o de verdade — senão 7 chutes dão 1 gol e o placar fica 0×0)
-    const p = clamp(0.76 - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 105 + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
+    // (o goleiro ruim toma mais e o paredão segura mais: a diferença entre profissional e lenda vale ~0,35 de chance de defesa)
+    const p = clamp(0.76 - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
     lc.defendido = true
     if (this.r() >= p) return // passou por ele
     this.stats.defesas[def]++
