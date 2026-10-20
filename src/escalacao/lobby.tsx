@@ -39,7 +39,8 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada } from './sport'
+import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2 } from './sport'
+import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -818,6 +819,7 @@ export function EscLobby() {
   const [ligaDraftSel, setLigaDraftSel] = useState(false)
   const ehDraft = draftOn && ligaDraftSel
   const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
+  const co2On = useCarreiraOnline2() // 🌐 carreira online v2 (19/10, só Diego)
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
   const [verAmigos, setVerAmigos] = useState(false) // 👥 19/10: "Chamar amigos" na sala de espera abre a lista com 📣 CHAMAR
   const meuRival = useMeuRival() // 🔥 o rival ganha uma chama do lado do nome na lista de técnicos
@@ -3163,6 +3165,8 @@ export function EscLobby() {
         </div>
       )}
 
+      {/* 🌐 CARREIRA ONLINE v2 (19/10) — só nas contas do Diego; caminho PRÓPRIO, nada das salas daqui */}
+      {co2On && <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />}
       {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
       {canCareer && myCareers.length > 0 && (
         <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>

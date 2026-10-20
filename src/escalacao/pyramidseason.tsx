@@ -1,4 +1,5 @@
 import {RitmoCampoProvider} from './presidencia-velocidade'
+import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
@@ -7918,8 +7919,10 @@ const abreCraqueNuvem = () => { window.location.href = `${window.location.origin
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const econBots = useEconBots() // 💰 caixa dos rivais na Central (13/10)
+  useCo2FimDaVirada() // 🌐 carreira online v2: quem comanda põe a sala no PREPARO quando o leilão de todos acaba
   // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
-  const saf2Ui = useSaf2() && state.onlineMode !== 'online' && !state.roomId
+  // 🌐 carreira online v2: SEM 2º clube (decisão do Diego, 19/10) — a SAF lá é a da regra antiga
+  const saf2Ui = useSaf2() && state.onlineMode !== 'online' && !state.roomId && !state.co2
   useDireitos() // re-desenha quando o plano da conta chega do banco (o "pagante" da SAF nova)
   const saf2Jan = saf2Ui && saf2Janela(state)
   const saf2Pagante = ehPagante(myApoioPerk()?.tier, meusDireitos())
@@ -8186,11 +8189,12 @@ export function PyramidSeasonScreen() {
   const co2MeuId = state.managers[state.youIdx]?.id ?? 0
   const co2Minha = state.co2?.minha
   const co2Ate = state.co2?.congeladoAte
+  const entradasLocais = useMemo<EntradasMundo>(() => ({ tactics: careerTactics, lineups: careerLineup, halftime: careerHalftime, penalty: careerPenalty, mods: simMods, cardMods: condMods, tecs: simTecs }),
+    [careerTactics, careerLineup, careerHalftime, careerPenalty, simMods, condMods, simTecs])
   const entradasSim = useMemo<EntradasMundo>(() => {
-    const base: EntradasMundo = { tactics: careerTactics, lineups: careerLineup, halftime: careerHalftime, penalty: careerPenalty, mods: simMods, cardMods: condMods, tecs: simTecs }
-    if (!co2Gavetas) return base
-    return mesclaEntradas(congelaMeu(base, co2Minha, co2MeuId, co2Ate ?? -1), co2Gavetas, co2MeuId)
-  }, [careerTactics, careerLineup, careerHalftime, careerPenalty, simMods, condMods, simTecs, co2Gavetas, co2MeuId, co2Minha, co2Ate])
+    if (!co2Gavetas) return entradasLocais
+    return mesclaEntradas(congelaMeu(entradasLocais, co2Minha, co2MeuId, co2Ate ?? -1), co2Gavetas, co2MeuId)
+  }, [entradasLocais, co2Gavetas, co2MeuId, co2Minha, co2Ate])
   const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans),
     [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
@@ -9327,7 +9331,7 @@ export function PyramidSeasonScreen() {
   const curMatchIdx = round - 1
   const [halftimeOpen, setHalftimeOpen] = useState(false)
   const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]
-  const halfMode = soloCareer && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
+  const halfMode = soloCareer && !state.co2 && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
   useEffect(() => { setHalftimeOpen(false) }, [round])
 
@@ -9346,7 +9350,7 @@ export function PyramidSeasonScreen() {
   // 🧪 na conta do Diego (usePenaltiTeste) o pênalti aparece em TODO jogo decisivo,
   // pra ele conferir os dois modos sem esperar a raridade. Pros outros: só planejado.
   const penTeste = usePenaltiTeste()
-  const penMode = soloCareer && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
+  const penMode = soloCareer && !state.co2 && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
   const [penaltyOpen, setPenaltyOpen] = useState(false)
   useEffect(() => { setPenaltyOpen(false) }, [round])
   // 🙈 ANTI-SPOILER do `revealed` (efeito mora AQUI porque precisa do intervalo/
@@ -9455,7 +9459,7 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (!state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
+    if (state.co2 || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -9847,7 +9851,7 @@ export function PyramidSeasonScreen() {
   // partida e o camarote da Central). Regra de ouro contra botão mudo (19/09): tela e
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
-  const avancarRodada = () => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) responderColetiva(null) /* 🎙️ avançou com a coletiva aberta = pulou */; if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) responderColetiva(null) /* 🎙️ avançou com a coletiva aberta = pulou */; if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -10658,7 +10662,11 @@ export function PyramidSeasonScreen() {
             quem não tem (o automático só entra a PARTIR da 1ª rodada, nunca pulando
             essa decisão). Pedido do Diego (07/08): "não deve iniciar automaticamente,
             tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
-        {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
+        {state.co2 && !copaPlaying && (
+          <Co2Temporada entradasLocais={entradasLocais} round={round} roundReady={roundReady} seasonOver={seasonOver}
+            onEscalacao={() => setTab('elenco')} onTatica={() => setTab('elenco')} />
+        )}
+        {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
             <button className="ll-cx-controle" onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: decisoesOk ? GREEN : '#cfc6ae', color: decisoesOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: decisoesOk ? 'pointer' : 'default', marginBottom: 10 }}>
@@ -11465,7 +11473,7 @@ export function PyramidSeasonScreen() {
                 onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
                 onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
             })()}
-            {state.onlineMode !== 'online' && !saf2Ui && (() => {
+            {state.onlineMode !== 'online' && !saf2Ui && !state.co2 /* 🌐 v2: sem 2º clube */ && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
                 // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista

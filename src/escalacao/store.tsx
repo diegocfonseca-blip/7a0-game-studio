@@ -3111,7 +3111,7 @@ export function temSafAgencia(s: EscState): boolean {
   return !!s.careerFilial || (saf2On(s) && !!s.saf2?.origemSaf && !!segundoClube(s))
 }
 export function saf2On(s: EscState): boolean {
-  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online'
+  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online' && !s.co2 // 🌐 carreira online v2: sem 2º clube (Diego, 19/10) — SAF da regra antiga
 }
 export function saf2Janela(s: EscState): boolean {
   return janelaAberta({ careerOnline: s.careerOnline, online: s.onlineMode === 'online', screen: s.screen, round: s.round })
@@ -5177,7 +5177,7 @@ function refreshMonteDeadline(state: EscState) {
   const cur = state.monteOrder[state.monteIdx]
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
-    state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
+    (state.onlineMode === 'online' || !!state.co2) && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
       ? Date.now() + monteMsDe(state)
       : null
 }
@@ -5553,6 +5553,7 @@ type Action =
   | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
   | { type: 'CO2_ESPELHO'; newState: EscState; meuId: number } // 🌐 v2: leilão do dono na MINHA tela (o que eu aperto vai pra ele)
   | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
+  | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
@@ -6922,7 +6923,8 @@ function humansToSubmit(state: EscState, pos: Sector): number[] {
   // lacra e travaria o leilão pra sempre no "TEMPO 0s". Então, no solo, só espero o
   // meu assento. No ONLINE cada humano lacra no próprio aparelho (mantém todos).
   // No-op no jogo solo normal (só existe 1 humano = o youIdx).
-  if (state.onlineMode !== 'online') {
+  // 🌐 carreira online v2: cada clube de gente lança do próprio aparelho (chega pelo canal) → espera TODOS, igual ao online
+  if (state.onlineMode !== 'online' && !state.co2) {
     const meId = state.managers[state.youIdx]?.id
     return eligible.filter(m => m.id === meId).map(m => m.id)
   }
@@ -6936,7 +6938,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
     state.sectorUnsoldAccum = []
     startAuctionPhase(state, false)
   } else {
-    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' ? state.managers[state.youIdx]?.id : undefined)
+    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' && !state.co2 ? state.managers[state.youIdx]?.id : undefined) // 🌐 v2: todos os clubes de gente pescam
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)
@@ -7185,6 +7187,12 @@ function reducerBase(state: EscState, action: Action): EscState {
   // 🌐 CARREIRA ONLINE v2 (19/10): o leilão é de TODOS e quem calcula é o dono. Os outros recebem o estado dele pra
   // VER e apertar (os toques vão pro dono, ver o `dispatch` do EscProvider). A identidade é sempre local: "quem sou eu" é
   // o técnico de id `meuId` (a ordem dos clubes é a mesma em todo aparelho: `mundo.ordem` da sala).
+  if (action.type === 'CO2_ABRE') {
+    const sv = action.save
+    if (!sv?.co2 || !Array.isArray(sv.managers)) return state
+    reancoraEsporte(sv)
+    return { ...sv, isHost: true, onlineMode: 'cpu', co2: { ...sv.co2, espelho: false, comanda: !!sv.co2.comanda, gavetas: sv.co2.gavetas ?? [] } }
+  }
   if (action.type === 'CO2_ESPELHO' || action.type === 'CO2_ASSUME') {
     const ns = action.newState
     if (!ns?.co2 || !Array.isArray(ns.managers)) return state
@@ -8948,7 +8956,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
       // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
-      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2) return s // 🌐 v2: sem 2º clube
       if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: o 2º clube só nasce da SAF (SAF2_ASSUMIR), nunca mais comprado direto
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -13517,7 +13525,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
     // 🌐 v2: no leilão do dono, o que EU aperto vai pra ele (o meu aparelho só mostra)
-    if (stateRef.current.co2?.espelho && CO2_ACOES_DE_FORA.has(action.type)) { co2Envia('acao', action); return }
+    // (e nada mais muda o estado que estou só assistindo: o próximo pacote do dono passaria por cima)
+    if (stateRef.current.co2?.espelho) {
+      if (CO2_ACOES_DE_FORA.has(action.type)) { co2Envia('acao', action); return }
+      if (!['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) return
+    }
     // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
     // calado. START (criar sala) é gesto seu — posse plena. BECOME_HOST marca
     // forçado nos DOIS pontos que o disparam (botão RETOMAR / sumiço provado).
@@ -14112,7 +14124,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // se dependesse só do host, o celular dele apagar a tela travava a sala
   // inteira pra sempre. O reducer reconfirma o prazo antes de aplicar, então
   // disparos duplicados de vários clientes são inofensivos.
-  const monteHumano = state.onlineMode === 'online' && state.screen === 'monte'
+  const monteHumano = (state.onlineMode === 'online' || !!state.co2?.comanda) && state.screen === 'monte'
     && !!state.managers.find(x => x.id === state.monteOrder[state.monteIdx])?.isHuman
   useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }),
     () => logTravaSalva('monte', 2, stateRef.current.roomId, stateRef.current.isHost))
@@ -14175,7 +14187,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // um `setTimeout` sozinho, o celular que sai da frente engolia o único tiro e
   // o leilão ficava parado no 0s pra sala inteira. Ver o comentário do vigia.
   useVigiaPrazo(
-    state.onlineMode === 'online' && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
+    (state.onlineMode === 'online' || !!state.co2?.comanda) && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_SEAL' }),
     () => logTravaSalva('envelope', 2, stateRef.current.roomId, stateRef.current.isHost),
@@ -14184,7 +14196,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
   // qualquer cliente força a resolução — quem não re-lançou não cobre.
   useVigiaPrazo(
-    state.onlineMode === 'online' && state.phase === 'tiebreak',
+    (state.onlineMode === 'online' || !!state.co2?.comanda) && state.phase === 'tiebreak',
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_TIEBREAK' }),
     () => logTravaSalva('desempate', 2, stateRef.current.roomId, stateRef.current.isHost),
