@@ -13,6 +13,10 @@ import estadioArt from './img/online-estadio-v25.webp'
 import salaArt from './img/online-sala-v20.webp'
 import vadicoArt from './img/patro-vadico-alfa.webp'
 import tidexArt from './img/patro-tidex.webp'
+import { PresidenteNaMesa } from './presidente-avatar'
+import { presidenteContaLiberado, usePosseConta, usePresidenteConta } from './presidente-conta'
+import { temBoneco } from './presidente-avulsas'
+import { LojaButton } from './loja-clube'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -123,6 +127,12 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
     return () => clearTimeout(t)
   }, [resta]) // eslint-disable-line react-hooks/exhaustive-deps
   const rep = pronta.rep
+  // 🧑‍💼 o boneco da conta sentado na mesa (grátis não tem boneco: a mesa fica como era)
+  const contaPres = usePresidenteConta()
+  const boneco = presidenteContaLiberado() ? contaPres.value : null
+  // sem boneco: um convite DISCRETO na cadeira vazia, que abre a Loja na seção do presidente (Diego 20/10)
+  const posse = usePosseConta()
+  const convite = !boneco && presidenteContaLiberado() && contaPres.status === 'pronto'
   const topo = (
     <div style={{ flex: 'none', height: 44, background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', ...OSW, fontSize: 13 }}>
       <span>🎙️ {tr('Coletiva', 'Press conference')} · {rodadaTxt}</span>
@@ -139,15 +149,23 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(8,10,14,.55),rgba(8,10,14,.85) 60%,#0b0f14)' }} />
             <div style={{ position: 'relative', paddingBottom: 14 }}>
               {/* o backdrop dos patrocinadores, atrás da mesa */}
-              <div style={{ margin: '12px 12px 0', height: 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
+              <div style={{ position: 'relative' }}>
+              <div style={{ margin: '12px 12px 0', height: boneco ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
                 {marcas.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: m === tidexArt ? '#0B1220' : 'transparent', borderRight: '1px dashed rgba(0,0,0,.08)', borderBottom: '1px dashed rgba(0,0,0,.08)' }}>
                     {m ? <img src={m} alt="" style={{ height: 22, maxWidth: '86%', objectFit: 'contain' }} /> : <span style={{ ...OSW, fontSize: 11, letterSpacing: .5, color: INK }}>Leilão Legends</span>}
                   </div>
                 ))}
               </div>
+              {convite && <div style={{ position: 'absolute', left: 0, right: 0, bottom: 74, display: 'flex', justifyContent: 'center', zIndex: 1 }}>
+                <LojaButton naCarreira ancora="loja-presidente" style={{ background: 'rgba(12,12,12,.78)', color: '#fff', border: '1.5px solid rgba(255,255,255,.45)', borderRadius: 999, padding: '5px 12px', fontSize: 11.5, fontWeight: 700, fontFamily: 'Inter, sans-serif', cursor: 'pointer', maxWidth: '86%' }}>
+                  {temBoneco(posse) ? tr('🧑‍💼 Seu plano já tem presidente · monte o seu ›', '🧑‍💼 Your plan includes a president · make yours ›') : tr('🧑‍💼 Crie seu presidente e apareça aqui ›', '🧑‍💼 Create your president and show up here ›')}
+                </LojaButton>
+              </div>}
+              {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={196} /></div>}
+              </div>
               {/* a mesa com os microfones e a plaquinha do presidente */}
-              <div style={{ margin: '-30px 22px 0', height: 54, background: `linear-gradient(180deg,#1b232c,${INK})`, border: `3px solid ${INK}`, borderRadius: '10px 10px 4px 4px', position: 'relative', display: 'flex', justifyContent: 'center', gap: 28 }}>
+              <div style={{ margin: '-30px 22px 0', zIndex: 2, height: 54, background: `linear-gradient(180deg,#1b232c,${INK})`, border: `3px solid ${INK}`, borderRadius: '10px 10px 4px 4px', position: 'relative', display: 'flex', justifyContent: 'center', gap: 28 }}>
                 {[GOLD, RED, GREEN].map(c => (
                   <span key={c} style={{ position: 'relative', width: 8, height: 30, background: '#333', borderRadius: 4, marginTop: -22 }}>
                     <span style={{ position: 'absolute', top: -12, left: -6, width: 20, height: 16, borderRadius: 8, background: c, border: `2px solid ${INK}` }} />

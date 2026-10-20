@@ -9908,3 +9908,18 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "⚡ Padrão rápido · 📺 2D" ao criar). Tempo 1:30 em liga, Copa, Liberta, Champions, internacional, Copa do Mundo offline e
   regional sem relógio. ⏳ Falta (pedir OK — é RELÓGIO): Copa do Mundo e regional ONLINE seguem nos 16s do banco
   (`esc_copa_preview_clock`/`esc_regional_clock`, `duration_ms = 16000/speed`). Bancada: `scripts/teste-placar-2d/`.
+
+## 🤖 Copa do Mundo: máquina mais fraca nas seleções pequenas (20/10)
+- Pedido do Diego depois da Escócia campeã na live do Fridão: *"bots da máquina um pouco só mais fraco mas só se for seleção mais fraca"*.
+- ✅ Seleção da MÁQUINA (ninguém jogando com ela) fora das 10 grandes (Brasil, Alemanha, Itália, Argentina, França, Uruguai,
+  Inglaterra, Espanha, Holanda, Portugal) joga com 1 nível a menos por carta. Achado junto: o time da máquina repetia a mesma
+  pessoa em 2 cartas (Argentina, Paraguai, Colômbia, Portugal, Chile, Senegal, Irlanda, Argélia) — agora não repete.
+- Só Copas criadas depois de 20/10 19h30 UTC (`maquina2` na ficha); Copa já em andamento não muda. Trava `npm run copa-maquina`
+  (máquina fraca campeã: 4,0% → 2,4%).
+
+## 🎤 Coletiva: o boneco sentado na mesa (20/10) — APROVADO ("Adorei")
+- O presidente da CONTA (o mesmo da Loja; trocou lá, troca aqui) aparece sentado, do peito pra cima, atrás da mesa com os 3
+  microfones (`PresidenteNaMesa` em `presidente-avatar.tsx`, pose `seated`). Grátis sem boneco = mesa como antes.
+  Mockup: `scripts/mockups/coletiva-presidente.png`. Sem boneco: convite discreto na cadeira vazia ("Crie seu presidente e apareça
+  aqui ›" / com plano "Seu plano já tem presidente · monte o seu ›") que abre a Loja em `#loja-presidente` ("Perfeito").
+  ✅ Publicado 20/10 (junto da Copa/máquina e do aviso do dono).

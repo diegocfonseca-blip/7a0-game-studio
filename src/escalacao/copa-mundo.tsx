@@ -458,10 +458,33 @@ export function xiPorChaves(pais: string, xiKeys: string[]): PoolCard[] {
 }
 
 // 🌍 o time que a MÁQUINA leva: a melhor escalação possível do país.
-export function xiDaMaquina(pais: string): { xi: PoolCard[]; form: Formation } {
+// 👥 `semRepetir` (20/10, Copa da live do Fridão): a mesma PESSOA não entra duas vezes no time da máquina — o Passarella
+// tem duas cartas (dois clubes) e a Argentina saía com os dois. Também pega o apelido curto da mesma posição ("Gamarra"
+// e "Carlos Gamarra", "Rincón" e "Freddy Rincón"). Só vale quando quem chama pede: Copa que já estava rolando termina igual.
+export function xiDaMaquina(pais: string, semRepetir = false): { xi: PoolCard[]; form: Formation } {
   const pool = countryPool(pais)
   const form: Formation = formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2'
-  return { xi: bestXI(pool, form), form }
+  return { xi: semRepetir ? bestXISemRepetir(pool, form) : bestXI(pool, form), form }
+}
+const semAcento = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+/** a mesma pessoa? nome igual, ou um é só o sobrenome do outro na MESMA posição */
+export function mesmaPessoa(a: { name: string; pos?: string }, b: { name: string; pos?: string }): boolean {
+  const x = semAcento(a.name), y = semAcento(b.name)
+  if (x === y) return true
+  if (a.pos !== b.pos) return false
+  const ultimo = (n: string) => n.split(/\s+/).pop() ?? n
+  return (!x.includes(' ') && ultimo(y) === x) || (!y.includes(' ') && ultimo(x) === y)
+}
+export function bestXISemRepetir(pool: Record<Sec, PoolCard[]>, f: Formation): PoolCard[] {
+  const xi: PoolCard[] = []
+  for (const sec of SECS) {
+    const sorted = [...pool[sec]].sort((a, b) => b.fame - a.fame || b.hi - a.hi || b.lo - a.lo)
+    let n = 0
+    for (const c of sorted) { if (n >= NEED[f][sec]) break; if (xi.some(o => mesmaPessoa(o, c))) continue; xi.push(c); n++ }
+    // 🛟 país sem gente diferente que chegue na posição (Irlanda): completa com a outra carta da mesma pessoa — nunca time com 10
+    for (const c of sorted) { if (n >= NEED[f][sec]) break; if (xi.includes(c)) continue; xi.push(c); n++ }
+  }
+  return xi
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──

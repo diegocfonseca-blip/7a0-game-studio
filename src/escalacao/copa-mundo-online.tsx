@@ -79,6 +79,8 @@ export interface CopaFicha {
   potes?: boolean
   /** 💪 nasceu com o peso de força novo (14/10)? Mesma régua do `potes`: Copa que já rolava termina igual */
   forte?: boolean
+  /** 🤖 nasceu com a MÁQUINA nova (20/10)? Sem jogador repetido e a seleção fraca da máquina um pouco mais fraca */
+  maquina2?: boolean
 }
 
 // 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
@@ -91,6 +93,20 @@ export const copaTemPotes = (criadaEm?: string | null): boolean =>
 export const FORCA_DESDE = Date.parse('2026-10-14T15:40:00Z')
 export const copaForte = (criadaEm?: string | null): boolean =>
   !!criadaEm && Date.parse(criadaEm) >= FORCA_DESDE
+// 🤖 20/10 (Diego, depois da Escócia da máquina campeã na live do Fridão): *"deixe os bots da máquina um pouco só mais fraco,
+// mas só se for seleção mais fraca mesmo"*. A seleção da MÁQUINA que não é uma das GRANDES (as campeãs do mundo + Holanda e
+// Portugal) perde 1 de nível em cada carta; e ninguém aparece duas vezes no time da máquina.
+// Copa criada antes deste instante termina do jeito velho (mudar no meio mudaria resultado já visto).
+export const MAQUINA2_DESDE = Date.parse('2026-10-20T19:30:00Z')
+export const copaMaquina2 = (criadaEm?: string | null): boolean =>
+  !!criadaEm && Date.parse(criadaEm) >= MAQUINA2_DESDE
+/** as seleções GRANDES DE VERDADE (as 8 campeãs do mundo + Holanda e Portugal): essas a máquina nunca enfraquece.
+ *  É lista fixa de propósito — pelo time da máquina a Escócia (Dalglish, Souness…) ficaria entre as 10 mais fortes,
+ *  e a ideia do Diego é justamente que seleção pequena da máquina não leve Copa à toa. */
+export const SELECOES_GRANDES = new Set(['Brasil', 'Alemanha', 'Itália', 'Argentina', 'França', 'Uruguai', 'Inglaterra', 'Espanha', 'Holanda', 'Portugal'])
+export const MAQUINA_FORTES = SELECOES_GRANDES.size
+export function selecoesFortesDaMaquina(): Set<string> { return SELECOES_GRANDES }
+const MAQUINA_FRACA_MENOS = 1
 
 /** as 32 seleções do jogo (Copa de 32, 02/10), na ordem de quem tem mais carta no baralho */
 export const paisesDaCopa = (): string[] => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
@@ -117,15 +133,18 @@ export function montaFicha(
     pegos.add(p)
     times.push({ pais: p, nome: p })
   }
-  return { seed, edicao, times }
+  return { seed, edicao, times, maquina2: true } // 🤖 ficha NOVA já nasce com a máquina nova (20/10)
 }
 
 // ── de FICHA pra Entrant[] (o que o motor do torneio come) ───────────────────
 // Roda igual em todo aparelho: as cartas vêm do catálogo, que é o mesmo pra
 // todo mundo. `meuUid` só decide qual seleção é a SUA na tela.
 export function entrantesDaFicha(ficha: CopaFicha, meuUid?: string): Entrant[] {
+  const fortes = ficha.maquina2 ? selecoesFortesDaMaquina() : null
   return ficha.times.map(t => {
-    const xi = t.xiKeys?.length ? xiPorChaves(t.pais, t.xiKeys) : xiDaMaquina(t.pais).xi
+    let xi = t.xiKeys?.length ? xiPorChaves(t.pais, t.xiKeys) : xiDaMaquina(t.pais, !!ficha.maquina2).xi
+    // 🤖 seleção da MÁQUINA (ninguém joga com ela) que não é das grandes: 1 nível a menos por carta
+    if (fortes && !t.uid && !fortes.has(t.pais)) xi = xi.map(c => ({ ...c, lo: c.lo - MAQUINA_FRACA_MENOS, hi: c.hi - MAQUINA_FRACA_MENOS }))
     return { club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: xiStrength(xi), humano: !!t.uid }
   })
 }
@@ -958,7 +977,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em) } : null
+  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em), maquina2: copaMaquina2(fase.criada_em) } : null
   // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
   // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
   // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser
