@@ -1761,10 +1761,21 @@ function LangToggle() {
 // do futebol POR ENQUANTO (ele pediu: *"deixe a mesma do futebol por enquanto"* —
 // a arte cinematográfica de basquete entra quando ele mandar/gerar). Mesmos modos,
 // mesma Loja/Amigos/Salão/Regras/Álbum/Conta. Só a conta do Diego vê (sport.ts).
+// ⚽🏀 SELETOR DE ESPORTE (20/10, Diego: "melhor visualmente o seletor de troca… que só eu vejo"): a MESMA pílula nas duas
+// homes, logo abaixo da marca — o esporte em que você está fica pintado (verde futebol · vermelho basquete, as cores das
+// abas aprovadas). Só aparece pra conta liberada no basquete; quem chama já confere isso.
+function SeletorEsporte() {
+  const [sport, setSportSel] = useSport()
+  const t = useT()
+  const seg = (s: Sport, rotulo: string, cor: string) => (
+    <button aria-pressed={sport === s} onClick={() => setSportSel(s)} style={sport === s ? { background: cor, color: '#fff' } : undefined}>{rotulo}</button>
+  )
+  return <div className="ll-seletor-esporte" role="group" aria-label={t('Escolher o jogo', 'Choose the game')}>{seg('futebol', t('⚽ FUTEBOL', '⚽ SOCCER'), GREEN)}{seg('basquete', t('🏀 BASQUETE', '🏀 BASKETBALL'), '#C2452F')}</div>
+}
+
 function BidLegendsHome() {
   const t = useT()
   const { dispatch } = useEsc()
-  const [, setSport] = useSport()
   const nbaSolo = useResumableNbaCareer() // 🏀 carreira do basquete salva (continuar)
   const [contaAberta, setContaAberta] = useState(false)
   const [verSalao, setVerSalao] = useState(false)
@@ -1780,12 +1791,9 @@ function BidLegendsHome() {
       <header className="ll-header">
         <div className="ll-brand"><small>{t('NBA ÀS CEGAS', 'NBA BLIND AUCTION')}</small>BIDLEGENDS</div>
         <div className="ll-lang"><LangToggle /></div>
-        <div className="ll-account">
-          {/* 🏀 voltar pro futebol — o BidLegends é a aba de basquete */}
-          <button className="ll-bb-futebol" onClick={() => setSport('futebol')} title={t('Ir pro futebol', 'Go to soccer')}>⚽</button>
-          <button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button>
-        </div>
+        <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
       </header>
+      <SeletorEsporte />{/* ⚽🏀 voltar pro futebol (a home do basquete só existe pra conta liberada) */}
       {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}
       <section className="ll-intro">
         <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
@@ -2173,7 +2181,6 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   // 🏀 20/10 (Diego: "trocando a aba lá em cima do futebol pelo basquete"): o botão 🏀 pra ir pro BidLegends. SÓ a conta
   // liberada no basquete (BASQUETE_TESTERS) vê — pra todo o resto `bbOn` é falso e a home fica byte-idêntica (sem botão, sem classe).
   const bbOn = useSportUnlocked()
-  const [, setSportHome] = useSport()
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
     <><div className="ll-home">
@@ -2188,7 +2195,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
       </header>
       {/* 🏀 no cabeçalho do futebol não cabe mais um botão (o nome é mais largo que "BIDLEGENDS"): vira uma etiqueta
           logo abaixo da marca, no canto livre da arte */}
-      {bbOn && <button className="ll-troca-esporte" onClick={() => setSportHome('basquete')}>{t('🏀 IR PRO BIDLEGENDS', '🏀 GO TO BIDLEGENDS')}</button>}
+      {bbOn && <SeletorEsporte />}
       {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
       <section className="ll-intro">
         <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>

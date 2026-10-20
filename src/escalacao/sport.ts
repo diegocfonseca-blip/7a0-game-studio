@@ -52,12 +52,17 @@ function resolveSport(): Sport {
 }
 
 let current: Sport = resolveSport()
+let unlocked = false // 🔒 conta liberada no basquete (BASQUETE_TESTERS) — ver applyUnlock
 // se veio pela URL, grava a escolha (pra colar mesmo depois de trocar de tela)
 if (sportFromUrl()) { try { localStorage.setItem(LS_KEY, current) } catch { /* ignora */ } }
 
 const listeners = new Set<() => void>()
 
-export function getSport(): Sport { return current }
+// 🔒 20/10: quem NÃO é conta liberada no basquete enxerga SEMPRE futebol, venha o link com ?sport=basquete, a escolha
+// guardada no aparelho ou o endereço bidlegendsarena.com. Antes só a home olhava a trava; as telas que leem o esporte
+// (ajustes da partida, álbum, salas…) abriam o basquete pra qualquer um que chegasse com esse link.
+// `unlocked` é declarado mais abaixo (é `let` de módulo): só é lido quando alguém chama, nunca na carga.
+export function getSport(): Sport { return unlocked ? current : 'futebol' }
 
 export function setSport(s: Sport): void {
   if (s === current) return
@@ -75,7 +80,7 @@ export function onSportChange(fn: () => void): () => void {
 export function useSport(): [Sport, (s: Sport) => void] {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
-  return [current, setSport]
+  return [unlocked ? current : 'futebol', setSport] // 🔒 mesma trava do getSport
 }
 
 // 🔒 ACESSO ANTECIPADO AO BASQUETE — regra do Diego (26/07): enquanto o
@@ -85,7 +90,6 @@ export function useSport(): [Sport, (s: Sport) => void] {
 // vale mesmo no leilaolegends.com quando o Diego entra na conta dele.
 const BASQUETE_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 
-let unlocked = false
 function applyUnlock(email?: string | null): void {
   const u = !!email && BASQUETE_TESTERS.has(email.toLowerCase())
   if (u === unlocked) return
