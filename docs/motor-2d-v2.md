@@ -230,3 +230,13 @@ Régua do Diego (19/10): só entra o que tem SENTIDO com o jogo que já existe �
 5. **Bolas paradas com rotina** (#14) e **árbitro** com vantagem e acréscimos (#15).
 6. **2 marcas por lenda** (#9) e **teste de sensibilidade** de atributo (#18) na trava.
 7. Nota por jogador → craque do jogo (#17).
+
+---
+
+## 10. DECISÃO DO DIEGO (20/10): formato B — jogo corrido, no tempo de hoje
+*"eu quero o jogo igual tá sendo hoje… sem ser lances. É o jogo rolando lá no tempo que tem hoje."* O formato A (lances, estilo
+FM) está descartado — não repropor. A calibração do v2 passa a mirar: em 90 s de tela (93'), **12–20 chutes, 2–3,5 gols,
+2–8 faltas, 2–8 escanteios, passes certos 70–85%, forte × fraco com o forte ganhando 55%+** — com os jogadores nas velocidades
+de gente (nada de correr a 15 m/s). As alavancas: transição rápida (quem perde a bola recompõe devagar), jogo direto, chute
+cedo (nunca do meio-campo), linhas afastadas, menos erro de passe curto. A trava `npm run motor2` passa a REPROVAR o placar
+quando a calibração fechar.

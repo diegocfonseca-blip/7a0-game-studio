@@ -969,6 +969,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.
+  (15) **MOTOR NOVO = JOGO CORRIDO, NO TEMPO DE HOJE — NUNCA "LANCES" (20/10, decisão dele).** Eu ofereci A (momentos de
+  perigo, estilo FM, relógio pulando) × B (jogo rolando inteiro em 1:30). Resposta: *"eu quero o jogo igual tá sendo hoje… o
+  tempo lá, essas coisas igual tá sendo… sem ser lances. É o jogo rolando lá no tempo que tem hoje"*. **Não repropor A.** O v2
+  (`motor2/`) tem que caber um jogo de futebol inteiro em 1:30 de tela com o relógio de hoje (93' em 90 s) — a calibração é
+  "jogo corrido mais intenso": transição rápida, jogo direto, chute cedo, duelos; nunca jogador correndo em velocidade irreal.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

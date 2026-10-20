@@ -13,7 +13,10 @@ export type Acao =
   | { tipo: 'conduz' | 'drible' | 'segura'; alvo: { x: number; y: number }; u: number; contra?: Atleta }
 
 /** 🎯 o quanto o time quer ganhar metros (por 10 m). O jogo dura 1:30 de tela: sem isto ele trocaria passe pra sempre */
-const DIRETO = 0.012
+const DIRETO = 0.05
+/** 🧲 quanto vale CONTINUAR com a bola (por opção, × (2·pOk − 1)): o passe seguro ganha isso, a loteria perde. Sem isto o time
+ *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
+const MANTER = 0.03
 
 /** quanto custa PERDER a bola aqui (perto do próprio gol custa mais) */
 const perda = (lado: 0 | 1, x: number, y: number) => 0.004 + valor((1 - lado) as 0 | 1, x, y) * 0.85 // (o que o RIVAL ganha se a bola ficar com ele ali)
@@ -34,10 +37,13 @@ export function decide(m: Motor2, p: Atleta): Acao {
   const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 // (só solta antes com o marcador em cima — é aí que o duelo acontece)
 
   // 🎯 CHUTAR
-  if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 33 && f > 1 && !(cedo && dGol > 14)) {
+  if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 31 && f > 1 && !(cedo && dGol > 20)) {
     const xg = xgDe(l, p.x, p.y, pres)
-    let u = xg * (1.5 + p.at.finalizacao / 180)
-    if (dGol > 19) u *= 0.55 + p.tend.chuteLonge * 1.2 // de longe só quem gosta (e tem chute)
+    let u = xg * (3 + p.at.finalizacao / 150)
+    // (dentro da área o instinto é chutar — o passe de 3 m pro companheiro marcado não resolve)
+    if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
+    if (dGol > 19) u *= 0.45 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
+    if (dGol > 24) u *= 0.6 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
     // ⚽ FALTA DIRETA × LEVANTADA (Diego 20/10): quem é batedor de falta (`falta_curva`/`falta_bomba`, estilo chutador) bate
@@ -51,7 +57,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
   for (const t of cedo ? [] : time) {
     if (t.grupo === 'GOL' && fundo(l, p.y) > 30) continue
     const corre = m.corrida.get(t)
-    const enfiada = !!corre && corre.ate > m.t && t.papel === 'infiltra'
+    const enfiada = !!corre && corre.ate > m.t && t.papel === 'infiltra' && dist(p, t) < 30
     const alvo = enfiada ? { x: clamp(t.x + (corre!.alvo.x - t.x) * 0.5, 3, W - 3), y: clamp(t.y + (corre!.alvo.y - t.y) * 0.55, 2, L - 2) } : { x: clamp(t.x + t.vx * 0.35, 2, W - 2), y: clamp(t.y + t.vy * 0.35, 2, L - 2) }
     const d = dist(p, alvo)
     if (d < 5 || d > 58) continue
@@ -62,7 +68,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
     let pLinha = 1
     for (const a of adv) {
       const { q, s } = aoSegmento(a, p, alvo)
-      if (s < 0.02 && q > 0.8) continue // (atrás de quem passa não corta)
+      // (o marcador COLADO em quem passa só corta se estiver exatamente na linha do passe — a bola sai do pé antes de ele reagir; e o
+      // marcador do RECEPTOR já conta no `pRec`. Sem isto, um rival a 1,5 m do portador "bloqueava" todo passe pra frente)
+      if (s < 0.15 && q > 0.5) continue
+      if (s > 0.85) continue
       const tb = (s * d) / 19, alc = 1.6 + Math.min(tb, 1.5) * 4.6 // (o rival corre ~8 m/s: em 1 s de bola ele chega uns 4–5 m)
       // rival em cima da linha (≤ 1,6 m) bloqueia quase sempre; mais longe, depende do tempo que a bola dá pra ele
       if (q < 1.6) pLinha *= 0.12
@@ -70,9 +79,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
     }
     if (pLinha < 0.55 && d > 14 && p.at.passe > 62) { aereo = true }
     // pelo alto: quem está perto de onde ela CAI disputa (e a bola caindo é mais difícil de dominar)
-    if (aereo) { pLinha = 0.88; for (const a of adv) { const q = dist(a, alvo); if (q < 8) pLinha *= 1 - (1 - q / 8) * 0.8 } }
+    // (bola longa é loteria — medido: 30–45% chega. Quem está perto de onde ela CAI disputa de cabeça)
+    if (aereo) { pLinha = 0.68; for (const a of adv) { const q = dist(a, alvo); if (q < 10) pLinha *= 1 - (1 - q / 10) * 0.8 } }
     const conforto = 14 + p.at.passe * 0.24 + (aereo ? 8 : 0)
-    const pTec = clamp(1 - Math.max(0, d - conforto) * 0.022 - (aereo ? 0.12 : 0), 0.3, 0.985) * (1 - pres * 0.12)
+    const pTec = clamp(1 - Math.max(0, d - conforto) * 0.022 - (aereo ? 0.2 : 0), 0.3, 0.985) * (1 - pres * 0.12)
     let rec = 9
     for (const a of adv) rec = Math.min(rec, dist(a, alvo))
     const pRec = clamp(0.5 + rec / 10, 0.5, 1)
@@ -80,13 +90,15 @@ export function decide(m: Motor2, p: Atleta): Acao {
     const v = valor(l, alvo.x, alvo.y)
     // 🎯 JOGO DIRETO (o jogo inteiro cabe em 1:30): ganhar metros vale um bônus
     const avanca = (frente(l, p.y) - frente(l, alvo.y)) / 10
-    let u = pOk * (v + 0.008 + DIRETO * Math.max(-0.5, avanca)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002
-    if (enfiada) u += 0.006 * (0.5 + p.at.visao / 200)
-    if (aereo) u += (p.tend.passeLongo - 0.3) * 0.02
-    if ((t.y - p.y) * fy < -3) u -= 0.003 // (pra trás: só quando é o melhor que tem)
+    // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
+    let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, -0.5, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
+    if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
+    if (aereo) u += (p.tend.passeLongo - 0.5) * 0.03 // (bola longa é gosto de quem lança; o resto prefere o pé)
+    if ((t.y - p.y) * fy < -3) u -= 0.006 // (pra trás: só quando é o melhor que tem)
     // 🧤 REPOSIÇÃO CURTA × LONGA PELO ESTILO (Diego 20/10): o `goleiro_linha` (Ceni, Neuer…) sai jogando curto; quem tem boa
     // `saida` também; o paredão de pouca saída chuta longo
-    if (goleiro) { const curto = p.estilo === 'goleiro_linha' ? 0.012 : p.at.saida > 70 ? 0.006 : -0.005; u += d < 30 ? curto : -curto }
+    // (o padrão é LONGO: o jogo de 1:30 não tem tempo pra saída de bola com 5 passes — só o `goleiro_linha` sai curto)
+    if (goleiro) { const curto = p.estilo === 'goleiro_linha' ? 0.012 : p.at.saida > 74 ? 0.002 : -0.02; u += d < 30 ? curto : -curto }
     // 🏁 ESCANTEIO CURTO: na rotina "curta" o cobrador toca pro companheiro que veio buscar (e daí a jogada é a de sempre)
     if (restr === 'escanteio' && m.rotina[l] === 'curta' && m.curtaDe(t)) u += 0.35
     const tipo: TipoLance = goleiro || restr === 'tiro_de_meta' ? (d > 28 ? 'lancamento' : 'passe') : enfiada ? 'enfiada' : lado ? 'inversao' : aereo ? 'lancamento' : 'passe'
@@ -94,15 +106,15 @@ export function decide(m: Motor2, p: Atleta): Acao {
   }
 
   // ↗️ CRUZAR (pela ponta, perto da área, com gente lá dentro)
-  if (!cedo && !goleiro && (restr === undefined || restr === 'escanteio' || restr === 'falta') && (p.x < 19 || p.x > W - 19 || restr === 'escanteio' || restr === 'falta') && f < 32 && f > 0) {
-    const naArea = time.filter(t => frente(l, t.y) < AREA_PROF + 2 && Math.abs(t.x - 34) < AREA_LARG && t.grupo !== 'GOL')
+  if (!cedo && !goleiro && (restr === undefined || restr === 'escanteio' || restr === 'falta') && (p.x < 22 || p.x > W - 22 || restr === 'escanteio' || restr === 'falta') && f < 35 && f > 0) {
+    const naArea = time.filter(t => frente(l, t.y) < AREA_PROF + 7 && Math.abs(t.x - 34) < AREA_LARG && t.grupo !== 'GOL')
     if (naArea.length) {
       // 🎯 BOLA PARADA ENSAIADA (Diego 20/10): no escanteio/falta levantada a bola vai pro ponto da ROTINA do time (1º pau ·
       // 2º pau), pro jogador que foi mandado pra lá — não "pro melhor cabeceador onde ele estiver"
       const ensaio = (restr === 'escanteio' || restr === 'falta') ? m.alvoDaRotina(l) : null
       const alvo = ensaio && naArea.includes(ensaio) ? ensaio : naArea.sort((a, b) => b.at.cabeceio - a.at.cabeceio)[0]
       const pt = ensaio === alvo ? { x: clamp(alvo.x, 26, 42), y: alvo.y } : { x: clamp(alvo.x + (34 - alvo.x) * 0.2, 26, 42), y: alvo.y }
-      const u = (0.02 + 0.014 * naArea.length) * (0.5 + alvo.at.cabeceio / 200) + p.tend.cruza * 0.02 + (restr === 'escanteio' ? 0.3 : restr === 'falta' ? 0.12 : 0)
+      const u = (0.05 + 0.025 * naArea.length) * (0.5 + alvo.at.cabeceio / 200) + p.tend.cruza * 0.03 + (restr === 'escanteio' ? 0.3 : restr === 'falta' ? 0.12 : 0)
       ops.push({ tipo: 'cruzamento', para: alvo, alvo: pt, aereo: true, u })
     }
   }
@@ -117,10 +129,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
     const passo = 7
     const alvo = { x: clamp(p.x + ux * passo, 3, W - 3), y: clamp(p.y + uy * passo, 2, L - 2) }
     const ganho = valor(l, alvo.x, alvo.y) - aqui
-    if (!frenteDele) ops.push({ tipo: 'conduz', alvo, u: ganho + DIRETO * 0.7 + 0.006 + p.tend.drible * 0.006 + (p.estilo === 'velocista' ? 0.006 : 0) - pres * 0.01 })
+    if (!frenteDele) ops.push({ tipo: 'conduz', alvo, u: ganho + DIRETO * 0.7 + 0.006 + p.tend.drible * 0.006 + (p.estilo === 'velocista' ? 0.006 : 0) - pres * 0.01 + (1 - pres * 0.6) * MANTER })
     else {
       const pD = clamp(0.5 + (p.at.conducao - frenteDele.at.desarme) / 85, 0.12, 0.88)
-      ops.push({ tipo: 'drible', alvo, contra: frenteDele, u: pD * (ganho + 0.02) - (1 - pD) * perda(l, p.x, p.y) + p.tend.drible * 0.03 - 0.006 })
+      ops.push({ tipo: 'drible', alvo, contra: frenteDele, u: pD * (ganho + 0.02) - (1 - pD) * perda(l, p.x, p.y) + p.tend.drible * 0.03 - 0.006 + (2 * pD - 1) * MANTER })
     }
     // 🦶 AFASTAR (apertado perto do próprio gol)
     if (fundo(l, p.y) < 28 && pres > 0.45) {
@@ -139,6 +151,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
   }
   return escolhe(m, p, ops)
 }
+
 
 /** escolhe entre as boas opções: quem decide bem quase sempre pega a melhor; os outros variam mais */
 function escolhe(m: Motor2, p: Atleta, ops: Acao[]): Acao {
