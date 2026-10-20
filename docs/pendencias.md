@@ -9717,6 +9717,16 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ✅ **20/10 — 📺 CAMPO 2D EM TODO LUGAR (só na conta do Diego até ele mandar liberar)** (*"tem que ser esse tempo aí também nas
+  salas online… todos os tipos de liga, copa, Libertadores, Champions, Mundial, Copa dos Oito, regionais, Copa do Mundo… e o telão sempre
+  embaixo… na carreira offline e online, só pra quem é Craque pra cima… botão manual e campo 2D com cadeadozinho"*). Feito:
+  · sala online: a escolha 📺 2D vale em toda competição, também na sala de carreira e na revanche; Copa do Mundo e regionais pelo
+    relógio do banco (2D = 1:30 e fecha 3 s depois do apito; sala normal igual a antes) — `docs/sql/copa-regional-clock-campo2d.sql`.
+  · carreira offline, carreira online nova (botão junto da barra do PRONTO) e partida rápida offline: 2D = mesmo direito do Manual
+    (Craque+). Cadeado único "🎮 Manual + 📺 Campo 2D"; carreira antiga com Manual de graça vê "📺 Campo 2D 🔒 Craque".
+  · telão sempre embaixo do campinho (o da página se esconde enquanto o campinho está na tela).
+  Decisão dele: **qualquer um cria sala com 2D** (não é pago no online). ⏳ Liberar pra todos = `CAMPO2D_GERAL = true` (sport.ts) quando ele mandar.
+  ⚠️ Kings fica sem 2D (relógio e regras próprios).
 - ✅ **20/10 — 🙂 ROSTINHO DAS LENDAS NAS COPAS DO 2D** (Diego: *"as lendas não estão aparecendo com rostinho… tô vendo só o
   Romário"*). Na liga o placar manda os 11 pro campinho; na Copa da carreira (Copa do Brasil/Legends, Supercopa) e nas
   internacionais (Liberta, Champions, Mundial) NÃO mandava — o campinho montava o time sem nome nem rosto. Agora vai o XI (e a

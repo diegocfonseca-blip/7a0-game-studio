@@ -959,6 +959,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   espera cena do estádio (`privateField` desliga com o 2D); o campinho mede o ritmo real do relógio; bola longa voa a 22–28 m/s
   (nunca 13); passe chega andando (não freia até zero); quem tem a bola ginga a ~4,6 m/s e, esperando o lance, faz TABELINHA.
   A trava da tela reprova câmera lenta e bola no pé em passo de caminhada.
+  (13) **2D EM TODO LUGAR, NO TEMPO DO CAMPINHO (1:30), E PAGO SÓ FORA DA SALA** (20/10): *"esse tempo… tem que ser esse tempo
+  aí também nas salas online"*. SALA ONLINE: qualquer um que CRIA escolhe "⚡ Padrão rápido" ou "📺 2D" (convidado nunca paga) e vale
+  pra TODA competição da sala — liga, Minhas Ligas, Copa dos 8, Liberta, Champions, Copa do Mundo e regionais (estas duas pelo
+  relógio do banco: `docs/sql/copa-regional-clock-campo2d.sql`), carreira em sala e revanche. CARREIRA (offline e a online nova) e
+  partida rápida offline: botão do 2D junto do Manual, e o 2D é o MESMO direito do Manual (Craque pra cima — `temManual`): quem não
+  paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
+  (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

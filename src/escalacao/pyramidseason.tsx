@@ -57,7 +57,7 @@ import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadP
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
-import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard, GiroDaRodada } from './screens'
+import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, Botao2D, SpeedControls, CollectibleCard, GiroDaRodada } from './screens'
 import { congelaNoApito, type Congelado } from './congela-temporada' // 🧊 o passado não muda depois do apito
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
@@ -77,7 +77,7 @@ import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
-import { useSaf2, useBotBanco, usePixMp } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -158,12 +158,13 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // Modo Manual: um convite que abre o Apoie direto na explicação do manual. A
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
 function ManualLockButton() {
+  const com2d = useCampo2DLiberado() // 📺 com o 2D liberado, o cadeado destrava OS DOIS: Manual e Campo 2D (Diego 20/10)
   return (
     <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
       {/* 17/10 (Diego): o cadeado leva pra vitrine de PLANOS, abrindo no topo ("pra onde vai o dinheiro"), não mais na trava do Craque */}
       <ApoieButton startScreen="choice" trigger={open => (
         <button onClick={() => { logApoio('👀 abriu: modo manual (trava) → planos'); open() }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
-          <span>{tr('Acelerar e pular', 'Speed up and skip')}</span>
+          <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
         </button>
       )} />
@@ -3558,7 +3559,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} />
   ) : null
-  if (campo2dEl) return campo2dEl
+  // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
+  const campo2dComTelao = campo2dEl ? <>{campo2dEl}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  if (campo2dComTelao) return campo2dComTelao
   if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
@@ -8100,7 +8103,7 @@ export function PyramidSeasonScreen() {
   // 📺 CAMPO 2D (20/10): com o campinho ligado, o jogo dura 1:30 no automático (decisão do Diego) — e no Manual o técnico
   // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
   // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
-  const campo2d = useCampo2DLigado() && state.onlineMode !== 'online'
+  const campo2d = useCampo2DLigado() // (na sala online quem manda é a sala — `useCampo2DLigado` já olha isso; todo mundo no mesmo tempo)
   const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
@@ -10804,6 +10807,7 @@ export function PyramidSeasonScreen() {
             quem não tem (o automático só entra a PARTIR da 1ª rodada, nunca pulando
             essa decisão). Pedido do Diego (07/08): "não deve iniciar automaticamente,
             tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
+        {state.co2 && <Botao2D />/* 📺 carreira online: o 2D é do aparelho (cada um joga a própria carreira) — pago, igual à solo */}
         {state.co2 && !copaPlaying && (
           <Co2Temporada entradasLocais={entradasLocais} round={round} roundReady={roundReady} seasonOver={seasonOver}
             onEscalacao={() => setTab('elenco')} onTatica={() => setTab('elenco')} />

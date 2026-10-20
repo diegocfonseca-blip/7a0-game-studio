@@ -32,6 +32,7 @@
 // não grava título em `esc_results`. Subir no ranking mundial continua sendo
 // coisa da CARREIRA — foi bug em 17/08 a Copa vazar pra lá, e não vai voltar.
 
+import { useCampo2DLigado } from './campo2d-modo'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CompetitionStage } from './online-match-visual'
@@ -233,7 +234,8 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
     if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen,koTemGente(entrants,clockWorld.final))*1000)
     return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen,koTemGente(entrants,t))*1000:0)))
   }
-  const clock=useCopaClockPreview(cinematic,roomId,ficha.edicao,ficha.seed,souDono,extraForStep)
+  const c2dSala=useCampo2DLigado()
+  const clock=useCopaClockPreview(cinematic,roomId,ficha.edicao,ficha.seed,souDono,extraForStep,c2dSala) // 📺 sala 2D: o jogo fecha no apito do campinho
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
   // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).

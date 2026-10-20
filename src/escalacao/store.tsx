@@ -8711,7 +8711,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.humanCount = action.playerNames.length
       s.streamMode = !!action.stream
       s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
-      s.campo2d = !!action.campo2d && !action.career // 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto)
+      s.campo2d = !!action.campo2d // 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto) — carreira em sala também (20/10)
       s.auctionSecs = action.auctionSecs // ⏱️ tempo do leilão: undefined=45s · N=N segundos · 0=host avança no botão
       s.chatOff = !!action.chatOff // 💬 chat da sala ligado/desligado (escolha do host na criação)
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
