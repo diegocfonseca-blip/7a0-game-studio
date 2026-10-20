@@ -15,7 +15,7 @@
 .num{text-align:center;min-width:92px}.num b{display:block;font:700 30px Oswald;color:#FFC400;line-height:1}.num small{font:700 12px Oswald;letter-spacing:1px;opacity:.8}
 .campo{position:relative;border:3px solid #000;border-radius:14px;overflow:hidden;align-self:center}
 canvas{display:block}
-.narra{background:#fff;color:#0C0C0C;border:3px solid #000;border-radius:12px;padding:8px 10px;font-size:13.5px;font-weight:700;line-height:1.3;min-height:44px;display:flex;align-items:center}
+.narra{background:#fff;color:#0C0C0C;border:3px solid #000;border-radius:12px;padding:8px 10px;font-size:13.5px;font-weight:700;line-height:1.3;min-height:44px}
 .tat{display:flex;gap:6px;align-items:center}.tat .rot{font:700 10px Oswald;letter-spacing:1px;color:#aaa;width:64px;line-height:1.1}
 .ch{flex:1;font:700 14px Oswald;text-align:center;background:#fff;color:#0C0C0C;border:3px solid #000;border-radius:11px;padding:8px 2px;transition:all .25s;position:relative}
 .ch.on{background:#FFC400;box-shadow:0 0 0 3px #fff}
@@ -288,9 +288,9 @@ async function jogo() {
   ball.dono = null; ball.x = 67.5; ball.y = 0.5; F(10).ov = { x: 67, y: 1.2, v: 9 }; F(3).ov = { x: 36, y: 8, v: 6 }; F(2).ov = { x: 28, y: 9, v: 6 }
   narra('Escanteio pro Fabulous. <b>Nesta</b> vem pra área…'); await esp(1500); posseDe(F(10))
   await passe(F(10), F(3), { alto: true, adiante: 0, vel: 17 }); await chuta(F(3), 'fora', { alto: true, canto: -1 })
-  narra('Cabeçada do <b>Nesta</b>… por cima do gol!'); await esp(700); await minutos(45, 40)
+  narra('Cabeçada do <b>Nesta</b>… por cima do gol!'); F(10).ov = F(3).ov = F(2).ov = null; await esp(700); await minutos(45, 40)
   // 45' — Careca bate e o Puyol bloqueia (sem intervalo: o jogo segue)
-  posseDe(C(9)); narra('Fim do 1º tempo e o jogo já volta! <b>Careca</b> recebe na entrada da área…')
+  posseDe(C(9)); narra('<b>Careca</b> recebe na entrada da área…')
   await conduz(C(9), 34, 80, 6); await passe(C(9), F(2), { adiante: 0, vel: 24 }); narra('…chutou e <b>Puyol</b> se joga na frente! Bloqueio!')
   await minutos(54, 45)
   // 54' — GOL do Chelsão: Lampard de fora da área
