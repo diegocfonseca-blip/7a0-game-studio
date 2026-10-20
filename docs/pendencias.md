@@ -9539,6 +9539,16 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — REGRAS DO FUTEBOL NO CAMPO 2D** (Diego: *"bola sai pela lateral e não é cobrado lateral… escanteio e o time não
+  subiu… sai na linha de fundo e não começa pelo goleiro no tiro de meta… quando sai gol tem que iniciar no meio"*). No motor
+  (`campo2d-motor.ts`): ⚽ gol → todo mundo volta pro próprio campo, bola no centro, o rival FORA do círculo, e quem tomou dá a saída
+  (a saída nunca é cortada) · 🧤 chute pra fora → a bola passa a linha e PARA lá → tiro de meta na pequena área com o goleiro
+  batendo · 🧤 defesa → o goleiro segura e repõe · 📏 lateral (bola afastada pela linha lateral → quem não tocou por último cobra
+  com as mãos) · ⛳ escanteio: o ataque SOBE (atacantes, 2 zagueiros, 1 meia; a defesa toda marca) e o cobrador só bate com 4+
+  na área · 🟥 falta: o zagueiro derruba, barreira a 9 m, o batedor vai até a bola · a bola NUNCA aparece no pé de alguém longe
+  (rola até ele) e ninguém se posiciona fora das linhas. Quando o lance do jogo está em cima, o campinho vai no CURTO (o gol tem
+  que sair no minuto). Trava `npm run campo2d` agora confere as regras (lateral, tiro de meta, escanteio cheio, saída no meio,
+  bola fora ≤ 4s) além do placar.
 - ✅ **20/10 — 2D SEM TRAVADA + sem "1:30" no texto** (Diego: *"o jogo dando umas travadas com a bola rolando"* e *"esse negócio
   de 1:30 tem que tirar"*): o desenho não reinicia mais a cada minuto do placar (props num `useRef`), o relógio do campinho
   anda liso e só corrige aos poucos pro minuto do placar (antes esperava o minuto e pulava), o fundo parado (grama, linhas,
