@@ -3111,8 +3111,8 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo }:
-  { /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo }:
+  { /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3193,6 +3193,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     setVoo(null);setLance(null)
   },[privateField])
   const fieldMinute=useRef({round:roundKey,half:!!resumeHalf,minute:resumeHalf?45:0})
+  const retomaRef = useRef(false) // ⏸️ voltou da pausa da Central: continua do minuto guardado
   const rkRef = useRef(roundKey)
   if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0); setConfirmados(0); setVoo(null) }
   useEffect(() => {
@@ -3200,6 +3201,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
     if (controlledMinute) return
     if (finished) { setMin(93); return }
+    if (pausado) { retomaRef.current = true; return } // ⏸️ fica no minuto em que estava (fieldMinute guarda)
     if(privateField&&stadiumMatch){
       const same=fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
       fieldMinute.current={round:roundKey,half:!!resumeHalf,minute:same?fieldMinute.current.minute:resumeHalf?45:0}
@@ -3224,7 +3226,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // 🔁 INTERVALO (carreira offline com toggle): se vai pausar aos 45' e AINDA não
     // resolveu, o relógio roda 0→45 e trava; depois de resolver (resumeHalf) retoma
     // 45→93. Sem pausa, é 0→93 como sempre. `span` mantém o ritmo proporcional.
-    const sameField=stadiumMatch&&presidentFieldAccount&&fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
+    const sameField=(stadiumMatch&&presidentFieldAccount||retomaRef.current)&&fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
+    retomaRef.current = false
     const startMin = sameField?fieldMinute.current.minute:resumeHalf ? 45 : 0
     fieldMinute.current={round:roundKey,half:!!resumeHalf,minute:startMin}
     const span = 93 - startMin
@@ -3240,7 +3243,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration])
+  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration, pausado])
   const done = min >= 93
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
@@ -3673,12 +3676,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch, semCarimbo }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean }) {
+function MyMatchCard({ pausado, m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch, semCarimbo }: { pausado?: boolean; m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2 }} semCarimbo={semCarimbo} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2 }} semCarimbo={semCarimbo} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
@@ -3752,7 +3755,8 @@ export function FaixaPlacarEstadio({matchId,...props}:Parameters<typeof FaixaPla
  const presentation=match?{min:match.minute,fim:match.finished,hg:match.homeScore,ag:match.awayScore}:{}
  return <FaixaPlacarMini {...props} {...presentation}/>
 }
-function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch, semCarimbo }: {
+function PlacarQueEncolhe({ pausado, m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch, semCarimbo }: {
+  pausado?: boolean
   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
   topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean
@@ -3774,7 +3778,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
     <>
       <div ref={caixa} className="ll-cx-placar">
         <MyMatchCard stadiumMatch={stadiumMatch} m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
-          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} semCarimbo={semCarimbo} />
+          roundMs={roundMs} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} semCarimbo={semCarimbo} />
       </div>
       {fora && !escondido && (
         <FaixaPlacarEstadio matchId={stadiumMatch?.id} topo={topo} min={min} fim={fim} home={m.h} away={m.a} hg={hg} ag={ag} youIsHome={iAmHome}
@@ -8124,6 +8128,11 @@ export function PyramidSeasonScreen() {
   }, [seasonOver, speedFactor, baseRoundMs,privateLeagueClock,privateLeagueFinished])
   const done = seasonOver && endShown
   const [tab, setTab] = useState<AbaCarr>('jogos')
+  // ⏸️ 20/10 (Diego): *"quando aperta pra ir pra Central, o jogo da simulação… deve pausar. Quando volta pras abas onde
+  // mostra a simulação, despausa"*. A Central é a única aba que esconde o placar ao vivo — lá o relógio da partida (liga e
+  // Copa) PARA no minuto em que estava e nenhuma rodada nova começa; voltando, segue do mesmo minuto. Na carreira online v2
+  // quem manda no tempo é o dono da sala, então lá não pausa.
+  const pausaCentral = tab === 'central' && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
@@ -8885,6 +8894,7 @@ export function PyramidSeasonScreen() {
     if (!copaPlaying) return
     const clockKey=`${seasonSeed}:${copaRound}:${copaNLegs}:${copaFaseTotal}`
     if(copaClock.current.key!==clockKey){copaClock.current={key:clockKey,elapsed:0};setCopaPos(0);setCopaReady(false)}
+    if (pausaCentral) return // ⏸️ na Central a Copa para onde estava (volta do mesmo ponto)
     // LiveScoreCard publica cada minuto e só libera a próxima perna no apito.
     // Um segundo timer aqui faria a volta começar com a bola da ida no ar.
     if(copaCampo)return
@@ -8915,7 +8925,7 @@ export function PyramidSeasonScreen() {
     return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral])
   useEffect(()=>{
     if(!copaPlaying||!copaCampo||!copaCampoEncerrado)return
     // Pênaltis só entram depois do fim físico da última perna. Os mesmos
@@ -9566,12 +9576,16 @@ export function PyramidSeasonScreen() {
   coletivaSegura.current = coletivaOpen
   /** abre a sala de imprensa em TELA CHEIA; `depois` = o que o toque de avançar ia fazer (sai quando a coletiva fecha) */
   const abreColetiva = (depois: (() => void) | null) => { coletivaDepois.current = depois; setColetivaSala(true) }
+  const rodouRef = useRef<{ round: number; ms: number }>({ round, ms: 0 }) // ⏸️ quanto desta rodada já rodou (fora a pausa da Central)
   useEffect(() => {
+    if (rodouRef.current.round !== round) rodouRef.current = { round, ms: 0 }
     setRoundReady(false)
     if(privateLeagueClock&&stadiumMatch)return
-    const t = setTimeout(() => setRoundReady(true), roundMs * 0.85 + 250)
-    return () => clearTimeout(t)
-  }, [round, roundMs,privateLeagueClock,stadiumMatch?.id])
+    if (pausaCentral) return
+    const t0 = Date.now()
+    const t = setTimeout(() => setRoundReady(true), Math.max(0, roundMs * 0.85 + 250 - rodouRef.current.ms))
+    return () => { clearTimeout(t); rodouRef.current.ms += Date.now() - t0 }
+  }, [round, roundMs,privateLeagueClock,stadiumMatch?.id, pausaCentral])
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
@@ -9590,11 +9604,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
+    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -10188,14 +10202,14 @@ export function PyramidSeasonScreen() {
       if (done) return { label: tr('🏁 Fim de temporada — ver', '🏁 Season over — see'), sub: tr('o roteiro está na aba Jogos', 'the wrap-up is in Matches'), onClick: vai('jogos') }
       if (seasonOver) return { label: tr('🏁 Liga encerrada — ver', '🏁 League over — see'), onClick: vai('jogos') }
       if (round === 0) return decisoesOk
-        ? { label: tr('▶ Começar a temporada', '▶ Start the season'), sub: tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } }
+        ? { label: tr('▶ Começar a temporada', '▶ Start the season'), sub: tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } } }
         : { label: tr('🤝 Falta decidir em Jogos', '🤝 Decisions pending in Matches'), sub: tr('patrocínio / Master antes da 1ª rodada', 'sponsor / Master before round 1'), onClick: vai('jogos') }
       if (!manualAllowed) return { label: tr('📺 Ver a rodada ao vivo', '📺 Watch the round live'), sub: tr('no automático a rodada anda sozinha', 'in auto mode the round runs by itself'), onClick: vai('jogos') }
       if (rolando) return { label: tr(`⏳ Rodada ${round} rolando — assistir`, `⏳ Round ${round} live — watch`), onClick: vai('jogos') }
       if (criseTrava) return { label: tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him'), sub: tr('na aba Jogos', 'in Matches'), onClick: vai('jogos') }
       if (halfMode && !halftimeDone) return { label: tr('⏸️ Resolva o intervalo', '⏸️ Sort out half-time'), onClick: avancarRodada }
       if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
-      return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
+      return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: () => { avancarRodada(); escolheAba('jogos') } } // ⏸️ o jogo roda onde aparece (na Central ele fica pausado)
     })()
     return <CentralCarreira coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
@@ -10541,7 +10555,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {!done && myMatch && me && <PlacarQueEncolhe stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {!done && myMatch && me && <PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
