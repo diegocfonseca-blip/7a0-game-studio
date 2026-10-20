@@ -9539,6 +9539,15 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — CAMPO 2D COM CARA DE ESTÁDIO, DEITADO NO DESKTOP** (mockup `scripts/mockups/campo2d-desktop.png` aprovado:
+  *"Sim"*; e *"no móvel não vai diminuir o espaço do campo?"* → não: em pé a torcida tem a largura de sempre e as placas ficam
+  só atrás dos gols). `campo2d.tsx`: caixa ≥ 700 px → campo DEITADO (mandante ataca pra esquerda; `tr()`/`rect()` trocam os eixos,
+  nada de conta solta) com 3 fileiras de torcida em cima/embaixo, placas Vadico/Tidex nas laterais desenhadas no canvas (trocam a
+  cada 7 s) e bandeirão de cada torcida atrás do próprio gol; nos dois formatos: listras cortadas, meia-lua e marca do pênalti,
+  rede com varetas, sombra da arquibancada, jogadores com CAMISA + número (número pela posição: 1 · 2/6 · 3/4/5 · 8/10 · 9/11),
+  pezinhos que alternam quando correm, seta + tracejado em quem tem a bola, rastro da bola em passe/chute, juiz de preto que segue
+  o lance. Carreira no desktop (≥ 1100 px): `.ll-cx-2d` faz o placar ocupar as duas colunas (`career-desktop.css`). Bancada
+  `scripts/teste-campo2d/` agora abre larga.
 - ✅ **20/10 — REGRAS DO FUTEBOL NO CAMPO 2D** (Diego: *"bola sai pela lateral e não é cobrado lateral… escanteio e o time não
   subiu… sai na linha de fundo e não começa pelo goleiro no tiro de meta… quando sai gol tem que iniciar no meio"*). No motor
   (`campo2d-motor.ts`): ⚽ gol → todo mundo volta pro próprio campo, bola no centro, o rival FORA do círculo, e quem tomou dá a saída
