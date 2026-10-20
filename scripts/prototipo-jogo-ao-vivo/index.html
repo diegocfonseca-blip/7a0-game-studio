@@ -73,9 +73,10 @@ const T = [
 const BX = [34, 9, 26, 42, 59, 21, 34, 47, 10, 34, 58]
 const DEP = [0, .86, 1, 1, .86, .55, .66, .55, .08, 0, .08]
 const P = []
-// 🃏 rosto SÓ pra lenda (é só ela que tem avatar no jogo). Quem não é lenda aparece igual na CARTA do jogo: a bolinha na
-// cor da categoria com a inicial — 🪵 foi profissional bege · 🎯 bom verde · ⭐ craque prata · 💎 promessa roxo.
-const CAT = { 1: ['#DBD1B5', '#655c43'], 2: ['#2E9E5B', '#fff'], 3: ['#2E9E5B', '#fff'], 4: ['#E4E9EF', '#44546a'], 6: ['#8B5CF6', '#fff'] }
+// 👕 A COR É DO TIME, nunca da categoria (Diego 20/10: *"bolinha verde, bolinha prata vai confundir… um time não pode estar
+// com a mesma cor do outro"*). Quem não é lenda = bolinha na cor da CAMISA do time com a inicial; lenda = o rosto, com o anel
+// grosso na cor do time. Times de cor parecida: o visitante joga com a 2ª cor (uniforme reserva).
+const CAMISA = [['#FFC400', '#0C0C0C'], ['#2B6CFF', '#FFFFFF']]
 for (let t = 0; t < 2; t++) T[t].jog.forEach(([av, nome, fame], r) => {
   let img = null; if (av) { img = new Image(); img.src = AV(av) }
   P.push({ t, r, nome, img, fame: fame ?? 5, x: 34, y: 52, ov: null, vmax: r === 0 ? 6.5 : 7.4 })
@@ -152,9 +153,9 @@ function desenha() {
     cx.beginPath(); cx.ellipse(X, Y + R - 2, R * 0.9, 4, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
     cx.save(); cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.closePath(); cx.fillStyle = '#fff'; cx.fill(); cx.clip()
     if (p.img) { if (p.img.complete && p.img.naturalWidth) cx.drawImage(p.img, 175, 10, 250, 250, X - R, Y - R, R * 2, R * 2) }
-    else { const [bg, ink] = CAT[p.fame] ?? CAT[1]; cx.fillStyle = bg; cx.fillRect(X - R, Y - R, R * 2, R * 2); cx.fillStyle = ink; cx.font = '700 13px Oswald'; cx.textAlign = 'center'; cx.fillText(p.nome.trim()[0].toUpperCase(), X, Y + 4.5) }
+    else { const [bg, ink] = CAMISA[p.t]; cx.fillStyle = bg; cx.fillRect(X - R, Y - R, R * 2, R * 2); cx.fillStyle = ink; cx.font = '700 13px Oswald'; cx.textAlign = 'center'; cx.fillText(p.nome.trim()[0].toUpperCase(), X, Y + 4.5) }
     cx.restore()
-    cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.lineWidth = 3; cx.strokeStyle = T[p.t].cor; cx.stroke()
+    cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.lineWidth = p.img ? 4 : 2; cx.strokeStyle = p.img ? T[p.t].cor : '#0C0C0C'; cx.stroke()
     if (p === ball.dono) { cx.beginPath(); cx.arc(X, Y, R + 4, 0, 7); cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.9)'; cx.stroke() }
     cx.font = '700 9.5px Oswald'; const w = cx.measureText(p.nome).width + 6
     cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(X - w / 2, Y + R + 1, w, 12); cx.fillStyle = '#fff'; cx.textAlign = 'center'; cx.fillText(p.nome, X, Y + R + 10.5)
