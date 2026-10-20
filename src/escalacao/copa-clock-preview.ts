@@ -20,14 +20,17 @@ export function resumoAberto(row:CopaClockRow,now:number):boolean{
  if(row.running||row.step>=PASSO_COPA.FIM||!passoComResumo(row.step+1))return false
  return now<Date.parse(row.updated_at)+RESUMO_MS
 }
-export function dueClockCommand(row:CopaClockRow,now:number):'finish'|'next'|null{
- if(row.running)return now>=Date.parse(row.started_at)+row.duration_ms+row.extra_ms?'finish':null
+/** 📺 quando o jogo FECHA: sala normal = a duração inteira; sala 2D = o apito (0,82 × duração) + 3 s — a MESMA conta do banco
+ *  (`docs/sql/copa-regional-clock-campo2d.sql`), senão o jogo do campinho ficaria ~20 s parado no 93' esperando */
+export const fimDoJogoMs=(duracao:number,doisD:boolean)=>doisD?Math.round(duracao*0.82)+3000:duracao
+export function dueClockCommand(row:CopaClockRow,now:number,doisD=false):'finish'|'next'|null{
+ if(row.running)return now>=Date.parse(row.started_at)+fimDoJogoMs(row.duration_ms,doisD)+row.extra_ms+150?'finish':null
  // o último passo é a cerimônia (`PASSO_COPA.FIM`); o banco tem a mesma trava
  // 🎬 antes de passo que roda bola, 5s de abertura (copa-passos.ts)
  return !row.manual&&row.step<PASSO_COPA.FIM&&now>=Date.parse(row.updated_at)+respiroAntes(passoRodaBola(row.step+1),row.step,passoComResumo(row.step+1))?'next':null
 }
 
-export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,seed:number,isHost:boolean,extraForStep:(step:number)=>number):CopaClockController|undefined{
+export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,seed:number,isHost:boolean,extraForStep:(step:number)=>number,doisD=false):CopaClockController|undefined{
  const [row,setRow]=useState<CopaClockRow|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[now,setNow]=useState(Date.now())
  const current=useRef<CopaClockRow|null>(null),offset=useRef(0),inFlight=useRef(false),generation=useRef(0),extra=useRef(extraForStep)
  extra.current=extraForStep
@@ -64,11 +67,11 @@ export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,
    const stamp=Date.now()+offset.current;setNow(stamp)
    const r=current.current
    if(!isHost||!r)return
-   const cmd=dueClockCommand(r,stamp)
+   const cmd=dueClockCommand(r,stamp,doisD)
    if(cmd)void rpc(cmd)
   },250)
   return()=>clearInterval(timer)
- },[enabled,isHost,rpc])
+ },[enabled,isHost,rpc,doisD])
  // Convidado de host público conserva o comportamento público (não há linha privada).
  if(!enabled||(!isHost&&!loading&&!row))return undefined
  return{row,now,isHost,busy,error,command:rpc}

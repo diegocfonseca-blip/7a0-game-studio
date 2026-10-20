@@ -9717,6 +9717,16 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ✅ **20/10 — 📺 CAMPO 2D EM TODO LUGAR (só na conta do Diego até ele mandar liberar)** (*"tem que ser esse tempo aí também nas
+  salas online… todos os tipos de liga, copa, Libertadores, Champions, Mundial, Copa dos Oito, regionais, Copa do Mundo… e o telão sempre
+  embaixo… na carreira offline e online, só pra quem é Craque pra cima… botão manual e campo 2D com cadeadozinho"*). Feito:
+  · sala online: a escolha 📺 2D vale em toda competição, também na sala de carreira e na revanche; Copa do Mundo e regionais pelo
+    relógio do banco (2D = 1:30 e fecha 3 s depois do apito; sala normal igual a antes) — `docs/sql/copa-regional-clock-campo2d.sql`.
+  · carreira offline, carreira online nova (botão junto da barra do PRONTO) e partida rápida offline: 2D = mesmo direito do Manual
+    (Craque+). Cadeado único "🎮 Manual + 📺 Campo 2D"; carreira antiga com Manual de graça vê "📺 Campo 2D 🔒 Craque".
+  · telão sempre embaixo do campinho (o da página se esconde enquanto o campinho está na tela).
+  Decisão dele: **qualquer um cria sala com 2D** (não é pago no online). ⏳ Liberar pra todos = `CAMPO2D_GERAL = true` (sport.ts) quando ele mandar.
+  ⚠️ Kings fica sem 2D (relógio e regras próprios).
 - 🧪 **20/10 — 📺 MOTOR 2D v2 (EXPERIMENTAL) — FASE 1 PRONTA, SÓ NO BRANCH, ESPERANDO DECISÃO DO DIEGO.** Pedido dele: motor
   com inteligência (estilo CM/FM), jogadas que emergem dos atributos, resultado que NÃO é decidido antes, lendas únicas,
   sem câmera lenta; **não publicar pra ninguém**. Diagnóstico, plano e números em `docs/motor-2d-v2.md`. Fase 1: `motor2/`

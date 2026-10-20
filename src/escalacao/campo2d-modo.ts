@@ -20,13 +20,30 @@ function usePref() {
   return useSyncExternalStore(f => { ouvintes.add(f); return () => { ouvintes.delete(f) } }, () => pref)
 }
 
-/** o 2D está ligado AQUI? (a sala online manda; fora dela, a escolha do aparelho de quem está liberado) */
+// 💳 FORA DA SALA ONLINE O 2D É PAGO (Diego 20/10: *"só para quem é craque… quando ele pagar, ele ganha os dois, o botão manual
+// e o campinho 2D"*). O direito é o MESMO do Modo Manual (`temManual`: Craque pra cima, batismo, selo manual). Quem confere é o
+// botão do 2D (`Botao2D`, uma consulta só por tela) e o resultado fica guardado no aparelho — assim o placar de cada competição
+// não precisa consultar o banco sozinho. Na sala online o 2D é escolha da sala e vale pra todos (convidado nunca paga).
+const PAGO_CHAVE = 'esc-campo2d-pago'
+let pago = (() => { try { return localStorage.getItem(PAGO_CHAVE) === '1' } catch { return false } })()
+export function marcaPago2D(v: boolean) {
+  if (v === pago) return
+  pago = v
+  try { localStorage.setItem(PAGO_CHAVE, v ? '1' : '0') } catch { /* sem armazenamento: vale só nesta aba */ }
+  ouvintes.forEach(f => f())
+}
+export function usePago2D(): boolean {
+  return useSyncExternalStore(f => { ouvintes.add(f); return () => { ouvintes.delete(f) } }, () => pago)
+}
+
+/** o 2D está ligado AQUI? (a sala online manda; fora dela, a escolha do aparelho de quem está liberado E pagou) */
 export function useCampo2DLigado(): boolean {
   const liberado = useCampo2DLiberado()
   const p = usePref()
+  const pg = usePago2D()
   const s = useEscTalvez()?.state
   if (s && s.onlineMode === 'online') return !!s.campo2d
-  return liberado && p
+  return liberado && p && pg
 }
 
 /** o que a tela do jogo sabe e o campinho usa: nome do técnico (carreira) e a tática de cada clube (🧱 −1 · ⚖️ 0 · 🔥 +1) */
@@ -44,4 +61,13 @@ export function useCampo2DExtras(): { tecnicoDe: (nome: string) => string | null
       return tac === 'ataque' ? 1 : tac === 'retranca' ? -1 : 0
     },
   }
+}
+
+// 📢 O TELÃO SEMPRE EMBAIXO DO JOGO (Diego 20/10: *"e o telão sempre embaixo do jogo"*). Com o 2D, o próprio campinho traz o
+// telão logo abaixo dele; enquanto houver um campinho na tela, o telão solto da página se esconde (nunca aparece duas vezes).
+let campos = 0
+const ouvCampo = new Set<() => void>()
+export function campoNaTela(delta: 1 | -1) { campos += delta; ouvCampo.forEach(f => f()) }
+export function useCampoNaTela(): boolean {
+  return useSyncExternalStore(f => { ouvCampo.add(f); return () => { ouvCampo.delete(f) } }, () => campos > 0)
 }

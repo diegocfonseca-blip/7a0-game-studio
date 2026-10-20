@@ -8,6 +8,7 @@
 //   · 🖥️ no DESKTOP o campo é DEITADO (mockup aprovado 20/10: *"desktop talvez seja melhor horizontal"*) com o estádio completo
 //     (3 fileiras de torcida, placas nas laterais, bandeirão atrás do gol); no CELULAR fica em pé e o campo NÃO encolhe: a faixa
 //     da torcida tem a largura de sempre e as placas ficam só atrás dos gols (*"no móvel não vai diminuir o espaço do campo?"*).
+import { campoNaTela } from './campo2d-modo'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Jogo2D, eventosDoJogo, W, L, SEG_POR_MIN, type Atleta, type CartaCampo } from './campo2d-motor'
 import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
@@ -80,6 +81,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
 
 export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental }: Campo2DProps) {
   const t = useT()
+  useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
   const caixa = useRef<HTMLDivElement | null>(null)
   const [larg, setLarg] = useState(360)

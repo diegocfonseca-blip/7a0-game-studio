@@ -18,6 +18,7 @@
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
 import { useCampo2DLigado } from './campo2d-modo'
+import { fimDoJogoMs } from './copa-clock-preview'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -112,7 +113,7 @@ type Row = { revision: number; step: number; running: boolean; manual: boolean; 
 type Cmd = 'next' | 'skip' | 'finish' | 'manual' | 'auto' | 'speed'
 interface Relogio { row: Row | null; now: number; isHost: boolean; busy: boolean; command: (c: Cmd, speed?: number) => Promise<void> }
 const minutoDo = (r: Row, now: number) => (r.running ? Math.max(0, Math.min(93, Math.round((now - Date.parse(r.started_at)) / (r.duration_ms * 0.82) * 93))) : 93)
-function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost: boolean, rodadas: number, ko: number, fim: number, extraDoPasso: (s: number) => number): Relogio | undefined {
+function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost: boolean, rodadas: number, ko: number, fim: number, extraDoPasso: (s: number) => number, doisD = false): Relogio | undefined {
   const [row, setRow] = useState<Row | null>(null)
   const [semBanco, setSemBanco] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -149,11 +150,11 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
       setNow(agora)
       const r = atual.current
       if (!isHost || !r) return
-      if (r.running) { if (agora >= Date.parse(r.started_at) + r.duration_ms + r.extra_ms) void rpc('finish') }
+      if (r.running) { if (agora >= Date.parse(r.started_at) + fimDoJogoMs(r.duration_ms, doisD) + r.extra_ms + 150) void rpc('finish') } // 📺 sala 2D fecha no apito do campinho (mesma conta do banco)
       else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step, r.step + 1 >= passosRegional(rodadas).PRIMEIRO_KO)) void rpc('next') // 🎬 5s de abertura antes de rodar bola (+5s de resumo em fase do mata-mata)
     }, 250)
     return () => clearInterval(t)
-  }, [isHost, rpc, fim, rodadas])
+  }, [isHost, rpc, fim, rodadas, doisD])
   if (semBanco) return undefined
   return { row, now, isHost, busy, command: rpc }
 }
@@ -542,7 +543,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const P = passosRegional(mundo.n)
   const penMs = (t: ConfrontoRegional) => (t.pen ? pensRevealDelay(t.pen, !!(entrants[t.h].humano || entrants[t.a].humano)) * 1000 : 0)
   const extraDoPasso = (s: number) => { const i = s - P.PRIMEIRO_KO; const f = mundo.ko[i]; return f ? Math.round(Math.max(0, ...f.ties.map(penMs))) : 0 }
-  const relogioBanco = useRelogioRegional(roomId, ficha.edicao, ficha.seed, souDono, P.RODADAS, P.KO, P.FIM, extraDoPasso)
+  const c2dSala = useCampo2DLigado() // 📺 a sala escolheu o 2D (o relógio do banco também sabe)
+  const relogioBanco = useRelogioRegional(roomId, ficha.edicao, ficha.seed, souDono, P.RODADAS, P.KO, P.FIM, extraDoPasso, c2dSala)
   const relogio = semRelogio ? undefined : relogioBanco
 
   // 🛟 sem relógio no banco: cada aparelho anda sozinho, no automático

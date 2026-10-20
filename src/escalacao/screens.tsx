@@ -1,5 +1,5 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
-import { useCampo2DLigado, trocaCampo2D } from './campo2d-modo'
+import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
@@ -6177,11 +6177,12 @@ export function useStreamSimMode(): [boolean, () => void] {
 // 🔒 cadeado do Modo Manual no jogo rápido offline: quem não apoia vê isto no
 // lugar do toggle Auto/Manual — leva pra tela de Apoie (igual à carreira).
 export function QuickManualLock() {
+  const com2d = useCampo2DLiberado() // 📺 com o 2D liberado, o cadeado diz que destrava OS DOIS (Diego 20/10)
   return (
     <div style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
-          <span>{tr('Acelerar e pular', 'Speed up and skip')}</span>
+          <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
         </button>
       )} />
@@ -6196,7 +6197,22 @@ export function Botao2D() {
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
+  // 💳 o 2D vem junto do Manual (o mesmo direito): conferido aqui, lembrado no aparelho (`marcaPago2D`)
+  const temDireito = useHasManual()
+  useEffect(() => {
+    if (temDireito) { marcaPago2D(true); return }
+    const tm = setTimeout(() => marcaPago2D(false), 6000) // (a resposta do banco demora: só tira depois de ter certeza)
+    return () => clearTimeout(tm)
+  }, [temDireito])
   if (!liberado || state.onlineMode === 'online' || state.sport === 'basquete') return null
+  if (!temDireito) return (
+    <ApoieButton startScreen="choice" trigger={open => (
+      <button onClick={open} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        <span>{t('📺 Ver o jogo no Campo 2D', '📺 Watch on the 2D pitch')}</span>
+        <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{t('🔒 Craque', '🔒 Craque')}</span>
+      </button>
+    )} />
+  )
   return (
     <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
       {ligado ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
@@ -6205,7 +6221,7 @@ export function Botao2D() {
 }
 
 export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
-  return <><Botao2D /><SimControlsBase {...props} /></>
+  return <>{!props.lock && <Botao2D />}<SimControlsBase {...props} /></> // (com o cadeado do Manual, o cadeado já cobre os dois)
 }
 function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
@@ -7898,7 +7914,10 @@ function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }
   return <>{texto.split(' ').map((w, wi) => <Fragment key={wi}>{wi > 0 && ' '}<span style={{ whiteSpace: 'nowrap' }}>{Array.from(w).map((ch, ci) =>
     <span key={ci} className="placa-l" style={{ animationDelay: `${atraso + (n++) * 14}ms` }}>{ch}</span>)}</span></Fragment>)}</>
 }
-export function GiroDaRodada({ cinema = false, exemplos, mb = 16 }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number }) {
+export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number; /** o telão que mora EMBAIXO do campinho 2D */ doCampo?: boolean }) {
+  // 📺 com o campinho 2D na tela, o telão é o dele (embaixo do jogo); o da página some — nunca dois
+  const campoNaTela = useCampoNaTela()
+  const escondido = !doCampo && !exemplos && campoNaTela
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
   const doBanco = useAnunciosGiro()
   // 🛒 18/10 (Diego): a Loja mostra o telão de EXEMPLO rodando (Vadico no da empresa, recados no da galera)
@@ -7915,6 +7934,7 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16 }: { news?: str
   const ad = itens[idx]
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
+  if (escondido) return null
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
       <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
@@ -10958,7 +10978,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // começou com valores escondidos e, na revanche, os lances apareciam. O
         // START_ONLINE zera o que não vier na ação, então TODAS as escolhas da sala
         // precisam ir junto de novo (stream, manual, chat, tempo, liga fechada, senha).
-        stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff,
+        stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff, campo2d: state.campo2d, // 📺 a sala 2D continua 2D na revanche
         auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechadaEscolha ?? state.ligaFechada, // 🚫🤖 a ESCOLHA do dono: com 4+ volta a valer
         liga: state.ligaMode, // 🏆 continua sendo Minhas Ligas no novo leilão (13/09)
         locked: state.locked, pwHash: state.pwHash,
