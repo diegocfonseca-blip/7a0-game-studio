@@ -152,7 +152,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       return [{ x: 0, y: 0, w, h: CH }, { x: CW - w, y: 0, w, h: CH }]
     })()
     const torcida = (g: CanvasRenderingContext2D, festa: 0 | 1 | null, tt: number) => {
-      faixaTorcida.forEach((f, fi) => {
+      faixaTorcida.forEach(f => {
         g.fillStyle = '#1b232c'; g.fillRect(f.x, f.y, f.w, f.h)
         const fileiras = 3, ao = deitado ? f.h : f.w, al = deitado ? f.w : f.h
         const n = Math.max(12, Math.round(al / (S * 1.35)))
@@ -165,8 +165,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
             const pula = festa != null && ((i + r) % 3 === 0) === (festa === 0) ? Math.abs(Math.sin(tt * 9 + i + r)) * 2.5 : 0
             const px0 = deitado ? f.x + ao2 : f.x + base, py0 = deitado ? f.y + base - pula : f.y + ao2 - pula
             // a torcida da casa é maioria; a visitante fica num cantinho (lado/ponta oposta)
-            // (deitado: a torcida visitante fica atrás do gol da ESQUERDA, que é o que o visitante defende)
-            const visitante = deitado ? i / n < 0.18 : (i / n < 0.2) === (fi === 1)
+            // 🏟️ a torcida da CASA é maioria nas duas faixas; a VISITANTE fica num cantinho só, atrás do gol que o visitante
+            // defende (deitado: a ponta esquerda; em pé: a ponta de cima) — Diego 20/10: *"a torcida com um cantinho só de um lado?"*
+            const visitante = i / n < 0.18
             g.beginPath(); g.arc(px0, py0, Math.max(1.6, S * 0.42), 0, 7); g.fillStyle = visitante ? corFora : corCasa; g.globalAlpha = 0.9; g.fill(); g.globalAlpha = 1
           }
         }
@@ -256,7 +257,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const r = relogio.current
       const alvo = Math.min(r.min + 1.25, r.min + (agora - r.em) / msPorMin)
       let m = simMin + dt / msPorMin
-      if (fechado) m = 93.5
+      // 🏁 no apito final o relógio para, mas a simulação ainda anda uns segundos: é o que fecha a festa de um gol nos
+      // acréscimos (Diego 20/10: *"mascote travado"* — o GOL do 90+2' ficava aberto pra sempre com o jogo congelado em 93')
+      if (fechado) m = Math.max(93.5, Math.min(99, simMin + dt / msPorMin))
       else if (Math.abs(alvo - m) > 2.5) m = alvo // pulou de verdade (voltou pra tela, trocou a velocidade): vai direto
       else m += (alvo - m) * Math.min(1, dt / 500)
       simMin = Math.max(simMin, m)
