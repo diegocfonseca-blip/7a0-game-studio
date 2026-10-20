@@ -7,7 +7,7 @@ export type ChaveNarra =
   | 'rouba' | 'intercepta' | 'carrinho_lateral' | 'afasta_lateral' | 'zaga_corta' | 'zaga_cabeca' | 'goleiro_pes' | 'recua_goleiro' | 'lancamento_longo' | 'posse' | 'toca' | 'inverte'
   | 'tenta_drible' | 'parte_pra_cima' | 'drible_passou' | 'tabela' | 'contra' | 'dispara' | 'enfia' | 'linha_fundo' | 'cruzou' | 'arrisca' | 'espalma'
   | 'lanc_olha' | 'lanc_bola' | 'domina' | 'avanca_lado' | 'rola_na_frente' | 'individual' | 'ensaiada_1' | 'ensaiada_2' | 'zaga_roda' | 'pressiona' | 'erro_zaga' | 'gol_vazio' | 'dribla_goleiro'
-  | 'defendeu' | 'trave' | 'fora' | 'isolou'
+  | 'defendeu' | 'trave' | 'fora' | 'isolou' | 'avanca' | 'toca_na_frente'
 
 const B: Record<ChaveNarra, [string[], string[]]> = {
   saida: [['Bola no meio.', 'Recomeça o jogo.', 'Volta pro centro do campo.'], ['Back to the centre spot.', 'Play restarts.', 'Ball back on the centre circle.']],
@@ -29,7 +29,7 @@ const B: Record<ChaveNarra, [string[], string[]]> = {
   goleiro_pes: [['{a} sai jogando com os pés, com toda a calma.', '{a} rola curto, sem pressa.', '{a} prefere sair jogando.'], ['{a} plays out from the back, cool as you like.', '{a} rolls it short, no rush.', '{a} opts to play it short.']],
   recua_goleiro: [['Recua pro {a}.', 'Bola de volta pro {a}.', 'Toca atrás pro {a}.'], ['Back to {a}.', 'Ball back to {a}.', 'Played back to {a}.']],
   lancamento_longo: [['Lançamento longo procurando {a}…', 'Bola longa na direção de {a}…', 'Chutão pra frente, {a} vai na bola…'], ['A long ball looking for {a}…', 'Launched forward towards {a}…', 'Hoofed long, {a} chases it…']],
-  posse: [['O {a} roda a bola com paciência.', '{a} troca passes no meio-campo.', '{a} segura a bola, sem pressa.', 'Toca de um lado pro outro, o {a} controla.'], ['{a} keep the ball patiently.', '{a} pass it around midfield.', '{a} hold onto it, no rush.', 'Side to side, {a} in control.']],
+  posse: [['O {a} roda a bola com paciência.', 'O {a} troca passes no meio-campo.', 'O {a} segura a bola, sem pressa.', 'Toca de um lado pro outro, o {a} controla.'], ['{a} keep the ball patiently.', '{a} pass it around midfield.', '{a} hold onto it, no rush.', 'Side to side, {a} in control.']],
   toca: [['{a} toca com {b}…', '{a} ajeita pra {b}…', '{a} e {b} trocam passes…'], ['{a} plays it to {b}…', '{a} lays it off to {b}…', '{a} and {b} exchange passes…']],
   inverte: [['{a} inverte o jogo pro {b}.', '{a} muda o lado da jogada: {b} aparece livre.', 'Bola longa de {a} trocando a ponta pra {b}.'], ['{a} switches play to {b}.', '{a} changes the angle: {b} is free.', 'Cross-field ball from {a} to {b}.']],
   tenta_drible: [['{a} tenta o drible…', '{a} encara o marcador…', '{a} quer passar no um contra um…'], ['{a} tries to take him on…', '{a} squares up to the marker…', '{a} wants the one-on-one…']],
@@ -59,6 +59,8 @@ const B: Record<ChaveNarra, [string[], string[]]> = {
   defendeu: [['Que defesa! O goleiro buscou!', 'DEFENDEU! O goleiro salvou!', 'Grande defesa! Tirou do gol!', 'O goleiro espalma e salva!'], ['What a save!', 'SAVED! The keeper comes up big!', 'Great stop! Kept it out!', 'The keeper parries it clear!']],
   trave: [['NA TRAVE! Quase!', 'Tremeu a trave!', 'Explodiu na trave!', 'Trave! Que azar!'], ['OFF THE POST!', 'Rattled the post!', 'Smashed against the woodwork!', 'Post! So unlucky!']],
   fora: [['Pra fora, raspando a trave!', 'Passou perto! Tirou tinta da trave.', 'Pra fora, por muito pouco!', 'Saiu raspando!'], ['Just wide!', 'So close! Shaved the post.', 'Wide, by a whisker!', 'Just past the post!']],
+  avanca: [['{a} avança com a bola dominada…', '{a} carrega a bola pro ataque…', '{a} sobe com a bola, o time vai junto…', '{a} conduz, olhando o passe…'], ['{a} drives forward with the ball…', '{a} carries it into the attack…', '{a} pushes up, the team follows…', '{a} on the ball, looking for the pass…']],
+  toca_na_frente: [['{a} toca na frente pro {b}…', '{a} lança o {b} no ataque…', 'Bola de {a} pro {b}, que aparece na frente…'], ['{a} plays it forward to {b}…', '{a} sends {b} into the attack…', 'Ball from {a} to {b}, showing up front…']],
   isolou: [['Isolou! A bola foi pra arquibancada.', 'Mandou pra torcida!', 'Por cima, muito por cima!', 'Chutou pra lua!'], ['Blazed over the bar!', 'Into the stands!', 'Over, well over!', 'Into orbit!']],
 }
 

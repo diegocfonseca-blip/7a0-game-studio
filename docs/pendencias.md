@@ -9703,6 +9703,17 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — MOTOR 2D "PELÉ E GALVÃO"** (Diego: *"muito chute do meio-campo, nunca vi isso… a bola meio que para no meio do
+  caminho e depois vai sozinha pro gol… melhorar posicionamento… simule partidas como se fosse o Pelé e o Galvão"*). No motor:
+  🚫 NENHUM chute de mais de 33 m (antes ~6 por jogo): antes de bater a bola tem que estar na entrada da área (`aproxima`/`aLevaAte`:
+  conduz ou recebe um passe rápido lá), cruzamento só da LINHA DE FUNDO e com o atacante JÁ na área · 🚫 a bola NUNCA desliza
+  sozinha: dono longe = ele corre até a bola; passe e chute só saem com a bola no pé; passe cai num ponto que o recebedor alcança
+  · 🧍 espaçamento (ninguém a menos de 2,2 m de outro, menos quem disputa a bola), linhas de meio/ataque em "V", defesa fecha
+  menos o lado · ⏱️ pra o gol continuar no minuto sem teletransporte: a jogada começa mais cedo quanto mais longe a bola está, a
+  CHANCE (sem gol) que atrapalharia um gol logo depois é pulada (o gol nunca), e atrasado = todo mundo dá um PIQUE (até 1,8×) ·
+  🚚 transição: jogada que começa lá atrás primeiro leva a bola pro campo de ataque · 🎙️ narração da condução ("avança com a
+  bola", "toca na frente pro…"). Revisão lendo a narração inteira de jogos simulados. Trava `npm run campo2d`: 0 chute de longe,
+  atraso mediano 0' (teto 6' fora dos 5 primeiros minutos), 0 jogador fora, 0 frase repetida.
 - ✅ **20/10 — MOTOR 2D COM VARIEDADE + GOLPES DAS LENDAS + NARRAÇÃO VARIADA** (Diego: *"mais lances, mais jogadas… chute colocado,
   trivela, gol de cabeça, bicicleta, barriga, canhota… mano individuais únicos com as lendas… narrações têm que acompanhar tudo
   e ter variedade"*). `campo2d-estilos.ts`: `GOLPES` (122 lendas, 1–3 golpes cada, só FATO conhecido: elástico do Ronaldinho,
