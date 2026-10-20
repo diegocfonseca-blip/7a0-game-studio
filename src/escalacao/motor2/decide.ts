@@ -93,6 +93,8 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
     let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, -0.5, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
     if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
+    // ⭐ O JOGO PASSA PELO CRAQUE: o time procura quem resolve (lenda com a bola vale mais que o volante com a bola)
+    u += pOk * (((t.at.conducao + t.at.passe + t.at.finalizacao) / 3 - 70) / 900)
     if (aereo) u += (p.tend.passeLongo - 0.5) * 0.03 // (bola longa é gosto de quem lança; o resto prefere o pé)
     if ((t.y - p.y) * fy < -3) u -= 0.006 // (pra trás: só quando é o melhor que tem)
     // 🧤 REPOSIÇÃO CURTA × LONGA PELO ESTILO (Diego 20/10): o `goleiro_linha` (Ceni, Neuer…) sai jogando curto; quem tem boa
@@ -124,7 +126,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     const dir = { x: (34 - p.x) * 0.12, y: fy }
     const n = len(dir.x, dir.y)
     const ux = dir.x / n, uy = dir.y / n
-    const frenteDele = adv.filter(a => { const rx = a.x - p.x, ry = a.y - p.y, aa = rx * ux + ry * uy; return aa > -0.5 && aa < 6 && len(rx - ux * aa, ry - uy * aa) < 2.6 })
+    // (quem gosta de driblar enxerga o marcador mais longe e vai pra cima dele — cone maior)
+    const alc = 6 + p.tend.drible * 3, larg = 2.6 + p.tend.drible * 1.2
+    const frenteDele = adv.filter(a => { const rx = a.x - p.x, ry = a.y - p.y, aa = rx * ux + ry * uy; return aa > -0.5 && aa < alc && len(rx - ux * aa, ry - uy * aa) < larg })
       .sort((a, b) => dist(a, p) - dist(b, p))[0]
     const passo = 7
     const alvo = { x: clamp(p.x + ux * passo, 3, W - 3), y: clamp(p.y + uy * passo, 2, L - 2) }
@@ -132,7 +136,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (!frenteDele) ops.push({ tipo: 'conduz', alvo, u: ganho + DIRETO * 0.7 + 0.006 + p.tend.drible * 0.006 + (p.estilo === 'velocista' ? 0.006 : 0) - pres * 0.01 + (1 - pres * 0.6) * MANTER })
     else {
       const pD = clamp(0.5 + (p.at.conducao - frenteDele.at.desarme) / 85, 0.12, 0.88)
-      ops.push({ tipo: 'drible', alvo, contra: frenteDele, u: pD * (ganho + 0.02) - (1 - pD) * perda(l, p.x, p.y) + p.tend.drible * 0.06 - 0.006 + (2 * pD - 1) * MANTER }) // (quem GOSTA de driblar encara o marcador — Ronaldinho não solta a bola de primeira)
+      ops.push({ tipo: 'drible', alvo, contra: frenteDele, u: pD * (ganho + 0.02 + p.tend.drible * 0.08) - (1 - pD) * perda(l, p.x, p.y) + p.tend.drible * 0.06 - 0.006 + (2 * pD - 1) * MANTER }) // (quem GOSTA de driblar encara o marcador — Ronaldinho não solta a bola de primeira)
     }
     // 🦶 AFASTAR (apertado perto do próprio gol)
     if (fundo(l, p.y) < 28 && pres > 0.45) {
@@ -151,6 +155,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
   }
   return escolhe(m, p, ops)
 }
+
 
 
 

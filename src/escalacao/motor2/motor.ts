@@ -383,6 +383,8 @@ export class Motor2 {
       case 'chute': return this.chuta(p)
       case 'conduz': case 'drible': case 'segura': {
         const v = a.tipo === 'segura' ? 2.6 : this.vmax(p)
+        // (drible = vai PRA CIMA do marcador e passa por ele: o alvo é 2 m além do rival, não um ponto genérico à frente)
+        if (a.tipo === 'drible' && a.contra) { const z = a.contra, dx = z.x - p.x, dy = z.y - p.y, d = len(dx, dy) || 1; p.alvo = { x: clamp(z.x + (dx / d) * 2.5, 2, W - 2), y: clamp(z.y + (dy / d) * 2.5, 2, L - 2), v }; return }
         p.alvo = { x: a.alvo.x, y: a.alvo.y, v }
         if (a.tipo === 'conduz' && p.tend.drible + (p.estilo === 'velocista' ? 0.3 : 0) > 0.45 && this.r() < 0.12) this.emite({ tipo: 'arrancada', lado: p.lado, a: p.nome })
         return
@@ -646,8 +648,9 @@ export class Motor2 {
     for (const z of this.atl) {
       if (z.lado === d.lado || z.atordoado > this.t || z.grupo === 'GOL') continue
       if (dist(z, d) > 2.2) continue
-      if (this.r() > 5.5 * DT) continue // (marcador colado: ~24% de chance por segundo de o duelo acontecer)
       const ac = this.acaoDe.get(d), dribla = ac?.tipo === 'drible'
+      // (quem decidiu DRIBLAR encara na hora: o duelo acontece assim que encosta; o resto é o marcador que tenta, ~24%/s)
+      if (!(dribla && ac.contra === z && dist(z, d) < 1.9) && this.r() > 5.5 * DT) continue
       const carrinho = z.golpes.includes('carrinho') || (z.grupo === 'DEF' && this.r() < 0.15)
       // falta? (chegando por trás, com o atacante em velocidade, é mais fácil derrubar)
       const porTras = fundo(d.lado, z.y) < fundo(d.lado, d.y) - 0.6, veloz = len(d.vx, d.vy) > 5
@@ -817,7 +820,7 @@ export class Motor2 {
     // ⏳ quem recebe fica um tempo com a bola (domina, levanta a cabeça, conduz) antes de soltar — 0,4 a 1,3 s; quem joga de
     // primeira (passador, finalizador) às vezes solta na hora. Apertado pelo marcador, solta antes (`decide` olha a pressão).
     const primeira = (p.estilo === 'passador' || p.golpes.includes('de_primeira')) && this.r() < 0.25
-    this.segurarAte = primeira ? this.t : this.t + (0.1 + this.r() * 0.45 - p.at.decisao * 0.0015) * (1 - pressaoEm(this, p, p.lado) * 0.6) // (livre, dá um toque e olha o jogo; apertado, solta antes) // (ritmo alto: o jogo inteiro cabe em 1:30)
+    this.segurarAte = primeira ? this.t : this.t + (0.1 + this.r() * 0.45 - p.at.decisao * 0.0015) * (1 - pressaoEm(this, p, p.lado) * 0.6 * (1 - p.tend.drible * 0.7)) * (1 + p.tend.drible * 0.8) // (livre, dá um toque e olha o jogo; apertado, solta antes — MENOS quem gosta de driblar: esse segura e encara) // (ritmo alto: o jogo inteiro cabe em 1:30)
     p.proxDecisao = this.t + toque
     this.acaoDe.delete(p)
   }

@@ -11,8 +11,10 @@ conhecido, nunca chute. No v2 a 2ª marca entra com metade do peso nos atributos
 número fixo (ordem dele): depende do goleiro (trocar o goleiro rival de profissional pra lenda: 0,85 → 0,55 gol sofrido), do
 elenco (lendas × profissionais 1,6 × 0,07, 55 vitórias em 60), do gás e das marcas de cada um.
 📌 **A vaga do campinho é lei** (20/10, ordem dele): o motor segue a ordem da escalação do usuário; só time de bot é escalado pelo
-jeito do jogador. Pendente de individualidade: o Ronaldinho pela ponta ainda dribla pouco (0,05/jogo = média dos meias) porque o
-portador solta a bola antes de o marcador chegar — precisa de "encarar o marcador" como opção de verdade no `decide.ts`.
+jeito do jogador. Individualidade (20/10, 2ª passada): quem gosta de driblar segura a bola, enxerga o marcador mais longe, vai PRA CIMA dele
+(alvo 2,5 m além do rival) e o duelo acontece no contato; o time procura o craque (passe pro melhor jogador vale mais). Romário no
+meio: 1,2 drible · 0,8 chute · 0,3 gol por jogo. ⚠️ Teto estrutural: num jogo de 1:30 cada jogador pega a bola ~3 vezes (o
+Ronaldinho fica 0,8 s com ela por jogo), então a marca da lenda aparece na TEMPORADA, não em cada jogo.
 Pendente: virar os números em assert no `npm run motor2` quando ele cravar a meta; ligar o v2 na bancada visual e FILMAR
 (`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. Clima visual (sol/nublado/chuva) continua
 esperando o OK dele na foto (`clima-3.png`).
