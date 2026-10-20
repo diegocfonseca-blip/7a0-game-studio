@@ -23,7 +23,9 @@ let jogos = 0, atrasoMax = 0, atrasoInicio = 0; const atrasos: number[] = []
 // subiu… sai na linha de fundo e não começa pelo goleiro no tiro de meta… quando sai gol tem que iniciar no meio")
 let magicas = 0, foraMax = 0, saidasErradas = 0, golsVistosTot = 0, laterais = 0, tiros = 0, escTot = 0, escCheios = 0
 // 🔎 varredura de erros do motor (20/10, Diego: *"analisar mais erros de motor do jogo em toda partida"*)
-let foraCampo = 0, bolaParada = 0, narraRepetida = 0, sobrepostos = 0, chutesLonge = 0, chancesPuladas = 0
+// 🧑‍⚖️ o FISCAL (20/10, Diego: *"atacante do time rival bater tiro de meta pro rival… jogada parar e do nada voltar"*)
+let reinicioErrado = 0, paradaSemCobranca = 0, reinicioSemSair = 0, travadas = 0; const exTravadas: string[] = []
+let chutesBand = 0, foraCampo = 0, bolaParada = 0, narraRepetida = 0, sobrepostos = 0, chutesLonge = 0, chancesPuladas = 0
 for (let s = 1; s <= 300; s++) {
   const rnd = (k: number) => ((s * 9301 + k * 49297) % 233280) / 233280
   const n = Math.floor(rnd(1) * 6)
@@ -46,7 +48,7 @@ for (let s = 1; s <= 300; s++) {
     festaAntes = !!j.festa
     // 🧍 jogador fora das linhas (mais que o pé na linha), bola parada demais com a bola rolando, narração repetida, dois no mesmo lugar
     for (const a of j.atl) if (a.x < -2 || a.x > 70 || a.y < -2.6 || a.y > 107.6) foraCampo++
-    if (!j.festa && m < 93) { const k = `${b.x.toFixed(1)}|${b.y.toFixed(1)}`; if (k === bolaK) { bolaParadaDesde += 0.25; if (bolaParadaDesde > 5) { bolaParada++; bolaParadaDesde = 0 } } else bolaParadaDesde = 0; bolaK = k }
+    if (!j.festa && m < 93 && (j as any).parada == null) { const k = `${b.x.toFixed(1)}|${b.y.toFixed(1)}`; if (k === bolaK) { bolaParadaDesde += 0.25; if (bolaParadaDesde > 5) { bolaParada++; bolaParadaDesde = 0 } } else bolaParadaDesde = 0; bolaK = k }
     if (j.narra !== narraAntes) { if (j.narra === narraPen) narraRepetida++; narraPen = narraAntes; narraAntes = j.narra }
     if (Math.round(m * 4) % 20 === 0) for (let i = 0; i < j.atl.length; i++) for (let k2 = i + 1; k2 < j.atl.length; k2++) if (Math.hypot(j.atl[i].x - j.atl[k2].x, j.atl[i].y - j.atl[k2].y) < 0.4) sobrepostos++
     const tot = j.placar[0] + j.placar[1]
@@ -60,16 +62,25 @@ for (let s = 1; s <= 300; s++) {
   // igual em dois aparelhos
   const k = new Jogo2D(s, casa, fora, evs); k.avancaAte(47.3); const k2 = new Jogo2D(s, casa, fora, evs); for (let m = 0; m <= 47.3; m += 0.7) k2.avancaAte(m); k2.avancaAte(47.3)
   assert.deepEqual(k.atl.map(a => [a.x.toFixed(3), a.y.toFixed(3)]), k2.atl.map(a => [a.x.toFixed(3), a.y.toFixed(3)]), `semente ${s}: dois aparelhos viram jogos diferentes`)
-  chancesPuladas += j.diag.chancesPuladas; chutesLonge += j.diag.chutesLonge; magicas += j.diag.magicas; laterais += j.diag.laterais; tiros += j.diag.tirosDeMeta
+  reinicioErrado += j.diag.reinicioErrado; paradaSemCobranca += j.diag.paradaSemCobranca; reinicioSemSair += j.diag.reinicioSemSair; travadas += j.diag.travadas
+  for (const e of j.diag.erros) if (e.includes('vigia') && exTravadas.length < 8) exTravadas.push(`s${s} ${e}`)
+  chancesPuladas += j.diag.chancesPuladas; chutesBand += j.diag.chutesBandeirinha; chutesLonge += j.diag.chutesLonge; magicas += j.diag.magicas; laterais += j.diag.laterais; tiros += j.diag.tirosDeMeta
   escTot += j.diag.escanteios.length; escCheios += j.diag.escanteios.filter(n => n >= 4).length
   jogos++
 }
+console.log(`🧑‍⚖️ fiscal: ${reinicioErrado} cobranças pelo time errado · ${paradaSemCobranca} toques com a bola fora/parada sem cobrança · ${reinicioSemSair} laterais/tiros de meta/escanteios sem a bola ter saído`)
+assert.equal(reinicioErrado, 0, 'cobrança (tiro de meta, lateral, falta) pelo time errado')
+assert.equal(paradaSemCobranca, 0, 'alguém jogou a bola que estava fora/parada antes da cobrança')
+console.log(`🐕 vigia: ${travadas} ordens travadas destravadas`); if (exTravadas.length) console.log(exTravadas.join('\n'))
+assert.equal(reinicioSemSair, 0, 'cobrança de bola que não saiu (jogada parou do nada)')
 console.log(`⏭️ chances (sem gol) puladas por falta de tempo: ${chancesPuladas}`)
 console.log(`🎯 chutes de mais de 33 m do gol: ${chutesLonge} (Diego: "nunca vi chute do meio-campo")`)
 assert.ok(chutesLonge <= jogos * 0.02, 'chute de longe demais')
+console.log(`🚩 chutes da bandeirinha (sem ângulo): ${chutesBand}`)
+assert.equal(chutesBand, 0, 'chute da bandeirinha de escanteio')
 console.log(`🔎 erros: ${foraCampo} jogador fora das linhas · ${bolaParada} bola parada 5s+ com a bola rolando · ${narraRepetida} frases repetidas em seguida · ${sobrepostos} jogadores um em cima do outro`)
 assert.equal(foraCampo, 0, 'jogador fora das linhas')
-assert.ok(bolaParada < jogos * 0.25, 'bola parada demais') // (bola parada = alguém indo cobrar lateral/falta/tiro de meta; a bola NUNCA desliza)
+assert.ok(bolaParada < jogos * 0.05, 'bola parada demais') // (bola parada = alguém indo cobrar lateral/falta/tiro de meta; a bola NUNCA desliza)
 assert.ok(narraRepetida < jogos * 0.5, 'narração repetida em seguida')
 console.log(`📏 regras: ${laterais} laterais · ${tiros} tiros de meta · ${escTot} escanteios (${escCheios} com 4+ do ataque na área) · bola fora no máx. ${foraMax.toFixed(1)}s · ${saidasErradas}/${golsVistosTot} saídas fora do meio · ${magicas} bolas "voando" pro pé de alguém longe (${(magicas / jogos).toFixed(2)} por jogo)`)
 assert.equal(saidasErradas, 0, 'depois do gol a bola tem que voltar pro meio')

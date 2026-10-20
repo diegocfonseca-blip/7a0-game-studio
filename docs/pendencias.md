@@ -9703,6 +9703,22 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — 🧑‍⚖️ O JUIZ DO CAMPO 2D** (Diego: *"já vi até atacante do time rival bater tiro de meta pro rival… já vi jogada parar
+  e do nada voltar ao jogo como se nada tivesse parado… simular e ver com calma as duas equipes jogando"*). Achados lendo 300
+  jogos lance a lance, e consertados: 🔁 TIRO DE META EM DOBRO (a chance ia pra fora, o juiz cobrava, e o roteiro da jogada
+  cobrava de novo — 333 em 300 jogos) · 📏 LATERAL DO NADA (o enfeite que mandava a bola pra fora era cortado, mas a cobrança
+  ficava na fila e saía com a bola rolando — 146) · 🙋 LATERAL PRO TIME ERRADO (um molde chutava a bola pra fora e o MESMO time
+  cobrava; e o desvio da zaga pra escanteio/lateral contava como toque do atacante — 190) · 🧊 JOGO CONGELADO (o zagueiro que ia
+  desarmar ficava preso no empurrão do espaçamento ou numa ordem velha de "fica aqui"; agora quem corre pra bola não é empurrado e
+  o desarme sempre mira a bola) · 🧍 DONO PLANTADO (quem está com a bola e sem ordem protege e leva a bola devagar, em vez de ficar
+  parado esperando) · 🪄 ROUBADA A 20 M (o time do gol "pegava" a bola de longe: agora o rival erra o passe e ela ROLA até ele) ·
+  🚩 CHUTE DA BANDEIRINHA (no escanteio curto o parceiro podia ser o próprio cobrador) · 🎙️ o resultado da chance ("Isolou!",
+  "DEFESA MILAGROSA") ficava 0,3 s na tela porque o "Tiro de meta" passava por cima — agora fica 1,5 s · ⏭️ chance que chega uns
+  segundos atrasada sai mesmo assim (antes era pulada; só cai se atrasar o próximo GOL). Trava `npm run campo2d` ganhou o FISCAL
+  (0 cobrança pro time errado · 0 toque com a bola fora sem cobrança · 0 lateral/tiro de meta/escanteio sem a bola ter saído · 0
+  chute da bandeirinha · bola parada com jogo rolando < 5%) e um VIGIA no motor (ordem que trava com todo mundo parado cai sozinha;
+  hoje ele não precisa agir nenhuma vez em 300 jogos). Atraso de gol: mediana 0', 90% até 2,5', pior 6'.
+  ⏳ Ainda é limite do formato: ~metade das chances sem gol não cabe (são ~10 lances em 90 s e cada jogada leva 8–15 s).
 - ✅ **20/10 — MOTOR 2D "PELÉ E GALVÃO"** (Diego: *"muito chute do meio-campo, nunca vi isso… a bola meio que para no meio do
   caminho e depois vai sozinha pro gol… melhorar posicionamento… simule partidas como se fosse o Pelé e o Galvão"*). No motor:
   🚫 NENHUM chute de mais de 33 m (antes ~6 por jogo): antes de bater a bola tem que estar na entrada da área (`aproxima`/`aLevaAte`:

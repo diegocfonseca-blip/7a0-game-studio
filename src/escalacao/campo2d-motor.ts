@@ -46,7 +46,7 @@ export interface CartaCampo { name: string; pos?: string; club?: string; year?: 
 type Grupo = 'GOL' | 'DEF' | 'LAT' | 'MEI' | 'ATA'
 export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; /** 🎯 os golpes assinatura (só lenda) */ golpes: Golpe[]; /** 🦶 pé conhecido (só lenda famosa por ele) */ pe: Pe; grupo: Grupo; bx: number; dep: number; x: number; y: number; /** onde estava no passo anterior (só pro DESENHO ficar liso) */ ax?: number; ay?: number; ov: { x: number; y: number; v: number } | null }
 interface Voo { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; alt: number; lin: boolean; fim?: () => void; /** 🌀 curva (metros pro lado, no meio do caminho): colocado, trivela, folha seca */ curva?: number }
-type Acao = { ini?: () => void; upd: (dt: number) => boolean; /** enfeite: pode ser cortado pelo prazo do lance decisivo e pelo lance seguinte */ pre?: boolean; /** reinício (tiro de meta, lateral, reposição): só o lance SEGUINTE corta — o prazo do lance anterior não */ pos?: boolean }
+type Acao = { ini?: () => void; upd: (dt: number) => boolean; /** enfeite: pode ser cortado pelo prazo do lance decisivo e pelo lance seguinte */ pre?: boolean; /** reinício (tiro de meta, lateral, reposição): só o lance SEGUINTE corta — o prazo do lance anterior não */ pos?: boolean; /** o chute: o vigia nunca derruba (é ele que faz o placar) */ chute?: boolean }
 
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 // escolhe UMA vez e lembra (sem isto, cada chamada sorteava outro jogador e a jogada nunca fechava)
@@ -91,7 +91,7 @@ export class Jogo2D {
   placar: [number, number] = [0, 0]
   /** 🔎 conferência das REGRAS (o teste lê): bola colocada parada (saída, lateral, escanteio, tiro de meta, falta) ·
    *  bola que "voou" sozinha pro pé de alguém longe · quantos atacantes estavam na área em cada escanteio cobrado */
-  diag = { colocadas: 0, magicas: 0, escanteios: [] as number[], saidas: 0, laterais: 0, tirosDeMeta: 0, moldes: {} as Record<string, number>, acabs: {} as Record<string, number>, chutesLonge: 0, chancesPuladas: 0 }
+  diag = { colocadas: 0, magicas: 0, escanteios: [] as number[], saidas: 0, laterais: 0, tirosDeMeta: 0, moldes: {} as Record<string, number>, reinicioErrado: 0, paradaSemCobranca: 0, cobrancasForcadas: 0, erros: [] as string[], acabs: {} as Record<string, number>, chutesLonge: 0, chancesPuladas: 0, reinicioSemSair: 0, travadas: 0, chutesBandeirinha: 0 }
   private deslizando = false
   /** ⏱️ o instante do lance decisivo que está sendo montado (pra "pressa": atrasado, todo mundo dá um pique) */
   private tLance: number | null = null
@@ -102,6 +102,11 @@ export class Jogo2D {
   private iev = 0
   private acoes: Acao[] = []
   private cur: Acao | null = null
+  /** 🐕 vigia: desde quando a bola está no MESMO lugar (com o jogo rolando) */
+  /** 🎙️ até quando a frase do RESULTADO (isolou, na trave, defendeu) fica na tela sem a cobrança passar por cima */
+  private narraForteAte = 0
+  private angDono = 0; private donoLivre: Atleta | null = null
+  private paradaDesde = 0; private paradaK = ''; private paradaFoto: number[] = []
   private prazo: number | null = null // até quando o ENFEITE da jogada decisiva pode correr
   private en: boolean
 
@@ -119,10 +124,11 @@ export class Jogo2D {
   gk(l: Lado) { return this.atl.find(a => a.lado === l && a.grupo === 'GOL') ?? this.time(l)[0] }
   private do(l: Lado, g: Grupo[]) { return this.time(l).filter(a => g.includes(a.grupo)) }
   private sorteia<T>(xs: T[]): T { return xs[Math.floor(this.rng() * xs.length)] }
-  private preferido(l: Lado, g: Grupo[], est: Estilo[], fora?: Atleta | null): Atleta {
-    const cands = this.do(l, g).filter(a => a !== fora)
+  private preferido(l: Lado, g: Grupo[], est: Estilo[], fora?: Atleta | null | (Atleta | null)[]): Atleta {
+    const tira = Array.isArray(fora) ? fora : [fora]
+    const cands = this.do(l, g).filter(a => !tira.includes(a))
     const bons = cands.filter(a => est.includes(a.estilo))
-    const base = cands.length ? cands : this.time(l).filter(a => a.grupo !== 'GOL')
+    const base = cands.length ? cands : this.time(l).filter(a => a.grupo !== 'GOL' && !tira.includes(a))
     return bons.length && this.rng() < 0.75 ? this.sorteia(bons) : this.sorteia(base)
   }
   private porNome(l: Lado, nome?: string) { return nome ? this.time(l).find(a => a.nome === nome && !!a.nome) : undefined }
@@ -182,16 +188,54 @@ export class Jogo2D {
     // ⏰ estourou o prazo do enfeite: corta o que sobrou dele e vai direto pro final da jogada
     if (this.prazo != null && this.t >= this.prazo) {
       if (this.cur?.pre && !this.cur.pos) { this.cur = null; for (const a of this.atl) if (a.ov && a.ov.v < 9) a.ov = null }
-      this.acoes = this.acoes.filter(a => !a.pre || a.pos) // (os reinícios de DEPOIS do lance ficam: são eles que tiram a bola do chão)
+      // (os reinícios de DEPOIS do lance ficam: são eles que tiram a bola do chão — mas só se a bola SAIU mesmo; cobrança de uma
+      // saída que foi cortada antes de acontecer é lateral do nada, com a bola rolando)
+      const saiu = !!this.semReinicio || this.parada != null
+      this.acoes = this.acoes.filter(a => !a.pre || (a.pos && saiu))
       this.prazo = null
     }
     // ⏰ o lance do jogo está chegando e o que corre é ENCHIMENTO (troca de passe, lateral, tiro de meta…): corta e vai pro lance
     const prox = this.evs[this.iev]
     // (com a bola PARADA no chão — lateral, tiro de meta — espera alguém pegar; cortar aí deixaria a bola morta no gramado)
-    if (prox && this.prazo == null && prox.min * SEG_POR_MIN - this.t <= ANTECEDE + 1 && (this.cur?.pre || this.acoes.some(a => a.pre)) && (this.bola.dono || this.bola.voo)) {
-      if (this.cur?.pre) this.cur = null
-      this.acoes = this.acoes.filter(a => !a.pre)
-      for (const a of this.atl) a.ov = null
+    // (a COBRANÇA de bola parada nunca é cortada: lateral, tiro de meta, escanteio, falta e saída vão até o fim)
+    const cortavel = (a?: Acao | null) => !!a && !!a.pre && !a.pos
+    if (prox && this.prazo == null && prox.min * SEG_POR_MIN - this.t <= ANTECEDE + 1 && (cortavel(this.cur) || this.acoes.some(cortavel)) && (this.bola.dono || this.bola.voo) && this.parada == null) {
+      if (cortavel(this.cur)) { this.cur = null; for (const a of this.atl) a.ov = null }
+      // (e a cobrança que vinha DEPOIS desse enfeite sai junto: a bola não saiu, então não tem lateral/tiro de meta pra cobrar)
+      this.acoes = this.acoes.filter(a => !cortavel(a) && !(a.pre && !this.semReinicio))
+    }
+    // 🧑‍⚖️ O JUIZ: a bola saiu e parou fora — ninguém joga antes da COBRANÇA certa (lateral, escanteio ou tiro de meta,
+    // por quem tocou por último). Se ela não está na fila, entra NA FRENTE (o lance decisivo, se houver, espera atrás dela).
+    if (this.semReinicio && !this.bola.voo && !this.bola.dono && !this.festa && this.foraDoCampo() && !this.cur?.pos && !this.acoes.some(a => a.pos)) {
+      this.cur = null
+      for (const a of this.atl) if (a.ov && a.ov.v < 9) a.ov = null
+      this.acoes.unshift(...this.cobrancaDaSaida())
+    }
+    // e bola PARADA dentro do campo (tiro de meta, falta, saída) sem a cobrança na fila: o cobrador do time certo bate primeiro
+    // (também quando o cobrador JÁ está com a bola na mão e a cobrança dele foi cortada: ele bate)
+    else if (this.parada != null && !this.bola.voo && (!this.bola.dono || this.bola.dono.lado === this.parada) && !this.festa && !this.cur?.pos && !(this.bola.dono && this.acoes[0]?.pos)) {
+      // a cobrança já está na fila, mas atrás de outra coisa? ela passa NA FRENTE; não está? o cobrador do time certo bate
+      const i = this.acoes.findIndex(a => a.pos)
+      const cobr = i >= 0 ? this.acoes.splice(i, this.acoes.slice(i).findIndex(a => !a.pos) < 0 ? this.acoes.length - i : this.acoes.slice(i).findIndex(a => !a.pos)) : this.reinicio(this.cobrancaPendente())
+      if (this.cur) { this.acoes.unshift(this.cur); this.cur = null }
+      this.acoes.unshift(...cobr)
+    }
+    // 🐕 O VIGIA (Diego 20/10: *"jogada parar e do nada voltar ao jogo"*): bola PARADA no mesmo lugar, sem cobrança correndo,
+    // por mais de 2,5 s = alguma ordem esperando algo que não vai acontecer (um jogador que não chega). A ordem cai e o jogo segue.
+    const bk = `${this.bola.x.toFixed(1)}|${this.bola.y.toFixed(1)}`
+    // (só conta como travado se NINGUÉM saiu do lugar: jogador correndo até a bola é espera de verdade, não trava)
+    const foto = () => this.atl.flatMap(z => [z.x, z.y])
+    if (bk !== this.paradaK || this.bola.voo || this.cur?.pos || this.cur?.chute || this.festa) { this.paradaK = bk; this.paradaDesde = this.t; this.paradaFoto = foto() }
+    else if (this.cur && this.t - this.paradaDesde > 2 && this.t < 93.5 * SEG_POR_MIN) {
+      const f = foto(); let mov = 0
+      for (let i = 0; i < f.length; i += 2) mov = Math.max(mov, Math.hypot(f[i] - (this.paradaFoto[i] ?? f[i]), f[i + 1] - (this.paradaFoto[i + 1] ?? f[i + 1])))
+      if (mov > 0.6) { this.paradaDesde = this.t; this.paradaFoto = f }
+      else {
+      this.diag.travadas++
+      if (this.diag.erros.length < 40) this.diag.erros.push(`${(this.t / SEG_POR_MIN).toFixed(1)}' vigia: ordem travada (${String(this.cur.upd).slice(0, 60)})`)
+      this.cur = null; for (const z of this.atl) if (z.ov && z.ov.v < 9) z.ov = null
+      this.paradaDesde = this.t
+      }
     }
     if (!this.cur) { this.cur = this.acoes.shift() ?? null; if (!this.cur) { this.planeja(); this.cur = this.acoes.shift() ?? null } ; this.cur?.ini?.() }
     if (this.cur && this.cur.upd(dt)) this.cur = null
@@ -200,6 +244,18 @@ export class Jogo2D {
     if (this.bola.dono && !this.bola.voo) {
       const d = this.bola.dono, dd = Math.hypot(d.x + 0.4 - this.bola.x, d.y + (d.lado === 0 ? -1.1 : 1.1) - this.bola.y)
       if (dd > 1.6) d.ov = { x: this.bola.x, y: this.bola.y, v: Math.max(d.ov?.v ?? 0, 9) }
+    }
+    // 🚶 quem está com a bola e SEM ordem não fica plantado (Diego 20/10: *"jogada parar"*): enquanto a jogada espera alguém
+    // chegar, ele protege e leva a bola devagar, rodando — pra frente se tem campo, de lado se já está perto da área
+    // (bola parada de cobrança, goleiro e acréscimos ficam como estão)
+    {
+      const d = this.bola.dono
+      if (d && (!d.ov || d.ov.v === 2.2) && !this.bola.voo && this.parada == null && !this.cur?.pos && d.grupo !== 'GOL' && !this.festa && this.t < 93.5 * SEG_POR_MIN) {
+        this.angDono += 1.7 * dt
+        const fr = this.frente(d.lado, d.y), sobe = fr > 30 ? (d.lado === 0 ? -1 : 1) * 0.9 : (fr < 18 ? (d.lado === 0 ? 1 : -1) * 0.6 : 0)
+        d.ov = { x: clamp(d.x + Math.cos(this.angDono) * 1.6 + (34 - d.x) * 0.06, 3, W - 3), y: clamp(d.y + sobe + Math.sin(this.angDono) * 0.8, 3, L - 3), v: 2.2 }
+        this.donoLivre = d
+      } else if (this.donoLivre && (this.donoLivre !== d || this.parada != null || this.bola.voo)) { if (this.donoLivre.ov?.v === 2.2) this.donoLivre.ov = null; this.donoLivre = null }
     }
     const mk = this.marcador()
     for (const p of this.atl) {
@@ -214,8 +270,14 @@ export class Jogo2D {
     for (let i = 0; i < this.atl.length; i++) for (let k = i + 1; k < this.atl.length; k++) {
       const a = this.atl[i], b = this.atl[k]
       if (a === dono || b === dono || a === mk || b === mk) continue
+      // (quem está em DISPARADA atrás da bola/do adversário não é empurrado — o OUTRO abre espaço; empurrado de volta, o
+      // desarme nunca chegava e o jogo parava)
+      const ca = !!a.ov && a.ov.v >= 8, cb = !!b.ov && b.ov.v >= 8
       const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy)
-      if (d < 2.2 && d > 0.001) { const e = (2.2 - d) / 2, ux = dx / d, uy = dy / d; a.x -= ux * e; a.y -= uy * e; b.x += ux * e; b.y += uy * e }
+      if (d < 2.2 && d > 0.001) {
+        const e = 2.2 - d, ux = dx / d, uy = dy / d, pa = ca === cb ? 0.5 : ca ? 0 : 1, pb = 1 - pa
+        a.x -= ux * e * pa; a.y -= uy * e * pa; b.x += ux * e * pb; b.y += uy * e * pb
+      }
       else if (d <= 0.001) { a.x -= 0.6; b.x += 0.6 }
     }
     const v = this.bola.voo
@@ -263,9 +325,19 @@ export class Jogo2D {
   }
 
   // ── posse e bola ──
-  private pega(p: Atleta) { this.bola.dono = p; this.posse = p.lado; p.ov = null }
+  /** pode pegar a bola agora? (bola PARADA só é do time que repõe) */
+  private podePegar(p: Atleta) { return this.parada == null || p.lado === this.parada || !!this.bola.dono || !!this.bola.voo }
+  private pega(p: Atleta) {
+    if (this.parada != null && p.lado !== this.parada && !this.festa) { this.diag.reinicioErrado++; this.diag.erros.push(`t=${this.t.toFixed(1)} ${p.nome} (${p.lado}) pegou bola parada do time ${this.parada} · ${this.narra.replace(/<\/?b>/g, '').slice(0, 40)}`) }
+    if (this.semReinicio && !this.festa) { this.diag.paradaSemCobranca++; this.diag.erros.push(`t=${this.t.toFixed(1)} ${p.nome} tocou na bola depois de '${this.semReinicio}' sem cobrança · ${this.narra.replace(/<\/?b>/g, '').slice(0, 40)}`) }
+    this.bola.dono = p; this.posse = p.lado; p.ov = null; this.ultimoToque = p.lado
+  }
   private viaja(x1: number, y1: number, vel: number, alt = 0, lin = false, fim?: () => void, curva = 0) {
     const d = Math.hypot(x1 - this.bola.x, y1 - this.bola.y)
+    if (this.bola.dono) this.ultimoToque = this.bola.dono.lado
+    this.parada = null
+    // (bola indo pro GOL ou na TRAVE não é bola fora: o fim do lance decide; o resto que passa das linhas é apito)
+    if ((x1 < 0 || x1 > W || y1 < 0 || y1 > L) && !(Math.abs(x1 - 34) <= 3.8 && (y1 < 0 || y1 > L))) this.apita('bola fora')
     this.bola.dono = null
     this.bola.voo = { x0: this.bola.x, y0: this.bola.y, x1, y1, t: 0, dur: Math.max(0.25, d / (vel * this.pressa())), alt, lin, fim, curva }
   }
@@ -273,7 +345,23 @@ export class Jogo2D {
   private pe(a: Atleta) { return a.pe === 'canhota' ? this.tt(' de canhota', ' with the left') : a.pe === 'direita' ? this.tt(' de direita', ' with the right') : '' }
   private tem(a: Atleta | null | undefined, ...gs: Golpe[]) { return !!a && gs.some(g => a.golpes.includes(g)) }
   /** bola PARADA posta no lugar da cobrança (saída, lateral, escanteio, tiro de meta, falta) — o único "pulo" permitido */
-  private coloca(x: number, y: number) { this.bola.dono = null; this.bola.voo = null; this.bola.x = x; this.bola.y = y; this.bola.h = 0; this.deslizando = false; this.diag.colocadas++ }
+  private coloca(x: number, y: number, quemRepoe?: Lado, cobrador?: Atleta) { this.bola.dono = null; this.bola.voo = null; this.bola.x = x; this.bola.y = y; this.bola.h = 0; this.deslizando = false; this.diag.colocadas++; this.parada = quemRepoe ?? null; this.cobrador = cobrador ?? null; this.semReinicio = null }
+  /** 🧑‍⚖️ FISCAL (20/10, Diego: *"vi atacante do rival bater tiro de meta… jogada parar e do nada voltar ao jogo como se nada"*):
+   *  `parada` = de QUEM é a bola parada (saída, lateral, tiro de meta, escanteio, falta) até ela ser chutada;
+   *  `semReinicio` = a bola SAIU ou o juiz APITOU e ainda não foi posta no lugar da cobrança. */
+  parada: Lado | null = null
+  private cobrador: Atleta | null = null
+  semReinicio: string | null = null
+  private apita(motivo: string) { this.semReinicio = motivo }
+  /** 🧑‍⚖️ lateral, escanteio e tiro de meta só existem se a bola SAIU (o apito veio antes): cobrança sem saída = jogada que
+   *  parou do nada e voltou (Diego 20/10) — conta como erro do fiscal */
+  private colocaSaida(x: number, y: number, quem: Lado, cobrador: Atleta, tipo: string) {
+    if (!this.semReinicio) { this.diag.reinicioSemSair++; if (this.diag.erros.length < 40) this.diag.erros.push(`${(this.t / SEG_POR_MIN).toFixed(1)}' ${tipo} sem a bola ter saído`) }
+    else if (quem === this.ultimoToque) { this.diag.reinicioErrado++; if (this.diag.erros.length < 40) this.diag.erros.push(`${(this.t / SEG_POR_MIN).toFixed(1)}' ${tipo} pro time que tocou por último`) }
+    this.coloca(x, y, quem, cobrador)
+  }
+  /** quem tocou na bola por último (decide lateral/escanteio/tiro de meta) */
+  private ultimoToque: Lado = 0
   private posSaida(p: Atleta) { return this.rel(p.lado, p.bx, p.grupo === 'GOL' ? 101 : 54 + 40 * p.dep) }
   /** ⚽ saída do meio: cada time no seu campo, bola no centro, quem dá a saída toca pra trás */
   saida(l: Lado, inicio = false) {
@@ -283,13 +371,13 @@ export class Jogo2D {
       if (p.lado !== l) { const dx = p.x - 34, dy = p.y - L / 2, d = Math.hypot(dx, dy); if (d < 9.8) { const k = Math.sqrt(Math.max(0, 9.8 * 9.8 - dx * dx)); p.y = L / 2 + (p.lado === 0 ? k : -k) } }
     }
     const ca = this.do(l, ['ATA'])[0] ?? this.time(l)[1]
-    this.coloca(34, L / 2)
+    this.coloca(34, L / 2, l, ca)
     ca.x = 34; ca.y = L / 2 + (l === 0 ? 0.8 : -0.8)
     this.pega(ca); this.diag.saidas++
     const rec = this.preferido(l, ['MEI'], ['passador'], ca)
     if (!inicio) this.acoes.push(this.aNarra(this.v('saida') + ' ' + this.v(l === 0 ? 'saida_casa' : 'saida_fora')))
     // (a saída NUNCA é cortada: é curta e é regra — o próximo lance espera ela)
-    this.acoes.push(this.aEspera(inicio ? 0.4 : 0.7), this.aPasse(() => ca, () => rec, { adiante: -5, vel: 13 }))
+    this.acoes.push(...this.cobranca(this.aEspera(inicio ? 0.4 : 0.7), this.aPasse(() => ca, () => rec, { adiante: -5, vel: 13 })))
   }
 
   // ── as AÇÕES (cada jogada é uma fila delas) ──────────────────────────────────────────────────────────────────────────────
@@ -362,12 +450,13 @@ export class Jogo2D {
         if (this.bola.voo) return false // passe no ar: o desarme é em quem RECEBER
         const v = this.bola.dono
         if (v && v.lado === quem.lado) return true // o time já está com ela
+        if (this.parada != null && this.parada !== quem.lado) return false // bola PARADA do outro time (até no pé do cobrador): ninguém dá bote antes da cobrança
         if (!v) { // bola solta: quem chega primeiro fica com ela
-          if (!quem.ov || quem.ov.v < 9) quem.ov = { x: this.bola.x, y: this.bola.y, v: 8.5 }
+          quem.ov = { x: this.bola.x, y: this.bola.y, v: Math.max(8.5, quem.ov?.v ?? 0) } // (sempre NA BOLA: ordem velha de "fica aqui" não pode prender o desarme)
           if (dist(quem, this.bola) < 1.4 || this.t - t0 > 5) { this.pega(quem); this.narra = txt(quem, null); return true }
           return false
         }
-        if (!quem.ov || quem.ov.v < 9) quem.ov = { x: v.x, y: v.y, v: 8 }
+        quem.ov = { x: v.x, y: v.y, v: Math.max(8, quem.ov?.v ?? 0) }
         if (dist(quem, v) < 1.5 || this.t - t0 > 5) { this.pega(quem); this.narra = txt(quem, v); return true }
         return false
       },
@@ -378,6 +467,8 @@ export class Jogo2D {
   private apressado() { const prox = this.evs[this.iev]; return !!prox && prox.min * SEG_POR_MIN - this.t < ANTECEDE + 3 }
   private enfeite(as: Acao[]): Acao[] { for (const a of as) a.pre = true; return as }
   private reinicio(as: Acao[]): Acao[] { for (const a of as) { a.pre = true; a.pos = true } return as }
+  /** marca ações como parte da COBRANÇA (o juiz não interrompe nem manda chutar por cima delas) — sem virar enfeite */
+  private cobranca(...as: Acao[]): Acao[] { for (const a of as) a.pos = true; return as }
   private maisPerto(l: Lado, pt: { x: number; y: number }, fora: Atleta[] = [], semGoleiro = true): Atleta {
     let best = this.time(l)[1], bd = 1e9
     for (const q of this.time(l)) if (!fora.includes(q) && (!semGoleiro || q.grupo !== 'GOL')) { const d = dist(q, pt); if (d < bd) { bd = d; best = q } }
@@ -399,13 +490,42 @@ export class Jogo2D {
       },
     }
   }
+  /** a cobrança certa pra uma bola que SAIU: pela lateral = lateral de quem não tocou; pela linha de fundo = escanteio (se
+   *  quem tocou foi a defesa) ou tiro de meta (se foi o ataque) */
+  private cobrancaDaSaida(): Acao[] {
+    const b = this.bola, outro = (1 - this.ultimoToque) as Lado
+    if (b.x < 0 || b.x > W) return this.reinicio(this.lateral(outro))
+    const defende: Lado = b.y < 0 ? 1 : 0, ataca = (1 - defende) as Lado
+    if (this.ultimoToque === defende) {
+      const ladoX = b.x < 34 ? -1 : 1
+      const cob = umaVez(() => this.maisPerto(ataca, this.rel(ataca, ladoX < 0 ? 0 : W, 0)))
+      const alvo = umaVez(() => this.preferido(ataca, ['ATA', 'DEF'], ['cabeceador'], cob()))
+      const zag = umaVez(() => this.preferido(defende, ['DEF'], ['cabeceador', 'desarmador']))
+      return this.reinicio([
+        ...this.escanteio(ataca, ladoX, cob, alvo, null), this.aEspera(0.5),
+        { upd: () => { this.narra = this.v('escanteio_cobra', { a: this.n(cob()) }); return true } },
+        this.aPasse(cob, alvo, { alto: true, adiante: 0, vel: 20 }),
+        { upd: () => { this.narra = this.v('zaga_cabeca', { a: this.n(zag()) }); return true } },
+        { upd: () => { if (this.bola.voo) return false; this.pega(zag()); return true } }, this.soltaTodos(),
+        this.aPasse(zag, () => this.preferido(defende, ['MEI', 'ATA'], []), { alto: true, vel: 22, adiante: 6 }),
+      ])
+    }
+    return this.reinicio(this.tiroDeMeta(defende))
+  }
+  /** 🧑‍⚖️ a bola está PARADA e é do outro time: primeiro sai a cobrança (o cobrador vai até ela e bate longo pro próprio time) */
+  private cobrancaPendente(): Acao[] {
+    if (this.parada == null) return []
+    this.diag.cobrancasForcadas++
+    const lado = this.parada, c = this.cobrador && this.cobrador.lado === lado ? this.cobrador : this.maisPerto(lado, this.bola, [], false)
+    return [this.aChegaNaBola(() => c, 4, 9), this.aEspera(0.3), this.aPasse(() => c, () => this.preferido(lado, ['MEI', 'ATA'], [], c), { alto: true, vel: 24, adiante: 8 })]
+  }
   private soltaTodos(): Acao { return { ini: () => { for (const z of this.atl) z.ov = null }, upd: () => true } }
 
   /** 🧤 TIRO DE META: a bola saiu pela linha de fundo de `d` (chute pra fora) → bola na pequena área, o goleiro bate longo */
   private tiroDeMeta(d: Lado): Acao[] {
     const gk = this.gk(d)
     return [
-      { ini: () => { const pt = this.rel(d, 34 + (this.bola.x < 34 ? -9 : 9), 99.5); this.coloca(pt.x, pt.y); this.posse = d; this.diag.tirosDeMeta++; this.narra = this.v('tiro_meta') }, upd: () => true },
+      ...this.cobranca({ ini: () => { const pt = this.rel(d, 34 + (this.bola.x < 34 ? -9 : 9), 99.5); this.colocaSaida(pt.x, pt.y, d, gk, 'tiro de meta'); this.posse = d; this.diag.tirosDeMeta++; if (this.t >= this.narraForteAte) this.narra = this.v('tiro_meta') }, upd: () => true }),
       ...this.reinicio([
         this.aChegaNaBola(() => gk, 3, 5.5), this.aEspera(0.5),
         this.aPasse(() => gk, () => this.preferido(d, ['MEI', 'ATA'], []), { alto: true, vel: 24, adiante: 12 }),
@@ -423,7 +543,7 @@ export class Jogo2D {
     const cob = umaVez(() => this.maisPerto(l, this.bola))
     const rec = umaVez(() => this.maisPerto(l, this.bola, [cob()]))
     return this.reinicio([
-      { ini: () => { const x = this.bola.x < 34 ? -0.6 : W + 0.6, y = clamp(this.bola.y, 3, L - 3); this.coloca(x, y); this.posse = l; this.diag.laterais++; this.narra = this.v('lateral', { a: n(cob()) }) }, upd: () => true },
+      { ini: () => { const x = this.bola.x < 34 ? -0.6 : W + 0.6, y = clamp(this.bola.y, 3, L - 3); this.colocaSaida(x, y, l, cob(), 'lateral'); this.posse = l; this.diag.laterais++; if (this.t >= this.narraForteAte) this.narra = this.v('lateral', { a: n(cob()) }) }, upd: () => true },
       this.aChegaNaBola(cob, 3.5, 7.5), this.aEspera(0.5),
       this.aPasse(cob, rec, { adiante: 1.5, vel: 12, alto: true }),
     ])
@@ -449,15 +569,17 @@ export class Jogo2D {
   private escanteio(l: Lado, ladoX: number, cob: () => Atleta, alvo: () => Atleta, ate: number | null): Acao[] {
     let t0 = 0
     return [{
+      pos: true, // (é a própria cobrança: o juiz não interrompe)
       ini: () => {
         t0 = this.t
         const cant = this.rel(l, ladoX < 0 ? 0.6 : 67.4, 0.6)
-        this.coloca(cant.x, cant.y); this.posse = l
+        this.colocaSaida(cant.x, cant.y, l, cob(), 'escanteio'); this.posse = l
         this.sobeProEscanteio(l, ladoX, cob, alvo)
         this.narra = this.v('escanteio')
       },
       upd: () => {
-        const c = cob()
+        let c = cob()
+        if (c.lado !== l) c = this.maisPerto(l, this.bola) // (cobrador sempre do time do escanteio)
         // só cobra com o ATAQUE NA ÁREA (ou quando o relógio do lance manda)
         const naArea = this.time(l).filter(z => this.frente(l, z.y) < 17 && Math.abs(z.x - 34) < 21).length
         if ((dist(c, this.bola) < 1.1 && naArea >= 4) || this.t > (ate ?? t0 + 7)) {
@@ -478,7 +600,7 @@ export class Jogo2D {
         const lado = this.rng() < 0.5 ? -1 : 1
         const linha = ataca0 ? -0.6 : L + 0.6
         const acab: Acab = o.acab ?? (o.cabeca ? 'cabeca' : o.alto ? 'bomba' : 'rasteiro'), A = ACAB[acab]
-        const fr0 = this.frente(p.lado, this.bola.y); if (fr0 > 33) this.diag.chutesLonge++
+        const fr0 = this.frente(p.lado, this.bola.y); if (fr0 > 33) this.diag.chutesLonge++; if (fr0 < 6 && Math.abs(this.bola.x - 34) > 22) this.diag.chutesBandeirinha++
         // ⏱️ a bola chega no gol NO MINUTO do lance do jogo: a força do chute se ajusta pra isso (dentro do que é crível)
         const alvoT = ev ? ev.min * SEG_POR_MIN : this.t + 0.6
         const dGol = Math.hypot(34 - this.bola.x, (ataca0 ? 0 : L) - this.bola.y)
@@ -523,6 +645,7 @@ export class Jogo2D {
         this.viaja(34 + lado * (5 + this.rng() * 7), ataca0 ? -3 : L + 3, vel, isolou ? Math.max(4.2, A.alt + 2) : Math.max(0.9, A.alt), false, () => { feito = true }, curva)
     }
     return {
+      chute: true,
       upd: () => {
         if (!foi) {
           if (this.bola.voo) return false
@@ -545,17 +668,27 @@ export class Jogo2D {
     for (;;) {
       const c = this.evs[this.iev]
       if (!c || c.fim === 'gol') break
+      // (20/10, Diego: *"mais lance"*: 59% das chances sumiam por chegarem uns segundos atrasadas. Chance não mexe no placar,
+      // então ela pode sair um pouco DEPOIS do minuto dela — só cai se atrasar o próximo GOL, se passar do apito ou se o
+      // campinho já estiver muito atrás)
       const tc = c.min * SEG_POR_MIN, g = this.evs.slice(this.iev + 1).find(e => e.fim === 'gol')
-      const apertado = tc - this.t < 5 || (!!g && g.min * SEG_POR_MIN - this.t < 15 && g.min * SEG_POR_MIN - tc < 9)
+      const quando = this.quandoChance(c), sobra = g ? g.min * SEG_POR_MIN - (quando + 4) : 99
+      const apertado = sobra < ANTECEDE || quando > 91 * SEG_POR_MIN || tc - this.t < -10
       if (!apertado) break
       this.diag.chancesPuladas++; this.iev++
     }
     const prox = this.evs[this.iev]
-    const tEv = prox ? prox.min * SEG_POR_MIN : Infinity
+    const chance = !!prox && prox.fim !== 'gol'
+    const tEv = prox ? (chance ? this.quandoChance(prox) : prox.min * SEG_POR_MIN) : Infinity
     // 📏 quanto mais LONGE do gol a bola está, mais cedo a jogada começa (a bola tem que andar até a área — sem atalho)
     const longe = prox ? clamp((this.frente(prox.lado, this.bola.y) - 25) / 7, 0, 7) : 0
-    if (prox && tEv - this.t <= ANTECEDE + 1 + longe) { this.iev++; this.decisiva(prox, tEv); return }
+    if (prox && tEv - this.t <= ANTECEDE + 1 + longe) { this.iev++; this.decisiva(chance ? { ...prox, min: tEv / SEG_POR_MIN } : prox, tEv); return }
     this.enchimento(prox ? tEv - ANTECEDE - longe - this.t : 99)
+  }
+  /** quando a CHANCE consegue sair: no minuto dela, ou (se o campinho está atrasado) assim que dá pra levar a bola até a área */
+  private quandoChance(c: Evento) {
+    const longe = clamp((this.frente(c.lado, this.bola.y) - 25) / 7, 0, 7)
+    return Math.max(c.min * SEG_POR_MIN, this.t + 5 + longe * 0.6)
   }
   /** garante que o lado `l` está com a bola (rouba/intercepta se precisar) */
   private recuperaAcoes(l: Lado): Acao[] {
@@ -563,7 +696,8 @@ export class Jogo2D {
     // bola parada fora do campo (sobrou de um lance cortado): reinicia com a regra, nunca com alguém buscando lá fora
     if (!this.bola.dono && !this.bola.voo && this.foraDoCampo()) {
       const fundo = this.bola.y < 0 || this.bola.y > L
-      return fundo ? [...this.tiroDeMeta(this.bola.y < 0 ? 0 : 1)] : this.lateral(l)
+      // (a linha de fundo de CIMA, y<0, é o gol que o VISITANTE defende — o mandante ataca pra cima)
+      return fundo ? [...this.tiroDeMeta(this.bola.y < 0 ? 1 : 0)] : this.lateral(l)
     }
     // o goleiro rival está com ela: ele repõe longe e o time de `l` disputa lá
     const h = this.bola.dono
@@ -574,6 +708,10 @@ export class Jogo2D {
     return this.recuperaAcoes2(l)
   }
   private recuperaAcoes2(l: Lado): Acao[] {
+    if (this.parada != null && this.parada !== l && !this.bola.dono && !this.bola.voo) return [...this.cobrancaPendente(), ...this.recuperaAcoes2b(l)]
+    return this.recuperaAcoes2b(l)
+  }
+  private recuperaAcoes2b(l: Lado): Acao[] {
     const def = umaVez(() => {
       const perto = this.time(l).filter(a => a.grupo !== 'GOL' && dist(a, this.bola) < 14)
       const bons = perto.filter(a => a.estilo === 'desarmador')
@@ -637,10 +775,13 @@ export class Jogo2D {
         if (passe) return passe.upd(0)
         const h = this.bola.dono
         if (h?.lado !== l) {
+          if (this.parada != null && this.parada !== l) return false // bola parada do rival (até no pé do cobrador): espera a cobrança dele
           if (t0 < 0) { t0 = this.t; ladrao = this.maisPerto(l, this.bola) }
           ladrao!.ov = { x: this.bola.x, y: this.bola.y, v: 10 }
           // (com o lance em cima, o bote é instantâneo: o tempo do gol vale mais que a bonitez)
           if (dist(ladrao!, this.bola) > 1.5 && this.t - t0 < Math.min(1.4, (tEv - this.t - 2.2) / 2)) return false
+          // longe da bola? ela não "pula" pro pé dele: o rival erra o passe e a bola ROLA até ele (Diego 20/10: a bola nunca vai sozinha)
+          if (dist(ladrao!, this.bola) > 3) { const z = ladrao!; z.ov = { x: z.x, y: z.y, v: 10 }; this.narra = this.v('intercepta', { a: this.n(z) }); this.viaja(clamp(z.x + 0.4, 1.5, W - 1.5), clamp(z.y - (z.lado === 0 ? 1.1 : -1.1), 1.5, L - 1.5), 22, 0, false, () => { this.pega(z); z.ov = null }); return false }
           this.pega(ladrao!); ladrao!.ov = null
         }
         if (this.bola.dono === quem()) return true
@@ -650,12 +791,27 @@ export class Jogo2D {
     }
     const LEAD: Record<Molde, number> = { enfiada: 3.4, cruzamento: 3.6, chute_fora: 1.6, drible: 2.6, tabela: 2.8, contra: 3.2, escanteio: 6.8, falta: 4.8, lancamento: 3.6, passe_na_frente: 3.4, individual: 3.4, ensaiada: 7.2, erro_zaga: 2.4, rebote: 3.2 }
     this.prazo = tEv - LEAD[molde]
-    pre(...this.recuperaAcoes(l))
-    // 📏 de vez em quando a jogada COMEÇA num lateral (a bola saiu pela linha, cobrança com as mãos e aí o time arma) — é o
-    // que dá lateral num jogo em que quase todo segundo é lance de verdade
-    if (folga > 7.5 && this.frente(l, this.bola.y) > 20 && (molde === 'cruzamento' || molde === 'passe_na_frente' || molde === 'lancamento' || molde === 'tabela' || molde === 'enfiada') && this.rng() < 0.4) {
-      pre({ ini: () => { const sx = this.bola.x < 34 ? -1.4 : W + 1.4; this.viaja(sx, clamp(this.bola.y, 4, L - 4), 12, 0.3) }, upd: () => !this.bola.voo }, ...this.lateral(l))
+    // 📏 de vez em quando a jogada COMEÇA num lateral — é o que dá lateral num jogo em que quase todo segundo é lance de verdade.
+    // REGRA: quem manda pra fora é o RIVAL (o lateral é de quem NÃO tocou por último), e só com a bola perto da linha
+    // (antes o próprio time chutava 34 m pra fora e cobrava o lateral dele mesmo)
+    if (folga > 7.5 && this.frente(l, this.bola.y) > 20 && Math.min(this.bola.x, W - this.bola.x) < 16 && !this.bola.voo && this.parada == null && !this.foraDoCampo() && (molde === 'cruzamento' || molde === 'passe_na_frente' || molde === 'lancamento' || molde === 'tabela' || molde === 'enfiada') && this.rng() < 0.4) {
+      let corta: Atleta | null = null, t0 = 0
+      pre({
+        ini: () => { const d = this.bola.dono; corta = d && d.lado === adv ? d : this.maisPerto(adv, this.bola); t0 = this.t },
+        upd: () => {
+          const c = corta!
+          if (this.bola.dono !== c && dist(c, this.bola) > 1.6 && this.t - t0 < 2) { c.ov = { x: this.bola.x, y: this.bola.y, v: 9.5 }; return false }
+          if (this.bola.dono !== c) { if (dist(c, this.bola) > 1.6) return true; this.pega(c) } // (não chegou: a jogada segue sem o lateral)
+          c.ov = null
+          this.narra = this.v('afasta_lateral', { a: this.n(c) })
+          this.viaja(this.bola.x < 34 ? -1.4 : W + 1.4, clamp(this.bola.y + (this.rng() - 0.5) * 6, 4, L - 4), 16, 0.4)
+          return true
+        },
+      }, { upd: () => !this.bola.voo })
+      // (a cobrança só entra se a bola SAIU mesmo; se o rival não chegou, o juiz/recupera seguem a regra normal)
+      pre({ upd: () => { if (this.semReinicio && this.foraDoCampo()) this.acoes.unshift(...this.lateral(l)); return true } })
     }
+    pre(...this.recuperaAcoes(l))
     // 🎯 COMO vai bater: o golpe da lenda manda (se ela tiver um que caiba na jogada); senão, o sorteio da posição
     const sorte = <T,>(xs: T[]) => xs[Math.floor(this.rng() * xs.length)]
     const acabDe = (p: Atleta, tipo: 'aereo' | 'longe' | 'perto'): Acab => {
@@ -717,7 +873,7 @@ export class Jogo2D {
           this.viaja(alvo!.x, alvo!.y, 27, dist(this.bola, alvo!) > 25 ? 2.4 : 0.4, false, () => { solta = this.t })
           return false
         }
-        if (solta >= 0 || !h) { p.ov = { x: this.bola.x, y: this.bola.y, v: 10 }; if (!h && dist(p, this.bola) < 1.3) this.pega(p); return false }
+        if (solta >= 0 || !h) { if (!h && !this.podePegar(p)) return false; p.ov = { x: this.bola.x, y: this.bola.y, v: 10 }; if (!h && dist(p, this.bola) < 1.3) this.pega(p); return false }
         return false
       } }
     }
@@ -731,11 +887,12 @@ export class Jogo2D {
       const meia = umaVez(() => this.preferido(l, ['MEI'], ['passador', 'lancamento' as never]))
       pre(aLevaAte(meia, () => box(44, clamp((meia().x - 34) * 0.6, -16, 16)), () => this.frente(l, this.bola.y) <= 48, 5.5, true))
     }
-    const chute = (quem: () => Atleta, o: { cabeca?: boolean; alto?: boolean; vel?: number; acab?: Acab; tipo?: 'aereo' | 'longe' | 'perto' }, txt?: string) =>
-      fim(aproxima(quem, o.tipo === 'longe' || !!o.alto), aproxima(quem, o.tipo === 'longe' || !!o.alto, 5), this.aSegura(tEv - (o.cabeca || o.tipo === 'aereo' ? 0.9 : 0.75)), {
+    const chute = (quem: () => Atleta, o: { cabeca?: boolean; alto?: boolean; vel?: number; acab?: Acab; tipo?: 'aereo' | 'longe' | 'perto'; parada?: boolean }, txt?: string) =>
+      fim(...(o.parada ? [] : [aproxima(quem, o.tipo === 'longe' || !!o.alto), aproxima(quem, o.tipo === 'longe' || !!o.alto, 5)]), ...(o.parada ? this.cobranca(this.aSegura(tEv - 0.75)) : [this.aSegura(tEv - (o.cabeca || o.tipo === 'aereo' ? 0.9 : 0.75))]), {
+        pos: !!o.parada,
         // o acabamento é sorteado NA HORA (quem bate pode ter mudado se o enfeite foi cortado)
         upd: () => { const p = quem(); const acab = o.acab ?? acabDe(p, o.tipo ?? (o.cabeca ? 'aereo' : o.alto ? 'longe' : 'perto')); o.acab = acab; this.narra = txt ?? vaiBater(p, acab); return true },
-      }, this.aChute(quem, ev.fim, ev, o))
+      }, ...(o.parada ? this.cobranca(this.aChute(quem, ev.fim, ev, o)) : [this.aChute(quem, ev.fim, ev, o)]))
     // 🧤 drible no goleiro (golpe de Romário/Ronaldo/Pelé/Maradona): o goleiro sai, o cara passa por ele e empurra pro gol vazio
     const dribleGoleiro = (quem: () => Atleta): Acao => ({
       ini: () => { const p = quem(), gk = this.gk(adv); gk.ov = { x: p.x + (this.bola.x - p.x), y: p.y + (l === 0 ? -3 : 3), v: 8 }; p.ov = { ...this.rel(l, clamp(this.rel(l, p.x, p.y).x + (p.x < 34 ? 5 : -5), 20, 48), 5), v: 7.5 }; this.narra = this.v('dribla_goleiro', { a: n(p) }) },
@@ -829,9 +986,9 @@ export class Jogo2D {
         this.sobeProEscanteio(l, lado, cob, fin)
         pre(this.aPasse(() => this.bola.dono!, ala, { adiante: 10, dx: lado * 12, vel: 22 }))
         // (o desvio pra linha de fundo NÃO é cortado: é ele que mostra por que é escanteio)
-        fim({ ini: () => { this.narra = this.v('escanteio_desvio'); const o = this.rel(l, lado < 0 ? 4 : 64, -1.5); this.viaja(o.x, o.y, Math.max(22, dist(this.bola, o) / 1.2), 0.8); this.sobeProEscanteio(l, lado, cob, fin) }, upd: () => !this.bola.voo })
-        fim(...this.escanteio(l, lado, cob, fin, tEv - 1.5), this.aSegura(tEv - 2), { upd: () => { this.narra = this.v('escanteio_cobra', { a: n(cob()) }); return true } },
-          this.aPasse(cob, fin, { alto: true, adiante: 0, vel: 23 }), { upd: () => { const f = fin(); oEsc.acab = acabDe(f, 'aereo'); this.narra = vaiBater(f, oEsc.acab); return true } },
+        fim({ ini: () => { this.narra = this.v('escanteio_desvio'); const o = this.rel(l, lado < 0 ? 4 : 64, -1.5); this.viaja(o.x, o.y, Math.max(22, dist(this.bola, o) / 1.2), 0.8); this.ultimoToque = adv; this.sobeProEscanteio(l, lado, cob, fin) }, upd: () => !this.bola.voo })
+        fim(...this.escanteio(l, lado, cob, fin, tEv - 1.5), ...this.cobranca(this.aSegura(tEv - 2), { upd: () => { this.narra = this.v('escanteio_cobra', { a: n(cob()) }); return true } },
+          this.aPasse(cob, fin, { alto: true, adiante: 0, vel: 23 })), { upd: () => { const f = fin(); oEsc.acab = acabDe(f, 'aereo'); this.narra = vaiBater(f, oEsc.acab); return true } },
           this.aChute(fin, ev.fim, ev, oEsc), this.soltaTodos())
         break
       }
@@ -847,12 +1004,13 @@ export class Jogo2D {
           ini: () => { const v = this.bola.dono ?? vit(); falt().ov = { x: v.x, y: v.y, v: 10 }; const c = ch(); if (c !== v) c.ov = { x: v.x, y: v.y + (l === 0 ? 4 : -4), v: 9 } },
           upd: () => { const v = this.bola.dono ?? vit(); return dist(falt(), v) < 1.6 || this.t > tEv - 3.6 },
         }, {
+          pos: true, // (a partir do apito, tudo é a cobrança da falta: o juiz não interrompe)
           ini: () => {
             const v = this.bola.dono ?? vit()
             this.narra = this.v('falta', { a: n(falt()), b: n(v) })
             // a bola fica onde foi a falta (se for longe demais do gol, vai pra entrada da área)
             const fr = this.frente(l, this.bola.y), pt = fr > 17 && fr < 32 && this.bola.x > 12 && this.bola.x < 56 ? { x: this.bola.x, y: this.bola.y } : this.naArea(l, 22, (this.rng() - 0.5) * 12)
-            this.coloca(pt.x, pt.y); this.posse = l
+            this.coloca(pt.x, pt.y, l, ch()); this.posse = l
             const g = this.rel(l, 34, 0), dx = g.x - pt.x, dy = g.y - pt.y, dd = Math.hypot(dx, dy), ux = dx / dd, uy = dy / dd
             this.do(adv, ['DEF', 'MEI']).slice(0, 4).forEach((z, i) => { z.ov = { x: pt.x + ux * 9.15 - uy * (i - 1.5) * 1.1, y: pt.y + uy * 9.15 + ux * (i - 1.5) * 1.1, v: 8 } }) // a barreira
             this.do(l, ['ATA']).filter(z => z !== ch()).forEach((z, i) => { z.ov = { ...this.naArea(l, 9, i % 2 ? 7 : -7), v: 7 } })
@@ -860,7 +1018,7 @@ export class Jogo2D {
           },
           upd: () => { const c = ch(); if (dist(c, this.bola) < 1.8 || this.t > tEv - 1.2) { this.pega(c); return true } return false },
         })
-        chute(ch, { alto: true, vel: 24, tipo: 'longe' })
+        chute(ch, { alto: true, vel: 24, tipo: 'longe', parada: true }) // (falta se bate de onde foi: ninguém sai conduzindo)
         fim(this.soltaTodos())
         break
       }
@@ -898,13 +1056,13 @@ export class Jogo2D {
         const lado = this.rng() < 0.5 ? -1 : 1
         const ala = umaVez(() => this.preferido(l, ['LAT', 'ATA', 'MEI'], ['apoiador', 'driblador'], fin()))
         const cob = umaVez(() => this.maisPerto(l, this.rel(l, lado < 0 ? 0 : W, 0), [fin()]))
-        const par = umaVez(() => this.preferido(l, ['MEI', 'LAT'], ['passador'], fin(), ))
+        const par = umaVez(() => this.preferido(l, ['MEI', 'LAT'], ['passador'], [fin(), cob()])) // (nunca o próprio cobrador: senão ele "tocava pra si" e batia da bandeirinha)
         this.sobeProEscanteio(l, lado, cob, fin)
         pre(this.aPasse(() => this.bola.dono!, ala, { adiante: 10, dx: lado * 12, vel: 22 }))
-        fim({ ini: () => { this.narra = this.v('escanteio_desvio'); const o = this.rel(l, lado < 0 ? 4 : 64, -1.5); this.viaja(o.x, o.y, Math.max(22, dist(this.bola, o) / 1.2), 0.8); this.sobeProEscanteio(l, lado, cob, fin) }, upd: () => !this.bola.voo })
+        fim({ ini: () => { this.narra = this.v('escanteio_desvio'); const o = this.rel(l, lado < 0 ? 4 : 64, -1.5); this.viaja(o.x, o.y, Math.max(22, dist(this.bola, o) / 1.2), 0.8); this.ultimoToque = adv; this.sobeProEscanteio(l, lado, cob, fin) }, upd: () => !this.bola.voo })
         fim(...this.escanteio(l, lado, cob, fin, tEv - 2.8), { ini: () => { const pr = par(); pr.ov = { ...this.rel(l, lado < 0 ? 6 : 62, 7), v: 9 } }, upd: () => true },
-          { upd: () => { this.narra = this.v('ensaiada_1', { a: n(cob()), b: n(par()) }); return true } },
-          this.aPasse(cob, par, { adiante: 0, vel: 14 }), this.aEspera(0.3),
+          ...this.cobranca({ upd: () => { this.narra = this.v('ensaiada_1', { a: n(cob()), b: n(par()) }); return true } },
+          this.aPasse(cob, par, { adiante: 0, vel: 14 })), this.aEspera(0.3),
           { upd: () => { this.narra = this.v('ensaiada_2', { a: n(par()), b: n(fin()) }); return true } },
           { ini: () => { const f = fin(); f.ov = { ...box(14, -lado * 3), v: 9 } }, upd: () => true },
           this.aPasse(par, fin, { adiante: 0, vel: 17 }))
@@ -924,7 +1082,7 @@ export class Jogo2D {
           ini: () => { const f = fin(); const d = this.bola.dono?.lado === adv ? this.bola.dono : z(); f.ov = { x: d.x, y: d.y, v: 10.5 }; this.narra = this.v('pressiona', { a: n(f) }) },
           upd: () => {
             const f = fin(), d = this.bola.dono
-            if (this.bola.voo) return false
+            if (this.bola.voo || (!d && this.parada != null && this.parada !== l)) return false
             if (!d || d.lado === l) { f.ov = null; return true } // a bola já é nossa: vai bater
             f.ov = { x: d.x, y: d.y, v: 10.5 }
             if (dist(f, d) < 1.6 || this.t > tEv - 1.6) { this.pega(f); f.ov = null; this.narra = this.v('erro_zaga', { a: n(d), b: n(f) }); return true }
@@ -958,13 +1116,16 @@ export class Jogo2D {
     }
     if (ev.fim !== 'gol') {
       const gk = this.gk(adv), k = ev.fim
-      fim({ upd: () => {
+      // (pra fora/isolou a frase já é parte da COBRANÇA: a bola saiu e o juiz não pode mandar um 2º tiro de meta na frente dela)
+      const final: Acao = { upd: () => {
         // 🧤 goleiro paredão/com golpe de defesa milagrosa ganha a frase dele
         this.narra = k === 'defendeu' && this.tem(gk, 'defesa_milagrosa') && this.rng() < 0.6
           ? this.tt(`DEFESA MILAGROSA de ${n(gk)}! De onde ele tirou essa?`, `MIRACLE SAVE by ${n(gk)}! Where did that come from?`)
           : this.v(k)
+        this.narraForteAte = this.t + 1.5 // (o resultado da chance fica no ar: o tiro de meta/a reposição não apaga ela na hora)
         return true
-      } })
+      } }
+      fim(...(k === 'fora' || k === 'isolou' ? this.cobranca(final) : [final]))
       // e o jogo recomeça com a REGRA: pra fora = tiro de meta · o goleiro segurou = ele repõe
       if (ev.fim === 'fora' || ev.fim === 'isolou') fim(...this.reinicio([this.aEspera(0.7)]), ...this.tiroDeMeta(adv))
       else if (ev.fim === 'defendeu') fim(...this.reposicao(adv))
@@ -980,7 +1141,8 @@ export class Jogo2D {
     const l: Lado = this.bola.dono ? this.bola.dono.lado : this.posse, adv = (1 - l) as Lado
     if (!this.bola.dono) ac.push(...this.recuperaAcoes(l))
     const n = this.n.bind(this), tt = this.tt.bind(this)
-    const r = this.rng()
+    // (escanteio pede tempo pra subir o time e cobrar: com folga, ele aparece mais — futebol de verdade tem vários por jogo)
+    const r = livre >= 10 && this.rng() < 0.25 ? 0.7 : this.rng()
     const meia = umaVez(() => this.preferido(l, ['MEI'], ['passador']))
     const dono = () => this.bola.dono!
     if (r < 0.1) {
@@ -1005,7 +1167,7 @@ export class Jogo2D {
       if (this.rng() < 0.6) {
         const z = umaVez(() => this.maisPerto(adv, this.bola))
         ac.push({ ini: () => { z().ov = { x: this.bola.x, y: this.bola.y, v: 9 } }, upd: () => dist(z(), this.bola) < 1.6 || (z().ov = { x: this.bola.x, y: this.bola.y, v: 9 }, false) },
-          { ini: () => { this.narra = this.v('carrinho_lateral', { a: n(z()) }); this.viaja(this.bola.x < 34 ? -1.4 : W + 1.4, clamp(this.bola.y + (this.rng() - 0.5) * 6, 4, L - 4), 12, 0.4); z().ov = null }, upd: () => !this.bola.voo },
+          { ini: () => { this.narra = this.v('carrinho_lateral', { a: n(z()) }); this.viaja(this.bola.x < 34 ? -1.4 : W + 1.4, clamp(this.bola.y + (this.rng() - 0.5) * 6, 4, L - 4), 12, 0.4); this.ultimoToque = z().lado; z().ov = null }, upd: () => !this.bola.voo },
           ...this.lateral(l))
       } else ac.push(...this.recuperaAcoes2(adv))
     } else if (r < 0.64) {
@@ -1013,8 +1175,8 @@ export class Jogo2D {
       const ala = this.preferido(l, ['LAT', 'ATA', 'MEI'], ['apoiador']), corta = this.preferido(adv, ['LAT', 'DEF', 'MEI'], ['desarmador'])
       const sx = ala.x < 34 ? -1 : 1
       ac.push(this.aPasse(dono, () => ala, { adiante: 5, dx: sx * 6 }),
-        { ini: () => { corta.ov = { x: ala.x, y: ala.y, v: 8.5 } }, upd: () => dist(corta, ala) < 2.2 || (corta.ov = { x: ala.x, y: ala.y, v: 8.5 }, false) },
-        { ini: () => { this.narra = this.v('afasta_lateral', { a: n(corta) }); this.viaja(sx < 0 ? -1.4 : W + 1.4, clamp(this.bola.y + (this.rng() - 0.5) * 8, 4, L - 4), 12, 0.6); corta.ov = null }, upd: () => !this.bola.voo },
+        (() => { let t0 = 0; return { ini: () => { t0 = this.t; corta.ov = { x: ala.x, y: ala.y, v: 8.5 } }, upd: () => dist(corta, ala) < 2.6 || this.t - t0 > 2.5 || (corta.ov = { x: ala.x, y: ala.y, v: 8.5 }, false) } })(),
+        { ini: () => { this.narra = this.v('afasta_lateral', { a: n(corta) }); this.viaja(sx < 0 ? -1.4 : W + 1.4, clamp(this.bola.y + (this.rng() - 0.5) * 8, 4, L - 4), 12, 0.6); this.ultimoToque = corta.lado; corta.ov = null }, upd: () => !this.bola.voo },
         ...this.lateral(l))
     } else if (r < 0.74) {
       // ⛳ cruzamento desviado pra escanteio; cobrança na área e a zaga tira de cabeça
@@ -1024,9 +1186,9 @@ export class Jogo2D {
       const alvo = umaVez(() => this.preferido(l, ['ATA', 'DEF'], ['cabeceador'], cob()))
       const zag = umaVez(() => this.preferido(adv, ['DEF'], ['cabeceador', 'desarmador']))
       ac.push(this.aPasse(dono, () => ala, { adiante: 8, dx: lado * 10 }), this.aConduz(() => ala, () => this.rel(l, lado < 0 ? 7 : 61, 12), 7.2, 2.6),
-        { ini: () => { this.narra = this.v('escanteio_desvio'); const o = this.rel(l, lado < 0 ? 4 : 64, -1.5); this.viaja(o.x, o.y, 22, 0.8); this.sobeProEscanteio(l, lado, cob, alvo) }, upd: () => !this.bola.voo },
-        ...this.escanteio(l, lado, cob, alvo, null), this.aEspera(0.8), { upd: () => { this.narra = this.v('escanteio_cobra', { a: n(cob()) }); return true } },
-        this.aPasse(cob, alvo, { alto: true, adiante: 0, vel: 18 }),
+        { ini: () => { this.narra = this.v('escanteio_desvio'); const o = this.rel(l, lado < 0 ? 4 : 64, -1.5); this.viaja(o.x, o.y, 22, 0.8); this.ultimoToque = adv; this.sobeProEscanteio(l, lado, cob, alvo) }, upd: () => !this.bola.voo },
+        ...this.escanteio(l, lado, cob, alvo, null), ...this.cobranca(this.aEspera(0.8), { upd: () => { this.narra = this.v('escanteio_cobra', { a: n(cob()) }); return true } },
+        this.aPasse(cob, alvo, { alto: true, adiante: 0, vel: 18 })),
         { ini: () => { const z = zag(); z.ov = { x: this.bola.x, y: this.bola.y, v: 9 } }, upd: () => true },
         { upd: () => { this.narra = this.v('zaga_cabeca', { a: n(zag()) }); return true } },
         { upd: () => { if (this.bola.voo) return false; const z = zag(); this.pega(z); return true } }, this.soltaTodos(),
