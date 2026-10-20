@@ -95,19 +95,21 @@ async function camadaPronta(l: PresidenteLayer): Promise<CanvasImageSource> {
   ctx.putImageData(d, 0, 0)
   return c
 }
-function montaBusto(ids: string[]): Promise<string | null> {
-  const chave = ids.join('|')
+type Recorte = { x: number; y: number; w: number; h: number }
+function montaBusto(ids: string[], corte: Recorte = CORTE, larg = LADO, pose: 'standing' | 'seated' = 'standing'): Promise<string | null> {
+  const alt = Math.round(larg * corte.h / corte.w)
+  const chave = `${pose}:${corte.x},${corte.y},${corte.w},${corte.h}:${larg}:` + ids.join('|')
   let p = bustos.get(chave)
   if (p) return p
   p = (async () => {
     const r = montarPresidenteLayers(ids)
     if (!r.ok) return null
     try {
-      const fontes = await Promise.all(camadasNaPose(r.layers, 'standing').map(async l => ({ l, src: await camadaPronta(l) })))
-      const c = document.createElement('canvas'); c.width = LADO; c.height = LADO
+      const fontes = await Promise.all(camadasNaPose(r.layers, pose).map(async l => ({ l, src: await camadaPronta(l) })))
+      const c = document.createElement('canvas'); c.width = larg; c.height = alt
       const ctx = c.getContext('2d'); if (!ctx) return null
-      const s = LADO / CORTE.w
-      for (const { l, src } of fontes) ctx.drawImage(src, (l.bounds.x - CORTE.x) * s, (l.bounds.y - CORTE.y) * s, l.bounds.width * s, l.bounds.height * s)
+      const s = larg / corte.w
+      for (const { l, src } of fontes) ctx.drawImage(src, (l.bounds.x - corte.x) * s, (l.bounds.y - corte.y) * s, l.bounds.width * s, l.bounds.height * s)
       return c.toDataURL('image/webp', 0.85)
     } catch { return null }
   })()
@@ -143,4 +145,23 @@ export function PresidenteDaConta({ uid, size, reserva, titulo }: { uid: string 
   const v = usePresidenteDe(uid)
   if (!v || !uid) return <>{reserva}</>
   return <PresidenteBusto visual={v} size={size} rank={ranks.get(uid) ?? 0} reserva={reserva} titulo={titulo} />
+}
+
+// ── 🎙️ o presidente SENTADO na mesa da coletiva (20/10) ──────────────────────────────────────────────────────────
+// Diego: *"colocar o presidente aqui sentado na frente dos microfones… estático… o boneco que eu escolhi"*. Mesmo boneco
+// da conta (trocou na Loja, troca aqui), na pose sentada, recortado da cintura pra cima — a mesa cobre o resto.
+const CORTE_MESA: Recorte = { x: 252, y: 0, w: 520, h: 560 }
+export function PresidenteNaMesa({ visual, altura = 150 }: { visual: PresidenteBaseSave; altura?: number }) {
+  const ids = camadasDoPresidente(visual)
+  const chave = ids.join('|')
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let vivo = true
+    setUrl(null)
+    montaBusto(ids, CORTE_MESA, 360, 'seated').then(u => { if (vivo) setUrl(u) })
+    return () => { vivo = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chave])
+  if (!url) return null
+  return <img src={url} alt="" draggable={false} style={{ height: altura, width: Math.round(altura * CORTE_MESA.w / CORTE_MESA.h), display: 'block' }} />
 }
