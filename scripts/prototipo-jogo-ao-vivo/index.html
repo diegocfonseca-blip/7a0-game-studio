@@ -1,0 +1,330 @@
+<!doctype html>
+<!-- 📺 PROTÓTIPO · JOGO AO VIVO NO CAMPINHO (20/10). Diego pediu VÍDEO do jogo rolando: *"tem q ter mts jogadas variadas e ter um
+     motor bom e real"*, *"qd sai gol entra o mascote"*, *"N quero intervalo"* e os botões são os que JÁ existem (🧱 Retranca ·
+     ⚖️ Equilíbrio · 🔥 Ataque). Não é o jogo: é um protótipo pra ele VER antes de decidir. Os gols (autor e minuto) vêm prontos,
+     como o motor do jogo entrega — a animação só conta COMO a bola entrou. Elencos com cartas reais (rosto = avatar de lenda).
+     Gravar: node scripts/prototipo-jogo-ao-vivo/grava.mjs -->
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=450">
+<style>
+@font-face{font-family:Oswald;src:url(../fonts/oswald-latin-700-normal.woff2);font-weight:700}
+*{box-sizing:border-box}html,body{margin:0;background:#0c0c0c;font-family:system-ui,sans-serif;color:#fff;width:450px;height:960px;overflow:hidden}
+.app{padding:10px 10px 0;display:flex;flex-direction:column;gap:8px}
+.placar{display:flex;align-items:center;gap:6px;background:#151515;border:2px solid #333;border-radius:14px;padding:8px 10px}
+.time{flex:1;display:flex;align-items:center;gap:6px;min-width:0}.time.dir{justify-content:flex-end}.time b{font:700 15px Oswald;white-space:nowrap}
+.esc{width:30px;height:30px;border-radius:50%;border:2px solid #000;display:grid;place-items:center;font:700 14px Oswald;color:#0C0C0C;flex:none}
+.num{text-align:center;min-width:92px}.num b{display:block;font:700 30px Oswald;color:#FFC400;line-height:1}.num small{font:700 12px Oswald;letter-spacing:1px;opacity:.8}
+.campo{position:relative;border:3px solid #000;border-radius:14px;overflow:hidden;align-self:center}
+canvas{display:block}
+.narra{background:#fff;color:#0C0C0C;border:3px solid #000;border-radius:12px;padding:8px 10px;font-size:13.5px;font-weight:700;line-height:1.3;min-height:44px;display:flex;align-items:center}
+.tat{display:flex;gap:6px;align-items:center}.tat .rot{font:700 10px Oswald;letter-spacing:1px;color:#aaa;width:64px;line-height:1.1}
+.ch{flex:1;font:700 14px Oswald;text-align:center;background:#fff;color:#0C0C0C;border:3px solid #000;border-radius:11px;padding:8px 2px;transition:all .25s;position:relative}
+.ch.on{background:#FFC400;box-shadow:0 0 0 3px #fff}
+.ch .dedo{position:absolute;right:-6px;bottom:-14px;font-size:30px;opacity:0;transition:opacity .2s}
+.radio{background:#151515;border:2px solid #333;border-radius:12px;padding:6px 10px;font-size:12.5px}
+.rtag{font:700 10px Oswald;letter-spacing:1.2px;color:#FFC400}
+.rl{display:flex;gap:6px;padding:2px 0;opacity:.85;border-radius:6px;transition:background .3s}.rl small{margin-left:auto;opacity:.7}
+.rl.flash{background:#1B7A3D;opacity:1}
+/* gol: o mascote entra */
+.gol{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s}
+.gol.on{opacity:1}
+.gol .g{font:700 64px Oswald;color:#FFC400;text-shadow:4px 4px 0 #000;letter-spacing:1px;transform:scale(.4);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.gol.on .g{transform:scale(1)}
+.gol img{height:230px;transform:translateX(320px) rotate(12deg);transition:transform .6s cubic-bezier(.3,1.5,.5,1)}
+.gol.on img{transform:translateX(0) rotate(0);animation:quica .5s ease-in-out .6s 5 alternate}
+@keyframes quica{to{transform:translateY(-16px) rotate(-4deg)}}
+.gol .quem{margin-top:8px;font:700 22px Oswald;background:#fff;color:#0C0C0C;border:3px solid #000;border-radius:12px;padding:2px 14px;box-shadow:4px 4px 0 #000}
+.fim{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
+.fim b{font:700 54px Oswald;color:#fff;background:#C2452F;border:4px solid #000;border-radius:16px;padding:4px 22px;box-shadow:5px 5px 0 #000}
+</style></head><body><div class="app">
+  <div class="placar">
+    <div class="time"><span class="esc" style="background:linear-gradient(160deg,#FFE79A,#FFC400 45%,#E8A200)">F</span><b>FABULOUS EC</b></div>
+    <div class="num"><b id="pl">0 × 0</b><small id="min">1'</small></div>
+    <div class="time dir"><b>CHELSÃO</b><span class="esc" style="background:linear-gradient(160deg,#9CC2FF,#2B6CFF 55%,#1442B8);color:#fff">C</span></div>
+  </div>
+  <div class="campo" id="campo"><canvas id="cv"></canvas>
+    <div class="gol" id="gol"><div class="g">GOOOOL!</div><img id="masc"><div class="quem" id="quem"></div></div>
+    <div class="fim" id="fim"><b>FIM DE JOGO</b></div>
+  </div>
+  <div class="narra" id="narra">🎙️ Rola a bola!</div>
+  <div class="tat"><span class="rot">FABULOUS<br>ESTÁ:</span>
+    <div class="ch" id="t-1">🧱 Retranca</div><div class="ch on" id="t0">⚖️ Equilíbrio</div><div class="ch" id="t1">🔥 Ataque<span class="dedo" id="dedo">👆</span></div></div>
+  <div class="radio"><span class="rtag">📻 OS AMIGOS</span>
+    <div class="rl" id="r0"><span>K9 FC <b id="r0p">0 × 0</b> Tocaia SC</span><small id="r0m"></small></div>
+    <div class="rl" id="r1"><span>Butinas FC <b id="r1p">0 × 0</b> Raiva Cajuri</span><small id="r1m"></small></div></div>
+</div>
+<script>
+// ── campo em metros (68 × 105); o FABULOUS (time 0) ataca pra cima (y → 0) ──────────────────────────────────────────────
+const W = 68, L = 105, S = 6.2, PAD = 4
+const cv = document.getElementById('cv'), cx = cv.getContext('2d')
+const CW = Math.round((W + PAD * 2) * S), CH = Math.round((L + PAD * 2) * S)
+const DPR = 2
+cv.width = CW * DPR; cv.height = CH * DPR; cv.style.width = CW + 'px'; cv.style.height = CH + 'px'; cx.scale(DPR, DPR)
+const px = x => (x + PAD) * S, py = y => (y + PAD) * S
+const AV = n => '../../public/avatars/lendas-v1/' + n + '.webp'
+const T = [
+  { nome: 'Fabulous EC', cor: '#FFC400', masc: '../../src/escalacao/img/fabulous-mascote.webp', jog: [
+    ['taffarel-internacional-1989', 'Taffarel'], ['roberto-carlos-real-madrid-2002', 'R. Carlos'], ['carles-puyol-barcelona-2010', 'Puyol'], ['alessandro-nesta-milan-2004', 'Nesta'], ['cafu-milan-2004', 'Cafu'],
+    ['rivaldo-barcelona-1999', 'Rivaldo'], ['zico-flamengo-1981', 'Zico'], ['kaka-milan-2007', 'Kaká'], ['bebeto-vasco-1989', 'Bebeto'], ['romario-vasco-2000', 'Romário'], ['ronaldo-fenomeno-inter-1998', 'Ronaldo']] },
+  { nome: 'Chelsão', cor: '#2B6CFF', masc: '../../src/escalacao/img/chelsao-mascote.webp', jog: [
+    ['petr-cech-chelsea-2005', 'Cech'], ['ashley-cole-chelsea-2008', 'A. Cole'], ['john-terry-chelsea-2007', 'Terry'], ['bobby-moore-west-ham-1966', 'B. Moore'], ['dani-alves-barcelona-2011', 'D. Alves'],
+    ['eden-hazard-chelsea-2015', 'Hazard'], ['frank-lampard-chelsea-2010', 'Lampard'], ['steven-gerrard-liverpool-2009', 'Gerrard'], ['thierry-henry-arsenal-2004', 'Henry'], ['careca-sao-paulo-1986', 'Careca'], ['raul-real-madrid-2001', 'Raúl']] },
+]
+// papel: 0 GOL · 1 LE · 2 ZAG · 3 ZAG · 4 LD · 5 MEI-E · 6 VOL · 7 MEI-D · 8 PE · 9 CA · 10 PD
+const BX = [34, 9, 26, 42, 59, 21, 34, 47, 10, 34, 58]
+const DEP = [0, .86, 1, 1, .86, .55, .66, .55, .08, 0, .08]
+const P = []
+for (let t = 0; t < 2; t++) T[t].jog.forEach(([av, nome], r) => {
+  const img = new Image(); img.src = AV(av)
+  P.push({ t, r, nome, img, x: 34, y: 52, ov: null, vmax: r === 0 ? 6.5 : 7.4 })
+})
+const J = (t, r) => P[t * 11 + r]
+const ball = { x: 34, y: 52.5, h: 0, dono: null, tw: null }
+let posse = 0, tatica = [0, 0], placar = [0, 0], minuto = 1, pausa = false, rede = null
+const mascImg = [new Image(), new Image()]; mascImg[0].src = T[0].masc; mascImg[1].src = T[1].masc
+
+// ── forma do time: linhas sobem/descem com a bola, com a posse e com a TÁTICA (as 3 que o jogo já tem) ─────────────────
+const rel = (t, x, y) => t === 0 ? { x, y } : { x: W - x, y: L - y }
+function alvo(p) {
+  const b = rel(p.t, ball.x, ball.y), tac = tatica[p.t], ataca = posse === p.t
+  if (p.r === 0) return rel(p.t, 34 + (b.x - 34) * 0.12, ataca ? 99 : 101.5)
+  let frente, fundo
+  if (ataca) { frente = Math.max(6, Math.min(60, b.y - 14 - 6 * tac)); fundo = Math.max(38, Math.min(90, frente + 46 - 5 * tac)) }
+  else { frente = Math.max(30, Math.min(78, b.y + 2 - 6 * tac)); fundo = Math.max(60, Math.min(96, frente + 30 - 2 * tac)) }
+  let y = frente + (fundo - frente) * DEP[p.r]
+  let x = BX[p.r] + (b.x - 34) * (ataca ? 0.22 : 0.42)
+  if (ataca && (p.r === 8 || p.r === 10)) x = BX[p.r] + (b.x - 34) * 0.08
+  if (ataca && (p.r === 1 || p.r === 4) && tac >= 0) y -= 6
+  return rel(p.t, x, y)
+}
+// o marcador mais perto aperta quem está com a bola
+function pressao() {
+  if (!ball.dono) return null
+  const def = P.filter(q => q.t !== ball.dono.t && q.r !== 0 && !q.ov)
+  def.sort((a, b) => Math.hypot(a.x - ball.x, a.y - ball.y) - Math.hypot(b.x - ball.x, b.y - ball.y))
+  return def[0] ?? null
+}
+function passo(dt) {
+  if (pausa) return
+  const pr = pressao()
+  for (const p of P) {
+    let a = p.ov ?? alvo(p)
+    if (p === pr) { const d = rel(p.t, 0, 0); a = { x: ball.x + (p.t === 0 ? 0 : 0), y: ball.y + (p.t === 0 ? 1.6 : -1.6) } }
+    if (p === ball.dono && !p.ov) continue
+    const dx = a.x - p.x, dy = a.y - p.y, d = Math.hypot(dx, dy)
+    const v = (p.ov?.v ?? (p === pr ? 6 : 4.2)) * dt
+    if (d > 0.05) { const k = Math.min(1, v / d); p.x += dx * k; p.y += dy * k }
+  }
+  // a bola: viajando (passe/chute/cruzamento) ou colada no pé de quem conduz
+  if (ball.tw) {
+    const w = ball.tw; w.t += dt
+    const k = Math.min(1, w.t / w.dur), e = w.ease === 'lin' ? k : 1 - (1 - k) * (1 - k)
+    ball.x = w.x0 + (w.x1 - w.x0) * e; ball.y = w.y0 + (w.y1 - w.y0) * e; ball.h = w.alt ? Math.sin(k * Math.PI) * w.alt : 0
+    if (k >= 1) { ball.tw = null; ball.h = 0; w.fim && w.fim() }
+  } else if (ball.dono) {
+    const d = ball.dono, dir = d.t === 0 ? -1 : 1
+    ball.x = d.x + 0.4; ball.y = d.y + dir * 1.1
+  }
+}
+// ── desenho ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+function desenha() {
+  cx.clearRect(0, 0, CW, CH)
+  for (let i = 0; i < 12; i++) { cx.fillStyle = i % 2 ? '#2B8443' : '#2F8F49'; cx.fillRect(0, py(-PAD) + i * CH / 12, CW, CH / 12 + 1) }
+  cx.strokeStyle = 'rgba(255,255,255,.85)'; cx.lineWidth = 2
+  cx.strokeRect(px(0), py(0), W * S, L * S)
+  cx.beginPath(); cx.moveTo(px(0), py(L / 2)); cx.lineTo(px(W), py(L / 2)); cx.stroke()
+  cx.beginPath(); cx.arc(px(34), py(L / 2), 9.15 * S, 0, 7); cx.stroke()
+  for (const [y0, s] of [[0, 1], [L, -1]]) {
+    cx.strokeRect(px(13.85), s > 0 ? py(0) : py(L - 16.5), 40.3 * S, 16.5 * S)
+    cx.strokeRect(px(24.85), s > 0 ? py(0) : py(L - 5.5), 18.3 * S, 5.5 * S)
+    cx.beginPath(); cx.arc(px(34), py(y0 + 11 * s), 1.5, 0, 7); cx.fillStyle = '#fff'; cx.fill()
+    // trave + rede (a rede balança no gol)
+    const g = rede && rede.y0 === y0 ? Math.sin(rede.t * 30) * 4 * Math.max(0, 1 - rede.t) : 0
+    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(px(30.34), s > 0 ? py(-2.2) - g : py(L), 7.32 * S, 2.2 * S + g)
+    cx.strokeStyle = '#fff'; cx.lineWidth = 3; cx.strokeRect(px(30.34), s > 0 ? py(-2.2) - g : py(L), 7.32 * S, 2.2 * S + g); cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.85)'
+  }
+  // sombra da bola + jogadores (de trás pra frente) + bola
+  const R = 12
+  for (const p of [...P].sort((a, b) => a.y - b.y)) {
+    const X = px(p.x), Y = py(p.y)
+    cx.beginPath(); cx.ellipse(X, Y + R - 2, R * 0.9, 4, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
+    cx.save(); cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.closePath(); cx.fillStyle = '#fff'; cx.fill(); cx.clip()
+    if (p.img.complete && p.img.naturalWidth) cx.drawImage(p.img, 175, 10, 250, 250, X - R, Y - R, R * 2, R * 2)
+    cx.restore()
+    cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.lineWidth = 3; cx.strokeStyle = T[p.t].cor; cx.stroke()
+    if (p === ball.dono) { cx.beginPath(); cx.arc(X, Y, R + 4, 0, 7); cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.9)'; cx.stroke() }
+    cx.font = '700 9.5px Oswald'; const w = cx.measureText(p.nome).width + 6
+    cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(X - w / 2, Y + R + 1, w, 12); cx.fillStyle = '#fff'; cx.textAlign = 'center'; cx.fillText(p.nome, X, Y + R + 10.5)
+  }
+  const bx = px(ball.x), by = py(ball.y), bh = ball.h * S
+  cx.beginPath(); cx.ellipse(bx, by + 2, 4, 2, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fill()
+  cx.beginPath(); cx.arc(bx, by - bh, 4.6 + ball.h * 0.25, 0, 7); cx.fillStyle = '#fff'; cx.fill(); cx.lineWidth = 1.6; cx.strokeStyle = '#111'; cx.stroke()
+}
+let ult = performance.now()
+function loop(t) { const dt = Math.min(0.05, (t - ult) / 1000); ult = t; passo(dt); if (rede) rede.t += dt; desenha(); requestAnimationFrame(loop) }
+requestAnimationFrame(loop)
+
+// ── as ações (cada uma é uma promessa: o roteiro encadeia jogada por jogada) ─────────────────────────────────────────────
+const esp = ms => new Promise(r => setTimeout(r, ms))
+const narra = t => { document.getElementById('narra').innerHTML = '🎙️ ' + t }
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
+function posseDe(p) { ball.dono = p; posse = p.t; p.ov = null }
+function viaja(x1, y1, vel, opts = {}) {
+  return new Promise(res => { const d = Math.hypot(x1 - ball.x, y1 - ball.y); ball.dono = null
+    ball.tw = { x0: ball.x, y0: ball.y, x1, y1, t: 0, dur: Math.max(0.25, d / vel), alt: opts.alt, ease: opts.ease, fim: res } })
+}
+// passe: o recebedor corre pro ponto, a bola chega junto
+async function passe(de, para, o = {}) {
+  const fw = para.t === 0 ? -1 : 1
+  const alvoX = para.x + (o.dx ?? 0), alvoY = para.y + fw * (o.adiante ?? 3)
+  para.ov = { x: alvoX, y: alvoY, v: 7.5 }
+  posse = de.t
+  await viaja(alvoX, alvoY, o.vel ?? 19, { alt: o.alto ? 3.2 : 0 })
+  posseDe(para)
+}
+// conduz: anda com a bola pra um ponto
+async function conduz(p, x, y, vel = 6.2) {
+  posseDe(p); p.ov = { x, y, v: vel }
+  while (dist(p, p.ov) > 0.6) await esp(30)
+  p.ov = null
+}
+// finaliza: 'gol' · 'defesa' · 'fora' · 'trave'
+async function chuta(p, res, o = {}) {
+  const ataca0 = p.t === 0, linhaGol = ataca0 ? -0.6 : L + 0.6, gk = J(1 - p.t, 0)
+  const lado = o.canto ?? (Math.random() < 0.5 ? -1 : 1)
+  if (res === 'gol') {
+    await viaja(34 + lado * 2.8, ataca0 ? -1.6 : L + 1.6, o.vel ?? 26, { alt: o.alto ? 1.6 : 0.6, ease: 'lin' })
+    rede = { y0: ataca0 ? 0 : L, t: 0 }
+    return
+  }
+  if (res === 'defesa') {
+    const bx = 34 + lado * 2.4, by = ataca0 ? 1.4 : L - 1.4
+    gk.ov = { x: bx, y: by, v: 11 }
+    await viaja(bx, by, o.vel ?? 24, { alt: 0.8, ease: 'lin' })
+    gk.ov = null; posseDe(gk); return
+  }
+  if (res === 'trave') {
+    await viaja(34 + lado * 3.66, linhaGol, o.vel ?? 25, { ease: 'lin' })
+    await viaja(34 + lado * 9, ataca0 ? 9 : L - 9, 14)
+    return
+  }
+  await viaja(34 + lado * (5 + Math.random() * 6), ataca0 ? -3 : L + 3, o.vel ?? 24, { alt: o.alto ? 2.6 : 1 })
+}
+async function desarme(def, alvoP) {
+  def.ov = { x: alvoP.x, y: alvoP.y, v: 8 }
+  while (dist(def, alvoP) > 1.4) { def.ov = { x: alvoP.x, y: alvoP.y, v: 8 }; await esp(30) }
+  posseDe(def)
+}
+function relogio(m) { minuto = m; document.getElementById('min').textContent = m + "'" }
+async function minutos(ate, ms) { while (minuto < ate) { relogio(minuto + 1); await esp(ms) } }
+async function golDe(t, autor, assist) {
+  placar[t]++
+  await esp(350)
+  document.getElementById('pl').textContent = placar[0] + ' × ' + placar[1]
+  pausa = true
+  document.getElementById('masc').src = T[t].masc
+  document.getElementById('quem').textContent = '⚽ ' + autor.nome.toUpperCase() + ' ' + minuto + "'" + (assist ? '  ·  🅰️ ' + assist.nome : '')
+  document.getElementById('gol').classList.add('on')
+  await esp(4200)
+  document.getElementById('gol').classList.remove('on')
+  await esp(300)
+  saidaDeBola(1 - t)
+  pausa = false; rede = null
+}
+function saidaDeBola(t) {
+  for (const p of P) { p.ov = null; const r = rel(p.t, BX[p.r], p.r === 0 ? 101 : 54 + 40 * DEP[p.r]); p.x = r.x; p.y = r.y }
+  ball.x = 34; ball.y = L / 2; ball.tw = null; posse = t; posseDe(J(t, 9)); J(t, 9).x = 34; J(t, 9).y = L / 2 + (t === 0 ? 0.8 : -0.8)
+}
+function tatica0(v) {
+  tatica[0] = v
+  for (const k of [-1, 0, 1]) document.getElementById('t' + k).classList.toggle('on', k === v)
+}
+function radio(i, placarTxt, m) {
+  document.getElementById('r' + i + 'p').textContent = placarTxt; document.getElementById('r' + i + 'm').textContent = '⚽ ' + m + "'"
+  const el = document.getElementById('r' + i); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2600)
+}
+
+// ── o ROTEIRO: o motor já decidiu os gols (Romário 23', Lampard 54', Ronaldo 71'); o resto são jogadas que não viram gol ─
+async function jogo() {
+  const F = r => J(0, r), C = r => J(1, r)
+  saidaDeBola(0); await esp(900)
+  // 1' — saída, troca de passe e chute de longe pra fora
+  narra('Rola a bola! Romário toca pro <b>Zico</b>, que vira o jogo.')
+  await passe(F(9), F(6), { adiante: -4 }); await passe(F(6), F(4), { vel: 21, alto: true }); relogio(2)
+  narra('<b>Cafu</b> sobe pela direita…'); await conduz(F(4), 60, 50)
+  await passe(F(4), F(7)); narra('<b>Kaká</b> arrisca de fora da área!'); relogio(3)
+  await conduz(F(7), 44, 30, 6.8); await chuta(F(7), 'fora', { canto: 1 }); narra('…e a bola sai raspando a trave. Uuuh!')
+  await esp(900); await minutos(8, 60)
+  // 8' — o Chelsão troca passe e cruza; a zaga afasta
+  posseDe(C(2)); ball.x = C(2).x; ball.y = C(2).y; narra('O Chelsão sai jogando com <b>Terry</b>.')
+  await passe(C(2), C(6)); await passe(C(6), C(7)); relogio(9)
+  narra('<b>Gerrard</b> abre na direita pro <b>Raúl</b>…'); await passe(C(7), C(10), { dx: -2 })
+  await conduz(C(10), 60, 88, 6.8); narra('Cruzamento na área…'); relogio(10)
+  await passe(C(10), F(3), { alto: true, adiante: 0, vel: 17 }); narra('…e <b>Nesta</b> sobe mais alto e tira de cabeça!')
+  await passe(F(3), F(6), { adiante: -2 }); await minutos(14, 60)
+  // 14' — tabela e defesa do goleiro
+  narra('<b>Zico</b> tabela com <b>Rivaldo</b>…'); await passe(F(6), F(5)); await passe(F(5), F(6), { adiante: 6 })
+  relogio(15); await passe(F(6), F(8), { dx: 3, adiante: 4 }); narra('<b>Bebeto</b> invade a área e bate cruzado!')
+  await conduz(F(8), 20, 16, 7); await chuta(F(8), 'defesa', { canto: 1 }); narra('Que defesa do <b>Cech</b>! Espalmou no reflexo.')
+  await esp(700); await minutos(19, 60)
+  // 19' — lançamento longo, drible e trave
+  narra('<b>Lampard</b> lança de longe pro <b>Henry</b>!'); await passe(C(0), C(6), { adiante: -3 }); await passe(C(6), C(8), { alto: true, vel: 20, adiante: 8 })
+  relogio(20); narra('<b>Henry</b> passa pelo <b>Cafu</b> na velocidade…'); await conduz(C(8), 52, 86, 7.6)
+  await chuta(C(8), 'trave', { canto: 1 }); narra('NA TRAVE! O Chelsão quase abre o placar.')
+  posseDe(F(3)); await esp(400); await minutos(23, 70)
+  // 23' — GOL: enfiada do Kaká, Romário finaliza
+  narra('<b>Nesta</b> sai jogando com <b>Kaká</b>…'); await passe(F(3), F(7), { adiante: 6 })
+  await conduz(F(7), 40, 40, 6.4); narra('Kaká levanta a cabeça e ENFIA pro <b>Romário</b>!')
+  await passe(F(7), F(9), { adiante: 9, vel: 20 }); narra('Romário na cara do gol… tirou do goleiro…')
+  await conduz(F(9), 33, 11, 7.2); await chuta(F(9), 'gol', { canto: -1 }); narra('<b>GOOOOL! ROMÁRIO!</b> O Baixinho não perdoa!')
+  await golDe(0, F(9), F(7))
+  await minutos(30, 50); radio(0, '1 × 0', 33)
+  // 30' — o Chelsão tenta, Zico desarma e puxa o contra-ataque
+  narra('<b>Hazard</b> tenta o drible pelo meio…'); await conduz(C(5), 30, 52, 5.8)
+  narra('…e <b>Zico</b> chega no desarme! Contra-ataque!'); await desarme(F(6), C(5))
+  await passe(F(6), F(10), { adiante: 10, vel: 21 }); relogio(31); narra('<b>Ronaldo</b> dispara em velocidade…')
+  await conduz(F(10), 46, 15, 8); await chuta(F(10), 'defesa', { canto: 1 }); narra('…Cech defende de novo e manda pra escanteio!')
+  await esp(500); relogio(32)
+  // 32' — escanteio, cabeçada por cima
+  ball.dono = null; ball.x = 67.5; ball.y = 0.5; F(10).ov = { x: 67, y: 1.2, v: 9 }; F(3).ov = { x: 36, y: 8, v: 6 }; F(2).ov = { x: 28, y: 9, v: 6 }
+  narra('Escanteio pro Fabulous. <b>Nesta</b> vem pra área…'); await esp(1500); posseDe(F(10))
+  await passe(F(10), F(3), { alto: true, adiante: 0, vel: 17 }); await chuta(F(3), 'fora', { alto: true, canto: -1 })
+  narra('Cabeçada do <b>Nesta</b>… por cima do gol!'); await esp(700); await minutos(45, 40)
+  // 45' — Careca bate e o Puyol bloqueia (sem intervalo: o jogo segue)
+  posseDe(C(9)); narra('Fim do 1º tempo e o jogo já volta! <b>Careca</b> recebe na entrada da área…')
+  await conduz(C(9), 34, 80, 6); await passe(C(9), F(2), { adiante: 0, vel: 24 }); narra('…chutou e <b>Puyol</b> se joga na frente! Bloqueio!')
+  await minutos(54, 45)
+  // 54' — GOL do Chelsão: Lampard de fora da área
+  narra('<b>Gerrard</b> rola pra trás pro <b>Lampard</b>…'); posseDe(C(7)); await passe(C(7), C(6), { adiante: 5 })
+  await conduz(C(6), 36, 76, 6); narra('Lampard solta a bomba de fora da área!'); radio(1, '1 × 0', 54)
+  await chuta(C(6), 'gol', { canto: 1, vel: 30, alto: true }); narra('<b>GOOOOL DO CHELSÃO!</b> No ângulo! Lampard empata!')
+  await golDe(1, C(6), C(7))
+  // 56' — o dono do Fabulous aperta 🔥 Ataque (os botões que o jogo JÁ tem): as linhas sobem
+  await minutos(56, 60); document.getElementById('dedo').style.opacity = 1; await esp(500); tatica0(1)
+  narra('O Fabulous foi pra cima! 🔥 Ataque ligado: a linha sobe e os laterais avançam.'); await esp(1100); document.getElementById('dedo').style.opacity = 0
+  await minutos(61, 50)
+  // 61' — R. Carlos de fora, rebote, Bebeto pra fora
+  posseDe(F(5)); narra('<b>Roberto Carlos</b> aparece livre pela esquerda…'); await passe(F(5), F(1), { adiante: 10 })
+  await conduz(F(1), 16, 30, 7); narra('…e solta o canhão de canhota!'); await chuta(F(1), 'defesa', { canto: -1, vel: 30 })
+  narra('Cech espalma pro meio… <b>Bebeto</b> pega o rebote…'); await passe(J(1, 0), F(8), { adiante: -6, vel: 12 })
+  await chuta(F(8), 'fora', { canto: -1 }); narra('…e isola! Perdeu uma chance incrível.'); await minutos(66, 50)
+  // 66' — contra-ataque do Chelsão, Taffarel salva
+  posseDe(C(8)); narra('Contra-ataque do Chelsão com <b>Henry</b>!'); await conduz(C(8), 30, 84, 8)
+  await chuta(C(8), 'defesa', { canto: -1 }); narra('<b>Taffarel</b> sai do gol e fecha o ângulo! Defesaço!'); await minutos(71, 60)
+  // 71' — GOL: Cafu cruza, Ronaldo de cabeça
+  narra('<b>Taffarel</b> repõe com <b>Kaká</b>…'); await passe(F(0), F(7), { adiante: -6, vel: 22 }); radio(0, '1 × 1', 70)
+  await passe(F(7), F(4), { adiante: 10 }); narra('<b>Cafu</b> vai à linha de fundo…'); await conduz(F(4), 63, 8, 7.4)
+  narra('Cruzou!'); await passe(F(4), F(10), { alto: true, adiante: 0, vel: 17, dx: -8 })
+  await chuta(F(10), 'gol', { canto: 1, alto: true, vel: 20 }); narra('<b>GOOOOL! RONALDO DE CABEÇA!</b> O Fenômeno desempata!')
+  await golDe(0, F(10), F(4))
+  // 80' — pressão do Chelsão, Taffarel encaixa o cruzamento
+  await minutos(80, 45); posseDe(C(7)); narra('O Chelsão vai pro abafa. <b>Gerrard</b> cruza na área…')
+  await conduz(C(7), 54, 80, 6); await passe(C(7), F(0), { alto: true, adiante: 0, vel: 17 }); narra('…e <b>Taffarel</b> sai do gol e encaixa firme.')
+  await minutos(88, 45)
+  // 88' — o Fabulous segura a bola
+  narra('O Fabulous toca a bola e gasta o tempo… olé da torcida!'); await passe(F(0), F(2), { adiante: -4 }); await passe(F(2), F(6)); await passe(F(6), F(5))
+  await minutos(90, 400)
+  narra('<b>Fim de jogo!</b> Fabulous EC 2 × 1 Chelsão.'); pausa = true; document.getElementById('fim').style.display = 'flex'
+  window.__acabou = true
+}
+window.addEventListener('load', () => setTimeout(jogo, 400))
+</script></body></html>
