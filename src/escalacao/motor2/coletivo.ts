@@ -133,6 +133,14 @@ export function planeja(m: Motor2) {
         const alvo = atacantes.filter(a => !time.some(t => t.marca === a)).sort((a, b) => dist(a, an) - dist(b, an))[0]
         if (alvo && dist(alvo, an) < (z.grupo === 'LAT' ? 12 : 16)) { z.papel = 'marca'; z.marca = alvo }
       }
+      // 🧲 o meio-campo também marca: cada meia livre pega o meia rival mais perto da zona dele (até 12 m). É daí que nasce o
+      // duelo — o marcador já está a 3 m quando a bola chega, não a 8 m correndo atrás
+      const meias = adv.filter(a => a.grupo === 'MEI' && fundo(l, a.y) < 60)
+      for (const z of campo.filter(p => p.grupo === 'MEI' && p.papel === 'forma')) {
+        const an = ancora(m, z)
+        const alvo = meias.filter(a => !time.some(t => t.marca === a)).sort((a, b) => dist(a, an) - dist(b, an))[0]
+        if (alvo && dist(alvo, an) < 12) { z.papel = 'marca'; z.marca = alvo }
+      }
     }
   }
 }
@@ -189,7 +197,8 @@ export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number 
     }
     case 'marca': {
       const a = p.marca!, g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) }, d = dist(a, g) || 1
-      return vaiPara({ x: a.x + ((g.x - a.x) / d) * 2.6, y: a.y + ((g.y - a.y) / d) * 2.6 }, 1.15)
+      // (colado: 2 m do lado do gol — é a distância em que a bola chegando vira duelo)
+      return vaiPara({ x: a.x + ((g.x - a.x) / d) * 2.0, y: a.y + ((g.y - a.y) / d) * 2.0 }, 1.15)
     }
     case 'opcao': case 'ultrapassa': return vaiPara(m.opcaoDe.get(p) ?? ancora(m, p), p.papel === 'ultrapassa' ? 1.25 : 1.1)
     case 'infiltra': { const c = m.corrida.get(p); return c ? { ...c.alvo, v: vmax } : vaiPara(ancora(m, p)) }

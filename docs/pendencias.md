@@ -1,3 +1,14 @@
+## 📺 Motor 2D v2 (experimental, SÓ NO BRANCH `claude/pontosafe-repo-setup-qzjo89`) — calibração do jogo corrido (20/10)
+Decisão do Diego: *"quero o jogo igual tá sendo hoje… sem ser lances"* → formato B (bola rolando os 93' em 1:30 de tela), formato
+A (lances, estilo FM) descartado. Calibração feita e medida (diário completo em `docs/motor-2d-v2.md`, seção 11): de 0,03 pra
+**~1,0 gol/jogo**, 0×0 de 98% pra ~30%, ~3,8 chutes (80% no gol), passes 82%, ~1 falta, ~1 escanteio, forte ganha ~70%.
+⚠️ **Teto estrutural medido**: em 90 s a bola voa ~55 s entre passes e fica ~15 s parada → 12–13 posses por jogo → 4–6 chutes é o
+máximo com velocidade de gente. Pra ter 2–3 gols por jogo (como o v1, que recebe o placar pronto) só com alavanca "de jogo":
+goleiro mais batível, chute de fora valendo mais ou relógio do 2D mais lento — **perguntar ao Diego** (uma frase, sim/não).
+Pendente: virar os números em assert no `npm run motor2` quando ele cravar a meta; ligar o v2 na bancada visual e FILMAR
+(`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. Clima visual (sol/nublado/chuva) continua
+esperando o OK dele na foto (`clima-3.png`).
+
 ## 🏀 BidLegends NO AR (20/10) — só na conta do Diego (BASQUETE_TESTERS)
 Diego: *"já pode [pôr] o basquete pra eu ver como tá, trocando a aba lá em cima do futebol pelo basquete"*. O branch
 `claude/bidlegends-fase-1-7vtrzu` recebeu a main (90 commits: Carreira Online v2, Liga Draft…) e foi pra main. Conflitos

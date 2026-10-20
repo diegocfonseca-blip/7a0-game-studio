@@ -240,3 +240,43 @@ FM) está descartado — não repropor. A calibração do v2 passa a mirar: em 9
 de gente (nada de correr a 15 m/s). As alavancas: transição rápida (quem perde a bola recompõe devagar), jogo direto, chute
 cedo (nunca do meio-campo), linhas afastadas, menos erro de passe curto. A trava `npm run motor2` passa a REPROVAR o placar
 quando a calibração fechar.
+
+## 11. Diário da calibração do formato B (20/10, só no branch)
+Ponto de partida (120 jogos): **0,03 gol/jogo, 0×0 em 98%, 1,3 chute, passes 55% certos, bola solta 69% do tempo**. O que estava
+errado, na ordem em que foi achado (cada item medido antes e depois com `scripts/testa-motor2.mts` e as sondas do scratchpad):
+1. **O receptor corria pra onde a bola ia PARAR**, não ao encontro dela — e o rival chegava antes. `pontoBola` agora devolve o
+   primeiro ponto da trajetória que o jogador alcança (ar e chão, com as mesmas contas da física).
+2. **O defensor "lia" o passe no instante em que saía do pé** (previsão perfeita): 84% das interceptações eram desse jogador. Agora
+   ele reage em 0,35 s.
+3. **O passe era batido pra CHEGAR a 18 m/s**: se ninguém dominava, seguia 40 m e saía pela linha de fundo (1 em 5 bolas na área
+   virava tiro de meta). Agora chega no pé a ~13 m/s; a enfiada a ~7 m/s no espaço.
+4. **O marcador colado no portador "bloqueava" todo passe pra frente** no modelo (rival a 1,5 m da linha ⇒ ×0,12). Agora o começo
+   do passe (15%) e o fim (marcador do receptor, que já conta no pRec) não entram na linha.
+5. **O goleiro recolhia o chute como se fosse um passe** (saída do goleiro): 88% dos chutes sumiam sem gol, defesa nem bola fora. A
+   defesa é decidida só quando a bola cruza a linha dele; bola que vai pra fora passa.
+6. **O goleiro corria a 8,5 m/s pro ponto do cruzamento** e chegava em todo chute de 30 m. Agora ~4,5 m/s; espalmada e bloqueio
+   seguem pra linha de fundo (escanteio existe).
+7. **Bola longa vencia porque o bônus de avançar era linear** (40 m valiam 4× um passe de 10) e o modelo achava que 70% chegava
+   (real: 30–45%). Teto no bônus, pLinha 0,68 pra bola alta, e o valor de MANTER a posse (×(2·pOk−1)).
+8. **Formas**: defendendo, a linha de trás ia pra 6 m do gol (atacante encostado no goleiro) — agora fica na entrada da área
+   (bProf×0,55); os atacantes do time sem bola ficam 12 m acima do bloco (bloco de 7 + goleiro); atacando, a zaga sobe a 16 m
+   da bola no último terço, o meio é escalonado (volante 0,45 · "8" 0,75), o atacante fica no ombro do último zagueiro e NÃO
+   vem buscar jogo no último terço; meias marcam meias (até 12 m), marcador a 2 m.
+9. **Finalização**: chute só até 31 m, dentro da área ×1,5, mira erra como gente (sigma maior), goleiro de 1:30 pega menos
+   (base 0,76 — senão 7 chutes dão 1 gol); perto do gol não existe passe de segurança (MANTER ×0,3).
+10. **Tempo morto**: bola parada espera menos (saída 0,9 · lateral 0,6 · escanteio 1,5 · falta 1,3 · tiro de meta 1,0 s); o
+    cobrador do escanteio é o melhor cruzador entre os 4 mais perto; a festa dura 2,5 s e todo mundo volta correndo no fim dela.
+11. **Duelos**: marcador a 2 m e duelo a até 2,2 m; faltas na chegada da recepção disputada; frear/virar é 1,9× mais rápido que
+    arrancar.
+
+**Onde ficou (60–200 jogos, times parecidos):** ~1,0 gol/jogo · 0×0 ~30% · ~3,8 chutes (77% no gol) · passes 82% · faltas ~1,1 ·
+escanteios ~1,1 · dribles ~1,6 · desarmes ~1 · impedimentos ~0,7 · forte × fraco: forte ganha ~70% · 100 ms por jogo · 0 pulos.
+
+**O teto estrutural (medido, não chute):** em 90 s de tela a bola passa ~55 s voando entre passes (41 passes × 0,84 s + enfiadas +
+cruzamentos), ~15 s parada (saídas, escanteios, faltas) e só ~17 s no pé de alguém. Isso dá **12–13 posses por jogo**; metade chega
+ao último terço, 6–7 chegam a 40 m do gol, 3–4 a 25 m, e 3–4 viram chute. Com os jogadores nas velocidades de gente, **não existe
+caminho emergente pra 12–20 chutes** sem mudar o tempo ou as velocidades — a meta da seção 10 estava errada. Meta honesta do
+formato B: **4–6 chutes, 1–2 gols, 0×0 ≤ 25%, 1–3 faltas, 1–3 escanteios**. Pra ter 2–3 gols por jogo como o v1 (que recebe o
+placar pronto da simulação), as alavancas que sobram são "de jogo", não de futebol: goleiro ainda mais batível, chute de fora
+valendo mais, ou o relógio do 2D mais lento — decisão do Diego. Viés de lado medido e explicado (não é bug): quem dá a saída de
+bola num tempo ataca mais naquele tempo; como o 2º tempo tem mais acréscimo, o visitante termina com um pouco mais de chutes.

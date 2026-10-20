@@ -37,13 +37,13 @@ export function decide(m: Motor2, p: Atleta): Acao {
   const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 // (só solta antes com o marcador em cima — é aí que o duelo acontece)
 
   // 🎯 CHUTAR
-  if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 31 && f > 1 && !(cedo && dGol > 20)) {
+  if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 31 && f > 1 && !(cedo && dGol > 24)) {
     const xg = xgDe(l, p.x, p.y, pres)
     let u = xg * (3 + p.at.finalizacao / 150)
     // (dentro da área o instinto é chutar — o passe de 3 m pro companheiro marcado não resolve)
     if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
-    if (dGol > 19) u *= 0.45 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
-    if (dGol > 24) u *= 0.6 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
+    if (dGol > 19) u *= 0.8 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
+    if (dGol > 27) u *= 0.7 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
     // ⚽ FALTA DIRETA × LEVANTADA (Diego 20/10): quem é batedor de falta (`falta_curva`/`falta_bomba`, estilo chutador) bate
@@ -91,7 +91,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // 🎯 JOGO DIRETO (o jogo inteiro cabe em 1:30): ganhar metros vale um bônus
     const avanca = (frente(l, p.y) - frente(l, alvo.y)) / 10
     // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
-    let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, -0.5, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
+    let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, -0.5, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
     if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
     if (aereo) u += (p.tend.passeLongo - 0.5) * 0.03 // (bola longa é gosto de quem lança; o resto prefere o pé)
     if ((t.y - p.y) * fy < -3) u -= 0.006 // (pra trás: só quando é o melhor que tem)
@@ -151,6 +151,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
   }
   return escolhe(m, p, ops)
 }
+
 
 
 /** escolhe entre as boas opções: quem decide bem quase sempre pega a melhor; os outros variam mais */
