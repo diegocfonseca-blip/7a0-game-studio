@@ -60,3 +60,48 @@ export function duplaDoAssento(linhas: LinhaDuplaCopa[], assento: number): { nom
   const d = minhaDuplaNaCopa(linhas, dono.user_id)
   return d ? { nomeAge: d.nomeAge, nomeOutro: d.nomeOutro } : null
 }
+
+// ─── 🪑 PELO ESTADO DA PARTIDA, NÃO PELO NÚMERO DO BANCO (20/10, sala ZESM9K do Futpoint) ─────────────────────────
+// Reclamação das duplas: *"tava convocando de outro país, jogando outro que não escolheu"*. Causa: as funções de cima
+// acham o time de cada pessoa pelo `player_index` da linha no banco. Mas quem decide o assento é a LARGADA (`seatUids`
+// no estado) — e numa dupla CRUZADA (os dois apontando um pro outro, que desde 19/10 viram UMA dupla) a renumeração do
+// banco pulava os dois: o Bonança ficou com o número 5 no banco sendo o time 3 no jogo. Resultado: o número velho caía
+// no time de OUTRA pessoa, e a escolha de um ia pra seleção do outro.
+// A regra: com o estado da partida na mão, o assento sai do `seatUids` e a dupla do `duplas` (os MESMOS que o leilão
+// usa). Quem age pela dupla segue a mesma régua do leilão (`duplaPodeAgir`): se um saiu de verdade, quem ficou; senão
+// quem a dupla marcou pra convocar (`CONV`); senão o dono.
+export interface DuplaDoEstado { ownerUid: string; ownerName?: string; partnerUid?: string; partnerName?: string; cats?: Partial<Record<string, string>>; soloUid?: string }
+
+const quemAgeNaDupla = (d: DuplaDoEstado | undefined, dono: string): string =>
+  !d?.partnerUid ? dono : d.soloUid ? d.soloUid : (d.cats?.[DUPLA_CONVOCA] ?? dono)
+
+/** 🪑 assento → quem age por ele, pelo ESTADO da partida. `null` = estado sem o mapa (versão velha) → usa o do banco. */
+export function quemAgePeloEstado(assentos: readonly string[] | undefined, duplas: Record<number, DuplaDoEstado> | undefined): Map<number, string> | null {
+  if (!Array.isArray(assentos) || assentos.length === 0) return null
+  const m = new Map<number, string>()
+  assentos.forEach((dono, i) => { if (dono) m.set(i, quemAgeNaDupla(duplas?.[i], dono)) })
+  return m
+}
+
+/** 👥 a minha dupla, pelo estado da partida. `null` = não estou em dupla (ou o estado não tem o mapa). */
+export function minhaDuplaPeloEstado(assentos: readonly string[] | undefined, duplas: Record<number, DuplaDoEstado> | undefined, meuUid?: string): { age: string; outro: string; nomeAge: string; nomeOutro: string } | null {
+  if (!meuUid || !Array.isArray(assentos) || !duplas) return null
+  const i = assentos.findIndex((dono, k) => dono === meuUid || duplas[k]?.partnerUid === meuUid)
+  if (i < 0) return null
+  const d = duplas[i]
+  if (!d?.partnerUid) return null
+  const dono = assentos[i]
+  const age = quemAgeNaDupla(d, dono)
+  const outro = age === dono ? d.partnerUid : dono
+  const limpa = (s?: string) => (s ?? '').replace(/\p{Extended_Pictographic}|️/gu, '').trim()
+  const nome = (uid: string) => limpa(uid === d.ownerUid ? d.ownerName : uid === d.partnerUid ? d.partnerName : '')
+  return { age, outro, nomeAge: nome(age), nomeOutro: nome(outro) }
+}
+
+/** 🏷️ a dupla de um assento pelo estado (pra fila: "Fulano escolhe · Ciclano assiste"). */
+export function duplaDoAssentoPeloEstado(assentos: readonly string[] | undefined, duplas: Record<number, DuplaDoEstado> | undefined, assento: number): { nomeAge: string; nomeOutro: string } | null {
+  const dono = assentos?.[assento]
+  if (!dono) return null
+  const d = minhaDuplaPeloEstado(assentos, duplas, dono)
+  return d ? { nomeAge: d.nomeAge, nomeOutro: d.nomeOutro } : null
+}

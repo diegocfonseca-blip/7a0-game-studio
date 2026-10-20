@@ -357,6 +357,15 @@ function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: n
     if (arr.length > 250) ls[id] = arr.slice(-250)
     return
   }
+  // 🌐 CARREIRA ONLINE v2: no leilão de todos (que roda no aparelho do dono) a compra de OUTRO clube de gente não entra no
+  // extrato do dono — fica guardada por clube e vai pro dono dela quando a fase de todos acaba (CO2_ASSUME).
+  if (s.co2 && mgrId != null && mgrId !== s.managers[s.youIdx]?.id && s.managers.some(m => m.id === mgrId && m.isHuman)) {
+    const ls = (s.careerLedgers = s.careerLedgers ?? {})
+    const arr = (ls[mgrId] = ls[mgrId] ?? [])
+    arr.push(e)
+    if (arr.length > 250) ls[mgrId] = arr.slice(-250)
+    return
+  }
   // 🏛️ MULTICLUBES: lançamento do clube que está DORMINDO vai pro extrato DELE
   // (guardado no stash) — quando o dono trocar de clube, o Extrato mostra tudo o
   // que aconteceu enquanto ele dormia (prêmios, bilheteria, folha…), sem misturar.
@@ -1045,6 +1054,8 @@ import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala onlin
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
+import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
+import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
@@ -3100,7 +3111,7 @@ export function temSafAgencia(s: EscState): boolean {
   return !!s.careerFilial || (saf2On(s) && !!s.saf2?.origemSaf && !!segundoClube(s))
 }
 export function saf2On(s: EscState): boolean {
-  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online'
+  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online' && !s.co2 // 🌐 carreira online v2: sem 2º clube (Diego, 19/10) — SAF da regra antiga
 }
 export function saf2Janela(s: EscState): boolean {
   return janelaAberta({ careerOnline: s.careerOnline, online: s.onlineMode === 'online', screen: s.screen, round: s.round })
@@ -5166,7 +5177,7 @@ function refreshMonteDeadline(state: EscState) {
   const cur = state.monteOrder[state.monteIdx]
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
-    state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
+    (state.onlineMode === 'online' || !!state.co2) && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
       ? Date.now() + monteMsDe(state)
       : null
 }
@@ -5409,7 +5420,7 @@ type Action =
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave; co2?: { sala: string; nomes: string[]; assento: number } } // carreira OFFLINE na pirâmide (co2 = 🌐 carreira online v2: N clubes de gente, cada aparelho é o seu) (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
@@ -5540,6 +5551,10 @@ type Action =
   | { type: 'COLETIVA_ARQUIRRIVAL'; mgrId: number; team: string; temporada: number }
   | { type: 'COLETIVA_H2H'; mgrId: number; rival: string; chave: string; res: 'V' | 'E' | 'D'; arqui: boolean; temporada: number }
   | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
+  | { type: 'CO2_ESPELHO'; newState: EscState; meuId: number } // 🌐 v2: leilão do dono na MINHA tela (o que eu aperto vai pra ele)
+  | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
+  | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
+  | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
@@ -6908,7 +6923,8 @@ function humansToSubmit(state: EscState, pos: Sector): number[] {
   // lacra e travaria o leilão pra sempre no "TEMPO 0s". Então, no solo, só espero o
   // meu assento. No ONLINE cada humano lacra no próprio aparelho (mantém todos).
   // No-op no jogo solo normal (só existe 1 humano = o youIdx).
-  if (state.onlineMode !== 'online') {
+  // 🌐 carreira online v2: cada clube de gente lança do próprio aparelho (chega pelo canal) → espera TODOS, igual ao online
+  if (state.onlineMode !== 'online' && !state.co2) {
     const meId = state.managers[state.youIdx]?.id
     return eligible.filter(m => m.id === meId).map(m => m.id)
   }
@@ -6922,7 +6938,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
     state.sectorUnsoldAccum = []
     startAuctionPhase(state, false)
   } else {
-    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' ? state.managers[state.youIdx]?.id : undefined)
+    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' && !state.co2 ? state.managers[state.youIdx]?.id : undefined) // 🌐 v2: todos os clubes de gente pescam
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)
@@ -7168,6 +7184,42 @@ function reducerBase(state: EscState, action: Action): EscState {
   // posição é só do offline. Fica aqui porque o reducer roda em toda ação —
   // então o ponteiro nunca fica velho, nem depois de um F5.
   marcaModoOnline(state.onlineMode === 'online')
+  // 🌐 CARREIRA ONLINE v2 (19/10): o leilão é de TODOS e quem calcula é o dono. Os outros recebem o estado dele pra
+  // VER e apertar (os toques vão pro dono, ver o `dispatch` do EscProvider). A identidade é sempre local: "quem sou eu" é
+  // o técnico de id `meuId` (a ordem dos clubes é a mesma em todo aparelho: `mundo.ordem` da sala).
+  if (action.type === 'CO2_ABRE') {
+    const sv = action.save
+    if (!sv?.co2 || !Array.isArray(sv.managers)) return state
+    reancoraEsporte(sv)
+    return { ...sv, isHost: true, onlineMode: 'cpu', co2: { ...sv.co2, espelho: false, comanda: !!sv.co2.comanda, gavetas: sv.co2.gavetas ?? [] } }
+  }
+  if (action.type === 'CO2_ESPELHO' || action.type === 'CO2_ASSUME') {
+    const ns = action.newState
+    if (!ns?.co2 || !Array.isArray(ns.managers)) return state
+    const idx = ns.managers.findIndex(m => m.id === action.meuId && m.isHuman)
+    if (idx < 0) return state
+    reancoraEsporte(ns)
+    const espelho = action.type === 'CO2_ESPELHO'
+    const out: EscState = {
+      ...ns,
+      youIdx: idx,
+      // no espelho eu NÃO sou quem conduz (nada de relógio/robô rodando aqui); depois da fase de todos o meu aparelho
+      // vira o "solo" do meu clube, igual à carreira de sempre
+      isHost: !espelho,
+      co2: { sala: ns.co2.sala, assento: action.meuId, gavetas: espelho ? [] : (state.co2?.gavetas ?? []), comanda: false, espelho },
+    }
+    if (!espelho) {
+      // 🧾 o que é SÓ do clube de quem conduziu não vem junto: o livro-caixa e o presidente são meus
+      // as compras do MEU clube no leilão de todos chegam guardadas por clube (ver `logFin`)
+      out.careerLedger = state.co2 && !state.co2.espelho ? [...(state.careerLedger ?? []), ...(ns.careerLedgers?.[action.meuId] ?? [])] : [...(ns.careerLedgers?.[action.meuId] ?? [])]
+      out.careerLedgers = undefined
+      out.careerPresident = state.co2 && !state.co2.espelho ? state.careerPresident : undefined
+      out.careerPresidentBase = state.co2 && !state.co2.espelho ? state.careerPresidentBase : undefined
+      out.agenciaClubeId = action.meuId
+      if (!out.careerLedger?.some(e => e.kind === 'opening')) out.careerLedger = [{ id: 'co2-abertura', season: out.seasonNo ?? 1, kind: 'opening', label: '🏁 Saldo inicial', amount: 100 }, ...(out.careerLedger ?? [])]
+    }
+    return out
+  }
   if (action.type === 'SYNC_STATE') {
     reancoraEsporte(action.newState) // o baralho/esporte segue o estado do host (reload zera o ponteiro; 🏀 sala de basquete reancora no NBA)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
@@ -7607,6 +7659,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: action.arqui ? { ...novo, ultimoClassico: { t: action.temporada, res: action.res } } : novo }
       return s
     }
+    // 🌐 CARREIRA ONLINE v2: os clubes dos OUTROS (elenco, formação, nome) entram na lista; o MEU nunca é tocado. As
+    // entradas de simulação deles ficam em `co2.gavetas` e a tela mistura na hora de simular (`mesclaEntradas`).
+    case 'CO2_GAVETAS': {
+      if (!s.co2) return s
+      const meuId = s.managers[s.youIdx]?.id
+      if (meuId == null) return s
+      s.managers = mesclaClubes(s.managers, action.gavetas, meuId)
+      const minha = action.gavetas.find(g => g.mgrId === meuId)
+      s.co2 = { ...s.co2, gavetas: action.gavetas.filter(g => g.mgrId !== meuId), ...(action.ate != null && minha ? { minha, congeladoAte: action.ate } : {}) }
+      return s
+    }
     case 'COLETIVA_FECHA': {
       const atual = coletivaSana(s.careerColetiva?.[action.mgrId])
       if (!atual.promessas.some(p => p.t === action.temporada && p.cumprida === undefined)) return s
@@ -8022,8 +8085,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.deckLeague = escadaLiberada() ? 'todos' : (action.league ?? 'br'); setActiveCatalog(s.deckLeague)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      s.humanCount = 1
-      s.youIdx = 0
+      // 🌐 CARREIRA ONLINE v2 (19/10): a MESMA carreira, só que com os clubes dos amigos de gente na sala (cada aparelho
+      // depois roda o próprio). Sem `co2` = solo de sempre, linha por linha.
+      const co2Nomes = action.co2 ? action.co2.nomes.map(n => n.trim() || 'Clube') : null
+      s.humanCount = co2Nomes ? co2Nomes.length : 1
+      s.youIdx = co2Nomes ? Math.max(0, Math.min(co2Nomes.length - 1, action.co2!.assento)) : 0
       const rivalCount = Math.max(0, Math.min(action.rivals, LEAGUE_SIZE - 1))
       // ordem dos nomes: rivais escolhidos primeiro (viram os auction-rivals), depois
       // o resto da ELITE (a 👑 Série A) sem repetir.
@@ -8032,12 +8098,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🌱 escada: os bots de preenchimento da sala usam os times de VÁRZEA (a sala
       // é a divisão V) — os nomes da elite ficam livres pro fundo profissional.
       const nameOrder = escadaLiberada() ? [...chosen, ...VARZEA_TEAMS] : [...chosen, ...rest]
-      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
+      const { managers, botPlans } = makeManagers(co2Nomes ?? [action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
       // marca os rivais escolhidos (os auction-rivals, ids 1..rivalCount) como
       // RIVAIS coloridos no display — são CPU, mas aparecem como rivais de verdade.
-      for (let i = 0; i < rivalCount; i++) { const m = managers[1 + i]; if (m && !m.isHuman) m.rival = true }
+      for (let i = 0; i < rivalCount; i++) { const m = managers[s.humanCount + i]; if (m && !m.isHuman) m.rival = true }
       s.managers = managers
-      s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ nasce apontando pro 1º clube (fundação); com 2º clube o dono pode trocar no toggle (SET_AGENCIA_CLUBE)
+      s.agenciaClubeId = managers[s.youIdx]?.id ?? 0 // 🕴️ nasce apontando pro 1º clube (fundação); com 2º clube o dono pode trocar no toggle (SET_AGENCIA_CLUBE)
       // colocação inicial: você e os rivais na divisão de estreia; B/C/D com os
       // times fixos do baralho e a 👑 SÉRIE A com os clubes da elite que ninguém
       // levou de rival (+ extras, até fechar 20).
@@ -8129,6 +8195,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🔨 tela de regras antes do 1º pregão da carreira (mantém o modal de rivais
       // no setup; isto é só a página nova ao avançar).
+      s.co2 = action.co2 ? { sala: action.co2.sala, assento: s.youIdx, gavetas: [], comanda: true } : undefined
       if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -8889,7 +8956,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
       // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
-      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2) return s // 🌐 v2: sem 2º clube
       if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: o 2º clube só nasce da SAF (SAF2_ASSUMIR), nunca mais comprado direto
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -10936,6 +11003,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS (leilão no aparelho de quem comanda) — em construção, nada anda sozinho aqui
       if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
@@ -11025,6 +11093,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'CONFIRM_MESMO_TIME': {
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção
       // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
       // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
       // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
@@ -11589,6 +11658,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // divisão de destino com o novo elenco de rivais (quem subiu/caiu junto
       // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
       setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
@@ -12161,6 +12231,27 @@ function writeCareerArchive(slots: CareerSlot[]): boolean {
 // o LOGIN, nunca o aparelho.
 const CAREER_OWNER_KEY = 'esc-career-owner'
 const CAREER_VAULT_PREFIX = 'esc-career-vault::'
+// 🌐 carreira online v2: UMA chave só (a sala aberta por último), sobrescrita — não acumula por sala no aparelho
+export const CO2_LOCAL_KEY = 'esc-co2-atual'
+// as ações que um convidado pode mandar pro leilão de quem comanda (o resto do jogo do dono ninguém de fora mexe)
+const CO2_ACOES_DE_FORA = new Set<string>(['SUBMIT_ENVELOPE', 'SUBMIT_TIEBREAK', 'MONTE_PICK', 'MONTE_PASS', 'HOLANDES_PEGAR', 'PREGAO_ABERTO_LANCE', 'CONFIRM_MESMO_TIME', 'CAST_SEASON_VOTE', 'TOGGLE_RESERVE_LIST', 'RENEW_CONTRACT', 'RELEASE_CONTRACT', 'FREEZE_COPA_XI'])
+// guarda com folga de 1,5s (o estado da carreira é grande: comprimir a cada toque travaria o celular)
+let co2GuardaTimer: ReturnType<typeof setTimeout> | null = null
+function co2GuardaLocal(st: EscState): void {
+  if (co2GuardaTimer) clearTimeout(co2GuardaTimer)
+  co2GuardaTimer = setTimeout(() => {
+    co2GuardaTimer = null
+    try { localStorage.setItem(CO2_LOCAL_KEY, JSON.stringify({ sala: st.co2?.sala, at: Date.now(), z: pack(sanitize(st)) })) } catch { /* cota cheia: a nuvem do jogo guarda */ }
+  }, 1500)
+}
+export function co2LeLocal(sala: string): EscState | null {
+  try {
+    const r = localStorage.getItem(CO2_LOCAL_KEY)
+    if (!r) return null
+    const o = JSON.parse(r) as { sala?: string; z?: string }
+    return o.sala === sala && o.z ? unpack<EscState>(o.z) : null
+  } catch { return null }
+}
 const LOCAL_CAREER_KEYS = ['esc-solo-career', 'esc-solo-career-at', CAREER_ARCHIVE_KEY, SOLO_RESUME_KEY]
 type CareerVault = Record<string, string | null>
 function stashLocalCareers(): CareerVault {
@@ -13104,7 +13195,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
-      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
+      // 🌐 carreira online v2 NUNCA vira "partida solo em andamento" (senão abriria como solo, sem os amigos)
+      if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
+      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
@@ -13117,6 +13210,42 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
+  // 🌐 CARREIRA ONLINE v2 (19/10): o leilão de TODOS roda no aparelho de quem comanda o dia; os outros assistem e mandam
+  // os toques pelo canal PRÓPRIO da carreira (`co2:<sala>` — nada dos canais das salas rápidas/Minhas Ligas).
+  useEffect(() => co2Ganchos({
+    aoAcao: a => {
+      const st = stateRef.current
+      if (!st.co2?.comanda || st.screen === 'season') return
+      const act = a as Action
+      if (!act || typeof act !== 'object' || typeof (act as { type?: unknown }).type !== 'string') return
+      if (CO2_ACOES_DE_FORA.has(act.type)) rawDispatch(act) // só as ações do leilão; nada de mexer no resto do jogo do dono
+    },
+    aoEstado: z => {
+      const st = stateRef.current
+      if (st.co2?.comanda) return
+      if (st.co2 && !st.co2.espelho) return // já toco o meu clube: o leilão acabou pra mim
+      const sn = co2Agora()
+      const meuId = sn.uid && sn.mundo ? sn.mundo.ordem.indexOf(sn.uid) : -1
+      if (meuId < 0) return
+      let next: EscState
+      try { next = unpack<EscState>(z) } catch { return }
+      if (!next?.co2 || next.co2.sala !== sn.sala?.id) return
+      rawDispatch({ type: next.screen === 'season' ? 'CO2_ASSUME' : 'CO2_ESPELHO', newState: next, meuId })
+    },
+    aoPedirEstado: () => { const st = stateRef.current; if (st.co2?.comanda) co2Envia('estado', { z: pack(sanitize(st)) }) },
+  }), [])
+  // quem comanda manda o estado do leilão (com folga de 0,4s) e, quando a fase de todos acaba, manda a última foto
+  const co2TelaRef = useRef<string>('')
+  const co2EnvioRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!state.co2?.comanda) return
+    const antes = co2TelaRef.current
+    co2TelaRef.current = state.screen
+    const fim = state.screen === 'season' && antes !== '' && antes !== 'season'
+    if (state.screen === 'season' && !fim) return
+    if (co2EnvioRef.current) clearTimeout(co2EnvioRef.current)
+    co2EnvioRef.current = setTimeout(() => { co2EnvioRef.current = null; co2Envia('estado', { z: pack(sanitize(stateRef.current)) }) }, fim ? 0 : 400)
+  }, [state])
   // ⏱️ QUEM É O DONO NÃO TEM DESVIO. Ele é quem CARIMBA os prazos, então a hora
   // do aparelho dele É a hora da sala — e quem está fora do online não tem sala
   // nenhuma. Isso também deixa a passagem de coroa segura: no instante em que
@@ -13398,6 +13527,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // 🌐 v2: no leilão do dono, o que EU aperto vai pra ele (o meu aparelho só mostra)
+    // (e nada mais muda o estado que estou só assistindo: o próximo pacote do dono passaria por cima)
+    if (stateRef.current.co2?.espelho) {
+      if (CO2_ACOES_DE_FORA.has(action.type)) { co2Envia('acao', action); return }
+      if (!['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) return
+    }
     // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
     // calado. START (criar sala) é gesto seu — posse plena. BECOME_HOST marca
     // forçado nos DOIS pontos que o disparam (botão RETOMAR / sumiço provado).
@@ -13961,6 +14096,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const soloSigRef = useRef('')
   useEffect(() => {
     if (state.onlineMode === 'online' || !state.careerOnline) return
+    if (state.co2) return // 🌐 carreira online v2 tem save PRÓPRIO (nunca escreve por cima da carreira solo do aparelho)
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
@@ -13991,7 +14127,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // se dependesse só do host, o celular dele apagar a tela travava a sala
   // inteira pra sempre. O reducer reconfirma o prazo antes de aplicar, então
   // disparos duplicados de vários clientes são inofensivos.
-  const monteHumano = state.onlineMode === 'online' && state.screen === 'monte'
+  const monteHumano = (state.onlineMode === 'online' || !!state.co2?.comanda) && state.screen === 'monte'
     && !!state.managers.find(x => x.id === state.monteOrder[state.monteIdx])?.isHuman
   useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }),
     () => logTravaSalva('monte', 2, stateRef.current.roomId, stateRef.current.isHost))
@@ -14054,7 +14190,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // um `setTimeout` sozinho, o celular que sai da frente engolia o único tiro e
   // o leilão ficava parado no 0s pra sala inteira. Ver o comentário do vigia.
   useVigiaPrazo(
-    state.onlineMode === 'online' && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
+    (state.onlineMode === 'online' || !!state.co2?.comanda) && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_SEAL' }),
     () => logTravaSalva('envelope', 2, stateRef.current.roomId, stateRef.current.isHost),
@@ -14063,7 +14199,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
   // qualquer cliente força a resolução — quem não re-lançou não cobre.
   useVigiaPrazo(
-    state.onlineMode === 'online' && state.phase === 'tiebreak',
+    (state.onlineMode === 'online' || !!state.co2?.comanda) && state.phase === 'tiebreak',
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_TIEBREAK' }),
     () => logTravaSalva('desempate', 2, stateRef.current.roomId, stateRef.current.isHost),

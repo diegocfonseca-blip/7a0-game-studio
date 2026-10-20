@@ -28,10 +28,24 @@
 - 🔨 **19/10, etapa 1 em andamento**: banco feito e testado — tabelas `esc_carr_sala`/`esc_carr_clube`/`esc_carr_privado` + funções (criar,
   entrar, vice, presença, continuar, pronto, começar, apito, ritmo, encerrar dia). Teste das regras (dono/vice/convidado): `scripts/carreira-online/testa-regras.sql`.
   Falta: as telas (sala de espera e barra do PRONTO, mockups aprovados) + o motor rodando a rodada igual em todo aparelho.
+- 🔒 **19/10, decisão do Diego**: *"carreira online só pra minha conta ainda… tem que ser igual a carreira que temos hoje em tudo, menos ter
+  segundo clube"*. Então: **SEM 2º clube/SAF-2º clube** no online; TODO o resto da solo tem que existir. Antes de liberar pra qualquer
+  um: lista completa do que a solo tem (`docs/carreira-online-checklist.md`) e cada item conferido + teste de 20 robôs.
+- 🔨 **20/10: 1ª temporada de ponta a ponta (só contas do Diego)** — entrada no menu online "🌐 Carreira Online (nova)", sala de
+  espera, leilão de estreia com todos (o dono calcula, os outros assistem e lançam), cada um passa a tocar o próprio clube, barra
+  do PRONTO e rodadas no relógio do dono. Falta: a VIRADA de temporada (próxima), copas no relógio do dono, intervalo/pênalti.
+  Situação item a item em `docs/carreira-online-checklist.md`.
+- 🏢 **19/10: SAF no online = a REGRA ANTIGA, da SAF sozinha** (*"a saf na regra antiga qd tinha saf sozinha"*): filial na D, 50% dos
+  prêmios, empréstimo, comissão e venda pelo `SELL_FILIAL` — nada da saf2 (venda pela divisão, assumir, 2º clube).
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
 
+
+## 🤝🌍 Copa da sala com DUPLAS convocando o país errado (20/10, sala ZESM9K do Futpoint) — ✅ CONSERTADO E NO AR
+- Causa: a Copa do Mundo/regional da sala achava o time de cada pessoa pelo `player_index` do banco, que estava desencontrado
+  do time de verdade (Bonança: time 3 no jogo, número 5 no banco). Agora o assento sai do ESTADO da partida (`seatUids` +
+  `duplas`, `quemAgePeloEstado` em dupla-copa.ts) e a renumeração da largada também desfaz par cruzado. Trava: `npm run dupla-copa-estado`.
 ## 🤖 Tema da Tidex na sala (19/10) — ✅ NO AR (mockup `scripts/mockups/tema-tidex-cel.png`, "tá aprovado")
 - O dono do Wen Milan B (vittor@tidex) é dono da Tidex, patrocinadora do jogo. A conta dele tem 2 temas: 😈 Wen Milan B (o do
   Fundador) e 🤖 Tidex (azul-marinho + turquesa, grade de IA, logo embaixo, faixa "sua marca dentro das IAs"). Vale em sala rápida e
