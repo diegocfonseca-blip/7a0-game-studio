@@ -10,16 +10,19 @@ import { Jogo2D, eventosDoJogo, W, L, type CartaCampo } from './campo2d-motor'
 import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
 import { avatarLote1 } from './avatar-lote1'
 import { useT } from './lang'
+import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrás dos gols do campinho do jogo (Vadico · Tidex, trocando)
+import { nomeLimpo } from './escudos'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-const PAD = 4
+const PAD = 4 // margem do gramado em cima/embaixo (metros)
+const PADX = 8 // dos lados: é onde ficam a torcida e o técnico na beira do campo
 
 type Gol = { name: string; min: number; home: boolean; assist?: string }
 export interface Campo2DProps {
   roundKey: number
-  casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode }
-  fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode }
+  casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null }
+  fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null }
   gols: Gol[]
   roundMs: number
   minuto: number // o minuto que o placar mostra (o relógio manda)
@@ -31,6 +34,7 @@ export interface Campo2DProps {
 const rgb = (hex: string) => { const n = parseInt((hex || '#888888').replace('#', '').slice(0, 6).padEnd(6, '8'), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
 const claro = (hex: string) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.587 * g + 0.114 * b > 160 }
 const perto = (a: string, b: string) => { const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b); return Math.hypot(r1 - r2, g1 - g2, b1 - b2) < 110 }
+const sigla = (nome: string) => nomeLimpo(nome).replace(/[^A-Za-zÀ-ú ]/g, '').trim().slice(0, 3).toUpperCase()
 const IMGS = new Map<string, HTMLImageElement>()
 function rosto(c?: CartaCampo): HTMLImageElement | null {
   if (!c || (c.fame ?? 0) < 5) return null
@@ -49,6 +53,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const [larg, setLarg] = useState(360)
   const [narra, setNarra] = useState('')
   const [festa, setFesta] = useState<{ lado: 0 | 1; autor: string; assist?: string; min: number } | null>(null)
+  const [placarV, setPlacarV] = useState<[number, number]>([0, 0])
+  const ultimos = useRef({ narra: '', festa: '', placar: [-1, -1] as [number, number] })
   // 👕 camisas: o visitante troca pra 2ª cor quando bate com a do mandante
   const corCasa = casa.cor || '#C2452F'
   const corFora = perto(corCasa, fora.cor || '#2B6CFF') ? (claro(corCasa) ? '#1B1B1B' : '#F4F4F4') : (fora.cor || '#2B6CFF')
@@ -76,23 +82,25 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
 
   useEffect(() => {
     let raf = 0
-    const S = larg / (W + PAD * 2), CW = larg, CH = Math.round((L + PAD * 2) * S)
+    const S = larg / (W + PADX * 2), CW = larg, CH = Math.round((L + PAD * 2) * S)
     const c = cv.current; if (!c) return
     const dpr = Math.min(2, window.devicePixelRatio || 1)
     c.width = CW * dpr; c.height = CH * dpr; c.style.width = CW + 'px'; c.style.height = CH + 'px'
     const cx = c.getContext('2d')!; cx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    const px = (x: number) => (x + PAD) * S, py = (y: number) => (y + PAD) * S
+    const px = (x: number) => (x + PADX) * S, py = (y: number) => (y + PAD) * S
     const R = Math.max(8, S * 1.95)
     const cartaDe = new Map<string, CartaCampo>()
     for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
-    let ultNarra = '', ultFesta = ''
+    // o que já foi pra tela mora FORA do efeito: ele roda de novo a cada render e não pode esquecer que o GOL já está aberto
+    const ult = ultimos.current
     const quadro = () => {
       const r = relogio.current
       const m = fechado ? 93.5 : Math.min(r.min + 0.999, r.min + (performance.now() - r.em) / msPorMin)
       jogo.avancaAte(m)
-      if (jogo.narra !== ultNarra) { ultNarra = jogo.narra; setNarra(jogo.narra) }
+      if (jogo.narra !== ult.narra) { ult.narra = jogo.narra; setNarra(jogo.narra) }
+      if (jogo.placar[0] !== ult.placar[0] || jogo.placar[1] !== ult.placar[1]) { ult.placar = [jogo.placar[0], jogo.placar[1]]; setPlacarV(ult.placar) }
       const fk = jogo.festa ? `${jogo.festa.lado}|${jogo.festa.autor}|${jogo.festa.min}` : ''
-      if (fk !== ultFesta) { ultFesta = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null) }
+      if (fk !== ult.festa) { ult.festa = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null) }
       // 🟩 gramado + linhas
       for (let i = 0; i < 12; i++) { cx.fillStyle = i % 2 ? '#2B8443' : '#2F8F49'; cx.fillRect(0, (i * CH) / 12, CW, CH / 12 + 1) }
       cx.strokeStyle = 'rgba(255,255,255,.85)'; cx.lineWidth = 2
@@ -106,6 +114,35 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(px(30.34), s > 0 ? py(-2.2) - g : py(L), 7.32 * S, 2.2 * S + g)
         cx.lineWidth = 3; cx.strokeStyle = '#fff'; cx.strokeRect(px(30.34), s > 0 ? py(-2.2) - g : py(L), 7.32 * S, 2.2 * S + g)
         cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.85)'
+      }
+      // 🏟️ a torcida dos dois lados (bolinhas nas cores dos times: a da casa é maioria) e o técnico na beira do campo
+      for (const lx of [0, W + PADX]) {
+        cx.fillStyle = '#26303a'; cx.fillRect(lx === 0 ? 0 : px(W) + 3.5 * S, 0, (PADX - 3.5) * S, CH)
+        for (let i = 0; i < 46; i++) {
+          const yy = ((i * 37) % 46) / 46 * CH + 4, xx = (lx === 0 ? 0 : px(W) + 3.5 * S) + ((i * 53) % 10) / 10 * (PADX - 4) * S + 3
+          const pula = jogo.festa && ((i % 3 === 0) === (jogo.festa.lado === 0)) ? Math.abs(Math.sin(jogo.t * 9 + i)) * 2.5 : 0
+          cx.beginPath(); cx.arc(xx, yy - pula, Math.max(1.6, S * 0.45), 0, 7); cx.fillStyle = i % 3 === 0 ? corFora : corCasa; cx.fill()
+        }
+      }
+      const fala = (lado: 0 | 1): string => {
+        if (jogo.festa) return jogo.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
+        if (jogo.t < 4.5) { const tac = jogo.tatica[lado]; return tac > 0 ? t('🔥 Pra cima!', '🔥 Attack!') : tac < 0 ? t('🧱 Fecha a casinha!', '🧱 Shut up shop!') : t('⚖️ Toca a bola!', '⚖️ Keep the ball!') }
+        return ''
+      }
+      for (const [lado, tec, yy] of [[0, casa.tecnico, L * 0.72], [1, fora.tecnico, L * 0.28]] as const) {
+        if (!tec) continue
+        const X = px(-PADX * 0.42), Y = py(yy), RR = Math.max(7, S * 1.5), camisa = lado === 0 ? corCasa : corFora
+        cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(X - RR - 3, Y - RR - 3, (RR + 3) * 2, (RR + 3) * 2) // a área técnica
+        cx.beginPath(); cx.arc(X, Y, RR, 0, 7); cx.fillStyle = '#1b1b1b'; cx.fill(); cx.lineWidth = 2.5; cx.strokeStyle = camisa; cx.stroke()
+        cx.font = `${Math.round(RR * 1.1)}px sans-serif`; cx.textAlign = 'center'; cx.fillText('🧢', X, Y + RR * 0.4)
+        const nm = nomeLimpo(tec).split(' ').slice(-1)[0]
+        cx.save(); cx.translate(X, Y + RR + 4); cx.rotate(-Math.PI / 2); cx.font = `700 ${Math.max(8, Math.round(S * 1.25))}px Oswald`; cx.textAlign = 'right'; cx.fillStyle = '#fff'; cx.fillText(nm.toUpperCase(), 0, 4); cx.restore()
+        const f = fala(lado)
+        if (f) {
+          cx.font = `700 ${Math.max(9, Math.round(S * 1.4))}px Oswald`; const w = cx.measureText(f).width + 10, bx0 = X - RR, by0 = Y - RR - 22
+          cx.fillStyle = '#fff'; cx.strokeStyle = INK; cx.lineWidth = 2; cx.beginPath(); cx.roundRect?.(bx0, by0, w, 17, 6); cx.fill(); cx.stroke()
+          cx.fillStyle = INK; cx.textAlign = 'left'; cx.fillText(f, bx0 + 5, by0 + 12.5)
+        }
       }
       // 🧍 os 22 (de trás pra frente)
       for (const p of [...jogo.atl].sort((a, b) => a.y - b.y)) {
@@ -133,13 +170,21 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     }
     raf = requestAnimationFrame(quadro)
     return () => cancelAnimationFrame(raf)
-  }, [jogo, larg, corCasa, corFora, fechado, msPorMin, casa.cartas, fora.cartas])
+  }, [jogo, larg, corCasa, corFora, fechado, msPorMin, casa.cartas, fora.cartas, casa.tecnico, fora.tecnico, t])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   return (
     <div ref={caixa} style={{ marginBottom: 10 }}>
       <div style={{ position: 'relative', width: larg, margin: '0 auto', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `3px 3px 0 ${INK}` }}>
-        <canvas ref={cv} style={{ display: 'block' }} />
+        <PlacaGol lado="cima" alt={Math.max(22, Math.round(larg / 16))} />
+        <div style={{ position: 'relative' }}>
+          <canvas ref={cv} style={{ display: 'block' }} />
+          {/* 📺 o "selo da TV": placar e minuto do que o campinho JÁ mostrou (o placar só muda quando a bola entra) */}
+          <div style={{ position: 'absolute', left: 6, top: 6, ...OSW, fontSize: 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
+          </div>
+        </div>
+        <PlacaGol lado="baixo" alt={Math.max(22, Math.round(larg / 16))} />
         {festa && time && (
           // ⚽ o GOL: mascote grande (quem tem) ou GOOOL + escudo; embaixo a faixinha do autor — o mesmo teatro uma vez só
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, animation: 'c2dEntra .3s ease' }}>

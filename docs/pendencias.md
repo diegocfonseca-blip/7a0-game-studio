@@ -9533,3 +9533,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⏳ Falta: (2) salas online — escolha "⚡ Padrão rápido · 📺 2D" ao criar; (3) Copa/Liberta na carreira; (4) trava de PLANO
   (⭐ Craque+) quando liberar; (5) mais variedade de lances (pênalti NÃO — tem tela própria); (6) a narração da faixa do placar
   ainda pode falar de outro lance que o campinho.
+- ✅ **20/10 — CARA DE ESTÁDIO** (pedido: placas atrás dos gols, telão embaixo, técnico na beira): as MESMAS placas do campinho
+  do jogo (`PlacaGol`, Vadico/Tidex trocando) em cima e embaixo do campo · arquibancada nas laterais com a torcida nas cores
+  dos dois times (pula no gol) · os dois TÉCNICOS na beira do campo (nome do `careerTecnicos` + balão "🔥 Pra cima!" /
+  "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
+  O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
+  jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).

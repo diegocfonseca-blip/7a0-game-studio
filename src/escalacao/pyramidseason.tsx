@@ -10413,7 +10413,7 @@ export function PyramidSeasonScreen() {
           const corOutro = colors?.[casaVoce ? myMatch.aId : myMatch.hId]?.solid ?? '#3A7CA5'
           const tacV = tacAt(careerTactics, youId, Math.max(0, round - 1))
           const tv = tacV === 'ataque' ? 1 : tacV === 'retranca' ? -1 : 0
-          const lado = (nome: string, cor: string, cartas?: CartaRadio[]) => ({ nome, cor, cartas: cartas as never, mascote: carimboDoTime(nome), escudo: <Escudo nome={nome} size={110} /> })
+          const lado = (nome: string, cor: string, cartas?: CartaRadio[]) => ({ nome, cor, cartas: cartas as never, mascote: carimboDoTime(nome), escudo: <Escudo nome={nome} size={110} />, tecnico: state.careerTecnicos?.[nome] ?? null })
           return <Campo2D roundKey={round} minuto={min2d} roundMs={roundMs} gols={myMatch.goals}
             casa={lado(myMatch.h, casaVoce ? myCol.solid : corOutro, myMatch.hxi)} fora={lado(myMatch.a, casaVoce ? corOutro : myCol.solid, myMatch.axi)}
             tatica={casaVoce ? [tv, 0] : [0, tv]} />

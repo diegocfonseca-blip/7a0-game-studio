@@ -29,8 +29,8 @@ function Bancada() {
   return <>
     <p style={{ textAlign: 'center', fontFamily: 'Oswald', fontWeight: 700, margin: '0 0 6px' }}>Fabulous EC × Chelsão · {min}'</p>
     <Campo2D roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={gols} fechado={min >= 93}
-      casa={{ nome: 'Fabulous EC', cor: '#FFC400', cartas: casa, mascote: carimboDoTime('Fabulous EC'), escudo: <Escudo nome="Fabulous EC" size={110} /> }}
-      fora={{ nome: 'Chelsão', cor: '#2B6CFF', cartas: fora, mascote: carimboDoTime('Chelsão'), escudo: <Escudo nome="Chelsão" size={110} /> }} />
+      casa={{ nome: 'Fabulous EC', cor: '#FFC400', cartas: casa, mascote: carimboDoTime('Fabulous EC'), escudo: <Escudo nome="Fabulous EC" size={110} />, tecnico: 'Telê Santana' }}
+      fora={{ nome: 'Chelsão', cor: '#2B6CFF', cartas: fora, mascote: carimboDoTime('Chelsão'), escudo: <Escudo nome="Chelsão" size={110} />, tecnico: 'Mourinho' }} />
   </>
 }
 createRoot(document.getElementById('root')!).render(<Bancada />)
