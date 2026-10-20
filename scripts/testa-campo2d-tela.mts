@@ -19,18 +19,26 @@ for (let s = SO || 1; s <= (SO || N); s++) {
   const j: any = new Jogo2D(s, casa, fora, eventosDoJogo(gols, chancesDoJogo(s * 77, gols, 109_756)))
   // relógio do placar (LiveScoreCard): minuto = round(93 · t / dur), checado a cada 40 ms; campinho a cada 16,7 ms
   const dur = DUR_2D_MS * 0.82, msPorMin = dur / 93
+  // 🐌 metade dos jogos com o relógio de cima 3,5% mais LENTO que o campinho espera (a Copa da carreira conta 90' no tempo de 93';
+  // o online chega pela rede) — foi isso que deu a "câmera lenta do nada" (Diego 20/10). O campinho tem que medir o ritmo e andar liso.
+  const durRel = s % 2 ? dur * 1.035 : dur
+  let msR = msPorMin, janela = 0, janelaSim = 0
+  let peLento = 0, peJan = 0, peB = { x: 34, y: 52.5 }
   let simMin = 0, rMin = 0, rEm = 0, ult: number[] | null = null, bAnt = { x: 34, y: 52.5 }
   let parado = 0, bolaParada = 0, vaiVolta: number[][] = j.atl.map(() => []), dirAnt: number[] = j.atl.map(() => 99), amostraAnt: number[] | null = null
   for (let ms = 0; ms <= dur + 4000; ms += 1000 / 60) {
-    const placar = Math.min(93, Math.round(93 * Math.floor(ms / 40) * 40 / dur))
-    if (placar !== rMin) { rMin = placar; rEm = ms }
-    const dt = 1000 / 60, alvo = Math.min(rMin + 1.25, rMin + (ms - rEm) / msPorMin)
-    let m = simMin + dt / msPorMin
-    if (placar >= 93) m = Math.max(93.5, simMin + dt / msPorMin)
+    const placar = Math.min(93, Math.round(93 * Math.floor(ms / 40) * 40 / durRel))
+    if (placar !== rMin) { const passo = placar - rMin; if (passo >= 1 && passo <= 3) { const med = (ms - rEm) / passo; if (med > 40 && med < msR * 3) msR = msR * 0.6 + med * 0.4 } rMin = placar; rEm = ms }
+    // (a MESMA conta do `campo2d.tsx`: mede o ritmo do relógio e acerta a diferença mudando um pouco a velocidade)
+    const dt = 1000 / 60, teto = rMin + 1.25, alvo = Math.min(teto, rMin + (ms - rEm) / msR)
+    let m = simMin + dt / msR
+    if (placar >= 93) m = Math.max(93.5, simMin + dt / msR)
     else if (Math.abs(alvo - m) > 2.5) m = alvo
-    else m += (alvo - m) * Math.min(1, dt / 500)
+    else m = Math.min(teto, simMin + (dt / msR) * Math.max(0.8, Math.min(1.4, 1 + (alvo - m) * 0.9)))
     const tela0 = simMin
     simMin = Math.max(simMin, m)
+    // 🐌 câmera lenta: em cada meio segundo com o relógio correndo, o campinho tem que andar ≥ 70% do ritmo do relógio
+    if (placar >= 2 && placar < 92) { janela += dt; janelaSim += simMin - tela0; if (janela >= 500) { add('janelas'); if (janelaSim < 0.7 * janela / (durRel / 93)) { add('camera_lenta'); nota('camera_lenta', `s${s} ${placar}' andou ${(100 * janelaSim / (janela / (durRel / 93))).toFixed(0)}% do relógio`) } janela = 0; janelaSim = 0 } }
     j.avancaAte(simMin)
     if (j.t > 93 * SEG_POR_MIN) break
     const sec = dt / 1000
@@ -45,6 +53,14 @@ for (let s = SO || 1; s <= (SO || N); s++) {
 
       }
       const vb = Math.hypot(j.bola.x - bAnt.x, j.bola.y - bAnt.y) / sec
+      // 🐌 bola no pé andando em passo de caminhada (< 3,5 m/s, medido em janelas de 0,25 s — a 60 quadros/s nem todo quadro tem
+      // passo do motor) com o jogo rolando: o "câmera lenta" que o Diego via (20/10)
+      peJan += sec
+      if (peJan >= 0.25) {
+        const vp = Math.hypot(j.bola.x - peB.x, j.bola.y - peB.y) / peJan
+        if (j.bola.dono && j.parada == null && !j.festa && !j.bola.voo && j.bola.dono.grupo !== 'GOL') { add('pe_q'); if (vp < 3.5) { add('pe_lento'); peLento += peJan } else { if (peLento > 1.5) { add('pe_lento_trecho'); nota('pe_lento', `s${s} ${(j.t / SEG_POR_MIN).toFixed(1)}' ${peLento.toFixed(1)}s ${j.bola.dono.nome}`) } peLento = 0 } }
+        peJan = 0; peB = { x: j.bola.x, y: j.bola.y }
+      }
       // ❄️ "congelou": ninguém se mexe (todos < 0,6 m/s) e a bola parada
       if (vmax < 0.6 && vb < 0.3 && !j.festa) { parado += sec } else { if (parado >= 0.5) { add('congela_n'); add('congela_s', parado); nota('congela', `s${s} ${(j.t / SEG_POR_MIN).toFixed(1)}' ${parado.toFixed(1)}s par=${j.parada} dono=${j.bola.dono?.nome ?? '-'} "${(j.narra || '').replace(/<\/?b>/g, '').slice(0, 40)}"`) } parado = 0 }
       // ⚽ bola parada no meio do jogo (sem cobrança, sem festa) por mais de 0,8 s
@@ -77,5 +93,7 @@ if (!SO) {
   assert.ok((R.congela_n ?? 0) <= N * 0.1, 'campinho congelado (ninguém se mexe e a bola parada)')
   assert.ok(plant <= 8, 'jogador plantado com a bola rolando')
   assert.ok((R.treme ?? 0) <= N * 1.5, 'jogador tremendo (vai e volta)')
+  assert.ok((R.pe_lento ?? 0) <= (R.pe_q ?? 1) * 0.1 && (R.pe_lento_trecho ?? 0) <= N, 'bola no pé andando em câmera lenta')
+  assert.ok((R.camera_lenta ?? 0) <= (R.janelas ?? 0) * 0.005, 'campinho em câmera lenta (andando bem mais devagar que o relógio)')
   console.log('📺 tela: tudo certo')
 }

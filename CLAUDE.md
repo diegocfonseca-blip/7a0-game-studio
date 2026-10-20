@@ -955,6 +955,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   cada um NATURALMENTE no lugar da sua posição na formação escolhida (sem ficar estátua). Elenco com mais de 11 escala pela
   formação (`onzeDaFormacao`), troca do intervalo vale no 2º tempo, e a linha de trás defende alinhada. Quem chama o
   `LiveScoreCard` manda a formação junto (`elencos.fCasa/fFora`). Trava no `npm run campo2d`.
+  (12) **NADA DE CÂMERA LENTA** (20/10, *"do nada a bola fica em câmera lenta"*): com o 2D ligado o relógio do placar NUNCA
+  espera cena do estádio (`privateField` desliga com o 2D); o campinho mede o ritmo real do relógio; bola longa voa a 22–28 m/s
+  (nunca 13); passe chega andando (não freia até zero); quem tem a bola ginga a ~4,6 m/s e, esperando o lance, faz TABELINHA.
+  A trava da tela reprova câmera lenta e bola no pé em passo de caminhada.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

@@ -3134,7 +3134,10 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const c2dX = useCampo2DExtras()
   const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
-  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket
+  // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
+  // esperando essa cena invisível, e o campinho ia freando até o relógio voltar: a "câmera lenta do nada" (Diego 20/10). Com
+  // o 2D, o relógio é o de todo mundo.
+  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d
   const watchingField=useAssistindoCampo()
   const watchedField=useRef({id:stadiumMatch?.id,watched:false})
   if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}

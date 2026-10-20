@@ -44,6 +44,7 @@ export interface Campo2DProps {
 const rgb = (hex: string) => { const n = parseInt((hex || '#888888').replace('#', '').slice(0, 6).padEnd(6, '8'), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
 const claro = (hex: string) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.587 * g + 0.114 * b > 160 }
 const perto = (a: string, b: string) => { const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b); return Math.hypot(r1 - r2, g1 - g2, b1 - b2) < 110 }
+const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 const sigla = (nome: string) => nomeLimpo(nome).replace(/[^A-Za-zÀ-ú ]/g, '').trim().slice(0, 3).toUpperCase()
 const IMGS = new Map<string, HTMLImageElement>()
 function img(src: string): HTMLImageElement {
@@ -119,9 +120,19 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   }
   if (tatica) jogo.tatica = tatica
   // ⏱️ o minuto do placar chega inteiro; aqui ele vira contínuo (até o próximo inteiro) pro campinho andar liso
-  const relogio = useRef({ min: 0, em: performance.now() })
-  useEffect(() => { relogio.current = { min: minuto, em: performance.now() } }, [minuto])
   const msPorMin = Math.max(400, roundMs * 0.82) / 93
+  // 🐌 FIM DA CÂMERA LENTA (Diego 20/10: *"do nada a bola fica em câmera lenta"*): o campinho calculava o ritmo pela duração
+  // do jogo, mas o relógio de cima nem sempre anda nesse ritmo (a Copa da carreira conta 90' no tempo de 93', o online chega
+  // pela rede aos trancos). Com o relógio um pouco mais lento, o campinho encostava no limite e ia FREANDO até o minuto
+  // seguinte — câmera lenta. Agora ele MEDE o ritmo de verdade nos próprios tiques do relógio e anda nele.
+  const relogio = useRef({ min: 0, em: performance.now(), ms: msPorMin })
+  useEffect(() => { relogio.current.ms = msPorMin }, [msPorMin, roundKey])
+  useEffect(() => {
+    const r = relogio.current, agora = performance.now(), passo = minuto - r.min
+    let ms = r.ms
+    if (passo >= 1 && passo <= 3) { const med = (agora - r.em) / passo; if (med > 40 && med < ms * 3) ms = ms * 0.6 + med * 0.4 }
+    relogio.current = { min: minuto, em: agora, ms }
+  }, [minuto])
   // 🐢 ANTI-TRAVADA (20/10, Diego: *"o jogo dando umas travadas com a bola rolando"*): o placar re-renderiza a cada minuto e
   // mandava arrays/objetos novos — o desenho REINICIAVA (canvas zerado, tudo recalculado). Agora o que muda sem mudar o jogo
   // (elenco, técnico, apito, idioma) é lido daqui, e o desenho só reinicia quando muda o JOGO, o tamanho ou as cores.
@@ -297,14 +308,15 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
       }
       const agora = performance.now(), dt = Math.min(250, agora - antes); antes = agora
-      const r = relogio.current
-      const alvo = Math.min(r.min + 1.25, r.min + (agora - r.em) / msPorMin)
-      let m = simMin + dt / msPorMin
+      const r = relogio.current, msR = r.ms
+      const teto = r.min + 1.25, alvo = Math.min(teto, r.min + (agora - r.em) / msR)
+      let m = simMin + dt / msR
       // 🏁 no apito final o relógio para, mas a simulação ainda anda uns segundos: é o que fecha a festa de um gol nos
       // acréscimos (Diego 20/10: *"mascote travado"* — o GOL do 90+2' ficava aberto pra sempre com o jogo congelado em 93')
       if (fechado) m = Math.max(93.5, simMin + dt / msPorMin) // (o motor congela sozinho quando não sobra nada pendente)
       else if (Math.abs(alvo - m) > 2.5) m = alvo // pulou de verdade (voltou pra tela, trocou a velocidade): vai direto
-      else m += (alvo - m) * Math.min(1, dt / 500)
+      // (acerta a diferença mudando um POUCO a velocidade, nunca freando até parar: quem dita a parada é o relógio, no teto)
+      else m = Math.min(teto, simMin + (dt / msR) * clamp(1 + (alvo - m) * 0.9, 0.8, 1.4))
       simMin = Math.max(simMin, m)
       jogo.avancaAte(simMin)
       if (jogo.narra !== ult.narra) { ult.narra = jogo.narra; setNarra(jogo.narra) }

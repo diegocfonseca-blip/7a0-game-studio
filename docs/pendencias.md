@@ -9717,6 +9717,16 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ✅ **20/10 — 🐌 FIM DA CÂMERA LENTA NO 2D + JOGO INTEIRO ANALISADO LANCE A LANCE** (Diego: *"daqui a pouco ela começa a andar
+  em câmera lenta do nada… analisa um jogo completo… se tá tendo sentido igual um jogo de futebol real"*). Causas achadas:
+  (1) 🐛 na conta dele (estádio do presidente liberado) o relógio do placar PARAVA a cada chance e gol esperando a cena do
+  estádio, que com o 2D nem aparece — o campinho encostava no limite e freava. Com o 2D, o relógio é o de todo mundo.
+  (2) chutão do goleiro e lançamentos a 13 m/s (59 m = 4,5 s boiando) → 22–28 m/s. (3) todo passe freava até ZERO no pé de
+  quem recebe → chega com ~¼ da velocidade. (4) quem tinha a bola e esperava a jogada andava a 2,2 m/s (25% do tempo com a bola!)
+  → 4,6 m/s; esperando o lance, faz tabelinha. (5) saída de bola recuava 30–40 m devagar → toque curto de ~12 m. (6) passe de 66 m
+  rasteiro → acima de 30 m vai pelo alto. (7) armador/ala escolhidos PERTO da bola (passes longos pra trás caíram ~25%; o lateral
+  não conduz mais 60 m sozinho pra cruzar). O campinho também passou a medir o ritmo do relógio (online/Copa) em vez de supor.
+  Medido: bola no pé em passo de caminhada 25% → 5%; bola parada no meio do jogo 31 → 21 em 40 jogos. Travas novas na tela.
 - ✅ **20/10 — 📐 FORMAÇÃO DO TÉCNICO NO CAMPO 2D** (Diego: *"não adianta ser 4-5-1 e ter três atacantes cravados na frente… 5-3-2
   e ter dois zagueiros na zaga… ele naturalmente está naquele local"*). Três furos achados e fechados: (1) nas salas online
   (Minhas Ligas depois do leilão de reservas) o campinho pegava os 11 PRIMEIROS COMPRADOS do elenco — agora escala pela formação
