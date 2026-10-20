@@ -9864,4 +9864,4 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   microfones (`PresidenteNaMesa` em `presidente-avatar.tsx`, pose `seated`). Grátis sem boneco = mesa como antes.
   Mockup: `scripts/mockups/coletiva-presidente.png`. Sem boneco: convite discreto na cadeira vazia ("Crie seu presidente e apareça
   aqui ›" / com plano "Seu plano já tem presidente · monte o seu ›") que abre a Loja em `#loja-presidente` ("Perfeito").
-  ⏳ Publicar na main quando o Diego mandar (junto da Copa/máquina e do aviso do dono).
+  ✅ Publicado 20/10 (junto da Copa/máquina e do aviso do dono).
