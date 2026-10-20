@@ -259,7 +259,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       let m = simMin + dt / msPorMin
       // 🏁 no apito final o relógio para, mas a simulação ainda anda uns segundos: é o que fecha a festa de um gol nos
       // acréscimos (Diego 20/10: *"mascote travado"* — o GOL do 90+2' ficava aberto pra sempre com o jogo congelado em 93')
-      if (fechado) m = Math.max(93.5, Math.min(99, simMin + dt / msPorMin))
+      if (fechado) m = Math.max(93.5, simMin + dt / msPorMin) // (o motor congela sozinho quando não sobra nada pendente)
       else if (Math.abs(alvo - m) > 2.5) m = alvo // pulou de verdade (voltou pra tela, trocou a velocidade): vai direto
       else m += (alvo - m) * Math.min(1, dt / 500)
       simMin = Math.max(simMin, m)
