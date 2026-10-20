@@ -9539,6 +9539,11 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — 2D SEM TRAVADA + sem "1:30" no texto** (Diego: *"o jogo dando umas travadas com a bola rolando"* e *"esse negócio
+  de 1:30 tem que tirar"*): o desenho não reinicia mais a cada minuto do placar (props num `useRef`), o relógio do campinho
+  anda liso e só corrige aos poucos pro minuto do placar (antes esperava o minuto e pulava), o fundo parado (grama, linhas,
+  torcida) é desenhado 1 vez, e a bola/jogadores são desenhados MISTURANDO o passo anterior com o atual (`entre`/`ax`/`ay` no
+  motor — motor em 50 passos/s, tela em 60). Tempo por velocidade no 2D: ¼× 6:00 · ½× 3:00 · normal 1:30 · 2× 0:45 · 4× 0:22.
 - ✅ **20/10 — 2D EM TODO JOGO** (*"serve para tudo, pô"*), PUBLICADO só na conta do Diego (OK dele: "Sim"; foto da sala 2D
   enviada): o campinho mora DENTRO do `LiveScoreCard` (placar de toda competição) e, com o 2D escolhido, TOMA O LUGAR do
   placar (correção do Diego: *"qd tiver escolhido o 2D o placar padrão rápido não aparece"*); o telão de propaganda segue

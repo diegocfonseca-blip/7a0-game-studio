@@ -3748,7 +3748,7 @@ export function EscLobby() {
               {campo2dOn && roomMode !== 'carreira' && getSport() !== 'basquete' && (
                 <SegField label={tr('Jogo', 'Match view')}>
                   <Seg options={[[false, tr('⚡ Padrão rápido', '⚡ Quick standard')], [true, tr('📺 2D', '📺 2D')]] as [boolean, string][]} value={room2d} onSet={v => setRoom2d(v)} />
-                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{room2d ? tr('📺 Todo jogo da sala aparece no campinho 2D e dura 1:30 — liga, copas, tudo. Todo mundo vê igual.', '📺 Every match in the room is shown on the 2D pitch and lasts 1:30 — league, cups, everything. Everyone sees the same.') : tr('⚡ O placar de sempre, no ritmo normal do online.', '⚡ The usual scoreboard, at the normal online pace.')}</p>
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{room2d ? tr('📺 Todo jogo da sala aparece no campinho 2D — liga, copas, tudo. Todo mundo vê igual.', '📺 Every match in the room is shown on the 2D pitch — league, cups, everything. Everyone sees the same.') : tr('⚡ O placar de sempre, no ritmo normal do online.', '⚡ The usual scoreboard, at the normal online pace.')}</p>
                 </SegField>
               )}
             </Section>

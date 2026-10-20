@@ -6,7 +6,7 @@
 //   · 👑 só lenda tem rostinho (anel grosso na cor do time); o resto, a inicial;
 //   · ⚽ no gol entra o MASCOTE do time (quem tem) ou "GOOOL" + escudo (quem não tem), com a faixinha do autor — sem rosto.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Jogo2D, eventosDoJogo, W, L, type CartaCampo } from './campo2d-motor'
+import { Jogo2D, eventosDoJogo, W, L, SEG_POR_MIN, type CartaCampo } from './campo2d-motor'
 import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
 import { avatarLote1 } from './avatar-lote1'
 import { useT } from './lang'
@@ -73,6 +73,11 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const relogio = useRef({ min: 0, em: performance.now() })
   useEffect(() => { relogio.current = { min: minuto, em: performance.now() } }, [minuto])
   const msPorMin = Math.max(400, roundMs * 0.82) / 93
+  // 🐢 ANTI-TRAVADA (20/10, Diego: *"o jogo dando umas travadas com a bola rolando"*): o placar re-renderiza a cada minuto e
+  // mandava arrays/objetos novos — o desenho REINICIAVA (canvas zerado, tudo recalculado). Agora o que muda sem mudar o jogo
+  // (elenco, técnico, apito, idioma) é lido daqui, e o desenho só reinicia quando muda o JOGO, o tamanho ou as cores.
+  const vivo = useRef({ casa, fora, fechado, t })
+  vivo.current = { casa, fora, fechado, t }
 
   useEffect(() => {
     const el = caixa.current
@@ -91,41 +96,66 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const cx = c.getContext('2d')!; cx.setTransform(dpr, 0, 0, dpr, 0, 0)
     const px = (x: number) => (x + PADX) * S, py = (y: number) => (y + PAD) * S
     const R = Math.max(8, S * 1.95)
-    const cartaDe = new Map<string, CartaCampo>()
-    for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
+    let cartaDe = new Map<string, CartaCampo>(), cartasDe: unknown[] = []
+    const rostoDe = new Map<string, HTMLImageElement | null>()
     // o que já foi pra tela mora FORA do efeito: ele roda de novo a cada render e não pode esquecer que o GOL já está aberto
     const ult = ultimos.current
+    // 🖼️ o fundo parado desenhado UMA vez (o celular agradece: antes eram ~100 desenhos por quadro só de grama e torcida)
+    const torcida = (g: CanvasRenderingContext2D, festa: 0 | 1 | null, tt: number) => {
+      for (const lx of [0, W + PADX]) {
+        g.fillStyle = '#26303a'; g.fillRect(lx === 0 ? 0 : px(W) + 3.5 * S, 0, (PADX - 3.5) * S, CH)
+        for (let i = 0; i < 46; i++) {
+          const yy = ((i * 37) % 46) / 46 * CH + 4, xx = (lx === 0 ? 0 : px(W) + 3.5 * S) + ((i * 53) % 10) / 10 * (PADX - 4) * S + 3
+          const pula = festa != null && ((i % 3 === 0) === (festa === 0)) ? Math.abs(Math.sin(tt * 9 + i)) * 2.5 : 0
+          g.beginPath(); g.arc(xx, yy - pula, Math.max(1.6, S * 0.45), 0, 7); g.fillStyle = i % 3 === 0 ? corFora : corCasa; g.fill()
+        }
+      }
+    }
+    const fundo = document.createElement('canvas'); fundo.width = CW * dpr; fundo.height = CH * dpr
+    {
+      const g = fundo.getContext('2d')!; g.setTransform(dpr, 0, 0, dpr, 0, 0)
+      for (let i = 0; i < 12; i++) { g.fillStyle = i % 2 ? '#2B8443' : '#2F8F49'; g.fillRect(0, (i * CH) / 12, CW, CH / 12 + 1) }
+      g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2
+      g.strokeRect(px(0), py(0), W * S, L * S)
+      g.beginPath(); g.moveTo(px(0), py(L / 2)); g.lineTo(px(W), py(L / 2)); g.stroke()
+      g.beginPath(); g.arc(px(34), py(L / 2), 9.15 * S, 0, 7); g.stroke()
+      for (const s of [1, -1]) {
+        g.strokeRect(px(13.85), s > 0 ? py(0) : py(L - 16.5), 40.3 * S, 16.5 * S)
+        g.strokeRect(px(24.85), s > 0 ? py(0) : py(L - 5.5), 18.3 * S, 5.5 * S)
+      }
+      torcida(g, null, 0)
+    }
+    // ⏱️ relógio LISO: o campinho anda no tempo de verdade e só vai corrigindo, aos pouquinhos, pro minuto do placar
+    // (antes ele esperava o minuto seguinte chegar e pulava — a "travadinha" a cada minuto)
+    let simMin = Math.max(0, jogo.t / SEG_POR_MIN), antes = performance.now()
     const quadro = () => {
+      const { casa, fora, fechado, t } = vivo.current
+      if (cartasDe[0] !== casa.cartas || cartasDe[1] !== fora.cartas) {
+        cartasDe = [casa.cartas, fora.cartas]; cartaDe = new Map(); rostoDe.clear()
+        for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
+      }
+      const agora = performance.now(), dt = Math.min(250, agora - antes); antes = agora
       const r = relogio.current
-      const m = fechado ? 93.5 : Math.min(r.min + 0.999, r.min + (performance.now() - r.em) / msPorMin)
-      jogo.avancaAte(m)
+      const alvo = Math.min(r.min + 1.25, r.min + (agora - r.em) / msPorMin)
+      let m = simMin + dt / msPorMin
+      if (fechado) m = 93.5
+      else if (Math.abs(alvo - m) > 2.5) m = alvo // pulou de verdade (voltou pra tela, trocou a velocidade): vai direto
+      else m += (alvo - m) * Math.min(1, dt / 500)
+      simMin = Math.max(simMin, m)
+      jogo.avancaAte(simMin)
       if (jogo.narra !== ult.narra) { ult.narra = jogo.narra; setNarra(jogo.narra) }
       if (jogo.placar[0] !== ult.placar[0] || jogo.placar[1] !== ult.placar[1]) { ult.placar = [jogo.placar[0], jogo.placar[1]]; setPlacarV(ult.placar) }
       const fk = jogo.festa ? `${jogo.festa.lado}|${jogo.festa.autor}|${jogo.festa.min}` : ''
       if (fk !== ult.festa) { ult.festa = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null) }
-      // 🟩 gramado + linhas
-      for (let i = 0; i < 12; i++) { cx.fillStyle = i % 2 ? '#2B8443' : '#2F8F49'; cx.fillRect(0, (i * CH) / 12, CW, CH / 12 + 1) }
-      cx.strokeStyle = 'rgba(255,255,255,.85)'; cx.lineWidth = 2
-      cx.strokeRect(px(0), py(0), W * S, L * S)
-      cx.beginPath(); cx.moveTo(px(0), py(L / 2)); cx.lineTo(px(W), py(L / 2)); cx.stroke()
-      cx.beginPath(); cx.arc(px(34), py(L / 2), 9.15 * S, 0, 7); cx.stroke()
+      // 🟩 o fundo parado (gramado, linhas e a arquibancada) vem pronto do cache; por cima, só o que mexe
+      cx.drawImage(fundo, 0, 0, CW, CH)
       for (const [y0, s] of [[0, 1], [L, -1]] as const) {
-        cx.strokeRect(px(13.85), s > 0 ? py(0) : py(L - 16.5), 40.3 * S, 16.5 * S)
-        cx.strokeRect(px(24.85), s > 0 ? py(0) : py(L - 5.5), 18.3 * S, 5.5 * S)
         const g = jogo.rede && jogo.rede.y0 === y0 ? Math.sin((jogo.t - jogo.rede.t0) * 30) * 3 * Math.max(0, 1 - (jogo.t - jogo.rede.t0)) : 0
         cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(px(30.34), s > 0 ? py(-2.2) - g : py(L), 7.32 * S, 2.2 * S + g)
         cx.lineWidth = 3; cx.strokeStyle = '#fff'; cx.strokeRect(px(30.34), s > 0 ? py(-2.2) - g : py(L), 7.32 * S, 2.2 * S + g)
-        cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.85)'
       }
-      // 🏟️ a torcida dos dois lados (bolinhas nas cores dos times: a da casa é maioria) e o técnico na beira do campo
-      for (const lx of [0, W + PADX]) {
-        cx.fillStyle = '#26303a'; cx.fillRect(lx === 0 ? 0 : px(W) + 3.5 * S, 0, (PADX - 3.5) * S, CH)
-        for (let i = 0; i < 46; i++) {
-          const yy = ((i * 37) % 46) / 46 * CH + 4, xx = (lx === 0 ? 0 : px(W) + 3.5 * S) + ((i * 53) % 10) / 10 * (PADX - 4) * S + 3
-          const pula = jogo.festa && ((i % 3 === 0) === (jogo.festa.lado === 0)) ? Math.abs(Math.sin(jogo.t * 9 + i)) * 2.5 : 0
-          cx.beginPath(); cx.arc(xx, yy - pula, Math.max(1.6, S * 0.45), 0, 7); cx.fillStyle = i % 3 === 0 ? corFora : corCasa; cx.fill()
-        }
-      }
+      if (jogo.festa) torcida(cx, jogo.festa.lado, jogo.t) // 🎉 no gol a torcida de quem fez pula
+      cx.lineWidth = 2
       const fala = (lado: 0 | 1): string => {
         if (jogo.festa) return jogo.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
         if (jogo.t < 4.5) { const tac = jogo.tatica[lado]; return tac > 0 ? t('🔥 Pra cima!', '🔥 Attack!') : tac < 0 ? t('🧱 Fecha a casinha!', '🧱 Shut up shop!') : t('⚖️ Toca a bola!', '⚖️ Keep the ball!') }
@@ -147,11 +177,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         }
       }
       // 🧍 os 22 (de trás pra frente)
+      const e = jogo.entre, mis = (a: number | undefined, b: number) => a == null ? b : a + (b - a) * e
       for (const p of [...jogo.atl].sort((a, b) => a.y - b.y)) {
-        const X = px(p.x), Y = py(p.y)
+        const X = px(mis(p.ax, p.x)), Y = py(mis(p.ay, p.y))
         const camisa = p.lado === 0 ? corCasa : corFora
         cx.beginPath(); cx.ellipse(X, Y + R - 2, R * 0.9, 3.5, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
-        const im = rosto(cartaDe.get(p.nome) ?? p.carta)
+        let im = rostoDe.get(p.nome)
+        if (im === undefined) { im = rosto(cartaDe.get(p.nome) ?? p.carta); rostoDe.set(p.nome, im) } // procura o rosto 1 vez por jogador, não a cada quadro
         cx.save(); cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.closePath(); cx.fillStyle = im ? '#fff' : camisa; cx.fill(); cx.clip()
         if (im) { if (im.complete && im.naturalWidth) cx.drawImage(im, im.naturalWidth * 0.29, im.naturalHeight * 0.02, im.naturalWidth * 0.42, im.naturalWidth * 0.42, X - R, Y - R, R * 2, R * 2) }
         else if (p.nome) { cx.fillStyle = claro(camisa) ? INK : '#fff'; cx.font = `700 ${Math.round(R * 1.05)}px Oswald`; cx.textAlign = 'center'; cx.fillText(p.nome.trim()[0].toUpperCase(), X, Y + R * 0.38) }
@@ -165,14 +197,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         }
       }
       // ⚽ a bola (com sombra; sobe quando é cruzamento/chute alto)
-      const bx = px(jogo.bola.x), by = py(jogo.bola.y), bh = jogo.bola.h * S
+      const bA = jogo.bolaAnt, bx = px(mis(bA.x, jogo.bola.x)), by = py(mis(bA.y, jogo.bola.y)), bh = mis(bA.h, jogo.bola.h) * S
       cx.beginPath(); cx.ellipse(bx, by + 2, 4, 2, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fill()
       cx.beginPath(); cx.arc(bx, by - bh, 4.2 + jogo.bola.h * 0.25, 0, 7); cx.fillStyle = '#fff'; cx.fill(); cx.lineWidth = 1.5; cx.strokeStyle = '#111'; cx.stroke()
       raf = requestAnimationFrame(quadro)
     }
     raf = requestAnimationFrame(quadro)
     return () => cancelAnimationFrame(raf)
-  }, [jogo, larg, corCasa, corFora, fechado, msPorMin, casa.cartas, fora.cartas, casa.tecnico, fora.tecnico, t])
+  }, [jogo, larg, corCasa, corFora, msPorMin])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   return (

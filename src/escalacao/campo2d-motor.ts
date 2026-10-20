@@ -26,7 +26,7 @@ export type Fim = 'gol' | 'defendeu' | 'trave' | 'fora' | 'isolou'
 export interface Evento { min: number; lado: Lado; fim: Fim; autor?: string; assist?: string }
 export interface CartaCampo { name: string; pos?: string; club?: string; year?: number; fame?: number; fake?: boolean }
 type Grupo = 'GOL' | 'DEF' | 'LAT' | 'MEI' | 'ATA'
-export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; grupo: Grupo; bx: number; dep: number; x: number; y: number; ov: { x: number; y: number; v: number } | null }
+export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; grupo: Grupo; bx: number; dep: number; x: number; y: number; /** onde estava no passo anterior (só pro DESENHO ficar liso) */ ax?: number; ay?: number; ov: { x: number; y: number; v: number } | null }
 interface Voo { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; alt: number; lin: boolean; fim?: () => void }
 type Acao = { ini?: () => void; upd: (dt: number) => boolean; pre?: boolean }
 
@@ -168,10 +168,20 @@ export class Jogo2D {
     if (d > 0.05) { const k = Math.min(1, vv / d); p.x += dx * k; p.y += dy * k }
   }
   /** avança a simulação até o minuto do placar (passo fixo → igual em todo aparelho) */
+  /** onde a bola estava no passo anterior (só pro desenho) */
+  bolaAnt = { x: 34, y: L / 2, h: 0 }
+  /** quanto do próximo passo já "passou" (0–1): o desenho mistura o passo anterior com o atual e a bola anda LISA, mesmo
+   *  com o motor em 50 passos/s e a tela em 60 quadros/s (antes, a cada 5 quadros um repetia — a "travadinha") */
+  entre = 1
   avancaAte(minuto: number) {
     const alvo = minuto * SEG_POR_MIN
     let n = 0
-    while (this.t + DT <= alvo && n++ < 20000) this.passo(DT)
+    while (this.t + DT <= alvo && n++ < 20000) {
+      for (const a of this.atl) { a.ax = a.x; a.ay = a.y }
+      this.bolaAnt.x = this.bola.x; this.bolaAnt.y = this.bola.y; this.bolaAnt.h = this.bola.h
+      this.passo(DT)
+    }
+    this.entre = Math.max(0, Math.min(1, (alvo - this.t) / DT))
   }
 
   // ── posse e bola ──

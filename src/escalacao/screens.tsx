@@ -6030,7 +6030,7 @@ export function Botao2D() {
   if (!liberado || state.onlineMode === 'online' || state.sport === 'basquete') return null
   return (
     <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-      {ligado ? t('📺 Campo 2D: LIGADO (o jogo dura 1:30)', '📺 2D pitch: ON (a match lasts 1:30)') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
+      {ligado ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
     </button>
   )
 }
