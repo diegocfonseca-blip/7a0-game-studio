@@ -188,3 +188,45 @@ ENCENANDO um lance a cada poucos segundos (o roteiro que o Diego não quer mais)
 
 Também ficou pra fase 2: os dois blocos ainda ficam curtos demais (todo mundo embolado no meio-campo) — calibrar a
 profundidade/largura de cada linha depois de escolhido o formato, porque o formato muda o que é "certo".
+
+---
+
+## 9. Mergulho no match engine do Football Manager — o que ainda falta no nosso (20/10)
+
+Pedido do Diego: *"analise ainda mais a fundo o match engine do Football Manager pra ver se tem mais coisas a ser feito na
+simulação"*. Fonte: o que a Sports Interactive divulgou oficialmente (FM19 "match engine improvements", FM21 "match engine AI",
+FM24 "set pieces refresh", FM26 "matchday experience" / papéis em posse e sem posse), lido por coberturas e guias (o site
+deles não abre daqui). Marquei o que é **oficial da SI** e o que é **achado da comunidade** (FM Arena, FMScout, FootballGPT).
+Régua do Diego (19/10): só entra o que tem SENTIDO com o jogo que já existe — nada de "moral", "família", "treino".
+
+| # | O que o FM faz | Como está no nosso | Vale pra nós? |
+|---|---|---|---|
+| 1 | **Fatia de 0,25 s** (oficial, FM21): todo jogador e o juiz decidem a cada quarto de segundo pelos atributos | v2 ✅ (`DECISAO = 0.25`, escalonado) · v1 ❌ (roteiro) | feito no v2 |
+| 2 | **Muda de ideia no meio da fatia** (oficial, FM21): se o cenário muda, o jogador refaz a decisão antes do próximo ciclo | v2 🟡 só o portador, quando o marcador chega a < 1 m | 🔜 estender: passe que virou ruim no meio do caminho (rival cortou a linha) → o portador troca de opção; defensor que vê a corrida nas costas reage na hora |
+| 3 | **Passe em 2 estágios** (comunidade, bem descrito): 1º *enxergar* as opções (visão/decisão), 2º *executar* (passe/técnica/compostura) | v2 ✅ (visão pesa na enfiada; `passe` e a pressão pesam no erro) | 🔜 falta a "compostura": apertado, o erro cresce mais pra quem decide mal (`decisao` baixa) — hoje a pressão pesa igual pra todos |
+| 4 | **Marcação com troca** (oficial, FM21): o zagueiro passa a marcação pra outro quando vai fechar um 2º jogador | v2 ❌ marca pelo mais perto da âncora, sem troca | 🔜 sim: evita dois zagueiros no mesmo atacante e um livre nas costas |
+| 5 | **Goleiro adaptativo** (oficial, FM21; FM26 ganhou animação de ponta-de-dedo e cara a cara) | v2 🟡 posiciona na linha bola–gol, sai na bola solta, defende por reflexo/velocidade do chute | 🔜 **cara a cara** (fecha o ângulo, fica em pé até o último instante), **rebote dirigido** (espalma pro lado/longe conforme `reflexo`), **reposição curta × longa** pelo estilo (`goleiro_linha` sai jogando) |
+| 6 | **Formação com a bola ≠ sem a bola** (oficial, FM26: papéis separados em posse e sem posse; 4-3-3 vira 4-1-4-1) | v2 🟡 o BLOCO muda (sobe/estreita) e os papéis mudam, mas a forma é uma só | 🔜 sim, **sem botão novo**: sair da tática que o técnico já escolhe (🧱 retranca · ⚖️ · 🔥 ataque) — retranca sem bola fecha em duas linhas de 4+1; ataque com bola sobe os laterais e o 3º meia |
+| 7 | **Instruções de time** (oficial FM19: linha de engajamento = ONDE começa a pressão; intensidade = QUÃO forte; linha de defesa; comunidade: tempo alto = passe rápido e menos preciso; largura) | v1/v2 🟡 só a tática de 3 (−1/0/+1), que mexe no bloco e põe um 2º pressionador | 🔜 **a tática vira um pacote**: retranca = linha baixa + pressão só no próprio campo + passe seguro + tempo baixo; ataque = linha alta + pressão no campo deles + risco + tempo alto. É o que faz "tática influenciar o jogo" (critério 4 do Diego) |
+| 8 | **Variação de movimento sem bola** (oficial, FM21) | v2 🟡 opção em ângulo, infiltra entre zagueiros, lateral ultrapassa, ponta abre | 🔜 faltam: **ponta corta pra dentro** (quem tem `corta_pra_dentro`), **pivô** (atacante de costas segurando pro meia chegar), **3º homem** (tabela com o terceiro aparecendo), **meia chegando atrasado na área** |
+| 9 | **Traços do jogador** ("preferred moves": corta pra dentro, chuta de longe, passe arriscado, segura a bola) | ✅ golpes + estilo (fatos) → tendências no v2 | 🔜 fase 2: **2 marcas por lenda** (lista pro Diego aprovar) |
+| 10 | **Condição cai durante o jogo** (oficial: estamina; comunidade: tempo alto e chuva cansam mais) | v2 ❌ `gas` fixo = 1 · o JOGO já tem o gás por temporada (`condicao.ts`: 😓/🥵/🚑) | 🔜 sim, ancorado no que existe: quem entra 😓 começa com menos; `fisico` e tempo alto derrubam o gás ao longo dos 90' → velocidade/aceleração/decisão caem no fim. **Sem Dep. Médico, sem mexer na régua da temporada** |
+| 11 | **Moral, importância do jogo, viagem** (comunidade) | ❌ o jogo não tem moral | 🚫 não propor (regra 19/10: nada que a carta não tem). O que existe e pode pesar de leve: **mando de campo** (torcida 70% já desenhada) e o **técnico** (nível já entra no placar rápido) |
+| 12 | **Clima e gramado** (comunidade/entrevista SI: chuva piora o domínio de quem tem 1º toque fraco) | ❌ no 2D · o placar do jogo JÁ sorteia chuva | 🔜 pequeno: na chuva, bola rasteira freia mais e o domínio (`conducao`) erra mais — só teatro do que o jogo já decide |
+| 13 | **Lesão no jogo** | ❌ no 2D · o jogo já decide lesão por desgaste (15/30%) fora do campinho | 🔜 só mostrar: o lance da lesão (cai, sai) quando o motor do jogo já decidiu — nunca inventar lesão nova |
+| 14 | **Bolas paradas ensaiadas** (oficial, FM24: cobradores pelos atributos, entrega por curva, rotinas 1º pau / 2º pau / curta, frequência) | v2 🟡 cobrador pelos atributos ✅ · rotina ❌ (cruza pro melhor cabeceador) | 🔜 2–3 rotinas sorteadas por time (1º pau, 2º pau, curta/tabela) e falta direta × levantada pelo `chutador` |
+| 15 | **Árbitro**: vantagem, cartão por gravidade, acréscimos pelo que aconteceu | v2 🟡 falta/cartão por probabilidade; sem vantagem; acréscimo fixo | 🔜 vantagem (falta no ataque com a jogada viva segue), cartão por gravidade (carrinho por trás, último homem), acréscimos somados dos gols/lesões/bolas paradas |
+| 16 | **Highlights** (Key / Extended / Comprehensive / Full): o motor roda os 90' inteiros e a tela mostra só os momentos | ❌ — é a **decisão A × B da seção 8**, ainda aberta | ⏳ esperando o Diego |
+| 17 | **Notas dos jogadores / estatística por jogador** | v2 🟡 estatística por time (xG, chutes, passes…) · o jogo já tem "craque do jogo" | 🔜 nota por jogador a partir dos eventos (passes, desarmes, chutes, gol) — alimenta o craque do jogo que já existe |
+| 18 | **Atributo que domina tudo** (achado FM Arena: no FM, velocidade/aceleração pesam tanto que o resto quase não importa — e a SI disse que mexeu) | risco real pro v2 também | 🔜 **teste de sensibilidade** na trava: subir só `vel` de um time × subir só `passe` × só `finalizacao` e medir o placar; nenhum atributo pode valer 3× os outros |
+| 19 | **Dribles com estilo de corrida** (FM26: 300+ animações) | fora de escopo (visual 2D não muda, regra do Diego) | 🚫 |
+| 20 | **Trocar jogador/tática a qualquer minuto** | ✅ intervalo já ligado no 2D (3 trocas, formação, tática) | manter; mudança no meio do jogo é passo novo — não propor sem ele pedir |
+
+### Ordem sugerida (depois da decisão A × B)
+1. Bloco/profundidade das linhas (hoje tudo embola no meio) + **tática como pacote** (#7, #6).
+2. **Marcação com troca + movimentos sem bola** (#4, #8) e **mudar de ideia no meio** (#2).
+3. **Goleiro** cara a cara / rebote / reposição (#5).
+4. **Gás dentro do jogo** pelo físico e pelo 😓 que já existe (#10), chuva (#12), lesão só teatro (#13).
+5. **Bolas paradas com rotina** (#14) e **árbitro** com vantagem e acréscimos (#15).
+6. **2 marcas por lenda** (#9) e **teste de sensibilidade** de atributo (#18) na trava.
+7. Nota por jogador → craque do jogo (#17).
