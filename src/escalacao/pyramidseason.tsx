@@ -988,7 +988,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     let m2e: EntradaM2 | undefined
     if (m2Desde != null && r >= m2Desde && (H.human || A.human)) {
       m2e = entradaM2({ seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
-        tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human],
+        tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human], tecnico: [lvlH, lvlA], evento: [mh, ma],
         casa2: hxi2 as never, fora2: axi2 as never, fCasa2: hxi2 ? hd?.formation ?? H.formation : undefined, fFora2: axi2 ? hd?.formation ?? A.formation : undefined })
       const res = resultadoM2(m2e)
       const tira = (teamName: string, e: { id: string }) => { const k = `${teamName}:${e.id}`; const row = scorers.get(k); if (row) { row.goals--; if (row.goals <= 0) scorers.delete(k) } }

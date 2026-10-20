@@ -60,8 +60,9 @@ function tempero(nome: string, k: number): number {
 
 export interface Perfil { at: Atrib; tend: Tendencia; estilo: Estilo; golpes: Golpe[]; pe: ReturnType<typeof peDe>; nivel: number }
 
-export function perfilDe(c: CartaCampo | undefined, grupo: Grupo): Perfil {
-  const nome = c?.name ?? '', fame = c?.fame ?? 0, nivel = nivelDe(c)
+/** `nivelDoDia`: o nível com que ele entra HOJE (o "dia" dentro da faixa lo–hi da carta, + técnico/evento) — sem ele, o meio da faixa */
+export function perfilDe(c: CartaCampo | undefined, grupo: Grupo, nivelDoDia?: number): Perfil {
+  const nome = c?.name ?? '', fame = c?.fame ?? 0, nivel = nivelDoDia ?? nivelDe(c)
   const estilo = estiloDe(nome, fame), estilo2 = estilo2De(nome, fame), golpes = golpesDe(nome, fame), lenda = fame >= 5
   const at = { ...ZERO }
   const somas = [MOLDE[grupo], ESTILO[estilo], ...golpes.map(g => GOLPE[g] ?? {})]

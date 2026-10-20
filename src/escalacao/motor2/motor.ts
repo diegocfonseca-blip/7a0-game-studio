@@ -5,7 +5,7 @@
 // Fala a mesma "língua" do desenho de hoje (`campo2d.tsx` lê atl, bola, bolaAnt, entre, narra, placar, festa, rede, t,
 // tatica), então o campinho, a torcida e os bonecos não mudam.
 // ⚠️ Isolado: só a bancada e a trava usam. Não decide placar de ninguém.
-import { perfilDe } from './atributos'
+import { nivelDe, perfilDe } from './atributos'
 import { estilo2De, estiloDe, type Estilo } from '../campo2d-estilos'
 import { alvoDe, andaBloco, ancora, linhaImpedimento, planeja, type Bloco } from './coletivo'
 import { decide, pressaoEm, type Acao } from './decide'
@@ -31,7 +31,21 @@ function onze(cartas0: CartaCampo[], formacao?: string): CartaCampo[] {
 }
 
 let idSeq = 0
-function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeitoOn = false): Atleta[] {
+// 🎲 O DIA DO JOGADOR (Diego 20/10: *"o Ronaldinho pode ter over de 90 a 96… 90 é o nível mais baixo do dia dele, ele pode estar
+// num meio termo ou no ápice"*): cada carta entra no jogo com um nível sorteado DENTRO da faixa lo–hi dela — preso na semente do jogo
+// e no nome (o mesmo jogo dá o mesmo dia em todo aparelho). Média de dois sorteios: o meio é o mais comum, o ápice e o dia ruim são
+// mais raros. Carta sem faixa: o nível da categoria, como sempre.
+function diaDe(seed: number, c: CartaCampo): number {
+  if (c.lo == null || c.hi == null || c.fake) return nivelDe(c)
+  let h = (seed ^ 0x5D1A) >>> 0
+  for (let i = 0; i < c.name.length; i++) h = Math.imul(h ^ c.name.charCodeAt(i), 0x01000193) >>> 0
+  const u1 = (h >>> 0) / 4294967296; h = Math.imul(h ^ (h >>> 15), 0x2C1B3C6D) >>> 0
+  const u2 = (h >>> 0) / 4294967296
+  return c.lo + ((u1 + u2) / 2) * (c.hi - c.lo)
+}
+/** o que muda o nível de TODO o time hoje: técnico (a 12ª carta, mesma régua da simulação) e o evento da rodada */
+export interface Ajuste { seed: number; tecnico?: number | null; evento?: number }
+function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeitoOn = false, aj?: Ajuste): Atleta[] {
   const lista = onze(cartas, formacao).slice(0, 11)
   while (lista.length < 11) lista.push({ name: '', pos: lista.some(c => c.pos === 'GOL') ? 'MEI' : 'GOL' })
   const por: Record<Grupo, CartaCampo[]> = { GOL: [], DEF: [], LAT: [], MEI: [], ATA: [] }
@@ -63,9 +77,12 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
     // (dupla de ataque joga por dentro — 22 e 46 —, não colada na linha lateral)
     const n = cs.length, bx = n === 1 ? 34 : n === 2 && gr(0, 2) === 'ATA' ? (i === 0 ? 22 : 46) : 9 + (50 * i) / (n - 1), g = gr(i, n)
     const centro = n > 1 ? Math.abs(i - (n - 1) / 2) / ((n - 1) / 2) : 0
-    const pf = perfilDe(c, g)
+    // (nível do dia + técnico: 1/12 da diferença entre ele e o jogador, igual à simulação · + o evento da rodada)
+    const dia = aj && c.name ? diaDe(aj.seed, c) : undefined
+    const nivel = dia == null ? undefined : dia + (aj?.tecnico != null ? (aj.tecnico - dia) / 12 : 0) + (aj?.evento ?? 0)
+    const pf = perfilDe(c, g, nivel)
     out.push({
-      id: idSeq++, lado, nome: c.name, carta: c, grupo: g, estilo: pf.estilo, golpes: pf.golpes, pe: pf.pe, at: pf.at, tend: pf.tend,
+      id: idSeq++, lado, nome: c.name, carta: c, grupo: g, estilo: pf.estilo, golpes: pf.golpes, pe: pf.pe, at: { ...pf.at }, base: pf.at, tend: pf.tend,
       // (meio-campo ESCALONADO: o do meio é o volante (0,45), os de fora são os "8" que chegam na área (0,75). Três meias
       // na mesma linha deixavam um vazio de 20 m entre a bola e os atacantes)
       bx, dep: g === 'MEI' ? 0.45 + centro * 0.3 : g === 'ATA' ? dep - (1 - centro) * 0.04 : dep,
@@ -139,7 +156,8 @@ export class Motor2 {
   private acaoDe = new Map<Atleta, Acao>()
 
   /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false]) {
+  /** `extra`: técnico (nível do dia dele) e evento da rodada de cada lado — o que a simulação da carreira também usa */
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number] } = {}) {
     const s = sorteio(seed)
     this.r = s.r; this.n = s.n
     this.nar = new Narrador(en, this.r)
@@ -149,7 +167,9 @@ export class Motor2 {
     const ROT: Rotina[] = ['primeiro_pau', 'segundo_pau', 'curta']
     this.rotinaBase = [ROT[Math.floor(this.r() * 3)], ROT[Math.floor(this.r() * 3)]]
     this.rotina = [...this.rotinaBase] as [Rotina, Rotina]
-    this.atl = [...montaTime(0, casa, formacoes[0], bots[0]), ...montaTime(1, fora, formacoes[1], bots[1])]
+    this.ajuste = [0, 1].map(l => ({ seed, tecnico: extra.tecnico?.[l] ?? null, evento: extra.evento?.[l] ?? 0 }))
+    this.atl = [...montaTime(0, casa, formacoes[0], bots[0], this.ajuste[0]), ...montaTime(1, fora, formacoes[1], bots[1], this.ajuste[1])]
+    for (const p of this.atl) this.rende(p)
     this.atl.forEach((p, i) => { p.proxDecisao = (i % 5) * 0.05 })
     for (const l of [0, 1] as Lado[]) this.bloco[l] = { tras: 18, frente: 48, largura: 0.75, desliza: 0 }
     for (const p of this.atl) { const a = ancora(this, p); p.x = a.x; p.y = clamp(a.y, p.lado === 0 ? L / 2 + 1 : 2, p.lado === 0 ? L - 2 : L / 2 - 1) }
@@ -282,12 +302,13 @@ export class Motor2 {
       this.trocas[l] = null
       const velhos = this.atl.filter(a => a.lado === l)
       const fora = this.expulsos.filter(n => n.lado === l).map(n => n.nome)
-      let novos = montaTime(l, tr.cartas.filter(c => !fora.includes(c.name)), tr.formacao)
+      let novos = montaTime(l, tr.cartas.filter(c => !fora.includes(c.name)), tr.formacao, false, this.ajuste[l])
       if (novos.length > velhos.length) novos = [...novos.filter(a => a.nome), ...novos.filter(a => !a.nome)].slice(0, Math.max(velhos.length, novos.filter(a => a.nome).length)) // (sem o expulso, o montaTime completaria com um "sem nome")
       for (const a of novos) {
         const v = velhos.find(x => x.nome === a.nome) ?? velhos.find(x => x.grupo === a.grupo && !novos.some(n => n.nome === x.nome))
         if (v) { a.x = v.x; a.y = v.y; a.vx = v.vx; a.vy = v.vy; if (v.nome === a.nome) { a.gas = v.gas; a.amarelos = v.amarelos; a.faltas = v.faltas } }
         a.proxDecisao = this.t
+        this.rende(a)
       }
       while (novos.length > velhos.length) novos.pop() // (expulso no 1º tempo: o time segue com menos)
       this.atl = [...this.atl.filter(a => a.lado !== l), ...novos]
@@ -361,7 +382,16 @@ export class Motor2 {
   }
 
   /** 😓 o gás cai ao longo dos 90': mais pra quem corre, pra quem tem pouco físico e na chuva. Inteiro termina em ~0,78. */
+  private ajuste: Ajuste[] = []
+  /** 😓 O CANSAÇO PESA NA TÉCNICA (Diego 20/10: *"o Romário é 90, o Jardel 80, mas o Romário cansado… o Jardel fica muito melhor"*):
+   *  o que ele rende agora = o nível do dia × (0,7 + 0,3 × gás). Inteiro = 100%; 😓 entra ~95%; 🚑 entra ~87% e cai mais no fim.
+   *  Velocidade e arranque já caem pelo gás em `vmax`/`acel`; goleiro não cansa. */
+  private rende(p: Atleta) {
+    const f = p.grupo === 'GOL' ? 1 : 0.7 + 0.3 * p.gas
+    for (const k of ['passe', 'visao', 'finalizacao', 'cabeceio', 'desarme', 'posicionamento', 'conducao', 'decisao', 'fisico'] as const) p.at[k] = p.base[k] * f
+  }
   private cansa(dt: number) {
+    if (this.passo % 20 === 0) for (const p of this.atl) this.rende(p) // (1× por segundo de jogo)
     if (this.festa || this.parada) return
     const chuva = this.clima === 'chuva' ? 1.15 : 1
     for (const p of this.atl) {
@@ -572,7 +602,7 @@ export class Motor2 {
     if (tGol > 0) { const xGol = b.x + b.vx * tGol, hGol = b.h + b.vh * tGol - 0.5 * G * tGol * tGol; if (Math.abs(xGol - 34) > GOL_MEIO + 0.3 || hGol > TRAVESSAO + 0.35) return }
     // (goleiro de jogo de 1:30: pega menos que o de verdade — senão 7 chutes dão 1 gol e o placar fica 0×0)
     // (o goleiro ruim toma mais e o paredão segura mais: a diferença entre profissional e lenda vale ~0,35 de chance de defesa)
-    const p = clamp(0.76 - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
+    const p = clamp(0.72 - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
     lc.defendido = true
     if (this.r() >= p) return // passou por ele
     this.stats.defesas[def]++

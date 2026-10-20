@@ -984,6 +984,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   = o motor v2 DECIDE o placar do jogo de gente (o campinho anima o mesmo motor: o que se vê é o que vale). Salas online, Minhas Ligas e
   o resto do online = o v1 de hoje, que só ENCENA o placar da simulação. Na carreira liga UMA vez, a partir do próximo jogo
   (`motor2Desde`, ação `LIGA_MOTOR2`) — rodada jogada nunca muda, e os jogos de bot da rodada continuam iguais byte a byte.
+  🔁 **Partida rápida = TEATRO também** (20/10, mesmo dia: *"pode ser igual das salas online, até porque não tem jogador cansado"*).
+  Motor novo = SÓ carreira (offline e online).
+  (18) **O MOTOR NOVO USA TUDO QUE O JOGO SABE DO JOGADOR (20/10):** *"com base no nível, no cansaço… o Romário cansado, o Jardel
+  fica muito melhor… o Ronaldinho pode ter 90 a 96, o 90 é o dia ruim, pode estar no meio ou no ápice"*. Então: cada carta entra
+  com o NÍVEL DO DIA sorteado dentro da faixa lo–hi (média de dois sorteios: o meio é comum, ápice/dia ruim são raros; preso na
+  semente do jogo) · o CANSAÇO pesa na técnica (rende = nível do dia × (0,7 + 0,3 × gás), além da velocidade) · o TÉCNICO (1/12, a
+  mesma régua da simulação) e o EVENTO da rodada entram. Medido: Romário 🚑 0,27 gol/jogo < Jardel inteiro 0,47 ≈ Romário 😓.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

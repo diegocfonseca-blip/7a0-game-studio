@@ -20,6 +20,8 @@ export interface EntradaM2 {
   /** 🔁 os 11 do 2º tempo (troca no intervalo) */
   casa2?: CartaCampo[]; fora2?: CartaCampo[]; fCasa2?: string; fFora2?: string
   clima: Clima
+  /** 🧢 o nível do dia do técnico de cada lado (a 12ª carta) · 🎭 o evento da rodada ("escalar assim mesmo") */
+  tecnico?: [number | null, number | null]; evento?: [number, number]
 }
 export interface GolM2 { home: boolean; nome: string; min: number; assist?: string; contra?: boolean }
 export interface ResultadoM2 { placar: [number, number]; gols: GolM2[] }
@@ -37,13 +39,13 @@ export function entradaM2(o: Omit<EntradaM2, 'clima'> & { clima?: Clima }): Entr
 
 /** um motor NOVO com estas entradas (o campinho anima este) */
 export function novoMotor2(e: EntradaM2, en = false): Motor2 {
-  const m = new Motor2(e.seed, e.casa, e.fora, en, [e.fCasa, e.fFora], e.tatica, e.clima, e.bots)
+  const m = new Motor2(e.seed, e.casa, e.fora, en, [e.fCasa, e.fFora], e.tatica, e.clima, e.bots, { tecnico: e.tecnico, evento: e.evento })
   if (e.casa2?.length) m.trocaTime(0 as Lado, e.casa2, e.fCasa2 ?? e.fCasa)
   if (e.fora2?.length) m.trocaTime(1 as Lado, e.fora2, e.fFora2 ?? e.fFora)
   return m
 }
 
-const chave = (e: EntradaM2) => [e.seed, e.clima, e.tatica.join(','), e.bots.join(','), e.fCasa, e.fFora, e.fCasa2, e.fFora2,
+const chave = (e: EntradaM2) => [e.seed, e.clima, String(e.tecnico), String(e.evento), e.tatica.join(','), e.bots.join(','), e.fCasa, e.fFora, e.fCasa2, e.fFora2,
   ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}`).join(';'))].join('|')
 const CACHE = new Map<string, ResultadoM2>()
 const MAX = 600
