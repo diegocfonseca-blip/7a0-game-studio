@@ -31,6 +31,10 @@
 - 🔒 **19/10, decisão do Diego**: *"carreira online só pra minha conta ainda… tem que ser igual a carreira que temos hoje em tudo, menos ter
   segundo clube"*. Então: **SEM 2º clube/SAF-2º clube** no online; TODO o resto da solo tem que existir. Antes de liberar pra qualquer
   um: lista completa do que a solo tem (`docs/carreira-online-checklist.md`) e cada item conferido + teste de 20 robôs.
+- 🔨 **20/10: 1ª temporada de ponta a ponta (só contas do Diego)** — entrada no menu online "🌐 Carreira Online (nova)", sala de
+  espera, leilão de estreia com todos (o dono calcula, os outros assistem e lançam), cada um passa a tocar o próprio clube, barra
+  do PRONTO e rodadas no relógio do dono. Falta: a VIRADA de temporada (próxima), copas no relógio do dono, intervalo/pênalti.
+  Situação item a item em `docs/carreira-online-checklist.md`.
 - 🏢 **19/10: SAF no online = a REGRA ANTIGA, da SAF sozinha** (*"a saf na regra antiga qd tinha saf sozinha"*): filial na D, 50% dos
   prêmios, empréstimo, comissão e venda pelo `SELL_FILIAL` — nada da saf2 (venda pela divisão, assumir, 2º clube).
 - PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta

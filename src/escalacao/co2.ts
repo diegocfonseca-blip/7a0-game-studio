@@ -199,3 +199,5 @@ export async function co2LePrivado(): Promise<Record<string, unknown> | null> {
   return ((data as { dados?: Record<string, unknown> } | null)?.dados) ?? null
 }
 export const co2SalaAtual = (): string | null => canalSala
+/** 📸 bancada das fotos/testes (`scripts/foto-co2.mjs`): finge quem sou eu e quem está na sala. Não é usada pelo jogo. */
+export function _bancadaCo2(p: Partial<Snap>): void { muda(p) }

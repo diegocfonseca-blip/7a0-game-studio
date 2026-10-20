@@ -11003,6 +11003,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS (leilão no aparelho de quem comanda) — em construção, nada anda sozinho aqui
       if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
@@ -11092,6 +11093,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'CONFIRM_MESMO_TIME': {
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção
       // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
       // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
       // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
@@ -11656,6 +11658,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // divisão de destino com o novo elenco de rivais (quem subiu/caiu junto
       // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
       setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++

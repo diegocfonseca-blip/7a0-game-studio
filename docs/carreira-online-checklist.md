@@ -7,6 +7,19 @@ Cada linha só vira ✅ depois de: funcionar no online pelo clube CERTO (nunca `
 Legenda: **[C]** = de um clube só (vai na gaveta do clube) · **[M]** = de todos (tabela, copas, bots, ranking).
 Situação HOJE no online antigo: 🟢 funciona · 🟡 funciona mas preso no `youIdx`/meio ligado · 🔴 desligado.
 
+## 🧱 Onde está (20/10)
+- ✅ **Jeito escolhido**: cada aparelho roda a CARREIRA SOLO do próprio clube (por isso o que é de clube já vem igual à solo, sem
+  mexer na solo); os clubes dos outros chegam pelas GAVETAS (`carreira-online-v2.ts`) e as fases de TODOS (leilão) rodam no
+  aparelho de quem comanda o dia, com os outros assistindo e mandando o lance pelo canal próprio (`co2.ts`, `co2:<sala>`).
+  Isso resolve os dois furos de base abaixo sem mexer nas 63 ações (cada aparelho só age no próprio clube).
+- ✅ Banco: sala/clube/privado + gaveta e mundo (`esc_carr_gaveta`, `esc_carr_mundo`). Trava: `npm run carreira-online` (20 aparelhos
+  iguais ao juiz, com congelamento) e `npm run carreira-online-fluxo` (3 clubes: leilão → cada um no seu → 10 rodadas iguais).
+- ✅ Telas: entrada no menu online, sala de espera, barra do PRONTO + botões do dono (fotos: `node scripts/foto-co2.mjs`).
+- ✅ 1ª temporada de ponta a ponta no motor (falta o teste do Diego com 2 contas de verdade).
+- ⏳ **A VIRADA** (fim da temporada → leilão/mesmo time → sobe/cai → temporada 2) — próxima parte. Por enquanto trava com aviso.
+- ⏳ Copas depois da liga: rodam em cada aparelho (resultado igual), mas sem o relógio do dono.
+- ⏳ Intervalo e pênalti interativos: desligados na online (pausariam o jogo de todos) — ver como trazer (decidir antes da rodada?).
+
 ## ⚠️ Os dois furos de base (resolver antes de qualquer item)
 - 🔴 `START_ONLINE` não liga `agenciaOn` nem `escadaOn` → tudo que depende deles fica desligado no online (Agência, condição, eventos,
   bico, obras novas, títulos no ranking, Várzea).

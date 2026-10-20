@@ -15,7 +15,7 @@ import { minhaGaveta, type EntradasMundo, type GavetaPublica } from './carreira-
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
-const caixa = (bg = '#fff'): React.CSSProperties => ({ background: bg, border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}` })
+const caixa = (bg = '#fff'): React.CSSProperties => ({ background: bg, color: INK, border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}` }) // cor explícita: o tema da página é creme
 const botao = (bg: string, cor = INK): React.CSSProperties => ({ width: '100%', background: bg, color: cor, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: '13px 10px', fontWeight: 900, fontSize: 17, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD })
 
 // ═══ ENTRADA (no menu online) ═══════════════════════════════════════════════════════════════════════════════════════
@@ -261,7 +261,13 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
     return () => clearTimeout(t)
   }, [round, sala?.fase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!sala || seasonOver) return null
+  if (!sala) return null
+  if (seasonOver) return (
+    <div style={{ ...caixa('#FFF3C4'), padding: 12, marginBottom: 10 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 4px', textTransform: 'uppercase' }}>🔧 {tr('Fim de temporada', 'End of season')}</p>
+      <p style={{ fontWeight: 800, fontSize: 12, margin: 0 }}>{tr('A virada da carreira online (leilão de todos, mesmo time, quem sobe e quem cai) é a próxima parte que está sendo construída. O seu clube está salvo — os botões de decidir a próxima temporada ainda não andam aqui.', 'The online career season turn (everyone\'s auction, same team, promotion and relegation) is the next part being built. Your club is saved — the next-season buttons don\'t work here yet.')}</p>
+    </div>
+  )
   const euPronto = !!sn.clubes.find(c => c.user_id === sn.uid && c.pronto_rodada === sala.rodada + 1)
   const faltam = sn.clubes.filter(c => c.pronto_rodada !== sala.rodada + 1).map(c => c.nome)
   const pct = humanos ? Math.round((prontos / humanos) * 100) : 0
