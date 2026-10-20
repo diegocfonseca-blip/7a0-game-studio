@@ -9703,6 +9703,24 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — 📐 ORGANIZAÇÃO E SINCRONIA DAS DUAS EQUIPES NO 2D** (Diego: *"olhar a movimentação das duas equipes, o controle de bola,
+  a organização… a sincronia principalmente de todos, sincroniza quando a bola para por ser falta… analise a fundo"*). Auditoria lance a
+  lance em 150 jogos, antes → depois: 🏃 jogador "pulando" (mais de 13 m/s) 15.540 → ~60 amostras (teto de corrida 13 m/s; o empurrão
+  do espaçamento virou passo de lado; a saída depois do gol não teletransporta mais — o time CORRE pro lugar e a bola só rola com cada
+  um no seu campo e o rival fora do círculo) · 🧍 dois grudados com a bola rolando 2.607 → ~110 (o recebedor do passe era SORTEADO de
+  novo a cada instante e vários corriam pro mesmo ponto; "vai buscar a bola" ficava com quem já tinha perdido a bola; ordem cumprida e
+  não renovada expira em 3 s; duas ordens pro mesmo ponto → um vai pro lado; marcador a 1,7 m do dono, não dentro dele) · 🧤 tiro de
+  meta com rival dentro da área 119/285 → ~5 (o rival sai e o goleiro espera) · 🧱 falta com rival a menos de 9,15 m 38/42 → 0 (a
+  barreira é dos 4 mais perto dela; quem fez a falta sai; a bola não anda mais com o batedor sendo empurrado; o batedor chega na bola;
+  só bate com a barreira armada) · 📏 lateral sem ninguém pra receber 20 → 0 (dois companheiros vêm dar opção; rival a 2 m) · 🚀 a
+  jogada do gol que "tocava pro mais perto" podia voltar pro zagueiro e virar chutão de 75 m — agora só toca pra quem está à frente ·
+  ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
+  nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
+  (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ⏳ **20/10 — TORCIDA 70% DA CASA** (Diego: *"o lado esquerdo é completo da casa… separa com grades… a rival no canto superior
+  direito"*): FEITA no `campo2d.tsx` e mandada em foto — **esperando OK** pra publicar (está só no branch). Uma arquibancada toda da
+  casa; na outra, a rival em cima/à direita (60% de uma faixa = 30% do estádio) atrás de uma grade preta; no gol pula a torcida de
+  quem fez (antes era sorteio). Tamanho da rival = `FRACAO_RIVAL`.
 - ✅ **20/10 — 🧑‍⚖️ O JUIZ DO CAMPO 2D** (Diego: *"já vi até atacante do time rival bater tiro de meta pro rival… já vi jogada parar
   e do nada voltar ao jogo como se nada tivesse parado… simular e ver com calma as duas equipes jogando"*). Achados lendo 300
   jogos lance a lance, e consertados: 🔁 TIRO DE META EM DOBRO (a chance ia pra fora, o juiz cobrava, e o roteiro da jogada

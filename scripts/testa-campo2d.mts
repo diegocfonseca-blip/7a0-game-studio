@@ -24,7 +24,7 @@ let jogos = 0, atrasoMax = 0, atrasoInicio = 0; const atrasos: number[] = []
 let magicas = 0, foraMax = 0, saidasErradas = 0, golsVistosTot = 0, laterais = 0, tiros = 0, escTot = 0, escCheios = 0
 // 🔎 varredura de erros do motor (20/10, Diego: *"analisar mais erros de motor do jogo em toda partida"*)
 // 🧑‍⚖️ o FISCAL (20/10, Diego: *"atacante do time rival bater tiro de meta pro rival… jogada parar e do nada voltar"*)
-let reinicioErrado = 0, paradaSemCobranca = 0, reinicioSemSair = 0, travadas = 0; const exTravadas: string[] = []
+let reinicioErrado = 0, paradaSemCobranca = 0, reinicioSemSair = 0, travadas = 0, irregular = 0, conferidas = 0, teleportes = 0, grudados = 0; const exTravadas: string[] = []
 let chutesBand = 0, foraCampo = 0, bolaParada = 0, narraRepetida = 0, sobrepostos = 0, chutesLonge = 0, chancesPuladas = 0
 for (let s = 1; s <= 300; s++) {
   const rnd = (k: number) => ((s * 9301 + k * 49297) % 233280) / 233280
@@ -36,6 +36,7 @@ for (let s = 1; s <= 300; s++) {
   const j = new Jogo2D(s, casa, fora, evs)
   const golsVistos: { min: number; lado: number }[] = []
   let antes = 0
+  let posAnt: number[] | null = null, tAnt = 0
   let foraDesde = -1, festaAntes = false, bolaK = '', bolaParadaDesde = 0, narraAntes = '', narraPen = ''
   for (let m = 0; m <= 108; m += 0.25) { // (vai além do apito: um gol nos acréscimos pode fechar depois do 93', com o relógio parado)
     j.avancaAte(m)
@@ -51,6 +52,10 @@ for (let s = 1; s <= 300; s++) {
     if (!j.festa && m < 93 && (j as any).parada == null) { const k = `${b.x.toFixed(1)}|${b.y.toFixed(1)}`; if (k === bolaK) { bolaParadaDesde += 0.25; if (bolaParadaDesde > 5) { bolaParada++; bolaParadaDesde = 0 } } else bolaParadaDesde = 0; bolaK = k }
     if (j.narra !== narraAntes) { if (j.narra === narraPen) narraRepetida++; narraPen = narraAntes; narraAntes = j.narra }
     if (Math.round(m * 4) % 20 === 0) for (let i = 0; i < j.atl.length; i++) for (let k2 = i + 1; k2 < j.atl.length; k2++) if (Math.hypot(j.atl[i].x - j.atl[k2].x, j.atl[i].y - j.atl[k2].y) < 0.4) sobrepostos++
+    // 🏃 ninguém "pula" (mais de 14 m/s entre duas olhadas) e ninguém anda DENTRO de outro com a bola rolando
+    if (!j.festa) { if (posAnt) for (let i = 0; i < j.atl.length; i++) if (Math.hypot(j.atl[i].x - posAnt[2 * i], j.atl[i].y - posAnt[2 * i + 1]) / Math.max(0.01, j.t - tAnt) > 14) teleportes++
+      for (let i = 0; i < j.atl.length; i++) for (let k2 = i + 1; k2 < j.atl.length; k2++) if (Math.hypot(j.atl[i].x - j.atl[k2].x, j.atl[i].y - j.atl[k2].y) < 1.2) grudados++ }
+    posAnt = j.atl.flatMap(a => [a.x, a.y]); tAnt = j.t
     const tot = j.placar[0] + j.placar[1]
     if (tot > antes) { golsVistos.push({ min: j.t / SEG_POR_MIN, lado: j.placar[0] > golsVistos.filter(g => g.lado === 0).length ? 0 : 1 }); antes = tot }
   }
@@ -62,7 +67,7 @@ for (let s = 1; s <= 300; s++) {
   // igual em dois aparelhos
   const k = new Jogo2D(s, casa, fora, evs); k.avancaAte(47.3); const k2 = new Jogo2D(s, casa, fora, evs); for (let m = 0; m <= 47.3; m += 0.7) k2.avancaAte(m); k2.avancaAte(47.3)
   assert.deepEqual(k.atl.map(a => [a.x.toFixed(3), a.y.toFixed(3)]), k2.atl.map(a => [a.x.toFixed(3), a.y.toFixed(3)]), `semente ${s}: dois aparelhos viram jogos diferentes`)
-  reinicioErrado += j.diag.reinicioErrado; paradaSemCobranca += j.diag.paradaSemCobranca; reinicioSemSair += j.diag.reinicioSemSair; travadas += j.diag.travadas
+  reinicioErrado += j.diag.reinicioErrado; paradaSemCobranca += j.diag.paradaSemCobranca; reinicioSemSair += j.diag.reinicioSemSair; travadas += j.diag.travadas; irregular += j.diag.bolaParadaIrregular; conferidas += j.diag.cobrancasConferidas
   for (const e of j.diag.erros) if (e.includes('vigia') && exTravadas.length < 8) exTravadas.push(`s${s} ${e}`)
   chancesPuladas += j.diag.chancesPuladas; chutesBand += j.diag.chutesBandeirinha; chutesLonge += j.diag.chutesLonge; magicas += j.diag.magicas; laterais += j.diag.laterais; tiros += j.diag.tirosDeMeta
   escTot += j.diag.escanteios.length; escCheios += j.diag.escanteios.filter(n => n >= 4).length
@@ -72,6 +77,10 @@ console.log(`🧑‍⚖️ fiscal: ${reinicioErrado} cobranças pelo time errado
 assert.equal(reinicioErrado, 0, 'cobrança (tiro de meta, lateral, falta) pelo time errado')
 assert.equal(paradaSemCobranca, 0, 'alguém jogou a bola que estava fora/parada antes da cobrança')
 console.log(`🐕 vigia: ${travadas} ordens travadas destravadas`); if (exTravadas.length) console.log(exTravadas.join('\n'))
+console.log(`📐 organização: ${irregular} de ${conferidas} cobranças fora da regra de distância · ${teleportes} "pulos" de jogador · ${grudados} amostras com dois grudados`)
+assert.ok(irregular <= conferidas * 0.01, 'bola parada com o rival fora do lugar (tiro de meta na área, falta a menos de 9 m, lateral colado, saída no campo errado)')
+assert.ok(teleportes <= jogos * 0.5, 'jogador pulando (teletransporte)')
+assert.ok(grudados <= jogos * 2, 'jogadores andando um dentro do outro')
 assert.equal(reinicioSemSair, 0, 'cobrança de bola que não saiu (jogada parou do nada)')
 console.log(`⏭️ chances (sem gol) puladas por falta de tempo: ${chancesPuladas}`)
 console.log(`🎯 chutes de mais de 33 m do gol: ${chutesLonge} (Diego: "nunca vi chute do meio-campo")`)
@@ -93,7 +102,7 @@ assert.ok(magicas / jogos < 3, 'bola indo pro pé de alguém longe sem passe dem
   const gols = [{ min: 92, home: true, name: 'Romário', assist: undefined as string | undefined }]
   const j = new Jogo2D(7, casa, fora, eventosDoJogo(gols, chancesDoJogo(7 * 77, gols, 109_756)))
   let viuFesta = false
-  for (let m = 0; m <= 99; m += 0.25) { j.avancaAte(m); if (j.festa) viuFesta = true }
+  for (let m = 0; m <= 102; m += 0.25) { j.avancaAte(m); if (j.festa) viuFesta = true }
   assert.ok(viuFesta && !j.festa && j.placar[0] === 1, 'a festa do gol nos acréscimos tem que abrir e FECHAR depois do apito')
 }
 atrasos.sort((a, b) => a - b); console.log('atraso dos gols (min): mediana', atrasos[atrasos.length >> 1].toFixed(1), '· 90%', atrasos[Math.floor(atrasos.length * 0.9)].toFixed(1), '· >3min:', atrasos.filter(a => a > 3).length, 'de', atrasos.length)

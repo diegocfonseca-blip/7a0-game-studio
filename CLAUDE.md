@@ -944,6 +944,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) Só
   a conta dele enquanto constrói; ao liberar é PAGO, do ⭐ Craque pra cima. Trava: `npm run campo2d` (300 jogos: placar bate, regras,
   erros de motor).
+  (8) **ORGANIZAÇÃO e SINCRONIA** (20/10, *"analise a fundo"*): bola parada respeita a distância da regra (tiro de meta = rival fora
+  da área · falta/escanteio = 9,15 m · lateral = 2 m · saída = cada um no seu campo), ninguém "pula" nem anda dentro de outro, e chute
+  de fora da área existe **de vez em quando** (nunca do meio-campo) com a narração dizendo que foi de longe. (9) **TORCIDA**: 70% da
+  casa — uma arquibancada inteira dela, a rival no canto de cima/direita atrás de uma GRADE preta.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, pedido dele, ainda a fazer).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Mockup antes de codar.
