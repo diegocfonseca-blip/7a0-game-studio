@@ -2,7 +2,7 @@
 // quantidade), no minuto certo (no máx. ~5' de atraso quando dois gols vêm colados), sem travar e igual em todo aparelho.
 //   npx tsx scripts/testa-campo2d.mts
 import assert from 'node:assert/strict'
-import { Jogo2D, eventosDoJogo, SEG_POR_MIN } from '../src/escalacao/campo2d-motor'
+import { Jogo2D, eventosDoJogo, SEG_POR_MIN, onzeDaFormacao } from '../src/escalacao/campo2d-motor'
 import { chancesDoJogo } from '../src/escalacao/chances'
 import { ACERVO_NARRA } from '../src/escalacao/campo2d-narracao'
 import { LENDAS_COM_ESTILO, LENDAS_COM_GOLPE } from '../src/escalacao/campo2d-estilos'
@@ -109,5 +109,34 @@ atrasos.sort((a, b) => a - b); console.log('atraso dos gols (min): mediana', atr
 console.log(`✅ ${jogos} jogos: o placar do campinho bate com o do jogo em todos · maior atraso de gol ${atrasoMax.toFixed(1)}'`)
 console.log(`   (gols nos primeiros 5': maior atraso ${atrasoInicio.toFixed(1)}')`)
 assert.ok(atrasoMax <= 6.5, 'gol atrasado demais no campinho')
+// 📐 A FORMAÇÃO DO TÉCNICO MANDA (Diego 20/10): elenco com mais de 11 escala pela formação; carta com `sec` (Copa do Mundo)
+// tem posição; e a troca do intervalo vale no 2º tempo, com o placar do campinho batendo com o novo resultado
+{
+  const mk = (f: number[], tag: string, campo: 'pos' | 'sec' = 'pos') => { const o: any[] = [{ name: tag + 'G', [campo]: 'GOL', fame: 3 }]; ['LAT', 'ZAG', 'MEI', 'ATA'].forEach((p, k) => { for (let i = 0; i < f[k]; i++) o.push({ name: `${tag}${p}${i}`, [campo]: p, fame: 3 }) }); return o }
+  const conta = (j: any, l: number) => j.atl.filter((a: any) => a.lado === l).map((a: any) => a.grupo).sort().join(',')
+  // elenco de 22 comprado na ordem "atacantes primeiro": 4-5-1 tem que dar 1 atacante e 5 meias
+  const elenco = [...mk([0, 0, 0, 6], 'r'), ...mk([3, 4, 6, 0], 'r')]
+  assert.equal(onzeDaFormacao(elenco, '4-5-1').filter(c => c.pos === 'ATA').length, 1, '4-5-1 com elenco grande saiu com atacante demais')
+  const j1: any = new Jogo2D(1, elenco, mk([2, 3, 3, 2], 'y'), [], false, ['4-5-1', '5-3-2'])
+  assert.equal(conta(j1, 0), 'ATA,DEF,DEF,GOL,LAT,LAT,MEI,MEI,MEI,MEI,MEI', '4-5-1 no campinho')
+  assert.equal(conta(j1, 1), 'ATA,ATA,DEF,DEF,DEF,GOL,LAT,LAT,MEI,MEI,MEI', '5-3-2 no campinho')
+  const j2: any = new Jogo2D(2, mk([2, 2, 3, 3], 's', 'sec'), mk([2, 2, 4, 2], 't', 'sec'), [])
+  j2.avancaAte(3)
+  assert.equal(conta(j2, 0), 'ATA,ATA,ATA,DEF,DEF,GOL,LAT,LAT,MEI,MEI,MEI', 'carta da Copa do Mundo (sec) sem posição no campinho')
+  let bate = 0
+  for (let s = 1; s <= 20; s++) {
+    const g1 = [{ min: 20, home: true, name: 'xATA0' }, { min: 70, home: false, name: 'yATA0' }]
+    const j: any = new Jogo2D(s, mk([2, 2, 3, 3], 'x'), mk([2, 2, 3, 3], 'y'), eventosDoJogo(g1, chancesDoJogo(s, g1, 109_756)))
+    j.avancaAte(45.5)
+    const novo = mk([2, 3, 3, 2], 'x'); novo[3].name = 'NOVO_ZAG'; novo[7].name = 'NOVO_MEI'
+    j.trocaTime(0, novo, '5-3-2')
+    const g2 = [g1[0], { min: 60, home: true, name: 'xATA1' }, { min: 88, home: true, name: 'NOVO_MEI' }]
+    j.trocaEventos(eventosDoJogo(g2, chancesDoJogo(s, g2, 109_756)))
+    j.avancaAte(96)
+    if (j.placar[0] === 3 && j.placar[1] === 0 && conta(j, 0) === 'ATA,ATA,DEF,DEF,DEF,GOL,LAT,LAT,MEI,MEI,MEI') bate++
+  }
+  assert.equal(bate, 20, 'troca do intervalo: placar ou formação do 2º tempo não bateu')
+  console.log('✅ formação: elenco grande escala pela formação · Copa do Mundo tem posição · intervalo troca time e placar (20/20)')
+}
 console.log('📺 Campo 2D: tudo certo')
 process.exit(0)

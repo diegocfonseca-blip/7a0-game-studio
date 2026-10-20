@@ -684,7 +684,7 @@ export function torcidaBonusRewards(careerTorcida: Record<string, number> | unde
 }
 
 export interface Goal { name: string; min: number; home: boolean; id?:string; assist?: string; assistId?:string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
-export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[] }
+export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[]; /** 📐 formação de cada um (campinho 2D) */ hf?: string; af?: string; /** 🔁 os 11 do 2º tempo, quando o humano mexeu no intervalo */ hxi2?: CartaRadio[]; axi2?: CartaRadio[]; hf2?: string; af2?: string }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
 // `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
@@ -942,6 +942,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // Assim o rng compartilhado NÃO é tocado aqui → nenhum outro jogo/divisão muda.
     const humanTid = H.human ? H.teamId : A.human ? A.teamId : null
     const hd = humanTid != null ? halftime[humanTid]?.[r] : undefined
+    let hxi2: PoolCard[] | undefined, axi2: PoolCard[] | undefined // 🔁 o time do 2º tempo, só pro campinho 2D
     if (hd && hd.xi2?.length === 11) {
       const humM = H.human ? H : A
       const hmap = new Map(humM.squad.map(c => [c.id, c]))
@@ -950,6 +951,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
         const sub = mulberry((((seed ^ 0x48A17F) ^ ((r + 1) * 0x2545F491) ^ (humanTid! * 0x9E3779B1)) >>> 0))
         const homeXI2 = H.human ? humXI2 : hxi
         const awayXI2 = A.human ? humXI2 : axi
+        if (H.human) hxi2 = homeXI2; else axi2 = awayXI2
         const humTac2 = hd.tactic ?? (H.human ? th : ta)
         const homeTac2 = H.human ? humTac2 : th
         const awayTac2 = A.human ? humTac2 : ta
@@ -997,7 +999,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
       const goals: Goal[] = [...hFinal.map(e => ({ ...e, home: true })), ...aFinal.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
-      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi }) // 📻 a escalação vai junto pra rádio citar o jogador
+      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi, hf: H.formation, af: A.formation, hxi2, axi2, hf2: hxi2 ? hd?.formation ?? H.formation : undefined, af2: axi2 ? hd?.formation ?? A.formation : undefined }) // 📻 a escalação vai junto pra rádio citar o jogador
     }
   }
 }
@@ -3117,7 +3119,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   /** 🆚 retrospecto entre os DONOS dos dois clubes (sala online, gente × gente) — aparece antes da 1ª frase da rádio */
   retro?: { rival: string; r?: Retro } | null
   /** 📻🧑 escalação dos dois times, pra rádio citar o JOGADOR pelo nome (14/10). Sem isto, a rádio fala do clube. */
-  elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }
+  elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[]; /** 📐 formação de cada lado (o campinho 2D escala por ela) */ fCasa?: string; fFora?: string; /** 🔁 os 11 do 2º tempo (troca no intervalo da carreira) */ casa2?: CartaRadio[]; fora2?: CartaRadio[]; fCasa2?: string; fFora2?: string }
   /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
    *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
   mascotHome?: string; mascotAway?: string
@@ -3541,8 +3543,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])
       : (emIngles ? ['📢 Final whistle — a draw, one point each 🤝', '📢 It\'s over — all square. Nobody left happy 🤝', '📢 Full time — a draw, and it felt like less 🤝', '📢 The referee ends it: even on the night 🤝'] : ['📢 Apito final — empate, um ponto pra cada 🤝', '📢 Acabou — tudo igual. Ninguém saiu feliz 🤝', '📢 Fim de jogo — empate, com gosto de pouco 🤝', '📢 O juiz encerrou: igualdade na noite 🤝'])
   const fimTxt = grande && ritual === 'end' ? FIM_RES[rk % FIM_RES.length] : null
-  const lado2d = (nome: string, cor: string, mascote: string | undefined, cartas: CartaRadio[] | undefined, emblema: ReactNode) => ({
-    nome, cor, cartas: cartas as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
+  const lado2d = (nome: string, cor: string, mascote: string | undefined, cartas: CartaRadio[] | undefined, emblema: ReactNode, formacao?: string, cartas2?: CartaRadio[]) => ({
+    nome, cor, cartas: cartas as never, formacao, cartas2: cartas2 as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
     escudo: emblema ?? <Escudo nome={nome} size={110} />, tecnico: c2dX.tecnicoDe?.(nome) ?? null,
   })
   // 📺 com o 2D escolhido o campinho TOMA O LUGAR do placar (Diego 20/10: *"qd tiver escolhido o 2D o placar padrão rápido
@@ -3550,7 +3552,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // selo da TV do campinho, e o telão de propaganda segue embaixo, no lugar de sempre.
   const campo2dEl = c2d ? (
     <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
-      casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem)}
+      casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} />
   ) : null
   if (campo2dEl) return campo2dEl
@@ -3670,7 +3672,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} semCarimbo={semCarimbo} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2 }} semCarimbo={semCarimbo} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────

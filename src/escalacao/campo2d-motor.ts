@@ -13,6 +13,7 @@
 //   · 🃏 Estilo só das lendas (`campo2d-estilos.ts`); o resto joga no neutro da posição.
 import { estiloDe, golpesDe, peDe, type Estilo, type Golpe, type Pe } from './campo2d-estilos'
 import { frase, type ChaveNarra } from './campo2d-narracao'
+import { FORMATIONS, type FormationKey } from './types'
 
 export const W = 68, L = 105
 /** 93' em 90 s no automático do 2D (decisão do Diego: 1:30 por jogo) */
@@ -42,7 +43,7 @@ const COMO: Record<Acab, [string, string]> = {
   de_primeira: ['de primeira', 'first time'], barriga: ['de BARRIGA! Feio, mas vale', 'off the BELLY! Ugly, but it counts'],
 }
 export interface Evento { min: number; lado: Lado; fim: Fim; autor?: string; assist?: string }
-export interface CartaCampo { name: string; pos?: string; club?: string; year?: number; fame?: number; fake?: boolean }
+export interface CartaCampo { name: string; pos?: string; /** (Copa do Mundo/regional guardam a posição aqui) */ sec?: string; club?: string; year?: number; fame?: number; fake?: boolean }
 type Grupo = 'GOL' | 'DEF' | 'LAT' | 'MEI' | 'ATA'
 export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; /** 🎯 os golpes assinatura (só lenda) */ golpes: Golpe[]; /** 🦶 pé conhecido (só lenda famosa por ele) */ pe: Pe; grupo: Grupo; bx: number; dep: number; x: number; y: number; /** onde estava no passo anterior (só pro DESENHO ficar liso) */ ax?: number; ay?: number; ov: { x: number; y: number; v: number; busca?: boolean } | null }
 interface Voo { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; alt: number; lin: boolean; fim?: () => void; /** 🌀 curva (metros pro lado, no meio do caminho): colocado, trivela, folha seca */ curva?: number }
@@ -56,12 +57,27 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 const grupoDe = (pos?: string): Grupo => pos === 'GOL' ? 'GOL' : pos === 'LAT' ? 'LAT' : pos === 'ZAG' ? 'DEF' : pos === 'MEI' ? 'MEI' : 'ATA'
 
 // ── montar o time: a escalação real vira 11 no campo, cada linha espalhada na largura ─────────────────────────────────────
-function montaTime(lado: Lado, cartas: CartaCampo[]): Atleta[] {
-  const lista = cartas.slice(0, 11)
+// 📐 A FORMAÇÃO DO TÉCNICO MANDA (Diego 20/10: *"não adianta ser 4-5-1 e ter três atacantes cravados na frente… 5-3-2 e ter
+// dois zagueiros na zaga"*). Elenco com mais de 11 (Minhas Ligas depois do leilão de reservas) entrava pelos 11 PRIMEIROS
+// COMPRADOS — e a formação no campinho saía da ordem de compra. Agora sai a conta da formação: N por posição, os melhores.
+export function onzeDaFormacao(cartas0: CartaCampo[], formacao?: FormationKey | string): CartaCampo[] {
+  // 🌐 a Copa do Mundo e a regional guardam a posição em `sec`, não em `pos`: sem isto o time inteiro virava atacante, sem
+  // goleiro, e o campinho quebrava ao montar (20/10)
+  const cartas = cartas0.map(c => c.pos || !c.sec ? c : { ...c, pos: c.sec })
+  if (cartas.length <= 11) return cartas
+  const need = FORMATIONS[(formacao && formacao in FORMATIONS ? formacao : '4-3-3') as FormationKey]
+  const out: CartaCampo[] = []
+  for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const)
+    out.push(...cartas.filter(c => c.pos === pos).sort((a, b) => (b.fame ?? 0) - (a.fame ?? 0)).slice(0, need[pos]))
+  for (const c of cartas) if (out.length < 11 && !out.includes(c)) out.push(c) // (posição que faltou: completa com quem sobrou)
+  return out.slice(0, 11)
+}
+function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: FormationKey | string): Atleta[] {
+  const lista = onzeDaFormacao(cartas, formacao).slice(0, 11)
   while (lista.length < 11) lista.push({ name: '', pos: lista.some(c => c.pos === 'GOL') ? 'MEI' : 'GOL' })
   const por: Record<Grupo, CartaCampo[]> = { GOL: [], DEF: [], LAT: [], MEI: [], ATA: [] }
   for (const c of lista) por[grupoDe(c.pos)].push(c)
-  if (!por.GOL.length) por.GOL.push((por.DEF.pop() ?? por.MEI.pop())!)
+  if (!por.GOL.length) por.GOL.push((por.DEF.pop() ?? por.MEI.pop() ?? por.LAT.pop() ?? por.ATA.pop())!)
   const out: Atleta[] = []
   const linha = (cs: CartaCampo[], dep: number, gr: (i: number, n: number) => Grupo) => cs.forEach((c, i) => {
     const n = cs.length, bx = n === 1 ? 34 : 9 + (50 * i) / (n - 1)
@@ -111,13 +127,37 @@ export class Jogo2D {
   private prazo: number | null = null // até quando o ENFEITE da jogada decisiva pode correr
   private en: boolean
 
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], eventos: Evento[], en = false) {
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], eventos: Evento[], en = false, formacoes: [string?, string?] = []) {
     this.rng = mulberry(seed)
-    this.atl = [...montaTime(0, casa), ...montaTime(1, fora)]
+    this.atl = [...montaTime(0, casa, formacoes[0]), ...montaTime(1, fora, formacoes[1])]
     this.evs = [...eventos].sort((a, b) => a.min - b.min)
     this.en = en
     this.saida(0, true)
     this.narra = en ? 'Kick-off!' : 'Rola a bola!'
+  }
+
+  /** 🔁 INTERVALO DA CARREIRA: o técnico trocou jogador/formação → no 2º tempo o campinho joga com o time NOVO. Os mesmos
+   *  bonecos são reaproveitados (quem fica, fica onde está; quem entra pega o lugar de quem saiu) — assim nenhuma jogada em
+   *  andamento perde o jogador que ela segura, e a nova formação aparece com o time caminhando pros lugares novos. */
+  trocaTime(l: Lado, cartas: CartaCampo[], formacao?: string) {
+    const novos = montaTime(l, cartas, formacao), velhos = this.time(l)
+    const fica = new Set<Atleta>(), sobra: Atleta[] = []
+    const par = new Map<Atleta, Atleta>()
+    for (const n of novos) { const v = velhos.find(a => a.nome === n.nome && !!n.nome && !fica.has(a)); if (v) { fica.add(v); par.set(n, v) } }
+    for (const v of velhos) if (!fica.has(v)) sobra.push(v)
+    for (const n of novos) {
+      let v = par.get(n)
+      if (!v) { const i = Math.max(0, sobra.findIndex(a => a.grupo === n.grupo)); v = sobra.splice(i, 1)[0]; if (!v) continue }
+      Object.assign(v, { nome: n.nome, carta: n.carta, estilo: n.estilo, golpes: n.golpes, pe: n.pe, grupo: n.grupo, bx: n.bx, dep: n.dep })
+    }
+  }
+  /** 🔁 o RESULTADO mudou com o jogo rolando (2º tempo re-simulado no intervalo, pênalti decisivo): o que já foi montado
+   *  fica como está e o futuro passa a ser o da lista nova — o placar do campinho continua batendo com o de cima. */
+  trocaEventos(eventos: Evento[]) {
+    const feitos = this.evs.slice(0, this.iev), ult = feitos.length ? feitos[feitos.length - 1].min : -1
+    const agora = Math.max(ult, this.t / SEG_POR_MIN)
+    // (gol que ainda não entrou entra mesmo se o minuto dele já passou — o motor dá um pique e monta; chance velha, não)
+    this.evs = [...feitos, ...eventos.filter(e => e.fim === 'gol' ? e.min > ult : e.min > agora).sort((a, b) => a.min - b.min)]
   }
 
   // ── consultas ──
@@ -165,7 +205,9 @@ export class Jogo2D {
     const blk = this.bloco[p.lado] ?? this.blocoDesejado(p.lado), tac = this.tatica[p.lado], ataca = blk.ataca > 0.5
     if (p.grupo === 'GOL') return this.rel(p.lado, 34 + (blk.bx - 34) * 0.12 + Math.sin(this.t * 0.6 + p.lado * 1.7) * 0.7, 99 + 2.5 * (1 - blk.ataca)) // (o goleiro se ajeita na linha, nunca parado de estátua)
     const frente = blk.frente, fundo = blk.fundo
-    let y = frente + (fundo - frente) * p.dep
+    // 🧱 DEFENDENDO, a linha de trás é UMA linha: o lateral fecha junto com os zagueiros (5-3-2 mostra 5 atrás, 4-x-x mostra 4);
+    // atacando ele volta a ficar um passo à frente pra apoiar
+    let y = frente + (fundo - frente) * (p.grupo === 'LAT' ? p.dep + 0.12 * (1 - blk.ataca) : p.dep)
     // ↔️ o time desliza pro lado da bola ENCOLHENDO a largura (Diego 20/10: *"não tem sincronia"*): antes ele só somava o
     // deslize, e quem já estava aberto passava da linha e ficava preso na lateral — 3, 4 jogadores amontoados longe da bola
     const largura = ataca ? 0.92 : 0.72

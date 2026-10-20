@@ -951,6 +951,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (10) **O QUE VALE É O QUE A TELA MOSTRA** (20/10, *"ainda tá muito ruim… a bola para do nada… congela"*): número do motor não
   basta — a trava `testa-campo2d-tela.mts` roda a 60 quadros/s e reprova bola parada no meio do jogo, congelada, jogador plantado e
   tremendo. Mexeu no motor, FILMA a bancada (`scripts/teste-campo2d/`) e olha os quadros antes de dizer que melhorou.
+  (11) **A FORMAÇÃO DO TÉCNICO MANDA NO CAMPINHO** (20/10, *"não adianta ser 4-5-1 e ter três atacantes cravados na frente"*):
+  cada um NATURALMENTE no lugar da sua posição na formação escolhida (sem ficar estátua). Elenco com mais de 11 escala pela
+  formação (`onzeDaFormacao`), troca do intervalo vale no 2º tempo, e a linha de trás defende alinhada. Quem chama o
+  `LiveScoreCard` manda a formação junto (`elencos.fCasa/fFora`). Trava no `npm run campo2d`.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

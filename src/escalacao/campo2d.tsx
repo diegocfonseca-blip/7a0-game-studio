@@ -29,8 +29,8 @@ const PLACA_MS = 7000 // as placas laterais trocam no mesmo ritmo das placas atr
 type Gol = { name: string; min: number; home: boolean; assist?: string }
 export interface Campo2DProps {
   roundKey: number
-  casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null }
-  fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null }
+  casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
+  fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
   gols: Gol[]
   roundMs: number
   minuto: number // o minuto que o placar mostra (o relógio manda)
@@ -93,9 +93,30 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
     const chances = chancesDoJogo(seed, gols, roundMs)
     const evs = eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
-    return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en')
+    return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en', [casa.formacao, fora.formacao])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundKey, casa.nome, fora.nome, roundMs])
+  // 🔁 INTERVALO (carreira): o técnico mexeu no time → o 2º tempo re-simula. O campinho troca o futuro (gols novos) e, do 45'
+  // em diante, joga com os 11 novos na formação nova. Sem mudança, nada acontece (assinatura igual).
+  const golsSig = gols.map(g => `${g.min}${g.home ? 'h' : 'a'}${g.name}`).join('|')
+  const golsSigAnt = useRef(golsSig)
+  useEffect(() => {
+    if (golsSigAnt.current === golsSig) return
+    golsSigAnt.current = golsSig
+    const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
+    const chances = chancesDoJogo(seed, gols, roundMs)
+    jogo.trocaEventos(eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? (casa.cartas2 ?? casa.cartas) : (fora.cartas2 ?? fora.cartas), { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [golsSig, jogo])
+  useEffect(() => { golsSigAnt.current = golsSig }, [jogo]) // eslint-disable-line react-hooks/exhaustive-deps
+  const segundoTempo = useRef<{ jogo: Jogo2D | null; casa: string; fora: string }>({ jogo: null, casa: '', fora: '' })
+  if (minuto >= 45) {
+    const st = segundoTempo.current
+    if (st.jogo !== jogo) { st.jogo = jogo; st.casa = ''; st.fora = '' }
+    const sig = (cs?: CartaCampo[]) => (cs ?? []).map(c => c.name).join('|')
+    if (casa.cartas2 && sig(casa.cartas2) !== st.casa) { st.casa = sig(casa.cartas2); if (st.casa !== sig(casa.cartas)) jogo.trocaTime(0, casa.cartas2, casa.formacao) }
+    if (fora.cartas2 && sig(fora.cartas2) !== st.fora) { st.fora = sig(fora.cartas2); if (st.fora !== sig(fora.cartas)) jogo.trocaTime(1, fora.cartas2, fora.formacao) }
+  }
   if (tatica) jogo.tatica = tatica
   // ⏱️ o minuto do placar chega inteiro; aqui ele vira contínuo (até o próximo inteiro) pro campinho andar liso
   const relogio = useRef({ min: 0, em: performance.now() })

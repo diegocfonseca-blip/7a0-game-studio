@@ -9717,6 +9717,14 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ✅ **20/10 — 📐 FORMAÇÃO DO TÉCNICO NO CAMPO 2D** (Diego: *"não adianta ser 4-5-1 e ter três atacantes cravados na frente… 5-3-2
+  e ter dois zagueiros na zaga… ele naturalmente está naquele local"*). Três furos achados e fechados: (1) nas salas online
+  (Minhas Ligas depois do leilão de reservas) o campinho pegava os 11 PRIMEIROS COMPRADOS do elenco — agora escala pela formação
+  do técnico (`onzeDaFormacao`, a formação vai em `elencos.fCasa/fFora`); (2) a troca de jogador/formação no INTERVALO da
+  carreira não chegava no 2D — agora o 2º tempo joga com o time novo e os gols novos (`trocaTime`/`trocaEventos`, SimMatch leva
+  `hxi2`/`hf2`); (3) 🐛 na Copa do Mundo/regional as cartas guardam a posição em `sec`: o campinho via todo mundo como
+  atacante, sem goleiro, e QUEBRAVA ao montar o time. E a linha de trás agora defende alinhada (5-3-2 mostra 5 atrás).
+  Medido em 20 jogos por formação: posição média de cada setor bate com a formação. Trava no `npm run campo2d`.
 - ✅ **20/10 — 📺 MOTOR 2D OLHANDO O QUE A TELA MOSTRA** (Diego: *"ainda tá muito ruim… não tem sincronia… a bola às vezes para
   do nada… dá uma congelada… jogador fazendo coisas que não têm sentido, goleiro também… precisa melhorar muito mais"*). Nova trava
   `scripts/testa-campo2d-tela.mts` (vem no `npm run campo2d`): roda o motor a 60 quadros/s com o relógio do placar e mede o que o
