@@ -349,7 +349,8 @@ export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quand
 /** 🚫🤖 "Sem bots" (Minhas Ligas) só vale com pelo menos 4 times de gente; com menos, a liga completa com bots (19/10) */
 export const LIGA_FECHADA_MIN = 4
 // guarda quem ficou no top 3 (`esc_premio_semana`, trava 1× por semana); o VALOR mora aqui, nunca vem de fora.
-export const RANKING_SEMANA_MOEDAS: Record<1 | 2 | 3, number> = { 1: 20, 2: 10, 3: 5 }
+// 🔁 20/10 (Diego: "aumente as moedas do ganhador da semana do online pra 30 20 e 10")
+export const RANKING_SEMANA_MOEDAS: Record<1 | 2 | 3, number> = { 1: 30, 2: 20, 3: 10 }
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
