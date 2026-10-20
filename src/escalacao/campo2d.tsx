@@ -151,25 +151,47 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const w = (PADX - 3.5) * S
       return [{ x: 0, y: 0, w, h: CH }, { x: CW - w, y: 0, w, h: CH }]
     })()
+    // 🏟️ DIVISÃO DA TORCIDA (Diego 20/10: *"70% do time da casa… o lado esquerdo é completo da casa… separa com algo preto
+    // como se fossem grades de separação… e aí vem a torcida do rival no canto superior direito"*): uma arquibancada é toda da
+    // casa; na outra a rival fica na ponta de CIMA/DIREITA, atrás de uma grade preta. 60% de uma faixa = 30% do estádio.
+    const FRACAO_RIVAL = 0.6
+    // (em pé: a faixa da DIREITA, a rival em cima · deitado: a faixa de CIMA, a rival na direita)
+    const faixaRival = deitado ? 0 : 1
+    const ehRival = (fi: number, p: number) => fi === faixaRival && (deitado ? p > 1 - FRACAO_RIVAL : p < FRACAO_RIVAL)
     const torcida = (g: CanvasRenderingContext2D, festa: 0 | 1 | null, tt: number) => {
-      faixaTorcida.forEach(f => {
+      faixaTorcida.forEach((f, fi) => {
         g.fillStyle = '#1b232c'; g.fillRect(f.x, f.y, f.w, f.h)
         const fileiras = 3, ao = deitado ? f.h : f.w, al = deitado ? f.w : f.h
         const n = Math.max(12, Math.round(al / (S * 1.35)))
+        // a grade: um vão de ~1,6 m sem ninguém, com as barras pretas
+        const corte = fi === faixaRival ? (deitado ? 1 - FRACAO_RIVAL : FRACAO_RIVAL) : -1, vao = (S * 1.6) / al
         for (let r = 0; r < fileiras; r++) {
           const base = (r + 0.5) / fileiras * ao
           g.fillStyle = r % 2 ? '#232c36' : '#1f2831'
           if (deitado) g.fillRect(f.x, f.y + base - ao / fileiras / 2, f.w, ao / fileiras); else g.fillRect(f.x + base - ao / fileiras / 2, f.y, ao / fileiras, f.h)
           for (let i = 0; i < n; i++) {
-            const ao2 = (i + 0.5) / n * al + ((i * 7 + r * 3) % 5 - 2) * 0.6
-            const pula = festa != null && ((i + r) % 3 === 0) === (festa === 0) ? Math.abs(Math.sin(tt * 9 + i + r)) * 2.5 : 0
+            const p = (i + 0.5) / n
+            if (corte >= 0 && Math.abs(p - corte) < vao) continue // (ninguém em cima da grade)
+            const ao2 = p * al + ((i * 7 + r * 3) % 5 - 2) * 0.6
+            const rival = ehRival(fi, p)
+            // 🎉 no gol pula a torcida DE QUEM FEZ (antes era um sorteio que misturava as duas)
+            const pula = festa != null && (rival ? festa === 1 : festa === 0) && (i + r) % 2 === 0 ? Math.abs(Math.sin(tt * 9 + i + r)) * 2.5 : 0
             const px0 = deitado ? f.x + ao2 : f.x + base, py0 = deitado ? f.y + base - pula : f.y + ao2 - pula
-            // a torcida da casa é maioria; a visitante fica num cantinho (lado/ponta oposta)
-            // 🏟️ a torcida da CASA é maioria nas duas faixas; a VISITANTE fica num cantinho só, atrás do gol que o visitante
-            // defende (deitado: a ponta esquerda; em pé: a ponta de cima) — Diego 20/10: *"a torcida com um cantinho só de um lado?"*
-            const visitante = i / n < 0.18
-            g.beginPath(); g.arc(px0, py0, Math.max(1.6, S * 0.42), 0, 7); g.fillStyle = visitante ? corFora : corCasa; g.globalAlpha = 0.9; g.fill(); g.globalAlpha = 1
+            g.beginPath(); g.arc(px0, py0, Math.max(1.6, S * 0.42), 0, 7); g.fillStyle = rival ? corFora : corCasa; g.globalAlpha = 0.9; g.fill(); g.globalAlpha = 1
           }
+        }
+        if (corte >= 0) {
+          // 🚧 a grade de separação: poste grosso nas pontas + barras finas, tudo preto
+          const c = corte * al, w0 = vao * al * 1.6
+          g.save(); g.fillStyle = '#05070a'
+          if (deitado) {
+            g.fillRect(f.x + c - w0 / 2, f.y, w0, f.h); g.fillStyle = '#3a434d'
+            for (let k = 0; k <= 4; k++) g.fillRect(f.x + c - w0 / 2 + (k / 4) * (w0 - 1.5), f.y, k % 4 === 0 ? 2.5 : 1.2, f.h)
+          } else {
+            g.fillRect(f.x, f.y + c - w0 / 2, f.w, w0); g.fillStyle = '#3a434d'
+            for (let k = 0; k <= 4; k++) g.fillRect(f.x, f.y + c - w0 / 2 + (k / 4) * (w0 - 1.5), f.w, k % 4 === 0 ? 2.5 : 1.2)
+          }
+          g.restore()
         }
       })
     }
