@@ -9506,5 +9506,6 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   · Bolinha na COR DA CAMISA do time (nunca da categoria); lenda = rostinho com anel na cor do time; camisa parecida → visitante
     com a 2ª cor.
   · Sem intervalo.
-  ⏳ Em aberto: tempo da partida no 2D (o vídeo tem ~2:50 → 38 rodadas ≈ 1h50). Proposta: ~1:30 por jogo na MESMA velocidade de
-  bola (menos lances por jogo) ≈ 1h a liga.
+  ✅ **Tempo: 1:30 por jogo** (*"pode ser 1:30"*), mesma velocidade de bola do vídeo, menos lances por partida (liga ≈ 1h).
+  ✅ **Estilo só das LENDAS** (*"não precisa fazer 2.500, só das lendas… são menos de 200"*): 196 cartas / 184 nomes de lenda
+  ganham estilo à mão; o resto joga no estilo neutro da posição.
