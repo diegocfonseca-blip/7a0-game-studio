@@ -9539,7 +9539,7 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
-- 🟡 **20/10 — 2D EM TODO JOGO** (*"serve para tudo, pô"*), no BRANCH, esperando o OK do Diego no visual (foto da sala 2D
+- ✅ **20/10 — 2D EM TODO JOGO** (*"serve para tudo, pô"*), PUBLICADO só na conta do Diego (OK dele: "Sim"; foto da sala 2D
   enviada): o campinho mora DENTRO do `LiveScoreCard` (placar de toda competição) e, com o 2D escolhido, TOMA O LUGAR do
   placar (correção do Diego: *"qd tiver escolhido o 2D o placar padrão rápido não aparece"*); o telão de propaganda segue
   embaixo. Carreira: placar de sempre, quem tem o 2D liberado troca no botão. Quem decide: `useCampo2DLigado` (`campo2d-modo.ts`) — fora da sala
