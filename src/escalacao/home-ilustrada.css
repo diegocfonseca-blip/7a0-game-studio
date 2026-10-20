@@ -104,7 +104,9 @@
 .ll-home-bb .ll-art{background:#0b0a10;overflow:hidden}
 .ll-home-bb .ll-art:before,.ll-home-bb .ll-art:after{content:'';position:absolute;inset:0;background:url('./img/home-bidlegends-v01.webp') center top / auto 100% no-repeat}
 .ll-home-bb .ll-art:before{background-size:cover;filter:blur(18px) brightness(.45);transform:scale(1.1)}
-@media(max-width:650px){.ll-home-bb .ll-art:after{background-size:auto 660px}}
+/* 20/10 (print do Diego, celular mais largo): altura FIXA de 660px deixava a arte estreita no meio, com faixas borradas.
+   No celular ela ocupa a LARGURA toda, em qualquer tamanho de tela. */
+@media(max-width:650px){.ll-home-bb .ll-art:after{background-size:100% auto}}
 /* ⚽ botão de voltar pro futebol: o som do jogo é FIXO na tela, no vão logo à esquerda de MINHA
    CONTA (é pra isso o padding-left do .ll-account). O ⚽ fica à esquerda do som: o vão vira margem dele. */
 .ll-home-bb .ll-account{padding-left:0}
