@@ -15,6 +15,16 @@ jeito do jogador. Individualidade (20/10, 2ª passada): quem gosta de driblar se
 (alvo 2,5 m além do rival) e o duelo acontece no contato; o time procura o craque (passe pro melhor jogador vale mais). Romário no
 meio: 1,2 drible · 0,8 chute · 0,3 gol por jogo. ⚠️ Teto estrutural: num jogo de 1:30 cada jogador pega a bola ~3 vezes (o
 Ronaldinho fica 0,8 s com ela por jogo), então a marca da lenda aparece na TEMPORADA, não em cada jogo.
+✅ **MOTOR NOVO NA CARREIRA — FASE 1 FEITA (20/10, só a conta do Diego):** decisão dele = motor novo na carreira offline, carreira
+online e partida rápida; salas online/Minhas Ligas seguem no teatro. Feito: a LIGA da carreira solo — o jogo de cada técnico de gente
+é decidido pelo motor v2 (`motor2/carreira.ts`, gancho em `simDivTo`), a partir do próximo jogo de quando liga (`motor2Desde`); a troca
+do intervalo vale no motor (`trocaTime`, 1º tempo idêntico); o campinho anima o mesmo motor (`elencos.m2`). Provado numa temporada
+inteira: rodadas antigas iguais, jogos de bot iguais (29/29), placar = campinho em 28/28. Custo: ~80 ms por jogo novo; ao abrir uma
+carreira no meio da temporada, ~2,3 s na 1ª conta (depois fica na memória).
+⏳ **FASE 2 (falta):** Copa do Brasil/Legends, Supercopa, Libertadores/Champions/Mundial e Copa do Mundo da carreira (hoje ainda no
+teatro) · carreira online v2 (`co2`: precisa conferir que todo aparelho liga na MESMA rodada) · partida rápida offline · guardar o
+resultado no save pra não pagar os 2,3 s ao abrir · o pênalti decisivo manual continua somando gol por cima (decidir com o Diego se
+fica). ⚠️ Média de gols do motor novo (~1,1–1,7 por jogo) é menor que a da simulação (~2,4): ele vai notar menos gols.
 🚪 **PORTA DE ENTRADA NO JOGO (decisão do Diego, perguntada em 20/10):** hoje o campinho ENCENA o placar que a simulação da liga
 já decidiu (v1). O motor novo decide o placar sozinho. Então, pra ele entrar no jogo de verdade, o placar das partidas em 2D passa a
 SER o que acontece no campinho (liga, copas, online — tudo que o v1 desenha hoje), ou o v2 fica só de bancada. Sem essa resposta

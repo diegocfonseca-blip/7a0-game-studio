@@ -265,6 +265,36 @@ export class Motor2 {
     return { x: clamp(x, 2, W - 2), y: clamp(y, 2, L - 2), v }
   }
 
+  // ── 🔁 TROCA NO INTERVALO (carreira, Diego): o técnico escolhe os 11 do 2º tempo com o jogo parado aos 45'. A troca vale
+  // quando o juiz apita o intervalo — o 1º tempo fica IGUAL (mesma semente, nada mudou até ali), então o jogo que a tela mostrou
+  // e o que decide o placar são o mesmo jogo. Quem foi expulso no 1º tempo não volta.
+  private trocas: ({ cartas: CartaCampo[]; formacao?: string } | null)[] = [null, null]
+  trocaTime(lado: Lado, cartas: CartaCampo[], formacao?: string) {
+    this.trocas[lado] = { cartas, formacao }
+    if (this.intervalo && this.t < this.intervaloT + 0.05) this.aplicaTrocas() // (pedida bem no apito: aplica na hora)
+  }
+  private intervaloT = 0
+  private aplicaTrocas() {
+    this.intervaloT = this.t
+    for (const l of [0, 1] as Lado[]) {
+      const tr = this.trocas[l]
+      if (!tr) continue
+      this.trocas[l] = null
+      const velhos = this.atl.filter(a => a.lado === l)
+      const fora = this.expulsos.filter(n => n.lado === l).map(n => n.nome)
+      let novos = montaTime(l, tr.cartas.filter(c => !fora.includes(c.name)), tr.formacao)
+      if (novos.length > velhos.length) novos = [...novos.filter(a => a.nome), ...novos.filter(a => !a.nome)].slice(0, Math.max(velhos.length, novos.filter(a => a.nome).length)) // (sem o expulso, o montaTime completaria com um "sem nome")
+      for (const a of novos) {
+        const v = velhos.find(x => x.nome === a.nome) ?? velhos.find(x => x.grupo === a.grupo && !novos.some(n => n.nome === x.nome))
+        if (v) { a.x = v.x; a.y = v.y; a.vx = v.vx; a.vy = v.vy; if (v.nome === a.nome) { a.gas = v.gas; a.amarelos = v.amarelos; a.faltas = v.faltas } }
+        a.proxDecisao = this.t
+      }
+      while (novos.length > velhos.length) novos.pop() // (expulso no 1º tempo: o time segue com menos)
+      this.atl = [...this.atl.filter(a => a.lado !== l), ...novos]
+    }
+  }
+  private expulsos: { lado: Lado; nome: string }[] = []
+
   // ── relógio ──
   avancaAte(minuto: number) {
     const alvo = minuto * SEG_POR_MIN
@@ -307,10 +337,11 @@ export class Motor2 {
       const calmo = !(this.bola.lance && (this.bola.lance.tipo === 'chute' || this.bola.lance.tipo === 'cabeceio_gol')) && frente(0, this.bola.y) > 20 && frente(1, this.bola.y) > 20
       // ⏱️ ACRÉSCIMOS PELO QUE ACONTECEU (Diego 20/10): anunciados aos 44' e 89'; o tempo segue até 45+N e 90+N
       if (!this.acrescimo[0] && this.t >= 44 * SEG_POR_MIN) { this.acrescimo[0] = this.calculaAcrescimo(0, 1, 3); this.emite({ tipo: 'acrescimo', lado: 0, a: String(this.acrescimo[0]) }) }
-      if (this.intervalo && !this.acrescimo[1] && this.t >= 89 * SEG_POR_MIN) { this.acrescimo[1] = this.calculaAcrescimo(45, 1, 5); this.emite({ tipo: 'acrescimo', lado: 0, a: String(this.acrescimo[1]) }) }
+      if (this.intervalo && !this.acrescimo[1] && this.t >= 89 * SEG_POR_MIN) { this.acrescimo[1] = this.calculaAcrescimo(45, 1, 3); this.emite({ tipo: 'acrescimo', lado: 0, a: String(this.acrescimo[1]) }) }
       const fim1 = (45 + (this.acrescimo[0] || 1)) * SEG_POR_MIN, fim2 = (90 + (this.acrescimo[1] || 3)) * SEG_POR_MIN
-      if (!this.intervalo && this.t >= fim1 && (calmo || this.t >= fim1 + 1.5 * SEG_POR_MIN)) { this.intervalo = true; this.emite({ tipo: 'intervalo', lado: 0 }); this.saida(1); return }
-      if (this.intervalo && this.t >= fim2 && (calmo || this.t >= fim2 + 1.5 * SEG_POR_MIN)) { this.fim = true; this.emite({ tipo: 'fim', lado: 0 }); this.bola.dono = null; this.bola.vx = this.bola.vy = 0; return }
+      if (!this.intervalo && this.t >= fim1 && (calmo || this.t >= fim1 + 1.5 * SEG_POR_MIN)) { this.intervalo = true; this.emite({ tipo: 'intervalo', lado: 0 }); this.aplicaTrocas(); this.saida(1); return }
+      // (⏱️ nunca passa dos 93': é onde o relógio da tela para — gol depois disso contaria sem ninguém ver)
+      if (this.intervalo && ((this.t >= fim2 && (calmo || this.t >= fim2 + 1.5 * SEG_POR_MIN)) || this.t >= 92.9 * SEG_POR_MIN)) { this.fim = true; this.emite({ tipo: 'fim', lado: 0 }); this.bola.dono = null; this.bola.vx = this.bola.vy = 0; return }
       this.decisoes()
     }
     this.movimenta(dt)
@@ -368,11 +399,11 @@ export class Motor2 {
     z.faltas++
     let pAm = 0.07 + (carrinho ? 0.12 : 0) + (porTras ? 0.2 : 0) + (z.faltas >= 3 ? 0.18 : z.faltas === 2 ? 0.08 : 0) + (ultimoHomem ? 0.3 : 0)
     const pVerm = (ultimoHomem && frente(d.lado, d.y) < 30 ? 0.55 : 0) + (carrinho && porTras ? 0.06 : 0)
-    if (this.r() < pVerm) { this.stats.vermelhos[z.lado]++; this.emite({ tipo: 'vermelho', lado: z.lado, a: z.nome }); z.expulso = true; this.atl = this.atl.filter(a => a !== z); return }
+    if (this.r() < pVerm) { this.stats.vermelhos[z.lado]++; this.emite({ tipo: 'vermelho', lado: z.lado, a: z.nome }); z.expulso = true; this.expulsos.push({ lado: z.lado, nome: z.nome }); this.atl = this.atl.filter(a => a !== z); return }
     if (this.r() < pAm) {
       z.amarelos++
       this.stats.amarelos[z.lado]++
-      if (z.amarelos >= 2) { this.stats.vermelhos[z.lado]++; this.emite({ tipo: 'vermelho', lado: z.lado, a: z.nome }); z.expulso = true; this.atl = this.atl.filter(a => a !== z) }
+      if (z.amarelos >= 2) { this.stats.vermelhos[z.lado]++; this.emite({ tipo: 'vermelho', lado: z.lado, a: z.nome }); z.expulso = true; this.expulsos.push({ lado: z.lado, nome: z.nome }); this.atl = this.atl.filter(a => a !== z) }
       else this.emite({ tipo: 'amarelo', lado: z.lado, a: z.nome })
     }
   }

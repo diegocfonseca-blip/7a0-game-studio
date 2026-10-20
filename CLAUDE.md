@@ -979,6 +979,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   `Campinho` desenha) e o motor NUNCA reordena time de gente. Só time de BOT (ninguém escalou) é montado pelo jeito do jogador
   (finalizador no meio, driblador/velocista na ponta, desarmador de volante) — `bots` no construtor do `Motor2`. Medido: o Romário
   na vaga do meio chuta 1,1×/jogo e faz 0,3 gol; na ponta esquerda (vaga errada) chutava 0,13.
+  (17) **ONDE O MOTOR NOVO DECIDE O JOGO (20/10, decisão dele):** *"quero motor novo no modo carreira off-line e modo de carreira
+  online e partida rápida… já nas salas online, Minhas Ligas e outros modos online, o teatro"*. Carreira offline/online + partida rápida
+  = o motor v2 DECIDE o placar do jogo de gente (o campinho anima o mesmo motor: o que se vê é o que vale). Salas online, Minhas Ligas e
+  o resto do online = o v1 de hoje, que só ENCENA o placar da simulação. Na carreira liga UMA vez, a partir do próximo jogo
+  (`motor2Desde`, ação `LIGA_MOTOR2`) — rodada jogada nunca muda, e os jogos de bot da rodada continuam iguais byte a byte.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

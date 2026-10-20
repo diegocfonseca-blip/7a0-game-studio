@@ -119,6 +119,7 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva } from './sport'
+import { entradaM2, novoMotor2, resultadoM2, sementeM2, taticaM2, type EntradaM2 } from './motor2/carreira' // ⚽🧠 motor novo decide o seu jogo na carreira (20/10)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -685,7 +686,7 @@ export function torcidaBonusRewards(careerTorcida: Record<string, number> | unde
 }
 
 export interface Goal { name: string; min: number; home: boolean; id?:string; assist?: string; assistId?:string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
-export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[]; /** 📐 formação de cada um (campinho 2D) */ hf?: string; af?: string; /** 🔁 os 11 do 2º tempo, quando o humano mexeu no intervalo */ hxi2?: CartaRadio[]; axi2?: CartaRadio[]; hf2?: string; af2?: string }
+export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[]; /** 📐 formação de cada um (campinho 2D) */ hf?: string; af?: string; /** 🔁 os 11 do 2º tempo, quando o humano mexeu no intervalo */ hxi2?: CartaRadio[]; axi2?: CartaRadio[]; hf2?: string; af2?: string; /** ⚽🧠 o jogo foi decidido pelo motor novo: o campinho monta o MESMO motor com isto */ m2?: EntradaM2 }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
 // `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
@@ -807,7 +808,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -981,6 +982,30 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
         hFinal = [...hev1, ...hev2]; aFinal = [...aev1, ...aev2]
       }
     }
+    // ⚽🧠 MOTOR NOVO DECIDE O JOGO DE GENTE (20/10, Diego: carreira = motor novo). Tudo acima rodou igual (o dado compartilhado
+    // foi consumido do mesmo jeito → nenhum outro jogo muda); aqui o placar e os autores deste jogo passam a ser os do motor v2,
+    // com os MESMOS 11 na MESMA ordem do campinho, a tática, o gás, a formação e a troca do intervalo. Só a partir de `m2Desde`.
+    let m2e: EntradaM2 | undefined
+    if (m2Desde != null && r >= m2Desde && (H.human || A.human)) {
+      m2e = entradaM2({ seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
+        tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human],
+        casa2: hxi2 as never, fora2: axi2 as never, fCasa2: hxi2 ? hd?.formation ?? H.formation : undefined, fFora2: axi2 ? hd?.formation ?? A.formation : undefined })
+      const res = resultadoM2(m2e)
+      const tira = (teamName: string, e: { id: string }) => { const k = `${teamName}:${e.id}`; const row = scorers.get(k); if (row) { row.goals--; if (row.goals <= 0) scorers.delete(k) } }
+      hFinal.forEach(e => tira(H.name, e)); aFinal.forEach(e => tira(A.name, e))
+      const doLado = (home: boolean) => { const t = home ? H : A; return { t, cartas: [...(home ? hxi : axi), ...((home ? hxi2 : axi2) ?? [])] } }
+      const novos: { h: typeof hFinal; a: typeof aFinal } = { h: [], a: [] }
+      for (const g of res.gols) {
+        const { t, cartas } = doLado(g.home)
+        if (g.contra) { (g.home ? novos.h : novos.a).push({ name: `${g.nome} (contra)`, min: g.min, id: '' }); continue }
+        const c = cartas.find(x => x.name === g.nome)
+        const a = g.assist ? cartas.find(x => x.name === g.assist) : undefined
+        const ev = { name: g.nome, min: g.min, id: c?.id ?? '', assist: a && !ehFake(a) ? a.name : undefined, assistId: a && !ehFake(a) ? a.id : undefined }
+        if (c && !ehFake(c)) { const k = `${t.name}:${c.id}`, row = scorers.get(k); if (row) row.goals++; else scorers.set(k, { name: c.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: c.id, club: c.club, year: c.year }) }
+        ;(g.home ? novos.h : novos.a).push(ev)
+      }
+      hFinal = novos.h; aFinal = novos.a; hgF = res.placar[0]; agF = res.placar[1]
+    }
     // ⚽ PÊNALTI DECISIVO — só carreira offline. Se o humano bateu e CONVERTEU neste
     // jogo (guardado em `penalty`), soma 1 gol pro time dele no minuto 90. SEM rng (o
     // resultado já foi decidido pelo jogador na tela) → determinístico e byte-idêntico
@@ -1001,7 +1026,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
       const goals: Goal[] = [...hFinal.map(e => ({ ...e, home: true })), ...aFinal.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
-      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi, hf: H.formation, af: A.formation, hxi2, axi2, hf2: hxi2 ? hd?.formation ?? H.formation : undefined, af2: axi2 ? hd?.formation ?? A.formation : undefined }) // 📻 a escalação vai junto pra rádio citar o jogador
+      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi, hf: H.formation, af: A.formation, hxi2, axi2, hf2: hxi2 ? hd?.formation ?? H.formation : undefined, af2: axi2 ? hd?.formation ?? A.formation : undefined, m2: m2e }) // 📻 a escalação vai junto pra rádio citar o jogador
     }
   }
 }
@@ -1012,7 +1037,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -1020,7 +1045,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -3121,7 +3146,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   /** 🆚 retrospecto entre os DONOS dos dois clubes (sala online, gente × gente) — aparece antes da 1ª frase da rádio */
   retro?: { rival: string; r?: Retro } | null
   /** 📻🧑 escalação dos dois times, pra rádio citar o JOGADOR pelo nome (14/10). Sem isto, a rádio fala do clube. */
-  elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[]; /** 📐 formação de cada lado (o campinho 2D escala por ela) */ fCasa?: string; fFora?: string; /** 🔁 os 11 do 2º tempo (troca no intervalo da carreira) */ casa2?: CartaRadio[]; fora2?: CartaRadio[]; fCasa2?: string; fFora2?: string }
+  elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[]; /** 📐 formação de cada lado (o campinho 2D escala por ela) */ fCasa?: string; fFora?: string; /** 🔁 os 11 do 2º tempo (troca no intervalo da carreira) */ casa2?: CartaRadio[]; fora2?: CartaRadio[]; fCasa2?: string; fFora2?: string; /** ⚽🧠 jogo decidido pelo motor novo: o campinho anima ESTE motor */ m2?: EntradaM2 }
   /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
    *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
   mascotHome?: string; mascotAway?: string
@@ -3561,7 +3586,8 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const campo2dEl = c2d ? (
     <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
-      tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} />
+      tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
+      motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima} />
   ) : null
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   const campo2dComTelao = campo2dEl ? <>{campo2dEl}<GiroDaRodada doCampo cinema={cinematic} /></> : null
@@ -3682,7 +3708,7 @@ function MyMatchCard({ pausado, m, youName, finished, col, colors, roundKey, rou
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2 }} semCarimbo={semCarimbo} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2, m2: m.m2 }} semCarimbo={semCarimbo} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
@@ -8326,8 +8352,15 @@ export function PyramidSeasonScreen() {
     if (!co2Gavetas) return entradasLocais
     return mesclaEntradas(congelaMeu(entradasLocais, co2Minha, co2MeuId, co2Ate ?? -1), co2Gavetas, co2MeuId)
   }, [entradasLocais, co2Gavetas, co2MeuId, co2Minha, co2Ate])
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans),
-    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans])
+  // ⚽🧠 MOTOR NOVO (20/10, decisão do Diego: carreira = motor novo; salas online = teatro). Liga UMA vez por carreira, a partir do
+  // próximo jogo, e só na conta liberada do 2D enquanto testa. Carreira online v2 (co2) fica pra quando o envio for conferido.
+  const m2Liberado = useCampo2DLiberado()
+  const m2Ok = m2Liberado && state.careerOnline && state.onlineMode !== 'online' && !state.co2
+  useEffect(() => { if (m2Ok && !state.motor2Desde) dispatch({ type: 'LIGA_MOTOR2' }) }, [m2Ok, state.motor2Desde, dispatch])
+  const m2Desde = !m2Ok || !state.motor2Desde ? undefined
+    : state.motor2Desde.season === (state.seasonNo ?? 1) ? state.motor2Desde.round : state.motor2Desde.season < (state.seasonNo ?? 1) ? 0 : undefined
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde),
+    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
