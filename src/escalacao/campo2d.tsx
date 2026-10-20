@@ -28,6 +28,8 @@ export interface Campo2DProps {
   minuto: number // o minuto que o placar mostra (o relógio manda)
   fechado?: boolean
   tatica?: [number, number]
+  /** o placar de baixo já tem a 📻 Rádio Legends narrando: aqui a faixa some (o mesmo texto não aparece duas vezes) */
+  semNarra?: boolean
 }
 
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
@@ -46,7 +48,7 @@ function rosto(c?: CartaCampo): HTMLImageElement | null {
   return im
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra }: Campo2DProps) {
   const t = useT()
   const cv = useRef<HTMLCanvasElement | null>(null)
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -197,7 +199,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           </div>
         )}
       </div>
-      {narra && (
+      {narra && !semNarra && (
         <div style={{ maxWidth: larg, margin: '8px auto 0', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}
           dangerouslySetInnerHTML={{ __html: '🎙️ ' + narra }} />
       )}

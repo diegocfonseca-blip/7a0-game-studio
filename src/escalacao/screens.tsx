@@ -1,4 +1,7 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { useCampo2DLigado, trocaCampo2D } from './campo2d-modo'
+import { useCampo2DLiberado } from './sport'
+import { DUR_2D_MS } from './campo2d-motor'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
 import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
@@ -6016,7 +6019,26 @@ export function QuickManualLock() {
     </div>
   )
 }
-export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+// 📺 o botão do CAMPO 2D mora junto do Manual em TODO controle de partida (Diego 20/10: *"botão manual e campo 2D"* e
+// *"serve para tudo"*). Fora da sala online a escolha é do aparelho e vale pra toda competição; na sala online quem decide
+// é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
+export function Botao2D() {
+  const liberado = useCampo2DLiberado()
+  const ligado = useCampo2DLigado()
+  const { state } = useEsc()
+  const t = useT()
+  if (!liberado || state.onlineMode === 'online' || state.sport === 'basquete') return null
+  return (
+    <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+      {ligado ? t('📺 Campo 2D: LIGADO (o jogo dura 1:30)', '📺 2D pitch: ON (a match lasts 1:30)') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
+    </button>
+  )
+}
+
+export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+  return <><Botao2D /><SimControlsBase {...props} /></>
+}
+function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
@@ -6433,7 +6455,9 @@ export function EscSeason() {
   // 🏀 basquete tem 82 rodadas (não 38): acelera cada rodada pra a temporada
   // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
-  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
+  // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
+  const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
+  const baseRoundMs = c2d ? DUR_2D_MS : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / speedFactor)
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -6647,7 +6671,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = kingsS ? roundMs * speedFactor : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
+  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? DUR_2D_MS : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
@@ -8242,7 +8266,8 @@ export function EscLiberta() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
+  const c2d = useCampo2DLigado()
+  const roundMs = Math.round((c2d ? DUR_2D_MS : online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
   // 🙈 ANTI-SPOILER (regra do Diego): a classificação do grupo só atualiza DEPOIS
   // que o jogo terminou de animar na tela — igual a tabela da liga faz.
   const [revealed, setRevealed] = useState(false)
@@ -8503,7 +8528,8 @@ export function EscChampions() {
   // virada pro repescão (portão) e a VOLTA anima com a fase já em 'mata' — por isso a
   // régua é o JOGO que está na tela, não o nome da fase.
   const jogoDeCopa = !!ch && ((ch.fase === 'repescao' && !ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
-  const roundMs = Math.round((jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
+  const c2d = useCampo2DLigado() // 📺 2D = 1:30 por jogo
+  const roundMs = Math.round((c2d ? DUR_2D_MS : jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
   const passo = (ch?.fase === 'repescao' ? 100 : 0) + (ch?.rodada ?? 0) * 2 + (ch?.repescaoLeg ?? 0)
   const startedAt = useRoundPresentationStart(passo)
 

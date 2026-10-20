@@ -39,7 +39,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2 } from './sport'
+import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2, useCampo2DLiberado } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -855,6 +855,9 @@ export function EscLobby() {
   const [roomStream, setRoomStream] = useState(false)  // modo stream (esconde valores)
   const [streamModal, setStreamModal] = useState(false) // caixa explicando o modo stream
   const [liveUrl, setLiveUrl] = useState('') // 🔴 link da live (só com o Modo Stream ligado)
+  // 📺 CAMPO 2D na sala (20/10, só a conta do Diego por enquanto): o dono escolhe ao criar e vale pra todos da sala
+  const campo2dOn = useCampo2DLiberado()
+  const [room2d, setRoom2d] = useState(false)
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
@@ -1642,6 +1645,7 @@ export function EscLobby() {
       liga: gs?.mode === 'liga', // 🏆 o estado passa a saber que é Minhas Ligas (13/09)
       // 📋 LIGA DRAFT: os elencos da partida anterior voltam (o reducer só usa se TODO MUNDO já tinha time)
       ligaDraft: !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft,
+      campo2d: !!(gs as GS & { campo2d?: boolean })?.campo2d, // 📺 sala 2D (escolha do dono na criação)
       draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
     })
     return true
@@ -1914,7 +1918,7 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(campo2dOn && room2d && !carreira && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
       ...(liga && ehDraft ? { ligaDraft: true, deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
@@ -3739,6 +3743,12 @@ export function EscLobby() {
                 <SegField label={tr('Ritmo', 'Pace')}>
                   <Seg options={[[false, '⚡ Auto'], [true, '🎮 Manual']] as [boolean, string][]} value={roomManual} onSet={v => setRoomManual(v)} />
                   <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{roomManual ? tr('🎮 O host aperta pra avançar cada partida — ideal pra jogar com amigos.', '🎮 The host taps to advance each match — ideal for playing with friends.') : tr('⚡ Anda sozinho, na velocidade normal do online.', '⚡ Runs on its own, at the normal online speed.')}</p>
+                </SegField>
+              )}
+              {campo2dOn && roomMode !== 'carreira' && getSport() !== 'basquete' && (
+                <SegField label={tr('Jogo', 'Match view')}>
+                  <Seg options={[[false, tr('⚡ Padrão rápido', '⚡ Quick standard')], [true, tr('📺 2D', '📺 2D')]] as [boolean, string][]} value={room2d} onSet={v => setRoom2d(v)} />
+                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{room2d ? tr('📺 Todo jogo da sala aparece no campinho 2D e dura 1:30 — liga, copas, tudo. Todo mundo vê igual.', '📺 Every match in the room is shown on the 2D pitch and lasts 1:30 — league, cups, everything. Everyone sees the same.') : tr('⚡ O placar de sempre, no ritmo normal do online.', '⚡ The usual scoreboard, at the normal online pace.')}</p>
                 </SegField>
               )}
             </Section>

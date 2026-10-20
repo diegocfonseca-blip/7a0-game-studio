@@ -17,6 +17,8 @@
 //   · o relógio sincronizado é `esc_regional_clock` (docs/sql/regional-clock.sql). Se o
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
+import { useCampo2DLigado } from './campo2d-modo'
+import { DUR_2D_MS } from './campo2d-motor'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
@@ -550,7 +552,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const [inicioLocal, setInicioLocal] = useState(Date.now())
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
-  const ROUND_MS = 16000 // ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
+  const c2d = useCampo2DLigado()
+  const ROUND_MS = c2d ? DUR_2D_MS : 16000 // 📺 2D = 1:30 · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS

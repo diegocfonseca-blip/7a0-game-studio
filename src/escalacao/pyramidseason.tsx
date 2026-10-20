@@ -68,7 +68,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
-import { useCampo2DLiberado } from './sport'
+import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
@@ -3114,6 +3114,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
    *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
   apitoFrases?: { win: string[]; lose: string[]; draw: string[] }; stadiumMatch?:ContextoPartidaEstadio }) {
   const privatePreview = useOnlinePreview()
+  // 📺 Campo 2D (20/10): ligado, o campinho aparece EM CIMA deste placar em qualquer competição (liga, copas, Liberta,
+  // Champions, Mundial, Copa do Mundo, regionais, online e offline) e o mascote grande do gol sai de lá — por isso o
+  // carimbo daqui some. Basquete fica de fora (é outro esporte).
+  const c2d = useCampo2DLigado() && !basket
+  const c2dX = useCampo2DExtras()
   const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
   const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket
@@ -3474,7 +3479,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🧼 `nomeLimpo` antes de procurar o carimbo: se algum dia uma tela passar o
   //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
   const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? (mascotHome ?? homeName) : (mascotAway ?? awayName))) : ''
-  const carimboArt = carimboTime && !semCarimbo ? carimboDoTime(carimboTime) : null
+  const carimboArt = carimboTime && !semCarimbo && !c2d ? carimboDoTime(carimboTime) : null
   // 🖼️ 01/10 (print do Diego na foto do Twitter: o Mascarado saía só das pernas no
   // placar): a janelinha do escudo no placar leva a mascote INTEIRA, não o busto. O
   // busto é um recorte de 176px que a caixa de 76px do placar não sabe encolher
@@ -3525,16 +3530,27 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])
       : (emIngles ? ['📢 Final whistle — a draw, one point each 🤝', '📢 It\'s over — all square. Nobody left happy 🤝', '📢 Full time — a draw, and it felt like less 🤝', '📢 The referee ends it: even on the night 🤝'] : ['📢 Apito final — empate, um ponto pra cada 🤝', '📢 Acabou — tudo igual. Ninguém saiu feliz 🤝', '📢 Fim de jogo — empate, com gosto de pouco 🤝', '📢 O juiz encerrou: igualdade na noite 🤝'])
   const fimTxt = grande && ritual === 'end' ? FIM_RES[rk % FIM_RES.length] : null
-  if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  const lado2d = (nome: string, cor: string, mascote: string | undefined, cartas: CartaRadio[] | undefined, emblema: ReactNode) => ({
+    nome, cor, cartas: cartas as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
+    escudo: emblema ?? <Escudo nome={nome} size={110} />, tecnico: c2dX.tecnicoDe?.(nome) ?? null,
+  })
+  // 📺 o campinho em cima do placar — o MESMO nos dois visuais (cinema e clássico)
+  const campo2dEl = c2d ? (
+    <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+      casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem)}
+      tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} semNarra={cinematic && !basket} />
+  ) : null
+  if (cinematic) return <>{campo2dEl}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
     youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={relogioKings ? shown.map(g => ({ ...g, min: placarParaK(g.min) })) : shown}
-    goalSide={golSide} mascot={carimboSlot} eventKey={goalSeed}
+    // 📺 com o Campo 2D o GOL (mascote grande) acontece LÁ em cima: aqui o placar só conta, sem cena repetida
+    goalSide={c2d ? null : golSide} mascot={c2d ? null : carimboSlot} eventKey={goalSeed}
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
-    palcoOn={!basket}
+    palcoOn={!basket && !c2d}
     narracaoNoRadio
     radio={basket || radioLances.length === 0 ? null : (() => {
       // 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, opção B do Diego): o rádio leva TUDO, na ordem de prioridade —
@@ -3580,7 +3596,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     narration={fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
-  return (
+  return (<>
+    {campo2dEl}
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}
@@ -3632,7 +3649,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         <GoalsCol list={awayGoals} align="left" basket={basket} />
       </div>
     </div>
-  )
+  </>)
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
@@ -7988,11 +8005,8 @@ export function PyramidSeasonScreen() {
   // temporada (0,95×) — senão a tabela abriria antes do apito (spoiler).
   // 📺 CAMPO 2D (20/10): com o campinho ligado, o jogo dura 1:30 no automático (decisão do Diego) — e no Manual o técnico
   // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
-  const campo2dLiberado = useCampo2DLiberado()
-  const [campo2dPref, setCampo2dPref] = useState(() => { try { return localStorage.getItem('esc-campo2d') === '1' } catch { return false } })
-  const campo2d = campo2dLiberado && campo2dPref && state.onlineMode !== 'online'
-  const toggleCampo2d = () => setCampo2dPref(v => { const n = !v; try { localStorage.setItem('esc-campo2d', n ? '1' : '0') } catch { /* ignora */ } return n })
-  const [min2d, setMin2d] = useState(0)
+  // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
+  const campo2d = useCampo2DLigado() && state.onlineMode !== 'online'
   const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
@@ -8761,7 +8775,8 @@ export function PyramidSeasonScreen() {
   // a MESMA regra que a partida da liga já segue desde 13/09 (`baseRoundMs`).
   // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
   // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
-  const copaLegMs = manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  // 📺 no Campo 2D cada jogo da Copa também dura 1:30 (o placar anda 93' em legMs ÷ 0,82 = DUR_2D_MS)
+  const copaLegMs = campo2d ? Math.round(DUR_2D_MS * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
   const copaClock=useRef({key:'',elapsed:0})
   // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
@@ -10407,18 +10422,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {campo2d && !done && myMatch && me && !copaPlaying && (() => {
-          // 📺 o seu jogo ao vivo no campinho (os gols são os do jogo; o campinho só conta COMO eles saíram)
-          const casaVoce = myMatch.h === me.team
-          const corOutro = colors?.[casaVoce ? myMatch.aId : myMatch.hId]?.solid ?? '#3A7CA5'
-          const tacV = tacAt(careerTactics, youId, Math.max(0, round - 1))
-          const tv = tacV === 'ataque' ? 1 : tacV === 'retranca' ? -1 : 0
-          const lado = (nome: string, cor: string, cartas?: CartaRadio[]) => ({ nome, cor, cartas: cartas as never, mascote: carimboDoTime(nome), escudo: <Escudo nome={nome} size={110} />, tecnico: state.careerTecnicos?.[nome] ?? null })
-          return <Campo2D roundKey={round} minuto={min2d} roundMs={roundMs} gols={myMatch.goals}
-            casa={lado(myMatch.h, casaVoce ? myCol.solid : corOutro, myMatch.hxi)} fora={lado(myMatch.a, casaVoce ? corOutro : myCol.solid, myMatch.axi)}
-            tatica={casaVoce ? [tv, 0] : [0, tv]} />
-        })()}
-        {!done && myMatch && me && <PlacarQueEncolhe stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={campo2d ? (n: number) => { setMin2d(n); if (privateCareer) reportMinute(n) } : privateCareer ? reportMinute : undefined} m={myMatch} semCarimbo={campo2d} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {!done && myMatch && me && <PlacarQueEncolhe stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -10701,12 +10705,6 @@ export function PyramidSeasonScreen() {
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            {campo2dLiberado && state.onlineMode !== 'online' && (
-              // 📺 o botão do CAMPO 2D mora junto do Manual (Diego 20/10: "botão manual e campo 2D")
-              <button onClick={toggleCampo2d} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: campo2d ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-                {campo2d ? tr('📺 Campo 2D: LIGADO (o jogo dura 1:30)', '📺 2D pitch: ON (a match lasts 1:30)') : tr('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
-              </button>
-            )}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={avancarRodada}
               onSkip={avancarRodada}
