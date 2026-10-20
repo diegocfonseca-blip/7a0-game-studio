@@ -26,10 +26,10 @@ const fora = [
 function Bancada() {
   const [min, setMin] = useState(Number(q.get('de') ?? 0))
   useEffect(() => { const iv = setInterval(() => setMin(m => Math.min(93, m + 1)), (DUR_2D_MS * 0.82) / 93 / VEL); return () => clearInterval(iv) }, [])
-  const motor = useMemo(() => (_seed: number, c: never[], f: never[], en: boolean) => { const m = new Motor2(SEED, c, f, en); (window as unknown as { m2: Motor2 }).m2 = m; return m }, [])
+  const motor = useMemo(() => (_seed: number, c: never[], f: never[], en: boolean, _fm: unknown, clima: 'sol' | 'nublado' | 'chuva') => { const m = new Motor2(SEED, c, f, en, [], [0, 0], (q.get('clima') as 'sol' | 'nublado' | 'chuva' | null) ?? clima); (window as unknown as { m2: Motor2 }).m2 = m; return m }, [])
   return <>
     <p style={{ textAlign: 'center', fontFamily: 'Oswald', fontWeight: 700, margin: '0 0 6px' }}>🧪 MOTOR v2 · Fabulous EC × Chelsão · {min}'</p>
-    <Campo2D roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={[]} fechado={min >= 93} motorExperimental={motor as never}
+    <Campo2D climaForcado={(q.get('clima') as 'sol' | 'nublado' | 'chuva' | null) ?? undefined} roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={[]} fechado={min >= 93} motorExperimental={motor as never}
       casa={{ nome: 'Fabulous EC', cor: '#FFC400', cartas: casa, mascote: carimboDoTime('Fabulous EC'), escudo: <Escudo nome="Fabulous EC" size={110} />, tecnico: 'Telê Santana' }}
       fora={{ nome: 'Chelsão', cor: '#2B6CFF', cartas: fora, mascote: carimboDoTime('Chelsão'), escudo: <Escudo nome="Chelsão" size={110} />, tecnico: 'Mourinho' }} />
   </>

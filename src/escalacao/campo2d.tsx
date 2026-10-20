@@ -9,6 +9,7 @@
 //     (3 fileiras de torcida, placas nas laterais, bandeirão atrás do gol); no CELULAR fica em pé e o campo NÃO encolhe: a faixa
 //     da torcida tem a largura de sempre e as placas ficam só atrás dos gols (*"no móvel não vai diminuir o espaço do campo?"*).
 import { campoNaTela } from './campo2d-modo'
+import { climaDoJogo, type Clima } from './campo2d-clima'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Jogo2D, eventosDoJogo, W, L, SEG_POR_MIN, type Atleta, type CartaCampo } from './campo2d-motor'
 import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
@@ -40,7 +41,9 @@ export interface Campo2DProps {
   /** o placar de baixo já tem a 📻 Rádio Legends narrando: aqui a faixa some (o mesmo texto não aparece duas vezes) */
   semNarra?: boolean
   /** 🧪 MOTOR EXPERIMENTAL (v2, `motor2/`): só a bancada passa isto. Sem ele (todo o jogo), é o motor de sempre. */
-  motorExperimental?: (seed: number, casa: CartaCampo[], fora: CartaCampo[], en: boolean, formacoes: [string?, string?]) => unknown
+  motorExperimental?: (seed: number, casa: CartaCampo[], fora: CartaCampo[], en: boolean, formacoes: [string?, string?], clima: Clima) => unknown
+  /** 🧪 só a bancada: força o clima (pras fotos) */
+  climaForcado?: Clima
 }
 
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
@@ -79,7 +82,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado }: Campo2DProps) {
   const t = useT()
   useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
@@ -90,13 +93,15 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const [placarV, setPlacarV] = useState<[number, number]>([0, 0])
   const ultimos = useRef({ narra: '', festa: '', placar: [-1, -1] as [number, number] })
   const deitado = larg >= DEITADO_A_PARTIR
+  // 🌤️ o céu deste jogo (preso na semente: a sala inteira vê o mesmo) — ☀️ sombra atravessando · ☁️ luz chapada · 🌧️ chuva (rara)
+  const clima = climaForcado ?? climaDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome))
   // 👕 camisas: o visitante troca pra 2ª cor quando bate com a do mandante
   const corCasa = casa.cor || '#C2452F'
   const corFora = perto(corCasa, fora.cor || '#2B6CFF') ? (claro(corCasa) ? '#1B1B1B' : '#F4F4F4') : (fora.cor || '#2B6CFF')
   // o jogo do campinho: um por rodada (mesma semente das chances → o que a rádio narra é o que o campinho mostra)
   const jogo = useMemo(() => {
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
-    if (motorExperimental) return motorExperimental(seed, casa.cartas ?? [], fora.cartas ?? [], t('pt', 'en') === 'en', [casa.formacao, fora.formacao]) as Jogo2D
+    if (motorExperimental) return motorExperimental(seed, casa.cartas ?? [], fora.cartas ?? [], t('pt', 'en') === 'en', [casa.formacao, fora.formacao], climaForcado ?? climaDoJogo(seed)) as Jogo2D
     const chances = chancesDoJogo(seed, gols, roundMs)
     const evs = eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
     return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en', [casa.formacao, fora.formacao])
@@ -271,13 +276,26 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       g.fillStyle = '#1b232c'; g.fillRect(0, 0, CW, CH)
       // grama fora das linhas + listras cortadas (bandas ao longo do comprimento, 14 faixas)
       const [fx, fy, fw, fh] = rect(-PADX, -PAD, W + PADX * 2, L + PAD * 2)
-      g.fillStyle = '#2a8542'; g.fillRect(fx, fy, fw, fh)
-      for (let i = 0; i < 14; i++) { const [x, y, w, h] = rect(-PADX, -PAD + (i * (L + PAD * 2)) / 14, W + PADX * 2, (L + PAD * 2) / 14 + 0.3); g.fillStyle = i % 2 ? '#2a8542' : '#32984e'; g.fillRect(x, y, w, h) }
-      // sombra da arquibancada caindo num canto (dá volume)
+      // 🌤️ a grama pelo clima: sol = verde vivo · nublado = um tom mais frio e chapado · chuva = escura e molhada
+      const grama: [string, string] = clima === 'chuva' ? ['#22693a', '#277543'] : clima === 'nublado' ? ['#2b7f45', '#318c4e'] : ['#2a8542', '#32984e']
+      g.fillStyle = grama[0]; g.fillRect(fx, fy, fw, fh)
+      for (let i = 0; i < 14; i++) { const [x, y, w, h] = rect(-PADX, -PAD + (i * (L + PAD * 2)) / 14, W + PADX * 2, (L + PAD * 2) / 14 + 0.3); g.fillStyle = i % 2 ? grama[0] : grama[1]; g.fillRect(x, y, w, h) }
       const [sx0, sy0] = tr(0, 0), [sx1] = tr(W, 0), [, sy1] = tr(0, L)
-      const som = g.createLinearGradient(sx0, sy0, sx0 + (sx1 - sx0) * 0.5, sy0 + (sy1 - sy0) * 0.5)
-      som.addColorStop(0, 'rgba(0,0,0,.26)'); som.addColorStop(1, 'rgba(0,0,0,0)')
-      g.fillStyle = som; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(sx0 + (sx1 - sx0) * (deitado ? 0.5 : 0.95), sy0); g.lineTo(sx0, sy0 + (sy1 - sy0) * (deitado ? 0.9 : 0.55)); g.closePath(); g.fill()
+      if (clima === 'sol') {
+        // ☀️ SOL: a sombra da arquibancada atravessa o gramado em diagonal (a borda dela é reta, como sombra de prédio)
+        const kx = deitado ? 0.5 : 0.95, ky = deitado ? 0.9 : 0.55
+        g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(sx0 + (sx1 - sx0) * kx, sy0); g.lineTo(sx0, sy0 + (sy1 - sy0) * ky); g.closePath(); g.fill()
+        // e a parte iluminada ganha um brilho leve de sol
+        const luz = g.createLinearGradient(sx1, sy1, sx0, sy0); luz.addColorStop(0, 'rgba(255,245,180,.10)'); luz.addColorStop(0.6, 'rgba(255,245,180,0)')
+        g.fillStyle = luz; g.fillRect(fx, fy, fw, fh)
+      } else if (clima === 'chuva') {
+        // 🌧️ CHUVA: o campo todo um pouco mais escuro e uns reflexos d'água espalhados (poças)
+        g.fillStyle = 'rgba(10,20,40,.18)'; g.fillRect(fx, fy, fw, fh)
+        for (let i = 0; i < 9; i++) { const px = 6 + ((i * 37) % 56), py = 8 + ((i * 53) % 89); const [qx, qy] = tr(px, py); g.fillStyle = 'rgba(200,220,255,.08)'; g.beginPath(); g.ellipse(qx, qy, S * (2.2 + (i % 3)), S * 1.1, 0, 0, 7); g.fill() }
+      } else {
+        // ☁️ NUBLADO: luz chapada, sem sombra — só um cinza leve por cima
+        g.fillStyle = 'rgba(120,130,150,.08)'; g.fillRect(fx, fy, fw, fh)
+      }
       // linhas
       g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = Math.max(1.5, S * 0.35)
       g.strokeRect(...rect(0, 0, W, L))
@@ -333,6 +351,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       cx.drawImage(fundo, 0, 0, CW, CH)
       if (jogo.festa) torcida(cx, jogo.festa.lado, jogo.t) // 🎉 no gol a torcida de quem fez pula
       placasLaterais(cx, Math.floor(Date.now() / PLACA_MS))
+      // 🌧️ a chuva caindo (riscos finos descendo, baratos: ~70 linhas por quadro)
+      if (clima === 'chuva') {
+        cx.strokeStyle = 'rgba(210,225,255,.35)'; cx.lineWidth = 1
+        const tt = jogo.t * 1000, nR = 70
+        cx.beginPath()
+        for (let i = 0; i < nR; i++) { const px = ((i * 97 + tt * 0.03) % CW), py = ((i * 61 + tt * 0.55 + i * i) % (CH + 20)) - 10; cx.moveTo(px, py); cx.lineTo(px - 2, py + 9) }
+        cx.stroke()
+      }
       // 🥅 os gols, com a rede que balança quando a bola entra
       for (const [y0, s] of [[0, 1], [L, -1]] as const) {
         const g = jogo.rede && jogo.rede.y0 === y0 ? Math.sin((jogo.t - jogo.rede.t0) * 30) * 0.9 * Math.max(0, 1 - (jogo.t - jogo.rede.t0)) : 0

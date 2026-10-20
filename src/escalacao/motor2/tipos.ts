@@ -14,7 +14,7 @@ export interface Atrib {
 /** tendências (0–1): o que ele GOSTA de tentar quando a situação deixa. Não é jogada obrigatória — pesa na escolha. */
 export interface Tendencia { drible: number; passeLongo: number; chuteLonge: number; infiltra: number; cruza: number; apoia: number }
 
-export interface CartaCampo { name: string; pos?: string; sec?: string; club?: string; year?: number; fame?: number; lo?: number; hi?: number; fake?: boolean }
+export interface CartaCampo { name: string; pos?: string; sec?: string; club?: string; year?: number; fame?: number; lo?: number; hi?: number; fake?: boolean; /** 😓 o desconto da régua de condição da carreira nesta rodada (0 · −1 · −2 · −3): quem entra cansado começa com menos gás */ gasMod?: number }
 
 /** o que o jogador está fazendo SEM a bola (o coletivo escolhe) */
 export type Papel = 'forma' | 'pressiona' | 'cobre' | 'marca' | 'opcao' | 'infiltra' | 'ultrapassa' | 'recebe' | 'bola_solta' | 'goleiro' | 'cobranca'
@@ -30,7 +30,7 @@ export interface Atleta {
   alvo: { x: number; y: number; v: number }
   papel: Papel; marca: Atleta | null
   proxDecisao: number; atordoado: number
-  amarelos: number; expulso: boolean; gas: number
+  amarelos: number; expulso: boolean; /** gás AGORA (1 = inteiro; cai ao longo do jogo) */ gas: number; /** quantas faltas já fez (reincidência pesa no cartão) */ faltas: number
 }
 
 export interface Bola {
@@ -49,11 +49,12 @@ export type TipoEvento =
   | 'saida' | 'passe' | 'enfiada' | 'lancamento' | 'inversao' | 'cruzamento' | 'chutao' | 'drible' | 'arrancada' | 'desarme' | 'intercepta'
   | 'carrinho' | 'falta' | 'amarelo' | 'vermelho' | 'impedimento' | 'chute' | 'defesa' | 'espalma' | 'encaixa' | 'trave' | 'fora' | 'isolou'
   | 'bloqueio' | 'gol' | 'escanteio' | 'lateral' | 'tiro_de_meta' | 'cobranca_falta' | 'penalti' | 'cabeceio' | 'corte' | 'saida_goleiro' | 'intervalo' | 'fim'
+  | 'vantagem' | 'acrescimo' | 'rebote' | 'cara_a_cara'
 export interface Evento { t: number; tipo: TipoEvento; lado: Lado; a?: string; b?: string; golpe?: string; x?: number; y?: number; extra?: string }
 
 export interface Estatistica {
   posse: [number, number]; passes: [number, number]; passesCertos: [number, number]; chutes: [number, number]; noAlvo: [number, number]
   gols: [number, number]; xg: [number, number]; faltas: [number, number]; amarelos: [number, number]; vermelhos: [number, number]
-  escanteios: [number, number]; impedimentos: [number, number]; laterais: [number, number]; desarmes: [number, number]
+  escanteios: [number, number]; impedimentos: [number, number]; laterais: [number, number]; desarmes: [number, number]; vantagens: [number, number]
   dribles: [number, number]; interceptacoes: [number, number]; defesas: [number, number]; penaltis: [number, number]
 }

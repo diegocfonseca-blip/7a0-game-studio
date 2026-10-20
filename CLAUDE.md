@@ -966,6 +966,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   partida rápida offline: botão do 2D junto do Manual, e o 2D é o MESMO direito do Manual (Craque pra cima — `temManual`): quem não
   paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
+  (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
+  `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
+  🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

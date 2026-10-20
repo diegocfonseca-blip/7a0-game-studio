@@ -31,7 +31,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
   const ops: Acao[] = []
   const goleiro = p.grupo === 'GOL'
   // ⏳ acabou de receber: ainda não solta (domina e conduz), a não ser apertado ou com o gol na cara
-  const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.6
+  const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 // (só solta antes com o marcador em cima — é aí que o duelo acontece)
 
   // 🎯 CHUTAR
   if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 33 && f > 1 && !(cedo && dGol > 14)) {
@@ -40,6 +40,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (dGol > 19) u *= 0.55 + p.tend.chuteLonge * 1.2 // de longe só quem gosta (e tem chute)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
+    // ⚽ FALTA DIRETA × LEVANTADA (Diego 20/10): quem é batedor de falta (`falta_curva`/`falta_bomba`, estilo chutador) bate
+    // direto; o resto prefere levantar na área (a opção de cruzamento abaixo)
+    if (restr === 'falta' && dGol <= 30) u *= p.golpes.includes('falta_curva') || p.golpes.includes('falta_bomba') ? 2.2 : p.estilo === 'chutador' ? 1.6 : 0.8
     ops.push({ tipo: 'chute', u })
   }
   if (restr === 'penalti') return ops[0]
@@ -81,17 +84,25 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (enfiada) u += 0.006 * (0.5 + p.at.visao / 200)
     if (aereo) u += (p.tend.passeLongo - 0.3) * 0.02
     if ((t.y - p.y) * fy < -3) u -= 0.003 // (pra trás: só quando é o melhor que tem)
+    // 🧤 REPOSIÇÃO CURTA × LONGA PELO ESTILO (Diego 20/10): o `goleiro_linha` (Ceni, Neuer…) sai jogando curto; quem tem boa
+    // `saida` também; o paredão de pouca saída chuta longo
+    if (goleiro) { const curto = p.estilo === 'goleiro_linha' ? 0.012 : p.at.saida > 70 ? 0.006 : -0.005; u += d < 30 ? curto : -curto }
+    // 🏁 ESCANTEIO CURTO: na rotina "curta" o cobrador toca pro companheiro que veio buscar (e daí a jogada é a de sempre)
+    if (restr === 'escanteio' && m.rotina[l] === 'curta' && m.curtaDe(t)) u += 0.35
     const tipo: TipoLance = goleiro || restr === 'tiro_de_meta' ? (d > 28 ? 'lancamento' : 'passe') : enfiada ? 'enfiada' : lado ? 'inversao' : aereo ? 'lancamento' : 'passe'
     ops.push({ tipo, para: t, alvo, aereo, u })
   }
 
   // ↗️ CRUZAR (pela ponta, perto da área, com gente lá dentro)
-  if (!cedo && !goleiro && (restr === undefined || restr === 'escanteio' || restr === 'falta') && (p.x < 19 || p.x > W - 19 || restr === 'escanteio') && f < 32 && f > 0) {
+  if (!cedo && !goleiro && (restr === undefined || restr === 'escanteio' || restr === 'falta') && (p.x < 19 || p.x > W - 19 || restr === 'escanteio' || restr === 'falta') && f < 32 && f > 0) {
     const naArea = time.filter(t => frente(l, t.y) < AREA_PROF + 2 && Math.abs(t.x - 34) < AREA_LARG && t.grupo !== 'GOL')
     if (naArea.length) {
-      const alvo = naArea.sort((a, b) => b.at.cabeceio - a.at.cabeceio)[0]
-      const pt = { x: clamp(alvo.x + (34 - alvo.x) * 0.2, 26, 42), y: alvo.y }
-      const u = (0.02 + 0.014 * naArea.length) * (0.5 + alvo.at.cabeceio / 200) + p.tend.cruza * 0.02 + (restr === 'escanteio' ? 0.3 : 0)
+      // 🎯 BOLA PARADA ENSAIADA (Diego 20/10): no escanteio/falta levantada a bola vai pro ponto da ROTINA do time (1º pau ·
+      // 2º pau), pro jogador que foi mandado pra lá — não "pro melhor cabeceador onde ele estiver"
+      const ensaio = (restr === 'escanteio' || restr === 'falta') ? m.alvoDaRotina(l) : null
+      const alvo = ensaio && naArea.includes(ensaio) ? ensaio : naArea.sort((a, b) => b.at.cabeceio - a.at.cabeceio)[0]
+      const pt = ensaio === alvo ? { x: clamp(alvo.x, 26, 42), y: alvo.y } : { x: clamp(alvo.x + (34 - alvo.x) * 0.2, 26, 42), y: alvo.y }
+      const u = (0.02 + 0.014 * naArea.length) * (0.5 + alvo.at.cabeceio / 200) + p.tend.cruza * 0.02 + (restr === 'escanteio' ? 0.3 : restr === 'falta' ? 0.12 : 0)
       ops.push({ tipo: 'cruzamento', para: alvo, alvo: pt, aereo: true, u })
     }
   }
@@ -133,7 +144,8 @@ export function decide(m: Motor2, p: Atleta): Acao {
 function escolhe(m: Motor2, p: Atleta, ops: Acao[]): Acao {
   let max = -9
   for (const o of ops) max = Math.max(max, o.u)
-  const T = 0.005 + (100 - p.at.decisao) * 0.0002
+  // (cansado decide pior: o gás baixo esquenta o sorteio)
+  const T = (0.005 + (100 - p.at.decisao) * 0.0002) * (1 + (1 - p.gas) * 0.8)
   const corte = max - 3 * T
   let soma = 0
   const pesos = ops.map(o => { const w = o.u > corte ? (o.u - corte) * (o.u - corte) : 0; soma += w; return w })

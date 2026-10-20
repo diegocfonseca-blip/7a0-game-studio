@@ -756,7 +756,8 @@ export type RoundMods = Record<number, Record<number, number>>
 // "−1 de força" prometido, no lugar exato onde a força nasce (rollForm). Vazio =
 // simulação byte a byte igual. Só humano (bot não cansa — baseline plano).
 export type RoundCardMods = Record<number, Record<number, Record<string, number>>>
-const comMods = (xi: PoolCard[], m: Record<string, number> | undefined): PoolCard[] => (m ? xi.map(c => (m[c.id] ? { ...c, lo: c.lo + m[c.id], hi: c.hi + m[c.id] } : c)) : xi)
+// (📺 `gasMod` vai junto: o Campo 2D v2 faz quem entra 😓/🥵/🚑 começar com menos gás — o mesmo desconto da régua, nada novo)
+const comMods = (xi: PoolCard[], m: Record<string, number> | undefined): PoolCard[] => (m ? xi.map(c => (m[c.id] ? { ...c, lo: c.lo + m[c.id], hi: c.hi + m[c.id], gasMod: m[c.id] } as PoolCard : c)) : xi)
 // 🔁 RIVAL COM BANCO (13/10): plano de rodízio/lesão/gás de cada bot da divisão do humano, por NOME do
 // clube (time de fundo tem teamId −1). Sai de `planoCansacoBot` (bots-banco.ts). Vazio = nada muda.
 export type BotPlans = Record<string, { xi: string[][]; mods: Record<number, Record<string, number>> }>

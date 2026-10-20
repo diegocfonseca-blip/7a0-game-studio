@@ -154,6 +154,10 @@ export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number 
       }
       // bola solta perto dele, na área dele, e ele chega primeiro: sai e pega
       if (!m.bola.dono && m.bola.h < 2.2 && fundo(p.lado, m.bola.y) < AREA_PROF - 1 && Math.abs(m.bola.x - 34) < AREA_LARG - 3 && m.goleiroSai(p)) return { x: m.bola.x, y: m.bola.y, v: vmax }
+      // 🧤 CARA A CARA (Diego 20/10): atacante vindo sozinho pro gol → sai pra fechar o ângulo e fica em pé (quem tem `saida`
+      // alta sai mais; o `goleiro_linha` adora)
+      const cc = m.caraACara(p)
+      if (cc) { const lin = linhaAtaque((1 - p.lado) as Lado), dx = cc.x - 34, dy = cc.y - lin, d = len(dx, dy) || 1, sai = clamp(d * (0.3 + p.at.saida * 0.0025), 2.5, 10); return { x: clamp(34 + (dx / d) * sai, 28, 40), y: lin + (dy / d) * sai, v: vmax } }
       return vaiPara(lugarGoleiro(m, p))
     }
     case 'pressiona': {

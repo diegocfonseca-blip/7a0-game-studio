@@ -9727,6 +9727,20 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   · telão sempre embaixo do campinho (o da página se esconde enquanto o campinho está na tela).
   Decisão dele: **qualquer um cria sala com 2D** (não é pago no online). ⏳ Liberar pra todos = `CAMPO2D_GERAL = true` (sport.ts) quando ele mandar.
   ⚠️ Kings fica sem 2D (relógio e regras próprios).
+- 🧪 **20/10 — MOTOR v2, FASE 1b (só no branch, NÃO publicado): goleiro · gás · bola parada ensaiada · árbitro · clima.** Diego:
+  *"Pode fazer goleiro cara a cara, rebote pro lado certo, reposição curta ou longa pelo estilo; o gás caindo dentro do jogo
+  (quem entra 😓 começa pior) com a régua que já existe; bola parada ensaiada (1º pau, 2º pau, curta) e árbitro de verdade
+  (vantagem, cartão pela gravidade, acréscimo pelo que aconteceu); chuva, sol, sombras — às vezes sim, às vezes não, chuva mais
+  rara"*. Feito em `motor2/` + `campo2d-clima.ts`: 🧤 sai pra fechar o ângulo no 1×1 (quanto sai = `saida`), "fica grande" (alcance
+  cresce fora da linha), rebote pro LADO/longe se é bom e NA FRENTE se é fraco ou na chuva, `goleiro_linha`/`saida` alta repõe
+  curto; 😓 `gasMod` vai junto do elenco (`comMods`) → entra em 0,82/0,68/0,55, cai ~0,2 no jogo (físico, correr, chuva) e pesa
+  em velocidade, arranque, passe e decisão (medido: inteiro termina 0,83 · 😓 termina 0,65); 🏁 rotina por time (1º pau · 2º pau ·
+  curta, 1 em 4 varia), barreira de 3 a 9,15 m, falta direta só pra quem é batedor; 🧑‍⚖️ vantagem (volta se perder a bola em
+  2,5 s), cartão por carrinho/por trás/último homem/reincidência, acréscimos 1–3 e 1–5 pelos gols, cartões e faltas; 🌤️ clima
+  preso na semente (sol 60% com sombra da arquibancada · nublado 28% · chuva 12%), chuva = bola corre mais e domínio erra mais.
+  ⚠️ Vantagem e cartão ainda aparecem pouco porque o v2 dá poucas faltas (0,25/jogo) — é a calibração que depende da escolha
+  A × B. 📸 O VISUAL do clima (campo2d.tsx, vale no v1 também) está no branch ESPERANDO O OK do Diego — não publicar na main
+  sem ele ver a foto. Pendente alinhar com o `chuvaHoje` do estádio da Presidência (hoje são dois sorteios).
 - 🧪 **20/10 — 📺 MOTOR 2D v2 (EXPERIMENTAL) — FASE 1 PRONTA, SÓ NO BRANCH, ESPERANDO DECISÃO DO DIEGO.** Pedido dele: motor
   com inteligência (estilo CM/FM), jogadas que emergem dos atributos, resultado que NÃO é decidido antes, lendas únicas,
   sem câmera lenta; **não publicar pra ninguém**. Diagnóstico, plano e números em `docs/motor-2d-v2.md`. Fase 1: `motor2/`

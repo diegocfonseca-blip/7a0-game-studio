@@ -38,6 +38,10 @@ const F: Partial<Record<TipoEvento, Frases>> = {
   saida_goleiro: [['{a} sai do gol e fica com ela.', '{a} sai bem e segura.'], ['{a} comes out and claims it.', '{a} rushes out and gathers.']],
   intervalo: [['Fim do primeiro tempo.', 'Intervalo!'], ['Half-time.', 'That is the break!']],
   fim: [['Fim de jogo!', 'Apita o árbitro, acabou!'], ['Full time!', 'The referee blows, it is over!']],
+  vantagem: [['Lei da vantagem! O juiz deixa seguir.', 'Falta em {b}, mas o árbitro dá a vantagem.', 'Segue o jogo: vantagem pro ataque!'], ['Advantage! The referee lets it go on.', 'Foul on {b}, but the referee plays advantage.', 'Play on: advantage to the attack!']],
+  acrescimo: [['⏱️ {a} minuto(s) de acréscimo.', '⏱️ O quarto árbitro mostra: +{a}.', '⏱️ Vão jogar mais {a} minuto(s).'], ['⏱️ {a} minute(s) of added time.', '⏱️ The board goes up: +{a}.', '⏱️ {a} more minute(s) to play.']],
+  rebote: [['{a} dá rebote… bola viva na área!', 'Sobrou na frente do gol!', 'Rebote de {a}, perigo!'], ['{a} spills it… loose ball in the box!', 'It drops in front of goal!', 'Rebound off {a}, danger!']],
+  cara_a_cara: [['{a} sai pra fechar o ângulo!', 'Cara a cara: {a} fica em pé até o fim!', '{a} sai do gol e encurta o espaço!'], ['{a} comes out to narrow the angle!', 'One on one: {a} stays big!', '{a} rushes out and closes the space!']],
 }
 // golpe do drible (só quando ELE fez o drible)
 const GOLPE_TXT: Record<string, [string, string]> = {
@@ -71,5 +75,5 @@ export class Narrador {
 export const PESO: Partial<Record<TipoEvento, number>> = {
   gol: 9, vermelho: 8, trave: 7, espalma: 7, defesa: 7, encaixa: 6, isolou: 6, fora: 6, bloqueio: 6, chute: 5, cabeceio: 5, amarelo: 5, impedimento: 5,
   drible: 4, enfiada: 4, cruzamento: 4, desarme: 4, carrinho: 4, intercepta: 3, falta: 4, escanteio: 3, lancamento: 3, inversao: 3, arrancada: 3,
-  corte: 3, saida_goleiro: 3, chutao: 2, lateral: 1, tiro_de_meta: 1, saida: 2, intervalo: 9, fim: 9,
+  corte: 3, saida_goleiro: 3, chutao: 2, lateral: 1, tiro_de_meta: 1, saida: 2, intervalo: 9, fim: 9, vantagem: 5, acrescimo: 5, rebote: 6, cara_a_cara: 5,
 }
