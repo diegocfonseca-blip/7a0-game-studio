@@ -64,6 +64,9 @@ import { StadiumTab, StadiumSvg, MasterBanner, MasterFaixa, sponsorLogoEstampa, 
 import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
+import { DUR_2D_MS } from './campo2d-motor'
+import { useCampo2DLiberado } from './sport'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
@@ -3092,8 +3095,8 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra }:
-  { /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo }:
+  { /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3469,7 +3472,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🧼 `nomeLimpo` antes de procurar o carimbo: se algum dia uma tela passar o
   //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
   const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? (mascotHome ?? homeName) : (mascotAway ?? awayName))) : ''
-  const carimboArt = carimboTime ? carimboDoTime(carimboTime) : null
+  const carimboArt = carimboTime && !semCarimbo ? carimboDoTime(carimboTime) : null
   // 🖼️ 01/10 (print do Diego na foto do Twitter: o Mascarado saía só das pernas no
   // placar): a janelinha do escudo no placar leva a mascote INTEIRA, não o busto. O
   // busto é um recorte de 176px que a caixa de 76px do placar não sabe encolher
@@ -3631,12 +3634,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio }) {
+function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch, semCarimbo }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} semCarimbo={semCarimbo} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
@@ -3710,10 +3713,10 @@ export function FaixaPlacarEstadio({matchId,...props}:Parameters<typeof FaixaPla
  const presentation=match?{min:match.minute,fim:match.finished,hg:match.homeScore,ag:match.awayScore}:{}
  return <FaixaPlacarMini {...props} {...presentation}/>
 }
-function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch }: {
+function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch, semCarimbo }: {
   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
-  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio
+  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean
 }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -3732,7 +3735,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
     <>
       <div ref={caixa} className="ll-cx-placar">
         <MyMatchCard stadiumMatch={stadiumMatch} m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
-          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
+          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} semCarimbo={semCarimbo} />
       </div>
       {fora && !escondido && (
         <FaixaPlacarEstadio matchId={stadiumMatch?.id} topo={topo} min={min} fim={fim} home={m.h} away={m.a} hg={hg} ag={ag} youIsHome={iAmHome}
@@ -7979,7 +7982,14 @@ export function PyramidSeasonScreen() {
   // manual continua ROUND_MS (lá quem manda no ritmo é o 🐢/⏩ do técnico). TODOS os
   // relógios da rodada saem daqui — o placar, a revelação da tabela (0,86×) e o fim da
   // temporada (0,95×) — senão a tabela abriria antes do apito (spoiler).
-  const baseRoundMs = manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
+  // 📺 CAMPO 2D (20/10): com o campinho ligado, o jogo dura 1:30 no automático (decisão do Diego) — e no Manual o técnico
+  // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
+  const campo2dLiberado = useCampo2DLiberado()
+  const [campo2dPref, setCampo2dPref] = useState(() => { try { return localStorage.getItem('esc-campo2d') === '1' } catch { return false } })
+  const campo2d = campo2dLiberado && campo2dPref && state.onlineMode !== 'online'
+  const toggleCampo2d = () => setCampo2dPref(v => { const n = !v; try { localStorage.setItem('esc-campo2d', n ? '1' : '0') } catch { /* ignora */ } return n })
+  const [min2d, setMin2d] = useState(0)
+  const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -10376,7 +10386,18 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {!done && myMatch && me && <PlacarQueEncolhe stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {campo2d && !done && myMatch && me && !copaPlaying && (() => {
+          // 📺 o seu jogo ao vivo no campinho (os gols são os do jogo; o campinho só conta COMO eles saíram)
+          const casaVoce = myMatch.h === me.team
+          const corOutro = colors?.[casaVoce ? myMatch.aId : myMatch.hId]?.solid ?? '#3A7CA5'
+          const tacV = tacAt(careerTactics, youId, Math.max(0, round - 1))
+          const tv = tacV === 'ataque' ? 1 : tacV === 'retranca' ? -1 : 0
+          const lado = (nome: string, cor: string, cartas?: CartaRadio[]) => ({ nome, cor, cartas: cartas as never, mascote: carimboDoTime(nome), escudo: <Escudo nome={nome} size={110} /> })
+          return <Campo2D roundKey={round} minuto={min2d} roundMs={roundMs} gols={myMatch.goals}
+            casa={lado(myMatch.h, casaVoce ? myCol.solid : corOutro, myMatch.hxi)} fora={lado(myMatch.a, casaVoce ? corOutro : myCol.solid, myMatch.axi)}
+            tatica={casaVoce ? [tv, 0] : [0, tv]} />
+        })()}
+        {!done && myMatch && me && <PlacarQueEncolhe stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={campo2d ? (n: number) => { setMin2d(n); if (privateCareer) reportMinute(n) } : privateCareer ? reportMinute : undefined} m={myMatch} semCarimbo={campo2d} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -10655,6 +10676,12 @@ export function PyramidSeasonScreen() {
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+            {campo2dLiberado && state.onlineMode !== 'online' && (
+              // 📺 o botão do CAMPO 2D mora junto do Manual (Diego 20/10: "botão manual e campo 2D")
+              <button onClick={toggleCampo2d} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: campo2d ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+                {campo2d ? tr('📺 Campo 2D: LIGADO (o jogo dura 1:30)', '📺 2D pitch: ON (a match lasts 1:30)') : tr('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
+              </button>
+            )}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={avancarRodada}
               onSkip={avancarRodada}

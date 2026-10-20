@@ -9509,3 +9509,13 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ✅ **Tempo: 1:30 por jogo** (*"pode ser 1:30"*), mesma velocidade de bola do vídeo, menos lances por partida (liga ≈ 1h).
   ✅ **Estilo só das LENDAS** (*"não precisa fazer 2.500, só das lendas… são menos de 200"*): 196 cartas / 184 nomes de lenda
   ganham estilo à mão; o resto joga no estilo neutro da posição.
+- ✅ **20/10 — PARTE 1 FEITA, SÓ NA CONTA DO DIEGO** (*"não coda pra todo mundo não, mas já começa a fazer"*): o 📺 Campo 2D na
+  CARREIRA SOLO. Botão "📺 Ver o jogo no Campo 2D" no 🎮 Controle da partida (junto do Manual); ligado, o jogo dura 1:30 no auto
+  (`DUR_2D_MS`) e no Manual a marcha de sempre acelera. Motor: `campo2d-motor.ts` (monta as jogadas em volta dos gols e das
+  chances que o jogo já calculou; 8 moldes: enfiada, cruzamento, chute de fora, drible, tabela, contra-ataque, escanteio, falta;
+  enfeite com PRAZO pra o gol sair no minuto) · estilos das 184 lendas em `campo2d-estilos.ts` · tela `campo2d.tsx` (mascote
+  grande no gol e o carimbo do placar some — `semCarimbo`). Trava `npm run campo2d` (300 jogos: placar do campinho = do jogo;
+  mediana de atraso 0,5'). Bancada: `scripts/teste-campo2d/`. Gate `CAMPO2D_GERAL`/`CAMPO2D_TESTERS` (sport.ts).
+  ⏳ Falta: (2) salas online — escolha "⚡ Padrão rápido · 📺 2D" ao criar; (3) Copa/Liberta na carreira; (4) trava de PLANO
+  (⭐ Craque+) quando liberar; (5) mais variedade de lances (pênalti NÃO — tem tela própria); (6) a narração da faixa do placar
+  ainda pode falar de outro lance que o campinho.
