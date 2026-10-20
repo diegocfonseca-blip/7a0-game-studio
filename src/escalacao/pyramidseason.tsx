@@ -116,8 +116,8 @@ import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoD
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
-import { coletivaSana, modsDaColetiva, montaColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
-import { ColetivaBanner, SalaImprensa } from './coletiva-ui'
+import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
+import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva } from './sport'
 
 const INK = '#0C0C0C'
@@ -8666,6 +8666,10 @@ export function PyramidSeasonScreen() {
   }
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
   const [copaReady, setCopaReady] = useState(false) // 🎮 no manual, libera a "Próxima fase" quando a fase acaba de animar
+  // 🎙️ COLETIVA COMO PASSO (20/10): com a sala de imprensa aberta (ou esperando), a Copa NÃO vira de fase sozinha — o
+  // avanço automático fica guardado e sai quando a coletiva fecha (o próximo jogo nunca aparece antes dela)
+  const coletivaSegura = useRef(false), copaEsperaColetiva = useRef(false)
+  const avancaCopaAuto = () => { if (coletivaSegura.current) copaEsperaColetiva.current = true; else setCopaRound(r => r + 1) }
   // (⏸️ manual/manualPref/hasManual moraram aqui até 13/09; subiram pro topo do
   //  componente porque o tempo da partida — usado por efeitos lá em cima — agora
   //  depende de saber se é auto ou manual. Mesmos hooks, mesma ordem relativa.)
@@ -8899,7 +8903,7 @@ export function PyramidSeasonScreen() {
     // O botão também espera os pênaltis: senão ele aparecia no meio da disputa e o
     // toque pulava a própria coisa que o jogador quer ver.
     const rdy = setTimeout(() => setCopaReady(true), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
-    const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), Math.max(0,dur+2200+penMs-already))
+    const adv = manual ? null : setTimeout(avancaCopaAuto, Math.max(0,dur+2200+penMs-already))
     return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
@@ -8909,7 +8913,7 @@ export function PyramidSeasonScreen() {
     // Pênaltis só entram depois do fim físico da última perna. Os mesmos
     // tempos de revelação continuam valendo antes de liberar/avançar a fase.
     const rdy=setTimeout(()=>setCopaReady(true),250+copaPenMs)
-    const adv=manual?null:setTimeout(()=>setCopaRound(r=>r+1),2200+copaPenMs)
+    const adv=manual?null:setTimeout(avancaCopaAuto,2200+copaPenMs)
     return()=>{clearTimeout(rdy);if(adv)clearTimeout(adv)}
   },[copaPlaying,copaCampo,copaCampoEncerrado,copaRound,manual,copaPenMs])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
@@ -9549,6 +9553,11 @@ export function PyramidSeasonScreen() {
   // 🎙️ a coletiva aberta (o bloco dela vem logo abaixo; declarada aqui porque o automático precisa saber antes)
   const [coletivaPronta, setColetivaPronta] = useState<{ pronta: ColetivaPronta; ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null }; chave: string } | null>(null)
   const coletivaOpen = coletivaOn && !!coletivaPronta
+  const [coletivaSala, setColetivaSala] = useState(false) // a tela cheia da sala de imprensa está aberta
+  const coletivaDepois = useRef<(() => void) | null>(null)
+  coletivaSegura.current = coletivaOpen
+  /** abre a sala de imprensa em TELA CHEIA; `depois` = o que o toque de avançar ia fazer (sai quando a coletiva fecha) */
+  const abreColetiva = (depois: (() => void) | null) => { coletivaDepois.current = depois; setColetivaSala(true) }
   useEffect(() => {
     setRoundReady(false)
     if(privateLeagueClock&&stadiumMatch)return
@@ -9702,8 +9711,21 @@ export function PyramidSeasonScreen() {
   const responderColetiva = (estilo: ColetivaEstilo | null, registra = true) => {
     if (!coletivaPronta) return
     if (registra) dispatch({ type: 'COLETIVA_RESPONDE', mgrId: youId, pronta: coletivaPronta.pronta, estilo, ctx: coletivaPronta.ctx, alvo: coletivaPronta.alvo })
-    setColetivaPronta(null)
+    setColetivaPronta(null); setColetivaSala(false); coletivaSegura.current = false
+    // o que estava esperando a coletiva sai agora: o toque de avançar (manual) ou a fase da Copa (automático)
+    const depois = coletivaDepois.current; coletivaDepois.current = null
+    if (copaEsperaColetiva.current) { copaEsperaColetiva.current = false; setCopaRound(r => r + 1) }
+    depois?.()
   }
+  // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
+  useEffect(() => { if (coletivaOpen && !manual && !coletivaSala) abreColetiva(null) }, [coletivaOpen, manual, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!coletivaPronta) setColetivaSala(false) }, [coletivaPronta])
+  const coletivaPlacarTxt = (() => {
+    const pl = coletivaPronta?.ctx.placar
+    if (!pl || coletivaPronta?.ctx.vespera) return null
+    return `⚽ ${pl.gf} × ${pl.ga} · ${pl.gf > pl.ga ? tr('vitória', 'win') : pl.gf === pl.ga ? tr('empate', 'draw') : tr('derrota', 'loss')}${pl.arquirrival ? tr(' no clássico', ' in the derby') : ''}`
+  })()
+  const coletivaRodadaTxt = !coletivaPronta ? '' : coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
   // 📰 a cobrança das promessas e as frases da temporada (página do jornal do fim)
   const coletivaJornal = useMemo(() => {
     if (!coletivaOn || !me || !copaFinished) return undefined
@@ -9965,7 +9987,7 @@ export function PyramidSeasonScreen() {
   // partida e o camarote da Central). Regra de ouro contra botão mudo (19/09): tela e
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
-  const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) responderColetiva(null) /* 🎙️ avançou com a coletiva aberta = pulou */; if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) { abreColetiva(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */ if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -10632,16 +10654,10 @@ export function PyramidSeasonScreen() {
               </div>
             ),
           })
-          // 🎙️ COLETIVA (19/10): entra na fila como qualquer aviso; no automático fecha sozinha em 12s (sem contar pulo)
-          if (coletivaOpen && coletivaPronta && me) fila.push({
-            key: 'coletiva', render: () => {
-              const pl = coletivaPronta.ctx.placar
-              const placarTxt = pl && !coletivaPronta.ctx.vespera ? `⚽ ${pl.gf} × ${pl.ga} · ${pl.gf > pl.ga ? tr('vitória', 'win') : pl.gf === pl.ga ? tr('empate', 'draw') : tr('derrota', 'loss')}${pl.arquirrival ? tr(' no clássico', ' in the derby') : ''}` : null
-              const rod = coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
-              return <ColetivaBanner pronta={coletivaPronta.pronta} clube={me.team} placar={placarTxt} rodadaTxt={rod} autoSeg={manual ? null : 12}
-                onEscolhe={estilo => responderColetiva(estilo, estilo !== null || manual)} />
-            },
-          })
+          // 🎙️ COLETIVA (20/10, Diego: *"tem que ser passo a passo… após o jogo, quando ele avançar ou pular"*): embaixo do jogo
+          // fica só o AVISO ("a imprensa está te esperando"); a coletiva abre em TELA CHEIA no toque de avançar. No automático a
+          // sala abre sozinha, então nem o aviso entra.
+          if (coletivaOpen && coletivaPronta && me && manual && !coletivaSala) fila.push({ key: 'coletiva', render: () => <ColetivaAviso placar={coletivaPlacarTxt} /> })
           if (!fila.length) return null
           return (
             <div>
@@ -10655,6 +10671,13 @@ export function PyramidSeasonScreen() {
             </div>
           )
         })()}
+        {/* 🎙️ a COLETIVA em tela cheia (portal): o próximo jogo só aparece depois dela */}
+        {coletivaSala && coletivaPronta && me && (
+          <ColetivaPasso pronta={coletivaPronta.pronta} clube={me.team} placar={coletivaPlacarTxt} rodadaTxt={coletivaRodadaTxt} autoSeg={manual ? null : 12}
+            seguirTxt={copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('Ver o campeão', 'See the champion') : tr('Próxima fase', 'Next round')) : tr(`Ir pra rodada ${round + 1}`, `Go to round ${round + 1}`)}
+            resolve={estilo => { const r = respondeColetiva(coletivaSave, coletivaPronta.pronta, estilo, coletivaPronta.ctx, state.seed ?? 1, coletivaPronta.alvo); return { manchete: r.manchete, efeito: r.efeito } }}
+            onFim={(estilo, registra) => responderColetiva(estilo, registra)} />
+        )}
         {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
             aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
         {halftimeOpen && halfMode && mgrMe && myMatch && me && (() => {
@@ -10826,8 +10849,8 @@ export function PyramidSeasonScreen() {
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
-              onNext={() => setCopaRound(r => r + 1)}
-              onSkip={() => setCopaRound(r => r + 1)}
+              onNext={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
+              onSkip={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
               nextLabel={!copaReady ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…') : copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')} />
           </div>
           ) : <ManualLockButton />

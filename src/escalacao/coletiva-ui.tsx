@@ -8,8 +8,11 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang'
-import { REPORTERES, FAMAS, famaDoPresidente, melhoresFrases, preenche, retrospectoTexto, type ColetivaPronta, type ColetivaSave, type Estilo, type Par, type FamaId } from './coletiva'
+import { REPORTERES, FAMAS, type Efeito, famaDoPresidente, melhoresFrases, preenche, retrospectoTexto, type ColetivaPronta, type ColetivaSave, type Estilo, type Par, type FamaId } from './coletiva'
 import estadioArt from './img/online-estadio-v25.webp'
+import salaArt from './img/online-sala-v20.webp'
+import vadicoArt from './img/patro-vadico-alfa.webp'
+import tidexArt from './img/patro-tidex.webp'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -73,6 +76,124 @@ export function ColetivaBanner({ pronta, clube, placar, rodadaTxt, onEscolhe, au
         <button onClick={() => onEscolhe(null)} style={{ width: '100%', marginTop: 9, background: 'transparent', border: `2px dashed ${INK}`, borderRadius: 10, padding: 8, ...OSW, fontSize: 11.5, cursor: 'pointer', color: INK }}>{tr('pular coletiva', 'skip the presser')}</button>
       </div>
     </div>
+  )
+}
+
+// ── 🎙️ A COLETIVA COMO PASSO (20/10) ─────────────────────────────────────────────────────────────────────────────
+// Diego: *"não tá tendo sentido entrevista embaixo do jogo… tem que ser passo a passo: após o jogo, quando ele avançar ou pular,
+// aparecer, mas sem mostrar o próximo jogo… melhorar muito visualmente"*. Mockup aprovado: `scripts/mockups/coletiva-passo.png`.
+// (1) `ColetivaAviso`: o aviso pequeno do pós-jogo ("a imprensa está te esperando") — sem botão, o botão é o de sempre.
+// (2) `ColetivaPasso`: TELA CHEIA por cima de tudo (o próximo jogo não aparece): a sala de imprensa (backdrop dos
+//     patrocinadores, mesa com os microfones, repórter, pergunta, 3 respostas, pular) → a manchete do O MARTELO → seguir.
+export function ColetivaAviso({ placar }: { placar: string | null }) {
+  return (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'center', background: '#FFF6DE', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 12px', marginBottom: 12, color: INK }}>
+      <span style={{ fontSize: 26 }}>🎙️</span>
+      <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{placar ? `${placar}: ` : ''}{tr('a imprensa está te esperando na sala de entrevistas. Ela abre quando você seguir pra próxima rodada.', 'the press is waiting for you in the interview room. It opens when you move on to the next round.')}</span>
+    </div>
+  )
+}
+
+const ESTILO_IC: Record<Estilo, { ic: string; bg: string; card: string }> = {
+  provoca: { ic: '😈', bg: RED, card: '#FFE3D6' },
+  diplomata: { ic: '🧊', bg: '#BFE3FF', card: '#fff' },
+  desconversa: { ic: '🚪', bg: '#EDE7D6', card: '#fff' },
+}
+const efeitoBom = (e: Efeito | null) => !!e && (e.tipo === 'renda' || e.tipo === 'moral_alta')
+const efeitoRuim = (e: Efeito | null) => !!e && (e.tipo === 'rival_motivado' || e.tipo === 'moral_baixa')
+
+export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, seguirTxt, resolve, onFim }: {
+  pronta: ColetivaPronta; clube: string; placar: string | null; rodadaTxt: string
+  /** no automático ela fecha sozinha (N s na sala, sem contar como pulada; 6 s na manchete) — o jogo nunca trava */
+  autoSeg: number | null
+  /** o texto do botão de seguir ("Ir pra rodada 12", "Próxima fase") */
+  seguirTxt: string
+  /** a manchete e o efeito da resposta (a MESMA conta que o jogo faz ao guardar) */
+  resolve: (estilo: Estilo) => { manchete: Par | null; efeito: Efeito | null }
+  /** fecha: estilo escolhido (null = pulou) e se conta (pular no botão conta; fechar sozinho no automático, não) */
+  onFim: (estilo: Estilo | null, registra: boolean) => void
+}) {
+  const [escolha, setEscolha] = useState<{ estilo: Estilo; manchete: Par | null; efeito: Efeito | null; frase: Par } | null>(null)
+  const [resta, setResta] = useState(autoSeg)
+  useEffect(() => { setResta(escolha ? (autoSeg != null ? 6 : null) : autoSeg) }, [autoSeg, escolha])
+  useEffect(() => {
+    if (resta == null) return
+    if (resta <= 0) { if (escolha) onFim(escolha.estilo, true); else onFim(null, false); return }
+    const t = setTimeout(() => setResta(r => (r == null ? r : r - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [resta]) // eslint-disable-line react-hooks/exhaustive-deps
+  const rep = pronta.rep
+  const topo = (
+    <div style={{ flex: 'none', height: 44, background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', ...OSW, fontSize: 13 }}>
+      <span>🎙️ {tr('Coletiva', 'Press conference')} · {rodadaTxt}</span>
+      {resta != null && <span style={{ background: '#ffffff22', borderRadius: 999, padding: '2px 9px', fontSize: 11, fontFamily: 'Inter, sans-serif', textTransform: 'none' }}>{tr(`segue sozinho em ${resta}s`, `moves on in ${resta}s`)}</span>}
+    </div>
+  )
+  const marcas = [vadicoArt, tidexArt, null, tidexArt, null, vadicoArt, null, vadicoArt, tidexArt]
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99955, background: '#0b0f14', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 480, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderLeft: `3px solid ${INK}`, borderRight: `3px solid ${INK}` }}>
+        {topo}
+        {!escolha ? (
+          <div style={{ flex: 1, overflowY: 'auto', position: 'relative', background: `#0e1319 url(${salaArt}) center / cover` }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(8,10,14,.55),rgba(8,10,14,.85) 60%,#0b0f14)' }} />
+            <div style={{ position: 'relative', paddingBottom: 14 }}>
+              {/* o backdrop dos patrocinadores, atrás da mesa */}
+              <div style={{ margin: '12px 12px 0', height: 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
+                {marcas.map((m, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: m === tidexArt ? '#0B1220' : 'transparent', borderRight: '1px dashed rgba(0,0,0,.08)', borderBottom: '1px dashed rgba(0,0,0,.08)' }}>
+                    {m ? <img src={m} alt="" style={{ height: 22, maxWidth: '86%', objectFit: 'contain' }} /> : <span style={{ ...OSW, fontSize: 11, letterSpacing: .5, color: INK }}>Leilão Legends</span>}
+                  </div>
+                ))}
+              </div>
+              {/* a mesa com os microfones e a plaquinha do presidente */}
+              <div style={{ margin: '-30px 22px 0', height: 54, background: `linear-gradient(180deg,#1b232c,${INK})`, border: `3px solid ${INK}`, borderRadius: '10px 10px 4px 4px', position: 'relative', display: 'flex', justifyContent: 'center', gap: 28 }}>
+                {[GOLD, RED, GREEN].map(c => (
+                  <span key={c} style={{ position: 'relative', width: 8, height: 30, background: '#333', borderRadius: 4, marginTop: -22 }}>
+                    <span style={{ position: 'absolute', top: -12, left: -6, width: 20, height: 16, borderRadius: 8, background: c, border: `2px solid ${INK}` }} />
+                  </span>
+                ))}
+                <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', ...OSW, fontSize: 12, color: GOLD, letterSpacing: 1, whiteSpace: 'nowrap' }}>{tr('Presidente', 'President')} · {clube}</span>
+              </div>
+              <div style={{ padding: '10px 14px 0', display: 'flex', justifyContent: 'space-between', gap: 8, ...OSW, fontSize: 11, letterSpacing: 1, color: GOLD }}>
+                <span>🎙️ {rodadaTxt}</span>{placar && <span style={{ color: '#fff', opacity: .85, textAlign: 'right' }}>{placar}</span>}
+              </div>
+              <div style={{ margin: '8px 12px 0', display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+                <Reporter id={rep.id} />
+                <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: '4px 16px 16px 16px', padding: '8px 11px', boxShadow: '3px 3px 0 #000', fontSize: 14, fontWeight: 700, lineHeight: 1.3, color: INK }}>
+                  <span style={{ display: 'inline-block', ...OSW, fontSize: 10, background: rep.cor, color: rep.cor === GOLD ? INK : '#fff', borderRadius: 5, padding: '1px 6px', marginBottom: 4, letterSpacing: .5 }}>🎤 {rep.nome} · {par(rep.veiculo)}</span><br />
+                  “{preenche(pronta.pergunta, pronta.vars)}”
+                </div>
+              </div>
+              <div style={{ margin: '10px 12px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {pronta.opcoes.map(o => (
+                  <button key={o.estilo} onClick={() => { const r = resolve(o.estilo); setEscolha({ estilo: o.estilo, manchete: r.manchete, efeito: r.efeito ?? o.efeito, frase: o.frase }) }}
+                    style={{ textAlign: 'left', background: ESTILO_IC[o.estilo].card, border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 10px', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: '34px 1fr', gap: 8, alignItems: 'center', cursor: 'pointer', color: INK }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 10, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: ESTILO_IC[o.estilo].bg }}>{ESTILO_IC[o.estilo].ic}</span>
+                    <span>
+                      <span style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: 13.5, lineHeight: 1.2 }}>“{preenche(o.frase, pronta.vars)}”</span>
+                      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, opacity: .75, marginTop: 2 }}>{par(o.efeito.txt)}{o.promessa ? ` · ${tr('⚠️ é uma PROMESSA: o jornal cobra no fim', '⚠️ it is a PROMISE: the paper will hold you to it')}` : ''}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => onFim(null, true)} style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: '#fff', ...OSW, fontSize: 12, letterSpacing: 1, opacity: .8, textDecoration: 'underline', cursor: 'pointer' }}>{tr('pular a coletiva ›', 'skip the presser ›')}</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ flex: 1, overflowY: 'auto', background: CREME, padding: 14, color: INK }}>
+            <div style={{ background: '#FFFDF4', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' }}>
+              <div style={{ background: INK, color: GOLD, ...OSW, fontSize: 22, textAlign: 'center', padding: 8, letterSpacing: 2 }}>O MARTELO</div>
+              <div style={{ padding: '12px 14px 4px', ...OSW, fontSize: 24, lineHeight: 1.08 }}>{escolha.manchete ? par(escolha.manchete) : `“${preenche(escolha.frase, pronta.vars)}”`}</div>
+              <div style={{ padding: '4px 14px 12px', fontSize: 13, fontStyle: 'italic', opacity: .8 }}>“{preenche(escolha.frase, pronta.vars)}” — {tr('presidente do', 'president of')} {clube}{placar ? ` · ${placar}` : ''}</div>
+            </div>
+            {escolha.efeito && <div style={{ marginTop: 12, background: efeitoBom(escolha.efeito) ? '#E9F7EE' : efeitoRuim(escolha.efeito) ? '#FFE3D6' : '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 12px', fontSize: 13, fontWeight: 700 }}>{par(escolha.efeito.txt)}</div>}
+            <button onClick={() => onFim(escolha.estilo, true)} style={{ width: '100%', marginTop: 14, background: GOLD, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 14, ...OSW, fontSize: 20, cursor: 'pointer', color: INK }}>▶ {seguirTxt}</button>
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body,
   )
 }
 

@@ -9717,10 +9717,16 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
-- ⏳ **20/10 — TORCIDA 70% DA CASA** (Diego: *"o lado esquerdo é completo da casa… separa com grades… a rival no canto superior
-  direito"*): FEITA no `campo2d.tsx` e mandada em foto — **esperando OK** pra publicar (está só no branch). Uma arquibancada toda da
-  casa; na outra, a rival em cima/à direita (60% de uma faixa = 30% do estádio) atrás de uma grade preta; no gol pula a torcida de
-  quem fez (antes era sorteio). Tamanho da rival = `FRACAO_RIVAL`.
+- ✅ **20/10 — TORCIDA 70% DA CASA, PUBLICADA** (OK do Diego: *"ok pode fazer também"*). Uma arquibancada toda da casa; na outra,
+  a rival em cima/à direita (60% de uma faixa = 30% do estádio) atrás de uma grade preta; no gol pula a torcida de quem fez. Tamanho
+  da rival = `FRACAO_RIVAL` (`campo2d.tsx`).
+- ✅ **20/10 — 🎙️ COLETIVA VIROU PASSO DEPOIS DO JOGO** (mockup `scripts/mockups/coletiva-passo.png`, OK do Diego no mesmo
+  *"ok pode fazer também"*). Embaixo do jogo fica só o AVISO (`ColetivaAviso`: "a imprensa está te esperando"); no toque de
+  avançar/pular (liga e Copa) abre a SALA DE IMPRENSA EM TELA CHEIA (`ColetivaPasso`, portal por cima de tudo: backdrop Vadico/Tidex,
+  mesa com microfones, repórter, pergunta, 3 respostas, pular) → a MANCHETE do O MARTELO com o efeito → "▶ Ir pra rodada N". O
+  próximo jogo só aparece depois. No AUTOMÁTICO a sala abre sozinha quando o jogo acaba e segue sozinha (12 s na sala sem contar
+  pulo, 6 s na manchete); a Copa no automático espera a coletiva (`avancaCopaAuto`). Frequência não mudou (só jogo com assunto,
+  ~5–8 por temporada). Ainda só na conta do Diego (`COLETIVA_GERAL`).
 - ✅ **20/10 — 🧑‍⚖️ O JUIZ DO CAMPO 2D** (Diego: *"já vi até atacante do time rival bater tiro de meta pro rival… já vi jogada parar
   e do nada voltar ao jogo como se nada tivesse parado… simular e ver com calma as duas equipes jogando"*). Achados lendo 300
   jogos lance a lance, e consertados: 🔁 TIRO DE META EM DOBRO (a chance ia pra fora, o juiz cobrava, e o roteiro da jogada
