@@ -2674,7 +2674,9 @@ export function EscLobby() {
     // 🤝 DUPLA: a linha do PARCEIRO é carona no assento do dono — não é time.
     // Ela fica FORA da deduplicação e da renumeração; se entrasse, viraria um
     // time fantasma (exatamente o bug do "virei bot" que já aconteceu antes).
-    const rows = allRows.filter(r => !r.dupla_partner_of)
+    // 🤝 20/10 (sala ZESM9K): par CRUZADO (os dois apontando um pro outro) vira UMA dupla na largada — aqui também,
+    // senão os dois ficavam fora da renumeração e o número do banco desencontrava do time de verdade
+    const rows = desfazParCruzado(allRows).filter(r => !r.dupla_partner_of)
     const seen = new Set<string>()
     const keep: { user_id: string; player_index: number }[] = []
     for (const r of rows) {

@@ -99,7 +99,8 @@
     "coletiva": "npx tsx scripts/testa-coletiva.mts",
     "artilheiro-premios": "npx tsx scripts/testa-artilheiro-premios.mts",
     "carreira-online": "node scripts/carreira-online/testa-gavetas.mjs",
-    "carreira-online-fluxo": "node scripts/carreira-online/testa-fluxo.mjs"
+    "carreira-online-fluxo": "node scripts/carreira-online/testa-fluxo.mjs",
+    "dupla-copa-estado": "npx tsx scripts/testa-dupla-copa-estado.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

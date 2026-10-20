@@ -11605,7 +11605,7 @@ export function EscEnd() {
           a ser uma liga comum, e nada mais muda. */}
       {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
-          <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+          <CopaDaLigaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
@@ -11621,7 +11621,7 @@ export function EscEnd() {
       {/* 🏟️ COPA REGIONAL (10/10): igual à Copa do Mundo — tela por cima da sala parada, fora do motor */}
       {online && state.roomId && regionalNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
-          <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+          <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }} // 🏟️ o campeão vai pro jornal e pro histórico, igual à Copa do Mundo
