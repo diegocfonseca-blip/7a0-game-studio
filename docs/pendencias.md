@@ -9487,3 +9487,11 @@ Lembrança dele do PES 19 com os amigos: *"tinha só um Neymar pra todo mundo…
   Decisões MINHAS (confirmar com ele no 1º teste): **bots não escolhem no draft** (só gente) · quem sai do time fica livre na liga ·
   sem Copa (só a liga) · solo (sem duplas) · se entrar gente nova (ou alguém sair) a liga recomeça no leilão fraco (troféus ficam).
   Pra liberar geral: `LIGA_DRAFT_GERAL = true` + linha em `novidades.ts`.
+
+## 📺 JOGO AO VIVO NO CAMPINHO (20/10) — mockup enviado, aguardando OK
+Diego: *"tá chato… começa a simulação, fica parado… preciso de uma ideia imersiva… mas tem outros usuários reais, tem que ser
+tudo ao mesmo tempo"*. Ele recusou várias listas de ideias (lenda relâmpago, eventos, missões, botões soltos…) e topou ver ESTA:
+cada rodada vira ~90 s de jogo pra assistir (campo de cima, 22 com rosto das cartas, bola, narração), reação ao vivo
+(🔥 pra cima · ⚖️ · 🧱 fecha), preleção de 5 s no intervalo e a "rádio" com os jogos dos amigos. O gol mostrado é o que o motor
+já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base possível: a partida no estádio da Presidência
+(`presidencia-partida*.tsx`). Mockup: `scripts/mockup-jogo-ao-vivo.mjs` → `scripts/mockups/jogo-ao-vivo.png`.
