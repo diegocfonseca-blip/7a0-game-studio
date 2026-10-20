@@ -10,6 +10,9 @@ fica neutro, com a 2ª marca "volta pra marcar"), golpe-assinatura (183) e **2ª
 conhecido, nunca chute. No v2 a 2ª marca entra com metade do peso nos atributos e nas tendências (`atributos.ts`). Gol não é
 número fixo (ordem dele): depende do goleiro (trocar o goleiro rival de profissional pra lenda: 0,85 → 0,55 gol sofrido), do
 elenco (lendas × profissionais 1,6 × 0,07, 55 vitórias em 60), do gás e das marcas de cada um.
+📌 **A vaga do campinho é lei** (20/10, ordem dele): o motor segue a ordem da escalação do usuário; só time de bot é escalado pelo
+jeito do jogador. Pendente de individualidade: o Ronaldinho pela ponta ainda dribla pouco (0,05/jogo = média dos meias) porque o
+portador solta a bola antes de o marcador chegar — precisa de "encarar o marcador" como opção de verdade no `decide.ts`.
 Pendente: virar os números em assert no `npm run motor2` quando ele cravar a meta; ligar o v2 na bancada visual e FILMAR
 (`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. Clima visual (sol/nublado/chuva) continua
 esperando o OK dele na foto (`clima-3.png`).

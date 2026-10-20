@@ -6,6 +6,7 @@
 // tatica), então o campinho, a torcida e os bonecos não mudam.
 // ⚠️ Isolado: só a bancada e a trava usam. Não decide placar de ninguém.
 import { perfilDe } from './atributos'
+import { estilo2De, estiloDe, type Estilo } from '../campo2d-estilos'
 import { alvoDe, andaBloco, ancora, linhaImpedimento, planeja, type Bloco } from './coletivo'
 import { decide, pressaoEm, type Acao } from './decide'
 import { AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L, SEG_POR_MIN, TRAVESSAO, W, ATRITO_AR, ATRITO_CHAO, clamp, dist, frente, fundo, len, linhaAtaque, sorteio, vRasteira, xgDe, yDe } from './fisica'
@@ -30,15 +31,37 @@ function onze(cartas0: CartaCampo[], formacao?: string): CartaCampo[] {
 }
 
 let idSeq = 0
-function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string): Atleta[] {
+function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeitoOn = false): Atleta[] {
   const lista = onze(cartas, formacao).slice(0, 11)
   while (lista.length < 11) lista.push({ name: '', pos: lista.some(c => c.pos === 'GOL') ? 'MEI' : 'GOL' })
   const por: Record<Grupo, CartaCampo[]> = { GOL: [], DEF: [], LAT: [], MEI: [], ATA: [] }
   for (const c of lista) por[grupoDe(c.pos)].push(c)
   if (!por.GOL.length) por.GOL.push((por.DEF.pop() ?? por.MEI.pop() ?? por.LAT.pop() ?? por.ATA.pop())!)
   const out: Atleta[] = []
+  // 🎯 SÓ PRA TIME DE BOT (ninguém escalou): quem joga no meio e quem joga aberto sai do JEITO do jogador — finalizador/
+  // cabeceador no centro do ataque, driblador/velocista pela ponta; no meio, desarmador de volante e passador por dentro.
+  // ⚠️ TIME DE GENTE SEGUE A VAGA DO CAMPINHO (Diego 20/10: *"se o Romário está numa posição no campinho ele deveria estar ali
+  // também, com base na qual o usuário decidiu botar ele"*): a ordem da escalação É a vaga (1º atacante = esquerda, 2º = meio…),
+  // igual ao campinho desenha. Por isso o padrão é NÃO reordenar.
+  const CENTRO: Record<Grupo, Partial<Record<Estilo, number>>> = {
+    ATA: { finalizador: 3, cabeceador: 3, chutador: 2, passador: 1, driblador: -1, velocista: -1, apoiador: -2 },
+    MEI: { desarmador: 3, passador: 2, chutador: 1, finalizador: 0, driblador: -1, velocista: -1, apoiador: -2 },
+    GOL: {}, DEF: {}, LAT: {},
+  }
+  const peloJeito = (cs: CartaCampo[], g: Grupo): CartaCampo[] => {
+    const n = cs.length
+    if (n < 2 || !peloJeitoOn) return cs
+    const nota = (c: CartaCampo) => (CENTRO[g][estiloDe(c.name, c.fame)] ?? 0) + (CENTRO[g][estilo2De(c.name, c.fame)] ?? 0) * 0.5
+    const ord = cs.map((c, i) => ({ c, i, n: nota(c) })).sort((a, b) => b.n - a.n || a.i - b.i)
+    // (as vagas, da mais central pra mais aberta: o mais "de meio" pega a do meio, e assim por diante)
+    const vagas = [...Array(n).keys()].sort((a, b) => Math.abs(a - (n - 1) / 2) - Math.abs(b - (n - 1) / 2) || a - b)
+    const out: CartaCampo[] = new Array(n)
+    ord.forEach((o, k) => { out[vagas[k]] = o.c })
+    return out
+  }
   const linha = (cs: CartaCampo[], dep: number, gr: (i: number, n: number) => Grupo) => cs.forEach((c, i) => {
-    const n = cs.length, bx = n === 1 ? 34 : 9 + (50 * i) / (n - 1), g = gr(i, n)
+    // (dupla de ataque joga por dentro — 22 e 46 —, não colada na linha lateral)
+    const n = cs.length, bx = n === 1 ? 34 : n === 2 && gr(0, 2) === 'ATA' ? (i === 0 ? 22 : 46) : 9 + (50 * i) / (n - 1), g = gr(i, n)
     const centro = n > 1 ? Math.abs(i - (n - 1) / 2) / ((n - 1) / 2) : 0
     const pf = perfilDe(c, g)
     out.push({
@@ -55,8 +78,8 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string): Atleta[
   const lats = por.LAT, zags = [...por.DEF, ...por.GOL.slice(1)]
   const defesa = lats.length >= 2 ? [lats[0], ...zags, ...lats.slice(1)] : [...lats, ...zags]
   linha(defesa, 0, (i, n) => ((lats.length >= 2 && (i === 0 || i === n - 1)) || (lats.length === 1 && i === 0) ? 'LAT' : 'DEF'))
-  linha(por.MEI, 0.52, () => 'MEI')
-  linha(por.ATA, 1, () => 'ATA')
+  linha(peloJeito(por.MEI, 'MEI'), 0.52, () => 'MEI')
+  linha(peloJeito(por.ATA, 'ATA'), 1, () => 'ATA')
   return out
 }
 
@@ -115,7 +138,8 @@ export class Motor2 {
   private intervalo = false
   private acaoDe = new Map<Atleta, Acao>()
 
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol') {
+  /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false]) {
     const s = sorteio(seed)
     this.r = s.r; this.n = s.n
     this.nar = new Narrador(en, this.r)
@@ -125,7 +149,7 @@ export class Motor2 {
     const ROT: Rotina[] = ['primeiro_pau', 'segundo_pau', 'curta']
     this.rotinaBase = [ROT[Math.floor(this.r() * 3)], ROT[Math.floor(this.r() * 3)]]
     this.rotina = [...this.rotinaBase] as [Rotina, Rotina]
-    this.atl = [...montaTime(0, casa, formacoes[0]), ...montaTime(1, fora, formacoes[1])]
+    this.atl = [...montaTime(0, casa, formacoes[0], bots[0]), ...montaTime(1, fora, formacoes[1], bots[1])]
     this.atl.forEach((p, i) => { p.proxDecisao = (i % 5) * 0.05 })
     for (const l of [0, 1] as Lado[]) this.bloco[l] = { tras: 18, frente: 48, largura: 0.75, desliza: 0 }
     for (const p of this.atl) { const a = ancora(this, p); p.x = a.x; p.y = clamp(a.y, p.lado === 0 ? L / 2 + 1 : 2, p.lado === 0 ? L - 2 : L / 2 - 1) }

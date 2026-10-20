@@ -974,6 +974,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   tempo lá, essas coisas igual tá sendo… sem ser lances. É o jogo rolando lá no tempo que tem hoje"*. **Não repropor A.** O v2
   (`motor2/`) tem que caber um jogo de futebol inteiro em 1:30 de tela com o relógio de hoje (93' em 90 s) — a calibração é
   "jogo corrido mais intenso": transição rápida, jogo direto, chute cedo, duelos; nunca jogador correndo em velocidade irreal.
+  (16) **A VAGA DO CAMPINHO É LEI (20/10, *"se o Romário está numa posição no campinho ele deveria estar ali também, com base na
+  qual o usuário decidiu botar ele"*)**: a ordem da escalação É a vaga (1º atacante = esquerda, 2º = meio, 3º = direita, igual ao
+  `Campinho` desenha) e o motor NUNCA reordena time de gente. Só time de BOT (ninguém escalou) é montado pelo jeito do jogador
+  (finalizador no meio, driblador/velocista na ponta, desarmador de volante) — `bots` no construtor do `Motor2`. Medido: o Romário
+  na vaga do meio chuta 1,1×/jogo e faz 0,3 gol; na ponta esquerda (vaga errada) chutava 0,13.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

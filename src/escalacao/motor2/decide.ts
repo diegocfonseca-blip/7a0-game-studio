@@ -132,7 +132,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (!frenteDele) ops.push({ tipo: 'conduz', alvo, u: ganho + DIRETO * 0.7 + 0.006 + p.tend.drible * 0.006 + (p.estilo === 'velocista' ? 0.006 : 0) - pres * 0.01 + (1 - pres * 0.6) * MANTER })
     else {
       const pD = clamp(0.5 + (p.at.conducao - frenteDele.at.desarme) / 85, 0.12, 0.88)
-      ops.push({ tipo: 'drible', alvo, contra: frenteDele, u: pD * (ganho + 0.02) - (1 - pD) * perda(l, p.x, p.y) + p.tend.drible * 0.03 - 0.006 + (2 * pD - 1) * MANTER })
+      ops.push({ tipo: 'drible', alvo, contra: frenteDele, u: pD * (ganho + 0.02) - (1 - pD) * perda(l, p.x, p.y) + p.tend.drible * 0.06 - 0.006 + (2 * pD - 1) * MANTER }) // (quem GOSTA de driblar encara o marcador — Ronaldinho não solta a bola de primeira)
     }
     // 🦶 AFASTAR (apertado perto do próprio gol)
     if (fundo(l, p.y) < 28 && pres > 0.45) {

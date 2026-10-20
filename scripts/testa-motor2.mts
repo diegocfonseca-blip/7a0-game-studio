@@ -23,7 +23,7 @@ function time(seed: number, fames: number[]): C[] {
 }
 const MIN = 90 / 93
 function joga(seed: number, a: C[], b: C[]) {
-  const m = new Motor2(seed, a, b)
+  const m = new Motor2(seed, a, b, false, [], [0, 0], 'sol', [true, true]) // (times sorteados = times de bot: o motor escala pelo jeito)
   let foraCampo = 0
   for (let k = 0; k <= 96; k += 0.25) {
     m.avancaAte(k)
