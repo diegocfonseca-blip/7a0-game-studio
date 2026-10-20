@@ -1,4 +1,6 @@
 import {RitmoCampoProvider} from './presidencia-velocidade'
+import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
+import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
 import {DiaDoEstadio} from './presidencia-estadio-dia'
@@ -64,6 +66,9 @@ import { StadiumTab, StadiumSvg, MasterBanner, MasterFaixa, sponsorLogoEstampa, 
 import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
+import { DUR_2D_MS } from './campo2d-motor'
+import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
@@ -80,6 +85,7 @@ import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLi
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
 import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps } from './central'
+import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
@@ -3102,8 +3108,8 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra }:
-  { /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo }:
+  { /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3119,6 +3125,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
    *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
   apitoFrases?: { win: string[]; lose: string[]; draw: string[] }; stadiumMatch?:ContextoPartidaEstadio }) {
   const privatePreview = useOnlinePreview()
+  // 📺 Campo 2D (20/10): ligado, o campinho aparece EM CIMA deste placar em qualquer competição (liga, copas, Liberta,
+  // Champions, Mundial, Copa do Mundo, regionais, online e offline) e o mascote grande do gol sai de lá — por isso o
+  // carimbo daqui some. Basquete fica de fora (é outro esporte).
+  const c2d = useCampo2DLigado() && !basket
+  const c2dX = useCampo2DExtras()
   const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
   const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket
@@ -3479,7 +3490,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🧼 `nomeLimpo` antes de procurar o carimbo: se algum dia uma tela passar o
   //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
   const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? (mascotHome ?? homeName) : (mascotAway ?? awayName))) : ''
-  const carimboArt = carimboTime ? carimboDoTime(carimboTime) : null
+  const carimboArt = carimboTime && !semCarimbo ? carimboDoTime(carimboTime) : null
   // 🖼️ 01/10 (print do Diego na foto do Twitter: o Mascarado saía só das pernas no
   // placar): a janelinha do escudo no placar leva a mascote INTEIRA, não o busto. O
   // busto é um recorte de 176px que a caixa de 76px do placar não sabe encolher
@@ -3530,6 +3541,19 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])
       : (emIngles ? ['📢 Final whistle — a draw, one point each 🤝', '📢 It\'s over — all square. Nobody left happy 🤝', '📢 Full time — a draw, and it felt like less 🤝', '📢 The referee ends it: even on the night 🤝'] : ['📢 Apito final — empate, um ponto pra cada 🤝', '📢 Acabou — tudo igual. Ninguém saiu feliz 🤝', '📢 Fim de jogo — empate, com gosto de pouco 🤝', '📢 O juiz encerrou: igualdade na noite 🤝'])
   const fimTxt = grande && ritual === 'end' ? FIM_RES[rk % FIM_RES.length] : null
+  const lado2d = (nome: string, cor: string, mascote: string | undefined, cartas: CartaRadio[] | undefined, emblema: ReactNode) => ({
+    nome, cor, cartas: cartas as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
+    escudo: emblema ?? <Escudo nome={nome} size={110} />, tecnico: c2dX.tecnicoDe?.(nome) ?? null,
+  })
+  // 📺 com o 2D escolhido o campinho TOMA O LUGAR do placar (Diego 20/10: *"qd tiver escolhido o 2D o placar padrão rápido
+  // não aparece"*) — o relógio, os sons e o apito daqui continuam rodando; só o desenho muda. Placar e minuto ficam no
+  // selo da TV do campinho, e o telão de propaganda segue embaixo, no lugar de sempre.
+  const campo2dEl = c2d ? (
+    <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+      casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem)}
+      tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} />
+  ) : null
+  if (campo2dEl) return campo2dEl
   if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
@@ -3585,7 +3609,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     narration={fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
-  return (
+  return (<>
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}
@@ -3637,16 +3661,16 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         <GoalsCol list={awayGoals} align="left" basket={basket} />
       </div>
     </div>
-  )
+  </>)
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio }) {
+function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch, semCarimbo }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} semCarimbo={semCarimbo} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
@@ -3720,10 +3744,10 @@ export function FaixaPlacarEstadio({matchId,...props}:Parameters<typeof FaixaPla
  const presentation=match?{min:match.minute,fim:match.finished,hg:match.homeScore,ag:match.awayScore}:{}
  return <FaixaPlacarMini {...props} {...presentation}/>
 }
-function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch }: {
+function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch, semCarimbo }: {
   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
-  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio
+  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean
 }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -3742,7 +3766,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
     <>
       <div ref={caixa} className="ll-cx-placar">
         <MyMatchCard stadiumMatch={stadiumMatch} m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
-          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
+          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} semCarimbo={semCarimbo} />
       </div>
       {fora && !escondido && (
         <FaixaPlacarEstadio matchId={stadiumMatch?.id} topo={topo} min={min} fim={fim} home={m.h} away={m.a} hg={hg} ag={ag} youIsHome={iAmHome}
@@ -8004,14 +8028,17 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const econBots = useEconBots() // 💰 caixa dos rivais na Central (13/10)
+  useCo2FimDaVirada() // 🌐 carreira online v2: quem comanda põe a sala no PREPARO quando o leilão de todos acaba
   // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
-  const saf2Ui = useSaf2() && state.onlineMode !== 'online' && !state.roomId
+  // 🌐 carreira online v2: SEM 2º clube (decisão do Diego, 19/10) — a SAF lá é a da regra antiga
+  const saf2Ui = useSaf2() && state.onlineMode !== 'online' && !state.roomId && !state.co2
   useDireitos() // re-desenha quando o plano da conta chega do banco (o "pagante" da SAF nova)
   const saf2Jan = saf2Ui && saf2Janela(state)
   const saf2Pagante = ehPagante(myApoioPerk()?.tier, meusDireitos())
   const saf2Migrar = saf2Ui && precisaMigrar({ temSaf: !!state.careerFilial, tem2o: !!segundoClube(state), migrado: state.saf2?.migrado })
   const [saf2MigrarDepois, setSaf2MigrarDepois] = useState(false)
   const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
+  const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
@@ -8065,7 +8092,11 @@ export function PyramidSeasonScreen() {
   // manual continua ROUND_MS (lá quem manda no ritmo é o 🐢/⏩ do técnico). TODOS os
   // relógios da rodada saem daqui — o placar, a revelação da tabela (0,86×) e o fim da
   // temporada (0,95×) — senão a tabela abriria antes do apito (spoiler).
-  const baseRoundMs = manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
+  // 📺 CAMPO 2D (20/10): com o campinho ligado, o jogo dura 1:30 no automático (decisão do Diego) — e no Manual o técnico
+  // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
+  // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
+  const campo2d = useCampo2DLigado() && state.onlineMode !== 'online'
+  const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -8237,11 +8268,15 @@ export function PyramidSeasonScreen() {
   const planosBots = useMemo<Record<string, PlanoBot>>(() => {
     if (!botFadigaOn) return {}
     const me = state.managers[state.youIdx]
-    const minhaDiv = (Object.keys(world) as Div[]).find(d => world[d].some(t => t.human && t.teamId === me?.id))
-    if (!minhaDiv) return {}
+    // 🌐 carreira online v2: o cansaço dos bots tem que ser IGUAL em todo aparelho → vale em TODA divisão que tem clube
+    // de gente (na solo é só a sua, que é a única com gente). Solo: exatamente como antes.
+    const divsComPlano = state.co2
+      ? (Object.keys(world) as Div[]).filter(d => world[d].some(t => t.human))
+      : (Object.keys(world) as Div[]).filter(d => world[d].some(t => t.human && t.teamId === me?.id)).slice(0, 1)
+    if (!divsComPlano.length) return {}
     const carry = state.botCarry ?? {}
     const out: Record<string, PlanoBot> = {}
-    for (const t of world[minhaDiv]) {
+    for (const t of divsComPlano.flatMap(d => world[d])) {
       if (t.human) continue
       const inicio: Record<string, number> = {}
       for (const c of t.squad as WonCard[]) { const g = carry[chaveCarry(c)]; if (g != null) inicio[c.id] = g }
@@ -8261,8 +8296,20 @@ export function PyramidSeasonScreen() {
     }
     return out
   }, [botFadigaOn, world, planosBots])
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, simMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans),
-    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, simMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans])
+  // 🌐 CARREIRA ONLINE v2: as entradas dos OUTROS clubes de gente (tática, escalação, intervalo, pênalti, força do dia,
+  // gás, técnico) vêm das gavetas — senão cada aparelho simularia uma temporada diferente. Solo: `co2` ausente = nada muda.
+  const co2Gavetas = state.co2?.gavetas
+  const co2MeuId = state.managers[state.youIdx]?.id ?? 0
+  const co2Minha = state.co2?.minha
+  const co2Ate = state.co2?.congeladoAte
+  const entradasLocais = useMemo<EntradasMundo>(() => ({ tactics: careerTactics, lineups: careerLineup, halftime: careerHalftime, penalty: careerPenalty, mods: simMods, cardMods: condMods, tecs: simTecs }),
+    [careerTactics, careerLineup, careerHalftime, careerPenalty, simMods, condMods, simTecs])
+  const entradasSim = useMemo<EntradasMundo>(() => {
+    if (!co2Gavetas) return entradasLocais
+    return mesclaEntradas(congelaMeu(entradasLocais, co2Minha, co2MeuId, co2Ate ?? -1), co2Gavetas, co2MeuId)
+  }, [entradasLocais, co2Gavetas, co2MeuId, co2Minha, co2Ate])
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans),
+    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -8477,11 +8524,12 @@ export function PyramidSeasonScreen() {
   // mexendo no time à vontade, que nada disso alcança o que já foi decidido.
   const copaXiFixo = state.copaXiSeason === state.seasonNo ? state.copaXi : undefined
   const lineupsCopa = useMemo<RoundLineups>(() => {
-    if (!copaXiFixo) return careerLineup // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
-    const out: RoundLineups = { ...careerLineup }
+    // 🌐 `entradasSim.lineups` = a escalação de sempre na solo; na carreira online v2 já vem com a dos outros clubes
+    if (!copaXiFixo) return entradasSim.lineups // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
+    const out: RoundLineups = { ...entradasSim.lineups }
     for (const k in copaXiFixo) out[+k] = { ...(out[+k] ?? {}), 38: copaXiFixo[+k] }
     return out
-  }, [careerLineup, copaXiFixo])
+  }, [entradasSim.lineups, copaXiFixo])
   useEffect(() => {
     if (!done || !state.careerOnline || state.copaXiSeason === state.seasonNo) return
     const xi: Record<number, string[]> = {}
@@ -8816,7 +8864,8 @@ export function PyramidSeasonScreen() {
   // a MESMA regra que a partida da liga já segue desde 13/09 (`baseRoundMs`).
   // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
   // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
-  const copaLegMs = manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  // 📺 no Campo 2D cada jogo da Copa também dura 1:30 (o placar anda 93' em legMs ÷ 0,82 = DUR_2D_MS)
+  const copaLegMs = campo2d ? Math.round(DUR_2D_MS * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
   const copaClock=useRef({key:'',elapsed:0})
   // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
@@ -9381,8 +9430,8 @@ export function PyramidSeasonScreen() {
   const stadiumMatch:ContextoPartidaEstadio|undefined=presidentAvailable&&myMatch?(()=>{
     const teams=Object.values(live.tables).flat(),home=teams.find(t=>t.teamId===myMatch.hId),away=teams.find(t=>t.teamId===myMatch.aId)
     if(!home||!away)return undefined
-    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
-    const second=(t:SimTeam)=>{const ids=careerHalftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
+    const xi=(t:SimTeam)=>t.human?lineupAt(entradasSim.lineups,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
+    const second=(t:SimTeam)=>{const ids=entradasSim.halftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
     return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,agenda:agendaLigaComplexo({fixtureId:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,seasonKey:`${state.seed}:${state.seasonNo??1}`,round,homeClubId:home.teamId}),awayClubId:away.teamId,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
   })():undefined
 
@@ -9396,7 +9445,7 @@ export function PyramidSeasonScreen() {
   const curMatchIdx = round - 1
   const [halftimeOpen, setHalftimeOpen] = useState(false)
   const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]
-  const halfMode = soloCareer && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
+  const halfMode = soloCareer && !state.co2 && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
   useEffect(() => { setHalftimeOpen(false) }, [round])
 
@@ -9415,7 +9464,7 @@ export function PyramidSeasonScreen() {
   // 🧪 na conta do Diego (usePenaltiTeste) o pênalti aparece em TODO jogo decisivo,
   // pra ele conferir os dois modos sem esperar a raridade. Pros outros: só planejado.
   const penTeste = usePenaltiTeste()
-  const penMode = soloCareer && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
+  const penMode = soloCareer && !state.co2 && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
   const [penaltyOpen, setPenaltyOpen] = useState(false)
   useEffect(() => { setPenaltyOpen(false) }, [round])
   // 🙈 ANTI-SPOILER do `revealed` (efeito mora AQUI porque precisa do intervalo/
@@ -9524,7 +9573,7 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (!state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
+    if (state.co2 || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -9916,7 +9965,7 @@ export function PyramidSeasonScreen() {
   // partida e o camarote da Central). Regra de ouro contra botão mudo (19/09): tela e
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
-  const avancarRodada = () => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) responderColetiva(null) /* 🎙️ avançou com a coletiva aberta = pulou */; if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) responderColetiva(null) /* 🎙️ avançou com a coletiva aberta = pulou */; if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -10182,7 +10231,7 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className={`max-w-xl mx-auto ll-cx${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
@@ -10727,7 +10776,11 @@ export function PyramidSeasonScreen() {
             quem não tem (o automático só entra a PARTIR da 1ª rodada, nunca pulando
             essa decisão). Pedido do Diego (07/08): "não deve iniciar automaticamente,
             tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
-        {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
+        {state.co2 && !copaPlaying && (
+          <Co2Temporada entradasLocais={entradasLocais} round={round} roundReady={roundReady} seasonOver={seasonOver}
+            onEscalacao={() => setTab('elenco')} onTatica={() => setTab('elenco')} />
+        )}
+        {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
             <button className="ll-cx-controle" onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: decisoesOk ? GREEN : '#cfc6ae', color: decisoesOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: decisoesOk ? 'pointer' : 'default', marginBottom: 10 }}>
@@ -11534,7 +11587,7 @@ export function PyramidSeasonScreen() {
                 onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
                 onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
             })()}
-            {state.onlineMode !== 'online' && !saf2Ui && (() => {
+            {state.onlineMode !== 'online' && !saf2Ui && !state.co2 /* 🌐 v2: sem 2º clube */ && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
                 // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista
@@ -11795,15 +11848,17 @@ export function PyramidSeasonScreen() {
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
         ) : (
           <button
-            onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); dispatch({ type: 'GO_LOBBY' }) }}
+            onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }}
             className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🚪 Sair e salvar carreira', '🚪 Exit and save career')}
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{soAparelhoPe
-              ? tr('Fica salva neste aparelho. Pra guardar na nuvem e continuar em outro celular, só no ⭐ Craque.', 'It stays saved on this device. To keep it in the cloud and continue on another phone, only with ⭐ Star.')
+              ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
         )}
+        {/* ☁️ 19/10: sem plano, o "Sair e salvar" mostra os planos antes de sair (fechar a janela = sai pro menu, como sempre) */}
+        {planosSair && <JanelaNuvemPlanos onClose={() => { setPlanosSair(false); dispatch({ type: 'GO_LOBBY' }) }} />}
       </div>
     </div>
     </RitmoCampoProvider>

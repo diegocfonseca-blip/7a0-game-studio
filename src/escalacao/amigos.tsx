@@ -27,10 +27,10 @@ export const contaValida = (uid: string | null | undefined): uid is string => !!
 type Titulos = { ligas: number; serie_a: number; copas: number; supercopas: number; libertadores: number; champions: number; mundial: number; copa_mundo: number; salas: number; temporadas: number }
 type Perfil = {
   uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null
-  titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
+  titulos: Titulos; rank: { pos: number; total: number; temporada: number } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
   // 👥 v2 (19/10): ranking do online da semana/mês, medalhas do pódio semanal e o rival
-  semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null
+  semana?: { pos: number; titulos: number; total: number } | null; mes?: { pos: number; titulos: number; total: number } | null; sempre?: { pos: number; titulos: number } | null
   medalhas?: { ouro: number; prata: number; bronze: number } | null; meu_rival?: boolean
   rival?: { uid: string; nome: string; eu: number; ele: number } | null
 }
@@ -173,16 +173,16 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
           </div>
         )}
-        {/* 📊 a melhor carreira no ranking global, na temporada em que ela está (mesma conta do ranking da carreira) */}
+        {/* 📊 19/10 (Diego, regra final): o save com a MELHOR posição no ranking global, na temporada em que esse save está
+            (esc_perfil_rank). Só o número grande e a temporada embaixo — nada de carreira, clube ou save. */}
         <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ textAlign: 'center', minWidth: 92 }}>
             <div style={{ ...OSW, fontSize: 34, lineHeight: 1, color: INK }}>{p.rank ? `${p.rank.pos}º` : '—'}</div>
+            {p.rank && <div style={{ fontSize: 11.5, fontWeight: 800, color: '#555', marginTop: 3 }}>{tr('na temporada', 'in season')} {p.rank.temporada}</div>}
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ ...h3, margin: 0 }}>📊 {tr('Ranking global da carreira', 'Global career ranking')}</p>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#555', margin: '3px 0 0', lineHeight: 1.35 }}>{p.rank
-              ? <>{tr('Melhor carreira', 'Best career')}{p.rank.clube ? <> · <b style={{ color: INK }}>{p.rank.clube}</b></> : null} · {tr('temporada', 'season')} {p.rank.temporada}</>
-              : tr('Ainda sem carreira no ranking (só conta carreira salva na nuvem).', 'No career in the ranking yet (only cloud-saved careers count).')}</p>
+            {!p.rank && <p style={{ fontSize: 12, fontWeight: 700, color: '#555', margin: '3px 0 0', lineHeight: 1.35 }}>{tr('Ainda sem carreira no ranking (só conta carreira salva na nuvem).', 'No career in the ranking yet (only cloud-saved careers count).')}</p>}
           </div>
         </div>
 
@@ -211,11 +211,11 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
         </div>
 
-        {/* 📊 a posição no ranking do online (títulos de sala) na semana e no mês + as medalhas do pódio semanal */}
+        {/* 📊 a posição no ranking do online (títulos de sala) na semana, no mês e de TODOS OS TEMPOS (19/10, desde 02/09) + as medalhas do pódio semanal */}
         <div style={caixa}>
           <p style={h3}>📊 {tr('No online', 'Online')}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {([[tr('Esta semana', 'This week'), p.semana], [tr('Este mês', 'This month'), p.mes]] as const).map(([rot, r]) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+            {([[tr('Esta semana', 'This week'), p.semana], [tr('Este mês', 'This month'), p.mes], [tr('Todos os tempos', 'All time'), p.sempre]] as const).map(([rot, r]) => (
               <div key={rot} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: r ? '#FFF7DA' : '#f3eee0' }}>
                 <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{rot}</div>
                 <div style={{ ...OSW, fontSize: 24, lineHeight: 1.05, color: INK }}>{r ? `${r.pos}º` : '—'}</div>

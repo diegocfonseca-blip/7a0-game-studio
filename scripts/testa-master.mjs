@@ -9,25 +9,28 @@ const ok = (cond, msg) => { if (cond) console.log('  ✅', msg); else { falhas++
 console.log('1) as 5 marcas reais, cada uma com o seu prazo (Vadico = mais grana, mais temporadas)')
 // 🅾️ 23/09: virou CINCO. Diego: *"coloque a Uomo Concetto também como Master,
 // sendo agora 5 marcas. Sendo a Vadico a mais cara ainda mesmo"*.
-ok(MASTER_PRAZOS.length === 5, 'são exatamente 5 contratos')
+// 🤖 19/10: virou SEIS — a Tidex entra IGUAL à Vadico (5 temporadas; o que desempata é a meta sorteada de cada uma)
+ok(MASTER_PRAZOS.length === 6, 'são exatamente 6 contratos')
 ok(MASTER_PRAZOS.every(p => sponsorBrandOf(p.brandId)?.logo), 'todas são marcas REAIS do jogo (têm logo): ' + MASTER_PRAZOS.map(p => sponsorBrandOf(p.brandId).name).join(' · '))
-ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,3,4,5', 'prazos 1 · 2 · 3 · 4 · 5 temporadas')
+ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,3,4,5,5', 'prazos 1 · 2 · 3 · 4 · 5 · 5 temporadas (Tidex = 5, igual à Vadico)')
 // 🔒 A CONDIÇÃO QUE ELE PÔS, escrita como trava: a Vadico tem que pagar MAIS que
 // qualquer outra em TODA divisão. Como a régua é só divisão × prazo, isso é o
 // mesmo que a Vadico ter o maior prazo — mas a trava confere pelo DINHEIRO, que é
 // o que ele falou, pra valer mesmo se um dia a régua mudar de forma.
 for (const d of ['V', 'D', 'C', 'B', 'A']) {
   const pagam = MASTER_PRAZOS.map(p => ({ n: sponsorBrandOf(p.brandId)?.name ?? p.brandId, v: masterPorTemporada(d, p.anos) }))
-  const maior = pagam.reduce((a, b) => (b.v > a.v ? b : a))
-  ok(maior.n.startsWith('Vadico') && pagam.filter(x => x.v === maior.v).length === 1,
-    `Série ${d}: a Vadico é a que mais paga, sozinha (${pagam.map(x => x.v).join(' · ')})`)
+  // 🤖 19/10: a Vadico continua no topo, mas agora DIVIDE o topo com a Tidex (*"igual a Vadico"*) — ninguém paga mais que as duas
+  const topo = Math.max(...pagam.map(x => x.v))
+  const noTopo = pagam.filter(x => x.v === topo).map(x => x.n).sort().join(' + ')
+  ok(noTopo === 'Tidex + Vadico Veículos',
+    `Série ${d}: Vadico e Tidex são as que mais pagam, empatadas (${pagam.map(x => x.v).join(' · ')})`)
 }
 const vad = MASTER_PRAZOS.find(p => p.brandId === 'vadico')
 ok(vad && vad.anos === Math.max(...MASTER_PRAZOS.map(p => p.anos)), 'Vadico Veículos é o contrato mais longo')
 for (const d of ['V', 'D', 'C', 'B', 'A']) {
   const vals = MASTER_PRAZOS.map(p => masterPorTemporada(d, p.anos))
   const tots = MASTER_PRAZOS.map(p => masterPorTemporada(d, p.anos) * p.anos)
-  ok(vals.every((v, i) => i === 0 || v > vals[i - 1]) && tots.every((v, i) => i === 0 || v > tots[i - 1]), `${d}: por temporada ${vals.join('/')} · total ${tots.join('/')} — Vadico é o maior nos dois`)
+  ok(vals.every((v, i) => i === 0 || v >= vals[i - 1]) && tots.every((v, i) => i === 0 || v >= tots[i - 1]) && vals.at(-1) === Math.max(...vals) && tots.at(-1) === Math.max(...tots), `${d}: por temporada ${vals.join('/')} · total ${tots.join('/')} — Vadico é o maior nos dois`)
 }
 
 console.log('2) a régua (13/09, 2ª versão — "aumente um pouco, quase nada"): base × (1,25 + (anos−1)/2)')

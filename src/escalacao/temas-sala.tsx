@@ -27,11 +27,14 @@ import sevenEscudo from './img/sevencity-escudo-v2.webp'
 import sevenMascote from './img/sevencity-mascote-v2.webp'
 import futpointEscudo from './img/futpoint-escudo.webp'
 import futpointMascote from './img/futpoint-mascote.webp'
+import wenMilanEscudo from './img/wenmilan-escudo.webp'
+import wenMilanMascote from './img/wenmilan-mascote.webp'
+import tidexLogo from './img/patro-tidex.webp' // 🤖 tema da Tidex (19/10): o mesmo logo do patrocínio, 0 KB novo
 import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -62,12 +65,21 @@ function TEMAS_FUNDADOR_PRONTOS() {
     cuiudos: temaFundador('cuiudos', 'Cuiudos FC', '🤠', cuiudosEscudo, cuiudosMascote, '#0b46c4', 'rgba(231,172,11,.2)', '#E7AC0B', '#0c0c0c'),
     // 📍 Futpoint FC (18/10): preto e dourado do manto, o Pontinho na tela e o horário das lives dele (é streamer do jogo)
     futpoint: { ...temaFundador('futpoint', 'Futpoint FC', '📍', futpointEscudo, futpointMascote, '#5a4318', 'rgba(184,144,64,.2)', '#B89040', '#0c0c0c'), faixa: ['LIVES TODO DIA · 18H E 21H', 'LIVE EVERY DAY · 6PM & 9PM (BRT)'] },
+    wenmilan: temaFundador('wenmilan', 'Wen Milan B', '😈', wenMilanEscudo, wenMilanMascote, '#8a0a16', 'rgba(223,18,36,.22)', '#DF1224', '#fff'),
     seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
   } satisfies Partial<Record<TemaClubeId, Tema>>
 }
 const GELO = 'linear-gradient(135deg,#ffffff 0%,#bfe6ff 35%,#ffffff 55%,#8fd0ff 80%,#e8f6ff 100%)'
 const CROMO = 'linear-gradient(135deg,#f5f5f5 0%,#9a9a9a 22%,#ffffff 45%,#6e6e6e 70%,#e6e6e6 100%)'
 export const TEMAS_SALA: Record<TemaClubeId, Tema> = {
+  // 🤖 TIDEX (19/10, Diego: "ele é dono da empresa Tidex, que patrocina nosso jogo… faz um tema da Tidex pra ele usar nas salas").
+  // Tema de MARCA, não de clube: o azul-marinho e o turquesa do logo deles, a grade de "IA" ao fundo e o logo grande; sem mascote.
+  tidex: {
+    id: 'tidex', nome: '🤖 Tidex', nomeEn: '🤖 Tidex', selo: '🤖 TEMA · TIDEX', escudo: tidexLogo, mascote: null, claro: false,
+    botao: 'linear-gradient(135deg,#7FF3F7 0%,#22CDD5 45%,#0FA3AB 100%)', botaoTxt: '#0B1220', enfeite: 'nenhum', seloBg: '#0B1220', seloBorda: '#22CDD5',
+    faixa: ['TIDEX · SUA MARCA DENTRO DAS IAs', 'TIDEX · YOUR BRAND INSIDE AI'],
+    pano: 'repeating-linear-gradient(0deg,rgba(34,205,213,.07) 0 1px,transparent 1px 44px),repeating-linear-gradient(90deg,rgba(34,205,213,.07) 0 1px,transparent 1px 44px),radial-gradient(ellipse at 50% 0%,rgba(34,205,213,.35) 0%,transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(34,205,213,.18) 0%,transparent 60%),#0B1220',
+  },
   neymarzetti_noite: { id: 'neymarzetti_noite', nome: '🦇 Noite do Morcego', nomeEn: '🦇 Bat Night', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: false, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'morcegos' },
   neymarzetti_branco: { id: 'neymarzetti_branco', nome: '⚪ Manto Branco', nomeEn: '⚪ White Kit', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: true, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'nenhum' },
   // 👑🧊 K9 FC (18/10, mockup `tema-k9.png`): a coroa com gelo do escudo, o Rei K9 com as taças, branco e azul royal
@@ -86,12 +98,13 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'matheussoaresg2018@gmail.com': ['cuiudos'],
   'glaucomiranda@outlook.com': ['seven'],
   'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
+  'vittor@tidex.com.br': ['wenmilan', 'tidex'], // 😈 Wen Milan B (conta criada em 19/10) + 🤖 tema da Tidex, a empresa dele que patrocina o jogo (19/10, aprovado pelo Diego)
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
-  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão

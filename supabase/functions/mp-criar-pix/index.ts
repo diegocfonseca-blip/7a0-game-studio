@@ -18,6 +18,7 @@ const NOMES: Record<string, string> = {
   ficha_carreira: 'Ficha extra de carreira', // 17/10: +1 carreira salva, R$ 9,99
   tema_coracao: 'Tema da sala · time de coração', tema_clube: 'Tema da sala · seu clube', // 18/10: temas da sala de espera, R$ 9,90
   giro_hora: 'Anúncio no giro (1 hora)', recado_hora: 'Recado em destaque (1 hora)', recado_dia: 'Recado em destaque (dia todo)', // 18/10: recado de jogador + anúncio de 1 h
+  peca_presidente: 'Peça do presidente', // 19/10: roupa/cabelo/barba avulsos (1,99 · 2,99 · 3,99 · 4,99), ref r-<roupa> / p-<peça>
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60
@@ -41,7 +42,7 @@ Deno.serve(async (req) => {
   const email = u?.user?.email?.toLowerCase()
   if (!email) return resp(401, { erro: 'sem_login' })
   let produto = '', telefone = '', ref = ''
-  try { const b = await req.json(); produto = String(b?.produto ?? ''); telefone = String(b?.telefone ?? '').replace(/\D/g, '').slice(0, 13); ref = String(b?.ref ?? '').replace(/[^\w-]/g, '').slice(0, 20) } catch { /* corpo inválido */ }
+  try { const b = await req.json(); produto = String(b?.produto ?? ''); telefone = String(b?.telefone ?? '').replace(/\D/g, '').slice(0, 13); ref = String(b?.ref ?? '').replace(/[^\w-]/g, '').slice(0, 40) /* 19/10: 20→40 (a ref de peça do presidente passa de 20 letras) */ } catch { /* corpo inválido */ }
   if (!NOMES[produto]) return resp(400, { erro: 'produto' })
 
   const adm = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)

@@ -11,6 +11,8 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
+import { useCampo2DLigado } from './campo2d-modo'
+import { DUR_2D_MS } from './campo2d-motor'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -33,7 +35,7 @@ import { copaStats } from './copa-stats'
 import { RODADAS_GRUPO, PASSO_COPA, passoRodaBola, respiroAntes, passoComResumo } from './copa-passos'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
-import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt } from './screens'
+import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt, GiroDaRodada } from './screens'
 import { useHasManual, stripEmoji } from './apoio'
 import { resilientWrite } from './pending'
 import { supabase } from '../lib/supabase'
@@ -1080,7 +1082,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, forte, onPriz
 // `docs/sql/online-copa-clock-mais-1s.sql`. Sem isso, a sala sincronizada segue em 14s.
   // ⏱️ 13/10 (Diego: *"aumente mais 1s em cada jogo da copa"*): sala 16s (o banco manda — `docs/sql/online-copa-clock-16s.sql`;
   // o número daqui só vale sem relógio sincronizado). Carreira segue em 10s.
-  const roundMs = synced?.row?.duration_ms ?? Math.round(((online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
+  const c2d = useCampo2DLigado() // 📺 Campo 2D: o jogo dura 1:30 (sala sincronizada: quem manda ainda é o relógio do banco)
+  const roundMs = synced?.row?.duration_ms ?? Math.round((c2d ? DUR_2D_MS : (online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
   // 🥅 BUG DA FINAL (Diego 13/10: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças"*).
   // A disputa só entrava na tela em `liveDone` — que é DEPOIS de `duration + extra`, e o `extra` era justamente o tempo
   // reservado pra disputa. Ou seja: a reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s
@@ -1394,6 +1397,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, forte, onPriz
       </div>}
 
       {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= OITAVAS ? 'step' : undefined}>{tr('OITAVAS', 'ROUND OF 16')}</span><span aria-current={step === QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
+      {/* 📢 19/10 (Diego: "o telão… deve ser em todas as competições… Copa do Mundo"): o MESMO telão da liga, só na sala online */}
+      {online && <GiroDaRodada cinema={privateVisual} />}
       {step === SORTEIO && onlineWorldControls}
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}

@@ -1,0 +1,20 @@
+{
+  "data": "🖋 Fundador · 17 de outubro de 2026",
+  "titulo": "Seven City de cara nova 🍀",
+  "destaque": {
+    "escudo": "src/escalacao/img/sevencity-escudo-v2.webp",
+    "mascote": "src/escalacao/img/sevencity-mascote-v2.webp",
+    "camisa": "public/mantos-salao/sevencity-camisa-v2.webp",
+    "nome": "Seven City",
+    "linha": "Série D · preto e dourado"
+  },
+  "itens": [
+    { "tag": "batismo", "texto": "O **🍀 Seven City**, 🖋 Fundador nº 42, ganhou **escudo, mascote e manto novos**, em preto e dourado." },
+    { "tag": "mascote", "texto": "A mascote nova, o boleiro de chapéu preto com a **moeda da sorte**, carimba a tela em todo gol, atravessa a tela no título e aparece no pênalti decisivo." },
+    { "tag": "novidade", "texto": "**✨ Entrada de gala \"Jackpot da Sorte\"**: a máquina gira, para no **7 · 7 · 7**, chove moeda e trevo e o escudo acende cercado de sete trevos. Só o Seven City tem essa." },
+    { "tag": "novidade", "texto": "**📣 Canto da torcida**: toca nos jogos da carreira dele e junto com a entrada de gala nas salas online." }
+  ],
+  "rodape": "Quando o Seven City entrar na sala, a sorte entra junto 🍀7️⃣",
+  "rodapeSub": "Batismo e Fundador: tá na 🛒 Loja do Clube, ou chama o Diego aqui na comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-17-seven.png"
+}

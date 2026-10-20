@@ -11,16 +11,18 @@ import { supabase } from '../lib/supabase'
 import { loggedEmail, stripEmoji } from './apoio'
 import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da semana passada no letreiro (19/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
-import { MAXJOIAS_LOGO } from './maxjoias'
+import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
 
 export type Patrocinio = { nome: string; emoji: string }
-type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'
+export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' // career-league = a Liga Legends da CARREIRA (19/10)
 
 const PATROCINIO_GERAL = true // 16/10: Diego "pode liberar tudo já pro geral, mostrar pra todos, e Pix também"
 const ESPACOS_GERAL = true
 const PATROCINIO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
   champions: { nome: 'Vadico Veículos', emoji: '🚗' }, // 🚗 Vadico Veículos (Itaguaí e Barra da Tijuca) — 16/10
+  copa8: { nome: 'Tidex', emoji: '🤖' },
+  'career-league': { nome: 'Tidex', emoji: '🤖' }, // 🤖 19/10 (Diego: "no modo carreira também na Liga Legends apresentado por Tidex") // 🤖 Tidex — sua marca dentro das IAs (19/10, Diego: "add a Tidex na copa dos 8 apresentado por")
 }
 
 /** a marca que apresenta esta competição (null = sem patrocinador, ou ainda escondido pra esta conta) */
@@ -36,7 +38,10 @@ export type MarcaLed = Patrocinio & { chamada?: string }
 const LED_ESTADIO: MarcaLed[] = [
   { nome: 'Vadico Veículos', emoji: '🚗', chamada: 'Itaguaí · Barra da Tijuca · 45 anos' },
 ]
-export function ledDoEstadio(): MarcaLed[] { return espacosOk() ? LED_ESTADIO : [] }
+// 🚫 19/10 (Diego: "esse lugar de verde da Vadico Veículos pode tirar que não tô gostando"): a faixa de LED verde SAIU de todas as
+// competições. Pra voltar, `LED_LIGADO = true` (a lista de marcas acima continua guardada).
+const LED_LIGADO = false
+export function ledDoEstadio(): MarcaLed[] { return espacosOk() && LED_LIGADO ? LED_ESTADIO : [] }
 
 // 📰 Anúncio no O MARTELO (R$ 100/mês): um quadro no fim do jornal. Um anunciante por vez.
 export type AnuncioJornal = Patrocinio & { texto: string; contato?: string; logo?: string; logoProp?: number }
@@ -60,6 +65,7 @@ export function patrocinioLojaOk(): boolean {
 // Vadico) moram no código e ficam até ele trocar. Leitura pequena: uma por sessão, refeita no máximo a cada 30 min (tráfego).
 type Avulso = { tipo: 'giro' | 'marca' | 'recado'; texto: string; emoji: string; inicio: number; fim: number; autor?: string } // 💬 recado (18/10): o jogador escreve, com o nome do time
 let avulsos: Avulso[] = []
+let fixos: { texto: string; cor: string; link?: string }[] | null | undefined = undefined // 📌 undefined = lendo (nada) · null = a leitura falhou (reserva do código)
 let lidoEm = 0
 let pedindo: Promise<void> | null = null
 const ouvintes = new Set<() => void>()
@@ -68,10 +74,17 @@ function carregaAvulsos(): Promise<void> {
   if (pedindo) return pedindo
   pedindo = (async () => {
     try {
-      const { data } = await supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor').gt('fim', new Date().toISOString()).order('inicio').limit(20)
+      const [{ data }, fx] = await Promise.all([
+        supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor').gt('fim', new Date().toISOString()).order('inicio').limit(20),
+        supabase.from('esc_anuncios_fixos').select('texto, link').eq('ativo', true).order('ordem').order('id').limit(12),
+      ])
+      // 📌 fixos do banco: lista vazia = o Diego tirou todos (vale vazio); erro de leitura = fica a reserva do código
+      if (!fx.error && Array.isArray(fx.data)) fixos = (fx.data as { texto: string; link: string | null }[])
+        .map(r => ({ texto: String(r.texto), cor: '#FFC400', ...(r.link && /^https:\/\//.test(r.link) ? { link: String(r.link) } : {}) }))
+      else if (fixos === undefined) fixos = null
       avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null }[])
         .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : r.tipo === 'recado' ? 'recado' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim), autor: r.autor ? String(r.autor) : undefined }) as Avulso)
-    } catch { avulsos = [] }
+    } catch { avulsos = []; if (fixos === undefined) fixos = null }
     lidoEm = Date.now(); pedindo = null
     ouvintes.forEach(f => { try { f() } catch { /* ignora */ } })
   })()
@@ -89,23 +102,29 @@ function useAvulsos(ligado = true) {
 }
 
 /** hook do palco: a marca do mês (código) ou, na Copa dos 8, o ⚡ Dia da marca que está no ar (banco, 24 h) */
-export function usePatrocinio(kind: Competicao): Patrocinio | null {
+export function usePatrocinio(kind: Competicao | null): Patrocinio | null {
   useAvulsos(kind === 'copa8')
+  if (!kind) return null
   const m = kind === 'copa8' ? noAr('marca')[0] : undefined
   if (m) return { nome: m.texto, emoji: m.emoji }
   return patrocinioDe(kind)
 }
 
 // 📢 ANÚNCIO DO DIA (o letreiro que era o giro da rodada): o avulso pago (24 h) passa antes do manual.
-const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // manual: fica até o Diego trocar
+// 📌 19/10 (Diego: "deveria aparecer no painel as três p eu remover editar ou add nova"): os MANUAIS agora moram no banco
+// (`esc_anuncios_fixos`, editados no #admin → "📌 Anúncios fixos"). A lista abaixo virou só RESERVA, usada quando a leitura falha.
+const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // reserva
 // 🔗 17/10 (Diego): tocar na Vadico abre a oferta do carro do anúncio no site dela. Só anúncio MANUAL leva link (o pago de 24 h é
 // texto escrito pelo comprador e vai pro ar sem ninguém olhar — link ali seria porta pra golpe).
 // 📢 MAIS ANÚNCIOS MANUAIS (17/10, Diego), passando depois da Vadico, cada um com o próprio link:
 // · canal do K9 no YouTube (link limpo, sem o rastreio do Facebook que veio colado)
-// · Max Joias → WhatsApp da loja, com a mensagem já escrita
+// · Tidex (19/10, no lugar da Max Joias) → WhatsApp deles, com a mensagem já escrita
+// 🤖 Tidex (19/10): o mesmo texto/link está na linha do banco (`esc_anuncios_fixos`), que é quem manda; isto é a reserva
+const TIDEX_GIRO = '🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui'
+const TIDEX_ZAP = 'https://wa.me/5511981181888?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber como ter minha empresa no ChatGPT.')
 const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
   { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
-  { texto: '💍 Max Joias · Compramos ouro, clique aqui', cor: '#FFC400', link: 'https://wa.me/5521964717601?text=' + encodeURIComponent('Olá! Vi o anúncio da Max Joias no Leilão Legends e quero vender ouro.') },
+  { texto: TIDEX_GIRO, cor: '#FFC400', link: TIDEX_ZAP }, // 🤖 19/10: no lugar da Max Joias
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
@@ -126,8 +145,11 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   const podio = usePodioPassado()
   if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true })
   if (espacosOk()) {
-    if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
-    out.push(...GIRO_MANUAIS)
+    if (fixos) out.push(...fixos)
+    else if (fixos === null) {
+      if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
+      out.push(...GIRO_MANUAIS)
+    }
   }
   return out
 }
@@ -140,7 +162,7 @@ export function releAnuncios() { lidoEm = 0; carregaAvulsos() }
 export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string }
 const PLACAS_CAMPO: PlacaCampo[] = [
   { nome: 'Vadico Veículos', logo: VADICO_LOGO_ALFA, prop: 496 / 140, fundo: '#ffffff' },
-  { nome: 'Max Joias', logo: MAXJOIAS_LOGO, prop: 365 / 120, fundo: '#0b0b0b' },
+  { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
 ]
 export const PLACA_CASA: PlacaCampo = { nome: 'Leilão Legends', fundo: 'linear-gradient(180deg,#FFD84A,#E8A900)' }
 export function placasDoCampo(): PlacaCampo[] {

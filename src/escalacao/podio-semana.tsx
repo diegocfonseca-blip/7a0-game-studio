@@ -35,7 +35,7 @@ const CSS = `
 export function PodioChatSelo({ pos }: { pos: 0 | 1 | 2 | 3 }) {
   if (!pos) return null
   const cor = ['', '#b37a00', '#6f7a88', '#9a4f13'][pos]
-  return <span style={{ display: 'block', font: '700 8px Oswald, sans-serif', letterSpacing: '.14em', textTransform: 'uppercase', color: cor, lineHeight: 1.1, marginBottom: 1 }}>{['', '🥇', '🥈', '🥉'][pos]} {tr(`${pos}º DA SEMANA`, `#${pos} OF THE WEEK`)}</span>
+  return <span style={{ display: 'block', font: '800 9.5px Oswald, sans-serif', letterSpacing: '.06em', textTransform: 'uppercase', color: cor, lineHeight: 1.15, marginBottom: 2, whiteSpace: 'nowrap' }}>{['', '🥇', '🥈', '🥉'][pos]} {tr(`${pos}º DA SEMANA`, `#${pos} OF THE WEEK`)}</span>
 }
 /** borda de metal pro crachá do chat de quem está no pódio agora */
 export const PODIO_BORDA: Record<1 | 2 | 3, string> = { 1: '#FFC400', 2: '#C9D2DC', 3: '#D9822B' }

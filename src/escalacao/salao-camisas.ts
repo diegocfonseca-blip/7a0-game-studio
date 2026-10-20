@@ -73,6 +73,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Inter Vale FC": "intervale-camisa-v1.webp", // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79, 12/10)
   "ComVerissimo FC": "comverissimo-camisa-v1.webp", // 🟢⚪ ComVerissimo FC (cesar.verissimo27, 15/10)
   "Cuiudos FC": "cuiudos-camisa-v1.webp", // 🤠🔵 Cuiudos FC (matheussoaresg2018, 17/10)
+  "Wen Milan B": "wenmilan-camisa-v1.webp", // 😈🔴⚫ Wen Milan B (vittor@tidex, 17/10)
   "Chelsão da Massa FC": "chelsao-camisa-v1.webp", // 🦁🔵 Chelsão da Massa FC (ccaonta, 16/10)
   "Labubu FC": "labubu-camisa-v1.webp", // 🐰⚪ Labubu FC (caelborba, 14/10)
   "Rossini Money": "rossini-camisa-v1.webp", // 💴🔴⚫ Rossini Money (luizeduardorossini0013, 12/10)

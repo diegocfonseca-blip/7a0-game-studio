@@ -1,4 +1,7 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { useCampo2DLigado, trocaCampo2D } from './campo2d-modo'
+import { useCampo2DLiberado } from './sport'
+import { DUR_2D_MS } from './campo2d-motor'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
 import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
@@ -12,7 +15,7 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
+import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
@@ -36,10 +39,10 @@ import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
 import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
-import {usePlanoConta,getPlanoConta} from './presidente-conta'
+import {usePlanoConta,getPosseConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
 import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
-import {podeVestirModular} from './presidente-vestuario-acesso'
+import {podeVestirComPosse} from './presidente-avulsas'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {identidadeDaConta} from './presidencia-identidade-conta'
@@ -2167,6 +2170,10 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   const amigosOn = useAmigos() // 👥 18/10: Amigos na HOME, do lado da Loja (Diego: "tem que estar na home") — só a conta dele por enquanto
   const [verAmigos, setVerAmigos] = useState(false)
   const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
+  // 🏀 20/10 (Diego: "trocando a aba lá em cima do futebol pelo basquete"): o botão 🏀 pra ir pro BidLegends. SÓ a conta
+  // liberada no basquete (BASQUETE_TESTERS) vê — pra todo o resto `bbOn` é falso e a home fica byte-idêntica (sem botão, sem classe).
+  const bbOn = useSportUnlocked()
+  const [, setSportHome] = useSport()
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
     <><div className="ll-home">
@@ -2179,6 +2186,9 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         <div className="ll-lang"><LangToggle /></div>
         <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
       </header>
+      {/* 🏀 no cabeçalho do futebol não cabe mais um botão (o nome é mais largo que "BIDLEGENDS"): vira uma etiqueta
+          logo abaixo da marca, no canto livre da arte */}
+      {bbOn && <button className="ll-troca-esporte" onClick={() => setSportHome('basquete')}>{t('🏀 IR PRO BIDLEGENDS', '🏀 GO TO BIDLEGENDS')}</button>}
       {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
       <section className="ll-intro">
         <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
@@ -2817,7 +2827,7 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
-      if(modularSetup&&!podeVestirModular(presidentDraft.outfit,getPlanoConta())){
+      if(modularSetup&&!podeVestirComPosse(presidentDraft.outfit,getPosseConta())){
         setNameErr(tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
         setPrivateStep(2);return
       }
@@ -6171,7 +6181,26 @@ export function QuickManualLock() {
     </div>
   )
 }
-export function SimControls({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+// 📺 o botão do CAMPO 2D mora junto do Manual em TODO controle de partida (Diego 20/10: *"botão manual e campo 2D"* e
+// *"serve para tudo"*). Fora da sala online a escolha é do aparelho e vale pra toda competição; na sala online quem decide
+// é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
+export function Botao2D() {
+  const liberado = useCampo2DLiberado()
+  const ligado = useCampo2DLigado()
+  const { state } = useEsc()
+  const t = useT()
+  if (!liberado || state.onlineMode === 'online' || state.sport === 'basquete') return null
+  return (
+    <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+      {ligado ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
+    </button>
+  )
+}
+
+export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+  return <><Botao2D /><SimControlsBase {...props} /></>
+}
+function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
@@ -6588,7 +6617,9 @@ export function EscSeason() {
   // 🏀 basquete tem 82 rodadas (não 38): acelera cada rodada pra a temporada
   // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
-  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
+  // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
+  const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
+  const baseRoundMs = c2d ? DUR_2D_MS : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / speedFactor)
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -6806,7 +6837,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = kingsS ? roundMs * speedFactor : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
+  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? DUR_2D_MS : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
@@ -7229,6 +7260,9 @@ export function EscSeason() {
                 ritmo → conteúdo. Os mesmos comandos continuam conduzindo a sala. */}
             {cinemaPreview && copaRhythmControls}
             {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+            {/* 📢 19/10 (Diego: "o telão… deve ser em todas as competições… qualquer tipo de Copa"): na Copa dos 8 / Liberta / Kings
+                ele sobe pra cá, em cima dos jogos, igual à liga (antes ficava lá embaixo, depois do chaveamento) */}
+            {(!privateVisual || visualTab === 'jogos') && <GiroDaRodada cinema={cinemaPreview} />}
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
@@ -7488,6 +7522,7 @@ export function EscSeason() {
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         // 📢 17/10: o letreiro virou só ANÚNCIO (não mostra mais manchete) — então aparece sempre, até antes do 1º jogo
+        if (copaLive) return null // 📢 19/10: na copa o telão já aparece em cima dos jogos (não repetir aqui embaixo)
         return <GiroDaRodada news={shownNews} isCopa={copaLive} cinema={cinemaPreview} />
       })()}
 
@@ -8411,7 +8446,8 @@ export function EscLiberta() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
+  const c2d = useCampo2DLigado()
+  const roundMs = Math.round((c2d ? DUR_2D_MS : online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
   // 🙈 ANTI-SPOILER (regra do Diego): a classificação do grupo só atualiza DEPOIS
   // que o jogo terminou de animar na tela — igual a tabela da liga faz.
   const [revealed, setRevealed] = useState(false)
@@ -8503,6 +8539,9 @@ export function EscLiberta() {
           {LB('32 clubes · 8 grupos de 4 · passam os 2 primeiros', '32 clubs · 8 groups of 4 · top 2 go through')}
         </p>
       </Box>}
+
+      {/* 📢 19/10 (Diego: "deve ser em todas as competições"): o MESMO telão da liga, em cima da fase de grupos */}
+      <GiroDaRodada cinema={cinemaOnline} />
 
       {/* 📺 O SEU jogo da rodada, com o placar subindo — igual a liga */}
       {meuJogo ? (() => {
@@ -8669,7 +8708,8 @@ export function EscChampions() {
   // virada pro repescão (portão) e a VOLTA anima com a fase já em 'mata' — por isso a
   // régua é o JOGO que está na tela, não o nome da fase.
   const jogoDeCopa = !!ch && ((ch.fase === 'repescao' && !ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
-  const roundMs = Math.round((jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
+  const c2d = useCampo2DLigado() // 📺 2D = 1:30 por jogo
+  const roundMs = Math.round((c2d ? DUR_2D_MS : jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
   const passo = (ch?.fase === 'repescao' ? 100 : 0) + (ch?.rodada ?? 0) * 2 + (ch?.repescaoLeg ?? 0)
   const startedAt = useRoundPresentationStart(passo)
 
@@ -10803,6 +10843,18 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     }
     dispatch({ type: 'REPLAY_SEASON' })
   }
+  // 📋 LIGA DRAFT (19/10): no fim da temporada não tem "mesmo time × novo leilão" — tem a NOITE DO DRAFT. Mesma régua do
+  // começar: sozinho não abre (volta pra espera) e quem saiu de vez é tirado antes (fantasma não segura a fila do draft).
+  const abrirDraft = async () => {
+    const { data } = await supabase.from('room_players').select('player_index, user_id').eq('room_id', state.roomId)
+    if (data && new Set((data as { user_id: string }[]).map(p => p.user_id)).size < 2) { await vaiPraEsperaSozinho(); return }
+    if (data) {
+      const ativos = new Set((data as { player_index: number }[]).map(p => p.player_index))
+      for (const m of state.managers.filter(m => m.isHuman && m.id !== youId)) if (!ativos.has(m.id)) kickPlayer(m.id)
+      await new Promise(r => setTimeout(r, 120))
+    }
+    dispatch({ type: 'DRAFT_ABRIR' })
+  }
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
   // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
   // convidados seguem via SYNC_STATE. Fallback seguro: qualquer erro → fluxo
@@ -10818,7 +10870,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       // montava os assentos numa ordem diferente do jogo 1 e o "quem sou eu" (youIdx)
       // deslizava pra um BOT (o bug do "virei o Biriba United"). Assim a ordem dos
       // assentos é IDÊNTICA à do jogo anterior e ninguém desliza.
-      const sorted = ((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[])
+      const sorted = desfazParCruzado((pls ?? []) as { user_id: string; manager_name: string; player_index: number; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_name?: string | null }[]) // 🤝 19/10: par cruzado vira UMA dupla
       // 🤝 DUPLA (08/08, relato do Diego: "virei rival do meu parceiro no novo
       // leilão"): esse rebuild ignorava dupla_partner_of e transformava a linha do
       // PARCEIRO num time próprio — EXATAMENTE o mesmo cano que a sala de espera já
@@ -10961,7 +11013,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                   {/* status: saiu · voto de cada um (▶️/🔨) · ainda não votou. Host não vota (decide). */}
                   {(() => {
                     if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>{V('🚪 saiu', '🚪 left')}</span>
-                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: onlineNow ? '#166534' : '#92600A' }}>{onlineNow ? V('🟢 na sala', '🟢 in the room') : V('🟡 reconectando', '🟡 reconnecting')}</span>
+                    if (m.id === hostId || state.ligaDraft) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: onlineNow ? '#166534' : '#92600A' }}>{onlineNow ? V('🟢 na sala', '🟢 in the room') : V('🟡 reconectando', '🟡 reconnecting')}</span>
                     const v = votes[m.id]
                     return v
                       ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? V('✅ ▶️ mesmo time', '✅ ▶️ same team') : V('✅ 🔨 novo leilão', '✅ 🔨 new auction')}</span>
@@ -10982,9 +11034,9 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         </div>
       ) : isHost ? (
         <>
-          <p className="text-center text-xs font-bold text-white/85">{enV ? <>Keep the <b>same team</b> or open a <b>new auction</b>? You (host) decide 👇</> : <>Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</>}</p>
+          <p className="text-center text-xs font-bold text-white/85">{state.ligaDraft ? V('📋 A temporada acabou. Você (dono) abre a noite do draft 👇', '📋 The season is over. You (owner) open draft night 👇') : enV ? <>Keep the <b>same team</b> or open a <b>new auction</b>? You (host) decide 👇</> : <>Seguir com o <b>mesmo time</b> ou abrir um <b>novo leilão</b>? Você (host) decide 👇</>}</p>
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
-          {guests.length > 0 && (
+          {guests.length > 0 && !state.ligaDraft && (
             <div className="online-vote-repeat space-y-1.5">
               {guests.map(m => { const v = votes[m.id]; const here = members.has(m.id); const onlineNow = connected.has(m.id); return (
                 <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
@@ -10997,7 +11049,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
               <p className="text-center text-[11px] font-black text-white/75" style={OSWALD}>{nVoted}/{guests.length} {V('prontos', 'ready')} · ▶️ {nMesmo} · 🔨 {nLeilao}</p>
             </div>
           )}
-          {pend.length > 0 && (
+          {pend.length > 0 && !state.ligaDraft && (
             <p className="text-center text-[11.5px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{enV ? `⏳ Waiting for ${pend.map(m => m.teamName).join(', ')} to vote…` : `⏳ Aguardando ${pend.map(m => m.teamName).join(', ')} votar${pend.length > 1 ? 'em' : ''}…`}</p>
           )}
           {partnerPending && (
@@ -11007,10 +11059,15 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             <p className="text-center text-[12px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{V('🚫 Você ficou sozinho na sala. Pra jogar de novo no online precisa de pelo menos 2 pessoas.', '🚫 You are alone in the room. Playing again online needs at least 2 people.')}</p>
             <Btn onClick={() => void vaiPraEsperaSozinho()} bg={GOLD} className="w-full text-lg"><span>{V('📣 Ir pra sala de espera chamar gente', '📣 Go to the waiting room and invite people')}</span></Btn>
           </> : <>
+          {state.ligaDraft ? <>
+            <Btn onClick={() => void abrirDraft()} bg={GREEN} className="w-full text-lg"><span className="text-white">{V('📋 Abrir a noite do draft', '📋 Open draft night')}</span></Btn>
+            <p className="text-center text-[10.5px] font-bold text-white/80">{V('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Depois começa a próxima temporada.', 'Each manager picks 1 player from the whole game. The champion picks first and every pick is announced to the whole room. Then the next season starts.')}</p>
+          </> : <>
           <Btn onClick={() => podeComecarDireto ? startMesmo() : setAskStart('mesmo')} bg={podeComecarDireto ? GREEN : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? 'text-white' : 'text-black/50'}>{podeComecarDireto ? '▶️' : '🔒'} {V('Começar (mesmo time)', 'Start (same team)')}</span></Btn>
           <Btn onClick={() => podeComecarDireto ? startLeilao() : setAskStart('leilao')} bg={podeComecarDireto ? GOLD : '#cfc6ae'} className="w-full text-lg"><span className={podeComecarDireto ? '' : 'text-black/50'}>{podeComecarDireto ? '🔨' : '🔒'} {V('Abrir novo leilão', 'Open a new auction')}</span></Btn>
           </>}
-          {!podeComecarDireto && !sozinho && (
+          </>}
+          {!podeComecarDireto && !sozinho && !state.ligaDraft && (
             <p className="text-center text-[10px] font-bold text-white/70">{V('O começo destrava quando todo mundo votar — ou toque num botão pra decidir o que fazer.', 'The start unlocks once everyone has voted — or tap a button to decide what to do.')}</p>
           )}
           {/* 📣 CHAMAR MAIS GENTE (13/09 — liga do Bruno): a turma terminou a temporada e
@@ -11030,6 +11087,12 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         </>
       ) : (
         <>
+          {state.ligaDraft ? (
+            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
+              <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{V('📋 Agora vem a NOITE DO DRAFT', '📋 Next up: DRAFT NIGHT')}</p>
+              <p className="text-[11px] font-bold text-black/65">{V('O dono abre quando a galera estiver aqui. Cada um pega 1 jogador de todo o jogo, na ordem da tabela.', 'The owner opens it when the crew is here. Everyone picks 1 player from the whole game, in table order.')}</p>
+            </div>
+          ) : <>
           <p className="text-center text-xs font-bold text-white/85">{V('Vote no que você quer — o host começa quando decidir.', 'Vote for what you want — the host starts when they decide.')}</p>
           <div className="flex gap-2">
             {voteBtn('mesmo', V('▶️ Mesmo time', '▶️ Same team'), GREEN, '#fff')}
@@ -11044,6 +11107,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             <p className="text-center text-sm font-black" style={{ color: '#FFDD70', ...OSWALD, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{V('👆 Toque no seu voto pra ficar PRONTO!', '👆 Tap your vote to be READY!')}</p>
           )}
           {/* explica a espera quando um campeão (às vezes o próprio host) tá pegando a carta */}
+          </>}
           {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>{V('🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!', '🏆 A champion is grabbing their card — the host starts right after. Hang tight!')}</p>}
         </>
       )}
@@ -11913,7 +11977,7 @@ export function EscEnd() {
           a ser uma liga comum, e nada mais muda. */}
       {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
-          <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+          <CopaDaLigaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
@@ -11929,7 +11993,7 @@ export function EscEnd() {
       {/* 🏟️ COPA REGIONAL (10/10): igual à Copa do Mundo — tela por cima da sala parada, fora do motor */}
       {online && state.roomId && regionalNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
-          <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+          <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }} // 🏟️ o campeão vai pro jornal e pro histórico, igual à Copa do Mundo

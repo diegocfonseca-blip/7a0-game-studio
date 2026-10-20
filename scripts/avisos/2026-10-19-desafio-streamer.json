@@ -1,0 +1,48 @@
+{
+  "data": "🎯 Desafio da comunidade · 19 de outubro de 2026",
+  "titulo": "Traga um streamer e ganhe um BATISMO",
+  "destaque": {
+    "passos": [
+      {
+        "emoji": "📣",
+        "titulo": "Traga",
+        "sub": "um streamer ou criador de conteúdo"
+      },
+      {
+        "emoji": "🎥",
+        "titulo": "Ele mostra",
+        "sub": "uma live ou um post do Leilão Legends"
+      },
+      {
+        "emoji": "🖋️",
+        "titulo": "Você ganha",
+        "sub": "um clube batizado"
+      }
+    ]
+  },
+  "itens": [
+    {
+      "tag": "batismo",
+      "texto": "Conseguiu trazer um **streamer** pro jogo e ele fez uma **live** ou um **post** do Leilão Legends? Você ganha um **time de batismo**: o **seu clube no jogo**, com **escudo**, **mascote** e **manto** próprios."
+    },
+    {
+      "tag": "meta5",
+      "texto": "🎯 **5 mil seguidores** no Instagram **@leilaolegendscom**: chega o **1º lançamento** surpresa do jogo."
+    },
+    {
+      "tag": "meta7",
+      "texto": "🚀 **7 mil seguidores**: vem o **2º lançamento**."
+    },
+    {
+      "tag": "meta10",
+      "texto": "👑 **10 mil seguidores**: o **GRANDE LANÇAMENTO** do Leilão Legends."
+    },
+    {
+      "tag": "regra",
+      "texto": "Fez a ponte com um streamer? **Chama o Diego** com o link da live ou do post, e a gente monta o seu batismo."
+    }
+  ],
+  "rodape": "Cada streamer que entra deixa a gente mais perto! 🔴",
+  "rodapeSub": "Siga e compartilhe: @leilaolegendscom",
+  "saida": "scripts/posts/aviso-2026-10-19-desafio-streamer.png"
+}

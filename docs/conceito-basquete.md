@@ -152,3 +152,19 @@ assim, e o porquê de cada escolha:
 3. Street League (reusa o motor de 20 do rápido/carreira).
 4. Conferências + playoffs + finals (G League e NBA usam o mesmo bloco).
 5. Economia/carreira completa + online.
+
+## 💵 Preços nos EUA (19/10, Diego: *"isso aí, mais ou menos isso!"*)
+Ideia dele: o basquete é pra vender **fora, pros americanos**, cobrando em **dólar** e mais caro (*"americano ganha mais"*). A
+mesma escada do futebol, com preço de jogo de lá — os números são a BASE combinada ("mais ou menos"), dá pra ajustar no fim:
+
+| Plano | US$ | ≈ líquido pra ele (após ~3% + US$ 0,30 do cartão) |
+|---|---|---|
+| ⭐ Craque | 9,99 | ~R$ 52 |
+| 👑 Lenda | 19,99 | ~R$ 106 |
+| 🖋 Batismo (time com seu nome) | 49,99 | ~R$ 268 |
+| 🖋 Fundador | 79,99 | ~R$ 430 |
+
+- Por que não 4,99: a taxa fixa do cartão come ~10% num plano de US$ 4,99; e 9,99/19,99 ainda é preço normal de jogo pro americano.
+- ⚠️ **Falta a COBRANÇA EM CARTÃO**: Pix/Mercado Pago só servem na América Latina. Precisa de **Stripe ou PayPal** (o Diego
+  ainda vai criar a conta). Nada disso está feito — é pendência pra quando o basquete for pro ar.
+- Os textos dos planos nascem em EN (regra do bilíngue); preço em US$ só pra quem está no bidlegendsarena.com.

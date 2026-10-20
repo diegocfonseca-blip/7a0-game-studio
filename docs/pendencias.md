@@ -1,3 +1,14 @@
+## 🏀 BidLegends NO AR (20/10) — só na conta do Diego (BASQUETE_TESTERS)
+Diego: *"já pode [pôr] o basquete pra eu ver como tá, trocando a aba lá em cima do futebol pelo basquete"*. O branch
+`claude/bidlegends-fase-1-7vtrzu` recebeu a main (90 commits: Carreira Online v2, Liga Draft…) e foi pra main. Conflitos
+resolvidos juntando os dois lados (saf2On com `!s.co2` E sem basquete; START_ONLINE com `fracoInicial` + Liga Draft + o
+basquete; autosave da pirâmide pulando basquete E co2). **Liga Draft escondida no basquete** (usa baralho de futebol).
+Na home do futebol, a conta liberada vê a etiqueta **"🏀 IR PRO BIDLEGENDS"** embaixo da marca (no cabeçalho não cabia:
+quebrava a marca e MINHA CONTA no celular); a home do basquete volta pelo ⚽. Pra todo o resto a home é a de sempre.
+Testes: todos os que passam na main passam aqui; os 9 que já falham na main (mascote-botao, tracos, elenco27, mascote,
+giro, ritmo, copamundo, holandes, relogio) seguem iguais — não são do basquete.
+Consertado no caminho: começar carreira de basquete zerava cestinhas e não assistências (`npm run artilharia`).
+
 ## 🏀 BidLegends: carreira solo = economia do futebol — REAPLICADA SOBRE A MAIN (19/10)
 
 **Contexto (importante pra outras sessões):** a branch `claude/bidlegends-fase-1-7vtrzu`
@@ -151,6 +162,139 @@ Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a con
   harness headless não navega — mas as duas abas reusam componentes do futebol já aprovados).
 - **Marcas de patrocínio com cara de NBA** (conteúdo do Diego).
 - Varredura final "tudo igual ao futebol": conferir modo a modo/aba a aba o que ainda falta.
+## 🌐 CARREIRA ONLINE COMPLETA, ATÉ 20 AMIGOS (19/10) — ⏳ LEVANTAMENTO FEITO, esperando OK do Diego pra etapa 1
+- Pedido: *"tudo que existe no modo carreira offline… tem que funcionar no modo carreira online… até 20 amigos"*.
+- HOJE: a Carreira Online existe, mas só a conta do Diego cria (`CAREER_ONLINE_TESTERS`); 0 salas de carreira no banco. Sala já aceita 20
+  (`MAX_PLAYERS`). Funciona: pirâmide (todos começam na D), leilão da virada, contratos/renovação, Copa do Brasil/Legends/Supercopa,
+  dinheiro por clube, Master/fornecedor/estádio básico, Cria da Base, votação no fim da temporada, Copa do Mundo (cada um no seu aparelho).
+- DESLIGADO no online (portão `onlineMode !== 'online'` ou `agenciaOn`, que o START_ONLINE nunca liga): Central, roteiro, Agência,
+  gás/lesão/rodízio, técnicos/preparadores/olheiros, 15 formações, SAF nova, 2º clube, obras novas, Presidência, internacional, coletiva,
+  coleções, ranking global, Banco Legends/Pix, bots com banco.
+- ⚠️ DOIS BLOQUEIOS antes de ligar qualquer coisa: (1) o dono manda o ESTADO INTEIRO comprimido a cada mudança (até 2,5×/s) pra todos;
+  carreira de 20 clubes ≈ 1,5–2 MB cru / 250–450 KB comprimido → passa do limite do canal (mensagem some e a sala trava, como a de 27
+  da Champions) e estoura a cota; (2) várias ações da carreira solo mexem em `managers[youIdx]` (o time de quem está no aparelho): no
+  online o reducer roda no DONO, então a compra do convidado cairia no time do dono (BUY_PREPARADOR, RENOVAR_TECNICO, ALICIAR_*…).
+- 🔁 **19/10, regra do Diego: é um modo INDEPENDENTE** — nada da carreira online pode mexer nas salas rápidas, Minhas Ligas ou outro
+  modo online. Então a base nova é um caminho PRÓPRIO (canal e tabela só dela; cada aparelho roda o PRÓPRIO clube como na solo e o servidor
+  guarda o que é de todos: calendário, resultados, leilão), e o envio das salas de hoje fica intocado.
+- ✅ **DECISÕES DO DIEGO (19/10, "ok pode começar"):**
+  · o DONO da sala manda no tempo: começa a rodada, automático/manual, velocidade, pausa. Antes de cada rodada cada um tem um tempo pra
+    mexer no time e aperta PRONTO; a partida roda igual pra todos, ao mesmo tempo. Cada um mexe SÓ no próprio clube.
+  · SALVA SOZINHO, NA HORA, NA NUVEM DO JOGO (não no celular nem na nuvem do dono): cada clube tem a "gaveta" dele no servidor, ligada à
+    CONTA de quem joga; mexeu no time → só aquela gaveta atualiza (pedaço pequeno, não o save inteiro de 1 MB). Sem botão de salvar, só
+    "Sair". Entra em qualquer aparelho (celular, PC) com a mesma conta e está tudo lá. A solo NÃO muda (continua com o botão).
+  · No dia seguinte: SÓ O DONO abre (regra da coroa). Todo mundo entra numa SALA DE ESPERA da carreira (igual Minhas Ligas), vê quem
+    chegou, e o dono aperta "▶️ Continuar carreira". Quem faltou continua com o clube guardado e joga com a última escalação.
+- ✅ **PROVA FEITA (19/10)**: o motor da solo é determinístico — 20 clubes, dois aparelhos só com os pedaços chegaram na MESMA temporada.
+  Gaveta de 1 clube 4,4 KB · o que é de todos 0,3 KB · escalação da rodada 0,1 KB. Desenho completo: `docs/carreira-online-v2.md`.
+- ✅ **19/10: mockups APROVADOS** (`carreira-online-espera.png` e `carreira-online-pronto.png`) + **VICE** igual ao das Minhas Ligas: o dono escolhe 1 vice;
+  o vice só continua/manda no tempo quando o dono NÃO está; quando o dono chega, volta a ser dele; vice não apaga nem muda regra.
+- 🔨 **19/10, etapa 1 em andamento**: banco feito e testado — tabelas `esc_carr_sala`/`esc_carr_clube`/`esc_carr_privado` + funções (criar,
+  entrar, vice, presença, continuar, pronto, começar, apito, ritmo, encerrar dia). Teste das regras (dono/vice/convidado): `scripts/carreira-online/testa-regras.sql`.
+  Falta: as telas (sala de espera e barra do PRONTO, mockups aprovados) + o motor rodando a rodada igual em todo aparelho.
+- 🔒 **19/10, decisão do Diego**: *"carreira online só pra minha conta ainda… tem que ser igual a carreira que temos hoje em tudo, menos ter
+  segundo clube"*. Então: **SEM 2º clube/SAF-2º clube** no online; TODO o resto da solo tem que existir. Antes de liberar pra qualquer
+  um: lista completa do que a solo tem (`docs/carreira-online-checklist.md`) e cada item conferido + teste de 20 robôs.
+- 🔨 **20/10: 1ª temporada de ponta a ponta (só contas do Diego)** — entrada no menu online "🌐 Carreira Online (nova)", sala de
+  espera, leilão de estreia com todos (o dono calcula, os outros assistem e lançam), cada um passa a tocar o próprio clube, barra
+  do PRONTO e rodadas no relógio do dono. Falta: a VIRADA de temporada (próxima), copas no relógio do dono, intervalo/pênalti.
+  Situação item a item em `docs/carreira-online-checklist.md`.
+- 🏢 **19/10: SAF no online = a REGRA ANTIGA, da SAF sozinha** (*"a saf na regra antiga qd tinha saf sozinha"*): filial na D, 50% dos
+  prêmios, empréstimo, comissão e venda pelo `SELL_FILIAL` — nada da saf2 (venda pela divisão, assumir, 2º clube).
+- PLANO proposto: 1) fundação — separar o que é de cada clube do que é de todos, mandar só o que mudou, teste com 20 robôs (só na conta
+  do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
+  4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
+
+
+## 🤝🌍 Copa da sala com DUPLAS convocando o país errado (20/10, sala ZESM9K do Futpoint) — ✅ CONSERTADO E NO AR
+- Causa: a Copa do Mundo/regional da sala achava o time de cada pessoa pelo `player_index` do banco, que estava desencontrado
+  do time de verdade (Bonança: time 3 no jogo, número 5 no banco). Agora o assento sai do ESTADO da partida (`seatUids` +
+  `duplas`, `quemAgePeloEstado` em dupla-copa.ts) e a renumeração da largada também desfaz par cruzado. Trava: `npm run dupla-copa-estado`.
+## 🤖 Tema da Tidex na sala (19/10) — ✅ NO AR (mockup `scripts/mockups/tema-tidex-cel.png`, "tá aprovado")
+- O dono do Wen Milan B (vittor@tidex) é dono da Tidex, patrocinadora do jogo. A conta dele tem 2 temas: 😈 Wen Milan B (o do
+  Fundador) e 🤖 Tidex (azul-marinho + turquesa, grade de IA, logo embaixo, faixa "sua marca dentro das IAs"). Vale em sala rápida e
+  Minhas Ligas. Código: `TEMAS_SALA.tidex` + `TEMAS_DA_CONTA` (temas-sala.tsx).
+
+## 🤝 Dupla cruzada virava DOIS times (19/10, sala WUQGBH do Futpoint) — ✅ CONSERTADO
+- Relato (Matheus Barros, via Diego): campeão em dupla, não conseguiu escolher clube/convocar no Rio × São Paulo; o time aparecia
+  duas vezes ("Quase nada|Quebrador d" 1º e "Quebrador d|Quase nada" 13º). Causa: os dois pediram dupla um ao outro e os dois
+  aceitaram → cada um virou parceiro do outro → dois assentos espelhados; quando o parceiro saiu, o `soloUid` do assento do Matheus
+  ficou com o OUTRO e ele perdeu o comando. Conserto (OK do Diego): banco barra o par cruzado (`dupla_responder`) e a largada junta
+  qualquer par cruzado numa dupla só (`desfazParCruzado`, dono = cadeira mais baixa). Trava `npm run dupla-cruzada`.
+
+## 😈🔴⚫ BATISMO WEN MILAN B (17/10, plano 🖋 Fundador) — ⛔ PRONTO NO BRANCH, **NÃO PUBLICADO**: falta a CONTA
+- ✅ **19/10: NO AR.** A conta foi criada às 14:49 (Brasília); código publicado na main + banco feito: `user_colors` ouro manual, `esc_socios` nº76,
+  `esc_fundadores` nº92, `esc_compras_batismo` plano Fundador (plus), `esc_nomes_batismo` (Wen Milan B + FC + EC). Tema do Fundador junto.
+- Dono: **vittor@tidex.com.br** (coração São Paulo). ⛔ Em 17/10 esse e-mail NÃO existe em `auth.users` → regra de 07/09: nada no
+  banco e nada na main até a conta existir (o `apoio.tsx`/`manto.ts` também seguem o e-mail). Assim que a conta aparecer:
+  publicar o commit + banco: `esc_socios` (sócio nº76, manto #DF1224/#180F0E, mascote_key `wenmilan_diaba`, escudo_time
+  'Wen Milan B', time_coracao 'São Paulo', origem 'batismo', valido_ate 2099-12-31) · `esc_fundadores` n=92 · `esc_nomes_batismo`
+  'Wen Milan B' (nome_norm minúsculo) · `user_colors` ouro manual.
+- Assento: Série A no lugar do **Al Takhadao FC**, que desce pra **Série C** na vaga do bot Leve-cuscuz (ordem do Diego).
+- Arte recortada da prancha (escudo 247×360/29 KB · mascote 250×440/37 KB · camisa na Loja). Mascote "A Diabinha" (confirmado pelo Diego).
+  Nome do clube: Diego escreveu "Wen Milan N", a arte diz "WEN MILAN B" → **Wen Milan B** (confirmado pelo Diego).
+- ✅ Gala APROVADA pelo Diego (17/10, "aprovado esse"). Gala "Inferno Rubro-Negro" (`gala-wenmilan.tsx`): fogo, tridente cravando, o ROSTO da Diabinha colado na tela LAMBENDO o vidro 2× com rastro molhado (SLURP!) — a língua solta foi reprovada (*"quero ela lambendo a tela"*),
+  escudo das chamas, a Diabinha rebolando. Canto: "Vai lá de coração" (São Paulo), 11 s, `sfx/torcida-spfc-wen-v1.mp3`, na gala e
+  na carreira. Vídeo `scripts/posts/gala-wenmilan-com-canto.mp4`, post `scripts/posts/wenmilan-post.png`.
+
+## 📢 Telão (Anúncio do dia/Super Chat/pódio) em TODAS as competições do online (19/10) — ✅ NO AR
+- Pedido: *"aquele telão… deve ser em todas as competições… Copa do Mundo, Copa dos Oito, qualquer tipo de Copa, regional"*.
+- Liga e Champions já tinham. Agora também: Copa dos 8/Kings/Liberta do mata-mata (subiu pra cima dos jogos; o de baixo some na
+  copa), fase de grupos da Libertadores, Copa do Mundo da sala (`CupScreen` com `online`) e copas regionais. Componente: `GiroDaRodada`.
+
+## 🚫 Faixa de LED verde (Vadico) tirada (19/10) — ✅ NO AR
+*"esse lugar de verde da Vadico Veículos pode tirar que não tô gostando"* → `LED_LIGADO = false` (patrocinio.ts). Some do topo de
+todas as competições (online e carreira). A Vadico continua no telão, na placa do campinho e na Champions. Voltar = `true`.
+
+## 🤖 Parceiro Tidex (19/10) — ✅ NO AR
+Copa dos 8 "apresentada por Tidex" (`POR_COMPETICAO.copa8`) · Liga Legends da CARREIRA também (`'career-league'`, só a liga — copas e internacionais da carreira ficam sem; `CareerCompetitionStage` passa `patroKind`) · placa atrás do gol no lugar da Max Joias (`patro-tidex.webp`, fundo
+escuro) · telão: a linha 3 de `esc_anuncios_fixos` (era a Max Joias) virou "🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui"
+→ WhatsApp +55 11 98118-1888 com a mensagem pronta. Aviso da comunidade: `scripts/avisos/2026-10-19-parceiro-tidex.json`.
+A Max Joias saiu do campinho e do telão (o logo dela continua em `maxjoias.ts`, usado no estádio).
+**+ 6ª marca do Patrocinador Master na carreira**, 🔁 *"igual a Vadico… cada temporada uma pode ser melhor com base nos bônus"*: prazo 5,
+mesmo valor da Vadico; quem desempata é a meta sorteada de cada uma. Travas `npm run master` e `master-historia` atualizadas pra 6.
+
+## ☁️ Salvar carreira sem plano → janela com os planos (19/10) — ✅ NO AR
+Amigo do Diego achou que o salvar estava com bug: conta grátis (carreira nova salva só no aparelho desde 07/10) e o aviso era uma
+faixinha que sumia. Agora `JanelaNuvemPlanos` (nuvem-planos.tsx) abre ao apertar 💾 Salvar (FaixaSalvar, central.tsx) ou 🚪 Sair e
+salvar (pyramidseason) sem plano: só ⭐ Craque · 👑 Lenda (Pix na hora) + "Conheça todos os planos" (`?apoie=nuvem`). Ordem dele:
+NÃO falar "salvo no celular". Fechar a janela do "Sair e salvar" sai pro menu, como antes. Mockup `scripts/mockups/salvar-gratis.png`.
+Pendente: passe mensal (mockup `passes-mensais.png`) entra como 3ª opção aqui quando sair.
+
+## 📊 Perfil: ranking global da carreira (19/10) — ✅ NO AR (regra final do Diego)
+- *"o save dele atual que tá com melhor ranking em temporada"*: cada save tem a posição dele no ranking global NA temporada em que
+  está (`esc_pyramid_career_rank`); o perfil mostra o save com a MELHOR posição. Na tela: só o número grande e a temporada embaixo
+  (nada de clube, save ou total). `esc_perfil_rank`, até as 8 carreiras mais recentes.
+- ✅ Online "Todos os tempos" (desde 02/09): 3ª caixa ao lado de semana e mês (Diego: "Ok"). Chave `sempre` em `esc_perfil_publico2`.
+
+## 📌 Anúncios fixos do telão editáveis no #admin (19/10) — ✅ NO AR
+- Pedido: *"como eu faço p tirar e escrever novas?? Deveria aparecer no painel as três p eu remover editar ou add nova"*.
+- Vadico, K9 e Max Joias saíram do código e foram pro banco (`esc_anuncios_fixos`). No #admin, caixa "📌 Anúncios fixos · telão":
+  editar texto/link, ⬆️ subir na fila, tirar, e ➕ novo. Até 90 letras; link só https://. Quem está com o jogo aberto vê em até 30 min.
+- Se o banco não responder, o jogo mostra os 3 antigos do código (reserva). As PLACAS do campinho (logo Vadico/Max Joias) continuam no código.
+- 💬 Mesmo dia: Super Chat MANUAL no #admin (caixa rosa "Recados dos jogadores"): o Diego escreve como um time, 1 h ou dia todo (`esc_admin_recado`).
+
+## 📧 E-mail da campanha com as novidades de outubro (19/10) — ✅ NO AR (Diego: "Pode"), vale a partir do próximo disparo
+- Pedido: *"atualizamos MT coisas já… vc deveria mudar o visual do e-mail"*. O texto no ar ainda fala de Várzea/técnicos/Copa do Brasil.
+- Novo: 6 blocos só com o que está liberado pra todos (pregão aberto · Liberta/Champions/Mundial na carreira · Central Legends ·
+  SAF 2º clube + rivais com banco · Champions de 36 + leilão de clubes · Amigos + medalha da semana), assunto novo.
+- Gerador: `node scripts/email/campanha-volta.mjs --foto <pasta>` (faz a foto e o `campanha-volta.sql`). Com o OK: rodar o SQL no banco
+  (troca só `esc_email_html`/`esc_email_assunto`; fila, disparo e medidor iguais). Voltar: `scripts/email/campanha-volta-antes.sql`.
+- 👀 O placar mostra Abriu 0 / Clicou 0 em todos os dias: o rastreio de abertura e clique do Resend parece desligado (o "voltou" funciona).
+
+## 🧑‍💼🛍️ Peças avulsas do presidente no Pix (19/10) — ✅ NO AR pra todos
+- Pedido: *"ok pode fazer tudo nisso já pelo pix do mercado pago"*. Preço pelo nível: Craque 1,99 · Lenda 2,99 · Batismo 3,99 · Fundador 4,99.
+- Grátis: 1ª compra = roupa, que dá o boneco careca (pele à vontade); depois cabelo/barba/acessório a 1,99. Com plano: compra as de cima.
+- Editor: toda peça fora do que a conta tem mostra 🛒 preço e dá pra PROVAR; a caixa "🛒 Ainda não é seu" lista o que falta, com
+  COMPRAR (Pix numa janela) e ✕ pra tirar a peça do rosto. Salvar só com tudo comprado (`visualCabeNaPosse`, mesma régua no salvar da conta).
+- Banco: catálogo (61 peças) + `esc_presidente_pecas` + `esc_preco_peca` (só o servidor ou o dono perguntam) + `esc_mp_preco_ref`/`esc_mp_entregar`.
+  Edge `mp-criar-pix` v10 (nome da peça, ref até 40 letras). Fotos: `node scripts/foto-pecas-presidente.mjs`.
+- ⏳ Falta: carreira de quem é grátis com boneco comprado usa o presidente da conta? (a régua da carreira já aceita a roupa comprada).
+- 🔙 Reverter: tirar a caixa de compra = voltar o commit; o banco pode ficar (sem a tela, ninguém gera Pix de peça).
+
+## 🏀💵 Basquete: preços em dólar (19/10) — ⏳ BASE COMBINADA, cobrança NÃO feita
+Craque US$ 9,99 · Lenda 19,99 · Batismo 49,99 · Fundador 79,99 (*"isso aí, mais ou menos isso!"*). Detalhe em
+`docs/conceito-basquete.md` (§ Preços nos EUA). Falta: conta Stripe ou PayPal do Diego + ligar a cobrança em cartão no jogo.
 
 ## 🚫🤖 "Sem bots" só com 4+ pessoas (19/10) — ✅ NO AR
 `LIGA_FECHADA_MIN = 4` (store). START_ONLINE: `ligaFechada` = escolha do dono E 4+ times; a escolha fica em `ligaFechadaEscolha` e o
@@ -177,7 +321,7 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
 ## 🎨 Tema do Fundador (18/10)
 - PUBLICADO: 1 tema por Fundador, uma versão, com as cores do manto + escudo + mascote — Tricolor do Arruda, Fabulous,
   Gaviões SCCP, Cuiudos, Seven City (`temas-sala.tsx`, mockup `scripts/mockups/temas-fundadores.png`). Rei do K9 maior também.
-- Wen Milan B: tema pronto num commit à parte no branch, sobe junto com o batismo (conta do dono ainda não existe).
+- ✅ Wen Milan B: tema subiu junto com o batismo em 19/10 (a conta do dono existe).
 - Bug "lance bugando no online" (18/10): sem causa achada, esperando o Diego dizer sala/tipo.
 
 ## 🎨 TEMA DA SALA NA LOJA (18/10) — ✅ NO AR
@@ -291,7 +435,31 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   **tema do Fundador Wen Milan B** (commit `7ac20672`, `temas-sala.tsx`): quando a conta do dono (vittor@tidex.com.br) existir,
   `git cherry-pick 7ac20672` (ou refazer pelo padrão `temaFundador`) junto com o batismo. Não se perdeu nada da main.
 
-## 🎙️ COLETIVA DE IMPRENSA NA CARREIRA (19/10) — ✅ APROVADA (*"adorei… quero sim efeito"*), CODADA, SÓ NA CONTA DO DIEGO
+## 🗳️ PRESIDENTE VIRA POLÍTICO (19/10) — 💛 ELE GOSTOU (*"gostei"*), mockup ainda não feito
+- Pedido de origem: *"história da vida do presidente pessoal e coisas no jogo pra vida dele pessoal"* + *"me surpreenda"*.
+- Escada: Vereador (verba pro estádio) → Deputado (lei de incentivo = patrocínio extra) → Presidente da Federação (sede da final da
+  Copa / horário do clássico) → Presidente da CBF (Supercopa no seu estádio, entrega o troféu) → Presidente da FIFA (Copa do Mundo no
+  seu estádio, o "zerei"). Eleição pelo que fez (títulos, caixa, fama da coletiva: Polemista = povão, Diplomata = cartolas), santinho com
+  o boneco, debate contra o presidente do arquirrival, apuração ao vivo. Risco: CPI (promessa quebrada, caixa vermelho, polêmica) com 1
+  toque (nega/acordo/culpa o técnico); perde o mandato, nunca a carreira. Poder = regra explícita (nada de efeito escondido).
+
+## 🧠 IDEIAS PRA CARREIRA (19/10, depois da coletiva) — ❌ NENHUMA APROVADA (*"não gostei de nada… tá foda"*)
+- Ele quer **"algo mais real, igual vida real de futebol, na qual o usuário é presidente do time"**. Recusou TODAS, em 4 rodadas:
+  propostas de bot pelos seus jogadores · estadual no começo da temporada · bastidores com escolha rápida · entrevista do jogador ·
+  técnico com voz · linha do tempo do clube · recordes do clube · torcida viva · excursão de pré-temporada · conselho com meta ·
+  Copa das Carreiras (seu clube × carreira de outros usuários) · Mesa do Presidente (negociação, empresário, eleição do clube).
+- 5ª rodada (mesmo dia, ele pediu *"analise tudo que tem de histórias… base, boate, entrevista… o que dá pra implementar e acrescentar"*):
+  levantamento completo feito (causos noitada 10 · expulsão 8 · lesão 9 · desgaste 5, 1 por temporada; Cria 9 PT-only; Central 17 tipos
+  com 1 frase cada; manchete do causo FIXA; crise 1 texto; jornal 100 manchetes presas à posição). Propus contos novos no banner do causo
+  (filho nascendo · polêmica na rede · briga no treino · acima do peso · carrão batido · pai reclama no rádio · veterano se aposenta · lei
+  do ex · peneira) + subir pra 2–3 causos/temporada e variar manchete/Central/Cria. Resposta: *"não gostei"*. O inventário fica valendo
+  como mapa (o que é fino e repete), mas a proposta foi recusada.
+- 6ª rodada (ancorada no jogo, depois da regra "tem que ter sentido"): presidentes rivais (bots com perfil) com voz no leilão/Central ·
+  história real da carta (bio das 1.388 cartas) ao arrematar/brilhar. Resposta: *"não"*. **PAREI de propor.** Próximo passo é dele.
+- ⚠️ MESMA LIÇÃO de 04/10 (cartas do álbum): rodada de ideias seguidas trava ele. **Não despejar lista de novo.** Esperar ele trazer a
+  ideia, ou fazer UMA pergunta sobre o que ele imagina (um exemplo de jogo/momento que ele gostaria de viver como presidente).
+
+ — ✅ APROVADA (*"adorei… quero sim efeito"*), CODADA, SÓ NA CONTA DO DIEGO
 - Decisões dele na aprovação: **com efeito** no jogo (pequeno e explicado) · **pular** não pune, mas 3 pulos seguidos acordam o
   Rogério e a fama vira "O Mudo" · junto vão o **item 2** (coletiva antes da final) e o **4** (frases da temporada no jornal do fim).
   Ficaram pra depois: 🎤 entrevista do jogador (é um CARTÃO na Central com 1 toque, não vídeo — ele perguntou *"tenho que
@@ -383,8 +551,14 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
      gente", sala de espera com 1 pessoa não avisa nada.
 - Proposta (esperando OK): liga GUARDA a cadeira de todo mundo ao sair; "Voltar" que falha avisa e tenta o caminho de reabrir;
   os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
-- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"* — a fazer): dono escolhe 1 vice; vice abre o pregão só na sala de
-  espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
+- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"*, reconfirmado 19/10 *"aprova o da minhas ligas tb"*).
+  ✅ **FEITO 19/10, em teste SÓ nas contas do Diego** (`LIGA_VICE_GERAL = false` em `sport.ts`; true = todos). Banco
+  (`20261019260000_liga_vice.sql`): `game_rooms.liga_dono` (o dono pra sempre; `host_id` = quem comanda a partida) e `liga_vice`;
+  `esc_liga_vice` (só o dono marca/tira) · `esc_liga_vice_abrir` (só o vice, só na espera, dono sem sinal há 2 min) ·
+  `esc_liga_dono_aqui` (o dono na espera avisa a cada 60s e RETOMA o comando — só na espera, nunca no meio do pregão; ao
+  "Guardar e sair" avisa que saiu e o vice não espera os 2 min). `liga_patch`/`esc_liga_modo` = só o DONO. O vice não exclui
+  a liga (RLS) e não tira o dono da sala (`players_delete`). Testado no banco: as 14 regras deram certo.
+  ⏳ Falta: o Diego testar com as 2 contas dele (diego e diego2) e dar OK pra liberar pra todos.
 - ✅ **Trocar o modo da liga: NO AR 17/10** (*"perfeito, pode fazer, pode publicar"*). Caixa "🎮 Modo da próxima temporada" na
   sala de espera da liga (lobby.tsx); só o dono troca, pela função do banco `esc_liga_modo` (recusa não-dono e partida rolando;
   Clubes força baralho Todos; Só Champions não aceita pregão aberto). Amigos recebem UM aviso no canal (`liga_modo`). O save do
@@ -9471,3 +9645,93 @@ qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque com 5s apenas pra 
 montado lá sem condição, então não nasce botão mudo) e ganhou `MASC_JAB_COOLDOWN_S = 5` com contagem no botão,
 igual ao lobby. O pregão do envelope cego continua com a mascote na barra "😈 CUTUCA". Só pra clube batizado.
 ✅ 29/09 — 🔁 Rafael Vaz: Flamengo 2016 → VASCO 2015 (auge, bi carioca) · Erazo: Flamengo 2014 → GRÊMIO 2016 (Copa do Brasil). Mesma força, baralho BR; troca no mesmo baralho não vira novidade.
+
+## 📋 DRAFT nas Minhas Ligas (19/10) — ideia do Diego, MOCKUP enviado, aguardando OK
+Lembrança dele do PES 19 com os amigos: *"tinha só um Neymar pra todo mundo… o primeiro escolhia primeiro"*.
+- Cada jogador é ÚNICO na liga.
+- Temporada 1 = leilão de sempre, mas só com jogador FRACO (*"todo mundo começou com time ruim"*).
+- A cada temporada: noite do draft, **1 jogador por técnico**, de **TODOS os jogadores do jogo** (lenda inclusa).
+- Ordem = tabela, **campeão escolhe primeiro**.
+- Cada escolha é revelada na hora pra sala inteira (carta coberta → vira), suspense.
+- Mockup: `scripts/mockup-draft.mjs` → `scripts/mockups/draft.png` (tempo de 60s (pedido dele), "quem sai pra ele entrar" são propostas minhas).
+- Anúncio com suspense (pedido dele: *"o suspense tem q ser grande"*): pistas a cada 2s — posição → cor da categoria → país+década com as cores do clube → vira a carta. `scripts/mockup-draft-anuncio.mjs` → `scripts/mockups/draft-anuncio.png`.
+- A carta que vira é a CARTA REAL do jogo (`CollectibleCard`: lenda com avatar, craque prata com a inicial) — pedido dele: *"o resultado tem q ser a carta real do jogador"*. No mockup, cartas de verdade do baralho (Romário Vasco 2000, Thiago Silva Fluminense 2008, Alex Muralha Flamengo 2017).
+- 🔁 Virou MODO PRÓPRIO "📋 Liga Draft" (ao lado de Rápido/Minhas ligas/Carreira/Bafo), que fica de pé igual Minhas Ligas. Criar: nome + senha + jeito do lance (Envelope/Tocaia/Pregão aberto). Fixo: só jogador (sem Clubes), baralho Todos, 1ª temporada só profissional e bom, campo normal. Mockup `scripts/mockup-draft-criar.mjs` → `scripts/mockups/draft-criar.png`.
+- ✅ **PUBLICADO 19/10 SÓ NA CONTA DO DIEGO** (*"pode publicar só pro meu usuário… ninguém pode ver"*). Trava `LIGA_DRAFT_GERAL = false` +
+  `LIGA_DRAFT_TESTERS` (sport.ts). Quem ele chamar com código + senha entra e joga; a sala NÃO aparece na lista de salas abertas
+  (coluna `ls_draft`, migration `20261019200000_ls_draft.sql`). Código: `liga-draft.ts` (regras), `liga-draft-tela.tsx` (tela),
+  DRAFT_ABRIR/ESCOLHER/TICK no store, botão "📋 Abrir a noite do draft" no fim da temporada. Trava: `npm run liga-draft`.
+  Bancada de print: `scripts/teste-draft/` (`DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npx vite`, abrir `/scripts/teste-draft/?cena=revela&t=5000`).
+  Decisões MINHAS (confirmar com ele no 1º teste): **bots não escolhem no draft** (só gente) · quem sai do time fica livre na liga ·
+  sem Copa (só a liga) · solo (sem duplas) · se entrar gente nova (ou alguém sair) a liga recomeça no leilão fraco (troféus ficam).
+  Pra liberar geral: `LIGA_DRAFT_GERAL = true` + linha em `novidades.ts`.
+
+## 📺 JOGO AO VIVO NO CAMPINHO (20/10) — mockup enviado, aguardando OK
+Diego: *"tá chato… começa a simulação, fica parado… preciso de uma ideia imersiva… mas tem outros usuários reais, tem que ser
+tudo ao mesmo tempo"*. Ele recusou várias listas de ideias (lenda relâmpago, eventos, missões, botões soltos…) e topou ver ESTA:
+cada rodada vira ~90 s de jogo pra assistir (campo de cima, 22 com rosto das cartas, bola, narração), reação ao vivo
+(🔥 pra cima · ⚖️ · 🧱 fecha), preleção de 5 s no intervalo e a "rádio" com os jogos dos amigos. O gol mostrado é o que o motor
+já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base possível: a partida no estádio da Presidência
+(`presidencia-partida*.tsx`). Mockup: `scripts/mockup-jogo-ao-vivo.mjs` → `scripts/mockups/jogo-ao-vivo.png`.
+- ✅ **20/10 — ELE ADOROU O VÍDEO** (*"achei sensacional… gostei muito do motor, a bola batendo na trave"*). Decisões dele:
+  · Vira uma opção na hora de CRIAR A SALA: **⚡ Padrão rápido** (o de sempre, o de hoje) **ou 📺 2D** (o novo). Nome: "2D".
+  · **Velocidade do 2D no automático = a do vídeo.** Só no MODO MANUAL o dono muda a velocidade.
+  · **Estilo do jogador** (*"Ronaldinho, Neymar driblam; Xavi passa; Gattuso rouba bola"*): o lance que aparece puxa pelo estilo
+    da carta. ⚠️ Regra dele de não inventar pessoa real: estilo marcado À MÃO só pra quem é conhecido por aquilo; o resto fica no
+    estilo neutro da posição.
+  · **MUITA variedade de lance**: chute por cima, escanteio batido, gol de cabeça, falta, trave, defesa, desarme, contra-ataque…
+  · Gol: mascote grande (quem tem) ou "GOOOL" + escudo (quem não tem) + faixinha "⚽ AUTOR min · 🅰️ assist" — sem rosto.
+  · Bolinha na COR DA CAMISA do time (nunca da categoria); lenda = rostinho com anel na cor do time; camisa parecida → visitante
+    com a 2ª cor.
+  · Sem intervalo.
+  ✅ **Tempo: 1:30 por jogo** (*"pode ser 1:30"*), mesma velocidade de bola do vídeo, menos lances por partida (liga ≈ 1h).
+  ✅ **Estilo só das LENDAS** (*"não precisa fazer 2.500, só das lendas… são menos de 200"*): 196 cartas / 184 nomes de lenda
+  ganham estilo à mão; o resto joga no estilo neutro da posição.
+- ✅ **20/10 — PARTE 1 FEITA, SÓ NA CONTA DO DIEGO** (*"não coda pra todo mundo não, mas já começa a fazer"*): o 📺 Campo 2D na
+  CARREIRA SOLO. Botão "📺 Ver o jogo no Campo 2D" no 🎮 Controle da partida (junto do Manual); ligado, o jogo dura 1:30 no auto
+  (`DUR_2D_MS`) e no Manual a marcha de sempre acelera. Motor: `campo2d-motor.ts` (monta as jogadas em volta dos gols e das
+  chances que o jogo já calculou; 8 moldes: enfiada, cruzamento, chute de fora, drible, tabela, contra-ataque, escanteio, falta;
+  enfeite com PRAZO pra o gol sair no minuto) · estilos das 184 lendas em `campo2d-estilos.ts` · tela `campo2d.tsx` (mascote
+  grande no gol e o carimbo do placar some — `semCarimbo`). Trava `npm run campo2d` (300 jogos: placar do campinho = do jogo;
+  mediana de atraso 0,5'). Bancada: `scripts/teste-campo2d/`. Gate `CAMPO2D_GERAL`/`CAMPO2D_TESTERS` (sport.ts).
+  ⏳ Falta: (2) salas online — escolha "⚡ Padrão rápido · 📺 2D" ao criar; (3) Copa/Liberta na carreira; (4) trava de PLANO
+  (⭐ Craque+) quando liberar; (5) mais variedade de lances (pênalti NÃO — tem tela própria); (6) a narração da faixa do placar
+  ainda pode falar de outro lance que o campinho.
+- ✅ **20/10 — CARA DE ESTÁDIO** (pedido: placas atrás dos gols, telão embaixo, técnico na beira): as MESMAS placas do campinho
+  do jogo (`PlacaGol`, Vadico/Tidex trocando) em cima e embaixo do campo · arquibancada nas laterais com a torcida nas cores
+  dos dois times (pula no gol) · os dois TÉCNICOS na beira do campo (nome do `careerTecnicos` + balão "🔥 Pra cima!" /
+  "🧱 Fecha a casinha!" no começo, "🙌 É GOL!" / "🤦 Não acredito…" no gol) · selo da TV no canto (sigla · placar · minuto).
+  O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
+  jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
+- ✅ **20/10 — CAMPO 2D COM CARA DE ESTÁDIO, DEITADO NO DESKTOP** (mockup `scripts/mockups/campo2d-desktop.png` aprovado:
+  *"Sim"*; e *"no móvel não vai diminuir o espaço do campo?"* → não: em pé a torcida tem a largura de sempre e as placas ficam
+  só atrás dos gols). `campo2d.tsx`: caixa ≥ 700 px → campo DEITADO (mandante ataca pra esquerda; `tr()`/`rect()` trocam os eixos,
+  nada de conta solta) com 3 fileiras de torcida em cima/embaixo, placas Vadico/Tidex nas laterais desenhadas no canvas (trocam a
+  cada 7 s) e bandeirão de cada torcida atrás do próprio gol; nos dois formatos: listras cortadas, meia-lua e marca do pênalti,
+  rede com varetas, sombra da arquibancada, jogadores com CAMISA + número (número pela posição: 1 · 2/6 · 3/4/5 · 8/10 · 9/11),
+  pezinhos que alternam quando correm, seta + tracejado em quem tem a bola, rastro da bola em passe/chute, juiz de preto que segue
+  o lance. Carreira no desktop (≥ 1100 px): `.ll-cx-2d` faz o placar ocupar as duas colunas (`career-desktop.css`). Bancada
+  `scripts/teste-campo2d/` agora abre larga.
+- ✅ **20/10 — REGRAS DO FUTEBOL NO CAMPO 2D** (Diego: *"bola sai pela lateral e não é cobrado lateral… escanteio e o time não
+  subiu… sai na linha de fundo e não começa pelo goleiro no tiro de meta… quando sai gol tem que iniciar no meio"*). No motor
+  (`campo2d-motor.ts`): ⚽ gol → todo mundo volta pro próprio campo, bola no centro, o rival FORA do círculo, e quem tomou dá a saída
+  (a saída nunca é cortada) · 🧤 chute pra fora → a bola passa a linha e PARA lá → tiro de meta na pequena área com o goleiro
+  batendo · 🧤 defesa → o goleiro segura e repõe · 📏 lateral (bola afastada pela linha lateral → quem não tocou por último cobra
+  com as mãos) · ⛳ escanteio: o ataque SOBE (atacantes, 2 zagueiros, 1 meia; a defesa toda marca) e o cobrador só bate com 4+
+  na área · 🟥 falta: o zagueiro derruba, barreira a 9 m, o batedor vai até a bola · a bola NUNCA aparece no pé de alguém longe
+  (rola até ele) e ninguém se posiciona fora das linhas. Quando o lance do jogo está em cima, o campinho vai no CURTO (o gol tem
+  que sair no minuto). Trava `npm run campo2d` agora confere as regras (lateral, tiro de meta, escanteio cheio, saída no meio,
+  bola fora ≤ 4s) além do placar.
+- ✅ **20/10 — 2D SEM TRAVADA + sem "1:30" no texto** (Diego: *"o jogo dando umas travadas com a bola rolando"* e *"esse negócio
+  de 1:30 tem que tirar"*): o desenho não reinicia mais a cada minuto do placar (props num `useRef`), o relógio do campinho
+  anda liso e só corrige aos poucos pro minuto do placar (antes esperava o minuto e pulava), o fundo parado (grama, linhas,
+  torcida) é desenhado 1 vez, e a bola/jogadores são desenhados MISTURANDO o passo anterior com o atual (`entre`/`ax`/`ay` no
+  motor — motor em 50 passos/s, tela em 60). Tempo por velocidade no 2D: ¼× 6:00 · ½× 3:00 · normal 1:30 · 2× 0:45 · 4× 0:22.
+- ✅ **20/10 — 2D EM TODO JOGO** (*"serve para tudo, pô"*), PUBLICADO só na conta do Diego (OK dele: "Sim"; foto da sala 2D
+  enviada): o campinho mora DENTRO do `LiveScoreCard` (placar de toda competição) e, com o 2D escolhido, TOMA O LUGAR do
+  placar (correção do Diego: *"qd tiver escolhido o 2D o placar padrão rápido não aparece"*); o telão de propaganda segue
+  embaixo. Carreira: placar de sempre, quem tem o 2D liberado troca no botão. Quem decide: `useCampo2DLigado` (`campo2d-modo.ts`) — fora da sala
+  online é o aparelho (botão `Botao2D` junto do Manual em todo `SimControls`), na sala online é `state.campo2d` (dono escolhe
+  "⚡ Padrão rápido · 📺 2D" ao criar). Tempo 1:30 em liga, Copa, Liberta, Champions, internacional, Copa do Mundo offline e
+  regional sem relógio. ⏳ Falta (pedir OK — é RELÓGIO): Copa do Mundo e regional ONLINE seguem nos 16s do banco
+  (`esc_copa_preview_clock`/`esc_regional_clock`, `duration_ms = 16000/speed`). Bancada: `scripts/teste-placar-2d/`.

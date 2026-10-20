@@ -55,6 +55,18 @@ export function duplaToggleCat(
   return n
 }
 
+// 🤝 PAR CRUZADO (19/10, sala WUQGBH): A parceiro de B E B parceiro de A (os dois pediram um ao outro e os dois aceitaram)
+// fazia a partida nascer com DOIS times espelhados. Aqui vira UMA dupla só: quem tem a cadeira mais baixa (`player_index`)
+// fica de DONO e o outro segue de parceiro. Determinístico: todo aparelho chega no MESMO resultado. Sem par cruzado,
+// devolve a lista como veio.
+export function desfazParCruzado<T extends { user_id: string; player_index: number; dupla_partner_of?: string | null }>(rows: readonly T[]): T[] {
+  return rows.map(p => {
+    const alvo = p.dupla_partner_of ? rows.find(d => d.user_id === p.dupla_partner_of) : undefined
+    if (alvo && alvo.dupla_partner_of === p.user_id && (p.player_index < alvo.player_index || (p.player_index === alvo.player_index && p.user_id < alvo.user_id))) return { ...p, dupla_partner_of: null }
+    return p
+  })
+}
+
 // ⚖️ A REGRA ÚNICA da dupla — usada pela TELA (pra mostrar 🔒) e pelo HOST (pra
 // recusar de verdade). Ter UMA função só é de propósito: se tela e host usassem
 // regras separadas, elas poderiam discordar — e é exatamente aí que nascem os
@@ -626,6 +638,7 @@ export type Screen =
   | 'season'
   | 'liberta' // 🌎 fase de grupos da Libertadores (o mata-mata dela roda na 'season')
   | 'champions' // ⭐ a TABELA ÚNICA de 36 da Champions (o repescão e o mata-mata rodam na 'season')
+  | 'draft' // 📋 a noite do draft da Liga Draft (entre uma temporada e outra)
   | 'end'
   | 'album'
   | 'ranking'
@@ -783,6 +796,9 @@ export interface EscState {
   careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
   careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
   careerColetiva?: Record<number, import('./coletiva').ColetivaSave> // 🎙️ COLETIVA DE IMPRENSA (19/10): por clube (mgrId). Histórico das respostas, promessas, fama, arquirrival e os efeitos pendentes (moral no próximo jogo / clássico). Só carreira solo. Ausente = nunca deu coletiva.
+  // 🌐 CARREIRA ONLINE v2 (19/10, só conta do Diego): este aparelho roda a carreira SOLO do próprio clube e os outros clubes de gente chegam pelas gavetas (`carreira-online-v2.ts`). Ausente = carreira solo de sempre (nada muda).
+  // `comanda` = este aparelho conduz as fases de TODOS (leilão etc.: o dono, ou o vice no dia dele); `espelho` = este aparelho só ASSISTE o leilão do dono (o que ele aperta vai pro dono).
+  co2?: { sala: string; assento: number; gavetas: import('./carreira-online-v2').GavetaPublica[]; comanda?: boolean; espelho?: boolean; minha?: import('./carreira-online-v2').GavetaPublica; congeladoAte?: number }
   careerPenalty?: Record<number, Record<number, { scored: boolean; taker: string }>> // ⚽ PÊNALTI DECISIVO POR RODADA (mgrId → índice do jogo 0-based → resultado). SÓ CARREIRA OFFLINE. Aparece 0-2x/temporada em jogo decisivo de última hora (um gol empata ou vira). `taker` = id do cobrador escolhido; `scored` = converteu. Motor SÓ soma 1 gol ao time do humano naquele jogo se scored (min 90), sem rng — resultado já decidido pelo jogador. Vazio = simulação BYTE-IDÊNTICA (não afeta ninguém). Zera entre temporadas.
   marketValues?: Record<string, number> // carreira online: LIVRO DE PREÇOS global (nome do jogador → último preço). Toda venda/lance vencedor e ida ao monte atualiza; todo baralho novo consulta pra carimbar o piso. Assim o valor de cada jogador é memória do jogo inteiro (ex.: Kaká vendido 30 → monte 15 → volta valendo 15).
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.
@@ -864,6 +880,11 @@ export interface EscState {
   // passa a coroa ao sair, e o "📣 Chamar mais gente" só existe nela (ordem do Diego:
   // "é apenas Minhas Ligas e não modo rápido online").
   ligaMode?: boolean
+  // 📋 LIGA DRAFT (19/10, só a conta do Diego): liga do "Minhas Ligas" que começa com time fraco e, entre as temporadas,
+  // abre a noite do draft (1 jogador por técnico, de todo o jogo, campeão primeiro). Regras em `liga-draft.ts`.
+  ligaDraft?: boolean
+  draft?: import('./liga-draft').DraftEstado | null
+  draftFeito?: number // a temporada cujo draft já aconteceu (não abre duas vezes)
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
   // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
   bafoOn?: boolean
@@ -911,6 +932,7 @@ export interface EscState {
   deckLeague: 'br' | 'eu' | 'both' | 'todos' // baralho escolhido ('todos' = BR+Europa+Mundo — carreira, teste do Diego): 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos (both = só na carreira online)
   regionalSala?: string // 🏟️ sala de COPA REGIONAL (10/10): o baralho do leilão ganha as cartas regionais DAQUELA copa (`cartas-regionais.ts`) — e só aqui
   varzea?: boolean // 🥅 rápido online + baralho BR, categoria "Sem craques": leilão só com bom jogador + foi profissional
+  campo2d?: boolean // 📺 sala online escolhida "📺 2D" pelo dono (20/10): todo jogo da sala aparece no Campo 2D e dura 1:30
   contratosOn?: boolean // 📝 CONTRATOS de jogador ligados NESTA carreira. Só carreira NOVA nasce com true (decisão do Diego) — save antigo fica sem contratos pra sempre (nada muda no meio da carreira de ninguém)
   // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): o técnico convoca até 22 cartas do
   // ÁLBUM dele pra "ativa" — só elas rendem (mensalidade por categoria + bônus

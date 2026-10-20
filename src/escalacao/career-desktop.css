@@ -95,3 +95,13 @@
   .ll29-career > .ll-cx.ll-cx-fim > .ll-cx-conta { margin-top: 0; }
   .ll29-career > .ll-cx.ll-cx-fim > .ll-cx-sair { margin-top: 16px !important; }
 }
+
+/* 📺 CAMPO 2D no desktop da carreira (20/10): com o 2D ligado o campo é DEITADO e precisa da largura toda — a coluna da
+   esquerda (cabeçalho + placar) passa a ocupar as DUAS colunas na 1ª linha, e o controle/abas ficam lado a lado embaixo. */
+@media (min-width: 1100px) {
+  .ll29-career > .max-w-xl.mx-auto.ll-cx.ll-cx-2d { grid-template-rows: auto auto auto auto 1fr; }
+  .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-lado { grid-column: 1 / span 2; grid-row: 1; }
+  .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-conta { grid-row: 2; }
+  .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-sair { grid-row: 3; }
+  .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-aba { grid-row: 2 / span 4; }
+}

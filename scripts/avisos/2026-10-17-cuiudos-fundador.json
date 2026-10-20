@@ -1,0 +1,20 @@
+{
+  "data": "🖋 Novo Fundador · 17 de outubro de 2026",
+  "titulo": "Nasceu o Cuiudos FC 🤠",
+  "destaque": {
+    "escudo": "src/escalacao/img/cuiudos-escudo.webp",
+    "mascote": "src/escalacao/img/cuiudos-mascote.webp",
+    "camisa": "scripts/kits/cuiudos-camisa.webp",
+    "nome": "Cuiudos FC",
+    "linha": "Série A · azul e amarelo"
+  },
+  "itens": [
+    { "tag": "batismo", "texto": "O **🤠 Cuiudos FC** chega na **Série A** da carreira já como **🖋 Fundador nº 91**, com escudo, manto e mascote próprios." },
+    { "tag": "mascote", "texto": "**O Cuiudo**, o boiadeiro de chapéu e óculos escuros, carimba a tela em todo gol do clube, atravessa a tela no título e aparece no pênalti decisivo." },
+    { "tag": "novidade", "texto": "**✨ Entrada de gala \"Rodeio dos Cuiudos\"**: a porteira abre, a caminhonete entra levantando poeira, o chapéu voa e o laço pega o escudo. Só o Cuiudos tem essa." },
+    { "tag": "novidade", "texto": "**📣 Canto da torcida do Corinthians**: toca nos jogos da carreira dele e junto com a entrada de gala nas salas online." }
+  ],
+  "rodape": "Quando o Cuiudos entrar na sala, você vai saber 🤠💙💛",
+  "rodapeSub": "Batismo e Fundador: tá na 🛒 Loja do Clube, ou chama o Diego aqui na comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-17-cuiudos.png"
+}

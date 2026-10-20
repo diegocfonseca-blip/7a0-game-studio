@@ -17,6 +17,8 @@
 //   · o relógio sincronizado é `esc_regional_clock` (docs/sql/regional-clock.sql). Se o
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
+import { useCampo2DLigado } from './campo2d-modo'
+import { DUR_2D_MS } from './campo2d-motor'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
@@ -25,13 +27,13 @@ import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, Artilheir
 import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { ChatWidget } from './screens'
+import { ChatWidget, GiroDaRodada } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
 import { CONVOCACAO_MS } from './store'
 import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
-import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento } from './dupla-copa'
+import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
 import {
   COPAS_REGIONAIS, clubesDaCopa, poolDoClube, completaXIClube, xiPorChavesClube, xiDaMaquinaClube, forcaDoXI,
   piorClubeLivre, melhorClubeLivre, simulaRegional, tabelaDoLado, passosRegional, passoRegionalRodaBola, artilhariaRegional,
@@ -224,7 +226,10 @@ export function EscolheClube({ copa, pegos, seg, aoConfirmar }: { copa: CopaRegi
 }
 
 // ─── 🚪 O PORTÃO: o que a sala vê quando a liga acaba ─────────────────────────
-export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao, matchSeed, aoStatus, seasonNo = 1, aoRemover }: {
+export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao, matchSeed, aoStatus, seasonNo = 1, aoRemover, assentos, duplas }: {
+  /** 🪑 quem senta em cada assento e as duplas — do ESTADO da partida (20/10): manda mais que o número do banco */
+  assentos?: string[]
+  duplas?: Record<number, DuplaDoEstado>
   copa: CopaRegionalId
   roomId: string
   souDono: boolean
@@ -268,8 +273,10 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
-  const uidDe = useMemo(() => quemAgePorAssento(linhas), [linhas])
-  const dupla = useMemo(() => minhaDuplaNaCopa(linhas, meuUid), [linhas, meuUid])
+  // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)
+  const porEstado = useMemo(() => quemAgePeloEstado(assentos, duplas), [assentos, duplas])
+  const uidDe = useMemo(() => porEstado ?? quemAgePorAssento(linhas), [porEstado, linhas])
+  const dupla = useMemo(() => porEstado ? minhaDuplaPeloEstado(assentos, duplas, meuUid) : minhaDuplaNaCopa(linhas, meuUid), [porEstado, assentos, duplas, linhas, meuUid])
   const euUid = dupla?.age ?? meuUid       // o "eu" da copa: na dupla, é quem convoca por ela
   const soAssisto = !!dupla && dupla.age !== meuUid
   const nomeDe = useMemo(() => new Map(linhas.map(l => [l.user_id, semEmoji(l.manager_name)])), [linhas])
@@ -295,7 +302,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     if (!l?.fase) return
     const f = l.fase
     const pk = new Map<string, Pick>(); for (const x of l.linhas) if (temClube(x.copa)) pk.set(x.user_id, x.copa)
-    const uid = quemAgePorAssento(l.linhas)
+    const uid = (porEstado ?? quemAgePorAssento(l.linhas))
     const filaAgora = classificados.filter(c => c.humano).map(c => ({ id: c.id, uid: uid.get(c.id) })).filter((x): x is { id: number; uid: string } => !!x.uid)
     const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
     const grava = (o: Record<string, unknown>) => supabase.from('esc_copa_salas').update(o).eq('room_id', roomId).eq('edicao', f.edicao)
@@ -327,7 +334,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       const ficha = montaFichaRegional(copa, classificacao, uid, pk, f.seed, f.edicao)
       await grava({ fase: 'torneio', vez_uid: null, ate: null, times: ficha.times })
     }
-  }, [souDono, ler, classificados, classificacao, roomId, copa])
+  }, [souDono, ler, classificados, classificacao, roomId, copa, porEstado])
   useEffect(() => { if (!souDono) return; const iv = setInterval(() => { void passo() }, 2000); return () => clearInterval(iv) }, [souDono, passo])
 
   async function comecar() {
@@ -402,7 +409,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
               <h3>{tr('🥇 QUEM TERMINOU NA FRENTE ESCOLHE PRIMEIRO', '🥇 WHOEVER FINISHED HIGHER PICKS FIRST')}</h3>
               {fila.map(f => {
                 const p = picks.get(f.uid), eu = f.uid === euUid
-                const du = duplaDoAssento(linhas, f.id)
+                const du = (porEstado ? duplaDoAssentoPeloEstado(assentos, duplas, f.id) : duplaDoAssento(linhas, f.id))
                 const daVez = fase?.fase === 'bandeira' && !p && fila.find(x => !picks.get(x.uid))?.uid === f.uid
                 return (
                   <div key={f.uid} className={`ll27-fila-linha${daVez ? ' vez' : ''}${eu ? ' eu' : ''}`}>
@@ -545,7 +552,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const [inicioLocal, setInicioLocal] = useState(Date.now())
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
-  const ROUND_MS = 16000 // ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
+  const c2d = useCampo2DLigado()
+  const ROUND_MS = c2d ? DUR_2D_MS : 16000 // 📺 2D = 1:30 · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS
@@ -688,6 +696,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   return (
     <>
       <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
+      {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
+      <GiroDaRodada cinema />
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]

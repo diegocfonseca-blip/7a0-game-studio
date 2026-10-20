@@ -4,7 +4,7 @@ import {PresidentePainel} from './presidente-painel'
 import {salvarPresidenteNaCarreira,type CarreiraPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
 import {conquistasDaCarreira,type ConquistasCarreira} from './presidencia-conquistas'
 import {useState} from 'react'
-import {getPlanoConta,presidenteContaLiberado,salvarPresidenteConta,usePresidenteConta} from './presidente-conta'
+import {getPosseConta,presidenteContaLiberado,salvarPresidenteConta,usePresidenteConta} from './presidente-conta'
 import {carteiraDaCarreira} from './presidencia-carreira'
 import {GaragemCarreira} from './garagem-carreira'
 import type {PresidenciaOrcamento} from './presidencia-economia'
@@ -46,7 +46,7 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
  const posse=state.careerPresidentBase?.sinceSeason
  const saved:PresidenteBaseSave|undefined=contaOk&&conta.value?{...conta.value,...(posse!==undefined?{sinceSeason:posse}:{})}:state.careerPresidentBase
  const save=async(value:PresidenteBaseSave)=>{
-  if(!salvarPresidenteNaCarreira(state,mgrId,value,getPlanoConta()).ok)return false
+  if(!salvarPresidenteNaCarreira(state,mgrId,value,getPosseConta()).ok)return false
   if(contaOk&&!(await salvarPresidenteConta(value)))return false
   return onSave(value)
  }

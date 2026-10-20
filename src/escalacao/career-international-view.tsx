@@ -35,6 +35,8 @@ import { mascoteKeyDoTime, FestaoMascote } from './mascotes'
 import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
+import { useCampo2DLigado } from './campo2d-modo'
+import { DUR_2D_MS } from './campo2d-motor'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
@@ -469,6 +471,7 @@ function frasesDoApito(fase: 'liga' | 'ida' | 'volta' | 'final', comp: Comp, voc
 }
 
 export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga' }: { match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
+  const c2d = useCampo2DLigado() // 📺 no Campo 2D o jogo dura 1:30
   const {state}=useEsc(),presidentAvailable=usePresidentPreview()
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
   const home = teams.get(match.home)!, away = teams.get(match.away)!
@@ -484,7 +487,7 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
     mascotHome={home.you ? campaign.userTeam : undefined} mascotAway={away.you ? campaign.userTeam : undefined}
     apitoFrases={frasesDoApito(fase, comp, home.you ? home.institution : away.institution)}
-    youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round(COPA_LEG_MS / 0.82 / speed)} footTint={tintComp(comp)}
+    youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
     onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); onFim() } }} />
 }
 
@@ -497,6 +500,7 @@ export function CareerInternationalView(p: Props) {
   const manualAllowed = !state.careerEra || hasManual
   const manual = manualPref && manualAllowed
   const speed = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  const c2d = useCampo2DLigado()
   const toggleManual = () => { const goingManual = !manual; toggleSim(); if (!goingManual && speed !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 }) }
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
   const champsOk = championsLiberada(p.history)
@@ -568,7 +572,7 @@ export function CareerInternationalView(p: Props) {
   const ultimoJogo = jogo >= pernas - 1
   const pronto = fimJogo && ultimoJogo // a NOITE inteira acabou (tabela e a outra final só depois disso)
   // ⏱️ o relógio da perna: o MESMO do placar grande, pra todo jogo da noite andar junto
-  const legMs = Math.round(COPA_LEG_MS / 0.82 / speed)
+  const legMs = Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed) // 📺 no Campo 2D, 1:30
   const startedAt = useRoundPresentationStart(reveal * 10 + jogo)
   const avancar = () => {
     if (!current) return

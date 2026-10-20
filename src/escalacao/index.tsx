@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
+import { useEffect, useRef, useState, Component, lazy, Suspense, type ReactNode } from 'react'
 import { AvisoDestaqueTirado } from './aviso-live'
 import { AvisoSemEspaco } from './aviso-espaco' // 📱 aparelho cheio: pede pra salvar antes de fechar (13/10)
 import { PresenteRecebido } from './presente'
@@ -23,7 +23,9 @@ import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
 import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
-import { recarregaUmaVez } from './recarga' // 🔄 pedaço que sumiu: recarrega 1x
+import { recarregaUmaVez, pedaco } from './recarga' // 🔄 pedaço que sumiu: recarrega 1x
+// 📋 Liga Draft (19/10): a noite do draft só carrega pra quem chega nela (só a conta do Diego cria a liga por enquanto)
+const LigaDraftLazy = lazy(pedaco(() => import('./liga-draft-tela').then(m => ({ default: m.EscLigaDraft }))))
 import { AvisosAmigos, EVENTO_ENTRAR_SALA } from './amigos'
 
 // 👥 19/10: avisos dos amigos (convite pra sala, quem entrou online) em qualquer tela — menos no meio de partida/leilão —
@@ -61,6 +63,7 @@ function Router() {
     case 'season':    return state.careerOnline ? (state.sport === 'basquete' ? <EscSeason /> : <PyramidSeasonScreen />) : <EscSeason />
     case 'liberta':   return <EscLiberta />
     case 'champions': return <EscChampions />
+    case 'draft':     return <Suspense fallback={<div className="pt-16 text-center text-5xl">📋</div>}><LigaDraftLazy /></Suspense>
     case 'end':       return <EscEnd />
     case 'album':     return <EscAlbum />
     case 'ranking':   return <EscRanking />

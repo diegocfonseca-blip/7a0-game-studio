@@ -1,0 +1,20 @@
+{
+  "data": "🖋 Novo Fundador · 17 de outubro de 2026",
+  "titulo": "Nasceu o Wen Milan B 😈",
+  "destaque": {
+    "escudo": "src/escalacao/img/wenmilan-escudo.webp",
+    "mascote": "src/escalacao/img/wenmilan-mascote.webp",
+    "camisa": "scripts/kits/wenmilan-camisa.webp",
+    "nome": "Wen Milan B",
+    "linha": "Série A · vermelho e preto · coração São Paulo"
+  },
+  "itens": [
+    { "tag": "batismo", "texto": "O **😈 Wen Milan B** chega na **Série A** da carreira já como **🖋 Fundador nº 92**, com escudo, manto e mascote próprios." },
+    { "tag": "mascote", "texto": "**A Diabinha**, de chifres e rabo de coração, carimba a tela em todo gol do clube, atravessa a tela no título e aparece no pênalti decisivo." },
+    { "tag": "novidade", "texto": "**✨ Entrada de gala \"Inferno Rubro-Negro\"**: o fogo sobe, o tridente crava no chão, a Diabinha **lambe a tela** e o escudo sai das chamas. Só o Wen Milan B tem essa." },
+    { "tag": "novidade", "texto": "**📣 \"Vai lá de coração\", da torcida do São Paulo**: toca nos jogos da carreira dele e junto com a entrada de gala nas salas online." }
+  ],
+  "rodape": "Quando o Wen Milan B entrar na sala, você vai saber 😈🔴⚫",
+  "rodapeSub": "Batismo e Fundador: tá na 🛒 Loja do Clube, ou chama o Diego aqui na comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-17-wenmilan.png"
+}

@@ -15,7 +15,7 @@
 //   "destaque": { "escudo": "src/...webp", "mascote": "src/...webp", "camisa": "scripts/kits/...webp",
 //                 "passos": [ { "emoji": "🏢", "titulo": "…", "sub": "…" } ]  ← escada no lugar da arte (novidade sem escudo)
 //                 "nome": "Inter Vale FC", "linha": "Série C · preto e branco" },   ← opcional
-//   "itens": [ { "tag": "batismo|novidade|melhoria|mascote|manto|lenda|emprestimo|venda|saf", "texto": "…" } ],
+//   "itens": [ { "tag": "batismo|novidade|melhoria|mascote|manto|lenda|emprestimo|venda|saf|meta5|meta7|meta10", "texto": "…" } ],
 //   "rodape": "Entre na comunidade…",                                          ← opcional
 //   "saida": "scripts/posts/aviso-xxx.png"
 // }
@@ -44,6 +44,9 @@ const TAGS = {
   loja: ['🔨 LOJA', '#FFC400', '#0C0C0C'],
   plano: ['🔨 PLANOS', '#1B7A3D', '#fff'],
   presente: ['🔨 PRESENTE', '#7C3AED', '#fff'],
+  meta5: ['🔨 5 MIL', '#1B7A3D', '#fff'],
+  meta7: ['🔨 7 MIL', '#7C3AED', '#fff'],
+  meta10: ['🔨 10 MIL', '#FFC400', '#0C0C0C'],
 }
 const d = spec.destaque
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>

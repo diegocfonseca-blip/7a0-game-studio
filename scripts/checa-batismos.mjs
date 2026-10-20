@@ -74,6 +74,7 @@ const BATISMOS = [
   ['marcus.viniciuslopessantos79@gmail.com', 'Inter Vale FC'], // 🥊⚫⚪ Série C (12/10) — no assento do bot Tetéia SAF
   ['cesar.verissimo27@gmail.com', 'ComVerissimo FC'], // 🟢⚪ Série D (15/10) — plano Fundador, assento do bot Soberano Nacional
   ['matheussoaresg2018@gmail.com', 'Cuiudos FC'], // 🤠🔵 Série A (17/10) — plano Fundador, assento do Papão United Madrid, que desceu pra C
+  ['vittor@tidex.com.br', 'Wen Milan B'], // 😈🔴⚫ Série A (17/10) — plano Fundador, assento do Al Takhadao FC, que desceu pra C
   ['ccaonta@gmail.com', 'Chelsão da Massa FC'], // 🦁🔵 Série C (16/10) — assento do bot CRBebê
   ['caelborba@gmail.com', 'Labubu FC'], // 🐰⚪ Série A (14/10) — assento do Só Deus Sabe FC, que desceu pra C
   ['luizeduardorossini0013@gmail.com', 'Rossini Money'], // 💴🔴⚫ Série A (12/10) — assento do Bagres de Wall Street FC, que desceu pra B

@@ -110,3 +110,8 @@
 .ll-home-bb .ll-account{padding-left:0}
 .ll-home .ll-account .ll-bb-futebol{min-width:0;width:44px;padding:0;font-size:21px;margin-right:44px}
 @media(max-width:650px){.ll-home .ll-account .ll-bb-futebol{width:36px;font-size:17px;margin-right:39px}}
+/* 🏀 20/10: etiqueta "ir pro BidLegends" na home do futebol — só a conta liberada no basquete vê. Fica embaixo da marca,
+   no canto livre da arte (no cabeçalho não cabe: com ela a marca e MINHA CONTA quebravam linha no celular). */
+.ll-home .ll-troca-esporte{position:absolute;top:118px;left:34px;font:900 12px Oswald,sans-serif;letter-spacing:.4px;padding:5px 11px;border:2.5px solid #0c0c0c;border-radius:999px;background:#fff;color:#0c0c0c;box-shadow:0 3px 0 #0c0c0c;cursor:pointer;z-index:2}
+.ll-home .ll-troca-esporte:active{transform:translateY(2px);box-shadow:0 1px 0 #0c0c0c}
+@media(max-width:650px){.ll-home .ll-troca-esporte{top:76px;left:17px;font-size:10.5px;padding:4px 9px}}

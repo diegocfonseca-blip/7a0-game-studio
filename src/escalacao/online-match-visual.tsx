@@ -2,7 +2,7 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
-import { usePatrocinio } from './patrocinio' // 💼 'apresentada por' (16/10)
+import { usePatrocinio, type Competicao } from './patrocinio' // 💼 'apresentada por' (16/10)
 import { LedEstadio } from './patrocinio-visual' // 🏟️ LED do estádio (16/10)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
@@ -135,11 +135,12 @@ export function OnlineMatchTabs({ value, onChange }: { value: OnlineMatchTab; on
     <button key={tab} className="ll25-button" aria-pressed={value === tab} onClick={() => onChange(tab)}>{label}</button>)}</nav>
 }
 
-export function CompetitionStage({ kind, title, phase, detail, status, children }: {
+export function CompetitionStage({ kind, title, phase, detail, status, children, patroKind }: {
   kind: 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
   detail: string; status?: string; children?: ReactNode
+  patroKind?: Competicao | null // 💼 de quem é o "apresentada por" (padrão: o próprio kind; null = nenhum) — a carreira usa o dela
 }) {
-  const patro = usePatrocinio(kind)
+  const patro = usePatrocinio(patroKind === undefined ? kind : patroKind)
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
     <LedEstadio />
     {/* 🧹 `detail` vazio não vira parágrafo em branco (Diego 19/09: a liga não precisa

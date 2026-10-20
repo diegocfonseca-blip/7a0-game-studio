@@ -7,8 +7,8 @@ import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Lei
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
 import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
-import {getPlanoConta} from './presidente-conta'
-import {podeVestirModular} from './presidente-vestuario-acesso'
+import {getPosseConta} from './presidente-conta'
+import {podeVestirComPosse} from './presidente-avulsas'
 import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
 import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
 import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto} from './presidencia-estadio-projeto'
@@ -378,6 +378,15 @@ function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: n
     const arr = (ls[id] = ls[id] ?? [])
     arr.push(e)
     if (arr.length > 250) ls[id] = arr.slice(-250)
+    return
+  }
+  // 🌐 CARREIRA ONLINE v2: no leilão de todos (que roda no aparelho do dono) a compra de OUTRO clube de gente não entra no
+  // extrato do dono — fica guardada por clube e vai pro dono dela quando a fase de todos acaba (CO2_ASSUME).
+  if (s.co2 && mgrId != null && mgrId !== s.managers[s.youIdx]?.id && s.managers.some(m => m.id === mgrId && m.isHuman)) {
+    const ls = (s.careerLedgers = s.careerLedgers ?? {})
+    const arr = (ls[mgrId] = ls[mgrId] ?? [])
+    arr.push(e)
+    if (arr.length > 250) ls[mgrId] = arr.slice(-250)
     return
   }
   // 🏛️ MULTICLUBES: lançamento do clube que está DORMINDO vai pro extrato DELE
@@ -1068,6 +1077,8 @@ import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala onlin
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
+import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
+import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
@@ -1080,6 +1091,7 @@ import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
+import { ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_REVELA_MS, type DraftCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -2828,7 +2840,7 @@ function cpuAdjFor(s: EscState): { atk: number; def: number } {
     const b = s.nbaTier === 'nba' ? 6 : s.nbaTier === 'gleague' ? 3 : 0
     return { atk: b, def: b }
   }
-  const target = s.onlineMode === 'online' ? (s.varzea ? VARZEA_BASE : ONLINE_BASE) : DIVISION_BASE[s.careerDivision ?? 'D']
+  const target = s.onlineMode === 'online' ? ((s.varzea || s.ligaDraft) ? VARZEA_BASE : ONLINE_BASE) : DIVISION_BASE[s.careerDivision ?? 'D'] // 📋 Liga Draft: os bots no nível do começo fraco
   return fillerAdj(s.managers, target)
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
@@ -3140,7 +3152,7 @@ export function saf2On(s: EscState): boolean {
   // 🏀 o basquete não tem SAF: o 2º clube dele nasce da COMPRA direta (BUY_MULTICLUBE,
   // 4.000 🪙, Lenda), o modelo pré-SAF2. `sport !== 'basquete'` é sempre true no futebol,
   // então isto NÃO muda nada pro futebol.
-  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online' && s.sport !== 'basquete'
+  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online' && !s.co2 && s.sport !== 'basquete' // 🌐 carreira online v2: sem 2º clube (Diego, 19/10) — SAF da regra antiga
 }
 export function saf2Janela(s: EscState): boolean {
   return janelaAberta({ careerOnline: s.careerOnline, online: s.onlineMode === 'online', screen: s.screen, round: s.round })
@@ -5206,7 +5218,7 @@ function refreshMonteDeadline(state: EscState) {
   const cur = state.monteOrder[state.monteIdx]
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
-    state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
+    (state.onlineMode === 'online' || !!state.co2) && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
       ? Date.now() + monteMsDe(state)
       : null
 }
@@ -5450,7 +5462,7 @@ type Action =
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave; co2?: { sala: string; nomes: string[]; assento: number } } // carreira OFFLINE na pirâmide (co2 = 🌐 carreira online v2: N clubes de gente, cada aparelho é o seu) (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
@@ -5467,7 +5479,10 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
+  | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
+  | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
+  | { type: 'START_ONLINE'; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -5578,6 +5593,10 @@ type Action =
   | { type: 'COLETIVA_ARQUIRRIVAL'; mgrId: number; team: string; temporada: number }
   | { type: 'COLETIVA_H2H'; mgrId: number; rival: string; chave: string; res: 'V' | 'E' | 'D'; arqui: boolean; temporada: number }
   | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
+  | { type: 'CO2_ESPELHO'; newState: EscState; meuId: number } // 🌐 v2: leilão do dono na MINHA tela (o que eu aperto vai pra ele)
+  | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
+  | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
+  | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
@@ -6374,7 +6393,10 @@ export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?
   if (!duplaPodeAgir(state.duplas, mgrId, card.pos, uid)) return false
   if (openSlots(m, card.pos) <= 0) return false
   if (mv.M.lider === mgrId) return false // já está na frente: não cobre o próprio lance
-  if (mv.M.viraAte && Date.now() < mv.M.viraAte) return false // a carta anterior ainda está virando na mesa
+  // ⏱️ 19/10 (sala QUG8OC, Diego: "a carta nova aparece com a contagem 5, 4, 3… mas ninguém pode dar lance"): o `viraAte` é a hora
+  // do DONO; comparar com a hora do celular do CONVIDADO travava o botão a carta inteira quando o relógio dele estava atrasado.
+  // Agora usa a hora da sala, a MESMA da contagem na tela. Pro dono `agoraSala() === Date.now()`: nada muda pra ele.
+  if (mv.M.viraAte && agoraSala() < mv.M.viraAte) return false // a carta anterior ainda está virando na mesa
   const v = Math.floor(Number(valor))
   if (!Number.isFinite(v) || v < paMinimo(state, k)) return false
   return v <= Math.floor(m.money) - paComprometido(state, mgrId, k) // 🔨🔨 o que já está preso na outra mesa não conta
@@ -6943,7 +6965,8 @@ function humansToSubmit(state: EscState, pos: Sector): number[] {
   // lacra e travaria o leilão pra sempre no "TEMPO 0s". Então, no solo, só espero o
   // meu assento. No ONLINE cada humano lacra no próprio aparelho (mantém todos).
   // No-op no jogo solo normal (só existe 1 humano = o youIdx).
-  if (state.onlineMode !== 'online') {
+  // 🌐 carreira online v2: cada clube de gente lança do próprio aparelho (chega pelo canal) → espera TODOS, igual ao online
+  if (state.onlineMode !== 'online' && !state.co2) {
     const meId = state.managers[state.youIdx]?.id
     return eligible.filter(m => m.id === meId).map(m => m.id)
   }
@@ -6957,7 +6980,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
     state.sectorUnsoldAccum = []
     startAuctionPhase(state, false)
   } else {
-    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' ? state.managers[state.youIdx]?.id : undefined)
+    state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' && !state.co2 ? state.managers[state.youIdx]?.id : undefined) // 🌐 v2: todos os clubes de gente pescam
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)
@@ -7141,6 +7164,57 @@ export function motivoRecusaInternacional(s: EscState, c: InternationalCampaign)
   } else if (c.registeredXI.length || c.teams.some(team => team.you)) return 'sem-vaga'
   return null
 }
+// 🔁 começa a próxima temporada com os MESMOS elencos (o "mesmo time"). Era o miolo do REPLAY_SEASON; a Liga Draft usa
+// o mesmo caminho depois da noite do draft e quando a turma volta outro dia.
+function comecaTemporadaMesmoTime(s: EscState): void {
+  { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def } // nível-base fixo por divisão; rivais sem ajuste
+  // 🎲 SEMENTE NOVA: sem isto, "Nova temporada (mesmo time)" repetia a MESMA
+  // semente → a liga inteira dava EXATAMENTE o mesmo resultado toda vez (dava
+  // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
+  // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
+  s.seed = Math.floor(Math.random() * 1e9)
+  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+  s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+  s.round = 0
+  s.scorers = []; s.assists = []
+  s.lastResults = []
+  s.news = []
+  s.champion = null
+  s.tactics = {}
+  s.quickCopa = null; s.liberta = null; s.champions = null // 🏆🌎 Copa dos 8 / Libertadores são POR TEMPORADA — senão a próxima liga nunca semeia de novo
+  s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
+  s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
+  s.restartPending = false
+  s.restartReady = []
+  s.seasonVotes = {} // zera a votação de fim de jogo
+  s.screen = 'season'
+}
+
+// 📋 a escolha entra no elenco (no LUGAR de quem sai, mesma posição) e começa o anúncio com suspense
+function aplicaPickDraft(s: EscState, m: Manager, carta: Card, sai: Card, auto: boolean): void {
+  const d = s.draft
+  if (!d) return
+  const nova: WonCard = { ...carta, id: `dr${d.temporada}-${m.id}-${d.idx}`, paid: 0, via: 'leilao' }
+  m.squad = m.squad.map(c => c.id === sai.id ? nova : c)
+  d.picks.push({ mgrId: m.id, carta: nova, saiu: { id: sai.id, name: sai.name, club: sai.club, year: sai.year }, ...(auto ? { auto: true } : {}) })
+  ;(s.marketLog = s.marketLog ?? []).push(`📋 ${m.teamName} escolheu ${carta.name} no draft (saiu ${sai.name})`)
+  d.fase = 'revela'
+  d.inicioRevela = Date.now()
+  d.prazo = Date.now() + DRAFT_REVELA_MS
+}
+// 📋 passa a vez; acabou a fila → começa a próxima temporada com os elencos novos
+function proximoDoDraft(s: EscState): void {
+  const d = s.draft
+  if (!d) return
+  d.idx++
+  if (d.idx < d.ordem.length) { d.fase = 'escolha'; d.inicioRevela = undefined; d.prazo = Date.now() + DRAFT_ESCOLHA_MS; return }
+  s.draftFeito = d.temporada
+  const soma = d.somaTemporada !== false
+  s.draft = null
+  comecaTemporadaMesmoTime(s)
+  if (soma) s.seasonNo++
+}
+
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
@@ -7152,6 +7226,42 @@ function reducerBase(state: EscState, action: Action): EscState {
   // posição é só do offline. Fica aqui porque o reducer roda em toda ação —
   // então o ponteiro nunca fica velho, nem depois de um F5.
   marcaModoOnline(state.onlineMode === 'online')
+  // 🌐 CARREIRA ONLINE v2 (19/10): o leilão é de TODOS e quem calcula é o dono. Os outros recebem o estado dele pra
+  // VER e apertar (os toques vão pro dono, ver o `dispatch` do EscProvider). A identidade é sempre local: "quem sou eu" é
+  // o técnico de id `meuId` (a ordem dos clubes é a mesma em todo aparelho: `mundo.ordem` da sala).
+  if (action.type === 'CO2_ABRE') {
+    const sv = action.save
+    if (!sv?.co2 || !Array.isArray(sv.managers)) return state
+    reancoraEsporte(sv)
+    return { ...sv, isHost: true, onlineMode: 'cpu', co2: { ...sv.co2, espelho: false, comanda: !!sv.co2.comanda, gavetas: sv.co2.gavetas ?? [] } }
+  }
+  if (action.type === 'CO2_ESPELHO' || action.type === 'CO2_ASSUME') {
+    const ns = action.newState
+    if (!ns?.co2 || !Array.isArray(ns.managers)) return state
+    const idx = ns.managers.findIndex(m => m.id === action.meuId && m.isHuman)
+    if (idx < 0) return state
+    reancoraEsporte(ns)
+    const espelho = action.type === 'CO2_ESPELHO'
+    const out: EscState = {
+      ...ns,
+      youIdx: idx,
+      // no espelho eu NÃO sou quem conduz (nada de relógio/robô rodando aqui); depois da fase de todos o meu aparelho
+      // vira o "solo" do meu clube, igual à carreira de sempre
+      isHost: !espelho,
+      co2: { sala: ns.co2.sala, assento: action.meuId, gavetas: espelho ? [] : (state.co2?.gavetas ?? []), comanda: false, espelho },
+    }
+    if (!espelho) {
+      // 🧾 o que é SÓ do clube de quem conduziu não vem junto: o livro-caixa e o presidente são meus
+      // as compras do MEU clube no leilão de todos chegam guardadas por clube (ver `logFin`)
+      out.careerLedger = state.co2 && !state.co2.espelho ? [...(state.careerLedger ?? []), ...(ns.careerLedgers?.[action.meuId] ?? [])] : [...(ns.careerLedgers?.[action.meuId] ?? [])]
+      out.careerLedgers = undefined
+      out.careerPresident = state.co2 && !state.co2.espelho ? state.careerPresident : undefined
+      out.careerPresidentBase = state.co2 && !state.co2.espelho ? state.careerPresidentBase : undefined
+      out.agenciaClubeId = action.meuId
+      if (!out.careerLedger?.some(e => e.kind === 'opening')) out.careerLedger = [{ id: 'co2-abertura', season: out.seasonNo ?? 1, kind: 'opening', label: '🏁 Saldo inicial', amount: 100 }, ...(out.careerLedger ?? [])]
+    }
+    return out
+  }
   if (action.type === 'SYNC_STATE') {
     reancoraEsporte(action.newState) // o baralho/esporte segue o estado do host (reload zera o ponteiro; 🏀 sala de basquete reancora no NBA)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),
@@ -7391,7 +7501,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
     case 'PRESIDENCY_SAVE_BASE': {
       if(!presidentWritesEnabled())return state
-      const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPlanoConta())
+      const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPosseConta())
       return result.ok?result.value:state
     }
     case 'PRESIDENCY_TRADE': {
@@ -7589,6 +7699,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       const novo = somaH2H(atual, action.rival, action.chave, action.res)
       if (novo === atual) return s
       s.careerColetiva = { ...(s.careerColetiva ?? {}), [action.mgrId]: action.arqui ? { ...novo, ultimoClassico: { t: action.temporada, res: action.res } } : novo }
+      return s
+    }
+    // 🌐 CARREIRA ONLINE v2: os clubes dos OUTROS (elenco, formação, nome) entram na lista; o MEU nunca é tocado. As
+    // entradas de simulação deles ficam em `co2.gavetas` e a tela mistura na hora de simular (`mesclaEntradas`).
+    case 'CO2_GAVETAS': {
+      if (!s.co2) return s
+      const meuId = s.managers[s.youIdx]?.id
+      if (meuId == null) return s
+      s.managers = mesclaClubes(s.managers, action.gavetas, meuId)
+      const minha = action.gavetas.find(g => g.mgrId === meuId)
+      s.co2 = { ...s.co2, gavetas: action.gavetas.filter(g => g.mgrId !== meuId), ...(action.ate != null && minha ? { minha, congeladoAte: action.ate } : {}) }
       return s
     }
     case 'COLETIVA_FECHA': {
@@ -7852,7 +7973,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const m of s.managers) pl[`m${m.id}`] = tierDivKey(s.nbaTier) // street = 'D' (várzea)
       s.careerPlacements = pl
       s.careerHonors = {}; s.marketValues = {}; s.marketLog = []
-      s.careerScorersAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.statsSeason = 0
       s.careerLedger = [] // livro-caixa novo
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência começa vazia
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 👕🏆🛍️ patrocínio/Master/Loja zerados
@@ -8185,7 +8306,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
-      s.careerPresidentBase = presidentWritesEnabled() && s.sport !== 'basquete' && presidenteCadastrado(action.presidentBase) && podeVestirModular(action.presidentBase.outfit,getPlanoConta())
+      s.careerPresidentBase = presidentWritesEnabled() && s.sport !== 'basquete' && presidenteCadastrado(action.presidentBase) && podeVestirComPosse(action.presidentBase.outfit,getPosseConta())
         ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
       if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
       s.careerPresidency = undefined
@@ -8209,8 +8330,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.deckLeague = escadaLiberada() ? 'todos' : (action.league ?? 'br'); setActiveCatalog(s.deckLeague)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
-      s.humanCount = 1
-      s.youIdx = 0
+      // 🌐 CARREIRA ONLINE v2 (19/10): a MESMA carreira, só que com os clubes dos amigos de gente na sala (cada aparelho
+      // depois roda o próprio). Sem `co2` = solo de sempre, linha por linha.
+      const co2Nomes = action.co2 ? action.co2.nomes.map(n => n.trim() || 'Clube') : null
+      s.humanCount = co2Nomes ? co2Nomes.length : 1
+      s.youIdx = co2Nomes ? Math.max(0, Math.min(co2Nomes.length - 1, action.co2!.assento)) : 0
       const rivalCount = Math.max(0, Math.min(action.rivals, LEAGUE_SIZE - 1))
       // ordem dos nomes: rivais escolhidos primeiro (viram os auction-rivals), depois
       // o resto da ELITE (a 👑 Série A) sem repetir.
@@ -8219,12 +8343,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🌱 escada: os bots de preenchimento da sala usam os times de VÁRZEA (a sala
       // é a divisão V) — os nomes da elite ficam livres pro fundo profissional.
       const nameOrder = escadaLiberada() ? [...chosen, ...VARZEA_TEAMS] : [...chosen, ...rest]
-      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
+      const { managers, botPlans } = makeManagers(co2Nomes ?? [action.teamName || 'Meu Time'], action.formation, rivalCount, LEAGUE_SIZE, rng, nameOrder)
       // marca os rivais escolhidos (os auction-rivals, ids 1..rivalCount) como
       // RIVAIS coloridos no display — são CPU, mas aparecem como rivais de verdade.
-      for (let i = 0; i < rivalCount; i++) { const m = managers[1 + i]; if (m && !m.isHuman) m.rival = true }
+      for (let i = 0; i < rivalCount; i++) { const m = managers[s.humanCount + i]; if (m && !m.isHuman) m.rival = true }
       s.managers = managers
-      s.agenciaClubeId = managers[0]?.id ?? 0 // 🕴️ nasce apontando pro 1º clube (fundação); com 2º clube o dono pode trocar no toggle (SET_AGENCIA_CLUBE)
+      s.agenciaClubeId = managers[s.youIdx]?.id ?? 0 // 🕴️ nasce apontando pro 1º clube (fundação); com 2º clube o dono pode trocar no toggle (SET_AGENCIA_CLUBE)
       // colocação inicial: você e os rivais na divisão de estreia; B/C/D com os
       // times fixos do baralho e a 👑 SÉRIE A com os clubes da elite que ninguém
       // levou de rival (+ extras, até fechar 20).
@@ -8316,6 +8440,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🔨 tela de regras antes do 1º pregão da carreira (mantém o modal de rivais
       // no setup; isto é só a página nova ao avançar).
+      s.co2 = action.co2 ? { sala: action.co2.sala, assento: s.youIdx, gavetas: [], comanda: true } : undefined
       if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -8476,12 +8601,25 @@ function reducerBase(state: EscState, action: Action): EscState {
       // envelope. O motor é seguro com a NBA: fila e sobras saem do ACTIVE_CATALOG (trava `npm run pregao-aberto-nba`).
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
+      // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
+      // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
+      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
+      s.draft = null; s.draftFeito = undefined
+      const fracoInicial = onlineVarzea || s.ligaDraft
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = nbaCareerRoom // 🏀 online rápido/liga: não é a carreira salva; carreira online: é
       if (nbaCareerRoom) s.nbaTier = 'street' // começa na base da pirâmide do basquete (Street League)
       if (onlineNba) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick') // carreira = vagas de carreira; rápido = quinteto
-      else setActiveCatalog(s.deckLeague, onlineVarzea, s.regionalSala)
+      else setActiveCatalog(s.deckLeague, fracoInicial, s.regionalSala)
+      // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
+      // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
+      if (s.ligaDraft && !onlineNba) {
+        const vistos = new Set<string>()
+        const out = {} as typeof CATALOG
+        for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => { const k = chaveNome(c.name); if (vistos.has(k)) return false; vistos.add(k); return true })
+        ACTIVE_CATALOG = out
+      }
       s.simSpeed = 1 // ⏩ todo jogo online COMEÇA no ritmo Normal — não herda a velocidade de um jogo anterior (era o "sim ultra rápida" numa sala auto, sem ninguém ter tocado no manual). Manual/stream re-escolhe a marcha dentro do jogo.
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
@@ -8560,7 +8698,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const plb: Record<string, string> = {}
         for (const m of s.managers) plb[`m${m.id}`] = tierDivKey(s.nbaTier)
         s.careerPlacements = plb
-        s.careerScorersAll = {}; s.statsSeason = 0; s.marketValues = {}; s.marketLog = []
+        s.careerScorersAll = {}; s.careerAssistsAll = {}; s.statsSeason = 0; s.marketValues = {}; s.marketLog = []
         s.clubCash = seedClubCash({}, plb)
         s.careerFilials = {}; s.stadiums = {}
       }
@@ -8572,6 +8710,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.humanCount = action.playerNames.length
       s.streamMode = !!action.stream
       s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
+      s.campo2d = !!action.campo2d && !action.career // 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto)
       s.auctionSecs = action.auctionSecs // ⏱️ tempo do leilão: undefined=45s · N=N segundos · 0=host avança no botão
       s.chatOff = !!action.chatOff // 💬 chat da sala ligado/desligado (escolha do host na criação)
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
@@ -8626,10 +8765,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, fracoInicial)
       sorteiaEspeciais(s, rng)
-      dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, onlineVarzea)
-      if (onlineVarzea) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
+      dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, fracoInicial)
+      if (fracoInicial) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
@@ -8717,6 +8856,28 @@ function reducerBase(state: EscState, action: Action): EscState {
       // o elenco de bot que já foi montado acima — nunca entra em campo com
       // perna-de-pau vindo do Bafo. A trava de verdade é no lobby, que não deixa
       // ficar apto sem 11; isto aqui é o cinto de segurança.
+      // 📋 LIGA DRAFT QUE VOLTA OUTRO DIA: os elencos da partida anterior (gravada na sala) voltam inteiros — dos humanos E
+      // dos bots — e não tem leilão. Só se TODO MUNDO de agora já tinha time e a tabela é do mesmo tamanho; senão segue
+      // pro leilão fraco (recomeço seguro). Se a temporada anterior acabou sem draft, abre a noite do draft primeiro.
+      if (s.ligaDraft && action.draftCarry) {
+        const dc = action.draftCarry
+        const humanos = s.managers.filter(m => m.isHuman)
+        const nBots = s.managers.length - humanos.length
+        const cabe = humanos.length >= 1 && humanos.every(m => (dc.squads[m.id]?.length ?? 0) >= 11)
+          && dc.bots.length === nBots && dc.bots.every((b, i) => b.id === humanos.length + i && !b.isHuman)
+        if (cabe) {
+          for (const m of humanos) m.squad = dc.squads[m.id].map(c => ({ ...c }))
+          s.managers = [...humanos, ...dc.bots.map(b => ({ ...b, squad: b.squad.map(c => ({ ...c })) }))]
+          s.draftFeito = dc.draftFeito
+          comecaTemporadaMesmoTime(s)
+          const ordem = (dc.ordem ?? []).filter(id => humanos.some(h => h.id === id))
+          if (ordem.length && dc.temporada != null && dc.draftFeito !== dc.temporada) {
+            s.draft = { temporada: dc.temporada, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: false }
+            s.screen = 'draft'
+          }
+          return s
+        }
+      }
       if (action.bafo) {
         for (const m of s.managers) {
           if (!m.isHuman) continue
@@ -9076,7 +9237,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
       // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
-      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2) return s // 🌐 v2: sem 2º clube
       if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: o 2º clube só nasce da SAF (SAF2_ASSUMIR), nunca mais comprado direto
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -11134,6 +11295,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS (leilão no aparelho de quem comanda) — em construção, nada anda sozinho aqui
       if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
@@ -11223,6 +11385,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'CONFIRM_MESMO_TIME': {
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção
       // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
       // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
       // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
@@ -11787,6 +11950,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // divisão de destino com o novo elenco de rivais (quem subiu/caiu junto
       // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
+      if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
       setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
@@ -11989,28 +12153,46 @@ function reducerBase(state: EscState, action: Action): EscState {
       // só recomeça o campeonato — tabela, calendário e artilharia zerados.
       // Nada de leilão. Disparado pelo host; o resultado já computado vai
       // pros convidados por SYNC_STATE.
-      { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def } // nível-base fixo por divisão; rivais sem ajuste
-      // 🎲 SEMENTE NOVA: sem isto, "Nova temporada (mesmo time)" repetia a MESMA
-      // semente → a liga inteira dava EXATAMENTE o mesmo resultado toda vez (dava
-      // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
-      // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
-      s.seed = Math.floor(Math.random() * 1e9)
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
-      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
-      s.round = 0
-      s.scorers = []; s.assists = []
-      s.lastResults = []
-      s.news = []
-      s.champion = null
-      s.tactics = {}
-      s.quickCopa = null; s.liberta = null; s.champions = null // 🏆🌎 Copa dos 8 / Libertadores são POR TEMPORADA — senão a próxima liga nunca semeia de novo
-      s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
-      s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
+      comecaTemporadaMesmoTime(s) // 📋 (19/10) o miolo virou função: a Liga Draft começa a temporada pelo MESMO caminho
       s.seasonNo++
-      s.restartPending = false
-      s.restartReady = []
-      s.seasonVotes = {} // zera a votação de fim de jogo
-      s.screen = 'season'
+      return s
+    }
+    // 📋 LIGA DRAFT (19/10) — regras em `liga-draft.ts`. O dono manda: o convidado só pede (DRAFT_ESCOLHER chega roteado).
+    case 'DRAFT_ABRIR': {
+      if (!s.ligaDraft || s.draft || s.screen !== 'end' || s.draftFeito === s.seasonNo) return state
+      const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
+      const ordem = ordemDoDraft(sortedTable(s.league), humanos)
+      if (!ordem.length) return state
+      s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: true }
+      s.seasonVotes = {}
+      s.screen = 'draft'
+      return s
+    }
+    case 'DRAFT_ESCOLHER': {
+      const d = s.draft
+      if (!d || s.screen !== 'draft' || d.fase !== 'escolha' || d.ordem[d.idx] !== action.mgrId) return state
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      const carta = acharCarta(action.carta)
+      if (!m || !carta) return state
+      // ☝️ único na liga: ninguém (humano ou bot) pode ter alguém com esse nome — e quem sai é da MESMA posição
+      if (nomesOcupados(s.managers).has(chaveNome(carta.name))) return state
+      const sai = podemSair(m.squad, carta.pos).find(c => c.id === action.sai)
+      if (!sai) return state
+      aplicaPickDraft(s, m, carta, sai, false)
+      return s
+    }
+    case 'DRAFT_TICK': {
+      const d = s.draft
+      if (!d || s.screen !== 'draft' || Date.now() < d.prazo) return state
+      if (d.fase === 'escolha') {
+        // ⏱️ acabou o tempo: o jogo pega o MELHOR livre e tira o mais fraco daquela posição (nunca trava a sala)
+        const m = s.managers.find(x => x.id === d.ordem[d.idx])
+        const auto = m ? escolhaAutomatica(cartasLivres(nomesOcupados(s.managers)), m.squad) : null
+        if (m && auto) aplicaPickDraft(s, m, auto.carta, auto.sai, true)
+        else proximoDoDraft(s)
+        return s
+      }
+      proximoDoDraft(s)
       return s
     }
     case 'REQUEST_NEW_TEAMS': {
@@ -12341,6 +12523,27 @@ function writeCareerArchive(slots: CareerSlot[]): boolean {
 // o LOGIN, nunca o aparelho.
 const CAREER_OWNER_KEY = 'esc-career-owner'
 const CAREER_VAULT_PREFIX = 'esc-career-vault::'
+// 🌐 carreira online v2: UMA chave só (a sala aberta por último), sobrescrita — não acumula por sala no aparelho
+export const CO2_LOCAL_KEY = 'esc-co2-atual'
+// as ações que um convidado pode mandar pro leilão de quem comanda (o resto do jogo do dono ninguém de fora mexe)
+const CO2_ACOES_DE_FORA = new Set<string>(['SUBMIT_ENVELOPE', 'SUBMIT_TIEBREAK', 'MONTE_PICK', 'MONTE_PASS', 'HOLANDES_PEGAR', 'PREGAO_ABERTO_LANCE', 'CONFIRM_MESMO_TIME', 'CAST_SEASON_VOTE', 'TOGGLE_RESERVE_LIST', 'RENEW_CONTRACT', 'RELEASE_CONTRACT', 'FREEZE_COPA_XI'])
+// guarda com folga de 1,5s (o estado da carreira é grande: comprimir a cada toque travaria o celular)
+let co2GuardaTimer: ReturnType<typeof setTimeout> | null = null
+function co2GuardaLocal(st: EscState): void {
+  if (co2GuardaTimer) clearTimeout(co2GuardaTimer)
+  co2GuardaTimer = setTimeout(() => {
+    co2GuardaTimer = null
+    try { localStorage.setItem(CO2_LOCAL_KEY, JSON.stringify({ sala: st.co2?.sala, at: Date.now(), z: pack(sanitize(st)) })) } catch { /* cota cheia: a nuvem do jogo guarda */ }
+  }, 1500)
+}
+export function co2LeLocal(sala: string): EscState | null {
+  try {
+    const r = localStorage.getItem(CO2_LOCAL_KEY)
+    if (!r) return null
+    const o = JSON.parse(r) as { sala?: string; z?: string }
+    return o.sala === sala && o.z ? unpack<EscState>(o.z) : null
+  } catch { return null }
+}
 const LOCAL_CAREER_KEYS = ['esc-solo-career', 'esc-solo-career-at', CAREER_ARCHIVE_KEY, SOLO_RESUME_KEY]
 type CareerVault = Record<string, string | null>
 function stashLocalCareers(): CareerVault {
@@ -13284,7 +13487,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
-      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
+      // 🌐 carreira online v2 NUNCA vira "partida solo em andamento" (senão abriria como solo, sem os amigos)
+      if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
+      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
@@ -13297,6 +13502,42 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
+  // 🌐 CARREIRA ONLINE v2 (19/10): o leilão de TODOS roda no aparelho de quem comanda o dia; os outros assistem e mandam
+  // os toques pelo canal PRÓPRIO da carreira (`co2:<sala>` — nada dos canais das salas rápidas/Minhas Ligas).
+  useEffect(() => co2Ganchos({
+    aoAcao: a => {
+      const st = stateRef.current
+      if (!st.co2?.comanda || st.screen === 'season') return
+      const act = a as Action
+      if (!act || typeof act !== 'object' || typeof (act as { type?: unknown }).type !== 'string') return
+      if (CO2_ACOES_DE_FORA.has(act.type)) rawDispatch(act) // só as ações do leilão; nada de mexer no resto do jogo do dono
+    },
+    aoEstado: z => {
+      const st = stateRef.current
+      if (st.co2?.comanda) return
+      if (st.co2 && !st.co2.espelho) return // já toco o meu clube: o leilão acabou pra mim
+      const sn = co2Agora()
+      const meuId = sn.uid && sn.mundo ? sn.mundo.ordem.indexOf(sn.uid) : -1
+      if (meuId < 0) return
+      let next: EscState
+      try { next = unpack<EscState>(z) } catch { return }
+      if (!next?.co2 || next.co2.sala !== sn.sala?.id) return
+      rawDispatch({ type: next.screen === 'season' ? 'CO2_ASSUME' : 'CO2_ESPELHO', newState: next, meuId })
+    },
+    aoPedirEstado: () => { const st = stateRef.current; if (st.co2?.comanda) co2Envia('estado', { z: pack(sanitize(st)) }) },
+  }), [])
+  // quem comanda manda o estado do leilão (com folga de 0,4s) e, quando a fase de todos acaba, manda a última foto
+  const co2TelaRef = useRef<string>('')
+  const co2EnvioRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!state.co2?.comanda) return
+    const antes = co2TelaRef.current
+    co2TelaRef.current = state.screen
+    const fim = state.screen === 'season' && antes !== '' && antes !== 'season'
+    if (state.screen === 'season' && !fim) return
+    if (co2EnvioRef.current) clearTimeout(co2EnvioRef.current)
+    co2EnvioRef.current = setTimeout(() => { co2EnvioRef.current = null; co2Envia('estado', { z: pack(sanitize(stateRef.current)) }) }, fim ? 0 : 400)
+  }, [state])
   // ⏱️ QUEM É O DONO NÃO TEM DESVIO. Ele é quem CARIMBA os prazos, então a hora
   // do aparelho dele É a hora da sala — e quem está fora do online não tem sala
   // nenhuma. Isso também deixa a passagem de coroa segura: no instante em que
@@ -13544,7 +13785,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // Ele saiu da sala."* Antes, quem apertava SAIR na tela do "e agora?" sumia da
     // sala mas continuava como HUMANO no estado — e o "novo leilão" o trazia de
     // volta como fantasma, travando o setor à espera de um envelope que nunca vem.
-    const inGame = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'liberta', 'end'].includes(st.screen)
+    const inGame = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'liberta', 'end', 'draft'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
       // 🤝 DUPLA: se eu jogava de dois, o time NÃO vira CPU — seria injusto com
       // quem ficou. Em vez do KICK_PLAYER, aviso que ele assume TODAS as
@@ -13578,6 +13819,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // 🌐 v2: no leilão do dono, o que EU aperto vai pra ele (o meu aparelho só mostra)
+    // (e nada mais muda o estado que estou só assistindo: o próximo pacote do dono passaria por cima)
+    if (stateRef.current.co2?.espelho) {
+      if (CO2_ACOES_DE_FORA.has(action.type)) { co2Envia('acao', action); return }
+      if (!['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) return
+    }
     // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
     // calado. START (criar sala) é gesto seu — posse plena. BECOME_HOST marca
     // forçado nos DOIS pontos que o disparam (botão RETOMAR / sumiço provado).
@@ -13622,6 +13869,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // 🔨 o lance do PREGÃO ABERTO também (17/10): leva o id da carta, então se chegar atrasado pela estrada reserva e a
       // mesa já tiver outra carta, o reducer recusa — nunca vira lance numa carta que a pessoa não viu
       if (action.type === 'PREGAO_ABERTO_LANCE' && stateRef.current.roomId) {
+        supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+      }
+      // 📋 a escolha do draft é recado ÚNICO (se sumir, o tempo acaba e o jogo escolhe por ele): vai pelas duas estradas
+      if (action.type === 'DRAFT_ESCOLHER' && stateRef.current.roomId) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
@@ -14070,7 +14321,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try {
           const st = stateRef.current
           if (!st.roomId || !st.isHost) return
-          if (st.screen !== 'auction' && st.screen !== 'convocacao' && st.phase !== 'envelope' && st.phase !== 'resq_envelope' && st.phase !== 'holandes') return
+          if (st.screen !== 'auction' && st.screen !== 'convocacao' && st.screen !== 'draft' && st.phase !== 'envelope' && st.phase !== 'resq_envelope' && st.phase !== 'holandes') return
           const { data } = await supabase.from('room_acoes').select('id, payload')
             .eq('room_id', st.roomId).gt('id', acoesVistasRef.current)
             .order('id', { ascending: true }).limit(25)
@@ -14085,7 +14336,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -14140,6 +14391,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // SAVE dele é isolado em `bl-nba-career` (efeito abaixo). Aqui é só o FUTEBOL —
     // senão a carreira do basquete vazaria pro `esc-solo-career`/nuvem como pirâmide.
     if (state.onlineMode === 'online' || !state.careerOnline || state.sport === 'basquete') return
+    if (state.co2) return // 🌐 carreira online v2 tem save PRÓPRIO (nunca escreve por cima da carreira solo do aparelho)
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
@@ -14173,7 +14425,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // se dependesse só do host, o celular dele apagar a tela travava a sala
   // inteira pra sempre. O reducer reconfirma o prazo antes de aplicar, então
   // disparos duplicados de vários clientes são inofensivos.
-  const monteHumano = state.onlineMode === 'online' && state.screen === 'monte'
+  const monteHumano = (state.onlineMode === 'online' || !!state.co2?.comanda) && state.screen === 'monte'
     && !!state.managers.find(x => x.id === state.monteOrder[state.monteIdx])?.isHuman
   useVigiaPrazo(monteHumano, state.monteDeadline, () => dispatch({ type: 'MONTE_TIMEOUT' }),
     () => logTravaSalva('monte', 2, stateRef.current.roomId, stateRef.current.isHost))
@@ -14236,7 +14488,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // um `setTimeout` sozinho, o celular que sai da frente engolia o único tiro e
   // o leilão ficava parado no 0s pra sala inteira. Ver o comentário do vigia.
   useVigiaPrazo(
-    state.onlineMode === 'online' && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
+    (state.onlineMode === 'online' || !!state.co2?.comanda) && (state.phase === 'envelope' || state.phase === 'resq_envelope'),
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_SEAL' }),
     () => logTravaSalva('envelope', 2, stateRef.current.roomId, stateRef.current.isHost),
@@ -14245,7 +14497,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Vigia do desempate: se um dos empatados sumir (AFK), o prazo estoura e
   // qualquer cliente força a resolução — quem não re-lançou não cobre.
   useVigiaPrazo(
-    state.onlineMode === 'online' && state.phase === 'tiebreak',
+    (state.onlineMode === 'online' || !!state.co2?.comanda) && state.phase === 'tiebreak',
     state.phaseDeadline,
     () => dispatch({ type: 'FORCE_TIEBREAK' }),
     () => logTravaSalva('desempate', 2, stateRef.current.roomId, stateRef.current.isHost),
@@ -15045,6 +15297,11 @@ function readState(payload: unknown): EscState {
   if (p && typeof (p as { z?: string }).z === 'string') return unpack<EscState>((p as { z: string }).z)
   return p as EscState
 }
+
+/** igual ao useEsc, mas sem quebrar fora do EscProvider (componente que também aparece em bancada/tela solta) */
+export function useEscTalvez() { return useContext(Ctx) }
+/** só pras bancadas (scripts/teste-*): montar uma tela com um estado de mentira */
+export const EscCtxBancada = Ctx
 
 export function useEsc() {
   const ctx = useContext(Ctx)

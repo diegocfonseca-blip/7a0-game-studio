@@ -774,7 +774,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala, sendo que **astronauta e traje de gala
   dourado são SÓ do Fundador** (16/10: *"camisa do astronauta quero apenas no plano fundador, e gala dourada smoking dourado também"*),
   e o **traje real também** (mesmo dia: *"traje real, coloque só para fundador"*).
-  Peça de Fundador **não é vendida avulsa**: quem é Craque e quer o astronauta sobe pro Fundador (*"deixa só no Fundador mesmo"*).
+  ~~Peça de Fundador não é vendida avulsa~~ → 🔁 **19/10: TODA PEÇA É VENDIDA AVULSA NO PIX** (*"ok pode fazer tudo nisso já pelo pix do
+  mercado pago"*). Preço pelo NÍVEL da peça: ⭐ Craque **1,99** · 👑 Lenda **2,99** · 🖋 Batismo **3,99** · 🖋 Fundador **4,99** (o
+  astronauta também). Quem tem plano compra as dos planos de CIMA. **Grátis: a 1ª compra é uma ROUPA e ela dá o boneco — careca, sem
+  barba, sem acessório, pele à vontade**; depois cabelo/barba/acessório a 1,99 cada. Banco: `esc_presidente_catalogo` (nível) +
+  `esc_presidente_pecas` (o que a conta comprou, só o Pix grava) + `esc_preco_peca` (produto `peca_presidente`, ref `r-<roupa>`/`p-<peça>`).
+  Regras puras em `presidente-avulsas.ts`; a trava `npm run presidente` confere que o catálogo do código é IGUAL ao da migration.
+  ⚠️ Roupa/peça nova no código = linha nova no catálogo do banco (`npx tsx scripts/gera-catalogo-presidente.mts`).
   🚫 **PÓDIO: NÃO FAZER** (16/10, *"não faz pódio não"*) — dos 12 lugares do mockup, o pódio do fim de campeonato saiu. **Nenhum selo diz GRÁTIS.** Avulsos (cabelo de
   craque, camisa de time) ainda SEM preço fechado. Liberar geral = `PRESIDENTE_CONTA_GERAL = true`.
   🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
@@ -886,6 +892,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Botões de lance: só o "+" (+1 · +2 · +5 · +10; carta dupla +1 · +5 · +10) — o valor já está na faixa do lance atual.
   ➕ **Sobra = a do envelope/Tocaia** (demanda + 1 por posição; a "+1 por clube" saiu no mesmo dia, *"no padrão da regra do Tocaia e do Envelope"* — não repropor) + alerta "⏳ FALTAM N CARTAS" nas últimas 11. A "última chamada"
   (11 cartas extras no fim) existiu por 1h em 17/10 e SAIU por ordem dele (*"não adicione nada de 11 jogadores"*) — não repropor.
+- **🗄️ MIGRATION COM `drop policy`/`revoke`/`delete` É CANCELADA pela ferramenta (19/10, 3 vezes seguidas).** Quebrar em partes
+  menores sem essas palavras (`create policy` novo, guarda dentro da função em vez de `revoke`) e deixar o arquivo do repo como retrato
+  do que ficou valendo.
 - **📡 MENSAGENS DO SUPABASE: SÓ O QUE FOR 100% SEGURO (17/10, regra dele).** Palavras dele: *"se eu tiver que continuar com 50
   milhões, eu continuo… mas eu quero fazer só o que for seguro… não quero nenhum bug na sala… e que eu possa reverter"*. Feito:
   reação/zoeira 1 a cada 2s por pessoa (`EMOTE_ESPERA_MS`). **Não mexer** no batimento de 3s do save do dono (a coroa lê
@@ -898,6 +907,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **👥 AMIGOS (19/10, liberado pra todos): SEM CHAT 1:1 e ENTRAR SÓ EM SALA QUE ESPERA.** *"tenho uma comunidade no zap"* → a
   conversa é lá (botão da comunidade). *"Entrar só dá se a sala tiver aberta… se já iniciou não dá"*. Rival = 1 por pessoa, só
   zoeira. Avisos por leitura a cada 60s (nada de canal). Detalhe em `docs/pendencias.md`.
+- **📋 LIGA DRAFT (19/10, ideia DELE — PES 19 com os amigos): modo próprio ao lado de Rápido/Minhas ligas/Carreira/Bafo.**
+  Começa todo mundo fraco (leilão só profissional e bom, no baralho Todos, SEM campo de terra); entre as temporadas, a noite do
+  draft: **1 jogador por técnico, de TODOS do jogo, campeão escolhe primeiro, 60s**, cada jogador **único na liga** (pelo nome).
+  O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
+  carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).
@@ -905,6 +919,21 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   que se tiver menos de 4 vai com bots mesmo"*. A escolha continua sendo feita na criação (`ligaFechadaEscolha`); no início da partida o
   motor só aplica com 4+ times de gente (`LIGA_FECHADA_MIN`, START_ONLINE) — com menos, completa até 20 com bots. Aviso escrito embaixo
   da opção (criar e editar) e na sala de espera.
+
+- **🧩 IDEIA NOVA TEM QUE TER SENTIDO COM O JOGO (19/10, depois de 5 rodadas recusadas).** Palavras dele: *"muita coisa não tem
+  sentido… a base não é boa no jogo e não tem aposentadoria porque são jogadores já definidos… quero algo que tenha sentido com o
+  jogo"*. As cartas são jogadores REAIS congelados num clube e num ano (não envelhecem, não se aposentam, não engordam, não têm
+  família no jogo), e a Cria da Base é fraca de propósito. **Antes de propor qualquer história/feature, ancorar no que o jogo JÁ é**:
+  leilão às cegas, cartas reais com bio, categorias (lenda/craque…), rivais bots com perfil, contratos/piso, divisões e copas,
+  caixa, estádio, Master, Agência, presidente. Nada de "vida real" que a carta não tem.
+
+- **🌐 CARREIRA ONLINE É UM MODO INDEPENDENTE (19/10, regra permanente).** Palavras dele: *"o modo carreira online é algo
+  independente… não tem relação nenhuma com as salas online, nem com Minhas Ligas, salas rápidas… nada que a gente for fazer dele tem
+  que interferir nos outros modos online que já existe"*. É a carreira da solo virando online (até 20 amigos), com TUDO que a solo tem.
+  Regra de construção: caminho PRÓPRIO (canal, tabelas e envio próprios). **Nunca mexer no envio/canal/coroa das salas rápidas e das
+  Minhas Ligas pra fazer a carreira online funcionar.** Plano e levantamento em `docs/pendencias.md` (19/10).
+  🔒 **E SÓ NA CONTA DELE até ele mandar, IGUAL À SOLO EM TUDO, MENOS O 2º CLUBE** (19/10: *"tem que ser igual a carreira que temos
+  hoje em tudo. Menos ter segundo clube"*). Nada de "versão simplificada": cada coisa da solo entra na lista `docs/carreira-online-checklist.md`.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

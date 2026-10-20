@@ -3,17 +3,19 @@ import {aparenciaModular,aparenciaInicial,camadasDoPresidente} from './president
 import {montarPresidenteLayers} from './presidente-rig'
 import {PECAS_PRESIDENTE} from './presidente-pecas'
 import {VESTUARIO_MODULAR} from './presidente-vestuario-modular'
-import {podeVestirModular} from './presidente-vestuario-acesso'
+import {podeVestirComPosse,podeUsarPecaAvulsa,posseDe,type PosseAvulsa} from './presidente-avulsas'
 import type {PlanoUnico} from './planos-regras'
 
 /** Só rascunho, só peças integradas. Nome, tom de pele e mandato são mantidos.
  * Nenhum pacote de jogador inteiro; cabelo e barba são sorteados à parte.
- * 🔁 15/10: a roupa sorteada respeita o PLANO da conta (nada de sortear roupa que a pessoa não pode usar). */
-export function sortearPresidente(value:PresidenteBaseSave,random:()=>number=Math.random,plano:PlanoUnico|null|undefined=null):PresidenteBaseSave{
- const outfits=VESTUARIO_MODULAR.filter(roupa=>podeVestirModular(roupa.id,plano))
+ * 🔁 15/10: a roupa sorteada respeita o PLANO da conta (nada de sortear roupa que a pessoa não pode usar).
+ * 🔁 19/10: e as PEÇAS AVULSAS compradas — grátis sorteia só entre as roupas/cabelos/barbas que comprou. */
+export function sortearPresidente(value:PresidenteBaseSave,random:()=>number=Math.random,plano:PosseAvulsa|PlanoUnico|null|undefined=null):PresidenteBaseSave{
+ const posse=posseDe(plano)
+ const outfits=VESTUARIO_MODULAR.filter(roupa=>podeVestirComPosse(roupa.id,posse))
  if(!outfits.length)return value
  const pick=<T,>(items:readonly T[]):T=>{const n=random();return items[Number.isFinite(n)&&n>=0&&n<1?Math.floor(n*items.length):0]}
- const ready=PECAS_PRESIDENTE.filter(p=>p.ready)
+ const ready=PECAS_PRESIDENTE.filter(p=>p.ready&&podeUsarPecaAvulsa(p.id,posse))
  const hair=pick(['none',...ready.filter(p=>p.category==='hair').map(p=>p.id)])
  const beard=pick(['none',...ready.filter(p=>p.category==='beard').map(p=>p.id)])
  const accessories:string[]=[]
