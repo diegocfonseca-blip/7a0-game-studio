@@ -9858,3 +9858,8 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   pessoa em 2 cartas (Argentina, Paraguai, Colômbia, Portugal, Chile, Senegal, Irlanda, Argélia) — agora não repete.
 - Só Copas criadas depois de 20/10 19h30 UTC (`maquina2` na ficha); Copa já em andamento não muda. Trava `npm run copa-maquina`
   (máquina fraca campeã: 4,0% → 2,4%).
+
+## 🎤 Coletiva: o boneco sentado na mesa (20/10) — APROVADO ("Adorei")
+- O presidente da CONTA (o mesmo da Loja; trocou lá, troca aqui) aparece sentado, do peito pra cima, atrás da mesa com os 3
+  microfones (`PresidenteNaMesa` em `presidente-avatar.tsx`, pose `seated`). Grátis sem boneco = mesa como antes.
+  Mockup: `scripts/mockups/coletiva-presidente.png`. ⏳ Publicar na main quando o Diego mandar (junto da Copa/máquina e do aviso do dono).
