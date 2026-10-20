@@ -6949,7 +6949,7 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colo
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
       <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
-        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
+        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} elencos={{ casa: homeT.xi, fora: awayT.xi, fCasa: homeT.formation, fFora: awayT.formation }} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
       {showDone && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
           {/* 🧮 os TRÊS placares na MESMA ordem (A × B), com os nomes em cima —

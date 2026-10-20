@@ -9717,6 +9717,11 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   ⛳ escanteio de enchimento só com ~10 s livres (empurrava o gol). 🎯 Chute de fora da área: já existe (~1 em 5 chutes, de 22 a 33 m;
   nenhum do meio-campo) e agora a narração AVISA ("arrisca de fora da área…", 7 frases). Trava `npm run campo2d` cobra tudo isso
   (cobrança fora da regra de distância ≤ 1%, pulos, grudados). Atraso de gol: mediana 0,5', pior 5,5'.
+- ✅ **20/10 — 🙂 ROSTINHO DAS LENDAS NAS COPAS DO 2D** (Diego: *"as lendas não estão aparecendo com rostinho… tô vendo só o
+  Romário"*). Na liga o placar manda os 11 pro campinho; na Copa da carreira (Copa do Brasil/Legends, Supercopa) e nas
+  internacionais (Liberta, Champions, Mundial) NÃO mandava — o campinho montava o time sem nome nem rosto. Agora vai o XI (e a
+  formação, na Copa). Conferido no save dele: os 11 titulares (todos lendas) têm rosto desenhado. Efeito junto: a 📻 rádio dessas
+  copas passa a citar o jogador pelo nome. ⚠️ Quem criar placar novo com o 2D: SEMPRE passar `elencos`.
 - ✅ **20/10 — 🐌 FIM DA CÂMERA LENTA NO 2D + JOGO INTEIRO ANALISADO LANCE A LANCE** (Diego: *"daqui a pouco ela começa a andar
   em câmera lenta do nada… analisa um jogo completo… se tá tendo sentido igual um jogo de futebol real"*). Causas achadas:
   (1) 🐛 na conta dele (estádio do presidente liberado) o relógio do placar PARAVA a cada chance e gol esperando a cena do

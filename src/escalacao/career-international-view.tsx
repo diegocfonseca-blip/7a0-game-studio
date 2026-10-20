@@ -487,6 +487,7 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
     mascotHome={home.you ? campaign.userTeam : undefined} mascotAway={away.you ? campaign.userTeam : undefined}
     apitoFrases={frasesDoApito(fase, comp, home.you ? home.institution : away.institution)}
+    elencos={{ casa: home.xi, fora: away.xi }} // 📺 sem o elenco o Campo 2D montava o time sem nomes nem rostos das lendas (Diego 20/10)
     youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
     onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); onFim() } }} />
 }
