@@ -13,7 +13,7 @@ export type Acao =
   | { tipo: 'conduz' | 'drible' | 'segura'; alvo: { x: number; y: number }; u: number; contra?: Atleta }
 
 /** 🎯 o quanto o time quer ganhar metros (por 10 m). O jogo dura 1:30 de tela: sem isto ele trocaria passe pra sempre */
-const DIRETO = 0.05
+const DIRETO = 0.075
 /** 🧲 quanto vale CONTINUAR com a bola (por opção, × (2·pOk − 1)): o passe seguro ganha isso, a loteria perde. Sem isto o time
  *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
 const MANTER = 0.03
@@ -39,10 +39,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
   // 🎯 CHUTAR
   if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 31 && f > 1 && !(cedo && dGol > 24)) {
     const xg = xgDe(l, p.x, p.y, pres)
-    let u = xg * (3 + p.at.finalizacao / 150)
+    let u = xg * (4.2 + p.at.finalizacao / 120)
     // (dentro da área o instinto é chutar — o passe de 3 m pro companheiro marcado não resolve)
     if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
-    if (dGol > 19) u *= 0.8 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
+    if (dGol > 19) u *= 1 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
     if (dGol > 27) u *= 0.7 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0

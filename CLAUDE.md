@@ -991,6 +991,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   com o NÍVEL DO DIA sorteado dentro da faixa lo–hi (média de dois sorteios: o meio é comum, ápice/dia ruim são raros; preso na
   semente do jogo) · o CANSAÇO pesa na técnica (rende = nível do dia × (0,7 + 0,3 × gás), além da velocidade) · o TÉCNICO (1/12, a
   mesma régua da simulação) e o EVENTO da rodada entram. Medido: Romário 🚑 0,27 gol/jogo < Jardel inteiro 0,47 ≈ Romário 😓.
+  (19) **BOT × BOT FICA NA SIMULAÇÃO DE HOJE; O MOTOR NOVO JOGA NA MESMA MÉDIA DELA (20/10).** Ele perguntou se dava pra pôr o motor
+  novo nos bots também ou baixar a média do antigo; eu recomendei manter os bots no antigo (50 jogos de bot por rodada × ~80 ms =
+  tela travando, e minutos ao abrir carreira) e subir o motor novo pra média da simulação, com placar LIVRE (*"não é porque tem
+  motor novo que não vai poder ter goleada… nem que vai ter um gol só… com base no elenco, no 11 contra 11"*). Medido depois do
+  ajuste: parecidos 1,9 · forte × médio 2,2 · lendas × profissionais 2,6 gols/jogo com 44% de goleada; 0×0 raro.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca

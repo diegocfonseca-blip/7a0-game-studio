@@ -21,6 +21,7 @@ online e partida rápida; salas online/Minhas Ligas seguem no teatro. Feito: a L
 do intervalo vale no motor (`trocaTime`, 1º tempo idêntico); o campinho anima o mesmo motor (`elencos.m2`). Provado numa temporada
 inteira: rodadas antigas iguais, jogos de bot iguais (29/29), placar = campinho em 28/28. Custo: ~80 ms por jogo novo; ao abrir uma
 carreira no meio da temporada, ~2,3 s na 1ª conta (depois fica na memória).
+✅ (20/10) média de gols do motor novo subida pra perto da simulação (bots seguem nela): parecidos 1,9 · forte×médio 2,2 · lendas×profissionais 2,6, com goleada quando um time é muito melhor.
 ✅ (20/10) o motor novo usa o nível do DIA (faixa lo–hi), o cansaço na técnica, o técnico e o evento da rodada. Partida rápida FICA no
 teatro (decisão dele).
 ⏳ **FASE 2 (falta):** Copa do Brasil/Legends, Supercopa, Libertadores/Champions/Mundial e Copa do Mundo da carreira (hoje ainda no
