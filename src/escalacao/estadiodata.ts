@@ -324,11 +324,15 @@ export function stadiumSeats(st: StadiumSave | undefined): { now: number; max: n
   return { now, max }
 }
 // nível/apelido do estádio pelo total de peças prontas (setores + melhorias)
-export function stadiumLevel(st: StadiumSave | undefined): { n: number; name: string } {
+export function stadiumLevel(st: StadiumSave | undefined, bb = false): { n: number; name: string } {
   const n = sectorsDone(st) + STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length
-  const name = getLang() === 'en'
-    ? (n >= 9 ? '👑 Legends Temple' : n >= 6 ? '🏟️ Legends Arena' : n >= 4 ? '🏛️ Municipal Stadium' : n >= 2 ? '🪵 Neighborhood Ground' : n >= 1 ? '🚧 Building Site' : '🌱 Sunday League Pitch')
-    : (n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea')
+  const en = getLang() === 'en'
+  // 🏀 basquete = nomes de QUADRA/ARENA; ⚽ futebol = estádio. Ambos bilíngues.
+  const name = bb
+    ? (n >= 9 ? (en ? '👑 Basketball Temple' : '👑 Templo do Basquete') : n >= 6 ? (en ? '🏟️ Arena' : '🏟️ Arena') : n >= 4 ? (en ? '🏛️ City Arena' : '🏛️ Ginásio Municipal') : n >= 2 ? (en ? '🏫 Community Gym' : '🏫 Ginásio de Bairro') : n >= 1 ? (en ? '🚧 Under Construction' : '🚧 Em Obras') : (en ? '🏀 Street Court' : '🏀 Quadra de Rua'))
+    : (en
+      ? (n >= 9 ? '👑 Legends Temple' : n >= 6 ? '🏟️ Legends Arena' : n >= 4 ? '🏛️ Municipal Stadium' : n >= 2 ? '🪵 Neighborhood Ground' : n >= 1 ? '🚧 Building Site' : '🌱 Sunday League Pitch')
+      : (n >= 9 ? '👑 Templo Legends' : n >= 6 ? '🏟️ Arena Legends' : n >= 4 ? '🏛️ Estádio Municipal' : n >= 2 ? '🪵 Estádio de Bairro' : n >= 1 ? '🚧 Canteiro de Obras' : '🌱 Campo de Várzea'))
   return { n, name }
 }
 export function stadiumComplete(st: StadiumSave | undefined): boolean {
@@ -356,7 +360,7 @@ export function empCat(c: { fame?: number; promessa?: boolean }): EmpCat {
 }
 // categoria desbloqueada? (gates ligados ao estádio/SAF — grandfather automático:
 // quem já completou/comprou já entra destravado)
-export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFilial: boolean): boolean {
+export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFilial: boolean, bb = false): boolean {
   switch (cat) {
     case 'prof': return true
     case 'bom': return sectorsDone(st) >= 1
@@ -365,7 +369,9 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
     // melhorias, quem JÁ tinha o estádio 100% não pode PERDER a renda de Craque
     // até construir o médico (grandfather). O gate segue sendo o estádio "clássico".
     case 'craque': return sectorsDone(st) >= STADIUM_SECTORS.length && STADIUM_EXTRAS.every(e => extraNovaOnly(e.k) || hasExtra(st, e.k))
-    case 'lenda': return hasFilial
+    // 🏀 basquete NÃO tem SAF: a LENDA destrava pela ARENA 100% completa (o teto do
+    // basquete). Futebol segue exigindo a SAF (hasFilial), idêntico.
+    case 'lenda': return bb ? stadiumComplete(st) : hasFilial
     default: return false
   }
 }
@@ -375,9 +381,9 @@ export function empCatUnlocked(cat: EmpCat, st: StadiumSave | undefined, hasFili
 // Os desbloqueios são os MESMOS do empresário clássico (estádio/SAF).
 export const AG_VALUES: Record<EmpCat, number> = { lenda: 6, craque: 4, promessa: 3, bom: 2, prof: 1 }
 export const AG_FOLK_BONUS = 1
-export function agenciaRenda(cards: { fame?: number; promessa?: boolean; folk?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>; folkCount: number; folkIncome: number } {
+export function agenciaRenda(cards: { fame?: number; promessa?: boolean; folk?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean, bb = false): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>; folkCount: number; folkIncome: number } {
   const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
-  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial), value: AG_VALUES[k], income: 0 }
+  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial, bb), value: AG_VALUES[k], income: 0 }
   let folkCount = 0, folkIncome = 0
   for (const c of cards ?? []) {
     const k = empCat(c)
@@ -391,9 +397,9 @@ export function agenciaRenda(cards: { fame?: number; promessa?: boolean; folk?: 
 }
 
 // renda por temporada + detalhamento por categoria (só as desbloqueadas rendem)
-export function empresarioIncome(cards: { fame?: number; promessa?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }> } {
+export function empresarioIncome(cards: { fame?: number; promessa?: boolean }[] | undefined, st: StadiumSave | undefined, hasFilial: boolean, bb = false): { total: number; by: Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }> } {
   const by = {} as Record<EmpCat, { count: number; unlocked: boolean; value: number; income: number }>
-  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial), value: EMP_META[k].value, income: 0 }
+  for (const k of EMP_ORDER) by[k] = { count: 0, unlocked: empCatUnlocked(k, st, hasFilial, bb), value: EMP_META[k].value, income: 0 }
   for (const c of cards ?? []) by[empCat(c)].count++
   let total = 0
   for (const k of EMP_ORDER) { const b = by[k]; b.income = b.unlocked ? b.count * b.value : 0; total += b.income }

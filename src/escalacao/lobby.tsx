@@ -33,6 +33,9 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat, desfazParCruzado } from './types'
+import { POS_LABELS } from './sportcfg'
+// 🏀 19/10: nas Duplas do basquete cada metade escolhe POSIÇÕES DA NBA (o setor do motor GOL..ATA = PG..C)
+const DUPLA_BB_ICON: Record<string, string> = { GOL: '🧠', LAT: '🎯', ZAG: '🦅', MEI: '💪', ATA: '🗼', MONTE: '📦' }
 import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { LojaButton } from './loja-clube'
@@ -722,7 +725,11 @@ export function EscLobby() {
   // de 4 divisões, Bafo, Copa do Mundo) e o texto fala de quinteto em vez de XI.
   const [esporteSala] = useSport()
   const nbaSala = esporteSala === 'basquete'
-  const canCareer = useCanCareerOnline() && !nbaSala
+  // 🌐🏀 carreira online agora existe no basquete também (tester). `nbaSala` é sempre
+  // false no futebol, então tirar o `&& !nbaSala` NÃO muda nada pro futebol; só libera
+  // a aba 🌐 Carreira na sala de basquete. O conteúdo football-only da config (escolher
+  // rivais da Série D, baralho) fica escondido no basquete (gate `!nbaSala` abaixo).
+  const canCareer = useCanCareerOnline()
   // 👔🃏 SALA DE ELENCO (17/08): 3º modo — em vez de leiloar, cada um traz o time
   // da PRÓPRIA carreira. EM CONSTRUÇÃO: só a conta do Diego vê o botão (sport.ts).
   const salaElenco = useSalaElencoLiberada()
@@ -1894,7 +1901,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     if (liga && !canLiga) {
-      setRoomError((planos2Liberado() ? tr('🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".', '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
+      setRoomError((planos2Liberado() ? tr((nbaSala ? '🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e cestinha temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.' : '🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.'), '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr((nbaSala ? '🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e cestinha temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".' : '🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".'), '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
       setLoading(false); return
     }
     // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
@@ -1921,6 +1928,10 @@ export function EscLobby() {
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(campo2dOn && room2d && !carreira && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
       ...(liga && ehDraft ? { ligaDraft: true, deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
+    // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
+    // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
+    // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
+    if (getSport() === 'basquete') for (const k of ['mundoNaLiga', 'regionalNaLiga', 'varzea'] as const) delete (gs as Record<string, unknown>)[k]
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3235,13 +3246,12 @@ export function EscLobby() {
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, selo: tr('👑 LENDA', '👑 LEGEND') },
           ...(draftOn ? [{ v: 'liga' as const, draft: true, ic: '📋', nome: 'Liga Draft', frase: tr('Todo mundo começa fraco. A cada temporada, 1 jogador no draft.', 'Everyone starts weak. Every season, 1 player in the draft.'), on: ligaOn, selo: tr('NOVO', 'NEW') }] : []),
-          { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true },
+          { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true },
         ]
-        // 🏀 no BidLegends só existem estes dois modos por enquanto: Rápido e Minhas
-        // ligas. Carreira online (pirâmide) e Bafo são do futebol — em vez de mostrar
-        // um cartão que não abre, eles somem da lista aqui.
-        const MODOS = TODOS_MODOS.filter(m => !nbaSala || m.v === 'rapido' || m.v === 'liga')
+        // 🏀 no BidLegends existem Rápido, Minhas ligas e a 🌐 Carreira (online do basquete).
+        // O Bafo é do futebol — some da lista aqui pra não mostrar cartão que não abre.
+        const MODOS = TODOS_MODOS.filter(m => !nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !('draft' in m && m.draft))) // 📋 a Liga Draft usa os baralhos do futebol: fora do basquete
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
         // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
@@ -3280,7 +3290,7 @@ export function EscLobby() {
                   )}
                   <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>{planos2Liberado() ? (tr('⭐ Criar uma liga é do Craque', '⭐ Creating a league is a Star perk')) : (tr('👑 Criar uma liga é do Lenda', '👑 Creating a league is for Legends'))}</p>
                   <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
-                    {getLang() === 'en' ? <>The league is the room that <b className="text-white">stays up</b>: always the same one, with a set day and time, and the shelf keeping champion and top scorer <b className="text-white">season after season</b>.</> : <>A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.</>}
+                    {getLang() === 'en' ? <>The league is the room that <b className="text-white">stays up</b>: always the same one, with a set day and time, and the shelf keeping champion and top scorer <b className="text-white">season after season</b>.</> : <>A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e {nbaSala ? 'cestinha' : 'artilheiro'} <b className="text-white">temporada após temporada</b>.</>}
                   </p>
                   <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
                     className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
@@ -3452,8 +3462,8 @@ export function EscLobby() {
                     { v: 'carreira', label: tr('🌐 Carreira', '🌐 Career'), liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
-                  // 🏀 idem aos cartões: no basquete só os dois modos que existem lá
-                  const abas = abasTodas.filter(a => !nbaSala || a.v === 'rapido' || a.v === 'liga')
+                  // 🏀 no basquete: Rápido, Minhas ligas e a 🌐 Carreira (online do basquete). Bafo fica fora.
+                  const abas = abasTodas.filter(a => !nbaSala || a.v === 'rapido' || a.v === 'liga' || a.v === 'carreira')
                   return (
                     <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
                       {abas.map((a, i) => (a.liberado && a.v) ? (
@@ -3474,7 +3484,7 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
+                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer && nbaSala ? tr('🏀 Carreira do basquete: a turma começa na Street League e SOBE junta até a NBA. Economia igual à do futebol.', '🏀 Basketball career: the crew starts in the Street League and CLIMBS together up to the NBA. Economy just like football.') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
               </p>
               </>)}
               {!criar2 && quadroLiga}
@@ -3502,13 +3512,16 @@ export function EscLobby() {
             {/* 🧱 LEILÃO DE CLUBES — liberado no online em 28/09 (Diego: "pro online também, modos
                 rápidos e minhas ligas"). O padrão é sempre Jogador. `CLUBES_GERAL` segue sendo o
                 interruptor: desligado, a opção aparece com NOVO mas travada.
-                Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido. */}
+                Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido.
+                🏀 19/10 (Diego: "quero da NBA"): no basquete o pacote é a POSIÇÃO de uma franquia ("Armadores dos Lakers"). */}
             {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga') && (
               <SegField label={tr('Tipo de leilão', 'Auction type')}>
                 <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
                   travados={clubesOn ? [] : ['true']} /> {/* 🏷️ 12/10: selo NOVO tirado (ordem do Diego) */}
                 <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                  {rapidoClubes
+                  {rapidoClubes && nbaSala
+                    ? tr('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Cada um leva um pacote por posição e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto (90s). Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). Everyone takes one pack per position and, at the end, CALLS UP who plays — 1 per position, your starting five (90s). Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
+                    : rapidoClubes
                     ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
                     : clubesOn
                       ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
@@ -3516,7 +3529,14 @@ export function EscLobby() {
                 </p>
               </SegField>
             )}
-            {isCareer ? (
+            {isCareer && nbaSala ? (
+              // 🏀 carreira ONLINE do basquete: começa na Street League (crews), sobe pra
+              // G League e NBA. Sem escolher baralho nem rivais (a liga enche de crews sozinha).
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🛝 Começa na Street League', '🛝 Starts in the Street League')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('Liga cheia de 20 crews, pontos corridos. Indo bem, a turma SOBE junta: Street → G League → NBA (o anel). A economia é a mesma do futebol — arena, agência e caixa.', 'A full 20-crew league, round-robin. Do well and the crew climbs together: Street → G League → NBA (the ring). Same economy as football — arena, agency and cash.')}</p>
+              </div>
+            ) : isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho fixo: Brasil + Europa', '🌎 Fixed deck: Brazil + Europe')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.', 'Career uses both together (~700 names) to fill the 80 teams of the 4 divisions.')}</p>
@@ -3531,10 +3551,16 @@ export function EscLobby() {
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">📋 {tr('Entre as temporadas: draft, 1 jogador por técnico, de todo o jogo · 60s pra escolher · ordem da tabela', 'Between seasons: draft, 1 player per manager, from the whole game · 60s to pick · table order')}</p>
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">☝️ {tr('Cada jogador é único na liga', 'Each player is unique in the league')}</p>
               </div>
-            ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes) ? (
+            ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes && !nbaSala) ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho: Todos (BR+EU+Mundo)', '🌎 Deck: All (BR+EU+World)')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('No leilão de clubes precisa dos 3 baralhos: é o que dá clube suficiente pra cada setor ter pacotes diferentes.', 'The club auction needs all 3 decks: that is what gives each sector enough different clubs.')}</p>
+              </div>
+            ) : nbaSala ? (
+              // 🏀 basquete: o baralho é SEMPRE a NBA (franquias reais) — nada de escolher BR/Europa/Várzea.
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
               </div>
             ) : (
               <SegField label={tr('Baralho de craques', 'Deck of stars')}>
@@ -3549,15 +3575,17 @@ export function EscLobby() {
                 )}
               </SegField>
             )}
-            {!isCareer && (
+            {/* 🏀 formação 4-3-3/4-4-2 é do futebol; o basquete é quinteto (5), sem formação. */}
+            {!isCareer && !nbaSala && (
               <SegField label={tr('Formação (vale pra todos)', 'Formation (for everyone)')}>
                 <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
               </SegField>
             )}
           </Section>
 
-          {/* ② OS RIVAIS — só na carreira (igual offline: host escolhe os CPUs do leilão) */}
-          {isCareer && (
+          {/* ② OS RIVAIS — só na carreira do FUTEBOL (igual offline: host escolhe os CPUs do
+              leilão). 🏀 No basquete a liga enche de crews sozinha (sem escolher rivais). */}
+          {isCareer && !nbaSala && (
             <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥">
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
@@ -3595,7 +3623,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon="⚽">
+            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'}>
               {/* 🔻 COMO É O LEILÃO — a escolha mais importante da sala, então mora
                   na seção À VISTA (a tela v2 recolhe as outras num ⚙️ Ajustes, e
                   escolher o tipo de pregão não pode ficar escondido atrás de
@@ -3614,7 +3642,7 @@ export function EscLobby() {
                     {pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions'
                       ? tr('🔨 Uma carta por vez, com o lance À VISTA de todos. Cada lance novo zera o relógio; 5s sem lance = vendido. A ordem das posições é embaralhada e não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, with bids IN THE OPEN. Every new bid resets the clock; 5s without a bid = sold. Positions come in shuffled order and there is no pile: empty slots at the end get a free player.')
                       : rapidoHolandes
-                      ? tr('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                      ? tr(`🐊 A leva inteira na tela com UM preço só, abrindo em ${nbaSala ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${nbaSala ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
                       : tr('✉️ O leilão de sempre: cada um escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: everyone writes a secret bid and the highest wins at the hammer.')}
                   </p>
                 </SegField>
@@ -3654,6 +3682,15 @@ export function EscLobby() {
                   </p>
                 </SegField>
                 </>
+              ) : nbaSala ? (
+                // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;
+                // G League/NBA = PLAYOFFS por conferência (automático). Sem seletor.
+                <SegField label={tr('Depois da liga', 'After the league')}>
+                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('🏀 Playoffs (nos andares de cima)', '🏀 Playoffs (upper tiers)')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Na Street League é só a tabela. Na G League e na NBA os melhores vão aos PLAYOFFS por conferência e brigam pelo anel 💍 — automático, igual à NBA de verdade.', 'In the Street League it is just the table. In the G League and the NBA the best go to the conference PLAYOFFS and fight for the ring 💍 — automatic, like the real NBA.')}</p>
+                  </div>
+                </SegField>
               ) : (ehDraft && roomMode === 'liga') ? (
                 <SegField label={tr('Depois da liga', 'After the league')}>
                   <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
@@ -4114,7 +4151,7 @@ export function EscLobby() {
             {pwModal.game_state?.mode === 'liga' ? (
               <>
                 <p className="text-black/70 text-xs font-bold leading-snug mb-1.5">
-                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> {tr('é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.', 'is a league: always the same room, with the shelf keeping champion and top scorer season after season.')}
+                  <b>“{pwModal.game_state?.roomName ?? pwModal.code}”</b> {tr((nbaSala ? 'é uma liga: a mesma sala sempre, com a estante guardando campeão e cestinha temporada após temporada.' : 'é uma liga: a mesma sala sempre, com a estante guardando campeão e artilheiro temporada após temporada.'), 'is a league: always the same room, with the shelf keeping champion and top scorer season after season.')}
                 </p>
                 <p className="text-black/50 text-[11px] font-bold leading-snug mb-2">
                   {getLang() === 'en' ? <>🔑 It belongs to its crew only — <b>ask whoever invited you for the password</b>. No password? You can play now in a ⚡ Quick room, or have your own league as a 👑 Legend.</> : <>🔑 Ela é só da turma dela — <b>peça a senha pra quem te chamou</b>. Não tem a senha? Dá pra jogar agora numa sala ⚡ Rápida, ou ter a sua própria liga sendo 👑 Lenda.</>}
@@ -4332,15 +4369,16 @@ export function EscLobby() {
                       value={modoEdit.clubes} onSet={v => setModoEdit(m => m && { ...m, clubes: v })} />
                   </div>
                 )}
-                <div>
+                {/* 🏀 baralho Brasil/Europa é do futebol — liga de basquete usa o baralho da NBA */}
+                {!nbaSala && <div>
                   <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Baralho', 'Deck')}</p>
                   <Seg small options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as ['br' | 'eu' | 'both', string][]}
                     value={modoEdit.clubes ? 'both' : modoEdit.deck} onSet={v => setModoEdit(m => m && { ...m, deck: v })} travados={modoEdit.clubes ? ['br', 'eu'] : undefined} />
                   {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
                   {champ && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
-                </div>
+                </div>}
                 <div className="rounded-xl border-2 border-black px-2.5 py-2 text-[11.5px] font-bold leading-snug" style={{ background: '#FFF3C4' }}>
-                  {tr('🏆 Fica tudo: troféus, ranking, campeões e artilheiros da liga. Vale a partir da próxima temporada.', '🏆 Everything stays: trophies, ranking, champions and top scorers. It applies from the next season.')}
+                  {tr((nbaSala ? '🏆 Fica tudo: troféus, ranking, campeões e cestinhas da liga. Vale a partir da próxima temporada.' : '🏆 Fica tudo: troféus, ranking, campeões e artilheiros da liga. Vale a partir da próxima temporada.'), '🏆 Everything stays: trophies, ranking, champions and top scorers. It applies from the next season.')}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => setModoEdit(null)} className="border-2 border-black rounded-xl py-2 font-black text-[12px] uppercase bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
@@ -4652,7 +4690,7 @@ export function EscLobby() {
                             color: meu(c) ? '#fff' : doOutro(c) ? 'rgba(0,0,0,.45)' : '#000',
                             cursor: doOutro(c) ? 'default' : 'pointer',
                           }}>
-                          <span style={{ fontSize: 13 }}>{DUPLA_CAT_ICON[c]}</span><br />{DUPLA_CAT_LABEL[c]}
+                          <span style={{ fontSize: 13 }}>{nbaSala ? DUPLA_BB_ICON[c] : DUPLA_CAT_ICON[c]}</span><br />{!nbaSala ? DUPLA_CAT_LABEL[c] : c === 'MONTE' ? tr('Monte (sobras)', 'Pile (leftovers)') : `${POS_LABELS.basquete[c].tag} · ${tr(POS_LABELS.basquete[c].singular.pt, POS_LABELS.basquete[c].singular.en)}`}
                         </button>
                       ))}
                     </div>

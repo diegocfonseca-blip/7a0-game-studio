@@ -16,6 +16,9 @@ import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
+import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
+import { NBA_POS_ORDER } from './basquete-deck'
+import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
 import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
@@ -59,7 +62,7 @@ import { CampinhoKings } from './kings-campinho'
 import { LigaHub, gravaTemporadaSala, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
-import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
@@ -1273,8 +1276,14 @@ const SETOR_PACOTE: Record<Sector, { ic: string; pt: string; en: string }> = {
 }
 /** "Goleiros do Palmeiras" — o nome do pacote no idioma da pessoa (o clube nunca traduz) */
 export function nomePacote(c: Card): string {
+  const clube = c.pacote?.clube ?? c.club
+  // 🏀 basquete: a posição da NBA + a franquia ("Armadores dos Lakers" · "Lakers Point Guards")
+  if (getSport() === 'basquete') {
+    const pl = POS_LABELS.basquete[c.pos].plural
+    return getLang() === 'en' ? `🏀 ${clube} ${pl.en}` : `🏀 ${pl.pt} dos ${clube}`
+  }
   const t = SETOR_PACOTE[c.pos]
-  return `${t.ic} ${getLang() === 'en' ? t.en : t.pt} ${c.pacote?.clube ?? c.club}`
+  return `${t.ic} ${getLang() === 'en' ? t.en : t.pt} ${clube}`
 }
 function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean; claro?: boolean }) {
   const cartas = c.pacote?.cartas ?? []
@@ -1501,7 +1510,6 @@ function useResumableNbaCareer() {
     seasonNo: saved.seasonNo ?? 1,
     teamName: you?.teamName ?? 'Meu Time',
     resume: () => dispatch({ type: 'RESUME_NBA_CAREER', saved }),
-    discard: () => { try { localStorage.removeItem('bl-nba-career'); localStorage.removeItem('bl-nba-career-at') } catch { /* ignora */ } setSaved(null) },
   }
 }
 
@@ -1520,6 +1528,108 @@ function agoLabel(at: number): string {
   return d < 7 ? `há ${d} dia${d > 1 ? 's' : ''}` : `há ${Math.round(d / 7)} sem`
 }
 const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77B3C', D: '#1E7A3D' }
+// 🏀 MINHAS CARREIRAS DO BASQUETE (19/10) — a MESMA tela do futebol (cartão por carreira, ▶️ Continuar,
+// 🗑️ em dois toques, ➕ nova), com o ANDAR no lugar da Série. Guardar/trocar/apagar em `nba-carreiras.ts`
+// (grava antes de apagar: trocar nunca perde nada). Fichas: a MESMA régua do futebol (`careerSlotLimit`),
+// contada só entre as carreiras de basquete. ➕ abre o passo do NOME DO TIME.
+const NBA_ANDAR: Record<string, { pt: string; en: string; cor: string }> = {
+  street: { pt: '🛝 STREET LEAGUE', en: '🛝 STREET LEAGUE', cor: '#1E7A3D' },
+  gleague: { pt: '🔷 G LEAGUE', en: '🔷 G LEAGUE', cor: '#8C97A3' },
+  nba: { pt: '💍 NBA', en: '💍 NBA', cor: '#E7A21F' },
+}
+function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; comecaNova?: boolean }) {
+  const { dispatch } = useEsc()
+  const t = useT()
+  const [list, setList] = useState(() => listaNbaCarreiras())
+  const [, setExtras] = useState(0)
+  useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
+  const [confirmKey, setConfirmKey] = useState<string | null>(null)
+  const [aviso, setAviso] = useState(false)
+  const [nomeando, setNomeando] = useState(!!comecaNova)
+  const [nome, setNome] = useState('')
+  const [nomeErr, setNomeErr] = useState('')
+  const [checando, setChecando] = useState(false)
+  // o nome da conta já vem preenchido (igual ao futebol); dá pra trocar só pra esta carreira
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => { const dn = String(data?.user?.user_metadata?.display_name ?? '').trim(); if (dn) setNome(n => n.trim() ? n : dn) }, () => {}) }, [])
+  const lim = careerSlotLimit(list.length)
+  const cheio = list.length >= lim
+  const open = (slot: { save: EscState }, ativa: boolean) => {
+    const save = ativa ? slot.save : ativaNbaCarreira(idNbaCarreira(slot.save))
+    if (!save) { setAviso(true); setList(listaNbaCarreiras()); return }
+    dispatch({ type: 'RESUME_NBA_CAREER', saved: save })
+  }
+  const comecar = async () => {
+    if (checando) return
+    const limpo = stripEmoji(nome).trim()
+    // 🔒 nome de clube BATIZADO é do dono, e nome de outra conta também não passa — mesma checagem do futebol.
+    // (Não troca o nome da CONTA: ele vale pro futebol. O nome fica só nesta carreira.)
+    if (limpo) {
+      setChecando(true)
+      const chk = await nomeLivre(limpo)
+      setChecando(false)
+      if (!chk.livre) { setNomeErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
+    }
+    if (!guardaAtivaNba()) { setAviso(true); return }
+    dispatch({ type: 'START_NBA_CAREER', teamName: limpo || t('Meu Time', 'My Team') })
+  }
+  const botao = (bg: string, fg: string) => ({ background: bg, color: fg, border: `2px solid ${INK}`, borderRadius: 9, fontWeight: 900, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' as const })
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, color: INK }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{nomeando ? t('🏀 Nova carreira', '🏀 New career') : t('🪜 Minhas Carreiras', '🪜 My Careers')}</p>
+          {!nomeando && <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {lim}</span>}
+          <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+        </div>
+        {aviso && <p role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
+        {nomeando ? (<>
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '0 2px 8px', lineHeight: 1.4 }}>{t('Como vai se chamar o seu time? Ele começa na 🛝 Street League e sobe até a 💍 NBA.', 'What will your team be called? It starts in the 🛝 Street League and climbs to the 💍 NBA.')}</p>
+          <input value={nome} onChange={e => { setNome(stripEmoji(e.target.value)); setNomeErr('') }} maxLength={24} autoFocus placeholder={t('Ex.: Garrafão do Zé', 'e.g. Downtown Bricklayers')}
+            style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 16, background: '#fff', color: INK, ...OSWALD }} />
+          {nomeErr && <p role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: '#C2452F', margin: '6px 2px 0', lineHeight: 1.4 }}>{nomeErr}</p>}
+          <button onClick={() => void comecar()} disabled={checando} style={{ ...botao(GREEN, '#fff'), width: '100%', marginTop: 10, padding: 12, fontSize: 15 }}>{checando ? t('Conferindo o nome…', 'Checking the name…') : t('🏀 Começar carreira', '🏀 Start career')}</button>
+          {list.length > 0 && <button onClick={() => setNomeando(false)} style={{ width: '100%', marginTop: 8, background: 'transparent', border: 'none', fontWeight: 800, fontSize: 12, color: 'rgba(0,0,0,.55)', cursor: 'pointer' }}>{t('← voltar pras minhas carreiras', '← back to my careers')}</button>}
+          {list.length > 0 && <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '6px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras.', 'Starting a new one does NOT delete the others.')}</p>}
+        </>) : (<>
+        {list.map(({ slot, ativa }, i) => {
+          const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+          const andar = NBA_ANDAR[slot.save.nbaTier ?? 'street'] ?? NBA_ANDAR.street
+          const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
+          const key = idNbaCarreira(slot.save) + i
+          return (
+            <div key={key} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${andar.cor}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: ativa ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              {ativa && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{you?.teamName ?? t('Meu Time', 'My Team')}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 9.5, fontWeight: 900, color: '#fff', background: andar.cor, padding: '2px 7px', borderRadius: 6, ...OSWALD }}>{t(andar.pt, andar.en)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
+                </div>
+                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
+                <button onClick={() => open(slot, ativa)} style={{ ...botao(GREEN, '#fff'), padding: '7px 11px', fontSize: 12.5 }}>{t('▶️ Continuar', '▶️ Continue')}</button>
+                {confirmKey === key ? (
+                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                    <button onClick={() => { apagaNbaCarreira(idNbaCarreira(slot.save)); setConfirmKey(null); setList(listaNbaCarreiras()) }} style={{ ...botao('#C2452F', '#fff'), padding: '6px 9px', fontSize: 11 }}>{t('🗑️ Apagar', '🗑️ Delete')}</button>
+                    <button onClick={() => setConfirmKey(null)} aria-label={t('Cancelar', 'Cancel')} style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmKey(key)} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        <button onClick={() => setNomeando(true)} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, compre uma 💾 ficha extra na 🛒 Loja do Clube, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4.', '🔒 Your career slots are full — delete a career you no longer use, buy an 💾 extra slot in the 🛒 Club Shop, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4.')}</p>}
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de carreira também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching careers doesn\'t either — only 🗑️ deletes.')}</p>
+        </>)}
+      </div>
+    </div>
+  )
+}
+
 // 🪜 MINHAS CARREIRAS — lista de todos os saves (ativa + arquivo). Começar uma nova
 // nunca apaga as outras; "Continuar" na home aponta pro último jogado. Excluir é na mão.
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
@@ -1645,111 +1755,71 @@ function LangToggle() {
 // basquete ainda está em construção, esta é a tela "chegando": apresenta a
 // marca, o conceito (pirâmide + quinteto) e deixa claro que o FUTEBOL segue
 // 100% no ar na aba ⚽. Zero risco pro jogo ao vivo.
+// 🏀 HOME DO BIDLEGENDS = a MESMA home ilustrada do futebol (ll-home), só com o
+// conteúdo de basquete (decisão do Diego 19/10: *"é exatamente tudo igual… o que
+// muda só é… coisas que não é de futebol, é pra basquete"*). Reusa a arte de fundo
+// do futebol POR ENQUANTO (ele pediu: *"deixe a mesma do futebol por enquanto"* —
+// a arte cinematográfica de basquete entra quando ele mandar/gerar). Mesmos modos,
+// mesma Loja/Amigos/Salão/Regras/Álbum/Conta. Só a conta do Diego vê (sport.ts).
 function BidLegendsHome() {
   const t = useT()
   const { dispatch } = useEsc()
+  const [, setSport] = useSport()
   const nbaSolo = useResumableNbaCareer() // 🏀 carreira do basquete salva (continuar)
-  const PYR = [
-    ['🛝', 'STREET LEAGUE', t('A base. 20 times, pontos corridos. Sobem 4, ninguém cai.', 'The base. 20 teams, round-robin. Top 4 go up, nobody drops.')],
-    ['🔷', 'G LEAGUE', t('Leste × Oeste, 82 jogos, playoffs. Sobe quem vai longe.', 'East × West, 82 games, playoffs. Go far and move up.')],
-    ['💍', 'NBA', t('O topo. Chegue às Finals e leve o anel pro seu álbum.', 'The top. Reach the Finals and take the ring to your album.')],
-  ] as [string, string, string][]
+  const [contaAberta, setContaAberta] = useState(false)
+  const [verSalao, setVerSalao] = useState(false)
+  const amigosOn = useAmigos()
+  const [verAmigos, setVerAmigos] = useState(false)
+  const [showManual, setShowManual] = useState(false)
+  const [carreiras, setCarreiras] = useState<null | 'lista' | 'nova'>(null) // 🪜 Minhas Carreiras do basquete (lista ou já no passo do nome)
+  if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
-    <Shell>
-      {/* header: botão de idioma BR/EN no canto direito (só o BidLegends tem) */}
-      <div className="flex justify-end pt-2"><LangToggle /></div>
-      <SportTabs />
-      {/* 🏀 carreira do basquete em andamento — continuar de onde parou (salvo local) */}
-      {nbaSolo && (
-        <div className="rounded-2xl border-4 border-black p-3 mt-2 space-y-2.5" style={{ background: PURPLE, boxShadow: `4px 4px 0 0 ${INK}` }}>
-          <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
-            🛝 {t('Carreira em andamento', 'Career in progress')}<br />
-            <span className="opacity-80 text-xs">{nbaSolo.teamName} · {t('Temporada', 'Season')} {nbaSolo.seasonNo}</span>
-          </p>
-          <button onClick={nbaSolo.resume} className="w-full rounded-xl border-2 border-black bg-white text-black font-black text-sm py-2.5 active:translate-y-0.5" style={OSWALD}>
-            ▶️ {t('Continuar carreira', 'Continue career')} ({nbaSolo.teamName})
-          </button>
-          <button onClick={nbaSolo.discard} className="w-full rounded-xl border-2 border-black font-black text-xs py-2 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
-            🗑️ {t('Largar e começar outra', 'Drop and start a new one')}
-          </button>
+    <><div className="ll-home ll-home-bb">
+      <div className="ll-art" />
+      <div className="ll-shade" />
+      <header className="ll-header">
+        <div className="ll-brand"><small>{t('NBA ÀS CEGAS', 'NBA BLIND AUCTION')}</small>BIDLEGENDS</div>
+        <div className="ll-lang"><LangToggle /></div>
+        <div className="ll-account">
+          {/* 🏀 voltar pro futebol — o BidLegends é a aba de basquete */}
+          <button className="ll-bb-futebol" onClick={() => setSport('futebol')} title={t('Ir pro futebol', 'Go to soccer')}>⚽</button>
+          <button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button>
         </div>
-      )}
-      <div className="text-center pt-6">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          🏀 {t('Leilão às cegas de lendas', 'Blind auction of legends')}
-        </span>
-        <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>BIDLEGENDS</h1>
-        <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: '#C2452F', border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
-        <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">
-          {t('O leilão cego das lendas do ', 'The blind auction of ')}<b>{t('basquete', 'basketball')}</b>{t('. Monte seu quinteto no pregão, suba a pirâmide da NBA e colecione os craques no seu álbum.', ' legends. Draft your starting five, climb the NBA pyramid and collect the stars in your album.')}
-        </p>
-      </div>
-      {/* vitrine: as MESMAS cartas do futebol, só que de basquete (mesmo visual) */}
-      <div className="grid grid-cols-2 gap-3 grade-cartas">
-        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="Michael Jordan" club="Bulls" year={1996} pos="ALA" fame={5} showBio bio={t('Melhor de todos os tempos. Seis anéis, seis MVPs de Finals. Fechou a carreira do jeito que começou: por cima.', 'The greatest of all time. Six rings, six Finals MVPs. Ended his career the way it began: on top.')} /></div>
-        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Dwyane Wade" club="Heat" year={2006} pos="ARM" fame={4} showBio bio={t('Flash. Carregou o Heat ao título em 2006 numa das melhores finais individuais da história.', 'Flash. Carried the Heat to the 2006 title in one of the greatest individual Finals ever.')} /></div>
-        <div style={{ transform: 'rotate(1.5deg)' }}><CollectibleCard name="Victor Wembanyama" club="Spurs" year={2024} pos="PIVÔ" fame={3} promessa showBio bio={t('O alienígena. 2,24m que enterra, cravou e acerta de três. O futuro chegou cedo.', 'The alien. 7-foot-4 that dunks and drains threes. The future came early.')} /></div>
-        <div style={{ transform: 'rotate(-1.5deg)' }}><CollectibleCard name="JaVale McGee" club="Wizards" year={2011} pos="PIVÔ" fame={2} folk showBio bio={t("Rei do Shaqtin' a Fool. Errou uns, acertou anéis. Folclore puro do garrafão.", "King of Shaqtin' a Fool. Missed a few, won rings. Pure paint folklore.")} /></div>
-      </div>
-      <p className="text-center text-[11px] font-black uppercase tracking-wide text-black/45" style={OSWALD}>{t('👑 lenda · ⭐ craque · 💎 promessa · 🃏 folclórico — colecione todos', '👑 legend · ⭐ star · 💎 prospect · 🃏 cult hero — collect them all')}</p>
-      {/* ⚡ PARTIDA RÁPIDA (vs CPU) — pregão cego do basquete, MESMO motor do
-          futebol. Em teste (só o Diego vê). 3 rivais (franquias da NBA). */}
-      <Btn onClick={() => dispatch({ type: 'START_NBA', teamName: t('Meu Time', 'My Team'), rivals: 3 })} className="w-full text-lg">
-        ⚡ {t('PARTIDA RÁPIDA (VS CPU)', 'QUICK GAME (VS CPU)')}
-      </Btn>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Pregão cego do quinteto (5) — em teste 🔧', 'Blind auction for your five (5) — testing 🔧')}</p>
-      {/* 🌐 ONLINE DO BASQUETE (14/09) — MESMO lobby do futebol (salas, código,
-          senha, Minhas ligas). As salas ficam SEPARADAS por esporte: quem está no
-          BidLegends só vê/entra em sala de basquete. */}
-      <Btn onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="w-full text-lg" bg={GREEN}>
-        <span className="text-white">🌐 {t('JOGAR ONLINE', 'PLAY ONLINE')}</span>
-      </Btn>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('Crie a sala e chame a galera — quinteto (5) no pregão cego, e a liga da turma em 🏆 Minhas ligas.', 'Create a room and call your crew — starting five (5) in the blind auction, and your crew\'s league in 🏆 My leagues.')}</p>
-      {/* 🛝 CARREIRA · STREET LEAGUE — a base da pirâmide, MESMO motor do futebol.
-          Rotação de 10 (2 por posição) e liga cheia de pontos corridos. Em teste. */}
-      <motion.div className="rounded-xl"
-        animate={{ boxShadow: ['0 0 0 0 rgba(124,58,237,0)', '0 0 16px 4px rgba(124,58,237,0.7)', '0 0 0 0 rgba(124,58,237,0)'] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}>
-        <Btn onClick={() => dispatch({ type: 'START_NBA_CAREER', teamName: t('Meu Time', 'My Team') })} className="w-full text-lg" bg={PURPLE}>
-          <span className="text-white">🛝 {t('CARREIRA · STREET LEAGUE', 'CAREER · STREET LEAGUE')} <span className="text-yellow-300">(new)</span></span>
-        </Btn>
-      </motion.div>
-      <p className="text-center text-[11px] font-semibold text-black/45 -mt-2">{t('A base: quinteto (5), liga de 20 — cresce nas reservas 🔧 em construção', 'The base: starting five (5), 20-team league — grows in the reserve auction 🔧 building')}</p>
-      {/* aviso "chegando" — honesto, sem prometer o que ainda não tem */}
-      <div className="border-[3px] border-black rounded-2xl p-4 text-center" style={{ background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
-        <div className="text-3xl">🚧</div>
-        <p className="font-black text-lg uppercase mt-1" style={OSWALD}>{t('Chegando ao BidLegends', 'Coming to BidLegends')}</p>
-        <p className="text-[13px] font-semibold text-black/60 mt-1 leading-snug">
-          {t('O basquete está em construção — o mesmo motor do Leilão Legends, agora com o quinteto e a pirâmide da NBA. Quer jogar HOJE? Toca em ', 'Basketball is under construction — the same engine as Leilão Legends, now with the starting five and the NBA pyramid. Want to play TODAY? Tap ')}<b>{t('⚽ Futebol', '⚽ Soccer')}</b>{t(' aí em cima: o jogo completo está no ar.', ' up top: the full game is live.')}
-        </p>
-      </div>
-      {/* a pirâmide (conceito) */}
-      <div className="space-y-2.5">
-        <p className="text-center text-[11px] font-black uppercase tracking-widest text-black/40" style={OSWALD}>{t('A pirâmide do basquete', 'The basketball pyramid')}</p>
-        {PYR.map(([ic, ti, d]) => (
-          <div key={ti} className="flex items-center gap-3 border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <div className="text-2xl shrink-0">{ic}</div>
-            <div>
-              <p className="font-black text-sm uppercase" style={OSWALD}>{ti}</p>
-              <p className="text-[11px] font-semibold text-black/60 leading-snug">{d}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* como funciona — espelha os 4 cartões do futebol, adaptado ao basquete */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {([['🏀', t('O Pregão', 'The Auction'), t('5 rodadas de leilão cego: armador, ala-armador, ala, ala-pivô e pivô. Ninguém vê o lance de ninguém.', '5 blind auction rounds: PG, SG, SF, PF and C. No one sees anyone else’s bid.')],
-           ['🎭', t('Níveis ocultos', 'Hidden ratings'), t('Você aposta no nome. O nível só abre na Cerimônia — e todo craque tem noite boa e noite ruim.', 'You bet on the name. The rating only opens at the Ceremony — and every star has good and bad nights.')],
-           ['🪜', t('Pirâmide', 'The Pyramid'), t('Da Street League à NBA. Cada anel vira uma carta no seu álbum.', 'From the Street League to the NBA. Each ring becomes a card in your album.')],
-           ['💎', t('Vale o auge', 'Peak counts'), t('O nível é o auge do craque naquele ano/franquia (Jordan 1996 lenda; Wade 2006 craque).', 'The rating is the star’s peak that year/franchise (Jordan 1996 legend; Wade 2006 star).')]] as [string, string, string][]).map(([ic, ti, d]) => (
-          <div key={ti} className="border-[3px] border-black rounded-xl bg-white p-3" style={{ boxShadow: `4px 4px 0 0 ${INK}` }}>
-            <div className="text-xl">{ic}</div>
-            <p className="font-black text-[13px] uppercase mt-1.5" style={OSWALD}>{ti}</p>
-            <p className="text-[11px] font-semibold text-black/60 mt-0.5 leading-snug">{d}</p>
-          </div>
-        ))}
-      </div>
-    </Shell>
+      </header>
+      {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}
+      <section className="ll-intro">
+        <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
+        <p>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
+      </section>
+      {nbaSolo && <div className="ll-resume">
+        <button onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
+        <button onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button>
+      </div>}
+      <section className="ll-choices" aria-label="Escolha como jogar">
+        <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
+        <div className="ll-modes">
+          <button className="ll-mode" onClick={() => dispatch({ type: 'GO_SETUP' })}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu quinteto e enfrente a CPU.', 'Build your five and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-online" onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+          <button className="ll-mode ll-career" onClick={() => setCarreiras(listaNbaCarreiras().length ? 'lista' : 'nova')}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Suba da Street League à NBA.', 'Climb from the Street League to the NBA.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
+        </div>
+        <div className={amigosOn ? 'll-loja-linha ll-com-amigos' : 'll-loja-linha'}>
+          <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, canto da torcida e moedas', 'Move up a plan, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
+          {amigosOn && <button className="ll-salao-entry ll-amigos-entry" onClick={() => setVerAmigos(true)}><span aria-hidden="true">👥</span><span><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Quem está online', 'Who is online')}</small></span><span aria-hidden="true">›</span></button>}
+        </div>
+        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
+        <div className="ll-extras ll-extras-3">
+          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-regras-entry" onClick={() => setShowManual(true)}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-album-entry" onClick={() => dispatch({ type: 'GO_ALBUM' })}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+        </div>
+      </section>
+      <footer className="ll-footer">
+        <div className="ll-web"><span>bidlegendsarena.com</span> · {t('Seu quinteto. Sua lenda.', 'Your five. Your legend.')}</div>
+      </footer>
+      {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
+      {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo bb />}
+      {carreiras && <NbaMinhasCarreiras comecaNova={carreiras === 'nova'} onClose={() => setCarreiras(null)} />}
+    </div><div className="ll-support-home-tail"><ApoieButton trigger={open => <SupportFooter onOpen={open} />} /></div></>
   )
 }
 // 🗑️ A TELA CHEIA DE LOGIN DA CARREIRA SAIU (Diego 16/08, plano-crescimento §1).
@@ -2100,6 +2170,10 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   const amigosOn = useAmigos() // 👥 18/10: Amigos na HOME, do lado da Loja (Diego: "tem que estar na home") — só a conta dele por enquanto
   const [verAmigos, setVerAmigos] = useState(false)
   const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
+  // 🏀 20/10 (Diego: "trocando a aba lá em cima do futebol pelo basquete"): o botão 🏀 pra ir pro BidLegends. SÓ a conta
+  // liberada no basquete (BASQUETE_TESTERS) vê — pra todo o resto `bbOn` é falso e a home fica byte-idêntica (sem botão, sem classe).
+  const bbOn = useSportUnlocked()
+  const [, setSportHome] = useSport()
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
     <><div className="ll-home">
@@ -2112,6 +2186,9 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         <div className="ll-lang"><LangToggle /></div>
         <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
       </header>
+      {/* 🏀 no cabeçalho do futebol não cabe mais um botão (o nome é mais largo que "BIDLEGENDS"): vira uma etiqueta
+          logo abaixo da marca, no canto livre da arte */}
+      {bbOn && <button className="ll-troca-esporte" onClick={() => setSportHome('basquete')}>{t('🏀 IR PRO BIDLEGENDS', '🏀 GO TO BIDLEGENDS')}</button>}
       {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
       <section className="ll-intro">
         <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
@@ -2515,7 +2592,7 @@ export function EscIntro() {
 // o que muda. Modos ainda não liberados (Dinastia/Carreira online/Liga Fechada)
 // ficam de fora até o Diego liberar. É um complemento — o ensino de verdade
 // continua sendo contextual, dentro do jogo.
-function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: boolean }) {
+function ManualDoTecnico({ onClose, limpo, bb = false }: { onClose: () => void; limpo?: boolean; bb?: boolean }) {
   const t = useT() // 🌐 BR/EN
   const fases: [string, string, string][] = [
     ['✉️', t('Envelope', 'Envelope'), t('lance secreto — ninguém vê o seu', 'secret bid — nobody sees yours')],
@@ -2538,7 +2615,39 @@ function ManualDoTecnico({ onClose, limpo }: { onClose: () => void; limpo?: bool
         {/* 🧼 VERSÃO LIMPA (home nova) — sem firula: a MESMA lista de passos da
             home, e os modos na mesma linha. O manual velho continua igual pra
             quem ainda está na home de hoje. */}
-        {limpo ? (
+        {/* 🏀 REGRAS DO BASQUETE (19/10): mesma cara da versão limpa, com o que vale no código do basquete
+            hoje — 50 moedas, quinteto (5), Street League só pontos corridos, G League/NBA com playoffs
+            (top 8) e NBA Cup no meio da temporada, top 4 sobe de andar e ninguém cai. */}
+        {bb ? (
+          <>
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>{t('Como funciona uma partida', 'How a match works')}</p>
+            {getLang() === 'en' ? <div className="space-y-2">
+              <PassoLinha n={1} ic="🪙" titulo="50 coins">The deck comes by position (PG · SG · SF · PF · C). You only see the <b>name</b>, never the level.</PassoLinha>
+              <PassoLinha n={2} ic="✉️" titulo="Secret bid">Write what each name is worth and seal the envelope. Nobody sees anyone's bid.</PassoLinha>
+              <PassoLinha n={3} ic="👀" titulo="All open together">At the Ceremony the envelopes open at once — and <b>only then</b> you see whether it was a legend or a brick.</PassoLinha>
+              <PassoLinha n={4} ic="🔨" titulo="The hammer falls">Whoever paid the most wins. Tied on the highest bid? There is a <b>tie-break</b>, also blind.</PassoLinha>
+              <PassoLinha n={5} ic="🃏" titulo="Fill your five from the Pile">Player left without an owner? On your turn you grab him <b>for free</b>, until your five is complete.</PassoLinha>
+              <PassoLinha n={6} ic="🏀" titulo="The season runs">Points on the scoreboard, live, and no ties (overtime). The champion takes <b>an NBA card</b> for the album.</PassoLinha>
+            </div> : <div className="space-y-2">
+              <PassoLinha n={1} ic="🪙" titulo="50 moedas">O baralho vem por posição (PG · SG · SF · PF · C). Você só vê o <b>nome</b>, nunca o nível.</PassoLinha>
+              <PassoLinha n={2} ic="✉️" titulo="Lance secreto">Escreve quanto vale cada nome e lacra o envelope. Ninguém vê o lance de ninguém.</PassoLinha>
+              <PassoLinha n={3} ic="👀" titulo="Abrem todos juntos">Na Cerimônia os envelopes abrem de uma vez — e <b>só aí</b> aparece se era lenda ou tijolo.</PassoLinha>
+              <PassoLinha n={4} ic="🔨" titulo="O martelo bate">Quem pagou mais leva. Empatou no maior lance? Tem <b>desempate</b>, também às cegas.</PassoLinha>
+              <PassoLinha n={5} ic="🃏" titulo="Fecha o quinteto no Monte">Sobrou jogador sem dono? Na sua vez você pega <b>de graça</b>, até fechar os 5.</PassoLinha>
+              <PassoLinha n={6} ic="🏀" titulo="A temporada roda">Placar em pontos, subindo ao vivo, e sem empate (tem prorrogação). Campeão leva <b>uma carta da NBA</b> pro álbum.</PassoLinha>
+            </div>}
+            <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mt-6 mb-2.5" style={OSWALD}>{t('Onde dá pra jogar isso', 'Where you can play it')}</p>
+            {getLang() === 'en' ? <div className="space-y-2">
+              <PassoLinha ic="⚡" titulo="Quick (offline)">You against the CPU. Just one season. Good to get the hang of it.</PassoLinha>
+              <PassoLinha ic="👥" titulo="Online">Same thing, but the bids come from your friends in the room. With more teams the season ends in the <b>Playoffs</b> (top 8) and has the <b>NBA Cup</b> midway.</PassoLinha>
+              <PassoLinha ic="★" titulo="Career">Start in the <b>Street League</b> (league only). Finish in the <b>top 4</b> and you move up: <b>G League</b>, then the <b>NBA</b> 💍 — up there with Playoffs and NBA Cup. Nobody goes down. Season by season it opens the bench (10, then 15), arena, sponsor, agency and a 2nd club.</PassoLinha>
+            </div> : <div className="space-y-2">
+              <PassoLinha ic="⚡" titulo="Rápido (offline)">Você contra a CPU. Uma temporada só. Bom pra pegar o jeito.</PassoLinha>
+              <PassoLinha ic="👥" titulo="Online">Mesma coisa, mas os lances são dos seus amigos na sala. Com mais times a temporada termina nos <b>Playoffs</b> (top 8) e tem a <b>NBA Cup</b> no meio.</PassoLinha>
+              <PassoLinha ic="★" titulo="Carreira">Começa na <b>Street League</b> (só pontos corridos). Terminou no <b>top 4</b>, sobe de andar: <b>G League</b> e depois <b>NBA</b> 💍 — lá em cima com Playoffs e NBA Cup. Ninguém cai. Temporada a temporada abre o banco (10, depois 15), arena, patrocínio, agência e 2º clube.</PassoLinha>
+            </div>}
+          </>
+        ) : limpo ? (
           <>
             <p className="text-[11px] font-black uppercase tracking-widest text-black/45 mb-2.5" style={OSWALD}>{t('Como funciona uma partida', 'How a match works')}</p>
             {getLang() === 'en' ? <div className="space-y-2">
@@ -2658,6 +2767,12 @@ export function EscSetup() {
   const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
   const [kings, setKings] = useState(false) // ligado = o MESMO leilão escolhido embaixo, com a formação 'kings' e 10 times
   const kingsLigado = kingsOn && kings
+  // 🏀 19/10: a Partida Rápida do basquete passa por AQUI também (antes começava direto, sempre 3 rivais e envelope).
+  // Mesma tela; no basquete saem Kings, baralho, "depois da liga" e formação (o resto é igual).
+  // ⚠️ o esporte vem da ESCOLHA da home (useSport), não do `state.sport`: aqui a partida ainda não começou e o
+  // estado guarda o esporte da partida ANTERIOR — com ele, a home do basquete abria uma partida de futebol.
+  const [sportUi] = useSport()
+  const bbSetup = sportUi === 'basquete' && !career
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2730,6 +2845,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
+    else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, intro: true })
     else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
@@ -2864,7 +2980,7 @@ export function EscSetup() {
       )}
       {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
           conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
-      {!career && kingsOn && (
+      {!career && kingsOn && !bbSetup && (
         <button onClick={() => setKings(k => !k)} className="w-full text-left active:translate-y-0.5"
           style={{ background: kings ? '#0C0C0C' : '#fff', color: kings ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: kings ? '4px 4px 0 #C2452F' : 'none', padding: '12px 14px' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: kings ? '#FFC400' : INK, display: 'block' }}>{kings ? '✅' : '⬜'} 👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
@@ -2894,7 +3010,9 @@ export function EscSetup() {
               ))}
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
-              {clubes
+              {clubes && bbSetup
+                ? t('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Você leva o pacote inteiro e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto. Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). You take the whole pack and, at the end, CALL UP who plays — 1 per position, your starting five. Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
+                : clubes
                 ? t('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Você leva o pacote inteiro e, no fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Dá pra jogar com envelope cego ou com Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). You take the whole pack and, at the end, CALL UP who plays in your formation. Leftovers go to the bots. Uses all 3 decks together. Works with sealed bid or Ambush.')
                 : t('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')}
             </p>
@@ -2904,6 +3022,11 @@ export function EscSetup() {
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? tr('🌎 Baralho: Brasileirão + Europa + MUNDO juntos', '🌎 Deck: Brasileirão + Europe + WORLD together') : tr('🌎 Baralho fixo: Brasileirão + Europa juntos', '🌎 Fixed deck: Brasileirão + Europe together')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{getLang() === 'en' ? (escadaLiberada() ? <>In Career the deck is <b>Brasileirão + Europe + World together</b> (~850 names) — it takes all of them to properly fill the <b>100 teams across 5 tiers</b> (from Várzea to Série A). Each tier's market only trades its own categories.</> : <>In Career the deck is always the <b>Brasileirão peaks + the Europe peaks together</b> (~700 names) — it takes both to properly fill the <b>80 teams across 4 tiers</b>. There is no BR-only or Europe-only deck here.</>) : escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
+          </div>
+        ) : bbSetup ? (
+          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+            <p className="font-black text-sm" style={OSWALD}>{t('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{t('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
           </div>
         ) : clubesOn && clubes ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
@@ -2931,7 +3054,17 @@ export function EscSetup() {
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
-        {!career && !kingsLigado && (
+        {bbSetup && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
+            {/* a MESMA régua do START_NBA: 7+ rivais = Playoffs (top 8); menos = só a liga */}
+            <div className="border-[3px] border-black rounded-xl px-3 py-2" style={{ background: '#fff' }}>
+              <p className="font-black text-sm" style={OSWALD}>{rivals >= 7 ? t('🏀 Liga + Playoffs', '🏀 League + Playoffs') : t('📊 Só a liga', '📊 League only')}</p>
+              <p className="text-[11px] font-semibold text-black/55 mt-0.5">{rivals >= 7 ? t('Os 8 melhores vão aos PLAYOFFS (melhor de 3) e o campeão leva o anel 💍.', 'The top 8 go to the PLAYOFFS (best of 3) and the champion takes the ring 💍.') : t('Com 3 ou 5 rivais é só a tabela. Escolha 7 ou 9 rivais pra ter Playoffs.', 'With 3 or 5 rivals it is just the table. Pick 7 or 9 rivals to get Playoffs.')}</p>
+            </div>
+          </div>
+        )}
+        {!career && !kingsLigado && !bbSetup && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
             {/* ⭐ 25/09 — as MESMAS opções do online (Diego: *"tem que ter todos também… liga
@@ -3001,7 +3134,7 @@ export function EscSetup() {
               {pregaoAb
                 ? t('🔨 Uma carta por vez, lance ABERTO na frente de todos: dou 10… 11… 12… uma, duas, três, vendido! A ordem das posições vem embaralhada (ninguém sabe a próxima carta), 5 segundos sem lance novo bate o martelo, e quem já fechou a posição só assiste. Não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, OPEN bidding in front of everyone: 10… 11… 12… going once, twice, sold! Positions come shuffled (nobody knows the next card), 5 seconds without a new bid drops the hammer, and whoever already filled the position just watches. No pile: empty slots at the end get a free player.')
                 : holandes
-                ? t('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                ? t(`🐊 A leva inteira na tela com UM preço só, abrindo em ${getSport() === 'basquete' ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${getSport() === 'basquete' ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
             </p>
           </div>
@@ -3022,7 +3155,7 @@ export function EscSetup() {
         {kingsLigado ? (
           <p className="text-[11px] font-bold text-black/65">{t('👑 Kings League: formação travada em goleiro + 2 zagueiros + 2 meias + 2 atacantes, e 10 times (você + 9 rivais).', '👑 Kings League: formation locked at keeper + 2 defenders + 2 midfielders + 2 forwards, and 10 teams (you + 9 rivals).')}</p>
         ) : <>
-        <div>
+        {!bbSetup && <div>
           <p className="text-xs font-black uppercase mb-1">{t('Formação (travada antes do pregão)', 'Formation (locked before the auction)')}</p>
           <div className="grid grid-cols-4 gap-2">
             {/* INÍCIO: só 4-3-3 e 4-4-2 (base do leilão). O 4-5-1 é troca TÁTICA na
@@ -3035,7 +3168,7 @@ export function EscSetup() {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
         <div>
           <p className="text-xs font-black uppercase mb-1">{t('Rivais na sala (CPUs)', 'Rivals in the room (CPUs)')}</p>
           <div className="grid grid-cols-4 gap-2">
@@ -3150,6 +3283,8 @@ export function EscStreamIntro() {
   const tocaia = !!state.holandes // 🐊 o pregão é o do preço caindo (chave do save: `holandes`)
   const abertura = HOL_ABERTURA(state) // 100 no futebol · 50 no basquete
   const isCareer = !!state.careerOnline // 🏆 banner "vira o clube mais bem-sucedido" — na carreira solo E online
+  // 🏀 19/10: no basquete os exemplos são cartas DA NBA (as do futebol eram Romário, Alex Muralha, Kaká…)
+  const bbI = state.sport === 'basquete'
   const isHost = !online || state.isHost
   const you = state.managers[state.youIdx]
   const humans = state.managers.filter(m => m.isHuman)
@@ -3184,7 +3319,7 @@ export function EscStreamIntro() {
       {tocaia ? (<>
         <Box bg={GOLD} className="p-4" shadow={6}>
           <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Um preço só — e ele CAI', '🪙 One price — and it DROPS')}</p>
-          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. The players of the batch go on the table with <b>a single price for everyone</b>, opening at <b>{abertura} 🪙</b> and <b>falling</b> on everyone's screen. <b>Nobody writes a bid</b>: whoever taps <b>TAKE</b> first gets the player for the price on screen.</> : <>Cada técnico começa com <b>100 moedas</b>. Os jogadores da leva vão pra mesa com <b>um preço só, igual pra todo mundo</b>, que abre em <b>{abertura} 🪙</b> e vai <b>CAINDO</b> na tela de todos. <b>Ninguém escreve lance</b>: quem apertar <b>PEGAR</b> primeiro leva o jogador pelo preço que está na tela.</>}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>{state.sport === 'basquete' ? 50 : 100} coins</b>. The players of the batch go on the table with <b>a single price for everyone</b>, opening at <b>{abertura} 🪙</b> and <b>falling</b> on everyone's screen. <b>Nobody writes a bid</b>: whoever taps <b>TAKE</b> first gets the player for the price on screen.</> : <>Cada técnico começa com <b>{state.sport === 'basquete' ? 50 : 100} moedas</b>. Os jogadores da leva vão pra mesa com <b>um preço só, igual pra todo mundo</b>, que abre em <b>{abertura} 🪙</b> e vai <b>CAINDO</b> na tela de todos. <b>Ninguém escreve lance</b>: quem apertar <b>PEGAR</b> primeiro leva o jogador pelo preço que está na tela.</>}</p>
         </Box>
 
         {/* 👇 mock do que ela vai ver: o preço caindo em cima e a MESA com vários
@@ -3206,13 +3341,13 @@ export function EscStreamIntro() {
             <div className="h-2 border-2 border-black rounded-full mt-1 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
               <div style={{ width: '24%', height: '100%', background: INK }} />
             </div>
-            <p className="text-[10px] font-bold text-black/60 mt-1">{tr('3 na mesa · setor: ATACANTES', '3 on the table · sector: FORWARDS')}</p>
+            <p className="text-[10px] font-bold text-black/60 mt-1">{bbI ? tr('3 na mesa · posição: ARMADORES', '3 on the table · position: POINT GUARDS') : tr('3 na mesa · setor: ATACANTES', '3 on the table · sector: FORWARDS')}</p>
           </div>
-          {([['Romário', 'Vasco · 2000'], ['Obina', 'Flamengo · 2005'], ['Dodô', 'São Paulo · 1997']] as [string, string][]).map(([nome, clube], i) => (
+          {(bbI ? [['Steve Nash', 'Suns · 2005'], ['Jeremy Lin', 'Knicks · 2012'], ['Raul Neto', 'Jazz · 2016']] : [['Romário', 'Vasco · 2000'], ['Obina', 'Flamengo · 2005'], ['Dodô', 'São Paulo · 1997']] as [string, string][]).map(([nome, clube], i) => (
             <div key={nome} className="border-[3px] border-black rounded-xl p-2.5 flex items-center justify-between gap-2 mt-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>ATA</span>
+                  <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>{bbI ? 'PG' : 'ATA'}</span>
                   <span className="font-black text-sm truncate" style={OSWALD}>{nome}</span>
                 </div>
                 <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>{clube} {i === 0 && <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span>}</p>
@@ -3236,7 +3371,7 @@ export function EscStreamIntro() {
       </>) : (<>
         <Box bg={GOLD} className="p-4" shadow={6}>
           <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Moedas = seu lance', '🪙 Coins = your bid')}</p>
-          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>{state.sport === 'basquete' ? 50 : 100} coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>{state.sport === 'basquete' ? 50 : 100} moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
         </Box>
 
         {/* 👇 mock da linha do jogador: mostra ONDE se põe as moedas (com 7, não 1!)
@@ -3246,10 +3381,10 @@ export function EscStreamIntro() {
           <div className="border-[3px] border-black rounded-xl p-3 flex items-center justify-between gap-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
-                <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
+                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>{bbI ? 'PG' : 'GOL'}</span>
+                <span className="font-black text-sm truncate" style={OSWALD}>{bbI ? 'Marcelinho Huertas' : 'Alex Muralha'}</span>
               </div>
-              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
+              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ {bbI ? 'Lakers · 2016' : 'Flamengo · 2017'} <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
             </div>
             <div className="flex flex-col items-center flex-shrink-0">
               <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>{tr('seu lance', 'your bid')}</span>
@@ -3264,6 +3399,26 @@ export function EscStreamIntro() {
         </Box>
       </>)}
 
+      {bbI ? (
+      // 🏀 no baralho da NBA cada jogador tem UMA carta, então a lição não é "o mesmo jogador vale diferente":
+      // é que O NOME ENGANA — famoso nem sempre é lenda (cartas e bios de verdade do baralho)
+      <Box bg="#EDE7FF" className="p-4" shadow={6}>
+        <p className="font-black text-lg" style={OSWALD}>{tr('🎭 O nome engana', '🎭 The name can fool you')}</p>
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{tocaia
+          ? (getLang() === 'en' ? <>Some names everybody knows are <b>cult cards</b>, not legends. You tap on the name — <b>the level only opens when the player is yours</b>. Read the team and the year before you pounce!</> : <>Tem nome que todo mundo conhece e é <b>carta de resenha</b>, não lenda. Você aperta no nome — <b>o nível só abre quando o jogador é seu</b>. Leia o time e o ano antes de dar o bote!</>)
+          : (getLang() === 'en' ? <>Some names everybody knows are <b>cult cards</b>, not legends. You bet on the name — the level only opens at the reveal!</> : <>Tem nome que todo mundo conhece e é <b>carta de resenha</b>, não lenda. Você aposta no nome — o nível só abre na revelação!</>)}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <CollectibleCard name="Magic Johnson" club="Lakers" year={1987} pos="GOL" fame={5} bio={nbaMeta('Magic Johnson', 'Lakers', 1987).bio} />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>{getLang() === 'en' ? <>👑 Showtime Lakers<br />= LEGEND</> : <>👑 Lakers do Showtime<br />= LENDA</>}</p>
+          </div>
+          <div>
+            <CollectibleCard name="Jeremy Lin" club="Knicks" year={2012} pos="GOL" fame={2} folk bio={nbaMeta('Jeremy Lin', 'Knicks', 2012).bio} />
+            <p className="text-center text-[11px] font-black mt-1.5 leading-tight" style={OSWALD}>{getLang() === 'en' ? <>🃏 Linsanity<br />= CULT CARD</> : <>🃏 Linsanity<br />= FOLCLÓRICO</>}</p>
+          </div>
+        </div>
+      </Box>
+      ) : (
       <Box bg="#EDE7FF" className="p-4" shadow={6}>
         <p className="font-black text-lg" style={OSWALD}>{tr('🎭 O nível é o AUGE do craque', '🎭 The level is the star\'s PEAK')}</p>
         {/* 🐊 na Tocaia não existe "revelação": a carta é sua no toque, e é aí que
@@ -3283,6 +3438,7 @@ export function EscStreamIntro() {
           </div>
         </div>
       </Box>
+      )}
 
       {online && (
       <Box bg={INK} className="p-4" shadow={6}>
@@ -3676,6 +3832,7 @@ export function premiosDaResenha(mgrs: Manager[], resenha?: EscState['resenha'])
 function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscState['resenha'] }) {
   const pr = premiosDaResenha(mgrs, resenha)
   if (!pr) return null
+  const bbPr = getSport() === 'basquete' // 🏀 "perna-de-pau"/"titular" é coisa de futebol
 
   const item = (bg: string, ic: string, titulo: string, quem: string, detalhe: React.ReactNode) => (
     <div className="border-[2.5px] border-black rounded-xl overflow-hidden" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
@@ -3701,14 +3858,14 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
         {pr.furada && item('#C2452F', '💸', 'Money down the drain', pr.furada.time,
           <>Paid <b>{pr.furada.pago}</b> for {pr.furada.nome} and the 2nd bid was <b>{pr.furada.segundo}</b>. Threw <b>{pr.furada.total} 🪙</b> away at the auction.</>)}
         {pr.vaca && item('#B45309', '🤏', 'Tightwad', pr.vaca.time, <>Ended the auction with <b>{pr.vaca.sobrou} 🪙</b> in the pocket. Saving it for what?</>)}
-        {pr.pau && item('#6B7280', '🗑️', 'Dud in the starting XI', pr.pau.time, <>Started <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). On purpose?</>)}
+        {pr.pau && item('#6B7280', '🗑️', bbPr ? 'Dud in the starting five' : 'Dud in the starting XI', pr.pau.time, <>Started <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). On purpose?</>)}
       </> : <>
         {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
         {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
         {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
           <>Pagou <b>{pr.furada.pago}</b> em {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
         {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
-        {pr.pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
+        {pr.pau && item('#6B7280', '🗑️', bbPr ? 'Tijolo no quinteto' : 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
       </>}
     </div>
   )
@@ -5513,7 +5670,7 @@ function Reveal() {
       </p>
       {/* 🏟️ rótulo do campinho: sem ele o gramado aparecia solto e não ficava claro
           que aquele time é o SEU (outra ideia boa do GPT, 17/08). */}
-      <p className="text-center font-black uppercase" style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>Sua escalação</p>
+      <p className="text-center font-black uppercase" style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>{state.sport === 'basquete' ? tr('Seu quinteto', 'Your five') : 'Sua escalação'}</p>
       <YourPitch small />
     </Shell>
   )
@@ -5601,7 +5758,7 @@ export function EscMonte() {
       {online && (
         <p className="text-xs font-semibold text-black/60">
           ⏱️ {remaining ?? monteMsDe(state) / 1000}s {tr('por vez', 'per turn')}. {state.careerOnline
-            ? (getLang() === 'en' ? <>If time runs out, you <b>take nobody</b> and pass — no penalty (your team already has the 11).</> : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa (seu time já tem os 11).</>)
+            ? (getLang() === 'en' ? <>If time runs out, you <b>take nobody</b> and pass — no penalty ({state.sport === 'basquete' ? 'your team is already complete' : 'your team already has the 11'}).</> : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa ({state.sport === 'basquete' ? 'seu time já está completo' : 'seu time já tem os 11'}).</>)
             : (getLang() === 'en' ? <>Time ran out (bathroom break?), the game picks the worst leftover for you and passes the turn. <b>Costs no coins</b>: leftovers are free.</> : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e passa a vez. <b>Não custa moeda</b>: as sobras são de graça.</>)}
         </p>
       )}
@@ -5696,11 +5853,11 @@ export function EscMonte() {
                 style={{ color: '#B23B2E', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
                 {tr('🙅 PASSAR A VEZ — não quero nenhuma sobra', '🙅 PASS — I don\'t want any leftover')}
               </button>
-              <p className="text-[10px] font-bold text-black/45 text-center">{tr('Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.', 'Your team already has the 11 — leftovers are optional, nobody is forced to pay.')}</p>
+              <p className="text-[10px] font-bold text-black/45 text-center">{state.sport === 'basquete' ? tr('Seu time já está completo — sobra é opcional, ninguém é obrigado a pagar.', 'Your team is already complete — leftovers are optional, nobody is forced to pay.') : tr('Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.', 'Your team already has the 11 — leftovers are optional, nobody is forced to pay.')}</p>
             </>
           ) : (
             <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3" style={{ background: '#FFE9B0', ...OSWALD }}>
-              {tr('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!', '⚠️ You have a HOLE in the starting XI — you can\'t pass here: grab someone to complete the 11!')}
+              {state.sport === 'basquete' ? tr('⚠️ Você tem BURACO no quinteto — aqui não dá pra passar: pega alguém pra fechar o time!', '⚠️ You have a HOLE in your five — you can\'t pass here: grab someone to complete the team!') : tr('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!', '⚠️ You have a HOLE in the starting XI — you can\'t pass here: grab someone to complete the 11!')}
             </p>
           ))}
         </div>
@@ -5725,8 +5882,13 @@ export function EscMonte() {
         ] : [
           { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
           { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
-          { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: x => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
-          { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: x => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
+          ...(state.sport === 'basquete' ? [ // 🏀 a zoeira do basquete: tijolo e air ball no lugar de perna-de-pau e gol contra
+            { ic: '🧱', label: tr('Tijoleiro', 'Brick layer'), mk: (x: string) => getLang() === 'en' ? `Only brick layers will be left for ${x}!` : `Só vai sobrar tijoleiro pro ${x}!` },
+            { ic: '🤡', label: tr('Rei do air ball', 'Air-ball king'), mk: (x: string) => getLang() === 'en' ? `The air-ball king will be left for ${x} 😂` : `Vai sobrar o rei do air ball pro ${x} 😂` },
+          ] : [
+            { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: (x: string) => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
+            { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: (x: string) => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
+          ]),
         ]
         return (
           <div className="mt-1">
@@ -6512,6 +6674,7 @@ export function EscSeason() {
   const seasonSettled = state.round >= totalRounds && (state.quickCopa != null || state.champion != null)
   const [resultRevealed, setResultRevealed] = useState(seasonSettled)
   const [showPyramid, setShowPyramid] = useState(false)
+  const [bbClube, setBbClube] = useState(false) // 🏀🏢 overlay da economia (Clube) na carreira do basquete
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
     setResultRevealed(false)
@@ -6553,6 +6716,9 @@ export function EscSeason() {
     let msg: string | null = null
     if (youPosShown === 1 && prev !== 1) msg = LS('👑 Você é o novo LÍDER do campeonato!', '👑 You are the new league LEADER!')
     else if (kingsS) msg = null // 👑 na Kings não tem G4 nem rebaixamento — só a liderança vira manchete
+    // 🏀 basquete NÃO tem rebaixamento (ninguém cai). O TOP 4 é a zona de SUBIR DE ANDAR
+    // (Street → G League → NBA). Sem faixa de "zona de rebaixamento".
+    else if (bbS) { if (youPosShown <= 4 && prev > 4) msg = LS('📈 Você entrou no TOP 4 — zona de SUBIR DE ANDAR!', '📈 You are in the TOP 4 — the PROMOTION zone!'); else if (youPosShown > 4 && prev <= 4) msg = LS('😮‍💨 Você caiu do TOP 4 — corre pra voltar pra zona de subir!', '😮‍💨 You dropped out of the TOP 4 — climb back into the promotion zone!') }
     else if (youPosShown <= zTop && prev > zTop) msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`)
     else if (youPosShown >= zBot && prev < zBot) msg = LS(`⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`, `⚠️ DANGER! You dropped into the relegation zone (bottom ${zTop})!`)
     else if (youPosShown < zBot && prev >= zBot) msg = LS(`😮‍💨 Você escapou do Z${zTop}!`, `😮‍💨 You escaped the bottom ${zTop}!`)
@@ -7362,13 +7528,23 @@ export function EscSeason() {
 
       </div>
       </div>
-      {state.careerOnline && (
+      {state.careerOnline && !bbS && (
         <button onClick={() => setShowPyramid(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
           style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
           {LS('🪜 Ver as 4 divisões', '🪜 See the 4 divisions')}
         </button>
       )}
+      {/* 🏀🏢 CLUBE (economia do basquete): arena, finanças, agência, 2º clube.
+          Só na carreira do basquete SOLO (careerOnline=true + nbaCareer). */}
+      {bbS && state.careerOnline && state.nbaCareer && (
+        <button onClick={() => setBbClube(true)}
+          className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
+          style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
+          🏢 {LS('Clube — arena, agência, 2º clube', 'Club — arena, agency, 2nd club')}
+        </button>
+      )}
+      {bbClube && <BbClubeOverlay onClose={() => setBbClube(false)} />}
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
@@ -7431,7 +7607,7 @@ export function EscSeason() {
       )}
       <CreditLine className="pt-4 pb-2" />
       </div>
-      {showPyramid && state.careerOnline && (
+      {showPyramid && state.careerOnline && !bbS && (
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
       )}
@@ -7925,12 +8101,13 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
 }
 
 // ─── card de resultado pra compartilhar ────────────────────────────────
-type ShareCard = { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }
+type ShareCard = { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean; bio?: string }
 type ShareBlobOpts = {
   teamName: string; youPos: number; youWon: boolean; champName: string
   pts: number; w: number; d: number; l: number; scorerName?: string; scorerGoals?: number
   nTeams?: number // tamanho da liga (pra faixa 🏅/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
+  bb?: boolean // 🏀 BidLegends: marca, cestinha/pontos, sem empate (ausente → futebol idêntico)
 }
 // 🪜 "GOSTOU? COMECE UMA CARREIRA" — o convite no fim da partida rápida OFFLINE
 // (online tem a votação da sala; dinastia, NBA e carreira já têm o próprio caminho).
@@ -8045,7 +8222,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
     x.fillStyle = hg; x.fillRect(M, OY + M, cw, ch); x.restore()
   }
   x.fillStyle = '#0C0C0C'; rrp(M + 34, OY + M + 34, 108, 62, 16); x.fill()
-  x.fillStyle = '#fff'; x.font = `900 38px ${OSW}`; x.textAlign = 'center'; x.fillText(c.pos, M + 88, OY + M + 78)
+  x.fillStyle = '#fff'; x.font = `900 38px ${OSW}`; x.textAlign = 'center'; x.fillText(opts.bb ? posTag(c.pos) : c.pos, M + 88, OY + M + 78)
   x.textAlign = 'right'; x.font = `900 34px ${OSW}`; x.fillStyle = dark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.62)'
   x.fillText(tierLabel, M + cw - 36, OY + M + 76)
   if (c.folk) {
@@ -8067,7 +8244,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   x.fillText(`${c.club} · ${c.year}`, W / 2, OY + M + ch * 0.66 + 48)
   x.font = `700 36px Arial`
   x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, OY + M + ch * 0.66 + 104)
-  const bioText = BIOS[c.name] // bio REAL (sem inventar); vazio se não tiver
+  const bioText = opts.bb ? c.bio : BIOS[c.name] // bio REAL (sem inventar); vazio se não tiver — 🏀 a da carta da NBA
   if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
     const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
@@ -8078,7 +8255,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   // rodapé da marca
   x.fillStyle = '#0C0C0C'; x.fillRect(0, TOP + CH, W, FOOT)
   x.fillStyle = '#F5B301'; x.font = `900 28px ${OSW}`; x.textAlign = 'center'
-  x.fillText('🏆 campeão do Leilão Legends · leilaolegends.com 🔨', W / 2, TOP + CH + 60)
+  x.fillText(opts.bb ? '🏆 campeão do BidLegends 🏀🔨' : '🏆 campeão do Leilão Legends · leilaolegends.com 🔨', W / 2, TOP + CH + 60)
   return new Promise(resolve => cv.toBlob(b => resolve(b), 'image/png'))
 }
 async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
@@ -8108,7 +8285,7 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   // medalha "2º lugar" no desenho do emoji) pra QUALQUER posição dentro da
   // zona de cima — um 3º lugar aparecia com "2" na medalha. Trocado por 🏅
   // (medalha sem número), que não promete uma posição que não é a de verdade.
-  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🏅' : opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : '⚽', 450, hasCard ? 296 : 400)
+  ctx.fillText(opts.youWon ? '🏆' : opts.youPos <= zoneN(opts.nTeams ?? 20) ? '🏅' : !opts.bb && opts.youPos >= zoneBot(opts.nTeams ?? 20) ? '🪦' : opts.bb ? '🏀' : '⚽', 450, hasCard ? 296 : 400)
 
   ctx.font = '900 72px Oswald, sans-serif'
   ctx.fillText(opts.youWon ? 'CAMPEÃO!' : `${opts.youPos}º LUGAR`, 450, hasCard ? 366 : 500)
@@ -8126,14 +8303,14 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
     ctx.lineWidth = 8; ctx.strokeStyle = INK; ctx.stroke()
     ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(cx + 22, top + 22, 92, 44, 22); ctx.fill()
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '900 24px Oswald, sans-serif'
-    ctx.fillText(c.pos, cx + 22 + 46, top + 52)
+    ctx.fillText(opts.bb ? posTag(c.pos) : c.pos, cx + 22 + 46, top + 52)
     ctx.fillStyle = INK
     let nameFont = 46; ctx.font = `900 ${nameFont}px Oswald, sans-serif`
     while (ctx.measureText(c.name).width > cw - 48 && nameFont > 24) { nameFont -= 2; ctx.font = `900 ${nameFont}px Oswald, sans-serif` }
     ctx.fillText(c.name, 450, top + 132)
     ctx.font = '600 26px Inter, sans-serif'; ctx.fillStyle = 'rgba(0,0,0,0.6)'
     ctx.fillText(`${c.club} · ${c.year}`, 450, top + 174)
-    const tier = c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.promessa ? '💎 PROMESSA' : c.folk ? '🃏 FOLCLÓRICO' : '⚽ BOM JOGADOR'
+    const tier = c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.promessa ? '💎 PROMESSA' : c.folk ? '🃏 FOLCLÓRICO' : opts.bb ? '🏀 BOM JOGADOR' : '⚽ BOM JOGADOR'
     ctx.font = '900 30px Oswald, sans-serif'; ctx.fillStyle = INK
     ctx.fillText(tier, 450, top + 244)
     statsY = top + chh + 66
@@ -8142,14 +8319,14 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   ctx.textAlign = 'left'
   ctx.font = '600 32px Inter, sans-serif'
   let y = statsY
-  ctx.fillText(`Pontos: ${opts.pts} (${opts.w}V ${opts.d}E ${opts.l}D)`, 90, y)
+  ctx.fillText(opts.bb ? `Campanha: ${opts.w}V ${opts.l}D` : `Pontos: ${opts.pts} (${opts.w}V ${opts.d}E ${opts.l}D)`, 90, y)
   y += 50
-  if (opts.scorerName) { ctx.fillText(`Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 50 }
+  if (opts.scorerName) { ctx.fillText(opts.bb ? `Cestinha: ${opts.scorerName} — ${opts.scorerGoals} pontos` : `Artilheiro: ${opts.scorerName} — ${opts.scorerGoals} gols`, 90, y); y += 50 }
   if (!opts.youWon) ctx.fillText(`Campeão da temporada: ${opts.champName}`, 90, y)
 
   ctx.textAlign = 'center'
   ctx.font = '700 30px Oswald, sans-serif'
-  ctx.fillText('LEILÃO LEGENDS', 450, 1125)
+  ctx.fillText(opts.bb ? 'BIDLEGENDS' : 'LEILÃO LEGENDS', 450, 1125)
   ctx.font = '400 22px Inter, sans-serif'
   ctx.fillText(GAME_URL.replace('https://', ''), 450, 1156)
 
@@ -8183,6 +8360,9 @@ async function shareResult(opts: ShareOpts) {
 // baixa a imagem e o usuário posta no story/feed.
 type ShareOpts = Parameters<typeof buildShareCardBlob>[0]
 function shareTextFor(o: ShareOpts) {
+  if (o.bb) return o.youWon // 🏀 BidLegends
+    ? `🏆 Fui CAMPEÃO com o ${o.teamName} no BidLegends! Leilão às cegas de lendas da NBA 🔨🏀`
+    : `Terminei em ${o.youPos}º com o ${o.teamName} no BidLegends 🔨🏀 Bora jogar?`
   return o.youWon
     ? `🏆 Fui CAMPEÃO com o ${o.teamName} no Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨`
     : `Terminei em ${o.youPos}º com o ${o.teamName} no Leilão Legends 🔨 Bora jogar?`
@@ -9058,6 +9238,21 @@ const ALL_POOL: WonCard[] = (() => {
   }
   return out
 })()
+// 🏀 ÁLBUM DA NBA (19/10): o pacote do basquete sai do baralho da NBA e mora numa gaveta PRÓPRIA
+// (`user_cards_nba`) — o futebol nunca lê essa tabela, então o álbum/coleções/trocas dele ficam
+// intocados. `pos` = setor do motor (GOL..ATA ↔ PG..C), igual às cartas do pregão do basquete;
+// `posTag` mostra PG/SG/SF/PF/C. A bio sai na língua de agora (por isso é função, não constante).
+const NBA_TABELA = 'user_cards_nba'
+function nbaPool(): WonCard[] {
+  const en = getLang() === 'en'
+  return SECTORS.flatMap((s, i) => CATALOG_NBA[NBA_POS_ORDER[i]].map((c, j) => ({
+    id: `nba-${i}-${j}`, name: c.name, club: c.club, year: c.year, pos: s, fame: c.fame as Card['fame'],
+    folk: c.folk, promessa: c.promessa, bio: en ? c.bioEn : c.bioPt, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)))
+}
+function nbaMeta(name: string, club: string, year: number): { bio?: string; folk?: boolean; promessa?: boolean } {
+  const c = nbaPool().find(x => x.name === name && x.club === club && x.year === year)
+  return c ? { bio: c.bio, folk: c.folk, promessa: c.promessa } : {}
+}
 // 📚 o pacote das COLEÇÕES: os três baralhos, uma entrada por carta (nome+clube+ano)
 const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' }))
 
@@ -9072,7 +9267,8 @@ const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`,
 // fecha o popup depressa (ou ganha duas de uma vez) acha as cartas no álbum depois e
 // não tem como ligar uma coisa na outra. Agora o pacote anuncia o título, e a pílula
 // de reabrir também.
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, saveCards, motivo }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; saveCards?: { name: string; club: string; year: number }[]; motivo?: string }) {
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, saveCards, motivo, nba = false }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; saveCards?: { name: string; club: string; year: number }[]; motivo?: string; nba?: boolean }) {
+  const tabela = nba ? NBA_TABELA : 'user_cards' // 🏀 basquete = gaveta própria (default → futebol idêntico)
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -9103,11 +9299,11 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
       if (!uid) { setStatus('noauth'); return } // sem cadastro (de verdade) não ganha carta
       userIdRef.current = uid
       // o que o usuário já tem no álbum — pra não oferecer repetida
-      const { data: ownedRows } = await supabase.from('user_cards').select('card_name').eq('user_id', uid)
+      const { data: ownedRows } = await supabase.from(tabela).select('card_name').eq('user_id', uid)
       setOwned(new Set((ownedRows ?? []).map((r: { card_name: string }) => r.card_name)))
-      const { data } = await supabase.from('user_cards').select('*').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
+      const { data } = await supabase.from(tabela).select('*').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
       if (data) {
-        const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(CARD_META.get(data.card_name) ?? {}), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
+        const cc = { id: 'x', name: data.card_name, club: data.card_club, year: data.card_year, pos: data.card_pos, fame: data.card_fame, ...(nba ? nbaMeta(data.card_name, data.card_club, data.card_year) : (CARD_META.get(data.card_name) ?? {})), lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard
         setClaimed(cc); onClaimed?.(cc); onGuaranteed?.(cc)
         setStatus('revealed')
       } else {
@@ -9129,6 +9325,13 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
   const colecoesOn = useColecoesLiberadas()
   const packPool = useMemo(() => {
+    // 🏀 basquete: só o baralho da NBA, sem repetir o que já está no álbum da NBA (ou no save da carreira)
+    if (nba) {
+      const pool = nbaPool()
+      const tenho = saveCards ? new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`)) : null
+      const un = pool.filter(c => tenho ? !tenho.has(`${c.name}|${c.club}|${c.year}`) : !owned.has(c.name))
+      return un.length ? un : pool
+    }
     // 📚 COLEÇÕES (04/10): o sorteio usa os TRÊS baralhos (o Mundo entrou — sem ele Boca, River e
     // outros 22 clubes nunca fechavam) e PODE REPETIR fora da carreira: a repetida é o que deixa
     // fechar o mesmo clube de novo e é a moeda das trocas. Na carreira segue a regra da Agência.
@@ -9153,7 +9356,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned, saveCards, colecoesOn])
+  }, [owned, saveCards, colecoesOn, nba])
   const [opening, setOpening] = useState(false)
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
@@ -9167,7 +9370,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     // season_key INTEIRA: a coluna é `text` (sem limite). Cortar em 48 quebrava a
     // dedup (a leitura usa a chave inteira) e colava temporadas na mesma chave.
     const key = seasonKey
-    await resilientWrite({ table: 'user_cards', row: {
+    await resilientWrite({ table: tabela, row: {
       user_id: uid, season_key: key, origin,
       card_name: card.name, card_club: card.club, card_year: card.year, card_pos: card.pos, card_fame: card.fame,
     } })
@@ -9183,7 +9386,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
     if (status !== 'picking' || savedRef.current || !packPool.length) return
-    const pick = colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
+    const pick = colecoesOn && !nba ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
     if (!pick) return
     savedRef.current = true
     setPendingPick(pick)
@@ -9194,7 +9397,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
 
   const openPack = () => {
     if (opening) return
-    const card = pendingPick ?? (colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)])
+    const card = pendingPick ?? (colecoesOn && !nba ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)])
     if (!card) return
     if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
     setOpening(true)
@@ -9218,7 +9421,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
         <p className="text-sm font-bold text-black/75 mt-1 mb-3">Todo campeão abre um <b>PACOTE SURPRESA</b> e leva uma carta colecionável pro álbum — tipo essa 👇</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto mb-3" style={{ maxWidth: 220 }}>
-          <CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} big />
+          {nba ? (() => { const ex = nbaPool().find(c => c.fame === 5) ?? nbaPool()[0]; return <CollectibleCard name={ex.name} club={ex.club} year={ex.year} pos={ex.pos} fame={ex.fame} bio={ex.bio} big /> })()
+            : <CollectibleCard name="Pelé" club="Santos" year={1962} pos="ATA" fame={5} big />}
         </motion.div>
         <p className="text-xs font-bold text-black/65 mb-3">☝️ Exemplo. A sua é <b>sorteada entre TODAS as cartas do jogo</b> — pode vir uma lenda dourada dessas! Mas <b>só quem tem conta guarda a carta</b>.</p>
         <Btn onClick={() => setAuthOpen(true)} bg={GREEN} className="w-full text-lg"><span className="text-white">Criar conta grátis e abrir o pacote 🎁</span></Btn>
@@ -9423,7 +9627,115 @@ export function VoltarInicio() {
   )
 }
 
+// 🏀 PORTEIRO DO ÁLBUM (19/10): no basquete abre o ÁLBUM DA NBA (gaveta `user_cards_nba`); no futebol,
+// o álbum de sempre (`EscAlbumFutebol`, intocado — só ganhou nome próprio).
 export function EscAlbum() {
+  const [sport] = useSport()
+  return sport === 'basquete' ? <EscAlbumNba /> : <EscAlbumFutebol />
+}
+
+// 🏀 ÁLBUM DA NBA — a MESMA cara do álbum do futebol (título, contador, abas Todos/Offline/Online,
+// "Organizar por", grade de 2 cartas). Sem Coleções e Trocas: essas são do baralho de futebol.
+function EscAlbumNba() {
+  const { dispatch } = useEsc()
+  const [cards, setCards] = useState<AlbumCard[] | null>(null)
+  const [anon, setAnon] = useState(false)
+  const [down, setDown] = useState(false)
+  const [filter, setFilter] = useState<AlbumFilter>('all')
+  const [sort, setSort] = useState<AlbumSort>('tier')
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setCards([]); setAnon(true); return }
+        const { data } = await supabase.from(NBA_TABELA).select('card_name, card_club, card_year, card_pos, card_fame, origin, obtained_at').eq('user_id', user.id).order('obtained_at', { ascending: false })
+        setCards(((data ?? []) as UserCardRow[]).map(c => ({
+          name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos as Sector, fame: c.card_fame,
+          ...nbaMeta(c.card_name, c.card_club, c.card_year),
+          origin: (c.origin === 'cpu' ? 'cpu' : 'online') as 'cpu' | 'online',
+          at: new Date(c.obtained_at).getTime(),
+        })))
+      } catch { setDown(true); setCards([]) }
+    })()
+  }, [])
+  const loading = cards === null
+  const cardKey = (c: AlbumCard) => `${c.name}|${c.club}|${c.year}`
+  const shown = useMemo(() => {
+    const all = cards ?? []
+    const byFilter = filter === 'all' ? all : all.filter(c => c.origin === filter)
+    const seen = new Set<string>()
+    return sortAlbum(byFilter.filter(c => { const k = cardKey(c); return seen.has(k) ? false : (seen.add(k), true) }), sort)
+  }, [cards, filter, sort])
+  const all = cards ?? []
+  const uniqBy = (list: AlbumCard[]) => new Set(list.map(cardKey)).size
+  const TABS: { id: AlbumFilter; label: string }[] = [
+    { id: 'all', label: `${tr('Todos', 'All')} (${uniqBy(all)})` },
+    { id: 'cpu', label: `⚡ Offline (${uniqBy(all.filter(c => c.origin === 'cpu'))})` },
+    { id: 'online', label: `👥 Online (${uniqBy(all.filter(c => c.origin === 'online'))})` },
+  ]
+  const exemplo = nbaPool().find(c => c.fame === 5) ?? nbaPool()[0]
+  return (
+    <Shell>
+      <div className="pt-4"><VoltarInicio /></div>
+      <div className="text-center -mt-1">
+        <h2 className="font-black text-4xl" style={OSWALD}>{tr('📖 MEU ÁLBUM', '📖 MY ALBUM')}</h2>
+        <p className="font-semibold text-black/60 mt-1">{tr('Campeão ganha uma carta-lembrança da NBA por título — no CPU ou no online. Vai colecionando as lendas.', 'A champion earns one NBA keepsake card per title — vs CPU or online. Keep collecting the legends.')}</p>
+        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{NBA_TOTAL} {tr('lendas da NBA', 'NBA legends')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
+      </div>
+      <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)}
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: filter === t.id ? GOLD : '#fff', color: '#000', ...OSWALD }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {!loading && !anon && shown.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-black uppercase text-black/45 tracking-wide" style={OSWALD}>{tr('🗂️ Organizar por', '🗂️ Sort by')}</p>
+          <AlbumSortBar value={sort} onChange={setSort} />
+        </div>
+      )}
+      {loading && <p className="text-center font-bold text-black/60">{tr('Carregando…', 'Loading…')}</p>}
+      {down && (
+        <div className="rounded-xl border-2 border-amber-400/70 bg-amber-400/10 px-4 py-3 text-center">
+          <p className="font-black text-sm" style={OSWALD}>{tr('🔧 Servidor fora do ar por uns minutos', '🔧 Server down for a few minutes')}</p>
+          <p className="font-bold text-black/60 text-xs mt-1">{tr('Seu álbum está a salvo — é só instabilidade. Volta daqui a pouquinho 💛', 'Your album is safe — just a hiccup. Come back in a little while 💛')}</p>
+        </div>
+      )}
+      {!loading && anon && (
+        <div className="space-y-3">
+          <Box bg={GOLD} className="p-3 text-center">
+            <p className="font-black text-sm" style={OSWALD}>{tr('👀 Exemplo de carta-lembrança', '👀 Example keepsake card')}</p>
+            <p className="font-bold text-black/70 text-xs mt-1">{tr('Faça seu cadastro pra começar a SUA coleção de verdade. Esta carta some quando você logar.', 'Sign up to start YOUR real collection. This card disappears once you sign in.')}</p>
+          </Box>
+          <div className="grid grid-cols-2 gap-3">
+            <CollectibleCard name={exemplo.name} club={exemplo.club} year={exemplo.year} pos={exemplo.pos} fame={exemplo.fame} bio={exemplo.bio} showBio />
+          </div>
+        </div>
+      )}
+      {!loading && !anon && shown.length === 0 && (
+        <Box bg="#fff" className="p-6 text-center">
+          <p className="font-bold text-black/70">
+            {filter === 'online' ? tr('Ainda sem cartas do online. Seja campeão de uma sala de basquete pra ganhar a primeira!', 'No online cards yet. Win a basketball room to earn the first one!')
+              : filter === 'cpu' ? tr('Ainda sem cartas do CPU. Seja campeão no basquete contra a CPU pra ganhar a primeira!', 'No CPU cards yet. Win at basketball against the CPU to earn the first one!')
+              : tr('Ainda sem cartas da NBA. Seja campeão no basquete (no CPU ou online) pra ganhar a primeira!', 'No NBA cards yet. Win at basketball (vs CPU or online) to earn the first one!')}
+          </p>
+        </Box>
+      )}
+      {!anon && (
+        <div className="grid grid-cols-2 gap-3">
+          {shown.map((c, i) => (
+            <div key={i}><CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} bio={(c as AlbumCard & { bio?: string }).bio} folk={c.folk} promessa={c.promessa} showBio /></div>
+          ))}
+        </div>
+      )}
+      <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
+    </Shell>
+  )
+}
+
+function EscAlbumFutebol() {
   const { dispatch } = useEsc()
   const [cards, setCards] = useState<AlbumCard[] | null>(null)
   const [anon, setAnon] = useState(false)
@@ -10222,6 +10534,9 @@ function NbaCareerEndPanel() {
   const { state, dispatch } = useEsc()
   const t = useT()
   const [showSell, setShowSell] = useState(false)
+  const [advancing, setAdvancing] = useState(false) // 🌐 trava duplo-toque no "próxima temporada" online
+  const online = state.onlineMode === 'online'
+  const isHost = state.isHost
   const you = state.managers[state.youIdx]
   const real = (you?.squad ?? []).filter(c => !c.fake)
   const roster = real.length
@@ -10255,9 +10570,28 @@ function NbaCareerEndPanel() {
       {!willPromote && tier !== 'nba' && (
         <p className="text-center text-[11px] font-bold text-black/45">{t(`${youPos}º na ${tierInfo.pt} — top 4 sobe de liga.`, `${youPos}${youPos === 1 ? 'st' : 'th'} in ${tierInfo.en} — top 4 gets promoted.`)}</p>
       )}
-      <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
-        <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
-      </Btn>
+      {/* 🌐 ONLINE: só o HOST avança a temporada (host-autoritativo); o convidado espera.
+          OFFLINE: o botão de sempre. Trava de duplo-toque pra não rodar o caixa 2×. */}
+      {online ? (isHost ? (
+        <Btn onClick={() => { if (advancing) return; setAdvancing(true); dispatch({ type: 'NEXT_NBA_SEASON_ONLINE' }) }} bg={GREEN} className="w-full text-lg" disabled={advancing}>
+          <span className="text-white">▶️ {advancing ? t('Avançando…', 'Advancing…') : t('Próxima temporada', 'Next season')}</span>
+        </Btn>
+      ) : (
+        <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={OSWALD}>⏳ {t('Esperando o host começar a próxima temporada…', 'Waiting for the host to start the next season…')}</p>
+        </div>
+      )) : (
+        <Btn onClick={() => dispatch({ type: 'NEXT_NBA_SEASON' })} bg={GREEN} className="w-full text-lg">
+          <span className="text-white">▶️ {t('Próxima temporada', 'Next season')}</span>
+        </Btn>
+      )}
+      {/* 🏛️ 2º CLUBE: na virada dá pra passar o comando pro outro clube (o que sai DORME,
+          joga sozinho). Só offline e só quem comprou um 2º clube. */}
+      {!online && state.multiClube && (
+        <Btn onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} bg={PURPLE} className="w-full text-sm">
+          <span className="text-white">🔄 {t('Jogar a próxima com', 'Next season play as')} {state.multiClube.team}</span>
+        </Btn>
+      )}
       <p className="text-center text-[11px] font-semibold text-black/50 -mt-1">{note}</p>
       {/* 🔄 VENDER (T3+): dispensa reservas fracas — nunca abaixo do quinteto */}
       {canSell && (
@@ -11158,7 +11492,8 @@ export function EscEnd() {
     teamName: you.teamName, youPos, youWon, champName: champ.name, nTeams: table.length,
     pts: table[youPos - 1]?.pts ?? 0, w: table[youPos - 1]?.w ?? 0, d: table[youPos - 1]?.d ?? 0, l: table[youPos - 1]?.l ?? 0,
     scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
-    card: featured ? { name: featured.name, club: featured.club, year: featured.year, pos: featured.pos, fame: featured.fame, folk: featured.folk, promessa: featured.promessa } : undefined,
+    card: featured ? { name: featured.name, club: featured.club, year: featured.year, pos: featured.pos, fame: featured.fame, folk: featured.folk, promessa: featured.promessa, ...(bbEnd ? { bio: featured.bio } : {}) } : undefined,
+    ...(bbEnd ? { bb: true } : {}),
   }
   // check de prontidão do "Reiniciar com novos times": TODOS os participantes
   // humanos precisam clicar "estou pronto" (não depende do presence, instável)
@@ -11189,10 +11524,10 @@ export function EscEnd() {
       {/* 🐛 CORRIGIDO (relato do Diego 12/08): 🥈 é a medalha "2º lugar" de
           verdade (tem um "2" desenhado nela) — usar pra QUALQUER posição da
           zona de cima mostrava "2" pra quem ficou em 3º ou 4º. Trocado por 🏅. */}
-      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
+      <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : !bbEnd && youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
       <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? LE('CAMPEÃO!', 'CHAMPION!') : `${ordinal(youPos, endLang)} ${LE('LUGAR', 'PLACE')}`}</h2>
       <p className="font-semibold text-black/60 mt-1">
-        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
+        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
       </p>
     </div>
   )
@@ -11225,7 +11560,7 @@ export function EscEnd() {
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
   useEffect(() => {
-    if (!online || !state.roomId) return
+    if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
     let vivo = true
     void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga, reg:game_state->>regionalNaLiga').eq('id', state.roomId).maybeSingle()
       .then(({ data }) => {
@@ -11245,7 +11580,7 @@ export function EscEnd() {
   // nome e a cor nos quadros do fim; o resto do fluxo é o mesmo.
   const libEnd = state.copaMode === 'liga_liberta'
   const chEnd = state.copaMode === 'liga_champions' || state.copaMode === 'champions'
-  const copaNome = libEnd ? 'Libertadores' : chEnd ? 'Champions League' : kEnd ? 'Kings League' : LE('Copa dos 8', 'Cup of 8')
+  const copaNome = libEnd ? 'Libertadores' : chEnd ? 'Champions League' : kEnd ? 'Kings League' : bbEnd ? 'Playoffs' : LE('Copa dos 8', 'Cup of 8')
   // até onde VOCÊ foi na Copa (pro resuminho do topo)
   const myCopaRun = (() => {
     const qc = state.quickCopa
@@ -11254,7 +11589,7 @@ export function EscEnd() {
     // 🌎 'oitavas' só aparece na Libertadores (a Copa dos 8 começa nas quartas)
     let last: 'repescao' | 'oitavas' | 'quartas' | 'semis' | 'final' | null = null, lost = false
     for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
-    if (!last) return state.copaMode === 'liga_liberta' ? LE('Não se classificou', 'Did not qualify') : chEnd ? LE('Caiu antes das oitavas', 'Out before the round of 16') : LE('Fora do top 8', 'Outside the top 8')
+    if (!last) return state.copaMode === 'liga_liberta' ? LE('Não se classificou', 'Did not qualify') : chEnd ? LE('Caiu antes das oitavas', 'Out before the round of 16') : bbEnd ? LE('Fora dos playoffs', 'Missed the playoffs') : LE('Fora do top 8', 'Outside the top 8')
     if (last === 'final') return lost ? LE('🥈 Vice', '🥈 Runner-up') : LE('🏆 Campeão!', '🏆 Champion!')
     return last === 'repescao' ? LE('Caiu no repescão', 'Out in the playoff') : last === 'semis' ? LE('Caiu na semi', 'Out in the semis') : last === 'quartas' ? LE('Caiu nas quartas', 'Out in the quarters') : LE('Caiu nas oitavas', 'Out in the round of 16')
   })()
@@ -11272,6 +11607,12 @@ export function EscEnd() {
   // quando o campeão abre o pacote, além de gravar no álbum dele, joga a carta no
   // estado → o host retransmite e a sala TODA vê a mesma carta (só no stream).
   const bcastCard = (slot: 'liga' | 'copa') => (c: WonCard) => { setMyCard(c); if (streamRoom) dispatch({ type: 'SET_STREAM_CHAMP_CARD', slot, card: c }) }
+  // 🏀💼 carreira do basquete: a carta do pacote também entra na Agência (mesma ação do futebol, chave =
+  // o bilhete da temporada → nunca conta duas vezes). Fora da carreira do basquete não passa nada.
+  const agenciaNba = (bilhete: string) => state.nbaCareer && bbEnd ? {
+    saveCards: (online ? state.careerEmpresario?.[you.id] : state.empresarioCards) ?? [],
+    onGuaranteed: (c: WonCard) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: you.id, key: bilhete, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } }),
+  } : {}
   // 🎥 STREAM · se o CAMPEÃO saiu da sala e não abriu o pacote, o HOST abre no lugar
   // dele (sorteio) — a sala não fica travada esperando uma carta que não vem. Espera
   // uma folga (presence é instável) e não age se a carta já existe ou se o campeão voltou.
@@ -11323,7 +11664,7 @@ export function EscEnd() {
           <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
           <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
-            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
+            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
           </p>
         </div>
       </Box>
@@ -11333,15 +11674,17 @@ export function EscEnd() {
   // montar a ordem do fim conforme teve Copa ou não.
   const ligaChampionCard = (
     <>
+      {/* 🏀 no basquete o pacote sai do baralho da NBA e vai pro ÁLBUM DA NBA (`nba`); na carreira a
+          carta também entra na 💼 Agência (`agenciaNba`), igual ao futebol */}
       {online && youWon && state.roomId && (
-        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} />
+        <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}`)} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
       {streamRoom && !youWon && ligaChampHuman && (
         <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
       {!online && youWon && (
-        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} />
+        <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} nba={bbEnd} {...agenciaNba(state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`)} />
       )}
     </>
   )
@@ -11366,9 +11709,9 @@ export function EscEnd() {
         <p className="text-[10px] font-bold text-black/55">{LE('Copa do meio da temporada — não conta pra tabela.', 'Midseason cup — it does not count toward the standings.')}</p>
       </Box>
       {cupChampIsYou && (online && state.roomId
-        ? <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:nbacup`} origin="online" onClaimed={bcastCard('copa')} />
+        ? <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:nbacup`} origin="online" onClaimed={bcastCard('copa')} nba {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}:nbacup`)} />
         : !online
-          ? <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:nbacup`} origin="cpu" onClaimed={setMyCard} />
+          ? <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:nbacup`} origin="cpu" onClaimed={setMyCard} nba {...agenciaNba(`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:nbacup`)} />
           : null)}
     </>
   ) : null
@@ -11379,16 +11722,19 @@ export function EscEnd() {
         const qc = state.quickCopa, ch = qc.champion!
         const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
         const dono = state.managers.find(m => m.id === ch.id)
-        const finalTxt = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : null
-        return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
+        const finalTxt = !fin ? null
+          // 🏀 final dos playoffs é SÉRIE: o placar é de JOGOS ganhos (2×1), não a soma dos pontos
+          : bbEnd && fin.legs.length > 1 ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.filter(g => g[0] > g[1]).length} × ${fin.legs.filter(g => g[1] > g[0]).length} ${fin.bName} (${LE('jogos na série', 'games in the series')})`
+          : `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}`
+        return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : bbEnd ? LE('💍 CAMPEÃO DOS PLAYOFFS', '💍 PLAYOFF CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
           nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
           sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
       })()}
       {copaChampIsYou && (
         online && state.roomId ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} />
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}:copa`)} />
         ) : !online ? (
-          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} />
+          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} nba={bbEnd} {...agenciaNba(`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`)} />
         ) : null
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}
@@ -11694,7 +12040,7 @@ export function EscEnd() {
           nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
       {/* ⭐ Só Champions: o jornal tem EDIÇÃO CHAMPIONS (`montaEdicaoChampions`) — pedido do Diego 25/09 */}
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
+        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
@@ -11744,7 +12090,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !state.nbaCareer && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
@@ -11781,7 +12127,8 @@ export function EscEnd() {
           jogo descartava tudo. Medido: 56% de quem joga nunca abre uma carreira,
           e quem abre volta 3× mais. Aqui a liga inteira vira a divisão de estreia
           — com os MESMOS adversários, então o equilíbrio fica de pé. */}
-      <ContinuarComEsseTime />
+      {/* 🏀 este convite abre a carreira de FUTEBOL (EscSetup) — no basquete a carreira começa pela home */}
+      {!bbEnd && <ContinuarComEsseTime />}
       <Btn onClick={() => dispatch({ type: 'NEW_GAME' })} className="w-full text-lg">{LE('NOVO PREGÃO 🔨', 'NEW AUCTION 🔨')}</Btn>
       </>)}
     </Shell>

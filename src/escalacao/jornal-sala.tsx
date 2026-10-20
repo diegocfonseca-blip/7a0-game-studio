@@ -320,6 +320,7 @@ export interface EdicaoSala {
   linhaFina: string
   copaNome: string
   nTecnicos: number
+  bb?: boolean // 🏀 edição do BidLegends: nome do jornal, CESTINHA/pontos (default → futebol idêntico)
   // 🖥️ OFFLINE (jogo rápido contra a CPU, Diego 04/09: "no modo rápido offline
   // tem q ter jornal tb"). Muda DUAS coisas, e só: quem ganha linha na redação
   // (offline você é o único humano — a regra de sala deixaria 3 linhas) e as
@@ -348,7 +349,8 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   const n = table.length
   // "Rio × São Paulo" vira "Copa Rio × São Paulo" (EN: "Rio × São Paulo Cup"), pra manchete fechar
   const copaRegional = !mundo?.copa ? '' : getLang() === 'en' ? (/cup/i.test(mundo.copa) ? mundo.copa : `${mundo.copa} Cup`) : (/^copa/i.test(mundo.copa) ? mundo.copa : `Copa ${mundo.copa}`)
-  const copaNome = copaRegional ? copaRegional : mundo ? tr('Copa do Mundo', 'World Cup') : state.copaMode === 'liga_liberta' ? 'Libertadores' : tr('Copa dos 8', 'Cup of 8')
+  const bb = state.sport === 'basquete' // 🏀 o mata-mata do basquete é a pós-temporada (Playoffs)
+  const copaNome = bb ? tr('pós-temporada', 'Playoffs') : copaRegional ? copaRegional : mundo ? tr('Copa do Mundo', 'World Cup') : state.copaMode === 'liga_liberta' ? 'Libertadores' : tr('Copa dos 8', 'Cup of 8')
   const en = getLang() === 'en'
   const runs = runsDaCopa(state.quickCopa)
   const mgr = (id: number) => state.managers.find(m => m.id === id)
@@ -422,7 +424,7 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
     linhaFina = en ? 'The table is closed.' : 'A tabela fechou.'
   }
 
-  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline }
+  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline, ...(bb ? { bb } : {}) }
 }
 
 // ── a capa na tela ──────────────────────────────────────────────────────────
@@ -454,7 +456,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       </div>
       <div style={{ borderTop: `3px solid ${INK}`, borderBottom: `1.5px solid ${INK}`, height: 4, margin: '8px 0 6px' }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', ...COND, fontWeight: 700, fontSize: 9, paddingBottom: 6, borderBottom: `3px solid ${INK}`, color: 'rgba(0,0,0,.72)' }}>
-        <span>{tr('⚽ O DIÁRIO DO LEILÃO LEGENDS', '⚽ THE LEILÃO LEGENDS DAILY')}</span><span>{tr('FIM DE JOGO', 'FULL TIME')}</span>
+        <span>{ed.bb ? tr('🏀 O DIÁRIO DO BIDLEGENDS', '🏀 THE BIDLEGENDS DAILY') : tr('⚽ O DIÁRIO DO LEILÃO LEGENDS', '⚽ THE LEILÃO LEGENDS DAILY')}</span><span>{tr('FIM DE JOGO', 'FULL TIME')}</span>
       </div>
 
       {/* manchete */}
@@ -482,7 +484,9 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
           {([
             ed.campeaoLiga && ['🏆', ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, GOLD],
             ed.campeaoCopa && ['🥇', tr(`CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, `${ed.copaNome.toUpperCase()} CHAMPION`), ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO],
-            ed.artilheiro && ['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN],
+            ed.artilheiro && (ed.bb
+              ? ['🏀', ed.offline ? tr('CESTINHA DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('CESTINHA DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('pontos', 'points')}`, GREEN]
+              : ['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN]),
             ed.lanterna && ['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} ${tr('pontos', 'points')}`, '#7A7460'],
           ].filter(Boolean) as [string, string, string, string, string][]).map(([ic, rot, nome, sub, cor]) => (
             <div key={rot} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderTop: '1.5px solid rgba(0,0,0,.1)', borderLeft: `6px solid ${cor}` }}>
@@ -589,7 +593,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   x.beginPath(); x.moveTo(L, y + 7); x.lineTo(R, y + 7); x.stroke()
   y += 40
   x.textAlign = 'left'; x.font = `700 21px ${OSW}`; x.fillStyle = '#3a3527'
-  x.fillText(tr('⚽ O DIÁRIO DO LEILÃO LEGENDS', '⚽ THE LEILÃO LEGENDS DAILY'), L, y)
+  x.fillText(ed.bb ? tr('🏀 O DIÁRIO DO BIDLEGENDS', '🏀 THE BIDLEGENDS DAILY') : tr('⚽ O DIÁRIO DO LEILÃO LEGENDS', '⚽ THE LEILÃO LEGENDS DAILY'), L, y)
   x.textAlign = 'right'; x.fillText(tr('FIM DE JOGO', 'FULL TIME'), R, y)
   y += 14
   x.lineWidth = 1.5; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke()
@@ -641,7 +645,9 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   const donos: [string, string, string, string, string][] = []
   if (ed.campeaoLiga) donos.push(['🏆', ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, GOLD])
   if (ed.campeaoCopa) donos.push(['🥇', tr(`CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, `${ed.copaNome.toUpperCase()} CHAMPION`), ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO])
-  if (ed.artilheiro) donos.push(['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN])
+  if (ed.artilheiro) donos.push(ed.bb
+    ? ['🏀', ed.offline ? tr('CESTINHA DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('CESTINHA DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('pontos', 'points')}`, GREEN]
+    : ['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN])
   if (ed.lanterna) donos.push(['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} ${tr('pontos', 'points')}`, '#7A7460'])
   for (const [ic, rot, nome, sub, cor] of donos) {
     x.fillStyle = '#fff'; x.fillRect(L, dy, MAXW, 74)

@@ -1374,10 +1374,11 @@ const FIN_RED = '#C2452F'
 
 // 🏛️ MULTICLUBES · Fase 1 (a COMPRA): painel pra comprar um 2º clube da Série D por
 // 4.000 moedas (só Lenda). O seletor + "clube dormindo" vêm nas próximas fases.
-function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
-  jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void
+function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy, bb = false }: {
+  jaTem?: string; opcoes: string[]; coins: number; preco: number; isLenda: boolean; onBuy: (team: string) => void; bb?: boolean // 🏀 basquete: escudo de quadra no lugar do estádio
 }) {
   const [pick, setPick] = useState<string | null>(null)
+  const baseNm = bb ? 'Street League' : 'Série D' // 🏀 o andar-base do basquete no lugar da Série D
   const lock: React.CSSProperties = { fontFamily: 'system-ui', fontSize: 10.5, fontWeight: 800, background: '#CBBF9E', color: 'rgba(0,0,0,.65)', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 8 }
   if (jaTem) return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
@@ -1389,7 +1390,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
   return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>{tr('🏛️ Compre um SEGUNDO CLUBE', '🏛️ Buy a SECOND CLUB')}</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{planos2Liberado() ? (getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>⭐ Full Star</b> perk (or Club naming).</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do <b>⭐ Craque completo</b> (ou do Batismo).</>) : (getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>Legend 👑</b> tier perk.</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</>)}</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{planos2Liberado() ? (getLang() === 'en' ? <>Pick a club that <b>plays {baseNm} today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>⭐ Full Star</b> perk (or Club naming).</> : <>Escolha um clube que <b>hoje joga a {baseNm}</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do <b>⭐ Craque completo</b> (ou do Batismo).</>) : (getLang() === 'en' ? <>Pick a club that <b>plays {baseNm} today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>Legend 👑</b> tier perk.</> : <>Escolha um clube que <b>hoje joga a {baseNm}</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</>)}</p>
       {!isLenda && (
         <>
           <div style={lock}>{planos2Liberado() ? (getLang() === 'en' ? <>🔒 <b>⭐ Full Star</b> perk — subscribe to manage 2 clubs.</> : <>🔒 Regalia do <b>⭐ Craque completo</b> — assine pra comandar 2 clubes.</>) : (getLang() === 'en' ? <>🔒 <b>Legend 👑</b> perk — become Legend to manage 2 clubs.</> : <>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</>)}</div>
@@ -1402,9 +1403,9 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
       {isLenda && faltam <= 0 && (
         <>
           <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto' }}>
-            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>{tr('Nenhum clube da Série D disponível agora.', 'No Série D club available right now.')}</p>}
+            {opcoes.length === 0 && <p style={{ fontFamily: 'system-ui', fontSize: 10.5, opacity: .6 }}>{tr(`Nenhum clube da ${baseNm} disponível agora.`, `No ${baseNm} club available right now.`)}</p>}
             {opcoes.map(t => (
-              <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>🏟️ {t}{pick === t ? '  ✓' : ''}</button>
+              <button key={t} onClick={() => setPick(t)} style={{ display: 'block', width: '100%', textAlign: 'left', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', marginTop: 5, fontWeight: 900, fontSize: 12, background: pick === t ? GOLD : '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{bb ? '🏀' : '🏟️'} {t}{pick === t ? '  ✓' : ''}</button>
             ))}
           </div>
           <button disabled={!pick} onClick={() => pick && onBuy(pick)} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: pick ? GOLD : '#555', color: pick ? '#000' : 'rgba(255,255,255,.5)', cursor: pick ? 'pointer' : 'default', ...OSWALD }}>{tr('💰 COMPRAR', '💰 BUY')} {pick ? pick.toUpperCase() : tr('POR', 'FOR')} · {preco.toLocaleString('pt-BR')} 🪙</button>
@@ -1418,17 +1419,26 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
 // Mostra as cartas ganhas NESTA carreira por raridade e a renda por temporada.
 // Cada categoria só rende quando desbloqueada (estádio/SAF). Tocar numa carta
 // abre a carta cheia com a bio (mesmo card do álbum).
-function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: StadiumSave | undefined; hasFilial: boolean }) {
+function EscritorioTab({ cards, st, hasFilial, bb = false }: { cards: EmpCard[]; st: StadiumSave | undefined; hasFilial: boolean; bb?: boolean }) {
   const [open, setOpen] = useState<EmpCard | null>(null)
-  const { total, by } = empresarioIncome(cards, st, hasFilial)
+  // 🏀 basquete: a renda usa a régua do basquete (LENDA destrava pela ARENA 100%,
+  // não pela SAF, que não existe). Futebol passa bb=false → idêntico.
+  const { total, by } = empresarioIncome(cards, st, hasFilial, bb)
   const catCards = (k: EmpCat) => cards.filter(c => empCat(c) === k)
+  // 🏀 no basquete a LENDA destrava pela arena cheia — o texto do cadeado diz isso.
+  const reqOf = (k: EmpCat) => {
+    if (!bb) return empMeta(k).req
+    if (k === 'lenda') return tr('arena 100% completa', 'full arena (100%)')
+    // 🏀 "estádio/stadium/setor" viram "arena" nos requisitos do basquete
+    return empMeta(k).req.replace(/do estádio/gi, 'da arena').replace(/estádio/gi, 'arena').replace(/stadium stand|stadium/gi, 'arena').replace(/stands?/gi, 'arena')
+  }
   return (
     <>
       {/* RESUMO: renda por temporada */}
       <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💼 Renda do Empresário', '💼 Agent income')}</div>
         <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>+{total} 🪙 <span style={{ fontSize: 13, fontWeight: 700, opacity: .75 }}>/ {tr('temporada', 'season')}</span></div>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the stadium and the SAF to unlock the rare ones.</> : <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</>}</div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 6, lineHeight: 1.4 }}>{getLang() === 'en' ? (bb ? <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the <b>arena</b> to unlock the rare ones.</> : <>Lands in the till every turnover. Only cards of <b>unlocked</b> categories count — build the stadium and the SAF to unlock the rare ones.</>) : (bb ? <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — construa a <b>arena</b> pra liberar as raras.</> : <>Cai no caixa toda virada. Vale só pelas cartas de categorias <b>desbloqueadas</b> — puxe o estádio e a SAF pra liberar as raras.</>)}</div>
       </div>
 
       {/* CATEGORIAS: quanto tem, o que rende, o que falta destravar */}
@@ -1441,7 +1451,7 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
                 <span style={{ fontSize: 20 }}>{m.emoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ ...OSWALD, fontWeight: 900, fontSize: 14 }}>{m.label} <span style={{ fontWeight: 700, fontSize: 11, color: '#8a8069' }}>+{m.value}/{tr('carta', 'card')}</span></div>
-                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}{b.unlocked ? '' : ` · 🔒 ${tr('destrava', 'unlocks')}: ${m.req}`}</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069' }}>{list.length} {list.length === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}{b.unlocked ? '' : ` · 🔒 ${tr('destrava', 'unlocks')}: ${reqOf(k)}`}</div>
                 </div>
                 <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: b.unlocked ? GREEN : '#b3a688', whiteSpace: 'nowrap' }}>{b.unlocked ? `+${b.income}` : '🔒'}</div>
               </div>
@@ -2430,9 +2440,10 @@ function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: 
     </div>
   )
 }
-function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
+function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false }: {
   ledger: LedgerEntry[]; caixa: number; seasonNo: number
   squad: WonCard[]; marketValues: Record<string, number>
+  bb?: boolean // 🏀 basquete: a obra é na ARENA (default false → futebol idêntico)
 }) {
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
   // extrato: do mais novo pro mais antigo, agrupado por temporada
@@ -2459,7 +2470,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
     '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
   }
   const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? (bb ? tr('🏟️ Obra na arena', '🏟️ Arena works') : tr('🏟️ Obra no estádio', '🏟️ Stadium works')) : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -7936,6 +7947,83 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
 
 // ⭐ abre a tela com TODOS os planos, rolada até o Craque (Diego 07/10: "qd apertar em craque ele vê todos planos")
 const abreCraqueNuvem = () => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=nuvem` }
+
+// 🏀 CLUBE do BASQUETE (BidLegends) — a MESMA economia do futebol numa janela:
+// 🏟️ Arena (quadra) · 💰 Finanças · 💼 Agência · 🏛️ 2º Clube. Reusa os mesmos
+// componentes do futebol (StadiumTab/FinancasTab/EscritorioTab/MultiClubeBuy) com
+// bb={true} pro visual de quadra e a régua da arena. SÓ aparece na carreira do
+// basquete (EscSeason), nunca no futebol. Patrocínio fica pra uma próxima fatia.
+export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
+  const { state, dispatch } = useEsc()
+  const en = getLang() === 'en'
+  const L = (pt: string, e: string) => en ? e : pt
+  const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi'>('estadio')
+  const youId = state.managers[state.youIdx]?.id ?? state.youIdx
+  const coins = state.careerCoins?.[youId] ?? 0
+  const myCards = state.empresarioCards ?? []
+  const myLedger = state.careerLedger ?? []
+  // 👕 patrocínio: o MESMO Patrocinador Master do futebol (4 papéis, meta, renovação por
+  // ligação) — a marca paga pela DIVISÃO do andar (tierDivKey já está em careerPlacements).
+  const div = (state.careerPlacements?.[`m${youId}`] ?? 'D') as string
+  // 🏛️ 2º clube: crews da Street League (placement 'D') que ainda são livres. A compra
+  // (BUY_MULTICLUBE) só acha crew na 'D', então no G League/NBA a lista vem vazia — o 2º
+  // clube se compra na base, e depois sobe junto com você.
+  const multiOpcoes = state.managers
+    .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D')
+    .map(m => m.teamName)
+  const isLenda = myApoioPerk()?.tier === 'ouro'
+  const tabs: [typeof sub, string, string][] = [
+    ['estadio', '🏟️', L('Arena', 'Arena')],
+    ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
+    ['financas', '💰', L('Finanças', 'Finances')],
+    ['escritorio', '💼', L('Agência', 'Agency')],
+    ['multi', '🏛️', L('2º Clube', '2nd Club')],
+  ]
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
+      <div style={{ position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
+          <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+          {tabs.map(([s, ic, label]) => (
+            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
+          ))}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
+          {sub === 'escritorio' ? (
+            <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb />
+          ) : sub === 'patrocinio' ? (
+            // 👕 Patrocinador Master do basquete: mesmos 4 papéis do futebol, pagando pelo
+            // ANDAR (Street=D não tem marca; G League=B e NBA=A pagam). intl=false (o basquete
+            // não tem carreira internacional). A marca cai no caixa na virada (applyMasterHistoria).
+            <div style={{ paddingTop: 8 }}>
+              <MasterBanner div={div} seasonNo={state.seasonNo ?? 1} contrato={state.careerMaster?.[youId]}
+                seed={state.seed} mgrId={youId} intl={false}
+                onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
+                onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
+                onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
+            </div>
+          ) : sub === 'financas' ? (
+            <FinancasTab ledger={myLedger} caixa={coins} seasonNo={state.seasonNo ?? 1} squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} bb />
+          ) : sub === 'multi' ? (
+            // 🏛️ 2º Clube do basquete: compra direta de uma crew (4.000 🪙, regalia Lenda),
+            // igual ao multiclube pré-SAF do futebol. Os dois clubes jogam a MESMA liga; você
+            // comanda um por temporada e troca no fim (botão na tela de fim). Sobem juntos.
+            <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={isLenda}
+              onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} bb />
+          ) : (
+            <StadiumTab st={state.stadiums?.[youId]} coins={coins}
+              onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()

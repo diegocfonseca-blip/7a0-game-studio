@@ -25,7 +25,7 @@ import type { ApoioPerk } from './apoio'
 import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
-import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
+import { lojaLiberada, getSport } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09) · getSport: nome do andar no basquete
 import { fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
@@ -224,7 +224,11 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
 //    valor total e o que ele ganhará por temporada, que é só dividir"*);
 //  · COM contrato → só a faixa de leitura (quanto paga · temporada n de N).
 //  `cinematic` = a cena do escritório (mesmas classes do Pontual); senão, caixinha.
-const divNome = (div: string) => (div === 'V' ? tr('Várzea', 'Várzea') : `Série ${div}`)
+// 🏀 no basquete o "div" é o ANDAR (tierDivKey: D=Street, B=G League, A=NBA) — o
+// Patrocinador Master mostra o nome do andar, não "Série X". Futebol: getSport()!=='basquete'.
+const divNome = (div: string) => getSport() === 'basquete'
+  ? (div === 'A' ? 'NBA' : div === 'B' || div === 'C' ? 'G League' : 'Street League')
+  : (div === 'V' ? tr('Várzea', 'Várzea') : `Série ${div}`)
 // 🎯 a meta da marca, no papel e na faixa (17/10)
 function MetaCaixa({ meta, bonus, compacta = false }: { meta: MasterMetaId; bonus: number; compacta?: boolean }) {
   const m = MASTER_METAS[meta]
@@ -569,7 +573,7 @@ const GRASS_HOLES: { x: number; y: number; rx: number; ry: number; at: number }[
   { x: .30, y: .62, rx: 14, ry: 9, at: 60 }, { x: .74, y: .80, rx: 11, ry: 7, at: 80 },
   { x: .12, y: .50, rx: 9, ry: 6, at: 100 },
 ]
-export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk }) {
+export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave | undefined; perkOverride?: ApoioPerk; bb?: boolean }) {
   const night = hasExtra(st, 'refl')
   const gramaPct = sectorPct(st, 'grama')
   const gt = gramaPct / 100
@@ -583,7 +587,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   const parts: string[] = []
   parts.push('<defs>')
   for (const k in STANDS) parts.push(`<clipPath id="stc${k}"><polygon points="${P(STANDS[k].pts)}"/></clipPath>`)
-  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lerpHex(DIRT, GRASS, gt, 0)}"/><stop offset="1" stop-color="${lerpHex(DIRT, GRASS, gt, 1)}"/></linearGradient>`)
+  // 🏀 basquete = piso de MADEIRA (quadra); ⚽ futebol = gramado (terra→grama).
+  parts.push(`<linearGradient id="stgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bb ? '#d8ab68' : lerpHex(DIRT, GRASS, gt, 0)}"/><stop offset="1" stop-color="${bb ? '#b8894a' : lerpHex(DIRT, GRASS, gt, 1)}"/></linearGradient>`)
   parts.push(`<linearGradient id="stau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f0}"/><stop offset="1" stop-color="${f1}"/></linearGradient>`)
   parts.push(`<linearGradient id="stvd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${v0}"/><stop offset="1" stop-color="${v1}"/></linearGradient>`)
   parts.push('<pattern id="stcrowd" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#0C0C0C" opacity=".25"/><circle cx="6" cy="6" r="1.4" fill="#fff" opacity=".55"/></pattern>')
@@ -601,22 +606,34 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   parts.push('<ellipse cx="180" cy="298" rx="160" ry="10" fill="#000" opacity=".16"/>')
   // gramado
   const px = 105, py = 75, pw = 130, ph = 160, cx = px + pw / 2, cy = py + ph / 2
-  parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="#123f22" stroke-width="2.5"/>`)
-  for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${(0.02 + 0.07 * gt).toFixed(2)}"/>`)
-  // 🕳️ buracos de terra que vão fechando conforme o gramado melhora (0% = todos
-  // abertos, terra pura; 100% = nenhum, igual o campo bonito de sempre)
-  for (const h of GRASS_HOLES) {
-    const windowStart = h.at - 20
-    const scale = Math.max(0, Math.min(1, (h.at - gramaPct) / (h.at - windowStart)))
-    if (scale <= 0) continue
-    parts.push(`<ellipse cx="${(px + h.x * pw).toFixed(1)}" cy="${(py + h.y * ph).toFixed(1)}" rx="${(h.rx * scale).toFixed(1)}" ry="${(h.ry * scale).toFixed(1)}" fill="#5c4530" opacity="${(0.55 + 0.25 * scale).toFixed(2)}"/>`)
+  parts.push(`<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="5" fill="url(#stgr)" stroke="${bb ? '#8a5f2c' : '#123f22'}" stroke-width="2.5"/>`)
+  if (!bb) {
+    for (let i = 0; i < pw; i += 13) if ((i / 13) % 2 === 0) parts.push(`<rect x="${px + i}" y="${py}" width="13" height="${ph}" fill="#fff" opacity="${(0.02 + 0.07 * gt).toFixed(2)}"/>`)
+    // 🕳️ buracos de terra que vão fechando conforme o gramado melhora (0% = todos
+    // abertos, terra pura; 100% = nenhum, igual o campo bonito de sempre)
+    for (const h of GRASS_HOLES) {
+      const windowStart = h.at - 20
+      const scale = Math.max(0, Math.min(1, (h.at - gramaPct) / (h.at - windowStart)))
+      if (scale <= 0) continue
+      parts.push(`<ellipse cx="${(px + h.x * pw).toFixed(1)}" cy="${(py + h.y * ph).toFixed(1)}" rx="${(h.rx * scale).toFixed(1)}" ry="${(h.ry * scale).toFixed(1)}" fill="#5c4530" opacity="${(0.55 + 0.25 * scale).toFixed(2)}"/>`)
+    }
   }
   const W = 'rgba(255,255,255,.85)'
   parts.push(`<rect x="${px + 6}" y="${py + 6}" width="${pw - 12}" height="${ph - 12}" fill="none" stroke="${W}" stroke-width="1.6"/>`)
   parts.push(`<line x1="${px}" y1="${cy}" x2="${px + pw}" y2="${cy}" stroke="${W}" stroke-width="1.6"/>`)
-  parts.push(`<circle cx="${cx}" cy="${cy}" r="19" fill="none" stroke="${W}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="2.2" fill="${W}"/>`)
-  parts.push(`<rect x="${px + 34}" y="${py + 6}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
-  parts.push(`<rect x="${px + 34}" y="${py + ph - 23}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${bb ? 15 : 19}" fill="none" stroke="${W}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="2.2" fill="${W}"/>`)
+  if (bb) {
+    // 🏀 garrafão + círculo de lance livre + aro (dourado) nos dois lados da quadra
+    for (const top of [true, false]) {
+      const ky = top ? py + 6 : py + ph - 6 - 40
+      parts.push(`<rect x="${cx - 16}" y="${ky}" width="32" height="40" fill="rgba(255,255,255,.08)" stroke="${W}" stroke-width="1.6"/>`)
+      parts.push(`<circle cx="${cx}" cy="${top ? ky + 40 : ky}" r="12" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+      parts.push(`<circle cx="${cx}" cy="${top ? py + 12 : py + ph - 12}" r="3.6" fill="none" stroke="${GOLD}" stroke-width="2.4"/>`)
+    }
+  } else {
+    parts.push(`<rect x="${px + 34}" y="${py + 6}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+    parts.push(`<rect x="${px + 34}" y="${py + ph - 23}" width="62" height="17" fill="none" stroke="${W}" stroke-width="1.6"/>`)
+  }
   // arquibancadas (enchem de torcida conforme o investimento)
   for (const k in STANDS) {
     const s2 = STANDS[k], p = sectorPct(st, k), full = p >= 100
@@ -648,8 +665,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
   }
   if (hasExtra(st, 'telao')) {
     parts.push(`<rect x="306" y="14" width="44" height="30" rx="4" fill="#0C0C0C" stroke="${INK}" stroke-width="3"/>`)
-    parts.push('<text x="328" y="30" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="11" fill="#37D067">1×0</text>')
-    parts.push(`<text x="328" y="41" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="7" fill="${GOLD}">GOL!</text>`)
+    parts.push(`<text x="328" y="30" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="11" fill="#37D067">${bb ? '88' : '1×0'}</text>`)
+    parts.push(`<text x="328" y="41" text-anchor="middle" font-family="Oswald,sans-serif" font-weight="900" font-size="7" fill="${GOLD}">${bb ? 'CESTA!' : 'GOL!'}</text>`)
     parts.push(`<line x1="328" y1="44" x2="328" y2="54" stroke="${INK}" stroke-width="3"/>`)
   }
   if (hasExtra(st, 'loja')) {
@@ -669,9 +686,10 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2 }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2, bb = false }: {
   presidencyView?: ReactNode
   cinematic?: boolean
+  bb?: boolean // 🏀 basquete: quadra no lugar do gramado + nome de arena (texto já é bilíngue via getLang)
   // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com `useSaf2()`): troca as regras velhas pelas novas, mostra o
   // painel novo (relógio das 10 temporadas · assumir o comando · vender pela divisão) e a trava da janela
   // dos empréstimos. Sem esta prop a seção da SAF fica EXATAMENTE como sempre foi.
@@ -726,7 +744,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   const [travaCt, setTravaCt] = useState<{ cardId: string; nome: string; pos: string; clube: string; ano: number; jaVenceu: boolean; opcoes: { anos: number; custo: number }[] } | null>(null)
   const [pickIn, setPickIn] = useState(false)
   const [sellingSaf, setSellingSaf] = useState(false)
-  const lvl = stadiumLevel(st)
+  const lvl = stadiumLevel(st, bb)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
   // 🧍 A TORCIDA (Diego 16/09). O jogo JÁ calculava este número e nunca mostrava.
@@ -775,10 +793,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </span>
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>{tr('nível', 'level')} {lvl.n}</span>
         </div>
-        {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} /></CareerStadiumView> : <StadiumSvg st={st} />)}
+        {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} bb={bb} /></CareerStadiumView> : <StadiumSvg st={st} bb={bb} />)}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
-            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>
+            <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{bb ? tr('🎫 Batiza tua arena — mimo de sócio', '🎫 Name your arena — member perk') : tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>
             <input value={nomeTmp} maxLength={24} placeholder={tr('Ex.: Caldeirão do Alface', 'E.g.: The Lettuce Cauldron')}
               onChange={e => setNomeTmp(stripEmoji(e.target.value))}
               style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontWeight: 900, fontSize: 14, marginTop: 6, background: '#FBF6E9', ...OSW }} />
@@ -810,10 +828,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </div>
           <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 1px 0', lineHeight: 1.35 }}>
             {getLang() === 'en'
-              ? <>This is <b>how many people support your club</b> — not how many fit in the ground. It grows two ways: <b>the division you play in</b> and <b>every seat you build</b>. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
-              : <>Isto é <b>quanta gente torce pelo seu clube</b> — não é quanta gente cabe no estádio. Ela cresce de dois jeitos: <b>a divisão em que você joga</b> e <b>cada lugar que você constrói</b>. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
+              ? <>This is <b>how many people support your club</b> — not how many fit in the {bb ? 'arena' : 'ground'}. It grows two ways: <b>the division you play in</b> and <b>every seat you build</b>. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
+              : <>Isto é <b>quanta gente torce pelo seu clube</b> — não é quanta gente cabe {bb ? 'na arena' : 'no estádio'}. Ela cresce de dois jeitos: <b>a divisão em que você joga</b> e <b>cada lugar que você constrói</b>. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
         </div>
-        <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={tr('Seu estádio já rende', 'Your stadium already earns')}>
+        <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={bb ? tr('Sua arena já rende', 'Your arena already earns') : tr('Seu estádio já rende', 'Your stadium already earns')}>
           {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}
         </UnlockBanner>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 10, padding: '7px 11px' }}>
@@ -823,11 +841,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '7px 2px 0', lineHeight: 1.35 }}>
           {getLang() === 'en'
             ? (medicoOn
-              ? <><b>Guaranteed floor +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> if SOLD OUT. 🎟️ You earn as your <b>league position</b> fills the stadium: Top 4 sells out (full income), bottom 4 empties (floor only). The floor never drops.</>
-              : <><b>Stadium base +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/season</b>. Every club already sells tickets — building <b>adds on top of the base</b>. Lands in the till by itself at the end of each season; a finished upgrade earns forever.</>)
+              ? <><b>Guaranteed floor +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> if SOLD OUT. 🎟️ You earn as your <b>league position</b> fills the {bb ? 'arena' : 'stadium'}: Top 4 sells out (full income), bottom 4 empties (floor only). The floor never drops.</>
+              : <><b>{bb ? 'Arena base' : 'Stadium base'} +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · built +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/season</b>. Every club already sells tickets — building <b>adds on top of the base</b>. Lands in the till by itself at the end of each season; a finished upgrade earns forever.</>)
             : medicoOn
-            ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche o estádio: Top 4 lota (renda cheia), Z4 esvazia (só o piso). O piso nunca cai.</>
-            : <><b>Base do estádio +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
+            ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche {bb ? 'a arena' : 'o estádio'}: Top 4 lota (renda cheia), {bb ? 'os 4 últimos esvaziam' : 'Z4 esvazia'} (só o piso). O piso nunca cai.</>
+            : <><b>{bb ? 'Base da arena' : 'Base do estádio'} +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
       </div>
 
       {/* 🎟️ LOTAÇÃO (Diego 12/08): só clima do próximo jogo — nunca desconta a
@@ -866,7 +884,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         )
       })()}
 
-      {cinematic && <nav className="ll32-structure-tabs" aria-label="Obras do estádio"><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
+      {cinematic && <nav className="ll32-structure-tabs" aria-label={bb ? 'Obras da arena' : 'Obras do estádio'}><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
       <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{tr('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
       {/* 🌱 O GRAMADO SAIU DAQUI (Diego 16/09). Ele tem ZERO lugares — não é
@@ -895,7 +913,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           <div key={s.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : sectorNome(s)}</span>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
@@ -925,7 +943,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{sectorNome(s)}</span>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>

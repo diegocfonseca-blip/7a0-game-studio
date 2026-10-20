@@ -1,3 +1,167 @@
+## 🏀 BidLegends NO AR (20/10) — só na conta do Diego (BASQUETE_TESTERS)
+Diego: *"já pode [pôr] o basquete pra eu ver como tá, trocando a aba lá em cima do futebol pelo basquete"*. O branch
+`claude/bidlegends-fase-1-7vtrzu` recebeu a main (90 commits: Carreira Online v2, Liga Draft…) e foi pra main. Conflitos
+resolvidos juntando os dois lados (saf2On com `!s.co2` E sem basquete; START_ONLINE com `fracoInicial` + Liga Draft + o
+basquete; autosave da pirâmide pulando basquete E co2). **Liga Draft escondida no basquete** (usa baralho de futebol).
+Na home do futebol, a conta liberada vê a etiqueta **"🏀 IR PRO BIDLEGENDS"** embaixo da marca (no cabeçalho não cabia:
+quebrava a marca e MINHA CONTA no celular); a home do basquete volta pelo ⚽. Pra todo o resto a home é a de sempre.
+Testes: todos os que passam na main passam aqui; os 9 que já falham na main (mascote-botao, tracos, elenco27, mascote,
+giro, ritmo, copamundo, holandes, relogio) seguem iguais — não são do basquete.
+Consertado no caminho: começar carreira de basquete zerava cestinhas e não assistências (`npm run artilharia`).
+
+## 🏀 BidLegends: carreira solo = economia do futebol — REAPLICADA SOBRE A MAIN (19/10)
+
+**Contexto (importante pra outras sessões):** a branch `claude/bidlegends-fase-1-7vtrzu`
+estava com HISTÓRIA SEPARADA da main (sem ancestral comum) e ATRASADA ~177 mil linhas de
+futebol. Ela tinha a economia do basquete (Fatias 0–4) mas apagaria o futebol novo se fosse
+pra main. Decisão: **recriar a branch a partir da main de hoje** (backup da antiga guardado em
+`origin/backup/bidlegends-economia-ca33ac63`) e **reaplicar só a economia do basquete por cima**.
+Assim o futebol fica INTOCADO (é a base). Reverter = apontar pro backup.
+
+**FEITO (núcleo, commit `45268924`):** carreira do basquete agora usa `careerOnline=true` (a
+mesma máquina de economia do futebol: caixa, folha, prêmios por colocação, patrocínio, estádio,
+extrato). A SIMULAÇÃO segue a própria do basquete (EscSeason) — o roteador (index.tsx) bifurca por
+esporte. `tierDivKey` mapeia andar→divisão (street=D, gleague=B, nba=A) e liga as tabelas de
+economia de graça. Travas `sport!=='basquete'` em PLAY_ROUND/SET_TACTIC/FINISH_SEASON/SET_LINEUP/
+CHANGE_FORMATION/SEED_CPU_SQUADS + autosave do futebol: **todas inertes pro futebol** (byte-idêntico).
+Save do basquete isolado em `bl-nba-career`.
+
+**FEITO (arte da arena):** `StadiumSvg`/`StadiumTab`/`estadiodata` ganharam `bb` → QUADRA de madeira
+(garrafão, lance livre, aros dourados), nome de ARENA no lugar de estádio, telão "CESTA!/88", e a
+LENDA da agência destrava pela ARENA 100% (não pela SAF, que o basquete não tem). Tudo com default
+`bb=false` → futebol idêntico. Builda limpo.
+
+**FEITO (tela 🏢 Clube, commit `b814f265`):** BbClubeOverlay (pyramidseason.tsx) com 3 abas que
+funcionam 100% — 🏟️ Arena (StadiumTab bb, investir/construir a quadra), 💰 Finanças (extrato/caixa),
+💼 Agência (cartas ganhas + renda; LENDA destrava pela arena 100%). Botão 🏢 Clube no EscSeason só no
+basquete solo. Reusa os componentes do futebol com `bb` (default false → futebol idêntico).
+
+**FEITO (CARREIRA ONLINE do basquete, commit `41c120f0`):** a sala de basquete ganhou o modo 🌐 Carreira
+(só testers; basquete já é da conta do Diego). START_ONLINE semeia a economia por andar + crews da Street
+League; NEXT_NBA_SEASON_ONLINE (host-autoritativo) avança a temporada, sobe de andar com SEGURANÇA DE
+ASSENTO; fim de temporada = host avança, convidado espera. Lobby: aba 🌐 Carreira no basquete, config
+football-only escondida. Tudo guardado por `nbaCareerRoom`/`onlineNba` (false no futebol → byte-idêntico).
+⚠️ **NÃO TESTADO AO VIVO** (online precisa de Supabase realtime + 2 aparelhos) — precisa do teste do Diego.
+
+**VALIDADO OFFLINE (Playwright headless):** home do BidLegends + começar carreira + leilão inteiro (PG/SG,
+cartas reais da NBA, lendas, pote crescente) = **0 erros de console**; economia certa (caixa 50, posições
+PG/SG/SF/PF/C). A quadra (StadiumSvg bb) renderizada e aprovada pelo Diego (19/10).
+
+**FEITO (👕 Patrocínio, commit `ac12cde5`):** aba 👕 Patrocínio no BbClubeOverlay com o MESMO Patrocinador
+Master do futebol (MasterBanner — 4 papéis, meta, renovação por ligada). Paga pela divisão do andar
+(tierDivKey: Street=D sem marca, G League=B e NBA=A pagam); cai no caixa na virada (applyMasterIncome, que
+já roda pro basquete). Motor intocado — SET_MASTER/MASTER_RENOVAR/MASTER_MERCADO já valiam com careerOnline.
+⚠️ As marcas são as paródias do futebol (placeholder) — marcas com cara de NBA são conteúdo do Diego ('não inventar').
+
+**FEITO (🏛️ 2º Clube, commit `8c31a62d`):** o basquete ganhou o 2º clube no modelo pré-SAF (compra direta,
+4.000 🪙, Lenda — o basquete não tem SAF). Os dois clubes jogam a MESMA liga de 20; comanda um por temporada,
+o outro dorme; troca no fim (SWITCH_MULTICLUBE). saf2On ganhou exceção pro basquete; NEXT_NBA_SEASON pina os
+DOIS clubes no mesmo assento ao subir de andar (caminho de 1 clube fica byte-idêntico). Aba 🏛️ 2º Clube no
+overlay + botão de troca na tela de fim. Reusa as ações testadas do futebol.
+
+**VARREDURA (19/10) — 3 auditorias (texto · modos futebol × basquete · home/nav/bilíngue). CONSERTADO:**
+- 🧹 **Lobby não mostra NEM aplica config de futebol no basquete** (commit `4ad2f633`): tipo de leilão
+  (Jogador/Clubes), formação 4-3-3/4-4-2 e o seletor de baralho somem no basquete; "Depois da liga" vira
+  card de PLAYOFFS. MOTOR: START_ONLINE **sanitiza o copaMode do basquete** (nunca roda Libertadores/
+  Champions/Copa do Mundo, mesmo que o game_state mande). Carreira online agora aparece no card de criar
+  sala NOVO também (antes só no modo-aba).
+- 🧹 **Textos "futebolês" fora das telas de basquete** (commit `8598e8a7`): Série D→Street League,
+  estádio/SAF→arena (o basquete não tem SAF), Patrocínio mostra o ANDAR (Street/G League/NBA) no lugar de
+  "Série D/B/A", e o aviso de "G4/zona de rebaixamento" vira "TOP 4 = subir de andar" (basquete não rebaixa).
+- 🧹 **Botão MEU ÁLBUM na home** (commit `db5ca916`): a home prometia álbum e não abria — agora abre.
+- ✅ **Bilíngue OK**: a auditoria não achou texto PT-only nas telas de basquete.
+- ✅ **Features só do futebol (Central, Coletiva, Presidente, Copas internacionais, Kings, roteiro de fim,
+  pirâmide de 4 divisões) estão TODAS bem trancadas** — o basquete nunca entra no pyramidseason.
+
+**✅ HOME DO BIDLEGENDS = IGUAL À DO FUTEBOL (19/10, commit `a752313d`, OK do Diego).** Diego cobrou DUAS
+vezes que a home tinha que ser EXATAMENTE a home ilustrada do futebol (ll-home, arte cinematográfica), só com
+conteúdo de basquete — *"não é pra mudar visual, não é pra mudar nada"*. `BidLegendsHome` (screens.tsx) agora
+é uma réplica fiel de `HomeIlustradaDiego`: mesmo header (marca BIDLEGENDS / "NBA ÀS CEGAS", BR/EN, ⚽ volta
+pro futebol, MINHA CONTA), mesma arte de fundo (a do futebol **por enquanto** — ainda não há arte de basquete,
+OpenArt sem crédito), 3 modos (Partida Rápida · Jogar Online · Modo Carreira "Street League à NBA"), **Loja do
+Clube + Amigos** (tinham ficado de fora) e Salão · Regras · Álbum. Só a conta do Diego vê (BASQUETE_TESTERS).
+- ✅ 19/10: **arte de fundo própria do basquete** (o Diego mandou): `img/home-bidlegends-v01.webp` (900px, ~200 KB,
+  só baixa quem abre o basquete — classe `.ll-home-bb`). A arte é EM PÉ (a do futebol é deitada), então no celular
+  ela desenha com 660px de altura pra lustre/vitrines/martelo caírem nas MESMAS alturas do futebol; a sobra dos lados
+  é a própria arte desfocada. Consertado junto: o botão ⚽ ficava escondido embaixo do 🔇 (som é fixo na tela).
+- ⚠️ A arte tem o **logo oficial da NBA** (bandeiras e cartas). Avisado ao Diego: ok enquanto só ele vê; antes de
+  liberar o basquete pra todos, trocar por versão sem o logo.
+- ✅ 19/10 (2ª varredura, 19 achados): CONSERTADO — (1) o convite "COMECE UMA CARREIRA" no fim da partida
+  rápida abria a carreira de FUTEBOL com o save marcado basquete → some no basquete; (2) campeão do basquete
+  (liga, NBA Cup, playoffs) ganhava carta do baralho de FUTEBOL → sem carta até existir o álbum da NBA; (3) o
+  autosave do basquete não via obra/patrocínio/2º clube/caixa (mudança no 🏢 Clube se perdia) → entra na
+  assinatura; (4) LARGAR apagava a carreira sem perguntar → confirma; (5) textos: fim de temporada (Playoffs, sem
+  "Rebaixado"/🪦, "Fora dos playoffs", "💍 CAMPEÃO DOS PLAYOFFS"), revelação "Seu quinteto", Monte "time completo"
+  no lugar de "os 11", prêmio "Tijolo no quinteto", extrato "Obra na arena", aba Arena sem "estádio"/"Z4" e
+  Gramado → "🪵 Piso da quadra", ligas "cestinha", e o painel "Trocar o modo" da liga sem baralho BR/EU e sem Clubes.
+  Tudo guardado por `bbEnd`/`state.sport`/`bb`/`nbaSala` → futebol idêntico. Testes ok: monte cartinha pernadepau
+  sala fim telas saf2 master-historia jornal.
+- 🏀 FALTA (decisão do Diego, mexe em coisa compartilhada com o futebol):
+  · ✅ **Álbum da NBA (19/10)**: gaveta PRÓPRIA no banco (`user_cards_nba`, `docs/sql/bidlegends-user-cards-nba.sql`) —
+    o futebol nunca lê. O pacote do campeão do basquete (liga, NBA Cup, playoffs; offline e online) sorteia do
+    baralho da NBA (`nbaPool`, sem repetir o que já tem) e grava lá (`CardCollectPrompt nba`). `EscAlbum` virou
+    porteiro: basquete → `EscAlbumNba` (mesma cara, contador /432 lendas, sem Coleções/Trocas), futebol →
+    `EscAlbumFutebol` (o de sempre). Na carreira a carta entra na 💼 Agência (`agenciaNba`, chave = bilhete).
+    FALTA: perfil de outro técnico no Ranking mostra só cartas de futebol (o basquete não tem ranking ainda).
+  · ✅ **REGRAS do basquete (19/10)**: `ManualDoTecnico bb` (home do basquete) — 50 moedas, PG·SG·SF·PF·C, quinteto,
+    sem empate (prorrogação), Street League só pontos corridos, top 4 sobe, ninguém cai, G League/NBA com Playoffs e
+    NBA Cup, banco 10→15. Tudo conferido no código (`NEXT_NBA_SEASON`, `simMatch`). As Dúvidas (FAQ) ficaram de fora
+    no basquete (são de futebol).
+  · ✅ **O MARTELO e COMPARTILHAR no basquete (19/10)**: "🏀 O DIÁRIO DO BIDLEGENDS", pós-temporada no lugar de Copa dos 8,
+    CESTINHA/pontos, sem frase de rebaixamento nem de "primeiro de fora" (vaga é por conferência). Imagem/texto de
+    compartilhar com BidLegends/NBA, V-D sem empate, cestinha. ⚠️ O link que vai junto ainda é o leilaolegends.com —
+    trocar pro bidlegendsarena.com quando o basquete for liberado (hoje ninguém além do Diego veria o basquete lá).
+  · ✅ Zoeira do Monte online no basquete: 🧱 Tijoleiro e 🤡 Rei do air ball. Final dos playoffs mostra JOGOS na série.
+  · ✅ **Minhas Carreiras do basquete + nome do time (19/10)**: `NbaMinhasCarreiras` (screens.tsx) = a MESMA tela do
+    futebol, com o ANDAR no lugar da Série; ➕ abre o passo do NOME (pré-preenchido com o nome da conta, checado no
+    `nomeLivre` — batismo alheio não passa; NÃO troca o nome da conta, que é do futebol). Guardar/trocar/apagar em
+    `nba-carreiras.ts` (ativa `bl-nba-career` + arquivo `bl-nba-career-archive`, grava antes de apagar; aparelho
+    cheio = não troca e avisa). Cada carreira ganhou código fixo `nbaCareerId` (a seed muda por temporada). Fichas:
+    a MESMA régua do futebol (`careerSlotLimit`), contada SÓ entre carreiras de basquete — ou seja, quem é grátis tem
+    1 de futebol E 1 de basquete (Diego aprovou a tela em 19/10; contar separado foi decisão minha — ele pode mudar). LARGAR saiu da home (apagar = 🗑️ em dois
+    toques na lista). Trava: `npm run nba-carreiras`.
+  · ⏸️ Salão dos Batismos / Loja / Amigos: **o Diego AINDA NÃO DECIDIU (19/10)** se cada jogo terá os seus ou se são da conta. Até lá ficam como estão (os mesmos do futebol) — não mexer nem perguntar de novo; esperar ele trazer.
+
+**FALTA / PENDENTE DE TESTE:**
+- ✅ **PARTIDA RÁPIDA DO BASQUETE COM TELA DE AJUSTES (19/10)**: antes o botão começava direto (3 rivais, envelope).
+  Agora passa pela MESMA `EscSetup` do futebol: tipo (Jogador/🧱 Clubes da NBA), jeito do lance (Envelope/Tocaia/
+  Pregão aberto), nome do time e rivais (3·5·7·9; 7+ = Playoffs, a régua do START_NBA). Saem Kings, baralho, "depois
+  da liga" e formação. Sem a tela de regras (ela usa exemplos do futebol — Romário, Kaká; as salas de basquete já
+  pulavam). ⚠️ Lição: na tela de ajustes o esporte vem da ESCOLHA da home (`useSport`), NUNCA do `state.sport` — ele
+  guarda a partida ANTERIOR e no 1º teste a home do basquete abriu uma partida de futebol.
+  ✅ Tela de regras do pregão no basquete (19/10, Diego: "regra pode fazer"): a Partida Rápida passa pela `EscStreamIntro`
+  com cartas DA NBA (Marcelinho Huertas no envelope; Nash/Lin/Raul Neto na Tocaia). No baralho da NBA cada jogador
+  tem UMA carta, então a lição "mesmo jogador, dois níveis" (Kaká) virou "🎭 O nome engana": Magic Johnson (Lenda) ×
+  Jeremy Lin (Linsanity = Folclórico). As salas online de basquete continuam pulando essa tela.
+- ✅ **MODOS ONLINE DO BASQUETE (19/10, Diego: "de resto já pode criar todos os modos do online")** — auditoria +
+  conserto. Rápido e Minhas Ligas com os 3 jeitos de lance: ✉️ Envelope ok · 🐊 Tocaia ok (abre em 50; os textos
+  diziam 100) · 🔨 **Pregão aberto LIGADO** (a sala oferecia e o START_ONLINE desligava calado — rodava envelope).
+  Motor conferido com a NBA: fila e sobras saem do ACTIVE_CATALOG, nunca entra jogador de futebol (trava nova
+  `npm run pregao-aberto-nba`: 4, 10 e 16 times). Tela do pregão com PG/SG/SF/PF/C e "Seu quinteto". 🤝 Duplas
+  ok, agora com as posições da NBA na escolha. Sala de basquete não leva mais marca de Copa do Mundo/regional/
+  várzea/clubes de uma sala de futebol mexida antes, e a tela final nunca abre a Copa do Mundo no basquete.
+  Partida Rápida offline do basquete não herda mais o jeito de lance da última partida de futebol.
+  Fora do basquete (são do futebol): Copa do Mundo, Libertadores, Champions, Kings League, Bafo.
+  🧱 **Leilão de Clubes com franquias da NBA — FEITO (19/10, Diego: "quero da NBA"), esperando o OK visual.** Pacote =
+  POSIÇÃO de uma franquia ("🏀 Armadores dos Lakers" · "Lakers Point Guards", `nomePacote`). Memória de "franquias que
+  já saíram" PRÓPRIA do basquete (`bl-clubes-recentes-v1`, só no aparelho — não suja a do futebol nem a do servidor).
+  Convocação (`convocacao-clubes.tsx`) agora lê as vagas da MESMA régua do motor (`vagasBase` = `baseSlots`): 1 por
+  posição no basquete, com PG/SG/SF/PF/C e uma quadra de madeira no lugar do campo. Opção liberada na sala de basquete
+  (Rápido e Minhas Ligas). `START_NBA` aceita `clubes` por dentro (sem botão offline). Trava `npm run clubes-nba`:
+  4, 10, 16 e 20 times fecham o quinteto só com NBA, sem repetir jogador, sem tapa-buraco.
+  ❓ O Diego perguntou se o basquete tem baralho Europa/Mundo: NÃO — só a NBA (432 cartas, ~30 franquias). Fazer
+  EuroLeague/FIBA = cartas novas de gente real (lista por lote, com aprovação dele). Ele acha que o público dos EUA
+  conhece mais a NBA; ficou de decidir.
+- ⏸️ **CARREIRA ONLINE DO BASQUETE: ESPERAR A DO FUTEBOL (19/10, ordem do Diego).** Palavras dele: *"eu ainda tô
+  construindo lá no do futebol. Quando eu terminar do futebol, aí você faz aqui no basquete também"*. A do futebol
+  está sendo refeita (Carreira Online v2 na main: sala, clube, dono/vice/comandante do dia, PRONTO). A versão do
+  basquete de hoje (commit `41c120f0`, `NEXT_NBA_SEASON_ONLINE`) foi feita em cima da carreira online VELHA — **não
+  mexer nem testar até a v2 do futebol fechar**; aí refazer o basquete copiando a v2.
+- ~~Teste de 2 aparelhos da carreira ONLINE do basquete~~ → espera a v2 do futebol (nota acima).
+- **Teste em jogo** do Patrocínio e do 2º Clube offline (eu valido só até o leilão; a partir do Monte o
+  harness headless não navega — mas as duas abas reusam componentes do futebol já aprovados).
+- **Marcas de patrocínio com cara de NBA** (conteúdo do Diego).
+- Varredura final "tudo igual ao futebol": conferir modo a modo/aba a aba o que ainda falta.
 ## 🌐 CARREIRA ONLINE COMPLETA, ATÉ 20 AMIGOS (19/10) — ⏳ LEVANTAMENTO FEITO, esperando OK do Diego pra etapa 1
 - Pedido: *"tudo que existe no modo carreira offline… tem que funcionar no modo carreira online… até 20 amigos"*.
 - HOJE: a Carreira Online existe, mas só a conta do Diego cria (`CAREER_ONLINE_TESTERS`); 0 salas de carreira no banco. Sala já aceita 20
