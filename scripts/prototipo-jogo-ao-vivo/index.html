@@ -54,7 +54,7 @@ canvas{display:block}
 </div>
 <script>
 // ── campo em metros (68 × 105); o FABULOUS (time 0) ataca pra cima (y → 0) ──────────────────────────────────────────────
-const W = 68, L = 105, S = 6.2, PAD = 4
+const W = 68, L = 105, S = 5.95, PAD = 4
 const cv = document.getElementById('cv'), cx = cv.getContext('2d')
 const CW = Math.round((W + PAD * 2) * S), CH = Math.round((L + PAD * 2) * S)
 const DPR = 2
@@ -63,19 +63,22 @@ const px = x => (x + PAD) * S, py = y => (y + PAD) * S
 const AV = n => '../../public/avatars/lendas-v1/' + n + '.webp'
 const T = [
   { nome: 'Fabulous EC', cor: '#FFC400', masc: '../../src/escalacao/img/fabulous-mascote.webp', jog: [
-    ['taffarel-internacional-1989', 'Taffarel'], ['roberto-carlos-real-madrid-2002', 'R. Carlos'], ['carles-puyol-barcelona-2010', 'Puyol'], ['alessandro-nesta-milan-2004', 'Nesta'], ['cafu-milan-2004', 'Cafu'],
-    ['rivaldo-barcelona-1999', 'Rivaldo'], ['zico-flamengo-1981', 'Zico'], ['kaka-milan-2007', 'Kaká'], ['bebeto-vasco-1989', 'Bebeto'], ['romario-vasco-2000', 'Romário'], ['ronaldo-fenomeno-inter-1998', 'Ronaldo']] },
+    [null, 'Alex Muralha', 1], ['roberto-carlos-real-madrid-2002', 'R. Carlos'], [null, 'Thiago Silva', 4], ['alessandro-nesta-milan-2004', 'Nesta'], ['cafu-milan-2004', 'Cafu'],
+    [null, 'Mineiro', 3], ['zico-flamengo-1981', 'Zico'], ['kaka-milan-2007', 'Kaká'], [null, 'Dentinho', 2], ['romario-vasco-2000', 'Romário'], ['ronaldo-fenomeno-inter-1998', 'Ronaldo']] },
   { nome: 'Chelsão', cor: '#2B6CFF', masc: '../../src/escalacao/img/chelsao-mascote.webp', jog: [
-    ['petr-cech-chelsea-2005', 'Cech'], ['ashley-cole-chelsea-2008', 'A. Cole'], ['john-terry-chelsea-2007', 'Terry'], ['bobby-moore-west-ham-1966', 'B. Moore'], ['dani-alves-barcelona-2011', 'D. Alves'],
-    ['eden-hazard-chelsea-2015', 'Hazard'], ['frank-lampard-chelsea-2010', 'Lampard'], ['steven-gerrard-liverpool-2009', 'Gerrard'], ['thierry-henry-arsenal-2004', 'Henry'], ['careca-sao-paulo-1986', 'Careca'], ['raul-real-madrid-2001', 'Raúl']] },
+    ['petr-cech-chelsea-2005', 'Cech'], ['ashley-cole-chelsea-2008', 'A. Cole'], ['john-terry-chelsea-2007', 'Terry'], [null, 'Índio', 2], [null, 'Cicinho', 2],
+    [null, 'Léo Lima', 1], ['frank-lampard-chelsea-2010', 'Lampard'], ['steven-gerrard-liverpool-2009', 'Gerrard'], ['thierry-henry-arsenal-2004', 'Henry'], [null, 'Luciano', 3], ['raul-real-madrid-2001', 'Raúl']] },
 ]
 // papel: 0 GOL · 1 LE · 2 ZAG · 3 ZAG · 4 LD · 5 MEI-E · 6 VOL · 7 MEI-D · 8 PE · 9 CA · 10 PD
 const BX = [34, 9, 26, 42, 59, 21, 34, 47, 10, 34, 58]
 const DEP = [0, .86, 1, 1, .86, .55, .66, .55, .08, 0, .08]
 const P = []
-for (let t = 0; t < 2; t++) T[t].jog.forEach(([av, nome], r) => {
-  const img = new Image(); img.src = AV(av)
-  P.push({ t, r, nome, img, x: 34, y: 52, ov: null, vmax: r === 0 ? 6.5 : 7.4 })
+// 🃏 rosto SÓ pra lenda (é só ela que tem avatar no jogo). Quem não é lenda aparece igual na CARTA do jogo: a bolinha na
+// cor da categoria com a inicial — 🪵 foi profissional bege · 🎯 bom verde · ⭐ craque prata · 💎 promessa roxo.
+const CAT = { 1: ['#DBD1B5', '#655c43'], 2: ['#2E9E5B', '#fff'], 3: ['#2E9E5B', '#fff'], 4: ['#E4E9EF', '#44546a'], 6: ['#8B5CF6', '#fff'] }
+for (let t = 0; t < 2; t++) T[t].jog.forEach(([av, nome, fame], r) => {
+  let img = null; if (av) { img = new Image(); img.src = AV(av) }
+  P.push({ t, r, nome, img, fame: fame ?? 5, x: 34, y: 52, ov: null, vmax: r === 0 ? 6.5 : 7.4 })
 })
 const J = (t, r) => P[t * 11 + r]
 const ball = { x: 34, y: 52.5, h: 0, dono: null, tw: null }
@@ -148,7 +151,8 @@ function desenha() {
     const X = px(p.x), Y = py(p.y)
     cx.beginPath(); cx.ellipse(X, Y + R - 2, R * 0.9, 4, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
     cx.save(); cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.closePath(); cx.fillStyle = '#fff'; cx.fill(); cx.clip()
-    if (p.img.complete && p.img.naturalWidth) cx.drawImage(p.img, 175, 10, 250, 250, X - R, Y - R, R * 2, R * 2)
+    if (p.img) { if (p.img.complete && p.img.naturalWidth) cx.drawImage(p.img, 175, 10, 250, 250, X - R, Y - R, R * 2, R * 2) }
+    else { const [bg, ink] = CAT[p.fame] ?? CAT[1]; cx.fillStyle = bg; cx.fillRect(X - R, Y - R, R * 2, R * 2); cx.fillStyle = ink; cx.font = '700 13px Oswald'; cx.textAlign = 'center'; cx.fillText(p.nome.trim()[0].toUpperCase(), X, Y + 4.5) }
     cx.restore()
     cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.lineWidth = 3; cx.strokeStyle = T[p.t].cor; cx.stroke()
     if (p === ball.dono) { cx.beginPath(); cx.arc(X, Y, R + 4, 0, 7); cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.9)'; cx.stroke() }
@@ -262,8 +266,8 @@ async function jogo() {
   await passe(C(10), F(3), { alto: true, adiante: 0, vel: 17 }); narra('…e <b>Nesta</b> sobe mais alto e tira de cabeça!')
   await passe(F(3), F(6), { adiante: -2 }); await minutos(14, 60)
   // 14' — tabela e defesa do goleiro
-  narra('<b>Zico</b> tabela com <b>Rivaldo</b>…'); await passe(F(6), F(5)); await passe(F(5), F(6), { adiante: 6 })
-  relogio(15); await passe(F(6), F(8), { dx: 3, adiante: 4 }); narra('<b>Bebeto</b> invade a área e bate cruzado!')
+  narra('<b>Zico</b> tabela com <b>Mineiro</b>…'); await passe(F(6), F(5)); await passe(F(5), F(6), { adiante: 6 })
+  relogio(15); await passe(F(6), F(8), { dx: 3, adiante: 4 }); narra('<b>Dentinho</b> invade a área e bate cruzado!')
   await conduz(F(8), 20, 16, 7); await chuta(F(8), 'defesa', { canto: 1 }); narra('Que defesa do <b>Cech</b>! Espalmou no reflexo.')
   await esp(700); await minutos(19, 60)
   // 19' — lançamento longo, drible e trave
@@ -279,7 +283,7 @@ async function jogo() {
   await golDe(0, F(9), F(7))
   await minutos(30, 50); radio(0, '1 × 0', 33)
   // 30' — o Chelsão tenta, Zico desarma e puxa o contra-ataque
-  narra('<b>Hazard</b> tenta o drible pelo meio…'); await conduz(C(5), 30, 52, 5.8)
+  narra('<b>Léo Lima</b> tenta o drible pelo meio…'); await conduz(C(5), 30, 52, 5.8)
   narra('…e <b>Zico</b> chega no desarme! Contra-ataque!'); await desarme(F(6), C(5))
   await passe(F(6), F(10), { adiante: 10, vel: 21 }); relogio(31); narra('<b>Ronaldo</b> dispara em velocidade…')
   await conduz(F(10), 46, 15, 8); await chuta(F(10), 'defesa', { canto: 1 }); narra('…Cech defende de novo e manda pra escanteio!')
@@ -289,9 +293,9 @@ async function jogo() {
   narra('Escanteio pro Fabulous. <b>Nesta</b> vem pra área…'); await esp(1500); posseDe(F(10))
   await passe(F(10), F(3), { alto: true, adiante: 0, vel: 17 }); await chuta(F(3), 'fora', { alto: true, canto: -1 })
   narra('Cabeçada do <b>Nesta</b>… por cima do gol!'); F(10).ov = F(3).ov = F(2).ov = null; await esp(700); await minutos(45, 40)
-  // 45' — Careca bate e o Puyol bloqueia (sem intervalo: o jogo segue)
-  posseDe(C(9)); narra('<b>Careca</b> recebe na entrada da área…')
-  await conduz(C(9), 34, 80, 6); await passe(C(9), F(2), { adiante: 0, vel: 24 }); narra('…chutou e <b>Puyol</b> se joga na frente! Bloqueio!')
+  // 45' — Luciano bate e o Thiago Silva bloqueia (sem intervalo: o jogo segue)
+  posseDe(C(9)); narra('<b>Luciano</b> recebe na entrada da área…')
+  await conduz(C(9), 34, 80, 6); await passe(C(9), F(2), { adiante: 0, vel: 24 }); narra('…chutou e <b>Thiago Silva</b> se joga na frente! Bloqueio!')
   await minutos(54, 45)
   // 54' — GOL do Chelsão: Lampard de fora da área
   narra('<b>Gerrard</b> rola pra trás pro <b>Lampard</b>…'); posseDe(C(7)); await passe(C(7), C(6), { adiante: 5 })
@@ -302,23 +306,23 @@ async function jogo() {
   await minutos(56, 60); document.getElementById('dedo').style.opacity = 1; await esp(500); tatica0(1)
   narra('O Fabulous foi pra cima! 🔥 Ataque ligado: a linha sobe e os laterais avançam.'); await esp(1100); document.getElementById('dedo').style.opacity = 0
   await minutos(61, 50)
-  // 61' — R. Carlos de fora, rebote, Bebeto pra fora
+  // 61' — R. Carlos de fora, rebote, Dentinho pra fora
   posseDe(F(5)); narra('<b>Roberto Carlos</b> aparece livre pela esquerda…'); await passe(F(5), F(1), { adiante: 10 })
   await conduz(F(1), 16, 30, 7); narra('…e solta o canhão de canhota!'); await chuta(F(1), 'defesa', { canto: -1, vel: 30 })
-  narra('Cech espalma pro meio… <b>Bebeto</b> pega o rebote…'); await passe(J(1, 0), F(8), { adiante: -6, vel: 12 })
+  narra('Cech espalma pro meio… <b>Dentinho</b> pega o rebote…'); await passe(J(1, 0), F(8), { adiante: -6, vel: 12 })
   await chuta(F(8), 'fora', { canto: -1 }); narra('…e isola! Perdeu uma chance incrível.'); await minutos(66, 50)
-  // 66' — contra-ataque do Chelsão, Taffarel salva
+  // 66' — contra-ataque do Chelsão, Alex Muralha salva
   posseDe(C(8)); narra('Contra-ataque do Chelsão com <b>Henry</b>!'); await conduz(C(8), 30, 84, 8)
-  await chuta(C(8), 'defesa', { canto: -1 }); narra('<b>Taffarel</b> sai do gol e fecha o ângulo! Defesaço!'); await minutos(71, 60)
+  await chuta(C(8), 'defesa', { canto: -1 }); narra('<b>Alex Muralha</b> sai do gol e fecha o ângulo! Defesaço!'); await minutos(71, 60)
   // 71' — GOL: Cafu cruza, Ronaldo de cabeça
-  narra('<b>Taffarel</b> repõe com <b>Kaká</b>…'); await passe(F(0), F(7), { adiante: -6, vel: 22 }); radio(0, '1 × 1', 70)
+  narra('<b>Alex Muralha</b> repõe com <b>Kaká</b>…'); await passe(F(0), F(7), { adiante: -6, vel: 22 }); radio(0, '1 × 1', 70)
   await passe(F(7), F(4), { adiante: 10 }); narra('<b>Cafu</b> vai à linha de fundo…'); await conduz(F(4), 63, 8, 7.4)
   narra('Cruzou!'); await passe(F(4), F(10), { alto: true, adiante: 0, vel: 17, dx: -8 })
   await chuta(F(10), 'gol', { canto: 1, alto: true, vel: 20 }); narra('<b>GOOOOL! RONALDO DE CABEÇA!</b> O Fenômeno desempata!')
   await golDe(0, F(10), F(4))
-  // 80' — pressão do Chelsão, Taffarel encaixa o cruzamento
+  // 80' — pressão do Chelsão, Alex Muralha encaixa o cruzamento
   await minutos(80, 45); posseDe(C(7)); narra('O Chelsão vai pro abafa. <b>Gerrard</b> cruza na área…')
-  await conduz(C(7), 54, 80, 6); await passe(C(7), F(0), { alto: true, adiante: 0, vel: 17 }); narra('…e <b>Taffarel</b> sai do gol e encaixa firme.')
+  await conduz(C(7), 54, 80, 6); await passe(C(7), F(0), { alto: true, adiante: 0, vel: 17 }); narra('…e <b>Alex Muralha</b> sai do gol e encaixa firme.')
   await minutos(88, 45)
   // 88' — o Fabulous segura a bola
   narra('O Fabulous toca a bola e gasta o tempo… olé da torcida!'); await passe(F(0), F(2), { adiante: -4 }); await passe(F(2), F(6)); await passe(F(6), F(5))
