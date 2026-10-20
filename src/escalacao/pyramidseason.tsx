@@ -3479,7 +3479,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🧼 `nomeLimpo` antes de procurar o carimbo: se algum dia uma tela passar o
   //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
   const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? (mascotHome ?? homeName) : (mascotAway ?? awayName))) : ''
-  const carimboArt = carimboTime && !semCarimbo && !c2d ? carimboDoTime(carimboTime) : null
+  const carimboArt = carimboTime && !semCarimbo ? carimboDoTime(carimboTime) : null
   // 🖼️ 01/10 (print do Diego na foto do Twitter: o Mascarado saía só das pernas no
   // placar): a janelinha do escudo no placar leva a mascote INTEIRA, não o busto. O
   // busto é um recorte de 176px que a caixa de 76px do placar não sabe encolher
@@ -3534,23 +3534,25 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     nome, cor, cartas: cartas as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
     escudo: emblema ?? <Escudo nome={nome} size={110} />, tecnico: c2dX.tecnicoDe?.(nome) ?? null,
   })
-  // 📺 o campinho em cima do placar — o MESMO nos dois visuais (cinema e clássico)
+  // 📺 com o 2D escolhido o campinho TOMA O LUGAR do placar (Diego 20/10: *"qd tiver escolhido o 2D o placar padrão rápido
+  // não aparece"*) — o relógio, os sons e o apito daqui continuam rodando; só o desenho muda. Placar e minuto ficam no
+  // selo da TV do campinho, e o telão de propaganda segue embaixo, no lugar de sempre.
   const campo2dEl = c2d ? (
     <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem)}
-      tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} semNarra={cinematic && !basket} />
+      tatica={[c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]} />
   ) : null
-  if (cinematic) return <>{campo2dEl}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  if (campo2dEl) return campo2dEl
+  if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
     youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={relogioKings ? shown.map(g => ({ ...g, min: placarParaK(g.min) })) : shown}
-    // 📺 com o Campo 2D o GOL (mascote grande) acontece LÁ em cima: aqui o placar só conta, sem cena repetida
-    goalSide={c2d ? null : golSide} mascot={c2d ? null : carimboSlot} eventKey={goalSeed}
+    goalSide={golSide} mascot={carimboSlot} eventKey={goalSeed}
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
-    palcoOn={!basket && !c2d}
+    palcoOn={!basket}
     narracaoNoRadio
     radio={basket || radioLances.length === 0 ? null : (() => {
       // 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, opção B do Diego): o rádio leva TUDO, na ordem de prioridade —
@@ -3597,7 +3599,6 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
   return (<>
-    {campo2dEl}
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}

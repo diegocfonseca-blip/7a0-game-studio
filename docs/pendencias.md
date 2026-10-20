@@ -9540,8 +9540,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   O telão (GiroDaRodada) continua EMBAIXO de tudo, sem mudança. 🐛 Consertado junto: a tela do GOL ficava presa até o fim do
   jogo (o efeito do desenho rodava de novo e esquecia que o GOL estava aberto — agora a memória fica num `useRef`).
 - 🟡 **20/10 — 2D EM TODO JOGO** (*"serve para tudo, pô"*), no BRANCH, esperando o OK do Diego no visual (foto da sala 2D
-  enviada): o campinho mora DENTRO do `LiveScoreCard` (placar de toda competição), em cima do placar de sempre; com o 2D o
-  GOL/mascote sai só no campinho e a narração só na Rádio. Quem decide: `useCampo2DLigado` (`campo2d-modo.ts`) — fora da sala
+  enviada): o campinho mora DENTRO do `LiveScoreCard` (placar de toda competição) e, com o 2D escolhido, TOMA O LUGAR do
+  placar (correção do Diego: *"qd tiver escolhido o 2D o placar padrão rápido não aparece"*); o telão de propaganda segue
+  embaixo. Carreira: placar de sempre, quem tem o 2D liberado troca no botão. Quem decide: `useCampo2DLigado` (`campo2d-modo.ts`) — fora da sala
   online é o aparelho (botão `Botao2D` junto do Manual em todo `SimControls`), na sala online é `state.campo2d` (dono escolhe
   "⚡ Padrão rápido · 📺 2D" ao criar). Tempo 1:30 em liga, Copa, Liberta, Champions, internacional, Copa do Mundo offline e
   regional sem relógio. ⏳ Falta (pedir OK — é RELÓGIO): Copa do Mundo e regional ONLINE seguem nos 16s do banco

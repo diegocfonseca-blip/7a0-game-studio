@@ -1,10 +1,10 @@
-// 🧪 Bancada do 2D DENTRO DO PLACAR (20/10): o `LiveScoreCard` de verdade (o placar de TODA competição) numa SALA ONLINE
-// marcada "📺 2D" — prova que o campinho aparece sozinho em cima do placar, sem cada tela ter que montar nada.
+// 🧪 Bancada do 2D NO LUGAR DO PLACAR (20/10): o `LiveScoreCard` de verdade (o placar de TODA competição) numa SALA ONLINE
+// marcada "📺 2D" — prova que o campinho TOMA O LUGAR do placar sozinho, com o telão de propaganda embaixo.
 //   ?comp=copa|liga|mundo  (só muda a cor da barra de baixo, pra conferir que é o mesmo placar das copas)
 import '../../src/index.css'
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
-import '../../src/escalacao/screens'
+import { GiroDaRodada } from '../../src/escalacao/screens'
 import { LiveScoreCard } from '../../src/escalacao/pyramidseason'
 import { EscCtxBancada } from '../../src/escalacao/store'
 import { DUR_2D_MS } from '../../src/escalacao/campo2d-motor'
@@ -34,6 +34,8 @@ function Bancada() {
       <div style={{ maxWidth: 440, margin: '0 auto' }}>
         <LiveScoreCard enhancedOnline homeName="Fabulous EC" awayName="Chelsão" homeColor="#FFC400" awayColor="#2B6CFF" youIsHome goals={gols}
           roundKey={3} roundMs={DUR_2D_MS} displayMinute={min} footTint={tint} elencos={{ casa: casa as never, fora: fora as never }} />
+        {/* 📢 o telão de propaganda, embaixo, no lugar de sempre */}
+        <GiroDaRodada cinema exemplos={[{ texto: '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio', cor: '#FFC400' }]} />
       </div>
     </EscCtxBancada.Provider>
   )
