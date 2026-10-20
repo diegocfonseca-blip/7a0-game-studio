@@ -41,6 +41,11 @@
   do Diego); 2) ligar o que é POR CLUBE consertando as ações pra usar `mgrId`; 3) o que é de TODOS (internacional, ranking, coletiva);
   4) teste fechado com amigos e só então liberar. Mexe no envio do online → regra de 25/09: só com OK dele.
 
+
+## 🤝🌍 Copa da sala com DUPLAS convocando o país errado (20/10, sala ZESM9K do Futpoint) — ✅ CONSERTADO E NO AR
+- Causa: a Copa do Mundo/regional da sala achava o time de cada pessoa pelo `player_index` do banco, que estava desencontrado
+  do time de verdade (Bonança: time 3 no jogo, número 5 no banco). Agora o assento sai do ESTADO da partida (`seatUids` +
+  `duplas`, `quemAgePeloEstado` em dupla-copa.ts) e a renumeração da largada também desfaz par cruzado. Trava: `npm run dupla-copa-estado`.
 ## 🤖 Tema da Tidex na sala (19/10) — ✅ NO AR (mockup `scripts/mockups/tema-tidex-cel.png`, "tá aprovado")
 - O dono do Wen Milan B (vittor@tidex) é dono da Tidex, patrocinadora do jogo. A conta dele tem 2 temas: 😈 Wen Milan B (o do
   Fundador) e 🤖 Tidex (azul-marinho + turquesa, grade de IA, logo embaixo, faixa "sua marca dentro das IAs"). Vale em sala rápida e
