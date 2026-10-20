@@ -15,6 +15,11 @@ jeito do jogador. Individualidade (20/10, 2ª passada): quem gosta de driblar se
 (alvo 2,5 m além do rival) e o duelo acontece no contato; o time procura o craque (passe pro melhor jogador vale mais). Romário no
 meio: 1,2 drible · 0,8 chute · 0,3 gol por jogo. ⚠️ Teto estrutural: num jogo de 1:30 cada jogador pega a bola ~3 vezes (o
 Ronaldinho fica 0,8 s com ela por jogo), então a marca da lenda aparece na TEMPORADA, não em cada jogo.
+🚪 **PORTA DE ENTRADA NO JOGO (decisão do Diego, perguntada em 20/10):** hoje o campinho ENCENA o placar que a simulação da liga
+já decidiu (v1). O motor novo decide o placar sozinho. Então, pra ele entrar no jogo de verdade, o placar das partidas em 2D passa a
+SER o que acontece no campinho (liga, copas, online — tudo que o v1 desenha hoje), ou o v2 fica só de bancada. Sem essa resposta
+não tem integração — não ligar o v2 em nada do jogo por conta própria.
+Goleiro: diferença profissional × lenda vale ~0,35 de chance de defesa (0,80 × 0,33 gol sofrido, mesmo time na frente).
 Pendente: virar os números em assert no `npm run motor2` quando ele cravar a meta; ligar o v2 na bancada visual e FILMAR
 (`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. Clima visual (sol/nublado/chuva) continua
 esperando o OK dele na foto (`clima-3.png`).
