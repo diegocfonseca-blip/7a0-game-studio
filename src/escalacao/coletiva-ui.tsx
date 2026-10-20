@@ -14,7 +14,9 @@ import salaArt from './img/online-sala-v20.webp'
 import vadicoArt from './img/patro-vadico-alfa.webp'
 import tidexArt from './img/patro-tidex.webp'
 import { PresidenteNaMesa } from './presidente-avatar'
-import { presidenteContaLiberado, usePresidenteConta } from './presidente-conta'
+import { presidenteContaLiberado, usePosseConta, usePresidenteConta } from './presidente-conta'
+import { temBoneco } from './presidente-avulsas'
+import { LojaButton } from './loja-clube'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -128,6 +130,9 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
   // 🧑‍💼 o boneco da conta sentado na mesa (grátis não tem boneco: a mesa fica como era)
   const contaPres = usePresidenteConta()
   const boneco = presidenteContaLiberado() ? contaPres.value : null
+  // sem boneco: um convite DISCRETO na cadeira vazia, que abre a Loja na seção do presidente (Diego 20/10)
+  const posse = usePosseConta()
+  const convite = !boneco && presidenteContaLiberado() && contaPres.status === 'pronto'
   const topo = (
     <div style={{ flex: 'none', height: 44, background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', ...OSW, fontSize: 13 }}>
       <span>🎙️ {tr('Coletiva', 'Press conference')} · {rodadaTxt}</span>
@@ -152,6 +157,11 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
                   </div>
                 ))}
               </div>
+              {convite && <div style={{ position: 'absolute', left: 0, right: 0, bottom: 74, display: 'flex', justifyContent: 'center', zIndex: 1 }}>
+                <LojaButton naCarreira ancora="loja-presidente" style={{ background: 'rgba(12,12,12,.78)', color: '#fff', border: '1.5px solid rgba(255,255,255,.45)', borderRadius: 999, padding: '5px 12px', fontSize: 11.5, fontWeight: 700, fontFamily: 'Inter, sans-serif', cursor: 'pointer', maxWidth: '86%' }}>
+                  {temBoneco(posse) ? tr('🧑‍💼 Seu plano já tem presidente · monte o seu ›', '🧑‍💼 Your plan includes a president · make yours ›') : tr('🧑‍💼 Crie seu presidente e apareça aqui ›', '🧑‍💼 Create your president and show up here ›')}
+                </LojaButton>
+              </div>}
               {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={196} /></div>}
               </div>
               {/* a mesa com os microfones e a plaquinha do presidente */}

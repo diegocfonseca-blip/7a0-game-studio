@@ -30,7 +30,7 @@ export function MeuPresidenteLoja() {
   const v = conta.value
   const card: React.CSSProperties = { background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, display: 'flex', gap: 12, alignItems: 'center' }
   return <>
-    <h2 style={{ ...OSW, fontSize: 19, textTransform: 'uppercase', margin: '18px 0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+    <h2 id="loja-presidente" style={{ ...OSW, fontSize: 19, textTransform: 'uppercase', margin: '18px 0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
       {t('🧑‍💼 Meu presidente', '🧑‍💼 My president')} <span style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fontWeight: 700, textTransform: 'none', color: 'rgba(12,12,12,.55)' }}>{t('você, no jogo', 'you, in the game')}</span>
     </h2>
     <div style={card}>
