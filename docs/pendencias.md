@@ -10066,3 +10066,6 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   maiúscula, "de/da/do/dos/das/e" no meio minúsculas, FC/EC/SC/AC/SAF maiúsculas, separador (_ - / .) mantido. Vale no cadastro,
   carreira, dinastia, carreira do basquete e no chip do nome das salas. Nome já existente só muda quando a pessoa salva de novo.
   Só trocar maiúscula do PRÓPRIO nome não passa pela checagem de nome único.
+- ⏳ **🛡️ ESCUDO DE CLÃ PERSONALIZADO NA LOJA (21/10, pedido do Diego)** — R$ 19,99 no Pix do Mercado Pago. Depois do Pix: campo
+  "nome do clã" + "ideia do escudo" + botão "Mandar no WhatsApp do Diego" com tudo escrito. Mockup `scripts/mockups/clas-escudo-loja.png`
+  enviado. Falta: OK do Diego, o NÚMERO de WhatsApp dele e em quantos dias o escudo fica pronto (texto da Loja).
