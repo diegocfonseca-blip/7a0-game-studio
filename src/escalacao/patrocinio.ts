@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { loggedEmail, stripEmoji } from './apoio'
 import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da semana passada no letreiro (19/10)
-import { COMUNIDADE_LINK } from './comunidade' // 📲 o recado do Diego sobre a comunidade abre o link (21/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
 import OITTO_LOGO from './img/patro-oittolabs.webp' // 🧪 OittoLabs (21/10): Copa dos 8, Copa do Brasil da carreira, placas, telão e Master
@@ -66,7 +65,7 @@ export function patrocinioLojaOk(): boolean {
 // como da Vadico ficam direto até eu alterar"*). O Diego põe no ar pelo #admin (`esc_anuncios`: tipo 'marca' = Dia da marca na
 // Copa dos 8 · tipo 'giro' = Anúncio do dia no letreiro) e cada um vale 24 h a partir do `inicio`. Os MANUAIS (mensal, como a
 // Vadico) moram no código e ficam até ele trocar. Leitura pequena: uma por sessão, refeita no máximo a cada 30 min (tráfego).
-type Avulso = { tipo: 'giro' | 'marca' | 'recado'; texto: string; emoji: string; inicio: number; fim: number; autor?: string; doDiego?: boolean } // 💬 recado (18/10): o jogador escreve, com o nome do time
+type Avulso = { tipo: 'giro' | 'marca' | 'recado'; texto: string; emoji: string; inicio: number; fim: number; autor?: string } // 💬 recado (18/10): o jogador escreve, com o nome do time
 let avulsos: Avulso[] = []
 let fixos: { texto: string; cor: string; link?: string }[] | null | undefined = undefined // 📌 undefined = lendo (nada) · null = a leitura falhou (reserva do código)
 let lidoEm = 0
@@ -78,15 +77,15 @@ function carregaAvulsos(): Promise<void> {
   pedindo = (async () => {
     try {
       const [{ data }, fx] = await Promise.all([
-        supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor, pedido_id').gt('fim', new Date().toISOString()).order('inicio').limit(20),
+        supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim, autor').gt('fim', new Date().toISOString()).order('inicio').limit(20),
         supabase.from('esc_anuncios_fixos').select('texto, link').eq('ativo', true).order('ordem').order('id').limit(12),
       ])
       // 📌 fixos do banco: lista vazia = o Diego tirou todos (vale vazio); erro de leitura = fica a reserva do código
       if (!fx.error && Array.isArray(fx.data)) fixos = (fx.data as { texto: string; link: string | null }[])
         .map(r => ({ texto: String(r.texto), cor: '#FFC400', ...(r.link && /^https:\/\//.test(r.link) ? { link: String(r.link) } : {}) }))
       else if (fixos === undefined) fixos = null
-      avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null; pedido_id?: unknown }[])
-        .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : r.tipo === 'recado' ? 'recado' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim), autor: r.autor ? String(r.autor) : undefined, doDiego: r.pedido_id == null }) as Avulso)
+      avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string; autor?: string | null }[])
+        .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : r.tipo === 'recado' ? 'recado' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim), autor: r.autor ? String(r.autor) : undefined }) as Avulso)
     } catch { avulsos = []; if (fixos === undefined) fixos = null }
     lidoEm = Date.now(); pedindo = null
     ouvintes.forEach(f => { try { f() } catch { /* ignora */ } })
@@ -145,11 +144,7 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
   const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
   // 💬 RECADO EM DESTAQUE (18/10): gira no mesmo letreiro, em rosa, com o nome do time de quem mandou (mockup `recado-destaque.png`)
-  // 📲 21/10 (Diego: *"onde diz pra entrar na comunidade do zap, coloque link do zap quando a pessoa apertar"*): recado que ELE pôs
-  // pelo #admin (sem Pix = sem `pedido_id`) e fala da comunidade abre o link da comunidade. Recado de jogador continua sem link
-  // (texto que ninguém revisa — link ali seria porta pra golpe); e o link é sempre o NOSSO, nunca um escrito no recado.
-  const daComunidade = (a: Avulso) => a.doDiego && COMUNIDADE_LINK && /comunidade|zap|whats/i.test(a.texto) ? COMUNIDADE_LINK : undefined
-  out.push(...noAr('recado').map(a => { const link = daComunidade(a); return { texto: a.texto, cor: '#FF5FA2', recado: { autor: a.autor ?? '' }, ...(link ? { link } : {}) } }))
+  out.push(...noAr('recado').map(a => ({ texto: a.texto, cor: '#FF5FA2', recado: { autor: a.autor ?? '' } })))
   // 🏆 PÓDIO DA SEMANA PASSADA (19/10, Diego: "no telão aparece os 3 primeiros da semana… com emoji de medalha"): roda a semana
   // inteira, em roxo. Vem da vitrine (mesma leitura do ranking, cache de 60 s) — zero mensagem nova no canal.
   const podio = usePodioPassado()
