@@ -18,6 +18,7 @@ import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
+import { AbaCla, CaixaClaPerfil, SeloCla, clasLiberado } from './cla' // ⚔️ 21/10: clãs
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -129,6 +130,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
           </div>
         </div>
 
+        <CaixaClaPerfil uid={p.uid} />{/* ⚔️ 21/10: o clã dele, numa caixinha própria embaixo do cartão */}
         {/* ➕ 19/10: os botões de amizade/rival vêm LOGO ABAIXO do cartão (antes ficavam no fim e ninguém achava) */}
         {!p.sou_eu && (
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -272,7 +274,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [busca, setBusca] = useState('')
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
-  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album'>('amigos')
+  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>('amigos')
   const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
   const [chamados, setChamados] = useState<Record<string, string>>({})
   const [semConta, setSemConta] = useState(false)
@@ -324,7 +326,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
     <div key={x.amizade_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(x.outro)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: INK }}>
         <Rosto uid={x.outro} nome={x.nome} size={36} />
-        <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeComRival(x)}</b><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span>
+        <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeComRival(x)}</b><span style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}><SeloCla uid={x.outro} /><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span></span>
       </button>
       {direita}
     </div>
@@ -363,10 +365,11 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         ))}
       </div>}
       {Array.isArray(lista) && <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking', 'Ranking')}`], ['album', `📖 ${tr('Álbum', 'Album')}`]] as const).map(([k, rot]) => (
+        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking', 'Ranking')}`], ['album', `📖 ${tr('Álbum', 'Album')}`], ...(clasLiberado() ? [['cla', `⚔️ ${tr('Clã', 'Clan')}`]] as const : [])] as const).map(([k, rot]) => (
           <button key={k} onClick={() => setAba(k)} style={{ ...bt(aba === k ? INK : '#fff', aba === k ? GOLD : INK), flex: 1, padding: 8, fontSize: 12.5 }}>{rot}</button>
         ))}
       </div>}
+      {Array.isArray(lista) && aba === 'cla' && <AbaCla amigos={amigos.map(x => ({ uid: x.outro, nome: x.nome }))} onPerfil={u => setPerfil(u)} />}
       {Array.isArray(lista) && aba === 'album' && <div style={{ marginTop: 10, background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 10 }}><AlbumNosAmigos /></div>}
       {Array.isArray(lista) && aba === 'ranking' && (() => {
         // títulos de sala online NESTA semana (segunda a domingo), eu + amigos aceitos

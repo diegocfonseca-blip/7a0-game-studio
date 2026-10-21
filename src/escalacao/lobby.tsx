@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
@@ -4617,9 +4618,12 @@ export function EscLobby() {
                     {pkAv.holo > 0 && <ApoioSheen holo={pkAv.holo} dur={2.6} />}
                   </div>
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
+                <div className="flex-1 min-w-0 flex flex-col items-start">{/* ⚔️ 21/10: o selo do clã vai na linha de BAIXO do nome (sem tirar nada do lugar) */}
                 {amigosOn && !duplasOn && contaValida(p.user_id)
-                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm flex-1 text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
-                  : <span className="font-black text-black text-sm flex-1" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
+                  <SeloCla uid={p.user_id} />
+                </div>
                 {gala && <GalaMascoteMini clube={gala} />}
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
                 {/* 🃏 BAFO: o estado de cada um, na lista — o host bate o olho e sabe

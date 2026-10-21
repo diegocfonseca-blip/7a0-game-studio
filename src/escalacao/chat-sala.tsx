@@ -13,6 +13,7 @@ import { APOIO_PERKS, type ApoioPerk, stripEmoji } from './apoio'
 import { tr } from './lang'
 import { podioDeUid } from './vitrine-dados'
 import { PodioChatSelo, PODIO_BORDA } from './podio-semana'
+import { SeloCla } from './cla' // ⚔️ 21/10: o clã de quem fala, do lado do nome
 
 export type ChatRe = { name: string; text: string }
 const INK = '#0C0C0C'
@@ -49,8 +50,11 @@ export function ChatCracha({ name, uid }: { name: string; uid?: string | null })
   return (
     <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '100%', verticalAlign: 'top' }}>
       <PodioChatSelo pos={pos} />
-      <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, lineHeight: 1.2, textTransform: 'uppercase', background: p.grad, color: escuro ? '#fff' : INK, border: pos ? `2px solid ${PODIO_BORDA[pos]}` : '1.5px solid #000', boxShadow: pos ? `0 0 0 1px #000, 0 0 6px ${PODIO_BORDA[pos]}99` : undefined, borderRadius: 6, padding: '1px 6px', marginBottom: 3, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', maxWidth: '100%', marginBottom: 3 }}>
+      <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, lineHeight: 1.2, textTransform: 'uppercase', background: p.grad, color: escuro ? '#fff' : INK, border: pos ? `2px solid ${PODIO_BORDA[pos]}` : '1.5px solid #000', boxShadow: pos ? `0 0 0 1px #000, 0 0 6px ${PODIO_BORDA[pos]}99` : undefined, borderRadius: 6, padding: '1px 6px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {p.selo && p.tier !== 'verde' ? `${p.selo} ` : ''}{nomeSemSelo(name)}{med ? ` ${med}` : ''}
+      </span>
+      <SeloCla uid={uid} />
       </span>
     </span>
   )
