@@ -904,7 +904,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (11 cartas extras no fim) existiu por 1h em 17/10 e SAIU por ordem dele (*"não adicione nada de 11 jogadores"*) — não repropor.
 - **🔨🐊 CARREIRA É SEMPRE O ENVELOPE DE SEMPRE (21/10, regra dele).** *"Carreira é sempre o envelope padrão como sempre foi"*. Pregão
   aberto e Tocaia são do jogo rápido e das salas. Quem criar marca nova de MODO de leilão: zerar ela em TODO começo de carreira
-  (`START_CAREER_SOLO` e afins) — foi o que vazou em 21/10 — e a trava `!state.careerOnline` em `startAuctionPhase` segura o resto.
+  (`MARCAS_DE_MODO` no store, zeradas por `limpaMarcasDeModo` em todo começo de carreira) — foi o que vazou em 21/10 — e a trava
+  `!state.careerOnline` em `startAuctionPhase` segura o resto. Trava: `npm run carreira-limpa`. **Modos são independentes** (*"partida rápida
+  não tem relação com modo carreira, que também não tem relação com salas online"*).
 - **🗄️ MIGRATION COM `drop policy`/`revoke`/`delete` É CANCELADA pela ferramenta (19/10, 3 vezes seguidas).** Quebrar em partes
   menores sem essas palavras (`create policy` novo, guarda dentro da função em vez de `revoke`) e deixar o arquivo do repo como retrato
   do que ficou valendo.

@@ -7230,6 +7230,17 @@ function proximoDoDraft(s: EscState): void {
   if (soma) s.seasonNo++
 }
 
+/** 🧼 MARCAS DE MODO (21/10, Diego: *"partida rápida não tem relação com modo carreira, que também não tem relação com salas
+ *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
+ *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
+ *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
+export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
+  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'regionalSala', 'dinastia', 'dinastiaBudget', 'kings', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
+  'bafoValendo', 'locked', 'pwHash'] as const satisfies readonly (keyof EscState)[]
+function limpaMarcasDeModo(s: EscState): void {
+  for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
+}
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
@@ -7965,7 +7976,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // EscSeason — o roteador bifurca por esporte). Semeia o mesmo estado do
       // START_CAREER_SOLO, adaptando divisão→andar via tierDivKey.
       s.careerOnline = true
-      s.pregaoAberto = false; s.pa = undefined; s.holandes = false // 🔨🐊 carreira = envelope de sempre (21/10)
+      limpaMarcasDeModo(s) // 🧼 carreira nasce limpa (21/10)
       s.careerEra = MANUAL_ERA // carreira NOVA: manual pede apoio (saves antigos seguem liberados)
       s.reserveAuction = false; s.reserveListed = {}
       s.sport = 'basquete'; s.nbaCareer = true // é CARREIRA (salva, avança temporada, reservas)
@@ -8308,7 +8319,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'START_CAREER_SOLO': {
-      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
+      limpaMarcasDeModo(s) // 🧼 nada do rápido nem da sala online entra na carreira (21/10)
       // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão
       // de reservas/transferências, economia, votação-solo), mas sozinho contra a
       // CPU. Os rivais escolhidos entram na Série D como CPUs que DÃO LANCE.
@@ -8477,7 +8488,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.careerOnline || s.onlineMode === 'online' || s.dinastia || s.nbaCareer) return s // só do jogo rápido offline
       s.isHost = true
       s.careerOnline = true
-      s.pregaoAberto = false; s.pa = undefined; s.holandes = false // 🔨🐊 carreira = envelope de sempre (21/10)
+      limpaMarcasDeModo(s) // 🧼 o jogo rápido vira carreira: as escolhas do rápido ficam pra trás (21/10)
       s.simV = 4
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined

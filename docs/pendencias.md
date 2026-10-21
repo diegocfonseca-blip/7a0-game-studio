@@ -20,6 +20,9 @@ coisas da sala online pro carreira"*). Causa: começar carreira não zerava a ma
 Conserto em 3 camadas: toda carreira nova nasce com pregão aberto/Tocaia desligados · o leilão da carreira nunca abre os dois
 (`!state.careerOnline` em `startAuctionPhase`) · save de carreira que já nasceu assim é curado ao abrir (`sincronizaNiveis` tira a marca
 e, se estava no pregão, reabre no envelope). Testado: rápido de pregão aberto → carreira nova = envelope.
+   ➕ Mesmo dia, *"poden"*: TODA escolha de partida rápida/sala online é zerada no começo da carreira (`MARCAS_DE_MODO` +
+   `limpaMarcasDeModo` no store: pregão aberto, Tocaia, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa
+   regional, Bafo, senha…). Trava `npm run carreira-limpa` reprova escolha nova de modo que a carreira não zera.
 ✅ **(21/10) Comunidade do zap virou PROPAGANDA FIXA no telão** (`esc_anuncios_fixos` id 6, ordem 6, com o link da comunidade) e o
 Super Chat dele sobre a comunidade (recado id 7) saiu do ar. Diego: o Super Chat fica *"como sempre foi"*, sem link — a 1ª tentativa
 (Super Chat com link) foi desfeita no mesmo minuto.
