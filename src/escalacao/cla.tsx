@@ -106,7 +106,7 @@ type Painel = {
 const ERRO: Record<string, [string, string]> = {
   plano: ['Criar clã é de quem tem plano (⭐ Craque pra cima). Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
   tamanho: ['O nome do clã precisa ter de 3 a 20 letras.', 'The clan name needs 3 to 20 letters.'],
-  ofensivo: ['Esse nome não é permitido: nada de preconceito no Leilão Legends.', 'That name is not allowed: no prejudice in Leilão Legends.'],
+  ofensivo: ['Esse nome não é permitido: nada que ofenda alguém no Leilão Legends.', 'That name is not allowed: nothing offensive in Leilão Legends.'],
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
   ja_tem: ['Você já está num clã. Saia dele antes.', 'You are already in a clan. Leave it first.'],
   espera: ['Quem sai de um clã só entra em outro depois de 7 dias.', 'After leaving a clan you can join another only after 7 days.'],

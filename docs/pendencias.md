@@ -10030,3 +10030,10 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   nem o castigo do dono (pior clube na linha dele) → a vez voltava pra mesma dupla e o relógio reiniciava.
 - ✅ `soQuemEstaNaSala` (dupla-copa.ts): quem age sem linha na sala passa pro outro da dupla que está; ninguém da dupla = o time
   sai da fila. Vale na regional E na Copa do Mundo da sala (tela + dono da sala). Trava `npm run dupla-copa-estado`.
+
+- ✅ **🚫 MODERAÇÃO 21/10 (2ª): "estupr…" barrado** (time "ESTUPRADOR DE JUDEU" campeão na sala do mengao caxiense, conta
+  vitorguiotgame@gmail.com). Banco: `esc_nome_ofensivo` pega "estupr" e o nome NÃO é aproveitado (vira "Técnico"/"Sala"), migration
+  `20261021070000_nome_ofensivo_estupro.sql` — já valendo. "Judeu" sozinho NÃO é barrado (ordem dele). Conta renomeada pra "Técnico",
+  histórico de campeões limpo, aviso de uma vez mandado (`esc_avisos_conta`, com o alerta de remoção se repetir). A sala NÃO foi
+  apagada: era do mengao caxiense (outras 4 pessoas), parada desde 12h29 — só o nome dele foi trocado lá dentro.
+  ⏳ Outros 8 perfis antigos com "estupr…" no nome (desde agosto) — perguntei ao Diego se renomeia todos.
