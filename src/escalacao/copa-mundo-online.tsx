@@ -47,7 +47,7 @@ import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
 import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
-import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
+import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, soQuemEstaNaSala, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
 import {
   CMModal, ConvocacaoScreen, CupScreen, COPA_TEAMS, flagOf,
   countryPool, xiPorChaves, xiDaMaquina, xiStrength, completaXI,
@@ -847,8 +847,13 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
   // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)
   const porEstado = useMemo(() => quemAgePeloEstado(assentos, duplas), [assentos, duplas])
-  const uidDe = useMemo(() => porEstado ?? quemAgePorAssento(linhas), [porEstado, linhas])
-  const dupla = useMemo(() => porEstado ? minhaDuplaPeloEstado(assentos, duplas, meuUid) : minhaDuplaNaCopa(linhas, meuUid), [porEstado, assentos, duplas, linhas, meuUid])
+  const presentes = useMemo(() => new Set(linhas.map(l => l.user_id)), [linhas])
+  const uidDe = useMemo(() => porEstado ? soQuemEstaNaSala(porEstado, assentos, duplas, presentes) : quemAgePorAssento(linhas), [porEstado, assentos, duplas, presentes, linhas])
+  const dupla = useMemo(() => {
+    const d = porEstado ? minhaDuplaPeloEstado(assentos, duplas, meuUid) : minhaDuplaNaCopa(linhas, meuUid)
+    // 🔁 21/10: quem a dupla marcou saiu da sala → quem ficou escolhe e convoca
+    return d && porEstado && !presentes.has(d.age) && presentes.has(d.outro) ? { age: d.outro, outro: d.age, nomeAge: d.nomeOutro, nomeOutro: d.nomeAge } : d
+  }, [porEstado, assentos, duplas, linhas, meuUid, presentes])
   const euUid = dupla?.age ?? meuUid       // o "eu" da Copa: na dupla, é quem convoca por ela
   const soAssisto = !!dupla && dupla.age !== meuUid
   const nomeDe = useMemo(() => new Map(linhas.map(l => [l.user_id, stripEmojiSimples(l.manager_name)])), [linhas])
@@ -883,7 +888,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     const f = lido.fase
     const pk = new Map<string, CopaPick>()
     for (const l of lido.linhas) if (temPais(l.copa)) pk.set(l.user_id, l.copa)
-    const quem = (porEstado ?? quemAgePorAssento(lido.linhas))
+    const quem = porEstado ? soQuemEstaNaSala(porEstado, assentos, duplas, new Set(lido.linhas.map(x => x.user_id))) : quemAgePorAssento(lido.linhas) // 🔁 21/10: só quem tem linha na sala
     const filaAgora = classificacao.filter(c => c.humano).map(c => ({ id: c.id, uid: quem.get(c.id) }))
       .filter((x): x is { id: number; uid: string } => !!x.uid)
     const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
@@ -923,10 +928,10 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     if (f.fase === 'convocacao') {
       const todosMontaram = filaAgora.every(x => temTime(pk.get(x.uid)))
       if (!venceu && !todosMontaram) return
-      const ficha = montaFichaDaLiga(classificacao, (porEstado ?? quemAgePorAssento(lido.linhas)), pk, f.seed, f.edicao)
+      const ficha = montaFichaDaLiga(classificacao, porEstado ? soQuemEstaNaSala(porEstado, assentos, duplas, new Set(lido.linhas.map(x => x.user_id))) : quemAgePorAssento(lido.linhas), pk, f.seed, f.edicao)
       await supabase.from('esc_copa_salas').update({ fase: 'torneio', vez_uid: null, ate: null, times: ficha.times }).eq('room_id', roomId).eq('edicao', f.edicao)
     }
-  }, [souDono, ler, classificacao, roomId, porEstado])
+  }, [souDono, ler, classificacao, roomId, porEstado, assentos, duplas])
 
   useEffect(() => {
     if (!souDono) return

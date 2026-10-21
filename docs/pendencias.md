@@ -9996,3 +9996,10 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   antes disso congela na próxima abertura. Trava `npm run copa-congelada`; testado no navegador (reabriu nas quartas, jogou a semi,
   recarregou e voltou na semi com os mesmos placares).
 - ⏳ A Copa do Gimenes não volta (save no aparelho dele; eliminação já gravada). Diego decide se compensa com moedas.
+
+## 🔁 Copa com duplas: relógio da escolha reiniciando pra sempre (21/10, Rio × SP da sala do Futpoint)
+- Causa: desde 20/10 quem escolhe pela dupla sai do estado da partida (`quemAgePeloEstado`). O parceiro marcado pra convocar
+  tinha sido TIRADO da sala (sem linha no room_players — bug que a outra sessão consertou no df344478): a escolha dele não gravava,
+  nem o castigo do dono (pior clube na linha dele) → a vez voltava pra mesma dupla e o relógio reiniciava.
+- ✅ `soQuemEstaNaSala` (dupla-copa.ts): quem age sem linha na sala passa pro outro da dupla que está; ninguém da dupla = o time
+  sai da fila. Vale na regional E na Copa do Mundo da sala (tela + dono da sala). Trava `npm run dupla-copa-estado`.

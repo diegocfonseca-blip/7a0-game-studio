@@ -105,3 +105,19 @@ export function duplaDoAssentoPeloEstado(assentos: readonly string[] | undefined
   const d = minhaDuplaPeloEstado(assentos, duplas, dono)
   return d ? { nomeAge: d.nomeAge, nomeOutro: d.nomeOutro } : null
 }
+
+// ─── 🔁 QUEM AGE TEM QUE ESTAR NA SALA (21/10, sala do Futpoint, Rio × SP) ──────────────────────────────────────
+// *"o contador chegava a zero e reiniciava… ninguém conseguia escolher"*. O estado dizia que quem escolhia pela dupla era o
+// parceiro — que tinha sido TIRADO da sala (sem linha no room_players). A escolha dele não gravava (nem o castigo do dono da
+// sala, que grava o pior clube na linha dele): a vez voltava pra mesma dupla e o relógio reiniciava pra sempre. Agora: quem age
+// sem linha na sala passa a vez pro outro da dupla que ESTÁ; ninguém da dupla na sala = o time sai da fila (nunca trava a copa).
+export function soQuemEstaNaSala(m: Map<number, string>, assentos: readonly string[] | undefined, duplas: Record<number, DuplaDoEstado> | undefined, presentes: Set<string>): Map<number, string> {
+  const out = new Map<number, string>()
+  for (const [i, uid] of m) {
+    if (presentes.has(uid)) { out.set(i, uid); continue }
+    const d = duplas?.[i]
+    const outro = [assentos?.[i], d?.ownerUid, d?.partnerUid].find(u => !!u && u !== uid && presentes.has(u))
+    if (outro) out.set(i, outro)
+  }
+  return out
+}
