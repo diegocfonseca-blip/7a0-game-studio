@@ -9953,5 +9953,8 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   hitler, suástica/swastika, führer, sieg heil, crioulo e os símbolos 卍卐࿕-࿘. Vale na SALA (barra), no PERFIL/TIME (gatilho em
   `auth.users` troca o nome na hora de gravar) e na TELA (`nome-ofensivo.ts` dentro do `nomeLivre` + início de carreira/dinastia
   + criar sala). "Internazionale" (Inter) liberado. Perfil dele trocado pra "N Isaque".
-- ⏳ 19 perfis ANTIGOS ainda têm nome assim (Hitler FC, Adolf Hitler, Real Nazista, Nazismo fc…): o gatilho só pega quando a conta
-  grava o nome de novo. Diego decide se limpa todos de uma vez.
+- ✅ Limpeza dos ANTIGOS (Diego: "tudo que é Hitler coloque Ht e nazismo ou nazista coloque N"): 19 perfis (Real Nazista → Real N,
+  Castelo nazista FC → Castelo N FC, Hitler FC → Ht FC…) + o histórico do ranking (`esc_results`, `esc_pyramid_rank_snap`,
+  `game_champions`, `_arquivo`, `room_players`). Suástica e "crioulo" do histórico saíram pelo `esc_nome_limpo` (Gui crioulo → Gui,
+  LOS DICTADORES卍 → LOS DICTADORES). Zero nome ofensivo sobrando pela régua.
+- 👀 Fora da régua (não está na lista do Diego): "donigga50k" (variação de xingamento racista em inglês) apareceu num vice-campeão.
