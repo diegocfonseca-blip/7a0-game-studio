@@ -2765,17 +2765,36 @@ const L42_EU_ATA: C[] = [
 // ─── 📚 LOTE 44 (21/10): pedido do Diego — Jorginho do Chelsea, Bruno Guimarães e Joelinton do Newcastle, Peyroteo e Bobby Tambling ─────────────
 // Categoria de cada um no clube e no ano da carta. O Jorginho do Chelsea é OUTRA pessoa (o volante ítalo-brasileiro),
 // não o lateral do tetra que já está no baralho — o país vai carta a carta em PAIS_POR_CARTA.
+// 🌟 21/10 (Diego: "pesquise jogadores atuais… de 2026 que estão chamando atenção"): a geração que estourou em 2025/26 e na
+// Copa do Mundo 2026. Carta = clube de 2026; os mais novos levam 💎 promessa.
+const L44_EU_ZAG: C[] = [
+  { name: "Pau Cubarsí", club: "Barcelona", year: 2026, fame: 4, lo: 81, hi: 88, bio: "Zagueiro de 19 anos, titular do Barcelona e da Espanha na Copa do Mundo de 2026." },
+  { name: "Jérémy Jacquet", club: "Liverpool", year: 2026, fame: 3, lo: 70, hi: 81, promessa: true, bio: "Zagueiro francês, a surpresa do Liverpool na temporada 2026/27." },
+]
 const L44_EU_MEI: C[] = [
+  { name: "Arda Güler", club: "Real Madrid", year: 2026, fame: 4, lo: 80, hi: 88, bio: "Meia turco eleito pela UEFA a revelação da Champions 2025/26." },
+  { name: "Franco Mastantuono", club: "Real Madrid", year: 2026, fame: 3, lo: 72, hi: 84, promessa: true, bio: "Joia argentina que saiu do River Plate para o Real Madrid." },
+  { name: "Max Dowman", club: "Arsenal", year: 2026, fame: 3, lo: 68, hi: 82, promessa: true, bio: "Aos 16 anos, o mais novo a jogar a Champions e a fazer gol na Premier League." },
+  { name: "Lennart Karl", club: "Bayern", year: 2026, fame: 3, lo: 72, hi: 83, promessa: true, bio: "A revelação do Bayern em 2025/26." },
+  { name: "Nico Paz", club: "Como", year: 2026, fame: 3, lo: 77, hi: 85, bio: "Meia argentino do Como, líder de assistências do Campeonato Italiano em 2025/26." },
+  { name: "Rayan Cherki", club: "Man City", year: 2026, fame: 3, lo: 78, hi: 86, bio: "Meia francês de drible e passe, comprado pelo Manchester City." },
+  { name: "Johan Manzambi", club: "Freiburg", year: 2026, fame: 3, lo: 72, hi: 83, promessa: true, bio: "Meia de 20 anos, três gols pela Suíça na fase de grupos da Copa de 2026." },
+  { name: "Ayyoub Bouaddi", club: "Lille", year: 2026, fame: 3, lo: 70, hi: 82, promessa: true, bio: "Volante de 18 anos do Lille, uma das revelações de Marrocos na Copa de 2026." },
+  { name: "Kobbie Mainoo", club: "Man United", year: 2026, fame: 3, lo: 75, hi: 84, bio: "Meia formado no Manchester United, passe limpo e calma com a bola." },
   { name: "Jorginho", club: "Chelsea", year: 2021, fame: 4, lo: 85, hi: 91, bio: "Volante ítalo-brasileiro, nascido em Imbituba (SC). Em 2021 foi campeão da Champions com o Chelsea e da Euro com a Itália, e 3º na Bola de Ouro." },
   { name: "Bruno Guimarães", club: "Newcastle", year: 2025, fame: 4, lo: 84, hi: 90, bio: "Capitão e cérebro do Newcastle, campeão da Copa da Liga Inglesa de 2025 — o primeiro título do clube em 70 anos." },
   { name: "Joelinton", club: "Newcastle", year: 2023, fame: 3, lo: 77, hi: 85, bio: "Chegou como centroavante e virou o motor do meio do Newcastle que voltou à Champions." },
 ]
 const L44_EU_ATA: C[] = [
+  { name: "Désiré Doué", club: "PSG", year: 2026, fame: 4, lo: 81, hi: 89, bio: "Atacante francês do PSG, um dos nomes da França na Copa de 2026." },
+  { name: "Estêvão", club: "Chelsea", year: 2026, fame: 3, lo: 76, hi: 86, promessa: true, bio: "Ponta brasileiro que saiu do Palmeiras para o Chelsea por mais de 60 milhões de euros." },
+  { name: "Andreas Schjelderup", club: "Benfica", year: 2026, fame: 3, lo: 75, hi: 84, bio: "Deu as duas assistências para Haaland na vitória da Noruega sobre o Brasil na Copa de 2026." },
+  { name: "Julio Enciso", club: "Strasbourg", year: 2026, fame: 3, lo: 74, hi: 83, bio: "Fez o gol do Paraguai que ajudou a eliminar a Alemanha na Copa de 2026." },
   { name: "Fernando Peyroteo", club: "Sporting", year: 1947, fame: 5, lo: 85, hi: 92, bio: "Centroavante dos Cinco Violinos do Sporting, dono de uma das maiores médias de gol da história: mais de um gol por jogo." },
   { name: "Bobby Tambling", club: "Chelsea", year: 1965, fame: 4, lo: 82, hi: 89, bio: "Maior artilheiro da história do Chelsea por quase 50 anos, até o Lampard passar dele." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA] }
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -3449,7 +3468,12 @@ const L42_WORLD_ATA: C[] = [
   { name: "Jhon Durán", club: "Al-Nassr", year: 2025, fame: 3, lo: 76, hi: 85, bio: "Atacante colombiano que chegou ao Al-Nassr em 2025." },
 ]
 
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA] }
+// 🌟 21/10: Gilberto Mora, o mais novo da Copa do Mundo 2026 (Tijuana fica no baralho Resto do Mundo)
+const L44_WORLD_MEI: C[] = [
+  { name: "Gilberto Mora", club: "Tijuana", year: 2026, fame: 3, lo: 66, hi: 80, promessa: true, bio: "Meia mexicano de 17 anos, o jogador mais novo da Copa do Mundo de 2026." },
+]
+
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI, ...L44_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
