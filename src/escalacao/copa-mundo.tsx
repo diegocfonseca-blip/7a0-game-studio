@@ -1364,7 +1364,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
   const live = (h: number, a: number, ev: ScoreGoal[], m2e?: EntradaM2) => (
     <div style={{ marginBottom: 8 }}>
-      <LiveScoreCard enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={GREEN} awayColor={RED}
+      <LiveScoreCard enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={c2d ? paisColor(entrants[h].pais) : GREEN} awayColor={c2d ? paisColor(entrants[a].pais) : RED} /* 🌍 no 2D cada seleção com a cor dela (Diego 21/10) */
         homeOwner={owner(h)} awayOwner={owner(a)}
         homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
         awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}

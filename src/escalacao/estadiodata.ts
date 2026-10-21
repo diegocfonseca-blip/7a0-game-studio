@@ -327,6 +327,13 @@ export function stadiumSeats(st: StadiumSave | undefined): { now: number; max: n
   for (const s of STADIUM_SECTORS) { now += Math.round(s.seats * sectorPct(st, s.k) / 100); max += s.seats }
   return { now, max }
 }
+/** 🌱🏟️ o estádio no CAMPINHO 2D (21/10, Diego: *"várzea começa marronzinho… cada melhora no gramado melhora mais, até o
+ *  perfeito"* · *"vai ampliando, vai aumentando a quantidade de torcedores"*): gramado = o % do setor Gramado (0 = terra,
+ *  100 = perfeito); lotação = os lugares CONSTRUÍDOS sobre o máximo, com um tiquinho de gente até no estádio zerado. */
+export function estadioNoCampinho(st: StadiumSave | undefined): { grama: number; lotacao: number } {
+  const { now, max } = stadiumSeats(st)
+  return { grama: sectorPct(st, 'grama'), lotacao: Math.min(1, 0.08 + 0.92 * (max > 0 ? now / max : 0)) }
+}
 // nível/apelido do estádio pelo total de peças prontas (setores + melhorias)
 export function stadiumLevel(st: StadiumSave | undefined, bb = false): { n: number; name: string } {
   const n = sectorsDone(st) + STADIUM_EXTRAS.filter(e => hasExtra(st, e.k)).length

@@ -10,3 +10,12 @@ export function climaDoJogo(seed: number): Clima {
   const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296
   return r < CHANCE_CHUVA ? 'chuva' : r < CHANCE_CHUVA + CHANCE_NUBLADO ? 'nublado' : 'sol'
 }
+
+// 🌙 JOGO DE NOITE (21/10, Diego: *"jogo de noite com refletores de vez em quando, igual o clima"*). Preso na semente (outra
+// pitada, pra não andar junto com a chuva): 3 em cada 10 jogos acendem os refletores. Só visual — o motor não muda.
+export const CHANCE_NOITE = 0.3
+export function noiteDoJogo(seed: number): boolean {
+  let s = (seed ^ 0x40C7E) | 0
+  s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296 < CHANCE_NOITE
+}

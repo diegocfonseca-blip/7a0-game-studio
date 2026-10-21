@@ -28,7 +28,8 @@ function Bancada() {
   useEffect(() => { const iv = setInterval(() => setMin(m => Math.min(93, m + 1)), (DUR_2D_MS * 0.82) / 93 / VEL); return () => clearInterval(iv) }, [])
   return <>
     <p style={{ textAlign: 'center', fontFamily: 'Oswald', fontWeight: 700, margin: '0 0 6px' }}>Fabulous EC × Chelsão · {min}'</p>
-    <Campo2D climaForcado={(q.get('clima') as 'sol' | 'nublado' | 'chuva' | null) ?? undefined} roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={gols} fechado={min >= 93}
+    <Campo2D climaForcado={(q.get('clima') as 'sol' | 'nublado' | 'chuva' | null) ?? undefined} noiteForcada={q.has('noite') ? q.get('noite') === '1' : undefined}
+      estadio={q.has('grama') ? { grama: Number(q.get('grama')), lotacao: Number(q.get('lot') ?? 1) } : undefined} replay={q.get('replay') === '1'} roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={gols} fechado={min >= 93}
       casa={{ nome: 'Fabulous EC', cor: '#FFC400', cartas: casa, mascote: carimboDoTime('Fabulous EC'), escudo: <Escudo nome="Fabulous EC" size={110} />, tecnico: 'Telê Santana' }}
       fora={{ nome: 'Chelsão', cor: '#2B6CFF', cartas: fora, mascote: carimboDoTime('Chelsão'), escudo: <Escudo nome="Chelsão" size={110} />, tecnico: 'Mourinho' }} />
   </>

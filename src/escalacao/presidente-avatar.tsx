@@ -118,6 +118,21 @@ function montaBusto(ids: string[], corte: Recorte = CORTE, larg = LADO, pose: 's
   return p
 }
 
+/** 🧑‍💼 a IMAGEM do busto (pra quem desenha em canvas, como o campinho 2D — 21/10, presidente na beira do campo). null = sem boneco ou montando */
+export function useImagemBusto(visual: PresidenteBaseSave | null | undefined): string | null {
+  const ids = visual ? camadasDoPresidente(visual) : []
+  const chave = ids.join('|')
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let vivo = true
+    setUrl(null)
+    if (ids.length) montaBusto(ids).then(u => { if (vivo) setUrl(u) })
+    return () => { vivo = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chave])
+  return url
+}
+
 /** busto redondo do presidente; enquanto monta (ou se falhar) mostra o `reserva` — o desenho que já existia */
 export function PresidenteBusto({ visual, size = 36, rank = 0, reserva = null, titulo }: { visual: PresidenteBaseSave; size?: number; rank?: number; reserva?: React.ReactNode; titulo?: string }) {
   const perk = rank >= 2 ? APOIO_PERKS.ouro : rank === 1 ? APOIO_PERKS.prata : APOIO_PERKS.bege // ouro: Lenda/Batismo/Fundador · prata: Craque · bege: grátis
