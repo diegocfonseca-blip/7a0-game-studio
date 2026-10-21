@@ -84,10 +84,14 @@ assert.ok(S.certos / S.passes >= 0.55 && S.certos / S.passes <= 0.92, 'passes ce
 assert.ok(S.pulos === 0 && S.fora <= N * 0.05, 'jogador pulando ou fora do campo')
 assert.ok(S.reinicio <= N * 0.3, 'reinício sem respeitar a distância')
 assert.ok(S.ms / N < 150, 'motor pesado demais')
-// 📏 CALIBRAÇÃO DO PLACAR (só medida, ainda NÃO reprova): futebol de verdade em tempo real dá ~1 lance perigoso a cada 90 s,
-// e o jogo inteiro dura 1:30 de tela. O formato (lances em destaque, estilo FM, × jogo corrido mais intenso) é decisão do
-// Diego — `docs/motor-2d-v2.md`, seção 8. Quando ele escolher, estas viram assert:
-//   gols 1,8–3,6 · 0×0 ≤ 20% · 8+ gols ≤ 2% · chutes 8–28 · faltas 1–14 · cartões ≤ 4 · escanteios 1–12 · impedimentos 0,2–6
-//   times parecidos: nenhum lado > 60% · forte × fraco: forte ≥ 55%, perde ≤ 20%
-console.log('📺 motor 2D v2: regras ok (o placar ainda é só medido — ver docs/motor-2d-v2.md, seção 8)')
+// 📏 CALIBRAÇÃO DO PLACAR (vira trava em 21/10 — formato B decidido pelo Diego: jogo corrido em 1:30, placar LIVRE com base no
+// elenco, na média da simulação de hoje). Medido no dia: parecidos 1,97 gol · 0×0 7% · forte × fraco 75% / perde 6%. As faixas
+// têm folga; quem mexer no motor e sair delas está mudando o jogo da carreira — conversar com o Diego antes.
+assert.ok(gm >= 1.5 && gm <= 2.7, `média de gols ${gm.toFixed(2)} fora de 1,5–2,7 (a simulação de hoje fica ~2)`)
+assert.ok(zero <= 0.15, `0×0 demais: ${(zero * 100).toFixed(0)}%`)
+assert.ok(muitos <= 0.02, `jogo com 8+ gols demais: ${(muitos * 100).toFixed(1)}%`)
+assert.ok(S.chutes / N >= 2.5, `chute de menos: ${(S.chutes / N).toFixed(1)} por jogo`)
+assert.ok(Math.max(S.vit[0], S.vit[2]) / N <= 0.45, 'times parecidos: um lado ganhando demais')
+assert.ok(fv / NF >= 0.6 && fd / NF <= 0.15, `forte × fraco: forte ganha ${(100 * fv / NF).toFixed(0)}% e perde ${(100 * fd / NF).toFixed(0)}%`)
+console.log('📺 motor 2D v2: regras ok · placar dentro da faixa calibrada')
 void MIN

@@ -55,9 +55,9 @@ já decidiu (v1). O motor novo decide o placar sozinho. Então, pra ele entrar n
 SER o que acontece no campinho (liga, copas, online — tudo que o v1 desenha hoje), ou o v2 fica só de bancada. Sem essa resposta
 não tem integração — não ligar o v2 em nada do jogo por conta própria.
 Goleiro: diferença profissional × lenda vale ~0,35 de chance de defesa (0,80 × 0,33 gol sofrido, mesmo time na frente).
-Pendente: virar os números em assert no `npm run motor2` quando ele cravar a meta; ligar o v2 na bancada visual e FILMAR
-(`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. Clima visual (sol/nublado/chuva) continua
-esperando o OK dele na foto (`clima-3.png`).
+✅ (21/10) `npm run motor2` agora REPROVA se o placar sair da faixa calibrada (gols 1,5–2,7 · 0×0 ≤ 15% · forte ≥ 60%).
+Pendente: ligar o v2 na bancada visual e FILMAR
+(`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. ✅ Clima visual (sol/nublado/chuva) APROVADO (21/10, *"ok siga"* depois da foto).
 
 ## 🏀 BidLegends NO AR (20/10) — só na conta do Diego (BASQUETE_TESTERS)
 Diego: *"já pode [pôr] o basquete pra eu ver como tá, trocando a aba lá em cima do futebol pelo basquete"*. O branch
