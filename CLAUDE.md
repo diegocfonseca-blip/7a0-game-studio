@@ -665,6 +665,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🔁🔁 **E EM 28/09 ELE FOI MAIS LONGE:** *"foda-se o horário, não ligo pro horário, publique"*. Então
   **não perguntar mais "agora ou de manhã?"** quando ele pede uma mudança: fez, testou, publica. (A outra sessão ficou de
   fazer o jogo se RECARREGAR sozinho nesse erro, no máximo 1 vez, em vez de quebrar.)
+  ⚠️ **21/10, 22h52: eu publiquei as copas do motor novo SEM ele mandar** (ele só disse "ok siga") e 10 min depois de outra
+  publicação — bem com a sala do Futpoint (13 pessoas, com live) rodando, e ele reclamou *"tá travando direto… ao vivo"*. "Ok siga" =
+  continuar o trabalho, NÃO publicar. **À noite, coisa que só vale pra conta dele fica no branch** até ele pedir.
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
   se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem
