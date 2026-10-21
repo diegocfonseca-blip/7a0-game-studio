@@ -7,7 +7,9 @@
 // Tudo vem PRONTO do banco numa chamada só (`esc_vitrine_salas`, docs/sql/vitrine-salas.sql):
 // a semana tem ~900 linhas de campeão e baixar isso no celular a cada lista seria tráfego à toa.
 // Banco sem resposta = a vitrine simplesmente não aparece (nunca trava a lista de salas).
+import { EmblemaCla, clasLiberado } from './cla' // ⚔️ 21/10: ranking dos clãs da semana
 import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { buscaVitrine, type Vitrine } from './vitrine-dados'
 import { tr, getLang } from './lang'
 import { PodioMoldura } from './podio-semana'
@@ -17,6 +19,8 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { ApoieButton } from './screens'
 import { RANKING_SEMANA_MOEDAS } from './store'
+import { ClaVer } from './cla-ver' // 👆 21/10: tocar no clã abre a janela com os membros e o entrar/pedir
+import { abrePerfilSolto, contaValida } from './amigos' // 👆 21/10: tocar no técnico abre o perfil (amigo, clã)
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -39,6 +43,37 @@ const haQuanto = (iso: string) => {
 // em que ele chegou no jogo). Não depende mais do banco.
 const DESTAQUE = { clube: 'Labubu FC', desde: '2026-10-14' } // 🔁 21/10: Labubu FC (Diego: "troque o batizado em destaque das salas online pro Labubu") · antes: K9 FC (16/10)
 const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}º`)
+
+// ⚔️ RANKING DOS CLÃS DA SEMANA (21/10, Diego: "o ranking da semana também terá de clãs agora"): os 5 clãs com mais títulos
+// online na semana (a MESMA conta do ranking dos técnicos, somada por clã). Uma leitura quando a lista de salas abre.
+type ClaRank = { id: number; nome: string; emblema: string; membros: number; titulos: number; pos: number }
+export function RankingClasCaixa() {
+  const [l, setL] = useState<ClaRank[] | null>(null)
+  const [ver, setVer] = useState<number | null>(null)
+  useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 5)) }, () => {}); return () => { vivo = false } }, [])
+  if (!l) return null // 🔁 21/10 (Diego): a caixa aparece SEMPRE, mesmo sem clã nenhum — vazia, ela chama a galera pra criar o primeiro
+  return (
+    <Caixa titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
+      {l.length === 0 && <div style={{ textAlign: 'center', padding: '8px 4px', border: `2px dashed ${INK}`, borderRadius: 10, background: '#fff' }}>
+        <p style={{ ...OSW, margin: 0, fontSize: 15 }}>⚔️ {tr('Nenhum clã ainda', 'No clans yet')}</p>
+        <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 700, color: '#5a5240' }}>{tr('Seja o primeiro: 👥 Amigos → ⚔️ Clã. Entrar é de graça; criar é de quem tem plano.', 'Be the first: 👥 Friends → ⚔️ Clan. Joining is free; creating needs a plan.')}</p>
+      </div>}
+      {l.map((c, i) => (
+        <div key={c.id} role="button" tabIndex={0} onClick={() => setVer(c.id)} onKeyDown={e => { if (e.key === 'Enter') setVer(c.id) }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 && c.titulos > 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : i ? { borderTop: '1.5px solid #0001' } : {}) }}>
+          <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{c.titulos > 0 ? medalha(c.pos) : `${c.pos}º`}</span>
+          <EmblemaCla emblema={c.emblema} size={24} />
+          <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nome}</b>
+          <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{c.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
+          <span style={{ ...OSW, fontSize: 16, color: '#0006' }}>›</span>
+        </div>
+      ))}
+      {l.length > 0 && <p style={{ margin: '5px 0 0', fontSize: 10.5, fontWeight: 800, color: '#7C3AED' }}>👆 {tr('Toque num clã pra ver os membros e entrar.', 'Tap a clan to see its members and join.')}</p>}
+      {ver !== null && <ClaVer id={ver} onClose={() => setVer(null)} />}
+      <p style={{ margin: '7px 0 0', fontSize: 11, fontWeight: 800, color: INK }}>{tr('🎁 Prêmio pra CADA membro: 🥇 30 · 🥈 20 · 🥉 10 🪙 pra carreira + o clã no 📺 telão a semana toda.', '🎁 Prize for EVERY member: 🥇 30 · 🥈 20 · 🥉 10 🪙 for career + the clan on the 📺 big screen all week.')}</p>
+      <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('O clã campeão joga a semana seguinte com 🏆 no selo de cada membro. Entre num clã em 👥 Amigos → ⚔️ Clã.', 'The champion clan plays the next week with 🏆 on every member’s badge. Join a clan in 👥 Friends → ⚔️ Clan.')}</p>
+    </Caixa>
+  )
+}
 
 function Caixa({ titulo, sub, escura = false, children }: { titulo: string; sub: string; escura?: boolean; children: React.ReactNode }) {
   return (
@@ -90,13 +125,15 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
               metal + fita que ele já leva na lista de técnicos da sala (`podio-semana.tsx`). A posição vem do ranking. */}
           {v.semana.map((s, i) => (
             <PodioMoldura key={i} pos={(s.pos >= 1 && s.pos <= 3 ? s.pos : 0) as 0 | 1 | 2 | 3}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : s.pos > 3 ? { borderTop: '1.5px solid #0001' } : {}) }}>
+              <div role={contaValida(s.uid) ? 'button' : undefined} onClick={() => { if (contaValida(s.uid)) abrePerfilSolto(s.uid) }} style={{ cursor: contaValida(s.uid) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : s.pos > 3 ? { borderTop: '1.5px solid #0001' } : {}) }}>
                 <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{medalha(s.pos)}</span>
                 <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.nome}</b>
                 <span style={{ ...OSW, fontSize: 15 }}>{s.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{s.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
+                {contaValida(s.uid) && <span style={{ ...OSW, fontSize: 16, color: '#0006' }}>›</span>}
               </div>
             </PodioMoldura>
           ))}
+          {v.semana.some(s => contaValida(s.uid)) && <p style={{ margin: '5px 0 0', fontSize: 10.5, fontWeight: 800, color: '#7C3AED' }}>👆 {tr('Toque num técnico pra ver o perfil, chamar de amigo ou pro seu clã.', 'Tap a manager to see the profile, add as a friend or invite to your clan.')}</p>}
           {logado && !euNoTop && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 6px', marginTop: 6, border: `2px dashed ${INK}`, borderRadius: 9, background: '#fff' }}>
               {v.eu
@@ -110,7 +147,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
             <div style={{ marginTop: 10, border: `3px solid ${INK}`, borderRadius: 12, background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}`, padding: '7px 10px' }}>
               <span style={{ ...OSW, display: 'block', fontSize: 10, letterSpacing: '.14em', color: '#7C3AED', marginBottom: 3 }}>{tr('🏆 PÓDIO DA SEMANA PASSADA', '🏆 LAST WEEK’S PODIUM')}</span>
               {v.passada!.map((p, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.45 }}>
+                <div key={i} onClick={() => { if (contaValida(p.uid)) abrePerfilSolto(p.uid) }} style={{ cursor: contaValida(p.uid) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.45 }}>
                   <span style={{ fontSize: 13 }}>{medalha(p.pos)}</span>
                   <b style={{ ...OSW, flex: 1, fontSize: 13.5, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stripEmoji(p.nome).trim()}</b>
                   <span style={{ ...OSW, fontSize: 12 }}>{p.titulos} {p.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span>
@@ -123,6 +160,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]} — e 📺 propaganda da vitória no telão de TODAS as salas, a semana inteira.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]} — and 📺 your win advertised on the ticker in EVERY room, all week long.`)}</p>
         </Caixa>
       )}
+      {clasLiberado() && <RankingClasCaixa />}
 
       {(
         <Caixa escura titulo={tr('🖋️ Batismo em destaque', '🖋️ Featured named club')} sub={tr('Um clube de verdade, de um jogador do Leilão Legends.', 'A real club, from a Leilão Legends player.')}>

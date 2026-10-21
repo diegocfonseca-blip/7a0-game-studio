@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
+import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -1776,7 +1778,7 @@ export function EscLobby() {
 
   // salva o nome de técnico (display_name) — usado no chip de edição rápida
   async function saveName() {
-    const nm = stripEmoji(nameDraft).trim()
+    const nm = nomeDeTime(stripEmoji(nameDraft)) // 🔤 21/10 (Diego): 1ª letra maiúscula, resto minúscula, FC maiúsculo
     if (!nm) return
     setLoading(true); setNameErr('')
     // 🔒 nome único (tipo @ do Instagram): manter o próprio nome passa; nome de
@@ -1950,7 +1952,7 @@ export function EscLobby() {
       }
     }
     // 🚫 21/10: a mesma régua do banco, avisando antes de tentar
-    if (nomeOfensivo(name)) { setRoomError(tr('🚫 Esse nome não é permitido: nada de preconceito no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: no prejudice in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
+    if (nomeOfensivo(name)) { setRoomError(tr('🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: nothing offensive in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1965,7 +1967,7 @@ export function EscLobby() {
       if (re?.message?.includes('LIMITE_SALA_DIA')) { setRoomError(''); setLimiteDia(true); setLoading(false); return }
       // 🚫 21/10 (Diego): nome com preconceito (nazismo, "crioulo", suástica) não cria sala — quem barra é o BANCO
       // (`esc_sala_nome_ofensivo`); a tela só explica o porquê e o caminho
-      if (re?.message?.includes('NOME_PROIBIDO')) { setRoomError(tr('🚫 Esse nome não é permitido: nada de preconceito no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: no prejudice in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
+      if (re?.message?.includes('NOME_PROIBIDO')) { setRoomError(tr('🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: nothing offensive in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
       const code2 = re?.code
       const hint = code2 === '42501' ? tr('sem permissão (RLS). Avise o Diego.', 'no permission (RLS). Let Diego know.')
         : code2 === 'PGRST116' ? tr('a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.', 'the room was created but the app could not read it back (read RLS). Let Diego know.')
@@ -4617,9 +4619,12 @@ export function EscLobby() {
                     {pkAv.holo > 0 && <ApoioSheen holo={pkAv.holo} dur={2.6} />}
                   </div>
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
+                <div className="flex-1 min-w-0 flex flex-col items-start">{/* ⚔️ 21/10: o selo do clã vai na linha de BAIXO do nome (sem tirar nada do lugar) */}
                 {amigosOn && !duplasOn && contaValida(p.user_id)
-                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm flex-1 text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
-                  : <span className="font-black text-black text-sm flex-1" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
+                  <SeloCla uid={p.user_id} />
+                </div>
                 {gala && <GalaMascoteMini clube={gala} />}
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
                 {/* 🃏 BAFO: o estado de cada um, na lista — o host bate o olho e sabe

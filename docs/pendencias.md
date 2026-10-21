@@ -594,6 +594,45 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   🗂️ **GUARDADO (19/10, *"deixa guardado… em breve daremos os clãs"*)**. Selo do clã SÓ onde aparece a PESSOA: lista de técnicos da
   sala, crachá do chat, perfil e lista de amigos — nunca em tabela/placar/jogo (lá é o escudo do clube). SQL do banco já escrito
   (tentativa de aplicar foi cancelada; reaplicar só com OK dele).
+  🖼️ 21/10: mockup de ONDE aparece (exemplo Clã Futpoint, Futpoint líder + Didico grátis): `scripts/mockups/clas-onde-aparece.png` —
+  pílula escura (emblema + "⚔️ Clã X") SEMPRE na linha de baixo do nome, sem mexer em escudo/presidente/cor do plano/medalha. APROVADO ("ok pode fazer").
+  ✅ FEITO 21/10 (só nas contas do Diego — `CLAS_GERAL` em `cla.tsx`): banco `20261021040000_clas.sql` (testado: grátis não cria, nome
+  ofensivo barrado, escudo do batismo, fechado→pedido→líder aceita, 7 dias de espera, líder sozinho sai = clã fecha) + aba ⚔️ Clã nos
+  Amigos (criar/procurar/ranking/chamar amigo/pedidos/tirar/abrir-fechar/sair) + selo na sala de espera, chat, amigos e perfil.
+  Foto: `scripts/mockups/clas-tela-real.png`. 🔁 21/10: selo do clã SAIU do chat (Diego: "no chat não precisa") e entrou a caixa ⚔️ Clãs da semana
+  (top 5) embaixo do Ranking da semana nas salas online (`scripts/mockups/clas-ranking-salas.png`). Máximo de membros: 22. ⏳ Liberar pra todos = `CLAS_GERAL = true` quando o Diego testar. ⏳ Convite de clã
+  ainda não aparece no 🔔 (só na aba ⚔️ Clã).
+  🔁 21/10 (2ª rodada, *"selo no chat pode ter mas ainda menor… prêmio 30/20/10… telão… não entra no lugar do usuário, só abaixo"*):
+  prêmio por MEMBRO do top 3 de clãs da semana fechada: 🥇 30 · 🥈 20 ·
+  🥉 10 🪙 pra carreira (`esc_premio_cla_semana`, fechada sozinha por `esc_fecha_semanas_clas`, resgate no `PremioSemana` →
+  `CLA_SEMANA_CREDIT`) · telão: linha "⚔️ CLÃS DA SEMANA" logo DEPOIS do pódio dos usuários (`esc_cla_podio_passado`, leitura a cada
+  10 min, nada pelo canal). Foto: `scripts/mockups/clas-premio-telao-chat.png`. Trava dos clãs agora mora em `cla-gate.ts`.
+  🔁 21/10 (3ª rodada): **máximo 22 membros** (*"coloque 22"*; `CLA_MAX` no código + `esc_cla_cabe`/`esc_cla_lista` no banco,
+  migration `20261021060000_clas_22_membros.sql`) · **selo do clã SAIU do chat de novo** (*"no chat não precisa ter selo de clã não"*
+  — não repropor) · a página do clã continua sendo a aba ⚔️ Clã dentro de 👥 Amigos, do lado do 📖 Álbum (ele aprovou o lugar).
+  🔁 21/10 (4ª rodada): **TROCAR DE CLÃ COM AVISO** (*"você já participa do clã do Futpoint, gostaria de confirmar?"*). Quem já tem
+  clã agora PODE aceitar convite ou pedir pra entrar em outro: o banco responde `confirmar` e a tela abre o aviso "⚔️ Trocar de clã?"
+  (clã de agora ➜ novo, o que acontece com a liderança, espera de 3 dias, "Sim, ir pro X" / "Não, ficar no Y"). Clã fechado: o pedido
+  🔓 **21/10 (Diego): SEM ESPERA pra trocar de clã** (*"tira essa regra, não precisa"*). Era 7 dias, depois 3, agora zero: `esc_cla_espera_ate` devolve sempre null (banco, valeu na hora). Não repropor espera.
+  ⚔️⚔️ **21/10 (Diego): SEMPRE SÃO DOIS.** Até 2 clãs por pessoa, em qualquer combinação (membro dos 2 · presidente dos 2 · um de cada), MAS a 2ª vaga só pra quem pagou o "2º clã" (`cla_extra`, R$ 9,90, uma vez, vale pra sempre: criar o 2º OU entrar em outro). Pra um 3º: sair de um; presidente com gente = passar (já vem marcado o mais antigo com plano) ou fechar; presidente sozinho = 📦 GUARDAR (sai do ar, nome reservado, reabre só se tiver lugar) ou fechar. Banco: `esc_cla_membros.vaga` (1/2), `esc_clas.guardado`; a tabela velha ficou como `esc_cla_membros_v1` (cópia). Regra escrita na aba ⚔️ Clã. Fotos `scripts/mockups/clas-dois-*.png`. Banco já valendo; tela no branch esperando "publica".
+  📝 **21/10 (Diego): DESCRIÇÃO DO CLÃ.** Opcional ao criar, até 200 letras, sem link e sem palavrão (régua do Super Chat, `esc_cla_desc_erro`); o presidente edita depois (📝). Aparece no CONVITE, na lista de clãs e na página do clã. Banco já valendo (`esc_clas.descricao`); tela no branch. Fotos `scripts/mockups/clas-desc-*.png`. Se ele quiser link do grupo do zap na descrição, é só liberar `wa.me` na régua.
+  👆 **21/10 (Diego): RANKING CLICÁVEL.** No ranking da semana (os 5 + o pódio da semana passada) tocar no técnico abre o PERFIL (➕ amigo e o novo 📣 "Chamar pro <meu clã>", um botão por clã meu). No ranking dos clãs tocar no clã abre a janela `ClaVer` (`cla-ver.tsx`): membros (tocar = perfil), descrição e Entrar (aberto) / 🔒 Pedir (fechado) / "Clã fechado com 22/22" ou "Clã cheio" — com as mesmas travas da aba (trocar pergunta, presidente preso, sempre são dois). Banco: `esc_vitrine_salas` manda `uid`; `esc_cla_ver`. Fotos `scripts/mockups/clas-rk-*.png`.
+  🔔 **21/10 (Diego): SININHO COM CLÃ.** A mesma leitura de 60s (`esc_avisos`) ganhou `clas` (convite pra clã: entrar/✕) e `cla_pedidos` (pedido pra entrar no clã que EU presido: aceitar/✕). Pedido de amizade, convite de clã e pedido pro meu clã também PULAM na tela (faixa de cima, igual ao "entrou no jogo"), só os que chegam depois da 1ª leitura. Se aceitar o convite exige trocar de clã, o sininho só avisa e manda pra 👥 Amigos → ⚔️ Clã. Foto `scripts/mockups/clas-sino.png`.
+  guarda `trocar` e a troca acontece quando o líder aceita. Quem saiu/trocou nos últimos 3 dias (era 7; Diego mudou pra 3 em 21/10) não troca de novo. Botão "🔎 Outros
+  clãs" dentro do clã. Migration `20261021080000_clas_trocar.sql`; testado no banco. Foto: `scripts/mockups/clas-trocar.png`.
+  🟢 21/10 (*"aprovado"*): **`CLAS_GERAL = true`** (cla-gate.ts) no branch, esperando o "publica". Quem não tem plano e toca em
+  Criar clã vê a caixa "Criar clã é de quem tem plano" + ⭐ Ver os planos + atalho pra entrar de graça (`scripts/mockups/clas-sem-plano.png`).
+  Reels: `scripts/video-clas-reels.mjs` → `scripts/posts/clas-reels.mp4` · aviso do zap: `scripts/avisos/2026-10-21-clas.json`
+  (tag nova `premio` no `aviso-comunidade.mjs`). Novidade na home escrita.
+  🔁 21/10: espera depois de sair/trocar = **3 dias** (era 7). 👑 **PRESIDENTE PRESO** (*"não pode uma pessoa ser dona de um clã e
+  querer participar em outro"*): o líder com gente no clã não sai nem troca — a tela abre "Você é o presidente do X" com 👑 Passar a
+  presidência (lista do clã; SÓ quem tem plano pode receber) ou 🗑️ Fechar o clã (solta todo mundo sem espera). Sozinho no clã: sair/
+  trocar fecha o clã, como antes. A coroa NÃO passa mais sozinha pro mais antigo. Migration `20261021100000_clas_presidente.sql`,
+  testado no banco. Foto: `scripts/mockups/clas-presidente.png`.
+  🔁 21/10: **CRIAR CLÃ ESTANDO EM OUTRO** (*"pra ele criar clã ele precisa sair do clã onde ele está e aí também aparece o banner"*):
+  botão "⚔️ Criar meu clã" dentro do clã → aviso "você sai do X" (presidente com gente: passar/fechar antes) → tela de criar com
+  "🚪 Ao criar, você sai do X"; o banco sai e cria na mesma hora (`esc_cla_criar(..., p_trocar)`, migration
+  `20261021110000_clas_criar_saindo.sql`). E na tela **"líder" virou "presidente"** (pedido dele).
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem
@@ -10022,3 +10061,65 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   nem o castigo do dono (pior clube na linha dele) → a vez voltava pra mesma dupla e o relógio reiniciava.
 - ✅ `soQuemEstaNaSala` (dupla-copa.ts): quem age sem linha na sala passa pro outro da dupla que está; ninguém da dupla = o time
   sai da fila. Vale na regional E na Copa do Mundo da sala (tela + dono da sala). Trava `npm run dupla-copa-estado`.
+
+- ✅ **🚫 MODERAÇÃO 21/10 (2ª): "estupr…" barrado** (time "ESTUPRADOR DE JUDEU" campeão na sala do mengao caxiense, conta
+  vitorguiotgame@gmail.com). Banco: `esc_nome_ofensivo` pega "estupr" e o nome NÃO é aproveitado (vira "Técnico"/"Sala"), migration
+  `20261021070000_nome_ofensivo_estupro.sql` — já valendo. "Judeu" sozinho NÃO é barrado (ordem dele). Conta renomeada pra "Técnico",
+  histórico de campeões limpo, aviso de uma vez mandado (`esc_avisos_conta`, com o alerta de remoção se repetir). A sala NÃO foi
+  apagada: era do mengao caxiense (outras 4 pessoas), parada desde 12h29 — só o nome dele foi trocado lá dentro.
+  ⏳ Outros 8 perfis antigos com "estupr…" no nome (desde agosto) — perguntei ao Diego se renomeia todos.
+
+- ✅ **🐐👑 BATISMO NEYMAR_FC (21/10)** — o nome do clube é **Neymar_FC**, com underline (é como ele joga, "NEYMAR_FC"; o Diego corrigiu); "Neymar FC"/"Neymar"/EC/SC também desenham o escudo. Post batizado por **Arie**. — sheeryarie772@gmail.com (conta existe, nome "SPFC/NEYMAR"), Série D no assento do bot
+  **Galáxia EC** (1º bot sem dono da D; `OLD_NAME['Neymar FC'] = 'Galáxia EC'`). Coração São Paulo. Escudo dourado com o bode coroado,
+  mascote **O Bode Rei** (`neymarfc_bode` — nome escolhido por mim, o Diego pode trocar), manto creme #F2D8B8 + preto #090806 MEDIDOS na
+  camisa, camisa na Loja. Banco: ouro manual (já estava, veio do pagamento), sócio nº77, "Neymar" reservado (+FC/EC). Batismo de 79,90 =
+  sem número de fundador (`SEM_FUNDADOR`). Post: `scripts/posts/neymarfc-post.png`. ⏳ Falta publicar na main (código).
+- ✅ **🔤 NOME DE TIME ARRUMADO (21/10, regra do Diego)**: *"todo time do usuário, quando for feito, mesmo que ele bote maiúscula…
+  primeira letra maiúscula e o restante minúscula. E FC sempre maiúscula"*. `nomeDeTime` (`nome-time.ts`): cada palavra com 1ª
+  maiúscula, "de/da/do/dos/das/e" no meio minúsculas, FC/EC/SC/AC/SAF maiúsculas, separador (_ - / .) mantido. Vale no cadastro,
+  carreira, dinastia, carreira do basquete e no chip do nome das salas. Nome já existente só muda quando a pessoa salva de novo.
+  Só trocar maiúscula do PRÓPRIO nome não passa pela checagem de nome único.
+- ⏳ **🛡️ ESCUDO DE CLÃ PERSONALIZADO NA LOJA (21/10, pedido do Diego)** — R$ 19,99 no Pix do Mercado Pago. Depois do Pix: campo
+  "nome do clã" + "ideia do escudo" + botão "Mandar no WhatsApp do Diego" com tudo escrito. Mockup `scripts/mockups/clas-escudo-loja.png`
+  enviado e APROVADO (*"sim"*, zap 21 99888-6982, pronto em até 24 h). FEITO no branch: `EscudoClaLoja` (cla.tsx) na Loja (seção
+  "⚔️ Seu clã") e dentro do clã do presidente; produto `escudo_cla` (19,99, só presidente — `esc_cla_presidente_email`), nome + ideia
+  só depois do Pix (`esc_cla_escudo_escrever` / `esc_cla_escudo_meus`, tabela `esc_cla_escudo_pedidos`), botão do zap com o código do
+  pedido. Testado no banco de ponta a ponta (com desfazer). ⚠️ AO PUBLICAR: fazer o deploy da função `mp-criar-pix` (ganhou o nome
+  'escudo_cla' — sem isso o Pix responde "produto"). Quando o Diego mandar a arte: registrar em LOGOS_PRONTAS com o NOME DO CLÃ, pôr
+  `emblema = 'escudo:<nome do clã>'` em `esc_clas` e `pronto_em = now()` em `esc_cla_escudo_pedidos`.
+  🩹 Junto: as listas de produto de `esc_mp_pedidos`/`esc_pagamentos` estavam atrasadas (peça do presidente nem gerava Pix; giro, recado,
+  ficha e temas quebrariam o webhook ao pagar). Corrigido em 21/10 — ninguém tinha pago nenhum deles ainda.
+- ✅ **PUBLICADO EM 21/10 ~13h30 (Diego: "pode")**: clãs liberados pra todos (`CLAS_GERAL = true`), escudo de clã na Loja (função
+  `mp-criar-pix` v11 com 'escudo_cla'), batismo Neymar_FC, nome de time arrumado. Deploy verde. Reels e aviso do zap prontos em
+  `scripts/posts/clas-reels.mp4` e `scripts/posts/aviso-2026-10-21-clas.png` (o Diego posta).
+- ⏳ **⚔️⚔️ 2º CLÃ PAGO (21/10, Diego: "sim")**: cada conta CRIA 1 clã (criar continua só com plano); o 2º vem na Loja por R$ 19,99
+  (`cla_extra`, só presidente do seu clã e sem 2º ainda) e já nasce com escudo personalizado (Diego desenha; zap). Os títulos somam
+  nos DOIS; o selo mostra o 1º (quem só tem o 2º mostra o 2º). No banco: `esc_clas.extra = true`, presidente = quem comprou, e ele
+  NÃO vira linha de membro (a trava "1 membro = 1 clã" ficou intacta) — entra por `esc_cla_gente()` em títulos, vagas (22), prêmio
+  (1 prêmio por pessoa por semana: o melhor lugar). A presidência do 2º não se passa; ele pode fechar ("🗑️ fechar este clã").
+  Aba do clã ganha as duas abas no topo. Migration `20261021130000_cla_extra.sql`, testada no banco (compra, criação, entrar, tirar,
+  fechar). Foto: `scripts/mockups/clas-2o-cla.png`. No branch esperando o "publica" — e AO PUBLICAR: deploy da `mp-criar-pix` (ganhou 'cla_extra').
+- ✅ **🖋 CLÃ DO BATISMO = NOME + ESCUDO JUNTOS (21/10)**. Diego viu o escudo do batismo no selo de quem estava em clã de OUTRO nome
+  (Pontuadores com o escudo do Futpoint, Oliver Clã com o da Julia Barranquila): *"tá errado"*. E pediu: *"faltou aparecer a opção de quem
+  tem batismo entrar com seu escudo e nome do time"*. Agora: na tela de criar, quem tem batismo escolhe "🖋 Clã do <time>" (nome E escudo
+  do batismo) ou "⚔️ Clã com outro nome" (emblemas prontos). O banco (`esc_cla_criar`, migration `20261021150000`) só aceita o escudo junto
+  com o nome. Os 2 clãs antigos ganharam emblema pronto (e:3 · e:4). Já tendo clã, o do batismo como 2º é pela Loja (`cla_extra`): o time do
+  batismo vira o 2º clã e o escudo personalizado vai pro 1º (migration `20261021140000`). Foto: `scripts/mockups/clas-criar-batismo.png`.
+- ✅ **🎨 TROCAR EMBLEMA DO CLÃ (21/10)**: o presidente troca entre os emblemas prontos (botão "🎨 emblema" no clã). Clã do batismo e escudo
+  personalizado pago não trocam por aqui (`esc_cla_emblema`, migration `20261021160000`). Regra confirmada pelo Diego: sem clã → o do batismo é
+  de graça (1º); criar outro depois = 2º pago (R$ 19,99, personaliza o novo). Fez ao contrário (criou outro antes) → ativar o batismo é o 2º
+  pago, e o escudo personalizado vai pro 1º.
+- ✅ **🔓 CRIAR CLÃ SEM PLANO = R$ 9,90 (21/10, Diego: "tá ótimo, gostei")**: com plano é de graça; sem plano, o "Criar clã 🔒" abre
+  "Libere o seu clã" com o Pix de R$ 9,90 (produto `cla_criar`, um Pix = um clã criado, crédito em `esc_clas.pedido_criar`). Escudo
+  desenhado continua R$ 19,99. Migration `20261021170000_cla_criar_avulso.sql`, testado no banco. Ao publicar: deploy da `mp-criar-pix`.
+- ✅ **PUBLICADO 21/10 (~15h, Diego: "publique tudo")**: tela de criar com o clã do batismo (nome + escudo), 2º clã pago, troca de
+  emblema, cadeado de R$ 9,90 pra quem não tem plano, caixa dos clãs sempre visível. `mp-criar-pix` v12 (escudo_cla · cla_criar · cla_extra).
+  Regra confirmada: Futpoint (sem clã) cria o "Clã do Futpoint FC" de graça; Julia Barranquila (tem o Oliver Clã) fecha e cria o do
+  batismo, OU paga R$ 19,99 e fica com os dois (o batismo vira o 2º e o Oliver ganha o escudo personalizado).
+- ✅ **✂️ CLÃ SEM "FC" (21/10, Diego: "não precisa ter FC nos clãs")**: `esc_cla_sem_fc` tira FC/EC/SC/AC/SAF do fim do nome do clã (o do batismo
+  e o digitado; "Futpoint FC" → "Futpoint"). O escudo continua o do time. Banco já valendo (migration `20261021180000_cla_sem_fc.sql`); o rótulo
+  "Clã do Futpoint" na tela de criar está no branch.
+- ⏳ **💸 PREÇOS DOS CLÃS (21/10, Diego)**: 2º clã = R$ 9,90 só pra criar (emblema pronto; quem tem batismo ativa o time, nome sem FC + escudo) ·
+  escudo personalizado = R$ 19,90 à parte, pra qualquer clã. Banco já valendo (migration `20261021190000_cla_precos.sql`, testado). Loja nova
+  (`Extra2Form`) no branch. Julia Barranquila (Oliver Clã) e Tricolor do Arruda (Lado A-DPA) já tinham criado outro clã: pra ativar o do batismo
+  pagam os R$ 9,90 do 2º. Falta: texto do Pix/edge "2º clã" (sem "+ escudo") e publicar + deploy da `mp-criar-pix`.

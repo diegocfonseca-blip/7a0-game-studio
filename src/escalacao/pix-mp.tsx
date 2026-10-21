@@ -21,7 +21,7 @@ import { ANUNCIO_MAX, releAnuncios } from './patrocinio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
@@ -31,6 +31,9 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   tema_coracao: ['❤️ Tema do time de coração', '❤️ Team theme'], tema_clube: ['🛡️ Tema do seu clube', '🛡️ Club theme'],
   giro_hora: ['📣 Anúncio no giro · 1 h', '📣 Ticker ad · 1 h'], recado_hora: ['💬 Super Chat · 1 h', '💬 Super Chat · 1 h'], recado_dia: ['💬 Super Chat · dia todo', '💬 Super Chat · all day'],
   peca_presidente: ['🧑‍💼 Peça do presidente', '🧑‍💼 President item'],
+  escudo_cla: ['🛡️ Escudo de clã personalizado', '🛡️ Custom clan crest'],
+  cla_extra: ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
+  cla_criar: ['🔓 Liberar o seu clã', '🔓 Unlock your clan'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -54,6 +57,9 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   giro_hora: ['Pagamento recebido! Agora escreva o seu anúncio: ele entra no ar na hora e passa por 1 hora.', 'Payment received! Now write your ad: it goes live right away and runs for 1 hour.'],
   recado_hora: ['Pagamento recebido! Agora escreva o seu recado: ele entra no letreiro na hora e fica 1 hora.', 'Payment received! Now write your shout-out: it goes on the ticker right away and stays 1 hour.'],
   recado_dia: ['Pagamento recebido! Agora escreva o seu recado: ele entra no letreiro na hora e fica o dia todo (24 h).', 'Payment received! Now write your shout-out: it goes on the ticker right away and stays all day (24 h).'],
+  cla_criar: ['Clã liberado! Agora é só dar o nome e escolher o emblema.', 'Clan unlocked! Now just name it and pick the emblem.'],
+  cla_extra: ['2º clã liberado! Agora é só criar.', '2nd clan unlocked! Now just create it.'],
+  escudo_cla: ['Pagamento confirmado! Agora conta pra gente o nome do clã e a ideia do escudo.', 'Payment confirmed! Now tell us the clan name and your crest idea.'],
   peca_presidente: ['A peça já é sua, pra sempre, na sua conta. Vista e salve o seu presidente.', 'The item is yours forever, on your account. Put it on and save your president.'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)

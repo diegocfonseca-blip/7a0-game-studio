@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
+import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -1617,7 +1618,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
   }
   const comecar = async () => {
     if (checando) return
-    const limpo = stripEmoji(nome).trim()
+    const limpo = nomeDeTime(stripEmoji(nome)) // 🔤 21/10
     // 🔒 nome de clube BATIZADO é do dono, e nome de outra conta também não passa — mesma checagem do futebol.
     // (Não troca o nome da CONTA: ele vale pro futebol. O nome fica só nesta carreira.)
     if (limpo) {
@@ -2869,12 +2870,12 @@ export function EscSetup() {
 
   async function start() {
     if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
-    const clean = stripEmoji(name).trim()
+    const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
-      // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa
-      const chk = await nomeLivre(clean)
+      // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa — só mudar maiúscula não confere
+      const chk = clean.toLowerCase() === accountName.toLowerCase() ? { livre: true } as { livre: boolean; motivo?: string } : await nomeLivre(clean)
       if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
       setNameErr('')
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }
@@ -8011,7 +8012,7 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
       {/* 17/10 (Diego): saiu a faixa creme de título ("pra ser mais discreto e um pouco menor") — o "Anúncio do dia" mora DENTRO da placa */}
       <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
         onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
-        <span className="placa-tag" style={ad.recado ? { color: '#FF9CC8' } : ad.podio ? { color: '#C9A9FF' } : undefined}>{ad.podio ? (en ? '🏆 PODIUM OF THE WEEK' : '🏆 PÓDIO DA SEMANA') : ad.recado ? (en ? '💬 FAN SHOUT-OUT' : '💬 RECADO DE TORCEDOR') : (en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA')}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
+        <span className="placa-tag" style={ad.recado ? { color: '#FF9CC8' } : ad.podio ? { color: '#C9A9FF' } : undefined}>{ad.podioCla ? (en ? '⚔️ CLANS OF THE WEEK' : '⚔️ CLÃS DA SEMANA') : ad.podio ? (en ? '🏆 PODIUM OF THE WEEK' : '🏆 PÓDIO DA SEMANA') : ad.recado ? (en ? '💬 FAN SHOUT-OUT' : '💬 RECADO DE TORCEDOR') : (en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA')}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
         {ad.podio ? <>
           {/* 🏆 PÓDIO DA SEMANA (19/10): em ROXO (rosa é do Super Chat, dourado é do anúncio), 2 linhas, a semana inteira */}
           <div className="placa-m placa-rec" style={{ top: 22, color: ad.cor, textShadow: `0 0 8px ${ad.cor}99` }}><LetrasVirando texto={ad.texto} /></div>

@@ -41,6 +41,7 @@ const TAGS = {
   venda: ['🔨 VENDA', '#C2452F', '#fff'],
   saf: ['🔨 SAF', '#7C3AED', '#fff'],
   lenda: ['🔨 LENDA', '#FFC400', '#0C0C0C'],
+  premio: ['🔨 PRÊMIO', '#FFC400', '#0C0C0C'],
   loja: ['🔨 LOJA', '#FFC400', '#0C0C0C'],
   plano: ['🔨 PLANOS', '#1B7A3D', '#fff'],
   presente: ['🔨 PRESENTE', '#7C3AED', '#fff'],

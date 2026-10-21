@@ -112,6 +112,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🦁🔵 Chelsão da Massa FC — AZUL e DOURADO, MEDIDOS na camisa que o dono mandou (16/10): azul do corpo 77% (mediana
   // #032169) e o dourado dos frisos e do leão do peito (#E4A745). O preto da gola/ombros (14%) some no azul escuro.
   'ccaonta@gmail.com': ['#032169', '#E4A745'],
+  // 🐐👑 Neymar FC — CREME e PRETO, MEDIDOS na camisa que o dono mandou (21/10): creme do corpo (mediana dos pixels claros,
+  // #F2D8B8) e o preto das faixas, gola e punhos (#090806). O dourado dos frisos fica de fora (manto é de 2 cores).
+  'sheeryarie772@gmail.com': ['#F2D8B8', '#090806'],
   // 🐰⚪ Labubu FC — BRANCO e AZUL-MARINHO, MEDIDOS na camisa que o dono mandou (14/10): branco do corpo (mediana dos
   // pixels claros, #EFEEED — a marca d'água cinza do bicho puxava pra #DFDDDD) e o marinho da gola e dos punhos (#03101F).
   'caelborba@gmail.com': ['#EFEEED', '#03101F'],
@@ -349,12 +352,12 @@ export async function nomeLivre(nome: string, email?: string): Promise<{ livre: 
 const NOME_MSG_PT: Record<string, string> = {
   em_uso: '⚠️ Já existe um técnico com esse nome — nome de time é único, tipo @ do Instagram. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
   batismo: '🔒 Esse nome é de um clube de BATISMO e fica reservado pro dono dele. Se o clube é teu, entra com a conta do batismo; senão, escolhe outro nome.',
-  ofensivo: '🚫 Esse nome não é permitido: nada de preconceito no Leilão Legends (nazismo, racismo). Zoeira tudo bem — escolhe outro nome.',
+  ofensivo: '🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends (nazismo, racismo, estupro). Zoeira tudo bem — escolhe outro nome.',
 }
 const NOME_MSG_EN: Record<string, string> = {
   em_uso: '⚠️ There is already a manager with that name — team names are unique, like an Instagram @. Try a variation: add FC, a number or your nickname.',
   batismo: '🔒 That name belongs to a NAMED club and is reserved for its owner. If the club is yours, sign in with the club account; otherwise, pick another name.',
-  ofensivo: '🚫 That name is not allowed: no prejudice in Leilão Legends (nazism, racism). Banter is fine — pick another name.',
+  ofensivo: '🚫 That name is not allowed: nothing offensive in Leilão Legends (nazism, racism, rape). Banter is fine — pick another name.',
 }
 // 🌐 lê o idioma na hora do uso (mesmo truque do POS_LABEL): quem faz NOME_MSG[k] não muda nada
 export const NOME_MSG: Record<string, string> = new Proxy(NOME_MSG_PT, { get: (_t, k: string) => (getLang() === 'en' ? NOME_MSG_EN : NOME_MSG_PT)[k] })

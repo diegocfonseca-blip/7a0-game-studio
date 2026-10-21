@@ -18,6 +18,7 @@ import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
+import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado, esqueceClas } from './cla' // ⚔️ 21/10: clãs
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -129,6 +130,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
           </div>
         </div>
 
+        <CaixaClaPerfil uid={p.uid} />{/* ⚔️ 21/10: o clã dele, numa caixinha própria embaixo do cartão */}
         {/* ➕ 19/10: os botões de amizade/rival vêm LOGO ABAIXO do cartão (antes ficavam no fim e ninguém achava) */}
         {!p.sou_eu && (
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -147,6 +149,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </>}
           </div>
         )}
+        {!p.sou_eu && <ChamarProMeuCla uid={p.uid} />}{/* ⚔️ 21/10: chamar pro meu clã direto do perfil */}
         {/* 🔥 rival: UM por pessoa, só entre amigos, e é só zoeira (não muda nada no jogo) */}
         {!p.sou_eu && p.relacao === 'aceito' && (
           <div style={{ marginTop: 8 }}>
@@ -272,7 +275,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [busca, setBusca] = useState('')
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
-  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album'>('amigos')
+  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>('amigos')
   const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
   const [chamados, setChamados] = useState<Record<string, string>>({})
   const [semConta, setSemConta] = useState(false)
@@ -324,7 +327,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
     <div key={x.amizade_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(x.outro)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: INK }}>
         <Rosto uid={x.outro} nome={x.nome} size={36} />
-        <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeComRival(x)}</b><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span>
+        <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeComRival(x)}</b><span style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}><SeloCla uid={x.outro} /><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span></span>
       </button>
       {direita}
     </div>
@@ -363,10 +366,11 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         ))}
       </div>}
       {Array.isArray(lista) && <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking', 'Ranking')}`], ['album', `📖 ${tr('Álbum', 'Album')}`]] as const).map(([k, rot]) => (
+        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking', 'Ranking')}`], ['album', `📖 ${tr('Álbum', 'Album')}`], ...(clasLiberado() ? [['cla', `⚔️ ${tr('Clã', 'Clan')}`]] as const : [])] as const).map(([k, rot]) => (
           <button key={k} onClick={() => setAba(k)} style={{ ...bt(aba === k ? INK : '#fff', aba === k ? GOLD : INK), flex: 1, padding: 8, fontSize: 12.5 }}>{rot}</button>
         ))}
       </div>}
+      {Array.isArray(lista) && aba === 'cla' && <AbaCla amigos={amigos.map(x => ({ uid: x.outro, nome: x.nome }))} onPerfil={u => setPerfil(u)} />}
       {Array.isArray(lista) && aba === 'album' && <div style={{ marginTop: 10, background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 10 }}><AlbumNosAmigos /></div>}
       {Array.isArray(lista) && aba === 'ranking' && (() => {
         // títulos de sala online NESTA semana (segunda a domingo), eu + amigos aceitos
@@ -453,7 +457,7 @@ export function ComPerfil({ uid, children }: { uid: string | null | undefined; c
 export const EVENTO_PERFIL_ABERTO = 'esc-perfil-aberto'
 let raizPerfil: Root | null = null
 let vezPerfil = 0
-function abrePerfilSolto(uid: string) {
+export function abrePerfilSolto(uid: string) {
   window.dispatchEvent(new Event(EVENTO_PERFIL_ABERTO))
   if (!raizPerfil) { const el = document.createElement('div'); el.id = 'perfil-solto'; document.body.appendChild(el); raizPerfil = createRoot(el) }
   vezPerfil++
@@ -532,6 +536,9 @@ type Avisos = {
   pedidos: { id: number; de: string; nome: string; em: string }[]
   aceitos: { uid: string; nome: string; em: string }[]
   online: { uid: string; nome: string }[]
+  // ⚔️ 21/10 (Diego: "no sininho também convite de clã"): convites pra clã que recebi · pedidos pra entrar nos clãs que presido
+  clas?: { id: number; cla: number; cla_nome: string; emblema: string; de: string; nome: string; em: string }[]
+  cla_pedidos?: { id: number; cla: number; cla_nome: string; de: string; nome: string; em: string }[]
 }
 let avisosAtual: Avisos | null = null
 const ouvAvisos = new Set<() => void>()
@@ -546,7 +553,8 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
   const a = useAvisos()
   const vistosOnline = useRef<Map<string, number>>(new Map()) // uid → quando avisei (máx. 1 aviso por amigo a cada 30 min)
   const antes = useRef<Set<string> | null>(null)
-  const [toast, setToast] = useState<{ uid: string; nome: string } | null>(null)
+  const [toast, setToast] = useState<{ uid: string; nome: string; txt?: [string, string] } | null>(null)
+  const jaVi = useRef<Set<string> | null>(null) // 🔔 21/10: pedido de amizade / convite de clã / pedido pro meu clã que eu já vi
   const [fechados, setFechados] = useState<Set<number>>(new Set())
   useEffect(() => {
     if (!on) return
@@ -565,6 +573,14 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
         if (novo) { vistosOnline.current.set(novo.uid, Date.now()); setToast(novo) }
       } else av.online.forEach(o => vistosOnline.current.set(o.uid, Date.now()))
       antes.current = agora
+      // 🔔 21/10 (Diego): pedido de amizade, convite de clã e pedido pro MEU clã também pulam na tela (a 1ª leitura só tira a foto)
+      const novos: { k: string; uid: string; nome: string; txt: [string, string] }[] = [
+        ...av.pedidos.map(x => ({ k: `p${x.id}`, uid: x.de, nome: x.nome, txt: ['quer ser seu amigo 🤝', 'wants to be your friend 🤝'] as [string, string] })),
+        ...(av.clas ?? []).map(x => ({ k: `k${x.id}`, uid: x.de, nome: x.nome, txt: [`te chamou pro clã ${x.cla_nome} ⚔️`, `invited you to the ${x.cla_nome} clan ⚔️`] as [string, string] })),
+        ...(av.cla_pedidos ?? []).map(x => ({ k: `q${x.id}`, uid: x.de, nome: x.nome, txt: [`quer entrar no seu clã ${x.cla_nome} ⚔️`, `wants to join your ${x.cla_nome} clan ⚔️`] as [string, string] })),
+      ]
+      if (jaVi.current) { const nv = novos.find(x => !jaVi.current!.has(x.k)); if (nv) setToast({ uid: nv.uid, nome: nv.nome, txt: nv.txt }) }
+      jaVi.current = new Set(novos.map(x => x.k))
       pubAvisos(av)
     }
     lerAvisosAgora = () => { void ler() }
@@ -583,7 +599,7 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
     {toast && !ocupado && createPortal(
       <div style={{ position: 'fixed', left: '50%', top: 12, transform: 'translateX(-50%)', zIndex: 99970, width: 'calc(100% - 32px)', maxWidth: 360, display: 'flex', alignItems: 'center', gap: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px' }}>
         <Rosto uid={toast.uid} nome={toast.nome} size={34} />
-        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800 }}><span style={{ color: GREEN }}>●</span> <b>{toast.nome}</b> {tr('entrou no jogo', 'just came online')}</span>
+        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800 }}>{toast.txt ? <>🔔 <b>{toast.nome}</b> {tr(toast.txt[0], toast.txt[1])}</> : <><span style={{ color: GREEN }}>●</span> <b>{toast.nome}</b> {tr('entrou no jogo', 'just came online')}</>}</span>
         <button onClick={() => setToast(null)} aria-label={tr('Fechar', 'Close')} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 15, cursor: 'pointer', color: INK }}>✕</button>
       </div>, document.body)}
     {convite && <Janela titulo={tr('📣 Convite pra sala', '📣 Room invite')} onClose={() => fecha(convite.id)}>
@@ -610,14 +626,30 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
   const [aberto, setAberto] = useState(false)
   const [visto, setVisto] = useState(lerVisto)
   const [perfil, setPerfil] = useState<string | null>(null)
+  const [msgCla, setMsgCla] = useState('')
   if (!on || !a) return null // sem conta (ou antes da 1ª leitura): sem sininho
   const convites = (a?.convites ?? []).filter(c => c.status === 'waiting')
   const pedidos = a?.pedidos ?? []
   const aceitos = (a?.aceitos ?? []).filter(x => new Date(x.em).getTime() > visto)
-  const n = convites.length + pedidos.length + aceitos.length
+  const clas = a?.clas ?? [], claPedidos = a?.cla_pedidos ?? []
+  const n = convites.length + pedidos.length + aceitos.length + clas.length + claPedidos.length
   const abrir = () => { setAberto(true); const t = Date.now(); try { localStorage.setItem(SINO_VISTO, String(t)) } catch { /* ignora */ } }
   const fechar = () => { setAberto(false); setVisto(lerVisto()) }
   const responder = async (id: number, sim: boolean) => { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); lerAvisosAgora() }
+  // ⚔️ convite de clã / pedido pro meu clã: a MESMA porta da aba ⚔️ Clã (esc_cla_responder). Se ele já está em clã, a troca
+  // (com as travas de presidente e "sempre são dois") é na aba — aqui só avisa e leva pra lá.
+  const responderCla = async (id: number, sim: boolean) => {
+    setMsgCla('')
+    try {
+      const { data } = await supabase.rpc('esc_cla_responder', { p_id: id, p_aceita: sim, p_trocar: false })
+      const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string }
+      if (r.ok) { if (sim) setMsgCla(tr('✅ Feito!', '✅ Done!')); esqueceClas() }
+      else if (r.erro === 'confirmar') setMsgCla(tr(`⚠️ Você já está no ${r.atual}. Pra trocar, abra 👥 Amigos → ⚔️ Clã.`, `⚠️ You are already in ${r.atual}. To switch, open 👥 Friends → ⚔️ Clan.`))
+      else if (r.erro === 'cheio') setMsgCla(tr('⚠️ Você já está em 2 clãs, o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', '⚠️ You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.'))
+      else setMsgCla(tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.'))
+    } catch { setMsgCla(tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.')) }
+    lerAvisosAgora()
+  }
   const linha = (uid: string, nome: string, txt: ReactNode, dir: ReactNode, k: string) => (
     <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left' }}>
@@ -635,12 +667,17 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
     </button>
     {aberto && <Janela titulo={tr('🔔 Avisos', '🔔 Notifications')} onClose={fechar}>
       <div style={caixa}>
-        {convites.length + pedidos.length + todos.length === 0 && <p style={{ fontSize: 12.5, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nada novo por aqui. Quando um amigo te chamar pra sala ou te adicionar, aparece aqui.', 'Nothing new. When a friend invites you to a room or adds you, it shows up here.')}</p>}
+        {convites.length + pedidos.length + todos.length + clas.length + claPedidos.length === 0 && <p style={{ fontSize: 12.5, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nada novo por aqui. Quando um amigo te chamar pra sala ou te adicionar, aparece aqui.', 'Nothing new. When a friend invites you to a room or adds you, it shows up here.')}</p>}
         {convites.map(c => linha(c.de, c.nome, <>{tr('te chamou pra sala', 'invited you to room')} <b>{c.code}</b></>,
           salaEsperaAtual ? null : <button style={bt(GREEN, '#fff')} onClick={() => { void supabase.rpc('esc_convite_visto', { p_id: c.id }); fechar(); entrarNaSala(c.code) }}>🚪 {tr('Entrar', 'Join')}</button>, `c${c.id}`))}
         {pedidos.map(x => linha(x.de, x.nome, tr('quer ser seu amigo', 'wants to be your friend'),
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.id, false)}>✕</button></span>, `p${x.id}`))}
+        {clas.map(x => linha(x.de, x.nome, <>{tr('te chamou pro clã', 'invited you to the clan')} <b>⚔️ {x.cla_nome}</b></>,
+          <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true)}>{tr('entrar', 'join')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `k${x.id}`))}
+        {claPedidos.map(x => linha(x.de, x.nome, <>{tr('quer entrar no seu clã', 'wants to join your clan')} <b>⚔️ {x.cla_nome}</b></>,
+          <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `q${x.id}`))}
         {todos.map(x => linha(x.uid, x.nome, <>{tr('aceitou sua amizade', 'accepted your friend request')} 🤝</>, null, `a${x.uid}`))}
+        {msgCla && <p style={{ fontSize: 12, fontWeight: 800, margin: '8px 0 0', color: msgCla.startsWith('⚠️') ? RED : GREEN }}>{msgCla}</p>}
       </div>
       <button onClick={() => { fechar(); onAbrirAmigos() }} style={{ ...bt(ROXO, '#fff'), width: '100%', marginTop: 10, padding: 10, fontSize: 13 }}>👥 {tr('Ver meus amigos', 'See my friends')}{a?.online.length ? ` · ${a.online.length} ${tr('online', 'online')}` : ''}</button>
       {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); lerAvisosAgora() }} onAbrirOutro={u => setPerfil(u)} />}
