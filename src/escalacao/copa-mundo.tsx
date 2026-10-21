@@ -186,7 +186,18 @@ export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.
 // OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
 // Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
 // resultado — a simulação é semeada). Limpa quando a final é gravada.
-export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number; /** 💪 nasceu com o peso de força novo (14/10)? Copa velha termina com o peso velho */ forte?: boolean; /** ⚽🧠 nasceu com o motor novo decidindo o jogo da sua seleção (carreira, 21/10)? */ m2?: boolean } | null }
+export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number; /** 💪 nasceu com o peso de força novo (14/10)? Copa velha termina com o peso velho */ forte?: boolean; /** ⚽🧠 nasceu com o motor novo decidindo o jogo da sua seleção (carreira, 21/10)? */ m2?: boolean; /** 🧊 as 32 seleções CONGELADAS (21/10): carta inteira, pra o torneio ser o mesmo ao reabrir */ ents?: EntCongelada[]; /** ⏯️ a última fase já VISTA (21/10): reabrir continua daqui */ passo?: number } | null }
+// 🧊⏯️ COPA QUE NÃO RECOMEÇA (21/10, caso do Gimenes Junior Barranquila: *"eu tinha acabado de eliminar a Inglaterra nas quartas,
+// ao invés de ir pra semi a competição reiniciou em um grupo diferente"*). A Copa guardava só a SUA seleção e simulava o resto de
+// novo a cada abertura: fechou/recarregou no meio, voltava pro 1º passo — e se o catálogo mudou no meio (carta nova, nível novo),
+// o sorteio saía outro. Agora o carimbo leva as 32 seleções com as cartas inteiras (nome·clube·ano·fama·faixa·setor) e a última
+// fase vista; reabrir dá o MESMO torneio, do MESMO ponto.
+export type EntCongelada = { club: string; you: boolean; pais: string; form?: string; xi: [string, string, number, number, number, number, Sec][] }
+export const congela = (e: Entrant): EntCongelada => ({ club: e.club, you: e.you, pais: e.pais, ...(e.form ? { form: e.form } : {}), xi: e.xi.map(c => [c.name, c.club, c.year, c.fame, c.lo, c.hi, c.sec]) })
+export function descongela(e: EntCongelada): Entrant {
+  const xi: PoolCard[] = e.xi.map(([name, club, year, fame, lo, hi, sec]) => ({ name, club, year, fame, lo, hi, sec }))
+  return { club: e.club, you: e.you, pais: e.pais, xi, str: xiStrength(xi), ...(e.form ? { form: e.form } : {}) }
+}
 const skey = (seed: number) => `llcopa:${seed}`
 export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
@@ -613,8 +624,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   // dele pra baixo (fallback: melhor livre) — só usuário REAL escolhe.
   // 🌍 Copa que começou com 24 (antes de 02/10) termina com 24
   const nCopa = carimbo && restored ? (carimbo.n ?? 24) : COPA_TEAMS
-  const entrants = useMemo<Entrant[] | null>(() => {
-    if (!myPais || !myXI) return null
+  const montaEntrants = (myPais: string, myXI: PoolCard[], myForm: Formation): Entrant[] => {
     const taken = new Set<string>([myPais])
     const list: Entrant[] = []
     const vagas = top16.slice(0, nCopa)
@@ -630,7 +640,21 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
       list.push({ club: c.name, you: false, pais, xi, str: xiStrength(xi), form: f })
     })
     return list
-  }, [myPais, myXI, myForm, top16, paises16, nCopa])
+  }
+  // 🧊 Copa já carimbada com as 32 seleções: usa EXATAMENTE elas (nada de recalcular pelo catálogo de hoje)
+  // (lido do APARELHO uma vez só, na abertura: o `save` da tela pode estar velho, e reler a cada render refaria a simulação toda)
+  const [congeladas] = useState<EntCongelada[] | null>(() => {
+    if (!carimbo || !restored) return null
+    const g = loadCopaSave(seed)?.emAndamento
+    const ents = g && g.season === seasonNo && g.ents?.length ? g.ents : carimbo.ents
+    return ents?.length ? ents : null
+  })
+  const entrants = useMemo<Entrant[] | null>(() => {
+    if (congeladas) return congeladas.map(descongela)
+    if (!myPais || !myXI) return null
+    return montaEntrants(myPais, myXI, myForm)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myPais, myXI, myForm, top16, paises16, nCopa, congeladas])
 
   if (phase === 'select') return (
     <CMModal>
@@ -643,7 +667,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
         // 🔒 CARIMBA a escolha AGORA (antes do 1º jogo): F5 daqui pra frente
         // volta pro MESMO torneio — acabou o "atualiza e troca de seleção".
         const cur = loadCopaSave(seed) ?? save
-        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true, n: COPA_TEAMS, forte: true, m2: motor2 || undefined } })
+        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true, n: COPA_TEAMS, forte: true, m2: motor2 || undefined, ents: montaEntrants(myPais, xi, f).map(congela), passo: 0 } })
         setMyXI(xi); setMyForm(f); setPhase('cup')
       }} />
     </CMModal>
@@ -652,9 +676,14 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   // sem potes/peso novo — e outra depois de um F5. Lendo o gravado, a 1ª vez e o F5 dão a MESMA Copa.
   const gravado = phase === 'cup' ? loadCopaSave(seed)?.emAndamento : null
   const carimboGravado = gravado && gravado.season === seasonNo ? gravado : carimbo
+  // 🧊 Copa carimbada ANTES de 21/10 (sem as 32 guardadas): congela agora, com o que está valendo — dali pra frente não muda mais
+  if (phase === 'cup' && entrants && gravado && gravado.season === seasonNo && !gravado.ents?.length) {
+    const cur = loadCopaSave(seed)
+    if (cur?.emAndamento) saveCopaSave(seed, { ...cur, emAndamento: { ...cur.emAndamento, ents: entrants.map(congela) } })
+  }
   if (phase === 'cup' && entrants) return (
     <CMModal wide cinematic={CAREER_VISUAL_RELEASED}>
-      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} potes={!!carimboGravado?.potes} forte={!!carimboGravado?.forte} m2={!!carimboGravado?.m2} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
+      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} passoInicial={carimboGravado?.passo} potes={!!carimboGravado?.potes} forte={!!carimboGravado?.forte} m2={!!carimboGravado?.m2} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
     </CMModal>
   )
   return null
@@ -1066,7 +1095,7 @@ export function estatisticasDaCopa(world: ReturnType<typeof simulaCopaMundo>, en
   return [...m.values()]
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, potes, forte, m2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
@@ -1082,13 +1111,23 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, forte, m2, on
   const GR = GROUP_ROUNDS
   const { SORTEIO, OITAVAS, QUARTAS, SEMI, FINAL, FIM } = PASSO_COPA
   const synced = privateOnline ? online?.clock : undefined
-  const [localStep, setStep] = useState(0)
+  const [localStep, setStep] = useState(() => Math.max(0, Math.min(passoInicial ?? 0, PASSO_COPA.FIM - 1))) // ⏯️ 21/10: reabriu, continua da fase em que parou
   const [localLiveDone, setLiveDone] = useState(true)
   const [localRoundKey, setRoundKey] = useState(0)
   const step = synced ? synced.row?.step ?? 0 : localStep
   const liveDone = synced ? !!synced.row && !synced.row.running : localLiveDone
   const roundKey = synced ? step : localRoundKey
   const LIVE = passoRodaBola // os passos que rodam bola (jogo único desde 19/09) moram em copa-passos.ts
+  // ⏯️ 21/10: a carreira grava a última fase VISTA (jogo rolando que não terminou = a fase de antes, pra ver o jogo de novo do
+  // apito). Só enquanto a Copa está carimbada — quando acaba, o carimbo some e não sobra nada.
+  useEffect(() => {
+    if (online) return
+    const visto = liveDone || !LIVE(step) ? step : step - 1
+    const cur = loadCopaSave(seed)
+    if (!cur?.emAndamento || cur.emAndamento.season !== seasonNo || cur.emAndamento.passo === visto) return
+    saveCopaSave(seed, { ...cur, emAndamento: { ...cur.emAndamento, passo: visto } })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, liveDone])
   // 🏟️ AMBIENTE DE ESTÁDIO enquanto a Copa do Mundo roda. Ela ficou de fora do som
   // de 18/09 e ninguém tinha notado — a tela é própria, não é a da liga. O Diego
   // pediu o som em *"qualquer modo também"*, e uma final de Copa muda era o avesso

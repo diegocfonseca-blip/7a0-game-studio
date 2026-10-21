@@ -106,7 +106,8 @@
     "carreira-online": "node scripts/carreira-online/testa-gavetas.mjs",
     "carreira-online-fluxo": "node scripts/carreira-online/testa-fluxo.mjs",
     "dupla-copa-estado": "npx tsx scripts/testa-dupla-copa-estado.mts",
-    "copa-maquina": "node scripts/testa-copa-maquina.mjs"
+    "copa-maquina": "node scripts/testa-copa-maquina.mjs",
+    "copa-congelada": "node scripts/testa-copa-congelada.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

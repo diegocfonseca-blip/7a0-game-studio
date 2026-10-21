@@ -1,6 +1,6 @@
 // 🪑 Copa do Mundo/regional da sala com DUPLAS (20/10, sala ZESM9K do Futpoint): quem escolhe e convoca por cada time
 // sai do ESTADO da partida (seatUids + duplas), não do número velho do banco.   npx tsx scripts/testa-dupla-copa-estado.mts
-import { quemAgePorAssento, quemAgePeloEstado, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado } from '../src/escalacao/dupla-copa'
+import { quemAgePorAssento, quemAgePeloEstado, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, soQuemEstaNaSala } from '../src/escalacao/dupla-copa'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 // a sala como estava: 6 times; o Bonança é o time 3 no jogo, mas no banco ficou com o número 5 (dupla cruzada)
@@ -34,5 +34,12 @@ ok(duplaDoAssentoPeloEstado(assentos, duplas, 0)?.nomeAge === 'Guimarães SCI', 
 const solo = quemAgePeloEstado(assentos, { ...duplas, 2: { ...duplas[2], soloUid: 'estourador' } })!
 ok(solo.get(2) === 'estourador', 'se um da dupla saiu de verdade, quem ficou convoca (mesma régua do leilão)')
 ok(quemAgePeloEstado(undefined, duplas) === null, 'estado sem o mapa (versão velha) → cai na regra antiga')
+// 🔁 21/10 (Rio × SP do Futpoint, relógio reiniciando pra sempre): quem convoca pela dupla foi tirado da sala
+const sala = new Set(['guimaraes', 'nicodemos', 'estourador', 'bonanca', 'portuguesa', 'agsl', 'ramon']) // sem o Cativeiro
+const pres = soQuemEstaNaSala(m, assentos, duplas, sala)
+ok(pres.get(2) === 'estourador', 'o Cativeiro saiu da sala → o Estourador (que ficou) escolhe pela dupla, e a vez anda')
+ok(pres.get(0) === 'guimaraes' && pres.get(3) === 'bonanca', 'quem está na sala continua igual')
+const vazia = soQuemEstaNaSala(m, assentos, duplas, new Set(['guimaraes', 'nicodemos', 'bonanca', 'portuguesa', 'agsl', 'ramon']))
+ok(!vazia.has(2), 'ninguém da dupla na sala → o time sai da fila (nunca prende a vez)')
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ copa com duplas: assento pelo estado da partida')
 process.exit(falhas ? 1 : 0)

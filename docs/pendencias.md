@@ -9989,3 +9989,19 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   nome do clube de quem mandou (ninguém manda a mascote alheia); 1 a cada 2 s. Custo = 1 mensagem normal.
   ⏳ Sem mascote (grátis/sem batismo) = sem botão por enquanto; Diego não decidiu se ganham mascotes genéricas.
 - ⏳ Reagir a mensagem: aprovado em ideia (1 reação a cada 2s, custo de 1 mensagem); sem mockup ainda.
+
+## 🧊⏯️ Copa do Mundo da carreira não recomeça mais (21/10, caso do Gimenes Junior Barranquila)
+- Bug: a Copa guardava só a SUA seleção; fechou/recarregou no meio → voltava pro 1º passo e simulava tudo de novo (com o catálogo
+  de agora, o sorteio podia sair outro). Ele tinha eliminado a Inglaterra nas quartas e reabriu num chaveamento novo (Turquia nas oitavas).
+- ✅ O carimbo (`emAndamento`) agora guarda as 32 seleções com as cartas inteiras (`ents`, ~19 KB, some quando a Copa acaba) e a
+  última fase VISTA (`passo`); reabrir = mesmo torneio, do mesmo ponto (jogo que não terminou volta do apito). Copa carimbada
+  antes disso congela na próxima abertura. Trava `npm run copa-congelada`; testado no navegador (reabriu nas quartas, jogou a semi,
+  recarregou e voltou na semi com os mesmos placares).
+- ⏳ A Copa do Gimenes não volta (save no aparelho dele; eliminação já gravada). Diego decide se compensa com moedas.
+
+## 🔁 Copa com duplas: relógio da escolha reiniciando pra sempre (21/10, Rio × SP da sala do Futpoint)
+- Causa: desde 20/10 quem escolhe pela dupla sai do estado da partida (`quemAgePeloEstado`). O parceiro marcado pra convocar
+  tinha sido TIRADO da sala (sem linha no room_players — bug que a outra sessão consertou no df344478): a escolha dele não gravava,
+  nem o castigo do dono (pior clube na linha dele) → a vez voltava pra mesma dupla e o relógio reiniciava.
+- ✅ `soQuemEstaNaSala` (dupla-copa.ts): quem age sem linha na sala passa pro outro da dupla que está; ninguém da dupla = o time
+  sai da fila. Vale na regional E na Copa do Mundo da sala (tela + dono da sala). Trava `npm run dupla-copa-estado`.
