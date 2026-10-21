@@ -607,6 +607,10 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   (clã de agora ➜ novo, o que acontece com a liderança, espera de 7 dias, "Sim, ir pro X" / "Não, ficar no Y"). Clã fechado: o pedido
   guarda `trocar` e a troca acontece quando o líder aceita. Quem saiu/trocou nos últimos 7 dias não troca de novo. Botão "🔎 Outros
   clãs" dentro do clã. Migration `20261021080000_clas_trocar.sql`; testado no banco. Foto: `scripts/mockups/clas-trocar.png`.
+  🟢 21/10 (*"aprovado"*): **`CLAS_GERAL = true`** (cla-gate.ts) no branch, esperando o "publica". Quem não tem plano e toca em
+  Criar clã vê a caixa "Criar clã é de quem tem plano" + ⭐ Ver os planos + atalho pra entrar de graça (`scripts/mockups/clas-sem-plano.png`).
+  Reels: `scripts/video-clas-reels.mjs` → `scripts/posts/clas-reels.mp4` · aviso do zap: `scripts/avisos/2026-10-21-clas.json`
+  (tag nova `premio` no `aviso-comunidade.mjs`). Novidade na home escrita.
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem
