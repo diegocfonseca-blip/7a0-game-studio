@@ -9934,3 +9934,34 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   Mockup: `scripts/mockups/coletiva-presidente.png`. Sem boneco: convite discreto na cadeira vazia ("Crie seu presidente e apareça
   aqui ›" / com plano "Seu plano já tem presidente · monte o seu ›") que abre a Loja em `#loja-presidente` ("Perfeito").
   ✅ Publicado 20/10 (junto da Copa/máquina e do aviso do dono).
+
+## 🧪 OittoLabs, parceiro novo (21/10) — contabilidade e BPO pra PJ e PF (oittolabs.com.br)
+- Pedido do Diego: aviso da comunidade + texto pra postar · placas do campinho revezando com a Vadico · telão · "apresentado por"
+  na Copa do Brasil da carreira e na Copa dos 8 online · mais uma marca no Master da carreira.
+- ✅ PUBLICADO 21/10 ("publique o OittoLabs"): logo `img/patro-oittolabs.webp` (21 KB) · `PLACAS_CAMPO` Vadico → OittoLabs →
+  Tidex (cima/baixo trocam a cada 7 s) · Copa dos 8 = OittoLabs (era Tidex; a Tidex segue na Liga Legends da carreira) · Copa do
+  Brasil da carreira = OittoLabs (`career-copa`) · Master: a OittoLabs entrou NO LUGAR da Max Joias, 1 temporada (Diego: "tira Max
+  joias e bote ele"); contrato da Max Joias já correndo em save antigo vai até o fim (`npm run master`).
+- ✅ Aviso: `scripts/posts/aviso-2026-10-21-parceiro-oittolabs.png`. Mockup do jogo: `scripts/mockups/oittolabs-no-jogo.png`.
+- ✅ Telão no ar (`esc_anuncios_fixos` id 5):
+  "🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui" (ordem 5). Diego quer o clique no
+  WhatsApp deles com mensagem pronta (igual Tidex) — ⏳ falta o NÚMERO; até lá vai pro site.
+
+## 🚫 Moderação: nome de sala com preconceito (21/10)
+- Sala "Sala do Nazistaisaque卍" (1O8OTJ, conta pedroisaque604@gmail.com). ✅ Nome trocado pra "Sala Isaque" (o gatilho segura:
+  o `ls_name` é recopiado do game_state a cada jogada, então rename direto VOLTAVA).
+- ✅ Banco barra criar sala com "nazi/nazista", "crioulo" ou suástica (`esc_nome_ofensivo`, gatilho `zz_esc_sala_nome_ofensivo`,
+  erro `NOME_PROIBIDO` → a tela explica) e limpa o nome nos `room_players`. Palavrão continua liberado (ordem do Diego).
+  Pra palavra nova: mudar o regex em `esc_nome_ofensivo` E em `esc_nome_limpo`. Falso positivo conhecido: nome com "nazi" no
+  meio (ex. "Anazinho"). Hoje no histórico só aparece também "Otavinazifc".
+- ✅ Aviso pra conta (`esc_avisos_conta` + `AvisoConta`, publicado 21/10): aparece uma vez, o X marca visto no banco. Pra mandar
+  outro aviso a alguém: `insert into esc_avisos_conta (user_id, titulo, texto)`.
+- ✅ 2ª parte (Diego: "nem palavras referentes ao nazismo ao fazer novo time e nova sala"): régua = nazi(solto)/nazista/nazismo,
+  hitler, suástica/swastika, führer, sieg heil, crioulo e os símbolos 卍卐࿕-࿘. Vale na SALA (barra), no PERFIL/TIME (gatilho em
+  `auth.users` troca o nome na hora de gravar) e na TELA (`nome-ofensivo.ts` dentro do `nomeLivre` + início de carreira/dinastia
+  + criar sala). "Internazionale" (Inter) liberado. Perfil dele trocado pra "N Isaque".
+- ✅ Limpeza dos ANTIGOS (Diego: "tudo que é Hitler coloque Ht e nazismo ou nazista coloque N"): 19 perfis (Real Nazista → Real N,
+  Castelo nazista FC → Castelo N FC, Hitler FC → Ht FC…) + o histórico do ranking (`esc_results`, `esc_pyramid_rank_snap`,
+  `game_champions`, `_arquivo`, `room_players`). Suástica e "crioulo" do histórico saíram pelo `esc_nome_limpo` (Gui crioulo → Gui,
+  LOS DICTADORES卍 → LOS DICTADORES). Zero nome ofensivo sobrando pela régua.
+- 👀 Fora da régua (não está na lista do Diego): "donigga50k" (variação de xingamento racista em inglês) apareceu num vice-campeão.

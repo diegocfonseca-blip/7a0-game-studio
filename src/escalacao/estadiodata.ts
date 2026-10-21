@@ -124,7 +124,7 @@ export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: strin
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' | 'oittolabs' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
@@ -143,6 +143,8 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   // 🤖 6ª marca REAL do Master (19/10, Diego: "a Tidex agora é mais um patrocinador que entra lá na carreira…" e depois "igual a
   //    Vadico"). Paga o MESMO que a Vadico (5 temporadas); o que muda entre as duas é a meta/bônus sorteado.
   { id: 'tidex',       name: 'Tidex',                emoji: '🤖', color: '#0B1220', tier: 3, logo: 'tidex' },
+  // 🧪 marca REAL do Master (21/10): entrou no lugar da Max Joias (1 temporada) — ver MASTER_PRAZOS
+  { id: 'oittolabs',   name: 'OittoLabs',            emoji: '🧪', color: '#1C3A5E', tier: 1, logo: 'oittolabs' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -183,7 +185,9 @@ export function sponsorBetHit(tier: SponsorBetTier, pos: number, champDiv: boole
 //     No meio do contrato não há nada pra decidir (não atrasa o começo da temporada).
 //   · o Master SOMA com o Pontual (a aposta de sempre, que só mudou de nome).
 export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
-  { brandId: 'maxjoias', anos: 1 },
+  // 🧪 21/10 (Diego: "tira Max Joias e bote ele"): a OittoLabs pega o lugar da Max Joias (1 temporada). Contrato da Max Joias
+  //    que já está correndo em save antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
+  { brandId: 'oittolabs', anos: 1 },
   { brandId: 'reidastintas', anos: 2 },
   { brandId: 'ero', anos: 3 },
   // 🅾️ 4 TEMPORADAS, e o número foi escolhido a dedo: a régua do Master é só

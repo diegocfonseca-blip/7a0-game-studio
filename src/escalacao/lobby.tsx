@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -1945,6 +1946,8 @@ export function EscLobby() {
         setLoading(false); return
       }
     }
+    // 🚫 21/10: a mesma régua do banco, avisando antes de tentar
+    if (nomeOfensivo(name)) { setRoomError(tr('🚫 Esse nome não é permitido: nada de preconceito no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: no prejudice in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -1957,6 +1960,9 @@ export function EscLobby() {
       // 🏟️ 1 SALA POR DIA NO GRÁTIS (Diego 14/10). Quem decide é o BANCO (gatilho `esc_sala_por_dia`, docs/sql/sala-por-dia.sql);
       // a tela só explica o porquê e o caminho: entrar em sala aberta é sempre de graça, e quem apoia cria à vontade.
       if (re?.message?.includes('LIMITE_SALA_DIA')) { setRoomError(''); setLimiteDia(true); setLoading(false); return }
+      // 🚫 21/10 (Diego): nome com preconceito (nazismo, "crioulo", suástica) não cria sala — quem barra é o BANCO
+      // (`esc_sala_nome_ofensivo`); a tela só explica o porquê e o caminho
+      if (re?.message?.includes('NOME_PROIBIDO')) { setRoomError(tr('🚫 Esse nome não é permitido: nada de preconceito no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: no prejudice in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
       const code2 = re?.code
       const hint = code2 === '42501' ? tr('sem permissão (RLS). Avise o Diego.', 'no permission (RLS). Let Diego know.')
         : code2 === 'PGRST116' ? tr('a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.', 'the room was created but the app could not read it back (read RLS). Let Diego know.')

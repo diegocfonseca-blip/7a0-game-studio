@@ -1,4 +1,5 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -2813,6 +2814,7 @@ export function EscSetup() {
   async function start() {
     if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
     const clean = stripEmoji(name).trim()
+    if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
       // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa

@@ -66,22 +66,22 @@ const depois = caixa(x); x = fecha(x, 1, true); assert.equal(caixa(x), depois, '
   assert.ok(caixa(com) > c0)
   assert.ok(/Meta batida|Goal reached/.test(JSON.stringify(com)), 'aparece no extrato como Meta batida')
 }
-// 3) ligação: contrato de 1 temporada (Max Joias) que foi bem → na temporada seguinte a marca liga
-let r = reducer(base(1, 'C'), { type: 'SET_MASTER', brandId: 'maxjoias', mgrId: id } as never)
+// 3) ligação: contrato de 1 temporada (OittoLabs, no lugar da Max Joias) que foi bem → na temporada seguinte a marca liga
+let r = reducer(base(1, 'C'), { type: 'SET_MASTER', brandId: 'oittolabs', mgrId: id } as never)
 r = fecha(r, 2) // top 4 = foi bem
 r = { ...r, seasonNo: 2, careerPlacements: { ...(r.careerPlacements ?? {}), [`m${id}`]: 'B' }, booksSeason: undefined } as EscState
 const of = masterOfertaRenovacao(r.careerMaster![id], 2, 'B', r.seed ?? 0, id)
 assert.ok(of, 'foi bem → a marca liga')
 assert.equal(of!.porTemporada, Math.round(masterPorTemporada('B', 1) * RENOVA_MULT), 'renovação = +25% na divisão de hoje')
-assert.equal(reducer(r, { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never).careerMaster![id].brandId, 'maxjoias', 'com a ligação na mesa, não assina outro papel')
+assert.equal(reducer(r, { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never).careerMaster![id].brandId, 'oittolabs', 'com a ligação na mesa, não assina outro papel')
 const ren = reducer(r, { type: 'MASTER_RENOVAR', mgrId: id } as never).careerMaster![id]
-assert.equal(ren.brandId, 'maxjoias'); assert.equal(ren.desde, 2); assert.equal(ren.renovado, true); assert.equal(ren.porTemporada, of!.porTemporada)
-// ouvir o mercado: a Max Joias sai, a ERO assina
+assert.equal(ren.brandId, 'oittolabs'); assert.equal(ren.desde, 2); assert.equal(ren.renovado, true); assert.equal(ren.porTemporada, of!.porTemporada)
+// ouvir o mercado: a OittoLabs sai, a ERO assina
 const merc = reducer(r, { type: 'MASTER_MERCADO', mgrId: id } as never)
-assert.equal(reducer(merc, { type: 'SET_MASTER', brandId: 'maxjoias', mgrId: id } as never).careerMaster![id].desde, 1, 'recusou: a marca não volta nesta virada')
+assert.equal(reducer(merc, { type: 'SET_MASTER', brandId: 'oittolabs', mgrId: id } as never).careerMaster![id].desde, 1, 'recusou: a marca não volta nesta virada')
 assert.equal(reducer(merc, { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never).careerMaster![id].brandId, 'ero', 'os outros papéis assinam normal')
 // não foi bem → sem ligação
-let nb = reducer(base(1, 'C'), { type: 'SET_MASTER', brandId: 'maxjoias', mgrId: id } as never)
+let nb = reducer(base(1, 'C'), { type: 'SET_MASTER', brandId: 'oittolabs', mgrId: id } as never)
 nb = { ...fecha(nb, 12), seasonNo: 2 } as EscState
 if (!nb.careerMaster![id].foiBem) assert.equal(masterOfertaRenovacao(nb.careerMaster![id], 2, 'C', nb.seed ?? 0, id), null, 'não foi bem → ninguém liga')
 
@@ -107,7 +107,7 @@ for (let sd = 1; sd < 40 && !achou; sd++) {
   }
 }
 assert.ok(achou, 'houve rescisão em alguma semente')
-assert.equal(MASTER_PRAZOS.length, 6) // 19/10: + Tidex (5 temporadas, igual à Vadico)
+assert.equal(MASTER_PRAZOS.length, 6) // 19/10: + Tidex · 21/10: OittoLabs no lugar da Max Joias
 assert.ok(MASTER_PRAZOS.every(p => p.anos <= 5) && MASTER_PRAZOS.find(p => p.brandId === 'vadico')!.anos === Math.max(...MASTER_PRAZOS.map(p => p.anos)), 'a Vadico segue a mais cara')
 console.log('✅ Master com história: meta, bônus, ligação, mercado e rescisão conferidos')
 process.exit(0)

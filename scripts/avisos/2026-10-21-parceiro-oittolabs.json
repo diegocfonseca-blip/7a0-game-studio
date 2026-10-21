@@ -1,0 +1,17 @@
+{
+  "data": "🤝 Parceiro do Leilão Legends · 21 de outubro de 2026",
+  "titulo": "OittoLabs: contabilidade que fecha o seu mês 🧪",
+  "destaque": {
+    "mascote": "scripts/parceiros/oittolabs-faixa.png",
+    "nome": "Contabilidade e BPO financeiro pra empresa e PF",
+    "linha": "laboratório para o seu negócio · São Paulo"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "A **OittoLabs** cuida da **contabilidade, do fiscal e do tributário** (Oitto Core) e da **rotina financeira** (Oitto BPO Financeiro): contas a pagar e a receber, conciliação bancária, fluxo de caixa e relatório todo mês." },
+    { "tag": "melhoria", "texto": "**Diagnóstico gratuito** e **proposta por escrito**, sem letra miúda. Quer trocar de contador? A migração leva de **15 a 30 dias** e eles falam com o contador antigo junto com você." },
+    { "tag": "apoio", "texto": "Também abrem empresa (**Oitto Start**), cuidam de folha (**Oitto RH**) e de **Holding**. Sua vida contábil, **PJ ou PF**, mais prática e simples." }
+  ],
+  "rodape": "🌐 oittolabs.com.br",
+  "rodapeSub": "Obrigado, OittoLabs, por fortalecer o Leilão Legends 💛",
+  "saida": "scripts/posts/aviso-2026-10-21-parceiro-oittolabs.png"
+}
