@@ -112,6 +112,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🦁🔵 Chelsão da Massa FC — AZUL e DOURADO, MEDIDOS na camisa que o dono mandou (16/10): azul do corpo 77% (mediana
   // #032169) e o dourado dos frisos e do leão do peito (#E4A745). O preto da gola/ombros (14%) some no azul escuro.
   'ccaonta@gmail.com': ['#032169', '#E4A745'],
+  // 🐐👑 Neymar FC — CREME e PRETO, MEDIDOS na camisa que o dono mandou (21/10): creme do corpo (mediana dos pixels claros,
+  // #F2D8B8) e o preto das faixas, gola e punhos (#090806). O dourado dos frisos fica de fora (manto é de 2 cores).
+  'sheeryarie772@gmail.com': ['#F2D8B8', '#090806'],
   // 🐰⚪ Labubu FC — BRANCO e AZUL-MARINHO, MEDIDOS na camisa que o dono mandou (14/10): branco do corpo (mediana dos
   // pixels claros, #EFEEED — a marca d'água cinza do bicho puxava pra #DFDDDD) e o marinho da gola e dos punhos (#03101F).
   'caelborba@gmail.com': ['#EFEEED', '#03101F'],

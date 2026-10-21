@@ -10055,3 +10055,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   histórico de campeões limpo, aviso de uma vez mandado (`esc_avisos_conta`, com o alerta de remoção se repetir). A sala NÃO foi
   apagada: era do mengao caxiense (outras 4 pessoas), parada desde 12h29 — só o nome dele foi trocado lá dentro.
   ⏳ Outros 8 perfis antigos com "estupr…" no nome (desde agosto) — perguntei ao Diego se renomeia todos.
+
+- ✅ **🐐👑 BATISMO NEYMAR FC (21/10)** — sheeryarie772@gmail.com (conta existe, nome "SPFC/NEYMAR"), Série D no assento do bot
+  **Galáxia EC** (1º bot sem dono da D; `OLD_NAME['Neymar FC'] = 'Galáxia EC'`). Coração São Paulo. Escudo dourado com o bode coroado,
+  mascote **O Bode Rei** (`neymarfc_bode` — nome escolhido por mim, o Diego pode trocar), manto creme #F2D8B8 + preto #090806 MEDIDOS na
+  camisa, camisa na Loja. Banco: ouro manual (já estava, veio do pagamento), sócio nº77, "Neymar" reservado (+FC/EC). Batismo de 79,90 =
+  sem número de fundador (`SEM_FUNDADOR`). Post: `scripts/posts/neymarfc-post.png`. ⏳ Falta publicar na main (código).

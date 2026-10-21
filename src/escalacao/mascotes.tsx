@@ -73,6 +73,7 @@ import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 Com
 import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniMascoteImg from './img/rossini-mascote.webp' // 💴 Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceMascoteImg from './img/leprince-mascote.webp' // 🐓 Le Prince FC (henriquejunger07): arte própria do dono
@@ -397,6 +398,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 297×440, 44 KB — altura 176. mascote_key = "chelsao_leao".
   chelsao_leao: (
     <img src={chelsaoMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="O Leão da Massa — Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐐 O BODE REI (mascote do Neymar FC — sheeryarie772, 21/10): o bode de chifre dourado com a manta do monograma NJ,
+  // com o craque de uniforme creme nº 10 sentado nele e a bola de pé. A cena inteira é a mascote. Arte do próprio dono.
+  // 📏 440×415, ≤45 KB — altura 176 (é mais larga que alta). mascote_key = "neymarfc_bode".
+  neymarfc_bode: (
+    <img src={neymarfcMascoteImg} height={176} width={Math.round(176 * 440 / 415)} alt="O Bode Rei — Neymar FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐰 O LABUBU (mascote do Labubu FC — caelborba, 14/10): o bichinho de pelo preto, orelhas de coelho e olhos de
   // cores diferentes, com o uniforme branco nº 10 e a bola debaixo do braço. Arte do próprio dono.
@@ -1235,6 +1242,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Chelsão da Massa SC': 'chelsao_leao',
   'CRBebê': 'chelsao_leao',
   'Peteca FR': 'chelsao_leao',
+  // 🐐 o Bode Rei carimba o gol do Neymar FC (sheeryarie772, 21/10).
+  'Neymar FC': 'neymarfc_bode',
+  'Neymar': 'neymarfc_bode',
+  'Neymar EC': 'neymarfc_bode',
+  'Neymar SC': 'neymarfc_bode',
+  'Galáxia EC': 'neymarfc_bode',
   // 🐰 o Labubu carimba o gol do Labubu FC (caelborba, 14/10).
   'Labubu FC': 'labubu',
   'Labubu': 'labubu',
@@ -1374,6 +1387,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   cuiudos: 'O Cuiudo', // 🤠 Cuiudos FC (matheussoaresg2018, 17/10)
   wenmilan_diaba: 'A Diabinha', // 😈 Wen Milan B (vittor@tidex, 17/10)
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
+  neymarfc_bode: 'O Bode Rei', // 🐐 Neymar FC (sheeryarie772, 21/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)
   comverissimo: 'O Verissimo', // 🟢 ComVerissimo FC (cesar.verissimo27, 15/10)
   rossini_ninja: 'O Ninja', // 💴 Rossini Money (luizeduardorossini0013, 12/10)

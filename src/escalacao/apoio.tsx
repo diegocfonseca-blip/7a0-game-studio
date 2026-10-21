@@ -119,6 +119,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'vittor@tidex.com.br': 'ouro', // 👑 batismo Wen Milan B (Série A, plano 🖋 Fundador, no assento do Al Takhadao FC, que desceu pra C) + fundador nº92 + sócio nº76 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
+  'sheeryarie772@gmail.com': 'ouro', // 👑 batismo Neymar FC (Série D, no assento do bot Galáxia EC) + sócio nº77 (21/10). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
   'luizeduardorossini0013@gmail.com': 'ouro', // 👑 Lenda — batismo Rossini Money (Série A, no assento do Bagres de Wall Street FC, que desceu pra B) + fundador nº90 + sócio nº71 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'henriquejunger07@gmail.com': 'ouro', // 👑 Lenda — batismo Le Prince FC (Várzea, no assento do bot Perna de Pau City) + fundador nº87 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.

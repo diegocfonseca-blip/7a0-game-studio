@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
@@ -905,6 +906,12 @@ const chelsaoEscudoRender = (size: number) => (
   <img src={chelsaoEscudoImg} height={size} width={Math.round(size * 246 / 360)} alt="Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🐐👑 NEYMAR FC (sheeryarie772, batismo de 21/10) — Série D, no assento do bot Galáxia EC. 📏 290×360, 28 KB.
+// Escudo dourado com o bode coroado e o rosto, NEYMAR FC e a bola. Fundo verde chroma tirado; conferido sobre creme e verde.
+const neymarfcEscudoRender = (size: number) => (
+  <img src={neymarfcEscudoImg} height={size} width={Math.round(size * 290 / 360)} alt="Neymar FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const labubuEscudoRender = (size: number) => (
   <img src={labubuEscudoImg} height={size} width={Math.round(size * 230 / 360)} alt="Labubu FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1564,6 +1571,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Chelsão da Massa SC': chelsaoEscudoRender,
   'CRBebê': chelsaoEscudoRender,
   'Peteca FR': chelsaoEscudoRender,
+  // 🐐👑 Neymar FC (sheeryarie772) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
+  'Neymar FC': neymarfcEscudoRender,
+  'Neymar': neymarfcEscudoRender,
+  'Neymar EC': neymarfcEscudoRender,
+  'Neymar SC': neymarfcEscudoRender,
+  'Galáxia EC': neymarfcEscudoRender,
   // 🐰⚪ Labubu FC (caelborba) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Só Deus Sabe continua
   // existindo (foi pra C).
   'Labubu FC': labubuEscudoRender,
