@@ -75,6 +75,14 @@ jobs:
           cp -r leilao-sub-dist/. final-dist/leilao-legends-38/
           echo "leilaolegends.com" > final-dist/CNAME
 
+      # 🗄️ Publicar sem derrubar quem está jogando (21/10): mantém no ar, por 3 dias, os arquivos das versões
+      # anteriores — quem está com o jogo aberto segue na versão dele até atualizar por conta própria.
+      - name: Mantém a versão anterior no ar
+        continue-on-error: true
+        run: |
+          node old-game/scripts/guarda-versao-anterior.mjs https://leilaolegends.com/ final-dist
+          node old-game/scripts/guarda-versao-anterior.mjs https://leilaolegends.com/leilao-legends-38/ final-dist/leilao-legends-38
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: final-dist

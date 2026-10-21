@@ -3573,6 +3573,15 @@ export function devolvePreparadorUmaVez(st: EscState): EscState {
 
 // 🔓 exportado só pra TRAVA (`npm run fake`) poder abrir um save de mentira e
 // conferir que o tapa-buraco sai do histórico. Nenhuma tela chama de fora.
+/** 🪑🤝 o assento (id do técnico) de quem tem este crachá: o do `seatUids` e, se não estiver lá, o da DUPLA em que ele está (o
+ *  parceiro joga no time do dono). -1 = não achou. É a régua ÚNICA de "qual é o meu time" — a volta pra sala (lobby), o
+ *  RESTORE_ONLINE e o SYNC_STATE leem ESTA função (21/10, sala de duplas do Futpoint: o parceiro que recarregava era tirado). */
+export function assentoDoCracha(st: Pick<EscState, 'seatUids' | 'duplas'>, uid: string): number {
+  const seat = Array.isArray(st.seatUids) ? st.seatUids.indexOf(uid) : -1
+  if (seat >= 0 || !st.duplas) return seat
+  const e = Object.entries(st.duplas).find(([, d]) => d.partnerUid === uid || d.ownerUid === uid || d.soloUid === uid)
+  return e ? Number(e[0]) : -1
+}
 export function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -7303,11 +7312,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const ns = action.newState
         const meuUid = state.youUid
         if (meuUid && Array.isArray(ns.seatUids) && ns.seatUids.length > 0) {
-          let seat = ns.seatUids.indexOf(meuUid)
-          if (seat < 0 && ns.duplas) { // 🤝 parceiro de dupla: o assento é o do dono
-            const e = Object.entries(ns.duplas).find(([, d]) => d.partnerUid === meuUid || d.ownerUid === meuUid || d.soloUid === meuUid)
-            if (e) seat = Number(e[0])
-          }
+          const seat = assentoDoCracha(ns, meuUid)
           if (seat >= 0) { const i = ns.managers?.findIndex(m => m.id === seat) ?? -1; if (i >= 0) return i }
         }
         const meuId = state.managers[state.youIdx]?.id
@@ -7336,7 +7341,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // id é onde está o meu uid — o player_index do banco pode ter ficado pra trás num
     // "novo leilão" antigo. Sem o mapa, segue pelo player_index como sempre.
     const meuUidR = action.youUid ?? state.youUid
-    const seatR = meuUidR && Array.isArray(action.state.seatUids) ? action.state.seatUids.indexOf(meuUidR) : -1
+    const seatR = meuUidR ? assentoDoCracha(action.state, meuUidR) : -1 // 🤝 parceiro de dupla = assento do dono (21/10)
     const idAlvo = seatR >= 0 ? seatR : action.playerIndex
     const byId = action.state.managers?.findIndex(m => m.id === idAlvo) ?? -1
     const myIdx = byId >= 0 ? byId : action.playerIndex

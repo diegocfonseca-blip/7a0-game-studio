@@ -23,7 +23,7 @@ import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
 import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
-import { recarregaUmaVez, pedaco } from './recarga' // 🔄 pedaço que sumiu: recarrega 1x
+import { pedaco } from './recarga'
 // 📋 Liga Draft (19/10): a noite do draft só carrega pra quem chega nela (só a conta do Diego cria a liga por enquanto)
 const LigaDraftLazy = lazy(pedaco(() => import('./liga-draft-tela').then(m => ({ default: m.EscLigaDraft }))))
 import { AvisosAmigos, EVENTO_ENTRAR_SALA } from './amigos'
@@ -240,12 +240,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   static getDerivedStateFromError(err: Error) { return { err } }
   componentDidCatch(err: Error, info: { componentStack?: string | null }) {
     try { console.error('Leilão Legends crash:', err) } catch { /* ignora */ }
-    // 🔄 PEDAÇO QUE SUMIU (publicamos no meio da partida): em vez da tela de
-    // erro, a página se recarrega UMA VEZ e a pessoa volta pro lugar. Isso é a
-    // rede de segurança — o caminho normal é o `pedaco()` lá no lazy; aqui pega
-    // o que escapar. Se já recarregou nesta aba, segue pro erro (ordem do Diego:
-    // *"no máximo uma vez"*). Nem registra a queda: não é bug, é publicação.
-    if (recarregaUmaVez(err)) return
     // 🚑 (13/09) guarda a pilha de COMPONENTES (tem nome de verdade, ao contrário da
     // pilha do React minificado) e registra a queda em `esc_quedas` — ver quedas.ts.
     const componentes = info?.componentStack ?? null
@@ -280,78 +274,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   }
 }
 
-// 🔄 VIGIA DE VERSÃO (atualização automática, SEM banner): o jogo é um site que
-// fica aberto/cacheado no navegador — quem já está com a página aberta continua
-// na versão ANTIGA até recarregar. Este vigia compara o arquivo JS que esta
-// página carregou (o hash no nome muda a cada deploy) com o do index.html no
-// servidor e, se a pessoa estiver na TELA INICIAL (segura), atualiza sozinho —
-// sem interromper jogo em andamento e SEM avisar (Diego: o banner verde tava
-// aparecendo toda hora, com o tanto de deploy que rola por dia). Guarda a hora
-// do último auto-reload pra nunca entrar em loop (no máx. 1 auto-reload a cada
-// 5 min).
-/** alguma janela (Loja, Amigos, Pix, Carreiras, perfil…) cobrindo a tela? = elemento FIXO do tamanho da tela quase toda */
-function temJanelaAberta(): boolean {
-  try {
-    const w = window.innerWidth, h = window.innerHeight
-    for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('div,section,aside'))) {
-      if (getComputedStyle(el).position !== 'fixed') continue
-      const r = el.getBoundingClientRect()
-      if (r.width >= w * 0.8 && r.height >= h * 0.6) return true
-    }
-  } catch { return true } // na dúvida, não recarrega
-  return false
-}
-function VersionWatcher() {
-  const { state } = useEsc()
-  // guarda o ARQUIVO NOVO detectado no servidor (o hash muda a cada deploy).
-  const [newBundle, setNewBundle] = useState<string | null>(null)
-  useEffect(() => {
-    const cur = Array.from(document.scripts).map(s => s.getAttribute('src') || '').find(s => /assets\/index-[\w-]+\.js/.test(s)) || ''
-    if (!cur) return
-    let alive = true
-    const check = async () => {
-      try {
-        const base = import.meta.env.BASE_URL || '/'
-        const html = await fetch(`${base}index.html?v=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.text() : '')
-        const m = html.match(/assets\/index-[\w-]+\.js/)
-        if (alive && m && !cur.includes(m[0])) setNewBundle(m[0])
-      } catch { /* offline/erro de rede — ignora, tenta de novo depois */ }
-    }
-    const t0 = setTimeout(check, 8000) // 1ª checagem uns segundos após abrir
-    const iv = setInterval(check, 90_000) // e a cada 90s
-    const onVis = () => { if (document.visibilityState === 'visible') check() } // e quando volta pro app
-    document.addEventListener('visibilitychange', onVis)
-    window.addEventListener('focus', onVis)
-    return () => { alive = false; clearTimeout(t0); clearInterval(iv); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
-  }, [])
-  // AUTO-reload só na TELA INICIAL (home) — onde não tem NADA em andamento.
-  // Nunca no leilão/temporada (jogo), nunca no lobby (sala online), nunca no
-  // setup (escolhas). Nessas, só o botão aparece — atualiza apenas se TOCAR.
-  const safe = state.screen === 'intro'
-  // AUTO-atualiza em silêncio quando a pessoa está numa tela segura (rede de
-  // segurança pra quem não recarrega sozinho). Anti-loop: no máx. 1x/5min.
-  // Espera uns segundos pra não recarregar no instante exato que abriu.
-  // 🪟 19/10 (Diego: *"vira e mexe a página do amigos ou loja fecha depois de alguns segundos"*): era ESTE recarregamento. A tela
-  // continuava sendo a home ('intro'), então ele recarregava com a Loja, os Amigos, o Pix ou as Carreiras abertos POR CIMA. Agora
-  // ele só recarrega com a home LIMPA (nenhuma janela cobrindo a tela) e a pessoa parada há 15 s; senão tenta de novo depois.
-  useEffect(() => {
-    if (!newBundle || !safe) return
-    let last = 0
-    try { last = +(sessionStorage.getItem('esc-auto-upd-at') || 0) } catch { /* ignora */ }
-    if (Date.now() - last < 300_000) return
-    let mexeu = Date.now()
-    const marca = () => { mexeu = Date.now() }
-    const evs = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const
-    evs.forEach(e => window.addEventListener(e, marca, { passive: true, capture: true }))
-    const iv = setInterval(() => {
-      if (Date.now() - mexeu < 15_000 || temJanelaAberta()) return
-      try { sessionStorage.setItem('esc-auto-upd-at', String(Date.now())) } catch { /* ignora */ }
-      window.location.reload()
-    }, 3000)
-    return () => { clearInterval(iv); evs.forEach(e => window.removeEventListener(e, marca, { capture: true })) }
-  }, [newBundle, safe])
-  return null
-}
+// 🔄 VIGIA DE VERSÃO: SAIU (21/10, Diego: *"não quero mais que publicando coisa nova faça atualizar a página sozinho… só atualiza se
+// ele atualizar mesmo manualmente"*). Quem está com o jogo aberto segue na versão que abriu até atualizar por conta própria — e não
+// quebra, porque a publicação mantém no ar os arquivos das versões anteriores (`scripts/guarda-versao-anterior.mjs`).
 
 // 🔊 SOM: liberado pra TODO MUNDO. Começa MUDO (opt-in) — ninguém leva susto de
 // áudio; a pessoa liga no botão 🔊/🔇 fixo no canto, que também "acorda" o
@@ -553,7 +478,6 @@ export default function EscalacaoGame() {
         <SessionExpiredBanner />
         <AnnouncementToast />
         <OpenInBrowserBanner />
-        <VersionWatcher />
         <SoundGate />
         <ChatWidget />{/* 💬 chat/zoeira da sala — só aparece em partida online */}
         <AvisoDestaqueTirado />{/* 🚫🔴 o dono da sala fica sabendo que o destaque de live saiu (13/10) */}

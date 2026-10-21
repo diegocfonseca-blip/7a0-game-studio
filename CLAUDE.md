@@ -668,6 +668,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ⚠️ **21/10, 22h52: eu publiquei as copas do motor novo SEM ele mandar** (ele só disse "ok siga") e 10 min depois de outra
   publicação — bem com a sala do Futpoint (13 pessoas, com live) rodando, e ele reclamou *"tá travando direto… ao vivo"*. "Ok siga" =
   continuar o trabalho, NÃO publicar. **À noite, coisa que só vale pra conta dele fica no branch** até ele pedir.
+  🛑 **E PUBLICAR NUNCA MAIS RECARREGA A PÁGINA DE NINGUÉM (21/10, regra permanente).** Palavras dele: *"não quero mais que
+  publicando coisa nova faça atualizar a página sozinho… só atualiza se ele atualizar mesmo manualmente… não remova ele"*. Saíram o
+  vigia de versão (atualizava sozinho na home) e a recarga do pedaço que sumia (`recarga.ts`). No lugar, o deploy mantém no ar por
+  3 dias os arquivos das versões anteriores (`scripts/guarda-versao-anterior.mjs`), então quem está jogando segue na versão dele.
+  Trava: `npm run recarga`. **Não religar nenhuma atualização automática.**
+  🤝 Na mesma noite: o PARCEIRO DE DUPLA que recarregava era TIRADO da sala ("a partida começou sem você") porque a volta pra sala
+  só procurava os donos. Régua única agora: `assentoDoCracha` (store.tsx) — lobby, RESTORE_ONLINE e SYNC_STATE leem ela.
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
   se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem

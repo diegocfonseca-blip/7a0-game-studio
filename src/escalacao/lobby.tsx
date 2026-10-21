@@ -10,7 +10,7 @@ import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
 import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMascoteMini, clubeDaConta } from './entrada-gala' // 👑 entrada de gala do batismo (28/09)
-import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS } from './store'
+import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS, assentoDoCracha } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
@@ -1502,7 +1502,10 @@ export function EscLobby() {
       // 🪑 crachá antes do assento do banco (12/09): se o estado tem `seatUids`, o meu
       // técnico é o do assento onde está o MEU uid (o player_index pode ter ficado pra
       // trás num "novo leilão" antigo — era o que mandava o Cajuri pra rua como "bot").
-      const seatMeu = Array.isArray((gs as EscState).seatUids) ? (gs as EscState).seatUids!.indexOf(user.id) : -1
+      // 🤝 PARCEIRO DE DUPLA (21/10, sala do Futpoint): o `seatUids` só tem os DONOS das duplas. Sem olhar o mapa das duplas, o
+      // parceiro que recarregava caía no próprio player_index cru (um bot) e era TIRADO da sala com "a partida começou sem você".
+      // Agora o assento dele é o do dono da dupla — o mesmo que o SYNC_STATE já usava durante a partida.
+      const seatMeu = assentoDoCracha(gs as EscState, user.id)
       const mineMgr = (gs as EscState).managers.find(m => m.id === (seatMeu >= 0 ? seatMeu : myPl.player_index))
       // 🚨 O DONO NUNCA É EXPULSO DA PRÓPRIA SALA (achado 05/09 no banco: a sala
       // H29VAB ficou PARADA na tela de abertura do stream e a vaga do próprio
