@@ -10103,3 +10103,6 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   emblema, cadeado de R$ 9,90 pra quem não tem plano, caixa dos clãs sempre visível. `mp-criar-pix` v12 (escudo_cla · cla_criar · cla_extra).
   Regra confirmada: Futpoint (sem clã) cria o "Clã do Futpoint FC" de graça; Julia Barranquila (tem o Oliver Clã) fecha e cria o do
   batismo, OU paga R$ 19,99 e fica com os dois (o batismo vira o 2º e o Oliver ganha o escudo personalizado).
+- ✅ **✂️ CLÃ SEM "FC" (21/10, Diego: "não precisa ter FC nos clãs")**: `esc_cla_sem_fc` tira FC/EC/SC/AC/SAF do fim do nome do clã (o do batismo
+  e o digitado; "Futpoint FC" → "Futpoint"). O escudo continua o do time. Banco já valendo (migration `20261021180000_cla_sem_fc.sql`); o rótulo
+  "Clã do Futpoint" na tela de criar está no branch.
