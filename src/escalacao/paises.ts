@@ -486,7 +486,7 @@ export const PAIS: Record<string, string> = {
   //        SELEÇÃO ESPANHOLA, e aqui vale onde ele joga (regra do Diego).
   'Dean Huijsen': 'Espanha',
   // Laterais
-  'Joelinton': 'Brasil', 'Fernando Peyroteo': 'Portugal', 'Bobby Tambling': 'Inglaterra', // 📚 Lote 44 (21/10)
+  'Joelinton': 'Brasil', 'Bruno Guimarães': 'Brasil', 'Fernando Peyroteo': 'Portugal', 'Bobby Tambling': 'Inglaterra', // 📚 Lote 44 (21/10)
   'Nuno Mendes': 'Portugal', 'Vitinha': 'Portugal', 'João Neves': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
   'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
   'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
@@ -1200,6 +1200,7 @@ export const MESMO_JOGADOR = new Set<string>([
   // 🧱 LOTE 35 (26/09): mesma pessoa, outro clube e outro baralho — conferidos um a um
   'Miranda',
   'Jorginho',
+  'Bruno Guimarães', // 📚 Lote 44 (21/10): a do Newcastle é a MESMA pessoa da do Athletico-PR (baralho BR)
   'Filipe Luís',
   'Luís Fabiano',
   'Mozer',

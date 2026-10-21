@@ -2762,11 +2762,12 @@ const L42_EU_ATA: C[] = [
   { name: "Edmundo", club: "Fiorentina", year: 1998, fame: 3, lo: 76, hi: 85, bio: "O Animal passou pela Fiorentina no fim dos anos 90, ao lado de Batistuta." },
 ]
 
-// ─── 📚 LOTE 44 (21/10): pedido do Diego — Jorginho do Chelsea, Joelinton, Peyroteo e Bobby Tambling ─────────────
+// ─── 📚 LOTE 44 (21/10): pedido do Diego — Jorginho do Chelsea, Bruno Guimarães e Joelinton do Newcastle, Peyroteo e Bobby Tambling ─────────────
 // Categoria de cada um no clube e no ano da carta. O Jorginho do Chelsea é OUTRA pessoa (o volante ítalo-brasileiro),
 // não o lateral do tetra que já está no baralho — o país vai carta a carta em PAIS_POR_CARTA.
 const L44_EU_MEI: C[] = [
   { name: "Jorginho", club: "Chelsea", year: 2021, fame: 4, lo: 85, hi: 91, bio: "Volante ítalo-brasileiro, nascido em Imbituba (SC). Em 2021 foi campeão da Champions com o Chelsea e da Euro com a Itália, e 3º na Bola de Ouro." },
+  { name: "Bruno Guimarães", club: "Newcastle", year: 2025, fame: 4, lo: 84, hi: 90, bio: "Capitão e cérebro do Newcastle, campeão da Copa da Liga Inglesa de 2025 — o primeiro título do clube em 70 anos." },
   { name: "Joelinton", club: "Newcastle", year: 2023, fame: 3, lo: 77, hi: 85, bio: "Chegou como centroavante e virou o motor do meio do Newcastle que voltou à Champions." },
 ]
 const L44_EU_ATA: C[] = [
