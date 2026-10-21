@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase'
 import { tr } from './lang'
 import { Escudo } from './escudos'
 import { clasLiberado } from './cla-gate' // a trava (CLAS_GERAL) mora lá
+import { ApoieButton } from './screens' // ⭐ quem não tem plano vai direto pros planos
 export { clasLiberado }
 export const CLA_MAX = 22 // 👥 máximo de membros (21/10: "coloque 22"); o banco tem o MESMO número em esc_cla_cabe
 
@@ -123,6 +124,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [msg, setMsg] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [tela, setTela] = useState<'inicio' | 'criar' | 'procurar' | 'ranking' | 'chamar'>('inicio')
+  const [semPlano, setSemPlano] = useState(false) // 🔒 tocou em "Criar clã" sem plano → caixa explicando + botão dos planos
   // 🔁 21/10 (Diego): já tem clã e vai pra outro (convite ou pedido) → aviso lembrando do clã atual, pra seguir ou não
   const [troca, setTroca] = useState<{ info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void } | null>(null)
   const carrega = () => { supabase.rpc('esc_cla_painel').then(({ data, error }) => setP(error || !data ? 'erro' : data as Painel), () => setP('erro')) }
@@ -208,12 +210,29 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       </div>
       <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
         <button style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10 }} onClick={() => setTela('procurar')}>🔎 {tr('Procurar clã', 'Find a clan')}</button>
-        <button style={{ ...bt(p.pode_criar ? INK : '#ddd', p.pode_criar ? GOLD : '#777'), flex: 1, padding: 10 }} onClick={() => p.pode_criar ? setTela('criar') : setMsg(`⚠️ ${msgErro('plano')}`)}>⚔️ {tr('Criar clã', 'Create clan')}{p.pode_criar ? '' : ' 🔒'}</button>
+        <button style={{ ...bt(p.pode_criar ? INK : '#ddd', p.pode_criar ? GOLD : '#777'), flex: 1, padding: 10 }} onClick={() => p.pode_criar ? setTela('criar') : setSemPlano(v => !v)}>⚔️ {tr('Criar clã', 'Create clan')}{p.pode_criar ? '' : ' 🔒'}</button>
       </div>
+      {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} />}
       <button style={{ ...bt('#fff', INK), width: '100%', marginTop: 8 }} onClick={() => setTela('ranking')}>🏆 {tr('Ranking dos clãs da semana', 'Clans of the week')}</button>
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: quem tem qualquer plano (⭐ Craque pra cima). Entrar num clã é de graça pra todo mundo.', 'Creating a clan: any plan (⭐ Star and up). Joining a clan is free for everyone.')}</p>
     </>}
   </>
+}
+// 🔒⭐ quem NÃO tem plano tocou em "Criar clã" (21/10, Diego: "o que aparece pra ele pra criar clã e botão pra direcionar")
+function CriarSemPlano({ onProcurar }: { onProcurar: () => void }) {
+  return (
+    <div style={{ ...caixa, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff', borderColor: INK, textAlign: 'center' }}>
+      <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
+      <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Criar clã é de quem tem plano', 'Creating a clan needs a plan')}</p>
+      <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
+        `Com qualquer plano (⭐ Craque, 👑 Lenda, 🖋 Batismo ou Fundador) você cria o seu clã, vira o líder 👑 e chama até ${CLA_MAX - 1} amigos. Se o seu plano tem escudo de batismo, ele vira o emblema do clã.`,
+        `With any plan (⭐ Star, 👑 Legend, 🖋 Named club or Founder) you create your clan, become the leader 👑 and invite up to ${CLA_MAX - 1} friends. If your plan has a named-club crest, it becomes the clan emblem.`)}</p>
+      <ApoieButton startScreen="choice" trigger={open => (
+        <button onClick={open} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>⭐ {tr('Ver os planos', 'See the plans')}</button>
+      )} />
+      <button onClick={onProcurar} style={{ ...bt('#fff', INK), width: '100%', padding: 9, fontSize: 13, marginTop: 8 }}>🔎 {tr('Ou entre num clã — é de graça', 'Or join a clan — it’s free')}</button>
+    </div>
+  )
 }
 type TrocaInfo = { erro: 'confirmar'; atual: string; atual_emblema: string; lider: boolean; sozinho: boolean }
 // 🔁 o aviso de troca (21/10): o clã de agora × o novo, o que acontece com a liderança, a espera de 7 dias e os dois botões
