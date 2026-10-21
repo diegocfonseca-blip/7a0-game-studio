@@ -54,7 +54,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -2112,7 +2112,7 @@ const BL_PACOTES_EN: Record<number, string> = { 10: 'COFFEE MONEY', 50: 'QUICK B
  *  O banco trava 1× por semana (`esc_resgata_premio_semana`); o valor vem de `RANKING_SEMANA_MOEDAS`. */
 function PremioSemana() {
   const { state, dispatch } = useEsc()
-  const [aviso, setAviso] = useState<{ moedas: number; pos: number } | null>(null)
+  const [aviso, setAviso] = useState<{ moedas: number; pos: number; cla: number } | null>(null)
   const feito = useRef<number | null>(null)
   useEffect(() => {
     if (state.onlineMode === 'online' || !state.careerOnline || !state.seed || feito.current === state.seed) return
@@ -2125,12 +2125,19 @@ function PremioSemana() {
         const { data: pos } = await supabase.rpc('esc_resgata_premio_semana', { p_semana: p.semana, p_seed: state.seed })
         if (pos === 1 || pos === 2 || pos === 3) { dispatch({ type: 'RANKING_SEMANA_CREDIT', pos, semana: p.semana }); soma += RANKING_SEMANA_MOEDAS[pos as 1 | 2 | 3]; melhor = Math.min(melhor, pos) }
       }
-      if (vivo && soma > 0) { setAviso({ moedas: soma, pos: melhor }); setTimeout(() => setAviso(null), 6000) }
+      // ⚔️ 21/10: o clã no pódio da semana paga CADA membro (mesma trava 1×, no Supabase)
+      const { data: dc } = await supabase.rpc('esc_meus_premios_cla')
+      let somaCla = 0, melhorCla = 9
+      for (const p of (Array.isArray(dc) ? dc as { semana: string; pos: number; nome_cla: string }[] : [])) {
+        const { data: pos } = await supabase.rpc('esc_resgata_premio_cla', { p_semana: p.semana, p_seed: state.seed })
+        if (pos === 1 || pos === 2 || pos === 3) { dispatch({ type: 'CLA_SEMANA_CREDIT', pos, semana: p.semana, cla: p.nome_cla }); somaCla += CLA_SEMANA_MOEDAS[pos as 1 | 2 | 3]; melhorCla = Math.min(melhorCla, pos) }
+      }
+      if (vivo && (soma > 0 || somaCla > 0)) { setAviso({ moedas: soma + somaCla, pos: soma > 0 ? melhor : 0, cla: somaCla > 0 ? melhorCla : 0 }); setTimeout(() => setAviso(null), 6000) }
     }, () => {})
     return () => { vivo = false }
   }, [state.seed, state.careerOnline, state.onlineMode, dispatch])
   if (!aviso) return null
-  return <div style={{ position: 'fixed', left: '50%', top: 16, transform: 'translateX(-50%)', zIndex: 9999, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 16px', ...OSWALD, fontWeight: 900, fontSize: 16, whiteSpace: 'nowrap' }}>🏆 +{aviso.moedas} 🪙 {tr(`· ${aviso.pos}º no Ranking da Semana!`, `· #${aviso.pos} in the Weekly Ranking!`)}</div>
+  return <div style={{ position: 'fixed', left: '50%', top: 16, transform: 'translateX(-50%)', zIndex: 9999, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 16px', ...OSWALD, fontWeight: 900, fontSize: 16, whiteSpace: 'nowrap' }}>🏆 +{aviso.moedas} 🪙 {[aviso.pos ? tr(`· ${aviso.pos}º no Ranking da Semana`, `· #${aviso.pos} in the Weekly Ranking`) : '', aviso.cla ? tr(`· clã em ${aviso.cla}º`, `· clan #${aviso.cla}`) : ''].join(' ')}!</div>
 }
 /** 🏦 moedas compradas na LOJA com destino ESTA carreira (`esc_mp_destino`): caem sozinhas quando a carreira abre */
 function DepositoPix() {

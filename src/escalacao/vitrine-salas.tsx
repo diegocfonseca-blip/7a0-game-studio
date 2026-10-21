@@ -45,7 +45,7 @@ const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? 
 // ⚔️ RANKING DOS CLÃS DA SEMANA (21/10, Diego: "o ranking da semana também terá de clãs agora"): os 5 clãs com mais títulos
 // online na semana (a MESMA conta do ranking dos técnicos, somada por clã). Uma leitura quando a lista de salas abre.
 type ClaRank = { id: number; nome: string; emblema: string; membros: number; titulos: number; pos: number }
-function RankingClasCaixa() {
+export function RankingClasCaixa() {
   const [l, setL] = useState<ClaRank[] | null>(null)
   useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 5)) }, () => {}); return () => { vivo = false } }, [])
   if (!l || l.length === 0) return null
@@ -59,7 +59,8 @@ function RankingClasCaixa() {
           <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{c.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
         </div>
       ))}
-      <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('O clã campeão joga a semana seguinte com 🏆 no selo de cada membro. Entre num clã em 👥 Amigos → ⚔️ Clã.', 'The champion clan plays the next week with 🏆 on every member’s badge. Join a clan in 👥 Friends → ⚔️ Clan.')}</p>
+      <p style={{ margin: '7px 0 0', fontSize: 11, fontWeight: 800, color: INK }}>{tr('🎁 Prêmio pra CADA membro: 🥇 30 · 🥈 20 · 🥉 10 🪙 pra carreira + o clã no 📺 telão a semana toda.', '🎁 Prize for EVERY member: 🥇 30 · 🥈 20 · 🥉 10 🪙 for career + the clan on the 📺 big screen all week.')}</p>
+      <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('O clã campeão joga a semana seguinte com 🏆 no selo de cada membro. Entre num clã em 👥 Amigos → ⚔️ Clã.', 'The champion clan plays the next week with 🏆 on every member’s badge. Join a clan in 👥 Friends → ⚔️ Clan.')}</p>
     </Caixa>
   )
 }

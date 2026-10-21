@@ -594,6 +594,11 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   Foto: `scripts/mockups/clas-tela-real.png`. 🔁 21/10: selo do clã SAIU do chat (Diego: "no chat não precisa") e entrou a caixa ⚔️ Clãs da semana
   (top 5) embaixo do Ranking da semana nas salas online (`scripts/mockups/clas-ranking-salas.png`). Máximo de membros: 20 (perguntei se quer 22). ⏳ Liberar pra todos = `CLAS_GERAL = true` quando o Diego testar. ⏳ Convite de clã
   ainda não aparece no 🔔 (só na aba ⚔️ Clã).
+  🔁 21/10 (2ª rodada, *"selo no chat pode ter mas ainda menor… prêmio 30/20/10… telão… não entra no lugar do usuário, só abaixo"*):
+  selo MINI de volta no chat (embaixo do nome, `SeloCla mini`) · prêmio por MEMBRO do top 3 de clãs da semana fechada: 🥇 30 · 🥈 20 ·
+  🥉 10 🪙 pra carreira (`esc_premio_cla_semana`, fechada sozinha por `esc_fecha_semanas_clas`, resgate no `PremioSemana` →
+  `CLA_SEMANA_CREDIT`) · telão: linha "⚔️ CLÃS DA SEMANA" logo DEPOIS do pódio dos usuários (`esc_cla_podio_passado`, leitura a cada
+  10 min, nada pelo canal). Foto: `scripts/mockups/clas-premio-telao-chat.png`. Trava dos clãs agora mora em `cla-gate.ts`.
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem

@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { loggedEmail, stripEmoji } from './apoio'
 import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da semana passada no letreiro (19/10)
+import { clasLiberado } from './cla-gate' // ⚔️ pódio dos clãs no letreiro (21/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
 import OITTO_LOGO from './img/patro-oittolabs.webp' // 🧪 OittoLabs (21/10): Copa dos 8, Copa do Brasil da carreira, placas, telão e Master
@@ -133,12 +134,32 @@ const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
-export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string }; podio?: true } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
+export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string }; podio?: true; podioCla?: true } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
 export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número máximo de caracteres… tipo o da Vadico")
 function usePodioPassado() {
   const [v, setV] = useState(podioPassada())
   useEffect(() => { let vivo = true; void buscaVitrine().then(() => { if (vivo) setV(podioPassada()) }); return () => { vivo = false } }, [])
   return v
+}
+// ⚔️ PÓDIO DOS CLÃS DA SEMANA PASSADA (21/10, Diego: "aparece no telão de propagandas pra todos igual no do usuário… mas ele
+// não entra no lugar do usuário solo. Só entra abaixo"). Uma leitura a cada 10 min por aparelho — nada pelo canal.
+let podioClaCache: { pos: number; nome: string }[] = [], podioClaEm = 0, podioClaLendo: Promise<void> | null = null
+function lePodioCla(): Promise<void> {
+  if (Date.now() - podioClaEm < 600_000) return Promise.resolve()
+  if (!podioClaLendo) podioClaLendo = (async () => {
+    try {
+      const { data } = await supabase.rpc('esc_cla_podio_passado')
+      podioClaCache = Array.isArray(data) ? (data as { pos: number; nome: string }[]) : []
+    } catch { /* sem leitura = sem linha, o resto do letreiro segue */ }
+    podioClaEm = Date.now(); podioClaLendo = null
+  })()
+  return podioClaLendo
+}
+function usePodioClaPassado() {
+  const liga = clasLiberado()
+  const [v, setV] = useState(liga ? podioClaCache : [])
+  useEffect(() => { if (!liga) return; let vivo = true; void lePodioCla().then(() => { if (vivo) setV(podioClaCache) }); return () => { vivo = false } }, [liga])
+  return liga ? v : []
 }
 export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
@@ -149,6 +170,8 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   // inteira, em roxo. Vem da vitrine (mesma leitura do ranking, cache de 60 s) — zero mensagem nova no canal.
   const podio = usePodioPassado()
   if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true })
+  const podioCla = usePodioClaPassado() // ⚔️ sempre DEPOIS do pódio dos usuários, nunca no lugar dele
+  if (podioCla.length) out.push({ texto: podioCla.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, podioCla: true })
   if (espacosOk()) {
     if (fixos) out.push(...fixos)
     else if (fixos === null) {

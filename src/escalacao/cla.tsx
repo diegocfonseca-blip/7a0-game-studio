@@ -11,12 +11,9 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
-import { loggedEmail } from './apoio'
 import { Escudo } from './escudos'
-
-const CLAS_GERAL = false // 🔒 21/10: por enquanto só nas contas do Diego (teste); liberar = true
-const CLAS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
-export const clasLiberado = (email: string | null | undefined = loggedEmail()) => CLAS_GERAL || (!!email && CLAS_TESTERS.has(email.toLowerCase()))
+import { clasLiberado } from './cla-gate' // a trava (CLAS_GERAL) mora lá
+export { clasLiberado }
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED', CLA_OURO = '#E9C46A'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -71,13 +68,13 @@ export function useClaDe(uid: string | null | undefined): SeloInfo | null {
   return ligado && uid ? selos.get(uid) ?? null : null
 }
 /** 🏷️ a pílula do clã (linha de baixo do nome). Sem clã = nada — a linha fica igual a hoje. */
-export function SeloCla({ uid, grande = false }: { uid: string | null | undefined; grande?: boolean }) {
+export function SeloCla({ uid, grande = false, mini = false }: { uid: string | null | undefined; grande?: boolean; mini?: boolean }) {
   const s = useClaDe(uid)
   if (!s) return null
-  const h = grande ? 22 : 16
+  const h = grande ? 22 : mini ? 12 : 16 // mini = o do chat (21/10: "selo no chat pode ter mas ainda menor")
   return (
-    <span title={tr(`Clã ${s.nome}`, `Clan ${s.nome}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#181818', color: CLA_OURO, border: `1.5px solid ${INK}`, borderRadius: 999, padding: '0 7px 0 3px', height: h, ...OSW, fontWeight: 900, fontSize: grande ? 11 : 9, letterSpacing: '.04em', whiteSpace: 'nowrap', verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden', flex: 'none', alignSelf: 'flex-start', justifySelf: 'start', width: 'fit-content' }}>
-      <EmblemaCla emblema={s.emblema} size={h - 3} />
+    <span title={tr(`Clã ${s.nome}`, `Clan ${s.nome}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: mini ? 2 : 4, background: '#181818', color: CLA_OURO, border: `${mini ? 1 : 1.5}px solid ${INK}`, borderRadius: 999, padding: mini ? '0 5px 0 2px' : '0 7px 0 3px', height: h, ...OSW, fontWeight: 900, fontSize: grande ? 11 : mini ? 7.5 : 9, marginBottom: mini ? 3 : undefined, letterSpacing: '.04em', whiteSpace: 'nowrap', verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden', flex: 'none', alignSelf: 'flex-start', justifySelf: 'start', width: 'fit-content' }}>
+      <EmblemaCla emblema={s.emblema} size={h - (mini ? 2 : 3)} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>⚔️ {s.nome}</span>{s.campeao && <span>🏆</span>}
     </span>
   )
