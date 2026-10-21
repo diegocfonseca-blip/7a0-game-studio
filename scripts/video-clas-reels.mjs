@@ -102,7 +102,7 @@ ${cena(21.8, 26.8, `
 ${cena(26.8, 31.6, `
   <div style="display:flex;flex-direction:column;gap:30px;align-items:center">
     <div style="width:940px;background:${GREEN};color:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${INK};padding:34px;${pop(26.9)}"><div style="${OSW};font-size:84px;line-height:1">ENTRAR</div><div style="${OSW};font-size:52px;color:${GOLD}">é de graça pra todo mundo</div></div>
-    <div style="width:940px;background:${INK};color:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${GOLD};padding:34px;${pop(27.5)}"><div style="${OSW};font-size:84px;line-height:1;color:#E9C46A">CRIAR</div><div style="${OSW};font-size:46px">qualquer plano · ⭐ Craque pra cima</div><div style="font-size:30px;font-weight:700;margin-top:12px;color:#ddd">tem batismo? o escudo do seu clube vira o emblema 🛡️</div></div>
+    <div style="width:940px;background:${INK};color:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${GOLD};padding:34px;${pop(27.5)}"><div style="${OSW};font-size:84px;line-height:1;color:#E9C46A">CRIAR</div><div style="${OSW};font-size:46px">qualquer plano · ⭐ Craque pra cima</div><div style="font-size:30px;font-weight:700;margin-top:12px;color:#ddd">tem batismo? o clã nasce com o nome e o escudo do seu time 🛡️</div></div>
   </div>
   <p style="font-size:30px;font-weight:800;color:rgba(12,12,12,.6);margin-top:34px;${sobe(28.4)}">um clã por vez · aberto entra direto · fechado o presidente aceita</p>`)}
 

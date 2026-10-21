@@ -10086,3 +10086,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   (1 prêmio por pessoa por semana: o melhor lugar). A presidência do 2º não se passa; ele pode fechar ("🗑️ fechar este clã").
   Aba do clã ganha as duas abas no topo. Migration `20261021130000_cla_extra.sql`, testada no banco (compra, criação, entrar, tirar,
   fechar). Foto: `scripts/mockups/clas-2o-cla.png`. No branch esperando o "publica" — e AO PUBLICAR: deploy da `mp-criar-pix` (ganhou 'cla_extra').
+- ✅ **🖋 CLÃ DO BATISMO = NOME + ESCUDO JUNTOS (21/10)**. Diego viu o escudo do batismo no selo de quem estava em clã de OUTRO nome
+  (Pontuadores com o escudo do Futpoint, Oliver Clã com o da Julia Barranquila): *"tá errado"*. E pediu: *"faltou aparecer a opção de quem
+  tem batismo entrar com seu escudo e nome do time"*. Agora: na tela de criar, quem tem batismo escolhe "🖋 Clã do <time>" (nome E escudo
+  do batismo) ou "⚔️ Clã com outro nome" (emblemas prontos). O banco (`esc_cla_criar`, migration `20261021150000`) só aceita o escudo junto
+  com o nome. Os 2 clãs antigos ganharam emblema pronto (e:3 · e:4). Já tendo clã, o do batismo como 2º é pela Loja (`cla_extra`): o time do
+  batismo vira o 2º clã e o escudo personalizado vai pro 1º (migration `20261021140000`). Foto: `scripts/mockups/clas-criar-batismo.png`.

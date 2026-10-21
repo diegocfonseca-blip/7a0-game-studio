@@ -256,8 +256,8 @@ function CriarSemPlano({ onProcurar }: { onProcurar: () => void }) {
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
       <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Criar clã é de quem tem plano', 'Creating a clan needs a plan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Com qualquer plano (⭐ Craque, 👑 Lenda, 🖋 Batismo ou Fundador) você cria o seu clã, vira o presidente 👑 e chama até ${CLA_MAX - 1} amigos. Se o seu plano tem escudo de batismo, ele vira o emblema do clã.`,
-        `With any plan (⭐ Star, 👑 Legend, 🖋 Named club or Founder) you create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. If your plan has a named-club crest, it becomes the clan emblem.`)}</p>
+        `Com qualquer plano (⭐ Craque, 👑 Lenda, 🖋 Batismo ou Fundador) você cria o seu clã, vira o presidente 👑 e chama até ${CLA_MAX - 1} amigos. Tem batismo? O clã pode nascer com o nome e o escudo do seu time.`,
+        `With any plan (⭐ Star, 👑 Legend, 🖋 Named club or Founder) you create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. Got a named club? The clan can be born with your club's name and crest.`)}</p>
       <ApoieButton startScreen="choice" trigger={open => (
         <button onClick={open} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>⭐ {tr('Ver os planos', 'See the plans')}</button>
       )} />
@@ -342,7 +342,9 @@ const souLider = (c: ClaJson) => !!meuUidAtual && c.lider === meuUidAtual
 
 function CriarCla({ painel, saindoDe, ocupado, onCriar }: { painel: Painel; saindoDe?: string; ocupado: boolean; onCriar: (nome: string, emblema: string, aberto: boolean) => void }) {
   const [nome, setNome] = useState('')
-  const [emb, setEmb] = useState(painel.escudo ? 'escudo' : 'e:0')
+  // 🖋 21/10 (Diego): quem tem batismo pode criar o clã DO TIME — nome E escudo do batismo, juntos (nunca o escudo com outro nome)
+  const [batismo, setBatismo] = useState(!!painel.escudo && !saindoDe)
+  const [emb, setEmb] = useState('e:0')
   const [aberto, setAberto] = useState(true)
   const opcoes: [string, ReactNode][] = [
     ...EMBLEMAS.map((_, i): [string, ReactNode] => [`e:${i}`, <EmblemaCla emblema={`e:${i}`} size={34} />]),
@@ -350,22 +352,27 @@ function CriarCla({ painel, saindoDe, ocupado, onCriar }: { painel: Painel; sain
   return <div style={caixa}>
     <p style={h3}>⚔️ {tr('Criar clã', 'Create clan')}</p>
     {saindoDe && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#FFE3D6', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🚪 {tr(`Ao criar, você sai do ${saindoDe}.`, `When you create it, you leave ${saindoDe}.`)}</p>}
+    {painel.escudo && <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+      {([[true, <><EmblemaCla emblema={`escudo:${painel.escudo}`} size={30} /><span>🖋 {tr(`Clã do ${painel.escudo}`, `${painel.escudo} clan`)}</span></>], [false, <span>⚔️ {tr('Clã com outro nome', 'Clan with another name')}</span>]] as const).map(([v, rot]) => (
+        <button key={String(v)} onClick={() => setBatismo(v)} style={{ ...bt(batismo === v ? INK : '#fff', batismo === v ? GOLD : INK), flex: 1, whiteSpace: 'normal', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{rot}</button>
+      ))}
+    </div>}
+    {batismo && painel.escudo ? <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🖋 {tr(`O clã nasce com o NOME e o ESCUDO do seu batismo: ${painel.escudo}.`, `The clan is born with your named club's NAME and CREST: ${painel.escudo}.`)}{saindoDe ? tr(` Quer ele como 2º clã (sem sair do ${saindoDe})? É na 🛒 Loja.`, ` Want it as a 2nd clan (without leaving ${saindoDe})? It's in the 🛒 Shop.`) : ''}</p> : <>
     <p style={{ ...OSW, fontSize: 11, margin: '0 0 4px' }}>{tr('Nome do clã', 'Clan name')}</p>
     <input value={nome} onChange={e => setNome(e.target.value)} maxLength={20} placeholder={tr('ex.: Martelo de Ouro', 'e.g. Golden Hammer')}
       style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 14, fontWeight: 700, color: INK, background: '#fff' }} />
     <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '3px 0 8px' }}>{tr('até 20 letras · nome feio é barrado', 'up to 20 letters · offensive names are blocked')}</p>
     <p style={{ ...OSW, fontSize: 11, margin: '0 0 4px' }}>{tr('Emblema', 'Emblem')}</p>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      {painel.escudo && <button onClick={() => setEmb('escudo')} style={{ border: `3px solid ${emb === 'escudo' ? GOLD : 'transparent'}`, borderRadius: 10, background: emb === 'escudo' ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}><EmblemaCla emblema={`escudo:${painel.escudo}`} size={34} /></button>}
       {opcoes.map(([k, el]) => <button key={k} onClick={() => setEmb(k)} style={{ border: `3px solid ${emb === k ? GOLD : 'transparent'}`, borderRadius: 10, background: emb === k ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}>{el}</button>)}
     </div>
-    {painel.escudo && <p style={{ fontSize: 11, fontWeight: 700, margin: '6px 0 0', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 8px' }}>🖋 {tr(`Você pode usar o escudo do ${painel.escudo} como emblema do clã.`, `You can use the ${painel.escudo} crest as the clan emblem.`)}</p>}
+    </>}
     <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
       {[[true, tr('🔓 Aberto · entra direto', '🔓 Open · join directly')], [false, tr('🔒 Fechado · pede e você aceita', '🔒 Closed · they ask, you accept')]].map(([v, rot]) => (
         <button key={String(v)} onClick={() => setAberto(v as boolean)} style={{ ...bt(aberto === v ? INK : '#fff', aberto === v ? GOLD : INK), flex: 1, whiteSpace: 'normal', fontSize: 11 }}>{rot as string}</button>
       ))}
     </div>
-    <button disabled={ocupado || nome.trim().length < 3} style={{ ...bt(GREEN, '#fff'), width: '100%', marginTop: 10, padding: 11, fontSize: 15, opacity: nome.trim().length < 3 ? .5 : 1 }} onClick={() => onCriar(nome, emb, aberto)}>⚔️ {tr('Criar clã', 'Create clan')}</button>
+    <button disabled={ocupado || (!batismo && nome.trim().length < 3)} style={{ ...bt(GREEN, '#fff'), width: '100%', marginTop: 10, padding: 11, fontSize: 15, opacity: !batismo && nome.trim().length < 3 ? .5 : 1 }} onClick={() => onCriar(batismo && painel.escudo ? painel.escudo : nome, batismo && painel.escudo ? 'escudo' : emb, aberto)}>⚔️ {tr('Criar clã', 'Create clan')}</button>
   </div>
 }
 
@@ -448,13 +455,13 @@ function ChamarAmigos({ amigos, meus, cla }: { amigos: { uid: string; nome: stri
 type EscudoPedido = { id: string; produto: 'escudo_cla' | 'cla_extra'; nome: string | null; ideia: string | null; pronto: boolean }
 type ProdutoCla = 'escudo_cla' | 'cla_extra'
 export function EscudoClaLoja() {
-  const [cla, setCla] = useState<{ nome: string; presidente: boolean; temExtra: boolean } | null | 'carregando'>('carregando')
+  const [cla, setCla] = useState<{ nome: string; presidente: boolean; temExtra: boolean; batismo: string | null } | null | 'carregando'>('carregando')
   const [meus, setMeus] = useState<EscudoPedido[]>([])
   const [comprando, setComprando] = useState<ProdutoCla | null>(null)
   const carrega = useCallback(() => {
     supabase.rpc('esc_cla_painel').then(({ data }) => {
       const pn = data as Painel | null, c = pn?.cla
-      setCla(c ? { nome: c.nome, presidente: souLider(c), temExtra: !!pn?.extra } : null)
+      setCla(c ? { nome: c.nome, presidente: souLider(c), temExtra: !!pn?.extra, batismo: pn?.escudo ?? null } : null)
     }, () => setCla(null))
     supabase.rpc('esc_cla_escudo_meus2').then(({ data }) => setMeus((data ?? []) as EscudoPedido[]), () => {})
   }, [])
@@ -468,6 +475,13 @@ export function EscudoClaLoja() {
     { prod: 'escudo_cla', titulo: ['🛡️ Escudo de clã personalizado', '🛡️ Custom clan crest'],
       texto: ['Desenho exclusivo, feito à mão pro SEU clã. Aparece no selo de todos os membros, no ranking e no telão. Fica pronto em até 24 h.', 'An exclusive crest, hand-made for YOUR clan. Shows on every member’s badge, in the ranking and on the big screen. Ready within 24 h.'],
       pode: presidente, porque: info ? [`Só o presidente do ${info.nome} pode encomendar o escudo.`, `Only the ${info.nome} president can order the crest.`] : ['Pra encomendar, você precisa ser presidente de um clã (👥 Amigos → ⚔️ Clã).', 'To order, you need to be a clan president (👥 Friends → ⚔️ Clan).'] },
+    // 🖋 21/10 (Diego, caso do Tricolor do Arruda): quem tem BATISMO ganha como 2º clã o próprio time do batismo, e o escudo
+    // personalizado vai pro clã que ele já tem
+    info?.batismo ? { prod: 'cla_extra' as ProdutoCla, titulo: ['⚔️⚔️ Seu batismo como 2º clã + escudo personalizado', '⚔️⚔️ Your named club as 2nd clan + custom crest'] as [string, string],
+      texto: [`Cada conta cria 1 clã. Com este, o ${info.batismo} vira o seu 2º clã (com o escudo do batismo) e o ${info.nome} ganha escudo feito à mão (pronto em até 24 h). Você vira presidente dos dois e seus títulos somam nos dois.`,
+        `Each account creates 1 clan. With this, ${info.batismo} becomes your 2nd clan (with the named-club crest) and ${info.nome} gets a hand-made crest (ready within 24 h). You preside over both and your titles count for both.`] as [string, string],
+      pode: presidente && !info.temExtra,
+      porque: (info.temExtra ? ['Você já é presidente de 2 clãs (o máximo).', 'You are already president of 2 clans (the max).'] : ['Pra comprar o 2º clã, você precisa ser presidente do seu clã.', 'To buy a 2nd clan, you need to be president of your clan.']) as [string, string] } :
     { prod: 'cla_extra', titulo: ['⚔️⚔️ 2º clã + escudo personalizado', '⚔️⚔️ 2nd clan + custom crest'],
       texto: ['Cada conta cria 1 clã. Com este, você vira presidente de DOIS — o novo já nasce com escudo feito à mão (pronto em até 24 h). Seus títulos somam nos dois.', 'Each account creates 1 clan. With this you become president of TWO — the new one comes with a hand-made crest (ready within 24 h). Your titles count for both.'],
       pode: presidente && !!info && !info.temExtra,
@@ -478,13 +492,13 @@ export function EscudoClaLoja() {
       <div key={o.prod} id={o.prod === 'escudo_cla' ? 'loja-escudo-cla' : 'loja-cla-extra'} style={{ ...caixa, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {o.prod === 'escudo_cla' ? <><EmblemaCla emblema="e:0" size={46} /><span style={{ fontSize: 20 }}>➜</span><span style={{ fontSize: 40, lineHeight: 1 }}>🛡️</span></>
-            : <><EmblemaCla emblema="e:5" size={46} /><span style={{ fontSize: 22 }}>＋</span><EmblemaCla emblema="e:0" size={46} /></>}
+            : <><EmblemaCla emblema={info?.batismo ? `escudo:${info.batismo}` : 'e:5'} size={46} /><span style={{ fontSize: 22 }}>＋</span><EmblemaCla emblema="e:0" size={46} /></>}
           <div style={{ flex: 1, minWidth: 0 }}>
             <b style={{ ...OSW, fontSize: 17, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{tr(o.titulo[0], o.titulo[1])}</b>
             <small style={{ fontSize: 11.5, fontWeight: 700, color: '#ddd', display: 'block', lineHeight: 1.3, marginTop: 3 }}>{tr(o.texto[0], o.texto[1])}</small>
           </div>
         </div>
-        {meus.filter(m => m.produto === o.prod && !m.pronto).map(m => <EscudoDepoisDoPix key={m.id} pedido={m} aoSalvar={carrega} />)}
+        {meus.filter(m => m.produto === o.prod && !m.pronto).map(m => <EscudoDepoisDoPix key={m.id} pedido={m} aoSalvar={carrega} batismo={info?.batismo ?? null} principal={info?.nome ?? null} />)}
         {meus.filter(m => m.produto === o.prod && m.pronto).map(m => <p key={m.id} style={{ fontSize: 12.5, fontWeight: 800, color: '#9be3b1', margin: '10px 0 0' }}>✅ {tr(`Escudo do ${m.nome} pronto! Já está no clã.`, `${m.nome} crest is ready! It is already on the clan.`)}</p>)}
         {aberto(o.prod) ? null : comprando !== o.prod ? <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
@@ -499,16 +513,17 @@ export function EscudoClaLoja() {
   </>
 }
 // depois do Pix: nome (do clã que já existe, ou do 2º clã que vai nascer) + ideia → botão do zap do Diego com tudo escrito
-function EscudoDepoisDoPix({ pedido, aoSalvar }: { pedido: EscudoPedido; aoSalvar: () => void }) {
+function EscudoDepoisDoPix({ pedido, aoSalvar, batismo, principal }: { pedido: EscudoPedido; aoSalvar: () => void; batismo: string | null; principal: string | null }) {
   const extra = pedido.produto === 'cla_extra'
+  const doBatismo = extra && !!batismo // 🖋 o 2º clã é o time do batismo; o escudo feito à mão vai pro clã que ele já tem
   const [nome, setNome] = useState(pedido.nome ?? '')
   const [ideia, setIdeia] = useState(pedido.ideia ?? '')
   const [erro, setErro] = useState('')
   const [ocupado, setOcupado] = useState(false)
-  const salvo = !!pedido.nome && !!pedido.ideia && pedido.nome === nome.trim() && pedido.ideia === ideia.trim()
+  const salvo = !!pedido.nome && !!pedido.ideia && (doBatismo || pedido.nome === nome.trim()) && pedido.ideia === ideia.trim()
   const cod = pedido.id.slice(0, 8).toUpperCase()
-  const oQue = extra ? '⚔️⚔️ 2º CLÃ + ESCUDO PERSONALIZADO' : '🛡️ ESCUDO DE CLÃ PERSONALIZADO'
-  const zap = `https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(`Olá Diego! Paguei o ${oQue} (pedido ${cod}).\nClã: ${nome.trim()}\nIdeia: ${ideia.trim()}`)}`
+  const oQue = doBatismo ? `⚔️⚔️ 2º CLÃ (meu batismo ${batismo}) + ESCUDO PERSONALIZADO pro clã que eu já tenho` : extra ? '⚔️⚔️ 2º CLÃ + ESCUDO PERSONALIZADO' : '🛡️ ESCUDO DE CLÃ PERSONALIZADO'
+  const zap = `https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(`Olá Diego! Paguei o ${oQue} (pedido ${cod}).\nClã: ${doBatismo ? (pedido.nome ?? principal ?? '') : nome.trim()}\nIdeia: ${ideia.trim()}`)}`
   const salvar = async () => {
     setOcupado(true); setErro('')
     try {
@@ -521,15 +536,16 @@ function EscudoDepoisDoPix({ pedido, aoSalvar }: { pedido: EscudoPedido; aoSalva
   return (
     <div style={{ marginTop: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 10 }}>
       <b style={{ ...OSW, fontSize: 15, display: 'block' }}>✅ {tr('Pagamento confirmado!', 'Payment confirmed!')}</b>
-      <p style={{ fontSize: 12.5, fontWeight: 700, margin: '2px 0 0' }}>{extra ? tr('Dê o nome do seu 2º clã e conte como quer o escudo:', 'Name your 2nd clan and tell us how you want the crest:') : tr('Conta pra gente como você quer o escudo:', 'Tell us how you want the crest:')}</p>
-      <p style={{ ...OSW, fontSize: 11, margin: '8px 0 3px' }}>{extra ? tr('Nome do 2º clã', '2nd clan name') : tr('Nome do clã', 'Clan name')}</p>
-      <input value={nome} maxLength={extra ? 20 : 30} disabled={extra && !!pedido.nome} onChange={e => setNome(e.target.value)} style={campo} />
-      {extra && !pedido.nome && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '3px 0 0' }}>{tr('3 a 20 letras · o clã nasce assim que você salvar (aberto; dá pra fechar depois)', '3 to 20 letters · the clan is born as soon as you save (open; you can close it later)')}</p>}
+      {doBatismo && <p style={{ fontSize: 12.5, fontWeight: 800, margin: '4px 0 0', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🖋 {tr(`Seu 2º clã: ${batismo}, com o escudo do batismo. O escudo feito à mão vai pro ${principal ?? 'seu clã'}.`, `Your 2nd clan: ${batismo}, with the named-club crest. The hand-made crest goes to ${principal ?? 'your clan'}.`)}</p>}
+      <p style={{ fontSize: 12.5, fontWeight: 700, margin: '2px 0 0' }}>{doBatismo ? tr(`Conta como você quer o escudo do ${principal ?? 'seu clã'}:`, `Tell us how you want the ${principal ?? 'clan'} crest:`) : extra ? tr('Dê o nome do seu 2º clã e conte como quer o escudo:', 'Name your 2nd clan and tell us how you want the crest:') : tr('Conta pra gente como você quer o escudo:', 'Tell us how you want the crest:')}</p>
+      {!doBatismo && <p style={{ ...OSW, fontSize: 11, margin: '8px 0 3px' }}>{extra ? tr('Nome do 2º clã', '2nd clan name') : tr('Nome do clã', 'Clan name')}</p>}
+      {!doBatismo && <input value={nome} maxLength={extra ? 20 : 30} disabled={extra && !!pedido.nome} onChange={e => setNome(e.target.value)} style={campo} />}
+      {extra && !doBatismo && !pedido.nome && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '3px 0 0' }}>{tr('3 a 20 letras · o clã nasce assim que você salvar (aberto; dá pra fechar depois)', '3 to 20 letters · the clan is born as soon as you save (open; you can close it later)')}</p>}
       <p style={{ ...OSW, fontSize: 11, margin: '8px 0 3px' }}>{tr('Sua ideia pro escudo', 'Your crest idea')}</p>
       <textarea value={ideia} maxLength={300} rows={3} onChange={e => setIdeia(e.target.value)} placeholder={tr('ex.: um lobo dourado com um martelo, fundo roxo e a coroa em cima', 'e.g. a golden wolf with a hammer, purple background and a crown on top')} style={{ ...campo, resize: 'vertical', fontFamily: 'inherit' }} />
       {erro && <p style={{ fontSize: 12, fontWeight: 800, color: RED, margin: '6px 0 0' }}>⚠️ {erro}</p>}
       {!salvo
-        ? <button disabled={ocupado} onClick={() => void salvar()} style={{ ...bt(INK, GOLD), width: '100%', padding: 10, fontSize: 14, marginTop: 8 }}>{extra && !pedido.nome ? tr('⚔️ Criar o 2º clã', '⚔️ Create the 2nd clan') : tr('Salvar nome e ideia', 'Save name and idea')}</button>
+        ? <button disabled={ocupado} onClick={() => void salvar()} style={{ ...bt(INK, GOLD), width: '100%', padding: 10, fontSize: 14, marginTop: 8 }}>{extra && !pedido.nome ? (doBatismo ? tr(`⚔️ Liberar o ${batismo} como clã`, `⚔️ Unlock ${batismo} as a clan`) : tr('⚔️ Criar o 2º clã', '⚔️ Create the 2nd clan')) : tr('Salvar nome e ideia', 'Save name and idea')}</button>
         : <a href={zap} target="_blank" rel="noopener noreferrer" style={{ ...bt('#25D366', '#fff'), display: 'block', textAlign: 'center', textDecoration: 'none', width: '100%', boxSizing: 'border-box', padding: 11, fontSize: 14, marginTop: 8 }}>💬 {tr('Mandar no WhatsApp do Diego', 'Send to Diego on WhatsApp')}</a>}
       <p style={{ fontSize: 11, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr(`Abre o WhatsApp (${WHATSAPP_TXT}) com tudo escrito: nome do clã, ideia e o código do pedido ${cod}. O escudo fica pronto em até 24 h e aparece no clã sozinho.`, `Opens WhatsApp (${WHATSAPP_TXT}) with everything written: clan name, idea and order code ${cod}. The crest is ready within 24 h and shows on the clan by itself.`)}</p>
     </div>
