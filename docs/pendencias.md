@@ -39,11 +39,15 @@ a Champions anda com dado próprio (a sua Liberta não reembaralha a Champions).
 15/15 (internacional), 15/15 (Copa do Mundo); jogos de bot iguais quando o chaveamento é o mesmo. Gol contra não conta pra
 artilharia. 🐛 De carona: a Copa do Mundo da carreira ignorava o próprio carimbo na 1ª abertura (potes/peso novo só valiam depois de
 um F5 — a Copa podia trocar no meio); agora a 1ª vez e o F5 dão a mesma Copa.
-🌐 **(21/10, NO BRANCH, não publicado — esperando o Diego mandar):** carreira online v2 com o motor novo. Quem comanda a sala (e só
+🌐 **(21/10, PUBLICADO junto do conserto das duplas):** carreira online v2 com o motor novo. Quem comanda a sala (e só
 se a conta dele tem o motor novo) carimba `mundo.m2 = temporada` no preparo; todo aparelho lê o MESMO carimbo e liga junto da rodada 1
 dessa temporada em diante (liga, copas, internacional, Copa do Mundo). Falta testar com 2 aparelhos antes de publicar.
-⏳ **FASE 3 (falta):** guardar o resultado no
-save pra não pagar os 2,3 s ao abrir · o pênalti decisivo manual continua somando gol por cima (decidir com o Diego se fica).
+✅ (21/10, no branch) resultado do motor novo GUARDADO no aparelho (`ll-m2-res`, uma chave, teto 700 jogos ~90 bytes cada): reabrir a
+carreira não refaz os jogos (0,5 ms × ~100 ms cada) e ajuste de motor publicado não muda placar de jogo já visto. ⚠️ Caso raro: jogo
+calculado numa versão e ASSISTIDO noutra (recarregou no meio da rodada logo depois de uma publicação) — o campinho poderia mostrar
+outro lance; o placar que vale é o guardado.
+⏳ **FASE 3 (falta):** o pênalti decisivo manual continua somando gol por cima (decidir com o Diego se fica) · testar a carreira
+online com 2 aparelhos.
 🚪 **PORTA DE ENTRADA NO JOGO (decisão do Diego, perguntada em 20/10):** hoje o campinho ENCENA o placar que a simulação da liga
 já decidiu (v1). O motor novo decide o placar sozinho. Então, pra ele entrar no jogo de verdade, o placar das partidas em 2D passa a
 SER o que acontece no campinho (liga, copas, online — tudo que o v1 desenha hoje), ou o v2 fica só de bancada. Sem essa resposta

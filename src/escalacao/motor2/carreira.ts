@@ -50,12 +50,50 @@ const chave = (e: EntradaM2) => [e.seed, e.clima, String(e.tecnico), String(e.ev
 const CACHE = new Map<string, ResultadoM2>()
 const MAX = 600
 
+// 💾 GUARDADO NO APARELHO (21/10). Duas razões: (1) abrir a carreira no meio da temporada refazia todos os jogos de gente
+// (~2,3 s); (2) o motor ainda é ajustado — sem guardar, cada publicação podia mudar o placar de jogo JÁ VISTO nesta temporada,
+// e o que apareceu na tela é de pedra. A chave é a ENTRADA do jogo (os 22, formação, tática, gás, técnico…): jogo que já
+// aconteceu nunca muda de entrada, então o resultado dele fica congelado. UMA chave só no localStorage, com teto de entradas
+// (nunca enche o aparelho — ver storage-guard.ts); gravar que falha é ignorado (o jogo só recalcula).
+const LS = 'll-m2-res'
+const MAX_LS = 700
+type Guardado = [string, number, number, GolM2[]]
+let disco: Map<string, ResultadoM2> | null = null
+let gravaPendente: ReturnType<typeof setTimeout> | null = null
+const hash = (txt: string): string => {
+  let a = 0x811C9DC5, b = 0x01000193 ^ txt.length
+  for (let i = 0; i < txt.length; i++) { const c = txt.charCodeAt(i); a = Math.imul(a ^ c, 0x01000193) >>> 0; b = Math.imul(b ^ c, 0x5BD1E995) >>> 0; b ^= b >>> 13 }
+  return a.toString(36) + '.' + b.toString(36)
+}
+function leDisco(): Map<string, ResultadoM2> {
+  if (disco) return disco
+  disco = new Map()
+  try {
+    const cru = typeof localStorage !== 'undefined' ? localStorage.getItem(LS) : null
+    for (const [k, p0, p1, gols] of (cru ? JSON.parse(cru) as Guardado[] : [])) disco.set(k, { placar: [p0, p1], gols })
+  } catch { /* aparelho sem acesso ou lixo: começa vazio */ }
+  return disco
+}
+function guardaNoDisco(k: string, r: ResultadoM2): void {
+  const d = leDisco()
+  d.delete(k); d.set(k, r)
+  while (d.size > MAX_LS) d.delete(d.keys().next().value as string)
+  if (gravaPendente || typeof localStorage === 'undefined') return
+  gravaPendente = setTimeout(() => {
+    gravaPendente = null
+    try { localStorage.setItem(LS, JSON.stringify([...d].map(([k2, x]) => [k2, x.placar[0], x.placar[1], x.gols] as Guardado))) } catch { /* cheio: segue sem guardar */ }
+  }, 1500)
+}
+
 /** o resultado do jogo (joga o motor até o fim, sem desenhar). ~100 ms por jogo; guardado na memória — a carreira re-simula a
  *  temporada inteira a cada rodada, e sem isto cada rodada custaria 100 ms × rodadas jogadas */
 export function resultadoM2(e: EntradaM2): ResultadoM2 {
   const k = chave(e)
   const c = CACHE.get(k)
   if (c) return c
+  const hk = hash(k)
+  const g = leDisco().get(hk)
+  if (g) { CACHE.set(k, g); return g }
   const m = novoMotor2(e)
   for (let min = 1; min <= 93 && !m.fim; min++) m.avancaAte(min)
   const SEG = 90 / 93
@@ -66,5 +104,6 @@ export function resultadoM2(e: EntradaM2): ResultadoM2 {
   const r: ResultadoM2 = { placar: [m.placar[0], m.placar[1]], gols }
   if (CACHE.size >= MAX) CACHE.delete(CACHE.keys().next().value as string)
   CACHE.set(k, r)
+  guardaNoDisco(hk, r)
   return r
 }
