@@ -37,7 +37,7 @@ const haQuanto = (iso: string) => {
 // 🖋️ BATISMO EM DESTAQUE (13/10, Diego: "troque o último batismo do Rossini pelo do K9 e não quero mais que seja último
 // batismo… vou fazer uns rodízios"). Quem escolhe o clube é o Diego: pra trocar, é só mudar esta linha (clube + data
 // em que ele chegou no jogo). Não depende mais do banco.
-const DESTAQUE = { clube: 'K9 FC', desde: '2026-10-06' } // 🔁 16/10: volta pro K9 (Diego: "troque o batismo de destaque pelo time do K9")
+const DESTAQUE = { clube: 'Labubu FC', desde: '2026-10-14' } // 🔁 21/10: Labubu FC (Diego: "troque o batizado em destaque das salas online pro Labubu") · antes: K9 FC (16/10)
 const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}º`)
 
 function Caixa({ titulo, sub, escura = false, children }: { titulo: string; sub: string; escura?: boolean; children: React.ReactNode }) {
