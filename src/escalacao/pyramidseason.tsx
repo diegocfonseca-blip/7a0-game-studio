@@ -1,5 +1,6 @@
 import {RitmoCampoProvider} from './presidencia-velocidade'
 import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
+import { useCo2 } from './co2'
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
@@ -8413,7 +8414,10 @@ export function PyramidSeasonScreen() {
   const m2Liberado = useCampo2DLiberado()
   const m2Ok = m2Liberado && state.careerOnline && state.onlineMode !== 'online' && !state.co2
   useEffect(() => { if (m2Ok && !state.motor2Desde) dispatch({ type: 'LIGA_MOTOR2' }) }, [m2Ok, state.motor2Desde, dispatch])
-  const m2Desde = !m2Ok || !state.motor2Desde ? undefined
+  // 🌐 carreira online v2: vale o carimbo da SALA (o mesmo em todo aparelho), da rodada 1 da temporada carimbada em diante
+  const co2M2 = useCo2().mundo?.m2
+  const m2Desde = state.co2 ? (co2M2 != null && (state.seasonNo ?? 1) >= co2M2 ? 0 : undefined)
+    : !m2Ok || !state.motor2Desde ? undefined
     : state.motor2Desde.season === (state.seasonNo ?? 1) ? state.motor2Desde.round : state.motor2Desde.season < (state.seasonNo ?? 1) ? 0 : undefined
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
   const m2Copa = m2Desde != null && m2Desde < 38

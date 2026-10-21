@@ -15,7 +15,7 @@ export type Co2Sala = {
 }
 export type Co2Clube = { sala: string; assento: number; user_id: string; nome: string; pronto_rodada: number | null; na_sala_em: string | null; publico?: Record<string, unknown> }
 /** O que é de todos e não muda a cada rodada: a ordem dos clubes de gente (uid por posição = id do técnico no jogo). */
-export type Co2Mundo = { ordem: string[]; v?: number }
+export type Co2Mundo = { ordem: string[]; v?: number; /** ⚽🧠 temporada a partir da qual o motor novo decide os jogos de gente (a mesma pra todo aparelho; o dono grava no preparo) */ m2?: number }
 
 type Snap = { sala: Co2Sala | null; clubes: Co2Clube[]; uid: string | null; aqui: string[]; mundo: Co2Mundo | null }
 let snap: Snap = { sala: null, clubes: [], uid: null, aqui: [], mundo: null }
@@ -62,9 +62,9 @@ export async function co2RecarregaClubes(): Promise<void> {
 }
 export async function co2LeMundo(): Promise<Co2Mundo | null> {
   if (!canalSala) return null
-  const { data } = await supabase.from('esc_carr_sala').select('m:mundo->ordem, v:mundo->v').eq('id', canalSala).maybeSingle()
-  const d = data as { m?: string[] | null; v?: number | null } | null
-  const mundo = d?.m ? { ordem: d.m, v: d.v ?? undefined } : null
+  const { data } = await supabase.from('esc_carr_sala').select('m:mundo->ordem, v:mundo->v, m2:mundo->m2').eq('id', canalSala).maybeSingle()
+  const d = data as { m?: string[] | null; v?: number | null; m2?: number | null } | null
+  const mundo = d?.m ? { ordem: d.m, v: d.v ?? undefined, m2: d.m2 ?? undefined } : null
   muda({ mundo })
   return mundo
 }

@@ -37,6 +37,7 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
 import { useCampo2DLigado } from './campo2d-modo'
 import { useCampo2DLiberado } from './sport'
+import { useCo2 } from './co2'
 import { DUR_2D_MS } from './campo2d-motor'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
@@ -527,7 +528,8 @@ export function CareerInternationalView(p: Props) {
   // 👀 a competição EM FOCO: a minha, ou a que escolhi acompanhar (sem vaga)
   const foco: InternationalCompetition | null = myComp ?? (modo && modo !== 'pular' ? modo : null)
   // ⚽🧠 motor novo decide o jogo do presidente (mesma régua da liga: conta liberada, carreira solo, já ligado na carreira)
-  const m2Intl = useCampo2DLiberado() && !!state.motor2Desde && !state.co2
+  const m2Liberado = useCampo2DLiberado(), co2M2 = useCo2().mundo?.m2
+  const m2Intl = state.co2 ? co2M2 != null && (state.seasonNo ?? 1) >= co2M2 : m2Liberado && !!state.motor2Desde
   const begin = (representedClub: string | null, xi: Card[]) => {
     let c: InternationalCampaign
     try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl }) }
