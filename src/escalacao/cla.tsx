@@ -99,7 +99,7 @@ export function CaixaClaPerfil({ uid }: { uid: string }) {
 }
 
 // ── a aba ⚔️ Clã dos Amigos ─────────────────────────────────────────────────────────────────────────────────────
-type ClaJson = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; campeao: boolean; pos?: number }
+type ClaJson = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; campeao: boolean; pos?: number; descricao?: string | null }
 type Bloco = ClaJson & { pos: number | null; lista: { uid: string; nome: string; titulos: number }[]; pedidos: { id: number; uid: string; nome: string }[] }
 type Painel = {
   pode_criar: boolean; escudo: string | null; espera_ate: string | null
@@ -122,6 +122,9 @@ const ERRO: Record<string, [string, string]> = {
   lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
   sem_cla: ['Esse clã não existe mais.', 'That clan no longer exists.'],
+  desc_tamanho: ['A descrição pode ter até 200 letras.', 'The description can have up to 200 letters.'],
+  desc_link: ['A descrição não pode ter link.', 'The description cannot have links.'],
+  desc_feia: ['Essa descrição não é permitida: sem palavrão e nada que ofenda alguém.', 'That description is not allowed: no swearing and nothing offensive.'],
   cheio: ['Você já está em 2 clãs, que é o máximo. Saia de um antes.', 'You are already in 2 clans, the max. Leave one first.'],
   guardar_gente: ['Só dá pra guardar o clã quando você é o único dele. Com gente, passe a presidência ou feche.', 'You can only store the clan when you are its only member. With people, hand over the presidency or close it.'],
   emblema_fixo: ['Esse clã tem escudo próprio (batismo ou personalizado): o emblema não se troca.', 'This clan has its own crest (named club or custom): the emblem can’t be changed.'],
@@ -129,6 +132,8 @@ const ERRO: Record<string, [string, string]> = {
 const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
 // ⚔️⚔️ 21/10 (Diego): "resumindo, sempre são dois… isso aí também tem que estar escrito em algum lugar"
 const REGRA_DOIS: [string, string] = ['⚔️⚔️ Sempre são dois: com a 2ª vaga (R$ 9,90 na 🛒 Loja, uma vez só) você fica em até 2 clãs — membro dos 2, presidente dos 2 ou um de cada. Pra entrar num 3º, saia de um; sendo presidente, passe a presidência, 📦 guarde ou feche o clã.', '⚔️⚔️ Always two: with the 2nd slot (R$ 9.90 in the 🛒 Shop, once) you can be in up to 2 clans — member of both, president of both or one of each. To join a 3rd, leave one; as president, hand over, 📦 store or close the clan.']
+// 📝 21/10 (Diego): "cada clã tem que ter a sua descrição" — aparece no convite, na lista e na página do clã
+const Descricao = ({ t, escuro }: { t?: string | null; escuro?: boolean }) => t ? <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', margin: '4px 0 0', lineHeight: 1.35, color: escuro ? '#e8e2d0' : '#4a4030', overflowWrap: 'anywhere' }}>“{t}”</p> : null
 const dataCurta = (iso: string) => { const d = new Date(iso); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }
 
 export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: string }[]; onPerfil: (uid: string) => void }) {
@@ -140,6 +145,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [pres, setPres] = useState<{ cla: { id: number; nome: string }; destino?: string; seguir?: () => void } | null>(null)
   const [cheio, setCheio] = useState<{ destino: string; meus: ClaJson[] } | null>(null) // ⚔️⚔️ já está em 2 → "sempre são dois"
   const [sozinho, setSozinho] = useState<ClaJson | null>(null) // 📦 presidente sozinho saindo: guardar ou fechar
+  const [editaDesc, setEditaDesc] = useState<string | null>(null) // 📝 o presidente escrevendo a descrição
   const [trocaEmb, setTrocaEmb] = useState(false) // 🎨 21/10: o presidente troca o emblema pronto (quem não pagou o personalizado)
   const [ver2, setVer2] = useState(false) // ⚔️⚔️ olhando o 2º clã (só aparece pra quem comprou)
   const [semPlano, setSemPlano] = useState(false) // 🔒 tocou em "Criar clã" sem plano → caixa explicando + botão dos planos
@@ -166,7 +172,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const livre = ocupadas < (p.vagas ?? 1) // tem lugar sobrando: entra/cria sem sair de nenhum
   const voltar = <button style={{ ...bt('#fff', INK), marginTop: 10 }} onClick={() => setTela('inicio')}>‹ {tr('voltar', 'back')}</button>
 
-  if (tela === 'criar') return <>{voltar}<CriarCla painel={p} saindoDe={livre ? undefined : p.cla?.nome} segundo={livre && ocupadas === 1} ocupado={ocupado} onCriar={(nome, emblema, aberto) => void faz('esc_cla_criar', { p_nome: nome, p_emblema: emblema, p_aberto: aberto, p_trocar: !livre && !!p.cla }, tr('⚔️ Clã criado! Chame seus amigos.', '⚔️ Clan created! Invite your friends.'))} />{aviso}</>
+  if (tela === 'criar') return <>{voltar}<CriarCla painel={p} saindoDe={livre ? undefined : p.cla?.nome} segundo={livre && ocupadas === 1} ocupado={ocupado} onCriar={(nome, emblema, aberto, descricao) => void faz('esc_cla_criar', { p_nome: nome, p_emblema: emblema, p_aberto: aberto, p_trocar: !livre && !!p.cla, p_descricao: descricao }, tr('⚔️ Clã criado! Chame seus amigos.', '⚔️ Clan created! Invite your friends.'))} />{aviso}</>
   const modalTroca = <>{troca && <ConfirmaTroca {...troca} onFicar={() => setTroca(null)} />}
     {pres && <ResolvePresidencia cla={pres.cla.nome} claId={pres.cla.id} destino={pres.destino} onFicar={() => setPres(null)}
       onPassou={() => { if (pres.seguir) pres.seguir(); else { setPres(null); void faz('esc_cla_sair', { p_cla: pres.cla.id }, tr('Presidência passada. Você saiu do clã.', 'Presidency handed over. You left the clan.')) } }}
@@ -201,12 +207,14 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       ))}
     </div>}
     {p.convites.map(v => (
-      <div key={v.pedido_id} style={{ ...caixa, background: '#EFE6FF', display: 'flex', gap: 10, alignItems: 'center' }}>
-        <EmblemaCla emblema={v.emblema} size={34} />
-        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})</div>
-        <span style={{ display: 'flex', gap: 5 }}>
-          <button disabled={ocupado} style={bt(GREEN, '#fff')} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
-          <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: false })}>{tr('agora não', 'not now')}</button>
+      <div key={v.pedido_id} style={{ ...caixa, background: '#EFE6FF' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <EmblemaCla emblema={v.emblema} size={40} />
+          <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})<Descricao t={v.descricao} /></div>
+        </div>
+        <span style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+          <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
+          <button disabled={ocupado} style={{ ...bt('#fff', INK), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: false })}>{tr('agora não', 'not now')}</button>
         </span>
       </div>
     ))}
@@ -216,6 +224,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <div style={{ minWidth: 0 }}>
           <b style={{ ...OSW, fontSize: 20, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
           <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('presidente', 'president')}: {c.lider_nome} · {c.membros}/{CLA_MAX} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
+          <Descricao t={c.descricao} escuro />
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginTop: 8 }}>
@@ -252,6 +261,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           if (souLider(c) && c.membros > 1) { setPres({ cla: c, destino: tr('seu clã novo', 'your new clan'), seguir: () => { setPres(null); setTela('criar') } }); return }
           setTroca({ info: { erro: 'confirmar', atual: c.nome, atual_emblema: c.emblema, lider: souLider(c), sozinho: c.membros <= 1 }, destino: tr('seu clã novo', 'your new clan'), destinoEmblema: 'e:0', aberto: true, criar: true, seguir: () => { setTroca(null); setTela('criar') } })
         }}>⚔️ {tr('Criar meu clã', 'Create my clan')}</button>
+        {souLider(c) && <button style={bt(editaDesc !== null ? INK : '#fff', editaDesc !== null ? GOLD : INK)} onClick={() => setEditaDesc(v => v === null ? (c.descricao ?? '') : null)}>📝 {tr('descrição', 'description')}</button>}
         {souLider(c) && /^e:\d{1,2}$/.test(c.emblema) && <button style={bt(trocaEmb ? INK : '#fff', trocaEmb ? GOLD : INK)} onClick={() => setTrocaEmb(v => !v)}>🎨 {tr('emblema', 'emblem')}</button>}
         {souLider(c) && <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_aberto', { p_aberto: !c.aberto, ...alvo })}>{c.aberto ? tr('🔒 fechar', '🔒 close') : tr('🔓 abrir', '🔓 open')}</button>}
         <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => {
@@ -260,6 +270,12 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           if (window.confirm(tr(`Sair do ${c.nome}?`, `Leave ${c.nome}?`))) { setVer2(false); void faz('esc_cla_sair', { p_cla: c.id }, tr('Você saiu do clã.', 'You left the clan.')) }
         }}>{tr('sair', 'leave')}</button>
       </div>
+      {editaDesc !== null && souLider(c) && <div style={caixa}>
+        <p style={h3}>📝 {tr('Descrição do clã', 'Clan description')}</p>
+        <textarea value={editaDesc} maxLength={200} rows={3} onChange={e => setEditaDesc(e.target.value)} placeholder={tr('ex.: Clã da galera do zap · jogamos toda noite às 21h', 'e.g. The WhatsApp crew · we play every night at 9pm')} style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 13.5, fontWeight: 700, color: INK, background: '#fff', resize: 'vertical', fontFamily: 'inherit' }} />
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '3px 0 6px' }}>{editaDesc.length}/200 · {tr('sem link e sem palavrão · em branco = sem descrição', 'no links, no swearing · blank = no description')}</p>
+        <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 9 }} onClick={() => { const t = editaDesc; setEditaDesc(null); void faz('esc_cla_descricao', { p_cla: c.id, p_texto: t }, tr('📝 Descrição salva!', '📝 Description saved!')) }}>{tr('Salvar descrição', 'Save description')}</button>
+      </div>}
       {trocaEmb && souLider(c) && <div style={caixa}>
         <p style={h3}>🎨 {tr('Trocar o emblema do clã', 'Change the clan emblem')}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -425,8 +441,9 @@ const souLider = (c: ClaJson) => !!meuUidAtual && c.lider === meuUidAtual
 // ✂️ 21/10 (Diego: "não precisa ter FC nos clãs"): o clã do batismo leva o nome do time sem FC/EC/SC/AC/SAF — a MESMA régua do banco (esc_cla_sem_fc)
 const semFc = (t: string) => t.trim().replace(/[\s_.-]+(f\.?\s?c\.?|e\.?\s?c\.?|s\.?\s?c\.?|a\.?\s?c\.?|saf)$/i, '').trim()
 
-function CriarCla({ painel, saindoDe, segundo, ocupado, onCriar }: { painel: Painel; saindoDe?: string; segundo?: boolean; ocupado: boolean; onCriar: (nome: string, emblema: string, aberto: boolean) => void }) {
+function CriarCla({ painel, saindoDe, segundo, ocupado, onCriar }: { painel: Painel; saindoDe?: string; segundo?: boolean; ocupado: boolean; onCriar: (nome: string, emblema: string, aberto: boolean, descricao: string) => void }) {
   const [nome, setNome] = useState('')
+  const [desc, setDesc] = useState('')
   // 🖋 21/10 (Diego): quem tem batismo pode criar o clã DO TIME — nome E escudo do batismo, juntos (nunca o escudo com outro nome)
   const [batismo, setBatismo] = useState(!!painel.escudo && !saindoDe)
   const [emb, setEmb] = useState('e:0')
@@ -457,12 +474,16 @@ function CriarCla({ painel, saindoDe, segundo, ocupado, onCriar }: { painel: Pai
       {opcoes.map(([k, el]) => <button key={k} onClick={() => setEmb(k)} style={{ border: `3px solid ${emb === k ? GOLD : 'transparent'}`, borderRadius: 10, background: emb === k ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}>{el}</button>)}
     </div>
     </>}
+    <p style={{ ...OSW, fontSize: 11, margin: '10px 0 4px' }}>📝 {tr('Descrição (opcional)', 'Description (optional)')}</p>
+    <textarea value={desc} maxLength={200} rows={2} onChange={e => setDesc(e.target.value)} placeholder={tr('ex.: Clã da galera do zap · jogamos toda noite às 21h', 'e.g. The WhatsApp crew · we play every night at 9pm')}
+      style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 13.5, fontWeight: 700, color: INK, background: '#fff', resize: 'vertical', fontFamily: 'inherit' }} />
+    <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '3px 0 0' }}>{tr('Aparece no convite e na lista de clãs, pra quem for chamado saber como é o clã. Até 200 letras, sem link. Dá pra mudar depois.', 'Shows on invites and in the clan list, so people know what the clan is about. Up to 200 letters, no links. You can change it later.')}</p>
     <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
       {[[true, tr('🔓 Aberto · entra direto', '🔓 Open · join directly')], [false, tr('🔒 Fechado · pede e você aceita', '🔒 Closed · they ask, you accept')]].map(([v, rot]) => (
         <button key={String(v)} onClick={() => setAberto(v as boolean)} style={{ ...bt(aberto === v ? INK : '#fff', aberto === v ? GOLD : INK), flex: 1, whiteSpace: 'normal', fontSize: 11 }}>{rot as string}</button>
       ))}
     </div>
-    <button disabled={ocupado || (!batismo && nome.trim().length < 3)} style={{ ...bt(GREEN, '#fff'), width: '100%', marginTop: 10, padding: 11, fontSize: 15, opacity: !batismo && nome.trim().length < 3 ? .5 : 1 }} onClick={() => onCriar(batismo && painel.escudo ? painel.escudo : nome, batismo && painel.escudo ? 'escudo' : emb, aberto)}>⚔️ {tr('Criar clã', 'Create clan')}</button>
+    <button disabled={ocupado || (!batismo && nome.trim().length < 3)} style={{ ...bt(GREEN, '#fff'), width: '100%', marginTop: 10, padding: 11, fontSize: 15, opacity: !batismo && nome.trim().length < 3 ? .5 : 1 }} onClick={() => onCriar(batismo && painel.escudo ? painel.escudo : nome, batismo && painel.escudo ? 'escudo' : emb, aberto, desc)}>⚔️ {tr('Criar clã', 'Create clan')}</button>
   </div>
 }
 
@@ -492,6 +513,7 @@ function ProcurarCla({ pedi, meu, ocupado, onEntrar }: { pedi: number[]; meu: nu
           <div style={{ flex: 1, minWidth: 0 }}>
             <b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
             <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{CLA_MAX} · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
+            <Descricao t={c.descricao} />
           </div>
           {c.id === meu ? <span style={{ fontSize: 11, fontWeight: 800, color: GREEN }}>✅ {tr('seu clã', 'your clan')}</span>
             : lotado ? <span style={{ ...bt('#eee', '#888'), cursor: 'default' }}>{tr('lotado', 'full')}</span>
