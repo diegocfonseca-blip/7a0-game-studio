@@ -267,7 +267,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
 }
 
 // ── 👥 MEUS AMIGOS ─────────────────────────────────────────────────────────────────────────────────────────────
-export function MeusAmigos({ onClose }: { onClose: () => void }) {
+export function MeusAmigos({ onClose, abaInicial = 'amigos' }: { onClose: () => void; abaInicial?: 'amigos' | 'ranking' | 'album' | 'cla' }) {
   const [lista, setLista] = useState<Linha[] | null | 'erro'>(null)
   const [perfil, setPerfil] = useState<string | null>(null)
   // 👤 18/10 (Diego abriu a lista vazia e não viu nada do mockup): o MEU perfil no topo + 🔎 procurar técnico pelo nome
@@ -275,7 +275,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [busca, setBusca] = useState('')
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
-  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>('amigos')
+  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>(abaInicial)
   const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
   const [chamados, setChamados] = useState<Record<string, string>>({})
   const [semConta, setSemConta] = useState(false)
@@ -462,6 +462,14 @@ export function abrePerfilSolto(uid: string) {
   if (!raizPerfil) { const el = document.createElement('div'); el.id = 'perfil-solto'; document.body.appendChild(el); raizPerfil = createRoot(el) }
   vezPerfil++
   raizPerfil.render(<PerfilPublico key={vezPerfil} uid={uid} onClose={() => raizPerfil?.render(null)} />)
+}
+
+// ⚔️ 21/10 (Diego: "no ranking dos clãs, um botão sutil 'procurar ou criar clãs' que cai na aba de clãs"): abre os Amigos
+// SOLTO (raiz própria, igual ao perfil) já na aba pedida — serve pra qualquer tela que não tem a janela de Amigos à mão.
+let raizAmigos: Root | null = null
+export function abreAmigosSolto(aba: 'amigos' | 'ranking' | 'album' | 'cla' = 'amigos') {
+  if (!raizAmigos) { const el = document.createElement('div'); el.id = 'amigos-solto'; document.body.appendChild(el); raizAmigos = createRoot(el) }
+  raizAmigos.render(<MeusAmigos key={Date.now()} abaInicial={aba} onClose={() => raizAmigos?.render(null)} />)
 }
 
 // ── 👥 v2 (19/10, liberado pra todos) ──────────────────────────────────────────────────────────────────────────────

@@ -20,7 +20,7 @@ import { MascoteMini } from './mascote-atravessa'
 import { ApoieButton } from './screens'
 import { RANKING_SEMANA_MOEDAS } from './store'
 import { ClaVer } from './cla-ver' // 👆 21/10: tocar no clã abre a janela com os membros e o entrar/pedir
-import { abrePerfilSolto, contaValida } from './amigos' // 👆 21/10: tocar no técnico abre o perfil (amigo, clã)
+import { abreAmigosSolto, abrePerfilSolto, contaValida } from './amigos' // 👆 21/10: tocar no técnico abre o perfil (amigo, clã)
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -68,6 +68,8 @@ export function RankingClasCaixa() {
         </div>
       ))}
       {l.length > 0 && <p style={{ margin: '5px 0 0', fontSize: 10.5, fontWeight: 800, color: '#7C3AED' }}>👆 {tr('Toque num clã pra ver os membros e entrar.', 'Tap a clan to see its members and join.')}</p>}
+      {/* ⚔️ 21/10 (Diego: "um botão sutil, procurar ou criar clãs"): leva pra aba ⚔️ Clã dos Amigos */}
+      <button onClick={() => abreAmigosSolto('cla')} style={{ ...OSW, display: 'block', margin: '8px auto 0', fontSize: 11.5, background: 'transparent', color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 12px', cursor: 'pointer' }}>🔎 {tr('Procurar ou criar clã', 'Find or create a clan')} ›</button>
       {ver !== null && <ClaVer id={ver} onClose={() => setVer(null)} />}
       <p style={{ margin: '7px 0 0', fontSize: 11, fontWeight: 800, color: INK }}>{tr('🎁 Prêmio pra CADA membro: 🥇 30 · 🥈 20 · 🥉 10 🪙 pra carreira + o clã no 📺 telão a semana toda.', '🎁 Prize for EVERY member: 🥇 30 · 🥈 20 · 🥉 10 🪙 for career + the clan on the 📺 big screen all week.')}</p>
       <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('O clã campeão joga a semana seguinte com 🏆 no selo de cada membro. Entre num clã em 👥 Amigos → ⚔️ Clã.', 'The champion clan plays the next week with 🏆 on every member’s badge. Join a clan in 👥 Friends → ⚔️ Clan.')}</p>
