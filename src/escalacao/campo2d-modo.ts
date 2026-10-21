@@ -7,6 +7,7 @@
 import { useSyncExternalStore } from 'react'
 import { useCampo2DLiberado } from './sport'
 import { useEscTalvez } from './store'
+import { estadioNoCampinho } from './estadiodata' // 🌱🏟️ o estádio do mandante no campinho (21/10)
 
 export const CAMPO2D_CHAVE = 'esc-campo2d'
 let pref = (() => { try { return localStorage.getItem(CAMPO2D_CHAVE) === '1' } catch { return false } })()
@@ -47,9 +48,17 @@ export function useCampo2DLigado(): boolean {
 }
 
 /** o que a tela do jogo sabe e o campinho usa: nome do técnico (carreira) e a tática de cada clube (🧱 −1 · ⚖️ 0 · 🔥 +1) */
-export function useCampo2DExtras(): { tecnicoDe: (nome: string) => string | null; taticaDe: (nome: string) => number } {
+export function useCampo2DExtras(): { tecnicoDe: (nome: string) => string | null; taticaDe: (nome: string) => number; estadioDe: (nome: string) => { grama: number; lotacao: number } | undefined; meuTime: string | null; offline: boolean } {
   const s = useEscTalvez()?.state
   return {
+    meuTime: s?.managers?.[s.youIdx]?.teamName ?? null, // 🧑‍💼 o presidente na beira do campo é o do MEU time
+    offline: !s || (s.onlineMode !== 'online' && !s.co2), // 🎬 o replay dos gols só existe fora do online
+    // 🌱🏟️ o estádio do MANDANTE no campinho: só carreira e só clube de gente (bot e os outros modos = gramado perfeito e casa cheia)
+    estadioDe: nome => {
+      if (!s?.careerOnline) return undefined
+      const m = s.managers?.find(x => x.isHuman && x.teamName === nome)
+      return m ? estadioNoCampinho(s.stadiums?.[m.id]) : undefined
+    },
     tecnicoDe: nome => s?.careerTecnicos?.[nome] ?? null,
     taticaDe: nome => {
       const m = s?.managers?.find(x => x.teamName === nome)

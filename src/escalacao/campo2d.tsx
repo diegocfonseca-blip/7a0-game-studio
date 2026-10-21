@@ -16,7 +16,7 @@ import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
 import { avatarLote1 } from './avatar-lote1'
 import { useT } from './lang'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrás dos gols do campinho do jogo (Vadico · Tidex, trocando)
-import { placasDoCampo, type PlacaCampo } from './patrocinio'
+import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
 import { nomeLimpo } from './escudos'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
@@ -31,8 +31,8 @@ const PLACA_MS = 7000 // as placas laterais trocam no mesmo ritmo das placas atr
 type Gol = { name: string; min: number; home: boolean; assist?: string }
 export interface Campo2DProps {
   roundKey: number
-  casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
-  fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
+  casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 🧑‍💼 o busto do presidente (imagem) — na beira do campo, ao lado do técnico */ presidente?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
+  fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 🧑‍💼 o busto do presidente (imagem) — na beira do campo, ao lado do técnico */ presidente?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
   gols: Gol[]
   roundMs: number
   minuto: number // o minuto que o placar mostra (o relógio manda)
@@ -49,6 +49,8 @@ export interface Campo2DProps {
   /** 🏟️ o ESTÁDIO do mandante (carreira): gramado 0–100 (0 = terra da várzea, 100 = perfeito) e quanto da arquibancada tem gente
    *  (0–1). Sem isto (rápido, salas): o gramado perfeito e a casa cheia de sempre. */
   estadio?: { grama: number; lotacao: number }
+  /** 🎬 replay dos gols depois do apito (só fora do online — Diego 21/10) */
+  replay?: boolean
 }
 
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
@@ -87,7 +89,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay }: Campo2DProps) {
   const t = useT()
   useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
@@ -101,9 +103,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 🌤️ o céu deste jogo (preso na semente: a sala inteira vê o mesmo) — ☀️ sombra atravessando · ☁️ luz chapada · 🌧️ chuva (rara)
   const clima = climaForcado ?? climaDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome))
   // 🌙 de vez em quando o jogo é de noite, com os refletores acesos (preso na semente, como o clima)
-  // ⏳ DESLIGADO até o Diego aprovar a foto (21/10): no jogo a noite ainda não sorteia — só a bancada força
-  const NOITE_LIGADA = false
-  const noite = noiteForcada ?? (NOITE_LIGADA && noiteDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome)))
+  const noite = noiteForcada ?? noiteDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome)) // ✅ aprovado pelo Diego (21/10)
   // 🌱🏟️ o estádio de quem joga em casa: o gramado melhora com as obras (terra → perfeito) e a torcida enche com as ampliações
   const gramaPct = clamp(estadio?.grama ?? 100, 0, 100) / 100
   const lotacao = clamp(estadio?.lotacao ?? 1, 0.04, 1)
@@ -158,6 +158,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 🐢 ANTI-TRAVADA (20/10, Diego: *"o jogo dando umas travadas com a bola rolando"*): o placar re-renderiza a cada minuto e
   // mandava arrays/objetos novos — o desenho REINICIAVA (canvas zerado, tudo recalculado). Agora o que muda sem mudar o jogo
   // (elenco, técnico, apito, idioma) é lido daqui, e o desenho só reinicia quando muda o JOGO, o tamanho ou as cores.
+  // 🎬 REPLAY DOS GOLS (21/10, Diego: *"só se tocar um botão verde… não funciona nos modos online"*): o campinho guarda os
+  // últimos ~8 s de lance; quando sai gol, a fita daquele gol fica salva. Depois do apito aparece o botão — e só toca se apertar.
+  type Quadro = { t: number; b: [number, number, number]; a: number[] }
+  const fita = useRef<{ de: unknown; atual: Quadro[]; gols: { autor: string; min: number; quadros: Quadro[] }[] }>({ de: null, atual: [], gols: [] })
+  const vendo = useRef<{ i: number; ini: number } | null>(null)
+  const [temReplay, setTemReplay] = useState(false)
+  const [replayNa, setReplayNa] = useState<{ autor: string; min: number } | null>(null)
   const vivo = useRef({ casa, fora, fechado, t })
   vivo.current = { casa, fora, fechado, t }
 
@@ -265,7 +272,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           g.fillStyle = fundo; g.fillRect(x0 + i * w + 1, yy, w - 2, alt)
           const logo = p.logo ? img(p.logo) : null
           if (logo && logo.complete && logo.naturalWidth) {
-            const h = alt * 0.7, lw = Math.min(w - 10, h * (p.prop ?? 3))
+            const { w: lw, h } = tamanhoMarcaNaPlaca(alt, p.prop ?? 3, w - 10) // 📐 o padrão da Tidex (21/10)
             g.drawImage(logo, x0 + i * w + w / 2 - lw / 2, yy + alt / 2 - h / 2, lw, h)
           } else {
             g.fillStyle = claro(fundo) ? INK : '#fff'; g.font = fonte(alt * 0.55); g.textAlign = 'center'; g.fillText(p.nome.toUpperCase(), x0 + i * w + w / 2, yy + alt * 0.7)
@@ -404,11 +411,38 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       // (acerta a diferença mudando um POUCO a velocidade, nunca freando até parar: quem dita a parada é o relógio, no teto)
       else m = Math.min(teto, simMin + (dt / msR) * clamp(1 + (alvo - m) * 0.9, 0.8, 1.4))
       simMin = Math.max(simMin, m)
-      jogo.avancaAte(simMin)
+      const fi = fita.current
+      if (fi.de !== jogo) { fi.de = jogo; fi.atual = []; fi.gols = []; vendo.current = null }
+      const rv = vendo.current
+      if (rv) {
+        // 🎬 tocando a fita: os jogadores e a bola vão pra onde estavam (o jogo já acabou — o placar não muda)
+        const g = fi.gols[rv.i], q0 = g?.quadros[0]
+        const el = (agora - rv.ini) / 1000, qd = g && q0 ? g.quadros.find(q => q.t - q0.t >= el) : undefined
+        if (!g || (!qd && el > (g.quadros[g.quadros.length - 1].t - q0!.t) + 1.4)) {
+          const prox = rv.i + 1
+          if (prox < fi.gols.length) { vendo.current = { i: prox, ini: agora }; setReplayNa({ autor: fi.gols[prox].autor, min: fi.gols[prox].min }) }
+          else { vendo.current = null; setReplayNa(null) }
+        } else if (qd) {
+          jogo.atl.forEach((p, k) => { p.x = p.ax = qd.a[k * 2]; p.y = p.ay = qd.a[k * 2 + 1] })
+          jogo.bola.x = jogo.bolaAnt.x = qd.b[0]; jogo.bola.y = jogo.bolaAnt.y = qd.b[1]; jogo.bola.h = jogo.bolaAnt.h = qd.b[2]
+        }
+      } else {
+        jogo.avancaAte(simMin)
+        if (replay) {
+          const ult2 = fi.atual[fi.atual.length - 1]
+          if (!ult2 || jogo.t - ult2.t >= 0.08) {
+            fi.atual.push({ t: jogo.t, b: [jogo.bola.x, jogo.bola.y, jogo.bola.h], a: jogo.atl.flatMap(p => [p.x, p.y]) })
+            while (fi.atual.length && fi.atual[0].t < jogo.t - 8) fi.atual.shift()
+          }
+        }
+      }
       if (jogo.narra !== ult.narra) { ult.narra = jogo.narra; setNarra(jogo.narra) }
       if (jogo.placar[0] !== ult.placar[0] || jogo.placar[1] !== ult.placar[1]) { ult.placar = [jogo.placar[0], jogo.placar[1]]; setPlacarV(ult.placar) }
       const fk = jogo.festa ? `${jogo.festa.lado}|${jogo.festa.autor}|${jogo.festa.min}` : ''
-      if (fk !== ult.festa) { ult.festa = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null) }
+      if (fk !== ult.festa) {
+        ult.festa = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null)
+        if (replay && jogo.festa && !vendo.current && fi.atual.length > 5) { fi.gols.push({ autor: jogo.festa.autor, min: jogo.festa.min, quadros: fi.atual.slice() }); setTemReplay(true) }
+      }
       const e = jogo.entre, mis = (a: number | undefined, b: number) => a == null ? b : a + (b - a) * e
       // 🟩 o fundo parado vem pronto do cache; por cima, só o que mexe
       cx.drawImage(fundo, 0, 0, CW, CH)
@@ -436,6 +470,19 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         if (jogo.festa) return jogo.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
         if (jogo.t < 4.5) { const tac = jogo.tatica[lado]; return tac > 0 ? t('🔥 Pra cima!', '🔥 Attack!') : tac < 0 ? t('🧱 Fecha a casinha!', '🧱 Shut up shop!') : t('⚖️ Toca a bola!', '⚖️ Keep the ball!') }
         return ''
+      }
+      // 🧑‍💼 O PRESIDENTE NA BEIRA DO CAMPO (21/10, Diego: *"para quem tem um personagem"*): o boneco da conta, um pouco mais
+      // pra frente na lateral que o técnico; no gol do time dele, pula de alegria
+      for (const [lado, pres, yy] of [[0, vivo.current.casa.presidente, L * 0.6], [1, vivo.current.fora.presidente, L * 0.4]] as const) {
+        const foto = pres ? img(pres) : null
+        if (!foto || !foto.complete || !foto.naturalWidth) continue
+        const RP = Math.max(9, S * 1.9), pula = jogo.festa && jogo.festa.lado === lado ? Math.abs(Math.sin(jogo.t * 9)) * RP * 0.6 : 0
+        const [X, Y0] = deitado ? tr(W + PADT * 0.55, yy) : tr(-PADX * 0.42, yy), Y = Y0 - pula
+        cx.save(); cx.beginPath(); cx.arc(X, Y, RP, 0, 7); cx.fillStyle = GOLD; cx.fill(); cx.clip(); cx.drawImage(foto, X - RP, Y - RP, RP * 2, RP * 2); cx.restore()
+        cx.beginPath(); cx.arc(X, Y, RP, 0, 7); cx.lineWidth = 2.5; cx.strokeStyle = INK; cx.stroke()
+        const rot = t('PRESIDENTE', 'PRESIDENT')
+        if (deitado) { cx.font = fonte(Math.max(7, S * 0.8)); cx.fillStyle = GOLD; cx.textAlign = 'center'; cx.fillText(rot, X, Y + RP + S * 1.0) }
+        else { cx.save(); cx.translate(X, Y + RP + 4); cx.rotate(-Math.PI / 2); cx.font = fonte(Math.max(7, S * 1.0)); cx.textAlign = 'right'; cx.fillStyle = GOLD; cx.fillText(rot, 0, 4); cx.restore() }
       }
       for (const [lado, tec, yy] of [[0, casa.tecnico, L * 0.72], [1, fora.tecnico, L * 0.28]] as const) {
         if (!tec) continue
@@ -541,6 +588,16 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           </div>
         )}
       </div>
+      {replay && temReplay && fechado && !festa && (
+        <div style={{ maxWidth: larg, margin: '8px auto 0', display: 'flex', justifyContent: 'center' }}>
+          {replayNa
+            ? <div style={{ ...OSW, background: INK, color: GOLD, border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 14px' }}>🎬 {t('REPLAY', 'REPLAY')} · ⚽ {replayNa.autor} {replayNa.min > 90 ? `90+${replayNa.min - 90}` : replayNa.min}'</div>
+            : <button onClick={() => { const g = fita.current.gols[0]; if (!g) return; vendo.current = { i: 0, ini: performance.now() }; setReplayNa({ autor: g.autor, min: g.min }) }}
+                style={{ ...OSW, background: '#1B7A3D', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 16px', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', fontSize: 15 }}>
+                🎬 {t('VER OS GOLS DE NOVO', 'WATCH THE GOALS AGAIN')}
+              </button>}
+        </div>
+      )}
       {narra && !semNarra && (
         <div style={{ maxWidth: larg, margin: '8px auto 0', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}
           dangerouslySetInnerHTML={{ __html: '🎙️ ' + narra }} />

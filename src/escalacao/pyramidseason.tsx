@@ -120,6 +120,8 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva } from './sport'
+import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
+import { useImagemBusto } from './presidente-avatar'
 import { entradaM2, novoMotor2, resultadoM2, sementeM2, taticaM2, carregaGuardados, tiraNovos, type EntradaM2 } from './motor2/carreira' // ⚽🧠 motor novo decide o seu jogo na carreira (20/10)
 
 const INK = '#0C0C0C'
@@ -3216,6 +3218,9 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // carimbo daqui some. Basquete fica de fora (é outro esporte).
   const c2d = useCampo2DLigado() && !basket
   const c2dX = useCampo2DExtras()
+  // 🧑‍💼 o presidente na beira do campo (21/10): o boneco da CONTA, do lado do meu time — só quem tem boneco
+  const presConta = usePresidenteConta()
+  const presImg = useImagemBusto(c2d ? presConta.value : null)
   const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
   // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
@@ -3636,6 +3641,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const lado2d = (nome: string, cor: string, mascote: string | undefined, cartas: CartaRadio[] | undefined, emblema: ReactNode, formacao?: string, cartas2?: CartaRadio[]) => ({
     nome, cor, cartas: cartas as never, formacao, cartas2: cartas2 as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
     escudo: emblema ?? <Escudo nome={nome} size={110} />, tecnico: c2dX.tecnicoDe?.(nome) ?? null,
+    presidente: presImg && c2dX.meuTime && nomeLimpo(nome) === nomeLimpo(c2dX.meuTime) ? presImg : null,
   })
   // 📺 com o 2D escolhido o campinho TOMA O LUGAR do placar (Diego 20/10: *"qd tiver escolhido o 2D o placar padrão rápido
   // não aparece"*) — o relógio, os sons e o apito daqui continuam rodando; só o desenho muda. Placar e minuto ficam no
@@ -3644,7 +3650,8 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
-      motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima} />
+      motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
+      estadio={c2dX.estadioDe(homeName)} replay={c2dX.offline} />
   ) : null
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   const campo2dComTelao = campo2dEl ? <>{campo2dEl}<GiroDaRodada doCampo cinema={cinematic} /></> : null

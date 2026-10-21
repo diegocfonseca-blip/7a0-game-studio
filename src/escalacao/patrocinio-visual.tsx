@@ -6,7 +6,7 @@
 // · 📰 Anúncio no O MARTELO: um quadro de anúncio no FIM do jornal (sala e carreira), logo antes do rodapé.
 // Tudo puro CSS + a logo que já existe (0 KB a mais pra quem não vê).
 import { useEffect, useState } from 'react'
-import { ledDoEstadio, anuncioDoMartelo, placasDoCampo } from './patrocinio'
+import { ledDoEstadio, anuncioDoMartelo, placasDoCampo, tamanhoMarcaNaPlaca } from './patrocinio'
 import { tr } from './lang'
 
 const CSS = `
@@ -72,7 +72,7 @@ export function PlacaGol({ lado, alt = 30 }: { lado: 'cima' | 'baixo'; alt?: num
       <style>{CSS_PLACA}</style>
       <div className="pgol-in" key={slot}>
         {p.logo
-          ? <img src={p.logo} alt={p.nome} draggable={false} style={{ height: Math.round(alt * 0.72), width: Math.round(alt * 0.72 * (p.prop ?? 3)), objectFit: 'contain', display: 'block' }} />
+          ? (() => { const m = tamanhoMarcaNaPlaca(alt, p.prop ?? 3, alt * 12); return <img src={p.logo} alt={p.nome} draggable={false} style={{ height: Math.round(m.h), width: Math.round(m.w), objectFit: 'contain', display: 'block' }} /> })()
           : <b style={{ font: `700 ${Math.round(alt * 0.5)}px Oswald, sans-serif`, letterSpacing: '.08em', textTransform: 'uppercase', color: '#0C0C0C' }}>{p.nome}</b>}
       </div>
     </div>

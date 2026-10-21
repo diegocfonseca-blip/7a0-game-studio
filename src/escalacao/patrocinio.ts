@@ -170,6 +170,15 @@ const PLACAS_CAMPO: PlacaCampo[] = [
   { nome: 'OittoLabs', logo: OITTO_LOGO, prop: 331 / 120, fundo: '#ffffff' }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
   { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
 ]
+/** 📐 TAMANHO DA MARCA NA PLACA (21/10, Diego: *"a Tidex está perfeita… a Vadico e a OittoLabs estão desproporcionais e pequenas…
+ *  tem que seguir o padrão da Tidex"*). Antes toda marca tinha a MESMA altura (72% da placa), então a marca comprida (Tidex, 7:1)
+ *  enchia a placa e a mais quadrada (Vadico 3,5:1 · OittoLabs 2,8:1) ficava miúda. Agora todas miram a LARGURA da Tidex, e a
+ *  mais quadrada cresce até 92% da altura da placa pra chegar o mais perto possível. A Tidex continua exatamente igual. */
+export function tamanhoMarcaNaPlaca(alt: number, prop: number, larguraMax: number): { w: number; h: number } {
+  const alvo = Math.min(larguraMax, alt * 0.72 * (837 / 120))
+  const h = Math.min(alt * 0.92, alvo / prop, alt * 0.72 * Math.max(1, (837 / 120) / prop))
+  return { w: h * prop, h }
+}
 export const PLACA_CASA: PlacaCampo = { nome: 'Leilão Legends', fundo: 'linear-gradient(180deg,#FFD84A,#E8A900)' }
 export function placasDoCampo(): PlacaCampo[] {
   if (!espacosOk()) return []
