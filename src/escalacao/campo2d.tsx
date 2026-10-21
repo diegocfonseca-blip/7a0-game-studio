@@ -9,7 +9,7 @@
 //     (3 fileiras de torcida, placas nas laterais, bandeirão atrás do gol); no CELULAR fica em pé e o campo NÃO encolhe: a faixa
 //     da torcida tem a largura de sempre e as placas ficam só atrás dos gols (*"no móvel não vai diminuir o espaço do campo?"*).
 import { campoNaTela } from './campo2d-modo'
-import { climaDoJogo, type Clima } from './campo2d-clima'
+import { climaDoJogo, noiteDoJogo, type Clima } from './campo2d-clima'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Jogo2D, eventosDoJogo, W, L, SEG_POR_MIN, type Atleta, type CartaCampo } from './campo2d-motor'
 import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
@@ -44,6 +44,11 @@ export interface Campo2DProps {
   motorExperimental?: (seed: number, casa: CartaCampo[], fora: CartaCampo[], en: boolean, formacoes: [string?, string?], clima: Clima) => unknown
   /** 🧪 só a bancada: força o clima (pras fotos) */
   climaForcado?: Clima
+  /** 🧪 só a bancada: força o jogo de noite (pras fotos) */
+  noiteForcada?: boolean
+  /** 🏟️ o ESTÁDIO do mandante (carreira): gramado 0–100 (0 = terra da várzea, 100 = perfeito) e quanto da arquibancada tem gente
+   *  (0–1). Sem isto (rápido, salas): o gramado perfeito e a casa cheia de sempre. */
+  estadio?: { grama: number; lotacao: number }
 }
 
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
@@ -82,7 +87,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio }: Campo2DProps) {
   const t = useT()
   useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
@@ -95,6 +100,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const deitado = larg >= DEITADO_A_PARTIR
   // 🌤️ o céu deste jogo (preso na semente: a sala inteira vê o mesmo) — ☀️ sombra atravessando · ☁️ luz chapada · 🌧️ chuva (rara)
   const clima = climaForcado ?? climaDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome))
+  // 🌙 de vez em quando o jogo é de noite, com os refletores acesos (preso na semente, como o clima)
+  // ⏳ DESLIGADO até o Diego aprovar a foto (21/10): no jogo a noite ainda não sorteia — só a bancada força
+  const NOITE_LIGADA = false
+  const noite = noiteForcada ?? (NOITE_LIGADA && noiteDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome)))
+  // 🌱🏟️ o estádio de quem joga em casa: o gramado melhora com as obras (terra → perfeito) e a torcida enche com as ampliações
+  const gramaPct = clamp(estadio?.grama ?? 100, 0, 100) / 100
+  const lotacao = clamp(estadio?.lotacao ?? 1, 0.04, 1)
   // 👕 camisas: o visitante troca pra 2ª cor quando bate com a do mandante
   const corCasa = casa.cor || '#C2452F'
   const corFora = perto(corCasa, fora.cor || '#2B6CFF') ? (claro(corCasa) ? '#1B1B1B' : '#F4F4F4') : (fora.cor || '#2B6CFF')
@@ -215,6 +227,11 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
             const p = (i + 0.5) / n
             if (corte >= 0 && Math.abs(p - corte) < vao) continue // (ninguém em cima da grade)
             const ao2 = p * al + ((i * 7 + r * 3) % 5 - 2) * 0.6
+            // 🏟️ casa vazia onde o estádio ainda não enche: o lugar sem ninguém vira cadeira (um quadradinho apagado)
+            if (lotacao < 1 && ((Math.imul(i + 1, 0x9E3779B1) ^ Math.imul(r + 7, 0x85EBCA6B) ^ Math.imul(fi + 3, 0xC2B2AE35)) >>> 0) / 4294967296 >= lotacao) {
+              const qx = deitado ? f.x + ao2 : f.x + base, qy = deitado ? f.y + base : f.y + ao2, q = Math.max(1.4, S * 0.34)
+              g.fillStyle = 'rgba(120,135,150,.28)'; g.fillRect(qx - q, qy - q, q * 2, q * 2); continue
+            }
             const rival = ehRival(fi, p)
             // 🎉 no gol pula a torcida DE QUEM FEZ (antes era um sorteio que misturava as duas)
             const pula = festa != null && (rival ? festa === 1 : festa === 0) && (i + r) % 2 === 0 ? Math.abs(Math.sin(tt * 9 + i + r)) * 2.5 : 0
@@ -277,11 +294,28 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       // grama fora das linhas + listras cortadas (bandas ao longo do comprimento, 14 faixas)
       const [fx, fy, fw, fh] = rect(-PADX, -PAD, W + PADX * 2, L + PAD * 2)
       // 🌤️ a grama pelo clima: sol = verde vivo · nublado = um tom mais frio e chapado · chuva = escura e molhada
-      const grama: [string, string] = clima === 'chuva' ? ['#22693a', '#277543'] : clima === 'nublado' ? ['#2b7f45', '#318c4e'] : ['#2a8542', '#32984e']
+      const verde: [string, string] = clima === 'chuva' ? ['#22693a', '#277543'] : clima === 'nublado' ? ['#2b7f45', '#318c4e'] : ['#2a8542', '#32984e']
+      // 🌱 O GRAMADO DAS OBRAS (21/10, Diego: *"se ele está na várzea começa um gramado marronzinho… cada vez que ele dá uma
+      // melhorada no gramado, melhora mais, até ficar o gramado perfeito"*): a cor vai da terra batida (0%) pro verde (100%) e as
+      // listras de corte só aparecem no gramado bem cuidado
+      const terra: [string, string] = clima === 'chuva' ? ['#6b5131', '#735736'] : ['#8a6a3e', '#927244']
+      const mistura = (a: string, b: string, k: number) => { const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b); return '#' + [r1 + (r2 - r1) * k, g1 + (g2 - g1) * k, b1 + (b2 - b1) * k].map(v => Math.round(v).toString(16).padStart(2, '0')).join('') }
+      const kv = Math.min(1, gramaPct * 1.15), listra = Math.max(0, (gramaPct - 0.45) / 0.55)
+      const grama: [string, string] = [mistura(terra[0], verde[0], kv), mistura(terra[0], mistura(verde[0], verde[1], listra), kv)]
       g.fillStyle = grama[0]; g.fillRect(fx, fy, fw, fh)
       for (let i = 0; i < 14; i++) { const [x, y, w, h] = rect(-PADX, -PAD + (i * (L + PAD * 2)) / 14, W + PADX * 2, (L + PAD * 2) / 14 + 0.3); g.fillStyle = i % 2 ? grama[0] : grama[1]; g.fillRect(x, y, w, h) }
+      if (gramaPct < 1) {
+        // 🕳️ falhas de terra: muitas na várzea (mais no meio e nas áreas, onde se pisa mais), somem conforme o gramado melhora
+        const falhas = Math.round((1 - gramaPct) * 34)
+        for (let i = 0; i < falhas; i++) {
+          const zona = i % 3, px = zona === 0 ? 34 + ((i * 29) % 30) - 15 : 12 + ((i * 37) % 44), py = zona === 0 ? L / 2 + ((i * 41) % 40) - 20 : zona === 1 ? 4 + ((i * 13) % 18) : L - 4 - ((i * 17) % 18)
+          const [qx, qy] = tr(px, py)
+          g.fillStyle = i % 2 ? terra[0] : terra[1]; g.globalAlpha = 0.55 + (1 - gramaPct) * 0.4
+          g.beginPath(); g.ellipse(qx, qy, S * (1.4 + (i % 4) * 0.7), S * (0.8 + (i % 3) * 0.5), (i % 5) * 0.6, 0, 7); g.fill(); g.globalAlpha = 1
+        }
+      }
       const [sx0, sy0] = tr(0, 0), [sx1] = tr(W, 0), [, sy1] = tr(0, L)
-      if (clima === 'sol') {
+      if (clima === 'sol' && !noite) {
         // ☀️ SOL: a sombra da arquibancada atravessa o gramado em diagonal (a borda dela é reta, como sombra de prédio)
         const kx = deitado ? 0.5 : 0.95, ky = deitado ? 0.9 : 0.55
         g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(sx0 + (sx1 - sx0) * kx, sy0); g.lineTo(sx0, sy0 + (sy1 - sy0) * ky); g.closePath(); g.fill()
@@ -296,8 +330,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         // ☁️ NUBLADO: luz chapada, sem sombra — só um cinza leve por cima
         g.fillStyle = 'rgba(120,130,150,.08)'; g.fillRect(fx, fy, fw, fh)
       }
-      // linhas
-      g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = Math.max(1.5, S * 0.35)
+      // linhas (na várzea a cal é mais fraquinha)
+      g.strokeStyle = `rgba(255,255,255,${(0.62 + gramaPct * 0.28).toFixed(2)})`; g.lineWidth = Math.max(1.5, S * 0.35)
       g.strokeRect(...rect(0, 0, W, L))
       { const [ax, ay] = tr(0, L / 2), [bx, by] = tr(W, L / 2); g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke() }
       { const [mx, my] = tr(34, L / 2); g.beginPath(); g.arc(mx, my, 9.15 * S, 0, 7); g.stroke(); g.beginPath(); g.arc(mx, my, Math.max(1.5, S * 0.3), 0, 7); g.fillStyle = '#fff'; g.fill() }
@@ -317,6 +351,35 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
       torcida(g, null, 0)
       bandeirao(g)
+      if (noite) {
+        // 🌙 NOITE: uma capa de escuro por cima de tudo, com a luz dos 4 refletores "furando" a capa — onde a luz bate, o gramado
+        // aparece com a cor de verdade; a arquibancada e o meio do céu ficam no escuro
+        const cantos: [number, number][] = [tr(-3, -3), tr(W + 3, -3), tr(-3, L + 3), tr(W + 3, L + 3)]
+        const capa = document.createElement('canvas'); capa.width = CW * dpr; capa.height = CH * dpr
+        const k2 = capa.getContext('2d')!; k2.setTransform(dpr, 0, 0, dpr, 0, 0)
+        k2.fillStyle = 'rgba(3,7,22,.80)'; k2.fillRect(0, 0, CW, CH)
+        k2.globalCompositeOperation = 'destination-out'
+        // o campo inteiro pega um pouco de luz (fica na penumbra, nunca na escuridão da arquibancada)…
+        { const [gx, gy, gw, gh] = rect(-1, -1, W + 2, L + 2); k2.fillStyle = 'rgba(0,0,0,.42)'; k2.fillRect(gx, gy, gw, gh) }
+        // …e perto de cada torre a luz é forte
+        for (const [qx, qy] of cantos) {
+          const luz = k2.createRadialGradient(qx, qy, 0, qx, qy, Math.max(CW, CH) * 0.5)
+          luz.addColorStop(0, 'rgba(0,0,0,.85)'); luz.addColorStop(0.45, 'rgba(0,0,0,.35)'); luz.addColorStop(1, 'rgba(0,0,0,0)')
+          k2.fillStyle = luz; k2.fillRect(0, 0, CW, CH)
+        }
+        g.drawImage(capa, 0, 0, CW, CH)
+        // um calorzinho amarelado da lâmpada perto de cada torre
+        for (const [qx, qy] of cantos) {
+          const quente = g.createRadialGradient(qx, qy, 0, qx, qy, Math.max(CW, CH) * 0.28)
+          quente.addColorStop(0, 'rgba(255,236,170,.22)'); quente.addColorStop(1, 'rgba(255,236,170,0)')
+          g.fillStyle = quente; g.fillRect(0, 0, CW, CH)
+        }
+        for (const [qx, qy] of cantos) {
+          // a torre: um poste com a placa de lâmpadas acesa
+          g.fillStyle = '#0d1117'; g.fillRect(qx - S * 1.6, qy - S * 1.6, S * 3.2, S * 3.2)
+          g.fillStyle = '#FFF6D0'; for (let k = 0; k < 4; k++) g.fillRect(qx - S * 1.05 + (k % 2) * S * 1.2, qy - S * 1.05 + Math.floor(k / 2) * S * 1.2, S * 0.9, S * 0.9)
+        }
+      }
     }
     // ⏱️ relógio LISO: o campinho anda no tempo de verdade e só vai corrigindo, aos pouquinhos, pro minuto do placar
     let simMin = Math.max(0, jogo.t / SEG_POR_MIN), antes = performance.now()
@@ -450,7 +513,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     }
     raf = requestAnimationFrame(quadro)
     return () => cancelAnimationFrame(raf)
-  }, [jogo, larg, deitado, corCasa, corFora, msPorMin])
+  }, [jogo, larg, deitado, corCasa, corFora, msPorMin, noite, gramaPct, lotacao])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   const altPlaca = Math.max(22, Math.round(larg / 16))

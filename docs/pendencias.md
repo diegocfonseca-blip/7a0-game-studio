@@ -26,6 +26,12 @@ e, se estava no pregão, reabre no envelope). Testado: rápido de pregão aberto
 ✅ **(21/10) Comunidade do zap virou PROPAGANDA FIXA no telão** (`esc_anuncios_fixos` id 6, ordem 6, com o link da comunidade) e o
 Super Chat dele sobre a comunidade (recado id 7) saiu do ar. Diego: o Super Chat fica *"como sempre foi"*, sem link — a 1ª tentativa
 (Super Chat com link) foi desfeita no mesmo minuto.
+⏳ **(21/10) CAMPINHO 2D: ESTÁDIO NO CAMPO + NOITE — ESPERANDO OK DA FOTO** (`estadio-campinho.png`). Aprovados na ideia pelo Diego:
+🌙 noite com refletores de vez em quando (`noiteDoJogo`, 30%; hoje `NOITE_LIGADA = false`) · 🌱 gramado pelo estádio (terra da várzea →
+perfeito, `estadio.grama` = `sectorPct(st,'grama')`) · 🏟️ torcida pela capacidade (`estadio.lotacao`, cadeira vazia aparece) ·
+🎬 replay do gol só tocando no botão verde (só fora do online) · 🌍 Copa do Mundo com as cores das seleções · 🧑‍💼 presidente na beira
+do campo pra quem tem boneco. Feito no desenho (bancada: `?grama=0&lot=0.12&noite=1`); falta ligar o estádio da carreira no
+`LiveScoreCard` e os outros 3 itens.
 ✅ **(21/10, sala de duplas do Futpoint) PUBLICAR NÃO DERRUBA MAIS NINGUÉM + PARCEIRO DE DUPLA NÃO É MAIS TIRADO DA SALA.** Causa:
 2 publicações seguidas (22h46 e 22h52) → todo mundo recarregou → o parceiro de dupla, ao voltar, não achava o time (o `seatUids` só
 tem os donos) e era apagado do `room_players`. Feito: sem recarga automática nenhuma, deploy mantém a versão anterior no ar 3 dias,
