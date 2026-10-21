@@ -9927,3 +9927,13 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   Mockup: `scripts/mockups/coletiva-presidente.png`. Sem boneco: convite discreto na cadeira vazia ("Crie seu presidente e apareça
   aqui ›" / com plano "Seu plano já tem presidente · monte o seu ›") que abre a Loja em `#loja-presidente` ("Perfeito").
   ✅ Publicado 20/10 (junto da Copa/máquina e do aviso do dono).
+
+## 🧪 OittoLabs, parceiro novo (21/10) — contabilidade e BPO pra PJ e PF (oittolabs.com.br)
+- Pedido do Diego: aviso da comunidade + texto pra postar · placas do campinho revezando com a Vadico · telão · "apresentado por"
+  na Copa do Brasil da carreira e na Copa dos 8 online · mais uma marca no Master da carreira.
+- ✅ Código (no branch, esperando OK pra publicar): logo `img/patro-oittolabs.webp` (21 KB) · `PLACAS_CAMPO` Vadico → OittoLabs →
+  Tidex (cima/baixo trocam a cada 7 s) · Copa dos 8 = OittoLabs (era Tidex; a Tidex segue na Liga Legends da carreira) · Copa do
+  Brasil da carreira = OittoLabs (`career-copa`) · Master: 7ª marca, 5 temporadas, igual Vadico/Tidex (`npm run master`).
+- ✅ Aviso: `scripts/posts/aviso-2026-10-21-parceiro-oittolabs.png`. Mockup do jogo: `scripts/mockups/oittolabs-no-jogo.png`.
+- ⏳ Telão: a linha de verdade é no banco (`esc_anuncios_fixos`) — inserir junto da publicação:
+  "🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui" → https://oittolabs.com.br (ordem 5).

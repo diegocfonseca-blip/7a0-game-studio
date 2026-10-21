@@ -107,7 +107,7 @@ for (let sd = 1; sd < 40 && !achou; sd++) {
   }
 }
 assert.ok(achou, 'houve rescisão em alguma semente')
-assert.equal(MASTER_PRAZOS.length, 6) // 19/10: + Tidex (5 temporadas, igual à Vadico)
+assert.equal(MASTER_PRAZOS.length, 7) // 19/10: + Tidex · 21/10: + OittoLabs (5 temporadas, igual à Vadico)
 assert.ok(MASTER_PRAZOS.every(p => p.anos <= 5) && MASTER_PRAZOS.find(p => p.brandId === 'vadico')!.anos === Math.max(...MASTER_PRAZOS.map(p => p.anos)), 'a Vadico segue a mais cara')
 console.log('✅ Master com história: meta, bônus, ligação, mercado e rescisão conferidos')
 process.exit(0)

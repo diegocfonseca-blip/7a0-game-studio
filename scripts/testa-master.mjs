@@ -10,9 +10,10 @@ console.log('1) as 5 marcas reais, cada uma com o seu prazo (Vadico = mais grana
 // 🅾️ 23/09: virou CINCO. Diego: *"coloque a Uomo Concetto também como Master,
 // sendo agora 5 marcas. Sendo a Vadico a mais cara ainda mesmo"*.
 // 🤖 19/10: virou SEIS — a Tidex entra IGUAL à Vadico (5 temporadas; o que desempata é a meta sorteada de cada uma)
-ok(MASTER_PRAZOS.length === 6, 'são exatamente 6 contratos')
+// 🧪 21/10: SETE — a OittoLabs entra igual à Tidex e à Vadico (5 temporadas)
+ok(MASTER_PRAZOS.length === 7, 'são exatamente 7 contratos')
 ok(MASTER_PRAZOS.every(p => sponsorBrandOf(p.brandId)?.logo), 'todas são marcas REAIS do jogo (têm logo): ' + MASTER_PRAZOS.map(p => sponsorBrandOf(p.brandId).name).join(' · '))
-ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,3,4,5,5', 'prazos 1 · 2 · 3 · 4 · 5 · 5 temporadas (Tidex = 5, igual à Vadico)')
+ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,3,4,5,5,5', 'prazos 1 · 2 · 3 · 4 · 5 · 5 · 5 temporadas (Tidex e OittoLabs = 5, igual à Vadico)')
 // 🔒 A CONDIÇÃO QUE ELE PÔS, escrita como trava: a Vadico tem que pagar MAIS que
 // qualquer outra em TODA divisão. Como a régua é só divisão × prazo, isso é o
 // mesmo que a Vadico ter o maior prazo — mas a trava confere pelo DINHEIRO, que é
@@ -22,8 +23,8 @@ for (const d of ['V', 'D', 'C', 'B', 'A']) {
   // 🤖 19/10: a Vadico continua no topo, mas agora DIVIDE o topo com a Tidex (*"igual a Vadico"*) — ninguém paga mais que as duas
   const topo = Math.max(...pagam.map(x => x.v))
   const noTopo = pagam.filter(x => x.v === topo).map(x => x.n).sort().join(' + ')
-  ok(noTopo === 'Tidex + Vadico Veículos',
-    `Série ${d}: Vadico e Tidex são as que mais pagam, empatadas (${pagam.map(x => x.v).join(' · ')})`)
+  ok(noTopo === 'OittoLabs + Tidex + Vadico Veículos',
+    `Série ${d}: Vadico, Tidex e OittoLabs são as que mais pagam, empatadas (${pagam.map(x => x.v).join(' · ')})`)
 }
 const vad = MASTER_PRAZOS.find(p => p.brandId === 'vadico')
 ok(vad && vad.anos === Math.max(...MASTER_PRAZOS.map(p => p.anos)), 'Vadico Veículos é o contrato mais longo')

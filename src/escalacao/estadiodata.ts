@@ -124,7 +124,7 @@ export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: strin
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' | 'oittolabs' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
@@ -143,6 +143,9 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   // 🤖 6ª marca REAL do Master (19/10, Diego: "a Tidex agora é mais um patrocinador que entra lá na carreira…" e depois "igual a
   //    Vadico"). Paga o MESMO que a Vadico (5 temporadas); o que muda entre as duas é a meta/bônus sorteado.
   { id: 'tidex',       name: 'Tidex',                emoji: '🤖', color: '#0B1220', tier: 3, logo: 'tidex' },
+  // 🧪 7ª marca REAL do Master (21/10, Diego: "mais um patrocinador pro carreira pra ser escolhido pra assinar contrato"). Entra
+  //    igual à Tidex e à Vadico (5 temporadas, mesmo valor); quem desempata é a meta sorteada.
+  { id: 'oittolabs',   name: 'OittoLabs',            emoji: '🧪', color: '#1C3A5E', tier: 3, logo: 'oittolabs' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -194,6 +197,7 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   // 🤖 19/10 (Diego: "igual a Vadico… porém a cada temporada uma pode ser melhor que a outra com base nos bônus"): mesmo prazo e
   //    mesmo valor da Vadico; quem desempata é a META sorteada de cada uma (`masterMetaOferta` sorteia por marca).
   { brandId: 'tidex', anos: 5 },
+  { brandId: 'oittolabs', anos: 5 }, // 🧪 21/10: igual à Tidex
   { brandId: 'vadico', anos: 5 },
 ]
 export interface MasterContrato { brandId: string; anos: number; div: string; desde: number; porTemporada: number }

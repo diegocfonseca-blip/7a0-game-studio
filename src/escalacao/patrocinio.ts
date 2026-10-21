@@ -12,16 +12,18 @@ import { loggedEmail, stripEmoji } from './apoio'
 import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da semana passada no letreiro (19/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
+import OITTO_LOGO from './img/patro-oittolabs.webp' // 🧪 OittoLabs (21/10): Copa dos 8, Copa do Brasil da carreira, placas, telão e Master
 
 export type Patrocinio = { nome: string; emoji: string }
-export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' // career-league = a Liga Legends da CARREIRA (19/10)
+export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' | 'career-copa' // career-league = a Liga Legends da CARREIRA (19/10) · career-copa = a Copa do Brasil da carreira (21/10)
 
 const PATROCINIO_GERAL = true // 16/10: Diego "pode liberar tudo já pro geral, mostrar pra todos, e Pix também"
 const ESPACOS_GERAL = true
 const PATROCINIO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
   champions: { nome: 'Vadico Veículos', emoji: '🚗' }, // 🚗 Vadico Veículos (Itaguaí e Barra da Tijuca) — 16/10
-  copa8: { nome: 'Tidex', emoji: '🤖' },
+  copa8: { nome: 'OittoLabs', emoji: '🧪' }, // 🧪 21/10 (Diego: "copa dos 08 online apresentado por" OittoLabs) — era da Tidex, que segue na Liga Legends
+  'career-copa': { nome: 'OittoLabs', emoji: '🧪' }, // 🧪 21/10: Copa do Brasil da carreira
   'career-league': { nome: 'Tidex', emoji: '🤖' }, // 🤖 19/10 (Diego: "no modo carreira também na Liga Legends apresentado por Tidex") // 🤖 Tidex — sua marca dentro das IAs (19/10, Diego: "add a Tidex na copa dos 8 apresentado por")
 }
 
@@ -122,9 +124,12 @@ const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM
 // 🤖 Tidex (19/10): o mesmo texto/link está na linha do banco (`esc_anuncios_fixos`), que é quem manda; isto é a reserva
 const TIDEX_GIRO = '🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui'
 const TIDEX_ZAP = 'https://wa.me/5511981181888?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber como ter minha empresa no ChatGPT.')
+// 🧪 OittoLabs (21/10): contabilidade e BPO pra PJ e PF — a linha de verdade mora em `esc_anuncios_fixos`; isto é a reserva
+const OITTO_GIRO = '🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui'
 const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
   { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
   { texto: TIDEX_GIRO, cor: '#FFC400', link: TIDEX_ZAP }, // 🤖 19/10: no lugar da Max Joias
+  { texto: OITTO_GIRO, cor: '#FFC400', link: 'https://oittolabs.com.br' }, // 🧪 21/10
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
@@ -162,6 +167,7 @@ export function releAnuncios() { lidoEm = 0; carregaAvulsos() }
 export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string }
 const PLACAS_CAMPO: PlacaCampo[] = [
   { nome: 'Vadico Veículos', logo: VADICO_LOGO_ALFA, prop: 496 / 140, fundo: '#ffffff' },
+  { nome: 'OittoLabs', logo: OITTO_LOGO, prop: 331 / 120, fundo: '#ffffff' }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
   { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
 ]
 export const PLACA_CASA: PlacaCampo = { nome: 'Leilão Legends', fundo: 'linear-gradient(180deg,#FFD84A,#E8A900)' }
