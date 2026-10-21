@@ -1170,7 +1170,7 @@ export function melhorDoMundo(scorers: SeasonScorer[], assists: SeasonAssist[]):
 // ida e volta, final única, pênaltis no empate. Determinística (semente +
 // temporada + classificação), então bate igual offline e em todos os clientes
 // online. Reaproveita a MESMA simulação de jogo da liga (rollForm/poisson). ──
-export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][] }
+export interface CopaTie { a: SimTeam; b: SimTeam; aDiv: Div; bDiv: Div; aggA: number; aggB: number; pens?: [number, number]; win: 'a' | 'b'; goals: Goal[]; legs: [number, number][]; legGoals: Goal[][]; /** ⚽🧠 jogo (ida/volta) decidido pelo motor novo: o campinho monta o MESMO motor com isto */ legM2?: (EntradaM2 | undefined)[] }
 export interface CopaRound { name: string; ties: CopaTie[]; slot?: number } // slot = rodada-fantasma de onde essa fase lê a escalação (38 = 1ª fase, 39 = a seguinte…)
 // ⚽🅰️ `goalsByCard`/`assistsByCard` (19/09): a conta COMPLETA por carta. As listas
 // `scorers`/`assists` acima são cortadas no top 20 da competição, então não servem
@@ -1190,7 +1190,36 @@ const COPA_SCORER_BONUS = 16 // caixa do time pelo artilheiro da Copa (o PISO de
 // prestígio por divisão na Copa: A favorita, D azarão (soma no ataque e defesa).
 const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 } // Várzea não joga a Copa (só A-D)
 
-export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}): CopaResult {
+// ⚽🧠 MOTOR NOVO NAS COPAS DA CARREIRA (21/10, Diego: *"carreira = motor novo"*). O jogo de COPA que tem time de gente é
+// decidido pelo motor v2, igual à liga: quem chama roda a conta antiga primeiro (o dado do mata-mata é consumido do mesmo
+// jeito → nenhum jogo de bot muda), desfaz os gols dela e põe estes. `jogo` é o número do jogo na competição (ida e volta são
+// dois). Os gols voltam já com a CARTA do autor e do garçom; perna-de-pau e gol contra não levam crédito (id vazio).
+export interface GolCopaM2 { name: string; min: number; id: string; assist?: string; assistId?: string; carta?: PoolCard; garcom?: PoolCard }
+export function jogoCopaM2(seed: number, seasonNo: number, tag: string, jogo: number, H: SimTeam, A: SimTeam, th: Tac, ta: Tac): { e: EntradaM2; hg: number; ag: number; h: GolCopaM2[]; a: GolCopaM2[] } {
+  const e = entradaM2({ seed: sementeM2((seed ^ Math.imul(seasonNo, 0x9E3779B1)) >>> 0, tag, jogo, 0, 0), casa: H.xi as never, fora: A.xi as never, fCasa: H.formation, fFora: A.formation,
+    tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human] })
+  const res = resultadoM2(e)
+  const out: { h: GolCopaM2[]; a: GolCopaM2[] } = { h: [], a: [] }
+  for (const g of res.gols) {
+    const xi = g.home ? H.xi : A.xi
+    if (g.contra) { (g.home ? out.h : out.a).push({ name: `${g.nome} (contra)`, min: g.min, id: '' }); continue }
+    const c = xi.find(x => x.name === g.nome)
+    const gc = g.assist ? xi.find(x => x.name === g.assist) : undefined
+    const ok = c && !ehFake(c), okA = gc && !ehFake(gc)
+    ;(g.home ? out.h : out.a).push({ name: g.nome, min: g.min, id: ok ? c!.id : '', assist: okA ? gc!.name : undefined, assistId: okA ? gc!.id : undefined, carta: ok ? c : undefined, garcom: okA ? gc : undefined })
+  }
+  return { e, hg: res.placar[0], ag: res.placar[1], ...out }
+}
+/** a disputa de pênaltis de um jogo que o motor novo empatou e a conta antiga não (dado PRÓPRIO — o do mata-mata segue igual) */
+export function pensCopaM2(seed: number, seasonNo: number, tag: string, jogo: number): [number, number] {
+  return disputaPenaltis(mulberry(sementeM2((seed ^ Math.imul(seasonNo, 0x85EBCA6B)) >>> 0, tag, jogo, 7, 7)))
+}
+/** o gol como a tela guarda (sem as cartas penduradas) */
+export function golCopaSemCarta(g: GolCopaM2): { name: string; min: number; id: string; assist?: string; assistId?: string } {
+  return { name: g.name, min: g.min, id: g.id, assist: g.assist, assistId: g.assistId }
+}
+
+export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false): CopaResult {
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xC0FA5EED) >>> 0)
   let field: { t: SimTeam; div: Div }[] = []
   // 🌱 a VÁRZEA fica FORA da Copa (peladeiro não joga mata-mata nacional 🍺) — o
@@ -1241,6 +1270,23 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   // em outra fase também) — sem ele, o mesmo autor no mesmo minuto repetiria o
   // garçom em dois jogos diferentes.
   let legSeq = 0
+  // ⚽🧠 troca os gols da conta antiga pelos do motor novo (só jogo de gente, com `m2On`)
+  const desfazCopa = (e: { t: SimTeam; div: Div }, evs: { id: string; assistId?: string }[]) => {
+    for (const g of evs) {
+      const k = `${e.t.name}:${g.id}`, r = scorers.get(k)
+      if (r) { r.goals--; if (r.goals <= 0) scorers.delete(k) }
+      if (!g.assistId) continue
+      const ka = `${e.t.name}:${g.assistId}`, ra = assists.get(ka)
+      if (ra) { ra.assists--; if (ra.assists <= 0) assists.delete(ka) }
+    }
+  }
+  const creditaCopa = (e: { t: SimTeam; div: Div }, gs: GolCopaM2[]) => {
+    for (const g of gs) {
+      if (g.carta) { const c = g.carta, k = `${e.t.name}:${c.id}`, r = scorers.get(k); if (r) r.goals++; else scorers.set(k, { name: c.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: c.id, club: c.club, year: c.year }) }
+      if (g.garcom) { const c = g.garcom, k = `${e.t.name}:${c.id}`, r = assists.get(k); if (r) r.assists++; else assists.set(k, { name: c.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: c.id, club: c.club, year: c.year }) }
+    }
+    return gs.map(golCopaSemCarta)
+  }
   const marcaPasses = (e: { t: SimTeam; div: Div }, xi: PoolCard[], evs: { name: string; min: number; id: string; assist?: string; assistId?: string }[], jogo: number) => {
     if (!evs.length) return evs
     const chave = `${e.t.name}#${jogo}`
@@ -1274,26 +1320,36 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hEvs = credit(H, H.t.xi, hg), aEvs = credit(A, A.t.xi, ag)
     const jogo = ++legSeq
-    return { hg, ag, hEvs: marcaPasses(H, H.t.xi, hEvs, jogo), aEvs: marcaPasses(A, A.t.xi, aEvs, jogo) }
+    const velho = { hg, ag, hEvs: marcaPasses(H, H.t.xi, hEvs, jogo), aEvs: marcaPasses(A, A.t.xi, aEvs, jogo) }
+    if (!m2On || !(H.t.human || A.t.human)) return { ...velho, hg0: hg, ag0: ag, m2: undefined as EntradaM2 | undefined }
+    // ⚽🧠 jogo de gente: o motor novo decide (a conta acima só serviu pra gastar o dado igual)
+    desfazCopa(H, velho.hEvs); desfazCopa(A, velho.aEvs)
+    const n = jogoCopaM2(seed, seasonNo, 'L', jogo, H.t, A.t, th, ta)
+    return { hg: n.hg, ag: n.ag, hEvs: creditaCopa(H, n.h), aEvs: creditaCopa(A, n.a), hg0: hg, ag0: ag, m2: n.e }
   }
   const playTie = (a: { t: SimTeam; div: Div }, b: { t: SimTeam; div: Div }, single: boolean): CopaTie => {
-    let aggA = 0, aggB = 0
+    let aggA = 0, aggB = 0, velhoA = 0, velhoB = 0
     const goals: Goal[] = []
     const legs: [number, number][] = [] // placar de cada jogo (ida, volta) — [gols A, gols B]
     const legGoals: Goal[][] = [] // gols de cada jogo separados (home = A marcou), pra animar ida e depois volta
-    const l1 = leg(a, b, true); aggA += l1.hg; aggB += l1.ag // ida: a joga em casa
+    const legM2: (EntradaM2 | undefined)[] = []
+    const l1 = leg(a, b, true); aggA += l1.hg; aggB += l1.ag; velhoA += l1.hg0; velhoB += l1.ag0; legM2.push(l1.m2) // ida: a joga em casa
     const g1: Goal[] = [...l1.hEvs.map(e => ({ ...e, home: true })), ...l1.aEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
     g1.forEach(e => goals.push(e)); legs.push([l1.hg, l1.ag]); legGoals.push(g1)
     if (!single) {
-      const l2 = leg(b, a, true); aggB += l2.hg; aggA += l2.ag // volta: b em casa
+      const l2 = leg(b, a, true); aggB += l2.hg; aggA += l2.ag; velhoB += l2.hg0; velhoA += l2.ag0; legM2.push(l2.m2) // volta: b em casa
       const g2: Goal[] = [...l2.aEvs.map(e => ({ ...e, home: true })), ...l2.hEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
       g2.forEach(e => goals.push(e)); legs.push([l2.ag, l2.hg]); legGoals.push(g2)
     }
     goals.sort((x, y) => x.min - y.min)
     let pens: [number, number] | undefined, win: 'a' | 'b'
-    if (aggA === aggB) { pens = disputaPenaltis(rng); win = pens[0] > pens[1] ? 'a' : 'b' }
+    // os pênaltis da conta antiga gastam o dado do mata-mata IGUAL (senão os jogos de bot seguintes mudariam); se o motor novo
+    // mexeu no placar, a disputa deste confronto sai de um dado próprio
+    const pensVelho = velhoA === velhoB ? disputaPenaltis(rng) : undefined
+    const mexeu = legM2.some(Boolean)
+    if (aggA === aggB) { pens = mexeu ? pensCopaM2(seed, seasonNo, 'L', legSeq) : pensVelho!; win = pens[0] > pens[1] ? 'a' : 'b' }
     else win = aggA > aggB ? 'a' : 'b'
-    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals }
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals, legM2: mexeu ? legM2 : undefined }
   }
   const roundNames = ['Oitavas', 'Quartas', 'Semifinal', 'Final']
   const rounds: CopaRound[] = []
@@ -6983,7 +7039,7 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colo
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
       <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
-        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} elencos={{ casa: homeT.xi, fora: awayT.xi, fCasa: homeT.formation, fFora: awayT.formation }} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
+        youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} elencos={{ casa: homeT.xi, fora: awayT.xi, fCasa: homeT.formation, fFora: awayT.formation, m2: tie.legM2?.[legIdx] }} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
       {showDone && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
           {/* 🧮 os TRÊS placares na MESMA ordem (A × B), com os nomes em cima —
@@ -8359,6 +8415,8 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (m2Ok && !state.motor2Desde) dispatch({ type: 'LIGA_MOTOR2' }) }, [m2Ok, state.motor2Desde, dispatch])
   const m2Desde = !m2Ok || !state.motor2Desde ? undefined
     : state.motor2Desde.season === (state.seasonNo ?? 1) ? state.motor2Desde.round : state.motor2Desde.season < (state.seasonNo ?? 1) ? 0 : undefined
+  // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
+  const m2Copa = m2Desde != null && m2Desde < 38
   const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde),
     [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
@@ -8597,13 +8655,13 @@ export function PyramidSeasonScreen() {
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
-  const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
+  const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
   // precisa esperar a revelação fase a fase da Copa terminar de VERDADE na
   // tela, só precisa saber quem é o campeão, que já está decidido aqui).
-  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa) : null, [cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
+  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa) : null, [cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
@@ -8615,8 +8673,8 @@ export function PyramidSeasonScreen() {
   const copa = useMemo(() => {
     if (!done) return null
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
-    return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa)
-  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
+    return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa)
+  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
   const intlCampaign = intlEnabled && state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
@@ -11025,7 +11083,7 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled}
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}

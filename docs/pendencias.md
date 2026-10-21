@@ -25,10 +25,17 @@ carreira no meio da temporada, ~2,3 s na 1ª conta (depois fica na memória).
 ✅ (20/10) média de gols do motor novo subida pra perto da simulação (bots seguem nela): parecidos 1,9 · forte×médio 2,2 · lendas×profissionais 2,6, com goleada quando um time é muito melhor.
 ✅ (20/10) o motor novo usa o nível do DIA (faixa lo–hi), o cansaço na técnica, o técnico e o evento da rodada. Partida rápida FICA no
 teatro (decisão dele).
-⏳ **FASE 2 (falta):** Copa do Brasil/Legends, Supercopa, Libertadores/Champions/Mundial e Copa do Mundo da carreira (hoje ainda no
-teatro) · carreira online v2 (`co2`: precisa conferir que todo aparelho liga na MESMA rodada) · guardar o
-resultado no save pra não pagar os 2,3 s ao abrir · o pênalti decisivo manual continua somando gol por cima (decidir com o Diego se
-fica). ⚠️ Média de gols do motor novo (~1,1–1,7 por jogo) é menor que a da simulação (~2,4): ele vai notar menos gols.
+✅ **FASE 2 — COPAS FEITAS (21/10, só a conta do Diego):** Copa Legends, Copa do Brasil, Supercopa, Libertadores/Champions/Mundial
+e Copa do Mundo da carreira: o jogo do seu time é decidido pelo motor novo e o campinho anima o MESMO motor. Regras: a conta antiga
+roda antes (dado do torneio gasto igual — jogo de bot só muda se o SEU resultado mudou quem passou de fase); pênalti de confronto que
+o motor novo empatou sai de dado próprio; nas copas nacionais só liga se o motor já estava ligado ANTES da copa começar
+(`m2Copa`); internacional e Copa do Mundo ficam CARIMBADAS quando nascem (campanha congelada / `emAndamento.m2`), e com o motor novo
+a Champions anda com dado próprio (a sua Liberta não reembaralha a Champions). Provado: placar = campinho em 23/23 (copas nacionais),
+15/15 (internacional), 15/15 (Copa do Mundo); jogos de bot iguais quando o chaveamento é o mesmo. Gol contra não conta pra
+artilharia. 🐛 De carona: a Copa do Mundo da carreira ignorava o próprio carimbo na 1ª abertura (potes/peso novo só valiam depois de
+um F5 — a Copa podia trocar no meio); agora a 1ª vez e o F5 dão a mesma Copa.
+⏳ **FASE 3 (falta):** carreira online v2 (`co2`: precisa conferir que todo aparelho liga na MESMA rodada) · guardar o resultado no
+save pra não pagar os 2,3 s ao abrir · o pênalti decisivo manual continua somando gol por cima (decidir com o Diego se fica).
 🚪 **PORTA DE ENTRADA NO JOGO (decisão do Diego, perguntada em 20/10):** hoje o campinho ENCENA o placar que a simulação da liga
 já decidiu (v1). O motor novo decide o placar sozinho. Então, pra ele entrar no jogo de verdade, o placar das partidas em 2D passa a
 SER o que acontece no campinho (liga, copas, online — tudo que o v1 desenha hoje), ou o v2 fica só de bancada. Sem essa resposta

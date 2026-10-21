@@ -986,6 +986,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (`motor2Desde`, ação `LIGA_MOTOR2`) — rodada jogada nunca muda, e os jogos de bot da rodada continuam iguais byte a byte.
   🔁 **Partida rápida = TEATRO também** (20/10, mesmo dia: *"pode ser igual das salas online, até porque não tem jogador cansado"*).
   Motor novo = SÓ carreira (offline e online).
+  🏆 **E nas COPAS da carreira também** (21/10, *"ok siga"*): Copa Legends/do Brasil, Supercopa, Liberta/Champions/Mundial e Copa do
+  Mundo — o jogo do SEU time é do motor novo. Quem mexer: a conta antiga roda ANTES e gasta o dado igual (jogo de bot só muda se o seu
+  resultado mudou quem passou), pênalti de confronto que o motor novo empatou sai de dado próprio, e copa já começada NUNCA liga no meio
+  (`m2Copa` nas nacionais; carimbo na campanha internacional e no `emAndamento.m2` da Copa do Mundo).
   (18) **O MOTOR NOVO USA TUDO QUE O JOGO SABE DO JOGADOR (20/10):** *"com base no nível, no cansaço… o Romário cansado, o Jardel
   fica muito melhor… o Ronaldinho pode ter 90 a 96, o 90 é o dia ruim, pode estar no meio ou no ápice"*. Então: cada carta entra
   com o NÍVEL DO DIA sorteado dentro da faixa lo–hi (média de dois sorteios: o meio é comum, ápice/dia ruim são raros; preso na

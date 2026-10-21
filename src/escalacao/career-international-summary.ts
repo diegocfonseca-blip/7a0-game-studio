@@ -9,6 +9,7 @@ export function artilheirosInternacionais(campaign: InternationalCampaign): { co
   for (const comp of ['libertadores', 'champions', 'mundial'] as const) {
     const tally = new Map<string, { name: string; goals: number; team: string }>()
     for (const step of campaign.steps) for (const m of step[comp]?.matches ?? []) for (const g of m.goals) {
+      if (!g.card) continue // ⚽🧠 gol contra (motor novo) não é de nenhuma carta
       const team = g.home ? m.home : m.away
       const k = `${g.card}|${team}`
       const t = tally.get(k) ?? { name: g.name, goals: 0, team }

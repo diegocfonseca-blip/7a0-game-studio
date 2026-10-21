@@ -26,7 +26,7 @@ import {usePresidentPreview} from './presidente-acesso'
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { Card, WonCard } from './types'
 import { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, championsLiberada, internationalCardKey, internationalClubCards, validInternationalXI, type InternationalClub, type InternationalCompetition } from './career-international'
-import { makeInternationalCampaign, tableFor, type InternationalCampaign, type InternationalHistoryEntry, type InternationalMatch, type InternationalPhase, type InternationalTableRow, type InternationalTie } from './career-international-season'
+import { makeInternationalCampaign, entradaInternacionalM2, tableFor, type InternationalCampaign, type InternationalHistoryEntry, type InternationalMatch, type InternationalPhase, type InternationalTableRow, type InternationalTie } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
 import { CompetitionStage, RoundMatchPresentation, useRoundPresentationStart } from './online-match-visual'
 import { Escudo } from './escudos'
@@ -36,6 +36,7 @@ import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
 import { useCampo2DLigado } from './campo2d-modo'
+import { useCampo2DLiberado } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
@@ -487,7 +488,7 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
     mascotHome={home.you ? campaign.userTeam : undefined} mascotAway={away.you ? campaign.userTeam : undefined}
     apitoFrases={frasesDoApito(fase, comp, home.you ? home.institution : away.institution)}
-    elencos={{ casa: home.xi, fora: away.xi }} // 📺 sem o elenco o Campo 2D montava o time sem nomes nem rostos das lendas (Diego 20/10)
+    elencos={{ casa: home.xi, fora: away.xi, m2: entradaInternacionalM2(campaign.teams, match) }} // 📺 sem o elenco o Campo 2D montava o time sem nomes nem rostos das lendas (Diego 20/10)
     youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
     onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); onFim() } }} />
 }
@@ -525,9 +526,11 @@ export function CareerInternationalView(p: Props) {
   const myComp: InternationalCompetition | null = rep ? (INTERNATIONAL_CLUBS.find(c => c.name === rep)?.competition ?? null) : null
   // 👀 a competição EM FOCO: a minha, ou a que escolhi acompanhar (sem vaga)
   const foco: InternationalCompetition | null = myComp ?? (modo && modo !== 'pular' ? modo : null)
+  // ⚽🧠 motor novo decide o jogo do presidente (mesma régua da liga: conta liberada, carreira solo, já ligado na carreira)
+  const m2Intl = useCampo2DLiberado() && !!state.motor2Desde && !state.co2
   const begin = (representedClub: string | null, xi: Card[]) => {
     let c: InternationalCampaign
-    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [] }) }
+    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl }) }
     catch { apagaEscolha(); setClubRaw(null); setComp(null); setRecusado('campanha'); return }
     // ✉️ guarda os convites que ficaram na mesa — o jornal cobra se um deles levantar a taça
     const recusados = representedClub ? convites.filter(cv => cv.club !== representedClub).map(cv => cv.club) : []
