@@ -611,6 +611,11 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   Criar clã vê a caixa "Criar clã é de quem tem plano" + ⭐ Ver os planos + atalho pra entrar de graça (`scripts/mockups/clas-sem-plano.png`).
   Reels: `scripts/video-clas-reels.mjs` → `scripts/posts/clas-reels.mp4` · aviso do zap: `scripts/avisos/2026-10-21-clas.json`
   (tag nova `premio` no `aviso-comunidade.mjs`). Novidade na home escrita.
+  🔁 21/10: espera depois de sair/trocar = **3 dias** (era 7). 👑 **PRESIDENTE PRESO** (*"não pode uma pessoa ser dona de um clã e
+  querer participar em outro"*): o líder com gente no clã não sai nem troca — a tela abre "Você é o presidente do X" com 👑 Passar a
+  presidência (lista do clã; SÓ quem tem plano pode receber) ou 🗑️ Fechar o clã (solta todo mundo sem espera). Sozinho no clã: sair/
+  trocar fecha o clã, como antes. A coroa NÃO passa mais sozinha pro mais antigo. Migration `20261021100000_clas_presidente.sql`,
+  testado no banco. Foto: `scripts/mockups/clas-presidente.png`.
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem

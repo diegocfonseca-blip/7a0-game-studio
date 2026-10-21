@@ -112,6 +112,8 @@ const ERRO: Record<string, [string, string]> = {
   ja_tem: ['Você já está num clã. Saia dele antes.', 'You are already in a clan. Leave it first.'],
   espera: ['Quem sai ou troca de clã só entra em outro depois de 3 dias.', 'After leaving or switching clans you can join another only after 3 days.'],
   mesmo: ['Você já está nesse clã.', 'You are already in this clan.'],
+  presidente: ['Você é o presidente do clã: passe a presidência ou feche o clã antes.', 'You are the clan president: hand over the presidency or close the clan first.'],
+  sem_plano: ['Só dá pra passar a presidência pra quem tem plano.', 'You can only hand over the presidency to someone with a plan.'],
   lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
   sem_cla: ['Esse clã não existe mais.', 'That clan no longer exists.'],
@@ -124,6 +126,8 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [msg, setMsg] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [tela, setTela] = useState<'inicio' | 'criar' | 'procurar' | 'ranking' | 'chamar'>('inicio')
+  // 👑 21/10 (Diego): presidente não vai pra outro clã nem sai sem antes passar a presidência (só pra quem tem plano) ou fechar o clã
+  const [pres, setPres] = useState<{ destino?: string; seguir?: () => void } | null>(null)
   const [semPlano, setSemPlano] = useState(false) // 🔒 tocou em "Criar clã" sem plano → caixa explicando + botão dos planos
   // 🔁 21/10 (Diego): já tem clã e vai pra outro (convite ou pedido) → aviso lembrando do clã atual, pra seguir ou não
   const [troca, setTroca] = useState<{ info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void } | null>(null)
@@ -134,7 +138,8 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
     try {
       const { data, error } = await supabase.rpc(rpc, args)
       const r = (data ?? {}) as { ok?: boolean; erro?: string; pedido?: boolean } & Partial<TrocaInfo>
-      if (!error && r.erro === 'confirmar' && destino) setTroca({ info: r as TrocaInfo, destino: destino.nome, destinoEmblema: destino.emblema, aberto: destino.aberto, seguir: () => { setTroca(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
+      if (!error && r.erro === 'confirmar' && destino && r.preso) setPres({ destino: destino.nome, seguir: () => { setPres(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
+      else if (!error && r.erro === 'confirmar' && destino) setTroca({ info: r as TrocaInfo, destino: destino.nome, destinoEmblema: destino.emblema, aberto: destino.aberto, seguir: () => { setTroca(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
       else if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
       else { setMsg(r.pedido ? tr('📨 Pedido enviado — o líder do clã decide.', '📨 Request sent — the clan leader decides.') : ok ?? ''); esqueceClas(); setTela('inicio') }
     } catch { setMsg(`⚠️ ${msgErro(null)}`) } finally { setOcupado(false); carrega() }
@@ -145,7 +150,10 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const voltar = <button style={{ ...bt('#fff', INK), marginTop: 10 }} onClick={() => setTela('inicio')}>‹ {tr('voltar', 'back')}</button>
 
   if (tela === 'criar') return <>{voltar}<CriarCla painel={p} ocupado={ocupado} onCriar={(nome, emblema, aberto) => void faz('esc_cla_criar', { p_nome: nome, p_emblema: emblema, p_aberto: aberto }, tr('⚔️ Clã criado! Chame seus amigos.', '⚔️ Clan created! Invite your friends.'))} />{aviso}</>
-  const modalTroca = troca && <ConfirmaTroca {...troca} onFicar={() => setTroca(null)} />
+  const modalTroca = <>{troca && <ConfirmaTroca {...troca} onFicar={() => setTroca(null)} />}
+    {pres && p.cla && <ResolvePresidencia cla={p.cla.nome} destino={pres.destino} onFicar={() => setPres(null)}
+      onPassou={() => { if (pres.seguir) pres.seguir(); else { setPres(null); void faz('esc_cla_sair', {}, tr('Presidência passada. Você saiu do clã.', 'Presidency handed over. You left the clan.')) } }}
+      onFechou={() => { if (pres.seguir) pres.seguir(); else { setPres(null); esqueceClas(); setMsg(tr('🗑️ Clã fechado.', '🗑️ Clan closed.')); carrega() } }} />}</>
   if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} meu={p.cla?.id ?? null} ocupado={ocupado} onEntrar={k => void faz('esc_cla_entrar', { p_cla: k.id, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), k)} />{aviso}{modalTroca}</>
   if (tela === 'ranking') return <>{voltar}<RankingClas meu={p.cla?.id ?? null} /></>
   if (tela === 'chamar' && p.cla) return <>{voltar}<ChamarAmigos amigos={amigos} meus={new Set(p.cla.lista.map(m => m.uid))} /></>
@@ -198,7 +206,10 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <button style={bt('#fff', INK)} onClick={() => setTela('ranking')}>🏆 {tr('Ranking', 'Ranking')}</button>
         <button style={bt('#fff', INK)} onClick={() => setTela('procurar')}>🔎 {tr('Outros clãs', 'Other clans')}</button>
         {souLider(c) && <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_aberto', { p_aberto: !c.aberto })}>{c.aberto ? tr('🔒 fechar', '🔒 close') : tr('🔓 abrir', '🔓 open')}</button>}
-        <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(souLider(c) ? tr('Sair do clã? A liderança passa pro membro mais antigo (se você for o único, o clã fecha). Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? Leadership goes to the oldest member (if you are alone, the clan closes). You can join another only in 3 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You can join another only in 3 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.')) }}>{tr('sair', 'leave')}</button>
+        <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => {
+          if (souLider(c) && c.membros > 1) { setPres({}); return }
+          if (window.confirm(souLider(c) ? tr('Sair do clã? Você é o único: o clã fecha. Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You are the only one: the clan closes. You can join another only in 3 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You can join another only in 3 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.'))
+        }}>{tr('sair', 'leave')}</button>
       </div>
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Todo título que você ganha nas salas online soma pro clã. O clã campeão da semana leva 🏆 no selo de cada membro na semana seguinte. Conversa continua no zap.', 'Every title you win in online rooms adds to the clan. The champion clan of the week gets 🏆 on every member’s badge the following week. Chat stays on WhatsApp.')}</p>
     </> : <>
@@ -234,7 +245,48 @@ function CriarSemPlano({ onProcurar }: { onProcurar: () => void }) {
     </div>
   )
 }
-type TrocaInfo = { erro: 'confirmar'; atual: string; atual_emblema: string; lider: boolean; sozinho: boolean }
+type TrocaInfo = { erro: 'confirmar'; atual: string; atual_emblema: string; lider: boolean; sozinho: boolean; preso?: boolean }
+// 👑 o presidente quer sair/ir pra outro clã: antes, PASSAR a presidência (lista do clã; só quem tem plano pode receber) ou FECHAR o clã
+function ResolvePresidencia({ cla, destino, onFicar, onPassou, onFechou }: { cla: string; destino?: string; onFicar: () => void; onPassou: () => void; onFechou: () => void }) {
+  const [lista, setLista] = useState<{ uid: string; nome: string; plano: boolean }[] | null>(null)
+  const [escolha, setEscolha] = useState<string | null>(null)
+  const [erro, setErro] = useState('')
+  const [ocupado, setOcupado] = useState(false)
+  const abreLista = () => { setLista([]); supabase.rpc('esc_cla_membros_plano').then(({ data }) => setLista((data ?? []) as { uid: string; nome: string; plano: boolean }[]), () => setErro(msgErro(null))) }
+  const chama = async (rpc: string, args: Record<string, unknown>, depois: () => void) => {
+    setOcupado(true); setErro('')
+    try { const { data, error } = await supabase.rpc(rpc, args); const r = (data ?? {}) as { ok?: boolean; erro?: string }; if (error || !r.ok) setErro(msgErro(r.erro)); else { esqueceClas(); depois() } }
+    catch { setErro(msgErro(null)) } finally { setOcupado(false) }
+  }
+  const algumComPlano = !!lista?.some(m => m.plano)
+  return (
+    <div role="dialog" aria-modal="true" onClick={onFicar} style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(12,12,12,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, maxHeight: '90vh', overflowY: 'auto', background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 ${INK}`, padding: 16 }}>
+        <p style={{ fontSize: 40, margin: 0, textAlign: 'center' }}>👑</p>
+        <p style={{ ...OSW, fontSize: 19, margin: '0 0 8px', textAlign: 'center' }}>{tr(`Você é o presidente do ${cla}`, `You are the president of ${cla}`)}</p>
+        <p style={{ fontSize: 13, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.35, textAlign: 'center' }}>{destino
+          ? tr(`Presidente não participa de outro clã. Pra ir pro ${destino}, escolha antes:`, `A president can’t be in another clan. To go to ${destino}, first choose:`)
+          : tr('Pra sair do clã, escolha antes:', 'To leave the clan, first choose:')}</p>
+        {lista === null ? <>
+          <button onClick={abreLista} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 14, whiteSpace: 'normal' }}>👑 {tr('Passar a presidência', 'Hand over the presidency')}</button>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#666', margin: '4px 2px 10px' }}>{tr('Só pra quem do clã tem plano (⭐ Craque pra cima). O clã continua, com tudo dele.', 'Only to a clan member with a plan (⭐ Star and up). The clan stays, with everything.')}</p>
+          <button disabled={ocupado} onClick={() => { if (window.confirm(tr(`Fechar o ${cla}? Todos os membros ficam sem clã (e podem entrar em outro na hora).`, `Close ${cla}? Every member is left without a clan (and can join another right away).`))) void chama('esc_cla_fechar', {}, onFechou) }} style={{ ...bt('#fff', RED), width: '100%', padding: 10, fontSize: 13, whiteSpace: 'normal' }}>🗑️ {tr(`Fechar o ${cla}`, `Close ${cla}`)}</button>
+        </> : <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px' }}>
+          <p style={{ ...OSW, fontSize: 12, margin: '2px 0 4px' }}>{tr('Quem vai ser o novo presidente?', 'Who will be the new president?')}</p>
+          {lista.map((m, i) => <button key={m.uid} disabled={!m.plano} onClick={() => setEscolha(m.uid)} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '8px 4px', border: 'none', borderTop: i ? '1px dashed #d8ccaa' : 'none', background: escolha === m.uid ? '#FFF3C4' : 'transparent', cursor: m.plano ? 'pointer' : 'default', opacity: m.plano ? 1 : .45, textAlign: 'left', color: INK }}>
+            <span style={{ fontSize: 16 }}>{escolha === m.uid ? '👑' : m.plano ? '⚪' : '🔒'}</span>
+            <b style={{ flex: 1, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}</b>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: m.plano ? GREEN : '#888' }}>{m.plano ? tr('tem plano', 'has a plan') : tr('sem plano', 'no plan')}</span>
+          </button>)}
+          {lista.length > 0 && !algumComPlano && <p style={{ fontSize: 11.5, fontWeight: 800, color: '#7a4d00', margin: '6px 0' }}>{tr('Ninguém do clã tem plano ainda. Pra sair agora, só fechando o clã.', 'Nobody in the clan has a plan yet. To leave now, you have to close the clan.')}</p>}
+          <button disabled={!escolha || ocupado} onClick={() => escolha && void chama('esc_cla_passar', { p_para: escolha }, onPassou)} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 10, fontSize: 13, margin: '8px 0 4px', opacity: escolha ? 1 : .5, whiteSpace: 'normal' }}>{destino ? tr(`✅ Passar e ir pro ${destino}`, `✅ Hand over and go to ${destino}`) : tr('✅ Passar e sair', '✅ Hand over and leave')}</button>
+        </div>}
+        {erro && <p style={{ fontSize: 12, fontWeight: 800, color: RED, margin: '8px 0 0' }}>⚠️ {erro}</p>}
+        <button onClick={onFicar} style={{ ...bt('#fff', INK), width: '100%', padding: 10, fontSize: 13, marginTop: 10, whiteSpace: 'normal' }}>{tr(`Não, continuar presidente do ${cla}`, `No, stay president of ${cla}`)}</button>
+      </div>
+    </div>
+  )
+}
 // 🔁 o aviso de troca (21/10): o clã de agora × o novo, o que acontece com a liderança, a espera de 3 dias e os dois botões
 function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar }: { info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void; onFicar: () => void }) {
   return (
@@ -251,7 +303,7 @@ function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar 
           : tr(`Se seguir, o pedido vai pro líder do ${destino}. Quando ele aceitar, você sai do ${info.atual} na hora.`, `If you go on, the request goes to the ${destino} leader. When they accept, you leave ${info.atual} right away.`)}</p>
         {info.lider && <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 6px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>👑 {info.sozinho
           ? tr(`Você é o único do ${info.atual}: ele fecha.`, `You are the only one in ${info.atual}: it closes.`)
-          : tr(`Você é o líder: a liderança passa pro membro mais antigo.`, `You are the leader: leadership goes to the oldest member.`)}</p>}
+          : tr(`Você é o presidente: antes, passe a presidência ou feche o clã.`, `You are the president: first hand over the presidency or close the clan.`)}</p>}
         <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7a4d00', margin: '0 0 12px' }}>⏳ {tr('Depois de trocar, você só troca de novo daqui a 3 dias.', 'After switching, you can switch again only in 3 days.')}</p>
         <button onClick={seguir} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 11, fontSize: 14, whiteSpace: 'normal' }}>{aberto ? tr(`✅ Sim, ir pro ${destino}`, `✅ Yes, go to ${destino}`) : tr(`📨 Sim, pedir pra entrar no ${destino}`, `📨 Yes, ask to join ${destino}`)}</button>
         <button onClick={onFicar} style={{ ...bt('#fff', INK), width: '100%', padding: 10, fontSize: 13, marginTop: 8, whiteSpace: 'normal' }}>{tr(`Não, ficar no ${info.atual}`, `No, stay in ${info.atual}`)}</button>
