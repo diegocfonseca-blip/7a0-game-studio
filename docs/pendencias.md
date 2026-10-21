@@ -15,6 +15,11 @@ jeito do jogador. Individualidade (20/10, 2ª passada): quem gosta de driblar se
 (alvo 2,5 m além do rival) e o duelo acontece no contato; o time procura o craque (passe pro melhor jogador vale mais). Romário no
 meio: 1,2 drible · 0,8 chute · 0,3 gol por jogo. ⚠️ Teto estrutural: num jogo de 1:30 cada jogador pega a bola ~3 vezes (o
 Ronaldinho fica 0,8 s com ela por jogo), então a marca da lenda aparece na TEMPORADA, não em cada jogo.
+✅ **(21/10) BUG: CARREIRA NOVA ABRIA NO PREGÃO ABERTO** (print de um amigo do Diego: *"carreira é sempre o envelope padrão… misturou
+coisas da sala online pro carreira"*). Causa: começar carreira não zerava a marca `pregaoAberto`/`holandes` do jogo rápido anterior.
+Conserto em 3 camadas: toda carreira nova nasce com pregão aberto/Tocaia desligados · o leilão da carreira nunca abre os dois
+(`!state.careerOnline` em `startAuctionPhase`) · save de carreira que já nasceu assim é curado ao abrir (`sincronizaNiveis` tira a marca
+e, se estava no pregão, reabre no envelope). Testado: rápido de pregão aberto → carreira nova = envelope.
 ✅ **(21/10) Comunidade do zap virou PROPAGANDA FIXA no telão** (`esc_anuncios_fixos` id 6, ordem 6, com o link da comunidade) e o
 Super Chat dele sobre a comunidade (recado id 7) saiu do ar. Diego: o Super Chat fica *"como sempre foi"*, sem link — a 1ª tentativa
 (Super Chat com link) foi desfeita no mesmo minuto.

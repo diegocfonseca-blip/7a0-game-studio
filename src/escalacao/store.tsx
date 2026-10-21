@@ -6683,7 +6683,8 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   }
   // 🔨 PREGÃO ABERTO: a fila é o baralho inteiro embaralhado; abre uma vez e vai até o Monte
   // 🧱 17/10 (Diego): com 🧱 Clubes também — o lote vira o PACOTE do clube (escudo + quantos jogadores), não a carta coberta
-  if (state.pregaoAberto && !rescue) { abrePregaoAberto(state); return }
+  // 🔒 carreira NUNCA abre pregão aberto nem Tocaia (21/10) — mesmo que a marca tenha vazado de um jogo rápido
+  if (state.pregaoAberto && !rescue && !state.careerOnline) { abrePregaoAberto(state); return }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
@@ -6714,7 +6715,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // passada custa caro (55 vagas vazias contra 38, e 32 moedas encalhadas por
   // técnico). Então a sobra volta pra mesa numa descida curta, com o MESMO
   // visual: nenhuma tela nova, nenhum envelope, e o buraco não explode.
-  if (state.holandes && state.currentCards.length > 0) { abreHolandes(state, rescue); return }
+  if (state.holandes && state.currentCards.length > 0 && !state.careerOnline) { abreHolandes(state, rescue); return }
   // 🛟 LEVA/SETOR VAZIO: não tem NENHUMA carta pra leiloar (ex.: leilão de reservas
   // onde TODOS os laterais do catálogo já têm dono). Sem isto, aparecia um envelope
   // VAZIO ("laterais sem lateral nenhum") e, ao lacrar, dava a tela de erro. Agora
@@ -7964,6 +7965,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // EscSeason — o roteador bifurca por esporte). Semeia o mesmo estado do
       // START_CAREER_SOLO, adaptando divisão→andar via tierDivKey.
       s.careerOnline = true
+      s.pregaoAberto = false; s.pa = undefined; s.holandes = false // 🔨🐊 carreira = envelope de sempre (21/10)
       s.careerEra = MANUAL_ERA // carreira NOVA: manual pede apoio (saves antigos seguem liberados)
       s.reserveAuction = false; s.reserveListed = {}
       s.sport = 'basquete'; s.nbaCareer = true // é CARREIRA (salva, avança temporada, reservas)
@@ -8313,6 +8315,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.careerOnline = true
+      // 🔨🐊 21/10 (amigo do Diego criou carreira e caiu no PREGÃO ABERTO): a carreira é SEMPRE o envelope de sempre. Antes daqui
+      // nada zerava a marca do jogo rápido anterior (pregão aberto/Tocaia) e a carreira nova herdava.
+      s.pregaoAberto = false; s.pa = undefined; s.holandes = false
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
@@ -8472,6 +8477,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.careerOnline || s.onlineMode === 'online' || s.dinastia || s.nbaCareer) return s // só do jogo rápido offline
       s.isHost = true
       s.careerOnline = true
+      s.pregaoAberto = false; s.pa = undefined; s.holandes = false // 🔨🐊 carreira = envelope de sempre (21/10)
       s.simV = 4
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
@@ -12832,6 +12838,13 @@ function curaIdRepetido(save: EscState): boolean {
 }
 function sincronizaNiveis(save: EscState): EscState {
   save = compactaHistoricoIntl(save)
+  // 🔨🐊 CARREIRA QUE NASCEU COM PREGÃO ABERTO/TOCAIA (21/10): tira a marca e, se o pregão estava aberto, reabre o leilão no
+  // envelope de sempre (o que já foi arrematado fica com quem levou).
+  if (save.careerOnline && (save.pregaoAberto || save.holandes)) {
+    const noPregao = save.phase === 'pregao'
+    save = { ...save, pregaoAberto: false, pa: undefined, holandes: false }
+    if (noPregao) { try { startAuctionPhase(save, false) } catch { /* segue: o leilão reabre no próximo passo */ } }
+  }
   let mexeu = 0
   const vistos = new Set<object>()
   // 🏷️ CARTA QUE TROCOU DE ENDEREÇO (Diego 18/09: *"Zidane tá aparecendo Real
