@@ -46,8 +46,8 @@ dessa temporada em diante (liga, copas, internacional, Copa do Mundo). Falta tes
 carreira não refaz os jogos (0,5 ms × ~100 ms cada) e ajuste de motor publicado não muda placar de jogo já visto. ⚠️ Caso raro: jogo
 calculado numa versão e ASSISTIDO noutra (recarregou no meio da rodada logo depois de uma publicação) — o campinho poderia mostrar
 outro lance; o placar que vale é o guardado.
-⏳ **FASE 3 (falta):** o pênalti decisivo manual continua somando gol por cima (decidir com o Diego se fica) · testar a carreira
-online com 2 aparelhos.
+✅ (21/10) pênalti decisivo manual FICA no motor novo (*"sim mantém"*): convertido soma 1 gol por cima do placar do campinho.
+⏳ **FASE 3 (falta):** testar a carreira online com 2 aparelhos.
 🚪 **PORTA DE ENTRADA NO JOGO (decisão do Diego, perguntada em 20/10):** hoje o campinho ENCENA o placar que a simulação da liga
 já decidiu (v1). O motor novo decide o placar sozinho. Então, pra ele entrar no jogo de verdade, o placar das partidas em 2D passa a
 SER o que acontece no campinho (liga, copas, online — tudo que o v1 desenha hoje), ou o v2 fica só de bancada. Sem essa resposta
