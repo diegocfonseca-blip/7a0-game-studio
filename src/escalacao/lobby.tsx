@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -1945,6 +1946,8 @@ export function EscLobby() {
         setLoading(false); return
       }
     }
+    // 🚫 21/10: a mesma régua do banco, avisando antes de tentar
+    if (nomeOfensivo(name)) { setRoomError(tr('🚫 Esse nome não é permitido: nada de preconceito no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: no prejudice in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
       .select().single()

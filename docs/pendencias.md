@@ -9949,5 +9949,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   meio (ex. "Anazinho"). Hoje no histórico só aparece também "Otavinazifc".
 - ✅ Aviso pra conta (`esc_avisos_conta` + `AvisoConta`): aparece uma vez, o X marca visto no banco. Pra mandar outro aviso a
   alguém: `insert into esc_avisos_conta (user_id, titulo, texto)`. ⏳ A tela precisa do deploy pra aparecer.
-- ⏳ O APELIDO da conta continua "Nazistaisaque卍" (`display_name`): a sala nova dele vai ser barrada com o aviso. Diego decide se
-  troca o apelido também.
+- ✅ 2ª parte (Diego: "nem palavras referentes ao nazismo ao fazer novo time e nova sala"): régua = nazi(solto)/nazista/nazismo,
+  hitler, suástica/swastika, führer, sieg heil, crioulo e os símbolos 卍卐࿕-࿘. Vale na SALA (barra), no PERFIL/TIME (gatilho em
+  `auth.users` troca o nome na hora de gravar) e na TELA (`nome-ofensivo.ts` dentro do `nomeLivre` + início de carreira/dinastia
+  + criar sala). "Internazionale" (Inter) liberado. Perfil dele trocado pra "N Isaque".
+- ⏳ 19 perfis ANTIGOS ainda têm nome assim (Hitler FC, Adolf Hitler, Real Nazista, Nazismo fc…): o gatilho só pega quando a conta
+  grava o nome de novo. Diego decide se limpa todos de uma vez.
