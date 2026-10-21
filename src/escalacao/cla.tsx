@@ -120,6 +120,7 @@ const ERRO: Record<string, [string, string]> = {
   lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
   sem_cla: ['Esse clã não existe mais.', 'That clan no longer exists.'],
+  emblema_fixo: ['Esse clã tem escudo próprio (batismo ou personalizado): o emblema não se troca.', 'This clan has its own crest (named club or custom): the emblem can’t be changed.'],
 }
 const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
 const dataCurta = (iso: string) => { const d = new Date(iso); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }
@@ -131,6 +132,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [tela, setTela] = useState<'inicio' | 'criar' | 'procurar' | 'ranking' | 'chamar'>('inicio')
   // 👑 21/10 (Diego): presidente não vai pra outro clã nem sai sem antes passar a presidência (só pra quem tem plano) ou fechar o clã
   const [pres, setPres] = useState<{ destino?: string; seguir?: () => void } | null>(null)
+  const [trocaEmb, setTrocaEmb] = useState(false) // 🎨 21/10: o presidente troca o emblema pronto (quem não pagou o personalizado)
   const [ver2, setVer2] = useState(false) // ⚔️⚔️ olhando o 2º clã (só aparece pra quem comprou)
   const [semPlano, setSemPlano] = useState(false) // 🔒 tocou em "Criar clã" sem plano → caixa explicando + botão dos planos
   // 🔁 21/10 (Diego): já tem clã e vai pra outro (convite ou pedido) → aviso lembrando do clã atual, pra seguir ou não
@@ -222,6 +224,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           if (souLider(c) && c.membros > 1) { setPres({ destino: tr('seu clã novo', 'your new clan'), seguir: () => { setPres(null); setTela('criar') } }); return }
           setTroca({ info: { erro: 'confirmar', atual: c.nome, atual_emblema: c.emblema, lider: souLider(c), sozinho: c.membros <= 1 }, destino: tr('seu clã novo', 'your new clan'), destinoEmblema: 'e:0', aberto: true, criar: true, seguir: () => { setTroca(null); setTela('criar') } })
         }}>⚔️ {tr('Criar meu clã', 'Create my clan')}</button>}
+        {souLider(c) && /^e:\d{1,2}$/.test(c.emblema) && <button style={bt(trocaEmb ? INK : '#fff', trocaEmb ? GOLD : INK)} onClick={() => setTrocaEmb(v => !v)}>🎨 {tr('emblema', 'emblem')}</button>}
         {souLider(c) && <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_aberto', { p_aberto: !c.aberto, ...alvo })}>{c.aberto ? tr('🔒 fechar', '🔒 close') : tr('🔓 abrir', '🔓 open')}</button>}
         {ehExtra && <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(tr(`Fechar o ${c.nome}? Todos os membros ficam sem clã (e podem entrar em outro na hora). O seu outro clã continua.`, `Close ${c.nome}? Every member is left without a clan (and can join another right away). Your other clan stays.`))) { setVer2(false); void faz('esc_cla_fechar', { p_cla: c.id }, tr('🗑️ Clã fechado.', '🗑️ Clan closed.')) } }}>🗑️ {tr('fechar este clã', 'close this clan')}</button>}
         {!ehExtra && <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => {
@@ -229,6 +232,13 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           if (window.confirm(souLider(c) ? tr('Sair do clã? Você é o único: o clã fecha. Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You are the only one: the clan closes. You can join another only in 3 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You can join another only in 3 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.'))
         }}>{tr('sair', 'leave')}</button>}
       </div>
+      {trocaEmb && souLider(c) && <div style={caixa}>
+        <p style={h3}>🎨 {tr('Trocar o emblema do clã', 'Change the clan emblem')}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {EMBLEMAS.map((_, i) => { const k = `e:${i}`; return <button key={k} disabled={ocupado} onClick={() => { setTrocaEmb(false); void faz('esc_cla_emblema', { p_emblema: k, p_cla: c.id }, tr('🎨 Emblema trocado!', '🎨 Emblem changed!')) }} style={{ border: `3px solid ${c.emblema === k ? GOLD : 'transparent'}`, borderRadius: 10, background: c.emblema === k ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}><EmblemaCla emblema={k} size={34} /></button> })}
+        </div>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão, só do seu clã? É na 🛒 Loja (R$ 19,99).', 'Want a hand-drawn crest just for your clan? It is in the 🛒 Shop (R$ 19.99).')}</p>
+      </div>}
       {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} />}
       {souLider(c) && !ehExtra && <EscudoClaLoja />}
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Todo título que você ganha nas salas online soma pro clã. O clã campeão da semana leva 🏆 no selo de cada membro na semana seguinte. Conversa continua no zap.', 'Every title you win in online rooms adds to the clan. The champion clan of the week gets 🏆 on every member’s badge the following week. Chat stays on WhatsApp.')}</p>

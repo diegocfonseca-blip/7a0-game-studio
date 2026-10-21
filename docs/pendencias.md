@@ -10092,3 +10092,7 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   do batismo) ou "⚔️ Clã com outro nome" (emblemas prontos). O banco (`esc_cla_criar`, migration `20261021150000`) só aceita o escudo junto
   com o nome. Os 2 clãs antigos ganharam emblema pronto (e:3 · e:4). Já tendo clã, o do batismo como 2º é pela Loja (`cla_extra`): o time do
   batismo vira o 2º clã e o escudo personalizado vai pro 1º (migration `20261021140000`). Foto: `scripts/mockups/clas-criar-batismo.png`.
+- ✅ **🎨 TROCAR EMBLEMA DO CLÃ (21/10)**: o presidente troca entre os emblemas prontos (botão "🎨 emblema" no clã). Clã do batismo e escudo
+  personalizado pago não trocam por aqui (`esc_cla_emblema`, migration `20261021160000`). Regra confirmada pelo Diego: sem clã → o do batismo é
+  de graça (1º); criar outro depois = 2º pago (R$ 19,99, personaliza o novo). Fez ao contrário (criou outro antes) → ativar o batismo é o 2º
+  pago, e o escudo personalizado vai pro 1º.
