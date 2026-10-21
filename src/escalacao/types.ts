@@ -802,6 +802,9 @@ export interface EscState {
   /** ⚽🧠 MOTOR NOVO NA CARREIRA (20/10, só a conta do Diego por enquanto): a partir de qual temporada/rodada (0-based, o próximo
    *  jogo) o SEU jogo é decidido pelo motor v2. Rodada já jogada nunca muda. Ausente = simulação de sempre, byte a byte. */
   motor2Desde?: { season: number; round: number }
+  /** 💾 os resultados do motor novo, DENTRO do save (21/10): o mesmo save no celular e no PC mostra o mesmo placar, e ajuste do
+   *  motor nunca muda jogo já visto. Chave = assinatura da entrada do jogo; fica a temporada atual e a anterior. */
+  m2Res?: Record<string, import('./motor2/carreira').GuardadoM2>
   careerPenalty?: Record<number, Record<number, { scored: boolean; taker: string }>> // ⚽ PÊNALTI DECISIVO POR RODADA (mgrId → índice do jogo 0-based → resultado). SÓ CARREIRA OFFLINE. Aparece 0-2x/temporada em jogo decisivo de última hora (um gol empata ou vira). `taker` = id do cobrador escolhido; `scored` = converteu. Motor SÓ soma 1 gol ao time do humano naquele jogo se scored (min 90), sem rng — resultado já decidido pelo jogador. Vazio = simulação BYTE-IDÊNTICA (não afeta ninguém). Zera entre temporadas.
   marketValues?: Record<string, number> // carreira online: LIVRO DE PREÇOS global (nome do jogador → último preço). Toda venda/lance vencedor e ida ao monte atualiza; todo baralho novo consulta pra carimbar o piso. Assim o valor de cada jogador é memória do jogo inteiro (ex.: Kaká vendido 30 → monte 15 → volta valendo 15).
   marketLog?: string[] // carreira online: resumo do que os BOTS fizeram no leilão/monte (arrematou X, pegou Y de graça, comprou o listado Z por W) — mostrado na cerimônia pra dar visibilidade. Zera a cada leilão.

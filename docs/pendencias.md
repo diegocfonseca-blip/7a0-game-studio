@@ -42,10 +42,12 @@ um F5 — a Copa podia trocar no meio); agora a 1ª vez e o F5 dão a mesma Copa
 🌐 **(21/10, PUBLICADO junto do conserto das duplas):** carreira online v2 com o motor novo. Quem comanda a sala (e só
 se a conta dele tem o motor novo) carimba `mundo.m2 = temporada` no preparo; todo aparelho lê o MESMO carimbo e liga junto da rodada 1
 dessa temporada em diante (liga, copas, internacional, Copa do Mundo). Falta testar com 2 aparelhos antes de publicar.
-✅ (21/10, no branch) resultado do motor novo GUARDADO no aparelho (`ll-m2-res`, uma chave, teto 700 jogos ~90 bytes cada): reabrir a
-carreira não refaz os jogos (0,5 ms × ~100 ms cada) e ajuste de motor publicado não muda placar de jogo já visto. ⚠️ Caso raro: jogo
-calculado numa versão e ASSISTIDO noutra (recarregou no meio da rodada logo depois de uma publicação) — o campinho poderia mostrar
-outro lance; o placar que vale é o guardado.
+✅ (21/10, no branch) resultado do motor novo GUARDADO NO SAVE (`m2Res`, sobe pra nuvem junto): o mesmo save no celular e no PC
+mostra o MESMO placar (Diego: *"às vezes joga pelo telefone… às vezes o mesmo save pelo PC… não pode ter erros"*), reabrir a carreira
+não refaz os jogos e ajuste de motor publicado não muda placar já visto. Fica a temporada atual e a anterior (~90 bytes por jogo).
+Testado: aparelho 1 calcula e grava; aparelho 2 lê do save sem recalcular. ⚠️ Caso raro: jogo calculado numa versão e ASSISTIDO
+noutra (recarregou no meio da rodada logo depois de uma publicação) — o placar que vale é o guardado; o campinho poderia desenhar
+outro lance.
 ✅ (21/10) pênalti decisivo manual FICA no motor novo (*"sim mantém"*): convertido soma 1 gol por cima do placar do campinho.
 ⏳ **FASE 3 (falta):** testar a carreira online com 2 aparelhos.
 🚪 **PORTA DE ENTRADA NO JOGO (decisão do Diego, perguntada em 20/10):** hoje o campinho ENCENA o placar que a simulação da liga

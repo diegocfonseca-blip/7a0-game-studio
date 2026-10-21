@@ -1000,6 +1000,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Mundo — o jogo do SEU time é do motor novo. Quem mexer: a conta antiga roda ANTES e gasta o dado igual (jogo de bot só muda se o seu
   resultado mudou quem passou), pênalti de confronto que o motor novo empatou sai de dado próprio, e copa já começada NUNCA liga no meio
   (`m2Copa` nas nacionais; carimbo na campanha internacional e no `emAndamento.m2` da Copa do Mundo).
+  💾 **Resultado do motor novo mora no SAVE (`m2Res`), nunca só no aparelho** (21/10): o Diego lembrou que o mesmo save é jogado no
+  celular e no PC — *"não pode ter erros"*. Tudo que precisa bater entre aparelhos vai no save, não no localStorage.
   ⚽ **O pênalti decisivo manual continua valendo no motor novo** (21/10, *"sim mantém"*): convertido = +1 gol por cima do placar do campinho.
   (18) **O MOTOR NOVO USA TUDO QUE O JOGO SABE DO JOGADOR (20/10):** *"com base no nível, no cansaço… o Romário cansado, o Jardel
   fica muito melhor… o Ronaldinho pode ter 90 a 96, o 90 é o dia ruim, pode estar no meio ou no ápice"*. Então: cada carta entra

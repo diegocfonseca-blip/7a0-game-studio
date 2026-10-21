@@ -5609,6 +5609,7 @@ type Action =
   | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
   | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
+  | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
@@ -10045,6 +10046,16 @@ function reducerBase(state: EscState, action: Action): EscState {
       const hh = { ...(s.careerHalftime ?? {}) }
       hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { xi2: ids, formation: action.formation, tactic: action.tactic } }
       s.careerHalftime = hh
+      return s
+    }
+    case 'GUARDA_M2': {
+      // 💾 (21/10) os resultados do motor novo entram no save (sobe pra nuvem junto): celular e PC mostram o MESMO placar. Fica só a
+      // temporada atual e a anterior (o resto já virou história no arquivo da temporada).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const t = s.seasonNo ?? 1, out: NonNullable<EscState['m2Res']> = {}
+      for (const [k, v] of Object.entries(s.m2Res ?? {})) if (v[3] >= t - 1) out[k] = v
+      for (const [k, v] of Object.entries(action.novos)) if (!out[k]) out[k] = v
+      s.m2Res = out
       return s
     }
     case 'LIGA_MOTOR2': {
