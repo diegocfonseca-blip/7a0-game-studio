@@ -9966,8 +9966,10 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   LOS DICTADORES卍 → LOS DICTADORES). Zero nome ofensivo sobrando pela régua.
 - 👀 Fora da régua (não está na lista do Diego): "donigga50k" (variação de xingamento racista em inglês) apareceu num vice-campeão.
 
-## 🐊 Chat: figurinha do mascote (21/10) — MOCKUP enviado, esperando OK
+## 🐊 Chat: figurinha do mascote (21/10) — FEITO ("gostei… pode fazer")
 - Diego gostou de "figurinha da mascote" e "reagir a uma mensagem"; pediu mockup só da figurinha (`scripts/mockups/chat-figurinha-mascote.png`):
-  botão 🐊 ao lado do campo → bandeja com 4 figurinhas do SEU mascote (É NOSSO! · BLEFE! · CHORA! · VEM!) → cai no chat sem balão.
-  Custo = 1 mensagem normal do chat. ⏳ Decidir: quem não tem mascote (grátis/sem batismo) — sem botão ou com mascotes genéricos?
+  botão 🐊 ao lado do campo → bandeja com 4 figurinhas do SEU mascote → cai no chat sem balão. Legendas do Diego: CHORA! · É TUDO
+  NOSSO! · PAI TÁ ON! · BORAAA! (`FIG_LEG`, screens.tsx). A mensagem leva só o índice (`ChatMsg.fig`); quem recebe acha a mascote pelo
+  nome do clube de quem mandou (ninguém manda a mascote alheia); 1 a cada 2 s. Custo = 1 mensagem normal.
+  ⏳ Sem mascote (grátis/sem batismo) = sem botão por enquanto; Diego não decidiu se ganham mascotes genéricas.
 - ⏳ Reagir a mensagem: aprovado em ideia (1 reação a cada 2s, custo de 1 mensagem); sem mockup ainda.

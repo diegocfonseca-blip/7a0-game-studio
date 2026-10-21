@@ -86,7 +86,7 @@ import { FaixaProximaCompeticao, proximasCompeticoes, useCopasDaSala, RODADAS_DO
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
-import { MASCOTES, FestaoMascote } from './mascotes'
+import { MASCOTES, FestaoMascote, mascoteInteiraDoTime, mascoteKeyDoTime } from './mascotes'
 import { MascoteAtravessa, MascoteMini, moneySeed } from './mascote-atravessa' // 🐊 movido pra cá em 25/09: a sala de espera também solta o bicho
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
@@ -697,6 +697,27 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
   )
 }
 
+// ─── 🐊 FIGURINHA DO MASCOTE NO CHAT (21/10, mockup `scripts/mockups/chat-figurinha-mascote.png`) ─────────────────
+// Diego: *"gostei da figurinha… coloque: Chora. É tudo nosso. Pai tá on. Boraaa"*. Custa o mesmo que uma mensagem normal.
+// Só quem tem mascote (clube de batismo) vê o botão. A mensagem leva só o ÍNDICE da legenda (cada um lê no seu idioma) e
+// quem RECEBE acha a mascote pelo nome do clube de quem mandou (mesmo caminho do carimbo de gol) — ninguém manda a mascote
+// dos outros. Versão velha do jogo ignora o `fig` e mostra o texto que vai junto.
+const FIG_LEG: [string, string][] = [['CHORA!', 'CRY!'], ['É TUDO NOSSO!', 'IT’S ALL OURS!'], ['PAI TÁ ON!', 'DADDY’S ON!'], ['BORAAA!', 'LET’S GOOO!']]
+const FIG_ESPERA_MS = 2000 // 1 figurinha a cada 2 s por pessoa (a mesma régua das reações)
+const FIG_CSS = '.figm>*{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;transform:none!important;animation:none!important}.figm img,.figm svg{width:100%!important;height:100%!important;object-fit:contain}'
+function FigurinhaMascote({ time, leg, size = 96 }: { time: string; leg: string; size?: number }) {
+  const arte = mascoteInteiraDoTime(time)
+  if (!arte) return null
+  return (
+    <div style={{ position: 'relative', width: size, height: size + 10 }}>
+      <div style={{ width: size, height: size, display: 'grid', placeItems: 'center', filter: 'drop-shadow(2px 2px 0 #000) drop-shadow(-1px -1px 0 #fff)' }}>
+        <div className="figm" style={{ width: size * .92, height: size * .92, overflow: 'hidden', position: 'relative' }}>{arte}</div>
+      </div>
+      <span style={{ position: 'absolute', left: '50%', bottom: 0, transform: 'translateX(-50%) rotate(-4deg)', background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 7, padding: '1px 7px', ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: Math.round(size * .14), whiteSpace: 'nowrap', boxShadow: '2px 2px 0 #000' }}>{leg}</span>
+    </div>
+  )
+}
+
 // ─── 💬 CHAT / ZOEIRA DA SALA (só online) ────────────────────────────────
 // FAB no canto + gaveta que abre/fecha. Mensagens efêmeras (broadcast, fora do
 // reducer — não afeta o jogo). Badge de não-lidas POR usuário (some ao abrir,
@@ -706,6 +727,8 @@ export function ChatWidget() {
   const [text, setText] = useState('')
   const [resp, setResp] = useState<ChatRe | null>(null) // ↩ respondendo alguém (13/10)
   const listRef = useRef<HTMLDivElement>(null)
+  const [figAberta, setFigAberta] = useState(false) // 🐊 bandeja de figurinhas (21/10)
+  const figUltima = useRef(0)
   const online = state.onlineMode === 'online'
   const inRoom = online && !!state.roomId
   const isHost = !!state.isHost
@@ -715,6 +738,14 @@ export function ChatWidget() {
   if (!inRoom) return null
   if (chatOff && !isHost) return null // host desligou → convidados não veem nada
   const send = (t: string) => { if (!t.trim()) return; sendChat(t, resp ?? undefined); setText(''); setResp(null) }
+  // 🐊 o MEU clube (o mesmo nome que o chat carimba) tem mascote? só aí aparece o botão
+  const meuTime = state.managers[state.youIdx]?.teamName ?? ''
+  const temFig = !!meuTime && !!mascoteKeyDoTime(meuTime)
+  const mandaFig = (i: number) => {
+    if (Date.now() - figUltima.current < FIG_ESPERA_MS) return
+    figUltima.current = Date.now()
+    sendChat(`🐊 ${FIG_LEG[i][0]}`, undefined, i); setFigAberta(false)
+  }
   return (
     <>
       {!chatOpen && (
@@ -755,6 +786,17 @@ export function ChatWidget() {
                       // antiga guardada no aparelho, ou sala sem dupla).
                       const mine = m.uid ? m.uid === state.youUid : m.from === state.youIdx
                       const re = reValido(m.re)
+                      // 🐊 figurinha: sem balão, a mascote do clube de quem mandou (se a gente não conhece a mascote, fica o texto)
+                      const fig = typeof m.fig === 'number' && FIG_LEG[m.fig] && mascoteInteiraDoTime(m.name) ? FIG_LEG[m.fig] : null
+                      if (fig) return (
+                        <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                          <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>
+                          <div style={{ textAlign: mine ? 'right' : 'left' }}>
+                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} /></ComPerfil>}
+                            <div style={{ display: 'inline-block' }}><FigurinhaMascote time={m.name} leg={tr(fig[0], fig[1])} /></div>
+                          </div>
+                        </div>
+                      )
                       // 1) nome na cor do plano de quem fala (sem escudo: Diego 13/10 "pra não ficar muita informação") · 3) toque na dos outros = responder
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
@@ -770,7 +812,21 @@ export function ChatWidget() {
                     })}
                 </div>
                 {resp && <ChatRespondendo re={resp} onCancel={() => setResp(null)} />}
+                {temFig && figAberta && (
+                  <div style={{ borderTop: '2px solid #000', background: '#FFF8E4', padding: '8px 10px 10px' }}>
+                    <div style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 11, marginBottom: 6 }}>{tr('🐊 Figurinhas do seu mascote', '🐊 Your mascot stickers')}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+                      {FIG_LEG.map((l, i) => (
+                        <button key={i} onClick={() => mandaFig(i)} style={{ background: '#fff', border: '2px solid #000', borderRadius: 10, display: 'grid', placeItems: 'center', padding: '4px 0', boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>
+                          <FigurinhaMascote time={meuTime} leg={tr(l[0], l[1])} size={58} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <style>{FIG_CSS}</style>
                 <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
+                  {temFig && <button onClick={() => setFigAberta(a => !a)} aria-label={tr('Figurinhas do mascote', 'Mascot stickers')} style={{ width: 38, flexShrink: 0, background: figAberta ? GOLD : '#fff', border: '2px solid #000', borderRadius: 9, fontSize: 18, boxShadow: '2px 2px 0 0 #000', cursor: 'pointer' }}>🐊</button>}
                   <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
                     onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={tr('manda a real…', 'say it…')}
                     style={{ flex: 1, minWidth: 0, color: INK, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
