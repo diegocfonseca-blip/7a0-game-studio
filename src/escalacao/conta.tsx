@@ -21,6 +21,7 @@ import { supabase } from '../lib/supabase'
 import { stripEmoji, emailProblema, logout } from './apoio'
 import { nomeLivre, NOME_MSG } from './manto'
 import { tr } from './lang' // 🌐 BR/EN do site
+import { nomeDeTime } from './nome-time' // 🔤 21/10: 1ª letra maiúscula, resto minúscula, FC maiúsculo
 
 // Lista curta do perfil; não altera o catálogo de cores usado em outras telas.
 const CLUBES_PRINCIPAIS = ['Atlético-MG', 'Botafogo', 'Corinthians', 'Cruzeiro', 'Flamengo', 'Fluminense', 'Grêmio', 'Internacional', 'Palmeiras', 'Santos', 'São Paulo', 'Vasco']
@@ -145,7 +146,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
         setSenha(''); setConfirmacao(''); onPronto(); return
       }
       // ── criar conta ──
-      const nm = stripEmoji(time).trim()
+      const nm = nomeDeTime(stripEmoji(time))
       if (!nm) { setErro(tr('Escolha o nome do seu time.', 'Choose your team name.')); setCarregando(false); return }
       const prob = emailProblema(email)
       if (prob) { setErro(prob); setCarregando(false); return }

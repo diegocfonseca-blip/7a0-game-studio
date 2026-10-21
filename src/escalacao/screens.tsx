@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
+import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -1617,7 +1618,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
   }
   const comecar = async () => {
     if (checando) return
-    const limpo = stripEmoji(nome).trim()
+    const limpo = nomeDeTime(stripEmoji(nome)) // 🔤 21/10
     // 🔒 nome de clube BATIZADO é do dono, e nome de outra conta também não passa — mesma checagem do futebol.
     // (Não troca o nome da CONTA: ele vale pro futebol. O nome fica só nesta carreira.)
     if (limpo) {
@@ -2869,12 +2870,12 @@ export function EscSetup() {
 
   async function start() {
     if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
-    const clean = stripEmoji(name).trim()
+    const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
-      // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa
-      const chk = await nomeLivre(clean)
+      // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa — só mudar maiúscula não confere
+      const chk = clean.toLowerCase() === accountName.toLowerCase() ? { livre: true } as { livre: boolean; motivo?: string } : await nomeLivre(clean)
       if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
       setNameErr('')
       try { await supabase.auth.updateUser({ data: { display_name: clean } }) } catch { /* não trava o jogo */ }

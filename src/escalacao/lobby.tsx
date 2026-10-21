@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
+import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -1777,7 +1778,7 @@ export function EscLobby() {
 
   // salva o nome de técnico (display_name) — usado no chip de edição rápida
   async function saveName() {
-    const nm = stripEmoji(nameDraft).trim()
+    const nm = nomeDeTime(stripEmoji(nameDraft)) // 🔤 21/10 (Diego): 1ª letra maiúscula, resto minúscula, FC maiúsculo
     if (!nm) return
     setLoading(true); setNameErr('')
     // 🔒 nome único (tipo @ do Instagram): manter o próprio nome passa; nome de

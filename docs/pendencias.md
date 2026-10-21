@@ -10061,3 +10061,8 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   mascote **O Bode Rei** (`neymarfc_bode` — nome escolhido por mim, o Diego pode trocar), manto creme #F2D8B8 + preto #090806 MEDIDOS na
   camisa, camisa na Loja. Banco: ouro manual (já estava, veio do pagamento), sócio nº77, "Neymar" reservado (+FC/EC). Batismo de 79,90 =
   sem número de fundador (`SEM_FUNDADOR`). Post: `scripts/posts/neymarfc-post.png`. ⏳ Falta publicar na main (código).
+- ✅ **🔤 NOME DE TIME ARRUMADO (21/10, regra do Diego)**: *"todo time do usuário, quando for feito, mesmo que ele bote maiúscula…
+  primeira letra maiúscula e o restante minúscula. E FC sempre maiúscula"*. `nomeDeTime` (`nome-time.ts`): cada palavra com 1ª
+  maiúscula, "de/da/do/dos/das/e" no meio minúsculas, FC/EC/SC/AC/SAF maiúsculas, separador (_ - / .) mantido. Vale no cadastro,
+  carreira, dinastia, carreira do basquete e no chip do nome das salas. Nome já existente só muda quando a pessoa salva de novo.
+  Só trocar maiúscula do PRÓPRIO nome não passa pela checagem de nome único.
