@@ -586,6 +586,8 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   🗂️ **GUARDADO (19/10, *"deixa guardado… em breve daremos os clãs"*)**. Selo do clã SÓ onde aparece a PESSOA: lista de técnicos da
   sala, crachá do chat, perfil e lista de amigos — nunca em tabela/placar/jogo (lá é o escudo do clube). SQL do banco já escrito
   (tentativa de aplicar foi cancelada; reaplicar só com OK dele).
+  🖼️ 21/10: mockup de ONDE aparece (exemplo Clã Futpoint, Futpoint líder + Didico grátis): `scripts/mockups/clas-onde-aparece.png` —
+  pílula escura (emblema + "⚔️ Clã X") SEMPRE na linha de baixo do nome, sem mexer em escudo/presidente/cor do plano/medalha. ⏳ esperando OK.
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem
