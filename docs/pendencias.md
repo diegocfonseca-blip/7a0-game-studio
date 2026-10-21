@@ -591,7 +591,8 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   ✅ FEITO 21/10 (só nas contas do Diego — `CLAS_GERAL` em `cla.tsx`): banco `20261021040000_clas.sql` (testado: grátis não cria, nome
   ofensivo barrado, escudo do batismo, fechado→pedido→líder aceita, 7 dias de espera, líder sozinho sai = clã fecha) + aba ⚔️ Clã nos
   Amigos (criar/procurar/ranking/chamar amigo/pedidos/tirar/abrir-fechar/sair) + selo na sala de espera, chat, amigos e perfil.
-  Foto: `scripts/mockups/clas-tela-real.png`. ⏳ Liberar pra todos = `CLAS_GERAL = true` quando o Diego testar. ⏳ Convite de clã
+  Foto: `scripts/mockups/clas-tela-real.png`. 🔁 21/10: selo do clã SAIU do chat (Diego: "no chat não precisa") e entrou a caixa ⚔️ Clãs da semana
+  (top 5) embaixo do Ranking da semana nas salas online (`scripts/mockups/clas-ranking-salas.png`). Máximo de membros: 20 (perguntei se quer 22). ⏳ Liberar pra todos = `CLAS_GERAL = true` quando o Diego testar. ⏳ Convite de clã
   ainda não aparece no 🔔 (só na aba ⚔️ Clã).
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking

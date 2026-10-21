@@ -7,7 +7,9 @@
 // Tudo vem PRONTO do banco numa chamada só (`esc_vitrine_salas`, docs/sql/vitrine-salas.sql):
 // a semana tem ~900 linhas de campeão e baixar isso no celular a cada lista seria tráfego à toa.
 // Banco sem resposta = a vitrine simplesmente não aparece (nunca trava a lista de salas).
+import { EmblemaCla, clasLiberado } from './cla' // ⚔️ 21/10: ranking dos clãs da semana
 import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { buscaVitrine, type Vitrine } from './vitrine-dados'
 import { tr, getLang } from './lang'
 import { PodioMoldura } from './podio-semana'
@@ -39,6 +41,28 @@ const haQuanto = (iso: string) => {
 // em que ele chegou no jogo). Não depende mais do banco.
 const DESTAQUE = { clube: 'Labubu FC', desde: '2026-10-14' } // 🔁 21/10: Labubu FC (Diego: "troque o batizado em destaque das salas online pro Labubu") · antes: K9 FC (16/10)
 const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}º`)
+
+// ⚔️ RANKING DOS CLÃS DA SEMANA (21/10, Diego: "o ranking da semana também terá de clãs agora"): os 5 clãs com mais títulos
+// online na semana (a MESMA conta do ranking dos técnicos, somada por clã). Uma leitura quando a lista de salas abre.
+type ClaRank = { id: number; nome: string; emblema: string; membros: number; titulos: number; pos: number }
+function RankingClasCaixa() {
+  const [l, setL] = useState<ClaRank[] | null>(null)
+  useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 5)) }, () => {}); return () => { vivo = false } }, [])
+  if (!l || l.length === 0) return null
+  return (
+    <Caixa titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
+      {l.map((c, i) => (
+        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 && c.titulos > 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : i ? { borderTop: '1.5px solid #0001' } : {}) }}>
+          <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{c.titulos > 0 ? medalha(c.pos) : `${c.pos}º`}</span>
+          <EmblemaCla emblema={c.emblema} size={24} />
+          <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nome}</b>
+          <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{c.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
+        </div>
+      ))}
+      <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('O clã campeão joga a semana seguinte com 🏆 no selo de cada membro. Entre num clã em 👥 Amigos → ⚔️ Clã.', 'The champion clan plays the next week with 🏆 on every member’s badge. Join a clan in 👥 Friends → ⚔️ Clan.')}</p>
+    </Caixa>
+  )
+}
 
 function Caixa({ titulo, sub, escura = false, children }: { titulo: string; sub: string; escura?: boolean; children: React.ReactNode }) {
   return (
@@ -123,6 +147,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]} — e 📺 propaganda da vitória no telão de TODAS as salas, a semana inteira.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]} — and 📺 your win advertised on the ticker in EVERY room, all week long.`)}</p>
         </Caixa>
       )}
+      {clasLiberado() && <RankingClasCaixa />}
 
       {(
         <Caixa escura titulo={tr('🖋️ Batismo em destaque', '🖋️ Featured named club')} sub={tr('Um clube de verdade, de um jogador do Leilão Legends.', 'A real club, from a Leilão Legends player.')}>
