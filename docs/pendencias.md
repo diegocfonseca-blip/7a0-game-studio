@@ -9933,7 +9933,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   na Copa do Brasil da carreira e na Copa dos 8 online · mais uma marca no Master da carreira.
 - ✅ Código (no branch, esperando OK pra publicar): logo `img/patro-oittolabs.webp` (21 KB) · `PLACAS_CAMPO` Vadico → OittoLabs →
   Tidex (cima/baixo trocam a cada 7 s) · Copa dos 8 = OittoLabs (era Tidex; a Tidex segue na Liga Legends da carreira) · Copa do
-  Brasil da carreira = OittoLabs (`career-copa`) · Master: 7ª marca, 5 temporadas, igual Vadico/Tidex (`npm run master`).
+  Brasil da carreira = OittoLabs (`career-copa`) · Master: a OittoLabs entrou NO LUGAR da Max Joias, 1 temporada (Diego: "tira Max
+  joias e bote ele"); contrato da Max Joias já correndo em save antigo vai até o fim (`npm run master`).
 - ✅ Aviso: `scripts/posts/aviso-2026-10-21-parceiro-oittolabs.png`. Mockup do jogo: `scripts/mockups/oittolabs-no-jogo.png`.
 - ⏳ Telão: a linha de verdade é no banco (`esc_anuncios_fixos`) — inserir junto da publicação:
-  "🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui" → https://oittolabs.com.br (ordem 5).
+  "🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui" (ordem 5). Diego quer o clique no
+  WhatsApp deles com mensagem pronta (igual Tidex) — ⏳ falta o NÚMERO; até lá vai pro site.
