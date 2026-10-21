@@ -616,6 +616,10 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   presidência (lista do clã; SÓ quem tem plano pode receber) ou 🗑️ Fechar o clã (solta todo mundo sem espera). Sozinho no clã: sair/
   trocar fecha o clã, como antes. A coroa NÃO passa mais sozinha pro mais antigo. Migration `20261021100000_clas_presidente.sql`,
   testado no banco. Foto: `scripts/mockups/clas-presidente.png`.
+  🔁 21/10: **CRIAR CLÃ ESTANDO EM OUTRO** (*"pra ele criar clã ele precisa sair do clã onde ele está e aí também aparece o banner"*):
+  botão "⚔️ Criar meu clã" dentro do clã → aviso "você sai do X" (presidente com gente: passar/fechar antes) → tela de criar com
+  "🚪 Ao criar, você sai do X"; o banco sai e cria na mesma hora (`esc_cla_criar(..., p_trocar)`, migration
+  `20261021110000_clas_criar_saindo.sql`). E na tela **"líder" virou "presidente"** (pedido dele).
 - ⏳ **🚩 TORCIDAS (ideia 19/10, no lugar de "clãs")** — mockup enviado, ESPERANDO OK: `scripts/mockups/torcidas.png`. Cada um
   entra na torcida de UM clube batizado (dono já nasce na dele; troca 1x por mês), todo título online soma pra torcida, ranking
   semanal das torcidas, ⚔️ clássico da semana (2 torcidas sorteadas), selinho da torcida na sala. Só placar, sem chat (zap) e sem

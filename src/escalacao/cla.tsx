@@ -130,7 +130,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [pres, setPres] = useState<{ destino?: string; seguir?: () => void } | null>(null)
   const [semPlano, setSemPlano] = useState(false) // 🔒 tocou em "Criar clã" sem plano → caixa explicando + botão dos planos
   // 🔁 21/10 (Diego): já tem clã e vai pra outro (convite ou pedido) → aviso lembrando do clã atual, pra seguir ou não
-  const [troca, setTroca] = useState<{ info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void } | null>(null)
+  const [troca, setTroca] = useState<{ info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; criar?: boolean; seguir: () => void } | null>(null)
   const carrega = () => { supabase.rpc('esc_cla_painel').then(({ data, error }) => setP(error || !data ? 'erro' : data as Painel), () => setP('erro')) }
   useEffect(carrega, [])
   const faz = async (rpc: string, args: Record<string, unknown>, ok?: string, destino?: { nome: string; emblema: string; aberto: boolean }) => {
@@ -141,7 +141,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       if (!error && r.erro === 'confirmar' && destino && r.preso) setPres({ destino: destino.nome, seguir: () => { setPres(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
       else if (!error && r.erro === 'confirmar' && destino) setTroca({ info: r as TrocaInfo, destino: destino.nome, destinoEmblema: destino.emblema, aberto: destino.aberto, seguir: () => { setTroca(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
       else if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
-      else { setMsg(r.pedido ? tr('📨 Pedido enviado — o líder do clã decide.', '📨 Request sent — the clan leader decides.') : ok ?? ''); esqueceClas(); setTela('inicio') }
+      else { setMsg(r.pedido ? tr('📨 Pedido enviado — o presidente do clã decide.', '📨 Request sent — the clan president decides.') : ok ?? ''); esqueceClas(); setTela('inicio') }
     } catch { setMsg(`⚠️ ${msgErro(null)}`) } finally { setOcupado(false); carrega() }
   }
   if (p === null) return <p style={{ textAlign: 'center', fontWeight: 800, margin: '20px 0' }}>{tr('carregando…', 'loading…')}</p>
@@ -149,7 +149,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const aviso = msg && <p style={{ ...caixa, background: msg.startsWith('⚠️') ? '#FFE3D6' : '#E9F7EE', fontSize: 12.5, fontWeight: 800 }}>{msg}</p>
   const voltar = <button style={{ ...bt('#fff', INK), marginTop: 10 }} onClick={() => setTela('inicio')}>‹ {tr('voltar', 'back')}</button>
 
-  if (tela === 'criar') return <>{voltar}<CriarCla painel={p} ocupado={ocupado} onCriar={(nome, emblema, aberto) => void faz('esc_cla_criar', { p_nome: nome, p_emblema: emblema, p_aberto: aberto }, tr('⚔️ Clã criado! Chame seus amigos.', '⚔️ Clan created! Invite your friends.'))} />{aviso}</>
+  if (tela === 'criar') return <>{voltar}<CriarCla painel={p} saindoDe={p.cla?.nome} ocupado={ocupado} onCriar={(nome, emblema, aberto) => void faz('esc_cla_criar', { p_nome: nome, p_emblema: emblema, p_aberto: aberto, p_trocar: !!p.cla }, tr('⚔️ Clã criado! Chame seus amigos.', '⚔️ Clan created! Invite your friends.'))} />{aviso}</>
   const modalTroca = <>{troca && <ConfirmaTroca {...troca} onFicar={() => setTroca(null)} />}
     {pres && p.cla && <ResolvePresidencia cla={p.cla.nome} destino={pres.destino} onFicar={() => setPres(null)}
       onPassou={() => { if (pres.seguir) pres.seguir(); else { setPres(null); void faz('esc_cla_sair', {}, tr('Presidência passada. Você saiu do clã.', 'Presidency handed over. You left the clan.')) } }}
@@ -176,7 +176,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <EmblemaCla emblema={c.emblema} size={58} />
         <div style={{ minWidth: 0 }}>
           <b style={{ ...OSW, fontSize: 20, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-          <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('líder', 'leader')}: {c.lider_nome} · {c.membros}/{CLA_MAX} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('presidente', 'president')}: {c.lider_nome} · {c.membros}/{CLA_MAX} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginTop: 8 }}>
@@ -205,12 +205,19 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <button style={{ ...bt(ROXO, '#fff'), flex: 1 }} onClick={() => setTela('chamar')}>📣 {tr('Chamar amigo pro clã', 'Invite a friend')}</button>
         <button style={bt('#fff', INK)} onClick={() => setTela('ranking')}>🏆 {tr('Ranking', 'Ranking')}</button>
         <button style={bt('#fff', INK)} onClick={() => setTela('procurar')}>🔎 {tr('Outros clãs', 'Other clans')}</button>
+        {/* ⚔️ 21/10 (Diego): criar o seu estando em outro = sair do atual, com o mesmo aviso (presidente: passar ou fechar antes) */}
+        <button style={bt('#fff', INK)} onClick={() => {
+          if (!p.pode_criar) { setSemPlano(v => !v); return }
+          if (souLider(c) && c.membros > 1) { setPres({ destino: tr('seu clã novo', 'your new clan'), seguir: () => { setPres(null); setTela('criar') } }); return }
+          setTroca({ info: { erro: 'confirmar', atual: c.nome, atual_emblema: c.emblema, lider: souLider(c), sozinho: c.membros <= 1 }, destino: tr('seu clã novo', 'your new clan'), destinoEmblema: 'e:0', aberto: true, criar: true, seguir: () => { setTroca(null); setTela('criar') } })
+        }}>⚔️ {tr('Criar meu clã', 'Create my clan')}</button>
         {souLider(c) && <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_aberto', { p_aberto: !c.aberto })}>{c.aberto ? tr('🔒 fechar', '🔒 close') : tr('🔓 abrir', '🔓 open')}</button>}
         <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => {
           if (souLider(c) && c.membros > 1) { setPres({}); return }
           if (window.confirm(souLider(c) ? tr('Sair do clã? Você é o único: o clã fecha. Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You are the only one: the clan closes. You can join another only in 3 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You can join another only in 3 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.'))
         }}>{tr('sair', 'leave')}</button>
       </div>
+      {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} />}
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Todo título que você ganha nas salas online soma pro clã. O clã campeão da semana leva 🏆 no selo de cada membro na semana seguinte. Conversa continua no zap.', 'Every title you win in online rooms adds to the clan. The champion clan of the week gets 🏆 on every member’s badge the following week. Chat stays on WhatsApp.')}</p>
     </> : <>
       <div style={{ ...caixa, textAlign: 'center' }}>
@@ -236,8 +243,8 @@ function CriarSemPlano({ onProcurar }: { onProcurar: () => void }) {
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
       <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Criar clã é de quem tem plano', 'Creating a clan needs a plan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Com qualquer plano (⭐ Craque, 👑 Lenda, 🖋 Batismo ou Fundador) você cria o seu clã, vira o líder 👑 e chama até ${CLA_MAX - 1} amigos. Se o seu plano tem escudo de batismo, ele vira o emblema do clã.`,
-        `With any plan (⭐ Star, 👑 Legend, 🖋 Named club or Founder) you create your clan, become the leader 👑 and invite up to ${CLA_MAX - 1} friends. If your plan has a named-club crest, it becomes the clan emblem.`)}</p>
+        `Com qualquer plano (⭐ Craque, 👑 Lenda, 🖋 Batismo ou Fundador) você cria o seu clã, vira o presidente 👑 e chama até ${CLA_MAX - 1} amigos. Se o seu plano tem escudo de batismo, ele vira o emblema do clã.`,
+        `With any plan (⭐ Star, 👑 Legend, 🖋 Named club or Founder) you create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. If your plan has a named-club crest, it becomes the clan emblem.`)}</p>
       <ApoieButton startScreen="choice" trigger={open => (
         <button onClick={open} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>⭐ {tr('Ver os planos', 'See the plans')}</button>
       )} />
@@ -288,7 +295,7 @@ function ResolvePresidencia({ cla, destino, onFicar, onPassou, onFechou }: { cla
   )
 }
 // 🔁 o aviso de troca (21/10): o clã de agora × o novo, o que acontece com a liderança, a espera de 3 dias e os dois botões
-function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar }: { info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void; onFicar: () => void }) {
+function ConfirmaTroca({ info, destino, destinoEmblema, aberto, criar, seguir, onFicar }: { info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; criar?: boolean; seguir: () => void; onFicar: () => void }) {
   return (
     <div role="dialog" aria-modal="true" onClick={onFicar} style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(12,12,12,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 ${INK}`, padding: 16 }}>
@@ -298,14 +305,16 @@ function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar 
           <span style={{ ...OSW, fontSize: 24 }}>➜</span>
           <div style={{ textAlign: 'center', width: 120 }}><EmblemaCla emblema={destinoEmblema} size={48} /><b style={{ ...OSW, display: 'block', fontSize: 13, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{destino}</b><span style={{ fontSize: 10.5, fontWeight: 800, color: '#7a6b4a' }}>{tr('novo clã', 'new clan')}</span></div>
         </div>
-        <p style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 6px', lineHeight: 1.35 }}>{tr(`Você já participa do clã ${info.atual}.`, `You are already in the ${info.atual} clan.`)} {aberto
+        <p style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 6px', lineHeight: 1.35 }}>{tr(`Você já participa do clã ${info.atual}.`, `You are already in the ${info.atual} clan.`)} {criar
+          ? tr(`Pra criar o seu clã, você sai do ${info.atual}.`, `To create your own clan, you leave ${info.atual}.`)
+          : aberto
           ? tr(`Se seguir, você sai do ${info.atual} e entra no ${destino}.`, `If you go on, you leave ${info.atual} and join ${destino}.`)
-          : tr(`Se seguir, o pedido vai pro líder do ${destino}. Quando ele aceitar, você sai do ${info.atual} na hora.`, `If you go on, the request goes to the ${destino} leader. When they accept, you leave ${info.atual} right away.`)}</p>
+          : tr(`Se seguir, o pedido vai pro presidente do ${destino}. Quando ele aceitar, você sai do ${info.atual} na hora.`, `If you go on, the request goes to the ${destino} president. When they accept, you leave ${info.atual} right away.`)}</p>
         {info.lider && <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 6px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>👑 {info.sozinho
           ? tr(`Você é o único do ${info.atual}: ele fecha.`, `You are the only one in ${info.atual}: it closes.`)
           : tr(`Você é o presidente: antes, passe a presidência ou feche o clã.`, `You are the president: first hand over the presidency or close the clan.`)}</p>}
         <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7a4d00', margin: '0 0 12px' }}>⏳ {tr('Depois de trocar, você só troca de novo daqui a 3 dias.', 'After switching, you can switch again only in 3 days.')}</p>
-        <button onClick={seguir} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 11, fontSize: 14, whiteSpace: 'normal' }}>{aberto ? tr(`✅ Sim, ir pro ${destino}`, `✅ Yes, go to ${destino}`) : tr(`📨 Sim, pedir pra entrar no ${destino}`, `📨 Yes, ask to join ${destino}`)}</button>
+        <button onClick={seguir} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 11, fontSize: 14, whiteSpace: 'normal' }}>{criar ? tr(`✅ Sim, sair e criar o meu`, `✅ Yes, leave and create mine`) : aberto ? tr(`✅ Sim, ir pro ${destino}`, `✅ Yes, go to ${destino}`) : tr(`📨 Sim, pedir pra entrar no ${destino}`, `📨 Yes, ask to join ${destino}`)}</button>
         <button onClick={onFicar} style={{ ...bt('#fff', INK), width: '100%', padding: 10, fontSize: 13, marginTop: 8, whiteSpace: 'normal' }}>{tr(`Não, ficar no ${info.atual}`, `No, stay in ${info.atual}`)}</button>
       </div>
     </div>
@@ -318,7 +327,7 @@ supabase.auth.onAuthStateChange((_e, s) => { meuUidAtual = s?.user?.id ?? null; 
 const meuUid = (_c: unknown) => meuUidAtual
 const souLider = (c: ClaJson) => !!meuUidAtual && c.lider === meuUidAtual
 
-function CriarCla({ painel, ocupado, onCriar }: { painel: Painel; ocupado: boolean; onCriar: (nome: string, emblema: string, aberto: boolean) => void }) {
+function CriarCla({ painel, saindoDe, ocupado, onCriar }: { painel: Painel; saindoDe?: string; ocupado: boolean; onCriar: (nome: string, emblema: string, aberto: boolean) => void }) {
   const [nome, setNome] = useState('')
   const [emb, setEmb] = useState(painel.escudo ? 'escudo' : 'e:0')
   const [aberto, setAberto] = useState(true)
@@ -327,6 +336,7 @@ function CriarCla({ painel, ocupado, onCriar }: { painel: Painel; ocupado: boole
   ]
   return <div style={caixa}>
     <p style={h3}>⚔️ {tr('Criar clã', 'Create clan')}</p>
+    {saindoDe && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#FFE3D6', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🚪 {tr(`Ao criar, você sai do ${saindoDe}.`, `When you create it, you leave ${saindoDe}.`)}</p>}
     <p style={{ ...OSW, fontSize: 11, margin: '0 0 4px' }}>{tr('Nome do clã', 'Clan name')}</p>
     <input value={nome} onChange={e => setNome(e.target.value)} maxLength={20} placeholder={tr('ex.: Martelo de Ouro', 'e.g. Golden Hammer')}
       style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 14, fontWeight: 700, color: INK, background: '#fff' }} />

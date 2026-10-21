@@ -70,7 +70,7 @@ ${cena(0, 4.6, `
 ${cena(4.6, 10.4, `
   <p style="${OSW};font-size:66px;text-transform:uppercase;line-height:1.05;margin-bottom:28px;${sobe(4.7)}">até <span style="color:${ROXO}">22 técnicos</span> no mesmo clã</p>
   ${caixa(`<div style="display:flex;gap:22px;align-items:center;padding:26px;background:linear-gradient(150deg,#262626,#0c0c0c);color:#fff">${emb('⚡', '#2563EB', 100)}
-      <div><div style="${OSW};font-size:58px;color:#E9C46A;line-height:1">MARTELO DE OURO</div><div style="font-size:26px;font-weight:700;margin-top:6px">👑 líder: Tigrão FC · 14/22 · 🔓 aberto</div></div></div>
+      <div><div style="${OSW};font-size:58px;color:#E9C46A;line-height:1">MARTELO DE OURO</div><div style="font-size:26px;font-weight:700;margin-top:6px">👑 presidente: Tigrão FC · 14/22 · 🔓 aberto</div></div></div>
     ${membro('Tigrão FC', 3, 5.4, true)}${membro('Várzea Moral', 2, 5.7)}${membro('Pé de Pano EC', 2, 6.0)}${membro('Canela Fina', 1, 6.3)}`, 5.0)}
   <p style="${OSW};font-size:52px;line-height:1.1;margin-top:38px;${pop(7.2)}">todo <span style="color:${GREEN}">título online</span> de cada um<br>soma pro clã 🏆</p>`)}
 
@@ -104,7 +104,7 @@ ${cena(26.8, 31.6, `
     <div style="width:940px;background:${GREEN};color:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${INK};padding:34px;${pop(26.9)}"><div style="${OSW};font-size:84px;line-height:1">ENTRAR</div><div style="${OSW};font-size:52px;color:${GOLD}">é de graça pra todo mundo</div></div>
     <div style="width:940px;background:${INK};color:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${GOLD};padding:34px;${pop(27.5)}"><div style="${OSW};font-size:84px;line-height:1;color:#E9C46A">CRIAR</div><div style="${OSW};font-size:46px">qualquer plano · ⭐ Craque pra cima</div><div style="font-size:30px;font-weight:700;margin-top:12px;color:#ddd">tem batismo? o escudo do seu clube vira o emblema 🛡️</div></div>
   </div>
-  <p style="font-size:30px;font-weight:800;color:rgba(12,12,12,.6);margin-top:34px;${sobe(28.4)}">um clã por vez · aberto entra direto · fechado o líder aceita</p>`)}
+  <p style="font-size:30px;font-weight:800;color:rgba(12,12,12,.6);margin-top:34px;${sobe(28.4)}">um clã por vez · aberto entra direto · fechado o presidente aceita</p>`)}
 
 <!-- ⑦ CTA -->
 ${cena(31.6, 60, `
