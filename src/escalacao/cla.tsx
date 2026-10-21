@@ -109,7 +109,8 @@ const ERRO: Record<string, [string, string]> = {
   ofensivo: ['Esse nome não é permitido: nada que ofenda alguém no Leilão Legends.', 'That name is not allowed: nothing offensive in Leilão Legends.'],
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
   ja_tem: ['Você já está num clã. Saia dele antes.', 'You are already in a clan. Leave it first.'],
-  espera: ['Quem sai de um clã só entra em outro depois de 7 dias.', 'After leaving a clan you can join another only after 7 days.'],
+  espera: ['Quem sai ou troca de clã só entra em outro depois de 7 dias.', 'After leaving or switching clans you can join another only after 7 days.'],
+  mesmo: ['Você já está nesse clã.', 'You are already in this clan.'],
   lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
   sem_cla: ['Esse clã não existe mais.', 'That clan no longer exists.'],
@@ -122,14 +123,17 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [msg, setMsg] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [tela, setTela] = useState<'inicio' | 'criar' | 'procurar' | 'ranking' | 'chamar'>('inicio')
+  // 🔁 21/10 (Diego): já tem clã e vai pra outro (convite ou pedido) → aviso lembrando do clã atual, pra seguir ou não
+  const [troca, setTroca] = useState<{ info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void } | null>(null)
   const carrega = () => { supabase.rpc('esc_cla_painel').then(({ data, error }) => setP(error || !data ? 'erro' : data as Painel), () => setP('erro')) }
   useEffect(carrega, [])
-  const faz = async (rpc: string, args: Record<string, unknown>, ok?: string) => {
+  const faz = async (rpc: string, args: Record<string, unknown>, ok?: string, destino?: { nome: string; emblema: string; aberto: boolean }) => {
     setOcupado(true); setMsg('')
     try {
       const { data, error } = await supabase.rpc(rpc, args)
-      const r = (data ?? {}) as { ok?: boolean; erro?: string; pedido?: boolean }
-      if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
+      const r = (data ?? {}) as { ok?: boolean; erro?: string; pedido?: boolean } & Partial<TrocaInfo>
+      if (!error && r.erro === 'confirmar' && destino) setTroca({ info: r as TrocaInfo, destino: destino.nome, destinoEmblema: destino.emblema, aberto: destino.aberto, seguir: () => { setTroca(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
+      else if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
       else { setMsg(r.pedido ? tr('📨 Pedido enviado — o líder do clã decide.', '📨 Request sent — the clan leader decides.') : ok ?? ''); esqueceClas(); setTela('inicio') }
     } catch { setMsg(`⚠️ ${msgErro(null)}`) } finally { setOcupado(false); carrega() }
   }
@@ -139,19 +143,20 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const voltar = <button style={{ ...bt('#fff', INK), marginTop: 10 }} onClick={() => setTela('inicio')}>‹ {tr('voltar', 'back')}</button>
 
   if (tela === 'criar') return <>{voltar}<CriarCla painel={p} ocupado={ocupado} onCriar={(nome, emblema, aberto) => void faz('esc_cla_criar', { p_nome: nome, p_emblema: emblema, p_aberto: aberto }, tr('⚔️ Clã criado! Chame seus amigos.', '⚔️ Clan created! Invite your friends.'))} />{aviso}</>
-  if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} ocupado={ocupado || !!p.cla} onEntrar={id => void faz('esc_cla_entrar', { p_cla: id }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'))} />{aviso}</>
+  const modalTroca = troca && <ConfirmaTroca {...troca} onFicar={() => setTroca(null)} />
+  if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} meu={p.cla?.id ?? null} ocupado={ocupado} onEntrar={k => void faz('esc_cla_entrar', { p_cla: k.id, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), k)} />{aviso}{modalTroca}</>
   if (tela === 'ranking') return <>{voltar}<RankingClas meu={p.cla?.id ?? null} /></>
   if (tela === 'chamar' && p.cla) return <>{voltar}<ChamarAmigos amigos={amigos} meus={new Set(p.cla.lista.map(m => m.uid))} /></>
 
   const c = p.cla
   return <>
-    {aviso}
+    {aviso}{modalTroca}
     {p.convites.map(v => (
       <div key={v.pedido_id} style={{ ...caixa, background: '#EFE6FF', display: 'flex', gap: 10, alignItems: 'center' }}>
         <EmblemaCla emblema={v.emblema} size={34} />
         <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})</div>
         <span style={{ display: 'flex', gap: 5 }}>
-          <button disabled={ocupado || !!c} style={bt(GREEN, '#fff')} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'))}>{tr('entrar', 'join')}</button>
+          <button disabled={ocupado} style={bt(GREEN, '#fff')} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
           <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: false })}>{tr('agora não', 'not now')}</button>
         </span>
       </div>
@@ -189,6 +194,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
         <button style={{ ...bt(ROXO, '#fff'), flex: 1 }} onClick={() => setTela('chamar')}>📣 {tr('Chamar amigo pro clã', 'Invite a friend')}</button>
         <button style={bt('#fff', INK)} onClick={() => setTela('ranking')}>🏆 {tr('Ranking', 'Ranking')}</button>
+        <button style={bt('#fff', INK)} onClick={() => setTela('procurar')}>🔎 {tr('Outros clãs', 'Other clans')}</button>
         {souLider(c) && <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_aberto', { p_aberto: !c.aberto })}>{c.aberto ? tr('🔒 fechar', '🔒 close') : tr('🔓 abrir', '🔓 open')}</button>}
         <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(souLider(c) ? tr('Sair do clã? A liderança passa pro membro mais antigo (se você for o único, o clã fecha). Você só entra em outro clã daqui a 7 dias.', 'Leave the clan? Leadership goes to the oldest member (if you are alone, the clan closes). You can join another only in 7 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 7 dias.', 'Leave the clan? You can join another only in 7 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.')) }}>{tr('sair', 'leave')}</button>
       </div>
@@ -208,6 +214,31 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: quem tem qualquer plano (⭐ Craque pra cima). Entrar num clã é de graça pra todo mundo.', 'Creating a clan: any plan (⭐ Star and up). Joining a clan is free for everyone.')}</p>
     </>}
   </>
+}
+type TrocaInfo = { erro: 'confirmar'; atual: string; atual_emblema: string; lider: boolean; sozinho: boolean }
+// 🔁 o aviso de troca (21/10): o clã de agora × o novo, o que acontece com a liderança, a espera de 7 dias e os dois botões
+function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar }: { info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void; onFicar: () => void }) {
+  return (
+    <div role="dialog" aria-modal="true" onClick={onFicar} style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(12,12,12,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 ${INK}`, padding: 16 }}>
+        <p style={{ ...OSW, fontSize: 19, margin: '0 0 10px', textAlign: 'center' }}>⚔️ {tr('Trocar de clã?', 'Switch clans?')}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <div style={{ textAlign: 'center', width: 120 }}><EmblemaCla emblema={info.atual_emblema} size={48} /><b style={{ ...OSW, display: 'block', fontSize: 13, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.atual}</b><span style={{ fontSize: 10.5, fontWeight: 800, color: '#7a6b4a' }}>{tr('seu clã agora', 'your clan now')}</span></div>
+          <span style={{ ...OSW, fontSize: 24 }}>➜</span>
+          <div style={{ textAlign: 'center', width: 120 }}><EmblemaCla emblema={destinoEmblema} size={48} /><b style={{ ...OSW, display: 'block', fontSize: 13, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{destino}</b><span style={{ fontSize: 10.5, fontWeight: 800, color: '#7a6b4a' }}>{tr('novo clã', 'new clan')}</span></div>
+        </div>
+        <p style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 6px', lineHeight: 1.35 }}>{tr(`Você já participa do clã ${info.atual}.`, `You are already in the ${info.atual} clan.`)} {aberto
+          ? tr(`Se seguir, você sai do ${info.atual} e entra no ${destino}.`, `If you go on, you leave ${info.atual} and join ${destino}.`)
+          : tr(`Se seguir, o pedido vai pro líder do ${destino}. Quando ele aceitar, você sai do ${info.atual} na hora.`, `If you go on, the request goes to the ${destino} leader. When they accept, you leave ${info.atual} right away.`)}</p>
+        {info.lider && <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 6px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>👑 {info.sozinho
+          ? tr(`Você é o único do ${info.atual}: ele fecha.`, `You are the only one in ${info.atual}: it closes.`)
+          : tr(`Você é o líder: a liderança passa pro membro mais antigo.`, `You are the leader: leadership goes to the oldest member.`)}</p>}
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7a4d00', margin: '0 0 12px' }}>⏳ {tr('Depois de trocar, você só troca de novo daqui a 7 dias.', 'After switching, you can switch again only in 7 days.')}</p>
+        <button onClick={seguir} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 11, fontSize: 14, whiteSpace: 'normal' }}>{aberto ? tr(`✅ Sim, ir pro ${destino}`, `✅ Yes, go to ${destino}`) : tr(`📨 Sim, pedir pra entrar no ${destino}`, `📨 Yes, ask to join ${destino}`)}</button>
+        <button onClick={onFicar} style={{ ...bt('#fff', INK), width: '100%', padding: 10, fontSize: 13, marginTop: 8, whiteSpace: 'normal' }}>{tr(`Não, ficar no ${info.atual}`, `No, stay in ${info.atual}`)}</button>
+      </div>
+    </div>
+  )
 }
 // quem sou eu dentro do clã (o painel não manda o uid: acha pela sessão, guardada na 1ª leitura)
 let meuUidAtual: string | null = null
@@ -244,7 +275,7 @@ function CriarCla({ painel, ocupado, onCriar }: { painel: Painel; ocupado: boole
   </div>
 }
 
-function ProcurarCla({ pedi, ocupado, onEntrar }: { pedi: number[]; ocupado: boolean; onEntrar: (id: number) => void }) {
+function ProcurarCla({ pedi, meu, ocupado, onEntrar }: { pedi: number[]; meu: number | null; ocupado: boolean; onEntrar: (c: ClaJson) => void }) {
   const [q, setQ] = useState('')
   const [filtro, setFiltro] = useState<'vaga' | 'titulos' | 'batismo'>('vaga')
   const [lista, setLista] = useState<ClaJson[] | null>(null)
@@ -271,9 +302,10 @@ function ProcurarCla({ pedi, ocupado, onEntrar }: { pedi: number[]; ocupado: boo
             <b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
             <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{CLA_MAX} · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
           </div>
-          {lotado ? <span style={{ ...bt('#eee', '#888'), cursor: 'default' }}>{tr('lotado', 'full')}</span>
+          {c.id === meu ? <span style={{ fontSize: 11, fontWeight: 800, color: GREEN }}>✅ {tr('seu clã', 'your clan')}</span>
+            : lotado ? <span style={{ ...bt('#eee', '#888'), cursor: 'default' }}>{tr('lotado', 'full')}</span>
             : jaPedi ? <span style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>⏳ {tr('pedido', 'requested')}</span>
-            : <button disabled={ocupado} style={bt(c.aberto ? GREEN : GOLD, c.aberto ? '#fff' : INK)} onClick={() => onEntrar(c.id)}>{c.aberto ? tr('entrar', 'join') : tr('pedir', 'ask')}</button>}
+            : <button disabled={ocupado} style={bt(c.aberto ? GREEN : GOLD, c.aberto ? '#fff' : INK)} onClick={() => onEntrar(c)}>{c.aberto ? tr('entrar', 'join') : tr('pedir', 'ask')}</button>}
         </div>
       })}
   </div>
@@ -302,7 +334,7 @@ function ChamarAmigos({ amigos, meus }: { amigos: { uid: string; nome: string }[
     setFeito(f => ({ ...f, [uid]: '…' }))
     const { data } = await supabase.rpc('esc_cla_convidar', { p_para: uid })
     const r = (data ?? {}) as { ok?: boolean; erro?: string }
-    setFeito(f => ({ ...f, [uid]: r.ok ? tr('✅ chamado', '✅ invited') : r.erro === 'ja_tem' ? tr('já tem clã', 'has a clan') : tr('não deu', 'failed') }))
+    setFeito(f => ({ ...f, [uid]: r.ok ? tr('✅ chamado', '✅ invited') : r.erro === 'mesmo' ? tr('já está no clã', 'already in') : tr('não deu', 'failed') }))
   }
   const lista = amigos.filter(a => !meus.has(a.uid))
   return <div style={caixa}>
@@ -312,6 +344,6 @@ function ChamarAmigos({ amigos, meus }: { amigos: { uid: string; nome: string }[
         <b style={{ flex: 1, fontSize: 13.5 }}>{a.nome}</b>
         {feito[a.uid] ? <span style={{ fontSize: 11, fontWeight: 800 }}>{feito[a.uid]}</span> : <button style={bt(ROXO, '#fff')} onClick={() => void chama(a.uid)}>📣 {tr('chamar', 'invite')}</button>}
       </div>)}
-    <p style={{ fontSize: 10.5, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('O convite aparece na aba ⚔️ Clã dele. Quem é chamado entra direto, mesmo em clã fechado.', 'The invite shows in their ⚔️ Clan tab. Invited friends join directly, even in a closed clan.')}</p>
+    <p style={{ fontSize: 10.5, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('O convite aparece na aba ⚔️ Clã dele. Quem é chamado entra direto, mesmo em clã fechado. Se ele já tiver clã, o jogo pergunta se quer trocar.', 'The invite shows in their ⚔️ Clan tab. Invited friends join directly, even in a closed clan. If they already have a clan, the game asks if they want to switch.')}</p>
   </div>
 }
