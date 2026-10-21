@@ -10068,4 +10068,11 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   Só trocar maiúscula do PRÓPRIO nome não passa pela checagem de nome único.
 - ⏳ **🛡️ ESCUDO DE CLÃ PERSONALIZADO NA LOJA (21/10, pedido do Diego)** — R$ 19,99 no Pix do Mercado Pago. Depois do Pix: campo
   "nome do clã" + "ideia do escudo" + botão "Mandar no WhatsApp do Diego" com tudo escrito. Mockup `scripts/mockups/clas-escudo-loja.png`
-  enviado. Falta: OK do Diego, o NÚMERO de WhatsApp dele e em quantos dias o escudo fica pronto (texto da Loja).
+  enviado e APROVADO (*"sim"*, zap 21 99888-6982, pronto em até 24 h). FEITO no branch: `EscudoClaLoja` (cla.tsx) na Loja (seção
+  "⚔️ Seu clã") e dentro do clã do presidente; produto `escudo_cla` (19,99, só presidente — `esc_cla_presidente_email`), nome + ideia
+  só depois do Pix (`esc_cla_escudo_escrever` / `esc_cla_escudo_meus`, tabela `esc_cla_escudo_pedidos`), botão do zap com o código do
+  pedido. Testado no banco de ponta a ponta (com desfazer). ⚠️ AO PUBLICAR: fazer o deploy da função `mp-criar-pix` (ganhou o nome
+  'escudo_cla' — sem isso o Pix responde "produto"). Quando o Diego mandar a arte: registrar em LOGOS_PRONTAS com o NOME DO CLÃ, pôr
+  `emblema = 'escudo:<nome do clã>'` em `esc_clas` e `pronto_em = now()` em `esc_cla_escudo_pedidos`.
+  🩹 Junto: as listas de produto de `esc_mp_pedidos`/`esc_pagamentos` estavam atrasadas (peça do presidente nem gerava Pix; giro, recado,
+  ficha e temas quebrariam o webhook ao pagar). Corrigido em 21/10 — ninguém tinha pago nenhum deles ainda.

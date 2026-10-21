@@ -26,6 +26,7 @@ import { PixBox, APOIO_IG, ApoieButton, GiroDaRodada } from './screens'
 import { PresenteBox } from './presente'
 import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
 import { MarcaMensal } from './marca-mensal' // 📅 18/10: patrocínio mensal com números e fotos
+import { EscudoClaLoja } from './cla' // 🛡️ escudo de clã personalizado (21/10)
 import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
 import { patrocinioLojaOk, type AnuncioGiro } from './patrocinio'
 // 📺 18/10 (Diego): "um telão pro da galera e um telão pro da empresa… passando": exemplos FIXOS que rodam na Loja
@@ -284,6 +285,12 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
             </div>
           </div>
           <AnunciosPendentes />
+        </>}
+
+        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 19,99 no Pix, só o presidente compra; nome + ideia + zap depois de pagar */}
+        {pixMp && <>
+          <h2 id="loja-cla" style={h2}>{tr('⚔️ Seu clã', '⚔️ Your clan')}</h2>
+          <EscudoClaLoja />
         </>}
 
         {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que

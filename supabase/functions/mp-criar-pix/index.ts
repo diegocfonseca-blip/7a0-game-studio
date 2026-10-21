@@ -18,7 +18,8 @@ const NOMES: Record<string, string> = {
   ficha_carreira: 'Ficha extra de carreira', // 17/10: +1 carreira salva, R$ 9,99
   tema_coracao: 'Tema da sala · time de coração', tema_clube: 'Tema da sala · seu clube', // 18/10: temas da sala de espera, R$ 9,90
   giro_hora: 'Anúncio no giro (1 hora)', recado_hora: 'Recado em destaque (1 hora)', recado_dia: 'Recado em destaque (dia todo)', // 18/10: recado de jogador + anúncio de 1 h
-  peca_presidente: 'Peça do presidente', // 19/10: roupa/cabelo/barba avulsos (1,99 · 2,99 · 3,99 · 4,99), ref r-<roupa> / p-<peça>
+  peca_presidente: 'Peça do presidente',
+  escudo_cla: 'Escudo de clã personalizado', // 21/10: R$ 19,99, só presidente de clã; o Diego desenha em até 24 h // 19/10: roupa/cabelo/barba avulsos (1,99 · 2,99 · 3,99 · 4,99), ref r-<roupa> / p-<peça>
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60

@@ -8,12 +8,13 @@
 // · O SELO é da PESSOA: sala de espera, chat, perfil e amigos — SEMPRE na linha de baixo do nome, pequeno, sem tirar nada do
 //   lugar (escudo, presidente, cor do plano, medalha). Tabela/placar/jogo/leilão NUNCA mostram clã (lá é o clube).
 // · Os selos vêm em LOTE (uma ida ao banco pra sala inteira) e ficam guardados na memória — nada de canal (regra do tráfego).
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
 import { Escudo } from './escudos'
 import { clasLiberado } from './cla-gate' // a trava (CLAS_GERAL) mora lá
 import { ApoieButton } from './screens' // ⭐ quem não tem plano vai direto pros planos
+import { PixMP, WHATSAPP_CONTATO, WHATSAPP_TXT } from './pix-mp' // 🛡️ escudo de clã personalizado (21/10)
 export { clasLiberado }
 export const CLA_MAX = 22 // 👥 máximo de membros (21/10: "coloque 22"); o banco tem o MESMO número em esc_cla_cabe
 
@@ -218,6 +219,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         }}>{tr('sair', 'leave')}</button>
       </div>
       {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} />}
+      {souLider(c) && <EscudoClaLoja />}
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Todo título que você ganha nas salas online soma pro clã. O clã campeão da semana leva 🏆 no selo de cada membro na semana seguinte. Conversa continua no zap.', 'Every title you win in online rooms adds to the clan. The champion clan of the week gets 🏆 on every member’s badge the following week. Chat stays on WhatsApp.')}</p>
     </> : <>
       <div style={{ ...caixa, textAlign: 'center' }}>
@@ -427,4 +429,81 @@ function ChamarAmigos({ amigos, meus }: { amigos: { uid: string; nome: string }[
       </div>)}
     <p style={{ fontSize: 10.5, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('O convite aparece na aba ⚔️ Clã dele. Quem é chamado entra direto, mesmo em clã fechado. Se ele já tiver clã, o jogo pergunta se quer trocar.', 'The invite shows in their ⚔️ Clan tab. Invited friends join directly, even in a closed clan. If they already have a clan, the game asks if they want to switch.')}</p>
   </div>
+}
+
+// ── 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego: "valor 19,99… depois que a pessoa pagar ela manda WhatsApp pra mim pra eu
+// fazer… e ela bota nome do clã e ideia"; pronto em até 24 h). Mora na 🛒 Loja (e no clã do presidente). Só o PRESIDENTE compra
+// (o banco devolve preço nulo pra quem não é). O nome, a ideia e o botão do zap só aparecem DEPOIS do Pix confirmado.
+type EscudoPedido = { id: string; nome: string | null; ideia: string | null; pronto: boolean }
+export function EscudoClaLoja() {
+  const [cla, setCla] = useState<{ nome: string; presidente: boolean } | null | 'carregando'>('carregando')
+  const [meus, setMeus] = useState<EscudoPedido[]>([])
+  const [comprando, setComprando] = useState(false)
+  const carrega = useCallback(() => {
+    supabase.rpc('esc_cla_painel').then(({ data }) => {
+      const c = (data as Painel | null)?.cla
+      setCla(c ? { nome: c.nome, presidente: souLider(c) } : null)
+    }, () => setCla(null))
+    supabase.rpc('esc_cla_escudo_meus').then(({ data }) => setMeus((data ?? []) as EscudoPedido[]), () => {})
+  }, [])
+  useEffect(carrega, [carrega])
+  if (!clasLiberado()) return null
+  const presidente = cla !== 'carregando' && !!cla?.presidente
+  return (
+    <div id="loja-escudo-cla" style={{ ...caixa, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff' }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <EmblemaCla emblema="e:0" size={46} /><span style={{ fontSize: 20 }}>➜</span><span style={{ fontSize: 40, lineHeight: 1 }}>🛡️</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <b style={{ ...OSW, fontSize: 17, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{tr('Escudo de clã personalizado', 'Custom clan crest')}</b>
+          <small style={{ fontSize: 11.5, fontWeight: 700, color: '#ddd', display: 'block', lineHeight: 1.3, marginTop: 3 }}>{tr('Desenho exclusivo, feito à mão pro SEU clã. Aparece no selo de todos os membros, no ranking e no telão. Fica pronto em até 24 h.', 'An exclusive crest, hand-made for YOUR clan. Shows on every member’s badge, in the ranking and on the big screen. Ready within 24 h.')}</small>
+        </div>
+      </div>
+      {meus.map(m => <EscudoDepoisDoPix key={m.id} pedido={m} aoSalvar={carrega} />)}
+      {meus.some(m => !m.pronto) ? null : !comprando ? <>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+          <span style={{ ...OSW, fontSize: 26, color: GOLD }}>R$ 19,99</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#bbb' }}>{tr('Pix · pagamento único', 'Pix · one-time payment')}</span>
+        </div>
+        <button disabled={!presidente} onClick={() => setComprando(true)} style={{ ...bt(presidente ? GOLD : '#555', presidente ? INK : '#aaa'), width: '100%', padding: 11, fontSize: 15, marginTop: 8 }}>💳 {tr('Pagar no Pix', 'Pay with Pix')}</button>
+        {cla !== 'carregando' && !presidente && <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', margin: '6px 0 0' }}>🔒 {cla
+          ? tr(`Só o presidente do ${cla.nome} pode encomendar o escudo.`, `Only the ${cla.nome} president can order the crest.`)
+          : tr('Pra encomendar, você precisa ser presidente de um clã (👥 Amigos → ⚔️ Clã).', 'To order, you need to be a clan president (👥 Friends → ⚔️ Clan).')}</p>}
+      </> : <div style={{ marginTop: 10, background: '#fff', color: INK, borderRadius: 12, padding: 8 }}><PixMP produto="escudo_cla" valor={19.99} aoPagar={() => { setComprando(false); carrega() }} /></div>}
+    </div>
+  )
+}
+// depois do Pix: nome do clã + ideia → botão do zap do Diego com tudo escrito
+function EscudoDepoisDoPix({ pedido, aoSalvar }: { pedido: EscudoPedido; aoSalvar: () => void }) {
+  const [nome, setNome] = useState(pedido.nome ?? '')
+  const [ideia, setIdeia] = useState(pedido.ideia ?? '')
+  const [erro, setErro] = useState('')
+  const [ocupado, setOcupado] = useState(false)
+  const salvo = !!pedido.nome && !!pedido.ideia && pedido.nome === nome.trim() && pedido.ideia === ideia.trim()
+  const cod = pedido.id.slice(0, 8).toUpperCase()
+  const zap = `https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(`Olá Diego! Paguei o 🛡️ ESCUDO DE CLÃ PERSONALIZADO (pedido ${cod}).\nClã: ${nome.trim()}\nIdeia: ${ideia.trim()}`)}`
+  const salvar = async () => {
+    setOcupado(true); setErro('')
+    try {
+      const { data } = await supabase.rpc('esc_cla_escudo_escrever', { p_id: pedido.id, p_nome: nome, p_ideia: ideia })
+      if (data === 'ok') aoSalvar()
+      else setErro(data === 'nome' ? tr('O nome do clã precisa ter de 2 a 30 letras.', 'The clan name needs 2 to 30 letters.') : data === 'ideia' ? tr('Conta a ideia em pelo menos 5 letras (até 300).', 'Describe the idea in at least 5 letters (up to 300).') : msgErro(null))
+    } catch { setErro(msgErro(null)) } finally { setOcupado(false) }
+  }
+  if (pedido.pronto) return <p style={{ fontSize: 12.5, fontWeight: 800, color: '#9be3b1', margin: '10px 0 0' }}>✅ {tr(`Escudo do ${pedido.nome} pronto! Já está no seu clã.`, `${pedido.nome} crest is ready! It is already on your clan.`)}</p>
+  const campo: CSSProperties = { width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 14, fontWeight: 700, color: INK, background: '#fff' }
+  return (
+    <div style={{ marginTop: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 10 }}>
+      <b style={{ ...OSW, fontSize: 15, display: 'block' }}>✅ {tr('Pagamento confirmado!', 'Payment confirmed!')}</b>
+      <p style={{ fontSize: 12.5, fontWeight: 700, margin: '2px 0 0' }}>{tr('Conta pra gente como você quer o escudo:', 'Tell us how you want the crest:')}</p>
+      <p style={{ ...OSW, fontSize: 11, margin: '8px 0 3px' }}>{tr('Nome do clã', 'Clan name')}</p>
+      <input value={nome} maxLength={30} onChange={e => setNome(e.target.value)} style={campo} />
+      <p style={{ ...OSW, fontSize: 11, margin: '8px 0 3px' }}>{tr('Sua ideia pro escudo', 'Your crest idea')}</p>
+      <textarea value={ideia} maxLength={300} rows={3} onChange={e => setIdeia(e.target.value)} placeholder={tr('ex.: um lobo dourado com um martelo, fundo roxo e a coroa em cima', 'e.g. a golden wolf with a hammer, purple background and a crown on top')} style={{ ...campo, resize: 'vertical', fontFamily: 'inherit' }} />
+      {erro && <p style={{ fontSize: 12, fontWeight: 800, color: RED, margin: '6px 0 0' }}>⚠️ {erro}</p>}
+      {!salvo
+        ? <button disabled={ocupado} onClick={() => void salvar()} style={{ ...bt(INK, GOLD), width: '100%', padding: 10, fontSize: 14, marginTop: 8 }}>{tr('Salvar nome e ideia', 'Save name and idea')}</button>
+        : <a href={zap} target="_blank" rel="noopener noreferrer" style={{ ...bt('#25D366', '#fff'), display: 'block', textAlign: 'center', textDecoration: 'none', width: '100%', boxSizing: 'border-box', padding: 11, fontSize: 14, marginTop: 8 }}>💬 {tr('Mandar no WhatsApp do Diego', 'Send to Diego on WhatsApp')}</a>}
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr(`Abre o WhatsApp (${WHATSAPP_TXT}) com tudo escrito: nome do clã, ideia e o código do pedido ${cod}. Fica pronto em até 24 h e aparece no seu clã sozinho.`, `Opens WhatsApp (${WHATSAPP_TXT}) with everything written: clan name, idea and order code ${cod}. Ready within 24 h and it shows on your clan by itself.`)}</p>
+    </div>
+  )
 }
