@@ -9965,3 +9965,9 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   `game_champions`, `_arquivo`, `room_players`). Suástica e "crioulo" do histórico saíram pelo `esc_nome_limpo` (Gui crioulo → Gui,
   LOS DICTADORES卍 → LOS DICTADORES). Zero nome ofensivo sobrando pela régua.
 - 👀 Fora da régua (não está na lista do Diego): "donigga50k" (variação de xingamento racista em inglês) apareceu num vice-campeão.
+
+## 🐊 Chat: figurinha do mascote (21/10) — MOCKUP enviado, esperando OK
+- Diego gostou de "figurinha da mascote" e "reagir a uma mensagem"; pediu mockup só da figurinha (`scripts/mockups/chat-figurinha-mascote.png`):
+  botão 🐊 ao lado do campo → bandeja com 4 figurinhas do SEU mascote (É NOSSO! · BLEFE! · CHORA! · VEM!) → cai no chat sem balão.
+  Custo = 1 mensagem normal do chat. ⏳ Decidir: quem não tem mascote (grátis/sem batismo) — sem botão ou com mascotes genéricos?
+- ⏳ Reagir a mensagem: aprovado em ideia (1 reação a cada 2s, custo de 1 mensagem); sem mockup ainda.
