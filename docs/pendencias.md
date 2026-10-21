@@ -604,8 +604,8 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   — não repropor) · a página do clã continua sendo a aba ⚔️ Clã dentro de 👥 Amigos, do lado do 📖 Álbum (ele aprovou o lugar).
   🔁 21/10 (4ª rodada): **TROCAR DE CLÃ COM AVISO** (*"você já participa do clã do Futpoint, gostaria de confirmar?"*). Quem já tem
   clã agora PODE aceitar convite ou pedir pra entrar em outro: o banco responde `confirmar` e a tela abre o aviso "⚔️ Trocar de clã?"
-  (clã de agora ➜ novo, o que acontece com a liderança, espera de 7 dias, "Sim, ir pro X" / "Não, ficar no Y"). Clã fechado: o pedido
-  guarda `trocar` e a troca acontece quando o líder aceita. Quem saiu/trocou nos últimos 7 dias não troca de novo. Botão "🔎 Outros
+  (clã de agora ➜ novo, o que acontece com a liderança, espera de 3 dias, "Sim, ir pro X" / "Não, ficar no Y"). Clã fechado: o pedido
+  guarda `trocar` e a troca acontece quando o líder aceita. Quem saiu/trocou nos últimos 3 dias (era 7; Diego mudou pra 3 em 21/10) não troca de novo. Botão "🔎 Outros
   clãs" dentro do clã. Migration `20261021080000_clas_trocar.sql`; testado no banco. Foto: `scripts/mockups/clas-trocar.png`.
   🟢 21/10 (*"aprovado"*): **`CLAS_GERAL = true`** (cla-gate.ts) no branch, esperando o "publica". Quem não tem plano e toca em
   Criar clã vê a caixa "Criar clã é de quem tem plano" + ⭐ Ver os planos + atalho pra entrar de graça (`scripts/mockups/clas-sem-plano.png`).

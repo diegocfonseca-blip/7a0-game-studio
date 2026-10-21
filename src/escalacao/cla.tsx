@@ -3,7 +3,7 @@
 // `scripts/mockups/clas.png` (as telas) e `scripts/mockups/clas-onde-aparece.png` (o selo em cada lugar).
 //
 // · Regras (o BANCO decide tudo — `supabase/migrations/20261021040000_clas.sql`): criar = qualquer plano PAGO; entrar = todo
-//   mundo; até 22 (21/10, era 20); 1 clã por vez; quem sai espera 7 dias; títulos ONLINE da semana somam pro clã; ranking zera segunda; o clã
+//   mundo; até 22 (21/10, era 20); 1 clã por vez; quem sai espera 3 dias (era 7 até 21/10); títulos ONLINE da semana somam pro clã; ranking zera segunda; o clã
 //   campeão da semana passada leva 🏆 no selo; aberto (entra direto) ou fechado (pede, o líder aceita). Sem rivalidade.
 // · O SELO é da PESSOA: sala de espera, chat, perfil e amigos — SEMPRE na linha de baixo do nome, pequeno, sem tirar nada do
 //   lugar (escudo, presidente, cor do plano, medalha). Tabela/placar/jogo/leilão NUNCA mostram clã (lá é o clube).
@@ -110,7 +110,7 @@ const ERRO: Record<string, [string, string]> = {
   ofensivo: ['Esse nome não é permitido: nada que ofenda alguém no Leilão Legends.', 'That name is not allowed: nothing offensive in Leilão Legends.'],
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
   ja_tem: ['Você já está num clã. Saia dele antes.', 'You are already in a clan. Leave it first.'],
-  espera: ['Quem sai ou troca de clã só entra em outro depois de 7 dias.', 'After leaving or switching clans you can join another only after 7 days.'],
+  espera: ['Quem sai ou troca de clã só entra em outro depois de 3 dias.', 'After leaving or switching clans you can join another only after 3 days.'],
   mesmo: ['Você já está nesse clã.', 'You are already in this clan.'],
   lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
@@ -198,7 +198,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <button style={bt('#fff', INK)} onClick={() => setTela('ranking')}>🏆 {tr('Ranking', 'Ranking')}</button>
         <button style={bt('#fff', INK)} onClick={() => setTela('procurar')}>🔎 {tr('Outros clãs', 'Other clans')}</button>
         {souLider(c) && <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_aberto', { p_aberto: !c.aberto })}>{c.aberto ? tr('🔒 fechar', '🔒 close') : tr('🔓 abrir', '🔓 open')}</button>}
-        <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(souLider(c) ? tr('Sair do clã? A liderança passa pro membro mais antigo (se você for o único, o clã fecha). Você só entra em outro clã daqui a 7 dias.', 'Leave the clan? Leadership goes to the oldest member (if you are alone, the clan closes). You can join another only in 7 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 7 dias.', 'Leave the clan? You can join another only in 7 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.')) }}>{tr('sair', 'leave')}</button>
+        <button disabled={ocupado} style={bt('#fff', RED)} onClick={() => { if (window.confirm(souLider(c) ? tr('Sair do clã? A liderança passa pro membro mais antigo (se você for o único, o clã fecha). Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? Leadership goes to the oldest member (if you are alone, the clan closes). You can join another only in 3 days.') : tr('Sair do clã? Você só entra em outro clã daqui a 3 dias.', 'Leave the clan? You can join another only in 3 days.'))) void faz('esc_cla_sair', {}, tr('Você saiu do clã.', 'You left the clan.')) }}>{tr('sair', 'leave')}</button>
       </div>
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Todo título que você ganha nas salas online soma pro clã. O clã campeão da semana leva 🏆 no selo de cada membro na semana seguinte. Conversa continua no zap.', 'Every title you win in online rooms adds to the clan. The champion clan of the week gets 🏆 on every member’s badge the following week. Chat stays on WhatsApp.')}</p>
     </> : <>
@@ -235,7 +235,7 @@ function CriarSemPlano({ onProcurar }: { onProcurar: () => void }) {
   )
 }
 type TrocaInfo = { erro: 'confirmar'; atual: string; atual_emblema: string; lider: boolean; sozinho: boolean }
-// 🔁 o aviso de troca (21/10): o clã de agora × o novo, o que acontece com a liderança, a espera de 7 dias e os dois botões
+// 🔁 o aviso de troca (21/10): o clã de agora × o novo, o que acontece com a liderança, a espera de 3 dias e os dois botões
 function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar }: { info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; seguir: () => void; onFicar: () => void }) {
   return (
     <div role="dialog" aria-modal="true" onClick={onFicar} style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(12,12,12,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -252,7 +252,7 @@ function ConfirmaTroca({ info, destino, destinoEmblema, aberto, seguir, onFicar 
         {info.lider && <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 6px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>👑 {info.sozinho
           ? tr(`Você é o único do ${info.atual}: ele fecha.`, `You are the only one in ${info.atual}: it closes.`)
           : tr(`Você é o líder: a liderança passa pro membro mais antigo.`, `You are the leader: leadership goes to the oldest member.`)}</p>}
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7a4d00', margin: '0 0 12px' }}>⏳ {tr('Depois de trocar, você só troca de novo daqui a 7 dias.', 'After switching, you can switch again only in 7 days.')}</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7a4d00', margin: '0 0 12px' }}>⏳ {tr('Depois de trocar, você só troca de novo daqui a 3 dias.', 'After switching, you can switch again only in 3 days.')}</p>
         <button onClick={seguir} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 11, fontSize: 14, whiteSpace: 'normal' }}>{aberto ? tr(`✅ Sim, ir pro ${destino}`, `✅ Yes, go to ${destino}`) : tr(`📨 Sim, pedir pra entrar no ${destino}`, `📨 Yes, ask to join ${destino}`)}</button>
         <button onClick={onFicar} style={{ ...bt('#fff', INK), width: '100%', padding: 10, fontSize: 13, marginTop: 8, whiteSpace: 'normal' }}>{tr(`Não, ficar no ${info.atual}`, `No, stay in ${info.atual}`)}</button>
       </div>
