@@ -369,6 +369,10 @@ function CriarCla({ painel, saindoDe, ocupado, onCriar }: { painel: Painel; sain
   return <div style={caixa}>
     <p style={h3}>⚔️ {tr('Criar clã', 'Create clan')}</p>
     {saindoDe && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#FFE3D6', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🚪 {tr(`Ao criar, você sai do ${saindoDe}.`, `When you create it, you leave ${saindoDe}.`)}</p>}
+    {/* 🖋 21/10 (Diego): "deixar claro… se ele escolher um, o outro passa a ser pago" */}
+    {painel.escudo && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#E9F7EE', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', lineHeight: 1.35 }}>🎁 {tr(
+      `Seu 1º clã é DE GRAÇA — escolha UM: o clã do ${semFc(painel.escudo)} (nome e escudo do seu batismo) OU um clã com outro nome. O que você não escolher agora, se quiser depois, vira o 2º clã: R$ 9,90 na 🛒 Loja.`,
+      `Your 1st clan is FREE — pick ONE: the ${semFc(painel.escudo)} clan (your named club's name and crest) OR a clan with another name. Whichever you don't pick now can be your 2nd clan later: R$ 9.90 in the 🛒 Shop.`)}</p>}
     {painel.escudo && <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
       {([[true, <><EmblemaCla emblema={`escudo:${painel.escudo}`} size={30} /><span>🖋 {tr(`Clã do ${semFc(painel.escudo)}`, `${semFc(painel.escudo)} clan`)}</span></>], [false, <span>⚔️ {tr('Clã com outro nome', 'Clan with another name')}</span>]] as const).map(([v, rot]) => (
         <button key={String(v)} onClick={() => setBatismo(v)} style={{ ...bt(batismo === v ? INK : '#fff', batismo === v ? GOLD : INK), flex: 1, whiteSpace: 'normal', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{rot}</button>
