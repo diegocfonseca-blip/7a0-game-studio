@@ -21,7 +21,7 @@ export type Papel = 'forma' | 'pressiona' | 'cobre' | 'marca' | 'opcao' | 'infil
 
 export interface Atleta {
   id: number; lado: Lado; nome: string; carta?: CartaCampo; grupo: Grupo
-  estilo: Estilo; golpes: Golpe[]; pe: Pe; /** o que ele rende AGORA (a base × o gás) */ at: Atrib; /** o nível do dia, inteiro (antes do cansaço) */ base: Atrib; tend: Tendencia
+  estilo: Estilo; golpes: Golpe[]; pe: Pe; /** o que ele rende AGORA (a base × o gás) */ at: Atrib; /** o nível do dia, inteiro (antes do cansaço) */ base: Atrib; /** 🔥 forma do dia: −1 pior dia da faixa · +1 ápice */ forma: number; tend: Tendencia
   /** referência da formação: largura (0–68) e profundidade (0 = linha de trás · 1 = linha da frente) */
   bx: number; dep: number
   x: number; y: number; vx: number; vy: number

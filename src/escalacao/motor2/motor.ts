@@ -41,7 +41,14 @@ function diaDe(seed: number, c: CartaCampo): number {
   for (let i = 0; i < c.name.length; i++) h = Math.imul(h ^ c.name.charCodeAt(i), 0x01000193) >>> 0
   const u1 = (h >>> 0) / 4294967296; h = Math.imul(h ^ (h >>> 15), 0x2C1B3C6D) >>> 0
   const u2 = (h >>> 0) / 4294967296
-  return c.lo + ((u1 + u2) / 2) * (c.hi - c.lo)
+  void u2
+  return c.lo + u1 * (c.hi - c.lo) // (sorteio CHEIO na faixa: dia ruim e dia de ápice tão frequentes quanto o meio — Diego 21/10: o dia tem que pesar)
+}
+/** 🔥 a FORMA do dia (−1 = o pior dia da faixa · +1 = o ápice): além do nível, ela pesa no quanto ele RENDE em campo — jogador
+ *  num dia ruim erra mais, no ápice acerta mais. Vale pros 22, dos dois lados (Diego 21/10). */
+function formaDe(c: CartaCampo, dia: number): number {
+  if (c.lo == null || c.hi == null || c.hi <= c.lo) return 0
+  return ((dia - c.lo) / (c.hi - c.lo)) * 2 - 1
 }
 /** o que muda o nível de TODO o time hoje: técnico (a 12ª carta, mesma régua da simulação) e o evento da rodada */
 export interface Ajuste { seed: number; tecnico?: number | null; evento?: number }
@@ -81,8 +88,9 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
     const dia = aj && c.name ? diaDe(aj.seed, c) : undefined
     const nivel = dia == null ? undefined : dia + (aj?.tecnico != null ? (aj.tecnico - dia) / 12 : 0) + (aj?.evento ?? 0)
     const pf = perfilDe(c, g, nivel)
+    const forma = dia == null ? 0 : formaDe(c, dia)
     out.push({
-      id: idSeq++, lado, nome: c.name, carta: c, grupo: g, estilo: pf.estilo, golpes: pf.golpes, pe: pf.pe, at: { ...pf.at }, base: pf.at, tend: pf.tend,
+      id: idSeq++, lado, nome: c.name, carta: c, grupo: g, estilo: pf.estilo, golpes: pf.golpes, pe: pf.pe, at: { ...pf.at }, base: pf.at, forma, tend: pf.tend,
       // (meio-campo ESCALONADO: o do meio é o volante (0,45), os de fora são os "8" que chegam na área (0,75). Três meias
       // na mesma linha deixavam um vazio de 20 m entre a bola e os atacantes)
       bx, dep: g === 'MEI' ? 0.45 + centro * 0.3 : g === 'ATA' ? dep - (1 - centro) * 0.04 : dep,
@@ -387,7 +395,10 @@ export class Motor2 {
    *  o que ele rende agora = o nível do dia × (0,7 + 0,3 × gás). Inteiro = 100%; 😓 entra ~95%; 🚑 entra ~87% e cai mais no fim.
    *  Velocidade e arranque já caem pelo gás em `vmax`/`acel`; goleiro não cansa. */
   private rende(p: Atleta) {
-    const f = p.grupo === 'GOL' ? 1 : 0.7 + 0.3 * p.gas
+    // (forma do dia: ±8% na técnica e no reflexo — o goleiro também tem dia)
+    const fdia = 1 + p.forma * 0.08
+    if (p.grupo === 'GOL') { p.at.reflexo = p.base.reflexo * fdia; p.at.posicionamento = p.base.posicionamento * fdia }
+    const f = (p.grupo === 'GOL' ? 1 : 0.7 + 0.3 * p.gas) * fdia
     for (const k of ['passe', 'visao', 'finalizacao', 'cabeceio', 'desarme', 'posicionamento', 'conducao', 'decisao', 'fisico'] as const) p.at[k] = p.base[k] * f
   }
   private cansa(dt: number) {

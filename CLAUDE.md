@@ -996,6 +996,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   tela travando, e minutos ao abrir carreira) e subir o motor novo pra média da simulação, com placar LIVRE (*"não é porque tem
   motor novo que não vai poder ter goleada… nem que vai ter um gol só… com base no elenco, no 11 contra 11"*). Medido depois do
   ajuste: parecidos 1,9 · forte × médio 2,2 · lendas × profissionais 2,6 gols/jogo com 44% de goleada; 0×0 raro.
+  (20) **O DIA DO JOGADOR PESA, PROS 22 (21/10, *"sim, também quero, mas vale pra qualquer jogador dos dois lados"*):** o nível do
+  dia é sorteado na faixa INTEIRA lo–hi (dia ruim e ápice tão comuns quanto o meio) e a FORMA do dia vale ±8% no que ele rende
+  (técnica; no goleiro, reflexo). Medido com os mesmos 2 times: time no dia ruim ganha 23% · normal 37% · dia bom 56%.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca
