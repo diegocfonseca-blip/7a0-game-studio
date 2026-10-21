@@ -10079,3 +10079,10 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
 - ✅ **PUBLICADO EM 21/10 ~13h30 (Diego: "pode")**: clãs liberados pra todos (`CLAS_GERAL = true`), escudo de clã na Loja (função
   `mp-criar-pix` v11 com 'escudo_cla'), batismo Neymar_FC, nome de time arrumado. Deploy verde. Reels e aviso do zap prontos em
   `scripts/posts/clas-reels.mp4` e `scripts/posts/aviso-2026-10-21-clas.png` (o Diego posta).
+- ⏳ **⚔️⚔️ 2º CLÃ PAGO (21/10, Diego: "sim")**: cada conta CRIA 1 clã (criar continua só com plano); o 2º vem na Loja por R$ 19,99
+  (`cla_extra`, só presidente do seu clã e sem 2º ainda) e já nasce com escudo personalizado (Diego desenha; zap). Os títulos somam
+  nos DOIS; o selo mostra o 1º (quem só tem o 2º mostra o 2º). No banco: `esc_clas.extra = true`, presidente = quem comprou, e ele
+  NÃO vira linha de membro (a trava "1 membro = 1 clã" ficou intacta) — entra por `esc_cla_gente()` em títulos, vagas (22), prêmio
+  (1 prêmio por pessoa por semana: o melhor lugar). A presidência do 2º não se passa; ele pode fechar ("🗑️ fechar este clã").
+  Aba do clã ganha as duas abas no topo. Migration `20261021130000_cla_extra.sql`, testada no banco (compra, criação, entrar, tirar,
+  fechar). Foto: `scripts/mockups/clas-2o-cla.png`. No branch esperando o "publica" — e AO PUBLICAR: deploy da `mp-criar-pix` (ganhou 'cla_extra').
