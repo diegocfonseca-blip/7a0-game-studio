@@ -10076,3 +10076,6 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   `emblema = 'escudo:<nome do clã>'` em `esc_clas` e `pronto_em = now()` em `esc_cla_escudo_pedidos`.
   🩹 Junto: as listas de produto de `esc_mp_pedidos`/`esc_pagamentos` estavam atrasadas (peça do presidente nem gerava Pix; giro, recado,
   ficha e temas quebrariam o webhook ao pagar). Corrigido em 21/10 — ninguém tinha pago nenhum deles ainda.
+- ✅ **PUBLICADO EM 21/10 ~13h30 (Diego: "pode")**: clãs liberados pra todos (`CLAS_GERAL = true`), escudo de clã na Loja (função
+  `mp-criar-pix` v11 com 'escudo_cla'), batismo Neymar_FC, nome de time arrumado. Deploy verde. Reels e aviso do zap prontos em
+  `scripts/posts/clas-reels.mp4` e `scripts/posts/aviso-2026-10-21-clas.png` (o Diego posta).
