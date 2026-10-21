@@ -10099,3 +10099,7 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
 - ✅ **🔓 CRIAR CLÃ SEM PLANO = R$ 9,90 (21/10, Diego: "tá ótimo, gostei")**: com plano é de graça; sem plano, o "Criar clã 🔒" abre
   "Libere o seu clã" com o Pix de R$ 9,90 (produto `cla_criar`, um Pix = um clã criado, crédito em `esc_clas.pedido_criar`). Escudo
   desenhado continua R$ 19,99. Migration `20261021170000_cla_criar_avulso.sql`, testado no banco. Ao publicar: deploy da `mp-criar-pix`.
+- ✅ **PUBLICADO 21/10 (~15h, Diego: "publique tudo")**: tela de criar com o clã do batismo (nome + escudo), 2º clã pago, troca de
+  emblema, cadeado de R$ 9,90 pra quem não tem plano, caixa dos clãs sempre visível. `mp-criar-pix` v12 (escudo_cla · cla_criar · cla_extra).
+  Regra confirmada: Futpoint (sem clã) cria o "Clã do Futpoint FC" de graça; Julia Barranquila (tem o Oliver Clã) fecha e cria o do
+  batismo, OU paga R$ 19,99 e fica com os dois (o batismo vira o 2º e o Oliver ganha o escudo personalizado).
