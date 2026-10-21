@@ -48,9 +48,13 @@ type ClaRank = { id: number; nome: string; emblema: string; membros: number; tit
 export function RankingClasCaixa() {
   const [l, setL] = useState<ClaRank[] | null>(null)
   useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 5)) }, () => {}); return () => { vivo = false } }, [])
-  if (!l || l.length === 0) return null
+  if (!l) return null // 🔁 21/10 (Diego): a caixa aparece SEMPRE, mesmo sem clã nenhum — vazia, ela chama a galera pra criar o primeiro
   return (
     <Caixa titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
+      {l.length === 0 && <div style={{ textAlign: 'center', padding: '8px 4px', border: `2px dashed ${INK}`, borderRadius: 10, background: '#fff' }}>
+        <p style={{ ...OSW, margin: 0, fontSize: 15 }}>⚔️ {tr('Nenhum clã ainda', 'No clans yet')}</p>
+        <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 700, color: '#5a5240' }}>{tr('Seja o primeiro: 👥 Amigos → ⚔️ Clã. Entrar é de graça; criar é de quem tem plano.', 'Be the first: 👥 Friends → ⚔️ Clan. Joining is free; creating needs a plan.')}</p>
+      </div>}
       {l.map((c, i) => (
         <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 && c.titulos > 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : i ? { borderTop: '1.5px solid #0001' } : {}) }}>
           <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{c.titulos > 0 ? medalha(c.pos) : `${c.pos}º`}</span>
