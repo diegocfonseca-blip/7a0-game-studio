@@ -3,7 +3,7 @@
 // `scripts/mockups/clas.png` (as telas) e `scripts/mockups/clas-onde-aparece.png` (o selo em cada lugar).
 //
 // · Regras (o BANCO decide tudo — `supabase/migrations/20261021040000_clas.sql`): criar = qualquer plano PAGO; entrar = todo
-//   mundo; até 20; 1 clã por vez; quem sai espera 7 dias; títulos ONLINE da semana somam pro clã; ranking zera segunda; o clã
+//   mundo; até 22 (21/10, era 20); 1 clã por vez; quem sai espera 7 dias; títulos ONLINE da semana somam pro clã; ranking zera segunda; o clã
 //   campeão da semana passada leva 🏆 no selo; aberto (entra direto) ou fechado (pede, o líder aceita). Sem rivalidade.
 // · O SELO é da PESSOA: sala de espera, chat, perfil e amigos — SEMPRE na linha de baixo do nome, pequeno, sem tirar nada do
 //   lugar (escudo, presidente, cor do plano, medalha). Tabela/placar/jogo/leilão NUNCA mostram clã (lá é o clube).
@@ -14,6 +14,7 @@ import { tr } from './lang'
 import { Escudo } from './escudos'
 import { clasLiberado } from './cla-gate' // a trava (CLAS_GERAL) mora lá
 export { clasLiberado }
+export const CLA_MAX = 22 // 👥 máximo de membros (21/10: "coloque 22"); o banco tem o MESMO número em esc_cla_cabe
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED', CLA_OURO = '#E9C46A'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -109,7 +110,7 @@ const ERRO: Record<string, [string, string]> = {
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
   ja_tem: ['Você já está num clã. Saia dele antes.', 'You are already in a clan. Leave it first.'],
   espera: ['Quem sai de um clã só entra em outro depois de 7 dias.', 'After leaving a clan you can join another only after 7 days.'],
-  lotado: ['Esse clã já tem 20 membros.', 'That clan already has 20 members.'],
+  lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
   sem_cla: ['Esse clã não existe mais.', 'That clan no longer exists.'],
 }
@@ -148,7 +149,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
     {p.convites.map(v => (
       <div key={v.pedido_id} style={{ ...caixa, background: '#EFE6FF', display: 'flex', gap: 10, alignItems: 'center' }}>
         <EmblemaCla emblema={v.emblema} size={34} />
-        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/20)</div>
+        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})</div>
         <span style={{ display: 'flex', gap: 5 }}>
           <button disabled={ocupado || !!c} style={bt(GREEN, '#fff')} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'))}>{tr('entrar', 'join')}</button>
           <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: false })}>{tr('agora não', 'not now')}</button>
@@ -160,7 +161,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <EmblemaCla emblema={c.emblema} size={58} />
         <div style={{ minWidth: 0 }}>
           <b style={{ ...OSW, fontSize: 20, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-          <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('líder', 'leader')}: {c.lider_nome} · {c.membros}/20 · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('líder', 'leader')}: {c.lider_nome} · {c.membros}/{CLA_MAX} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginTop: 8 }}>
@@ -196,7 +197,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       <div style={{ ...caixa, textAlign: 'center' }}>
         <p style={{ fontSize: 34, margin: 0 }}>⚔️</p>
         <p style={{ ...OSW, fontSize: 16, margin: '2px 0 4px' }}>{tr('Você ainda não tem clã', 'You have no clan yet')}</p>
-        <p style={{ fontSize: 12, fontWeight: 700, margin: 0, color: '#555' }}>{tr('Até 20 técnicos juntos: todo título online de cada um soma pro clã, e tem ranking da semana.', 'Up to 20 managers together: every online title adds to the clan, with a weekly ranking.')}</p>
+        <p style={{ fontSize: 12, fontWeight: 700, margin: 0, color: '#555' }}>{tr(`Até ${CLA_MAX} técnicos juntos: todo título online de cada um soma pro clã, e tem ranking da semana.`, `Up to ${CLA_MAX} managers together: every online title adds to the clan, with a weekly ranking.`)}</p>
         {p.espera_ate && <p style={{ fontSize: 12, fontWeight: 800, color: '#7a4d00', margin: '6px 0 0' }}>⏳ {tr(`Você saiu de um clã: pode entrar em outro a partir de ${dataCurta(p.espera_ate)}.`, `You left a clan: you can join another from ${dataCurta(p.espera_ate)}.`)}</p>}
       </div>
       <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
@@ -263,12 +264,12 @@ function ProcurarCla({ pedi, ocupado, onEntrar }: { pedi: number[]; ocupado: boo
     {lista === null ? <p style={{ fontSize: 12, fontWeight: 700 }}>{tr('carregando…', 'loading…')}</p>
       : lista.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666' }}>{tr('Nenhum clã por aqui ainda.', 'No clans here yet.')}</p>
       : lista.map(c => {
-        const lotado = c.membros >= 20, jaPedi = pedi.includes(c.id)
+        const lotado = c.membros >= CLA_MAX, jaPedi = pedi.includes(c.id)
         return <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
           <EmblemaCla emblema={c.emblema} size={30} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/20 · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{CLA_MAX} · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
           </div>
           {lotado ? <span style={{ ...bt('#eee', '#888'), cursor: 'default' }}>{tr('lotado', 'full')}</span>
             : jaPedi ? <span style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>⏳ {tr('pedido', 'requested')}</span>
@@ -288,7 +289,7 @@ function RankingClas({ meu }: { meu: number | null }) {
       : lista.map(c => <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 4px', borderTop: '1px dashed #d8ccaa', background: c.id === meu ? '#FFF3C4' : 'transparent', borderRadius: 6 }}>
         <span style={{ ...OSW, width: 26, textAlign: 'center' }}>{(c.pos ?? 99) <= 3 && c.titulos > 0 ? ['🥇', '🥈', '🥉'][(c.pos ?? 1) - 1] : `${c.pos}º`}</span>
         <EmblemaCla emblema={c.emblema} size={26} />
-        <div style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}</b><span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/20 {tr('membros', 'members')}</span></div>
+        <div style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}</b><span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{CLA_MAX} {tr('membros', 'members')}</span></div>
         <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} 🏆</span>
       </div>)}
     <p style={{ fontSize: 10.5, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('O clã campeão da semana joga a semana seguinte com 🏆 no selo de cada membro.', 'The champion clan plays the following week with 🏆 on every member’s badge.')}</p>
