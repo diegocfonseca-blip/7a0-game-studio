@@ -15,6 +15,9 @@ jeito do jogador. Individualidade (20/10, 2ª passada): quem gosta de driblar se
 (alvo 2,5 m além do rival) e o duelo acontece no contato; o time procura o craque (passe pro melhor jogador vale mais). Romário no
 meio: 1,2 drible · 0,8 chute · 0,3 gol por jogo. ⚠️ Teto estrutural: num jogo de 1:30 cada jogador pega a bola ~3 vezes (o
 Ronaldinho fica 0,8 s com ela por jogo), então a marca da lenda aparece na TEMPORADA, não em cada jogo.
+✅ **(21/10) Comunidade do zap virou PROPAGANDA FIXA no telão** (`esc_anuncios_fixos` id 6, ordem 6, com o link da comunidade) e o
+Super Chat dele sobre a comunidade (recado id 7) saiu do ar. Diego: o Super Chat fica *"como sempre foi"*, sem link — a 1ª tentativa
+(Super Chat com link) foi desfeita no mesmo minuto.
 ✅ **(21/10, sala de duplas do Futpoint) PUBLICAR NÃO DERRUBA MAIS NINGUÉM + PARCEIRO DE DUPLA NÃO É MAIS TIRADO DA SALA.** Causa:
 2 publicações seguidas (22h46 e 22h52) → todo mundo recarregou → o parceiro de dupla, ao voltar, não achava o time (o `seatUids` só
 tem os donos) e era apagado do `room_players`. Feito: sem recarga automática nenhuma, deploy mantém a versão anterior no ar 3 dias,
