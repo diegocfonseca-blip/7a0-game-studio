@@ -2762,7 +2762,19 @@ const L42_EU_ATA: C[] = [
   { name: "Edmundo", club: "Fiorentina", year: 1998, fame: 3, lo: 76, hi: 85, bio: "O Animal passou pela Fiorentina no fim dos anos 90, ao lado de Batistuta." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA] }
+// ─── 📚 LOTE 44 (21/10): pedido do Diego — Jorginho do Chelsea, Joelinton, Peyroteo e Bobby Tambling ─────────────
+// Categoria de cada um no clube e no ano da carta. O Jorginho do Chelsea é OUTRA pessoa (o volante ítalo-brasileiro),
+// não o lateral do tetra que já está no baralho — o país vai carta a carta em PAIS_POR_CARTA.
+const L44_EU_MEI: C[] = [
+  { name: "Jorginho", club: "Chelsea", year: 2021, fame: 4, lo: 85, hi: 91, bio: "Volante ítalo-brasileiro, nascido em Imbituba (SC). Em 2021 foi campeão da Champions com o Chelsea e da Euro com a Itália, e 3º na Bola de Ouro." },
+  { name: "Joelinton", club: "Newcastle", year: 2023, fame: 3, lo: 77, hi: 85, bio: "Chegou como centroavante e virou o motor do meio do Newcastle que voltou à Champions." },
+]
+const L44_EU_ATA: C[] = [
+  { name: "Fernando Peyroteo", club: "Sporting", year: 1947, fame: 5, lo: 85, hi: 92, bio: "Centroavante dos Cinco Violinos do Sporting, dono de uma das maiores médias de gol da história: mais de um gol por jogo." },
+  { name: "Bobby Tambling", club: "Chelsea", year: 1965, fame: 4, lo: 82, hi: 89, bio: "Maior artilheiro da história do Chelsea por quase 50 anos, até o Lampard passar dele." },
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────

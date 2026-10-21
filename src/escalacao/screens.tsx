@@ -8330,7 +8330,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   x.fillText(`${c.club} · ${c.year}`, W / 2, OY + M + ch * 0.66 + 48)
   x.font = `700 36px Arial`
   x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, OY + M + ch * 0.66 + 104)
-  const bioText = opts.bb ? c.bio : BIOS[c.name] // bio REAL (sem inventar); vazio se não tiver — 🏀 a da carta da NBA
+  const bioText = opts.bb ? c.bio : (c.bio ?? BIOS[c.name]) // 21/10: a da CARTA primeiro (xará de outro jogador não herda o texto) · bio REAL (sem inventar); vazio se não tiver — 🏀 a da carta da NBA
   if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
     const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''

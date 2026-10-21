@@ -6,6 +6,34 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Jorginho",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-10-21"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Joelinton",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-10-21"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Fernando Peyroteo",
+    "baralho": "EU",
+    "nivel": "lenda",
+    "data": "2026-10-21"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Bobby Tambling",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-10-21"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Vitinha",
     "baralho": "EU",
     "nivel": "craque",
@@ -392,34 +420,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Alpay Özalan",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Merih Demiral",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Richard Dunne",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Victor Lindelöf",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Patrik Andersson",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-10-02"
