@@ -1080,6 +1080,7 @@ import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiber
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
 import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import { AvisoDonoFundo, salaEsperaODono } from './aviso-dono-fundo' // 🖥️ 20/10
+import { AvisoConta } from './aviso-conta' // 📣 21/10: aviso de moderação pra uma conta
 import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
@@ -15179,6 +15180,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         </div>
       )}
       {/* 🖥️ dono que saiu da aba / computador travou no meio do leilão: avisa ELE (20/10, live do Fridão) */}
+      <AvisoConta />
       <AvisoDonoFundo ativo={state.onlineMode === 'online' && state.isHost && !!state.roomId && salaEsperaODono(state.screen, state.phase)} />
       {showHostBanner && (
         <div style={{
