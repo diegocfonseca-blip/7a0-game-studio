@@ -18,7 +18,7 @@ import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
-import { AbaCla, CaixaClaPerfil, SeloCla, clasLiberado } from './cla' // ⚔️ 21/10: clãs
+import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado } from './cla' // ⚔️ 21/10: clãs
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -149,6 +149,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </>}
           </div>
         )}
+        {!p.sou_eu && <ChamarProMeuCla uid={p.uid} />}{/* ⚔️ 21/10: chamar pro meu clã direto do perfil */}
         {/* 🔥 rival: UM por pessoa, só entre amigos, e é só zoeira (não muda nada no jogo) */}
         {!p.sou_eu && p.relacao === 'aceito' && (
           <div style={{ marginTop: 8 }}>
@@ -456,7 +457,7 @@ export function ComPerfil({ uid, children }: { uid: string | null | undefined; c
 export const EVENTO_PERFIL_ABERTO = 'esc-perfil-aberto'
 let raizPerfil: Root | null = null
 let vezPerfil = 0
-function abrePerfilSolto(uid: string) {
+export function abrePerfilSolto(uid: string) {
   window.dispatchEvent(new Event(EVENTO_PERFIL_ABERTO))
   if (!raizPerfil) { const el = document.createElement('div'); el.id = 'perfil-solto'; document.body.appendChild(el); raizPerfil = createRoot(el) }
   vezPerfil++

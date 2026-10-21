@@ -98,6 +98,35 @@ export function CaixaClaPerfil({ uid }: { uid: string }) {
   )
 }
 
+// 📣 no PERFIL de alguém (21/10, Diego: "clicar neles pra chamar como amigo, convidar pro clã"): um botão por clã MEU.
+// Quem é do clã (membro ou presidente) chama; o banco responde se ele já está lá.
+export function ChamarProMeuCla({ uid }: { uid: string }) {
+  const [meus, setMeus] = useState<{ id: number; nome: string; emblema: string }[]>([])
+  const [feito, setFeito] = useState<Record<number, string>>({})
+  useEffect(() => {
+    if (!clasLiberado()) return
+    supabase.rpc('esc_cla_painel').then(({ data }) => {
+      const pn = data as Painel | null
+      const l = [pn?.cla, pn?.extra].filter((k): k is Bloco => !!k && !k.lista.some(m => m.uid === uid))
+      setMeus(l.map(k => ({ id: k.id, nome: k.nome, emblema: k.emblema })))
+    }, () => {})
+  }, [uid])
+  if (meus.length === 0) return null
+  const chama = async (id: number) => {
+    setFeito(f => ({ ...f, [id]: '…' }))
+    try {
+      const { data } = await supabase.rpc('esc_cla_convidar', { p_para: uid, p_cla: id })
+      const r = (data ?? {}) as { ok?: boolean; erro?: string }
+      setFeito(f => ({ ...f, [id]: r.ok ? tr('✅ Convite enviado', '✅ Invite sent') : r.erro === 'mesmo' ? tr('já está no clã', 'already in') : tr('não deu', 'failed') }))
+    } catch { setFeito(f => ({ ...f, [id]: tr('não deu', 'failed') })) }
+  }
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+    {meus.map(k => feito[k.id]
+      ? <span key={k.id} style={{ ...bt('#E9F7EE', INK), textAlign: 'center', padding: 9, boxShadow: 'none' }}>{feito[k.id]} · {k.nome}</span>
+      : <button key={k.id} onClick={() => void chama(k.id)} style={{ ...bt(ROXO, '#fff'), display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 8, fontSize: 13 }}><EmblemaCla emblema={k.emblema} size={22} />📣 {tr(`Chamar pro ${k.nome}`, `Invite to ${k.nome}`)}</button>)}
+  </div>
+}
+
 // ── a aba ⚔️ Clã dos Amigos ─────────────────────────────────────────────────────────────────────────────────────
 type ClaJson = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; campeao: boolean; pos?: number; descricao?: string | null }
 type Bloco = ClaJson & { pos: number | null; lista: { uid: string; nome: string; titulos: number }[]; pedidos: { id: number; uid: string; nome: string }[] }
@@ -129,7 +158,7 @@ const ERRO: Record<string, [string, string]> = {
   guardar_gente: ['Só dá pra guardar o clã quando você é o único dele. Com gente, passe a presidência ou feche.', 'You can only store the clan when you are its only member. With people, hand over the presidency or close it.'],
   emblema_fixo: ['Esse clã tem escudo próprio (batismo ou personalizado): o emblema não se troca.', 'This clan has its own crest (named club or custom): the emblem can’t be changed.'],
 }
-const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
+export const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
 // ⚔️⚔️ 21/10 (Diego): "resumindo, sempre são dois… isso aí também tem que estar escrito em algum lugar"
 const REGRA_DOIS: [string, string] = ['⚔️⚔️ Sempre são dois: com a 2ª vaga (R$ 9,90 na 🛒 Loja, uma vez só) você fica em até 2 clãs — membro dos 2, presidente dos 2 ou um de cada. Pra entrar num 3º, saia de um; sendo presidente, passe a presidência, 📦 guarde ou feche o clã.', '⚔️⚔️ Always two: with the 2nd slot (R$ 9.90 in the 🛒 Shop, once) you can be in up to 2 clans — member of both, president of both or one of each. To join a 3rd, leave one; as president, hand over, 📦 store or close the clan.']
 // 📝 21/10 (Diego): "cada clã tem que ter a sua descrição" — aparece no convite, na lista e na página do clã

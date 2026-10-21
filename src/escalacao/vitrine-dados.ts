@@ -5,12 +5,12 @@ import { supabase } from '../lib/supabase'
 
 export interface Vitrine {
   hoje: { nome: string; time: string; titulos: string[]; em: string }[]
-  semana: { nome: string; titulos: number; pos: number }[]
+  semana: { nome: string; titulos: number; pos: number; uid?: string | null }[] // 👆 21/10: uid pra abrir o perfil
   eu: { nome: string; titulos: number; pos: number } | null
   batismo: { clube: string; desde: string } | null
   // 🏅 19/10 (pódio da semana, mockup `podio-30d.png`) — campos novos, todos opcionais (banco velho não manda)
   podio?: { uid: string; pos: number }[]                      // quem está no TOP 3 AGORA (por id da conta)
-  passada?: { nome: string; titulos: number; pos: number }[]  // o pódio da última semana FECHADA
+  passada?: { nome: string; titulos: number; pos: number; uid?: string | null }[]  // o pódio da última semana FECHADA
   ganhas?: string                                             // minhas medalhas dos últimos 30 dias ('🥇🥉'), mais nova primeiro
 }
 
