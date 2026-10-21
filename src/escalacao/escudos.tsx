@@ -909,7 +909,7 @@ const chelsaoEscudoRender = (size: number) => (
 // 🐐👑 NEYMAR FC (sheeryarie772, batismo de 21/10) — Série D, no assento do bot Galáxia EC. 📏 290×360, 28 KB.
 // Escudo dourado com o bode coroado e o rosto, NEYMAR FC e a bola. Fundo verde chroma tirado; conferido sobre creme e verde.
 const neymarfcEscudoRender = (size: number) => (
-  <img src={neymarfcEscudoImg} height={size} width={Math.round(size * 290 / 360)} alt="Neymar FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={neymarfcEscudoImg} height={size} width={Math.round(size * 290 / 360)} alt="Neymar_FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
 const labubuEscudoRender = (size: number) => (
@@ -1572,6 +1572,7 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'CRBebê': chelsaoEscudoRender,
   'Peteca FR': chelsaoEscudoRender,
   // 🐐👑 Neymar FC (sheeryarie772) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
+  'Neymar_FC': neymarfcEscudoRender, // o nome que ele usa (com underline — chaveEscudo não corta o _FC)
   'Neymar FC': neymarfcEscudoRender,
   'Neymar': neymarfcEscudoRender,
   'Neymar EC': neymarfcEscudoRender,

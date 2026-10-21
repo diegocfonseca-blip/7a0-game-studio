@@ -403,7 +403,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // com o craque de uniforme creme nº 10 sentado nele e a bola de pé. A cena inteira é a mascote. Arte do próprio dono.
   // 📏 440×415, ≤45 KB — altura 176 (é mais larga que alta). mascote_key = "neymarfc_bode".
   neymarfc_bode: (
-    <img src={neymarfcMascoteImg} height={176} width={Math.round(176 * 440 / 415)} alt="O Bode Rei — Neymar FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={neymarfcMascoteImg} height={176} width={Math.round(176 * 440 / 415)} alt="O Bode Rei — Neymar_FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐰 O LABUBU (mascote do Labubu FC — caelborba, 14/10): o bichinho de pelo preto, orelhas de coelho e olhos de
   // cores diferentes, com o uniforme branco nº 10 e a bola debaixo do braço. Arte do próprio dono.
@@ -1243,6 +1243,7 @@ export const CARIMBO_GOL: Record<string, string> = {
   'CRBebê': 'chelsao_leao',
   'Peteca FR': 'chelsao_leao',
   // 🐐 o Bode Rei carimba o gol do Neymar FC (sheeryarie772, 21/10).
+  'Neymar_FC': 'neymarfc_bode', // o nome que ele usa (com underline)
   'Neymar FC': 'neymarfc_bode',
   'Neymar': 'neymarfc_bode',
   'Neymar EC': 'neymarfc_bode',
