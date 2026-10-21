@@ -605,6 +605,7 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   🔁 21/10 (4ª rodada): **TROCAR DE CLÃ COM AVISO** (*"você já participa do clã do Futpoint, gostaria de confirmar?"*). Quem já tem
   clã agora PODE aceitar convite ou pedir pra entrar em outro: o banco responde `confirmar` e a tela abre o aviso "⚔️ Trocar de clã?"
   (clã de agora ➜ novo, o que acontece com a liderança, espera de 3 dias, "Sim, ir pro X" / "Não, ficar no Y"). Clã fechado: o pedido
+  🔓 **21/10 (Diego): SEM ESPERA pra trocar de clã** (*"tira essa regra, não precisa"*). Era 7 dias, depois 3, agora zero: `esc_cla_espera_ate` devolve sempre null (banco, valeu na hora). Não repropor espera.
   guarda `trocar` e a troca acontece quando o líder aceita. Quem saiu/trocou nos últimos 3 dias (era 7; Diego mudou pra 3 em 21/10) não troca de novo. Botão "🔎 Outros
   clãs" dentro do clã. Migration `20261021080000_clas_trocar.sql`; testado no banco. Foto: `scripts/mockups/clas-trocar.png`.
   🟢 21/10 (*"aprovado"*): **`CLAS_GERAL = true`** (cla-gate.ts) no branch, esperando o "publica". Quem não tem plano e toca em
