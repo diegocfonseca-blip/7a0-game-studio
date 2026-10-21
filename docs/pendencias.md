@@ -9931,12 +9931,12 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
 ## 🧪 OittoLabs, parceiro novo (21/10) — contabilidade e BPO pra PJ e PF (oittolabs.com.br)
 - Pedido do Diego: aviso da comunidade + texto pra postar · placas do campinho revezando com a Vadico · telão · "apresentado por"
   na Copa do Brasil da carreira e na Copa dos 8 online · mais uma marca no Master da carreira.
-- ✅ Código (no branch, esperando OK pra publicar): logo `img/patro-oittolabs.webp` (21 KB) · `PLACAS_CAMPO` Vadico → OittoLabs →
+- ✅ PUBLICADO 21/10 ("publique o OittoLabs"): logo `img/patro-oittolabs.webp` (21 KB) · `PLACAS_CAMPO` Vadico → OittoLabs →
   Tidex (cima/baixo trocam a cada 7 s) · Copa dos 8 = OittoLabs (era Tidex; a Tidex segue na Liga Legends da carreira) · Copa do
   Brasil da carreira = OittoLabs (`career-copa`) · Master: a OittoLabs entrou NO LUGAR da Max Joias, 1 temporada (Diego: "tira Max
   joias e bote ele"); contrato da Max Joias já correndo em save antigo vai até o fim (`npm run master`).
 - ✅ Aviso: `scripts/posts/aviso-2026-10-21-parceiro-oittolabs.png`. Mockup do jogo: `scripts/mockups/oittolabs-no-jogo.png`.
-- ⏳ Telão: a linha de verdade é no banco (`esc_anuncios_fixos`) — inserir junto da publicação:
+- ✅ Telão no ar (`esc_anuncios_fixos` id 5):
   "🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui" (ordem 5). Diego quer o clique no
   WhatsApp deles com mensagem pronta (igual Tidex) — ⏳ falta o NÚMERO; até lá vai pro site.
 
@@ -9947,8 +9947,8 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   erro `NOME_PROIBIDO` → a tela explica) e limpa o nome nos `room_players`. Palavrão continua liberado (ordem do Diego).
   Pra palavra nova: mudar o regex em `esc_nome_ofensivo` E em `esc_nome_limpo`. Falso positivo conhecido: nome com "nazi" no
   meio (ex. "Anazinho"). Hoje no histórico só aparece também "Otavinazifc".
-- ✅ Aviso pra conta (`esc_avisos_conta` + `AvisoConta`): aparece uma vez, o X marca visto no banco. Pra mandar outro aviso a
-  alguém: `insert into esc_avisos_conta (user_id, titulo, texto)`. ⏳ A tela precisa do deploy pra aparecer.
+- ✅ Aviso pra conta (`esc_avisos_conta` + `AvisoConta`, publicado 21/10): aparece uma vez, o X marca visto no banco. Pra mandar
+  outro aviso a alguém: `insert into esc_avisos_conta (user_id, titulo, texto)`.
 - ✅ 2ª parte (Diego: "nem palavras referentes ao nazismo ao fazer novo time e nova sala"): régua = nazi(solto)/nazista/nazismo,
   hitler, suástica/swastika, führer, sieg heil, crioulo e os símbolos 卍卐࿕-࿘. Vale na SALA (barra), no PERFIL/TIME (gatilho em
   `auth.users` troca o nome na hora de gravar) e na TELA (`nome-ofensivo.ts` dentro do `nomeLivre` + início de carreira/dinastia
