@@ -10106,3 +10106,7 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
 - ✅ **✂️ CLÃ SEM "FC" (21/10, Diego: "não precisa ter FC nos clãs")**: `esc_cla_sem_fc` tira FC/EC/SC/AC/SAF do fim do nome do clã (o do batismo
   e o digitado; "Futpoint FC" → "Futpoint"). O escudo continua o do time. Banco já valendo (migration `20261021180000_cla_sem_fc.sql`); o rótulo
   "Clã do Futpoint" na tela de criar está no branch.
+- ⏳ **💸 PREÇOS DOS CLÃS (21/10, Diego)**: 2º clã = R$ 9,90 só pra criar (emblema pronto; quem tem batismo ativa o time, nome sem FC + escudo) ·
+  escudo personalizado = R$ 19,90 à parte, pra qualquer clã. Banco já valendo (migration `20261021190000_cla_precos.sql`, testado). Loja nova
+  (`Extra2Form`) no branch. Julia Barranquila (Oliver Clã) e Tricolor do Arruda (Lado A-DPA) já tinham criado outro clã: pra ativar o do batismo
+  pagam os R$ 9,90 do 2º. Falta: texto do Pix/edge "2º clã" (sem "+ escudo") e publicar + deploy da `mp-criar-pix`.

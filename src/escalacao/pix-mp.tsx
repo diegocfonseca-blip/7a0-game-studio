@@ -32,7 +32,7 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   giro_hora: ['📣 Anúncio no giro · 1 h', '📣 Ticker ad · 1 h'], recado_hora: ['💬 Super Chat · 1 h', '💬 Super Chat · 1 h'], recado_dia: ['💬 Super Chat · dia todo', '💬 Super Chat · all day'],
   peca_presidente: ['🧑‍💼 Peça do presidente', '🧑‍💼 President item'],
   escudo_cla: ['🛡️ Escudo de clã personalizado', '🛡️ Custom clan crest'],
-  cla_extra: ['⚔️⚔️ 2º clã + escudo personalizado', '⚔️⚔️ 2nd clan + custom crest'],
+  cla_extra: ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
   cla_criar: ['🔓 Liberar o seu clã', '🔓 Unlock your clan'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
@@ -58,7 +58,7 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   recado_hora: ['Pagamento recebido! Agora escreva o seu recado: ele entra no letreiro na hora e fica 1 hora.', 'Payment received! Now write your shout-out: it goes on the ticker right away and stays 1 hour.'],
   recado_dia: ['Pagamento recebido! Agora escreva o seu recado: ele entra no letreiro na hora e fica o dia todo (24 h).', 'Payment received! Now write your shout-out: it goes on the ticker right away and stays all day (24 h).'],
   cla_criar: ['Clã liberado! Agora é só dar o nome e escolher o emblema.', 'Clan unlocked! Now just name it and pick the emblem.'],
-  cla_extra: ['Pagamento confirmado! Agora dê o nome do seu 2º clã e conte a ideia do escudo.', 'Payment confirmed! Now name your 2nd clan and tell us your crest idea.'],
+  cla_extra: ['2º clã liberado! Agora é só criar.', '2nd clan unlocked! Now just create it.'],
   escudo_cla: ['Pagamento confirmado! Agora conta pra gente o nome do clã e a ideia do escudo.', 'Payment confirmed! Now tell us the clan name and your crest idea.'],
   peca_presidente: ['A peça já é sua, pra sempre, na sua conta. Vista e salve o seu presidente.', 'The item is yours forever, on your account. Put it on and save your president.'],
 }

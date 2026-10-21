@@ -475,59 +475,91 @@ export function EscudoClaLoja() {
   const [cla, setCla] = useState<{ nome: string; presidente: boolean; temExtra: boolean; batismo: string | null } | null | 'carregando'>('carregando')
   const [meus, setMeus] = useState<EscudoPedido[]>([])
   const [comprando, setComprando] = useState<ProdutoCla | null>(null)
+  const [pend2, setPend2] = useState<string[]>([]) // ⚔️⚔️ Pix do 2º clã pago que ainda não virou clã
   const carrega = useCallback(() => {
     supabase.rpc('esc_cla_painel').then(({ data }) => {
       const pn = data as Painel | null, c = pn?.cla
       setCla(c ? { nome: c.nome, presidente: souLider(c), temExtra: !!pn?.extra, batismo: pn?.escudo ?? null } : null)
     }, () => setCla(null))
     supabase.rpc('esc_cla_escudo_meus2').then(({ data }) => setMeus((data ?? []) as EscudoPedido[]), () => {})
+    supabase.rpc('esc_cla_extra_pendentes').then(({ data }) => setPend2(((data ?? []) as { id: string }[]).map(r => r.id)), () => {})
   }, [])
   useEffect(carrega, [carrega])
   if (!clasLiberado()) return null
   const info = cla === 'carregando' ? null : cla
   const presidente = !!info?.presidente
   const aberto = (prod: ProdutoCla) => meus.some(m => m.produto === prod && !m.pronto)
-  // ⚔️⚔️ o 2º clã só pra quem é presidente e ainda não tem o 2º (o banco confere de novo: preço nulo pra quem não pode)
+  // 💸 21/10 (Diego): 2º clã = R$ 9,90 SÓ pra criar (emblema pronto; quem tem batismo ativa o time) · escudo personalizado = R$ 19,90 à parte
+  const PRECO: Record<ProdutoCla, number> = { escudo_cla: 19.9, cla_extra: 9.9 }
   const ofertas: { prod: ProdutoCla; titulo: [string, string]; texto: [string, string]; pode: boolean; porque: [string, string] }[] = [
+    { prod: 'cla_extra', titulo: info?.batismo ? [`⚔️⚔️ ${semFc(info.batismo)} como 2º clã`, `⚔️⚔️ ${semFc(info.batismo)} as 2nd clan`] : ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
+      texto: info?.batismo
+        ? [`Cada conta cria 1 clã de graça. Pra ter o segundo, ative o ${semFc(info.batismo)} (nome e escudo do seu batismo) ou crie outro. Você vira presidente dos dois e seus títulos somam nos dois.`, `Each account creates 1 clan for free. For a second one, activate ${semFc(info.batismo)} (your named club's name and crest) or create another. You preside over both and your titles count for both.`]
+        : ['Cada conta cria 1 clã. Com este, você cria um segundo e vira presidente dos dois. Seus títulos somam nos dois.', 'Each account creates 1 clan. With this you create a second one and preside over both. Your titles count for both.'],
+      pode: presidente && !!info && !info.temExtra,
+      porque: info?.temExtra ? ['Você já é presidente de 2 clãs (o máximo).', 'You are already president of 2 clans (the max).'] : ['Pra criar o 2º clã, você precisa ser presidente do seu clã.', 'To create a 2nd clan, you need to be president of your clan.'] },
     { prod: 'escudo_cla', titulo: ['🛡️ Escudo de clã personalizado', '🛡️ Custom clan crest'],
       texto: ['Desenho exclusivo, feito à mão pro SEU clã. Aparece no selo de todos os membros, no ranking e no telão. Fica pronto em até 24 h.', 'An exclusive crest, hand-made for YOUR clan. Shows on every member’s badge, in the ranking and on the big screen. Ready within 24 h.'],
       pode: presidente, porque: info ? [`Só o presidente do ${info.nome} pode encomendar o escudo.`, `Only the ${info.nome} president can order the crest.`] : ['Pra encomendar, você precisa ser presidente de um clã (👥 Amigos → ⚔️ Clã).', 'To order, you need to be a clan president (👥 Friends → ⚔️ Clan).'] },
-    // 🖋 21/10 (Diego, caso do Tricolor do Arruda): quem tem BATISMO ganha como 2º clã o próprio time do batismo, e o escudo
-    // personalizado vai pro clã que ele já tem
-    info?.batismo ? { prod: 'cla_extra' as ProdutoCla, titulo: ['⚔️⚔️ Seu batismo como 2º clã + escudo personalizado', '⚔️⚔️ Your named club as 2nd clan + custom crest'] as [string, string],
-      texto: [`Cada conta cria 1 clã. Com este, o ${semFc(info.batismo)} vira o seu 2º clã (com o escudo do batismo) e o ${info.nome} ganha escudo feito à mão (pronto em até 24 h). Você vira presidente dos dois e seus títulos somam nos dois.`,
-        `Each account creates 1 clan. With this, ${semFc(info.batismo)} becomes your 2nd clan (with the named-club crest) and ${info.nome} gets a hand-made crest (ready within 24 h). You preside over both and your titles count for both.`] as [string, string],
-      pode: presidente && !info.temExtra,
-      porque: (info.temExtra ? ['Você já é presidente de 2 clãs (o máximo).', 'You are already president of 2 clans (the max).'] : ['Pra comprar o 2º clã, você precisa ser presidente do seu clã.', 'To buy a 2nd clan, you need to be president of your clan.']) as [string, string] } :
-    { prod: 'cla_extra', titulo: ['⚔️⚔️ 2º clã + escudo personalizado', '⚔️⚔️ 2nd clan + custom crest'],
-      texto: ['Cada conta cria 1 clã. Com este, você vira presidente de DOIS — o novo já nasce com escudo feito à mão (pronto em até 24 h). Seus títulos somam nos dois.', 'Each account creates 1 clan. With this you become president of TWO — the new one comes with a hand-made crest (ready within 24 h). Your titles count for both.'],
-      pode: presidente && !!info && !info.temExtra,
-      porque: info?.temExtra ? ['Você já é presidente de 2 clãs (o máximo).', 'You are already president of 2 clans (the max).'] : ['Pra comprar o 2º clã, você precisa ser presidente do seu clã.', 'To buy a 2nd clan, you need to be president of your clan.'] },
   ]
   return <>
     {ofertas.map(o => (
       <div key={o.prod} id={o.prod === 'escudo_cla' ? 'loja-escudo-cla' : 'loja-cla-extra'} style={{ ...caixa, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {o.prod === 'escudo_cla' ? <><EmblemaCla emblema="e:0" size={46} /><span style={{ fontSize: 20 }}>➜</span><span style={{ fontSize: 40, lineHeight: 1 }}>🛡️</span></>
-            : <><EmblemaCla emblema={info?.batismo ? `escudo:${info.batismo}` : 'e:5'} size={46} /><span style={{ fontSize: 22 }}>＋</span><EmblemaCla emblema="e:0" size={46} /></>}
+            : <><EmblemaCla emblema="e:5" size={46} /><span style={{ fontSize: 22 }}>＋</span><EmblemaCla emblema={info?.batismo ? `escudo:${info.batismo}` : 'e:0'} size={46} /></>}
           <div style={{ flex: 1, minWidth: 0 }}>
             <b style={{ ...OSW, fontSize: 17, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{tr(o.titulo[0], o.titulo[1])}</b>
             <small style={{ fontSize: 11.5, fontWeight: 700, color: '#ddd', display: 'block', lineHeight: 1.3, marginTop: 3 }}>{tr(o.texto[0], o.texto[1])}</small>
           </div>
         </div>
-        {meus.filter(m => m.produto === o.prod && !m.pronto).map(m => <EscudoDepoisDoPix key={m.id} pedido={m} aoSalvar={carrega} batismo={info?.batismo ?? null} principal={info?.nome ?? null} />)}
-        {meus.filter(m => m.produto === o.prod && m.pronto).map(m => <p key={m.id} style={{ fontSize: 12.5, fontWeight: 800, color: '#9be3b1', margin: '10px 0 0' }}>✅ {tr(`Escudo do ${m.nome} pronto! Já está no clã.`, `${m.nome} crest is ready! It is already on the clan.`)}</p>)}
-        {aberto(o.prod) ? null : comprando !== o.prod ? <>
+        {o.prod === 'cla_extra' && pend2.map(id => <Extra2Form key={id} pedido={id} batismo={info?.batismo ?? null} aoCriar={() => { esqueceClas(); carrega() }} />)}
+        {o.prod === 'escudo_cla' && meus.filter(m => m.produto === 'escudo_cla' && !m.pronto).map(m => <EscudoDepoisDoPix key={m.id} pedido={m} aoSalvar={carrega} batismo={null} principal={info?.nome ?? null} />)}
+        {o.prod === 'escudo_cla' && meus.filter(m => m.produto === 'escudo_cla' && m.pronto).map(m => <p key={m.id} style={{ fontSize: 12.5, fontWeight: 800, color: '#9be3b1', margin: '10px 0 0' }}>✅ {tr(`Escudo do ${m.nome} pronto! Já está no clã.`, `${m.nome} crest is ready! It is already on the clan.`)}</p>)}
+        {(o.prod === 'cla_extra' ? pend2.length > 0 : aberto(o.prod)) ? null : comprando !== o.prod ? <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-            <span style={{ ...OSW, fontSize: 26, color: GOLD }}>R$ 19,99</span>
+            <span style={{ ...OSW, fontSize: 26, color: GOLD }}>R$ {PRECO[o.prod].toFixed(2).replace('.', ',')}</span>
             <span style={{ fontSize: 11, fontWeight: 800, color: '#bbb' }}>{tr('Pix · pagamento único', 'Pix · one-time payment')}</span>
           </div>
           <button disabled={!o.pode} onClick={() => setComprando(o.prod)} style={{ ...bt(o.pode ? GOLD : '#555', o.pode ? INK : '#aaa'), width: '100%', padding: 11, fontSize: 15, marginTop: 8 }}>💳 {tr('Pagar no Pix', 'Pay with Pix')}</button>
           {cla !== 'carregando' && !o.pode && <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', margin: '6px 0 0' }}>🔒 {tr(o.porque[0], o.porque[1])}</p>}
-        </> : <div style={{ marginTop: 10, background: '#fff', color: INK, borderRadius: 12, padding: 8 }}><PixMP produto={o.prod} valor={19.99} aoPagar={() => { setComprando(null); carrega() }} /></div>}
+        </> : <div style={{ marginTop: 10, background: '#fff', color: INK, borderRadius: 12, padding: 8 }}><PixMP produto={o.prod} valor={PRECO[o.prod]} aoPagar={() => { setComprando(null); carrega() }} /></div>}
       </div>
     ))}
   </>
+}
+// ⚔️⚔️ depois do Pix do 2º clã (R$ 9,90): quem tem batismo ativa o time (nome sem FC + escudo) OU cria outro; sem batismo, nome + emblema
+function Extra2Form({ pedido, batismo, aoCriar }: { pedido: string; batismo: string | null; aoCriar: () => void }) {
+  const [doBat, setDoBat] = useState(!!batismo)
+  const [nome, setNome] = useState('')
+  const [emb, setEmb] = useState('e:0')
+  const [erro, setErro] = useState('')
+  const [ocupado, setOcupado] = useState(false)
+  const criar = async () => {
+    setOcupado(true); setErro('')
+    try {
+      const { data } = await supabase.rpc('esc_cla_extra_criar2', { p_id: pedido, p_nome: nome, p_emblema: emb, p_batismo: doBat })
+      if (data === 'ok') aoCriar(); else setErro(msgErro(data))
+    } catch { setErro(msgErro(null)) } finally { setOcupado(false) }
+  }
+  return (
+    <div style={{ marginTop: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 10 }}>
+      <b style={{ ...OSW, fontSize: 15, display: 'block' }}>✅ {tr('Pagamento confirmado! Crie o seu 2º clã:', 'Payment confirmed! Create your 2nd clan:')}</b>
+      {batismo && <div style={{ display: 'flex', gap: 6, margin: '8px 0' }}>
+        {([[true, `🖋 ${tr('Clã do', '')} ${semFc(batismo)}`], [false, tr('⚔️ Outro nome', '⚔️ Another name')]] as const).map(([v, rot]) => (
+          <button key={String(v)} onClick={() => setDoBat(v)} style={{ ...bt(doBat === v ? INK : '#fff', doBat === v ? GOLD : INK), flex: 1, fontSize: 11, whiteSpace: 'normal' }}>{rot}</button>))}
+      </div>}
+      {doBat && batismo ? <p style={{ fontSize: 12, fontWeight: 800, margin: '6px 0 0' }}>🖋 {tr(`Nasce com o nome e o escudo do seu batismo: ${semFc(batismo)}.`, `Born with your named club's name and crest: ${semFc(batismo)}.`)}</p> : <>
+        <input value={nome} maxLength={20} onChange={e => setNome(e.target.value)} placeholder={tr('nome do 2º clã', '2nd clan name')} style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 14, fontWeight: 700, color: INK, background: '#fff', marginTop: 6 }} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+          {EMBLEMAS.map((_, i) => { const k = `e:${i}`; return <button key={k} onClick={() => setEmb(k)} style={{ border: `3px solid ${emb === k ? GOLD : 'transparent'}`, borderRadius: 10, background: emb === k ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}><EmblemaCla emblema={k} size={30} /></button> })}
+        </div>
+      </>}
+      {erro && <p style={{ fontSize: 12, fontWeight: 800, color: RED, margin: '6px 0 0' }}>⚠️ {erro}</p>}
+      <button disabled={ocupado || (!doBat && nome.trim().length < 3)} onClick={() => void criar()} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 10, fontSize: 14, marginTop: 8, opacity: !doBat && nome.trim().length < 3 ? .5 : 1 }}>⚔️ {tr('Criar o 2º clã', 'Create the 2nd clan')}</button>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão? É o 🛡️ Escudo personalizado (R$ 19,90), aqui embaixo.', 'Want a hand-drawn crest? It is the 🛡️ Custom crest (R$ 19.90), below.')}</p>
+    </div>
+  )
 }
 // depois do Pix: nome (do clã que já existe, ou do 2º clã que vai nascer) + ideia → botão do zap do Diego com tudo escrito
 function EscudoDepoisDoPix({ pedido, aoSalvar, batismo, principal }: { pedido: EscudoPedido; aoSalvar: () => void; batismo: string | null; principal: string | null }) {
