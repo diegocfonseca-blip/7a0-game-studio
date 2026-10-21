@@ -112,6 +112,25 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
 const GAS_INICIO = [1, 0.82, 0.68, 0.55]
 /** 🏁 rotina de bola parada do time (sorteada por jogo, com variação a cada cobrança) */
 export type Rotina = 'primeiro_pau' | 'segundo_pau' | 'curta'
+/** 🧤 o goleiro pega mais o chute de longe: +`por` de chance a cada metro além de `de`, até `max` */
+const LONGE_GK = { de: 20, por: 9, max: 0.7 }
+/** 🎯 a mira abre mais rápido a partir de 18 m (quanto menor, mais torto o chute de longe) */
+const MIRA_LONGE = 22
+/** 🧤 o pulo do goleiro no chute de longe: o alcance cresce até (1 + max × isto) */
+const PULO_LONGE = 1.2
+/** 🧤 a chance-base de o goleiro pegar o chute que vai no gol (antes do alcance, da força e da distância) */
+/** 🧑‍⚖️ ÁRBITRO (Diego 21/10, "juiz quase não trabalha"): chance de falta no bote · na chegada atrasada na bola · na dividida
+ *  pelo alto · e de amarelo numa falta comum (carrinho, por trás, reincidência e último homem somam por cima) */
+const FALTA_BASE = 0.42, FALTA_CHEGADA = 0.3, FALTA_AEREA = 0.14, AMARELO_BASE = 0.2
+/** 🏁 corte de cabeça na própria área que sai pela linha de fundo (escanteio) */
+const CORTE_ESCANTEIO = 0.4
+/** 🎯 quanto a bola longa errada passa do ponto (× o erro do passe) */
+const PASSOU_DO_PONTO = 1.4
+/** 🦵 o passe que o rival desvia sem dominar, pelo lado do campo, vai pra lateral */
+const DESVIO_LATERAL = 0.8
+/** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
+const DESVIO_ESCANTEIO = 0.6
+const GK_BASE = 0.0
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
 export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
@@ -438,7 +457,7 @@ export class Motor2 {
   /** 🟨🟥 CARTÃO PELA GRAVIDADE: carrinho por trás, último homem, reincidência */
   private cartao(z: Atleta, d: Atleta, carrinho: boolean, porTras: boolean, ultimoHomem: boolean) {
     z.faltas++
-    let pAm = 0.07 + (carrinho ? 0.12 : 0) + (porTras ? 0.2 : 0) + (z.faltas >= 3 ? 0.18 : z.faltas === 2 ? 0.08 : 0) + (ultimoHomem ? 0.3 : 0)
+    let pAm = AMARELO_BASE + (carrinho ? 0.12 : 0) + (porTras ? 0.2 : 0) + (z.faltas >= 3 ? 0.18 : z.faltas === 2 ? 0.08 : 0) + (ultimoHomem ? 0.3 : 0)
     const pVerm = (ultimoHomem && frente(d.lado, d.y) < 30 ? 0.55 : 0) + (carrinho && porTras ? 0.06 : 0)
     if (this.r() < pVerm) { this.stats.vermelhos[z.lado]++; this.emite({ tipo: 'vermelho', lado: z.lado, a: z.nome }); z.expulso = true; this.expulsos.push({ lado: z.lado, nome: z.nome }); this.atl = this.atl.filter(a => a !== z); return }
     if (this.r() < pAm) {
@@ -471,6 +490,8 @@ export class Motor2 {
     const pres = pressaoEm(this, p, l)
     const erro = (0.02 + (100 - p.at.passe) * 0.0016) * (1 + pres * 0.8) * (1 + (1 - p.gas) * 0.5) * (this.clima === 'chuva' ? 1.12 : 1) * d0
     alvo.x = clamp(alvo.x + this.n() * erro * 0.6, -3, W + 3); alvo.y = clamp(alvo.y + this.n() * erro * 0.6, -3, L + 3)
+    // (bola longa errada costuma passar do ponto — a inversão forte demais sai pela lateral, como no jogo de verdade)
+    if (a.aereo && a.tipo !== 'cruzamento') { const k = Math.abs(this.n()) * erro * PASSOU_DO_PONTO / (d0 || 1); alvo.x = clamp(alvo.x + (alvo.x - p.x) * k, -6, W + 6); alvo.y = clamp(alvo.y + (alvo.y - p.y) * k, -3, L + 3) }
     const d = dist(this.bola, alvo) || 0.1
     const ux = (alvo.x - this.bola.x) / d, uy = (alvo.y - this.bola.y) / d
     const b = this.bola
@@ -493,7 +514,7 @@ export class Motor2 {
     const impedido = r.lado === l && frente(l, r.y) < linha - 0.3 && frente(l, r.y) < frente(l, b.y) && frente(l, r.y) < L / 2
     b.lance = { tipo: a.tipo, de: p, para: r, t0: this.t, impedido }
     this.stats.passes[l]++
-    r.papel = 'recebe'
+    if (a.alvo.x >= 0 && a.alvo.x <= W) r.papel = 'recebe' // (chutão pra lateral: ninguém corre atrás dela pra fora do campo)
     const tipo: TipoEvento = a.tipo === 'enfiada' ? 'enfiada' : a.tipo === 'lancamento' ? 'lancamento' : a.tipo === 'inversao' ? 'inversao' : a.tipo === 'cruzamento' ? 'cruzamento' : a.tipo === 'chutao' ? 'chutao' : 'passe'
     this.emite({ tipo, lado: l, a: p.nome, b: r.nome })
   }
@@ -505,7 +526,8 @@ export class Motor2 {
     // mira: um canto (quem finaliza bem mira mais no cantinho)
     const canto = (this.r() < 0.5 ? -1 : 1) * (GOL_MEIO - 0.5 - (p.at.finalizacao / 100) * 1.4 + this.r() * 0.6)
     // (erro de mira de gente: ~metade dos chutes de 20 m vai pra fora ou por cima — antes 85% ia no gol)
-    const sigma = (0.3 + (100 - p.at.finalizacao) / 34) * (dGol / 15) * (1 + pres * 0.7) * (cabeca ? 1.3 : 1)
+    // (e de longe a mira abre mais rápido que a distância: o chute de 30 m é muito mais torto que o de 15)
+    const sigma = (0.3 + (100 - p.at.finalizacao) / 34) * (dGol / 15) * (1 + Math.max(0, dGol - 18) / MIRA_LONGE) * (1 + pres * 0.7) * (cabeca ? 1.3 : 1)
     const xAlvo = 34 + canto + this.n() * sigma
     const hAlvo = clamp((cabeca ? 0.6 : 0.3 + this.r() * 1.6) + this.n() * sigma * 0.6, 0.1, 6)
     const bomba = p.golpes.includes('bomba') || p.golpes.includes('falta_bomba')
@@ -604,8 +626,13 @@ export class Motor2 {
     if ((yAnt - gk.y) * (b.y - gk.y) > 0) return // ainda não cruzou a linha dele
     // 🧤 cara a cara: saído do gol, ele "fica grande" — o alcance cresce com a distância da linha (o ângulo fechado)
     const fora = fundo(def, gk.y)
-    const dx = Math.abs(b.x - gk.x), alc = (0.9 + 1.55 * (gk.at.reflexo / 100) + (gk.golpes.includes('defesa_milagrosa') ? 0.15 : 0)) * (1 + Math.min(fora, 9) * 0.07)
-    if (dx > alc || b.h > 2.55 + Math.min(fora, 9) * 0.1) return
+    // 🎯 CHANCE BOA × CHUTE DE LONGE (Diego 21/10, "finalização boa demais"): quanto mais longe saiu o chute, mais tempo o goleiro
+    // tem pra ver a bola e PULAR — o alcance dele cresce. Antes o chute de 30 m no canto passava longe da mão e entrava metade
+    // das vezes, igual ao de dentro da área
+    const dOrig = lc.saiuDe ? len(lc.saiuDe.x - 34, frente(lc.de.lado, lc.saiuDe.y)) : 16
+    const longe = clamp((dOrig - LONGE_GK.de) / LONGE_GK.por, 0, LONGE_GK.max)
+    const dx = Math.abs(b.x - gk.x), alc = (0.9 + 1.55 * (gk.at.reflexo / 100) + (gk.golpes.includes('defesa_milagrosa') ? 0.15 : 0)) * (1 + Math.min(fora, 9) * 0.07) * (1 + longe * PULO_LONGE)
+    if (dx > alc || b.h > 2.55 + Math.min(fora, 9) * 0.1 + longe * 0.4) return
     const v = len(b.vx, b.vy)
     // 🧤 bola que vai pra FORA (ou por cima) não é defesa: o goleiro deixa passar e ela sai — antes ele "defendia" chute que ia
     // 5 m pra fora e o jogo nunca tinha tiro de meta depois de chute
@@ -613,7 +640,7 @@ export class Motor2 {
     if (tGol > 0) { const xGol = b.x + b.vx * tGol, hGol = b.h + b.vh * tGol - 0.5 * G * tGol * tGol; if (Math.abs(xGol - 34) > GOL_MEIO + 0.3 || hGol > TRAVESSAO + 0.35) return }
     // (goleiro de jogo de 1:30: pega menos que o de verdade — senão 7 chutes dão 1 gol e o placar fica 0×0)
     // (o goleiro ruim toma mais e o paredão segura mais: a diferença entre profissional e lenda vale ~0,35 de chance de defesa)
-    const p = clamp(0.42 - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
+    const p = clamp(GK_BASE - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + longe + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
     lc.defendido = true
     if (this.r() >= p) return // passou por ele
     this.stats.defesas[def]++
@@ -656,7 +683,7 @@ export class Motor2 {
       if (lc && (lc.tipo === 'chute' || lc.tipo === 'cabeceio_gol') && p.lado !== lc.de.lado && !gk) {
         if (this.t - lc.t0 > 0.12 && this.r() < 0.22 + p.at.desarme / 400) {
           // (1 em 3 bloqueios desvia a bola pra FRENTE, pro lado — e ela sai pela linha de fundo: escanteio)
-          if (this.r() < 0.33) { b.vx = (this.r() < 0.5 ? -1 : 1) * (6 + this.r() * 8); b.vy *= 0.5; b.vh = 1 + this.r() * 3 } else { b.vx *= -0.3 + this.r() * 0.2; b.vy *= -0.35; b.vx += (this.r() - 0.5) * 8 }
+          if (this.r() < 0.5) { b.vx = (this.r() < 0.5 ? -1 : 1) * (6 + this.r() * 8); b.vy *= 0.5; b.vh = 1 + this.r() * 3 } else { b.vx *= -0.3 + this.r() * 0.2; b.vy *= -0.35; b.vx += (this.r() - 0.5) * 8 }
           b.ultimo = p; lc.tipo = 'desvio'; this.emite({ tipo: 'bloqueio', lado: p.lado, a: p.nome })
         }
         continue
@@ -678,11 +705,17 @@ export class Motor2 {
         if (gk && lc && !meu) this.emite({ tipo: 'saida_goleiro', lado: p.lado, a: p.nome })
         this.pega(p, gk ? 0.6 : 0.06 + (100 - p.at.conducao) * 0.003)
         // 🧑‍⚖️ falta na chegada: o rival que veio junto na bola, atrasado, pega o jogador em vez da bola (1 em 8 das recepções disputadas)
-        if (!gk) { const z = this.atl.find(a => a.lado !== p.lado && a.grupo !== 'GOL' && a.atordoado <= this.t && dist(a, p) < 1.7); if (z && this.r() < 0.13 && !this.naAreaDele(z, p)) { this.falta(z, p); return } }
+        if (!gk) { const z = this.atl.find(a => a.lado !== p.lado && a.grupo !== 'GOL' && a.atordoado <= this.t && dist(a, p) < 1.7); if (z && this.r() < FALTA_CHEGADA && !this.naAreaDele(z, p)) { this.falta(z, p); return } }
         return
       }
       // não dominou: a bola espirra
       b.vx = b.vx * (0.3 + this.r() * 0.3) + (this.r() - 0.5) * 4; b.vy = b.vy * (0.3 + this.r() * 0.3) + (this.r() - 0.5) * 4; b.ultimo = p
+      // (perto da linha lateral, a bola que espirra do domínio sai de campo metade das vezes: lateral)
+      if ((b.x < 9 || b.x > W - 9) && this.r() < 0.5) b.vx = (b.x < 34 ? -1 : 1) * (4 + this.r() * 4)
+      // (o RIVAL que estica a perna no passe e não domina desvia a bola de lado — pelo lado do campo, ela sai: lateral)
+      // (e o zagueiro que desvia o cruzamento/passe dentro da própria área manda pela linha de fundo: escanteio)
+      else if (lc && lc.de.lado !== p.lado && fundo(p.lado, b.y) < AREA_PROF + 4 && this.r() < DESVIO_ESCANTEIO) { const fy = p.lado === 0 ? 1 : -1; b.vy = fy * (7 + this.r() * 5); b.vx = (b.x < 34 ? -1 : 1) * (3 + this.r() * 5); b.vh = 1 + this.r() * 2 }
+      else if (lc && lc.de.lado !== p.lado && (b.x < 27 || b.x > W - 27) && this.r() < DESVIO_LATERAL) { b.vx = (b.x < 34 ? -1 : 1) * (9 + this.r() * 6); b.vy *= 0.4 }
       p.atordoado = this.t + 0.3
       return
     }
@@ -695,6 +728,9 @@ export class Motor2 {
     // disputa aérea com quem estiver junto
     const rival = this.atl.filter(a => a.lado !== l && a.grupo !== 'GOL' && dist(a, b) < 1.6).sort((a, c) => dist(a, b) - dist(c, b))[0]
     if (rival) {
+      // 🧑‍⚖️ empurrão na dividida pelo alto (quem defende segura/empurra; dentro da própria área o juiz deixa mais passar)
+      const zag = b.lance && b.lance.de.lado === l ? rival : b.lance && b.lance.de.lado !== l ? p : null
+      if (zag && this.r() < FALTA_AEREA * (this.naAreaDele(zag, b) ? 0.3 : 1)) return this.falta(zag, zag === rival ? p : rival)
       const pa = clamp(0.5 + (p.at.cabeceio + p.at.fisico - rival.at.cabeceio - rival.at.fisico) / 160, 0.15, 0.85)
       if (this.r() > pa) { this.tentou.set(rival, this.t - 1); return this.cabeceia(rival) }
     }
@@ -705,6 +741,9 @@ export class Motor2 {
     }
     const fy = l === 0 ? -1 : 1
     if (fundo(l, b.y) < 30) { // corte
+      // (na própria área, apertado, 1 em 4 cortes vai pra trás/de lado e sai pela linha de fundo: escanteio)
+      const praFundo = fundo(l, b.y) < AREA_PROF + 2 && this.r() < CORTE_ESCANTEIO
+      if (praFundo) { b.vx = (b.x < 34 ? -1 : 1) * (8 + this.r() * 6); b.vy = -fy * (6 + this.r() * 5); b.vh = 3 + this.r() * 2; b.ultimo = p; b.lance = { tipo: 'desvio', de: p, para: null, t0: this.t, impedido: false }; return this.emite({ tipo: 'corte', lado: l, a: p.nome }) }
       b.vx = (this.r() - 0.5) * 14; b.vy = fy * (12 + this.r() * 6); b.vh = 4 + this.r() * 2; b.ultimo = p; b.lance = { tipo: 'desvio', de: p, para: null, t0: this.t, impedido: false }
       return this.emite({ tipo: 'corte', lado: l, a: p.nome })
     }
@@ -727,7 +766,7 @@ export class Motor2 {
       const carrinho = z.golpes.includes('carrinho') || (z.grupo === 'DEF' && this.r() < 0.15)
       // falta? (chegando por trás, com o atacante em velocidade, é mais fácil derrubar)
       const porTras = fundo(d.lado, z.y) < fundo(d.lado, d.y) - 0.6, veloz = len(d.vx, d.vy) > 5
-      let pF = clamp(0.18 + (60 - z.at.desarme) / 250 + (carrinho ? 0.06 : 0) + (porTras ? 0.07 : 0) + (veloz ? 0.04 : 0) + (d.at.conducao - 70) / 450, 0.04, 0.3)
+      let pF = clamp(FALTA_BASE + (60 - z.at.desarme) / 250 + (carrinho ? 0.06 : 0) + (porTras ? 0.07 : 0) + (veloz ? 0.04 : 0) + (d.at.conducao - 70) / 450, 0.06, FALTA_BASE + 0.14)
       if (this.naAreaDele(z, d)) pF *= 0.35
       if (this.r() < pF) return this.falta(z, d)
       const pW = clamp(0.42 + (z.at.desarme - d.at.conducao) / 105 + (z.at.fisico - d.at.fisico) / 450 - (dribla ? 0.07 : 0), 0.12, 0.82)
@@ -736,7 +775,11 @@ export class Motor2 {
         this.emite({ tipo: carrinho ? 'carrinho' : 'desarme', lado: z.lado, a: z.nome, b: d.nome })
         d.atordoado = this.t + 0.5
         if (this.r() < 0.62) this.pega(z, 0.3)
-        else { const b = this.bola; b.dono = null; b.ultimo = z; b.lance = null; b.vx = (this.r() - 0.5) * 9; b.vy = (this.r() - 0.5) * 9; this.donoDesde = null }
+        else {
+          const b = this.bola; b.dono = null; b.ultimo = z; b.lance = null; b.vx = (this.r() - 0.5) * 9; b.vy = (this.r() - 0.5) * 9; this.donoDesde = null
+          // (perto da linha lateral, a bola dividida espirra pra FORA metade das vezes: lateral — Diego 21/10, "a bola quase nunca sai")
+          if ((d.x < 9 || d.x > W - 9) && this.r() < 0.5) b.vx = (d.x < 34 ? -1 : 1) * (6 + this.r() * 5)
+        }
         return
       }
       // passou por ele

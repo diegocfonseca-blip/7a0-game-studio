@@ -1,3 +1,16 @@
+## ⚽ Motor novo: juiz, zaga e finalização (21/10) — SÓ NO BRANCH, esperando o Diego decidir a média de gols
+Pedido dele depois da análise de uma partida inteira: *"faça 2 3 e 6"*.
+- **6 · finalização**: o chute de longe entrava 54% das vezes (igual ao de dentro da área). Causa: o chute no canto passava fora do
+  alcance do goleiro, de qualquer distância. Agora o alcance do goleiro cresce com a distância do chute (`LONGE_GK`, `PULO_LONGE`)
+  e a mira de longe abre mais (`MIRA_LONGE`). Medido: <11 m ~80% · 11–22 m ~70% · 22 m+ ~30%.
+- **3 · juiz**: faltas 1,5→2,9 · amarelos 0,09→0,36 · vermelhos 0→0,03 · laterais 0,05→1,1 · escanteios 0,7→0,6 (`FALTA_*`,
+  `AMARELO_BASE`, `DESVIO_LATERAL`, `DESVIO_ESCANTEIO`, `CORTE_ESCANTEIO`, empurrão na bola alta).
+- **2 · zaga/laterais/goleiro**: recuo pro zagueiro sob pressão, lateral que ultrapassa pede a bola, goleiro comum sai curto,
+  mais cruzamento (`SAIDA_TRAS`, `RECUO_MAX`, `LAT_APOIO`, `GOLEIRO_CURTO`, `CRUZA`). Ganho pequeno: laterais 5%→8% dos passes.
+- ⚠️ **O preço**: em 1:30 cabem ~3,5 chutes por jogo. Com o chute de longe entrando pouco, a média caiu de **2,0 para 1,5 gol**
+  (a trava `npm run motor2` ainda passa, no limite). Perguntei ao Diego se aceita ou se prefere voltar pra 2 com o chute de longe
+  entrando mais. O tempo morto depois do gol (7 s) foi medido e NÃO resolve: ganharia só ~0,1 gol.
+
 ## 📺 Motor 2D v2 (experimental, SÓ NO BRANCH `claude/pontosafe-repo-setup-qzjo89`) — calibração do jogo corrido (20/10)
 Decisão do Diego: *"quero o jogo igual tá sendo hoje… sem ser lances"* → formato B (bola rolando os 93' em 1:30 de tela), formato
 A (lances, estilo FM) descartado. Calibração feita e medida (diário completo em `docs/motor-2d-v2.md`, seção 11): de 0,03 pra
