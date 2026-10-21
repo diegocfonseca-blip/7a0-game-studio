@@ -10096,3 +10096,6 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   personalizado pago não trocam por aqui (`esc_cla_emblema`, migration `20261021160000`). Regra confirmada pelo Diego: sem clã → o do batismo é
   de graça (1º); criar outro depois = 2º pago (R$ 19,99, personaliza o novo). Fez ao contrário (criou outro antes) → ativar o batismo é o 2º
   pago, e o escudo personalizado vai pro 1º.
+- ✅ **🔓 CRIAR CLÃ SEM PLANO = R$ 9,90 (21/10, Diego: "tá ótimo, gostei")**: com plano é de graça; sem plano, o "Criar clã 🔒" abre
+  "Libere o seu clã" com o Pix de R$ 9,90 (produto `cla_criar`, um Pix = um clã criado, crédito em `esc_clas.pedido_criar`). Escudo
+  desenhado continua R$ 19,99. Migration `20261021170000_cla_criar_avulso.sql`, testado no banco. Ao publicar: deploy da `mp-criar-pix`.

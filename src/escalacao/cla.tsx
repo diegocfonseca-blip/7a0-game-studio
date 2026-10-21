@@ -108,7 +108,7 @@ type Painel = {
   convites: (ClaJson & { pedido_id: number; de_nome: string })[]; pedi: number[]
 }
 const ERRO: Record<string, [string, string]> = {
-  plano: ['Criar clã é de quem tem plano (⭐ Craque pra cima). Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
+  plano: ['Criar clã: grátis com plano (⭐ Craque pra cima) ou R$ 9,90 sem plano. Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
   tamanho: ['O nome do clã precisa ter de 3 a 20 letras.', 'The clan name needs 3 to 20 letters.'],
   ofensivo: ['Esse nome não é permitido: nada que ofenda alguém no Leilão Legends.', 'That name is not allowed: nothing offensive in Leilão Legends.'],
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
@@ -239,7 +239,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         </div>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão, só do seu clã? É na 🛒 Loja (R$ 19,99).', 'Want a hand-drawn crest just for your clan? It is in the 🛒 Shop (R$ 19.99).')}</p>
       </div>}
-      {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} />}
+      {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} onLiberou={() => { setSemPlano(false); setTela('criar'); carrega() }} />}
       {souLider(c) && !ehExtra && <EscudoClaLoja />}
       <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Todo título que você ganha nas salas online soma pro clã. O clã campeão da semana leva 🏆 no selo de cada membro na semana seguinte. Conversa continua no zap.', 'Every title you win in online rooms adds to the clan. The champion clan of the week gets 🏆 on every member’s badge the following week. Chat stays on WhatsApp.')}</p>
     </> : <>
@@ -253,23 +253,28 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <button style={{ ...bt(GREEN, '#fff'), flex: 1, padding: 10 }} onClick={() => setTela('procurar')}>🔎 {tr('Procurar clã', 'Find a clan')}</button>
         <button style={{ ...bt(p.pode_criar ? INK : '#ddd', p.pode_criar ? GOLD : '#777'), flex: 1, padding: 10 }} onClick={() => p.pode_criar ? setTela('criar') : setSemPlano(v => !v)}>⚔️ {tr('Criar clã', 'Create clan')}{p.pode_criar ? '' : ' 🔒'}</button>
       </div>
-      {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} />}
+      {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} onLiberou={() => { setSemPlano(false); setTela('criar'); carrega() }} />}
       <button style={{ ...bt('#fff', INK), width: '100%', marginTop: 8 }} onClick={() => setTela('ranking')}>🏆 {tr('Ranking dos clãs da semana', 'Clans of the week')}</button>
-      <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: quem tem qualquer plano (⭐ Craque pra cima). Entrar num clã é de graça pra todo mundo.', 'Creating a clan: any plan (⭐ Star and up). Joining a clan is free for everyone.')}</p>
+      <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: grátis com qualquer plano (⭐ Craque pra cima) ou R$ 9,90 sem plano. Entrar num clã é de graça pra todo mundo.', 'Creating a clan: free with any plan (⭐ Star and up) or R$ 9.90 without one. Joining a clan is free for everyone.')}</p>
     </>}
   </>
 }
 // 🔒⭐ quem NÃO tem plano tocou em "Criar clã" (21/10, Diego: "o que aparece pra ele pra criar clã e botão pra direcionar")
-function CriarSemPlano({ onProcurar }: { onProcurar: () => void }) {
+// 🔓 21/10 (Diego): "quem tem plano não paga nada; quem não tem plano paga R$ 9,90… fica com um cadeadozinho pra pagar e liberar"
+function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLiberou: () => void }) {
+  const [pagando, setPagando] = useState(false)
   return (
     <div style={{ ...caixa, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff', borderColor: INK, textAlign: 'center' }}>
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
-      <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Criar clã é de quem tem plano', 'Creating a clan needs a plan')}</p>
+      <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Libere o seu clã', 'Unlock your clan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Com qualquer plano (⭐ Craque, 👑 Lenda, 🖋 Batismo ou Fundador) você cria o seu clã, vira o presidente 👑 e chama até ${CLA_MAX - 1} amigos. Tem batismo? O clã pode nascer com o nome e o escudo do seu time.`,
-        `With any plan (⭐ Star, 👑 Legend, 🖋 Named club or Founder) you create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. Got a named club? The clan can be born with your club's name and crest.`)}</p>
+        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 9,90, uma vez só. Escudo desenhado à mão é à parte (R$ 19,99).`,
+        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 9.90, once. A hand-drawn crest is extra (R$ 19.99).`)}</p>
+      {!pagando
+        ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 9,90', 'Unlock for R$ 9.90')}</button>
+        : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={9.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
       <ApoieButton startScreen="choice" trigger={open => (
-        <button onClick={open} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>⭐ {tr('Ver os planos', 'See the plans')}</button>
+        <button onClick={open} style={{ ...bt('#fff', INK), width: '100%', padding: 9, fontSize: 13, marginTop: 8 }}>⭐ {tr('Ou veja os planos (clã de graça)', 'Or see the plans (free clan)')}</button>
       )} />
       <button onClick={onProcurar} style={{ ...bt('#fff', INK), width: '100%', padding: 9, fontSize: 13, marginTop: 8 }}>🔎 {tr('Ou entre num clã — é de graça', 'Or join a clan — it’s free')}</button>
     </div>
