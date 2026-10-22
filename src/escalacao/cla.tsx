@@ -140,7 +140,7 @@ type Painel = {
   convites: (ClaJson & { pedido_id: number; de_nome: string })[]; pedi: number[]
 }
 const ERRO: Record<string, [string, string]> = {
-  plano: ['Criar clã: grátis com plano (⭐ Craque pra cima) ou R$ 9,90 sem plano. Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
+  plano: ['Criar clã: grátis com plano (⭐ Craque pra cima) ou R$ 4,90 sem plano. Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
   tamanho: ['O nome do clã precisa ter de 3 a 20 letras.', 'The clan name needs 3 to 20 letters.'],
   ofensivo: ['Esse nome não é permitido: nada que ofenda alguém no Leilão Legends.', 'That name is not allowed: nothing offensive in Leilão Legends.'],
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
@@ -338,12 +338,12 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} onLiberou={() => { setSemPlano(false); setTela('criar'); carrega() }} />}
       <button style={{ ...bt('#fff', INK), width: '100%', marginTop: 8 }} onClick={() => setTela('ranking')}>🏆 {tr('Ranking dos clãs da semana', 'Clans of the week')}</button>
       <p style={{ fontSize: 11, color: INK, fontWeight: 800, margin: '10px 2px 0', lineHeight: 1.4, background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>{tr(REGRA_DOIS[0], REGRA_DOIS[1])}</p>
-      <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: grátis com qualquer plano (⭐ Craque pra cima) ou R$ 9,90 sem plano. Entrar num clã é de graça pra todo mundo.', 'Creating a clan: free with any plan (⭐ Star and up) or R$ 9.90 without one. Joining a clan is free for everyone.')}</p>
+      <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: grátis com qualquer plano (⭐ Craque pra cima) ou R$ 4,90 sem plano. Entrar num clã é de graça pra todo mundo.', 'Creating a clan: free with any plan (⭐ Star and up) or R$ 4.90 without one. Joining a clan is free for everyone.')}</p>
     </>}
   </>
 }
 // 🔒⭐ quem NÃO tem plano tocou em "Criar clã" (21/10, Diego: "o que aparece pra ele pra criar clã e botão pra direcionar")
-// 🔓 21/10 (Diego): "quem tem plano não paga nada; quem não tem plano paga R$ 9,90… fica com um cadeadozinho pra pagar e liberar"
+// 🔓 21/10 (Diego): "quem tem plano não paga nada; quem não tem plano paga… fica com um cadeadozinho pra pagar e liberar" — 🔁 22/10: R$ 4,90 (era 9,90)
 function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLiberou: () => void }) {
   const [pagando, setPagando] = useState(false)
   return (
@@ -351,11 +351,11 @@ function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLi
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
       <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Libere o seu clã', 'Unlock your clan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 9,90, uma vez só. Escudo desenhado à mão é à parte (R$ 19,90).`,
-        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 9.90, once. A hand-drawn crest is extra (R$ 19.90).`)}</p>
+        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 4,90, uma vez só. Escudo desenhado à mão é à parte (R$ 19,90).`,
+        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 4.90, once. A hand-drawn crest is extra (R$ 19.90).`)}</p>
       {!pagando
-        ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 9,90', 'Unlock for R$ 9.90')}</button>
-        : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={9.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
+        ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 4,90', 'Unlock for R$ 4.90')}</button>
+        : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={4.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
       <ApoieButton startScreen="choice" trigger={open => (
         <button onClick={open} style={{ ...bt('#fff', INK), width: '100%', padding: 9, fontSize: 13, marginTop: 8 }}>⭐ {tr('Ou veja os planos (clã de graça)', 'Or see the plans (free clan)')}</button>
       )} />
