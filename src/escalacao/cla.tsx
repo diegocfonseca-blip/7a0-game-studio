@@ -318,7 +318,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {EMBLEMAS.map((_, i) => { const k = `e:${i}`; return <button key={k} disabled={ocupado} onClick={() => { setTrocaEmb(false); void faz('esc_cla_emblema', { p_emblema: k, p_cla: c.id }, tr('🎨 Emblema trocado!', '🎨 Emblem changed!')) }} style={{ border: `3px solid ${c.emblema === k ? GOLD : 'transparent'}`, borderRadius: 10, background: c.emblema === k ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}><EmblemaCla emblema={k} size={34} /></button> })}
         </div>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão, só do seu clã? É na 🛒 Loja (R$ 19,90).', 'Want a hand-drawn crest just for your clan? It is in the 🛒 Shop (R$ 19.90).')}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão, só do seu clã? É na 🛒 Loja (R$ 14,90).', 'Want a hand-drawn crest just for your clan? It is in the 🛒 Shop (R$ 14.90).')}</p>
       </div>}
       {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} onLiberou={() => { setSemPlano(false); setTela('criar'); carrega() }} />}
       {!ehExtra && <EscudoClaLoja />}
@@ -351,8 +351,8 @@ function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLi
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
       <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Libere o seu clã', 'Unlock your clan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 4,90, uma vez só. Escudo desenhado à mão é à parte (R$ 19,90).`,
-        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 4.90, once. A hand-drawn crest is extra (R$ 19.90).`)}</p>
+        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 4,90, uma vez só. Escudo desenhado à mão é à parte (R$ 14,90).`,
+        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 4.90, once. A hand-drawn crest is extra (R$ 14.90).`)}</p>
       {!pagando
         ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 4,90', 'Unlock for R$ 4.90')}</button>
         : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={4.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
@@ -621,8 +621,8 @@ export function EscudoClaLoja() {
   const info = cla === 'carregando' ? null : cla
   const presidente = !!info?.presidente
   const aberto = (prod: ProdutoCla) => meus.some(m => m.produto === prod && !m.pronto)
-  // 💸 21/10 (Diego): 2º clã = R$ 9,90 SÓ pra criar (emblema pronto; quem tem batismo ativa o time) · escudo personalizado = R$ 19,90 à parte
-  const PRECO: Record<ProdutoCla, number> = { escudo_cla: 19.9, cla_extra: 9.9 }
+  // 💸 21/10 (Diego): 2º clã = R$ 9,90 SÓ pra criar (emblema pronto; quem tem batismo ativa o time) · escudo personalizado = R$ 14,90 (22/10; era 19,90) à parte
+  const PRECO: Record<ProdutoCla, number> = { escudo_cla: 14.9, cla_extra: 9.9 }
   const ofertas: { prod: ProdutoCla; titulo: [string, string]; texto: [string, string]; pode: boolean; porque: [string, string] }[] = [
     // ⚔️⚔️ 21/10 (Diego): a compra é a 2ª VAGA — "só se ele já pagou… aí ele pode estar em dois lugares": criar o 2º OU entrar em outro
     { prod: 'cla_extra', titulo: ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
@@ -690,7 +690,7 @@ function Extra2Form({ pedido, batismo, aoCriar }: { pedido: string; batismo: str
       </>}
       {erro && <p style={{ fontSize: 12, fontWeight: 800, color: RED, margin: '6px 0 0' }}>⚠️ {erro}</p>}
       <button disabled={ocupado || (!doBat && nome.trim().length < 3)} onClick={() => void criar()} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 10, fontSize: 14, marginTop: 8, opacity: !doBat && nome.trim().length < 3 ? .5 : 1 }}>⚔️ {tr('Criar o 2º clã', 'Create the 2nd clan')}</button>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão? É o 🛡️ Escudo personalizado (R$ 19,90), aqui embaixo.', 'Want a hand-drawn crest? It is the 🛡️ Custom crest (R$ 19.90), below.')}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão? É o 🛡️ Escudo personalizado (R$ 14,90), aqui embaixo.', 'Want a hand-drawn crest? It is the 🛡️ Custom crest (R$ 14.90), below.')}</p>
     </div>
   )
 }
