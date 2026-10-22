@@ -56,6 +56,9 @@ export type SituacaoId =
   | 'caixa_cheio' | 'caixa_vazio' | 'proposta_craque' | 'patrocinador_cobrando' | 'classico_proximo'
   | 'internacional' | 'copa_mundo' | 'bola_ouro' | 'marco_temporada' | 'ultima_rodada' | 'estreia_temporada'
   | 'vespera_final' | 'vespera_classico' | 'fuga'
+  | 'zero_a_zero' | 'vitoria_magra' | 'jogo_maluco' | 'vitoria_fora' | 'derrota_casa' | 'muralha'
+  | 'meio_temporada' | 'temporada_morna' | 'lanterna' | 'vice_lider' | 'pobre_mas_feliz' | 'varzea'
+  | 'apresentacao_uma' | 'apresentacao_varias'
 
 // o que a coletiva precisa saber da rodada (quem monta é o store/tela; tudo opcional menos o básico)
 export interface Ctx {
@@ -73,6 +76,8 @@ export interface Ctx {
   copa?: 'final' | 'eliminado' | 'campeao'
   intl?: 'liberta' | 'champions' | 'mundial'; mundo?: boolean
   bolaOuro?: string
+  /** ⭐ APRESENTAÇÃO (22/10): as LENDAS que o leilão acabou de trazer (nomes). Só existe no momento da apresentação. */
+  apresentacao?: string[]
   vespera?: 'final' | 'classico'
   pulosSeguidos: number
 }
@@ -815,6 +820,312 @@ export const SITUACOES: Situacao[] = [
       desconversa: [['Presidente do {clube} reaparece, mas segue sem dizer nada', '{clube} president reappears but still says nothing'], ['Sumiço e silêncio: a relação do {clube} com a imprensa', 'Vanishing and silence: {clube}’s relationship with the press']],
     },
   },
+  // ── OCASIÕES NOVAS (22/10, pedido do Diego: *"mais tipos de pergunta e mais tipos de respostas em outras ocasiões…
+  // as pessoas jogam muitas temporadas, não pode ficar cansativo"*). Placar de cada tipo, momento da tabela, Várzea e
+  // caixa apertado com o time ganhando. Quase todas prioridade 1 (esperam 4 rodadas e são uma vez por temporada).
+  {
+    id: 'zero_a_zero', rep: ['rogerio', 'tiao'], prioridade: 1,
+    quando: c => !!c.placar && c.placar.gf === 0 && c.placar.ga === 0 && !c.placar.arquirrival,
+    perguntas: [
+      ['0 a 0 com o {adv}. Presidente, o senhor pediria o dinheiro do ingresso de volta?', '0–0 with {adv}. Mr. President, would you ask for your ticket money back?'],
+      ['Noventa minutos e nenhum gol. Os atacantes esqueceram onde fica o gol?', 'Ninety minutes and no goals. Did the strikers forget where the goal is?'],
+      ['A torcida bocejou mais do que gritou hoje. Foi jogo de xadrez?', 'The fans yawned more than they shouted today. Was it a chess match?'],
+      ['Zero a zero é um ponto ganho ou dois perdidos?', 'Is a goalless draw a point won or two dropped?'],
+    ],
+    respostas: {
+      provoca: [r(['Pediria sim: pro {adv}, que veio só pra estacionar o ônibus na área.', 'I would: from {adv}, who only came to park the bus in the box.']), r(['Esqueceram nada. O goleiro deles é que escolheu logo hoje pra ter o dia da vida dele.', 'Forgot nothing. Their keeper just picked today to have the game of his life.']), r(['Xadrez era o {adv}. A gente jogava bola, eles empilhavam peça na área.', '{adv} were playing chess. We played football, they stacked pieces in the box.']), r(['Ponto ganho pra eles, que vão comemorar como título. Pra nós foi ensaio.', 'A point won for them, they’ll party like it’s a title. For us it was a rehearsal.'])],
+      diplomata: [r(['Jogo travado, dois times organizados. Nem todo dia sai festival.', 'A tight game, two organised sides. Not every day is a festival.']), r(['Faltou capricho no último passe. É o que vamos treinar a semana inteira.', 'We lacked care in the final pass. That’s what we’ll train all week.']), r(['Defesa sólida é bom sinal. Agora falta a bola topar entrar.', 'A solid defence is a good sign. Now the ball just has to agree to go in.']), r(['Um ponto é um ponto. No fim da temporada ele pode valer muito.', 'A point is a point. At the end of the season it may be worth a lot.'])],
+      desconversa: [r(['Não teve gol, então não tem muito o que comentar, né?', 'There were no goals, so there’s not much to comment on, is there?']), r(['Vou rever o jogo em casa. Se eu não dormir no meio, comento depois.', 'I’ll rewatch it at home. If I don’t fall asleep halfway, I’ll comment later.']), r(['Placar zerado, coletiva zerada. Obrigado.', 'Blank scoreline, blank presser. Thanks.']), r(['Pergunta pro travessão. Ele participou mais que todo mundo.', 'Ask the crossbar. It got more involved than anyone.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} culpa a retranca do {adv}', '"{frase}": {clube} president blames {adv}’s bus-parking'], ['0 a 0 sem graça e presidente do {clube} cheio de graça', 'A dull 0–0 and a {clube} president full of jokes'], ['{clube} não faz gol, mas o presidente faz barulho', '{clube} can’t score, but the president makes noise']],
+      diplomata: [['Empate sem gols e paciência no {clube}', 'Goalless draw and patience at {clube}'], ['"{frase}": presidente do {clube} vê o copo meio cheio no 0 a 0', '"{frase}": {clube} president sees the glass half full after 0–0'], ['{clube} trava no {adv} e presidente promete treino de finalização', '{clube} stall against {adv} and president promises finishing drills']],
+      desconversa: [['0 a 0 em campo, 0 a 0 na coletiva do {clube}', '0–0 on the pitch, 0–0 at {clube}’s presser'], ['"{frase}": presidente do {clube} despacha o empate sem gols', '"{frase}": {clube} president waves off the goalless draw'], ['Nem gol nem resposta: noite morna no {clube}', 'No goals, no answers: a lukewarm night at {clube}']],
+    },
+  },
+  {
+    id: 'vitoria_magra', rep: ['tiao', 'rogerio'], prioridade: 1,
+    quando: c => !!c.placar && c.placar.gf === 1 && c.placar.ga === 0 && !c.placar.casa && !c.placar.arquirrival,
+    perguntas: [
+      ['1 a 0 na casa do {adv}. Vitória de campeão ou vitória sofrida?', '1–0 at {adv}’s ground. A champion’s win or a scrappy one?'],
+      ['Um golzinho e depois foi só segurar. Esse é o estilo do {clube} agora?', 'One little goal and then hang on. Is that {clube}’s style now?'],
+      ['Quantas unhas o senhor roeu nos minutos finais?', 'How many fingernails did you chew in the final minutes?'],
+      ['Vitória magra fora de casa. Dá pra chamar de bonita?', 'A narrow away win. Can we call it pretty?'],
+    ],
+    respostas: {
+      provoca: [r(['De campeão. Bonito é pra desfile, a gente veio buscar os três pontos.', 'A champion’s. Pretty is for parades, we came for the three points.']), r(['Um gol basta quando o outro time não faz nenhum. Matemática simples.', 'One goal is enough when the other side scores none. Simple maths.']), r(['Nenhuma. Quem roeu foi a torcida do {adv}, até o cotovelo.', 'None. {adv}’s fans chewed theirs, all the way to the elbow.']), r(['Bonita foi a cara do {adv} no apito final.', 'The pretty part was {adv}’s faces at the final whistle.'])],
+      diplomata: [r(['Vitória fora de casa nunca é fácil. Valeu pela entrega.', 'Away wins are never easy. It was about commitment.']), r(['Às vezes o jogo pede sofrimento. O grupo soube sofrer junto.', 'Sometimes a game demands suffering. The group knew how to suffer together.']), r(['Algumas, confesso. Mas confiei na defesa até o fim.', 'A few, I confess. But I trusted the defence to the end.']), r(['Bonita ou não, vale igual na tabela. Isso me deixa tranquilo.', 'Pretty or not, it counts the same in the table. That keeps me calm.'])],
+      desconversa: [r(['Ganhou, tá ganho. O resto é opinião.', 'Won is won. The rest is opinion.']), r(['Estilo é com a comissão técnica. Eu só assino o cheque.', 'Style is for the coaching staff. I just sign the cheques.']), r(['Minhas unhas são assunto particular.', 'My fingernails are a private matter.']), r(['Beleza a gente discute em concurso. Hoje é estrada e volta pra casa.', 'Beauty is for pageants. Today it’s the road home.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} defende o 1 a 0 com unhas e dentes', '"{frase}": {clube} president defends the 1–0 tooth and nail'], ['Vitória magra, boca cheia: {clube} provoca o {adv}', 'Thin win, big mouth: {clube} taunt {adv}'], ['{clube} vence fora e presidente zoa a torcida da casa', '{clube} win away and president teases the home fans']],
+      diplomata: [['{clube} sofre, vence fora e presidente elogia a entrega', '{clube} suffer, win away and president praises commitment'], ['"{frase}": o 1 a 0 suado do {clube}', '"{frase}": {clube}’s hard-earned 1–0'], ['Três pontos na mala: {clube} volta da casa do {adv} com vitória', 'Three points in the suitcase: {clube} return from {adv} with a win']],
+      desconversa: [['1 a 0 e poucas palavras no {clube}', '1–0 and few words at {clube}'], ['"{frase}": presidente do {clube} não discute estilo', '"{frase}": {clube} president won’t debate style'], ['Vitória magra, coletiva mais magra ainda no {clube}', 'Thin win, even thinner presser at {clube}']],
+    },
+  },
+  {
+    id: 'jogo_maluco', rep: ['rogerio', 'mila'], prioridade: 2,
+    quando: c => !c.copa && !!c.placar && c.placar.gf >= 3 && c.placar.ga >= 3 && !c.placar.arquirrival,
+    perguntas: [
+      ['{gf} a {ga}! Presidente, isso foi futebol ou handebol?', '{gf}–{ga}! Mr. President, was that football or handball?'],
+      ['A torcida saiu rouca e o goleiro saiu traumatizado. Quem o senhor consola primeiro?', 'The fans left hoarse and the keeper left traumatised. Who do you comfort first?'],
+      ['Com tanto gol, alguém defendeu hoje?', 'With so many goals, did anyone defend today?'],
+      ['Se todo jogo fosse assim, o senhor chegava vivo no fim da temporada?', 'If every game were like this, would you survive to the end of the season?'],
+    ],
+    respostas: {
+      provoca: [r(['Handebol tem goleiro melhor. Hoje foi show, e show não pede desculpa.', 'Handball has better keepers. Today was a show, and shows don’t apologise.']), r(['O goleiro tá ótimo. Traumatizado ficou o placar eletrônico.', 'The keeper’s fine. The scoreboard is the one traumatised.']), r(['Defender pra quê, se dá pra fazer um a mais? Filosofia de presidente.', 'Why defend when you can score one more? Presidential philosophy.']), r(['Chegava. Quem não chega é o técnico do {adv}, que tá respirando por aparelho.', 'I would. {adv}’s coach is the one on life support.'])],
+      diplomata: [r(['Jogo aberto demais. Lindo pra quem assiste, perigoso pra quem dirige.', 'Too open. Lovely to watch, dangerous to manage.']), r(['Os dois. E vou conversar com a defesa com carinho, mas com firmeza.', 'Both. And I’ll talk to the defence kindly, but firmly.']), r(['Defender, defendeu pouco. É o primeiro item do treino de segunda.', 'Not much defending. It’s item one on Monday’s training plan.']), r(['Difícil. Coração de presidente não foi feito pra isso toda semana.', 'Hard to say. A president’s heart isn’t built for this every week.'])],
+      desconversa: [r(['Perdi a conta dos gols no meio. Pergunta pro estatístico.', 'I lost count of the goals halfway. Ask the stats guy.']), r(['Não consolo ninguém. Vou é tomar um chá de camomila.', 'I’m not comforting anyone. I’m having a camomile tea.']), r(['Sobre defesa eu falo outro dia, com calma.', 'I’ll talk about defending another day, calmly.']), r(['Meu cardiologista pediu pra eu não comentar.', 'My cardiologist asked me not to comment.'])],
+    },
+    efeito: { provoca: EF.renda, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": {gf} a {ga} e presidente do {clube} vende o espetáculo', '"{frase}": {gf}–{ga} and {clube} president sells the show'], ['Jogo maluco e presidente do {clube} mais maluco ainda na coletiva', 'A crazy game and an even crazier {clube} president at the presser'], ['{clube} e {adv} fazem chover gol, e o presidente faz chover frase', '{clube} and {adv} make it rain goals, the president makes it rain quotes']],
+      diplomata: [['{gf} a {ga}: presidente do {clube} promete ajustar a defesa', '{gf}–{ga}: {clube} president promises to fix the defence'], ['"{frase}": o {clube} depois do jogo dos {gf} a {ga}', '"{frase}": {clube} after the {gf}–{ga} thriller'], ['Festival de gols assusta até o presidente do {clube}', 'Goal fest scares even the {clube} president']],
+      desconversa: [['Presidente do {clube} perde a conta dos gols e encerra a coletiva', '{clube} president loses count of the goals and ends the presser'], ['"{frase}": camomila e silêncio no {clube}', '"{frase}": camomile and silence at {clube}'], ['{gf} a {ga} em campo e quase nada na coletiva do {clube}', '{gf}–{ga} on the pitch and almost nothing at {clube}’s presser']],
+    },
+  },
+  {
+    id: 'vitoria_fora', rep: ['tiao', 'rogerio'], prioridade: 1,
+    quando: c => venceu(c) && !!c.placar && !c.placar.casa && c.placar.ga > 0 && c.placar.gf - c.placar.ga < 3 && !c.placar.virada && !c.placar.arquirrival,
+    perguntas: [
+      ['Vitória na casa do {adv}, com a torcida deles pegando no pé o jogo todo. Sentiu a pressão?', 'A win at {adv}’s place with their fans on your back all game. Feel the pressure?'],
+      ['O {clube} joga melhor fora do que em casa?', 'Do {clube} play better away than at home?'],
+      ['Como foi a viagem de volta? Teve pagode no ônibus?', 'How was the trip home? Was there samba on the bus?'],
+      ['{gf} a {ga} fora de casa. Qual foi o segredo pra calar o estádio deles?', '{gf}–{ga} away. What was the secret to silencing their stadium?'],
+    ],
+    respostas: {
+      provoca: [r(['Pressão? A torcida deles cantou tão bonito que a gente resolveu dar um motivo pra parar.', 'Pressure? Their fans sang so nicely we decided to give them a reason to stop.']), r(['Fora a gente capricha: visita educada nunca sai de mãos vazias.', 'Away we make an effort: polite guests never leave empty-handed.']), r(['Teve pagode, churrasquinho na parada e o {adv} de tema das piadas.', 'There was samba, a roadside barbecue and {adv} as the theme of the jokes.']), r(['O segredo é simples: gol. Estádio nenhum canta depois de levar gol.', 'The secret is simple: goals. No stadium sings after conceding.'])],
+      diplomata: [r(['Sentimos, claro. Mérito do grupo, que manteve a cabeça fria.', 'We felt it, of course. Credit to the group for keeping cool heads.']), r(['Em casa ou fora, a ideia é a mesma. Hoje encaixou.', 'Home or away, the idea is the same. Today it clicked.']), r(['Tranquila. O grupo merecia uma viagem de volta feliz.', 'Smooth. The group deserved a happy trip home.']), r(['Paciência e respeito ao {adv}. Quem joga fora tem que saber sofrer.', 'Patience and respect for {adv}. Away sides must know how to suffer.'])],
+      desconversa: [r(['Não ouvi a torcida. Tava concentrado no jogo.', 'Didn’t hear the fans. I was focused on the game.']), r(['Casa, fora… três pontos são três pontos.', 'Home, away… three points are three points.']), r(['O que acontece no ônibus fica no ônibus.', 'What happens on the bus stays on the bus.']), r(['Segredo de vestiário. Não posso contar.', 'Locker room secret. Can’t tell.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": {clube} cala a casa do {adv} e presidente provoca', '"{frase}": {clube} silence {adv}’s ground and president taunts'], ['Visita mal-educada: {clube} vence fora e ainda tira onda', 'Rude guests: {clube} win away and show off too'], ['Pagode no ônibus e alfinetada no {adv}: a volta do {clube}', 'Samba on the bus and a jab at {adv}: {clube}’s trip home']],
+      diplomata: [['{clube} vence fora e presidente exalta a cabeça fria do grupo', '{clube} win away and president praises the group’s cool heads'], ['"{frase}": a vitória do {clube} longe de casa', '"{frase}": {clube}’s win away from home'], ['{gf} a {ga} fora: {clube} volta com três pontos e respeito ao {adv}', '{gf}–{ga} away: {clube} return with three points and respect for {adv}']],
+      desconversa: [['Vitória fora e presidente do {clube} guarda os segredos', 'Away win and {clube} president keeps the secrets'], ['"{frase}": {clube} vence longe de casa e fala pouco', '"{frase}": {clube} win away and say little'], ['O que rolou no ônibus do {clube}? O presidente não conta', 'What happened on {clube}’s bus? The president won’t tell']],
+    },
+  },
+  {
+    id: 'derrota_casa', rep: ['mila', 'rogerio'], prioridade: 1,
+    quando: c => perdeu(c) && !!c.placar && c.placar.casa && c.placar.ga - c.placar.gf < 3 && !c.placar.arquirrival,
+    perguntas: [
+      ['Derrota em casa pro {adv}, com estádio cheio. O torcedor merecia isso?', 'Home defeat to {adv} with a full stadium. Did the fans deserve that?'],
+      ['Ouvi vaia no apito final. O senhor ouviu também?', 'I heard boos at the final whistle. Did you hear them too?'],
+      ['O {adv} saiu daqui sorrindo. Nossa casa virou a casa da mãe Joana?', '{adv} left here smiling. Has our ground turned into a free-for-all?'],
+      ['Perder em casa dói mais. Quem pede desculpa pro torcedor?', 'Losing at home hurts more. Who apologises to the fans?'],
+    ],
+    respostas: {
+      provoca: [r(['Não merecia. Mas o {adv} também não merecia ganhar, e ganhou. Futebol é injusto.', 'They didn’t. But {adv} didn’t deserve to win either, and they did. Football is unfair.']), r(['Ouvi. E achei afinada. Nossa torcida até vaia com qualidade.', 'I did. Nicely in tune, too. Our fans even boo with class.']), r(['Sorrindo hoje. Na volta, o sorriso deles fica esquecido no vestiário.', 'Smiling today. In the return, they’ll leave the smile in the locker room.']), r(['Desculpa eu peço quando tomar goleada. Hoje foi detalhe.', 'I’ll apologise when we get thrashed. Today was a detail.'])],
+      diplomata: [r(['Não merecia. O torcedor fez a parte dele e a gente ficou devendo.', 'They didn’t. The fans did their part and we fell short.']), r(['Ouvi e entendo. Vaia em casa é sinal de que esperam mais da gente.', 'I heard and I understand. Home boos mean they expect more from us.']), r(['Nossa casa precisa voltar a ser difícil. Esse é o recado pro grupo.', 'Our ground has to become hard to visit again. That’s the message to the group.']), r(['Eu peço, em nome de todos. E a gente paga em campo no próximo jogo aqui.', 'I do, on behalf of everyone. And we’ll repay it on the pitch at the next home game.'])],
+      desconversa: [r(['O torcedor sabe o que merece. Eu não falo por ele.', 'The fans know what they deserve. I don’t speak for them.']), r(['No apito final eu tava no celular. Não ouvi nada.', 'At the final whistle I was on my phone. Didn’t hear a thing.']), r(['Não comento o humor do adversário.', 'I don’t comment on the opponent’s mood.']), r(['Próxima. Essa o placar já respondeu.', 'Next. The scoreboard already answered that one.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.moralMenos },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} perde em casa, mas não perde a pose', '"{frase}": {clube} president loses at home but keeps the swagger'], ['Derrota em casa e ironia com a vaia: o dia do {clube}', 'Home defeat and irony about the boos: {clube}’s day'], ['{clube} cai diante da própria torcida e presidente jura troco no {adv}', '{clube} fall in front of their own fans and president vows payback on {adv}']],
+      diplomata: [['Presidente do {clube} pede desculpas à torcida após derrota em casa', '{clube} president apologises to the fans after home defeat'], ['"{frase}": {clube} quer a casa difícil de novo', '"{frase}": {clube} want their ground to be a fortress again'], ['Vaia entendida: presidente do {clube} assume a derrota pro {adv}', 'Boos understood: {clube} president owns the defeat to {adv}']],
+      desconversa: [['Derrota em casa e presidente do {clube} diz que não ouviu a vaia', 'Home defeat and {clube} president says he didn’t hear the boos'], ['"{frase}": silêncio no {clube} depois do tropeço em casa', '"{frase}": silence at {clube} after the home slip-up'], ['{adv} vence no estádio do {clube} e a coletiva acaba rápido', '{adv} win at {clube}’s ground and the presser ends fast']],
+    },
+  },
+  {
+    id: 'muralha', rep: ['tiao', 'mila'], prioridade: 1,
+    quando: c => !!c.placar && c.placar.gf === 2 && c.placar.ga === 0 && !c.placar.arquirrival,
+    perguntas: [
+      ['2 a 0 e o goleiro nem sujou o uniforme. A defesa é a estrela do {clube}?', '2–0 and the keeper didn’t even get his kit dirty. Is the defence {clube}’s star?'],
+      ['O {adv} não deu um chute com perigo. O senhor mandou trancar a área com cadeado?', '{adv} didn’t have a single dangerous shot. Did you padlock the box?'],
+      ['Jogo sem sofrer gol é o jogo preferido de presidente?', 'Is a clean sheet a president’s favourite kind of game?'],
+      ['Placar limpo, sem susto. Dá pra se acostumar com isso?', 'Clean scoreline, no scares. Could you get used to this?'],
+    ],
+    respostas: {
+      provoca: [r(['Estrela? A defesa é a constelação inteira. O ataque só veio de enfeite.', 'Star? The defence is the whole constellation. The attack was just decoration.']), r(['Cadeado, corrente e um cachorro bravo. E ainda sobrou espaço pros nossos gols.', 'Padlock, chain and an angry dog. And there was still room for our goals.']), r(['É. Ainda mais quando o adversário volta pra casa sem saber a cor da nossa rede.', 'Yes. Especially when the opponent goes home without knowing the colour of our net.']), r(['Me acostumo fácil. O {adv} é que vai ter que se acostumar a ver de longe.', 'I get used to it easily. {adv} will have to get used to watching from afar.'])],
+      diplomata: [r(['A defesa foi muito bem, mas quem defende primeiro é o atacante. Mérito de todos.', 'The defence was great, but defending starts with the strikers. Credit to all.']), r(['Organização e concentração. O grupo cumpriu o plano à risca.', 'Organisation and focus. The group followed the plan to the letter.']), r(['Todo presidente gosta. Garante uma noite de sono que não tem preço.', 'Every president does. It buys a night’s sleep you can’t put a price on.']), r(['Dá, mas não pode acomodar. O próximo adversário vai testar de novo.', 'I could, but we can’t get comfortable. The next opponent will test us again.'])],
+      desconversa: [r(['Pergunta pro goleiro se ele quer ser estrela. Acho que ele quer é folga.', 'Ask the keeper if he wants to be a star. I think he wants a day off.']), r(['Cadeado é assunto de segurança. Não posso revelar.', 'Padlocks are a security matter. Can’t reveal.']), r(['Meu jogo preferido é o próximo.', 'My favourite game is the next one.']), r(['Hábito é coisa de freira. Eu sou presidente.', 'Habits are for nuns. I’m a president.'])],
+    },
+    efeito: { provoca: EF.moralMais, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} tranca a área e joga a chave fora', '"{frase}": {clube} president locks the box and throws away the key'], ['2 a 0 e cadeado: {clube} não dá chance ao {adv}', '2–0 and a padlock: {clube} give {adv} no chance'], ['A muralha do {clube} vira piada na coletiva', '{clube}’s wall becomes a punchline at the presser']],
+      diplomata: [['{clube} vence sem sofrer gol e presidente divide o mérito', '{clube} win without conceding and president shares the credit'], ['"{frase}": a defesa do {clube} em noite perfeita', '"{frase}": {clube}’s defence on a perfect night'], ['Placar limpo e pés no chão no {clube}', 'Clean sheet and feet on the ground at {clube}']],
+      desconversa: [['Goleiro sem trabalho e presidente sem assunto no {clube}', 'Keeper with no work and president with no topic at {clube}'], ['"{frase}": {clube} fecha a área e a boca', '"{frase}": {clube} shut the box and their mouths'], ['2 a 0 tranquilo e coletiva mais tranquila ainda no {clube}', 'A calm 2–0 and an even calmer presser at {clube}']],
+    },
+  },
+  {
+    id: 'meio_temporada', rep: ['tiao', 'clarice'], prioridade: 1,
+    quando: c => c.totalRodadas >= 10 && c.rodada === Math.floor(c.totalRodadas / 2),
+    perguntas: [
+      ['Metade da temporada e o {clube} em {pos}º. Que nota o senhor dá até aqui?', 'Halfway through and {clube} sit {pos}th. What grade would you give so far?'],
+      ['Metade da temporada {temp}. O {clube} está onde o senhor planejou?', 'Halfway through season {temp}. Are {clube} where you planned?'],
+      ['Se a segunda metade fosse um filme, seria comédia, drama ou terror?', 'If the second half of the season were a film, would it be comedy, drama or horror?'],
+      ['O que o senhor mudaria se pudesse voltar pra rodada 1?', 'What would you change if you could go back to round 1?'],
+    ],
+    respostas: {
+      provoca: [r(['Nota dez. Pros outros eu daria nota também, mas não quero humilhar ninguém.', 'Ten out of ten. I’d grade the others too, but I don’t want to humiliate anyone.']), r(['Estamos acima do planejado. O planejamento é que foi modesto.', 'We’re above plan. The plan was just modest.']), r(['Filme de ação. E o resto da {div} faz figuração.', 'An action film. And the rest of the {div} are extras.']), r(['Nada. Eu só voltaria pra assistir de novo.', 'Nothing. I’d only go back to watch it again.'])],
+      diplomata: [r(['Nota sete. Tem coisa boa e tem coisa pra corrigir daqui pra frente.', 'Seven out of ten. Some good things, some to fix from here on.']), r(['Perto disso. Metade do caminho, metade do trabalho.', 'Close. Halfway there, half the work.']), r(['Drama com final feliz, espero. Futebol sempre tem um pouco dos dois.', 'A drama with a happy ending, I hope. Football always has a bit of both.']), r(['Algumas escolhas no leilão. Mas erro bom é erro que ensina.', 'A few choices at the auction. But a good mistake is one that teaches.'])],
+      desconversa: [r(['Nota quem dá é a torcida. Eu só assino a súmula.', 'The fans give the grades. I just sign the paperwork.']), r(['Planejamento é documento interno.', 'The plan is an internal document.']), r(['Faz tempo que não vou ao cinema. Não sei responder.', 'I haven’t been to the cinema in ages. Can’t answer that.']), r(['A rodada 1 já passou. Eu só ando pra frente.', 'Round 1 is gone. I only move forward.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.renda, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} se dá nota máxima no meio da temporada', '"{frase}": {clube} president gives himself top marks at the halfway point'], ['Meio de temporada e o presidente do {clube} já fala como campeão', 'Halfway through and {clube} president already talks like a champion'], ['{clube} em {pos}º e presidente chama o resto da {div} de figurante', '{clube} in {pos}th and president calls the rest of the {div} extras']],
+      diplomata: [['Balanço da metade: presidente do {clube} vê pontos a corrigir', 'Halfway review: {clube} president sees things to fix'], ['"{frase}": o {clube} na metade da temporada {temp}', '"{frase}": {clube} at the halfway point of season {temp}'], ['{clube} chega à metade em {pos}º com discurso de pé no chão', '{clube} reach halfway in {pos}th with a feet-on-the-ground speech']],
+      desconversa: [['Meio de temporada e presidente do {clube} não faz balanço', 'Halfway point and {clube} president refuses to take stock'], ['"{frase}": {clube} chega à metade sem dar nota', '"{frase}": {clube} reach halfway without a grade'], ['Presidente do {clube} só olha pra frente na metade da temporada', '{clube} president only looks ahead at the halfway mark']],
+    },
+  },
+  {
+    id: 'temporada_morna', rep: ['clarice', 'mila'], prioridade: 1,
+    quando: c => c.totalRodadas >= 10 && c.rodada === c.totalRodadas - 5 && !c.zonaSubir && !c.zonaCair && !c.lider,
+    perguntas: [
+      ['Faltam cinco rodadas e o {clube} está no meio da tabela, sem briga lá em cima nem lá embaixo. Já dá pra mandar o elenco de férias?', 'Five rounds left and {clube} are mid-table, nothing to fight for at either end. Can the squad go on holiday already?'],
+      ['Meio da tabela, sem pressão. O torcedor deve continuar indo ao estádio?', 'Mid-table, no pressure. Should fans keep coming to the stadium?'],
+      ['Dizem que tem jogador pesquisando passagem pra praia. Procede?', 'They say some players are already searching for beach flights. True?'],
+      ['Fim de temporada sem emoção na tabela. O senhor vai usar essas rodadas pra quê?', 'A season ending with nothing at stake. What will you use these rounds for?'],
+    ],
+    respostas: {
+      provoca: [r(['Férias? O próximo que falar em praia treina em dois períodos até o fim do ano.', 'Holiday? The next one who says beach trains twice a day until the end of the year.']), r(['Deve. Quem vem agora é torcedor de verdade, não turista de final.', 'They should. Whoever comes now is a real fan, not a finals tourist.']), r(['Procede. Já confisquei o chinelo de todo mundo.', 'True. I’ve already confiscated everyone’s flip-flops.']), r(['Pra estragar a temporada dos outros. Tem muito time precisando de ponto, e a gente não vai dar.', 'To ruin other people’s seasons. Plenty of teams need points, and we’re not giving any.'])],
+      diplomata: [r(['Não. Cada rodada vale posição, premiação e respeito.', 'No. Every round is worth position, prize money and respect.']), r(['Deve, e eu agradeço muito quem vem. A gente vai dar motivo.', 'They should, and I thank everyone who comes. We’ll give them a reason.']), r(['Ninguém aqui está de férias. Ainda tem contrato e camisa pra honrar.', 'Nobody here is on holiday. There are still contracts and a shirt to honour.']), r(['Pra testar jogador e pensar no leilão da próxima temporada.', 'To test players and plan for next season’s auction.'])],
+      desconversa: [r(['Férias é assunto do departamento pessoal.', 'Holidays are an HR matter.']), r(['Ingresso tá à venda. O resto é com o torcedor.', 'Tickets are on sale. The rest is up to the fans.']), r(['Não sigo jogador em site de passagem.', 'I don’t follow players on travel sites.']), r(['Vou usar pra descansar da imprensa, se possível.', 'I’ll use them to rest from the press, if possible.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.moralMenos },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} cancela a praia do elenco', '"{frase}": {clube} president cancels the squad’s beach trip'], ['Meio da tabela, nada de folga: {clube} promete atrapalhar os outros', 'Mid-table, no slacking: {clube} vow to spoil others’ seasons'], ['Presidente do {clube} confisca chinelo e promete fim de temporada quente', '{clube} president confiscates flip-flops and promises a hot finish']],
+      diplomata: [['Sem briga na tabela, {clube} fala em honrar a camisa até o fim', 'Nothing to play for, {clube} talk about honouring the shirt to the end'], ['"{frase}": o {clube} na reta final sem pressão', '"{frase}": {clube} in the run-in with no pressure'], ['{clube} já pensa no leilão da próxima temporada', '{clube} already thinking about next season’s auction']],
+      desconversa: [['Fim de temporada morno e coletiva mais morna ainda no {clube}', 'A lukewarm season finish and an even more lukewarm presser at {clube}'], ['"{frase}": clima de férias no {clube}?', '"{frase}": holiday mood at {clube}?'], ['Presidente do {clube} também parece querer férias', '{clube} president seems to want a holiday too']],
+    },
+  },
+  {
+    id: 'lanterna', rep: ['rogerio', 'mila'], prioridade: 2,
+    quando: c => !c.copa && c.total > 1 && c.pos === c.total && c.rodada >= 5 && c.rodada <= c.totalRodadas,
+    perguntas: [
+      ['Lanterna da {div}. Presidente, pelo menos a lanterna ilumina o caminho?', 'Rock bottom of the {div}. Mr. President, is there any light down there?'],
+      ['Daqui de baixo só dá pra subir, ou ainda tem porão?', 'From down here you can only go up, or is there a basement?'],
+      ['Hoje o {clube} é o pior time da {div}. Dói ouvir isso?', 'Right now {clube} are the worst team in the {div}. Does that hurt?'],
+      ['Tem torcedor dizendo que o time tá na lanterna e sem pilha. O senhor troca a pilha ou a lanterna?', 'Some fans say the team is bottom and out of batteries. Do you change the batteries or the whole torch?'],
+    ],
+    respostas: {
+      provoca: [r(['Ilumina, sim: dá pra ver direitinho quem vai ficar pra trás quando a gente subir.', 'There is: you can clearly see who’ll be left behind when we climb.']), r(['Porão é onde vai morar quem tá rindo da gente agora.', 'The basement is where those laughing at us now will end up living.']), r(['Dói nada. Tabela de agora é rascunho. O {clube} não cai, anota aí.', 'Not at all. Today’s table is a draft. {clube} aren’t going down, write that down.'], 'nao_cair'), r(['Troco a pilha. Lanterna boa a gente tem, só esqueceu de ligar.', 'I change the batteries. The torch is fine, we just forgot to switch it on.'])],
+      diplomata: [r(['É o momento mais difícil. Cabe a mim trazer calma e trabalho.', 'It’s the hardest moment. It’s on me to bring calm and work.']), r(['Só dá pra subir. E vamos subir degrau por degrau.', 'You can only go up. And we’ll climb one step at a time.']), r(['Dói, e tem que doer. Quem não se incomoda com o último lugar não sai dele.', 'It hurts, and it should. Whoever isn’t bothered by last place never leaves it.']), r(['Primeiro a pilha: confiança. Ninguém vai ser jogado fora no meio do caminho.', 'Batteries first: confidence. Nobody gets thrown away halfway.'])],
+      desconversa: [r(['Não comento tabela antes do fim.', 'I don’t comment on the table before the end.']), r(['Porão, sótão… não entendo de arquitetura.', 'Basement, attic… I don’t know architecture.']), r(['Pior ou melhor, quem diz é o campo.', 'Worst or best, the pitch decides.']), r(['Pilha e lanterna é com o almoxarifado.', 'Batteries and torches are for the storeroom.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.moralMenos },
+    manchete: {
+      provoca: [['"{frase}": na lanterna, presidente do {clube} promete reação', '"{frase}": rock bottom, {clube} president promises a turnaround'], ['Último lugar e boca grande: o presidente do {clube} não se rende', 'Last place and a big mouth: {clube} president won’t surrender'], ['Presidente do {clube} troca a pilha e jura que a lanterna acende', '{clube} president changes the batteries and swears the torch will shine']],
+      diplomata: [['Lanterna da {div}, presidente do {clube} pede calma e trabalho', 'Bottom of the {div}, {clube} president calls for calm and work'], ['"{frase}": o {clube} encara o último lugar', '"{frase}": {clube} face up to last place'], ['{clube} no fundo da tabela e discurso de reconstrução', '{clube} at the bottom and a rebuilding speech']],
+      desconversa: [['Último lugar e nenhuma explicação no {clube}', 'Last place and no explanation at {clube}'], ['"{frase}": presidente do {clube} não quer falar da lanterna', '"{frase}": {clube} president won’t talk about the bottom spot'], ['Lanterna apagada e coletiva às escuras no {clube}', 'Torch off and a presser in the dark at {clube}']],
+    },
+  },
+  {
+    id: 'vice_lider', rep: ['tiao', 'rogerio'], prioridade: 1,
+    quando: c => c.total > 2 && c.pos === 2 && !c.lider && meio(c) && c.rodada < c.totalRodadas - 1,
+    perguntas: [
+      ['Vice-líder da {div}! O líder já tá sentindo o bafo do {clube} no cangote?', 'Second in the {div}! Can the leaders feel {clube} breathing down their neck?'],
+      ['Dizem que o segundo lugar é o primeiro dos perdedores. O senhor concorda?', 'They say second place is the first loser. Do you agree?'],
+      ['Olhando pra cima, só tem um time. Dá pra dormir com essa vista?', 'Looking up, there’s only one team. Can you sleep with that view?'],
+      ['O que falta pro {clube} passar do segundo pro primeiro?', 'What’s missing for {clube} to go from second to first?'],
+    ],
+    respostas: {
+      provoca: [r(['Sentindo e suando. Já pediram até pra gente escovar os dentes.', 'Feeling it and sweating. They’ve even asked us to brush our teeth.']), r(['Concordo. Por isso não pretendo ficar aqui muito tempo.', 'I agree. That’s why I don’t plan on staying here long.'], 'titulo'), r(['Durmo ótimo. Quem tem insônia é quem tá na frente, olhando pelo retrovisor.', 'I sleep great. The insomniac is the one in front, staring at the rear-view mirror.']), r(['Falta o líder tropeçar. E ele vai, porque as pernas já estão tremendo.', 'For the leaders to trip. And they will, their legs are already shaking.'])],
+      diplomata: [r(['A gente olha pra nós, não pro cangote de ninguém. Respeito ao líder.', 'We look at ourselves, not at anyone’s neck. Respect for the leaders.']), r(['Não concordo. Segundo lugar com trabalho é degrau, não derrota.', 'I don’t. Second place earned through work is a step, not a defeat.']), r(['Durmo, sim. A vista é boa e dá vontade de subir mais um andar.', 'I do. It’s a nice view and it makes you want to go up one more floor.']), r(['Regularidade. Ganhar os jogos que a gente tem que ganhar.', 'Consistency. Winning the games we’re supposed to win.'])],
+      desconversa: [r(['Não fico reparando no cangote alheio.', 'I don’t go staring at other people’s necks.']), r(['Ditado é coisa de vó. Eu olho a tabela no fim.', 'Sayings are for grandmas. I check the table at the end.']), r(['Vista é assunto de corretor de imóvel.', 'Views are for estate agents.']), r(['Faltam rodadas. Quando acabarem, a gente vê.', 'Rounds are what’s missing. When they’re done, we’ll see.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.renda, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": vice-líder, presidente do {clube} assusta o primeiro colocado', '"{frase}": in second, {clube} president rattles the leaders'], ['{clube} em 2º e presidente já mede o tamanho da faixa', '{clube} in 2nd and president already measuring the sash'], ['Bafo no cangote: {clube} provoca o líder da {div}', 'Breathing down their neck: {clube} taunt the {div} leaders']],
+      diplomata: [['Vice-líder, {clube} mantém o respeito e a ambição', 'In second, {clube} keep respect and ambition'], ['"{frase}": o {clube} de olho no topo da {div}', '"{frase}": {clube} eyeing the top of the {div}'], ['Presidente do {clube} chama o 2º lugar de degrau', '{clube} president calls 2nd place a stepping stone']],
+      desconversa: [['{clube} em 2º e presidente nem olha pra cima', '{clube} in 2nd and president won’t even look up'], ['"{frase}": vice-liderança sem discurso no {clube}', '"{frase}": second place with no speech at {clube}'], ['Presidente do {clube} deixa a tabela pro fim', '{clube} president leaves the table for the end']],
+    },
+  },
+  {
+    id: 'pobre_mas_feliz', rep: ['clarice'], prioridade: 1, dinheiro: true,
+    quando: c => c.caixaBaixo && c.vitoriasSeguidas >= 3 && c.vitoriasSeguidas < 5,
+    perguntas: [
+      ['Caixa no vermelho e {seq} vitórias seguidas. Presidente, dinheiro não traz felicidade mesmo?', 'Accounts in the red and {seq} wins in a row. Mr. President, money really doesn’t buy happiness?'],
+      ['O time ganha, mas a conta não fecha. Qual dos dois o senhor comemora hoje?', 'The team wins but the books don’t balance. Which one are you celebrating today?'],
+      ['Tem credor batendo na porta e torcida cantando na arquibancada. Como o senhor lida com isso?', 'Creditors at the door and fans singing in the stands. How do you handle that?'],
+      ['Se o time continuar vencendo, o caixa se resolve sozinho?', 'If the team keeps winning, will the money sort itself out?'],
+    ],
+    respostas: {
+      provoca: [r(['Não traz. Mas paga a pizza da comemoração, e essa tá parcelada em dez vezes.', 'It doesn’t. But it pays for the celebration pizza, and that one’s on ten instalments.']), r(['Comemoro a vitória. A conta não foi convidada pra festa.', 'I celebrate the win. The books weren’t invited to the party.']), r(['Com o credor eu canto junto. Quem sabe ele vira sócio-torcedor.', 'I sing along with the creditors. Maybe they’ll buy season tickets.']), r(['Se resolve. Vitória enche estádio, estádio enche caixa. Economia da bola.', 'It will. Wins fill the stadium, the stadium fills the till. Football economics.'])],
+      diplomata: [r(['Traz tranquilidade. Mas vencer ajuda a pagar as contas também.', 'It brings peace of mind. But winning helps pay the bills too.']), r(['Comemoro a vitória com responsabilidade. A conta a gente arruma com gestão.', 'I celebrate the win responsibly. The books we fix with management.']), r(['Com transparência. Cada credor vai receber, no tempo certo.', 'With transparency. Every creditor will be paid, in due time.']), r(['Ajuda muito, mas não resolve sozinho. Vamos cortar onde der.', 'It helps a lot, but won’t fix it alone. We’ll cut where we can.'])],
+      desconversa: [r(['Felicidade não aparece no balanço. Próxima.', 'Happiness doesn’t show up on the balance sheet. Next.']), r(['Conta é com a contabilidade. Vitória é com a torcida.', 'Books are for the accountants. Wins are for the fans.']), r(['Em dia de jogo eu não atendo a porta.', 'I don’t answer the door on match days.']), r(['Não faço previsão financeira em coletiva.', 'I don’t make financial forecasts at pressers.'])],
+    },
+    efeito: { provoca: EF.renda, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": duro, mas vencendo, presidente do {clube} faz piada com o caixa', '"{frase}": broke but winning, {clube} president jokes about the money'], ['{seq} vitórias e conta no vermelho: o {clube} vive de bola', '{seq} wins and red ink: {clube} live on football alone'], ['Presidente do {clube} quer o credor na arquibancada', '{clube} president wants creditors in the stands']],
+      diplomata: [['{clube} vence em campo e promete arrumar as contas fora dele', '{clube} win on the pitch and promise to fix the books off it'], ['"{frase}": o {clube} entre a vitória e a planilha', '"{frase}": {clube} between wins and spreadsheets'], ['Sequência boa e caixa apertado: presidente do {clube} pede responsabilidade', 'Good run and tight finances: {clube} president calls for responsibility']],
+      desconversa: [['Presidente do {clube} não abre a porta nem pro credor nem pra imprensa', '{clube} president won’t open the door to creditors or the press'], ['"{frase}": {clube} separa o campo do caixa', '"{frase}": {clube} keep the pitch and the till apart'], ['Vitória em campo, silêncio na planilha do {clube}', 'Wins on the pitch, silence on {clube}’s spreadsheet']],
+    },
+  },
+  {
+    id: 'varzea', rep: ['tiao', 'mila'], prioridade: 1,
+    quando: c => c.div === 'V' && c.rodada === 4,
+    perguntas: [
+      ['Presidente, o {clube} está na Várzea. Como é a vida longe dos holofotes?', 'Mr. President, {clube} are in the Várzea. How’s life away from the spotlight?'],
+      ['O vestiário aqui tem chuveiro quente ou é na base da coragem?', 'Does the locker room here have hot showers or is it pure courage?'],
+      ['Campo esburacado, bola murcha, cinco torcedores e um cachorro. É aqui que nasce campeão?', 'A bumpy pitch, a flat ball, five fans and a dog. Is this where champions are born?'],
+      ['Quanto tempo o {clube} pretende ficar na Várzea?', 'How long do {clube} plan to stay in the Várzea?'],
+    ],
+    respostas: {
+      provoca: [r(['Longe dos holofotes? A gente é o holofote. A Várzea nunca teve tanta luz.', 'Away from the spotlight? We are the spotlight. The Várzea has never been so bright.']), r(['Chuveiro frio forma caráter. Quem aguenta isso aguenta qualquer clássico.', 'Cold showers build character. Survive that and you survive any derby.']), r(['E o cachorro é nosso maior torcedor. Late mais que muita organizada por aí.', 'And the dog is our biggest fan. Barks louder than plenty of ultras.']), r(['O mínimo possível. Já mandei fazer a mala.', 'As little as possible. I’ve already packed the bags.'], 'subir')],
+      diplomata: [r(['Com humildade. Muito clube grande já pisou em terra batida um dia.', 'With humility. Plenty of big clubs walked on a dirt pitch once.']), r(['Tem o que dá pra ter. O resto a gente compensa com vontade.', 'It has what it can. The rest we make up for with heart.']), r(['Nasce, sim. Aqui se aprende a jogar com o que tem.', 'Yes. Here you learn to play with what you’ve got.']), r(['O tempo de construir uma base sólida. Sem pular etapa.', 'As long as it takes to build a solid base. No skipping steps.'])],
+      desconversa: [r(['Holofote é assunto da companhia de luz.', 'Spotlights are the power company’s business.']), r(['Chuveiro eu não comento. Tem criança ouvindo.', 'I won’t comment on the showers. There are children listening.']), r(['O cachorro não dá entrevista, e eu também não.', 'The dog doesn’t give interviews, and neither do I.']), r(['A tabela decide. Eu só pago a gasolina da van.', 'The table decides. I just pay for the van’s fuel.'])],
+    },
+    efeito: { provoca: EF.cobranca, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['"{frase}": presidente do {clube} se acha o dono da Várzea', '"{frase}": {clube} president thinks he owns the Várzea'], ['{clube} promete sair da Várzea e já fez a mala', '{clube} vow to leave the Várzea and have already packed'], ['Chuveiro frio e boca quente: o {clube} na terra batida', 'Cold showers and hot words: {clube} on the dirt pitch']],
+      diplomata: [['Humildade na terra batida: {clube} encara a Várzea com os pés no chão', 'Humility on the dirt: {clube} face the Várzea with feet on the ground'], ['"{frase}": o {clube} recomeça de baixo', '"{frase}": {clube} start again from the bottom'], ['Presidente do {clube} vê a Várzea como escola', '{clube} president sees the Várzea as a school']],
+      desconversa: [['Presidente do {clube} não fala do chuveiro nem do cachorro', '{clube} president won’t discuss the showers or the dog'], ['"{frase}": a Várzea do {clube} fica em sigilo', '"{frase}": {clube}’s Várzea life stays private'], ['Na Várzea, o {clube} prefere falar pouco', 'In the Várzea, {clube} prefer to say little']],
+    },
+  },
+  // ⭐ APRESENTAÇÃO DAS LENDAS (22/10, mockup coletiva-apresentacao-lendas.png, Diego: *"pode fazer a letra A e C junto"*).
+  // Depois do leilão, se o presidente trouxe LENDA, ela é apresentada na sala de imprensa. Quem fala é SEMPRE o presidente —
+  // nunca frase na boca de jogador de verdade (regra do 18/08). {lendas} = os nomes ("Romário, Zico e Kaká"), {lenda1} = o 1º.
+  {
+    id: 'apresentacao_uma', rep: ['tiao', 'rogerio', 'clarice', 'mila'], prioridade: 3,
+    quando: c => (c.apresentacao?.length ?? 0) === 1,
+    perguntas: [
+      ['Presidente, {lendas} chegou! Foi a contratação da sua vida?', 'Mr. President, {lendas} has arrived! Is this the signing of your life?'],
+      ['{lendas} vem pra ser titular absoluto ou vai brigar por posição?', 'Is {lendas} here as an undisputed starter or to fight for a place?'],
+      ['O leilão foi pesado. Quanto do caixa ficou em {lendas}?', 'The auction was heavy. How much of the till went on {lendas}?'],
+      ['A torcida já fez fila na loja pela camisa do {lendas}. Esperava isso?', 'Fans are queuing at the shop for a {lendas} shirt. Did you expect it?'],
+      ['Os rivais dizem que {lendas} é golpe de marketing. Responde?', 'Rivals say {lendas} is a marketing stunt. Your reply?'],
+      ['Com {lendas} no elenco, o {clube} muda de patamar já nesta temporada?', 'With {lendas} in the squad, do {clube} step up a level this season?'],
+      ['{lendas} vai ter regalia no vestiário ou é igual a todo mundo?', 'Will {lendas} get perks in the dressing room or be like everyone else?'],
+    ],
+    respostas: {
+      provoca: [r(['Da minha vida não. Da vida da {div} inteira.', 'Not of my life. Of the whole {div}’s life.']), r(['Titular? Ele é o motivo de existir escalação.', 'Starter? He’s the reason team sheets exist.']), r(['Golpe de marketing é o elenco deles. O nosso é golpe de futebol.', 'Their squad is the marketing stunt. Ours is a football one.']), r(['Patamar? A gente mudou de prédio.', 'A level? We moved buildings.'], 'subir')],
+      diplomata: [r(['Grande contratação, mas quem ganha jogo é o grupo.', 'A great signing, but it’s the group that wins games.']), r(['Vai brigar como todo mundo. Lenda também treina.', 'He’ll fight like everyone else. Legends train too.']), r(['Investimento pensado. O caixa segue saudável.', 'A planned investment. The till is still healthy.']), r(['Chega pra somar. Ninguém aqui é maior que o {clube}.', 'He comes to add. Nobody here is bigger than {clube}.'])],
+      desconversa: [r(['Valor de contratação fica entre o clube e o leilão.', 'Signing fees stay between the club and the auction.']), r(['Deixa ele jogar primeiro. Depois a gente conversa.', 'Let him play first. Then we talk.']), r(['Pergunta pra ele em campo, na primeira rodada.', 'Ask him on the pitch, in the first round.']), r(['Hoje é dia de foto, não de discurso.', 'Today is a day for photos, not speeches.'])],
+    },
+    efeito: { provoca: EF.renda, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['{clube} apresenta {lendas}: "{frase}"', '{clube} unveil {lendas}: "{frase}"'], ['Presidente do {clube} solta o verbo na chegada de {lendas}', '{clube} president lets rip as {lendas} arrives'], ['{lendas} chega e o {clube} já fala grosso', '{lendas} arrives and {clube} already talk big']],
+      diplomata: [['{lendas} é do {clube}: "{frase}"', '{lendas} joins {clube}: "{frase}"'], ['Pés no chão na chegada de {lendas} ao {clube}', 'Feet on the ground as {lendas} joins {clube}'], ['{clube} apresenta {lendas} com discurso de grupo', '{clube} unveil {lendas} with a team-first speech']],
+      desconversa: [['{lendas} chega ao {clube} em apresentação curta', '{lendas} joins {clube} in a short unveiling'], ['Foto, sorriso e pouca conversa: {clube} apresenta {lendas}', 'Photo, smile and little talk: {clube} unveil {lendas}'], ['"{frase}": presidente do {clube} guarda o discurso', '"{frase}": {clube} president saves the speech']],
+    },
+  },
+  {
+    id: 'apresentacao_varias', rep: ['tiao', 'rogerio', 'clarice', 'mila'], prioridade: 3,
+    quando: c => (c.apresentacao?.length ?? 0) >= 2,
+    perguntas: [
+      ['Presidente, {qtd} lendas de uma vez! Isso é time pra subir já?', 'Mr. President, {qtd} legends at once! Is this a side built to go up right away?'],
+      ['{lendas}… o leilão virou excursão de museu?', '{lendas}… did the auction turn into a museum trip?'],
+      ['Com {lendas}, quem fica no banco? Vai ter ciúme no vestiário?', 'With {lendas}, who sits on the bench? Jealousy in the dressing room?'],
+      ['Quanto custou trazer {lendas}? O caixa aguenta a folha?', 'How much did it cost to bring {lendas}? Can the till handle the wage bill?'],
+      ['A cidade parou pra ver {lendas}. Qual o recado pra torcida?', 'The city stopped to see {lendas}. What’s your message to the fans?'],
+      ['Os rivais dizem que encher de lenda não ganha campeonato. Concorda?', 'Rivals say stacking legends doesn’t win titles. Agree?'],
+      ['De {lendas}, qual foi o que mais deu trabalho no pregão?', 'Of {lendas}, which one gave you the most work at the auction?'],
+    ],
+    respostas: {
+      provoca: [r(['Subir? A gente vai passar direto pela {div}, só acenando.', 'Go up? We’ll wave as we drive straight through {div}.'], 'subir'), r(['Museu é o elenco deles. O nosso é galeria de troféu.', 'Their squad is the museum. Ours is a trophy gallery.']), r(['Ciúme vai ter no vestiário dos rivais, vendo a nossa escalação.', 'The jealousy will be in the rivals’ dressing room, looking at our team sheet.']), r(['Diz isso pra quem perder pra gente.', 'Tell that to whoever loses to us.'])],
+      diplomata: [r(['Grandes reforços, mas nome não entra em campo sozinho.', 'Great signings, but names don’t take the field on their own.']), r(['Banco forte é sinal de time grande. Todo mundo vai jogar.', 'A strong bench is a sign of a big team. Everyone will play.']), r(['Contratamos dentro do que o caixa permite. Tudo planejado.', 'We signed within what the till allows. All planned.']), r(['Recado pra torcida: venham, o estádio é de vocês.', 'Message to the fans: come, the stadium is yours.'])],
+      desconversa: [r(['Valor fica entre o clube e o leilão.', 'Fees stay between the club and the auction.']), r(['Pregão é pregão. Ganhou, levou.', 'An auction is an auction. You win it, you take it.']), r(['Hoje é dia de foto. A conversa fica pra depois da 1ª rodada.', 'Today is for photos. The talking waits until after round one.']), r(['Escalação eu decido na hora. Próxima pergunta.', 'I pick the team on the day. Next question.'])],
+    },
+    efeito: { provoca: EF.renda, diplomata: EF.moralMais, desconversa: EF.nada },
+    manchete: {
+      provoca: [['{clube} apresenta {lendas}: "{frase}"', '{clube} unveil {lendas}: "{frase}"'], ['{qtd} lendas e muita provocação na apresentação do {clube}', '{qtd} legends and plenty of trash talk at the {clube} unveiling'], ['O {clube} abriu o cofre e a boca: chegaram {lendas}', '{clube} opened the vault and their mouth: {lendas} have arrived']],
+      diplomata: [['{clube} apresenta {lendas} com pé no chão: "{frase}"', '{clube} unveil {lendas} with feet on the ground: "{frase}"'], ['{qtd} lendas de uma vez: {clube} faz a festa da torcida', '{qtd} legends at once: {clube} throw a party for the fans'], ['Reforços de peso: {lendas} vestem a camisa do {clube}', 'Heavyweight signings: {lendas} pull on the {clube} shirt']],
+      desconversa: [['{lendas} chegam ao {clube} em apresentação curta', '{lendas} join {clube} in a short unveiling'], ['Muita lenda e pouca palavra na apresentação do {clube}', 'Plenty of legends and few words at the {clube} unveiling'], ['"{frase}": presidente do {clube} deixa a foto falar', '"{frase}": {clube} president lets the photo do the talking']],
+    },
+  },
 ]
 
 // ── sorteio preso na semente ───────────────────────────────────────────────────────────────────────────────────
@@ -882,7 +1193,7 @@ export interface ColetivaPronta {
 // Resultado: numa temporada normal dá umas 5–8 coletivas, nunca duas seguidas por motivo pequeno.
 const ESPERA: Record<1 | 2 | 3, number> = { 3: 0, 2: 2, 1: 4 }
 // assuntos que podem voltar na MESMA temporada (cada jogo é um jogo); o resto é uma vez por temporada
-const REPETE = new Set<SituacaoId>(['goleada_pro', 'goleada_contra', 'vitoria_rival', 'derrota_rival', 'empate_rival', 'virada', 'classico_proximo', 'vespera_classico', 'vespera_final', 'copa_final', 'copa_eliminado', 'copa_campeao', 'caixa_vazio', 'fuga', 'proposta_craque'])
+const REPETE = new Set<SituacaoId>(['goleada_pro', 'goleada_contra', 'vitoria_rival', 'derrota_rival', 'empate_rival', 'virada', 'classico_proximo', 'vespera_classico', 'vespera_final', 'copa_final', 'copa_eliminado', 'copa_campeao', 'caixa_vazio', 'fuga', 'proposta_craque', 'jogo_maluco'])
 
 /** Monta a coletiva da rodada (ou null se não tem assunto / é cedo demais). Determinística: mesma semente, mesma coletiva. */
 export function montaColetiva(ctx: Ctx, save: ColetivaSave, seed: number): ColetivaPronta | null {
@@ -892,6 +1203,8 @@ export function montaColetiva(ctx: Ctx, save: ColetivaSave, seed: number): Colet
   const feitasTemp = new Set(save.feitas.filter(f => f.t === ctx.temporada).map(f => f.sit))
   const candidatas = SITUACOES.filter(s => {
     if (ctx.vespera ? !(s.id === 'vespera_final' || s.id === 'vespera_classico') : (s.id === 'vespera_final' || s.id === 'vespera_classico')) return false
+    const ehApres = s.id === 'apresentacao_uma' || s.id === 'apresentacao_varias'
+    if (ctx.apresentacao?.length ? !ehApres : ehApres) return false // ⭐ a apresentação só acontece no momento dela, e nada mais acontece nele
     if (feitasTemp.has(s.id) && !REPETE.has(s.id)) return false // o mesmo assunto só volta na temporada que vem
     try { if (!s.quando(ctx)) return false } catch { return false }
     return desdeUltima >= ESPERA[s.prioridade]
@@ -909,6 +1222,7 @@ export function montaColetiva(ctx: Ctx, save: ColetivaSave, seed: number): Colet
   return { sit: sit.id, rep, pergunta: sit.perguntas[qi], qi, opcoes, vars: variaveis(ctx) }
 }
 
+function juntaNomes(ns: string[]): string { return ns.length <= 1 ? (ns[0] ?? '') : `${ns.slice(0, -1).join(', ')} ${getLang() === 'en' ? 'and' : 'e'} ${ns[ns.length - 1]}` }
 function variaveis(c: Ctx): Record<string, string> {
   const n = c.artilheiro?.nome ?? c.goleiroPenalti ?? c.cansado ?? c.lesionado ?? c.criaEstreou ?? c.reserva ?? c.proposta?.nome ?? c.bolaOuro ?? ''
   const comp = c.intl === 'liberta' ? 'Libertadores' : c.intl === 'champions' ? 'Champions' : c.intl === 'mundial' ? 'Mundial' : c.copa ? 'Copa' : ''
@@ -916,6 +1230,7 @@ function variaveis(c: Ctx): Record<string, string> {
     adv: c.proposta?.clube ?? c.placar?.adv ?? '', n, g: String(c.artilheiro?.gols ?? ''), pos: String(c.pos), div: c.div === 'V' ? 'Várzea' : `Série ${c.div}`,
     seq: String(Math.max(c.semVencer, c.vitoriasSeguidas)), rival: c.rival ?? '', clube: c.clube,
     valor: String(c.proposta?.valor ?? c.caixa), temp: String(c.temporada), gf: String(c.placar?.gf ?? ''), ga: String(c.placar?.ga ?? ''), comp,
+    lendas: juntaNomes(c.apresentacao ?? []), qtd: String(c.apresentacao?.length ?? 0), lenda1: c.apresentacao?.[0] ?? '',
   }
 }
 export function preenche(p: Par, vars: Record<string, string>, lang: 'pt' | 'en' = getLang() === 'en' ? 'en' : 'pt'): string {
