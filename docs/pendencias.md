@@ -32,6 +32,7 @@ Diego aprovou os dois mockups (`carreira-abas-ideias.png`, *"adorei"*; `carreira
 - 🗂️ **Clube em 3 grupos**: 🏟️ Clube (estádio · loja) · 💰 Dinheiro (finanças · patrocínio) · 💼 Gestão (agência · presidência). Estádio
   continua a 1ª coisa.
 - 🔴 **Bolinha com número**: Elenco = titular fora (lesão/suspensão) + titular 🥵/🚑 · Clube = recibo novo. Jogos segue com o pontinho.
+- 🧭 **Rodapé da carreira: FICA COMO ESTÁ** (22/10, mockup `carreira-rodape.png` recusado: *"deixa como está tendo apenas a bolinha vermelha… qd tiver coisas p clicar"*). Não repropor redesign do rodapé.
 - Ideia pendente: bolinha na Central (coletiva virou tela cheia, então não sobrou o que contar lá).
 
 ## 📰 Histórias do vestiário em tela própria + mais variedade (22/10) — NO BRANCH, esperando "publica"
