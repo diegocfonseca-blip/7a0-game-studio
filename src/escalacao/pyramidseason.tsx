@@ -24,6 +24,7 @@ import {narrarChanceEstadio,narrarGolEstadio,narrarEtapaLanceEstadio} from './pr
 
 import './career-desktop.css'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from './presentation-release'
 import { usePenaltyPresentation as usePenaltyArtPreview } from './presentation-release' // ⚡ pênalti ilustrado: LIBERADO geral (12/09)
@@ -7259,7 +7260,8 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
 // Trava o avanço da rodada até o técnico decidir. Noitada (roxo) tem escolha:
 // banco 1 jogo OU "escalar assim mesmo" (queda pequena só naquele jogo).
 // Expulsão/lesão (vermelho) obrigam a troca — só escolhe QUEM assume a vaga.
-function EventoBanner({ ev, reservas, onDecide }: {
+// 🔬 exportado só pra bancada (`scripts/teste-evento/`)
+export function EventoBanner({ ev, reservas, onDecide }: {
   ev: EventoAtivo
   reservas: WonCard[]
   onDecide: (escolha: 'troca' | 'campo', subId?: string) => void
@@ -7270,16 +7272,18 @@ function EventoBanner({ ev, reservas, onDecide }: {
   const trait = traitDe(ev.nome)
   return (
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
-      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
+      <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0 }}>{ev.historia}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '10px 0', boxShadow: '2px 2px 0 #000' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
           <span style={{ fontSize: 30 }}>{eventoEmoji(ev.tipo)}</span>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>{ev.nome}</div>
             <div style={{ fontWeight: 800, fontSize: 9, color: 'rgba(0,0,0,.55)', ...OSWALD, textTransform: 'uppercase' }}>{ev.pos}{trait ? ` · ${trait}` : ''}</div>
           </div>
         </div>
+        {/* 📰 a história DEPOIS da cartinha (22/10, mockup aprovado): primeiro QUEM, depois o que aprontou */}
+        <p style={{ fontSize: 13, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: '0 0 10px' }}>{ev.historia}</p>
+        {noit && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', margin: '0 0 8px' }}>{tr('O que você faz, presidente?', 'What do you do, chairman?')}</p>}
         {/* quem assume a vaga (mesma posição = formação NUNCA quebra) */}
         <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>{tr(`quem assume a vaga de ${ev.pos}?`, `who takes the ${ev.pos} spot?`)}</div>
@@ -7323,16 +7327,18 @@ function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   const trait = traitDe(ev.nome)
   return (
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
-      <div style={{ padding: '9px 13px', fontWeight: 900, fontSize: 13, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
+      <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: 0 }}>{ev.historia}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '10px 0', boxShadow: '2px 2px 0 #000' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
           <span style={{ fontSize: 30 }}>{eventoEmoji(ev.tipo)}</span>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 900, fontSize: 16, ...OSWALD }}>{ev.nome}</div>
             <div style={{ fontWeight: 800, fontSize: 9, color: 'rgba(0,0,0,.55)', ...OSWALD, textTransform: 'uppercase' }}>{ev.pos}{trait ? ` · ${trait}` : ''}</div>
           </div>
         </div>
+        {/* 📰 a história DEPOIS da cartinha (22/10, mockup aprovado): primeiro QUEM, depois o que aprontou */}
+        <p style={{ fontSize: 13, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: '0 0 10px' }}>{ev.historia}</p>
+        {noit && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', margin: '0 0 8px' }}>{tr('O que você faz, presidente?', 'What do you do, chairman?')}</p>}
         <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a6d00', margin: '0 0 8px', lineHeight: 1.4 }}>{tr('🌱 Sem reserva no banco pra essa vaga — chame alguém da base pra tapar o buraco:', '🌱 No reserve on the bench for that spot — call someone up from the academy to plug the hole:')}</p>
         <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>{tr('quem sobe do Sub-20?', 'who comes up from the U-20s?')}</div>
@@ -10740,6 +10746,21 @@ export function PyramidSeasonScreen() {
           // sala abre sozinha, então nem o aviso entra.
           if (coletivaOpen && coletivaPronta && me && manual && !coletivaSala) fila.push({ key: 'coletiva', render: () => <ColetivaAviso placar={coletivaPlacarTxt} /> })
           if (!fila.length) return null
+          // 📰 HISTÓRIA DO VESTIÁRIO EM TELA PRÓPRIA (22/10, Diego: *"fica o placar em cima, a história embaixo e mais coisas embaixo…
+          // muita coisa misturada"*; mockup aprovado). Evento de jogador e crise abrem POR CIMA de tudo, fundo escurecido, uma coisa de
+          // cada vez — igual à coletiva. A decisão continua a mesma (os mesmos botões e ações); decidiu, fecha e o jogo segue.
+          if (fila[0].key === 'evento' || fila[0].key === 'crise') return createPortal(
+            <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(12,12,12,.84)', overflowY: 'auto', padding: '22px 14px 40px', display: 'flex' }}>
+              <div style={{ maxWidth: 460, width: '100%', margin: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 9 }}>
+                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: GOLD, color: INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 11px' }}>{fila[0].key === 'crise' ? tr('🚨 Aviso da diretoria', '🚨 Board notice') : tr('📰 Notícia do vestiário', '📰 Dressing-room news')}</span>
+                  {fila.length > 1 && <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, color: '#fff', textTransform: 'uppercase' }}>{tr(`1 de ${fila.length} avisos`, `1 of ${fila.length} notices`)}</span>}
+                </div>
+                {fila[0].render()}
+              </div>
+            </div>,
+            document.body,
+          )
           return (
             <div>
               {fila.length > 1 && (

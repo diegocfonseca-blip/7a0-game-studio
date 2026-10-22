@@ -1,3 +1,10 @@
+## 📰 Histórias do vestiário em tela própria + mais variedade (22/10) — NO BRANCH, esperando "publica"
+Diego: *"fica o placar em cima, a história embaixo e mais coisas embaixo… muita coisa misturada"* e *"quero que tenha mais variedade
+ainda de histórias"*. Mockup aprovado. Feito: evento de jogador (noitada/lesão/expulsão) e crise financeira abrem POR CIMA de tudo
+(portal, fundo escuro, selo "📰 Notícia do vestiário" / "🚨 Aviso da diretoria", "1 de N avisos"); cartinha antes da história e
+"O que você faz, presidente?" na noitada. Mesmos botões e ações. Histórias: noitada 10→25, expulsão 8→22, lesão 9→25, desgaste 5→15
+(PT e EN do mesmo tamanho; zoeira leve e inventada). Bancada: `scripts/teste-evento/?tipo=noitada|lesao|expulsao`.
+
 ## 🕵️ Sondar à vista (22/10) — FEITO NO BRANCH, esperando "publica" do Diego
 Diego: *"a área de sondar técnico… não está muito clara… tem que estar em algum lugar melhor"*. Mockup aprovado (*"ok pode fazer
 mas mantém regra de over, categoria e etc. se mostra ou não"*). Feito: a janela antes do leilão ABRE no Sondar (1º passo, com
