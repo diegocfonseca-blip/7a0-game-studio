@@ -9874,6 +9874,36 @@ export function PyramidSeasonScreen() {
     if (pronta) setColetivaPronta({ pronta, ctx: feito.ctx, alvo: feito.alvo, chave })
   }, [coletivaOn, coletivaPronta, done, copaPlaying, round, roundReady, revealed, myMatch, halfMode, halftimeDone, penMode, penaltyDone, copaReady, myCopaTie, copaRound, sn, coletivaSave, montaCtxCopa, montaCtxLiga, state.seed])
   useEffect(() => { setColetivaPronta(null) }, [state.seasonNo]) // temporada nova, mesa limpa
+  // ⭐ APRESENTAÇÃO DAS LENDAS (22/10, Diego: *"pode fazer a letra A e C junto"*): no começo da temporada (rodada 0), se o
+  // leilão trouxe LENDA pro seu clube, elas sentam na bancada da coletiva — todas juntas numa tela só. Uma vez por temporada.
+  const apresentouNaTemporada = coletivaSave.feitas.some(f => f.t === sn && (f.sit === 'apresentacao_uma' || f.sit === 'apresentacao_varias'))
+  const lendasDaTemporada = useMemo(() => {
+    if (!coletivaOn) return []
+    const lotes = state.careerMercado?.season === sn ? state.careerMercado.lotes.filter(l => l.teamId === youId) : []
+    const squad = (mgrMe?.squad ?? []) as WonCard[]
+    const vistos = new Set<string>(), out: { nome: string; club: string; year: number; paid: number }[] = []
+    for (const l of [...lotes].sort((a, b) => b.paid - a.paid)) {
+      const c = squad.find(x => x.name === l.name && !x.fake && x.fame >= 5 && !x.promessa)
+      if (!c || vistos.has(c.name)) continue
+      vistos.add(c.name); out.push({ nome: c.name, club: c.club, year: c.year, paid: l.paid })
+    }
+    return out
+  }, [coletivaOn, sn, state.careerMercado, youId, mgrMe])
+  const lendasDoLeilao = useMemo(() => (round === 0 && !done && !apresentouNaTemporada ? lendasDaTemporada : []), [round, done, apresentouNaTemporada, lendasDaTemporada])
+  useEffect(() => {
+    if (!lendasDoLeilao.length || coletivaPronta || !myDiv) return
+    const chave = `${sn}:apres`
+    if (coletivaOfertada.current.has(chave)) return
+    coletivaOfertada.current.add(chave)
+    const minha = tables[myDiv] ?? []
+    const caixa = state.careerCoins?.[youId] ?? 0
+    const ctx: ColetivaCtx = { rodada: 0, totalRodadas: 38, temporada: sn, div: myDiv, clube: mgrMe?.teamName ?? '', semVencer: 0, vitoriasSeguidas: 0,
+      pos: Math.max(1, minha.findIndex(t => t.you) + 1), total: minha.length || 20, zonaSubir: false, zonaCair: false, lider: false,
+      caixa, caixaAlto: false, caixaBaixo: false, pulosSeguidos: coletivaSave.pulosSeguidos, rival: coletivaSave.arquirrival ?? undefined,
+      apresentacao: lendasDoLeilao.map(l => l.nome) }
+    const pronta = montaColetiva(ctx, coletivaSave, state.seed ?? 1)
+    if (pronta) setColetivaPronta({ pronta, ctx, alvo: { proximo: 0, classico: null }, chave })
+  }, [lendasDoLeilao, coletivaPronta, myDiv, sn]) // eslint-disable-line react-hooks/exhaustive-deps
   const responderColetiva = (estilo: ColetivaEstilo | null, registra = true) => {
     if (!coletivaPronta) return
     if (registra) dispatch({ type: 'COLETIVA_RESPONDE', mgrId: youId, pronta: coletivaPronta.pronta, estilo, ctx: coletivaPronta.ctx, alvo: coletivaPronta.alvo })
@@ -9885,13 +9915,14 @@ export function PyramidSeasonScreen() {
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
   useEffect(() => { if (coletivaOpen && !manual && !coletivaSala) abreColetiva(null) }, [coletivaOpen, manual, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (coletivaOpen && coletivaPronta?.ctx.apresentacao?.length && !coletivaSala) abreColetiva(null) }, [coletivaOpen, coletivaPronta, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!coletivaPronta) setColetivaSala(false) }, [coletivaPronta])
   const coletivaPlacarTxt = (() => {
     const pl = coletivaPronta?.ctx.placar
     if (!pl || coletivaPronta?.ctx.vespera) return null
     return `⚽ ${pl.gf} × ${pl.ga} · ${pl.gf > pl.ga ? tr('vitória', 'win') : pl.gf === pl.ga ? tr('empate', 'draw') : tr('derrota', 'loss')}${pl.arquirrival ? tr(' no clássico', ' in the derby') : ''}`
   })()
-  const coletivaRodadaTxt = !coletivaPronta ? '' : coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
+  const coletivaRodadaTxt = !coletivaPronta ? '' : coletivaPronta.ctx.apresentacao?.length ? tr('apresentação', 'unveiling') : coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
   // 📰 a cobrança das promessas e as frases da temporada (página do jornal do fim)
   const coletivaJornal = useMemo(() => {
     if (!coletivaOn || !me || !copaFinished) return undefined
@@ -10384,7 +10415,16 @@ export function PyramidSeasonScreen() {
     })
     if (compManchete) jornal.manchete = compManchete
     // 🎙️ a coletiva desta rodada vira manchete do Martelo (e notícia no topo)
-    if (coletivaOn && coletivaUltima?.manchete && coletivaUltima.t === sn && coletivaUltima.r === revCentral) {
+    // ⭐ a APRESENTAÇÃO das lendas é a capa do Martelo de pré-temporada e da 1ª rodada (a foto delas no lugar da arte)
+    const apresUltima = coletivaSave.feitas.find(f => f.t === sn && (f.sit === 'apresentacao_uma' || f.sit === 'apresentacao_varias'))
+    const fotoLendas = coletivaOn && apresUltima && revCentral <= 1 && lendasDaTemporada.length ? lendasDaTemporada : null
+    if (fotoLendas && !compManchete) {
+      const nomes = fotoLendas.map(l => l.nome), j = (e: string) => nomes.length <= 1 ? nomes[0] : `${nomes.slice(0, -1).join(', ')} ${e} ${nomes[nomes.length - 1]}`
+      jornal.manchete = apresUltima!.manchete
+        ? { pt: apresUltima!.manchete[0], en: apresUltima!.manchete[1], sub: [apresUltima!.frase ? `“${apresUltima!.frase[0]}”` : '', apresUltima!.frase ? `“${apresUltima!.frase[1]}”` : ''] }
+        : { pt: `${euNome} apresenta ${j('e')}`, en: `${euNome} unveil ${j('and')}`, sub: ['Chegaram pelo leilão e já posaram pra foto.', 'They came through the auction and already posed for the photo.'] }
+    }
+    if (coletivaOn && coletivaUltima?.manchete && coletivaUltima.t === sn && coletivaUltima.r === revCentral && !fotoLendas) {
       jornal.noticias.unshift({ emoji: '🎙️', pt: coletivaUltima.manchete[0], en: coletivaUltima.manchete[1], tag: ['coletiva', 'presser'] })
       if (!compManchete) jornal.manchete = { pt: coletivaUltima.manchete[0], en: coletivaUltima.manchete[1], sub: [coletivaUltima.frase ? `“${coletivaUltima.frase[0]}”` : '', coletivaUltima.frase ? `“${coletivaUltima.frase[1]}”` : ''] }
     }
@@ -10417,7 +10457,7 @@ export function PyramidSeasonScreen() {
     return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null}
-      copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} />
+      copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas} />
   }
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
@@ -10915,7 +10955,8 @@ export function PyramidSeasonScreen() {
         {/* 🎙️ a COLETIVA em tela cheia (portal): o próximo jogo só aparece depois dela */}
         {coletivaSala && coletivaPronta && me && (
           <ColetivaPasso pronta={coletivaPronta.pronta} clube={me.team} placar={coletivaPlacarTxt} rodadaTxt={coletivaRodadaTxt} autoSeg={manual ? null : 12}
-            seguirTxt={copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('Ver o campeão', 'See the champion') : tr('Próxima fase', 'Next round')) : tr(`Ir pra rodada ${round + 1}`, `Go to round ${round + 1}`)}
+            lendas={coletivaPronta.ctx.apresentacao?.length ? lendasDoLeilao : undefined}
+            seguirTxt={coletivaPronta.ctx.apresentacao?.length ? tr('Fechar a apresentação', 'Close the unveiling') : copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('Ver o campeão', 'See the champion') : tr('Próxima fase', 'Next round')) : tr(`Ir pra rodada ${round + 1}`, `Go to round ${round + 1}`)}
             resolve={estilo => { const r = respondeColetiva(coletivaSave, coletivaPronta.pronta, estilo, coletivaPronta.ctx, state.seed ?? 1, coletivaPronta.alvo); return { manchete: r.manchete, efeito: r.efeito } }}
             onFim={(estilo, registra) => responderColetiva(estilo, registra)} />
         )}

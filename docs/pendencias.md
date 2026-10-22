@@ -1,3 +1,14 @@
+## ⭐ Apresentação das lendas + coletiva com mais ocasiões (22/10) — PUBLICADO pra todos
+Diego aprovou A + C do mockup `coletiva-apresentacao-lendas.png` (*"pode fazer a letra A e C junto… às vezes vai ser uma lenda,
+duas, três, quatro… ajustar a imagem… pode publicar já"*).
+- Rodada 0 (antes da temporada): se o leilão trouxe LENDA (fame 5, não promessa) pro seu clube (`careerMercado` da temporada),
+  a coletiva abre sozinha com as lendas na bancada (`LendasNaMesa`: 1–4 rostos, tamanho pela quantidade, 5+ = 4 + "+N";
+  sem rostinho = carta dourada com a inicial). Situações `apresentacao_uma`/`apresentacao_varias` (7 perguntas, 4 respostas por
+  estilo, 3 manchetes). Uma vez por temporada. Quem fala é SEMPRE o presidente (nunca frase na boca de jogador real).
+- C: a foto (`FotoLendas`) vira a capa do Martelo na Central (pré-temporada e rodada 1), com a manchete da resposta.
+- Variedade: ocasiões NOVAS na coletiva (não mais textos por pergunta — pedido dele: *"mais tipos de pergunta… em outras ocasiões"*).
+- Bancada: `scripts/teste-apresentacao/?n=1..5`.
+
 ## 💪 Elenco: força do time · Rank em 3 grupos · Jogos com trilha · Coletiva pra todos (22/10) — PUBLICADO
 - 💪 **Força do time** (SquadTab, só no Elenco da carreira): DEF (gol+lat+zag) · MEI · ATA = média do meio da faixa lo–hi dos 11
   titulares + CONDIÇÃO (gás médio, só com o gás ligado). Overall na MESMA regra do Olheiro (*"mantém como funciona hoje"*): 👑 vê
