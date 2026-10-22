@@ -1,4 +1,6 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
+import estadioCerArt from './img/online-estadio-v25.webp'
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
@@ -3895,44 +3897,92 @@ export function premiosDaResenha(mgrs: Manager[], resenha?: EscState['resenha'])
   }
 }
 
+// ⭐ AS LENDAS APRESENTADAS NA CERIMÔNIA (22/10, mockup online-cerimonia-lendas-conta.png, Diego: *"aprovado"*). Zero tempo
+// a mais e zero mensagem nova: cada aparelho monta com o elenco que JÁ tem. Só lenda (com rostinho; sem rostinho = carta
+// dourada com a inicial). Nunca frase na boca do jogador — ele só aparece na foto.
+type LendaCer = { nome: string; club: string; year: number; paid: number; time: string }
+function RostoCer({ l, w, h }: { l: LendaCer; w: number; h: number }) {
+  const art = legendAvatar(l.nome, l.club, l.year)
+  if (art) return <img src={art.src} alt={l.nome} style={{ width: w, height: h, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(3px 3px 0 #000)', flex: 'none' }} />
+  return <span style={{ width: Math.round(w * .7), height: Math.round(h * .62), marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200)', boxShadow: '3px 3px 0 #000', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: Math.round(h * .28), color: INK, flex: 'none' }}>{l.nome.trim().charAt(0)}</span>
+}
+function FotoLendasCerimonia({ lendas }: { lendas: LendaCer[] }) {
+  if (!lendas.length) return null
+  const vis = lendas.slice(0, 4), n = vis.length, h = n <= 2 ? 140 : n === 3 ? 128 : 112, w = Math.min(Math.round(h * .84), Math.floor((lendas.length > 4 ? 290 : 330) / n))
+  return (
+    <div style={{ position: 'relative', marginTop: 8, height: 150, border: `2.5px solid ${INK}`, borderRadius: 12, overflow: 'hidden', background: `#1d2b1f url(${estadioCerArt}) center 60% / cover`, display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
+      <span style={{ position: 'absolute', left: 8, top: 8, zIndex: 2, background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 11, padding: '2px 8px', textTransform: 'uppercase' }}>⭐ {lendas.length === 1 ? tr('Apresentou 1 lenda', 'Unveiled 1 legend') : tr(`Apresentou ${lendas.length} lendas`, `Unveiled ${lendas.length} legends`)}</span>
+      {vis.map(l => <RostoCer key={l.nome + l.club} l={l} w={w} h={h} />)}
+      {lendas.length > 4 && <span style={{ alignSelf: 'center', marginLeft: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 8px', ...OSWALD, fontWeight: 900, fontSize: 13 }}>+{lendas.length - 4}</span>}
+    </div>
+  )
+}
+function LendasDoPregao({ mgrs, lendasDe }: { mgrs: Manager[]; lendasDe: (m: Manager) => LendaCer[] }) {
+  const todas = mgrs.flatMap(m => lendasDe(m)).sort((a, b) => b.paid - a.paid)
+  if (!todas.length) return null
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `3px 3px 0 ${INK}`, background: '#fff' }}>
+      <div style={{ padding: '7px 11px', background: INK, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>⭐ {tr('As lendas do pregão', 'The auction\'s legends')}</div>
+      {todas.map((l, i) => {
+        const art = legendAvatar(l.nome, l.club, l.year)
+        return (
+          <div key={l.nome + l.time + i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '5px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.1)' : 'none' }}>
+            {art ? <img src={art.src} alt="" style={{ width: 38, height: 38, objectFit: 'cover', objectPosition: 'top', borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, flex: 'none' }} />
+              : <span style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, flex: 'none' }}>{l.nome.charAt(0)}</span>}
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b style={{ ...OSWALD, fontSize: 14 }}>{l.nome}</b> · {l.time}</span>
+            {l.paid > 0 && <b style={{ ...OSWALD, fontSize: 15 }}>{l.paid} 🪙</b>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+// 🧾 A CONTA DO PREGÃO (22/10, mockup aprovado): um quadro só, cartões lado a lado com a medalha, quem foi e o NÚMERO grande.
+// Verde = coisa boa · vermelho = vacilo · laranja = pão-durismo. O perna-de-pau fecha embaixo numa faixa só. Mesmos prêmios
+// (`premiosDaResenha`) e as mesmas frases de antes — só a cara mudou.
 function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscState['resenha'] }) {
   const pr = premiosDaResenha(mgrs, resenha)
   if (!pr) return null
   const bbPr = getSport() === 'basquete' // 🏀 "perna-de-pau"/"titular" é coisa de futebol
-
-  const item = (bg: string, ic: string, titulo: string, quem: string, detalhe: React.ReactNode) => (
-    <div className="border-[2.5px] border-black rounded-xl overflow-hidden" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
-      <div className="flex items-center gap-1.5 px-2.5 py-1" style={{ background: bg }}>
-        <span className="text-sm leading-none">{ic}</span>
-        <span className="font-black text-[11px] uppercase tracking-wide text-white" style={OSWALD}>{titulo}</span>
-      </div>
-      <div className="bg-white px-2.5 py-1.5">
-        <p className="font-black text-[14px] leading-tight" style={OSWALD}>{quem}</p>
-        <p className="text-[11px] font-bold text-black/60 leading-snug mt-0.5">{detalhe}</p>
+  const COR = { bom: [GREEN, GOLD], ruim: ['#C2452F', '#FFE3D6'], meh: ['#B45309', '#FDE7C8'] } as const
+  const cartao = (tipo: keyof typeof COR, ic: string, rotulo: string, quem: string, num: string, numSub: string, frase: React.ReactNode) => (
+    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ height: 6, background: COR[tipo][0] }} />
+      <div style={{ padding: '8px 9px 9px', display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
+          <span style={{ width: 40, height: 40, flex: 'none', borderRadius: '50%', border: `3px solid ${INK}`, background: COR[tipo][1], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: `2px 2px 0 ${INK}` }}>{ic}</span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 10.5, letterSpacing: '.05em', textTransform: 'uppercase', color: '#666', lineHeight: 1.1 }}>{rotulo}</span>
+            <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{quem}</span>
+          </span>
+        </div>
+        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 22, lineHeight: 1 }}>{num} <small style={{ fontFamily: 'system-ui', fontWeight: 700, fontSize: 10.5, color: '#666' }}>{numSub}</small></div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, color: '#555', lineHeight: 1.3 }}>{frase}</div>
       </div>
     </div>
   )
+  const en = getLang() === 'en'
   return (
-    <div className="space-y-2">
-      <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: INK, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="font-black text-[10px] uppercase tracking-widest text-white/50" style={OSWALD}>{tr('O pregão acabou', 'The auction is over')}</p>
-        <p className="font-black text-2xl leading-none mt-0.5" style={{ ...OSWALD, color: GOLD }}>{tr('Agora a conta.', 'Now the bill.')}</p>
+    <div style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 #000`, padding: 11 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: GOLD, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>🧾 {tr('A conta do pregão', 'The auction bill')}</p>
+      <p style={{ color: '#aaa', fontSize: 11, fontWeight: 700, margin: '2px 0 9px' }}>{tr('quem roubou, quem pagou caro e quem dormiu no ponto', 'who stole, who overpaid and who fell asleep')}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {cartao('bom', '🏅', tr('Achado do pregão', 'Steal of the auction'), pr.achado.nome, `${pr.achado.pago} 🪙`, `${tr('por', 'for')} ${pr.achado.lo}–${pr.achado.hi}`, <>{pr.achado.time} · {tr('Roubou.', 'Robbery.')}</>)}
+        {cartao('ruim', '🐴', tr('Mico do pregão', 'Blunder of the auction'), pr.mico.nome, `${pr.mico.pago} 🪙`, `${tr('por', 'for')} ${pr.mico.lo}–${pr.mico.hi}`, <>{pr.mico.time} · {tr('Doeu.', 'Ouch.')}</>)}
+        {pr.furada && cartao('ruim', '💸', tr('Mão furada', 'Money down the drain'), pr.furada.time, `+${pr.furada.total} 🪙`, tr('a mais', 'too much'),
+          en ? <>Paid {pr.furada.pago} for {pr.furada.nome}; the 2nd bid was {pr.furada.segundo}.</> : <>Pagou {pr.furada.pago} em {pr.furada.nome}; o 2º lance era {pr.furada.segundo}.</>)}
+        {pr.vaca && cartao('meh', '🤏', tr('Mão de vaca', 'Tightwad'), pr.vaca.time, `${pr.vaca.sobrou} 🪙`, tr('no bolso', 'in the pocket'), tr('Guardou pra quê?', 'Saving it for what?'))}
       </div>
-      {getLang() === 'en' ? <>
-        {item(GREEN, '🏅', 'Steal of the auction', `${pr.achado.nome} · ${pr.achado.time}`, <>Level {pr.achado.lo}–{pr.achado.hi} and paid <b>{pr.achado.pago}</b>. Robbery.</>)}
-        {item('#8B5E3C', '🐴', 'Blunder of the auction', `${pr.mico.nome} · ${pr.mico.time}`, <>Level {pr.mico.lo}–{pr.mico.hi} and paid <b>{pr.mico.pago}</b>. Ouch.</>)}
-        {pr.furada && item('#C2452F', '💸', 'Money down the drain', pr.furada.time,
-          <>Paid <b>{pr.furada.pago}</b> for {pr.furada.nome} and the 2nd bid was <b>{pr.furada.segundo}</b>. Threw <b>{pr.furada.total} 🪙</b> away at the auction.</>)}
-        {pr.vaca && item('#B45309', '🤏', 'Tightwad', pr.vaca.time, <>Ended the auction with <b>{pr.vaca.sobrou} 🪙</b> in the pocket. Saving it for what?</>)}
-        {pr.pau && item('#6B7280', '🗑️', bbPr ? 'Dud in the starting five' : 'Dud in the starting XI', pr.pau.time, <>Started <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). On purpose?</>)}
-      </> : <>
-        {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
-        {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
-        {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
-          <>Pagou <b>{pr.furada.pago}</b> em {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
-        {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
-        {pr.pau && item('#6B7280', '🗑️', bbPr ? 'Tijolo no quinteto' : 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
-      </>}
+      {pr.pau && (
+        <div style={{ marginTop: 8, background: '#fff', border: `3px solid ${INK}`, borderLeft: `8px solid #C2452F`, borderRadius: 14, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 38, height: 38, flex: 'none', borderRadius: '50%', border: `3px solid ${INK}`, background: '#FFE3D6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19 }}>🗑️</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 10.5, letterSpacing: '.05em', textTransform: 'uppercase', color: '#666' }}>{bbPr ? tr('Tijolo no quinteto', 'Dud in the starting five') : tr('Perna-de-pau titular', 'Dud in the starting XI')}</span>
+            <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pr.pau.nome} · {pr.pau.time}</span>
+          </span>
+          <b style={{ ...OSWALD, fontWeight: 900, fontSize: 20 }}>{pr.pau.lo}–{pr.pau.hi}</b>
+        </div>
+      )}
     </div>
   )
 }
@@ -6031,6 +6081,16 @@ export function EscCerimonia() {
   const m = mgrs[Math.min(idx, mgrs.length - 1)]
   const you = state.managers[state.youIdx]
   const canStart = state.onlineMode !== 'online' || state.isHost
+  // ⭐ as lendas que cada time levou NESTE pregão: na carreira, o mercado da temporada (o elenco tem gente de anos atrás);
+  // no rápido e nas salas o elenco inteiro é do pregão (menos o filler dos bots). Só lenda de verdade (não promessa).
+  const lendasDoTime = (mm: Manager): LendaCer[] => {
+    if (state.sport === 'basquete') return []
+    const ehLenda = (c: Card) => !c.fake && c.fame >= 5 && !c.promessa
+    const doPregao = state.careerOnline
+      ? (() => { const lotes = state.careerMercado?.season === (state.seasonNo ?? 1) ? state.careerMercado.lotes.filter(l => l.teamId === mm.id) : []; return (mm.squad as WonCard[]).filter(c => lotes.some(l => l.name === c.name)) })()
+      : (mm.squad as WonCard[]).filter(c => c.via !== 'bot')
+    return doPregao.filter(ehLenda).sort((a, b) => (b.paid ?? 0) - (a.paid ?? 0)).map(c => ({ nome: c.name, club: c.club, year: c.year, paid: c.paid ?? 0, time: mm.teamName }))
+  }
 
   // cronômetro de 45s (igual leilão): dá tempo de olhar os times e começa
   // o campeonato sozinho quando zerar (o vigia no provider dispara o FINISH).
@@ -6059,6 +6119,8 @@ export function EscCerimonia() {
       )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
         <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName}{state.sport === 'basquete' ? '' : <span className="text-sm font-bold text-black/70"> ({m.formation})</span>}</p>
+        {/* ⭐ 22/10 (mockup online-cerimonia-lendas-conta.png, Diego: *"aprovado"*): as LENDAS que este time levou, apresentadas no estádio */}
+        <FotoLendasCerimonia lendas={lendasDoTime(m)} />
         <div className="mt-2 space-y-1.5">
           {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => {
             const tb = tierBadge(c)
@@ -6085,7 +6147,6 @@ export function EscCerimonia() {
           dos times das pessoas… já no início e não ter mais que passar todos os times pra ver"*.
           Antes só aparecia depois de passar por TODOS os elencos (e quase ninguém chegava lá
           nos 45s); agora fica embaixo do time desde a 1ª tela. */}
-      <PremiacaoResenha mgrs={mgrs} resenha={state.resenha} />
       {/* 🌱 CRIA DA BASE: a historinha de quem subiu do Sub-20 nesta virada
           (o técnico deixou um contrato vencido ir e o guri tapou o buraco).
           🔒 SÓ NA CARREIRA (`careerOnline`) — no rápido e no Minhas Ligas não
@@ -6146,6 +6207,9 @@ export function EscCerimonia() {
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
           onClick={() => setIdx((idx + 1) % mgrs.length)}>{t('Próximo', 'Next')} ▶</Btn></div>
       </div>
+      {/* ⭐ as lendas da sala inteira e, POR ÚLTIMO, a conta do pregão (22/10, Diego: *"coloque abaixo de todos"*) */}
+      <LendasDoPregao mgrs={mgrs} lendasDe={lendasDoTime} />
+      <PremiacaoResenha mgrs={mgrs} resenha={state.resenha} />
       {/* 🏀 14/09: AQUI MORAVA UM BECO SEM SAÍDA. Quando o basquete só tinha o
           pregão, esta tela dizia "a temporada entra na próxima atualização" e
           mandava pra home — mas a temporada do basquete (82 jogos, tabela por V-D,

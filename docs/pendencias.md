@@ -1,3 +1,12 @@
+## 🎭 Cerimônia: lendas apresentadas + a conta do pregão nova (22/10) — PUBLICADO pra todos
+Mockup `online-cerimonia-lendas-conta.png` aprovado (*"aprovado pode fazer"*). Ideias 2 (capa do Martelo da sala) e 3 (coletiva
+relâmpago) do mockup `online-apresentacao-lendas.png` foram RECUSADAS (*"gostei só do 1"*) — não repropor.
+- No cartão do time (`FotoLendasCerimonia`): só as LENDAS (fame 5, não promessa) que ele levou NESTE pregão (carreira: pelo
+  `careerMercado` da temporada; rápido/salas: elenco menos o filler `via:'bot'`). 1–4 rostos, 5+ = 4 + "+N". Sem lenda, sem foto.
+- Depois do Anterior/Próximo: ⭐ As lendas do pregão (sala inteira, mais cara primeiro) e, por último, 🧾 A conta do pregão
+  (mesmos prêmios de `premiosDaResenha`, cartões lado a lado; perna-de-pau numa faixa). Basquete: sem lendas.
+- Zero tempo e zero mensagem nova: tudo calculado no aparelho com o estado que já chega. Bancada: `scripts/teste-cerimonia/?n=0..5`.
+
 ## ⭐ Apresentação das lendas + coletiva com mais ocasiões (22/10) — PUBLICADO pra todos
 Diego aprovou A + C do mockup `coletiva-apresentacao-lendas.png` (*"pode fazer a letra A e C junto… às vezes vai ser uma lenda,
 duas, três, quatro… ajustar a imagem… pode publicar já"*).
