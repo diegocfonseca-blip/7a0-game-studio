@@ -1,3 +1,14 @@
+## 🕵️ Sondar à vista (22/10) — FEITO NO BRANCH, esperando "publica" do Diego
+Diego: *"a área de sondar técnico… não está muito clara… tem que estar em algum lugar melhor"*. Mockup aprovado (*"ok pode fazer
+mas mantém regra de over, categoria e etc. se mostra ou não"*). Feito: a janela antes do leilão ABRE no Sondar (1º passo, com
+"Agora não → vender reservas"); dois cartões 🧢 Técnico / ⚽ Jogador com 0/1 e quantos estão sem contrato; tocando, a LISTA direta
+(sem abrir clube por clube), filtro 🆓 sem contrato / todos. Regras iguais: técnico de outro clube só com o NOME; jogador só se o
+olheiro alcança (`sondarLiberado`), também só o nome; 1+1 por temporada; trava no reducer. Central Legends ganhou o aviso "a janela
+vai abrir" da rodada 33 em diante (só aviso, sem botão — marcar fora da janela não foi testado). Bancada: `scripts/teste-sondar/`.
+Na mesma conversa: a carreira perdeu gente desde set/out (temporada de 10 → 16 min, fichas/nuvem em 05/10, metade das carreiras
+novas para na 1ª temporada). Ideias levadas pro Diego, nenhuma aprovada ainda: Carreira Online pra todos, rival no jornal, Copa das
+Carreiras, meta da diretoria pelo tamanho do elenco, verba de reconstrução pra quem termina lá embaixo.
+
 ## ⚽ Motor novo: GOLEADA EXISTE (22/10, 2ª rodada) — SÓ NO BRANCH, esperando OK pra publicar
 Diego: *"não dá pra ter goleada então… tem momento que pode ter goleada, como tem momento que pode ser 1-0"*. Medido antes: numa liga
 misturada alguém fazer 4+ gols era 0,7%. A causa: cada gol custava ~6,5 s de tela (todo mundo voltando a pé pra saída) — num 5×0, 1/3

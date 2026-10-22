@@ -5555,7 +5555,8 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   )
 }
 
-function AliciarSection({ mgr }: { mgr: Manager }) {
+// 🔬 exportado só pra bancada de conferência (`scripts/teste-sondar/`)
+export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () => void }) {
   const { state, dispatch } = useEsc()
   const jogadorOn = useAliciarJogador() // 🔒 interruptor geral do sondar jogador (sport.ts)
   // 🕵️ OLHEIRO (Diego 07/09): sondar JOGADOR vai pela CATEGORIA da carta, com
@@ -5571,7 +5572,8 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   const temOlheiro = olheiroTier === 'ouro' || olheiroTier === 'prata'
   const olheiroNome = olheiroTier === 'ouro' ? tr('👑 Olheiro Lenda', '👑 Legend Scout') : olheiroTier === 'prata' ? tr('⭐ Olheiro Craque', '⭐ Star Scout') : tr('🕵️ Olheiro básico', '🕵️ Basic scout')
   const olheiroGrad = olheiroTier === 'ouro' ? APOIO_PERKS.ouro.grad : olheiroTier === 'prata' ? APOIO_PERKS.prata.grad : APOIO_PERKS.bege.grad
-  const [aberto, setAberto] = useState<string | null>(null)
+  const [passo, setPasso] = useState<'inicio' | 'tec' | 'jog'>('inicio')
+  const [soLivres, setSoLivres] = useState(true)
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
   // 🪜 a divisão de VERDADE é o placement (careerDivision fica congelado na de
   // fundação — foi o bug do "Lisca Doido na Série A", 28/08). Re-semeia quando
@@ -5586,8 +5588,6 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   if (state.onlineMode === 'online') return null
   const map = state.careerTecnicos ?? {}
   const meu = map[mgr.teamName] ?? null
-  const meuContratoFim = state.careerTecnicoContrato?.[mgr.teamName]
-  const valorMeu = meu ? (state.careerTecnicoPago?.[meu] ?? 0) : 0
   const marcadosT = state.aliciarTecnicos ?? []
   const marcadosJ = state.aliciarJogadores ?? []
   const rivais = new Set((state.careerRivals ?? []).map(r => r.team))
@@ -5640,237 +5640,183 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
   // parar no pregão (pedido do Diego 28/08: "mesmo sem clube o técnico tá
   // querendo leilão e tá pedindo LUVAS"). Determinística por nome+temporada.
-  const btnMarcar = (marcado: boolean, onClick: () => void, rotulo: string, trava?: string, historia?: string) => (
-    <>
-      <button onClick={() => { if (marcado || !trava) onClick() }} disabled={!marcado && !!trava}
-        style={{ width: '100%', marginTop: 9, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: marcado ? GREEN : trava ? '#d8cfb5' : GOLD, color: marcado ? '#fff' : trava ? 'rgba(0,0,0,.4)' : INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: marcado || !trava ? `3px 3px 0 0 ${INK}` : 'none', padding: '10px 0', cursor: marcado || !trava ? 'pointer' : 'not-allowed' }}>
-        {marcado ? tr('✔ Sondado — toque pra tirar', '✔ Scouted — tap to remove') : trava ? `🔒 ${trava}` : rotulo}
-      </button>
-      {marcado && historia && (
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 10, padding: '7px 9px', margin: '7px 0 0', lineHeight: 1.45 }}>📰 <b>{tr('Bastidor:', 'Backstage:')}</b> {historia}</p>
-      )}
-    </>
+  // 🕵️ SONDAR EM PASSOS (Diego 22/10, mockup aprovado: *"ok pode fazer, mas mantém regra de over, categoria e etc. se mostra ou
+  // não"*). A janela abre aqui: dois cartões grandes (🧢 Técnico · ⚽ Jogador) e, tocando, a LISTA direta — sem abrir clube por
+  // clube. AS REGRAS NÃO MUDARAM: técnico de outro clube aparece SÓ com o nome (categoria, nível e esquemas se revelam quando é
+  // seu); jogador só aparece se o olheiro da conta ALCANÇA a categoria (`sondarLiberado`), e a lista também só mostra o nome; 1
+  // técnico e 1 jogador por temporada, só 🆓 sem contrato. A trava de verdade continua no reducer (`ALICIAR_MARCAR`).
+  type LinhaTec = { nome: string; clube: string | null; falta: number; rival: boolean; pais?: string }
+  const tecs: LinhaTec[] = []
+  for (const c of clubes) {
+    const nome = map[c.teamName]
+    if (!nome) continue
+    tecs.push({ nome, clube: c.teamName, falta: faltaContrato(state.careerTecnicoContrato?.[c.teamName], state.seasonNo), rival: rivais.has(c.teamName) })
+  }
+  const usados = new Set(Object.values(map).filter(Boolean))
+  for (const tt of poolDaDiv(divAtual)) if (!usados.has(tt.nome)) tecs.push({ nome: tt.nome, clube: null, falta: 0, rival: false, pais: tt.pais })
+  type LinhaJog = { card: WonCard; clube: typeof clubes[number]; falta: number }
+  const jogs: LinhaJog[] = []
+  let escondidos = 0
+  if (jogadorOn) for (const c of clubes) for (const x of c.squad) {
+    if (x.fake || x.emprestado) continue
+    if (!marcadosJ.includes(x.id) && !sondarLiberado(x, olheiroTier)) { escondidos++; continue }
+    jogs.push({ card: x, clube: c, falta: contratoCpuFalta(x.id, state.seed, state.seasonNo) })
+  }
+  const tecLivres = tecs.filter(t => t.falta <= 0).length
+  const jogLivres = jogs.filter(j => j.falta <= 0).length
+  const nomeTecMarcado = marcadosT[0] ?? null
+  const jogMarcado = jogs.find(j => marcadosJ.includes(j.card.id)) ?? null
+  const fecha = (e?: { stopPropagation(): void }) => { e?.stopPropagation(); setPasso('inicio'); window.scrollTo({ top: 0 }) }
+  const pilula = (on: boolean, rotulo: string, onClick: () => void) => (
+    <button key={rotulo} onClick={onClick} style={{ fontSize: 10.5, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', background: on ? INK : '#fff', color: on ? '#fff' : INK, cursor: 'pointer' }}>{rotulo}</button>
   )
-  // 🎨 Diego 28/08 ("o padrão visual do vender tá de um jeito e o do sondar
-  // outro — deixa igual"): as seções viraram as MESMAS caixas do Vender
-  // (box branco/amarelo com título Oswald), nada de rótulo solto no creme.
-  return (
-    <div style={{ marginTop: 14 }}>
-      <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 8px', color: INK }}>{tr('🧢 Seu técnico', '🧢 Your coach')}</p>
-        {meu
-          ? (
-            <>
-              <CartaTecnico nome={meu} mostraFaixa />
-              <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0', textAlign: 'center' }}>
-                💰 {tr('valor', 'value')} {valorMeu || '—'} · 💸 {tr('salário', 'salary')} {Math.round(valorMeu / 10)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {meuContratoFim != null ? (meuContratoFim >= state.seasonNo ? (getLang() === 'en' ? `${meuContratoFim - state.seasonNo + 1} season${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''} left` : `falta${meuContratoFim - state.seasonNo + 1 > 1 ? 'm' : ''} ${meuContratoFim - state.seasonNo + 1} temporada${meuContratoFim - state.seasonNo + 1 > 1 ? 's' : ''}`) : tr('VENCIDO', 'EXPIRED')) : '—'}
-                {meuContratoFim != null && meuContratoFim < state.seasonNo ? <b style={{ color: '#C2452F' }}> {tr('(VENCIDO — decida na janela de contratos)', '(EXPIRED — decide in the contracts window)')}</b> : null}
-              </p>
-            </>
-          )
-          : (
-            <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '10px 12px' }}>
-              <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: 0 }}>{tr('Você ainda não tem técnico', 'You don\'t have a coach yet')}</p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>The {divRot} clubs{rivaisDeFora > 0 ? ' (and your ⚔️ rivals from other divisions)' : ''} have one — scout one below and fight for him at the next auction.</> : <>Os clubes da {divRot}{rivaisDeFora > 0 ? ' (e os seus ⚔️ rivais de outras séries)' : ''} têm — sonda um aqui embaixo e brigue por ele no próximo leilão.</>}</p>
-            </div>
-          )}
+  const linha = (chave: string, marcado: boolean, travado: string | undefined, onClick: () => void, titulo: React.ReactNode, detalhe: React.ReactNode, historia: string | null) => (
+    <div key={chave} style={{ marginBottom: 8 }}>
+      <div onClick={() => { if (marcado || !travado) onClick() }}
+        style={{ display: 'flex', alignItems: 'center', gap: 9, border: `3px solid ${marcado ? GREEN : INK}`, borderRadius: 14, padding: '8px 9px', background: travado && !marcado ? '#efe9d8' : '#fff', boxShadow: `2px 2px 0 0 ${marcado ? GREEN : INK}`, cursor: marcado || !travado ? 'pointer' : 'default', opacity: travado && !marcado ? .6 : 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', lineHeight: 1.1, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo}</p>
+          <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detalhe}</p>
+        </div>
+        <span style={{ flex: 'none', ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 8px', background: marcado ? GREEN : travado ? '#d8cfb5' : GOLD, color: marcado ? '#fff' : INK, boxShadow: travado && !marcado ? 'none' : `2px 2px 0 0 ${INK}` }}>
+          {marcado ? tr('✔ Sondado', '✔ Scouted') : travado ? `🔒 ${travado}` : tr('🕵️ Sondar', '🕵️ Scout')}
+        </span>
       </div>
-      <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
-        <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🕵️ Sondar', '🕵️ Scout')} · {divRot}{rivaisDeFora > 0 ? tr(' + rivais', ' + rivals') : ''}</p>
-        {/* 📜 QUEM ESTÁ NA LISTA — a frase que faltava (Diego 10/09). Só aparece
-            quando existe rival fora da sua série; carreira sem isso não lê nada a mais. */}
-        {rivaisDeFora > 0 && (
-          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#7a5c12', margin: '0 0 5px', lineHeight: 1.45 }}>
-            {getLang() === 'en' ? <>The list has the <b>19 {divRot} clubs</b> plus the <b>{rivaisDeFora} ⚔️ rival{rivaisDeFora > 1 ? 's' : ''}</b> you picked at the start of the career who {rivaisDeFora === 1 ? 'is' : 'are'} now in another division. {rivaisDeFora === 1 ? 'He stays' : 'They stay'} here because {rivaisDeFora === 1 ? 'he fights' : 'they fight'} in <b>your auction</b> — {rivaisDeFora === 1 ? 'he just doesn\'t play' : 'they just don\'t play'} your fixtures.</> : <>Na lista estão os <b>19 clubes da {divRot}</b> e mais {rivaisDeFora === 1 ? 'o' : 'os'} <b>{rivaisDeFora} ⚔️ rival{rivaisDeFora > 1 ? 'is' : ''}</b> que você escolheu no começo da carreira e que hoje {rivaisDeFora === 1 ? 'está' : 'estão'} em outra série. {rivaisDeFora === 1 ? 'Ele fica' : 'Eles ficam'} aqui porque {rivaisDeFora === 1 ? 'briga' : 'brigam'} no <b>seu leilão</b> — só não {rivaisDeFora === 1 ? 'joga' : 'jogam'} a sua tabela.</>}
-          </p>
-        )}
-        {/* 📝 o texto SEGUE O QUE ESTÁ LIGADO (Diego 28/08: "tire essa informação
-            de jogador"): com o sondar de jogador fechado, a explicação fala só
-            de técnico. Quando o gate abrir, o texto completo volta sozinho — sem
-            ninguém precisar lembrar de trocar a frase.
-            🕵️ 07/09: e agora segue TAMBÉM o Olheiro da conta — quem tem, lê a
-            régua dele; quem não tem, lê que jogador é coisa do Olheiro. */}
-        {jogadorOn ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>Tap a club and mark who you want — <b>max. 1 coach and 1 player per season</b>, and only those <b>🆓 out of contract</b>. It's like listing for sale, but the other way round: <b>the scouted one goes to the auction</b> — the player enters his sector (and in that one you CAN bid) and the coach opens the auction as an extra position, before the goalkeepers. {olheiroTier === 'ouro' ? <>Your <b>👑 Legend Scout</b> finds <b>any player, legends included</b>.</> : olheiroTier === 'prata' ? <>Your <b>⭐ Star Scout</b> finds <b>from star down</b> — he can't even see legends, only the 👑 Legend can.</> : <>Your <b>basic scout</b> only finds <b>ex-pros, good players and prospects</b> — stars and legends are invisible to him (⭐ Star finds the stars · 👑 Legend finds everyone).</>}</> : <>Toque num clube e marque quem você quer — <b>máx. 1 técnico e 1 jogador por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — o jogador entra no setor dele (e nesse você PODE dar lance) e o técnico abre o pregão como uma posição a mais, antes dos goleiros. {olheiroTier === 'ouro' ? <>Seu <b>👑 Olheiro Lenda</b> acha <b>qualquer jogador, lenda inclusive</b>.</> : olheiroTier === 'prata' ? <>Seu <b>⭐ Olheiro Craque</b> acha <b>de craque pra baixo</b> — lenda ele nem enxerga, só o 👑 Lenda.</> : <>Seu <b>olheiro básico</b> só acha <b>foi profissional, bom jogador e promessa</b> — craque e lenda ficam invisíveis pra ele (⭐ Craque acha os craques · 👑 Lenda acha todos).</>}</>}</p>
-        ) : (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>Tap a club and mark the <b>coach</b> you want — <b>max. 1 per season</b>, and only those <b>🆓 out of contract</b>. It's like listing for sale, but the other way round: <b>the scouted one goes to the auction</b> — he opens the auction as an extra position, <b>before the goalkeepers</b>, and you fight for him in the envelope just like a player. 🔨</> : <>Toque num clube e marque o <b>técnico</b> que você quer — <b>máx. 1 por temporada</b>, e só quem está <b>🆓 sem contrato</b>. É igual listar pra venda, só que ao contrário: <b>o sondado vai pro leilão</b> — ele abre o pregão como uma posição a mais, <b>antes dos goleiros</b>, e você briga por ele no envelope igual jogador. 🔨</>}</p>
-        )}
+      {marcado && historia && (
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 10, padding: '7px 9px', margin: '6px 0 0', lineHeight: 1.45 }}>📰 <b>{tr('Bastidor:', 'Backstage:')}</b> {historia}</p>
+      )}
+    </div>
+  )
+  const contratoTxt = (falta: number) => falta > 0
+    ? (getLang() === 'en' ? `📝 contract: ${falta} season${falta > 1 ? 's' : ''} left` : `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta}`)
+    : tr('🆓 sem contrato', '🆓 no contract')
+  const rodapeLista = (marcadoNome: string | null) => (
+    <button onClick={fecha} style={{ width: '100%', marginTop: 6, ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: 11, background: marcadoNome ? GREEN : '#fff', color: marcadoNome ? '#fff' : INK, cursor: 'pointer' }}>
+      {marcadoNome ? (getLang() === 'en' ? `✔ Done — ${marcadoNome} goes to the auction` : `✔ Pronto — ${marcadoNome} vai pro leilão`) : tr('← Voltar', '← Back')}
+    </button>
+  )
+
+  // ── 🧢 LISTA DE TÉCNICOS ──
+  if (passo === 'tec') {
+    const lista = (soLivres ? tecs.filter(t => t.falta <= 0) : tecs).slice().sort((a, b) => (a.falta > 0 ? 1 : 0) - (b.falta > 0 ? 1 : 0) || a.nome.localeCompare(b.nome))
+    return (
+      <div style={{ marginTop: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+          <button onClick={fecha} style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: 'none', border: 'none', color: INK, cursor: 'pointer', padding: 0 }}>{tr('← 🧢 Sondar técnico', '← 🧢 Scout a coach')}</button>
+          <span style={{ fontSize: 11, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 9px', background: '#fff' }}>{marcadosT.length}/1</span>
+        </div>
+        {meu && <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}><MeuTecnicoBox mgr={mgr} /></div>}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 9 }}>
+          {pilula(soLivres, `${tr('🆓 Sem contrato', '🆓 No contract')} (${tecLivres})`, () => setSoLivres(true))}
+          {pilula(!soLivres, `${tr('Todos', 'All')} (${tecs.length})`, () => setSoLivres(false))}
+        </div>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '0 2px 8px', lineHeight: 1.45 }}>{tr('🙈 Só o nome: categoria, nível e esquemas você descobre quando ele for seu.', '🙈 Name only: category, level and systems are revealed once he is yours.')}</p>
+        {!lista.length && <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', textAlign: 'center', margin: '14px 0' }}>{tr('😶 Nenhum técnico sem contrato nesta temporada.', '😶 No coach out of contract this season.')}</p>}
+        {lista.map(t => {
+          const marcado = marcadosT.includes(t.nome)
+          const trava = t.falta > 0 ? (getLang() === 'en' ? `${t.falta} left` : `falta${t.falta > 1 ? 'm' : ''} ${t.falta}`) : (!marcado && marcadosT.length >= 1 ? '1/1' : undefined)
+          return linha(`t:${t.nome}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', tec: t.nome }),
+            <>🧢 {t.nome}{t.pais ? ` ${t.pais}` : ''}</>,
+            <>{t.clube ? `${t.rival ? '⚔️ ' : ''}${t.clube}` : tr('🕴️ sem clube — ninguém defende', '🕴️ no club — nobody defends')} · {contratoTxt(t.falta)}</>,
+            marcado ? historiaSondagem(t.nome, t.clube ? 'tec' : 'livre', t.clube, state.seasonNo) : null)
+        })}
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 2px 8px', lineHeight: 1.45, textAlign: 'center' }}>{tr('Ele abre o pregão como uma posição a mais, antes dos goleiros, e você briga por ele no envelope.', 'He opens the auction as an extra position, before the goalkeepers, and you fight for him in the envelope.')}</p>
+        {rodapeLista(nomeTecMarcado)}
       </div>
-      {/* 🛡️ grade 2 por linha com o ESCUDO (Diego 28/08: "os times podiam ficar
-          lado a lado que tem espaço") — tocar ABRE a janelinha do clube. */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {clubes.map(c => {
-          const nome = map[c.teamName] ?? null
-          const ehRival = rivais.has(c.teamName)
-          const temMarca = (!!nome && marcadosT.includes(nome)) || c.squad.some(x => marcadosJ.includes(x.id))
+    )
+  }
+
+  // ── ⚽ LISTA DE JOGADORES (só quem o olheiro ALCANÇA) ──
+  if (passo === 'jog') {
+    const lista = soLivres ? jogs.filter(j => j.falta <= 0 || marcadosJ.includes(j.card.id)) : jogs
+    return (
+      <div style={{ marginTop: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+          <button onClick={fecha} style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: 'none', border: 'none', color: INK, cursor: 'pointer', padding: 0 }}>{tr('← ⚽ Sondar jogador', '← ⚽ Scout a player')}</button>
+          <span style={{ fontSize: 11, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 9px', background: '#fff' }}>{marcadosJ.length}/1</span>
+        </div>
+        <p style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroGrad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#5a5647' }}>{olheiroTier === 'ouro' ? tr('acha qualquer jogador, lenda inclusive', 'finds any player, legends included') : olheiroTier === 'prata' ? tr('acha de craque pra baixo', 'finds from star down') : tr('acha foi profissional, bom jogador e promessa', 'finds ex-pros, good players and prospects')}</span>
+        </p>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 9 }}>
+          {pilula(soLivres, `${tr('🆓 Sem contrato', '🆓 No contract')} (${jogLivres})`, () => setSoLivres(true))}
+          {pilula(!soLivres, `${tr('Todos que ele achou', 'All he found')} (${jogs.length})`, () => setSoLivres(false))}
+        </div>
+        {!lista.length && <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', textAlign: 'center', margin: '14px 0' }}>{tr('😶 Seu olheiro não achou ninguém sem contrato ao alcance dele.', '😶 Your scout found nobody out of contract within his reach.')}</p>}
+        {SECTORS.map(pos => {
+          const cs = lista.filter(j => j.card.pos === pos).sort((a, b) => (a.falta > 0 ? 1 : 0) - (b.falta > 0 ? 1 : 0) || a.card.name.localeCompare(b.card.name))
+          if (!cs.length) return null
           return (
-            <button key={c.teamName} onClick={() => setAberto(c.teamName)}
-              style={{ border: `3px solid ${INK}`, borderRadius: 14, background: ehRival ? '#FFF3C4' : '#fff', boxShadow: `2.5px 2.5px 0 0 ${INK}`, padding: '11px 8px 9px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, color: INK, position: 'relative' }}>
-              <Escudo nome={c.teamName} size={40} />
-              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.15, textAlign: 'center' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
-              {temMarca && <span style={{ position: 'absolute', top: 5, right: 7, fontSize: 13 }}>🕵️</span>}
-            </button>
+            <div key={pos}>
+              <p style={{ ...OSWALD, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', color: GREEN, margin: '8px 2px 4px' }}>{POS_LABEL[pos]}</p>
+              {cs.map(j => {
+                const x = j.card, c = j.clube
+                const marcado = marcadosJ.includes(x.id)
+                const trava = j.falta > 0 ? (getLang() === 'en' ? `${j.falta} left` : `falta${j.falta > 1 ? 'm' : ''} ${j.falta}`) : (!marcado && marcadosJ.length >= 1 ? '1/1' : undefined)
+                return linha(`j:${x.id}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }),
+                  <>{x.name}</>,
+                  <>{rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {contratoTxt(j.falta)}</>,
+                  marcado ? historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo) : null)
+              })}
+            </div>
           )
         })}
+        <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '6px 2px 8px', lineHeight: 1.4 }}>{tr('Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato). A grana da venda vai pro clube dono — que também pode brigar de volta, e repõe a vaga se perder.', 'Marking = he enters the AUCTION, in his sector, along with the other cards (max. 1 per season, only 🆓 out of contract). The sale money goes to the owner club — which can also fight back, and refills the spot if it loses.')}</p>
+        {/* 🚪 porta: tem gente que o olheiro da conta não alcança (sem nome e sem categoria — ele não achou) */}
+        {escondidos > 0 && (
+          <ApoieButton startScreen="choice" trigger={open => (
+            <button onClick={open} style={{ width: '100%', border: `2px dashed ${INK}`, borderRadius: 9, padding: '7px 9px', margin: '0 0 8px', background: '#fff', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 10, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
+              {getLang() === 'en' ? (temOlheiro
+                ? <>🙈 There {escondidos > 1 ? 'are' : 'is'} <b>{escondidos} player{escondidos > 1 ? 's' : ''}</b> your scout can't reach — only the <b>👑 Legend Scout</b> finds legends. <u>Tap here</u> to become Legend paying just the difference</>
+                : <>🙈 There {escondidos > 1 ? 'are' : 'is'} <b>{escondidos} player{escondidos > 1 ? 's' : ''}</b> your scout can't reach — ⭐ <b>Star Scout</b> finds the stars · 👑 <b>Legend Scout</b> finds everyone. <u>Tap here</u></>) : (temOlheiro
+                ? <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> que o seu olheiro não alcança — só o <b>👑 Olheiro Lenda</b> acha lenda. <u>Toca aqui</u> pra virar Lenda pagando só a diferença</>
+                : <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> que o seu olheiro não alcança — ⭐ <b>Olheiro Craque</b> acha os craques · 👑 <b>Olheiro Lenda</b> acha todos. <u>Toca aqui</u></>)}
+            </button>
+          )} />
+        )}
+        {rodapeLista(jogMarcado?.card.name ?? null)}
       </div>
-      {/* 🪟 a JANELINHA do clube: abre por cima com o visual que a sanfona já
-          tinha (carta do técnico às cegas + contrato + jogadores). */}
-      {aberto && !aberto.startsWith('livre:') && (() => {
-        const c = clubes.find(x => x.teamName === aberto)
-        if (!c) return null
-        const nome = map[c.teamName] ?? null
-        const ehRival = rivais.has(c.teamName)
-        return (
-          <div onClick={() => setAberto(null)} style={{ position: 'fixed', inset: 0, zIndex: 99995, background: 'rgba(0,0,0,.72)', overflowY: 'auto', padding: '26px 14px 40px' }}>
-            <div onClick={e => e.stopPropagation()} style={{ maxWidth: 430, margin: '0 auto', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, background: '#F4ECD6', overflow: 'hidden' }}>
-              <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px' }}>
-                <Escudo nome={c.teamName} size={30} />
-                <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ehRival ? '⚔️ ' : ''}{c.teamName}</span>
-                <button onClick={() => setAberto(null)} style={{ background: '#fff', color: INK, border: 'none', borderRadius: 8, fontWeight: 900, fontSize: 13, padding: '2px 9px', cursor: 'pointer', ...OSWALD }}>✕</button>
-              </div>
-              <div style={{ padding: '12px 12px 14px' }}>
-                {nome ? (
-                  <>
-                    {/* 🙈 só o NOME (regra do Diego): categoria/nível/formações se revelam quando é seu */}
-                    <CartaTecnico nome={nome} misterio />
-                    {(() => {
-                      // 📝 contrato de 5 anos de TODO técnico: só se alicia quem está SEM
-                      const fim = state.careerTecnicoContrato?.[c.teamName]
-                      const falta = faltaContrato(fim, state.seasonNo)
-                      const marcado = marcadosT.includes(nome)
-                      const trava = falta > 0 ? (getLang() === 'en' ? `contract: ${falta} season${falta > 1 ? 's' : ''} left` : `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : (!marcado && marcadosT.length >= 1 ? tr('já sondou 1 técnico nesta temporada', 'already scouted 1 coach this season') : undefined)
-                      return (
-                        <>
-                          <p style={{ fontSize: 10, fontWeight: 800, color: falta > 0 ? '#5a5647' : GREEN, margin: '6px 0 0', textAlign: 'center' }}>{falta > 0 ? (getLang() === 'en' ? `📝 contract: ${falta} season${falta > 1 ? 's' : ''} left` : `📝 contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : tr('🆓 SEM contrato — pode sondar', '🆓 NO contract — can be scouted')}</p>
-                          {btnMarcar(marcado, () => dispatch({ type: 'ALICIAR_MARCAR', tec: nome }), tr('🕵️ Sondar pro leilão', '🕵️ Scout for the auction'), trava, historiaSondagem(nome, 'tec', c.teamName, state.seasonNo))}
-                        </>
-                      )
-                    })()}
-                  </>
-                ) : (
-                  <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', margin: 0, textAlign: 'center' }}>{tr('😶 Este clube está SEM técnico no momento.', '😶 This club has NO coach right now.')}</p>
-                )}
-                {/* 🕵️ JOGADORES DO CLUBE — a parte do OLHEIRO (Diego 07/09). Todo
-                    mundo vê a caixa; a lista só traz quem o olheiro da conta ALCANÇA
-                    (profissional/bom/promessa = todos · craque = ⭐/👑 · lenda = 👑).
-                    Quem está acima dele não aparece — e no pé fica a porta dizendo
-                    que tem gente que o olheiro não achou. */}
-                {jogadorOn && (() => {
-                  const elenco = c.squad.filter(x => !x.fake && !x.emprestado)
-                  const alcanca = (x: WonCard) => marcadosJ.includes(x.id) || sondarLiberado(x, olheiroTier)
-                  const escondidos = elenco.filter(x => !alcanca(x)).length
-                  return (
-                  <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, padding: '9px 10px', marginTop: 11, background: '#FBF6E8' }}>
-                    <p style={{ margin: '0 0 5px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroGrad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
-                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: '#5a5647' }}>{tr('Jogadores que ele achou', 'Players he found')}</span>
-                    </p>
-                    {escondidos === elenco.length && (
-                      <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5a5647', margin: '4px 0 2px', textAlign: 'center' }}>{tr('😶 Seu olheiro não achou ninguém ao alcance dele neste clube.', '😶 Your scout found nobody within his reach at this club.')}</p>
-                    )}
-                    {SECTORS.map(pos => {
-                      const cs = elenco.filter(x => x.pos === pos && alcanca(x))
-                      if (!cs.length) return null
-                      return (
-                        <div key={pos}>
-                          <p style={{ ...OSWALD, fontWeight: 800, fontSize: 9, textTransform: 'uppercase', color: GREEN, opacity: .85, margin: '6px 0 2px' }}>{POS_LABEL[pos]}</p>
-                          {cs.map(x => {
-                            // 📝 todo jogador de CPU vive em contratos de 5 anos escalonados
-                            // (ciclo determinístico) — só se alicia quem está SEM contrato.
-                            const falta = contratoCpuFalta(x.id, state.seed, state.seasonNo)
-                            const marcado = marcadosJ.includes(x.id)
-                            const preso = falta > 0
-                            const tetoCheio = !marcado && marcadosJ.length >= 1
-                            const pode = !preso && (!tetoCheio || marcado)
-                            const apagado = preso || (tetoCheio && !marcado)
-                            return (
-                              <div key={x.id}>
-                                <div onClick={() => { if (marcado || pode) dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }) }}
-                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '4px 7px', borderRadius: 6, background: preso ? '#eee' : marcado ? '#E9F9EF' : '#fff', borderLeft: `3px solid ${preso ? 'transparent' : GREEN}`, marginBottom: 3, opacity: apagado ? .5 : 1, cursor: marcado || pode ? 'pointer' : 'default' }}>
-                                  <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}
-                                    <span style={{ fontSize: 9.5, marginLeft: 4, fontWeight: 800, color: apagado ? 'rgba(0,0,0,.45)' : GREEN }}>{preso ? (getLang() === 'en' ? `📝 ${falta} left` : `📝 falta${falta > 1 ? 'm' : ''} ${falta}`) : marcado ? tr('✔ no leilão · tirar', '✔ in the auction · remove') : tetoCheio ? tr('🔒 já sondou 1', '🔒 already scouted 1') : tr('🆓 + sondar', '🆓 + scout')}</span></span>
-                                </div>
-                                {marcado && (
-                                  <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', background: '#FFF7DB', border: `2px dashed ${INK}`, borderRadius: 8, padding: '6px 8px', margin: '0 0 5px', lineHeight: 1.45 }}>📰 <b>{tr('Bastidor:', 'Backstage:')}</b> {historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo)}</p>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )
-                    })}
-                    <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '4px 2px 0', lineHeight: 1.4 }}>{tr('Marcar = ele entra no LEILÃO, no setor dele, junto com as outras cartas (máx. 1 por temporada, só 🆓 sem contrato). A grana da venda vai pro clube dono — que também pode brigar de volta, e repõe a vaga se perder.', 'Marking = he enters the AUCTION, in his sector, along with the other cards (max. 1 per season, only 🆓 out of contract). The sale money goes to the owner club — which can also fight back, and refills the spot if it loses.')}</p>
-                    {/* 🚪 porta: tem gente neste clube que o olheiro da conta não
-                        alcança (só pra quem NÃO tem o tier — regra das portas). Sem
-                        nome e sem categoria de quem ficou de fora: o olheiro não achou. */}
-                    {escondidos > 0 && (
-                      <ApoieButton startScreen="choice" trigger={open => (
-                        <button onClick={open} style={{ width: '100%', border: `2px dashed ${INK}`, borderRadius: 9, padding: '6px 9px', margin: '7px 0 0', background: '#fff', cursor: 'pointer', textAlign: 'left', fontWeight: 800, fontSize: 10, color: 'rgba(0,0,0,.6)', lineHeight: 1.4 }}>
-                          {getLang() === 'en' ? (temOlheiro
-                            ? <>🙈 There {escondidos > 1 ? 'are' : 'is'} <b>{escondidos} player{escondidos > 1 ? 's' : ''}</b> at this club your scout can't reach — only the <b>👑 Legend Scout</b> finds legends. <u>Tap here</u> to become Legend paying just the difference</>
-                            : <>🙈 There {escondidos > 1 ? 'are' : 'is'} <b>{escondidos} player{escondidos > 1 ? 's' : ''}</b> at this club your scout can't reach — ⭐ <b>Star Scout</b> finds the stars · 👑 <b>Legend Scout</b> finds everyone. <u>Tap here</u></>) : (temOlheiro
-                            ? <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> neste clube que o seu olheiro não alcança — só o <b>👑 Olheiro Lenda</b> acha lenda. <u>Toca aqui</u> pra virar Lenda pagando só a diferença</>
-                            : <>🙈 Tem <b>{escondidos} jogador{escondidos > 1 ? 'es' : ''}</b> neste clube que o seu olheiro não alcança — ⭐ <b>Olheiro Craque</b> acha os craques · 👑 <b>Olheiro Lenda</b> acha todos. <u>Toca aqui</u></>)}
-                        </button>
-                      )} />
-                    )}
-                  </div>
-                  )
-                })()}
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-      {(() => {
-        // 🕴️ SEM CLUBE: os técnicos livres da divisão — mesmo esquema, só marcar
-        const usados = new Set(Object.values(map).filter(Boolean))
-        const div = divAtual
-        const livres = poolDaDiv(div).filter(tt => !usados.has(tt.nome))
-        if (!livres.length) return null
-        return (
-          <>
-            <div style={{ ...box('#FBF6E8'), padding: 11, margin: '12px 0 10px' }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🕴️ Sem clube', '🕴️ Unattached')}</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>Free coaches of the {divRot}. In their auction <b>nobody defends</b> — it's you × the division's bots.</> : <>Técnicos livres da {divRot}. No leilão deles <b>ninguém defende</b> — é você × os bots da divisão.</>}</p>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {livres.map(tt => (
-                <button key={tt.nome} onClick={() => setAberto(`livre:${tt.nome}`)}
-                  style={{ border: `3px dashed ${INK}`, borderRadius: 14, background: '#FBF6E8', padding: '11px 8px 9px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, color: INK, position: 'relative' }}>
-                  <span style={{ fontSize: 26, lineHeight: '30px' }}>🕴️</span>
-                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.15, textAlign: 'center' }}>{tt.nome} {tt.pais}</span>
-                  {marcadosT.includes(tt.nome) && <span style={{ position: 'absolute', top: 5, right: 7, fontSize: 13 }}>🕵️</span>}
-                </button>
-              ))}
-            </div>
-            {aberto?.startsWith('livre:') && (() => {
-              const tt = livres.find(x => `livre:${x.nome}` === aberto)
-              if (!tt) return null
-              return (
-                <div onClick={() => setAberto(null)} style={{ position: 'fixed', inset: 0, zIndex: 99995, background: 'rgba(0,0,0,.72)', overflowY: 'auto', padding: '26px 14px 40px' }}>
-                  <div onClick={e => e.stopPropagation()} style={{ maxWidth: 430, margin: '0 auto', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, background: '#F4ECD6', overflow: 'hidden' }}>
-                    <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px' }}>
-                      <span style={{ fontSize: 20 }}>🕴️</span>
-                      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tt.nome} {tt.pais} · {tr('SEM CLUBE', 'NO CLUB')}</span>
-                      <button onClick={() => setAberto(null)} style={{ background: '#fff', color: INK, border: 'none', borderRadius: 8, fontWeight: 900, fontSize: 13, padding: '2px 9px', cursor: 'pointer', ...OSWALD }}>✕</button>
-                    </div>
-                    <div style={{ padding: '12px 12px 14px' }}>
-                      <CartaTecnico nome={tt.nome} misterio />
-                      <p style={{ fontSize: 10, fontWeight: 800, color: GREEN, margin: '6px 0 0', textAlign: 'center' }}>{tr('🆓 SEM contrato — pode sondar', '🆓 NO contract — can be scouted')}</p>
-                      {btnMarcar(marcadosT.includes(tt.nome), () => dispatch({ type: 'ALICIAR_MARCAR', tec: tt.nome }), tr('🕵️ Sondar pro leilão', '🕵️ Scout for the auction'), !marcadosT.includes(tt.nome) && marcadosT.length >= 1 ? tr('já sondou 1 técnico nesta temporada', 'already scouted 1 coach this season') : undefined, historiaSondagem(tt.nome, 'livre', null, state.seasonNo))}
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-          </>
-        )
-      })()}
-      {totalMarcado > 0 && (
-        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '8px 0 0' }}>🕵️ {totalMarcado} {getLang() === 'en' ? `scouted — they OPEN the next leftovers auction.` : `sondado${totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.`}</p>
+    )
+  }
+
+  // ── 🕵️ 1º PASSO: quem você quer trazer? ──
+  const cartao = (tipo: 'tec' | 'jog', fundo: string, ico: string, titulo: string, n: number, texto: React.ReactNode, livres: number, marcadoNome: string | null) => (
+    <button onClick={() => { setPasso(tipo); setSoLivres(true); window.scrollTo({ top: 0 }) }}
+      style={{ display: 'block', width: '100%', textAlign: 'left', position: 'relative', border: `3px solid ${marcadoNome ? GREEN : INK}`, borderRadius: 18, boxShadow: `4px 4px 0 0 ${marcadoNome ? GREEN : INK}`, padding: 12, marginBottom: 12, background: fundo, color: INK, cursor: 'pointer' }}>
+      <span style={{ position: 'absolute', right: 10, top: 10, ...OSWALD, fontWeight: 900, fontSize: 13, background: marcadoNome ? GREEN : '#fff', color: marcadoNome ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 7px' }}>{n}/1</span>
+      <span style={{ display: 'block', fontSize: 30, lineHeight: 1, marginBottom: 6 }}>{ico}</span>
+      <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 21, textTransform: 'uppercase', lineHeight: 1 }}>{titulo}</span>
+      <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#3d3a30', marginTop: 5, lineHeight: 1.45 }}>{texto}</span>
+      <span style={{ display: 'block', fontSize: 11, fontWeight: 900, marginTop: 7, color: marcadoNome ? GREEN : INK }}>
+        {marcadoNome ? (getLang() === 'en' ? `✔ ${marcadoNome} goes to the auction · change →` : `✔ ${marcadoNome} vai pro leilão · trocar →`) : (getLang() === 'en' ? `🆓 ${livres} out of contract →` : `🆓 ${livres} sem contrato →`)}
+      </span>
+    </button>
+  )
+  return (
+    <div style={{ marginTop: 4 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 22, textTransform: 'uppercase', lineHeight: 1.05, margin: '0 0 4px' }}>{tr('🕵️ Quem você quer trazer no leilão?', '🕵️ Who do you want to bring to the auction?')}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px', lineHeight: 1.45 }}>{getLang() === 'en'
+        ? <>Mark someone <b>🆓 out of contract</b> at another club of the {divRot}{rivaisDeFora > 0 ? ' (or one of your ⚔️ rivals from the start of the career)' : ''} — he <b>enters the next auction</b> and you fight for him in the envelope.</>
+        : <>Marque quem está <b>🆓 sem contrato</b> em outro clube da {divRot}{rivaisDeFora > 0 ? ' (ou num dos seus ⚔️ rivais do começo da carreira)' : ''} — ele <b>entra no próximo leilão</b> e você briga por ele no envelope.</>}</p>
+      {cartao('tec', GOLD, '🧢', tr('Técnico', 'Coach'), marcadosT.length,
+        meu ? (getLang() === 'en' ? <>You have <b>{meu}</b>. A new coach brings his systems and his level adds to the team in every match.</> : <>Você tem o <b>{meu}</b>. Um técnico novo traz os esquemas dele, e o nível dele soma no time em toda partida.</>)
+          : (getLang() === 'en' ? <>Without a coach you only play <b>4-3-3</b> and <b>4-4-2</b>. With one: more systems and his level adding to the team.</> : <>Sem técnico você só joga <b>4-3-3</b> e <b>4-4-2</b>. Com ele: mais esquemas e o nível dele somando no time.</>),
+        tecLivres, nomeTecMarcado)}
+      {jogadorOn && cartao('jog', '#fff', '⚽', tr('Jogador', 'Player'), marcadosJ.length,
+        getLang() === 'en'
+          ? <>That rival's player who ran out of contract. Your <b>{olheiroNome}</b> finds {olheiroTier === 'ouro' ? <b>anyone, legends included</b> : olheiroTier === 'prata' ? <b>up to stars</b> : <b>up to prospects</b>}.</>
+          : <>Aquele jogador do rival que ficou sem contrato. Seu <b>{olheiroNome}</b> acha {olheiroTier === 'ouro' ? <b>qualquer um, lenda inclusive</b> : olheiroTier === 'prata' ? <b>até craque</b> : <b>até promessa</b>}.</>,
+        jogLivres, jogMarcado?.card.name ?? null)}
+      {onPular && (
+        <button onClick={onPular} style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: 10, background: '#fff', color: INK, cursor: 'pointer', marginBottom: 8 }}>
+          {totalMarcado > 0 ? tr('Seguir → vender reservas', 'Next → sell reserves') : tr('Agora não → vender reservas', 'Not now → sell reserves')}
+        </button>
       )}
-      <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '4px 0 0' }}>{tr('⚔️ = rival seu · as outras divisões ficam no mistério', '⚔️ = your rival · the other divisions stay a mystery')}</p>
+      {jogadorOn && !temOlheiro && <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', textAlign: 'center', margin: '0 0 10px' }}>{tr('⭐ Olheiro Craque acha craques · 👑 Lenda acha todos', '⭐ Star Scout finds stars · 👑 Legend finds everyone')}</p>}
+      {totalMarcado > 0 && (
+        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: GREEN, margin: '4px 0 10px' }}>🕵️ {totalMarcado} {getLang() === 'en' ? `scouted — they OPEN the next leftovers auction.` : `sondado${totalMarcado > 1 ? 's' : ''} — eles ABREM o próximo leilão de reservas.`}</p>
+      )}
     </div>
   )
 }
@@ -10324,7 +10270,7 @@ export function PyramidSeasonScreen() {
       if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: () => { avancarRodada(); escolheAba('jogos') } } // ⏸️ o jogo roda onde aparece (na Central ele fica pausado)
     })()
-    return <CentralCarreira coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       caixas={econBots ? [...(tables[myDiv] ?? [])].map(t => ({ name: t.name, you: t.you, caixa: Math.round(t.human ? (state.careerCoins?.[t.teamId] ?? 0) : (state.clubCash?.[teamKey(t)] ?? 0)) })).sort((a, b) => b.caixa - a.caixa) : undefined} />
   }
@@ -12048,6 +11994,16 @@ export function ReserveListScreen() {
   const [viuSondar, setViuSondar] = useState(() => {
     try { return localStorage.getItem('esc-viu-sondar') === '1' } catch { return true } // sem localStorage: não insiste
   })
+  // 🕵️ 22/10 (Diego: "a área de sondar não está clara… tem que estar num lugar melhor"): a janela
+  // ABRE no Sondar — vira o 1º passo, com "Agora não" pra ir vender. Só uma vez por janela (voltar
+  // pro Vender depois não é desfeito).
+  const abriuNoSondar = useRef(false)
+  useEffect(() => {
+    if (abriuNoSondar.current || !(quinzeRL && !state.reserveListMesmo)) return
+    abriuNoSondar.current = true
+    setAbaLeilao('aliciar')
+    setViuSondar(true); try { localStorage.setItem('esc-viu-sondar', '1') } catch { /* segue sem guardar */ }
+  }, [quinzeRL, state.reserveListMesmo])
   const abreSondar = () => {
     setAbaLeilao('aliciar')
     if (!viuSondar) { setViuSondar(true); try { localStorage.setItem('esc-viu-sondar', '1') } catch { /* segue sem guardar */ } }
@@ -12408,7 +12364,7 @@ export function ReserveListScreen() {
         {/* 🕵️ aba SONDAR (nome escolhido pelo Diego 28/08 — era "aliciar"): a
             mesma área da aba Elenco, agora aqui na hora certa — marcou, ele
             ABRE o próximo leilão (que é este). */}
-        {mostraPills && abaLeilao === 'aliciar' && <AliciarSection mgr={mgr} />}
+        {mostraPills && abaLeilao === 'aliciar' && <AliciarSection mgr={mgr} onPular={() => { setAbaLeilao('vender'); window.scrollTo({ top: 0 }) }} />}
         {state.isHost ? (
           <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>

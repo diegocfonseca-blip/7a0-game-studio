@@ -75,6 +75,8 @@ export type CentralProps = {
   salvar?: FaixaSalvarProps
   /** 🎙️ COLETIVA (19/10): fama do presidente, última manchete e o arquirrival; abre a Sala de imprensa */
   coletiva?: CardColetivaProps
+  /** 🕵️ JANELA CHEGANDO (22/10, mockup do Sondar aprovado): nas últimas rodadas avisa que a janela vai abrir no Sondar */
+  janela?: boolean
 }
 export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
@@ -245,6 +247,12 @@ export function CentralCarreira(p: CentralProps) {
           <div className="ll-central-lado">
           {/* 📣 O GIRO: só a rodada já revelada. Celular: 3 jogos (o seu, o do líder, o jogaço);
               desktop: a rodada inteira, ao lado da tabela, no padrão das caixas creme (Diego 03/10). */}
+          {p.janela && (
+            <div className="ll-central-card" style={{ background: '#fff', color: INK, padding: '11px 13px' }}>
+              <p style={{ ...OSW, fontSize: 16, margin: 0 }}>{t('🕵️ A janela vai abrir', '🕵️ The window is coming')}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.45 }}>{t('No fim da temporada a janela abre direto no 🕵️ Sondar: dá pra trazer 1 técnico e 1 jogador 🆓 sem contrato de outro clube pro leilão.', 'At the end of the season the window opens straight on 🕵️ Scout: you can bring 1 coach and 1 player 🆓 out of contract from another club to the auction.')}</p>
+            </div>
+          )}
           {p.giro && p.giro.jogos.length > 0 && (
             <div className="ll-central-card ll-c-giro" style={{ background: CREME }}>
               <Cabecalho titulo={p.giro.titulo ?? `📣 ${t('Giro da rodada', 'Around the round')} ${p.giro.rodada}`} link={t('ver jogos', 'see matches')} onClick={() => p.onTab('jogos')} />
