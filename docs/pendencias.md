@@ -6,6 +6,7 @@
 - 🗓️ **Jogos**: trilha da temporada no topo (Liga R/38 → Copa → Supercopa → Internacional T40+ → Copa do Mundo quando vale) e os
   outros jogos em 3 cartões + "ver os N jogos" (`CareerLeagueGames limite`). Ordem de sempre (nunca por placar — spoiler).
 - 🎤 **Coletiva liberada pra todos** (`COLETIVA_GERAL = true`): um usuário reclamou que não aparecia — estava só na conta do Diego.
+- 🔒 **Campo 2D e Motor novo continuam SÓ na conta do Diego** (22/10, *"Campo 2d e motor novo só p minha conta msm"*) — não liberar sem ele pedir.
 - 🎨 **Elenco arrumado (parte 2)**: selo POS com cor por posição e a pílula 🏛️ Comissão dizendo quem é o técnico e o preparador (ou "sem técnico · sem preparador"). Elenco em grupos foi descartado (a lista faz a troca junto com o campinho).
 
 ## 📝 Renovação em cartas + Central na Copa + Clube em 3 grupos + bolinha nas abas (22/10) — PUBLICADO pra todos
