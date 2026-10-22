@@ -35,13 +35,28 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* números */
 .numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.num { background: var(--tinta); color: #fff; border-radius: 16px; padding: 16px 16px 14px; border: 3px solid var(--linha); min-width: 0; }
+.num { background: var(--tinta); color: #fff; border-radius: 16px; padding: 24px 18px 22px; min-height: 128px; border: 3px solid var(--linha); min-width: 0; }
 .num b { display: block; font-family: var(--display); font-weight: 700; font-size: clamp(34px, 5vw, 46px); line-height: 1; color: var(--ouro); font-variant-numeric: tabular-nums; }
 .num.verde b { color: var(--verde-claro); }
 .num span { display: block; margin-top: 6px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.86); line-height: 1.3; }
 .num.largo { grid-column: 1 / -1; display: flex; gap: 18px; align-items: center; }
 .num.largo b { white-space: nowrap; }
 .num.largo span { margin-top: 0; font-size: 15px; }
+.destaque { min-height: 500px; margin-top: 14px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: center; background: linear-gradient(150deg, #FFE79A, var(--ouro) 55%, #E8A200); border: 4px solid var(--linha); border-radius: 22px; box-shadow: 6px 6px 0 var(--linha); padding: 24px; }
+.destaque > * { min-width: 0; }
+.destaque .grande { display: block; font-family: var(--display); font-weight: 700; font-size: clamp(64px, 11vw, 112px); line-height: .95; color: var(--tinta); margin-top: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.destaque .dt1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(20px, 2.6vw, 26px); line-height: 1.1; margin-top: 6px; text-wrap: balance; }
+.destaque .dt2 { font-size: 15.5px; font-weight: 600; color: #2b2410; margin-top: 12px; max-width: 46ch; }
+.destaque .dimg { background: var(--creme); border: 3px solid var(--linha); border-radius: 16px; padding: 10px; box-shadow: 3px 3px 0 var(--linha); }
+.divulga { padding: 24px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; align-items: center; }
+.divulga > * { min-width: 0; }
+.canais { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.canal { border: 3px solid var(--linha); border-radius: 14px; padding: 14px 16px; background: #E7F5EC; box-shadow: 3px 3px 0 var(--linha); }
+.canal + .canal { background: #FDE7F0; }
+.canal b { display: block; font-family: var(--display); font-weight: 700; font-size: 20px; text-transform: uppercase; line-height: 1.1; }
+.canal span { display: block; margin-top: 4px; font-weight: 600; font-size: 15px; color: #2b2920; }
+.dvimg img { border: 3px solid var(--linha); border-radius: 16px; box-shadow: 4px 4px 0 var(--linha); }
+.dvimg p { font-size: 13px; font-weight: 700; color: var(--cinza); margin-top: 8px; text-align: center; }
 .fonte { font-size: 12.5px; color: var(--cinza); font-weight: 600; margin-top: 10px; }
 
 /* vitrine de lugares */
@@ -88,14 +103,14 @@ img { max-width: 100%; height: auto; display: block; }
 @media (max-width: 760px) {
   .topo, .clube { grid-template-columns: 1fr; padding: 18px; }
   .numeros { grid-template-columns: 1fr 1fr; }
-  .num.largo { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .destaque, .divulga { grid-template-columns: 1fr; padding: 18px; }
   .lugares, .extras { grid-template-columns: 1fr; }
   .passos { grid-template-columns: 1fr 1fr; }
 }
 @media print {
   body { background: var(--creme); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .pagina { padding-block: 10px; gap: 22px; }
-  .lugar, .passo, .num, .item, .clube, .contato, .extra { break-inside: avoid; }
+  .lugar, .passo, .num, .item, .clube, .contato, .extra, .divulga, .destaque { break-inside: avoid; }
   .quebra { break-before: page; }
 }
 </style>
@@ -125,7 +140,15 @@ img { max-width: 100%; height: auto; display: block; }
       <div class="num"><b>6 mil</b><span>técnicos diferentes jogaram no último mês</span></div>
       <div class="num verde"><b>15 mil</b><span>partidas num dia só (nosso recorde)</span></div>
       <div class="num verde"><b>57%</b><span>das partidas jogadas ao vivo com amigos</span></div>
-      <div class="num verde largo"><b>~100 mil</b><span>vezes que um técnico escolheu o patrocinador do clube na carreira (uma escolha a cada temporada). É ali que a sua marca entra.</span></div>
+    </div>
+    <div class="destaque">
+      <div class="dtx">
+        <span class="selo">✍️ O número que mais importa pra marca</span>
+        <b class="grande">~100 mil</b>
+        <p class="dt1">vezes que um técnico escolheu o patrocinador do clube na carreira</p>
+        <p class="dt2">Uma escolha a cada temporada nova: o técnico olha as marcas, compara o valor e a meta de cada uma e assina com uma delas. Não é um anúncio que passa na tela, é uma decisão. É ali que a sua marca entra.</p>
+      </div>
+      <div class="dimg"><img src="img/master-tidex-rows.webp" alt="Propostas do Patrocinador Master com Tidex, OittoLabs e Vadico Veículos" width="640" height="536"></div>
     </div>
     <p class="fonte">Números contados pelo próprio jogo em 18/10/2026.</p>
   </section>
@@ -262,12 +285,17 @@ img { max-width: 100%; height: auto; display: block; }
     </div>
   </section>
 
-  <section class="cab">
-    <span class="selo" style="align-self:flex-start">➕ E ainda</span>
-    <div class="extras">
-      <div class="caixa extra">📲 Post no Instagram<small>@leilaolegendscom apresentando a marca</small></div>
-      <div class="caixa extra">💬 Aviso na comunidade dos fãs<small>no grupo do WhatsApp do jogo</small></div>
+  <section class="caixa divulga">
+    <div class="dvtx">
+      <span class="selo">📣 Divulgação inclusa</span>
+      <h2 style="margin-top:12px">A galera fica sabendo da sua marca</h2>
+      <p class="mole" style="margin-top:10px;font-size:16px">Além de aparecer dentro do jogo, a marca é apresentada pra quem joga, no padrão visual do Leilão Legends.</p>
+      <div class="canais">
+        <div class="canal"><b>💬 Aviso na comunidade do WhatsApp</b><span>A arte da marca vai pro grupo dos fãs do jogo, com o que ela faz, o site e o contato.</span></div>
+        <div class="canal"><b>📲 Post no Instagram @leilaolegendscom</b><span>Apresentação da marca no perfil oficial do jogo.</span></div>
+      </div>
     </div>
+    <div class="dvimg"><img src="img/aviso-tidex.webp" alt="Aviso de parceria da Tidex no padrão do Leilão Legends" width="720" height="1110"><p>Exemplo: a arte de parceria da Tidex.</p></div>
   </section>
 
   <section class="contato">
