@@ -6,7 +6,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
-import { CLA_MAX, EmblemaCla, esqueceClas, msgErro } from './cla'
+import { CLA_MAX, EmblemaCla, esqueceClas, msgErro, msgTrava } from './cla'
 import { abrePerfilSolto, contaValida } from './amigos'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', CLA_OURO = '#E9C46A'
@@ -15,7 +15,7 @@ const bt = (bg: string, cor: string): CSSProperties => ({ ...OSW, fontSize: 14, 
 
 type Ver = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; pos: number | null
   descricao?: string | null; campeao: boolean; sou: boolean; pedi: boolean; lista: { uid: string; nome: string; titulos: number }[] }
-type Resp = { ok?: boolean; erro?: string; pedido?: boolean; atual?: string; preso?: boolean }
+type Resp = { ok?: boolean; erro?: string; pedido?: boolean; atual?: string; preso?: boolean; ate?: string; cla?: string }
 
 export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
   const [c, setC] = useState<Ver | null | 'erro'>(null)
@@ -33,7 +33,8 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
       if (!error && r.erro === 'confirmar') {
         if (r.preso) setMsg(`⚠️ ${tr(`Você é o presidente do ${r.atual}: antes, passe a presidência ou feche o clã em 👥 Amigos → ⚔️ Clã.`, `You are the president of ${r.atual}: first hand over or close it in 👥 Friends → ⚔️ Clan.`)}`)
         else setTroca(r.atual ?? '')
-      } else if (!error && r.erro === 'cheio') setMsg(`⚠️ ${tr('Você já está em 2 clãs, que é o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', 'You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.')}`)
+      } else if (!error && r.erro === 'trava') setMsg(`⚠️ ${msgTrava(r.ate, r.cla)}`)
+      else if (!error && r.erro === 'cheio') setMsg(`⚠️ ${tr('Você já está em 2 clãs, que é o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', 'You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.')}`)
       else if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
       else { setMsg(r.pedido ? tr('📨 Pedido enviado — o presidente do clã decide.', '📨 Request sent — the clan president decides.') : tr('✅ Você entrou no clã!', '✅ You joined the clan!')); esqueceClas() }
     } catch { setMsg(`⚠️ ${msgErro(null)}`) } finally { setOcupado(false); carrega() }

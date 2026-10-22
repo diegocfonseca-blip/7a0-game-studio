@@ -18,7 +18,7 @@ import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
-import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado, esqueceClas } from './cla' // ⚔️ 21/10: clãs
+import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado, esqueceClas, msgTrava } from './cla' // ⚔️ 21/10: clãs
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -267,7 +267,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
 }
 
 // ── 👥 MEUS AMIGOS ─────────────────────────────────────────────────────────────────────────────────────────────
-export function MeusAmigos({ onClose }: { onClose: () => void }) {
+export function MeusAmigos({ onClose, abaInicial = 'amigos' }: { onClose: () => void; abaInicial?: 'amigos' | 'ranking' | 'album' | 'cla' }) {
   const [lista, setLista] = useState<Linha[] | null | 'erro'>(null)
   const [perfil, setPerfil] = useState<string | null>(null)
   // 👤 18/10 (Diego abriu a lista vazia e não viu nada do mockup): o MEU perfil no topo + 🔎 procurar técnico pelo nome
@@ -275,7 +275,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [busca, setBusca] = useState('')
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
-  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>('amigos')
+  const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>(abaInicial)
   const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
   const [chamados, setChamados] = useState<Record<string, string>>({})
   const [semConta, setSemConta] = useState(false)
@@ -464,6 +464,14 @@ export function abrePerfilSolto(uid: string) {
   raizPerfil.render(<PerfilPublico key={vezPerfil} uid={uid} onClose={() => raizPerfil?.render(null)} />)
 }
 
+// ⚔️ 21/10 (Diego: "no ranking dos clãs, um botão sutil 'procurar ou criar clãs' que cai na aba de clãs"): abre os Amigos
+// SOLTO (raiz própria, igual ao perfil) já na aba pedida — serve pra qualquer tela que não tem a janela de Amigos à mão.
+let raizAmigos: Root | null = null
+export function abreAmigosSolto(aba: 'amigos' | 'ranking' | 'album' | 'cla' = 'amigos') {
+  if (!raizAmigos) { const el = document.createElement('div'); el.id = 'amigos-solto'; document.body.appendChild(el); raizAmigos = createRoot(el) }
+  raizAmigos.render(<MeusAmigos key={Date.now()} abaInicial={aba} onClose={() => raizAmigos?.render(null)} />)
+}
+
 // ── 👥 v2 (19/10, liberado pra todos) ──────────────────────────────────────────────────────────────────────────────
 // Mockup aprovado: `scripts/mockups/amigos-todos.png`. Diego: *"entrar só dá se a sala tiver aberta"* e *"chat entre eles…
 // tenho uma comunidade no zap"* → nada de conversa 1:1, vai o botão da comunidade. Banco: migration 20261019…_amigos_v2.
@@ -642,8 +650,9 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
     setMsgCla('')
     try {
       const { data } = await supabase.rpc('esc_cla_responder', { p_id: id, p_aceita: sim, p_trocar: false })
-      const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string }
+      const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string; ate?: string; cla?: string }
       if (r.ok) { if (sim) setMsgCla(tr('✅ Feito!', '✅ Done!')); esqueceClas() }
+      else if (r.erro === 'trava') setMsgCla(`⚠️ ${msgTrava(r.ate, r.cla)}`)
       else if (r.erro === 'confirmar') setMsgCla(tr(`⚠️ Você já está no ${r.atual}. Pra trocar, abra 👥 Amigos → ⚔️ Clã.`, `⚠️ You are already in ${r.atual}. To switch, open 👥 Friends → ⚔️ Clan.`))
       else if (r.erro === 'cheio') setMsgCla(tr('⚠️ Você já está em 2 clãs, o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', '⚠️ You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.'))
       else setMsgCla(tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.'))

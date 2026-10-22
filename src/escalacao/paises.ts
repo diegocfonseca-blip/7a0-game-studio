@@ -486,6 +486,11 @@ export const PAIS: Record<string, string> = {
   //        SELEÇÃO ESPANHOLA, e aqui vale onde ele joga (regra do Diego).
   'Dean Huijsen': 'Espanha',
   // Laterais
+  'Pau Cubarsí': 'Espanha', 'Jérémy Jacquet': 'França', 'Franco Mastantuono': 'Argentina', 'Max Dowman': 'Inglaterra',
+  'Lennart Karl': 'Alemanha', 'Nico Paz': 'Argentina', 'Rayan Cherki': 'França', 'Johan Manzambi': 'Suíça', 'Ayyoub Bouaddi': 'Marrocos',
+  'Kobbie Mainoo': 'Inglaterra', 'Désiré Doué': 'França', 'Estêvão': 'Brasil', 'Andreas Schjelderup': 'Noruega', 'Julio Enciso': 'Paraguai',
+  // 🌟 21/10: geração 2026 (Arda Güler e Gilberto Mora já estavam etiquetados mais acima)
+  'Joelinton': 'Brasil', 'Bruno Guimarães': 'Brasil', 'Fernando Peyroteo': 'Portugal', 'Bobby Tambling': 'Inglaterra', // 📚 Lote 44 (21/10)
   'Nuno Mendes': 'Portugal', 'Vitinha': 'Portugal', 'João Neves': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
   'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
   'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
@@ -531,6 +536,9 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 // ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
+  // 📚 Lote 44 (21/10): o Jorginho do Chelsea é o volante da seleção ITALIANA (outra pessoa, não o lateral do tetra)
+  'Jorginho|Chelsea|2021': 'Itália',
+  'Jorginho|Flamengo|1989': 'Brasil', 'Jorginho|Leverkusen|1990': 'Brasil', 'Jorginho|Kashima Antlers|1996': 'Brasil', // o lateral do tetra
   // 🌎 Lote 40 (01/10): as cartas ANTIGAS dos mesmos jogadores, carta a carta, pra ninguém herdar país pelo nome
   'Alex Teixeira|Vasco|2009': 'Brasil',
   'Alex Telles|Grêmio|2013': 'Brasil',
@@ -1196,6 +1204,8 @@ export const MESMO_JOGADOR = new Set<string>([
   // 🧱 LOTE 35 (26/09): mesma pessoa, outro clube e outro baralho — conferidos um a um
   'Miranda',
   'Jorginho',
+  'Estêvão', // 🌟 21/10: o do Chelsea é a MESMA pessoa do Palmeiras (baralho BR)
+  'Bruno Guimarães', // 📚 Lote 44 (21/10): a do Newcastle é a MESMA pessoa da do Athletico-PR (baralho BR)
   'Filipe Luís',
   'Luís Fabiano',
   'Mozer',

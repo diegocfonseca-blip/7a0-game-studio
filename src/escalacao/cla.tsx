@@ -135,6 +135,7 @@ type Painel = {
   cla: Bloco | null
   extra?: Bloco | null // ⚔️⚔️ 21/10: o clã da 2ª vaga (membro ou presidente)
   vagas?: number // 1, ou 2 pra quem pagou a 2ª vaga (R$ 9,90)
+  trava_cla?: string | null; trava_extra?: string | null // 🔒 22/10: até quando não dá pra sair de cada clã (7 dias depois de entrar)
   guardados?: { id: number; nome: string; emblema: string }[] // 📦 clãs que o presidente guardou ("engavetou")
   convites: (ClaJson & { pedido_id: number; de_nome: string })[]; pedi: number[]
 }
@@ -158,9 +159,11 @@ const ERRO: Record<string, [string, string]> = {
   guardar_gente: ['Só dá pra guardar o clã quando você é o único dele. Com gente, passe a presidência ou feche.', 'You can only store the clan when you are its only member. With people, hand over the presidency or close it.'],
   emblema_fixo: ['Esse clã tem escudo próprio (batismo ou personalizado): o emblema não se troca.', 'This clan has its own crest (named club or custom): the emblem can’t be changed.'],
 }
+// 🔒 22/10 (Diego): "pra sair do clã e entrar em outro, pelo menos 7 dias a partir do momento que entra"
+export const msgTrava = (ate?: string | null, cla?: string | null) => tr(`🔒 Você entrou ${cla ? `no ${cla}` : 'nesse clã'} há menos de 7 dias. Só dá pra sair ou trocar a partir de ${ate ? dataCurta(ate) : 'daqui a 7 dias'}.`, `🔒 You joined ${cla ?? 'this clan'} less than 7 days ago. You can leave or switch from ${ate ? dataCurta(ate) : 'in 7 days'}.`)
 export const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
 // ⚔️⚔️ 21/10 (Diego): "resumindo, sempre são dois… isso aí também tem que estar escrito em algum lugar"
-const REGRA_DOIS: [string, string] = ['⚔️⚔️ Sempre são dois: com a 2ª vaga (R$ 9,90 na 🛒 Loja, uma vez só) você fica em até 2 clãs — membro dos 2, presidente dos 2 ou um de cada. Pra entrar num 3º, saia de um; sendo presidente, passe a presidência, 📦 guarde ou feche o clã.', '⚔️⚔️ Always two: with the 2nd slot (R$ 9.90 in the 🛒 Shop, once) you can be in up to 2 clans — member of both, president of both or one of each. To join a 3rd, leave one; as president, hand over, 📦 store or close the clan.']
+const REGRA_DOIS: [string, string] = ['⚔️⚔️ Sempre são dois: com a 2ª vaga (R$ 9,90 na 🛒 Loja, uma vez só) você fica em até 2 clãs — membro dos 2, presidente dos 2 ou um de cada. Pra entrar num 3º, saia de um; sendo presidente, passe a presidência, 📦 guarde ou feche o clã. Quem entra fica pelo menos 7 dias antes de sair ou trocar.', '⚔️⚔️ Always two: with the 2nd slot (R$ 9.90 in the 🛒 Shop, once) you can be in up to 2 clans — member of both, president of both or one of each. To join a 3rd, leave one; as president, hand over, 📦 store or close the clan. Once you join, you stay at least 7 days before leaving or switching.']
 // 📝 21/10 (Diego): "cada clã tem que ter a sua descrição" — aparece no convite, na lista e na página do clã
 const Descricao = ({ t, escuro }: { t?: string | null; escuro?: boolean }) => t ? <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', margin: '4px 0 0', lineHeight: 1.35, color: escuro ? '#e8e2d0' : '#4a4030', overflowWrap: 'anywhere' }}>“{t}”</p> : null
 const dataCurta = (iso: string) => { const d = new Date(iso); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }
@@ -186,8 +189,9 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
     setOcupado(true); setMsg('')
     try {
       const { data, error } = await supabase.rpc(rpc, args)
-      const r = (data ?? {}) as { ok?: boolean; erro?: string; pedido?: boolean; meus?: ClaJson[] } & Omit<Partial<TrocaInfo>, 'erro'>
-      if (!error && r.erro === 'cheio') setCheio({ destino: destino?.nome ?? tr('o clã novo', 'the new clan'), meus: r.meus ?? [] })
+      const r = (data ?? {}) as { ok?: boolean; erro?: string; pedido?: boolean; meus?: ClaJson[]; ate?: string; cla?: string } & Omit<Partial<TrocaInfo>, 'erro'>
+      if (!error && r.erro === 'trava') setMsg(`⚠️ ${msgTrava(r.ate, r.cla)}`)
+      else if (!error && r.erro === 'cheio') setCheio({ destino: destino?.nome ?? tr('o clã novo', 'the new clan'), meus: r.meus ?? [] })
       else if (!error && r.erro === 'confirmar' && destino && r.preso && typeof p === 'object' && p?.cla) setPres({ cla: p.cla, destino: destino.nome, seguir: () => { setPres(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
       else if (!error && r.erro === 'confirmar' && destino) setTroca({ info: r as TrocaInfo, destino: destino.nome, destinoEmblema: destino.emblema, aberto: destino.aberto, seguir: () => { setTroca(null); void faz(rpc, { ...args, p_trocar: true }, ok) } })
       else if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
@@ -298,6 +302,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           if (souLider(c)) { setSozinho(c); return }
           if (window.confirm(tr(`Sair do ${c.nome}?`, `Leave ${c.nome}?`))) { setVer2(false); void faz('esc_cla_sair', { p_cla: c.id }, tr('Você saiu do clã.', 'You left the clan.')) }
         }}>{tr('sair', 'leave')}</button>
+        {(ehExtra ? p.trava_extra : p.trava_cla) && <p style={{ flexBasis: '100%', fontSize: 11, fontWeight: 800, color: '#7a4d00', margin: '2px 2px 0' }}>🔒 {tr(`Você entrou há menos de 7 dias: pode sair ou trocar a partir de ${dataCurta((ehExtra ? p.trava_extra : p.trava_cla)!)}.`, `You joined less than 7 days ago: you can leave or switch from ${dataCurta((ehExtra ? p.trava_extra : p.trava_cla)!)}.`)}</p>}
       </div>
       {editaDesc !== null && souLider(c) && <div style={caixa}>
         <p style={h3}>📝 {tr('Descrição do clã', 'Clan description')}</p>

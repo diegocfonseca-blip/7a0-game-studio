@@ -42,6 +42,7 @@ import { GalaComverissimo, COMVERISSIMO_MS } from './gala-comverissimo'
 import { GalaGavioes, GAVIOES_MS } from './gala-gavioes'
 import { GalaCuiudos, CUIUDOS_MS } from './gala-cuiudos'
 import { GalaWenMilan, WENMILAN_MS } from './gala-wenmilan'
+import { GalaInterVale, INTERVALE_MS } from './gala-intervale'
 import { GalaSeven, SEVEN_MS } from './gala-seven'
 import { GalaFutpoint, FUTPOINT_MS } from './gala-futpoint'
 
@@ -64,6 +65,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Seven City': { ms: SEVEN_MS, Show: GalaSeven }, // 🍀7️⃣ caça-níquel 7·7·7, jackpot de moedas e trevos (17/10)
   'Futpoint FC': { ms: FUTPOINT_MS, Show: GalaFutpoint }, // 📍🔴 o Pontinho entra AO VIVO: moldura de live, chat, plataformas e as lives 18h/21h (18/10, Fundador)
   'Cuiudos FC': { ms: CUIUDOS_MS, Show: GalaCuiudos }, // 🤠🔵 porteira, caminhonete, chapéu e laço no escudo (17/10, Fundador)
+  'Inter Vale FC': { ms: INTERVALE_MS, Show: GalaInterVale }, // 🥊⚫⚪ ringue, gongo, o Lutador soca e trinca a tela, DISCIPLINA·FORÇA·VALE (21/10, virou Fundador)
   'Wen Milan B': { ms: WENMILAN_MS, Show: GalaWenMilan }, // 😈🔴⚫ fogo, tridente cravando, lambida na tela e a diabinha (17/10, Fundador)
 }
 /** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */

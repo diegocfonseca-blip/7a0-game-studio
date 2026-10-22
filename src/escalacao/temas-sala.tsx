@@ -29,12 +29,14 @@ import futpointEscudo from './img/futpoint-escudo.webp'
 import futpointMascote from './img/futpoint-mascote.webp'
 import wenMilanEscudo from './img/wenmilan-escudo.webp'
 import wenMilanMascote from './img/wenmilan-mascote.webp'
+import interValeEscudo from './img/intervale-escudo.webp'
+import interValeMascote from './img/intervale-mascote.webp'
 import tidexLogo from './img/patro-tidex.webp' // 🤖 tema da Tidex (19/10): o mesmo logo do patrocínio, 0 KB novo
 import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -65,6 +67,8 @@ function TEMAS_FUNDADOR_PRONTOS() {
     cuiudos: temaFundador('cuiudos', 'Cuiudos FC', '🤠', cuiudosEscudo, cuiudosMascote, '#0b46c4', 'rgba(231,172,11,.2)', '#E7AC0B', '#0c0c0c'),
     // 📍 Futpoint FC (18/10): preto e dourado do manto, o Pontinho na tela e o horário das lives dele (é streamer do jogo)
     futpoint: { ...temaFundador('futpoint', 'Futpoint FC', '📍', futpointEscudo, futpointMascote, '#5a4318', 'rgba(184,144,64,.2)', '#B89040', '#0c0c0c'), faixa: ['LIVES TODO DIA · 18H E 21H', 'LIVE EVERY DAY · 6PM & 9PM (BRT)'] },
+    // 🥊⚫⚪ Inter Vale FC (21/10, virou Fundador): preto e branco medidos na camisa dele, o filete branco das cordas do ringue
+    intervale: temaFundador('intervale', 'Inter Vale FC', '🥊', interValeEscudo, interValeMascote, '#3a3a3a', 'rgba(228,227,225,.14)', '#E4E3E1', '#0c0c0c'),
     wenmilan: temaFundador('wenmilan', 'Wen Milan B', '😈', wenMilanEscudo, wenMilanMascote, '#8a0a16', 'rgba(223,18,36,.22)', '#DF1224', '#fff'),
     seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
   } satisfies Partial<Record<TemaClubeId, Tema>>
@@ -98,13 +102,14 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'matheussoaresg2018@gmail.com': ['cuiudos'],
   'glaucomiranda@outlook.com': ['seven'],
   'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
+  'marcus.viniciuslopessantos79@gmail.com': ['intervale'], // 🥊 Inter Vale FC (virou Fundador em 21/10)
   'vittor@tidex.com.br': ['wenmilan', 'tidex'], // 😈 Wen Milan B (conta criada em 19/10) + 🤖 tema da Tidex, a empresa dele que patrocina o jogo (19/10, aprovado pelo Diego)
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
-  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão
