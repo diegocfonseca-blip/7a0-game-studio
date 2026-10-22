@@ -5979,6 +5979,36 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           return `${meus}/${Math.max(teto, meus)}${emp ? ` +${emp} 🏢` : ''}`
         })()}{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
+      {/* 💪 FORÇA DO TIME (22/10, Diego mandou a amostra: *"o over… defesa, meio e ataque… e a condição física"*):
+          média dos 11 TITULARES — DEF = goleiro + laterais + zagueiros · MEI · ATA — e o gás médio. O overall segue a
+          MESMA regra do Olheiro de hoje (*"mantém como funciona hoje"*): 👑 vê tudo, ⭐ vê até craque (setor com lenda
+          fica 🔒), sem olheiro tudo 🔒. A condição só aparece com o gás ligado (Série C pra cima), como hoje. */}
+      {elenco && olheiros && xi && xi.length > 0 && (() => {
+        const tier = myApoioPerk()?.tier
+        const ve = (c: WonCard) => tier === 'ouro' || (tier === 'prata' && c.fame < 5)
+        const reais = (xi as WonCard[]).filter(c => !c.fake && c.lo && c.hi)
+        const setor = (poss: Sector[]) => {
+          const cs = reais.filter(c => poss.includes(c.pos))
+          if (!cs.length) return '—'
+          if (!cs.every(ve)) return '🔒'
+          return String(Math.round(cs.reduce((t, c) => t + (c.lo + c.hi) / 2, 0) / cs.length))
+        }
+        const cel = (rot: string, v: string, sub: string, cor = '#fff') => (
+          <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+            <small style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 9.5, letterSpacing: '.12em', color: '#9a9a9a' }}>{rot}</small>
+            <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: v === '🔒' ? 18 : 24, lineHeight: 1.15, color: cor }}>{v}</b>
+            <small style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: '#777', whiteSpace: 'nowrap' }}>{sub}</small>
+          </div>
+        )
+        return (
+          <div style={{ display: 'flex', gap: 4, background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '7px 6px 6px', marginBottom: 8, position: 'relative' }}>
+            {cel('DEF', setor(['GOL', 'LAT', 'ZAG']), tr('gol · lat · zag', 'gk · fb · cb'))}
+            {cel('MEI', setor(['MEI']), tr('meio-campo', 'midfield'))}
+            {cel('ATA', setor(['ATA']), tr('ataque', 'attack'))}
+            {resumoGas && cel(tr('CONDIÇÃO', 'FITNESS'), `${Math.round(resumoGas.pct)}%`, tr('gás dos titulares', 'starters\' energy'), resumoGas.cor)}
+          </div>
+        )
+      })()}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title={tr('Soma do valor de mercado do elenco (não é a sua caixa de moedas)', 'Sum of the squad\'s market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
@@ -10157,6 +10187,42 @@ export function PyramidSeasonScreen() {
     return { titulo: `🏆 ${copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup')} · ${tr('chave', 'bracket')}`, colunas }
   }, [copaPlaying, copa, copaFase, copaRound, copaReady, copaBrOk])
   const copaArtCentral = useMemo(() => (copaChaveCentral ? copaScorersShown.slice(0, 3).map(x => ({ nome: x.name, time: x.teamName, gols: x.goals, you: x.you })) : null), [copaChaveCentral, copaScorersShown])
+  // 🛤️ TRILHA DA TEMPORADA (22/10, mockup aprovado *"Rank e jogos aprovado"*): no topo da aba Jogos, onde você está
+  // no ano — Liga → Copa → Supercopa → internacional → Copa do Mundo. Só entra etapa que vale pra você (internacional da
+  // T40 em diante; Copa do Mundo só no ano em que o seu clube está nela). Só mostra a ETAPA, nunca resultado.
+  const trilhaTemporada = (() => {
+    if (!state.careerOnline || state.onlineMode === 'online') return null
+    const temSuper = copa ? copa.rounds.some(r => r.name === 'Supercopa') : !!copaBrOk
+    const etapas: { k: string; ic: string; nome: string }[] = [
+      { k: 'liga', ic: '⚽', nome: round > 0 && !done ? tr(`Liga · R${round}/38`, `League · R${round}/38`) : tr('Liga', 'League') },
+      { k: 'copa', ic: '🏆', nome: !done ? tr('Copa', 'Cup') : copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup') },
+      ...(temSuper ? [{ k: 'super', ic: '⭐', nome: tr('Supercopa', 'Super Cup') }] : []),
+      ...(intlEnabled && (state.seasonNo ?? 1) >= 40 ? [{ k: 'intl', ic: '🌎', nome: tr('Internacional', 'International') }] : []),
+      ...(mundoAntes ? [{ k: 'mundo', ic: '🌍', nome: tr('Copa do Mundo', 'World Cup') }] : []),
+    ]
+    const agora = !done ? 'liga'
+      : copaPlaying ? (copaFase?.name === 'Supercopa' ? 'super' : 'copa')
+      : !copaFinished ? 'copa'
+      : intlNoAr ? 'intl'
+      : mundoPendente ? 'mundo'
+      : 'fim'
+    const iAgora = agora === 'fim' ? etapas.length : etapas.findIndex(e => e.k === agora)
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', background: INK, borderRadius: 14, padding: '9px 6px', margin: '0 0 10px', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }}>
+        {etapas.map((e, i) => {
+          const feito = i < iAgora, on = i === iAgora
+          return (
+            <Fragment key={e.k}>
+              {i > 0 && <span style={{ color: '#555', fontSize: 11, flex: 'none' }}>›</span>}
+              <div style={{ flex: 1, minWidth: 0, textAlign: 'center', ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', lineHeight: 1.15, color: on ? GOLD : feito ? '#2FBF5A' : '#8a8a8a' }}>
+                <span style={{ display: 'block', fontSize: on ? 19 : 16, marginBottom: 2, filter: on || feito ? 'none' : 'grayscale(1)', opacity: on || feito ? 1 : .55 }}>{feito ? '✅' : e.ic}</span>{e.nome}
+              </div>
+            </Fragment>
+          )
+        })}
+      </div>
+    )
+  })()
   const renderCentral = () => {
     if (!myDiv) return null
     const DIV_EN: Record<Div, string> = { A: 'Serie A', B: 'Serie B', C: 'Serie C', D: 'Serie D', V: 'Várzea' }
@@ -11846,13 +11912,34 @@ export function PyramidSeasonScreen() {
                 Agência 2.0 — carreira sem Agência não mostra essa aba). Nome
                 "Local" pra não confundir com a aba-mãe "Clube" nem soar só
                 divisão/liga (pedido do Diego 14/08) */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {/* 🌍 a aba Global aparece SEMPRE (Diego 28/08). Carreira sem Agência
-                  2.0 abre o CONVITE (GlobalRankConvite) — vê a aba, não vê os times. */}
-              {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['ouro', '🥇', tr('Ouro', 'Golden')], ['clubes', '🏟️', tr('Local', 'Local')], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
-                <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-              ))}
-            </div>
+            {/* 🗂️ RANK EM 3 GRUPOS (22/10, mockup carreira-abas-elenco-rank-jogos.png, *"Rank e jogos aprovado"*):
+                eram 5 pílulas apertadas. ⚽ Jogadores (gols · garçons · ouro) · 🏟️ Clubes (o "Local") · 🌍 Global.
+                As telas de dentro não mudaram. */}
+            {(() => {
+              const jog = rankSub === 'arti' || rankSub === 'garcons' || rankSub === 'ouro'
+              const grupo = (k: string, ic: string, label: string, sub: string, on: boolean, ir: () => void) => (
+                <button key={k} onClick={ir} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', background: on ? GOLD : '#fff', color: INK, boxShadow: on ? `3px 3px 0 0 ${INK}` : `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center', ...OSWALD }}>
+                  <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{ic} {label}</span>
+                  <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, color: on ? '#5a4300' : '#7a7462', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+                </button>
+              )
+              return (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {grupo('jog', '⚽', tr('Jogadores', 'Players'), tr('gols · garçons · ouro', 'goals · assists · golden'), jog, () => { if (!jog) setRankSub('arti') })}
+                    {grupo('clu', '🏟️', tr('Clubes', 'Clubs'), tr('da sua liga', 'your league'), rankSub === 'clubes', () => setRankSub('clubes'))}
+                    {grupo('glo', '🌍', 'Global', tr('usuários', 'real players'), rankSub === 'global', () => setRankSub('global'))}
+                  </div>
+                  {jog && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                      {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['ouro', '🥇', tr('Bola de Ouro', 'Golden Ball')]] as [typeof rankSub, string, string][]).map(([s2, ic, label]) => (
+                        <button key={s2} onClick={() => setRankSub(s2)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: rankSub === s2 ? myCol.solid : '#fff', color: rankSub === s2 ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} />
             ) : rankSub === 'garcons' ? (
@@ -11993,6 +12080,7 @@ export function PyramidSeasonScreen() {
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
           <section className="ll29-board" aria-label="Competições da carreira">
             {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
+            {tab === 'jogos' && trilhaTemporada}
             {tab === 'jogos' && <GiroDaRodada />}{/* 📢 Anúncio do dia também na carreira (17/10, Diego: "sim, pode ser") */}
             {done && copa && copa.rounds.length ? <>
               {/* 🧹 OS CHIPS DAS FASES SAEM DA ABA JOGOS NO FIM DE TEMPORADA (19/09).
@@ -12014,7 +12102,7 @@ export function PyramidSeasonScreen() {
               return <>
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
-                  : round > 0 && <CareerLeagueGames matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
+                  : round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
               </>
             })()}
           </section>

@@ -1,3 +1,15 @@
+## 💪 Elenco: força do time · Rank em 3 grupos · Jogos com trilha · Coletiva pra todos (22/10) — PUBLICADO
+- 💪 **Força do time** (SquadTab, só no Elenco da carreira): DEF (gol+lat+zag) · MEI · ATA = média do meio da faixa lo–hi dos 11
+  titulares + CONDIÇÃO (gás médio, só com o gás ligado). Overall na MESMA regra do Olheiro (*"mantém como funciona hoje"*): 👑 vê
+  tudo · ⭐ vê sem lenda (setor com lenda = 🔒) · sem olheiro = 🔒.
+- 🏆 **Rank em 3 grupos**: ⚽ Jogadores (gols · garçons · bola de ouro) · 🏟️ Clubes · 🌍 Global.
+- 🗓️ **Jogos**: trilha da temporada no topo (Liga R/38 → Copa → Supercopa → Internacional T40+ → Copa do Mundo quando vale) e os
+  outros jogos em 3 cartões + "ver os N jogos" (`CareerLeagueGames limite`). Ordem de sempre (nunca por placar — spoiler).
+- 🎤 **Coletiva liberada pra todos** (`COLETIVA_GERAL = true`): um usuário reclamou que não aparecia — estava só na conta do Diego.
+- ⏳ **Elenco "arrumado"** (mockup `carreira-elenco-arrumado.png`: cabeçalho num bloco, comissão à vista, abas com contagem, lista com
+  cor por posição) — Diego mandou só a força do time por enquanto; o resto do mockup NÃO foi feito. Ideia de Elenco em grupos foi
+  descartada: a lista faz a troca junto com o campinho, não pode separar.
+
 ## 📝 Renovação em cartas + Central na Copa + Clube em 3 grupos + bolinha nas abas (22/10) — PUBLICADO pra todos
 Diego aprovou os dois mockups (`carreira-abas-ideias.png`, *"adorei"*; `carreira-renovacao-nova.png`, *"perfeito pode fazer e publicar já a b e c mais a tela de renovação"*).
 - 📝 **Renovação em cartas** (`renovacao-mesa.tsx`, chamada no `ReserveListScreen`): placar de cima (pra decidir · caixa · renovar todos 5a),
