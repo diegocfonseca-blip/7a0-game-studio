@@ -159,6 +159,9 @@ const ERRO: Record<string, [string, string]> = {
   guardar_gente: ['Só dá pra guardar o clã quando você é o único dele. Com gente, passe a presidência ou feche.', 'You can only store the clan when you are its only member. With people, hand over the presidency or close it.'],
   emblema_fixo: ['Esse clã tem escudo próprio (batismo ou personalizado): o emblema não se troca.', 'This clan has its own crest (named club or custom): the emblem can’t be changed.'],
 }
+// 🪙 22/10 (Diego: "quem entrar no dia que o clã tá em primeiro só pra ganhar as moedas?" → prêmio só pra quem está desde
+// segunda; "quando o cara entrar recebe o aviso só do motivo"): a mensagem de quem acabou de entrar já explica a regra
+export const ENTROU_CLA: [string, string] = ['✅ Você entrou no clã! Seus títulos já somam pro clã. O prêmio da semana 🪙 é de quem está no clã desde segunda — você recebe a partir da próxima semana. E fica pelo menos 7 dias antes de poder sair.', '✅ You joined the clan! Your titles already count for the clan. The weekly 🪙 prize goes to members since Monday — you get it from next week. And you stay at least 7 days before you can leave.']
 // 🔒 22/10 (Diego): "pra sair do clã e entrar em outro, pelo menos 7 dias a partir do momento que entra"
 export const msgTrava = (ate?: string | null, cla?: string | null) => tr(`🔒 Você entrou ${cla ? `no ${cla}` : 'nesse clã'} há menos de 7 dias. Só dá pra sair ou trocar a partir de ${ate ? dataCurta(ate) : 'daqui a 7 dias'}.`, `🔒 You joined ${cla ?? 'this clan'} less than 7 days ago. You can leave or switch from ${ate ? dataCurta(ate) : 'in 7 days'}.`)
 export const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
@@ -225,7 +228,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
     </div>)}
     <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '4px 0 0' }}>{livre ? tr('Fora do ar, com o nome guardado só pra você. Reabrir ocupa uma das suas vagas.', 'Off the air, with the name kept just for you. Reopening takes one of your slots.') : tr('Fora do ar, com o nome guardado só pra você. Pra reabrir, saia antes de um dos seus clãs.', 'Off the air, with the name kept just for you. To reopen it, first leave one of your clans.')}</p>
   </div>
-  if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} meu={p.cla?.id ?? null} ocupado={ocupado} onEntrar={k => void faz('esc_cla_entrar', { p_cla: k.id, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), k)} />{aviso}{modalTroca}</>
+  if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} meu={p.cla?.id ?? null} ocupado={ocupado} onEntrar={k => void faz('esc_cla_entrar', { p_cla: k.id, p_trocar: false }, tr(ENTROU_CLA[0], ENTROU_CLA[1]), k)} />{aviso}{modalTroca}</>
   if (tela === 'ranking') return <>{voltar}<RankingClas meu={p.cla?.id ?? null} /></>
   const ehExtra = ver2 && !!p.extra
   const c = ehExtra ? p.extra! : p.cla
@@ -246,7 +249,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})<Descricao t={v.descricao} /></div>
         </div>
         <span style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-          <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
+          <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr(ENTROU_CLA[0], ENTROU_CLA[1]), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
           <button disabled={ocupado} style={{ ...bt('#fff', INK), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: false })}>{tr('agora não', 'not now')}</button>
         </span>
       </div>

@@ -18,7 +18,7 @@ import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
-import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado, esqueceClas, msgTrava } from './cla' // ⚔️ 21/10: clãs
+import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, ENTROU_CLA, SeloCla, clasLiberado, esqueceClas, msgTrava } from './cla' // ⚔️ 21/10: clãs
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -646,12 +646,12 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
   const responder = async (id: number, sim: boolean) => { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); lerAvisosAgora() }
   // ⚔️ convite de clã / pedido pro meu clã: a MESMA porta da aba ⚔️ Clã (esc_cla_responder). Se ele já está em clã, a troca
   // (com as travas de presidente e "sempre são dois") é na aba — aqui só avisa e leva pra lá.
-  const responderCla = async (id: number, sim: boolean) => {
+  const responderCla = async (id: number, sim: boolean, ehConvite = false) => {
     setMsgCla('')
     try {
       const { data } = await supabase.rpc('esc_cla_responder', { p_id: id, p_aceita: sim, p_trocar: false })
       const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string; ate?: string; cla?: string }
-      if (r.ok) { if (sim) setMsgCla(tr('✅ Feito!', '✅ Done!')); esqueceClas() }
+      if (r.ok) { if (sim) setMsgCla(ehConvite ? tr(ENTROU_CLA[0], ENTROU_CLA[1]) : tr('✅ Feito!', '✅ Done!')); esqueceClas() }
       else if (r.erro === 'trava') setMsgCla(`⚠️ ${msgTrava(r.ate, r.cla)}`)
       else if (r.erro === 'confirmar') setMsgCla(tr(`⚠️ Você já está no ${r.atual}. Pra trocar, abra 👥 Amigos → ⚔️ Clã.`, `⚠️ You are already in ${r.atual}. To switch, open 👥 Friends → ⚔️ Clan.`))
       else if (r.erro === 'cheio') setMsgCla(tr('⚠️ Você já está em 2 clãs, o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', '⚠️ You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.'))
@@ -682,7 +682,7 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
         {pedidos.map(x => linha(x.de, x.nome, tr('quer ser seu amigo', 'wants to be your friend'),
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.id, false)}>✕</button></span>, `p${x.id}`))}
         {clas.map(x => linha(x.de, x.nome, <>{tr('te chamou pro clã', 'invited you to the clan')} <b>⚔️ {x.cla_nome}</b></>,
-          <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true)}>{tr('entrar', 'join')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `k${x.id}`))}
+          <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true, true)}>{tr('entrar', 'join')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `k${x.id}`))}
         {claPedidos.map(x => linha(x.de, x.nome, <>{tr('quer entrar no seu clã', 'wants to join your clan')} <b>⚔️ {x.cla_nome}</b></>,
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `q${x.id}`))}
         {todos.map(x => linha(x.uid, x.nome, <>{tr('aceitou sua amizade', 'accepted your friend request')} 🤝</>, null, `a${x.uid}`))}
