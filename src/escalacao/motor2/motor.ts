@@ -118,6 +118,13 @@ const LONGE_GK = { de: 20, por: 9, max: 0.7 }
 const MIRA_LONGE = 22
 /** 🧤 o pulo do goleiro no chute de longe: o alcance cresce até (1 + max × isto) */
 const PULO_LONGE = 1.2
+/** ⚔️ o duelo atacante × goleiro: a diferença (reflexo − finalização) ÷ isto entra na chance da defesa (menor = pesa mais) */
+const DUELO_GK = 35
+/** ⚔️ (22/10) o nível tem que aparecer em campo: o passe do perna-de-pau sai mais torto e a bola foge do pé dele (menor DOMINIO =
+ *  pesa mais). Antes lendas × fracos tinham 56% de posse e o placar não passava de 4×0 */
+/** 🦵 botes por segundo do marcador colado (× a diferença desarme − condução ÷ BOTE_DIF) */
+const BOTE = 5.5, BOTE_DIF = 40
+const ERRO_PASSE = 0.004, DOMINIO = 120
 /** 🧤 a chance-base de o goleiro pegar o chute que vai no gol (antes do alcance, da força e da distância) */
 /** 🧑‍⚖️ ÁRBITRO (Diego 21/10, "juiz quase não trabalha"): chance de falta no bote · na chegada atrasada na bola · na dividida
  *  pelo alto · e de amarelo numa falta comum (carrinho, por trás, reincidência e último homem somam por cima) */
@@ -130,7 +137,7 @@ const PASSOU_DO_PONTO = 1.4
 const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
-const GK_BASE = 0.0
+const GK_BASE = -0.2
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
 export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
@@ -488,7 +495,7 @@ export class Motor2 {
     const d0 = dist(p, alvo)
     // erro de execução: técnica, distância e pressão
     const pres = pressaoEm(this, p, l)
-    const erro = (0.02 + (100 - p.at.passe) * 0.0016) * (1 + pres * 0.8) * (1 + (1 - p.gas) * 0.5) * (this.clima === 'chuva' ? 1.12 : 1) * d0
+    const erro = (0.02 + (100 - p.at.passe) * ERRO_PASSE) * (1 + pres * 0.8) * (1 + (1 - p.gas) * 0.5) * (this.clima === 'chuva' ? 1.12 : 1) * d0
     alvo.x = clamp(alvo.x + this.n() * erro * 0.6, -3, W + 3); alvo.y = clamp(alvo.y + this.n() * erro * 0.6, -3, L + 3)
     // (bola longa errada costuma passar do ponto — a inversão forte demais sai pela lateral, como no jogo de verdade)
     if (a.aereo && a.tipo !== 'cruzamento') { const k = Math.abs(this.n()) * erro * PASSOU_DO_PONTO / (d0 || 1); alvo.x = clamp(alvo.x + (alvo.x - p.x) * k, -6, W + 6); alvo.y = clamp(alvo.y + (alvo.y - p.y) * k, -3, L + 3) }
@@ -630,7 +637,9 @@ export class Motor2 {
     // tem pra ver a bola e PULAR — o alcance dele cresce. Antes o chute de 30 m no canto passava longe da mão e entrava metade
     // das vezes, igual ao de dentro da área
     const dOrig = lc.saiuDe ? len(lc.saiuDe.x - 34, frente(lc.de.lado, lc.saiuDe.y)) : 16
-    const longe = clamp((dOrig - LONGE_GK.de) / LONGE_GK.por, 0, LONGE_GK.max)
+    // (22/10, Diego: "quero que seja real em relação aos dois times"): a distância pesa muito pro chute do perna-de-pau e pouco pro
+    // do craque — o Roberto Carlos de 30 m é perigo de verdade; o lateral da várzea de 30 m é tiro de meta
+    const longe = clamp((dOrig - LONGE_GK.de) / LONGE_GK.por, 0, LONGE_GK.max) * (1 - clamp((lc.de.at.finalizacao - 65) / 40, -0.4, 0.85))
     const dx = Math.abs(b.x - gk.x), alc = (0.9 + 1.55 * (gk.at.reflexo / 100) + (gk.golpes.includes('defesa_milagrosa') ? 0.15 : 0)) * (1 + Math.min(fora, 9) * 0.07) * (1 + longe * PULO_LONGE)
     if (dx > alc || b.h > 2.55 + Math.min(fora, 9) * 0.1 + longe * 0.4) return
     const v = len(b.vx, b.vy)
@@ -640,7 +649,10 @@ export class Motor2 {
     if (tGol > 0) { const xGol = b.x + b.vx * tGol, hGol = b.h + b.vh * tGol - 0.5 * G * tGol * tGol; if (Math.abs(xGol - 34) > GOL_MEIO + 0.3 || hGol > TRAVESSAO + 0.35) return }
     // (goleiro de jogo de 1:30: pega menos que o de verdade — senão 7 chutes dão 1 gol e o placar fica 0×0)
     // (o goleiro ruim toma mais e o paredão segura mais: a diferença entre profissional e lenda vale ~0,35 de chance de defesa)
-    const p = clamp(GK_BASE - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + longe + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
+    // ⚔️ QUEM CHUTA × QUEM DEFENDE (Diego 22/10, "quero que seja real em relação aos dois times"): o craque contra goleiro fraco
+    // faz gol de qualquer lugar; o perna-de-pau contra o paredão quase não faz. A distância pesa menos pra quem chuta bem
+    const duelo = (gk.at.reflexo - lc.de.at.finalizacao) / DUELO_GK
+    const p = clamp(GK_BASE - (dx / alc) * 0.55 - (v - 15) / 42 + (gk.at.reflexo - 75) / 85 + duelo + longe + (this.clima === 'chuva' ? -0.05 : 0), 0.06, 0.96)
     lc.defendido = true
     if (this.r() >= p) return // passou por ele
     this.stats.defesas[def]++
@@ -692,7 +704,7 @@ export class Motor2 {
       // bola alta: cabeceio
       if (b.h > 1.5 && !gk) { this.cabeceia(p); return }
       const meu = !!lc && lc.de.lado === p.lado
-      const pOk = gk ? 0.93 : meu || !lc ? clamp(1.1 - v / 70 + (p.at.conducao - 60) / 250, 0.5, 0.98) : clamp(0.24 + (p.at.desarme + p.at.posicionamento - 110) / 220 + (v < 7 ? 0.3 : 0), 0.12, 0.85)
+      const pOk = gk ? 0.93 : meu || !lc ? clamp(1.1 - v / 70 + (p.at.conducao - 60) / DOMINIO, 0.4, 0.98) : clamp(0.24 + (p.at.desarme + p.at.posicionamento - 110) / 220 + (v < 7 ? 0.3 : 0), 0.12, 0.85)
       if (this.r() < pOk) {
         // 🚩 impedimento: quem estava impedido NA HORA do passe e é o alvo, tocou primeiro
         if (lc && lc.impedido && lc.para === p && meu) {
@@ -762,7 +774,7 @@ export class Motor2 {
       if (dist(z, d) > 2.2) continue
       const ac = this.acaoDe.get(d), dribla = ac?.tipo === 'drible'
       // (quem decidiu DRIBLAR encara na hora: o duelo acontece assim que encosta; o resto é o marcador que tenta, ~24%/s)
-      if (!(dribla && ac.contra === z && dist(z, d) < 1.9) && this.r() > 5.5 * DT) continue
+      if (!(dribla && ac.contra === z && dist(z, d) < 1.9) && this.r() > BOTE * clamp(1 + (z.at.desarme - d.at.conducao) / BOTE_DIF, 0.4, 3) * DT) continue // (22/10: o zagueiro bom contra o perna-de-pau dá bote muito mais vezes)
       const carrinho = z.golpes.includes('carrinho') || (z.grupo === 'DEF' && this.r() < 0.15)
       // falta? (chegando por trás, com o atacante em velocidade, é mais fácil derrubar)
       const porTras = fundo(d.lado, z.y) < fundo(d.lado, d.y) - 0.6, veloz = len(d.vx, d.vy) > 5
@@ -858,13 +870,18 @@ export class Motor2 {
   private moveFesta() {
     const f = this.festa!, autor = this.atl.find(a => a.lado === f.lado && a.nome === f.autor)
     // (no fim da festa todo mundo já volta correndo pro seu campo — a saída de bola não espera o abraço no bandeirinha)
-    const voltando = this.t > f.ate - 1.5
+    const voltando = this.t > f.ate - 1.8
+    // (só os 2 mais perto vão abraçar quem fez o gol; o resto já volta)
+    const abraco = autor ? this.atl.filter(a => a.lado === f.lado && a !== autor && a.grupo !== 'GOL').sort((a, c) => dist(a, autor) - dist(c, autor)).slice(0, 2) : []
     for (const p of this.atl) {
       if (voltando) { const a = ancora(this, p); p.alvo = { x: a.x, y: p.lado === 0 ? Math.max(a.y, L / 2 + 2) : Math.min(a.y, L / 2 - 2), v: 7.5 }; continue }
       // (comemora correndo pra lateral mais perto — não até o bandeirinha: a volta pra saída de bola custava 7 s)
-      if (autor && p === autor) { p.alvo = { x: autor.x < 34 ? Math.max(3, autor.x - 9) : Math.min(W - 3, autor.x + 9), y: clamp(autor.y + (f.lado === 0 ? -4 : 4), 2, L - 2), v: 6.5 }; continue }
-      if (autor && p.lado === f.lado && dist(p, autor) < 22 && p.grupo !== 'GOL') { p.alvo = { x: autor.x + (p.x < autor.x ? -1.5 : 1.5), y: autor.y + (p.y < autor.y ? -1.5 : 1.5), v: 6 }; continue }
-      const a = ancora(this, p); p.alvo = { x: a.x, y: p.lado === 0 ? Math.max(a.y, L / 2 + 2) : Math.min(a.y, L / 2 - 2), v: 4.5 }
+      // (comemora correndo de braço aberto pra lateral e JÁ NA DIREÇÃO do próprio campo — 22/10: a volta pra saída era o que mais custava)
+      if (autor && p === autor) { p.alvo = { x: autor.x < 34 ? Math.max(3, autor.x - 9) : Math.min(W - 3, autor.x + 9), y: clamp(autor.y + (f.lado === 0 ? 14 : -14), 2, L - 2), v: 6.5 }; continue }
+      if (autor && p.lado === f.lado && dist(p, autor) < 22 && p.grupo !== 'GOL' && abraco.includes(p)) { p.alvo = { x: autor.x + (p.x < autor.x ? -1.5 : 1.5), y: autor.y + (p.y < autor.y ? -1.5 : 1.5), v: 6 }; continue }
+      // (22/10: quem não foi abraçar já volta CORRENDO pro seu campo — antes voltava andando e cada gol custava ~8 s de tela parada:
+      // num 5×0 seriam 40 s sem jogo, e era isso que impedia a goleada de existir)
+      const a = ancora(this, p); p.alvo = { x: a.x, y: p.lado === 0 ? Math.max(a.y, L / 2 + 2) : Math.min(a.y, L / 2 - 2), v: 7 }
     }
   }
 

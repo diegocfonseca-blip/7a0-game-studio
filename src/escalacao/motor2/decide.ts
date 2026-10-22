@@ -31,6 +31,10 @@ const LAT_APOIO = 0.05
 const CRUZA = 1.8
 /** 🧤 o goleiro comum (saída 55–74) prefere repor curto por isto */
 const GOLEIRO_CURTO = 0.03
+/** 👀 o quanto a falta de visão engana a leitura do passe (menor = o perna-de-pau força mais passe) */
+const CEGUEIRA = 25
+/** ⚽ a partir desta finalização o jogador bate de primeira, sem ajeitar */
+const CRAQUE_PRIMEIRA = 88
 
 /** quanto custa PERDER a bola aqui (perto do próprio gol custa mais) */
 const perda = (lado: 0 | 1, x: number, y: number) => 0.004 + valor((1 - lado) as 0 | 1, x, y) * 0.85 // (o que o RIVAL ganha se a bola ficar com ele ali)
@@ -51,13 +55,16 @@ export function decide(m: Motor2, p: Atleta): Acao {
   const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 // (só solta antes com o marcador em cima — é aí que o duelo acontece)
 
   // 🎯 CHUTAR
-  if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < 31 && f > 1 && !(cedo && dGol > 24)) {
+  // (22/10: o craque bate de primeira e de mais longe — é ele que transforma domínio em goleada; o fraco precisa ajeitar antes)
+  const alcanceChute = 31 + clamp((p.at.finalizacao - 80) / 4, 0, 4), dePrimeira = p.at.finalizacao >= CRAQUE_PRIMEIRA
+  if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < alcanceChute && f > 1 && !(cedo && dGol > 24 && !dePrimeira)) {
     const xg = xgDe(l, p.x, p.y, pres)
     let u = xg * (4.2 + p.at.finalizacao / 120)
     // (dentro da área o instinto é chutar — o passe de 3 m pro companheiro marcado não resolve)
     if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
     if (dGol > 19) u *= 1 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
-    u *= dGol > 23 ? CHUTE_LONGE : CHUTE_PERTO // (21/10: de longe entra pouco — o time prefere chegar mais perto)
+    // (22/10: quem tem chute arrisca de fora — o craque mais, o perna-de-pau quase nunca. É daí que sai a goleada do time bom)
+    u *= dGol > 23 ? CHUTE_LONGE * clamp((p.at.finalizacao - 50) / 35, 0.4, 1.8) : CHUTE_PERTO // (21/10: de longe entra pouco — o time prefere chegar mais perto)
     if (dGol > 27) u *= 0.7 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
@@ -101,7 +108,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
     let rec = 9
     for (const a of adv) rec = Math.min(rec, dist(a, alvo))
     const pRec = clamp(0.5 + rec / 10, 0.5, 1)
-    const pOk = pTec * pLinha * pRec
+    // 👀 (22/10) quem tem pouca VISÃO não enxerga o rival na linha do passe: acha que o passe está livre e força — é assim que o
+    // time fraco entrega a bola pro time bom (a física do corte continua a mesma; só a LEITURA dele é que erra)
+    const pVe = pLinha + (1 - pLinha) * clamp((75 - p.at.visao) / CEGUEIRA, 0, 0.7)
+    const pOk = pTec * pVe * pRec
     const v = valor(l, alvo.x, alvo.y)
     // 🎯 JOGO DIRETO (o jogo inteiro cabe em 1:30): ganhar metros vale um bônus
     const avanca = (frente(l, p.y) - frente(l, alvo.y)) / 10
@@ -187,7 +197,7 @@ function escolhe(m: Motor2, p: Atleta, ops: Acao[]): Acao {
   let max = -9
   for (const o of ops) max = Math.max(max, o.u)
   // (cansado decide pior: o gás baixo esquenta o sorteio)
-  const T = (0.005 + (100 - p.at.decisao) * 0.0002) * (1 + (1 - p.gas) * 0.8)
+  const T = (0.005 + (100 - p.at.decisao) * 0.0005) * (1 + (1 - p.gas) * 0.8)
   const corte = max - 3 * T
   let soma = 0
   const pesos = ops.map(o => { const w = o.u > corte ? (o.u - corte) * (o.u - corte) : 0; soma += w; return w })

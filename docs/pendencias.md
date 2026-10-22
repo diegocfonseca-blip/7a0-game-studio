@@ -1,4 +1,18 @@
-## ⚽ Motor novo: juiz, zaga e finalização (21/10) — SÓ NO BRANCH, esperando o Diego decidir a média de gols
+## ⚽ Motor novo: placar pela FORÇA dos dois times (22/10) — SÓ NO BRANCH, esperando OK pra publicar
+Resposta do Diego à média de 1,5: *"não quero que seja uma coisa travada… time muito bom com time muito ruim pode ter goleada,
+5-0, 4-0, 5-1. Jogo muito difícil pode ter empate, menos gols. Real em relação aos dois times"*. Feito:
+- **Duelo atacante × goleiro** (`DUELO_GK`): o craque contra goleiro fraco faz de qualquer lugar; o fraco contra o paredão quase não faz.
+- **A distância pesa pelo chute de quem bate**: pro perna-de-pau, chute de longe vira tiro de meta; pro craque continua perigoso.
+- **Craque bate de primeira e de mais longe** (`CRAQUE_PRIMEIRA`, alcance até 35 m); o fraco precisa ajeitar antes.
+- **O nível aparece no passe e no domínio** (`ERRO_PASSE`, `DOMINIO`), **na leitura do passe rival** (`LEITURA`), **na visão de
+  quem passa** (`CEGUEIRA`: o fraco força passe e entrega) e **no bote** (`BOTE`).
+- Depois do gol, só 2 vão abraçar e o resto já volta correndo; a comemoração vai na direção do próprio campo.
+- Medido (300 jogos cada): parecidos 2,0 gols, 1×1 o mais comum, 31% empate · forte × médio 1,6×0,5, até 6×0 · lendas × fracos
+  2,1×0,2, 34% com 3+ gols de diferença, 4×0 em 11%, até 5×0 · fracos × fracos 1,3 gol, 0×0 em 24%.
+- ⚠️ Limite que não sai no ajuste: em 1:30 de tela cabem ~3,5 chutes por jogo (a bola anda na velocidade de verdade). Por isso o
+  chute de time BOM ainda entra muito (~58%); o que mudou é que agora depende de quem chuta e de quem defende.
+
+## ⚽ Motor novo: juiz, zaga e finalização (21/10)
 Pedido dele depois da análise de uma partida inteira: *"faça 2 3 e 6"*.
 - **6 · finalização**: o chute de longe entrava 54% das vezes (igual ao de dentro da área). Causa: o chute no canto passava fora do
   alcance do goleiro, de qualquer distância. Agora o alcance do goleiro cresce com a distância do chute (`LONGE_GK`, `PULO_LONGE`)
