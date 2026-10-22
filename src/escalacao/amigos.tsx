@@ -18,7 +18,7 @@ import { Escudo } from './escudos'
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
-import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado, esqueceClas } from './cla' // ⚔️ 21/10: clãs
+import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, SeloCla, clasLiberado, esqueceClas, msgTrava } from './cla' // ⚔️ 21/10: clãs
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -650,8 +650,9 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
     setMsgCla('')
     try {
       const { data } = await supabase.rpc('esc_cla_responder', { p_id: id, p_aceita: sim, p_trocar: false })
-      const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string }
+      const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string; ate?: string; cla?: string }
       if (r.ok) { if (sim) setMsgCla(tr('✅ Feito!', '✅ Done!')); esqueceClas() }
+      else if (r.erro === 'trava') setMsgCla(`⚠️ ${msgTrava(r.ate, r.cla)}`)
       else if (r.erro === 'confirmar') setMsgCla(tr(`⚠️ Você já está no ${r.atual}. Pra trocar, abra 👥 Amigos → ⚔️ Clã.`, `⚠️ You are already in ${r.atual}. To switch, open 👥 Friends → ⚔️ Clan.`))
       else if (r.erro === 'cheio') setMsgCla(tr('⚠️ Você já está em 2 clãs, o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', '⚠️ You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.'))
       else setMsgCla(tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.'))
