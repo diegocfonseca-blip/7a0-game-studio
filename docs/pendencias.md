@@ -1,3 +1,61 @@
+## 📰 Histórias do vestiário em tela própria + mais variedade (22/10) — NO BRANCH, esperando "publica"
+Diego: *"fica o placar em cima, a história embaixo e mais coisas embaixo… muita coisa misturada"* e *"quero que tenha mais variedade
+ainda de histórias"*. Mockup aprovado. Feito: evento de jogador (noitada/lesão/expulsão) e crise financeira abrem POR CIMA de tudo
+(portal, fundo escuro, selo "📰 Notícia do vestiário" / "🚨 Aviso da diretoria", "1 de N avisos"); cartinha antes da história e
+"O que você faz, presidente?" na noitada. Mesmos botões e ações. Histórias: noitada 10→25, expulsão 8→22, lesão 9→25, desgaste 5→15
+(PT e EN do mesmo tamanho; zoeira leve e inventada). Bancada: `scripts/teste-evento/?tipo=noitada|lesao|expulsao`.
+
+## 🕵️ Sondar à vista (22/10) — FEITO NO BRANCH, esperando "publica" do Diego
+Diego: *"a área de sondar técnico… não está muito clara… tem que estar em algum lugar melhor"*. Mockup aprovado (*"ok pode fazer
+mas mantém regra de over, categoria e etc. se mostra ou não"*). Feito: a janela antes do leilão ABRE no Sondar (1º passo, com
+"Agora não → vender reservas"); dois cartões 🧢 Técnico / ⚽ Jogador com 0/1 e quantos estão sem contrato; tocando, a LISTA direta
+(sem abrir clube por clube), filtro 🆓 sem contrato / todos. Regras iguais: técnico de outro clube só com o NOME; jogador só se o
+olheiro alcança (`sondarLiberado`), também só o nome; 1+1 por temporada; trava no reducer. Central Legends ganhou o aviso "a janela
+vai abrir" da rodada 33 em diante (só aviso, sem botão — marcar fora da janela não foi testado). Bancada: `scripts/teste-sondar/`.
+Na mesma conversa: a carreira perdeu gente desde set/out (temporada de 10 → 16 min, fichas/nuvem em 05/10, metade das carreiras
+novas para na 1ª temporada). Ideias levadas pro Diego, nenhuma aprovada ainda: Carreira Online pra todos, rival no jornal, Copa das
+Carreiras, meta da diretoria pelo tamanho do elenco, verba de reconstrução pra quem termina lá embaixo.
+
+## ⚽ Motor novo: GOLEADA EXISTE (22/10, 2ª rodada) — SÓ NO BRANCH, esperando OK pra publicar
+Diego: *"não dá pra ter goleada então… tem momento que pode ter goleada, como tem momento que pode ser 1-0"*. Medido antes: numa liga
+misturada alguém fazer 4+ gols era 0,7%. A causa: cada gol custava ~6,5 s de tela (todo mundo voltando a pé pra saída) — num 5×0, 1/3
+do jogo parado. Feito:
+- 📺 **Corte de TV depois do gol**: o "GOOOOL!" já cobre o campinho; quando ele sai, o time está arrumado pra saída (igual ao início
+  do jogo e ao intervalo). A saída continua com todo mundo no seu campo.
+- 🌞 **Dia do time** (`DIA_DO_TIME`): em 60% dos jogadores o dia é o mesmo do time, sempre DENTRO da faixa lo–hi de cada um.
+- 😵 **Time abalado** (`ABALO`): tomando 2+ de diferença, marca/posiciona/decide pior (goleiro também).
+- 📣 Perdendo no 2º tempo, o time sobe o bloco (+1 na tática).
+- Medido (300 jogos): liga misturada 2,3 gols · 1×0 22% · alguém faz 4+ 6% · 5+ 1,3% · lenda × profissional até 7×0, 5+ em 14% ·
+  craque × bom até 6×0 · trava `npm run motor2` ok (parecidos 1,96, forte ganha 80%).
+- ⚠️ Mudança VISUAL (o recomeço depois do gol): mostrar pro Diego jogando antes de liberar pra mais alguém.
+
+## ⚽ Motor novo: placar pela FORÇA dos dois times (22/10) — SÓ NO BRANCH, esperando OK pra publicar
+Resposta do Diego à média de 1,5: *"não quero que seja uma coisa travada… time muito bom com time muito ruim pode ter goleada,
+5-0, 4-0, 5-1. Jogo muito difícil pode ter empate, menos gols. Real em relação aos dois times"*. Feito:
+- **Duelo atacante × goleiro** (`DUELO_GK`): o craque contra goleiro fraco faz de qualquer lugar; o fraco contra o paredão quase não faz.
+- **A distância pesa pelo chute de quem bate**: pro perna-de-pau, chute de longe vira tiro de meta; pro craque continua perigoso.
+- **Craque bate de primeira e de mais longe** (`CRAQUE_PRIMEIRA`, alcance até 35 m); o fraco precisa ajeitar antes.
+- **O nível aparece no passe e no domínio** (`ERRO_PASSE`, `DOMINIO`), **na leitura do passe rival** (`LEITURA`), **na visão de
+  quem passa** (`CEGUEIRA`: o fraco força passe e entrega) e **no bote** (`BOTE`).
+- Depois do gol, só 2 vão abraçar e o resto já volta correndo; a comemoração vai na direção do próprio campo.
+- Medido (300 jogos cada): parecidos 2,0 gols, 1×1 o mais comum, 31% empate · forte × médio 1,6×0,5, até 6×0 · lendas × fracos
+  2,1×0,2, 34% com 3+ gols de diferença, 4×0 em 11%, até 5×0 · fracos × fracos 1,3 gol, 0×0 em 24%.
+- ⚠️ Limite que não sai no ajuste: em 1:30 de tela cabem ~3,5 chutes por jogo (a bola anda na velocidade de verdade). Por isso o
+  chute de time BOM ainda entra muito (~58%); o que mudou é que agora depende de quem chuta e de quem defende.
+
+## ⚽ Motor novo: juiz, zaga e finalização (21/10)
+Pedido dele depois da análise de uma partida inteira: *"faça 2 3 e 6"*.
+- **6 · finalização**: o chute de longe entrava 54% das vezes (igual ao de dentro da área). Causa: o chute no canto passava fora do
+  alcance do goleiro, de qualquer distância. Agora o alcance do goleiro cresce com a distância do chute (`LONGE_GK`, `PULO_LONGE`)
+  e a mira de longe abre mais (`MIRA_LONGE`). Medido: <11 m ~80% · 11–22 m ~70% · 22 m+ ~30%.
+- **3 · juiz**: faltas 1,5→2,9 · amarelos 0,09→0,36 · vermelhos 0→0,03 · laterais 0,05→1,1 · escanteios 0,7→0,6 (`FALTA_*`,
+  `AMARELO_BASE`, `DESVIO_LATERAL`, `DESVIO_ESCANTEIO`, `CORTE_ESCANTEIO`, empurrão na bola alta).
+- **2 · zaga/laterais/goleiro**: recuo pro zagueiro sob pressão, lateral que ultrapassa pede a bola, goleiro comum sai curto,
+  mais cruzamento (`SAIDA_TRAS`, `RECUO_MAX`, `LAT_APOIO`, `GOLEIRO_CURTO`, `CRUZA`). Ganho pequeno: laterais 5%→8% dos passes.
+- ⚠️ **O preço**: em 1:30 cabem ~3,5 chutes por jogo. Com o chute de longe entrando pouco, a média caiu de **2,0 para 1,5 gol**
+  (a trava `npm run motor2` ainda passa, no limite). Perguntei ao Diego se aceita ou se prefere voltar pra 2 com o chute de longe
+  entrando mais. O tempo morto depois do gol (7 s) foi medido e NÃO resolve: ganharia só ~0,1 gol.
+
 ## 📺 Motor 2D v2 (experimental, SÓ NO BRANCH `claude/pontosafe-repo-setup-qzjo89`) — calibração do jogo corrido (20/10)
 Decisão do Diego: *"quero o jogo igual tá sendo hoje… sem ser lances"* → formato B (bola rolando os 93' em 1:30 de tela), formato
 A (lances, estilo FM) descartado. Calibração feita e medida (diário completo em `docs/motor-2d-v2.md`, seção 11): de 0,03 pra

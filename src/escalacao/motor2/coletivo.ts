@@ -6,6 +6,9 @@ import { AREA_LARG, AREA_PROF, L, W, clamp, dist, frente, fundo, len, linhaAtaqu
 import type { Atleta, Lado } from './tipos'
 import type { Motor2 } from './motor'
 
+/** quanto o posicionamento médio do time adianta a leitura do passe rival (menor = pesa mais) */
+const LEITURA = 120
+
 export interface Bloco { tras: number; frente: number; largura: number; desliza: number }
 
 /** onde o bloco do time QUER estar (linha de trás e da frente, em metros do PRÓPRIO gol) */
@@ -76,7 +79,9 @@ export function planeja(m: Motor2) {
     const campo = time.filter(p => p.grupo !== 'GOL' && p !== d)
     // (passe do rival: o defensor REAGE — leva ~0,35 s pra ler o passe; antes disso ninguém sai atrás da bola. Sem isso o
     // rival corria no instante do passe, com previsão perfeita, e cortava 1 em cada 5 passes)
-    const reage = !lance || lance.tipo === 'chute' || lance.de.lado === l || m.t - lance.t0 > 0.35
+    // (22/10: o time bom LÊ o passe antes — a defesa de lendas sai na bola em ~0,15 s, a de várzea em ~0,5 s)
+    const leitura = clamp(0.35 - (campo.reduce((s2, p) => s2 + p.at.posicionamento, 0) / Math.max(1, campo.length) - 65) / LEITURA, 0.1, 0.55)
+    const reage = !lance || lance.tipo === 'chute' || lance.de.lado === l || m.t - lance.t0 > leitura
     if (!d && reage && (!lance || lance.de.lado !== l || lance.tipo === 'chute')) {
       // 🏃 bola solta / passe do RIVAL: o mais rápido até ela vai (1 só — 2 se ela está perto do nosso gol)
       const ord = [...campo].sort((a, b) => tempo(a) - tempo(b))
