@@ -6,9 +6,7 @@
 - 🗓️ **Jogos**: trilha da temporada no topo (Liga R/38 → Copa → Supercopa → Internacional T40+ → Copa do Mundo quando vale) e os
   outros jogos em 3 cartões + "ver os N jogos" (`CareerLeagueGames limite`). Ordem de sempre (nunca por placar — spoiler).
 - 🎤 **Coletiva liberada pra todos** (`COLETIVA_GERAL = true`): um usuário reclamou que não aparecia — estava só na conta do Diego.
-- ⏳ **Elenco "arrumado"** (mockup `carreira-elenco-arrumado.png`: cabeçalho num bloco, comissão à vista, abas com contagem, lista com
-  cor por posição) — Diego mandou só a força do time por enquanto; o resto do mockup NÃO foi feito. Ideia de Elenco em grupos foi
-  descartada: a lista faz a troca junto com o campinho, não pode separar.
+- 🎨 **Elenco arrumado (parte 2)**: selo POS com cor por posição e a pílula 🏛️ Comissão dizendo quem é o técnico e o preparador (ou "sem técnico · sem preparador"). Elenco em grupos foi descartado (a lista faz a troca junto com o campinho).
 
 ## 📝 Renovação em cartas + Central na Copa + Clube em 3 grupos + bolinha nas abas (22/10) — PUBLICADO pra todos
 Diego aprovou os dois mockups (`carreira-abas-ideias.png`, *"adorei"*; `carreira-renovacao-nova.png`, *"perfeito pode fazer e publicar já a b e c mais a tela de renovação"*).

@@ -147,6 +147,8 @@ const COPA_BR_HOLO = 'linear-gradient(150deg,#1FAE63,#0EA658 55%,#0a6b3c)'
 const SUPERCOPA_HOLO = 'linear-gradient(150deg,#4C86FF,#0D4FCC 55%,#062B75)'
 const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
+// 🎨 cor de cada posição na tabela do Elenco (22/10) — só o selo POS; nada a ver com a cor de tier
+const COR_POS: Record<string, string> = { GOL: '#D99A00', LAT: '#2F6FDB', ZAG: '#1B7A3D', MEI: '#8a5a2b', ATA: '#C2452F' }
 
 // 🔄 chip "EMP" do jogador emprestado (pego DA SAF). Fica do lado do nome, pequeno,
 // sem poluir. `mini` = versão selo do campinho (canto da mini-carta).
@@ -4651,7 +4653,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const colunas: { k: string; w: number; head: string; cell: (c: WonCard, titular: boolean) => React.ReactNode }[] = [
     // a posição continua na COR DO TIME, como já era na listinha antiga — é o
     // único lugar da tabela onde a cor do clube aparece, e some se tirar.
-    { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> },
+    { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: COR_POS[c.pos] ?? col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> }, // 🎨 22/10: cor por posição (mockup do Elenco arrumado)
     ...(mostraOverall ? [{ k: 'ovr', w: larga ? 46 : 34, head: 'OVERALL', cell: (c: WonCard) => overallChip(c) }] : []),
     ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell((estat ?? condicao)!.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
     { k: 'gol', w: wNum, head: larga ? tr('GOLS', 'GOALS') : '⚽', cell: c => numCell(goalsOf(c), goalsOf(c) > 0 ? GREEN : 'rgba(12,12,12,.25)') },
@@ -4931,7 +4933,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // na mesma tela, com o mesmo conteúdo. Dois botões pro mesmo lugar é poluição.
   const atalhos = (
     <div style={{ display: 'flex', gap: 6, margin: '9px 0 10px' }}>
-      {quinze && atalho('🏛️', tr('Comissão', 'Staff'), tr('técnico e preparador', 'coach and fitness'), () => abrePainel('comissao'), painel === 'comissao')}
+      {quinze && (() => {
+        // 🏛️ 22/10 (mockup do Elenco arrumado): a pílula diz COMO está a comissão, sem precisar abrir
+        const tecN = stEl.careerTecnicos?.[mgr.teamName]
+        const prepN = preparadorDe(stEl.careerPreparador?.[mgr.teamName])?.nome
+        const sub = !tecN && !prepN ? tr('sem técnico · sem preparador', 'no coach · no fitness coach')
+          : `${tecN ?? tr('sem técnico', 'no coach')} · ${prepN ?? tr('sem preparador', 'no fitness coach')}`
+        return atalho('🏛️', tr('Comissão', 'Staff'), sub, () => abrePainel('comissao'), painel === 'comissao')
+      })()}
       {antesFolha && atalho('🌱', tr('Base', 'Academy'), tr('subir do sub-20', 'promote from U-20'), () => abrePainel('base'), painel === 'base')}
     </div>
   )
