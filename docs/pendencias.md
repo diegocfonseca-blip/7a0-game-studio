@@ -1,3 +1,10 @@
+## 💼 Kit de patrocínio (22/10) — FEITO (online + PDF)
+Pedido do Diego: PDF/online com os números da Loja (só os que favorecem), as artes de onde a marca aparece (Tidex de exemplo) e o
+clube batizado no padrão Fundador incluso pro patrocinador (Neymarzetti de exemplo; R$ 99,90 pros jogadores). Online:
+https://claude.ai/artifact/WoZZALpLsJosqmcG4wX3z6 (privado até ele compartilhar). Fonte guardada em `scripts/kit-patrocinio/`
+(HTML + imagens; o PDF sai com o Playwright, largura 1100px). Números = os mesmos de `marca-mensal.tsx` (18/10). Fora de propósito:
+LED do estádio e anúncio no O MARTELO (desligados). O campinho 2D entrou marcado "lançamento em breve" (ainda só na conta dele).
+
 ## 📰 Histórias do vestiário em tela própria + mais variedade (22/10) — NO BRANCH, esperando "publica"
 Diego: *"fica o placar em cima, a história embaixo e mais coisas embaixo… muita coisa misturada"* e *"quero que tenha mais variedade
 ainda de histórias"*. Mockup aprovado. Feito: evento de jogador (noitada/lesão/expulsão) e crise financeira abrem POR CIMA de tudo

@@ -1,0 +1,283 @@
+<title>Patrocínio Leilão Legends</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Barlow:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: uma "ficha de patrocínio" no visual do próprio jogo — creme, tinta preta, bordas grossas e sombra dura; seções empilhadas, foto + legenda. Tema único (claro) de propósito: é a cara do jogo. */
+:root {
+  --creme: #F4ECD6; --papel: #FFFDF6; --tinta: #0C0C0C; --ouro: #FFC400; --verde: #1B7A3D; --verde-claro: #5FE08F;
+  --vermelho: #C2452F; --cinza: #5A5647; --linha: #0C0C0C;
+  --display: 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --corpo: 'Barlow', 'Segoe UI', Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--creme); color: var(--tinta); font-family: var(--corpo); font-size: 16px; line-height: 1.5; }
+.pagina { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; display: flex; flex-direction: column; gap: 34px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; text-transform: uppercase; line-height: 1.02; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(38px, 7vw, 68px); }
+h2 { font-size: clamp(28px, 4.4vw, 40px); }
+h3 { font-size: 22px; }
+p { margin: 0; }
+.selo { display: inline-block; font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; background: var(--ouro); color: var(--tinta); border: 3px solid var(--linha); border-radius: 999px; padding: 3px 12px; box-shadow: 3px 3px 0 var(--linha); }
+.caixa { background: var(--papel); border: 4px solid var(--linha); border-radius: 22px; box-shadow: 5px 5px 0 var(--linha); }
+.mole { color: var(--cinza); font-weight: 600; }
+img { max-width: 100%; height: auto; display: block; }
+
+/* topo */
+.topo { padding: 28px 26px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 26px; align-items: center; }
+.topo > * { min-width: 0; }
+.topo h1 em { font-style: normal; color: var(--vermelho); }
+.topo .lead { font-size: 18px; margin-top: 14px; font-weight: 600; color: #2b2920; max-width: 52ch; }
+.exemplo { background: #0B1220; border: 4px solid var(--linha); border-radius: 18px; box-shadow: 4px 4px 0 var(--linha); padding: 18px; color: #EAF6F8; display: flex; flex-direction: column; gap: 12px; }
+.exemplo small { font-family: var(--display); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #7FE3EA; }
+.exemplo p { font-size: 14px; font-weight: 600; color: #C9DDE1; }
+
+/* números */
+.numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.num { background: var(--tinta); color: #fff; border-radius: 16px; padding: 16px 16px 14px; border: 3px solid var(--linha); min-width: 0; }
+.num b { display: block; font-family: var(--display); font-weight: 700; font-size: clamp(34px, 5vw, 46px); line-height: 1; color: var(--ouro); font-variant-numeric: tabular-nums; }
+.num.verde b { color: var(--verde-claro); }
+.num span { display: block; margin-top: 6px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.86); line-height: 1.3; }
+.num.largo { grid-column: 1 / -1; display: flex; gap: 18px; align-items: center; }
+.num.largo b { white-space: nowrap; }
+.num.largo span { margin-top: 0; font-size: 15px; }
+.fonte { font-size: 12.5px; color: var(--cinza); font-weight: 600; margin-top: 10px; }
+
+/* vitrine de lugares */
+.cab { display: flex; flex-direction: column; gap: 8px; }
+.lugares { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.lugar { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.lugar.cheio { grid-column: 1 / -1; }
+.lugar .foto { border: 3px solid var(--linha); border-radius: 14px; overflow: hidden; background: #111; }
+.lugar .foto.clara { background: var(--creme); }
+.lugar h3 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.lugar h3 .tag { font-size: 11px; letter-spacing: .1em; background: var(--verde); color: #fff; border-radius: 6px; padding: 2px 7px; }
+.lugar h3 .tag.breve { background: var(--vermelho); }
+.lugar p { font-size: 15px; font-weight: 600; color: #2b2920; }
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.duas > * { min-width: 0; }
+.estreita { max-width: 360px; margin: 0 auto; }
+
+/* contrato */
+.passos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.passo { border: 3px solid var(--linha); border-radius: 14px; background: #FFF7DB; padding: 12px; min-width: 0; }
+.passo b { display: block; font-family: var(--display); font-size: 16px; text-transform: uppercase; }
+.passo span { font-size: 14px; font-weight: 600; color: #3a3527; }
+
+/* clube */
+.clube { padding: 22px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 22px; align-items: start; background: linear-gradient(150deg, #FFE79A, var(--ouro) 60%, #E8A200); }
+.clube > * { min-width: 0; }
+.clube .lista { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.item { background: var(--papel); border: 3px solid var(--linha); border-radius: 12px; padding: 9px 12px; font-weight: 700; font-size: 15px; }
+.item small { display: block; font-weight: 600; color: var(--cinza); font-size: 13.5px; }
+.preco { margin-top: 14px; background: var(--tinta); color: #fff; border-radius: 14px; padding: 12px 14px; font-weight: 600; font-size: 15px; }
+.preco b { color: var(--ouro); font-family: var(--display); font-size: 20px; }
+.trio { display: flex; gap: 10px; align-items: flex-end; justify-content: center; background: var(--papel); border: 3px solid var(--linha); border-radius: 16px; padding: 14px; }
+.trio img { max-height: 170px; width: auto; }
+
+/* fim */
+.extras { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.extra { padding: 14px 16px; font-weight: 700; font-size: 16px; }
+.extra small { display: block; font-weight: 600; color: var(--cinza); font-size: 14px; }
+.contato { background: var(--tinta); color: #fff; border-radius: 22px; border: 4px solid var(--linha); padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+.contato h2 { color: var(--ouro); }
+.contato .linhas { display: flex; flex-wrap: wrap; gap: 10px; }
+.contato .linhas span { background: #fff; color: var(--tinta); border-radius: 10px; padding: 7px 12px; font-weight: 800; font-size: 15px; user-select: all; }
+
+@media (max-width: 760px) {
+  .topo, .clube { grid-template-columns: 1fr; padding: 18px; }
+  .numeros { grid-template-columns: 1fr 1fr; }
+  .num.largo { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .lugares, .extras { grid-template-columns: 1fr; }
+  .passos { grid-template-columns: 1fr 1fr; }
+}
+@media print {
+  body { background: var(--creme); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pagina { padding-block: 10px; gap: 22px; }
+  .lugar, .passo, .num, .item, .clube, .contato, .extra { break-inside: avoid; }
+  .quebra { break-before: page; }
+}
+</style>
+
+<div class="pagina">
+
+  <header class="caixa topo">
+    <div>
+      <span class="selo">⚽ Leilão Legends · patrocínio</span>
+      <h1 style="margin-top:14px">Sua marca no meio <em>da torcida</em></h1>
+      <p class="lead">O Leilão Legends é um jogo de leilão de lendas do futebol. A galera monta o time dando lance, joga a temporada e zoa os amigos ao vivo. A sua marca entra dentro do jogo, onde a partida acontece, e não num banner do lado.</p>
+    </div>
+    <div class="exemplo">
+      <small>Exemplo que já está no ar</small>
+      <img src="img/tidex-logo.webp" alt="Tidex" width="837" height="120">
+      <p>A Tidex apresenta a Liga Legends da carreira, está nas placas do campo, no telão das salas, entre os patrocinadores da carreira e tem tema próprio nas salas. Tudo o que você vê nas fotos abaixo é o jogo de verdade.</p>
+    </div>
+  </header>
+
+  <section class="cab">
+    <span class="selo" style="align-self:flex-start">📊 Os números</span>
+    <h2>Gente de verdade, jogando todo dia</h2>
+    <div class="numeros" style="margin-top:8px">
+      <div class="num"><b>+500 mil</b><span>partidas jogadas</span></div>
+      <div class="num"><b>28 mil</b><span>salas online criadas pela galera</span></div>
+      <div class="num"><b>15 mil</b><span>técnicos com conta no jogo</span></div>
+      <div class="num"><b>6 mil</b><span>técnicos diferentes jogaram no último mês</span></div>
+      <div class="num verde"><b>15 mil</b><span>partidas num dia só (nosso recorde)</span></div>
+      <div class="num verde"><b>57%</b><span>das partidas jogadas ao vivo com amigos</span></div>
+      <div class="num verde largo"><b>~100 mil</b><span>vezes que um técnico escolheu o patrocinador do clube na carreira (uma escolha a cada temporada). É ali que a sua marca entra.</span></div>
+    </div>
+    <p class="fonte">Números contados pelo próprio jogo em 18/10/2026.</p>
+  </section>
+
+  <section class="cab quebra">
+    <span class="selo" style="align-self:flex-start">📍 Onde a marca aparece</span>
+    <h2>Dentro da partida, não do lado dela</h2>
+    <div class="lugares" style="margin-top:8px">
+
+      <article class="caixa lugar">
+        <div class="foto clara"><img src="img/naming.webp" alt="Abertura da Champions Legends apresentada por Vadico Veículos" width="760" height="568"></div>
+        <h3>🏆 Nome da competição</h3>
+        <p>"Champions Legends apresentada por…" na abertura e no título da competição. Hoje a Tidex apresenta a Liga Legends da carreira, a Vadico Veículos a Champions e a OittoLabs a Copa dos 8 e a Copa do Brasil.</p>
+      </article>
+
+      <article class="caixa lugar">
+        <div class="foto clara"><img src="img/naming-oittolabs.webp" alt="Copa dos 8 e Copa do Brasil apresentadas por OittoLabs" width="790" height="982"></div>
+        <h3>🎬 A cada fase, de novo</h3>
+        <p>Quartas, semi, final: toda fase abre com a arte da competição e o nome da marca embaixo. A galera vê o nome a cada etapa que avança.</p>
+      </article>
+
+      <article class="caixa lugar cheio">
+        <div class="duas">
+          <div class="foto clara"><img src="img/campo.webp" alt="Placas atrás dos gols no campinho do leilão" width="750" height="686"></div>
+          <div class="foto clara"><img src="img/placas-leilao-tidex.webp" alt="Placa da Tidex atrás do gol no campinho do leilão" width="776" height="461"></div>
+        </div>
+        <h3>⚽ Placas atrás dos gols no leilão</h3>
+        <p>Uma em cima e uma embaixo de cada campinho do leilão, enquanto a galera monta o time. Trocam a cada 7 segundos, e o leilão é a parte do jogo em que todo mundo está de olho na tela.</p>
+      </article>
+
+      <article class="caixa lugar cheio">
+        <div class="foto"><img src="img/campo2d-tidex.webp" alt="Partida ao vivo em campo com placas da Tidex, Vadico e OittoLabs em volta do gramado" width="1300" height="945"></div>
+        <h3>🏟️ Placas em volta do campo, com a bola rolando <span class="tag breve">lançamento em breve</span></h3>
+        <p>O novo modo de partida mostra o jogo inteiro em campo: 22 jogadores, juiz, torcida e as placas da marca em volta do gramado, a partida toda.</p>
+      </article>
+
+      <article class="caixa lugar">
+        <div class="foto clara"><img src="img/telao.webp" alt="Telão do Anúncio do dia" width="750" height="198"></div>
+        <h3>📢 Telão do Anúncio do dia</h3>
+        <p>Passa em todas as salas e na carreira. Tem link: quem toca já abre o site ou o WhatsApp da marca. Exemplo no ar: "🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui".</p>
+      </article>
+
+      <article class="caixa lugar">
+        <div class="foto clara"><img src="img/vitrine.webp" alt="Vitrine dos patrocinadores" width="760" height="358"></div>
+        <h3>🏪 Vitrine dos patrocinadores</h3>
+        <p>Cartão com logo, texto, Instagram e site da marca, na área dos patrocinadores do jogo.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="cab quebra">
+    <span class="selo" style="align-self:flex-start">✍️ Patrocinador Master da carreira</span>
+    <h2>O técnico assina com a sua marca</h2>
+    <p class="mole" style="max-width:70ch">Na carreira, toda temporada nova o técnico escolhe o patrocinador do clube e assina o contrato. A sua marca entra entre as propostas, com logo, prazo, valor e uma meta. Não é um anúncio que passa: é uma decisão que o jogador toma olhando pra sua marca.</p>
+    <div class="lugares" style="margin-top:8px">
+      <article class="caixa lugar">
+        <div class="foto clara"><img src="img/master-tidex.webp" alt="Lista de contratos do Patrocinador Master com a Tidex" width="790" height="1950"></div>
+        <h3>📋 A proposta na mesa</h3>
+        <p>Tidex, OittoLabs e Vadico Veículos já estão entre os contratos, com 5 temporadas de duração.</p>
+      </article>
+      <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+        <article class="caixa lugar">
+          <div class="foto clara"><img src="img/master.webp" alt="Contrato Master com meta da marca" width="760" height="1007"></div>
+          <h3>🎯 Cada contrato tem uma meta</h3>
+          <p>Subir de divisão, ser campeão, ter o artilheiro. Bateu a meta, a marca paga bônus: o jogador torce junto com a marca.</p>
+        </article>
+      </div>
+    </div>
+    <div class="passos" style="margin-top:6px">
+      <div class="passo"><b>1 · Escolhe</b><span>O técnico vê as propostas e escolhe a sua marca.</span></div>
+      <div class="passo"><b>2 · Assina</b><span>Contrato fechado, de 1 a 5 temporadas.</span></div>
+      <div class="passo"><b>3 · Veste</b><span>O logo vai pra camisa do clube.</span></div>
+      <div class="passo"><b>4 · Renova</b><span>Foi bem, a marca liga pra renovar o contrato.</span></div>
+    </div>
+  </section>
+
+  <section class="cab">
+    <span class="selo" style="align-self:flex-start">👕 Na camisa</span>
+    <h2>O logo no manto do clube</h2>
+    <div class="lugares" style="margin-top:8px">
+      <article class="caixa lugar">
+        <div class="foto"><img src="img/camisa-tidex.webp" alt="Camisa do Neymarzetti com o logo da Tidex no peito" width="640" height="625"></div>
+        <h3>🦇 Neymarzetti × Tidex</h3>
+        <p>Quem assina com a sua marca leva o logo pro peito da camisa do clube, na loja oficial dentro do jogo.</p>
+      </article>
+      <article class="caixa lugar">
+        <div class="foto"><img src="img/camisa.webp" alt="Camisa do Final Boss FC com o logo do Rei das Tintas" width="760" height="832"></div>
+        <h3>👑 Final Boss FC × Rei das Tintas</h3>
+        <p>Cada clube tem a sua camisa; a marca do patrocinador entra em todas que assinarem com ela.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="cab quebra">
+    <span class="selo" style="align-self:flex-start">🎨 Tema da marca nas salas</span>
+    <h2>A sala inteira com a cara da marca</h2>
+    <div class="lugares" style="margin-top:8px">
+      <article class="caixa lugar">
+        <div class="foto estreita"><img src="img/tema-tidex.webp" alt="Sala online com o tema da Tidex" width="520" height="1088"></div>
+        <h3>🤖 Tema Tidex</h3>
+        <p>Logo gigante no fundo, cores da marca e a faixa "Tidex · sua marca dentro das IAs". Quem abre a sala com o tema mostra a marca pra todo mundo que entrar.</p>
+      </article>
+      <article class="caixa lugar">
+        <div class="foto"><img src="img/temas-clubes.webp" alt="Temas de sala dos clubes batizados" width="1100" height="1436"></div>
+        <h3>🛡️ E o tema do seu clube</h3>
+        <p>O mesmo recurso que os clubes batizados usam: escudo, mascote e as cores do manto tomando a sala.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="caixa clube quebra">
+    <div>
+      <span class="selo">🎁 Vem junto no patrocínio</span>
+      <h2 style="margin-top:12px">Um clube seu dentro do jogo</h2>
+      <p style="font-weight:700;margin-top:10px;font-size:16px">O patrocinador ganha um clube batizado, no padrão do plano 🖋 Fundador: escudo, manto e mascote desenhados pra marca, e o clube jogando dentro do jogo.</p>
+      <div class="lista">
+        <div class="item">🛡️🐾🎽 Escudo, mascote e manto<small>desenhados sob medida, com a camisa na Loja do Clube</small></div>
+        <div class="item">⚽ O clube aparece pra todos os jogadores<small>na Série A, no Jogo Rápido, nas salas online, na tabela e no jornal, mesmo quando ninguém da marca está jogando</small></div>
+        <div class="item">🚁 Entrada de gala única<small>a sala inteira para pra ver o clube chegar (a do Neymarzetti é de helicóptero)</small></div>
+        <div class="item">🎤 O canto do time<small>tocando na carreira e no online</small></div>
+        <div class="item">🏟️ Estádio com o nome que a marca escolher<small>e 🔒 nome do clube reservado: ninguém mais usa</small></div>
+        <div class="item">🖋️ Número de Fundador<small>no mural do jogo, pra sempre</small></div>
+      </div>
+      <div class="preco">Pros jogadores esse pacote é o plano <b>🖋 Fundador, R$ 99,90</b>. Pro patrocinador, <b>já vem incluso</b>.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <div class="trio">
+        <img src="img/ney-escudo.webp" alt="Escudo do Neymarzetti" width="345" height="360">
+        <img src="img/ney-mascote.webp" alt="O Mascarado, mascote do Neymarzetti" width="346" height="440">
+      </div>
+      <div style="border:4px solid var(--linha);border-radius:18px;overflow:hidden;box-shadow:4px 4px 0 var(--linha)"><img src="img/neymarzetti.webp" alt="Ficha do Neymarzetti com escudo, mascote, manto e onde o mascote aparece" width="890" height="1513"></div>
+      <p style="font-weight:700;font-size:14px">Exemplo: o Neymarzetti, Fundador nº 1. Escudo, manto preto e branco e o Mascarado, que carimba a tela em todo gol do clube.</p>
+    </div>
+  </section>
+
+  <section class="cab">
+    <span class="selo" style="align-self:flex-start">➕ E ainda</span>
+    <div class="extras">
+      <div class="caixa extra">📲 Post no Instagram<small>@leilaolegendscom apresentando a marca</small></div>
+      <div class="caixa extra">💬 Aviso na comunidade dos fãs<small>no grupo do WhatsApp do jogo</small></div>
+    </div>
+  </section>
+
+  <section class="contato">
+    <h2>Vamos colocar a sua marca em campo</h2>
+    <p style="font-weight:600;color:rgba(255,255,255,.85)">Fala com a gente:</p>
+    <div class="linhas">
+      <span>📷 @leilaolegendscom</span>
+      <span>✉️ diego.c.fonseca@gmail.com</span>
+      <span>🌐 leilaolegends.com</span>
+    </div>
+  </section>
+
+</div>
