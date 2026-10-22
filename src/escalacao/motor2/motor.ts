@@ -35,15 +35,25 @@ let idSeq = 0
 // num meio termo ou no ápice"*): cada carta entra no jogo com um nível sorteado DENTRO da faixa lo–hi dela — preso na semente do jogo
 // e no nome (o mesmo jogo dá o mesmo dia em todo aparelho). Média de dois sorteios: o meio é o mais comum, o ápice e o dia ruim são
 // mais raros. Carta sem faixa: o nível da categoria, como sempre.
-function diaDe(seed: number, c: CartaCampo): number {
+function diaDe(seed: number, c: CartaCampo, lado: Lado = 0): number {
   if (c.lo == null || c.hi == null || c.fake) return nivelDe(c)
   let h = (seed ^ 0x5D1A) >>> 0
   for (let i = 0; i < c.name.length; i++) h = Math.imul(h ^ c.name.charCodeAt(i), 0x01000193) >>> 0
   const u1 = (h >>> 0) / 4294967296; h = Math.imul(h ^ (h >>> 15), 0x2C1B3C6D) >>> 0
   const u2 = (h >>> 0) / 4294967296
-  void u2
-  return c.lo + u1 * (c.hi - c.lo) // (sorteio CHEIO na faixa: dia ruim e dia de ápice tão frequentes quanto o meio — Diego 21/10: o dia tem que pesar)
+  // 🌞 O DIA DO TIME (Diego 22/10: *"tem momento que pode ter goleada, como tem momento que pode ser 1-0"*): em parte dos jogadores o
+  // dia é o MESMO do time — o time inteiro acorda inspirado ou o time inteiro está num dia ruim. Cada um continua DENTRO da faixa
+  // lo–hi dele, e o dia ruim e o ápice seguem tão comuns quanto o meio; só que agora eles vêm juntos (é daí que sai a goleada)
+  let t = (Math.imul((seed ^ 0x7E3) >>> 0, 0x9E3779B1) ^ (lado + 1) * 0x85EBCA6B) >>> 0
+  t = Math.imul(t ^ (t >>> 13), 0xC2B2AE35) >>> 0
+  const uTime = ((t ^ (t >>> 16)) >>> 0) / 4294967296
+  const u = u2 < DIA_DO_TIME ? clamp(uTime + (u1 - 0.5) * 0.2, 0, 1) : u1
+  return c.lo + u * (c.hi - c.lo) // (sorteio CHEIO na faixa: dia ruim e dia de ápice tão frequentes quanto o meio — Diego 21/10: o dia tem que pesar)
 }
+/** 🌞 em quantos jogadores o dia é o do TIME (0 = cada um no seu, 1 = o time inteiro no mesmo dia) */
+const DIA_DO_TIME = 0.6
+/** 😵 quanto o time abalado perde por gol de diferença além do 1º (até ABALO_MAX) */
+const ABALO = 0.1, ABALO_MAX = 0.25
 /** 🔥 a FORMA do dia (−1 = o pior dia da faixa · +1 = o ápice): além do nível, ela pesa no quanto ele RENDE em campo — jogador
  *  num dia ruim erra mais, no ápice acerta mais. Vale pros 22, dos dois lados (Diego 21/10). */
 function formaDe(c: CartaCampo, dia: number): number {
@@ -85,7 +95,7 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
     const n = cs.length, bx = n === 1 ? 34 : n === 2 && gr(0, 2) === 'ATA' ? (i === 0 ? 22 : 46) : 9 + (50 * i) / (n - 1), g = gr(i, n)
     const centro = n > 1 ? Math.abs(i - (n - 1) / 2) / ((n - 1) / 2) : 0
     // (nível do dia + técnico: 1/12 da diferença entre ele e o jogador, igual à simulação · + o evento da rodada)
-    const dia = aj && c.name ? diaDe(aj.seed, c) : undefined
+    const dia = aj && c.name ? diaDe(aj.seed, c, lado) : undefined
     const nivel = dia == null ? undefined : dia + (aj?.tecnico != null ? (aj.tecnico - dia) / 12 : 0) + (aj?.evento ?? 0)
     const pf = perfilDe(c, g, nivel)
     const forma = dia == null ? 0 : formaDe(c, dia)
@@ -154,6 +164,8 @@ export class Motor2 {
   narra = ''
   placar: [number, number] = [0, 0]
   tatica: [number, number] = [0, 0]
+  /** a tática que o técnico escolheu (a `tatica` de agora pode subir quando o time está perdendo) */
+  private taticaBase: [number, number] = [0, 0]
   festa: { lado: Lado; autor: string; assist?: string; min: number; ate: number } | null = null
   rede: { y0: number; t0: number } | null = null
   parada: Parada | null = null
@@ -195,7 +207,7 @@ export class Motor2 {
     const s = sorteio(seed)
     this.r = s.r; this.n = s.n
     this.nar = new Narrador(en, this.r)
-    this.tatica = tatica
+    this.tatica = [...tatica] as [number, number]; this.taticaBase = [...tatica] as [number, number]
     this.clima = clima
     // 🏁 cada time tem a sua rotina preferida de bola parada neste jogo (o Diego pediu 1º pau · 2º pau · curta)
     const ROT: Rotina[] = ['primeiro_pau', 'segundo_pau', 'curta']
@@ -384,7 +396,12 @@ export class Motor2 {
 
     // 🎉 festa do gol
     if (this.festa) {
-      if (this.t >= this.festa.ate) { const sofreu = (1 - this.festa.lado) as Lado; this.festa = null; this.saida(sofreu) }
+      if (this.t >= this.festa.ate) {
+        // 📺 CORTE DE TV (Diego 22/10, "tem momento que pode ter goleada"): a comemoração cobre o campinho inteiro, e quando a tela volta
+        // o time já está arrumado pra saída — igual à transmissão, que mostra o abraço e volta com a bola no meio. Antes cada gol custava
+        // ~6,5 s de tela com todo mundo voltando a pé: num 5×0 era 1/3 do jogo parado, e era isso que impedia a goleada de existir
+        const sofreu = (1 - this.festa.lado) as Lado; this.festa = null; this.saida(sofreu, true, false)
+      }
       else this.moveFesta()
     } else if (this.parada) this.cuidaParada()
     else {
@@ -426,9 +443,20 @@ export class Motor2 {
     if (p.grupo === 'GOL') { p.at.reflexo = p.base.reflexo * fdia; p.at.posicionamento = p.base.posicionamento * fdia }
     const f = (p.grupo === 'GOL' ? 1 : 0.7 + 0.3 * p.gas) * fdia
     for (const k of ['passe', 'visao', 'finalizacao', 'cabeceio', 'desarme', 'posicionamento', 'conducao', 'decisao', 'fisico'] as const) p.at[k] = p.base[k] * f
+    // 😵 TIME ABALADO (Diego 22/10): quem já toma 2+ de diferença se desorganiza — marca pior, se posiciona pior, decide pior (o goleiro
+    // também sente). É assim que o 2×0 vira 5×0 no dia em que tudo dá errado
+    const deficit = this.placar[(1 - p.lado) as Lado] - this.placar[p.lado]
+    if (deficit >= 2) {
+      const ab = 1 - Math.min(ABALO_MAX, ABALO * (deficit - 1))
+      for (const k of ['desarme', 'posicionamento', 'decisao', 'reflexo'] as const) p.at[k] *= ab
+    }
   }
   private cansa(dt: number) {
-    if (this.passo % 20 === 0) for (const p of this.atl) this.rende(p) // (1× por segundo de jogo)
+    if (this.passo % 20 === 0) {
+      for (const p of this.atl) this.rende(p) // (1× por segundo de jogo)
+      // 📣 quem está PERDENDO no 2º tempo se lança pro ataque (sobe o bloco) — e deixa espaço atrás pro contra-ataque
+      for (const l of [0, 1] as Lado[]) { const df = this.placar[(1 - l) as Lado] - this.placar[l]; this.tatica[l] = this.taticaBase[l] + (this.intervalo && df >= 1 ? 1 : 0) } // (tomando de 2+, se lança de vez — e abre a defesa)
+    }
     if (this.festa || this.parada) return
     const chuva = this.clima === 'chuva' ? 1.15 : 1
     for (const p of this.atl) {
@@ -906,11 +934,11 @@ export class Motor2 {
     if (tipo === 'escanteio' || tipo === 'falta') { const ROT: Rotina[] = ['primeiro_pau', 'segundo_pau', 'curta']; this.rotina[lado] = this.r() < 0.25 ? ROT[Math.floor(this.r() * 3)] : this.rotinaBase[lado] }
     planeja(this)
   }
-  private saida(lado: Lado, inicio = false) {
+  private saida(lado: Lado, inicio = false, anuncia = true) {
     this.para('saida', lado, 34, L / 2)
     if (inicio) {
-      for (const p of this.atl) { const a = this.lugarNaCobranca(p); p.x = a.x; p.y = a.y }
-      this.emite({ tipo: 'saida', lado })
+      for (const p of this.atl) { const a = this.lugarNaCobranca(p); p.x = a.x; p.y = a.y; p.ax = a.x; p.ay = a.y; p.vx = 0; p.vy = 0 }
+      if (anuncia) this.emite({ tipo: 'saida', lado })
     }
   }
   private cuidaParada() {

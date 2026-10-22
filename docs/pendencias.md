@@ -1,3 +1,16 @@
+## ⚽ Motor novo: GOLEADA EXISTE (22/10, 2ª rodada) — SÓ NO BRANCH, esperando OK pra publicar
+Diego: *"não dá pra ter goleada então… tem momento que pode ter goleada, como tem momento que pode ser 1-0"*. Medido antes: numa liga
+misturada alguém fazer 4+ gols era 0,7%. A causa: cada gol custava ~6,5 s de tela (todo mundo voltando a pé pra saída) — num 5×0, 1/3
+do jogo parado. Feito:
+- 📺 **Corte de TV depois do gol**: o "GOOOOL!" já cobre o campinho; quando ele sai, o time está arrumado pra saída (igual ao início
+  do jogo e ao intervalo). A saída continua com todo mundo no seu campo.
+- 🌞 **Dia do time** (`DIA_DO_TIME`): em 60% dos jogadores o dia é o mesmo do time, sempre DENTRO da faixa lo–hi de cada um.
+- 😵 **Time abalado** (`ABALO`): tomando 2+ de diferença, marca/posiciona/decide pior (goleiro também).
+- 📣 Perdendo no 2º tempo, o time sobe o bloco (+1 na tática).
+- Medido (300 jogos): liga misturada 2,3 gols · 1×0 22% · alguém faz 4+ 6% · 5+ 1,3% · lenda × profissional até 7×0, 5+ em 14% ·
+  craque × bom até 6×0 · trava `npm run motor2` ok (parecidos 1,96, forte ganha 80%).
+- ⚠️ Mudança VISUAL (o recomeço depois do gol): mostrar pro Diego jogando antes de liberar pra mais alguém.
+
 ## ⚽ Motor novo: placar pela FORÇA dos dois times (22/10) — SÓ NO BRANCH, esperando OK pra publicar
 Resposta do Diego à média de 1,5: *"não quero que seja uma coisa travada… time muito bom com time muito ruim pode ter goleada,
 5-0, 4-0, 5-1. Jogo muito difícil pode ter empate, menos gols. Real em relação aos dois times"*. Feito:
