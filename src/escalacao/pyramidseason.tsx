@@ -77,7 +77,6 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
 import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
@@ -6560,6 +6559,42 @@ function GlobalRankConvite() {
 //    posição que ela merece hoje — e logo embaixo, fininha, a sua melhor, com a
 //    posição dela. A fininha SOME quando a de agora vira a melhor.
 // A linha fininha não ocupa posição e ninguém mais a enxerga.
+// 🌍 22/10 (Diego: "esse caixa dos rivais troque pelo rank global de usuários"): o top 5 do ranking global + a SUA carreira de
+// agora, pra Central Legends. A MESMA busca da aba Rank → Global (esc_pyramid_rank + esc_pyramid_career_rank) e a MESMA conta
+// (pontosDaLinha). Só lê quando a Central está aberta, uma vez por temporada (nada de leitura a cada rodada).
+function useRankGlobalCentral(seasonNo: number, careerId: number | undefined, experimental: boolean, ativo: boolean) {
+  const [r, setR] = useState<{ pos: number; nome: string; pts: number; you: boolean }[] | null>(null)
+  useEffect(() => {
+    if (!ativo) return
+    let vivo = true
+    ;(async () => {
+      try {
+        const { data: auth } = await supabase.auth.getUser()
+        const uid = auth?.user?.id ?? null
+        const top = await globalRankRpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 6 }, experimental)
+        if (top.error) return
+        const rows = (top.data ?? []) as GlobalRankRow[]
+        let atual: (GlobalRankRow & { pos: number }) | null = null
+        if (uid && careerId != null) {
+          const { data: cr } = await globalRankRpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId }, experimental)
+          atual = ((cr ?? [])[0] as (GlobalRankRow & { pos: number }) | undefined) ?? null
+        }
+        const outros = rows.filter(x => x.user_id !== uid)
+        let linhas: { pos: number; nome: string; pts: number; you: boolean }[]
+        if (atual && atual.pos <= 5) {
+          const lista = [...outros]; lista.splice(atual.pos - 1, 0, { ...atual, user_id: uid ?? '' })
+          linhas = lista.slice(0, 5).map((x, i) => ({ pos: i + 1, nome: x.team_name || '—', pts: pontosDaLinha(x), you: x.user_id === uid }))
+        } else {
+          linhas = outros.slice(0, 5).map((x, i) => ({ pos: i + 1, nome: x.team_name || '—', pts: pontosDaLinha(x), you: false }))
+          if (atual) linhas.push({ pos: atual.pos, nome: atual.team_name || '—', pts: pontosDaLinha(atual), you: true })
+        }
+        if (vivo) setR(linhas)
+      } catch { /* sem ranking: a caixa simplesmente não aparece */ }
+    })()
+    return () => { vivo = false }
+  }, [seasonNo, careerId, experimental, ativo])
+  return r
+}
 function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [], experimental = false }: { myTeamName: string; seasonNo: number; careerId?: number; intlHistory?: InternationalHistoryEntry[]; experimental?: boolean }) {
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
   // a carreira que você está jogando AGORA (posição + títulos dela)
@@ -8137,7 +8172,6 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
-  const econBots = useEconBots() // 💰 caixa dos rivais na Central (13/10)
   useCo2FimDaVirada() // 🌐 carreira online v2: quem comanda põe a sala no PREPARO quando o leilão de todos acaba
   // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
   // 🌐 carreira online v2: SEM 2º clube (decisão do Diego, 19/10) — a SAF lá é a da regra antiga
@@ -8474,6 +8508,7 @@ export function PyramidSeasonScreen() {
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   const intlEnabled = useInternacionalCarreiraLiberada()
+  const rankGlobalCentral = useRankGlobalCentral(state.seasonNo, state.seed, intlEnabled, tab === 'central' && !!state.agenciaOn) // 🌍 22/10: no lugar da caixa dos rivais
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -10326,7 +10361,7 @@ export function PyramidSeasonScreen() {
     })()
     return <CentralCarreira coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
-      caixas={econBots ? [...(tables[myDiv] ?? [])].map(t => ({ name: t.name, you: t.you, caixa: Math.round(t.human ? (state.careerCoins?.[t.teamId] ?? 0) : (state.clubCash?.[teamKey(t)] ?? 0)) })).sort((a, b) => b.caixa - a.caixa) : undefined} />
+      rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null} />
   }
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
