@@ -8729,7 +8729,7 @@ export const FAME_TIER: Record<number, { label: string; grad: string; ink: strin
   1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)', ink: '#0C0C0C', tierColor: '#655c43', crestBg: 'rgba(255,255,255,.5)', crestInk: '#655c43' },
 }
 // 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — roxo, brilho sutil
-const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', ink: '#fff', tierColor: 'rgba(255,255,255,.9)', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: true, holoAlpha: .38 } as const
+export const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', ink: '#fff', tierColor: 'rgba(255,255,255,.9)', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: true, holoAlpha: .38 } as const
 // cor do badge de nível POR TIER (ouro só pra lenda; craque num bronze/dourado
 // escuro — "quase ouro", um degrau abaixo da lenda)
 // ─── ⭐ CHAMPIONS LEGENDS — a tabela única de 36 ────────────────────────────

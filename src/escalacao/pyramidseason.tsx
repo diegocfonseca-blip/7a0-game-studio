@@ -102,6 +102,7 @@ import { resilientWrite } from './pending'
 import { useDireitos, meusDireitos, logApoio } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
+import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, BEGE_MANTO, type EstadoJogador } from './jogadorcampo'
@@ -7711,7 +7712,7 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
 const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
-function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean }) {
+function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false, contagem }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; contagem?: Partial<Record<AbaCarr, number>> }) {
   // 📺 a Central entra na FRENTE da barra, só pra quem tem (03/10)
   const abas: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
   return (
@@ -7730,7 +7731,11 @@ function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, ce
               <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
               {/* 🔴 pontinho: rodada rolando (Jogos) · recibo novo esperando (Clube).
                   Some assim que a pessoa abre a aba — nunca fica pedindo atenção à toa. */}
-              {((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
+              {/* 🔴 BOLINHA COM NÚMERO (22/10, ideia A aprovada): quantas coisas a aba tem pra você
+                  resolver. Some sozinha quando resolve — nada muda de lugar. */}
+              {(contagem?.[t] ?? 0) > 0 && !on
+                ? <span style={{ position: 'absolute', top: -1, right: '50%', marginRight: -20, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: '#C2452F', border: '2px solid #fff', color: '#fff', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 9.5, lineHeight: '12px', textAlign: 'center', boxSizing: 'border-box' }}>{contagem![t]}</span>
+                : ((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
             </button>
           )
         })}
@@ -9961,6 +9966,13 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (tab === 'estadio') setViuClube(true) }, [tab])
   const temRecibo = done && state.booksSeason === state.seasonNo   // 🧹 o recibo do pontual saiu com ele (19/09)
   const reciboNoClube = temRecibo && !viuClube
+  // 🔴 o NÚMERO da bolinha (22/10): Elenco = titular fora (lesão/suspensão) + titular no 🥵/🚑 · Clube = recibo novo
+  const contagemAbas = useMemo((): Partial<Record<AbaCarr, number>> => {
+    if (done) return { estadio: reciboNoClube ? 1 : 0 }
+    let el = suspenso && myXIids.has(suspenso.cardId) ? 1 : 0
+    if (condGas) for (const c of myXI) { if (c.id === suspenso?.cardId) continue; const e = estadoGas(condGas[c.id] ?? 100); if (e === 'limite' || e === 'esgotado') el++ }
+    return { elenco: el, estadio: reciboNoClube ? 1 : 0 }
+  }, [done, reciboNoClube, suspenso, myXIids, myXI, condGas])
   // 🐛 CONSERTO (21/08, o Diego achou): a barra sumia MUITO mais do que devia.
   // Eu tinha escrito `penMode || halfMode || copaPlaying`, mas nenhum desses três
   // é um "momento" — são ESTADOS LONGOS:
@@ -10129,6 +10141,22 @@ export function PyramidSeasonScreen() {
     return out
   }, [tab, myDiv, revCentral, round, revealed, live, simulaAte])
   // 📺 a Central inteira sai do que a tela JÁ sabe (tabela revelada, giro, extrato, agenda)
+  // 🏆 CENTRAL NA COPA (22/10, ideia C): chave das fases finais (quartas → final) + artilheiros, só da Copa
+  // nacional (Copa do Brasil/Legends) enquanto ela está no ar. ANTI-SPOILER: placar só de fase JÁ apitada
+  // (a de agora só quando acabou de animar); fase que não chegou fica "?" — quem passa ainda não se sabe.
+  const copaChaveCentral = useMemo(() => {
+    if (!copaPlaying || !copa || copaFase?.name === 'Supercopa') return null
+    const idx = copa.rounds.map((_, i) => i).filter(i => copa.rounds[i].name !== 'Supercopa' && copa.rounds[i].ties.length <= 4)
+    if (!idx.length) return null
+    const colunas = idx.map(i => {
+      const r = copa.rounds[i]
+      const visto = i < copaRound || (i === copaRound && copaReady)
+      const chegou = i <= copaRound
+      return { nome: r.name, jogos: r.ties.map(tie => chegou ? { a: tie.a.name, b: tie.b.name, ga: visto ? tie.aggA : undefined, gb: visto ? tie.aggB : undefined, venceA: visto ? tie.win === 'a' : undefined, youA: tie.a.you, youB: tie.b.you } : null) }
+    })
+    return { titulo: `🏆 ${copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup')} · ${tr('chave', 'bracket')}`, colunas }
+  }, [copaPlaying, copa, copaFase, copaRound, copaReady, copaBrOk])
+  const copaArtCentral = useMemo(() => (copaChaveCentral ? copaScorersShown.slice(0, 3).map(x => ({ nome: x.name, time: x.teamName, gols: x.goals, you: x.you })) : null), [copaChaveCentral, copaScorersShown])
   const renderCentral = () => {
     if (!myDiv) return null
     const DIV_EN: Record<Div, string> = { A: 'Serie A', B: 'Serie B', C: 'Serie C', D: 'Serie D', V: 'Várzea' }
@@ -10313,7 +10341,8 @@ export function PyramidSeasonScreen() {
     })()
     return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
-      rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null} />
+      rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null}
+      copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} />
   }
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
@@ -10325,7 +10354,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} />}
+      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
@@ -11383,18 +11412,49 @@ export function PyramidSeasonScreen() {
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
-            <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
-            <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(presidentAvailable || (privateCareer && PRESIDENT_ROOM_RELEASED) ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
+            {(() => {
+              const subs = (([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(presidentAvailable || (privateCareer && PRESIDENT_ROOM_RELEASED) ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ SAIU DO ELENCO, VEIO PRO CLUBE (Diego 19/09): *"tem que tirar do
                 // elenco e pôr lá no clube também"*. Agência não é escalação — o lugar
                 // dela é junto de estádio, finanças e patrocínio. O 💼 escritório velho
                 // (saves antigos, sem Agência 2.0) continua onde estava.
-                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
-                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-              ))}
-            </div>
-            </SubAbasGrudadas>
+                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk))
+              // 🗂️ CLUBE EM 3 GRUPOS (22/10, mockup carreira-abas-ideias.png, *"adorei… pode fazer e publicar"*):
+              // eram 7 pílulas espremidas numa linha. Agora 3 grupos grandes e, dentro, as partes dele. Nada mudou
+              // de lugar por dentro — o estádio continua sendo a 1ª coisa (grupo Clube, parte Estádio).
+              const GRUPOS: [string, string, string, (typeof clubeSub)[]][] = [
+                ['clube', '🏟️', tr('Clube', 'Club'), ['estadio', 'loja']],
+                ['dinheiro', '💰', tr('Dinheiro', 'Money'), ['financas', 'patrocinio']],
+                ['gestao', '💼', tr('Gestão', 'Management'), ['agencia', 'escritorio', 'presidencia']],
+              ]
+              const grupos = GRUPOS.map(([g, ic, label, ids]) => ({ g, ic, label, itens: subs.filter(([sb]) => ids.includes(sb)) })).filter(x => x.itens.length > 0)
+              const ativo = grupos.find(x => x.itens.some(([sb]) => sb === clubeSub)) ?? grupos[0]
+              const pill = (s: typeof clubeSub, ic: string, label: string) => (
+                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              )
+              return (
+                <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
+                <div style={{ marginBottom: subGrudadas ? 0 : 10 }}>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {grupos.map(x => {
+                      const on = x === ativo
+                      return (
+                        <button key={x.g} onClick={() => { if (!on) setClubeSub(x.itens[0][0]) }} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', background: on ? GOLD : '#fff', color: INK, boxShadow: on ? `3px 3px 0 0 ${INK}` : `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center', ...OSWALD }}>
+                          <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{x.ic} {x.label}</span>
+                          <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, color: on ? '#5a4300' : '#7a7462', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.itens.map(([, , l]) => l.toLowerCase()).join(' · ')}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {ativo && ativo.itens.length > 1 && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                      {ativo.itens.map(([s, ic, label]) => pill(s, ic, label))}
+                    </div>
+                  )}
+                </div>
+                </SubAbasGrudadas>
+              )
+            })()}
             {clubeSub === 'presidencia' && presidentAvailable ? (
               <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PresidenciaClube key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
@@ -12161,180 +12221,9 @@ export function ReserveListScreen() {
             <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>{getLang() === 'en' ? <>You can\'t <b>buy with money</b> in this window — but you can <b>sell to raise cash</b> and, in the <b>pile</b> (the auction leftovers), <b>try your luck grabbing a free player</b>. Prizes and gate money pull you out of the red.</> : <>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</>}</p>
           </div>
         )}
-        {/* 🧢 CONTRATO DO TÉCNICO (27/08, só conta liberada): venceu os 5 anos →
-            decide aqui, junto com os contratos dos jogadores. Renovar = paga o
-            VALOR dele (+5 temporadas); deixar ir = sem multa (foi até o fim). */}
-        {quinzeRL && mgr && (() => {
-          const nomeTec = state.careerTecnicos?.[mgr.teamName]
-          const fim = state.careerTecnicoContrato?.[mgr.teamName]
-          if (!nomeTec || fim == null || fim >= state.seasonNo) return null
-          const custo = state.careerTecnicoPago?.[nomeTec] ?? 0
-          const caixa = state.careerCoins?.[youId] ?? 0
-          return (
-            <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>{tr('🧢 Contrato do técnico ENCERROU', '🧢 Head coach contract ENDED')}</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <><b>{nomeTec}</b> served out his contract (expired in S{fim}). Renew for <b>💰 {custo}</b> (a new length is drawn) or let go — no fee, the contract ran its course.</> : <><b>{nomeTec}</b> cumpriu o contrato (venceu na T{fim}). Renove por <b>💰 {custo}</b> (o tempo novo é sorteado) ou deixe ir — sem multa, ele foi até o fim.</>}</p>
-              <div style={{ display: 'flex', gap: 7 }}>
-                <button disabled={caixa < custo} onClick={() => dispatch({ type: 'RENOVAR_TECNICO' })}
-                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: caixa < custo ? '#d8cfb5' : '#1B7A3D', color: caixa < custo ? 'rgba(0,0,0,.4)' : '#fff', boxShadow: caixa < custo ? 'none' : `2px 2px 0 0 ${INK}`, cursor: caixa < custo ? 'not-allowed' : 'pointer' }}>{tr('📝 Renovar', '📝 Renew')} (💰 {custo})</button>
-                <button onClick={() => dispatch({ type: 'DISPENSAR_TECNICO' })}
-                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('👋 Deixar ir', '👋 Let go')}</button>
-              </div>
-              {caixa < custo && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#C2452F', margin: '6px 0 0' }}>{tr('Caixa não cobre a renovação — venda alguém ou deixe ir.', 'The till doesn\'t cover the renewal — sell someone or let go.')}</p>}
-            </div>
-          )
-        })()}
-        {/* 📝 CONTRATOS — encerrados esperando decisão + aviso de último ano */}
-        {(() => {
-          // 🏛️ MULTICLUBES (Diego 04/08, mockup lado a lado aprovado): o clube
-          // DORMINDO decide JUNTO aqui, em coluna própria 💤 — a renovação dele
-          // sai da caixa DELE. Sem 2º clube, a janela fica exatamente como era.
-          const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
-          const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
-          const expirados = expOf(mgr)
-          const expDorm = expOf(dormM)
-          // 📝 REGRA DO DIEGO (15/08): este banner é SÓ de contrato ENCERRADO — quem
-          // ainda está no último ano NÃO aparece aqui (ele segue jogando normal, não
-          // tem decisão nenhuma a tomar). Antes o "último ano" também abria a janela,
-          // então ela aparecia sem ninguém ter vencido e a pessoa apertava "renovar
-          // todos" achando que ia renovar aquele nome também. O aviso de último ano
-          // continua onde faz sentido: no card do jogador, na aba Elenco.
-          if (expirados.length + expDorm.length === 0) return null
-          const saldoDorm = dormM ? (state.careerCoins?.[dormM.id] ?? 0) : 0
-          const coins = state.careerCoins?.[youId] ?? 0
-          const primeira = state.seasonNo <= 6 // estreia do recurso: explica com mais calma
-          const btn = (bg: string, fg: string, dis: boolean): React.CSSProperties => ({ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, background: dis ? '#d8cfb5' : bg, color: dis ? 'rgba(0,0,0,.4)' : fg, boxShadow: dis ? 'none' : `2px 2px 0 0 ${INK}`, cursor: dis ? 'not-allowed' : 'pointer', textTransform: 'uppercase' as const, lineHeight: 1.15 })
-          return (
-            <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{getLang() === 'en' ? (primeira ? '📝 CONTRACTS HAVE ARRIVED!' : `📝 CONTRACT${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENDED — DECIDE`) : primeira ? '📝 CONTRATOS CHEGARAM!' : `📝 CONTRATO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENCERRADO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} — DECIDA`}{expDorm.length > 0 ? tr(' — decida clube por clube', ' — decide club by club') : ''}</p>
-              {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Your club is professional: <b>every player has a contract</b> (5 to 10 years, drawn on arrival). When it ends, you decide: <b>renew or let go</b>.</> : <>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</>}</p>}
-              {/* ⚡ AÇÃO EM MASSA (07/08, pedido do Diego): com muito contrato vencendo de
-                  uma vez, um botão por CATEGORIA aplica a mesma decisão em TODOS de uma
-                  vez (os dois clubes do multiclube juntos) — sem precisar clicar jogador
-                  por jogador. */}
-              {(expirados.length + expDorm.length) > 1 && (() => {
-                const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
-                // 🌱 VÁRZEA NÃO RENOVA (regra do Diego 14/08) — o reducer recusa. Antes o
-                // botão aparecia do mesmo jeito: a pessoa apertava e NADA acontecia, sem
-                // aviso. Agora quem está na Várzea nem vê o botão, vê a explicação.
-                const divDe = (mm: Manager) => (state.careerPlacements?.[`m${mm.id}`] ?? state.careerDivision ?? 'V') as string
-                const renovaveis = alvos.filter(({ dono }) => divDe(dono) !== 'V')
-                // 🐛 FIX 15/08 (relato do Diego: "apertou renovar todos e não renovou"):
-                // este botão mandava SEMPRE 5 ou 10 anos pra todo mundo — mas jogador
-                // barato não tem esses prazos na tabela (valor 2 só tem 1 e 3 anos;
-                // valor 1/3/4 não têm 10). O reducer devolvia o estado sem mexer e o
-                // jogador ficava SEM RENOVAR, em silêncio. Agora cada um renova pelo
-                // prazo MAIS PRÓXIMO que existe pro valor dele — "renovar TODOS"
-                // renova todos de verdade.
-                const bulkRenovar = (anos: 10 | 5) => {
-                  for (const { c, dono } of renovaveis) {
-                    const ops = renewOptions(valorOficial(state, c))
-                    if (!ops.length) continue
-                    const escolhido = ops.includes(anos)
-                      ? anos
-                      : [...ops].sort((x, y) => Math.abs(x - anos) - Math.abs(y - anos) || y - x)[0]
-                    dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: escolhido })
-                  }
-                }
-                const bulkDeixarIr = () => {
-                  const jaSolto = new Set(state.contratoRelease ?? [])
-                  for (const { c, dono } of alvos) if (!jaSolto.has(c.id)) dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })
-                }
-                return (
-                  renovaveis.length === 0 ? (
-                    <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#EAF6EE', padding: '8px 10px', marginBottom: 9 }}>
-                      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, color: '#1B5E32', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🌱 <b>No renewals in Várzea.</b> When a contract ends, the player goes to the auction and the <b>club pockets</b> the sale — that\'s why there\'s no renew button here. <b>Promoted to Série D?</b> Then contracts kick in and you decide to renew or let go.</> : <>🌱 <b>Na Várzea não tem renovação.</b> Quando o contrato acaba, o jogador vai pro leilão e o <b>clube embolsa</b> a venda — por isso não tem botão de renovar aqui. <b>Subiu pra Série D?</b> Aí os contratos passam a valer e você decide renovar ou deixar ir.</>}</p>
-                    </div>
-                  ) : (
-                  <div style={{ marginBottom: 9 }}>
-                    {/* 🎨 Diego 15/08: "renovar todos" e "deixar todos ir" pareciam a
-                        mesma coisa. Agora os dois de RENOVAR ficam juntos em cima
-                        (verde/dourado) e o de SOLTAR fica embaixo, sozinho, em
-                        vermelho forte com texto branco — cor E lugar diferentes, pra
-                        ninguém soltar o elenco inteiro sem querer. (Dá pra desfazer:
-                        cada jogador solto vira botão "desfazer" no card dele.) */}
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>{tr('5️⃣ Renovar os', '5️⃣ Renew the')} {renovaveis.length}{<br />}{tr('encerrados · 5 anos', 'ended · 5 years')}</button>
-                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>{tr('🔟 Renovar os', '🔟 Renew the')} {renovaveis.length}{<br />}{tr('encerrados · 10 anos (-10%)', 'ended · 10 years (-10%)')}</button>
-                    </div>
-                    <button onClick={bulkDeixarIr} style={{ ...btn('#C2452F', '#fff', false), width: '100%', marginTop: 6 }}>{tr('😢 Deixar TODOS ir · vão pro leilão', '😢 Let EVERYONE go · off to the auction')}</button>
-                  </div>
-                  )
-                )
-              })()}
-              {(() => {
-                // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
-                const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {
-                  const oficial = valorOficial(state, c)
-                  // 📝 prazos disponíveis pra ESSE valor (renewOptions já filtra opção
-                  // "dominada" — nunca aparece um prazo maior custando igual ou menos
-                  // que um mais curto). 10+ moedas = só 5/10 anos (compromisso real).
-                  const opcoes = renewOptions(oficial)
-                  const COR_PRAZO: Record<number, [string, string]> = {
-                    10: [GOLD, INK], 5: ['#EAF6EE', INK], 3: ['#E3EEFA', INK], 2: ['#E3EEFA', INK], 1: ['#F4ECD6', INK],
-                  }
-                  const solto = (state.contratoRelease ?? []).includes(c.id)
-                  return (
-                    <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                        <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '1px 6px' }}>{c.pos}</span>
-                        <span style={{ fontWeight: 900, fontSize: empilha ? 12.5 : 14, ...OSWALD, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                        <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647', flex: 'none' }}>{empilha ? '' : tr('valor ', 'value ')}{oficial} 🪙</span>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6, flexWrap: 'wrap' }}>
-                        {opcoes.map(anos => {
-                          const custo = renewCost(oficial, anos)
-                          const [bg, fg] = COR_PRAZO[anos] ?? ['#F4ECD6', INK]
-                          return (
-                            <button key={anos} onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos })} disabled={solto} style={btn(bg, fg, solto)}>
-                              {tr('Renovar', 'Renew')} {anos} {getLang() === 'en' ? (anos > 1 ? 'years' : 'year') : `ano${anos > 1 ? 's' : ''}`}{empilha ? ' · ' : <br />}{custo} 🪙{anos === 10 ? ' (-10%)' : ''}{saldo < custo ? ' 💳' : ''}
-                            </button>
-                          )
-                        })}
-                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? tr('🌱 vai embora\u2028(desfazer)', '🌱 leaving\u2028(undo)') : tr('😢 Deixar ir', '😢 Let go')}{empilha ? ' · ' : <br />}{solto ? tr('cria assume se faltar', 'academy kid fills in if needed') : tr('vai pro leilão', 'goes to the auction')}</button>
-                      </div>
-                    </div>
-                  )
-                }
-                if (expDorm.length === 0 || !dormM) return <>{expirados.map(c => decisao(c, mgr, coins, false))}</>
-                // 🏛️ modo 2 colunas (mockup lado a lado aprovado): ativo 🟡 × dormindo 💤
-                const clubHead = (nome: string, dorme: boolean) => (
-                  <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 8px', margin: '2px 0 7px', fontWeight: 900, fontSize: 11, ...OSWALD, background: dorme ? INK : GOLD, color: dorme ? '#fff' : INK, textTransform: 'uppercase' as const, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dorme ? '💤 ' : '🟡 '}{nome}</div>
-                )
-                return (
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {clubHead(mgr.teamName, false)}
-                      {expirados.length === 0
-                        ? <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{tr('Nenhum contrato vencido aqui ✓', 'No expired contracts here ✓')}</p>
-                        : expirados.map(c => decisao(c, mgr, coins, true))}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {clubHead(dormM.teamName, true)}
-                      {expDorm.map(c => decisao(c, dormM, saldoDorm, true))}
-                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>💰 Renewals come out of <b>{dormM.teamName}\'s</b> till ({saldoDorm} 🪙) — not yours.</> : <>💰 Renovação sai da caixa <b>do {dormM.teamName}</b> ({saldoDorm} 🪙) — não da sua.</>}</p>
-                    </div>
-                  </div>
-                )
-              })()}
-              {(expirados.length > 0 || expDorm.length > 0) && (
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  {getLang() === 'en' ? <>
-                  {state.reserveListMesmo
-                    ? <><b>😢 Let go</b>: since you kept the <b>same team</b> (no auction), he leaves <b>with no sale</b> — nobody buys — and, if the XI is short, a free <b>🌱 Academy Kid</b> fills in (weak, no contract, gone when a signing arrives).</>
-                    : <><b>😢 Let go</b>: he goes to the auction (you receive the sale <b>up to his value</b> — anything above goes to the <b>greedy family</b> 😏) and, if the XI is short, a free <b>🌱 Academy Kid</b> fills in (weak, no contract, gone when a signing arrives).</>}
-                  {' '}💳 No cash? You can STILL renew — it goes on <b>overdraft</b> (negative till, transfer ban until you\'re out of the red). ⚠️ <b>Moved on without choosing?</b> Renews <b>AUTOMATICALLY for 5 years (half)</b>, cash or not — a player only leaves if YOU say so.{dormM ? <> 😤 <b>Applies to BOTH clubs:</b> a player you release gets <b>hurt</b> — won\'t play for ANY of your clubs until another club signs him.</> : null}
-                  </> : <>
-                  {state.reserveListMesmo
-                    ? <><b>😢 Deixar ir</b>: como você ficou no <b>mesmo time</b> (sem leilão), ele sai <b>sem venda</b> — ninguém compra — e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>
-                    : <><b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>}
-                  {' '}💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
-                  </>}
-                </p>
-              )}
-            </div>
-          )
-        })()}
+        {/* 📝 MESA DE RENOVAÇÃO (22/10): técnico, preparador e jogadores com contrato encerrado, em cartas
+            — mesmas ações e preços de antes, só a tela mudou (renovacao-mesa.tsx) */}
+        <MesaRenovacao tecnicoOn={quinzeRL} />
         {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
         {state.escadaOn && escLib && !state.escadaLivre && (() => {
           const d = (state.careerPlacements?.[`m${youId}`] ?? 'V') as 'A' | 'B' | 'C' | 'D' | 'V'

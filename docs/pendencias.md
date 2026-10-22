@@ -1,3 +1,17 @@
+## 📝 Renovação em cartas + Central na Copa + Clube em 3 grupos + bolinha nas abas (22/10) — PUBLICADO pra todos
+Diego aprovou os dois mockups (`carreira-abas-ideias.png`, *"adorei"*; `carreira-renovacao-nova.png`, *"perfeito pode fazer e publicar já a b e c mais a tela de renovação"*).
+- 📝 **Renovação em cartas** (`renovacao-mesa.tsx`, chamada no `ReserveListScreen`): placar de cima (pra decidir · caixa · renovar todos 5a),
+  técnico 🧢, preparador 🏋️ (novo aqui — a decisão continua também no Depto. Técnico do Elenco) e jogadores em cartas com jogos/gols/assist.
+  NO SEU CLUBE (`condicaoCarry`) e gás (só com a condição ligada). Prazo em chips (padrão 5 ou o mais perto), ✍️ Renovar / 👋 Deixar ir.
+  Decidiu → faixa verde (renovou, SEM desfazer: o reducer já cobrou — igual era) ou vermelha (vai embora, COM desfazer). Regras e ações
+  do reducer NÃO mudaram. Bancada: `scripts/teste-renovacao/` (?tela=mesa|copa).
+- 🏆 **Central na Copa**: durante a Copa do Brasil/Legends, card da CHAVE (fases com ≤4 jogos: quartas → final; placar só de fase apitada,
+  fase que não chegou = "?") e ⚽ Artilheiros da Copa (top 3 de `copaScorersShown`, já anti-spoiler). Supercopa/internacional: não mostra.
+- 🗂️ **Clube em 3 grupos**: 🏟️ Clube (estádio · loja) · 💰 Dinheiro (finanças · patrocínio) · 💼 Gestão (agência · presidência). Estádio
+  continua a 1ª coisa.
+- 🔴 **Bolinha com número**: Elenco = titular fora (lesão/suspensão) + titular 🥵/🚑 · Clube = recibo novo. Jogos segue com o pontinho.
+- Ideia pendente: bolinha na Central (coletiva virou tela cheia, então não sobrou o que contar lá).
+
 ## 📰 Histórias do vestiário em tela própria + mais variedade (22/10) — NO BRANCH, esperando "publica"
 Diego: *"fica o placar em cima, a história embaixo e mais coisas embaixo… muita coisa misturada"* e *"quero que tenha mais variedade
 ainda de histórias"*. Mockup aprovado. Feito: evento de jogador (noitada/lesão/expulsão) e crise financeira abrem POR CIMA de tudo
