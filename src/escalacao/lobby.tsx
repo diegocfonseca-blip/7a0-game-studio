@@ -889,7 +889,6 @@ export function EscLobby() {
   const desk = useTelaPC()
   const salasEspera = useSalasEsperaNova() // 🗂️③ só a SALA DE ESPERA nova está liberada pra todos (23/10)
   const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'clubes' | 'duplas'>('todas')
-  const [modosAbertos, setModosAbertos] = useState(false)
   const [regrasAbertas, setRegrasAbertas] = useState(false)
   const [room2d, setRoom2d] = useState(false)
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
@@ -3495,10 +3494,10 @@ export function EscLobby() {
                 {tr('O que vocês vão jogar?', 'What are you going to play?')}
               </p>
               <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">{tr('Escolhe um. O resto já está no ponto.', 'Pick one. The rest is ready to go.')}</p>
-              {/* 🗂️ visual novo: só o modo escolhido aparece; "trocar" abre a lista */}
+              {/* 🗂️ os modos ficam TODOS à vista pra todo mundo (23/10, Diego: "quero o novo que você fez pra todos no meu também") — acabou o recolher */}
               {/* 🖥️ no computador os modos ficam TODOS à vista, lado a lado (Diego: "ficam tudo abertas, sem recolher") */}
               <div style={desk ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 } : undefined}>
-              {(salasNovo && !desk && !modosAbertos ? MODOS.filter(m => roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft)) : MODOS).map(m => {
+              {MODOS.map(m => {
                 const sel = roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft) // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
                 // teste, então pra ele o cartão continua clicável — mas leva o selo,
@@ -3510,7 +3509,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => { if (salasNovo && !desk && !modosAbertos) { setModosAbertos(true); return } setRoomMode(m.v); setLigaDraftSel(!!m.draft); if (salasNovo && !desk) setModosAbertos(false) }}
+                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); }}
                     className={`w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 ${desk ? '' : 'mb-2'} text-left active:translate-y-0.5`}
                     style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
                     <span style={{ fontSize: 24 }}>{m.ic}</span>
@@ -3522,9 +3521,7 @@ export function EscLobby() {
                       </span>
                       <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
                     </span>
-                    {salasNovo && !desk && !modosAbertos
-                      ? <span className="text-[12px] font-black shrink-0" style={{ color: PURPLE }}>{tr('trocar ›', 'change ›')}</span>
-                      : <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>}
+                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
                   </button>
                 )
               })}
@@ -3545,7 +3542,7 @@ export function EscLobby() {
           )}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           {(!criar2 || modoLiberado) && (<>
-          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋" resumo={salasNovo && criar2 && !desk ? resumoTime : undefined}>
+          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋">
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
                   *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
@@ -3698,7 +3695,7 @@ export function EscLobby() {
           {/* ② OS RIVAIS — só na carreira do FUTEBOL (igual offline: host escolhe os CPUs do
               leilão). 🏀 No basquete a liga enche de crews sozinha (sem escolher rivais). */}
           {isCareer && !nbaSala && (
-            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥" resumo={salasNovo && criar2 && !desk ? tr('toque pra ver', 'tap to see') : undefined}>
+            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥">
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -3735,7 +3732,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'} resumo={salasNovo && criar2 && !desk ? resumoPartida : undefined} abertaInicio>
+            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'} abertaInicio>
               {/* 🔻 COMO É O LEILÃO — a escolha mais importante da sala, então mora
                   na seção À VISTA (a tela v2 recolhe as outras num ⚙️ Ajustes, e
                   escolher o tipo de pregão não pode ficar escondido atrás de
@@ -3904,7 +3901,7 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧" resumo={salasNovo && criar2 && !desk ? resumoSala : undefined}>
+          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧">
             <div>
               {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
                   dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
@@ -3984,11 +3981,6 @@ export function EscLobby() {
           </>)}
           {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
               escolhido ainda não abriu — o cartão em breve termina na explicação. */}
-          {salasNovo && !desk && criar2 && modoLiberado && (
-            <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 text-[13px] font-bold leading-snug" style={{ background: CREAM, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
-              📋 <b style={OSWALD}>{tr('SUA SALA:', 'YOUR ROOM:')}</b> {[nomeModo, roomMode === 'rapido' || roomMode === 'liga' ? resumoPartida : '', roomMode !== 'elenco' ? resumoTime : '', resumoSala].filter(Boolean).join(' · ')}
-            </div>
-          )}
           {!desk && botaoCriar}
         </div>
         {desk && (
