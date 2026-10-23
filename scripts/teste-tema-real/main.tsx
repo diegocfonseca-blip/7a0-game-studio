@@ -15,7 +15,7 @@ const base = { screen: t, youIdx: 0, onlineMode: 'online', isHost: true, sport: 
 let st: object
 if (t === 'liberta') {
   const times = Array.from({ length: 32 }, (_, i) => ({ id: i, name: nome(i), pote: (1 + Math.floor(i / 8)) as 1, grupo: i % 8, isManager: i < 2, baseAtk: 70, baseDef: 70, ...z(Math.floor(i / 8)) }))
-  st = { ...base, liberta: { fase: 'grupos', times, rodada: 3, fixtures: [], lastResults: [res(0, 8, 2, 1), res(16, 24, 0, 0), res(1, 9, 1, 3)] } }
+  st = { ...base, liberta: { fase: 'grupos', times, rodada: 3, fixtures: Array.from({ length: 6 }, () => [[0, 8], [16, 24], [1, 9]] as [number, number][]), lastResults: [res(0, 8, 2, 1), res(16, 24, 0, 0), res(1, 9, 1, 3)] } }
 } else {
   const times = Array.from({ length: 36 }, (_, i) => ({ id: i, name: nome(i), pote: 1 as const, isManager: i < 2, baseAtk: 70, baseDef: 70, pts: 18 - Math.floor(i / 2), w: 6 - Math.floor(i / 6), d: 0, l: Math.floor(i / 6), gf: 14 - Math.floor(i / 3), ga: 4 + Math.floor(i / 4) }))
   st = { ...base, champions: { fase: 'tabela', times, rodada: 4, fixtures: Array.from({ length: 8 }, () => Array.from({ length: 18 }, (_, i) => [i, i + 18] as [number, number])), lastResults: [res(0, 9, 2, 1), res(1, 10, 1, 1)] } }

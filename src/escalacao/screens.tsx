@@ -8742,6 +8742,37 @@ export function EscLiberta() {
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
+      {/* ⚔️ 23/10 (Diego: "a tática não está aparecendo em várias coisas"): o MESMO card de próximo jogo + tática da
+          liga e da Champions. O motor da fase de grupos (simMatch) já lia `state.tactics` — faltava só o botão. */}
+      {(() => {
+        const prox = lb.fase === 'grupos' && lb.rodada < 6 && meuTime ? lb.fixtures[lb.rodada]?.find(([h, a]) => h === you.id || a === you.id) : undefined
+        if (!prox) return null
+        const oppId = prox[0] === you.id ? prox[1] : prox[0]
+        const classico = humano(oppId)
+        const minhaTatica = state.tactics[you.id] ?? 'equilibrio'
+        return (
+          <Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
+            <div className="ll-linha-tatica">
+              <p className="font-black text-[10px] uppercase tracking-[1.4px] text-black/45" style={OSWALD}>
+                {classico ? LB('🔥 Clássico', '🔥 Derby') : LB('Próximo jogo', 'Next match')} · {prox[0] === you.id ? LB('em casa', 'home') : LB('fora', 'away')}
+              </p>
+              <p className="font-black text-[15px] leading-tight" style={OSWALD}>
+                {prox[0] === you.id ? `${you.teamName} × ${nomeDe(oppId)}` : `${nomeDe(oppId)} × ${you.teamName}`}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(TACTIC_LABEL) as Tactic[]).map(tt => (
+                <button key={tt} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: tt })}
+                  className={`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaOnline ? ' ll31-tactic' : ''}`}
+                  style={{ backgroundColor: minhaTatica === tt ? GOLD : '#fff', boxShadow: minhaTatica === tt ? `3px 3px 0 0 ${INK}` : 'none' }}>
+                  <span>{tacticLabel(tt, false, enL ? 'en' : 'pt')}</span>
+                </button>
+              ))}
+            </div>
+          </Box>
+        )
+      })()}
+
       {/* 📣 giro da Libertadores (o mesmo lugar de sempre das manchetes) */}
       {state.news.length > 0 && (
         <Box bg="#fff" className="p-3" shadow={4}>

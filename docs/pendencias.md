@@ -1,3 +1,10 @@
+## ⚔️ Tática (retranca/equilíbrio/ataque) nas copas do online (23/10)
+- Pedido: *"a tática não está aparecendo em várias coisas como mundo, regionais…"*. Mapa medido: liga ✅ · Copa dos 8/mata-mata ✅ ·
+  Champions ✅ · **Liberta fase de grupos: faltava só o botão** (o motor já lia `state.tactics`) → FEITO e publicado.
+- ⏳ Copa do Mundo e regionais: NÃO têm tática no motor. Cada aparelho recalcula o torneio sozinho pela ficha (é o que garante
+  "todo mundo vê a mesma Copa"); pôr tática exige mandar a escolha de cada um pra sala antes de cada rodada + mudar o motor e o
+  relógio do banco. Explicado ao Diego, esperando OK.
+
 ## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — PUBLICADO pra todos ("ok")
 - Feito com o contexto `TemaCompCtx` (competicoes-visual.tsx): só as telas das SALAS e da PARTIDA RÁPIDA embrulham
   (EscSeason liga/copa, EscLiberta, EscChampions, Copa do Mundo online, regionais). Carreira, basquete e Kings: `null`, nada muda.
