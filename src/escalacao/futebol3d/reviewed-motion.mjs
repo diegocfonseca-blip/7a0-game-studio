@@ -30,22 +30,22 @@ export async function loadReviewedMotion(input,{metadataOnly=false}={}){
 }
 export function bindCapturedMotion(actor,pack){
  actor.bones=new Map(actor.meshes[0].skeleton.bones.map(b=>[b.name,b]));
- for(const[name,clip]of pack?.clips??[])actor.actions.set(name,actor.mixer.clipAction(clip).setLoop(T.LoopOnce,1));
+ for(const[name,clip]of pack?.clips??[]){const action=actor.mixer.clipAction(clip).setLoop(T.LoopOnce,1);action.clampWhenFinished=true;actor.actions.set(name,action)}
  const point=new T.Vector3();let saved;
  actor.footTriangles=()=>[];
  actor.ground=()=>{actor.holder.position.y=0;actor.holder.updateMatrixWorld(true);let low=Infinity;for(const index of actor.footIndices)low=Math.min(low,actor.kit.mesh.getVertexPosition(index,point).applyMatrix4(actor.kit.mesh.matrixWorld).y);if(Number.isFinite(low))actor.holder.position.y=Math.max(0,-low);actor.holder.updateMatrixWorld(true)};
  const surface=attachGarmentFeet(actor,actor.kit.mesh,actor.kit.template.data);
- actor.sampleCapture=(key,time)=>{saved=[...actor.actions].filter(([name])=>name.endsWith('_Loop')).map(([name,a])=>({name,time:a.time,weight:a.getEffectiveWeight(),running:a.isScheduled()}));actor.mixer.stopAllAction();const action=actor.actions.get(key);if(!action)throw Error('Captura ausente');action.reset().setEffectiveWeight(1).play();action.time=time;actor.mixer.update(0);actor.ground()};
+ actor.sampleCapture=(key,time)=>{saved=[...actor.actions].filter(([name])=>name.endsWith('_Loop')).map(([name,a])=>({name,time:a.time,weight:a.getEffectiveWeight(),running:a.isScheduled()}));actor.mixer.stopAllAction();const action=actor.actions.get(key);if(!action)throw Error('Captura ausente');action.reset().setEffectiveWeight(1).play();action.time=T.MathUtils.clamp(time,0,Math.max(0,action.getClip().duration-1e-6));actor.mixer.update(0);actor.ground()};
  actor.resume=()=>{actor.mixer.stopAllAction();for(const s of saved??[]){const a=actor.actions.get(s.name);if(s.running){a.play();a.time=s.time;a.setEffectiveWeight(s.weight)}}actor.mixer.update(0)};
  return {surface,apply(frame,p){const plan=pack?.plans.find(plan=>plan.key===p.key&&frame.time>=plan.start&&frame.time<=plan.end);if(!plan)return null;
   const shared={...frame,players:frame.players.map(p=>({...p,position:{x:p.mx,y:0,z:p.mz}}))};const result=sampleSharedStrike(actor,{sample:()=>shared},plan,frame.time);
   return {id:plan.id,key:p.key,type:plan.type,time:frame.time,marker:plan.time,...result};
  },clearance(frame,p){const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z);if(ball.y>1.5||Math.hypot(p.mx-ball.x,p.mz-ball.z)>1.5)return null;
-  const names=['thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r'],bones=names.map(n=>actor.bones.get(n)),original=bones.map(b=>b.quaternion.clone()),origin=actor.holder.position.clone();
-  const attempt=offset=>{bones.forEach((b,i)=>b.quaternion.copy(original[i]));actor.holder.position.copy(origin).add(offset);actor.holder.updateMatrixWorld(true);
+  const names=['thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r'],bones=names.map(n=>actor.bones.get(n)),original=bones.map(b=>b.quaternion.clone()),positions=bones.map(b=>b.position.clone()),origin=actor.holder.position.clone();
+  const attempt=offset=>{bones.forEach((b,i)=>{b.quaternion.copy(original[i]);b.position.copy(positions[i])});actor.holder.position.copy(origin).add(offset);actor.holder.updateMatrixWorld(true);
    const results={};for(const side of ['left','right']){const foot=actor.bones.get('foot_'+(side==='left'?'l':'r')).getWorldPosition(new T.Vector3());if(foot.distanceTo(ball)<.55)results[side]=constrainFootBall(actor,side,ball,{maxCorrection:.08,maxAngle:.35})}
    const feet=[...actor.footTriangles('left'),...actor.footTriangles('right')],gap=nearest(ball,feet).distance-.11,floor=Math.min(...feet.flatMap(t=>[t.a.y,t.b.y,t.c.y]));
-   return {results,gap,floor,offset:offset.clone(),pose:bones.map(b=>b.quaternion.clone())};
+   return {results,gap,floor,offset:offset.clone(),pose:bones.map(b=>b.quaternion.clone()),positions:bones.map(b=>b.position.clone())};
   };
   let best=attempt(new T.Vector3());
   // A shallow overlap at a restart can exceed the leg-only reach budget.
@@ -54,7 +54,7 @@ export function bindCapturedMotion(actor,pack){
   if(best.gap< -1e-5){const hit=nearest(ball,[...actor.footTriangles('left'),...actor.footTriangles('right')]),away=hit.surface.clone().sub(ball);away.y=0;if(away.lengthSq()<1e-10)away.copy(origin).sub(ball).setY(0);away.normalize();
    search:for(const amount of [.01,.02,.03])for(const angle of [0,.25,-.25,.55,-.55,.85,-.85,1.1,-1.1,1.57,-1.57,2.1,-2.1,Math.PI]){const offset=away.clone().applyAxisAngle(new T.Vector3(0,1,0),angle).multiplyScalar(amount),candidate=attempt(offset);if(candidate.floor>=-1e-5&&candidate.gap>best.gap){best=candidate;if(best.gap>=.001-1e-6)break search}}
   }
-  bones.forEach((b,i)=>b.quaternion.copy(best.pose[i]));actor.holder.position.copy(origin).add(best.offset);actor.holder.updateMatrixWorld(true);
+  bones.forEach((b,i)=>{b.quaternion.copy(best.pose[i]);b.position.copy(best.positions[i])});actor.holder.position.copy(origin).add(best.offset);actor.holder.updateMatrixWorld(true);
   return {...best.results,rootClearance:{metres:best.offset.length(),gap:best.gap,limited:best.gap<-.003}};
  },recoverGaitClearance(frame,p,failure){
   // If IK reaches its limit, try a <=2% phase adjustment of the EXISTING

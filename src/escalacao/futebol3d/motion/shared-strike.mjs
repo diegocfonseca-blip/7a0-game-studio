@@ -5,6 +5,7 @@ import * as T from 'three';import {nearest} from './nearest.mjs';import {constra
 const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x);},angle=x=>Math.atan2(Math.sin(x),Math.cos(x));
 const copyPose=a=>[...a.bones].map(([name,b])=>({name,p:b.position.clone(),q:b.quaternion.clone()}));
 const armBones=new Set(['clavicle_l','clavicle_r','upperarm_l','upperarm_r','lowerarm_l','lowerarm_r','hand_l','hand_r']);
+const torsoBones=new Set(['spine_01','spine_03','neck_01','Head']);
 const channelsCache=new WeakMap();
 function capturedChannels(actor,key){const clip=actor.clips?.get(key)??actor.actions?.get?.(key)?.getClip();if(!clip)throw Error('Clipe da ação indisponível');if(!channelsCache.has(clip)){const channels=new Set(clip.tracks.map(track=>track.name.replace(/^\.bones\[([^\]]+)\]/,'$1')));channelsCache.set(clip,channels)}return channelsCache.get(clip)}
 const feet=a=>[...a.footTriangles('right'),...a.footTriangles('left')];
@@ -23,7 +24,7 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
  // A capture has no authority over channels it does not contain (e.g. CMU
  // fingers). Keep those from the clean native clip instead of blending stale
  // binding state left by stopping/restarting AnimationMixer actions.
- for(let i=0;i<captured.length;i++){const pose=captured[i],b=actor.bones.get(pose.name);if(channels.has(pose.name+'.position'))b.position.lerpVectors(base[i].p,pose.p,weight);else b.position.copy(base[i].p);b.quaternion.copy(base[i].q);if(channels.has(pose.name+'.quaternion'))b.quaternion.slerp(pose.q,weight*(armBones.has(pose.name)?armWeight:1));}actor.holder.updateMatrixWorld(true);
+ for(let i=0;i<captured.length;i++){const pose=captured[i],b=actor.bones.get(pose.name);if(channels.has(pose.name+'.position'))b.position.lerpVectors(base[i].p,pose.p,weight);else b.position.copy(base[i].p);b.quaternion.copy(base[i].q);if(channels.has(pose.name+'.quaternion'))b.quaternion.slerp(pose.q,weight*(armBones.has(pose.name)?armWeight:torsoBones.has(pose.name)?T.MathUtils.clamp(plan.layers?.torso??1,0,1):1));}actor.holder.updateMatrixWorld(true);
  const rootWeight=actor.style==='civil-cartoon'?weight:smooth((time-(plan.time-.12))/.10)*smooth(((plan.time+.10)-time)/.08);
  const offset=new T.Vector3().fromArray(plan.rootCorrection??[0,0,0]).multiplyScalar(rootWeight);center(actor,p,offset);actor.ground();
  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),raw=Object.fromEntries(['thigh_r','calf_r','foot_r','thigh_l','calf_l','foot_l'].map(n=>[n,actor.bones.get(n).quaternion.clone()])),ankles=['foot_r','foot_l'].map(n=>actor.bones.get(n).getWorldPosition(new T.Vector3()));

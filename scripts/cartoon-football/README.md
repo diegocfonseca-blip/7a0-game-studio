@@ -38,3 +38,13 @@ Continuam pendentes: avaliação visual de fluidez em vídeo próximo, equivalê
 ## Assistir ao replay 11×11
 
 `watch-match.html` apresenta a reprodução local com este modelo, controles de pausa e câmeras de acompanhamento/campo completo. Não muda o estilo padrão publicado nem a câmera livre da cidade. `record-match.cjs` grava o replay completo, verifica a bola dentro do enquadramento e captura três trechos próximos; `encode-match.mjs` gera os MP4 H.264 baseline e uma página local com controles de vídeo. Evidências ficam em `test-results/cartoon-football/11x11/`. A gravação usa o campo existente isolado: não confundir com captura do estádio da conta. O humanoide anterior continua disponível por `style:'athlete'`, sem remoção dos seus clipes.
+
+## Correções de fundamentos e comparação
+
+- `audit-fundamentals.cjs` mede o replay a 10 Hz; `FUNDAMENTALS_OUT` escolhe a pasta de evidências. Compara o deslocamento visual com o deslocamento oficial e registra a distância real entre as chuteiras e a bola durante a posse. Distância pequena não prova impulso ou amortecimento físico: a bola continua sendo a oficial.
+- `check-control.cjs` percorre o 11×11 inteiro a 30 Hz, verificando penetração, piso, limites de apresentação e resultado. O controle visual é provisório: usa a corrida original mais alinhamento amortecido de até 18 cm e IK de até 8 cm/0,35 rad; não cria movimentos articulares principais nem muda posse ou trajetória. Só tenta alinhar uma bola baixa e alcançável; recusa ajustes que causem colisão ou piso negativo.
+- Correção de tentativas de clearance: restaura posições e rotações dos controles de pé em cada candidato, impedindo acumulação nos pés independentes do rig cartoon.
+- Clipes adquiridos são limitados ao seu intervalo válido. A última pose é mantida durante a saída; não retornar à pose de bind ao ultrapassar o arquivo. O tempo de saída considera o tamanho do alinhamento visual. Tronco importado é misturado à postura nativa em 70% no passe e 85% no chute para adaptar o movimento às proporções do cartoon.
+- Para preservar a primeira gravação e gerar outra: `MATCH_RECORDING_OUT=test-results/cartoon-football/11x11-melhorado node scripts/cartoon-football/record-match.cjs`, seguido dos scripts `encode-match.mjs` e `check-videos.cjs` com a mesma variável. Inclui um trecho real de controle e a continuação do passe de Cuadrado.
+
+Continuam sem captura específica adquirida e validada: cabeceio, carrinho/desarme, fintas de drible, defesas de goleiro e quedas de falta. Não substituir essas lacunas por animações de luta nem declarar que o catálogo está completo.

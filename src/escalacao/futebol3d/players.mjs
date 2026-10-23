@@ -6,6 +6,7 @@ import {neymarzetti} from './club-kit.mjs';
 import {playerDetail,PLAYER_HEIGHT} from './lod.mjs';
 import {loadReviewedMotion,loadGaitCalibration,bindCapturedMotion} from './reviewed-motion.mjs';
 import {loadCartoonSource,createCartoonPlayer} from './cartoon/player.mjs';
+import {createBallControl} from './motion/ball-control.mjs';
 
 let source,users=0;
 const load=()=>source??=new GLTFLoader().loadAsync(new URL('./assets/quaternius.glb',import.meta.url).href).catch(error=>{source=undefined;throw error});
@@ -29,7 +30,7 @@ export async function loadPlayers(scene,state,frame,{style='athlete'}={}){
     const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor});actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,footIndices:kit.template.data.part.map((p,i)=>p===3?i:-1).filter(i=>i>=0)};
    }
    Object.assign(actor,{current:null,side:p.side,key:p.key,keeper,gaitPhase:0,lastDistance:0,wasAction:false,lastHeading:null,lastPose:-Infinity,detail:'full',groundOffset:0,footHeight:0});
-   actor.motion=bindCapturedMotion(actor,motion);actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
+   actor.motion=bindCapturedMotion(actor,motion);if(cartoon)actor.ballControl=createBallControl(actor);actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
   }
  }catch(error){for(const a of actors){a.kit.dispose();a.holder.removeFromParent();a.mixer.stopAllAction()}if(--users===0){releaseNeutralKits();releaseMatchKits([neymarzetti])}throw error}
  const pointsGeometry=new T.BufferGeometry(),positions=new Float32Array(actors.length*3),colors=new Float32Array(actors.length*3);
@@ -46,7 +47,7 @@ export async function loadPlayers(scene,state,frame,{style='athlete'}={}){
   frame.players.forEach((p,i)=>{
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const resetActor=reset||a.key!==p.key;a.key=p.key;
    const mode=p.speed<.12?'Idle_Loop':p.speed<2.5?'Walk_Loop':p.speed<6?'Jog_Fwd_Loop':'Sprint_Loop',cal=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[mode]],duration=a.actions.get(mode).getClip().duration,stride=cal?.strideLength??duration*(mode==='Walk_Loop'?1.5:mode==='Sprint_Loop'?7:4.5);
-   if(resetActor){a.wasAction=false;a.gaitPhase=0;a.lastDistance=p.distance;a.lastHeading=p.heading;a.lastPose=-Infinity;a.current=null;a.mixer.stopAllAction()}
+   if(resetActor){a.ballControl?.reset();a.wasAction=false;a.gaitPhase=0;a.lastDistance=p.distance;a.lastHeading=p.heading;a.lastPose=-Infinity;a.current=null;a.mixer.stopAllAction()}
    a.gaitPhase=(a.gaitPhase+Math.max(0,p.distance-a.lastDistance)/stride)%1;a.lastDistance=p.distance;
    const previous=a.detail;a.detail=p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;
    a.holder.visible=a.detail==='full'||a.detail==='intermediate';
@@ -79,7 +80,7 @@ export async function loadPlayers(scene,state,frame,{style='athlete'}={}){
     a.groundOffset=Number.isFinite(low)?.002-low:0;a.footHeight=Number.isFinite(low)?low+a.groundOffset:.002;
     a.holder.position.y=a.groundOffset;a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update();
    }
-   const capture=a.motion.apply(frame,p);a.wasAction=!!capture;if(capture)inspection.activeCaptures.push(capture);else{let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
+   const capture=a.motion.apply(frame,p);a.wasAction=!!capture;if(capture){a.ballControl?.reset();inspection.activeCaptures.push(capture)}else{const control=a.ballControl?.apply(frame,p);if(control)(inspection.ballControl??=[]).push({key:p.key,...control});let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
    inspection.minFootHeight=Math.min(inspection.minFootHeight,a.footHeight);inspection.maxFootHeight=Math.max(inspection.maxFootHeight,a.footHeight);
   });
   // A lineup can shrink after a real dismissal/substitution. Never leave an
