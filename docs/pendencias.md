@@ -74,6 +74,11 @@
 - 🖥️ Mockups de COMPUTADOR (23/10): `scripts/mockups/desktop-salas-d1/d2/d3.png` — ① espera em 2 colunas (técnicos + convite |
   zoeira + chat sempre aberto, botão do dono largo no pé) · ② criar sala com o resumo "📋 Sua sala" fixo à direita · ③ salas
   abertas em grade de 3 + coluna lateral (Criar sala, Minhas ligas, carreiras, zap). Celular não muda. Esperando OK.
+  🔁 23/10 (2ª rodada, `desktop-hoje-ficaria-*.png`): **② CRIAR SALA APROVADO** — mas com as 5 etapas (modo · time e
+  baralho · partida · sala…) TODAS ABERTAS, nada recolhido (*"ficam tudo abertas, sem recolher"*). Liga/Copa rolando em 2
+  colunas (tabela inteira / chave fixa à direita): ele gostou, só achou o PLACAR menor ruim, porque o campinho 2D vai entrar ali.
+  Sugestão dada: placar no tamanho de hoje na coluna da esquerda (com 2D, o campinho toma o lugar dele, como já é regra),
+  outros jogos embaixo. Esperando resposta. Leilão: sem resposta ainda. A fazer só depois do OK de cada tela, só no desktop.
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque
