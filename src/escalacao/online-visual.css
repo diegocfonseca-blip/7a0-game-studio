@@ -29,7 +29,7 @@
 .online-room-art .salas-grade{display:grid;grid-template-columns:1fr;gap:14px}
 .online-room-art .salas-grade>*{margin:0!important}
 .online-room-code{padding:12px 0 24px;text-shadow:0 2px 6px #000}
-.online-room-code>p:last-child{font-family:Oswald,sans-serif;font-size:clamp(44px,10vw,78px)!important;overflow-wrap:anywhere;letter-spacing:.13em!important}
+.online-room-code>p.online-room-code-num{font-family:Oswald,sans-serif;font-size:clamp(44px,10vw,78px)!important;overflow-wrap:anywhere;letter-spacing:.13em!important}
 .online-invite{padding:0!important;text-shadow:0 1px 4px #000}
 .online-invite button{font-size:16px!important;border-width:3px!important;box-shadow:3px 4px 0 #000;text-shadow:none}
 .online-attendance{padding:20px!important;max-height:65vh;overflow:auto;scrollbar-color:#7c3aed #f4ecd6}
@@ -193,3 +193,7 @@
 @keyframes segSeloPulsa{0%,100%{box-shadow:0 0 0 rgba(46,204,113,0)}50%{box-shadow:0 0 9px 2px rgba(46,204,113,.85)}}
 @keyframes segSeloBrilho{0%{left:-60%}60%,100%{left:130%}}
 @media (prefers-reduced-motion:reduce){.seg-selo-brilho,.seg-selo-brilho::after{animation:none}}
+
+/* 🗂️ visual novo das salas (só na conta do Diego): na grade de 2 colunas os botões do nome/✕ não esticam pra 44px */
+.salas-tec-grade button{min-height:0}
+.salas-tec-grade .gap-3{gap:6px}
