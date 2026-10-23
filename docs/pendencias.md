@@ -11,6 +11,8 @@
 - Onde liga: abertura da FINAL da Copa dos 8/Liberta/Champions (screens.tsx), da Copa do Mundo (copa-mundo.tsx) e dos regionais
   (copa-regional-online.tsx); festa no fim da liga e da copa (EscEnd, no lugar do festão da mascote), da Copa do Mundo online e dos
   regionais. Uma vez por edição (sessionStorage). Basquete e Kings ficam de fora. Bancada: `scripts/teste-competicoes/`.
+- 🏆 O cartão parado de campeão (Copa dos 8/Liberta/Champions, Copa do Mundo e regionais) também mostra o troféu certo (23/10,
+  *"o campeão já aparecer também com o troféu correto"*): prop `trofeu` no `CampeaoCopaCard`.
 - 🎨 Pendente (quando ele quiser): trocar os troféus desenhados por arte gerada em `.webp` (regra de peso dos batismos vale).
 - 🚫 Túnel NUNCA mais verde/vermelho fixo (*"só não tô gostando do fundo ser sempre verde e vermelho"*).
 - Mockup `online-momentos-cinema.png` + vídeo `scripts/posts/online-momentos-cinema.mp4` (fora do git): Diego quer SÓ o 2 (festa do

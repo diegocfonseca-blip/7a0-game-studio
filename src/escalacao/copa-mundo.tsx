@@ -11,7 +11,7 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
-import { TunelFinal, FestaCampeao } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
+import { TunelFinal, FestaCampeao, Trofeu } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -1632,7 +1632,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       {done && (
         <div style={{ ...box(isYou(world.final.champion) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), padding: 14, marginBottom: 10, borderRadius: 14, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           {isYou(world.final.champion) && <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />}
-          <p style={{ fontSize: 34, margin: 0, position: 'relative' }}>🏆</p>
+          <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}><Trofeu comp="mundo" size={64} /></div>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} {tr('CAMPEÃO DO MUNDO!', 'WORLD CHAMPION!')}</p>
           <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{online
             ? (isYou(world.final.champion)

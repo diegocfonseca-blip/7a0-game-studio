@@ -17,7 +17,7 @@
 //   · o relógio sincronizado é `esc_regional_clock` (docs/sql/regional-clock.sql). Se o
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
-import { TunelFinal, FestaCampeao } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
+import { TunelFinal, FestaCampeao, Trofeu } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { fimDoJogoMs } from './copa-clock-preview'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -776,7 +776,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const art = artilhariaRegional(mundo).slice(0, 5)
         return <>
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}><SeloClube clube={entrants[c].pais} size={70} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}><SeloClube clube={entrants[c].pais} size={70} /><Trofeu comp={copa} size={64} /></div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '6px 0 0', textTransform: 'uppercase' }}>{entrants[c].pais} {tr('CAMPEÃO!', 'CHAMPION!')}</p>
             <p style={{ fontSize: 11, fontWeight: 800, margin: '3px 0 0' }}>{isYou(c) ? tr('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : entrants[c].humano ? `${tr('Técnico', 'Manager')}: ${entrants[c].club}` : tr('Título da máquina 🤖', 'Won by the machine 🤖')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0' }}>{tr('final', 'final')}: {entrants[fin.h].pais} {fin.g[0]}×{fin.g[1]} {entrants[fin.a].pais}{fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}</p>

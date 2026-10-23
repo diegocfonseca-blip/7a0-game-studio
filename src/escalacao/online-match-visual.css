@@ -478,7 +478,7 @@
 .ll41-campeao{background:#fff;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:14px;box-shadow:4px 4px 0 #0c0c0c;padding:12px 14px;text-align:center;margin:0 0 10px}
 .ll41-campeao.meu{background:linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)}
 .ll41-campeao small{display:block;font:700 10px Oswald,sans-serif;letter-spacing:.18em;color:#92600a}.ll41-campeao.meu small{color:#0c0c0c}
-.ll41-campeao-escudo{display:flex;justify-content:center;margin:6px 0 4px}.ll41-campeao-escudo img,.ll41-campeao-escudo svg{height:64px;max-width:64px;object-fit:contain}
+.ll41-campeao-escudo{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:6px 0 4px}.ll41-campeao-escudo .ll41-campeao-trofeu svg{height:auto;max-width:none}.ll41-campeao-escudo img,.ll41-campeao-escudo svg{height:64px;max-width:64px;object-fit:contain}
 .ll41-campeao h3{font:700 26px/1 Oswald,sans-serif;text-transform:uppercase;margin:0}.ll41-campeao p{font:600 11px/1.35 Inter,sans-serif;margin:4px 0 0}.ll41-campeao-final{color:#53534b}
 .ll41-artilheiro{background:#fff;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:14px;box-shadow:4px 4px 0 #0c0c0c;padding:10px 12px;margin:0 0 10px}
 .ll41-artilheiro small{display:block;font:700 10px Oswald,sans-serif;letter-spacing:.18em;color:#92600a;margin-bottom:6px}

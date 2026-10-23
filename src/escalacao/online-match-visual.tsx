@@ -425,10 +425,10 @@ export function ResumoFase({ titulo, passaram, cairam, proxima, seg, total, cor,
 
 // ─── 🏆 CAMPEÃO + 🥇 ARTILHEIRO NO FIM DA COPA (mockup nº 3) ───
 // Dourado só pra QUEM GANHOU (regra de tier: nunca dourado fixo pra todos); pros outros, branco.
-export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean }) {
+export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu, trofeu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean; /** 🏆 o troféu DESTA copa ao lado do escudo (23/10) */ trofeu?: ReactNode }) {
   return <div className={`ll41-campeao${meu ? ' meu' : ''}`}>
     <small>🏆 {titulo}</small>
-    <div className="ll41-campeao-escudo">{crest}</div>
+    <div className="ll41-campeao-escudo">{crest}{trofeu && <span className="ll41-campeao-trofeu">{trofeu}</span>}</div>
     <h3>{nome}</h3>
     {sub && <p>{sub}</p>}
     {final && <p className="ll41-campeao-final">{final}</p>}
