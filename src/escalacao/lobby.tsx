@@ -45,7 +45,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2, useCampo2DLiberado } from './sport'
+import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -418,7 +418,23 @@ function Big({ children, onClick, color = GOLD, disabled = false, fundo }: { chi
 }
 
 // ── criar sala reformulado: bloco com cabeçalho numerado ──
-function Section({ num, title, icon, children }: { num: number; title: string; icon: string; children: React.ReactNode }) {
+// 🗂️ `resumo` (visual novo das salas, 23/10, só na conta do Diego): a seção vira uma LINHA com o que está escolhido e só abre
+// quando a pessoa toca em "mudar". Sem `resumo`, é a seção de sempre, aberta.
+function Section({ num, title, icon, children, resumo, abertaInicio }: { num: number; title: string; icon: string; children: React.ReactNode; resumo?: string; abertaInicio?: boolean }) {
+  const [aberta, setAberta] = useState(!!abertaInicio)
+  if (resumo !== undefined) return (
+    <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: aberta ? '#FFF7DB' : '#fff', boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
+      <button onClick={() => setAberta(a => !a)} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left">
+        <span className="grid place-items-center rounded-lg font-black shrink-0 border-2 border-black" style={{ width: 26, height: 26, background: GOLD, color: '#000', fontSize: 13, ...OSWALD }}>{num}</span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-black text-[15px] uppercase leading-tight" style={OSWALD}>{icon} {title}</span>
+          <span className="block text-[12px] font-bold leading-snug" style={{ color: '#5a5647' }}>{resumo}</span>
+        </span>
+        <span className="text-[12px] font-black shrink-0" style={{ color: PURPLE }}>{aberta ? tr('fechar ▴', 'close ▴') : tr('mudar ›', 'change ›')}</span>
+      </button>
+      {aberta && <div className="space-y-2.5 px-3 pb-3 pt-2.5" style={{ background: "#1c1a16", color: "#fff" }}>{children}</div>}
+    </div>
+  )
   return (
     <div className="online-config-section rounded-2xl border-2 p-3" style={{ background: '#1c1a16', borderColor: 'rgba(255,255,255,.14)' }}>
       <div className="flex items-center gap-2 mb-2.5">
@@ -867,6 +883,11 @@ export function EscLobby() {
   const [liveUrl, setLiveUrl] = useState('') // 🔴 link da live (só com o Modo Stream ligado)
   // 📺 CAMPO 2D na sala (20/10, só a conta do Diego por enquanto): o dono escolhe ao criar e vale pra todos da sala
   const campo2dOn = useCampo2DLiberado()
+  // 🗂️ visual novo das salas (23/10, só a conta do Diego): filtro da lista e os modos recolhidos no criar
+  const salasNovo = useSalasVisualNovo()
+  const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'clubes' | 'duplas'>('todas')
+  const [modosAbertos, setModosAbertos] = useState(false)
+  const [regrasAbertas, setRegrasAbertas] = useState(false)
   const [room2d, setRoom2d] = useState(false)
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
@@ -2377,20 +2398,20 @@ export function EscLobby() {
   // todo — que é justamente o ponto da liga.
   async function fetchMyLigas() {
     if (!user) { setMyLigas([]); return }
-    const sel = 'id, code, host_id, liga_dono, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada'
+    const sel = 'id, code, host_id, liga_dono, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada, gseason:game_state->>seasonNo'
     const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
     const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
     const [hosted, member] = await Promise.all([
       supabase.from('game_rooms').select(sel).or(`host_id.eq.${user.id},liga_dono.eq.${user.id}`).eq('game_state->>mode', 'liga').limit(30), // ⭐ com o vice no comando, o dono continua achando a liga dele
       memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('game_state->>mode', 'liga').limit(30) : Promise.resolve({ data: [] }),
     ])
-    type SlimLiga = { id: string; code: string; host_id: string; liga_dono?: string | null; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null }
+    type SlimLiga = { id: string; code: string; host_id: string; liga_dono?: string | null; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null; gseason?: string | null }
     const seen = new Set<string>(); const rooms: RoomInfo[] = []
     for (const r of [...((hosted.data ?? []) as unknown as SlimLiga[]), ...((member.data ?? []) as unknown as SlimLiga[])]) {
       if (seen.has(r.id) || r.gtag !== tagAtual()) continue
       seen.add(r.id)
       rooms.push({ id: r.id, code: r.code, host_id: r.host_id, liga_dono: r.liga_dono ?? null, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-        game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined } as GS })
+        game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined, ...(r.gseason != null ? { seasonNo: Number(r.gseason) } : {}) } as GS })
     }
     // a próxima da agenda primeiro (liga sem horário vai pro fim)
     rooms.sort((a, b) => ((a.game_state as GS).ligaAt ?? '9') .localeCompare((b.game_state as GS).ligaAt ?? '9'))
@@ -2982,11 +3003,61 @@ export function EscLobby() {
     const hasName = !!user?.user_metadata?.display_name
     const filtered = openRooms.filter(r => {
       const nm = r.game_state?.roomName ?? r.code
-      return nm.toLowerCase().includes(search.trim().toLowerCase())
+      if (!nm.toLowerCase().includes(search.trim().toLowerCase())) return false
+      if (!salasNovo || filtroSala === 'todas') return true
+      const g = r.game_state as GS & { holandes?: boolean; duplasMode?: boolean }
+      if (filtroSala === 'pregao') return !!g?.pregaoAberto
+      if (filtroSala === 'tocaia') return g?.holandes === true && !g?.pregaoAberto
+      if (filtroSala === 'envelope') return g?.holandes === false && !g?.pregaoAberto && g?.mode !== 'mundo' && g?.mode !== 'elenco'
+      if (filtroSala === 'clubes') return !!g?.clubes
+      return !!g?.duplasMode
     })
+    const blocoCarreiras = (<>
+      {/* 🌐 CARREIRA ONLINE v2 (19/10) — só nas contas do Diego; caminho PRÓPRIO, nada das salas daqui */}
+      {co2On && <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />}
+      {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
+      {canCareer && myCareers.length > 0 && (
+        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
+          {myCareers.map(r => {
+            const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
+            const nm = gs?.roomName ?? r.code
+            const iAmHost = r.host_id === user?.id
+            return (
+              <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                  <p className="text-black/60 text-[11px] font-bold">{tr('Temporada', 'Season')} {gs?.seasonNo ?? 1} · {tr('sala', 'room')} {r.code}{iAmHost ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
+                </div>
+                <button onClick={() => resumeCareer(r)} disabled={loading}
+                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
+                  style={{ background: iAmHost ? GREEN : PURPLE, color: '#fff', ...OSWALD }}>
+                  {iAmHost ? tr('▶️ Continuar', '▶️ Continue') : tr('↩️ Voltar', '↩️ Back')}
+                </button>
+                {/* 🗑️ tirar da lista: host apaga a carreira; convidado só sai dela */}
+                <button onClick={() => apagarCarreira(r)} disabled={loading}
+                  aria-label={iAmHost ? `${tr('Apagar a carreira', 'Delete career')} ${nm}` : `${tr('Sair da carreira', 'Leave career')} ${nm}`}
+                  title={iAmHost ? tr('Apagar essa carreira', 'Delete this career') : tr('Sair dessa carreira', 'Leave this career')}
+                  className="shrink-0 w-8 h-8 rounded-lg border-2 border-black font-black text-sm leading-none active:translate-y-0.5"
+                  style={{ background: '#fff', color: '#B23B2E' }}>🗑️</button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+    </>)
     return wrap(<>
       {/* 📲 COMUNIDADE DO WHATSAPP no TOPO da página de salas (13/10, Diego: "ao invés de ter no final… coloque no topo") */}
-      {COMUNIDADE_LINK && (
+      {/* 🗂️ visual novo: um aviso só, numa faixa fina — as salas sobem pra primeira tela */}
+      {COMUNIDADE_LINK && salasNovo && (() => { try { return localStorage.getItem('esc-comunidade-zap-jogo-vista') === '1' } catch { return true } })() && (
+        <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl px-3 py-2 active:translate-y-0.5"
+          style={{ background: GREEN, border: `2px solid ${INK}`, color: '#fff', textDecoration: 'none' }}>
+          <span className="font-bold text-[12.5px] leading-tight flex-1 min-w-0">{tr('📲 Comunidade no WhatsApp: ache gente pra jogar', '📲 WhatsApp community: find people to play')}</span>
+          <span className="shrink-0 rounded-lg px-2.5 py-0.5 font-black uppercase text-[12px]" style={{ ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}` }}>{tr('Entrar', 'Join')}</span>
+        </a>
+      )}
+      {COMUNIDADE_LINK && !salasNovo && (
         <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="block rounded-2xl px-3.5 py-3 active:translate-y-0.5"
           style={{ background: '#1B7A3D', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff', textDecoration: 'none' }}>
           <p className="font-black uppercase text-[16px] leading-tight" style={OSWALD}>{tr('📲 Procurando mais gente pra jogar online?', '📲 Looking for more people to play online?')}</p>
@@ -2998,7 +3069,7 @@ export function EscLobby() {
       )}
       {/* Arte de fundo; identidade e ações continuam sendo controles reais. */}
       <div className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
-        <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
+        {!salasNovo && <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
           <div className="absolute top-2 right-3 flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-white/80 text-[10px] font-black uppercase tracking-widest">Multiplayer</span>
@@ -3013,7 +3084,7 @@ export function EscLobby() {
           <p className="text-white/90 text-[13px] leading-snug font-medium">
             {getLang() === 'en' ? <>All the adrenaline of the auction, now <b>against your friends</b>. Create the room, send the code on WhatsApp and fight for the legends.</> : <>Toda a adrenalina do leilão, agora <b>contra seus amigos</b>. Cria a sala, manda o código no zap e briguem pelas lendas.</>}
           </p>
-        </div>
+        </div>}
         <div className="online-identity px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
           <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">{tr('Logado como', 'Signed in as')}</span>
           {editingName ? (
@@ -3072,6 +3143,17 @@ export function EscLobby() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
+                    {/* 🗂️ visual novo: a liga como um clube — temporada, técnicos e o dia, em caixinhas */}
+                    {salasNovo && (
+                      <div className="grid grid-cols-3 gap-1.5 my-1.5">
+                        {([[`T${(gs as GS & { seasonNo?: number })?.seasonNo ?? 1}`, tr('temp.', 'season')], [String(r.count), tr('técnicos', 'managers')], [gs?.ligaFechada ? tr('sem bots', 'no bots') : tr('com bots', 'with bots'), tr('tabela', 'table')]] as [string, string][]).map(([v, lb]) => (
+                          <div key={lb} className="border-2 border-black rounded-lg px-1 py-1 text-center bg-[#FFF8E1]">
+                            <b className="block text-[14px] leading-none text-black" style={OSWALD}>{v}</b>
+                            <span className="block text-[8.5px] font-black uppercase truncate" style={{ color: '#5a5647' }}>{lb}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? tr('sem bots', 'no bots') : tr('com bots', 'with bots')}{souDono ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
                     <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
                   </div>
@@ -3193,45 +3275,14 @@ export function EscLobby() {
         </div>
       )}
 
-      {/* 🌐 CARREIRA ONLINE v2 (19/10) — só nas contas do Diego; caminho PRÓPRIO, nada das salas daqui */}
-      {co2On && <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />}
-      {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
-      {canCareer && myCareers.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
-          {myCareers.map(r => {
-            const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
-            const nm = gs?.roomName ?? r.code
-            const iAmHost = r.host_id === user?.id
-            return (
-              <div key={r.id} className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-2 bg-white">
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
-                  <p className="text-black/60 text-[11px] font-bold">{tr('Temporada', 'Season')} {gs?.seasonNo ?? 1} · {tr('sala', 'room')} {r.code}{iAmHost ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
-                </div>
-                <button onClick={() => resumeCareer(r)} disabled={loading}
-                  className="border-2 border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0"
-                  style={{ background: iAmHost ? GREEN : PURPLE, color: '#fff', ...OSWALD }}>
-                  {iAmHost ? tr('▶️ Continuar', '▶️ Continue') : tr('↩️ Voltar', '↩️ Back')}
-                </button>
-                {/* 🗑️ tirar da lista: host apaga a carreira; convidado só sai dela */}
-                <button onClick={() => apagarCarreira(r)} disabled={loading}
-                  aria-label={iAmHost ? `${tr('Apagar a carreira', 'Delete career')} ${nm}` : `${tr('Sair da carreira', 'Leave career')} ${nm}`}
-                  title={iAmHost ? tr('Apagar essa carreira', 'Delete this career') : tr('Sair dessa carreira', 'Leave this career')}
-                  className="shrink-0 w-8 h-8 rounded-lg border-2 border-black font-black text-sm leading-none active:translate-y-0.5"
-                  style={{ background: '#fff', color: '#B23B2E' }}>🗑️</button>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
+      {/* 🗂️ visual novo: carreiras descem pro pé da página, pra as salas aparecerem primeiro */}
+      {!salasNovo && blocoCarreiras}
       {/* abas */}
       <div className="online-tabs flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
           <button key={t.id} onClick={() => { setTab(t.id); setRoomError('') }}
             className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? PURPLE : '#fff', color: tab === t.id ? '#fff' : '#000', ...OSWALD }}>
-            {t.label}
+            {t.label}{salasNovo && t.id === 'open' && openRooms.length > 0 ? ` (${openRooms.length})` : ''}
           </button>
         ))}
       </div>
@@ -3385,6 +3436,15 @@ export function EscLobby() {
         // ele é — mas aí a tela para ali: nada de configurar nem de criar. Mostrar
         // formulário de algo que não dá pra criar é promessa falsa.
         const modoLiberado = MODOS.find(m => m.v === roomMode)?.on ?? true
+        // 🗂️ visual novo (só na conta do Diego): cada seção vira uma linha com o que está escolhido + o resumo antes do botão.
+        // Só LÊ o que já foi escolhido (os mesmos estados de sempre) — nada aqui muda regra nem o que vai pro banco.
+        const rDeck = rapidoClubes ? tr('🌎 Todos', '🌎 All') : rapidoDeck === 'eu' ? tr('🌍 Europa', '🌍 Europe') : rapidoDeck === 'both' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
+        const rLeilao = rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
+        const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
+        const resumoTime = [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tr('🧱 Clubes', '🧱 Clubs') : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
+        const resumoPartida = [rLeilao, rCopa[rapidoCopaMode] ?? '', roomManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
+        const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
+        const nomeModo = MODOS.find(m => m.v === roomMode && (m.v !== 'liga' || !!m.draft === ehDraft))?.nome ?? ''
         const EXPLICA: Record<string, string> = {
           rapido: tr('🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.', '🔨 The usual auction — a one-off season. Championship over, room over.'),
           liga: tr('🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.', '🏆 Your crew\'s league: you set the day and time, it\'s always the SAME room, and the trophies stay stored in it — season after season.'),
@@ -3400,7 +3460,8 @@ export function EscLobby() {
                 {tr('O que vocês vão jogar?', 'What are you going to play?')}
               </p>
               <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">{tr('Escolhe um. O resto já está no ponto.', 'Pick one. The rest is ready to go.')}</p>
-              {MODOS.map(m => {
+              {/* 🗂️ visual novo: só o modo escolhido aparece; "trocar" abre a lista */}
+              {(salasNovo && !modosAbertos ? MODOS.filter(m => roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft)) : MODOS).map(m => {
                 const sel = roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft) // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
                 // teste, então pra ele o cartão continua clicável — mas leva o selo,
@@ -3412,7 +3473,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => { setRoomMode(m.v); setLigaDraftSel(!!m.draft) }}
+                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => { if (salasNovo && !modosAbertos) { setModosAbertos(true); return } setRoomMode(m.v); setLigaDraftSel(!!m.draft); if (salasNovo) setModosAbertos(false) }}
                     className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 mb-2 text-left active:translate-y-0.5"
                     style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
                     <span style={{ fontSize: 24 }}>{m.ic}</span>
@@ -3424,7 +3485,9 @@ export function EscLobby() {
                       </span>
                       <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
                     </span>
-                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
+                    {salasNovo && !modosAbertos
+                      ? <span className="text-[12px] font-black shrink-0" style={{ color: PURPLE }}>{tr('trocar ›', 'change ›')}</span>
+                      : <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>}
                   </button>
                 )
               })}
@@ -3444,7 +3507,7 @@ export function EscLobby() {
           )}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           {(!criar2 || modoLiberado) && (<>
-          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋">
+          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋" resumo={salasNovo && criar2 ? resumoTime : undefined}>
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
                   *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
@@ -3597,7 +3660,7 @@ export function EscLobby() {
           {/* ② OS RIVAIS — só na carreira do FUTEBOL (igual offline: host escolhe os CPUs do
               leilão). 🏀 No basquete a liga enche de crews sozinha (sem escolher rivais). */}
           {isCareer && !nbaSala && (
-            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥">
+            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥" resumo={salasNovo && criar2 ? tr('toque pra ver', 'tap to see') : undefined}>
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -3634,7 +3697,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'}>
+            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'} resumo={salasNovo && criar2 ? resumoPartida : undefined} abertaInicio>
               {/* 🔻 COMO É O LEILÃO — a escolha mais importante da sala, então mora
                   na seção À VISTA (a tela v2 recolhe as outras num ⚙️ Ajustes, e
                   escolher o tipo de pregão não pode ficar escondido atrás de
@@ -3803,7 +3866,7 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧">
+          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧" resumo={salasNovo && criar2 ? resumoSala : undefined}>
             <div>
               {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
                   dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
@@ -3883,6 +3946,11 @@ export function EscLobby() {
           </>)}
           {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
               escolhido ainda não abriu — o cartão em breve termina na explicação. */}
+          {salasNovo && criar2 && modoLiberado && (
+            <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 text-[13px] font-bold leading-snug" style={{ background: CREAM, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
+              📋 <b style={OSWALD}>{tr('SUA SALA:', 'YOUR ROOM:')}</b> {[nomeModo, roomMode === 'rapido' || roomMode === 'liga' ? resumoPartida : '', roomMode !== 'elenco' ? resumoTime : '', resumoSala].filter(Boolean).join(' · ')}
+            </div>
+          )}
           {(!criar2 || modoLiberado) && (
             <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
               <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? tr('Criando...', 'Creating...') : criar2 ? tr('🔨 Criar e chamar a galera', '🔨 Create and call the crew') : isCareer ? tr('🌐 Criar Carreira', '🌐 Create Career') : tr('🏠 Criar Sala', '🏠 Create Room')}</span>
@@ -3894,12 +3962,20 @@ export function EscLobby() {
 
       {tab === 'open' && <div className="space-y-3">
         <Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('Buscar sala…', 'Search room…')} />
+        {salasNovo && (
+          <div className="flex flex-wrap gap-1.5">
+            {([['todas', tr('Todas', 'All')], ['envelope', tr('✉️ Envelope', '✉️ Sealed')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão', '🔨 Open')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['duplas', tr('🤝 Duplas', '🤝 Duos')]] as [typeof filtroSala, string][]).map(([v, lb]) => (
+              <button key={v} onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
+                style={{ borderColor: filtroSala === v ? INK : 'rgba(255,255,255,.7)', background: filtroSala === v ? '#fff' : 'transparent', color: filtroSala === v ? INK : '#fff' }}>{lb}</button>
+            ))}
+          </div>
+        )}
         {/* 🖥️ `salas-grade`: no PC as salas ficam DUAS por linha (regra em
             index.css, só a partir de 768px). No celular a classe não tem regra
             nenhuma — continua uma embaixo da outra, igualzinho. */}
         <div className="salas-grade space-y-2">
           {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">{tr('Carregando salas…', 'Loading rooms…')}</p>}
-          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">{tr('Nenhuma sala aberta agora. Crie a sua! 🔨', 'No open rooms right now. Create yours! 🔨')}</p>}
+          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">{salasNovo && filtroSala !== 'todas' && openRooms.length > 0 ? tr('Nenhuma sala desse tipo agora. Toque em "Todas" ou crie a sua! 🔨', 'No rooms of this kind right now. Tap "All" or create yours! 🔨') : tr('Nenhuma sala aberta agora. Crie a sua! 🔨', 'No open rooms right now. Create yours! 🔨')}</p>}
           {filtered.map(r => {
             const nm = r.game_state?.roomName ?? r.code
             const full = r.count >= r.max_players
@@ -3976,13 +4052,19 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#fff', color: '#000', ...OSWALD }} title={tr('Às cegas: cada um escreve o lance no envelope e só abre no martelo. É o pregão de sempre.', 'Sealed bid: everyone writes their bid in an envelope and it only opens at the hammer. The usual auction.')}>{tr('✉️ ÀS CEGAS', '✉️ SEALED')}</span>
                     ))}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">{salasNovo && !duplasRoom ? '' : <>👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · </>}{r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
                   {ligaRoom && (
                     <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
                       📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
                     </p>
                   )}
                 </div>
+                {salasNovo && !duplasRoom && (
+                  <div className="shrink-0 text-center leading-none">
+                    <b className="block text-[22px] text-black" style={OSWALD}>{r.count}/{r.max_players}</b>
+                    <span className="block text-[9.5px] font-black uppercase" style={{ color: '#5a5647' }}>{tr('técnicos', 'managers')}</span>
+                  </div>
+                )}
                 {live ? (
                   <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>
                     {tr('Em jogo', 'In game')}
@@ -4191,6 +4273,7 @@ export function EscLobby() {
           </div>
         </div>
       )}
+      {salasNovo && <div className="space-y-5">{blocoCarreiras}</div>}
       <AdminButton />
       <button onClick={() => { if (!window.confirm(tr('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.', 'Sign out? You will need to sign in again (e-mail/password or Google) next time.'))) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">{tr('Sair da conta', 'Sign out')}</button>
       <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>
@@ -4295,11 +4378,49 @@ export function EscLobby() {
         )}
       </div>
     )
+    // 🗂️ visual novo (só na conta do Diego): os selos das regras da sala numa linha só, lidos do game_state que já está na mão
+    const gsSala = (room.game_state as GS & { holandes?: boolean; duplasMode?: boolean; mundoNaLiga?: boolean; regionalNaLiga?: string })
+    const regLbl = gsSala?.regionalNaLiga
+    const selosSala: string[] = salasNovo && !ehMundoSala && !elencoOn ? [
+      gsSala?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid'),
+      ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}`
+        : gsSala?.mundoNaLiga ? tr('🌍 Liga + Mundo', '🌍 League + World Cup')
+        : gsSala?.copaMode === 'liga' ? tr('🏆 Só a liga', '🏆 League only') : gsSala?.copaMode === 'champions' ? tr('⭐ Só Champions', '⭐ Champions only')
+        : gsSala?.copaMode === 'liga_liberta' ? tr('🏆 Liga + Liberta', '🏆 League + Liberta') : gsSala?.copaMode === 'liga_champions' ? tr('🏆 Liga + Champions', '🏆 League + Champions') : tr('🏆 Liga + Copa', '🏆 League + Cup'),
+      gsSala?.manual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto'),
+      gsSala?.clubes ? tr('🧱 Clubes', '🧱 Clubs') : String(gsSala?.deck) === 'eu' ? 'EU' : String(gsSala?.deck) === 'both' || String(gsSala?.deck) === 'todos' ? 'B/E/M' : '🇧🇷 BR',
+      ...(gsSala?.duplasMode ? [tr('🤝 Duplas', '🤝 Duos')] : []),
+    ] : []
+    const regraLonga = gsSala?.pregaoAberto ? tr('🔨 Pregão aberto: lance à vista, martelo em 5s sem lance novo.', '🔨 Open auction: bids in the open, hammer after 5s without a new bid.')
+      : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}: ${tr('o preço CAI e quem apertar primeiro leva.', 'the price DROPS and first to tap wins.')}`
+      : tr('✉️ Às cegas: cada um lacra o lance no envelope e o maior leva no martelo.', '✉️ Sealed bid: everyone seals their bid and the highest wins at the hammer.')
     return wrap(<>
-      <div className="online-room-code text-center">
+      {salasNovo && (<>
+        <div className="flex items-center gap-2.5 pt-1">
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-black text-[19px] leading-tight truncate" style={OSWALD}>{room.game_state?.roomName ?? tr('Sala', 'Room')}</p>
+            <p className="text-white/60 text-[12px] font-bold">{isHost ? tr('você é o dono 👑', 'you are the owner 👑') : tr('você é convidado', 'you are a guest')}</p>
+          </div>
+          <button onClick={() => copyCode(room.code)} aria-label={tr('Copiar código', 'Copy code')}
+            className="shrink-0 rounded-xl border-[3px] border-black bg-white px-2.5 py-1 text-center active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
+            <span className="block font-black text-[24px] leading-none text-black" style={{ ...OSWALD, letterSpacing: '.1em' }}>{room.code}</span>
+            <span className="block text-[9px] font-black uppercase text-black/50">{tr('toque pra copiar', 'tap to copy')}</span>
+          </button>
+        </div>
+        {selosSala.length > 0 && (
+          <div className="rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {selosSala.map(x => <span key={x} className="text-[11px] font-black uppercase border-2 border-black rounded-md px-1.5 py-0.5 leading-none" style={{ ...OSWALD, background: '#fff', color: INK }}>{x}</span>)}
+              <button onClick={() => setRegrasAbertas(v => !v)} className="ml-auto text-[11.5px] font-black" style={{ color: GOLD, minHeight: 0 }}>{regrasAbertas ? tr('regras ▴', 'rules ▴') : tr('regras ▾', 'rules ▾')}</button>
+            </div>
+            {regrasAbertas && <p className="text-white/75 text-[12px] font-bold leading-snug mt-2">{regraLonga}</p>}
+          </div>
+        )}
+      </>)}
+      {!salasNovo && <div className="online-room-code text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">{tr('Código da Sala', 'Room Code')}</p>
-        <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
+        <p className="online-room-code-num font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
         {/* 🐊 O MODO DO PREGÃO, DENTRO DA SALA (Diego 20/09). Aqui NÃO depende de
             banco nenhum: a sala de espera já tem o `game_state` inteiro na mão.
             Quem entrou pelo código precisa saber em que jogo está se metendo —
@@ -4321,7 +4442,7 @@ export function EscLobby() {
             </span>
           </p>
         )}
-      </div>
+      </div>}
 
       {/* 🎨 TEMA DO CLUBE (18/10): só o dono, e só se a conta dele tiver tema (batismo) */}
       {isHost && meusTemas.length > 0 && (
@@ -4333,8 +4454,8 @@ export function EscLobby() {
         </div>
       )}
 
-      {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima) */}
-      {ehLigaSala && caixaConvite}
+      {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima); no visual novo, em toda sala */}
+      {(ehLigaSala || salasNovo) && caixaConvite}
 
       {/* 🔁 MODO DA PRÓXIMA TEMPORADA (17/10, mockup `scripts/mockups/liga-trocar-modo.png` aprovado).
           Todo mundo vê o modo; só o DONO troca. Troféus e ranking não mudam (moram em game_champions). */}
@@ -4514,7 +4635,7 @@ export function EscLobby() {
 
       {/* na sala ⚡ RÁPIDA o convite continua exatamente onde sempre esteve — lá o
           código já basta e a tela é curta. Só a LIGA move a caixa pro topo. */}
-      {!ehLigaSala && caixaConvite}
+      {!ehLigaSala && !salasNovo && caixaConvite}
 
       {/* 🌍 COPA DO MUNDO ONLINE: a faixa, a escolha da seleção e o painel de
           quem já convocou. Nada disto encosta no leilão — a sala segue parada
@@ -4586,7 +4707,8 @@ export function EscLobby() {
           {duplasOn ? `${tr('Times', 'Teams')} (${donos.length}/20) · ${players.length} ${players.length === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `${tr('Técnicos', 'Managers')} (${players.length}/${room.max_players})`}
         </p>
         {perfilUid && <PerfilPublico uid={perfilUid} onClose={() => setPerfilUid(null)} />}
-        <div className="space-y-2">
+        {/* 🗂️ visual novo: técnicos em DUAS colunas (fora de duplas e do Bafo, que têm linha própria) */}
+        <div className={salasNovo && !duplasOn && !elencoOn ? 'grid grid-cols-2 gap-x-2 gap-y-2.5 salas-tec-grade' : 'space-y-2'}>
           {donos.map(p => {
             const par = duplasOn ? parceiroDe(p.user_id) : undefined
             const souEu = p.user_id === user?.id
@@ -4610,7 +4732,7 @@ export function EscLobby() {
             // pulando na ponta (fora do modo duplas, que tem a linha própria dele)
             const gala = !duplasOn && getSport() !== 'basquete' ? (galaDaConta?.mapa.get(p.user_id) ?? null) : null // 📧 pela CONTA, nunca pelo nome
             return (<PodioMoldura key={p.user_id} pos={posPodio(p.user_id)}>{/* 🏆 top 3 da semana: moldura de metal POR FORA (15/10) — pela CONTA desde 19/10 */}
-            <div className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
+            <div className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : salasNovo && !elencoOn ? 'rounded-xl border-2 border-black px-1.5 py-1.5 bg-white h-full' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3" style={gala ? { position: 'relative', zIndex: 1 } : undefined}>
                 {gala ? <GalaEscudoBotao clube={gala} souEu={souEu} /> : (() => { const pkAv = pk ?? APOIO_PERKS.bege; const bolinha = (
                   <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
@@ -4642,7 +4764,7 @@ export function EscLobby() {
                   {mandaNaLiga && p.user_id !== room.liga_dono && (p.user_id === room.liga_vice
                     ? <button onClick={() => void marcarVice(null)} className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5 bg-white active:translate-y-0.5" style={OSWALD}>{tr('Tirar vice', 'Remove vice')}</button>
                     : <button onClick={() => void marcarVice(p.user_id)} className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5 text-white active:translate-y-0.5" style={{ background: '#7C3AED', boxShadow: '2px 2px 0 #000', ...OSWALD }}>⭐ {tr('Fazer vice', 'Make vice')}</button>)}
-                </>) : p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full">HOST</span>}
+                </>) : p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full shrink-0">{salasNovo && !duplasOn ? '👑' : 'HOST'}</span>}
                 {isHost && p.user_id !== user?.id && p.user_id !== room.liga_dono && (
                   <button onClick={() => kickFromRoom(p)} aria-label={`${tr('Remover', 'Remove')} ${p.manager_name}`}
                     className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
@@ -4801,9 +4923,14 @@ export function EscLobby() {
             </div></PodioMoldura>
             )
           })}
-          {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">{tr('Aguardando mais técnicos…', 'Waiting for more managers…')}</p>}
+          {salasNovo && !duplasOn && !elencoOn && players.length < room.max_players && (
+            <div className="rounded-xl border-2 border-dashed flex items-center justify-center text-[12px] font-black py-2" style={{ borderColor: 'rgba(0,0,0,.3)', color: 'rgba(0,0,0,.45)' }}>
+              + {room.max_players - players.length} {room.max_players - players.length === 1 ? tr('vaga livre', 'free spot') : tr('vagas livres', 'free spots')}
+            </div>
+          )}
+          {players.length < 2 && <p className="col-span-2 text-black/40 text-xs italic mt-1">{tr('Aguardando mais técnicos…', 'Waiting for more managers…')}</p>}
           {ligaViceOn && room.game_state?.mode === 'liga' && mandaNaLiga && (
-            <p className="text-black/55 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
+            <p className="col-span-2 text-black/55 text-[11px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '2px solid rgba(0,0,0,.1)' }}>
               {tr('⭐ Vice = quem toca a liga no dia em que você não vier. Só UM por vez. Quando você voltar, o comando é seu de novo.', '⭐ Vice = who runs the league on a day you don\'t show up. Only ONE at a time. When you\'re back, command is yours again.')}
             </p>
           )}
@@ -4850,7 +4977,7 @@ export function EscLobby() {
         return (
           <div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">{tr('😜 Enquanto espera… zoa a galera', '😜 While you wait… tease the crew')}</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className={salasNovo ? 'flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'grid grid-cols-2 gap-2'}>
               {jabs.map((j, i) => (
                 <button key={i} onClick={() => sendLobbyFloat(j.ic, j.tx)}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] text-left bg-white text-black active:translate-y-0.5" style={OSWALD}>
@@ -4860,7 +4987,7 @@ export function EscLobby() {
             </div>
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className={salasNovo ? 'mt-2 flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'mt-2 grid grid-cols-2 gap-2'}>
               {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🎖️', 'Dictador'], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
@@ -4922,6 +5049,8 @@ export function EscLobby() {
           que o PREGÃO ACABA — ver `ligahub.tsx`. Na espera fica só o ⚖️ do dono
           (lá em cima, na faixa verde), porque a regra tem que ser decidida ANTES
           da bola rolar. */}
+      {/* 🗂️ visual novo: o botão do dono (e o aviso de quem espera) fica FIXO no pé da tela, sempre à vista */}
+      <div className={salasNovo ? 'salas-rodape-fixo' : undefined} style={salasNovo ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? tr('🌐 Começar Carreira!', '🌐 Start Career!') : elencoOn ? tr('🃏 Começar o Bafo!', '🃏 Start Bafo!') : tr('🔨 Abrir o Pregão!', '🔨 Open the Auction!')
@@ -4978,6 +5107,7 @@ export function EscLobby() {
             </>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
+      </div>
       {/* 🚪🗑️ SAIR e EXCLUIR juntos, no PÉ DA TELA (Diego 22/08: *"eu acho q além de
           sair da sala deve ter um botão dentro da sala de excluir sala tb não?"*).
           O excluir da liga EXISTIA, mas morava lá em cima, dentro da faixa verde do
