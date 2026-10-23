@@ -72,3 +72,27 @@ O replay com minuto estático e sem `visualClock` é uma pose de inspeção, mes
 O gravador antigo não aplicava rotação: bola congelada, apesar da trajetória mudar. O runtime agora usa `posicionarBolaFutebol3D` nos três consumidores. `FutebolOficial3D` anexa quaternion visual à bola, integrado a 120 Hz na mesma instância oficial; posição/eventos não são alterados. Rolamento no chão obedece distância/raio, com eixo mundial correto e quaternions compostos. Repouso, bola carregada e reposicionamentos são tratados sem giro artificial. No ar, a rotação é uma estimativa de apresentação, sem influência física ou alegação de spin medido.
 
 `test-ball-rotation.mjs` cobre circunferência, repouso, voo, reinícios, FPS e busca de instantes. `test-official-parity.mjs` também verifica XYZ da bola. `record-ball.cjs` grava uma evidência focada em 60 fps no mesmo replay 11×11 (22 jogadores no total), verificando cada quaternion realmente renderizado contra o quadro do adaptador. Os trechos de detalhe do passe/chute ficam a 0,5×; condução em velocidade normal. Não usar a gravação antiga de 12 fps como prova do giro novo.
+
+## Auditoria da partida e redes — 23/10
+
+A partida testada contém 49 passes, seis enfiadas, quatro interceptações, quatro dribles, três laterais, dois lances de falta, três chutes (dois gols e uma defesa). Ela não contém todos os tipos possíveis de finalização, bola parada ou falta. Não certificar casos ausentes com base neste save.
+
+| Achado real | Tratamento / limite |
+| --- | --- |
+| Rede inteiramente rígida e malha lateral incompleta | Grade em fundo, teto e laterais, deformação local amortecida no contato, suportes fixos. Não é solver completo de tecido. |
+| Bola após gol ultrapassava o fundo ou parava no alto | Continuação visual pós-confirmação: encaixe no vão real, impacto, rebote, queda e pequeno quique. XYZ e eventos originais continuam no quadro; `presentation` é separado. |
+| Fonte 2D pode confirmar gol antes da esfera interpolada atravessar o vão e com altura que não encaixa na trave real | Ajuste visual só após confirmação oficial; bola alta desacelera brevemente antes do vão e entra abaixo da travessa. Não reclassifica gol nem altera motor/placar/assistência. É adaptação de apresentação, não validação da física original em 3D. |
+| Marca do pênalti em forma de anel e ausência de ponto central/arcos dos cantos | Pontos preenchidos e quatro arcos de 1 m adicionados às marcações existentes, reutilizando material/lote estático. |
+| Defesa do goleiro sem captura específica | A defesa oficial existe, mas falta gesto de mãos/queda validado. A captura de bola ainda pode parecer brusca. Não substituir por Punch/Death/Roll. |
+| Laterais e faltas sem gesto específico | Eventos preservados; captura própria pendente, sem afirmar cobrança correta só por haver movimento. |
+| Contato corporal compacto | Distância mínima de centros ~0,33 m em um duelo deste save; a cabeça cartoon pode intersectar. Não afastar atletas arbitrariamente nem alterar a marcação oficial. Falta pose de contato compatível. |
+| Retorno da formação após comemoração | O motor 2D usa corte/reposicionamento. Isso permanece perceptível no mapa contínuo; falta transição visual compatível, sem mudar coordenadas ou tempo oficial. |
+| Duas camisas claras | Não há reserva cadastrada/validada nesta fonte. Falta variante real para contraste distante. |
+
+`GolApresentacao3D` só atua depois de um gol oficial e durante a comemoração. Rolamento visual usa a posição apresentada nesse trecho. O quadro preserva XYZ originais, assim como eventos, autores e assistências. O sinal temporal `netImpact` aciona apenas a rede atingida, no instante de contato, e funciona ao buscar o replay. Redes inativas não atualizam buffers.
+
+`test-goal-net.mjs` verifica os dois gols, limites do gol, rebote/piso, silêncio antes do impacto/rede oposta, retorno ao repouso e seek. `record-goals.cjs` grava os dois gols reais em câmera próxima, 60 fps/0,5×, conferindo malha e posição realmente renderizadas. Evidência local em `test-results/cartoon-football/redes-corrigidas/`. Não confundir este teste visual com uma aprovação de toda a mecânica do futebol.
+
+No campo já gramado, o recuo do gol agora acompanha a grama da extremidade (faixa de 4 m); na evolução inicial continua terra. O modo registrado não recebe essa extensão sobre sua arte. Geometria/material entram no lote estático existente.
+
+As marcações do campo agora são faixas planas, em vez dos tubos que chegavam a ~8,5 cm do piso. Postes, travessões e mastros mantêm geometria volumétrica. As medidas e a espessura de 12 cm das linhas permanecem, sem novos draw calls para as faixas agrupadas.

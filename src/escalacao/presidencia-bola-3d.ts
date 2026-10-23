@@ -79,8 +79,8 @@ export function criarBolaFutebol3D(){
 
 const fallbackRoll=new WeakMap<THREE.Object3D,{spin:RotacaoBola3D;time:number}>()
 /** All match viewers use the same official position and presentation rotation. */
-export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;ball:{x:number;y:number;z:number;rotation?:[number,number,number,number]}}){
- const p=frame.ball;ball.position.set(p.x,p.y,p.z)
+export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;ball:{x:number;y:number;z:number;rotation?:[number,number,number,number];presentation?:{x:number;y:number;z:number}}}){
+ const p=frame.ball,position=p.presentation??p;ball.position.set(position.x,position.y,position.z)
  if(p.rotation){ball.quaternion.fromArray(p.rotation);return}
  let state=fallbackRoll.get(ball)
  if(!state||frame.time<state.time){state={spin:new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,p),time:frame.time};fallbackRoll.set(ball,state)}

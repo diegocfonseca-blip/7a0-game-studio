@@ -1,3 +1,4 @@
+import {atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import {instanciarPersonagens} from './presidencia-personagens-instancias'
 import {useEffect,useRef,useState} from 'react'
 import * as THREE from 'three'
@@ -90,7 +91,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    if(snapshot.official){el.dataset.officialScore=JSON.stringify(snapshot.official.score);el.dataset.officialEvents=String(snapshot.official.events.length);el.dataset.officialFinished=String(snapshot.official.finished)}
    snapshot.players.forEach((p,i)=>{if(bodies[i]){pose(bodies[i],p);bodies[i].kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.current.homeColor:current.current.awayColor)}})
    pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
-   posicionarBolaFutebol3D(ball,snapshot)
+   posicionarBolaFutebol3D(ball,snapshot);atualizarRedesGol3D(scene,snapshot)
    el.dataset.cameraDistance=String(camera.position.distanceTo(controls.target));el.dataset.paused=String(current.current.paused);el.dataset.phase=snapshot.phase;el.dataset.players=String(snapshot.players.length);el.dataset.ball=JSON.stringify(snapshot.ball);el.dataset.time=String(snapshot.time)
    // Camera/zoom changes do not alter world-space shadows of a paused scene.
    // New match state or simulation time invalidates them before the next draw.

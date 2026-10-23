@@ -1,3 +1,4 @@
+import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import type {StadiumSave} from './estadiodata'
@@ -48,27 +49,38 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
   const apron=new THREE.Mesh(apronGeometry,band.grass?greens[band.stripe]:dirt)
   apron.rotation.x=-Math.PI/2;apron.position.set(band.left+band.width/2,.002,(-34+FUNDO_AREA_TECNICA_Z)/2);apron.receiveShadow=true;scene.add(apron)
  }
+ // A completed grass pitch also covers the goal recess/run-off. Keep the
+ // dirt base untouched until grass reaches the corresponding end of the field.
+ if(!registered)for(const sign of [-1,1]){
+  const edge=faixasGramado3D(progress).find(b=>sign<0?b.left<=-52.49:b.left+b.width>=52.49)
+  if(!edge?.grass)continue
+  const geometry=new THREE.PlaneGeometry(4,68),uv=geometry.getAttribute('uv')
+  for(let i=0;i<uv.count;i++)uv.setX(i,(sign*54.5-2+uv.getX(i)*4+52.5)/105)
+  const runoff=new THREE.Mesh(geometry,greens[edge.stripe]);runoff.name='goal-grass-runoff';runoff.rotation.x=-Math.PI/2;runoff.position.set(sign*54.5,.002,0);runoff.receiveShadow=true;scene.add(runoff)
+ }
  const white=material('#f4f0df')
- const line=(points:[number,number][])=>{for(let i=1;i<points.length;i++){const [x,z]=points[i-1],[bx,bz]=points[i];tube(scene,new THREE.Vector3(x,.025,z),new THREE.Vector3(bx,.025,bz),.06,white)}}
+ const line=(points:[number,number][])=>{for(let i=1;i<points.length;i++){
+  const [x,z]=points[i-1],[bx,bz]=points[i],dx=bx-x,dz=bz-z
+  const geometry=new THREE.PlaneGeometry(Math.hypot(dx,dz),.12);geometry.rotateX(-Math.PI/2)
+  const paint=new THREE.Mesh(geometry,white);paint.rotation.y=-Math.atan2(dz,dx);paint.position.set((x+bx)/2,.006,(z+bz)/2);paint.receiveShadow=true;scene.add(paint)
+ }}
  line([[-52.5,-34],[52.5,-34],[52.5,34],[-52.5,34],[-52.5,-34]]);line([[0,-34],[0,34]])
  const arc=(cx:number,cz:number,r:number,start=0,end=Math.PI*2)=>line(Array.from({length:81},(_,i)=>{const a=start+(end-start)*i/80;return [cx+Math.cos(a)*r,cz+Math.sin(a)*r]}))
- arc(0,0,9.15)
+ const spot=(x:number,z:number)=>{const mesh=new THREE.Mesh(new THREE.CircleGeometry(.11,16),white);mesh.rotation.x=-Math.PI/2;mesh.position.set(x,.006,z);scene.add(mesh)}
+ arc(0,0,9.15);spot(0,0)
  for(const sign of [-1,1]){
   const x=sign*52.5
   line([[x,-20.16],[x-sign*16.5,-20.16],[x-sign*16.5,20.16],[x,20.16]])
   line([[x,-9.16],[x-sign*5.5,-9.16],[x-sign*5.5,9.16],[x,9.16]])
-  arc(x-sign*11,0,.12)
+  spot(x-sign*11,0)
   const half=Math.acos(5.5/9.15);arc(x-sign*11,0,9.15,sign===-1?-half:Math.PI-half,sign===-1?half:Math.PI+half)
-  for(const z of [-34,34]){tube(scene,new THREE.Vector3(x,.05,z),new THREE.Vector3(x,1.5,z),.025,white);box(scene,.3,.22,.015,x+.15,1.35,z,material('#FFC400'))}
+  for(const z of [-34,34]){const a=sign===-1?(z<0?0:-Math.PI/2):(z<0?Math.PI/2:Math.PI);arc(x,z,1,a,a+Math.PI/2);tube(scene,new THREE.Vector3(x,.05,z),new THREE.Vector3(x,1.5,z),.025,white);box(scene,.3,.22,.015,x+.15,1.35,z,material('#FFC400'))}
   // Actual goal frame and net in space; players and ball use depth testing.
   // The regulatory opening is measured INSIDE the 12 cm tubes.
   tube(scene,new THREE.Vector3(x,0,-3.72),new THREE.Vector3(x,2.50,-3.72),.06,white)
   tube(scene,new THREE.Vector3(x,0,3.72),new THREE.Vector3(x,2.50,3.72),.06,white)
   tube(scene,new THREE.Vector3(x,2.50,-3.72),new THREE.Vector3(x,2.50,3.72),.06,white)
-  const verts:number[]=[];const segment=(a:number[],b:number[])=>verts.push(...a,...b)
-  for(let z=-3.66;z<=3.67;z+=.244){segment([x+sign*2,0,z],[x+sign*2,2.44,z]);segment([x,2.44,z],[x+sign*2,2.44,z])}
-  for(let y=0;y<=2.45;y+=.244){segment([x+sign*2,y,-3.66],[x+sign*2,y,3.66]);for(const z of [-3.66,3.66])segment([x,y,z],[x+sign*2,y,z])}
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));scene.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:'#e2e4d7',transparent:true,opacity:.65})))
+  criarRedeGol3D(scene,sign)
  }
  // Merge static markings/frames and grass strips to reduce mobile draw calls.
  scene.updateMatrixWorld(true)
@@ -173,7 +185,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   for(const p of snapshot.players){const body=bodies.get(p.key);if(!body)continue;body.group.visible=p.visible!==false;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
   for(const {body,side,keeper} of reserves)body.kit.color.set(keeper?'#d6b329':side==='home'?current.homeColor:current.awayColor)
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
-  posicionarBolaFutebol3D(ball,snapshot)
+  posicionarBolaFutebol3D(ball,snapshot);atualizarRedesGol3D(field,snapshot)
   people.update()
   inspection={players:snapshot.players.length,ball:{...snapshot.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
  }
