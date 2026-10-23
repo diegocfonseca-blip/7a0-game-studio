@@ -4,4 +4,3 @@ export function nearest(position, triangles) {
   for(const triangle of triangles){triangle.closestPointToPoint(position,point);const d=point.distanceToSquared(position);if(d<distance){distance=d;surface.copy(point);}}
   return {distance:Math.sqrt(distance),surface};
 }
-
