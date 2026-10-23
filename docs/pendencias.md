@@ -1,3 +1,11 @@
+## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — NO BRANCH, esperando OK
+- Pedido: *"entrada de gala personalizada… o saci chegando num furacão… em breve dou o canto"*. `gala-guimaraes.tsx` (8,6 s):
+  vento e folhas, o redemoinho nasce e cresce, trovão, o Saci sai girando e pousa numa perna só, fumacinha do cachimbo, escudo
+  com anel de vento, frase ONDE TEM REDEMOINHO, TEM SACI e faixa CHEGOU NA SALA. Ligada em `GALA_UNICA` ('Guimarães SCI').
+  Vídeo `scripts/posts/gala-guimaraes.webm` (`node scripts/video-gala-guimaraes.mjs`).
+- Falta: o CANTO (Diego vai mandar) → gala + carreira; tema da sala do Fundador (Inter Vale ganhou, ele não pediu ainda);
+  o PLANO Fundador no banco entra pelo Pix da subida (Batismo → Fundador = 29,90) — ele já tem fundador nº82 e sócio 63.
+
 ## 🔌 Caixa de entrada do dono caía e não religava (23/10, sala RGP7P7 do Futpoint) — CONSERTADO e publicado
 - Sintoma (Diego): convidados não pegavam sobra, não mudavam tática, times completados com os piores. Prova no
   `esc_realtime_medidor`: a caixa do dono recebeu 116 ações até 22:25 UTC e só 4 nos 9 min seguintes, com os convidados mandando
