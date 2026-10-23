@@ -12,7 +12,7 @@ import {person,pose} from './presidencia-atleta-3d'
 import {BANCO_Z,TECNICO_Z} from './presidencia-area-tecnica'
 import {JANELA_3D_INTEIRA,matrizRecorte3D,type Janela3D} from './presidencia-janela-3d'
 import {matrizCameraRegistrada,type CantosRegistrados} from './presidencia-camera-registrada'
-import {criarBolaFutebol3D} from './presidencia-bola-3d'
+import {criarBolaFutebol3D,posicionarBolaFutebol3D} from './presidencia-bola-3d'
 import type {loadPlayers} from './futebol3d/players.mjs'
 import {criarCameraPartidaContinua} from './presidencia-camera-partida-continua'
 
@@ -90,7 +90,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    if(snapshot.official){el.dataset.officialScore=JSON.stringify(snapshot.official.score);el.dataset.officialEvents=String(snapshot.official.events.length);el.dataset.officialFinished=String(snapshot.official.finished)}
    snapshot.players.forEach((p,i)=>{if(bodies[i]){pose(bodies[i],p);bodies[i].kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.current.homeColor:current.current.awayColor)}})
    pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
-   ball.position.set(snapshot.ball.x,snapshot.ball.y,snapshot.ball.z);ball.rotation.z=-snapshot.ball.x/.11;ball.rotation.x=snapshot.ball.z/.11
+   posicionarBolaFutebol3D(ball,snapshot)
    el.dataset.cameraDistance=String(camera.position.distanceTo(controls.target));el.dataset.paused=String(current.current.paused);el.dataset.phase=snapshot.phase;el.dataset.players=String(snapshot.players.length);el.dataset.ball=JSON.stringify(snapshot.ball);el.dataset.time=String(snapshot.time)
    // Camera/zoom changes do not alter world-space shadows of a paused scene.
    // New match state or simulation time invalidates them before the next draw.

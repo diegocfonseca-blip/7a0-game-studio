@@ -12,7 +12,7 @@ import type {Evento} from './motor2/tipos'
 export type PontoFutebol={x:number;z:number}
 export type JogadorFutebol=ReturnType<typeof atletasEmCampo>[number]&{mx:number;mz:number;heading:number;distance:number;speed:number;kick:number;throwing:number;throwPreparation?:number;save?:number;dive?:number;control?:number;visible?:boolean;tacticalRole?:string}
 export type FaseFutebol='dominio'|'passe'|'lancamento'|'cruzamento'|'lateral'|'escanteio'|'tiro-de-meta'|'saida'|'finalizacao'|'gol'|'falta'|'penalti'|'fim'
-export type QuadroFutebol={players:JogadorFutebol[];ball:{x:number;y:number;z:number};phase:FaseFutebol;owner?:string;referee:PontoFutebol&{heading:number;distance:number;speed:number};time:number;official?:{score:number[];events:Evento[];finished:boolean}}
+export type QuadroFutebol={players:JogadorFutebol[];ball:{x:number;y:number;z:number;rotation?:[number,number,number,number]};phase:FaseFutebol;owner?:string;referee:PontoFutebol&{heading:number;distance:number;speed:number};time:number;official?:{score:number[];events:Evento[];finished:boolean}}
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))
 const distance=(a:PontoFutebol,b:PontoFutebol)=>Math.hypot(a.x-b.x,a.z-b.z)
 const point=(p:JogadorFutebol)=>({x:p.mx,z:p.mz})

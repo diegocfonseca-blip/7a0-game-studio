@@ -10,7 +10,7 @@ import {entradaOficialCompleta,atletasEmCampo,type AtletaEstadio,type EstadoPart
 import {quadroFutebol3D,type QuadroFutebol} from './presidencia-futebol-motor'
 import {person,pose} from './presidencia-atleta-3d'
 import {instanciarPersonagens} from './presidencia-personagens-instancias'
-import {criarBolaFutebol3D} from './presidencia-bola-3d'
+import {criarBolaFutebol3D,posicionarBolaFutebol3D} from './presidencia-bola-3d'
 import type {loadPlayers} from './futebol3d/players.mjs'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
@@ -173,7 +173,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   for(const p of snapshot.players){const body=bodies.get(p.key);if(!body)continue;body.group.visible=p.visible!==false;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
   for(const {body,side,keeper} of reserves)body.kit.color.set(keeper?'#d6b329':side==='home'?current.homeColor:current.awayColor)
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
-  ball.position.set(snapshot.ball.x,snapshot.ball.y,snapshot.ball.z);ball.rotation.z=-snapshot.ball.x/.11;ball.rotation.x=snapshot.ball.z/.11
+  posicionarBolaFutebol3D(ball,snapshot)
   people.update()
   inspection={players:snapshot.players.length,ball:{...snapshot.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
  }
