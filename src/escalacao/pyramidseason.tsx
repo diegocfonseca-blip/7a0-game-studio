@@ -1,3 +1,6 @@
+import {publicarTempoCampo2D} from './campo2d-relogio'
+import {replayOficialDisponivel} from './presidencia-replay-oficial'
+import {PublicarPartidaEstadio} from './presidencia-partida'
 import {RitmoCampoProvider} from './presidencia-velocidade'
 import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
 import { useCo2 } from './co2'
@@ -10,7 +13,7 @@ import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import { placarParaK } from './kings-liga'
 import {PresidenciaPartida} from './presidencia-partida'
 import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
-import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio} from './presidencia-partida-model'
+import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio,EstadoPartidaEstadio} from './presidencia-partida-model'
 import {criarRelogioLance} from './presidencia-lance-tempo'
 import {acompanharLance} from './presidencia-lance-apresentacao'
 import {narrarChanceEstadio,narrarGolEstadio,narrarEtapaLanceEstadio} from './presidencia-futebol-narracao'
@@ -3240,7 +3243,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
   // esperando essa cena invisível, e o campinho ia freando até o relógio voltar: a "câmera lenta do nada" (Diego 20/10). Com
   // o 2D, o relógio é o de todo mundo.
-  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d
+  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d&&!elencos?.m2
   const watchingField=useAssistindoCampo()
   const watchedField=useRef({id:stadiumMatch?.id,watched:false})
   if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}
@@ -3660,8 +3663,12 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // 📺 com o 2D escolhido o campinho TOMA O LUGAR do placar (Diego 20/10: *"qd tiver escolhido o 2D o placar padrão rápido
   // não aparece"*) — o relógio, os sons e o apito daqui continuam rodando; só o desenho muda. Placar e minuto ficam no
   // selo da TV do campinho, e o telão de propaganda segue embaixo, no lugar de sempre.
+  const replayOficialBloqueado=!!(stadiumMatch&&presidentFieldAccount&&enhancedCareer&&elencos?.m2)&&!replayOficialDisponivel(elencos!.m2!,goals)
+  const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible 3D replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução 3D compatível.'}</p>:null
+  const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs:Math.max(400,roundMs*.82)/93,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
+  const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
   const campo2dEl = c2d ? (
-    <Campo2D roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+    <Campo2D onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -3669,7 +3676,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   ) : null
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   const campo2dComTelao = campo2dEl ? <>{campo2dEl}<GiroDaRodada doCampo cinema={cinematic} /></> : null
-  if (campo2dComTelao) return campo2dComTelao
+  if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
   if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
@@ -3723,7 +3730,8 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
-    {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
+    {avisoReplay}
+    {estadoEstadio&&<PresidenciaPartida state={estadoEstadio}/>}
    </>
   return (<>
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
@@ -3785,8 +3793,17 @@ function MyMatchCard({ pausado, m, youName, finished, col, colors, roundKey, rou
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
-  return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2, m2: m.m2 }} semCarimbo={semCarimbo} />
+  // A manual extra goal may not exist in the motor input. Never pretend that
+  // replaying that input would reproduce the official match.
+  const officialSafe = useMemo(() => {
+    if (!m.m2) return true
+    const result = resultadoM2(m.m2)
+    const expected = m.goals.map(g => JSON.stringify([g.home, g.name, g.min])).sort()
+    const actual = result.gols.map(g => JSON.stringify([g.home, g.nome, g.min])).sort()
+    return result.placar[0] === m.hg && result.placar[1] === m.ag && JSON.stringify(actual) === JSON.stringify(expected)
+  }, [m.m2, m.hg, m.ag, m.goals])
+  return <><LiveScoreCard enhancedCareer stadiumMatch={officialSafe?stadiumMatch:undefined} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2, m2: m.m2 }} semCarimbo={semCarimbo} />{stadiumMatch&&!officialSafe&&<p role="status">A reprodução 3D desta partida está indisponível: os dados de movimento não incluem todos os eventos oficiais.</p>}</>
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
@@ -11766,7 +11783,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}

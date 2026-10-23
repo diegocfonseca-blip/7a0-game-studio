@@ -239,7 +239,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   const ordinaryRigCount = Math.max(pedestrians.length, carLegs.length)
   const rigCount = ordinaryRigCount + fans.length
   const rigs = Array.from({ length: rigCount }, (_, i) => {
-    const rig = criarAtoresBairro(scene)
+    const rig = criarAtoresBairro(scene,{id:`circulacao-${i}`})
     rig.pedestre.name = `complexo-pedestre-${i}`; rig.carro.name = `complexo-carro-${i}`
     root.add(rig.pedestre, rig.carro)
     const pedestrian = pedestrians[i]
@@ -283,7 +283,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
     wheels: rigs.slice(0, carLegs.length).flatMap(rig => rig.wheels),
     fanFeet: rigs.slice(ordinaryRigCount).map(rig => rig.feet),
     inspect() {
-      return { ...last, mode: attendance ? 'career' as const : 'qa-sample' as const, attendance, awayAttendance, problems: problems.map(p => ({ ...p })),
+      return { ...last, mode: attendance ? 'career' as const : 'qa-sample' as const, attendance, awayAttendance, civilians:rigs.map(rig=>rig.inspectCivilian()), problems: problems.map(p => ({ ...p })),
         journey: journey ? { ...journey } : undefined, fanJourneys: fans.map(fan => ({ id: fan.id, ...fan.journeyClock.inspect() })),
         period: pedestrians[shopIndex]?.timeline.period ?? 0, destinationBudget, pedestrianRadius: PEDESTRIAN_RADIUS, carRadius: CAR_RADIUS }
     },

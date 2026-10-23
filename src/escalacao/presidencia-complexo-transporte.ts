@@ -572,7 +572,7 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
       for (const door of actor.doors) door.mesh.position.z = door.z + door.direction * actor.entry.service.door.width / 2 * vehicle.doorsOpen
       actor.wheelDistance = vehicle.distance + actor.wheelOffset
       for (const wheel of actor.wheels) wheel.rotation.x = actor.wheelDistance / actor.entry.service.wheelRadius
-      actor.body.updatePose(frame.passenger?.pose)
+      actor.body.updatePose(frame.passenger?.pose,seconds)
     }
     if (changed || requestedOptions.journey) refreshAllocation()
     root.updateMatrixWorld(true)

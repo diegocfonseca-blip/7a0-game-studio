@@ -17,7 +17,7 @@ export function partidaPublicada(id:string){return active?.state.context.id===id
 export function usePublicarPartida(state:EstadoPartidaEstadio){
  const owner=useRef(Symbol('placar')),clock=useRef({id:state.context.id,seconds:0,sampledAt:performance.now(),running:false,rate:1})
  const rate=Number.isFinite(state.context.speed)?Math.max(.25,Math.min(8,state.context.speed!)):1
- const running=!state.paused&&!state.finished&&state.minute>0
+ const running=!state.paused&&!state.finished&&(!!state.officialInput||state.minute>0)
  const now=performance.now(),old=clock.current
  const seconds=old.id!==state.context.id?0:old.seconds+(old.running?Math.max(0,now-old.sampledAt)/1000*old.rate:0)
  clock.current={id:state.context.id,seconds,sampledAt:now,running,rate}
@@ -33,13 +33,15 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
    engine=module
    const draw=(now:number)=>{
     if(cancelled||active?.owner!==owner.current)return
-    module.quadroFutebol3D(active.state,now)
-    if(active.state.visualClock?.running)raf=requestAnimationFrame(draw)
+    const frame=module.quadroFutebol3D(active.state,now)
+    // Like Campo2D, finish a pending celebration/restart after the clock closes.
+    const closing=!!active.state.officialInput&&active.state.finished&&!frame.official?.finished
+    if(active.state.visualClock?.running||closing)raf=requestAnimationFrame(draw)
    }
    draw(performance.now())
   })
   return()=>{cancelled=true;cancelAnimationFrame(raf)}
- },[state.context.id,running])
+ },[state.context.id,running,state.finished])
  useEffect(()=>{const token=owner.current;return()=>{if(active?.owner===token){active=null;notify()}}},[])
  return frame
 }

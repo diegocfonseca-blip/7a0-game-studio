@@ -97,7 +97,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     ...(stadium === undefined ? {} : { stadium: structuredClone(stadium) }),
     presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),
-    circulation: !!day && estadioVisualValido(stadium), qaPopulation: false,
+    circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false,
   }
   const away = input.away
   // A confirmed final whistle stops the field presentation, but does not erase

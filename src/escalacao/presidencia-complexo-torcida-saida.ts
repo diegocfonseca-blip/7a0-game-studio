@@ -63,7 +63,7 @@ export function criarSaidaTorcidaComplexo(scene: THREE.Scene, options: Configura
       const body = criarCorpoVisitaComplexo(root, { id, side, color })
       const seatedAt = seated.at + seated.duration / 2, departureAt = seated.at + seated.duration
       const pose = timeline.at(seatedAt)!
-      body.updatePose(pose); body.root.userData = { ...body.root.userData, seatId: access.seatId, source: 'reserved-seated-crowd' }
+      body.updatePose(pose,seatedAt); body.root.userData = { ...body.root.userData, seatId: access.seatId, source: 'reserved-seated-crowd' }
       result.push({ id, side, slot: result.length, seatId: access.seatId, body, timeline, seatedAt, departureAt,
         state: 'seated' as State, local: seatedAt, pose, color, journeyKey: options.journey?.key,
         endpoint: { ...outbound.at(-1)! }, departures: 0, arrivals: 0 })
@@ -116,7 +116,7 @@ export function criarSaidaTorcidaComplexo(scene: THREE.Scene, options: Configura
         const target = actor.state === 'leaving' ? actor.timeline.period - 1e-7 : actor.seatedAt
         const advance = Math.min(remaining, Math.max(0, target - actor.local))
         actor.local += advance; remaining -= advance
-        actor.pose = actor.timeline.at(actor.local)!; actor.body.updatePose(actor.pose)
+        actor.pose = actor.timeline.at(actor.local)!; actor.body.updatePose(actor.pose,actor.local)
         if (actor.local < target - 1e-8) break
         actor.state = actor.state === 'leaving' ? 'outside' : 'seated'
       }

@@ -1,3 +1,4 @@
+import {ancorarMinutoCampo,passoRelogioCampo} from './campo2d-relogio'
 // 📺 CAMPO 2D — a tela (20/10). O protótipo que o Diego aprovou (`scripts/prototipo-jogo-ao-vivo/`) virou componente do jogo.
 // Quem decide o jogo continua sendo o motor de sempre: aqui entram os gols e as chances já calculados e o MINUTO do placar; o
 // `Jogo2D` (campo2d-motor.ts) monta as jogadas em volta e este componente só desenha.
@@ -19,6 +20,7 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrá
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
 import { nomeLimpo } from './escudos'
 
+const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 // 📱 EM PÉ (celular): margens de sempre — 8 m de cada lado pra torcida/técnico, 4 m atrás dos gols
@@ -42,6 +44,8 @@ export interface Campo2DProps {
   semNarra?: boolean
   /** 🧪 MOTOR EXPERIMENTAL (v2, `motor2/`): só a bancada passa isto. Sem ele (todo o jogo), é o motor de sempre. */
   motorExperimental?: (seed: number, casa: CartaCampo[], fora: CartaCampo[], en: boolean, formacoes: [string?, string?], clima: Clima) => unknown
+  /** Publish the sampled time to the map without changing the 2D playback. */
+  onSimulationMinute?: (minute:number|null)=>void
   /** 🧪 só a bancada: força o clima (pras fotos) */
   climaForcado?: Clima
   /** 🧪 só a bancada: força o jogo de noite (pras fotos) */
@@ -57,7 +61,6 @@ export interface Campo2DProps {
 const rgb = (hex: string) => { const n = parseInt((hex || '#888888').replace('#', '').slice(0, 6).padEnd(6, '8'), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
 const claro = (hex: string) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.587 * g + 0.114 * b > 160 }
 const perto = (a: string, b: string) => { const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b); return Math.hypot(r1 - r2, g1 - g2, b1 - b2) < 110 }
-const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 const sigla = (nome: string) => nomeLimpo(nome).replace(/[^A-Za-zÀ-ú ]/g, '').trim().slice(0, 3).toUpperCase()
 const IMGS = new Map<string, HTMLImageElement>()
 function img(src: string): HTMLImageElement {
@@ -89,7 +92,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute }: Campo2DProps) {
   const t = useT()
   useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
@@ -150,10 +153,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const relogio = useRef({ min: 0, em: performance.now(), ms: msPorMin })
   useEffect(() => { relogio.current.ms = msPorMin }, [msPorMin, roundKey])
   useEffect(() => {
-    const r = relogio.current, agora = performance.now(), passo = minuto - r.min
-    let ms = r.ms
-    if (passo >= 1 && passo <= 3) { const med = (agora - r.em) / passo; if (med > 40 && med < ms * 3) ms = ms * 0.6 + med * 0.4 }
-    relogio.current = { min: minuto, em: agora, ms }
+    relogio.current = ancorarMinutoCampo(relogio.current,minuto,performance.now())
   }, [minuto])
   // 🐢 ANTI-TRAVADA (20/10, Diego: *"o jogo dando umas travadas com a bola rolando"*): o placar re-renderiza a cada minuto e
   // mandava arrays/objetos novos — o desenho REINICIAVA (canvas zerado, tudo recalculado). Agora o que muda sem mudar o jogo
@@ -165,8 +165,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const vendo = useRef<{ i: number; ini: number } | null>(null)
   const [temReplay, setTemReplay] = useState(false)
   const [replayNa, setReplayNa] = useState<{ autor: string; min: number } | null>(null)
-  const vivo = useRef({ casa, fora, fechado, t })
-  vivo.current = { casa, fora, fechado, t }
+  useEffect(()=>()=>onSimulationMinute?.(null),[onSimulationMinute])
+  const vivo = useRef({ casa, fora, fechado, t, onSimulationMinute })
+  vivo.current = { casa, fora, fechado, t, onSimulationMinute }
 
   useEffect(() => {
     const el = caixa.current
@@ -401,16 +402,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
       }
       const agora = performance.now(), dt = Math.min(250, agora - antes); antes = agora
-      const r = relogio.current, msR = r.ms
-      const teto = r.min + 1.25, alvo = Math.min(teto, r.min + (agora - r.em) / msR)
-      let m = simMin + dt / msR
-      // 🏁 no apito final o relógio para, mas a simulação ainda anda uns segundos: é o que fecha a festa de um gol nos
-      // acréscimos (Diego 20/10: *"mascote travado"* — o GOL do 90+2' ficava aberto pra sempre com o jogo congelado em 93')
-      if (fechado) m = Math.max(93.5, simMin + dt / msPorMin) // (o motor congela sozinho quando não sobra nada pendente)
-      else if (Math.abs(alvo - m) > 2.5) m = alvo // pulou de verdade (voltou pra tela, trocou a velocidade): vai direto
-      // (acerta a diferença mudando um POUCO a velocidade, nunca freando até parar: quem dita a parada é o relógio, no teto)
-      else m = Math.min(teto, simMin + (dt / msR) * clamp(1 + (alvo - m) * 0.9, 0.8, 1.4))
-      simMin = Math.max(simMin, m)
+      simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,msPorMin)
       const fi = fita.current
       if (fi.de !== jogo) { fi.de = jogo; fi.atual = []; fi.gols = []; vendo.current = null }
       const rv = vendo.current
@@ -428,6 +420,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         }
       } else {
         jogo.avancaAte(simMin)
+        vivo.current.onSimulationMinute?.(simMin)
         if (replay) {
           const ult2 = fi.atual[fi.atual.length - 1]
           if (!ult2 || jogo.t - ult2.t >= 0.08) {
