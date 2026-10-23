@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import {createCivilian} from './cidade3d/civilians.mjs'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import type {QuadroBairro} from './presidencia-bairro-model'
@@ -17,7 +18,7 @@ const UP = new THREE.Vector3(0, 1, 0)
 const clamp = THREE.MathUtils.clamp
 const smooth = (x:number) => x * x * x * (x * (x * 6 - 15) + 10)
 
-export function criarAtoresBairro(scene:THREE.Scene) {
+export function criarAtoresBairro(scene:THREE.Scene, options:{id?:string;variant?:string}={}) {
   const geometries = new Set<THREE.BufferGeometry>()
   const materials = new Set<THREE.Material>()
   const geometry = <T extends THREE.BufferGeometry>(value:T):T => { geometries.add(value); return value }
@@ -115,6 +116,10 @@ export function criarAtoresBairro(scene:THREE.Scene) {
     return {side, thigh, shin, knee, foot, sole}
   })
   const feet = legs.map(leg => leg.sole)
+  // Preserve route/foot probes, replace only the visible procedural body.
+  const legacyParts=[...pedestre.children];legacyParts.forEach(p=>p.visible=false)
+  const civilian=createCivilian(pedestre,{id:options.id??'bairro-civil',variant:options.variant})
+
 
   const carro = new THREE.Group()
   carro.name = 'bairro-carro'
@@ -321,6 +326,7 @@ export function criarAtoresBairro(scene:THREE.Scene) {
     else walking += (moving - walking) * (1 - Math.exp(-dt * 17))
     pedestre.position.set(p.x, p.y, p.z)
     pedestre.rotation.y = p.heading
+    civilian.update({seconds:frame.seconds,distance:p.distance,speed:p.speed,visible:(p as {visible?:boolean}).visible!==false})
     const cycle = ((p.distance / STRIDE) % 1 + 1) % 1
     const halfTravel = STRIDE * STANCE / 2
     legs.forEach((leg, index) => {
@@ -366,10 +372,11 @@ export function criarAtoresBairro(scene:THREE.Scene) {
   }
 
   return {
-    update, pedestre, carro, feet, wheels,
+    update, pedestre, carro, feet, wheels, inspectCivilian:()=>civilian.inspect(),
     dispose() {
       if (disposed) return
       disposed = true
+      civilian.dispose()
       scene.remove(pedestre, carro)
       geometries.forEach(value => value.dispose())
       const textures = new Set<THREE.Texture>()

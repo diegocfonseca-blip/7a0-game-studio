@@ -75,6 +75,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   const grass=material('#647450',1,0,noise('#647450',.075,false,0))
   const asphalt=material('#555a56',.96,0,noise('#555a56',.06))
   const paving=material('#c6bd9e',.91,0,noise('#c6bd9e',.04,true))
+  paving.userData.civilianPavement=true
   asphalt.userData.complexoLightFloor = true
   paving.userData.complexoLightFloor = true
   const concrete=material('#c7c1ac',.8,0,noise('#c7c1ac',.03))

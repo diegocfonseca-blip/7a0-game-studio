@@ -13,27 +13,30 @@ import {BANCO_Z,TECNICO_Z} from './presidencia-area-tecnica'
 import {JANELA_3D_INTEIRA,matrizRecorte3D,type Janela3D} from './presidencia-janela-3d'
 import {matrizCameraRegistrada,type CantosRegistrados} from './presidencia-camera-registrada'
 import {criarBolaFutebol3D} from './presidencia-bola-3d'
+import type {loadPlayers} from './futebol3d/players.mjs'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
 export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_3D_INTEIRA,onUnavailable}:{state:EstadoPartidaEstadio;registered?:CantosRegistrados;resolution?:number;crop?:Janela3D;onUnavailable?:()=>void}){
- const t=useT(),root=useRef<HTMLDivElement>(null),current=useRef(state),[error,setError]=useState(false),controlsRef=useRef<OrbitControls|null>(null),fitRef=useRef(()=>{}),resizeRef=useRef(()=>{}),repaint=useRef(()=>{})
+ const t=useT(),root=useRef<HTMLDivElement>(null),current=useRef(state),[error,setError]=useState(false),controlsRef=useRef<OrbitControls|null>(null),fitRef=useRef(()=>{}),resizeRef=useRef(()=>{}),repaint=useRef(()=>{}),followRef=useRef(()=>{})
  const cropRef=useRef(crop),resolutionRef=useRef(resolution),unavailable=useRef(onUnavailable)
  cropRef.current=crop;resolutionRef.current=resolution;unavailable.current=onUnavailable
  current.current=state
- const signature=atletasEmCampo(state).map(p=>p.key).join('|'),construction=JSON.stringify(state.context.stadium??null)
+ const signature=state.officialInput?JSON.stringify([state.context.id,state.officialInput]):atletasEmCampo(state).map(p=>p.key).join('|'),construction=JSON.stringify(state.context.stadium??null)
  useEffect(()=>{
   const el=root.current;if(!el)return
   let renderer:THREE.WebGLRenderer
   try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:!!registered,powerPreference:'high-performance'})}catch{setError(true);unavailable.current?.();return}
   renderer.setPixelRatio(registered?1:Math.min(window.devicePixelRatio||1,2));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace
   renderer.domElement.setAttribute('aria-label',t('Partida em campo tridimensional','Match on a three-dimensional pitch'));el.append(renderer.domElement)
+  let follow=false
   const scene=new THREE.Scene();scene.background=registered?null:new THREE.Color('#c2d3ca')
   const camera=new THREE.PerspectiveCamera(45,1,.1,500),controls=new OrbitControls(camera,renderer.domElement);controlsRef.current=controls
   controls.enabled=!registered;controls.enableDamping=false;controls.minDistance=5;controls.maxDistance=200;controls.maxPolarAngle=Math.PI/2-.09;controls.minPolarAngle=.18;controls.target.set(0,0,0);controls.enablePan=true;controls.screenSpacePanning=false
   controls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.ROTATE};controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_ROTATE}
   const register=()=>{if(!registered)return;camera.position.set(0,0,0);camera.quaternion.identity();camera.updateMatrixWorld();camera.projectionMatrix.set(...matrizCameraRegistrada(registered) as Parameters<THREE.Matrix4['set']>);camera.projectionMatrix.premultiply(new THREE.Matrix4().set(...matrizRecorte3D(cropRef.current) as Parameters<THREE.Matrix4['set']>));camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()}
   const fit=()=>{
+   follow=false
    if(registered){register();return}
    controls.target.set(0,0,-3);camera.aspect=el.clientWidth/Math.max(1,el.clientHeight);camera.updateProjectionMatrix()
    // Same near/far sides as CAMPO_INTERNO and CAMPO_MAPA, including portrait screens.
@@ -48,7 +51,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   scene.add(new THREE.HemisphereLight('#fff7e5','#526344',2.2*light))
   const sun=new THREE.DirectionalLight('#fff4dc',3*light);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-70,right:70,top:55,bottom:-55,near:1,far:150});sun.shadow.normalBias=.025;scene.add(sun)
   const grass=criarCampo3D(scene,state.context.stadium,!!registered,()=>repaint.current())
-  const bodies=atletasEmCampo(state).map((p,i)=>{const body=person(p.keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor,['#b9815b','#805439','#d5aa80'][i%3],p.keeper);scene.add(body.group);return body})
+  const bodies=(state.officialInput?[]:atletasEmCampo(state)).map((p,i)=>{const body=person(p.keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor,['#b9815b','#805439','#d5aa80'][i%3],p.keeper);scene.add(body.group);return body})
   const referee=person('#efc42f','#a87250');scene.add(referee.group)
   const coaches:{body:ReturnType<typeof person>;x:number}[]=[],seated:THREE.Group[]=[]
   // z=-34 is the far touchline (top edge of CAMPO_INTERNO / CAMPO_MAPA).
@@ -71,11 +74,18 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   el.dataset.personParts=String(people.sourceCount);el.dataset.personBatches=String(people.batchCount)
   const ball=criarBolaFutebol3D();scene.add(ball)
   let frame=0,visible=true,disposed=false
+  let humanoids:Awaited<ReturnType<typeof loadPlayers>>|undefined
   let shadowState:EstadoPartidaEstadio|undefined,shadowTime=-1
   const draw=()=>{
    frame=0;if(disposed||!visible||document.hidden)return
    const snapshot=quadroFutebol3D(current.current,performance.now())
    for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}
+   humanoids?.update(snapshot,camera,el.clientHeight)
+   if(follow&&!registered){
+    const target=new THREE.Vector3(THREE.MathUtils.clamp(snapshot.ball.x,-43,43),0,THREE.MathUtils.clamp(snapshot.ball.z,-26,26))
+    const distance=Math.max(28,18/Math.max(.4,camera.aspect));controls.target.copy(target);camera.position.copy(target).add(new THREE.Vector3(0,distance*.8,distance));camera.lookAt(target);camera.updateMatrixWorld(true)
+   }
+   if(snapshot.official){el.dataset.officialScore=JSON.stringify(snapshot.official.score);el.dataset.officialEvents=String(snapshot.official.events.length);el.dataset.officialFinished=String(snapshot.official.finished)}
    snapshot.players.forEach((p,i)=>{if(bodies[i]){pose(bodies[i],p);bodies[i].kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.current.homeColor:current.current.awayColor)}})
    pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
    ball.position.set(snapshot.ball.x,snapshot.ball.y,snapshot.ball.z);ball.rotation.z=-snapshot.ball.x/.11;ball.rotation.x=snapshot.ball.z/.11
@@ -84,15 +94,16 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    // New match state or simulation time invalidates them before the next draw.
    renderer.shadowMap.needsUpdate=shadowState!==current.current||shadowTime!==snapshot.time
    shadowState=current.current;shadowTime=snapshot.time
-   people.update();renderer.render(scene,camera);if(current.current.visualClock?.running??(!current.current.paused&&!current.current.finished))frame=requestAnimationFrame(draw)
+   people.update();renderer.render(scene,camera);el.dataset.drawCalls=String(renderer.info.render.calls);el.dataset.triangles=String(renderer.info.render.triangles);el.dataset.gpuResources=JSON.stringify(renderer.info.memory);if(current.current.visualClock?.running??(!current.current.paused&&!current.current.finished))frame=requestAnimationFrame(draw)
   }
   // Coalesce state, resize and texture updates into one browser frame.
   // A synchronous WebGL render here blocks score effects and goal timers.
-  const wake=()=>{if(!frame&&!disposed&&visible&&!document.hidden)frame=requestAnimationFrame(draw)};repaint.current=wake;controls.addEventListener('change',wake)
+  const wake=()=>{if(!frame&&!disposed&&visible&&!document.hidden)frame=requestAnimationFrame(draw)};repaint.current=wake;controls.addEventListener('change',wake);controls.addEventListener('start',()=>{follow=false});followRef.current=()=>{follow=true;wake()}
+  if(state.officialInput)import('./futebol3d/players.mjs').then(module=>module.loadPlayers(scene,state,quadroFutebol3D(current.current,performance.now()))).then(players=>{if(disposed){players.dispose();return}humanoids=players;el.dataset.humanoids='22';wake()}).catch(()=>{if(!disposed){setError(true);unavailable.current?.()}})
   const size=()=>{if(registered){const c=cropRef.current,w=Math.max(1,resolutionRef.current*c.width),h=Math.max(1,resolutionRef.current/1.5*c.height),factor=Math.min(1,4096/Math.max(w,h)),width=Math.max(1,Math.round(w*factor)),height=Math.max(1,Math.round(h*factor));
     if(renderer.domElement.width!==width||renderer.domElement.height!==height)renderer.setSize(width,height,false);
     Object.assign(renderer.domElement.style,{position:'absolute',left:c.left*100+'%',top:c.top*100+'%',width:c.width*100+'%',height:c.height*100+'%'});register()}else{renderer.setSize(el.clientWidth,el.clientHeight,false);camera.aspect=el.clientWidth/Math.max(1,el.clientHeight);camera.updateProjectionMatrix()}wake()};resizeRef.current=size
-  const resize=new ResizeObserver(size);resize.observe(el);size();fit()
+  const resize=new ResizeObserver(size);resize.observe(el);size();fit();follow=false
   const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false;wake()});observer.observe(el)
   const lost=(event:Event)=>{event.preventDefault();setError(true);unavailable.current?.()};renderer.domElement.addEventListener('webglcontextlost',lost)
   document.addEventListener('visibilitychange',wake)
@@ -101,7 +112,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    observer.disconnect();resize.disconnect();document.removeEventListener('visibilitychange',wake);controls.dispose();controlsRef.current=null
    // Batches share their sources' geometry and cloth maps. Remove the cloned
    // materials first, then release each owned source resource exactly once.
-   people.dispose()
+   humanoids?.dispose();people.dispose()
    const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>([grass])
    scene.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.LineSegments){
     geometries.add(object.geometry)
@@ -119,5 +130,5 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
  useEffect(()=>resizeRef.current(),[resolution,crop.left,crop.top,crop.width,crop.height])
  const zoom=(factor:number)=>{const controls=controlsRef.current;if(!controls)return;const delta=controls.object.position.clone().sub(controls.target);delta.setLength(THREE.MathUtils.clamp(delta.length()*factor,controls.minDistance,controls.maxDistance));controls.object.position.copy(controls.target).add(delta);controls.update()}
  if(registered)return <div ref={root} className="pe-football-registered" aria-label={t('Partida integrada ao estádio','Match integrated into the stadium')}/>
- return <section className="pe-football-3d"><div className="pe-live-tools"><button onClick={()=>zoom(.75)} aria-label={t('Aproximar campo 3D','Zoom in 3D pitch')}>+</button><button onClick={()=>zoom(1.33)} aria-label={t('Afastar campo 3D','Zoom out 3D pitch')}>−</button><button onClick={()=>fitRef.current()}>{t('VER CAMPO','FIT PITCH')}</button><span>{state.homeScore} × {state.awayScore} · {state.minute}′ · {state.context.speed??1}×</span></div>{error?<p role="status">{t('O campo 3D não está disponível neste aparelho. A vista do estádio continua disponível.','The 3D pitch is unavailable on this device. The stadium view remains available.')}</p>:<div ref={root} className="pe-football-canvas"/>}<p className="pe-live-help">{t('Arraste para acompanhar. Use dois dedos para aproximar e girar a câmera.','Drag to follow play. Use two fingers to zoom and rotate the camera.')}</p></section>
+ return <section className="pe-football-3d"><div className="pe-live-tools"><button onClick={()=>zoom(.75)} aria-label={t('Aproximar campo 3D','Zoom in 3D pitch')}>+</button><button onClick={()=>zoom(1.33)} aria-label={t('Afastar campo 3D','Zoom out 3D pitch')}>−</button><button onClick={()=>fitRef.current()}>{t('VER CAMPO','FIT PITCH')}</button>{state.officialInput&&<button type="button" onClick={()=>followRef.current()}>{t('TRANSMISSÃO','BROADCAST')}</button>}<span>{state.homeScore} × {state.awayScore} · {state.minute}′ · {state.context.speed??1}×</span></div>{error?<p role="status">{t('O campo 3D não está disponível neste aparelho. A vista do estádio continua disponível.','The 3D pitch is unavailable on this device. The stadium view remains available.')}</p>:<div ref={root} className="pe-football-canvas"/>}<p className="pe-live-help">{t('Arraste para acompanhar. Use dois dedos para aproximar e girar a câmera.','Drag to follow play. Use two fingers to zoom and rotate the camera.')}</p></section>
 }

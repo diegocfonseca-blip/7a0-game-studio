@@ -2,7 +2,7 @@ import {lazy,Suspense,useEffect,useRef,useState} from 'react'
 import {useT} from './lang'
 import {PresidenciaAtletas} from './presidencia-partida-atletas'
 import {usePublicarPartida} from './presidencia-partida-sincronia'
-import {atletasEmCampo,type EstadoPartidaEstadio} from './presidencia-partida-model'
+import {entradaOficialCompleta,atletasEmCampo,type EstadoPartidaEstadio} from './presidencia-partida-model'
 import {estruturaEstadioCompleta} from './presidencia-estadio-completo'
 import {PresidenciaEstadioTerritorio} from './presidencia-estadio-territorio'
 import fieldTiles from './presidencia-campo-tiles'
@@ -18,6 +18,7 @@ import {RitmoCampo} from './presidencia-velocidade'
 import {alturaMaximaCampoPartida,cameraInternaDaPartida,dimensoesCameraPartida,enquadrarCampoPartida} from './presidencia-partida-camera'
 const Futebol3D=lazy(()=>import('./presidencia-futebol-3d'))
 const base=import.meta.env.BASE_URL
+export function PublicarPartidaEstadio({state}:{state:EstadoPartidaEstadio}){usePublicarPartida(state);return null}
 export function PresidenciaPartida({state}:{state:EstadoPartidaEstadio}){
  const t=useT(),[open,setOpen]=useState(false),frame=usePublicarPartida(state),[three,setThree]=useState(true)
  const watching=useVistaCampo<HTMLDetailsElement>(open)
@@ -53,7 +54,7 @@ export function Campo({state,three=false}:{state:EstadoPartidaEstadio;three?:boo
  // o save e a vista exterior permanecem fechados.
  const fieldStadium=state.context.stadium?.roofClosed?{...state.context.stadium,roofClosed:false}:state.context.stadium
  const players=atletasEmCampo(state)
- if(!players.length)return <p role="status">{t('A visualização precisa das duas escalações completas da partida.','The view needs both complete match lineups.')}</p>
+ if(!players.length&&!(three&&entradaOficialCompleta(state)))return <p role="status">{t('A visualização precisa das duas escalações completas da partida.','The view needs both complete match lineups.')}</p>
  return <section>{fieldFailed&&internalAvailable&&<p role="status">{t('A câmera do campo não carregou. Exibindo a vista geral do estádio.','The pitch camera could not load. Showing the stadium overview.')}</p>}<div className="pe-live-tools"><button type="button" aria-label={t('Aproximar campo','Zoom in pitch')} onClick={()=>zoomBy(1.3)} disabled={view.zoom>=6}>+</button><output>{Math.round(view.zoom*100)}%</output><button type="button" aria-label={t('Afastar campo','Zoom out pitch')} onClick={()=>zoomBy(1/1.3)} disabled={view.zoom<=size().minZoom}>−</button><button type="button" onClick={()=>reset()}>{t('VER CAMPO','FIT PITCH')}</button><span>{state.homeScore} × {state.awayScore} · {state.minute}′</span></div>
   <div ref={root} className="pe-live-viewport" style={{maxHeight:world.viewportWidth?alturaMaximaCampoPartida(world.viewportWidth):undefined}} data-field-zoom={view.zoom} data-field-camera={premium?'internal':'aerial'} tabIndex={0} role="group" aria-label={t('Campo: arraste e aproxime com dois dedos','Pitch: drag and pinch to zoom')}
    onPointerDown={e=>{if(e.pointerType==='mouse'&&e.button!==0||pointers.current.size>=2)return;e.currentTarget.focus({preventScroll:true});e.currentTarget.setPointerCapture(e.pointerId);pointers.current.set(e.pointerId,{x:e.clientX,y:e.clientY});rebase()}}
