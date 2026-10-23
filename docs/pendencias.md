@@ -1,3 +1,16 @@
+## 🗂️ Salas online com visual novo (23/10) — SÓ NA CONTA DO DIEGO, no branch (esperando ele testar e mandar publicar)
+Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
+`SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
+- ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque
+  (Envelope · Tocaia · Pregão · Clubes · Duplas), vagas em número grande ao lado do Entrar; carreiras descem pro pé da página.
+- ② Criar: o modo escolhido vira uma linha (trocar ›), as seções 2/3/4 viram linhas com o que está marcado (a 3 já abre), e o
+  "📋 SUA SALA:" com o resumo antes do botão.
+- ③ Espera: nome + código (toque copia) no topo, regras em selos (regras ▾), convite logo embaixo em toda sala, técnicos em 2
+  colunas com "+ N vagas livres", zoeira numa fileira que corre pro lado, Abrir o pregão FIXO no pé da tela.
+- ④ Minhas Ligas: caixinhas temporada · técnicos · bots no cartão. "Último campeão" ficou de fora (não vem na lista magra).
+- 🐞 Pra TODOS (conserto, não visual novo): a faixa "ÀS CEGAS" da sala de espera saía com as letras espalhadas — herdava o
+  espaçamento do código gigante (`online-visual.css`, regra agora só no `.online-room-code-num`).
+
 ## 💼 Kit de patrocínio (22/10) — FEITO (online + PDF)
 Pedido do Diego: PDF/online com os números da Loja (só os que favorecem), as artes de onde a marca aparece (Tidex de exemplo) e o
 clube batizado no padrão Fundador incluso pro patrocinador (Neymarzetti de exemplo; R$ 99,90 pros jogadores). Online:
