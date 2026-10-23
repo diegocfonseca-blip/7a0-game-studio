@@ -48,3 +48,21 @@ Continuam pendentes: avaliação visual de fluidez em vídeo próximo, equivalê
 - Para preservar a primeira gravação e gerar outra: `MATCH_RECORDING_OUT=test-results/cartoon-football/11x11-melhorado node scripts/cartoon-football/record-match.cjs`, seguido dos scripts `encode-match.mjs` e `check-videos.cjs` com a mesma variável. Inclui um trecho real de controle e a continuação do passe de Cuadrado.
 
 Continuam sem captura específica adquirida e validada: cabeceio, carrinho/desarme, fintas de drible, defesas de goleiro e quedas de falta. Não substituir essas lacunas por animações de luta nem declarar que o catálogo está completo.
+
+## Consolidação do estilo aprovado — 23/10
+
+A direção cartoon foi aprovada explicitamente por Diego. O carregador local agora usa `civil-cartoon` por padrão, inclusive no mapa; a opção `athlete` e seus arquivos permanecem disponíveis. Não houve publicação. Corpo, cabeça, pesos, bind e barra original do short continuam preservados.
+
+O catálogo runtime `club-kit.mjs` contém receitas UV revisadas de Neymarzetti e Rei da Bola FC, com as artes já cadastradas. Rei usa a camisa clara com faixas vermelha/preta e gola redonda original; Neymarzetti mantém a gola em V da roupa. Costas inferidas e short/meias/chuteiras de teste não viram cadastro oficial. Ambos têm camisa clara: não existe variante reserva validada nesta fonte, portanto o contraste de equipes ainda exige atenção na vista distante. Outros clubes não recebem uma receita inventada.
+
+`presidencia-enquadramento-futebol.ts` calcula a câmera a partir do FOV, aspecto, bola e atletas próximos. Transmissão e tática são modos separados; a câmera livre continua sendo a entrada do mapa. A mesma câmera percorre o mesmo mundo e não modifica escala, relógio ou motor. A vista tática pode recuar mais em retrato para caber todo o campo. A câmera de transmissão pausada também termina sua transição.
+
+A pequena silhueta na vista geral decorre de escala real (1,78 m em 105 × 68 m). No lance a 23,4 s, sobreposição de silhuetas por perspectiva não comprova colisão: o par mais próximo está a cerca de 0,73 m nos centros oficiais. Não houve afastamento artificial dos atletas nem mudança de IA para disfarçar a projeção. A legenda de minuto do gravador estava invertida e foi corrigida; o relógio oficial do produto não mudou.
+
+Verificação: `node --import ./scripts/cartoon-football/node-resolver.mjs scripts/cartoon-football/test-camera.mjs` cobre 36 combinações de aspecto/FOV/bola/tática, além do retorno à posição manual. `compare-city.cjs` captura a mesma finalização no estádio QA existente nas três câmeras em desktop, retrato e paisagem, testa a sequência passe/domínio/chute e a continuidade do relógio ao observar a cidade. A fixture fica local, fora do Git. Esses testes em SwiftShader e emulação de viewport não certificam desempenho em telefone físico. O estádio QA completo não representa as compras da conta.
+
+Para a gravação consolidada, usar `MATCH_RECORDING_OUT=test-results/cartoon-football/11x11-consolidado` nos scripts de gravação, codificação e reprodução. Este vídeo é o replay real no campo isolado existente; as capturas `consolidado-cameras/` mostram a integração no estádio/cidade.
+
+`test-official-parity.mjs`, com o mesmo preload de resolução Node, compara uma execução independente do Motor2 com o adaptador em 941 instantes: 20.702 posições, funções táticas, goleiros, visibilidade e todos os eventos. Campos opcionais `undefined` são normalizados apenas na comparação com o JSON salvo. Não existe nova decisão aleatória de movimentação no visualizador.
+
+O replay com minuto estático e sem `visualClock` é uma pose de inspeção, mesmo com `paused:false`. O teste de continuidade fornece ticks oficiais e âncora temporal, como o placar do produto. `CONTINUITY_ONLY=1 node scripts/cartoon-football/compare-city.cjs` conserva as nove capturas já registradas e repete só essa parte. A regressão `scripts/animation-lab/official-source/test-shared-clock.mjs` compara 30.383 amostras com a fórmula e a publicação de tempo do Campo2D.

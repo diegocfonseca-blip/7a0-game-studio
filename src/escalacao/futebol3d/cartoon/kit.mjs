@@ -20,9 +20,11 @@ function garmentBorders(geometry,samples){
  return{neck:v=>Math.min(Infinity,...neck.map(e=>e.closestPointToPoint(v,true,point).distanceTo(v))),cuff:v=>Math.min(Infinity,...cuffs.map(e=>e.closestPointToPoint(v,true,point).distanceTo(v)))};
 }
 
-function geometryFor(mesh,actor){
- if(geometries.has(mesh.geometry))return geometries.get(mesh.geometry);
- const geometry=mesh.geometry.clone(),kind=mesh.material.name;
+function geometryFor(mesh,actor,collar='v-neck'){
+ const kind=mesh.material.name,key=kind==='Shirt'?collar:'original';
+ if(!geometries.has(mesh.geometry))geometries.set(mesh.geometry,new Map());
+ const cache=geometries.get(mesh.geometry);if(cache.has(key))return cache.get(key);
+ const geometry=mesh.geometry.clone();
  // GLB accessors may share interleaved buffers. Normalize through accessors,
  // never assume attribute.array is a tightly packed POSITION or skin stream.
  for(const [name,attribute]of Object.entries(geometry.attributes)){const values=new (name==='skinIndex'?Uint16Array:Float32Array)(attribute.count*attribute.itemSize);for(let i=0;i<attribute.count;i++)for(let k=0;k<attribute.itemSize;k++)values[i*attribute.itemSize+k]=attribute[['getX','getY','getZ','getW'][k]](i);geometry.setAttribute(name,new T.BufferAttribute(values,attribute.itemSize));}
@@ -31,7 +33,7 @@ function geometryFor(mesh,actor){
  const skin=geometry.attributes.skinIndex,weight=geometry.attributes.skinWeight;
  const nameAt=i=>mesh.skeleton.bones[i]?.name,pointAt=i=>mesh.getVertexPosition(i,new T.Vector3()).applyMatrix4(mesh.matrixWorld).divideScalar(actor.holder.scale.x);
  const samples=Array.from({length:p.count},(_,i)=>pointAt(i)),box=new T.Box3().setFromPoints(samples),center=(box.min.x+box.max.x)/2;
- if(kind==='Shirt'){
+ if(kind==='Shirt'&&collar==='v-neck'){
   const original=mesh.geometry;mesh.geometry=geometry;const scale=actor.holder.scale.x;
   // Local V-shaped neckline in the garment only. The falloff includes the
   // next chest rows so the opening cannot fold over an unchanged lower row.
@@ -58,7 +60,7 @@ function geometryFor(mesh,actor){
  geometry.setAttribute('footballRegion',new T.Float32BufferAttribute(region,1));geometry.setAttribute('part',new T.Float32BufferAttribute(part,1));
  geometry.setAttribute('footballSockChart',new T.Float32BufferAttribute(sockChart,1));
  if(kind==='Shirt'){geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geometry.setAttribute('seam',new T.Float32BufferAttribute(seam,2))}
- const value={geometry,kind,part:Array.from(part),position:Array.from(p.array),index:Array.from(geometry.index.array)};geometries.set(mesh.geometry,value);return value;
+ const value={geometry,kind,part:Array.from(part),position:Array.from(p.array),index:Array.from(geometry.index.array)};cache.set(key,value);return value;
 }
 function skinMaterial(color){
  const m=new T.MeshStandardMaterial({color,roughness:.88});
@@ -93,10 +95,10 @@ export async function dressCartoonKit(actor,config,{number=10,shirtColor='#eeeee
  const shirt=offline?new T.MeshBasicMaterial({color:shirtColor}):config?await kitMaterial(config,'home',number):(()=>{
   const key=shirtColor+':'+number;if(!neutral.has(key)){const m=new T.MeshStandardMaterial({color:shirtColor,roughness:.9});neutral.set(key,m)}return neutral.get(key)
  })();if(offline)owned.push(shirt);
- for(const mesh of baseMeshes){const data=geometryFor(mesh,actor);mesh.geometry=data.geometry;mesh.castShadow=mesh.receiveShadow=true;mesh.frustumCulled=false;
+ for(const mesh of baseMeshes){const data=geometryFor(mesh,actor,config?.variants.home.shirt.collar??'v-neck');mesh.geometry=data.geometry;mesh.castShadow=mesh.receiveShadow=true;mesh.frustumCulled=false;
   if(data.kind==='Skin'){const m=skinMaterial(skinColor);mesh.material=m;owned.push(m);}
   else if(data.kind==='Shirt')mesh.material=shirt;
   else {const m=new T.MeshStandardMaterial({color:data.kind==='Hair'?hairColor:'#111214',roughness:.9});mesh.material=m;owned.push(m)}
  }
- return {mesh:boots.mesh,template:{data:boots.data},dispose(){owned.forEach(m=>m.dispose())},inspect:()=>({sourceClothing:true,bodyGeometryUnchanged:true,skinWeightsUnchanged:true,sourceCrest:!!config,number})};
+ return {mesh:boots.mesh,template:{data:boots.data},dispose(){owned.forEach(m=>m.dispose())},inspect:()=>({sourceClothing:true,bodyGeometryUnchanged:true,skinWeightsUnchanged:true,sourceCrest:!!config,clubKey:config?.clubKey??null,collar:config?.variants.home.shirt.collar??'v-neck',number})};
 }

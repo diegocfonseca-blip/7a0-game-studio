@@ -14,6 +14,7 @@ import {JANELA_3D_INTEIRA,matrizRecorte3D,type Janela3D} from './presidencia-jan
 import {matrizCameraRegistrada,type CantosRegistrados} from './presidencia-camera-registrada'
 import {criarBolaFutebol3D} from './presidencia-bola-3d'
 import type {loadPlayers} from './futebol3d/players.mjs'
+import {criarCameraPartidaContinua} from './presidencia-camera-partida-continua'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
@@ -32,11 +33,13 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   let follow=false
   const scene=new THREE.Scene();scene.background=registered?null:new THREE.Color('#c2d3ca')
   const camera=new THREE.PerspectiveCamera(45,1,.1,500),controls=new OrbitControls(camera,renderer.domElement);controlsRef.current=controls
+  const matchCameraController=criarCameraPartidaContinua(camera,controls,()=>{})
   controls.enabled=!registered;controls.enableDamping=false;controls.minDistance=5;controls.maxDistance=200;controls.maxPolarAngle=Math.PI/2-.09;controls.minPolarAngle=.18;controls.target.set(0,0,0);controls.enablePan=true;controls.screenSpacePanning=false
   controls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.ROTATE};controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_ROTATE}
   const register=()=>{if(!registered)return;camera.position.set(0,0,0);camera.quaternion.identity();camera.updateMatrixWorld();camera.projectionMatrix.set(...matrizCameraRegistrada(registered) as Parameters<THREE.Matrix4['set']>);camera.projectionMatrix.premultiply(new THREE.Matrix4().set(...matrizRecorte3D(cropRef.current) as Parameters<THREE.Matrix4['set']>));camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()}
   const fit=()=>{
    follow=false
+   matchCameraController.explore()
    if(registered){register();return}
    controls.target.set(0,0,-3);camera.aspect=el.clientWidth/Math.max(1,el.clientHeight);camera.updateProjectionMatrix()
    // Same near/far sides as CAMPO_INTERNO and CAMPO_MAPA, including portrait screens.
@@ -82,8 +85,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}
    humanoids?.update(snapshot,camera,el.clientHeight)
    if(follow&&!registered){
-    const target=new THREE.Vector3(THREE.MathUtils.clamp(snapshot.ball.x,-43,43),0,THREE.MathUtils.clamp(snapshot.ball.z,-26,26))
-    const distance=Math.max(28,18/Math.max(.4,camera.aspect));controls.target.copy(target);camera.position.copy(target).add(new THREE.Vector3(0,distance*.8,distance));camera.lookAt(target);camera.updateMatrixWorld(true)
+    matchCameraController.update(snapshot.ball,performance.now(),snapshot.players)
    }
    if(snapshot.official){el.dataset.officialScore=JSON.stringify(snapshot.official.score);el.dataset.officialEvents=String(snapshot.official.events.length);el.dataset.officialFinished=String(snapshot.official.finished)}
    snapshot.players.forEach((p,i)=>{if(bodies[i]){pose(bodies[i],p);bodies[i].kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.current.homeColor:current.current.awayColor)}})
@@ -94,11 +96,11 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    // New match state or simulation time invalidates them before the next draw.
    renderer.shadowMap.needsUpdate=shadowState!==current.current||shadowTime!==snapshot.time
    shadowState=current.current;shadowTime=snapshot.time
-   people.update();renderer.render(scene,camera);el.dataset.drawCalls=String(renderer.info.render.calls);el.dataset.triangles=String(renderer.info.render.triangles);el.dataset.gpuResources=JSON.stringify(renderer.info.memory);if(current.current.visualClock?.running??(!current.current.paused&&!current.current.finished))frame=requestAnimationFrame(draw)
+   people.update();renderer.render(scene,camera);el.dataset.drawCalls=String(renderer.info.render.calls);el.dataset.triangles=String(renderer.info.render.triangles);el.dataset.gpuResources=JSON.stringify(renderer.info.memory);if((current.current.visualClock?.running??(!current.current.paused&&!current.current.finished))||matchCameraController.transitioning)frame=requestAnimationFrame(draw)
   }
   // Coalesce state, resize and texture updates into one browser frame.
   // A synchronous WebGL render here blocks score effects and goal timers.
-  const wake=()=>{if(!frame&&!disposed&&visible&&!document.hidden)frame=requestAnimationFrame(draw)};repaint.current=wake;controls.addEventListener('change',wake);controls.addEventListener('start',()=>{follow=false});followRef.current=()=>{follow=true;wake()}
+  const wake=()=>{if(!frame&&!disposed&&visible&&!document.hidden)frame=requestAnimationFrame(draw)};repaint.current=wake;controls.addEventListener('change',wake);controls.addEventListener('start',()=>{follow=false;matchCameraController.explore()});followRef.current=()=>{follow=true;matchCameraController.setMode('broadcast');wake()}
   if(state.officialInput)import('./futebol3d/players.mjs').then(module=>module.loadPlayers(scene,state,quadroFutebol3D(current.current,performance.now()))).then(players=>{if(disposed){players.dispose();return}humanoids=players;el.dataset.humanoids='22';wake()}).catch(()=>{if(!disposed){setError(true);unavailable.current?.()}})
   const size=()=>{if(registered){const c=cropRef.current,w=Math.max(1,resolutionRef.current*c.width),h=Math.max(1,resolutionRef.current/1.5*c.height),factor=Math.min(1,4096/Math.max(w,h)),width=Math.max(1,Math.round(w*factor)),height=Math.max(1,Math.round(h*factor));
     if(renderer.domElement.width!==width||renderer.domElement.height!==height)renderer.setSize(width,height,false);

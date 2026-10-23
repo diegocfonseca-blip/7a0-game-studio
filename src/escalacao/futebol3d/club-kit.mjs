@@ -1,5 +1,5 @@
-// Generated from scripts/animation-lab/universal-kit/club-kit.mjs; edit the source and repackage.
-// Public existing club key, not a fabricated database ID. Preview only.
+// Runtime catalogue of validated UV recipes using existing public club artwork.
+// Existing public club keys; no database IDs or writes. Garment choices remain provisional.
 // Sources: salao-camisas.ts, batismos.ts and the current Neymarzetti artwork.
 export const neymarzetti=Object.freeze({
  clubId:null,clubKey:'Neymarzetti',source:'src/escalacao/salao-camisas.ts:CAMISAS_SALAO',
@@ -15,6 +15,20 @@ export const neymarzetti=Object.freeze({
  inferred:['Costas brancas, acabamentos pretos e numeração de demonstração','Continuação dos detalhes nas mangas e laterais'],
  approved:false,
 });
+
+// Existing public artwork and club key, without inventing a database ID.
+export const reiDaBola=Object.freeze({
+ clubId:null,clubKey:'Rei da Bola FC',source:'src/escalacao/salao-camisas.ts:CAMISAS_SALAO; src/escalacao/batismos.ts',
+ colors:{primary:'#eeeae0',secondary:'#121010'},
+ crest:new URL('../img/reidabola-escudo.webp',import.meta.url).href,
+ variants:{home:{
+  shirt:{art:(import.meta.env?.BASE_URL??'/')+'mantos-salao/reidabola-camisa-v1.webp',publicArt:'public/mantos-salao/reidabola-camisa-v1.webp',collar:'round-neck',trimColor:'#121010',sponsors:[],back:'inferred',textureRecipe:{sourceSize:[522,620],frontCrop:[105,60,310,540],innerCollarMask:[150,24,210,62],fabricCrop:[160,335,160,180],sleeveCrop:[60,42,105,125]}},
+  shorts:{color:'#121010',texture:null,provisional:true},socks:{color:'#eeeae0',texture:null,provisional:true},boots:{color:'#121010',provisional:true},numbering:{color:'#121010',previewNumber:10,official:false},
+ },away:null},
+ inferred:['Costas claras e numeração de teste; não existe arte traseira cadastrada nesta fonte','Short, meião e chuteiras são escolhas provisórias, não padrão oficial'],approved:false,
+});
+export const clubKits=[neymarzetti,reiDaBola];
+export function clubKitFor(name){return clubKits.find(config=>config.clubKey===name)??null;}
 
 const atlasCache=new Map();
 const imageFrom=url=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Arte indisponível: '+url));image.src=url;});

@@ -81,7 +81,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
 }
 
 export type InspecaoPartidaComplexo={players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -123,15 +123,18 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  let match:Match|undefined
  const empty=():InspecaoPartidaComplexo=>({players:0,ball:{x:0,y:.11,z:0}})
  let inspection=empty()
+ let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean}[]=[]
  const clearMatch=()=>{
   if(match){match.humanoids?.dispose();match.people.dispose();descartarObjetos(match.root);match=undefined}
   inspection=empty()
+  cameraSubjects=[]
  }
  const update=(current:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>{
   if(disposed)return
   if(!current||(!entradaOficialCompleta(current)&&atletasEmCampo(current).length!==22)){clearMatch();return}
   const snapshot=quadroFutebol3D(current,now)
   if(snapshot.players.length!==22){clearMatch();return}
+  cameraSubjects=snapshot.players
   const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(snapshot.players.filter(p=>p.side===side).map(p=>p.id))))
   const signature=JSON.stringify([current.context.id,snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
   if(match?.signature!==signature){
@@ -177,6 +180,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {
   update,
+  subjects:()=>cameraSubjects,
   inspect:()=>({...inspection,ball:{...inspection.ball}}),
   dispose:()=>{if(disposed)return;disposed=true;clearMatch();descartarObjetos(field,[grass])},
  }
