@@ -10,7 +10,7 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 // 1ª passada só aquece o vite (não grava)
 { const p = await b.newPage(); await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' }); await p.evaluate(`import('/src/escalacao/gala-k9.tsx')`); await p.waitForTimeout(3000); await p.close() }
 mkdirSync('/tmp/claude-0/vidk9', { recursive: true })
-const ctx = await b.newContext({ viewport: { width: 390, height: 760 }, recordVideo: { dir: '/tmp/claude-0/vidk9', size: { width: 390, height: 760 } } })
+const ctx = await b.newContext({ viewport: { width: 780, height: 1520 }, recordVideo: { dir: "/tmp/claude-0/vidk9", size: { width: 780, height: 1520 } } })
 await ctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt') } catch {} })
 const p = await ctx.newPage()
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
