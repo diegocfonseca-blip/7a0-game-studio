@@ -1,3 +1,11 @@
+## 🎬 Salas: túnel da final + festa do campeão, com a cara de cada campeonato (23/10) — ESPERANDO OK no mockup das paletas
+- Mockup `online-momentos-cinema.png` + vídeo `scripts/posts/online-momentos-cinema.mp4` (fora do git): Diego quer SÓ o 2 (festa do
+  campeão) e o 3 (túnel da final) — *"faz só o 2 e 3 melhor"*. O ⚡ martelo de lenda (carta grande + VENDIDO) ficou de FORA (o "faah"
+  já existe: `sfx/lenda.mp3`, só pra quem leva a lenda). Final aprovada (*"final ok tb td certo"*). Som no campeão: ele quer.
+- Pedido novo: cada campeonato com troféu, paleta e estilo PRÓPRIOS, inspirados no real (Liga, Copa dos 8, Liberta, Champions,
+  Copa do Mundo, Mundial, Rio×SP, Sul×Minas-PR, Nordeste). Túnel: fundo com a cor de cada time OU a paleta da copa. Mockup das
+  paletas e troféus: `scripts/mockups/campeonatos-paletas-trofeus.png` (rascunho de formato; a arte final dos troféus vira imagem).
+
 ## 🎭 Cerimônia: lendas apresentadas + a conta do pregão nova (22/10) — PUBLICADO pra todos
 Mockup `online-cerimonia-lendas-conta.png` aprovado (*"aprovado pode fazer"*). Ideias 2 (capa do Martelo da sala) e 3 (coletiva
 relâmpago) do mockup `online-apresentacao-lendas.png` foram RECUSADAS (*"gostei só do 1"*) — não repropor.
