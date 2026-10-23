@@ -1,9 +1,14 @@
 ## ⚔️ Tática (retranca/equilíbrio/ataque) nas copas do online (23/10)
 - Pedido: *"a tática não está aparecendo em várias coisas como mundo, regionais…"*. Mapa medido: liga ✅ · Copa dos 8/mata-mata ✅ ·
   Champions ✅ · **Liberta fase de grupos: faltava só o botão** (o motor já lia `state.tactics`) → FEITO e publicado.
-- ⏳ Copa do Mundo e regionais: NÃO têm tática no motor. Cada aparelho recalcula o torneio sozinho pela ficha (é o que garante
-  "todo mundo vê a mesma Copa"); pôr tática exige mandar a escolha de cada um pra sala antes de cada rodada + mudar o motor e o
-  relógio do banco. Explicado ao Diego, esperando OK.
+- ✅ Copa do Mundo e regionais: FEITO (*"sim pode fazer"*). Regra (`copa-taticas.ts` + `docs/sql/copa-tatica.sql`):
+  só se escolhe com JOGO ROLANDO (o banco carimba o passo e recusa depois do apito) e vale do PRÓXIMO jogo em diante; a leitura
+  só devolve linha congelada; a tela segura o passo até chegar a tática que decide o jogo da vez. O jogo com tática sai de um
+  DADO PRÓPRIO depois do sorteio normal — nenhum outro jogo muda, e quem fica em ⚖️ equilíbrio joga igual a sempre.
+  O 1º jogo da copa é sempre em equilíbrio (ainda não rolou jogo pra escolher). Só Copa criada depois da publicação
+  (`TATICA_DESDE`/ficha `tatica`), porque quem está com o jogo aberto desde antes não conhece tática. Trava: `npm run copa-tatica`.
+- ⚠️ Achado no caminho (não é meu): `npm run copamundo` reprova "jogo de copa só conta com a Copa encerrada" — já falhava antes
+  desta mudança (linha da carreira em pyramidseason.tsx). Conferir com quem mexeu.
 
 ## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — PUBLICADO pra todos ("ok")
 - Feito com o contexto `TemaCompCtx` (competicoes-visual.tsx): só as telas das SALAS e da PARTIDA RÁPIDA embrulham

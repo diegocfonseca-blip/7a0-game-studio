@@ -21,6 +21,7 @@
 import { CATALOG, CATALOG_EU, CATALOG_WORLD, clubCanon } from './data'
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { disputaPenaltis } from './penaltis'
+import { fatoresTatica, temTatica, dadoDaTatica, type QualTatica } from './copa-taticas' // ⚔️ tática no online (23/10)
 import type { Entrant, Formation, PoolCard, Sec } from './copa-mundo'
 
 export type CopaRegionalId = 'riosp' | 'sulminas' | 'nordeste'
@@ -237,9 +238,21 @@ export function tabelaDoLado(m: MundoRegional, lado: 0 | 1, ate: number): { t: n
  * Rodada r: o i-ésimo do lado A enfrenta o ((i + r) mod n)-ésimo do lado B — em n
  * rodadas cada um pega os n do outro lado uma vez só. Mando alternado por rodada.
  */
-export function simulaRegional(entrants: Entrant[], seed: number): MundoRegional {
+export function simulaRegional(entrants: Entrant[], seed: number, tat?: QualTatica): MundoRegional {
   const n = Math.floor(entrants.length / 2)
   const rng = mulberry((seed ^ 0x2E610A1) >>> 0)
+  // ⚔️ tática no online (23/10, `copa-taticas.ts`): jogo com tática de gente sai de um DADO PRÓPRIO, depois do sorteio
+  // normal — o dado do torneio anda igual e nenhum outro jogo muda. Sem `tat`, a copa é a de sempre.
+  const comTatica = (h: number, a: number, passo: number, ck: string): { g: [number, number]; ev: GolRegional[]; r: () => number } | null => {
+    if (!tat) return null
+    const th = tat(h, passo), ta = tat(a, passo)
+    if (!temTatica(th, ta)) return null
+    const r = dadoDaTatica(seed >>> 0, ck, th, ta)
+    const adv = entrants[h].str - entrants[a].str
+    const [fh, fa] = fatoresTatica(th, ta)
+    const g: [number, number] = [poisson(r, Math.max(0.25, 1.25 + adv * 0.05) * fh), poisson(r, Math.max(0.25, 1.25 - adv * 0.05) * fa)]
+    return { g, ev: gols(r, g[0], g[1], entrants[h], entrants[a], seed, ck), r }
+  }
   const rodadas: JogoRegional[][] = []
   for (let r = 0; r < n; r++) {
     const jogos: JogoRegional[] = []
@@ -247,7 +260,10 @@ export function simulaRegional(entrants: Entrant[], seed: number): MundoRegional
       const a = i, b = n + ((i + r) % n)
       const [h, aw] = (r + i) % 2 === 0 ? [a, b] : [b, a]
       const [gh, ga] = placar(rng, entrants[h], entrants[aw])
-      jogos.push({ h, a: aw, gh, ga, ev: gols(rng, gh, ga, entrants[h], entrants[aw], seed, `r${r}|${h}|${aw}`) })
+      const jogo: JogoRegional = { h, a: aw, gh, ga, ev: gols(rng, gh, ga, entrants[h], entrants[aw], seed, `r${r}|${h}|${aw}`) }
+      const t = comTatica(h, aw, r + 1, `r${r}|${h}|${aw}`) // rodada r = passo r+1
+      if (t) { jogo.gh = t.g[0]; jogo.ga = t.g[1]; jogo.ev = t.ev }
+      jogos.push(jogo)
     }
     rodadas.push(jogos)
   }
@@ -257,10 +273,15 @@ export function simulaRegional(entrants: Entrant[], seed: number): MundoRegional
   const A = tabelaDoLado(base, 0, n).slice(0, vagas).map(r => r.t)
   const B = tabelaDoLado(base, 1, n).slice(0, vagas).map(r => r.t)
   base.classificados = [A, B]
-  const joga = (h: number, a: number, ck: string): ConfrontoRegional => {
+  const joga = (h: number, a: number, ck: string, passo: number): ConfrontoRegional => {
     const [gh, ga] = placar(rng, entrants[h], entrants[a])
     const ev = gols(rng, gh, ga, entrants[h], entrants[a], seed, ck)
     const pen = gh === ga ? disputaPenaltis(rng) : undefined
+    const t = comTatica(h, a, passo, ck) // ⚔️ depois de gastar o dado do torneio (pênaltis inclusive)
+    if (t) {
+      const p2 = t.g[0] === t.g[1] ? disputaPenaltis(t.r) : undefined
+      return { h, a, g: t.g, ev: t.ev, ...(p2 ? { pen: p2 } : {}), winner: t.g[0] > t.g[1] ? h : t.g[1] > t.g[0] ? a : p2![0] > p2![1] ? h : a }
+    }
     const winner = gh > ga ? h : ga > gh ? a : pen![0] > pen![1] ? h : a
     return { h, a, g: [gh, ga], ev, ...(pen ? { pen } : {}), winner }
   }
@@ -271,13 +292,13 @@ export function simulaRegional(entrants: Entrant[], seed: number): MundoRegional
   else if (KO === 2) vivos = [[A[0], B[1]], [B[0], A[1]]]
   else vivos = [[A[0], B[0]]]
   const tipos: FaseKo['tipo'][] = KO === 3 ? ['quartas', 'semi', 'final'] : KO === 2 ? ['semi', 'final'] : ['final']
-  for (const tipo of tipos) {
-    const ties = vivos.map(([h, a], i) => joga(h, a, `${tipo}|${i}`))
+  tipos.forEach((tipo, fi) => {
+    const ties = vivos.map(([h, a], i) => joga(h, a, `${tipo}|${i}`, n + 2 + fi)) // 1º mata-mata = passo n+2 (n+1 é o chaveamento)
     base.ko.push({ tipo, ties })
     const w = ties.map(t => t.winner)
     vivos = []
     for (let i = 0; i + 1 < w.length; i += 2) vivos.push([w[i], w[i + 1]])
-  }
+  })
   base.campeao = base.ko[base.ko.length - 1].ties[0].winner
   return base
 }
