@@ -13,8 +13,9 @@ import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da s
 import { clasLiberado } from './cla-gate' // ⚔️ pódio dos clãs no letreiro (21/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
+import VADICO_PLACA from './img/placa-vadico.webp' // 🏟️ 23/10: placas no padrão da Tidex (faixa deitada que enche a placa)
+import OITTO_PLACA from './img/placa-oittolabs.webp'
 import GECG_PLACA from './img/patro-gecg-placa.webp' // ⚽ Grêmio Campo Grande (23/10): placa deitada (escudo + nome) revezando com a Tidex
-import OITTO_LOGO from './img/patro-oittolabs.webp' // 🧪 OittoLabs (21/10): Copa dos 8, Copa do Brasil da carreira, placas, telão e Master
 
 export type Patrocinio = { nome: string; emoji: string }
 export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' | 'career-copa' | 'regional' | 'career-varzea' // career-varzea = a liga da carreira na VÁRZEA (23/10) · regional = Copas Regionais (Rio × SP, Sul-Minas, Nordeste) — 23/10 · career-league = a Liga Legends da CARREIRA (19/10) · career-copa = a Copa do Brasil da carreira (21/10)
@@ -133,8 +134,8 @@ const OITTO_GIRO = '🧪 OittoLabs · Contabilidade e BPO financeiro pra sua emp
 // ⚽ Grêmio Esportivo Campo Grande (23/10): clube de várzea com estádio próprio (~10 mil lugares) em Jurubatuba, Zona Sul de SP;
 // objetivo deles = gente no estádio nos fins de semana e aluguel do campo pra torneios. A linha de verdade mora em
 // `esc_anuncios_fixos`; isto é a reserva.
-const GECG_GIRO = '⚽ Grêmio Campo Grande · Estádio próprio na Zona Sul SP · Vem pro jogo · Clique aqui'
-const GECG_ZAP = 'https://wa.me/5511976509180?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber dos jogos do Grêmio Campo Grande no fim de semana.')
+const GECG_GIRO = '⚽ Grêmio Esportivo Campo Grande · Estádio próprio na Zona Sul SP · Clique aqui'
+const GECG_ZAP = 'https://wa.me/5511976509180?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber dos jogos do Grêmio Esportivo Campo Grande no fim de semana.')
 const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
   { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
   { texto: TIDEX_GIRO, cor: '#FFC400', link: TIDEX_ZAP }, // 🤖 19/10: no lugar da Max Joias
@@ -196,20 +197,23 @@ export function releAnuncios() { lidoEm = 0; carregaAvulsos() }
 // 🏟️ PLACAS ATRÁS DOS GOLS (17/10, Diego escolheu a ideia 1 do mockup `scripts/mockups/campinho-outras-ideias.png`: *"perfeito
 // pode fazer mas no momento coloque Vadico Veículos e Max Joias"*). Uma placa em cima e outra embaixo de todo campinho, cada uma
 // numa marca, trocando juntas a cada 7 s no MESMO relógio do Anúncio do dia. Com 1 marca só, a outra placa mostra Leilão Legends.
-export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string }
+export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string; cheio?: boolean } // cheio = a arte já é a FAIXA inteira (fundo incluso): ocupa a placa de ponta a ponta na altura
 const PLACAS_CAMPO: PlacaCampo[] = [
-  { nome: 'Vadico Veículos', logo: VADICO_LOGO_ALFA, prop: 496 / 140, fundo: '#ffffff' },
-  { nome: 'OittoLabs', logo: OITTO_LOGO, prop: 331 / 120, fundo: '#ffffff' }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
+  // 🏟️ 23/10 (Diego: "ajustar os patrocínios existentes p se enquadrar e ficar parecido com o da Tidex"): cada marca virou uma FAIXA
+  //    deitada do mesmo formato da Tidex (840×120: logo + frase), então todas enchem a placa do mesmo jeito.
+  { nome: 'Vadico Veículos', logo: VADICO_PLACA, prop: 840 / 120, fundo: '#ffffff', cheio: true },
+  { nome: 'OittoLabs', logo: OITTO_PLACA, prop: 840 / 120, fundo: '#ffffff', cheio: true }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
   { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' },
   // ⚽ 23/10 (Diego: "reveza com a Tidex… como é placa de campinho precisamos de uma ideia pra ele ficar na horizontal"): o escudo é
   //    vertical, então a placa é uma faixa DEITADA feita pra ela — escudo + "GRÊMIO CAMPO GRANDE" no azul do clube.
-  { nome: 'Grêmio Campo Grande', logo: GECG_PLACA, prop: 840 / 120, fundo: '#14286A' }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
+  { nome: 'Grêmio Esportivo Campo Grande', logo: GECG_PLACA, prop: 840 / 120, fundo: '#11225A', cheio: true }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
 ]
 /** 📐 TAMANHO DA MARCA NA PLACA (21/10, Diego: *"a Tidex está perfeita… a Vadico e a OittoLabs estão desproporcionais e pequenas…
  *  tem que seguir o padrão da Tidex"*). Antes toda marca tinha a MESMA altura (72% da placa), então a marca comprida (Tidex, 7:1)
  *  enchia a placa e a mais quadrada (Vadico 3,5:1 · OittoLabs 2,8:1) ficava miúda. Agora todas miram a LARGURA da Tidex, e a
  *  mais quadrada cresce até 92% da altura da placa pra chegar o mais perto possível. A Tidex continua exatamente igual. */
-export function tamanhoMarcaNaPlaca(alt: number, prop: number, larguraMax: number): { w: number; h: number } {
+export function tamanhoMarcaNaPlaca(alt: number, prop: number, larguraMax: number, cheio?: boolean): { w: number; h: number } {
+  if (cheio) { const w = Math.min(larguraMax, alt * prop); return { w, h: w / prop } } // 🏟️ 23/10: faixa pronta enche a placa
   const alvo = Math.min(larguraMax, alt * 0.72 * (837 / 120))
   const h = Math.min(alt * 0.92, alvo / prop, alt * 0.72 * Math.max(1, (837 / 120) / prop))
   return { w: h * prop, h }

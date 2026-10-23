@@ -147,7 +147,7 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'oittolabs',   name: 'OittoLabs',            emoji: '🧪', color: '#1C3A5E', tier: 1, logo: 'oittolabs' },
   // ⚽ marca REAL do Master (23/10, Diego: "troque o ERO por esse patrocinador"): Grêmio Esportivo Campo Grande, clube de várzea com
   //    estádio próprio em Jurubatuba (Zona Sul de SP). Pega o lugar da ERO (3 temporadas); contrato da ERO correndo vai até o fim.
-  { id: 'gecg',        name: 'Grêmio Campo Grande',  emoji: '⚽', color: '#14286A', tier: 3, logo: 'gecg' },
+  { id: 'gecg',        name: 'Grêmio Esportivo Campo Grande', emoji: '⚽', color: '#14286A', tier: 3, logo: 'gecg' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }

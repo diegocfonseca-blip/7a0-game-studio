@@ -2,10 +2,13 @@
 Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. Objetivo: gente no estádio no fim de semana + aluguel
 do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
 - Master da carreira: entra no lugar da ERO (3 temporadas, `gecg`); contrato da ERO correndo vai até o fim. Logo `patro-gecg.webp`.
-- Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
+- Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO ESPORTIVO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
+  Vadico e OittoLabs ganharam faixa no MESMO formato (840×120, `placa-vadico.webp`/`placa-oittolabs.webp`, `cheio: true`) pra ficarem do tamanho da Tidex (pedido dele).
+- Nome SEMPRE inteiro: "Grêmio Esportivo Campo Grande" (pedido dele).
 - "Apresentada por": Copas Regionais (`regional`) e a liga da carreira NA VÁRZEA (`career-varzea`; as outras divisões seguem Tidex).
 - Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
-- Aviso da comunidade: `scripts/avisos/2026-10-23-parceiro-gecg.json` → `scripts/posts/aviso-2026-10-23-parceiro-gecg.png`.
+- Aviso da comunidade: `scripts/avisos/2026-10-23-parceiro-gecg.json` → `scripts/posts/aviso-2026-10-23-parceiro-gecg.png` (escudo dentro da caixa).
+- Mockup pro cliente (todos os lugares): `scripts/posts/gecg-no-leilao-legends.png`. Bancada: `scripts/teste-parceiro/`.
 
 ## 🏆 Minhas Ligas: trocar também o que vem depois da liga (23/10) — FEITO e publicado
 - Pedido: *"no minhas ligas falta deixar a pessoa poder mudar as ligas também, tipo liga sozinha, liga mais copa, regionais…
