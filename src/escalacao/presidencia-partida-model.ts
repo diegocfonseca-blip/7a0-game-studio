@@ -1,12 +1,25 @@
 import type {StadiumSave} from './estadiodata'
 import type {AgendaJogoComplexo} from './presidencia-complexo-jornada'
 import type {PlanoLanceFutebol,RelogioLance} from './presidencia-lance-tempo'
+import type {EntradaM2} from './motor2/carreira'
 export type AtletaEstadio={id:string;name:string;pos:string;fake?:boolean}
 export type ContextoPartidaEstadio={id:string;homeClubId?:number;awayClubId?:number;agenda?:AgendaJogoComplexo;speed?:number;stadium?:StadiumSave;home:readonly AtletaEstadio[];away:readonly AtletaEstadio[];homeBench?:readonly AtletaEstadio[];awayBench?:readonly AtletaEstadio[];homeSecondHalf?:readonly AtletaEstadio[];awaySecondHalf?:readonly AtletaEstadio[]}
 export type ApresentacaoLanceEstadio={plan?:PlanoLanceFutebol;clock?:RelogioLance}
 export type GolEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;name:string;scorerId?:string;assist?:string;assistId?:string;minute?:number;startedAt?:number;speed?:number;phase:'shot'|'confirmed'}
 export type ChanceEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;minute:number;startedAt:number;speed?:number;outcome:'defendeu'|'trave'|'fora'|'isolou'}
-export type EstadoPartidaEstadio={visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;period?:1|2;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
+export type EstadoPartidaEstadio={officialTeams?:[string,string];officialInput?:EntradaM2;officialMinuteMs?:number;visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;period?:1|2;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
+/** Exact canonical XIs may already contain a bot's existing filler. Rendering
+ * that input never creates a new card or fills a missing lineup. The legacy
+ * theatre keeps its stricter no-filler rule. */
+export function entradaOficialCompleta(state:EstadoPartidaEstadio):boolean{
+ const input=state.officialInput;if(!input)return false
+ return ([['casa','home'],['fora','away']] as const).every(([source,side])=>{
+  const cards=input[source],roster=state.context[side]
+  return cards.length===11&&roster.length===11&&cards.filter(c=>c.pos==='GOL').length===1
+   &&new Set(cards.map(c=>JSON.stringify([c.name,c.club,c.year]))).size===11
+   &&cards.every(c=>!!c.name&&['GOL','LAT','ZAG','MEI','ATA'].includes(c.pos??'')&&roster.some(p=>p.name===c.name&&p.pos===c.pos))
+ })
+}
 export function escalaValida(players:readonly AtletaEstadio[]):boolean{
  return players.length===11&&new Set(players.map(p=>p.id)).size===11&&players.filter(p=>p.pos==='GOL').length===1&&players.every(p=>!p.fake&&p.id.trim()&&p.name.trim()&&['GOL','LAT','ZAG','MEI','ATA'].includes(p.pos))
 }

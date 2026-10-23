@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import {createCivilian} from './cidade3d/civilians.mjs'
 import { criarRelogioJornadaComplexo, type JornadaMovimentoComplexo } from './presidencia-complexo-jornada-relogio'
 import type { AcessoAssentoComplexo, AssentoComplexo } from './presidencia-complexo-arquitetura'
 import { caminhosTorcidaComplexo, deslocarCaminhoComplexo, type EstadoComplexo } from './presidencia-complexo-model'
@@ -286,8 +287,11 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
     value.position.copy(start).add(end).multiplyScalar(.5); value.scale.y = length
     if (length > 1e-8) value.quaternion.setFromUnitVectors(UP, direction.multiplyScalar(1 / length))
   }
+  const legacyParts=[...root.children];legacyParts.forEach(p=>p.visible=false)
+  const civilian=createCivilian(root,{id:options.id})
+  let civilTime=0,civilDistance=0,civilSpeed=0,previousHip:THREE.Vector3|undefined
   let disposed = false
-  function updatePose(last: QuadroVisitaComplexo | undefined) {
+  function updatePose(last: QuadroVisitaComplexo | undefined, seconds=0) {
     if (disposed) return
     root.visible = !!last && last.visible && finite(last.hip) && [last.heading, last.seated].every(Number.isFinite) && Array.isArray(last.feet) && last.feet.length === 2 && last.feet.every(foot => finite(foot?.position) && Number.isFinite(foot?.heading))
     if (!last || !root.visible) return
@@ -312,13 +316,21 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
       bone(arm.upper, a, joint); bone(arm.forearm, joint, b); arm.hand.position.copy(b)
     }
     upper.rotation.x = .06 * Math.sin(last.seated * Math.PI)
+    const position=new THREE.Vector3(last.hip.x,last.hip.y,last.hip.z)
+    const dt=seconds-civilTime
+    if(dt<0){civilDistance=0;civilSpeed=0;previousHip=undefined}
+    if(previousHip&&dt>0){const step=position.distanceTo(previousHip);civilDistance+=step;civilSpeed=step/dt}
+    if(['seated','waiting','standing','sitting','turning'].includes(last.phase))civilSpeed=0
+    previousHip=position;civilTime=seconds
+    civilian.root.position.y=Math.min(...last.feet.map(f=>f.position.y))-root.position.y
+    civilian.update({seconds,distance:civilDistance,speed:civilSpeed,seated:last.seated,transition:last.phase})
     root.updateMatrixWorld(true)
   }
-  return { root, feet: legs.map(leg => leg.sole), updatePose,
+  return { root, inspectCivilian:()=>civilian.inspect(), feet: legs.map(leg => leg.sole), updatePose,
     setColor(color: string) { if (!disposed) shirt.color.set(color) },
     dispose() {
       if (disposed) return
-      disposed = true; root.removeFromParent(); root.clear(); geometries.forEach(value => value.dispose())
+      disposed = true; civilian.dispose(); root.removeFromParent(); root.clear(); geometries.forEach(value => value.dispose())
       const textures = new Set<THREE.Texture>()
       materials.forEach(value => Object.values(value).forEach(property => { if (property instanceof THREE.Texture) textures.add(property) }))
       textures.forEach(value => value.dispose()); materials.forEach(value => value.dispose())
@@ -348,7 +360,7 @@ export function criarVisitaComplexo(scene: THREE.Scene, options: OpcoesVisitaCom
   }
   function update(time: number) {
     if (disposed) return
-    seconds = Number.isFinite(time) ? Math.max(0, time) : 0; last = timeline.at(journeyClock.update(Math.max(0,seconds-startedAt),accessBlocked,retiring)); body.updatePose(last)
+    seconds = Number.isFinite(time) ? Math.max(0, time) : 0; last = timeline.at(journeyClock.update(Math.max(0,seconds-startedAt),accessBlocked,retiring)); body.updatePose(last,seconds)
     const journey = journeyClock.inspect()
     if (pendingColor && journey.key === pendingColor.key && journey.requestedKey === pendingColor.key) { applyColor(pendingColor.color); pendingColor = undefined }
   }
@@ -357,7 +369,7 @@ export function criarVisitaComplexo(scene: THREE.Scene, options: OpcoesVisitaCom
     setAccessBlocked(value:boolean){accessBlocked=value},
     finishAtOrigin(){retiring=true;const current=journeyClock.inspect();journeyClock.configure({key:current.key??'retiring-'+options.id,variantSeed:0,phase:'departure'})},
     configureJourney(journey: JornadaMovimentoComplexo | undefined) { if (disposed) return; journeyClock.configure(journey); update(seconds) },
-    inspect: () => ({ id: options.id, rigId: body.root.uuid, side: options.side, seatId: options.seat.id, seconds, color, pendingColor: pendingColor ? { ...pendingColor } : undefined, ...timeline.inspect(), journey: journeyClock.inspect(), pose: last ? structuredClone(last) : undefined }),
+    inspect: () => ({ id: options.id, rigId: body.root.uuid, civilian:body.inspectCivilian(), side: options.side, seatId: options.seat.id, seconds, color, pendingColor: pendingColor ? { ...pendingColor } : undefined, ...timeline.inspect(), journey: journeyClock.inspect(), pose: last ? structuredClone(last) : undefined }),
     dispose() { if (disposed) return; disposed = true; body.dispose() },
   }
 }

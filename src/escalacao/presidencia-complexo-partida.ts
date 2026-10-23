@@ -6,11 +6,12 @@ import {materialSolo3D} from './presidencia-solo-3d'
 import {materialGramado3D} from './presidencia-gramado-material-3d'
 import {faixasGramado3D} from './presidencia-gramado-3d'
 import {BANCO_Z,TECNICO_Z,FUNDO_AREA_TECNICA_Z} from './presidencia-area-tecnica'
-import {atletasEmCampo,type AtletaEstadio,type EstadoPartidaEstadio} from './presidencia-partida-model'
+import {entradaOficialCompleta,atletasEmCampo,type AtletaEstadio,type EstadoPartidaEstadio} from './presidencia-partida-model'
 import {quadroFutebol3D,type QuadroFutebol} from './presidencia-futebol-motor'
 import {person,pose} from './presidencia-atleta-3d'
 import {instanciarPersonagens} from './presidencia-personagens-instancias'
 import {criarBolaFutebol3D} from './presidencia-bola-3d'
+import type {loadPlayers} from './futebol3d/players.mjs'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
@@ -60,9 +61,10 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
   const half=Math.acos(5.5/9.15);arc(x-sign*11,0,9.15,sign===-1?-half:Math.PI-half,sign===-1?half:Math.PI+half)
   for(const z of [-34,34]){tube(scene,new THREE.Vector3(x,.05,z),new THREE.Vector3(x,1.5,z),.025,white);box(scene,.3,.22,.015,x+.15,1.35,z,material('#FFC400'))}
   // Actual goal frame and net in space; players and ball use depth testing.
-  tube(scene,new THREE.Vector3(x,0,-3.66),new THREE.Vector3(x,2.44,-3.66),.06,white)
-  tube(scene,new THREE.Vector3(x,0,3.66),new THREE.Vector3(x,2.44,3.66),.06,white)
-  tube(scene,new THREE.Vector3(x,2.44,-3.66),new THREE.Vector3(x,2.44,3.66),.06,white)
+  // The regulatory opening is measured INSIDE the 12 cm tubes.
+  tube(scene,new THREE.Vector3(x,0,-3.72),new THREE.Vector3(x,2.50,-3.72),.06,white)
+  tube(scene,new THREE.Vector3(x,0,3.72),new THREE.Vector3(x,2.50,3.72),.06,white)
+  tube(scene,new THREE.Vector3(x,2.50,-3.72),new THREE.Vector3(x,2.50,3.72),.06,white)
   const verts:number[]=[];const segment=(a:number[],b:number[])=>verts.push(...a,...b)
   for(let z=-3.66;z<=3.67;z+=.244){segment([x+sign*2,0,z],[x+sign*2,2.44,z]);segment([x,2.44,z],[x+sign*2,2.44,z])}
   for(let y=0;y<=2.45;y+=.244){segment([x+sign*2,y,-3.66],[x+sign*2,y,3.66]);for(const z of [-3.66,3.66])segment([x,y,z],[x+sign*2,y,z])}
@@ -78,8 +80,8 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  return grass
 }
 
-export type InspecaoPartidaComplexo={players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string}
-export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number)=>void;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type InspecaoPartidaComplexo={players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
+export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -117,17 +119,17 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()})
  scene.add(field)
  type Body=ReturnType<typeof person>
- type Match={root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
+ type Match={humanoids?:Awaited<ReturnType<typeof loadPlayers>>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
  let match:Match|undefined
  const empty=():InspecaoPartidaComplexo=>({players:0,ball:{x:0,y:.11,z:0}})
  let inspection=empty()
  const clearMatch=()=>{
-  if(match){match.people.dispose();descartarObjetos(match.root);match=undefined}
+  if(match){match.humanoids?.dispose();match.people.dispose();descartarObjetos(match.root);match=undefined}
   inspection=empty()
  }
- const update=(current:EstadoPartidaEstadio|undefined,now:number)=>{
+ const update=(current:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>{
   if(disposed)return
-  if(!current||atletasEmCampo(current).length!==22){clearMatch();return}
+  if(!current||(!entradaOficialCompleta(current)&&atletasEmCampo(current).length!==22)){clearMatch();return}
   const snapshot=quadroFutebol3D(current,now)
   if(snapshot.players.length!==22){clearMatch();return}
   const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(snapshot.players.filter(p=>p.side===side).map(p=>p.id))))
@@ -135,7 +137,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   if(match?.signature!==signature){
    clearMatch()
    const root=new THREE.Scene();root.name='complexo-partida'
-   const bodies=new Map(snapshot.players.map((p,i)=>{
+   const bodies=new Map((current.officialInput?[]:snapshot.players).map((p,i)=>{
     const body=person(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor,['#b9815b','#805439','#d5aa80'][i%3],p.keeper)
     body.group.name=p.key;root.add(body.group);return [p.key,body] as const
    }))
@@ -160,15 +162,17 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
    const people=instanciarPersonagens(root,[...[...bodies.values()].map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...reserves.map(r=>r.body.group)])
    const ball=criarBolaFutebol3D();root.add(ball)
    scene.add(root);match={root,signature,bodies,referee,coaches,reserves,ball,people}
+   if(current.officialInput){const target=match;import('./futebol3d/players.mjs').then(module=>module.loadPlayers(root,current,snapshot)).then(players=>{if(disposed||match!==target){players.dispose();return}target.humanoids=players;onReady?.()}).catch(error=>console.error('Humanoide 3D indisponível',error))}
   }
   const {bodies,referee,coaches,reserves,ball,people}=match
   for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}
-  for(const p of snapshot.players){const body=bodies.get(p.key)!;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
+  match.humanoids?.update(snapshot,camera,viewportHeight)
+  for(const p of snapshot.players){const body=bodies.get(p.key);if(!body)continue;body.group.visible=p.visible!==false;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
   for(const {body,side,keeper} of reserves)body.kit.color.set(keeper?'#d6b329':side==='home'?current.homeColor:current.awayColor)
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
   ball.position.set(snapshot.ball.x,snapshot.ball.y,snapshot.ball.z);ball.rotation.z=-snapshot.ball.x/.11;ball.rotation.x=snapshot.ball.z/.11
   people.update()
-  inspection={players:snapshot.players.length,ball:{...snapshot.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id}
+  inspection={players:snapshot.players.length,ball:{...snapshot.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
  }
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {

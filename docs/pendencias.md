@@ -7,6 +7,23 @@
 - *"Depois que tiver campeão dá pra sair da tela?"*: sim — toque fecha a festa e o botão VOLTAR À SALA já existia embaixo.
 - Bancada: `scripts/teste-tunel-festa/index.html?v=tunel|festa`.
 
+## ⚽ Parceiro Grêmio Esportivo Campo Grande (23/10) — PUBLICADO 23/10
+Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. Objetivo: gente no estádio no fim de semana + aluguel
+do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
+- Master da carreira: entra no lugar da ERO (3 temporadas, `gecg`); contrato da ERO correndo vai até o fim. Logo `patro-gecg.webp`.
+- Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO ESPORTIVO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
+  Vadico, OittoLabs e Grêmio refeitas IGUAL à Tidex (2ª versão; a de caixa branca + frase ele reprovou: *"só a da Tidex ainda"*):
+  só o LOGO claro e grande, sem caixa, sobre placa escura da cor da marca (`placa-vadico.webp`/`placa-oittolabs.webp`/`patro-gecg-placa.webp`).
+- ✈️ AVIÃOZINHO NA HOME (ideia dele, publicado): o título "O PREGÃO ESTÁ ABERTO." fica no meio (sem a frase de baixo); 10s depois
+  de abrir a home o avião passa UMA vez puxando a faixa do parceiro (tocar = link) e o título some enquanto ele passa.
+  Config: `AVIAO_HOME` (patrocinio.ts; `null` tira). Componente `AviaoDaHome` (patrocinio-visual.tsx). Regra no CLAUDE.md.
+- Link do Grêmio (telão + avião) = Instagram `https://www.instagram.com/gremiocampo` (pedido dele; antes era o WhatsApp).
+- 🧼 Faixa da comunidade do WhatsApp ficou FINA (uma linha escura, 32px, sem verdão/📲/botão amarelo) — pedido dele.
+- Nome SEMPRE inteiro: "Grêmio Esportivo Campo Grande" (pedido dele).
+- "Apresentada por": Copas Regionais (`regional`) e a liga da carreira NA VÁRZEA (`career-varzea`; as outras divisões seguem Tidex).
+- Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
+- Aviso da comunidade: `scripts/avisos/2026-10-23-parceiro-gecg.json` → `scripts/posts/aviso-2026-10-23-parceiro-gecg.png` (escudo dentro da caixa).
+- Mockup pro cliente (todos os lugares): `scripts/posts/gecg-no-leilao-legends.png`. Bancada: `scripts/teste-parceiro/`.
 ## 🎙️ Coletiva no computador (23/10) — FEITO e publicado pra todos ("perfeito pode fazer")
 - Mockup `scripts/mockups/desktop-coletiva.png`. ≥1100px (`useTelaPC`): tela inteira em 2 colunas — esquerda painel das marcas +
   mesa (presidente maior) + placar; direita repórter, pergunta e respostas em letra grande. O jornal (O MARTELO) largo e centrado.
@@ -10383,3 +10400,16 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   escudo personalizado = R$ 19,90 à parte, pra qualquer clã. Banco já valendo (migration `20261021190000_cla_precos.sql`, testado). Loja nova
   (`Extra2Form`) no branch. Julia Barranquila (Oliver Clã) e Tricolor do Arruda (Lado A-DPA) já tinham criado outro clã: pra ativar o do batismo
   pagam os R$ 9,90 do 2º. Falta: texto do Pix/edge "2º clã" (sem "+ escudo") e publicar + deploy da `mp-criar-pix`.
+
+
+### 23/10 — prévia privada de cidade viva e replay 3D
+- Pedido atual autoriza publicar a prévia da conta Diego; não ampliar a outras contas. A autorização anterior de não publicar foi substituída pelo pedido explícito atual.
+- Civis Quaternius CC0 com roupas próprias, AnimationMixer e clipes Idle/Walk/SitDown/StandUp; oito variantes. Adultos e idosos usam modelos de origem. Crianças são escalas uniformes provisórias; maior volume corporal é uma variante civil localizada, sem alterações no jogador de futebol. O estilo dos civis é cartunesco, diferente dos atletas.
+- Reutilizar ruas/calçadas/circulação/carros existentes. População decorativa limitada a 24 desktop/10 móvel, ligada à torcida calculada pelas regras existentes e às melhorias compradas; não equivale a público pago e não gera renda/compras. LOD só visual. Torcida distante continua simplificada.
+- Replay privado no estádio do mapa: usa a entrada oficial e confere autores/minutos/placar contra o resultado salvo antes de habilitar; não grava carreira e não avança rodada. Jogo fora de casa aparece explicitamente como reprodução de teste no mapa. Câmera livre é padrão; transmissão opcional.
+- Save Neymarzetti conferido: Rei da Bola FC 1×1 Neymarzetti, Souza 16′ e Denis Law 43′; 82 eventos. A referência antiga 2×0 era recálculo de branch antigo, não o resultado congelado. Não usar essa referência antiga como resultado real.
+- Validações: 5.701 amostras idênticas ao motor oficial; auditoria visual de 950 quadros com 22 jogadores; 48 contatos habilitados e janelas a 60 Hz sem penetração, piso negativo ou desancoragem acima dos limites. Onze ações seguem sem captura aprovada (inclusive um passe removido após colisão na aproximação); outras capturas não são inventadas. Cobertura de goleiros/dribles/faltas ainda provisória.
+- Galeria: oito civis, dez vistas, caminhada e sentar/levantar com piso validado. Replay: pausa/continuação, fim oficial, reinício, troca de fonte e encerramento ao sair da conta. Relógio 2D/3D: 30.383 amostras, velocidades 0,5/1/2/4. Campo 105×68 m, gol livre 7,32×2,44 m, bola raio 0,11 m.
+- Cidade completa QA: circulação de carro/pedestres e 22 jogadores em sete etapas até o fim, sem erro JS. Captura aproximada adicional com população da regra real; estádio completo da bancada não representa compras da conta. Reexecução durante merge/HMR foi interrompida por recarga da página; não confundir com aprovação de nova rodada gravada.
+- Testes locais usam Chromium/SwiftShader, não comprovam FPS em celular físico. Cena completa observada: cerca de 267 draw calls / 1,73 milhão de triângulos. Desempenho e anatomia infantil definitiva seguem para melhoria. Nenhuma sessão autenticada da conta foi manipulada e nenhuma migração executada.
+- Fontes e créditos em public/creditos-3d.txt e manifests de proveniência. Shorts: atribuição literal CC BY por Elvaerwyn, sem inventar versão.

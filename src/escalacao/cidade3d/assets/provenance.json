@@ -1,0 +1,117 @@
+{
+  "schema": "leilao-legends-civilian-models/v1",
+  "models": [
+    {
+      "file": "Casual_Male.glb",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "commercial": true,
+      "sourceSHA256": "21a99128d13f130ffabf4177468cb8d79855f8fd936ea32365a4f26296e1df21",
+      "sha256": "39be2b2a943effd0a82d7432dba60e0918258a2373ce9199e38cd85e8c3e4087",
+      "bytes": 496864,
+      "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/casual_male.glb",
+      "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
+      "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
+      "clips": [
+        "Idle",
+        "SitDown",
+        "StandUp",
+        "Walk"
+      ]
+    },
+    {
+      "file": "Casual_Female.glb",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "commercial": true,
+      "sourceSHA256": "3b4f39d27dc8a5f3b42d023f88a928679e7b1b0ea49ddb4857a07399bc4d8332",
+      "sha256": "0f8fbf76b6316c8b56a256599737eca846886bb17c9f14436fb1a85dfc6a8ecc",
+      "bytes": 505752,
+      "origin": "https://github.com/wmehobbs/Abbott-game/blob/0796b0a859aded9629cd802a0c132993b0c6e091/content/meshes/raw/quaternius_casual_female/Casual_Female.glb",
+      "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
+      "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
+      "clips": [
+        "Idle",
+        "SitDown",
+        "StandUp",
+        "Walk"
+      ]
+    },
+    {
+      "file": "oldclassy_male.glb",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "commercial": true,
+      "sourceSHA256": "441caf36c0b0d517a5d7caf84dc06f4c999c2ebb63d562c1b290ba11ca1c12a0",
+      "sha256": "2e57391c1cb8944820eb8dd9d19340c707bfd895dfe0c9dbe91f712294c1421c",
+      "bytes": 452736,
+      "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/oldclassy_male.glb",
+      "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
+      "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
+      "clips": [
+        "Idle",
+        "SitDown",
+        "StandUp",
+        "Walk"
+      ]
+    },
+    {
+      "file": "oldclassy_female.glb",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "commercial": true,
+      "sourceSHA256": "5aa75df120a7de61236080db5aab6b6d336204441d827ab939a7751e97dd12ec",
+      "sha256": "7b0379849b59f4f8ddde0c2ef87c32f46300f82811bff7c49a7c1b8c555d229d",
+      "bytes": 536596,
+      "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/oldclassy_female.glb",
+      "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
+      "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
+      "clips": [
+        "Idle",
+        "SitDown",
+        "StandUp",
+        "Walk"
+      ]
+    },
+    {
+      "file": "Fuller_Man.glb",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "commercial": true,
+      "sourceSHA256": "21a99128d13f130ffabf4177468cb8d79855f8fd936ea32365a4f26296e1df21",
+      "sha256": "277e9a0da7445ad770633b2a9729f3f6eaf63ed1f4d6e358594fc7cbeef2e9fd",
+      "bytes": 906508,
+      "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/casual_male.glb",
+      "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
+      "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data; separate bounded torso-volume target on civilian mesh and clothing, same rig/weights; recomputed normals",
+      "clips": [
+        "Idle",
+        "SitDown",
+        "StandUp",
+        "Walk"
+      ],
+      "derivedFrom": "Casual_Male.glb",
+      "provisional": true
+    },
+    {
+      "file": "Fuller_Woman.glb",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "commercial": true,
+      "sourceSHA256": "3b4f39d27dc8a5f3b42d023f88a928679e7b1b0ea49ddb4857a07399bc4d8332",
+      "sha256": "cc457d23fb7de8eec69ee6532d0e081bc30cd3f244b6214bb2a03e628a4146e7",
+      "bytes": 925252,
+      "origin": "https://github.com/wmehobbs/Abbott-game/blob/0796b0a859aded9629cd802a0c132993b0c6e091/content/meshes/raw/quaternius_casual_female/Casual_Female.glb",
+      "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
+      "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data; separate bounded torso-volume target on civilian mesh and clothing, same rig/weights; recomputed normals",
+      "clips": [
+        "Idle",
+        "SitDown",
+        "StandUp",
+        "Walk"
+      ],
+      "derivedFrom": "Casual_Female.glb",
+      "provisional": true
+    }
+  ]
+}

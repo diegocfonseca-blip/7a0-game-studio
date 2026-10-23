@@ -1,15 +1,18 @@
+import {RelogioCampo3D} from './presidencia-futebol-relogio'
 import {atletasEmCampo,tempoVisualPartida,type EstadoPartidaEstadio} from './presidencia-partida-model.ts'
 import {contatoLuvas3D,contatoPe3D,conduzirBola3D,separarBolaDosPes3D} from './presidencia-atleta-3d.ts'
 import {GOL_ENTRA_MS} from './chances.ts'
 import {tempoLance,type PlanoLanceFutebol} from './presidencia-lance-tempo.ts'
 import {criarSequenciaLance,amostrarSequenciaLance} from './presidencia-lance-sequencia.ts'
 import {amostrarFinalizacaoFutebol,type PlanoFinalizacaoFutebol} from './presidencia-futebol-finalizacao.ts'
+import {FutebolOficial3D} from './presidencia-futebol-oficial'
+import type {Evento} from './motor2/tipos'
 
 /** Metros no plano X/Z. A apresentação nunca escreve resultados ou estatísticas. */
 export type PontoFutebol={x:number;z:number}
-export type JogadorFutebol=ReturnType<typeof atletasEmCampo>[number]&{mx:number;mz:number;heading:number;distance:number;speed:number;kick:number;throwing:number;throwPreparation?:number;save?:number;dive?:number;control?:number}
-export type FaseFutebol='dominio'|'passe'|'lancamento'|'cruzamento'|'lateral'|'escanteio'|'tiro-de-meta'|'saida'|'finalizacao'|'gol'
-export type QuadroFutebol={players:JogadorFutebol[];ball:{x:number;y:number;z:number};phase:FaseFutebol;owner?:string;referee:PontoFutebol&{heading:number;distance:number;speed:number};time:number}
+export type JogadorFutebol=ReturnType<typeof atletasEmCampo>[number]&{mx:number;mz:number;heading:number;distance:number;speed:number;kick:number;throwing:number;throwPreparation?:number;save?:number;dive?:number;control?:number;visible?:boolean;tacticalRole?:string}
+export type FaseFutebol='dominio'|'passe'|'lancamento'|'cruzamento'|'lateral'|'escanteio'|'tiro-de-meta'|'saida'|'finalizacao'|'gol'|'falta'|'penalti'|'fim'
+export type QuadroFutebol={players:JogadorFutebol[];ball:{x:number;y:number;z:number};phase:FaseFutebol;owner?:string;referee:PontoFutebol&{heading:number;distance:number;speed:number};time:number;official?:{score:number[];events:Evento[];finished:boolean}}
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))
 const distance=(a:PontoFutebol,b:PontoFutebol)=>Math.hypot(a.x-b.x,a.z-b.z)
 const point=(p:JogadorFutebol)=>({x:p.mx,z:p.mz})
@@ -460,10 +463,18 @@ export class MotorFutebol {
  }
 }
 let active:{id:string;motor:MotorFutebol;state:EstadoPartidaEstadio}|undefined
+let official:{id:string;signature:string;motor:FutebolOficial3D;clock:RelogioCampo3D;state:EstadoPartidaEstadio}|undefined
 /** The match clock may hold its minute while the physical ball is retrieved
  * and the teams take legal kickoff positions. This does not advance the motor. */
-export function aguardandoReinicioFutebol(id:string){return active?.id===id&&active.motor.aguardandoReinicio}
+export function aguardandoReinicioFutebol(id:string){return official?.id===id?false:active?.id===id&&active.motor.aguardandoReinicio}
 export function quadroFutebol3D(state:EstadoPartidaEstadio,now:number){
+ if(state.officialInput){
+  const signature=JSON.stringify(state.officialInput)
+  if(official?.id!==state.context.id||official.signature!==signature)official={id:state.context.id,signature,motor:new FutebolOficial3D(state.officialInput),clock:new RelogioCampo3D(),state}
+  if((state.visualClock?.sampledAt??Infinity)>=(official.state.visualClock?.sampledAt??-Infinity))official.state=state
+  const current=official.state
+  return official.motor.sample(current,official.clock.sample(current,now))
+ }
  if(active?.id!==state.context.id)active={id:state.context.id,motor:new MotorFutebol(state),state}
  // React can paint the old map prop once after the scoreboard publishes a new
  // event. That stale camera must not clear/recreate the shared official play.

@@ -409,7 +409,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     <>
       {/* na convocação a tela dos 11 já abre sozinha: lá só vibra/apita, sem cartão (não gasta toque do relógio) */}
       {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={`${nomeCopa(copa)} · ${en ? `you have ${SEG_ESCOLHA}s to pick your club` : `você tem ${SEG_ESCOLHA}s pra pegar o clube`}`} botao={tr('Escolher meu clube', 'Pick my club')} aoFechar={chama.fechar} />}
-      <CompetitionStage kind="copa8" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
+      <CompetitionStage kind="copa8" patroKind="regional" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
         <div className="ll26-cup-entry">
           {soAssisto && dupla && <AvisoDupla quem={dupla.nomeAge} />}
           {mostraNaoSai && <NaoSai minhaVez={minhaFila!.vez} antes={antesDeMim} fase={fase?.fase} seg={seg} segPorVez={SEG_ESCOLHA} />}
@@ -723,7 +723,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   })() : null
   return (
     <TemaCompCtx.Provider value={copa}>
-      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
+      <CompetitionStage kind="copa8" patroKind="regional" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
       <GiroDaRodada cinema />
       {/* ⚔️ 23/10: o cartão de tática — só pra quem tem clube nesta copa e enquanto ainda falta jogo */}
