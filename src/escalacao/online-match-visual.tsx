@@ -8,6 +8,7 @@ import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:0
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
 import {tempoLance,type RelogioLance} from './presidencia-lance-tempo'
+import { useTemaComp, Trofeu } from './competicoes-visual' // 🎨 a cara de cada copa (23/10)
 
 type Goal = { name: string; min: number; home: boolean }
 export type FalaTipo = 'gol' | 'lance' | 'jogo'
@@ -47,6 +48,7 @@ export function OnlineScorePresentation(p: {
   // a faixa de cima SAI e tudo (gol, lance, apito, cartão, rádio) entra no rádio, com a fala anterior apagadinha embaixo.
   narracaoNoRadio?: boolean;
 }) {
+  const tema = useTemaComp() // 🎨 23/10: relógio na cor da copa (só dentro de sala/partida rápida)
   const palcoRef=useRef<HTMLDivElement>(null)
   useEffect(()=>{
     const clock=p.palco?.clock,element=palcoRef.current
@@ -85,7 +87,7 @@ export function OnlineScorePresentation(p: {
     </div>}
     <div className="ll25-duel">
       {team(true)}
-      <div className="ll25-numbers"><small>{p.clock}</small><strong>{p.homeScore} <span>×</span> {p.awayScore}</strong></div>
+      <div className="ll25-numbers"><small style={tema ? { display: 'inline-block', background: tema.vsBg, color: tema.vsInk, border: '2px solid #0C0C0C', borderRadius: 8, padding: '0 10px', margin: '2px 0' } : undefined}>{p.clock}</small><strong>{p.homeScore} <span>×</span> {p.awayScore}</strong></div>
       {team(false)}
     </div>
     {p.palcoOn && (
@@ -141,8 +143,10 @@ export function CompetitionStage({ kind, title, phase, detail, status, children,
   patroKind?: Competicao | null // 💼 de quem é o "apresentada por" (padrão: o próprio kind; null = nenhum) — a carreira usa o dela
 }) {
   const patro = usePatrocinio(patroKind === undefined ? kind : patroKind)
-  return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
+  const tema = useTemaComp() // 🎨 23/10: dentro de sala/partida rápida, troféu no canto e faixa na paleta da copa
+  return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`} style={tema ? { position: 'relative' } : undefined}>
     <LedEstadio />
+    {tema && <span style={{ position: 'absolute', top: 14, right: 14, zIndex: 2, filter: 'drop-shadow(0 3px 6px #000a)' }}><Trofeu comp={tema.id} size={64} /></span>}
     {/* 🧹 `detail` vazio não vira parágrafo em branco (Diego 19/09: a liga não precisa
         da linha "acompanhe sua divisão…"; a Copa continua dizendo o formato da fase) */}
     <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2>{detail ? <p>{detail}</p> : null}
@@ -152,7 +156,7 @@ export function CompetitionStage({ kind, title, phase, detail, status, children,
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0C0C0C', color: '#FFC400', border: '2px solid #FFC400', borderRadius: 8, padding: '1px 8px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 13, letterSpacing: '.04em' }}>{patro.emoji} {patro.nome.toUpperCase()}</span>
       </div>}
     </div>
-    {status && <div className="ll26-competition-status"><span />{status}</div>}
+    {status && <div className="ll26-competition-status" style={tema ? { background: tema.bg, borderTop: '3px solid #0c0c0c' } : undefined}><span style={tema ? { background: tema.vsBg } : undefined} />{status}</div>}
     {children}
   </section>
 }
@@ -425,10 +429,10 @@ export function ResumoFase({ titulo, passaram, cairam, proxima, seg, total, cor,
 
 // ─── 🏆 CAMPEÃO + 🥇 ARTILHEIRO NO FIM DA COPA (mockup nº 3) ───
 // Dourado só pra QUEM GANHOU (regra de tier: nunca dourado fixo pra todos); pros outros, branco.
-export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean }) {
+export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu, trofeu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean; /** 🏆 o troféu DESTA copa ao lado do escudo (23/10) */ trofeu?: ReactNode }) {
   return <div className={`ll41-campeao${meu ? ' meu' : ''}`}>
     <small>🏆 {titulo}</small>
-    <div className="ll41-campeao-escudo">{crest}</div>
+    <div className="ll41-campeao-escudo">{crest}{trofeu && <span className="ll41-campeao-trofeu">{trofeu}</span>}</div>
     <h3>{nome}</h3>
     {sub && <p>{sub}</p>}
     {final && <p className="ll41-campeao-final">{final}</p>}

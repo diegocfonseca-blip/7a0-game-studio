@@ -1,3 +1,40 @@
+## ⚔️ Tática (retranca/equilíbrio/ataque) nas copas do online (23/10)
+- Pedido: *"a tática não está aparecendo em várias coisas como mundo, regionais…"*. Mapa medido: liga ✅ · Copa dos 8/mata-mata ✅ ·
+  Champions ✅ · **Liberta fase de grupos: faltava só o botão** (o motor já lia `state.tactics`) → FEITO e publicado.
+- ⏳ Copa do Mundo e regionais: NÃO têm tática no motor. Cada aparelho recalcula o torneio sozinho pela ficha (é o que garante
+  "todo mundo vê a mesma Copa"); pôr tática exige mandar a escolha de cada um pra sala antes de cada rodada + mudar o motor e o
+  relógio do banco. Explicado ao Diego, esperando OK.
+
+## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — PUBLICADO pra todos ("ok")
+- Feito com o contexto `TemaCompCtx` (competicoes-visual.tsx): só as telas das SALAS e da PARTIDA RÁPIDA embrulham
+  (EscSeason liga/copa, EscLiberta, EscChampions, Copa do Mundo online, regionais). Carreira, basquete e Kings: `null`, nada muda.
+  ① troféu no canto do `CompetitionStage` + faixa de status na paleta · ② relógio do placar (`OnlineScorePresentation`) ·
+  ③ grupos da Liberta (cabeçalho + 2 que passam em dourado), faixas de corte da Champions (azul/prata/cinza), regionais
+  (cabeçalho + zona na cor da copa); Copa do Mundo já era verde · ④ `FraseCopa` no pé de cada tela. Bancada `scripts/teste-tema-real/`.
+- Pedido: *"simulação das ligas e depois copas temáticas nas cores… sem sair muito dos padrões"*. Mockups
+  `scripts/mockups/simulacao-tema-copas-1.png` / `-2.png` (bancada `scripts/teste-tema/`). Mesma tela; muda só: ① faixa do topo
+  com o troféu e a paleta da copa · ② relógio na cor da copa · ③ cabeçalho e zonas da tabela nas cores · ④ frase da copa no pé.
+  Paletas = as mesmas do túnel/festa (`COMPS`). O 1º mockup (caixas soltas) ele não entendeu; este é o de telas lado a lado.
+
+## 🎬 Salas: túnel da final + festa do campeão, com a cara de cada campeonato (23/10) — PUBLICADO pra todos
+- ✅ Aprovado (*"cor do campeonato, pode fazer o túnel da final e o campeão"*) e feito em `competicoes-visual.tsx`: `COMPS` (paleta,
+  frase do túnel, frase do campeão, confete), `Trofeu` (desenho vetorial inspirado no real), `TunelFinal` e `FestaCampeao` (5,6s,
+  toque pula, som `playCampeao`: canto do clube se o campeão for você e tiver canto; senão a torcida do gol).
+- Onde liga: abertura da FINAL da Copa dos 8/Liberta/Champions (screens.tsx), da Copa do Mundo (copa-mundo.tsx) e dos regionais
+  (copa-regional-online.tsx); festa no fim da liga e da copa (EscEnd, no lugar do festão da mascote), da Copa do Mundo online e dos
+  regionais. Uma vez por edição (sessionStorage). Basquete e Kings ficam de fora. Bancada: `scripts/teste-competicoes/`.
+- 🏆 O cartão parado de campeão (Copa dos 8/Liberta/Champions, Copa do Mundo e regionais) também mostra o troféu certo (23/10,
+  *"o campeão já aparecer também com o troféu correto"*): prop `trofeu` no `CampeaoCopaCard`.
+- 🎨 Pendente (quando ele quiser): trocar os troféus desenhados por arte gerada em `.webp` (regra de peso dos batismos vale).
+- 📝 Frases trocadas por ele (23/10): Liga = *"a liga lendária"* (na festa: *"campeão da Liga Legends"*) · Rio×SP = *"biscoito × bolacha"*.
+- 🚫 Túnel NUNCA mais verde/vermelho fixo (*"só não tô gostando do fundo ser sempre verde e vermelho"*).
+- Mockup `online-momentos-cinema.png` + vídeo `scripts/posts/online-momentos-cinema.mp4` (fora do git): Diego quer SÓ o 2 (festa do
+  campeão) e o 3 (túnel da final) — *"faz só o 2 e 3 melhor"*. O ⚡ martelo de lenda (carta grande + VENDIDO) ficou de FORA (o "faah"
+  já existe: `sfx/lenda.mp3`, só pra quem leva a lenda). Final aprovada (*"final ok tb td certo"*). Som no campeão: ele quer.
+- Pedido novo: cada campeonato com troféu, paleta e estilo PRÓPRIOS, inspirados no real (Liga, Copa dos 8, Liberta, Champions,
+  Copa do Mundo, Mundial, Rio×SP, Sul×Minas-PR, Nordeste). Túnel: fundo com a cor de cada time OU a paleta da copa. Mockup das
+  paletas e troféus: `scripts/mockups/campeonatos-paletas-trofeus.png` (rascunho de formato; a arte final dos troféus vira imagem).
+
 ## 🗂️ Salas online com visual novo (23/10) — SÓ NA CONTA DO DIEGO, no branch (esperando ele testar e mandar publicar)
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.

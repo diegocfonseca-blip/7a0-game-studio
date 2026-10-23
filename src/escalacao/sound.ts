@@ -200,6 +200,12 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'kelvinoliveiraandradeenunes@gmail.com': 'sfx/torcida-k9-v1.mp3', // 🧊👑 K9 FC (23/10): 12 s do vídeo que o Diego mandou, mesmo padrão do Fabulous (toca na carreira e na gala)
   'kauealves584@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🦅⚫⚪ Gaviões SCCP (16/10, Fundador): 12 s de "Todo Poderoso Timão" que o Diego mandou, mesmo volume (−20,6 dB) do Fabulous
 }
+/** 🏆 FESTA DO CAMPEÃO das salas (23/10): toca o CANTO do clube pra quem é o campeão e tem canto próprio; pros outros
+ *  (e pra quem não tem canto), o grito de gol da torcida. Respeita o mudo (playMp3). */
+export function playCampeao(souCampeao: boolean, ms: number): () => void {
+  const canto = souCampeao && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
+  return playMp3Gala(`${import.meta.env.BASE_URL}${canto ?? SFX_GOL}`, ms)
+}
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
 export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }
 let emailDoSom: string | null = null

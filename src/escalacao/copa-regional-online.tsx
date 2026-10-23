@@ -17,6 +17,7 @@
 //   · o relógio sincronizado é `esc_regional_clock` (docs/sql/regional-clock.sql). Se o
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
+import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { fimDoJogoMs } from './copa-clock-preview'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -42,6 +43,7 @@ import {
 } from './copa-regional'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', ROXO = '#7C3AED'
+const ZONA_REG: Record<CopaRegionalId, string> = { riosp: '#1E88E5', sulminas: '#2E7D32', nordeste: '#E86A1C' } // 🎨 quem passa, na cor da copa (23/10)
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
 const box = (bg: string) => ({ border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, background: bg }) as const
 const semEmoji = (n: string) => n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim() || tr('Técnico', 'Manager')
@@ -545,6 +547,9 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
 }) {
   const entrants = useMemo(() => entrantesRegionais(ficha, meuUid), [ficha, meuUid])
   const mundo: MundoRegional = useMemo(() => simulaRegional(entrants, ficha.seed), [entrants, ficha.seed])
+  // 🏆 FESTA DO CAMPEÃO (23/10): quando o regional acaba, a festa na paleta dele, 1x por edição
+  const festaRegKey = `esc-festa-reg-${roomId}-${copa}-${ficha.edicao}`
+  const [festaRegVista, setFestaRegVista] = useState(() => { try { return sessionStorage.getItem(festaRegKey) === '1' } catch { return false } })
   const P = passosRegional(mundo.n)
   const penMs = (t: ConfrontoRegional) => (t.pen ? pensRevealDelay(t.pen, !!(entrants[t.h].humano || entrants[t.a].humano)) * 1000 : 0)
   const extraDoPasso = (s: number) => { const i = s - P.PRIMEIRO_KO; const f = mundo.ko[i]; return f ? Math.round(Math.max(0, ...f.ties.map(penMs))) : 0 }
@@ -616,19 +621,20 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     const COLS = '18px 26px minmax(0,1fr) 30px 26px 32px'
     return (
       <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 6px', textTransform: 'uppercase' }}>{nomeLado(copa, lado)}</p>
+        {/* 🎨 23/10: cabeçalho e zona de quem passa nas cores da copa (Rio×SP azul · Sul×Minas verde · Nordeste laranja) */}
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '-10px -10px 8px', padding: '6px 10px', textTransform: 'uppercase', background: COMPS[copa].bg, color: '#fff', borderRadius: '11px 11px 0 0', borderBottom: `2px solid ${INK}` }}>{nomeLado(copa, lado)}</p>
         <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 6, padding: '0 6px 3px', ...OSWALD, fontSize: 9.5, color: 'rgba(0,0,0,.5)' }}>
           <span>#</span><span /><span>{tr('CLUBE', 'CLUB')}</span><span style={{ textAlign: 'right' }}>PTS</span><span style={{ textAlign: 'right' }}>{tr('V', 'W')}</span><span style={{ textAlign: 'right' }}>{tr('SG', 'GD')}</span>
         </div>
         {linhas.map((r, i) => (
           <div key={r.t}>
             <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 6, alignItems: 'center', padding: '4px 6px', fontSize: 11.5, fontWeight: isYou(r.t) ? 900 : 700,
-              background: i < vagasLado ? '#D8F0DE' : 'transparent', borderLeft: `4px solid ${i < vagasLado ? GREEN : 'transparent'}`, outline: isYou(r.t) ? `2.5px solid ${ROXO}` : undefined, outlineOffset: -2.5 }}>
+              background: i < vagasLado ? ZONA_REG[copa] + '2E' : 'transparent', borderLeft: `4px solid ${i < vagasLado ? ZONA_REG[copa] : 'transparent'}`, outline: isYou(r.t) ? `2.5px solid ${ROXO}` : undefined, outlineOffset: -2.5 }}>
               <span>{i + 1}</span><SeloClube clube={entrants[r.t].pais} size={22} />
               <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entrants[r.t].pais}{entrants[r.t].humano ? <small style={{ fontWeight: 700, color: 'rgba(0,0,0,.5)' }}> · {entrants[r.t].club}</small> : null}</span>
               <span style={{ textAlign: 'right', fontWeight: 900 }}>{r.pts}</span><span style={{ textAlign: 'right' }}>{r.w}</span><span style={{ textAlign: 'right' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
             </div>
-            {i === vagasLado - 1 && <div style={{ background: GREEN, color: '#fff', ...OSWALD, fontSize: 9.5, textAlign: 'center', padding: '2px 0' }}>{vagasLado === 4 ? tr('▲ 4 PRIMEIROS VÃO PRAS QUARTAS', '▲ TOP 4 GO TO THE QUARTER-FINALS') : vagasLado === 2 ? tr('▲ 2 PRIMEIROS VÃO PRA SEMI', '▲ TOP 2 GO TO THE SEMI-FINALS') : tr('▲ O 1º VAI PRA FINAL', '▲ THE 1ST GOES TO THE FINAL')}</div>}
+            {i === vagasLado - 1 && <div style={{ background: ZONA_REG[copa], color: '#fff', ...OSWALD, fontSize: 9.5, textAlign: 'center', padding: '2px 0' }}>{vagasLado === 4 ? tr('▲ 4 PRIMEIROS VÃO PRAS QUARTAS', '▲ TOP 4 GO TO THE QUARTER-FINALS') : vagasLado === 2 ? tr('▲ 2 PRIMEIROS VÃO PRA SEMI', '▲ TOP 2 GO TO THE SEMI-FINALS') : tr('▲ O 1º VAI PRA FINAL', '▲ THE 1ST GOES TO THE FINAL')}</div>}
           </div>
         ))}
       </div>
@@ -698,10 +704,12 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       const titulo = fechada ? `${nomeFase(fechada.tipo)} ${fechada.ties.length === 1 ? tr('ENCERRADA', 'OVER') : tr('ENCERRADAS', 'OVER')}` : tr('RODADAS ENCERRADAS', 'ROUNDS OVER')
       return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxFase ? (proxFase.tipo === 'final' ? tr('A FINAL', 'THE FINAL') : nomeFase(proxFase.tipo)) : ''} seg={seg} total={total} cor="#E8503A" espera={espera} />
     }
+    // 🎬 TÚNEL DA FINAL (23/10): a abertura da final vira o túnel na paleta do regional (mesmo relógio)
+    { const fx = mundo.ko[proxPasso - P.PRIMEIRO_KO]; if (fx?.tipo === 'final' && fx.ties.length === 1) { const t0 = fx.ties[0]; return <TunelFinal comp={copa} seg={seg} total={total} espera={espera} casa={{ nome: entrants[t0.h].pais, crest: <SeloClube clube={entrants[t0.h].pais} size={92} /> }} fora={{ nome: entrants[t0.a].pais, crest: <SeloClube clube={entrants[t0.a].pais} size={92} /> }} /> } }
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#E8503A" espera={espera} />
   })() : null
   return (
-    <>
+    <TemaCompCtx.Provider value={copa}>
       <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
       <GiroDaRodada cinema />
@@ -763,12 +771,14 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       ))}
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
       {/* CERIMÔNIA */}
+      {done && !festaRegVista && <FestaCampeao comp={copa} nome={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={150} />}
+        souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }} />}
       {done && (() => {
         const c = mundo.campeao, fin = mundo.ko[mundo.ko.length - 1].ties[0]
         const art = artilhariaRegional(mundo).slice(0, 5)
         return <>
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}><SeloClube clube={entrants[c].pais} size={70} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}><SeloClube clube={entrants[c].pais} size={70} /><Trofeu comp={copa} size={64} /></div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '6px 0 0', textTransform: 'uppercase' }}>{entrants[c].pais} {tr('CAMPEÃO!', 'CHAMPION!')}</p>
             <p style={{ fontSize: 11, fontWeight: 800, margin: '3px 0 0' }}>{isYou(c) ? tr('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : entrants[c].humano ? `${tr('Técnico', 'Manager')}: ${entrants[c].club}` : tr('Título da máquina 🤖', 'Won by the machine 🤖')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0' }}>{tr('final', 'final')}: {entrants[fin.h].pais} {fin.g[0]}×{fin.g[1]} {entrants[fin.a].pais}{fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}</p>
@@ -777,7 +787,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
           <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA', 'CUP TOP SCORER')} linhas={art.slice(0, 3).map((r): ArtilheiroLinha => { const carta = entrants[r.team].xi.find(c => c.name === r.name); return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <SeloClube clube={entrants[r.team].pais} size={40} />, meu: isYou(r.team) } })} />
         </>
       })()}
+      <FraseCopa />
       <button className="ll31-back-room" onClick={aoFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 14, background: done ? GREEN : '#fff', color: done ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>
-    </>
+    </TemaCompCtx.Provider>
   )
 }
