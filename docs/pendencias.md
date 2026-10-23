@@ -1,4 +1,9 @@
-## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — MOCKUP, esperando OK do Diego
+## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — PUBLICADO pra todos ("ok")
+- Feito com o contexto `TemaCompCtx` (competicoes-visual.tsx): só as telas das SALAS e da PARTIDA RÁPIDA embrulham
+  (EscSeason liga/copa, EscLiberta, EscChampions, Copa do Mundo online, regionais). Carreira, basquete e Kings: `null`, nada muda.
+  ① troféu no canto do `CompetitionStage` + faixa de status na paleta · ② relógio do placar (`OnlineScorePresentation`) ·
+  ③ grupos da Liberta (cabeçalho + 2 que passam em dourado), faixas de corte da Champions (azul/prata/cinza), regionais
+  (cabeçalho + zona na cor da copa); Copa do Mundo já era verde · ④ `FraseCopa` no pé de cada tela. Bancada `scripts/teste-tema-real/`.
 - Pedido: *"simulação das ligas e depois copas temáticas nas cores… sem sair muito dos padrões"*. Mockups
   `scripts/mockups/simulacao-tema-copas-1.png` / `-2.png` (bancada `scripts/teste-tema/`). Mesma tela; muda só: ① faixa do topo
   com o troféu e a paleta da copa · ② relógio na cor da copa · ③ cabeçalho e zonas da tabela nas cores · ④ frase da copa no pé.

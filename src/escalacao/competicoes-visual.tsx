@@ -5,7 +5,7 @@
 //  · `FestaCampeao`: a festa do fim, por cima da tela de fim (toque pula, fecha sozinha). Som: canto do clube pra quem
 //    é o campeão e tem canto; pros outros, o grito de gol.
 // Zero mensagem nova: tudo sai do que cada aparelho já tem.
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { tr } from './lang'
 import { playCampeao } from './sound'
@@ -161,4 +161,16 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
     </div>,
     document.body,
   )
+}
+
+// 🎨 SIMULAÇÃO COM A CARA DA COPA (23/10, mockup `simulacao-tema-copas-1/2.png`, "ok"). A tela continua a MESMA;
+// quem está dentro deste contexto ganha: ① troféu + faixa na paleta (CompetitionStage) · ② relógio do placar na cor
+// da copa (OnlineScorePresentation) · ③ cabeçalho/zonas da tabela · ④ a frase da copa no pé (`FraseCopa`).
+// Só as salas e a partida rápida embrulham as telas com ele — a carreira não, então nada muda lá.
+export const TemaCompCtx = createContext<CompId | null>(null)
+export const useTemaComp = () => { const id = useContext(TemaCompCtx); return id ? { id, ...COMPS[id] } : null }
+export function FraseCopa() {
+  const t = useTemaComp()
+  if (!t) return null
+  return <div style={{ background: t.vsBg, color: t.vsInk, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, ...OSW, fontSize: 14, letterSpacing: '.06em', textAlign: 'center', padding: '6px 10px', margin: '4px 0 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trofeu comp={t.id} size={26} />{tr(t.frase[0], t.frase[1])}</div>
 }

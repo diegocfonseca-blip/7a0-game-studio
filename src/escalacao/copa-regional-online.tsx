@@ -17,7 +17,7 @@
 //   · o relógio sincronizado é `esc_regional_clock` (docs/sql/regional-clock.sql). Se o
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
-import { TunelFinal, FestaCampeao, Trofeu } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
+import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { fimDoJogoMs } from './copa-clock-preview'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -43,6 +43,7 @@ import {
 } from './copa-regional'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', ROXO = '#7C3AED'
+const ZONA_REG: Record<CopaRegionalId, string> = { riosp: '#1E88E5', sulminas: '#2E7D32', nordeste: '#E86A1C' } // 🎨 quem passa, na cor da copa (23/10)
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
 const box = (bg: string) => ({ border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, background: bg }) as const
 const semEmoji = (n: string) => n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/gu, '').trim() || tr('Técnico', 'Manager')
@@ -620,19 +621,20 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     const COLS = '18px 26px minmax(0,1fr) 30px 26px 32px'
     return (
       <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 6px', textTransform: 'uppercase' }}>{nomeLado(copa, lado)}</p>
+        {/* 🎨 23/10: cabeçalho e zona de quem passa nas cores da copa (Rio×SP azul · Sul×Minas verde · Nordeste laranja) */}
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '-10px -10px 8px', padding: '6px 10px', textTransform: 'uppercase', background: COMPS[copa].bg, color: '#fff', borderRadius: '11px 11px 0 0', borderBottom: `2px solid ${INK}` }}>{nomeLado(copa, lado)}</p>
         <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 6, padding: '0 6px 3px', ...OSWALD, fontSize: 9.5, color: 'rgba(0,0,0,.5)' }}>
           <span>#</span><span /><span>{tr('CLUBE', 'CLUB')}</span><span style={{ textAlign: 'right' }}>PTS</span><span style={{ textAlign: 'right' }}>{tr('V', 'W')}</span><span style={{ textAlign: 'right' }}>{tr('SG', 'GD')}</span>
         </div>
         {linhas.map((r, i) => (
           <div key={r.t}>
             <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 6, alignItems: 'center', padding: '4px 6px', fontSize: 11.5, fontWeight: isYou(r.t) ? 900 : 700,
-              background: i < vagasLado ? '#D8F0DE' : 'transparent', borderLeft: `4px solid ${i < vagasLado ? GREEN : 'transparent'}`, outline: isYou(r.t) ? `2.5px solid ${ROXO}` : undefined, outlineOffset: -2.5 }}>
+              background: i < vagasLado ? ZONA_REG[copa] + '2E' : 'transparent', borderLeft: `4px solid ${i < vagasLado ? ZONA_REG[copa] : 'transparent'}`, outline: isYou(r.t) ? `2.5px solid ${ROXO}` : undefined, outlineOffset: -2.5 }}>
               <span>{i + 1}</span><SeloClube clube={entrants[r.t].pais} size={22} />
               <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entrants[r.t].pais}{entrants[r.t].humano ? <small style={{ fontWeight: 700, color: 'rgba(0,0,0,.5)' }}> · {entrants[r.t].club}</small> : null}</span>
               <span style={{ textAlign: 'right', fontWeight: 900 }}>{r.pts}</span><span style={{ textAlign: 'right' }}>{r.w}</span><span style={{ textAlign: 'right' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
             </div>
-            {i === vagasLado - 1 && <div style={{ background: GREEN, color: '#fff', ...OSWALD, fontSize: 9.5, textAlign: 'center', padding: '2px 0' }}>{vagasLado === 4 ? tr('▲ 4 PRIMEIROS VÃO PRAS QUARTAS', '▲ TOP 4 GO TO THE QUARTER-FINALS') : vagasLado === 2 ? tr('▲ 2 PRIMEIROS VÃO PRA SEMI', '▲ TOP 2 GO TO THE SEMI-FINALS') : tr('▲ O 1º VAI PRA FINAL', '▲ THE 1ST GOES TO THE FINAL')}</div>}
+            {i === vagasLado - 1 && <div style={{ background: ZONA_REG[copa], color: '#fff', ...OSWALD, fontSize: 9.5, textAlign: 'center', padding: '2px 0' }}>{vagasLado === 4 ? tr('▲ 4 PRIMEIROS VÃO PRAS QUARTAS', '▲ TOP 4 GO TO THE QUARTER-FINALS') : vagasLado === 2 ? tr('▲ 2 PRIMEIROS VÃO PRA SEMI', '▲ TOP 2 GO TO THE SEMI-FINALS') : tr('▲ O 1º VAI PRA FINAL', '▲ THE 1ST GOES TO THE FINAL')}</div>}
           </div>
         ))}
       </div>
@@ -707,7 +709,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#E8503A" espera={espera} />
   })() : null
   return (
-    <>
+    <TemaCompCtx.Provider value={copa}>
       <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
       <GiroDaRodada cinema />
@@ -785,7 +787,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
           <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA', 'CUP TOP SCORER')} linhas={art.slice(0, 3).map((r): ArtilheiroLinha => { const carta = entrants[r.team].xi.find(c => c.name === r.name); return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <SeloClube clube={entrants[r.team].pais} size={40} />, meu: isYou(r.team) } })} />
         </>
       })()}
+      <FraseCopa />
       <button className="ll31-back-room" onClick={aoFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 14, background: done ? GREEN : '#fff', color: done ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>
-    </>
+    </TemaCompCtx.Provider>
   )
 }

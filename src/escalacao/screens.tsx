@@ -1,7 +1,7 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
 import estadioCerArt from './img/online-estadio-v25.webp'
-import { TunelFinal, FestaCampeao, Trofeu, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
+import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
@@ -6922,6 +6922,9 @@ export function EscSeason() {
   const cupNow = cupLive
   const qc = cupNow ? cup : state.quickCopa
   const copaLive = cupNow || (state.round >= totalRounds && !!state.quickCopa && state.quickCopa.phase !== 'done')
+  // 🎨 23/10: a cara de cada copa vale só nas salas e na partida rápida (carreira, basquete e Kings ficam como estão)
+  const temaFora = !!state.careerDivision || !!state.careerOnline || bbS || kingsS
+  const temaLiga: CompId | null = temaFora || copaLive ? null : 'liga'
   const bbSerie = bbS && !cupNow // 🏀 série melhor de 3 = só nos playoffs; na Cup é jogo único
   const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
   // 📣 COPA APITA SEMPRE (Diego 19/09) — Copa dos 8, Libertadores do rápido, NBA
@@ -7096,6 +7099,7 @@ export function EscSeason() {
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
+    <TemaCompCtx.Provider value={temaLiga}>
     <Shell wide className={cinemaPreview ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
@@ -7278,7 +7282,7 @@ export function EscSeason() {
           </>
         ) : null
         return (
-          <>
+          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : 'copa8'}>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
             {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : kingsS ? LS('Kings League Brasil: o 1º da liga vai direto pra SEMI. Quartas: 2º × 7º, 3º × 6º e 4º × 5º. Semis: 1º × quem passar do 4º × 5º, e os outros dois. TUDO jogo único, empate = SHOOTOUT.', 'Kings League Brasil: 1st goes straight to the SEMI. Quarters: 2nd × 7th, 3rd × 6th and 4th × 5th. Semis: 1st × the 4th-5th winner, and the other two. ALL single games, level = SHOOTOUT.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
@@ -7444,7 +7448,8 @@ export function EscSeason() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
               </div>
             )}
-          </>
+            <FraseCopa />
+          </TemaCompCtx.Provider>
         )
       })() : myLast ? (() => {
         // mesmo placar da carreira (LiveScoreCard): relógio, GOOOL, flash e bump.
@@ -7765,7 +7770,9 @@ export function EscSeason() {
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
       )}
+      <FraseCopa />
     </Shell>
+    </TemaCompCtx.Provider>
   )
 }
 
@@ -8653,7 +8660,7 @@ export function EscLiberta() {
     return (
       <Box key={g} bg={privateVisual ? CREAM : destaque ? '#FFF6D6' : '#fff'} className={privateVisual ? 'p-3 ll26-liberta-group' : 'p-2'} shadow={destaque ? 5 : 3}
         style={destaque ? { borderColor: NOITE } : undefined}>
-        <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>
+        <p className="font-black text-[11px] uppercase mb-1" style={privateVisual ? { ...OSWALD, background: COMPS.liberta.bg, color: '#F2E6C8', margin: '-12px -12px 6px', padding: '6px 12px', borderRadius: '10px 10px 0 0', borderBottom: `2px solid ${INK}` } : { ...OSWALD, color: NOITE }}>
           {LB('Grupo', 'Group')} {GRUPO_LETRA[g]}{destaque ? LB(' · o seu', ' · yours') : ''}
         </p>
         {privateVisual && <div className="flex justify-end gap-3 text-[10px] font-bold"><span>{LB('SG', 'GD')}</span><span>PTS</span></div>}
@@ -8662,7 +8669,7 @@ export function EscLiberta() {
             style={{ opacity: acabou && i > 1 ? .45 : 1 }}>
             {/* 🟢 os 2 primeiros passam — marca visual constante, sem precisar contar */}
             <span className="flex-none w-3.5 h-3.5 rounded-[4px] text-[8px] font-black flex items-center justify-center"
-              style={{ background: i < 2 ? GREEN : 'rgba(0,0,0,.12)', color: i < 2 ? '#fff' : 'rgba(0,0,0,.5)' }}>{i + 1}</span>
+              style={{ background: i < 2 ? (privateVisual ? COMPS.liberta.vsBg : GREEN) : 'rgba(0,0,0,.12)', color: i < 2 ? (privateVisual ? '#0B0B0B' : '#fff') : 'rgba(0,0,0,.5)' }}>{i + 1}</span>
             {privateVisual && <Escudo nome={t.name} size={22} />}
             <span className="min-w-0 flex-1 truncate" style={{ fontWeight: t.id === you.id ? 900 : 700 }}>{t.name}{tag(t.id)}</span>
             <span className="flex-none tabular-nums text-black/45">{t.gf - t.ga > 0 ? '+' : ''}{t.gf - t.ga}</span>
@@ -8678,6 +8685,7 @@ export function EscLiberta() {
   }
 
   return (
+    <TemaCompCtx.Provider value="liberta">
     <Shell className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
@@ -8785,7 +8793,9 @@ export function EscLiberta() {
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
       {privateVisual && online && state.roomId && !state.careerOnline && <LigaHub roomId={state.roomId} souDono={state.isHost} humanos={state.managers.filter(m=>m.isHuman).map(m=>m.teamName)} />}
+      <FraseCopa />
     </Shell>
+    </TemaCompCtx.Provider>
   )
 }
 
@@ -8827,8 +8837,8 @@ export const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(15
 const PORTAO_REPESCAO_MS = 6_000 // a tela da Copa ainda mostra o cartaz dela (10s) antes da 1ª perna
 const PORTAO_OITAVAS_MS = 6_000
 const CHAMPIONS_FAIXAS: { ate: number; bg: string; ink: string; pt: string; en: string }[] = [
-  { ate: CHAMPIONS_DIRETO, bg: GREEN, ink: '#fff', pt: '1º ao 8º · VÃO DIRETO PRAS OITAVAS', en: '1st to 8th · STRAIGHT TO THE ROUND OF 16' },
-  { ate: CHAMPIONS_REPESCAO, bg: GOLD, ink: INK, pt: '9º ao 24º · JOGAM O REPESCÃO (ida e volta)', en: '9th to 24th · PLAY THE PLAYOFF (two legs)' },
+  { ate: CHAMPIONS_DIRETO, bg: '#1F3A93', ink: '#fff', pt: '1º ao 8º · VÃO DIRETO PRAS OITAVAS', en: '1st to 8th · STRAIGHT TO THE ROUND OF 16' },
+  { ate: CHAMPIONS_REPESCAO, bg: '#8E9AA8', ink: '#fff', pt: '9º ao 24º · JOGAM O REPESCÃO (ida e volta)', en: '9th to 24th · PLAY THE PLAYOFF (two legs)' },
   { ate: CHAMPIONS_CLUBES, bg: '#9A9384', ink: '#fff', pt: '25º ao 36º · ESTÃO FORA', en: '25th to 36th · ARE OUT' },
 ]
 
@@ -8976,8 +8986,9 @@ export function EscChampions() {
   const linha = (t: typeof tabela[number], pos: number) => {
     const eu = t.id === you.id
     const humano = humanoId(t.id)
-    const zona = pos <= CHAMPIONS_DIRETO ? GREEN : pos <= CHAMPIONS_REPESCAO ? GOLD : '#9A9384'
-    const fundo = eu ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light) : pos <= CHAMPIONS_DIRETO ? '#EAF6EE' : pos <= CHAMPIONS_REPESCAO ? '#FFFBEA' : '#F2EFE6'
+    // 🎨 23/10: as faixas de corte na paleta da Champions (azul = oitavas · prata = repescão · cinza = fora)
+    const zona = pos <= CHAMPIONS_DIRETO ? '#1F3A93' : pos <= CHAMPIONS_REPESCAO ? '#8E9AA8' : '#9A9384'
+    const fundo = eu ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light) : pos <= CHAMPIONS_DIRETO ? '#E6ECFA' : pos <= CHAMPIONS_REPESCAO ? '#F0F2F5' : '#F2EFE6'
     const tinta = eu && youPerk ? TIER_INK[youPerk.tier] : undefined
     return (
       <tr key={t.id} className={`border-t border-black/10 font-semibold${eu ? ' ll31-my-team' : ''}`}
@@ -9010,6 +9021,7 @@ export function EscChampions() {
   const golsDe = (r: typeof ch.lastResults[number]) => (r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({ name: g.text, min: g.min, home: g.teamId === r.homeId }))
 
   return (
+    <TemaCompCtx.Provider value="champions">
     <Shell wide className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="flex flex-col leading-tight min-w-0">
@@ -9208,7 +9220,9 @@ export function EscChampions() {
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
         <YourPitch small />
       </div>
+      <FraseCopa />
     </Shell>
+    </TemaCompCtx.Provider>
   )
 }
 
