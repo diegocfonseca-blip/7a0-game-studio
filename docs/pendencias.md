@@ -66,7 +66,11 @@
   Copa do Mundo, Mundial, Rio×SP, Sul×Minas-PR, Nordeste). Túnel: fundo com a cor de cada time OU a paleta da copa. Mockup das
   paletas e troféus: `scripts/mockups/campeonatos-paletas-trofeus.png` (rascunho de formato; a arte final dos troféus vira imagem).
 
-## 🗂️ Salas online com visual novo (23/10) — SÓ NA CONTA DO DIEGO, no branch (esperando ele testar e mandar publicar)
+## 🗂️ Salas online com visual novo (23/10) — ③ SALA DE ESPERA liberada pra todos; ① ② ④ seguem só na conta do Diego
+- 23/10: *"gostei dessa tela… só vou aprovar essa daqui pra todos, a parte de criação de sala e etc ainda não"* →
+  `useSalasEsperaNova` (`SALAS_ESPERA_GERAL = true`, sport.ts) liga só a ③ Espera; lista/criar/Minhas Ligas continuam em
+  `useSalasVisualNovo` (só ele). Ele perguntou do DESKTOP da espera (coluna estreita no meio, laterais vazias) — opinião dada,
+  esperando ele dizer se quer mockup.
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque

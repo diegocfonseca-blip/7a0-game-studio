@@ -45,7 +45,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo } from './sport'
+import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasEsperaNova } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -885,6 +885,7 @@ export function EscLobby() {
   const campo2dOn = useCampo2DLiberado()
   // 🗂️ visual novo das salas (23/10, só a conta do Diego): filtro da lista e os modos recolhidos no criar
   const salasNovo = useSalasVisualNovo()
+  const salasEspera = useSalasEsperaNova() // 🗂️③ só a SALA DE ESPERA nova está liberada pra todos (23/10)
   const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'clubes' | 'duplas'>('todas')
   const [modosAbertos, setModosAbertos] = useState(false)
   const [regrasAbertas, setRegrasAbertas] = useState(false)
@@ -4381,7 +4382,7 @@ export function EscLobby() {
     // 🗂️ visual novo (só na conta do Diego): os selos das regras da sala numa linha só, lidos do game_state que já está na mão
     const gsSala = (room.game_state as GS & { holandes?: boolean; duplasMode?: boolean; mundoNaLiga?: boolean; regionalNaLiga?: string })
     const regLbl = gsSala?.regionalNaLiga
-    const selosSala: string[] = salasNovo && !ehMundoSala && !elencoOn ? [
+    const selosSala: string[] = salasEspera && !ehMundoSala && !elencoOn ? [
       gsSala?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid'),
       ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}`
         : gsSala?.mundoNaLiga ? tr('🌍 Liga + Mundo', '🌍 League + World Cup')
@@ -4395,7 +4396,7 @@ export function EscLobby() {
       : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}: ${tr('o preço CAI e quem apertar primeiro leva.', 'the price DROPS and first to tap wins.')}`
       : tr('✉️ Às cegas: cada um lacra o lance no envelope e o maior leva no martelo.', '✉️ Sealed bid: everyone seals their bid and the highest wins at the hammer.')
     return wrap(<>
-      {salasNovo && (<>
+      {salasEspera && (<>
         <div className="flex items-center gap-2.5 pt-1">
           <div className="flex-1 min-w-0">
             <p className="text-white font-black text-[19px] leading-tight truncate" style={OSWALD}>{room.game_state?.roomName ?? tr('Sala', 'Room')}</p>
@@ -4417,7 +4418,7 @@ export function EscLobby() {
           </div>
         )}
       </>)}
-      {!salasNovo && <div className="online-room-code text-center">
+      {!salasEspera && <div className="online-room-code text-center">
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">{tr('Código da Sala', 'Room Code')}</p>
         <p className="online-room-code-num font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
@@ -4455,7 +4456,7 @@ export function EscLobby() {
       )}
 
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima); no visual novo, em toda sala */}
-      {(ehLigaSala || salasNovo) && caixaConvite}
+      {(ehLigaSala || salasEspera) && caixaConvite}
 
       {/* 🔁 MODO DA PRÓXIMA TEMPORADA (17/10, mockup `scripts/mockups/liga-trocar-modo.png` aprovado).
           Todo mundo vê o modo; só o DONO troca. Troféus e ranking não mudam (moram em game_champions). */}
@@ -4635,7 +4636,7 @@ export function EscLobby() {
 
       {/* na sala ⚡ RÁPIDA o convite continua exatamente onde sempre esteve — lá o
           código já basta e a tela é curta. Só a LIGA move a caixa pro topo. */}
-      {!ehLigaSala && !salasNovo && caixaConvite}
+      {!ehLigaSala && !salasEspera && caixaConvite}
 
       {/* 🌍 COPA DO MUNDO ONLINE: a faixa, a escolha da seleção e o painel de
           quem já convocou. Nada disto encosta no leilão — a sala segue parada
@@ -4708,7 +4709,7 @@ export function EscLobby() {
         </p>
         {perfilUid && <PerfilPublico uid={perfilUid} onClose={() => setPerfilUid(null)} />}
         {/* 🗂️ visual novo: técnicos em DUAS colunas (fora de duplas e do Bafo, que têm linha própria) */}
-        <div className={salasNovo && !duplasOn && !elencoOn ? 'grid grid-cols-2 gap-x-2 gap-y-2.5 salas-tec-grade' : 'space-y-2'}>
+        <div className={salasEspera && !duplasOn && !elencoOn ? 'grid grid-cols-2 gap-x-2 gap-y-2.5 salas-tec-grade' : 'space-y-2'}>
           {donos.map(p => {
             const par = duplasOn ? parceiroDe(p.user_id) : undefined
             const souEu = p.user_id === user?.id
@@ -4732,7 +4733,7 @@ export function EscLobby() {
             // pulando na ponta (fora do modo duplas, que tem a linha própria dele)
             const gala = !duplasOn && getSport() !== 'basquete' ? (galaDaConta?.mapa.get(p.user_id) ?? null) : null // 📧 pela CONTA, nunca pelo nome
             return (<PodioMoldura key={p.user_id} pos={posPodio(p.user_id)}>{/* 🏆 top 3 da semana: moldura de metal POR FORA (15/10) — pela CONTA desde 19/10 */}
-            <div className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : salasNovo && !elencoOn ? 'rounded-xl border-2 border-black px-1.5 py-1.5 bg-white h-full' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
+            <div className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : salasEspera && !elencoOn ? 'rounded-xl border-2 border-black px-1.5 py-1.5 bg-white h-full' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3" style={gala ? { position: 'relative', zIndex: 1 } : undefined}>
                 {gala ? <GalaEscudoBotao clube={gala} souEu={souEu} /> : (() => { const pkAv = pk ?? APOIO_PERKS.bege; const bolinha = (
                   <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
@@ -4764,7 +4765,7 @@ export function EscLobby() {
                   {mandaNaLiga && p.user_id !== room.liga_dono && (p.user_id === room.liga_vice
                     ? <button onClick={() => void marcarVice(null)} className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5 bg-white active:translate-y-0.5" style={OSWALD}>{tr('Tirar vice', 'Remove vice')}</button>
                     : <button onClick={() => void marcarVice(p.user_id)} className="shrink-0 text-[10px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5 text-white active:translate-y-0.5" style={{ background: '#7C3AED', boxShadow: '2px 2px 0 #000', ...OSWALD }}>⭐ {tr('Fazer vice', 'Make vice')}</button>)}
-                </>) : p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full shrink-0">{salasNovo && !duplasOn ? '👑' : 'HOST'}</span>}
+                </>) : p.user_id === room.host_id && <span className="text-[10px] font-black uppercase bg-yellow-400 border border-black px-2 py-0.5 rounded-full shrink-0">{salasEspera && !duplasOn ? '👑' : 'HOST'}</span>}
                 {isHost && p.user_id !== user?.id && p.user_id !== room.liga_dono && (
                   <button onClick={() => kickFromRoom(p)} aria-label={`${tr('Remover', 'Remove')} ${p.manager_name}`}
                     className="shrink-0 w-6 h-6 rounded-full border border-black/20 text-black/40 font-black text-xs leading-none active:opacity-60"
@@ -4923,7 +4924,7 @@ export function EscLobby() {
             </div></PodioMoldura>
             )
           })}
-          {salasNovo && !duplasOn && !elencoOn && players.length < room.max_players && (
+          {salasEspera && !duplasOn && !elencoOn && players.length < room.max_players && (
             <div className="rounded-xl border-2 border-dashed flex items-center justify-center text-[12px] font-black py-2" style={{ borderColor: 'rgba(0,0,0,.3)', color: 'rgba(0,0,0,.45)' }}>
               + {room.max_players - players.length} {room.max_players - players.length === 1 ? tr('vaga livre', 'free spot') : tr('vagas livres', 'free spots')}
             </div>
@@ -4977,7 +4978,7 @@ export function EscLobby() {
         return (
           <div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">{tr('😜 Enquanto espera… zoa a galera', '😜 While you wait… tease the crew')}</p>
-            <div className={salasNovo ? 'flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'grid grid-cols-2 gap-2'}>
+            <div className={salasEspera ? 'flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'grid grid-cols-2 gap-2'}>
               {jabs.map((j, i) => (
                 <button key={i} onClick={() => sendLobbyFloat(j.ic, j.tx)}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] text-left bg-white text-black active:translate-y-0.5" style={OSWALD}>
@@ -4987,7 +4988,7 @@ export function EscLobby() {
             </div>
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
-            <div className={salasNovo ? 'mt-2 flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'mt-2 grid grid-cols-2 gap-2'}>
+            <div className={salasEspera ? 'mt-2 flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'mt-2 grid grid-cols-2 gap-2'}>
               {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🎖️', 'Dictador'], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
@@ -5050,7 +5051,7 @@ export function EscLobby() {
           (lá em cima, na faixa verde), porque a regra tem que ser decidida ANTES
           da bola rolar. */}
       {/* 🗂️ visual novo: o botão do dono (e o aviso de quem espera) fica FIXO no pé da tela, sempre à vista */}
-      <div className={salasNovo ? 'salas-rodape-fixo' : undefined} style={salasNovo ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
+      <div className={salasEspera ? 'salas-rodape-fixo' : undefined} style={salasEspera ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? tr('🌐 Começar Carreira!', '🌐 Start Career!') : elencoOn ? tr('🃏 Começar o Bafo!', '🃏 Start Bafo!') : tr('🔨 Abrir o Pregão!', '🔨 Open the Auction!')

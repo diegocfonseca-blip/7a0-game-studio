@@ -334,6 +334,15 @@ function applySalasVisual(email?: string | null): void {
   salasVisualOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
+// 🗂️③ A SALA DE ESPERA NOVA SAIU DO TESTE (23/10, Diego: *"gostei dessa tela… só vou aprovar essa daqui pra todos, a parte de
+// criação de sala e etc ainda não"*). Só ela: nome + código no topo, selos das regras, convite, técnicos em 2 colunas, zoeira em
+// fileira e o botão do dono fixo no pé. A lista de salas, o criar sala e o cartão de Minhas Ligas seguem só na conta dele.
+const SALAS_ESPERA_GERAL = true
+export function useSalasEsperaNova(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return SALAS_ESPERA_GERAL || salasVisualOk
+}
 export function useSalasVisualNovo(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
