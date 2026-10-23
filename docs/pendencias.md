@@ -5,10 +5,9 @@ do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
 - Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO ESPORTIVO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
   Vadico, OittoLabs e Grêmio refeitas IGUAL à Tidex (2ª versão; a de caixa branca + frase ele reprovou: *"só a da Tidex ainda"*):
   só o LOGO claro e grande, sem caixa, sobre placa escura da cor da marca (`placa-vadico.webp`/`placa-oittolabs.webp`/`patro-gecg-placa.webp`).
-- ✈️ AVIÃOZINHO NA HOME (ideia dele, publicado): passa UMA vez cada vez que a home abre, puxando a faixa do parceiro; tocar = link.
-  O título "O PREGÃO ESTÁ ABERTO" saiu do meio da arte e virou o letreiro de cima dos botões (no lugar de "Escolha como você quer jogar").
-  Config: `AVIAO_HOME` (patrocinio.ts; `null` tira). Componente `AviaoDaHome` (patrocinio-visual.tsx).
-  ❓ Ficou em aberto: a frase "Dê lance no nome…" saiu junto — perguntar se ele quer ela em outro lugar.
+- ✈️ AVIÃOZINHO NA HOME (ideia dele, publicado): o título "O PREGÃO ESTÁ ABERTO." fica no meio (sem a frase de baixo); 10s depois
+  de abrir a home o avião passa UMA vez puxando a faixa do parceiro (tocar = link) e o título some enquanto ele passa.
+  Config: `AVIAO_HOME` (patrocinio.ts; `null` tira). Componente `AviaoDaHome` (patrocinio-visual.tsx). Regra no CLAUDE.md.
 - Link do Grêmio (telão + avião) = Instagram `https://www.instagram.com/gremiocampo` (pedido dele; antes era o WhatsApp).
 - 🧼 Faixa da comunidade do WhatsApp ficou FINA (uma linha escura, 32px, sem verdão/📲/botão amarelo) — pedido dele.
 - Nome SEMPRE inteiro: "Grêmio Esportivo Campo Grande" (pedido dele).

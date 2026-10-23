@@ -911,6 +911,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (`MARCAS_DE_MODO` no store, zeradas por `limpaMarcasDeModo` em todo começo de carreira) — foi o que vazou em 21/10 — e a trava
   `!state.careerOnline` em `startAuctionPhase` segura o resto. Trava: `npm run carreira-limpa`. **Modos são independentes** (*"partida rápida
   não tem relação com modo carreira, que também não tem relação com salas online"*).
+- **✈️ PATROCINADOR NOVO = AVIÃOZINHO NA HOME, SEMPRE (23/10, regra dele: *"irei fazer isso do aviãozinho sempre p patrocinador
+  novo"*).** A home mostra só "O PREGÃO ESTÁ ABERTO." no meio da arte (a frase de baixo saiu); 10s depois de abrir, o avião cruza
+  UMA vez puxando a faixa do parceiro (tocar = link dele) e o título some enquanto ele passa e volta depois. Patrocinador novo =
+  trocar `AVIAO_HOME` em `patrocinio.ts` (escudo/logo, 2 linhas de nome, cor da faixa, link). `null` tira o avião.
 - **🗄️ MIGRATION COM `drop policy`/`revoke`/`delete` É CANCELADA pela ferramenta (19/10, 3 vezes seguidas).** Quebrar em partes
   menores sem essas palavras (`create policy` novo, guarda dentro da função em vez de `revoke`) e deixar o arquivo do repo como retrato
   do que ficou valendo.

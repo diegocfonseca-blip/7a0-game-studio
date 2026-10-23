@@ -5,7 +5,7 @@
 //   no placar (ele achou que "placar oferecido por" cansava). Mais de um mensal → as marcas passam uma atrás da outra.
 // · 📰 Anúncio no O MARTELO: um quadro de anúncio no FIM do jornal (sala e carreira), logo antes do rodapé.
 // Tudo puro CSS + a logo que já existe (0 KB a mais pra quem não vê).
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ledDoEstadio, anuncioDoMartelo, placasDoCampo, tamanhoMarcaNaPlaca, aviaoDaHome } from './patrocinio'
 import { tr } from './lang'
 
@@ -79,11 +79,11 @@ export function PlacaGol({ lado, alt = 30 }: { lado: 'cima' | 'baixo'; alt?: num
   )
 }
 
-/** ✈️ AVIÃOZINHO DA HOME (23/10, ideia do Diego): passa UMA vez quando a home abre, da direita pra esquerda, puxando a
+/** ✈️ AVIÃOZINHO DA HOME (23/10, ideia do Diego): 10s depois de a home abrir passa UMA vez, da direita pra esquerda, puxando a
  *  faixa do parceiro no espaço onde ficava o "O PREGÃO ESTÁ ABERTO". Tocar na faixa abre o link dele. Some sozinho. */
 const AVIAO_CSS = `
 .ll-aviao{position:absolute;left:0;right:0;top:50%;height:0;pointer-events:none;overflow:visible;z-index:3}
-.ll-aviao-voo{position:absolute;left:0;top:0;display:flex;align-items:center;transform:translate(110vw,-50%);animation:llAviaoVoa 10s linear .8s forwards;will-change:transform}
+.ll-aviao-voo{position:absolute;left:0;top:0;display:flex;align-items:center;transform:translate(110vw,-50%);animation:llAviaoVoa 10s linear 10s forwards;will-change:transform}
 @keyframes llAviaoVoa{from{transform:translate(110vw,-50%)}to{transform:translate(calc(-100% - 20px),-50%)}}
 .ll-aviao-sobe{display:flex;align-items:center;animation:llAviaoBalanca 1.6s ease-in-out infinite}
 @keyframes llAviaoBalanca{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1.5deg)}}
@@ -100,13 +100,17 @@ const AVIAO_CSS = `
 .ll-aviao-t1{font:600 12px/1 Oswald,sans-serif;color:#fff;letter-spacing:.08em}
 .ll-aviao-t2{font:700 27px/1 Oswald,sans-serif;color:#E3B53D;white-space:nowrap}
 .ll-aviao-rabo{width:13px;height:54px;flex:none;background:linear-gradient(90deg,#E3B53D,#c8992a);clip-path:polygon(0 0,100% 0,60% 50%,100% 100%,0 100%);margin-left:-2px;animation:llAviaoOndula 1.1s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.ll-aviao{display:none}}`
-export function AviaoDaHome() {
+.ll-aviao-titulo{animation:llAviaoTitulo 21s linear forwards}
+@keyframes llAviaoTitulo{0%,46%{opacity:1}50%,94%{opacity:0}100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ll-aviao{display:none}.ll-aviao-titulo{animation:none}}`
+export function AviaoDaHome({ children }: { children?: ReactNode }) {
   const a = aviaoDaHome()
   const [no, setNo] = useState(true)
-  useEffect(() => { const t = setTimeout(() => setNo(false), 11500); return () => clearTimeout(t) }, [])
-  if (!a || !no) return null
-  return (
+  useEffect(() => { const t = setTimeout(() => setNo(false), 21500); return () => clearTimeout(t) }, [])
+  if (!a || !no) return <>{children}</>
+  // o título (O PREGÃO ESTÁ ABERTO) some enquanto o avião cruza (~10s → ~20s) e volta depois
+  return (<>
+    <div className="ll-aviao-titulo">{children}</div>
     <div className="ll-aviao" aria-hidden="false">
       <style>{AVIAO_CSS}</style>
       <div className="ll-aviao-voo"><div className="ll-aviao-sobe">
@@ -127,5 +131,5 @@ export function AviaoDaHome() {
         <div className="ll-aviao-rabo" />
       </div></div>
     </div>
-  )
+  </>)
 }

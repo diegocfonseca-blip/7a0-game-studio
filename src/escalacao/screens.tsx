@@ -2258,19 +2258,17 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           logo abaixo da marca, no canto livre da arte */}
       {bbOn && <SeletorEsporte />}
       {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
-      {/* ✈️ 23/10 (Diego): o título saiu do meio da arte — virou o letreiro de cima dos botões — e o espaço ficou pro
-          aviãozinho do parceiro. A seção continua aqui (vazia) pra arte da home manter a mesma altura. */}
+      {/* ✈️ 23/10 (Diego): só o título no meio da arte (a frase de baixo saiu). 10s depois de abrir a home o aviãozinho do
+          parceiro passa UMA vez, e enquanto ele passa o título some e volta depois. */}
       <section className="ll-intro" style={{ position: 'relative' }}>
-        <h1 style={{ visibility: 'hidden' }}>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
-        <p style={{ visibility: 'hidden' }}>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
-        <AviaoDaHome />
+        <AviaoDaHome><h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1></AviaoDaHome>
       </section>
       {(resumable || solo) && <div className="ll-resume">
         {resumable && <><button onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
         {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
-        <p className="ll-eyebrow">{t('O PREGÃO ESTÁ ABERTO', 'THE AUCTION IS OPEN')}</p>
+        <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
           <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu time e enfrente a CPU.', 'Build your squad and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
