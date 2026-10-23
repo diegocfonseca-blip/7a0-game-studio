@@ -15,6 +15,7 @@ import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
 import VADICO_PLACA from './img/placa-vadico.webp' // 🏟️ 23/10: placas no padrão da Tidex (faixa deitada que enche a placa)
 import OITTO_PLACA from './img/placa-oittolabs.webp'
+import GECG_LOGO from './img/patro-gecg.webp'
 import GECG_PLACA from './img/patro-gecg-placa.webp' // ⚽ Grêmio Campo Grande (23/10): placa deitada (escudo + nome) revezando com a Tidex
 
 export type Patrocinio = { nome: string; emoji: string }
@@ -135,12 +136,12 @@ const OITTO_GIRO = '🧪 OittoLabs · Contabilidade e BPO financeiro pra sua emp
 // objetivo deles = gente no estádio nos fins de semana e aluguel do campo pra torneios. A linha de verdade mora em
 // `esc_anuncios_fixos`; isto é a reserva.
 const GECG_GIRO = '⚽ Grêmio Esportivo Campo Grande · Estádio próprio na Zona Sul SP · Clique aqui'
-const GECG_ZAP = 'https://wa.me/5511976509180?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber dos jogos do Grêmio Esportivo Campo Grande no fim de semana.')
+const GECG_LINK = 'https://www.instagram.com/gremiocampo' // 23/10: o Diego mandou o Instagram do clube pro telão (antes era o WhatsApp)
 const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
   { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
   { texto: TIDEX_GIRO, cor: '#FFC400', link: TIDEX_ZAP }, // 🤖 19/10: no lugar da Max Joias
   { texto: OITTO_GIRO, cor: '#FFC400', link: 'https://oittolabs.com.br' }, // 🧪 21/10
-  { texto: GECG_GIRO, cor: '#FFC400', link: GECG_ZAP }, // ⚽ 23/10
+  { texto: GECG_GIRO, cor: '#FFC400', link: GECG_LINK }, // ⚽ 23/10
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
@@ -222,3 +223,9 @@ export function placasDoCampo(): PlacaCampo[] {
   if (!espacosOk()) return []
   return PLACAS_CAMPO.length === 1 ? [PLACAS_CAMPO[0], PLACA_CASA] : PLACAS_CAMPO
 }
+
+/** ✈️ AVIÃOZINHO DA HOME (23/10, ideia do Diego): cruza a home UMA vez cada vez que ela abre, puxando a faixa do parceiro.
+ *  Tocar na faixa abre o link dele. Tirar: AVIAO_HOME = null. */
+export type AviaoHome = { nome: string; linha1: string; linha2: string; logo: string; fundo: string; link: string }
+const AVIAO_HOME: AviaoHome | null = { nome: 'Grêmio Esportivo Campo Grande', linha1: 'GRÊMIO ESPORTIVO', linha2: 'CAMPO GRANDE', logo: GECG_LOGO, fundo: '#11225A', link: GECG_LINK }
+export function aviaoDaHome(): AviaoHome | null { return espacosOk() ? AVIAO_HOME : null }

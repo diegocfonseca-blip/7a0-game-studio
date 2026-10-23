@@ -115,22 +115,20 @@ function ComunidadeBanner() {
   if (['auction', 'monte', 'convocacao', 'streamIntro'].includes(state.screen)) return null
   const en = getLang() === 'en'
   return (
-    <div className={naHome ? 'll-comunidade' : 'll-comunidade-jogo'} style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C', height: 'var(--ll-zap-h)', boxSizing: 'border-box', overflow: 'hidden' }}>
-      {/* a home gruda o botão de som no topo: com a faixa na tela ele desce a ALTURA FIXA dela (senão ficava
-          em cima do texto). Altura fixa = 64 no celular · 52 no computador. */}
-      <style>{':root{--ll-zap-h:52px}@media(max-width:650px){:root{--ll-zap-h:64px}}'
+    // 🧼 23/10 (Diego: *"mais clean sem esse exagero todo do whatsapp lá no header"*): faixa FINA de uma linha, escura, sem o
+    //    verdão, o 📲 e o botão amarelo — só o recado e um "Entrar ›" discreto.
+    <div className={naHome ? 'll-comunidade' : 'll-comunidade-jogo'} style={{ display: 'flex', alignItems: 'stretch', background: '#14110C', borderBottom: '1px solid rgba(255,255,255,.12)', height: 'var(--ll-zap-h)', boxSizing: 'border-box', overflow: 'hidden' }}>
+      {/* a home gruda o botão de som no topo: com a faixa na tela ele desce a ALTURA FIXA dela (senão ficava em cima do texto). */}
+      <style>{':root{--ll-zap-h:32px}'
         + '#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(26px + var(--ll-zap-h))!important}'
         + '@media(max-width:650px){#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h))!important}}'}</style>
-      <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 10px', color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'center' }}>
-        <span style={{ fontSize: 18, flex: 'none' }}>📲</span>
-        <span style={{ textAlign: 'left' }}>
-          <b style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 14, lineHeight: 1.15, textTransform: 'uppercase', letterSpacing: '.02em' }}>{en ? 'Our WhatsApp community is here!' : 'Chegou a comunidade no WhatsApp!'}</b>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: .9 }}>{en ? 'Join and meet more fans of the game' : 'Entre e encontre mais fãs do jogo'}</span>
-        </span>
-        <span style={{ flex: 'none', background: '#FFC400', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '3px 10px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', boxShadow: '2px 2px 0 #0C0C0C', whiteSpace: 'nowrap' }}>{en ? 'Join' : 'Entrar'}</span>
+      <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 10px', color: 'rgba(255,255,255,.88)', textDecoration: 'none', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
+        <span style={{ width: 7, height: 7, borderRadius: 99, background: '#25D366', flex: 'none' }} />
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{en ? 'Our WhatsApp community' : 'Nossa comunidade no WhatsApp'}</span>
+        <b style={{ flex: 'none', color: '#FFC400', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em' }}>{en ? 'Join ›' : 'Entrar ›'}</b>
       </a>
       <button aria-label={en ? 'close' : 'fechar'} onClick={fecha}
-        style={{ flex: 'none', background: 'transparent', border: 'none', borderLeft: '2px solid rgba(255,255,255,.25)', color: '#fff', fontWeight: 900, fontSize: 15, padding: '0 12px', cursor: 'pointer' }}>✕</button>
+        style={{ flex: 'none', background: 'transparent', border: 'none', color: 'rgba(255,255,255,.55)', fontWeight: 700, fontSize: 13, padding: '0 12px', cursor: 'pointer' }}>✕</button>
     </div>
   )
 }

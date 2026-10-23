@@ -1,11 +1,16 @@
-## ⚽ Parceiro Grêmio Esportivo Campo Grande (23/10) — NO BRANCH, esperando "publica"
+## ⚽ Parceiro Grêmio Esportivo Campo Grande (23/10) — PUBLICADO 23/10
 Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. Objetivo: gente no estádio no fim de semana + aluguel
 do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
 - Master da carreira: entra no lugar da ERO (3 temporadas, `gecg`); contrato da ERO correndo vai até o fim. Logo `patro-gecg.webp`.
 - Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO ESPORTIVO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
   Vadico, OittoLabs e Grêmio refeitas IGUAL à Tidex (2ª versão; a de caixa branca + frase ele reprovou: *"só a da Tidex ainda"*):
   só o LOGO claro e grande, sem caixa, sobre placa escura da cor da marca (`placa-vadico.webp`/`placa-oittolabs.webp`/`patro-gecg-placa.webp`).
-- 💡 Ideia dele (23/10), mockup em vídeo enviado: AVIÃOZINHO cruzando a home puxando a faixa do patrocinador (toque = WhatsApp). Esperando OK.
+- ✈️ AVIÃOZINHO NA HOME (ideia dele, publicado): passa UMA vez cada vez que a home abre, puxando a faixa do parceiro; tocar = link.
+  O título "O PREGÃO ESTÁ ABERTO" saiu do meio da arte e virou o letreiro de cima dos botões (no lugar de "Escolha como você quer jogar").
+  Config: `AVIAO_HOME` (patrocinio.ts; `null` tira). Componente `AviaoDaHome` (patrocinio-visual.tsx).
+  ❓ Ficou em aberto: a frase "Dê lance no nome…" saiu junto — perguntar se ele quer ela em outro lugar.
+- Link do Grêmio (telão + avião) = Instagram `https://www.instagram.com/gremiocampo` (pedido dele; antes era o WhatsApp).
+- 🧼 Faixa da comunidade do WhatsApp ficou FINA (uma linha escura, 32px, sem verdão/📲/botão amarelo) — pedido dele.
 - Nome SEMPRE inteiro: "Grêmio Esportivo Campo Grande" (pedido dele).
 - "Apresentada por": Copas Regionais (`regional`) e a liga da carreira NA VÁRZEA (`career-varzea`; as outras divisões seguem Tidex).
 - Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
