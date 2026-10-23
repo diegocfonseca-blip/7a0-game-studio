@@ -16,6 +16,7 @@ import { VADICO_LOGO } from './vadico'
 import VADICO_ALFA from './img/patro-vadico-alfa.webp'
 import ERO_ALFA from './img/patro-ero-alfa.webp'
 import { ERO_LOGO } from './ero'
+import GECG_LOGO from './img/patro-gecg.webp' // ⚽ Grêmio Esportivo Campo Grande, marca do Master no lugar da ERO (23/10)
 import { MAXJOIAS_LOGO } from './maxjoias'
 import { UOMO_LOGO } from './uomo'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex, 6ª marca do Master (19/10)
@@ -83,7 +84,7 @@ const META_EN: Record<SponsorBetTier, { curto: string; linha: string }> = {
 /** o logo pra ESTAMPAR NA CAMISA: sempre com fundo transparente. */
 export const sponsorLogoEstampa = (s: SponsorBrand): string | undefined =>
   s.logo === 'vadico' ? VADICO_ALFA : s.logo === 'ero' ? ERO_ALFA : sponsorLogoSrc(s)
-export const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : s.logo === 'uomo' ? UOMO_LOGO : s.logo === 'tidex' ? TIDEX_LOGO : s.logo === 'oittolabs' ? OITTO_LOGO : undefined
+export const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'gecg' ? GECG_LOGO : s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : s.logo === 'uomo' ? UOMO_LOGO : s.logo === 'tidex' ? TIDEX_LOGO : s.logo === 'oittolabs' ? OITTO_LOGO : undefined
 // a marca fiel mora num nível só — o selinho no PASSO 1 avisa em qual, senão
 // quem escolhesse outra meta nunca descobriria que perdeu a garantia.
 const tierDaMarca = (brandId?: string): SponsorBetTier | undefined => sponsorBrandOf(brandId)?.tier

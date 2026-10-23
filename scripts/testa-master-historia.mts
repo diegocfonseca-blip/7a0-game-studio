@@ -15,7 +15,7 @@ import { masterPorTemporada, MASTER_PRAZOS } from '../src/escalacao/estadiodata'
 assert.ok(!metasDaDivisao('V').includes('nao_cair'), 'Várzea não tem meta de não cair')
 assert.ok(!metasDaDivisao('A').includes('acesso'), 'Série A não tem meta de subir')
 for (const d of ['V', 'D', 'C', 'B', 'A']) for (const m of metasDaDivisao(d)) assert.ok(masterMetaBonus(d, m) >= 1, `${d}/${m}: bônus >= 1`)
-assert.deepEqual(masterMetaOferta(7, 3, 0, 'ero', 'B'), masterMetaOferta(7, 3, 0, 'ero', 'B'), 'meta presa na semente')
+assert.deepEqual(masterMetaOferta(7, 3, 0, 'gecg', 'B'), masterMetaOferta(7, 3, 0, 'gecg', 'B'), 'meta presa na semente')
 assert.equal(masterMetaBatida('campeao', 1, 'B', false), true); assert.equal(masterMetaBatida('campeao', 2, 'B', false), false)
 assert.equal(masterMetaBatida('nao_cair', 16, 'B', false), true); assert.equal(masterMetaBatida('nao_cair', 17, 'B', false), false)
 assert.equal(masterMetaBatida('acesso', 3, 'A', false), false, 'na A não existe acesso')
@@ -57,7 +57,7 @@ const depois = caixa(x); x = fecha(x, 1, true); assert.equal(caixa(x), depois, '
 
 // 2b) meta de COPA paga no fecho de verdade (conquistas vindas da tela)
 {
-  let k = reducer(base(1), { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never)
+  let k = reducer(base(1), { type: 'SET_MASTER', brandId: 'gecg', mgrId: id } as never)
   k = { ...k, careerMaster: { [id]: { ...k.careerMaster![id], meta: 'copa_campeao', bonus: 40 } } } as EscState
   const c0 = caixa(k)
   const sem = reducer(k, { type: 'CLOSE_SEASON_BOOKS', finalPos: { [id]: 12 }, artilheiros: [], conquistas: {} } as never)
@@ -73,13 +73,13 @@ r = { ...r, seasonNo: 2, careerPlacements: { ...(r.careerPlacements ?? {}), [`m$
 const of = masterOfertaRenovacao(r.careerMaster![id], 2, 'B', r.seed ?? 0, id)
 assert.ok(of, 'foi bem → a marca liga')
 assert.equal(of!.porTemporada, Math.round(masterPorTemporada('B', 1) * RENOVA_MULT), 'renovação = +25% na divisão de hoje')
-assert.equal(reducer(r, { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never).careerMaster![id].brandId, 'oittolabs', 'com a ligação na mesa, não assina outro papel')
+assert.equal(reducer(r, { type: 'SET_MASTER', brandId: 'gecg', mgrId: id } as never).careerMaster![id].brandId, 'oittolabs', 'com a ligação na mesa, não assina outro papel')
 const ren = reducer(r, { type: 'MASTER_RENOVAR', mgrId: id } as never).careerMaster![id]
 assert.equal(ren.brandId, 'oittolabs'); assert.equal(ren.desde, 2); assert.equal(ren.renovado, true); assert.equal(ren.porTemporada, of!.porTemporada)
-// ouvir o mercado: a OittoLabs sai, a ERO assina
+// ouvir o mercado: a OittoLabs sai, o Grêmio Campo Grande assina
 const merc = reducer(r, { type: 'MASTER_MERCADO', mgrId: id } as never)
 assert.equal(reducer(merc, { type: 'SET_MASTER', brandId: 'oittolabs', mgrId: id } as never).careerMaster![id].desde, 1, 'recusou: a marca não volta nesta virada')
-assert.equal(reducer(merc, { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never).careerMaster![id].brandId, 'ero', 'os outros papéis assinam normal')
+assert.equal(reducer(merc, { type: 'SET_MASTER', brandId: 'gecg', mgrId: id } as never).careerMaster![id].brandId, 'gecg', 'os outros papéis assinam normal')
 // não foi bem → sem ligação
 let nb = reducer(base(1, 'C'), { type: 'SET_MASTER', brandId: 'oittolabs', mgrId: id } as never)
 nb = { ...fecha(nb, 12), seasonNo: 2 } as EscState
@@ -100,7 +100,7 @@ for (let sd = 1; sd < 40 && !achou; sd++) {
     assert.ok(caixa(q) - cx >= (cq.multa ?? 0) && (cq.multa ?? 0) > 0, 'multa no caixa')
     const q2 = { ...q, seasonNo: 2, booksSeason: undefined } as EscState
     assert.equal(reducer(q2, { type: 'SET_MASTER', brandId: 'vadico', mgrId: id } as never).careerMaster![id].desde, 1, 'quem rescindiu não volta nesta virada')
-    assert.equal(reducer(q2, { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never).careerMaster![id].brandId, 'ero')
+    assert.equal(reducer(q2, { type: 'SET_MASTER', brandId: 'gecg', mgrId: id } as never).careerMaster![id].brandId, 'gecg')
     assert.equal(masterOfertaRenovacao(cq, 2, 'C', sd, id), null, 'rescindiu → não liga')
   } else {
     assert.equal(cq.rescindido, undefined); assert.equal(cq.anos, c.anos, 'a outra metade: segue o contrato')

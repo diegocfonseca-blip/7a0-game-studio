@@ -10585,6 +10585,7 @@ export function PyramidSeasonScreen() {
             </CareerCompetitionStage>
           }
           if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
+            varzea={me?.div === 'V'}
             kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
             title={`${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : tr('Rodada ', 'Round ')+round+'/38'}`}

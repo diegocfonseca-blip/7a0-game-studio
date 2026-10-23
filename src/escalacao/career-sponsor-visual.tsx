@@ -9,6 +9,7 @@ import './career-refinements.css'
 import './career-sponsor-office.css'
 import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
+import GECG_LOGO from './img/patro-gecg.webp' // ⚽ Grêmio Campo Grande (23/10)
 import { MAXJOIAS_LOGO } from './maxjoias'
 import { REIDASTINTAS_LOGO } from './reidastintas'
 import { UOMO_LOGO } from './uomo'
@@ -19,7 +20,7 @@ import OITTO_LOGO from './img/patro-oittolabs.webp' // 🧪 OittoLabs (21/10)
 // então marca nova sem entrada aqui NÃO compila — foi o que aconteceu ao adicionar a
 // Uomo Concetto em 23/09, e é de propósito: melhor quebrar o build do que desenhar
 // um card de patrocínio sem logo na cara do jogador.
-const sponsorLogos = { vadico: VADICO_LOGO, ero: ERO_LOGO, maxjoias: MAXJOIAS_LOGO, reidastintas: REIDASTINTAS_LOGO, uomo: UOMO_LOGO, tidex: TIDEX_LOGO, oittolabs: OITTO_LOGO }
+const sponsorLogos = { vadico: VADICO_LOGO, ero: ERO_LOGO, maxjoias: MAXJOIAS_LOGO, reidastintas: REIDASTINTAS_LOGO, uomo: UOMO_LOGO, tidex: TIDEX_LOGO, oittolabs: OITTO_LOGO , gecg: GECG_LOGO }
 function ContractLogo({ brandId }: { brandId: string }) {
   const brand = sponsorBrandOf(brandId)
   return brand?.logo ? <img className="ll35-contract-logo" src={sponsorLogos[brand.logo]} alt={`Logo ${brand.name}`}/> : null

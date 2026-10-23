@@ -889,7 +889,6 @@ export function EscLobby() {
   const desk = useTelaPC()
   const salasEspera = useSalasEsperaNova() // 🗂️③ só a SALA DE ESPERA nova está liberada pra todos (23/10)
   const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'clubes' | 'duplas'>('todas')
-  const [modosAbertos, setModosAbertos] = useState(false)
   const [regrasAbertas, setRegrasAbertas] = useState(false)
   const [room2d, setRoom2d] = useState(false)
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
@@ -1258,8 +1257,10 @@ export function EscLobby() {
         setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...(prev.game_state as GS), tema: payload?.tema ?? undefined } as GS } : prev)
       })
       // 🔁 o dono trocou o modo da liga: só os 4 campos do modo (o resto da sala não muda)
-      .on('broadcast', { event: 'liga_modo' }, ({ payload }: { payload: { holandes: boolean; pregaoAberto: boolean; clubes: boolean; deckSala: string; antes: string; depois: string } }) => {
-        setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...(prev.game_state as GS), holandes: payload.holandes, pregaoAberto: payload.pregaoAberto, clubes: payload.clubes, deckSala: payload.deckSala as GS['deckSala'] } as GS } : prev)
+      .on('broadcast', { event: 'liga_modo' }, ({ payload }: { payload: { holandes: boolean; pregaoAberto: boolean; clubes: boolean; deckSala: string; copaMode?: string; mundoNaLiga?: boolean | null; regionalNaLiga?: string | null; antes: string; depois: string } }) => {
+        // 🏆 23/10: o aviso também traz a copa (quem está com o jogo velho manda sem ela — aí a copa fica como estava)
+        const copa = payload.copaMode ? { copaMode: payload.copaMode as GS['copaMode'], mundoNaLiga: payload.mundoNaLiga ?? undefined, regionalNaLiga: payload.regionalNaLiga ?? undefined } : {}
+        setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...(prev.game_state as GS), holandes: payload.holandes, pregaoAberto: payload.pregaoAberto, clubes: payload.clubes, deckSala: payload.deckSala as GS['deckSala'], ...copa } as GS } : prev)
         setModoAviso(`${payload.antes}|${payload.depois}`)
       })
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
@@ -2205,7 +2206,16 @@ export function EscLobby() {
   // 🔁 TROCAR O MODO DA LIGA (17/10, Diego: *"o dono possa trocar o modo da sala… e continua com os mesmos
   // troféus"*). Só o dono, só na sala de espera; quem grava é o banco (`esc_liga_modo`), que recusa partida rolando.
   type LanceLiga = 'envelope' | 'tocaia' | 'pregao'
-  const [modoEdit, setModoEdit] = useState<{ lance: LanceLiga; clubes: boolean; deck: 'br' | 'eu' | 'both' } | null>(null)
+  // 🏆 23/10: + `copa` — o que vem depois da liga (Diego: *"deixar a pessoa poder mudar as ligas também… igual já funciona ao criar salas"*)
+  type CopaLiga = 'liga' | 'liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
+  const copaDaLiga = (gs: GS | undefined): CopaLiga => {
+    const g = gs as (GS & { mundoNaLiga?: boolean; regionalNaLiga?: string }) | undefined
+    if (g?.mundoNaLiga) return 'liga_mundo'
+    if (g?.regionalNaLiga === 'riosp' || g?.regionalNaLiga === 'sulminas' || g?.regionalNaLiga === 'nordeste') return `liga_${g.regionalNaLiga}`
+    const c = g?.copaMode
+    return c === 'liga' || c === 'liga_liberta' || c === 'champions' ? c : 'liga_copa'
+  }
+  const [modoEdit, setModoEdit] = useState<{ lance: LanceLiga; clubes: boolean; deck: 'br' | 'eu' | 'both'; copa: CopaLiga } | null>(null)
   const [modoAviso, setModoAviso] = useState<string | null>(null)
   const [ligaRegrasAberto, setLigaRegrasAberto] = useState(false) // ⚖️ painel de regras do ranking, na espera (só o dono)
   // 👑 só o DONO manda na liga (Diego 23/08: *"só quem manda é o host mesmo, não
@@ -2317,7 +2327,7 @@ export function EscLobby() {
     const tipo = gs?.clubes ? tr('🧱 Clubes', '🧱 Clubs') : tr('🃏 Jogador', '🃏 Player')
     const d: string = typeof gs?.deckSala === 'string' ? gs.deckSala : typeof gs?.deck === 'string' ? gs.deck : 'br'
     const deck = d === 'eu' ? tr('🌍 Europa', '🌍 Europe') : d === 'both' || d === 'todos' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
-    return [lance, tipo, deck]
+    return [lance, tipo, deck, nomeCopaLiga(copaDaLiga(gs))]
   }
   // 🎨 o dono escolhe o tema da sala (só os da conta dele). Lê o game_state na hora pra não pisar em nada da sala.
   async function salvaTema(id: TemaSalaId | null) {
@@ -2332,11 +2342,16 @@ export function EscLobby() {
       lobbyChanRef.current?.send({ type: 'broadcast', event: 'tema', payload: { tema: id } })
     } catch { setRoomError(tr('Não deu pra trocar o tema agora — tente de novo.', 'Couldn\'t change the theme right now — try again.')) }
   }
+  function nomeCopaLiga(c: CopaLiga): string {
+    const reg = regionalId(c)
+    if (reg) return `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[reg].nomeEn : COPAS_REGIONAIS[reg].nome}`
+    return ({ liga_copa: tr('🏆 Liga + Copa', '🏆 League + Cup'), liga_liberta: tr('🌎 Liga + Liberta', '🌎 League + Liberta'), champions: tr('⭐ Só Champions', '⭐ Champions only'), liga_mundo: tr('🌐 Liga + Mundo', '🌐 League + World'), liga: tr('📊 Só liga', '📊 League only') } as Record<string, string>)[c] ?? ''
+  }
   async function salvaModoLiga() {
     if (!room || !modoEdit) return
     const antes = rotuloModoLiga(room.game_state as GS).join(' · ')
     setLoading(true); setRoomError('')
-    const { data, error } = await supabase.rpc('esc_liga_modo', { p_room: room.id, p_lance: modoEdit.lance, p_clubes: modoEdit.clubes, p_deck: modoEdit.deck })
+    const { data, error } = await supabase.rpc('esc_liga_modo2', { p_room: room.id, p_lance: modoEdit.lance, p_clubes: modoEdit.clubes, p_deck: modoEdit.deck, p_copa: modoEdit.copa })
     setLoading(false)
     const r = error ? 'erro' : String(data ?? 'erro')
     if (r !== 'ok') {
@@ -2346,8 +2361,11 @@ export function EscLobby() {
       return
     }
     const deckSala = modoEdit.clubes ? 'todos' : modoEdit.deck
-    const campos = { holandes: modoEdit.lance === 'tocaia', pregaoAberto: modoEdit.lance === 'pregao', clubes: modoEdit.clubes, deckSala }
-    const novo = { ...(room.game_state as GS), ...campos } as GS
+    const reg = regionalId(modoEdit.copa)
+    // o MESMO formato que o banco gravou (Mundo e regionais = copaMode 'liga' + a marca; null = a marca saiu)
+    const campos = { holandes: modoEdit.lance === 'tocaia', pregaoAberto: modoEdit.lance === 'pregao', clubes: modoEdit.clubes, deckSala,
+      copaMode: modoEdit.copa === 'liga_mundo' || reg ? 'liga' : modoEdit.copa, mundoNaLiga: modoEdit.copa === 'liga_mundo' ? true : null, regionalNaLiga: reg ?? null }
+    const novo = { ...(room.game_state as GS), ...campos, mundoNaLiga: campos.mundoNaLiga ?? undefined, regionalNaLiga: campos.regionalNaLiga ?? undefined } as GS
     const depois = rotuloModoLiga(novo).join(' · ')
     setRoom(rm => (rm ? { ...rm, game_state: novo } : rm))
     // um aviso só, na hora da troca (nada periódico no canal)
@@ -3476,10 +3494,10 @@ export function EscLobby() {
                 {tr('O que vocês vão jogar?', 'What are you going to play?')}
               </p>
               <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">{tr('Escolhe um. O resto já está no ponto.', 'Pick one. The rest is ready to go.')}</p>
-              {/* 🗂️ visual novo: só o modo escolhido aparece; "trocar" abre a lista */}
+              {/* 🗂️ os modos ficam TODOS à vista pra todo mundo (23/10, Diego: "quero o novo que você fez pra todos no meu também") — acabou o recolher */}
               {/* 🖥️ no computador os modos ficam TODOS à vista, lado a lado (Diego: "ficam tudo abertas, sem recolher") */}
               <div style={desk ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 } : undefined}>
-              {(salasNovo && !desk && !modosAbertos ? MODOS.filter(m => roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft)) : MODOS).map(m => {
+              {MODOS.map(m => {
                 const sel = roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft) // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
                 // teste, então pra ele o cartão continua clicável — mas leva o selo,
@@ -3491,7 +3509,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => { if (salasNovo && !desk && !modosAbertos) { setModosAbertos(true); return } setRoomMode(m.v); setLigaDraftSel(!!m.draft); if (salasNovo && !desk) setModosAbertos(false) }}
+                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); }}
                     className={`w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 ${desk ? '' : 'mb-2'} text-left active:translate-y-0.5`}
                     style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on ? 1 : 0.55 }}>
                     <span style={{ fontSize: 24 }}>{m.ic}</span>
@@ -3503,9 +3521,7 @@ export function EscLobby() {
                       </span>
                       <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
                     </span>
-                    {salasNovo && !desk && !modosAbertos
-                      ? <span className="text-[12px] font-black shrink-0" style={{ color: PURPLE }}>{tr('trocar ›', 'change ›')}</span>
-                      : <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>}
+                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
                   </button>
                 )
               })}
@@ -3526,7 +3542,7 @@ export function EscLobby() {
           )}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           {(!criar2 || modoLiberado) && (<>
-          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋" resumo={salasNovo && criar2 && !desk ? resumoTime : undefined}>
+          <Section num={criar2 ? 2 : 1} title={criar2 ? tr('O time e o baralho', 'The team and the deck') : tr('O básico', 'The basics')} icon="📋">
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
                   *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
@@ -3679,7 +3695,7 @@ export function EscLobby() {
           {/* ② OS RIVAIS — só na carreira do FUTEBOL (igual offline: host escolhe os CPUs do
               leilão). 🏀 No basquete a liga enche de crews sozinha (sem escolher rivais). */}
           {isCareer && !nbaSala && (
-            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥" resumo={salasNovo && criar2 && !desk ? tr('toque pra ver', 'tap to see') : undefined}>
+            <Section num={criar2 ? 3 : 2} title={tr('Os rivais', 'The rivals')} icon="🔥">
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -3716,7 +3732,7 @@ export function EscLobby() {
 
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'} resumo={salasNovo && criar2 && !desk ? resumoPartida : undefined} abertaInicio>
+            <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon={nbaSala ? '🏀' : '⚽'} abertaInicio>
               {/* 🔻 COMO É O LEILÃO — a escolha mais importante da sala, então mora
                   na seção À VISTA (a tela v2 recolhe as outras num ⚙️ Ajustes, e
                   escolher o tipo de pregão não pode ficar escondido atrás de
@@ -3885,7 +3901,7 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧" resumo={salasNovo && criar2 && !desk ? resumoSala : undefined}>
+          <Section num={criar2 ? 4 : 3} title={tr('A sala', 'The room')} icon="🔧">
             <div>
               {/* 🔒 no modo LIGA este toggle some: a liga é SEMPRE fechada e a senha
                   dela já foi pedida lá em cima, no quadro da liga. Deixar os dois
@@ -3965,11 +3981,6 @@ export function EscLobby() {
           </>)}
           {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
               escolhido ainda não abriu — o cartão em breve termina na explicação. */}
-          {salasNovo && !desk && criar2 && modoLiberado && (
-            <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 text-[13px] font-bold leading-snug" style={{ background: CREAM, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
-              📋 <b style={OSWALD}>{tr('SUA SALA:', 'YOUR ROOM:')}</b> {[nomeModo, roomMode === 'rapido' || roomMode === 'liga' ? resumoPartida : '', roomMode !== 'elenco' ? resumoTime : '', resumoSala].filter(Boolean).join(' · ')}
-            </div>
-          )}
           {!desk && botaoCriar}
         </div>
         {desk && (
@@ -4516,7 +4527,7 @@ export function EscLobby() {
             {mandaNaLiga && !modoEdit && (
               <button onClick={() => {
                 const d = typeof gs?.deckSala === 'string' ? gs.deckSala : 'br'
-                setModoEdit({ lance: gs?.pregaoAberto && !champ ? 'pregao' : gs?.holandes ? 'tocaia' : 'envelope', clubes: !!gs?.clubes, deck: d === 'eu' ? 'eu' : d === 'br' ? 'br' : 'both' })
+                setModoEdit({ lance: gs?.pregaoAberto && !champ ? 'pregao' : gs?.holandes ? 'tocaia' : 'envelope', clubes: !!gs?.clubes, deck: d === 'eu' ? 'eu' : d === 'br' ? 'br' : 'both', copa: copaDaLiga(gs) })
               }} className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[12.5px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
                 {tr('🔁 Trocar o modo', '🔁 Change the mode')}
               </button>
@@ -4526,7 +4537,7 @@ export function EscLobby() {
                 <div>
                   <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Jeito do lance', 'Bidding style')}</p>
                   <Seg small options={[['envelope', tr('✉️ Envelope', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as [LanceLiga, string][]}
-                    value={modoEdit.lance} onSet={v => setModoEdit(m => m && { ...m, lance: v })} travados={champ || !pregaoAbertoOk ? ['pregao'] : undefined} />
+                    value={modoEdit.lance} onSet={v => setModoEdit(m => m && { ...m, lance: v })} travados={modoEdit.copa === 'champions' || !pregaoAbertoOk ? ['pregao'] : undefined} />
                 </div>
                 {clubesOn && (
                   <div>
@@ -4541,8 +4552,29 @@ export function EscLobby() {
                   <Seg small options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as ['br' | 'eu' | 'both', string][]}
                     value={modoEdit.clubes ? 'both' : modoEdit.deck} onSet={v => setModoEdit(m => m && { ...m, deck: v })} travados={modoEdit.clubes ? ['br', 'eu'] : undefined} />
                   {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
-                  {champ && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
+                  {modoEdit.copa === 'champions' && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
                 </div>}
+                {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. Liga Draft não tem copa. */}
+                {!nbaSala && !(gs as GS & { ligaDraft?: boolean })?.ligaDraft && (() => {
+                  const duplas = !!(gs as GS & { duplasMode?: boolean })?.duplasMode
+                  const valores: CopaLiga[] = ['liga_copa', ...(libertaOn ? ['liga_liberta' as const] : []), 'champions', 'liga_mundo', 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]
+                  const todas = valores.map(v => [v, nomeCopaLiga(v)] as [CopaLiga, string])
+                  const convoca = (v: CopaLiga) => v === 'liga_mundo' || regionalId(v) !== null
+                  const travadas: CopaLiga[] = [...(championsOn && modoEdit.lance !== 'pregao' && !duplas ? [] : ['champions' as const]), ...regionalTravadas]
+                  const prat = (titulo: string, lista: [CopaLiga, string][]) => lista.length === 0 ? null : (
+                    <>
+                      <p className="text-black/60 text-[10.5px] font-black uppercase mt-1.5 mb-1" style={OSWALD}>{titulo}</p>
+                      <Seg small options={lista} value={modoEdit.copa} onSet={v => setModoEdit(m => m && { ...m, copa: v })} travados={travadas} />
+                    </>
+                  )
+                  return <div>
+                    <p className="text-black/60 text-[10.5px] font-black uppercase mb-0.5" style={OSWALD}>{tr('Depois da liga', 'After the league')}</p>
+                    {prat(tr('⚽ Com o seu time', '⚽ With your team'), todas.filter(([v]) => !convoca(v)))}
+                    {prat(tr('📋 Convocando', '📋 Call-up'), todas.filter(([v]) => convoca(v)))}
+                    {modoEdit.copa === 'champions' && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('⭐ Só Champions: sem a liga — todo mundo cai direto na tabela de 36.', '⭐ Champions only: no league — everyone goes straight into the table of 36.')}</p>}
+                    {duplas && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Só Champions não vale em liga de duplas.', '🔒 Champions only isn\'t available in a duos league.')}</p>}
+                  </div>
+                })()}
                 <div className="rounded-xl border-2 border-black px-2.5 py-2 text-[11.5px] font-bold leading-snug" style={{ background: '#FFF3C4' }}>
                   {tr((nbaSala ? '🏆 Fica tudo: troféus, ranking, campeões e cestinhas da liga. Vale a partir da próxima temporada.' : '🏆 Fica tudo: troféus, ranking, campeões e artilheiros da liga. Vale a partir da próxima temporada.'), '🏆 Everything stays: trophies, ranking, champions and top scorers. It applies from the next season.')}
                 </div>

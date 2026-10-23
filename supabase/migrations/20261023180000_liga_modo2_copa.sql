@@ -1,0 +1,9 @@
+-- 🏆 23/10: Minhas Ligas — o dono também troca o que vem DEPOIS da liga (só liga · Copa · Liberta · Só Champions · Copa do
+-- Mundo · regionais), igual ao criar sala. Aplicada via MCP (migration `liga_modo2_copa`). Função NOVA `esc_liga_modo2`
+-- (a `esc_liga_modo` de 4 argumentos continua viva pra quem está com o jogo velho aberto).
+-- esc_liga_modo2(p_room, p_lance, p_clubes, p_deck, p_copa) → 'ok' | 'dono' | 'rolando' | 'erro'
+--   · p_copa ∈ liga · liga_copa · liga_liberta · champions · liga_mundo · liga_riosp · liga_sulminas · liga_nordeste
+--   · Liga Draft só aceita 'liga'; Só Champions recusa pregão aberto e liga de duplas
+--   · grava como o criar sala: Mundo = copaMode 'liga' + mundoNaLiga; regional = copaMode 'liga' + regionalNaLiga; e tira a
+--     marca antiga quando troca
+-- Definição viva: select pg_get_functiondef('public.esc_liga_modo2'::regproc);

@@ -102,7 +102,7 @@ import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { useAnunciosGiro, type AnuncioGiro } from './patrocinio'
-import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10) // 📣 anúncios no giro + "Anuncie aqui" (16/10)
+import { PlacaGol, AviaoDaHome } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10) // 📣 anúncios no giro + "Anuncie aqui" (16/10)
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -2258,9 +2258,10 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           logo abaixo da marca, no canto livre da arte */}
       {bbOn && <SeletorEsporte />}
       {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
-      <section className="ll-intro">
-        <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
-        <p>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
+      {/* ✈️ 23/10 (Diego): só o título no meio da arte (a frase de baixo saiu). 10s depois de abrir a home o aviãozinho do
+          parceiro passa UMA vez, e enquanto ele passa o título some e volta depois. */}
+      <section className="ll-intro" style={{ position: 'relative' }}>
+        <AviaoDaHome><h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1></AviaoDaHome>
       </section>
       {(resumable || solo) && <div className="ll-resume">
         {resumable && <><button onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}

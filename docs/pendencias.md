@@ -1,3 +1,33 @@
+## ⚽ Parceiro Grêmio Esportivo Campo Grande (23/10) — PUBLICADO 23/10
+Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. Objetivo: gente no estádio no fim de semana + aluguel
+do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
+- Master da carreira: entra no lugar da ERO (3 temporadas, `gecg`); contrato da ERO correndo vai até o fim. Logo `patro-gecg.webp`.
+- Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO ESPORTIVO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
+  Vadico, OittoLabs e Grêmio refeitas IGUAL à Tidex (2ª versão; a de caixa branca + frase ele reprovou: *"só a da Tidex ainda"*):
+  só o LOGO claro e grande, sem caixa, sobre placa escura da cor da marca (`placa-vadico.webp`/`placa-oittolabs.webp`/`patro-gecg-placa.webp`).
+- ✈️ AVIÃOZINHO NA HOME (ideia dele, publicado): o título "O PREGÃO ESTÁ ABERTO." fica no meio (sem a frase de baixo); 10s depois
+  de abrir a home o avião passa UMA vez puxando a faixa do parceiro (tocar = link) e o título some enquanto ele passa.
+  Config: `AVIAO_HOME` (patrocinio.ts; `null` tira). Componente `AviaoDaHome` (patrocinio-visual.tsx). Regra no CLAUDE.md.
+- Link do Grêmio (telão + avião) = Instagram `https://www.instagram.com/gremiocampo` (pedido dele; antes era o WhatsApp).
+- 🧼 Faixa da comunidade do WhatsApp ficou FINA (uma linha escura, 32px, sem verdão/📲/botão amarelo) — pedido dele.
+- Nome SEMPRE inteiro: "Grêmio Esportivo Campo Grande" (pedido dele).
+- "Apresentada por": Copas Regionais (`regional`) e a liga da carreira NA VÁRZEA (`career-varzea`; as outras divisões seguem Tidex).
+- Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
+- Aviso da comunidade: `scripts/avisos/2026-10-23-parceiro-gecg.json` → `scripts/posts/aviso-2026-10-23-parceiro-gecg.png` (escudo dentro da caixa).
+- Mockup pro cliente (todos os lugares): `scripts/posts/gecg-no-leilao-legends.png`. Bancada: `scripts/teste-parceiro/`.
+## 🎙️ Coletiva no computador (23/10) — FEITO e publicado pra todos ("perfeito pode fazer")
+- Mockup `scripts/mockups/desktop-coletiva.png`. ≥1100px (`useTelaPC`): tela inteira em 2 colunas — esquerda painel das marcas +
+  mesa (presidente maior) + placar; direita repórter, pergunta e respostas em letra grande. O jornal (O MARTELO) largo e centrado.
+  Celular igual. Bancada: `scripts/teste-coletiva-pc/index.html` (`?lendas=1`).
+- Regra dele no mesmo pedido: **na bancada só sentam as lendas que JÁ têm rosto** (sem rosto não entra mais a carta com a inicial);
+  sem lenda com rosto, vale o de sempre: o presidente da conta, ou o botão pra criar o presidente.
+
+## 🏆 Minhas Ligas: trocar também o que vem depois da liga (23/10) — FEITO e publicado
+- Pedido: *"no minhas ligas falta deixar a pessoa poder mudar as ligas também, tipo liga sozinha, liga mais copa, regionais…
+  igual já funciona ao criar salas"*. O "🔁 Trocar o modo" da sala de espera ganhou **Depois da liga** com as MESMAS opções e
+  prateleiras do criar sala (Com o seu time · Convocando), mesmas travas (Liberta/Champions/regionais pelo que a conta tem; Só
+  Champions fora do pregão aberto e das duplas; Liga Draft sem copa). Banco: `esc_liga_modo2` (a antiga continua viva).
+- Testado no banco (troca Mundo → Rio×SP → Liberta, marcas antigas saem, travas recusam). Tela não foi fotografada.
 ## 🖥️ Carreira no computador no padrão do online (23/10) — PUBLICADO pra todos
 Diego: *"aumentamos os tamanhos do modo online… placar cinema e aonde vai entrar o campinho… deixa ajustado no modo carreira
 também"*. Mockups hoje × como ficaria de Jogos, Tabelas, Clube e Elenco aprovados: *"pode fazer tudo pra todo mundo"*.
@@ -101,7 +131,8 @@ Tudo em `career-desktop.css` (bloco de 23/10, só ≥1100px; o celular foi medid
   · liga/copa rolando: `useDesktopNovo()` (`DESKTOP_NOVO_GERAL`, sport.ts) → `Shell desk2` + `.ll-dir` (online-visual.css). A tática
     e a tabela (na Copa: tática + jogos da fase) entram por PORTAL na coluna fixa da direita; placar/campinho 2D, telão e outros jogos
     ficam na esquerda. Fora da Kings e do basquete. Bancada: `scripts/teste-desktop-hoje/index.html?desk2=1&fase=season|copa`.
-  · Ainda sem resposta: leilão no computador (cartas em grade de 3 + caixa/time/chat ao lado) e salas abertas em grade (d3).
+  · Leilão no computador (cartas em grade de 3 + caixa/time/chat ao lado) e salas abertas em grade (d3): *"ainda não!!"* (23/10)
+    — NÃO fazer até ele pedir.
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque
