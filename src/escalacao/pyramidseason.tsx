@@ -2730,7 +2730,7 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
       )}
       <DivChips humans={humans} colors={colors} />
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
-        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('P', 'Pts')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('V', 'W')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('E', 'D')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('D', 'L')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('SG', 'GD')}</th></tr></thead>
+        <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('P', 'Pts')}</th><th className="ll-dk-col" style={{ ...th, textAlign: 'center' }}>{tr('J', 'P')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('V', 'W')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('E', 'D')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('D', 'L')}</th><th className="ll-dk-col" style={{ ...th, textAlign: 'center' }}>{tr('GP', 'GF')}</th><th className="ll-dk-col" style={{ ...th, textAlign: 'center' }}>{tr('GC', 'GA')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('SG', 'GD')}</th></tr></thead>
         <tbody>
           {teams.map((t, i) => {
             const fc = colors[t.teamId]
@@ -2759,7 +2759,9 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
                   </span>
                 </td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td>
+                <td className="ll-dk-col" style={{ textAlign: 'center' }}>{t.w + t.d + t.l}</td>{/* 🖥️ J/GP/GC: só no computador (career-desktop.css) */}
                 <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td>
+                <td className="ll-dk-col" style={{ textAlign: 'center' }}>{t.gf}</td><td className="ll-dk-col" style={{ textAlign: 'center' }}>{t.ga}</td>
                 <td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
               </tr>
             )
@@ -10546,7 +10548,7 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
@@ -12178,6 +12180,8 @@ export function PyramidSeasonScreen() {
               const minute = done ? 93 : scoreClock.round===round ? scoreClock.minute : 0
               return <>
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
+                {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
+                <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={d===division} onClick={()=>setDivisionView(d)}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}</div>
                 {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
                   : round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
               </>
