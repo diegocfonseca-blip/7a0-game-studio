@@ -1,3 +1,14 @@
+## 🔌 Caixa de entrada do dono caía e não religava (23/10, sala RGP7P7 do Futpoint) — CONSERTADO e publicado
+- Sintoma (Diego): convidados não pegavam sobra, não mudavam tática, times completados com os piores. Prova no
+  `esc_realtime_medidor`: a caixa do dono recebeu 116 ações até 22:25 UTC e só 4 nos 9 min seguintes, com os convidados mandando
+  centenas. Às 22:25 a aba do dono ficou escondida (live) → a ligação caiu e voltou; o canal da sala voltou, a caixa não.
+- Conserto (só no aparelho do DONO, nada muda pro convidado): `supabase.channel(tópico)` devolve o canal que já existe — o velho
+  agora é tirado antes; a assinatura olha o status e religa em 2 s se der erro/tempo/fechar; e religa ao voltar pra aba.
+- ⏸️ Ficou de fora, por escolha do Diego (*"tô com medo do convidado fazer algo"*): o reenvio do convidado pela sala quando a caixa
+  não responde em 8 s. Só fazer se ele pedir.
+- Ele perguntou do AVISO pro dono não sair da tela: não existe pro dono (só o banner do convidado, que pede pra chamar o dono). Proposta
+  em aberto, precisa de mockup.
+
 ## 🎬🏆 Túnel da final em TELA CHEIA + festa larga no PC + artilheiro/garçom na festa (23/10) — FEITO e publicado
 - Diego viu uma live e *"não vi nada disso"*: o túnel era um cartão de 5 s dentro do quadro do topo. Mockup
   `scripts/mockups/tunel-festa-hoje-ficaria.png` → *"ok pode fazer"*. `TunelFinal` vira tela cheia na contagem do AUTOMÁTICO

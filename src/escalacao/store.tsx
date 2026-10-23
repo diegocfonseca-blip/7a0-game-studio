@@ -13827,6 +13827,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // sumiço confirmado do host) entra com posse PLENA, sem espera.
   const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
   const acaoPendenteRef = useRef(0)    // ⏳ convidado: quando mandei o último recado que ainda não teve estado de volta (0 = nenhum)
+
   const selaReservaTsRef = useRef(0)   // 📮 última escrita do "fecha o envelope" no caminho reserva
   const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
@@ -14245,13 +14246,36 @@ export function EscProvider({ children }: { children: ReactNode }) {
   }, [state.onlineMode, state.isHost, state.roomId])
   // 📮 a CAIXA DE ENTRADA do dono (toda sala online): os convidados mandam o recado
   // direto pra cá, e só o dono escuta — uma entrega por lance em vez de uma por pessoa.
+  // 🔌 23/10 (sala RGP7P7 do Futpoint, ao vivo): a caixa caía e NÃO religava — o dono escondeu a aba (live), a ligação caiu e
+  // voltou, o canal da sala voltou e a caixa não; dali em diante sobra e tática dos convidados se perdiam caladas. Três causas,
+  // três remédios: (1) `supabase.channel(tópico)` DEVOLVE o canal que já existe com o mesmo nome — se o velho ainda estava
+  // saindo, a caixa nova nascia em cima dele e morria junto; agora o velho é tirado ANTES (e a gente espera); (2) quem assina
+  // agora olha a resposta: erro/tempo esgotado/fechou sem a gente pedir → tenta de novo em 2 s; (3) ao voltar pra aba, religa.
+  const [caixaTentativa, setCaixaTentativa] = useState(0)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.hostInbox) return
-    const inbox = instrumenta(supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'caixa-dono', state.roomId) // 📏
-    inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
-    inbox.subscribe()
-    return () => { try { supabase.removeChannel(inbox) } catch { inbox.unsubscribe() } }
-  }, [state.onlineMode, state.isHost, state.roomId, state.hostInbox, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
+    const rid = state.roomId
+    let vivo = true
+    let inbox: ReturnType<typeof supabase.channel> | null = null
+    let retry: ReturnType<typeof setTimeout> | null = null
+    const religa = () => { if (vivo && !retry) retry = setTimeout(() => { retry = null; if (vivo) setCaixaTentativa(n => n + 1) }, 2000) }
+    void (async () => {
+      const velho = supabase.getChannels().find(c => c.topic === `realtime:escalacao-in:${rid}`)
+      if (velho) { try { await supabase.removeChannel(velho) } catch { /* segue */ } }
+      if (!vivo) return
+      inbox = instrumenta(supabase.channel(`escalacao-in:${rid}`, { config: { broadcast: { self: false, ack: false } } }), 'caixa-dono', rid) // 📏
+      inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
+      inbox.subscribe(status => { if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') religa() })
+    })()
+    const onVis = () => { if (typeof document !== 'undefined' && document.visibilityState === 'visible') religa() }
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
+    return () => {
+      vivo = false
+      if (retry) clearTimeout(retry)
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis)
+      if (inbox) { const ch = inbox; try { void supabase.removeChannel(ch) } catch { ch.unsubscribe() } }
+    }
+  }, [state.onlineMode, state.isHost, state.roomId, state.hostInbox, reconexao, caixaTentativa]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 📵 A TELA NÃO APAGA DURANTE A PARTIDA ONLINE (Diego 28/08: *"se a pessoa deu
   // uma saidinha, não importa — o jogo tem que continuar rolando do mesmo jeito"*).
