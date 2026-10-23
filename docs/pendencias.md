@@ -4,6 +4,10 @@
   centenas. Às 22:25 a aba do dono ficou escondida (live) → a ligação caiu e voltou; o canal da sala voltou, a caixa não.
 - Conserto (só no aparelho do DONO, nada muda pro convidado): `supabase.channel(tópico)` devolve o canal que já existe — o velho
   agora é tirado antes; a assinatura olha o status e religa em 2 s se der erro/tempo/fechar; e religa ao voltar pra aba.
+- 🔁 Mesmo dia, 2ª parte (Diego: *"o chat também não aparecia pro Futpoint"*): o canal da SALA tinha a mesma armadilha —
+  `supabase.channel(nome)` devolve o canal velho morto, o dono falava mas não ouvia. `canalLimpo()` (store.tsx) tira o velho da
+  lista NA HORA antes de criar o novo, no canal da sala e na caixa do dono. Provado em node: sem ele, mesmo objeto; com ele, novo.
+  Publicado com o OK dele ("Sim").
 - ⏸️ Ficou de fora, por escolha do Diego (*"tô com medo do convidado fazer algo"*): o reenvio do convidado pela sala quando a caixa
   não responde em 8 s. Só fazer se ele pedir.
 - Ele perguntou do AVISO pro dono não sair da tela: não existe pro dono (só o banner do convidado, que pede pra chamar o dono). Proposta
