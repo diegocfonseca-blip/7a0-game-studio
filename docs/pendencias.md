@@ -85,7 +85,8 @@
   · liga/copa rolando: `useDesktopNovo()` (`DESKTOP_NOVO_GERAL`, sport.ts) → `Shell desk2` + `.ll-dir` (online-visual.css). A tática
     e a tabela (na Copa: tática + jogos da fase) entram por PORTAL na coluna fixa da direita; placar/campinho 2D, telão e outros jogos
     ficam na esquerda. Fora da Kings e do basquete. Bancada: `scripts/teste-desktop-hoje/index.html?desk2=1&fase=season|copa`.
-  · Ainda sem resposta: leilão no computador (cartas em grade de 3 + caixa/time/chat ao lado) e salas abertas em grade (d3).
+  · Leilão no computador (cartas em grade de 3 + caixa/time/chat ao lado) e salas abertas em grade (d3): *"ainda não!!"* (23/10)
+    — NÃO fazer até ele pedir.
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque
