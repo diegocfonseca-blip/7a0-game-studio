@@ -72,7 +72,7 @@ export function PlacaGol({ lado, alt = 30 }: { lado: 'cima' | 'baixo'; alt?: num
       <style>{CSS_PLACA}</style>
       <div className="pgol-in" key={slot}>
         {p.logo
-          ? (() => { const m = tamanhoMarcaNaPlaca(alt, p.prop ?? 3, alt * 12, p.cheio); return <img src={p.logo} alt={p.nome} draggable={false} style={{ height: Math.round(m.h), width: Math.round(m.w), objectFit: 'contain', display: 'block' }} /> })()
+          ? (() => { const m = tamanhoMarcaNaPlaca(alt, p.prop ?? 3, alt * 12); return <img src={p.logo} alt={p.nome} draggable={false} style={{ height: Math.round(m.h), width: Math.round(m.w), objectFit: 'contain', display: 'block' }} /> })()
           : <b style={{ font: `700 ${Math.round(alt * 0.5)}px Oswald, sans-serif`, letterSpacing: '.08em', textTransform: 'uppercase', color: '#0C0C0C' }}>{p.nome}</b>}
       </div>
     </div>

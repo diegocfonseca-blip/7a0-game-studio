@@ -272,7 +272,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           g.fillStyle = fundo; g.fillRect(x0 + i * w + 1, yy, w - 2, alt)
           const logo = p.logo ? img(p.logo) : null
           if (logo && logo.complete && logo.naturalWidth) {
-            const { w: lw, h } = tamanhoMarcaNaPlaca(alt, p.prop ?? 3, w - 10, p.cheio) // 📐 o padrão da Tidex (21/10)
+            const { w: lw, h } = tamanhoMarcaNaPlaca(alt, p.prop ?? 3, w - 10) // 📐 o padrão da Tidex (21/10)
             g.drawImage(logo, x0 + i * w + w / 2 - lw / 2, yy + alt / 2 - h / 2, lw, h)
           } else {
             g.fillStyle = claro(fundo) ? INK : '#fff'; g.font = fonte(alt * 0.55); g.textAlign = 'center'; g.fillText(p.nome.toUpperCase(), x0 + i * w + w / 2, yy + alt * 0.7)

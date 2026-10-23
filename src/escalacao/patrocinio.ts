@@ -197,23 +197,22 @@ export function releAnuncios() { lidoEm = 0; carregaAvulsos() }
 // 🏟️ PLACAS ATRÁS DOS GOLS (17/10, Diego escolheu a ideia 1 do mockup `scripts/mockups/campinho-outras-ideias.png`: *"perfeito
 // pode fazer mas no momento coloque Vadico Veículos e Max Joias"*). Uma placa em cima e outra embaixo de todo campinho, cada uma
 // numa marca, trocando juntas a cada 7 s no MESMO relógio do Anúncio do dia. Com 1 marca só, a outra placa mostra Leilão Legends.
-export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string; cheio?: boolean } // cheio = a arte já é a FAIXA inteira (fundo incluso): ocupa a placa de ponta a ponta na altura
+export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string }
 const PLACAS_CAMPO: PlacaCampo[] = [
-  // 🏟️ 23/10 (Diego: "ajustar os patrocínios existentes p se enquadrar e ficar parecido com o da Tidex"): cada marca virou uma FAIXA
-  //    deitada do mesmo formato da Tidex (840×120: logo + frase), então todas enchem a placa do mesmo jeito.
-  { nome: 'Vadico Veículos', logo: VADICO_PLACA, prop: 840 / 120, fundo: '#ffffff', cheio: true },
-  { nome: 'OittoLabs', logo: OITTO_PLACA, prop: 840 / 120, fundo: '#ffffff', cheio: true }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
+  // 🏟️ 23/10 (Diego: "ajustar os patrocínios existentes p se enquadrar e ficar parecido com o da Tidex"): a 1ª tentativa (faixa
+  //    com caixa branca + frase) não ficou boa (*"só a da Tidex ainda"*). Agora é igual à Tidex: só o LOGO, claro e grande, sem
+  //    caixa, sobre a placa escura da cor da marca — e o tamanho sai da mesma régua (`tamanhoMarcaNaPlaca`).
+  { nome: 'Vadico Veículos', logo: VADICO_PLACA, prop: 532 / 120, fundo: '#141414' },
+  { nome: 'OittoLabs', logo: OITTO_PLACA, prop: 522 / 120, fundo: '#0F2340' }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
   { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' },
-  // ⚽ 23/10 (Diego: "reveza com a Tidex… como é placa de campinho precisamos de uma ideia pra ele ficar na horizontal"): o escudo é
-  //    vertical, então a placa é uma faixa DEITADA feita pra ela — escudo + "GRÊMIO CAMPO GRANDE" no azul do clube.
-  { nome: 'Grêmio Esportivo Campo Grande', logo: GECG_PLACA, prop: 840 / 120, fundo: '#11225A', cheio: true }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
+  // ⚽ 23/10: o escudo é vertical, então a placa leva escudo + "GRÊMIO ESPORTIVO / CAMPO GRANDE" em duas linhas, no azul do clube.
+  { nome: 'Grêmio Esportivo Campo Grande', logo: GECG_PLACA, prop: 586 / 120, fundo: '#11225A' },
 ]
 /** 📐 TAMANHO DA MARCA NA PLACA (21/10, Diego: *"a Tidex está perfeita… a Vadico e a OittoLabs estão desproporcionais e pequenas…
  *  tem que seguir o padrão da Tidex"*). Antes toda marca tinha a MESMA altura (72% da placa), então a marca comprida (Tidex, 7:1)
  *  enchia a placa e a mais quadrada (Vadico 3,5:1 · OittoLabs 2,8:1) ficava miúda. Agora todas miram a LARGURA da Tidex, e a
  *  mais quadrada cresce até 92% da altura da placa pra chegar o mais perto possível. A Tidex continua exatamente igual. */
-export function tamanhoMarcaNaPlaca(alt: number, prop: number, larguraMax: number, cheio?: boolean): { w: number; h: number } {
-  if (cheio) { const w = Math.min(larguraMax, alt * prop); return { w, h: w / prop } } // 🏟️ 23/10: faixa pronta enche a placa
+export function tamanhoMarcaNaPlaca(alt: number, prop: number, larguraMax: number): { w: number; h: number } {
   const alvo = Math.min(larguraMax, alt * 0.72 * (837 / 120))
   const h = Math.min(alt * 0.92, alvo / prop, alt * 0.72 * Math.max(1, (837 / 120) / prop))
   return { w: h * prop, h }

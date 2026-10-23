@@ -3,7 +3,9 @@ Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. 
 do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
 - Master da carreira: entra no lugar da ERO (3 temporadas, `gecg`); contrato da ERO correndo vai até o fim. Logo `patro-gecg.webp`.
 - Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO ESPORTIVO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
-  Vadico e OittoLabs ganharam faixa no MESMO formato (840×120, `placa-vadico.webp`/`placa-oittolabs.webp`, `cheio: true`) pra ficarem do tamanho da Tidex (pedido dele).
+  Vadico, OittoLabs e Grêmio refeitas IGUAL à Tidex (2ª versão; a de caixa branca + frase ele reprovou: *"só a da Tidex ainda"*):
+  só o LOGO claro e grande, sem caixa, sobre placa escura da cor da marca (`placa-vadico.webp`/`placa-oittolabs.webp`/`patro-gecg-placa.webp`).
+- 💡 Ideia dele (23/10), mockup em vídeo enviado: AVIÃOZINHO cruzando a home puxando a faixa do patrocinador (toque = WhatsApp). Esperando OK.
 - Nome SEMPRE inteiro: "Grêmio Esportivo Campo Grande" (pedido dele).
 - "Apresentada por": Copas Regionais (`regional`) e a liga da carreira NA VÁRZEA (`career-varzea`; as outras divisões seguem Tidex).
 - Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
