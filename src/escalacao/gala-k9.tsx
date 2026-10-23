@@ -94,8 +94,8 @@ function useEscala() {
 }
 
 export function GalaK9({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
-  // 🔊 23/10: o áudio que o Diego mandou (vídeo do Instagram), os 8,4 s da entrada, no volume dos outros cantos (−20,6 dB)
-  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/gala-k9-v1.mp3`, T), [chave])
+  // 🔊 o CANTO DA TORCIDA dele (o mesmo da carreira, 23/10) toca junto com a gala — padrão do Fabulous/Gaviões
+  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-k9-v1.mp3`, T), [chave])
   const s = useEscala()
   return createPortal(
     <div key={chave} className="gk9" aria-hidden>
