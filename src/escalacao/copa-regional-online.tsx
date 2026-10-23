@@ -40,7 +40,7 @@ import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-compe
 import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, soQuemEstaNaSala, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
 import {
   COPAS_REGIONAIS, clubesDaCopa, poolDoClube, completaXIClube, xiPorChavesClube, xiDaMaquinaClube, forcaDoXI,
-  piorClubeLivre, melhorClubeLivre, simulaRegional, tabelaDoLado, passosRegional, passoRegionalRodaBola, artilhariaRegional,
+  piorClubeLivre, melhorClubeLivre, simulaRegional, tabelaDoLado, passosRegional, passoRegionalRodaBola, artilhariaRegional, garconsRegional,
   type CopaRegionalId, type MundoRegional, type ConfrontoRegional, type GolRegional,
 } from './copa-regional'
 
@@ -787,7 +787,9 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
       {/* CERIMÔNIA */}
       {done && !festaRegVista && <FestaCampeao comp={copa} nome={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={150} />}
-        souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }} />}
+        souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
+        artilheiro={(() => { const r = artilhariaRegional(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
+        garcom={(() => { const r = garconsRegional(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
       {done && (() => {
         const c = mundo.campeao, fin = mundo.ko[mundo.ko.length - 1].ties[0]
         const art = artilhariaRegional(mundo).slice(0, 5)

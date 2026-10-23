@@ -1,3 +1,12 @@
+## 🎬🏆 Túnel da final em TELA CHEIA + festa larga no PC + artilheiro/garçom na festa (23/10) — FEITO e publicado
+- Diego viu uma live e *"não vi nada disso"*: o túnel era um cartão de 5 s dentro do quadro do topo. Mockup
+  `scripts/mockups/tunel-festa-hoje-ficaria.png` → *"ok pode fazer"*. `TunelFinal` vira tela cheia na contagem do AUTOMÁTICO
+  (toque fecha; no manual fica só o cartão pra não esconder os controles). `FestaCampeao` ocupa a tela toda no computador.
+- E *"já poderia aparecer o artilheiro que ganhou a copa"* → a festa mostra ⚽ artilheiro + 🅰️ garçom DAQUELA competição, em
+  todas as copas das salas (liga, Copa dos 8, Liberta, Champions, Copa do Mundo, regionais). `garconsRegional` novo em copa-regional.ts.
+- *"Depois que tiver campeão dá pra sair da tela?"*: sim — toque fecha a festa e o botão VOLTAR À SALA já existia embaixo.
+- Bancada: `scripts/teste-tunel-festa/index.html?v=tunel|festa`.
+
 ## 🎙️ Coletiva no computador (23/10) — FEITO e publicado pra todos ("perfeito pode fazer")
 - Mockup `scripts/mockups/desktop-coletiva.png`. ≥1100px (`useTelaPC`): tela inteira em 2 colunas — esquerda painel das marcas +
   mesa (presidente maior) + placar; direita repórter, pergunta e respostas em letra grande. O jornal (O MARTELO) largo e centrado.

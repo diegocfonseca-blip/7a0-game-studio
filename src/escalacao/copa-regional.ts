@@ -303,6 +303,14 @@ export function simulaRegional(entrants: Entrant[], seed: number, tat?: QualTati
   return base
 }
 
+/** 🅰️ os garçons da copa (mesma conta da artilharia, pelo `assist` de cada gol) — 23/10, pra festa do campeão */
+export function garconsRegional(m: MundoRegional): { name: string; assists: number; team: number }[] {
+  const conta = new Map<string, { name: string; assists: number; team: number }>()
+  const soma = (ev: GolRegional[], h: number, a: number) => { for (const g of ev) { if (!g.assist) continue; const t = g.home ? h : a; const k = `${t}|${g.assist}`; const r = conta.get(k) ?? { name: g.assist, assists: 0, team: t }; r.assists++; conta.set(k, r) } }
+  for (const rod of m.rodadas) for (const j of rod) soma(j.ev, j.h, j.a)
+  for (const f of m.ko) for (const t of f.ties) soma(t.ev, t.h, t.a)
+  return [...conta.values()].sort((x, y) => y.assists - x.assists || x.name.localeCompare(y.name))
+}
 /** artilharia da copa (gol de pênalti da disputa não conta — só gol de jogo) */
 export function artilhariaRegional(m: MundoRegional): { name: string; goals: number; team: number }[] {
   const conta = new Map<string, { name: string; goals: number; team: number }>()

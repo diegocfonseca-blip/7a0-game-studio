@@ -11627,8 +11627,16 @@ export function EscEnd() {
     const dono = state.managers.find(m => m.id === festaAgora.id)
     const mk = souEu && minhaMasc ? minhaMasc : mascoteKeyDoTime(festaAgora.nome)
     const lendas = ((dono?.squad ?? []) as WonCard[]).filter(c => !c.fake && c.fame >= 5 && !c.promessa).sort((a, b) => (b.paid ?? 0) - (a.paid ?? 0)).map(c => ({ nome: c.name, club: c.club, year: c.year }))
+    // ⚽🅰️ o artilheiro e o garçom DAQUELA competição (liga = a da temporada; copa = só a da copa, nunca misturada)
+    const qcF = state.quickCopa
+    const gols = festaAgora.key === 'liga' ? state.scorers : (qcF?.scorers ?? [])
+    const pas = festaAgora.key === 'liga' ? (state.assists ?? []) : (qcF?.assists ?? [])
+    const g1 = [...gols].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
+    const a1 = [...pas].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name))[0]
     return <FestaCampeao key={festaAgora.key} comp={festaAgora.comp} nome={festaAgora.nome} crest={<Escudo nome={festaAgora.nome} size={160} />}
-      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta} />
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta}
+      artilheiro={g1 && g1.goals > 0 ? { nome: g1.name, time: g1.teamName, n: g1.goals } : null}
+      garcom={a1 && a1.assists > 0 ? { nome: a1.name, time: a1.teamName, n: a1.assists } : null} />
   })() : null
   const canRestart = !online || state.isHost
   // streamHost = SÓ stream (usado na carta compartilhada do campeão). hostPaced =

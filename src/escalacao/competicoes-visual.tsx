@@ -11,6 +11,7 @@ import { tr } from './lang'
 import { playCampeao } from './sound'
 import { legendAvatar } from './legend-avatars'
 import estadioArt from './img/online-estadio-v25.webp'
+import { useTelaPC } from './sport'
 
 const INK = '#0C0C0C'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -82,8 +83,13 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
   seg: number | null; total: number; espera?: string
 }) {
   const c = COMPS[comp]
+  const pc = useTelaPC()
+  // 🎬 23/10 (Diego numa live: *"não vi nada disso"*): na contagem do automático o túnel vira TELA CHEIA por cima de tudo,
+  // como a festa — antes era um cartão dentro do quadro do topo e passava batido. Toque fecha. No MANUAL fica só o cartão
+  // (a tela cheia esconderia os controles de quem dá a largada).
+  const [fechado, setFechado] = useState(false)
   const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
-  return (
+  const cartao = (
     <div style={{ position: 'relative', overflow: 'hidden', border: `4px solid ${INK}`, borderRadius: 22, boxShadow: `5px 5px 0 ${INK}`, background: c.bg, color: '#fff', padding: '16px 14px 14px', margin: '0 0 12px' }}>
       <style>{css}</style>
       <Enfeite tipo={c.extra} />
@@ -112,11 +118,29 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
       </div>
     </div>
   )
+  if (seg == null || seg <= 0 || fechado) return cartao
+  return <>
+    {cartao}
+    {createPortal(
+      <div onClick={() => setFechado(true)} style={{ position: 'fixed', inset: 0, zIndex: 99960, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${c.bg}, url(${estadioArt}) center / cover`, cursor: 'pointer', padding: 16 }}>
+        <style>{css}</style>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.35)' }} />
+        <div style={{ position: 'relative', width: '100%', maxWidth: 520, zoom: pc ? 1.55 : 1.08 } as CSSProperties}>{cartao}
+          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,.7)', fontSize: 10, fontWeight: 700, margin: '2px 0 0' }}>{tr('toque pra fechar', 'tap to close')}</p>
+        </div>
+      </div>,
+      document.body,
+    )}
+  </>
 }
 
 /** 🏆 A FESTA DO CAMPEÃO: por cima da tela de fim, ~5,5 s, toque pula. */
-export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone }: {
+/** ⚽🅰️ quem fez mais gols / deu mais passes na competição (pra festa) */
+export type DestaqueFesta = { nome: string; time: string; n: number }
+export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom }: {
   comp: CompId; nome: string; crest: ReactNode; mascote?: ReactNode
+  /** ⚽ 23/10 (Diego: *"já poderia aparecer o artilheiro que ganhou a copa também"*) — e o 🅰️ garçom junto (regra dele: o que vale pro gol vale pra assistência) */
+  artilheiro?: DestaqueFesta | null; garcom?: DestaqueFesta | null
   lendas?: { nome: string; club: string; year: number }[]; linha?: string
   /** quem está vendo É o campeão? (aí toca o canto do clube dele, se tiver; senão o grito de gol) */
   souCampeao?: boolean; onDone: () => void
@@ -133,10 +157,12 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   }, [])
   const conf = Array.from({ length: 46 }, (_, i) => ({ l: (i * 37) % 100, d: (i * 0.137) % 3.2, r: (i * 53) % 180, cor: c.conf[i % c.conf.length], dur: 2.6 + (i % 5) * 0.35 }))
   const vis = lendas.slice(0, 3)
+  // 🖥️ 23/10: no computador a festa ocupa a tela inteira (antes era a coluna de celular no meio)
+  const pc = useTelaPC()
   return createPortal(
     <div onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 99970, display: 'flex', justifyContent: 'center', background: '#000', animation: saindo ? 'fcSai .45s both' : undefined, cursor: 'pointer' }}>
       <style>{css}</style>
-      <div style={{ position: 'relative', width: '100%', maxWidth: 480, height: '100%', overflow: 'hidden', background: `${c.bg}, url(${estadioArt}) center / cover`, color: '#fff' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', overflow: 'hidden', background: `${c.bg}, url(${estadioArt}) center / cover`, color: '#fff', zoom: pc ? 1.35 : undefined } as CSSProperties}>
         <div style={{ position: 'absolute', inset: 0, background: `url(${estadioArt}) center / cover`, opacity: .35, mixBlendMode: 'overlay' }} />
         <Enfeite tipo={c.extra} />
         {conf.map((k, i) => <i key={i} style={{ position: 'absolute', left: `${k.l}%`, top: -20, width: 9, height: 14, borderRadius: 2, background: k.cor, transform: `rotate(${k.r}deg)`, animation: `fcCai ${k.dur}s ${k.d}s linear infinite` }} />)}
@@ -152,9 +178,13 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
           {vis.map(l => { const art = legendAvatar(l.nome, l.club, l.year); return art ? <img key={l.nome} src={art.src} alt={l.nome} style={{ width: 104, height: 150, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(4px 4px 0 #000)' }} /> : null })}
         </div>}
         {mascote && <div style={{ position: 'absolute', bottom: 100, right: -10, width: 200, animation: 'tfEntraD .7s 1.2s both', filter: 'drop-shadow(5px 5px 0 #000)' }}>{mascote}</div>}
-        <div style={{ position: 'absolute', left: 16, right: 16, bottom: 22, background: INK, border: `4px solid ${c.faixaBg}`, borderRadius: 18, padding: '10px 12px', boxShadow: '5px 5px 0 #000', textAlign: 'center', animation: 'fcSobe .5s 1.5s both' }}>
+        <div style={{ position: 'absolute', left: pc ? 'calc(50% - 320px)' : 16, right: pc ? 'calc(50% - 320px)' : 16, bottom: 22, background: INK, border: `4px solid ${c.faixaBg}`, borderRadius: 18, padding: '10px 12px', boxShadow: '5px 5px 0 #000', textAlign: 'center', animation: 'fcSobe .5s 1.5s both' }}>
           <b style={{ ...OSW, display: 'block', fontSize: 24, color: c.faixaBg === '#FFFFFF' ? '#fff' : c.faixaBg, lineHeight: 1 }}>🏆 {tr(c.campeao[0], c.campeao[1])}</b>
           {linha && <small style={{ fontSize: 12.5, fontWeight: 700, color: '#ddd' }}>{linha}</small>}
+          {(artilheiro || garcom) && <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+            {artilheiro && <span style={{ background: '#fff', color: INK, border: `2px solid ${c.faixaBg === '#FFFFFF' ? '#999' : c.faixaBg}`, borderRadius: 9, padding: '3px 8px', fontSize: 11.5, fontWeight: 800, lineHeight: 1.25 }}>⚽ {tr('Artilheiro', 'Top scorer')}: <b>{artilheiro.nome}</b> <span style={{ opacity: .6 }}>({artilheiro.time})</span> · {artilheiro.n} {artilheiro.n === 1 ? tr('gol', 'goal') : tr('gols', 'goals')}</span>}
+            {garcom && <span style={{ background: '#fff', color: INK, border: `2px solid ${c.faixaBg === '#FFFFFF' ? '#999' : c.faixaBg}`, borderRadius: 9, padding: '3px 8px', fontSize: 11.5, fontWeight: 800, lineHeight: 1.25 }}>🅰️ {tr('Garçom', 'Top assists')}: <b>{garcom.nome}</b> <span style={{ opacity: .6 }}>({garcom.time})</span> · {garcom.n} {garcom.n === 1 ? tr('passe', 'assist') : tr('passes', 'assists')}</span>}
+          </div>}
           <small style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#999', marginTop: 3 }}>{tr('toque pra continuar', 'tap to continue')}</small>
         </div>
       </div>
