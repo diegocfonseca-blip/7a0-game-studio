@@ -71,6 +71,9 @@
   `useSalasEsperaNova` (`SALAS_ESPERA_GERAL = true`, sport.ts) liga só a ③ Espera; lista/criar/Minhas Ligas continuam em
   `useSalasVisualNovo` (só ele). Ele perguntou do DESKTOP da espera (coluna estreita no meio, laterais vazias) — opinião dada,
   esperando ele dizer se quer mockup.
+- 🖥️ Mockups de COMPUTADOR (23/10): `scripts/mockups/desktop-salas-d1/d2/d3.png` — ① espera em 2 colunas (técnicos + convite |
+  zoeira + chat sempre aberto, botão do dono largo no pé) · ② criar sala com o resumo "📋 Sua sala" fixo à direita · ③ salas
+  abertas em grade de 3 + coluna lateral (Criar sala, Minhas ligas, carreiras, zap). Celular não muda. Esperando OK.
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque
