@@ -6,6 +6,10 @@
 - Decisões dele no caminho: técnico novo sem a formação salva → entra na formação atual com aviso; *"não pode seguir a partida
   faltando um jogador"* → se não fecha 11, nada muda e o cartão diz o que falta. Quem chegou depois de salvar só tapa vaga se
   não houver mais ninguém na posição.
+- 🔁 23/10, mesmo dia: o cartão aberto empurrava o campinho; ele escolheu o **"enxuto fechado"** (mockup
+  `carreira-escalacao-ab-fechado.png`): 3ª PÍLULA ao lado de Formação/Trocas ("💾 Time A ▾"), abre no toque, fecha sozinha ao
+  trocar; faixa verde some em 5 s, amarela (alguém não pôde) fecha no toque, vermelha quando não fecha 11. A pílula lê
+  `careerEscalacoes[id].ativo` (o último usado com aqueles 11). **Não voltar o cartão sempre aberto.**
 - ⏳ Carreira online v2: entra quando ela for liberada (anotar na `docs/carreira-online-checklist.md`).
 - Pedido: salvar Time A e Time B e trocar na hora. Mockup `scripts/mockups/carreira-escalacao-ab.png`. Regras dele: vendido/
   contrato acabou/machucado/suspenso NÃO entra; cansado entra (escolha dele); jogador comprado depois de salvar não entra.

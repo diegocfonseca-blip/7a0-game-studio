@@ -92,7 +92,7 @@ import type { Contratacao } from './central-noticias'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
 import { BICO_MARCAS, bicoValor, bicoElegivel, type BicoDiv } from './bico'
 import { fornAtivo } from './loja'
-import { EscalacaoAB } from './escalacao-ab-ui' // 💾 escalação A/B (23/10)
+import { EscalacaoAB, timeEmCampo } from './escalacao-ab-ui' // 💾 escalação A/B (23/10)
 import { formacaoNoCardapio } from './cardapio-formacoes' // 🎽 cardápio do técnico: uma função só (23/10)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
@@ -5919,7 +5919,7 @@ export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaN
   )
 }
 
-export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, abSlot }: { /** 💾 o cartão da Escalação A/B (23/10) — entra logo embaixo de Formação/Trocas */ abSlot?: ReactNode; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
+export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, ab }: { /** 💾 Time A/B (23/10): a 3ª pílula ao lado de Formação/Trocas + o painel/aviso que ela abre */ ab?: { rotulo: string; render: (aberto: boolean, fechar: () => void) => ReactNode }; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
@@ -5947,6 +5947,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   // os textos são os MESMOS — só deixaram de ficar abertos o tempo todo.
   const [abreFormacao, setAbreFormacao] = useState(false)
   const [abreTrocas, setAbreTrocas] = useState(false)
+  const [abreAB, setAbreAB] = useState(false) // 💾 o painel do Time A/B (fechado por padrão — escolha do Diego, 23/10)
   const telaLarga = useTelaLarga()
   const elencoNovoOk = useElencoNovo() // ⚠️ hook NUNCA depois de && (o curto-circuito pularia a chamada)
   const largaElenco = telaLarga && elencoNovoOk
@@ -6052,7 +6053,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
         </button>
       )}
       {/* 🎽🔁 as pílulas: o que está valendo, em uma linha. Toca e a caixa abre embaixo. */}
-      {elencoNovoOk && elenco && (onSetFormation || onSetSubMode) && (() => {
+      {elencoNovoOk && elenco && (onSetFormation || onSetSubMode || ab) && (() => {
         const rotuloForm = quinze15 ? formacaoAtual(mgr).rotulo : mgr.formation
         const modoAgora = (subMode ?? 'dinamico') === 'dinamico' ? tr('🔄 Dinâmico', '🔄 Dynamic') : tr('⏸️ Intervalo', '⏸️ Half-time')
         const pilula = (txt: string, aberta: boolean, onClick: () => void) => (
@@ -6064,9 +6065,17 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
             {onSetFormation && pilula(`🎽 ${rotuloForm}`, abreFormacao, () => setAbreFormacao(v => !v))}
             {onSetSubMode && pilula(modoAgora, abreTrocas, () => setAbreTrocas(v => !v))}
+            {ab && pilula(ab.rotulo, abreAB, () => setAbreAB(v => !v))}
           </div>
         )
       })()}
+      {/* 💾 fora do Elenco novo não tem a fileira de pílulas: a do Time A/B vem sozinha, do mesmo jeito */}
+      {!elencoNovoOk && elenco && ab && (
+        <button onClick={() => setAbreAB(v => !v)} style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 8px', border: `2.5px solid ${INK}`, borderRadius: 9, background: abreAB ? INK : '#fff', color: abreAB ? GOLD : INK, marginBottom: 10, cursor: 'pointer' }}>
+          {ab.rotulo} {abreAB ? '▴' : '▾'}
+        </button>
+      )}
+      {elenco && ab && ab.render(abreAB, () => setAbreAB(false))}
       {elenco && onSetFormation && (!elencoNovoOk || abreFormacao) && (() => {
         // 🎽 troca de formação: libera pra QUALQUER formação que você consiga preencher
         // por posição com jogadores REAIS e SEUS (emprestado não conta — é extra que
@@ -6214,7 +6223,6 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           </div>
         )
       })()}
-      {elenco && abSlot}
       {elenco ? (
         <>
           {(seasonNo ?? 1) >= 4 && (
@@ -12097,7 +12105,7 @@ export function PyramidSeasonScreen() {
                 {' '}{tr('O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.', 'What already showed on screen no longer changes: the champion that comes out is the real champion.')}
               </div>
             )}
-            <SquadTab abSlot={canSub && mgrMe ? <EscalacaoAB mgr={mgrMe} xiIds={myXI.map(c => c.id)} slot={slotEscala} fora={suspenso ? new Set([suspenso.cardId]) : new Set<string>()} gas={condGas ?? undefined} /> : undefined} mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
+            <SquadTab ab={canSub && mgrMe ? { rotulo: (() => { const q = timeEmCampo(state, mgrMe, myXI.map(c => c.id)); return q ? `💾 ${tr('Time', 'Team')} ${q}` : `💾 ${tr('Time', 'Team')} A/B` })(), render: (aberto, fechar) => <EscalacaoAB mgr={mgrMe} xiIds={myXI.map(c => c.id)} slot={slotEscala} fora={suspenso ? new Set([suspenso.cardId]) : new Set<string>()} gas={condGas ?? undefined} aberto={aberto} fechar={fechar} /> } : undefined} mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
               estat={estatJogos ? { jogos: estatJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined } : undefined}
               condicao={condGas && condJogosTela ? { gas: condGas, jogos: condJogosTela, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />

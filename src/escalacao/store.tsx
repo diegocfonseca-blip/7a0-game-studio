@@ -5603,7 +5603,7 @@ type Action =
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
   | { type: 'SALVA_ESCALACAO'; mgrId: number; qual: 'A' | 'B'; ids: string[]; formation: FormationKey; view?: string } // 💾 guarda o time em campo como Time A/B (23/10)
-  | { type: 'APLICA_ESCALACAO'; mgrId: number; formation: FormationKey; view?: string; ids: string[]; slot?: number } // 💾 entra com o A/B montado pela tela (aplicaEscalacao): formação + 11 juntos, ou nada
+  | { type: 'APLICA_ESCALACAO'; mgrId: number; qual?: 'A' | 'B'; formation: FormationKey; view?: string; ids: string[]; slot?: number } // 💾 entra com o A/B montado pela tela (aplicaEscalacao): formação + 11 juntos, ou nada
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
@@ -10049,7 +10049,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!esc) return s
       const need = FORMATIONS[action.formation]
       if (SECTORS.some(p => esc.pos.filter(x => x === p).length !== need[p])) return s // os 11 não fecham a formação
-      s.careerEscalacoes = { ...(s.careerEscalacoes ?? {}), [m.id]: { ...(s.careerEscalacoes?.[m.id] ?? {}), [action.qual]: esc } }
+      s.careerEscalacoes = { ...(s.careerEscalacoes ?? {}), [m.id]: { ...(s.careerEscalacoes?.[m.id] ?? {}), [action.qual]: esc, ativo: { qual: action.qual, ids: [...action.ids] } } }
       return s
     }
     case 'APLICA_ESCALACAO': {
@@ -10078,6 +10078,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       t = reducerBase(t, { type: 'SET_LINEUP', mgrId: m.id, ids, slot: action.slot })
       const gravado = t.careerLineup?.[m.id]?.[slotDaTroca(t, action.slot)]
       if (!gravado || gravado.join() !== ids.join()) return state // a escalação não pegou: nada muda
+      if (action.qual) t.careerEscalacoes = { ...(t.careerEscalacoes ?? {}), [m.id]: { ...(t.careerEscalacoes?.[m.id] ?? {}), ativo: { qual: action.qual, ids } } }
       return t
     }
     case 'SET_CONDICAO_AUTO': {
