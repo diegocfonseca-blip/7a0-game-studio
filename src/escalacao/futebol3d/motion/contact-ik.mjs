@@ -8,6 +8,7 @@ export function solveLegContact(actor,side,target,{weight=1,maxCorrection=.10,ma
  actor.holder.updateMatrixWorld(true);
  const a=hip.getWorldPosition(new T.Vector3()),b=knee.getWorldPosition(new T.Vector3()),c=ankle.getWorldPosition(new T.Vector3());
  const ankleQ=ankle.getWorldQuaternion(new T.Quaternion()),delta=target.clone().sub(c);
+ const independent=ankle.parent!==knee,original=independent?[hip,knee,ankle].map(b=>({b,p:b.position.clone(),q:b.quaternion.clone()})):null;
  const requested=delta.length();if(delta.length()>maxCorrection)delta.setLength(maxCorrection);
  const goal=c.clone().addScaledVector(delta,T.MathUtils.clamp(weight,0,1));
  const ab=a.distanceTo(b),bc=b.distanceTo(c),axis=goal.clone().sub(a);let distance=axis.length();
@@ -26,6 +27,9 @@ export function solveLegContact(actor,side,target,{weight=1,maxCorrection=.10,ma
  aim(hip,b.clone().sub(a),kneeGoal.clone().sub(a));
  const kb=knee.getWorldPosition(new T.Vector3()),kc=ankle.getWorldPosition(new T.Vector3());
  aim(knee,kc.sub(kb),goal.clone().sub(kb));
+ // The civilian rig keeps authored feet as root-level IK controls. Drive
+ // that control explicitly, without reparenting joints or stretching a shin.
+ if(independent){const pivot=knee.getWorldPosition(new T.Vector3()),end=pivot.clone().add(goal.clone().sub(pivot).normalize().multiplyScalar(bc));if(end.distanceTo(c)>maxCorrection+1e-6){for(const s of original){s.b.position.copy(s.p);s.b.quaternion.copy(s.q)}actor.holder.updateMatrixWorld(true);return {applied:false,reason:'independent-foot-reach-budget'}}ankle.position.copy(ankle.parent.worldToLocal(end));}
  ankle.quaternion.copy(ankle.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(ankleQ));
  actor.holder.updateMatrixWorld(true);actor.root.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
  return {applied:true,requested,limited:requested>maxCorrection,error:ankle.getWorldPosition(new T.Vector3()).distanceTo(goal),maxCorrection,maxAngle};

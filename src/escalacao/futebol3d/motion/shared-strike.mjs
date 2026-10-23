@@ -24,18 +24,41 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
  // fingers). Keep those from the clean native clip instead of blending stale
  // binding state left by stopping/restarting AnimationMixer actions.
  for(let i=0;i<captured.length;i++){const pose=captured[i],b=actor.bones.get(pose.name);if(channels.has(pose.name+'.position'))b.position.lerpVectors(base[i].p,pose.p,weight);else b.position.copy(base[i].p);b.quaternion.copy(base[i].q);if(channels.has(pose.name+'.quaternion'))b.quaternion.slerp(pose.q,weight*(armBones.has(pose.name)?armWeight:1));}actor.holder.updateMatrixWorld(true);
- const rootWeight=smooth((time-(plan.time-.12))/.10)*smooth(((plan.time+.10)-time)/.08);
+ const rootWeight=actor.style==='civil-cartoon'?weight:smooth((time-(plan.time-.12))/.10)*smooth(((plan.time+.10)-time)/.08);
  const offset=new T.Vector3().fromArray(plan.rootCorrection??[0,0,0]).multiplyScalar(rootWeight);center(actor,p,offset);actor.ground();
  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),raw=Object.fromEntries(['thigh_r','calf_r','foot_r','thigh_l','calf_l','foot_l'].map(n=>[n,actor.bones.get(n).quaternion.clone()])),ankles=['foot_r','foot_l'].map(n=>actor.bones.get(n).getWorldPosition(new T.Vector3()));
  const corrections=correct?{right:constrainFootBall(actor,'right',ball,{maxCorrection:.08}),left:constrainFootBall(actor,'left',ball,{maxCorrection:.08})}:null;
+ // A compact rig can exhaust leg IK during an imported approach. Resolve the
+ // remaining overlap on the visual anchor only, within both the 18 cm local
+ // clearance limit and the actor's overall presentation budget. The official
+ // ball, player coordinates and event time remain authoritative.
+ if(correct&&actor.style==='civil-cartoon'){
+  const original=actor.holder.position.clone(),initialGap=nearest(ball,feet(actor)).distance-.11;
+  if(initialGap<-.003){const hit=nearest(ball,feet(actor)),away=hit.surface.clone().sub(ball).setY(0);if(away.lengthSq()<1e-10)away.copy(original).sub(ball).setY(0);away.normalize();let bestGap=initialGap,bestOffset=new T.Vector3();
+   search:for(let amount=.005;amount<=.180001;amount+=.005)for(const turn of [0,.4,-.4,.8,-.8,1.2,-1.2,Math.PI/2,-Math.PI/2,2,-2,2.4,-2.4,2.8,-2.8,Math.PI]){const shift=away.clone().applyAxisAngle(new T.Vector3(0,1,0),turn).multiplyScalar(amount);if(offset.clone().add(shift).length()>(actor.maxPresentationOffset??.03)+1e-6)continue;actor.holder.position.copy(original).add(shift);actor.holder.updateMatrixWorld(true);const gap=nearest(ball,feet(actor)).distance-.11;if(gap>bestGap){bestGap=gap;bestOffset.copy(shift)}if(bestGap>=.001)break search;}
+   actor.holder.position.copy(original).add(bestOffset);offset.add(bestOffset);actor.holder.updateMatrixWorld(true);corrections.visualAnchor={metres:bestOffset.length(),rawGap:initialGap,gap:bestGap,limited:bestGap<-.003};
+  }
+ }
  actor.holder.updateMatrixWorld(true);const triangles=feet(actor),rightGap=nearest(ball,actor.footTriangles('right')).distance-.11,leftGap=nearest(ball,actor.footTriangles('left')).distance-.11,hip=actor.bones.get('pelvis').getWorldPosition(new T.Vector3());
  const result={time,weight,armCaptureWeight:armWeight,foot:plan.foot??'right',contactGap:plan.foot==='left'?leftGap:rightGap,rightGap,leftGap,minFloor:Math.min(...triangles.flatMap(t=>[t.a.y,t.b.y,t.c.y])),rootCorrection:offset.length(),pelvisQuaternion:actor.bones.get('pelvis').getWorldQuaternion(new T.Quaternion()).normalize().toArray(),pelvisError:Math.hypot(hip.x-p.position.x,hip.z-p.position.z),maxAnkleCorrection:Math.max(...['foot_r','foot_l'].map((n,i)=>actor.bones.get(n).getWorldPosition(new T.Vector3()).distanceTo(ankles[i]))),maxJointAngle:Math.max(...Object.entries(raw).map(([n,q])=>actor.bones.get(n).quaternion.angleTo(q))),corrections,ball:frame.ball,provisional:plan.type!=='chute',sourceBallPreserved:true,ballImpulseAllowed:false,writesToMotor:false};
  const finalPose=copyPose(actor);actor.resume();for(const b of finalPose){const bone=actor.bones.get(b.name);bone.position.copy(b.p);bone.quaternion.copy(b.q);}actor.holder.updateMatrixWorld(true);return result;
 }
 export function contactCorrection(actor,timeline,plan){
  sampleSharedStrike(actor,timeline,{...plan,rootCorrection:[0,0,0]},plan.time,{correct:false});const frame=timeline.sample(plan.time),ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),hit=nearest(ball,actor.footTriangles(plan.foot??'right')),normal=ball.clone().sub(hit.surface).normalize();normal.y=0;normal.normalize();
- const rawGap=hit.distance-.11;if(Math.abs(rawGap-.001)>.03)return null;
+ const rawGap=hit.distance-.11,budget=actor.maxPresentationOffset??.03;
+ // Fit a compact character on the approach side of the official ball. A
+ // nearest-surface-only fit may accidentally choose the heel, which touches
+ // the ball but points its surface normal against the outgoing pass.
+ if(actor.style==='civil-cartoon'&&plan.direction){
+  const direction=new T.Vector3().fromArray(plan.direction).setY(0).normalize(),triangles=actor.footTriangles(plan.foot??'right'),points=triangles.flatMap(t=>[t.a,t.b,t.c]),center=points.reduce((v,p)=>v.add(p),new T.Vector3()).divideScalar(points.length),lateral=ball.clone().sub(center).setY(0);lateral.addScaledVector(direction,-lateral.dot(direction));
+  if(lateral.length()<budget){const origin=actor.holder.position.clone(),range=Math.sqrt(budget*budget-lateral.lengthSq()),gap=amount=>{actor.holder.position.copy(origin).add(lateral).addScaledVector(direction,amount);actor.holder.updateMatrixWorld(true);return nearest(ball,actor.footTriangles(plan.foot??'right')).distance-.11;};let previous=-range,value=gap(previous);
+   for(let step=1;step<=96;step++){const amount=-range+2*range*step/96,next=gap(amount);if(value>.001&&next<=.001){let low=previous,high=amount;for(let j=0;j<32;j++){const mid=(low+high)/2;if(gap(mid)>.001)low=mid;else high=mid}return lateral.addScaledVector(direction,(low+high)/2).toArray()}previous=amount;value=next}
+   actor.holder.position.copy(origin);actor.holder.updateMatrixWorld(true);
+  }
+ }
+ if(Math.abs(rawGap-.001)>budget)return null;
  const initial=actor.holder.position.clone(),gap=amount=>{actor.holder.position.copy(initial).addScaledVector(normal,amount);actor.holder.updateMatrixWorld(true);return nearest(ball,actor.footTriangles(plan.foot??'right')).distance-.11;};
+ if(budget>.03){const direction=rawGap>.001?1:-1;let previous=0;for(let step=1;step<=32;step++){const amount=direction*budget*step/32,value=gap(amount);if((rawGap>.001&&value<=.001)||(rawGap<.001&&value>=.001)){let low=previous,high=amount;for(let i=0;i<32;i++){const mid=(low+high)/2;if((rawGap>.001&&gap(mid)>.001)||(rawGap<.001&&gap(mid)<.001))low=mid;else high=mid}return normal.multiplyScalar((low+high)/2).toArray()}previous=amount}return null;}
  let lo=-.03,hi=.03;if(gap(lo)<.001||gap(hi)>.001)return null;for(let i=0;i<32;i++){const mid=(lo+hi)/2;if(gap(mid)>.001)lo=mid;else hi=mid;}return normal.multiplyScalar((lo+hi)/2).toArray();
 }
 export function measureSharedImpact(actor,timeline,plan){

@@ -6,7 +6,7 @@ import * as THREE from 'three'
  * Each frequency fades before its cells become smaller than a screen pixel. */
 export function materialGramado3D(color: string, map: THREE.Texture) {
   const material = new THREE.MeshStandardMaterial({ color, map, roughness: 1 })
-  material.customProgramCacheKey = () => 'presidencia-grass-fibres-v1'
+  material.customProgramCacheKey = () => 'presidencia-grass-fibres-v2'
   material.onBeforeCompile = shader => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec2 vComplexoGrassPoint;')
@@ -40,6 +40,17 @@ float grassGrain = complexoGrassNoise(vComplexoGrassPoint * grassGrainFrequency 
 // A neutral, bounded modulation: keep the image, mowing stripes and club-stage
 // colours. At map scale this is exactly 1, so no distant grain or moiré appears.
 diffuseColor.rgb *= 1.0 + grassFibres * 0.12 + grassGrain * 0.045;
+`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+// Millimetre-scale relief responds to the existing scene lights. Derivatives
+// reuse the filtered fibre field above, so distant turf remains stable and
+// the close view gains depth without extra textures or individual grass draws.
+float grassRelief = grassFibres * 0.0015 + grassGrain * 0.00035;
+vec3 grassDx = dFdx(-vViewPosition), grassDy = dFdy(-vViewPosition);
+vec3 grassR1 = cross(grassDy, normal), grassR2 = cross(normal, grassDx);
+float grassDet = dot(grassDx, grassR1);
+vec3 grassGradient = sign(grassDet) * (dFdx(grassRelief) * grassR1 + dFdy(grassRelief) * grassR2);
+normal = normalize(max(abs(grassDet), 1e-12) * normal - grassGradient);
 `)
   }
   return material

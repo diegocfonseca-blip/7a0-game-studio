@@ -5,29 +5,31 @@ import {dressUniversalKit,dressNeutralKit,releaseMatchKits,releaseNeutralKits} f
 import {neymarzetti} from './club-kit.mjs';
 import {playerDetail,PLAYER_HEIGHT} from './lod.mjs';
 import {loadReviewedMotion,loadGaitCalibration,bindCapturedMotion} from './reviewed-motion.mjs';
+import {loadCartoonSource,createCartoonPlayer} from './cartoon/player.mjs';
 
 let source,users=0;
 const load=()=>source??=new GLTFLoader().loadAsync(new URL('./assets/quaternius.glb',import.meta.url).href).catch(error=>{source=undefined;throw error});
 /** Shared original geometry, separate skeletons. Existing reviewed garment fit.
  * Captures are enabled only for the exact reviewed official input. */
-export async function loadPlayers(scene,state,frame){
- const [gltf,motion,gait]=await Promise.all([load(),loadReviewedMotion(state.officialInput),loadGaitCalibration()]),actors=[];users++;
+let cartoonMotionPromise;
+export async function loadPlayers(scene,state,frame,{style='athlete'}={}){
+ const cartoon=style==='civil-cartoon',civil=cartoon?await loadCartoonSource():null;
+ const [gltf,originalMotion,originalGait]=await Promise.all([civil?.gltf??load(),loadReviewedMotion(state.officialInput,{metadataOnly:cartoon}),loadGaitCalibration()]);
+ const fitted=cartoon?await(cartoonMotionPromise??=fetch(new URL('./cartoon/motion.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Contatos do modelo civil indisponíveis');return r.json()})):null;
+ const motion=cartoon?(originalMotion&&fitted.inputSHA256===originalMotion.inputSHA256?{...fitted,clips:new Map([...civil.clips].filter(([name])=>!name.endsWith('_Loop')))}:null):originalMotion,gait=fitted?.gait??originalGait,actors=[];users++;
  try{
   const initial=frame.players;
   for(const [index,p]of initial.entries()){
-   const root=clone(gltf.scene),holder=new T.Group(),meshes=[];holder.add(root);holder.scale.setScalar(1.78/1.8287);
-   root.traverse(n=>{if(n.isSkinnedMesh){meshes.push(n);n.castShadow=n.receiveShadow=true;n.frustumCulled=false}});
-   const mixer=new T.AnimationMixer(root),actions=new Map();
-   for(const name of ['Idle_Loop','Walk_Loop','Jog_Fwd_Loop','Sprint_Loop']){
-    const clip=gltf.animations.find(c=>c.name===name);if(!clip)throw Error('Clipe original indisponível: '+name);
-    actions.set(name,mixer.clipAction(clip));
+   const keeper=p.keeper,number=index%11+1,club=state.officialTeams?.[p.side==='home'?0:1];
+   let actor;
+   if(cartoon){actor=await createCartoonPlayer(civil,club==='Neymarzetti'&&!keeper?neymarzetti:null,{number,shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor,skinColor:['#bd906f','#895738','#d4ad83'][index%3],hairColor:['#49301e','#30231d','#66513d'][index%3]})}
+   else{
+    const root=clone(gltf.scene),holder=new T.Group(),meshes=[];holder.add(root);holder.scale.setScalar(1.78/1.8287);root.traverse(n=>{if(n.isSkinnedMesh){meshes.push(n);n.castShadow=n.receiveShadow=true;n.frustumCulled=false}});
+    const mixer=new T.AnimationMixer(root),actions=new Map();for(const name of ['Idle_Loop','Walk_Loop','Jog_Fwd_Loop','Sprint_Loop']){const clip=gltf.animations.find(c=>c.name===name);if(!clip)throw Error('Clipe original indisponível: '+name);actions.set(name,mixer.clipAction(clip))}
+    const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor});actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,footIndices:kit.template.data.part.map((p,i)=>p===3?i:-1).filter(i=>i>=0)};
    }
-   const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),keeper=p.keeper;
-   const number=index%11+1,club=state.officialTeams?.[p.side==='home'?0:1];
-   const kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor});
-   const actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,current:null,side:p.side,key:p.key,keeper:p.keeper,gaitPhase:0,lastDistance:0,wasAction:false,lastHeading:null,lastPose:-Infinity,detail:'full',groundOffset:0,footHeight:0,footIndices:[]};
-   for(let i=0;i<kit.template.data.part.length;i++)if(kit.template.data.part[i]===3)actor.footIndices.push(i);
-   actor.motion=bindCapturedMotion(actor,motion);actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(holder);
+   Object.assign(actor,{current:null,side:p.side,key:p.key,keeper,gaitPhase:0,lastDistance:0,wasAction:false,lastHeading:null,lastPose:-Infinity,detail:'full',groundOffset:0,footHeight:0});
+   actor.motion=bindCapturedMotion(actor,motion);actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
   }
  }catch(error){for(const a of actors){a.kit.dispose();a.holder.removeFromParent();a.mixer.stopAllAction()}if(--users===0){releaseNeutralKits();releaseMatchKits([neymarzetti])}throw error}
  const pointsGeometry=new T.BufferGeometry(),positions=new Float32Array(actors.length*3),colors=new Float32Array(actors.length*3);
@@ -40,7 +42,7 @@ export async function loadPlayers(scene,state,frame){
  return {update(frame,camera,viewportHeight=720){
   if(disposed)return;
   const elapsed=lastTime===null?0:frame.time-lastTime,reset=lastTime===null||elapsed<0||elapsed>1,dt=Math.max(0,elapsed);lastTime=frame.time;lastFrame=frame;const used=new Set(),currentKeys=new Set(frame.players.map(p=>p.key));positions.fill(-10000);
-  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],clearance:[]};
+  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],clearance:[]};
   frame.players.forEach((p,i)=>{
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const resetActor=reset||a.key!==p.key;a.key=p.key;
    const mode=p.speed<.12?'Idle_Loop':p.speed<2.5?'Walk_Loop':p.speed<6?'Jog_Fwd_Loop':'Sprint_Loop',cal=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[mode]],duration=a.actions.get(mode).getClip().duration,stride=cal?.strideLength??duration*(mode==='Walk_Loop'?1.5:mode==='Sprint_Loop'?7:4.5);
@@ -63,7 +65,7 @@ export async function loadPlayers(scene,state,frame){
    const nearBall=frame.ball.y<1.5&&Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z)<1.5;
    const refresh=active||a.wasAction||nearBall||(a.detail==='full'&&dt>0)||frame.time-a.lastPose>=1/12||previous!==a.detail||frame.time<a.lastPose;
    if(refresh){a.mixer.update(Math.min(.25,dt));for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const c=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[name]];action.time=name==='Idle_Loop'?frame.time%action.getClip().duration:((a.gaitPhase+(c?.phaseOffset??0))%1)*action.getClip().duration}a.mixer.update(0);a.lastPose=frame.time;inspection.poseUpdates++;}
-   a.pelvis.position.x=a.rest.x;a.pelvis.position.z=a.rest.z;
+   if(!cartoon){a.pelvis.position.x=a.rest.x;a.pelvis.position.z=a.rest.z;}
    if(refresh)for(const pose of a.nativePose){pose.position.copy(pose.bone.position);pose.quaternion.copy(pose.bone.quaternion)}
    a.holder.position.set(p.mx,a.groundOffset,p.mz);a.holder.rotation.y=a.lastHeading;a.holder.updateMatrixWorld(true);
    // Both native gait and retargeted captures use the pelvis ground projection

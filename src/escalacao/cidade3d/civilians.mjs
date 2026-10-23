@@ -30,7 +30,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady}={}){
    const convert=source=>{if(!materialCopies.has(source)){const m=source.clone();if(['Shirt','Clothes'].includes(m.name))m.color.set(palette);if(m.name==='Skin')m.color.set(['#b87952','#d4ad83','#895738','#bd926b'][hash(id+'skin')%4]);if(m.name==='Hair'&&spec.age==='older')m.color.set('#9b9a90');m.roughness=.86;m.metalness=0;materialCopies.set(source,m);materials.add(m)}return materialCopies.get(source)};
    n.material=Array.isArray(n.material)?n.material.map(convert):convert(n.material);
    if(n.isSkinnedMesh){const feet=new Set(n.skeleton.bones.map((b,i)=>/^Foot[.LR]/.test(b.name)?i:-1).filter(i=>i>=0)),indices=[],weights=n.geometry.getAttribute('skinWeight'),joints=n.geometry.getAttribute('skinIndex');
-    for(let i=0;i<weights.count;i++)for(let k=0;k<4;k++)if(feet.has(joints.array[i*4+k])&&weights.array[i*4+k]>.5){indices.push(i);break}
+    for(let i=0;i<weights.count;i++)for(let k=0;k<4;k++)if(feet.has(joints[['getX','getY','getZ','getW'][k]](i))&&weights[['getX','getY','getZ','getW'][k]](i)>.5){indices.push(i);break}
     footMeshes.push({mesh:n,indices});
    }
   });

@@ -13,7 +13,7 @@ export async function loadGaitCalibration(){
  }).catch(error=>{gaitPromise=undefined;throw error});
  return gaitPromise;
 }
-export async function loadReviewedMotion(input){
+export async function loadReviewedMotion(input,{metadataOnly=false}={}){
  if(!input)return null;
  indexPromise??=fetch(new URL('./assets/reviewed-motion-index.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Índice de movimentos indisponível');return r.json()});
  const index=await indexPromise;
@@ -23,6 +23,7 @@ export async function loadReviewedMotion(input){
  if(!engine||index.engineSHA256!==engine)return null;
  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(canonical(input)))),hash=[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
  if(hash!==index.inputSHA256)return null;
+ if(metadataOnly)return {inputSHA256:hash,engineSHA256:index.engineSHA256};
  packPromise??=fetch(new URL('./assets/reviewed-match-motion.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Capturas revisadas indisponíveis');return r.json()});
  const pack=await packPromise;if(pack.inputSHA256!==hash)throw Error('Movimentos de outra partida');
  return {...pack,clips:new Map(Object.entries(pack.clips).map(([name,clip])=>[name,T.AnimationClip.parse(clip)]))};
@@ -62,7 +63,7 @@ export function bindCapturedMotion(actor,pack){
   let best={result:failure,pose:snapshot(),offset:0};
   for(const offset of [-.01,.01,-.02,.02]){
    loops.forEach(([,a],i)=>{const d=a.getClip().duration;a.time=(times[i]+offset*d+d)%d});actor.mixer.update(0);
-   const hip=actor.bones.get('pelvis');hip.position.x=actor.rest.x;hip.position.z=actor.rest.z;
+   const hip=actor.bones.get('pelvis');if(actor.style!=='civil-cartoon'){hip.position.x=actor.rest.x;hip.position.z=actor.rest.z;}
    actor.holder.position.set(p.mx,0,p.mz);actor.holder.updateMatrixWorld(true);const anchor=hip.getWorldPosition(new T.Vector3());actor.holder.position.x+=p.mx-anchor.x;actor.holder.position.z+=p.mz-anchor.z;actor.holder.updateMatrixWorld(true);
    const feet=[...actor.footTriangles('left'),...actor.footTriangles('right')],low=Math.min(...feet.flatMap(t=>[t.a.y,t.b.y,t.c.y]));actor.holder.position.y=.002-low;actor.holder.updateMatrixWorld(true);
    const result=this.clearance(frame,p);if(result&&result.rootClearance.gap>best.result.rootClearance.gap){best={result,pose:snapshot(),offset};if(result.rootClearance.gap>=.001-1e-6)break}
