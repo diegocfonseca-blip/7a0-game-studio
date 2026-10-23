@@ -1,4 +1,12 @@
-## 💾 Escalação A e B salvas no Elenco da carreira (23/10) — MOCKUP, esperando OK do Diego
+## 💾 Escalação A e B salvas no Elenco da carreira (23/10) — PUBLICADO pra todos ("ok")
+- FEITO: `escalacao-salva.ts` (puro: quem entra/quem não/quem substitui), `escalacao-ab-ui.tsx` (o cartão, embaixo de
+  Formação/Trocas, da 2ª temporada em diante), ações `SALVA_ESCALACAO`/`APLICA_ESCALACAO` (tudo ou nada) e `careerEscalacoes`
+  no save (zera ao começar carreira nova). O cardápio do técnico virou função única (`cardapio-formacoes.ts` +
+  `formacaoLiberadaNoEstado`) lida pelo seletor, pelo cartão e pelo reducer. Trava: `npm run escalacao-ab`.
+- Decisões dele no caminho: técnico novo sem a formação salva → entra na formação atual com aviso; *"não pode seguir a partida
+  faltando um jogador"* → se não fecha 11, nada muda e o cartão diz o que falta. Quem chegou depois de salvar só tapa vaga se
+  não houver mais ninguém na posição.
+- ⏳ Carreira online v2: entra quando ela for liberada (anotar na `docs/carreira-online-checklist.md`).
 - Pedido: salvar Time A e Time B e trocar na hora. Mockup `scripts/mockups/carreira-escalacao-ab.png`. Regras dele: vendido/
   contrato acabou/machucado/suspenso NÃO entra; cansado entra (escolha dele); jogador comprado depois de salvar não entra.
 - Proposta minha no mockup (confirmar): na vaga de quem não pôde entra o reserva mais inteiro da posição (regra do rodízio);
