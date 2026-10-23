@@ -1,3 +1,10 @@
+## 🎙️ Coletiva no computador (23/10) — FEITO e publicado pra todos ("perfeito pode fazer")
+- Mockup `scripts/mockups/desktop-coletiva.png`. ≥1100px (`useTelaPC`): tela inteira em 2 colunas — esquerda painel das marcas +
+  mesa (presidente maior) + placar; direita repórter, pergunta e respostas em letra grande. O jornal (O MARTELO) largo e centrado.
+  Celular igual. Bancada: `scripts/teste-coletiva-pc/index.html` (`?lendas=1`).
+- Regra dele no mesmo pedido: **na bancada só sentam as lendas que JÁ têm rosto** (sem rosto não entra mais a carta com a inicial);
+  sem lenda com rosto, vale o de sempre: o presidente da conta, ou o botão pra criar o presidente.
+
 ## 🏆 Minhas Ligas: trocar também o que vem depois da liga (23/10) — FEITO e publicado
 - Pedido: *"no minhas ligas falta deixar a pessoa poder mudar as ligas também, tipo liga sozinha, liga mais copa, regionais…
   igual já funciona ao criar salas"*. O "🔁 Trocar o modo" da sala de espera ganhou **Depois da liga** com as MESMAS opções e
