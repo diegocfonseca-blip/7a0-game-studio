@@ -1090,6 +1090,9 @@ import { supabase } from '../lib/supabase'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
+import { formacoes15On } from './sport' // 🎽 as 15 formações (a mesma régua do seletor) — A/B, 23/10
+import { formacaoNoCardapio } from './cardapio-formacoes'
+import { salvaEscalacao } from './escalacao-salva' // 💾 escalação A/B (23/10)
 import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
 import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
@@ -3150,8 +3153,17 @@ function trimFilialLoansToDivision(s: EscState): number {
 // daqui é chamado e a SAF/2º clube antigos seguem idênticos.
 /** 🕴️ a SAF destrava a categoria 👑 Lenda na Agência. Com a SAF nova, quem ASSUMIU o comando não pode
  *  perder esse destrave por ter subido de degrau: o 2º clube que nasceu da SAF continua valendo. */
+// 🏢 A LENDA DA AGÊNCIA DESTRAVA COM A SAF — E FICA DESTRAVADA (23/10, regra do Diego, caso do Fabulous EC):
+// *"quando o cara já compra SAF, já destrava. Mesmo se ele vender depois, não tem problema. Se ele comprou, já destrava"*.
+// Antes valia só a SAF de AGORA: quem trocou a SAF pelo 2º clube (migração do SAF 2.0) ou vendeu perdia a Lenda.
+// Provas de que já teve SAF: a marca nova `safJaTeve` (gravada em toda compra); `saf2.migrado` (só é gravado pra quem
+// tinha SAF — migração ou assumir o comando); e, pra save antigo, a compra da SAF ou os prêmios dela no extrato.
+export function jaTeveSaf(s: EscState): boolean {
+  if (s.careerFilial || s.safJaTeve || s.saf2?.migrado || s.saf2?.origemSaf) return true
+  return (s.careerLedger ?? []).some(e => e.kind === 'saf' || (e.kind === 'safbuy' && e.label.includes('SAF')) || (e.kind === 'safsell' && e.label.includes('SAF')))
+}
 export function temSafAgencia(s: EscState): boolean {
-  return !!s.careerFilial || (saf2On(s) && !!s.saf2?.origemSaf && !!segundoClube(s))
+  return jaTeveSaf(s)
 }
 export function saf2On(s: EscState): boolean {
   // 🏀 o basquete não tem SAF: o 2º clube dele nasce da COMPRA direta (BUY_MULTICLUBE,
@@ -5599,6 +5611,8 @@ type Action =
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
+  | { type: 'SALVA_ESCALACAO'; mgrId: number; qual: 'A' | 'B'; ids: string[]; formation: FormationKey; view?: string } // 💾 guarda o time em campo como Time A/B (23/10)
+  | { type: 'APLICA_ESCALACAO'; mgrId: number; qual?: 'A' | 'B'; formation: FormationKey; view?: string; ids: string[]; slot?: number } // 💾 entra com o A/B montado pela tela (aplicaEscalacao): formação + 11 juntos, ou nada
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
@@ -7244,6 +7258,18 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
+/** 🎽 a formação está no cardápio do técnico deste clube agora? A MESMA conta pra tela do A/B e pro reducer (23/10). */
+export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'careerFormacaoExtra' | 'onlineMode'>, m: Manager, f: FormationKey, v?: string): boolean {
+  if (!FORMATIONS[f]) return false
+  const atual = formacaoAtual(m)
+  const alvo = formacaoAtual({ formation: f, formationView: v })
+  const real = m.squad.filter(c => !c.fake)
+  const monta = (k: FormationKey) => SECTORS.every(p => real.filter(c => c.pos === p && !c.emprestado).length >= FORMATIONS[k][p])
+  const tec = tecnicoPorNome(s.careerTecnicos?.[m.teamName] ?? '')
+  const quinze = formacoes15On() && s.onlineMode !== 'online'
+  return formacaoNoCardapio({ quinze, temTecnico: !!tec, doTecnico: tec ? fichaDoTecnico(tec).formacoes : [], daCasa: tec ? (s.careerFormacaoExtra?.[m.teamName] ?? null) : null,
+    atualRotulo: quinze ? atual.rotulo : m.formation, atualMonta: monta(m.formation), rotulo: quinze ? alvo.rotulo : f, monta: monta(f) })
+}
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
@@ -8003,7 +8029,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = [] // livro-caixa novo
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência começa vazia
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 👕🏆🛍️ patrocínio/Master/Loja zerados
-      s.stadiums = {}; s.careerFilial = undefined // 🏟️🏢 estádio e SAF do zero
+      s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined // 🏟️🏢 estádio e SAF do zero
       s.careerTitles = 0; s.careerTitlesA = 0
       s.clubCash = seedClubCash({}, pl)
       s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
@@ -8419,7 +8445,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
-      s.stadiums = {}; s.careerFilial = undefined
+      s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       // 🏛️ BUG AO VIVO (04/08, print do Murriz): carreira NOVA nascia com o
       // MULTICLUBES fantasma da carreira anterior (seletor "M10 × M10") — o stash
       // nunca era limpo no START. Carreira nova = UM clube, sempre.
@@ -8458,7 +8484,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
       s.liberta = null; s.champions = null // 🌎 idem pra Libertadores
       s.streamChampCard = null // 🎥 stream: carta do campeão é por temporada — não herda a anterior
-      s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.seasonVotes = {}
+      s.tactics = {}; s.careerTactics = {}; s.careerLineup = {}; s.careerEscalacoes = undefined; s.careerHalftime = {}; s.careerPenalty = {}; s.seasonVotes = {}
       const cc: Record<number, number> = {}
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
       s.careerCoins = cc
@@ -8530,11 +8556,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.agenciaDividir = false
-      s.stadiums = {}; s.careerFilial = undefined
+      s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
       s.careerTitles = 0; s.careerTitlesA = 0
       s.clubCash = seedClubCash({}, plQ)
-      s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}
+      s.careerTactics = {}; s.careerLineup = {}; s.careerEscalacoes = undefined; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveAuction = false; s.reserveListed = {}
       s.quickCopa = null; s.liberta = null; s.champions = null; s.streamChampCard = null
       s.nbaCup = null; s.nbaCupFeita = null  // 🏀 a NBA Cup é POR TEMPORADA também: zera junto, senão a próxima não semeia
@@ -9260,6 +9286,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const titlesAtBuy = h0 ? (h0.A + h0.B + h0.C + h0.D) : 0
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy }
       logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
+      s.safJaTeve = true // 🏢 Lenda da Agência destravada pra sempre (23/10)
       return s
     }
     case 'BUY_MULTICLUBE': {
@@ -10021,6 +10048,48 @@ function reducerBase(state: EscState, action: Action): EscState {
       bl[action.mgrId] = { ...(bl[action.mgrId] ?? {}), [r]: action.ids }
       s.careerLineup = bl
       return s
+    }
+    case 'SALVA_ESCALACAO': {
+      // 💾 ESCALAÇÃO A/B (23/10): guarda o time em campo (formação + os 11, por CARTA). Mesmas portas do SET_LINEUP:
+      // só carreira de futebol, da 2ª temporada em diante (quando tem banco pra alternar).
+      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 2) return s
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      if (!m || !FORMATIONS[action.formation]) return s
+      const esc = salvaEscalacao(m.squad, action.ids, action.formation, action.view, s.seasonNo, s.round)
+      if (!esc) return s
+      const need = FORMATIONS[action.formation]
+      if (SECTORS.some(p => esc.pos.filter(x => x === p).length !== need[p])) return s // os 11 não fecham a formação
+      s.careerEscalacoes = { ...(s.careerEscalacoes ?? {}), [m.id]: { ...(s.careerEscalacoes?.[m.id] ?? {}), [action.qual]: esc, ativo: { qual: action.qual, ids: [...action.ids] } } }
+      return s
+    }
+    case 'APLICA_ESCALACAO': {
+      // 💾 ENTRA COM O TIME A/B. Quem escolhe QUEM entra é `aplicaEscalacao` (tela); aqui é a trava de verdade, e é
+      // TUDO OU NADA (Diego: *"ele não pode seguir a partida faltando um jogador"*): 11 cartas reais e distintas do elenco,
+      // nenhum suspenso, fechando a formação, formação no cardápio do técnico (a MESMA função do seletor). Se a troca de
+      // formação ou a escalação não pegar, devolve o estado de antes — nunca fica meio trocado.
+      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 2) return s
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      const need = FORMATIONS[action.formation]
+      if (!m || !need) return s
+      const byId = new Map(m.squad.map(c => [c.id, c]))
+      const ids = [...new Set(action.ids)]
+      const cards = ids.map(id => byId.get(id)).filter((c): c is NonNullable<typeof c> => !!c && !c.fake)
+      if (ids.length !== 11 || cards.length !== 11) return s
+      if (SECTORS.some(p => cards.filter(c => c.pos === p).length !== need[p])) return s
+      const evA = s.eventoTemporada
+      if (evA && evA.season === s.seasonNo && evA.status === 'banco' && (evA.volta ?? 0) > s.round && evA.mgrId === m.id && ids.includes(evA.cardId)) return s
+      if (!formacaoLiberadaNoEstado(s, m, action.formation, action.view)) return s
+      let t: EscState = s
+      if (m.formation !== action.formation || (m.formationView ?? undefined) !== (action.view ?? undefined)) {
+        t = reducerBase(s, { type: 'CHANGE_FORMATION', formation: action.formation, mgrId: m.id, slot: action.slot, view: action.view })
+        const mt = t.managers.find(x => x.id === m.id)
+        if (!mt || mt.formation !== action.formation) return state // a formação não pegou: nada muda
+      }
+      t = reducerBase(t, { type: 'SET_LINEUP', mgrId: m.id, ids, slot: action.slot })
+      const gravado = t.careerLineup?.[m.id]?.[slotDaTroca(t, action.slot)]
+      if (!gravado || gravado.join() !== ids.join()) return state // a escalação não pegou: nada muda
+      if (action.qual) t.careerEscalacoes = { ...(t.careerEscalacoes ?? {}), [m.id]: { ...(t.careerEscalacoes?.[m.id] ?? {}), ativo: { qual: action.qual, ids } } }
+      return t
     }
     case 'SET_CONDICAO_AUTO': {
       // 🔁 rodízio automático do preparador — SÓ carreira solo (no online o host
@@ -12086,7 +12155,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPlacements = null
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.careerCopaSeasons = []; s.careerSupercopaSeasons = []
-      s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined
+      s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       // 🧢🏋️ A COMISSÃO TAMBÉM É DA OUTRA CARREIRA (18/09). Os mapas do técnico e do
       // preparador nasceram DEPOIS desta faxina (26/08 e 15/09) e ficaram de fora —
       // então retomar uma carreira antiga logo depois de uma adiantada trazia junto o

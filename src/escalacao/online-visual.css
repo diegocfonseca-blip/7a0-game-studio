@@ -197,3 +197,20 @@
 /* 🗂️ visual novo das salas (só na conta do Diego): na grade de 2 colunas os botões do nome/✕ não esticam pra 44px */
 .salas-tec-grade button{min-height:0}
 .salas-tec-grade .gap-3{gap:6px}
+
+/* 🖥️ criar sala no computador (23/10, só a conta do Diego): a coluna abre pra caber as etapas + "Sua sala" ao lado */
+@media(min-width:1100px){#root .online-room-art[data-desk-criar='1']>.col-tela{max-width:1180px}}
+
+/* 🖥️ LIGA E COPA ROLANDO NO COMPUTADOR — o desenho novo (23/10, só a conta do Diego; `desk2` em EscSeason).
+   Esquerda: placar no tamanho de sempre (ou o campinho 2D) + telão + outros jogos, na ordem do HTML.
+   Direita: `.ll-dir`, uma coluna FIXA (sticky) onde a tática e a tabela/os jogos da fase entram por portal.
+   Só ≥1100px — e o hook nem liga abaixo disso. Desfazer: apagar este bloco + DESKTOP_NOVO em sport.ts. */
+@media (min-width: 1100px) {
+  #root .ll-desk.ll-desk2 { display: block; position: relative; padding-right: 448px; min-height: 920px; }
+  .ll-desk.ll-desk2 > * + * { margin-top: 20px !important; }
+  .ll-desk.ll-desk2 > .ll-dir { position: absolute; top: 20px; right: 16px; bottom: 0; width: 408px; margin: 0 !important; }
+  .ll-desk2 .ll-dir-in { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 14px; }
+  .ll-desk2 .ll-dir-in > * { margin: 0 !important; }
+  /* os jogos da fase da Copa: um embaixo do outro na coluna estreita (o 2 por linha espremia os nomes) */
+  .ll-desk2 .ll-dir-in .ll26-phase-matches > div { grid-template-columns: 1fr !important; }
+}

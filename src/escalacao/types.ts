@@ -792,6 +792,8 @@ export interface EscState {
   reserveAuction?: boolean // carreira online: o leilão em curso é o de RESERVAS (mantém elenco, mira 22, orçamento = caixa). No fim, sincroniza a caixa e tira o elenco fundo.
   reserveListed?: Record<number, string[]> // carreira online: cartas que cada técnico LISTOU pro leilão (mgrId → ids), escolhidas na tela de venda (45s)
   reserveListMesmo?: boolean // 🔒 a tela de venda (reserveList) atual veio do voto "mesmo time" — só decide contrato, sem mercado/leilão depois (CONFIRM_MESMO_TIME fecha)
+  /** 💾 ESCALAÇÃO A e B salvas (23/10, carreira): mgrId → 'A'|'B' → o time guardado por CARTA (`escalacao-salva.ts`) */
+  careerEscalacoes?: Record<number, { A?: import('./escalacao-salva').EscalacaoSalva; B?: import('./escalacao-salva').EscalacaoSalva; /** qual dos dois entrou por último e com quais 11 — é o que a pílula mostra */ ativo?: { qual: 'A' | 'B'; ids: string[] } }>
   careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
   careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
   careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
@@ -1064,6 +1066,8 @@ export interface EscState {
   careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean; div?: string } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
+  /** 🏢 já comprou SAF alguma vez nesta carreira (23/10, Diego: "se ele comprou, já destrava… mesmo se vender depois") — a 👑 Lenda da Agência fica destravada pra sempre */
+  safJaTeve?: boolean
   careerFilial?: {
     team: string; since: number; earned?: number
     titlesAtBuy?: number // 🏢 nº de títulos que o clube JÁ tinha na hora da compra — só o que ele ganhar DEPOIS conta pro valor de venda (não os títulos da vida dele antes de você)

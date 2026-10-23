@@ -20,6 +20,8 @@
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { fimDoJogoMs } from './copa-clock-preview'
+import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática no regional da sala (23/10)
+import { montaQualTatica, copaComTatica } from './copa-taticas'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
@@ -67,10 +69,10 @@ const temTime = (p?: Pick | null) => !!p && Array.isArray(p.xiKeys) && p.xiKeys.
 const chaveCarta = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 
 export interface TimeRegional { pais: string; nome: string; uid?: string; xiKeys?: string[] }
-export interface FichaRegional { seed: number; edicao: number; times: TimeRegional[] }
+export interface FichaRegional { seed: number; edicao: number; times: TimeRegional[]; /** ⚔️ nasceu com tática (23/10)? */ tatica?: boolean }
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
 type Fase = 'aviso' | 'bandeira' | 'banner' | 'convocacao' | 'torneio'
-interface LinhaFase { edicao: number; seed: number; fase: Fase; vez_uid: string | null; ate: string | null; times: TimeRegional[] | null; campeao: string | null }
+interface LinhaFase { edicao: number; seed: number; fase: Fase; vez_uid: string | null; ate: string | null; times: TimeRegional[] | null; campeao: string | null; criada_em?: string | null }
 interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: Pick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null }
 
 const segundosAte = (ate?: string | null) => (ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - agoraSala()) / 1000)) : 0)
@@ -263,7 +265,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     try {
       const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
         supabase.from('room_players').select('user_id, player_index, manager_name, copa, dupla_partner_of, dupla_categories').eq('room_id', roomId),
-        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).eq('edicao', edicao).limit(1),
+        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao, criada_em').eq('room_id', roomId).eq('edicao', edicao).limit(1),
       ])
       if (e1 || e2 || !pls || !fs) return null
       setLinhas(pls as LinhaSala[])
@@ -374,7 +376,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: FichaRegional | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times } : null
+  const ficha: FichaRegional | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, tatica: copaComTatica(fase.criada_em) } : null
   useEffect(() => { if (ficha && !fase?.campeao) setAberta(true) }, [ficha?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
   const campeao = useMemo(() => { if (!fase?.campeao) return null; const [nome, pais] = fase.campeao.split(' | '); return nome ? { nome, pais: pais ?? '' } : null }, [fase?.campeao])
   useEffect(() => { aoStatus?.({ pendente: !campeao, campeao }) }, [campeao]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -546,16 +548,27 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   semRelogio?: boolean
 }) {
   const entrants = useMemo(() => entrantesRegionais(ficha, meuUid), [ficha, meuUid])
-  const mundo: MundoRegional = useMemo(() => simulaRegional(entrants, ficha.seed), [entrants, ficha.seed])
+  // ⚔️ 23/10: o relógio pede o tempo dos pênaltis ao mundo JÁ com as táticas — lê de uma ref, preenchida logo abaixo
+  const mundoRef = useRef<MundoRegional | null>(null)
   // 🏆 FESTA DO CAMPEÃO (23/10): quando o regional acaba, a festa na paleta dele, 1x por edição
   const festaRegKey = `esc-festa-reg-${roomId}-${copa}-${ficha.edicao}`
   const [festaRegVista, setFestaRegVista] = useState(() => { try { return sessionStorage.getItem(festaRegKey) === '1' } catch { return false } })
-  const P = passosRegional(mundo.n)
+  const P = passosRegional(Math.floor(entrants.length / 2)) // = mundo.n
   const penMs = (t: ConfrontoRegional) => (t.pen ? pensRevealDelay(t.pen, !!(entrants[t.h].humano || entrants[t.a].humano)) * 1000 : 0)
-  const extraDoPasso = (s: number) => { const i = s - P.PRIMEIRO_KO; const f = mundo.ko[i]; return f ? Math.round(Math.max(0, ...f.ties.map(penMs))) : 0 }
+  const extraDoPasso = (s: number) => { const i = s - P.PRIMEIRO_KO; const f = mundoRef.current?.ko[i]; return f ? Math.round(Math.max(0, ...f.ties.map(penMs))) : 0 }
   const c2dSala = useCampo2DLigado() // 📺 a sala escolheu o 2D (o relógio do banco também sabe)
   const relogioBanco = useRelogioRegional(roomId, ficha.edicao, ficha.seed, souDono, P.RODADAS, P.KO, P.FIM, extraDoPasso, c2dSala)
-  const relogio = semRelogio ? undefined : relogioBanco
+  // ⚔️ TÁTICA (23/10, `copa-taticas.ts`): só linhas CONGELADAS do banco; a tela espera a que decide o jogo da vez.
+  // Sem relógio no banco (bancada/fallback) não tem tática — cada aparelho andaria sozinho.
+  const comTatica = !semRelogio && !!ficha.tatica
+  const tat = useTaticasCopa('regional', roomId, ficha.edicao, ficha.seed, comTatica ? relogioBanco?.row : undefined, meuUid)
+  const uidsDaFicha = useMemo(() => ficha.times.map(t => t.uid), [ficha])
+  const qual = useMemo(() => (comTatica ? montaQualTatica(tat.linhas, uidsDaFicha) : undefined), [comTatica, tat.linhas, uidsDaFicha])
+  const mundo: MundoRegional = useMemo(() => simulaRegional(entrants, ficha.seed, qual), [entrants, ficha.seed, qual])
+  mundoRef.current = mundo
+  const ultimoPronto = useRef<Row | null>(null)
+  if (tat.pronto && relogioBanco?.row) ultimoPronto.current = relogioBanco.row
+  const relogio = semRelogio ? undefined : relogioBanco && !tat.pronto ? { ...relogioBanco, row: ultimoPronto.current } : relogioBanco
 
   // 🛟 sem relógio no banco: cada aparelho anda sozinho, no automático
   const [passoLocal, setPassoLocal] = useState(0)
@@ -713,6 +726,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
       <GiroDaRodada cinema />
+      {/* ⚔️ 23/10: o cartão de tática — só pra quem tem clube nesta copa e enquanto ainda falta jogo */}
+      {comTatica && relogio?.row && !!meuUid && ficha.times.some(t => t.uid === meuUid) && relogio.row.step < P.FINAL && <CartaoTaticaCopa minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t => void tat.escolher(t)} />}
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]

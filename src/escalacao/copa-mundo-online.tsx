@@ -37,7 +37,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CompetitionStage } from './online-match-visual'
 import { NationalCrest } from './national-crest'
-import { useCopaClockPreview } from './copa-clock-preview'
+import { useCopaClockPreview, type CopaClockRow } from './copa-clock-preview'
+import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática na Copa da sala (23/10)
+import { montaQualTatica, copaComTatica } from './copa-taticas'
 import { simulaCopaMundo, koTemGente } from './copa-mundo'
 import { PASSO_COPA } from './copa-passos'
 import { agoraSala } from './relogio' // ⏱️ o relógio da sala é o do DONO (ver relogio.ts)
@@ -81,6 +83,8 @@ export interface CopaFicha {
   forte?: boolean
   /** 🤖 nasceu com a MÁQUINA nova (20/10)? Sem jogador repetido e a seleção fraca da máquina um pouco mais fraca */
   maquina2?: boolean
+  /** ⚔️ nasceu com TÁTICA (23/10)? Copa velha termina sem — ver `TATICA_DESDE` */
+  tatica?: boolean
 }
 
 // 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
@@ -133,7 +137,7 @@ export function montaFicha(
     pegos.add(p)
     times.push({ pais: p, nome: p })
   }
-  return { seed, edicao, times, maquina2: true } // 🤖 ficha NOVA já nasce com a máquina nova (20/10)
+  return { seed, edicao, times, maquina2: true, tatica: true } // 🤖 ficha NOVA já nasce com a máquina nova (20/10) · ⚔️ e com tática (23/10)
 }
 
 // ── de FICHA pra Entrant[] (o que o motor do torneio come) ───────────────────
@@ -244,10 +248,12 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
-  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte])
+  // ⚔️ 23/10: o relógio pede o tempo dos pênaltis ao mundo JÁ com as táticas — por isso lê de uma ref, preenchida logo abaixo
+  const worldRef=useRef<ReturnType<typeof simulaCopaMundo>|null>(null)
   // ⏱️ o tempo a mais dos PÊNALTIS de cada passo, pro relógio da sala esperar a
   // disputa inteira. Os passos vêm de `copa-passos` (jogo único desde 19/09).
   const extraForStep=(step:number)=>{
+    const clockWorld=worldRef.current
     if(!clockWorld)return 0
     const ties=step===PASSO_COPA.OITAVAS?clockWorld.r16:step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
     if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen,koTemGente(entrants,clockWorld.final))*1000)
@@ -255,10 +261,21 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   }
   const c2dSala=useCampo2DLigado()
   const clock=useCopaClockPreview(cinematic,roomId,ficha.edicao,ficha.seed,souDono,extraForStep,c2dSala) // 📺 sala 2D: o jogo fecha no apito do campinho
+  // ⚔️ TÁTICA (23/10, `copa-taticas.ts`): só as linhas CONGELADAS entram na conta; a tela espera chegar a que decide o jogo da vez
+  const tat=useTaticasCopa('mundo',roomId,ficha.edicao,ficha.seed,ficha.tatica?clock?.row:undefined,meuUid)
+  const uidsDaFicha=useMemo(()=>ficha.times.map(t=>t.uid),[ficha])
+  const qual=useMemo(()=>ficha.tatica?montaQualTatica(tat.linhas,uidsDaFicha):undefined,[ficha.tatica,tat.linhas,uidsDaFicha])
+  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte,false,qual):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte,qual])
+  worldRef.current=clockWorld
+  const ultimoPronto=useRef<CopaClockRow|null>(null)
+  if(tat.pronto&&clock?.row)ultimoPronto.current=clock.row
+  const clockMostrado=clock&&!tat.pronto?{...clock,row:ultimoPronto.current}:clock
+  const souJogador=!!ficha.tatica&&!!meuUid&&ficha.times.some(t=>t.uid===meuUid)
+  const taticaSlot=souJogador&&clock?.row&&clock.row.step<PASSO_COPA.FINAL?<CartaoTaticaCopa minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
   // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).
-  const online = { seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao, clock }
+  const online = { seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao, clock: clockMostrado, tat: qual, taticaSlot }
   if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic} onlineBroadcast>
@@ -982,7 +999,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em), maquina2: copaMaquina2(fase.criada_em) } : null
+  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em), maquina2: copaMaquina2(fase.criada_em), tatica: copaComTatica(fase.criada_em) } : null
   // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
   // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
   // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser

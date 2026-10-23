@@ -115,3 +115,5 @@ Situação HOJE no online antigo: 🟢 funciona · 🟡 funciona mas preso no `y
 - Multiclubes (`BUY_/SWITCH_/SELL_MULTICLUBE`, clube que dorme)
 - SAF que vira 2º clube (`SAF2_ASSUMIR`, `SAF2_VENDER_2O`, `SAF2_MIGRAR`…)
 - Agência dividida entre 2 clubes (`SET_AGENCIA_CLUBE`, `agenciaDividir`) — a renda vai sempre pro clube único
+
+- [ ] 💾 Escalação A/B do Elenco (23/10, `escalacao-ab-ui.tsx`) — a solo já tem; entra aqui quando a online for liberada.

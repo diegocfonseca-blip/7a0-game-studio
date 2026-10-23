@@ -34,6 +34,7 @@ import { disputaPenaltis } from './penaltis'
 import { entradaM2, resultadoM2, sementeM2, type EntradaM2 } from './motor2/carreira'
 import { clockMinute, aberturaSegundos, resumoAberto, type CopaClockController } from './copa-clock-preview'
 import { copaStats } from './copa-stats'
+import { fatoresTatica, temTatica, dadoDaTatica, type QualTatica } from './copa-taticas' // ⚔️ tática no online (23/10)
 import { RODADAS_GRUPO, PASSO_COPA, passoRodaBola, respiroAntes, passoComResumo } from './copa-passos'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
@@ -977,12 +978,26 @@ function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: strin
   const ev: ScoreGoal[] = res.gols.map(g => g.contra ? { home: g.home, min: g.min, name: g.nome + GOL_CONTRA } : { home: g.home, min: g.min, name: g.nome, assist: g.assist })
   return { e, g: [res.placar[0], res.placar[1]], ev }
 }
-export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false, forte = false, m2 = false) {
+/** @param tat ⚔️ a tática de cada time por passo (só o ONLINE manda, lida das linhas CONGELADAS do banco — `copa-taticas.ts`).
+ *  Sem ela, a Copa é idêntica à de sempre. */
+export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false, forte = false, m2 = false, tat?: QualTatica) {
   const peso = forte ? PESO_FORCA : PESO_FORCA_VELHO
   const meu = (h: number, a: number) => m2 && (!!entrants[h]?.you || !!entrants[a]?.you)
   {
     const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0xC0FA) >>> 0)
     const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)
+    // ⚔️ jogo com tática de gente (≠ equilíbrio): sorteado de novo com DADO PRÓPRIO, depois do sorteio normal — o `rng` do
+    // torneio já andou igual, então nenhum outro jogo muda. Devolve também o dado, pros pênaltis saírem dele.
+    const comTatica = (h: number, a: number, passo: number, chave: string): { g: [number, number]; ev: ScoreGoal[]; r: () => number } | null => {
+      if (!tat) return null
+      const th = tat(h, passo), ta = tat(a, passo)
+      if (!temTatica(th, ta)) return null
+      const r = dadoDaTatica((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, chave, th, ta)
+      const adv = entrants[h].str - entrants[a].str
+      const [fh, fa] = fatoresTatica(th, ta)
+      const g: [number, number] = [poisson(r, Math.max(0.25, 1.25 + adv * peso) * fh), poisson(r, Math.max(0.25, 1.25 - adv * peso) * fa)]
+      return { g, ev: goalEvents(r, g[0], g[1], entrants[h], entrants[a], aBase, chave), r }
+    }
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
     const { grupos: NUM_GROUPS, terceiros: VAGAS_3 } = formatoCopa(entrants.length)
@@ -990,12 +1005,13 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
       const teams = porPote ? porPote[g] : idx.slice(g * GROUP_SIZE, g * GROUP_SIZE + GROUP_SIZE)
       const matches = roundRobin(teams) // 6 grupos de 4 = turno único (3 rodadas)
-      for (const rd of matches) for (const m of rd) {
+      matches.forEach((rd, ri) => { for (const m of rd) {
         const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a], peso)
         m.gh = gh; m.ga = ga
         m.ev = goalEvents(rng, gh, ga, entrants[m.h], entrants[m.a], aBase, `gr${m.h}-${m.a}`)
         if (meu(m.h, m.a)) { const n = jogoM2(entrants, seed, seasonNo, `gr${m.h}-${m.a}`, m.h, m.a); m.gh = n.g[0]; m.ga = n.g[1]; m.ev = n.ev; m.m2 = n.e }
-      }
+        else { const t = comTatica(m.h, m.a, ri + 1, `gr${m.h}-${m.a}`); if (t) { m.gh = t.g[0]; m.ga = t.g[1]; m.ev = t.ev } } // rodada r = passo r+1
+      } })
       return { teams, matches }
     })
     // 🥉 16 classificados: os 2 primeiros de cada grupo + os 4 melhores 3ºs
@@ -1018,7 +1034,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     // agora dá OUTRO chaveamento/resultado a partir das quartas. Copa já encerrada
     // não muda (o campeão está gravado); Copa no meio do mata-mata no dia do deploy
     // é recalculada igual em todo aparelho — a sala continua vendo a MESMA Copa.
-    const mkTie = (h: number, a: number): KoTie => {
+    const mkTie = (h: number, a: number, passo: number): KoTie => {
       const t: KoTie = { h, a }
       t.g1 = playMatch(rng, entrants[h], entrants[a], peso)
       t.ev1 = goalEvents(rng, t.g1[0], t.g1[1], entrants[h], entrants[a], aBase, `ko1-${h}-${a}`)
@@ -1033,11 +1049,18 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       }
       if (t.g1[0] > t.g1[1]) t.winner = h; else if (t.g1[1] > t.g1[0]) t.winner = a
       else { t.pen = pens(rng); t.winner = t.pen[0] > t.pen[1] ? h : a }
+      // ⚔️ tática: a conta acima já gastou o dado do torneio (pênaltis inclusive); o jogo sai do dado próprio
+      const tt = comTatica(h, a, passo, `ko1-${h}-${a}`)
+      if (tt) {
+        t.g1 = tt.g; t.ev1 = tt.ev; delete t.pen
+        if (tt.g[0] > tt.g[1]) t.winner = h; else if (tt.g[1] > tt.g[0]) t.winner = a
+        else { t.pen = pens(tt.r); t.winner = t.pen[0] > t.pen[1] ? h : a }
+      }
       return t
     }
-    const r16 = Array.from({ length: 8 }, (_, k) => mkTie(ord[2 * k], ord[2 * k + 1]))
-    const qf = Array.from({ length: 4 }, (_, k) => mkTie(r16[2 * k].winner!, r16[2 * k + 1].winner!))
-    const sf = [mkTie(qf[0].winner!, qf[1].winner!), mkTie(qf[2].winner!, qf[3].winner!)]
+    const r16 = Array.from({ length: 8 }, (_, k) => mkTie(ord[2 * k], ord[2 * k + 1], PASSO_COPA.OITAVAS))
+    const qf = Array.from({ length: 4 }, (_, k) => mkTie(r16[2 * k].winner!, r16[2 * k + 1].winner!, PASSO_COPA.QUARTAS))
+    const sf = [mkTie(qf[0].winner!, qf[1].winner!, PASSO_COPA.SEMI), mkTie(qf[2].winner!, qf[3].winner!, PASSO_COPA.SEMI)]
     const fh = sf[0].winner!, fa = sf[1].winner!
     let fg = playMatch(rng, entrants[fh], entrants[fa], peso)
     let fev = goalEvents(rng, fg[0], fg[1], entrants[fh], entrants[fa], aBase, `final-${fh}-${fa}`)
@@ -1047,6 +1070,9 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       const n = jogoM2(entrants, seed, seasonNo, `final-${fh}-${fa}`, fh, fa)
       fg = n.g; fev = n.ev; fm2 = n.e
       fpen = fg[0] === fg[1] ? pens(mulberry(n.e.seed ^ 0x9E37)) : null
+    } else {
+      const tt = comTatica(fh, fa, PASSO_COPA.FINAL, `final-${fh}-${fa}`)
+      if (tt) { fg = tt.g; fev = tt.ev; fpen = fg[0] === fg[1] ? pens(tt.r) : null }
     }
     const champion = fg[0] > fg[1] ? fh : fg[1] > fg[0] ? fa : (fpen![0] > fpen![1] ? fh : fa)
     return { groups, terceiros, r16, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion, m2: fm2 } }
@@ -1096,14 +1122,15 @@ export function estatisticasDaCopa(world: ReturnType<typeof simulaCopaMundo>, en
   return [...m.values()]
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void; /** ⚔️ táticas congeladas da sala (23/10) */ tat?: QualTatica; /** ⚔️ o cartão de tática da pessoa */ taticaSlot?: ReactNode }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
   const [allGroups, setAllGroups] = useState(!!online)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
-  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes, forte, m2), [entrants, seed, seasonNo, potes, forte, m2])
+  const tatSala = online?.tat
+  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes, forte, m2, tatSala), [entrants, seed, seasonNo, potes, forte, m2, tatSala])
   // 🏆 FESTA DO CAMPEÃO na sala (23/10): quando a Copa acaba, a festa na paleta da Copa do Mundo, 1x por edição
   const festaMundoKey = online ? `esc-festa-mundo-${online.seasonKey}` : ''
   const [festaMundoVista, setFestaMundoVista] = useState(() => { if (!online) return true; try { return sessionStorage.getItem(festaMundoKey) === '1' } catch { return false } })
@@ -1502,6 +1529,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= OITAVAS ? 'step' : undefined}>{tr('OITAVAS', 'ROUND OF 16')}</span><span aria-current={step === QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
       {/* 📢 19/10 (Diego: "o telão… deve ser em todas as competições… Copa do Mundo"): o MESMO telão da liga, só na sala online */}
       {online && <GiroDaRodada cinema={privateVisual} />}
+      {online?.taticaSlot}
       {step === SORTEIO && onlineWorldControls}
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}

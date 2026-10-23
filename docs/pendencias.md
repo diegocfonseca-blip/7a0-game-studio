@@ -13,12 +13,44 @@ Tudo em `career-desktop.css` (bloco de 23/10, só ≥1100px; o celular foi medid
 - Ainda NÃO feito: Rank com as séries lado a lado (proposta de antes, não estava nos 4 mockups finais).
 - Desligar: apagar o bloco de 23/10 do `career-desktop.css`.
 
+
+## 🏢👑 Lenda da Agência travada pra quem JÁ teve SAF (23/10) — CORRIGIDO e publicado
+- Caso do Fabulous EC (T130+): trocou a SAF pelo 2º clube (Pantera Negra) na migração do SAF 2.0 e a 👑 Lenda da Agência
+  voltou a pedir "comprar a SAF" — as 2 Lendas na ativa rendiam 0 (por isso 88 → 80). Regra do Diego: comprou uma vez, destrava
+  pra sempre. `jaTeveSaf` (store) + marca `safJaTeve` na compra; saves antigos pelo `saf2.migrado` e pelo extrato.
+- ⚠️ Limite: save antigo que vendeu a SAF ANTES do SAF 2.0 e cujo extrato já passou de 250 linhas não tem como provar — se
+  alguém reclamar, dá pra marcar `safJaTeve` na mão no save dele.
+
+## 💾 Escalação A e B salvas no Elenco da carreira (23/10) — PUBLICADO pra todos ("ok")
+- FEITO: `escalacao-salva.ts` (puro: quem entra/quem não/quem substitui), `escalacao-ab-ui.tsx` (o cartão, embaixo de
+  Formação/Trocas, da 2ª temporada em diante), ações `SALVA_ESCALACAO`/`APLICA_ESCALACAO` (tudo ou nada) e `careerEscalacoes`
+  no save (zera ao começar carreira nova). O cardápio do técnico virou função única (`cardapio-formacoes.ts` +
+  `formacaoLiberadaNoEstado`) lida pelo seletor, pelo cartão e pelo reducer. Trava: `npm run escalacao-ab`.
+- Decisões dele no caminho: técnico novo sem a formação salva → entra na formação atual com aviso; *"não pode seguir a partida
+  faltando um jogador"* → se não fecha 11, nada muda e o cartão diz o que falta. Quem chegou depois de salvar só tapa vaga se
+  não houver mais ninguém na posição.
+- 🔁 23/10, mesmo dia: o cartão aberto empurrava o campinho; ele escolheu o **"enxuto fechado"** (mockup
+  `carreira-escalacao-ab-fechado.png`): 3ª PÍLULA ao lado de Formação/Trocas ("💾 Time A ▾"), abre no toque, fecha sozinha ao
+  trocar; faixa verde some em 5 s, amarela (alguém não pôde) fecha no toque, vermelha quando não fecha 11. A pílula lê
+  `careerEscalacoes[id].ativo` (o último usado com aqueles 11). **Não voltar o cartão sempre aberto.**
+- ⏳ Carreira online v2: entra quando ela for liberada (anotar na `docs/carreira-online-checklist.md`).
+- Pedido: salvar Time A e Time B e trocar na hora. Mockup `scripts/mockups/carreira-escalacao-ab.png`. Regras dele: vendido/
+  contrato acabou/machucado/suspenso NÃO entra; cansado entra (escolha dele); jogador comprado depois de salvar não entra.
+- Proposta minha no mockup (confirmar): na vaga de quem não pôde entra o reserva mais inteiro da posição (regra do rodízio);
+  formação do B que não fecha → entra na atual com aviso; guardado por CARTA (nome|clube|ano, nunca cardId) no SAVE; vale do
+  próximo jogo (SET_LINEUP + CHANGE_FORMATION, as mesmas portas de hoje).
+
 ## ⚔️ Tática (retranca/equilíbrio/ataque) nas copas do online (23/10)
 - Pedido: *"a tática não está aparecendo em várias coisas como mundo, regionais…"*. Mapa medido: liga ✅ · Copa dos 8/mata-mata ✅ ·
   Champions ✅ · **Liberta fase de grupos: faltava só o botão** (o motor já lia `state.tactics`) → FEITO e publicado.
-- ⏳ Copa do Mundo e regionais: NÃO têm tática no motor. Cada aparelho recalcula o torneio sozinho pela ficha (é o que garante
-  "todo mundo vê a mesma Copa"); pôr tática exige mandar a escolha de cada um pra sala antes de cada rodada + mudar o motor e o
-  relógio do banco. Explicado ao Diego, esperando OK.
+- ✅ Copa do Mundo e regionais: FEITO (*"sim pode fazer"*). Regra (`copa-taticas.ts` + `docs/sql/copa-tatica.sql`):
+  só se escolhe com JOGO ROLANDO (o banco carimba o passo e recusa depois do apito) e vale do PRÓXIMO jogo em diante; a leitura
+  só devolve linha congelada; a tela segura o passo até chegar a tática que decide o jogo da vez. O jogo com tática sai de um
+  DADO PRÓPRIO depois do sorteio normal — nenhum outro jogo muda, e quem fica em ⚖️ equilíbrio joga igual a sempre.
+  O 1º jogo da copa é sempre em equilíbrio (ainda não rolou jogo pra escolher). Só Copa criada depois da publicação
+  (`TATICA_DESDE`/ficha `tatica`), porque quem está com o jogo aberto desde antes não conhece tática. Trava: `npm run copa-tatica`.
+- ⚠️ Achado no caminho (não é meu): `npm run copamundo` reprova "jogo de copa só conta com a Copa encerrada" — já falhava antes
+  desta mudança (linha da carreira em pyramidseason.tsx). Conferir com quem mexeu.
 
 ## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — PUBLICADO pra todos ("ok")
 - Feito com o contexto `TemaCompCtx` (competicoes-visual.tsx): só as telas das SALAS e da PARTIDA RÁPIDA embrulham
@@ -50,7 +82,26 @@ Tudo em `career-desktop.css` (bloco de 23/10, só ≥1100px; o celular foi medid
   Copa do Mundo, Mundial, Rio×SP, Sul×Minas-PR, Nordeste). Túnel: fundo com a cor de cada time OU a paleta da copa. Mockup das
   paletas e troféus: `scripts/mockups/campeonatos-paletas-trofeus.png` (rascunho de formato; a arte final dos troféus vira imagem).
 
-## 🗂️ Salas online com visual novo (23/10) — SÓ NA CONTA DO DIEGO, no branch (esperando ele testar e mandar publicar)
+## 🗂️ Salas online com visual novo (23/10) — ③ SALA DE ESPERA liberada pra todos; ① ② ④ seguem só na conta do Diego
+- 23/10: *"gostei dessa tela… só vou aprovar essa daqui pra todos, a parte de criação de sala e etc ainda não"* →
+  `useSalasEsperaNova` (`SALAS_ESPERA_GERAL = true`, sport.ts) liga só a ③ Espera; lista/criar/Minhas Ligas continuam em
+  `useSalasVisualNovo` (só ele). Ele perguntou do DESKTOP da espera (coluna estreita no meio, laterais vazias) — opinião dada,
+  esperando ele dizer se quer mockup.
+- 🖥️ Mockups de COMPUTADOR (23/10): `scripts/mockups/desktop-salas-d1/d2/d3.png` — ① espera em 2 colunas (técnicos + convite |
+  zoeira + chat sempre aberto, botão do dono largo no pé) · ② criar sala com o resumo "📋 Sua sala" fixo à direita · ③ salas
+  abertas em grade de 3 + coluna lateral (Criar sala, Minhas ligas, carreiras, zap). Celular não muda. Esperando OK.
+  🔁 23/10 (2ª rodada, `desktop-hoje-ficaria-*.png`): **② CRIAR SALA APROVADO** — mas com as 5 etapas (modo · time e
+  baralho · partida · sala…) TODAS ABERTAS, nada recolhido (*"ficam tudo abertas, sem recolher"*). Liga/Copa rolando em 2
+  colunas (tabela inteira / chave fixa à direita): ele gostou, só achou o PLACAR menor ruim, porque o campinho 2D vai entrar ali.
+  Sugestão dada: placar no tamanho de hoje na coluna da esquerda (com 2D, o campinho toma o lugar dele, como já é regra),
+  outros jogos embaixo. Esperando resposta. Leilão: sem resposta ainda. A fazer só depois do OK de cada tela, só no desktop.
+  ✅ **FEITO E LIBERADO PRA TODOS (23/10)** — *"aprovado pode fazer"* + *"o resumo é pra todos"* + *"liga e copa com duas colunas
+  ficam pra todos já"*. Mockups finais `desktop-{liga,copa}-{placar,campinho}.png`. Só ≥1100px (celular igual):
+  · criar sala: `useTelaPC()` (lobby `desk`) — modos lado a lado, etapas 2–4 sempre abertas, coluna "📋 Sua sala" com o botão;
+  · liga/copa rolando: `useDesktopNovo()` (`DESKTOP_NOVO_GERAL`, sport.ts) → `Shell desk2` + `.ll-dir` (online-visual.css). A tática
+    e a tabela (na Copa: tática + jogos da fase) entram por PORTAL na coluna fixa da direita; placar/campinho 2D, telão e outros jogos
+    ficam na esquerda. Fora da Kings e do basquete. Bancada: `scripts/teste-desktop-hoje/index.html?desk2=1&fase=season|copa`.
+  · Ainda sem resposta: leilão no computador (cartas em grade de 3 + caixa/time/chat ao lado) e salas abertas em grade (d3).
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque
