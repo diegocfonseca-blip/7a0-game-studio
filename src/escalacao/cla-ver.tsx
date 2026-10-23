@@ -6,7 +6,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
-import { CLA_MAX, EmblemaCla, esqueceClas, msgErro, msgTrava } from './cla'
+import { CLA_MAX, ENTROU_CLA, EmblemaCla, esqueceClas, msgErro, msgTrava } from './cla'
 import { abrePerfilSolto, contaValida } from './amigos'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', CLA_OURO = '#E9C46A'
@@ -36,7 +36,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
       } else if (!error && r.erro === 'trava') setMsg(`⚠️ ${msgTrava(r.ate, r.cla)}`)
       else if (!error && r.erro === 'cheio') setMsg(`⚠️ ${tr('Você já está em 2 clãs, que é o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', 'You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.')}`)
       else if (error || !r.ok) setMsg(`⚠️ ${msgErro(r.erro)}`)
-      else { setMsg(r.pedido ? tr('📨 Pedido enviado — o presidente do clã decide.', '📨 Request sent — the clan president decides.') : tr('✅ Você entrou no clã!', '✅ You joined the clan!')); esqueceClas() }
+      else { setMsg(r.pedido ? tr('📨 Pedido enviado — o presidente do clã decide.', '📨 Request sent — the clan president decides.') : tr(ENTROU_CLA[0], ENTROU_CLA[1])); esqueceClas() }
     } catch { setMsg(`⚠️ ${msgErro(null)}`) } finally { setOcupado(false); carrega() }
   }
   const cheio = c && c !== 'erro' && c.membros >= CLA_MAX

@@ -140,7 +140,7 @@ type Painel = {
   convites: (ClaJson & { pedido_id: number; de_nome: string })[]; pedi: number[]
 }
 const ERRO: Record<string, [string, string]> = {
-  plano: ['Criar clã: grátis com plano (⭐ Craque pra cima) ou R$ 9,90 sem plano. Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
+  plano: ['Criar clã: grátis com plano (⭐ Craque pra cima) ou R$ 4,90 sem plano. Entrar num clã é de graça.', 'Creating a clan needs a plan (⭐ Star and up). Joining is free.'],
   tamanho: ['O nome do clã precisa ter de 3 a 20 letras.', 'The clan name needs 3 to 20 letters.'],
   ofensivo: ['Esse nome não é permitido: nada que ofenda alguém no Leilão Legends.', 'That name is not allowed: nothing offensive in Leilão Legends.'],
   nome_em_uso: ['Já existe um clã com esse nome. Tenta outro.', 'There is already a clan with that name. Try another.'],
@@ -159,6 +159,9 @@ const ERRO: Record<string, [string, string]> = {
   guardar_gente: ['Só dá pra guardar o clã quando você é o único dele. Com gente, passe a presidência ou feche.', 'You can only store the clan when you are its only member. With people, hand over the presidency or close it.'],
   emblema_fixo: ['Esse clã tem escudo próprio (batismo ou personalizado): o emblema não se troca.', 'This clan has its own crest (named club or custom): the emblem can’t be changed.'],
 }
+// 🪙 22/10 (Diego: "quem entrar no dia que o clã tá em primeiro só pra ganhar as moedas?" → prêmio só pra quem está desde
+// segunda; "quando o cara entrar recebe o aviso só do motivo"): a mensagem de quem acabou de entrar já explica a regra
+export const ENTROU_CLA: [string, string] = ['✅ Você entrou no clã! Seus títulos já somam pro clã. O prêmio da semana 🪙 é de quem está no clã desde segunda — você recebe a partir da próxima semana. E fica pelo menos 7 dias antes de poder sair.', '✅ You joined the clan! Your titles already count for the clan. The weekly 🪙 prize goes to members since Monday — you get it from next week. And you stay at least 7 days before you can leave.']
 // 🔒 22/10 (Diego): "pra sair do clã e entrar em outro, pelo menos 7 dias a partir do momento que entra"
 export const msgTrava = (ate?: string | null, cla?: string | null) => tr(`🔒 Você entrou ${cla ? `no ${cla}` : 'nesse clã'} há menos de 7 dias. Só dá pra sair ou trocar a partir de ${ate ? dataCurta(ate) : 'daqui a 7 dias'}.`, `🔒 You joined ${cla ?? 'this clan'} less than 7 days ago. You can leave or switch from ${ate ? dataCurta(ate) : 'in 7 days'}.`)
 export const msgErro = (e: unknown) => { const k = String(e ?? ''); const m = ERRO[k]; return m ? tr(m[0], m[1]) : tr('Não deu agora. Tenta de novo.', 'Couldn’t do it now. Try again.') }
@@ -225,7 +228,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
     </div>)}
     <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '4px 0 0' }}>{livre ? tr('Fora do ar, com o nome guardado só pra você. Reabrir ocupa uma das suas vagas.', 'Off the air, with the name kept just for you. Reopening takes one of your slots.') : tr('Fora do ar, com o nome guardado só pra você. Pra reabrir, saia antes de um dos seus clãs.', 'Off the air, with the name kept just for you. To reopen it, first leave one of your clans.')}</p>
   </div>
-  if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} meu={p.cla?.id ?? null} ocupado={ocupado} onEntrar={k => void faz('esc_cla_entrar', { p_cla: k.id, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), k)} />{aviso}{modalTroca}</>
+  if (tela === 'procurar') return <>{voltar}<ProcurarCla pedi={p.pedi} meu={p.cla?.id ?? null} ocupado={ocupado} onEntrar={k => void faz('esc_cla_entrar', { p_cla: k.id, p_trocar: false }, tr(ENTROU_CLA[0], ENTROU_CLA[1]), k)} />{aviso}{modalTroca}</>
   if (tela === 'ranking') return <>{voltar}<RankingClas meu={p.cla?.id ?? null} /></>
   const ehExtra = ver2 && !!p.extra
   const c = ehExtra ? p.extra! : p.cla
@@ -246,7 +249,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
           <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})<Descricao t={v.descricao} /></div>
         </div>
         <span style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-          <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr('✅ Você entrou no clã!', '✅ You joined the clan!'), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
+          <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr(ENTROU_CLA[0], ENTROU_CLA[1]), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
           <button disabled={ocupado} style={{ ...bt('#fff', INK), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: false })}>{tr('agora não', 'not now')}</button>
         </span>
       </div>
@@ -315,7 +318,7 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {EMBLEMAS.map((_, i) => { const k = `e:${i}`; return <button key={k} disabled={ocupado} onClick={() => { setTrocaEmb(false); void faz('esc_cla_emblema', { p_emblema: k, p_cla: c.id }, tr('🎨 Emblema trocado!', '🎨 Emblem changed!')) }} style={{ border: `3px solid ${c.emblema === k ? GOLD : 'transparent'}`, borderRadius: 10, background: c.emblema === k ? '#FFF3C4' : 'transparent', padding: 2, cursor: 'pointer' }}><EmblemaCla emblema={k} size={34} /></button> })}
         </div>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão, só do seu clã? É na 🛒 Loja (R$ 19,90).', 'Want a hand-drawn crest just for your clan? It is in the 🛒 Shop (R$ 19.90).')}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão, só do seu clã? É na 🛒 Loja (R$ 14,90).', 'Want a hand-drawn crest just for your clan? It is in the 🛒 Shop (R$ 14.90).')}</p>
       </div>}
       {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} onLiberou={() => { setSemPlano(false); setTela('criar'); carrega() }} />}
       {!ehExtra && <EscudoClaLoja />}
@@ -335,12 +338,12 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
       {semPlano && !p.pode_criar && <CriarSemPlano onProcurar={() => { setSemPlano(false); setTela('procurar') }} onLiberou={() => { setSemPlano(false); setTela('criar'); carrega() }} />}
       <button style={{ ...bt('#fff', INK), width: '100%', marginTop: 8 }} onClick={() => setTela('ranking')}>🏆 {tr('Ranking dos clãs da semana', 'Clans of the week')}</button>
       <p style={{ fontSize: 11, color: INK, fontWeight: 800, margin: '10px 2px 0', lineHeight: 1.4, background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>{tr(REGRA_DOIS[0], REGRA_DOIS[1])}</p>
-      <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: grátis com qualquer plano (⭐ Craque pra cima) ou R$ 9,90 sem plano. Entrar num clã é de graça pra todo mundo.', 'Creating a clan: free with any plan (⭐ Star and up) or R$ 9.90 without one. Joining a clan is free for everyone.')}</p>
+      <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '8px 2px 0', lineHeight: 1.4 }}>{tr('Criar clã: grátis com qualquer plano (⭐ Craque pra cima) ou R$ 4,90 sem plano. Entrar num clã é de graça pra todo mundo.', 'Creating a clan: free with any plan (⭐ Star and up) or R$ 4.90 without one. Joining a clan is free for everyone.')}</p>
     </>}
   </>
 }
 // 🔒⭐ quem NÃO tem plano tocou em "Criar clã" (21/10, Diego: "o que aparece pra ele pra criar clã e botão pra direcionar")
-// 🔓 21/10 (Diego): "quem tem plano não paga nada; quem não tem plano paga R$ 9,90… fica com um cadeadozinho pra pagar e liberar"
+// 🔓 21/10 (Diego): "quem tem plano não paga nada; quem não tem plano paga… fica com um cadeadozinho pra pagar e liberar" — 🔁 22/10: R$ 4,90 (era 9,90)
 function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLiberou: () => void }) {
   const [pagando, setPagando] = useState(false)
   return (
@@ -348,11 +351,11 @@ function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLi
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
       <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Libere o seu clã', 'Unlock your clan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 9,90, uma vez só. Escudo desenhado à mão é à parte (R$ 19,90).`,
-        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 9.90, once. A hand-drawn crest is extra (R$ 19.90).`)}</p>
+        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 4,90, uma vez só. Escudo desenhado à mão é à parte (R$ 14,90).`,
+        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 4.90, once. A hand-drawn crest is extra (R$ 14.90).`)}</p>
       {!pagando
-        ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 9,90', 'Unlock for R$ 9.90')}</button>
-        : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={9.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
+        ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 4,90', 'Unlock for R$ 4.90')}</button>
+        : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={4.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
       <ApoieButton startScreen="choice" trigger={open => (
         <button onClick={open} style={{ ...bt('#fff', INK), width: '100%', padding: 9, fontSize: 13, marginTop: 8 }}>⭐ {tr('Ou veja os planos (clã de graça)', 'Or see the plans (free clan)')}</button>
       )} />
@@ -618,8 +621,8 @@ export function EscudoClaLoja() {
   const info = cla === 'carregando' ? null : cla
   const presidente = !!info?.presidente
   const aberto = (prod: ProdutoCla) => meus.some(m => m.produto === prod && !m.pronto)
-  // 💸 21/10 (Diego): 2º clã = R$ 9,90 SÓ pra criar (emblema pronto; quem tem batismo ativa o time) · escudo personalizado = R$ 19,90 à parte
-  const PRECO: Record<ProdutoCla, number> = { escudo_cla: 19.9, cla_extra: 9.9 }
+  // 💸 21/10 (Diego): 2º clã = R$ 9,90 SÓ pra criar (emblema pronto; quem tem batismo ativa o time) · escudo personalizado = R$ 14,90 (22/10; era 19,90) à parte
+  const PRECO: Record<ProdutoCla, number> = { escudo_cla: 14.9, cla_extra: 9.9 }
   const ofertas: { prod: ProdutoCla; titulo: [string, string]; texto: [string, string]; pode: boolean; porque: [string, string] }[] = [
     // ⚔️⚔️ 21/10 (Diego): a compra é a 2ª VAGA — "só se ele já pagou… aí ele pode estar em dois lugares": criar o 2º OU entrar em outro
     { prod: 'cla_extra', titulo: ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
@@ -687,7 +690,7 @@ function Extra2Form({ pedido, batismo, aoCriar }: { pedido: string; batismo: str
       </>}
       {erro && <p style={{ fontSize: 12, fontWeight: 800, color: RED, margin: '6px 0 0' }}>⚠️ {erro}</p>}
       <button disabled={ocupado || (!doBat && nome.trim().length < 3)} onClick={() => void criar()} style={{ ...bt(GREEN, '#fff'), width: '100%', padding: 10, fontSize: 14, marginTop: 8, opacity: !doBat && nome.trim().length < 3 ? .5 : 1 }}>⚔️ {tr('Criar o 2º clã', 'Create the 2nd clan')}</button>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão? É o 🛡️ Escudo personalizado (R$ 19,90), aqui embaixo.', 'Want a hand-drawn crest? It is the 🛡️ Custom crest (R$ 19.90), below.')}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('Quer um escudo desenhado à mão? É o 🛡️ Escudo personalizado (R$ 14,90), aqui embaixo.', 'Want a hand-drawn crest? It is the 🛡️ Custom crest (R$ 14.90), below.')}</p>
     </div>
   )
 }

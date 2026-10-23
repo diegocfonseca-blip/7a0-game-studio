@@ -5,6 +5,53 @@ https://claude.ai/artifact/WoZZALpLsJosqmcG4wX3z6 (privado até ele compartilhar
 (HTML + imagens; o PDF sai com o Playwright, largura 1100px). Números = os mesmos de `marca-mensal.tsx` (18/10). Fora de propósito:
 LED do estádio e anúncio no O MARTELO (desligados). O campinho 2D entrou marcado "lançamento em breve" (ainda só na conta dele).
 
+
+## 🎭 Cerimônia: lendas apresentadas + a conta do pregão nova (22/10) — PUBLICADO pra todos
+Mockup `online-cerimonia-lendas-conta.png` aprovado (*"aprovado pode fazer"*). Ideias 2 (capa do Martelo da sala) e 3 (coletiva
+relâmpago) do mockup `online-apresentacao-lendas.png` foram RECUSADAS (*"gostei só do 1"*) — não repropor.
+- No cartão do time (`FotoLendasCerimonia`): só as LENDAS (fame 5, não promessa) que ele levou NESTE pregão (carreira: pelo
+  `careerMercado` da temporada; rápido/salas: elenco menos o filler `via:'bot'`). 1–4 rostos, 5+ = 4 + "+N". Sem lenda, sem foto.
+- Depois do Anterior/Próximo: ⭐ As lendas do pregão (sala inteira, mais cara primeiro) e, por último, 🧾 A conta do pregão
+  (mesmos prêmios de `premiosDaResenha`, cartões lado a lado; perna-de-pau numa faixa). Basquete: sem lendas.
+- Zero tempo e zero mensagem nova: tudo calculado no aparelho com o estado que já chega. Bancada: `scripts/teste-cerimonia/?n=0..5`.
+
+## ⭐ Apresentação das lendas + coletiva com mais ocasiões (22/10) — PUBLICADO pra todos
+Diego aprovou A + C do mockup `coletiva-apresentacao-lendas.png` (*"pode fazer a letra A e C junto… às vezes vai ser uma lenda,
+duas, três, quatro… ajustar a imagem… pode publicar já"*).
+- Rodada 0 (antes da temporada): se o leilão trouxe LENDA (fame 5, não promessa) pro seu clube (`careerMercado` da temporada),
+  a coletiva abre sozinha com as lendas na bancada (`LendasNaMesa`: 1–4 rostos, tamanho pela quantidade, 5+ = 4 + "+N";
+  sem rostinho = carta dourada com a inicial). Situações `apresentacao_uma`/`apresentacao_varias` (7 perguntas, 4 respostas por
+  estilo, 3 manchetes). Uma vez por temporada. Quem fala é SEMPRE o presidente (nunca frase na boca de jogador real).
+- C: a foto (`FotoLendas`) vira a capa do Martelo na Central (pré-temporada e rodada 1), com a manchete da resposta.
+- Variedade: ocasiões NOVAS na coletiva (não mais textos por pergunta — pedido dele: *"mais tipos de pergunta… em outras ocasiões"*).
+- Bancada: `scripts/teste-apresentacao/?n=1..5`.
+
+## 💪 Elenco: força do time · Rank em 3 grupos · Jogos com trilha · Coletiva pra todos (22/10) — PUBLICADO
+- 💪 **Força do time** (SquadTab, só no Elenco da carreira): DEF (gol+lat+zag) · MEI · ATA = média do meio da faixa lo–hi dos 11
+  titulares + CONDIÇÃO (gás médio, só com o gás ligado). Overall na MESMA regra do Olheiro (*"mantém como funciona hoje"*): 👑 vê
+  tudo · ⭐ vê sem lenda (setor com lenda = 🔒) · sem olheiro = 🔒.
+- 🏆 **Rank em 3 grupos**: ⚽ Jogadores (gols · garçons · bola de ouro) · 🏟️ Clubes · 🌍 Global.
+- 🗓️ **Jogos**: trilha da temporada no topo (Liga R/38 → Copa → Supercopa → Internacional T40+ → Copa do Mundo quando vale) e os
+  outros jogos em 3 cartões + "ver os N jogos" (`CareerLeagueGames limite`). Ordem de sempre (nunca por placar — spoiler).
+- 🎤 **Coletiva liberada pra todos** (`COLETIVA_GERAL = true`): um usuário reclamou que não aparecia — estava só na conta do Diego.
+- 🔒 **Campo 2D e Motor novo continuam SÓ na conta do Diego** (22/10, *"Campo 2d e motor novo só p minha conta msm"*) — não liberar sem ele pedir.
+- 🎨 **Elenco arrumado (parte 2)**: selo POS com cor por posição e a pílula 🏛️ Comissão dizendo quem é o técnico e o preparador (ou "sem técnico · sem preparador"). Elenco em grupos foi descartado (a lista faz a troca junto com o campinho).
+
+## 📝 Renovação em cartas + Central na Copa + Clube em 3 grupos + bolinha nas abas (22/10) — PUBLICADO pra todos
+Diego aprovou os dois mockups (`carreira-abas-ideias.png`, *"adorei"*; `carreira-renovacao-nova.png`, *"perfeito pode fazer e publicar já a b e c mais a tela de renovação"*).
+- 📝 **Renovação em cartas** (`renovacao-mesa.tsx`, chamada no `ReserveListScreen`): placar de cima (pra decidir · caixa · renovar todos 5a),
+  técnico 🧢, preparador 🏋️ (novo aqui — a decisão continua também no Depto. Técnico do Elenco) e jogadores em cartas com jogos/gols/assist.
+  NO SEU CLUBE (`condicaoCarry`) e gás (só com a condição ligada). Prazo em chips (padrão 5 ou o mais perto), ✍️ Renovar / 👋 Deixar ir.
+  Decidiu → faixa verde (renovou, SEM desfazer: o reducer já cobrou — igual era) ou vermelha (vai embora, COM desfazer). Regras e ações
+  do reducer NÃO mudaram. Bancada: `scripts/teste-renovacao/` (?tela=mesa|copa).
+- 🏆 **Central na Copa**: durante a Copa do Brasil/Legends, card da CHAVE (fases com ≤4 jogos: quartas → final; placar só de fase apitada,
+  fase que não chegou = "?") e ⚽ Artilheiros da Copa (top 3 de `copaScorersShown`, já anti-spoiler). Supercopa/internacional: não mostra.
+- 🗂️ **Clube em 3 grupos**: 🏟️ Clube (estádio · loja) · 💰 Dinheiro (finanças · patrocínio) · 💼 Gestão (agência · presidência). Estádio
+  continua a 1ª coisa.
+- 🔴 **Bolinha com número**: Elenco = titular fora (lesão/suspensão) + titular 🥵/🚑 · Clube = recibo novo. Jogos segue com o pontinho.
+- 🧭 **Rodapé da carreira: FICA COMO ESTÁ** (22/10, mockup `carreira-rodape.png` recusado: *"deixa como está tendo apenas a bolinha vermelha… qd tiver coisas p clicar"*). Não repropor redesign do rodapé.
+- Ideia pendente: bolinha na Central (coletiva virou tela cheia, então não sobrou o que contar lá).
+
 ## 📰 Histórias do vestiário em tela própria + mais variedade (22/10) — NO BRANCH, esperando "publica"
 Diego: *"fica o placar em cima, a história embaixo e mais coisas embaixo… muita coisa misturada"* e *"quero que tenha mais variedade
 ainda de histórias"*. Mockup aprovado. Feito: evento de jogador (noitada/lesão/expulsão) e crise financeira abrem POR CIMA de tudo
@@ -680,6 +727,9 @@ recarrega com a home limpa (`temJanelaAberta()` = nenhum elemento fixo cobrindo 
   (clã de agora ➜ novo, o que acontece com a liderança, espera de 3 dias, "Sim, ir pro X" / "Não, ficar no Y"). Clã fechado: o pedido
   🔓 **21/10 (Diego): SEM ESPERA pra trocar de clã** (*"tira essa regra, não precisa"*). Era 7 dias, depois 3, agora zero: `esc_cla_espera_ate` devolve sempre null (banco, valeu na hora). Não repropor espera.
   🔒 **22/10 (Diego): TRAVA DE 7 DIAS DEPOIS DE ENTRAR** (*"pra sair do clã e entrar em outro, pelo menos 7 dias a partir do momento que entra"*). Até `desde + 7 dias` ninguém sai nem troca daquele clã (`esc_cla_trava_ate`); vale em sair, trocar por convite/pedido, criar o seu estando nele. Liberado: o presidente tirar, fechar ou guardar o clã, e entrar num 2º pela 2ª vaga paga. A espera DEPOIS de sair continua zero. Banco já valendo; aviso com a data na tela (branch).
+  🪙 **22/10 (Diego: "sim"): PRÊMIO DA SEMANA DO CLÃ SÓ PRA QUEM ESTÁ DESDE SEGUNDA.** Quem entra no meio da semana soma título pro clã, mas a moeda (30/20/10) só a partir da semana seguinte (`esc_fecha_semanas_clas`: `desde <= segunda 0h`). Exceção: a semana de estreia (19/10) vale pra todos, porque os clãs nasceram na terça. Quem entra vê o motivo na mensagem de "entrou no clã" (`ENTROU_CLA`). Banco valendo; texto na tela no branch.
+  🔓 **22/10 (Diego): criar o 1º clã SEM PLANO custa R$ 4,90** (era 9,90). Banco (`esc_mp_preco_ref`, produto `cla_criar`) já cobra 4,90; os textos da tela no branch. 2º clã R$ 9,90 não mudou. 🛡️ E o ESCUDO personalizado foi pra R$ 14,90 (22/10, era 19,90).
+  🌍 **22/10 (Diego: "esse caixa dos rivais troque pelo rank global de usuários"): CENTRAL LEGENDS** — a caixa "💰 Caixa dos rivais" saiu e no lugar entrou "🌍 Ranking global": top 5 + a SUA carreira de agora (mesma busca e mesma conta da aba Rank → Global; `useRankGlobalCentral`), toque abre a aba Rank já no Global. Só lê com a Central aberta. Prévia `scripts/mockups/central-rank-global.png`; no branch esperando OK + "publica".
   ⚔️⚔️ **21/10 (Diego): SEMPRE SÃO DOIS.** Até 2 clãs por pessoa, em qualquer combinação (membro dos 2 · presidente dos 2 · um de cada), MAS a 2ª vaga só pra quem pagou o "2º clã" (`cla_extra`, R$ 9,90, uma vez, vale pra sempre: criar o 2º OU entrar em outro). Pra um 3º: sair de um; presidente com gente = passar (já vem marcado o mais antigo com plano) ou fechar; presidente sozinho = 📦 GUARDAR (sai do ar, nome reservado, reabre só se tiver lugar) ou fechar. Banco: `esc_cla_membros.vaga` (1/2), `esc_clas.guardado`; a tabela velha ficou como `esc_cla_membros_v1` (cópia). Regra escrita na aba ⚔️ Clã. Fotos `scripts/mockups/clas-dois-*.png`. Banco já valendo; tela no branch esperando "publica".
   📝 **21/10 (Diego): DESCRIÇÃO DO CLÃ.** Opcional ao criar, até 200 letras, sem link e sem palavrão (régua do Super Chat, `esc_cla_desc_erro`); o presidente edita depois (📝). Aparece no CONVITE, na lista de clãs e na página do clã. Banco já valendo (`esc_clas.descricao`); tela no branch. Fotos `scripts/mockups/clas-desc-*.png`. Se ele quiser link do grupo do zap na descrição, é só liberar `wa.me` na régua.
   👆 **21/10 (Diego): RANKING CLICÁVEL.** No ranking da semana (os 5 + o pódio da semana passada) tocar no técnico abre o PERFIL (➕ amigo e o novo 📣 "Chamar pro <meu clã>", um botão por clã meu). No ranking dos clãs tocar no clã abre a janela `ClaVer` (`cla-ver.tsx`): membros (tocar = perfil), descrição e Entrar (aberto) / 🔒 Pedir (fechado) / "Clã fechado com 22/22" ou "Clã cheio" — com as mesmas travas da aba (trocar pergunta, presidente preso, sempre são dois). Banco: `esc_vitrine_salas` manda `uid`; `esc_cla_ver`. Fotos `scripts/mockups/clas-rk-*.png`.

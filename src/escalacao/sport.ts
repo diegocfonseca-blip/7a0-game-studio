@@ -923,7 +923,7 @@ export function useCentralCarreira(): boolean {
 
 // ─── 🎙️ COLETIVA DE IMPRENSA DA CARREIRA (19/10) — em construção, só pra conta do Diego ────────────────────────
 // Mockup aprovado (*"adorei"*): `scripts/mockups/coletiva.png`. Pra abrir pra todos: COLETIVA_GERAL = true.
-const COLETIVA_GERAL = false
+const COLETIVA_GERAL = true
 const COLETIVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let coletivaOk = COLETIVA_GERAL
 function applyColetiva(email?: string | null): void {

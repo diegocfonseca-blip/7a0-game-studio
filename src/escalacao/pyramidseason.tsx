@@ -78,7 +78,6 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
 import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
@@ -103,6 +102,7 @@ import { resilientWrite } from './pending'
 import { useDireitos, meusDireitos, logApoio } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
+import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, BEGE_MANTO, type EstadoJogador } from './jogadorcampo'
@@ -147,6 +147,8 @@ const COPA_BR_HOLO = 'linear-gradient(150deg,#1FAE63,#0EA658 55%,#0a6b3c)'
 const SUPERCOPA_HOLO = 'linear-gradient(150deg,#4C86FF,#0D4FCC 55%,#062B75)'
 const SLATE = '#3E4A5A' // 🔄 marca de EMPRÉSTIMO (cinza-ardósia): NEUTRA de propósito — cor é sagrada dos tiers, então o emprestado não empresta cor de tier nenhum
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
+// 🎨 cor de cada posição na tabela do Elenco (22/10) — só o selo POS; nada a ver com a cor de tier
+const COR_POS: Record<string, string> = { GOL: '#D99A00', LAT: '#2F6FDB', ZAG: '#1B7A3D', MEI: '#8a5a2b', ATA: '#C2452F' }
 
 // 🔄 chip "EMP" do jogador emprestado (pego DA SAF). Fica do lado do nome, pequeno,
 // sem poluir. `mini` = versão selo do campinho (canto da mini-carta).
@@ -4651,7 +4653,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const colunas: { k: string; w: number; head: string; cell: (c: WonCard, titular: boolean) => React.ReactNode }[] = [
     // a posição continua na COR DO TIME, como já era na listinha antiga — é o
     // único lugar da tabela onde a cor do clube aparece, e some se tirar.
-    { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> },
+    { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: COR_POS[c.pos] ?? col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> }, // 🎨 22/10: cor por posição (mockup do Elenco arrumado)
     ...(mostraOverall ? [{ k: 'ovr', w: larga ? 46 : 34, head: 'OVERALL', cell: (c: WonCard) => overallChip(c) }] : []),
     ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell((estat ?? condicao)!.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
     { k: 'gol', w: wNum, head: larga ? tr('GOLS', 'GOALS') : '⚽', cell: c => numCell(goalsOf(c), goalsOf(c) > 0 ? GREEN : 'rgba(12,12,12,.25)') },
@@ -4931,7 +4933,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // na mesma tela, com o mesmo conteúdo. Dois botões pro mesmo lugar é poluição.
   const atalhos = (
     <div style={{ display: 'flex', gap: 6, margin: '9px 0 10px' }}>
-      {quinze && atalho('🏛️', tr('Comissão', 'Staff'), tr('técnico e preparador', 'coach and fitness'), () => abrePainel('comissao'), painel === 'comissao')}
+      {quinze && (() => {
+        // 🏛️ 22/10 (mockup do Elenco arrumado): a pílula diz COMO está a comissão, sem precisar abrir
+        const tecN = stEl.careerTecnicos?.[mgr.teamName]
+        const prepN = preparadorDe(stEl.careerPreparador?.[mgr.teamName])?.nome
+        const sub = !tecN && !prepN ? tr('sem técnico · sem preparador', 'no coach · no fitness coach')
+          : `${tecN ?? tr('sem técnico', 'no coach')} · ${prepN ?? tr('sem preparador', 'no fitness coach')}`
+        return atalho('🏛️', tr('Comissão', 'Staff'), sub, () => abrePainel('comissao'), painel === 'comissao')
+      })()}
       {antesFolha && atalho('🌱', tr('Base', 'Academy'), tr('subir do sub-20', 'promote from U-20'), () => abrePainel('base'), painel === 'base')}
     </div>
   )
@@ -5979,6 +5988,36 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           return `${meus}/${Math.max(teto, meus)}${emp ? ` +${emp} 🏢` : ''}`
         })()}{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
+      {/* 💪 FORÇA DO TIME (22/10, Diego mandou a amostra: *"o over… defesa, meio e ataque… e a condição física"*):
+          média dos 11 TITULARES — DEF = goleiro + laterais + zagueiros · MEI · ATA — e o gás médio. O overall segue a
+          MESMA regra do Olheiro de hoje (*"mantém como funciona hoje"*): 👑 vê tudo, ⭐ vê até craque (setor com lenda
+          fica 🔒), sem olheiro tudo 🔒. A condição só aparece com o gás ligado (Série C pra cima), como hoje. */}
+      {elenco && olheiros && xi && xi.length > 0 && (() => {
+        const tier = myApoioPerk()?.tier
+        const ve = (c: WonCard) => tier === 'ouro' || (tier === 'prata' && c.fame < 5)
+        const reais = (xi as WonCard[]).filter(c => !c.fake && c.lo && c.hi)
+        const setor = (poss: Sector[]) => {
+          const cs = reais.filter(c => poss.includes(c.pos))
+          if (!cs.length) return '—'
+          if (!cs.every(ve)) return '🔒'
+          return String(Math.round(cs.reduce((t, c) => t + (c.lo + c.hi) / 2, 0) / cs.length))
+        }
+        const cel = (rot: string, v: string, sub: string, cor = '#fff') => (
+          <div style={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+            <small style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 9.5, letterSpacing: '.12em', color: '#9a9a9a' }}>{rot}</small>
+            <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: v === '🔒' ? 18 : 24, lineHeight: 1.15, color: cor }}>{v}</b>
+            <small style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: '#777', whiteSpace: 'nowrap' }}>{sub}</small>
+          </div>
+        )
+        return (
+          <div style={{ display: 'flex', gap: 4, background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '7px 6px 6px', marginBottom: 8, position: 'relative' }}>
+            {cel('DEF', setor(['GOL', 'LAT', 'ZAG']), tr('gol · lat · zag', 'gk · fb · cb'))}
+            {cel('MEI', setor(['MEI']), tr('meio-campo', 'midfield'))}
+            {cel('ATA', setor(['ATA']), tr('ataque', 'attack'))}
+            {resumoGas && cel(tr('CONDIÇÃO', 'FITNESS'), `${Math.round(resumoGas.pct)}%`, tr('gás dos titulares', 'starters\' energy'), resumoGas.cor)}
+          </div>
+        )
+      })()}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title={tr('Soma do valor de mercado do elenco (não é a sua caixa de moedas)', 'Sum of the squad\'s market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
@@ -6507,6 +6546,42 @@ function GlobalRankConvite() {
 //    posição que ela merece hoje — e logo embaixo, fininha, a sua melhor, com a
 //    posição dela. A fininha SOME quando a de agora vira a melhor.
 // A linha fininha não ocupa posição e ninguém mais a enxerga.
+// 🌍 22/10 (Diego: "esse caixa dos rivais troque pelo rank global de usuários"): o top 5 do ranking global + a SUA carreira de
+// agora, pra Central Legends. A MESMA busca da aba Rank → Global (esc_pyramid_rank + esc_pyramid_career_rank) e a MESMA conta
+// (pontosDaLinha). Só lê quando a Central está aberta, uma vez por temporada (nada de leitura a cada rodada).
+function useRankGlobalCentral(seasonNo: number, careerId: number | undefined, experimental: boolean, ativo: boolean) {
+  const [r, setR] = useState<{ pos: number; nome: string; pts: number; you: boolean }[] | null>(null)
+  useEffect(() => {
+    if (!ativo) return
+    let vivo = true
+    ;(async () => {
+      try {
+        const { data: auth } = await supabase.auth.getUser()
+        const uid = auth?.user?.id ?? null
+        const top = await globalRankRpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 6 }, experimental)
+        if (top.error) return
+        const rows = (top.data ?? []) as GlobalRankRow[]
+        let atual: (GlobalRankRow & { pos: number }) | null = null
+        if (uid && careerId != null) {
+          const { data: cr } = await globalRankRpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId }, experimental)
+          atual = ((cr ?? [])[0] as (GlobalRankRow & { pos: number }) | undefined) ?? null
+        }
+        const outros = rows.filter(x => x.user_id !== uid)
+        let linhas: { pos: number; nome: string; pts: number; you: boolean }[]
+        if (atual && atual.pos <= 5) {
+          const lista = [...outros]; lista.splice(atual.pos - 1, 0, { ...atual, user_id: uid ?? '' })
+          linhas = lista.slice(0, 5).map((x, i) => ({ pos: i + 1, nome: x.team_name || '—', pts: pontosDaLinha(x), you: x.user_id === uid }))
+        } else {
+          linhas = outros.slice(0, 5).map((x, i) => ({ pos: i + 1, nome: x.team_name || '—', pts: pontosDaLinha(x), you: false }))
+          if (atual) linhas.push({ pos: atual.pos, nome: atual.team_name || '—', pts: pontosDaLinha(atual), you: true })
+        }
+        if (vivo) setR(linhas)
+      } catch { /* sem ranking: a caixa simplesmente não aparece */ }
+    })()
+    return () => { vivo = false }
+  }, [seasonNo, careerId, experimental, ativo])
+  return r
+}
 function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [], experimental = false }: { myTeamName: string; seasonNo: number; careerId?: number; intlHistory?: InternationalHistoryEntry[]; experimental?: boolean }) {
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
   // a carreira que você está jogando AGORA (posição + títulos dela)
@@ -7676,7 +7751,7 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
 const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
-function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean }) {
+function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false, contagem }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; contagem?: Partial<Record<AbaCarr, number>> }) {
   // 📺 a Central entra na FRENTE da barra, só pra quem tem (03/10)
   const abas: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
   return (
@@ -7695,7 +7770,11 @@ function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, ce
               <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
               {/* 🔴 pontinho: rodada rolando (Jogos) · recibo novo esperando (Clube).
                   Some assim que a pessoa abre a aba — nunca fica pedindo atenção à toa. */}
-              {((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
+              {/* 🔴 BOLINHA COM NÚMERO (22/10, ideia A aprovada): quantas coisas a aba tem pra você
+                  resolver. Some sozinha quando resolve — nada muda de lugar. */}
+              {(contagem?.[t] ?? 0) > 0 && !on
+                ? <span style={{ position: 'absolute', top: -1, right: '50%', marginRight: -20, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: '#C2452F', border: '2px solid #fff', color: '#fff', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 9.5, lineHeight: '12px', textAlign: 'center', boxSizing: 'border-box' }}>{contagem![t]}</span>
+                : ((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
             </button>
           )
         })}
@@ -8089,7 +8168,6 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
-  const econBots = useEconBots() // 💰 caixa dos rivais na Central (13/10)
   useCo2FimDaVirada() // 🌐 carreira online v2: quem comanda põe a sala no PREPARO quando o leilão de todos acaba
   // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
   // 🌐 carreira online v2: SEM 2º clube (decisão do Diego, 19/10) — a SAF lá é a da regra antiga
@@ -8426,6 +8504,7 @@ export function PyramidSeasonScreen() {
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   const intlEnabled = useInternacionalCarreiraLiberada()
+  const rankGlobalCentral = useRankGlobalCentral(state.seasonNo, state.seed, intlEnabled, tab === 'central' && !!state.agenciaOn) // 🌍 22/10: no lugar da caixa dos rivais
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -9795,6 +9874,36 @@ export function PyramidSeasonScreen() {
     if (pronta) setColetivaPronta({ pronta, ctx: feito.ctx, alvo: feito.alvo, chave })
   }, [coletivaOn, coletivaPronta, done, copaPlaying, round, roundReady, revealed, myMatch, halfMode, halftimeDone, penMode, penaltyDone, copaReady, myCopaTie, copaRound, sn, coletivaSave, montaCtxCopa, montaCtxLiga, state.seed])
   useEffect(() => { setColetivaPronta(null) }, [state.seasonNo]) // temporada nova, mesa limpa
+  // ⭐ APRESENTAÇÃO DAS LENDAS (22/10, Diego: *"pode fazer a letra A e C junto"*): no começo da temporada (rodada 0), se o
+  // leilão trouxe LENDA pro seu clube, elas sentam na bancada da coletiva — todas juntas numa tela só. Uma vez por temporada.
+  const apresentouNaTemporada = coletivaSave.feitas.some(f => f.t === sn && (f.sit === 'apresentacao_uma' || f.sit === 'apresentacao_varias'))
+  const lendasDaTemporada = useMemo(() => {
+    if (!coletivaOn) return []
+    const lotes = state.careerMercado?.season === sn ? state.careerMercado.lotes.filter(l => l.teamId === youId) : []
+    const squad = (mgrMe?.squad ?? []) as WonCard[]
+    const vistos = new Set<string>(), out: { nome: string; club: string; year: number; paid: number }[] = []
+    for (const l of [...lotes].sort((a, b) => b.paid - a.paid)) {
+      const c = squad.find(x => x.name === l.name && !x.fake && x.fame >= 5 && !x.promessa)
+      if (!c || vistos.has(c.name)) continue
+      vistos.add(c.name); out.push({ nome: c.name, club: c.club, year: c.year, paid: l.paid })
+    }
+    return out
+  }, [coletivaOn, sn, state.careerMercado, youId, mgrMe])
+  const lendasDoLeilao = useMemo(() => (round === 0 && !done && !apresentouNaTemporada ? lendasDaTemporada : []), [round, done, apresentouNaTemporada, lendasDaTemporada])
+  useEffect(() => {
+    if (!lendasDoLeilao.length || coletivaPronta || !myDiv) return
+    const chave = `${sn}:apres`
+    if (coletivaOfertada.current.has(chave)) return
+    coletivaOfertada.current.add(chave)
+    const minha = tables[myDiv] ?? []
+    const caixa = state.careerCoins?.[youId] ?? 0
+    const ctx: ColetivaCtx = { rodada: 0, totalRodadas: 38, temporada: sn, div: myDiv, clube: mgrMe?.teamName ?? '', semVencer: 0, vitoriasSeguidas: 0,
+      pos: Math.max(1, minha.findIndex(t => t.you) + 1), total: minha.length || 20, zonaSubir: false, zonaCair: false, lider: false,
+      caixa, caixaAlto: false, caixaBaixo: false, pulosSeguidos: coletivaSave.pulosSeguidos, rival: coletivaSave.arquirrival ?? undefined,
+      apresentacao: lendasDoLeilao.map(l => l.nome) }
+    const pronta = montaColetiva(ctx, coletivaSave, state.seed ?? 1)
+    if (pronta) setColetivaPronta({ pronta, ctx, alvo: { proximo: 0, classico: null }, chave })
+  }, [lendasDoLeilao, coletivaPronta, myDiv, sn]) // eslint-disable-line react-hooks/exhaustive-deps
   const responderColetiva = (estilo: ColetivaEstilo | null, registra = true) => {
     if (!coletivaPronta) return
     if (registra) dispatch({ type: 'COLETIVA_RESPONDE', mgrId: youId, pronta: coletivaPronta.pronta, estilo, ctx: coletivaPronta.ctx, alvo: coletivaPronta.alvo })
@@ -9806,13 +9915,14 @@ export function PyramidSeasonScreen() {
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
   useEffect(() => { if (coletivaOpen && !manual && !coletivaSala) abreColetiva(null) }, [coletivaOpen, manual, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (coletivaOpen && coletivaPronta?.ctx.apresentacao?.length && !coletivaSala) abreColetiva(null) }, [coletivaOpen, coletivaPronta, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!coletivaPronta) setColetivaSala(false) }, [coletivaPronta])
   const coletivaPlacarTxt = (() => {
     const pl = coletivaPronta?.ctx.placar
     if (!pl || coletivaPronta?.ctx.vespera) return null
     return `⚽ ${pl.gf} × ${pl.ga} · ${pl.gf > pl.ga ? tr('vitória', 'win') : pl.gf === pl.ga ? tr('empate', 'draw') : tr('derrota', 'loss')}${pl.arquirrival ? tr(' no clássico', ' in the derby') : ''}`
   })()
-  const coletivaRodadaTxt = !coletivaPronta ? '' : coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
+  const coletivaRodadaTxt = !coletivaPronta ? '' : coletivaPronta.ctx.apresentacao?.length ? tr('apresentação', 'unveiling') : coletivaPronta.ctx.copa ? tr('Copa', 'Cup') : coletivaPronta.ctx.vespera === 'classico' ? tr('véspera de clássico', 'derby eve') : `${tr('rodada', 'round')} ${coletivaPronta.ctx.rodada}`
   // 📰 a cobrança das promessas e as frases da temporada (página do jornal do fim)
   const coletivaJornal = useMemo(() => {
     if (!coletivaOn || !me || !copaFinished) return undefined
@@ -9926,6 +10036,13 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (tab === 'estadio') setViuClube(true) }, [tab])
   const temRecibo = done && state.booksSeason === state.seasonNo   // 🧹 o recibo do pontual saiu com ele (19/09)
   const reciboNoClube = temRecibo && !viuClube
+  // 🔴 o NÚMERO da bolinha (22/10): Elenco = titular fora (lesão/suspensão) + titular no 🥵/🚑 · Clube = recibo novo
+  const contagemAbas = useMemo((): Partial<Record<AbaCarr, number>> => {
+    if (done) return { estadio: reciboNoClube ? 1 : 0 }
+    let el = suspenso && myXIids.has(suspenso.cardId) ? 1 : 0
+    if (condGas) for (const c of myXI) { if (c.id === suspenso?.cardId) continue; const e = estadoGas(condGas[c.id] ?? 100); if (e === 'limite' || e === 'esgotado') el++ }
+    return { elenco: el, estadio: reciboNoClube ? 1 : 0 }
+  }, [done, reciboNoClube, suspenso, myXIids, myXI, condGas])
   // 🐛 CONSERTO (21/08, o Diego achou): a barra sumia MUITO mais do que devia.
   // Eu tinha escrito `penMode || halfMode || copaPlaying`, mas nenhum desses três
   // é um "momento" — são ESTADOS LONGOS:
@@ -10094,6 +10211,58 @@ export function PyramidSeasonScreen() {
     return out
   }, [tab, myDiv, revCentral, round, revealed, live, simulaAte])
   // 📺 a Central inteira sai do que a tela JÁ sabe (tabela revelada, giro, extrato, agenda)
+  // 🏆 CENTRAL NA COPA (22/10, ideia C): chave das fases finais (quartas → final) + artilheiros, só da Copa
+  // nacional (Copa do Brasil/Legends) enquanto ela está no ar. ANTI-SPOILER: placar só de fase JÁ apitada
+  // (a de agora só quando acabou de animar); fase que não chegou fica "?" — quem passa ainda não se sabe.
+  const copaChaveCentral = useMemo(() => {
+    if (!copaPlaying || !copa || copaFase?.name === 'Supercopa') return null
+    const idx = copa.rounds.map((_, i) => i).filter(i => copa.rounds[i].name !== 'Supercopa' && copa.rounds[i].ties.length <= 4)
+    if (!idx.length) return null
+    const colunas = idx.map(i => {
+      const r = copa.rounds[i]
+      const visto = i < copaRound || (i === copaRound && copaReady)
+      const chegou = i <= copaRound
+      return { nome: r.name, jogos: r.ties.map(tie => chegou ? { a: tie.a.name, b: tie.b.name, ga: visto ? tie.aggA : undefined, gb: visto ? tie.aggB : undefined, venceA: visto ? tie.win === 'a' : undefined, youA: tie.a.you, youB: tie.b.you } : null) }
+    })
+    return { titulo: `🏆 ${copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup')} · ${tr('chave', 'bracket')}`, colunas }
+  }, [copaPlaying, copa, copaFase, copaRound, copaReady, copaBrOk])
+  const copaArtCentral = useMemo(() => (copaChaveCentral ? copaScorersShown.slice(0, 3).map(x => ({ nome: x.name, time: x.teamName, gols: x.goals, you: x.you })) : null), [copaChaveCentral, copaScorersShown])
+  // 🛤️ TRILHA DA TEMPORADA (22/10, mockup aprovado *"Rank e jogos aprovado"*): no topo da aba Jogos, onde você está
+  // no ano — Liga → Copa → Supercopa → internacional → Copa do Mundo. Só entra etapa que vale pra você (internacional da
+  // T40 em diante; Copa do Mundo só no ano em que o seu clube está nela). Só mostra a ETAPA, nunca resultado.
+  const trilhaTemporada = (() => {
+    if (!state.careerOnline || state.onlineMode === 'online') return null
+    const temSuper = copa ? copa.rounds.some(r => r.name === 'Supercopa') : !!copaBrOk
+    const etapas: { k: string; ic: string; nome: string }[] = [
+      { k: 'liga', ic: '⚽', nome: round > 0 && !done ? tr(`Liga · R${round}/38`, `League · R${round}/38`) : tr('Liga', 'League') },
+      { k: 'copa', ic: '🏆', nome: !done ? tr('Copa', 'Cup') : copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup') },
+      ...(temSuper ? [{ k: 'super', ic: '⭐', nome: tr('Supercopa', 'Super Cup') }] : []),
+      ...(intlEnabled && (state.seasonNo ?? 1) >= 40 ? [{ k: 'intl', ic: '🌎', nome: tr('Internacional', 'International') }] : []),
+      ...(mundoAntes ? [{ k: 'mundo', ic: '🌍', nome: tr('Copa do Mundo', 'World Cup') }] : []),
+    ]
+    const agora = !done ? 'liga'
+      : copaPlaying ? (copaFase?.name === 'Supercopa' ? 'super' : 'copa')
+      : !copaFinished ? 'copa'
+      : intlNoAr ? 'intl'
+      : mundoPendente ? 'mundo'
+      : 'fim'
+    const iAgora = agora === 'fim' ? etapas.length : etapas.findIndex(e => e.k === agora)
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', background: INK, borderRadius: 14, padding: '9px 6px', margin: '0 0 10px', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }}>
+        {etapas.map((e, i) => {
+          const feito = i < iAgora, on = i === iAgora
+          return (
+            <Fragment key={e.k}>
+              {i > 0 && <span style={{ color: '#555', fontSize: 11, flex: 'none' }}>›</span>}
+              <div style={{ flex: 1, minWidth: 0, textAlign: 'center', ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', lineHeight: 1.15, color: on ? GOLD : feito ? '#2FBF5A' : '#8a8a8a' }}>
+                <span style={{ display: 'block', fontSize: on ? 19 : 16, marginBottom: 2, filter: on || feito ? 'none' : 'grayscale(1)', opacity: on || feito ? 1 : .55 }}>{feito ? '✅' : e.ic}</span>{e.nome}
+              </div>
+            </Fragment>
+          )
+        })}
+      </div>
+    )
+  })()
   const renderCentral = () => {
     if (!myDiv) return null
     const DIV_EN: Record<Div, string> = { A: 'Serie A', B: 'Serie B', C: 'Serie C', D: 'Serie D', V: 'Várzea' }
@@ -10246,7 +10415,16 @@ export function PyramidSeasonScreen() {
     })
     if (compManchete) jornal.manchete = compManchete
     // 🎙️ a coletiva desta rodada vira manchete do Martelo (e notícia no topo)
-    if (coletivaOn && coletivaUltima?.manchete && coletivaUltima.t === sn && coletivaUltima.r === revCentral) {
+    // ⭐ a APRESENTAÇÃO das lendas é a capa do Martelo de pré-temporada e da 1ª rodada (a foto delas no lugar da arte)
+    const apresUltima = coletivaSave.feitas.find(f => f.t === sn && (f.sit === 'apresentacao_uma' || f.sit === 'apresentacao_varias'))
+    const fotoLendas = coletivaOn && apresUltima && revCentral <= 1 && lendasDaTemporada.length ? lendasDaTemporada : null
+    if (fotoLendas && !compManchete) {
+      const nomes = fotoLendas.map(l => l.nome), j = (e: string) => nomes.length <= 1 ? nomes[0] : `${nomes.slice(0, -1).join(', ')} ${e} ${nomes[nomes.length - 1]}`
+      jornal.manchete = apresUltima!.manchete
+        ? { pt: apresUltima!.manchete[0], en: apresUltima!.manchete[1], sub: [apresUltima!.frase ? `“${apresUltima!.frase[0]}”` : '', apresUltima!.frase ? `“${apresUltima!.frase[1]}”` : ''] }
+        : { pt: `${euNome} apresenta ${j('e')}`, en: `${euNome} unveil ${j('and')}`, sub: ['Chegaram pelo leilão e já posaram pra foto.', 'They came through the auction and already posed for the photo.'] }
+    }
+    if (coletivaOn && coletivaUltima?.manchete && coletivaUltima.t === sn && coletivaUltima.r === revCentral && !fotoLendas) {
       jornal.noticias.unshift({ emoji: '🎙️', pt: coletivaUltima.manchete[0], en: coletivaUltima.manchete[1], tag: ['coletiva', 'presser'] })
       if (!compManchete) jornal.manchete = { pt: coletivaUltima.manchete[0], en: coletivaUltima.manchete[1], sub: [coletivaUltima.frase ? `“${coletivaUltima.frase[0]}”` : '', coletivaUltima.frase ? `“${coletivaUltima.frase[1]}”` : ''] }
     }
@@ -10278,7 +10456,8 @@ export function PyramidSeasonScreen() {
     })()
     return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
-      caixas={econBots ? [...(tables[myDiv] ?? [])].map(t => ({ name: t.name, you: t.you, caixa: Math.round(t.human ? (state.careerCoins?.[t.teamId] ?? 0) : (state.clubCash?.[teamKey(t)] ?? 0)) })).sort((a, b) => b.caixa - a.caixa) : undefined} />
+      rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null}
+      copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas} />
   }
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
@@ -10290,7 +10469,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} />}
+      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
@@ -10776,7 +10955,8 @@ export function PyramidSeasonScreen() {
         {/* 🎙️ a COLETIVA em tela cheia (portal): o próximo jogo só aparece depois dela */}
         {coletivaSala && coletivaPronta && me && (
           <ColetivaPasso pronta={coletivaPronta.pronta} clube={me.team} placar={coletivaPlacarTxt} rodadaTxt={coletivaRodadaTxt} autoSeg={manual ? null : 12}
-            seguirTxt={copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('Ver o campeão', 'See the champion') : tr('Próxima fase', 'Next round')) : tr(`Ir pra rodada ${round + 1}`, `Go to round ${round + 1}`)}
+            lendas={coletivaPronta.ctx.apresentacao?.length ? lendasDoLeilao : undefined}
+            seguirTxt={coletivaPronta.ctx.apresentacao?.length ? tr('Fechar a apresentação', 'Close the unveiling') : copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('Ver o campeão', 'See the champion') : tr('Próxima fase', 'Next round')) : tr(`Ir pra rodada ${round + 1}`, `Go to round ${round + 1}`)}
             resolve={estilo => { const r = respondeColetiva(coletivaSave, coletivaPronta.pronta, estilo, coletivaPronta.ctx, state.seed ?? 1, coletivaPronta.alvo); return { manchete: r.manchete, efeito: r.efeito } }}
             onFim={(estilo, registra) => responderColetiva(estilo, registra)} />
         )}
@@ -11348,18 +11528,49 @@ export function PyramidSeasonScreen() {
                 por-técnico (Passo 2c completa a paridade com o offline). */}
             {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
-            <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
-            <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(presidentAvailable || (privateCareer && PRESIDENT_ROOM_RELEASED) ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
+            {(() => {
+              const subs = (([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(presidentAvailable || (privateCareer && PRESIDENT_ROOM_RELEASED) ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ SAIU DO ELENCO, VEIO PRO CLUBE (Diego 19/09): *"tem que tirar do
                 // elenco e pôr lá no clube também"*. Agência não é escalação — o lugar
                 // dela é junto de estádio, finanças e patrocínio. O 💼 escritório velho
                 // (saves antigos, sem Agência 2.0) continua onde estava.
-                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
-                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-              ))}
-            </div>
-            </SubAbasGrudadas>
+                .filter(([sb]) => !(sb === 'escritorio' && agenciaOk))
+              // 🗂️ CLUBE EM 3 GRUPOS (22/10, mockup carreira-abas-ideias.png, *"adorei… pode fazer e publicar"*):
+              // eram 7 pílulas espremidas numa linha. Agora 3 grupos grandes e, dentro, as partes dele. Nada mudou
+              // de lugar por dentro — o estádio continua sendo a 1ª coisa (grupo Clube, parte Estádio).
+              const GRUPOS: [string, string, string, (typeof clubeSub)[]][] = [
+                ['clube', '🏟️', tr('Clube', 'Club'), ['estadio', 'loja']],
+                ['dinheiro', '💰', tr('Dinheiro', 'Money'), ['financas', 'patrocinio']],
+                ['gestao', '💼', tr('Gestão', 'Management'), ['agencia', 'escritorio', 'presidencia']],
+              ]
+              const grupos = GRUPOS.map(([g, ic, label, ids]) => ({ g, ic, label, itens: subs.filter(([sb]) => ids.includes(sb)) })).filter(x => x.itens.length > 0)
+              const ativo = grupos.find(x => x.itens.some(([sb]) => sb === clubeSub)) ?? grupos[0]
+              const pill = (s: typeof clubeSub, ic: string, label: string) => (
+                <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              )
+              return (
+                <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
+                <div style={{ marginBottom: subGrudadas ? 0 : 10 }}>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {grupos.map(x => {
+                      const on = x === ativo
+                      return (
+                        <button key={x.g} onClick={() => { if (!on) setClubeSub(x.itens[0][0]) }} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', background: on ? GOLD : '#fff', color: INK, boxShadow: on ? `3px 3px 0 0 ${INK}` : `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center', ...OSWALD }}>
+                          <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{x.ic} {x.label}</span>
+                          <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, color: on ? '#5a4300' : '#7a7462', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.itens.map(([, , l]) => l.toLowerCase()).join(' · ')}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {ativo && ativo.itens.length > 1 && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                      {ativo.itens.map(([s, ic, label]) => pill(s, ic, label))}
+                    </div>
+                  )}
+                </div>
+                </SubAbasGrudadas>
+              )
+            })()}
             {clubeSub === 'presidencia' && presidentAvailable ? (
               <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PresidenciaClube key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
@@ -11751,13 +11962,34 @@ export function PyramidSeasonScreen() {
                 Agência 2.0 — carreira sem Agência não mostra essa aba). Nome
                 "Local" pra não confundir com a aba-mãe "Clube" nem soar só
                 divisão/liga (pedido do Diego 14/08) */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-              {/* 🌍 a aba Global aparece SEMPRE (Diego 28/08). Carreira sem Agência
-                  2.0 abre o CONVITE (GlobalRankConvite) — vê a aba, não vê os times. */}
-              {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['ouro', '🥇', tr('Ouro', 'Golden')], ['clubes', '🏟️', tr('Local', 'Local')], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
-                <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-              ))}
-            </div>
+            {/* 🗂️ RANK EM 3 GRUPOS (22/10, mockup carreira-abas-elenco-rank-jogos.png, *"Rank e jogos aprovado"*):
+                eram 5 pílulas apertadas. ⚽ Jogadores (gols · garçons · ouro) · 🏟️ Clubes (o "Local") · 🌍 Global.
+                As telas de dentro não mudaram. */}
+            {(() => {
+              const jog = rankSub === 'arti' || rankSub === 'garcons' || rankSub === 'ouro'
+              const grupo = (k: string, ic: string, label: string, sub: string, on: boolean, ir: () => void) => (
+                <button key={k} onClick={ir} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', background: on ? GOLD : '#fff', color: INK, boxShadow: on ? `3px 3px 0 0 ${INK}` : `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center', ...OSWALD }}>
+                  <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{ic} {label}</span>
+                  <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, color: on ? '#5a4300' : '#7a7462', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+                </button>
+              )
+              return (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {grupo('jog', '⚽', tr('Jogadores', 'Players'), tr('gols · garçons · ouro', 'goals · assists · golden'), jog, () => { if (!jog) setRankSub('arti') })}
+                    {grupo('clu', '🏟️', tr('Clubes', 'Clubs'), tr('da sua liga', 'your league'), rankSub === 'clubes', () => setRankSub('clubes'))}
+                    {grupo('glo', '🌍', 'Global', tr('usuários', 'real players'), rankSub === 'global', () => setRankSub('global'))}
+                  </div>
+                  {jog && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+                      {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['ouro', '🥇', tr('Bola de Ouro', 'Golden Ball')]] as [typeof rankSub, string, string][]).map(([s2, ic, label]) => (
+                        <button key={s2} onClick={() => setRankSub(s2)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: rankSub === s2 ? myCol.solid : '#fff', color: rankSub === s2 ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} />
             ) : rankSub === 'garcons' ? (
@@ -11898,6 +12130,7 @@ export function PyramidSeasonScreen() {
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
           <section className="ll29-board" aria-label="Competições da carreira">
             {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
+            {tab === 'jogos' && trilhaTemporada}
             {tab === 'jogos' && <GiroDaRodada />}{/* 📢 Anúncio do dia também na carreira (17/10, Diego: "sim, pode ser") */}
             {done && copa && copa.rounds.length ? <>
               {/* 🧹 OS CHIPS DAS FASES SAEM DA ABA JOGOS NO FIM DE TEMPORADA (19/09).
@@ -11919,7 +12152,7 @@ export function PyramidSeasonScreen() {
               return <>
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
-                  : round > 0 && <CareerLeagueGames matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
+                  : round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
               </>
             })()}
           </section>
@@ -12126,180 +12359,9 @@ export function ReserveListScreen() {
             <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>{getLang() === 'en' ? <>You can\'t <b>buy with money</b> in this window — but you can <b>sell to raise cash</b> and, in the <b>pile</b> (the auction leftovers), <b>try your luck grabbing a free player</b>. Prizes and gate money pull you out of the red.</> : <>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</>}</p>
           </div>
         )}
-        {/* 🧢 CONTRATO DO TÉCNICO (27/08, só conta liberada): venceu os 5 anos →
-            decide aqui, junto com os contratos dos jogadores. Renovar = paga o
-            VALOR dele (+5 temporadas); deixar ir = sem multa (foi até o fim). */}
-        {quinzeRL && mgr && (() => {
-          const nomeTec = state.careerTecnicos?.[mgr.teamName]
-          const fim = state.careerTecnicoContrato?.[mgr.teamName]
-          if (!nomeTec || fim == null || fim >= state.seasonNo) return null
-          const custo = state.careerTecnicoPago?.[nomeTec] ?? 0
-          const caixa = state.careerCoins?.[youId] ?? 0
-          return (
-            <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>{tr('🧢 Contrato do técnico ENCERROU', '🧢 Head coach contract ENDED')}</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <><b>{nomeTec}</b> served out his contract (expired in S{fim}). Renew for <b>💰 {custo}</b> (a new length is drawn) or let go — no fee, the contract ran its course.</> : <><b>{nomeTec}</b> cumpriu o contrato (venceu na T{fim}). Renove por <b>💰 {custo}</b> (o tempo novo é sorteado) ou deixe ir — sem multa, ele foi até o fim.</>}</p>
-              <div style={{ display: 'flex', gap: 7 }}>
-                <button disabled={caixa < custo} onClick={() => dispatch({ type: 'RENOVAR_TECNICO' })}
-                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: caixa < custo ? '#d8cfb5' : '#1B7A3D', color: caixa < custo ? 'rgba(0,0,0,.4)' : '#fff', boxShadow: caixa < custo ? 'none' : `2px 2px 0 0 ${INK}`, cursor: caixa < custo ? 'not-allowed' : 'pointer' }}>{tr('📝 Renovar', '📝 Renew')} (💰 {custo})</button>
-                <button onClick={() => dispatch({ type: 'DISPENSAR_TECNICO' })}
-                  style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('👋 Deixar ir', '👋 Let go')}</button>
-              </div>
-              {caixa < custo && <p style={{ fontSize: 9.5, fontWeight: 700, color: '#C2452F', margin: '6px 0 0' }}>{tr('Caixa não cobre a renovação — venda alguém ou deixe ir.', 'The till doesn\'t cover the renewal — sell someone or let go.')}</p>}
-            </div>
-          )
-        })()}
-        {/* 📝 CONTRATOS — encerrados esperando decisão + aviso de último ano */}
-        {(() => {
-          // 🏛️ MULTICLUBES (Diego 04/08, mockup lado a lado aprovado): o clube
-          // DORMINDO decide JUNTO aqui, em coluna própria 💤 — a renovação dele
-          // sai da caixa DELE. Sem 2º clube, a janela fica exatamente como era.
-          const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
-          const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
-          const expirados = expOf(mgr)
-          const expDorm = expOf(dormM)
-          // 📝 REGRA DO DIEGO (15/08): este banner é SÓ de contrato ENCERRADO — quem
-          // ainda está no último ano NÃO aparece aqui (ele segue jogando normal, não
-          // tem decisão nenhuma a tomar). Antes o "último ano" também abria a janela,
-          // então ela aparecia sem ninguém ter vencido e a pessoa apertava "renovar
-          // todos" achando que ia renovar aquele nome também. O aviso de último ano
-          // continua onde faz sentido: no card do jogador, na aba Elenco.
-          if (expirados.length + expDorm.length === 0) return null
-          const saldoDorm = dormM ? (state.careerCoins?.[dormM.id] ?? 0) : 0
-          const coins = state.careerCoins?.[youId] ?? 0
-          const primeira = state.seasonNo <= 6 // estreia do recurso: explica com mais calma
-          const btn = (bg: string, fg: string, dis: boolean): React.CSSProperties => ({ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 10.5, ...OSWALD, background: dis ? '#d8cfb5' : bg, color: dis ? 'rgba(0,0,0,.4)' : fg, boxShadow: dis ? 'none' : `2px 2px 0 0 ${INK}`, cursor: dis ? 'not-allowed' : 'pointer', textTransform: 'uppercase' as const, lineHeight: 1.15 })
-          return (
-            <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
-              <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{getLang() === 'en' ? (primeira ? '📝 CONTRACTS HAVE ARRIVED!' : `📝 CONTRACT${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENDED — DECIDE`) : primeira ? '📝 CONTRATOS CHEGARAM!' : `📝 CONTRATO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} ENCERRADO${(expirados.length + expDorm.length) > 1 ? 'S' : ''} — DECIDA`}{expDorm.length > 0 ? tr(' — decida clube por clube', ' — decide club by club') : ''}</p>
-              {primeira && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 7px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Your club is professional: <b>every player has a contract</b> (5 to 10 years, drawn on arrival). When it ends, you decide: <b>renew or let go</b>.</> : <>Seu clube é profissional: <b>todo jogador tem contrato</b> (5 a 10 anos, sorteado na chegada). Quando encerra, você decide: <b>renovar ou deixar ir</b>.</>}</p>}
-              {/* ⚡ AÇÃO EM MASSA (07/08, pedido do Diego): com muito contrato vencendo de
-                  uma vez, um botão por CATEGORIA aplica a mesma decisão em TODOS de uma
-                  vez (os dois clubes do multiclube juntos) — sem precisar clicar jogador
-                  por jogador. */}
-              {(expirados.length + expDorm.length) > 1 && (() => {
-                const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
-                // 🌱 VÁRZEA NÃO RENOVA (regra do Diego 14/08) — o reducer recusa. Antes o
-                // botão aparecia do mesmo jeito: a pessoa apertava e NADA acontecia, sem
-                // aviso. Agora quem está na Várzea nem vê o botão, vê a explicação.
-                const divDe = (mm: Manager) => (state.careerPlacements?.[`m${mm.id}`] ?? state.careerDivision ?? 'V') as string
-                const renovaveis = alvos.filter(({ dono }) => divDe(dono) !== 'V')
-                // 🐛 FIX 15/08 (relato do Diego: "apertou renovar todos e não renovou"):
-                // este botão mandava SEMPRE 5 ou 10 anos pra todo mundo — mas jogador
-                // barato não tem esses prazos na tabela (valor 2 só tem 1 e 3 anos;
-                // valor 1/3/4 não têm 10). O reducer devolvia o estado sem mexer e o
-                // jogador ficava SEM RENOVAR, em silêncio. Agora cada um renova pelo
-                // prazo MAIS PRÓXIMO que existe pro valor dele — "renovar TODOS"
-                // renova todos de verdade.
-                const bulkRenovar = (anos: 10 | 5) => {
-                  for (const { c, dono } of renovaveis) {
-                    const ops = renewOptions(valorOficial(state, c))
-                    if (!ops.length) continue
-                    const escolhido = ops.includes(anos)
-                      ? anos
-                      : [...ops].sort((x, y) => Math.abs(x - anos) - Math.abs(y - anos) || y - x)[0]
-                    dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos: escolhido })
-                  }
-                }
-                const bulkDeixarIr = () => {
-                  const jaSolto = new Set(state.contratoRelease ?? [])
-                  for (const { c, dono } of alvos) if (!jaSolto.has(c.id)) dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })
-                }
-                return (
-                  renovaveis.length === 0 ? (
-                    <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: '#EAF6EE', padding: '8px 10px', marginBottom: 9 }}>
-                      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, color: '#1B5E32', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🌱 <b>No renewals in Várzea.</b> When a contract ends, the player goes to the auction and the <b>club pockets</b> the sale — that\'s why there\'s no renew button here. <b>Promoted to Série D?</b> Then contracts kick in and you decide to renew or let go.</> : <>🌱 <b>Na Várzea não tem renovação.</b> Quando o contrato acaba, o jogador vai pro leilão e o <b>clube embolsa</b> a venda — por isso não tem botão de renovar aqui. <b>Subiu pra Série D?</b> Aí os contratos passam a valer e você decide renovar ou deixar ir.</>}</p>
-                    </div>
-                  ) : (
-                  <div style={{ marginBottom: 9 }}>
-                    {/* 🎨 Diego 15/08: "renovar todos" e "deixar todos ir" pareciam a
-                        mesma coisa. Agora os dois de RENOVAR ficam juntos em cima
-                        (verde/dourado) e o de SOLTAR fica embaixo, sozinho, em
-                        vermelho forte com texto branco — cor E lugar diferentes, pra
-                        ninguém soltar o elenco inteiro sem querer. (Dá pra desfazer:
-                        cada jogador solto vira botão "desfazer" no card dele.) */}
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => bulkRenovar(5)} style={btn('#EAF6EE', INK, false)}>{tr('5️⃣ Renovar os', '5️⃣ Renew the')} {renovaveis.length}{<br />}{tr('encerrados · 5 anos', 'ended · 5 years')}</button>
-                      <button onClick={() => bulkRenovar(10)} style={btn(GOLD, INK, false)}>{tr('🔟 Renovar os', '🔟 Renew the')} {renovaveis.length}{<br />}{tr('encerrados · 10 anos (-10%)', 'ended · 10 years (-10%)')}</button>
-                    </div>
-                    <button onClick={bulkDeixarIr} style={{ ...btn('#C2452F', '#fff', false), width: '100%', marginTop: 6 }}>{tr('😢 Deixar TODOS ir · vão pro leilão', '😢 Let EVERYONE go · off to the auction')}</button>
-                  </div>
-                  )
-                )
-              })()}
-              {(() => {
-                // card de decisão de UM jogador; `empilha` = botões em pilha (modo 2 colunas)
-                const decisao = (c: WonCard, dono: Manager, saldo: number, empilha: boolean) => {
-                  const oficial = valorOficial(state, c)
-                  // 📝 prazos disponíveis pra ESSE valor (renewOptions já filtra opção
-                  // "dominada" — nunca aparece um prazo maior custando igual ou menos
-                  // que um mais curto). 10+ moedas = só 5/10 anos (compromisso real).
-                  const opcoes = renewOptions(oficial)
-                  const COR_PRAZO: Record<number, [string, string]> = {
-                    10: [GOLD, INK], 5: ['#EAF6EE', INK], 3: ['#E3EEFA', INK], 2: ['#E3EEFA', INK], 1: ['#F4ECD6', INK],
-                  }
-                  const solto = (state.contratoRelease ?? []).includes(c.id)
-                  return (
-                    <div key={c.id} style={{ border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 9px', marginBottom: 8, background: '#FCFBF4', boxShadow: `2px 2px 0 0 ${INK}` }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                        <span style={{ fontWeight: 900, fontSize: 9.5, ...OSWALD, background: INK, color: '#fff', borderRadius: 5, padding: '1px 6px' }}>{c.pos}</span>
-                        <span style={{ fontWeight: 900, fontSize: empilha ? 12.5 : 14, ...OSWALD, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                        <span style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, color: '#5a5647', flex: 'none' }}>{empilha ? '' : tr('valor ', 'value ')}{oficial} 🪙</span>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: empilha ? 'column' : 'row', gap: 6, flexWrap: 'wrap' }}>
-                        {opcoes.map(anos => {
-                          const custo = renewCost(oficial, anos)
-                          const [bg, fg] = COR_PRAZO[anos] ?? ['#F4ECD6', INK]
-                          return (
-                            <button key={anos} onClick={() => dispatch({ type: 'RENEW_CONTRACT', mgrId: dono.id, cardId: c.id, anos })} disabled={solto} style={btn(bg, fg, solto)}>
-                              {tr('Renovar', 'Renew')} {anos} {getLang() === 'en' ? (anos > 1 ? 'years' : 'year') : `ano${anos > 1 ? 's' : ''}`}{empilha ? ' · ' : <br />}{custo} 🪙{anos === 10 ? ' (-10%)' : ''}{saldo < custo ? ' 💳' : ''}
-                            </button>
-                          )
-                        })}
-                        <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={btn(solto ? '#C2452F' : '#FDECEA', solto ? '#fff' : '#a23325', false)}>{solto ? tr('🌱 vai embora\u2028(desfazer)', '🌱 leaving\u2028(undo)') : tr('😢 Deixar ir', '😢 Let go')}{empilha ? ' · ' : <br />}{solto ? tr('cria assume se faltar', 'academy kid fills in if needed') : tr('vai pro leilão', 'goes to the auction')}</button>
-                      </div>
-                    </div>
-                  )
-                }
-                if (expDorm.length === 0 || !dormM) return <>{expirados.map(c => decisao(c, mgr, coins, false))}</>
-                // 🏛️ modo 2 colunas (mockup lado a lado aprovado): ativo 🟡 × dormindo 💤
-                const clubHead = (nome: string, dorme: boolean) => (
-                  <div style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 8px', margin: '2px 0 7px', fontWeight: 900, fontSize: 11, ...OSWALD, background: dorme ? INK : GOLD, color: dorme ? '#fff' : INK, textTransform: 'uppercase' as const, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dorme ? '💤 ' : '🟡 '}{nome}</div>
-                )
-                return (
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {clubHead(mgr.teamName, false)}
-                      {expirados.length === 0
-                        ? <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{tr('Nenhum contrato vencido aqui ✓', 'No expired contracts here ✓')}</p>
-                        : expirados.map(c => decisao(c, mgr, coins, true))}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {clubHead(dormM.teamName, true)}
-                      {expDorm.map(c => decisao(c, dormM, saldoDorm, true))}
-                      <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>💰 Renewals come out of <b>{dormM.teamName}\'s</b> till ({saldoDorm} 🪙) — not yours.</> : <>💰 Renovação sai da caixa <b>do {dormM.teamName}</b> ({saldoDorm} 🪙) — não da sua.</>}</p>
-                    </div>
-                  </div>
-                )
-              })()}
-              {(expirados.length > 0 || expDorm.length > 0) && (
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '2px 0 0', lineHeight: 1.45 }}>
-                  {getLang() === 'en' ? <>
-                  {state.reserveListMesmo
-                    ? <><b>😢 Let go</b>: since you kept the <b>same team</b> (no auction), he leaves <b>with no sale</b> — nobody buys — and, if the XI is short, a free <b>🌱 Academy Kid</b> fills in (weak, no contract, gone when a signing arrives).</>
-                    : <><b>😢 Let go</b>: he goes to the auction (you receive the sale <b>up to his value</b> — anything above goes to the <b>greedy family</b> 😏) and, if the XI is short, a free <b>🌱 Academy Kid</b> fills in (weak, no contract, gone when a signing arrives).</>}
-                  {' '}💳 No cash? You can STILL renew — it goes on <b>overdraft</b> (negative till, transfer ban until you\'re out of the red). ⚠️ <b>Moved on without choosing?</b> Renews <b>AUTOMATICALLY for 5 years (half)</b>, cash or not — a player only leaves if YOU say so.{dormM ? <> 😤 <b>Applies to BOTH clubs:</b> a player you release gets <b>hurt</b> — won\'t play for ANY of your clubs until another club signs him.</> : null}
-                  </> : <>
-                  {state.reserveListMesmo
-                    ? <><b>😢 Deixar ir</b>: como você ficou no <b>mesmo time</b> (sem leilão), ele sai <b>sem venda</b> — ninguém compra — e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>
-                    : <><b>😢 Deixar ir</b>: ele vai pro leilão (você recebe a venda <b>até o valor dele</b> — o que passar fica com a <b>família gananciosa</b> 😏) e, se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça (fraquinho, sem contrato, some quando chegar reforço).</>}
-                  {' '}💳 Sem caixa dá pra renovar MESMO ASSIM — entra no <b>cheque especial</b> (caixa negativa, transfer ban até sair do vermelho). ⚠️ <b>Avançou sem escolher?</b> Renova <b>AUTOMÁTICO por 5 anos (metade)</b>, com ou sem caixa — jogador só vai embora se VOCÊ mandar.{dormM ? <> 😤 <b>Vale pros DOIS clubes:</b> jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
-                  </>}
-                </p>
-              )}
-            </div>
-          )
-        })()}
+        {/* 📝 MESA DE RENOVAÇÃO (22/10): técnico, preparador e jogadores com contrato encerrado, em cartas
+            — mesmas ações e preços de antes, só a tela mudou (renovacao-mesa.tsx) */}
+        <MesaRenovacao tecnicoOn={quinzeRL} />
         {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
         {state.escadaOn && escLib && !state.escadaLivre && (() => {
           const d = (state.careerPlacements?.[`m${youId}`] ?? 'V') as 'A' | 'B' | 'C' | 'D' | 'V'

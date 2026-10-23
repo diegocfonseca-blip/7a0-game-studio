@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { CopaTie, SimMatch } from './pyramidseason'
 import { CompetitionStage, CompetitionMatch } from './online-match-visual'
 import { careerTieView } from './career-match-model'
@@ -22,8 +22,13 @@ export function CareerCompetitionHelp({ kind }: { kind: 'super'|'brasil'|'copa' 
   </details>
 }
 
-export function CareerLeagueGames({ matches, minute, title, hideId }: { matches: SimMatch[]; minute: number; title: string; hideId?: number }) {
-  return <section className="ll29-games"><h3>{title}</h3><div className="ll29-match-grid">{matches.filter(m => hideId == null || (m.hId !== hideId && m.aId !== hideId)).map((m,i) => {
+// 📋 `limite` (22/10, mockup carreira-abas-elenco-rank-jogos.png aprovado): mostra só os N primeiros jogos e um "ver os X
+// jogos" — a rodada inteira empilhada eram 3,5 telas de rolagem. A ORDEM é a de sempre (nunca por placar: seria spoiler).
+export function CareerLeagueGames({ matches, minute, title, hideId, limite, verTodos }: { matches: SimMatch[]; minute: number; title: string; hideId?: number; limite?: number; verTodos?: (n: number) => string }) {
+  const [aberto, setAberto] = useState(false)
+  const lista = matches.filter(m => hideId == null || (m.hId !== hideId && m.aId !== hideId))
+  const corta = !!limite && !aberto && lista.length > limite
+  return <section className="ll29-games"><h3>{title}</h3><div className="ll29-match-grid">{(corta ? lista.slice(0, limite) : lista).map((m,i) => {
     const done = minute >= 93, goals = m.goals.filter(g => done || g.min <= minute)
     const completeEvents = m.goals.length === m.hg + m.ag
     return <CompetitionMatch key={`${m.hId}-${m.aId}-${i}`} home={m.h} away={m.a}
@@ -31,7 +36,7 @@ export function CareerLeagueGames({ matches, minute, title, hideId }: { matches:
       homeScore={done ? m.hg : completeEvents ? goals.filter(g=>g.home).length : '—'}
       awayScore={done ? m.ag : completeEvents ? goals.filter(g=>!g.home).length : '—'} goals={goals}
       status={done ? 'ENCERRADO' : `${minute}′ · AO VIVO`} />
-  })}</div>{!matches.length && <p>A rodada ainda não começou.</p>}</section>
+  })}</div>{corta && <button type="button" onClick={() => setAberto(true)} style={{ display: 'block', width: '100%', marginTop: 8, padding: '9px 0', border: '3px solid #0C0C0C', borderRadius: 12, background: '#fff', boxShadow: '2px 2px 0 #0C0C0C', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', color: '#0C0C0C' }}>{verTodos ? verTodos(lista.length) : `ver os ${lista.length} jogos ›`}</button>}{!matches.length && <p>A rodada ainda não começou.</p>}</section>
 }
 
 export function CareerCupGames({ ties, pos, title, renderPens }: { ties: CopaTie[]; pos: number; title: string; renderPens: (tie: CopaTie) => ReactNode }) {

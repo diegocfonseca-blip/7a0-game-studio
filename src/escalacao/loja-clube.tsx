@@ -287,7 +287,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           <AnunciosPendentes />
         </>}
 
-        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 19,99 no Pix, só o presidente compra; nome + ideia + zap depois de pagar */}
+        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 14,90 no Pix (22/10), só o presidente compra; nome + ideia + zap depois de pagar */}
         {pixMp && <>
           <h2 id="loja-cla" style={h2}>{tr('⚔️ Seu clã', '⚔️ Your clan')}</h2>
           <EscudoClaLoja />

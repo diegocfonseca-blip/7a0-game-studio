@@ -17,6 +17,7 @@ import { PresidenteNaMesa } from './presidente-avatar'
 import { presidenteContaLiberado, usePosseConta, usePresidenteConta } from './presidente-conta'
 import { temBoneco } from './presidente-avulsas'
 import { LojaButton } from './loja-clube'
+import { legendAvatar } from './legend-avatars'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -106,8 +107,10 @@ const ESTILO_IC: Record<Estilo, { ic: string; bg: string; card: string }> = {
 const efeitoBom = (e: Efeito | null) => !!e && (e.tipo === 'renda' || e.tipo === 'moral_alta')
 const efeitoRuim = (e: Efeito | null) => !!e && (e.tipo === 'rival_motivado' || e.tipo === 'moral_baixa')
 
-export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, seguirTxt, resolve, onFim }: {
+export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, seguirTxt, resolve, onFim, lendas }: {
   pronta: ColetivaPronta; clube: string; placar: string | null; rodadaTxt: string
+  /** ⭐ APRESENTAÇÃO (22/10): as lendas que o leilão trouxe — sentam na bancada no lugar do boneco (1 a 4 rostos, o tamanho se ajusta) */
+  lendas?: { nome: string; club: string; year: number }[]
   /** no automático ela fecha sozinha (N s na sala, sem contar como pulada; 6 s na manchete) — o jogo nunca trava */
   autoSeg: number | null
   /** o texto do botão de seguir ("Ir pra rodada 12", "Próxima fase") */
@@ -129,10 +132,11 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
   const rep = pronta.rep
   // 🧑‍💼 o boneco da conta sentado na mesa (grátis não tem boneco: a mesa fica como era)
   const contaPres = usePresidenteConta()
-  const boneco = presidenteContaLiberado() ? contaPres.value : null
+  const temLendas = !!lendas?.length
+  const boneco = presidenteContaLiberado() && !temLendas ? contaPres.value : null
   // sem boneco: um convite DISCRETO na cadeira vazia, que abre a Loja na seção do presidente (Diego 20/10)
   const posse = usePosseConta()
-  const convite = !boneco && presidenteContaLiberado() && contaPres.status === 'pronto'
+  const convite = !temLendas && !boneco && presidenteContaLiberado() && contaPres.status === 'pronto'
   const topo = (
     <div style={{ flex: 'none', height: 44, background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', ...OSW, fontSize: 13 }}>
       <span>🎙️ {tr('Coletiva', 'Press conference')} · {rodadaTxt}</span>
@@ -150,7 +154,7 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
             <div style={{ position: 'relative', paddingBottom: 14 }}>
               {/* o backdrop dos patrocinadores, atrás da mesa */}
               <div style={{ position: 'relative' }}>
-              <div style={{ margin: '12px 12px 0', height: boneco ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
+              <div style={{ margin: '12px 12px 0', height: boneco || temLendas ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
                 {marcas.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: m === tidexArt ? '#0B1220' : 'transparent', borderRight: '1px dashed rgba(0,0,0,.08)', borderBottom: '1px dashed rgba(0,0,0,.08)' }}>
                     {m ? <img src={m} alt="" style={{ height: 22, maxWidth: '86%', objectFit: 'contain' }} /> : <span style={{ ...OSW, fontSize: 11, letterSpacing: .5, color: INK }}>Leilão Legends</span>}
@@ -163,6 +167,7 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
                 </LojaButton>
               </div>}
               {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={196} /></div>}
+              {temLendas && <div style={{ position: 'absolute', left: 12, right: 12, bottom: -24, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', pointerEvents: 'none', zIndex: 1 }}><LendasNaMesa lendas={lendas!} /></div>}
               </div>
               {/* a mesa com os microfones e a plaquinha do presidente */}
               <div style={{ margin: '-30px 22px 0', zIndex: 2, height: 54, background: `linear-gradient(180deg,#1b232c,${INK})`, border: `3px solid ${INK}`, borderRadius: '10px 10px 4px 4px', position: 'relative', display: 'flex', justifyContent: 'center', gap: 28 }}>
@@ -173,6 +178,9 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
                 ))}
                 <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', ...OSW, fontSize: 12, color: GOLD, letterSpacing: 1, whiteSpace: 'nowrap' }}>{tr('Presidente', 'President')} · {clube}</span>
               </div>
+              {temLendas && <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 6, padding: '10px 10px 0' }}>{lendas!.map(l => (
+                <span key={l.nome + l.club} style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200)', color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '2px 9px', textAlign: 'center', ...OSW, fontSize: 12.5, lineHeight: 1.15 }}>{l.nome}<small style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 9, textTransform: 'none' }}>{l.club} · {l.year}</small></span>
+              ))}</div>}
               <div style={{ padding: '10px 14px 0', display: 'flex', justifyContent: 'space-between', gap: 8, ...OSW, fontSize: 11, letterSpacing: 1, color: GOLD }}>
                 <span>🎙️ {rodadaTxt}</span>{placar && <span style={{ color: '#fff', opacity: .85, textAlign: 'right' }}>{placar}</span>}
               </div>
@@ -202,6 +210,7 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
           <div style={{ flex: 1, overflowY: 'auto', background: CREME, padding: 14, color: INK }}>
             <div style={{ background: '#FFFDF4', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' }}>
               <div style={{ background: INK, color: GOLD, ...OSW, fontSize: 22, textAlign: 'center', padding: 8, letterSpacing: 2 }}>O MARTELO</div>
+              {temLendas && <FotoLendas lendas={lendas!} />}
               <div style={{ padding: '12px 14px 4px', ...OSW, fontSize: 24, lineHeight: 1.08 }}>{escolha.manchete ? par(escolha.manchete) : `“${preenche(escolha.frase, pronta.vars)}”`}</div>
               <div style={{ padding: '4px 14px 12px', fontSize: 13, fontStyle: 'italic', opacity: .8 }}>“{preenche(escolha.frase, pronta.vars)}” — {tr('presidente do', 'president of')} {clube}{placar ? ` · ${placar}` : ''}</div>
             </div>
@@ -212,6 +221,32 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
       </div>
     </div>,
     document.body,
+  )
+}
+
+// ⭐ AS LENDAS NA BANCADA (22/10): 1 a 4 rostos lado a lado, o tamanho se ajusta pela quantidade. Mais de 4 = os 4
+// primeiros (a tela manda os mais caros primeiro) e um selo "+N". Lenda ainda sem rostinho entra com a carta dourada e a inicial.
+const ALTURA_LENDA = [0, 196, 176, 150, 128]
+function RostoLenda({ l, w, h }: { l: { nome: string; club: string; year: number }; w: number; h: number }) {
+  const art = legendAvatar(l.nome, l.club, l.year)
+  if (art) return <img src={art.src} alt={l.nome} style={{ width: w, height: h, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(3px 3px 0 #000)', flex: 'none' }} />
+  return <span style={{ width: Math.round(w * .7), height: Math.round(h * .62), marginBottom: 30, border: `3px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200)', boxShadow: '3px 3px 0 #000', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSW, fontSize: Math.round(h * .28), color: INK, flex: 'none' }}>{l.nome.trim().charAt(0)}</span>
+}
+function LendasNaMesa({ lendas }: { lendas: { nome: string; club: string; year: number }[] }) {
+  const vis = lendas.slice(0, 4), n = vis.length, h = ALTURA_LENDA[n], w = Math.min(Math.round(h * .8), Math.floor((lendas.length > 4 ? 310 : 350) / n))
+  return <>
+    {vis.map(l => <RostoLenda key={l.nome + l.club} l={l} w={w} h={h} />)}
+    {lendas.length > 4 && <span style={{ alignSelf: 'center', marginLeft: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 8px', ...OSW, fontSize: 13 }}>+{lendas.length - 4}</span>}
+  </>
+}
+/** a foto da capa do Martelo (o "C" do mockup): as lendas na frente do estádio */
+export function FotoLendas({ lendas, altura = 170 }: { lendas: { nome: string; club: string; year: number }[]; altura?: number }) {
+  const vis = lendas.slice(0, 4), n = vis.length, h = Math.round(altura * (n <= 2 ? .98 : n === 3 ? .9 : .8)), w = Math.min(Math.round(h * .8), Math.floor((lendas.length > 4 ? 310 : 360) / n))
+  return (
+    <div style={{ height: altura, background: `#1d2b1f url(${estadioArt}) center 60% / cover`, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', overflow: 'hidden' }}>
+      {vis.map(l => <RostoLenda key={l.nome + l.club} l={l} w={w} h={h} />)}
+      {lendas.length > 4 && <span style={{ alignSelf: 'center', marginLeft: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 8px', ...OSW, fontSize: 13 }}>+{lendas.length - 4}</span>}
+    </div>
   )
 }
 

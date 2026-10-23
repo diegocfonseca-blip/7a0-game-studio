@@ -17,7 +17,7 @@
 // que a tela não saiba. 🔒 Só a conta do Diego vê (`useCentralCarreira`).
 import { useEffect, useState } from 'react'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
-import { CardColetiva, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
+import { CardColetiva, FotoLendas, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
 import { Escudo } from './escudos'
 import { getLang, useT } from './lang'
 import type { Jornal, Contratacao } from './central-noticias'
@@ -62,9 +62,14 @@ export type CentralProps = {
   /** 💸 todos os negócios do pregão desta temporada (de todo clube), do maior pro menor */
   mercado: { negocios: { name: string; pos: string; paid: number; team: string; you: boolean }[]; maisCaro: Contratacao | null }
   agenda: CentralAgenda[]
-  /** 💰 CAIXA DOS RIVAIS (13/10, economia dos bots): o caixa de cada clube da sua divisão, do mais rico pro
-   *  mais liso. Só vem quando a economia dos bots está ligada (por enquanto só na conta do Diego). */
-  caixas?: { name: string; caixa: number; you: boolean }[]
+  /** 🌍 22/10: o ranking global de usuários (top 5 + a sua carreira) no lugar da antiga "Caixa dos rivais" */
+  rankGlobal?: { linhas: { pos: number; nome: string; pts: number; you: boolean }[]; abrir: () => void } | null
+  /** 🏆 CENTRAL NA COPA (22/10, ideia C aprovada): a chave das fases finais e os artilheiros da Copa.
+   *  Anti-spoiler: só placar de fase JÁ apitada; fase que não chegou mostra "?" (quem passa ainda não se sabe). */
+  copaChave?: { titulo: string; colunas: { nome: string; jogos: ({ a: string; b: string; ga?: number; gb?: number; venceA?: boolean; youA: boolean; youB: boolean } | null)[] }[] } | null
+  copaArtilheiros?: { nome: string; time: string; gols: number; you: boolean }[] | null
+  /** ⭐ 22/10: as lendas apresentadas nesta temporada — a foto delas vira a capa do Martelo (pré-temporada e 1ª rodada) */
+  fotoLendas?: { nome: string; club: string; year: number }[] | null
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
@@ -267,6 +272,42 @@ export function CentralCarreira(p: CentralProps) {
               {p.giro.jogos.length > 3 && <button type="button" className="ll-central-link ll-central-so-cel" onClick={() => p.onTab('jogos')} style={{ width: '100%', padding: '6px 12px', fontSize: 9.5, fontWeight: 800, color: '#666', textAlign: 'center' }}>+ {p.giro.jogos.length - 3} {t('jogos da rodada', 'more matches')} ›</button>}
             </div>
           )}
+          {p.copaChave && p.copaChave.colunas.length > 0 && (
+            <div className="ll-central-card ll-c-giro" style={{ background: '#fff' }}>
+              <Cabecalho titulo={p.copaChave.titulo} link={t('ver tudo', 'see all')} onClick={() => p.onTab('tabelas')} />
+              <div style={{ display: 'flex', gap: 6, padding: '10px 10px 12px', alignItems: 'center' }}>
+                {p.copaChave.colunas.map((col, ci) => (
+                  <div key={ci} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5, justifyContent: 'center' }}>
+                    <small style={{ ...OSW, fontSize: 9.5, letterSpacing: '.08em', color: '#7a7462', textAlign: 'center' }}>{col.nome}</small>
+                    {col.jogos.map((j, ji) => j ? (
+                      <div key={ji} style={{ border: `2px solid ${INK}`, borderRadius: 8, overflow: 'hidden', background: j.youA || j.youB ? '#FFF3C4' : '#fff' }}>
+                        {([[j.a, j.ga, j.venceA === true, j.youA], [j.b, j.gb, j.venceA === false, j.youB]] as const).map(([nome, g, venceu, eu], k) => (
+                          <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', fontSize: 10.5, fontWeight: eu ? 900 : 800, borderTop: k ? '1px solid rgba(0,0,0,.12)' : 0, opacity: j.venceA != null && !venceu ? .55 : 1 }}>
+                            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</span>
+                            <b style={{ ...OSW, fontSize: 11 }}>{g ?? '–'}</b>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div key={ji} style={{ border: '2px dashed rgba(0,0,0,.3)', borderRadius: 8, padding: '7px 6px', textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: '#9a927a' }}>{ci === p.copaChave!.colunas.length - 1 ? '🏆' : '?'}</div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {p.copaArtilheiros && p.copaArtilheiros.length > 0 && (
+            <div className="ll-central-card ll-c-giro" style={{ background: CREME }}>
+              <Cabecalho titulo={t('⚽ Artilheiros da Copa', '⚽ Cup top scorers')} sub={t('até agora', 'so far')} />
+              {p.copaArtilheiros.map((x, i) => (
+                <div key={x.nome + x.time} className="ll-central-row" style={{ padding: '6px 11px', gap: 8, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined }}>
+                  <span style={{ width: 18 }}>{['🥇', '🥈', '🥉'][i] ?? `${i + 1}º`}</span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: x.you ? 900 : 800 }}>{x.nome} <span style={{ fontWeight: 700, color: '#6a6250' }}>· {x.time}</span></span>
+                  <b style={{ ...OSW, fontSize: 15 }}>{x.gols}</b>
+                </div>
+              ))}
+            </div>
+          )}
           {/* 🗓️ AGENDA das copas → abre Jogos. No desktop sobe pra baixo do camarote, em linha */}
           <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
             <Cabecalho titulo={t('🗓️ Agenda', '🗓️ Calendar')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
@@ -289,7 +330,8 @@ export function CentralCarreira(p: CentralProps) {
               <b style={{ ...OSW, fontSize: 26, letterSpacing: 2 }}>O Martelo</b>
               <small style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, color: '#6c604a', textTransform: 'uppercase' }}>{p.round > 0 ? t(`Edição da rodada ${p.round}`, `Round ${p.round} edition`) : t('Edição de pré-temporada', 'Pre-season edition')} · {t('Temporada', 'Season')} {p.seasonNo} · {p.divName}</small>
             </div>
-            <div style={{ height: 150, background: `url(${tacaArt}) center 30% / cover`, position: 'relative', borderBottom: `3px solid ${INK}` }}>
+            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${tacaArt}) center 30% / cover`, position: 'relative', borderBottom: `3px solid ${INK}` }}>
+              {p.fotoLendas?.length ? <div style={{ position: 'absolute', inset: 0 }}><FotoLendas lendas={p.fotoLendas} altura={190} /></div> : null}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0000 40%,#000c)' }} />
               <div style={{ position: 'absolute', left: 12, right: 12, bottom: 10, color: '#fff' }}>
                 <b style={{ ...OSW, fontSize: 22, lineHeight: 1, display: 'block', textShadow: '0 2px 4px #000' }}>{p.jornal.manchete ? (en ? p.jornal.manchete.en : p.jornal.manchete.pt) : t(`A temporada ${p.seasonNo} começa: a bola vai rolar na ${p.divName}`, `Season ${p.seasonNo} kicks off in ${p.divName}`)}</b>
@@ -329,27 +371,20 @@ export function CentralCarreira(p: CentralProps) {
             {!p.mercado.negocios.length && !p.mercado.maisCaro && <p style={{ padding: '10px 13px', fontSize: 11, fontWeight: 700, opacity: .75, margin: 0 }}>{t('Sem negócios registrados nesta temporada.', 'No deals on record this season.')}</p>}
             </div>
           </div>
-          {/* 💰 CAIXA DOS RIVAIS (13/10, mockup `scripts/mockups/carreira-bots.png` aprovado): quem chega rico e
-              quem chega liso no próximo leilão. Os 4 mais ricos + você + o mais liso; o resto abre em Ranking. */}
-          {p.caixas && p.caixas.length > 0 && (() => {
-            const lista = p.caixas
-            const eu = lista.findIndex(x => x.you)
-            const mostra = lista.map((x, i) => ({ ...x, pos: i + 1 })).filter((_x, i) => i < 4 || i === eu || i === lista.length - 1)
-            const liso = lista[lista.length - 1]
-            return (
-              <div className="ll-central-card ll-c-caixas" style={{ background: CREME }}>
-                <Cabecalho titulo={t('💰 Caixa dos rivais', '💰 Rivals’ bank')} sub={t('pro próximo leilão', 'for the next auction')} link={t('ranking', 'ranking')} onClick={() => p.onTab('ranking')} />
-                {mostra.map((x, i) => (
-                  <div key={x.name} className="ll-central-row" style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : x.pos === lista.length ? '#FFE1DA' : undefined, borderTop: i > 0 && mostra[i - 1].pos !== x.pos - 1 ? '2px dashed rgba(0,0,0,.18)' : undefined }}>
-                    <span style={{ width: 20, color: '#777' }}>{x.pos}º</span><Escudo nome={x.name} size={18} />
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.you ? `🫵 ${x.name}` : x.name}</span>
-                    <b style={{ ...OSW, fontSize: 14 }}>{x.caixa} 🪙</b>
-                  </div>
-                ))}
-                {liso && !liso.you && liso.caixa < 60 && <p style={{ padding: '7px 11px', margin: 0, font: 'italic 11.5px Georgia, serif', color: '#444' }}>📰 {t(`"${liso.name} chega liso no leilão: só ${liso.caixa} 🪙 no caixa."`, `"${liso.name} arrive broke at the auction: only ${liso.caixa} 🪙 in the bank."`)}</p>}
-              </div>
-            )
-          })()}
+          {/* 🌍 RANKING GLOBAL DE USUÁRIOS (22/10, Diego: "esse caixa dos rivais troque pelo rank global de usuários"): o top 5
+              do ranking global (a MESMA busca e a MESMA conta da aba Rank → Global) + a SUA carreira de agora. Toque abre a aba. */}
+          {p.rankGlobal && p.rankGlobal.linhas.length > 0 && (
+            <div className="ll-central-card ll-c-caixas" style={{ background: CREME }}>
+              <Cabecalho titulo={t('🌍 Ranking global', '🌍 Global ranking')} sub={t(`até a T${p.seasonNo}`, `up to S${p.seasonNo}`)} link={t('ver tudo', 'see all')} onClick={p.rankGlobal.abrir} />
+              {p.rankGlobal.linhas.map((x, i) => (
+                <div key={x.pos + x.nome} className="ll-central-row" style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, borderTop: i > 0 && p.rankGlobal!.linhas[i - 1].pos !== x.pos - 1 ? '2px dashed rgba(0,0,0,.18)' : undefined }}>
+                  <span style={{ width: 26, color: '#777' }}>{x.pos <= 3 ? ['🥇', '🥈', '🥉'][x.pos - 1] : `${x.pos}º`}</span>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.you ? `🫵 ${x.nome}` : x.nome}</span>
+                  <b style={{ ...OSW, fontSize: 14 }}>{x.pts} <span style={{ fontSize: 9.5, fontWeight: 600 }}>pts</span></b>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
