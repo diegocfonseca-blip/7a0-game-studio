@@ -11,6 +11,7 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
+import { TunelFinal, FestaCampeao } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -1103,6 +1104,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes, forte, m2), [entrants, seed, seasonNo, potes, forte, m2])
+  // 🏆 FESTA DO CAMPEÃO na sala (23/10): quando a Copa acaba, a festa na paleta da Copa do Mundo, 1x por edição
+  const festaMundoKey = online ? `esc-festa-mundo-${online.seasonKey}` : ''
+  const [festaMundoVista, setFestaMundoVista] = useState(() => { if (!online) return true; try { return sessionStorage.getItem(festaMundoKey) === '1' } catch { return false } })
 
   // step = revelações FEITAS (GR = rodadas de grupo): 1..GR rodadas de grupo ·
   // GR+1 sorteio · GR+2 oitavas · GR+3 quartas · GR+4 semis · GR+5 final ·
@@ -1476,6 +1480,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       const proxima = proxPasso === OITAVAS ? tr('OITAVAS', 'ROUND OF 16') : proxPasso === QUARTAS ? tr('QUARTAS', 'QUARTER-FINALS') : proxPasso === SEMI ? tr('SEMIFINAIS', 'SEMI-FINALS') : tr('A FINAL', 'THE FINAL')
       return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxima} seg={seg} total={total} cor="#2F6FDB" espera={espera} />
     }
+    // 🎬 TÚNEL DA FINAL (23/10): a abertura da final vira o túnel na paleta da Copa do Mundo (mesmo relógio)
+    if (proxPasso === FINAL) { const f = world.final; return <TunelFinal comp="mundo" seg={seg} total={total} espera={espera} casa={{ nome: entrants[f.h].pais, crest: <NationalCrest country={entrants[f.h].pais} size={92} /> }} fora={{ nome: entrants[f.a].pais, crest: <NationalCrest country={entrants[f.a].pais} size={92} /> }} /> }
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#2F6FDB" espera={espera} />
   })() : null
   return (
@@ -1619,6 +1625,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
         </div>
       )}
 
+      {done && online && !festaMundoVista && <FestaCampeao comp="mundo" nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
+        souCampeao={isYou(world.final.champion)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
+        onDone={() => { setFestaMundoVista(true); try { sessionStorage.setItem(festaMundoKey, '1') } catch { /* segue */ } }} />}
       {/* CERIMÔNIA */}
       {done && (
         <div style={{ ...box(isYou(world.final.champion) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), padding: 14, marginBottom: 10, borderRadius: 14, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>

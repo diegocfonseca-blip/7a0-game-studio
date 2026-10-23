@@ -1,4 +1,12 @@
-## 🎬 Salas: túnel da final + festa do campeão, com a cara de cada campeonato (23/10) — ESPERANDO OK no mockup das paletas
+## 🎬 Salas: túnel da final + festa do campeão, com a cara de cada campeonato (23/10) — PUBLICADO pra todos
+- ✅ Aprovado (*"cor do campeonato, pode fazer o túnel da final e o campeão"*) e feito em `competicoes-visual.tsx`: `COMPS` (paleta,
+  frase do túnel, frase do campeão, confete), `Trofeu` (desenho vetorial inspirado no real), `TunelFinal` e `FestaCampeao` (5,6s,
+  toque pula, som `playCampeao`: canto do clube se o campeão for você e tiver canto; senão a torcida do gol).
+- Onde liga: abertura da FINAL da Copa dos 8/Liberta/Champions (screens.tsx), da Copa do Mundo (copa-mundo.tsx) e dos regionais
+  (copa-regional-online.tsx); festa no fim da liga e da copa (EscEnd, no lugar do festão da mascote), da Copa do Mundo online e dos
+  regionais. Uma vez por edição (sessionStorage). Basquete e Kings ficam de fora. Bancada: `scripts/teste-competicoes/`.
+- 🎨 Pendente (quando ele quiser): trocar os troféus desenhados por arte gerada em `.webp` (regra de peso dos batismos vale).
+- 🚫 Túnel NUNCA mais verde/vermelho fixo (*"só não tô gostando do fundo ser sempre verde e vermelho"*).
 - Mockup `online-momentos-cinema.png` + vídeo `scripts/posts/online-momentos-cinema.mp4` (fora do git): Diego quer SÓ o 2 (festa do
   campeão) e o 3 (túnel da final) — *"faz só o 2 e 3 melhor"*. O ⚡ martelo de lenda (carta grande + VENDIDO) ficou de FORA (o "faah"
   já existe: `sfx/lenda.mp3`, só pra quem leva a lenda). Final aprovada (*"final ok tb td certo"*). Som no campeão: ele quer.

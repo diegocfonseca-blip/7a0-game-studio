@@ -17,6 +17,7 @@
 //   · o relógio sincronizado é `esc_regional_clock` (docs/sql/regional-clock.sql). Se o
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
+import { TunelFinal, FestaCampeao } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { fimDoJogoMs } from './copa-clock-preview'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -545,6 +546,9 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
 }) {
   const entrants = useMemo(() => entrantesRegionais(ficha, meuUid), [ficha, meuUid])
   const mundo: MundoRegional = useMemo(() => simulaRegional(entrants, ficha.seed), [entrants, ficha.seed])
+  // 🏆 FESTA DO CAMPEÃO (23/10): quando o regional acaba, a festa na paleta dele, 1x por edição
+  const festaRegKey = `esc-festa-reg-${roomId}-${copa}-${ficha.edicao}`
+  const [festaRegVista, setFestaRegVista] = useState(() => { try { return sessionStorage.getItem(festaRegKey) === '1' } catch { return false } })
   const P = passosRegional(mundo.n)
   const penMs = (t: ConfrontoRegional) => (t.pen ? pensRevealDelay(t.pen, !!(entrants[t.h].humano || entrants[t.a].humano)) * 1000 : 0)
   const extraDoPasso = (s: number) => { const i = s - P.PRIMEIRO_KO; const f = mundo.ko[i]; return f ? Math.round(Math.max(0, ...f.ties.map(penMs))) : 0 }
@@ -698,6 +702,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       const titulo = fechada ? `${nomeFase(fechada.tipo)} ${fechada.ties.length === 1 ? tr('ENCERRADA', 'OVER') : tr('ENCERRADAS', 'OVER')}` : tr('RODADAS ENCERRADAS', 'ROUNDS OVER')
       return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxFase ? (proxFase.tipo === 'final' ? tr('A FINAL', 'THE FINAL') : nomeFase(proxFase.tipo)) : ''} seg={seg} total={total} cor="#E8503A" espera={espera} />
     }
+    // 🎬 TÚNEL DA FINAL (23/10): a abertura da final vira o túnel na paleta do regional (mesmo relógio)
+    { const fx = mundo.ko[proxPasso - P.PRIMEIRO_KO]; if (fx?.tipo === 'final' && fx.ties.length === 1) { const t0 = fx.ties[0]; return <TunelFinal comp={copa} seg={seg} total={total} espera={espera} casa={{ nome: entrants[t0.h].pais, crest: <SeloClube clube={entrants[t0.h].pais} size={92} /> }} fora={{ nome: entrants[t0.a].pais, crest: <SeloClube clube={entrants[t0.a].pais} size={92} /> }} /> } }
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#E8503A" espera={espera} />
   })() : null
   return (
@@ -763,6 +769,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       ))}
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
       {/* CERIMÔNIA */}
+      {done && !festaRegVista && <FestaCampeao comp={copa} nome={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={150} />}
+        souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }} />}
       {done && (() => {
         const c = mundo.campeao, fin = mundo.ko[mundo.ko.length - 1].ties[0]
         const art = artilhariaRegional(mundo).slice(0, 5)

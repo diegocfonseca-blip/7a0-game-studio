@@ -1,6 +1,7 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
 import estadioCerArt from './img/online-estadio-v25.webp'
+import { TunelFinal, FestaCampeao, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
@@ -89,7 +90,7 @@ import { FaixaProximaCompeticao, proximasCompeticoes, useCopasDaSala, RODADAS_DO
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
-import { MASCOTES, FestaoMascote, mascoteInteiraDoTime, mascoteKeyDoTime } from './mascotes'
+import { MASCOTES, mascoteInteiraDoTime, mascoteKeyDoTime } from './mascotes'
 import { MascoteAtravessa, MascoteMini, moneySeed } from './mascote-atravessa' // 🐊 movido pra cá em 25/09: a sala de espera também solta o bicho
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
@@ -7307,6 +7308,13 @@ export function EscSeason() {
                     passaram={fechada.ties.map(t => lado(t, true))} cairam={fechada.ties.map(t => lado(t, false))}
                     proxima={qc.phase === 'final' ? LS('A FINAL', 'THE FINAL') : faseNomeQ(qc.phase)} seg={seg} total={total} cor={cor} espera={espera} />
                 }
+                // 🎬 TÚNEL DA FINAL (23/10, Diego: *"cor do campeonato… pode fazer o túnel da final"*): a abertura da FINAL vira o
+                // túnel, na paleta da competição — o MESMO relógio, nada a mais
+                if (qc.phase === 'final' && qc.ties.length === 1 && !bbS && !kingsS && !cupNow) {
+                  const t0 = qc.ties[0]
+                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : 'copa8'} seg={seg} total={total} espera={espera}
+                    casa={{ nome: nameOf(t0.aId), crest: <Escudo nome={nameOf(t0.aId)} size={96} /> }} fora={{ nome: nameOf(t0.bId), crest: <Escudo nome={nameOf(t0.bId)} size={96} /> }} />
+                }
                 return <AberturaCopa fases={fases} confrontos={confrontos} seg={seg} total={total} cor={cor} espera={espera} />
               })()}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
@@ -11532,17 +11540,41 @@ export function EscEnd() {
   // dois contam ("por quem vê": compara com o MEU id, não o flag .you global,
   // que no online marca todo humano igual).
   const meuSoc = useMeuSocio()
-  const wonCopaRapido = state.quickCopa?.champion?.id === you.id
-  const mascKey = (youWon || wonCopaRapido) && meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
-  const festaKey = `esc-festa-${state.seed}-${state.seasonNo}`
-  const [festaOn, setFestaOn] = useState(false)
-  useEffect(() => {
-    if (!mascKey) return
-    try { if (sessionStorage.getItem(festaKey) === '1') return } catch { /* segue */ }
-    setFestaOn(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mascKey])
-  const fecharFesta = () => { setFestaOn(false); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }
+  // 🏆 FESTA DO CAMPEÃO (23/10, mockup online-momentos-cinema.png + paletas aprovadas, Diego: *"cor do campeonato… pode fazer
+  // o túnel da final e o campeão"*). Agora é de TODO MUNDO (a sala inteira vê a festa do campeão), na paleta e com o troféu da
+  // competição: liga primeiro, depois a copa (se teve). Leva a MASCOTE do campeão (quem tem) — por isso o festão antigo da
+  // mascote saiu daqui (o mesmo teatro não aparece duas vezes). 1x por temporada (sessionStorage), toque pula.
+  const minhaMasc = meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
+  const festaBase = `esc-festa2-${state.roomId ?? 'cpu'}-${state.seed}-${state.seasonNo}`
+  const festas: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = (() => {
+    if (state.sport === 'basquete' || kEnd) return []
+    const out: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = []
+    const tab = sortedTable(state.league)
+    if (!soChampions && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}` })
+    const qc = state.quickCopa
+    if (qc?.champion && qc.phase === 'done') {
+      const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
+      const linha = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : ''
+      out.push({ key: 'copa', comp: state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha })
+    }
+    return out
+  })()
+  const [festasVistas, setFestasVistas] = useState<string[]>(() => { try { return JSON.parse(sessionStorage.getItem(festaBase) ?? '[]') as string[] } catch { return [] } })
+  const festaAgora = festas.find(f => !festasVistas.includes(f.key)) ?? null
+  const fecharFesta = () => {
+    if (!festaAgora) return
+    const v = [...festasVistas, festaAgora.key]
+    setFestasVistas(v)
+    try { sessionStorage.setItem(festaBase, JSON.stringify(v)) } catch { /* segue */ }
+  }
+  const festaNode = festaAgora ? (() => {
+    const souEu = festaAgora.id === you.id
+    const dono = state.managers.find(m => m.id === festaAgora.id)
+    const mk = souEu && minhaMasc ? minhaMasc : mascoteKeyDoTime(festaAgora.nome)
+    const lendas = ((dono?.squad ?? []) as WonCard[]).filter(c => !c.fake && c.fame >= 5 && !c.promessa).sort((a, b) => (b.paid ?? 0) - (a.paid ?? 0)).map(c => ({ nome: c.name, club: c.club, year: c.year }))
+    return <FestaCampeao key={festaAgora.key} comp={festaAgora.comp} nome={festaAgora.nome} crest={<Escudo nome={festaAgora.nome} size={160} />}
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta} />
+  })() : null
   const canRestart = !online || state.isHost
   // streamHost = SÓ stream (usado na carta compartilhada do campeão). hostPaced =
   // host controla o ritmo (stream OU sala manual) — é quem decide começar a Copa.
@@ -11911,7 +11943,7 @@ export function EscEnd() {
   )
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
-      {festaOn && mascKey && <FestaoMascote nome={you.teamName} mascote={mascKey} onDone={fecharFesta} />}
+      {festaNode}
       <RankResultWriter />
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}

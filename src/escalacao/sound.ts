@@ -199,6 +199,12 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'vittor@tidex.com.br': 'sfx/torcida-spfc-wen-v1.mp3', // 😈🔴⚫ Wen Milan B (17/10, Fundador): "Vai lá de coração", torcida do São Paulo (o time de coração dele), 11 s — áudio que o Diego mandou
   'kauealves584@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🦅⚫⚪ Gaviões SCCP (16/10, Fundador): 12 s de "Todo Poderoso Timão" que o Diego mandou, mesmo volume (−20,6 dB) do Fabulous
 }
+/** 🏆 FESTA DO CAMPEÃO das salas (23/10): toca o CANTO do clube pra quem é o campeão e tem canto próprio; pros outros
+ *  (e pra quem não tem canto), o grito de gol da torcida. Respeita o mudo (playMp3). */
+export function playCampeao(souCampeao: boolean, ms: number): () => void {
+  const canto = souCampeao && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
+  return playMp3Gala(`${import.meta.env.BASE_URL}${canto ?? SFX_GOL}`, ms)
+}
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
 export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }
 let emailDoSom: string | null = null
