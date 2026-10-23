@@ -783,7 +783,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.reduce((sum,e)=>sum+(parkingStages&&e.k==='estac'&&parking.valid?parking.progress:Number(hasExtra(st,e.k))),0)) / totalPieces * 100)
   return (
     <>
-      <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
+      {/* 🖥️ `ll-est-box` (23/10): no computador da carreira o estádio fica à esquerda e os números ao lado (career-desktop.css) */}
+      <div className="ll-est-box" style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>
             {nomeEstadio ? <>🏟️ {nomeEstadio}</> : lvl.name}

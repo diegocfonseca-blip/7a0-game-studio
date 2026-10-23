@@ -4,6 +4,21 @@
   prateleiras do criar sala (Com o seu time · Convocando), mesmas travas (Liberta/Champions/regionais pelo que a conta tem; Só
   Champions fora do pregão aberto e das duplas; Liga Draft sem copa). Banco: `esc_liga_modo2` (a antiga continua viva).
 - Testado no banco (troca Mundo → Rio×SP → Liberta, marcas antigas saem, travas recusam). Tela não foi fotografada.
+## 🖥️ Carreira no computador no padrão do online (23/10) — PUBLICADO pra todos
+Diego: *"aumentamos os tamanhos do modo online… placar cinema e aonde vai entrar o campinho… deixa ajustado no modo carreira
+também"*. Mockups hoje × como ficaria de Jogos, Tabelas, Clube e Elenco aprovados: *"pode fazer tudo pra todo mundo"*.
+Tudo em `career-desktop.css` (bloco de 23/10, só ≥1100px; o celular foi medido igual, mesma altura em todas as abas).
+- **Jogos**: cabeçalho em faixa larga e o placar na LARGURA TODA, tamanho do placar cinema do online (escudos 118, números 56)
+  — é o mesmo lugar onde entra o campinho 2D deitado.
+- **Tabelas · Elenco · Rank · Clube**: cabeçalho + placar + "Acelerar" numa FAIXA FINA em cima (o jogo segue rolando, compacto)
+  e o conteúdo da aba com a largura toda. Com o 2D ligado, o campinho só aparece em Jogos (nas outras abas fica escondido rodando).
+- **Tabelas**: colunas J, GP e GC (classe `ll-dk-col`) e a divisão em BOTÕES (`ll29-div-botoes`) — só no computador.
+- **Clube**: estádio continua a 1ª coisa, à esquerda, com lugares/torcida/bilheteria ao lado (`ll-est-box` em estadio.tsx);
+  setores 4 por linha.
+- **Cabeçalho da liga** ganhou fundo próprio (sala escura): no Rank o título amarelo sumia no creme.
+- Ainda NÃO feito: Rank com as séries lado a lado (proposta de antes, não estava nos 4 mockups finais).
+- Desligar: apagar o bloco de 23/10 do `career-desktop.css`.
+
 
 ## 🏢👑 Lenda da Agência travada pra quem JÁ teve SAF (23/10) — CORRIGIDO e publicado
 - Caso do Fabulous EC (T130+): trocou a SAF pelo 2º clube (Pantera Negra) na migração do SAF 2.0 e a 👑 Lenda da Agência

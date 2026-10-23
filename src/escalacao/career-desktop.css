@@ -105,3 +105,100 @@
   .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-sair { grid-row: 3; }
   .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-aba { grid-row: 2 / span 4; }
 }
+
+/* ═══ 🖥️ 23/10 — A CARREIRA NO PADRÃO DO ONLINE (Diego: *"aumentamos os tamanhos do modo online… o placar cinema e
+   aonde vai entrar o campinho futuramente… deixa ajustado no modo carreira também"*; mockups hoje × como ficaria das abas
+   Jogos, Tabelas, Clube e Elenco aprovados: *"pode fazer tudo pra todo mundo"*).
+   · JOGOS: o placar sai da coluna estreita e ocupa a LARGURA TODA, no tamanho do placar cinema do online (escudos 118,
+     números 56) — é o mesmo lugar onde entra o campinho 2D deitado.
+   · TABELAS · ELENCO · RANK · CLUBE: cabeçalho + placar + controle viram UMA FAIXA FINA em cima (o jogo continua rolando,
+     só fica compacto) e o conteúdo da aba ganha a largura toda.
+   · O que muda é só o lugar e o tamanho: os componentes são os mesmos. Abaixo de 1100px não existe regra nenhuma aqui.
+   · Desligar = apagar este bloco (volta a grade de 360px + o resto, de 01/10). */
+.ll-dk-col { display: none; }                      /* J/GP/GC da tabela e os botões de divisão: só no computador */
+.ll29-div-botoes { display: none; }
+@media (min-width: 1100px) {
+  html body div.ll-cx.max-w-xl.mx-auto:is(.ll-cx-t-jogos, .ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) {
+    display: flex !important; flex-direction: column; align-items: stretch !important; gap: 14px; max-width: 1320px !important;
+  }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > * { margin-top: 0 !important; }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-lado { order: 1; }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-aba { order: 2; }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-conta { order: 3; }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-sair { order: 4; }
+
+  /* — JOGOS: cabeçalho em faixa larga, placar cinema na largura toda — */
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll26-competition {
+    min-height: 0 !important; margin-bottom: 12px !important; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end;
+  }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy { padding: 18px 22px 12px !important; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy h2 { font-size: 34px !important; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll26-competition > :not(.ll26-competition-copy):not(.ll29-summary) { grid-column: 1 / -1; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll29-summary { grid-column: 2; grid-row: 1; flex-wrap: nowrap !important; gap: 14px; padding: 12px 20px !important; font-size: 13px !important; align-self: center; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll-cx-placar .ll25-duel { grid-template-columns: 1fr 160px 1fr !important; padding: 26px 24px 20px !important; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll-cx-placar .ll25-crest-slot { height: 124px !important; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll-cx-placar .ll25-crest-slot :is(img, svg) { height: 118px !important; width: auto; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll-cx-placar .ll25-numbers strong { font-size: 56px !important; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll-cx-placar .ll25-team strong { font-size: 22px !important; }
+  html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll-cx-placar .ll25-narration { font-size: 16px !important; }
+
+  /* — TABELAS · ELENCO · RANK · CLUBE: tudo de "agora" numa faixa fina em cima — */
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado > div {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, auto) auto; gap: 12px; align-items: stretch;
+  }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado > div > * { grid-column: 1 / -1; margin: 0 !important; min-width: 0; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado > div > :is(.ll29-stage, .ll25-career-hero) { grid-column: 1; grid-row: 1; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado > div > .ll-cx-placar { grid-column: 2; grid-row: 1; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado > div > .ll-cx-controle { grid-column: 3; grid-row: 1; align-self: center; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll26-competition {
+    min-height: 0 !important; margin: 0 !important; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+  }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy { padding: 10px 16px !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy h2 { font-size: 22px !important; margin: 0; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy p { display: none; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll26-competition-status { display: none; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll26-competition > :not(.ll26-competition-copy):not(.ll29-summary) { display: none; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll29-summary { flex-wrap: nowrap !important; gap: 12px; padding: 8px 14px !important; font-size: 12px !important; background: transparent !important; border: 0 !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-lado .ll29-summary small { display: none; }
+  /* placar compacto: só os escudos pequenos, os nomes, o minuto e o placar */
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar :is(.ll32-palco, .ll43-radio, .ll25-scorers, .ll25-narration, .ll26-goal-mascot) { display: none !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar > * { height: 100%; margin: 0 !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-duel { grid-template-columns: 1fr 86px 1fr !important; padding: 8px 12px !important; align-items: center; height: 100%; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-team { display: flex; align-items: center; gap: 8px; border-bottom: 0 !important; padding: 0 !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-team:last-child { flex-direction: row-reverse; text-align: right; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-team small { display: none; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-team strong { font-size: 13px !important; line-height: 1.1; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-crest-slot { height: 40px !important; width: 40px; flex: none; margin: 0 !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-crest-slot :is(img, svg) { height: 38px !important; width: auto; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-numbers { padding: 2px 0 !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-numbers strong { font-size: 24px !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar .ll25-numbers small { font-size: 11px !important; }
+  html body .ll-cx:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-controle button { white-space: nowrap; }
+  /* com o 📺 2D ligado o campinho não cabe na faixa: ele fica escondido (continua rolando) e aparece inteiro em Jogos */
+  html body .ll-cx.ll-cx-2d:is(.ll-cx-t-tabelas, .ll-cx-t-elenco, .ll-cx-t-ranking, .ll-cx-t-estadio):not(.ll-cx-fim) .ll-cx-placar { display: none; }
+
+  /* — o cabeçalho da LIGA não tinha fundo próprio: em cima do creme (Rank, faixa) o título sumia. Ganha a sala escura. — */
+  html body .ll-cx:not(.ll-cx-fim) .ll29-stage-league .ll26-competition {
+    background-color: #15100c; background-image: linear-gradient(90deg, rgba(12, 9, 6, .92), rgba(12, 9, 6, .35)), url('./img/career-setup-room-private.webp');
+    background-size: cover; background-position: center 30%;
+  }
+
+  /* — TABELAS: colunas J/GP/GC e a divisão em botões — */
+  .ll29-table .ll-dk-col { display: table-cell; }
+  .ll-cx-t-tabelas .ll29-filter { display: none !important; }
+  .ll-cx-t-tabelas .ll29-div-botoes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ll-cx-t-tabelas .ll29-div-botoes button { font: 700 15px Oswald, sans-serif; text-transform: uppercase; border: 3px solid #0c0c0c; border-radius: 11px; background: #fff; color: #0c0c0c; padding: 6px 16px; cursor: pointer; }
+  .ll-cx-t-tabelas .ll29-div-botoes button[aria-pressed=true] { background: #ffc400; box-shadow: 3px 3px 0 #0c0c0c; }
+  .ll-cx-t-tabelas .ll29-table table { font-size: 14px !important; }
+  .ll-cx-t-tabelas .ll29-table td { padding-top: 4px; padding-bottom: 4px; }
+
+  /* — CLUBE: o estádio continua a 1ª coisa (à esquerda) e os números do lado; setores 4 por linha — */
+  .ll-cx-t-estadio .ll-est-box:has(> .ll32-stadium-view) { display: grid; grid-template-columns: minmax(0, 1fr) 400px; column-gap: 18px; align-items: start; }
+  .ll-cx-t-estadio .ll-est-box:has(> .ll32-stadium-view) > * { grid-column: 2; }
+  .ll-cx-t-estadio .ll-est-box:has(> .ll32-stadium-view) > :first-child { grid-column: 1 / -1; }
+  .ll-cx-t-estadio .ll-est-box > .ll32-stadium-view { grid-column: 1; grid-row: 2 / span 12; }
+  .ll-cx-t-estadio .ll32-works-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* — ELENCO: com a largura toda o campinho cresce um pouco e a lista ganha espaço — */
+  html body .ll-cx-t-elenco .ll-cx-aba .ll-cx-campo { width: 520px !important; }
+}
