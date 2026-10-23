@@ -1,3 +1,10 @@
+## 💾 Escalação A e B salvas no Elenco da carreira (23/10) — MOCKUP, esperando OK do Diego
+- Pedido: salvar Time A e Time B e trocar na hora. Mockup `scripts/mockups/carreira-escalacao-ab.png`. Regras dele: vendido/
+  contrato acabou/machucado/suspenso NÃO entra; cansado entra (escolha dele); jogador comprado depois de salvar não entra.
+- Proposta minha no mockup (confirmar): na vaga de quem não pôde entra o reserva mais inteiro da posição (regra do rodízio);
+  formação do B que não fecha → entra na atual com aviso; guardado por CARTA (nome|clube|ano, nunca cardId) no SAVE; vale do
+  próximo jogo (SET_LINEUP + CHANGE_FORMATION, as mesmas portas de hoje).
+
 ## ⚔️ Tática (retranca/equilíbrio/ataque) nas copas do online (23/10)
 - Pedido: *"a tática não está aparecendo em várias coisas como mundo, regionais…"*. Mapa medido: liga ✅ · Copa dos 8/mata-mata ✅ ·
   Champions ✅ · **Liberta fase de grupos: faltava só o botão** (o motor já lia `state.tactics`) → FEITO e publicado.
