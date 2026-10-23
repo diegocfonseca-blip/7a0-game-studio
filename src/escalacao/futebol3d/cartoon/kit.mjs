@@ -39,12 +39,8 @@ function geometryFor(mesh,actor){
   for(let i=0;i<p.count;i++)samples[i]=pointAt(i);mesh.geometry=original;geometry.computeVertexNormals();geometry.computeBoundingSphere();
  }
  const kneeHeight=actor.bones.get('calf_l').getWorldPosition(new T.Vector3()).y/actor.holder.scale.x;
- if(kind==='Pants'){
-  const original=mesh.geometry;mesh.geometry=geometry;
-  // Trim only the authored shorts hem; leave the waist and body unchanged.
-  for(let i=0;i<p.count;i++){const falloff=1-T.MathUtils.smoothstep(samples[i].y,box.min.y,box.min.y+(box.max.y-box.min.y)*.5);if(falloff)moveGarmentVertex(mesh,i,new T.Vector3(0,.045*falloff,0));}
-  mesh.geometry=original;geometry.computeVertexNormals();geometry.computeBoundingSphere();
- }
+ // Keep the authored shorts hem. This source has no upper-thigh surface
+ // behind it: raising the hem exposes empty space instead of bare skin.
  const borders=kind==='Shirt'?garmentBorders(geometry,samples):null,cuffs={left:Infinity,right:Infinity};
  for(const v of samples)if(Math.abs(v.x-center)>.35)cuffs[v.x>center?'left':'right']=Math.min(cuffs[v.x>center?'left':'right'],v.y);
  for(let i=0;i<p.count;i++){

@@ -10,7 +10,7 @@ O estilo continua optativo em `loadPlayers(...,{style:'civil-cartoon'})`; o padr
 - Idle/Walk/Run/Jump: capturas autorais do mesmo personagem, fonte completa já vendorizada em `scripts/city-life/assets/source/Casual_Male.glb`. Sprint varia a cadência do Run nativo; não representa um arquivo independente.
 - Capturas de futebol CMU já existentes: retargeting de rotações mundiais a partir do Idle original de cada rig. Translação vertical convertida pelo eixo mundial. Referência dos controles ancestrais explicitada nos clipes para não herdar o balanço de outra corrida.
 - Créditos/licenças: `public/creditos-3d.txt` e manifests existentes. Não usar golpes de luta como futebol.
-- Corpo e cabeça sem edição de vértices, pesos ou articulações. Apenas a camisa recebe recorte localizado em V e o short tem a barra encurtada na geometria de roupa clonada. Transformações do ajuste são convertidas de volta ao espaço de bind. Meiões e detalhes de chuteira usam materiais; chuteiras reutilizam a malha autoral existente, rígida em cada controle de pé.
+- Corpo e cabeça sem edição de vértices, pesos ou articulações. Apenas a camisa recebe recorte localizado em V na geometria de roupa clonada. A barra do short permanece original: o corpo de origem termina sob ela, e encurtá-la expõe uma abertura sem superfície de coxa. Transformações do ajuste são convertidas de volta ao espaço de bind. Meiões e detalhes de chuteira usam materiais; chuteiras reutilizam a malha autoral existente, rígida em cada controle de pé.
 - Camisa Neymarzetti usa a arte/escudo e o atlas existentes, com frente, costas e mangas separadas; numeração traseira. Short preto, meia branca e chuteira preta continuam escolhas de teste, sem cadastro oficial.
 
 ## Reproduzir
