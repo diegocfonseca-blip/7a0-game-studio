@@ -21,6 +21,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady}={}){
  const root=new T.Group();root.name='civilian-'+id;parent.add(root);const physical=new T.Group();physical.name='civilian-metres';root.add(physical);
  let disposed=false,model,mixer,actions,footMeshes=[],height=0,last=null,poseUpdates=0,errors=[],lastPose=-Infinity;
  const point=new T.Vector3(),origin=new T.Vector3(),materials=new Set();
+ function updateWorld(){root.parent?.updateWorldMatrix(true,false);root.updateMatrixWorld(true)}
  const ready=load(spec.file).then(gltf=>{
   if(disposed)return false;
   model=clone(gltf.scene);physical.add(model);
@@ -34,7 +35,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady}={}){
    }
   });
   mixer=new T.AnimationMixer(model);actions={};for(const name of ['Idle','Walk','SitDown','StandUp']){const clip=gltf.animations.find(c=>c.name===name);if(!clip)throw Error('Animação civil ausente: '+name);const a=mixer.clipAction(clip);a.play();a.timeScale=0;if(name==='SitDown'||name==='StandUp'){a.setLoop(T.LoopOnce,1);a.clampWhenFinished=true}actions[name]=a}
-  actions.Idle.setEffectiveWeight(1);actions.Walk.setEffectiveWeight(0);actions.SitDown.setEffectiveWeight(0);actions.StandUp.setEffectiveWeight(0);mixer.update(0);root.updateWorldMatrix(true,true);model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update()});
+  actions.Idle.setEffectiveWeight(1);actions.Walk.setEffectiveWeight(0);actions.SitDown.setEffectiveWeight(0);actions.StandUp.setEffectiveWeight(0);mixer.update(0);updateWorld();model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update()});
   const box=new T.Box3().setFromObject(model,true);height=box.max.y-box.min.y;
   if(!(height>.2&&height<10))throw Error('Escala civil inválida');
   physical.scale.setScalar(spec.height/height);
@@ -51,14 +52,14 @@ export function createCivilian(parent,{id='civilian',variant,onReady}={}){
    actions.Idle.time=seconds%actions.Idle.getClip().duration;
    actions.Walk.time=(((frame.distance??0)/(spec.height*.66))%1+1)%1*actions.Walk.getClip().duration;
    actions.SitDown.time=actions.SitDown.getClip().duration*seated;actions.StandUp.time=actions.StandUp.getClip().duration*(1-seated);
-   mixer.update(0);physical.position.set(0,0,0);root.updateWorldMatrix(true,true);root.getWorldPosition(origin);
-   const hip=model.getObjectByName('Hips');if(hip){const local=root.worldToLocal(hip.getWorldPosition(new T.Vector3()));physical.position.x=-local.x;physical.position.z=-local.z;root.updateWorldMatrix(true,true)}
+   mixer.update(0);physical.position.set(0,0,0);updateWorld();root.getWorldPosition(origin);
+   const hip=model.getObjectByName('Hips');if(hip){const local=root.worldToLocal(hip.getWorldPosition(new T.Vector3()));physical.position.x=-local.x;physical.position.z=-local.z;updateWorld()}
    let low=Infinity;for(const {mesh,indices}of footMeshes){mesh.skeleton.update();for(const index of indices)low=Math.min(low,mesh.getVertexPosition(index,point).applyMatrix4(mesh.matrixWorld).y)}
    if(Number.isFinite(low))physical.position.y=origin.y-low+.002;
-   root.updateWorldMatrix(true,true);lastPose=seconds;poseUpdates++;
+   updateWorld();lastPose=seconds;poseUpdates++;
   }
  }
- function inspect(){let low=Infinity;if(model){root.updateWorldMatrix(true,true);root.getWorldPosition(origin);for(const {mesh,indices}of footMeshes){mesh.skeleton.update();for(const index of indices)low=Math.min(low,mesh.getVertexPosition(index,point).applyMatrix4(mesh.matrixWorld).y-origin.y)}}return {id,variant:spec.id,source:spec.file,height:spec.height,ready:!!model,provisional:!!spec.provisional,animations:'authored Quaternius clips through Three.js AnimationMixer',poseUpdates,measuredHeight:model?new T.Box3().setFromObject(model,true).getSize(new T.Vector3()).y:null,footFloor:low===Infinity?null:low,errors:[...errors]}}
+ function inspect(){let low=Infinity;if(model){updateWorld();root.getWorldPosition(origin);for(const {mesh,indices}of footMeshes){mesh.skeleton.update();for(const index of indices)low=Math.min(low,mesh.getVertexPosition(index,point).applyMatrix4(mesh.matrixWorld).y-origin.y)}}return {id,variant:spec.id,source:spec.file,height:spec.height,ready:!!model,provisional:!!spec.provisional,animations:'authored Quaternius clips through Three.js AnimationMixer',poseUpdates,measuredHeight:model?new T.Box3().setFromObject(model,true).getSize(new T.Vector3()).y:null,footFloor:low===Infinity?null:low,errors:[...errors]}}
  return {root,ready,update:apply,inspect,
  dispose(){if(disposed)return;disposed=true;root.removeFromParent();if(mixer){mixer.stopAllAction();mixer.uncacheRoot(model)}model?.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.dispose()});materials.forEach(m=>m.dispose());root.clear()}};
 }

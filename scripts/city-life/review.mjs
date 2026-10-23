@@ -8,7 +8,7 @@ const renderer=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 const camera=new T.PerspectiveCamera(36,1,.1,200),actors=CIVILIAN_VARIANTS.map((variant,i)=>{const actor=createCivilian(scene,{id:'gallery-'+i,variant:variant.id});actor.root.position.x=(i-3.5)*1.35;return actor});
 let moving=false,seconds=0,raf=0,start=0,view='front';
 function draw(){renderer.render(scene,camera);document.querySelector('#status').textContent=actors.map(a=>{const d=a.inspect();return d.variant+' · '+d.height+' m'+(d.provisional?' · provisório':'')}).join(' | ')}
-function pose(time){seconds=time;actors.forEach(a=>a.update({seconds:time,distance:time*1.05,speed:moving?1.05:0},true));draw()}
+function pose(time,extra={}){seconds=time;actors.forEach(a=>a.update({seconds:time,distance:time*1.05,speed:moving?1.05:0,...extra},true));draw()}
 function setView(mode,index){view=mode;const x=index===undefined?0:actors[index].root.position.x,target=new T.Vector3(x,.9,0);camera.position.set(x+(mode==='side'?5:0),index===undefined?2.8:1.7,mode==='back'?-7:mode==='side'?0:index===undefined?15:4);camera.lookAt(target);draw()}
 function resize(){const w=innerWidth,h=Math.max(320,innerHeight*.72);renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();setView(view)}window.addEventListener('resize',resize);resize();
 function tick(now){if(!moving)return;pose((now-start)/1000);raf=requestAnimationFrame(tick)}

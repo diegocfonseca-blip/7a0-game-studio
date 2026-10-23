@@ -16,7 +16,7 @@ export function useReplay3D(source:FonteReplay3D|undefined,enabled:boolean){
   if(!proof.valid){setFrame(null);setError(true);return}
   let timer:ReturnType<typeof setInterval>|undefined
   const update=()=>{
-   const now=performance.now(),elapsed=Math.min(proof.endMinute*replay.minuteMs,control.offset+(control.paused?0:now-control.startedAt)),minute=elapsed/replay.minuteMs,finished=minute>=proof.endMinute
+   const now=performance.now(),elapsed=Math.min(proof.endMinute*replay.minuteMs,control.offset+(control.paused?0:now-control.startedAt)),finished=elapsed>=proof.endMinute*replay.minuteMs,minute=finished?proof.endMinute:elapsed/replay.minuteMs
    setFrame({...replay.state,context:{...replay.state.context,id:replay.state.context.id+':review:'+control.session},minute,homeScore:proof.goals.filter(g=>g.home&&g.minute<=minute).length,awayScore:proof.goals.filter(g=>!g.home&&g.minute<=minute).length,officialMinuteMs:replay.minuteMs,paused:control.paused||finished,finished,visualClock:{seconds:elapsed/1000,sampledAt:now,running:!control.paused&&!finished,rate:1}})
    if(finished&&timer!==undefined)clearInterval(timer)
    return finished

@@ -13,7 +13,7 @@ export function prepararReplayOficial(input:EntradaM2,goals:readonly GolOficial[
  const actual=ordered(game.eventos.filter(e=>e.tipo==='gol').map(e=>({home:e.lado===0,name:e.a??'',min:Math.min(93,Math.floor(e.t/(90/93))+1)})))
  const valid=game.fim&&JSON.stringify(actual)===JSON.stringify(expected)&&game.placar[0]===goals.filter(g=>g.home).length&&game.placar[1]===goals.filter(g=>!g.home).length
  if(cache.size>=24)cache.delete(cache.keys().next().value!)
- const result=Object.freeze({valid,endMinute:game.t/(90/93),goals:Object.freeze(game.eventos.filter(e=>e.tipo==='gol').map(e=>Object.freeze({home:e.lado===0,minute:e.t/(90/93)})))})
+ const result=Object.freeze({valid,endMinute:(game.eventos.find(e=>e.tipo==='fim')?.t??game.t)/(90/93),goals:Object.freeze(game.eventos.filter(e=>e.tipo==='gol').map(e=>Object.freeze({home:e.lado===0,minute:e.t/(90/93)})))})
  cache.set(key,result);return result
 }
 
