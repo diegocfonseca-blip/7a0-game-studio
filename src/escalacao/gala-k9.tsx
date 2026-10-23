@@ -21,8 +21,8 @@ export const K9_MS = 8400
 const T = K9_MS
 const pct = (ms: number) => (ms / T * 100).toFixed(1) + '%'
 const GOLD = '#FFC400'
-// a arte do mascote é 328×440; no palco ela aparece com 250 de altura
-const MW = 186, MH = 250
+// a arte do mascote é 325×440 (arte nova de 23/10); no palco ela aparece com 250 de altura
+const MW = 185, MH = 250
 
 const COROA = <svg viewBox="0 0 120 80" width="120" height="80" xmlns="http://www.w3.org/2000/svg">
   <path d="M8 70 L14 22 L38 46 L60 8 L82 46 L106 22 L112 70 Z" fill={GOLD} stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round" />
@@ -69,8 +69,8 @@ const CSS = `
 /* 🥶 as MÃOS do abraço: dois pedacinhos da arte (cada mão) deslizam pra cima e pra baixo, cada um num
    sentido, com a borda esfumada pra não aparecer o recorte */
 .gk9-mao{position:absolute;background-image:url(${k9MascoteImg});background-size:${MW}px ${MH}px;-webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 55%,transparent 100%)}
-.gk9-mao.e{left:63px;top:66px;width:21px;height:23px;background-position:-63px -66px;animation:gk9Esfrega .34s ease-in-out infinite alternate}
-.gk9-mao.d{left:105px;top:66px;width:21px;height:21px;background-position:-105px -66px;animation:gk9Esfrega .34s ease-in-out infinite alternate-reverse}
+.gk9-mao.e{left:66px;top:63px;width:21px;height:23px;background-position:-66px -63px;animation:gk9Esfrega .34s ease-in-out infinite alternate}
+.gk9-mao.d{left:108px;top:68px;width:21px;height:21px;background-position:-108px -68px;animation:gk9Esfrega .34s ease-in-out infinite alternate-reverse}
 @keyframes gk9Esfrega{from{transform:translateY(-4px)}to{transform:translateY(4px)}}
 .gk9-telao{position:absolute;left:50%;top:118px;width:380px;text-align:center;opacity:0;transform:translateX(-50%) scale(.3);animation:gk9Telao ${T}ms cubic-bezier(.2,1.3,.4,1) forwards}
 @keyframes gk9Telao{0%,${pct(4300)}{opacity:0;transform:translateX(-50%) scale(.3)}${pct(4900)}{opacity:1;transform:translateX(-50%) scale(1.08)}${pct(5200)}{transform:translateX(-50%) scale(1)}${pct(7900)}{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
