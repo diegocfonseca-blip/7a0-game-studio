@@ -3153,8 +3153,17 @@ function trimFilialLoansToDivision(s: EscState): number {
 // daqui é chamado e a SAF/2º clube antigos seguem idênticos.
 /** 🕴️ a SAF destrava a categoria 👑 Lenda na Agência. Com a SAF nova, quem ASSUMIU o comando não pode
  *  perder esse destrave por ter subido de degrau: o 2º clube que nasceu da SAF continua valendo. */
+// 🏢 A LENDA DA AGÊNCIA DESTRAVA COM A SAF — E FICA DESTRAVADA (23/10, regra do Diego, caso do Fabulous EC):
+// *"quando o cara já compra SAF, já destrava. Mesmo se ele vender depois, não tem problema. Se ele comprou, já destrava"*.
+// Antes valia só a SAF de AGORA: quem trocou a SAF pelo 2º clube (migração do SAF 2.0) ou vendeu perdia a Lenda.
+// Provas de que já teve SAF: a marca nova `safJaTeve` (gravada em toda compra); `saf2.migrado` (só é gravado pra quem
+// tinha SAF — migração ou assumir o comando); e, pra save antigo, a compra da SAF ou os prêmios dela no extrato.
+export function jaTeveSaf(s: EscState): boolean {
+  if (s.careerFilial || s.safJaTeve || s.saf2?.migrado || s.saf2?.origemSaf) return true
+  return (s.careerLedger ?? []).some(e => e.kind === 'saf' || (e.kind === 'safbuy' && e.label.includes('SAF')) || (e.kind === 'safsell' && e.label.includes('SAF')))
+}
 export function temSafAgencia(s: EscState): boolean {
-  return !!s.careerFilial || (saf2On(s) && !!s.saf2?.origemSaf && !!segundoClube(s))
+  return jaTeveSaf(s)
 }
 export function saf2On(s: EscState): boolean {
   // 🏀 o basquete não tem SAF: o 2º clube dele nasce da COMPRA direta (BUY_MULTICLUBE,
@@ -8020,7 +8029,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = [] // livro-caixa novo
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência começa vazia
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 👕🏆🛍️ patrocínio/Master/Loja zerados
-      s.stadiums = {}; s.careerFilial = undefined // 🏟️🏢 estádio e SAF do zero
+      s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined // 🏟️🏢 estádio e SAF do zero
       s.careerTitles = 0; s.careerTitlesA = 0
       s.clubCash = seedClubCash({}, pl)
       s.careerTactics = {}; s.careerLineup = {}; s.seasonVotes = {}
@@ -8436,7 +8445,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
       // vazando de uma carreira anterior (bug reportado: o estádio vinha completo).
-      s.stadiums = {}; s.careerFilial = undefined
+      s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       // 🏛️ BUG AO VIVO (04/08, print do Murriz): carreira NOVA nascia com o
       // MULTICLUBES fantasma da carreira anterior (seletor "M10 × M10") — o stash
       // nunca era limpo no START. Carreira nova = UM clube, sempre.
@@ -8547,7 +8556,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.agenciaDividir = false
-      s.stadiums = {}; s.careerFilial = undefined
+      s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
       s.careerTitles = 0; s.careerTitlesA = 0
       s.clubCash = seedClubCash({}, plQ)
@@ -9277,6 +9286,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const titlesAtBuy = h0 ? (h0.A + h0.B + h0.C + h0.D) : 0
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy }
       logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
+      s.safJaTeve = true // 🏢 Lenda da Agência destravada pra sempre (23/10)
       return s
     }
     case 'BUY_MULTICLUBE': {
@@ -12145,7 +12155,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPlacements = null
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.careerCopaSeasons = []; s.careerSupercopaSeasons = []
-      s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined
+      s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       // 🧢🏋️ A COMISSÃO TAMBÉM É DA OUTRA CARREIRA (18/09). Os mapas do técnico e do
       // preparador nasceram DEPOIS desta faxina (26/08 e 15/09) e ficaram de fora —
       // então retomar uma carreira antiga logo depois de uma adiantada trazia junto o

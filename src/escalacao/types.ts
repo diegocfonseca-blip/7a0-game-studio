@@ -1066,6 +1066,8 @@ export interface EscState {
   careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean; div?: string } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
+  /** 🏢 já comprou SAF alguma vez nesta carreira (23/10, Diego: "se ele comprou, já destrava… mesmo se vender depois") — a 👑 Lenda da Agência fica destravada pra sempre */
+  safJaTeve?: boolean
   careerFilial?: {
     team: string; since: number; earned?: number
     titlesAtBuy?: number // 🏢 nº de títulos que o clube JÁ tinha na hora da compra — só o que ele ganhar DEPOIS conta pro valor de venda (não os títulos da vida dele antes de você)

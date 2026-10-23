@@ -1,3 +1,10 @@
+## 🏢👑 Lenda da Agência travada pra quem JÁ teve SAF (23/10) — CORRIGIDO e publicado
+- Caso do Fabulous EC (T130+): trocou a SAF pelo 2º clube (Pantera Negra) na migração do SAF 2.0 e a 👑 Lenda da Agência
+  voltou a pedir "comprar a SAF" — as 2 Lendas na ativa rendiam 0 (por isso 88 → 80). Regra do Diego: comprou uma vez, destrava
+  pra sempre. `jaTeveSaf` (store) + marca `safJaTeve` na compra; saves antigos pelo `saf2.migrado` e pelo extrato.
+- ⚠️ Limite: save antigo que vendeu a SAF ANTES do SAF 2.0 e cujo extrato já passou de 250 linhas não tem como provar — se
+  alguém reclamar, dá pra marcar `safJaTeve` na mão no save dele.
+
 ## 💾 Escalação A e B salvas no Elenco da carreira (23/10) — PUBLICADO pra todos ("ok")
 - FEITO: `escalacao-salva.ts` (puro: quem entra/quem não/quem substitui), `escalacao-ab-ui.tsx` (o cartão, embaixo de
   Formação/Trocas, da 2ª temporada em diante), ações `SALVA_ESCALACAO`/`APLICA_ESCALACAO` (tudo ou nada) e `careerEscalacoes`
