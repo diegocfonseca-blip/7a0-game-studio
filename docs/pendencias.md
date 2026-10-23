@@ -19,7 +19,7 @@
 - 🏆 O cartão parado de campeão (Copa dos 8/Liberta/Champions, Copa do Mundo e regionais) também mostra o troféu certo (23/10,
   *"o campeão já aparecer também com o troféu correto"*): prop `trofeu` no `CampeaoCopaCard`.
 - 🎨 Pendente (quando ele quiser): trocar os troféus desenhados por arte gerada em `.webp` (regra de peso dos batismos vale).
-- 📝 Frases trocadas por ele (23/10): Liga = *"a liga lendária"* · Rio×SP = *"biscoito × bolacha"*.
+- 📝 Frases trocadas por ele (23/10): Liga = *"a liga lendária"* (na festa: *"campeão da Liga Legends"*) · Rio×SP = *"biscoito × bolacha"*.
 - 🚫 Túnel NUNCA mais verde/vermelho fixo (*"só não tô gostando do fundo ser sempre verde e vermelho"*).
 - Mockup `online-momentos-cinema.png` + vídeo `scripts/posts/online-momentos-cinema.mp4` (fora do git): Diego quer SÓ o 2 (festa do
   campeão) e o 3 (túnel da final) — *"faz só o 2 e 3 melhor"*. O ⚡ martelo de lenda (carta grande + VENDIDO) ficou de FORA (o "faah"
