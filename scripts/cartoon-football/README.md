@@ -34,3 +34,7 @@ O retargeting respeita a bola e os eventos oficiais. Um clipe só entra no perfi
 O personagem compacto precisa de ajuste visual de aproximação: orçamento total de 0,60 m no personagem, sem mover a posição oficial. Correção residual de âncora até 0,18 m, dentro do orçamento total; IK de perna até 0,08 m e 0,35 rad. Esses limites são diferentes dos do atleta anterior (âncora 0,03 m). Os relatórios explicitam essa diferença; não equivalem a prova de ausência de escorregamento ou de todas as interseções de roupa.
 
 Continuam pendentes: avaliação visual de fluidez em vídeo próximo, equivalência de acabamento ao conceito, desempenho em telefone físico, variedade de cabelos/corpos, capturas específicas de domínio, goleiro, falta e drible. Não marcar um movimento como aprovado apenas porque passou nos testes numéricos.
+
+## Assistir ao replay 11×11
+
+`watch-match.html` apresenta a reprodução local com este modelo, controles de pausa e câmeras de acompanhamento/campo completo. Não muda o estilo padrão publicado nem a câmera livre da cidade. `record-match.cjs` grava o replay completo, verifica a bola dentro do enquadramento e captura três trechos próximos; `encode-match.mjs` gera os MP4 H.264 baseline e uma página local com controles de vídeo. Evidências ficam em `test-results/cartoon-football/11x11/`. A gravação usa o campo existente isolado: não confundir com captura do estádio da conta. O humanoide anterior continua disponível por `style:'athlete'`, sem remoção dos seus clipes.
