@@ -349,6 +349,45 @@ export function useSalasVisualNovo(): boolean {
   return salasVisualOk
 }
 
+// 🖥️ TELAS DE COMPUTADOR (23/10, mockups `desktop-hoje-ficaria-*` e `desktop-{liga,copa}-{placar,campinho}`, *"aprovado pode
+// fazer"*): no PC o jogo deixa de ser a coluna do celular esticada no meio. Criar sala com TODAS as etapas abertas + "Sua sala" ao
+// lado; liga e copa rolando em 2 colunas (placar/campinho à esquerda · tabela/chave fixa à direita). Só a partir de 1100px de
+// largura — celular byte a byte igual. Só muda o DESENHO. Só a conta dele por enquanto; liberar = DESKTOP_NOVO_GERAL = true.
+const DESKTOP_NOVO_GERAL = true
+const DESKTOP_NOVO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let desktopNovoOk = DESKTOP_NOVO_GERAL
+let desktopNovoBancada = false
+function applyDesktopNovo(email?: string | null): void {
+  const u = DESKTOP_NOVO_GERAL || desktopNovoBancada || (!!email && DESKTOP_NOVO_TESTERS.has(email.toLowerCase()))
+  if (u === desktopNovoOk) return
+  desktopNovoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+/** 🧪 só a bancada `scripts/teste-desktop-hoje` usa (lá não tem login) */
+export function applyDesktopNovoBancada(): void { desktopNovoBancada = true; applyDesktopNovo() }
+export const DESKTOP_MIN = 1100
+/** a tela é de computador (≥ 1100px) E a conta tem o desenho novo (liga/copa rolando em 2 colunas) */
+export function useDesktopNovo(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  const larga = useTelaPC() // ⚠️ hook: sempre chamado (nada de `&&` na frente)
+  return desktopNovoOk && larga
+}
+/** 🖥️ só a largura: ≥ 1100px. O CRIAR SALA com tudo aberto + "Sua sala" ao lado usa só isto — liberado pra TODOS
+ *  (23/10, Diego: *"o resumo eu disse que é pra todos também"*). */
+export function useTelaPC(): boolean {
+  const [larga, setLarga] = useState(() => typeof window !== 'undefined' && window.innerWidth >= DESKTOP_MIN)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`)
+    const ver = () => setLarga(mq.matches)
+    ver()
+    mq.addEventListener('change', ver)
+    return () => mq.removeEventListener('change', ver)
+  }, [])
+  return larga
+}
+
 // 📺 CAMPO 2D (20/10) — o jogo ao vivo no campinho. Só a conta do Diego enquanto é construído (*"não coda pra todo mundo não,
 // mas já começa a fazer"*). Regra dele pra quando liberar: é PAGO, do ⭐ Craque pra cima (na carreira, botão junto do Manual;
 // nas salas, escolha na hora de criar: "⚡ Padrão rápido" ou "📺 2D"). Liberar = CAMPO2D_GERAL = true + a trava de plano.
@@ -1221,8 +1260,8 @@ export function useBotBanco(): boolean {
   return botBancoOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyRegionalUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyCentralUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email); applyPregaoAberto(data?.user?.email); applyAmigos(data?.user?.email); applyColecoesUnlock(data?.user?.email); applyPlanos2(data?.user?.email); applyPixMp(data?.user?.email); applyEconBots(data?.user?.email); applySaf2(data?.user?.email); applyBotBanco(data?.user?.email); applyKings(data?.user?.email); applyLigaDraft(data?.user?.email); applyCampo2D(data?.user?.email); applySalasVisual(data?.user?.email); applyColetiva(data?.user?.email); applyLigaVice(data?.user?.email); applyCo2(data?.user?.email) }, () => { applyColecoesUnlock(null); if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
-supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyRegionalUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyCentralUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email); applyPregaoAberto(s?.user?.email); applyAmigos(s?.user?.email); applyColecoesUnlock(s?.user?.email); applyPlanos2(s?.user?.email); applyPixMp(s?.user?.email); applyEconBots(s?.user?.email); applySaf2(s?.user?.email); applyBotBanco(s?.user?.email); applyKings(s?.user?.email); applyLigaDraft(s?.user?.email); applyCampo2D(s?.user?.email); applySalasVisual(s?.user?.email); applyColetiva(s?.user?.email); applyLigaVice(s?.user?.email); applyCo2(s?.user?.email) })
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyRegionalUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyCentralUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email); applyPregaoAberto(data?.user?.email); applyAmigos(data?.user?.email); applyColecoesUnlock(data?.user?.email); applyPlanos2(data?.user?.email); applyPixMp(data?.user?.email); applyEconBots(data?.user?.email); applySaf2(data?.user?.email); applyBotBanco(data?.user?.email); applyKings(data?.user?.email); applyLigaDraft(data?.user?.email); applyCampo2D(data?.user?.email); applySalasVisual(data?.user?.email); applyDesktopNovo(data?.user?.email); applyColetiva(data?.user?.email); applyLigaVice(data?.user?.email); applyCo2(data?.user?.email) }, () => { applyColecoesUnlock(null); if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
+supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyRegionalUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyCentralUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email); applyPregaoAberto(s?.user?.email); applyAmigos(s?.user?.email); applyColecoesUnlock(s?.user?.email); applyPlanos2(s?.user?.email); applyPixMp(s?.user?.email); applyEconBots(s?.user?.email); applySaf2(s?.user?.email); applyBotBanco(s?.user?.email); applyKings(s?.user?.email); applyLigaDraft(s?.user?.email); applyCampo2D(s?.user?.email); applySalasVisual(s?.user?.email); applyDesktopNovo(s?.user?.email); applyColetiva(s?.user?.email); applyLigaVice(s?.user?.email); applyCo2(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

@@ -5,7 +5,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
-import { useCampo2DLiberado } from './sport'
+import { useCampo2DLiberado, useDesktopNovo } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
@@ -956,7 +956,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
   )
 }
 
-export function Shell({ children, bar, hideExit = false, className = '', wide = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean }) {
+export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
@@ -1008,7 +1008,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
           {bar}
         </div>
       )}
-      <div className={`max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}`}>{children}</div>
+      <div className={`max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}>{children}</div>
       {inGame && !hideExit && (
         <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
@@ -6694,6 +6694,12 @@ function useTitulosNaHora() {
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
+  // 🖥️ DESKTOP EM 2 COLUNAS (23/10, mockups `desktop-{liga,copa}-{placar,campinho}`, *"aprovado pode fazer"*; só a conta do Diego
+  // e só ≥1100px): na esquerda o placar no tamanho de sempre (ou o campinho 2D no lugar dele) + telão + outros jogos; na direita,
+  // FIXOS, a tática e a tabela inteira (na Copa: a tática e os jogos da fase). Os blocos são os MESMOS componentes — um portal só
+  // muda onde eles aparecem na página; nada de regra, envio ou relógio muda. Celular: igual, byte a byte.
+  const desk2Conta = useDesktopNovo()
+  const [dirCol, setDirCol] = useState<HTMLDivElement | null>(null)
   useTitulosNaHora() // 🏆 18/10: campeão apareceu = título e carta contam na hora (mesmo que a sala pare antes do fim)
   const previewAccount = useOnlinePreview()
   // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
@@ -7096,11 +7102,14 @@ export function EscSeason() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retroOn, state.isHost, copaLive, copaMin >= 93, copaAdvReady, copaTieKey])
 
+  // 🖥️ desenho de computador novo: fora da Kings e do basquete (têm telas por cima do placar que não foram desenhadas pra isso)
+  const desk2 = desk2Conta && !kingsS && !bbS
+  const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
     <TemaCompCtx.Provider value={temaLiga}>
-    <Shell wide className={cinemaPreview ? 'll31-cinema' : ''} bar={
+    <Shell wide desk2={desk2} className={cinemaPreview ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
@@ -7120,6 +7129,7 @@ export function EscSeason() {
       </div>
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
+      {desk2 && <div className="ll-dir"><div className="ll-dir-in" ref={setDirCol} /></div>}
       {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(copasDaSala)} />}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
@@ -7424,7 +7434,7 @@ export function EscSeason() {
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
-            {myTie && (!privateVisual || visualTab === 'jogos') && (
+            {myTie && (!privateVisual || visualTab === 'jogos') && naDireita(
               <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
                 <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{enS ? `🎯 Your tactic ${libS ? 'in the Libertadores' : 'in the Cup'}` : `🎯 Sua tática ${libS ? 'na Libertadores' : 'na Copa'}`}</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -7442,10 +7452,10 @@ export function EscSeason() {
                     explicação virou ruído fixo na tela. A regra continua a mesma no jogo. */}
               </Box>
             )}
-            {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && (
+            {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && naDireita(
               <div className={privateVisual ? 'll26-phase-matches' : undefined}>
                 <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">{LS('Todos os jogos da fase', 'All ties of the round')}</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: desk2 ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
               </div>
             )}
             <FraseCopa />
@@ -7580,7 +7590,7 @@ export function EscSeason() {
         </Box>
       )}
 
-      {fixture && opp && (
+      {fixture && opp && naDireita(
         <Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
               De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
@@ -7718,7 +7728,7 @@ export function EscSeason() {
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({repescao:'PLAYOFF',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({repescao:'REPESCÃO',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
         {/* ⭐ Só Champions: não teve liga — a tabela dela (toda zerada) não aparece */}
         {state.copaMode === 'champions' ? null : privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
-      <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" cinema={cinemaPreview} />
+      naDireita(<TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" cinema={cinemaPreview} />)
         }
       </div>
       <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">

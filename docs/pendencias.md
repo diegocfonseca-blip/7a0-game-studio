@@ -79,6 +79,13 @@
   colunas (tabela inteira / chave fixa à direita): ele gostou, só achou o PLACAR menor ruim, porque o campinho 2D vai entrar ali.
   Sugestão dada: placar no tamanho de hoje na coluna da esquerda (com 2D, o campinho toma o lugar dele, como já é regra),
   outros jogos embaixo. Esperando resposta. Leilão: sem resposta ainda. A fazer só depois do OK de cada tela, só no desktop.
+  ✅ **FEITO E LIBERADO PRA TODOS (23/10)** — *"aprovado pode fazer"* + *"o resumo é pra todos"* + *"liga e copa com duas colunas
+  ficam pra todos já"*. Mockups finais `desktop-{liga,copa}-{placar,campinho}.png`. Só ≥1100px (celular igual):
+  · criar sala: `useTelaPC()` (lobby `desk`) — modos lado a lado, etapas 2–4 sempre abertas, coluna "📋 Sua sala" com o botão;
+  · liga/copa rolando: `useDesktopNovo()` (`DESKTOP_NOVO_GERAL`, sport.ts) → `Shell desk2` + `.ll-dir` (online-visual.css). A tática
+    e a tabela (na Copa: tática + jogos da fase) entram por PORTAL na coluna fixa da direita; placar/campinho 2D, telão e outros jogos
+    ficam na esquerda. Fora da Kings e do basquete. Bancada: `scripts/teste-desktop-hoje/index.html?desk2=1&fase=season|copa`.
+  · Ainda sem resposta: leilão no computador (cartas em grade de 3 + caixa/time/chat ao lado) e salas abertas em grade (d3).
 Mockup `salas-hoje-x-proposta` (4 partes). Pedido: *"só pra mim essas formas de visualização, quero testar antes"*. Trava
 `SALAS_VISUAL_GERAL` em `sport.ts` (false = só a conta dele). Só muda o DESENHO — regras, lances, envio e coroa iguais.
 - ① Lista: faixa fina do zap (só se a de cima já foi fechada), sem o título grande, aba "Salas abertas (N)", filtros de um toque

@@ -6,6 +6,8 @@ import { useReducer } from 'react'
 import { EscCtxBancada, reducer, INITIAL } from '../../src/escalacao/store'
 import { EscAuction, EscSeason } from '../../src/escalacao/screens'
 import { CATALOG } from '../../src/escalacao/data'
+import { applyDesktopNovoBancada } from '../../src/escalacao/sport'
+if (new URLSearchParams(location.search).get('desk2')) applyDesktopNovoBancada()
 const fase = new URLSearchParams(location.search).get('fase') ?? 'auction'
 let n = 0
 function monta() {
