@@ -1,3 +1,9 @@
+## 🎨 Simulação (liga/copa) com a cara de cada campeonato (23/10) — MOCKUP, esperando OK do Diego
+- Pedido: *"simulação das ligas e depois copas temáticas nas cores… sem sair muito dos padrões"*. Mockups
+  `scripts/mockups/simulacao-tema-copas-1.png` / `-2.png` (bancada `scripts/teste-tema/`). Mesma tela; muda só: ① faixa do topo
+  com o troféu e a paleta da copa · ② relógio na cor da copa · ③ cabeçalho e zonas da tabela nas cores · ④ frase da copa no pé.
+  Paletas = as mesmas do túnel/festa (`COMPS`). O 1º mockup (caixas soltas) ele não entendeu; este é o de telas lado a lado.
+
 ## 🎬 Salas: túnel da final + festa do campeão, com a cara de cada campeonato (23/10) — PUBLICADO pra todos
 - ✅ Aprovado (*"cor do campeonato, pode fazer o túnel da final e o campeão"*) e feito em `competicoes-visual.tsx`: `COMPS` (paleta,
   frase do túnel, frase do campeão, confete), `Trofeu` (desenho vetorial inspirado no real), `TunelFinal` e `FestaCampeao` (5,6s,
