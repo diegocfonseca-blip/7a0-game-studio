@@ -1,3 +1,10 @@
+## 🏆 Minhas Ligas: trocar também o que vem depois da liga (23/10) — FEITO e publicado
+- Pedido: *"no minhas ligas falta deixar a pessoa poder mudar as ligas também, tipo liga sozinha, liga mais copa, regionais…
+  igual já funciona ao criar salas"*. O "🔁 Trocar o modo" da sala de espera ganhou **Depois da liga** com as MESMAS opções e
+  prateleiras do criar sala (Com o seu time · Convocando), mesmas travas (Liberta/Champions/regionais pelo que a conta tem; Só
+  Champions fora do pregão aberto e das duplas; Liga Draft sem copa). Banco: `esc_liga_modo2` (a antiga continua viva).
+- Testado no banco (troca Mundo → Rio×SP → Liberta, marcas antigas saem, travas recusam). Tela não foi fotografada.
+
 ## 🏢👑 Lenda da Agência travada pra quem JÁ teve SAF (23/10) — CORRIGIDO e publicado
 - Caso do Fabulous EC (T130+): trocou a SAF pelo 2º clube (Pantera Negra) na migração do SAF 2.0 e a 👑 Lenda da Agência
   voltou a pedir "comprar a SAF" — as 2 Lendas na ativa rendiam 0 (por isso 88 → 80). Regra do Diego: comprou uma vez, destrava
