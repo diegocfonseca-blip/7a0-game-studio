@@ -365,7 +365,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // braços cruzados e braçadeira de capitão, entre as duas taças, pisando no gelo. Arte do próprio dono.
   // Diego (06/10): a 1ª versão (só o jogador, sem taças/gelo) ficou *"horrível"* — a cena inteira é a mascote.
   // O braço da braçadeira passa por cima do escudo na prancha: recortado fora do círculo do escudo.
-  // 📏 328×440, 42 KB — a altura fica em 176. mascote_key = "k9_rei".
+  // 📏 325×440, 44 KB (arte nova de 23/10) — a altura fica em 176. mascote_key = "k9_rei".
   // 🦅 O URUBU MALVADÃO (mascote do Mengão Malvadão — atilasoaresjr21, 06/10): o urubu de coroa e camisa
   // rubro-negra, braços cruzados, pisando no porco. A cena inteira é a mascote (régua do K9, 06/10). Arte do dono.
   // 📏 330×440, 41 KB — a altura fica em 176. mascote_key = "mengao_urubu".
@@ -433,7 +433,7 @@ export const MASCOTES: Record<string, ReactNode> = {
     <img src={leprinceMascoteImg} height={176} width={Math.round(176 * 333 / 440)} alt="O Galo Rei — Le Prince FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   k9_rei: (
-    <img src={k9MascoteImg} height={176} width={Math.round(176 * 328 / 440)} alt="O Rei K9 — K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={k9MascoteImg} height={176} width={Math.round(176 * 325 / 440)} alt="O Rei K9 — K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   vieira_diabo: (
     <img src={vieiraMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Diabo — Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />

@@ -21,8 +21,9 @@ export const K9_MS = 8400
 const T = K9_MS
 const pct = (ms: number) => (ms / T * 100).toFixed(1) + '%'
 const GOLD = '#FFC400'
-// a arte do mascote é 328×440; no palco ela aparece com 250 de altura
-const MW = 186, MH = 250
+// a arte do mascote é 325×440 (arte nova de 23/10); no palco ela aparece com 310 de altura (23/10, Diego: maior, pra ver as
+// mãozinhas mexendo — vai do fim do grito, 430, até quase o pé do palco, 740)
+const MW = 229, MH = 310
 
 const COROA = <svg viewBox="0 0 120 80" width="120" height="80" xmlns="http://www.w3.org/2000/svg">
   <path d="M8 70 L14 22 L38 46 L60 8 L82 46 L106 22 L112 70 Z" fill={GOLD} stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round" />
@@ -61,7 +62,7 @@ const CSS = `
 @keyframes gk9Caco{0%,${pct(3550)}{opacity:0;transform:translate(0,0) rotate(0)}${pct(3620)}{opacity:1}${pct(4500)}{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}}
 .gk9-clarao{position:absolute;inset:0;background:#dff4ff;opacity:0;animation:gk9Clarao ${T}ms ease forwards}
 @keyframes gk9Clarao{0%,${pct(3550)}{opacity:0}${pct(3620)}{opacity:.85}${pct(4000)}{opacity:0}100%{opacity:0}}
-.gk9-masc{position:absolute;left:50%;top:446px;width:${MW}px;height:${MH}px;opacity:0;transform:translateX(-50%);filter:drop-shadow(0 0 16px rgba(140,210,255,.8)) drop-shadow(4px 6px 0 rgba(0,0,0,.5));animation:gk9Masc ${T}ms ease forwards}
+.gk9-masc{position:absolute;left:50%;top:430px;width:${MW}px;height:${MH}px;opacity:0;transform:translateX(-50%);filter:drop-shadow(0 0 16px rgba(140,210,255,.8)) drop-shadow(4px 6px 0 rgba(0,0,0,.5));animation:gk9Masc ${T}ms ease forwards}
 @keyframes gk9Masc{0%,${pct(3560)}{opacity:0;transform:translateX(-50%) scale(.85)}${pct(3700)}{opacity:1;transform:translateX(-50%) scale(1.08)}${pct(3900)}{transform:translateX(-50%) scale(1)}${pct(8100)}{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
 .gk9-masc img{display:block;width:${MW}px;height:${MH}px}
 .gk9-tremido{position:relative;animation:gk9Tremido .09s linear infinite}
@@ -69,9 +70,9 @@ const CSS = `
 /* 🥶 as MÃOS do abraço: dois pedacinhos da arte (cada mão) deslizam pra cima e pra baixo, cada um num
    sentido, com a borda esfumada pra não aparecer o recorte */
 .gk9-mao{position:absolute;background-image:url(${k9MascoteImg});background-size:${MW}px ${MH}px;-webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 55%,transparent 100%)}
-.gk9-mao.e{left:63px;top:66px;width:21px;height:23px;background-position:-63px -66px;animation:gk9Esfrega .34s ease-in-out infinite alternate}
-.gk9-mao.d{left:105px;top:66px;width:21px;height:21px;background-position:-105px -66px;animation:gk9Esfrega .34s ease-in-out infinite alternate-reverse}
-@keyframes gk9Esfrega{from{transform:translateY(-4px)}to{transform:translateY(4px)}}
+.gk9-mao.e{left:82px;top:78px;width:26px;height:29px;background-position:-82px -78px;animation:gk9Esfrega .34s ease-in-out infinite alternate}
+.gk9-mao.d{left:134px;top:84px;width:26px;height:26px;background-position:-134px -84px;animation:gk9Esfrega .34s ease-in-out infinite alternate-reverse}
+@keyframes gk9Esfrega{from{transform:translateY(-5px)}to{transform:translateY(5px)}}
 .gk9-telao{position:absolute;left:50%;top:118px;width:380px;text-align:center;opacity:0;transform:translateX(-50%) scale(.3);animation:gk9Telao ${T}ms cubic-bezier(.2,1.3,.4,1) forwards}
 @keyframes gk9Telao{0%,${pct(4300)}{opacity:0;transform:translateX(-50%) scale(.3)}${pct(4900)}{opacity:1;transform:translateX(-50%) scale(1.08)}${pct(5200)}{transform:translateX(-50%) scale(1)}${pct(7900)}{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
 .gk9-telao .esc{display:inline-flex;filter:drop-shadow(0 0 22px rgba(140,210,255,.9)) drop-shadow(4px 5px 0 #000)}
