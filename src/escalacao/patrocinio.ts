@@ -13,10 +13,11 @@ import { buscaVitrine, podioPassada } from './vitrine-dados' // 🏆 pódio da s
 import { clasLiberado } from './cla-gate' // ⚔️ pódio dos clãs no letreiro (21/10)
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 import TIDEX_LOGO from './img/patro-tidex.webp' // 🤖 Tidex (19/10): Copa dos 8, placa do campinho e telão no lugar da Max Joias
+import GECG_PLACA from './img/patro-gecg-placa.webp' // ⚽ Grêmio Campo Grande (23/10): placa deitada (escudo + nome) revezando com a Tidex
 import OITTO_LOGO from './img/patro-oittolabs.webp' // 🧪 OittoLabs (21/10): Copa dos 8, Copa do Brasil da carreira, placas, telão e Master
 
 export type Patrocinio = { nome: string; emoji: string }
-export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' | 'career-copa' // career-league = a Liga Legends da CARREIRA (19/10) · career-copa = a Copa do Brasil da carreira (21/10)
+export type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions' | 'career-league' | 'career-copa' | 'regional' | 'career-varzea' // career-varzea = a liga da carreira na VÁRZEA (23/10) · regional = Copas Regionais (Rio × SP, Sul-Minas, Nordeste) — 23/10 · career-league = a Liga Legends da CARREIRA (19/10) · career-copa = a Copa do Brasil da carreira (21/10)
 
 const PATROCINIO_GERAL = true // 16/10: Diego "pode liberar tudo já pro geral, mostrar pra todos, e Pix também"
 const ESPACOS_GERAL = true
@@ -25,6 +26,8 @@ const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
   champions: { nome: 'Vadico Veículos', emoji: '🚗' }, // 🚗 Vadico Veículos (Itaguaí e Barra da Tijuca) — 16/10
   copa8: { nome: 'OittoLabs', emoji: '🧪' }, // 🧪 21/10 (Diego: "copa dos 08 online apresentado por" OittoLabs) — era da Tidex, que segue na Liga Legends
   'career-copa': { nome: 'OittoLabs', emoji: '🧪' }, // 🧪 21/10: Copa do Brasil da carreira
+  regional: { nome: 'Grêmio Esportivo Campo Grande', emoji: '⚽' },
+  'career-varzea': { nome: 'Grêmio Esportivo Campo Grande', emoji: '⚽' }, // ⚽ 23/10: a liga da carreira na Várzea (as outras divisões seguem Tidex) // ⚽ 23/10 (Diego: "nas copas regionais coloque apresentado por grêmio esportivo campo grande")
   'career-league': { nome: 'Tidex', emoji: '🤖' }, // 🤖 19/10 (Diego: "no modo carreira também na Liga Legends apresentado por Tidex") // 🤖 Tidex — sua marca dentro das IAs (19/10, Diego: "add a Tidex na copa dos 8 apresentado por")
 }
 
@@ -127,10 +130,16 @@ const TIDEX_GIRO = '🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui'
 const TIDEX_ZAP = 'https://wa.me/5511981181888?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber como ter minha empresa no ChatGPT.')
 // 🧪 OittoLabs (21/10): contabilidade e BPO pra PJ e PF — a linha de verdade mora em `esc_anuncios_fixos`; isto é a reserva
 const OITTO_GIRO = '🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui'
+// ⚽ Grêmio Esportivo Campo Grande (23/10): clube de várzea com estádio próprio (~10 mil lugares) em Jurubatuba, Zona Sul de SP;
+// objetivo deles = gente no estádio nos fins de semana e aluguel do campo pra torneios. A linha de verdade mora em
+// `esc_anuncios_fixos`; isto é a reserva.
+const GECG_GIRO = '⚽ Grêmio Campo Grande · Estádio próprio na Zona Sul SP · Vem pro jogo · Clique aqui'
+const GECG_ZAP = 'https://wa.me/5511976509180?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber dos jogos do Grêmio Campo Grande no fim de semana.')
 const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
   { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
   { texto: TIDEX_GIRO, cor: '#FFC400', link: TIDEX_ZAP }, // 🤖 19/10: no lugar da Max Joias
   { texto: OITTO_GIRO, cor: '#FFC400', link: 'https://oittolabs.com.br' }, // 🧪 21/10
+  { texto: GECG_GIRO, cor: '#FFC400', link: GECG_ZAP }, // ⚽ 23/10
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
@@ -191,7 +200,10 @@ export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: st
 const PLACAS_CAMPO: PlacaCampo[] = [
   { nome: 'Vadico Veículos', logo: VADICO_LOGO_ALFA, prop: 496 / 140, fundo: '#ffffff' },
   { nome: 'OittoLabs', logo: OITTO_LOGO, prop: 331 / 120, fundo: '#ffffff' }, // 🧪 21/10: revezando com a Vadico (cima ↔ baixo), igual placa de estádio
-  { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
+  { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' },
+  // ⚽ 23/10 (Diego: "reveza com a Tidex… como é placa de campinho precisamos de uma ideia pra ele ficar na horizontal"): o escudo é
+  //    vertical, então a placa é uma faixa DEITADA feita pra ela — escudo + "GRÊMIO CAMPO GRANDE" no azul do clube.
+  { nome: 'Grêmio Campo Grande', logo: GECG_PLACA, prop: 840 / 120, fundo: '#14286A' }, // 🤖 19/10: no lugar da Max Joias (fundo escuro, como o site deles)
 ]
 /** 📐 TAMANHO DA MARCA NA PLACA (21/10, Diego: *"a Tidex está perfeita… a Vadico e a OittoLabs estão desproporcionais e pequenas…
  *  tem que seguir o padrão da Tidex"*). Antes toda marca tinha a MESMA altura (72% da placa), então a marca comprida (Tidex, 7:1)

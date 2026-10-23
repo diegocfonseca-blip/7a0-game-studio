@@ -124,7 +124,7 @@ export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: strin
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' | 'oittolabs' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' | 'oittolabs' | 'gecg' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
@@ -145,6 +145,9 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'tidex',       name: 'Tidex',                emoji: '🤖', color: '#0B1220', tier: 3, logo: 'tidex' },
   // 🧪 marca REAL do Master (21/10): entrou no lugar da Max Joias (1 temporada) — ver MASTER_PRAZOS
   { id: 'oittolabs',   name: 'OittoLabs',            emoji: '🧪', color: '#1C3A5E', tier: 1, logo: 'oittolabs' },
+  // ⚽ marca REAL do Master (23/10, Diego: "troque o ERO por esse patrocinador"): Grêmio Esportivo Campo Grande, clube de várzea com
+  //    estádio próprio em Jurubatuba (Zona Sul de SP). Pega o lugar da ERO (3 temporadas); contrato da ERO correndo vai até o fim.
+  { id: 'gecg',        name: 'Grêmio Campo Grande',  emoji: '⚽', color: '#14286A', tier: 3, logo: 'gecg' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -189,7 +192,9 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   //    que já está correndo em save antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
   { brandId: 'oittolabs', anos: 1 },
   { brandId: 'reidastintas', anos: 2 },
-  { brandId: 'ero', anos: 3 },
+  // ⚽ 23/10: o Grêmio Esportivo Campo Grande pega o lugar da ERO (3 temporadas). Contrato da ERO que já está correndo em save
+  //    antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
+  { brandId: 'gecg', anos: 3 },
   // 🅾️ 4 TEMPORADAS, e o número foi escolhido a dedo: a régua do Master é só
   //    divisão × prazo, então quem tem o prazo maior paga mais. Com 4, a Uomo
   //    entra ENTRE a ERO e a Vadico e a **Vadico continua sendo a mais cara**,

@@ -1,3 +1,12 @@
+## ⚽ Parceiro Grêmio Esportivo Campo Grande (23/10) — NO BRANCH, esperando "publica"
+Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. Objetivo: gente no estádio no fim de semana + aluguel
+do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
+- Master da carreira: entra no lugar da ERO (3 temporadas, `gecg`); contrato da ERO correndo vai até o fim. Logo `patro-gecg.webp`.
+- Placa do campinho: faixa DEITADA feita pra ela (escudo + "GRÊMIO CAMPO GRANDE", `patro-gecg-placa.webp`), logo depois da Tidex.
+- "Apresentada por": Copas Regionais (`regional`) e a liga da carreira NA VÁRZEA (`career-varzea`; as outras divisões seguem Tidex).
+- Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
+- Aviso da comunidade: `scripts/avisos/2026-10-23-parceiro-gecg.json` → `scripts/posts/aviso-2026-10-23-parceiro-gecg.png`.
+
 ## 🏆 Minhas Ligas: trocar também o que vem depois da liga (23/10) — FEITO e publicado
 - Pedido: *"no minhas ligas falta deixar a pessoa poder mudar as ligas também, tipo liga sozinha, liga mais copa, regionais…
   igual já funciona ao criar salas"*. O "🔁 Trocar o modo" da sala de espera ganhou **Depois da liga** com as MESMAS opções e

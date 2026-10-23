@@ -1,0 +1,17 @@
+{
+  "data": "🤝 Parceiro do Leilão Legends · 23 de outubro de 2026",
+  "titulo": "Grêmio Campo Grande: a várzea de verdade ⚽",
+  "destaque": {
+    "mascote": "scripts/parceiros/gecg-logo.png",
+    "nome": "Clube de várzea com estádio próprio desde 1953",
+    "linha": "Jurubatuba · Zona Sul de São Paulo"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "O **Grêmio Esportivo Campo Grande** tem **estádio próprio pra cerca de 10 mil pessoas** em Jurubatuba, na Zona Sul de SP. **Fim de semana tem jogo**: cola lá e torce com a gente." },
+    { "tag": "melhoria", "texto": "**Escolinha pra criançada de 4 a 16 anos** (#OsCriasDoGrêmio), ginástica artística, ginástica funcional e capoeira. Treinos de manhã e de tarde." },
+    { "tag": "apoio", "texto": "Tem empresa ou grupo de amigos? Dá pra **alugar o campo pra torneios e eventos**. No jogo, ele já está no **Patrocinador Master da carreira**, nas **placas do campinho** e apresenta as **Copas Regionais**." }
+  ],
+  "rodape": "📲 WhatsApp (11) 97650-9180",
+  "rodapeSub": "Obrigado, Grêmio Campo Grande, por fortalecer o Leilão Legends 💛",
+  "saida": "scripts/posts/aviso-2026-10-23-parceiro-gecg.png"
+}

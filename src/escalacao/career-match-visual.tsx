@@ -5,9 +5,10 @@ import { careerTieView } from './career-match-model'
 import { Escudo } from './escudos'
 import './career-match-visual.css'
 
-export function CareerCompetitionStage(p: { kind: 'league'|'copa'|'brasil'|'super'|'liberta'|'champions'|'mundial'; title: string; phase: string; detail: string; status: string; children?: ReactNode }) {
+export function CareerCompetitionStage(p: { kind: 'league'|'copa'|'brasil'|'super'|'liberta'|'champions'|'mundial'; title: string; phase: string; detail: string; status: string; children?: ReactNode; varzea?: boolean }) {
+  // ⚽ 23/10: na VÁRZEA a liga é apresentada pelo Grêmio Esportivo Campo Grande (Diego: "nas ligas modo carreira na várzea apresentado por nome dele")
   // 💼 19/10: a Liga Legends da carreira é apresentada pela Tidex · 21/10: a Copa do Brasil pela OittoLabs; as outras copas ficam sem
-  return <div className={`ll29-stage ll29-stage-${p.kind}`}><CompetitionStage kind="league" patroKind={p.kind === 'league' ? 'career-league' : p.kind === 'brasil' ? 'career-copa' : null} title={p.title} phase={p.phase} detail={p.detail} status={p.status}>{p.children}</CompetitionStage></div>
+  return <div className={`ll29-stage ll29-stage-${p.kind}`}><CompetitionStage kind="league" patroKind={p.kind === 'league' ? (p.varzea ? 'career-varzea' : 'career-league') : p.kind === 'brasil' ? 'career-copa' : null} title={p.title} phase={p.phase} detail={p.detail} status={p.status}>{p.children}</CompetitionStage></div>
 }
 
 export function CareerCompetitionHelp({ kind }: { kind: 'super'|'brasil'|'copa' }) {
