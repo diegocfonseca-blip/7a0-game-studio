@@ -11,6 +11,12 @@ do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
 - Telão: linha nova em `esc_anuncios_fixos` NA HORA DE PUBLICAR (reserva no código: `GECG_GIRO`).
 - Aviso da comunidade: `scripts/avisos/2026-10-23-parceiro-gecg.json` → `scripts/posts/aviso-2026-10-23-parceiro-gecg.png` (escudo dentro da caixa).
 - Mockup pro cliente (todos os lugares): `scripts/posts/gecg-no-leilao-legends.png`. Bancada: `scripts/teste-parceiro/`.
+## 🎙️ Coletiva no computador (23/10) — FEITO e publicado pra todos ("perfeito pode fazer")
+- Mockup `scripts/mockups/desktop-coletiva.png`. ≥1100px (`useTelaPC`): tela inteira em 2 colunas — esquerda painel das marcas +
+  mesa (presidente maior) + placar; direita repórter, pergunta e respostas em letra grande. O jornal (O MARTELO) largo e centrado.
+  Celular igual. Bancada: `scripts/teste-coletiva-pc/index.html` (`?lendas=1`).
+- Regra dele no mesmo pedido: **na bancada só sentam as lendas que JÁ têm rosto** (sem rosto não entra mais a carta com a inicial);
+  sem lenda com rosto, vale o de sempre: o presidente da conta, ou o botão pra criar o presidente.
 
 ## 🏆 Minhas Ligas: trocar também o que vem depois da liga (23/10) — FEITO e publicado
 - Pedido: *"no minhas ligas falta deixar a pessoa poder mudar as ligas também, tipo liga sozinha, liga mais copa, regionais…

@@ -18,6 +18,7 @@ import { presidenteContaLiberado, usePosseConta, usePresidenteConta } from './pr
 import { temBoneco } from './presidente-avulsas'
 import { LojaButton } from './loja-clube'
 import { legendAvatar } from './legend-avatars'
+import { useTelaPC } from './sport'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -107,7 +108,7 @@ const ESTILO_IC: Record<Estilo, { ic: string; bg: string; card: string }> = {
 const efeitoBom = (e: Efeito | null) => !!e && (e.tipo === 'renda' || e.tipo === 'moral_alta')
 const efeitoRuim = (e: Efeito | null) => !!e && (e.tipo === 'rival_motivado' || e.tipo === 'moral_baixa')
 
-export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, seguirTxt, resolve, onFim, lendas }: {
+export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, seguirTxt, resolve, onFim, lendas: lendasTodas }: {
   pronta: ColetivaPronta; clube: string; placar: string | null; rodadaTxt: string
   /** ⭐ APRESENTAÇÃO (22/10): as lendas que o leilão trouxe — sentam na bancada no lugar do boneco (1 a 4 rostos, o tamanho se ajusta) */
   lendas?: { nome: string; club: string; year: number }[]
@@ -132,7 +133,12 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
   const rep = pronta.rep
   // 🧑‍💼 o boneco da conta sentado na mesa (grátis não tem boneco: a mesa fica como era)
   const contaPres = usePresidenteConta()
+  // ⭐ 23/10 (Diego): na bancada só sentam as lendas que JÁ têm rosto — sem rosto, a carta dourada com a inicial não entra mais
+  const lendas = lendasTodas?.filter(l => !!legendAvatar(l.nome, l.club, l.year))
   const temLendas = !!lendas?.length
+  // 🖥️ COMPUTADOR (23/10, mockup `scripts/mockups/desktop-coletiva.png`, *"perfeito pode fazer"*): tela inteira em 2 colunas —
+  // esquerda o painel das marcas + a mesa + o placar; direita a pergunta e as respostas em letra grande. Celular igual.
+  const pc = useTelaPC()
   const boneco = presidenteContaLiberado() && !temLendas ? contaPres.value : null
   // sem boneco: um convite DISCRETO na cadeira vazia, que abre a Loja na seção do presidente (Diego 20/10)
   const posse = usePosseConta()
@@ -146,18 +152,19 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
   const marcas = [vadicoArt, tidexArt, null, tidexArt, null, vadicoArt, null, vadicoArt, tidexArt]
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 99955, background: '#0b0f14', display: 'flex', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: 480, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderLeft: `3px solid ${INK}`, borderRight: `3px solid ${INK}` }}>
+      <div style={{ width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderLeft: pc ? 'none' : `3px solid ${INK}`, borderRight: pc ? 'none' : `3px solid ${INK}` }}>
         {topo}
         {!escolha ? (
           <div style={{ flex: 1, overflowY: 'auto', position: 'relative', background: `#0e1319 url(${salaArt}) center / cover` }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(8,10,14,.55),rgba(8,10,14,.85) 60%,#0b0f14)' }} />
-            <div style={{ position: 'relative', paddingBottom: 14 }}>
+            <div style={pc ? { position: 'relative', display: 'grid', gridTemplateColumns: '560px minmax(0, 1fr)', gap: 34, maxWidth: 1240, margin: '0 auto', padding: '26px 24px 30px', alignItems: 'start' } : { position: 'relative', paddingBottom: 14 }}>
+              <div>
               {/* o backdrop dos patrocinadores, atrás da mesa */}
               <div style={{ position: 'relative' }}>
-              <div style={{ margin: '12px 12px 0', height: boneco || temLendas ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
+              <div style={{ margin: pc ? 0 : '12px 12px 0', height: pc ? 300 : boneco || temLendas ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
                 {marcas.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: m === tidexArt ? '#0B1220' : 'transparent', borderRight: '1px dashed rgba(0,0,0,.08)', borderBottom: '1px dashed rgba(0,0,0,.08)' }}>
-                    {m ? <img src={m} alt="" style={{ height: 22, maxWidth: '86%', objectFit: 'contain' }} /> : <span style={{ ...OSW, fontSize: 11, letterSpacing: .5, color: INK }}>Leilão Legends</span>}
+                    {m ? <img src={m} alt="" style={{ height: pc ? 30 : 22, maxWidth: '86%', objectFit: 'contain' }} /> : <span style={{ ...OSW, fontSize: pc ? 13 : 11, letterSpacing: .5, color: INK }}>Leilão Legends</span>}
                   </div>
                 ))}
               </div>
@@ -166,56 +173,68 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
                   {temBoneco(posse) ? tr('🧑‍💼 Seu plano já tem presidente · monte o seu ›', '🧑‍💼 Your plan includes a president · make yours ›') : tr('🧑‍💼 Crie seu presidente e apareça aqui ›', '🧑‍💼 Create your president and show up here ›')}
                 </LojaButton>
               </div>}
-              {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={196} /></div>}
-              {temLendas && <div style={{ position: 'absolute', left: 12, right: 12, bottom: -24, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', pointerEvents: 'none', zIndex: 1 }}><LendasNaMesa lendas={lendas!} /></div>}
+              {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={pc ? 270 : 196} /></div>}
+              {temLendas && <div style={{ position: 'absolute', left: 12, right: 12, bottom: -24, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', pointerEvents: 'none', zIndex: 1 }}><LendasNaMesa lendas={lendas!} larga={pc} /></div>}
               </div>
               {/* a mesa com os microfones e a plaquinha do presidente */}
-              <div style={{ margin: '-30px 22px 0', zIndex: 2, height: 54, background: `linear-gradient(180deg,#1b232c,${INK})`, border: `3px solid ${INK}`, borderRadius: '10px 10px 4px 4px', position: 'relative', display: 'flex', justifyContent: 'center', gap: 28 }}>
+              <div style={{ margin: pc ? '-40px 30px 0' : '-30px 22px 0', zIndex: 2, height: pc ? 72 : 54, background: `linear-gradient(180deg,#1b232c,${INK})`, border: `3px solid ${INK}`, borderRadius: '10px 10px 4px 4px', position: 'relative', display: 'flex', justifyContent: 'center', gap: 28 }}>
                 {[GOLD, RED, GREEN].map(c => (
                   <span key={c} style={{ position: 'relative', width: 8, height: 30, background: '#333', borderRadius: 4, marginTop: -22 }}>
                     <span style={{ position: 'absolute', top: -12, left: -6, width: 20, height: 16, borderRadius: 8, background: c, border: `2px solid ${INK}` }} />
                   </span>
                 ))}
-                <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', ...OSW, fontSize: 12, color: GOLD, letterSpacing: 1, whiteSpace: 'nowrap' }}>{tr('Presidente', 'President')} · {clube}</span>
+                <span style={{ position: 'absolute', bottom: pc ? 7 : 4, left: '50%', transform: 'translateX(-50%)', ...OSW, fontSize: pc ? 15 : 12, color: GOLD, letterSpacing: 1, whiteSpace: 'nowrap' }}>{tr('Presidente', 'President')} · {clube}</span>
               </div>
               {temLendas && <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 6, padding: '10px 10px 0' }}>{lendas!.map(l => (
                 <span key={l.nome + l.club} style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200)', color: INK, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '2px 9px', textAlign: 'center', ...OSW, fontSize: 12.5, lineHeight: 1.15 }}>{l.nome}<small style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 9, textTransform: 'none' }}>{l.club} · {l.year}</small></span>
               ))}</div>}
+              {pc ? (
+                <div style={{ marginTop: 18, background: 'rgba(255,255,255,.07)', border: '2px solid rgba(255,255,255,.18)', borderRadius: 14, padding: '14px 18px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, ...OSW }}>
+                  <span style={{ fontSize: 14, color: GOLD, letterSpacing: 1, flex: 'none' }}>🎙️ {rodadaTxt}</span>
+                  {placar && <span style={{ fontSize: 22, textAlign: 'right' }}>{placar}</span>}
+                </div>
+              ) : (
               <div style={{ padding: '10px 14px 0', display: 'flex', justifyContent: 'space-between', gap: 8, ...OSW, fontSize: 11, letterSpacing: 1, color: GOLD }}>
                 <span>🎙️ {rodadaTxt}</span>{placar && <span style={{ color: '#fff', opacity: .85, textAlign: 'right' }}>{placar}</span>}
               </div>
-              <div style={{ margin: '8px 12px 0', display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-                <Reporter id={rep.id} />
-                <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: '4px 16px 16px 16px', padding: '8px 11px', boxShadow: '3px 3px 0 #000', fontSize: 14, fontWeight: 700, lineHeight: 1.3, color: INK }}>
-                  <span style={{ display: 'inline-block', ...OSW, fontSize: 10, background: rep.cor, color: rep.cor === GOLD ? INK : '#fff', borderRadius: 5, padding: '1px 6px', marginBottom: 4, letterSpacing: .5 }}>🎤 {rep.nome} · {par(rep.veiculo)}</span><br />
+              )}
+              </div>
+              <div>
+              <div style={{ margin: pc ? 0 : '8px 12px 0', display: 'flex', gap: pc ? 14 : 9, alignItems: 'flex-start' }}>
+                <Reporter id={rep.id} size={pc ? 64 : 44} />
+                <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: pc ? '4px 20px 20px 20px' : '4px 16px 16px 16px', padding: pc ? '14px 18px' : '8px 11px', boxShadow: pc ? '4px 4px 0 #000' : '3px 3px 0 #000', fontSize: pc ? 22 : 14, fontWeight: 700, lineHeight: 1.3, color: INK }}>
+                  <span style={{ display: 'inline-block', ...OSW, fontSize: pc ? 12 : 10, background: rep.cor, color: rep.cor === GOLD ? INK : '#fff', borderRadius: 5, padding: '1px 6px', marginBottom: 4, letterSpacing: .5 }}>🎤 {rep.nome} · {par(rep.veiculo)}</span><br />
                   “{preenche(pronta.pergunta, pronta.vars)}”
                 </div>
               </div>
-              <div style={{ margin: '10px 12px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ margin: pc ? '20px 0 0' : '10px 12px 0', display: 'flex', flexDirection: 'column', gap: pc ? 14 : 8 }}>
                 {pronta.opcoes.map(o => (
                   <button key={o.estilo} onClick={() => { const r = resolve(o.estilo); setEscolha({ estilo: o.estilo, manchete: r.manchete, efeito: r.efeito ?? o.efeito, frase: o.frase }) }}
-                    style={{ textAlign: 'left', background: ESTILO_IC[o.estilo].card, border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 10px', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: '34px 1fr', gap: 8, alignItems: 'center', cursor: 'pointer', color: INK }}>
-                    <span style={{ width: 34, height: 34, borderRadius: 10, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: ESTILO_IC[o.estilo].bg }}>{ESTILO_IC[o.estilo].ic}</span>
+                    style={{ textAlign: 'left', background: ESTILO_IC[o.estilo].card, border: `3px solid ${INK}`, borderRadius: pc ? 16 : 14, padding: pc ? '14px 16px' : '8px 10px', boxShadow: pc ? '4px 4px 0 #000' : '3px 3px 0 #000', display: 'grid', gridTemplateColumns: pc ? '52px 1fr' : '34px 1fr', gap: pc ? 14 : 8, alignItems: 'center', cursor: 'pointer', color: INK }}>
+                    <span style={{ width: pc ? 52 : 34, height: pc ? 52 : 34, borderRadius: pc ? 12 : 10, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: pc ? 26 : 18, background: ESTILO_IC[o.estilo].bg }}>{ESTILO_IC[o.estilo].ic}</span>
                     <span>
-                      <span style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: 13.5, lineHeight: 1.2 }}>“{preenche(o.frase, pronta.vars)}”</span>
-                      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, opacity: .75, marginTop: 2 }}>{par(o.efeito.txt)}{o.promessa ? ` · ${tr('⚠️ é uma PROMESSA: o jornal cobra no fim', '⚠️ it is a PROMISE: the paper will hold you to it')}` : ''}</span>
+                      <span style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: pc ? 19 : 13.5, lineHeight: 1.2 }}>“{preenche(o.frase, pronta.vars)}”</span>
+                      <span style={{ display: 'block', fontSize: pc ? 13 : 11, fontWeight: 600, opacity: .75, marginTop: pc ? 3 : 2 }}>{par(o.efeito.txt)}{o.promessa ? ` · ${tr('⚠️ é uma PROMESSA: o jornal cobra no fim', '⚠️ it is a PROMISE: the paper will hold you to it')}` : ''}</span>
                     </span>
                   </button>
                 ))}
               </div>
-              <button onClick={() => onFim(null, true)} style={{ display: 'block', margin: '12px auto 0', background: 'none', border: 'none', color: '#fff', ...OSW, fontSize: 12, letterSpacing: 1, opacity: .8, textDecoration: 'underline', cursor: 'pointer' }}>{tr('pular a coletiva ›', 'skip the presser ›')}</button>
+              <button onClick={() => onFim(null, true)} style={{ display: 'block', margin: pc ? '20px auto 0' : '12px auto 0', background: 'none', border: 'none', color: '#fff', ...OSW, fontSize: pc ? 14 : 12, letterSpacing: 1, opacity: .8, textDecoration: 'underline', cursor: 'pointer' }}>{tr('pular a coletiva ›', 'skip the presser ›')}</button>
+              </div>
             </div>
           </div>
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto', background: CREME, padding: 14, color: INK }}>
+          <div style={{ flex: 1, overflowY: 'auto', background: CREME, padding: pc ? '30px 24px' : 14, color: INK }}>
+            <div style={pc ? { maxWidth: 760, margin: '0 auto' } : undefined}>
             <div style={{ background: '#FFFDF4', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' }}>
               <div style={{ background: INK, color: GOLD, ...OSW, fontSize: 22, textAlign: 'center', padding: 8, letterSpacing: 2 }}>O MARTELO</div>
-              {temLendas && <FotoLendas lendas={lendas!} />}
-              <div style={{ padding: '12px 14px 4px', ...OSW, fontSize: 24, lineHeight: 1.08 }}>{escolha.manchete ? par(escolha.manchete) : `“${preenche(escolha.frase, pronta.vars)}”`}</div>
-              <div style={{ padding: '4px 14px 12px', fontSize: 13, fontStyle: 'italic', opacity: .8 }}>“{preenche(escolha.frase, pronta.vars)}” — {tr('presidente do', 'president of')} {clube}{placar ? ` · ${placar}` : ''}</div>
+              {temLendas && <FotoLendas lendas={lendas!} altura={pc ? 260 : 170} />}
+              <div style={{ padding: pc ? '18px 22px 6px' : '12px 14px 4px', ...OSW, fontSize: pc ? 38 : 24, lineHeight: 1.08 }}>{escolha.manchete ? par(escolha.manchete) : `“${preenche(escolha.frase, pronta.vars)}”`}</div>
+              <div style={{ padding: pc ? '4px 22px 18px' : '4px 14px 12px', fontSize: pc ? 16 : 13, fontStyle: 'italic', opacity: .8 }}>“{preenche(escolha.frase, pronta.vars)}” — {tr('presidente do', 'president of')} {clube}{placar ? ` · ${placar}` : ''}</div>
             </div>
             {escolha.efeito && <div style={{ marginTop: 12, background: efeitoBom(escolha.efeito) ? '#E9F7EE' : efeitoRuim(escolha.efeito) ? '#FFE3D6' : '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 12px', fontSize: 13, fontWeight: 700 }}>{par(escolha.efeito.txt)}</div>}
             <button onClick={() => onFim(escolha.estilo, true)} style={{ width: '100%', marginTop: 14, background: GOLD, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 14, ...OSW, fontSize: 20, cursor: 'pointer', color: INK }}>▶ {seguirTxt}</button>
+            </div>
           </div>
         )}
       </div>
@@ -232,8 +251,9 @@ function RostoLenda({ l, w, h }: { l: { nome: string; club: string; year: number
   if (art) return <img src={art.src} alt={l.nome} style={{ width: w, height: h, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(3px 3px 0 #000)', flex: 'none' }} />
   return <span style={{ width: Math.round(w * .7), height: Math.round(h * .62), marginBottom: 30, border: `3px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200)', boxShadow: '3px 3px 0 #000', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSW, fontSize: Math.round(h * .28), color: INK, flex: 'none' }}>{l.nome.trim().charAt(0)}</span>
 }
-function LendasNaMesa({ lendas }: { lendas: { nome: string; club: string; year: number }[] }) {
-  const vis = lendas.slice(0, 4), n = vis.length, h = ALTURA_LENDA[n], w = Math.min(Math.round(h * .8), Math.floor((lendas.length > 4 ? 310 : 350) / n))
+function LendasNaMesa({ lendas, larga = false }: { lendas: { nome: string; club: string; year: number }[]; larga?: boolean }) {
+  const k = larga ? 1.35 : 1 // 🖥️ no computador a bancada é maior
+  const vis = lendas.slice(0, 4), n = vis.length, h = Math.round(ALTURA_LENDA[n] * k), w = Math.min(Math.round(h * .8), Math.floor((lendas.length > 4 ? 310 : 350) * k / n))
   return <>
     {vis.map(l => <RostoLenda key={l.nome + l.club} l={l} w={w} h={h} />)}
     {lendas.length > 4 && <span style={{ alignSelf: 'center', marginLeft: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 8px', ...OSW, fontSize: 13 }}>+{lendas.length - 4}</span>}
