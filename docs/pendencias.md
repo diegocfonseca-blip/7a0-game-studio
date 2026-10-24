@@ -10462,3 +10462,11 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   a mesma barra no topo de TODA aba (data + próximo jogo + ⏩/▶), Central = o dia, Jogos = lista de jogos com datas (vira o
   estádio no dia do jogo), Elenco/Tabelas/Rank/Clube = escritório que pausa o tempo. Copas seguem o mesmo calendário (quartas).
 - Pendente da conversa: espera no automático (recomendei 1s por dia vazio) e vaga da Copa pela temporada anterior.
+- ✅ 24/10 *"faça apenas no meu usuário… code pro meu tudo isso"* → ETAPA 1 FEITA (gate `CALENDARIO_*` em sport.ts, só a conta
+  dele): `calendario.ts` (datas puras: T1 = 2026, rodada r = r-ésimo domingo de fevereiro, Copa nas quartas DEPOIS da Liga por
+  enquanto; recado do dia seg/ter/qua/qui/sex/sáb) + `calendario-ui.tsx` (`CalendarioBarra`) + o bloco "CALENDÁRIO DA CARREIRA"
+  no pyramidseason: 1 s por dia vazio só com Central/Jogos na tela (escritório pausa), ⏩ Pular / ▶ Próximo adversário vão
+  direto, "▶ Ir pro jogo" quando o domingo chega com a Central aberta (lá o jogo nunca roda). O auto só faz `PLAY_ROUND`
+  com a semana acabada (`calDiasOk`). Conserto junto: o apito fica GUARDADO (`calApitado`) — na Central o `roundReady`
+  voltava a dizer "rodada rolando" com o jogo já acabado. Testado numa carreira de verdade (celular e PC).
+  ⏳ ETAPA 2 (a fazer): Copa intercalada nas quartas (vaga pela temporada anterior) + quarta livre devolve gás.

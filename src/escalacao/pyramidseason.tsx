@@ -53,7 +53,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry } from './condicao'
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry, GAS_CANSADO } from './condicao'
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
@@ -125,7 +125,9 @@ import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
-import { useColetiva } from './sport'
+import { useColetiva, useCalendarioCarreira } from './sport'
+import { CAL_MS_POR_DIA, HORA_LIGA, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
+import { CalendarioBarra, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
 import { useImagemBusto } from './presidente-avatar'
 import { entradaM2, novoMotor2, resultadoM2, sementeM2, taticaM2, carregaGuardados, tiraNovos, type EntradaM2 } from './motor2/carreira' // ⚽🧠 motor novo decide o seu jogo na carreira (20/10)
@@ -9759,6 +9761,46 @@ export function PyramidSeasonScreen() {
     const t = setTimeout(() => setRoundReady(true), Math.max(0, roundMs * 0.85 + 250 - rodouRef.current.ms))
     return () => { clearTimeout(t); rodouRef.current.ms += Date.now() - t0 }
   }, [round, roundMs,privateLeagueClock,stadiumMatch?.id, pausaCentral])
+  // ═══ 📅 CALENDÁRIO DA CARREIRA (24/10, só a conta do Diego — `useCalendarioCarreira`) ═══════════════════════════════
+  // Liga no domingo 16h, Copa na quarta 21h. Entre um jogo e outro os dias VAZIOS passam: no automático 1 dia por segundo
+  // (`CAL_MS_POR_DIA`), só com a Central ou o Jogos na tela — o escritório (Elenco/Tabelas/Rank/Clube) PARA o tempo; no
+  // manual nada anda sozinho e o "Próximo adversário" vai direto. ⏩ Pular também vai direto. É SÓ ritmo de tela: a rodada
+  // continua sendo a mesma `PLAY_ROUND` de sempre, então placar, tabela e save não mudam. Os dias não vão pro save (abrir a
+  // carreira de novo recomeça a semana do 1º dia vazio — é só o recado que repete).
+  const calLib = useCalendarioCarreira()
+  const calOn = calLib && !!state.careerOnline && state.onlineMode !== 'online' && !state.co2 && state.sport !== 'basquete'
+  const calSn = state.seasonNo ?? 1
+  const calTotal = calOn && round > 0 && round < 38 ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)).length : 0
+  const [calPasso, setCalPasso] = useState<{ r: number; s: number; i: number }>({ r: -1, s: -1, i: 0 })
+  const calI = calPasso.r === round && calPasso.s === calSn ? calPasso.i : 0
+  // 🔔 o apito fica GUARDADO: na Central o relógio do placar está escondido/pausado e o `roundReady` volta a dizer "rolando"
+  // mesmo com o jogo já acabado (foi o "embaralha tudo" que o Diego sentiu). Com o calendário, todo mundo lê ESTA marca.
+  const [calApitado, setCalApitado] = useState<{ r: number; s: number }>({ r: -1, s: -1 })
+  useEffect(() => { if (round > 0 && revealed >= round && roundReady) setCalApitado(a => (a.r === round && a.s === calSn ? a : { r: round, s: calSn })) }, [round, revealed, roundReady, calSn])
+  const calJogoRolando = round > 0 && !(calApitado.r === round && calApitado.s === calSn) && (revealed < round || !roundReady)
+  const calFase: FaseCal = copaPlaying ? 'copa' : seasonOver ? 'fim' : round === 0 ? 'pre' : calJogoRolando ? 'jogo' : 'dias'
+  const calLivre = calFase === 'dias' && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
+  const calNaTela = tab === 'central' || tab === 'jogos'
+  // a semana só anda no AUTOMÁTICO, com o jogo da rodada já apitado e nada pendente
+  useEffect(() => {
+    if (!calOn || manual || !calLivre || !calNaTela || calI >= calTotal) return
+    const t = setTimeout(() => setCalPasso({ r: round, s: calSn, i: calI + 1 }), CAL_MS_POR_DIA)
+    return () => clearTimeout(t)
+  }, [calOn, manual, calLivre, calNaTela, calI, calTotal, round, calSn])
+  // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular)
+  const calDiasOk = !calOn || round === 0 || round >= 38 || calI >= calTotal
+  // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
+  const calPassados = useMemo(() => {
+    const out: { r: number; m: SimMatch }[] = []
+    if (!calOn || tab !== 'jogos' || !myDiv || calFase !== 'dias') return out
+    for (const r of [round - 1, round]) {
+      if (r < 1) continue
+      const sim = r === round ? live : simulaAte(r)
+      const m = (sim.matches[myDiv] ?? []).find(x => x.hId === youId || x.aId === youId)
+      if (m) out.push({ r, m })
+    }
+    return out
+  }, [calOn, tab, myDiv, calFase, round, live, simulaAte, youId])
   useEffect(() => {
     // para de avançar quando a 38ª foi jogada (seasonOver), mesmo antes do fim
     // "revelar" (endShown) — senão dispararia PLAY_ROUND à toa durante a última anim.
@@ -9777,11 +9819,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen) return
+    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -10221,6 +10263,52 @@ export function PyramidSeasonScreen() {
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
   const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) { abreColetiva(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */ if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
+  const calBarra = (() => {
+    if (!calOn || !myDiv) return null
+    const divSeedCal = (seasonSeed ^ (myDiv.charCodeAt(0) * 2654435761)) >>> 0
+    const par = (r: number) => r >= 1 && r <= 38 ? confrontoDaRodada(world[myDiv] ?? [], divSeedCal, r).find(([h, a]) => h.teamId === youId || a.teamId === youId) : undefined
+    const advDe = (pr: [SimTeam, SimTeam] | undefined) => pr ? (pr[0].teamId === youId ? { adv: pr[1].name, casa: true } : { adv: pr[0].name, casa: false }) : null
+    const rProx = round === 0 ? 1 : calJogoRolando ? round : round + 1
+    const pp = !seasonOver ? advDe(par(rProx)) : null
+    const prox = pp && rProx <= 38 ? { dia: diaDaRodada(calSn, rProx), hora: HORA_LIGA, comp: tr('Liga', 'League'), adv: pp.adv, casa: pp.casa } : null
+    const vazios = calFase === 'dias' ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)) : []
+    const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? diaDaFaseCopa(calSn, copaRound) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
+    const naCentral = tab === 'central'
+    const grande = naCentral || tab === 'jogos'
+    const pausado = calFase === 'dias' && !manual && !grande && calI < calTotal
+    let recado = null as ReturnType<typeof recadoDoDia> | null
+    if (grande && calFase === 'dias') {
+      const minha = tables[myDiv] ?? []
+      const eu = minha.find(t => t.you)
+      const ult = calPassados.length ? calPassados[calPassados.length - 1].m : (live.matches[myDiv] ?? []).find(x => x.hId === youId || x.aId === youId)
+      const nomePorId = new Map((mgrMe?.squad ?? []).map(c => [c.id, c.name] as const))
+      const fora = suspenso ? nomePorId.get(suspenso.cardId) : undefined
+      const ctx: CtxRecado = {
+        temporada: calSn, proxAdv: pp?.adv, proxCasa: pp?.casa,
+        pos: minha.findIndex(t => t.you) + 1 || undefined, divNome: DIV_NAME[myDiv], lider: minha[0] && !minha[0].you ? minha[0].name : undefined, liderPts: minha[0]?.pts, meusPts: eu?.pts,
+        ultimo: ult ? (ult.hId === youId ? { gf: ult.hg, ga: ult.ag, adv: ult.a } : { gf: ult.ag, ga: ult.hg, adv: ult.h }) : undefined,
+        cansados: condGas ? myXI.filter(c => (condGas[c.id] ?? 100) < GAS_CANSADO).length : 0,
+        suspensos: fora && suspenso?.tipo !== 'lesao' ? [fora] : [], machucados: fora && suspenso?.tipo === 'lesao' ? [fora] : [],
+      }
+      recado = recadoDoDia(calI > 0 ? hoje : diaDaRodada(calSn, round) + 86400000, ctx)
+    }
+    const diasDeJogo: Record<number, 'liga' | 'copa'> = {}
+    for (let r = Math.max(1, round - 1); r <= Math.min(38, round + 2); r++) diasDeJogo[diaDaRodada(calSn, r)] = 'liga'
+    let jogos: JogoCal[] | null = null
+    if (tab === 'jogos' && calFase === 'dias') {
+      jogos = calPassados.map(({ r, m }) => {
+        const casa = m.hId === youId, gf = casa ? m.hg : m.ag, ga = casa ? m.ag : m.hg
+        return { dia: diaDaRodada(calSn, r), comp: 'liga', adv: casa ? m.a : m.h, casa, res: `${gf}-${ga}`, cls: gf > ga ? 'v' : gf === ga ? 'e' : 'd' } as JogoCal
+      })
+      for (let r = round + 1; r <= Math.min(38, round + 4); r++) { const a = advDe(par(r)); if (a) jogos.push({ dia: diaDaRodada(calSn, r), comp: 'liga', adv: a.adv, casa: a.casa, prox: r === round + 1 }) }
+    }
+    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: calTotal }); escolheAba('jogos') }
+    return <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={grande} naCentral={naCentral}
+      recado={recado} jogos={jogos} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo}
+      onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')}
+      onProximo={() => { escolheAba('jogos'); avancarRodada() }} />
+  })()
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -10302,7 +10390,7 @@ export function PyramidSeasonScreen() {
     const meusPts = minha.find(t => t.you)?.pts ?? 0
     const vai = (t: AbaCarr) => () => escolheAba(t)
     // 🏟️ o próximo confronto (ou o que está rolando): só o par, nunca o placar
-    const rolando = round > 0 && (revealed < round || !roundReady)
+    const rolando = calOn ? calJogoRolando : round > 0 && (revealed < round || !roundReady) // 📅 com o calendário, o MESMO apito da barra
     const rNext = round === 0 ? 1 : rolando ? round : round + 1
     const proximo = (() => {
       if (seasonOver || rNext > 38) return null
@@ -10554,6 +10642,7 @@ export function PyramidSeasonScreen() {
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />
+        {calBarra}
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
