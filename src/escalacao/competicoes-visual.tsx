@@ -17,6 +17,8 @@ const INK = '#0C0C0C'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
 
 export type CompId = 'liga' | 'copa8' | 'liberta' | 'champions' | 'mundo' | 'mundial' | 'riosp' | 'sulminas' | 'nordeste'
+  // 🏆 carreira (24/10): as 5 divisões, a Copa e a Supercopa — o troféu é a arte da Sala de Troféus (`public/trofeus-v137/`)
+  | 'carV' | 'carD' | 'carC' | 'carB' | 'carA' | 'copabr' | 'supercopa'
 interface Comp {
   nome: [string, string]; bg: string; titulo: string; sub: string; vsBg: string; vsInk: string
   faixaBg: string; faixaInk: string; frase: [string, string]; campeao: [string, string]; conf: string[]; extra?: 'estrelas' | 'fumaca' | 'faixas' | 'sol'
@@ -31,6 +33,13 @@ export const COMPS: Record<CompId, Comp> = {
   riosp: { nome: ['Rio × São Paulo', 'Rio × São Paulo'], bg: 'linear-gradient(90deg,#1E88E5 0%,#64B5F6 48%,#5c5c5c 52%,#2B2B2B 100%)', titulo: '#FFFFFF', sub: '#F4ECD6', vsBg: '#F4ECD6', vsInk: INK, faixaBg: '#F4ECD6', faixaInk: INK, frase: ['biscoito × bolacha', 'biscoito × bolacha'], campeao: ['biscoito, bolacha e a taça', 'biscoito, bolacha and the cup'], conf: ['#1E88E5', '#F4ECD6', '#9E9E9E', '#fff'] },
   sulminas: { nome: ['Sul × Minas-Paraná', 'South × Minas-Paraná'], bg: 'radial-gradient(ellipse at 50% 40%,#2e7d32,#0E3B1A 72%)', titulo: '#FFC400', sub: '#F4ECD6', vsBg: '#FFC400', vsInk: '#0E3B1A', faixaBg: '#FFC400', faixaInk: INK, frase: ['chimarrão × pão de queijo', 'mate × cheese bread'], campeao: ['rei do sul e das gerais', 'king of the south'], conf: ['#FFC400', '#2FBF5A', '#F4ECD6', '#6D4C41'] },
   nordeste: { nome: ['Copa do Nordeste', 'Northeast Cup'], bg: 'radial-gradient(ellipse at 50% 30%,#F08A2E,#7A3B12 75%)', titulo: '#FFF3B0', sub: '#FFE79A', vsBg: '#FFC400', vsInk: '#7A3B12', faixaBg: '#FFC400', faixaInk: '#3a1a06', frase: ['sol, cordel e forró', 'sun, cordel and forró'], campeao: ['rei do nordeste', 'king of the northeast'], conf: ['#FFC400', '#E86A1C', '#1B7A3D', '#fff'], extra: 'sol' },
+  carV: { nome: ['Várzea', 'Várzea'], bg: 'radial-gradient(ellipse at 50% 40%,#9a6631,#2b1608 72%)', titulo: '#FFE79A', sub: '#F4ECD6', vsBg: '#FFE79A', vsInk: '#2b1608', faixaBg: '#FFE79A', faixaInk: '#2b1608', frase: ['do terrão pra glória', 'from the dirt to glory'], campeao: ['rei do terrão', 'king of the dirt pitch'], conf: ['#FFE79A', '#C98A3A', '#F4ECD6', '#fff'], extra: 'sol' },
+  carD: { nome: ['Série D', 'Série D'], bg: 'radial-gradient(ellipse at 50% 40%,#2a8a4c,#06240f 72%)', titulo: '#FFFFFF', sub: '#C8F2D5', vsBg: '#F4ECD6', vsInk: '#06240f', faixaBg: '#F4ECD6', faixaInk: '#06240f', frase: ['a subida começa aqui', 'the climb starts here'], campeao: ['campeão da Série D', 'Série D champion'], conf: ['#2FBF5A', '#F4ECD6', '#FFC400', '#fff'] },
+  carC: { nome: ['Série C', 'Série C'], bg: 'radial-gradient(ellipse at 50% 40%,#2f6bae,#0b1d38 72%)', titulo: '#FFFFFF', sub: '#CFE2F7', vsBg: '#CFE2F7', vsInk: '#0b1d38', faixaBg: '#FFFFFF', faixaInk: '#0b1d38', frase: ['o meio do caminho', 'halfway up the mountain'], campeao: ['campeão da Série C', 'Série C champion'], conf: ['#5AA0E8', '#FFFFFF', '#FFC400', '#CFE2F7'] },
+  carB: { nome: ['Série B', 'Série B'], bg: 'radial-gradient(ellipse at 50% 40%,#7c3aed,#1c0a3a 72%)', titulo: '#FFFFFF', sub: '#E3D4FF', vsBg: '#D5DCE4', vsInk: '#1c0a3a', faixaBg: '#D5DCE4', faixaInk: '#1c0a3a', frase: ['a porta da elite', 'the door to the elite'], campeao: ['campeão da Série B', 'Série B champion'], conf: ['#B794FF', '#D5DCE4', '#FFC400', '#fff'], extra: 'estrelas' },
+  carA: { nome: ['Série A', 'Série A'], bg: 'radial-gradient(ellipse at 50% 40%,#5a4510,#0C0C0C 72%)', titulo: '#FFC400', sub: '#F4ECD6', vsBg: '#FFC400', vsInk: INK, faixaBg: '#FFC400', faixaInk: INK, frase: ['o topo do Brasil', 'the top of Brazil'], campeao: ['campeão da Série A', 'Série A champion'], conf: ['#FFC400', '#FFE79A', '#1B7A3D', '#fff'], extra: 'faixas' },
+  copabr: { nome: ['Copa do Brasil', 'Copa do Brasil'], bg: 'linear-gradient(160deg,#0a3d1d,#1B7A3D 55%,#c9a000 150%)', titulo: '#FFE79A', sub: '#FFFFFF', vsBg: '#FFC400', vsInk: '#0a3d1d', faixaBg: '#FFC400', faixaInk: INK, frase: ['mata-mata do país inteiro', 'the whole country\u2019s knockout'], campeao: ['campeão da Copa', 'cup champion'], conf: ['#FFC400', '#1B7A3D', '#2F6BAE', '#fff'] },
+  supercopa: { nome: ['Supercopa', 'Super Cup'], bg: 'radial-gradient(ellipse at 50% 40%,#c2452f,#2a0805 72%)', titulo: '#FFFFFF', sub: '#FFD9D2', vsBg: '#FFC400', vsInk: INK, faixaBg: '#FFC400', faixaInk: INK, frase: ['campeão contra campeão', 'champion versus champion'], campeao: ['campeão da Supercopa', 'Super Cup champion'], conf: ['#E8503A', '#FFC400', '#fff', '#FFD9D2'], extra: 'fumaca' },
 }
 
 // ── os troféus (desenho vetorial, leve; inspirados nos reais, sem logo) ──────────────────────────────────────────
@@ -43,9 +52,13 @@ function Grads({ id }: { id: string }) {
     <linearGradient id={`${id}m`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5a3a1e" /><stop offset="1" stopColor="#2b1a0c" /></linearGradient>
   </defs>
 }
+const TROFEU_CARREIRA: Partial<Record<CompId, string>> = { carV: 'liga-V', carD: 'liga-D', carC: 'liga-C', carB: 'liga-B', carA: 'liga-A', copabr: 'copa', supercopa: 'supercopa' }
 export function Trofeu({ comp, size = 120 }: { comp: CompId; size?: number }) {
+  // 🏆 carreira: a MESMA arte da Sala de Troféus (arquivo separado, só baixa quem vê)
+  const arte = TROFEU_CARREIRA[comp]
+  if (arte) return <img src={`${import.meta.env.BASE_URL}trofeus-v137/${arte}.webp`} alt="" width={size} height={Math.round(size * 170 / 120)} style={{ display: 'block', objectFit: 'contain', filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,.55))' }} />
   const id = `tr-${comp}`, o = `url(#${id}o)`, pr = `url(#${id}p)`
-  const corpo: Record<CompId, ReactNode> = {
+  const corpo: Partial<Record<CompId, ReactNode>> = {
     mundo: <><rect x="38" y="138" width="44" height="22" rx="4" fill={o} {...S} /><rect x="38" y="143" width="44" height="5" fill={`url(#${id}v)`} /><rect x="38" y="152" width="44" height="5" fill={`url(#${id}v)`} /><path d="M44 138 C30 110,40 92,52 82 C44 70,46 56,60 52 C74 56,76 70,68 82 C80 92,90 110,76 138 Z" fill={o} {...S} /><path d="M50 128 C46 112,54 100,60 94 M70 128 C74 112,66 100,60 94" fill="none" stroke="#9a6a00" strokeWidth={2.5} /><circle cx="60" cy="40" r="24" fill={o} {...S} /><path d="M38 40 H82 M60 16 C48 28,48 52,60 64 M60 16 C72 28,72 52,60 64" fill="none" stroke="#9a6a00" strokeWidth={2} /></>,
     champions: <><rect x="34" y="140" width="52" height="20" rx="4" fill="#1a2a5c" {...S} /><path d="M52 140 L56 116 H64 L68 140 Z" fill={pr} {...S} /><path d="M34 34 H86 C86 80,76 108,60 116 C44 108,34 80,34 34 Z" fill={pr} {...S} /><path d="M36 42 C6 34,4 98,44 96 C30 86,22 54,36 52 Z" fill={pr} {...S} /><path d="M84 42 C114 34,116 98,76 96 C90 86,98 54,84 52 Z" fill={pr} {...S} /><ellipse cx="60" cy="34" rx="26" ry="6" fill="#c9d1da" {...S} /></>,
     liberta: <><path d="M30 140 H90 L84 162 H36 Z" fill={`url(#${id}m)`} {...S} /><rect x="40" y="146" width="40" height="8" fill="#C9A227" stroke={INK} strokeWidth={1.5} /><path d="M52 140 L55 118 H65 L68 140 Z" fill={pr} {...S} /><path d="M36 58 H84 C84 92,74 112,60 118 C46 112,36 92,36 58 Z" fill={pr} {...S} /><path d="M38 64 C24 62,24 88,42 92 M82 64 C96 62,96 88,78 92" fill="none" {...S} /><circle cx="60" cy="24" r="7" fill={pr} {...S} /><path d="M60 31 L60 46 M60 36 L50 44 M60 36 L70 30 M60 46 L52 56 M60 46 L70 56" stroke={INK} strokeWidth={4} strokeLinecap="round" /><circle cx="72" cy="56" r="4" fill="#fff" stroke={INK} strokeWidth={2} /></>,
@@ -78,11 +91,13 @@ const css = `
 `
 
 /** 🎬 O TÚNEL DA FINAL: no lugar da abertura de fase quando a próxima é a final (mesmo relógio). */
-export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
+export function TunelFinal({ comp, casa, fora, seg, total, espera, nomeComp, onFechar }: {
   comp: CompId; casa: { nome: string; crest: ReactNode }; fora: { nome: string; crest: ReactNode }
   seg: number | null; total: number; espera?: string
+  /** 🏆 carreira: o nome que o save usa (Copa do Brasil × Copa Legends) */ nomeComp?: [string, string]
+  /** carreira: o toque que fecha a tela cheia também solta o relógio */ onFechar?: () => void
 }) {
-  const c = COMPS[comp]
+  const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
   const pc = useTelaPC()
   // 🎬 23/10 (Diego numa live: *"não vi nada disso"*): na contagem do automático o túnel vira TELA CHEIA por cima de tudo,
   // como a festa — antes era um cartão dentro do quadro do topo e passava batido. Toque fecha. No MANUAL fica só o cartão
@@ -122,7 +137,7 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
   return <>
     {cartao}
     {createPortal(
-      <div onClick={() => setFechado(true)} style={{ position: 'fixed', inset: 0, zIndex: 99960, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${c.bg}, url(${estadioArt}) center / cover`, cursor: 'pointer', padding: 16 }}>
+      <div onClick={() => { setFechado(true); onFechar?.() }} style={{ position: 'fixed', inset: 0, zIndex: 99960, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${c.bg}, url(${estadioArt}) center / cover`, cursor: 'pointer', padding: 16 }}>
         <style>{css}</style>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.35)' }} />
         <div style={{ position: 'relative', width: '100%', maxWidth: 520, zoom: pc ? 1.55 : 1.08 } as CSSProperties}>{cartao}
@@ -137,15 +152,16 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
 /** 🏆 A FESTA DO CAMPEÃO: por cima da tela de fim, ~5,5 s, toque pula. */
 /** ⚽🅰️ quem fez mais gols / deu mais passes na competição (pra festa) */
 export type DestaqueFesta = { nome: string; time: string; n: number }
-export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom }: {
+export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp }: {
   comp: CompId; nome: string; crest: ReactNode; mascote?: ReactNode
+  /** 🏆 carreira: o nome que o save usa (Copa do Brasil × Copa Legends) */ nomeComp?: [string, string]
   /** ⚽ 23/10 (Diego: *"já poderia aparecer o artilheiro que ganhou a copa também"*) — e o 🅰️ garçom junto (regra dele: o que vale pro gol vale pra assistência) */
   artilheiro?: DestaqueFesta | null; garcom?: DestaqueFesta | null
   lendas?: { nome: string; club: string; year: number }[]; linha?: string
   /** quem está vendo É o campeão? (aí toca o canto do clube dele, se tiver; senão o grito de gol) */
   souCampeao?: boolean; onDone: () => void
 }) {
-  const c = COMPS[comp]
+  const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
   const DUR = 5600
   const [saindo, setSaindo] = useState(false)
   useEffect(() => {

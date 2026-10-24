@@ -31,7 +31,8 @@ import { summarizeInternationalCampaign } from './career-international-summary'
 import { CompetitionStage, RoundMatchPresentation, useRoundPresentationStart } from './online-match-visual'
 import { Escudo } from './escudos'
 import { SeloClube } from './selo-clube'
-import { mascoteKeyDoTime, FestaoMascote } from './mascotes'
+import { mascoteKeyDoTime, MASCOTES } from './mascotes'
+import { FestaCampeao, type CompId } from './competicoes-visual' // 🏆 festa do campeão (24/10)
 import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
@@ -515,7 +516,8 @@ export function CareerInternationalView(p: Props) {
   const [club, setClubRaw] = useState<string | null>(escolhaSalva?.club ?? null)
   const aceita = (cv: Convite) => { gravaEscolha(p.season, p.seed, cv.comp, cv.club); setComp(cv.comp); setClubRaw(cv.club); setRecusado(null) }
   const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season, p.seed))
-  const [celebrate, setCelebrate] = useState(false)
+  // 🏆 24/10: a festa do campeão (a mesma das salas) — guarda QUAL título: Libertadores, Champions ou Mundial
+  const [celebrate, setCelebrate] = useState<CompId | null>(null)
   // 🔇 CONTRA BOTÃO MUDO: confirmou e a campanha não começou? Avisa e devolve os convites.
   const [esperando, setEsperando] = useState(0)
   const [recusado, setRecusado] = useState<string | null>(null)
@@ -582,7 +584,9 @@ export function CareerInternationalView(p: Props) {
   const startedAt = useRoundPresentationStart(reveal * 10 + jogo)
   const avancar = () => {
     if (!current) return
-    if (rep && (faseFoco?.title === 'Final' && (current.libertadoresChampion === rep || current.championsChampion === rep) || faseFoco?.competition === 'mundial' && current.mundialChampion === rep) && mascoteKeyDoTime(p.userTeam)) setCelebrate(true)
+    if (rep && faseFoco?.competition === 'mundial' && current.mundialChampion === rep) setCelebrate('mundial')
+    else if (rep && faseFoco?.title === 'Final' && current.libertadoresChampion === rep) setCelebrate('liberta')
+    else if (rep && faseFoco?.title === 'Final' && current.championsChampion === rep) setCelebrate('champions')
     p.onAdvance()
   }
   const proximo = () => { if (!ultimoJogo) { setJogo(j => j + 1); setFimJogo(false) } else avancar() }
@@ -746,7 +750,8 @@ export function CareerInternationalView(p: Props) {
     </section>
   }
   return <section style={frame} aria-label="Futebol internacional de clubes">
-    {celebrate && mascoteKeyDoTime(p.userTeam) && <FestaoMascote nome={p.userTeam} mascote={mascoteKeyDoTime(p.userTeam)!} onDone={() => setCelebrate(false)} />}
+    {celebrate && rep && (() => { const mk = mascoteKeyDoTime(p.userTeam); return <FestaCampeao comp={celebrate} nome={nomeDe(rep)} crest={crestOf(current, rep, 150)}
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} linha={`${tr('técnico', 'coach')}: ${p.userTeam}`} souCampeao onDone={() => setCelebrate(null)} /> })()}
     {acabou ? <>
       {/* ── FIM: campeões + encerrar ── */}
       <Faixa comp={foco ?? 'libertadores'} titulo={tr('Campanha encerrada', 'Campaign over')} sub={rep ? `${rep} · ${tr('técnico', 'coach')}: ${p.userTeam}` : tr('você acompanhou a', 'you followed the') + ' ' + nomeComp(foco!)} />

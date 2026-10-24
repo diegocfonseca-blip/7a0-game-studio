@@ -70,7 +70,8 @@ import type { ElencoPlayerRow } from './jornal'
 import { StadiumTab, StadiumSvg, MasterBanner, MasterFaixa, sponsorLogoEstampa, FornFaixa, FornBanner } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
-import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { Escudo, escudoDe, nomeLimpo } from './escudos'
+import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
 import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
@@ -111,7 +112,7 @@ import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, BEGE_MANTO, type EstadoJogador } from './jogadorcampo'
-import { MASCOTES, FestaoMascote, carimboDoTime, mascoteInteiraDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
+import { MASCOTES, carimboDoTime, mascoteInteiraDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
 import careerRoomPrivate from './img/career-setup-room-private.webp'
 import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
@@ -8534,19 +8535,7 @@ export function PyramidSeasonScreen() {
   const { scorers, scorersAll, goalsByCard, assistsByCard, assistsAll, divTop } = shown
   const tables = shown.tables
   const me = myStanding(tables)
-  // 🐊 FESTÃO DA MASCOTE na carreira: campeão da DIVISÃO (pós-apito da 38ª —
-  // `done` espera a última rodada animar) — 1x por temporada, toque pula.
-  const meuSocFesta = useMeuSocio()
-  const mascKeyFesta = done && me?.pos === 1 && meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? meuSocFesta.mascoteKey : null
-  const festaKeyC = `esc-festa-carreira-${state.seed}-${state.seasonNo}`
-  const [festaOnC, setFestaOnC] = useState(false)
-  useEffect(() => {
-    if (!mascKeyFesta) return
-    try { if (sessionStorage.getItem(festaKeyC) === '1') return } catch { /* segue */ }
-    setFestaOnC(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mascKeyFesta])
-  const fecharFestaC = () => { setFestaOnC(false); try { sessionStorage.setItem(festaKeyC, '1') } catch { /* segue */ } }
+  const meuSocFesta = useMeuSocio() // 🐊 a mascote do dono vai na festa do campeão (mais abaixo, depois da Copa)
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   const intlEnabled = useInternacionalCarreiraLiberada()
@@ -8964,6 +8953,54 @@ export function PyramidSeasonScreen() {
     const champ = superTie.win === 'a' ? superTie.a : superTie.b, vice = superTie.win === 'a' ? superTie.b : superTie.a
     return { name: champ.name, you: !!champ.you, vs: vice.name }
   }, [superTie])
+  // 🏆 FESTA DO CAMPEÃO NA CARREIRA (24/10, Diego: *"a pessoa hoje é campeão e não tem graça nenhuma… pode publicar p todos"*,
+  // mockup `carreira-festa-campeao.png`). A MESMA festa das salas online (`FestaCampeao`), na paleta e com o troféu de cada
+  // campeonato: a divisão (no apito da 38ª), a Copa (no apito da final) e a Supercopa. Só pra quem GANHOU, 1x por temporada
+  // cada (sessionStorage), toque pula. Substitui o festão antigo da mascote (só sócio tinha): agora todo campeão tem festa, e a
+  // mascote do dono vai DENTRO dela (o mesmo teatro não aparece duas vezes). Enquanto a festa está na tela a Copa espera.
+  const mascKeyFesta = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? meuSocFesta.mascoteKey : null
+  const festaBaseC = `esc-festa2-carreira-${state.seed}-${state.seasonNo}`
+  type FestaC = { key: string; comp: CompId; nomeComp?: [string, string]; linha: string; artilheiro: DestaqueFesta | null; garcom: DestaqueFesta | null }
+  const festasC = useMemo<FestaC[]>(() => {
+    if (state.careerOnline && state.onlineMode === 'online') return [] // (carreira em sala tem a festa da sala)
+    const out: FestaC[] = []
+    const sn2 = state.seasonNo ?? 1
+    if (done && me?.pos === 1 && me.div) {
+      const tm = (tables[me.div] ?? []).find(t => t.you)
+      const g1 = shown.divTop?.[me.div]
+      const a1 = [...(shown.assistsAll ?? [])].filter(a => a.div === me.div).sort((x, y) => y.assists - x.assists || x.name.localeCompare(y.name))[0]
+      out.push({ key: 'liga', comp: `car${me.div}` as CompId, nomeComp: [DIV_NAME[me.div], DIV_NAME[me.div]],
+        linha: tm ? tr(`${tm.pts} pontos · ${tm.w} vitórias · Temporada ${sn2}`, `${tm.pts} points · ${tm.w} wins · Season ${sn2}`) : tr(`Temporada ${sn2}`, `Season ${sn2}`),
+        artilheiro: g1 && g1.goals > 0 ? { nome: g1.name, time: g1.teamName, n: g1.goals } : null,
+        garcom: a1 && a1.assists > 0 ? { nome: a1.name, time: a1.teamName, n: a1.assists } : null })
+    }
+    if (done && copa) {
+      const iFinal = copa.rounds.findIndex(r => r.name === 'Final')
+      if (copaRun?.status === 'campeao' && iFinal >= 0 && copaRound > iFinal) {
+        const t = copa.rounds[iFinal].ties.find(x => x.a.you || x.b.you)
+        out.push({ key: 'copa', comp: 'copabr', nomeComp: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
+          linha: t ? `${tr('final', 'final')}: ${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}` : '',
+          artilheiro: copa.topScorer && copa.topScorer.goals > 0 ? { nome: copa.topScorer.name, time: copa.topScorer.teamName, n: copa.topScorer.goals } : null,
+          garcom: copa.topAssist && copa.topAssist.assists > 0 ? { nome: copa.topAssist.name, time: copa.topAssist.teamName, n: copa.topAssist.assists } : null })
+      }
+      const iSuper = copa.rounds.findIndex(r => r.name === 'Supercopa')
+      if (superChamp?.you && superTie && iSuper >= 0 && copaRound > iSuper) {
+        const t = superTie
+        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: null, garcom: null })
+      }
+    }
+    return out
+  }, [done, me, tables, shown, copa, copaRun, copaRound, superChamp, superTie, copaBrOk, state.seasonNo, state.careerOnline, state.onlineMode])
+  const [festasVistasC, setFestasVistasC] = useState<string[]>(() => { try { return JSON.parse(sessionStorage.getItem(festaBaseC) ?? '[]') as string[] } catch { return [] } })
+  useEffect(() => { try { setFestasVistasC(JSON.parse(sessionStorage.getItem(festaBaseC) ?? '[]') as string[]) } catch { setFestasVistasC([]) } }, [festaBaseC])
+  const festaAgoraC = festasC.find(f => !festasVistasC.includes(f.key)) ?? null
+  const festaOnC = !!festaAgoraC
+  const fecharFestaC = () => {
+    if (!festaAgoraC) return
+    const v = [...festasVistasC, festaAgoraC.key]
+    setFestasVistasC(v)
+    try { sessionStorage.setItem(festaBaseC, JSON.stringify(v)) } catch { /* segue */ }
+  }
   // 🏛️🃏 CARTINHA POR CLUBE (Diego 11/10: *"ganhou a Série B e não ganhou cartinha… tudo ganha cartinha,
   // seja primeiro clube ou segundo clube"*). Antes o "bilhete" do pacote era UM por temporada
   // (`co:solo{seed}:{N}`): se os dois clubes eram campeões no mesmo ano, o 2º batia no bilhete já usado e
@@ -9073,6 +9110,27 @@ export function PyramidSeasonScreen() {
   // Só a conta autorizada e os XI válidos usam o relógio físico. A Copa online
   // mantém o relógio e a autoridade do host; os resultados não são recalculados.
   const copaCampo=!!myCopaTie&&!!contextoPartidaCompeticao({enabled:presidentAvailable&&state.onlineMode!=='online',id:'validar-copa',home:myCopaTie.a,away:myCopaTie.b})
+  // 🎬 TÚNEL DA FINAL NA CARREIRA (24/10): quando a fase que vai rolar é a FINAL da Copa ou a Supercopa, e o seu time está
+  // nela, o túnel em tela cheia (o mesmo das salas) faz a contagem de 4s antes da bola rolar — o relógio da Copa ESPERA o
+  // túnel (igual espera a Central) e o toque fecha na hora. 1x por fase por temporada. No Campo 2D o campinho tem relógio
+  // próprio, então lá o túnel não entra (pra não esconder o começo do jogo).
+  const tunelKey = `esc-tunel-carreira-${state.seed}-${state.seasonNo}-${copaRound}`
+  const ehFaseTunel = !!copaFase && (copaFase.name === 'Final' || copaFase.name === 'Supercopa') && !!myCopaTie && !copaCampo && !(state.careerOnline && state.onlineMode === 'online')
+  const [tunelSeg, setTunelSeg] = useState<number | null>(null)
+  useEffect(() => {
+    if (!ehFaseTunel) { setTunelSeg(null); return }
+    try { if (sessionStorage.getItem(tunelKey) === '1') return } catch { /* segue */ }
+    setTunelSeg(4)
+  }, [ehFaseTunel, tunelKey])
+  const fechaTunel = () => { setTunelSeg(null); try { sessionStorage.setItem(tunelKey, '1') } catch { /* segue */ } }
+  useEffect(() => {
+    if (tunelSeg == null) return
+    if (tunelSeg <= 0) { fechaTunel(); return }
+    const t = setTimeout(() => setTunelSeg(x => (x == null ? null : x - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [tunelSeg]) // eslint-disable-line react-hooks/exhaustive-deps
+  const tunelOn = tunelSeg != null && tunelSeg > 0
+  const pausaFesta = festaOnC || tunelOn // ⏸️ festa ou túnel na tela: a Copa para onde estava
   const reportMinuteCopaCampo=useCallback((legIndex:number,minute:number)=>{
     if(copaRoundRef.current!==copaRound)return
     setCopaPos(previous=>Math.max(previous,posicaoCopaNoCampo(legIndex,minute,copaNLegs)))
@@ -9096,7 +9154,7 @@ export function PyramidSeasonScreen() {
     if (!copaPlaying) return
     const clockKey=`${seasonSeed}:${copaRound}:${copaNLegs}:${copaFaseTotal}`
     if(copaClock.current.key!==clockKey){copaClock.current={key:clockKey,elapsed:0};setCopaPos(0);setCopaReady(false)}
-    if (pausaCentral) return // ⏸️ na Central a Copa para onde estava (volta do mesmo ponto)
+    if (pausaCentral || pausaFesta) return // ⏸️ na Central (ou com festa/túnel na tela) a Copa para onde estava (volta do mesmo ponto)
     // LiveScoreCard publica cada minuto e só libera a próxima perna no apito.
     // Um segundo timer aqui faria a volta começar com a bola da ida no ar.
     if(copaCampo)return
@@ -9127,7 +9185,7 @@ export function PyramidSeasonScreen() {
     return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral, pausaFesta])
   useEffect(()=>{
     if(!copaPlaying||!copaCampo||!copaCampoEncerrado)return
     // Pênaltis só entram depois do fim físico da última perna. Os mesmos
@@ -10691,7 +10749,16 @@ export function PyramidSeasonScreen() {
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
       <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn ? ' ll-cx-clube-limpo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
-        {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
+        {tunelOn && myCopaTie && copaFase && <div style={{ display: 'none' }}><TunelFinal comp={copaFase.name === 'Supercopa' ? 'supercopa' : 'copabr'}
+          nomeComp={copaFase.name === 'Supercopa' ? undefined : copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']}
+          seg={tunelSeg} total={4} onFechar={fechaTunel}
+          casa={{ nome: myCopaTie.a.name, crest: <Escudo nome={myCopaTie.a.name} size={92} /> }} fora={{ nome: myCopaTie.b.name, crest: <Escudo nome={myCopaTie.b.name} size={92} /> }} /></div>}
+        {festaAgoraC && (() => {
+          const nomeT = state.managers[state.youIdx]?.teamName ?? tr('Seu time', 'Your team')
+          return <FestaCampeao key={festaAgoraC.key} comp={festaAgoraC.comp} nomeComp={festaAgoraC.nomeComp} nome={nomeT} crest={<Escudo nome={nomeT} size={160} />}
+            mascote={mascKeyFesta ? MASCOTES[mascKeyFesta] : undefined} linha={festaAgoraC.linha} souCampeao onDone={fecharFestaC}
+            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} />
+        })()}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
         <AvisoContaCarreira />

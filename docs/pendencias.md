@@ -13,6 +13,31 @@ Diego aprovou variante temporária: próprio clube sempre padrão, rival só mud
 ## Câmeras do futebol 3D (24/10) — implementadas e validadas para publicação privada
 
 Pedido de Diego: Ver campo abre transmissão de futebol e oferece câmeras padrão. Transmissão, Lateral próxima, Ampla, Atrás do gol, Tática e Mapa livre implementadas. Lentes próprias, bola alta, panorâmica suave e zoom estável; escolha em controle nativo que cabe no celular. Trocar câmera não remonta mundo/partida; resize mantém preset e mapa recupera lente/pose. Corrigido caso de giro landscape→portrait com partida pausada: zoom pendente não podia encerrar o RAF antes de enquadrar a bola. Teto recebe recorte somente visual durante câmeras automáticas, preservando sombras e save. Build passou; 300 enquadramentos, 4.496 quadros em movimento e 20 giros pausados passaram. Componentes reais validados em desktop e celular emulado, cinco câmeras na mesma jogada, resize, avanço oficial, retorno livre e retrato→paisagem→retrato; sem erros JS/HTTP ou alteração da fonte. Nenhuma lógica oficial/DB alterada. Não equivale a FPS em aparelho físico. Testes e limites em `docs/cameras-futebol-3d.md`; capturas locais `test-results/camera-qa/`. Segue a publicação autorizada na mesma prévia privada; confirmar o workflow verde antes de informar que está no ar.
+## 🏆 Festa do campeão + túnel da final NA CARREIRA (24/10) — PUBLICADO PRA TODOS (*"a festa é final pode publicar p todos no carreira"*)
+- Pedido: *"a pessoa hoje é campeão e não tem graça nenhuma… não tem os troféus, não tem nada"* — todo título (Várzea → A, Copa,
+  Supercopa, Liberta/Champions/Mundial, Copa do Mundo). Proposta `scripts/mockups/carreira-festa-campeao.png`: as MESMAS peças do
+  online (`TunelFinal` antes da final das copas · `FestaCampeao` no apito, com canto do clube, artilheiro/garçom, mascote) e o troféu
+  da Sala de Troféus. Ordem: festa → tela "o que você levou" de sempre → roteiro. Paletas `carV…carA/copabr/supercopa` já estão em
+  `competicoes-visual.tsx`. Bancada `scripts/teste-festa-carreira`.
+- Onde mora: `pyramidseason.tsx` (`festasC`: liga no apito da 38ª, Copa depois da final, Supercopa — a Copa PAUSA enquanto a festa
+  ou o túnel estão na tela, `pausaFesta`; túnel 4s antes da Final/Supercopa em que o seu time joga, `tunelSeg`) ·
+  `career-international-view.tsx` (Liberta/Champions/Mundial, troca o festão antigo) · `copa-mundo.tsx` (Copa do Mundo da carreira,
+  só se a SUA seleção ganhar). O festão antigo da mascote (só sócio) saiu da carreira: a mascote vai dentro da festa.
+- Ficou de fora: túnel no Campo 2D (o campinho tem relógio próprio), túnel nas finais internacionais e na Copa do Mundo da
+  carreira, artilheiro/garçom na festa internacional e na Supercopa. A festa reaparece 1x se recarregar a página no fim da
+  temporada (mesma régua do festão antigo).
+
+## 🔗 Entrosamento na carreira (24/10) — RECUSADO pelo Diego (*"entrosamento n faça"*), código revertido. Não repropor.
+- `entrosamento.ts` (regra) · simulação da liga (`simDivTo`, pelo `entroDesde`, liga a partir do próximo jogo) · selo 🔗+N no
+  campinho do Elenco + caixa embaixo · etiqueta no leilão (envelope). Trava `npm run entrosamento`. Liberar: `ENTRO_GERAL` (sport.ts).
+  Falta: copas da carreira (hoje só a liga usa) e as linhas tracejadas do mockup (no lugar, cor do selo por grupo).
+
+## (ideia original do entrosamento)
+- Diego gostou da ideia (*"gostei do entrosamento… talvez ganha cada um +1 de over"*). Proposta no mockup
+  `scripts/mockups/carreira-entrosamento.png`: cartas do MESMO clube e MESMO ano juntas no TITULAR → 2 juntas +1 cada · 3+ juntas
+  +2 cada (teto) · banco não conta · só carreira. No campinho: selo 🔗+1/+2 no boneco e linha tracejada ligando o grupo; caixa
+  "Entrosamento no time titular" embaixo; no leilão, etiqueta "entrosa com X e Y" (só o que ele JÁ tem — nível segue escondido).
+  368 grupos com 2+ cartas no baralho hoje. Narração própria quando o grupo tabela. Nada feito no código ainda.
 
 ## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — PUBLICADO ("coloque esse áudio e publique")
 - Pedido: *"entrada de gala personalizada… o saci chegando num furacão… em breve dou o canto"*. `gala-guimaraes.tsx` (8,6 s):

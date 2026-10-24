@@ -1132,8 +1132,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   const tatSala = online?.tat
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes, forte, m2, tatSala), [entrants, seed, seasonNo, potes, forte, m2, tatSala])
   // 🏆 FESTA DO CAMPEÃO na sala (23/10): quando a Copa acaba, a festa na paleta da Copa do Mundo, 1x por edição
-  const festaMundoKey = online ? `esc-festa-mundo-${online.seasonKey}` : ''
-  const [festaMundoVista, setFestaMundoVista] = useState(() => { if (!online) return true; try { return sessionStorage.getItem(festaMundoKey) === '1' } catch { return false } })
+  // 🏆 24/10: na CARREIRA também — só quando a SUA seleção levanta a taça (Diego: "a festa… pode publicar p todos no carreira")
+  const festaMundoKey = online ? `esc-festa-mundo-${online.seasonKey}` : `esc-festa-mundo-car-${seed}-${seasonNo}`
+  const [festaMundoVista, setFestaMundoVista] = useState(() => { try { return sessionStorage.getItem(festaMundoKey) === '1' } catch { return false } })
 
   // step = revelações FEITAS (GR = rodadas de grupo): 1..GR rodadas de grupo ·
   // GR+1 sorteio · GR+2 oitavas · GR+3 quartas · GR+4 semis · GR+5 final ·
@@ -1653,7 +1654,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
         </div>
       )}
 
-      {done && online && !festaMundoVista && <FestaCampeao comp="mundo" nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
+      {done && (online || isYou(world.final.champion)) && !festaMundoVista && <FestaCampeao comp="mundo" nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
         souCampeao={isYou(world.final.champion)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
         artilheiro={(() => { const r = artilhariaDaCopa(world)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = [...copaStats(world, step, liveDone).assists].sort((x, y) => y.total - x.total || x.name.localeCompare(y.name))[0]; return r && r.total > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.total } : null })()}
