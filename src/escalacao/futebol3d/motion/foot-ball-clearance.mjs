@@ -74,6 +74,17 @@ export function constrainFootBall(actor,side,ball,{radius=.11,maxCorrection=.08,
    if(best.gap<=previousGap+1e-6)break;
   }
  }
+ // A successful 8 cm escape is a bracket, not the desired contact pose.
+ // Refine it toward the imported pose so a first touch is not followed by
+ // a visible 5–6 cm gap. The same reach/joint/floor limits still apply.
+ if(best.gap>margin+.002&&hit.distance-radius<margin){
+  const goalPose=bestPose.map(q=>q.clone()),goalPositions=bestPositions.map(p=>p.clone());let low=0,high=1;
+  for(let j=0;j<18;j++){
+   const fraction=(low+high)/2;bones.forEach((b,i)=>{b.quaternion.copy(originals[i]).slerp(goalPose[i],fraction);b.position.copy(originalPositions[i]).lerp(goalPositions[i],fraction)});actor.holder.updateMatrixWorld(true);
+   const ts=triangles(),gap=nearest(ball,ts).distance-radius,lowest=floor(ts),correction=bones[2].getWorldPosition(new T.Vector3()).distanceTo(ankle),jointAngle=Math.max(...bones.map((b,i)=>b.quaternion.angleTo(originals[i])));
+   if(gap>=margin&&lowest>=Math.min(0,initialFloor)-1e-5&&correction<=maxCorrection+1e-5&&jointAngle<=maxAngle+1e-6){high=fraction;best={gap,floor:lowest,correction,jointAngle};bestPose=bones.map(b=>b.quaternion.clone());bestPositions=bones.map(b=>b.position.clone());}else low=fraction;
+  }
+ }
  bones.forEach((b,i)=>{b.quaternion.copy(bestPose[i]);b.position.copy(bestPositions[i])});actor.holder.updateMatrixWorld(true);actor.root.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
  return {...best,rawGap:hit.distance-radius,applied:best.correction>1e-6||best.jointAngle>1e-6,limited:best.gap<-.003};
 }

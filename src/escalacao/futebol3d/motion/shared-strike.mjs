@@ -46,6 +46,10 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
   if(t<=0)offset.fromArray(plan.rootCorrection).multiplyScalar(-2*s3+3*s2).addScaledVector(tangent,(s3-s2)*duration);else offset.fromArray(plan.rootCorrection).multiplyScalar(2*s3-3*s2+1).addScaledVector(tangent,(s3-2*s2+s)*duration);
   const length=offset.length();offset.clampLength(0,actor.maxPresentationOffset??.6);rootWarp={model:'bounded-hermite-root-velocity',limited:length>(actor.maxPresentationOffset??.6),nativeVelocity:native.clone().add(new T.Vector3().fromArray(plan.sourceVelocity)).toArray()};}
 
+ // While the source player still carries, keep the approach offset aligned
+ // with the CURRENT ball bearing. A fixed future kick offset could pull the
+ // body away from a ball being controlled on another heading.
+ if(plan.carryAlignedRoot&&frame.owner===plan.key&&frame.ball.y<.28&&time<plan.time-.04){const anchor=actor.sourceAnchor??{x:p.position.x,z:p.position.z},distance=Math.hypot(frame.ball.x-anchor.x,frame.ball.z-anchor.z);if(distance<1.2){const bearing=Math.atan2(frame.ball.x-anchor.x,frame.ball.z-anchor.z),turn=angle(bearing-plan.contactBallBearing)*smooth((plan.time-time-.04)/.16);offset.applyAxisAngle(new T.Vector3(0,1,0),turn);}}
  // Carry alignment hands off continuously to the captured strike. Full
  // capture still uses its original reviewed contact and root correction.
  offset.addScaledVector(baseRoot,1-(plan.rootApproach?rootWeight:weight));offset.clampLength(0,actor.maxPresentationOffset??.6);

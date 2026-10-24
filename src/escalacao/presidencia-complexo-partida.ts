@@ -177,7 +177,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
    const people=instanciarPersonagens(root,[...[...bodies.values()].map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...reserves.map(r=>r.body.group)])
    const ball=criarBolaFutebol3D();root.add(ball)
    scene.add(root);match={root,signature,bodies,referee,coaches,reserves,ball,people}
-   if(current.officialInput){const target=match;import('./futebol3d/players.mjs').then(module=>module.loadPlayers(root,current,snapshot)).then(players=>{if(disposed||match!==target){players.dispose();return}target.humanoids=players;onReady?.()}).catch(error=>console.error('Humanoide 3D indisponível',error))}
+   if(current.officialInput){const target=match;import('./futebol3d/players.mjs').then(module=>module.loadPlayers(root,current,snapshot,{onPrepared:()=>{if(!disposed&&match===target)onReady?.()}})).then(players=>{if(disposed||match!==target){players.dispose();return}target.humanoids=players;onReady?.()}).catch(error=>console.error('Humanoide 3D indisponível',error))}
   }
   const {bodies,referee,coaches,reserves,ball,people}=match
   for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}

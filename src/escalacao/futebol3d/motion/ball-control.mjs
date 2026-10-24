@@ -9,7 +9,7 @@ export function createBallControl(actor,{sourceLead=true}={}){
  return {reset(){offset.set(0,0,0);previousTime=null;},apply(frame,p){
   const dt=previousTime===null?0:frame.time-previousTime;previousTime=frame.time;
   if(dt<0||dt>.5)offset.set(0,0,0);
-  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),owned=frame.owner===p.key&&!p.keeper&&frame.phase==='dominio',receiving=frame.phase==='passe'&&frame.owner!==p.key&&frame.officialAction?.receiver===p.key&&!p.keeper&&Math.hypot(ball.x-p.mx,ball.z-p.mz)<3,engaged=owned||receiving,desired=new T.Vector3(),radius=.11;
+  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),owned=frame.owner===p.key&&!p.keeper&&frame.phase==='dominio',receiving=['passe','lancamento','cruzamento'].includes(frame.phase)&&frame.owner!==p.key&&frame.officialAction?.receiver===p.key&&!p.keeper&&Math.hypot(ball.x-p.mx,ball.z-p.mz)<3,engaged=owned||receiving,desired=new T.Vector3(),radius=.11;
   if(!engaged&&offset.lengthSq()===0)return null;
   if(engaged&&offset.lengthSq()===0&&(ball.y>.4||Math.hypot(ball.x-p.mx,ball.z-p.mz)>(receiving?3:1.5)))return null;
   const origin=actor.holder.position.clone(),legBones=['thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r'].map(n=>actor.bones.get(n)),original=legBones.map(b=>({p:b.position.clone(),q:b.quaternion.clone()}));

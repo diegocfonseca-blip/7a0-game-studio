@@ -4,7 +4,9 @@ export const FOOTBALL_ACTION_STATES=['decision','approach','preparation','contac
 /** Presentation schedule derived from reviewed OFFICIAL contacts. Never owns
  * possession, emits an impulse, delays a ball, or changes an official decision. */
 export class FootballActionController{
- constructor(plans=[]){this.plans=plans.map(p=>({...p,start:Number.isFinite(p.start)?p.start:p.time-.65,end:Number.isFinite(p.end)?p.end:p.time+.28}));this.current=new Map();this.metrics=new Map();this.incoming=null;this.receptions=[];this.requiredSource=null;}
+ constructor(plans=[]){this.current=new Map();this.metrics=new Map();this.incoming=null;this.receptions=[];this.requiredSource=null;this.setPlans(plans);}
+ setPlans(plans,releaseTimes){this.plans=plans.map(p=>({...p,start:Number.isFinite(p.start)?p.start:p.time-.65,end:Number.isFinite(p.end)?p.end:p.time+.28}));this.releaseTimes=[...new Set(releaseTimes??plans.map(p=>p.time))].sort((a,b)=>a-b);this.current.clear();this.metrics.clear();}
+ nextRelease(time){return this.releaseTimes.find(t=>t>=time-1e-8)??null;}
  action(key,time){const candidates=this.plans.filter(p=>p.key===key&&time>=p.start-.25&&time<=p.end);if(!candidates.length)return null;const p=candidates.sort((a,b)=>Math.abs(a.time-time)-Math.abs(b.time-time))[0],before=p.time-time;let state;
  if(time<p.start)state='decision';else if(before>.28)state='approach';else if(before>1/120)state='preparation';else if(before>=-1/120)state='contact';else if(time<Math.min(p.end,p.time+.28))state='continuation';else state='recovery';
  const sourceContact=this.requiredSource?.key===key?this.requiredSource.contact:null,requiredContact=sourceContact&&sourceContact!=='foot'?sourceContact:p.requiredContact??sourceContact??'foot',supported=!p.unsupported&&requiredContact==='foot';
@@ -32,9 +34,21 @@ export class FootballActionController{
  // fitted body orientation; aiming the running gait at the outgoing ball
  // instead would turn it backwards before the captured sideways contact.
  return heading+angle((a.plan.approachHeading??a.intentHeading)-heading)*weight*captured;}
- orientUpperBody(actor,p,time){const a=this.action(p.key,time);if(!a){if(p.keeper)this.orientKeeper(actor,p,time);else this.orientReception(actor,p);return;}const weight=smooth((time-a.plan.start+.25)/.25)*smooth((a.plan.end-time)/.25),up=new T.Vector3(0,1,0);
-  for(const [name,axis,max]of [['spine_03',actor.intentAxis,a.plan.bodyAimLimit??.35],['Head',actor.headIntentAxis,.52]]){if(!axis)continue;const bone=actor.bones.get(name),world=bone.getWorldQuaternion(new T.Quaternion()),forward=axis.clone().applyQuaternion(world),turn=clamp(angle(a.intentHeading-Math.atan2(forward.x,forward.z)),-max,max)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
+ orientUpperBody(actor,p,time){const a=this.action(p.key,time);if(!a){if(p.keeper)this.orientKeeper(actor,p,time);else{this.orientOpenPlay(actor,p,time);this.orientReception(actor,p);}return;}const weight=smooth((time-a.plan.start+.25)/.25)*smooth((a.plan.end-time)/.25),up=new T.Vector3(0,1,0);
+  for(const [name,axis,max]of [['spine_03',actor.intentAxis,a.plan.bodyAimLimit??.35],['Head',actor.headIntentAxis,.52]]){if(!axis)continue;const bone=actor.bones.get(name),world=bone.getWorldQuaternion(new T.Quaternion()),forward=axis.clone().applyQuaternion(world);let target=a.intentHeading;
+   // Look at the incoming ball during reception, then anticipate the actual
+   // outgoing delivery. A future pass must not hide the ball from the head.
+   if(name==='Head'&&this.incoming?.receiver===p.key){const pos=bone.getWorldPosition(new T.Vector3()),incoming=Math.atan2(this.ball.x-pos.x,this.ball.z-pos.z);target+=angle(incoming-target)*smooth((a.contactAt-time-.10)/.15);}
+   const turn=clamp(angle(target-Math.atan2(forward.x,forward.z)),-max,max)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
   if(a.contactAt-time>.15)this.orientReception(actor,p);
+ }
+ orientOpenPlay(actor,p,time){
+  if(!this.ball||!actor.headIntentAxis||['gol','fim','saida'].includes(this.phase))return;
+  const head=actor.bones.get('Head'),position=head.getWorldPosition(new T.Vector3()),delta=new T.Vector3(this.ball.x,this.ball.y,this.ball.z).sub(position),distance=Math.hypot(delta.x,delta.z);if(distance<.2||distance>30)return;
+  const world=head.getWorldQuaternion(new T.Quaternion()),forward=actor.headIntentAxis.clone().applyQuaternion(world),yaw=Math.atan2(forward.x,forward.z),wanted=clamp(angle(Math.atan2(delta.x,delta.z)-yaw),p.speed>4?-.45:-.65,p.speed>4?.45:.65)*smooth((30-distance)/15),prior=actor.openPlayLook,dt=prior?time-prior.time:0;
+  const turn=!prior||dt<0||dt>.3?wanted:prior.turn+(wanted-prior.turn)*(1-Math.exp(-Math.max(0,dt)/.12));actor.openPlayLook={time,turn};
+  const parent=head.parent.getWorldQuaternion(new T.Quaternion());head.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),turn)).multiply(world));actor.holder.updateMatrixWorld(true);
+  this.receptions.push({key:p.key,kind:this.incoming?.receiver===p.key?'incoming-ball-look':'open-play-ball-look',yawCorrection:turn,changesBall:false});
  }
  orientKeeper(actor,p,time){
   if(!this.ball||['gol','fim','saida'].includes(this.phase)||p.speed>1.2)return;
