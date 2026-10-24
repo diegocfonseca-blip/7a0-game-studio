@@ -32,7 +32,7 @@ import { CompetitionStage, RoundMatchPresentation, useRoundPresentationStart } f
 import { Escudo } from './escudos'
 import { SeloClube } from './selo-clube'
 import { mascoteKeyDoTime, MASCOTES } from './mascotes'
-import { FestaCampeao, TunelFinal, type CompId } from './competicoes-visual' // 🏆 festa do campeão (24/10)
+import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão (24/10)
 import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
@@ -173,6 +173,24 @@ function clubLeaders(rows: InternationalHistoryEntry[]) {
   }
   const all = [...merged.values()]
   return { scorer: all.sort((a, b) => b.goals - a.goals)[0], assistant: [...all].sort((a, b) => b.assists - a.assists)[0] }
+}
+
+// ⚽🅰️ artilheiro e garçom de UMA competição da campanha (pra festa do campeão, 24/10 — Diego: *"artilheiro e garçom deve aparecer
+// também"*). Conta pelos gols que cada jogo já guarda, por CARTA (nunca por nome); o time é o clube na tela (instituição).
+function destaquesDaComp(c: InternationalCampaign, comp: InternationalCompetition | 'mundial'): { artilheiro: DestaqueFesta | null; garcom: DestaqueFesta | null } {
+  const gols = new Map<string, DestaqueFesta>(), pas = new Map<string, DestaqueFesta>()
+  const timeDe = (id: string) => { const t = c.teams.find(x => x.id === id); return t?.institution ?? t?.name ?? id }
+  for (const st of c.steps) {
+    const fase = st[comp]
+    if (!fase) continue
+    for (const m of fase.matches) for (const g of m.goals) {
+      const time = timeDe(g.home ? m.home : m.away)
+      if (g.card) { const k = `${g.card}|${time}`, r = gols.get(k); if (r) r.n++; else gols.set(k, { nome: g.name, time, n: 1 }) }
+      if (g.assist && g.assistCard) { const k = `${g.assistCard}|${time}`, r = pas.get(k); if (r) r.n++; else pas.set(k, { nome: g.assist, time, n: 1 }) }
+    }
+  }
+  const top = (m: Map<string, DestaqueFesta>) => [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome))[0] ?? null
+  return { artilheiro: top(gols), garcom: top(pas) }
 }
 
 // 🎞️ a faixa de cima: arte da competição + título + subtítulo (fase/noite)
@@ -771,7 +789,8 @@ export function CareerInternationalView(p: Props) {
   }
   return <section style={frame} aria-label="Futebol internacional de clubes">
     {celebrate && rep && (() => { const mk = mascoteKeyDoTime(p.userTeam); return <FestaCampeao comp={celebrate} nome={nomeDe(rep)} crest={crestOf(current, rep, 150)}
-      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} linha={`${tr('técnico', 'coach')}: ${p.userTeam}`} souCampeao onDone={() => setCelebrate(null)} /> })()}
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} linha={`${tr('técnico', 'coach')}: ${p.userTeam}`} souCampeao onDone={() => setCelebrate(null)}
+      {...destaquesDaComp(current, celebrate === 'mundial' ? 'mundial' : celebrate === 'liberta' ? 'libertadores' : 'champions')} /> })()}
     {acabou ? <>
       {/* ── FIM: campeões + encerrar ── */}
       <Faixa comp={foco ?? 'libertadores'} titulo={tr('Campanha encerrada', 'Campaign over')} sub={rep ? `${rep} · ${tr('técnico', 'coach')}: ${p.userTeam}` : tr('você acompanhou a', 'you followed the') + ' ' + nomeComp(foco!)} />
