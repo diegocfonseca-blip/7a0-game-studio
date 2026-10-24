@@ -10481,7 +10481,15 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   direto, "▶ Ir pro jogo" quando o domingo chega com a Central aberta (lá o jogo nunca roda). O auto só faz `PLAY_ROUND`
   com a semana acabada (`calDiasOk`). Conserto junto: o apito fica GUARDADO (`calApitado`) — na Central o `roundReady`
   voltava a dizer "rodada rolando" com o jogo já acabado. Testado numa carreira de verdade (celular e PC).
-  ⏳ ETAPA 2 (a fazer): Copa intercalada nas quartas (vaga pela temporada anterior) + quarta livre devolve gás.
+  ⏱️ 24/10: 1 s por dia foi rápido demais (*"não deu nem para ler"*) → 3 s por dia (`CAL_MS_POR_DIA`).
+  ✅ ETAPA 2 (Copa nas quartas) FEITA, só na conta dele: temporada que COMEÇA com o calendário ligado ganha `calCopaSeason`
+  (ação `CAL_COPA_LIGA`, só na rodada 0 — temporada em andamento termina do jeito antigo). A Copa (Copa do Brasil/Legends) nasce
+  na LARGADA a partir do `world` (ordem dos clubes no começo da temporada — a tabela final ainda não existe) e as fases são
+  reveladas nas QUARTAS: fase k na semana da rodada `round(38·(k+1)/(n+1))` (`copaSemanas`). A semana PARA na quarta (`copaMidOn`)
+  se você está na fase; caiu/não entrou = a fase roda por trás e a quarta é livre. ⏩ Pular nunca pula a Copa (para na quarta).
+  XI da Copa congela na 1ª fase (`FREEZE_COPA_XI`). Supercopa (precisa do campeão da Liga) e internacionais seguem DEPOIS da Liga.
+  Motor novo na Copa do meio: só se ligado antes da rodada 5. ⏳ Ainda NÃO feito: "quarta livre devolve gás" (hoje Copa não
+  cansa ninguém — gás só conta jogo de Liga; mexer nisso é regra nova, perguntar antes).
 - 🏟️ 24/10 ABA CLUBE SEM JOGO (mockup `carreira-clube-sem-jogo.png`, *"pode publicar na minha conta"*): com o calendário ligado
   a aba Clube esconde o lado do jogo (placar/2D/rádio/tática/controle) — classe `ll-cx-clube-limpo` + regra no
   career-desktop.css. Escondido, não desmontado (igual à Central): o jogo segue rolando por trás. Na conta dele o Clube já é o
