@@ -78,7 +78,7 @@ export function CalendarioBarra(p: Props) {
   let titulo: string, sub: string, botao: { txt: string; on?: () => void; cls?: string } | null = null
   if (p.fase === 'pre') { titulo = `📅 ${hoje.longo}`; sub = proxTxt || tr('pré-temporada', 'pre-season') }
   else if (p.fase === 'jogo') { titulo = `${noite ? '🌙' : '☀️'} ${hoje.longo} · ${horaTxt(noite ? 21 : 16)}`; sub = tr('bola rolando', 'ball rolling') }
-  else if (p.fase === 'copa') { titulo = `🌙 ${hoje.longo} · ${horaTxt(21)}`; sub = p.copaNome ?? tr('Copa', 'Cup') }
+  else if (p.fase === 'copa') { titulo = `🌙 ${hoje.longo} · ${horaTxt(21)}`; sub = `🏆 ${p.copaNome ?? tr('Copa', 'Cup')}`; botao = p.naCentral ? { txt: tr('▶ Ir pro jogo', '▶ Go to match'), on: p.onIrJogo } : null }
   else if (p.fase === 'fim') { titulo = `📅 ${hoje.longo}`; sub = tr('fim da temporada', 'end of the season') }
   else if (p.pausado) { titulo = `📅 ${hoje.longo}`; sub = tr('⏸️ tempo parado enquanto você mexe no clube', '⏸️ time stands still while you manage the club'); botao = { txt: tr('▶ Voltar', '▶ Back'), on: p.onVoltar, cls: 'p' } }
   else if (chegou) { titulo = `⚽ ${tr('Hoje', 'Today')} · ${horaTxt(p.prox?.hora ?? 16)}`; sub = proxTxt; botao = p.naCentral ? { txt: tr('▶ Ir pro jogo', '▶ Go to match'), on: p.onIrJogo } : null }

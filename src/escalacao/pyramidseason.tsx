@@ -8499,8 +8499,18 @@ export function PyramidSeasonScreen() {
   const m2Desde = state.co2 ? (co2M2 != null && (state.seasonNo ?? 1) >= co2M2 ? 0 : undefined)
     : !m2Ok || !state.motor2Desde ? undefined
     : state.motor2Desde.season === (state.seasonNo ?? 1) ? state.motor2Desde.round : state.motor2Desde.season < (state.seasonNo ?? 1) ? 0 : undefined
+  // 📅 CALENDÁRIO (24/10, só a conta do Diego) — ver o bloco "CALENDÁRIO DA CARREIRA" mais abaixo
+  const calLib = useCalendarioCarreira()
+  const calOn = calLib && !!state.careerOnline && state.onlineMode !== 'online' && !state.co2 && state.sport !== 'basquete'
+  const calSn = state.seasonNo ?? 1
+  // 🏆 COPA NAS QUARTAS, NO MEIO DA LIGA (etapa 2): só em temporada que COMEÇOU com o calendário ligado (`CAL_COPA_LIGA`
+  // marca na rodada 0). A Copa nasce na largada — vaga e chaveamento pela ordem dos clubes no começo da temporada, não pela
+  // tabela final, que ainda não existe — e as fases vão sendo REVELADAS nas quartas. Supercopa (precisa do campeão da Liga) e
+  // as internacionais continuam depois da Liga. Temporada que já começou termina do jeito de antes.
+  const copaMid = calOn && state.calCopaSeason === calSn
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
-  const m2Copa = m2Desde != null && m2Desde < 38
+  // 📅 com a Copa no meio da Liga ela começa cedo (1ª quarta ≥ rodada 5): o motor novo só vale se ligou antes da rodada 5
+  const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
   const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde),
     [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
@@ -8743,13 +8753,13 @@ export function PyramidSeasonScreen() {
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
-  const copaBR = useMemo(() => (done && cbUnlocked) ? computeCopaBrasil(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa) : null, [done, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
+  const copaBR = useMemo(() => ((done || copaMid) && cbUnlocked) ? computeCopaBrasil(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa) : null, [done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
   // precisa esperar a revelação fase a fase da Copa terminar de VERDADE na
   // tela, só precisa saber quem é o campeão, que já está decidido aqui).
-  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa) : null, [cbUnlocked, copaBR, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
+  const supercopaTie = useMemo(() => (cbUnlocked && copaBR?.champion && done) ? computeSupercopa(tables, copaBR.champion, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa) : null, [cbUnlocked, copaBR, done, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
   // COPA LEGENDS: no fim da temporada, o mata-mata dos 16 (determinístico da
   // classificação final + semente + temporada). Alimenta a aba Tabelas (chave),
   // a aba Rank (artilharia da Copa) e os prêmios da virada.
@@ -8759,10 +8769,10 @@ export function PyramidSeasonScreen() {
   // que foi o que aconteceu com ele por 106 temporadas, sem nenhum aviso.
   const copaBrOk = !!copaBR?.champion
   const copa = useMemo(() => {
-    if (!done) return null
+    if (!done && !copaMid) return null
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
-    return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa)
-  }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
+    return computeCopa(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa)
+  }, [done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa])
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
   const intlCampaign = intlEnabled && state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
@@ -8877,7 +8887,19 @@ export function PyramidSeasonScreen() {
   if (copaRoundRef.current !== copaRound) { copaRoundRef.current = copaRound; setCopaPos(0) }
   useEffect(() => { setCopaRound(state.copaDoneSeason === state.seasonNo ? 999 : 0); setCopaPos(0) }, [state.seasonNo, state.copaDoneSeason])
   const nCopaRounds = copa?.rounds.length ?? 0
-  const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
+  // 📅 COPA NAS QUARTAS (etapa 2 do calendário): as fases da Copa (sem a Supercopa) se espalham pela temporada — a fase k é
+  // jogada na QUARTA da semana da rodada `copaSemanas[k]` da Liga. `copaMidOn` liga quando a quarta chega (no bloco do
+  // calendário) e desliga quando a fase vira (copaRound sobe). A fase de quem já passou da semana dela conta como jogada
+  // (abrir a carreira de novo não repete Copa velha).
+  const nCopaBase = copa ? copa.rounds.filter(r => r.name !== 'Supercopa').length : 0
+  const copaSemanas = useMemo(() => Array.from({ length: nCopaBase }, (_, k) => Math.round((38 * (k + 1)) / (nCopaBase + 1))), [nCopaBase])
+  const copaPassadas = copaMid && !done ? copaSemanas.filter(r => r < round).length : 0
+  const copaDevidas = copaMid && !done ? copaSemanas.filter(r => r <= round).length : 0
+  const [copaMidOn, setCopaMidOn] = useState(false)
+  useEffect(() => { if (copaMid && !done && copaPassadas > 0) setCopaRound(r => Math.max(r, copaPassadas)) }, [copaMid, done, copaPassadas]) // eslint-disable-line react-hooks/exhaustive-deps
+  const copaRoundMid = useRef(copaRound)
+  useEffect(() => { if (copaRoundMid.current !== copaRound) { copaRoundMid.current = copaRound; setCopaMidOn(false) } }, [copaRound])
+  const copaPlaying = done ? !!copa && nCopaRounds > 0 && copaRound < nCopaRounds : copaMid && copaMidOn && !!copa && copaRound < nCopaBase
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
   // 🏃 JOGOS DE COPA NA CONTA DO JOGADOR (Diego 26/09: *"jogos totais… todas as
   // ligas, Copas"*). Os jogos do elenco sempre foram só os 38 da liga. A Copa joga
@@ -9772,9 +9794,6 @@ export function PyramidSeasonScreen() {
   // manual nada anda sozinho e o "Próximo adversário" vai direto. ⏩ Pular também vai direto. É SÓ ritmo de tela: a rodada
   // continua sendo a mesma `PLAY_ROUND` de sempre, então placar, tabela e save não mudam. Os dias não vão pro save (abrir a
   // carreira de novo recomeça a semana do 1º dia vazio — é só o recado que repete).
-  const calLib = useCalendarioCarreira()
-  const calOn = calLib && !!state.careerOnline && state.onlineMode !== 'online' && !state.co2 && state.sport !== 'basquete'
-  const calSn = state.seasonNo ?? 1
   const calTotal = calOn && round > 0 && round < 38 ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)).length : 0
   const [calPasso, setCalPasso] = useState<{ r: number; s: number; i: number }>({ r: -1, s: -1, i: 0 })
   const calI = calPasso.r === round && calPasso.s === calSn ? calPasso.i : 0
@@ -9786,14 +9805,28 @@ export function PyramidSeasonScreen() {
   const calFase: FaseCal = copaPlaying ? 'copa' : seasonOver ? 'fim' : round === 0 ? 'pre' : calJogoRolando ? 'jogo' : 'dias'
   const calLivre = calFase === 'dias' && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
   const calNaTela = tab === 'central' || tab === 'jogos'
-  // a semana só anda no AUTOMÁTICO, com o jogo da rodada já apitado e nada pendente
+  // 🏆 a temporada que começa com o calendário ligado joga a Copa nas quartas (marca uma vez, na rodada 0)
+  useEffect(() => { if (calOn && round === 0 && !done && state.calCopaSeason !== calSn) dispatch({ type: 'CAL_COPA_LIGA', season: calSn }) }, [calOn, round, done, state.calCopaSeason, calSn, dispatch])
+  // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
+  const copaPendente = copaMid && !done && round > 0 && copaRound < copaDevidas
+  const CAL_QUARTA = 3
+  const meNaFaseCopa = !!copa?.rounds[copaRound]?.ties.some(t => t.a.teamId === youId || t.b.teamId === youId)
+  // a semana só anda no AUTOMÁTICO, com o jogo da rodada já apitado e nada pendente — e PARA na quarta se tiver Copa
   useEffect(() => {
-    if (!calOn || manual || !calLivre || !calNaTela || calI >= calTotal) return
+    if (!calOn || manual || !calLivre || !calNaTela || calI >= calTotal || (copaPendente && calI >= CAL_QUARTA)) return
     const t = setTimeout(() => setCalPasso({ r: round, s: calSn, i: calI + 1 }), CAL_MS_POR_DIA)
     return () => clearTimeout(t)
-  }, [calOn, manual, calLivre, calNaTela, calI, calTotal, round, calSn])
-  // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular)
-  const calDiasOk = !calOn || round === 0 || round >= 38 || calI >= calTotal
+  }, [calOn, manual, calLivre, calNaTela, calI, calTotal, round, calSn, copaPendente])
+  // 🌙 chegou a quarta com Copa: se o seu time está na fase, a Copa entra na tela (a fase de sempre, com o placar da Copa);
+  // se você já caiu (ou ainda não entrou nesta fase), a fase roda por trás e a semana segue livre
+  useEffect(() => {
+    if (!copaPendente || copaMidOn || calFase !== 'dias' || calI < CAL_QUARTA) return
+    if (!meNaFaseCopa) { setCopaRound(r => r + 1); return }
+    if (state.copaXiSeason !== calSn && mgrMe) dispatch({ type: 'FREEZE_COPA_XI', season: calSn, xi: { [youId]: myXI.map(c => c.id) } }) // 🔒 a Copa não muda mais depois da 1ª fase
+    setCopaMidOn(true)
+  }, [copaPendente, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn]) // eslint-disable-line react-hooks/exhaustive-deps
+  // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular) e a Copa da quarta já foi
+  const calDiasOk = !calOn || round === 0 || round >= 38 || (calI >= calTotal && !copaPendente && !copaMidOn)
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
     const out: { r: number; m: SimMatch }[] = []
@@ -10276,9 +10309,14 @@ export function PyramidSeasonScreen() {
     const advDe = (pr: [SimTeam, SimTeam] | undefined) => pr ? (pr[0].teamId === youId ? { adv: pr[1].name, casa: true } : { adv: pr[0].name, casa: false }) : null
     const rProx = round === 0 ? 1 : calJogoRolando ? round : round + 1
     const pp = !seasonOver ? advDe(par(rProx)) : null
-    const prox = pp && rProx <= 38 ? { dia: diaDaRodada(calSn, rProx), hora: HORA_LIGA, comp: tr('Liga', 'League'), adv: pp.adv, casa: pp.casa } : null
+    const DIA_MS = 86400000
+    const copaNome = (k: number) => copa?.rounds[k]?.name ?? tr('Copa', 'Cup')
+    const advCopa = (k: number) => { const t = copa?.rounds[k]?.ties.find(x => x.a.teamId === youId || x.b.teamId === youId); return t ? (t.a.teamId === youId ? t.b.name : t.a.name) : null }
+    const copaNaSemana = copaPendente && calFase === 'dias' && calI < CAL_QUARTA
+    const prox = copaNaSemana && meNaFaseCopa ? { dia: diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS, hora: 21, comp: `${tr('Copa', 'Cup')} · ${copaNome(copaRound)}`, adv: advCopa(copaRound) ?? '?', casa: true }
+      : pp && rProx <= 38 ? { dia: diaDaRodada(calSn, rProx), hora: HORA_LIGA, comp: tr('Liga', 'League'), adv: pp.adv, casa: pp.casa } : null
     const vazios = calFase === 'dias' ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)) : []
-    const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? diaDaFaseCopa(calSn, copaRound) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
+    const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? (copaMid && !done ? diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS : diaDaFaseCopa(calSn, copaMid ? Math.max(0, copaRound - nCopaBase) : copaRound)) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
     const naCentral = tab === 'central'
     const grande = naCentral || tab === 'jogos'
     const pausado = calFase === 'dias' && !manual && !grande && calI < calTotal
@@ -10295,24 +10333,35 @@ export function PyramidSeasonScreen() {
         ultimo: ult ? (ult.hId === youId ? { gf: ult.hg, ga: ult.ag, adv: ult.a } : { gf: ult.ag, ga: ult.hg, adv: ult.h }) : undefined,
         cansados: condGas ? myXI.filter(c => (condGas[c.id] ?? 100) < GAS_CANSADO).length : 0,
         suspensos: fora && suspenso?.tipo !== 'lesao' ? [fora] : [], machucados: fora && suspenso?.tipo === 'lesao' ? [fora] : [],
+        copaQuarta: copaPendente ? (meNaFaseCopa ? { fase: copaNome(copaRound), adv: advCopa(copaRound) ?? undefined } : { fase: copaNome(copaRound), fora: true }) : undefined,
       }
       recado = recadoDoDia(calI > 0 ? hoje : diaDaRodada(calSn, round) + 86400000, ctx)
     }
     const diasDeJogo: Record<number, 'liga' | 'copa'> = {}
     for (let r = Math.max(1, round - 1); r <= Math.min(38, round + 2); r++) diasDeJogo[diaDaRodada(calSn, r)] = 'liga'
+    if (copaMid && !done) copaSemanas.forEach(r => { diasDeJogo[diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS] = 'copa' })
     let jogos: JogoCal[] | null = null
     if (tab === 'jogos' && calFase === 'dias') {
       jogos = calPassados.map(({ r, m }) => {
         const casa = m.hId === youId, gf = casa ? m.hg : m.ag, ga = casa ? m.ag : m.hg
         return { dia: diaDaRodada(calSn, r), comp: 'liga', adv: casa ? m.a : m.h, casa, res: `${gf}-${ga}`, cls: gf > ga ? 'v' : gf === ga ? 'e' : 'd' } as JogoCal
       })
-      for (let r = round + 1; r <= Math.min(38, round + 4); r++) { const a = advDe(par(r)); if (a) jogos.push({ dia: diaDaRodada(calSn, r), comp: 'liga', adv: a.adv, casa: a.casa, prox: r === round + 1 }) }
+      for (let r = round + 1; r <= Math.min(38, round + 4); r++) { const a = advDe(par(r)); if (a) jogos.push({ dia: diaDaRodada(calSn, r), comp: 'liga', adv: a.adv, casa: a.casa, prox: r === round + 1 && !copaNaSemana }) }
+      // 🏆 as quartas de Copa da janela (a da semana com o adversário; as próximas só com o nome da fase — anti-spoiler)
+      if (copaMid && !done) copaSemanas.forEach((r, k) => {
+        if (r < round - 1 || r > round + 3 || k < copaRound - 1) return
+        const dia = diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS
+        if (k < copaRound) { const t = copa?.rounds[k]?.ties.find(x => x.a.teamId === youId || x.b.teamId === youId); if (!t) return; const euA = t.a.teamId === youId, gf = euA ? t.aggA : t.aggB, ga = euA ? t.aggB : t.aggA; jogos!.push({ dia, comp: 'copa', adv: euA ? t.b.name : t.a.name, casa: true, res: `${gf}-${ga}${t.pens ? ' (p)' : ''}`, cls: (t.win === 'a') === euA ? 'v' : 'd' }) }
+        else jogos!.push({ dia, comp: 'copa', adv: k === copaRound ? (advCopa(k) ?? copaNome(k)) : copaNome(k), casa: true, prox: k === copaRound && copaNaSemana })
+      })
+      jogos.sort((a, b) => a.dia - b.dia)
     }
-    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: calTotal }); escolheAba('jogos') }
+    // ⏩ Pular: se a semana tem Copa ainda não jogada, pula só ATÉ A QUARTA (a Copa nunca é pulada); senão, até o domingo
+    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
     return <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={grande} naCentral={naCentral}
       recado={recado} jogos={jogos} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo}
       onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')}
-      onProximo={() => { escolheAba('jogos'); avancarRodada() }} />
+      onProximo={() => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }} />
   })()
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
@@ -10923,7 +10972,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {!done && myMatch && me && <PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {!done && !copaPlaying && myMatch && me && <PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez

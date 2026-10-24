@@ -5551,6 +5551,7 @@ type Action =
   | { type: 'START_INTERNATIONAL_CAMPAIGN'; campaign: InternationalCampaign }
   | { type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' }
   | { type: 'FINISH_INTERNATIONAL_CAMPAIGN'; entry: InternationalHistoryEntry }
+  | { type: 'CAL_COPA_LIGA'; season: number } // 📅 a Copa desta temporada vai pras quartas, no meio da Liga (só nasce no começo da temporada)
   | { type: 'FREEZE_COPA_XI'; season: number; xi: Record<number, string[]> } // 🔒 congela a escalação que gerou a Copa daquela temporada — a Copa não muda mais depois de sorteada
   | { type: 'SET_COPA_ROUND'; round: number }
   | { type: 'CLOSE_SEASON_BOOKS'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
@@ -7531,6 +7532,14 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🛡️ SÓ ESCREVE UMA VEZ POR TEMPORADA. Nunca regrava (nem por toque dublado,
     // nem por F5, nem por re-render): se já congelou, o que valeu foi o que
     // valeu. É esta linha que garante que ninguém perde um título já visto.
+    case 'CAL_COPA_LIGA': {
+      // 📅 CALENDÁRIO (24/10): só carreira solo, só com a temporada ainda na rodada 0 — temporada que já começou termina do
+      // jeito de antes (Copa depois da Liga). Marca de uma vez; desfazer seria mudar a Copa no meio.
+      if (!s.careerOnline || s.onlineMode === 'online' || s.co2 || (s.round ?? 0) !== 0) return s
+      if (s.calCopaSeason === action.season) return s
+      s.calCopaSeason = action.season
+      return s
+    }
     case 'FREEZE_COPA_XI': {
       if (!s.careerOnline) return s
       if (s.copaXiSeason === action.season) return s
