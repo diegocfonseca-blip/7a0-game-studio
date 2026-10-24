@@ -1,3 +1,10 @@
+## 🔗 Entrosamento na carreira (24/10) — IDEIA, mockup enviado, esperando OK
+- Diego gostou da ideia (*"gostei do entrosamento… talvez ganha cada um +1 de over"*). Proposta no mockup
+  `scripts/mockups/carreira-entrosamento.png`: cartas do MESMO clube e MESMO ano juntas no TITULAR → 2 juntas +1 cada · 3+ juntas
+  +2 cada (teto) · banco não conta · só carreira. No campinho: selo 🔗+1/+2 no boneco e linha tracejada ligando o grupo; caixa
+  "Entrosamento no time titular" embaixo; no leilão, etiqueta "entrosa com X e Y" (só o que ele JÁ tem — nível segue escondido).
+  368 grupos com 2+ cartas no baralho hoje. Narração própria quando o grupo tabela. Nada feito no código ainda.
+
 ## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — PUBLICADO ("coloque esse áudio e publique")
 - Pedido: *"entrada de gala personalizada… o saci chegando num furacão… em breve dou o canto"*. `gala-guimaraes.tsx` (8,6 s):
   vento e folhas, o redemoinho nasce e cresce, trovão, o Saci sai girando e pousa numa perna só, fumacinha do cachimbo, escudo
