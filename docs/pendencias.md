@@ -1,9 +1,10 @@
-## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — NO BRANCH, esperando OK
+## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — PUBLICADO ("coloque esse áudio e publique")
 - Pedido: *"entrada de gala personalizada… o saci chegando num furacão… em breve dou o canto"*. `gala-guimaraes.tsx` (8,6 s):
   vento e folhas, o redemoinho nasce e cresce, trovão, o Saci sai girando e pousa numa perna só, fumacinha do cachimbo, escudo
   com anel de vento, frase ONDE TEM REDEMOINHO, TEM SACI e faixa CHEGOU NA SALA. Ligada em `GALA_UNICA` ('Guimarães SCI').
   Vídeo `scripts/posts/gala-guimaraes.webm` (`node scripts/video-gala-guimaraes.mjs`).
-- Falta: o CANTO (Diego vai mandar) → gala + carreira; tema da sala do Fundador (Inter Vale ganhou, ele não pediu ainda);
+- ✅ Canto: o vídeo que o Diego mandou (10 s) → `public/sfx/torcida-guimaraes-v1.mp3` (mono 56 kbps), na gala e na carreira
+  (`AMBIENTE_CARREIRA_POR_EMAIL`, jadriovani). Falta: tema da sala do Fundador (Inter Vale ganhou, ele não pediu ainda);
   o PLANO Fundador no banco entra pelo Pix da subida (Batismo → Fundador = 29,90) — ele já tem fundador nº82 e sócio 63.
 
 ## 🔌 Caixa de entrada do dono caía e não religava (23/10, sala RGP7P7 do Futpoint) — CONSERTADO e publicado

@@ -9,11 +9,12 @@
 // 4) o redemoinho se desfaz, sobe a fumacinha do cachimbo e o escudo acende com um anel de vento em volta
 // 5) a frase bate — ONDE TEM REDEMOINHO, TEM SACI — e a faixa "CHEGOU NA SALA"
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
-// Som: o CANTO do clube entra quando o Diego mandar (*"em breve dou o canto aqui também"*) — por enquanto a gala é muda.
+// Som: o CANTO que o Diego mandou (23/10, vídeo de 10 s → `sfx/torcida-guimaraes-v1.mp3`, mono 56 kbps) — o mesmo da carreira dele.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
+import { playMp3Gala } from './sound'
 import saciImg from './img/guimaraes-mascote.webp' // 320×440, o Saci de gorro vermelho com o uniforme do Inter
 
 export const GUIMARAES_MS = 8600
@@ -109,6 +110,7 @@ function useEscala() {
 export function GalaGuimaraes({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
   void grito
+  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-guimaraes-v1.mp3`, T), [chave])
   // o funil: anel de baixo fino, o de cima largo (a forma de um redemoinho de verdade)
   const aneis = Array.from({ length: ANEIS }, (_, i) => {
     const t = i / (ANEIS - 1)
