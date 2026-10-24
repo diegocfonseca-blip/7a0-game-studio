@@ -240,3 +240,34 @@ node scripts/cartoon-football/report-whole-match.mjs
 ```
 
 `report-whole-match.mjs` compara a auditoria inicial preservada em `whole-match.json` com `validated/whole-match.json`; exige os invariantes finais e gera `summary.json`/`analise.html`. Evidências fora do Git em `test-results/cartoon-football/partida-minuciosa/`: partida completa de 94,033 s a 30 fps, sete trechos próximos em lenta (21 s), métricas, reprodução e pausas. Gravação usa o campo existente em bancada isolada; não retrata o estádio da cidade. A reutilização de pose pausada foi acrescentada depois da filmagem, sem mudar os quadros progressivos da partida. Recuperação: `recovery/antes-auditoria-11x11-20261024` em `b4b5d1c4`. Nada publicado; motor oficial, equilíbrio competitivo e banco preservados.
+
+## Posse próxima e recepção do goleiro — 24/10, local
+
+Diego reprovou a distância bola/pés e a naturalidade do chute/goleiro, apesar dos contatos pontuais anteriores. Causa: o Motor2 mantém a bola 75 cm à frente do dono, inclusive após `encaixa`, e a apresentação anterior só aproximava a raiz até 18 cm. Não mudar esse motor para corrigir uma limitação visual.
+
+- Corpo acompanha a bola com avanço visual suave até 46 cm, dentro do orçamento total de 60 cm. Não persegue o pé oscilante da passada. IK residual e prevenção pé–bola continuam limitados; colisão não zera de repente o avanço quando a própria pose original já cruzava a bola. Liberação do avanço em 60 ms evita acumular um deslocamento inválido após o passe.
+- Camada de chute recebe o avanço inicial e o mistura à raiz capturada; três finalizações recuperam em 460 ms, com saída de 240 ms. Marcadores oficiais e capturas existentes preservados. `previousRecovery` mantém o comparativo anterior na bancada.
+- Recepção alta de Ever Almeida (59,1 s) usa CMU **34_01**, recorte 4,4–6,2 s, adaptado ao rig Civil. Fonte é recepção/lançamento de **futebol americano**, não captura específica de goleiro. Combina membros superiores adquiridos com Jump nativo e postura Crouch da UAL, ambos Quaternius CC0. Pequeno ajuste de braços por IK e ajuste vertical da curva adquirida, sem editar rig, anatomia ou pesos.
+- Entre `encaixa` e a reposição, apenas a apresentação da bola acompanha as mãos; após sair, retorna continuamente à trajetória/receptor oficiais. Antes do contato e depois da recepção seguinte usa a bola canônica. Motor, posse, XYZ brutos e eventos não são reescritos. `presentFrame` é consumido pelo campo isolado e pelo renderizador do mapa.
+- `cartoon/keeper.json` contém somente dois clipes adicionais (cerca de 618 KB), origem, intervalo, hash BVH e revisão do espelho. Carrega apenas se a partida já corresponde à entrada/versão de motor revisada; não habilita essa coreografia em outro save. Licenças em `cartoon/LICENSE-CMU-keeper.txt` e `public/creditos-3d.txt`.
+
+Bancada real, normal/lenta, em `test-results/cartoon-football/posse-visual/index.html`: mesma fixture 1×1/82 eventos/22 atletas, sem publicação/DB. A mediana de distância diminuiu nos dois trechos, mas continua havendo afastamento residual. Na partida inteira, amostras de condução com distância acima de 22 cm caíram de 268 para 188 a 30 Hz (535 para 372 a 60 Hz). Não equivalem a segundos de contato ou aprovação de todos os domínios. Continuam faltando captura específica de primeiro toque/condução, defesas rasteiras/mergulhos, calibração de outros saves e desempenho em celular físico. Flags de deslocamento para trás permanecem diagnóstico, não foram ocultadas. Os dois uniformes claros seguem pendentes de variante/contraste aprovado.
+
+Regeração com os arquivos gratuitos de origem já disponíveis localmente (o diretório legado `scripts/animation-lab/assets` é externo ao checkout de publicação):
+
+```sh
+node scripts/cartoon-football/prepare-keeper-candidates.mjs /tmp/cmu-34_01.bvh
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/build-keeper-trial.mjs
+```
+
+O BVH esperado tem SHA-256 `0f6054784bb483a0e17b42c79fbe4f717c9b779688bc687ea30f06950f2d89e0`; espelho `una-dinosauria/cmu-mocap`, revisão `09a07f54f3bbb58797325f009282d0b2048a2871`. Fonte UAL original: SHA-256 `69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997`. Regerar não promove automaticamente o arquivo de teste nem publica. O JSON compacto versionado é suficiente para execução; fontes maiores só são necessárias para reconstruí-lo.
+
+```sh
+node scripts/cartoon-football/test-keeper-reception.cjs
+REVIEW_VARIANT=depois node scripts/cartoon-football/record-possession-review.cjs
+MATCH_AUDIT_HZ=30 WHOLE_AUDIT_OUT=test-results/cartoon-football/posse-visual/validated-30hz node scripts/cartoon-football/audit-whole-match.cjs
+MATCH_AUDIT_HZ=60 WHOLE_AUDIT_OUT=test-results/cartoon-football/posse-visual/validated-60hz node scripts/cartoon-football/audit-whole-match.cjs
+node scripts/cartoon-football/report-possession.mjs
+```
+
+A varredura final passou em 2.821/5.641 quadros: zero conflitos de cabeças, penetração pé–bola, piso inválido, raiz fora do orçamento ou trancos extras fora dos reinícios oficiais. 48 contatos revisados continuam válidos. Recepção: diferença entre bola e ponto de pega desenhado 4,4 mm; reposição a 1,41 m, pausa estável. Não chamar essas métricas de futebol perfeito. Recuperação anterior `recovery/antes-posse-visual-20261024` em `bf10f711`.

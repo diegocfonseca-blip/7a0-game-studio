@@ -308,3 +308,6 @@ Models by @Quaternius
 Consider supporting me on Patreon!
 
 https://www.patreon.com/quaternius
+
+ADAPTAÇÃO DE RECEPÇÃO DO GOLEIRO (2026-10-24)
+CMU 34_01: captura de recepção/lançamento de futebol americano, adaptada ao goleiro; não é captura específica de defesa de futebol. Origem: https://mocap.cs.cmu.edu/search.php?subjectnumber=34&trinum=1 . Conversão BVH Bruce Hahne; permissão comercial nos termos CMU reproduzidos acima. Recorte 4,4–6,2 s, retargeting ao rig Civil, combinação com Jump original e Crouch_Idle_Loop da Quaternius (CC0). Metadados, SHA-256 e espelho com revisão fixada em futebol3d/cartoon/keeper.json. Sem conta ou compra.

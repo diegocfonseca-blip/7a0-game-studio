@@ -182,12 +182,13 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   const {bodies,referee,coaches,reserves,ball,people}=match
   for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}
   match.humanoids?.update(snapshot,camera,viewportHeight)
+  const presentation=match.humanoids?.presentFrame(snapshot)??snapshot
   for(const p of snapshot.players){const body=bodies.get(p.key);if(!body)continue;body.group.visible=p.visible!==false;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
   for(const {body,side,keeper} of reserves)body.kit.color.set(keeper?'#d6b329':side==='home'?current.homeColor:current.awayColor)
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
-  posicionarBolaFutebol3D(ball,snapshot);atualizarRedesGol3D(field,snapshot)
+  posicionarBolaFutebol3D(ball,presentation);atualizarRedesGol3D(field,presentation)
   people.update()
-  inspection={players:snapshot.players.length,ball:{...snapshot.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
+  inspection={players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
  }
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {

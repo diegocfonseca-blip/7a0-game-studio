@@ -18,6 +18,7 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
  // Otherwise an exit longer than the post-contact window fades the kick
  // before the foot reaches the ball (0.784 weight on the first shot).
  const entry=Math.max(1e-6,Math.min(plan.entrySeconds??.18,plan.time-plan.start)),exit=Math.max(1e-6,Math.min(plan.exitSeconds??.18,plan.end-plan.time));
+ const baseHip=actor.bones.get('pelvis').getWorldPosition(new T.Vector3()),baseRoot=new T.Vector3(baseHip.x-p.position.x,0,baseHip.z-p.position.z);
  const weight=smooth((time-plan.start)/entry)*smooth((plan.end-time)/exit),base=copyPose(actor),baseYaw=actor.holder.rotation.y,basePosition=actor.holder.position.clone();
  const clock=strikeClock(plan,time);actor.holder.rotation.y=plan.yaw;actor.sampleCapture(plan.clip,clock.sample);center(actor,p);
  const captured=copyPose(actor),position=actor.holder.position.clone();
@@ -36,6 +37,9 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
   if(t<=0)offset.fromArray(plan.rootCorrection).multiplyScalar(-2*s3+3*s2).addScaledVector(tangent,(s3-s2)*duration);else offset.fromArray(plan.rootCorrection).multiplyScalar(2*s3-3*s2+1).addScaledVector(tangent,(s3-2*s2+s)*duration);
   const length=offset.length();offset.clampLength(0,actor.maxPresentationOffset??.6);rootWarp={model:'bounded-hermite-root-velocity',limited:length>(actor.maxPresentationOffset??.6),nativeVelocity:native.clone().add(new T.Vector3().fromArray(plan.sourceVelocity)).toArray()};}
 
+ // Carry alignment hands off continuously to the captured strike. Full
+ // capture still uses its original reviewed contact and root correction.
+ offset.addScaledVector(baseRoot,1-weight);offset.clampLength(0,actor.maxPresentationOffset??.6);
  center(actor,p,offset);actor.ground();
  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),raw=Object.fromEntries(['thigh_r','calf_r','foot_r','thigh_l','calf_l','foot_l'].map(n=>[n,actor.bones.get(n).quaternion.clone()])),ankles=['foot_r','foot_l'].map(n=>actor.bones.get(n).getWorldPosition(new T.Vector3()));
  const corrections=correct?{right:constrainFootBall(actor,'right',ball,{maxCorrection:.08}),left:constrainFootBall(actor,'left',ball,{maxCorrection:.08})}:null;

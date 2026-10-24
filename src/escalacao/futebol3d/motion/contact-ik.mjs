@@ -3,8 +3,8 @@ import * as T from 'three';
 
 // Small contact correction over an imported pose. Never supplies a gait or kick.
 // Analytic two-bone IK preserves the captured knee plane and ankle orientation.
-export function solveLegContact(actor,side,target,{weight=1,maxCorrection=.10,maxAngle=.35}={}){
- const suffix=side==='left'?'l':'r',hip=actor.bones.get('thigh_'+suffix),knee=actor.bones.get('calf_'+suffix),ankle=actor.bones.get('foot_'+suffix);
+export function solveLimbContact(actor,names,target,{weight=1,maxCorrection=.10,maxAngle=.35}={}){
+ const [hip,knee,ankle]=names.map(name=>actor.bones.get(name));
  actor.holder.updateMatrixWorld(true);
  const a=hip.getWorldPosition(new T.Vector3()),b=knee.getWorldPosition(new T.Vector3()),c=ankle.getWorldPosition(new T.Vector3());
  const ankleQ=ankle.getWorldQuaternion(new T.Quaternion()),delta=target.clone().sub(c);
@@ -34,3 +34,6 @@ export function solveLegContact(actor,side,target,{weight=1,maxCorrection=.10,ma
  actor.holder.updateMatrixWorld(true);actor.root.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update();});
  return {applied:true,requested,limited:requested>maxCorrection,error:ankle.getWorldPosition(new T.Vector3()).distanceTo(goal),maxCorrection,maxAngle};
 }
+
+export function solveLegContact(actor,side,target,options){const s=side==='left'?'l':'r';return solveLimbContact(actor,['thigh_'+s,'calf_'+s,'foot_'+s],target,options)}
+export function solveArmContact(actor,side,target,options){const s=side==='left'?'l':'r';return solveLimbContact(actor,['upperarm_'+s,'lowerarm_'+s,'hand_'+s],target,options)}
