@@ -202,3 +202,9 @@
   /* — ELENCO: com a largura toda o campinho cresce um pouco e a lista ganha espaço — */
   html body .ll-cx-t-elenco .ll-cx-aba .ll-cx-campo { width: 520px !important; }
 }
+
+/* 🏟️ 24/10 — ABA CLUBE SÓ DO CLUBE (Diego: *"a aba da área do clube não é pra aparecer o campinho 2D nem placar cinema nem
+   tática… organiza pra ser lógica do clube mesmo, mapa e tudo que já tem, mas sem jogo rolando"*; mockup
+   `carreira-clube-sem-jogo.png`). Só na conta dele, junto do calendário (`ll-cx-clube-limpo` = `calOn`). O lado do jogo fica
+   ESCONDIDO e não desmontado — igual à Central —, então a partida segue rolando por trás e nada recomeça ao voltar pro Jogos. */
+.ll-cx.ll-cx-clube-limpo.ll-cx-t-estadio > .ll-cx-lado { display: none !important; }

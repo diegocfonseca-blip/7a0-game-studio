@@ -10449,6 +10449,39 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
 - Testes locais usam Chromium/SwiftShader, não comprovam FPS em celular físico. Cena completa observada: cerca de 267 draw calls / 1,73 milhão de triângulos. Desempenho e anatomia infantil definitiva seguem para melhoria. Nenhuma sessão autenticada da conta foi manipulada e nenhuma migração executada.
 - Fontes e créditos em public/creditos-3d.txt e manifests de proveniência. Shorts: atribuição literal CC BY por Elvaerwyn, sem inventar versão.
 
+## 📅 CALENDÁRIO DA CARREIRA: QUARTA 21H E DOMINGO 16H (24/10) — ⏳ MOCKUP, esperando OK do Diego
+- Ideia dele: *"ter jogo toda quarta e domingo… quarta 21h e domingo 16h… e com isso teria o tempo passando… começar na central"*.
+- Mockup `scripts/mockups/carreira-calendario.png`: domingo 16h = Liga · quarta 21h = Copas · quarta sem jogo = semana livre ·
+  temporada fevereiro → dezembro, janeiro = virada. Data no topo da Central/Jogos/Tabelas, agenda "próximos compromissos" na
+  Central, semana (seg–dom) no Jogos, luz de tarde × refletores no estádio. O tempo passa por partida (nada de relógio de verdade)
+  e o botão de jogar é o de sempre.
+- Minha recomendação: 1ª etapa só visual (data + agenda + luz). "Semana livre recupera gás" = 2ª etapa, só se ele aprovar
+  (é a única parte que mexe em regra).
+- ✅ 24/10 ele aprovou AS DUAS ETAPAS (*"pode fazer as duas etapas"*). Logística explicada: hoje a Copa só começa DEPOIS da Liga
+  (`copaPlaying = done && …`); pra ter Copa na quarta ela passa a ser intercalada na Liga (Copa do Brasil/Legends nas quartas;
+  Liberta/Champions/Mundial seguem no fim do ano). Só TEMPORADA NOVA, só a conta dele primeiro, com chave pra voltar.
+- 📅 DIAS VAGOS (24/10, regra dele): *"só poderia passar direto próxima partida se apertar em pular, ou próximo adversário no manual..
+  já no auto teria que aguardar mesmo"*. Mockup `scripts/mockups/carreira-calendario-dias.png`: AUTOMÁTICO = os dias passam sozinhos
+  (~3s por dia vazio, proposta) com o recado do dia + botão "⏩ Pular pro jogo"; MANUAL = fica parado no dia até "▶ Próximo
+  adversário". Recado por dia: seg O MARTELO · ter cansados/voltou/suspensos · qui rivais · sex véspera/clássico · sáb concentração.
+  ⏳ Esperando ele aprovar este mockup (e confirmar a pergunta: Copa do Brasil nas quartas + internacionais no fim do ano).
+- 🧭 24/10: ele achou as outras abas "embaralhadas" (*"na central funciona certinho mas quando aperto outra aba e vejo o próximo
+  jogo, embaralha tudo"*) e pediu como EU faria. Proposta `scripts/mockups/carreira-calendario-um-relogio.png`: UM relógio só —
+  a mesma barra no topo de TODA aba (data + próximo jogo + ⏩/▶), Central = o dia, Jogos = lista de jogos com datas (vira o
+  estádio no dia do jogo), Elenco/Tabelas/Rank/Clube = escritório que pausa o tempo. Copas seguem o mesmo calendário (quartas).
+- Pendente da conversa: espera no automático (recomendei 1s por dia vazio) e vaga da Copa pela temporada anterior.
+- ✅ 24/10 *"faça apenas no meu usuário… code pro meu tudo isso"* → ETAPA 1 FEITA (gate `CALENDARIO_*` em sport.ts, só a conta
+  dele): `calendario.ts` (datas puras: T1 = 2026, rodada r = r-ésimo domingo de fevereiro, Copa nas quartas DEPOIS da Liga por
+  enquanto; recado do dia seg/ter/qua/qui/sex/sáb) + `calendario-ui.tsx` (`CalendarioBarra`) + o bloco "CALENDÁRIO DA CARREIRA"
+  no pyramidseason: 1 s por dia vazio só com Central/Jogos na tela (escritório pausa), ⏩ Pular / ▶ Próximo adversário vão
+  direto, "▶ Ir pro jogo" quando o domingo chega com a Central aberta (lá o jogo nunca roda). O auto só faz `PLAY_ROUND`
+  com a semana acabada (`calDiasOk`). Conserto junto: o apito fica GUARDADO (`calApitado`) — na Central o `roundReady`
+  voltava a dizer "rodada rolando" com o jogo já acabado. Testado numa carreira de verdade (celular e PC).
+  ⏳ ETAPA 2 (a fazer): Copa intercalada nas quartas (vaga pela temporada anterior) + quarta livre devolve gás.
+- 🏟️ 24/10 ABA CLUBE SEM JOGO (mockup `carreira-clube-sem-jogo.png`, *"pode publicar na minha conta"*): com o calendário ligado
+  a aba Clube esconde o lado do jogo (placar/2D/rádio/tática/controle) — classe `ll-cx-clube-limpo` + regra no
+  career-desktop.css. Escondido, não desmontado (igual à Central): o jogo segue rolando por trás. Na conta dele o Clube já é o
+  MAPA (não a maquete) — nada muda nisso. Publicado junto com a etapa 1 do calendário, só na conta dele.
 ### 23/10 — jogador cartoon no estilo dos civis aprovado como direção visual
 - Diego aprovou o conceito gerado por IA (cabeça grande, corpo compacto, NO FACE, uniforme branco/preto) e pediu seguir o conjunto visual, incluindo gramado, roupa e sombras. A imagem conceitual não é captura do jogo. O novo modelo real ainda precisa atingir aquele acabamento.
 - Bancada `scripts/cartoon-football/review.html`, exportação GLB e corrida real. Corpo original civil CC0, 23 ossos, hierarquia/pesos preservados; camisa em V e barra do short alteradas apenas nas peças de roupa clonadas. Faixas de meião e acabamento das chuteiras por material. Neymarzetti usa arte/atlas existentes; combinação de short/meias/chuteiras provisória.
