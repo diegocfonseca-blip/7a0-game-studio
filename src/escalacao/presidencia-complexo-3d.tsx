@@ -167,7 +167,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   }})
   retryPresident.current=()=>{presidentBody.retry()}
   const collection=criarColecaoSala(scene,state,()=>render(),isOffice);collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage)
-  const game=criarPartidaComplexo(scene,save,matchRef.current,()=>{renderer.shadowMap.needsUpdate=true;render()})
+  const game=criarPartidaComplexo(scene,save,matchRef.current,()=>{renderer.shadowMap.needsUpdate=true;render()},()=>presidentRef.current)
   // The probe sees real static geometry. Exclude bump derivatives from its convolution.
   const bumpMaps=new Map<THREE.MeshStandardMaterial,THREE.Texture>()
   scene.traverse(node=>{if(node instanceof THREE.Mesh)for(const mat of Array.isArray(node.material)?node.material:[node.material]){
