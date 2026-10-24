@@ -8986,7 +8986,15 @@ export function PyramidSeasonScreen() {
       const iSuper = copa.rounds.findIndex(r => r.name === 'Supercopa')
       if (superChamp?.you && superTie && iSuper >= 0 && copaRound > iSuper) {
         const t = superTie
-        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: null, garcom: null })
+        // ⚽🅰️ artilheiro e garçom da Supercopa: os gols do próprio confronto (por carta; gol contra não conta)
+        const gols = new Map<string, DestaqueFesta>(), pas = new Map<string, DestaqueFesta>()
+        for (const g of t.goals) {
+          const time = g.home ? t.a.name : t.b.name
+          if (g.id) { const k = `${g.id}|${time}`, r = gols.get(k); if (r) r.n++; else gols.set(k, { nome: g.name, time, n: 1 }) }
+          if (g.assist) { const k = `${g.assistId ?? g.assist}|${time}`, r = pas.get(k); if (r) r.n++; else pas.set(k, { nome: g.assist, time, n: 1 }) }
+        }
+        const top = (m: Map<string, DestaqueFesta>) => [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome))[0] ?? null
+        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: top(gols), garcom: top(pas) })
       }
     }
     return out
