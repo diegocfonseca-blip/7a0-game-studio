@@ -10457,3 +10457,8 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   (~3s por dia vazio, proposta) com o recado do dia + botão "⏩ Pular pro jogo"; MANUAL = fica parado no dia até "▶ Próximo
   adversário". Recado por dia: seg O MARTELO · ter cansados/voltou/suspensos · qui rivais · sex véspera/clássico · sáb concentração.
   ⏳ Esperando ele aprovar este mockup (e confirmar a pergunta: Copa do Brasil nas quartas + internacionais no fim do ano).
+- 🧭 24/10: ele achou as outras abas "embaralhadas" (*"na central funciona certinho mas quando aperto outra aba e vejo o próximo
+  jogo, embaralha tudo"*) e pediu como EU faria. Proposta `scripts/mockups/carreira-calendario-um-relogio.png`: UM relógio só —
+  a mesma barra no topo de TODA aba (data + próximo jogo + ⏩/▶), Central = o dia, Jogos = lista de jogos com datas (vira o
+  estádio no dia do jogo), Elenco/Tabelas/Rank/Clube = escritório que pausa o tempo. Copas seguem o mesmo calendário (quartas).
+- Pendente da conversa: espera no automático (recomendei 1s por dia vazio) e vaga da Copa pela temporada anterior.
