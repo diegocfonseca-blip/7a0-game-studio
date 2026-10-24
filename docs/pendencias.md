@@ -10525,6 +10525,12 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   com a semana acabada (`calDiasOk`). Conserto junto: o apito fica GUARDADO (`calApitado`) — na Central o `roundReady`
   voltava a dizer "rodada rolando" com o jogo já acabado. Testado numa carreira de verdade (celular e PC).
   ⏱️ 24/10: 1 s por dia foi rápido demais (*"não deu nem para ler"*) → 3 s por dia (`CAL_MS_POR_DIA`).
+  🗓️ 24/10 ABAS ARRUMADAS (mockup `carreira-calendario-abas-antes-depois.png`, *"aprovado só p minha conta"*): sai a barra
+  separada no Jogos — a data vira selo no cabeçalho da liga e, nos dias, o lugar do placar vira o cartão PRÓXIMO JOGO
+  (`CalendarioProximo`: escudos, dia/hora, semana do próximo jogo, recado, ⏩ Pular/▶ Próximo adversário, "Seus jogos"). Central
+  segue com o cartão do dia. Outras abas: faixa fina (⏸️ nos dias · 🔴 AO VIVO no jogo). CLUBE: o jogo NÃO pausa mais (o 2D
+  escondido desenha num tamanho de reserva — é o laço dele que anda o relógio) e tem 📺 Assistir → Placar (todos) · 2D (Craque+,
+  `temManual`/pago) · 3D no mapa (só conta em teste). Placar velho não reaparece nos dias.
   ✅ ETAPA 2 (Copa nas quartas) FEITA, só na conta dele: temporada que COMEÇA com o calendário ligado ganha `calCopaSeason`
   (ação `CAL_COPA_LIGA`, só na rodada 0 — temporada em andamento termina do jeito antigo). A Copa (Copa do Brasil/Legends) nasce
   na LARGADA a partir do `world` (ordem dos clubes no começo da temporada — a tabela final ainda não existe) e as fases são

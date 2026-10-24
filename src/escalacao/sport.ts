@@ -415,6 +415,8 @@ export function useTelaPC(): boolean {
 const CAMPO2D_GERAL = false
 const CAMPO2D_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let campo2dOk = CAMPO2D_GERAL
+/** 🧪 só bancada */
+export function applyCampo2DBancada(): void { campo2dOk = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 function applyCampo2D(email?: string | null): void {
   const u = CAMPO2D_GERAL || (!!email && CAMPO2D_TESTERS.has(email.toLowerCase()))
   if (u === campo2dOk) return
