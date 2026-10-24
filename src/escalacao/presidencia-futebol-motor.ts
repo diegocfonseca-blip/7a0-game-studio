@@ -9,12 +9,13 @@ import {amostrarFinalizacaoFutebol,type PlanoFinalizacaoFutebol} from './preside
 import {FutebolOficial3D} from './presidencia-futebol-oficial'
 import type {Evento} from './motor2/tipos'
 import type {EntregaOficial3D} from './presidencia-entrega-oficial'
+import type {ReinicioOficial3D,IncidenteOficial3D} from './presidencia-contexto-oficial'
 
 /** Metros no plano X/Z. A apresentação nunca escreve resultados ou estatísticas. */
 export type PontoFutebol={x:number;z:number}
-export type JogadorFutebol=ReturnType<typeof atletasEmCampo>[number]&{mx:number;mz:number;heading:number;distance:number;speed:number;kick:number;throwing:number;throwPreparation?:number;save?:number;dive?:number;control?:number;visible?:boolean;tacticalRole?:string;presentation?:PontoFutebol}
+export type JogadorFutebol=ReturnType<typeof atletasEmCampo>[number]&{mx:number;mz:number;heading:number;distance:number;speed:number;kick:number;throwing:number;throwPreparation?:number;save?:number;dive?:number;control?:number;visible?:boolean;tacticalRole?:string;temporaryStopUntil?:number;presentation?:PontoFutebol}
 export type FaseFutebol='dominio'|'passe'|'lancamento'|'cruzamento'|'lateral'|'escanteio'|'tiro-de-meta'|'saida'|'finalizacao'|'gol'|'falta'|'penalti'|'fim'
-export type QuadroFutebol={players:JogadorFutebol[];ball:{x:number;y:number;z:number;rotation?:[number,number,number,number];presentation?:{x:number;y:number;z:number};netImpact?:ImpactoRede3D};phase:FaseFutebol;placementReset?:boolean;owner?:string;officialAction?:{type:string;actor:string;receiver?:string;startedAt:number;delivery?:EntregaOficial3D};referee:PontoFutebol&{heading:number;distance:number;speed:number};time:number;official?:{score:number[];events:Evento[];finished:boolean}}
+export type QuadroFutebol={players:JogadorFutebol[];ball:{x:number;y:number;z:number;rotation?:[number,number,number,number];presentation?:{x:number;y:number;z:number};netImpact?:ImpactoRede3D};phase:FaseFutebol;placementReset?:boolean;owner?:string;restart?:ReinicioOficial3D;incident?:IncidenteOficial3D;incidents?:IncidenteOficial3D[];officialAction?:{type:string;actor:string;receiver?:string;startedAt:number;requiredContact?:'foot'|'hands'|'head';delivery?:EntregaOficial3D;restartOrigin?:ReinicioOficial3D};referee:PontoFutebol&{heading:number;distance:number;speed:number};time:number;official?:{score:number[];events:Evento[];finished:boolean}}
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v))
 const distance=(a:PontoFutebol,b:PontoFutebol)=>Math.hypot(a.x-b.x,a.z-b.z)
 const point=(p:JogadorFutebol)=>({x:p.mx,z:p.mz})

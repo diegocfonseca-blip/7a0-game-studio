@@ -5,6 +5,7 @@ import {RotacaoBola3D,RAIO_BOLA_FUTEBOL_3D,type PontoRotacaoBola} from './presid
 import {GolApresentacao3D} from './presidencia-gol-apresentacao'
 import {identidadeAtleta3D} from './presidencia-futebol-identidade'
 import {descreverEntregaOficial3D,type EntregaOficial3D} from './presidencia-entrega-oficial'
+import {ContextoOficial3D} from './presidencia-contexto-oficial'
 
 /** Adapter only: the career's exact input owns decisions, ball, goals and roles.
  * No result is persisted here, and cameras never write into the match engine. */
@@ -18,10 +19,12 @@ export class FutebolOficial3D {
  private referee={x:0,z:10,heading:0,distance:0,speed:0}
  private visualTime=0
  private travel=new Map<number,{x:number;y:number;distance:number}>()
+ private context=new ContextoOficial3D()
  private deliveryKey:string|null=null
  private delivery:EntregaOficial3D|undefined
  constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
  private observeDelivery(){
+  this.context.observe(this.game)
   const b=this.game.bola,l=b.lance
   if(!l){this.deliveryKey=null;this.delivery=undefined;return}
   const key=l.tipo+':'+l.de.id+':'+l.t0
@@ -39,7 +42,7 @@ export class FutebolOficial3D {
  sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
@@ -59,15 +62,18 @@ export class FutebolOficial3D {
    this.travel.set(p.id,{x:mx,y:mz,distance})
    return {id:card?.id??String(p.id),name:p.nome,pos:card?.pos??p.carta?.pos??(p.grupo==='GOL'?'GOL':'MEI'),key:key(p),side,keeper:p.grupo==='GOL',x:mx/105+.5,y:mz/68+.5,mx,mz,
     heading:speed>.05?Math.atan2(p.vy,p.vx):Math.atan2(g.bola.y-p.y,g.bola.x-p.x),speed,distance,
-    kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
+    kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,temporaryStopUntil:p.atordoado,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
   })
+  const context=this.context.sample(time)
   const b=g.bola,previous=g.bolaAnt
   const action=b.lance?.tipo
   const phase:FaseFutebol=g.fim?'fim':g.festa?'gol':g.parada?.tipo==='falta'?'falta':g.parada?.tipo==='penalti'?'penalti':g.parada?.tipo==='saida'?'saida':g.parada?.tipo==='lateral'?'lateral':g.parada?.tipo==='escanteio'?'escanteio':g.parada?.tipo==='tiro_de_meta'?'tiro-de-meta':action==='chute'||action==='cabeceio_gol'?'finalizacao':action==='cruzamento'?'cruzamento':action==='lancamento'||action==='inversao'?'lancamento':action?'passe':'dominio'
   const dt=Math.max(0,Math.min(.25,time-this.visualTime));this.visualTime=time
-  if(dt>0){const dx=(b.y-52.5)*.78-this.referee.x,dz=(b.x-34)*.55-this.referee.z,length=Math.hypot(dx,dz),step=g.fim?0:Math.min(length*(1-Math.exp(-dt/.9)),7*dt);if(length>.001){this.referee.x+=dx/length*step;this.referee.z+=dz/length*step;this.referee.heading=Math.atan2(dx,dz)}this.referee.speed=g.fim?0:step/dt;this.referee.distance+=step}
+  if(dt>0){const watch=context.restart?.point??{x:b.y-52.5,z:b.x-34},target=context.restart?{x:watch.x+(watch.x>0?-4:4),z:watch.z+(watch.z>0?-3:3)}:{x:watch.x*.78,z:watch.z*.55},dx=target.x-this.referee.x,dz=target.z-this.referee.z,length=Math.hypot(dx,dz),step=g.fim?0:Math.min(length*(1-Math.exp(-dt/.9)),7*dt);if(length>.001){this.referee.x+=dx/length*step;this.referee.z+=dz/length*step;this.referee.heading=Math.atan2(dx,dz)}this.referee.speed=g.fim?0:step/dt;if(context.restart)this.referee.heading=Math.atan2(watch.x-this.referee.x,watch.z-this.referee.z);this.referee.distance+=step}
+  // Initial/paused restart frames also face the real restart point.
+  if(context.restart)this.referee.heading=Math.atan2(context.restart.point.x-this.referee.x,context.restart.point.z-this.referee.z)
   const presented=this.goalFinish.sample({x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
-  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,placementReset:placementReset||undefined,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
+  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,restart:context.restart,incident:context.incident,incidents:context.incidents,placementReset:placementReset||undefined,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,requiredContact:context.restartOrigin?.type==='lateral'?'hands':action==='cabeceio'||action==='cabeceio_gol'?'head':'foot',restartOrigin:context.restartOrigin,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
  }

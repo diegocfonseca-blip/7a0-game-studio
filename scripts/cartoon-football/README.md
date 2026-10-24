@@ -316,3 +316,28 @@ node scripts/cartoon-football/record-delivery-varieties.cjs
 ```
 
 Evidências em `test-results/cartoon-football/variedades/`. Vídeo distingue trajetória oficial existente de gesto ainda pendente. Recuperação anterior `recovery/antes-variedades-20261024` em`d3ab4978`. Sem publicação, DB, rodada nova, motor alterado ou asset comprado.
+
+## Auditoria do futebol completo — 24/10, local
+
+Diego pediu responsabilidade pelo futebol inteiro, sem listar cada lance isolado. `football-coverage.mjs` mantém uma matriz de TODOS os39tipos de evento e25grupos implícitos do jogo (condução/domínio, tabela, transições, disputas, faltas, cobranças, cabeça, goleiros e especiais), com evidência de código, requisitos de contato e prioridades. Uma etiqueta de golpe ou um tipo declarado não significa que exista execução física/captura. Bicicleta e meia-lua não são ações ativas do Motor2; o drible genérico pode receber nome sem mudar sua trajetória. Isso fica registrado como lacuna, não como futebol implementado.
+
+**Erro de regra corrigido:** o lateral Oséas11,3s estava entre os49contatos de pé considerados válidos. A fonte emitia um `passe` depois da lateral e o adaptador perdia a origem. `ContextoOficial3D` agora preserva tipo, ponto, lado, início, motivo e cobrador da parada na ação posterior. As três laterais exigem mãos; o controlador bloqueia o clipe de pé, inclusive antes do contato pelo perfil compilado. O clipe anterior foi retirado dos aprovados. A busca nos assets não encontrou um arremesso legal com duas mãos/atrás-acima da cabeça/pés apoiados: continua pendente, sem substituir por chute, arremesso de uma mão ou pose estática de arma. Bloqueio não equivale a lateral animado pronto.
+
+O contexto também resolve autor/adversário, faltoso/vítima e recuperação temporária da fonte. Na vantagem, `lado` pertence à vítima, mas `a` continua sendo infrator: corrigida essa semântica. Colegas de passe e assistência são resolvidos no mesmo time, sem confundir nomes repetidos dos dois lados. Mantém todos os incidentes recentes, não perde a falta ao receber cartão no mesmo tick, e distingue impedimento de falta sofrida quando a fonte usa parada `falta`. Relógio/acréscimo não é resolvido como atleta. Nenhum novo evento, falta, gol, técnica ou queda é criado.
+
+**Correção visual:** durante paradas/atordoamento, a seleção de pose/cadência usa deslocamento real em vez de `max` com a velocidade bruta desatualizada.69amostras com corpo parado passaram a velocidade de apresentação zero; coordenadas e velocidade oficiais permanecem intactas. Árbitro acompanha/olha o ponto real da cobrança, inclusive no primeiro quadro pausado. Cabeceio requer cabeça e lateral requer mãos; a camada de chutes nunca pode representá-los. Isso ainda não fornece gesto de cabeceio, queda, cartão ou apito.
+
+Auditoria atual:9paradas(4saídas,3laterais,2faltas),48capturas de pé revisadas,1reposição manual de goleiro,7ações de pé e3laterais sem captura. Antes havia uma cobrança ilegal contada como contato aprovado. A fixture não tem escanteio, pênalti, carrinho ou cabeceio; sua ausência NÃO os aprova. Testes sintéticos de regra não são comprovação visual desses gestos.
+
+```sh
+node scripts/cartoon-football/football-coverage.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/compile-restart-context.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/test-football-context.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/audit-official-restarts.mjs
+node scripts/cartoon-football/test-restart-rendering.cjs
+ACTION_COVERAGE_OUT=test-results/cartoon-football/futebol-completo/actions node scripts/cartoon-football/audit-action-coverage.cjs
+```
+
+43comparações de contexto em12/30/60/120Hz/seek passaram. Partida inteira2.821quadros/30Hz preserva1×1/82eventos e não teve conflito de volumes, penetração pé–bola, piso inválido, raiz fora do orçamento ou tranco extra fora dos reinícios oficiais. Deslizamento, ações ausentes e75flags de deslocamento contrário à orientação continuam diagnosticados; não são aprovação de naturalidade. Rig/pesos/vértices originais preservados. Relatório navegável `test-results/cartoon-football/futebol-completo/coverage.html`, demaisJSONs na mesma pasta. Recuperação `recovery/antes-contexto-futebol-20261024` em`b4769104`. Sem publicação, banco ou nova rodada. O3D continua reproduzindo a mesma autoridade2D.
+
+A auditoria de partida inteira (`audit-whole-match.cjs`) agora executa automaticamente a matriz geral antes da varredura de contatos: novo tipo oficial sem cobertura faz a auditoria falhar. Não depender de Diego listar o lance que foi esquecido.
