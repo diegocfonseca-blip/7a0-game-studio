@@ -20,15 +20,30 @@ export class FootballActionController{
  // gait backwards. Keep that missing action visible as unsupported, with
  // only a limited anticipation; never pretend this supplies its foot pose.
  if(!a.supported)return heading+clamp(angle(a.intentHeading-heading),-Math.PI/8,Math.PI/8)*weight*.8;
- return heading+angle(a.intentHeading-heading)*weight;}
- orientUpperBody(actor,p,time){const a=this.action(p.key,time);if(!a){this.orientReception(actor,p);return;}const weight=smooth((time-a.plan.start+.25)/.25)*smooth((a.plan.end-time)/.25),up=new T.Vector3(0,1,0);
+ // A forward-running clip cannot communicate a full backwards pass while
+ // the captured strike has not yet blended in (or has already faded out).
+ // Match the native facing to the imported layer's actual envelope. Its
+ // measured contact remains fully oriented; upper-body anticipation above
+ // still communicates the intention before the feet change action.
+ const entrySeconds=Math.max(1e-6,Math.min(a.plan.entrySeconds??.18,a.plan.time-a.plan.start)),exitSeconds=Math.max(1e-6,Math.min(a.plan.exitSeconds??.18,a.plan.end-a.plan.time));
+ const captured=smooth((time-a.plan.start)/entrySeconds)*smooth((a.plan.end-time)/exitSeconds);
+ return heading+angle(a.intentHeading-heading)*weight*captured;}
+ orientUpperBody(actor,p,time){const a=this.action(p.key,time);if(!a){if(p.keeper)this.orientKeeper(actor,p,time);else this.orientReception(actor,p);return;}const weight=smooth((time-a.plan.start+.25)/.25)*smooth((a.plan.end-time)/.25),up=new T.Vector3(0,1,0);
   for(const [name,axis,max]of [['spine_03',actor.intentAxis,.35],['Head',actor.headIntentAxis,.52]]){if(!axis)continue;const bone=actor.bones.get(name),world=bone.getWorldQuaternion(new T.Quaternion()),forward=axis.clone().applyQuaternion(world),turn=clamp(angle(a.intentHeading-Math.atan2(forward.x,forward.z)),-max,max)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
   if(a.contactAt-time>.15)this.orientReception(actor,p);
+ }
+ orientKeeper(actor,p,time){
+  if(!this.ball||['gol','fim','saida'].includes(this.phase)||p.speed>1.2)return;
+  const delta=new T.Vector3(this.ball.x-p.mx,0,this.ball.z-p.mz),distance=delta.length();if(distance<.3||distance>45)return;
+  const target=Math.atan2(delta.x,delta.z),old=actor.keeperLook,dt=old?time-old.time:0,reset=!old||dt<0||dt>.5,weight=smooth((45-distance)/20),up=new T.Vector3(0,1,0);
+  const wanted=angle(target-actor.holder.rotation.y),turn=reset?wanted:old.turn+angle(wanted-old.turn)*(1-Math.exp(-Math.max(0,dt)/.12));actor.keeperLook={time,turn};
+  for(const [name,limit,share]of [['spine_03',.22,.35],['Head',.48,.65]]){const bone=actor.bones.get(name);if(!bone)continue;const world=bone.getWorldQuaternion(new T.Quaternion()),parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,clamp(turn*share,-limit,limit)*weight)).multiply(world));actor.holder.updateMatrixWorld(true);}
+  this.receptions.push({key:p.key,kind:'keeper-ball-tracking',yawCorrection:clamp(turn,-.7,.7)*weight,ballHeight:this.ball.y,changesBall:false,provisional:true});
  }
  orientReception(actor,p){const incoming=this.incoming;if(p.keeper||incoming?.receiver!==p.key||!actor.headIntentAxis||incoming.ball.y<=.35)return;const bone=actor.bones.get('Head'),position=bone.getWorldPosition(new T.Vector3()),delta=new T.Vector3(incoming.ball.x,incoming.ball.y,incoming.ball.z).sub(position),distance=Math.hypot(delta.x,delta.z);if(distance>25)return;const world=bone.getWorldQuaternion(new T.Quaternion()),forward=actor.headIntentAxis.clone().applyQuaternion(world),yaw=Math.atan2(forward.x,forward.z),pitch=Math.atan2(forward.y,Math.hypot(forward.x,forward.z)),target=clamp(Math.atan2(delta.y,Math.max(.1,distance)),-.25,.65),weight=smooth((25-distance)/15)*smooth((incoming.ball.y-.35)/.6),turn=clamp(target-pitch,-.45,.45)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),-turn)).multiply(world));actor.holder.updateMatrixWorld(true);this.receptions.push({key:p.key,kind:'airborne-ball-tracking',pitchCorrection:turn,ballHeight:incoming.ball.y,delivery:incoming.delivery??null,provisional:true,changesBall:false});}
  inspect(){return[...this.current].map(([key,a])=>({key,id:a.plan.id,state:a.state,contactAt:a.contactAt,preparationSeconds:a.preparationSeconds,intentHeading:a.intentHeading,delivery:a.delivery,requiredContact:a.requiredContact,supported:a.supported,mayEmitImpulse:false,...this.metrics.get(key)}));}
  inspectReceptions(){return this.receptions;}
- begin(frame){this.current.clear();this.metrics.clear();this.receptions=[];this.requiredSource=frame?.restart?.type==='lateral'?{key:frame.restart.taker,contact:'hands'}:frame?.officialAction?{key:frame.officialAction.actor,contact:frame.officialAction.requiredContact??(frame.officialAction.restartOrigin?.type==='lateral'?'hands':'foot')}:null;const receiver=frame?.officialAction?.receiver;this.incoming=receiver?{receiver,player:frame.players.find(p=>p.key===receiver),ball:frame.ball,delivery:frame.officialAction.delivery}:null;}
+ begin(frame){this.ball=frame?.ball;this.phase=frame?.phase;this.current.clear();this.metrics.clear();this.receptions=[];this.requiredSource=frame?.restart?.type==='lateral'?{key:frame.restart.taker,contact:'hands'}:frame?.officialAction?{key:frame.officialAction.actor,contact:frame.officialAction.requiredContact??(frame.officialAction.restartOrigin?.type==='lateral'?'hands':'foot')}:null;const receiver=frame?.officialAction?.receiver;this.incoming=receiver?{receiver,player:frame.players.find(p=>p.key===receiver),ball:frame.ball,delivery:frame.officialAction.delivery}:null;}
  validate(actor,p,frame,capture){const a=this.action(p.key,frame.time);if(!a)return null;
  if(!actor.intentAxis){const bone=actor.bones.get('spine_03');actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(bone.getWorldQuaternion(new T.Quaternion()).invert())}
  const forward=actor.intentAxis.clone().applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion())),body=Math.atan2(forward.x,forward.z),error=Math.abs(angle(a.intentHeading-body)),gap=capture?.contactGap??null;
