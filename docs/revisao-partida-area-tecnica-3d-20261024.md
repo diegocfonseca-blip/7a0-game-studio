@@ -11,6 +11,8 @@ Pedido: revisar continuamente a sensação de futebol, preservando os Civis NO F
 5. A orientação da aproximação do passe mudava abruptamente com a posse/distância da bola. A correção agora é angularmente limitada e contínua na distância e no giro de 180°. Na mesma partida completa, o salto fora de reinícios de Paolo Montero aos 60,7 s deixou de ocorrer. Não se moveu a bola oficial nem se atrasou seu impulso.
 6. **Expulsão reproduzida em teste local:** após o vermelho de Cuadrado, o Motor2 reduz a lista para 21. A condição antiga `snapshot.players.length !== 22` apagava a partida do mapa. A integração passou a aceitar a redução oficial e conserva os mesmos objetos dos avatares, ocultando o slot sem jogador. O plano não é recriado só porque houve um vermelho. O teste verifica os UUIDs, 21 avatares visíveis, ausência do expulso no banco, continuidade e placar final oficial. A leitura inicial de que a fonte sempre mantinha 22 slots foi descartada após executar este teste.
 
+O uniforme de arbitragem seleciona entre ciano, rosa e verde-lima a cor mais distante das duas camisas e do dourado dos goleiros. Isso evita que o árbitro antigo amarelo pareça um terceiro goleiro; não modifica o uniforme dos clubes.
+
 ## Validação realizada
 
 - Partida inteira de Rei da Bola FC × Neymarzetti: 2.821 quadros a 30 Hz, mesmos **1×1 / 82 eventos**, zero penetrações pé–bola/piso, zero estouros do orçamento de raiz, zero toques falsamente confirmados e zero erros JS.

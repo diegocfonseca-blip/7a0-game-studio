@@ -80,7 +80,10 @@ export async function loadSidelines(scene,source,state,frame,kitPlan,{president,
  }
  function dispose(){if(disposed)return;disposed=true;for(const a of actors){a.kit?.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);for(const skeleton of new Set(a.meshes.map(m=>m.skeleton)))skeleton.dispose();}for(const m of ownedMaterials)m.dispose();for(const g of ownedGeometry)g.dispose();root.removeFromParent();}
  try{
-  await add('referee',null,'official',null,{shirtColor:'#efc42f',number:0,skinColor:'#a87250'});
+  // The previous yellow shirt looked like a third goalkeeper. Pick a
+  // separate officials' colour without changing either club's uniform.
+  const shirtColors=[...kitPlan.map(p=>new T.Color(p.color)),new T.Color('#d6b329')],refereeColor=['#38bace','#e68dbc','#b4d74b'].map(color=>({color,contrast:Math.min(...shirtColors.map(other=>{const c=new T.Color(color);return(c.r-other.r)**2+(c.g-other.g)**2+(c.b-other.b)**2}))})).sort((a,b)=>b.contrast-a.contrast)[0].color;
+  await add('referee',null,'official',null,{shirtColor:refereeColor,number:0,skinColor:'#a87250'});
   for(const[i,side]of ['home','away'].entries()){
    const own=state.viewerClubId!==undefined&&state.viewerClubId===state.context[side+'ClubId'],identity=own?president:null;
    const coach=await add('coach',side,identity?.name??side+'-coach',null,{skinColor:skins[identity?.appearance?.skinTone]});
