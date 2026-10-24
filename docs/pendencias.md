@@ -5,6 +5,12 @@ Diego aprovou variante temporária: próprio clube sempre padrão, rival só mud
 ## Câmeras do futebol 3D (24/10) — implementadas e validadas para publicação privada
 
 Pedido de Diego: Ver campo abre transmissão de futebol e oferece câmeras padrão. Transmissão, Lateral próxima, Ampla, Atrás do gol, Tática e Mapa livre implementadas. Lentes próprias, bola alta, panorâmica suave e zoom estável; escolha em controle nativo que cabe no celular. Trocar câmera não remonta mundo/partida; resize mantém preset e mapa recupera lente/pose. Corrigido caso de giro landscape→portrait com partida pausada: zoom pendente não podia encerrar o RAF antes de enquadrar a bola. Teto recebe recorte somente visual durante câmeras automáticas, preservando sombras e save. Build passou; 300 enquadramentos, 4.496 quadros em movimento e 20 giros pausados passaram. Componentes reais validados em desktop e celular emulado, cinco câmeras na mesma jogada, resize, avanço oficial, retorno livre e retrato→paisagem→retrato; sem erros JS/HTTP ou alteração da fonte. Nenhuma lógica oficial/DB alterada. Não equivale a FPS em aparelho físico. Testes e limites em `docs/cameras-futebol-3d.md`; capturas locais `test-results/camera-qa/`. Segue a publicação autorizada na mesma prévia privada; confirmar o workflow verde antes de informar que está no ar.
+## 🔗 Entrosamento na carreira (24/10) — IDEIA, mockup enviado, esperando OK
+- Diego gostou da ideia (*"gostei do entrosamento… talvez ganha cada um +1 de over"*). Proposta no mockup
+  `scripts/mockups/carreira-entrosamento.png`: cartas do MESMO clube e MESMO ano juntas no TITULAR → 2 juntas +1 cada · 3+ juntas
+  +2 cada (teto) · banco não conta · só carreira. No campinho: selo 🔗+1/+2 no boneco e linha tracejada ligando o grupo; caixa
+  "Entrosamento no time titular" embaixo; no leilão, etiqueta "entrosa com X e Y" (só o que ele JÁ tem — nível segue escondido).
+  368 grupos com 2+ cartas no baralho hoje. Narração própria quando o grupo tabela. Nada feito no código ainda.
 
 ## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — PUBLICADO ("coloque esse áudio e publique")
 - Pedido: *"entrada de gala personalizada… o saci chegando num furacão… em breve dou o canto"*. `gala-guimaraes.tsx` (8,6 s):
