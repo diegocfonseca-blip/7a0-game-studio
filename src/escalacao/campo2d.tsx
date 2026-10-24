@@ -1,4 +1,4 @@
-import {ancorarMinutoCampo,passoRelogioCampo} from './campo2d-relogio'
+import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './campo2d-relogio'
 // 📺 CAMPO 2D — a tela (20/10). O protótipo que o Diego aprovou (`scripts/prototipo-jogo-ao-vivo/`) virou componente do jogo.
 // Quem decide o jogo continua sendo o motor de sempre: aqui entram os gols e as chances já calculados e o MINUTO do placar; o
 // `Jogo2D` (campo2d-motor.ts) monta as jogadas em volta e este componente só desenha.
@@ -38,6 +38,7 @@ export interface Campo2DProps {
   gols: Gol[]
   roundMs: number
   minuto: number // o minuto que o placar mostra (o relógio manda)
+  pausado?: boolean
   fechado?: boolean
   tatica?: [number, number]
   /** o placar de baixo já tem a 📻 Rádio Legends narrando: aqui a faixa some (o mesmo texto não aparece duas vezes) */
@@ -92,7 +93,7 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute }: Campo2DProps) {
   const t = useT()
   useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
@@ -166,8 +167,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const [temReplay, setTemReplay] = useState(false)
   const [replayNa, setReplayNa] = useState<{ autor: string; min: number } | null>(null)
   useEffect(()=>()=>onSimulationMinute?.(null),[onSimulationMinute])
-  const vivo = useRef({ casa, fora, fechado, t, onSimulationMinute })
-  vivo.current = { casa, fora, fechado, t, onSimulationMinute }
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute }
 
   useEffect(() => {
     const el = caixa.current
@@ -399,13 +400,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     // 🌠 rastro da bola nos passes longos e chutes
     const rastro: [number, number][] = []
     const quadro = () => {
-      const { casa, fora, fechado, t } = vivo.current
+      const { casa, fora, fechado, pausado, t } = vivo.current
       if (cartasDe[0] !== casa.cartas || cartasDe[1] !== fora.cartas) {
         cartasDe = [casa.cartas, fora.cartas]; cartaDe = new Map(); rostoDe.clear()
         for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
       }
       const agora = performance.now(), dt = Math.min(250, agora - antes); antes = agora
-      simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,msPorMin)
+      if(pausado&&!fechado)relogio.current=suspenderRelogioCampo(relogio.current,simMin,agora)
+      else simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,msPorMin)
       const fi = fita.current
       if (fi.de !== jogo) { fi.de = jogo; fi.atual = []; fi.gols = []; vendo.current = null }
       const rv = vendo.current

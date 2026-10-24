@@ -1,3 +1,7 @@
+## Pausa do campo compartilhado (24/10) — correção local
+
+Campo2D agora recebe a pausa do placar/intervalo. Enquanto pausado, conserva o minuto fracionário publicado ao mapa/cinema e reposiciona a âncora de tempo para a retomada não consumir o tempo parado. Encerramento mantém a finalização existente. Sem mudança de Motor2, resultados, atributos ou DB. Teste real de navegador manteve o minuto estável nas duas pausas, retomou a marcha do relógio e não registrou erros JavaScript. Testes: `test-field-pause.mjs`, `test-field-pause-browser.cjs` e paridade das três apresentações (três entradas completas, resultados/eventos preservados). Domínio e naturalidade continuam pendentes; esta correção é do relógio.
+
 ## Partida única nas três apresentações (24/10) — esclarecimento e integração local
 
 Diego reafirmou: cinema, campinho 2D e mapa 3D compartilham resultado, gols/minutos/autores/assistências, narrações e comentários; apenas a visualização muda. Corrigido caminho Motor2 do cinema que ainda gerava chances/frases próprias e atrasava o placar pela animação. Agora lê a sequência oficial no relógio do campo; narração acompanha o mapa. Verificação de replay inclui assistências e protege também o 2D contra reprodução incompatível com o save. Testes com três entradas locais preservam 1×1/82, 1×0/77 e 2×0/72. Sem mudanças de regras, atributos ou DB; não publicado. Detalhes/limites: `docs/partida-unica-tres-visuais-20261024.md`. A naturalidade de domínio/condução permanece pendente; não confundir fidelidade dos eventos com qualidade das animações.
