@@ -129,7 +129,6 @@ import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva, useCalendarioCarreira } from './sport'
 import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
-import { trocaCampo2D, usePago2D } from './campo2d-modo'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
 import { useImagemBusto } from './presidente-avatar'
 import { entradaM2, novoMotor2, resultadoM2, sementeM2, taticaM2, carregaGuardados, tiraNovos, type EntradaM2 } from './motor2/carreira' // ⚽🧠 motor novo decide o seu jogo na carreira (20/10)
@@ -9864,8 +9863,6 @@ export function PyramidSeasonScreen() {
   const calTotal = calOn && round > 0 && round < 38 ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)).length : 0
   const [calPasso, setCalPasso] = useState<{ r: number; s: number; i: number }>({ r: -1, s: -1, i: 0 })
   const [clubeAssistir, setClubeAssistir] = useState(false) // 🏟️ aba Clube: o jogo aparece ali (placar/2D) só quando a pessoa pede
-  const pago2D = usePago2D()
-  const pode2D = m2Liberado && pago2D // 📺 o 2D no Clube segue a MESMA régua do botão do 2D (Craque pra cima)
   const calI = calPasso.r === round && calPasso.s === calSn ? calPasso.i : 0
   // 🔔 o apito fica GUARDADO: na Central o relógio do placar está escondido/pausado e o `roundReady` volta a dizer "rolando"
   // mesmo com o jogo já acabado (foi o "embaralha tudo" que o Diego sentiu). Com o calendário, todo mundo lê ESTA marca.
@@ -10785,14 +10782,6 @@ export function PyramidSeasonScreen() {
         <AvisoContaCarreira />
         <SocioBaraoBanner />
         {calBarra?.barra}
-        {/* 🏟️ 24/10: ver o jogo NA ABA CLUBE — placar (todos), 2D (Craque pra cima) ou 3D no mapa (conta em teste) */}
-        {calOn && tab === 'estadio' && clubeAssistir && calFase === 'jogo' && <div style={{ display: 'flex', gap: 6, margin: '-4px 0 10px' }}>
-          {([['placar', tr('📊 Placar', '📊 Scoreboard'), true], ['2d', `📺 2D${pode2D ? '' : ' 🔒'}`, pode2D], ...(presidentAvailable ? [['3d', tr('🏟️ 3D no mapa', '🏟️ 3D on the map'), true]] : [])] as [string, string, boolean][]).map(([k, txt, ok]) => {
-            const on = k === 'placar' ? !campo2d : k === '2d' ? campo2d : false
-            return <button key={k} disabled={!ok} onClick={() => { if (k === 'placar' && campo2d) trocaCampo2D(); else if (k === '2d' && !campo2d && ok) trocaCampo2D(); else if (k === '3d') setClubeAssistir(false) }}
-              style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', background: on ? GOLD : ok ? '#fff' : '#ddd', color: ok ? INK : '#777', boxShadow: on ? `2px 2px 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default' }}>{txt}</button>
-          })}
-        </div>}
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
@@ -11351,6 +11340,15 @@ export function PyramidSeasonScreen() {
             quem não tem (o automático só entra a PARTIR da 1ª rodada, nunca pulando
             essa decisão). Pedido do Diego (07/08): "não deve iniciar automaticamente,
             tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
+        {/* 🏟️ 24/10 (Diego: *"a aba de 2D ou placar tem que ficar próximo do modal de botão manual e auto"*): na aba Clube, com o
+            📺 Assistir aberto, o jogo aparece com o MESMO controle da partida de sempre (Manual/Auto + o botão do 2D) — e, na conta
+            em teste do mapa, o 🏟️ 3D fica colado nele */}
+        {calOn && tab === 'estadio' && clubeAssistir && calFase === 'jogo' && presidentAvailable && (
+          <button onClick={() => { setClubeAssistir(false); setTimeout(() => document.querySelector('.ll-cx-aba')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60) }}
+            style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+            {tr('🏟️ Ver em 3D no mapa (ACOMPANHAR EM 3D)', '🏟️ Watch in 3D on the map (WATCH IN 3D)')}
+          </button>
+        )}
         {state.co2 && <Botao2D />/* 📺 carreira online: o 2D é do aparelho (cada um joga a própria carreira) — pago, igual à solo */}
         {state.co2 && !copaPlaying && (
           <Co2Temporada entradasLocais={entradasLocais} round={round} roundReady={roundReady} seasonOver={seasonOver}
