@@ -10440,3 +10440,12 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
 - Cidade completa QA: circulação de carro/pedestres e 22 jogadores em sete etapas até o fim, sem erro JS. Captura aproximada adicional com população da regra real; estádio completo da bancada não representa compras da conta. Reexecução durante merge/HMR foi interrompida por recarga da página; não confundir com aprovação de nova rodada gravada.
 - Testes locais usam Chromium/SwiftShader, não comprovam FPS em celular físico. Cena completa observada: cerca de 267 draw calls / 1,73 milhão de triângulos. Desempenho e anatomia infantil definitiva seguem para melhoria. Nenhuma sessão autenticada da conta foi manipulada e nenhuma migração executada.
 - Fontes e créditos em public/creditos-3d.txt e manifests de proveniência. Shorts: atribuição literal CC BY por Elvaerwyn, sem inventar versão.
+
+## 📅 CALENDÁRIO DA CARREIRA: QUARTA 21H E DOMINGO 16H (24/10) — ⏳ MOCKUP, esperando OK do Diego
+- Ideia dele: *"ter jogo toda quarta e domingo… quarta 21h e domingo 16h… e com isso teria o tempo passando… começar na central"*.
+- Mockup `scripts/mockups/carreira-calendario.png`: domingo 16h = Liga · quarta 21h = Copas · quarta sem jogo = semana livre ·
+  temporada fevereiro → dezembro, janeiro = virada. Data no topo da Central/Jogos/Tabelas, agenda "próximos compromissos" na
+  Central, semana (seg–dom) no Jogos, luz de tarde × refletores no estádio. O tempo passa por partida (nada de relógio de verdade)
+  e o botão de jogar é o de sempre.
+- Minha recomendação: 1ª etapa só visual (data + agenda + luz). "Semana livre recupera gás" = 2ª etapa, só se ele aprovar
+  (é a única parte que mexe em regra).
