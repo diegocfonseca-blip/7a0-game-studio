@@ -14,7 +14,7 @@ export interface Atrib {
 /** tendências (0–1): o que ele GOSTA de tentar quando a situação deixa. Não é jogada obrigatória — pesa na escolha. */
 export interface Tendencia { drible: number; passeLongo: number; chuteLonge: number; infiltra: number; cruza: number; apoia: number }
 
-export interface CartaCampo { name: string; pos?: string; sec?: string; club?: string; year?: number; fame?: number; lo?: number; hi?: number; fake?: boolean; /** 😓 o desconto da régua de condição da carreira nesta rodada (0 · −1 · −2 · −3): quem entra cansado começa com menos gás */ gasMod?: number }
+export interface CartaCampo { name: string; pos?: string; sec?: string; club?: string; year?: number; fame?: number; lo?: number; hi?: number; fake?: boolean; /** 😓 o desconto da régua de condição da carreira nesta rodada (0 · −1 · −2 · −3): quem entra cansado começa com menos gás */ gasMod?: number; /** 🔗 entrosamento desta rodada (+1/+2, já somado no lo/hi) — só entra na chave do resultado guardado */ entro?: number }
 
 /** o que o jogador está fazendo SEM a bola (o coletivo escolhe) */
 export type Papel = 'forma' | 'pressiona' | 'cobre' | 'marca' | 'opcao' | 'infiltra' | 'ultrapassa' | 'recebe' | 'bola_solta' | 'goleiro' | 'cobranca'

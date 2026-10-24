@@ -58,6 +58,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
+import { comEntro, gruposEntro } from './entrosamento'
 import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
@@ -81,7 +82,7 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useEntrosamento } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -821,7 +822,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, entroDesde?: number) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -908,8 +909,11 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // 😓 gás/volta de lesão: só humano, só nesta rodada — a carta em si não muda
     // 🔁 RIVAL COM BANCO (13/10): bot com plano (só na divisão do humano, temporada nova) joga com o XI
     // do plano — rodízio, lesão e gás — em vez do XI fixo. Sem plano: o XI fixo de sempre, byte a byte.
-    const hxi = H.human ? comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r]) : botXI(H, r, botPlans)
-    const axi = A.human ? comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r]) : botXI(A, r, botPlans)
+    // 🔗 entrosamento (24/10): mesmo clube + mesmo ano no titular rende +1/+2 — só humano, só da rodada em que ligou
+    const entro = entroDesde != null && r >= entroDesde
+    const ent = (xi: PoolCard[]) => (entro ? comEntro(xi) : xi)
+    const hxi = H.human ? ent(comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r])) : botXI(H, r, botPlans)
+    const axi = A.human ? ent(comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r])) : botXI(A, r, botPlans)
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
     // 🧢 TÉCNICO = 12ª CARTA (26/08, em teste): o overall dele é sorteado na faixa
     // lo–hi e entra na média do time com peso de UMA carta em 12 — em ataque E
@@ -962,7 +966,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     if (hd && hd.xi2?.length === 11) {
       const humM = H.human ? H : A
       const hmap = new Map(humM.squad.map(c => [c.id, c]))
-      const humXI2 = comMods(hd.xi2.map(id => hmap.get(id)).filter((c): c is PoolCard => !!c), cardMods[humanTid!]?.[r]) // 😓 o gás vale no 2º tempo também
+      const humXI2 = ent(comMods(hd.xi2.map(id => hmap.get(id)).filter((c): c is PoolCard => !!c), cardMods[humanTid!]?.[r])) // 😓 o gás vale no 2º tempo também
       if (humXI2.length === 11) {
         const sub = mulberry((((seed ^ 0x48A17F) ^ ((r + 1) * 0x2545F491) ^ (humanTid! * 0x9E3779B1)) >>> 0))
         const homeXI2 = H.human ? humXI2 : hxi
@@ -1050,7 +1054,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, entroDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -1058,7 +1062,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde, entroDesde)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -4614,6 +4618,32 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   }
   const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
   const titulares = SECTORS.flatMap(pos => xiOf(pos)) // mesma ordem da lista de reservas (GOL→ATA)
+  // 🔗 ENTROSAMENTO (24/10): mesmo clube + mesmo ano no titular → selo no boneco e a caixa embaixo do campo.
+  // A conta é a MESMA do motor (`gruposEntro`, entrosamento.ts) — tela e simulação nunca discordam.
+  const entroTela = useEntrosamento() && stEl.onlineMode !== 'online' && !stEl.co2
+  const gruposCampo = entroTela ? gruposEntro(titulares) : []
+  const CORES_ENTRO = ['#FFC400', '#7C3AED', '#1B7A3D', '#E8503A', '#2F6BAE']
+  const entroDe = new Map<string, { bonus: number; cor: string }>()
+  gruposCampo.forEach((g, i) => { for (const id of g.ids) entroDe.set(id, { bonus: g.bonus, cor: CORES_ENTRO[i % CORES_ENTRO.length] }) })
+  const seloEntro = (c: WonCard) => {
+    const e = entroDe.get(c.id)
+    if (!e) return null
+    const claro = e.cor === '#FFC400'
+    return <span title={tr('Entrosamento', 'Chemistry')} style={{ ...OSWALD, fontWeight: 900, fontSize: 8.5, lineHeight: '12px', padding: '0 4px', borderRadius: 5, border: `1.5px solid ${INK}`, background: e.cor, color: claro ? INK : '#fff', boxShadow: `1px 1px 0 ${INK}`, whiteSpace: 'nowrap' }}>🔗+{e.bonus}</span>
+  }
+  const caixaEntro = gruposCampo.length ? (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 12, background: '#FFF8E1', boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', marginBottom: 10 }}>
+      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.4, color: INK }}>🔗 {tr('Entrosamento no time titular', 'Chemistry in the starting XI')}</div>
+      {gruposCampo.map((g, i) => (
+        <div key={g.club + g.year} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5 }}>
+          <span style={{ width: 10, height: 10, borderRadius: 3, border: `1.5px solid ${INK}`, background: CORES_ENTRO[i % CORES_ENTRO.length], flex: 'none' }} />
+          <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: '#3a372f', lineHeight: 1.3 }}><b style={{ ...OSWALD, fontWeight: 800 }}>{g.club} {g.year}</b> · {g.nomes.join(', ')}</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12, color: GREEN, flex: 'none' }}>+{g.bonus} {tr('cada', 'each')}</span>
+        </div>
+      ))}
+      <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(12,12,12,.5)', marginTop: 6, lineHeight: 1.35 }}>{tr('Mesmo clube e mesmo ano jogando juntos: 2 juntos = +1 de nível cada · 3 ou mais = +2 cada (máximo). Só titular conta.', 'Same club and same year playing together: 2 together = +1 level each · 3 or more = +2 each (max). Only starters count.')}</div>
+    </div>
+  ) : null
   // ⛔ ABAIXO: A ABA COMO SEMPRE FOI (duas listinhas de meia largura). Continua
   // aqui inteira porque a aba nova está LIBERADA SÓ PRA CONTA DO DIEGO
   // (`useElencoNovo`) — pra todo o resto do mundo a tela é byte a byte esta.
@@ -5254,8 +5284,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 onClick={onTap ? () => onTap(c.id) : undefined}
                 mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
                 extra={elencoNovo && condicao && !c.fake
-                  ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.emprestado && <EmpTag mini />}{gasChip(c, true)}</span>
-                  : c.emprestado ? <EmpTag mini /> : undefined}
+                  ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.emprestado && <EmpTag mini />}{gasChip(c, true)}{seloEntro(c)}</span>
+                  : (c.emprestado || entroDe.has(c.id)) ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.emprestado && <EmpTag mini />}{seloEntro(c)}</span> : undefined}
               />
             )
             // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,
@@ -5294,6 +5324,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         })()}
         <PlacaGol lado="baixo" />
       </div>
+      {caixaEntro}
       {elencoNovo ? atalhos : blocoClube}
       </div>
       {/* 📋 a lista: no monitor ela ocupa o resto da largura, ao lado do campo —
@@ -8494,6 +8525,12 @@ export function PyramidSeasonScreen() {
   const m2Liberado = useCampo2DLiberado()
   const m2Ok = m2Liberado && state.careerOnline && state.onlineMode !== 'online' && !state.co2
   useEffect(() => { if (m2Ok && !state.motor2Desde) dispatch({ type: 'LIGA_MOTOR2' }) }, [m2Ok, state.motor2Desde, dispatch])
+  // 🔗 ENTROSAMENTO (24/10): liga UMA vez por carreira, a partir do próximo jogo, só na conta liberada enquanto testa
+  const entroLiberado = useEntrosamento()
+  const entroOn = entroLiberado && state.careerOnline && state.onlineMode !== 'online' && !state.co2
+  useEffect(() => { if (entroOn && !state.entroDesde) dispatch({ type: 'LIGA_ENTRO' }) }, [entroOn, state.entroDesde, dispatch])
+  const entroDesde = !entroOn || !state.entroDesde ? undefined
+    : state.entroDesde.season === (state.seasonNo ?? 1) ? state.entroDesde.round : state.entroDesde.season < (state.seasonNo ?? 1) ? 0 : undefined
   // 🌐 carreira online v2: vale o carimbo da SALA (o mesmo em todo aparelho), da rodada 1 da temporada carimbada em diante
   const co2M2 = useCo2().mundo?.m2
   const m2Desde = state.co2 ? (co2M2 != null && (state.seasonNo ?? 1) >= co2M2 ? 0 : undefined)
@@ -8501,8 +8538,8 @@ export function PyramidSeasonScreen() {
     : state.motor2Desde.season === (state.seasonNo ?? 1) ? state.motor2Desde.round : state.motor2Desde.season < (state.seasonNo ?? 1) ? 0 : undefined
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
   const m2Copa = m2Desde != null && m2Desde < 38
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde),
-    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde])
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, entroDesde),
+    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, entroDesde])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
   carregaGuardados(state.m2Res, state.seasonNo ?? 1)
   useEffect(() => { const n = tiraNovos(); if (n && state.careerOnline && state.onlineMode !== 'online') dispatch({ type: 'GUARDA_M2', novos: n }) })

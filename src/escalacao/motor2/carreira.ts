@@ -46,7 +46,7 @@ export function novoMotor2(e: EntradaM2, en = false): Motor2 {
 }
 
 const chave = (e: EntradaM2) => [e.seed, e.clima, String(e.tecnico), String(e.evento), e.tatica.join(','), e.bots.join(','), e.fCasa, e.fFora, e.fCasa2, e.fFora2,
-  ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}`).join(';'))].join('|')
+  ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}${c.entro ? `+e${c.entro}` : ''}`).join(';'))].join('|')
 const CACHE = new Map<string, ResultadoM2>()
 const MAX = 600
 

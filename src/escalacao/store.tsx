@@ -5641,6 +5641,7 @@ type Action =
   | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
+  | { type: 'LIGA_ENTRO' } // 🔗 carreira: o entrosamento passa a valer a partir do PRÓXIMO jogo (uma vez)
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
@@ -10159,6 +10160,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const [k, v] of Object.entries(s.m2Res ?? {})) if (v[3] >= t - 1) out[k] = v
       for (const [k, v] of Object.entries(action.novos)) if (!out[k]) out[k] = v
       s.m2Res = out
+      return s
+    }
+    case 'LIGA_ENTRO': {
+      // 🔗 (24/10) só carreira; liga UMA vez, a partir do próximo jogo — o que já foi jogado fica como foi
+      if (!s.careerOnline || s.onlineMode === 'online' || s.entroDesde) return s
+      s.entroDesde = { season: s.seasonNo ?? 1, round: Math.min(38, s.round ?? 0) }
       return s
     }
     case 'LIGA_MOTOR2': {
