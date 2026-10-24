@@ -1,3 +1,7 @@
+## Refino dos fundamentos 11×11 (24/10) — revisão realizada
+
+Revisada a partida inteira do Neymarzetti (22 atletas, 2.821 quadros/30Hz, mesmos1×1/82eventos). Corrigida orientação integral antes da captura: amostras de corrida contrária ao corpo fora dos reinícios caíram51→7. Recepção só antecipa passe ainda em andamento; posse após recepção usa condução, sem arrastar atleta ao controle do adversário. Goleiros acompanham a bola com ajuste limitado de cabeça/tronco sobre a animação existente; captura de agarrada fica protegida.48contatos de pé e pega de duas mãos mantidos; sem novos conflitos de volumes/penetrações/piso/raiz nas amostras. Avanço extra de8cm testado e descartado. Domínio/condução e deslizamento ainda provisórios; perfis revisados continuam específicos da fixture, não universais. Evidências reais normal/lenta e partida completa em `test-results/cartoon-football/refino-atual/`; causas, testes e limites em `docs/refino-fundamentos-3d-20261024.md`. Fonte/save/DB preservados; cidade/NPCs não foram declarados concluídos neste bloco.
+
 ## Uniformes de contraste no 3D (24/10) — implementação autorizada
 
 Diego aprovou variante temporária: próprio clube sempre padrão, rival só muda se houver conflito, usando cores relacionadas à identidade dele. Observador identificado por ID real, inclusive fora de casa; cores públicas reaproveitadas, sem novos IDs/DB. Tecido recolorido com símbolos/inscrições protegidos nas receitas UV existentes, numeração legível e meiões coerentes. Cache separado e liberado no encerramento; sem mudar rig, resultado ou dados oficiais. Teste real 22 Civis: Neymarzetti branco/preto vs Rei da Bola vermelho escuro com faixas e escudo; fonte do save intacta. Biblioteca ainda tem só duas receitas completas de arte; outros clubes mantêm o uniforme genérico existente com cores de contraste. Detalhes/testes/limites em `docs/uniformes-contraste-3d.md`, capturas locais `test-results/kit-contrast/`.
@@ -10495,7 +10499,15 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   direto, "▶ Ir pro jogo" quando o domingo chega com a Central aberta (lá o jogo nunca roda). O auto só faz `PLAY_ROUND`
   com a semana acabada (`calDiasOk`). Conserto junto: o apito fica GUARDADO (`calApitado`) — na Central o `roundReady`
   voltava a dizer "rodada rolando" com o jogo já acabado. Testado numa carreira de verdade (celular e PC).
-  ⏳ ETAPA 2 (a fazer): Copa intercalada nas quartas (vaga pela temporada anterior) + quarta livre devolve gás.
+  ⏱️ 24/10: 1 s por dia foi rápido demais (*"não deu nem para ler"*) → 3 s por dia (`CAL_MS_POR_DIA`).
+  ✅ ETAPA 2 (Copa nas quartas) FEITA, só na conta dele: temporada que COMEÇA com o calendário ligado ganha `calCopaSeason`
+  (ação `CAL_COPA_LIGA`, só na rodada 0 — temporada em andamento termina do jeito antigo). A Copa (Copa do Brasil/Legends) nasce
+  na LARGADA a partir do `world` (ordem dos clubes no começo da temporada — a tabela final ainda não existe) e as fases são
+  reveladas nas QUARTAS: fase k na semana da rodada `round(38·(k+1)/(n+1))` (`copaSemanas`). A semana PARA na quarta (`copaMidOn`)
+  se você está na fase; caiu/não entrou = a fase roda por trás e a quarta é livre. ⏩ Pular nunca pula a Copa (para na quarta).
+  XI da Copa congela na 1ª fase (`FREEZE_COPA_XI`). Supercopa (precisa do campeão da Liga) e internacionais seguem DEPOIS da Liga.
+  Motor novo na Copa do meio: só se ligado antes da rodada 5. ⏳ Ainda NÃO feito: "quarta livre devolve gás" (hoje Copa não
+  cansa ninguém — gás só conta jogo de Liga; mexer nisso é regra nova, perguntar antes).
 - 🏟️ 24/10 ABA CLUBE SEM JOGO (mockup `carreira-clube-sem-jogo.png`, *"pode publicar na minha conta"*): com o calendário ligado
   a aba Clube esconde o lado do jogo (placar/2D/rádio/tática/controle) — classe `ll-cx-clube-limpo` + regra no
   career-desktop.css. Escondido, não desmontado (igual à Central): o jogo segue rolando por trás. Na conta dele o Clube já é o

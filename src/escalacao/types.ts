@@ -1122,6 +1122,7 @@ export interface EscState {
   // placares, artilheiros, campeão, prêmios e carta) fica idêntica pra sempre, e
   // o técnico segue 100% livre pra mexer no time quando quiser.
   copaXiSeason?: number // temporada cuja escalação da Copa já foi congelada
+  calCopaSeason?: number // 📅 24/10: temporada em que a Copa nacional é jogada NAS QUARTAS, no meio da Liga (calendário — só conta do Diego)
   copaXi?: Record<number, string[]> // mgrId → os 11 que entraram na Copa daquela temporada
   botFadigaDesde?: number // 🔁 rival com banco (13/10): 1ª temporada em que os bots cansam (nasce na virada depois de ligar — temporada em andamento nunca muda)
   botCarry?: Record<string, number> // 🔁 gás com que cada carta de BOT terminou a temporada (chave = chaveCarry), igual ao condicaoCarry do humano
