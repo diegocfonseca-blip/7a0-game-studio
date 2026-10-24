@@ -128,8 +128,9 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva, useCalendarioCarreira } from './sport'
-import { CAL_MS_POR_DIA, HORA_LIGA, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
-import { CalendarioBarra, type FaseCal, type JogoCal } from './calendario-ui'
+import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
+import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
+import { trocaCampo2D, usePago2D } from './campo2d-modo'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
 import { useImagemBusto } from './presidente-avatar'
 import { entradaM2, novoMotor2, resultadoM2, sementeM2, taticaM2, carregaGuardados, tiraNovos, type EntradaM2 } from './motor2/carreira' // ⚽🧠 motor novo decide o seu jogo na carreira (20/10)
@@ -9866,6 +9867,9 @@ export function PyramidSeasonScreen() {
   // carreira de novo recomeça a semana do 1º dia vazio — é só o recado que repete).
   const calTotal = calOn && round > 0 && round < 38 ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)).length : 0
   const [calPasso, setCalPasso] = useState<{ r: number; s: number; i: number }>({ r: -1, s: -1, i: 0 })
+  const [clubeAssistir, setClubeAssistir] = useState(false) // 🏟️ aba Clube: o jogo aparece ali (placar/2D) só quando a pessoa pede
+  const pago2D = usePago2D()
+  const pode2D = m2Liberado && pago2D // 📺 o 2D no Clube segue a MESMA régua do botão do 2D (Craque pra cima)
   const calI = calPasso.r === round && calPasso.s === calSn ? calPasso.i : 0
   // 🔔 o apito fica GUARDADO: na Central o relógio do placar está escondido/pausado e o `roundReady` volta a dizer "rolando"
   // mesmo com o jogo já acabado (foi o "embaralha tudo" que o Diego sentiu). Com o calendário, todo mundo lê ESTA marca.
@@ -10428,10 +10432,19 @@ export function PyramidSeasonScreen() {
     }
     // ⏩ Pular: se a semana tem Copa ainda não jogada, pula só ATÉ A QUARTA (a Copa nunca é pulada); senão, até o domingo
     const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
-    return <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={grande} naCentral={naCentral}
-      recado={recado} jogos={jogos} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo}
-      onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')}
-      onProximo={() => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }} />
+    const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
+    // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
+    // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
+    const proxCard = tab === 'jogos' && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
+      escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
+      rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} /> : null
+    const barra = tab === 'jogos' ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
+      recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
+      assistir={tab === 'estadio' && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
+      onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
+    const fh = fmtDia(hoje)
+    const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
+    return { barra, proxCard, selo }
   })()
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
@@ -10760,7 +10773,7 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn ? ' ll-cx-clube-limpo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {tunelOn && myCopaTie && copaFase && <div style={{ display: 'none' }}><TunelFinal comp={copaFase.name === 'Supercopa' ? 'supercopa' : 'copabr'}
           nomeComp={copaFase.name === 'Supercopa' ? undefined : copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']}
           seg={tunelSeg} total={4} onFechar={fechaTunel}
@@ -10775,7 +10788,15 @@ export function PyramidSeasonScreen() {
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />
-        {calBarra}
+        {calBarra?.barra}
+        {/* 🏟️ 24/10: ver o jogo NA ABA CLUBE — placar (todos), 2D (Craque pra cima) ou 3D no mapa (conta em teste) */}
+        {calOn && tab === 'estadio' && clubeAssistir && calFase === 'jogo' && <div style={{ display: 'flex', gap: 6, margin: '-4px 0 10px' }}>
+          {([['placar', tr('📊 Placar', '📊 Scoreboard'), true], ['2d', `📺 2D${pode2D ? '' : ' 🔒'}`, pode2D], ...(presidentAvailable ? [['3d', tr('🏟️ 3D no mapa', '🏟️ 3D on the map'), true]] : [])] as [string, string, boolean][]).map(([k, txt, ok]) => {
+            const on = k === 'placar' ? !campo2d : k === '2d' ? campo2d : false
+            return <button key={k} disabled={!ok} onClick={() => { if (k === 'placar' && campo2d) trocaCampo2D(); else if (k === '2d' && !campo2d && ok) trocaCampo2D(); else if (k === '3d') setClubeAssistir(false) }}
+              style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', background: on ? GOLD : ok ? '#fff' : '#ddd', color: ok ? INK : '#777', boxShadow: on ? `2px 2px 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default' }}>{txt}</button>
+          })}
+        </div>}
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
@@ -10809,7 +10830,7 @@ export function PyramidSeasonScreen() {
           if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
             varzea={me?.div === 'V'}
             kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
-            title={`${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
+            title={`${calBarra?.selo && tab === 'jogos' ? `${calBarra.selo.toUpperCase()} · ` : ''}${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : tr('Rodada ', 'Round ')+round+'/38'}`}
             detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : ''}
             status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
@@ -11051,7 +11072,8 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {!done && !copaPlaying && myMatch && me && <PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {calBarra?.proxCard}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez

@@ -183,12 +183,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     let raf = 0
     const c = cv.current; if (!c) return
     // 🛟 24/10: campinho ESCONDIDO (aba Clube/Central com o jogo rolando por trás) mede 0 de largura — desenhar ali quebrava o
-    // site inteiro ("drawImage… canvas com largura 0" na capa da noite). Escondido, não desenha; volta a desenhar ao aparecer.
-    if (!(larg >= 20)) return
+    // site inteiro ("drawImage… canvas com largura 0" na capa da noite). E NÃO pode parar: é este laço que anda o relógio do
+    // jogo (parar aqui congelava a partida na aba Clube). Escondido, desenha num tamanho de reserva; ao aparecer, volta ao real.
+    const largEf = larg >= 20 ? larg : 320
     // 📐 a GEOMETRIA: o motor pensa em pé (x 0–68 de largura, y 0–105 de comprimento, mandante ataca y→0). Em pé, a tela é o
     // motor; deitado, troca os eixos (o mandante ataca pra ESQUERDA). Todo desenho passa por `tr`/`rect`, nunca por conta solta.
-    const S = deitado ? larg / (L + PADL * 2) : larg / (W + PADX * 2)
-    const CW = larg, CH = Math.round(deitado ? (W + PADT * 2) * S : (L + PAD * 2) * S)
+    const S = deitado ? largEf / (L + PADL * 2) : largEf / (W + PADX * 2)
+    const CW = largEf, CH = Math.round(deitado ? (W + PADT * 2) * S : (L + PAD * 2) * S)
     const dpr = Math.min(2, window.devicePixelRatio || 1)
     c.width = CW * dpr; c.height = CH * dpr; c.style.width = CW + 'px'; c.style.height = CH + 'px'
     const cx = c.getContext('2d')!; cx.setTransform(dpr, 0, 0, dpr, 0, 0)
