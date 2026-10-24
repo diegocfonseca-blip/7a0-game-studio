@@ -10449,3 +10449,11 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   e o botão de jogar é o de sempre.
 - Minha recomendação: 1ª etapa só visual (data + agenda + luz). "Semana livre recupera gás" = 2ª etapa, só se ele aprovar
   (é a única parte que mexe em regra).
+- ✅ 24/10 ele aprovou AS DUAS ETAPAS (*"pode fazer as duas etapas"*). Logística explicada: hoje a Copa só começa DEPOIS da Liga
+  (`copaPlaying = done && …`); pra ter Copa na quarta ela passa a ser intercalada na Liga (Copa do Brasil/Legends nas quartas;
+  Liberta/Champions/Mundial seguem no fim do ano). Só TEMPORADA NOVA, só a conta dele primeiro, com chave pra voltar.
+- 📅 DIAS VAGOS (24/10, regra dele): *"só poderia passar direto próxima partida se apertar em pular, ou próximo adversário no manual..
+  já no auto teria que aguardar mesmo"*. Mockup `scripts/mockups/carreira-calendario-dias.png`: AUTOMÁTICO = os dias passam sozinhos
+  (~3s por dia vazio, proposta) com o recado do dia + botão "⏩ Pular pro jogo"; MANUAL = fica parado no dia até "▶ Próximo
+  adversário". Recado por dia: seg O MARTELO · ter cansados/voltou/suspensos · qui rivais · sex véspera/clássico · sáb concentração.
+  ⏳ Esperando ele aprovar este mockup (e confirmar a pergunta: Copa do Brasil nas quartas + internacionais no fim do ano).
