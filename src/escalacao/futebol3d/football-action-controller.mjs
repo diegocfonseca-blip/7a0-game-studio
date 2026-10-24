@@ -39,7 +39,14 @@ export class FootballActionController{
    // Look at the incoming ball during reception, then anticipate the actual
    // outgoing delivery. A future pass must not hide the ball from the head.
    if(name==='Head'&&this.incoming?.receiver===p.key){const pos=bone.getWorldPosition(new T.Vector3()),incoming=Math.atan2(this.ball.x-pos.x,this.ball.z-pos.z);target+=angle(incoming-target)*smooth((a.contactAt-time-.10)/.15);}
-   const turn=clamp(angle(target-Math.atan2(forward.x,forward.z)),-max,max)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
+   const wanted=clamp(angle(target-Math.atan2(forward.x,forward.z)),-max,max)*weight;
+   // Clamping a shortest angle flips instantly from +limit to -limit when
+   // an imported approach crosses the opposite direction. Filter this
+   // residual intention, while preserving the measured impact orientation.
+   actor.actionAim??=new Map();const old=actor.actionAim.get(name),dt=old?time-old.time:0;
+   const smoothed=!old||old.plan!==a.plan||dt<0||dt>.2?wanted:old.turn+(wanted-old.turn)*(1-Math.exp(-Math.max(0,dt)/.06));
+   const impact=smooth((.15-Math.abs(a.contactAt-time))/.10),turn=smoothed+(wanted-smoothed)*impact,parent=bone.parent.getWorldQuaternion(new T.Quaternion());
+   actor.actionAim.set(name,{plan:a.plan,time,turn});bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
   if(a.contactAt-time>.15)this.orientReception(actor,p);
  }
  orientOpenPlay(actor,p,time){

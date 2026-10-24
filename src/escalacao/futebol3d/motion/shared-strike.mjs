@@ -2,7 +2,7 @@ import {strikeClock} from './strike-clock.mjs';
 import {preserveSupportFoot} from './support-plant.mjs';
 // Generated from scripts/animation-lab/shared-strike.mjs. Repackage after editing source.
 import {facingFor} from './facing-track.mjs';
-import {blendHeading} from './heading-blend.mjs';
+import {continuousHeading} from './heading-blend.mjs';
 import * as T from 'three';import {nearest} from './nearest.mjs';import {constrainFootBall} from './foot-ball-clearance.mjs';
 const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x);},angle=x=>Math.atan2(Math.sin(x),Math.cos(x));
 const copyPose=a=>[...a.bones].map(([name,b])=>({name,p:b.position.clone(),q:b.quaternion.clone()}));
@@ -22,16 +22,16 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
  const weight=smooth((time-poseStart)/entry)*smooth((plan.end-time)/exit),base=copyPose(actor),baseYaw=actor.holder.rotation.y,basePosition=actor.holder.position.clone();
  const clock=strikeClock(plan,time);actor.holder.rotation.y=plan.yaw;actor.sampleCapture(plan.clip,clock.sample);center(actor,p);
  const captured=copyPose(actor),position=actor.holder.position.clone();
- let captureYaw=plan.yaw;
- if(plan.followTravel&&time>plan.time+.02&&actor.intentAxis&&Number.isFinite(p.heading)){
-  const forward=actor.intentAxis.clone().applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion())),body=Math.atan2(forward.x,forward.z),reference=plan.exitHeading??p.heading;
-  // Once the ball has left, the SAME captured follow-through turns back into
-  // the official off-ball run. Keeping its contact yaw fixed caused a brief
-  // backwards run even with an otherwise valid open-body pass.
-  const target=reference+angle(p.heading-reference),current=reference+angle(body-reference);
-  captureYaw+=(target-current)*smooth((time-plan.time-.02)/.20);
- }
- actor.holder.position.lerpVectors(basePosition,position,weight);const reference=time<=plan.time?(plan.entryHeading??facingFor(timeline).sample(plan.key,plan.start)):(plan.exitHeading??facingFor(timeline).sample(plan.key,plan.end));actor.holder.rotation.y=plan.headingBlend==='legacy'?baseYaw+angle(captureYaw-baseYaw)*weight:blendHeading(baseYaw,captureYaw,weight,reference);
+ // The imported follow-through retains its contact orientation. Turning it
+ // toward instantaneous travel AND blending it into locomotion applied the
+ // same recovery twice, including a wrap discontinuity at opposite headings.
+ // Unwrap the native gait continuously on a single entry reference instead.
+ // At full capture the native weight is zero: choose the recovery arc
+ // afresh there, so a valid approach cannot accumulate a whole revolution
+ // into the exit. Keep that chosen arc fixed throughout recovery.
+ actor.strikeHeading=continuousHeading(actor.strikeHeading,time<=plan.time?plan:plan.time,time,baseYaw,plan.yaw,weight);
+ actor.holder.position.lerpVectors(basePosition,position,weight);
+ actor.holder.rotation.y=plan.headingBlend==='legacy'?baseYaw+angle(plan.yaw-baseYaw)*weight:actor.strikeHeading.value;
  const channels=capturedChannels(actor,plan.clip),armWeight=T.MathUtils.clamp(plan.layers?.arms??1,0,1);
  // A capture has no authority over channels it does not contain (e.g. CMU
  // fingers). Keep those from the clean native clip instead of blending stale

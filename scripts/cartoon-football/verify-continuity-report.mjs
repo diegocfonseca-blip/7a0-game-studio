@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+const root='test-results/cartoon-football/continuidade/',read=async p=>JSON.parse(await readFile(p));
+const before=await read(root+'before.json'),after=await read(root+'release.json'),whole=await read(root+'release-whole/whole-match.json'),old=await read('test-results/cartoon-football/apoio-partida/whole-after/whole-match.json');
+const roll=r=>r.balls.filter(b=>b.phase!=='gol'&&b.rollError>Math.PI/18).length,spikes=r=>r.turns.filter(t=>Math.abs(t.rate)>30).length;
+assert.deepEqual(after.final,before.final);assert.deepEqual(whole.final.events,after.final.events);assert.equal(roll(after),0);assert.equal(spikes(after),0);
+for(const key of ['floor','penetration','root','falseTouches','errors'])assert.equal(whole[key].length,0,key);
+assert.equal(whole.pops.filter(p=>!p.placementReset&&p.phase!=='saida').length,0);
+assert.ok(whole.backward.filter(p=>p.phase!=='saida').length<=old.backward.filter(p=>p.phase!=='saida').length,'Do not introduce extra backwards-running observations');
+const summary={frames:whole.count,score:after.final.score,events:after.final.events.length,rollErrors:[roll(before),roll(after)],extremeTurns:[spikes(before),spikes(after)],maxTurnDegreesPerFrame:[before,after].map(r=>Math.max(...r.turns.map(t=>Math.abs(t.rate)))*180/Math.PI/30),remaining:{carryingDistanceFlags:[old.carry.length,whole.carry.length],conservativeHeadOverlaps:whole.head.length,liveBackwardsObservations:whole.backward.filter(p=>p.phase!=='saida').length,naturalnessApproved:false},sourceUnchanged:true,databaseWritten:false};
+await writeFile(root+'summary.json',JSON.stringify(summary,null,2));console.log(summary);

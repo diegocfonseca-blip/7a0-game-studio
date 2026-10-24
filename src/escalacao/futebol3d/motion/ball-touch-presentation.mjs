@@ -1,5 +1,7 @@
 import * as T from 'three';
 import {nearest} from './nearest.mjs';
+import {VisibleBallRoll} from './visible-ball-roll.mjs';
+import {ContactOffset} from './contact-offset.mjs';
 
 const R=.11,MAX_OFFSET=.32;
 const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x)};
@@ -9,7 +11,7 @@ const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x)};
  * This is a provisional gait adaptation, not an acquired dribbling capture. */
 export class BallTouchPresentation{
  constructor(){this.reset()}
- reset(){this.offset=new T.Vector3();this.extraRoll=new T.Quaternion();this.previous=null;this.touch=null;this.releaseUntil=-Infinity;this.lastOwner=null;this.lastTouch=-Infinity;this.receivedAt=-Infinity;this.controlled=false;this.pendingContact=null;}
+ reset(){this.offset=new T.Vector3();this.correction=new ContactOffset();this.roll=new VisibleBallRoll(R);this.previous=null;this.touch=null;this.releaseUntil=-Infinity;this.lastOwner=null;this.lastTouch=-Infinity;this.receivedAt=-Infinity;this.controlled=false;this.pendingContact=null;}
  sample(frame,actors,actions,{reset=false}={}){
   if(frame.restart||frame.placementReset||frame.ball.presentation){this.reset();return{ball:frame.ball,diagnostic:{phase:'official-presentation',offset:0,sourceBallUnchanged:true}};}
   const prior=this.previous,dt=prior?frame.time-prior.time:0;
@@ -34,13 +36,14 @@ export class BallTouchPresentation{
    }else if(sourceDistance<1.05&&owner.presentationSpeed<1.2&&gap<.4){
     const normal=raw.clone().sub(hit.surface).normalize();desired.copy(hit.surface).addScaledVector(normal,R+.004).sub(raw).setY(0).clampLength(0,MAX_OFFSET);phase='settle';
    }
-   desired.multiplyScalar(release);
    this.nextSurface=hit.surface.clone();
   }else{this.touch=null;this.nextSurface=null;}
   const before=this.offset.clone();
-  // Bounded correction speed; never snap an arriving ball to the owner.
-  const delta=desired.sub(this.offset),alpha=step>0?1-Math.exp(-step/.045):0;delta.multiplyScalar(alpha).clampLength(0,1.8*step);this.offset.add(delta);
-  if(schedule)this.offset.clampLength(0,MAX_OFFSET*release);
+  // A first-order chase changed correction velocity instantly when the
+  // nearest boot switched. Preserve velocity and bound acceleration instead.
+  // Smoothly remove the whole correction before the canonical impulse.
+  this.offset.copy(this.correction.step(desired,step)).multiplyScalar(release);
+  if(release<1e-8){this.correction.position.set(0,0,0);this.correction.velocity.set(0,0,0);}
   // The contact envelope reaches zero continuously, before the source impulse.
   if(schedule&&schedule.contactAt-frame.time<=.05)this.offset.set(0,0,0);
   if(this.offset.length()<1e-5)this.offset.set(0,0,0);
@@ -54,12 +57,9 @@ export class BallTouchPresentation{
   }
   // Rotation follows the visible displacement too. Applying only source spin
   // to a retimed visible ball makes the panels slide over the ground.
-  const extra=this.offset.clone().sub(before),axis=new T.Vector3(extra.z,0,-extra.x),angle=axis.length()/R;
-  if(angle>1e-10&&raw.y<R+.02){axis.normalize();this.extraRoll.premultiply(new T.Quaternion().setFromAxisAngle(axis,angle)).normalize();}
-  const rotation=new T.Quaternion().fromArray(frame.ball.rotation??[0,0,0,1]);rotation.premultiply(this.extraRoll);
+  const rotation=this.roll.sample(frame.time,position,frame.ball.rotation);
   this.previous={time:frame.time,raw,surface:this.nextSurface,side,gap};this.lastOwner=owner?.key??null;
-  const changed=this.offset.lengthSq()>0||this.extraRoll.angleTo(new T.Quaternion())>1e-8;
-  return{ball:changed?{...frame.ball,presentation:{x:position.x,y:position.y,z:position.z},rotation:rotation.toArray()}:frame.ball,diagnostic:{phase,owner:owner?.key??null,side,gap,contact,hasVisualControl:this.controlled,offset:this.offset.length(),offsetVelocity:step?this.offset.distanceTo(before)/step:0,sourceDistance,provisional:true,sourceBallUnchanged:true,changesPossession:false,changesEvents:false}};
+  return{ball:{...frame.ball,...(this.offset.lengthSq()>0?{presentation:{x:position.x,y:position.y,z:position.z}}:{}),rotation},diagnostic:{phase,owner:owner?.key??null,side,gap,contact,hasVisualControl:this.controlled,offset:this.offset.length(),offsetVelocity:step?this.offset.distanceTo(before)/step:0,sourceDistance,provisional:true,sourceBallUnchanged:true,changesPossession:false,changesEvents:false}};
  }
  confirm(ball,actors,diagnostic){
   if(!diagnostic?.owner)return;

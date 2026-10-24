@@ -131,6 +131,13 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    const scheduled=footballActions.action(p.key,frame.time);const control=refinePossession?a.ballControl?.apply(frame,p):null;if(control)(inspection.ballControl??=[]).push({key:p.key,...control});const keeperPose=keeperActive&&p.key===keeperTrial.plan.key?sampleKeeperCapture(a,keeperTrial.plan,official,frame.time):null;const capture=keeperPose??a.motion.apply(frame,p,scheduled?.animationActive?scheduled.plan:null);a.wasAction=!!capture;if(capture){if(!refinePossession)a.ballControl?.reset();if(keeperPose)inspection.keeperCaptures.push({key:p.key,...keeperPose,ball:keeperPose.ball.toArray()});else inspection.activeCaptures.push(capture)}else{if(!refinePossession){const control=a.ballControl?.apply(frame,p);if(control)(inspection.ballControl??=[]).push({key:p.key,...control});}let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
    if(a.grounding){const grounded=a.grounding.apply(a,{...p,speed:visualSpeed},frame,capture,dt,{reset:resetActor||previous==='far'||previous==='hidden'});a.groundingReport=grounded;inspection.grounding.push({key:p.key,...grounded})}
    if(a.grounding&&nearBall)a.motion.clearance(frame,p);
+   // Recover locomotion from the body's actually rendered facing. A second
+   // hidden gait heading was turning independently during the catch/throw,
+   // then snapping the avatar around as the capture faded out.
+   if(keeperPose&&frame.time>keeperTrial.plan.releaseAt){
+    const forward=a.intentAxis.clone().applyQuaternion(a.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()));
+    a.lastHeading+=Math.atan2(Math.sin(Math.atan2(forward.x,forward.z)-a.lastHeading),Math.cos(Math.atan2(forward.x,forward.z)-a.lastHeading));
+   }
    if(cartoon){if(!keeperPose)footballActions.orientUpperBody(a,p,frame.time);footballActions.validate(a,p,frame,capture);for(const mesh of a.meshes)mesh.skeleton.update();}
    inspection.minFootHeight=Math.min(inspection.minFootHeight,a.footHeight);inspection.maxFootHeight=Math.max(inspection.maxFootHeight,a.footHeight);
   });
