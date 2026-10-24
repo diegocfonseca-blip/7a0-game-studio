@@ -10783,7 +10783,7 @@ export function PyramidSeasonScreen() {
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
             recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
-        <div style={tab === 'central' ? { display: 'none' } : undefined}>
+        <div style={tab === 'central' || tab === 'estadio' ? { display: 'none' } : undefined}>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem

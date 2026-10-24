@@ -1,3 +1,7 @@
+## Aba do mapa exclusivamente 3D (24/10)
+
+Diego reforçou: na aba do mapa somente cidade/estádio/partida 3D; campinho 2D e placar cinema ficam nas abas próprias. Compartilhar acontecimentos não significa misturar interfaces. O painel acima das abas (cinema/campinho) fica oculto também na aba estádio, mas permanece montado para preservar o relógio e a publicação da partida. Removida a alternativa “Vista ilustrada do estádio” da carreira e substituído o fallback ilustrado/aéreo por `PresidenciaComplexo3D`. Fonte/relógio/resultados e controles de câmera do complexo preservados. Verificação local: `scripts/cartoon-football/test-map-only-3d.cjs`. Sem publicação ou DB.
+
 ## Pausa do campo compartilhado (24/10) — correção local
 
 Campo2D agora recebe a pausa do placar/intervalo. Enquanto pausado, conserva o minuto fracionário publicado ao mapa/cinema e reposiciona a âncora de tempo para a retomada não consumir o tempo parado. Encerramento mantém a finalização existente. Sem mudança de Motor2, resultados, atributos ou DB. Teste real de navegador manteve o minuto estável nas duas pausas, retomou a marcha do relógio e não registrou erros JavaScript. Testes: `test-field-pause.mjs`, `test-field-pause-browser.cjs` e paridade das três apresentações (três entradas completas, resultados/eventos preservados). Domínio e naturalidade continuam pendentes; esta correção é do relógio.
