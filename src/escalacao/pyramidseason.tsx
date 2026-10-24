@@ -3359,7 +3359,8 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     return () => clearInterval(iv)
   }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration, pausado])
   const idiomaOficial=getLang()==='en'
-  const provaOficial=useMemo(()=>!basket&&elencos?.m2?prepararReplayOficial(elencos.m2,goals,idiomaOficial):null,[basket,elencos?.m2,goals,idiomaOficial])
+  const apresentarMotorOficial=presidentFieldAccount&&!!elencos?.m2
+  const provaOficial=useMemo(()=>!basket&&presidentFieldAccount&&elencos?.m2?prepararReplayOficial(elencos.m2,goals,idiomaOficial):null,[basket,presidentFieldAccount,elencos?.m2,goals,idiomaOficial])
   const relatoOficial=useRelatoPartidaOficial(provaOficial?.valid?provaOficial.relato:null,{id:stadiumMatch?.id??`${roundKey}:${homeName}:${awayName}`,minute:min,minuteMs:Math.max(400,roundMs*.82)/93,paused:atHalf||!!pausado,finished:!!finished||min>=93})
   const done = min >= 93
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
@@ -3379,7 +3380,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   //    ENTRAR (0,9 s) e aí solta a própria bola — nunca dois no ar. No 9 s do online
   //    dois gols grudados nos acréscimos ainda cabem antes da rodada virar.
   //    Visual antigo/basquete/jogo já encerrado: tudo como sempre (sem teatro).
-  const teatro = cinematic && !finished && !basket && !elencos?.m2
+  const teatro = cinematic && !finished && !basket && !apresentarMotorOficial
   const fila = teatro ? [...vencidos].sort((a, b) => a.min - b.min) : vencidos
   const shown = teatro ? fila.slice(0, confirmados) : vencidos
   // ⏱️ o placar só está FECHADO quando o último gol já entrou na rede
@@ -3532,9 +3533,9 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // decide quantas cabem é o `roundMs` (11 s no online = 1 por lado; carreira, mais).
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
-  const chances = useMemo(() => (basket || !cinematic || elencos?.m2) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, elencos?.m2, roundKey, homeName, awayName, goals, incidentRoundMs])
+  const chances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, incidentRoundMs])
   // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
-  const radioLances = useMemo(() => (basket || !cinematic || elencos?.m2) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], incidentRoundMs, !!relogioKings), [basket, cinematic, elencos?.m2, roundKey, homeName, awayName, goals, chances, incidentRoundMs, relogioKings])
+  const radioLances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], incidentRoundMs, !!relogioKings), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, chances, incidentRoundMs, relogioKings])
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
   useEffect(() => {
     if (lancesVistos.current.key !== roundKey) { lancesVistos.current = { key: roundKey, mins: [] }; if (lanceTimer.current) clearTimeout(lanceTimer.current); setLance(null) }
@@ -3657,7 +3658,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const grande = (privatePreview || carreiraPublica) && !basket
   const minTxt = (m: number) => (relogioKings ? `${placarParaK(m)}` : m > 90 ? `90+${m - 90}` : `${m}`)
   // 👑 gol que a REGRA da Kings fez (pênalti do presidente, bola vermelha) não ganha lance inventado — não foi jogada
-  const lanceUltimo = !elencos?.m2 && grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball|\(carta\)|\(card\)|\(\+1\)/i.test(last.name)) ? (privateField?narrarGolEstadio(last,presentedGoals.current.assisted.get(shown.length-1)??false,emIngles):lanceDoGol(last, roundKey)) : ''
+  const lanceUltimo = !apresentarMotorOficial && grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball|\(carta\)|\(card\)|\(\+1\)/i.test(last.name)) ? (privateField?narrarGolEstadio(last,presentedGoals.current.assisted.get(shown.length-1)??false,emIngles):lanceDoGol(last, roundKey)) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
   const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
@@ -3680,7 +3681,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs:Math.max(400,roundMs*.82)/93,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
   const campo2dEl = c2d && !replayOficialBloqueado ? (
-    <Campo2D pausado={atHalf||!!pausado} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+    <Campo2D pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -10440,7 +10441,7 @@ export function PyramidSeasonScreen() {
       rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} /> : null
     const barra = tab === 'jogos' ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
-      assistir={tab === 'estadio' && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
+      assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
       onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
@@ -10790,7 +10791,7 @@ export function PyramidSeasonScreen() {
         <SocioBaraoBanner />
         {calBarra?.barra}
         {/* 🏟️ 24/10: ver o jogo NA ABA CLUBE — placar (todos), 2D (Craque pra cima) ou 3D no mapa (conta em teste) */}
-        {calOn && tab === 'estadio' && clubeAssistir && calFase === 'jogo' && <div style={{ display: 'flex', gap: 6, margin: '-4px 0 10px' }}>
+        {calOn && tab === 'estadio' && !presidentAvailable && clubeAssistir && calFase === 'jogo' && <div style={{ display: 'flex', gap: 6, margin: '-4px 0 10px' }}>
           {([['placar', tr('📊 Placar', '📊 Scoreboard'), true], ['2d', `📺 2D${pode2D ? '' : ' 🔒'}`, pode2D], ...(presidentAvailable ? [['3d', tr('🏟️ 3D no mapa', '🏟️ 3D on the map'), true]] : [])] as [string, string, boolean][]).map(([k, txt, ok]) => {
             const on = k === 'placar' ? !campo2d : k === '2d' ? campo2d : false
             return <button key={k} disabled={!ok} onClick={() => { if (k === 'placar' && campo2d) trocaCampo2D(); else if (k === '2d' && !campo2d && ok) trocaCampo2D(); else if (k === '3d') setClubeAssistir(false) }}
@@ -10804,7 +10805,7 @@ export function PyramidSeasonScreen() {
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
             recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
-        <div style={tab === 'central' || tab === 'estadio' ? { display: 'none' } : undefined}>
+        <div style={tab === 'central' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem

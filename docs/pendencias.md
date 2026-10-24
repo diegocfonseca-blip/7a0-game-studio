@@ -1,3 +1,7 @@
+## Publicação autorizada da prévia da conta (24/10)
+
+Diego pediu publicar todas as melhorias atuais na própria conta. Integração de relato/cinema e pausa permanece sob `usePresidentPreview`; demais contas conservam o caminho anterior. Atualização concorrente do calendário integrada sem reintroduzir seletor cinema/2D na aba do mapa da conta de prévia. Build e workflow de deploy devem terminar antes de afirmar publicação concluída. Nenhuma alteração de DB/save.
+
 ## Aba do mapa exclusivamente 3D (24/10)
 
 Diego reforçou: na aba do mapa somente cidade/estádio/partida 3D; campinho 2D e placar cinema ficam nas abas próprias. Compartilhar acontecimentos não significa misturar interfaces. O painel acima das abas (cinema/campinho) fica oculto também na aba estádio, mas permanece montado para preservar o relógio e a publicação da partida. Removida a alternativa “Vista ilustrada do estádio” da carreira e substituído o fallback ilustrado/aéreo por `PresidenciaComplexo3D`. Fonte/relógio/resultados e controles de câmera do complexo preservados. Verificação local: `scripts/cartoon-football/test-map-only-3d.cjs`. Sem publicação ou DB.
