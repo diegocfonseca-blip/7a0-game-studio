@@ -5,8 +5,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
-import { useCampo2DLiberado, useDesktopNovo, useEntrosamento } from './sport'
-import { entrosaCom } from './entrosamento'
+import { useCampo2DLiberado, useDesktopNovo } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
@@ -4413,8 +4412,6 @@ function Envelope() {
   const { state, dispatch, emote } = useEsc()
   const [blLang] = useLang()
   const you = state.managers[state.youIdx]
-  // 🔗 entrosamento (24/10): etiqueta "entrosa com…" só na carreira solo (nomes que você JÁ tem; o nível segue escondido)
-  const entroLeilao = useEntrosamento() && !!state.careerOnline && state.onlineMode !== 'online' && !state.co2
   const pos = SECTORS[state.sectorIdx]
   // 🧢 setor TÉCNICO na mesa: mesma tela, mesmo envelope — só muda o rótulo e
   // que a "vaga" é uma só (todo time tem um posto de técnico).
@@ -4896,13 +4893,6 @@ function Envelope() {
                 </span>
               )}
               <CardFace c={c} surprise={c.id === state.surpriseId} mudo={c.id === state.mudoId} />
-              {entroLeilao && c.id !== state.surpriseId && c.id !== state.mudoId && (() => {
-                const com = entrosaCom(c, you.squad)
-                if (!com.length) return null
-                const nomes = com.length === 1 ? com[0] : `${com.slice(0, -1).join(', ')} ${L('e', 'and')} ${com[com.length - 1]}`
-                return <span className="inline-flex items-center rounded-md border-2 border-black px-1.5 py-0.5 mt-1 text-[9.5px] font-black leading-tight"
-                  style={{ background: '#FFF1B8', color: INK, boxShadow: `1.5px 1.5px 0 ${INK}`, ...OSWALD }}>🔗 {L(`entrosa com ${nomes} (${c.club} ${c.year})`, `chemistry with ${nomes} (${c.club} ${c.year})`)}</span>
-              })()}
             </div>
             <div className="flex items-center gap-1.5">
               {/* 📝 ANTI-MALANDRAGEM: você deixou o contrato vencer → não recompra
