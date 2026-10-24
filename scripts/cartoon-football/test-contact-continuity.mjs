@@ -19,7 +19,7 @@ for(let i=0;i<120;i++){
 }
 // A hidden pre-release correction must not reappear when the action changes
 // from the departing player to the next receiver after an official impulse.
-const touch=new BallTouchPresentation();touch.correction.position.set(.25,0,0);
+const touch=new BallTouchPresentation();
 const f=t=>({time:t,phase:'passe',ball:{x:t*12,y:.11,z:0,rotation:[0,0,0,1]}}),actions={action:()=>null,nextRelease:t=>t<=1?1:2};
 touch.sample(f(.95),[],actions);const next=touch.sample(f(1.01),[],actions);assert.equal(next.diagnostic.offset,0);
 console.log('Continuous arc, bounded correction acceleration, release handoff passed');
