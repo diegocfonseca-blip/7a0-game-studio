@@ -24,7 +24,6 @@ const load=()=>source??=new GLTFLoader().loadAsync(new URL('./assets/quaternius.
 let cartoonMotionPromise,keeperMotionPromise;
 export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refineFundamentals=true,refinePossession=true,keeperTrial=undefined}={}){
  const kitPlan=matchKitPlan(state,(state.officialTeams??[]).map(clubKitFor),(state.officialTeams??[]).map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[])),matchKitConfigs=kitPlan.map(p=>p.config).filter(Boolean);
- matchKitConfigs.forEach(config=>kitRegistry.add(config));
  const cartoon=style==='civil-cartoon';let civil=cartoon?await loadCartoonSource():null;
  const [gltf,originalMotion,originalGait]=await Promise.all([civil?.gltf??load(),loadReviewedMotion(state.officialInput,{metadataOnly:cartoon}),loadGaitCalibration()]);
  let fitted=cartoon?await(cartoonMotionPromise??=fetch(new URL('./cartoon/motion.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Contatos do modelo civil indisponíveis');return r.json()})):null;
@@ -33,6 +32,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
  if(keeperTrial&&(!originalMotion||keeperTrial.inputSHA256!==originalMotion.inputSHA256))throw Error('Teste de goleiro pertence a outra partida');
  if(civil&&keeperTrial)civil={...civil,clips:new Map([...civil.clips,...Object.entries(keeperTrial.clips).map(([n,c])=>[n,T.AnimationClip.parse(c)])])};
  const motion=cartoon?(originalMotion&&fitted.inputSHA256===originalMotion.inputSHA256?{...fitted,clips:new Map([...civil.clips].filter(([name])=>!name.endsWith('_Loop')))}:null):originalMotion,gait=fitted?.gait??originalGait,actors=[];users++;
+ matchKitConfigs.forEach(config=>kitRegistry.add(config));
  try{
   const initial=frame.players;
   for(const [index,p]of initial.entries()){
