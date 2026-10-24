@@ -1,3 +1,6 @@
+import {groundContactShadows} from './motion/ground-contact-shadows.mjs';
+import {locomotionWeights,gaitCurve} from './motion/locomotion-sampling.mjs';
+import {LocomotionGrounding} from './motion/locomotion-grounding.mjs';
 import {FootballActionController} from './football-action-controller.mjs';
 import {VisualPlayerCollisions} from './visual-player-collisions.mjs';
 import * as T from 'three';
@@ -15,7 +18,7 @@ const load=()=>source??=new GLTFLoader().loadAsync(new URL('./assets/quaternius.
 /** Shared original geometry, separate skeletons. Existing reviewed garment fit.
  * Captures are enabled only for the exact reviewed official input. */
 let cartoonMotionPromise;
-export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
+export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refineFundamentals=true}={}){
  const cartoon=style==='civil-cartoon',civil=cartoon?await loadCartoonSource():null;
  const [gltf,originalMotion,originalGait]=await Promise.all([civil?.gltf??load(),loadReviewedMotion(state.officialInput,{metadataOnly:cartoon}),loadGaitCalibration()]);
  const fitted=cartoon?await(cartoonMotionPromise??=fetch(new URL('./cartoon/motion.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Contatos do modelo civil indisponíveis');return r.json()})):null;
@@ -32,7 +35,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
     const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor});actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,footIndices:kit.template.data.part.map((p,i)=>p===3?i:-1).filter(i=>i>=0)};
    }
    Object.assign(actor,{current:null,side:p.side,key:p.key,keeper,gaitPhase:0,lastDistance:0,wasAction:false,lastHeading:null,lastPose:-Infinity,detail:'full',groundOffset:0,footHeight:0});
-   actor.motion=bindCapturedMotion(actor,motion);actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());actor.headIntentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('Head').getWorldQuaternion(new T.Quaternion()).invert());if(cartoon){const headBox=new T.Box3().setFromObject(actor.meshes[4],true);actor.headCenterLocal=actor.bones.get('Head').worldToLocal(headBox.getCenter(new T.Vector3()));actor.headRadius=Math.max(headBox.max.x-headBox.min.x,headBox.max.z-headBox.min.z)/2;}if(cartoon)actor.ballControl=createBallControl(actor);actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
+   actor.measurements={neutralHeight:new T.Box3().setFromObject(actor.holder,true).getSize(new T.Vector3()).y,rigBones:actor.meshes[0].skeleton.bones.length};actor.motion=bindCapturedMotion(actor,motion);actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());actor.headIntentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('Head').getWorldQuaternion(new T.Quaternion()).invert());if(cartoon){const headBox=new T.Box3().setFromObject(actor.meshes[4],true);actor.headCenterLocal=actor.bones.get('Head').worldToLocal(headBox.getCenter(new T.Vector3()));actor.headRadius=Math.max(headBox.max.x-headBox.min.x,headBox.max.z-headBox.min.z)/2;}if(cartoon)actor.ballControl=createBallControl(actor);actor.grounding=cartoon&&refineFundamentals?new LocomotionGrounding():null;actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
   }
  }catch(error){for(const a of actors){a.kit.dispose();a.holder.removeFromParent();a.mixer.stopAllAction()}if(--users===0){releaseNeutralKits();releaseMatchKits(clubKits)}throw error}
  const pointsGeometry=new T.BufferGeometry(),positions=new Float32Array(actors.length*3),colors=new Float32Array(actors.length*3);
@@ -41,11 +44,12 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
  pointsMaterial.customProgramCacheKey=()=> 'football-points-physical-metres-v1';
  points.name='football-physical-scale-lod';points.frustumCulled=false;scene.add(points);
  let lastTime=null,disposed=false,lastFrame=null,inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:0,maxFootHeight:0,physicalPlayerHeight:PLAYER_HEIGHT,locomotionCalibrated:true};
+ const soleShadows=cartoon&&refineFundamentals?groundContactShadows(scene,actors.length):null;
  const point=new T.Vector3(),footballActions=new FootballActionController(motion?.plans??[]),collisions=new VisualPlayerCollisions();
  return {update(frame,camera,viewportHeight=720){
   if(disposed)return;
   const elapsed=lastTime===null?0:frame.time-lastTime,reset=lastTime===null||elapsed<0||elapsed>1,dt=Math.max(0,elapsed);lastTime=frame.time;lastFrame=frame;const used=new Set(),currentKeys=new Set(frame.players.map(p=>p.key));positions.fill(-10000);
-  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],clearance:[]};
+  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],clearance:[],grounding:[]};
   footballActions.begin(frame);
   const navigation=cartoon?collisions.sample(frame,footballActions):null;
   inspection.collisions=navigation?.diagnostics;
@@ -54,9 +58,11 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};const resetActor=reset||a.key!==p.key;a.key=p.key;
    const visualTravel=resetActor?0:Math.hypot(p.mx-(a.lastGaitX??p.mx),p.mz-(a.lastGaitZ??p.mz)),visualHeading=visualTravel>.001?Math.atan2(p.mx-a.lastGaitX,p.mz-a.lastGaitZ):p.heading,visualSpeed=dt>0?Math.max(p.speed,visualTravel/dt):p.speed;
    a.lastGaitX=p.mx;a.lastGaitZ=p.mz;
+   const targets=cartoon&&refineFundamentals?locomotionWeights(visualSpeed):null;
    const mode=visualSpeed<.12?'Idle_Loop':visualSpeed<2.5?'Walk_Loop':visualSpeed<6?'Jog_Fwd_Loop':'Sprint_Loop',cal=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[mode]],duration=a.actions.get(mode).getClip().duration,stride=cal?.strideLength??duration*(mode==='Walk_Loop'?1.5:mode==='Sprint_Loop'?7:4.5);
    if(resetActor){a.ballControl?.reset();a.wasAction=false;a.gaitPhase=0;a.lastDistance=p.distance;a.lastHeading=p.heading;a.lastPose=-Infinity;a.current=null;a.mixer.stopAllAction()}
-   a.gaitPhase=(a.gaitPhase+visualTravel/stride)%1;a.lastDistance=p.distance;
+   const effectiveStride=targets?Object.entries(targets).reduce((sum,[name,w])=>{const c=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[name]];return sum+w*(c?(gaitCurve(c)?.length??c.strideLength):stride)},0):stride;
+   a.gaitPhase=(a.gaitPhase+visualTravel/Math.max(.1,effectiveStride))%1;a.lastDistance=p.distance;
    const previous=a.detail;a.detail=p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;
    a.holder.visible=a.detail==='full'||a.detail==='intermediate';
    positions.set(a.detail==='far'?[p.mx,PLAYER_HEIGHT/2,p.mz]:[-10000,-10000,-10000],i*3);
@@ -69,11 +75,11 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
    // contact IK or action blend back into the native animation baseline.
    for(const pose of a.nativePose){pose.bone.position.copy(pose.position);pose.bone.quaternion.copy(pose.quaternion)}
    if(a.current!==mode)a.current=mode;
-   for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const target=name===mode?1:0,current=action.isScheduled()?action.getEffectiveWeight():0;action.play();action.timeScale=0;action.setEffectiveWeight(resetActor||previous==='far'||previous==='hidden'?target:T.MathUtils.lerp(current,target,1-Math.exp(-dt/.18)));}
+   for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const target=targets?.[name]??(name===mode?1:0),current=action.isScheduled()?action.getEffectiveWeight():0;action.play();action.timeScale=0;action.setEffectiveWeight(resetActor||previous==='far'||previous==='hidden'?target:T.MathUtils.lerp(current,target,1-Math.exp(-dt/.18)));}
    const active=motion?.plans.some(plan=>plan.key===p.key&&frame.time>=plan.start&&frame.time<=plan.end);
    const nearBall=frame.ball.y<1.5&&Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z)<1.5;
    const refresh=active||a.wasAction||nearBall||(a.detail==='full'&&dt>0)||frame.time-a.lastPose>=1/12||previous!==a.detail||frame.time<a.lastPose;
-   if(refresh){a.mixer.update(Math.min(.25,dt));for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const c=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[name]];action.time=name==='Idle_Loop'?frame.time%action.getClip().duration:((a.gaitPhase+(c?.phaseOffset??0))%1)*action.getClip().duration}a.mixer.update(0);a.lastPose=frame.time;inspection.poseUpdates++;}
+   if(refresh){a.mixer.update(Math.min(.25,dt));for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const c=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[name]];action.time=name==='Idle_Loop'?frame.time%action.getClip().duration:(targets&&c&&gaitCurve(c)?gaitCurve(c).phase(a.gaitPhase):((a.gaitPhase+(c?.phaseOffset??0))%1))*action.getClip().duration}a.mixer.update(0);a.lastPose=frame.time;inspection.poseUpdates++;}
    if(!cartoon){a.pelvis.position.x=a.rest.x;a.pelvis.position.z=a.rest.z;}
    if(refresh)for(const pose of a.nativePose){pose.position.copy(pose.bone.position);pose.quaternion.copy(pose.bone.quaternion)}
    a.holder.position.set(p.mx,a.groundOffset,p.mz);a.holder.rotation.y=a.lastHeading;a.holder.updateMatrixWorld(true);
@@ -89,6 +95,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
     a.holder.position.y=a.groundOffset;a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update();
    }
    const scheduled=footballActions.action(p.key,frame.time);const capture=a.motion.apply(frame,p,scheduled?.animationActive?scheduled.plan:null);a.wasAction=!!capture;if(capture){a.ballControl?.reset();inspection.activeCaptures.push(capture)}else{const control=a.ballControl?.apply(frame,p);if(control)(inspection.ballControl??=[]).push({key:p.key,...control});let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
+   if(a.grounding){const grounded=a.grounding.apply(a,p,frame,capture,dt,{reset:resetActor||previous==='far'||previous==='hidden'});a.groundingReport=grounded;inspection.grounding.push({key:p.key,...grounded})}
    if(cartoon){footballActions.orientUpperBody(a,p,frame.time);footballActions.validate(a,p,frame,capture);for(const mesh of a.meshes)mesh.skeleton.update();}
    inspection.minFootHeight=Math.min(inspection.minFootHeight,a.footHeight);inspection.maxFootHeight=Math.max(inspection.maxFootHeight,a.footHeight);
   });
@@ -100,7 +107,8 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon'}={}){
   // A lineup can shrink after a real dismissal/substitution. Never leave an
   // unused avatar or a stale far-LOD point from the preceding frame visible.
   for(const a of actors)if(!used.has(a)){a.holder.visible=false;a.detail='hidden'}
+  soleShadows?.update(actors);
   pointsGeometry.attributes.position.needsUpdate=true;pointsGeometry.attributes.color.needsUpdate=true;points.visible=inspection.far>0;
   if(!Number.isFinite(inspection.minFootHeight))inspection.minFootHeight=inspection.maxFootHeight=0;
- },inspect:()=>({...inspection}),inspectPose:key=>{const a=actors.find(a=>a.key===key);return a?{key,position:a.holder.position.toArray(),bones:[...a.bones].map(([name,b])=>({name,position:b.position.toArray(),quaternion:b.quaternion.toArray()}))}:null},inspectActors:()=>({slots:actors.map((a,slot)=>({slot,key:a.key,heading:a.lastHeading,mode:a.current,visible:a.holder.visible,detail:a.detail})),farPoints:Array.from(positions).filter((_,i)=>i%3===0).filter(x=>x!==-10000).length}),audit:()=>lastFrame?{...inspection,players:lastFrame.players.map(p=>{const a=actors.find(a=>a.key===p.key);return a?.motion.audit(lastFrame,p)}).filter(Boolean)}:null,dispose(){if(disposed)return;disposed=true;points.removeFromParent();pointsGeometry.dispose();pointsMaterial.dispose();for(const a of actors){a.motion.surface.dispose();a.kit.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);a.holder.removeFromParent();for(const mesh of a.meshes)mesh.skeleton.dispose()}if(--users===0){releaseNeutralKits();releaseMatchKits(clubKits)}}};
+ },inspect:()=>({...inspection}),inspectScale:()=>actors.map(a=>({key:a.key,...a.measurements})),inspectPose:key=>{const a=actors.find(a=>a.key===key);return a?{key,position:a.holder.position.toArray(),bones:[...a.bones].map(([name,b])=>({name,position:b.position.toArray(),quaternion:b.quaternion.toArray()}))}:null},inspectActors:()=>({slots:actors.map((a,slot)=>({slot,key:a.key,heading:a.lastHeading,mode:a.current,visible:a.holder.visible,detail:a.detail})),farPoints:Array.from(positions).filter((_,i)=>i%3===0).filter(x=>x!==-10000).length}),audit:()=>lastFrame?{...inspection,players:lastFrame.players.map(p=>{const a=actors.find(a=>a.key===p.key);return a?.motion.audit(lastFrame,p)}).filter(Boolean)}:null,dispose(){if(disposed)return;disposed=true;soleShadows?.dispose();points.removeFromParent();pointsGeometry.dispose();pointsMaterial.dispose();for(const a of actors){a.motion.surface.dispose();a.kit.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);a.holder.removeFromParent();for(const mesh of a.meshes)mesh.skeleton.dispose()}if(--users===0){releaseNeutralKits();releaseMatchKits(clubKits)}}};
 }

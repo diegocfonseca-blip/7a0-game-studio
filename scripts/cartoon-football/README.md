@@ -153,3 +153,43 @@ RELEASE_BENCH=1 ACTION_RECORD_OUT=test-results/cartoon-football/release-sync nod
 ```
 
 Evidências reais em `test-results/cartoon-football/release-sync/`: MP4 normal de 4 s e lento de 8 s (60 fps, H.264 baseline), comparação numérica `before/release.json` × `release.json`, sequência de quadros, página `assistir.html`. Reprodução verificada no Chromium; não equivale a teste em celular físico. Nada publicado ou escrito no banco. Reversão isolada pelo commit desta revisão.
+
+## Apoio e flexibilidade — 24/10/2026
+
+Referência local: `release-sync/fundamentos-normal.mp4`, enviada na revisão anterior. O arquivo com sufixo `(1)` não foi anexado nesta mensagem. O diagnóstico confirmou cadência média durante toda a passada, mudanças binárias de gait e ausência de foot locking na locomoção. O apoio curto de chute não cobria corrida, frenagem ou giro.
+
+`locomotion-sampling.mjs` usa as velocidades dos vértices de apoio já medidas nos clipes para integrar uma curva de distância e amostrar o AnimationMixer. Transições Idle/Walk/Run/Sprint têm pesos contínuos, conforme a velocidade. As distâncias calibradas por ciclo são ~1,111 m na caminhada e ~2,921 m na corrida. Sprint continua usando a corrida nativa em outra cadência: não foi criada ou aprovada captura de sprint nova.
+
+`LocomotionGrounding` preserva uma âncora mundial enquanto a sola está próxima do piso, suficientemente plana e sem giro/velocidade vertical incompatíveis. IK residual até 8 cm / 0,28 rad; orientação do tornozelo até 0,20 rad. Ao exceder alcance, sair do apoio ou aproximar da bola, o ajuste cede. Nunca estica ossos, prolonga apoio impossível, muda a trajetória oficial ou tenta esconder falhas movendo a bola. Foot locking não fica ativo durante todas as fases da passada.
+
+Inclinação limitada pela aceleração/frenagem e mudança de direção, filtrada por 0,14–0,16 s, chega a até 0,09 rad. Pelvis recebe 22% e tronco 78%; joelhos/tornozelos recebem pequena compensação IK para manter os pés. Ombros e braços seguem o movimento adquirido e o blending, sem nova oscilação inventada. Essa camada desaparece nos contatos revisados com a bola. Não foram alterados rest pose, hierarquia, proporções, pesos ou malhas.
+
+Sombras suaves das solas: uma malha instanciada para os 44 pés, textura de 32×32, sem física de tecido ou novas luzes. Intensidade reduz com a altura, desaparece para jogadores ocultos; piso, dia/noite, estádio e mapa preservados. Na bancada: 136→137 chamadas, +88 triângulos, +1 geometria e +1 textura. Esses números não são FPS de um celular físico.
+
+Escala medida: todos os 22 modelos em pose neutra com 1,78 m; gramado 105×68 m, vão do gol 7,32000017×2,44000006 m, raio da bola 0,110000006 m. Nenhum redimensionamento necessário. Zoom não muda tamanho físico.
+
+Comparação em cinco trechos a 120 Hz, mesmos instantes e bola oficial:
+
+| Trecho | Velocidade horizontal média dos pés baixos, antes → depois, nos mesmos quadros | Apoio efetivamente travado: amostras / velocidade média |
+| --- | --- | --- |
+| Corrida de Abedi Pelé | 5,072 → 3,789 m/s | 10 / 0,0051 m/s |
+| Frenagem de Athirson | 2,737 → 2,071 m/s | 27 / 0,0098 m/s |
+| Giro de Júnior Baiano | 3,687 → 2,821 m/s | 17 / 0,0019 m/s |
+
+Pé baixo pode estar em pivô, saída de apoio ou balanço: a primeira coluna é diagnóstico bruto, não prova de deslizamento de uma sola plantada. Amostras travadas exigem peso >0,95, erro <1 cm, sem limitação, em dois quadros consecutivos. A cobertura ainda é curta; não declarar locomoção sem deslizamento. O trecho chamado `PARADA` no vídeo é frenagem com microajustes oficiais (mínimo 0,276 m/s), sem forçar velocidade zero no motor; o passe inicial também mostra pose parada.
+
+Passe e chute mantêm contato ~1 mm e a calibração temporal anterior. Bola oficial idêntica em todas as posições amostradas antes/depois. `browser-match.cjs`: 48 contatos, 3.803 amostras das janelas, 950 amostras da partida; zero penetrações de bola/pés, piso inválido, excesso de orçamento ou conflito entre os volumes de cabeça nas amostras. Permanecem 84 divergências do indicador antigo de direção durante antecipação/desvio. Paridade independente: 941 instantes, 20.702 posições, erro zero, mesmo 1×1 e 82 eventos. Nenhuma aprovação geral de domínio/goleiros/cruzamentos.
+
+Pausa e câmeras: repetir o mesmo timestamp agora preserva velocidade filtrada, inclinação e âncoras de apoio. Trocar close/tática/transmissão/pés em 2,1 s manteve posições e quaternions dos 22 rigs exatamente iguais. Retorno de LOD distante reinicia o histórico local para evitar inclinação causada por deslocamento acumulado enquanto oculto.
+
+```
+node scripts/cartoon-football/test-locomotion-sampling.mjs
+node scripts/cartoon-football/audit-grounding.cjs
+node scripts/cartoon-football/test-pose-continuity.cjs
+node scripts/cartoon-football/record-refinements.cjs
+node scripts/cartoon-football/check-refinements.cjs
+```
+
+Bancada opcional `mechanics-audit.html?refinement=before` desliga somente essas três camadas novas para comparação; produção mantém o refinamento ligado por padrão no estilo Civil. Não há controle disso na experiência normal do usuário. Antes e depois usam o mesmo replay, uniformes, campo, luz e posições de câmera.
+
+Evidências locais em `test-results/cartoon-football/fundamentos-refinados/`: comparações normal (12 s) e lenta (24 s), versão ajustada separada, seis cenas por vídeo (corrida, frenagem, direção, passe, chute e câmera baixa dos pés), escala, apoio, continuidade de pausa e reprodução. MP4 H.264 baseline/faststart, reprodução testada no Chromium. Vídeos gravados antes da proteção de repetição do mesmo timestamp; o fluxo progressivo desses vídeos não muda com essa proteção. Não houve teste em aparelho físico. Recuperação prévia: branch `recovery/antes-refino-apoio-20261024`, commit `613dec46`. Nada publicado ou escrito no banco.
