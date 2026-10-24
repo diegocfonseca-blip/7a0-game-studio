@@ -1,3 +1,4 @@
+import {preserveSupportFoot} from './support-plant.mjs';
 // Generated from scripts/animation-lab/shared-strike.mjs. Repackage after editing source.
 import {facingFor} from './facing-track.mjs';
 import {blendHeading} from './heading-blend.mjs';
@@ -26,7 +27,15 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
  // binding state left by stopping/restarting AnimationMixer actions.
  for(let i=0;i<captured.length;i++){const pose=captured[i],b=actor.bones.get(pose.name);if(channels.has(pose.name+'.position'))b.position.lerpVectors(base[i].p,pose.p,weight);else b.position.copy(base[i].p);b.quaternion.copy(base[i].q);if(channels.has(pose.name+'.quaternion'))b.quaternion.slerp(pose.q,weight*(armBones.has(pose.name)?armWeight:torsoBones.has(pose.name)?T.MathUtils.clamp(plan.layers?.torso??1,0,1):1));}actor.holder.updateMatrixWorld(true);
  const rootWeight=actor.style==='civil-cartoon'?weight:smooth((time-(plan.time-.12))/.10)*smooth(((plan.time+.10)-time)/.08);
- const offset=new T.Vector3().fromArray(plan.rootCorrection??[0,0,0]).multiplyScalar(rootWeight);center(actor,p,offset);actor.ground();
+ const offset=new T.Vector3().fromArray(plan.rootCorrection??[0,0,0]).multiplyScalar(rootWeight);
+ // Restore the acquired horizontal pelvis path around the planted contact.
+ // The ball/event is fixed; only a bounded visual root can decelerate locally.
+ let rootWarp=0;
+ if(actor.style==='civil-cartoon'&&plan.rootMotion&&plan.sourceVelocity){const t=time-plan.time,samples=plan.rootMotion.samples,k=samples.findIndex(p=>Math.abs(p[0])<1e-8),a=samples[k-1],b=samples[k+1],native=new T.Vector3((b[1]-a[1])/(b[0]-a[0]),0,(b[2]-a[2])/(b[0]-a[0])),tangent=native.sub(new T.Vector3().fromArray(plan.sourceVelocity)),duration=t<=0?plan.time-plan.start:plan.end-plan.time,s=T.MathUtils.clamp(t<=0?(time-plan.start)/duration:t/duration,0,1),s2=s*s,s3=s2*s;
+  if(t<=0)offset.fromArray(plan.rootCorrection).multiplyScalar(-2*s3+3*s2).addScaledVector(tangent,(s3-s2)*duration);else offset.fromArray(plan.rootCorrection).multiplyScalar(2*s3-3*s2+1).addScaledVector(tangent,(s3-2*s2+s)*duration);
+  const length=offset.length();offset.clampLength(0,actor.maxPresentationOffset??.6);rootWarp={model:'bounded-hermite-root-velocity',limited:length>(actor.maxPresentationOffset??.6),nativeVelocity:native.clone().add(new T.Vector3().fromArray(plan.sourceVelocity)).toArray()};}
+
+ center(actor,p,offset);actor.ground();
  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),raw=Object.fromEntries(['thigh_r','calf_r','foot_r','thigh_l','calf_l','foot_l'].map(n=>[n,actor.bones.get(n).quaternion.clone()])),ankles=['foot_r','foot_l'].map(n=>actor.bones.get(n).getWorldPosition(new T.Vector3()));
  const corrections=correct?{right:constrainFootBall(actor,'right',ball,{maxCorrection:.08}),left:constrainFootBall(actor,'left',ball,{maxCorrection:.08})}:null;
  // A compact rig can exhaust leg IK during an imported approach. Resolve the
@@ -40,8 +49,9 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
    actor.holder.position.copy(original).add(bestOffset);offset.add(bestOffset);actor.holder.updateMatrixWorld(true);corrections.visualAnchor={metres:bestOffset.length(),rawGap:initialGap,gap:bestGap,limited:bestGap<-.003};
   }
  }
+ const supportPlant=correct?preserveSupportFoot(actor,plan,time,ball):null;
  actor.holder.updateMatrixWorld(true);const triangles=feet(actor),rightGap=nearest(ball,actor.footTriangles('right')).distance-.11,leftGap=nearest(ball,actor.footTriangles('left')).distance-.11,hip=actor.bones.get('pelvis').getWorldPosition(new T.Vector3());
- const result={time,weight,armCaptureWeight:armWeight,foot:plan.foot??'right',contactGap:plan.foot==='left'?leftGap:rightGap,rightGap,leftGap,minFloor:Math.min(...triangles.flatMap(t=>[t.a.y,t.b.y,t.c.y])),rootCorrection:offset.length(),pelvisQuaternion:actor.bones.get('pelvis').getWorldQuaternion(new T.Quaternion()).normalize().toArray(),pelvisError:Math.hypot(hip.x-p.position.x,hip.z-p.position.z),maxAnkleCorrection:Math.max(...['foot_r','foot_l'].map((n,i)=>actor.bones.get(n).getWorldPosition(new T.Vector3()).distanceTo(ankles[i]))),maxJointAngle:Math.max(...Object.entries(raw).map(([n,q])=>actor.bones.get(n).quaternion.angleTo(q))),corrections,ball:frame.ball,provisional:plan.type!=='chute',sourceBallPreserved:true,ballImpulseAllowed:false,writesToMotor:false};
+ const result={time,weight,rootWarp,supportPlant,armCaptureWeight:armWeight,foot:plan.foot??'right',contactGap:plan.foot==='left'?leftGap:rightGap,rightGap,leftGap,minFloor:Math.min(...triangles.flatMap(t=>[t.a.y,t.b.y,t.c.y])),rootCorrection:offset.length(),pelvisQuaternion:actor.bones.get('pelvis').getWorldQuaternion(new T.Quaternion()).normalize().toArray(),pelvisError:Math.hypot(hip.x-p.position.x,hip.z-p.position.z),maxAnkleCorrection:Math.max(...['foot_r','foot_l'].map((n,i)=>actor.bones.get(n).getWorldPosition(new T.Vector3()).distanceTo(ankles[i]))),maxJointAngle:Math.max(...Object.entries(raw).map(([n,q])=>actor.bones.get(n).quaternion.angleTo(q))),corrections,ball:frame.ball,provisional:plan.type!=='chute',sourceBallPreserved:true,ballImpulseAllowed:false,writesToMotor:false};
  const finalPose=copyPose(actor);actor.resume();for(const b of finalPose){const bone=actor.bones.get(b.name);bone.position.copy(b.p);bone.quaternion.copy(b.q);}actor.holder.updateMatrixWorld(true);return result;
 }
 export function contactCorrection(actor,timeline,plan){

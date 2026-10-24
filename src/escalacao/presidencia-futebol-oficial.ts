@@ -53,7 +53,7 @@ export class FutebolOficial3D {
   const dt=Math.max(0,Math.min(.25,time-this.visualTime));this.visualTime=time
   if(dt>0){const dx=(b.y-52.5)*.78-this.referee.x,dz=(b.x-34)*.55-this.referee.z,length=Math.hypot(dx,dz),step=g.fim?0:Math.min(length*(1-Math.exp(-dt/.9)),7*dt);if(length>.001){this.referee.x+=dx/length*step;this.referee.z+=dz/length*step;this.referee.heading=Math.atan2(dx,dz)}this.referee.speed=g.fim?0:step/dt;this.referee.distance+=step}
   const presented=this.goalFinish.sample({x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
-  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,owner:b.dono?key(b.dono):undefined,
+  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
  }

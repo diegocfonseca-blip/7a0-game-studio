@@ -96,3 +96,39 @@ A partida testada contém 49 passes, seis enfiadas, quatro interceptações, qua
 No campo já gramado, o recuo do gol agora acompanha a grama da extremidade (faixa de 4 m); na evolução inicial continua terra. O modo registrado não recebe essa extensão sobre sua arte. Geometria/material entram no lote estático existente.
 
 As marcações do campo agora são faixas planas, em vez dos tubos que chegavam a ~8,5 cm do piso. Postes, travessões e mastros mantêm geometria volumétrica. As medidas e a espessura de 12 cm das linhas permanecem, sem novos draw calls para as faixas agrupadas.
+
+## Football Action Controller — 23/10
+
+A auditoria do vídeo `11x11-consolidado/passes-e-chutes-camera-lenta.mp4` e do runtime encontrou estas causas:
+
+| Camada | Causa / correção |
+| --- | --- |
+| Autoridade | Motor2 decide posse, trajetória, resultado e eventos antes da animação. O visual não aplica impulso. O controlador deve antecipar o timestamp oficial; nunca atrasar bola para esperar uma pose. |
+| Seleção de captura | Ajuste antigo priorizava distância do pé/normal de saída e aceitava tronco ~120° oposto ao passe. Busca agora considera orientação, apoio no piso, aproximação relativa do pé e margem de deslocamento. Reutiliza os mesmos clipes existentes. |
+| Root motion | Retarget preservava somente a translação vertical. Translação horizontal adquirida agora é extraída no espaço mundial, escalada pela proporção medida das pernas e usada para casar a velocidade da raiz no contato. Curva Hermite une aproximação/recuperação à trajetória oficial com limite total de 0,60 m. Não é translação livre da física oficial. |
+| Transições | Seleção considera o contato mais próximo, em vez do primeiro intervalo da lista. Preparação e recuperação têm estados explícitos e orientação antecipada. Gait acompanha distância percorrida na navegação visual. |
+| Orientação | Pose importada continua principal; ajustes mundiais pequenos de tronco/ombros (até 0,35 rad) e cabeça (0,52 rad), sem editar anatomia, bind ou pesos. Giro de raiz em corrida é limitado para não transformar preparação em corrida de costas. |
+| Contato e apoio | O pé de contato mantém ajuste à superfície real da chuteira; pé de apoio recebe IK de até 8 cm/0,35 rad, com âncora extraída da própria pose adquirida. Guarda recusa penetração/piso negativo; correções não se acumulam entre quadros. |
+| Colisão | Predição local de cruzamentos por 0,45 s, desvios opostos e projeção de volumes de tronco/cabeça. Cabeça/cabelo são medidos no modelo existente. Ajuste da navegação até 0,38 m, orçamento total do avatar 0,60 m; contato programado é protegido. Se restrições forem incompatíveis, o diagnóstico registra o conflito. Não muda decisões táticas, posse ou probabilidades. |
+| Recepção | `officialAction` expõe autor/receptor/tipo do mesmo lance Motor2. Receptor orienta corpo antes da chegada; alinhamento/IK só para bola baixa e alcançável. Domínio é provisório sem captura própria. Erros de controle continuam pertencendo ao motor e seus atributos. |
+
+`FootballActionController` organiza **decision → approach → preparation → contact → continuation → recovery**. O horário oficial é fixo; `contactReady` é uma verificação de pose, sem autoridade para emitir impulso ou mudar resultado. A agenda revisada continua limitada ao input/hash da fixture aprovada: ainda não existe ajuste automático validado de todos os clipes para qualquer save. Onze ações originais seguem sem captura aprovada. Não afirmar que o catálogo ou todas as transições estão prontos.
+
+Pipeline de revisão com o mesmo material adquirido:
+
+```
+node scripts/cartoon-football/refit-priority-actions.mjs --all
+node scripts/cartoon-football/extract-root-motion.mjs
+node scripts/cartoon-football/extract-support-anchors.mjs
+node scripts/cartoon-football/test-action-controller.mjs
+node scripts/cartoon-football/audit-actions.cjs
+node scripts/cartoon-football/browser-match.cjs
+```
+
+A busca é uma nova calibração, que exige revisão dos resultados antes de aprovação; não promover o perfil automaticamente. O corpo, rig de 23 ossos, skinning e 17 clipes permanecem os mesmos. Passes adaptados de capturas de chute continuam identificados como adaptações.
+
+Bancada: `action-lab.html`, nove casos do mesmo replay oficial, sem jogo inventado. Primeira entrega visual: disputa Denis Law/Júnior Baiano, passe curto de Denis Law e finalização de Souza. `record-action-bench.cjs` gera normal (6 s) e lenta (12 s) a 60 fps. `record-action-matrix.cjs` registra os outros seis casos, com status provisório/lacunas; `audit-action-matrix.cjs` acrescenta métricas. `check-action-videos.cjs` valida reprodução dos quatro MP4.
+
+Evidências em `test-results/cartoon-football/action-controller/` (fora do Git). Nos três trechos a 60 Hz: nenhum conflito entre volumes, contatos na ordem de 1 mm e orientação revisada; velocidades do apoio, **somente quando a âncora estava efetivamente plantada e não limitada**, ~0,0024 m/s no passe e ~0,097 m/s no chute. Velocidade bruta de um vértice/chuteira perto do chão pode ser alta em giro, saída de apoio ou no pé que chuta: isso não prova apoio estático nem deve ser ocultado. Os relatórios preservam também essa medida bruta. Há transições fora da janela de plantio que continuam em revisão.
+
+Partida inteira: 950 amostras, 48 contatos programados, 3.803 amostras de janelas; sem penetração pé/bola, piso negativo, excesso do orçamento ou interseção dos volumes de cabeça nas amostras. Isso não é prova contínua de todas as malhas/roupas em todos os frames. O indicador antigo de alinhamento à direção oficial ainda registra diferenças durante antecipação/desvios: não declarar toda a locomoção aprovada por causa dos contatos. Mesmo 1×1/82 eventos. Nenhuma publicação ou escrita de banco.
