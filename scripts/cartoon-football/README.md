@@ -132,3 +132,24 @@ Bancada: `action-lab.html`, nove casos do mesmo replay oficial, sem jogo inventa
 Evidências em `test-results/cartoon-football/action-controller/` (fora do Git). Nos três trechos a 60 Hz: nenhum conflito entre volumes, contatos na ordem de 1 mm e orientação revisada; velocidades do apoio, **somente quando a âncora estava efetivamente plantada e não limitada**, ~0,0024 m/s no passe e ~0,097 m/s no chute. Velocidade bruta de um vértice/chuteira perto do chão pode ser alta em giro, saída de apoio ou no pé que chuta: isso não prova apoio estático nem deve ser ocultado. Os relatórios preservam também essa medida bruta. Há transições fora da janela de plantio que continuam em revisão.
 
 Partida inteira: 950 amostras, 48 contatos programados, 3.803 amostras de janelas; sem penetração pé/bola, piso negativo, excesso do orçamento ou interseção dos volumes de cabeça nas amostras. Isso não é prova contínua de todas as malhas/roupas em todos os frames. O indicador antigo de alinhamento à direção oficial ainda registra diferenças durante antecipação/desvios: não declarar toda a locomoção aprovada por causa dos contatos. Mesmo 1×1/82 eventos. Nenhuma publicação ou escrita de banco.
+
+## Saída do pé — revisão temporal de 24/10
+
+O contato de 1 mm em um quadro escondia uma falha de ritmo: no passe de Denis Law (0,90 s), a chuteira chegava a apenas 1,42 m/s; no chute de Souza (14,10 s), chegava a 2,32 m/s e perdia avanço na direção da bola. O timestamp oficial já estava alinhado à saída: atrasar a bola não corrigiria essa causa.
+
+`motion/strike-clock.mjs` agora permite retemporizar a captura existente em torno do marcador fixo. A curva é monotônica e tem velocidade contínua no contato e nas extremidades da janela; não gera poses novas. O ajuste de velocidade da raiz usa a mesma taxa da captura. As duas ações foram recalibradas em trechos melhores dos mesmos arquivos CMU, preservando contato, direção, apoio e limite de 0,60 m. Nenhuma anatomia, clip novo, impulso ou posição oficial foi alterada.
+
+Nos dois trechos a 120 Hz, a velocidade da chuteira no último intervalo anterior ao contato passou a 4,58 m/s no passe e 13,42 m/s no chute; no intervalo seguinte, 4,41 e 16,09 m/s. O componente na direção de saída permanece positivo antes e depois. Distância no contato: ~1 mm. São medições do centro da chuteira renderizada, não equivalência física entre velocidade do pé e da bola nem aprovação de todos os movimentos.
+
+**Escopo:** o relógio pode servir a outras ações, mas somente estes dois lances receberam calibração temporal e inspeção próxima nesta revisão. Os outros 46 planos continuam com o relógio anterior; onze ações permanecem sem captura aprovada. Não aplicar a mesma taxa a todas as animações sem medir direção, contato e continuação.
+
+Validação: `test-strike-clock.mjs` verifica monotonicidade e continuidade; `audit-release.cjs` mede os dois intervalos no runtime real, incluindo a continuação, orientação, piso e deslocamento. `RELEASE_BASELINE=1 RELEASE_AUDIT_OUT=...` registra uma versão anterior sem exigir os novos limiares. Antes/depois preservaram exatamente as mesmas 170 posições amostradas da bola. `browser-match.cjs`: 48 contatos, 3.803 amostras de janelas e 950 da partida, sem novas penetrações ou excesso de deslocamento; o indicador antigo ainda aponta 84 diferenças de direção fora das capturas, sem aprovação geral da locomoção. Paridade oficial: 941 instantes, 20.702 posições, erro zero, mesmo 1×1 e 82 eventos.
+
+```
+node scripts/cartoon-football/test-strike-clock.mjs
+node scripts/cartoon-football/audit-release.cjs
+RELEASE_BENCH=1 ACTION_RECORD_OUT=test-results/cartoon-football/release-sync node scripts/cartoon-football/record-action-bench.cjs
+RELEASE_BENCH=1 ACTION_RECORD_OUT=test-results/cartoon-football/release-sync node scripts/cartoon-football/check-action-videos.cjs
+```
+
+Evidências reais em `test-results/cartoon-football/release-sync/`: MP4 normal de 4 s e lento de 8 s (60 fps, H.264 baseline), comparação numérica `before/release.json` × `release.json`, sequência de quadros, página `assistir.html`. Reprodução verificada no Chromium; não equivale a teste em celular físico. Nada publicado ou escrito no banco. Reversão isolada pelo commit desta revisão.
