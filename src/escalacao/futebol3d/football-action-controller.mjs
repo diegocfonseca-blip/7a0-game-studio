@@ -25,11 +25,15 @@ export class FootballActionController{
  // Match the native facing to the imported layer's actual envelope. Its
  // measured contact remains fully oriented; upper-body anticipation above
  // still communicates the intention before the feet change action.
- const entrySeconds=Math.max(1e-6,Math.min(a.plan.entrySeconds??.18,a.plan.time-a.plan.start)),exitSeconds=Math.max(1e-6,Math.min(a.plan.exitSeconds??.18,a.plan.end-a.plan.time));
- const captured=smooth((time-a.plan.start)/entrySeconds)*smooth((a.plan.end-time)/exitSeconds);
- return heading+angle(a.intentHeading-heading)*weight*captured;}
+ const poseStart=a.plan.poseStart??a.plan.start,entrySeconds=Math.max(1e-6,Math.min(a.plan.entrySeconds??.18,a.plan.time-poseStart)),exitSeconds=Math.max(1e-6,Math.min(a.plan.exitSeconds??.18,a.plan.end-a.plan.time));
+ if(a.plan.followTravel&&time>a.plan.time+.02)return heading;
+ const captured=smooth((time-poseStart)/entrySeconds)*smooth((a.plan.end-time)/exitSeconds);
+ // An inside-foot return pass can have an open pelvis. Approach that actual
+ // fitted body orientation; aiming the running gait at the outgoing ball
+ // instead would turn it backwards before the captured sideways contact.
+ return heading+angle((a.plan.approachHeading??a.intentHeading)-heading)*weight*captured;}
  orientUpperBody(actor,p,time){const a=this.action(p.key,time);if(!a){if(p.keeper)this.orientKeeper(actor,p,time);else this.orientReception(actor,p);return;}const weight=smooth((time-a.plan.start+.25)/.25)*smooth((a.plan.end-time)/.25),up=new T.Vector3(0,1,0);
-  for(const [name,axis,max]of [['spine_03',actor.intentAxis,.35],['Head',actor.headIntentAxis,.52]]){if(!axis)continue;const bone=actor.bones.get(name),world=bone.getWorldQuaternion(new T.Quaternion()),forward=axis.clone().applyQuaternion(world),turn=clamp(angle(a.intentHeading-Math.atan2(forward.x,forward.z)),-max,max)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
+  for(const [name,axis,max]of [['spine_03',actor.intentAxis,a.plan.bodyAimLimit??.35],['Head',actor.headIntentAxis,.52]]){if(!axis)continue;const bone=actor.bones.get(name),world=bone.getWorldQuaternion(new T.Quaternion()),forward=axis.clone().applyQuaternion(world),turn=clamp(angle(a.intentHeading-Math.atan2(forward.x,forward.z)),-max,max)*weight,parent=bone.parent.getWorldQuaternion(new T.Quaternion());bone.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,turn)).multiply(world));actor.holder.updateMatrixWorld(true);}
   if(a.contactAt-time>.15)this.orientReception(actor,p);
  }
  orientKeeper(actor,p,time){

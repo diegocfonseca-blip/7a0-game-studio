@@ -74,6 +74,16 @@ export function criarBolaFutebol3D(){
  const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.65,metalness:0})
  const ball=new THREE.Mesh(geometry,material)
  ball.name='match-ball';ball.castShadow=true;ball.receiveShadow=true;ball.userData.radius=RAIO_BOLA_FUTEBOL_3D
+ // A 22 cm ball is smaller than a stadium shadow-map texel on mobile. A
+ // separate soft contact patch grounds it without changing physical scale.
+ const size=32,data=new Uint8Array(size*size*4)
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+  const r=Math.hypot((x+.5-size/2)/(size/2),(y+.5-size/2)/(size/2)),i=(y*size+x)*4
+  data.set([22,26,16,Math.round(255*Math.pow(Math.max(0,1-r),1.5))],i)
+ }
+ const texture=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);texture.needsUpdate=true;texture.minFilter=texture.magFilter=THREE.LinearFilter
+ const shadow=new THREE.Mesh(new THREE.PlaneGeometry(.34,.34),new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:.32,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))
+ shadow.name='ball-ground-contact';shadow.renderOrder=1;ball.add(shadow)
  return ball
 }
 
@@ -81,8 +91,18 @@ const fallbackRoll=new WeakMap<THREE.Object3D,{spin:RotacaoBola3D;time:number}>(
 /** All match viewers use the same official position and presentation rotation. */
 export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;ball:{x:number;y:number;z:number;rotation?:[number,number,number,number];presentation?:{x:number;y:number;z:number}}}){
  const p=frame.ball,position=p.presentation??p;ball.position.set(position.x,position.y,position.z)
- if(p.rotation){ball.quaternion.fromArray(p.rotation);return}
+ if(p.rotation)ball.quaternion.fromArray(p.rotation)
+ else{
  let state=fallbackRoll.get(ball)
  if(!state||frame.time<state.time){state={spin:new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,p),time:frame.time};fallbackRoll.set(ball,state)}
  ball.quaternion.copy(state.spin.step(p,frame.time-state.time));state.time=frame.time
+ }
+ const shadow=ball.getObjectByName('ball-ground-contact') as THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>|undefined
+ if(shadow){
+  const inverse=ball.quaternion.clone().invert()
+  shadow.position.set(0,.007-position.y,0).applyQuaternion(inverse)
+  shadow.quaternion.copy(inverse).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2))
+  shadow.material.opacity=.32*THREE.MathUtils.clamp(1-Math.max(0,position.y-RAIO_BOLA_FUTEBOL_3D)/.30,0,1)
+  shadow.visible=shadow.material.opacity>.001
+ }
 }
