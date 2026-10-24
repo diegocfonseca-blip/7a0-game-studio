@@ -1,3 +1,23 @@
+## Publicação autorizada da prévia da conta (24/10)
+
+Diego pediu publicar todas as melhorias atuais na própria conta. Integração de relato/cinema e pausa permanece sob `usePresidentPreview`; demais contas conservam o caminho anterior. Atualização concorrente do calendário integrada sem reintroduzir seletor cinema/2D na aba do mapa da conta de prévia. Build e workflow de deploy devem terminar antes de afirmar publicação concluída. Nenhuma alteração de DB/save.
+
+## Aba do mapa exclusivamente 3D (24/10)
+
+Diego reforçou: na aba do mapa somente cidade/estádio/partida 3D; campinho 2D e placar cinema ficam nas abas próprias. Compartilhar acontecimentos não significa misturar interfaces. O painel acima das abas (cinema/campinho) fica oculto também na aba estádio, mas permanece montado para preservar o relógio e a publicação da partida. Removida a alternativa “Vista ilustrada do estádio” da carreira e substituído o fallback ilustrado/aéreo por `PresidenciaComplexo3D`. Fonte/relógio/resultados e controles de câmera do complexo preservados. Verificação local: `scripts/cartoon-football/test-map-only-3d.cjs`. Sem publicação ou DB.
+
+## Pausa do campo compartilhado (24/10) — correção local
+
+Campo2D agora recebe a pausa do placar/intervalo. Enquanto pausado, conserva o minuto fracionário publicado ao mapa/cinema e reposiciona a âncora de tempo para a retomada não consumir o tempo parado. Encerramento mantém a finalização existente. Sem mudança de Motor2, resultados, atributos ou DB. Teste real de navegador manteve o minuto estável nas duas pausas, retomou a marcha do relógio e não registrou erros JavaScript. Testes: `test-field-pause.mjs`, `test-field-pause-browser.cjs` e paridade das três apresentações (três entradas completas, resultados/eventos preservados). Domínio e naturalidade continuam pendentes; esta correção é do relógio.
+
+## Partida única nas três apresentações (24/10) — esclarecimento e integração local
+
+Diego reafirmou: cinema, campinho 2D e mapa 3D compartilham resultado, gols/minutos/autores/assistências, narrações e comentários; apenas a visualização muda. Corrigido caminho Motor2 do cinema que ainda gerava chances/frases próprias e atrasava o placar pela animação. Agora lê a sequência oficial no relógio do campo; narração acompanha o mapa. Verificação de replay inclui assistências e protege também o 2D contra reprodução incompatível com o save. Testes com três entradas locais preservam 1×1/82, 1×0/77 e 2×0/72. Sem mudanças de regras, atributos ou DB; não publicado. Detalhes/limites: `docs/partida-unica-tres-visuais-20261024.md`. A naturalidade de domínio/condução permanece pendente; não confundir fidelidade dos eventos com qualidade das animações.
+
+## Recepção e força do chute 3D (24/10) — correção parcial, não publicada
+
+Removida a atração posicional extra da bola; aproximação limitada do avatar agora alimenta a marcha. Capturas de chute usam preparação antecipada e amplitude nativa medida, mantendo contato/resultado oficial. Partida completa 1×1/82 e 52/44/36 contatos nas três entradas preservados. Persistem domínios fora do alcance: Motor2 adquire posse em raio de 1,45 m e depois ancora bola 75 cm à frente; interpolação também antecipa a posse em relação à chegada visível. Corrigir a regra compartilhada pode alterar partidas futuras e está separado da apresentação para respeitar a proteção expressa do motor. Não considerar recepção aprovada. Evidências e próximos passos: `docs/recepcao-forca-3d-20261024.md`.
+
 ## Bola e continuidade corporal 3D (24/10) — naturalidade ainda reprovada
 
 Diego mantém os Civis e quer futebol natural, sem trocar a arte. Corrigidas rolagem composta incorretamente nas curvas, puxões na aproximação da bola ao pé, dupla rotação na continuação do passe, troca de arco e giro da recuperação do goleiro. Fonte oficial e escala preservadas. Mesmo replay1×1/82eventos, 2.821quadros; erros de rolagem em jogo corrido822→0 e giros extremos do suporte10→0. Não é aprovação visual: domínio segue provisório, distância à chuteira211→228amostras e mudanças rápidas ainda existem. Ajuste que aumentava passos de costas foi descartado. Relatório, comandos/evidências e limites: `docs/continuidade-bola-corpo-3d-20261024.md`. Revisar partida inteira e lances próximos em toda manutenção; não prometer padrão FIFA/PES baseado em testes de contato.

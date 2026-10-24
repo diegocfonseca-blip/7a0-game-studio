@@ -1,0 +1,11 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {FutebolOficial3D} from '../../src/escalacao/presidencia-futebol-oficial.ts';
+const fixture=JSON.parse(await readFile('test-results/animation-library/neymarzetti-current/football-input.json')),roster=cs=>cs.map((p,i)=>({id:String(i),name:p.name,pos:p.pos})),state={context:{id:'read-only-reception-audit',home:roster(fixture.input.casa),away:roster(fixture.input.fora)}},engine=new FutebolOficial3D(fixture.input),receptions=[];
+let previous,older,final;
+for(let i=0;i<=94*120;i++){
+ const frame=engine.sample(state,(i/120)/(90/93)),p=frame.players.find(p=>p.key===frame.owner);
+ for(const r of receptions)if(r.after===undefined&&frame.time>=r.time+.05-1e-8){const expected=r.ball.map((v,k)=>v+r.incomingVelocity[k]*(frame.time-r.time)),actual=[frame.ball.x,frame.ball.y,frame.ball.z];r.after={time:frame.time,ball:actual,unforcedPrediction:expected,changeMetres:Math.hypot(...actual.map((v,k)=>v-expected[k]))};}
+ if(p&&!p.keeper&&frame.owner!==previous?.owner&&!frame.restart&&previous&&older){const incomingVelocity=['x','y','z'].map(k=>(previous.ball[k]-older.ball[k])*120);const raw=engine.game,rawOwner=raw.bola.dono;receptions.push({rawCenterDistance:rawOwner?Math.hypot(raw.bola.x-rawOwner.x,raw.bola.y-rawOwner.y):null,interpolationAlpha:raw.entre,time:frame.time,name:p.name,owner:frame.owner,ball:[frame.ball.x,frame.ball.y,frame.ball.z],player:[p.mx,0,p.mz],centerDistance:Math.hypot(frame.ball.x-p.mx,frame.ball.z-p.mz),incomingVelocity});}
+ older=previous;previous=frame;final=frame.official;
+}
+const out={receptions,final,protectedEngineUnchanged:true,databaseWritten:false,interpretation:'Positions are interpolated while ownership is current-tick metadata; frame distance can exceed the raw acquisition radius. rawCenterDistance reports the unmodified engine at that moment. Prediction is only a diagnostic, not replacement physics or proof every change is invalid.'};await mkdir('test-results/cartoon-football/recepcao-forca',{recursive:true});await writeFile('test-results/cartoon-football/recepcao-forca/official-receptions.json',JSON.stringify(out,null,2));console.log({count:receptions.length,far:receptions.filter(r=>r.centerDistance>1).length,worst:receptions.sort((a,b)=>b.centerDistance-a.centerDistance).slice(0,5),score:final.score,events:final.events.length});

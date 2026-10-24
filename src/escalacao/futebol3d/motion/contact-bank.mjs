@@ -5,20 +5,25 @@ const centre=ts=>ts.flatMap(t=>[t.a,t.b,t.c]).reduce((a,v)=>a.add(v),new T.Vecto
 /** Cache geometry and velocity of the EXISTING imported captures. Fits then
  * query rigid copies of visible boots, rather than re-skinning the whole rig
  * hundreds of times for every pass. No geometry, weights or joints change. */
-export function buildContactBank(actor,recipes){
+function* buildContactBankSteps(actor,recipes){
  const axis=actor.intentAxis??new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());
  const reset=()=>{actor.mixer.stopAllAction();for(const r of actor.reference){r.node.position.copy(r.p);r.node.quaternion.copy(r.q);r.node.scale.copy(r.s)}actor.actions.get('Idle_Loop').reset().play();actor.mixer.update(0);actor.holder.position.set(0,0,0);actor.holder.rotation.y=0;actor.holder.updateMatrixWorld(true)};
  const sample=(clip,clock)=>{reset();actor.sampleCapture(clip,clock);const hip=actor.pelvis.getWorldPosition(new T.Vector3());actor.holder.position.x-=hip.x;actor.holder.position.z-=hip.z;actor.holder.updateMatrixWorld(true);actor.ground();return{feet:Object.fromEntries(['left','right'].map(s=>[s,actor.footTriangles(s)])),body:axis.clone().applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()))}};
+ const ankle=(clip,clock,foot)=>{reset();actor.mixer.stopAllAction();const action=actor.actions.get(clip);action.reset().setEffectiveWeight(1).play();action.time=clock;actor.mixer.update(0);actor.holder.updateMatrixWorld(true);return actor.bones.get(foot==='left'?'foot_l':'foot_r').getWorldPosition(new T.Vector3()).sub(actor.pelvis.getWorldPosition(new T.Vector3()));};
  const seen=new Set(),bank=[];
  for(const r of recipes)for(const shift of [0,-.05,.05,-.1,.1,-.15,.15]){
   const marker=r.marker+shift,clip=actor.actions.get(r.clip)?.getClip();if(!clip||marker<.01||marker>clip.duration-.01)continue;
   const key=r.clip+':'+marker.toFixed(5)+':'+r.foot;if(seen.has(key))continue;seen.add(key);
   const rate=2,u=(1/240)/.24,delta=.24*(u*u*u-2*u*u+2*u),before=sample(r.clip,marker-delta),at=sample(r.clip,marker),foot=r.foot??'right',triangles=at.feet[foot],velocity=triangles.map((t,i)=>['a','b','c'].map(n=>t[n].clone().sub(before.feet[foot][i][n]).multiplyScalar(240))),points=triangles.flatMap(t=>[t.a,t.b,t.c]);
   const entry={clip:r.clip,marker,foot,rate,feet:at.feet,velocity,bodyYaw:Math.atan2(at.body.x,at.body.z),center:centre(triangles),minFloor:Math.min(...Object.values(at.feet).flatMap(ts=>ts.flatMap(t=>[t.a.y,t.b.y,t.c.y])))};
-  entry.radius=Math.max(...points.map(p=>p.distanceTo(entry.center)));bank.push(entry);
+  const contactAnkle=ankle(r.clip,marker,foot);entry.windup=[];
+  for(let k=1;k<=12;k++){const dt=-k*.05;if(marker+dt<0)break;entry.windup.push({dt,back:contactAnkle.clone().sub(ankle(r.clip,marker+dt,foot))});}
+  entry.radius=Math.max(...points.map(p=>p.distanceTo(entry.center)));bank.push(entry);yield;
  }
  reset();return bank;
 }
+export function buildContactBank(actor,recipes){const steps=buildContactBankSteps(actor,recipes);let result;do{result=steps.next()}while(!result.done);return result.value;}
+export async function buildContactBankAsync(actor,recipes,yieldTask){const steps=buildContactBankSteps(actor,recipes);let result,start=performance.now();do{result=steps.next();if(!result.done&&performance.now()-start>8){await yieldTask();start=performance.now();}}while(!result.done);return result.value;}
 
 const q=new T.Vector3();
 function closest(p,ts){let distance=Infinity,index=-1,surface=new T.Vector3();for(let i=0;i<ts.length;i++){ts[i].closestPointToPoint(p,q);const d=p.distanceToSquared(q);if(d<distance){distance=d;index=i;surface.copy(q)}}return{distance:Math.sqrt(distance),index,surface};}
@@ -62,8 +67,10 @@ function* fitBankContactSteps(contact,bank,{maxRoot=.6,maxCandidates=1}={}){
     const closing=velocity.clone().sub(incoming).dot(normal),alignment=normal.dot(direction),impulseAlignment=normal.dot(impulse),launchAlignment=normal.dot(outgoing.clone().normalize());
     const aerial=delivery.trajectory==='air';
     if(closing<=.15||closing<change*.35||alignment<.5||impulseAlignment<.75||(aerial?(normal.y<=0||velocity.y<=.2||launchAlignment<.5):Math.abs(normal.y)>.45))continue;
-    const worldRoot=root.clone().applyAxisAngle(up,yaw),rank=worldRoot.length()*1.5+bodyError*.1+(p.speed>1.8?Math.abs(angle(body-p.heading))*.08:0)+Math.abs(Math.log((closing+.2)/(desiredClosing+.2)))*.20;
-    const candidate={...contact,clip:entry.clip,marker:entry.marker,foot:entry.foot,rate,yaw,rootCorrection:worldRoot.toArray(),bodyHeadingAtContact:body,approachHeading:body,bodyAimLimit:.42,bodyErrorAtContact:bodyError,contactSideOffset:sideOffset,impact:{contactGap:hit.distance-R,otherGap:other,relativeClosing:closing,desiredClosing,impulseVelocityChange:change,outgoingAlignment:alignment,impulseAlignment,launchAlignment3D:launchAlignment,footVelocity:velocity.toArray()},rank};
+    const power=contact.type==='chute'?T.MathUtils.clamp((outgoing.length()-17)/15,0,1):0;
+    const windup=entry.windup.map(s=>({dt:s.dt,metres:s.back.dot(dir)})).sort((a,b)=>b.metres-a.metres)[0];
+    const worldRoot=root.clone().applyAxisAngle(up,yaw),rank=worldRoot.length()*1.5+bodyError*.1+(p.speed>1.8?Math.abs(angle(body-p.heading))*.08:0)+Math.abs(Math.log((closing+.2)/(desiredClosing+.2)))*.20+power*Math.max(0,.30-(windup?.metres??0))*2;
+    const candidate={...contact,clip:entry.clip,marker:entry.marker,foot:entry.foot,rate,yaw,rootCorrection:worldRoot.toArray(),bodyHeadingAtContact:body,approachHeading:body,bodyAimLimit:.42,bodyErrorAtContact:bodyError,contactSideOffset:sideOffset,powerPreparation:contact.type==='chute'?{power,nativeRetractionMetres:windup?.metres??0,nativeRetractionBeforeContact:-(windup?.dt??0),source:'measured-acquired-capture',changesBallImpulse:false}:null,impact:{contactGap:hit.distance-R,otherGap:other,relativeClosing:closing,desiredClosing,impulseVelocityChange:change,outgoingAlignment:alignment,impulseAlignment,launchAlignment3D:launchAlignment,footVelocity:velocity.toArray()},rank};
     if(!entryBest||rank<entryBest.rank)entryBest=candidate;
     break;
    }
@@ -73,8 +80,9 @@ function* fitBankContactSteps(contact,bank,{maxRoot=.6,maxCandidates=1}={}){
  }
  ranked.sort((a,b)=>a.rank-b.rank);if(!ranked.length)return maxCandidates===1?null:[];
  const plans=ranked.slice(0,maxCandidates).map(best=>{
- const preparation=contact.type==='chute'?.42:.32,rootPreparation=Math.abs(turn)>Math.PI*.55?.65:preparation;
+ const preparation=contact.type==='chute'?.50+.12*(best.powerPreparation?.power??0):.32,rootPreparation=Math.max(preparation,Math.abs(turn)>Math.PI*.55?.65:0);
  const plan={id:contact.id,key:contact.key,name:p.name,type:contact.type,time:contact.time,requiredContact:'foot',delivery,direction:direction.toArray(),clip:best.clip,marker:best.marker,foot:best.foot,yaw:best.yaw,rootCorrection:best.rootCorrection,intentHeading:target,approachHeading:best.approachHeading,bodyHeadingAtContact:best.bodyHeadingAtContact,bodyAimLimit:.42,entryHeading:contact.entryHeading??p.heading,exitHeading:contact.exitHeading??p.heading,start:contact.time-rootPreparation,poseStart:contact.time-preparation,end:contact.time+(contact.type==='chute'?.50:.38),entrySeconds:preparation,exitSeconds:contact.type==='chute'?.50:.38,headingBlend:'anchored',rootApproach:true,followTravel:true,carryAlignedRoot:true,contactBallBearing:Math.atan2(ball.x-p.mx,ball.z-p.mz),layers:{torso:1},swingTiming:{rate:best.rate,window:.24},impact:best.impact,provisional:true,source:'Existing CMU capture fitted to this official replay; no new decisions or ball trajectory',fitAttempts:attempts};
+ if(contact.type==='chute'){plan.entrySeconds=.14;plan.powerPreparation=best.powerPreparation;}
  return plan;});return maxCandidates===1?plans[0]:plans;
 }
 export function fitBankContact(contact,bank,options){const steps=fitBankContactSteps(contact,bank,options);let result;do{result=steps.next()}while(!result.done);return result.value;}

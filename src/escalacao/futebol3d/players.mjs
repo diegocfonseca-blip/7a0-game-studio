@@ -88,8 +88,10 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   if(navigation)frame={...frame,players:frame.players.map(p=>{const o=navigation.positions.get(p.key);return o?{...p,mx:p.mx+o.x,mz:p.mz+o.z}:p})};
   frame.players.forEach((p,i)=>{
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};a.navigationOffset={x:p.mx-official.mx,z:p.mz-official.mz};const resetActor=reset||a.key!==p.key||navigation?.diagnostics.sourceReset;a.key=p.key;
-   const visualTravel=resetActor||dt===0?0:Math.hypot(p.mx-(a.lastGaitX??p.mx),p.mz-(a.lastGaitZ??p.mz)),visualHeading=visualTravel>.001?Math.atan2(p.mx-a.lastGaitX,p.mz-a.lastGaitZ):p.heading,visualSpeed=dt>0?(frame.restart||p.temporaryStopUntil>frame.time?visualTravel/dt:Math.max(p.speed,visualTravel/dt)):p.speed;
-   a.presentationSpeed=visualSpeed;a.lastGaitX=p.mx;a.lastGaitZ=p.mz;
+   if(resetActor)a.ballControl?.reset();
+   const approach=refinePossession?a.ballControl?.advance(frame,p):null,gaitX=approach?.x??p.mx,gaitZ=approach?.z??p.mz;
+   const visualTravel=resetActor||dt===0?0:Math.hypot(gaitX-(a.lastGaitX??gaitX),gaitZ-(a.lastGaitZ??gaitZ)),visualHeading=visualTravel>.001?Math.atan2(gaitX-a.lastGaitX,gaitZ-a.lastGaitZ):p.heading,visualSpeed=dt>0?(frame.restart||p.temporaryStopUntil>frame.time?visualTravel/dt:Math.max(p.speed,visualTravel/dt)):p.speed;
+   a.presentationSpeed=visualSpeed;a.lastGaitX=gaitX;a.lastGaitZ=gaitZ;
    const targets=cartoon&&refineFundamentals?locomotionWeights(visualSpeed):null;
    const mode=visualSpeed<.12?'Idle_Loop':visualSpeed<2.5?'Walk_Loop':visualSpeed<6?'Jog_Fwd_Loop':'Sprint_Loop',cal=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[mode]],duration=a.actions.get(mode).getClip().duration,stride=cal?.strideLength??duration*(mode==='Walk_Loop'?1.5:mode==='Sprint_Loop'?7:4.5);
    if(resetActor){a.ballControl?.reset();a.wasAction=false;a.gaitPhase=0;a.lastDistance=p.distance;a.lastHeading=p.heading;a.lastPose=-Infinity;a.current=null;a.mixer.stopAllAction()}

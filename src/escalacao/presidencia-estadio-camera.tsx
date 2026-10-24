@@ -1,10 +1,8 @@
-import {lazy,Suspense,useMemo,useRef,useState} from 'react'
+import {lazy,Suspense,useMemo,useRef} from 'react'
 import {useReplay3D,type FonteReplay3D} from './presidencia-replay-3d'
 import {useT} from './lang'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
 import type {StadiumSave} from './estadiodata'
-import {PresidenciaEstadioMapa} from './presidencia-estadio-mapa'
-import {PresidenciaEstadioAerea} from './presidencia-estadio-aerea'
 import {usePresidentPreview} from './presidente-acesso'
 import {adaptarCarreiraAoComplexo,type EntradaCarreiraComplexo} from './presidencia-complexo-carreira'
 import {podeOperarTeto} from './presidencia-estadio-integrado'
@@ -15,12 +13,11 @@ import {usePresidenteConta,presidenteContaLiberado} from './presidente-conta'
 import {artesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {useVistaCampo} from './presidencia-campo-observacao'
 import {RitmoCampo} from './presidencia-velocidade'
-const Campo=lazy(()=>import('./presidencia-partida').then(module=>({default:module.Campo})))
 const Complexo=lazy(()=>import('./presidencia-complexo-3d'))
 export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string;replayMatch?:FonteReplay3D}
 /** Slot privado da aba existente: obras/compras permanecem no motor atual. */
 export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,career,onReady}:{stadium?:StadiumSave;matchId?:string;homeClubId?:number;onRoof?:(closed:boolean)=>void;career?:CarreiraCameraEstadio;onReady?:(api:ControleComplexo|null)=>void}){
- const match=usePartidaNoMapa(matchId,homeClubId,!!career),[field,setField]=useState(false),[illustrated,setIllustrated]=useState(false),t=useT()
+ const match=usePartidaNoMapa(matchId,homeClubId,!!career),t=useT()
  const account=usePresidentPreview(),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
  const replay=useReplay3D(career?.replayMatch,account)
  const replayFrame=replay.frame
@@ -49,15 +46,13 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
    <Complexo {...adapted.complexo} match={(replayFrame??adapted.complexo.match)?{...(replayFrame??adapted.complexo.match)!,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady}/>
   </Suspense>
   {onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
-  <details onToggle={event=>setIllustrated(event.currentTarget.open)} style={{marginTop:12}}>
-   <summary>{t('Vista ilustrada do estádio','Illustrated stadium view')}</summary>
-   {illustrated&&<PresidenciaEstadioMapa stadium={stadium} match={match&&!match.finished?match:null}/>}
-  </details>
+
  </section>
  return <section ref={watching}>
   <RitmoCampo/>
-  <PresidenciaEstadioMapa stadium={stadium} match={match}/>
-  {match&&<><button type="button" onClick={()=>setField(v=>!v)}>{field?t('FECHAR CAMPO 3D','CLOSE 3D PITCH'):t('ACOMPANHAR EM 3D','WATCH IN 3D')}</button>{field&&<Suspense fallback={<p>{t('Carregando campo…','Loading pitch…')}</p>}><Campo state={match} three/></Suspense>}</>}
-  <div style={{margin:'12px 0'}}><PresidenciaEstadioAerea match={match} stadium={stadium} onRoof={onRoof}/></div>
+  <Suspense fallback={<p role="status">{t('Carregando mapa 3D…','Loading 3D map…')}</p>}>
+   <Complexo stadium={stadium} match={match??undefined} onReady={onReady}/>
+  </Suspense>
+  {onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
  </section>
 }

@@ -2,7 +2,7 @@ import * as T from 'three';
 import {createCartoonPlayer} from '../cartoon/player.mjs';
 import {bindCapturedMotion} from '../reviewed-motion.mjs';
 import {sampleSharedStrike} from './shared-strike.mjs';
-import {buildContactBank,fitBankContactAsync} from './contact-bank.mjs';
+import {buildContactBankAsync,fitBankContactAsync} from './contact-bank.mjs';
 import {collectOfficialContacts} from './official-contact-source.mjs';
 
 const pending=new Map(),banks=new WeakMap(),canonical=o=>Array.isArray(o)?o.map(canonical):o&&typeof o==='object'?Object.fromEntries(Object.keys(o).sort().map(k=>[k,canonical(o[k])])):o;
@@ -24,7 +24,7 @@ export function contactTimeline(contact){return{sample(time){
 /** Validate contact AND approach/follow-through against the canonical local
  * trajectory. A contact point alone is insufficient to approve a capture. */
 function* validateContactSteps(actor,contact,plan){
- const timeline=contactTimeline(contact),samples=[plan.start,plan.poseStart??plan.start,plan.time-.24,plan.time-.16,plan.time-.08,plan.time,plan.time+.04,plan.time+.12,plan.time+.24,plan.end];let contactGap;
+ const timeline=contactTimeline(contact),samples=[plan.start,plan.poseStart??plan.start,...(plan.powerPreparation?[(plan.poseStart??plan.start)+plan.entrySeconds,plan.time-.45,plan.time-.30]:[]),plan.time-.24,plan.time-.16,plan.time-.08,plan.time,plan.time+.04,plan.time+.12,plan.time+.24,plan.end].sort((a,b)=>a-b);let contactGap;
  for(const time of samples){reset(actor,timeline.sample(time).players[0]);const s=sampleSharedStrike(actor,timeline,plan,time);if(Math.min(s.leftGap,s.rightGap)<-.003||s.minFloor<-.003||s.pelvisError>.60001)return{valid:false,reason:'transition-clearance',time,gap:Math.min(s.leftGap,s.rightGap),floor:s.minFloor};if(time===plan.time)contactGap=s.contactGap;yield;}
  if(Math.abs(contactGap)>.002)return{valid:false,reason:'contact-gap',gap:contactGap};
  return{valid:true,contactGap,sampledTransitions:samples.length};
@@ -43,7 +43,7 @@ export async function prepareRuntimeMotion(civil,library,input,state,{offline=fa
   const started=performance.now(),actor=await createCartoonPlayer(civil,null,{offline,templateSource,number:0}),clips=new Map([...civil.clips].filter(([n])=>!n.endsWith('_Loop'))),binding=bindCapturedMotion(actor,{clips});
   actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());
   try{
-   let bank=banks.get(civil.gltf);if(!bank){bank=buildContactBank(actor,library.plans);banks.set(civil.gltf,bank);}
+   let bank=banks.get(civil.gltf);if(!bank){bank=await buildContactBankAsync(actor,library.plans,yieldPreparation);banks.set(civil.gltf,bank);}
    await yieldPreparation();const source=await collectOfficialContacts(input,state,{yieldTask:yieldPreparation}),plans=[],rejected=[];
    for(const contact of source.contacts){
     // A validated catch/throw owns its whole window. An official generic
@@ -54,7 +54,10 @@ export async function prepareRuntimeMotion(civil,library,input,state,{offline=fa
     // Retain a previously measured capture for this exact input when the
     // generic bank cannot fit it. Never regress a reviewed shot to running,
     // and never reuse its marker for a different player, replay or event.
-    if(!accepted&&reviewedCompatible&&library.inputSHA256===hash){const reviewed=library.plans.find(p=>p.key===contact.key&&p.type===contact.type&&Math.abs(p.time-contact.time)<1e-6);if(reviewed){const check=await validateContactAsync(actor,contact,reviewed,yieldPreparation);if(check.valid)accepted={...reviewed,transitionCheck:check,preservedReviewedCapture:true};}}
+    if(!accepted&&reviewedCompatible&&library.inputSHA256===hash){const reviewed=library.plans.find(p=>p.key===contact.key&&p.type===contact.type&&Math.abs(p.time-contact.time)<1e-6);if(reviewed){
+     if(contact.type==='chute'){const windup={...reviewed,entrySeconds:.14,powerPreparation:{power:T.MathUtils.clamp((contact.delivery.horizontalSpeed-17)/15,0,1),source:'preserved-acquired-capture',changesBallImpulse:false}},check=await validateContactAsync(actor,contact,windup,yieldPreparation);if(check.valid)accepted={...windup,transitionCheck:check,preservedReviewedCapture:true};}
+     if(!accepted){const check=await validateContactAsync(actor,contact,reviewed,yieldPreparation);if(check.valid)accepted={...reviewed,transitionCheck:check,preservedReviewedCapture:true};}
+    }}
     if(accepted)plans.push(accepted);else{const velocity=contact.delivery?.velocity??[Math.sin(contact.player.heading),0,Math.cos(contact.player.heading)],horizontal=new T.Vector3().fromArray(velocity).setY(0).normalize();rejected.push({id:contact.id,key:contact.key,name:contact.player.name,type:contact.type,time:contact.time,start:contact.time-.65,end:contact.time+.38,requiredContact:contact.requiredContact,direction:horizontal.toArray(),intentHeading:Math.atan2(horizontal.x,horizontal.z),delivery:contact.delivery,reason:contact.requiredContact==='foot'?'no-safe-capture-fit':'capture-for-'+contact.requiredContact+'-unavailable'});}
     await yieldPreparation();
    }

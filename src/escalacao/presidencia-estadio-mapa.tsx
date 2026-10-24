@@ -53,7 +53,7 @@ export function PresidenciaEstadioMapa({stadium,match}:{stadium?:StadiumSave;mat
   return()=>{observer.disconnect();el.removeEventListener('wheel',wheel)}
  },[maxZoom])
  return <section className="pe-map" aria-label={t('Mapa do estádio','Stadium map')}>
-  {match&&<p className="pe-map-score" role="status">{match.homeScore} × {match.awayScore} · {match.minute}′{roofHidesField?t(' · Teto fechado',' · Roof closed'):null}</p>}
+  {match&&<p className="pe-map-score" role="status">{match.homeScore} × {match.awayScore} · {match.minute}′{roofHidesField?t(' · Teto fechado',' · Roof closed'):null}{match.officialNarration&&<> · {match.officialNarration}</>}</p>}
   <div className="pe-map-tools">
    <button type="button" onClick={()=>zoom(1.35)} disabled={view.zoom>=maxZoom} aria-label={t('Aproximar mapa','Zoom in')}>+</button>
    <output aria-live="polite">{Math.round(view.zoom*100)}%</output>

@@ -6,8 +6,23 @@ import {solveLegContact} from './contact-ik.mjs';
 // No dedicated reception/dribble capture is available in the acquired library.
 export function createBallControl(actor,{sourceLead=true}={}){
  const offset=new T.Vector3();let previousTime=null,side='right';
- return {reset(){offset.set(0,0,0);previousTime=null;},apply(frame,p){
+ // Advance the avatar's bounded approach before sampling locomotion. Its
+ // extra travel must drive the imported walking/running clip, not slide an
+ // idle pose toward a ball after the gait has already been evaluated.
+ function advance(frame,p){
+  if(!sourceLead)return null;
   const dt=previousTime===null?0:frame.time-previousTime;previousTime=frame.time;
+  if(dt<0||dt>.5)offset.set(0,0,0);
+  const ball=frame.ball,owned=frame.owner===p.key&&!p.keeper&&frame.phase==='dominio',receiving=!p.keeper&&['passe','lancamento','cruzamento'].includes(frame.phase)&&frame.owner!==p.key&&frame.officialAction?.receiver===p.key;
+  const lead=new T.Vector3(ball.x-p.mx,0,ball.z-p.mz),distance=lead.length(),desired=new T.Vector3();
+  if((owned||receiving)&&ball.y<.28&&distance>.30&&distance<(receiving?3:1.5))desired.copy(lead).setLength(Math.min(receiving?.25:.46,distance-.30));
+  const nav=actor.navigationOffset,avoid=nav?new T.Vector3(nav.x,0,nav.z):new T.Vector3();if(avoid.lengthSq()>.0009){const strength=T.MathUtils.smoothstep(avoid.length(),.03,.15);avoid.normalize();desired.addScaledVector(avoid,-Math.min(0,desired.dot(avoid))*strength);}
+  if(dt>0&&dt<=.5)offset.add(desired.sub(offset).multiplyScalar(1-Math.exp(-dt/((owned||receiving)?.1:.06))).clampLength(0,1.8*dt));
+  if(offset.length()<1e-5)offset.set(0,0,0);
+  return{x:p.mx+offset.x,z:p.mz+offset.z,offset:offset.length(),ballUnchanged:true};
+ }
+ return {reset(){offset.set(0,0,0);previousTime=null;},advance,apply(frame,p){
+  const dt=previousTime===null?0:frame.time-previousTime;if(sourceLead)advance(frame,p);else previousTime=frame.time;
   if(dt<0||dt>.5)offset.set(0,0,0);
   const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),owned=frame.owner===p.key&&!p.keeper&&frame.phase==='dominio',receiving=['passe','lancamento','cruzamento'].includes(frame.phase)&&frame.owner!==p.key&&frame.officialAction?.receiver===p.key&&!p.keeper&&Math.hypot(ball.x-p.mx,ball.z-p.mz)<3,engaged=owned||receiving,desired=new T.Vector3(),radius=.11;
   if(!engaged&&offset.lengthSq()===0)return null;
@@ -32,7 +47,7 @@ export function createBallControl(actor,{sourceLead=true}={}){
   // If a foot is not reachable under both constraints, report the gap rather
   // than pulling the carrier back through the defender.
   const nav=actor.navigationOffset,avoid=nav?new T.Vector3(nav.x,0,nav.z):new T.Vector3();if(avoid.lengthSq()>.0009){const strength=T.MathUtils.smoothstep(avoid.length(),.03,.15);avoid.normalize();const opposed=Math.min(0,desired.dot(avoid));desired.addScaledVector(avoid,-opposed*strength);}
-  const alpha=dt>0&&dt<=.5?1-Math.exp(-dt/(engaged?.1:.06)):0;offset.lerp(desired,alpha);if(offset.length()<1e-5)offset.set(0,0,0);
+  if(!sourceLead){const alpha=dt>0&&dt<=.5?1-Math.exp(-dt/(engaged?.1:.06)):0;offset.lerp(desired,alpha);}if(offset.length()<1e-5)offset.set(0,0,0);
   actor.holder.position.add(offset);actor.holder.updateMatrixWorld(true);
   if(!engaged||ball.y>.28)return commit(offset.lengthSq()?{kind:'release',offset:offset.length(),provisional:true}:null);
   hit=nearest(ball,actor.footTriangles(side));gap=hit.distance-radius;

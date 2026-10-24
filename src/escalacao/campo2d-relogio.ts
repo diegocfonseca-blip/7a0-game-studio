@@ -5,6 +5,10 @@ export function ancorarMinutoCampo(r:AncoraCampo,minuto:number,agora:number):Anc
  if(passo>=1&&passo<=3){const med=(agora-r.em)/passo;if(med>40&&med<ms*3)ms=ms*.6+med*.4}
  return {min:minuto,em:agora,ms}
 }
+/** Hold the precise fractional minute and discard elapsed wall time. */
+export function suspenderRelogioCampo(r:AncoraCampo,simMin:number,agora:number):AncoraCampo{
+ return {...r,em:agora-(simMin-r.min)*r.ms}
+}
 export function passoRelogioCampo(simMin:number,dt:number,agora:number,r:AncoraCampo,fechado:boolean,msPorMin:number){
  const teto=r.min+1.25,alvo=Math.min(teto,r.min+(agora-r.em)/r.ms)
  let m=simMin+dt/r.ms

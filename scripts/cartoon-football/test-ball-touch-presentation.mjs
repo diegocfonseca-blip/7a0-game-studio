@@ -14,7 +14,7 @@ for(let i=0;i<=120;i++){
  if(time>=1.95)assert.ok((r.diagnostic.offset??0)<1e-8,'No visual offset at the official source impulse');
  if(i===60){const q=new T.Quaternion().fromArray(r.ball.rotation),dz=(r.ball.presentation?.z??f.ball.z)-f.ball.z,expected=new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),dz/.11);assert.ok(q.angleTo(expected)<1e-5,'Panels roll over the visible correction, not just the raw source path');}
 }
-assert.ok(maximum>.03,'The authored advancing boot actually changes the visible contact');assert.ok(speed<2.5,'No snap to a boot');
+assert.equal(maximum,0,'The player approaches; visual possession never attracts the ball');assert.equal(speed,0,'No correction velocity may pull a reception');
 const goal={time:2.1,phase:'gol',ball:{x:53,y:.2,z:0,presentation:{x:54,y:.3,z:.2},rotation:[0,0,0,1]}};
 assert.equal(presentation.sample(goal,[actor],controller).ball,goal.ball,'Preserve the canonical net/keeper presentation');
 const restart={...goal,phase:'falta',restart:{type:'falta'},ball:{x:4,y:.11,z:2,rotation:[0,0,0,1]}};assert.equal(presentation.sample(restart,[actor],controller).ball,restart.ball,'Never carry a visual dribble offset into an official restart');
