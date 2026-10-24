@@ -5,7 +5,9 @@
   Vídeo `scripts/posts/gala-guimaraes.webm` (`node scripts/video-gala-guimaraes.mjs`).
 - ✅ Canto: o vídeo que o Diego mandou (10 s) → `public/sfx/torcida-guimaraes-v1.mp3` (mono 56 kbps), na gala e na carreira
   (`AMBIENTE_CARREIRA_POR_EMAIL`, jadriovani). ✅ Plano: ele pagou por fora pro Diego (permuta por indicação, 23/10) → registrado
-  na mão `esc_compras_batismo` (jadriovani, 'plus' = Fundador). Ouro/manual já estavam em `user_colors`. Falta: tema da sala do Fundador (Inter Vale ganhou, ele não pediu ainda);
+  na mão `esc_compras_batismo` (jadriovani, 'plus' = Fundador). Ouro/manual já estavam em `user_colors`.
+- ✅ Tema da sala `guimaraes` (vermelho e branco com o Saci, *"vermelho e branco com o saci o tema"*): `temas-sala.tsx`, foto
+  `scripts/mockups/tema-guimaraes-*.png`. Publicado.
   o PLANO Fundador no banco entra pelo Pix da subida (Batismo → Fundador = 29,90) — ele já tem fundador nº82 e sócio 63.
 
 ## 🔌 Caixa de entrada do dono caía e não religava (23/10, sala RGP7P7 do Futpoint) — CONSERTADO e publicado
