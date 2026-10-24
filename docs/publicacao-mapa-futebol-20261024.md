@@ -17,6 +17,7 @@ Pedido de Diego: disponibilizar agora na própria conta o mapa e a partida exist
 - `scripts/cartoon-football/test-official-parity.mjs`: passou após a integração; execução independente do motor comparada ao adaptador 3D.
 - Save da conta consultado apenas para leitura: Neymarzetti, temporada 5, rodada 38. Comparação com a fixture de desenvolvimento: somente `simSpeed` difere; elencos, condições, resultados, estádio e demais campos são iguais.
 - Recursos de execução auditados: modelos, clipes, uniformes e variantes civis referenciados estão versionados. Não incluir exports de carreira, credenciais ou arquivos locais de experimentação.
+- A revisão do pacote de produção encontrou uma URL dinâmica de moradores que o Vite não transformava: cinco variantes ficariam ausentes do pacote. Substituída por seis URLs literais para emitir os modelos com hash e respeitar a raiz e o caminho de compatibilidade. O carregamento continua sob demanda; nenhuma anatomia ou lógica da cidade foi alterada.
 
 ## Como abrir
 

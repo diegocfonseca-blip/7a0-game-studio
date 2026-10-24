@@ -15,7 +15,17 @@ export const CIVILIAN_VARIANTS=Object.freeze([
 ]);
 const cache=new Map(),loader=new GLTFLoader(),hash=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
 const clothes=['#6b7898','#b76c43','#4c7771','#b9aa86','#734d6e','#d1c4ac'];
-const load=file=>{if(!cache.has(file))cache.set(file,loader.loadAsync(new URL('./assets/'+file+'.glb',import.meta.url).href).catch(e=>{cache.delete(file);throw e}));return cache.get(file)};
+// Literal URLs let Vite emit/hash every model in production. Building a URL
+// from a filename at runtime left /assets/assets/*.glb requests in the bundle.
+const modelURLs=Object.freeze({
+ Casual_Male:new URL('./assets/Casual_Male.glb',import.meta.url).href,
+ Casual_Female:new URL('./assets/Casual_Female.glb',import.meta.url).href,
+ oldclassy_male:new URL('./assets/oldclassy_male.glb',import.meta.url).href,
+ oldclassy_female:new URL('./assets/oldclassy_female.glb',import.meta.url).href,
+ Fuller_Man:new URL('./assets/Fuller_Man.glb',import.meta.url).href,
+ Fuller_Woman:new URL('./assets/Fuller_Woman.glb',import.meta.url).href,
+});
+const load=file=>{const url=modelURLs[file];if(!url)return Promise.reject(Error('Modelo civil indisponível: '+file));if(!cache.has(file))cache.set(file,loader.loadAsync(url).catch(e=>{cache.delete(file);throw e}));return cache.get(file)};
 export function createCivilian(parent,{id='civilian',variant,onReady}={}){
  const spec=CIVILIAN_VARIANTS.find(v=>v.id===variant)??CIVILIAN_VARIANTS[hash(id)%CIVILIAN_VARIANTS.length];
  const root=new T.Group();root.name='civilian-'+id;parent.add(root);const physical=new T.Group();physical.name='civilian-metres';root.add(physical);
