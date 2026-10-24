@@ -1,3 +1,9 @@
+## 🗺️ Clube da conta do Diego piscando MAQUETE ↔ MAPA 3D no meio do jogo (24/10, 20:20) — consertado no branch, esperando "publica"
+- Causa: `presidente-acesso.ts` derrubava a prévia pra `false` em TODO aviso do login (a renovação do acesso, de hora em hora e
+  quando o celular volta pro navegador) e em toda falha de rede da conferência — a aba Clube trocava pra maquete até o servidor
+  responder. Os prints mostram junto o "GESTÃO · sua agência" sem "presidência" (mesma chave caindo).
+- Conserto: só cai com saída/troca de conta ou resposta 401/403 do servidor; renovação da mesma conta e falha de rede mantêm.
+
 ## Publicação autorizada da prévia da conta (24/10)
 
 Diego pediu publicar todas as melhorias atuais na própria conta. Integração de relato/cinema e pausa permanece sob `usePresidentPreview`; demais contas conservam o caminho anterior. Atualização concorrente do calendário integrada sem reintroduzir seletor cinema/2D na aba do mapa da conta de prévia. Build e workflow de deploy devem terminar antes de afirmar publicação concluída. Nenhuma alteração de DB/save.

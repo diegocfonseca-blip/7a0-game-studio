@@ -37,20 +37,30 @@ function publish(value: boolean) {
   enabled = value
   listeners.forEach(listener => listener())
 }
+// 🔁 24/10 à noite (Diego, prints 20:20: *"tá aparecendo às vezes a maquete antiga… e do nada volta pro mapa em 3D"*): o
+// login do Supabase solta um aviso a cada RENOVAÇÃO do acesso (toda hora, e quando o celular volta pro navegador). Antes, todo
+// aviso derrubava a prévia pra `false` na hora e só religava depois da conferência no servidor — a aba Clube trocava pra
+// maquete e voltava. E uma conferência que falhava por internet ruim também derrubava. Agora só cai com resposta DE VERDADE:
+// saiu da conta, trocou de conta, ou o servidor disse que a sessão não vale. Renovação da MESMA conta e falha de rede mantêm
+// o que já estava (a liberação continua sendo do servidor — isto só não desliga à toa).
 async function verify() {
   const version = ++revision
   try {
     const { data, error } = await supabase.auth.getUser()
-    if (version === revision) publish(!error && presidentPreviewEmail(data.user?.email))
-  } catch { if (version === revision) publish(false) }
+    if (version !== revision) return
+    if (!error) publish(presidentPreviewEmail(data.user?.email))
+    else if ((error as { status?: number }).status === 401 || (error as { status?: number }).status === 403 || !enabled) publish(false)
+    // (outro erro com a prévia ligada = rede/instabilidade: mantém)
+  } catch { if (version === revision && !enabled) publish(false) }
   if (version === revision && !checked) { checked = true; listeners.forEach(listener => listener()) }
 }
 function start() {
   if (started) return
   started = true
-  supabase.auth.onAuthStateChange(() => {
+  supabase.auth.onAuthStateChange((event, session) => {
     ++revision
-    publish(false)
+    // só desliga NA HORA quando saiu da conta ou a sessão agora é de outra conta; renovação da mesma conta espera a conferência
+    if (event === 'SIGNED_OUT' || !presidentPreviewEmail(session?.user?.email)) publish(false)
     // Fora do callback de Auth: não bloqueia o lock interno do cliente.
     queueMicrotask(() => { void verify() })
   })
