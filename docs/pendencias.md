@@ -22,7 +22,8 @@ Pedido de Diego: Ver campo abre transmissão de futebol e oferece câmeras padr�
 - 24/10 (2ª entrega, *"túnel da final e festa são todas copas"*): túnel também na final da Libertadores/Champions, no Mundial
   (`tunelIntl`, o placar grande só monta quando ele fecha) e na final da Copa do Mundo da carreira (`tunelMundo`, o toque que leva
   pra final abre o túnel e a bola só rola quando ele fecha).
-- Ficou de fora: túnel no Campo 2D (o campinho tem relógio próprio), artilheiro/garçom na festa internacional e na Supercopa. A festa reaparece 1x se recarregar a página no fim da
+- 24/10 (3ª): artilheiro/garçom também na festa da Supercopa (gols do confronto) e das internacionais (`destaquesDaComp`, por carta).
+- Ficou de fora: túnel no Campo 2D (o campinho tem relógio próprio). A festa reaparece 1x se recarregar a página no fim da
   temporada (mesma régua do festão antigo).
 
 ## 🔗 Entrosamento na carreira (24/10) — RECUSADO pelo Diego (*"entrosamento n faça"*), código revertido. Não repropor.
