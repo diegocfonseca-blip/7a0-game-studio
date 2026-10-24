@@ -1,3 +1,5 @@
+import {lerRelatoOficial} from './partida-relato-oficial'
+import {getLang} from './lang'
 import {useEffect,useRef,useState} from 'react'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import {prepararReplayOficial} from './presidencia-replay-oficial'
@@ -12,12 +14,12 @@ export function useReplay3D(source:FonteReplay3D|undefined,enabled:boolean){
  useEffect(()=>{
   const replay=sourceRef.current
   if(!enabled||!control||!replay?.state.officialInput||!Number.isFinite(replay.minuteMs)||replay.minuteMs<=0){setFrame(null);return}
-  const proof=prepararReplayOficial(replay.state.officialInput,replay.goals)
+  const proof=prepararReplayOficial(replay.state.officialInput,replay.goals,getLang()==='en')
   if(!proof.valid){setFrame(null);setError(true);return}
   let timer:ReturnType<typeof setInterval>|undefined
   const update=()=>{
    const now=performance.now(),elapsed=Math.min(proof.endMinute*replay.minuteMs,control.offset+(control.paused?0:now-control.startedAt)),finished=elapsed>=proof.endMinute*replay.minuteMs,minute=finished?proof.endMinute:elapsed/replay.minuteMs
-   setFrame({...replay.state,context:{...replay.state.context,id:replay.state.context.id+':review:'+control.session},minute,homeScore:proof.goals.filter(g=>g.home&&g.minute<=minute).length,awayScore:proof.goals.filter(g=>!g.home&&g.minute<=minute).length,officialMinuteMs:replay.minuteMs,paused:control.paused||finished,finished,visualClock:{seconds:elapsed/1000,sampledAt:now,running:!control.paused&&!finished,rate:1}})
+   setFrame({...replay.state,officialNarration:lerRelatoOficial(proof.relato,minute).narration,context:{...replay.state.context,id:replay.state.context.id+':review:'+control.session},minute,homeScore:proof.goals.filter(g=>g.home&&g.minute<=minute).length,awayScore:proof.goals.filter(g=>!g.home&&g.minute<=minute).length,officialMinuteMs:replay.minuteMs,paused:control.paused||finished,finished,visualClock:{seconds:elapsed/1000,sampledAt:now,running:!control.paused&&!finished,rate:1}})
    if(finished&&timer!==undefined)clearInterval(timer)
    return finished
   }
@@ -26,7 +28,7 @@ export function useReplay3D(source:FonteReplay3D|undefined,enabled:boolean){
  },[control,key,enabled])
  function start(){
   const replay=sourceRef.current;if(!enabled||!replay)return
-  if(!replay.state.officialInput||!Number.isFinite(replay.minuteMs)||replay.minuteMs<=0||!prepararReplayOficial(replay.state.officialInput,replay.goals).valid){setError(true);return}
+  if(!replay.state.officialInput||!Number.isFinite(replay.minuteMs)||replay.minuteMs<=0||!prepararReplayOficial(replay.state.officialInput,replay.goals,getLang()==='en').valid){setError(true);return}
   setError(false);setControl({session:++session.current,startedAt:performance.now(),offset:0,paused:false})
  }
  function pause(){if(frame?.finished)return;setControl(c=>{if(!c)return null;const now=performance.now();return {...c,offset:c.offset+(c.paused?0:now-c.startedAt),startedAt:now,paused:!c.paused}})}
