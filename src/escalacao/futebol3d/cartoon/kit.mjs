@@ -62,9 +62,9 @@ function geometryFor(mesh,actor,collar='v-neck'){
  if(kind==='Shirt'){geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geometry.setAttribute('seam',new T.Float32BufferAttribute(seam,2))}
  const value={geometry,kind,part:Array.from(part),position:Array.from(p.array),index:Array.from(geometry.index.array)};cache.set(key,value);return value;
 }
-function skinMaterial(color){
+function skinMaterial(color,sockColor='#eeeeea'){
  const m=new T.MeshStandardMaterial({color,roughness:.88});
- m.onBeforeCompile=s=>{s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nattribute float footballRegion;attribute float footballSockChart;varying float clothingRegion;varying float sockHeight;').replace('#include <begin_vertex>','#include <begin_vertex>\nclothingRegion=footballRegion;sockHeight=footballSockChart;');s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\nvarying float clothingRegion;varying float sockHeight;').replace('#include <color_fragment>','#include <color_fragment>\nif(clothingRegion>2.5)discard;else if(clothingRegion>1.5){float stripe=step(.79,sockHeight)*(1.-step(.83,sockHeight))+step(.89,sockHeight)*(1.-step(.93,sockHeight));diffuseColor.rgb=mix(vec3(.91,.91,.89),vec3(.015),stripe);}')};m.customProgramCacheKey=()=> 'civil-football-socks-boots-v3';return m;
+ m.onBeforeCompile=s=>{s.uniforms.footballSockColor={value:new T.Color(sockColor)};s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nattribute float footballRegion;attribute float footballSockChart;varying float clothingRegion;varying float sockHeight;uniform vec3 footballSockColor;').replace('#include <begin_vertex>','#include <begin_vertex>\nclothingRegion=footballRegion;sockHeight=footballSockChart;');s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\nvarying float clothingRegion;varying float sockHeight;uniform vec3 footballSockColor;').replace('#include <color_fragment>','#include <color_fragment>\nif(clothingRegion>2.5)discard;else if(clothingRegion>1.5){float stripe=step(.79,sockHeight)*(1.-step(.83,sockHeight))+step(.89,sockHeight)*(1.-step(.93,sockHeight));diffuseColor.rgb=mix(footballSockColor,vec3(.015),stripe);}')};m.customProgramCacheKey=()=> 'civil-football-socks-boots-v3';return m;
 }
 const bootsCache=new WeakMap();
 function buildBoots(actor,source){
@@ -96,9 +96,9 @@ export async function dressCartoonKit(actor,config,{number=10,shirtColor='#eeeee
   const key=shirtColor+':'+number;if(!neutral.has(key)){const m=new T.MeshStandardMaterial({color:shirtColor,roughness:.9});neutral.set(key,m)}return neutral.get(key)
  })();if(offline)owned.push(shirt);
  for(const mesh of baseMeshes){const data=geometryFor(mesh,actor,config?.variants.home.shirt.collar??'v-neck');mesh.geometry=data.geometry;mesh.castShadow=mesh.receiveShadow=true;mesh.frustumCulled=false;
-  if(data.kind==='Skin'){const m=skinMaterial(skinColor);mesh.material=m;owned.push(m);}
+  if(data.kind==='Skin'){const m=skinMaterial(skinColor,config?.variants.home.socks.color);mesh.material=m;owned.push(m);}
   else if(data.kind==='Shirt')mesh.material=shirt;
-  else {const m=new T.MeshStandardMaterial({color:data.kind==='Hair'?hairColor:'#111214',roughness:.9});mesh.material=m;owned.push(m)}
+  else {const m=new T.MeshStandardMaterial({color:data.kind==='Hair'?hairColor:config?.variants.home.shorts.color??'#111214',roughness:.9});mesh.material=m;owned.push(m)}
  }
  return {mesh:boots.mesh,template:{data:boots.data},dispose(){owned.forEach(m=>m.dispose())},inspect:()=>({sourceClothing:true,bodyGeometryUnchanged:true,skinWeightsUnchanged:true,sourceCrest:!!config,clubKey:config?.clubKey??null,collar:config?.variants.home.shirt.collar??'v-neck',number})};
 }

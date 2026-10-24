@@ -9,17 +9,22 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import {dressUniversalKit,dressNeutralKit,releaseMatchKits,releaseNeutralKits} from './kit-runtime.mjs';
 import {neymarzetti,clubKitFor,clubKits} from './club-kit.mjs';
+import {BATISMOS} from '../batismos.ts';
+import {matchKitPlan} from './kit-contrast.mjs';
 import {playerDetail,PLAYER_HEIGHT} from './lod.mjs';
 import {loadReviewedMotion,loadGaitCalibration,bindCapturedMotion} from './reviewed-motion.mjs';
 import {loadCartoonSource,createCartoonPlayer} from './cartoon/player.mjs';
 import {createBallControl} from './motion/ball-control.mjs';
 
-let source,users=0;
+let source,users=0;const kitRegistry=new Set(clubKits);
+const releaseKits=()=>{releaseMatchKits([...kitRegistry]);kitRegistry.clear();};
 const load=()=>source??=new GLTFLoader().loadAsync(new URL('./assets/quaternius.glb',import.meta.url).href).catch(error=>{source=undefined;throw error});
 /** Shared original geometry, separate skeletons. Existing reviewed garment fit.
  * Captures are enabled only for the exact reviewed official input. */
 let cartoonMotionPromise,keeperMotionPromise;
 export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refineFundamentals=true,refinePossession=true,keeperTrial=undefined}={}){
+ const kitPlan=matchKitPlan(state,(state.officialTeams??[]).map(clubKitFor),(state.officialTeams??[]).map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[])),matchKitConfigs=kitPlan.map(p=>p.config).filter(Boolean);
+ matchKitConfigs.forEach(config=>kitRegistry.add(config));
  const cartoon=style==='civil-cartoon';let civil=cartoon?await loadCartoonSource():null;
  const [gltf,originalMotion,originalGait]=await Promise.all([civil?.gltf??load(),loadReviewedMotion(state.officialInput,{metadataOnly:cartoon}),loadGaitCalibration()]);
  let fitted=cartoon?await(cartoonMotionPromise??=fetch(new URL('./cartoon/motion.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Contatos do modelo civil indisponíveis');return r.json()})):null;
@@ -33,16 +38,16 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   for(const [index,p]of initial.entries()){
    const keeper=p.keeper,number=index%11+1,club=state.officialTeams?.[p.side==='home'?0:1];
    let actor;
-   if(cartoon){actor=await createCartoonPlayer(civil,!keeper?clubKitFor(club):null,{number,shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor,skinColor:['#bd906f','#895738','#d4ad83'][index%3],hairColor:['#49301e','#30231d','#66513d'][index%3]})}
+   if(cartoon){actor=await createCartoonPlayer(civil,!keeper?kitPlan[p.side==='home'?0:1].config:null,{number,shirtColor:keeper?'#d6b329':kitPlan[p.side==='home'?0:1].color,skinColor:['#bd906f','#895738','#d4ad83'][index%3],hairColor:['#49301e','#30231d','#66513d'][index%3]})}
    else{
     const root=clone(gltf.scene),holder=new T.Group(),meshes=[];holder.add(root);holder.scale.setScalar(1.78/1.8287);root.traverse(n=>{if(n.isSkinnedMesh){meshes.push(n);n.castShadow=n.receiveShadow=true;n.frustumCulled=false}});
     const mixer=new T.AnimationMixer(root),actions=new Map();for(const name of ['Idle_Loop','Walk_Loop','Jog_Fwd_Loop','Sprint_Loop']){const clip=gltf.animations.find(c=>c.name===name);if(!clip)throw Error('Clipe original indisponível: '+name);actions.set(name,mixer.clipAction(clip))}
-    const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor});actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,footIndices:kit.template.data.part.map((p,i)=>p===3?i:-1).filter(i=>i>=0)};
+    const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},kitPlan[p.side==='home'?0:1].config??neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':kitPlan[p.side==='home'?0:1].color});actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,footIndices:kit.template.data.part.map((p,i)=>p===3?i:-1).filter(i=>i>=0)};
    }
    Object.assign(actor,{current:null,side:p.side,key:p.key,keeper,gaitPhase:0,lastDistance:0,wasAction:false,lastHeading:null,lastPose:-Infinity,detail:'full',groundOffset:0,footHeight:0});
    actor.measurements={neutralHeight:new T.Box3().setFromObject(actor.holder,true).getSize(new T.Vector3()).y,rigBones:actor.meshes[0].skeleton.bones.length};actor.motion=bindCapturedMotion(actor,motion);actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());actor.headIntentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('Head').getWorldQuaternion(new T.Quaternion()).invert());if(cartoon){const headBox=new T.Box3().setFromObject(actor.meshes[4],true);actor.headCenterLocal=actor.bones.get('Head').worldToLocal(headBox.getCenter(new T.Vector3()));actor.headRadius=Math.max(headBox.max.x-headBox.min.x,headBox.max.z-headBox.min.z)/2;}if(cartoon)actor.ballControl=createBallControl(actor,{sourceLead:refinePossession});actor.grounding=cartoon&&refineFundamentals?new LocomotionGrounding():null;actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
   }
- }catch(error){for(const a of actors){a.kit.dispose();a.holder.removeFromParent();a.mixer.stopAllAction()}if(--users===0){releaseNeutralKits();releaseMatchKits(clubKits)}throw error}
+ }catch(error){for(const a of actors){a.kit.dispose();a.holder.removeFromParent();a.mixer.stopAllAction()}if(--users===0){releaseNeutralKits();releaseKits()}throw error}
  const pointsGeometry=new T.BufferGeometry(),positions=new Float32Array(actors.length*3),colors=new Float32Array(actors.length*3);
  positions.fill(-10000);pointsGeometry.setAttribute('position',new T.BufferAttribute(positions,3));pointsGeometry.setAttribute('color',new T.BufferAttribute(colors,3));
  const pointsMaterial=new T.PointsMaterial({size:PLAYER_HEIGHT,sizeAttenuation:true,vertexColors:true}),points=new T.Points(pointsGeometry,pointsMaterial);pointsMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('gl_PointSize = size;', 'gl_PointSize = size * projectionMatrix[1][1];');shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec2 silhouette=(gl_PointCoord-vec2(.5))/vec2(.18,.5);if(dot(silhouette,silhouette)>1.)discard;')};
@@ -61,7 +66,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   if(repeated)return;
   lastInputFrame=frame;const keeperActive=keeperTrial&&frame.time>=keeperTrial.plan.start&&frame.time<=keeperTrial.plan.end,catchConfirmed=keeperTrial&&frame.official?.events.some(e=>e.tipo==='encaixa'&&e.a===keeperTrial.plan.name&&Math.abs(e.t-keeperTrial.plan.contactAt)<1e-5);ballOverride=catchConfirmed?keeperBallAt(keeperTrial,frame.time):null;if(ballOverride)frame={...frame,ball:{...frame.ball,...ballOverride.position,presentation:ballOverride.position,rotation:ballOverride.rotation}};
   const elapsed=lastTime===null?0:frame.time-lastTime,reset=lastTime===null||elapsed<0||elapsed>1,dt=Math.max(0,elapsed);lastTime=frame.time;lastFrame=frame;const used=new Set(),currentKeys=new Set(frame.players.map(p=>p.key));positions.fill(-10000);
-  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],keeperCaptures:[],clearance:[],grounding:[]};
+  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',kits:kitPlan.map(({config,...p})=>({...p,clubKey:config?.clubKey,renderKey:config?.renderKey})),locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],keeperCaptures:[],clearance:[],grounding:[]};
   footballActions.begin(frame);
   const navigation=cartoon?collisions.sample(frame,{action:(key,time)=>keeperActive&&key===keeperTrial.plan.key?{collisionFreedom:0}:footballActions.action(key,time)}):null;
   inspection.collisions=navigation?.diagnostics;
@@ -78,7 +83,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    const previous=a.detail;a.detail=p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;
    a.holder.visible=a.detail==='full'||a.detail==='intermediate';
    positions.set(a.detail==='far'?[p.mx,PLAYER_HEIGHT/2,p.mz]:[-10000,-10000,-10000],i*3);
-   const color=new T.Color(p.keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor);colors.set(color.toArray(),i*3);
+   const color=new T.Color(p.keeper?'#d6b329':kitPlan[p.side==='home'?0:1].color);colors.set(color.toArray(),i*3);
    // Keep scalar facing current even when LOD skips skeleton evaluation.
    const heading=a.lastHeading??p.heading,desired=cartoon?footballActions.prepare(a,p.key,frame.time,visualHeading,p.speed):visualHeading;a.lastHeading=heading+locomotionTurnStep(Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading)),dt);
    if(!a.holder.visible)return;
@@ -126,5 +131,5 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   soleShadows?.update(actors);
   pointsGeometry.attributes.position.needsUpdate=true;pointsGeometry.attributes.color.needsUpdate=true;points.visible=inspection.far>0;
   if(!Number.isFinite(inspection.minFootHeight))inspection.minFootHeight=inspection.maxFootHeight=0;
- },presentFrame:frame=>ballOverride&&frame.time===lastTime?{...frame,ball:{...frame.ball,presentation:ballOverride.position,rotation:ballOverride.rotation}}:frame,inspect:()=>({...inspection}),inspectScale:()=>actors.map(a=>({key:a.key,...a.measurements})),inspectPose:key=>{const a=actors.find(a=>a.key===key);return a?{key,position:a.holder.position.toArray(),bones:[...a.bones].map(([name,b])=>({name,position:b.position.toArray(),quaternion:b.quaternion.toArray()}))}:null},inspectActors:()=>({slots:actors.map((a,slot)=>({slot,key:a.key,heading:a.lastHeading,mode:a.current,presentationSpeed:a.presentationSpeed,visible:a.holder.visible,detail:a.detail})),farPoints:Array.from(positions).filter((_,i)=>i%3===0).filter(x=>x!==-10000).length}),audit:()=>lastFrame?{...inspection,players:lastFrame.players.map(p=>{const a=actors.find(a=>a.key===p.key);return a?.motion.audit(lastFrame,p)}).filter(Boolean)}:null,dispose(){if(disposed)return;disposed=true;soleShadows?.dispose();points.removeFromParent();pointsGeometry.dispose();pointsMaterial.dispose();for(const a of actors){a.motion.surface.dispose();a.kit.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);a.holder.removeFromParent();for(const mesh of a.meshes)mesh.skeleton.dispose()}if(--users===0){releaseNeutralKits();releaseMatchKits(clubKits)}}};
+ },presentFrame:frame=>ballOverride&&frame.time===lastTime?{...frame,ball:{...frame.ball,presentation:ballOverride.position,rotation:ballOverride.rotation}}:frame,inspect:()=>({...inspection}),inspectScale:()=>actors.map(a=>({key:a.key,...a.measurements})),inspectPose:key=>{const a=actors.find(a=>a.key===key);return a?{key,position:a.holder.position.toArray(),bones:[...a.bones].map(([name,b])=>({name,position:b.position.toArray(),quaternion:b.quaternion.toArray()}))}:null},inspectActors:()=>({slots:actors.map((a,slot)=>({slot,key:a.key,heading:a.lastHeading,mode:a.current,presentationSpeed:a.presentationSpeed,visible:a.holder.visible,detail:a.detail})),farPoints:Array.from(positions).filter((_,i)=>i%3===0).filter(x=>x!==-10000).length}),audit:()=>lastFrame?{...inspection,players:lastFrame.players.map(p=>{const a=actors.find(a=>a.key===p.key);return a?.motion.audit(lastFrame,p)}).filter(Boolean)}:null,dispose(){if(disposed)return;disposed=true;soleShadows?.dispose();points.removeFromParent();pointsGeometry.dispose();pointsMaterial.dispose();for(const a of actors){a.motion.surface.dispose();a.kit.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);a.holder.removeFromParent();for(const mesh of a.meshes)mesh.skeleton.dispose()}if(--users===0){releaseNeutralKits();releaseKits()}}};
 }

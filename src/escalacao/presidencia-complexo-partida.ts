@@ -148,7 +148,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   if(snapshot.players.length!==22){clearMatch();return}
   cameraSubjects=snapshot.players
   const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(snapshot.players.filter(p=>p.side===side).map(p=>p.id))))
-  const signature=JSON.stringify([current.context.id,snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
+  const signature=JSON.stringify([current.context.id,current.viewerClubId,snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
   if(match?.signature!==signature){
    clearMatch()
    const root=new THREE.Scene();root.name='complexo-partida'

@@ -7,7 +7,7 @@ export type ContextoPartidaEstadio={id:string;homeClubId?:number;awayClubId?:num
 export type ApresentacaoLanceEstadio={plan?:PlanoLanceFutebol;clock?:RelogioLance}
 export type GolEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;name:string;scorerId?:string;assist?:string;assistId?:string;minute?:number;startedAt?:number;speed?:number;phase:'shot'|'confirmed'}
 export type ChanceEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;minute:number;startedAt:number;speed?:number;outcome:'defendeu'|'trave'|'fora'|'isolou'}
-export type EstadoPartidaEstadio={officialTeams?:[string,string];officialInput?:EntradaM2;officialMinuteMs?:number;visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;period?:1|2;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
+export type EstadoPartidaEstadio={viewerClubId?:number;officialTeams?:[string,string];officialInput?:EntradaM2;officialMinuteMs?:number;visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;period?:1|2;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
 /** Exact canonical XIs may already contain a bot's existing filler. Rendering
  * that input never creates a new card or fills a missing lineup. The legacy
  * theatre keeps its stricter no-filler rule. */

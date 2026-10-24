@@ -23,7 +23,7 @@ function numberTexture(number){
  return numbers.get(number);
 }
 export async function kitMaterial(config,variant,number){
- const clubKey=JSON.stringify([config.clubId??config.clubKey,variant]),key=clubKey+':'+number;
+ const clubKey=JSON.stringify([config.renderKey??config.clubId??config.clubKey,variant]),key=clubKey+':'+number;
  if(!textureLoads.has(clubKey))textureLoads.set(clubKey,(async()=>{
   const atlas=await acquireClubAtlas(config,variant,number),texture=new T.CanvasTexture(atlas.canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;textures.set(clubKey,texture);return texture;
  })());
@@ -108,7 +108,7 @@ export function cacheStats(){return {geometries:templates.size,atlases:textures.
 // geometry is retained; club images/materials and individual numbers are freed.
 export function releaseMatchKits(configs){
  for(const config of configs)for(const variant of Object.keys(config.variants)){
-  const key=JSON.stringify([config.clubId??config.clubKey,variant]);
+  const key=JSON.stringify([config.renderKey??config.clubId??config.clubKey,variant]);
   for(const [id,material]of materials)if(id.startsWith(key+':')){material.dispose();materials.delete(id);}
   textures.get(key)?.dispose();textures.delete(key);textureLoads.delete(key);releaseClubAtlas(config,variant);
  }
