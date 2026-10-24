@@ -10436,7 +10436,9 @@ export function PyramidSeasonScreen() {
     const proxCard = tab === 'jogos' && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
       rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} /> : null
-    const barra = tab === 'jogos' ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
+    // 📺 24/10 (Diego, print da Central com a faixa "AO VIVO" fina em cima): na Central a barra só aparece com os DIAS passando —
+    // no jogo a própria Central já mostra a rodada rolando
+    const barra = tab === 'jogos' || (naCentral && calFase !== 'dias') ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
       onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
