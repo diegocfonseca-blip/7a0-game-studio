@@ -271,3 +271,26 @@ node scripts/cartoon-football/report-possession.mjs
 ```
 
 A varredura final passou em 2.821/5.641 quadros: zero conflitos de cabeças, penetração pé–bola, piso inválido, raiz fora do orçamento ou trancos extras fora dos reinícios oficiais. 48 contatos revisados continuam válidos. Recepção: diferença entre bola e ponto de pega desenhado 4,4 mm; reposição a 1,41 m, pausa estável. Não chamar essas métricas de futebol perfeito. Recuperação anterior `recovery/antes-posse-visual-20261024` em `bf10f711`.
+
+## Passe de costas e pega pelas mãos — correção após revisão do Diego
+
+O passe Abedi Pelé→Danny McGrain (23,7 s) estava na lista `rejected`: o corpo continuava correndo e ficava 155,1° contrário à saída; não havia clipe nem controlador nesse lance. O antigo relatório de 48 contatos o excluía, portanto não comprovava a correção de todos os passes. Agora esse passe reutiliza o clipe adquirido `soccer`, ajustado ao contato/orientação reais, sem alterar bola, evento, esqueleto ou resultado. Corpo antecipa a intenção, mantém orientação no impacto e recupera na direção corrente do deslocamento. Removido o limite que recolocava o alvo só 18° à frente da direção de corrida a cada quadro e impedia acumular a rotação necessária.
+
+Os demais lances rejeitados continuam no diagnóstico/controlador de intenção, explicitamente `supported:false`, sem animação/contato aprovados ou liberdade de emitir impulso. A pega/reposição especial do goleiro usa sua própria camada; não fingir chute para esse evento. `audit-action-coverage.cjs` cruza TODOS os 59 eventos oficiais de passe/enfiada/cruzamento/chute com os planos, incluindo ausências. Isso não transforma os nove lances ainda sem captura de pé em movimentos aprovados.
+
+O goleiro anterior pegava visualmente junto ao peito: um centro entre punhos não era validação suficiente. Pega substituída pela recepção alta CMU **33_02**, 2,25–2,95 s, com mãos mais altas; CMU **34_01** fica só no lançamento 5,15–6,2 s. Mesma licença comercial. Bola tangencia as superfícies reais das mãos; passagem para a mão de lançamento contorna o punho e a mão livre se afasta por IK limitado, em vez de a bola atravessá-la. Salto extra cai de ~37,6 para ~10,5 cm. Mantém duas mãos por 80 ms até iniciar a reposição; isso respeita `encaixa`→`passe` já existentes, sem inventar rebote. Não comprova outras defesas.
+
+O teste de goleiro agora exige contato/folga das superfícies de ambas as mãos, separação da cabeça e verificação durante todo o intervalo de retenção. Testes do passe incluem orientação, contato e cobertura, além de revisar a sequência renderizada. **Ainda há deslizamento do apoio no passe em velocidade alta**: a busca de 990 combinações não encontrou uma captura com orçamento menor e corpo/apoio corretos; tentativas de root motion/foot locking pioraram a transição e foram descartadas. Não apresentar o novo passe como apoio perfeitamente plantado. Novo clipe não foi criado do zero.
+
+Evidências locais em `test-results/cartoon-football/passe-pega/`: passe e pega normal/lenta, imagens reais, auditoria de cobertura e partida completa. Recuperação `recovery/antes-passe-e-pega-20261024` em `2cedd6ce`. Fontes de reconstrução (arquivos locais gratuitos) agora:
+
+```sh
+node scripts/cartoon-football/prepare-keeper-candidates.mjs /tmp/cmu-34_01.bvh /tmp/cmu-33_02.bvh
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/build-keeper-trial.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/fit-abedi-pass.mjs
+node scripts/cartoon-football/audit-action-coverage.cjs
+node scripts/cartoon-football/test-keeper-reception.cjs
+node scripts/cartoon-football/record-pass-catch.cjs
+```
+
+Hash CMU 33_02: `a8ee7cfa4c676248cf4b59d3be52b78d42842fe89f2c5784b53b658b2ea0aa83`, mesmo espelho/revisão registrados na seção anterior. Não comprar, usar conta externa, alterar save/rodada nem publicar nesta correção.

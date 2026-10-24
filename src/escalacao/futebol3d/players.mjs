@@ -50,7 +50,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
  points.name='football-physical-scale-lod';points.frustumCulled=false;scene.add(points);
  let lastTime=null,disposed=false,lastFrame=null,lastInputFrame=null,ballOverride=null,inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:0,maxFootHeight:0,physicalPlayerHeight:PLAYER_HEIGHT,locomotionCalibrated:true};
  const soleShadows=cartoon&&refineFundamentals?groundContactShadows(scene,actors.length):null;
- const point=new T.Vector3(),footballActions=new FootballActionController(motion?.plans??[]),collisions=new VisualPlayerCollisions();
+ const point=new T.Vector3(),footballActions=new FootballActionController(motion?[...motion.plans,...motion.rejected.filter(p=>p.key!==keeperTrial?.plan.key).map(p=>({...p,unsupported:true}))]:[]),collisions=new VisualPlayerCollisions();
  return {update(frame,camera,viewportHeight=720){
   if(disposed)return;
   if(frame.placementReset)frame={...frame,ball:{...frame.ball,...frame.ball.presentation},players:frame.players.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)};
