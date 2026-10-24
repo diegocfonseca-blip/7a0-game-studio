@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 
-export const RAIO_BOLA_FUTEBOL_3D=.11
+import {RotacaoBola3D,RAIO_BOLA_FUTEBOL_3D} from './presidencia-bola-rotacao'
+export {RAIO_BOLA_FUTEBOL_3D} from './presidencia-bola-rotacao'
 type Panel={black:boolean;vertices:THREE.Vector3[]}
 
 /** A truncated icosahedron supplies the actual football panels: twelve black
@@ -74,4 +75,14 @@ export function criarBolaFutebol3D(){
  const ball=new THREE.Mesh(geometry,material)
  ball.name='match-ball';ball.castShadow=true;ball.receiveShadow=true;ball.userData.radius=RAIO_BOLA_FUTEBOL_3D
  return ball
+}
+
+const fallbackRoll=new WeakMap<THREE.Object3D,{spin:RotacaoBola3D;time:number}>()
+/** All match viewers use the same official position and presentation rotation. */
+export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;ball:{x:number;y:number;z:number;rotation?:[number,number,number,number];presentation?:{x:number;y:number;z:number}}}){
+ const p=frame.ball,position=p.presentation??p;ball.position.set(position.x,position.y,position.z)
+ if(p.rotation){ball.quaternion.fromArray(p.rotation);return}
+ let state=fallbackRoll.get(ball)
+ if(!state||frame.time<state.time){state={spin:new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,p),time:frame.time};fallbackRoll.set(ball,state)}
+ ball.quaternion.copy(state.spin.step(p,frame.time-state.time));state.time=frame.time
 }

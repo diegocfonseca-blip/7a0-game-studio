@@ -10636,7 +10636,7 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn ? ' ll-cx-clube-limpo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}

@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';import{readFile,writeFile,mkdir}from'node:fs/promises';
+import{FutebolOficial3D}from'../../src/escalacao/presidencia-futebol-oficial.ts';
+import{descreverEntregaOficial3D}from'../../src/escalacao/presidencia-entrega-oficial.ts';
+const input=JSON.parse(await readFile('test-results/animation-library/neymarzetti-current/football-input.json')).input,roster=cs=>cs.map((p,i)=>({id:String(i),name:p.name,pos:p.pos})),state={officialInput:input,context:{id:'delivery-profile-test',home:roster(input.casa),away:roster(input.fora)}},clock=90/93;
+// An inversion is not necessarily a lob. The real release must distinguish it.
+assert.equal(descreverEntregaOficial3D('inversao',{x:12,y:0,z:5},.11,35).trajectory,'ground');
+assert.equal(descreverEntregaOficial3D('inversao',{x:12,y:7,z:5},.11,35).trajectory,'air');
+const times=[1.05,12.45,14.3,40,58.2,66.1],reference=new FutebolOficial3D(input),expected=times.map(t=>reference.sample(state,t/clock).officialAction?.delivery);assert.ok(expected.every(Boolean));
+assert.equal(expected[0].trajectory,'ground');assert.equal(expected[1].family,'cross');assert.equal(expected[1].animationFamily,'lofted-kick');assert.ok(expected[3].freeFlightApex>expected[2].freeFlightApex+1);
+let comparisons=0;for(const fps of [12,30,60,120]){const engine=new FutebolOficial3D(input);let now=0;for(let i=0;i<times.length;i++){while(now+1/fps<times[i]){now+=1/fps;engine.sample(state,now/clock)}const f=engine.sample(state,times[i]/clock);assert.deepEqual(f.officialAction?.delivery,expected[i],`FPS ${fps} must not change a release`);assert.equal(f.officialAction.delivery.curve,'not-simulated');assert.equal(f.officialAction.delivery.technique,'unspecified-by-source');now=times[i];comparisons++;}}
+const seek=new FutebolOficial3D(input);for(const i of [5,1,4,0,3,2]){const f=seek.sample(state,times[i]/clock);assert.deepEqual(f.officialAction?.delivery,expected[i]);comparisons++;}
+const engine=new FutebolOficial3D(input),before=engine.sample(state,12.45/clock);before.officialAction.delivery.horizontalSpeed=999;before.officialAction.delivery.velocity[0]=999;assert.notEqual(engine.sample(state,12.46/clock).officialAction.delivery.horizontalSpeed,999,'A consumer cannot mutate the canonical descriptor');assert.notEqual(engine.sample(state,12.46/clock).officialAction.delivery.velocity[0],999,'Nested vectors must also be independent');
+await mkdir('test-results/cartoon-football/variedades',{recursive:true});const result={comparisons,fps:[12,30,60,120],seek:true,sourceUnchanged:true,curvesInvented:false,examples:times.map((time,i)=>({time,...expected[i]}))};await writeFile('test-results/cartoon-football/variedades/profile-tests.json',JSON.stringify(result,null,2));console.log(result);

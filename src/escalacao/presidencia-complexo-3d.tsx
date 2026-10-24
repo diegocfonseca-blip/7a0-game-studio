@@ -32,6 +32,14 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import './presidencia-complexo-3d.css'
 
 export type VistaComplexo='original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'
+const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
+ {value:'broadcast',label:'Transmissão'},
+ {value:'tele',label:'Lateral próxima'},
+ {value:'wide',label:'Ampla'},
+ {value:'goal',label:'Atrás do gol'},
+ {value:'tactical',label:'Tática'},
+ {value:'free',label:'Mapa livre'},
+]
 export type ControleComplexo={checkCivilian:(index?:number)=>void;setMatchCamera:(mode:CameraPartidaContinua)=>void;view:(view:VistaComplexo)=>void;zoom:(direction:1|-1)=>void;setNavigationMode:(mode:ModoNavegacaoComplexo)=>void;seekCirculation:(seconds:number)=>void;inspect:()=>unknown;checkLighting:()=>{invalidSamples:number;litSamples:number};checkDealershipView:()=>{id:string;visible:boolean;occluder?:string}[]}
 
 /** Physical reconstruction for local visual review. It only reads the existing save and match clock. */
@@ -131,6 +139,14 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   sun.shadow.normalBias=.055;sun.shadow.bias=-.00012;sun.shadow.radius=2.5
   sun.shadow.camera.near=1;sun.shadow.camera.far=1300;scene.add(sun,sun.target)
   const surround=criarEntornoComplexo(scene,state),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice})
+  // Automatic football cameras may sit above the roof. Cut away only its
+  // colour pass; the opaque shadow/depth material still casts the real shade.
+  // Free exploration restores the purchased roof without changing the save.
+  const cameraRoofMaterials:{material:THREE.MeshStandardMaterial;transparent:boolean;opacity:number;depthWrite:boolean}[]=[]
+  architecture.root.traverse(node=>{if(node instanceof THREE.Mesh)for(const material of Array.isArray(node.material)?node.material:[node.material]){
+   if(material instanceof THREE.MeshStandardMaterial&&['cobertura-cinza-curva','juntas-cobertura'].includes(material.name)&&!cameraRoofMaterials.some(entry=>entry.material===material))cameraRoofMaterials.push({material,transparent:material.transparent,opacity:material.opacity,depthWrite:material.depthWrite})
+  }})
+  let cameraRoofCutaway=false
   const residents=createResidents(scene,surround.root,surround.solids)
   setHasSeatView(architecture.seats.length>0)
   const furniture=criarMobiliaComplexo(scene,state,walletRef.current,{interior:isOffice})
@@ -194,7 +210,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const visitorKeys=new Map<ReturnType<typeof criarVisitaComplexo>,string>()
   const followedActor=(side:'home'|'away')=>transportActors?.actor(side)??visits.find(visit=>visitorSides.get(visit)===side)
   const selectedAccess=(side:'home'|'away')=>architecture.seatAccess.filter(access=>access.side===side&&access.seat.tier===populationRef.current.visitTier&&!crowdDeparture?.reserveSeatIds().includes(access.seatId)).sort((a,b)=>Math.abs(a.seat.row-populationRef.current.visitRow)-Math.abs(b.seat.row-populationRef.current.visitRow)||a.seat.row-b.seat.row)[0]
-  let mode:VistaComplexo=isOffice?'room':isWindow?'office':'original',focusedSeat:string|undefined,raf=0,visible=true,rendering=false,seconds=6,last=0
+  let mode:VistaComplexo=isOffice?'room':isWindow?'office':'original',savedMapView:VistaComplexo=mode,fieldWatchPending=false,focusedSeat:string|undefined,raf=0,visible=true,rendering=false,seconds=6,last=0
   const rebuildPopulation=()=>{
    const population=populationRef.current,publico=crowd.inspect()
    const residentBefore=residents.count()
@@ -336,8 +352,11 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     }
     camera.lookAt(controls.target);camera.updateMatrixWorld()
    }
+   if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera('broadcast')}
    game.update(matchRef.current,performance.now(),camera,el.clientHeight)
-   matchCameraController.update(game.inspect().ball,performance.now())
+   matchCameraController.update(game.inspect().ball,performance.now(),game.subjects())
+   const cutaway=matchCameraController.inspect().mode!=='free'
+   if(cutaway!==cameraRoofCutaway){cameraRoofCutaway=cutaway;for(const entry of cameraRoofMaterials){entry.material.transparent=cutaway||entry.transparent;entry.material.opacity=cutaway?0:entry.opacity;entry.material.depthWrite=cutaway?false:entry.depthWrite;entry.material.needsUpdate=true}}
    residents.update(seconds,camera)
    circulationActors?.update(seconds)
    const departure=crowdDeparture?.inspect()
@@ -389,13 +408,16 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     frame([...points,...landmarks])
    }
   }
-  const navigation=criarNavegacaoComplexo({camera,controls,onChange:()=>render(),onExplore:()=>{matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
+  const navigation=criarNavegacaoComplexo({camera,controls,onChange:()=>render(),onExplore:()=>{fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
   navigation.setMode(navigationModeRef.current)
   if(isWindow)controls.enabled=false
   const view=(next:VistaComplexo,draw=true)=>{
+   if(next==='field'&&matchRef.current&&!isOffice&&!isWindow){setFootballCamera('broadcast');return}
+   fieldWatchPending=next==='field'&&!isOffice&&!isWindow
    matchCameraController.explore()
    if(isOffice&&!['room','office','president','shelf'].includes(next))next='room'
    if(isOffice){controls.enabled=next!=='office';camera.fov=next==='president'?32:48;camera.updateProjectionMatrix()}
+   else{camera.fov=38;camera.updateProjectionMatrix()}
    navigation.beginView({fitOnResize:['original','region','field','estacao','vadico'].includes(next),terrainGuard:['original','region','estacao','vadico'].includes(next)||(next==='field'&&!state.roofClosed)})
    setSelectedView(next)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
@@ -478,7 +500,10 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   }
   const resize=()=>{const width=el.clientWidth,height=el.clientHeight;if(!width||!height)return
    quality=visualProfile(width,height);renderer.setPixelRatio(quality.pixelRatio)
-   renderer.setSize(width,height,false);const shadowSize=softwareGPU||width<600?1024:2048;if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.map?.dispose();sun.shadow.map=null;sun.shadow.mapSize.set(shadowSize,shadowSize);renderer.shadowMap.needsUpdate=true}sharpenTextures();navigation.resize(width,height,()=>view(mode,false))
+   renderer.setSize(width,height,false);const shadowSize=softwareGPU||width<600?1024:2048;if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.map?.dispose();sun.shadow.map=null;sun.shadow.mapSize.set(shadowSize,shadowSize);renderer.shadowMap.needsUpdate=true}sharpenTextures()
+   const footballCamera=matchCameraController.inspect()
+   if(footballCamera.mode!=='free'||footballCamera.returning){camera.aspect=width/height;camera.updateProjectionMatrix();render();resume()}
+   else navigation.resize(width,height,()=>view(mode,false))
    if(isWindow){view('office',false);camera.lookAt(controls.target);render()}
   }
   const walking=()=>!!(residents.count()||circulationActors||transportActors||visits.length||crowdDeparture)&&!pausedRef.current&&!reduced.matches
@@ -487,6 +512,16 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.
   const resume=()=>{if(disposed)return;if(!visible||document.hidden){cancelAnimationFrame(raf);raf=0;last=0;return}if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
+  function setFootballCamera(value:CameraPartidaContinua){
+   if(isOffice||isWindow||!matchRef.current)return
+   fieldWatchPending=false
+   navigation.beginView({fitOnResize:false,terrainGuard:false});followSide=undefined;followedCenter=undefined;setFollowing(null)
+   if(value!=='free'){
+    if(matchCameraController.inspect().mode==='free')savedMapView=mode
+    mode='field';setSelectedView('field')
+   }else{mode=savedMapView;setSelectedView(savedMapView)}
+   matchCameraController.setMode(value);resume()
+  }
   refreshPopulation.current=()=>{if(disposed)return;crowd.update(populationRef.current.crowdPopulation);if(rebuildPopulation())resume();else render()}
   refreshFurniture.current=()=>{if(disposed)return;const changed=furniture.update(walletRef.current),bodyChanged=presidentBody.update(presidentRef.current,walletRef.current),collectionChanged=collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage);if(changed||bodyChanged||collectionChanged){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures();render()}}
   refreshJourney.current=()=>{if(disposed)return;lighting.setPeriod(journeyRef.current?.period??'day');rebuildPopulation();resume()}
@@ -512,7 +547,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     return{id:target.id,visible:!hit,occluder:hit?.object.name}
    })
   }
-  api.current={checkCivilian:(index=0)=>{const info=residents.inspect() as {actors:{position:number[]}[]};const p=info.actors[index]?.position;if(!p)return;navigation.beginView({fitOnResize:false,terrainGuard:true});controls.target.set(p[0],p[1]+.85,p[2]);camera.position.set(p[0]-3,p[1]+2.2,p[2]+4.5);camera.lookAt(controls.target);controls.update();render()},setMatchCamera:value=>{if(isOffice||isWindow||!matchRef.current)return;navigation.beginView({fitOnResize:false,terrainGuard:false});followSide=undefined;followedCenter=undefined;setFollowing(null);matchCameraController.setMode(value);resume()},view,zoom:direction=>{if(isOffice&&mode==='office'){camera.fov=THREE.MathUtils.clamp(camera.fov*(direction===1?.82:1.22),16,65);camera.updateProjectionMatrix();render()}else navigation.zoom(direction)},setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({softwareGPU,shadowResolution:sun.shadow.mapSize.x,matchCamera:matchCameraController.inspect(),state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),residents:residents.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),president:presidentBody.inspect(),collection:collection.inspect(),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,establishments:[...surround.establishments]})}
+  api.current={checkCivilian:(index=0)=>{const info=residents.inspect() as {actors:{position:number[]}[]};const p=info.actors[index]?.position;if(!p)return;navigation.beginView({fitOnResize:false,terrainGuard:true});controls.target.set(p[0],p[1]+.85,p[2]);camera.position.set(p[0]-3,p[1]+2.2,p[2]+4.5);camera.lookAt(controls.target);controls.update();render()},setMatchCamera:setFootballCamera,view,zoom:direction=>{if(isOffice&&mode==='office'){camera.fov=THREE.MathUtils.clamp(camera.fov*(direction===1?.82:1.22),16,65);camera.updateProjectionMatrix();render()}else navigation.zoom(direction)},setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({softwareGPU,shadowResolution:sun.shadow.mapSize.x,matchCamera:matchCameraController.inspect(),cameraRoofCutaway,state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),residents:residents.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),president:presidentBody.inspect(),collection:collection.inspect(),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,memory:{...renderer.info.memory},canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,establishments:[...surround.establishments]})}
   const observer=new ResizeObserver(resize);observer.observe(el)
   const visibility=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting===true;resume()});visibility.observe(el)
   document.addEventListener('visibilitychange',resume)
@@ -536,7 +571,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     else if(expanded){setExpanded(false);event.preventDefault();event.stopPropagation()}
    }
    if(expanded&&event.key==='Tab'){
-    const elements=Array.from(section.current?.querySelectorAll<HTMLElement>('button:not(:disabled),canvas[tabindex="0"]')??[]).filter(node=>node.getClientRects().length)
+    const elements=Array.from(section.current?.querySelectorAll<HTMLElement>('button:not(:disabled),select:not(:disabled),canvas[tabindex="0"]')??[]).filter(node=>node.getClientRects().length)
     const first=elements[0],last=elements.at(-1)
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
@@ -555,9 +590,12 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
      {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>Minha sala</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>Janela</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>Presidente</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>Estante</button></>:<>
      <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>Mapa</button>
      <button type="button" disabled={!loaded} aria-pressed={selectedView==='field'} onClick={()=>go('field')}>Ver campo</button>
-     <button type="button" disabled={!loaded||!match} aria-pressed={matchCamera==='free'} onClick={()=>api.current?.setMatchCamera('free')}>Mapa livre</button>
-     <button type="button" disabled={!loaded||!match} aria-pressed={matchCamera==='broadcast'} onClick={()=>api.current?.setMatchCamera('broadcast')}>Transmissão</button>
-     <button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button></>}
+     <button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button>
+     {match&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}>Câmera
+      <select id={`${uiId}-camera`} aria-label="Câmera da partida" disabled={!loaded} value={matchCamera} onChange={event=>{api.current?.setMatchCamera(event.currentTarget.value as CameraPartidaContinua);setPlacesOpen(false)}}>
+       {CAMERAS_PARTIDA.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+     </label>}</>}
     </div>
     <button ref={expandButton} className="pc3-expand" type="button" aria-label={isOffice?(expanded?'Fechar sala ampliada':'Ampliar sala'):(expanded?'Fechar mapa ampliado':'Ampliar mapa')} title={isOffice?(expanded?'Fechar sala ampliada':'Ampliar sala'):(expanded?'Fechar mapa ampliado':'Ampliar mapa')} onClick={toggleExpanded}>
      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{expanded?<path d="m6 6 12 12M18 6 6 18"/>:<path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/>}</svg>
@@ -585,7 +623,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?'Ver sala':'Ver tudo'}</button>
     <button type="button" disabled={!loaded} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>Girar</button>
    </div>
-   <p className="pc3-help" id={`${uiId}-help`}>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></p></>}
+   <p className="pc3-help" id={`${uiId}-help`}>{matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></>}</p></>}
   </div>
  </section>
 }
