@@ -91,11 +91,13 @@ const css = `
 `
 
 /** 🎬 O TÚNEL DA FINAL: no lugar da abertura de fase quando a próxima é a final (mesmo relógio). */
-export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
+export function TunelFinal({ comp, casa, fora, seg, total, espera, nomeComp, onFechar }: {
   comp: CompId; casa: { nome: string; crest: ReactNode }; fora: { nome: string; crest: ReactNode }
   seg: number | null; total: number; espera?: string
+  /** 🏆 carreira: o nome que o save usa (Copa do Brasil × Copa Legends) */ nomeComp?: [string, string]
+  /** carreira: o toque que fecha a tela cheia também solta o relógio */ onFechar?: () => void
 }) {
-  const c = COMPS[comp]
+  const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
   const pc = useTelaPC()
   // 🎬 23/10 (Diego numa live: *"não vi nada disso"*): na contagem do automático o túnel vira TELA CHEIA por cima de tudo,
   // como a festa — antes era um cartão dentro do quadro do topo e passava batido. Toque fecha. No MANUAL fica só o cartão
@@ -135,7 +137,7 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
   return <>
     {cartao}
     {createPortal(
-      <div onClick={() => setFechado(true)} style={{ position: 'fixed', inset: 0, zIndex: 99960, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${c.bg}, url(${estadioArt}) center / cover`, cursor: 'pointer', padding: 16 }}>
+      <div onClick={() => { setFechado(true); onFechar?.() }} style={{ position: 'fixed', inset: 0, zIndex: 99960, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${c.bg}, url(${estadioArt}) center / cover`, cursor: 'pointer', padding: 16 }}>
         <style>{css}</style>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.35)' }} />
         <div style={{ position: 'relative', width: '100%', maxWidth: 520, zoom: pc ? 1.55 : 1.08 } as CSSProperties}>{cartao}
@@ -150,15 +152,16 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera }: {
 /** 🏆 A FESTA DO CAMPEÃO: por cima da tela de fim, ~5,5 s, toque pula. */
 /** ⚽🅰️ quem fez mais gols / deu mais passes na competição (pra festa) */
 export type DestaqueFesta = { nome: string; time: string; n: number }
-export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom }: {
+export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp }: {
   comp: CompId; nome: string; crest: ReactNode; mascote?: ReactNode
+  /** 🏆 carreira: o nome que o save usa (Copa do Brasil × Copa Legends) */ nomeComp?: [string, string]
   /** ⚽ 23/10 (Diego: *"já poderia aparecer o artilheiro que ganhou a copa também"*) — e o 🅰️ garçom junto (regra dele: o que vale pro gol vale pra assistência) */
   artilheiro?: DestaqueFesta | null; garcom?: DestaqueFesta | null
   lendas?: { nome: string; club: string; year: number }[]; linha?: string
   /** quem está vendo É o campeão? (aí toca o canto do clube dele, se tiver; senão o grito de gol) */
   souCampeao?: boolean; onDone: () => void
 }) {
-  const c = COMPS[comp]
+  const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
   const DUR = 5600
   const [saindo, setSaindo] = useState(false)
   useEffect(() => {
