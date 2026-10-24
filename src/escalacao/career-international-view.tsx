@@ -32,7 +32,7 @@ import { CompetitionStage, RoundMatchPresentation, useRoundPresentationStart } f
 import { Escudo } from './escudos'
 import { SeloClube } from './selo-clube'
 import { mascoteKeyDoTime, MASCOTES } from './mascotes'
-import { FestaCampeao, type CompId } from './competicoes-visual' // 🏆 festa do campeão (24/10)
+import { FestaCampeao, TunelFinal, type CompId } from './competicoes-visual' // 🏆 festa do campeão (24/10)
 import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
@@ -581,7 +581,27 @@ export function CareerInternationalView(p: Props) {
   const pronto = fimJogo && ultimoJogo // a NOITE inteira acabou (tabela e a outra final só depois disso)
   // ⏱️ o relógio da perna: o MESMO do placar grande, pra todo jogo da noite andar junto
   const legMs = Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed) // 📺 no Campo 2D, 1:30
-  const startedAt = useRoundPresentationStart(reveal * 10 + jogo)
+  // 🎬 TÚNEL DA FINAL (24/10, Diego: *"túnel da final e festa são todas as copas"*): na final da Libertadores/Champions e no
+  // Mundial em que o SEU clube joga, o túnel em tela cheia faz 4s de contagem ANTES da bola rolar — o placar grande só monta
+  // (e o relógio da noite só começa) quando ele fecha. No Campo 2D não entra (o campinho tem relógio próprio). 1x por noite.
+  const tunelIntlKey = `esc-tunel-intl-${p.seed}-${p.season}-${reveal}`
+  const ehFinalMinha = ehFinal && !!minhaTie && jogo === 0 && !c2d
+  const [tunelIntl, setTunelIntl] = useState<number | null>(null)
+  useEffect(() => {
+    if (!ehFinalMinha) { setTunelIntl(null); return }
+    try { if (sessionStorage.getItem(tunelIntlKey) === '1') return } catch { /* segue */ }
+    setTunelIntl(4)
+  }, [ehFinalMinha, tunelIntlKey])
+  const fechaTunelIntl = () => { setTunelIntl(null); try { sessionStorage.setItem(tunelIntlKey, '1') } catch { /* segue */ } }
+  useEffect(() => {
+    if (tunelIntl == null) return
+    if (tunelIntl <= 0) { fechaTunelIntl(); return }
+    const t = setTimeout(() => setTunelIntl(x => (x == null ? null : x - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [tunelIntl]) // eslint-disable-line react-hooks/exhaustive-deps
+  // (com o túnel aberto o desafio já é "outra" noite pro relógio: quando ele fecha, a noite começa do zero)
+  const tunelIntlOn = tunelIntl != null && tunelIntl > 0
+  const startedAt = useRoundPresentationStart(tunelIntlOn ? -1 - reveal : reveal * 10 + jogo)
   const avancar = () => {
     if (!current) return
     if (rep && faseFoco?.competition === 'mundial' && current.mundialChampion === rep) setCelebrate('mundial')
@@ -608,10 +628,10 @@ export function CareerInternationalView(p: Props) {
   }, [manual, fimJogo, ultimoJogo]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🎬 perna SEM placar grande (não estou nela): o apito vem do relógio, igual aos cartões
   useEffect(() => {
-    if (!current || !faseFoco || jogoGrande || noiteVazia || fimJogo) return
+    if (!current || !faseFoco || jogoGrande || noiteVazia || fimJogo || tunelIntlOn) return
     const t = setTimeout(() => setFimJogo(true), Math.max(0, startedAt + legMs * .82 + 250 - Date.now()))
     return () => clearTimeout(t)
-  }, [reveal, jogo, !!jogoGrande, noiteVazia, legMs, startedAt, fimJogo]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [reveal, jogo, !!jogoGrande, noiteVazia, legMs, startedAt, fimJogo, tunelIntlOn]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── classificação (anti-spoiler: a noite de hoje só entra depois do apito) ──
   const tabelas = useMemo(() => {
@@ -771,7 +791,10 @@ export function CareerInternationalView(p: Props) {
       {progresso && <div style={{ display: 'flex', gap: 4, justifyContent: 'center', margin: '0 0 10px', flexWrap: 'wrap' }}>{Array.from({ length: progresso.total }, (_, i) => <i key={i} style={{ width: 18, height: 6, borderRadius: 3, background: i < progresso.feitas ? GREEN : i === progresso.feitas ? GOLD : '#0003', outline: i === progresso.feitas ? `2px solid ${INK}` : 'none' }} />)}</div>}
       {p.topoGrande && minhaTie && minhaTie.matches.length === 2 && <p style={{ ...OSWALD, fontWeight: 700, fontSize: 12, textAlign: 'center', margin: '-4px 0 8px', color: INK }}>{jogo === 0 ? tr('⚽ Jogo de ida', '⚽ 1st leg') : tr('⚽ Jogo de volta', '⚽ 2nd leg')}</p>}
       {/* 📺 o placar grande */}
-      {jogoGrande && <JogoGrande match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} fase={!minhaTie ? 'liga' : minhaTie.matches.length === 1 ? 'final' : jogo === 0 ? 'ida' : 'volta'} />}
+      {tunelIntlOn && minhaTie && <div style={{ display: 'none' }}><TunelFinal comp={compDaFase === 'mundial' ? 'mundial' : compDaFase === 'libertadores' ? 'liberta' : 'champions'}
+        seg={tunelIntl} total={4} onFechar={fechaTunelIntl}
+        casa={{ nome: nomeDe(minhaTie.home), crest: crestOf(current, minhaTie.home, 92) }} fora={{ nome: nomeDe(minhaTie.away), crest: crestOf(current, minhaTie.away, 92) }} /></div>}
+      {tunelIntlOn ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>🏟️</p> : jogoGrande && <JogoGrande match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} fase={!minhaTie ? 'liga' : minhaTie.matches.length === 1 ? 'final' : jogo === 0 ? 'ida' : 'volta'} />}
       {finalNeutra && <FinalCard phase={finalNeutra} campaign={current} titulo={compDaFase === 'mundial' ? tr('A final do Mundial de Clubes', 'The Club World Cup final') : `${tr('A final da', 'The final of the')} ${nomeComp(compDaFase!)}`} startedAt={startedAt} legMs={legMs} finished={fimJogo} roundKey={reveal * 10 + jogo} />}
       {!meusJogos.length && rep && !ehFinal && <div style={{ ...card, textAlign: 'center' }}><p style={{ margin: 0, fontWeight: 800, fontSize: 12, color: INK }}>{tr('Você já está fora desta fase. Os jogos da noite:', 'You are out of this stage. Tonight\'s matches:')}</p></div>}
       {fimDaTie && minhaTie && <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', marginTop: -4, marginBottom: 10, textAlign: 'center' }}>

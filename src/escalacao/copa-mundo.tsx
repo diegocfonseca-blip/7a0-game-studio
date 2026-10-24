@@ -1237,7 +1237,24 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       return s
     })
   }
-  const next = () => avanca(false)
+  // 🎬 TÚNEL DA FINAL NA CARREIRA (24/10, Diego: *"túnel da final e festa são todas as copas"*): quando a SUA seleção está na final,
+  // o toque (ou o automático) que leva pra final abre o túnel em tela cheia por 4s ANTES da bola rolar — o relógio da final só
+  // começa quando ele fecha (no toque ou no fim da contagem). 1x por edição. Na sala o túnel já existe (é a abertura da fase).
+  const tunelMundoKey = `esc-tunel-mundo-car-${seed}-${seasonNo}`
+  const [tunelMundo, setTunelMundo] = useState<number | null>(null)
+  const tunelMundoPendente = () => { if (synced || online || !(isYou(world.final.h) || isYou(world.final.a))) return false; try { return sessionStorage.getItem(tunelMundoKey) !== '1' } catch { return true } }
+  const fechaTunelMundo = () => { setTunelMundo(null); try { sessionStorage.setItem(tunelMundoKey, '1') } catch { /* segue */ } ; avanca(false) }
+  useEffect(() => {
+    if (tunelMundo == null) return
+    if (tunelMundo <= 0) { fechaTunelMundo(); return }
+    const t = setTimeout(() => setTunelMundo(x => (x == null ? null : x - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [tunelMundo]) // eslint-disable-line react-hooks/exhaustive-deps
+  const next = () => {
+    if (tunelMundo != null) return
+    if (step + 1 === FINAL && tunelMundoPendente()) { setTunelMundo(4); return }
+    avanca(false)
+  }
   // ⏭️ pular (só manual): corta a espera — apito na hora; de novo = próxima fase já resolvida
   const skip = () => {
     if (synced) { if (synced.isHost) void synced.command(synced.row?.running ? 'skip' : 'next'); return }
@@ -1654,6 +1671,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
         </div>
       )}
 
+      {tunelMundo != null && tunelMundo > 0 && <div style={{ display: 'none' }}><TunelFinal comp="mundo" seg={tunelMundo} total={4} onFechar={fechaTunelMundo}
+        casa={{ nome: entrants[world.final.h].pais, crest: <NationalCrest country={entrants[world.final.h].pais} size={92} /> }} fora={{ nome: entrants[world.final.a].pais, crest: <NationalCrest country={entrants[world.final.a].pais} size={92} /> }} /></div>}
       {done && (online || isYou(world.final.champion)) && !festaMundoVista && <FestaCampeao comp="mundo" nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
         souCampeao={isYou(world.final.champion)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
         artilheiro={(() => { const r = artilhariaDaCopa(world)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
