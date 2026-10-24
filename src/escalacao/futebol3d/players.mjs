@@ -1,5 +1,5 @@
 import {groundContactShadows} from './motion/ground-contact-shadows.mjs';
-import {locomotionWeights,gaitCurve} from './motion/locomotion-sampling.mjs';
+import {locomotionWeights,gaitCurve,locomotionTurnStep} from './motion/locomotion-sampling.mjs';
 import {LocomotionGrounding} from './motion/locomotion-grounding.mjs';
 import {FootballActionController} from './football-action-controller.mjs';
 import {VisualPlayerCollisions} from './visual-player-collisions.mjs';
@@ -48,6 +48,12 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
  const point=new T.Vector3(),footballActions=new FootballActionController(motion?.plans??[]),collisions=new VisualPlayerCollisions();
  return {update(frame,camera,viewportHeight=720){
   if(disposed)return;
+  if(frame.placementReset)frame={...frame,ball:{...frame.ball,...frame.ball.presentation},players:frame.players.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)};
+  // A camera redraw is not another simulation step. Re-solving a paused
+  // duel fed its final collision projection back into the same timestamp.
+  // Preserve the finished pose when source state and LOD are unchanged.
+  const repeated=lastFrame&&frame.time===lastTime&&frame.phase===lastFrame.phase&&frame.owner===lastFrame.owner&&frame.ball.x===lastFrame.ball.x&&frame.ball.y===lastFrame.ball.y&&frame.ball.z===lastFrame.ball.z&&frame.players.length===lastFrame.players.length&&frame.players.every((p,i)=>{const old=lastFrame.players[i],a=actors.find(a=>a.key===p.key);return old?.key===p.key&&old.mx===p.mx&&old.mz===p.mz&&old.heading===p.heading&&old.speed===p.speed&&old.distance===p.distance&&old.kick===p.kick&&old.throwing===p.throwing&&old.save===p.save&&old.dive===p.dive&&old.control===p.control&&old.visible===p.visible&&a&&(!camera||playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail)===a.detail)});
+  if(repeated)return;
   const elapsed=lastTime===null?0:frame.time-lastTime,reset=lastTime===null||elapsed<0||elapsed>1,dt=Math.max(0,elapsed);lastTime=frame.time;lastFrame=frame;const used=new Set(),currentKeys=new Set(frame.players.map(p=>p.key));positions.fill(-10000);
   inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],clearance:[],grounding:[]};
   footballActions.begin(frame);
@@ -55,8 +61,8 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   inspection.collisions=navigation?.diagnostics;
   if(navigation)frame={...frame,players:frame.players.map(p=>{const o=navigation.positions.get(p.key);return o?{...p,mx:p.mx+o.x,mz:p.mz+o.z}:p})};
   frame.players.forEach((p,i)=>{
-   const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};const resetActor=reset||a.key!==p.key;a.key=p.key;
-   const visualTravel=resetActor?0:Math.hypot(p.mx-(a.lastGaitX??p.mx),p.mz-(a.lastGaitZ??p.mz)),visualHeading=visualTravel>.001?Math.atan2(p.mx-a.lastGaitX,p.mz-a.lastGaitZ):p.heading,visualSpeed=dt>0?Math.max(p.speed,visualTravel/dt):p.speed;
+   const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};a.navigationOffset={x:p.mx-official.mx,z:p.mz-official.mz};const resetActor=reset||a.key!==p.key||navigation?.diagnostics.sourceReset;a.key=p.key;
+   const visualTravel=resetActor||dt===0?0:Math.hypot(p.mx-(a.lastGaitX??p.mx),p.mz-(a.lastGaitZ??p.mz)),visualHeading=visualTravel>.001?Math.atan2(p.mx-a.lastGaitX,p.mz-a.lastGaitZ):p.heading,visualSpeed=dt>0?Math.max(p.speed,visualTravel/dt):p.speed;
    a.lastGaitX=p.mx;a.lastGaitZ=p.mz;
    const targets=cartoon&&refineFundamentals?locomotionWeights(visualSpeed):null;
    const mode=visualSpeed<.12?'Idle_Loop':visualSpeed<2.5?'Walk_Loop':visualSpeed<6?'Jog_Fwd_Loop':'Sprint_Loop',cal=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[mode]],duration=a.actions.get(mode).getClip().duration,stride=cal?.strideLength??duration*(mode==='Walk_Loop'?1.5:mode==='Sprint_Loop'?7:4.5);
@@ -68,7 +74,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    positions.set(a.detail==='far'?[p.mx,PLAYER_HEIGHT/2,p.mz]:[-10000,-10000,-10000],i*3);
    const color=new T.Color(p.keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor);colors.set(color.toArray(),i*3);
    // Keep scalar facing current even when LOD skips skeleton evaluation.
-   const heading=a.lastHeading??p.heading,desired=cartoon?footballActions.prepare(a,p.key,frame.time,visualHeading,p.speed):visualHeading;a.lastHeading=heading+T.MathUtils.clamp(Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading)),-8*dt,8*dt);
+   const heading=a.lastHeading??p.heading,desired=cartoon?footballActions.prepare(a,p.key,frame.time,visualHeading,p.speed):visualHeading;a.lastHeading=heading+locomotionTurnStep(Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading)),dt);
    if(!a.holder.visible)return;
    // Mixer property bindings can skip unchanged values. Restore the last
    // clean imported pose before evaluating them; never feed last frame's
@@ -96,13 +102,15 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    }
    const scheduled=footballActions.action(p.key,frame.time);const capture=a.motion.apply(frame,p,scheduled?.animationActive?scheduled.plan:null);a.wasAction=!!capture;if(capture){a.ballControl?.reset();inspection.activeCaptures.push(capture)}else{const control=a.ballControl?.apply(frame,p);if(control)(inspection.ballControl??=[]).push({key:p.key,...control});let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
    if(a.grounding){const grounded=a.grounding.apply(a,p,frame,capture,dt,{reset:resetActor||previous==='far'||previous==='hidden'});a.groundingReport=grounded;inspection.grounding.push({key:p.key,...grounded})}
+   if(a.grounding&&nearBall)a.motion.clearance(frame,p);
    if(cartoon){footballActions.orientUpperBody(a,p,frame.time);footballActions.validate(a,p,frame,capture);for(const mesh of a.meshes)mesh.skeleton.update();}
    inspection.minFootHeight=Math.min(inspection.minFootHeight,a.footHeight);inspection.maxFootHeight=Math.max(inspection.maxFootHeight,a.footHeight);
   });
-  if(cartoon){const source=lastFrame,volumes=actors.filter(a=>a.holder.visible&&used.has(a)).map(a=>{const p=source.players.find(p=>p.key===a.key),head=a.bones.get('Head').localToWorld(a.headCenterLocal.clone()),hip=a.pelvis.getWorldPosition(new T.Vector3());return{key:a.key,x:head.x,y:head.y,z:head.z,radius:a.headRadius,rootX:hip.x,rootZ:hip.z,sourceX:p.mx,sourceZ:p.mz,freedom:footballActions.action(a.key,frame.time)?.collisionFreedom??(source.owner===a.key?.25:1)}}),resolved=collisions.finalize(volumes);
+  if(cartoon){for(let projection=0;projection<3;projection++){const source=lastFrame,volumes=actors.filter(a=>a.holder.visible&&used.has(a)).map(a=>{const p=source.players.find(p=>p.key===a.key),head=a.bones.get('Head').localToWorld(a.headCenterLocal.clone()),hip=a.pelvis.getWorldPosition(new T.Vector3());return{key:a.key,x:head.x,y:head.y,z:head.z,radius:a.headRadius,rootX:hip.x,rootZ:hip.z,sourceX:p.mx,sourceZ:p.mz,freedom:footballActions.action(a.key,frame.time)?.collisionFreedom??(source.owner===a.key?.25:1)}}),resolved=collisions.finalize(volumes);
    for(const a of actors){const offset=resolved.shifts.get(a.key);if(!offset||Math.hypot(offset.x,offset.z)<1e-7)continue;a.holder.position.x+=offset.x;a.holder.position.z+=offset.z;a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();const p=source.players.find(p=>p.key===a.key);a.motion.clearance(source,p);}
-   inspection.actualCollisions=resolved.diagnostics;
-  }
+   inspection.actualCollisions={...resolved.diagnostics,projectionPasses:projection+1};
+   if(resolved.diagnostics.maxAdditionalShift<1e-7)break;
+  }}
   inspection.footballActions=footballActions.inspect();
   // A lineup can shrink after a real dismissal/substitution. Never leave an
   // unused avatar or a stale far-LOD point from the preceding frame visible.

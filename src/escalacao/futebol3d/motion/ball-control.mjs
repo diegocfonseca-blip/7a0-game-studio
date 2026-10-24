@@ -20,6 +20,10 @@ export function createBallControl(actor){
   // An official owner can be assigned before the interpolated ball arrives.
   // Do not claim a touch or drag the avatar toward a distant/airborne ball.
   if(engaged&&(p.speed>1.2||receiving)&&ball.y<.28&&gap>.012&&gap<.4){desired.copy(ball).sub(hit.surface).setY(0);if(desired.lengthSq()>1e-10)desired.setLength(Math.min(receiving?.08:.18,gap-.012));}
+  // Ball alignment must not cancel the lateral escape chosen by navigation.
+  // If a foot is not reachable under both constraints, report the gap rather
+  // than pulling the carrier back through the defender.
+  const nav=actor.navigationOffset,avoid=nav?new T.Vector3(nav.x,0,nav.z):new T.Vector3();if(avoid.lengthSq()>.0009){const strength=T.MathUtils.smoothstep(avoid.length(),.03,.15);avoid.normalize();const opposed=Math.min(0,desired.dot(avoid));desired.addScaledVector(avoid,-opposed*strength);}
   const alpha=dt>0&&dt<=.5?1-Math.exp(-dt/.1):0;offset.lerp(desired,alpha);if(offset.length()<1e-5)offset.set(0,0,0);
   actor.holder.position.add(offset);actor.holder.updateMatrixWorld(true);
   if(!engaged||ball.y>.28)return commit(offset.lengthSq()?{kind:'release',offset:offset.length(),provisional:true}:null);

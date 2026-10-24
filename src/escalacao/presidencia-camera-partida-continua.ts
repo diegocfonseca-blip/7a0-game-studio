@@ -10,7 +10,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone()};mode=next;returning=false;moving=true;last=undefined;onMode(mode)}else enterFree()},
   explore(){enterFree(false)},
-  update(ball:{x:number;y:number;z:number},now:number,subjects:readonly AlvoCameraFutebol[]=[]){
+  update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[]){
+   ball=ball.presentation??ball
    const dt=last===undefined?1/60:MathUtils.clamp((now-last)/1000,0,.1);last=now
    if(mode==='free'&&!returning){moving=false;return}
    const fit=mode!=='free'?enquadramentoFutebol(camera,ball,subjects,mode==='tactical'):null

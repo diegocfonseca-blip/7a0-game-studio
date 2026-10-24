@@ -18,8 +18,10 @@ export class FutebolOficial3D {
  private visualTime=0
  private travel=new Map<number,{x:number;y:number;distance:number}>()
  constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
+ private hasRestartPlacement(){const g=this.game,b=g.bola,p=g.bolaAnt;return g.parada?.tipo==='saida'&&(Math.hypot(b.x-(p.x??b.x),b.y-(p.y??b.y))>2.5||g.atl.some(a=>Math.hypot(a.x-(a.ax??a.x),a.y-(a.ay??a.y))>2.5))}
  private spinPoint(time=0,commit=false):PontoRotacaoBola{
   const g=this.game,b=g.bola,a=g.entre,p=g.bolaAnt,mix=(old:number|undefined,n:number)=>old===undefined?n:old+(n-old)*a
+  if(this.hasRestartPlacement())return{x:b.y-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-34,held:true}
   const point={x:mix(p.y,b.y)-52.5,y:mix(p.h,b.h)+RAIO_BOLA_FUTEBOL_3D,z:mix(p.x,b.x)-34,held:!!b.dono&&b.h>.3}
   return this.goalFinish.sample(point,time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined,commit).position
  }
@@ -34,7 +36,7 @@ export class FutebolOficial3D {
   while(this.spinTick<tick){this.spinTick++;this.game.avancaAte((this.spinTick/120)/(90/93));this.spin.step(this.spinPoint(this.spinTick/120,true),1/120)}
   this.game.avancaAte(target)
   const rotation=this.spin.preview(this.spinPoint(time),Math.max(0,time-this.spinTick/120)).toArray() as [number,number,number,number]
-  const g=this.game,alpha=g.entre,mix=(a:number|undefined,b:number)=>a===undefined?b:a+(b-a)*alpha
+  const placementReset=this.hasRestartPlacement(),g=this.game,alpha=g.entre,mix=(a:number|undefined,b:number)=>a===undefined?b:a+(b-a)*alpha
   const key=(p:typeof g.atl[number])=>identidadeAtleta3D(p.lado===0?'home':'away',p.nome,p.carta?.club,p.carta?.year)
   const players=g.atl.map(p=>{
    const side=p.lado===0?'home' as const:'away' as const
@@ -45,7 +47,7 @@ export class FutebolOficial3D {
    this.travel.set(p.id,{x:mx,y:mz,distance})
    return {id:card?.id??String(p.id),name:p.nome,pos:card?.pos??p.carta?.pos??(p.grupo==='GOL'?'GOL':'MEI'),key:key(p),side,keeper:p.grupo==='GOL',x:mx/105+.5,y:mz/68+.5,mx,mz,
     heading:speed>.05?Math.atan2(p.vy,p.vx):Math.atan2(g.bola.y-p.y,g.bola.x-p.x),speed,distance,
-    kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel}
+    kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
   })
   const b=g.bola,previous=g.bolaAnt
   const action=b.lance?.tipo
@@ -53,7 +55,7 @@ export class FutebolOficial3D {
   const dt=Math.max(0,Math.min(.25,time-this.visualTime));this.visualTime=time
   if(dt>0){const dx=(b.y-52.5)*.78-this.referee.x,dz=(b.x-34)*.55-this.referee.z,length=Math.hypot(dx,dz),step=g.fim?0:Math.min(length*(1-Math.exp(-dt/.9)),7*dt);if(length>.001){this.referee.x+=dx/length*step;this.referee.z+=dz/length*step;this.referee.heading=Math.atan2(dx,dz)}this.referee.speed=g.fim?0:step/dt;this.referee.distance+=step}
   const presented=this.goalFinish.sample({x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
-  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0}:undefined,
+  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,placementReset:placementReset||undefined,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
  }

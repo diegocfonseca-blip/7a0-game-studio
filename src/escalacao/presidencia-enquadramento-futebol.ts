@@ -1,8 +1,9 @@
 import {MathUtils,PerspectiveCamera,Vector3} from 'three'
-export type AlvoCameraFutebol={mx:number;mz:number;visible?:boolean}
-export type BolaCameraFutebol={x:number;y:number;z:number}
+export type AlvoCameraFutebol={mx:number;mz:number;visible?:boolean;presentation?:{x:number;z:number}}
+export type BolaCameraFutebol={x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}}
 /** Metres only. Fits the ball and nearby action, never scales characters. */
 export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFutebol,subjects:readonly AlvoCameraFutebol[]=[],tactical=false){
+ ball=ball.presentation??ball;subjects=subjects.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)
  const portrait=camera.aspect<1,near=subjects.filter(p=>p.visible!==false&&Math.hypot(p.mx-ball.x,p.mz-ball.z)<(portrait?14:22)).sort((a,b)=>Math.hypot(a.mx-ball.x,a.mz-ball.z)-Math.hypot(b.mx-ball.x,b.mz-ball.z)).slice(0,portrait?3:6)
  const target=tactical?new Vector3(0,.6,0):new Vector3(MathUtils.clamp(ball.x,-52.5,52.5),.6,MathUtils.clamp(ball.z,-34,34))
  const points=tactical?[-55,55].flatMap(x=>[-35,35].map(z=>new Vector3(x,2,z))):[

@@ -193,3 +193,50 @@ node scripts/cartoon-football/check-refinements.cjs
 Bancada opcional `mechanics-audit.html?refinement=before` desliga somente essas três camadas novas para comparação; produção mantém o refinamento ligado por padrão no estilo Civil. Não há controle disso na experiência normal do usuário. Antes e depois usam o mesmo replay, uniformes, campo, luz e posições de câmera.
 
 Evidências locais em `test-results/cartoon-football/fundamentos-refinados/`: comparações normal (12 s) e lenta (24 s), versão ajustada separada, seis cenas por vídeo (corrida, frenagem, direção, passe, chute e câmera baixa dos pés), escala, apoio, continuidade de pausa e reprodução. MP4 H.264 baseline/faststart, reprodução testada no Chromium. Vídeos gravados antes da proteção de repetição do mesmo timestamp; o fluxo progressivo desses vídeos não muda com essa proteção. Não houve teste em aparelho físico. Recuperação prévia: branch `recovery/antes-refino-apoio-20261024`, commit `613dec46`. Nada publicado ou escrito no banco.
+
+## Partida inteira, quadro a quadro — 24/10/2026
+
+A nova auditoria usa o mesmo replay oficial **Rei da Bola FC 1×1 Neymarzetti**, 82 eventos, 22 atletas. `audit-whole-match.cjs` percorre 94 s a 60 Hz (5.641 quadros, 124.080 intervalos de atleta), incluindo quem está sem bola. Outra execução a 30 Hz (2.821 quadros) corresponde à taxa da nova gravação. Nenhum save, rodada ou banco foi alterado.
+
+Problemas reproduzidos e corrigidos:
+
+| Problema | Causa | Correção |
+| --- | --- | --- |
+| Trancos nas disputas | Projeções finais de até 60 cm voltavam para um cache de navegação limitado a 38 cm; o clamp seguinte e as projeções preditivas podiam virar o deslocamento bruscamente. | O alvo continua em 38 cm, mas a projeção histórica até 60 cm retorna suavemente. Correção preditiva limitada a 4 m/s fora dos contatos programados; volumes reais de cabeça/corpo ainda têm a palavra final sobre a separação. |
+| Colisão após gol | O motor coloca temporariamente três atletas na mesma coordenada; resolver todos sobre uma linha não cabe no orçamento do modelo caricato. | Distribuição determinística em duas dimensões para âncoras coincidentes. Mesma formação/decisões oficiais, apenas separação residual. Teste de três e quatro cabeças de raio 38 cm mantém distância mínima >=75 cm dentro de 60 cm de ajuste por avatar. |
+| Pé dentro da bola em 81,3667 s | Ajuste do corpo vinha depois da checagem da chuteira. | Nova checagem da superfície dos pés após grounding e até três projeções combinadas de corpo/bola quando necessárias. |
+| Condução anulando desvio | O alinhamento para a bola podia puxar a raiz de volta contra o desvio do defensor. | Remove gradualmente do alvo de alinhamento o componente oposto à navegação. O gap continua registrado quando a captura/alcance não permite tocar. |
+| Corrida brevemente oposta ao deslocamento | Rotação muito lenta em reversões e derivações do ajuste visual. | Taxa de orientação de 8–14 rad/s conforme o ângulo, sem mudar o caminho ou criar um ciclo de ossos. As observações em jogo corrido caíram de 69 para 17; não são 17 jogadas automaticamente inválidas. |
+| Bola atravessando o campo no reinício | Interpolação entre estados descontínuos do mesmo motor após gol/intervalo. | `placementReset` e posições de apresentação usam o estado corrente oficial nesses instantes. Coordenadas interpoladas brutas continuam intactas para paridade. Não é uma trajetória nova nem correção de chute por teleporte. |
+| Câmera mirando ponto diferente da bola visível | A bola já podia ter continuação de gol/apresentação, mas a câmera usava apenas XYZ bruto. | Enquadramento considera a mesma posição apresentada pelo mesh; modo livre e câmera única permanecem. |
+| Pose se mexendo ao pausar disputa | Mesmo timestamp reexecutava a resolução e realimentava ajustes. | Reutiliza a pose final quando fonte e LOD não mudaram; sem avanço de gait em dt=0. Antes, repetição em 67,8 s deslocava até 33 cm; agora zero nos quatro casos testados, também em quaternions. |
+| Vídeo cortado | Gravação completa anterior era 12 fps. | Nova gravação a 30 fps, 800×450, H.264 baseline/faststart; isso não é FPS medido em celular. Codificação usa o número exato de quadros do recibo para não consumir sobras de outra gravação. |
+
+Validação final em 60 e 30 Hz: **zero conflitos dos volumes testados, penetrações pé–bola, piso negativo, excesso do orçamento de raiz ou passos extras bruscos fora do reposicionamento oficial**. Os sete indicadores de passo extra a 60 Hz e quatro a 30 Hz remanescentes coincidem com `placementReset`, sem ser deslocamentos de jogo corrido. Os três reposicionamentos oficiais continuam instantâneos (dois gols e intervalo); não foram transformados em uma nova simulação de transporte da bola.
+
+A paridade independente continua com erro zero em 20.702 posições/941 instantes; teste novo verifica 11.281 estados e os três intervalos de reposicionamento, com rotação estável na bola parada e enquadramento do ponto visível. Os 48 contatos programados passaram. Redes: dois gols, 606 amostras de contato, sem reação antecipada/oposta; rotação: mesma orientação em 12/30/60/120 Hz e ao rebobinar. Malha, rig de 23 ossos, bind, skinning e 17 clipes preservados.
+
+Limitações que a auditoria não aprova por tabela:
+
+- 17 observações breves de orientação em jogo corrido, ainda sujeitas a revisão visual de transição/pivô.
+- 535 observações de bola baixa com posse oficial e distância da chuteira >22 cm. Isso inclui posse antes da chegada interpolada, preparação e toques espaçados; não são 535 erros confirmados. Gap máximo ~2,04 m. Domínio e condução continuam provisórios, sem captura dedicada.
+- Uma defesa/encaixe oficial em 59,10 s (Ever Almeida), sem captura específica de goleiro validada.
+- Os dois titulares têm muito branco e pouco contraste à distância; ambos têm `away:null` no catálogo local. Não foi inventada reserva oficial.
+- A fixture tem duas faltas, um cruzamento, quatro dribles e uma defesa, mas não possui cabeceio/carrinho. Esses movimentos não podem ser aprovados por esta partida.
+- Foram verificados volumes de cabeça/corpo e superfície das chuteiras, não todos os triângulos de roupa. Sem benchmark em aparelho físico.
+
+Reprodução:
+
+```
+WHOLE_AUDIT_OUT=test-results/cartoon-football/partida-minuciosa/validated node scripts/cartoon-football/audit-whole-match.cjs
+MATCH_AUDIT_HZ=30 WHOLE_AUDIT_OUT=test-results/cartoon-football/partida-minuciosa/video-rate node scripts/cartoon-football/audit-whole-match.cjs
+node scripts/cartoon-football/test-collision-clusters.mjs
+node scripts/cartoon-football/test-paused-disputes.cjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/test-restart-presentation.mjs
+MATCH_RECORDING_OUT=test-results/cartoon-football/partida-minuciosa/video MATCH_RECORDING_WIDTH=800 node scripts/cartoon-football/record-match.cjs
+MATCH_RECORDING_OUT=test-results/cartoon-football/partida-minuciosa/video node scripts/cartoon-football/encode-match.mjs
+MATCH_RECORDING_OUT=test-results/cartoon-football/partida-minuciosa/video MATCH_RECORDING_WIDTH=800 node scripts/cartoon-football/check-videos.cjs
+node scripts/cartoon-football/report-whole-match.mjs
+```
+
+`report-whole-match.mjs` compara a auditoria inicial preservada em `whole-match.json` com `validated/whole-match.json`; exige os invariantes finais e gera `summary.json`/`analise.html`. Evidências fora do Git em `test-results/cartoon-football/partida-minuciosa/`: partida completa de 94,033 s a 30 fps, sete trechos próximos em lenta (21 s), métricas, reprodução e pausas. Gravação usa o campo existente em bancada isolada; não retrata o estádio da cidade. A reutilização de pose pausada foi acrescentada depois da filmagem, sem mudar os quadros progressivos da partida. Recuperação: `recovery/antes-auditoria-11x11-20261024` em `b4b5d1c4`. Nada publicado; motor oficial, equilíbrio competitivo e banco preservados.
