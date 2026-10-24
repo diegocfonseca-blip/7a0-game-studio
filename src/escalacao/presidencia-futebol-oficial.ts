@@ -4,6 +4,7 @@ import type {FaseFutebol,QuadroFutebol} from './presidencia-futebol-motor'
 import {RotacaoBola3D,RAIO_BOLA_FUTEBOL_3D,type PontoRotacaoBola} from './presidencia-bola-rotacao'
 import {GolApresentacao3D} from './presidencia-gol-apresentacao'
 import {identidadeAtleta3D} from './presidencia-futebol-identidade'
+import {descreverEntregaOficial3D,type EntregaOficial3D} from './presidencia-entrega-oficial'
 
 /** Adapter only: the career's exact input owns decisions, ball, goals and roles.
  * No result is persisted here, and cameras never write into the match engine. */
@@ -17,7 +18,17 @@ export class FutebolOficial3D {
  private referee={x:0,z:10,heading:0,distance:0,speed:0}
  private visualTime=0
  private travel=new Map<number,{x:number;y:number;distance:number}>()
+ private deliveryKey:string|null=null
+ private delivery:EntregaOficial3D|undefined
  constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
+ private observeDelivery(){
+  const b=this.game.bola,l=b.lance
+  if(!l){this.deliveryKey=null;this.delivery=undefined;return}
+  const key=l.tipo+':'+l.de.id+':'+l.t0
+  if(key===this.deliveryKey)return
+  this.deliveryKey=key
+  this.delivery=descreverEntregaOficial3D(l.tipo,{x:b.vy,y:b.vh,z:b.vx},b.h+RAIO_BOLA_FUTEBOL_3D,l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):null)
+ }
  private hasRestartPlacement(){const g=this.game,b=g.bola,p=g.bolaAnt;return g.parada?.tipo==='saida'&&(Math.hypot(b.x-(p.x??b.x),b.y-(p.y??b.y))>2.5||g.atl.some(a=>Math.hypot(a.x-(a.ax??a.x),a.y-(a.ay??a.y))>2.5))}
  private spinPoint(time=0,commit=false):PontoRotacaoBola{
   const g=this.game,b=g.bola,a=g.entre,p=g.bolaAnt,mix=(old:number|undefined,n:number)=>old===undefined?n:old+(n-old)*a
@@ -28,13 +39,14 @@ export class FutebolOficial3D {
  sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
   const time=target*90/93,tick=Math.floor(time*120+1e-9)
-  while(this.spinTick<tick){this.spinTick++;this.game.avancaAte((this.spinTick/120)/(90/93));this.spin.step(this.spinPoint(this.spinTick/120,true),1/120)}
+  while(this.spinTick<tick){this.spinTick++;this.game.avancaAte((this.spinTick/120)/(90/93));this.observeDelivery();this.spin.step(this.spinPoint(this.spinTick/120,true),1/120)}
   this.game.avancaAte(target)
+  this.observeDelivery()
   const rotation=this.spin.preview(this.spinPoint(time),Math.max(0,time-this.spinTick/120)).toArray() as [number,number,number,number]
   const placementReset=this.hasRestartPlacement(),g=this.game,alpha=g.entre,mix=(a:number|undefined,b:number)=>a===undefined?b:a+(b-a)*alpha
   const key=(p:typeof g.atl[number])=>identidadeAtleta3D(p.lado===0?'home':'away',p.nome,p.carta?.club,p.carta?.year)
@@ -55,7 +67,7 @@ export class FutebolOficial3D {
   const dt=Math.max(0,Math.min(.25,time-this.visualTime));this.visualTime=time
   if(dt>0){const dx=(b.y-52.5)*.78-this.referee.x,dz=(b.x-34)*.55-this.referee.z,length=Math.hypot(dx,dz),step=g.fim?0:Math.min(length*(1-Math.exp(-dt/.9)),7*dt);if(length>.001){this.referee.x+=dx/length*step;this.referee.z+=dz/length*step;this.referee.heading=Math.atan2(dx,dz)}this.referee.speed=g.fim?0:step/dt;this.referee.distance+=step}
   const presented=this.goalFinish.sample({x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
-  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,placementReset:placementReset||undefined,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0}:undefined,
+  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,placementReset:placementReset||undefined,owner:b.dono?key(b.dono):undefined,officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
  }

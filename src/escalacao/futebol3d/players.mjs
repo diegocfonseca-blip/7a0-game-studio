@@ -119,6 +119,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    if(resolved.diagnostics.maxAdditionalShift<1e-7)break;
   }}
   inspection.footballActions=footballActions.inspect();
+  inspection.receiving=footballActions.inspectReceptions();
   // A lineup can shrink after a real dismissal/substitution. Never leave an
   // unused avatar or a stale far-LOD point from the preceding frame visible.
   for(const a of actors)if(!used.has(a)){a.holder.visible=false;a.detail='hidden'}

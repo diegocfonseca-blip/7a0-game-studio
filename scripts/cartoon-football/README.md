@@ -294,3 +294,25 @@ node scripts/cartoon-football/record-pass-catch.cjs
 ```
 
 Hash CMU 33_02: `a8ee7cfa4c676248cf4b59d3be52b78d42842fe89f2c5784b53b658b2ea0aa83`, mesmo espelho/revisão registrados na seção anterior. Não comprar, usar conta externa, alterar save/rodada nem publicar nesta correção.
+
+## Variedade de entregas oficiais — 24/10, local
+
+O adaptador agora registra, no primeiro tick canônico de cada lance, velocidade de saída (vetor 3D), altura, distância ao receptor, classe de velocidade e família de apresentação. Não escreve no Motor2 nem muda trajetória/força/resultado. A classificação usa os valores reais: uma `inversao` pode ser rasteira. Chute ascendente não vira automaticamente cavadinha, colocado ou curva. `powerBand` é uma faixa descritiva de velocidade para apresentação, não força medida em newtons. `freeFlightApex` é previsão de voo livre; não é o pico observado quando há recepção/interferência.
+
+`presidencia-entrega-oficial.ts` e o relógio canônico do adaptador mantêm esses dados iguais em 12/30/60/120 Hz e após seek. Os perfis revisados recebem os requisitos correspondentes por `compile-delivery-profiles.mjs`, com hash de entrada/motor conferidos. Nenhum clipe é escolhido aleatoriamente só para aparentar variedade. O controlador expõe os requisitos e o receptor passa a acompanhar a altura real da bola com ajuste limitado de cabeça sobre a animação adquirida; isso NÃO certifica uma captura de domínio aéreo.
+
+Catálogo atual:59eventos de passe/enfiada/cruzamento/chute;58 têm metadados observáveis no primeiro tick,56 têm janela de velocidade pós-contato sem interferência. Arthur2,05s é explicitamente não observável antes da troca seguinte. Mesma partida1×1/82eventos. Cruzamento12,35s atinge3,74m na janela observada; chutes14,1/39,85/58,05s atingem0,94/3,91/2,72m. Velocidades são medidas, não três técnicas de finalização certificadas.
+
+O ajuste do cruzamento de Loco Abreu foi investigado com7.150combinações de12clipes CMU existentes, depois relaxamento até60°de corpo e tentativa residual de tornozelo. **Nenhum gesto aprovado:** os contatos geométricos tocavam a parte superior da bola ou o pé se afastava no impacto, incompatíveis com a saída ascendente. `cross-candidate.json` e variantes mantêm`candidate:null`; não integrar antigos candidatos apenas horizontais. A lacuna é desse lance/rig/acervo, não impossibilidade de todo passe aéreo. Não alterar rig/anatomia nem inventar arquivos CMU para contorná-la. O grupo oficial10tem01/02/03/05/06(chute) e04(caminhada);11_01é o sexto chute já adquirido.10_07–10_10não estão na sessão.
+
+Continuam pendentes gesto de levantamento/cruzamento, recepção aérea específica, execução colocada e curva física. O Motor2 não tem desvio lateral por giro/Magnus; a rotação visual da bola não autoriza criar uma trajetória diferente no3D. Não modificar o motor oficial nesta etapa.
+
+```sh
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/build-delivery-catalog.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/compile-delivery-profiles.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/test-delivery-profiles.mjs
+node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/fit-aerial-cross.mjs
+node scripts/cartoon-football/record-delivery-varieties.cjs
+```
+
+Evidências em `test-results/cartoon-football/variedades/`. Vídeo distingue trajetória oficial existente de gesto ainda pendente. Recuperação anterior `recovery/antes-variedades-20261024` em`d3ab4978`. Sem publicação, DB, rodada nova, motor alterado ou asset comprado.
