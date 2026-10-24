@@ -45,6 +45,7 @@ import { GalaWenMilan, WENMILAN_MS } from './gala-wenmilan'
 import { GalaInterVale, INTERVALE_MS } from './gala-intervale'
 import { GalaSeven, SEVEN_MS } from './gala-seven'
 import { GalaFutpoint, FUTPOINT_MS } from './gala-futpoint'
+import { GalaGuimaraes, GUIMARAES_MS } from './gala-guimaraes'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -66,6 +67,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Futpoint FC': { ms: FUTPOINT_MS, Show: GalaFutpoint }, // 📍🔴 o Pontinho entra AO VIVO: moldura de live, chat, plataformas e as lives 18h/21h (18/10, Fundador)
   'Cuiudos FC': { ms: CUIUDOS_MS, Show: GalaCuiudos }, // 🤠🔵 porteira, caminhonete, chapéu e laço no escudo (17/10, Fundador)
   'Inter Vale FC': { ms: INTERVALE_MS, Show: GalaInterVale }, // 🥊⚫⚪ ringue, gongo, o Lutador soca e trinca a tela, DISCIPLINA·FORÇA·VALE (21/10, virou Fundador)
+  'Guimarães SCI': { ms: GUIMARAES_MS, Show: GalaGuimaraes }, // 🌪️🔴 o Saci chega no redemoinho e pousa numa perna só (23/10, virou Fundador)
   'Wen Milan B': { ms: WENMILAN_MS, Show: GalaWenMilan }, // 😈🔴⚫ fogo, tridente cravando, lambida na tela e a diabinha (17/10, Fundador)
 }
 /** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */

@@ -191,6 +191,7 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 // O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
 // Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'jadriovani@gmail.com': 'sfx/torcida-guimaraes-v1.mp3', // 🌪️🔴 Guimarães SCI (23/10, virou Fundador): o canto que o Diego mandou (10 s), gala + carreira
   'souzact12@gmail.com': 'sfx/torcida-geovany-v1.mp3', // Geovany
   'koeppfabio@gmail.com': 'sfx/torcida-fabulous-v1.mp3', // 🦅 Fabão, Fabulous EC (15/10, Fundador): 11 s do vídeo que ele mandou, mesmo padrão do Geovany
   'glaucomiranda@outlook.com': 'sfx/torcida-gavioes-v1.mp3', // 🍀 Seven City (17/10): o mesmo canto do Gaviões SCCP (pedido do Diego)

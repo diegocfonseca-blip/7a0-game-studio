@@ -1,3 +1,39 @@
+## 🌪️🔴 Guimarães SCI virando 🖋 Fundador — gala "O Saci chega no redemoinho" (23/10) — PUBLICADO ("coloque esse áudio e publique")
+- Pedido: *"entrada de gala personalizada… o saci chegando num furacão… em breve dou o canto"*. `gala-guimaraes.tsx` (8,6 s):
+  vento e folhas, o redemoinho nasce e cresce, trovão, o Saci sai girando e pousa numa perna só, fumacinha do cachimbo, escudo
+  com anel de vento, frase ONDE TEM REDEMOINHO, TEM SACI e faixa CHEGOU NA SALA. Ligada em `GALA_UNICA` ('Guimarães SCI').
+  Vídeo `scripts/posts/gala-guimaraes.webm` (`node scripts/video-gala-guimaraes.mjs`).
+- ✅ Canto: o vídeo que o Diego mandou (10 s) → `public/sfx/torcida-guimaraes-v1.mp3` (mono 56 kbps), na gala e na carreira
+  (`AMBIENTE_CARREIRA_POR_EMAIL`, jadriovani). ✅ Plano: ele pagou por fora pro Diego (permuta por indicação, 23/10) → registrado
+  na mão `esc_compras_batismo` (jadriovani, 'plus' = Fundador). Ouro/manual já estavam em `user_colors`.
+- ✅ Tema da sala `guimaraes` (vermelho e branco com o Saci, *"vermelho e branco com o saci o tema"*): `temas-sala.tsx`, foto
+  `scripts/mockups/tema-guimaraes-*.png`. Publicado.
+  o PLANO Fundador no banco entra pelo Pix da subida (Batismo → Fundador = 29,90) — ele já tem fundador nº82 e sócio 63.
+
+## 🔌 Caixa de entrada do dono caía e não religava (23/10, sala RGP7P7 do Futpoint) — CONSERTADO e publicado
+- Sintoma (Diego): convidados não pegavam sobra, não mudavam tática, times completados com os piores. Prova no
+  `esc_realtime_medidor`: a caixa do dono recebeu 116 ações até 22:25 UTC e só 4 nos 9 min seguintes, com os convidados mandando
+  centenas. Às 22:25 a aba do dono ficou escondida (live) → a ligação caiu e voltou; o canal da sala voltou, a caixa não.
+- Conserto (só no aparelho do DONO, nada muda pro convidado): `supabase.channel(tópico)` devolve o canal que já existe — o velho
+  agora é tirado antes; a assinatura olha o status e religa em 2 s se der erro/tempo/fechar; e religa ao voltar pra aba.
+- 🔁 Mesmo dia, 2ª parte (Diego: *"o chat também não aparecia pro Futpoint"*): o canal da SALA tinha a mesma armadilha —
+  `supabase.channel(nome)` devolve o canal velho morto, o dono falava mas não ouvia. `canalLimpo()` (store.tsx) tira o velho da
+  lista NA HORA antes de criar o novo, no canal da sala e na caixa do dono. Provado em node: sem ele, mesmo objeto; com ele, novo.
+  Publicado com o OK dele ("Sim").
+- ⏸️ Ficou de fora, por escolha do Diego (*"tô com medo do convidado fazer algo"*): o reenvio do convidado pela sala quando a caixa
+  não responde em 8 s. Só fazer se ele pedir.
+- Ele perguntou do AVISO pro dono não sair da tela: não existe pro dono (só o banner do convidado, que pede pra chamar o dono). Proposta
+  em aberto, precisa de mockup.
+
+## 🎬🏆 Túnel da final em TELA CHEIA + festa larga no PC + artilheiro/garçom na festa (23/10) — FEITO e publicado
+- Diego viu uma live e *"não vi nada disso"*: o túnel era um cartão de 5 s dentro do quadro do topo. Mockup
+  `scripts/mockups/tunel-festa-hoje-ficaria.png` → *"ok pode fazer"*. `TunelFinal` vira tela cheia na contagem do AUTOMÁTICO
+  (toque fecha; no manual fica só o cartão pra não esconder os controles). `FestaCampeao` ocupa a tela toda no computador.
+- E *"já poderia aparecer o artilheiro que ganhou a copa"* → a festa mostra ⚽ artilheiro + 🅰️ garçom DAQUELA competição, em
+  todas as copas das salas (liga, Copa dos 8, Liberta, Champions, Copa do Mundo, regionais). `garconsRegional` novo em copa-regional.ts.
+- *"Depois que tiver campeão dá pra sair da tela?"*: sim — toque fecha a festa e o botão VOLTAR À SALA já existia embaixo.
+- Bancada: `scripts/teste-tunel-festa/index.html?v=tunel|festa`.
+
 ## ⚽ Parceiro Grêmio Esportivo Campo Grande (23/10) — PUBLICADO 23/10
 Clube de várzea com estádio próprio (~10 mil) em Jurubatuba, Zona Sul de SP. Objetivo: gente no estádio no fim de semana + aluguel
 do campo. Link = WhatsApp (11) 97650-9180 com mensagem pronta.
