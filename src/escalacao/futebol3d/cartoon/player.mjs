@@ -1,11 +1,12 @@
 import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {createCartoonRig} from './rig.mjs';import {dressCartoonKit} from './kit.mjs';
-let modelPromise,clipsPromise;
+let modelPromise,clipsPromise,readyPromise,parsedSource;
 export async function loadCartoonSource(){
  modelPromise??=new GLTFLoader().loadAsync(new URL('../../cidade3d/assets/Casual_Male.glb',import.meta.url).href).catch(e=>{modelPromise=undefined;throw e});
  clipsPromise??=fetch(new URL('./clips.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Animações civis de futebol indisponíveis');return r.json()});
- const [gltf,data]=await Promise.all([modelPromise,clipsPromise]);
- return {gltf,clips:new Map(Object.entries(data.clips).map(([name,clip])=>[name,T.AnimationClip.parse(clip)])),receipt:data};
+ readyPromise??=fetch(new URL('./keeper-ready.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Postura de goleiro indisponível');return r.json()}).catch(()=>null);
+ const [gltf,data,ready]=await Promise.all([modelPromise,clipsPromise,readyPromise]);
+ return parsedSource??={gltf,clips:new Map([...Object.entries(data.clips).map(([name,clip])=>[name,T.AnimationClip.parse(clip)]),...(ready?[['KeeperReady_Loop',T.AnimationClip.parse(ready.clip)]]:[])]),receipt:data};
 }
 export async function createCartoonPlayer(source,config,options={}){
  const actor=createCartoonRig(source.gltf),kit=await dressCartoonKit(actor,config,options);actor.kit=kit;actor.maxPresentationOffset=.6;

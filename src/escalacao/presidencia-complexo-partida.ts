@@ -2,6 +2,7 @@ import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import type {StadiumSave} from './estadiodata'
+import type {PresidenteBaseSave} from './presidencia-carreira'
 import {progressoVisualSetor} from './presidencia-estadio-camadas'
 import {materialSolo3D} from './presidencia-solo-3d'
 import {materialGramado3D} from './presidencia-gramado-material-3d'
@@ -124,7 +125,7 @@ function reservasReais(bench:readonly AtletaEstadio[]|undefined,activeIds:Set<st
 /** Field and match objects for the complex's one renderer. There is no clock,
  * RAF, score update or autonomous simulation here: all poses come from the
  * same shared frame used by the existing live match view. */
-export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void):PartidaComplexo{
+export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined):PartidaComplexo{
  const field=new THREE.Scene();field.name='complexo-campo'
  let disposed=false
  // Build before attaching: the original static batching only sees this field.
@@ -145,10 +146,13 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   if(disposed)return
   if(!current||(!entradaOficialCompleta(current)&&atletasEmCampo(current).length!==22)){clearMatch();return}
   const snapshot=quadroFutebol3D(current,now)
-  if(snapshot.players.length!==22){clearMatch();return}
+  if(!snapshot.players.length||(!current.officialInput&&snapshot.players.length!==22)){clearMatch();return}
   cameraSubjects=snapshot.players
-  const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(snapshot.players.filter(p=>p.side===side).map(p=>p.id))))
-  const signature=JSON.stringify([current.context.id,current.viewerClubId,snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
+  const lineup=current.officialInput?atletasEmCampo(current):snapshot.players
+  const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(lineup.filter(p=>p.side===side).map(p=>p.id))))
+  // A dismissal hides/releases the existing slot; it must neither erase the
+  // pitch nor rebuild every avatar while their replacement models load.
+  const signature=JSON.stringify([current.context.id,current.viewerClubId,current.officialInput??snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
   if(match?.signature!==signature){
    clearMatch()
    const root=new THREE.Scene();root.name='complexo-partida'
@@ -156,11 +160,11 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
     const body=person(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor,['#b9815b','#805439','#d5aa80'][i%3],p.keeper)
     body.group.name=p.key;root.add(body.group);return [p.key,body] as const
    }))
-   const referee=person('#efc42f','#a87250');referee.group.name='match-referee';root.add(referee.group)
+   const referee=person('#efc42f','#a87250');referee.group.name='match-referee';root.add(referee.group);referee.group.visible=!current.officialInput
    const coaches:{body:Body;x:number}[]=[],reserves:{body:Body;side:'home'|'away';keeper:boolean}[]=[]
    // The bench and coach retain the original north touchline placement.
    for(const [i,x] of [-18,18].entries()){
-    const side=i?'away':'home',area=new THREE.Group();area.name=side+'-technical-area';area.position.x=x;area.rotation.y=Math.PI;root.add(area)
+    const side=i?'away':'home',area=new THREE.Group();area.name=side+'-technical-area';area.position.x=x;area.rotation.y=Math.PI;area.visible=!current.officialInput;root.add(area)
     const coach=person('#28343b','#ad805d');coach.group.name=side+'-coach';coach.group.position.set(0,0,-TECNICO_Z);coach.group.rotation.y=Math.PI;area.add(coach.group);coaches.push({body:coach,x})
     const benchMaterial=material('#384c51'),legsMaterial=material('#afb3ae')
     box(area,10,.12,.65,0,.29,-BANCO_Z,benchMaterial).name=side+'-bench-seat'
@@ -174,10 +178,10 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
     })
     const white=material('#e9e5d9');for(const dx of [-6,6])box(area,.10,.025,2.4,dx,.03,35.6,white);box(area,12,.025,.1,0,.03,34.4,white)
    }
-   const people=instanciarPersonagens(root,[...[...bodies.values()].map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...reserves.map(r=>r.body.group)])
+   const people=instanciarPersonagens(root,current.officialInput?[]:[...[...bodies.values()].map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...reserves.map(r=>r.body.group)])
    const ball=criarBolaFutebol3D();root.add(ball)
    scene.add(root);match={root,signature,bodies,referee,coaches,reserves,ball,people}
-   if(current.officialInput){const target=match;import('./futebol3d/players.mjs').then(module=>module.loadPlayers(root,current,snapshot)).then(players=>{if(disposed||match!==target){players.dispose();return}target.humanoids=players;onReady?.()}).catch(error=>console.error('Humanoide 3D indisponível',error))}
+   if(current.officialInput){const target=match;import('./futebol3d/players.mjs').then(module=>module.loadPlayers(root,current,snapshot,{president:getPresident?.(),onPrepared:()=>{if(!disposed&&match===target)onReady?.()}})).then(players=>{if(disposed||match!==target){players.dispose();return}target.humanoids=players;onReady?.()}).catch(error=>console.error('Humanoide 3D indisponível',error))}
   }
   const {bodies,referee,coaches,reserves,ball,people}=match
   for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}

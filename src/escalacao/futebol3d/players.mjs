@@ -15,14 +15,17 @@ import {playerDetail,PLAYER_HEIGHT} from './lod.mjs';
 import {loadReviewedMotion,loadGaitCalibration,bindCapturedMotion} from './reviewed-motion.mjs';
 import {loadCartoonSource,createCartoonPlayer} from './cartoon/player.mjs';
 import {createBallControl} from './motion/ball-control.mjs';
+import {BallTouchPresentation} from './motion/ball-touch-presentation.mjs';
+import {loadSidelines} from './sidelines.mjs';
 
 let source,users=0;const kitRegistry=new Set(clubKits);
 const releaseKits=()=>{releaseMatchKits([...kitRegistry]);kitRegistry.clear();};
 const load=()=>source??=new GLTFLoader().loadAsync(new URL('./assets/quaternius.glb',import.meta.url).href).catch(error=>{source=undefined;throw error});
 /** Shared original geometry, separate skeletons. Existing reviewed garment fit.
- * Captures are enabled only for the exact reviewed official input. */
+ * Reviewed captures are retained for their original replay. Other inputs get
+ * their own contact schedule and fitted acquired captures, never old markers. */
 let cartoonMotionPromise,keeperMotionPromise;
-export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refineFundamentals=true,refinePossession=true,keeperTrial=undefined}={}){
+export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refineFundamentals=true,refinePossession=true,refineBallTouches=true,forceRuntimeMotion=false,reviewedOnly=false,onPrepared=undefined,keeperTrial=undefined,president=undefined}={}){
  const kitPlan=matchKitPlan(state,(state.officialTeams??[]).map(clubKitFor),(state.officialTeams??[]).map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[])),matchKitConfigs=kitPlan.map(p=>p.config).filter(Boolean);
  const cartoon=style==='civil-cartoon';let civil=cartoon?await loadCartoonSource():null;
  const [gltf,originalMotion,originalGait]=await Promise.all([civil?.gltf??load(),loadReviewedMotion(state.officialInput,{metadataOnly:cartoon}),loadGaitCalibration()]);
@@ -31,7 +34,8 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
  if(keeperTrial===undefined&&cartoon&&originalMotion){const reviewed=await(keeperMotionPromise??=fetch(new URL('./cartoon/keeper.json',import.meta.url)).then(r=>{if(!r.ok)throw Error('Recepção de goleiro indisponível');return r.json()}));keeperTrial=reviewed.inputSHA256===originalMotion.inputSHA256?reviewed:null;}
  if(keeperTrial&&(!originalMotion||keeperTrial.inputSHA256!==originalMotion.inputSHA256))throw Error('Teste de goleiro pertence a outra partida');
  if(civil&&keeperTrial)civil={...civil,clips:new Map([...civil.clips,...Object.entries(keeperTrial.clips).map(([n,c])=>[n,T.AnimationClip.parse(c)])])};
- const motion=cartoon?(originalMotion&&fitted.inputSHA256===originalMotion.inputSHA256?{...fitted,clips:new Map([...civil.clips].filter(([name])=>!name.endsWith('_Loop')))}:null):originalMotion,gait=fitted?.gait??originalGait,actors=[];users++;
+ let motion=cartoon?(!forceRuntimeMotion&&originalMotion&&fitted.inputSHA256===originalMotion.inputSHA256?{...fitted,clips:new Map([...civil.clips].filter(([name])=>!name.endsWith('_Loop')))}:null):originalMotion,preparationFailed=false;
+ const gait=fitted?.gait??originalGait,actors=[];users++;
  matchKitConfigs.forEach(config=>kitRegistry.add(config));
  try{
   const initial=frame.players;
@@ -45,28 +49,39 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
     const pelvis=meshes[0].skeleton.getBoneByName('pelvis'),rest=pelvis.position.clone(),kit=club==='Neymarzetti'&&!keeper?await dressUniversalKit({meshes},kitPlan[p.side==='home'?0:1].config??neymarzetti,{number,quality:'light'}):await dressNeutralKit({meshes},{number,quality:'light',shirtColor:keeper?'#d6b329':kitPlan[p.side==='home'?0:1].color});actor={holder,root,meshes,mixer,actions,pelvis,rest,kit,footIndices:kit.template.data.part.map((p,i)=>p===3?i:-1).filter(i=>i>=0)};
    }
    Object.assign(actor,{current:null,side:p.side,key:p.key,keeper,gaitPhase:0,lastDistance:0,wasAction:false,lastHeading:null,lastPose:-Infinity,detail:'full',groundOffset:0,footHeight:0});
-   actor.measurements={neutralHeight:new T.Box3().setFromObject(actor.holder,true).getSize(new T.Vector3()).y,rigBones:actor.meshes[0].skeleton.bones.length};actor.motion=bindCapturedMotion(actor,motion);actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());actor.headIntentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('Head').getWorldQuaternion(new T.Quaternion()).invert());if(cartoon){const headBox=new T.Box3().setFromObject(actor.meshes[4],true);actor.headCenterLocal=actor.bones.get('Head').worldToLocal(headBox.getCenter(new T.Vector3()));actor.headRadius=Math.max(headBox.max.x-headBox.min.x,headBox.max.z-headBox.min.z)/2;}if(cartoon)actor.ballControl=createBallControl(actor,{sourceLead:refinePossession});actor.grounding=cartoon&&refineFundamentals?new LocomotionGrounding():null;actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
+   actor.measurements={neutralHeight:new T.Box3().setFromObject(actor.holder,true).getSize(new T.Vector3()).y,rigBones:actor.meshes[0].skeleton.bones.length};actor.motion=bindCapturedMotion(actor,motion??(cartoon?{clips:new Map([...civil.clips].filter(([name])=>!name.endsWith('_Loop')))}:null));actor.intentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()).invert());actor.headIntentAxis=new T.Vector3(0,0,1).applyQuaternion(actor.bones.get('Head').getWorldQuaternion(new T.Quaternion()).invert());if(cartoon){const headBox=new T.Box3().setFromObject(actor.meshes[4],true);actor.headCenterLocal=actor.bones.get('Head').worldToLocal(headBox.getCenter(new T.Vector3()));actor.headRadius=Math.max(headBox.max.x-headBox.min.x,headBox.max.z-headBox.min.z)/2;}if(cartoon)actor.ballControl=createBallControl(actor,{sourceLead:refinePossession});actor.grounding=cartoon&&refineFundamentals?new LocomotionGrounding():null;actor.nativePose=[...actor.bones.values()].map(bone=>({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone()}));actors.push(actor);scene.add(actor.holder);
   }
  }catch(error){for(const a of actors){a.kit.dispose();a.holder.removeFromParent();a.mixer.stopAllAction()}if(--users===0){releaseNeutralKits();releaseKits()}throw error}
+ let sidelines=null;try{if(cartoon)sidelines=await loadSidelines(scene,civil,state,frame,kitPlan,{president,gait});}catch(error){console.warn('Equipe de apoio 3D indisponível; preservando os atletas e o replay',error)}
  const pointsGeometry=new T.BufferGeometry(),positions=new Float32Array(actors.length*3),colors=new Float32Array(actors.length*3);
  positions.fill(-10000);pointsGeometry.setAttribute('position',new T.BufferAttribute(positions,3));pointsGeometry.setAttribute('color',new T.BufferAttribute(colors,3));
  const pointsMaterial=new T.PointsMaterial({size:PLAYER_HEIGHT,sizeAttenuation:true,vertexColors:true}),points=new T.Points(pointsGeometry,pointsMaterial);pointsMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('gl_PointSize = size;', 'gl_PointSize = size * projectionMatrix[1][1];');shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec2 silhouette=(gl_PointCoord-vec2(.5))/vec2(.18,.5);if(dot(silhouette,silhouette)>1.)discard;')};
  pointsMaterial.customProgramCacheKey=()=> 'football-points-physical-metres-v1';
  points.name='football-physical-scale-lod';points.frustumCulled=false;scene.add(points);
- let lastTime=null,disposed=false,lastFrame=null,lastInputFrame=null,ballOverride=null,inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:0,maxFootHeight:0,physicalPlayerHeight:PLAYER_HEIGHT,locomotionCalibrated:true};
+ let lastTime=null,disposed=false,lastFrame=null,lastInputFrame=null,ballOverride=null,presentedBall=null,pendingMotion=null,inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:0,maxFootHeight:0,physicalPlayerHeight:PLAYER_HEIGHT,locomotionCalibrated:true};
+ const ballTouches=new BallTouchPresentation();
  const soleShadows=cartoon&&refineFundamentals?groundContactShadows(scene,actors.length):null;
  const point=new T.Vector3(),footballActions=new FootballActionController(motion?[...motion.plans,...motion.rejected.filter(p=>p.key!==keeperTrial?.plan.key).map(p=>({...p,unsupported:true}))]:[]),collisions=new VisualPlayerCollisions();
+ // Models and the official clock remain available during preparation. Adopt
+ // the finished per-replay plans without rebuilding a scene or restarting it.
+ const preparationTask=cartoon&&!reviewedOnly&&state.officialInput?(async()=>{
+  try{const{prepareRuntimeMotion}=await import('./motion/runtime-motion.mjs'),prepared=await prepareRuntimeMotion(civil,fitted,state.officialInput,state,{offline:true,reviewedCompatible:!!originalMotion,reservedActions:keeperTrial?[keeperTrial.plan]:[]});if(disposed)return null;pendingMotion=prepared;lastInputFrame=null;onPrepared?.();return prepared;}
+  catch(error){if(!disposed){preparationFailed=true;lastInputFrame=null;onPrepared?.();console.warn('Capturas desta partida não puderam ser preparadas; preservando o replay oficial e os 22 modelos',error);}return null;}
+ })():Promise.resolve(motion);
  return {update(frame,camera,viewportHeight=720){
   if(disposed)return;
+  // Keep a capture already in progress intact while background preparation
+  // finishes. Adopt the per-input schedule between gestures, on this scene.
+  if(pendingMotion&&(!motion||!motion.plans.some(p=>frame.time>=p.start&&frame.time<=p.end))){motion=pendingMotion;pendingMotion=null;footballActions.setPlans([...motion.plans,...motion.rejected.map(p=>({...p,unsupported:true}))],motion.releaseTimes);lastInputFrame=null;}
   if(frame.placementReset)frame={...frame,ball:{...frame.ball,...frame.ball.presentation},players:frame.players.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)};
   // A camera redraw is not another simulation step. Re-solving a paused
   // duel fed its final collision projection back into the same timestamp.
   // Preserve the finished pose when source state and LOD are unchanged.
   const repeated=lastInputFrame&&frame.time===lastTime&&frame.phase===lastInputFrame.phase&&frame.owner===lastInputFrame.owner&&frame.ball.x===lastInputFrame.ball.x&&frame.ball.y===lastInputFrame.ball.y&&frame.ball.z===lastInputFrame.ball.z&&frame.players.length===lastInputFrame.players.length&&frame.players.every((p,i)=>{const old=lastInputFrame.players[i],a=actors.find(a=>a.key===p.key);return old?.key===p.key&&old.mx===p.mx&&old.mz===p.mz&&old.heading===p.heading&&old.speed===p.speed&&old.distance===p.distance&&old.kick===p.kick&&old.throwing===p.throwing&&old.save===p.save&&old.dive===p.dive&&old.control===p.control&&old.visible===p.visible&&a&&(!camera||playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail)===a.detail)});
-  if(repeated)return;
+  if(repeated){sidelines?.update(frame,camera,viewportHeight,actors);return;}
   lastInputFrame=frame;const keeperActive=keeperTrial&&frame.time>=keeperTrial.plan.start&&frame.time<=keeperTrial.plan.end,catchConfirmed=keeperTrial&&frame.official?.events.some(e=>e.tipo==='encaixa'&&e.a===keeperTrial.plan.name&&Math.abs(e.t-keeperTrial.plan.contactAt)<1e-5);ballOverride=catchConfirmed?keeperBallAt(keeperTrial,frame.time):null;if(ballOverride)frame={...frame,ball:{...frame.ball,...ballOverride.position,presentation:ballOverride.position,rotation:ballOverride.rotation}};
   const elapsed=lastTime===null?0:frame.time-lastTime,reset=lastTime===null||elapsed<0||elapsed>1,dt=Math.max(0,elapsed);lastTime=frame.time;lastFrame=frame;const used=new Set(),currentKeys=new Set(frame.players.map(p=>p.key));positions.fill(-10000);
-  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',kits:kitPlan.map(({config,...p})=>({...p,clubKey:config?.clubKey,renderKey:config?.renderKey})),locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0},activeCaptures:[],keeperCaptures:[],clearance:[],grounding:[]};
+  inspection={full:0,intermediate:0,far:0,hidden:0,poseUpdates:0,minFootHeight:Infinity,maxFootHeight:-Infinity,physicalPlayerHeight:PLAYER_HEIGHT,style:cartoon?'civil-cartoon':'athlete',kits:kitPlan.map(({config,...p})=>({...p,clubKey:config?.clubKey,renderKey:config?.renderKey})),locomotionCalibrated:true,captureCoverage:{matched:!!motion,available:motion?.plans.length??0,rejected:motion?.rejected.length??0,runtime:motion?.preparedFromOfficialSource??false,preparationMs:motion?.preparationMs??0,preparationFailed},activeCaptures:[],keeperCaptures:[],clearance:[],grounding:[]};
   footballActions.begin(frame);
   const navigation=cartoon?collisions.sample(frame,{action:(key,time)=>keeperActive&&key===keeperTrial.plan.key?{collisionFreedom:0}:footballActions.action(key,time)}):null;
   inspection.collisions=navigation?.diagnostics;
@@ -86,7 +101,8 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    const color=new T.Color(p.keeper?'#d6b329':kitPlan[p.side==='home'?0:1].color);colors.set(color.toArray(),i*3);
    // Keep scalar facing current even when LOD skips skeleton evaluation.
    const heading=a.lastHeading??p.heading,desired=cartoon?footballActions.prepare(a,p.key,frame.time,visualHeading,p.speed):visualHeading;a.lastHeading=heading+locomotionTurnStep(Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading)),dt);
-   if(!a.holder.visible)return;
+   // Owned-ball contact must not depend on the camera's skeleton LOD.
+   if(!a.holder.visible&&frame.owner!==p.key)return;
    // Mixer property bindings can skip unchanged values. Restore the last
    // clean imported pose before evaluating them; never feed last frame's
    // contact IK or action blend back into the native animation baseline.
@@ -115,6 +131,13 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    const scheduled=footballActions.action(p.key,frame.time);const control=refinePossession?a.ballControl?.apply(frame,p):null;if(control)(inspection.ballControl??=[]).push({key:p.key,...control});const keeperPose=keeperActive&&p.key===keeperTrial.plan.key?sampleKeeperCapture(a,keeperTrial.plan,official,frame.time):null;const capture=keeperPose??a.motion.apply(frame,p,scheduled?.animationActive?scheduled.plan:null);a.wasAction=!!capture;if(capture){if(!refinePossession)a.ballControl?.reset();if(keeperPose)inspection.keeperCaptures.push({key:p.key,...keeperPose,ball:keeperPose.ball.toArray()});else inspection.activeCaptures.push(capture)}else{if(!refinePossession){const control=a.ballControl?.apply(frame,p);if(control)(inspection.ballControl??=[]).push({key:p.key,...control});}let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
    if(a.grounding){const grounded=a.grounding.apply(a,{...p,speed:visualSpeed},frame,capture,dt,{reset:resetActor||previous==='far'||previous==='hidden'});a.groundingReport=grounded;inspection.grounding.push({key:p.key,...grounded})}
    if(a.grounding&&nearBall)a.motion.clearance(frame,p);
+   // Recover locomotion from the body's actually rendered facing. A second
+   // hidden gait heading was turning independently during the catch/throw,
+   // then snapping the avatar around as the capture faded out.
+   if(keeperPose&&frame.time>keeperTrial.plan.releaseAt){
+    const forward=a.intentAxis.clone().applyQuaternion(a.bones.get('spine_03').getWorldQuaternion(new T.Quaternion()));
+    a.lastHeading+=Math.atan2(Math.sin(Math.atan2(forward.x,forward.z)-a.lastHeading),Math.cos(Math.atan2(forward.x,forward.z)-a.lastHeading));
+   }
    if(cartoon){if(!keeperPose)footballActions.orientUpperBody(a,p,frame.time);footballActions.validate(a,p,frame,capture);for(const mesh of a.meshes)mesh.skeleton.update();}
    inspection.minFootHeight=Math.min(inspection.minFootHeight,a.footHeight);inspection.maxFootHeight=Math.max(inspection.maxFootHeight,a.footHeight);
   });
@@ -123,13 +146,19 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    inspection.actualCollisions={...resolved.diagnostics,projectionPasses:projection+1};
    if(resolved.diagnostics.maxAdditionalShift<1e-7)break;
   }}
+  // A reviewed schedule is required to return the visual ball to the exact
+  // source impulse. Never guess an upcoming release in an unrelated save.
+  const touch=cartoon&&motion&&refinePossession&&refineBallTouches?ballTouches.sample(frame,actors,footballActions,{reset}):{ball:frame.ball,diagnostic:{phase:motion?'disabled':'unreviewed-source',offset:0,sourceBallUnchanged:true}};presentedBall=touch.ball;inspection.ballPresentation=touch.diagnostic;
+  if(touch.diagnostic.offset>1e-6&&presentedBall.presentation&&!frame.ball.presentation){const visibleFrame={...frame,ball:{...presentedBall,...presentedBall.presentation}};for(const a of actors){const p=frame.players.find(p=>p.key===a.key);if(p&&(a.holder.visible||p.key===frame.owner))a.motion.clearance(visibleFrame,p);}}
+  ballTouches.confirm(presentedBall,actors,touch.diagnostic);
   inspection.footballActions=footballActions.inspect();
   inspection.receiving=footballActions.inspectReceptions();
   // A lineup can shrink after a real dismissal/substitution. Never leave an
   // unused avatar or a stale far-LOD point from the preceding frame visible.
   for(const a of actors)if(!used.has(a)){a.holder.visible=false;a.detail='hidden'}
+  sidelines?.update(frame,camera,viewportHeight,actors);
   soleShadows?.update(actors);
   pointsGeometry.attributes.position.needsUpdate=true;pointsGeometry.attributes.color.needsUpdate=true;points.visible=inspection.far>0;
   if(!Number.isFinite(inspection.minFootHeight))inspection.minFootHeight=inspection.maxFootHeight=0;
- },presentFrame:frame=>ballOverride&&frame.time===lastTime?{...frame,ball:{...frame.ball,presentation:ballOverride.position,rotation:ballOverride.rotation}}:frame,inspect:()=>({...inspection}),inspectScale:()=>actors.map(a=>({key:a.key,...a.measurements})),inspectPose:key=>{const a=actors.find(a=>a.key===key);return a?{key,position:a.holder.position.toArray(),bones:[...a.bones].map(([name,b])=>({name,position:b.position.toArray(),quaternion:b.quaternion.toArray()}))}:null},inspectActors:()=>({slots:actors.map((a,slot)=>({slot,key:a.key,heading:a.lastHeading,mode:a.current,presentationSpeed:a.presentationSpeed,visible:a.holder.visible,detail:a.detail})),farPoints:Array.from(positions).filter((_,i)=>i%3===0).filter(x=>x!==-10000).length}),audit:()=>lastFrame?{...inspection,players:lastFrame.players.map(p=>{const a=actors.find(a=>a.key===p.key);return a?.motion.audit(lastFrame,p)}).filter(Boolean)}:null,dispose(){if(disposed)return;disposed=true;soleShadows?.dispose();points.removeFromParent();pointsGeometry.dispose();pointsMaterial.dispose();for(const a of actors){a.motion.surface.dispose();a.kit.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);a.holder.removeFromParent();for(const mesh of a.meshes)mesh.skeleton.dispose()}if(--users===0){releaseNeutralKits();releaseKits()}}};
+ },prepared:()=>preparationTask,presentFrame:frame=>presentedBall&&frame.time===lastTime?{...frame,ball:presentedBall}:frame,inspect:()=>({...inspection,sidelines:sidelines?.inspect()??null}),inspectScale:()=>actors.map(a=>({key:a.key,...a.measurements})),inspectPose:key=>{const a=actors.find(a=>a.key===key);return a?{key,position:a.holder.position.toArray(),bones:[...a.bones].map(([name,b])=>({name,position:b.position.toArray(),quaternion:b.quaternion.toArray()}))}:null},inspectActors:()=>({slots:actors.map((a,slot)=>({slot,key:a.key,heading:a.lastHeading,mode:a.current,presentationSpeed:a.presentationSpeed,visible:a.holder.visible,detail:a.detail})),farPoints:Array.from(positions).filter((_,i)=>i%3===0).filter(x=>x!==-10000).length}),audit:()=>lastFrame?{...inspection,players:lastFrame.players.map(p=>{const a=actors.find(a=>a.key===p.key),f=presentedBall?.presentation?{...lastFrame,ball:{...presentedBall,...presentedBall.presentation}}:lastFrame;return a?.motion.audit(f,p)}).filter(Boolean)}:null,dispose(){if(disposed)return;disposed=true;sidelines?.dispose();soleShadows?.dispose();points.removeFromParent();pointsGeometry.dispose();pointsMaterial.dispose();for(const a of actors){a.motion.surface.dispose();a.kit.dispose();a.mixer.stopAllAction();a.mixer.uncacheRoot(a.root);a.holder.removeFromParent();for(const mesh of a.meshes)mesh.skeleton.dispose()}if(--users===0){releaseNeutralKits();releaseKits()}}};
 }

@@ -1,0 +1,17 @@
+const fs=require('node:fs/promises'),assert=require('node:assert/strict');
+const {chromium}=require('../presidencia-runtime.cjs').loadDependency('playwright');
+const out=process.env.CONTINUITY_OUT??'test-results/cartoon-football/continuidade/before.json';
+(async()=>{const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox','--enable-unsafe-swiftshader']});try{
+ const p=await browser.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('**/*',r=>new URL(r.request().url()).origin==='http://127.0.0.1:4197'?r.continue():r.abort());if(p.routeWebSocket)await p.routeWebSocket('**/*',s=>s.close());
+ await p.goto('http://127.0.0.1:4197/7a0-game-studio/scripts/cartoon-football/mechanics-audit.html?runtimeMotion');await p.waitForFunction(()=>window.mechanicsAudit||window.mechanicsAuditError,{},{timeout:180000});assert.equal(await p.evaluate(()=>window.mechanicsAuditError),undefined);const prepared=await p.evaluate(()=>mechanicsAudit.prepared());
+ await p.evaluate(()=>{window.continuity={turns:[],balls:[],last:new Map(),lastBall:null};});
+ for(let first=0;first<=2820;first+=90){await p.evaluate(async first=>{const T=await import('/7a0-game-studio/node_modules/three/build/three.module.js'),r=window.continuity,angle=x=>Math.atan2(Math.sin(x),Math.cos(x));for(let i=first;i<Math.min(first+90,2821);i++){
+ const time=i/30,s=mechanicsAudit.seek(time),f=s.frame,b=f.ball.presentation??f.ball,raw=s.sourceFrame.ball,q=new T.Quaternion().fromArray(f.ball.rotation),last=r.lastBall;
+ if(last&&!f.placementReset&&!f.restart){const d=new T.Vector3(b.x-last.x,0,b.z-last.z),axis=new T.Vector3(d.z,0,-d.x),expected=last.q.clone();if(axis.length()>1e-9)expected.premultiply(new T.Quaternion().setFromAxisAngle(axis.normalize(),d.length()/.11));const v=new T.Vector3(b.x-last.x,b.y-last.y,b.z-last.z).multiplyScalar(30),src=new T.Vector3(raw.x-last.raw.x,raw.y-last.raw.y,raw.z-last.raw.z).multiplyScalar(30);
+ r.balls.push({time,phase:f.phase,owner:f.owner,speed:v.length(),rawSpeed:src.length(),acceleration:last.v?v.distanceTo(last.v)*30:0,rawAcceleration:last.src?src.distanceTo(last.src)*30:0,rollError:b.y<.115&&last.y<.115?expected.angleTo(q):null,touch:s.audit.ballPresentation});r.lastBall={...b,q,v,src,raw};}else r.lastBall={...b,q,raw};
+ for(const a of s.audit.players){const old=r.last.get(a.key),capture=s.audit.activeCaptures.find(c=>c.key===a.key);if(old&&!f.placementReset&&!f.restart){const speed=angle(a.presentationHeading-old.heading)*30;r.turns.push({time,name:a.name,rate:speed,acceleration:(speed-old.rate)*30,capture:capture?{type:capture.type,weight:capture.weight,marker:capture.marker}:null,travelSpeed:a.presentationSpeed,phase:f.phase});r.last.set(a.key,{heading:a.presentationHeading,rate:speed});}else r.last.set(a.key,{heading:a.presentationHeading,rate:0});}
+ r.final=f.official;
+ }},first);if(first%450===0)console.log({seconds:first/30});}
+ const report=await p.evaluate(()=>{const r=window.continuity;delete r.last;delete r.lastBall;return r});assert.deepEqual(report.final,prepared.official);assert.deepEqual(errors,[]);await fs.writeFile(out,JSON.stringify({...report,errors},null,2));
+ console.log({turnsAbove720:report.turns.filter(x=>Math.abs(x.rate)>Math.PI*4).length,maximumTurn:Math.max(...report.turns.map(x=>Math.abs(x.rate))),rollingErrorAbove10deg:report.balls.filter(x=>x.rollError>Math.PI/18).length,score:report.final.score,events:report.final.events.length});
+ }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});

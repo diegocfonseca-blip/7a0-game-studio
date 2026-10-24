@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {solveArmContact} from './contact-ik.mjs';
+import {continuousHeading} from './heading-blend.mjs';
 const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x)},angle=x=>Math.atan2(Math.sin(x),Math.cos(x));
 export function keeperHands(actor){const mesh=actor.meshes[0];if(!actor.keeperHandIndices){const ix=mesh.geometry.attributes.skinIndex,w=mesh.geometry.attributes.skinWeight;actor.keeperHandIndices={left:[],right:[]};for(const [side,name]of [['left','hand_l'],['right','hand_r']]){const bone=mesh.skeleton.bones.findIndex(b=>b.name===name);for(let i=0;i<ix.count;i++){let sum=0;for(const get of ['getX','getY','getZ','getW'])if(ix[get](i)===bone)sum+=w[get](i);if(sum>.65)actor.keeperHandIndices[side].push(i)}}}return Object.fromEntries(['left','right'].map(side=>{const indices=actor.keeperHandIndices[side],mean=new T.Vector3();for(const index of indices)mean.add(mesh.getVertexPosition(index,new T.Vector3()).applyMatrix4(mesh.matrixWorld));return[side,indices.length?mean.divideScalar(indices.length):actor.bones.get(side==='left'?'hand_l':'hand_r').getWorldPosition(new T.Vector3())]}))}
 // Measure the rendered fist surfaces, not the midpoint between wrist controls.
@@ -25,7 +26,8 @@ export function sampleKeeperCapture(actor,p,player,time){
  const curve=p.jumpHeights,phase=Math.max(0,time-p.start),hi=curve.findIndex(s=>s[0]>=phase),right=hi<0?curve.at(-1):curve[hi],left=curve[Math.max(0,hi-1)],u=right[0]===left[0]?0:(phase-left[0])/(right[0]-left[0]),height=left[1]+(right[1]-left[1])*u;actor.holder.position.y+=p.extraRise*Math.max(0,height)/p.jumpPeak;
  const captured=snapshot(actor),position=actor.holder.position.clone(),yaw=actor.holder.rotation.y;
  for(let i=0;i<captured.length;i++){const b=actor.bones.get(captured[i].name);b.position.lerpVectors(base[i].p,captured[i].p,weight);b.quaternion.copy(base[i].q).slerp(captured[i].q,weight)}
- actor.holder.position.lerpVectors(basePosition,position,weight);actor.holder.rotation.y=baseYaw+angle(yaw-baseYaw)*weight;actor.holder.updateMatrixWorld(true);
+ actor.keeperHeading=continuousHeading(actor.keeperHeading,p,time,baseYaw,yaw,weight);
+ actor.holder.position.lerpVectors(basePosition,position,weight);actor.holder.rotation.y=actor.keeperHeading.value;actor.holder.updateMatrixWorld(true);
  let points=keeperHands(actor),mid=points.left.clone().add(points.right).multiplyScalar(.5);const transfer=smooth((time-p.contactAt-(p.holdSeconds??.04))/Math.max(.02,p.releaseAt-p.contactAt-(p.holdSeconds??.04))),grip=smooth((time-p.contactAt+.1)/.1)*(1-transfer)*weight;
  if(grip>0){const axis=points.left.clone().sub(points.right).normalize();for(const [side,sign]of [['left',1],['right',-1]]){const bone=actor.bones.get(side==='left'?'hand_l':'hand_r'),desired=mid.clone().addScaledVector(axis,.195*sign),target=bone.getWorldPosition(new T.Vector3()).add(desired.sub(points[side]).multiplyScalar(grip));solveArmContact(actor,side,target,{maxCorrection:.12,maxAngle:.4})}points=keeperHands(actor);mid=points.left.clone().add(points.right).multiplyScalar(.5);}
  // Move around the outside of the fist during transfer; a straight midpoint

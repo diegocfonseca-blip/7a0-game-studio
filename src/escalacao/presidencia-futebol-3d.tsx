@@ -56,14 +56,14 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   const sun=new THREE.DirectionalLight('#fff4dc',3*light);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-70,right:70,top:55,bottom:-55,near:1,far:150});sun.shadow.normalBias=.025;scene.add(sun)
   const grass=criarCampo3D(scene,state.context.stadium,!!registered,()=>repaint.current())
   const bodies=(state.officialInput?[]:atletasEmCampo(state)).map((p,i)=>{const body=person(p.keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor,['#b9815b','#805439','#d5aa80'][i%3],p.keeper);scene.add(body.group);return body})
-  const referee=person('#efc42f','#a87250');scene.add(referee.group)
+  const referee=person('#efc42f','#a87250');scene.add(referee.group);referee.group.visible=!state.officialInput
   const coaches:{body:ReturnType<typeof person>;x:number}[]=[],seated:THREE.Group[]=[]
   // z=-34 is the far touchline (top edge of CAMPO_INTERNO / CAMPO_MAPA).
   // The approved full stadium has a foreground barrier at the opposite side.
   // Rotate each entire technical area: seats, backrests, people and markings
   // stay together, with the coach in front and everyone facing the pitch (+z).
   for(const [i,x] of [-18,18].entries()){
-   const area=new THREE.Group();area.name=i?'away-technical-area':'home-technical-area';area.position.x=x;area.rotation.y=Math.PI;scene.add(area)
+   const area=new THREE.Group();area.name=i?'away-technical-area':'home-technical-area';area.position.x=x;area.rotation.y=Math.PI;area.visible=!state.officialInput;scene.add(area)
    const coach=person('#28343b','#ad805d');coach.group.position.set(0,0,-TECNICO_Z);coach.group.rotation.y=Math.PI;area.add(coach.group);coaches.push({body:coach,x})
    // Seat top matches the seated thigh/pelvis and keeps the reserves' boots grounded.
    box(area,10,.12,.65,0,.29,-BANCO_Z,material('#384c51'));box(area,10,.7,.10,0,.70,-BANCO_Z+.38,material('#384c51'))
@@ -74,7 +74,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
    reserves.forEach((p,j)=>{const reserve=person(p.pos==='GOL'?'#d6b329':i?state.awayColor:state.homeColor,'#aa7752',p.pos==='GOL');reserve.group.name=p.id;reserve.group.position.set(-3.9+j*1.3,-.34,-BANCO_Z);reserve.group.rotation.y=Math.PI;reserve.legs.forEach(leg=>{leg.hip.rotation.x=-Math.PI/2;leg.knee.rotation.x=Math.PI/2});reserve.arms.forEach(arm=>{arm.rotation.x=-.3});reserve.elbows.forEach(elbow=>{elbow.rotation.x=-.9});area.add(reserve.group);seated.push(reserve.group)})
    const white=material('#e9e5d9');for(const dx of [-6,6])box(area,.10,.025,2.4,dx,.03,35.6,white);box(area,12,.025,.1,0,.03,34.4,white)
   }
-  const people=instanciarPersonagens(scene,[...bodies.map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...seated])
+  const people=instanciarPersonagens(scene,state.officialInput?[]:[...bodies.map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...seated])
   el.dataset.personParts=String(people.sourceCount);el.dataset.personBatches=String(people.batchCount)
   const ball=criarBolaFutebol3D();scene.add(ball)
   let frame=0,visible=true,disposed=false

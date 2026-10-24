@@ -2,7 +2,7 @@ import {strikeClock} from './strike-clock.mjs';
 import {preserveSupportFoot} from './support-plant.mjs';
 // Generated from scripts/animation-lab/shared-strike.mjs. Repackage after editing source.
 import {facingFor} from './facing-track.mjs';
-import {blendHeading} from './heading-blend.mjs';
+import {continuousHeading} from './heading-blend.mjs';
 import * as T from 'three';import {nearest} from './nearest.mjs';import {constrainFootBall} from './foot-ball-clearance.mjs';
 const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x);},angle=x=>Math.atan2(Math.sin(x),Math.cos(x));
 const copyPose=a=>[...a.bones].map(([name,b])=>({name,p:b.position.clone(),q:b.quaternion.clone()}));
@@ -17,18 +17,27 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
  // A shortened window must still reach full capture at the official contact.
  // Otherwise an exit longer than the post-contact window fades the kick
  // before the foot reaches the ball (0.784 weight on the first shot).
- const entry=Math.max(1e-6,Math.min(plan.entrySeconds??.18,plan.time-plan.start)),exit=Math.max(1e-6,Math.min(plan.exitSeconds??.18,plan.end-plan.time));
+ const poseStart=plan.poseStart??plan.start,entry=Math.max(1e-6,Math.min(plan.entrySeconds??.18,plan.time-poseStart)),exit=Math.max(1e-6,Math.min(plan.exitSeconds??.18,plan.end-plan.time));
  const baseHip=actor.bones.get('pelvis').getWorldPosition(new T.Vector3()),baseRoot=new T.Vector3(baseHip.x-p.position.x,0,baseHip.z-p.position.z);
- const weight=smooth((time-plan.start)/entry)*smooth((plan.end-time)/exit),base=copyPose(actor),baseYaw=actor.holder.rotation.y,basePosition=actor.holder.position.clone();
+ const weight=smooth((time-poseStart)/entry)*smooth((plan.end-time)/exit),base=copyPose(actor),baseYaw=actor.holder.rotation.y,basePosition=actor.holder.position.clone();
  const clock=strikeClock(plan,time);actor.holder.rotation.y=plan.yaw;actor.sampleCapture(plan.clip,clock.sample);center(actor,p);
  const captured=copyPose(actor),position=actor.holder.position.clone();
- actor.holder.position.lerpVectors(basePosition,position,weight);const reference=time<=plan.time?(plan.entryHeading??facingFor(timeline).sample(plan.key,plan.start)):(plan.exitHeading??facingFor(timeline).sample(plan.key,plan.end));actor.holder.rotation.y=plan.headingBlend==='legacy'?baseYaw+angle(plan.yaw-baseYaw)*weight:blendHeading(baseYaw,plan.yaw,weight,reference);
+ // The imported follow-through retains its contact orientation. Turning it
+ // toward instantaneous travel AND blending it into locomotion applied the
+ // same recovery twice, including a wrap discontinuity at opposite headings.
+ // Unwrap the native gait continuously on a single entry reference instead.
+ // At full capture the native weight is zero: choose the recovery arc
+ // afresh there, so a valid approach cannot accumulate a whole revolution
+ // into the exit. Keep that chosen arc fixed throughout recovery.
+ actor.strikeHeading=continuousHeading(actor.strikeHeading,time<=plan.time?plan:plan.time,time,baseYaw,plan.yaw,weight);
+ actor.holder.position.lerpVectors(basePosition,position,weight);
+ actor.holder.rotation.y=plan.headingBlend==='legacy'?baseYaw+angle(plan.yaw-baseYaw)*weight:actor.strikeHeading.value;
  const channels=capturedChannels(actor,plan.clip),armWeight=T.MathUtils.clamp(plan.layers?.arms??1,0,1);
  // A capture has no authority over channels it does not contain (e.g. CMU
  // fingers). Keep those from the clean native clip instead of blending stale
  // binding state left by stopping/restarting AnimationMixer actions.
  for(let i=0;i<captured.length;i++){const pose=captured[i],b=actor.bones.get(pose.name);if(channels.has(pose.name+'.position'))b.position.lerpVectors(base[i].p,pose.p,weight);else b.position.copy(base[i].p);b.quaternion.copy(base[i].q);if(channels.has(pose.name+'.quaternion'))b.quaternion.slerp(pose.q,weight*(armBones.has(pose.name)?armWeight:torsoBones.has(pose.name)?T.MathUtils.clamp(plan.layers?.torso??1,0,1):1));}actor.holder.updateMatrixWorld(true);
- const rootWeight=actor.style==='civil-cartoon'?weight:smooth((time-(plan.time-.12))/.10)*smooth(((plan.time+.10)-time)/.08);
+ const rootWeight=actor.style==='civil-cartoon'?(plan.rootApproach?smooth((time-plan.start)/(plan.time-plan.start))*smooth((plan.end-time)/exit):weight):smooth((time-(plan.time-.12))/.10)*smooth(((plan.time+.10)-time)/.08);
  const offset=new T.Vector3().fromArray(plan.rootCorrection??[0,0,0]).multiplyScalar(rootWeight);
  // Restore the acquired horizontal pelvis path around the planted contact.
  // The ball/event is fixed; only a bounded visual root can decelerate locally.
@@ -37,9 +46,13 @@ export function sampleSharedStrike(actor,timeline,plan,time,{correct=true}={}){
   if(t<=0)offset.fromArray(plan.rootCorrection).multiplyScalar(-2*s3+3*s2).addScaledVector(tangent,(s3-s2)*duration);else offset.fromArray(plan.rootCorrection).multiplyScalar(2*s3-3*s2+1).addScaledVector(tangent,(s3-2*s2+s)*duration);
   const length=offset.length();offset.clampLength(0,actor.maxPresentationOffset??.6);rootWarp={model:'bounded-hermite-root-velocity',limited:length>(actor.maxPresentationOffset??.6),nativeVelocity:native.clone().add(new T.Vector3().fromArray(plan.sourceVelocity)).toArray()};}
 
+ // Anticipate the CURRENT ball bearing smoothly during reception/carrying.
+ // Do not switch on the discrete owner flag or jump at the +/-PI wrap.
+ // Only the bounded approach offset turns; the contact pose stays exact.
+ if(plan.carryAlignedRoot&&frame.ball.y<.28&&time<plan.time-.04){const anchor=actor.sourceAnchor??{x:p.position.x,z:p.position.z},distance=Math.hypot(frame.ball.x-anchor.x,frame.ball.z-anchor.z),influence=smooth((1.2-distance)/.3);if(influence>0){const bearing=Math.atan2(frame.ball.x-anchor.x,frame.ball.z-anchor.z),turn=.45*Math.sin(bearing-plan.contactBallBearing)*smooth((plan.time-time-.04)/.16)*influence;offset.applyAxisAngle(new T.Vector3(0,1,0),turn);}}
  // Carry alignment hands off continuously to the captured strike. Full
  // capture still uses its original reviewed contact and root correction.
- offset.addScaledVector(baseRoot,1-weight);offset.clampLength(0,actor.maxPresentationOffset??.6);
+ offset.addScaledVector(baseRoot,1-(plan.rootApproach?rootWeight:weight));offset.clampLength(0,actor.maxPresentationOffset??.6);
  center(actor,p,offset);actor.ground();
  const ball=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z),raw=Object.fromEntries(['thigh_r','calf_r','foot_r','thigh_l','calf_l','foot_l'].map(n=>[n,actor.bones.get(n).quaternion.clone()])),ankles=['foot_r','foot_l'].map(n=>actor.bones.get(n).getWorldPosition(new T.Vector3()));
  const corrections=correct?{right:constrainFootBall(actor,'right',ball,{maxCorrection:.08}),left:constrainFootBall(actor,'left',ball,{maxCorrection:.08})}:null;
@@ -67,6 +80,9 @@ export function contactCorrection(actor,timeline,plan){
  // the ball but points its surface normal against the outgoing pass.
  if(actor.style==='civil-cartoon'&&plan.direction){
   const direction=new T.Vector3().fromArray(plan.direction).setY(0).normalize(),triangles=actor.footTriangles(plan.foot??'right'),points=triangles.flatMap(t=>[t.a,t.b,t.c]),center=points.reduce((v,p)=>v.add(p),new T.Vector3()).divideScalar(points.length),lateral=ball.clone().sub(center).setY(0);lateral.addScaledVector(direction,-lateral.dot(direction));
+  // Offline fitting may select the inside/outside edge of the same boot.
+  // This changes only the bounded root fit, never the authored bone pose.
+  if(plan.contactSideOffset)lateral.addScaledVector(new T.Vector3(direction.z,0,-direction.x),plan.contactSideOffset);
   if(lateral.length()<budget){const origin=actor.holder.position.clone(),range=Math.sqrt(budget*budget-lateral.lengthSq()),gap=amount=>{actor.holder.position.copy(origin).add(lateral).addScaledVector(direction,amount);actor.holder.updateMatrixWorld(true);return nearest(ball,actor.footTriangles(plan.foot??'right')).distance-.11;};let previous=-range,value=gap(previous);
    for(let step=1;step<=96;step++){const amount=-range+2*range*step/96,next=gap(amount);if(value>.001&&next<=.001){let low=previous,high=amount;for(let j=0;j<32;j++){const mid=(low+high)/2;if(gap(mid)>.001)low=mid;else high=mid}return lateral.addScaledVector(direction,(low+high)/2).toArray()}previous=amount;value=next}
    actor.holder.position.copy(origin);actor.holder.updateMatrixWorld(true);
