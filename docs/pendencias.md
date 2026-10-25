@@ -11,6 +11,10 @@
   81%, perde 4% · lendas × fracos 2,2 gols e 35% de goleada · bola parada 18 s/jogo (era 21). Scripts de medição no scratchpad
   (`motor/m2stats.mts`, `perdas.mts`, `passes.mts`, `trace.mts`, `onde.mts`, `paradas.mts`).
 - FEITO depois: 🤝 TABELA (toca apertado e sai pro espaço; quem recebe devolve de primeira — 3,4 iniciadas e 1,1 completada por jogo).
+- FEITO (2ª leva, 25/10): bola não "voa" mais pro pé depois de desarme (toque de domínio ≤ 12 m/s); chutão/lançamento no máx. 28 m/s;
+  quem recebe livre segura 0,2–0,8 s (bola no pé 25% → 30% do tempo); cobertura/cavadinha no goleiro adiantado; drible muda de direção;
+  bola gira de lado com o efeito (`curl` em `RotacaoBola3D`); cabeçada com pulo no 3D; chute procedural (perna bate) em todo passe/chute
+  sem captura; cai na falta, bote no desarme, ginga no drible; câmera de TV mais perto no celular em pé (~40 px de boneco).
 - PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; mais variedade de drible (hoje 1,7/jogo);
   torcida reagindo; replay; juiz.
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`

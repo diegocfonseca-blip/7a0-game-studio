@@ -143,7 +143,7 @@ const PASSOU_DO_PONTO = 1.4
 const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
-const GK_BASE = 0.36
+const GK_BASE = 0.32
 /** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
 const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
@@ -576,7 +576,8 @@ export class Motor2 {
       const T = clamp(d / 11, 0.55, 1.6), h0 = 2.0, hFim = 0.6
       b.h = h0; b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim - h0 + 0.5 * G * T * T) / T
     } else if (a.aereo) {
-      const T = a.tipo === 'cruzamento' ? clamp(d / 21, 0.75, 1.5) : clamp(d / 18, 0.8, 2.2) // (bola longa vai em parábola e cai ~18 m/s: dá pra dominar)
+      // (bola longa vai em parábola e cai ~18 m/s: dá pra dominar; e nenhuma bola sai do pé a mais de 28 m/s — o chutão de 80 m saía a 40)
+      const T = a.tipo === 'cruzamento' ? clamp(d / 21, 0.75, 1.5) : Math.max(clamp(d / 18, 0.8, 2.2), d / 28)
       const hFim = a.tipo === 'cruzamento' ? 1.9 : 0.3
       b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim + 0.5 * G * T * T) / T; b.h = 0.05
       // 🌀 o cruzamento sai com CURVA pra dentro (fechando no gol): a bola começa um pouco pra fora e vem fechando — quem tem
@@ -731,7 +732,12 @@ export class Motor2 {
         const t1 = this.toque1 && this.toque1.de === d && this.t < this.toque1.ate ? this.toque1 : null
         const ox = t1 ? d.x + t1.ux * (0.9 + d.at.conducao * 0.004) : d.x + ux * CONDUCAO, oy = t1 ? d.y + t1.uy * (0.9 + d.at.conducao * 0.004) : d.y + uy * CONDUCAO
         const k = inicio ? Math.min(1, dt / 0.11) : Math.min(1, dt / 0.08)
-        b.x += (ox - b.x) * k; b.y += (oy - b.y) * k; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
+        // (25/10, medido: depois de um desarme/drible a bola estava a 3–5 m do novo dono e "voava" pro pé dele a 40 m/s num passo. Agora
+        // o toque de domínio anda no máximo 12 m/s: ela DESLIZA até o pé, como um toque de verdade)
+        let mx = (ox - b.x) * k, my = (oy - b.y) * k
+        const mm = len(mx, my), cap = 12 * dt
+        if (mm > cap) { mx *= cap / mm; my *= cap / mm }
+        b.x += mx; b.y += my; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
         if (v >= TOQUE_V && !inicio) this.toqueSolto = d // (começou a correr com ela: a partir de agora é no toque)
       } else {
         // 🦶 CONDUÇÃO NO TOQUE (25/10, Diego: "a condução da bola… o controle da bola"): correndo, ele EMPURRA a bola um pouco à
@@ -1129,7 +1135,9 @@ export class Motor2 {
     const primeira = (p.estilo === 'passador' || p.golpes.includes('de_primeira')) && this.r() < 0.25
     // (🎯 dentro da área ninguém "domina e levanta a cabeça": é no instinto — chuta ou toca na hora)
     const naArea = frente(p.lado, p.y) < AREA_PROF + 1 && Math.abs(p.x - 34) < AREA_LARG
-    this.segurarAte = primeira || naArea ? this.t : this.t + (0.1 + this.r() * 0.45 - p.at.decisao * 0.0015) * (1 - pressaoEm(this, p, p.lado) * 0.6 * (1 - p.tend.drible * 0.7)) * (1 + p.tend.drible * 0.8) // (livre, dá um toque e olha o jogo; apertado, solta antes — MENOS quem gosta de driblar: esse segura e encara) // (ritmo alto: o jogo inteiro cabe em 1:30)
+    // (25/10, medido: a bola passava 61% do tempo VIAJANDO entre dois pés e só 25% no pé de alguém — ping-pong. Quem recebe LIVRE
+    // agora segura mais (0,3–1 s): domina, conduz, olha — é o tempo com a bola no pé que faz parecer futebol)
+    this.segurarAte = primeira || naArea ? this.t : this.t + (0.2 + this.r() * 0.6 - p.at.decisao * 0.002) * (1 - pressaoEm(this, p, p.lado) * 0.6 * (1 - p.tend.drible * 0.7)) * (1 + p.tend.drible * 0.8) // (livre, dá um toque e olha o jogo; apertado, solta antes — MENOS quem gosta de driblar: esse segura e encara) // (ritmo alto: o jogo inteiro cabe em 1:30)
     p.proxDecisao = this.t + toque
     this.acaoDe.delete(p)
   }

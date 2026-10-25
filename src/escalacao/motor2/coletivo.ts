@@ -24,7 +24,7 @@ export function blocoDesejado(m: Motor2, lado: Lado): Bloco {
   // (defendendo, a linha de trás NÃO entra na pequena área: com a bola a 30 m ela fica na entrada da grande área (~16 m), como
   // uma defesa de verdade — antes ia pra 6 m do gol e os atacantes ficavam encostados no goleiro. Comprimento ~26 m: meio e zaga
   // em duas linhas de verdade, com o espaço "entre linhas" que o meia de verdade procura)
-  else { tras = clamp(bProf * 0.5 + 4 * tac, 8, 40); fr = clamp(tras + 26, 30, 66) }
+  else { tras = clamp(bProf * 0.5 + 4 * tac, 8, 40); fr = clamp(tras + 23, 28, 64) } // (23 m: zaga e meio a ~12 m, como um time compacto de verdade)
   return { tras, frente: fr, largura: ataca ? 1.0 : 0.82, desliza: (b.x - 34) * (ataca ? 0.18 : 0.36) }
 }
 /** o bloco anda liso (no máx. ~7 m/s): troca de posse vira transição, não pulo */
@@ -265,7 +265,7 @@ export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number 
       // (no último terço, quem ataca vai pro lugar dele com PRESSA — o atacante que troteia pra área chega depois do cruzamento)
       // (e quem defende perto do próprio gol volta pro lugar CORRENDO — a zaga que troteia deixa a linha 4 m mais alta que o bloco)
       const urgente = (m.posseLado === p.lado && frente(p.lado, m.bola.y) < 40 && (p.grupo === 'ATA' || p.grupo === 'MEI')) || (m.posseLado !== p.lado && fundo(p.lado, m.bola.y) < 40)
-      return vaiPara(ancora(m, p), urgente ? 1.9 : 1)
+      return vaiPara(ancora(m, p), urgente ? 1.5 : 1)
     }
   }
 }
