@@ -1014,6 +1014,10 @@ export class Motor2 {
           const nx = ax - d.x, ny = ay - d.y, nn = len(nx, ny) || 1; d.fx = nx / nn; d.fy = ny / nn
         }
       }
+      // (25/10: quem acabou de passar pelo marcador AVANÇA com a bola por um instante em vez de soltar na hora: ganhou o espaço, usa.
+      // Testado e DESCARTADO no mesmo dia: colar a bola no pé por 0,3 s depois do drible — ficava bonito de perto, mas o 0×0 subia de
+      // 10% pra 17% em 300 jogos e nem goleiro mais fraco compensava)
+      this.segurarAte = Math.max(this.segurarAte, this.t + 0.35)
       this.emite({ tipo: 'drible', lado: d.lado, a: d.nome, b: z.nome, golpe })
       return
     }

@@ -133,7 +133,9 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    if((e.tipo==='falta'||e.tipo==='vantagem')&&e.b&&!teatro.has(e.b))teatro.set(e.b,{tipo:'cai',dt:dtEv})
    if((e.tipo==='desarme'||e.tipo==='carrinho'||e.tipo==='falta')&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:e.tipo==='carrinho'?'carrinho':'bote',dt:dtEv})
    // (💫 25/10: o jeito do drible vem do motor — roleta/Cruyff rodam o corpo inteiro, `giro` agacha e protege enquanto o corpo vira pro lado novo, `arrancada` inclina pra frente, o resto ginga)
-   if(e.tipo==='drible'&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:e.golpe==='roleta'||e.golpe==='cruyff'?'roleta':e.golpe==='giro'?'giro':e.golpe==='arrancada'?'arranca':'ginga',dt:dtEv})}}
+   // (💫 e os golpes ASSINATURA das lendas ganham corpo próprio: pedalada, elástico, chapéu, caneta, croqueta, corta pra dentro — só quem tem o
+   // golpe na ficha; o motor já sorteou o golpe no evento)
+   if(e.tipo==='drible'&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:e.golpe==='roleta'||e.golpe==='cruyff'?'roleta':e.golpe==='giro'?'giro':e.golpe==='arrancada'?'arranca':['pedalada','elastico','chapeu','caneta','croqueta','corta_pra_dentro'].includes(e.golpe)?e.golpe:'ginga',dt:dtEv})}}
   const acao=frame.officialAction
   frame.players.forEach((p,i)=>{
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};a.navigationOffset={x:p.mx-official.mx,z:p.mz-official.mz};const resetActor=reset||a.key!==p.key||navigation?.diagnostics.sourceReset;a.key=p.key;
@@ -210,6 +212,18 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
     else if(te.tipo==='roleta'){const u=Math.min(1,te.dt/.55),ang=Math.PI*2*(1-(1-u)*(1-u))-(u>=1?Math.PI*2:0);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),ang))}
     else if(te.tipo==='giro'){const k=te.dt<.15?te.dt/.15:Math.max(0,1-(te.dt-.15)/.45);a.holder.position.y-=.07*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,.28*k))}
     else if(te.tipo==='arranca'){const k=te.dt<.12?te.dt/.12:Math.max(0,1-(te.dt-.12)/.5),ang=.3*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang))}
+    else if(te.tipo==='pedalada'){// as pernas passam por cima da bola, uma depois da outra (3 pedaladas em 0,6 s), tronco um pouco pra frente
+     const k=Math.max(0,1-te.dt/.7),ph=te.dt*31,sw=Math.sin(ph);for(const [lado,sg] of [['r',1],['l',-1]]){const w=Math.max(0,sw*sg);apontaOsso(a,'thigh_'+lado,'calf_'+lado,new T.Vector3(fw.x*.7+lateral.x*sg*.5,-.45,fw.z*.7+lateral.z*sg*.5).normalize(),w*k)}a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,.12*k))}
+    else if(te.tipo==='elastico'){// o pé vai pra fora e volta pra dentro num estalo (0,35 s), o corpo acompanha
+     const u=Math.min(1,te.dt/.35),sw=Math.sin(u*Math.PI*2),k=Math.max(0,1-te.dt/.5);apontaOsso(a,'thigh_r','calf_r',new T.Vector3(fw.x*.6+lateral.x*sw*.8,-.5,fw.z*.6+lateral.z*sw*.8).normalize(),k);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,-.18*sw*k))}
+    else if(te.tipo==='chapeu'){// levanta o joelho e dá um pulinho (a bola passa por cima do marcador)
+     const k=te.dt<.15?te.dt/.15:Math.max(0,1-(te.dt-.15)/.4);a.holder.position.y+=.22*k;apontaOsso(a,'thigh_r','calf_r',new T.Vector3(fw.x*.9,.1,fw.z*.9).normalize(),k)}
+    else if(te.tipo==='caneta'){// toca pra frente entre as pernas do marcador e já inclina pra buscar
+     const k=te.dt<.1?te.dt/.1:Math.max(0,1-(te.dt-.1)/.45);apontaOsso(a,'thigh_r','calf_r',new T.Vector3(fw.x*.8,-.35,fw.z*.8).normalize(),k*.8);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,.25*k))}
+    else if(te.tipo==='croqueta'){// dois toques rápidos de um pé pro outro: o corpo vai e volta de lado
+     const k=Math.max(0,1-te.dt/.55),sw=Math.sin(te.dt*18)*.26*k;a.holder.position.x+=lateral.x*sw;a.holder.position.z+=lateral.z*sw;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,-sw*.9))}
+    else if(te.tipo==='corta_pra_dentro'){// inclina forte pro lado de dentro na mudança de direção
+     const k=te.dt<.12?te.dt/.12:Math.max(0,1-(te.dt-.12)/.5);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,.3*k))}
     a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // 🎉 comemoração: braços pra cima e pulinhos (depois do chão: o pé assentado é a base do pulo)
    if(comemora(p)&&a.holder.visible){const autor=p.key===festa.key,jeito=autor?festa.jeito:'bracos',hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd)),lat=new T.Vector3(fw.z,0,-fw.x)

@@ -54,8 +54,13 @@
   minuto): braços pra cima com pulinhos · aviãozinho (braços abertos correndo pra lateral) · dedo pro céu; os companheiros do abraço
   seguem de braços pra cima. Bancada: câmera `referee-front` no `mechanics-audit`. ⚠️ `test-sidelines.cjs`/`test-referee-clearance.cjs`
   do Codex precisam de servidor em 127.0.0.1:4197 com base `/7a0-game-studio/` e da fixture `neymarzetti-current` — não rodam aqui (já era assim).
-- PRÓXIMO: replay do gol; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga");
-  a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
+- FEITO (9ª leva): 💫 golpes assinatura com corpo próprio no 3D (pedalada, elástico, chapéu, caneta, croqueta, corta pra dentro —
+  `teatro` em `players.mjs`); 🧑‍⚖️ o juiz guarda 9 m da bola e sai do caminho de quem chega a 3 m (antes ficava DENTRO do drible —
+  medido: distância mínima a jogador 0,08 m → 1,67 m); quem passa pelo marcador avança 0,35 s com a bola antes de soltar.
+  🧪 Descartado: colar a bola no pé por 0,3 s depois do drible (0×0 10% → 17% em 300 jogos; nem goleiro mais fraco compensava) e
+  ponta colado na linha a 4,5 m (passes pra linha 3% → 13%, mas a bola não ficou mais perto da linha, caiu chute e subiu 0×0).
+  📏 A bola sai pela lateral ~1×/jogo porque ninguém joga a menos de 4 m da linha (2,9% do tempo) — largura é escolha do bloco, não bug.
+- PRÓXIMO: replay do gol; a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
