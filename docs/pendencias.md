@@ -10796,6 +10796,7 @@ avisos (criar conta/salvar) só na Central.
 - 25/10 (6ª parte): ✅ Jogos + Tabela numa aba só FEITO no branch (só conta dele, junto do calendário — `jogoTabela` em
   pyramidseason): placar/2D do mesmo tamanho em cima, tabela da liga e jogos embaixo; na Copa, chaveamento + jogos da Copa; a aba
   Tabelas sai da barra (Central · Jogos + Tabela · Elenco · Rank · Clube). Foto real: `scripts/mockups/carreira-jogos-tabela-real.png`.
-  NÃO publicado (espera ele mandar). ⏳ Falta (mockup `carreira-todas-abas.png`, espera OK): Clube numa fileira só (6 partes que
-  arrastam pro lado, no lugar dos 2 andares), sub-abas sempre logo abaixo do título, avisos de conta/salvar só na Central,
-  tabela com o placar de cada time do lado do nome + ▲▼ (estava no mockup aprovado e ainda não entrou).
+  ✅ 25/10 *"ok publique tudo na minha conta"*: PUBLICADO (só conta dele) junto com o Clube numa fileira só (arrasta pro lado,
+  foto `carreira-clube-uma-fileira-real.png`) e o selo "AO VIVO" na aba Jogos + Tabela. ⏳ Ainda falta: tabela com o placar de cada
+  time do lado do nome + ▲▼ (mockup aprovado); Elenco com Titulares/Reservas/SAF logo abaixo do título (hoje ficam lá embaixo).
+  (O aviso "criar conta" só aparece pra quem joga sem conta — na conta dele nunca aparece.)

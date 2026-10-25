@@ -7793,7 +7793,7 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
 const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
-function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false, contagem }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; contagem?: Partial<Record<AbaCarr, number>> }) {
+function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false, contagem, aoVivo=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; aoVivo?: boolean; contagem?: Partial<Record<AbaCarr, number>> }) {
   // 📺 a Central entra na FRENTE da barra, só pra quem tem (03/10)
   const abas: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
   return (
@@ -7814,7 +7814,9 @@ function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, ce
                   Some assim que a pessoa abre a aba — nunca fica pedindo atenção à toa. */}
               {/* 🔴 BOLINHA COM NÚMERO (22/10, ideia A aprovada): quantas coisas a aba tem pra você
                   resolver. Some sozinha quando resolve — nada muda de lugar. */}
-              {(contagem?.[t] ?? 0) > 0 && !on
+              {/* 🔴 25/10 (só conta do Diego, carreira organizada): com jogo rolando, a aba Jogos + Tabela diz "AO VIVO" */}
+              {t === 'jogos' && aoVivo && !on ? <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#E8503A', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 6, padding: '0 5px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 8.5, lineHeight: '13px', whiteSpace: 'nowrap', letterSpacing: '.03em' }}>{tr('AO VIVO', 'LIVE')}</span>
+              : (contagem?.[t] ?? 0) > 0 && !on
                 ? <span style={{ position: 'absolute', top: -1, right: '50%', marginRight: -20, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: '#C2452F', border: '2px solid #fff', color: '#fff', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 9.5, lineHeight: '12px', textAlign: 'center', boxSizing: 'border-box' }}>{contagem![t]}</span>
                 : ((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
             </button>
@@ -10760,7 +10762,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} combined={jogoTabela} />}
+      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
@@ -11850,6 +11852,17 @@ export function PyramidSeasonScreen() {
               const ativo = grupos.find(x => x.itens.some(([sb]) => sb === clubeSub)) ?? grupos[0]
               const pill = (s: typeof clubeSub, ic: string, label: string) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+              )
+              // 🏟️ 25/10 (só conta do Diego, mockup `carreira-todas-abas.png`): UMA fileira só, que arrasta pro lado, no lugar dos
+              // 2 andares (grupo + partes). Ele: *"no Clube tem outras abas… em cima"*
+              if (jogoTabela) return (
+                <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
+                <div style={{ marginBottom: subGrudadas ? 0 : 10, display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 3, WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+                  {subs.map(([s, ic, label]) => (
+                    <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', whiteSpace: 'nowrap', background: clubeSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+                  ))}
+                </div>
+                </SubAbasGrudadas>
               )
               return (
                 <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
