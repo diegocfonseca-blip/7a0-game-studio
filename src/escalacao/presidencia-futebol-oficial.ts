@@ -23,7 +23,9 @@ export class FutebolOficial3D {
  private context=new ContextoOficial3D()
  private deliveryKey:string|null=null
  // 🧤 25/10: o pulo do goleiro no 3D (só apresentação — o motor já decidiu defesa/gol; aqui só se desenha o voo até onde a bola vai)
- private dive:{id:number;key:string;x:number;z:number;y:number;tc:number;crossed:boolean;ax?:number;az?:number}|null=null
+ private dive:{id:number;key:string;x:number;z:number;y:number;tc:number;crossed:boolean;ax?:number;az?:number;vertical?:boolean}|null=null
+ /** 🤝 quadros desenhados depois do apito final: o relógio da partida para em 93', mas os 22 seguem andando pro meio-campo */
+ private fimQuadros=0
  private delivery:EntregaOficial3D|undefined
  constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
  private observeDelivery(){
@@ -51,20 +53,25 @@ export class FutebolOficial3D {
    const xAt=b.x+b.vx*tc,hAt=Math.max(0,b.h+b.vh*tc-4.9*tc*tc),lat=Math.max(-2.7,Math.min(2.7,xAt-gk.x))
    if(Math.abs(xAt-34)>GOL_MEIO+1.6||(Math.abs(lat)<.9&&hAt<1.7))return
    const same=this.dive?.id===l.t0?this.dive:null
-   this.dive={id:l.t0,key:key(gk),x:gk.y-52.5,z:gk.x+lat-34,y:Math.min(2.2,hAt),tc:time+tc,crossed:false,ax:same?.ax,az:same?.az}
+   // (🧤 o TIPO do pulo se decide UMA vez por chute — salto pra cima × mergulho de lado. Antes era recalculado a cada quadro a partir da
+   // posição já misturada do goleiro e ele começava curvado pro lado e terminava pulando reto; filmado 25/10)
+   this.dive={id:l.t0,key:key(gk),x:gk.y-52.5,z:gk.x+lat-34,y:Math.min(2.2,hAt),tc:time+tc,crossed:false,ax:same?.ax,az:same?.az,vertical:same?.vertical??(Math.abs(lat)<.6&&hAt>1.2)}
   }else if(this.dive&&!this.dive.crossed&&time>=this.dive.tc-.05)this.dive={...this.dive,crossed:true,tc:Math.min(time,this.dive.tc)}
   else if(this.dive&&!this.dive.crossed&&!l)this.dive={...this.dive,crossed:true,tc:time}
  }
  sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
   const time=target*90/93,tick=Math.floor(time*120+1e-9)
   while(this.spinTick<tick){this.spinTick++;this.game.avancaAte((this.spinTick/120)/(90/93));this.observeDelivery();this.spin.step(this.spinPoint(this.spinTick/120,true),1/120)}
   this.game.avancaAte(target)
+  // (depois do apito o placar não anda mais, mas cada quadro desenhado leva o motor ~1/60 s adiante por até 45 s: é o tempo de os
+  // jogadores chegarem ao meio-campo e se cumprimentarem. Contagem por quadro, não por relógio de parede: o mesmo em todo aparelho)
+  if(this.game.fim){this.fimQuadros=Math.min(this.fimQuadros+1,45*60);this.game.avancaAte(target+(this.fimQuadros/60)/(90/93))}else this.fimQuadros=0
   this.observeDelivery()
   const rotation=this.spin.preview(this.spinPoint(time),Math.max(0,time-this.spinTick/120)).toArray() as [number,number,number,number]
   const placementReset=this.hasRestartPlacement(),g=this.game,alpha=g.entre,mix=(a:number|undefined,b:number)=>a===undefined?b:a+(b-a)*alpha
@@ -81,7 +88,7 @@ export class FutebolOficial3D {
     kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,temporaryStopUntil:p.atordoado,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
   })
   this.keeperDive(time,key)
-  if(this.dive){const d=this.dive,k=d.crossed?Math.max(0,time<d.tc+.45?1:1-(time-d.tc-.45)/.6):Math.min(1,Math.max(0,1-(d.tc-time)/.42)),p=players.find(q=>q.key===d.key);if(p&&k>0){const e=k*k*(3-2*k);d.ax??=p.mx;d.az??=p.mz;Object.assign(p,{mx:p.mx+(d.ax-p.mx)*e,mz:p.mz+(d.az-p.mz)*e,mergulho:{x:d.x,z:d.z,y:d.y,k:e}})};if(d.crossed&&k<=0)this.dive=null}
+  if(this.dive){const d=this.dive,k=d.crossed?Math.max(0,time<d.tc+.45?1:1-(time-d.tc-.45)/.6):Math.min(1,Math.max(0,1-(d.tc-time)/.42)),p=players.find(q=>q.key===d.key);if(p&&k>0){const e=k*k*(3-2*k);d.ax??=p.mx;d.az??=p.mz;Object.assign(p,{mx:p.mx+(d.ax-p.mx)*e,mz:p.mz+(d.az-p.mz)*e,mergulho:{x:d.x,z:d.z,y:d.y,k:e,vertical:d.vertical,ax:d.ax,az:d.az}})};if(d.crossed&&k<=0)this.dive=null}
   const context=this.context.sample(time)
   const b=g.bola,previous=g.bolaAnt
   const action=b.lance?.tipo

@@ -157,7 +157,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    // contact IK or action blend back into the native animation baseline.
    for(const pose of a.nativePose){pose.bone.position.copy(pose.position);pose.bone.quaternion.copy(pose.quaternion)}
    if(a.current!==mode)a.current=mode;
-   const readyWeight=p.keeper&&a.actions.has('KeeperReady_Loop')&&!keeperActive&&frame.phase!=='gol'&&frame.phase!=='fim'?T.MathUtils.clamp(1-p.speed/3,0,1)*T.MathUtils.smoothstep(25-Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z),0,15):0;
+   const readyWeight=p.keeper&&a.actions.has('KeeperReady_Loop')&&!keeperActive&&frame.phase!=='gol'&&frame.phase!=='fim'?T.MathUtils.clamp(1-p.speed/3,0,1)*T.MathUtils.smoothstep(25-Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z),0,15)*.55:0; // (×0,55: a captura de prontidão inteira dobra o boneco pela cintura como uma reverência — filmado 25/10; misturada com o parado vira a postura de goleiro de verdade, joelho dobrado e tronco só um pouco à frente)
    for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const target=name==='KeeperReady_Loop'?readyWeight:(1-readyWeight)*(targets?.[name]??(name===mode?1:0)),current=action.isScheduled()?action.getEffectiveWeight():0;action.play();action.timeScale=0;action.setEffectiveWeight(resetActor||previous==='far'||previous==='hidden'?target:T.MathUtils.lerp(current,target,1-Math.exp(-dt/.18)));}
    const active=(keeperActive&&p.key===keeperTrial.plan.key)||motion?.plans.some(plan=>plan.key===p.key&&frame.time>=plan.start&&frame.time<=plan.end);
    const nearBall=frame.ball.y<1.5&&Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z)<1.5;
@@ -182,9 +182,9 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    if(a.grounding&&nearBall)a.motion.clearance(frame,p);
    // 🧤 25/10: o PULO do goleiro — o corpo tomba pro lado da bola a partir dos pés, desliza até o ponto e sobe se a bola vem alta;
    // os braços esticam na linha do corpo (só desenho: quem decide defesa/gol é o motor, e `mergulho` vem do adaptador)
-   if(p.mergulho&&cartoon&&a.holder.visible){const m=p.mergulho,dx=m.x-p.mx,dz=m.z-p.mz,len=Math.hypot(dx,dz);
+   if(p.mergulho&&cartoon&&a.holder.visible){const m=p.mergulho,dx=m.x-(m.ax??p.mx),dz=m.z-(m.az??p.mz),len=Math.hypot(dx,dz);
     // (bola reta nele e alta: não é mergulho de lado — é o SALTO pra cima, braços esticados por cima da cabeça)
-    if(len<=.6&&m.y>1.2){const alto=T.MathUtils.clamp((m.y-1.2)/1.0,0,1);a.holder.position.y+=Math.sin(m.k*Math.PI*.5)*(.12+alto*.45);a.holder.updateMatrixWorld(true);levantaBracos(a,new T.Vector3(0,1,0));for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
+    if(m.vertical??(len<=.6&&m.y>1.2)){const alto=T.MathUtils.clamp((m.y-1.2)/1.0,0,1);a.holder.position.y+=Math.sin(m.k*Math.PI*.5)*(.12+alto*.45);a.holder.updateMatrixWorld(true);levantaBracos(a,new T.Vector3(0,1,0));for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
     else if(len>.05){const dir=new T.Vector3(dx/len,0,dz/len),eixo=new T.Vector3(0,1,0).cross(dir).normalize(),alto=T.MathUtils.clamp(m.y/2.2,0,1),ang=m.k*T.MathUtils.lerp(1.3,.55,alto)*T.MathUtils.clamp(len/1.2,.45,1),q=new T.Quaternion().setFromAxisAngle(eixo,ang);a.holder.quaternion.premultiply(q);const vai=Math.min(len,1.7)*m.k*.75;a.holder.position.x+=dir.x*vai;a.holder.position.z+=dir.z*vai;a.holder.position.y+=Math.sin(m.k*Math.PI*.5)*(.18+alto*.45);/* (o giro é em volta do QUADRIL, não dos pés: o corpo deita no ar com os pés subindo — antes ele "fazia reverência" com os pés plantados) */const quadril=new T.Vector3(0,.95,0),girado=quadril.clone().applyQuaternion(q);a.holder.position.add(quadril.sub(girado));a.holder.updateMatrixWorld(true);levantaBracos(a,new T.Vector3(0,1,0).applyQuaternion(q));for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}}
    // 🦵 chute/passe sem captura: a perna bate (0–0,38 s depois de a bola sair)
    if(cartoon&&a.holder.visible&&!capture&&acao&&acao.actor===p.key&&TIPOS_CHUTE.has(acao.type)&&acao.requiredContact!=='hands'&&acao.requiredContact!=='head'){
