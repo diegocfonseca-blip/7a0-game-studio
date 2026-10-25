@@ -10706,3 +10706,9 @@ avisos (criar conta/salvar) só na Central.
   da tabela… e quando for copa é só trocar: tabela da copa em chaveamento e jogos da copa embaixo, mas o campinho ou placar ainda em cima"*.
   Aba JOGOS = ① placar cinema / Campo 2D + Manual/Auto/2D ② tabela da liga ao vivo ③ jogos da liga. Na Copa: ① o mesmo placar ②
   CHAVEAMENTO ③ jogos da Copa da noite. Mockup `scripts/mockups/carreira-jogos-placar-tabela.png`. ⏳ Espera OK.
+- 25/10 (6ª parte): ✅ Jogos + Tabela numa aba só FEITO no branch (só conta dele, junto do calendário — `jogoTabela` em
+  pyramidseason): placar/2D do mesmo tamanho em cima, tabela da liga e jogos embaixo; na Copa, chaveamento + jogos da Copa; a aba
+  Tabelas sai da barra (Central · Jogos + Tabela · Elenco · Rank · Clube). Foto real: `scripts/mockups/carreira-jogos-tabela-real.png`.
+  NÃO publicado (espera ele mandar). ⏳ Falta (mockup `carreira-todas-abas.png`, espera OK): Clube numa fileira só (6 partes que
+  arrastam pro lado, no lugar dos 2 andares), sub-abas sempre logo abaixo do título, avisos de conta/salvar só na Central,
+  tabela com o placar de cada time do lado do nome + ▲▼ (estava no mockup aprovado e ainda não entrou).
