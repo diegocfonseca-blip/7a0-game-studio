@@ -10552,7 +10552,7 @@ já calculou (mesmo autor/minuto/placar pra sala toda; relógio do dono). Base p
   segue com o cartão do dia. Outras abas: faixa fina (⏸️ nos dias · 🔴 AO VIVO no jogo). CLUBE: o jogo NÃO pausa mais (o 2D
   escondido desenha num tamanho de reserva — é o laço dele que anda o relógio) e tem 📺 Assistir → Placar (todos) · 2D (Craque+,
   `temManual`/pago) · 3D no mapa (só conta em teste). Placar velho não reaparece nos dias.
-  📺 24/10: na Central a faixa do calendário só aparece nos DIAS (no jogo some — print dele). ⏳ Mockup da Central reorganizada
+  📺 24/10: na Central a faixa do calendário só aparecia nos DIAS; 25/10 (*"a faixa fina não saiu do topo da Central"*): saiu de vez da Central (jogo, dias e Copa). ⏳ Mockup da Central reorganizada
   (`carreira-central-antes-depois.png`: jogo primeiro, cartão único, Agenda com as datas do calendário, Salvar/Ranking discretos)
   mandado — ele pediu SÓ a faixa por enquanto; o resto espera o OK.
   ✅ ETAPA 2 (Copa nas quartas) FEITA, só na conta dele: temporada que COMEÇA com o calendário ligado ganha `calCopaSeason`
