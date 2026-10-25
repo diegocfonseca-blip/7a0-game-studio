@@ -10843,5 +10843,5 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 2. ⭐ **Mensal R$ 9,90** = jogo todo liberado (Manual, 2D, salas à vontade, nuvem, fichas). Na tela da isca: "2 dias já pagam o mês".
 3. 🛒 Avulsos: ficha de carreira R$ 9,99 · Super Chat · roupa do presidente · tema da sala.
 4. 🛡️ Clube: escudo R$ 39,90 · mascote R$ 39,90 · manto R$ 19,90 · **combo R$ 79,90** (ele achou os primeiros valores baratos).
-5. 💎 **Vitalício completo** (tudo pra sempre + combo do clube): ele quer BEM caro (*"senão não paga mais mensal"*); proposta R$ 299,90 — ⏳ ele confirmar.
+5. 💎 **Vitalício completo** (tudo pra sempre + combo do clube): ele quer BEM caro (*"senão não paga mais mensal"*); **R$ 299,90 (confirmado 25/10: *"sim 299"*)**. Mockup `scripts/mockups/loja-planos-novos.png`. ⏳ Espera OK do visual antes de codar.
 ⚠️ Quem já pagou Lenda/Batismo/Fundador fica com tudo pra sempre (regra "planos novos não mexem em quem já paga").
