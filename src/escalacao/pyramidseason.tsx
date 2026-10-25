@@ -135,6 +135,8 @@ import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 president
 import { useImagemBusto } from './presidente-avatar'
 import { entradaM2, novoMotor2, resultadoM2, sementeM2, taticaM2, carregaGuardados, tiraNovos, type EntradaM2 } from './motor2/carreira' // ⚽🧠 motor novo decide o seu jogo na carreira (20/10)
 
+/** 📊 Jogos + Tabela numa aba só e Elenco/Rank/Clube sem o jogo — pra todos desde 25/10 (`false` volta a ser só da conta do Diego) */
+const ABAS_JUNTAS_GERAL = true
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
@@ -8536,7 +8538,9 @@ export function PyramidSeasonScreen() {
   // 📊 JOGOS + TABELA NUMA ABA SÓ (25/10, mockup `carreira-jogos-placar-tabela.png`, só a conta do Diego junto do calendário):
   // em cima o placar cinema / Campo 2D do MESMO tamanho; embaixo a tabela da liga e os jogos da liga. Na Copa só troca:
   // chaveamento + jogos da Copa. A aba Tabelas some da barra (o `combined` da BarraCarreira já existia, nunca tinha sido ligado).
-  const jogoTabela = calOn
+  // 🟢 25/10 LIBERADO PRA TODOS (Diego: *"bota organizar pra todos agora as abas… jogos e tabela juntos… e as outras abas sem
+  // ter mais jogos"*), SEM o calendário, o Mapa 3D e o Campo 2D (esses seguem só na conta dele). Voltar atrás: `false` = só junto do calendário.
+  const jogoTabela = ABAS_JUNTAS_GERAL ? (!!state.careerOnline && state.onlineMode !== 'online' && !state.co2 && state.sport !== 'basquete') : calOn
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
   // 📅 com a Copa no meio da Liga ela começa cedo (1ª quarta ≥ rodada 5): o motor novo só vale se ligou antes da rodada 5
   const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
@@ -10845,7 +10849,7 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}${jogoTabela && (tab === 'elenco' || tab === 'ranking') ? ' ll-cx-sem-jogo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${jogoTabela && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}${jogoTabela && (tab === 'elenco' || tab === 'ranking') ? ' ll-cx-sem-jogo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {tunelOn && myCopaTie && copaFase && <div style={{ display: 'none' }}><TunelFinal comp={copaFase.name === 'Supercopa' ? 'supercopa' : 'copabr'}
           nomeComp={copaFase.name === 'Supercopa' ? undefined : copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']}
           seg={tunelSeg} total={4} onFechar={fechaTunel}
@@ -11854,8 +11858,8 @@ export function PyramidSeasonScreen() {
         {/* 🪜 com a barra de baixo ligada as pílulas somem daqui — são as MESMAS 5
             abas, só que agora no rodapé (não rolam junto com o conteúdo). */}
         <div style={{ display: barraOn ? 'none' : 'flex', gap: 6, marginBottom: 12 }}>
-          {([['jogos', '🗓️', tr('Jogos', 'Matches')], ['tabelas', '📊', tr('Tabelas', 'Tables')], ['elenco', '👥', tr('Elenco', 'Squad')], ['ranking', '🏆', 'Rank'], ['estadio', '🏟️', tr('Clube', 'Club')]] as [typeof tab, string, string][]).map(([t, ic, label]) => (
-            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+          {([['jogos', '🗓️', tr('Jogos', 'Matches')], ['tabelas', '📊', tr('Tabelas', 'Tables')], ['elenco', '👥', tr('Elenco', 'Squad')], ['ranking', '🏆', 'Rank'], ['estadio', '🏟️', tr('Clube', 'Club')]] as [typeof tab, string, string][]).filter(([t]) => !(jogoTabela && t === 'tabelas')).map(([t, ic, label]) => (
+            <button key={t} onClick={() => escolheAba(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: tab === t ? myCol.solid : '#fff', color: tab === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
           ))}
         </div>
 
