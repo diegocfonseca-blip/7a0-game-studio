@@ -20,7 +20,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    if(mode==='free'&&!returning){moving=false;return}
    const fit=mode!=='free'?enquadramentoFutebol(camera,ball,subjects,mode):null
    if(fit){
-    if(distance===undefined||fit.preset==='goal')distance=fit.distance
+    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast')distance=fit.distance // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
     // Expand promptly for a receiver/high ball; close in only after a sustained
     // smaller play area. Crossing a neighbour-selection boundary cannot make
     // the lens pump in and out on every stride.

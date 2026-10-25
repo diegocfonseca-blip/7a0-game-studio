@@ -1021,7 +1021,11 @@ export class Motor2 {
   private cuidaParada() {
     const pa = this.parada!, c = pa.cobrador
     if (!this.atl.includes(c)) { this.para(pa.tipo, pa.lado, pa.x, pa.y); return }
-    const pronto = dist(c, pa) < 0.9 && this.t - pa.desde >= ESPERA[pa.tipo]
+    // 🏁 (25/10, filmado no 3D: o escanteio saía com 3 na área e os zagueiros ainda subindo) escanteio e falta perto da área esperam o
+    // time CHEGAR na área (4+ dentro) — com teto de tempo, pra bola parada nunca segurar o jogo
+    const ensaiada = pa.tipo === 'escanteio' || (pa.tipo === 'falta' && frente(pa.lado, pa.y) < 32 && this.ensaio[pa.lado] != null)
+    const naArea = ensaiada ? this.atl.filter(a => a.lado === pa.lado && a !== c && a.grupo !== 'GOL' && frente(pa.lado, a.y) < AREA_PROF + 2 && Math.abs(a.x - 34) < AREA_LARG + 2).length : 9
+    const pronto = dist(c, pa) < 0.9 && this.t - pa.desde >= ESPERA[pa.tipo] && (naArea >= 4 || this.t - pa.desde >= ESPERA[pa.tipo] + 4.5)
     // (depois do gol o time volta da festa lá do bandeirinha: dá mais tempo pra todo mundo chegar no seu campo)
     const folga = pa.tipo === 'saida' ? 8 : 4
     if (!pronto && this.t - pa.desde < ESPERA[pa.tipo] + folga) return

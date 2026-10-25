@@ -1,3 +1,15 @@
+## 🎥 3D do jogo no mapa (25/10) — 1ª leva NO BRANCH (conta de prévia)
+- Diego: *"simule o jogo vendo rolar o 3D e arrume… jogadores, campo, câmeras, bola, traves, juiz… mas principalmente o jogo em si"*.
+  Bancada de revisão: `mechanics-audit.html` com fixture gerada do motor atual (scratchpad `rev/mkfix.mts`, `rev/cap.mjs` tira foto
+  em qualquer segundo exato; `watch3d.mjs` roda o mapa de verdade com o estádio completo).
+- FEITO: 📺 câmera de TRANSMISSÃO de verdade (`presidencia-enquadramento-futebol.ts`): parada no alto da arquibancada principal, só
+  gira e dá zoom (antes voava a ~40° em cima do campo e os bonecos viravam formiga); a LATERAL PRÓXIMA é a mesma no anel de baixo,
+  colada no campo (sobe pra principal quando o lance não cabe). Foto: `scripts/mockups/mapa-camera-tv.png`. Testes de câmera do Codex verdes.
+  🎉 COMEMORAÇÃO do gol (`players.mjs`, `levantaBracos`): quem fez e os companheiros perto levantam os braços e dão pulinhos na festa.
+  🏁 escanteio/falta ensaiada esperam 4+ na área (teto +4,5 s) — antes saía com 3 e os zagueiros subindo.
+- PRÓXIMO: goleiro pular no gol sofrido/defesa, cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
+  torcida reagindo, juiz.
+
 ## 📺 Placar e controle DENTRO do mapa 3D (25/10) — FEITO no branch (só a conta de prévia; esperando "publica")
 - Diego: *"não gostei do placar fora do mapa… botão manual, placar e etc. deveria ser lá"*; mockup v2 `scripts/mockups/clube-mapa-hud.png`
   ("aprovado"). Foto real: `scripts/mockups/clube-mapa-hud-real.png`.
