@@ -65,7 +65,12 @@ export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
     // cruzamento); o do lado da bola segura a largura. Antes os dois pontas ficavam colados na linha e a área ficava vazia
     const bProf = frente(p.lado, m.bola.y)
     if (bProf < 36 && (m.bola.x - 34) * (p.bx - 34) < 0) x = p.bx < 34 ? 26 : W - 26
+    // (↔️ 25/10: o ponta do lado da bola, antes do último terço, PISA NA LINHA — é ele quem dá a largura que estica a defesa)
+    else if (bProf >= 36 && (m.bola.x - 34) * (p.bx - 34) > 0) x = p.bx < 34 ? 3.5 : W - 3.5
   }
+  // ↔️ 25/10 (Diego: "faz o que deixa mais real"; medido: a bola passava só 3% do jogo a menos de 5 m da lateral): atacando, o
+  // LATERAL do lado da bola abre colado na linha — é a opção por fora que estica a defesa (o ponta já está aberto à frente dele)
+  if (ataca && p.grupo === 'LAT' && (m.bola.x - 34) * (p.bx - 34) > 0) x = p.bx < 34 ? 4 : W - 4
   // 🎯 25/10 (medido: com a bola a menos de 30 m do gol só 0,27 atacante estava na área — o centroavante ficava a 24 m, trotando atrás
   // da linha): no último terço o CENTROAVANTE mora entre os zagueiros e o meia que chega vai pra marca do pênalti. É aí que o
   // cruzamento, o corte pra trás e a enfiada encontram alguém

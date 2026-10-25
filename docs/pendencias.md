@@ -103,6 +103,14 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- FEITO (15ª leva, Diego: *"faz o que deixa mais real… depois melhora se precisar"*): ↔️ JOGO PELOS LADOS — o ponta do lado da bola
+  pisa na linha antes do último terço (3,5 m), o lateral do lado da bola abre colado na linha (4 m), quem conduz pela ponta longe da
+  área corre pela linha em vez de cortar logo pra dentro, e o passe pro companheiro livre aberto no campo de ataque ganha preferência
+  (`PELO_LADO`). 🎯 mais chute e goleiro que defende mais: `ESCALA_CHUTE` 1,2 → 2,0 · `CHUTE_LONGE` 1,0 → 1,6 · `GK_BASE` 0,23 → 0,25.
+  Medido (300 jogos): bola a menos de 10 m da lateral 9% → 13% · dono da bola perto da linha 5% → 9% · laterais 0,98 → 1,3 · chutes
+  3,1 → 3,7 · defesas 0,85 → 1,16 · gols 1,6 → 1,75 · 0×0 13% · forte ganha 76%. Chute de fora = 22% das finalizações.
+  Testei e NÃO usei: goleiro mais fraco (gols 1,8 mas defendia só 1 em 4 no gol — feio no 3D) e chute ainda mais solto (os chutes quase
+  não sobem: num jogo de 1:30 o time chega pouco na área; forçar só derrubava gols).
 - MEDIDO (25/10, depois da 14ª leva): a bola sai pouco pela lateral (~1/jogo) porque o jogo roda PELO MEIO — a bola passa só 3% do
   jogo a menos de 5 m da lateral e 9% a menos de 10 m; o dono da bola está a menos de 8 m da linha só 5% do tempo. Testei soltar o
   ponta pra conduzir pela linha (o puxão pro meio de 0,12/m vira 0,025/m longe da área): a faixa perto da linha subiu pouco e o 0×0
