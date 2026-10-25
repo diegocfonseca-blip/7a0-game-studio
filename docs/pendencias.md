@@ -65,7 +65,10 @@
   dois braços vão do ombro até a bola (segura na frente do corpo). ⚠️ Pra isso a bola na mão vai SEM `owner` no quadro: a apresentação
   do Codex (`ball-control`) gruda a bola do dono no pé — por isso a 1ª versão ficava no chão. Medido: 0,4 encaixe/saída por jogo, 0,38
   arremesso/jogo. Bancada: câmera `front` (de frente pro jogador focado) no `mechanics-audit`.
-- PRÓXIMO: replay do gol; a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
+- 🔁 REPLAY DO GOL — mockup pronto, ESPERANDO OK DO DIEGO (`scripts/mockups/replay-gol.png`, 25/10): na festa do gol (2,5 s, relógio
+  parado) a tela corta 1,5 s do lance visto de trás do gol em câmera lenta, selo REPLAY, e volta pra festa. Não mexe no motor (é a
+  câmera voltando 3 s na mesma partida). Não implementar antes do OK (regra: UI nova = mockup primeiro).
+- PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
