@@ -10697,4 +10697,4 @@ avisos (criar conta/salvar) só na Central.
   ritmo do relógio da tela, nunca antes: anti-spoiler). Barra de baixo com 4 abas. ⏳ Espera ele escolher.
 - 25/10 (3ª parte) — ele corrigiu: *"o placar ou campo 2D não pode ser faixinha… eu tava falando dos jogos restantes"*. Ou seja:
   o SEU jogo continua GRANDE (placar ou Campo 2D); quem vira tabela é a lista de OUTROS JOGOS da rodada → tabela ao vivo com o placar
-  de cada time do lado do nome e ▲▼. Mockup `scripts/mockups/carreira-jogo-tabela-ao-vivo.png` (placar × 2D). ⏳ Espera OK.
+  de cada time do lado do nome e ▲▼. Ele cobrou *"cadê os jogos do restante do pessoal?"* → os outros jogos ficam num QUADRO COMPACTO (2 colunas, amarelo = gol recente) entre o seu jogo e a tabela. Mockup `scripts/mockups/carreira-jogo-tabela-ao-vivo.png` (placar × 2D). ⏳ Espera OK.
