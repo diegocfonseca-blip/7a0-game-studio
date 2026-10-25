@@ -35,6 +35,8 @@ const RECUO_MAX = -0.2
 const LAT_APOIO = 0.05
 /** 🔄 quanto vale rodar a bola pelo zagueiro/lateral livre (próprio campo e meio) */
 const CIRCULA = 0.012
+/** 🚀 o gosto pelo lançamento pro companheiro livre lá na frente */
+const LANCAMENTO = 0.03
 /** ↗️ o gosto pelo cruzamento com a bola rolando (21/10: mais jogo pelas pontas — cabeçada, corte e escanteio) */
 const CRUZA = 1.8
 /** 🧤 o goleiro comum (saída 55–74) prefere repor curto por isto */
@@ -160,6 +162,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // ⭐ O JOGO PASSA PELO CRAQUE: o time procura quem resolve (lenda com a bola vale mais que o volante com a bola)
     u += pOk * (((t.at.conducao + t.at.passe + t.at.finalizacao) / 3 - 70) / 1500)
     if (aereo) u += (p.tend.passeLongo - 0.5) * 0.03 // (bola longa é gosto de quem lança; o resto prefere o pé)
+    // 🚀 LANÇAMENTO DE VERDADE (25/10, medido: 0,3 por jogo — quase não existia): o companheiro LIVRE lá na frente (ninguém a 8 m), com
+    // 20 m+ de campo pra ganhar, vale a bola longa — é o lançamento do volante pro ponta, a virada de jogo do zagueiro
+    if (aereo && !enfiada && rec > 8 && avanca > 2 && p.at.passe > 60) u += LANCAMENTO * clamp((p.at.passe - 60) / 30, 0.3, 1.2)
     // (pra trás: só quando é o melhor que tem — mas APERTADO, recuar pro zagueiro/lateral é o certo: é assim que o time sai do
     // aperto e a zaga participa do jogo. Diego 21/10: "zagueiro, lateral e goleiro quase não jogam")
     if ((t.y - p.y) * fy < -3) u -= 0.006 * (1 - pres) - (t.grupo === 'DEF' || t.grupo === 'LAT' ? SAIDA_TRAS * pres : 0)
