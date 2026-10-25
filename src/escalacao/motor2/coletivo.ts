@@ -2,7 +2,7 @@
 // com a bola), e cada jogador ganha um PAPEL a cada 0,25 s: com a bola o time dá 2 opções de passe em ângulo, o atacante
 // infiltra entre os zagueiros, o lateral que apoia ultrapassa; sem a bola, UM pressiona, UM cobre, os zagueiros marcam e
 // seguram a linha, o resto guarda a zona. Ninguém corre todo mundo atrás da bola.
-import { AREA_LARG, AREA_PROF, L, W, clamp, dist, frente, fundo, len, linhaAtaque, valor, yDe, aoSegmento } from './fisica'
+import { deCostas, AREA_LARG, AREA_PROF, L, W, clamp, dist, frente, fundo, len, linhaAtaque, valor, yDe, aoSegmento } from './fisica'
 import type { Atleta, Lado } from './tipos'
 import type { Motor2 } from './motor'
 
@@ -21,7 +21,7 @@ export function blocoDesejado(m: Motor2, lado: Lado): Bloco {
   if (ataca) { tras = clamp(bProf - (bProf > 60 ? 16 : 26) + 4 * tac, 16, 62); fr = clamp(bProf + (bProf > 60 ? 27 : 20) + 3 * tac, tras + 30, 99) }
   // (defendendo, a linha de trás NÃO entra na pequena área: com a bola a 30 m ela fica na entrada da grande área (~16 m), como
   // uma defesa de verdade — antes ia pra 6 m do gol e os atacantes ficavam encostados no goleiro)
-  else { tras = clamp(bProf * 0.55 + 4 * tac, 10, 40); fr = clamp(tras + 24, 28, 68) }
+  else { tras = clamp(bProf * 0.55 + 4 * tac, 10, 40); fr = clamp(tras + 20, 26, 64) } // (25/10: bloco mais curto — sem o buraco de 17 m entre zaga e meio)
   return { tras, frente: fr, largura: ataca ? 0.95 : 0.68, desliza: (b.x - 34) * (ataca ? 0.22 : 0.42) }
 }
 /** o bloco anda liso (no máx. ~7 m/s): troca de posse vira transição, não pulo */
@@ -104,7 +104,10 @@ export function planeja(m: Motor2) {
         const fica = m.corrida.get(p)
         if (fica && fica.ate > m.t) { p.papel = 'infiltra'; continue }
         if (frente(l, d.y) > 60 || frente(l, p.y) < linha - 1.5) continue // (só começa a corrida em posição legal, com a bola já no campo deles)
-        if (m.r() < p.tend.infiltra * 0.3) {
+        // (25/10: a corrida sai quando o passador está DE FRENTE pro jogo e pode lançar — é aí que o atacante ataca o espaço; com ele de
+        // costas, quase ninguém sai, porque a bola não vai chegar)
+        const deFrente = deCostas(d, 0, l === 0 ? -1 : 1) < 0.25
+        if (m.r() < p.tend.infiltra * (deFrente ? 0.45 : 0.06)) {
           const zags = adv.filter(a => a.grupo === 'DEF' || a.grupo === 'LAT').sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x)).slice(0, 2)
           const gx = zags.length === 2 ? (zags[0].x + zags[1].x) / 2 : p.x
           const alvo = { x: clamp(p.x * 0.4 + gx * 0.6, 8, W - 8), y: yDe(((1 - l) as Lado), clamp(linha - 9, 4, 60)) }
@@ -129,6 +132,10 @@ export function planeja(m: Motor2) {
         if (pres) pres.papel = 'pressiona'
         // pressão alta (tática "pra cima"): um segundo vai junto quando a bola está no campo deles
         if (m.tatica[l] > 0 && fundo(l, d.y) > 60 && ord[1]) ord[1].papel = 'pressiona'
+        // 🔥 GATILHO DE PRESSÃO (25/10): o rival DE COSTAS pro jogo, encostado na lateral ou que ACABOU de receber → o segundo aperta junto
+        // (é o momento em que ele não consegue sair jogando pra frente)
+        const gatilho = deCostas(d, 0, d.lado === 0 ? -1 : 1) > 0.5 || d.x < 8 || d.x > W - 8 || m.t - (m.donoDesde ?? -9) < 0.6
+        if (gatilho && ord[1] && ord[1].papel === 'forma' && dist(ord[1], d) < 13) ord[1].papel = 'pressiona'
         const cob = ord.find(p => p.papel === 'forma' && (p.grupo === 'MEI' || p.grupo === 'DEF'))
         if (cob) cob.papel = 'cobre'
       }
@@ -153,13 +160,17 @@ export function planeja(m: Motor2) {
 /** um ponto LIVRE pra receber, perto do portador, em ângulo, de preferência pra frente */
 function melhorOpcao(m: Motor2, d: Atleta, s: Atleta, adv: Atleta[], usados: { x: number; y: number }[]) {
   const fy = d.lado === 0 ? -1 : 1, an = ancora(m, s)
+  // (25/10: com o portador APERTADO, o apoio vem PERTO — 6–10 m, pra tabela; livre, as opções se abrem mais longe)
+  let dRival = 9
+  for (const a of adv) dRival = Math.min(dRival, dist(a, d))
+  const aperto = clamp(1 - (dRival - 1) / 6, 0, 1)
   let melhor: { x: number; y: number } | null = null, nota = -9
-  for (const r of [8, 13, 19]) for (const [ux, uy] of ANEL) {
+  for (const r of [6, 10, 15, 20]) for (const [ux, uy] of ANEL) { // (25/10: um anel perto, de 6 m — a opção de apoio curto)
     const pt = { x: clamp(d.x + ux * r, 3, W - 3), y: clamp(d.y + uy * fy * r, 3, L - 3) }
     if (usados.some(u => dist(u, pt) < 7)) continue
     let livre = 9, linha = 5
     for (const a of adv) { livre = Math.min(livre, dist(a, pt)); linha = Math.min(linha, aoSegmento(a, d, pt).q) }
-    const n = (livre / 9) * 0.5 + (linha / 5) * 0.45 + valor(d.lado, pt.x, pt.y) * 1.1 - dist(s, pt) / 45 - dist(pt, an) / 70
+    const n = (livre / 9) * 0.5 + (linha / 5) * 0.45 + valor(d.lado, pt.x, pt.y) * 1.1 - dist(s, pt) / 45 - dist(pt, an) / 70 - (r > 11 ? aperto * 0.18 : 0)
     if (n > nota) { nota = n; melhor = pt }
   }
   return melhor

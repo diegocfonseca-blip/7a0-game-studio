@@ -21,6 +21,8 @@ const MANTER = 0.03
 const CHUTE_LONGE = 1.0
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
 const CHUTE_PERTO = 1.6
+/** 🤝 o gosto pelo passe curto (até 11 m), maior quanto mais apertado ele está */
+const TOQUE_CURTO = 0.018
 /** 🔙 apertado, recuar pro zagueiro/lateral vale isto × a pressão (a zaga e os laterais entram no jogo) */
 const SAIDA_TRAS = 0.05
 /** 🔙 o castigo máximo de tocar pra trás (em "dezenas de metros" do DIRETO): −0,5 era tanto que o meia nunca recuava pro zagueiro */
@@ -84,9 +86,14 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (t.grupo === 'GOL' && fundo(l, p.y) > 30) continue
     const corre = m.corrida.get(t)
     const enfiada = !!corre && corre.ate > m.t && t.papel === 'infiltra' && dist(p, t) < 30
-    const alvo = enfiada ? { x: clamp(t.x + (corre!.alvo.x - t.x) * 0.5, 3, W - 3), y: clamp(t.y + (corre!.alvo.y - t.y) * 0.55, 2, L - 2) } : { x: clamp(t.x + t.vx * 0.35, 2, W - 2), y: clamp(t.y + t.vy * 0.35, 2, L - 2) }
+    // 👀 VISÃO (25/10, Diego: "a visão do jogador"): quem está atrás do corpo só é visto por quem tem visão (o craque "escaneia"
+    // antes de receber; o perna-de-pau só enxerga o que está na frente). De frente, todo mundo vê
+    if (!m.parada && deCostas(p, t.x - p.x, t.y - p.y) > 0.55 + (p.at.visao - 60) / 100) continue
+    // 🎯 o passe vai NA FRENTE de quem está correndo — no tempo que a bola leva pra chegar (antes era sempre 0,35 s)
+    const d0 = dist(p, t), lead = clamp(d0 / 15, 0.2, 1.1)
+    const alvo = enfiada ? { x: clamp(t.x + (corre!.alvo.x - t.x) * 0.5, 3, W - 3), y: clamp(t.y + (corre!.alvo.y - t.y) * 0.55, 2, L - 2) } : { x: clamp(t.x + t.vx * lead, 2, W - 2), y: clamp(t.y + t.vy * lead, 2, L - 2) }
     const d = dist(p, alvo)
-    if (d < 5 || d > 58) continue
+    if (d < 3 || d > 58) continue // (25/10: o toque curto de 3–5 m existe — é ele que tira da pressão)
     if (restr === 'lateral' && d > 24) continue
     const lado = Math.abs(alvo.x - p.x) > 30 && Math.abs(alvo.y - p.y) < 25
     let aereo = d > 32 || (restr === 'tiro_de_meta' && d > 25)
@@ -124,6 +131,8 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
     let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, RECUO_MAX, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
     if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
+    // 🤝 (25/10) APERTADO, O TOQUE CURTO É O CERTO: tabela, parede, o apoio a 5–10 m — é assim que o profissional sai da pressão
+    if (d < 11 && !aereo) u += pOk * TOQUE_CURTO * (0.35 + pres)
     // ⭐ O JOGO PASSA PELO CRAQUE: o time procura quem resolve (lenda com a bola vale mais que o volante com a bola)
     u += pOk * (((t.at.conducao + t.at.passe + t.at.finalizacao) / 3 - 70) / 900)
     if (aereo) u += (p.tend.passeLongo - 0.5) * 0.03 // (bola longa é gosto de quem lança; o resto prefere o pé)
