@@ -60,6 +60,11 @@
   🧪 Descartado: colar a bola no pé por 0,3 s depois do drible (0×0 10% → 17% em 300 jogos; nem goleiro mais fraco compensava) e
   ponta colado na linha a 4,5 m (passes pra linha 3% → 13%, mas a bola não ficou mais perto da linha, caiu chute e subiu 0×0).
   📏 A bola sai pela lateral ~1×/jogo porque ninguém joga a menos de 4 m da linha (2,9% do tempo) — largura é escolha do bloco, não bug.
+- FEITO (10ª leva): 🧤 GOLEIRO COM A BOLA NA MÃO — encaixou ou saiu buscando bola do rival = bola no peito (`gkMao`, h 0,9 m; o recuo
+  do companheiro continua no pé) e a reposição sai DA MÃO: arremesso baixo e rápido até ~32 m, chutão de voleio além disso; no 3D os
+  dois braços vão do ombro até a bola (segura na frente do corpo). ⚠️ Pra isso a bola na mão vai SEM `owner` no quadro: a apresentação
+  do Codex (`ball-control`) gruda a bola do dono no pé — por isso a 1ª versão ficava no chão. Medido: 0,4 encaixe/saída por jogo, 0,38
+  arremesso/jogo. Bancada: câmera `front` (de frente pro jogador focado) no `mechanics-audit`.
 - PRÓXIMO: replay do gol; a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).

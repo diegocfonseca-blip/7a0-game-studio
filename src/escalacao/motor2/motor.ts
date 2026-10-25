@@ -204,6 +204,8 @@ export class Motor2 {
   private acaoDe = new Map<Atleta, Acao>()
   /** 🦶 quem está conduzindo no toque agora (a bola anda solta à frente dele) */
   private toqueSolto: Atleta | null = null
+  /** 🧤 o goleiro está com a bola NA MÃO (encaixou ou saiu buscando): fica no peito até a reposição, que sai da mão — arremesso curto ou chutão */
+  gkMao: Atleta | null = null
   /** 🦶 o PRIMEIRO TOQUE de quem acabou de receber: pra onde ele leva a bola (longe do marcador, pro lado do jogo) */
   private toque1: { de: Atleta; ux: number; uy: number; ate: number } | null = null
 
@@ -589,12 +591,22 @@ export class Motor2 {
     const ux = (alvo.x - this.bola.x) / d, uy = (alvo.y - this.bola.y) / d
     const b = this.bola
     b.dono = null; b.ultimo = p; this.donoDesde = null
-    const arremesso = this.parada?.tipo === 'lateral'
+    const arremesso = this.parada?.tipo === 'lateral', daMao = this.gkMao === p
+    this.gkMao = null
     if (this.parada) this.parada = null
     if (arremesso) {
       // 🤾 o lateral é com a MÃO: a bola sai de cima da cabeça (~2 m), em arco curto, e chega no peito/pé do companheiro
       const T = clamp(d / 11, 0.55, 1.6), h0 = 2.0, hFim = 0.6
       b.h = h0; b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim - h0 + 0.5 * G * T * T) / T
+    } else if (daMao && d <= 32) {
+      // 🧤 REPOSIÇÃO COM A MÃO (25/10): o goleiro que encaixou rola/arremessa pro zagueiro ou lateral — sai da altura do peito, baixa e
+      // rápida, chega no pé (até ~32 m; mais longe que isso ele chuta da mão, abaixo)
+      const T = clamp(d / 14, 0.5, 1.7), h0 = 1.0, hFim = 0.25
+      b.h = h0; b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim - h0 + 0.5 * G * T * T) / T
+    } else if (daMao) {
+      // 🧤 CHUTÃO DA MÃO: solta da mão e bate de voleio — a bola sai de ~0,6 m, alta e longa
+      const T = Math.max(clamp(d / 18, 0.9, 2.3), d / 28), hFim = 0.3
+      b.h = 0.6; b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim - 0.6 + 0.5 * G * T * T) / T
     } else if (a.aereo) {
       // (bola longa vai em parábola e cai ~18 m/s: dá pra dominar; e nenhuma bola sai do pé a mais de 28 m/s — o chutão de 80 m saía a 40)
       const T = a.tipo === 'cruzamento' ? clamp(d / 21, 0.75, 1.5) : Math.max(clamp(d / 18, 0.8, 2.2), d / 28)
@@ -747,7 +759,7 @@ export class Motor2 {
       // jogador ganhava a posse, a bola pulava até 2,4 m num passo pra ficar colada 75 cm à frente dele — no 2D e no 3D ela "voava" pro
       // pé. Agora, no primeiro ~0,3 s, ela vai até o pé (o toque de domínio); depois segue na condução, um pouco mais perto (55 cm)
       const inicio = this.t - (this.donoDesde ?? -9) < 0.32
-      if (v < TOQUE_V || inicio || this.toqueSolto !== d) {
+      if (v < TOQUE_V || inicio || this.toqueSolto !== d || this.gkMao === d) {
         // devagar (protegendo, girando, esperando o passe) a bola fica colada no pé
         // 🦶 DOMÍNIO ORIENTADO (25/10, Diego: "o domínio… o controle da bola… o recebimento do passe"): o primeiro toque não gruda a
         // bola no pé — ele a LEVA 1 m pro lado do jogo, longe do marcador (é o que separa o profissional do pelada). Quem domina bem
@@ -760,8 +772,8 @@ export class Motor2 {
         let mx = (ox - b.x) * k, my = (oy - b.y) * k
         const mm = len(mx, my), cap = 12 * dt
         if (mm > cap) { mx *= cap / mm; my *= cap / mm }
-        b.x += mx; b.y += my; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
-        if (v >= TOQUE_V && !inicio) this.toqueSolto = d // (começou a correr com ela: a partir de agora é no toque)
+        b.x += mx; b.y += my; b.h = this.gkMao === d ? 0.9 : 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0 // (🧤 na mão do goleiro a bola fica no peito, ~0,9 m)
+        if (v >= TOQUE_V && !inicio && this.gkMao !== d) this.toqueSolto = d // (começou a correr com ela: a partir de agora é no toque)
       } else {
         // 🦶 CONDUÇÃO NO TOQUE (25/10, Diego: "a condução da bola… o controle da bola"): correndo, ele EMPURRA a bola um pouco à
         // frente e vai buscar — a bola anda sozinha (freia na grama) e, quando ele alcança, vem o próximo toque. Quanto mais rápido,
@@ -843,7 +855,7 @@ export class Motor2 {
     if (this.r() >= p) return // passou por ele
     this.stats.defesas[def]++
     if (v < 21 && dx < 0.8 && this.r() < 0.5 + gk.at.reflexo / 400 - (this.clima === 'chuva' ? 0.12 : 0)) {
-      b.vx = b.vy = b.vh = 0; b.h = 0; b.lance = null; b.ultimo = gk; this.pega(gk)
+      b.vx = b.vy = b.vh = 0; b.h = 0; b.lance = null; b.ultimo = gk; this.pega(gk); this.gkMao = gk
       this.emite({ tipo: 'encaixa', lado: def, a: gk.nome }); return
     }
     // 🧤 REBOTE PRO LADO CERTO (Diego 20/10): o bom goleiro espalma pro LADO e pra longe (vira escanteio ou lateral); o fraco —
@@ -904,6 +916,7 @@ export class Motor2 {
         if (lc && !meu && lc.tipo !== 'chute' && lc.tipo !== 'desvio' && lc.tipo !== 'chutao') { this.stats.interceptacoes[p.lado]++; this.emite({ tipo: 'intercepta', lado: p.lado, a: p.nome }) }
         if (gk && lc && !meu) this.emite({ tipo: 'saida_goleiro', lado: p.lado, a: p.nome })
         this.pega(p, gk ? 0.6 : 0.06 + (100 - p.at.conducao) * 0.003)
+        if (gk && lc && !meu) this.gkMao = p // (saiu buscando a bola do rival: pegou com a MÃO; o recuo do companheiro é com o pé)
         // 🧑‍⚖️ falta na chegada: o rival que veio junto na bola, atrasado, pega o jogador em vez da bola (1 em 8 das recepções disputadas)
         if (!gk) { const z = this.atl.find(a => a.lado !== p.lado && a.grupo !== 'GOL' && a.atordoado <= this.t && dist(a, p) < 1.7); if (z && this.r() < FALTA_CHEGADA && !this.naAreaDele(z, p)) { this.falta(z, p); return } }
         return
@@ -1177,7 +1190,7 @@ export class Motor2 {
   private pega(p: Atleta, toque = 0.15) {
     const b = this.bola
     b.dono = p; b.ultimo = p; b.lance = null; b.h = 0; b.vh = 0
-    this.posseLado = p.lado; this.donoDesde = this.t
+    this.posseLado = p.lado; this.donoDesde = this.t; this.gkMao = null
     // 🦶 pra onde vai o primeiro toque: pro ataque, inclinado pra longe do rival mais perto (apertado = toque curto, de proteção)
     {
       const fy = p.lado === 0 ? -1 : 1
