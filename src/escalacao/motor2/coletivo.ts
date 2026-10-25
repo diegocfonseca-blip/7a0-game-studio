@@ -42,7 +42,8 @@ export function andaBloco(m: Motor2, dt: number) {
 export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
   const b = m.bloco[p.lado] ?? blocoDesejado(m, p.lado), ataca = m.posseLado === p.lado
   let dep = p.dep
-  if (p.grupo === 'LAT') dep = ataca ? 0.22 + 0.25 * p.tend.apoia : 0.03
+  // (25/10, medido: o lateral passava 7% do tempo no campo de ataque e dava 4% dos toques — com a posse ele sobe de verdade, como ala)
+  if (p.grupo === 'LAT') dep = ataca ? 0.42 + 0.35 * p.tend.apoia : 0.03
   let prof = b.tras + (b.frente - b.tras) * dep
   // (sem a bola, o ataque NÃO desce pro bloco: fica uns 12 m à frente dele esperando o contra-ataque — o bloco é de 7 + goleiro.
   // Dez atrás da linha da bola num jogo de 1:30 não deixava ninguém chegar na área)
