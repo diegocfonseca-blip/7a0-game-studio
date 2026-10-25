@@ -1,4 +1,4 @@
-import type { StadiumSave } from './estadiodata'
+import { STADIUM_SECTORS, type StadiumSave } from './estadiodata'
 import { carteiraDaCarreira, podeAlterarPresidencia, type PresidenteBaseSave } from './presidencia-carreira'
 import type { CarreiraComEstadio } from './presidencia-estadio-integrado'
 import { conquistasDaCarreira, type ConquistasCarreira } from './presidencia-conquistas'
@@ -42,6 +42,8 @@ export type PropsComplexoCarreira = {
   awayStadium?: StadiumSave
   awayDay?: DiaEstadio
   journey?: JornadaComplexo
+  /** 🚌 jogo FORA de casa: o estádio é o do adversário e a cidade fica mais vazia */
+  fora?: boolean
   circulation: boolean
   qaPopulation: false
 }
@@ -80,7 +82,8 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
   const wallet = carteiraDaCarreira(state, mgrId), owned = new Set(wallet?.owned.map(item => item.id) ?? [])
   // Do not copy a new clock or infer a match from the club's name/colour.
   const incoming = input.match
-  const match = incoming?.context?.homeClubId === mgrId && !incoming.finished
+  // 🚌 25/10 (Diego: "não consigo ver o jogo pelo mapa"): o jogo FORA de casa também roda no campo do mapa
+  const match = (incoming?.context?.homeClubId === mgrId || incoming?.context?.awayClubId === mgrId) && !incoming.finished
     && typeof incoming.context.id === 'string' && incoming.context.id.length > 0
     && Number.isFinite(incoming.minute) ? incoming : undefined
   const day = diaConferido(input.day, match)
@@ -113,6 +116,23 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
       complexo.awayStadium = structuredClone(awayStadium); complexo.awayDay = awayDay
     }
   }
+  // 🚌 25/10 (Diego: "jogo fora de casa deixe o estádio como o estádio do jogo e minha torcida menor… mas mantenha o mapa da cidade
+  // o mesmo… dia de fora de casa vai tá tudo mais vazio"): a cidade continua a sua; no lugar do seu estádio entra o do DONO DA CASA
+  // (o save dele se for clube de gente; bot não tem estádio, então entra o estádio padrão da divisão); a arquibancada é da torcida
+  // dele e a SUA vem num canto, menor, pela sua torcida de verdade (`day.support`); e as ruas ficam mais vazias.
+  const hostId = match?.context.homeClubId
+  if (match && hostId !== undefined && hostId !== mgrId && input.day) {
+    const own = estadioVisualValido(stadium) ? stadium : estadioPadraoDaDivisao(input.day.division)
+    const hostSave = state.stadiums?.[hostId]
+    const fase = match.paused && match.minute >= 45 ? 'interval' as const : 'playing' as const
+    complexo.stadium = structuredClone(estadioVisualValido(hostSave) ? hostSave : estadioPadraoDaDivisao(input.day.division))
+    complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
+    complexo.awayStadium = structuredClone(own)
+    complexo.awayDay = { division: input.day.division, support: Math.round(input.day.support * 0.45), ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
+    complexo.journey = jornadaDoComplexo({ agenda: match.context.agenda, match, stadiumClubId: hostId })
+    complexo.circulation = true
+    complexo.fora = true
+  }
   const saved = state.careerPresidentBase
   const president: PresidenteBaseSave | undefined = presidenteCadastrado(saved)
     ? { ...saved, ...(saved.appearance ? { appearance: copiarAparencia(saved.appearance) } : {}) } : undefined
@@ -126,4 +146,14 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     hasDesk: owned.has('mesa-simples') || owned.has('mesa-madeira'), hasFrame: owned.has('quadro'), physicalPresident: false,
   }
   return { complexo, sala }
+}
+
+/** 🏟️ Estádio do clube SEM save (bot): o padrão da divisão — Várzea com meia geral, e cada série sobe um degrau até a A
+ * completa. Todo estádio tem o setor VISITANTE (é onde a sua torcida senta no jogo fora). */
+export function estadioPadraoDaDivisao(division: string): StadiumSave {
+  const nivel = ({ V: 0, D: 1, C: 2, B: 3, A: 4 } as Record<string, number>)[division] ?? 1
+  const cheio = (k: string, pct = 1) => [k, Math.round((STADIUM_SECTORS.find(s => s.k === k)?.cost ?? 0) * pct)] as const
+  const inv = Object.fromEntries([cheio('grama'), cheio('geral', nivel ? 1 : .5), ...(nivel >= 2 ? [cheio('cadeiras')] : []), cheio('visitante', [.3, .6, 1, 1, 1][nivel]), ...(nivel >= 4 ? [cheio('camarote')] : [])])
+  const ext = [...(nivel >= 1 ? ['refl'] : []), ...(nivel >= 2 ? ['telao', 'loja'] : []), ...(nivel >= 3 ? ['estac', 'praca'] : []), ...(nivel >= 4 ? ['cober', 'estacao'] : [])]
+  return { inv, ext }
 }

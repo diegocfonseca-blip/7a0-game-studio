@@ -1,3 +1,90 @@
+## 🎥 3D do jogo no mapa (25/10) — 1ª leva NO BRANCH (conta de prévia)
+- Diego: *"simule o jogo vendo rolar o 3D e arrume… jogadores, campo, câmeras, bola, traves, juiz… mas principalmente o jogo em si"*.
+  Bancada de revisão: `mechanics-audit.html` com fixture gerada do motor atual (scratchpad `rev/mkfix.mts`, `rev/cap.mjs` tira foto
+  em qualquer segundo exato; `watch3d.mjs` roda o mapa de verdade com o estádio completo).
+- FEITO: 📺 câmera de TRANSMISSÃO de verdade (`presidencia-enquadramento-futebol.ts`): parada no alto da arquibancada principal, só
+  gira e dá zoom (antes voava a ~40° em cima do campo e os bonecos viravam formiga); a LATERAL PRÓXIMA é a mesma no anel de baixo,
+  colada no campo (sobe pra principal quando o lance não cabe). Foto: `scripts/mockups/mapa-camera-tv.png`. Testes de câmera do Codex verdes.
+  🎉 COMEMORAÇÃO do gol (`players.mjs`, `levantaBracos`): quem fez e os companheiros perto levantam os braços e dão pulinhos na festa.
+  🏁 escanteio/falta ensaiada esperam 4+ na área (teto +4,5 s) — antes saía com 3 e os zagueiros subindo.
+- FEITO: 🧤 o GOLEIRO PULA no 3D (`presidencia-futebol-oficial.ts` prevê onde o chute cruza a linha dele; `players.mjs` tomba o corpo
+  pro lado, desliza, sobe se a bola vem alta, braços esticados). Só desenho — defesa/gol continua decidido pelo motor. Bola no meio e baixa =
+  sem pulo. Foto: `scripts/mockups/mapa-goleiro-pulo.png`.
+- 🐛 25/10 (print do Diego, 00:52: *"não consigo ver o jogo pelo campo 3D"*): na aba Clube a SEMANA ficava pausada (só andava em
+  Jogos/Central) e o mapa só mostrava jogo EM CASA. Agora, com o mapa na aba Clube: os dias passam ali, o mapa mostra a data e
+  "⏩ Ir pro jogo", o jogo fora de casa também roda no campo, e quando um jogo começa a câmera vai sozinha pro campo na Transmissão
+  (uma vez por jogo). "VER JOGO" na faixa rola até o mapa em vez de trocar de aba. A faixa da Copa ainda puxa pra aba Jogos.
+- 🗓️ 25/10 (Diego: *"domingo é 16h dia de jogo e quarta 21h à noite"*): no mapa a LIGA é sempre domingo 16h de dia e a COPA quarta 21h
+  de noite (antes saía do número da rodada: metade da liga virava noite). E no domingo de jogo EM CASA a torcida chega antes do apito
+  (fase 'arrival'): no Automático o apito vem depois de 1 dia do calendário (3 s), no Manual quando aperta. Dias sem jogo = bairro normal.
+  🚌 JOGO FORA DE CASA (decisão dele, 25/10): *"deixe o estádio como o estádio do jogo e minha torcida menor… mantenha o mapa da cidade
+  o mesmo… dia de fora de casa vai tá tudo mais vazio"*. FEITO: a cidade é a dele; no lugar do estádio entra o do DONO DA CASA (save dele
+  se for gente; bot = `estadioPadraoDaDivisao`, todo com setor visitante); arquibancada com a torcida da casa e a dele no visitante, pela
+  torcida de verdade × 0,45; ruas mais vazias (`fora` no Complexo). Foto: `scripts/mockups/mapa-jogo-fora.png`. Regra que segue valendo:
+  quanto mais torcida, mais gente na cidade e no estádio (`publicoDoEstadio`).
+- PRÓXIMO: cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
+  torcida reagindo, juiz.
+
+## 📺 Placar e controle DENTRO do mapa 3D (25/10) — FEITO no branch (só a conta de prévia; esperando "publica")
+- Diego: *"não gostei do placar fora do mapa… botão manual, placar e etc. deveria ser lá"*; mockup v2 `scripts/mockups/clube-mapa-hud.png`
+  ("aprovado"). Foto real: `scripts/mockups/clube-mapa-hud-real.png`.
+- `presidencia-mapa-hud.tsx` (`MapaHud`) dentro do `pc3-stage` do complexo (prop `hud`, vale na tela cheia): placar de TV + minuto ao
+  vivo, ⏭️ Próxima rodada/fase (Manual), 🔁 Auto/🎮 Manual, velocidade 1/2/4× (fora do jogo) ou ritmo 0,25/0,5/1× (com jogo), narração.
+  A carreira publica o MESMO controle via `controle-partida-mapa.ts` (`publicaControleMapa`) — mesmas funções do "🎮 Controle da
+  partida" (regra contra botão mudo). "Ritmo para acompanhar" e "Créditos" saíram de cima do mapa (créditos no pé).
+- Falta: "Próximo jogo · ▶ Ir pro jogo" quando não tem jogo (precisa do calendário mandar o adversário), testar numa carreira de verdade.
+
+## ⚽ Futebol "de profissional" no motor novo (25/10) — 1ª leva NO BRANCH (só a conta do Diego joga o Motor2)
+- Pedido: *"simule a partida 11×11… corrigir pra ficar uma partida com os jogadores atuando igual profissionais"*. Bancada de 300
+  jogos (scratchpad da sessão, `motor/harness.mts`). TRAVA DE FUNDO: o motor roda 89 s de futebol em velocidade real pra um jogo de
+  93' (regra do Diego: jogo corrido em 1:30) — números por jogo (25 chutes, 1.000 passes) são impossíveis; dá pra deixar cada LANCE real.
+- FEITO (gols iguais: 1,94/jogo; `npm run motor2` e `npm run campo2d` verdes):
+  · ritmo de gente (`coletivo.ts`, `ritmo`): anda/trota/corre conforme a distância — velocidade média 4,8 → 3,6 m/s, sprint 13% → 3%.
+  · domínio perto do pé (`ALCANCE_PE` 1,45 → 1,2 m; média 1,04 → 0,83 m) e a bola NÃO teletransporta mais pro pé: vai no toque de
+    domínio (~0,3 s); condução mais colada (`CONDUCAO` 0,75 → 0,6).
+  · passe rasteiro chega mais manso (13 → 11 m/s no pé; média 17 → 15,6 m/s).
+- 🔁 25/10 (Diego: *"não é sobre gols… é a simulação em si… quero que acerte tudo isso"*) — ETAPAS FEITAS no branch:
+  1. corpo com frente que gira (`fx/fy`, `gira`/`deCostas` em fisica.ts): passe/chute/recepção de costas custam; quem recebe abre o corpo.
+  2. condução no TOQUE (`TOQUE_V`, `ESCAPOU`): correndo, a bola vai à frente e ele busca; toque longo = bola perdida; bote mais fácil
+     com a bola longe do pé; só passa/chuta com a bola no pé.
+  3. jogo sem bola/passe: toque curto de 3 m, apoio a 6 m quando apertado, passe NA FRENTE de quem corre, VISÃO (atrás do corpo só o
+     craque enxerga), bloco defensivo 20 m, gatilhos de pressão (de costas/na lateral/acabou de receber), infiltração no tempo do passador.
+  4. bolas paradas: lateral com a MÃO (arco curto) e 2 companheiros oferecendo; tiro de meta curto com zagueiros abertos.
+  5. cruzamento: ataque à área com a bola na ponta (1º pau · 2º pau · marca do pênalti), corte pra trás da linha de fundo, cruzamento
+     rasteiro; menos chute de longe pra quem chuta mal (`CHUTE_LONGE` 0,75 × (finalização−60)/20) — o craque ainda arrisca.
+  Medido (300 jogos): gols 2,05 · chutes de 25 m+ 60% → ~45% · forte × fraco ganha 88%. Goleada continua existindo (parecidos: 9% por 3+;
+  lendas × fracos: 39% por 3+, até 6×0) — antes 47% nas lendas × fracos (o time bom ficou um pouco menos goleador).
+- TESTADO E VOLTADO (antes das etapas): menos chute de longe + goleiro melhor. Os gols do motor vêm quase todos de chute de fora (90%): o time fica só ~3 s
+  por jogo com a bola no último terço e ~0 s na área. Tirar o chute de longe derrubou os gols pra ~1/jogo. Precisa de obra maior:
+  ataque/defesa no último terço (corte, enfiada na área, defesa que não fecha tudo) — PROPOR pro Diego antes.
+- Análise do 3D/cidade (bonecos cartoon): câmera "transmissão" é alta demais (parece tática), sem replay nem comemoração, goleiro não
+  pula, 3 de 4 chutes sem animação de chute, cobrança (escanteio/tiro de meta) com ninguém na bola NA TELA (o motor espera o cobrador
+  — é a apresentação), moradores vão e voltam num trecho reto (o que o Diego NÃO quer), dia de jogo com ~3 pessoas na rua.
+  Lista priorizada no relatório desta data (sessão do Claude). Nada disso foi mexido ainda.
+
+## ⚡ Mapa 3D travando na aba Clube (25/10) — análise + 1ª leva de conserto NO BRANCH (esperando "publica")
+- Medição (celular simulado 4× mais lento, scripts no scratchpad da sessão): ~167 s de trava somada num ciclo abrir+jogo → ~92 s.
+  Montagem do bairro 3,3–5,4 s → 1,3–2,8 s (PC) com cidade IDÊNTICA (comparada objeto a objeto, matrizes e malhas). Trava do apito
+  (torcida mudando) ~10 s → ~0,4 s (PC).
+- O que entrou (nada perde qualidade, nada fica pré-gravado — regra do Diego: *"não quero que perca qualidade… nada preso, o boneco
+  não pode ir sempre no mesmo local… no futuro treinadores vão se encontrar em tempo real"*):
+  · `presidencia-raio-rapido.ts` (three-mesh-bvh): os raios que conferem por onde as pessoas andam testam só os triângulos perto —
+    mesmo resultado, rotas continuam calculadas ao vivo.
+  · `indiceTrechos` no entorno: "perto de rua/rota/obra?" olha só a vizinhança (resposta idêntica).
+  · pixels das texturas de chão calculados 1x por página (`RUIDO_PRONTO`).
+  · 1º desenho com `compileAsync` (placa compila em paralelo quando o aparelho suporta).
+  · campinho 2D ESCONDIDO não desenha (o relógio segue) — Diego: *"2D escondido tá errado"*.
+- Ainda pesa: abrir o Clube de novo e ABRIR/FECHAR TETO remontam a cidade inteira (o teto muda a malha da arquitetura); guardar o
+  mundo entre aberturas é a próxima leva. Laço de desenho 60 fps sempre (Diego não quer perder qualidade — não baixar).
+- Aprovado pelo Diego, falta fazer (MOCKUP antes): 📺 ASSISTIR em janela por cima (placar + controle de sempre + 2D + 3D), mapa
+  primeiro na aba e ritmo (0,25×…) dentro dele só com jogo, "Créditos dos modelos" sai de cima, "carregando seu estádio…" com barra.
+
+## 🗺️ Clube da conta do Diego piscando MAQUETE ↔ MAPA 3D no meio do jogo (24/10, 20:20) — consertado no branch, esperando "publica"
+- Causa: `presidente-acesso.ts` derrubava a prévia pra `false` em TODO aviso do login (a renovação do acesso, de hora em hora e
+  quando o celular volta pro navegador) e em toda falha de rede da conferência — a aba Clube trocava pra maquete até o servidor
+  responder. Os prints mostram junto o "GESTÃO · sua agência" sem "presidência" (mesma chave caindo).
+- Conserto: só cai com saída/troca de conta ou resposta 401/403 do servidor; renovação da mesma conta e falha de rede mantêm.
+
 ## Publicação autorizada da prévia da conta (24/10)
 
 Diego pediu publicar todas as melhorias atuais na própria conta. Integração de relato/cinema e pausa permanece sob `usePresidentPreview`; demais contas conservam o caminho anterior. Atualização concorrente do calendário integrada sem reintroduzir seletor cinema/2D na aba do mapa da conta de prévia. Build e workflow de deploy devem terminar antes de afirmar publicação concluída. Nenhuma alteração de DB/save.

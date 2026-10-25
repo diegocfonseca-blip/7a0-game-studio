@@ -72,9 +72,11 @@ export function jornadaDoComplexo(input:EntradaJornadaComplexo={}):JornadaComple
   }else phase=input.phase??'idle'
  }
  return {key,variantSeed:seedOf(key),fixtureId,ordinal:agenda?.ordinal,
-  weekday:agenda?(agenda.ordinal%2?'quarta':'domingo'):undefined,
-  kickoffTime:agenda?(agenda.ordinal%2?'21:00':'16:00'):undefined,
-  period:agenda?(agenda.ordinal%2?'night':'day'):undefined,
+  // 🗓️ 25/10 (Diego: "domingo é 16h dia de jogo e quarta 21h à noite"): o dia sai da COMPETIÇÃO, igual ao calendário da carreira —
+  // liga sempre domingo 16h (de dia); Copa sempre quarta 21h (refletor). Antes saía do número da rodada e metade da liga virava noite.
+  weekday:agenda?(agenda.competition==='league'?'domingo':'quarta'):undefined,
+  kickoffTime:agenda?(agenda.competition==='league'?'16:00':'21:00'):undefined,
+  period:agenda?(agenda.competition==='league'?'day':'night'):undefined,
   calendarKnown:!!agenda,hosting,phase}
 }
 

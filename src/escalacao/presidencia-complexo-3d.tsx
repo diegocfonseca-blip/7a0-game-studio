@@ -1,4 +1,4 @@
-import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react'
+import {useEffect,useId,useLayoutEffect,useRef,useState,type ReactNode} from 'react'
 import * as THREE from 'three'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 import type {StadiumSave} from './estadiodata'
@@ -43,7 +43,7 @@ const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
 export type ControleComplexo={checkCivilian:(index?:number)=>void;setMatchCamera:(mode:CameraPartidaContinua)=>void;view:(view:VistaComplexo)=>void;zoom:(direction:1|-1)=>void;setNavigationMode:(mode:ModoNavegacaoComplexo)=>void;seekCirculation:(seconds:number)=>void;inspect:()=>unknown;checkLighting:()=>{invalidSamples:number;litSamples:number};checkDealershipView:()=>{id:string;visible:boolean;occluder?:string}[]}
 
 /** Physical reconstruction for local visual review. It only reads the existing save and match clock. */
-export default function PresidenciaComplexo3D({stadium,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,visitRow=5,visitTier='lower',presentation='map',onUnavailable,onReady}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void}){
+export default function PresidenciaComplexo3D({stadium,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,fora=false,visitRow=5,visitTier='lower',presentation='map',onUnavailable,onReady,hud}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;fora?:boolean;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void;/** 📺 25/10: placar e controle da partida desenhados POR CIMA do 3D (vale na tela cheia) */hud?:ReactNode}){
  const root=useRef<HTMLDivElement>(null),api=useRef<ControleComplexo|null>(null),ready=useRef(onReady),matchRef=useRef(match),wake=useRef(()=>{}),refreshPopulation=useRef(()=>{}),refreshFurniture=useRef(()=>{}),refreshJourney=useRef(()=>{}),walletRef=useRef(presidency),journeyRef=useRef(journey)
  ready.current=onReady;matchRef.current=match;walletRef.current=presidency;journeyRef.current=journey
  const isWindow=presentation==='window',isOffice=presentation==='office',unavailable=useRef(onUnavailable);unavailable.current=onUnavailable
@@ -101,7 +101,8 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
  const enabled=circulation&&populationMode!=='off'&&currentState.valid
  const options:PopulacaoTesteComplexo=attendance?{
   stadium:stadium??{inv:{},ext:[]},day:populationDay,awayStadium:awayAttendance?awayStadium:undefined,awayDay:awayAttendance?visitorDay:undefined,
-  pedestrians:Math.min(3,attendance.outside),homeFans:Math.min(3,attendance.outside),awayFans:awayAttendance?.playing?Math.min(2,awayAttendance.outside):0,cars:Math.min(2,attendance.cars),
+  // 🚌 jogo fora de casa: a cidade é a sua, mas o seu povo foi ver o jogo longe — ruas mais vazias
+  pedestrians:fora?1:Math.min(3,attendance.outside),homeFans:fora?1:Math.min(3,attendance.outside),awayFans:awayAttendance?.playing?Math.min(fora?1:2,awayAttendance.outside):0,cars:fora?1:Math.min(2,attendance.cars),
  }:{pedestrians:3,homeFans:1,awayFans:1,cars:1}
  // Only bounded actor counts and their data source affect expensive path validation.
  const actorKey=enabled?JSON.stringify([populationMode,!!options.awayFans&&!!awayAttendance,options.homeFans,options.awayFans,options.cars,options.pedestrians]):'off'
@@ -150,7 +151,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const residents=createResidents(scene,surround.root,surround.solids)
   setHasSeatView(architecture.seats.length>0)
   const furniture=criarMobiliaComplexo(scene,state,walletRef.current,{interior:isOffice})
-  let render=()=>{},disposed=false
+  let render=()=>{},disposed=false,compilando=false
   let avatarFrame:number|undefined
   const roomLights:THREE.SpotLight[]=[]
   const presidentBody=criarPresidenteComplexo(scene,state,{interior:isOffice,onChange:status=>{
@@ -511,7 +512,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;return}if(walking()&&last)seconds+=(now-last)/1000;last=now;render();if(running())raf=requestAnimationFrame(tick)}
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.
-  const resume=()=>{if(disposed)return;if(!visible||document.hidden){cancelAnimationFrame(raf);raf=0;last=0;return}if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
+  const resume=()=>{if(disposed||compilando)return;if(!visible||document.hidden){cancelAnimationFrame(raf);raf=0;last=0;return}if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
   function setFootballCamera(value:CameraPartidaContinua){
    if(isOffice||isWindow||!matchRef.current)return
    fieldWatchPending=false
@@ -553,7 +554,13 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   document.addEventListener('visibilitychange',resume)
   reduced.addEventListener('change',resume)
   const lost=(event:Event)=>{event.preventDefault();cancelAnimationFrame(raf);setError('A vista 3D foi interrompida. Reabra para tentar novamente.');unavailable.current?.()};renderer.domElement.addEventListener('webglcontextlost',lost)
-  resize();setLoaded(true);ready.current?.(api.current);resume()
+  // ⚡ 25/10 (Diego: *"senti que tá travando"*): o 1º desenho compilava ~30–40 programas da placa de vídeo de uma vez, travando a
+  // tela uns segundos (medido: 2,5 s no PC, 4× isso no celular). Agora a compilação corre em paralelo na placa (`compileAsync`,
+  // quando o aparelho suporta) e o mapa aparece quando ela termina — mesmos materiais, mesma qualidade, só sem congelar a página.
+  // Até lá, o laço não desenha (o "carregando seu estádio…" continua na tela).
+  const primeiroDesenho=()=>{if(disposed)return;compilando=false;resize();builtKey.current=saveKey;setLoaded(true);ready.current?.(api.current);resume()}
+  if(gl.getExtension('KHR_parallel_shader_compile')){compilando=true;renderer.compileAsync(scene,camera).then(primeiroDesenho,primeiroDesenho)}
+  else primeiroDesenho()
   // Start artwork downloads after the synchronous world/probe construction.
   // Otherwise its loading timeout can expire while the initial 3D render is
   // still blocking the main thread on a slow device.
@@ -563,6 +570,11 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
  useEffect(()=>{refreshPopulation.current()},[populationKey])
  useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey])
  useEffect(()=>{refreshJourney.current()},[journeyKey])
+ // 📺 25/10 (Diego: "me direcionar direto pro campo já na melhor câmera"): quando um jogo COMEÇA com o mapa aberto, a câmera vai
+ // sozinha pro campo, na Transmissão. Uma vez por jogo — se a pessoa sair pra passear no mapa, ninguém puxa ela de volta.
+ // (jogo fora troca o estádio e o mundo se refaz: espera o mundo NOVO ficar pronto pra levar a câmera)
+ const matchStarted=useRef<string|null>(null),builtKey=useRef(''),matchId=match&&!match.finished?match.context.id:null
+ useEffect(()=>{const k=matchId+'|'+saveKey;if(!loaded||isWindow||isOffice||!matchId||builtKey.current!==saveKey||matchStarted.current===k)return;matchStarted.current=k;api.current?.view('field')},[loaded,matchId,isWindow,isOffice,saveKey])
  const go=(destination:VistaComplexo)=>{api.current?.view(destination);root.current?.querySelector('canvas')?.focus({preventScroll:true});setPlacesOpen(false)}
  return <section ref={section} className={`pc3-review${isOffice?' pc3-office':''}${isWindow?' pc3-window':''}${expanded?' pc3-expanded':''}`} data-expanded={expanded} data-presentation={presentation}
   role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label={isOffice?'Sala da Presidência':'Mapa do estádio'} onKeyDown={event=>{
@@ -623,6 +635,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?'Ver sala':'Ver tudo'}</button>
     <button type="button" disabled={!loaded} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>Girar</button>
    </div>
+   {hud&&!isWindow&&!isOffice&&loaded&&hud}
    <p className="pc3-help" id={`${uiId}-help`}>{matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></>}</p></>}
   </div>
  </section>

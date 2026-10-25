@@ -20,6 +20,32 @@ const distanceToSegment = (p:PontoComplexo, a:PontoComplexo, b:PontoComplexo) =>
   const dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz||1)))
   return Math.hypot(p.x-a.x-t*dx,p.z-a.z-t*dz)
 }
+// ⚡ 25/10 (Diego: *"senti que tá travando"*): o bairro perguntava milhares de vezes "esse ponto está perto de alguma rua/rota/
+// obra?" e cada pergunta media a distância até TODOS os trechos (medido: ~5 s de trava ao abrir o Clube). O índice guarda cada
+// trecho nas casinhas de uma grade; a pergunta só mede os trechos das casinhas em volta do ponto. Resposta IDÊNTICA (a conta final
+// é a mesma `distanceToSegment`; trecho a menos de r do ponto sempre cai numa casinha que a busca olha) — só mais rápida.
+type Trecho = readonly [PontoComplexo, PontoComplexo, number] // a, b, id do dono (rota/polígono)
+function indiceTrechos(trechos: readonly Trecho[], lado = 8) {
+  const grade = new Map<number, number[]>()
+  const cel = (v: number) => Math.floor(v / lado)
+  const chave = (i: number, j: number) => i * 100003 + j
+  trechos.forEach(([a, b], k) => {
+    for (let i = cel(Math.min(a.x, b.x)); i <= cel(Math.max(a.x, b.x)); i++)
+      for (let j = cel(Math.min(a.z, b.z)); j <= cel(Math.max(a.z, b.z)); j++) {
+        const c = chave(i, j), l = grade.get(c); if (l) l.push(k); else grade.set(c, [k])
+      }
+  })
+  /** algum trecho a distância que passa no teste `perto(d)`, procurando num raio r em volta do ponto */
+  return (p: PontoComplexo, r: number, perto: (d: number) => boolean): boolean => {
+    const vistos = new Set<number>()
+    for (let i = cel(p.x - r); i <= cel(p.x + r); i++) for (let j = cel(p.z - r); j <= cel(p.z + r); j++) {
+      const l = grade.get(chave(i, j)); if (!l) continue
+      for (const k of l) { if (vistos.has(k)) continue; vistos.add(k); const t = trechos[k]; if (perto(distanceToSegment(p, t[0], t[1]))) return true }
+    }
+    return false
+  }
+}
+const caixaDe = (pol: readonly PontoComplexo[]) => { let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const q of pol) { if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x; if (q.z < z0) z0 = q.z; if (q.z > z1) z1 = q.z } return { x0, x1, z0, z1 } }
 const inside = (p:PontoComplexo, polygon:readonly PontoComplexo[]) => {
   let result=false
   for(let i=0,j=polygon.length-1;i<polygon.length;j=i++) {
@@ -31,6 +57,7 @@ const inside = (p:PontoComplexo, polygon:readonly PontoComplexo[]) => {
 
 /** District reconstructed in metres from the registered illustration. All
  * purchased establishments are separate, and doors are actual openings. */
+const RUIDO_PRONTO=new Map<string,Uint8Array>()
 export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   const root=new THREE.Group()
   root.name='complexo-entorno'
@@ -41,7 +68,10 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>()
   const own=<T extends THREE.BufferGeometry>(value:T) => {geometries.add(value);return value}
   const noise=(color:string,grit:number,pavers=false,macro=.55)=>{
-    const base=new THREE.Color(color),size=512,pixels=new Uint8Array(size*size*4)
+    // ⚡ 25/10: os pixels de cada textura saem sempre iguais (não dependem do estádio) — calcula uma vez por página e reaproveita
+    const chaveRuido=`${color}|${grit}|${pavers}|${macro}`,guardado=RUIDO_PRONTO.get(chaveRuido)
+    const base=new THREE.Color(color),size=512,pixels=guardado??new Uint8Array(size*size*4)
+    if(!guardado){
     const smooth=(x:number,z:number,step:number)=>{
       const ix=Math.floor(x/step),iz=Math.floor(z/step),fx=x/step-ix,fz=z/step-iz
       const u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz)
@@ -58,6 +88,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
       pixels[at]=Math.max(0,Math.min(255,(base.r+grain+grout)*255))
       pixels[at+1]=Math.max(0,Math.min(255,(base.g+grain+grout)*255))
       pixels[at+2]=Math.max(0,Math.min(255,(base.b+grain+grout)*255));pixels[at+3]=255
+    }
+    RUIDO_PRONTO.set(chaveRuido,pixels)
     }
     const texture=new THREE.DataTexture(pixels,size,size)
     texture.wrapS=texture.wrapT=THREE.RepeatWrapping
@@ -194,7 +226,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
     original.dispose()
     return new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(vertices,3)).setAttribute('normal',new THREE.Float32BufferAttribute(normals,3)).setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2))
   }
-  const protectedPath=(p:PontoComplexo,r=2.2)=>allRoutes.some(route=>route.points.some((b,i)=>i>0&&distanceToSegment(p,route.points[i-1],b)<r))
+  let rotasIdx:ReturnType<typeof indiceTrechos>|undefined
+  const protectedPath=(p:PontoComplexo,r=2.2)=>(rotasIdx??=indiceTrechos(allRoutes.flatMap((route,k)=>route.points.slice(1).map((b,i)=>[route.points[i],b,k] as Trecho))))(p,r,d=>d<r)
   const registeredLots=Object.values(PLANTA_COMPLEXO.lots)
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
@@ -204,7 +237,14 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
   ]
-  const clearOfConstruction=(p:PontoComplexo,margin=0)=>landscapeReservations.every(footprint=>!inside(p,footprint)&&footprint.every((b,i)=>distanceToSegment(p,footprint[(i+footprint.length-1)%footprint.length],b)>margin))
+  let obrasIdx:{perto:ReturnType<typeof indiceTrechos>;caixas:{x0:number;x1:number;z0:number;z1:number}[]}|undefined
+  const clearOfConstruction=(p:PontoComplexo,margin=0)=>{
+    obrasIdx??={perto:indiceTrechos(landscapeReservations.flatMap((f,k)=>f.map((b,i)=>[f[(i+f.length-1)%f.length],b,k] as Trecho))),caixas:landscapeReservations.map(caixaDe)}
+    const o=obrasIdx
+    // (mesma regra de antes: fora de todo polígono E longe de toda borda; o polígono só é testado se o ponto cai na caixa dele)
+    if(landscapeReservations.some((f,k)=>{const c=o.caixas[k];return p.x>=c.x0&&p.x<=c.x1&&p.z>=c.z0&&p.z<=c.z1&&inside(p,f)}))return false
+    return !o.perto(p,Math.max(0,margin),d=>!(d>margin))
+  }
   const arena=PLANTA_COMPLEXO.arena.collision
   const reserved=(p:PontoComplexo)=>Math.abs(p.x)<118&&p.z>-105&&p.z<119||!clearOfConstruction(p)||inside(p,arena)||protectedPath(p)
   const add=(geometry:THREE.BufferGeometry,mat:THREE.Material,parent:THREE.Object3D=root)=>{
@@ -735,7 +775,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   // The original frame already contains residential streets. Extend those
   // blocks beyond the frame instead of surrounding the zoom with a flat colour.
   const publicStreets=[peripheral,north,east,west]
-  const cityFree=(p:PontoComplexo,margin=9)=>!inside(p,rawTerrain)&&!reserved(p)&&!protectedPath(p,margin)&&clearOfConstruction(p,margin)&&!publicStreets.some(points=>points.some((b,i)=>i>0&&distanceToSegment(p,points[i-1],b)<margin))
+  let ruasIdx:ReturnType<typeof indiceTrechos>|undefined
+  const cityFree=(p:PontoComplexo,margin=9)=>!inside(p,rawTerrain)&&!reserved(p)&&!protectedPath(p,margin)&&clearOfConstruction(p,margin)&&!(ruasIdx??=indiceTrechos(publicStreets.flatMap((points,k)=>points.slice(1).map((b,i)=>[points[i],b,k] as Trecho))))(p,margin,d=>d<margin)
   const windowPanel=(w:number,h:number,x:number,y:number,z:number,angle=0)=>{
     const choice=hash(x+y*.7,z),value=add(new THREE.PlaneGeometry(w,h),choice<.32?glass:choice<.82?cityWarm:cityCool)
     value.position.set(x,y,z);value.rotation.y=angle;value.castShadow=false

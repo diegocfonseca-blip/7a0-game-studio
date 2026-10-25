@@ -1,4 +1,5 @@
 import {novoMotor2,type EntradaM2} from './motor2/carreira'
+import {GOL_MEIO} from './motor2/fisica'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import type {FaseFutebol,QuadroFutebol} from './presidencia-futebol-motor'
 import {RotacaoBola3D,RAIO_BOLA_FUTEBOL_3D,type PontoRotacaoBola} from './presidencia-bola-rotacao'
@@ -21,6 +22,8 @@ export class FutebolOficial3D {
  private travel=new Map<number,{x:number;y:number;distance:number}>()
  private context=new ContextoOficial3D()
  private deliveryKey:string|null=null
+ // 🧤 25/10: o pulo do goleiro no 3D (só apresentação — o motor já decidiu defesa/gol; aqui só se desenha o voo até onde a bola vai)
+ private dive:{id:number;key:string;x:number;z:number;y:number;tc:number;crossed:boolean;ax?:number;az?:number}|null=null
  private delivery:EntregaOficial3D|undefined
  constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
  private observeDelivery(){
@@ -39,10 +42,23 @@ export class FutebolOficial3D {
   const point={x:mix(p.y,b.y)-52.5,y:mix(p.h,b.h)+RAIO_BOLA_FUTEBOL_3D,z:mix(p.x,b.x)-34,held:!!b.dono&&b.h>.3}
   return this.goalFinish.sample(point,time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined,commit).position
  }
+ /** Chute a caminho: prevê onde a bola cruza a linha do goleiro e marca o voo dele (lado e altura). Bola no meio = sem pulo. */
+ private keeperDive(time:number,key:(p:ReturnType<typeof novoMotor2>['atl'][number])=>string){
+  const g=this.game,b=g.bola,l=b.lance
+  if(l&&(l.tipo==='chute'||l.tipo==='cabeceio_gol')&&!l.defendido){
+   const gk=g.atl.find(a=>a.lado!==l.de.lado&&a.grupo==='GOL');if(!gk||Math.abs(b.vy)<2)return
+   const tc=(gk.y-b.y)/b.vy;if(tc<0||tc>1.6)return
+   const xAt=b.x+b.vx*tc,hAt=Math.max(0,b.h+b.vh*tc-4.9*tc*tc),lat=Math.max(-2.7,Math.min(2.7,xAt-gk.x))
+   if(Math.abs(xAt-34)>GOL_MEIO+1.6||(Math.abs(lat)<.9&&hAt<1.7))return
+   const same=this.dive?.id===l.t0?this.dive:null
+   this.dive={id:l.t0,key:key(gk),x:gk.y-52.5,z:gk.x+lat-34,y:Math.min(2.2,hAt),tc:time+tc,crossed:false,ax:same?.ax,az:same?.az}
+  }else if(this.dive&&!this.dive.crossed&&time>=this.dive.tc-.05)this.dive={...this.dive,crossed:true,tc:Math.min(time,this.dive.tc)}
+  else if(this.dive&&!this.dive.crossed&&!l)this.dive={...this.dive,crossed:true,tc:time}
+ }
  sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
@@ -64,6 +80,8 @@ export class FutebolOficial3D {
     heading:speed>.05?Math.atan2(p.vy,p.vx):Math.atan2(g.bola.y-p.y,g.bola.x-p.x),speed,distance,
     kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,temporaryStopUntil:p.atordoado,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
   })
+  this.keeperDive(time,key)
+  if(this.dive){const d=this.dive,k=d.crossed?Math.max(0,time<d.tc+.45?1:1-(time-d.tc-.45)/.6):Math.min(1,Math.max(0,1-(d.tc-time)/.42)),p=players.find(q=>q.key===d.key);if(p&&k>0){const e=k*k*(3-2*k);d.ax??=p.mx;d.az??=p.mz;Object.assign(p,{mx:p.mx+(d.ax-p.mx)*e,mz:p.mz+(d.az-p.mz)*e,mergulho:{x:d.x,z:d.z,y:d.y,k:e}})};if(d.crossed&&k<=0)this.dive=null}
   const context=this.context.sample(time)
   const b=g.bola,previous=g.bolaAnt
   const action=b.lance?.tipo

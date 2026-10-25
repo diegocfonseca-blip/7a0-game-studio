@@ -39,6 +39,7 @@ import {usePresidentPreview,usePresidentPreviewPending,PRESIDENT_INTEGRATION_REL
 import {podeAlterarPresidencia,negociarNaCarreira,exibirDuplaNaCarreira} from './presidencia-carreira'
 import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
+import { publicaControleMapa, type ControleMapa } from './controle-partida-mapa'
 import {PRESIDENCY_STADIUM_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -9880,7 +9881,10 @@ export function PyramidSeasonScreen() {
   const calJogoRolando = round > 0 && !(calApitado.r === round && calApitado.s === calSn) && (revealed < round || !roundReady)
   const calFase: FaseCal = copaPlaying ? 'copa' : seasonOver ? 'fim' : round === 0 ? 'pre' : calJogoRolando ? 'jogo' : 'dias'
   const calLivre = calFase === 'dias' && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
-  const calNaTela = tab === 'central' || tab === 'jogos'
+  // 🏟️ 25/10 (Diego: "não consigo ver o jogo pelo mapa… deveria ter forma de passar o dia lá"): com o mapa 3D na aba Clube, a semana
+  // anda ali também — senão o "o próximo jogo começa sozinho" do mapa nunca chegava (botão mudo)
+  const mapaNoClube = tab === 'estadio' && presidentAvailable && PRESIDENCY_STADIUM_RELEASED
+  const calNaTela = tab === 'central' || tab === 'jogos' || mapaNoClube
   // 🏆 a temporada que começa com o calendário ligado joga a Copa nas quartas (marca uma vez, na rodada 0)
   useEffect(() => { if (calOn && round === 0 && !done && state.calCopaSeason !== calSn) dispatch({ type: 'CAL_COPA_LIGA', season: calSn }) }, [calOn, round, done, state.calCopaSeason, calSn, dispatch])
   // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
@@ -9903,6 +9907,19 @@ export function PyramidSeasonScreen() {
   }, [copaPendente, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn]) // eslint-disable-line react-hooks/exhaustive-deps
   // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular) e a Copa da quarta já foi
   const calDiasOk = !calOn || round === 0 || round >= 38 || (calI >= calTotal && !copaPendente && !copaMidOn)
+  // 🏟️ 25/10 (Diego: "chega o dia do jogo e os locais do mapa ficam mais cheios… o estádio também"): no mapa 3D (conta de prévia),
+  // quando a semana acaba e o próximo jogo da liga é EM CASA, o domingo começa com a torcida CHEGANDO (a pé, de carro, de ônibus) e
+  // o estádio enchendo; o apito vem depois — no Automático, o mesmo tempo de um dia do calendário; no Manual, até a pessoa apertar.
+  const chegadaProx = (() => {
+    if (!calOn || !mapaNoClube || !myDiv || round < 1 || round >= 38 || calFase !== 'dias' || !calDiasOk) return null
+    const r = round + 1, pr = confrontoDaRodada(world[myDiv] ?? [], (seasonSeed ^ (myDiv.charCodeAt(0) * 2654435761)) >>> 0, r).find(([h, a]) => h.teamId === youId || a.teamId === youId)
+    if (!pr || pr[0].teamId !== youId) return null
+    return agendaLigaComplexo({ fixtureId: `${seasonSeed}:${r}:${pr[0].teamId}:${pr[1].teamId}`, seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, round: r, homeClubId: pr[0].teamId }) ?? null
+  })()
+  const [chegadaFeita, setChegadaFeita] = useState('')
+  const chegadaKey = chegadaProx ? `${calSn}:${round}` : ''
+  const chegando = !!chegadaProx && chegadaFeita !== chegadaKey
+  useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
     const out: { r: number; m: SimMatch }[] = []
@@ -9933,11 +9950,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk) return
+    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk || chegando) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk, chegando])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -10379,6 +10396,16 @@ export function PyramidSeasonScreen() {
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
   const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) { abreColetiva(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */ if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  // 📺 25/10 (Diego: *"botão manual, placar e etc. deveria ser lá dentro do mapa"*): o mapa 3D (conta de prévia) desenha o MESMO
+  // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
+  const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
+  const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
+    manualOk: manualAllowed, manual, velocidade: state.simSpeed ?? 1,
+    podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
+    rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
+    alternaManual: toggleManualCareer, mudaVelocidade: v => dispatch({ type: 'SET_SIM_SPEED', speed: v }),
+    avanca: copaPlaying ? () => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) } : avancarRodada,
+  } : null
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {
     if (!calOn || !myDiv) return null
@@ -10397,7 +10424,7 @@ export function PyramidSeasonScreen() {
     const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? (copaMid && !done ? diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS : diaDaFaseCopa(calSn, copaMid ? Math.max(0, copaRound - nCopaBase) : copaRound)) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
     const naCentral = tab === 'central'
     const grande = naCentral || tab === 'jogos'
-    const pausado = calFase === 'dias' && !manual && !grande && calI < calTotal
+    const pausado = calFase === 'dias' && !manual && !calNaTela && calI < calTotal
     let recado = null as ReturnType<typeof recadoDoDia> | null
     if (grande && calFase === 'dias') {
       const minha = tables[myDiv] ?? []
@@ -10435,6 +10462,8 @@ export function PyramidSeasonScreen() {
       jogos.sort((a, b) => a.dia - b.dia)
     }
     // ⏩ Pular: se a semana tem Copa ainda não jogada, pula só ATÉ A QUARTA (a Copa nunca é pulada); senão, até o domingo
+    const irProJogoNoMapa = () => setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal })
+    const verJogoNoMapa = () => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
     const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
@@ -10447,11 +10476,13 @@ export function PyramidSeasonScreen() {
     const barra = tab === 'jogos' || naCentral ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
-      onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
+      onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
-    return { barra, proxCard, selo }
+    return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && calI < calTotal ? irProJogoNoMapa : undefined }
   })()
+  useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn && !chegando ? calBarra?.irProJogoNoMapa : undefined, chegando }) })
+  useEffect(() => () => publicaControleMapa(null), [])
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -12025,7 +12056,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,...(chegadaProx?{agenda:chegadaProx,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}

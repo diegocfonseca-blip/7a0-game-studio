@@ -23,6 +23,8 @@ export function RitmoCampoProvider({enabled,speed,onSet,children}:{enabled:boole
 }
 /** Local controls are available in the map, office and expanded score card,
  * including free accounts. Faster paid choices keep their existing controls. */
+/** o ritmo de olhar o estádio (o mesmo do `RitmoCampo`), pra quem desenha os botões dentro do mapa */
+export function useRitmoCampo(){return useContext(ContextoRitmoCampo)}
 export function RitmoCampo(){
  const rhythm=useContext(ContextoRitmoCampo)
  return rhythm?<VelocidadeEstadio {...rhythm}/>:null
