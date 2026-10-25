@@ -52,6 +52,10 @@ export class FootballActionController{
  orientOpenPlay(actor,p,time){
   if(!this.ball||!actor.headIntentAxis||['gol','fim','saida'].includes(this.phase))return;
   const head=actor.bones.get('Head'),position=head.getWorldPosition(new T.Vector3()),delta=new T.Vector3(this.ball.x,this.ball.y,this.ball.z).sub(position),distance=Math.hypot(delta.x,delta.z);if(distance<.2||distance>30)return;
+  // 🧍 (25/10, filmado: quem esperava o passe corria de costas pra bola, cabeça e tronco reto) o TRONCO também abre pro lado da bola —
+  // até 0,4 rad, menos correndo forte — e a cabeça completa o resto. É o "olhar o jogo" de quem recebe
+  const spine=actor.bones.get('spine_03'),up=new T.Vector3(0,1,0);
+  if(spine&&actor.intentAxis&&p.speed<6.5){const sw=spine.getWorldQuaternion(new T.Quaternion()),sf=actor.intentAxis.clone().applyQuaternion(sw),syaw=Math.atan2(sf.x,sf.z),swant=clamp(angle(Math.atan2(delta.x,delta.z)-syaw)*.45,-.4,.4)*smooth((30-distance)/15)*(p.speed>4?.5:1),sprior=actor.openPlayTorso,sdt=sprior?time-sprior.time:0,sturn=!sprior||sdt<0||sdt>.3?swant:sprior.turn+(swant-sprior.turn)*(1-Math.exp(-Math.max(0,sdt)/.15));actor.openPlayTorso={time,turn:sturn};const sparent=spine.parent.getWorldQuaternion(new T.Quaternion());spine.quaternion.copy(sparent.invert().multiply(new T.Quaternion().setFromAxisAngle(up,sturn)).multiply(sw));actor.holder.updateMatrixWorld(true)}
   const world=head.getWorldQuaternion(new T.Quaternion()),forward=actor.headIntentAxis.clone().applyQuaternion(world),yaw=Math.atan2(forward.x,forward.z),wanted=clamp(angle(Math.atan2(delta.x,delta.z)-yaw),p.speed>4?-.45:-.65,p.speed>4?.45:.65)*smooth((30-distance)/15),prior=actor.openPlayLook,dt=prior?time-prior.time:0;
   const turn=!prior||dt<0||dt>.3?wanted:prior.turn+(wanted-prior.turn)*(1-Math.exp(-Math.max(0,dt)/.12));actor.openPlayLook={time,turn};
   const parent=head.parent.getWorldQuaternion(new T.Quaternion());head.quaternion.copy(parent.invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),turn)).multiply(world));actor.holder.updateMatrixWorld(true);

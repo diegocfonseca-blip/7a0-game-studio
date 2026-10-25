@@ -74,6 +74,18 @@
   com nome pelo que aconteceu: de longe (> 24 m) · rasteiro no canto · cruzado (narração PT/EN) — "normal" caiu de 79% pra 46%.
   🧪 Descartado: jogador comum ajeitar a bola na área antes de bater (1,57 gol, 18% de 0×0) e etiqueta "de primeira" (seria 64% dos
   chutes — na área o motor bate no instinto, a narração repetiria).
+- FEITO (12ª leva, 25/10 — análise lance a lance no 3D, pedido dele: *"esqueça o Codex, faça por você… olhe minha conta"*): bancada
+  `rev/strip.sh <fixture> <nome> <câmera> <jogador> <t0> <t1> <passo>` filma qualquer fundamento em 10–20 quadros/s. Achados e consertos:
+  🧍 quem espera o passe corria DE COSTAS pra bola (tronco reto, só a cabeça virava) → o tronco abre até 0,4 rad pro lado da bola
+  (`orientOpenPlay`); 🗣️ o corte de cabeça do zagueiro vinha como `desvio` sem `golpe` e o 3D não pulava (ficava parado embaixo da bola)
+  → `golpe:'cabeca'` no lance e `requiredContact:'head'` no adaptador; 🧤 goleiro no passinho lateral ficava DE LADO pro chute (a marcha
+  virava o corpo pro deslocamento) → abaixo de 3,4 m/s ele encara a bola (adaptador + `players.mjs`); 🧤 bola na mão a 0,62 m (o boneco é
+  baixinho: a 0,9 m ficava na cara); 🧍 bola parada: o 2º homem passava POR DENTRO do cobrador → companheiro guarda 2,5 m na âncora,
+  2 m na separação e contorna a bola (raio 1,8 m, ≤ 0,1 m/passo) — medido: companheiro a < 1 m do cobrador 0% em todas as paradas.
+  ⚠️ **Lição da bancada**: `captureWithScore` rodava a AUDITORIA do Codex (`players.audit()`) antes da foto e a auditoria MEXE na pose
+  (deixava o goleiro de pé no meio do mergulho); e buscar a chave do jogador com `seek(1)` recriava a partida e o goleiro aparecia
+  "frio". Agora a foto é `audit:false` e a chave vem de um mapa nome→chave feito uma vez. Meia hora de "mergulho que não aparece" era a bancada.
+  Câmeras novas na bancada: `front` (de frente pro focado), `goalreal` (a câmera 'Atrás do gol' do JOGO), `referee-front`.
 - PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
