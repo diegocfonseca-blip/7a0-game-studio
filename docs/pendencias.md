@@ -15,6 +15,10 @@
   quem recebe livre segura 0,2–0,8 s (bola no pé 25% → 30% do tempo); cobertura/cavadinha no goleiro adiantado; drible muda de direção;
   bola gira de lado com o efeito (`curl` em `RotacaoBola3D`); cabeçada com pulo no 3D; chute procedural (perna bate) em todo passe/chute
   sem captura; cai na falta, bote no desarme, ginga no drible; câmera de TV mais perto no celular em pé (~40 px de boneco).
+- FEITO (3ª leva): 🎉 torcida do time que fez o gol PULA (shader, `festa()` em `presidencia-complexo-torcida.ts`) · 🪑 ESTÁDIO CHEIO: 2ª camada
+  de torcedores de baixo-polígono (`farGeometry`, ~96 tris, `LIMITE_TORCIDA_LONGE` 7000) além dos 800 detalhados — medido 472 + 3670
+  torcedores = 1,44 M triângulos (era 1,09 M só com 472) · tática: lateral vira ala, marcado = passe ruim, circulação pelo zagueiro/
+  lateral livre, tabela · voleio/bicicleta · cobertura/cavadinha · drible muda de direção.
 - PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; mais variedade de drible (hoje 1,7/jogo);
   torcida reagindo; replay; juiz.
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
