@@ -25,7 +25,10 @@ export function blocoDesejado(m: Motor2, lado: Lado): Bloco {
   // uma defesa de verdade — antes ia pra 6 m do gol e os atacantes ficavam encostados no goleiro. Comprimento ~26 m: meio e zaga
   // em duas linhas de verdade, com o espaço "entre linhas" que o meia de verdade procura)
   else { tras = clamp(bProf * 0.5 + 4 * tac, 8, 40); fr = clamp(tras + 23, 28, 64) } // (23 m: zaga e meio a ~12 m, como um time compacto de verdade)
-  return { tras, frente: fr, largura: ataca ? 1.0 : 0.82, desliza: (b.x - 34) * (ataca ? 0.18 : 0.36) }
+  // (defendendo perto do próprio gol a linha NÃO se amontoa no lado da bola: largura quase inteira e desliza pouco — o 2º pau fica coberto
+  // e ninguém entra em ninguém; longe do gol, o bloco fecha mais no lado da bola)
+  const perto = !ataca && bProf < 30
+  return { tras, frente: fr, largura: ataca ? 1.0 : perto ? 0.92 : 0.82, desliza: (b.x - 34) * (ataca ? 0.18 : perto ? 0.22 : 0.36) }
 }
 /** o bloco anda liso (no máx. ~7 m/s): troca de posse vira transição, não pulo */
 export function andaBloco(m: Motor2, dt: number) {
