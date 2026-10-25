@@ -143,13 +143,13 @@ const PASSOU_DO_PONTO = 1.4
 const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
-const GK_BASE = 0.25
+const GK_BASE = 0.23
 /** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
 const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
 const TOQUE_V = 3.2, ESCAPOU = 3.0
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
-export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number; /** 🤾 lateral: o cobrador já pegou a bola na mão */ naMao?: boolean; /** 🧱 falta frontal: os 3 da barreira, escolhidos UMA vez */ barreira?: Atleta[] }
+export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number; /** 🤾 lateral: o cobrador já pegou a bola na mão */ naMao?: boolean; /** 🧱 falta frontal: os 3 da barreira, escolhidos UMA vez */ barreira?: Atleta[]; /** 🏃 escanteio/falta/pênalti: o cobrador já saiu da marca de trás e vem bater */ correndo?: boolean }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
 const ESPERA: Record<TipoParada, number> = { saida: 0.9, lateral: 0.6, escanteio: 1.5, tiro_de_meta: 1.0, falta: 1.3, penalti: 1.8 }
 
@@ -206,6 +206,8 @@ export class Motor2 {
   private toqueSolto: Atleta | null = null
   /** 🧤 o goleiro está com a bola NA MÃO (encaixou ou saiu buscando): fica no peito até a reposição, que sai da mão — arremesso curto ou chutão */
   gkMao: Atleta | null = null
+  /** 💫 até quando o toque de condução fica curto depois de um drible */
+  private dribleAte = -1
   /** 🦶 o PRIMEIRO TOQUE de quem acabou de receber: pra onde ele leva a bola (longe do marcador, pro lado do jogo) */
   private toque1: { de: Atleta; ux: number; uy: number; ate: number } | null = null
 
@@ -293,7 +295,18 @@ export class Motor2 {
     const pa = this.parada!, v = 6
     // (escanteio e lateral: vai correndo buscar a bola — e FREIA chegando: a 9 m/s cravado ele passava da bola, voltava e a cobrança
     // atrasava ~1 s, com a bola "pulando" da mão pro chão no 3D; filmado 25/10)
-    if (p === pa.cobrador) return { x: pa.x, y: pa.y, v: Math.min(pa.tipo === 'escanteio' || pa.tipo === 'lateral' ? 9 : 7, 2.5 + dist(p, pa) * 2.2) }
+    if (p === pa.cobrador) {
+      // 🏃 (25/10, filmado: o escanteio e a falta saíam do jogador PARADO em cima da bola) escanteio, falta e pênalti têm corrida: o
+      // cobrador espera 2,2 m atrás da bola (do lado oposto ao gol) e, quando está tudo pronto, vem e bate chegando
+      if ((pa.tipo === 'escanteio' || pa.tipo === 'falta' || pa.tipo === 'penalti') && !pa.correndo) {
+        // (no escanteio a marca de trás fica DENTRO do campo, 2,2 m ao longo da lateral — atrás da linha de fundo o cobrador ficava
+        // "atrás do gol" e a decisão deixava de ver o cruzamento: 38% dos escanteios saíam em passinho curto. Medido 25/10)
+        if (pa.tipo === 'escanteio') return { x: clamp(pa.x + (pa.x < 34 ? 0.3 : -0.3), 0.3, W - 0.3), y: pa.y + (pa.lado === 0 ? 2.2 : -2.2), v: Math.min(9, 2.5 + dist(p, pa) * 2.2) }
+        const gx = 34 - pa.x, gy = linhaAtaque(pa.lado) - pa.y, gd = len(gx, gy) || 1
+        return { x: clamp(pa.x - (gx / gd) * 2.2, -1.2, W + 1.2), y: clamp(pa.y - (gy / gd) * 2.2, -1.5, L + 1.5), v: Math.min(7, 2.5 + dist(p, pa) * 2.2) }
+      }
+      return { x: pa.x, y: pa.y, v: pa.correndo ? 4.5 : Math.min(pa.tipo === 'escanteio' || pa.tipo === 'lateral' ? 9 : 7, 2.5 + dist(p, pa) * 2.2) }
+    }
     if (p.grupo === 'GOL' && p.lado !== pa.lado && pa.tipo !== 'saida') { const g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) + (p.lado === 0 ? -0.6 : 0.6) }; return { ...g, v } }
     // 🧤 (25/10, filmado: o goleiro aparecia no meio-campo na saída de bola) o goleiro NUNCA vai pro lugar da formação — em toda bola
     // parada que não é dele, fica no gol dele, adiantado conforme a bola está longe
@@ -799,7 +812,7 @@ export class Motor2 {
           const mal = (100 - d.at.conducao) / 100, rap = clamp(v / this.vmax(d), 0, 1)
           const e = this.n() * (0.03 + mal * 0.16) // (desvio de direção do toque, em radianos — ângulo pequeno: sem trigonometria)
           const tx = ux - uy * e, ty = uy + ux * e, tn = len(tx, ty) || 1
-          const vt = v * (1.15 + rap * 0.35 + Math.abs(this.n()) * mal * 0.35)
+          const vt = this.t < this.dribleAte ? v * 1.02 : v * (1.15 + rap * 0.35 + Math.abs(this.n()) * mal * 0.35)
           b.vx = (tx / tn) * vt; b.vy = (ty / tn) * vt
         }
         if (dist(b, d) > ESCAPOU) { b.dono = null; b.lance = null; b.ultimo = d; this.donoDesde = null; this.toqueSolto = null } // (o toque saiu longo demais)
@@ -1040,6 +1053,9 @@ export class Motor2 {
           const nx = ax - d.x, ny = ay - d.y, nn = len(nx, ny) || 1; d.fx = nx / nn; d.fy = ny / nn
         }
       }
+      // 💫 (25/10, filmado no 3D: a bola saía 2 m do pé no toque seguinte ao drible e o driblador ficava pra trás) nos 0,5 s depois do
+      // drible o toque de condução é CURTO (a bola anda na velocidade dele, não 1,5× — fica no pé); só a arrancada joga pra frente
+      if (golpe !== 'arrancada') this.dribleAte = this.t + 0.5
       // (25/10: quem acabou de passar pelo marcador AVANÇA com a bola por um instante em vez de soltar na hora: ganhou o espaço, usa.
       // Testado e DESCARTADO no mesmo dia: colar a bola no pé por 0,3 s depois do drible — ficava bonito de perto, mas o 0×0 subia de
       // 10% pra 17% em 300 jogos e nem goleiro mais fraco compensava)
@@ -1165,10 +1181,14 @@ export class Motor2 {
     // time CHEGAR na área (4+ dentro) — com teto de tempo, pra bola parada nunca segurar o jogo
     const ensaiada = pa.tipo === 'escanteio' || (pa.tipo === 'falta' && frente(pa.lado, pa.y) < 32 && this.ensaio[pa.lado] != null)
     const naArea = ensaiada ? this.atl.filter(a => a.lado === pa.lado && a !== c && a.grupo !== 'GOL' && frente(pa.lado, a.y) < AREA_PROF + 2 && Math.abs(a.x - 34) < AREA_LARG + 2).length : 9
-    const pronto = dist(c, pa) < 0.9 && this.t - pa.desde >= ESPERA[pa.tipo] && (naArea >= 4 || this.t - pa.desde >= ESPERA[pa.tipo] + 2.5)
+    const comCorrida = pa.tipo === 'escanteio' || pa.tipo === 'falta' || pa.tipo === 'penalti', dd = this.t - pa.desde
+    // 🏃 a corrida começa 0,6 s ANTES de a cobrança poder sair (é o que ela leva): o cobrador chega na bola na hora de sempre
+    if (comCorrida && !pa.correndo && dist(c, pa) < 3.2 && dd >= ESPERA[pa.tipo] - 0.6 && (naArea >= 4 || dd >= ESPERA[pa.tipo] + 1.9)) pa.correndo = true
+    const pronto = dist(c, pa) < 0.9 && dd >= ESPERA[pa.tipo] && (naArea >= 4 || dd >= ESPERA[pa.tipo] + 2.5)
     // (depois do gol o time volta da festa lá do bandeirinha: dá mais tempo pra todo mundo chegar no seu campo)
     const folga = pa.tipo === 'saida' ? 8 : 4
-    if (!pronto && this.t - pa.desde < ESPERA[pa.tipo] + folga) return
+    if (!pronto && dd < ESPERA[pa.tipo] + folga) return
+    if (comCorrida && !pa.correndo) pa.correndo = true // (estourou o tempo: vai bater de qualquer jeito)
     // REGRA da distância (rival a 9,15 m na falta/escanteio, fora da área no tiro de meta, no próprio campo na saída)
     const ok = this.atl.every(a => {
       if (a === c) return true
@@ -1178,10 +1198,10 @@ export class Motor2 {
       if (pa.tipo === 'tiro_de_meta') return !(fundo(pa.lado, a.y) < AREA_PROF && Math.abs(a.x - 34) < AREA_LARG)
       return true
     })
-    if (!ok && this.t - pa.desde < ESPERA[pa.tipo] + folga) return
-    if (!ok) this.diag.reinicioErrado++
+    if (!ok && dd < ESPERA[pa.tipo] + folga) return
     // cobra: a decisão é a de sempre, com a restrição da cobrança (lateral só passa, escanteio cruza, tiro de meta não dribla…)
-    if (dist(c, pa) > 1.2 && this.t - pa.desde < ESPERA[pa.tipo] + 6) return // (o cobrador ainda está chegando — nada de teletransporte)
+    if (dist(c, pa) > 1.2 && dd < ESPERA[pa.tipo] + 6) return // (o cobrador ainda está chegando — nada de teletransporte)
+    if (!ok) this.diag.reinicioErrado++ // (conta UMA vez, na cobrança de verdade — não a cada passo em que o cobrador ainda vem chegando)
     this.bola.dono = c; this.bola.ultimo = c; this.donoDesde = this.t
     const a = decide(this, c)
     this.acaoDe.set(c, a)

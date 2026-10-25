@@ -197,7 +197,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
   }
 
   // ↗️ CRUZAR (pela ponta, perto da área, com gente lá dentro)
-  if (!cedo && !goleiro && (restr === undefined || restr === 'escanteio' || restr === 'falta') && (p.x < 22 || p.x > W - 22 || restr === 'escanteio' || restr === 'falta') && f < 35 && f > 0) {
+  // (na cobrança o que vale é onde está a BOLA — o cobrador pode estar um passo atrás da linha)
+  const fCruz = restr ? frente(l, m.bola.y) : f
+  if (!cedo && !goleiro && (restr === undefined || restr === 'escanteio' || restr === 'falta') && (p.x < 22 || p.x > W - 22 || restr === 'escanteio' || restr === 'falta') && fCruz < 35 && fCruz > -0.5) {
     const naArea = time.filter(t => frente(l, t.y) < AREA_PROF + 7 && Math.abs(t.x - 34) < AREA_LARG && t.grupo !== 'GOL')
     if (naArea.length) {
       // 🎯 BOLA PARADA ENSAIADA (Diego 20/10): no escanteio/falta levantada a bola vai pro ponto da ROTINA do time (1º pau ·
