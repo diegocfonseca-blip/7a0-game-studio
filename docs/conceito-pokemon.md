@@ -14,7 +14,8 @@
 ## Sala
 - **ATÉ 10 treinadores** (25/10, *"deixa com 10"*): no mínimo 2 pessoas (regra das salas), o resto **completa com bot**.
 - Catálogo: **toda a 1ª geração + os mais famosos das outras** — lista proposta em `docs/pokemon-lista.md` (espera OK).
-- **Liga só de ida**: 7 rodadas (todo mundo contra todo mundo uma vez), 4 batalhas ao mesmo tempo por rodada.
+- **Liga só de ida**: com 10 treinadores = 9 rodadas (todo mundo contra todo mundo uma vez), 5 batalhas ao mesmo tempo por
+  rodada (~19 min de batalha; com 8 eram 7 rodadas e ~16 min).
 - **Semifinal e final em jogo único** (os 4 primeiros).
 - Vitória = 3 pts · desempate pelo **saldo de nocautes** (o "saldo de gols").
 - Tempo: ~12s de escolha + ~1:30 de batalha por rodada ≈ **16 min depois do leilão**, com 2 ou com 8 pessoas.
