@@ -10702,3 +10702,7 @@ avisos (criar conta/salvar) só na Central.
   quando for copa, a tabela passa a ser chaveamento"*. Leitura: a aba JOGOS segue com o seu jogo grande; a aba TABELAS vira a estrela —
   tabela ao vivo em cima + jogos da rodada por divisão embaixo (a sua aberta, as outras fechadas); na quarta de Copa abre no
   CHAVEAMENTO + jogos da Copa da noite. Mockup `scripts/mockups/carreira-tabelas-estrela.png`. ⏳ Espera OK.
+- 25/10 (5ª parte, a CERTA) — *"era como tava antes: o placar cinema ou campinho 2D e embaixo a tabela da liga e os jogos da liga embaixo
+  da tabela… e quando for copa é só trocar: tabela da copa em chaveamento e jogos da copa embaixo, mas o campinho ou placar ainda em cima"*.
+  Aba JOGOS = ① placar cinema / Campo 2D + Manual/Auto/2D ② tabela da liga ao vivo ③ jogos da liga. Na Copa: ① o mesmo placar ②
+  CHAVEAMENTO ③ jogos da Copa da noite. Mockup `scripts/mockups/carreira-jogos-placar-tabela.png`. ⏳ Espera OK.
