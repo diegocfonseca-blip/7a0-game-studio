@@ -13,14 +13,16 @@ export type Acao =
   | { tipo: 'conduz' | 'drible' | 'segura'; alvo: { x: number; y: number }; u: number; contra?: Atleta }
 
 /** 🎯 o quanto o time quer ganhar metros (por 10 m). O jogo dura 1:30 de tela: sem isto ele trocaria passe pra sempre */
-const DIRETO = 0.075
+const DIRETO = 0.1
 /** 🧲 quanto vale CONTINUAR com a bola (por opção, × (2·pOk − 1)): o passe seguro ganha isso, a loteria perde. Sem isto o time
  *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
 const MANTER = 0.03
 /** 🎯 o gosto pelo chute de fora da área (> 23 m): menor = o time trabalha mais a bola até a área */
-const CHUTE_LONGE = 0.9
+const CHUTE_LONGE = 0.75
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
-const CHUTE_PERTO = 2.2
+const CHUTE_PERTO = 2.3
+/** 🎯 quanto vale a chance de gol de um chute frente ao `valor` de ter a bola (1 = a mesma moeda) */
+const ESCALA_CHUTE = 1.2
 /** ↩️ o gosto pelo corte pra trás da linha de fundo (rasteiro, pra quem chega na marca do pênalti) */
 const CORTE = 0.06
 /** 🤝 o gosto pelo passe curto (até 11 m), maior quanto mais apertado ele está */
@@ -66,19 +68,23 @@ export function decide(m: Motor2, p: Atleta): Acao {
   const alcanceChute = 28 + clamp((p.at.finalizacao - 80) / 4, 0, 4), dePrimeira = p.at.finalizacao >= CRAQUE_PRIMEIRA
   if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < alcanceChute && f > 1 && !(cedo && dGol > 24 && !dePrimeira)) {
     const xg = xgDe(l, p.x, p.y, pres)
-    let u = xg * (4.2 + p.at.finalizacao / 120)
+    // 🎯 25/10 (medido em 120 jogos: 76% dos chutes de fora da área, 23 m de média, e 55% viravam gol — ninguém entrava na área): o chute
+    // vale a CHANCE DE GOL de verdade, na MESMA moeda do passe (`valor` = chance de a posse virar gol dali). Assim, de 25 m com um
+    // companheiro livre na área, ele toca; na cara do gol, bate. O craque confia mais no chute dele (e acerta mais, em `chuta`)
+    let u = xg * (1.0 + p.at.finalizacao / 300) * ESCALA_CHUTE
     u *= 1 - costasDepoisDoGiro(p, 34 - p.x, (l === 0 ? 0 : L) - p.y) * 0.6 // (🧍 de costas pro gol, quase nunca vale bater)
     // (dentro da área o instinto é chutar — o passe de 3 m pro companheiro marcado não resolve)
-    if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
-    if (dGol > 19) u *= 1 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
-    // (22/10: quem tem chute arrisca de fora — o craque mais, o perna-de-pau quase nunca. É daí que sai a goleada do time bom)
-    u *= dGol > 23 ? CHUTE_LONGE * clamp((p.at.finalizacao - 60) / 20, 0.2, 2.2) : CHUTE_PERTO // (21/10: de longe entra pouco — o time prefere chegar mais perto)
-    if (dGol > 27) u *= 0.7 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
+    if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= CHUTE_PERTO
+    // (de fora: só quem GOSTA e TEM chute arrisca — e mesmo assim, menos quanto mais longe. O time prefere chegar mais perto)
+    if (dGol > 19) u *= (0.85 + p.tend.chuteLonge * 0.5) * (dGol > 24 ? CHUTE_LONGE * clamp((p.at.finalizacao - 55) / 30, 0.25, 1.3) : 1)
+    if (dGol > 27) u *= 0.7
+    // (na entrada da área, LIVRE, o profissional arrisca — é o chute de meia distância de verdade; marcado, procura o passe)
+    if (dGol > 15 && dGol < 26) u *= 1 + clamp(1 - pres / 0.55, 0, 1) * 0.8
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
     // ⚽ FALTA DIRETA × LEVANTADA (Diego 20/10): quem é batedor de falta (`falta_curva`/`falta_bomba`, estilo chutador) bate
     // direto; o resto prefere levantar na área (a opção de cruzamento abaixo)
-    if (restr === 'falta' && dGol <= 30) u *= p.golpes.includes('falta_curva') || p.golpes.includes('falta_bomba') ? 2.2 : p.estilo === 'chutador' ? 1.6 : 0.8
+    if (restr === 'falta' && dGol <= 30) u *= p.golpes.includes('falta_curva') || p.golpes.includes('falta_bomba') ? 4 : p.estilo === 'chutador' ? 2.6 : 1.1
     ops.push({ tipo: 'chute', u })
   }
   if (restr === 'penalti') return ops[0]
