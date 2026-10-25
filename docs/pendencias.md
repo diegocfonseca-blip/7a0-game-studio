@@ -10691,3 +10691,7 @@ Pedido: *"tá muito embolado… as abas… no Clube tem outras abas que não é 
 Jogos ganha selo "AO VIVO" na barra de baixo. 3. Sub-abas SEMPRE logo abaixo do título, UMA fileira (Clube perde o 2º andar:
 Estádio · Loja · Dinheiro · Gestão). 4. 5 abas embaixo: o Rank vira sub-aba de Tabelas (Tabela · Artilharia · Bola de Ouro);
 avisos (criar conta/salvar) só na Central.
+- 25/10 (2ª parte): ele perguntou se dá pra JUNTAR Jogos e Tabelas (*"o pessoal gosta mais de ver tabela do que jogos"*). Mockup
+  `scripts/mockups/carreira-jogo-e-tabela.png`: 🅰️ JUNTO (placar grande em cima, tabela à vista logo abaixo) × 🅱️ TABELA PRIMEIRO
+  (jogo vira faixa preta que abre, tabela ocupa a tela e mexe ao vivo com ▲▼ e o placar de cada time do lado do nome — sempre no
+  ritmo do relógio da tela, nunca antes: anti-spoiler). Barra de baixo com 4 abas. ⏳ Espera ele escolher.
