@@ -7,7 +7,7 @@
 // ⚠️ Isolado: só a bancada e a trava usam. Não decide placar de ninguém.
 import { nivelDe, perfilDe } from './atributos'
 import { estilo2De, estiloDe, type Estilo } from '../campo2d-estilos'
-import { alvoDe, andaBloco, ancora, linhaImpedimento, planeja, type Bloco } from './coletivo'
+import { alvoDe, andaBloco, ancora, linhaImpedimento, lugarGoleiro, planeja, type Bloco } from './coletivo'
 import { decide, pressaoEm, type Acao } from './decide'
 import { GIRO, gira, deCostas, AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L, SEG_POR_MIN, TRAVESSAO, W, ATRITO_AR, ATRITO_CHAO, clamp, dist, frente, fundo, len, linhaAtaque, sorteio, vRasteira, xgDe, yDe } from './fisica'
 import { Narrador, PESO } from './narra'
@@ -289,6 +289,9 @@ export class Motor2 {
     const pa = this.parada!, v = 6
     if (p === pa.cobrador) return { x: pa.x, y: pa.y, v: pa.tipo === 'escanteio' || pa.tipo === 'lateral' ? 9 : 7 } // (escanteio e lateral: vai correndo buscar a bola)
     if (p.grupo === 'GOL' && p.lado !== pa.lado && pa.tipo !== 'saida') { const g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) + (p.lado === 0 ? -0.6 : 0.6) }; return { ...g, v } }
+    // 🧤 (25/10, filmado: o goleiro aparecia no meio-campo na saída de bola) o goleiro NUNCA vai pro lugar da formação — em toda bola
+    // parada que não é dele, fica no gol dele, adiantado conforme a bola está longe
+    if (p.grupo === 'GOL') return { ...lugarGoleiro(this, p), v }
     const an = ancora(this, p)
     let x = an.x, y = an.y
     if (pa.tipo === 'saida') {
