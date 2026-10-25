@@ -114,11 +114,25 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   const quota = { home: places.length ? Math.round(budget * available.home / places.length) : 0, away: 0 }
   quota.away = budget - quota.home
   const prototypes = new Map<number, Record<Part, THREE.BufferGeometry>>()
-  const materials = (['skin', 'shirt', 'lower'] as const).map(part => {
+  // 🎉 25/10 (Diego: "torcida reagindo"): cada LADO tem os próprios materiais, com um balanço leve o tempo todo e o PULO no gol do time
+  // (feito no vertex shader por uniform — nenhuma matriz de instância muda, custo zero de CPU). `uFesta` 0–1 é a festa daquele lado.
+  const festaUniforms = { home: { uFesta: { value: 0 }, uTime: { value: 0 } }, away: { uFesta: { value: 0 }, uTime: { value: 0 } } }
+  const materialsPorLado = Object.fromEntries((['home', 'away'] as const).map(side => [side, (['skin', 'shirt', 'lower'] as const).map(part => {
     const material = materialHumano('#ffffff', part === 'skin' ? 'skin' : 'fabric')
-    material.name = `torcida-${part}`
+    material.name = `torcida-${side}-${part}`
+    material.onBeforeCompile = shader => {
+      shader.uniforms.uFesta = festaUniforms[side].uFesta; shader.uniforms.uTime = festaUniforms[side].uTime
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uFesta;uniform float uTime;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+        { float id = float(gl_InstanceID); float fase = fract(sin(id * 12.9898) * 43758.5453) * 6.2832;
+          float balanco = sin(uTime * 1.7 + fase) * 0.012;
+          float pulo = max(0.0, sin(uTime * 8.0 + fase)) * 0.22 * uFesta;
+          transformed.y += (balanco + pulo) * step(0.3, position.y); }`)
+    }
+    material.customProgramCacheKey = () => 'torcida-festa-' + side
     return material
-  })
+  })])) as Record<Side, THREE.MeshStandardMaterial[]>
   const groups = new Map<string, Place[]>()
   for (const side of ['home', 'away'] as const) for (const place of ranked[side]) {
     const key = `${place.side}:${place.sector}:${place.tier}:${place.seatHeight}`
@@ -129,7 +143,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     if (!geometry) { geometry = seatedGeometry(group[0].seatHeight); prototypes.set(group[0].seatHeight, geometry) }
     const capacity = Math.min(budget, group.length)
     const meshes = (['skin', 'shirt', 'lower'] as const).map((part, index) => {
-      const mesh = new THREE.InstancedMesh(geometry![part], materials[index], capacity)
+      const mesh = new THREE.InstancedMesh(geometry![part], materialsPorLado[group[0].side][index], capacity)
       mesh.name = `torcida-${key}-${part}`; mesh.castShadow = mesh.receiveShadow = true
       mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage)
       mesh.count = 0; mesh.visible = false
@@ -212,6 +226,10 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   update(population)
   return {
     root, update,
+    /** 🎉 a festa do gol: `side` pula (0→1 em ~0,3 s), o outro lado fica parado; `null` desliga. `t` em segundos anda o balanço */
+    festa(side: Side | null, t: number) {
+      for (const s of ['home', 'away'] as const) { const u = festaUniforms[s]; u.uTime.value = t; const alvo = side === s ? 1 : 0; u.uFesta.value += (alvo - u.uFesta.value) * (alvo > u.uFesta.value ? 0.25 : 0.06) }
+    },
     reserve(ids: readonly string[] = []) {
       if (disposed) return
       reservations = new Set(ids.filter(id => seatById.has(id)))
@@ -220,7 +238,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       update(lastPopulation)
     },
     inspect() {
-      return { mode, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO,
+      return { mode, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
         attendance: attendance ? { ...attendance } : undefined, awayAttendance: awayAttendance ? { ...awayAttendance } : undefined,
         occupancy: { ...occupancy }, quota: { ...quota }, reservations: [...reservations], reserved: { ...reservedCounts }, invalidSeats, updates, matrixUpdates, instanceRebuilds: 0,
         batches: batches.reduce((total, batch) => total + batch.meshes.length, 0),
@@ -235,7 +253,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       for (const batch of batches) for (const mesh of batch.meshes) { mesh.count = 0; mesh.visible = false; mesh.userData.seatIds = []; mesh.dispose() }
       for (const geometry of prototypes.values()) for (const part of Object.values(geometry)) part.dispose()
       const maps = new Set<THREE.Texture>()
-      materials.forEach(material => {
+      Object.values(materialsPorLado).flat().forEach(material => {
         for (const value of Object.values(material)) if (value instanceof THREE.Texture) maps.add(value)
         material.dispose()
       })
