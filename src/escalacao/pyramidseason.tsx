@@ -27,7 +27,7 @@ import {narrarChanceEstadio,narrarGolEstadio,narrarEtapaLanceEstadio} from './pr
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import './career-desktop.css'
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from './presentation-release'
@@ -3222,6 +3222,9 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
+// ⚔️ 25/10 (Diego, carreira organizada): o que vai LOGO EMBAIXO DOS GOLS no placar (a tática, na aba Jogos + Tabela). Quem
+// monta o placar não precisa saber de nada — quem quer pôr algo ali só embrulha o placar neste contexto.
+export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
 export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo }:
   { /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
@@ -3244,6 +3247,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // carimbo daqui some. Basquete fica de fora (é outro esporte).
   const c2d = useCampo2DLigado() && !basket
   const c2dX = useCampo2DExtras()
+  const abaixoDosGols = useContext(AbaixoDosGolsCtx)
   // 🧑‍💼 o presidente na beira do campo (21/10): o boneco da CONTA, do lado do meu time — só quem tem boneco
   const presConta = usePresidenteConta()
   const presImg = useImagemBusto(c2d ? presConta.value : null)
@@ -3688,7 +3692,17 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
       estadio={c2dX.estadioDe(homeName)} replay={c2dX.offline} />
   ) : null
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
-  const campo2dComTelao = campo2dEl ? <>{campo2dEl}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  // ⚽ 25/10 (Diego: *"embaixo do comentarista… vem gols que não tô vendo no 2D"*): os gols do jogo embaixo do campinho, igual ao
+  // placar cinema — só os que o relógio já mostrou (`vencidos`, a mesma trava anti-spoiler)
+  const golsDo2D = campo2dEl ? (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', margin: '6px 0 0', background: '#1d1d1d', color: '#f4ecd6', border: '2.5px solid #0C0C0C', borderRadius: 12, fontSize: 12 }}>
+      {[true, false].map(home => <div key={String(home)} style={{ textAlign: home ? 'left' : 'right' }}>
+        {vencidos.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`} style={{ margin: '0 0 2px' }}>⚽ {g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
+        {!vencidos.some(g => g.home === home) && <p style={{ margin: 0, opacity: .6 }}>{tr('Sem gols', 'No goals')}</p>}
+      </div>)}
+    </div>
+  ) : null
+  const campo2dComTelao = campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
   if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
   if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
@@ -3745,6 +3759,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     narration={relatoOficial?.narration ?? fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {avisoReplay}
     {estadoEstadio&&<PresidenciaPartida state={estadoEstadio}/>}
+    {abaixoDosGols}
    </>
   return (<>
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
@@ -5951,7 +5966,7 @@ export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaN
   )
 }
 
-export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, ab }: { /** 💾 Time A/B (23/10): a 3ª pílula ao lado de Formação/Trocas + o painel/aviso que ela abre */ ab?: { rotulo: string; render: (aberto: boolean, fechar: () => void) => ReactNode }; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
+export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, ab }: { /** ⚔️ 25/10: a tática do próximo jogo, logo abaixo da formação (conta do Diego) */ tatica?: ReactNode; /** 💾 Time A/B (23/10): a 3ª pílula ao lado de Formação/Trocas + o painel/aviso que ela abre */ ab?: { rotulo: string; render: (aberto: boolean, fechar: () => void) => ReactNode }; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
@@ -6107,6 +6122,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           {ab.rotulo} {abreAB ? '▴' : '▾'}
         </button>
       )}
+      {elenco && tatica && <div style={{ marginTop: -4, marginBottom: 10 }}>{tatica}</div>}
       {elenco && ab && ab.render(abreAB, () => setAbreAB(false))}
       {elenco && onSetFormation && (!elencoNovoOk || abreFormacao) && (() => {
         // 🎽 troca de formação: libera pra QUALQUER formação que você consiga preencher
@@ -8663,6 +8679,21 @@ export function PyramidSeasonScreen() {
   // 🏢 SAF do técnico: online = careerFilials[youId] (por-técnico) · offline = careerFilial (single)
   const myFilial = state.onlineMode === 'online' ? state.careerFilials?.[youId] : state.careerFilial
   const myTactic = tacAt(careerTactics, youId, round) // tática que vale do PRÓXIMO jogo em diante
+  // ⚔️ 25/10 (Diego): a tática numa peça só — embaixo dos gols na aba Jogos + Tabela e dentro do cartão do Elenco, perto da
+  // formação (no lugar da faixa solta que ficava no topo do Elenco, em cima do fundo). Mesma ação de sempre (`SET_TACTIC`).
+  const taticaBotoes = (
+    <div style={{ marginTop: 8 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1.1, color: '#5a5647', textTransform: 'uppercase', margin: '0 0 5px', textAlign: 'center' }}>{tr('⚔️ Tática do próximo jogo', '⚔️ Tactics for the next match')}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+        {([['retranca', tr('🧱 Retranca', '🧱 Park the bus')], ['equilibrio', tr('⚖️ Equilíbrio', '⚖️ Balanced')], ['ataque', tr('🔥 Ataque', '🔥 Attack')]] as [Tac, string][]).map(([t, label]) => (
+          <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
+            style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 0', fontWeight: 900, fontSize: 11.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : '#fff', color: myTactic === t ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
   // coloridos = humanos (você/amigos) em bege/tier; rivais escolhidos em MARROM
   // próprio — nunca a sua cor. A SUA cor é EXCLUSIVA dos clubes ATUAIS: no ONLINE,
   // cada humano da sala; no SOLO, só o clube que você comanda AGORA (+ o 2º clube
@@ -11106,7 +11137,7 @@ export function PyramidSeasonScreen() {
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
         {calBarra?.proxCard}
-        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -12346,8 +12377,9 @@ export function PyramidSeasonScreen() {
           <>
             <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
-                fica AQUI no topo do elenco (era na aba Jogos). */}
-            {!done && (
+                fica AQUI no topo do elenco (era na aba Jogos). 25/10: na conta do Diego (Jogos + Tabela) ela entra no cartão
+                do elenco, junto da formação (`tatica` do SquadTab) */}
+            {!done && !jogoTabela && (
               <>
                 {/* 🎛️ FORMA SEGUE PAPEL (Diego 15/09: *"olha q confusão, tudo parecido"*).
                     A tática não é botão de apertar-agora nem aba — é um AJUSTE do time.
@@ -12413,7 +12445,7 @@ export function PyramidSeasonScreen() {
                 {' '}{tr('O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.', 'What already showed on screen no longer changes: the champion that comes out is the real champion.')}
               </div>
             )}
-            <SquadTab ab={canSub && mgrMe ? { rotulo: (() => { const q = timeEmCampo(state, mgrMe, myXI.map(c => c.id)); return q ? `💾 ${tr('Time', 'Team')} ${q}` : `💾 ${tr('Time', 'Team')} A/B` })(), render: (aberto, fechar) => <EscalacaoAB mgr={mgrMe} xiIds={myXI.map(c => c.id)} slot={slotEscala} fora={suspenso ? new Set([suspenso.cardId]) : new Set<string>()} gas={condGas ?? undefined} aberto={aberto} fechar={fechar} /> } : undefined} mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
+            <SquadTab tatica={jogoTabela && !done ? taticaBotoes : undefined} ab={canSub && mgrMe ? { rotulo: (() => { const q = timeEmCampo(state, mgrMe, myXI.map(c => c.id)); return q ? `💾 ${tr('Time', 'Team')} ${q}` : `💾 ${tr('Time', 'Team')} A/B` })(), render: (aberto, fechar) => <EscalacaoAB mgr={mgrMe} xiIds={myXI.map(c => c.id)} slot={slotEscala} fora={suspenso ? new Set([suspenso.cardId]) : new Set<string>()} gas={condGas ?? undefined} aberto={aberto} fechar={fechar} /> } : undefined} mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
               estat={estatJogos ? { jogos: estatJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined } : undefined}
               condicao={condGas && condJogosTela ? { gas: condGas, jogos: condJogosTela, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
@@ -12447,8 +12479,10 @@ export function PyramidSeasonScreen() {
           </>
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
           <section className="ll29-board" aria-label="Competições da carreira">
-            {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
-            {tab === 'jogos' && trilhaTemporada}
+            {/* 📊 25/10 (Diego: *"esse negócio de NA COLA aí tem que sair… esse modal com essas notícias"*): na aba Jogos + Tabela
+                saem a frase rotativa e a trilha Liga › Copa — a Copa aparece sozinha na quarta dela */}
+            {!jogoTabela && !done && round > 0 && tab==='jogos' && renderCareerTicker()}
+            {!jogoTabela && tab === 'jogos' && trilhaTemporada}
             {tab === 'jogos' && <GiroDaRodada />}{/* 📢 Anúncio do dia também na carreira (17/10, Diego: "sim, pode ser") */}
             {done && copa && copa.rounds.length ? <>
               {/* 🧹 OS CHIPS DAS FASES SAEM DA ABA JOGOS NO FIM DE TEMPORADA (19/09).
