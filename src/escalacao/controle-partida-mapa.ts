@@ -14,13 +14,17 @@ export interface ControleMapa {
   alternaManual: () => void
   mudaVelocidade: (v: number) => void
   avanca: () => void
+  /** 📅 o dia do calendário da carreira ("📅 Qua 23 abr") */
+  dia?: string
+  /** ⏩ pula os dias que faltam até o jogo, sem sair do mapa (só com a semana passando) */
+  irProJogo?: () => void
 }
 let atual: ControleMapa | null = null
 let chave = ''
 const ouvintes = new Set<() => void>()
 /** a carreira chama a cada render; só avisa o mapa quando muda o que aparece (as funções são sempre as mais novas) */
 export function publicaControleMapa(c: ControleMapa | null) {
-  const k = c ? `${c.manualOk}|${c.manual}|${c.velocidade}|${c.podeAvancar}|${c.rotuloAvancar}` : ''
+  const k = c ? `${c.manualOk}|${c.manual}|${c.velocidade}|${c.podeAvancar}|${c.rotuloAvancar}|${c.dia}|${!!c.irProJogo}` : ''
   atual = c
   if (k === chave) return
   chave = k

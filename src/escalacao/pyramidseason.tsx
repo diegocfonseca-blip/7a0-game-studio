@@ -9877,7 +9877,10 @@ export function PyramidSeasonScreen() {
   const calJogoRolando = round > 0 && !(calApitado.r === round && calApitado.s === calSn) && (revealed < round || !roundReady)
   const calFase: FaseCal = copaPlaying ? 'copa' : seasonOver ? 'fim' : round === 0 ? 'pre' : calJogoRolando ? 'jogo' : 'dias'
   const calLivre = calFase === 'dias' && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
-  const calNaTela = tab === 'central' || tab === 'jogos'
+  // 🏟️ 25/10 (Diego: "não consigo ver o jogo pelo mapa… deveria ter forma de passar o dia lá"): com o mapa 3D na aba Clube, a semana
+  // anda ali também — senão o "o próximo jogo começa sozinho" do mapa nunca chegava (botão mudo)
+  const mapaNoClube = tab === 'estadio' && presidentAvailable && PRESIDENCY_STADIUM_RELEASED
+  const calNaTela = tab === 'central' || tab === 'jogos' || mapaNoClube
   // 🏆 a temporada que começa com o calendário ligado joga a Copa nas quartas (marca uma vez, na rodada 0)
   useEffect(() => { if (calOn && round === 0 && !done && state.calCopaSeason !== calSn) dispatch({ type: 'CAL_COPA_LIGA', season: calSn }) }, [calOn, round, done, state.calCopaSeason, calSn, dispatch])
   // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
@@ -10384,8 +10387,6 @@ export function PyramidSeasonScreen() {
     alternaManual: toggleManualCareer, mudaVelocidade: v => dispatch({ type: 'SET_SIM_SPEED', speed: v }),
     avanca: copaPlaying ? () => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) } : avancarRodada,
   } : null
-  useEffect(() => { publicaControleMapa(controleMapa) })
-  useEffect(() => () => publicaControleMapa(null), [])
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {
     if (!calOn || !myDiv) return null
@@ -10404,7 +10405,7 @@ export function PyramidSeasonScreen() {
     const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? (copaMid && !done ? diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS : diaDaFaseCopa(calSn, copaMid ? Math.max(0, copaRound - nCopaBase) : copaRound)) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
     const naCentral = tab === 'central'
     const grande = naCentral || tab === 'jogos'
-    const pausado = calFase === 'dias' && !manual && !grande && calI < calTotal
+    const pausado = calFase === 'dias' && !manual && !calNaTela && calI < calTotal
     let recado = null as ReturnType<typeof recadoDoDia> | null
     if (grande && calFase === 'dias') {
       const minha = tables[myDiv] ?? []
@@ -10442,6 +10443,8 @@ export function PyramidSeasonScreen() {
       jogos.sort((a, b) => a.dia - b.dia)
     }
     // ⏩ Pular: se a semana tem Copa ainda não jogada, pula só ATÉ A QUARTA (a Copa nunca é pulada); senão, até o domingo
+    const irProJogoNoMapa = () => setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal })
+    const verJogoNoMapa = () => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
     const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
@@ -10454,11 +10457,13 @@ export function PyramidSeasonScreen() {
     const barra = tab === 'jogos' || naCentral ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
-      onPular={vaiProJogo} onIrJogo={() => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
+      onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
-    return { barra, proxCard, selo }
+    return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && calI < calTotal ? irProJogoNoMapa : undefined }
   })()
+  useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn ? calBarra?.irProJogoNoMapa : undefined }) })
+  useEffect(() => () => publicaControleMapa(null), [])
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada

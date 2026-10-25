@@ -10,6 +10,10 @@
 - FEITO: 🧤 o GOLEIRO PULA no 3D (`presidencia-futebol-oficial.ts` prevê onde o chute cruza a linha dele; `players.mjs` tomba o corpo
   pro lado, desliza, sobe se a bola vem alta, braços esticados). Só desenho — defesa/gol continua decidido pelo motor. Bola no meio e baixa =
   sem pulo. Foto: `scripts/mockups/mapa-goleiro-pulo.png`.
+- 🐛 25/10 (print do Diego, 00:52: *"não consigo ver o jogo pelo campo 3D"*): na aba Clube a SEMANA ficava pausada (só andava em
+  Jogos/Central) e o mapa só mostrava jogo EM CASA. Agora, com o mapa na aba Clube: os dias passam ali, o mapa mostra a data e
+  "⏩ Ir pro jogo", o jogo fora de casa também roda no campo, e quando um jogo começa a câmera vai sozinha pro campo na Transmissão
+  (uma vez por jogo). "VER JOGO" na faixa rola até o mapa em vez de trocar de aba. A faixa da Copa ainda puxa pra aba Jogos.
 - PRÓXIMO: cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
   torcida reagindo, juiz.
 

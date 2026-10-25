@@ -569,6 +569,10 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
  useEffect(()=>{refreshPopulation.current()},[populationKey])
  useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey])
  useEffect(()=>{refreshJourney.current()},[journeyKey])
+ // 📺 25/10 (Diego: "me direcionar direto pro campo já na melhor câmera"): quando um jogo COMEÇA com o mapa aberto, a câmera vai
+ // sozinha pro campo, na Transmissão. Uma vez por jogo — se a pessoa sair pra passear no mapa, ninguém puxa ela de volta.
+ const matchStarted=useRef<string|null>(null),matchId=match&&!match.finished?match.context.id:null
+ useEffect(()=>{if(!loaded||isWindow||isOffice||!matchId||matchStarted.current===matchId)return;matchStarted.current=matchId;api.current?.view('field')},[loaded,matchId,isWindow,isOffice])
  const go=(destination:VistaComplexo)=>{api.current?.view(destination);root.current?.querySelector('canvas')?.focus({preventScroll:true});setPlacesOpen(false)}
  return <section ref={section} className={`pc3-review${isOffice?' pc3-office':''}${isWindow?' pc3-window':''}${expanded?' pc3-expanded':''}`} data-expanded={expanded} data-presentation={presentation}
   role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label={isOffice?'Sala da Presidência':'Mapa do estádio'} onKeyDown={event=>{

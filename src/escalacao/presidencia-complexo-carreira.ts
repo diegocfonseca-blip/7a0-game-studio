@@ -80,7 +80,8 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
   const wallet = carteiraDaCarreira(state, mgrId), owned = new Set(wallet?.owned.map(item => item.id) ?? [])
   // Do not copy a new clock or infer a match from the club's name/colour.
   const incoming = input.match
-  const match = incoming?.context?.homeClubId === mgrId && !incoming.finished
+  // 🚌 25/10 (Diego: "não consigo ver o jogo pelo mapa"): o jogo FORA de casa também roda no campo do mapa
+  const match = (incoming?.context?.homeClubId === mgrId || incoming?.context?.awayClubId === mgrId) && !incoming.finished
     && typeof incoming.context.id === 'string' && incoming.context.id.length > 0
     && Number.isFinite(incoming.minute) ? incoming : undefined
   const day = diaConferido(input.day, match)
