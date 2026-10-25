@@ -19,6 +19,10 @@
 - Categorias iguais às de hoje (Lenda · Craque · Bom · Profissional), pela **força oficial** (atributos base dos jogos); os
   **folclóricos** (Pikachu, Magikarp…) o Diego decide, igual ao Vozinha.
 - Arte: no padrão das lendas do jogo — **rosto liso, sem olhos, nariz e boca** (pedido dele).
+  - 👑 **Só as LENDAS têm o desenho do próprio pokémon.** Todo o RESTO usa o **desenho do TIPO** (o 1º tipo dele), na cor da
+    categoria (25/10: *"todos que não são lendas ganham desenho do tipo dele"*). Os 18 desenhos de tipo são NOSSOS (traço do jogo).
+  - Arte das Lendas: o Diego manda a imagem de cada uma e a gente tira olhos/nariz/boca (feito no Pikachu). Até lá, peça NEUTRA
+    marcada como neutra. Mockup das cartas: scratchpad da sessão (não versionado — tem arte da Nintendo).
 
 ## Sala
 - **ATÉ 10 treinadores** (25/10, *"deixa com 10"*): no mínimo 2 pessoas (regra das salas), o resto **completa com bot**.
