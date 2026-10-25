@@ -302,7 +302,7 @@ export class Motor2 {
     }
     // 🤾 LATERAL (25/10, Diego: "laterais"): os dois mais perto do cobrador vêm OFERECER — um pela linha, à frente; outro por dentro,
     // curto. É assim que a cobrança sai rápida e limpa (antes todo mundo ficava na posição e o lateral era "chutado" pra qualquer um)
-    if (pa.tipo === 'lateral' && p.lado === pa.lado && p.grupo !== 'GOL') {
+    if (pa.tipo === 'lateral' && p.lado === pa.lado) {
       const atk = pa.lado === 0 ? -1 : 1, dentro = pa.x < 34 ? 1 : -1
       const perto = this.atl.filter(a => a.lado === pa.lado && a !== pa.cobrador && a.grupo !== 'GOL').sort((a, b) => dist(a, pa) - dist(b, pa))
       const i = perto.indexOf(p)
@@ -332,7 +332,7 @@ export class Motor2 {
         if (this.ensaio[at]?.curta === p && pa.tipo === 'escanteio') { x = pa.x + (esq ? 5 : -5); y = lin + (at === 0 ? 4.5 : -4.5); return { x: clamp(x, 2, W - 2), y, v: 7 } }
         return { x: clamp(x, 2, W - 2), y: lin + (at === 0 ? y : -y), v: 7 }
       }
-      if (p.lado !== at && p.grupo !== 'GOL') {
+      if (p.lado !== at) {
         // 🧱 BARREIRA na falta frontal: os 3 mais perto se põem a 9,15 m entre a bola e o gol
         if (pa.tipo === 'falta' && Math.abs(pa.x - 34) < 20) {
           const barra = this.atl.filter(a => a.lado !== at && a.grupo !== 'GOL').sort((a, b) => dist(a, pa) - dist(b, pa)).slice(0, 3)
