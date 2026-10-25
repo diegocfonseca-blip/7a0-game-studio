@@ -143,7 +143,7 @@ const PASSOU_DO_PONTO = 1.4
 const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
-const GK_BASE = 0.32
+const GK_BASE = 0.27
 /** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
 const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
@@ -616,7 +616,7 @@ export class Motor2 {
     this.emite({ tipo, lado: l, a: p.nome, b: r.nome })
   }
 
-  private chuta(p: Atleta, cabeca = false) {
+  private chuta(p: Atleta, cabeca = false, acrobacia?: 'voleio' | 'bicicleta') {
     const l = p.lado, lin = linhaAtaque(l), b = this.bola
     const pres = pressaoEm(this, p, l), f = frente(l, p.y), dGol = len(p.x - 34, f)
     const xg = xgDe(l, p.x, p.y, pres, cabeca)
@@ -628,11 +628,13 @@ export class Motor2 {
     // (o corpo gira até ~45° na preparação da batida; o que sobrar de "costas" depois disso entorta o chute)
     ;[p.fx, p.fy] = gira(p.fx, p.fy, 34 - p.x, lin - p.y, GIRO.chute)
     const costasGol = deCostas(p, 34 - p.x, lin - p.y)
-    const sigma = (0.3 + (100 - p.at.finalizacao) / 34) * (dGol / 15) * (1 + Math.max(0, dGol - 18) / MIRA_LONGE) * (1 + pres * 0.7) * (cabeca ? 1.3 : 1) * (1 + costasGol * 0.9)
+    // (acrobacia: o voleio é mais torto que o chute no chão; a bicicleta, de costas, muito mais — mas ela NÃO paga o castigo normal de
+    // estar de costas, porque é exatamente pra isso que ela existe)
+    const sigma = (0.3 + (100 - p.at.finalizacao) / 34) * (dGol / 15) * (1 + Math.max(0, dGol - 18) / MIRA_LONGE) * (1 + pres * 0.7) * (cabeca ? 1.3 : 1) * (acrobacia === 'bicicleta' ? 1.9 : acrobacia === 'voleio' ? 1.35 : 1 + costasGol * 0.9)
     const xAlvo = 34 + canto + this.n() * sigma
     const hAlvo = clamp((cabeca ? 0.6 : 0.3 + this.r() * 1.6) + this.n() * sigma * 0.6, 0.1, 6)
     const bomba = p.golpes.includes('bomba') || p.golpes.includes('falta_bomba')
-    let v = cabeca ? 13 + p.at.cabeceio * 0.04 : clamp(17 + p.at.finalizacao * 0.09 + (bomba ? 5 : 0) + this.n() * 1.5, 14, 33)
+    let v = cabeca ? 13 + p.at.cabeceio * 0.04 : clamp(17 + p.at.finalizacao * 0.09 + (bomba ? 5 : 0) + (acrobacia ? 2 : 0) + this.n() * 1.5, 14, 33)
     const dx = xAlvo - b.x, dy = lin - b.y, d = len(dx, dy) || 1
     // 🎯 COBERTURA / CAVADINHA (25/10, Diego: "variedades de chute"): goleiro adiantado (saiu 5 m+ da linha) e chute de 10–28 m →
     // quem tem o golpe (ou decide bem) encobre: bola lenta, alta, caindo embaixo do travessão. O goleiro adiantado não alcança
@@ -654,7 +656,7 @@ export class Motor2 {
       const meio = giro * T * 0.5, vx = b.vx; b.vx = vx + b.vy * meio; b.vy = b.vy - vx * meio; b.giro = giro
     } else b.giro = 0
     if (this.parada) this.parada = null
-    b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y }, golpe: cobertura ? (p.golpes.includes('cavadinha') && dGol < 16 ? 'cavadinha' : 'cobertura') : curva ? 'colocado' : bomba ? 'bomba' : undefined }
+    b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y }, golpe: acrobacia ?? (cobertura ? (p.golpes.includes('cavadinha') && dGol < 16 ? 'cavadinha' : 'cobertura') : curva ? 'colocado' : bomba ? 'bomba' : undefined) }
     this.stats.chutes[l]++; this.stats.xg[l] += xg
     this.emite({ tipo: cabeca ? 'cabeceio' : 'chute', lado: l, a: p.nome, golpe: b.lance.golpe })
   }
@@ -914,6 +916,16 @@ export class Motor2 {
     const atacaArea = frente(l, b.y) < AREA_PROF + 2 && Math.abs(b.x - 34) < AREA_LARG + 2
     if (atacaArea && b.lance && b.lance.de.lado === l) {
       if (b.lance.de !== p) { this.stats.passesCertos[l]++; this.garcom = { de: b.lance.de, para: p, t: this.t } }
+      // 🤸 VOLEIO / BICICLETA (25/10, Diego: "variedade de chutes"): a bola que chega na altura do peito/joelho não é cabeçada — quem
+      // tem o golpe (ou finaliza muito bem) bate de voleio; de costas pro gol e com o golpe, é a BICICLETA. Mais torto que o chute
+      // normal (a mira abre), mas sai forte e surpreende o goleiro
+      const lin = linhaAtaque(l), costas = deCostas(p, 34 - p.x, lin - p.y)
+      const voleio = b.h < 1.75 && b.h > 0.9 && (p.golpes.includes('voleio') || p.golpes.includes('bicicleta') || p.at.finalizacao > 86) && this.r() < 0.7
+      if (voleio) {
+        const bici = costas > 0.6 && p.golpes.includes('bicicleta')
+        this.chuta(p, false, bici ? 'bicicleta' : 'voleio')
+        return
+      }
       b.h = 1.8; return this.chuta(p, true)
     }
     const fy = l === 0 ? -1 : 1

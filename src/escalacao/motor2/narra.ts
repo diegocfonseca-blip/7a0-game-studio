@@ -58,6 +58,8 @@ const CHUTE_TXT: Record<string, [string, string]> = {
   cavadinha: ['CAVADINHA de {a}!', 'A CHIP from {a}!'],
   colocado: ['{a} bate colocado, de três dedos!', '{a} curls one with the outside of the boot!'],
   bomba: ['{a} solta a BOMBA!', '{a} lets fly a ROCKET!'],
+  voleio: ['DE VOLEIO, {a}!', 'ON THE VOLLEY, {a}!'],
+  bicicleta: ['BICICLETA DE {a}!!!', 'BICYCLE KICK FROM {a}!!!'],
 }
 export class Narrador {
   private usados = new Map<string, number>()
