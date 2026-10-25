@@ -10856,3 +10856,4 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 - Formato proposto: UMA liga oficial por divisões (Várzea → D → C → B → A), temporada de 1 mês, sobe/desce no fim; as copas (Mundo, Liberta, regionais, Copa dos 8) viram EVENTOS avulsos de fim de semana, com inscrição própria.
 - Esperando o OK dele nos dois pontos.
 - Modo da noite: cada noite = uma sala online normal (leilão + campeonato da sala), pontos pela colocação somam na tabela do mês da divisão. Diego sugeriu SORTEIO do modo; proposta: 🎰 roleta na abertura da noite, igual pra divisão inteira, sem repetir modo no mês (os 3 aparecem). Esperando OK.
+- Quem falta: inscrição não volta (só se o JOGO cancelar a noite). Proposta: faltou = 0 ponto na noite, mas no fim do mês a PIOR noite de cada um é descartada (conta as 3 melhores de 4). Esperando OK.
