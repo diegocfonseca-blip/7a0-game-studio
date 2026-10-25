@@ -3,7 +3,7 @@
 // segurar — pela CHANCE DE DAR CERTO × o VALOR do lugar onde a bola fica − o CUSTO de perder ali. Os atributos e as
 // tendências da carta mudam as chances e o gosto; um pouco de sorteio (menos pra quem decide bem) dá variedade sem perder
 // a coerência. Nenhuma jogada é obrigatória: o Ronaldinho tenta mais drible porque GOSTA e porque DÁ CERTO mais vezes.
-import { AREA_LARG, AREA_PROF, L, W, aoSegmento, clamp, dist, frente, fundo, len, valor, xgDe } from './fisica'
+import { GIRO, gira, deCostas, AREA_LARG, AREA_PROF, L, W, aoSegmento, clamp, dist, frente, fundo, len, valor, xgDe } from './fisica'
 import type { Atleta, TipoLance } from './tipos'
 import type { Motor2 } from './motor'
 
@@ -39,6 +39,9 @@ const CRAQUE_PRIMEIRA = 88
 /** quanto custa PERDER a bola aqui (perto do próprio gol custa mais) */
 const perda = (lado: 0 | 1, x: number, y: number) => 0.004 + valor((1 - lado) as 0 | 1, x, y) * 0.85 // (o que o RIVAL ganha se a bola ficar com ele ali)
 
+/** 🧍 o que sobra de "costas" depois do giro de preparação da batida (~45°) — a mesma conta que a execução usa */
+const costasDepoisDoGiro = (p: Atleta, dx: number, dy: number) => { const [fx, fy] = gira(p.fx, p.fy, dx, dy, GIRO.chute); return deCostas({ fx, fy }, dx, dy) }
+
 export function pressaoEm(m: Motor2, p: { x: number; y: number }, lado: 0 | 1): number {
   let d = 9
   for (const a of m.atl) if (a.lado !== lado) d = Math.min(d, dist(a, p))
@@ -60,6 +63,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
   if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < alcanceChute && f > 1 && !(cedo && dGol > 24 && !dePrimeira)) {
     const xg = xgDe(l, p.x, p.y, pres)
     let u = xg * (4.2 + p.at.finalizacao / 120)
+    u *= 1 - costasDepoisDoGiro(p, 34 - p.x, (l === 0 ? 0 : L) - p.y) * 0.6 // (🧍 de costas pro gol, quase nunca vale bater)
     // (dentro da área o instinto é chutar — o passe de 3 m pro companheiro marcado não resolve)
     if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
     if (dGol > 19) u *= 1 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
@@ -104,7 +108,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // (bola longa é loteria — medido: 30–45% chega. Quem está perto de onde ela CAI disputa de cabeça)
     if (aereo) { pLinha = 0.68; for (const a of adv) { const q = dist(a, alvo); if (q < 10) pLinha *= 1 - (1 - q / 10) * 0.8 } }
     const conforto = 14 + p.at.passe * 0.24 + (aereo ? 8 : 0)
-    const pTec = clamp(1 - Math.max(0, d - conforto) * 0.022 - (aereo ? 0.2 : 0), 0.3, 0.985) * (1 - pres * 0.12)
+    // (🧍 o passe pra trás do corpo é mais difícil — de costas ele precisa girar ou tocar no improviso)
+    const costas = costasDepoisDoGiro(p, alvo.x - p.x, alvo.y - p.y)
+    const pTec = clamp(1 - Math.max(0, d - conforto) * 0.022 - (aereo ? 0.2 : 0), 0.3, 0.985) * (1 - pres * 0.12) * (1 - costas * 0.2)
     let rec = 9
     for (const a of adv) rec = Math.min(rec, dist(a, alvo))
     const pRec = clamp(0.5 + rec / 10, 0.5, 1)

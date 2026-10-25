@@ -25,6 +25,8 @@ export interface Atleta {
   /** referência da formação: largura (0–68) e profundidade (0 = linha de trás · 1 = linha da frente) */
   bx: number; dep: number
   x: number; y: number; vx: number; vy: number
+  /** 🧍 para onde o CORPO está virado (vetor unitário) — gira com limite; passar/chutar/receber de costas custa (25/10) */
+  fx: number; fy: number
   /** onde estava no passo anterior (o desenho interpola) */
   ax?: number; ay?: number
   alvo: { x: number; y: number; v: number }

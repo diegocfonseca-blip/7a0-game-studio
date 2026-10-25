@@ -9,7 +9,7 @@ import { nivelDe, perfilDe } from './atributos'
 import { estilo2De, estiloDe, type Estilo } from '../campo2d-estilos'
 import { alvoDe, andaBloco, ancora, linhaImpedimento, planeja, type Bloco } from './coletivo'
 import { decide, pressaoEm, type Acao } from './decide'
-import { AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L, SEG_POR_MIN, TRAVESSAO, W, ATRITO_AR, ATRITO_CHAO, clamp, dist, frente, fundo, len, linhaAtaque, sorteio, vRasteira, xgDe, yDe } from './fisica'
+import { GIRO, gira, deCostas, AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L, SEG_POR_MIN, TRAVESSAO, W, ATRITO_AR, ATRITO_CHAO, clamp, dist, frente, fundo, len, linhaAtaque, sorteio, vRasteira, xgDe, yDe } from './fisica'
 import { Narrador, PESO } from './narra'
 import type { Atleta, Bola, CartaCampo, Estatistica, Evento, Grupo, Lado, TipoEvento } from './tipos'
 import type { Clima } from '../campo2d-clima'
@@ -104,7 +104,7 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
       // (meio-campo ESCALONADO: o do meio é o volante (0,45), os de fora são os "8" que chegam na área (0,75). Três meias
       // na mesma linha deixavam um vazio de 20 m entre a bola e os atacantes)
       bx, dep: g === 'MEI' ? 0.45 + centro * 0.3 : g === 'ATA' ? dep - (1 - centro) * 0.04 : dep,
-      x: 34, y: 52.5, vx: 0, vy: 0, alvo: { x: 34, y: 52.5, v: 0 }, papel: 'forma', marca: null, proxDecisao: 0, atordoado: 0, amarelos: 0, expulso: false, faltas: 0,
+      x: 34, y: 52.5, vx: 0, vy: 0, fx: 0, fy: lado === 0 ? -1 : 1, alvo: { x: 34, y: 52.5, v: 0 }, papel: 'forma', marca: null, proxDecisao: 0, atordoado: 0, amarelos: 0, expulso: false, faltas: 0,
       // 😓 quem entra cansado pela régua da carreira (−1 😓 · −2 🥵 · −3 🚑) começa com menos gás — nada de régua nova
       gas: GAS_INICIO[Math.min(3, Math.max(0, -(c.gasMod ?? 0)))],
     })
@@ -150,6 +150,8 @@ const DESVIO_ESCANTEIO = 0.6
 const GK_BASE = -0.2
 /** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
 const ALCANCE_PE = 1.2, CONDUCAO = 0.6
+/** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
+const TOQUE_V = 3.2, ESCAPOU = 3.0
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
 export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
@@ -202,6 +204,8 @@ export class Motor2 {
   private garcom: { de: Atleta; para: Atleta; t: number } | null = null
   private intervalo = false
   private acaoDe = new Map<Atleta, Acao>()
+  /** 🦶 quem está conduzindo no toque agora (a bola anda solta à frente dele) */
+  private toqueSolto: Atleta | null = null
 
   /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
   /** `extra`: técnico (nível do dia dele) e evento da rodada de cada lado — o que a simulação da carreira também usa */
@@ -425,6 +429,8 @@ export class Motor2 {
 
   private decisoes() {
     const d = this.bola.dono
+    // 🦶 com a bola um pouco à frente (condução no toque) ele só passa/chuta quando chega nela — ninguém bate na bola a 2 m do pé
+    if (d && this.t >= d.proxDecisao && dist(d, this.bola) > 1.15) { d.proxDecisao = this.t + DT; return }
     if (d && this.t >= d.proxDecisao) {
       // reavalia mais cedo se o marcador chegou
       const a = decide(this, d)
@@ -525,7 +531,10 @@ export class Motor2 {
     const d0 = dist(p, alvo)
     // erro de execução: técnica, distância e pressão
     const pres = pressaoEm(this, p, l)
-    const erro = (0.02 + (100 - p.at.passe) * ERRO_PASSE) * (1 + pres * 0.8) * (1 + (1 - p.gas) * 0.5) * (this.clima === 'chuva' ? 1.12 : 1) * d0
+    // (🧍 passe pra trás do corpo sai mais torto — de costas, o passe é no improviso)
+    ;[p.fx, p.fy] = gira(p.fx, p.fy, alvo.x - p.x, alvo.y - p.y, GIRO.chute) // (o corpo vira na batida, até ~45°)
+    const costas = deCostas(p, alvo.x - p.x, alvo.y - p.y)
+    const erro = (0.02 + (100 - p.at.passe) * ERRO_PASSE) * (1 + pres * 0.8) * (1 + (1 - p.gas) * 0.5) * (this.clima === 'chuva' ? 1.12 : 1) * (1 + costas * 0.7) * d0
     alvo.x = clamp(alvo.x + this.n() * erro * 0.6, -3, W + 3); alvo.y = clamp(alvo.y + this.n() * erro * 0.6, -3, L + 3)
     // (bola longa errada costuma passar do ponto — a inversão forte demais sai pela lateral, como no jogo de verdade)
     if (a.aereo && a.tipo !== 'cruzamento') { const k = Math.abs(this.n()) * erro * PASSOU_DO_PONTO / (d0 || 1); alvo.x = clamp(alvo.x + (alvo.x - p.x) * k, -6, W + 6); alvo.y = clamp(alvo.y + (alvo.y - p.y) * k, -3, L + 3) }
@@ -564,7 +573,11 @@ export class Motor2 {
     const canto = (this.r() < 0.5 ? -1 : 1) * (GOL_MEIO - 0.5 - (p.at.finalizacao / 100) * 1.4 + this.r() * 0.6)
     // (erro de mira de gente: ~metade dos chutes de 20 m vai pra fora ou por cima — antes 85% ia no gol)
     // (e de longe a mira abre mais rápido que a distância: o chute de 30 m é muito mais torto que o de 15)
-    const sigma = (0.3 + (100 - p.at.finalizacao) / 34) * (dGol / 15) * (1 + Math.max(0, dGol - 18) / MIRA_LONGE) * (1 + pres * 0.7) * (cabeca ? 1.3 : 1)
+    // (🧍 de costas pro gol o chute sai muito mais torto — o virada-e-chute é raro e difícil)
+    // (o corpo gira até ~45° na preparação da batida; o que sobrar de "costas" depois disso entorta o chute)
+    ;[p.fx, p.fy] = gira(p.fx, p.fy, 34 - p.x, lin - p.y, GIRO.chute)
+    const costasGol = deCostas(p, 34 - p.x, lin - p.y)
+    const sigma = (0.3 + (100 - p.at.finalizacao) / 34) * (dGol / 15) * (1 + Math.max(0, dGol - 18) / MIRA_LONGE) * (1 + pres * 0.7) * (cabeca ? 1.3 : 1) * (1 + costasGol * 0.9)
     const xAlvo = 34 + canto + this.n() * sigma
     const hAlvo = clamp((cabeca ? 0.6 : 0.3 + this.r() * 1.6) + this.n() * sigma * 0.6, 0.1, 6)
     const bomba = p.golpes.includes('bomba') || p.golpes.includes('falta_bomba')
@@ -600,6 +613,19 @@ export class Motor2 {
       const k = aa > lim ? lim / aa : 1
       p.vx += ax * k; p.vy += ay * k
       p.x += p.vx * dt; p.y += p.vy * dt
+      // 🧍 O CORPO (25/10): pra onde ele olha. Correndo, na direção da corrida; parado, pra bola; quem vai RECEBER abre o corpo
+      // (meio pra bola, meio pro ataque — é o que deixa jogar pra frente de primeira); quem tem a bola olha pra onde vai jogar.
+      // Gira com limite: quem corre não vira na hora.
+      const vel = len(p.vx, p.vy), b = this.bola, atk = p.lado === 0 ? -1 : 1
+      let tx: number, ty: number
+      if (p === d) {
+        const ac = this.acaoDe.get(p)
+        if (vel > 1.5) { tx = p.vx; ty = p.vy } else if (ac && 'alvo' in ac) { tx = ac.alvo.x - p.x; ty = ac.alvo.y - p.y } else { tx = (34 - p.x) * 0.1; ty = atk }
+      } else if (p.papel === 'recebe' || p.papel === 'opcao') {
+        const bx = b.x - p.x, by = b.y - p.y, n = len(bx, by) || 1
+        tx = bx / n; ty = by / n + atk * 0.7
+      } else if (vel > 2.5) { tx = p.vx; ty = p.vy } else { tx = b.x - p.x; ty = b.y - p.y }
+      ;[p.fx, p.fy] = gira(p.fx, p.fy, tx, ty, vel < 3 ? GIRO.lento : vel < 6 ? GIRO.medio : GIRO.rapido)
     }
     // ninguém dentro de ninguém (o dono e quem disputa com ele podem colar)
     const n = this.atl.length
@@ -627,10 +653,31 @@ export class Motor2 {
       // 🦶 25/10 (Diego: *"jogando igual profissional"*): o DOMÍNIO não teletransporta mais a bola pro pé. Antes, no instante em que o
       // jogador ganhava a posse, a bola pulava até 2,4 m num passo pra ficar colada 75 cm à frente dele — no 2D e no 3D ela "voava" pro
       // pé. Agora, no primeiro ~0,3 s, ela vai até o pé (o toque de domínio); depois segue na condução, um pouco mais perto (55 cm)
-      const ox = d.x + ux * CONDUCAO, oy = d.y + uy * CONDUCAO
-      const k = this.t - (this.donoDesde ?? -9) < 0.32 ? Math.min(1, dt / 0.11) : 1
-      b.x += (ox - b.x) * k; b.y += (oy - b.y) * k; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
-    }
+      const inicio = this.t - (this.donoDesde ?? -9) < 0.32
+      if (v < TOQUE_V || inicio || this.toqueSolto !== d) {
+        // devagar (protegendo, girando, esperando o passe) a bola fica colada no pé
+        const ox = d.x + ux * CONDUCAO, oy = d.y + uy * CONDUCAO
+        const k = inicio ? Math.min(1, dt / 0.11) : Math.min(1, dt / 0.08)
+        b.x += (ox - b.x) * k; b.y += (oy - b.y) * k; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
+        if (v >= TOQUE_V && !inicio) this.toqueSolto = d // (começou a correr com ela: a partir de agora é no toque)
+      } else {
+        // 🦶 CONDUÇÃO NO TOQUE (25/10, Diego: "a condução da bola… o controle da bola"): correndo, ele EMPURRA a bola um pouco à
+        // frente e vai buscar — a bola anda sozinha (freia na grama) e, quando ele alcança, vem o próximo toque. Quanto mais rápido,
+        // mais longo o toque; quem conduz mal erra a direção e a força — e o toque longo demais vira bola perdida (o rival pega)
+        const vb = len(b.vx, b.vy)
+        if (vb > 0) { const nv = Math.max(0, vb - (ATRITO_CHAO + 0.07 * vb) * dt); b.vx *= nv / vb; b.vy *= nv / vb }
+        b.x += b.vx * dt; b.y += b.vy * dt; b.h = 0; b.vh = 0
+        const frenteBola = (b.x - d.x) * ux + (b.y - d.y) * uy
+        if (frenteBola < 0.5 && dist(b, d) < 1.1) {
+          const mal = (100 - d.at.conducao) / 100, rap = clamp(v / this.vmax(d), 0, 1)
+          const e = this.n() * (0.03 + mal * 0.16) // (desvio de direção do toque, em radianos — ângulo pequeno: sem trigonometria)
+          const tx = ux - uy * e, ty = uy + ux * e, tn = len(tx, ty) || 1
+          const vt = v * (1.15 + rap * 0.35 + Math.abs(this.n()) * mal * 0.35)
+          b.vx = (tx / tn) * vt; b.vy = (ty / tn) * vt
+        }
+        if (dist(b, d) > ESCAPOU) { b.dono = null; b.lance = null; b.ultimo = d; this.donoDesde = null; this.toqueSolto = null } // (o toque saiu longo demais)
+      }
+    } else this.toqueSolto = null
   }
 
   // ── a bola sem dono ──
@@ -739,7 +786,9 @@ export class Motor2 {
       // bola alta: cabeceio
       if (b.h > 1.5 && !gk) { this.cabeceia(p); return }
       const meu = !!lc && lc.de.lado === p.lado
-      const pOk = gk ? 0.93 : meu || !lc ? clamp(1.1 - v / 70 + (p.at.conducao - 60) / DOMINIO, 0.4, 0.98) : clamp(0.24 + (p.at.desarme + p.at.posicionamento - 110) / 220 + (v < 7 ? 0.3 : 0), 0.12, 0.85)
+      // (🧍 a bola chegando pelas COSTAS é mais difícil de dominar — de frente pra ela, o domínio é limpo)
+      const costasBola = deCostas(p, b.x - p.x, b.y - p.y)
+      const pOk = gk ? 0.93 : meu || !lc ? clamp(1.1 - v / 70 + (p.at.conducao - 60) / DOMINIO - costasBola * 0.22, 0.35, 0.98) : clamp(0.24 + (p.at.desarme + p.at.posicionamento - 110) / 220 + (v < 7 ? 0.3 : 0), 0.12, 0.85)
       if (this.r() < pOk) {
         // 🚩 impedimento: quem estava impedido NA HORA do passe e é o alvo, tocou primeiro
         if (lc && lc.impedido && lc.para === p && meu) {
@@ -806,7 +855,8 @@ export class Motor2 {
     if (this.donoDesde != null && this.t - this.donoDesde < 0.15) return
     for (const z of this.atl) {
       if (z.lado === d.lado || z.atordoado > this.t || z.grupo === 'GOL') continue
-      if (dist(z, d) > 2.2) continue
+      const dBola = dist(this.bola, d), exposta = clamp((dBola - 0.7) * 0.3, 0, 0.22) // (🦶 bola longe do pé = bote mais fácil)
+      if (Math.min(dist(z, d), dist(z, this.bola) + 0.4) > 2.2) continue
       const ac = this.acaoDe.get(d), dribla = ac?.tipo === 'drible'
       // (quem decidiu DRIBLAR encara na hora: o duelo acontece assim que encosta; o resto é o marcador que tenta, ~24%/s)
       if (!(dribla && ac.contra === z && dist(z, d) < 1.9) && this.r() > BOTE * clamp(1 + (z.at.desarme - d.at.conducao) / BOTE_DIF, 0.4, 3) * DT) continue // (22/10: o zagueiro bom contra o perna-de-pau dá bote muito mais vezes)
@@ -816,7 +866,7 @@ export class Motor2 {
       let pF = clamp(FALTA_BASE + (60 - z.at.desarme) / 250 + (carrinho ? 0.06 : 0) + (porTras ? 0.07 : 0) + (veloz ? 0.04 : 0) + (d.at.conducao - 70) / 450, 0.06, FALTA_BASE + 0.14)
       if (this.naAreaDele(z, d)) pF *= 0.35
       if (this.r() < pF) return this.falta(z, d)
-      const pW = clamp(0.42 + (z.at.desarme - d.at.conducao) / 105 + (z.at.fisico - d.at.fisico) / 450 - (dribla ? 0.07 : 0), 0.12, 0.82)
+      const pW = clamp(0.42 + (z.at.desarme - d.at.conducao) / 105 + (z.at.fisico - d.at.fisico) / 450 - (dribla ? 0.07 : 0) + exposta, 0.12, 0.85)
       if (this.r() < pW) {
         this.stats.desarmes[z.lado]++
         this.emite({ tipo: carrinho ? 'carrinho' : 'desarme', lado: z.lado, a: z.nome, b: d.nome })

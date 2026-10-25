@@ -69,3 +69,30 @@ export function xgDe(lado: 0 | 1, x: number, y: number, pressao: number, cabeca 
   const ang = clamp(f / d, 0.12, 1)
   return clamp(base * ang * (1 - 0.45 * pressao) * (cabeca ? 0.7 : 1), 0.005, 0.8)
 }
+
+// ── 🧍 o corpo gira com limite (25/10, Diego: "movimentação de corpo") — sem trigonometria: o passo de giro é uma rotação
+// fixa com cos/sen ESCRITOS como número (o mesmo em todo aparelho). Devolve o novo vetor de frente, já normalizado.
+/** giros por passo de 0,05 s: parado/andando ~8 rad/s · trotando ~6 · correndo ~4 (quem corre não vira na hora) */
+export const GIRO = {
+  lento: [0.9210609940028851, 0.3894183423086505],
+  medio: [0.955336489125606, 0.29552020666133955],
+  rapido: [0.9800665778412416, 0.19866933079506122],
+  chute: [0.6967067093471654, 0.7173560908995228], // (0,8 rad: o giro do corpo na hora de bater na bola)
+} as const
+export function gira(fx: number, fy: number, tx: number, ty: number, cs: readonly [number, number]): [number, number] {
+  const n = len(tx, ty)
+  if (n < 1e-6) return [fx, fy]
+  tx /= n; ty /= n
+  const [c, s] = cs
+  if (fx * tx + fy * ty >= c) return [tx, ty]
+  const sg = fx * ty - fy * tx >= 0 ? 1 : -1
+  const nx = fx * c - fy * s * sg, ny = fx * s * sg + fy * c, m = len(nx, ny) || 1
+  return [nx / m, ny / m]
+}
+/** o quanto a direção (dx,dy) está de COSTAS pro corpo: 0 = de frente (até ~70°) · 1 = totalmente de costas */
+export function deCostas(p: { fx: number; fy: number }, dx: number, dy: number): number {
+  const n = len(dx, dy)
+  if (n < 1e-6) return 0
+  const dot = (p.fx * dx + p.fy * dy) / n
+  return clamp((0.35 - dot) / 1.35, 0, 1)
+}
