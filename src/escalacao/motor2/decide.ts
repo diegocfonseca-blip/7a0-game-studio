@@ -18,7 +18,7 @@ const DIRETO = 0.1
  *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
 const MANTER = 0.03
 /** 🎯 o gosto pelo chute de fora da área (> 23 m): menor = o time trabalha mais a bola até a área */
-const CHUTE_LONGE = 0.75
+const CHUTE_LONGE = 1.0
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
 const CHUTE_PERTO = 2.7
 /** 🎯 quanto vale a chance de gol de um chute frente ao `valor` de ter a bola (1 = a mesma moeda) */
@@ -72,6 +72,12 @@ export function decide(m: Motor2, p: Atleta): Acao {
   // 🤝 (quem me tocou saiu pra tabela: devolvo de primeira — o 1-2 não existe se eu "dominar e levantar a cabeça" antes)
   const tabelaPraMim = time.some(t => { const c = m.corrida.get(t); return !!c && c.tabela === p && c.ate > m.t })
   const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 && !tabelaPraMim // (só solta antes com o marcador em cima — é aí que o duelo acontece)
+  // ⏱️ TRANSIÇÃO × POSSE MONTADA (25/10, medido: 61% dos passes iam pro atacante, zagueiro 6% dos toques — o bônus de ganhar metros
+  // decidia tudo). Acabou de roubar a bola: jogo direto, o rival está desarrumado. Com o bloco rival já montado (3 s+ de posse) o time
+  // de verdade RODA a bola no próprio campo e no meio pra achar o lado fraco — o bônus de avançar cai pela metade e o zagueiro/lateral
+  // livre vira opção; perto do gol (f < 45) continua direto, que é onde a jogada se decide
+  const transicao = clamp(1 - (m.t - m.posseDesde - 3) / 4, 0, 1)
+  const direto = f < 45 ? 1 : 0.65 + 0.35 * transicao
 
   // 🎯 CHUTAR
   // (22/10: o craque bate de primeira e de mais longe — é ele que transforma domínio em goleada; o fraco precisa ajeitar antes)
@@ -106,7 +112,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     const enfiada = !!corre && corre.ate > m.t && t.papel === 'infiltra' && dist(p, t) < 30
     // 👀 VISÃO (25/10, Diego: "a visão do jogador"): quem está atrás do corpo só é visto por quem tem visão (o craque "escaneia"
     // antes de receber; o perna-de-pau só enxerga o que está na frente). De frente, todo mundo vê
-    if (!m.parada && deCostas(p, t.x - p.x, t.y - p.y) > 0.55 + (p.at.visao - 60) / 100) continue
+    // (25/10, medido: o zagueiro dava 6% dos toques porque está SEMPRE atrás do meia — e atrás do corpo ninguém "via" ele. Quem está
+    // LIVRE tem tempo de olhar em volta antes de decidir: vê todo mundo; é só apertado que ele enxerga só o que tem na frente)
+    if (!m.parada && pres > 0.35 && deCostas(p, t.x - p.x, t.y - p.y) > 0.55 + (p.at.visao - 60) / 100) continue
     // 🎯 o passe vai NA FRENTE de quem está correndo — no tempo que a bola leva pra chegar (antes era sempre 0,35 s)
     const d0 = dist(p, t), lead = clamp(d0 / 15, 0.2, 1.1)
     const alvo = enfiada ? { x: clamp(t.x + (corre!.alvo.x - t.x) * 0.5, 3, W - 3), y: clamp(t.y + (corre!.alvo.y - t.y) * 0.55, 2, L - 2) } : { x: clamp(t.x + t.vx * lead, 2, W - 2), y: clamp(t.y + t.vy * lead, 2, L - 2) }
@@ -149,7 +157,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // 🎯 JOGO DIRETO (o jogo inteiro cabe em 1:30): ganhar metros vale um bônus
     const avanca = (frente(l, p.y) - frente(l, alvo.y)) / 10
     // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
-    let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, RECUO_MAX, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.15 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
+    let u = pOk * (v + 0.008 + DIRETO * direto * clamp(avanca, RECUO_MAX, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.15 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
     if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
     // 🤝 a TABELA se completa: quem tocou e saiu pro espaço ganha a bola de volta — o 1-2 é a jogada mais bonita do futebol de passe
     if (enfiada && corre!.tabela === p) u += TABELA * (0.5 + p.at.visao / 200)
@@ -173,7 +181,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // 🔄 CIRCULAÇÃO (25/10, medido: 61% dos toques eram dos atacantes; zagueiro 6%, lateral 4% — no futebol de verdade a defesa dá
     // ~35% dos toques): no próprio campo e no meio, o zagueiro/lateral LIVRE é opção de verdade — é assim que o time roda a bola e
     // acha o lado fraco, em vez de enfiar tudo no centroavante
-    if ((t.grupo === 'LAT' || t.grupo === 'DEF') && pRec > 0.85 && f > 40) u += CIRCULA * (t.grupo === 'LAT' ? 1.3 : 1)
+    if ((t.grupo === 'LAT' || t.grupo === 'DEF') && pRec > 0.85 && f > 40) u += CIRCULA * (1 + 2 * (1 - transicao)) * (t.grupo === 'LAT' ? 1.3 : 1)
     // 🏃 o lateral que passou por fora (ultrapassagem) pede a bola — e ganha preferência na hora
     if (t.papel === 'ultrapassa' && t.grupo === 'LAT' && frente(l, p.y) < 60) u += LAT_APOIO
     // 🧤 REPOSIÇÃO CURTA × LONGA PELO ESTILO (Diego 20/10): o `goleiro_linha` (Ceni, Neuer…) sai jogando curto; quem tem boa

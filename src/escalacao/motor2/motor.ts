@@ -143,7 +143,7 @@ const PASSOU_DO_PONTO = 1.4
 const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
-const GK_BASE = 0.3
+const GK_BASE = 0.25
 /** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
 const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
@@ -171,6 +171,8 @@ export class Motor2 {
   parada: Parada | null = null
   fim = false
   posseLado: Lado = 0
+  /** ⏱️ quando a posse virou pela última vez (os primeiros segundos são TRANSIÇÃO: jogo direto; depois, posse montada: a bola roda) */
+  posseDesde = 0
   bloco: Bloco[] = []
   opcaoDe = new Map<Atleta, { x: number; y: number }>()
   corrida = new Map<Atleta, { ate: number; alvo: { x: number; y: number }; /** 🤝 na tabela: pra quem ele tocou (quem deve devolver) */ tabela?: Atleta }>()
@@ -405,8 +407,10 @@ export class Motor2 {
     if (this.fim) { for (const p of this.atl) { p.vx *= 0.9; p.vy *= 0.9; p.x = clamp(p.x + p.vx * dt, -1.5, W + 1.5); p.y = clamp(p.y + p.vy * dt, -2, L + 2) } return }
     // posse
     const d = this.bola.dono
+    const posseAntes = this.posseLado
     if (d) this.posseLado = d.lado
     else if (this.bola.lance && this.bola.lance.tipo !== 'chute' && this.bola.lance.tipo !== 'cabeceio_gol') this.posseLado = this.bola.lance.de.lado
+    if (this.posseLado !== posseAntes) this.posseDesde = this.t // (⏱️ a posse acabou de virar: é transição — vale jogar direto)
     if (d) this.stats.posse[d.lado] += dt
     else if (this.bola.lance) this.stats.posse[this.bola.lance.de.lado] += dt
 
