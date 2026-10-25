@@ -10849,3 +10849,9 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
   comentarista, 1ª Divisão Fundador / 2ª Divisão Batismo, rodadas alternando Cartas cegas · Tocaia · Pregão aberto, inscrição R$ 10,
   pote pros 5 primeiros (3× · 2× · 1× · 1× · 1×). Mockup `scripts/mockups/campeonato-oficial.png` (só pra ver). ⏳ Nada codado.
   ⚠️ Inscrição paga + prêmio em dinheiro pode cair em regra de jogo/aposta no Brasil — consultar antes de abrir.
+
+### 🏆 Campeonato Oficial — 25/10, 2ª conversa (nada codado)
+- Diego: *"tá errado os valores… preciso ganhar dinheiro"* — o pote 100% devolvido em prêmio não deixa nada pro jogo.
+- Proposta levada: prêmio em COISA DO JOGO (plano, batismo, ficha, gala), não em dinheiro → a inscrição fica inteira pro jogo e sai do risco de "aposta".
+- Formato proposto: UMA liga oficial por divisões (Várzea → D → C → B → A), temporada de 1 mês, sobe/desce no fim; as copas (Mundo, Liberta, regionais, Copa dos 8) viram EVENTOS avulsos de fim de semana, com inscrição própria.
+- Esperando o OK dele nos dois pontos.
