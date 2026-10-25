@@ -14,6 +14,11 @@
   Jogos/Central) e o mapa só mostrava jogo EM CASA. Agora, com o mapa na aba Clube: os dias passam ali, o mapa mostra a data e
   "⏩ Ir pro jogo", o jogo fora de casa também roda no campo, e quando um jogo começa a câmera vai sozinha pro campo na Transmissão
   (uma vez por jogo). "VER JOGO" na faixa rola até o mapa em vez de trocar de aba. A faixa da Copa ainda puxa pra aba Jogos.
+- 🗓️ 25/10 (Diego: *"domingo é 16h dia de jogo e quarta 21h à noite"*): no mapa a LIGA é sempre domingo 16h de dia e a COPA quarta 21h
+  de noite (antes saía do número da rodada: metade da liga virava noite). E no domingo de jogo EM CASA a torcida chega antes do apito
+  (fase 'arrival'): no Automático o apito vem depois de 1 dia do calendário (3 s), no Manual quando aperta. Dias sem jogo = bairro normal.
+  ⏳ FALTA DECIDIR (Diego em dúvida): jogo FORA de casa. Minha recomendação: real — cidade normal, estádio vazio, placar ao vivo no mapa
+  com "🚌 FORA DE CASA". Hoje (provisório) o jogo fora passa no campo dele.
 - PRÓXIMO: cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
   torcida reagindo, juiz.
 

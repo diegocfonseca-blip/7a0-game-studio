@@ -9903,6 +9903,19 @@ export function PyramidSeasonScreen() {
   }, [copaPendente, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn]) // eslint-disable-line react-hooks/exhaustive-deps
   // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular) e a Copa da quarta já foi
   const calDiasOk = !calOn || round === 0 || round >= 38 || (calI >= calTotal && !copaPendente && !copaMidOn)
+  // 🏟️ 25/10 (Diego: "chega o dia do jogo e os locais do mapa ficam mais cheios… o estádio também"): no mapa 3D (conta de prévia),
+  // quando a semana acaba e o próximo jogo da liga é EM CASA, o domingo começa com a torcida CHEGANDO (a pé, de carro, de ônibus) e
+  // o estádio enchendo; o apito vem depois — no Automático, o mesmo tempo de um dia do calendário; no Manual, até a pessoa apertar.
+  const chegadaProx = (() => {
+    if (!calOn || !mapaNoClube || !myDiv || round < 1 || round >= 38 || calFase !== 'dias' || !calDiasOk) return null
+    const r = round + 1, pr = confrontoDaRodada(world[myDiv] ?? [], (seasonSeed ^ (myDiv.charCodeAt(0) * 2654435761)) >>> 0, r).find(([h, a]) => h.teamId === youId || a.teamId === youId)
+    if (!pr || pr[0].teamId !== youId) return null
+    return agendaLigaComplexo({ fixtureId: `${seasonSeed}:${r}:${pr[0].teamId}:${pr[1].teamId}`, seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, round: r, homeClubId: pr[0].teamId }) ?? null
+  })()
+  const [chegadaFeita, setChegadaFeita] = useState('')
+  const chegadaKey = chegadaProx ? `${calSn}:${round}` : ''
+  const chegando = !!chegadaProx && chegadaFeita !== chegadaKey
+  useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
     const out: { r: number; m: SimMatch }[] = []
@@ -9933,11 +9946,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk) return
+    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk || chegando) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk, chegando])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -10462,7 +10475,7 @@ export function PyramidSeasonScreen() {
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
     return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && calI < calTotal ? irProJogoNoMapa : undefined }
   })()
-  useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn ? calBarra?.irProJogoNoMapa : undefined }) })
+  useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn && !chegando ? calBarra?.irProJogoNoMapa : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
@@ -12037,7 +12050,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,...(chegadaProx?{agenda:chegadaProx,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}

@@ -30,8 +30,10 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  // Preserve people finishing their route after the score presentation unmounts.
  // The retained snapshot is local presentation only; it never writes a result.
  const retained=match??(last.current?{...last.current.match,finished:true,paused:true}:undefined)
- const adapted=career&&account?adaptarCarreiraAoComplexo({...career,enabled:true,match:retained,
-  agenda:retained?.context.agenda??career.agenda}):null
+ // 🏟️ dia de jogo em casa antes do apito: a torcida chegando é do jogo QUE VEM — o último jogo (já guardado) não entra na conta
+ const chegada=career?.journeyPhase==='arrival'&&!!career.agenda&&!match
+ const adapted=career&&account?adaptarCarreiraAoComplexo({...career,enabled:true,match:chegada?undefined:retained,
+  agenda:chegada?career.agenda:retained?.context.agenda??career.agenda}):null
  if(career&&!account)return null
  if(adapted)return <section ref={watching} data-presidencia-complexo-carreira>
   {/* 📺 25/10: o ritmo e o placar moram DENTRO do mapa (MapaHud); os créditos foram pro pé */}

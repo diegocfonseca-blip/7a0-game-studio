@@ -17,9 +17,9 @@ try{
   const input=frozen({agenda,match:{...match,context:{...match.context,id:`liga-${round}`}},stadiumClubId:12})
   const before=structuredClone(input),first=jornadaDoComplexo(input)
   assert.equal(first.ordinal,round)
-  assert.equal(first.weekday,round%2?'quarta':'domingo')
-  assert.equal(first.period,round%2?'night':'day')
-  assert.equal(first.kickoffTime,round%2?'21:00':'16:00')
+  assert.equal(first.weekday,'domingo') // 🗓️ liga = sempre domingo 16h (Diego 25/10)
+  assert.equal(first.period,'day')
+  assert.equal(first.kickoffTime,'16:00')
   assert.equal(first.phase,'playing');assert.equal(first.hosting,true)
   assert.deepEqual(jornadaDoComplexo(input),first)
   assert.deepEqual(input,before)
@@ -66,8 +66,8 @@ try{
   const fixtureId=`copa-${phaseIndex}-${legIndex}`
   const day=agendaFasesComplexo({...identity,fixtureId,competition:'cup',previousMatchdays:38,phaseMatchdays:cupDays,phaseIndex,legIndex})
   assert.equal(day.ordinal,expected++)
-  assert.equal(jornadaDoComplexo({agenda:day}).period,day.ordinal%2?'night':'day')
-  assert.equal(jornadaDoComplexo({agenda:day}).kickoffTime,day.ordinal%2?'21:00':'16:00');cases++
+  assert.equal(jornadaDoComplexo({agenda:day}).period,'night') // Copa = sempre quarta 21h
+  assert.equal(jornadaDoComplexo({agenda:day}).kickoffTime,'21:00');cases++
  }
  assert.equal(expected,47)
  const daysWithBye=[2,0,2,1]
