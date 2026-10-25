@@ -18,9 +18,11 @@ const DIRETO = 0.075
  *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
 const MANTER = 0.03
 /** 🎯 o gosto pelo chute de fora da área (> 23 m): menor = o time trabalha mais a bola até a área */
-const CHUTE_LONGE = 1.0
+const CHUTE_LONGE = 0.75
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
 const CHUTE_PERTO = 1.6
+/** ↩️ o gosto pelo corte pra trás da linha de fundo (rasteiro, pra quem chega na marca do pênalti) */
+const CORTE = 0.06
 /** 🤝 o gosto pelo passe curto (até 11 m), maior quanto mais apertado ele está */
 const TOQUE_CURTO = 0.018
 /** 🔙 apertado, recuar pro zagueiro/lateral vale isto × a pressão (a zaga e os laterais entram no jogo) */
@@ -61,7 +63,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
 
   // 🎯 CHUTAR
   // (22/10: o craque bate de primeira e de mais longe — é ele que transforma domínio em goleada; o fraco precisa ajeitar antes)
-  const alcanceChute = 31 + clamp((p.at.finalizacao - 80) / 4, 0, 4), dePrimeira = p.at.finalizacao >= CRAQUE_PRIMEIRA
+  const alcanceChute = 28 + clamp((p.at.finalizacao - 80) / 4, 0, 4), dePrimeira = p.at.finalizacao >= CRAQUE_PRIMEIRA
   if (!goleiro && (restr === undefined || restr === 'falta' || restr === 'penalti') && dGol < alcanceChute && f > 1 && !(cedo && dGol > 24 && !dePrimeira)) {
     const xg = xgDe(l, p.x, p.y, pres)
     let u = xg * (4.2 + p.at.finalizacao / 120)
@@ -70,7 +72,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (f < AREA_PROF + 0.5 && Math.abs(dxg) < AREA_LARG) u *= 1.5
     if (dGol > 19) u *= 1 + p.tend.chuteLonge * 1.0 // (de 19 a 31 m: cada vez menos conforme afasta — a posse vale mais que um chute de 30 m)
     // (22/10: quem tem chute arrisca de fora — o craque mais, o perna-de-pau quase nunca. É daí que sai a goleada do time bom)
-    u *= dGol > 23 ? CHUTE_LONGE * clamp((p.at.finalizacao - 50) / 35, 0.4, 1.8) : CHUTE_PERTO // (21/10: de longe entra pouco — o time prefere chegar mais perto)
+    u *= dGol > 23 ? CHUTE_LONGE * clamp((p.at.finalizacao - 60) / 20, 0.2, 2.2) : CHUTE_PERTO // (21/10: de longe entra pouco — o time prefere chegar mais perto)
     if (dGol > 27) u *= 0.7 // de longe mais quem gosta (e tem chute) — mas de vez em quando todo mundo arrisca (Diego 20/10)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
@@ -131,6 +133,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
     let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, RECUO_MAX, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
     if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
+    // ↩️ O CORTE PRA TRÁS (25/10): chegou na linha de fundo pela ponta → a bola rasteira pra trás, pra quem chega na marca do pênalti, é
+    // a jogada que mais faz gol no futebol de verdade
+    const fAlvo = frente(l, alvo.y)
+    if (f < 11 && Math.abs(p.x - 34) > 9 && !aereo && fAlvo > f && fAlvo < 15 && Math.abs(alvo.x - 34) < 10) u += pOk * CORTE
     // 🤝 (25/10) APERTADO, O TOQUE CURTO É O CERTO: tabela, parede, o apoio a 5–10 m — é assim que o profissional sai da pressão
     if (d < 11 && !aereo) u += pOk * TOQUE_CURTO * (0.35 + pres)
     // ⭐ O JOGO PASSA PELO CRAQUE: o time procura quem resolve (lenda com a bola vale mais que o volante com a bola)
@@ -164,6 +170,15 @@ export function decide(m: Motor2, p: Atleta): Acao {
       const pt = ensaio === alvo ? { x: clamp(alvo.x, 26, 42), y: alvo.y } : { x: clamp(alvo.x + (34 - alvo.x) * 0.2, 26, 42), y: alvo.y }
       const u = ((0.05 + 0.025 * naArea.length) * (0.5 + alvo.at.cabeceio / 200) + p.tend.cruza * 0.03) * (restr === undefined ? CRUZA : 1) + (restr === 'escanteio' ? 0.3 : restr === 'falta' ? 0.12 : 0)
       ops.push({ tipo: 'cruzamento', para: alvo, alvo: pt, aereo: true, u })
+      // 🔻 CRUZAMENTO RASTEIRO (25/10): com a bola rolando, o cruzamento baixo e forte pro 1º pau — quem chega primeiro empurra
+      if (restr === undefined) {
+        const lin1 = naArea.filter(t => Math.abs(t.x - 34) < 9).sort((a, b) => frente(l, a.y) - frente(l, b.y))[0]
+        if (lin1) {
+          let livre = 1
+          for (const a of adv) { const { q, s } = aoSegmento(a, p, lin1); if (s > 0.1 && s < 0.95 && q < 1.4) livre *= 0.45 }
+          ops.push({ tipo: 'cruzamento', para: lin1, alvo: { x: lin1.x, y: lin1.y }, aereo: false, u: u * 0.85 * livre * (0.6 + p.at.passe / 250) })
+        }
+      }
     }
   }
 

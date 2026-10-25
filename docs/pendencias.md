@@ -7,7 +7,18 @@
   · domínio perto do pé (`ALCANCE_PE` 1,45 → 1,2 m; média 1,04 → 0,83 m) e a bola NÃO teletransporta mais pro pé: vai no toque de
     domínio (~0,3 s); condução mais colada (`CONDUCAO` 0,75 → 0,6).
   · passe rasteiro chega mais manso (13 → 11 m/s no pé; média 17 → 15,6 m/s).
-- TESTADO E VOLTADO: menos chute de longe + goleiro melhor. Os gols do motor vêm quase todos de chute de fora (90%): o time fica só ~3 s
+- 🔁 25/10 (Diego: *"não é sobre gols… é a simulação em si… quero que acerte tudo isso"*) — ETAPAS FEITAS no branch:
+  1. corpo com frente que gira (`fx/fy`, `gira`/`deCostas` em fisica.ts): passe/chute/recepção de costas custam; quem recebe abre o corpo.
+  2. condução no TOQUE (`TOQUE_V`, `ESCAPOU`): correndo, a bola vai à frente e ele busca; toque longo = bola perdida; bote mais fácil
+     com a bola longe do pé; só passa/chuta com a bola no pé.
+  3. jogo sem bola/passe: toque curto de 3 m, apoio a 6 m quando apertado, passe NA FRENTE de quem corre, VISÃO (atrás do corpo só o
+     craque enxerga), bloco defensivo 20 m, gatilhos de pressão (de costas/na lateral/acabou de receber), infiltração no tempo do passador.
+  4. bolas paradas: lateral com a MÃO (arco curto) e 2 companheiros oferecendo; tiro de meta curto com zagueiros abertos.
+  5. cruzamento: ataque à área com a bola na ponta (1º pau · 2º pau · marca do pênalti), corte pra trás da linha de fundo, cruzamento
+     rasteiro; menos chute de longe pra quem chuta mal (`CHUTE_LONGE` 0,75 × (finalização−60)/20) — o craque ainda arrisca.
+  Medido (300 jogos): gols 2,05 · chutes de 25 m+ 60% → ~45% · forte × fraco ganha 88%. Goleada continua existindo (parecidos: 9% por 3+;
+  lendas × fracos: 39% por 3+, até 6×0) — antes 47% nas lendas × fracos (o time bom ficou um pouco menos goleador).
+- TESTADO E VOLTADO (antes das etapas): menos chute de longe + goleiro melhor. Os gols do motor vêm quase todos de chute de fora (90%): o time fica só ~3 s
   por jogo com a bola no último terço e ~0 s na área. Tirar o chute de longe derrubou os gols pra ~1/jogo. Precisa de obra maior:
   ataque/defesa no último terço (corte, enfiada na área, defesa que não fecha tudo) — PROPOR pro Diego antes.
 - Análise do 3D/cidade (bonecos cartoon): câmera "transmissão" é alta demais (parece tática), sem replay nem comemoração, goleiro não

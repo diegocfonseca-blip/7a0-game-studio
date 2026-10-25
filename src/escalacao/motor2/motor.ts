@@ -53,7 +53,7 @@ function diaDe(seed: number, c: CartaCampo, lado: Lado = 0): number {
 /** 🌞 em quantos jogadores o dia é o do TIME (0 = cada um no seu, 1 = o time inteiro no mesmo dia) */
 const DIA_DO_TIME = 0.6
 /** 😵 quanto o time abalado perde por gol de diferença além do 1º (até ABALO_MAX) */
-const ABALO = 0.1, ABALO_MAX = 0.25
+const ABALO = 0.15, ABALO_MAX = 0.35
 /** 🔥 a FORMA do dia (−1 = o pior dia da faixa · +1 = o ápice): além do nível, ela pesa no quanto ele RENDE em campo — jogador
  *  num dia ruim erra mais, no ápice acerta mais. Vale pros 22, dos dois lados (Diego 21/10). */
 function formaDe(c: CartaCampo, dia: number): number {
@@ -134,7 +134,7 @@ const DUELO_GK = 35
  *  pesa mais). Antes lendas × fracos tinham 56% de posse e o placar não passava de 4×0 */
 /** 🦵 botes por segundo do marcador colado (× a diferença desarme − condução ÷ BOTE_DIF) */
 const BOTE = 5.5, BOTE_DIF = 40
-const ERRO_PASSE = 0.004, DOMINIO = 120
+const ERRO_PASSE = 0.0052, DOMINIO = 105
 /** 🧤 a chance-base de o goleiro pegar o chute que vai no gol (antes do alcance, da força e da distância) */
 /** 🧑‍⚖️ ÁRBITRO (Diego 21/10, "juiz quase não trabalha"): chance de falta no bote · na chegada atrasada na bola · na dividida
  *  pelo alto · e de amarelo numa falta comum (carrinho, por trás, reincidência e último homem somam por cima) */
@@ -297,6 +297,21 @@ export class Motor2 {
       y = p.lado === 0 ? Math.max(y, L / 2 + 1.2) : Math.min(y, L / 2 - 1.2)
       if (p.lado !== pa.lado) { const dy = y - L / 2, dx = x - 34; if (len(dx, dy) < 10.5) y = L / 2 + (p.lado === 0 ? 10.5 : -10.5) }
       return { x, y, v }
+    }
+    // 🤾 LATERAL (25/10, Diego: "laterais"): os dois mais perto do cobrador vêm OFERECER — um pela linha, à frente; outro por dentro,
+    // curto. É assim que a cobrança sai rápida e limpa (antes todo mundo ficava na posição e o lateral era "chutado" pra qualquer um)
+    if (pa.tipo === 'lateral' && p.lado === pa.lado && p.grupo !== 'GOL') {
+      const atk = pa.lado === 0 ? -1 : 1, dentro = pa.x < 34 ? 1 : -1
+      const perto = this.atl.filter(a => a.lado === pa.lado && a !== pa.cobrador && a.grupo !== 'GOL').sort((a, b) => dist(a, pa) - dist(b, pa))
+      const i = perto.indexOf(p)
+      if (i === 0) return { x: clamp(pa.x + dentro * 3.5, 2, W - 2), y: clamp(pa.y + atk * 9, 2, L - 2), v: 6 }
+      if (i === 1) return { x: clamp(pa.x + dentro * 9, 2, W - 2), y: clamp(pa.y - atk * 2, 2, L - 2), v: 6 }
+    }
+    // 🧤 TIRO DE META CURTO: com goleiro que sai jogando, os dois zagueiros abrem nas pontas da área pra receber
+    if (pa.tipo === 'tiro_de_meta' && p.lado === pa.lado && p.grupo === 'DEF' && (pa.cobrador.estilo === 'goleiro_linha' || pa.cobrador.at.saida > 55)) {
+      const zags = this.atl.filter(a => a.lado === pa.lado && a.grupo === 'DEF').sort((a, b) => a.bx - b.bx)
+      const i = zags.indexOf(p)
+      if (i === 0 || i === zags.length - 1) return { x: i === 0 ? 34 - 17 : 34 + 17, y: yDe(pa.lado, 9), v: 6 }
     }
     if (pa.tipo === 'escanteio' || (pa.tipo === 'falta' && frente(pa.lado, pa.y) < 32)) {
       // 🏁 BOLA PARADA ENSAIADA (Diego 20/10): a rotina do time manda onde os 5 sobem — 1º PAU (bloco no poste perto do
@@ -542,8 +557,13 @@ export class Motor2 {
     const ux = (alvo.x - this.bola.x) / d, uy = (alvo.y - this.bola.y) / d
     const b = this.bola
     b.dono = null; b.ultimo = p; this.donoDesde = null
+    const arremesso = this.parada?.tipo === 'lateral'
     if (this.parada) this.parada = null
-    if (a.aereo) {
+    if (arremesso) {
+      // 🤾 o lateral é com a MÃO: a bola sai de cima da cabeça (~2 m), em arco curto, e chega no peito/pé do companheiro
+      const T = clamp(d / 11, 0.55, 1.6), h0 = 2.0, hFim = 0.6
+      b.h = h0; b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim - h0 + 0.5 * G * T * T) / T
+    } else if (a.aereo) {
       const T = a.tipo === 'cruzamento' ? clamp(d / 21, 0.75, 1.5) : clamp(d / 18, 0.8, 2.2) // (bola longa vai em parábola e cai ~18 m/s: dá pra dominar)
       const hFim = a.tipo === 'cruzamento' ? 1.9 : 0.3
       b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim + 0.5 * G * T * T) / T; b.h = 0.05

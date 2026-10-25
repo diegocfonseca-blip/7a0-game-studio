@@ -115,6 +115,15 @@ export function planeja(m: Motor2) {
           m.corrida.set(p, { ate: m.t + 2.6, alvo }); p.papel = 'infiltra'
         }
       }
+      // 🎯 ATAQUE À ÁREA NO CRUZAMENTO (25/10, Diego: "os cruzamentos"): bola na ponta, no último terço → os atacantes e o meia que
+      // chega atacam os espaços da área: 1º PAU, 2º PAU e a MARCA DO PÊNALTI (pro corte/rebote) — igual ao escanteio ensaiado,
+      // mas com a bola rolando. Sem isso o cruzamento caía em quem estivesse parado
+      if ((d.x < 20 || d.x > W - 20) && frente(l, d.y) < 34) {
+        const sx = d.x < 34 ? -1 : 1, lin = linhaAtaque(l), fyA = l === 0 ? 1 : -1
+        const PONTOS: [number, number][] = [[34 + sx * 3, 6], [34 - sx * 4, 7.5], [34, 11.5]]
+        const vao = campo.filter(p => (p.grupo === 'ATA' || (p.grupo === 'MEI' && p.dep > 0.6)) && p.papel !== 'opcao').sort((a, b) => frente(l, a.y) - frente(l, b.y)).slice(0, 3)
+        vao.forEach((p, i) => { const [x, y] = PONTOS[i]; m.corrida.set(p, { ate: m.t + 0.6, alvo: { x, y: lin + fyA * y } }); p.papel = 'infiltra' })
+      }
       // ↗️ lateral que apoia passa por fora quando a bola está do lado dele
       for (const p of campo) {
         if (p.grupo !== 'LAT' || p.papel !== 'forma' || p.tend.apoia < 0.35) continue
