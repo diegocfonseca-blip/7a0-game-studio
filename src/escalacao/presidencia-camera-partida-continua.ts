@@ -35,6 +35,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    const edge=fit&&!fit.tactical?MathUtils.smoothstep(Math.max(Math.abs(before.x),Math.abs(before.y)),.45,.9):0
    // A fast pass near the edge gets a quicker pan, rather than leaving the
    // screen while a fixed-duration cinematic easing catches up behind it.
+   // 🥅 'Atrás do gol' trocou de lado (a bola cruzou o meio): CORTE seco, como na TV — nada de a câmera voar 140 m por cima do campo
+   if(fit?.preset==='goal'&&Math.abs(camera.position.x)>30&&Math.sign(position.x)!==Math.sign(camera.position.x)){camera.position.copy(position);controls.target.copy(target)}
    const amount=1-Math.exp(-dt/MathUtils.lerp(.24,.1,edge));camera.position.lerp(position,amount);controls.target.lerp(target,amount)
    const nextFov=MathUtils.lerp(camera.fov,fov,1-Math.exp(-dt/.22))
    if(Math.abs(nextFov-camera.fov)>1e-7){camera.fov=nextFov;camera.updateProjectionMatrix()}

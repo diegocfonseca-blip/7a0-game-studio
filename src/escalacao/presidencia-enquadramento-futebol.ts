@@ -52,10 +52,9 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
   ...near.flatMap(p=>[new Vector3(p.mx,0,p.mz),new Vector3(p.mx,1.78,p.mz)]),
   ...[-halfWidth,halfWidth].flatMap(x=>[-halfDepth,halfDepth].map(z=>new Vector3(target.x+x,0,target.z+z))),
  ]
- // The goal rig is anchored beyond the +X goal line, even when play is in
- // the opposite half. It pans from that end without changing ends or becoming
- // a high chase camera suspended above the pitch.
- const goalAnchor=mode==='goal'?new Vector3(72,24,0):undefined
+ // 🥅 (25/10, filmado: com a bola no gol de −X a câmera 'Atrás do gol' ficava a 120 m, atrás do OUTRO gol, e o lance virava formiga)
+ // a câmera fica atrás do gol da metade onde a bola está — troca de lado quando a bola cruza o meio, como um corte de TV
+ const goalAnchor=mode==='goal'?new Vector3(ball.x>=0?72:-72,24,0):undefined
  const direction=goalAnchor?goalAnchor.clone().sub(target).normalize():new Vector3(0,settings.elevation,settings.depth).normalize()
  const right=new Vector3(direction.z,0,-direction.x).normalize(),up=new Vector3().crossVectors(direction,right)
  const tanV=Math.tan(MathUtils.degToRad(fov)/2),tanH=tanV*Math.max(.1,camera.aspect)

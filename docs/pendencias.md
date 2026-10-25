@@ -86,6 +86,16 @@
   (deixava o goleiro de pé no meio do mergulho); e buscar a chave do jogador com `seek(1)` recriava a partida e o goleiro aparecia
   "frio". Agora a foto é `audit:false` e a chave vem de um mapa nome→chave feito uma vez. Meia hora de "mergulho que não aparece" era a bancada.
   Câmeras novas na bancada: `front` (de frente pro focado), `goalreal` (a câmera 'Atrás do gol' do JOGO), `referee-front`.
+- FEITO (13ª leva): 🏃 CORRIDA na bola parada — escanteio, falta e pênalti: o cobrador espera 2,2 m atrás da bola (no escanteio, 2,2 m
+  pra dentro do campo pela lateral: atrás da linha de fundo ele ficava "atrás do gol" e a decisão não via o cruzamento — 38% dos
+  escanteios saíam em passinho) e vem bater chegando; a corrida começa 0,6 s antes de a cobrança poder sair, então o tempo parado não
+  mudou (`correndo` na `Parada`). O contador de "reinício sem a distância" conta UMA vez na cobrança (contava a cada passo da corrida:
+  10 → 152). `GK_BASE` 0,25 → 0,23 pra segurar o placar (1,62 gol · 0×0 15%). 💫 toque de condução curto por 0,5 s depois do drible.
+  🥅 CÂMERA 'ATRÁS DO GOL' estava presa atrás do gol de +X — com a bola no outro gol virava formiga a 120 m. Agora fica atrás do gol
+  da metade onde a bola está e CORTA seco quando a bola cruza o meio (nada de voar por cima do campo); teste de presets atualizado.
+  Bancada: `cap2.mjs` aceita `away:Nome`/`home:Nome` (o fixture fc tem dois Roberto Carlos — a câmera seguia o errado).
+  📏 Medido: diferença de ±0,07 gol entre duas versões em 300 jogos é RUÍDO (erro padrão ≈ 0,075) — só mexer no goleiro quando o
+  `npm run motor2` reprova, não a cada décimo.
 - PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).

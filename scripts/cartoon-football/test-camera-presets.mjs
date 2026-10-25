@@ -17,7 +17,7 @@ for(const aspect of aspects)for(const mode of modes)for(const [x,z]of [[0,0],[-5
  assertVisible(camera,ball,`${mode}/${aspect}/${x}/${z}/${y}`);
  for(const subject of subjects)for(const height of [0,1.78])assertVisible(camera,{x:subject.mx,y:height,z:subject.mz},`${mode} relevant athlete`);
  assert.ok(fit.distance>0&&fit.distance<900);assert.equal(fit.preset,mode);
- if(mode==='goal'){assert.ok(camera.position.x>=61,'goal camera remains beyond the fixed goal line');assert.ok(camera.position.y<55,'far-half action does not lift the goal rig into a drone view')}
+ if(mode==='goal'){assert.ok(Math.abs(camera.position.x)>=61&&Math.sign(camera.position.x)===(x>=0?1:-1),'goal camera stays beyond the goal line of the half where the ball is');assert.ok(camera.position.y<55,'far-half action does not lift the goal rig into a drone view')}
  if(mode==='tactical')for(const gx of [-52.5,52.5])for(const gz of [-34,34])assertVisible(camera,{x:gx,y:0,z:gz},'tactical whole pitch');
  fitCases++;
 }
@@ -52,7 +52,7 @@ for(const aspect of [390/844,16/9])for(const mode of ['broadcast','tele','wide',
  for(let i=0;i<=fps*8;i++){
   const t=i/fps,ball=ballAt(t),subjects=[{mx:ball.x-1,mz:ball.z-1},{mx:ball.x+1,mz:ball.z+1}];
   ctl.update(ball,now+=1000/fps,subjects);const p=assertVisible(camera,ball,`moving ${mode}/${aspect}/${fps}/${t}`);maxTrackingX=Math.max(maxTrackingX,Math.abs(p.x));maxTrackingY=Math.max(maxTrackingY,Math.abs(p.y));trackingFrames++;
-  if(mode==='goal'){assert.ok(camera.position.x>=61,'moving goal camera stays behind the goal');assert.ok(camera.position.y<55,'moving goal camera stays at spectator height')}
+  if(mode==='goal'){assert.ok(Math.abs(camera.position.x)>=61,'moving goal camera stays behind a goal (it cuts to the other end when the ball crosses halfway)');assert.ok(camera.position.y<55,'moving goal camera stays at spectator height')}
  }
 }
 
