@@ -100,7 +100,10 @@
   Bancada: `cap2.mjs` aceita `away:Nome`/`home:Nome` (o fixture fc tem dois Roberto Carlos — a câmera seguia o errado).
   📏 Medido: diferença de ±0,07 gol entre duas versões em 300 jogos é RUÍDO (erro padrão ≈ 0,075) — só mexer no goleiro quando o
   `npm run motor2` reprova, não a cada décimo.
-- PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
+- FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
+  chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
+  Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- PRÓXIMO: o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
