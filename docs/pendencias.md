@@ -7,7 +7,10 @@
   colada no campo (sobe pra principal quando o lance não cabe). Foto: `scripts/mockups/mapa-camera-tv.png`. Testes de câmera do Codex verdes.
   🎉 COMEMORAÇÃO do gol (`players.mjs`, `levantaBracos`): quem fez e os companheiros perto levantam os braços e dão pulinhos na festa.
   🏁 escanteio/falta ensaiada esperam 4+ na área (teto +4,5 s) — antes saía com 3 e os zagueiros subindo.
-- PRÓXIMO: goleiro pular no gol sofrido/defesa, cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
+- FEITO: 🧤 o GOLEIRO PULA no 3D (`presidencia-futebol-oficial.ts` prevê onde o chute cruza a linha dele; `players.mjs` tomba o corpo
+  pro lado, desliza, sobe se a bola vem alta, braços esticados). Só desenho — defesa/gol continua decidido pelo motor. Bola no meio e baixa =
+  sem pulo. Foto: `scripts/mockups/mapa-goleiro-pulo.png`.
+- PRÓXIMO: cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
   torcida reagindo, juiz.
 
 ## 📺 Placar e controle DENTRO do mapa 3D (25/10) — FEITO no branch (só a conta de prévia; esperando "publica")
