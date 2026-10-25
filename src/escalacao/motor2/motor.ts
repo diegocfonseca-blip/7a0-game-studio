@@ -149,7 +149,7 @@ const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
 const TOQUE_V = 3.2, ESCAPOU = 3.0
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
-export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number }
+export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number; /** 🤾 lateral: o cobrador já pegou a bola na mão */ naMao?: boolean }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
 const ESPERA: Record<TipoParada, number> = { saida: 0.9, lateral: 0.6, escanteio: 1.5, tiro_de_meta: 1.0, falta: 1.3, penalti: 1.8 }
 
@@ -289,7 +289,9 @@ export class Motor2 {
   }
   private lugarNaCobranca0(p: Atleta): { x: number; y: number; v: number } {
     const pa = this.parada!, v = 6
-    if (p === pa.cobrador) return { x: pa.x, y: pa.y, v: pa.tipo === 'escanteio' || pa.tipo === 'lateral' ? 9 : 7 } // (escanteio e lateral: vai correndo buscar a bola)
+    // (escanteio e lateral: vai correndo buscar a bola — e FREIA chegando: a 9 m/s cravado ele passava da bola, voltava e a cobrança
+    // atrasava ~1 s, com a bola "pulando" da mão pro chão no 3D; filmado 25/10)
+    if (p === pa.cobrador) return { x: pa.x, y: pa.y, v: Math.min(pa.tipo === 'escanteio' || pa.tipo === 'lateral' ? 9 : 7, 2.5 + dist(p, pa) * 2.2) }
     if (p.grupo === 'GOL' && p.lado !== pa.lado && pa.tipo !== 'saida') { const g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) + (p.lado === 0 ? -0.6 : 0.6) }; return { ...g, v } }
     // 🧤 (25/10, filmado: o goleiro aparecia no meio-campo na saída de bola) o goleiro NUNCA vai pro lugar da formação — em toda bola
     // parada que não é dele, fica no gol dele, adiantado conforme a bola está longe
@@ -1156,7 +1158,12 @@ export class Motor2 {
   }
   private grudaBolaParada() {
     const pa = this.parada
-    if (pa) { this.bola.x = pa.x; this.bola.y = pa.y; this.bola.h = 0 }
+    // 🤾 no LATERAL, assim que o cobrador chega, a bola já está nas MÃOS dele, em cima da cabeça (~2 m) — antes ficava no chão até o
+    // arremesso e no 3D "pulava" do pé pra cabeça na hora de sair (filmado 25/10)
+    if (pa) {
+      if (pa.tipo === 'lateral' && !pa.naMao && dist(pa.cobrador, pa) < 0.8) pa.naMao = true // (pegou: fica na mão até o arremesso, mesmo se ele ajeitar o pé)
+      this.bola.x = pa.x; this.bola.y = pa.y; this.bola.h = pa.naMao ? 2.0 : 0
+    }
     else if (this.festa) { const b = this.bola; b.vx *= 0.9; b.vy *= 0.9; b.x += b.vx * DT; b.y += b.vy * DT }
   }
 

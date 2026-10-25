@@ -197,6 +197,8 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
     const fase=frame.time-acao.startedAt
     if(fase>-.35&&fase<.4){const u=(fase+.35)/.75,salto=Math.sin(Math.PI*u)*.38;a.holder.position.y+=salto;const hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd)),lateral=new T.Vector3(fw.z,0,-fw.x),cab=fase<0?-.25*(1+fase/.35):.45*Math.max(0,1-fase/.4);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,cab));levantaBracos(a,new T.Vector3(0,.3,0).addScaledVector(fw,-.5).normalize());a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    }
+   // 🤾 LATERAL: o cobrador segura a bola com as duas mãos em cima da cabeça enquanto espera (a bola já vem a ~2 m do motor)
+   if(cartoon&&a.holder.visible&&frame.phase==='lateral'&&frame.ball.y>1.5&&Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z)<.9){const hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd));levantaBracos(a,new T.Vector3(0,1,0).addScaledVector(fw,-.25).normalize());a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // 🎭 cai / bote / ginga
    const te=cartoon&&a.holder.visible?teatro.get(p.name):null
    if(te){const hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd)),lateral=new T.Vector3(fw.z,0,-fw.x)
