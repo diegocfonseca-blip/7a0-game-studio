@@ -186,6 +186,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     // site inteiro ("drawImage… canvas com largura 0" na capa da noite). E NÃO pode parar: é este laço que anda o relógio do
     // jogo (parar aqui congelava a partida na aba Clube). Escondido, desenha num tamanho de reserva; ao aparecer, volta ao real.
     const largEf = larg >= 20 ? larg : 320
+    const escondido = larg < 20
     // 📐 a GEOMETRIA: o motor pensa em pé (x 0–68 de largura, y 0–105 de comprimento, mandante ataca y→0). Em pé, a tela é o
     // motor; deitado, troca os eixos (o mandante ataca pra ESQUERDA). Todo desenho passa por `tr`/`rect`, nunca por conta solta.
     const S = deitado ? largEf / (L + PADL * 2) : largEf / (W + PADX * 2)
@@ -442,6 +443,10 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         ult.festa = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null)
         if (replay && jogo.festa && !vendo.current && fi.atual.length > 5) { fi.gols.push({ autor: jogo.festa.autor, min: jogo.festa.min, quadros: fi.atual.slice() }); setTemReplay(true) }
       }
+      // 🙈 25/10 (Diego: *"gostei da ideia, 2D escondido tá errado"*): campinho ESCONDIDO (aba Clube/Central com o jogo por trás)
+      // continua andando o relógio e o motor (acima) — mas não DESENHA nada: ninguém está vendo, e o desenho disputava o celular
+      // com o mapa 3D. Ao aparecer, o próximo quadro já desenha no tamanho real (o efeito reinicia quando a largura muda).
+      if (escondido) { raf = requestAnimationFrame(quadro); return }
       const e = jogo.entre, mis = (a: number | undefined, b: number) => a == null ? b : a + (b - a) * e
       // 🟩 o fundo parado vem pronto do cache; por cima, só o que mexe
       cx.drawImage(fundo, 0, 0, CW, CH)

@@ -1,3 +1,4 @@
+import { acelerarRaios } from './presidencia-raio-rapido'
 import * as THREE from 'three'
 import { criarRelogioJornadaComplexo, type JornadaMovimentoComplexo } from './presidencia-complexo-jornada-relogio'
 import { criarAtoresBairro } from './presidencia-bairro-atores-3d'
@@ -49,6 +50,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   const structure = scene.getObjectByName('estadio-arquitetura-volumetrica')
   structure?.updateMatrixWorld(true)
   structure?.traverse(object => { if (object instanceof THREE.Mesh) surfaces.push(object) })
+  acelerarRaios(surfaces) // ⚡ 25/10: mesmos raios, mesmo resultado — só mais rápido (índice espacial)
   const ray = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0)
   const problems: { id: string; reason: string; point?: PontoComplexo; height?: number }[] = []
   const activeRegistered = Object.entries(PLANTA_COMPLEXO.footprints).filter(([id]) => {

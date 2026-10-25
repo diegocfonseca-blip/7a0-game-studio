@@ -150,7 +150,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const residents=createResidents(scene,surround.root,surround.solids)
   setHasSeatView(architecture.seats.length>0)
   const furniture=criarMobiliaComplexo(scene,state,walletRef.current,{interior:isOffice})
-  let render=()=>{},disposed=false
+  let render=()=>{},disposed=false,compilando=false
   let avatarFrame:number|undefined
   const roomLights:THREE.SpotLight[]=[]
   const presidentBody=criarPresidenteComplexo(scene,state,{interior:isOffice,onChange:status=>{
@@ -511,7 +511,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;return}if(walking()&&last)seconds+=(now-last)/1000;last=now;render();if(running())raf=requestAnimationFrame(tick)}
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.
-  const resume=()=>{if(disposed)return;if(!visible||document.hidden){cancelAnimationFrame(raf);raf=0;last=0;return}if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
+  const resume=()=>{if(disposed||compilando)return;if(!visible||document.hidden){cancelAnimationFrame(raf);raf=0;last=0;return}if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
   function setFootballCamera(value:CameraPartidaContinua){
    if(isOffice||isWindow||!matchRef.current)return
    fieldWatchPending=false
@@ -553,7 +553,13 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   document.addEventListener('visibilitychange',resume)
   reduced.addEventListener('change',resume)
   const lost=(event:Event)=>{event.preventDefault();cancelAnimationFrame(raf);setError('A vista 3D foi interrompida. Reabra para tentar novamente.');unavailable.current?.()};renderer.domElement.addEventListener('webglcontextlost',lost)
-  resize();setLoaded(true);ready.current?.(api.current);resume()
+  // ⚡ 25/10 (Diego: *"senti que tá travando"*): o 1º desenho compilava ~30–40 programas da placa de vídeo de uma vez, travando a
+  // tela uns segundos (medido: 2,5 s no PC, 4× isso no celular). Agora a compilação corre em paralelo na placa (`compileAsync`,
+  // quando o aparelho suporta) e o mapa aparece quando ela termina — mesmos materiais, mesma qualidade, só sem congelar a página.
+  // Até lá, o laço não desenha (o "carregando seu estádio…" continua na tela).
+  const primeiroDesenho=()=>{if(disposed)return;compilando=false;resize();setLoaded(true);ready.current?.(api.current);resume()}
+  if(gl.getExtension('KHR_parallel_shader_compile')){compilando=true;renderer.compileAsync(scene,camera).then(primeiroDesenho,primeiroDesenho)}
+  else primeiroDesenho()
   // Start artwork downloads after the synchronous world/probe construction.
   // Otherwise its loading timeout can expire while the initial 3D render is
   // still blocking the main thread on a slow device.

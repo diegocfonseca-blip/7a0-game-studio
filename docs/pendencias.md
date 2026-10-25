@@ -1,3 +1,20 @@
+## ⚡ Mapa 3D travando na aba Clube (25/10) — análise + 1ª leva de conserto NO BRANCH (esperando "publica")
+- Medição (celular simulado 4× mais lento, scripts no scratchpad da sessão): ~167 s de trava somada num ciclo abrir+jogo → ~92 s.
+  Montagem do bairro 3,3–5,4 s → 1,3–2,8 s (PC) com cidade IDÊNTICA (comparada objeto a objeto, matrizes e malhas). Trava do apito
+  (torcida mudando) ~10 s → ~0,4 s (PC).
+- O que entrou (nada perde qualidade, nada fica pré-gravado — regra do Diego: *"não quero que perca qualidade… nada preso, o boneco
+  não pode ir sempre no mesmo local… no futuro treinadores vão se encontrar em tempo real"*):
+  · `presidencia-raio-rapido.ts` (three-mesh-bvh): os raios que conferem por onde as pessoas andam testam só os triângulos perto —
+    mesmo resultado, rotas continuam calculadas ao vivo.
+  · `indiceTrechos` no entorno: "perto de rua/rota/obra?" olha só a vizinhança (resposta idêntica).
+  · pixels das texturas de chão calculados 1x por página (`RUIDO_PRONTO`).
+  · 1º desenho com `compileAsync` (placa compila em paralelo quando o aparelho suporta).
+  · campinho 2D ESCONDIDO não desenha (o relógio segue) — Diego: *"2D escondido tá errado"*.
+- Ainda pesa: abrir o Clube de novo e ABRIR/FECHAR TETO remontam a cidade inteira (o teto muda a malha da arquitetura); guardar o
+  mundo entre aberturas é a próxima leva. Laço de desenho 60 fps sempre (Diego não quer perder qualidade — não baixar).
+- Aprovado pelo Diego, falta fazer (MOCKUP antes): 📺 ASSISTIR em janela por cima (placar + controle de sempre + 2D + 3D), mapa
+  primeiro na aba e ritmo (0,25×…) dentro dele só com jogo, "Créditos dos modelos" sai de cima, "carregando seu estádio…" com barra.
+
 ## 🗺️ Clube da conta do Diego piscando MAQUETE ↔ MAPA 3D no meio do jogo (24/10, 20:20) — consertado no branch, esperando "publica"
 - Causa: `presidente-acesso.ts` derrubava a prévia pra `false` em TODO aviso do login (a renovação do acesso, de hora em hora e
   quando o celular volta pro navegador) e em toda falha de rede da conferência — a aba Clube trocava pra maquete até o servidor
