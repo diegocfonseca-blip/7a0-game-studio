@@ -36,8 +36,16 @@
   📏 Limite que vale saber: o jogo tem 90 s e cada passe custa ~2 s (segurar + voo), então são ~43 passes por jogo — circular mais na
   defesa tira ataques; 7% de toques do zagueiro é o compromisso entre "a zaga joga" e "tem gol". Bancadas novas: `opsagg.mts`/`opsdec.mts`
   (utilidade de cada opção de passe por grupo do alvo), `passout.mts` (resultado do passe por zona e alvo), `jeitos.mts` (jeitos do drible).
-- PRÓXIMO: pose do goleiro no pulo lateral parece agachado de frente; cobrador de lateral parado 1 s no 3D (apresentação do Codex, não o
-  motor); replay do gol; juiz; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga").
+- FEITO (6ª leva, 25/10): 🤾 LATERAL de verdade — o cobrador FREIA chegando na bola (a 9 m/s cravado passava dela, voltava e a cobrança
+  atrasava ~1 s), pega a bola na MÃO e segura em cima da cabeça até o arremesso (`naMao` na `Parada`; braços pra cima em `players.mjs`);
+  🧤 GOLEIRO: o tipo do pulo (pra cima × de lado) se decide UMA vez por chute (`vertical` no `dive` do adaptador — antes começava curvado
+  e terminava reto) e a postura de prontidão deixa de ser reverência (`KeeperReady_Loop` misturada ×0,55 com o parado); 🤝 APITO FINAL
+  no mapa: o relógio para em 93' mas cada quadro desenhado leva o motor 1/60 s adiante por até 45 s (`fimQuadros`), então os 22 andam
+  mesmo até o meio-campo (medido: 21,6 m → 3,1 m do centro em 30 s). Bancada: `rev/cap2.mjs` foca QUALQUER jogador pelo nome (o
+  `cap.mjs` só achava quem tinha plano de chute — por isso o goleiro nunca aparecia); `rev/evs.mts` regrava os eventos da fixture com o
+  motor ATUAL (os eventos gravados no `mkfix` envelhecem a cada mudança do motor — o 3D replica o código de agora).
+- PRÓXIMO: replay do gol; juiz; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga");
+  a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.
 
