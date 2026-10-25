@@ -20,7 +20,7 @@ const MANTER = 0.03
 /** 🎯 o gosto pelo chute de fora da área (> 23 m): menor = o time trabalha mais a bola até a área */
 const CHUTE_LONGE = 0.75
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
-const CHUTE_PERTO = 2.3
+const CHUTE_PERTO = 2.7
 /** 🎯 quanto vale a chance de gol de um chute frente ao `valor` de ter a bola (1 = a mesma moeda) */
 const ESCALA_CHUTE = 1.2
 /** ↩️ o gosto pelo corte pra trás da linha de fundo (rasteiro, pra quem chega na marca do pênalti) */

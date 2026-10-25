@@ -34,7 +34,7 @@ export function andaBloco(m: Motor2, dt: number) {
     if (!b) { m.bloco[l] = d; continue }
     const anda = (de: number, para: number, v: number) => de + clamp(para - de, -v * dt, v * dt)
     // (quem perdeu a bola demora pra se recompor: a linha volta a ~5 m/s — é na transição que nasce o ataque)
-    const v = m.posseLado === l ? 7.5 : 5
+    const v = m.posseLado === l ? 7.5 : 6.5
     b.tras = anda(b.tras, d.tras, v); b.frente = anda(b.frente, d.frente, v); b.largura = anda(b.largura, d.largura, 0.6); b.desliza = anda(b.desliza, d.desliza, 9)
   }
 }
@@ -47,9 +47,13 @@ export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
   let prof = b.tras + (b.frente - b.tras) * dep
   // (sem a bola, o ataque NÃO desce pro bloco: fica uns 12 m à frente dele esperando o contra-ataque — o bloco é de 7 + goleiro.
   // Dez atrás da linha da bola num jogo de 1:30 não deixava ninguém chegar na área)
-  if (!ataca && p.grupo === 'ATA') prof = Math.min(b.frente + 12, 68)
-  // (atacando, o atacante fica no OMBRO do último zagueiro — nunca atrás dele, que é impedimento e bola perdida)
-  if (ataca && (p.grupo === 'ATA' || (p.grupo === 'MEI' && dep > 0.6))) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 1)
+  // (25/10, medido: na transição o bloco ainda está alto e o ponta e o meia aberto caíam no MESMO ponto — o teto do atacante era 68 m e o
+  // meia a 0,75 de um bloco de 43 m também dava 68. Agora o atacante fica sempre 8 m à frente da linha dos meias, com teto a 76)
+  if (!ataca && p.grupo === 'ATA') prof = Math.min(Math.max(b.frente + 12, b.tras + (b.frente - b.tras) * 0.75 + 8), 76)
+  // (atacando, o atacante fica no OMBRO do último zagueiro — nunca atrás dele, que é impedimento e bola perdida; o meia que chega fica
+  // 6 m atrás dele, nunca na mesma linha: um é a profundidade, o outro é a segunda onda)
+  if (ataca && p.grupo === 'ATA') prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 1)
+  if (ataca && p.grupo === 'MEI' && dep > 0.6) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 7)
   let x = 34 + (p.bx - 34) * b.largura + b.desliza
   // ponta abre o campo quando o time ataca…
   if (ataca && p.grupo === 'ATA' && (p.bx < 22 || p.bx > 46)) {
