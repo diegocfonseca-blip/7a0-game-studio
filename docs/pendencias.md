@@ -10695,3 +10695,6 @@ avisos (criar conta/salvar) só na Central.
   `scripts/mockups/carreira-jogo-e-tabela.png`: 🅰️ JUNTO (placar grande em cima, tabela à vista logo abaixo) × 🅱️ TABELA PRIMEIRO
   (jogo vira faixa preta que abre, tabela ocupa a tela e mexe ao vivo com ▲▼ e o placar de cada time do lado do nome — sempre no
   ritmo do relógio da tela, nunca antes: anti-spoiler). Barra de baixo com 4 abas. ⏳ Espera ele escolher.
+- 25/10 (3ª parte) — ele corrigiu: *"o placar ou campo 2D não pode ser faixinha… eu tava falando dos jogos restantes"*. Ou seja:
+  o SEU jogo continua GRANDE (placar ou Campo 2D); quem vira tabela é a lista de OUTROS JOGOS da rodada → tabela ao vivo com o placar
+  de cada time do lado do nome e ▲▼. Mockup `scripts/mockups/carreira-jogo-tabela-ao-vivo.png` (placar × 2D). ⏳ Espera OK.
