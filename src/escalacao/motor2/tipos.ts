@@ -37,6 +37,8 @@ export interface Atleta {
 
 export interface Bola {
   x: number; y: number; h: number; vx: number; vy: number; vh: number
+  /** 🌀 efeito (curva): quanto a direção da bola gira por segundo (rad/s; + = horário visto de cima). Some no quique. */
+  giro?: number
   dono: Atleta | null
   /** quem tocou por último (lateral/escanteio/tiro de meta) */
   ultimo: Atleta | null
@@ -59,4 +61,6 @@ export interface Estatistica {
   gols: [number, number]; xg: [number, number]; faltas: [number, number]; amarelos: [number, number]; vermelhos: [number, number]
   escanteios: [number, number]; impedimentos: [number, number]; laterais: [number, number]; desarmes: [number, number]; vantagens: [number, number]
   dribles: [number, number]; interceptacoes: [number, number]; defesas: [number, number]; penaltis: [number, number]
+  /** 🤝 quantas vezes alguém tocou e saiu pra tabela (os dois times) */
+  tabelas?: number
 }

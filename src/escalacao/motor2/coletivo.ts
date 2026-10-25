@@ -18,11 +18,14 @@ export function blocoDesejado(m: Motor2, lado: Lado): Bloco {
   // (jogo corrido em 1:30: o time que ataca sobe mais e mais aberto; o que defende fica mais fundo e mais estreito — tem espaço entre as linhas)
   // (a linha da frente vai mais fundo quando a bola chega no último terço: o centroavante espera na área, não na entrada dela)
   // (no último terço o time inteiro sobe: a zaga fica a ~16 m da bola, no meio-campo — assim 5 ou 6 chegam perto da área, não 2)
-  if (ataca) { tras = clamp(bProf - (bProf > 60 ? 16 : 26) + 4 * tac, 16, 62); fr = clamp(bProf + (bProf > 60 ? 27 : 20) + 3 * tac, tras + 30, 99) }
+  // 📐 25/10 (filmado no 2D: 20 jogadores num quadrado de 40×30 m em volta da bola, o resto do campo vazio): o bloco tem o
+  // TAMANHO de um time de verdade. Quem ataca: a zaga fica perto do meio-campo (não dentro do bloco rival), a frente na área.
+  if (ataca) { tras = clamp(bProf - (bProf > 60 ? 28 : 26) + 4 * tac, 16, 56); fr = clamp(bProf + (bProf > 60 ? 27 : 20) + 3 * tac, tras + 30, 99) }
   // (defendendo, a linha de trás NÃO entra na pequena área: com a bola a 30 m ela fica na entrada da grande área (~16 m), como
-  // uma defesa de verdade — antes ia pra 6 m do gol e os atacantes ficavam encostados no goleiro)
-  else { tras = clamp(bProf * 0.55 + 4 * tac, 10, 40); fr = clamp(tras + 20, 26, 64) } // (25/10: bloco mais curto — sem o buraco de 17 m entre zaga e meio)
-  return { tras, frente: fr, largura: ataca ? 0.95 : 0.68, desliza: (b.x - 34) * (ataca ? 0.22 : 0.42) }
+  // uma defesa de verdade — antes ia pra 6 m do gol e os atacantes ficavam encostados no goleiro. Comprimento ~26 m: meio e zaga
+  // em duas linhas de verdade, com o espaço "entre linhas" que o meia de verdade procura)
+  else { tras = clamp(bProf * 0.5 + 4 * tac, 8, 40); fr = clamp(tras + 26, 30, 66) }
+  return { tras, frente: fr, largura: ataca ? 1.0 : 0.82, desliza: (b.x - 34) * (ataca ? 0.18 : 0.36) }
 }
 /** o bloco anda liso (no máx. ~7 m/s): troca de posse vira transição, não pulo */
 export function andaBloco(m: Motor2, dt: number) {
@@ -31,7 +34,7 @@ export function andaBloco(m: Motor2, dt: number) {
     if (!b) { m.bloco[l] = d; continue }
     const anda = (de: number, para: number, v: number) => de + clamp(para - de, -v * dt, v * dt)
     // (quem perdeu a bola demora pra se recompor: a linha volta a ~5 m/s — é na transição que nasce o ataque)
-    const v = m.posseLado === l ? 7.5 : 4
+    const v = m.posseLado === l ? 7.5 : 5
     b.tras = anda(b.tras, d.tras, v); b.frente = anda(b.frente, d.frente, v); b.largura = anda(b.largura, d.largura, 0.6); b.desliza = anda(b.desliza, d.desliza, 9)
   }
 }
@@ -47,8 +50,21 @@ export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
   // (atacando, o atacante fica no OMBRO do último zagueiro — nunca atrás dele, que é impedimento e bola perdida)
   if (ataca && (p.grupo === 'ATA' || (p.grupo === 'MEI' && dep > 0.6))) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 1)
   let x = 34 + (p.bx - 34) * b.largura + b.desliza
-  // ponta abre o campo quando o time ataca
-  if (ataca && p.grupo === 'ATA' && (p.bx < 22 || p.bx > 46)) x = p.bx < 34 ? 7 : W - 7
+  // ponta abre o campo quando o time ataca…
+  if (ataca && p.grupo === 'ATA' && (p.bx < 22 || p.bx > 46)) {
+    x = p.bx < 34 ? 7 : W - 7
+    // …e no último terço o ponta do lado OPOSTO ao da bola fecha pro segundo pau (é ele que aparece na área pra concluir o
+    // cruzamento); o do lado da bola segura a largura. Antes os dois pontas ficavam colados na linha e a área ficava vazia
+    const bProf = frente(p.lado, m.bola.y)
+    if (bProf < 36 && (m.bola.x - 34) * (p.bx - 34) < 0) x = p.bx < 34 ? 26 : W - 26
+  }
+  // 🎯 25/10 (medido: com a bola a menos de 30 m do gol só 0,27 atacante estava na área — o centroavante ficava a 24 m, trotando atrás
+  // da linha): no último terço o CENTROAVANTE mora entre os zagueiros e o meia que chega vai pra marca do pênalti. É aí que o
+  // cruzamento, o corte pra trás e a enfiada encontram alguém
+  if (ataca && frente(p.lado, m.bola.y) < 38) {
+    if (p.grupo === 'ATA' && p.bx >= 22 && p.bx <= 46) x = 34 + (x - 34) * 0.3 + (m.bola.x - 34) * 0.12
+    if (p.grupo === 'MEI' && dep > 0.6) { x = 34 + (x - 34) * 0.55; prof = Math.min(prof, L - 12) }
+  }
   return { x: clamp(x, 3, W - 3), y: yDe(p.lado, clamp(prof, 2, 101)) }
 }
 /** onde fica o goleiro: na linha entre a bola e o meio do gol, mais adiantado quanto mais longe a bola */
@@ -110,7 +126,7 @@ export function planeja(m: Motor2) {
         if (m.r() < p.tend.infiltra * (deFrente ? 0.45 : 0.06)) {
           const zags = adv.filter(a => a.grupo === 'DEF' || a.grupo === 'LAT').sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x)).slice(0, 2)
           const gx = zags.length === 2 ? (zags[0].x + zags[1].x) / 2 : p.x
-          const alvo = { x: clamp(p.x * 0.4 + gx * 0.6, 8, W - 8), y: yDe(((1 - l) as Lado), clamp(linha - 9, 4, 60)) }
+          const alvo = { x: clamp(p.x * 0.4 + gx * 0.6, 8, W - 8), y: yDe(((1 - l) as Lado), clamp(linha - 8, 7, 60)) } // (nunca mais fundo que 7 m do gol: dali é bola do goleiro)
           // (yDe do RIVAL = metros a partir do gol que eu ataco)
           m.corrida.set(p, { ate: m.t + 2.6, alvo }); p.papel = 'infiltra'
         }
@@ -148,19 +164,23 @@ export function planeja(m: Motor2) {
         const cob = ord.find(p => p.papel === 'forma' && (p.grupo === 'MEI' || p.grupo === 'DEF'))
         if (cob) cob.papel = 'cobre'
       }
-      const atacantes = adv.filter(a => a.grupo === 'ATA' || (a.grupo === 'MEI' && fundo(l, a.y) < 35))
+      // 🧲 MARCAÇÃO POR ZONA, COLADA SÓ PERTO DA BOLA (25/10): o zagueiro marca o atacante que entrou na zona dele quando a bola
+      // pode chegar nele (a até ~28 m da bola, ou dentro da área); o atacante do lado oposto do campo é só vigiado da posição.
+      // Antes era homem a homem no campo inteiro e os dois times viravam um bolo em volta da bola
+      const pertoDaBola = (a: Atleta) => dist(a, alvoBola) < 28 || (fundo(l, a.y) < AREA_PROF + 3 && Math.abs(a.x - 34) < AREA_LARG + 4)
+      const atacantes = adv.filter(a => (a.grupo === 'ATA' || (a.grupo === 'MEI' && fundo(l, a.y) < 35)) && pertoDaBola(a))
       for (const z of campo.filter(p => (p.grupo === 'DEF' || p.grupo === 'LAT') && p.papel === 'forma')) {
         const an = ancora(m, z)
         const alvo = atacantes.filter(a => !time.some(t => t.marca === a)).sort((a, b) => dist(a, an) - dist(b, an))[0]
-        if (alvo && dist(alvo, an) < (z.grupo === 'LAT' ? 12 : 16)) { z.papel = 'marca'; z.marca = alvo }
+        if (alvo && dist(alvo, an) < (z.grupo === 'LAT' ? 11 : 14)) { z.papel = 'marca'; z.marca = alvo }
       }
-      // 🧲 o meio-campo também marca: cada meia livre pega o meia rival mais perto da zona dele (até 12 m). É daí que nasce o
-      // duelo — o marcador já está a 3 m quando a bola chega, não a 8 m correndo atrás
-      const meias = adv.filter(a => a.grupo === 'MEI' && fundo(l, a.y) < 60)
+      // 🧲 o meio-campo também marca: cada meia livre pega o meia rival mais perto da zona dele (até 10 m, e só do lado da bola).
+      // É daí que nasce o duelo — o marcador já está a 3 m quando a bola chega, não a 8 m correndo atrás
+      const meias = adv.filter(a => a.grupo === 'MEI' && fundo(l, a.y) < 60 && dist(a, alvoBola) < 22)
       for (const z of campo.filter(p => p.grupo === 'MEI' && p.papel === 'forma')) {
         const an = ancora(m, z)
         const alvo = meias.filter(a => !time.some(t => t.marca === a)).sort((a, b) => dist(a, an) - dist(b, an))[0]
-        if (alvo && dist(alvo, an) < 12) { z.papel = 'marca'; z.marca = alvo }
+        if (alvo && dist(alvo, an) < 10) { z.papel = 'marca'; z.marca = alvo }
       }
     }
   }
@@ -226,14 +246,26 @@ export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number 
     }
     case 'marca': {
       const a = p.marca!, g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) }, d = dist(a, g) || 1
-      // (colado: 2 m do lado do gol — é a distância em que a bola chegando vira duelo)
-      return vaiPara({ x: a.x + ((g.x - a.x) / d) * 2.0, y: a.y + ((g.y - a.y) / d) * 2.0 }, 1.15)
+      // (colado quando a bola está perto: 1,8 m do lado do gol — é a distância em que a bola chegando vira duelo; com a bola longe,
+      // dá 3 m de folga e guarda a zona — a marcação de verdade aperta quando o passe pode vir)
+      const folga = dist(a, m.bola) < 18 ? 1.8 : 3.0
+      const alvo = { x: a.x + ((g.x - a.x) / d) * folga, y: a.y + ((g.y - a.y) / d) * folga }
+      // 📏 A LINHA É DO BLOCO (25/10): o zagueiro que marca não SOBE atrás do atacante além da linha de trás do time — ele segura a
+      // linha e o atacante é que fica preso nela. Antes o atacante travava na linha de impedimento (= o marcador) e o marcador travava
+      // 2 m à frente do atacante: os dois ficavam abraçados a 18 m do gol e a área ficava vazia (medido: 0,3 atacante na área)
+      if (p.grupo === 'DEF' || p.grupo === 'LAT') { const lim = (m.bloco[p.lado]?.tras ?? 16) + 1.5; if (fundo(p.lado, alvo.y) > lim) alvo.y = yDe(p.lado, lim) }
+      return vaiPara(alvo, 1.15)
     }
     case 'opcao': case 'ultrapassa': return vaiPara(m.opcaoDe.get(p) ?? ancora(m, p), p.papel === 'ultrapassa' ? 1.25 : 1.1)
     case 'infiltra': { const c = m.corrida.get(p); return c ? { ...c.alvo, v: vmax } : vaiPara(ancora(m, p)) }
     case 'recebe': return { ...m.pontoBola(p), v: vmax }
     case 'bola_solta': return { ...m.pontoBola(p), v: vmax }
     case 'cobranca': return m.parada ? m.lugarNaCobranca(p) : vaiPara(ancora(m, p))
-    default: return vaiPara(ancora(m, p))
+    default: {
+      // (no último terço, quem ataca vai pro lugar dele com PRESSA — o atacante que troteia pra área chega depois do cruzamento)
+      // (e quem defende perto do próprio gol volta pro lugar CORRENDO — a zaga que troteia deixa a linha 4 m mais alta que o bloco)
+      const urgente = (m.posseLado === p.lado && frente(p.lado, m.bola.y) < 40 && (p.grupo === 'ATA' || p.grupo === 'MEI')) || (m.posseLado !== p.lado && fundo(p.lado, m.bola.y) < 40)
+      return vaiPara(ancora(m, p), urgente ? 1.9 : 1)
+    }
   }
 }
