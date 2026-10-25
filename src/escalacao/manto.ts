@@ -352,7 +352,7 @@ export async function nomeLivre(nome: string, email?: string): Promise<{ livre: 
 const NOME_MSG_PT: Record<string, string> = {
   em_uso: '⚠️ Já existe um técnico com esse nome — nome de time é único, tipo @ do Instagram. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
   batismo: '🔒 Esse nome é de um clube de BATISMO e fica reservado pro dono dele. Se o clube é teu, entra com a conta do batismo; senão, escolhe outro nome.',
-  ofensivo: '🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends (nazismo, racismo, estupro). Zoeira tudo bem — escolhe outro nome.',
+  ofensivo: '🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends (nazismo, racismo, estupro, abuso). Zoeira tudo bem — escolhe outro nome.',
 }
 const NOME_MSG_EN: Record<string, string> = {
   em_uso: '⚠️ There is already a manager with that name — team names are unique, like an Instagram @. Try a variation: add FC, a number or your nickname.',
