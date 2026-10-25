@@ -210,7 +210,7 @@ export interface EventoManchete { season: number; round: number; emoji: string; 
 // 4-2-4 e 5-4-1 entraram em 26/08 (martelo do Diego nas 15 formações), medidas
 // no motor real (25 temporadas × 4 perfis de elenco): nenhuma passa de 48% de
 // título nem no cenário mais favorável — mesma faixa das 5 antigas.
-export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings'
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings' | 'pokemon'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
@@ -223,6 +223,8 @@ export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   // 👑 KINGS LEAGUE (15/10, só a conta do Diego): futebol 7 = goleiro + 6. Só nasce no START com `kings` — nenhuma
   // tela de escolha de formação oferece esta (o leilão de sempre monta 7 vagas por time).
   kings: { GOL: 1, LAT: 0, ZAG: 2, MEI: 2, ATA: 2 },
+  // ⚡ MODO POKÉMON (25/10, só a conta do Diego, em teste): 6 pokémon nos 5 setores do motor, que viram LOTES (pokemon-modo.ts)
+  pokemon: { GOL: 1, LAT: 1, ZAG: 1, MEI: 1, ATA: 2 },
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
@@ -660,6 +662,8 @@ export interface CareerRival {
 }
 
 export interface EscState {
+  /** ⚡ MODO POKÉMON (partida rápida, só a conta do Diego): a liga de batalhas depois da cerimônia (`pokemon-liga.tsx`) */
+  pokeLiga?: import('./pokemon-batalha').PokeLigaEstado
   screen: Screen
   // 🏀 esporte da partida atual: ausente/'futebol' = futebol (padrão, tudo como
   // hoje); 'basquete' = BidLegends. Só metadado — o motor usa o mesmo fluxo.

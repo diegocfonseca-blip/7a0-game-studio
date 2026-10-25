@@ -6,7 +6,7 @@ import { PresentesPregao } from './pregao-aberto' // 🎁 'Fulano te deu um pres
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
-import { EscProvider, useEsc } from './store'
+import { EscProvider, useEsc, ehPokemon } from './store'
 import { COMUNIDADE_LINK } from './comunidade'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
@@ -25,6 +25,7 @@ import { anotaTrava } from './caixa-preta'
 import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
 import { pedaco } from './recarga'
 // 📋 Liga Draft (19/10): a noite do draft só carrega pra quem chega nela (só a conta do Diego cria a liga por enquanto)
+const PokemonLigaLazy = lazy(pedaco(() => import('./pokemon-liga'))) // ⚡ modo Pokémon (25/10, só a conta do Diego)
 const LigaDraftLazy = lazy(pedaco(() => import('./liga-draft-tela').then(m => ({ default: m.EscLigaDraft }))))
 import { AvisosAmigos, EVENTO_ENTRAR_SALA } from './amigos'
 
@@ -60,7 +61,8 @@ function Router() {
     // (4 divisões) EXATAMENTE como hoje. A carreira do BASQUETE roda a economia da
     // mesma máquina (careerOnline) mas com a SUA simulação (liga única + andares +
     // playoffs por conferência) via EscSeason — não passa pela pirâmide de 4 séries.
-    case 'season':    return state.careerOnline ? (state.sport === 'basquete' ? <EscSeason /> : <PyramidSeasonScreen />) : <EscSeason />
+    case 'season':    if (ehPokemon(state)) return <Suspense fallback={<div className="pt-16 text-center text-5xl">⚡</div>}><PokemonLigaLazy /></Suspense>
+                      return state.careerOnline ? (state.sport === 'basquete' ? <EscSeason /> : <PyramidSeasonScreen />) : <EscSeason />
     case 'liberta':   return <EscLiberta />
     case 'champions': return <EscChampions />
     case 'draft':     return <Suspense fallback={<div className="pt-16 text-center text-5xl">📋</div>}><LigaDraftLazy /></Suspense>
