@@ -10800,3 +10800,6 @@ avisos (criar conta/salvar) só na Central.
   foto `carreira-clube-uma-fileira-real.png`) e o selo "AO VIVO" na aba Jogos + Tabela. ⏳ Ainda falta: tabela com o placar de cada
   time do lado do nome + ▲▼ (mockup aprovado); Elenco com Titulares/Reservas/SAF logo abaixo do título (hoje ficam lá embaixo).
   (O aviso "criar conta" só aparece pra quem joga sem conta — na conta dele nunca aparece.)
+  ✅ 25/10: Elenco e Rank também SEM o jogo (faixa e placar escondidos, não desmontados — o relógio segue: 8' → 84' no teste).
+  Ele cobrou: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*. O jogo agora só
+  aparece em Jogos + Tabela (e no Clube, quando ele aperta Assistir).

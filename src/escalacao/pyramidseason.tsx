@@ -10475,7 +10475,9 @@ export function PyramidSeasonScreen() {
       rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
-    const barra = tab === 'jogos' || naCentral ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
+    // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
+    // Jogos + Tabela juntos, Elenco e Rank também ficam sem a faixa — o jogo só aparece na aba dele (e no Clube, no Assistir)
+    const barra = tab === 'jogos' || naCentral || (jogoTabela && (tab === 'elenco' || tab === 'ranking')) ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
       onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
@@ -10812,7 +10814,7 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
           (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
           grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${calOn && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}${jogoTabela && (tab === 'elenco' || tab === 'ranking') ? ' ll-cx-sem-jogo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {tunelOn && myCopaTie && copaFase && <div style={{ display: 'none' }}><TunelFinal comp={copaFase.name === 'Supercopa' ? 'supercopa' : 'copabr'}
           nomeComp={copaFase.name === 'Supercopa' ? undefined : copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']}
           seg={tunelSeg} total={4} onFechar={fechaTunel}

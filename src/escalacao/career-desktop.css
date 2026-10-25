@@ -208,3 +208,5 @@
    `carreira-clube-sem-jogo.png`). Só na conta dele, junto do calendário (`ll-cx-clube-limpo` = `calOn`). O lado do jogo fica
    ESCONDIDO e não desmontado — igual à Central —, então a partida segue rolando por trás e nada recomeça ao voltar pro Jogos. */
 .ll-cx.ll-cx-clube-limpo.ll-cx-t-estadio > .ll-cx-lado { display: none !important; }
+/* 📊 25/10 — com Jogos + Tabela numa aba só (conta do Diego), Elenco e Rank também ficam sem o jogo: escondido, não desmontado */
+.ll-cx.ll-cx-sem-jogo > .ll-cx-lado { display: none !important; }
