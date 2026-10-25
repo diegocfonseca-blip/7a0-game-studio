@@ -134,7 +134,7 @@ const ERRO_PASSE = 0.0052, DOMINIO = 105
 /** 🧤 a chance-base de o goleiro pegar o chute que vai no gol (antes do alcance, da força e da distância) */
 /** 🧑‍⚖️ ÁRBITRO (Diego 21/10, "juiz quase não trabalha"): chance de falta no bote · na chegada atrasada na bola · na dividida
  *  pelo alto · e de amarelo numa falta comum (carrinho, por trás, reincidência e último homem somam por cima) */
-const FALTA_BASE = 0.42, FALTA_CHEGADA = 0.3, FALTA_AEREA = 0.14, AMARELO_BASE = 0.2
+const FALTA_BASE = 0.34, FALTA_CHEGADA = 0.26, FALTA_AEREA = 0.14, AMARELO_BASE = 0.2
 /** 🏁 corte de cabeça na própria área que sai pela linha de fundo (escanteio) */
 const CORTE_ESCANTEIO = 0.4
 /** 🎯 quanto a bola longa errada passa do ponto (× o erro do passe) */

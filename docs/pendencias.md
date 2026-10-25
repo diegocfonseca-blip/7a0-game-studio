@@ -1,3 +1,20 @@
+## ⚽ Motor novo — futebol de verdade no 11×11 (25/10, conta de prévia; Diego: *"quero futebol real lá dentro do campo"*)
+- Medido ANTES em 120 jogos: 76% dos chutes de fora da área (23 m de média) e 55% viravam gol; bola no pé dentro da área 0,05 s por
+  jogo; os 20 jogadores num quadrado de 40×30 m em volta da bola (filmado no 2D, `scratchpad/film2d.mjs`).
+- FEITO (`motor2/`): chute vale a chance de gol na mesma moeda do passe (`ESCALA_CHUTE`, `CHUTE_PERTO`, meia distância só livre);
+  goleiro com alcance pelo TEMPO da bola (`goleiroNoChute`: reação + mergulho); bloco defensivo com tamanho real (26 m, largura 0,82) e
+  zaga do time que ataca perto do meio; marcação por zona colada só perto da bola; **a linha é do bloco** (marcador não sobe atrás do
+  atacante — era o abraço a 18 m que esvaziava a área); centroavante entre os zagueiros e ponta oposto no 2º pau; quem ataca/defende
+  perto da área se move com pressa; domínio orientado (`toque1`); curva na bola (`giro`: cruzamento, falta/colocado de quem tem o golpe);
+  corte de TV no intervalo; escanteio mais rápido; empurrão com teto; faltas menos frequentes.
+- DEPOIS (300 jogos, `npm run motor2`): 1,9 gol · 0×0 10% · 4,0 chutes (58% de dentro da área, 16 m) · conversão ~37% · forte ganha
+  81%, perde 4% · lendas × fracos 2,2 gols e 35% de goleada · bola parada 18 s/jogo (era 21). Scripts de medição no scratchpad
+  (`motor/m2stats.mts`, `perdas.mts`, `passes.mts`, `trace.mts`, `onde.mts`, `paradas.mts`).
+- PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; 1-2 (tabela) de verdade; mais variedade de drible (hoje 1,7/jogo);
+  torcida reagindo; replay; juiz.
+- ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
+  (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.
+
 ## 🎥 3D do jogo no mapa (25/10) — 1ª leva NO BRANCH (conta de prévia)
 - Diego: *"simule o jogo vendo rolar o 3D e arrume… jogadores, campo, câmeras, bola, traves, juiz… mas principalmente o jogo em si"*.
   Bancada de revisão: `mechanics-audit.html` com fixture gerada do motor atual (scratchpad `rev/mkfix.mts`, `rev/cap.mjs` tira foto
