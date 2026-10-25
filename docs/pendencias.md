@@ -17,8 +17,11 @@
 - 🗓️ 25/10 (Diego: *"domingo é 16h dia de jogo e quarta 21h à noite"*): no mapa a LIGA é sempre domingo 16h de dia e a COPA quarta 21h
   de noite (antes saía do número da rodada: metade da liga virava noite). E no domingo de jogo EM CASA a torcida chega antes do apito
   (fase 'arrival'): no Automático o apito vem depois de 1 dia do calendário (3 s), no Manual quando aperta. Dias sem jogo = bairro normal.
-  ⏳ FALTA DECIDIR (Diego em dúvida): jogo FORA de casa. Minha recomendação: real — cidade normal, estádio vazio, placar ao vivo no mapa
-  com "🚌 FORA DE CASA". Hoje (provisório) o jogo fora passa no campo dele.
+  🚌 JOGO FORA DE CASA (decisão dele, 25/10): *"deixe o estádio como o estádio do jogo e minha torcida menor… mantenha o mapa da cidade
+  o mesmo… dia de fora de casa vai tá tudo mais vazio"*. FEITO: a cidade é a dele; no lugar do estádio entra o do DONO DA CASA (save dele
+  se for gente; bot = `estadioPadraoDaDivisao`, todo com setor visitante); arquibancada com a torcida da casa e a dele no visitante, pela
+  torcida de verdade × 0,45; ruas mais vazias (`fora` no Complexo). Foto: `scripts/mockups/mapa-jogo-fora.png`. Regra que segue valendo:
+  quanto mais torcida, mais gente na cidade e no estádio (`publicoDoEstadio`).
 - PRÓXIMO: cobrador chegar mais rápido na bandeira, animação de chute em todo chute, replay do gol,
   torcida reagindo, juiz.
 
