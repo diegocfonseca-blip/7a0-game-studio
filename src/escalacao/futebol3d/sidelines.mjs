@@ -3,6 +3,7 @@ import {createCartoonPlayer} from './cartoon/player.mjs';
 import {createCartoonRig,renameCivilClip} from './cartoon/rig.mjs';
 import {BANCO_Z,TECNICO_Z} from '../presidencia-area-tecnica.ts';
 import {playerDetail} from './lod.mjs';
+import {apontaOsso} from './players.mjs';
 
 const angle=v=>Math.atan2(Math.sin(v),Math.cos(v));
 const skins={light:'#e1b592',warm:'#c89165',medium:'#af6f41',brown:'#7a4b2f',deep:'#4f3021'};
@@ -112,9 +113,17 @@ export async function loadSidelines(scene,source,state,frame,kitPlan,{president,
     nativePose(a,name,name==='Idle'||name==='Idle_Loop'?frame.time%duration:((p.distance/stride)%1)*duration);a.lastPose=frame.time;
    }
    const position=a.role==='referee'?avoidReferee(a,p,frame,athletes,dt,reset):p;align(a,position.x,position.z,heading);a.poseTime=frame.time;
+   // 🟨🟥 CARTÃO (25/10, Diego: "juiz"): nos 2 s depois do amarelo/vermelho o árbitro levanta o braço direito com o cartão na mão
+   // (evento oficial do motor; só desenho — quem pune é o motor). O cartão é um retângulo preso à mão, da cor do evento
+   if(a.role==='referee'){const evs=frame.official?.events,now=frame.time;let cartao=null;if(evs)for(let i=evs.length-1;i>=0;i--){const e=evs[i],d=now-e.t;if(d>2)break;if(d>=0&&(e.tipo==='amarelo'||e.tipo==='vermelho')){cartao={tipo:e.tipo,dt:d};break}}
+    if(cartao){// (o braço vai pra cima E pra fora: reto pra cima ele some atrás da cabeça grande do boneco — medido: mão a 1,37 m, cabeça até ~1,5 m)
+     const k=cartao.dt<.25?cartao.dt/.25:cartao.dt>1.6?Math.max(0,1-(cartao.dt-1.6)/.4):1,dir=new T.Vector3(-Math.cos(heading)*.9,1,Math.sin(heading)*.9).normalize();apontaOsso(a,'upperarm_r','lowerarm_r',dir,k);apontaOsso(a,'lowerarm_r','hand_r',dir,k);a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();
+     if(!a.cartao){const g=new T.PlaneGeometry(.13,.18),m=new T.MeshBasicMaterial({color:'#ffd21f',side:T.DoubleSide});ownedGeometry.add(g);ownedMaterials.add(m);a.cartao=new T.Mesh(g,m);a.cartao.name='match-civil-referee-card';root.add(a.cartao)}
+     a.cartao.material.color.set(cartao.tipo==='vermelho'?'#d8261c':'#ffd21f');a.bones.get('hand_r').getWorldPosition(a.cartao.position);a.cartao.position.addScaledVector(dir,.13);a.cartao.rotation.set(0,heading,0);a.cartao.visible=k>.5;a.ultimoCartao={tipo:cartao.tipo,k:+k.toFixed(2),maoY:+a.bones.get('hand_r').getWorldPosition(new T.Vector3()).y.toFixed(2)}}
+    else if(a.cartao){a.cartao.visible=false;a.ultimoCartao=null}}
    if(a.role==='referee'&&athletes){a.refereeProjection=0;separateReferee(a,p,athletes);const head=a.bones.get('Head').localToWorld(a.sidelineHeadCenter.clone());a.minAthleteHeadGap=Math.min(Infinity,...athletes.filter(b=>b.holder.visible&&b.headCenterLocal).map(b=>head.distanceTo(b.bones.get('Head').localToWorld(b.headCenterLocal.clone()))-a.sidelineHeadRadius-b.headRadius));}
   }
  }
  update(frame);
- return{update,dispose,inspect:()=>({style:'civil-cartoon',referees:1,coaches:2,reserves:actors.filter(a=>a.role==='reserve').map(a=>({id:a.id,name:a.name,side:a.side,visible:a.holder.visible})),people:actors.map(a=>({role:a.role,id:a.id,side:a.side,visible:a.holder.visible,position:a.holder.position.toArray(),footFloor:a.footFloor,minAthleteHeadGap:a.minAthleteHeadGap??null,rigBones:a.meshes[0].skeleton.bones.length,president:a.president??false,identityName:a.identityName??null,appearanceProvisional:a.appearanceProvisional??false})),sourceUnchanged:true})};
+ return{update,dispose,inspect:()=>({style:'civil-cartoon',referees:1,coaches:2,cartao:actors.find(a=>a.role==='referee')?.ultimoCartao??null,reserves:actors.filter(a=>a.role==='reserve').map(a=>({id:a.id,name:a.name,side:a.side,visible:a.holder.visible})),people:actors.map(a=>({role:a.role,id:a.id,side:a.side,visible:a.holder.visible,position:a.holder.position.toArray(),footFloor:a.footFloor,minAthleteHeadGap:a.minAthleteHeadGap??null,rigBones:a.meshes[0].skeleton.bones.length,president:a.president??false,identityName:a.identityName??null,appearanceProvisional:a.appearanceProvisional??false})),sourceUnchanged:true})};
 }

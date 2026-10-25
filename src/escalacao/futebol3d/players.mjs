@@ -29,7 +29,7 @@ let cartoonMotionPromise,keeperMotionPromise;
 // 🎉 os dois braços pra cima em V (gira o braço no mundo até apontar pro alto e um pouco pra fora — vale pra qualquer orientação do osso)
 const _a=new T.Vector3(),_b=new T.Vector3(),_c=new T.Vector3(),_q1=new T.Quaternion(),_q2=new T.Quaternion(),_q3=new T.Quaternion()
 /** gira o osso `nome` NO MUNDO até o segmento osso→`filho` apontar na direção `want` (unitária), misturado por `k` (0–1) */
-function apontaOsso(a,nome,filho,want,k=1){
+export function apontaOsso(a,nome,filho,want,k=1){
  const up=a.bones?.get(nome),lo=a.bones?.get(filho);if(!up||!lo||!up.parent)return
  up.updateWorldMatrix(true,false);up.getWorldPosition(_a);lo.getWorldPosition(_b)
  const cur=_b.sub(_a).normalize(),alvo=k>=1?want:cur.clone().lerp(want,k).normalize()
