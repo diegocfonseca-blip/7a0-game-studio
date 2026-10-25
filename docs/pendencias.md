@@ -10975,3 +10975,11 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
   C) o cabeçalho preto vira a semana em bolinhas + ⏩.
 - Hoje (só conta dele): Elenco/Rank/Central sem faixa; Clube com a faixa. Selo da barra de baixo com contagem ainda não existe.
 - 🔁 25/10 (mesma conversa): ideia DELE — **a Central é a casa**: os dias passam na Central (semana DOM→SÁB + próximo jogo com contagem); no dia do jogo aviso "Dia de jogo!" e vai sozinho pra aba Jogos em 3s (dá pra "ficar aqui"); apitou (e a coletiva) → volta pra Central com o resultado em cima até o próximo jogo. Elenco/Rank/Clube: faixa fina com a data e ⏸️. Mockup `scripts/mockups/calendario-fluxo.png` (gerador `scripts/mockup-calendario-fluxo.mjs`). Esperando OK; depois faz na conta dele.
+
+### 📅 A CENTRAL É A CASA — FEITO (25/10, só conta do Diego, junto do calendário)
+- Mockup aprovado `scripts/mockups/calendario-fluxo.png` (*"sim faz"*). Na Central, nos dias vazios, o cartão da semana (`CalendarioProximo`: semana, próximo jogo, boletim, ⏩ Pular, seus jogos) entra NO LUGAR do camarote (`semana` do CentralCarreira).
+- Dia de jogo: na Central, quando a semana acaba (automático), a Copa da quarta entra ou a rodada já está no ar → "⚽ Dia de jogo!" e em 3s vai pra aba Jogos (botão "ficar aqui"). Apitou e nada pendente → 3s depois volta pra Central. Elenco/Rank: faixa fina SÓ nos dias (no jogo, nada); o "Voltar" da faixa leva pra Central.
+- 🏟️ Botão "Ver o jogo no Campo 3D" no Controle da partida (só onde o mapa existe = conta dele): pede a câmera 'broadcast' (`pedeCameraDoMapa`, controle-partida-mapa.ts) e vai pra aba Clube, rolando até o mapa.
+- Testado na bancada: Central → aviso → Jogos (rodada 2) → Central (seg→sáb) → aviso → Jogos (rodada 3) → Central, sem erro.
+- 📢 Aviso da comunidade pronto: `scripts/posts/aviso-2026-10-25-calendario-carreira.png` — só postar quando o calendário for liberado pra todos (hoje é só da conta dele).
+- Falta: liberar o calendário pra todos (quando ele mandar); o 3D ainda não foi testado com o mapa aberto na bancada (precisa da conta dele).

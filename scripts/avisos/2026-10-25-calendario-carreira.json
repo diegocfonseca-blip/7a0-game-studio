@@ -1,0 +1,21 @@
+{
+  "data": "📅 Modo Carreira · 25 de outubro de 2026",
+  "titulo": "Agora a carreira tem calendário de verdade",
+  "destaque": {
+    "passos": [
+      { "emoji": "📅", "titulo": "Os dias passam", "sub": "segunda, terça…" },
+      { "emoji": "🏆", "titulo": "Quarta: Copa", "sub": "no meio da semana" },
+      { "emoji": "⚽", "titulo": "Domingo: Liga", "sub": "dia de jogo!" }
+    ],
+    "nome": "Igual ao futebol de verdade",
+    "linha": "Liga no domingo, Copa na quarta, e a semana passando no meio"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "**Os dias passam na Central.** A semana anda sozinha, de domingo a sábado, com o dia de hoje marcado e a **contagem pro próximo jogo**. Isso deixa o jogo **muito mais real**: dá pra sentir a semana entre um jogo e outro." },
+    { "tag": "novidade", "texto": "**Liga e Copa intercaladas**: a **Liga joga no domingo** e a **Copa na quarta**, no meio da semana, como no futebol de verdade. Chegou o dia, aparece **⚽ Dia de jogo!** e o jogo te leva sozinho pra aba Jogos. Apitou, você volta pra Central." },
+    { "tag": "melhoria", "texto": "**Jogos e Tabela agora numa aba só**: o placar em cima e, embaixo, a **tabela e os outros jogos** (na Copa, o chaveamento). **Elenco, Rank e Clube** ficam só com o que é deles, e o selo **AO VIVO** avisa quando tem bola rolando." }
+  ],
+  "rodape": "⚽ leilaolegends.com",
+  "rodapeSub": "Abre a sua carreira e vê a semana passando 💛",
+  "saida": "scripts/posts/aviso-2026-10-25-calendario-carreira.png"
+}

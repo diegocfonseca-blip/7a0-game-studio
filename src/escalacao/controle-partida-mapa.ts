@@ -38,3 +38,11 @@ export function useControleMapa(): ControleMapa | null {
   // (o instantâneo só troca quando a chave muda — senão o React redesenharia a cada publicação)
   return useSyncExternalStore(assina, () => { if (instantaneo.k !== chave) instantaneo = { k: chave, c: atual }; return instantaneo.c ? atual : null }, () => null)
 }
+
+// 🏟️ 25/10 (Diego: *"quando clicar em campo 3D redireciona já pra dentro da aba de clubes, dentro do mapa, e já na melhor
+// câmera do estádio"*): a carreira PEDE a câmera e o mapa atende assim que estiver pronto (se já estiver, atende na hora)
+let cameraPedida: string | null = null
+const ouvintesCamera = new Set<() => void>()
+export function pedeCameraDoMapa(c: string) { cameraPedida = c; ouvintesCamera.forEach(f => f()) }
+export function tiraCameraPedida(): string | null { const c = cameraPedida; cameraPedida = null; return c }
+export function assinaCameraPedida(f: () => void) { ouvintesCamera.add(f); return () => { ouvintesCamera.delete(f) } }

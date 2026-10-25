@@ -70,6 +70,8 @@ export type CentralProps = {
   copaArtilheiros?: { nome: string; time: string; gols: number; you: boolean }[] | null
   /** ⭐ 22/10: as lendas apresentadas nesta temporada — a foto delas vira a capa do Martelo (pré-temporada e 1ª rodada) */
   fotoLendas?: { nome: string; club: string; year: number }[] | null
+  /** 📅 25/10 (Diego: *"a Central é a casa"*): com o calendário, nos dias vazios a semana + o próximo jogo ficam NO LUGAR do camarote */
+  semana?: React.ReactNode
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
@@ -213,7 +215,7 @@ export function CentralCarreira(p: CentralProps) {
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
-          <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
+          {p.semana ? <div className="ll-c-hero">{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0002 0%,#0001 30%,#0C0C0Cc9 66%,#0C0C0Cf5 100%)' }} />
             <div style={{ position: 'relative', padding: '12px 13px 13px', display: 'flex', flexDirection: 'column', minHeight: 372 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -236,7 +238,7 @@ export function CentralCarreira(p: CentralProps) {
                 style={{ ...OSW, width: '100%', background: p.botao.disabled ? '#5a5a5a' : G_OURO, color: p.botao.disabled ? '#ddd' : INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 19, letterSpacing: '.04em', cursor: p.botao.disabled ? 'default' : 'pointer', marginTop: frase ? 0 : 10 }}>{p.botao.label}</button>
               {p.botao.sub && <small style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 800, opacity: .6, marginTop: 6 }}>{p.botao.sub}</small>}
             </div>
-          </div>
+          </div>}
 
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>

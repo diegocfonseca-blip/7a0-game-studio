@@ -39,7 +39,7 @@ import {usePresidentPreview,usePresidentPreviewPending,PRESIDENT_INTEGRATION_REL
 import {podeAlterarPresidencia,negociarNaCarreira,exibirDuplaNaCarreira} from './presidencia-carreira'
 import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
-import { publicaControleMapa, type ControleMapa } from './controle-partida-mapa'
+import { publicaControleMapa, pedeCameraDoMapa, type ControleMapa } from './controle-partida-mapa'
 import {PRESIDENCY_STADIUM_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -10483,7 +10483,7 @@ export function PyramidSeasonScreen() {
     for (let r = Math.max(1, round - 1); r <= Math.min(38, round + 2); r++) diasDeJogo[diaDaRodada(calSn, r)] = 'liga'
     if (copaMid && !done) copaSemanas.forEach(r => { diasDeJogo[diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS] = 'copa' })
     let jogos: JogoCal[] | null = null
-    if (tab === 'jogos' && calFase === 'dias') {
+    if ((tab === 'jogos' || naCentral) && calFase === 'dias') {
       jogos = calPassados.map(({ r, m }) => {
         const casa = m.hId === youId, gf = casa ? m.hg : m.ag, ga = casa ? m.ag : m.hg
         return { dia: diaDaRodada(calSn, r), comp: 'liga', adv: casa ? m.a : m.h, casa, res: `${gf}-${ga}`, cls: gf > ga ? 'v' : gf === ga ? 'e' : 'd' } as JogoCal
@@ -10505,23 +10505,64 @@ export function PyramidSeasonScreen() {
     const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
     // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
-    const proxCard = tab === 'jogos' && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
+    const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
       rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
     // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
     // Jogos + Tabela juntos, Elenco e Rank também ficam sem a faixa — o jogo só aparece na aba dele (e no Clube, no Assistir)
-    const barra = tab === 'jogos' || naCentral || (jogoTabela && (tab === 'elenco' || tab === 'ranking')) ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
+    const barra = tab === 'jogos' || naCentral || (jogoTabela && (tab === 'elenco' || tab === 'ranking') && calFase !== 'dias') ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
-      onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba('jogos')} onProximo={proximoAdv} />
+      onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba(jogoTabela ? 'central' : 'jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
     return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && calI < calTotal ? irProJogoNoMapa : undefined }
   })()
   useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn && !chegando ? calBarra?.irProJogoNoMapa : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
+  // 📅 25/10 — A CENTRAL É A CASA (ideia do Diego, mockup `calendario-fluxo.png`): os dias passam na Central; chegou o dia do
+  // jogo (a semana acabou no automático, ou a Copa da quarta entrou), aparece "Dia de jogo!" e em 3s vai sozinho pra aba Jogos —
+  // dá pra tocar em "ficar aqui". Apitou (e nada pendente), 3s depois volta pra Central. Só com o calendário (conta do Diego).
+  const diaJogoKey = `${calSn}:${round}:${calFase}`
+  const diaDeJogoNaCentral = calOn && !state.co2 && tab === 'central' && (
+    (calFase === 'dias' && calLivre && !manual && calDiasOk && round >= 1 && round < 38 && !chegando) || (calFase === 'copa' && copaMidOn) || calFase === 'jogo') // (o 'jogo' = a rodada já está no ar — ex.: abriu a carreira no meio dela: na Central o relógio para)
+  const [diaJogo, setDiaJogo] = useState<string | null>(null)
+  const [ficouAqui, setFicouAqui] = useState('')
+  useEffect(() => { if (diaDeJogoNaCentral && ficouAqui !== diaJogoKey && diaJogo !== diaJogoKey) setDiaJogo(diaJogoKey) }, [diaDeJogoNaCentral, ficouAqui, diaJogoKey, diaJogo])
+  useEffect(() => { if (diaJogo && tab !== 'central') setDiaJogo(null) }, [diaJogo, tab])
+  useEffect(() => {
+    if (!diaJogo) return
+    const t = setTimeout(() => { setDiaJogo(null); escolheAba('jogos') }, 3000)
+    return () => clearTimeout(t)
+  }, [diaJogo]) // eslint-disable-line react-hooks/exhaustive-deps
+  const vimDoJogo = useRef(false)
+  useEffect(() => { if (tab !== 'jogos') vimDoJogo.current = false; else if (calOn && (calFase === 'jogo' || calFase === 'copa')) vimDoJogo.current = true }, [tab, calOn, calFase])
+  useEffect(() => {
+    if (!calOn || state.co2 || !vimDoJogo.current || tab !== 'jogos' || calFase !== 'dias' || !calLivre) return
+    const t = setTimeout(() => { vimDoJogo.current = false; setTab('central') }, 3000)
+    return () => clearTimeout(t)
+  }, [calOn, state.co2, tab, calFase, calLivre])
+  const avisoDiaDeJogo = diaJogo ? (() => {
+    const copaHoje = calFase === 'copa'
+    return (
+      <div role="dialog" aria-label={tr('Dia de jogo', 'Match day')} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, padding: '18px 16px', width: '100%', maxWidth: 360, textAlign: 'center' }}>
+          <div style={{ fontSize: 44, lineHeight: 1 }}>{copaHoje ? '🏆' : '⚽'}</div>
+          <b style={{ ...OSWALD, display: 'block', fontSize: 30, textTransform: 'uppercase', margin: '6px 0 2px' }}>{tr('Dia de jogo!', 'Match day!')}</b>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#53534b', margin: '0 0 12px' }}>{copaHoje ? tr(`Copa · ${copaFaseName}`, `Cup · ${copaFaseName}`) : tr(`Liga · rodada ${calFase === 'jogo' ? round : round + 1}`, `League · round ${calFase === 'jogo' ? round : round + 1}`)}</p>
+          <button onClick={() => { setDiaJogo(null); escolheAba('jogos') }} style={{ ...OSWALD, width: '100%', fontSize: 18, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, cursor: 'pointer' }}>{tr('⚽ Indo pro jogo…', '⚽ Off to the match…')}</button>
+          <button onClick={() => { setFicouAqui(diaJogo); setDiaJogo(null) }} style={{ background: 'none', border: 'none', marginTop: 10, fontSize: 12, fontWeight: 800, color: '#53534b', textDecoration: 'underline', cursor: 'pointer' }}>{tr('vai sozinho em 3s · ficar aqui', 'goes by itself in 3s · stay here')}</button>
+        </div>
+      </div>
+    )
+  })() : null
+  // 🏟️ Campo 3D (só onde o mapa existe — conta do Diego): vai pra aba Clube, dentro do mapa, na câmera de transmissão
+  const verNo3D = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && calOn ? () => {
+    pedeCameraDoMapa('broadcast'); setClubeSub('estadio'); escolheAba('estadio')
+    setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
+  } : null
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
   // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
   // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
@@ -10787,7 +10828,8 @@ export function PyramidSeasonScreen() {
     return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null}
-      copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas} />
+      copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
+      semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} />
   }
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
@@ -10865,6 +10907,7 @@ export function PyramidSeasonScreen() {
         <AvisoContaCarreira />
         <SocioBaraoBanner />
         {calBarra?.barra}
+        {avisoDiaDeJogo}
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
@@ -11140,7 +11183,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {calBarra?.proxCard}
+        {tab === 'jogos' && calBarra?.proxCard}
         {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
@@ -11441,6 +11484,7 @@ export function PyramidSeasonScreen() {
           // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
+            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no Campo 3D', '🏟️ Watch the match in 3D')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={avancarRodada}
@@ -11472,6 +11516,7 @@ export function PyramidSeasonScreen() {
           manualAllowed ? (
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
+            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no Campo 3D', '🏟️ Watch the match in 3D')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
               onNext={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
