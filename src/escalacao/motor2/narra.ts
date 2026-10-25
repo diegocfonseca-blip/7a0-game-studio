@@ -50,6 +50,10 @@ const GOLPE_TXT: Record<string, [string, string]> = {
   caneta: ['CANETA de {a} no {b}!', 'NUTMEG from {a} on {b}!'], slalom: ['{a} costura a defesa!', '{a} weaves through!'],
   croqueta: ['La croqueta de {a}!', 'La croqueta from {a}!'], corta_pra_dentro: ['{a} corta pra dentro do {b}!', '{a} cuts inside {b}!'],
   cruyff: ['O giro de Cruyff em cima do {b}!', 'The Cruyff turn on {b}!'], drible_goleiro: ['{a} dribla o goleiro!', '{a} rounds the keeper!'],
+  // (os jeitos do drible comum — pelo atributo da carta, não por fato da pessoa)
+  arrancada: ['{a} joga pra frente e dispara, o {b} ficou pra trás!', '{a} knocks it past {b} and bursts away!'],
+  giro: ['{a} protege a bola e gira em cima do {b}!', '{a} shields the ball and spins away from {b}!'],
+  corpo: ['Finta de corpo de {a}, o {b} comprou!', 'Body feint from {a}, {b} bought it!'],
 }
 
 // 🎯 o jeito do chute (25/10): cobertura, cavadinha, colocado, bomba

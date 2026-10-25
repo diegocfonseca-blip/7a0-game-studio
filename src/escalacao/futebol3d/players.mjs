@@ -130,7 +130,8 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   if(cartoon&&frame.official?.events){const evs=frame.official.events;for(let i=evs.length-1;i>=0;i--){const e=evs[i],dtEv=frame.time-e.t;if(dtEv>1.2)break;if(dtEv<0)continue
    if((e.tipo==='falta'||e.tipo==='vantagem')&&e.b&&!teatro.has(e.b))teatro.set(e.b,{tipo:'cai',dt:dtEv})
    if((e.tipo==='desarme'||e.tipo==='carrinho'||e.tipo==='falta')&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:e.tipo==='carrinho'?'carrinho':'bote',dt:dtEv})
-   if(e.tipo==='drible'&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:'ginga',dt:dtEv})}}
+   // (💫 25/10: o jeito do drible vem do motor — roleta/Cruyff rodam o corpo inteiro, `giro` agacha e protege enquanto o corpo vira pro lado novo, `arrancada` inclina pra frente, o resto ginga)
+   if(e.tipo==='drible'&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:e.golpe==='roleta'||e.golpe==='cruyff'?'roleta':e.golpe==='giro'?'giro':e.golpe==='arrancada'?'arranca':'ginga',dt:dtEv})}}
   const acao=frame.officialAction
   frame.players.forEach((p,i)=>{
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};a.navigationOffset={x:p.mx-official.mx,z:p.mz-official.mz};const resetActor=reset||a.key!==p.key||navigation?.diagnostics.sourceReset;a.key=p.key;
@@ -202,6 +203,9 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
     if(te.tipo==='cai'){const k=te.dt<.3?te.dt/.3:te.dt<.7?1:Math.max(0,1-(te.dt-.7)/.5),ang=1.25*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang));a.holder.position.y-=Math.sin(ang)*.12;levantaBracos(a,fw.clone().multiplyScalar(.6).setY(.5).normalize())}
     else if(te.tipo==='bote'||te.tipo==='carrinho'){const k=te.dt<.15?te.dt/.15:Math.max(0,1-(te.dt-.15)/.45),ang=(te.tipo==='carrinho'?.9:.45)*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang));if(te.tipo==='carrinho')a.holder.position.y-=Math.sin(ang)*.35;apontaOsso(a,'thigh_r','calf_r',new T.Vector3(fw.x*.9,-.35,fw.z*.9).normalize(),k)}
     else if(te.tipo==='ginga'){const k=Math.max(0,1-te.dt/.6),roll=Math.sin(te.dt*21)*.22*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,roll))}
+    else if(te.tipo==='roleta'){const u=Math.min(1,te.dt/.55),ang=Math.PI*2*(1-(1-u)*(1-u))-(u>=1?Math.PI*2:0);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),ang))}
+    else if(te.tipo==='giro'){const k=te.dt<.15?te.dt/.15:Math.max(0,1-(te.dt-.15)/.45);a.holder.position.y-=.07*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,.28*k))}
+    else if(te.tipo==='arranca'){const k=te.dt<.12?te.dt/.12:Math.max(0,1-(te.dt-.12)/.5),ang=.3*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang))}
     a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // 🎉 comemoração: braços pra cima e pulinhos (depois do chão: o pé assentado é a base do pulo)
    if(comemora(p)&&a.holder.visible){const ph=(frame.time-festa.t0)*5.2+i*.9,hop=Math.max(0,Math.sin(ph))*.32;a.holder.position.y+=hop;a.holder.updateMatrixWorld(true);levantaBracos(a);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}

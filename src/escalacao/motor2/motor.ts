@@ -6,7 +6,7 @@
 // tatica), então o campinho, a torcida e os bonecos não mudam.
 // ⚠️ Isolado: só a bancada e a trava usam. Não decide placar de ninguém.
 import { nivelDe, perfilDe } from './atributos'
-import { estilo2De, estiloDe, type Estilo } from '../campo2d-estilos'
+import { estilo2De, estiloDe, type Estilo, type Golpe } from '../campo2d-estilos'
 import { alvoDe, andaBloco, ancora, linhaImpedimento, lugarGoleiro, planeja, type Bloco } from './coletivo'
 import { decide, pressaoEm, type Acao } from './decide'
 import { GIRO, gira, deCostas, AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L, SEG_POR_MIN, TRAVESSAO, W, ATRITO_AR, ATRITO_CHAO, clamp, dist, frente, fundo, len, linhaAtaque, sorteio, vRasteira, xgDe, yDe } from './fisica'
@@ -980,7 +980,23 @@ export class Motor2 {
       z.atordoado = this.t + 0.85
       this.stats.dribles[d.lado]++
       const moves = d.golpes.filter(g => ['elastico', 'pedalada', 'chapeu', 'roleta', 'caneta', 'slalom', 'croqueta', 'corta_pra_dentro', 'cruyff'].includes(g))
-      const golpe = moves.length && this.r() < 0.7 ? moves[Math.floor(this.r() * moves.length)] : undefined
+      let golpe: Golpe | 'giro' | 'corpo' | undefined = moves.length && this.r() < 0.7 ? moves[Math.floor(this.r() * moves.length)] : undefined
+      // 💫 O JEITO DO DRIBLE COMUM (25/10, medido: 95% dos dribles eram "simples", todos iguais no 3D). Quem não tem golpe assinatura
+      // também dribla de jeitos diferentes — pelo que a carta É, não por biografia inventada: o VELOZ joga a bola pra frente e dispara
+      // (arrancada); o FORTE, com o marcador entre ele e o gol, protege e gira pra sair (giro); o resto é a finta de corpo (corpo)
+      if (!golpe) {
+        const naFrente = fundo(d.lado, z.y) < fundo(d.lado, d.y) - 0.3, espaco = frente(d.lado, d.y) > 10, r = this.r()
+        golpe = espaco && d.at.vel > z.at.vel + 4 && r < 0.75 ? 'arrancada' : naFrente && d.at.fisico >= 68 && r < 0.6 ? 'giro' : 'corpo'
+        if (golpe === 'giro') {
+          // (protege com o corpo e GIRA pro lado livre: sai de lado/pra trás do marcador, não "através" dele — e o corpo vira junto)
+          const dx = z.x - d.x, dy = z.y - d.y, dd = len(dx, dy) || 1, px = -dy / dd, py = dx / dd
+          const livre = (sg: number) => { let mn = 9; for (const q of this.atl) if (q.lado !== d.lado && q !== z) mn = Math.min(mn, len(d.x + px * sg * 3 - q.x, d.y + py * sg * 3 - q.y)); return mn }
+          const sg = livre(1) >= livre(-1) ? 1 : -1
+          const ax = clamp(d.x + px * sg * 2.6 - (dx / dd) * 0.8, 2, W - 2), ay = clamp(d.y + py * sg * 2.6 - (dy / dd) * 0.8, 2, L - 2)
+          d.alvo = { x: ax, y: ay, v: this.vmax(d) * 0.8 }
+          const nx = ax - d.x, ny = ay - d.y, nn = len(nx, ny) || 1; d.fx = nx / nn; d.fy = ny / nn
+        }
+      }
       this.emite({ tipo: 'drible', lado: d.lado, a: d.nome, b: z.nome, golpe })
       return
     }
