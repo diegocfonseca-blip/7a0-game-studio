@@ -10698,3 +10698,7 @@ avisos (criar conta/salvar) só na Central.
 - 25/10 (3ª parte) — ele corrigiu: *"o placar ou campo 2D não pode ser faixinha… eu tava falando dos jogos restantes"*. Ou seja:
   o SEU jogo continua GRANDE (placar ou Campo 2D); quem vira tabela é a lista de OUTROS JOGOS da rodada → tabela ao vivo com o placar
   de cada time do lado do nome e ▲▼. Ele cobrou *"cadê os jogos do restante do pessoal?"* → os outros jogos ficam num QUADRO COMPACTO (2 colunas, amarelo = gol recente) entre o seu jogo e a tabela. Mockup `scripts/mockups/carreira-jogo-tabela-ao-vivo.png` (placar × 2D). ⏳ Espera OK.
+- 25/10 (4ª parte) — *"não ficou bom… o que o pessoal mais gosta é tabela… embaixo os jogos da rodada organizado por liga… e copa,
+  quando for copa, a tabela passa a ser chaveamento"*. Leitura: a aba JOGOS segue com o seu jogo grande; a aba TABELAS vira a estrela —
+  tabela ao vivo em cima + jogos da rodada por divisão embaixo (a sua aberta, as outras fechadas); na quarta de Copa abre no
+  CHAVEAMENTO + jogos da Copa da noite. Mockup `scripts/mockups/carreira-tabelas-estrela.png`. ⏳ Espera OK.
