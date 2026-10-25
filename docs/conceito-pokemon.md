@@ -21,11 +21,15 @@
 ## A diferença pro futebol: DECISÃO A CADA BATALHA (escolha dele: *"melhor decidindo mesmo"*)
 - Antes de **cada** batalha: **quais 3 dos 6 lutam, em que ORDEM entram, e a tática** (🔥 Agressivo · ⚖️ Equilíbrio · 🛡️ Defensivo).
 - Relógio curto (12s). Quem não escolher entra com a escalação da batalha anterior — ninguém espera o mais lento.
-- **O time do rival só aparece na CERIMÔNIA** (depois do leilão). Na hora de escolher, **não mostra** o que o rival tem
-  (*"eu acho que deixaria ver só na cerimônia… ali na hora não deixaria"*). ❓ Ele disse também *"só os bots que eu deixaria"* —
-  CONFIRMAR se é "na hora, só o time dos BOTS aparece" ou só "sim, tem bot".
+- **Na CERIMÔNIA** (depois do leilão) aparecem os times de TODO MUNDO.
+- **Na hora de escolher** (antes de cada batalha): rival **BOT** → aparecem os **tipos** dos pokémon dele; rival **PESSOA** →
+  não aparece nada, o usuário tem que ter **gravado da cerimônia** (confirmado 25/10: *"nas batalhas só daria pra ver os tipos
+  de pokémon dos bots. Dos rivais o usuário teria que ter gravado da cerimônia"*). Os 3 escolhidos e a ordem de qualquer rival
+  só aparecem quando a batalha começa.
 
 ## A batalha (simulação, roda sozinha)
 - 3 contra 3, golpe a golpe, **barra de vida** + **narração** (no lugar do rádio). Ganha quem derrubar os 3 do outro.
+- **"QUEM GANHA FICA"** (fechado 25/10): 1º contra 1º; quem perde sai e entra o próximo DAQUELE lado; quem ganha continua na
+  arena **com a vida que sobrou** (não cura entre lutas). Acaba quando um lado perde os 3.
 - Quem bate primeiro = velocidade · dano = ataque × defesa do outro × **tipo** (forte 2× "SUPER EFETIVO", fraco ½×) ×
   **dia bom/ruim** (faixa de força igual à dos jogadores).

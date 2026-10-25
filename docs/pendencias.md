@@ -10804,4 +10804,4 @@ avisos (criar conta/salvar) só na Central.
   Ele cobrou: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*. O jogo agora só
   aparece em Jogos + Tabela (e no Clube, quando ele aperta Assistir).
 
-- 25/10 ⚡ **Modo Pokémon (salas online)**: conceito FECHADO em `docs/conceito-pokemon.md` (leilão de sempre sem Clubes, 6 tipos, 8 treinadores com bot, liga só de ida + semi/final jogo único, decisão a cada batalha, rival só visível na cerimônia). Nada codado. ❓ confirmar o "só os bots que eu deixaria".
+- 25/10 ⚡ **Modo Pokémon (salas online)**: conceito FECHADO em `docs/conceito-pokemon.md` (leilão de sempre sem Clubes, 6 tipos, 8 treinadores com bot, liga só de ida + semi/final jogo único, decisão a cada batalha, rival só visível na cerimônia). Nada codado. Fechado também: batalha "quem ganha fica" e, na hora da escolha, só aparecem os tipos dos BOTS (pessoa: tem que lembrar da cerimônia).
