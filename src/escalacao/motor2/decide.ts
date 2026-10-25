@@ -18,11 +18,11 @@ const DIRETO = 0.1
  *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
 const MANTER = 0.03
 /** 🎯 o gosto pelo chute de fora da área (> 23 m): menor = o time trabalha mais a bola até a área */
-const CHUTE_LONGE = 1.0
+const CHUTE_LONGE = 1.6
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
 const CHUTE_PERTO = 2.7
 /** 🎯 quanto vale a chance de gol de um chute frente ao `valor` de ter a bola (1 = a mesma moeda) */
-const ESCALA_CHUTE = 1.2
+const ESCALA_CHUTE = 2.0
 /** ↩️ o gosto pelo corte pra trás da linha de fundo (rasteiro, pra quem chega na marca do pênalti) */
 const CORTE = 0.06
 /** 🤝 o gosto pelo passe curto (até 11 m), maior quanto mais apertado ele está */
@@ -33,6 +33,8 @@ const SAIDA_TRAS = 0.05
 const RECUO_MAX = -0.2
 /** 🏃 o lateral que ultrapassa pede a bola */
 const LAT_APOIO = 0.05
+/** ↔️ jogar pelos lados: no meio-campo de ataque, a bola no companheiro LIVRE aberto (é dali que sai o cruzamento e o corte pra trás) */
+const PELO_LADO = 0.02
 /** 🔄 quanto vale rodar a bola pelo zagueiro/lateral livre (próprio campo e meio) */
 const CIRCULA = 0.012
 /** 🚀 o gosto pelo lançamento pro companheiro livre lá na frente */
@@ -182,6 +184,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // ~35% dos toques): no próprio campo e no meio, o zagueiro/lateral LIVRE é opção de verdade — é assim que o time roda a bola e
     // acha o lado fraco, em vez de enfiar tudo no centroavante
     if ((t.grupo === 'LAT' || t.grupo === 'DEF') && pRec > 0.85 && f > 40) u += CIRCULA * (1 + 2 * (1 - transicao)) * (t.grupo === 'LAT' ? 1.3 : 1)
+    // ↔️ PELOS LADOS (25/10, Diego: "faz o que deixa mais real"; medido: a bola passava só 3% do jogo a menos de 5 m da lateral): o meio
+    // é onde a defesa se fecha — no campo de ataque, o companheiro livre ABERTO, à frente ou na linha da bola, é a saída natural
+    if (Math.abs(alvo.x - 34) > 22 && Math.abs(p.x - 34) < Math.abs(alvo.x - 34) + 6 && fAlvo > 14 && fAlvo < 62 && fAlvo < f + 6 && pRec > 0.8) u += pOk * PELO_LADO
     // 🏃 o lateral que passou por fora (ultrapassagem) pede a bola — e ganha preferência na hora
     if (t.papel === 'ultrapassa' && t.grupo === 'LAT' && frente(l, p.y) < 60) u += LAT_APOIO
     // 🧤 REPOSIÇÃO CURTA × LONGA PELO ESTILO (Diego 20/10): o `goleiro_linha` (Ceni, Neuer…) sai jogando curto; quem tem boa
@@ -223,7 +228,10 @@ export function decide(m: Motor2, p: Atleta): Acao {
 
   if (!goleiro && restr === undefined) {
     // 🏃 CONDUZIR / 💫 DRIBLAR
-    const dir = { x: (34 - p.x) * 0.12, y: fy }
+    // (25/10, medido: a bola passava só 3% do jogo a menos de 5 m da lateral e quase nunca saía. O puxão pro meio (0,12/m) mandava o
+    // ponta encostado na linha conduzir a ~73° pra dentro. Pelo lado, longe da área, ele CORRE PELA LINHA; perto da área, corta pra dentro)
+    const pelaLinha = (p.x < 16 || p.x > W - 16) && f > 26
+    const dir = { x: (34 - p.x) * (pelaLinha ? 0.025 : 0.12), y: fy }
     const n = len(dir.x, dir.y)
     const ux = dir.x / n, uy = dir.y / n
     // (quem gosta de driblar enxerga o marcador mais longe e vai pra cima dele — cone maior)
