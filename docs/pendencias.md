@@ -10967,3 +10967,10 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 - Avião da home já estava pra todos (`ESPACOS_GERAL = true`, Grêmio EC Campo Grande).
 - Reverter: `ABAS_JUNTAS_GERAL = false`.
 - Testado na bancada sem login: rodada 1→2 andou com o jogo escondido em Elenco/Rank/Clube, sem erro na página; `npm run carreira-limpa` ok.
+
+### 📅 Calendário nas abas — mockup (25/10, esperando escolha do Diego)
+- Pedido: *"aperfeiçoe melhor ainda… e melhore nas outras abas… fica em todas as abas ou não?"*. Mockup `scripts/mockups/calendario-abas.png` (gerador `scripts/mockup-calendario-abas.mjs`), 3 jeitos:
+  A) Jogos com a semana DOM→SÁB (hoje amarelo, ⚽ domingo liga, 🏆 quarta copa) + próximo jogo grande com contagem "2 DIAS"; nas outras abas uma faixa fina no topo (data + próximo jogo + ⏩ Pular) — minha recomendação.
+  B) outras abas sem nada; data no cabeçalho e selo "QUA 18" em cima de Jogos na barra de baixo.
+  C) o cabeçalho preto vira a semana em bolinhas + ⏩.
+- Hoje (só conta dele): Elenco/Rank/Central sem faixa; Clube com a faixa. Selo da barra de baixo com contagem ainda não existe.
