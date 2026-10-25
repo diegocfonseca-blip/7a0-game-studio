@@ -54,3 +54,7 @@
  .pc3-navigation{flex-direction:row;bottom:max(34px,calc(env(safe-area-inset-bottom) + 30px))}
  .pc3-expanded .pc3-stage{height:100%;min-height:0}
 }
+
+/* 🔁 selo do replay do gol (aprovado 25/10) */
+.pc3-replay{position:absolute;left:50%;top:max(118px,calc(env(safe-area-inset-top) + 118px));transform:translateX(-50%);z-index:5;pointer-events:none;padding:6px 14px;border:3px solid #0c0c0c;border-radius:10px;background:#E8503A;color:#fff;font:900 18px/1 Oswald,system-ui,sans-serif;letter-spacing:1px;text-transform:uppercase;box-shadow:3px 3px 0 #000;animation:pc3-replay-pisca 1s steps(2) infinite}
+@keyframes pc3-replay-pisca{50%{opacity:.55}}

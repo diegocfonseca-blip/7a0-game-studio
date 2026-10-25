@@ -11,8 +11,98 @@
   81%, perde 4% · lendas × fracos 2,2 gols e 35% de goleada · bola parada 18 s/jogo (era 21). Scripts de medição no scratchpad
   (`motor/m2stats.mts`, `perdas.mts`, `passes.mts`, `trace.mts`, `onde.mts`, `paradas.mts`).
 - FEITO depois: 🤝 TABELA (toca apertado e sai pro espaço; quem recebe devolve de primeira — 3,4 iniciadas e 1,1 completada por jogo).
-- PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; mais variedade de drible (hoje 1,7/jogo);
-  torcida reagindo; replay; juiz.
+- FEITO (2ª leva, 25/10): bola não "voa" mais pro pé depois de desarme (toque de domínio ≤ 12 m/s); chutão/lançamento no máx. 28 m/s;
+  quem recebe livre segura 0,2–0,8 s (bola no pé 25% → 30% do tempo); cobertura/cavadinha no goleiro adiantado; drible muda de direção;
+  bola gira de lado com o efeito (`curl` em `RotacaoBola3D`); cabeçada com pulo no 3D; chute procedural (perna bate) em todo passe/chute
+  sem captura; cai na falta, bote no desarme, ginga no drible; câmera de TV mais perto no celular em pé (~40 px de boneco).
+- FEITO (3ª leva): 🎉 torcida do time que fez o gol PULA (shader, `festa()` em `presidencia-complexo-torcida.ts`) · 🪑 ESTÁDIO CHEIO: 2ª camada
+  de torcedores de baixo-polígono (`farGeometry`, ~96 tris, `LIMITE_TORCIDA_LONGE` 7000) além dos 800 detalhados — medido 472 + 3670
+  torcedores = 1,44 M triângulos (era 1,09 M só com 472) · tática: lateral vira ala, marcado = passe ruim, circulação pelo zagueiro/
+  lateral livre, tabela · voleio/bicicleta · cobertura/cavadinha · drible muda de direção.
+- FEITO (4ª leva): 🚀 lançamento de verdade (0,3 → 0,8/jogo) · bolo na transição (ponta e meia aberto no mesmo ponto) 0,59 → 0,36 par/quadro ·
+  bloco recompõe a 6,5 m/s · conferido no 3D: bola na rede (entra, bate, volta 60 cm, cai), quique, goleiro no chute, desarme, cabeçada.
+  Bancadas novas no scratchpad: `anomal.mts` (bola parada/jogador plantado/goleiro longe/dentro de outro), `bolo.mts`, `lat.mts`, `quem.mts`,
+  `recep.mts`, `vmax.mts`, `golpes.mts`, `capdata.mjs` (lê a bola do 3D quadro a quadro).
+- FEITO (5ª leva, 25/10 de manhã): ⏱️ TRANSIÇÃO × POSSE MONTADA (`posseDesde` no motor, `transicao`/`direto` em `decide.ts`): nos 3 s
+  depois de roubar a bola o time joga direto; com o bloco rival montado o bônus de ganhar metros cai (×0,65 no próprio campo) e o
+  zagueiro/lateral livre vale mais (`CIRCULA` ×3) — recepções do zagueiro 5% → 7%, do lateral 9% → 16%, atacante 61% → 54%; quem está
+  LIVRE vê o companheiro atrás do corpo (a "visão" só esconde quem está atrás quando apertado). Pra manter o placar: `GK_BASE` 0,34 → 0,25
+  e `CHUTE_LONGE` 0,75 → 1,0 (300 jogos: 1,6 gol · 0×0 11–13% · 3,2 chutes · forte ganha 75–78%). 💫 DRIBLE COM JEITO: quem não tem
+  golpe assinatura dribla pelo que a carta É — veloz = arrancada (28%), forte com o marcador na frente = protege e gira (7%), o resto finta
+  de corpo (60%); narração PT/EN e corpo próprio no 3D (`teatro` em `players.mjs`: inclina / agacha e protege / ginga; roleta e Cruyff
+  rodam inteiro). 🤝 APITO FINAL: os 22 andam pro meio-campo (1,5 m/s) em vez de congelar onde estavam. Defendendo perto do gol a linha
+  não se amontoa no lado da bola (pilha de 6+ na área 4% → 3% dos quadros). Limpeza: `qa-tmp-cams.html` e `public/qa-tmp-input.json`
+  saíram do repo (o json ia junto no build) e entraram no `.gitignore`.
+  📏 Limite que vale saber: o jogo tem 90 s e cada passe custa ~2 s (segurar + voo), então são ~43 passes por jogo — circular mais na
+  defesa tira ataques; 7% de toques do zagueiro é o compromisso entre "a zaga joga" e "tem gol". Bancadas novas: `opsagg.mts`/`opsdec.mts`
+  (utilidade de cada opção de passe por grupo do alvo), `passout.mts` (resultado do passe por zona e alvo), `jeitos.mts` (jeitos do drible).
+- FEITO (6ª leva, 25/10): 🤾 LATERAL de verdade — o cobrador FREIA chegando na bola (a 9 m/s cravado passava dela, voltava e a cobrança
+  atrasava ~1 s), pega a bola na MÃO e segura em cima da cabeça até o arremesso (`naMao` na `Parada`; braços pra cima em `players.mjs`);
+  🧤 GOLEIRO: o tipo do pulo (pra cima × de lado) se decide UMA vez por chute (`vertical` no `dive` do adaptador — antes começava curvado
+  e terminava reto) e a postura de prontidão deixa de ser reverência (`KeeperReady_Loop` misturada ×0,55 com o parado); 🤝 APITO FINAL
+  no mapa: o relógio para em 93' mas cada quadro desenhado leva o motor 1/60 s adiante por até 45 s (`fimQuadros`), então os 22 andam
+  mesmo até o meio-campo (medido: 21,6 m → 3,1 m do centro em 30 s). Bancada: `rev/cap2.mjs` foca QUALQUER jogador pelo nome (o
+  `cap.mjs` só achava quem tinha plano de chute — por isso o goleiro nunca aparecia); `rev/evs.mts` regrava os eventos da fixture com o
+  motor ATUAL (os eventos gravados no `mkfix` envelhecem a cada mudança do motor — o 3D replica o código de agora).
+- FEITO (7ª leva): 🧱 BARREIRA de verdade na falta frontal — os 3 são escolhidos UMA vez na hora da falta (`barreira` na `Parada`; antes
+  era "os 3 mais perto" refeito a cada passo e eles trocavam de lugar correndo a 7 m/s até a cobrança), ficam a 9,9 m (fora da régua
+  de 9,6 m que empurra rival — em cima dela tremiam) e OMBRO A OMBRO (a folga de 2,2 m entre companheiros não vale pra eles). Filmado:
+  três parados de frente pra bola 1,5 s depois da falta. Falta frontal a <30 m é rara (0,2/jogo) e leva até 4,5 s porque os 5 que sobem
+  são os melhores cabeceadores (zagueiro vem lá de trás) — teto que já existia.
+- FEITO (8ª leva): 🟨 o JUIZ MOSTRA O CARTÃO (2 s depois do amarelo/vermelho: braço pra cima e pra fora — reto pra cima sumia atrás da
+  cabeça grande do boneco — com o cartão da cor na mão; `sidelines.mjs`, só desenho) · 🎉 a COMEMORAÇÃO VARIA por gol (preso no autor +
+  minuto): braços pra cima com pulinhos · aviãozinho (braços abertos correndo pra lateral) · dedo pro céu; os companheiros do abraço
+  seguem de braços pra cima. Bancada: câmera `referee-front` no `mechanics-audit`. ⚠️ `test-sidelines.cjs`/`test-referee-clearance.cjs`
+  do Codex precisam de servidor em 127.0.0.1:4197 com base `/7a0-game-studio/` e da fixture `neymarzetti-current` — não rodam aqui (já era assim).
+- FEITO (9ª leva): 💫 golpes assinatura com corpo próprio no 3D (pedalada, elástico, chapéu, caneta, croqueta, corta pra dentro —
+  `teatro` em `players.mjs`); 🧑‍⚖️ o juiz guarda 9 m da bola e sai do caminho de quem chega a 3 m (antes ficava DENTRO do drible —
+  medido: distância mínima a jogador 0,08 m → 1,67 m); quem passa pelo marcador avança 0,35 s com a bola antes de soltar.
+  🧪 Descartado: colar a bola no pé por 0,3 s depois do drible (0×0 10% → 17% em 300 jogos; nem goleiro mais fraco compensava) e
+  ponta colado na linha a 4,5 m (passes pra linha 3% → 13%, mas a bola não ficou mais perto da linha, caiu chute e subiu 0×0).
+  📏 A bola sai pela lateral ~1×/jogo porque ninguém joga a menos de 4 m da linha (2,9% do tempo) — largura é escolha do bloco, não bug.
+- FEITO (10ª leva): 🧤 GOLEIRO COM A BOLA NA MÃO — encaixou ou saiu buscando bola do rival = bola no peito (`gkMao`, h 0,9 m; o recuo
+  do companheiro continua no pé) e a reposição sai DA MÃO: arremesso baixo e rápido até ~32 m, chutão de voleio além disso; no 3D os
+  dois braços vão do ombro até a bola (segura na frente do corpo). ⚠️ Pra isso a bola na mão vai SEM `owner` no quadro: a apresentação
+  do Codex (`ball-control`) gruda a bola do dono no pé — por isso a 1ª versão ficava no chão. Medido: 0,4 encaixe/saída por jogo, 0,38
+  arremesso/jogo. Bancada: câmera `front` (de frente pro jogador focado) no `mechanics-audit`.
+- ✅ 🔁 REPLAY DO GOL — FEITO (aprovado pelo Diego 25/10, *"Ok aprovado tudo"*; mockup `scripts/mockups/replay-gol.png`): na festa do gol
+  (2,5 s, relógio parado), dos 0,35 s aos 1,95 s a tela mostra de novo os 2,4 s antes de a bola entrar (câmera lenta ~0,67×), da câmera
+  'Atrás do gol', com o selo 🔁 REPLAY piscando, e volta pra festa. Só apresentação: o adaptador (`comReplay` em
+  `presidencia-futebol-oficial.ts`) guarda os últimos 4 s de quadros e devolve o quadro antigo com `replay:true`; a câmera contínua
+  recebe `forcar:'goal'` e entra/sai em CORTE seco guardando a distância do preset do usuário; o selo é `.pc3-replay` no mapa. Motor,
+  placar e festa não mudam. Confirmado no mapa de verdade no celular (selo na tela) e na bancada (relógio volta de 14.7' pra 12.6').
+  Bancada: `cap2.mjs` agora anda em passos de 0,05 s entre fotos (o replay e a marcha precisam do histórico denso, como no jogo).
+- FEITO (11ª leva): 🤝 no MAPA de verdade o laço de desenho segue 45 s depois do apito (`cumprimentos()` em `presidencia-complexo-3d`) e a
+  TV passa a seguir os JOGADORES indo pro meio (`foco` no `update` da câmera contínua) — antes o último quadro congelava com todo
+  mundo plantado e, depois do conserto do motor, a câmera ficava olhando a bola parada enquanto eles saíam do quadro. 🎯 Chute comum
+  com nome pelo que aconteceu: de longe (> 24 m) · rasteiro no canto · cruzado (narração PT/EN) — "normal" caiu de 79% pra 46%.
+  🧪 Descartado: jogador comum ajeitar a bola na área antes de bater (1,57 gol, 18% de 0×0) e etiqueta "de primeira" (seria 64% dos
+  chutes — na área o motor bate no instinto, a narração repetiria).
+- FEITO (12ª leva, 25/10 — análise lance a lance no 3D, pedido dele: *"esqueça o Codex, faça por você… olhe minha conta"*): bancada
+  `rev/strip.sh <fixture> <nome> <câmera> <jogador> <t0> <t1> <passo>` filma qualquer fundamento em 10–20 quadros/s. Achados e consertos:
+  🧍 quem espera o passe corria DE COSTAS pra bola (tronco reto, só a cabeça virava) → o tronco abre até 0,4 rad pro lado da bola
+  (`orientOpenPlay`); 🗣️ o corte de cabeça do zagueiro vinha como `desvio` sem `golpe` e o 3D não pulava (ficava parado embaixo da bola)
+  → `golpe:'cabeca'` no lance e `requiredContact:'head'` no adaptador; 🧤 goleiro no passinho lateral ficava DE LADO pro chute (a marcha
+  virava o corpo pro deslocamento) → abaixo de 3,4 m/s ele encara a bola (adaptador + `players.mjs`); 🧤 bola na mão a 0,62 m (o boneco é
+  baixinho: a 0,9 m ficava na cara); 🧍 bola parada: o 2º homem passava POR DENTRO do cobrador → companheiro guarda 2,5 m na âncora,
+  2 m na separação e contorna a bola (raio 1,8 m, ≤ 0,1 m/passo) — medido: companheiro a < 1 m do cobrador 0% em todas as paradas.
+  ⚠️ **Lição da bancada**: `captureWithScore` rodava a AUDITORIA do Codex (`players.audit()`) antes da foto e a auditoria MEXE na pose
+  (deixava o goleiro de pé no meio do mergulho); e buscar a chave do jogador com `seek(1)` recriava a partida e o goleiro aparecia
+  "frio". Agora a foto é `audit:false` e a chave vem de um mapa nome→chave feito uma vez. Meia hora de "mergulho que não aparece" era a bancada.
+  Câmeras novas na bancada: `front` (de frente pro focado), `goalreal` (a câmera 'Atrás do gol' do JOGO), `referee-front`.
+- FEITO (13ª leva): 🏃 CORRIDA na bola parada — escanteio, falta e pênalti: o cobrador espera 2,2 m atrás da bola (no escanteio, 2,2 m
+  pra dentro do campo pela lateral: atrás da linha de fundo ele ficava "atrás do gol" e a decisão não via o cruzamento — 38% dos
+  escanteios saíam em passinho) e vem bater chegando; a corrida começa 0,6 s antes de a cobrança poder sair, então o tempo parado não
+  mudou (`correndo` na `Parada`). O contador de "reinício sem a distância" conta UMA vez na cobrança (contava a cada passo da corrida:
+  10 → 152). `GK_BASE` 0,25 → 0,23 pra segurar o placar (1,62 gol · 0×0 15%). 💫 toque de condução curto por 0,5 s depois do drible.
+  🥅 CÂMERA 'ATRÁS DO GOL' estava presa atrás do gol de +X — com a bola no outro gol virava formiga a 120 m. Agora fica atrás do gol
+  da metade onde a bola está e CORTA seco quando a bola cruza o meio (nada de voar por cima do campo); teste de presets atualizado.
+  Bancada: `cap2.mjs` aceita `away:Nome`/`home:Nome` (o fixture fc tem dois Roberto Carlos — a câmera seguia o errado).
+  📏 Medido: diferença de ±0,07 gol entre duas versões em 300 jogos é RUÍDO (erro padrão ≈ 0,075) — só mexer no goleiro quando o
+  `npm run motor2` reprova, não a cada décimo.
+- PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
+  caberiam pela proporção de chutes);
+  a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.
 

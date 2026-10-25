@@ -87,6 +87,34 @@ function seatedGeometry(seatHeight: number): Record<Part, THREE.BufferGeometry> 
   })) as Record<Part, THREE.BufferGeometry>
 }
 
+/** 🪑 25/10 TORCIDA DISTANTE: o torcedor de baixo-polígono (~60 triângulos contra ~2300 do detalhado) que enche os milhares de
+ * assentos que ficavam vazios. Mesmas 3 partes (pele/camisa/calça) e as mesmas cores — de longe ninguém distingue; de perto os
+ * detalhados continuam onde estão. Sentado na mesma altura do banco. */
+function farGeometry(seatHeight: number): Record<Part, THREE.BufferGeometry> {
+  const pieces: Record<Part, THREE.BufferGeometry[]> = { skin: [], shirt: [], lower: [] }
+  const add = (part: Part, geometry: THREE.BufferGeometry, x: number, y: number, z: number) => {
+    geometry.translate(x, y, z)
+    const flat = geometry.index ? geometry.toNonIndexed() : geometry
+    if (flat !== geometry) geometry.dispose()
+    flat.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(flat.getAttribute('position').count * 3).fill(1), 3))
+    pieces[part].push(flat)
+  }
+  add('lower', new THREE.BoxGeometry(.34, .16, .26), 0, seatHeight + .08, -.05) // (pélvis no banco)
+  add('lower', new THREE.BoxGeometry(.3, .14, .34), 0, seatHeight + .07, .17) // (coxas pra frente)
+  add('shirt', new THREE.BoxGeometry(.42, .46, .24), 0, seatHeight + .36, -.055) // (tronco)
+  add('shirt', new THREE.BoxGeometry(.12, .3, .12), -.26, seatHeight + .4, 0) // (braços)
+  add('shirt', new THREE.BoxGeometry(.12, .3, .12), .26, seatHeight + .4, 0)
+  add('skin', new THREE.SphereGeometry(.13, 6, 4), 0, seatHeight + .78, -.055) // (cabeça)
+  return Object.fromEntries((['skin', 'shirt', 'lower'] as const).map(part => {
+    const geometry = mergeGeometries(pieces[part], false)!
+    pieces[part].forEach(piece => piece.dispose())
+    geometry.computeBoundingBox(); geometry.computeBoundingSphere()
+    return [part, geometry]
+  })) as Record<Part, THREE.BufferGeometry>
+}
+/** teto da torcida DISTANTE (baixo-polígono), além dos `LIMITE_TORCIDA_COMPLEXO` detalhados */
+export const LIMITE_TORCIDA_LONGE = 7000
+
 /** Visual sample only. Seats come from the actual architecture; attendance
  * never buys a stand, creates a visitor, changes income or runs another clock. */
 export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly AssentoComplexo[], population: PublicoTorcidaComplexo = { mode: 'off' }) {
@@ -113,31 +141,50 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   // an independently supplied away attendance changes. Unused seats stay empty.
   const quota = { home: places.length ? Math.round(budget * available.home / places.length) : 0, away: 0 }
   quota.away = budget - quota.home
+  // (a torcida distante: a cota de TODOS os assentos, até o teto, na mesma proporção)
+  const budgetLonge = Math.min(LIMITE_TORCIDA_LONGE, places.length)
+  const quotaLonge = { home: places.length ? Math.round(budgetLonge * available.home / places.length) : 0, away: 0 }
+  quotaLonge.away = budgetLonge - quotaLonge.home
   const prototypes = new Map<number, Record<Part, THREE.BufferGeometry>>()
-  const materials = (['skin', 'shirt', 'lower'] as const).map(part => {
+  // 🎉 25/10 (Diego: "torcida reagindo"): cada LADO tem os próprios materiais, com um balanço leve o tempo todo e o PULO no gol do time
+  // (feito no vertex shader por uniform — nenhuma matriz de instância muda, custo zero de CPU). `uFesta` 0–1 é a festa daquele lado.
+  const festaUniforms = { home: { uFesta: { value: 0 }, uTime: { value: 0 } }, away: { uFesta: { value: 0 }, uTime: { value: 0 } } }
+  const materialsPorLado = Object.fromEntries((['home', 'away'] as const).map(side => [side, (['skin', 'shirt', 'lower'] as const).map(part => {
     const material = materialHumano('#ffffff', part === 'skin' ? 'skin' : 'fabric')
-    material.name = `torcida-${part}`
+    material.name = `torcida-${side}-${part}`
+    material.onBeforeCompile = shader => {
+      shader.uniforms.uFesta = festaUniforms[side].uFesta; shader.uniforms.uTime = festaUniforms[side].uTime
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uFesta;uniform float uTime;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+        { float id = float(gl_InstanceID); float fase = fract(sin(id * 12.9898) * 43758.5453) * 6.2832;
+          float balanco = sin(uTime * 1.7 + fase) * 0.012;
+          float pulo = max(0.0, sin(uTime * 8.0 + fase)) * 0.22 * uFesta;
+          transformed.y += (balanco + pulo) * step(0.3, position.y); }`)
+    }
+    material.customProgramCacheKey = () => 'torcida-festa-' + side
     return material
-  })
+  })])) as Record<Side, THREE.MeshStandardMaterial[]>
   const groups = new Map<string, Place[]>()
   for (const side of ['home', 'away'] as const) for (const place of ranked[side]) {
     const key = `${place.side}:${place.sector}:${place.tier}:${place.seatHeight}`
     const group = groups.get(key) ?? []; group.push(place); groups.set(key, group)
   }
-  const batches = [...groups.entries()].map(([key, group]) => {
-    let geometry = prototypes.get(group[0].seatHeight)
-    if (!geometry) { geometry = seatedGeometry(group[0].seatHeight); prototypes.set(group[0].seatHeight, geometry) }
-    const capacity = Math.min(budget, group.length)
+  const prototypesLonge = new Map<number, Record<Part, THREE.BufferGeometry>>()
+  const batches = [...groups.entries()].flatMap(([key, group]) => [true, false].map(detalhe => {
+    let geometry = (detalhe ? prototypes : prototypesLonge).get(group[0].seatHeight)
+    if (!geometry) { geometry = detalhe ? seatedGeometry(group[0].seatHeight) : farGeometry(group[0].seatHeight); (detalhe ? prototypes : prototypesLonge).set(group[0].seatHeight, geometry) }
+    const capacity = Math.min(detalhe ? budget : budgetLonge, group.length)
     const meshes = (['skin', 'shirt', 'lower'] as const).map((part, index) => {
-      const mesh = new THREE.InstancedMesh(geometry![part], materials[index], capacity)
-      mesh.name = `torcida-${key}-${part}`; mesh.castShadow = mesh.receiveShadow = true
+      const mesh = new THREE.InstancedMesh(geometry![part], materialsPorLado[group[0].side][index], capacity)
+      mesh.name = `torcida-${key}-${detalhe ? 'perto' : 'longe'}-${part}`; mesh.castShadow = detalhe; mesh.receiveShadow = true
       mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage)
       mesh.count = 0; mesh.visible = false
       mesh.userData = { part, side: group[0].side, sector: group[0].sector, tier: group[0].tier, seatIds: [] as string[] }
       root.add(mesh); return mesh
     })
-    return { places: group, occupied: [] as Place[], meshes, count: 0, color: '' }
-  })
+    return { places: group, detalhe, occupied: [] as Place[], meshes, count: 0, color: '' }
+  }))
   const transform = new THREE.Matrix4(), rotation = new THREE.Quaternion(), position = new THREE.Vector3(), unit = new THREE.Vector3(1, 1, 1)
   const skinTones = ['#754b35', '#a56f4c', '#c58d65', '#dda57e'].map(value => new THREE.Color(value))
   const neutral = new THREE.Color('#d5ceba'), lower = new THREE.Color('#29312f'), tint = new THREE.Color()
@@ -145,7 +192,8 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   let mode: PublicoTorcidaComplexo['mode'] = 'off', selected: Place[] = []
   let attendance: ReturnType<typeof publicoDoEstadio> | undefined, awayAttendance: ReturnType<typeof publicoDoEstadio> | undefined
   let occupancy = { home: 0, away: 0 }
-  const counts = { home: 0, away: 0 }
+  const counts = { home: 0, away: 0 }, countsLonge = { home: 0, away: 0 }
+  let selectedLonge: Place[] = []
   let reservations = new Set<string>(), selectionKey = '', lastPopulation = population
   const seatById = new Map(places.map(place => [place.id, place]))
   const reservedCounts = { home: 0, away: 0 }
@@ -167,22 +215,28 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       }
     }
     const target = { home: Math.round(quota.home * occupancy.home), away: Math.round(quota.away * occupancy.away) }
+    const targetLonge = { home: Math.round(quotaLonge.home * occupancy.home), away: Math.round(quotaLonge.away * occupancy.away) }
     // The animated visitor occupies its own chair throughout the visit. Remove
     // that chair AND its share of the sample, rather than drawing a second body.
-    for (const side of ['home', 'away'] as const) target[side] = Math.max(0, target[side] - reservedCounts[side])
+    for (const side of ['home', 'away'] as const) { target[side] = Math.max(0, target[side] - reservedCounts[side]); targetLonge[side] = Math.max(target[side], targetLonge[side] - reservedCounts[side]) }
     const colors = { home: color(input?.homeColor, '#1B7A3D'), away: color(input?.awayColor, '#C2452F') }
-    const nextSelection = `${target.home}:${target.away}:${[...reservations].sort().join('|')}`
+    const nextSelection = `${target.home}:${target.away}:${targetLonge.home}:${targetLonge.away}:${[...reservations].sort().join('|')}`
     const changedSelection = nextSelection !== selectionKey
     if (changedSelection) {
       selectionKey = nextSelection
       counts.home = target.home; counts.away = target.away
-      selected = [...ranked.home.filter(p => !reservations.has(p.id)).slice(0, counts.home), ...ranked.away.filter(p => !reservations.has(p.id)).slice(0, counts.away)]
+      countsLonge.home = Math.max(0, targetLonge.home - target.home); countsLonge.away = Math.max(0, targetLonge.away - target.away)
+      // (os primeiros da fila, pela ordem fixa, são os detalhados; os seguintes, até a cota cheia, são os de longe)
+      const fila = { home: ranked.home.filter(p => !reservations.has(p.id)), away: ranked.away.filter(p => !reservations.has(p.id)) }
+      selected = [...fila.home.slice(0, counts.home), ...fila.away.slice(0, counts.away)]
+      selectedLonge = [...fila.home.slice(counts.home, counts.home + countsLonge.home), ...fila.away.slice(counts.away, counts.away + countsLonge.away)]
     }
     const chosen = changedSelection ? new Set(selected.map(p => p.id)) : undefined
+    const chosenLonge = changedSelection ? new Set(selectedLonge.map(p => p.id)) : undefined
     let changed = false
     for (const batch of batches) {
       const side = batch.places[0].side
-      const occupied = chosen ? batch.places.filter(p => chosen.has(p.id)) : batch.occupied
+      const occupied = chosen ? batch.places.filter(p => (batch.detalhe ? chosen : chosenLonge!).has(p.id)) : batch.occupied
       const count = occupied.length
       const moved = count !== batch.count || occupied.some((p, i) => p.id !== batch.occupied[i]?.id), recolored = batch.color !== colors[side]
       if (!moved && !recolored) continue
@@ -212,6 +266,10 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   update(population)
   return {
     root, update,
+    /** 🎉 a festa do gol: `side` pula (0→1 em ~0,3 s), o outro lado fica parado; `null` desliga. `t` em segundos anda o balanço */
+    festa(side: Side | null, t: number) {
+      for (const s of ['home', 'away'] as const) { const u = festaUniforms[s]; u.uTime.value = t; const alvo = side === s ? 1 : 0; u.uFesta.value += (alvo - u.uFesta.value) * (alvo > u.uFesta.value ? 0.25 : 0.06) }
+    },
     reserve(ids: readonly string[] = []) {
       if (disposed) return
       reservations = new Set(ids.filter(id => seatById.has(id)))
@@ -220,7 +278,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       update(lastPopulation)
     },
     inspect() {
-      return { mode, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO,
+      return { mode, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, longe: { home: countsLonge.home, away: countsLonge.away, limit: LIMITE_TORCIDA_LONGE }, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
         attendance: attendance ? { ...attendance } : undefined, awayAttendance: awayAttendance ? { ...awayAttendance } : undefined,
         occupancy: { ...occupancy }, quota: { ...quota }, reservations: [...reservations], reserved: { ...reservedCounts }, invalidSeats, updates, matrixUpdates, instanceRebuilds: 0,
         batches: batches.reduce((total, batch) => total + batch.meshes.length, 0),
@@ -233,14 +291,14 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       disposed = true
       root.removeFromParent(); root.clear()
       for (const batch of batches) for (const mesh of batch.meshes) { mesh.count = 0; mesh.visible = false; mesh.userData.seatIds = []; mesh.dispose() }
-      for (const geometry of prototypes.values()) for (const part of Object.values(geometry)) part.dispose()
+      for (const geometry of [...prototypes.values(), ...prototypesLonge.values()]) for (const part of Object.values(geometry)) part.dispose()
       const maps = new Set<THREE.Texture>()
-      materials.forEach(material => {
+      Object.values(materialsPorLado).flat().forEach(material => {
         for (const value of Object.values(material)) if (value instanceof THREE.Texture) maps.add(value)
         material.dispose()
       })
       maps.forEach(map => map.dispose())
-      selected = []; counts.home = counts.away = 0
+      selected = []; selectedLonge = []; counts.home = counts.away = 0; countsLonge.home = countsLonge.away = 0
     },
   }
 }

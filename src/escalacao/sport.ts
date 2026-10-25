@@ -305,9 +305,9 @@ export function useKingsLiberada(): boolean {
   return kingsOk
 }
 
-// ⚡ MODO POKÉMON na Partida Rápida (25/10) — só a conta do Diego, em teste (`docs/conceito-pokemon.md`). Pikachu & cia são
+// ⚡ MODO POKÉMON na Partida Rápida (25/10) — Diego e Futpoint FC, em teste (`docs/conceito-pokemon.md`). Pikachu & cia são
 // marca da Nintendo: abrir pra todo mundo é decisão dele (avisado).
-const POKEMON_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const POKEMON_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com'])
 let pokemonOk = false
 function applyPokemon(email?: string | null): void {
   const u = !!email && POKEMON_TESTERS.has(email.toLowerCase())

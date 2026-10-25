@@ -69,3 +69,7 @@ bench-sim.html
 
 # Evidências locais de QA da Presidência; não entram no deploy.
 /test-results/
+
+# páginas/dados temporários de QA das sessões (ficam só no aparelho)
+qa-tmp-*.html
+public/qa-tmp-*.json

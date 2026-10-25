@@ -24,8 +24,11 @@ export function blocoDesejado(m: Motor2, lado: Lado): Bloco {
   // (defendendo, a linha de trás NÃO entra na pequena área: com a bola a 30 m ela fica na entrada da grande área (~16 m), como
   // uma defesa de verdade — antes ia pra 6 m do gol e os atacantes ficavam encostados no goleiro. Comprimento ~26 m: meio e zaga
   // em duas linhas de verdade, com o espaço "entre linhas" que o meia de verdade procura)
-  else { tras = clamp(bProf * 0.5 + 4 * tac, 8, 40); fr = clamp(tras + 26, 30, 66) }
-  return { tras, frente: fr, largura: ataca ? 1.0 : 0.82, desliza: (b.x - 34) * (ataca ? 0.18 : 0.36) }
+  else { tras = clamp(bProf * 0.5 + 4 * tac, 8, 40); fr = clamp(tras + 23, 28, 64) } // (23 m: zaga e meio a ~12 m, como um time compacto de verdade)
+  // (defendendo perto do próprio gol a linha NÃO se amontoa no lado da bola: largura quase inteira e desliza pouco — o 2º pau fica coberto
+  // e ninguém entra em ninguém; longe do gol, o bloco fecha mais no lado da bola)
+  const perto = !ataca && bProf < 30
+  return { tras, frente: fr, largura: ataca ? 1.0 : perto ? 0.92 : 0.82, desliza: (b.x - 34) * (ataca ? 0.18 : perto ? 0.22 : 0.36) }
 }
 /** o bloco anda liso (no máx. ~7 m/s): troca de posse vira transição, não pulo */
 export function andaBloco(m: Motor2, dt: number) {
@@ -34,7 +37,7 @@ export function andaBloco(m: Motor2, dt: number) {
     if (!b) { m.bloco[l] = d; continue }
     const anda = (de: number, para: number, v: number) => de + clamp(para - de, -v * dt, v * dt)
     // (quem perdeu a bola demora pra se recompor: a linha volta a ~5 m/s — é na transição que nasce o ataque)
-    const v = m.posseLado === l ? 7.5 : 5
+    const v = m.posseLado === l ? 7.5 : 6.5
     b.tras = anda(b.tras, d.tras, v); b.frente = anda(b.frente, d.frente, v); b.largura = anda(b.largura, d.largura, 0.6); b.desliza = anda(b.desliza, d.desliza, 9)
   }
 }
@@ -42,13 +45,18 @@ export function andaBloco(m: Motor2, dt: number) {
 export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
   const b = m.bloco[p.lado] ?? blocoDesejado(m, p.lado), ataca = m.posseLado === p.lado
   let dep = p.dep
-  if (p.grupo === 'LAT') dep = ataca ? 0.22 + 0.25 * p.tend.apoia : 0.03
+  // (25/10, medido: o lateral passava 7% do tempo no campo de ataque e dava 4% dos toques — com a posse ele sobe de verdade, como ala)
+  if (p.grupo === 'LAT') dep = ataca ? 0.42 + 0.35 * p.tend.apoia : 0.03
   let prof = b.tras + (b.frente - b.tras) * dep
   // (sem a bola, o ataque NÃO desce pro bloco: fica uns 12 m à frente dele esperando o contra-ataque — o bloco é de 7 + goleiro.
   // Dez atrás da linha da bola num jogo de 1:30 não deixava ninguém chegar na área)
-  if (!ataca && p.grupo === 'ATA') prof = Math.min(b.frente + 12, 68)
-  // (atacando, o atacante fica no OMBRO do último zagueiro — nunca atrás dele, que é impedimento e bola perdida)
-  if (ataca && (p.grupo === 'ATA' || (p.grupo === 'MEI' && dep > 0.6))) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 1)
+  // (25/10, medido: na transição o bloco ainda está alto e o ponta e o meia aberto caíam no MESMO ponto — o teto do atacante era 68 m e o
+  // meia a 0,75 de um bloco de 43 m também dava 68. Agora o atacante fica sempre 8 m à frente da linha dos meias, com teto a 76)
+  if (!ataca && p.grupo === 'ATA') prof = Math.min(Math.max(b.frente + 12, b.tras + (b.frente - b.tras) * 0.75 + 8), 76)
+  // (atacando, o atacante fica no OMBRO do último zagueiro — nunca atrás dele, que é impedimento e bola perdida; o meia que chega fica
+  // 6 m atrás dele, nunca na mesma linha: um é a profundidade, o outro é a segunda onda)
+  if (ataca && p.grupo === 'ATA') prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 1)
+  if (ataca && p.grupo === 'MEI' && dep > 0.6) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 7)
   let x = 34 + (p.bx - 34) * b.largura + b.desliza
   // ponta abre o campo quando o time ataca…
   if (ataca && p.grupo === 'ATA' && (p.bx < 22 || p.bx > 46)) {
@@ -265,7 +273,7 @@ export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number 
       // (no último terço, quem ataca vai pro lugar dele com PRESSA — o atacante que troteia pra área chega depois do cruzamento)
       // (e quem defende perto do próprio gol volta pro lugar CORRENDO — a zaga que troteia deixa a linha 4 m mais alta que o bloco)
       const urgente = (m.posseLado === p.lado && frente(p.lado, m.bola.y) < 40 && (p.grupo === 'ATA' || p.grupo === 'MEI')) || (m.posseLado !== p.lado && fundo(p.lado, m.bola.y) < 40)
-      return vaiPara(ancora(m, p), urgente ? 1.9 : 1)
+      return vaiPara(ancora(m, p), urgente ? 1.5 : 1)
     }
   }
 }
