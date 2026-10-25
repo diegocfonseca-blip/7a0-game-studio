@@ -8514,6 +8514,10 @@ export function PyramidSeasonScreen() {
   // tabela final, que ainda não existe — e as fases vão sendo REVELADAS nas quartas. Supercopa (precisa do campeão da Liga) e
   // as internacionais continuam depois da Liga. Temporada que já começou termina do jeito de antes.
   const copaMid = calOn && state.calCopaSeason === calSn
+  // 📊 JOGOS + TABELA NUMA ABA SÓ (25/10, mockup `carreira-jogos-placar-tabela.png`, só a conta do Diego junto do calendário):
+  // em cima o placar cinema / Campo 2D do MESMO tamanho; embaixo a tabela da liga e os jogos da liga. Na Copa só troca:
+  // chaveamento + jogos da Copa. A aba Tabelas some da barra (o `combined` da BarraCarreira já existia, nunca tinha sido ligado).
+  const jogoTabela = calOn
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
   // 📅 com a Copa no meio da Liga ela começa cedo (1ª quarta ≥ rodada 5): o motor novo só vale se ligou antes da rodada 5
   const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
@@ -10208,7 +10212,9 @@ export function PyramidSeasonScreen() {
   const tabTocada = useRef(false) // a pessoa já escolheu uma aba nesta visita?
   // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
   useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
-  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; setTab(t) }
+  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
+  // 📊 com Jogos + Tabela juntos, qualquer caminho antigo que abria "Tabelas" (link, aba lembrada) cai na aba Jogos
+  useEffect(() => { if (jogoTabela && tab === 'tabelas') setTab('jogos') }, [jogoTabela, tab])
   // 🔴 tem recibo esperando no Clube? (patrocínio pago na virada · fechamento do
   // caixa no fim da temporada). Some assim que a pessoa abre a aba Clube, e
   // volta a valer na temporada seguinte.
@@ -10723,7 +10729,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} />}
+      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} combined={jogoTabela} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
@@ -12406,8 +12412,8 @@ export function PyramidSeasonScreen() {
                   justamente pra onde o link "ver fases e resultados" aponta). Em
                   Tabelas eles continuam intactos, e durante a Copa também. */}
               {!(roteiroOn && tab === 'jogos') && <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=><span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>}
-              {tab==='jogos' && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>}
-              {tab==='tabelas' && <>
+              {tab==='jogos' && !jogoTabela && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>}
+              {(tab==='tabelas' || jogoTabela) && <>
                 {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('CONFRONTOS DA FASE', 'TIES OF THE ROUND')}`}/>}
                 {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
                 <details className="ll29-history"><summary>{tr('LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO', 'LEAGUE OVER · STANDINGS AND PRIZES')}</summary><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
@@ -12415,12 +12421,18 @@ export function PyramidSeasonScreen() {
             </> : (() => {
               const division = divisionView && ord.includes(divisionView) ? divisionView : myDiv ?? ord[0]
               const minute = done ? 93 : scoreClock.round===round ? scoreClock.minute : 0
+              // 📊 aba única, semana de COPA (quarta): chaveamento no lugar da tabela + os jogos da Copa da noite embaixo.
+              // `reveal={copaRound}`: a fase que está rolando ainda não entra no chaveamento (anti-spoiler)
+              if (jogoTabela && tab === 'jogos' && copaPlaying && copa && copaFase) return <>
+                <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
+                <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('JOGOS DA COPA', 'CUP MATCHES')}`}/>
+              </>
               return <>
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
                 <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={d===division} onClick={()=>setDivisionView(d)}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}</div>
-                {tab==='tabelas' ? <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>
-                  : round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
+                {(tab==='tabelas' || jogoTabela) && <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>}
+                {tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
               </>
             })()}
           </section>
