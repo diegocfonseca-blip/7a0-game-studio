@@ -19,7 +19,12 @@
   de torcedores de baixo-polígono (`farGeometry`, ~96 tris, `LIMITE_TORCIDA_LONGE` 7000) além dos 800 detalhados — medido 472 + 3670
   torcedores = 1,44 M triângulos (era 1,09 M só com 472) · tática: lateral vira ala, marcado = passe ruim, circulação pelo zagueiro/
   lateral livre, tabela · voleio/bicicleta · cobertura/cavadinha · drible muda de direção.
-- PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; mais variedade de drible (hoje 1,7/jogo);
+- FEITO (4ª leva): 🚀 lançamento de verdade (0,3 → 0,8/jogo) · bolo na transição (ponta e meia aberto no mesmo ponto) 0,59 → 0,36 par/quadro ·
+  bloco recompõe a 6,5 m/s · conferido no 3D: bola na rede (entra, bate, volta 60 cm, cai), quique, goleiro no chute, desarme, cabeçada.
+  Bancadas novas no scratchpad: `anomal.mts` (bola parada/jogador plantado/goleiro longe/dentro de outro), `bolo.mts`, `lat.mts`, `quem.mts`,
+  `recep.mts`, `vmax.mts`, `golpes.mts`, `capdata.mjs` (lê a bola do 3D quadro a quadro).
+- PRÓXIMO: zagueiro ainda dá só 6% dos toques (real ~15%); mais variedade de drible (quase todo "simples"); pose do goleiro no pulo lateral
+  parece agachado de frente; cobrador de lateral parado 1 s no 3D (apresentação do Codex, não o motor); replay do gol; juiz. mais variedade de drible (hoje 1,7/jogo);
   torcida reagindo; replay; juiz.
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.
