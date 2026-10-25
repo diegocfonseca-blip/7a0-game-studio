@@ -100,8 +100,16 @@
   Bancada: `cap2.mjs` aceita `away:Nome`/`home:Nome` (o fixture fc tem dois Roberto Carlos — a câmera seguia o errado).
   📏 Medido: diferença de ±0,07 gol entre duas versões em 300 jogos é RUÍDO (erro padrão ≈ 0,075) — só mexer no goleiro quando o
   `npm run motor2` reprova, não a cada décimo.
-- PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
-  caberiam pela proporção de chutes);
+- FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
+  chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
+  Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- MEDIDO (25/10, depois da 14ª leva): a bola sai pouco pela lateral (~1/jogo) porque o jogo roda PELO MEIO — a bola passa só 3% do
+  jogo a menos de 5 m da lateral e 9% a menos de 10 m; o dono da bola está a menos de 8 m da linha só 5% do tempo. Testei soltar o
+  ponta pra conduzir pela linha (o puxão pro meio de 0,12/m vira 0,025/m longe da área): a faixa perto da linha subiu pouco e o 0×0
+  bateu 15% (estourou a trava). DESFEITO. Abrir o jogo de verdade muda o placar da carreira → só com OK do Diego. Junto: a média de
+  gols está em ~1,6 (era 1,97 quando a trava nasceu, em 21/10) — dentro da faixa, mas encostando. O "2º homem colado no cobrador"
+  já estava resolvido (guarda 2,5 m da bola).
+- PRÓXIMO:
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.
