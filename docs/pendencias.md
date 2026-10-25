@@ -10835,3 +10835,13 @@ Pedido: *"faz na minha no partida rápida porque quero jogar com bots só pra mi
   ("quem ganha fica", narração com SUPER EFETIVO), tabela só mexe no fim, semifinal 1×4/2×3 e final jogo único, campeão.
 - Motor puro `pokemon-batalha.ts` + dados `pokemon-dados.ts`. Trava `npx tsx scripts/testa-pokemon.mts`. Fotos: `scripts/mockups/pokemon-real-*.png`.
 - ⏳ Falta/ideias: salas online (ele quer no futuro), som, animação do golpe, o "dia" (nível) aparecer na revelação do pokémon.
+
+## 💳 25/10 — PLANOS NOVOS (em discussão com o Diego, NADA mudou no jogo)
+Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício):
+1. 🎣 Iscas: **Manual + Campo 2D por 1 dia R$ 4,99** (*"por um dia 4.99"*) · **3 salas extras R$ 4,90**. Ficha de carreira NÃO é isca
+   (*"ficha não é isca"*) — volta pros avulsos.
+2. ⭐ **Mensal R$ 9,90** = jogo todo liberado (Manual, 2D, salas à vontade, nuvem, fichas). Na tela da isca: "2 dias já pagam o mês".
+3. 🛒 Avulsos: ficha de carreira R$ 9,99 · Super Chat · roupa do presidente · tema da sala.
+4. 🛡️ Clube: escudo R$ 39,90 · mascote R$ 39,90 · manto R$ 19,90 · **combo R$ 79,90** (ele achou os primeiros valores baratos).
+5. 💎 **Vitalício completo** (tudo pra sempre + combo do clube): ele quer BEM caro (*"senão não paga mais mensal"*); proposta R$ 299,90 — ⏳ ele confirmar.
+⚠️ Quem já pagou Lenda/Batismo/Fundador fica com tudo pra sempre (regra "planos novos não mexem em quem já paga").
