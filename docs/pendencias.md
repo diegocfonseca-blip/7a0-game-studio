@@ -65,9 +65,13 @@
   dois braços vão do ombro até a bola (segura na frente do corpo). ⚠️ Pra isso a bola na mão vai SEM `owner` no quadro: a apresentação
   do Codex (`ball-control`) gruda a bola do dono no pé — por isso a 1ª versão ficava no chão. Medido: 0,4 encaixe/saída por jogo, 0,38
   arremesso/jogo. Bancada: câmera `front` (de frente pro jogador focado) no `mechanics-audit`.
-- 🔁 REPLAY DO GOL — mockup pronto, ESPERANDO OK DO DIEGO (`scripts/mockups/replay-gol.png`, 25/10): na festa do gol (2,5 s, relógio
-  parado) a tela corta 1,5 s do lance visto de trás do gol em câmera lenta, selo REPLAY, e volta pra festa. Não mexe no motor (é a
-  câmera voltando 3 s na mesma partida). Não implementar antes do OK (regra: UI nova = mockup primeiro).
+- ✅ 🔁 REPLAY DO GOL — FEITO (aprovado pelo Diego 25/10, *"Ok aprovado tudo"*; mockup `scripts/mockups/replay-gol.png`): na festa do gol
+  (2,5 s, relógio parado), dos 0,35 s aos 1,95 s a tela mostra de novo os 2,4 s antes de a bola entrar (câmera lenta ~0,67×), da câmera
+  'Atrás do gol', com o selo 🔁 REPLAY piscando, e volta pra festa. Só apresentação: o adaptador (`comReplay` em
+  `presidencia-futebol-oficial.ts`) guarda os últimos 4 s de quadros e devolve o quadro antigo com `replay:true`; a câmera contínua
+  recebe `forcar:'goal'` e entra/sai em CORTE seco guardando a distância do preset do usuário; o selo é `.pc3-replay` no mapa. Motor,
+  placar e festa não mudam. Confirmado no mapa de verdade no celular (selo na tela) e na bancada (relógio volta de 14.7' pra 12.6').
+  Bancada: `cap2.mjs` agora anda em passos de 0,05 s entre fotos (o replay e a marcha precisam do histórico denso, como no jogo).
 - FEITO (11ª leva): 🤝 no MAPA de verdade o laço de desenho segue 45 s depois do apito (`cumprimentos()` em `presidencia-complexo-3d`) e a
   TV passa a seguir os JOGADORES indo pro meio (`foco` no `update` da câmera contínua) — antes o último quadro congelava com todo
   mundo plantado e, depois do conserto do motor, a câmera ficava olhando a bola parada enquanto eles saíam do quadro. 🎯 Chute comum

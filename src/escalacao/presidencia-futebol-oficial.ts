@@ -62,7 +62,7 @@ export class FutebolOficial3D {
  sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
@@ -104,8 +104,22 @@ export class FutebolOficial3D {
   // Initial/paused restart frames also face the real restart point.
   if(context.restart)this.referee.heading=Math.atan2(context.restart.point.x-this.referee.x,context.restart.point.z-this.referee.z)
   const presented=this.goalFinish.sample({x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
-  return {players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,restart:context.restart,incident:context.incident,incidents:context.incidents,placementReset:placementReset||undefined,owner:b.dono&&g.gkMao!==b.dono?key(b.dono):undefined,/* (🧤 bola na MÃO do goleiro: sem `owner`, senão a apresentação do Codex gruda a bola no pé dele) */officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,requiredContact:context.restartOrigin?.type==='lateral'?'hands':action==='cabeceio'||action==='cabeceio_gol'||b.lance?.golpe==='cabeca'?'head':'foot',restartOrigin:context.restartOrigin,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
+  const quadro:QuadroFutebol={players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,restart:context.restart,incident:context.incident,incidents:context.incidents,placementReset:placementReset||undefined,owner:b.dono&&g.gkMao!==b.dono?key(b.dono):undefined,/* (🧤 bola na MÃO do goleiro: sem `owner`, senão a apresentação do Codex gruda a bola no pé dele) */officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,requiredContact:context.restartOrigin?.type==='lateral'?'hands':action==='cabeceio'||action==='cabeceio_gol'||b.lance?.golpe==='cabeca'?'head':'foot',restartOrigin:context.restartOrigin,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
+  return this.comReplay(quadro,time)
+ }
+ /** 🔁 REPLAY DO GOL (aprovado pelo Diego 25/10): guarda os últimos 4 s de quadros; na festa, dos 0,35 s aos 1,95 s, mostra de novo os
+  *  2,4 s antes de a bola entrar (câmera lenta ~0,67×). Só apresentação — o motor, o placar e a festa seguem iguais; a câmera 'Atrás do
+  *  gol' e o selo REPLAY entram pelo campo `replay` do quadro */
+ private historico:QuadroFutebol[]=[]
+ private comReplay(quadro:QuadroFutebol,time:number):QuadroFutebol{
+  const g=this.game,h=this.historico
+  if(!g.festa){if(!g.fim&&!quadro.placementReset&&(!h.length||h[h.length-1].time<time)){h.push(quadro);while(h.length&&h[0].time<time-4)h.shift()}return quadro}
+  const e=time-(g.festa.ate-2.5),gol=g.eventos.findLast(ev=>ev.tipo==='gol')
+  if(e<.35||e>1.95||!gol||h.length<2)return quadro
+  const tr=gol.t-2.3+(e-.35)/1.6*2.4
+  let q=h[0];for(const f of h){if(f.time<=tr)q=f;else break}
+  return {...q,replay:true,official:quadro.official,incidents:quadro.incidents,incident:quadro.incident}
  }
 }
