@@ -73,7 +73,7 @@ export class FutebolOficial3D {
    const side=p.lado===0?'home' as const:'away' as const
    const roster=side==='home'?[...state.context.home,...state.context.homeSecondHalf??[]]:[...state.context.away,...state.context.awaySecondHalf??[]]
    const card=roster.find(c=>c.name===p.nome),mx=mix(p.ay,p.y)-52.5,mz=mix(p.ax,p.x)-34
-   const speed=p.expulso||g.fim?0:Math.hypot(p.vx,p.vy)
+   const speed=p.expulso?0:Math.hypot(p.vx,p.vy) // (depois do apito o motor leva todo mundo ANDANDO pro meio: a marcha segue a velocidade)
    const last=this.travel.get(p.id),distance=(last?.distance??0)+(last?Math.hypot(mx-last.x,mz-last.y):0)
    this.travel.set(p.id,{x:mx,y:mz,distance})
    return {id:card?.id??String(p.id),name:p.nome,pos:card?.pos??p.carta?.pos??(p.grupo==='GOL'?'GOL':'MEI'),key:key(p),side,keeper:p.grupo==='GOL',x:mx/105+.5,y:mz/68+.5,mx,mz,

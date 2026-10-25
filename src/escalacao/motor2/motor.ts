@@ -404,7 +404,19 @@ export class Motor2 {
     const dt = DT
     this.t += dt
     this.passo++
-    if (this.fim) { for (const p of this.atl) { p.vx *= 0.9; p.vy *= 0.9; p.x = clamp(p.x + p.vx * dt, -1.5, W + 1.5); p.y = clamp(p.y + p.vy * dt, -2, L + 2) } return }
+    if (this.fim) {
+      // 🤝 APITO FINAL (25/10, filmado no 3D: todo mundo parava onde estava e ficava plantado): os 22 vão ANDANDO pro meio-campo se
+      // cumprimentar — passo de quem acabou de jogar (1,5 m/s), cada um pro seu lugar num bolo largo em volta do círculo central
+      this.atl.forEach((p, i) => {
+        const ax = 34 + ((i % 6) - 2.5) * 1.7, ay = 52.5 + (Math.floor(i / 6) - 1.5) * 1.7
+        const dx = ax - p.x, dy = ay - p.y, d = len(dx, dy)
+        const v = d > 1.2 ? 1.5 : 0
+        p.vx += ((dx / (d || 1)) * v - p.vx) * Math.min(1, dt * 4); p.vy += ((dy / (d || 1)) * v - p.vy) * Math.min(1, dt * 4)
+        p.x = clamp(p.x + p.vx * dt, -1.5, W + 1.5); p.y = clamp(p.y + p.vy * dt, -2, L + 2)
+        if (v > 0) { p.fx = dx / d; p.fy = dy / d }
+      })
+      return
+    }
     // posse
     const d = this.bola.dono
     const posseAntes = this.posseLado

@@ -23,9 +23,21 @@
   bloco recompõe a 6,5 m/s · conferido no 3D: bola na rede (entra, bate, volta 60 cm, cai), quique, goleiro no chute, desarme, cabeçada.
   Bancadas novas no scratchpad: `anomal.mts` (bola parada/jogador plantado/goleiro longe/dentro de outro), `bolo.mts`, `lat.mts`, `quem.mts`,
   `recep.mts`, `vmax.mts`, `golpes.mts`, `capdata.mjs` (lê a bola do 3D quadro a quadro).
-- PRÓXIMO: zagueiro ainda dá só 6% dos toques (real ~15%); mais variedade de drible (quase todo "simples"); pose do goleiro no pulo lateral
-  parece agachado de frente; cobrador de lateral parado 1 s no 3D (apresentação do Codex, não o motor); replay do gol; juiz. mais variedade de drible (hoje 1,7/jogo);
-  torcida reagindo; replay; juiz.
+- FEITO (5ª leva, 25/10 de manhã): ⏱️ TRANSIÇÃO × POSSE MONTADA (`posseDesde` no motor, `transicao`/`direto` em `decide.ts`): nos 3 s
+  depois de roubar a bola o time joga direto; com o bloco rival montado o bônus de ganhar metros cai (×0,65 no próprio campo) e o
+  zagueiro/lateral livre vale mais (`CIRCULA` ×3) — recepções do zagueiro 5% → 7%, do lateral 9% → 16%, atacante 61% → 54%; quem está
+  LIVRE vê o companheiro atrás do corpo (a "visão" só esconde quem está atrás quando apertado). Pra manter o placar: `GK_BASE` 0,34 → 0,25
+  e `CHUTE_LONGE` 0,75 → 1,0 (300 jogos: 1,6 gol · 0×0 11–13% · 3,2 chutes · forte ganha 75–78%). 💫 DRIBLE COM JEITO: quem não tem
+  golpe assinatura dribla pelo que a carta É — veloz = arrancada (28%), forte com o marcador na frente = protege e gira (7%), o resto finta
+  de corpo (60%); narração PT/EN e corpo próprio no 3D (`teatro` em `players.mjs`: inclina / agacha e protege / ginga; roleta e Cruyff
+  rodam inteiro). 🤝 APITO FINAL: os 22 andam pro meio-campo (1,5 m/s) em vez de congelar onde estavam. Defendendo perto do gol a linha
+  não se amontoa no lado da bola (pilha de 6+ na área 4% → 3% dos quadros). Limpeza: `qa-tmp-cams.html` e `public/qa-tmp-input.json`
+  saíram do repo (o json ia junto no build) e entraram no `.gitignore`.
+  📏 Limite que vale saber: o jogo tem 90 s e cada passe custa ~2 s (segurar + voo), então são ~43 passes por jogo — circular mais na
+  defesa tira ataques; 7% de toques do zagueiro é o compromisso entre "a zaga joga" e "tem gol". Bancadas novas: `opsagg.mts`/`opsdec.mts`
+  (utilidade de cada opção de passe por grupo do alvo), `passout.mts` (resultado do passe por zona e alvo), `jeitos.mts` (jeitos do drible).
+- PRÓXIMO: pose do goleiro no pulo lateral parece agachado de frente; cobrador de lateral parado 1 s no 3D (apresentação do Codex, não o
+  motor); replay do gol; juiz; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga").
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.
 
