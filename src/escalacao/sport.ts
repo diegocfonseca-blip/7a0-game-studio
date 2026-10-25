@@ -344,7 +344,7 @@ export function useLigaDraftLiberada(): boolean {
 // Copa na quarta 21h, os dias entre os jogos passando (1s por dia no automático; Pular/Próximo adversário vão direto), a mesma
 // barra de data em toda aba e o escritório (Elenco/Tabelas/Rank/Clube) parando o tempo. Só DESENHO e ritmo da tela: a simulação,
 // o save e as regras não mudam. Liberar = CALENDARIO_GERAL = true.
-const CALENDARIO_GERAL = false
+const CALENDARIO_GERAL = true // 🟢 25/10 LIBERADO PRA TODOS (*"publique pra todos já, sem o mapa 3D e o campo 2D"*) — o 3D e o 2D seguem nas travas deles
 const CALENDARIO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let calendarioOk = CALENDARIO_GERAL
 function applyCalendario(email?: string | null): void {
