@@ -12,7 +12,8 @@
 - Arte: no padrão das lendas do jogo — **rosto liso, sem olhos, nariz e boca** (pedido dele).
 
 ## Sala
-- **8 treinadores sempre**: no mínimo 2 pessoas (regra das salas), o resto **completa com bot**.
+- **ATÉ 10 treinadores** (25/10, *"deixa com 10"*): no mínimo 2 pessoas (regra das salas), o resto **completa com bot**.
+- Catálogo: **toda a 1ª geração + os mais famosos das outras** — lista proposta em `docs/pokemon-lista.md` (espera OK).
 - **Liga só de ida**: 7 rodadas (todo mundo contra todo mundo uma vez), 4 batalhas ao mesmo tempo por rodada.
 - **Semifinal e final em jogo único** (os 4 primeiros).
 - Vitória = 3 pts · desempate pelo **saldo de nocautes** (o "saldo de gols").
