@@ -208,3 +208,14 @@
    `carreira-clube-sem-jogo.png`). Só na conta dele, junto do calendário (`ll-cx-clube-limpo` = `calOn`). O lado do jogo fica
    ESCONDIDO e não desmontado — igual à Central —, então a partida segue rolando por trás e nada recomeça ao voltar pro Jogos. */
 .ll-cx.ll-cx-clube-limpo.ll-cx-t-estadio > .ll-cx-lado { display: none !important; }
+/* 📊 25/10 — com Jogos + Tabela numa aba só (conta do Diego), Elenco e Rank também ficam sem o jogo: escondido, não desmontado */
+.ll-cx.ll-cx-sem-jogo > .ll-cx-lado { display: none !important; }
+/* …e sem o cabeçalho do jogo, o topo transparente (feito pra ele ficar em cima da foto) deixava as dicas em cima do fundo
+   (Diego: *"as dicazinhas lá no header em cima de elenco e rank tão mostrando com o que tem embaixo"*): creme desde o topo */
+.ll25-career.ll25-tab-elenco > .max-w-xl.ll-cx-sem-jogo,
+.ll25-career.ll25-tab-ranking > .max-w-xl.ll-cx-sem-jogo { background: rgba(244,236,214,.98) !important; border-radius: 18px; }
+/* no computador a coluna da esquerda era do jogo: sem ele, a aba ocupa a largura toda (senão sobrava um buraco de 360px) */
+@media (min-width: 1100px) {
+  .ll25-career.ll25-tab-elenco > .max-w-xl.mx-auto.ll-cx.ll-cx-sem-jogo,
+  .ll25-career.ll25-tab-ranking > .max-w-xl.mx-auto.ll-cx.ll-cx-sem-jogo { display: block !important; }
+}

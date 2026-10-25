@@ -10787,3 +10787,36 @@ P0real: lateralOséas11,3s era`passe`genérico e usava chute de pé, dentro dos4
 Faltoso/vítima/vantagem mapeados corretamente(`lado`da vantagem é da vítima); assistente/receptor no mesmo time, cartões não apagam falta no mesmo instante, impedimento não vira falta sofrida, acréscimo não vira atleta. Exposta recuperação temporária sem inventar queda.69amostras paradas com velocidade bruta alta agora usam pose/velocidade de apresentação imóvel; dados oficiais preservados. Árbitro olha o ponto da cobrança até em pausa. Testes de43comparações/12-120Hz/seek e auditoria11x11 inteira30Hz preservam1×1/82eventos; sem volumes/penetrações/piso/raiz/tranco extra nas amostras. Ainda há deslizamento,75flags de orientação e capturas ausentes; não declarar futebol finalizado. Fixture sem escanteio/pênalti/cabeceio não valida esses casos. Sem motor2/overalls/DB/produção alterados. Recuperação`recovery/antes-contexto-futebol-20261024`(`b4769104`).
 
 `audit-whole-match.cjs` passa a executar a matriz geral automaticamente antes da varredura física, impedindo que novos tipos de evento fiquem fora da revisão por serem ignorados na contagem de chutes.
+
+## 🗂️ 25/10 — Carreira organizada (proposta, ESPERA OK do Diego)
+Pedido: *"tá muito embolado… as abas… no Clube tem outras abas que não é embaixo, é em cima… analise tudo"*. Mockup:
+`scripts/mockups/carreira-organizada.png`. 4 regras pra todas as abas (só na conta dele primeiro):
+1. O jogo só aparece em JOGOS (inteiro) e TABELAS (faixinha). 2. Nas outras abas nada de jogo — ele segue rolando e a aba
+Jogos ganha selo "AO VIVO" na barra de baixo. 3. Sub-abas SEMPRE logo abaixo do título, UMA fileira (Clube perde o 2º andar:
+Estádio · Loja · Dinheiro · Gestão). 4. 5 abas embaixo: o Rank vira sub-aba de Tabelas (Tabela · Artilharia · Bola de Ouro);
+avisos (criar conta/salvar) só na Central.
+- 25/10 (2ª parte): ele perguntou se dá pra JUNTAR Jogos e Tabelas (*"o pessoal gosta mais de ver tabela do que jogos"*). Mockup
+  `scripts/mockups/carreira-jogo-e-tabela.png`: 🅰️ JUNTO (placar grande em cima, tabela à vista logo abaixo) × 🅱️ TABELA PRIMEIRO
+  (jogo vira faixa preta que abre, tabela ocupa a tela e mexe ao vivo com ▲▼ e o placar de cada time do lado do nome — sempre no
+  ritmo do relógio da tela, nunca antes: anti-spoiler). Barra de baixo com 4 abas. ⏳ Espera ele escolher.
+- 25/10 (3ª parte) — ele corrigiu: *"o placar ou campo 2D não pode ser faixinha… eu tava falando dos jogos restantes"*. Ou seja:
+  o SEU jogo continua GRANDE (placar ou Campo 2D); quem vira tabela é a lista de OUTROS JOGOS da rodada → tabela ao vivo com o placar
+  de cada time do lado do nome e ▲▼. Ele cobrou *"cadê os jogos do restante do pessoal?"* → os outros jogos ficam num QUADRO COMPACTO (2 colunas, amarelo = gol recente) entre o seu jogo e a tabela. Mockup `scripts/mockups/carreira-jogo-tabela-ao-vivo.png` (placar × 2D). ⏳ Espera OK.
+- 25/10 (4ª parte) — *"não ficou bom… o que o pessoal mais gosta é tabela… embaixo os jogos da rodada organizado por liga… e copa,
+  quando for copa, a tabela passa a ser chaveamento"*. Leitura: a aba JOGOS segue com o seu jogo grande; a aba TABELAS vira a estrela —
+  tabela ao vivo em cima + jogos da rodada por divisão embaixo (a sua aberta, as outras fechadas); na quarta de Copa abre no
+  CHAVEAMENTO + jogos da Copa da noite. Mockup `scripts/mockups/carreira-tabelas-estrela.png`. ⏳ Espera OK.
+- 25/10 (5ª parte, a CERTA) — *"era como tava antes: o placar cinema ou campinho 2D e embaixo a tabela da liga e os jogos da liga embaixo
+  da tabela… e quando for copa é só trocar: tabela da copa em chaveamento e jogos da copa embaixo, mas o campinho ou placar ainda em cima"*.
+  Aba JOGOS = ① placar cinema / Campo 2D + Manual/Auto/2D ② tabela da liga ao vivo ③ jogos da liga. Na Copa: ① o mesmo placar ②
+  CHAVEAMENTO ③ jogos da Copa da noite. Mockup `scripts/mockups/carreira-jogos-placar-tabela.png`. ⏳ Espera OK.
+- 25/10 (6ª parte): ✅ Jogos + Tabela numa aba só FEITO no branch (só conta dele, junto do calendário — `jogoTabela` em
+  pyramidseason): placar/2D do mesmo tamanho em cima, tabela da liga e jogos embaixo; na Copa, chaveamento + jogos da Copa; a aba
+  Tabelas sai da barra (Central · Jogos + Tabela · Elenco · Rank · Clube). Foto real: `scripts/mockups/carreira-jogos-tabela-real.png`.
+  ✅ 25/10 *"ok publique tudo na minha conta"*: PUBLICADO (só conta dele) junto com o Clube numa fileira só (arrasta pro lado,
+  foto `carreira-clube-uma-fileira-real.png`) e o selo "AO VIVO" na aba Jogos + Tabela. ⏳ Ainda falta: tabela com o placar de cada
+  time do lado do nome + ▲▼ (mockup aprovado); Elenco com Titulares/Reservas/SAF logo abaixo do título (hoje ficam lá embaixo).
+  (O aviso "criar conta" só aparece pra quem joga sem conta — na conta dele nunca aparece.)
+  ✅ 25/10: Elenco e Rank também SEM o jogo (faixa e placar escondidos, não desmontados — o relógio segue: 8' → 84' no teste).
+  Ele cobrou: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*. O jogo agora só
+  aparece em Jogos + Tabela (e no Clube, quando ele aperta Assistir).
