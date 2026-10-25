@@ -39,6 +39,7 @@ import {usePresidentPreview,usePresidentPreviewPending,PRESIDENT_INTEGRATION_REL
 import {podeAlterarPresidencia,negociarNaCarreira,exibirDuplaNaCarreira} from './presidencia-carreira'
 import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
+import { publicaControleMapa, type ControleMapa } from './controle-partida-mapa'
 import {PRESIDENCY_STADIUM_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -10373,6 +10374,18 @@ export function PyramidSeasonScreen() {
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
   const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) { abreColetiva(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */ if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  // 📺 25/10 (Diego: *"botão manual, placar e etc. deveria ser lá dentro do mapa"*): o mapa 3D (conta de prévia) desenha o MESMO
+  // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
+  const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
+  const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
+    manualOk: manualAllowed, manual, velocidade: state.simSpeed ?? 1,
+    podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
+    rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
+    alternaManual: toggleManualCareer, mudaVelocidade: v => dispatch({ type: 'SET_SIM_SPEED', speed: v }),
+    avanca: copaPlaying ? () => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) } : avancarRodada,
+  } : null
+  useEffect(() => { publicaControleMapa(controleMapa) })
+  useEffect(() => () => publicaControleMapa(null), [])
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {
     if (!calOn || !myDiv) return null

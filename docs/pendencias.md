@@ -1,3 +1,12 @@
+## 📺 Placar e controle DENTRO do mapa 3D (25/10) — FEITO no branch (só a conta de prévia; esperando "publica")
+- Diego: *"não gostei do placar fora do mapa… botão manual, placar e etc. deveria ser lá"*; mockup v2 `scripts/mockups/clube-mapa-hud.png`
+  ("aprovado"). Foto real: `scripts/mockups/clube-mapa-hud-real.png`.
+- `presidencia-mapa-hud.tsx` (`MapaHud`) dentro do `pc3-stage` do complexo (prop `hud`, vale na tela cheia): placar de TV + minuto ao
+  vivo, ⏭️ Próxima rodada/fase (Manual), 🔁 Auto/🎮 Manual, velocidade 1/2/4× (fora do jogo) ou ritmo 0,25/0,5/1× (com jogo), narração.
+  A carreira publica o MESMO controle via `controle-partida-mapa.ts` (`publicaControleMapa`) — mesmas funções do "🎮 Controle da
+  partida" (regra contra botão mudo). "Ritmo para acompanhar" e "Créditos" saíram de cima do mapa (créditos no pé).
+- Falta: "Próximo jogo · ▶ Ir pro jogo" quando não tem jogo (precisa do calendário mandar o adversário), testar numa carreira de verdade.
+
 ## ⚽ Futebol "de profissional" no motor novo (25/10) — 1ª leva NO BRANCH (só a conta do Diego joga o Motor2)
 - Pedido: *"simule a partida 11×11… corrigir pra ficar uma partida com os jogadores atuando igual profissionais"*. Bancada de 300
   jogos (scratchpad da sessão, `motor/harness.mts`). TRAVA DE FUNDO: o motor roda 89 s de futebol em velocidade real pra um jogo de

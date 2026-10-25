@@ -1,4 +1,4 @@
-import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react'
+import {useEffect,useId,useLayoutEffect,useRef,useState,type ReactNode} from 'react'
 import * as THREE from 'three'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 import type {StadiumSave} from './estadiodata'
@@ -43,7 +43,7 @@ const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
 export type ControleComplexo={checkCivilian:(index?:number)=>void;setMatchCamera:(mode:CameraPartidaContinua)=>void;view:(view:VistaComplexo)=>void;zoom:(direction:1|-1)=>void;setNavigationMode:(mode:ModoNavegacaoComplexo)=>void;seekCirculation:(seconds:number)=>void;inspect:()=>unknown;checkLighting:()=>{invalidSamples:number;litSamples:number};checkDealershipView:()=>{id:string;visible:boolean;occluder?:string}[]}
 
 /** Physical reconstruction for local visual review. It only reads the existing save and match clock. */
-export default function PresidenciaComplexo3D({stadium,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,visitRow=5,visitTier='lower',presentation='map',onUnavailable,onReady}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void}){
+export default function PresidenciaComplexo3D({stadium,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,visitRow=5,visitTier='lower',presentation='map',onUnavailable,onReady,hud}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void;/** 📺 25/10: placar e controle da partida desenhados POR CIMA do 3D (vale na tela cheia) */hud?:ReactNode}){
  const root=useRef<HTMLDivElement>(null),api=useRef<ControleComplexo|null>(null),ready=useRef(onReady),matchRef=useRef(match),wake=useRef(()=>{}),refreshPopulation=useRef(()=>{}),refreshFurniture=useRef(()=>{}),refreshJourney=useRef(()=>{}),walletRef=useRef(presidency),journeyRef=useRef(journey)
  ready.current=onReady;matchRef.current=match;walletRef.current=presidency;journeyRef.current=journey
  const isWindow=presentation==='window',isOffice=presentation==='office',unavailable=useRef(onUnavailable);unavailable.current=onUnavailable
@@ -629,6 +629,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?'Ver sala':'Ver tudo'}</button>
     <button type="button" disabled={!loaded} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>Girar</button>
    </div>
+   {hud&&!isWindow&&!isOffice&&loaded&&hud}
    <p className="pc3-help" id={`${uiId}-help`}>{matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></>}</p></>}
   </div>
  </section>
