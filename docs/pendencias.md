@@ -10683,3 +10683,11 @@ P0real: lateralOséas11,3s era`passe`genérico e usava chute de pé, dentro dos4
 Faltoso/vítima/vantagem mapeados corretamente(`lado`da vantagem é da vítima); assistente/receptor no mesmo time, cartões não apagam falta no mesmo instante, impedimento não vira falta sofrida, acréscimo não vira atleta. Exposta recuperação temporária sem inventar queda.69amostras paradas com velocidade bruta alta agora usam pose/velocidade de apresentação imóvel; dados oficiais preservados. Árbitro olha o ponto da cobrança até em pausa. Testes de43comparações/12-120Hz/seek e auditoria11x11 inteira30Hz preservam1×1/82eventos; sem volumes/penetrações/piso/raiz/tranco extra nas amostras. Ainda há deslizamento,75flags de orientação e capturas ausentes; não declarar futebol finalizado. Fixture sem escanteio/pênalti/cabeceio não valida esses casos. Sem motor2/overalls/DB/produção alterados. Recuperação`recovery/antes-contexto-futebol-20261024`(`b4769104`).
 
 `audit-whole-match.cjs` passa a executar a matriz geral automaticamente antes da varredura física, impedindo que novos tipos de evento fiquem fora da revisão por serem ignorados na contagem de chutes.
+
+## 🗂️ 25/10 — Carreira organizada (proposta, ESPERA OK do Diego)
+Pedido: *"tá muito embolado… as abas… no Clube tem outras abas que não é embaixo, é em cima… analise tudo"*. Mockup:
+`scripts/mockups/carreira-organizada.png`. 4 regras pra todas as abas (só na conta dele primeiro):
+1. O jogo só aparece em JOGOS (inteiro) e TABELAS (faixinha). 2. Nas outras abas nada de jogo — ele segue rolando e a aba
+Jogos ganha selo "AO VIVO" na barra de baixo. 3. Sub-abas SEMPRE logo abaixo do título, UMA fileira (Clube perde o 2º andar:
+Estádio · Loja · Dinheiro · Gestão). 4. 5 abas embaixo: o Rank vira sub-aba de Tabelas (Tabela · Artilharia · Bola de Ouro);
+avisos (criar conta/salvar) só na Central.
