@@ -123,7 +123,7 @@ const GAS_INICIO = [1, 0.82, 0.68, 0.55]
 /** 🏁 rotina de bola parada do time (sorteada por jogo, com variação a cada cobrança) */
 export type Rotina = 'primeiro_pau' | 'segundo_pau' | 'curta'
 /** 🧤 o goleiro pega mais o chute de longe: +`por` de chance a cada metro além de `de`, até `max` */
-const LONGE_GK = { de: 20, por: 9, max: 0.7 }
+const LONGE_GK = { de: 20, por: 9, max: 1.0 }
 /** 🎯 a mira abre mais rápido a partir de 18 m (quanto menor, mais torto o chute de longe) */
 const MIRA_LONGE = 22
 /** 🧤 o pulo do goleiro no chute de longe: o alcance cresce até (1 + max × isto) */
@@ -147,7 +147,7 @@ const PASSOU_DO_PONTO = 1.4
 const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
-const GK_BASE = -0.2
+const GK_BASE = 0.0
 /** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
 const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */

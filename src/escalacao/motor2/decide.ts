@@ -18,9 +18,9 @@ const DIRETO = 0.075
  *  trocava um passe de 90% por um lançamento de 40% só porque o lançamento caía mais perto do gol */
 const MANTER = 0.03
 /** 🎯 o gosto pelo chute de fora da área (> 23 m): menor = o time trabalha mais a bola até a área */
-const CHUTE_LONGE = 0.75
+const CHUTE_LONGE = 0.9
 /** 🎯 …e o gosto pelo chute de perto (≤ 23 m): chegou na cara do gol, bate */
-const CHUTE_PERTO = 1.6
+const CHUTE_PERTO = 2.2
 /** ↩️ o gosto pelo corte pra trás da linha de fundo (rasteiro, pra quem chega na marca do pênalti) */
 const CORTE = 0.06
 /** 🤝 o gosto pelo passe curto (até 11 m), maior quanto mais apertado ele está */
