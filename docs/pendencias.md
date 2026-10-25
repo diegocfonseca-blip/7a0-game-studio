@@ -10823,3 +10823,15 @@ avisos (criar conta/salvar) só na Central.
   aparece em Jogos + Tabela (e no Clube, quando ele aperta Assistir).
 
 - 25/10 ⚡ **Modo Pokémon (salas online)**: conceito FECHADO em `docs/conceito-pokemon.md` (leilão de sempre sem Clubes, 6 tipos, 8 treinadores com bot, liga só de ida + semi/final jogo único, decisão a cada batalha, rival só visível na cerimônia). Nada codado. Fechado também: batalha "quem ganha fica" e, na hora da escolha, só aparecem os tipos dos BOTS (pessoa: tem que lembrar da cerimônia).
+
+## ⚡ 25/10 — MODO POKÉMON na Partida Rápida (FEITO, só a conta do Diego, em teste)
+Pedido: *"faz na minha no partida rápida porque quero jogar com bots só pra minha conta pra eu testar"*. Conceito: `docs/conceito-pokemon.md`.
+- Gate `POKEMON_TESTERS` (sport.ts). Botão "⚡ POKÉMON · TESTE · SÓ VOCÊ VÊ" na tela de montar a partida rápida.
+- Leilão DE SEMPRE (envelope/Tocaia/pregão aberto, 100 moedas, sem Clubes): formação `pokemon` (6 vagas nos 5 setores, que viram
+  LOTES 1–5; o 5º vale 2). Baralho = os 200 espalhados nos lotes por categoria (`baralhoPokemon`, muda a cada partida).
+- Arte: só Lenda tem arte própria (26 webp em `img/pokemon/`, ~23 KB, artes oficiais sem olhos/nariz/boca — marca da Nintendo,
+  avisado); o resto = desenho do TIPO (18, em código). Cartas mostram os tipos OFICIAIS.
+- Depois da cerimônia: `pokemon-liga.tsx` — 9 rodadas (10 treinadores), escolha 3 + ordem + tática em 12s, batalha animada
+  ("quem ganha fica", narração com SUPER EFETIVO), tabela só mexe no fim, semifinal 1×4/2×3 e final jogo único, campeão.
+- Motor puro `pokemon-batalha.ts` + dados `pokemon-dados.ts`. Trava `npx tsx scripts/testa-pokemon.mts`. Fotos: `scripts/mockups/pokemon-real-*.png`.
+- ⏳ Falta/ideias: salas online (ele quer no futuro), som, animação do golpe, o "dia" (nível) aparecer na revelação do pokémon.

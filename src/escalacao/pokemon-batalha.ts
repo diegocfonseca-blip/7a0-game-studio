@@ -100,3 +100,18 @@ export function anotaBatalha(t: LinhaPoke[], idA: number, idB: number, r: Pick<R
   a.j++; b.j++; a.nocP += r.nocA; a.nocC += r.nocB; b.nocP += r.nocB; b.nocC += r.nocA
   if (r.vencedor === 'a') { a.v++; a.pts += 3; b.d++ } else { b.v++; b.pts += 3; a.d++ }
 }
+
+// ── O ESTADO DA LIGA (vai no save da partida rápida: `state.pokeLiga`) ──────────────────────────────────────────
+export interface EscalaPoke { ids: string[]; tatica: TaticaPoke }
+export interface BatalhaFeita { a: number; b: number; vencedor: 'a' | 'b'; nocA: number; nocB: number; seed: number; escA: EscalaPoke; escB: EscalaPoke }
+export interface PokeLigaEstado {
+  ids: number[]            // os 10 treinadores (ids dos managers)
+  cal: [number, number][][] // 9 rodadas
+  rodada: number           // 0..8 liga · 9 semis · 10 final · 11 acabou
+  feitas: BatalhaFeita[][] // por rodada (liga 0..8, semis 9, final 10)
+  tabela: LinhaPoke[]
+  minha?: EscalaPoke       // a última escalação do usuário (quem não escolhe a tempo entra com ela)
+  campeao?: number
+  semis?: [number, number][]
+  final?: [number, number]
+}

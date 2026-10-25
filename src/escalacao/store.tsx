@@ -3,6 +3,7 @@ import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaList
 import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
 import { calendarioKings, chaveKings } from './kings'
+import { baralhoPokemon, setPokeModo } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
@@ -4842,6 +4843,8 @@ function playNbaCupRound(s: EscState): void {
 
 /** 👑 a sala é de KINGS LEAGUE? (a formação 'kings' só nasce no START com `kings`) */
 export function ehKings(s: Pick<EscState, 'managers'>): boolean { return s.managers.some(m => m.formation === 'kings') }
+/** ⚡ a partida é do MODO POKÉMON? (a formação 'pokemon' só nasce no START com `pokemon`) */
+export function ehPokemon(s: Pick<EscState, 'managers'>): boolean { return s.managers.some(m => m.formation === 'pokemon') }
 /** 👑 um jogo da Kings: a partida de sempre + a regra da Kings por cima (`kings-liga.ts`). A artilharia passa por listas
  *  à parte porque o gol que a bola dourada anula não pode ficar na conta de ninguém. */
 function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): CtxKings {
@@ -5495,7 +5498,8 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
+  | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -7269,7 +7273,7 @@ function proximoDoDraft(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -7871,6 +7875,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🧱 leilão de clubes só fecha com os TRÊS baralhos juntos (um clube por partida)
       if (action.clubes && !action.career && !action.dinastia) s.deckLeague = 'todos'
       setActiveCatalog(s.deckLeague)
+      // ⚡ MODO POKÉMON (25/10, só a conta do Diego): o leilão de sempre, com o baralho dos pokémon nos 5 lotes
+      const poke = !!action.pokemon && !action.career && !action.dinastia
+      if (poke) ACTIVE_CATALOG = baralhoPokemon(rng) as unknown as typeof CATALOG
+      s.pokeLiga = undefined
       // carreira: começa na Série D. Partida rápida: sem divisão.
       s.careerDivision = action.career ? 'D' : null
       s.careerIntent = false
@@ -7896,13 +7904,14 @@ function reducerBase(state: EscState, action: Action): EscState {
       // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
       const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : tiraClones(TIMES_ELITE, [action.teamName || 'Meu Time']).slice(0, action.rivals)
       // na Série D todos os rivais começam com você — sem "auction-only".
-      const { managers: soloManagers0, botPlans: soloPlans0 } = makeCareerManagers(action.teamName || 'Meu Time', action.kings ? 'kings' : action.formation, 'D', soloRivalDefs, [], rng)
+      const { managers: soloManagers0, botPlans: soloPlans0 } = makeCareerManagers(action.teamName || 'Meu Time', poke ? 'pokemon' : action.kings ? 'kings' : action.formation, 'D', soloRivalDefs, [], rng)
       // 👑 KINGS LEAGUE (15/10, só a conta do Diego): o LEILÃO DE SEMPRE, com 10 times (você + 9 rivais que dão
       // lance) e a formação 'kings' (goleiro + 6). Sem time de preenchimento: a liga da Kings tem 10. Depois da
       // cerimônia a temporada é a de SEMPRE (EscSeason), com a regra da Kings por cima (`kings-liga.ts`): 9 rodadas + mata-mata.
-      const soloManagers = action.kings ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
-      if (action.kings) for (const m of soloManagers) m.formation = 'kings'
-      const soloPlans = action.kings ? [] : soloPlans0
+      // ⚡ o Pokémon segue a MESMA receita: 10 treinadores (você + 9 que dão lance), sem time de preenchimento
+      const soloManagers = action.kings || poke ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
+      if (action.kings || poke) for (const m of soloManagers) m.formation = poke ? 'pokemon' : 'kings'
+      const soloPlans = action.kings || poke ? [] : soloPlans0
       s.managers = soloManagers
       s.youIdx = 0
       // modo Dinastia: mesmo leilão real da carreira, só que o orçamento é o do
@@ -10548,6 +10557,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
       if (s.copaMode === 'champions') return s
       finishSeason(s)
+      return s
+    }
+    case 'POKE_SET': {
+      if (!ehPokemon(s)) return s
+      s.pokeLiga = action.liga
       return s
     }
     case 'KINGS_DECIDIR': {
@@ -15268,6 +15282,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const iOwnThisRoom = (() => { try { return !!state.roomId && localStorage.getItem('esc-room-owner') === state.roomId } catch { return false } })()
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
+  setPokeModo(ehPokemon(state)) // ⚡ a tela (cartas, rótulos dos lotes) pergunta `pokeModo()` — fica em dia a cada render
   return (
     <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}

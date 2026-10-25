@@ -64,6 +64,8 @@ import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 import { CampinhoKings } from './kings-campinho'
+import { pokeModo, pokeDe, nomeDoLote } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
+import { ChipsTipo, ArtePoke, TimePokemon } from './pokemon-arte'
 import { LigaHub, gravaTemporadaSala, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
@@ -80,7 +82,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePregaoAberto, useAmigos, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useAmigos, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -107,11 +109,13 @@ import { PlacaGol, AviaoDaHome } from './patrocinio-visual' // 🏟️ placas at
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
 function secLabel(sport: Sport, pos: Sector, lang: 'pt' | 'en'): string {
+  if (pokeModo()) return nomeDoLote(pos, lang === 'en') // ⚡ modo Pokémon: os setores viram LOTES misturados
   return POS_LABELS[sport][pos].plural[lang]
 }
 // selo curto da posição na carta (GOL… no futebol; PG/SG/SF/PF/C no basquete).
 const SECTOR_KEYS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 function posTag(pos: string): string {
+  if (pokeModo() && (SECTOR_KEYS as string[]).includes(pos)) return `L${SECTOR_KEYS.indexOf(pos as Sector) + 1}` // ⚡ lote 1…5
   return getSport() === 'basquete' && (SECTOR_KEYS as string[]).includes(pos)
     ? POS_LABELS.basquete[pos as Sector].tag : pos
 }
@@ -1281,6 +1285,7 @@ export function YourPitch({ small = false }: { small?: boolean }) {
   // 🏀 basquete: a QUADRA no lugar do campinho (mesma lógica anti-spoiler acima).
   if (state.sport === 'basquete') return <NbaCourt m={shown} />
   // 👑 Kings League: o campinho de 7 (goleiro + 6) no lugar do de 11 — mesmo leilão, mesma regra anti-spoiler acima
+  if (shown.formation === 'pokemon') return <TimePokemon elenco={shown.squad.filter(c => !c.fake)} pokeDe={pokeDe} /> // ⚡ as 6 vagas do time
   if (shown.formation === 'kings') return <CampinhoKings elenco={shown.squad.filter(c => !c.fake)} tier={f => FAME_TIER[f] ?? FAME_TIER[1]} />
   // 🧱 leilão de clubes: no pregão você junta PACOTES (um por setor), não jogadores —
   // o campinho de 11 ficaria com um clube inteiro espremido numa bolinha. Mostra a
@@ -1378,10 +1383,11 @@ function CardFace({ c, big = false, surprise = false, mudo = false, highlight = 
       </div>
     )
   }
+  const pk = pokeDe(c.name) // ⚡ modo Pokémon: os TIPOS no lugar do selo da posição
   return (
     <div className="text-left">
       <div className="flex items-center gap-2">
-        <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>
+        {pk ? <ChipsTipo tipos={pk.tipos} /> : <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>}
         {mudo
           // 🕵️ ENIGMA: nem nome, nem clube, nem ano vão pro HTML — só a posição
           // (que já está no selo ao lado) e a dica na linha de baixo.
@@ -2836,6 +2842,9 @@ export function EscSetup() {
   const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
   const [kings, setKings] = useState(false) // ligado = o MESMO leilão escolhido embaixo, com a formação 'kings' e 10 times
   const kingsLigado = kingsOn && kings
+  const pokeOn = usePokemonLiberado() // ⚡ Modo Pokémon (25/10): só a conta do Diego
+  const [poke, setPoke] = useState(false)
+  const pokeLigado = pokeOn && poke && !kingsLigado
   // 🏀 19/10: a Partida Rápida do basquete passa por AQUI também (antes começava direto, sempre 3 rivais e envelope).
   // Mesma tela; no basquete saem Kings, baralho, "depois da liga" e formação (o resto é igual).
   // ⚠️ o esporte vem da ESCOLHA da home (useSport), não do `state.sport`: aqui a partida ainda não começou e o
@@ -2916,7 +2925,7 @@ export function EscSetup() {
       })
     }
     else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, intro: true })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes && !pokeLigado, kings: kingsLigado || undefined, pokemon: pokeLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -3051,7 +3060,7 @@ export function EscSetup() {
       {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
           conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
       {!career && kingsOn && !bbSetup && (
-        <button onClick={() => setKings(k => !k)} className="w-full text-left active:translate-y-0.5"
+        <button onClick={() => { setKings(k => !k); setPoke(false) }} className="w-full text-left active:translate-y-0.5"
           style={{ background: kings ? '#0C0C0C' : '#fff', color: kings ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: kings ? '4px 4px 0 #C2452F' : 'none', padding: '12px 14px' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: kings ? '#FFC400' : INK, display: 'block' }}>{kings ? '✅' : '⬜'} 👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
           <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{kings
@@ -3059,8 +3068,19 @@ export function EscSetup() {
             : t('Toque pra ligar. O leilão continua o de sempre, com tudo que você escolher embaixo.', 'Tap to turn on. The auction stays the usual one, with everything you pick below.')}</span>
         </button>
       )}
+      {/* ⚡ MODO POKÉMON (25/10) — o leilão de sempre com os pokémon, e depois da cerimônia a liga de batalhas
+          (`pokemon-liga.tsx`). Só a conta do Diego vê (`usePokemonLiberado`). Sem Clubes (decisão dele). */}
+      {!career && pokeOn && !bbSetup && (
+        <button onClick={() => { setPoke(k => !k); setKings(false) }} className="w-full text-left active:translate-y-0.5"
+          style={{ background: poke ? '#0C0C0C' : '#fff', color: poke ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: poke ? '4px 4px 0 #FFC400' : 'none', padding: '12px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: poke ? '#FFC400' : INK, display: 'block' }}>{poke ? '✅' : '⬜'} ⚡ POKÉMON <span style={{ fontSize: 11, background: '#7C3AED', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>{t('TESTE · SÓ VOCÊ VÊ', 'TEST · ONLY YOU SEE IT')}</span></span>
+          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{poke
+            ? t('Ligado: o leilão de sempre (envelope, Tocaia ou pregão aberto) com 100 moedas e 6 pokémon por time. Depois, 9 batalhas de 3 contra 3 e o mata-mata, com 9 bots.', 'On: the usual auction (sealed bid, Ambush or open bidding) with 100 coins and 6 Pokémon per team. Then 9 battles of 3 vs 3 and the knockout, with 9 bots.')
+            : t('Toque pra ligar. Leilão de pokémon e batalhas no lugar do futebol.', 'Tap to turn on. A Pokémon auction and battles instead of football.')}</span>
+        </button>
+      )}
       <Box className="p-4 space-y-4">
-        {!career && clubesOn && (
+        {!career && clubesOn && !pokeLigado && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
             <div className="grid grid-cols-2 gap-2">
@@ -3098,6 +3118,11 @@ export function EscSetup() {
             <p className="font-black text-sm" style={OSWALD}>{t('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{t('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
           </div>
+        ) : pokeLigado ? (
+          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#FFF6CC' }}>
+            <p className="font-black text-sm" style={OSWALD}>{t('⚡ Baralho: 200 pokémon', '⚡ Deck: 200 Pokémon')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{t('Toda a 1ª geração + os mais famosos das outras, com os tipos oficiais. Os 5 lotes do leilão vêm misturados (o 5º vale 2 vagas).', 'The whole 1st generation + the most famous of the others, with the official types. The 5 auction lots come mixed (the 5th is worth 2 slots).')}</p>
+          </div>
         ) : clubesOn && clubes ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{t('🌎 Baralho: Brasil + Europa + Mundo juntos', '🌎 Deck: Brazil + Europe + World together')}</p>
@@ -3134,7 +3159,7 @@ export function EscSetup() {
             </div>
           </div>
         )}
-        {!career && !kingsLigado && !bbSetup && (
+        {!career && !kingsLigado && !pokeLigado && !bbSetup && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
             {/* ⭐ 25/09 — as MESMAS opções do online (Diego: *"tem que ter todos também… liga
@@ -3222,7 +3247,9 @@ export function EscSetup() {
             <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).', '🔗 This is your account name — it counts vs CPU, in career and online. Editing here changes it everywhere (stats included).')}</p>
           )}
         </div>
-        {kingsLigado ? (
+        {pokeLigado ? (
+          <p className="text-[11px] font-bold text-black/65">{t('⚡ Pokémon: 6 por time e 10 treinadores (você + 9 bots). Liga de 9 batalhas, depois semifinal e final.', '⚡ Pokémon: 6 per team and 10 trainers (you + 9 bots). A 9-battle league, then semifinal and final.')}</p>
+        ) : kingsLigado ? (
           <p className="text-[11px] font-bold text-black/65">{t('👑 Kings League: formação travada em goleiro + 2 zagueiros + 2 meias + 2 atacantes, e 10 times (você + 9 rivais).', '👑 Kings League: formation locked at keeper + 2 defenders + 2 midfielders + 2 forwards, and 10 teams (you + 9 rivals).')}</p>
         ) : <>
         {!bbSetup && <div>
@@ -3904,6 +3931,8 @@ export function premiosDaResenha(mgrs: Manager[], resenha?: EscState['resenha'])
 // dourada com a inicial). Nunca frase na boca do jogador — ele só aparece na foto.
 type LendaCer = { nome: string; club: string; year: number; paid: number; time: string }
 function RostoCer({ l, w, h }: { l: LendaCer; w: number; h: number }) {
+  const pk = pokeDe(l.nome) // ⚡ modo Pokémon: a arte da Lenda (sem rosto)
+  if (pk) return <div style={{ flex: 'none', marginBottom: 6 }}><ArtePoke p={pk} size={Math.min(w, h)} /></div>
   const art = legendAvatar(l.nome, l.club, l.year)
   if (art) return <img src={art.src} alt={l.nome} style={{ width: w, height: h, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(3px 3px 0 #000)', flex: 'none' }} />
   return <span style={{ width: Math.round(w * .7), height: Math.round(h * .62), marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200)', boxShadow: '3px 3px 0 #000', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: Math.round(h * .28), color: INK, flex: 'none' }}>{l.nome.trim().charAt(0)}</span>
@@ -3927,9 +3956,10 @@ function LendasDoPregao({ mgrs, lendasDe }: { mgrs: Manager[]; lendasDe: (m: Man
       <div style={{ padding: '7px 11px', background: INK, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>⭐ {tr('As lendas do pregão', 'The auction\'s legends')}</div>
       {todas.map((l, i) => {
         const art = legendAvatar(l.nome, l.club, l.year)
+        const pk = pokeDe(l.nome)
         return (
           <div key={l.nome + l.time + i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '5px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.1)' : 'none' }}>
-            {art ? <img src={art.src} alt="" style={{ width: 38, height: 38, objectFit: 'cover', objectPosition: 'top', borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, flex: 'none' }} />
+            {pk ? <span style={{ flex: 'none' }}><ArtePoke p={pk} size={38} /></span> : art ? <img src={art.src} alt="" style={{ width: 38, height: 38, objectFit: 'cover', objectPosition: 'top', borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, flex: 'none' }} />
               : <span style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, flex: 'none' }}>{l.nome.charAt(0)}</span>}
             <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b style={{ ...OSWALD, fontSize: 14 }}>{l.nome}</b> · {l.time}</span>
             {l.paid > 0 && <b style={{ ...OSWALD, fontSize: 15 }}>{l.paid} 🪙</b>}
@@ -5816,7 +5846,7 @@ function RivalsStrip() {
         {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
-            <p className="text-[11px] font-semibold text-black/55">{state.sport === 'basquete' ? '' : `${m.formation} · `}💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
+            <p className="text-[11px] font-semibold text-black/55">{state.sport === 'basquete' || m.formation === 'pokemon' ? '' : `${m.formation} · `}💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
             <p className="text-[10px] font-medium text-black/70" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || L('ainda sem contratações', 'no signings yet')}
             </p>
@@ -6120,7 +6150,7 @@ export function EscCerimonia() {
         </div>
       )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
-        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName}{state.sport === 'basquete' ? '' : <span className="text-sm font-bold text-black/70"> ({m.formation})</span>}</p>
+        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName}{state.sport === 'basquete' || m.formation === 'pokemon' ? '' : <span className="text-sm font-bold text-black/70"> ({m.formation})</span>}</p>
         {/* ⭐ 22/10 (mockup online-cerimonia-lendas-conta.png, Diego: *"aprovado"*): as LENDAS que este time levou, apresentadas no estádio */}
         <FotoLendasCerimonia lendas={lendasDoTime(m)} />
         <div className="mt-2 space-y-1.5">
@@ -9295,6 +9325,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
   const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
   const foto = fotoDoJogador(name)
+  const pk = pokeDe(name) // ⚡ modo Pokémon: Lenda = a arte dele (sem rosto); o resto = o desenho do tipo
   const text = bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
@@ -9306,7 +9337,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           transition={{ duration: !isProm && fame === 5 ? 2.2 : !isProm && fame === 4 ? 2.8 : 3.6, repeat: Infinity, ease: 'linear' }} />
       )}
       <div className="relative flex justify-between items-start gap-1">
-        <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{posTag(pos)}</span>
+        {pk ? <ChipsTipo tipos={pk.tipos} small={!big} /> : <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{posTag(pos)}</span>}
         <div className="flex flex-col items-end gap-1">
           <span className="font-black tracking-wide text-right" style={{ ...OSWALD, color: t.tierColor, fontSize: big ? 11 : 9 }}>{t.label}</span>
           {folk && (
@@ -9318,7 +9349,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           nome, exatamente como sempre foi. Como quase todo mundo ainda não tem,
           o normal é cair na letra — e a carta não muda em nada. Ver
           `rostos.ts`: o Diego vai fazendo os rostos aos poucos. */}
-      {avatarPreview ? <div className="ll-lote1-card-avatar"><AvatarLote1 name={name} club={club} year={year}/></div> : <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
+      {pk ? <div className="relative self-center"><ArtePoke p={pk} size={big ? 130 : 84} /></div> : avatarPreview ? <div className="ll-lote1-card-avatar"><AvatarLote1 name={name} club={club} year={year}/></div> : <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
         style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
         {foto
           ? <img src={foto} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
