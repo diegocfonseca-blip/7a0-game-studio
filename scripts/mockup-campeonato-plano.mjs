@@ -37,17 +37,17 @@ const div = (nome, cor, txt, info, tag) => `<div class="div" style="background:$
 const seta = '<div class="seta"><span class="up">▲ 4 sobem</span><span class="dn">▼ 4 caem</span></div>'
 
 const t1 = `
-<div class="box"><p class="t">🏆 Liga Oficial · Temporada de Novembro</p><p class="mini">5 divisões. Cada GRUPO é uma sala de 20. Entrou gente nova? Abre mais um grupo lá embaixo.</p></div>
-${div('Série A', 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', '20 técnicos', 100, '1 grupo')}
+<div class="box"><p class="t">🏆 Liga Oficial · Temporada de Novembro</p><p class="mini">5 salas fixas de 20 = <b>100 vagas</b>. Cada divisão joga separada, só contra quem é dela.</p></div>
+${div('Série A', 'linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)', '20 técnicos', 100, 'elite')}
 ${seta}
-${div('Série B', '#E7DAFF', '20 técnicos', 100, '1 grupo')}
+${div('Série B', '#E7DAFF', '20 técnicos', 100, '')}
 ${seta}
-${div('Série C', '#CFE8D6', '40 técnicos', 100, '2 grupos')}
+${div('Série C', '#CFE8D6', '20 técnicos', 100, '')}
 ${seta}
-${div('Série D', '#FFE0D6', '80 técnicos', 100, '4 grupos')}
-${seta}
-${div('Várzea', '#EFE6CF', 'sem limite', 100, 'quantos precisar')}
-<div class="box" style="margin-top:8px"><p class="t" style="font-size:13px">🆕 Quem chega começa na Várzea</p><p class="mini">Na 1ª temporada, cada um entra pela posição no Ranking Global de hoje. Dali pra frente só sobe ou cai jogando.</p></div>`
+${div('Série D', '#FFE0D6', '20 técnicos', 100, '')}
+${seta.replace('4 sobem', '4 sobem').replace('4 caem', '4 saem do Oficial')}
+${div('Várzea', '#EFE6CF', '20 técnicos', 100, 'porta de entrada')}
+<div class="box" style="margin-top:8px"><p class="t" style="font-size:13px">⏳ Fila de espera · 37 na fila</p><p class="mini">Lotou as 100? Quem chega entra na fila. Todo mês os <b>4 últimos da Várzea saem</b> e os 4 primeiros da fila entram. Quem não paga o mês seguinte também libera a vaga.</p><span class="btn" style="background:#7C3AED;font-size:14px">🙋 Entrar na fila</span></div>`
 
 const sem = (d, tit, roda) => `<div class="sem"><div class="d">${d}</div><div style="flex:1"><b class="o" style="font-size:14px">${tit}</b><div class="roleta">${roda}</div></div></div>`
 const r = (txt, cor) => `<i style="background:${cor}">${txt}</i>`
@@ -64,41 +64,52 @@ ${sem('SÁB 4', '🏁 Noite final · roleta livre', r('qualquer um dos 3', '#FFC
 
 const t3 = `
 <div class="box"><p class="t">🎟️ Inscrição do mês</p>
-<table class="tb"><tr><td>🥇 Série A</td><td>R$ 30</td></tr><tr><td>🥈 Série B</td><td>R$ 20</td></tr><tr><td>Série C</td><td>R$ 15</td></tr><tr><td>Série D</td><td>R$ 10</td></tr><tr><td>Várzea</td><td>R$ 5</td></tr></table>
-<p class="mini" style="margin-top:6px">Paga uma vez e vale o mês todo. Não volta se faltar (só se o JOGO cancelar a noite).</p>
+<table class="tb"><tr><td>🥇 Série A</td><td>R$ 30</td></tr><tr><td>Série B</td><td>R$ 20</td></tr><tr><td>Série C</td><td>R$ 15</td></tr><tr><td>Série D</td><td>R$ 10</td></tr><tr><td>Várzea</td><td>R$ 5</td></tr></table>
 <span class="btn">💸 Me inscrever · Pix</span></div>
-<div class="box"><p class="t">🎁 Prêmios (coisas do jogo)</p>
+<div class="box"><p class="t">🎁 Prêmios do mês</p>
 <table class="tb">
-<tr><td>🏆 Campeão da Série A</td><td>Vitalício</td></tr>
-<tr><td>🥈 Vice da A</td><td>Escudo + mascote</td></tr>
-<tr><td>🥉 3º da A</td><td>3 meses Craque</td></tr>
-<tr><td>Campeão B · C · D</td><td>Taça + 1 mês Craque</td></tr>
-<tr><td>Campeão de grupo da Várzea</td><td>Taça + ficha</td></tr>
-<tr><td>Todo campeão</td><td>🏅 taça no perfil pra sempre</td></tr></table></div>`
+<tr><td>🏆 Campeão da A</td><td>Vitalício + clube completo<br>(escudo, mascote, manto e nome)</td></tr>
+<tr><td>🥈 Vice da A</td><td>Clube completo</td></tr>
+<tr><td>🥉 3º da A</td><td>6 meses Craque</td></tr>
+<tr><td>🏆 Campeão da B</td><td>3 meses Craque + entrada de gala</td></tr>
+<tr><td>🏆 Campeão da C</td><td>2 meses Craque + canto da torcida</td></tr>
+<tr><td>🏆 Campeão da D</td><td>1 mês Craque + tema da sala</td></tr>
+<tr><td>🏆 Campeão da Várzea</td><td>1 mês Craque</td></tr>
+<tr><td>⬆️ Todo mundo que sobe</td><td>Inscrição do mês seguinte grátis</td></tr></table></div>
+<div class="box" style="background:linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)"><p class="t">👑 Campeão do Ano</p><p class="mini" style="color:#0C0C0C">Quem somar mais pontos na Série A no ano todo vira <b>Fundador</b> + carta com o rosto dele no baralho do jogo.</p></div>`
+
+const t4 = `
+<div class="box"><p class="t">🏅 Selo no nome, em todo canto</p>
+<div style="display:flex;align-items:center;gap:8px;border:2px solid #000;border-radius:10px;padding:7px;background:#F4ECD6"><b class="o" style="font-size:15px">Kelvin</b><span class="tag" style="background:#FFC400">⭐ Série A</span><span style="flex:1"></span><span class="mini">no chat e nas salas</span></div>
+<div style="display:flex;align-items:center;gap:8px;border:2px solid #000;border-radius:10px;padding:7px;background:#F4ECD6;margin-top:6px"><b class="o" style="font-size:15px">Neymarzetti</b><span class="tag" style="background:#EFE6CF">Várzea</span></div></div>
+<div class="box" style="background:#2A1250;color:#fff"><p class="t" style="color:#FFC400">📺 Telão de todas as salas</p><p class="mini" style="color:#E7DAFF">🏆 K9 FC é o CAMPEÃO OFICIAL de Outubro · Série A · Kelvin — o mês inteiro rodando.</p></div>
+<div class="box"><p class="t">🔴 Noite final ao vivo</p><p class="mini">Transmissão na comunidade com narrador e comentarista. A rodada que decide quem sobe e quem cai.</p></div>
+<div class="box"><p class="t">⬇️ Medo de cair</p><p class="mini">Quem está em cima volta todo mês pra não perder a vaga. É isso que segura gente.</p></div>`
 
 const tDiego = `
 <h2>💰 Só pra você, Diego</h2>
-<p>O prêmio é coisa do jogo (custa quase zero pra você). A inscrição fica inteira.</p>
-<p class="o" style="color:#FFC400;font-size:14px;margin-top:10px">Com 180 inscritos (1+1+2+4+1 grupos)</p>
-<table><tr><td>A · 20 × R$ 30</td><td>R$ 600</td></tr><tr><td>B · 20 × R$ 20</td><td>R$ 400</td></tr><tr><td>C · 40 × R$ 15</td><td>R$ 600</td></tr><tr><td>D · 80 × R$ 10</td><td>R$ 800</td></tr><tr><td>Várzea · 20 × R$ 5</td><td>R$ 100</td></tr></table>
-<p>Por mês: <span class="tot">R$ 2.500</span></p>
-<p class="o" style="color:#FFC400;font-size:14px;margin-top:10px">Mais gente = mais grupos</p>
-<p>Cada sala nova de 20 na Várzea soma +R$ 100/mês. E quem sobe passa a pagar mais caro: a vontade de chegar na A é o que vende.</p>
-<p class="o" style="color:#FFC400;font-size:14px;margin-top:10px">Começar pequeno</p>
-<p>Se no 1º mês vierem só 40, abre só A e B. As outras divisões vão aparecendo conforme chega gente.</p>`
+<p>Prêmio é coisa do jogo (custa quase zero pra você). A inscrição fica inteira.</p>
+<p class="o" style="color:#FFC400;font-size:14px;margin-top:10px">Com as 100 vagas cheias</p>
+<table><tr><td>A · 20 × R$ 30</td><td>R$ 600</td></tr><tr><td>B · 20 × R$ 20</td><td>R$ 400</td></tr><tr><td>C · 20 × R$ 15</td><td>R$ 300</td></tr><tr><td>D · 20 × R$ 10</td><td>R$ 200</td></tr><tr><td>Várzea · 20 × R$ 5</td><td>R$ 100</td></tr></table>
+<p>Por mês: <span class="tot">R$ 1.600</span></p>
+<p class="o" style="color:#FFC400;font-size:14px;margin-top:10px">Fila grande?</p>
+<p>É sinal de que dá pra subir o preço ou, mais pra frente, abrir uma 2ª Várzea.</p>
+<p class="o" style="color:#FFC400;font-size:14px;margin-top:10px">E os prêmios vendem plano</p>
+<p>Quem ganha 1 mês de Craque experimenta tudo e, quando acaba, muita gente continua pagando.</p>`
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@500;600;800&display=swap" rel="stylesheet"><style>${css}</style></head><body>
 <h1>🏆 Campeonato Oficial · <span style="color:#C2452F">o plano</span></h1>
-<p class="sub">Liga por divisões, sobe e cai todo mês, 4 sábados, roleta do modo, prêmio em coisa do jogo.</p>
+<p class="sub">5 salas fixas (100 vagas) + fila de espera · sobe e cai todo mês · 4 sábados com roleta · prêmios em coisa do jogo.</p>
 <div class="row">
-<div class="ph"><div class="hd"><span class="n">1</span><b>A pirâmide</b></div><p>Divisões que sobem e caem. O topo é fixo, embaixo cresce com quem chega.</p><div class="tela">${t1}</div></div>
+<div class="ph"><div class="hd"><span class="n">1</span><b>A pirâmide</b></div><p>Várzea, D, C, B e A: uma sala de 20 cada. Lotou, vai pra fila.</p><div class="tela">${t1}</div></div>
 <div class="ph"><div class="hd"><span class="n">2</span><b>O mês</b></div><p>4 sábados, roleta escolhe o leilão, pontos somam.</p><div class="tela">${t2}</div></div>
-<div class="ph"><div class="hd"><span class="n">3</span><b>Inscrição e prêmios</b></div><p>Quanto mais alto, mais caro e melhor o prêmio.</p><div class="tela">${t3}</div></div>
+<div class="ph"><div class="hd"><span class="n">3</span><b>Inscrição e prêmios</b></div><p>Quanto mais alto, mais caro e melhor o prêmio. Cada divisão tem o seu campeão.</p><div class="tela">${t3}</div></div>
+<div class="ph"><div class="hd"><span class="n">4</span><b>Por que entrar</b></div><p>Status pra quem joga, vitrine pra quem vê.</p><div class="tela">${t4}</div></div>
 <div class="diego">${tDiego}</div>
 </div></body></html>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const p = await (await b.newContext({ viewport: { width: 1660, height: 900 }, deviceScaleFactor: 2 })).newPage()
+const p = await (await b.newContext({ viewport: { width: 2080, height: 900 }, deviceScaleFactor: 2 })).newPage()
 await p.setContent(html, { waitUntil: 'networkidle' }).catch(() => {})
 await p.evaluate(() => document.fonts.ready)
 await p.screenshot({ path: 'scripts/mockups/campeonato-plano.png', fullPage: true })
