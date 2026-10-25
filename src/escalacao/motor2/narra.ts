@@ -64,6 +64,10 @@ const CHUTE_TXT: Record<string, [string, string]> = {
   bomba: ['{a} solta a BOMBA!', '{a} lets fly a ROCKET!'],
   voleio: ['DE VOLEIO, {a}!', 'ON THE VOLLEY, {a}!'],
   bicicleta: ['BICICLETA DE {a}!!!', 'BICYCLE KICK FROM {a}!!!'],
+  // (os jeitos do chute comum — pelo que aconteceu no lance)
+  de_longe: ['{a} arrisca de longe!', '{a} tries one from distance!'],
+  rasteiro: ['{a} bate rasteiro, no canto!', '{a} drills it low into the corner!'],
+  cruzado: ['{a} bate cruzado!', '{a} shoots across goal!'],
 }
 export class Narrador {
   private usados = new Map<string, number>()

@@ -678,6 +678,10 @@ export class Motor2 {
       v = clamp(11 + dGol * 0.35, 12, 20) // (bola lenta e alta: o tempo de voo deixa ela cair atrás do goleiro)
     }
     const T = d / v
+    // 🎯 O JEITO DO CHUTE COMUM (25/10, medido: 79% das finalizações saíam sem nome — "bate!"): pelo que de fato aconteceu, sem rng —
+    // de longe (> 24 m) · rasteiro no canto (mira baixa) · cruzado (de fora, lado a lado). ("De primeira" seria 64% dos chutes — na
+    // área o motor bate no instinto — então não vira etiqueta, senão a narração repete)
+    const jeitoChute: string | undefined = cabeca || this.parada ? undefined : dGol > 24 ? 'de_longe' : hAlvo < 0.5 && dGol >= 10 ? 'rasteiro' : Math.abs(p.x - 34) > 11 && dGol > 9 ? 'cruzado' : undefined
     b.dono = null; b.ultimo = p; this.donoDesde = null
     b.vx = (dx / d) * v; b.vy = (dy / d) * v; b.vh = (cobertura ? clamp(1.6 + this.n() * 0.5, 0.6, 2.3) - b.h + 0.5 * G * T * T : hAlvo - b.h + 0.5 * G * T * T) / T
     // 🌀 CHUTE COLOCADO / FALTA COM CURVA (25/10): quem tem o golpe bate de fora pra dentro — a bola sai por fora do poste e fecha no
@@ -688,7 +692,7 @@ export class Motor2 {
       const meio = giro * T * 0.5, vx = b.vx; b.vx = vx + b.vy * meio; b.vy = b.vy - vx * meio; b.giro = giro
     } else b.giro = 0
     if (this.parada) this.parada = null
-    b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y }, golpe: acrobacia ?? (cobertura ? (p.golpes.includes('cavadinha') && dGol < 16 ? 'cavadinha' : 'cobertura') : curva ? 'colocado' : bomba ? 'bomba' : undefined) }
+    b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y }, golpe: acrobacia ?? (cobertura ? (p.golpes.includes('cavadinha') && dGol < 16 ? 'cavadinha' : 'cobertura') : curva ? 'colocado' : bomba ? 'bomba' : jeitoChute) }
     this.stats.chutes[l]++; this.stats.xg[l] += xg
     this.emite({ tipo: cabeca ? 'cabeceio' : 'chute', lado: l, a: p.nome, golpe: b.lance.golpe })
   }
@@ -1208,6 +1212,8 @@ export class Motor2 {
     const naArea = frente(p.lado, p.y) < AREA_PROF + 1 && Math.abs(p.x - 34) < AREA_LARG
     // (25/10, medido: a bola passava 61% do tempo VIAJANDO entre dois pés e só 25% no pé de alguém — ping-pong. Quem recebe LIVRE
     // agora segura mais (0,3–1 s): domina, conduz, olha — é o tempo com a bola no pé que faz parecer futebol)
+    // (25/10: testado e DESCARTADO fazer o jogador comum ajeitar 0,2–0,5 s na área antes de bater — caía pra 1,57 gol e 18% de 0×0;
+    // na área o instinto de bater na hora é o que mantém o placar)
     this.segurarAte = primeira || naArea ? this.t : this.t + (0.2 + this.r() * 0.6 - p.at.decisao * 0.002) * (1 - pressaoEm(this, p, p.lado) * 0.6 * (1 - p.tend.drible * 0.7)) * (1 + p.tend.drible * 0.8) // (livre, dá um toque e olha o jogo; apertado, solta antes — MENOS quem gosta de driblar: esse segura e encara) // (ritmo alto: o jogo inteiro cabe em 1:30)
     p.proxDecisao = this.t + toque
     this.acaoDe.delete(p)

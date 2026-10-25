@@ -68,6 +68,12 @@
 - 🔁 REPLAY DO GOL — mockup pronto, ESPERANDO OK DO DIEGO (`scripts/mockups/replay-gol.png`, 25/10): na festa do gol (2,5 s, relógio
   parado) a tela corta 1,5 s do lance visto de trás do gol em câmera lenta, selo REPLAY, e volta pra festa. Não mexe no motor (é a
   câmera voltando 3 s na mesma partida). Não implementar antes do OK (regra: UI nova = mockup primeiro).
+- FEITO (11ª leva): 🤝 no MAPA de verdade o laço de desenho segue 45 s depois do apito (`cumprimentos()` em `presidencia-complexo-3d`) e a
+  TV passa a seguir os JOGADORES indo pro meio (`foco` no `update` da câmera contínua) — antes o último quadro congelava com todo
+  mundo plantado e, depois do conserto do motor, a câmera ficava olhando a bola parada enquanto eles saíam do quadro. 🎯 Chute comum
+  com nome pelo que aconteceu: de longe (> 24 m) · rasteiro no canto · cruzado (narração PT/EN) — "normal" caiu de 79% pra 46%.
+  🧪 Descartado: jogador comum ajeitar a bola na área antes de bater (1,57 gol, 18% de 0×0) e etiqueta "de primeira" (seria 64% dos
+  chutes — na área o motor bate no instinto, a narração repetiria).
 - PRÓXIMO: a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
   caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).

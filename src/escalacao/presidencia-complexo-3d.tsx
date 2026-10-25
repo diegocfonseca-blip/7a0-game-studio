@@ -355,7 +355,9 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    }
    if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera('broadcast')}
    game.update(matchRef.current,performance.now(),camera,el.clientHeight)
-   matchCameraController.update(game.inspect().ball,performance.now(),game.subjects())
+   {const insp=game.inspect() as {ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}};phase?:string};const subj=game.subjects();let foco:{x:number;y:number;z:number}|undefined
+    if(insp.phase==='fim'&&subj.length){let sx=0,sz=0,n=0;for(const q of subj){if(q.visible===false)continue;sx+=q.mx;sz+=q.mz;n++}if(n)foco={x:sx/n,y:.2,z:sz/n}}
+    matchCameraController.update(insp.ball,performance.now(),subj,foco)}
    // 🎉 torcida: a arquibancada do time que fez o gol pula durante a festa (lado 0 do motor = quem manda no estádio)
    {const fr=game.inspect() as {phase?:string;official?:{events?:{tipo:string;lado:number}[]}};let lado:'home'|'away'|null=null;if(fr?.phase==='gol'){const evs=fr.official?.events;for(let i=(evs?.length??0)-1;i>=0;i--)if(evs![i].tipo==='gol'){lado=evs![i].lado===0?'home':'away';break}}crowd.festa(lado,seconds)}
    const cutaway=matchCameraController.inspect().mode!=='free'
@@ -510,7 +512,11 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    if(isWindow){view('office',false);camera.lookAt(controls.target);render()}
   }
   const walking=()=>!!(residents.count()||circulationActors||transportActors||visits.length||crowdDeparture)&&!pausedRef.current&&!reduced.matches
-  const running=()=>visible&&!document.hidden&&(matchCameraController.transitioning||walking()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
+  // 🤝 depois do apito o laço segue por 45 s: é o tempo de os 22 andarem até o meio-campo (o motor avança 1/60 s por quadro desenhado,
+  // `fimQuadros` no adaptador). Sem isto o último quadro congelava com todo mundo plantado onde o jogo acabou (filmado 25/10)
+  let fimDesde:number|null=null,fimDe:string|null=null
+  const cumprimentos=()=>{const m=matchRef.current;if(!m||!m.finished){fimDesde=null;fimDe=null;return false}const id=m.context?.id??'';if(fimDe!==id){fimDe=id;fimDesde=performance.now()}return performance.now()-(fimDesde??0)<45000}
+  const running=()=>visible&&!document.hidden&&(matchCameraController.transitioning||walking()||cumprimentos()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
   const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;return}if(walking()&&last)seconds+=(now-last)/1000;last=now;render();if(running())raf=requestAnimationFrame(tick)}
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.

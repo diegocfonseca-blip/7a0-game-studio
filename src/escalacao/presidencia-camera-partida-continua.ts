@@ -11,8 +11,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
   explore(){enterFree(false)},
-  update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[]){
-   ball=ball.presentation??ball
+  update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number}){
+   ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
    // Slow devices must consume real elapsed camera time instead of needing
    // dozens of rendered frames for a transition. This clock never drives play.
    const dt=last===undefined?1/60:MathUtils.clamp((now-last)/1000,0,.5);last=now
