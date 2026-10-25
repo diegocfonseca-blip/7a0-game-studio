@@ -49,8 +49,14 @@
   de 9,6 m que empurra rival — em cima dela tremiam) e OMBRO A OMBRO (a folga de 2,2 m entre companheiros não vale pra eles). Filmado:
   três parados de frente pra bola 1,5 s depois da falta. Falta frontal a <30 m é rara (0,2/jogo) e leva até 4,5 s porque os 5 que sobem
   são os melhores cabeceadores (zagueiro vem lá de trás) — teto que já existia.
-- PRÓXIMO: replay do gol; juiz; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga");
-  a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador;
+- FEITO (8ª leva): 🟨 o JUIZ MOSTRA O CARTÃO (2 s depois do amarelo/vermelho: braço pra cima e pra fora — reto pra cima sumia atrás da
+  cabeça grande do boneco — com o cartão da cor na mão; `sidelines.mjs`, só desenho) · 🎉 a COMEMORAÇÃO VARIA por gol (preso no autor +
+  minuto): braços pra cima com pulinhos · aviãozinho (braços abertos correndo pra lateral) · dedo pro céu; os companheiros do abraço
+  seguem de braços pra cima. Bancada: câmera `referee-front` no `mechanics-audit`. ⚠️ `test-sidelines.cjs`/`test-referee-clearance.cjs`
+  do Codex precisam de servidor em 127.0.0.1:4197 com base `/7a0-game-studio/` e da fixture `neymarzetti-current` — não rodam aqui (já era assim).
+- PRÓXIMO: replay do gol; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga");
+  a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador; a bola sai pouco pela lateral (1/jogo contra ~5 que
+  caberiam pela proporção de chutes);
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.

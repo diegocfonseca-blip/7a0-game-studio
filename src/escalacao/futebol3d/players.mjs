@@ -122,7 +122,9 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   // 🎉 25/10 (Diego: "o gol… a comemoração"): na festa do gol, quem fez e os companheiros perto dele comemoram — braços pra cima e
   // pulinhos (`levantaBracos`). Só apresentação: posição e placar continuam os do motor.
   let festa=null
-  if(frame.phase==='gol'){const g=frame.official?.events?.findLast?.(e=>e.tipo==='gol');if(g){const side=g.lado===0?'home':'away',autor=frame.players.find(q=>q.side===side&&g.a&&String(g.a).startsWith(q.name));if(autor)festa={side,key:autor.key,x:autor.mx,z:autor.mz,t0:g.t}}}
+  if(frame.phase==='gol'){const g=frame.official?.events?.findLast?.(e=>e.tipo==='gol');if(g){const side=g.lado===0?'home':'away',autor=frame.players.find(q=>q.side===side&&g.a&&String(g.a).startsWith(q.name));if(autor){// 🎉 o JEITO da comemoração varia por gol (preso no autor + minuto: a mesma festa em todo aparelho): braços pra cima com pulinhos ·
+    // aviãozinho (braços abertos correndo) · dedo pro céu. Só desenho; o motor leva o autor pra lateral e os 2 mais perto pro abraço
+    let h=0;for(const ch of String(g.a))h=(h*31+ch.charCodeAt(0))|0;h=Math.abs(h+Math.floor(g.t*10));festa={side,key:autor.key,x:autor.mx,z:autor.mz,t0:g.t,jeito:['bracos','aviao','dedo'][h%3]}}}}
   const comemora=p=>!!festa&&cartoon&&p.side===festa.side&&!p.keeper&&(p.key===festa.key||Math.hypot(p.mx-festa.x,p.mz-festa.z)<9)
   // 🎭 25/10: o teatro das disputas — quem SOFREU a falta cai, quem deu o bote se lança, quem driblou ginga (eventos oficiais dos
   // últimos 1,2 s, pelo nome do motor). Só apresentação; posição e resultado são do motor
@@ -210,7 +212,11 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
     else if(te.tipo==='arranca'){const k=te.dt<.12?te.dt/.12:Math.max(0,1-(te.dt-.12)/.5),ang=.3*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang))}
     a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // 🎉 comemoração: braços pra cima e pulinhos (depois do chão: o pé assentado é a base do pulo)
-   if(comemora(p)&&a.holder.visible){const ph=(frame.time-festa.t0)*5.2+i*.9,hop=Math.max(0,Math.sin(ph))*.32;a.holder.position.y+=hop;a.holder.updateMatrixWorld(true);levantaBracos(a);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
+   if(comemora(p)&&a.holder.visible){const autor=p.key===festa.key,jeito=autor?festa.jeito:'bracos',hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd)),lat=new T.Vector3(fw.z,0,-fw.x)
+    if(jeito==='aviao'){const k=Math.min(1,(frame.time-festa.t0)/.3);apontaOsso(a,'upperarm_l','lowerarm_l',lat.clone().multiplyScalar(-1).setY(.15).normalize(),k);apontaOsso(a,'lowerarm_l','hand_l',lat.clone().multiplyScalar(-1).setY(.1).normalize(),k);apontaOsso(a,'upperarm_r','lowerarm_r',lat.clone().setY(.15).normalize(),k);apontaOsso(a,'lowerarm_r','hand_r',lat.clone().setY(.1).normalize(),k);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lat,.22*k))}
+    else if(jeito==='dedo'){const ph=(frame.time-festa.t0)*4.5,hop=Math.max(0,Math.sin(ph))*.22;a.holder.position.y+=hop;const up=new T.Vector3(0,1,0).addScaledVector(lat,.35).normalize();apontaOsso(a,'upperarm_r','lowerarm_r',up);apontaOsso(a,'lowerarm_r','hand_r',up)}
+    else{const ph=(frame.time-festa.t0)*5.2+i*.9,hop=Math.max(0,Math.sin(ph))*.32;a.holder.position.y+=hop;levantaBracos(a)}
+    a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // Recover locomotion from the body's actually rendered facing. A second
    // hidden gait heading was turning independently during the catch/throw,
    // then snapping the avatar around as the capture faded out.
