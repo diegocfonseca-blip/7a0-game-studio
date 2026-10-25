@@ -3,7 +3,11 @@
 Regra dele: **toda a 1ª geração (151) + os mais famosos das outras gerações**. Sala de **até 10 treinadores** → cada leilão
 precisa de **11 por família** (10 + 1 de sobra) = 66 cartas. Com ~200 no catálogo, cada sala sorteia um leilão diferente.
 
-## As 6 famílias (o "setor" do leilão, no lugar de GOL/LAT/ZAG/MEI/ATA)
+> 🔁 **25/10: AS FAMÍLIAS ABAIXO FORAM REVOGADAS.** Fechado com o Diego: cada pokémon com o **tipo oficial** (os 18), leilão em
+> **lotes misturados** e time de 6 de qualquer tipo (ver `conceito-pokemon.md`). A lista de NOMES e a proposta de CATEGORIA continuam
+> valendo como rascunho — a categoria ainda vai ser conferida pela força oficial de cada um. O agrupamento por família é só histórico.
+
+## As 6 famílias (REVOGADO — histórico)
 Pokémon tem 18 tipos; o leilão tem 6 vagas. Então cada vaga é uma FAMÍLIA de tipos parecidos:
 🔥 **Fogo** (fogo, dragão) · 💧 **Água** (água, gelo) · 🌿 **Planta** (planta, inseto) · ⚡ **Raio** (elétrico, normal, voador) ·
 🪨 **Pedra** (pedra, terra, lutador, aço) · 👻 **Mistério** (psíquico, fantasma, veneno, fada, sombrio)

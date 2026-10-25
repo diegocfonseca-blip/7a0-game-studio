@@ -7,8 +7,17 @@
 
 ## Leilão
 - **O de sempre**: 100 moedas, Envelope / Tocaia / Pregão aberto. **Sem o modo Clubes.**
-- No lugar das posições entram os **TIPOS** (🔥 Fogo · 💧 Água · 🌿 Planta · ⚡ Elétrico · 🪨 Pedra · 👻 Psíquico): um de cada
-  → **time de 6 pokémon**. Categorias iguais às de hoje (Lenda · Craque · Bom · Profissional).
+- 🔁 **TIPOS DE VERDADE, LEILÃO EM LOTES (fechado 25/10, *"fechamos perfeito assim"*).** Motivo dele: *"não quero fãs de pokémon
+  me perturbando que tá errado"*. Então:
+  - cada carta mostra o **tipo OFICIAL atual** (os 18: Normal, Voador, Elétrico, Fogo, Água, Planta, Inseto, Veneno, Terra, Pedra,
+    Lutador, Psíquico, Fantasma, Gelo, Dragão, Aço, Sombrio, Fada — ex.: Pidgey = Normal·Voador, Clefairy = Fada, Magnemite =
+    Elétrico·Aço);
+  - a batalha usa a **tabela de vantagens oficial**;
+  - **time de 6 de QUALQUER tipo** (como no jogo de verdade). O leilão NÃO separa por tipo: **6 rodadas, cada uma com um lote
+    misturado**; você leva 1 por rodada.
+  - ❌ As "6 famílias" que eu inventei (Pidgey junto do Pikachu) estão REVOGADAS — fã ia apontar erro.
+- Categorias iguais às de hoje (Lenda · Craque · Bom · Profissional), pela **força oficial** (atributos base dos jogos); os
+  **folclóricos** (Pikachu, Magikarp…) o Diego decide, igual ao Vozinha.
 - Arte: no padrão das lendas do jogo — **rosto liso, sem olhos, nariz e boca** (pedido dele).
 
 ## Sala
