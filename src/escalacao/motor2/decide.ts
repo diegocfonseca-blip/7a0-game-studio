@@ -167,7 +167,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (aereo && !enfiada && rec > 8 && avanca > 2 && p.at.passe > 60) u += LANCAMENTO * clamp((p.at.passe - 60) / 30, 0.3, 1.2)
     // (pra trás: só quando é o melhor que tem — mas APERTADO, recuar pro zagueiro/lateral é o certo: é assim que o time sai do
     // aperto e a zaga participa do jogo. Diego 21/10: "zagueiro, lateral e goleiro quase não jogam")
-    if ((t.y - p.y) * fy < -3) u -= 0.006 * (1 - pres) - (t.grupo === 'DEF' || t.grupo === 'LAT' ? SAIDA_TRAS * pres : 0)
+    // (25/10, medido: zagueiro dava 6% dos toques — no futebol de verdade ~15%: o recuo pro zagueiro LIVRE quase não custa; ele é o
+    // ponto de apoio pra rodar a bola e trocar o lado)
+    if ((t.y - p.y) * fy < -3) u -= 0.006 * (1 - pres) * (t.grupo === 'DEF' && rec > 8 ? 0.6 : 1) - (t.grupo === 'DEF' || t.grupo === 'LAT' ? SAIDA_TRAS * pres : 0)
     // 🔄 CIRCULAÇÃO (25/10, medido: 61% dos toques eram dos atacantes; zagueiro 6%, lateral 4% — no futebol de verdade a defesa dá
     // ~35% dos toques): no próprio campo e no meio, o zagueiro/lateral LIVRE é opção de verdade — é assim que o time roda a bola e
     // acha o lado fraco, em vez de enfiar tudo no centroavante
