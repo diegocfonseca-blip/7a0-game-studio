@@ -39,7 +39,7 @@ export class FutebolOficial3D {
  private spinPoint(time=0,commit=false):PontoRotacaoBola{
   const g=this.game,b=g.bola,a=g.entre,p=g.bolaAnt,mix=(old:number|undefined,n:number)=>old===undefined?n:old+(n-old)*a
   if(this.hasRestartPlacement())return{x:b.y-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-34,held:true}
-  const point={x:mix(p.y,b.y)-52.5,y:mix(p.h,b.h)+RAIO_BOLA_FUTEBOL_3D,z:mix(p.x,b.x)-34,held:!!b.dono&&b.h>.3}
+  const point={x:mix(p.y,b.y)-52.5,y:mix(p.h,b.h)+RAIO_BOLA_FUTEBOL_3D,z:mix(p.x,b.x)-34,held:!!b.dono&&b.h>.3,curl:b.giro??0}
   return this.goalFinish.sample(point,time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined,commit).position
  }
  /** Chute a caminho: prevê onde a bola cruza a linha do goleiro e marca o voo dele (lado e altura). Bola no meio = sem pulo. */

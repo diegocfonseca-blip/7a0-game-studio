@@ -32,11 +32,14 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
   const aspect=Math.max(.1,camera.aspect),maxTan=Math.tan(MathUtils.degToRad(38))
   const fitPts=[new Vector3(ball.x,ball.y,ball.z),...near.flatMap(p=>[new Vector3(p.mx,0,p.mz),new Vector3(p.mx,1.78,p.mz)])]
   const tenta=(tele:boolean)=>{
-   const cam=tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),portrait?11:9,portrait?52:48):new Vector3(MathUtils.clamp(target.x*.32,-16,16),portrait?27:23,portrait?70:76)
+   // 📱 25/10 (Diego: "boa experiência com base nos jogadores… e no tamanho da imagem"): no CELULAR EM PÉ a tela é estreita — a TV
+   // de verdade (a 70 m) deixava o boneco com 25 px. Em pé, a TV fica mais baixa e mais perto (anel do meio) e mostra ~13 m de
+   // largura: boneco com ~40 px, 6–7 jogadores em volta da bola. Deitado continua a TV clássica
+   const cam=tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),portrait?9:9,portrait?44:48):new Vector3(MathUtils.clamp(target.x*(portrait?.5:.32),portrait?-24:-16,portrait?24:16),portrait?19:23,portrait?58:76)
    const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
    const dist0=cam.distanceTo(target)
    // (o pedaço de campo que a TV mostra em volta da bola: ~34 m de largura deitado, ~22 m em pé; a lateral, bem menos)
-   let tanH=(tele?(portrait?6:9):(portrait?11:17))/dist0,tanV=0
+   let tanH=(tele?(portrait?5:9):(portrait?6.5:17))/dist0,tanV=0
    for(const pt of fitPts){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.82);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.78)}
    return{cam,dist0,need:Math.max(tanV,tanH/aspect)}
   }

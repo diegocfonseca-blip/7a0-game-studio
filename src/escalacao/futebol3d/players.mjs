@@ -28,15 +28,36 @@ let cartoonMotionPromise,keeperMotionPromise;
 
 // 🎉 os dois braços pra cima em V (gira o braço no mundo até apontar pro alto e um pouco pra fora — vale pra qualquer orientação do osso)
 const _a=new T.Vector3(),_b=new T.Vector3(),_c=new T.Vector3(),_q1=new T.Quaternion(),_q2=new T.Quaternion(),_q3=new T.Quaternion()
+/** gira o osso `nome` NO MUNDO até o segmento osso→`filho` apontar na direção `want` (unitária), misturado por `k` (0–1) */
+function apontaOsso(a,nome,filho,want,k=1){
+ const up=a.bones?.get(nome),lo=a.bones?.get(filho);if(!up||!lo||!up.parent)return
+ up.updateWorldMatrix(true,false);up.getWorldPosition(_a);lo.getWorldPosition(_b)
+ const cur=_b.sub(_a).normalize(),alvo=k>=1?want:cur.clone().lerp(want,k).normalize()
+ _q1.setFromUnitVectors(cur,alvo);up.getWorldQuaternion(_q2);_q1.multiply(_q2);up.parent.getWorldQuaternion(_q3).invert();up.quaternion.copy(_q3.multiply(_q1));up.updateWorldMatrix(false,true)
+}
 function levantaBracos(a,alvo=null){
  const pelvis=a.bones?.get('pelvis');if(!pelvis)return
  pelvis.getWorldPosition(_c)
- for(const lado of ['l','r']){const up=a.bones.get('upperarm_'+lado),lo=a.bones.get('lowerarm_'+lado);if(!up||!lo||!up.parent)continue
-  up.updateWorldMatrix(true,false);up.getWorldPosition(_a);lo.getWorldPosition(_b)
-  const cur=_b.sub(_a).normalize(),fora=_a.clone().sub(_c);fora.y=0;fora.normalize()
+ for(const lado of ['l','r']){const up=a.bones.get('upperarm_'+lado);if(!up)continue;up.getWorldPosition(_a)
+  const fora=_a.clone().sub(_c);fora.y=0;fora.normalize()
   const want=alvo?alvo.clone().addScaledVector(fora,.18).normalize():new T.Vector3(fora.x*.38,1,fora.z*.38).normalize()
-  _q1.setFromUnitVectors(cur,want);up.getWorldQuaternion(_q2);_q1.multiply(_q2);up.parent.getWorldQuaternion(_q3).invert();up.quaternion.copy(_q3.multiply(_q1));up.updateWorldMatrix(false,true)}
+  apontaOsso(a,'upperarm_'+lado,'lowerarm_'+lado,want)}
 }
+// 🦵 25/10 (Diego: "como ele dá o passe… como ele dá o chute"): CHUTE PROCEDURAL pra toda batida que não tem captura de movimento —
+// antes 1 em cada 3 passes/chutes saía sem a perna mexer (a bola "saía sozinha"). A perna de apoio fica, a outra vai à frente no
+// instante em que a bola sai e volta em ~0,3 s; o chute (mais forte) sobe mais que o passe. `fase` = segundos desde a saída da bola.
+function chutaPerna(a,heading,fase,forca,direita){
+ const amp=forca*(fase<.08?.55+fase/.08*.45:Math.max(0,1-(fase-.08)/.3)) // (vai até o máximo logo depois do contato e recolhe)
+ if(amp<=0)return
+ const fw=new T.Vector3(Math.sin(heading),0,Math.cos(heading)),lado=direita?'r':'l'
+ // (coxa: pra frente e pra cima; a canela segue a coxa — a perna fica esticada no final do chute)
+ const want=new T.Vector3(fw.x*Math.sin(.95*amp),-Math.cos(.95*amp),fw.z*Math.sin(.95*amp)).normalize()
+ apontaOsso(a,'thigh_'+lado,'calf_'+lado,want)
+ apontaOsso(a,'calf_'+lado,'foot_'+lado,new T.Vector3(fw.x*Math.sin(1.1*amp),-Math.cos(1.1*amp),fw.z*Math.sin(1.1*amp)).normalize())
+ // (o braço contrário abre pra equilibrar)
+ apontaOsso(a,'upperarm_'+(direita?'l':'r'),'lowerarm_'+(direita?'l':'r'),new T.Vector3(-fw.z*(direita?1:-1)*.8,.1,fw.x*(direita?1:-1)*.8).normalize(),.6*amp)
+}
+const TIPOS_CHUTE=new Set(['passe','enfiada','lancamento','inversao','cruzamento','chutao','chute','cobranca'])
 export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refineFundamentals=true,refinePossession=true,refineBallTouches=true,forceRuntimeMotion=false,reviewedOnly=false,onPrepared=undefined,keeperTrial=undefined,president=undefined}={}){
  const kitPlan=matchKitPlan(state,(state.officialTeams??[]).map(clubKitFor),(state.officialTeams??[]).map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[])),matchKitConfigs=kitPlan.map(p=>p.config).filter(Boolean);
  const cartoon=style==='civil-cartoon';let civil=cartoon?await loadCartoonSource():null;
@@ -103,6 +124,14 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
   let festa=null
   if(frame.phase==='gol'){const g=frame.official?.events?.findLast?.(e=>e.tipo==='gol');if(g){const side=g.lado===0?'home':'away',autor=frame.players.find(q=>q.side===side&&g.a&&String(g.a).startsWith(q.name));if(autor)festa={side,key:autor.key,x:autor.mx,z:autor.mz,t0:g.t}}}
   const comemora=p=>!!festa&&cartoon&&p.side===festa.side&&!p.keeper&&(p.key===festa.key||Math.hypot(p.mx-festa.x,p.mz-festa.z)<9)
+  // 🎭 25/10: o teatro das disputas — quem SOFREU a falta cai, quem deu o bote se lança, quem driblou ginga (eventos oficiais dos
+  // últimos 1,2 s, pelo nome do motor). Só apresentação; posição e resultado são do motor
+  const teatro=new Map()
+  if(cartoon&&frame.official?.events){const evs=frame.official.events;for(let i=evs.length-1;i>=0;i--){const e=evs[i],dtEv=frame.time-e.t;if(dtEv>1.2)break;if(dtEv<0)continue
+   if((e.tipo==='falta'||e.tipo==='vantagem')&&e.b&&!teatro.has(e.b))teatro.set(e.b,{tipo:'cai',dt:dtEv})
+   if((e.tipo==='desarme'||e.tipo==='carrinho'||e.tipo==='falta')&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:e.tipo==='carrinho'?'carrinho':'bote',dt:dtEv})
+   if(e.tipo==='drible'&&e.a&&!teatro.has(e.a))teatro.set(e.a,{tipo:'ginga',dt:dtEv})}}
+  const acao=frame.officialAction
   frame.players.forEach((p,i)=>{
    const a=actors.find(a=>a.key===p.key&&!used.has(a))??actors.find(a=>!used.has(a)&&!currentKeys.has(a.key)&&a.side===p.side&&a.keeper===p.keeper);if(!a)return;used.add(a);const official=lastFrame.players.find(q=>q.key===p.key);a.sourceAnchor={x:official.mx,z:official.mz};a.navigationOffset={x:p.mx-official.mx,z:p.mz-official.mz};const resetActor=reset||a.key!==p.key||navigation?.diagnostics.sourceReset;a.key=p.key;
    if(resetActor)a.ballControl?.reset();
@@ -131,7 +160,7 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const target=name==='KeeperReady_Loop'?readyWeight:(1-readyWeight)*(targets?.[name]??(name===mode?1:0)),current=action.isScheduled()?action.getEffectiveWeight():0;action.play();action.timeScale=0;action.setEffectiveWeight(resetActor||previous==='far'||previous==='hidden'?target:T.MathUtils.lerp(current,target,1-Math.exp(-dt/.18)));}
    const active=(keeperActive&&p.key===keeperTrial.plan.key)||motion?.plans.some(plan=>plan.key===p.key&&frame.time>=plan.start&&frame.time<=plan.end);
    const nearBall=frame.ball.y<1.5&&Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z)<1.5;
-   const refresh=active||a.wasAction||nearBall||comemora(p)||!!p.mergulho||(a.detail==='full'&&dt>0)||frame.time-a.lastPose>=1/12||previous!==a.detail||frame.time<a.lastPose;
+   const refresh=active||a.wasAction||nearBall||comemora(p)||!!p.mergulho||(acao&&acao.actor===p.key)||teatro.has(p.name)||(a.detail==='full'&&dt>0)||frame.time-a.lastPose>=1/12||previous!==a.detail||frame.time<a.lastPose;
    if(refresh){a.mixer.update(Math.min(.25,dt));for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const c=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[name]];action.time=name==='Idle_Loop'||name==='KeeperReady_Loop'?frame.time%action.getClip().duration:(targets&&c&&gaitCurve(c)?gaitCurve(c).phase(a.gaitPhase):((a.gaitPhase+(c?.phaseOffset??0))%1))*action.getClip().duration}a.mixer.update(0);a.lastPose=frame.time;inspection.poseUpdates++;}
    if(!cartoon){a.pelvis.position.x=a.rest.x;a.pelvis.position.z=a.rest.z;}
    if(refresh)for(const pose of a.nativePose){pose.position.copy(pose.bone.position);pose.quaternion.copy(pose.bone.quaternion)}
@@ -153,6 +182,24 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    // 🧤 25/10: o PULO do goleiro — o corpo tomba pro lado da bola a partir dos pés, desliza até o ponto e sobe se a bola vem alta;
    // os braços esticam na linha do corpo (só desenho: quem decide defesa/gol é o motor, e `mergulho` vem do adaptador)
    if(p.mergulho&&cartoon&&a.holder.visible){const m=p.mergulho,dx=m.x-p.mx,dz=m.z-p.mz,len=Math.hypot(dx,dz);if(len>.05){const dir=new T.Vector3(dx/len,0,dz/len),eixo=new T.Vector3(0,1,0).cross(dir).normalize(),alto=T.MathUtils.clamp(m.y/2.2,0,1),ang=m.k*T.MathUtils.lerp(1.3,.55,alto)*T.MathUtils.clamp(len/1.2,.45,1),q=new T.Quaternion().setFromAxisAngle(eixo,ang);a.holder.quaternion.premultiply(q);const vai=Math.min(len,1.7)*m.k*.75;a.holder.position.x+=dir.x*vai;a.holder.position.z+=dir.z*vai;a.holder.position.y+=Math.sin(m.k*Math.PI*.5)*(.18+alto*.45);a.holder.updateMatrixWorld(true);levantaBracos(a,new T.Vector3(0,1,0).applyQuaternion(q));for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}}
+   // 🦵 chute/passe sem captura: a perna bate (0–0,38 s depois de a bola sair)
+   if(cartoon&&a.holder.visible&&!capture&&acao&&acao.actor===p.key&&TIPOS_CHUTE.has(acao.type)&&acao.requiredContact!=='hands'&&acao.requiredContact!=='head'){
+    const fase=frame.time-acao.startedAt
+    if(fase>=0&&fase<.38){const forte=acao.type==='chute'||acao.type==='chutao'||acao.type==='lancamento'||acao.type==='cruzamento';const bx=frame.ball.x-p.mx,bz=frame.ball.z-p.mz,hd=a.lastHeading;const direita=(Math.cos(hd)*bx-Math.sin(hd)*bz)>=0;chutaPerna(a,hd,fase,forte?1:.7,direita);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
+   }
+   // 🗣️ CABEÇADA (25/10): a bola alta chega e ele SOBE — pulo de ~35 cm com a cabeça indo na bola (inclina o tronco pra frente no
+   // contato). Vale pro cabeceio pro gol e pro corte de cabeça (o motor marca `requiredContact:'head'`)
+   if(cartoon&&a.holder.visible&&!capture&&acao&&acao.actor===p.key&&acao.requiredContact==='head'){
+    const fase=frame.time-acao.startedAt
+    if(fase>-.35&&fase<.4){const u=(fase+.35)/.75,salto=Math.sin(Math.PI*u)*.38;a.holder.position.y+=salto;const hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd)),lateral=new T.Vector3(fw.z,0,-fw.x),cab=fase<0?-.25*(1+fase/.35):.45*Math.max(0,1-fase/.4);a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,cab));levantaBracos(a,new T.Vector3(0,.3,0).addScaledVector(fw,-.5).normalize());a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
+   }
+   // 🎭 cai / bote / ginga
+   const te=cartoon&&a.holder.visible?teatro.get(p.name):null
+   if(te){const hd=a.lastHeading,fw=new T.Vector3(Math.sin(hd),0,Math.cos(hd)),lateral=new T.Vector3(fw.z,0,-fw.x)
+    if(te.tipo==='cai'){const k=te.dt<.3?te.dt/.3:te.dt<.7?1:Math.max(0,1-(te.dt-.7)/.5),ang=1.25*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang));a.holder.position.y-=Math.sin(ang)*.12;levantaBracos(a,fw.clone().multiplyScalar(.6).setY(.5).normalize())}
+    else if(te.tipo==='bote'||te.tipo==='carrinho'){const k=te.dt<.15?te.dt/.15:Math.max(0,1-(te.dt-.15)/.45),ang=(te.tipo==='carrinho'?.9:.45)*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(lateral,ang));if(te.tipo==='carrinho')a.holder.position.y-=Math.sin(ang)*.35;apontaOsso(a,'thigh_r','calf_r',new T.Vector3(fw.x*.9,-.35,fw.z*.9).normalize(),k)}
+    else if(te.tipo==='ginga'){const k=Math.max(0,1-te.dt/.6),roll=Math.sin(te.dt*21)*.22*k;a.holder.quaternion.premultiply(new T.Quaternion().setFromAxisAngle(fw,roll))}
+    a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // 🎉 comemoração: braços pra cima e pulinhos (depois do chão: o pé assentado é a base do pulo)
    if(comemora(p)&&a.holder.visible){const ph=(frame.time-festa.t0)*5.2+i*.9,hop=Math.max(0,Math.sin(ph))*.32;a.holder.position.y+=hop;a.holder.updateMatrixWorld(true);levantaBracos(a);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update()}
    // Recover locomotion from the body's actually rendered facing. A second

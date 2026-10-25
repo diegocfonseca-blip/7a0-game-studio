@@ -1,0 +1,12 @@
+<!doctype html><html><body style="margin:0;background:#F4ECD6"><div id="x"></div><script type="module">
+import './src/index.css';import React from 'react';import{createRoot}from'react-dom/client';
+import {adaptarCarreiraAoComplexo} from './src/escalacao/presidencia-complexo-carreira.ts';import Complexo from './src/escalacao/presidencia-complexo-3d.tsx';
+const q=new URLSearchParams(location.search);const W=+(q.get('w')||400),H=+(q.get('h')||620),MIN=+(q.get('min')||21)
+document.getElementById('x').style.cssText=`width:${W}px;height:${H}px;margin:0 auto`
+const fx=await (await fetch('/qa-tmp-input.json')).json();const input=fx.input
+const pl=l=>l.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))
+const state={careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:1,seasonNo:3,managers:[{id:7,isHuman:false},{id:3,isHuman:true}],stadiums:{3:{inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:['refl','telao','loja','estac','praca','cober','estacao']}},careerCoins:{3:10}}
+const match={context:{id:'x:12:3:7',homeClubId:3,awayClubId:7,home:pl(input.casa),away:pl(input.fora),stadium:state.stadiums[3]},officialInput:input,officialTeams:['Seu Clube','Rival FC'],minute:MIN,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#ffd400',awayColor:'#d01010'}
+const r=adaptarCarreiraAoComplexo({enabled:true,state,mgrId:3,match,day:{division:'A',support:85}})
+createRoot(document.getElementById('x')).render(React.createElement(Complexo,{...r.complexo,match:{...match,viewerClubId:3},onReady:a=>{window.__api=a}}))
+</script></body></html>

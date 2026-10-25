@@ -1,7 +1,7 @@
 import {Quaternion,Vector3} from 'three'
 
 export const RAIO_BOLA_FUTEBOL_3D=.11
-export type PontoRotacaoBola={x:number;y:number;z:number;held?:boolean}
+export type PontoRotacaoBola={x:number;y:number;z:number;held?:boolean;/** 🌀 efeito da bola no ar (rad/s de curva do motor): vira rotação em torno do eixo vertical */curl?:number}
 /** Visual rotation only. Ground: distance/radius. Flight spin is an estimate
  * from take-off velocity, never a torque supplied to the official engine. */
 export class RotacaoBola3D{
@@ -23,6 +23,9 @@ export class RotacaoBola3D{
    this.omega.set(dz,0,-dx).multiplyScalar(.35/(this.radius*dt))
    this.omega.clampLength(0,40)
   }
+  // 🌀 25/10: a bola com efeito (cruzamento fechando, falta colocada) gira em torno do eixo vertical enquanto voa — é o que se vê
+  // na TV: o desenho da bola rodando de lado. O giro visual é ~20× a curva (rad/s), com teto
+  if(!ground&&!point.held&&point.curl)this.omega.y=Math.max(-45,Math.min(45,point.curl*20))
   const speed=this.omega.length()
   if(speed>0){this.delta.setFromAxisAngle(this.omega.clone().multiplyScalar(1/speed),speed*dt);this.quaternion.premultiply(this.delta).normalize()}
   this.previous={...point};return this.quaternion

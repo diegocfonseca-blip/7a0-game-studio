@@ -52,6 +52,13 @@ const GOLPE_TXT: Record<string, [string, string]> = {
   cruyff: ['O giro de Cruyff em cima do {b}!', 'The Cruyff turn on {b}!'], drible_goleiro: ['{a} dribla o goleiro!', '{a} rounds the keeper!'],
 }
 
+// 🎯 o jeito do chute (25/10): cobertura, cavadinha, colocado, bomba
+const CHUTE_TXT: Record<string, [string, string]> = {
+  cobertura: ['{a} vê o goleiro adiantado e tenta a COBERTURA!', '{a} spots the keeper off his line and tries the LOB!'],
+  cavadinha: ['CAVADINHA de {a}!', 'A CHIP from {a}!'],
+  colocado: ['{a} bate colocado, de três dedos!', '{a} curls one with the outside of the boot!'],
+  bomba: ['{a} solta a BOMBA!', '{a} lets fly a ROCKET!'],
+}
 export class Narrador {
   private usados = new Map<string, number>()
   private en: boolean
@@ -59,6 +66,7 @@ export class Narrador {
   constructor(en: boolean, r: () => number) { this.en = en; this.r = r }
   texto(e: Evento): string | null {
     if (e.tipo === 'drible' && e.golpe && GOLPE_TXT[e.golpe]) return this.pinta(GOLPE_TXT[e.golpe][this.en ? 1 : 0], e)
+    if (e.tipo === 'chute' && e.golpe && CHUTE_TXT[e.golpe]) return this.pinta(CHUTE_TXT[e.golpe][this.en ? 1 : 0], e)
     const f = F[e.tipo]
     if (!f) return null
     const lista = f[this.en ? 1 : 0]

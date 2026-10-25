@@ -537,7 +537,15 @@ export class Motor2 {
       case 'conduz': case 'drible': case 'segura': {
         const v = a.tipo === 'segura' ? 2.6 : this.vmax(p)
         // (drible = vai PRA CIMA do marcador e passa por ele: o alvo é 2 m além do rival, não um ponto genérico à frente)
-        if (a.tipo === 'drible' && a.contra) { const z = a.contra, dx = z.x - p.x, dy = z.y - p.y, d = len(dx, dy) || 1; p.alvo = { x: clamp(z.x + (dx / d) * 2.5, 2, W - 2), y: clamp(z.y + (dy / d) * 2.5, 2, L - 2), v }; return }
+        if (a.tipo === 'drible' && a.contra) {
+          // 💫 25/10 (Diego: "como ele dá o drible"): o drible MUDA DE DIREÇÃO — a bola passa por um lado do marcador e o corpo por
+          // perto: quem corta pra dentro (Robben, Garrincha) vai pro meio; o resto escolhe o lado mais livre. Antes era reto, "através" dele
+          const z = a.contra, dx = z.x - p.x, dy = z.y - p.y, d = len(dx, dy) || 1, px = -dy / d, py = dx / d
+          const dentro = (34 - z.x) * px >= 0 ? 1 : -1 // (o lado perpendicular que aponta pro meio do campo)
+          const livre = (s: number) => { let m = 9; for (const q of this.atl) if (q.lado !== p.lado && q !== z) m = Math.min(m, len(z.x + px * s * 3 - q.x, z.y + py * s * 3 - q.y)); return m }
+          const lado = p.golpes.includes('corta_pra_dentro') ? dentro : livre(1) >= livre(-1) ? 1 : -1
+          p.alvo = { x: clamp(z.x + (dx / d) * 2.2 + px * lado * 2.4, 2, W - 2), y: clamp(z.y + (dy / d) * 2.2 + py * lado * 2.4, 2, L - 2), v }; return
+        }
         p.alvo = { x: a.alvo.x, y: a.alvo.y, v }
         if (a.tipo === 'conduz' && p.tend.drible + (p.estilo === 'velocista' ? 0.3 : 0) > 0.45 && this.r() < 0.12) this.emite({ tipo: 'arrancada', lado: p.lado, a: p.nome })
         return
@@ -623,10 +631,20 @@ export class Motor2 {
     const xAlvo = 34 + canto + this.n() * sigma
     const hAlvo = clamp((cabeca ? 0.6 : 0.3 + this.r() * 1.6) + this.n() * sigma * 0.6, 0.1, 6)
     const bomba = p.golpes.includes('bomba') || p.golpes.includes('falta_bomba')
-    const v = cabeca ? 13 + p.at.cabeceio * 0.04 : clamp(17 + p.at.finalizacao * 0.09 + (bomba ? 5 : 0) + this.n() * 1.5, 14, 33)
-    const dx = xAlvo - b.x, dy = lin - b.y, d = len(dx, dy) || 1, T = d / v
+    let v = cabeca ? 13 + p.at.cabeceio * 0.04 : clamp(17 + p.at.finalizacao * 0.09 + (bomba ? 5 : 0) + this.n() * 1.5, 14, 33)
+    const dx = xAlvo - b.x, dy = lin - b.y, d = len(dx, dy) || 1
+    // 🎯 COBERTURA / CAVADINHA (25/10, Diego: "variedades de chute"): goleiro adiantado (saiu 5 m+ da linha) e chute de 10–28 m →
+    // quem tem o golpe (ou decide bem) encobre: bola lenta, alta, caindo embaixo do travessão. O goleiro adiantado não alcança
+    const gk = this.atl.find(a => a.lado !== l && a.grupo === 'GOL'), gkFora = gk ? fundo(gk.lado, gk.y) : 0
+    const sabeCobrir = p.golpes.includes('cobertura') || p.golpes.includes('cavadinha') ? 0.75 : p.at.decisao > 80 ? 0.35 : 0.12
+    let cobertura = false
+    if (!cabeca && !this.parada && gkFora > 5 && dGol > 10 && dGol < 28 && gkFora < dGol - 4 && this.r() < sabeCobrir) {
+      cobertura = true
+      v = clamp(11 + dGol * 0.35, 12, 20) // (bola lenta e alta: o tempo de voo deixa ela cair atrás do goleiro)
+    }
+    const T = d / v
     b.dono = null; b.ultimo = p; this.donoDesde = null
-    b.vx = (dx / d) * v; b.vy = (dy / d) * v; b.vh = (hAlvo - b.h + 0.5 * G * T * T) / T
+    b.vx = (dx / d) * v; b.vy = (dy / d) * v; b.vh = (cobertura ? clamp(1.6 + this.n() * 0.5, 0.6, 2.3) - b.h + 0.5 * G * T * T : hAlvo - b.h + 0.5 * G * T * T) / T
     // 🌀 CHUTE COLOCADO / FALTA COM CURVA (25/10): quem tem o golpe bate de fora pra dentro — a bola sai por fora do poste e fecha no
     // canto (Δvx = −vy·g: o giro traz a bola de volta pro meio). Só de longe e com a bola no chão; cabeçada e pênalti não têm curva
     const curva = !cabeca && dGol > 12 && (this.parada?.tipo === 'falta' ? (p.golpes.includes('falta_curva') ? 1 : p.golpes.includes('tres_dedos') ? 0.8 : 0) : (p.golpes.includes('colocado') || p.golpes.includes('tres_dedos') ? 0.6 : 0))
@@ -635,9 +653,9 @@ export class Motor2 {
       const meio = giro * T * 0.5, vx = b.vx; b.vx = vx + b.vy * meio; b.vy = b.vy - vx * meio; b.giro = giro
     } else b.giro = 0
     if (this.parada) this.parada = null
-    b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y } }
+    b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y }, golpe: cobertura ? (p.golpes.includes('cavadinha') && dGol < 16 ? 'cavadinha' : 'cobertura') : curva ? 'colocado' : bomba ? 'bomba' : undefined }
     this.stats.chutes[l]++; this.stats.xg[l] += xg
-    this.emite({ tipo: cabeca ? 'cabeceio' : 'chute', lado: l, a: p.nome })
+    this.emite({ tipo: cabeca ? 'cabeceio' : 'chute', lado: l, a: p.nome, golpe: b.lance.golpe })
   }
 
   // ── movimento dos 22 ──
