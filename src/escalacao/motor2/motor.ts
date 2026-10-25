@@ -287,7 +287,7 @@ export class Motor2 {
   }
   private lugarNaCobranca0(p: Atleta): { x: number; y: number; v: number } {
     const pa = this.parada!, v = 6
-    if (p === pa.cobrador) return { x: pa.x, y: pa.y, v: 7 }
+    if (p === pa.cobrador) return { x: pa.x, y: pa.y, v: pa.tipo === 'escanteio' || pa.tipo === 'lateral' ? 9 : 7 } // (escanteio e lateral: vai correndo buscar a bola)
     if (p.grupo === 'GOL' && p.lado !== pa.lado && pa.tipo !== 'saida') { const g = { x: 34, y: linhaAtaque((1 - p.lado) as Lado) + (p.lado === 0 ? -0.6 : 0.6) }; return { ...g, v } }
     const an = ancora(this, p)
     let x = an.x, y = an.y
@@ -431,7 +431,9 @@ export class Motor2 {
       if (!this.acrescimo[0] && this.t >= 44 * SEG_POR_MIN) { this.acrescimo[0] = this.calculaAcrescimo(0, 1, 3); this.emite({ tipo: 'acrescimo', lado: 0, a: String(this.acrescimo[0]) }) }
       if (this.intervalo && !this.acrescimo[1] && this.t >= 89 * SEG_POR_MIN) { this.acrescimo[1] = this.calculaAcrescimo(45, 1, 3); this.emite({ tipo: 'acrescimo', lado: 0, a: String(this.acrescimo[1]) }) }
       const fim1 = (45 + (this.acrescimo[0] || 1)) * SEG_POR_MIN, fim2 = (90 + (this.acrescimo[1] || 3)) * SEG_POR_MIN
-      if (!this.intervalo && this.t >= fim1 && (calmo || this.t >= fim1 + 1.5 * SEG_POR_MIN)) { this.intervalo = true; this.emite({ tipo: 'intervalo', lado: 0 }); this.aplicaTrocas(); this.saida(1); return }
+      // (📺 corte de TV no intervalo: a tela volta com os times já arrumados pra saída — igual ao gol. Antes todo mundo voltava a pé e o
+      // 2º tempo demorava até 7 s pra começar, 8% do jogo)
+      if (!this.intervalo && this.t >= fim1 && (calmo || this.t >= fim1 + 1.5 * SEG_POR_MIN)) { this.intervalo = true; this.emite({ tipo: 'intervalo', lado: 0 }); this.aplicaTrocas(); this.saida(1, true, false); return }
       // (⏱️ nunca passa dos 93': é onde o relógio da tela para — gol depois disso contaria sem ninguém ver)
       if (this.intervalo && ((this.t >= fim2 && (calmo || this.t >= fim2 + 1.5 * SEG_POR_MIN)) || this.t >= 92.9 * SEG_POR_MIN)) { this.fim = true; this.emite({ tipo: 'fim', lado: 0 }); this.bola.dono = null; this.bola.vx = this.bola.vy = 0; return }
       this.decisoes()
@@ -1023,7 +1025,7 @@ export class Motor2 {
     if (tipo === 'tiro_de_meta') cob = time.find(a => a.grupo === 'GOL') ?? time[0]
     else if (tipo === 'saida') cob = time.filter(a => a.grupo === 'ATA' || a.grupo === 'MEI').sort((a, c) => dist(a, b) - dist(c, b))[0] ?? time[0]
     // (o cobrador do escanteio é o melhor cruzador entre os 4 MAIS PERTO — o melhor do time vindo lá da zaga gastava 5 s a cobrança)
-    else if (tipo === 'escanteio') cob = time.filter(a => a.grupo !== 'GOL').sort((a, c) => dist(a, b) - dist(c, b)).slice(0, 4).sort((a, c) => c.at.passe + c.tend.cruza * 30 - a.at.passe - a.tend.cruza * 30)[0]
+    else if (tipo === 'escanteio') cob = time.filter(a => a.grupo !== 'GOL').sort((a, c) => dist(a, b) - dist(c, b)).slice(0, 3).sort((a, c) => c.at.passe + c.tend.cruza * 30 - a.at.passe - a.tend.cruza * 30)[0]
     else if (tipo === 'penalti') cob = time.filter(a => a.grupo !== 'GOL').sort((a, c) => c.at.finalizacao - a.at.finalizacao)[0]
     else if (tipo === 'falta' && frente(lado, y) < 30) cob = time.filter(a => a.grupo !== 'GOL').sort((a, c) => c.at.finalizacao + c.tend.chuteLonge * 25 - a.at.finalizacao - a.tend.chuteLonge * 25)[0]
     else cob = time.filter(a => a.grupo !== 'GOL').sort((a, c) => dist(a, b) - dist(c, b))[0] ?? time[0]
@@ -1049,7 +1051,7 @@ export class Motor2 {
     // time CHEGAR na área (4+ dentro) — com teto de tempo, pra bola parada nunca segurar o jogo
     const ensaiada = pa.tipo === 'escanteio' || (pa.tipo === 'falta' && frente(pa.lado, pa.y) < 32 && this.ensaio[pa.lado] != null)
     const naArea = ensaiada ? this.atl.filter(a => a.lado === pa.lado && a !== c && a.grupo !== 'GOL' && frente(pa.lado, a.y) < AREA_PROF + 2 && Math.abs(a.x - 34) < AREA_LARG + 2).length : 9
-    const pronto = dist(c, pa) < 0.9 && this.t - pa.desde >= ESPERA[pa.tipo] && (naArea >= 4 || this.t - pa.desde >= ESPERA[pa.tipo] + 4.5)
+    const pronto = dist(c, pa) < 0.9 && this.t - pa.desde >= ESPERA[pa.tipo] && (naArea >= 4 || this.t - pa.desde >= ESPERA[pa.tipo] + 2.5)
     // (depois do gol o time volta da festa lá do bandeirinha: dá mais tempo pra todo mundo chegar no seu campo)
     const folga = pa.tipo === 'saida' ? 8 : 4
     if (!pronto && this.t - pa.desde < ESPERA[pa.tipo] + folga) return
