@@ -10845,3 +10845,7 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 4. 🛡️ Clube: escudo R$ 39,90 · mascote R$ 39,90 · manto R$ 19,90 · **combo R$ 79,90** (ele achou os primeiros valores baratos).
 5. 💎 **Vitalício completo** (tudo pra sempre + combo do clube): ele quer BEM caro (*"senão não paga mais mensal"*); **R$ 299,90 (confirmado 25/10: *"sim 299"*)**. Mockup `scripts/mockups/loja-planos-novos.png`. ⏳ Espera OK do visual antes de codar.
 ⚠️ Quem já pagou Lenda/Batismo/Fundador fica com tudo pra sempre (regra "planos novos não mexem em quem já paga").
+- 🏆 25/10 — "CAMPEONATOS OFICIAIS" (o item do Plano Craque) = **O CAMPEONATO OFICIAL** que ele descreveu: transmissão com narrador +
+  comentarista, 1ª Divisão Fundador / 2ª Divisão Batismo, rodadas alternando Cartas cegas · Tocaia · Pregão aberto, inscrição R$ 10,
+  pote pros 5 primeiros (3× · 2× · 1× · 1× · 1×). Mockup `scripts/mockups/campeonato-oficial.png` (só pra ver). ⏳ Nada codado.
+  ⚠️ Inscrição paga + prêmio em dinheiro pode cair em regra de jogo/aposta no Brasil — consultar antes de abrir.
