@@ -10974,3 +10974,4 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
   B) outras abas sem nada; data no cabeçalho e selo "QUA 18" em cima de Jogos na barra de baixo.
   C) o cabeçalho preto vira a semana em bolinhas + ⏩.
 - Hoje (só conta dele): Elenco/Rank/Central sem faixa; Clube com a faixa. Selo da barra de baixo com contagem ainda não existe.
+- 🔁 25/10 (mesma conversa): ideia DELE — **a Central é a casa**: os dias passam na Central (semana DOM→SÁB + próximo jogo com contagem); no dia do jogo aviso "Dia de jogo!" e vai sozinho pra aba Jogos em 3s (dá pra "ficar aqui"); apitou (e a coletiva) → volta pra Central com o resultado em cima até o próximo jogo. Elenco/Rank/Clube: faixa fina com a data e ⏸️. Mockup `scripts/mockups/calendario-fluxo.png` (gerador `scripts/mockup-calendario-fluxo.mjs`). Esperando OK; depois faz na conta dele.
