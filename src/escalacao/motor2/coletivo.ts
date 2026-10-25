@@ -168,7 +168,11 @@ function melhorOpcao(m: Motor2, d: Atleta, s: Atleta, adv: Atleta[], usados: { x
 /** o alvo de movimento de cada jogador conforme o papel (roda todo passo — é barato) */
 export function alvoDe(m: Motor2, p: Atleta): { x: number; y: number; v: number } {
   const vmax = m.vmax(p)
-  const vaiPara = (pt: { x: number; y: number }, pressa = 1) => ({ x: pt.x, y: pt.y, v: Math.min(vmax, (dist(p, pt) > 9 ? 7.4 : 5.2) * pressa) })
+  // 🚶 25/10 (Diego: *"jogadores atuando igual profissionais mesmo"*): ritmo de GENTE. Antes todo mundo corria (5,2–7,4 m/s) até pra
+  // se ajeitar 3 m na posição — média de 4,8 m/s e quase ninguém andando (o real é ~2 m/s, com muita caminhada e trote). Agora:
+  // perto do lugar anda, a alguns metros trota, longe corre; sprint só pra quem pressiona/recebe/infiltra (eles não passam por aqui)
+  const ritmo = (d: number) => d < 2.5 ? 1.5 : d < 6 ? 2.7 : d < 12 ? 4.4 : d < 20 ? 6.0 : 7.4
+  const vaiPara = (pt: { x: number; y: number }, pressa = 1) => ({ x: pt.x, y: pt.y, v: Math.min(vmax, ritmo(dist(p, pt)) * pressa) })
   switch (p.papel) {
     case 'goleiro': {
       const lance = m.bola.lance

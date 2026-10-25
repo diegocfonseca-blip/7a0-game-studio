@@ -148,6 +148,8 @@ const DESVIO_LATERAL = 0.8
 /** 🏁 …e o desviado dentro da própria área vai pra linha de fundo */
 const DESVIO_ESCANTEIO = 0.6
 const GK_BASE = -0.2
+/** 🦶 até onde o pé alcança a bola rasteira pra dominar (um passo + a perna) e a distância da bola na condução */
+const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
 export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
@@ -540,7 +542,7 @@ export class Motor2 {
       // passe rasteiro na MEDIDA: chega no pé a ~13 m/s (dá pra dominar e ainda anda); a enfiada chega mais mansa (~7 m/s) no
       // espaço onde o companheiro vai pegar. Antes a bola era batida pra CHEGAR a 18 m/s — e, se ninguém dominava, seguia 40 m e
       // saía pela linha de fundo (era assim que 1 em 5 bolas na área virava tiro de meta)
-      const v = a.tipo === 'chutao' ? clamp(vRasteira(d, 9), 12, 28) : clamp(vRasteira(d, a.tipo === 'enfiada' ? 7 : 13) + p.at.passe * 0.015, 9, 27)
+      const v = a.tipo === 'chutao' ? clamp(vRasteira(d, 9), 12, 28) : clamp(vRasteira(d, a.tipo === 'enfiada' ? 7 : 11) + p.at.passe * 0.015, 9, 27)
       b.vx = ux * v; b.vy = uy * v; b.vh = 0; b.h = 0
     }
     // 🚩 impedimento: o alvo do passe à frente da bola e do penúltimo rival, no campo de ataque, NA HORA do passe
@@ -622,7 +624,12 @@ export class Motor2 {
       const v = len(d.vx, d.vy), fy = d.lado === 0 ? -1 : 1
       const ux = v > 0.6 ? d.vx / v : 0, uy = v > 0.6 ? d.vy / v : fy
       const b = this.bola
-      b.x = d.x + ux * 0.75; b.y = d.y + uy * 0.75; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
+      // 🦶 25/10 (Diego: *"jogando igual profissional"*): o DOMÍNIO não teletransporta mais a bola pro pé. Antes, no instante em que o
+      // jogador ganhava a posse, a bola pulava até 2,4 m num passo pra ficar colada 75 cm à frente dele — no 2D e no 3D ela "voava" pro
+      // pé. Agora, no primeiro ~0,3 s, ela vai até o pé (o toque de domínio); depois segue na condução, um pouco mais perto (55 cm)
+      const ox = d.x + ux * CONDUCAO, oy = d.y + uy * CONDUCAO
+      const k = this.t - (this.donoDesde ?? -9) < 0.32 ? Math.min(1, dt / 0.11) : 1
+      b.x += (ox - b.x) * k; b.y += (oy - b.y) * k; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
     }
   }
 
@@ -709,7 +716,7 @@ export class Motor2 {
     if (b.dono) { this.desarmes(); return }
     const v = len(b.vx, b.vy), lc = b.lance
     const cands = this.atl.filter(p => !p.expulso && p.atordoado <= this.t && (this.tentou.get(p) ?? -9) < this.t - 0.35 && !(lc && lc.de === p && this.t - lc.t0 < 0.7)) // (quem chutou/passou não reencosta na bola na hora)
-      .map(p => ({ p, d: dist(p, b) })).filter(c => c.d < (c.p.grupo === 'GOL' && this.naAreaDele(c.p, b) ? 1.9 : b.h > 1.5 ? 1.2 : 1.45)) // (um passo e o pé alcançam ~1,4 m)
+      .map(p => ({ p, d: dist(p, b) })).filter(c => c.d < (c.p.grupo === 'GOL' && this.naAreaDele(c.p, b) ? 1.9 : b.h > 1.5 ? 1.2 : ALCANCE_PE)) // (um passo e o pé alcançam a bola)
       .sort((a, c) => a.d - c.d)
     for (const { p } of cands) {
       this.tentou.set(p, this.t)

@@ -1,3 +1,20 @@
+## ⚽ Futebol "de profissional" no motor novo (25/10) — 1ª leva NO BRANCH (só a conta do Diego joga o Motor2)
+- Pedido: *"simule a partida 11×11… corrigir pra ficar uma partida com os jogadores atuando igual profissionais"*. Bancada de 300
+  jogos (scratchpad da sessão, `motor/harness.mts`). TRAVA DE FUNDO: o motor roda 89 s de futebol em velocidade real pra um jogo de
+  93' (regra do Diego: jogo corrido em 1:30) — números por jogo (25 chutes, 1.000 passes) são impossíveis; dá pra deixar cada LANCE real.
+- FEITO (gols iguais: 1,94/jogo; `npm run motor2` e `npm run campo2d` verdes):
+  · ritmo de gente (`coletivo.ts`, `ritmo`): anda/trota/corre conforme a distância — velocidade média 4,8 → 3,6 m/s, sprint 13% → 3%.
+  · domínio perto do pé (`ALCANCE_PE` 1,45 → 1,2 m; média 1,04 → 0,83 m) e a bola NÃO teletransporta mais pro pé: vai no toque de
+    domínio (~0,3 s); condução mais colada (`CONDUCAO` 0,75 → 0,6).
+  · passe rasteiro chega mais manso (13 → 11 m/s no pé; média 17 → 15,6 m/s).
+- TESTADO E VOLTADO: menos chute de longe + goleiro melhor. Os gols do motor vêm quase todos de chute de fora (90%): o time fica só ~3 s
+  por jogo com a bola no último terço e ~0 s na área. Tirar o chute de longe derrubou os gols pra ~1/jogo. Precisa de obra maior:
+  ataque/defesa no último terço (corte, enfiada na área, defesa que não fecha tudo) — PROPOR pro Diego antes.
+- Análise do 3D/cidade (bonecos cartoon): câmera "transmissão" é alta demais (parece tática), sem replay nem comemoração, goleiro não
+  pula, 3 de 4 chutes sem animação de chute, cobrança (escanteio/tiro de meta) com ninguém na bola NA TELA (o motor espera o cobrador
+  — é a apresentação), moradores vão e voltam num trecho reto (o que o Diego NÃO quer), dia de jogo com ~3 pessoas na rua.
+  Lista priorizada no relatório desta data (sessão do Claude). Nada disso foi mexido ainda.
+
 ## ⚡ Mapa 3D travando na aba Clube (25/10) — análise + 1ª leva de conserto NO BRANCH (esperando "publica")
 - Medição (celular simulado 4× mais lento, scripts no scratchpad da sessão): ~167 s de trava somada num ciclo abrir+jogo → ~92 s.
   Montagem do bairro 3,3–5,4 s → 1,3–2,8 s (PC) com cidade IDÊNTICA (comparada objeto a objeto, matrizes e malhas). Trava do apito
