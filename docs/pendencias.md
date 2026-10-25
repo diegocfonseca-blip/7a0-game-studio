@@ -44,7 +44,13 @@
   mesmo até o meio-campo (medido: 21,6 m → 3,1 m do centro em 30 s). Bancada: `rev/cap2.mjs` foca QUALQUER jogador pelo nome (o
   `cap.mjs` só achava quem tinha plano de chute — por isso o goleiro nunca aparecia); `rev/evs.mts` regrava os eventos da fixture com o
   motor ATUAL (os eventos gravados no `mkfix` envelhecem a cada mudança do motor — o 3D replica o código de agora).
+- FEITO (7ª leva): 🧱 BARREIRA de verdade na falta frontal — os 3 são escolhidos UMA vez na hora da falta (`barreira` na `Parada`; antes
+  era "os 3 mais perto" refeito a cada passo e eles trocavam de lugar correndo a 7 m/s até a cobrança), ficam a 9,9 m (fora da régua
+  de 9,6 m que empurra rival — em cima dela tremiam) e OMBRO A OMBRO (a folga de 2,2 m entre companheiros não vale pra eles). Filmado:
+  três parados de frente pra bola 1,5 s depois da falta. Falta frontal a <30 m é rara (0,2/jogo) e leva até 4,5 s porque os 5 que sobem
+  são os melhores cabeceadores (zagueiro vem lá de trás) — teto que já existia.
 - PRÓXIMO: replay do gol; juiz; golpes assinatura (elástico, pedalada, chapéu, caneta) ainda sem corpo próprio no 3D (todos "ginga");
+  a barreira não pula no chute direto; o 2º homem da falta passa colado no cobrador;
   a câmera "goal" da bancada não é a do jogo (fica em cima do goleiro — não serve pra julgar defesa).
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.

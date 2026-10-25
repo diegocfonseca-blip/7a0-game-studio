@@ -149,7 +149,7 @@ const ALCANCE_PE = 1.2, CONDUCAO = 0.6
 /** 🦶 a partir desta velocidade a condução é no TOQUE (a bola vai à frente); e a que distância ela já escapou do pé */
 const TOQUE_V = 3.2, ESCAPOU = 3.0
 type TipoParada = 'saida' | 'lateral' | 'escanteio' | 'tiro_de_meta' | 'falta' | 'penalti'
-export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number; /** 🤾 lateral: o cobrador já pegou a bola na mão */ naMao?: boolean }
+export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; cobrador: Atleta; desde: number; /** 🤾 lateral: o cobrador já pegou a bola na mão */ naMao?: boolean; /** 🧱 falta frontal: os 3 da barreira, escolhidos UMA vez */ barreira?: Atleta[] }
 // (jogo corrido em 1:30: a bola parada demora o mínimo que a animação pede — cada segundo parado é 1% do jogo)
 const ESPERA: Record<TipoParada, number> = { saida: 0.9, lateral: 0.6, escanteio: 1.5, tiro_de_meta: 1.0, falta: 1.3, penalti: 1.8 }
 
@@ -338,10 +338,12 @@ export class Motor2 {
       }
       if (p.lado !== at) {
         // 🧱 BARREIRA na falta frontal: os 3 mais perto se põem a 9,15 m entre a bola e o gol
+        // (25/10, medido na fixture: 4 s depois da falta os 3 da barreira ainda corriam a 7 m/s — a barreira era refeita a cada passo com
+        // "os 3 mais perto", e quem chegava trocava de lugar com quem saía, pra sempre. Agora os 3 são escolhidos UMA vez, na hora da falta)
         if (pa.tipo === 'falta' && Math.abs(pa.x - 34) < 20) {
-          const barra = this.atl.filter(a => a.lado !== at && a.grupo !== 'GOL').sort((a, b) => dist(a, pa) - dist(b, pa)).slice(0, 3)
+          const barra = pa.barreira ??= this.atl.filter(a => a.lado !== at && a.grupo !== 'GOL').sort((a, b) => dist(a, pa) - dist(b, pa)).slice(0, 3)
           const bi = barra.indexOf(p)
-          if (bi >= 0) { const gx = 34 - pa.x, gy = linhaAtaque(at) - pa.y, gd = len(gx, gy) || 1, px = -gy / gd, py = gx / gd; return { x: clamp(pa.x + (gx / gd) * 9.6 + px * (bi - 1) * 1.1, 2, W - 2), y: clamp(pa.y + (gy / gd) * 9.6 + py * (bi - 1) * 1.1, 2, L - 2), v: 7 } }
+          if (bi >= 0) { const gx = 34 - pa.x, gy = linhaAtaque(at) - pa.y, gd = len(gx, gy) || 1, px = -gy / gd, py = gx / gd; return { x: clamp(pa.x + (gx / gd) * 9.9 + px * (bi - 1) * 0.75, 2, W - 2), y: clamp(pa.y + (gy / gd) * 9.9 + py * (bi - 1) * 0.75, 2, L - 2), v: 7 } } // (9,9 m: fora da régua de 9,6 m que empurra rival pra longe — em cima dela a barreira tremia; ombro a ombro, 75 cm)
         }
         const alvo = sobe[this.atl.filter(a => a.lado !== at && a.grupo !== 'GOL').indexOf(p) % Math.max(1, sobe.length)]
         // (o marcador vai junto do atacante — mas nunca a menos de 9,15 m da bola: quem marca o "curto" espera na distância da regra)
@@ -717,11 +719,12 @@ export class Motor2 {
     }
     // ninguém dentro de ninguém (o dono e quem disputa com ele podem colar)
     const n = this.atl.length, px = new Array<number>(n).fill(0), py = new Array<number>(n).fill(0)
+    const barra = this.parada?.barreira // (🧱 os da barreira ficam OMBRO A OMBRO: a folga de 2,2 m entre companheiros não vale pra eles)
     for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
       const a = this.atl[i], b = this.atl[j]
       // (perto da bola a disputa é de corpo: 1 m basta — senão o empurra-empurra não deixava ninguém chegar nela)
       const naBola = dist(a, this.bola) < 3 || dist(b, this.bola) < 3
-      const min = naBola ? 1.0 : a.lado === b.lado ? 2.2 : 1.6
+      const min = naBola ? 1.0 : barra && barra.includes(a) && barra.includes(b) ? 0.6 : a.lado === b.lado ? 2.2 : 1.6
       const dx = b.x - a.x, dy = b.y - a.y, dd = len(dx, dy)
       if (dd < min && dd > 0.001) {
         const emp = Math.min(0.12, (min - dd) / 2), ux = dx / dd, uy = dy / dd
