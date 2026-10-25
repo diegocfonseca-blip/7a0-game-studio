@@ -202,6 +202,8 @@ export class Motor2 {
   private acaoDe = new Map<Atleta, Acao>()
   /** 🦶 quem está conduzindo no toque agora (a bola anda solta à frente dele) */
   private toqueSolto: Atleta | null = null
+  /** 🦶 o PRIMEIRO TOQUE de quem acabou de receber: pra onde ele leva a bola (longe do marcador, pro lado do jogo) */
+  private toque1: { de: Atleta; ux: number; uy: number; ate: number } | null = null
 
   /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
   /** `extra`: técnico (nível do dia dele) e evento da rodada de cada lado — o que a simulação da carreira também usa */
@@ -252,7 +254,7 @@ export class Motor2 {
     const b = this.bola
     if (b.dono || !p) return { x: b.x, y: b.y }
     const vm = this.vmax(p), molhado = this.clima === 'chuva' ? 0.8 : 1, passo = 0.1
-    let x = b.x, y = b.y, vx = b.vx, vy = b.vy, h = b.h, vh = b.vh
+    let x = b.x, y = b.y, vx = b.vx, vy = b.vy, h = b.h, vh = b.vh, giro = b.giro ?? 0
     const pt = (x: number, y: number) => ({ x: clamp(x, 0.5, W - 0.5), y: clamp(y, 0.5, L - 0.5) })
     for (let tau = 0; tau <= 4; tau += passo) {
       // (alcança: bola na altura do pé/cabeça e dá tempo de chegar — com 0,8 m de folga do passo e do alcance do pé)
@@ -261,7 +263,8 @@ export class Motor2 {
       if (h > 0 || vh > 0) {
         vh -= G * passo; h += vh * passo
         const k = 1 - ATRITO_AR * passo; vx *= k; vy *= k
-        if (h <= 0) { h = 0; if (vh < -2.5) { vh = -vh * 0.4; vx *= 0.45; vy *= 0.45 } else { vh = 0; vx *= 0.8; vy *= 0.8 } }
+        if (giro) { const g = giro * passo, vx0 = vx; vx = vx0 - vy * g; vy = vy + vx0 * g }
+        if (h <= 0) { h = 0; giro = 0; if (vh < -2.5) { vh = -vh * 0.4; vx *= 0.45; vy *= 0.45 } else { vh = 0; vx *= 0.8; vy *= 0.8 } }
       } else {
         const v = len(vx, vy)
         if (v < 0.05) return pt(x, y) // (parou: vai até ela)
@@ -563,6 +566,16 @@ export class Motor2 {
       const T = a.tipo === 'cruzamento' ? clamp(d / 21, 0.75, 1.5) : clamp(d / 18, 0.8, 2.2) // (bola longa vai em parábola e cai ~18 m/s: dá pra dominar)
       const hFim = a.tipo === 'cruzamento' ? 1.9 : 0.3
       b.vx = (ux * d) / T; b.vy = (uy * d) / T; b.vh = (hFim + 0.5 * G * T * T) / T; b.h = 0.05
+      // 🌀 o cruzamento sai com CURVA pra dentro (fechando no gol): a bola começa um pouco pra fora e vem fechando — quem tem
+      // `cruzamento_curva` bate mais fechado. A direção inicial abre pelo mesmo ângulo que a curva vai fechar, então ela CAI no
+      // mesmo ponto (a previsão do receptor já anda a curva)
+      if (a.tipo === 'cruzamento') {
+        // (girar (vx,vy) por +g dá Δvy = vx·g: pra bola fechar NA DIREÇÃO do gol, o sinal do giro é o da linha de fundo × o de vx)
+        const lin = linhaAtaque(l)
+        const forca = (p.golpes.includes('cruzamento_curva') ? 0.75 : 0.45) * (0.6 + p.at.passe / 250)
+        const giro = forca * (lin - b.y >= 0 ? 1 : -1) * (ux >= 0 ? 1 : -1)
+        const meio = giro * T * 0.5, vx = b.vx; b.vx = vx + b.vy * meio; b.vy = b.vy - vx * meio; b.giro = giro
+      }
     } else {
       // passe rasteiro na MEDIDA: chega no pé a ~13 m/s (dá pra dominar e ainda anda); a enfiada chega mais mansa (~7 m/s) no
       // espaço onde o companheiro vai pegar. Antes a bola era batida pra CHEGAR a 18 m/s — e, se ninguém dominava, seguia 40 m e
@@ -601,6 +614,13 @@ export class Motor2 {
     const dx = xAlvo - b.x, dy = lin - b.y, d = len(dx, dy) || 1, T = d / v
     b.dono = null; b.ultimo = p; this.donoDesde = null
     b.vx = (dx / d) * v; b.vy = (dy / d) * v; b.vh = (hAlvo - b.h + 0.5 * G * T * T) / T
+    // 🌀 CHUTE COLOCADO / FALTA COM CURVA (25/10): quem tem o golpe bate de fora pra dentro — a bola sai por fora do poste e fecha no
+    // canto (Δvx = −vy·g: o giro traz a bola de volta pro meio). Só de longe e com a bola no chão; cabeçada e pênalti não têm curva
+    const curva = !cabeca && dGol > 12 && (this.parada?.tipo === 'falta' ? (p.golpes.includes('falta_curva') ? 1 : p.golpes.includes('tres_dedos') ? 0.8 : 0) : (p.golpes.includes('colocado') || p.golpes.includes('tres_dedos') ? 0.6 : 0))
+    if (curva) {
+      const giro = curva * (0.55 + this.r() * 0.3) * (34 - xAlvo >= 0 ? 1 : -1) * (b.vy >= 0 ? -1 : 1)
+      const meio = giro * T * 0.5, vx = b.vx; b.vx = vx + b.vy * meio; b.vy = b.vy - vx * meio; b.giro = giro
+    } else b.giro = 0
     if (this.parada) this.parada = null
     b.lance = { tipo: cabeca ? 'cabeceio_gol' : 'chute', de: p, para: null, t0: this.t, impedido: false, xg, saiuDe: { x: p.x, y: p.y } }
     this.stats.chutes[l]++; this.stats.xg[l] += xg
@@ -674,7 +694,11 @@ export class Motor2 {
       const inicio = this.t - (this.donoDesde ?? -9) < 0.32
       if (v < TOQUE_V || inicio || this.toqueSolto !== d) {
         // devagar (protegendo, girando, esperando o passe) a bola fica colada no pé
-        const ox = d.x + ux * CONDUCAO, oy = d.y + uy * CONDUCAO
+        // 🦶 DOMÍNIO ORIENTADO (25/10, Diego: "o domínio… o controle da bola… o recebimento do passe"): o primeiro toque não gruda a
+        // bola no pé — ele a LEVA 1 m pro lado do jogo, longe do marcador (é o que separa o profissional do pelada). Quem domina bem
+        // leva mais longe e mais limpo; apertado, o toque é curto e protegido
+        const t1 = this.toque1 && this.toque1.de === d && this.t < this.toque1.ate ? this.toque1 : null
+        const ox = t1 ? d.x + t1.ux * (0.9 + d.at.conducao * 0.004) : d.x + ux * CONDUCAO, oy = t1 ? d.y + t1.uy * (0.9 + d.at.conducao * 0.004) : d.y + uy * CONDUCAO
         const k = inicio ? Math.min(1, dt / 0.11) : Math.min(1, dt / 0.08)
         b.x += (ox - b.x) * k; b.y += (oy - b.y) * k; b.h = 0; b.vx = d.vx; b.vy = d.vy; b.vh = 0
         if (v >= TOQUE_V && !inicio) this.toqueSolto = d // (começou a correr com ela: a partir de agora é no toque)
@@ -706,12 +730,15 @@ export class Motor2 {
       b.vh -= G * dt; b.h += b.vh * dt
       const k = 1 - ATRITO_AR * dt
       b.vx *= k; b.vy *= k
+      // 🌀 CURVA (25/10): a bola com efeito vira um pouco a cada passo (giro pequeno: rotação por soma, sem trigonometria)
+      if (b.giro) { const g = b.giro * dt, vx = b.vx; b.vx = vx - b.vy * g; b.vy = b.vy + vx * g }
       if (b.h <= 0) {
-        b.h = 0
+        b.h = 0; b.giro = 0
         // (no quique a bola perde boa parte da velocidade — senão o lançamento caía e saía rolando 70 m)
         if (b.vh < -2.5) { b.vh = -b.vh * 0.4; b.vx *= 0.45; b.vy *= 0.45 } else { b.vh = 0; b.vx *= 0.8; b.vy *= 0.8 }
       }
     } else {
+      b.giro = 0
       const v = len(b.vx, b.vy)
       // (rasteira: a grama freia mais a bola rápida)
       const molhado = this.clima === 'chuva' ? 0.8 : 1 // 🌧️ no molhado a bola rasteira corre mais
@@ -1056,6 +1083,16 @@ export class Motor2 {
     const b = this.bola
     b.dono = p; b.ultimo = p; b.lance = null; b.h = 0; b.vh = 0
     this.posseLado = p.lado; this.donoDesde = this.t
+    // 🦶 pra onde vai o primeiro toque: pro ataque, inclinado pra longe do rival mais perto (apertado = toque curto, de proteção)
+    {
+      const fy = p.lado === 0 ? -1 : 1
+      let rx = 0, ry = 0, dr = 9
+      for (const z of this.atl) if (z.lado !== p.lado) { const dz = dist(z, p); if (dz < dr) { dr = dz; rx = p.x - z.x; ry = p.y - z.y } }
+      const nr = len(rx, ry) || 1, peso = dr < 4 ? 0.8 : dr < 8 ? 0.4 : 0.15
+      let ux = (34 - p.x) * 0.01 + (rx / nr) * peso, uy = fy * (1 - peso * 0.5) + (ry / nr) * peso
+      const nu = len(ux, uy) || 1; ux /= nu; uy /= nu
+      this.toque1 = p.grupo === 'GOL' ? null : { de: p, ux, uy, ate: this.t + 0.45 }
+    }
     // ⏳ quem recebe fica um tempo com a bola (domina, levanta a cabeça, conduz) antes de soltar — 0,4 a 1,3 s; quem joga de
     // primeira (passador, finalizador) às vezes solta na hora. Apertado pelo marcador, solta antes (`decide` olha a pressão).
     const primeira = (p.estilo === 'passador' || p.golpes.includes('de_primeira')) && this.r() < 0.25

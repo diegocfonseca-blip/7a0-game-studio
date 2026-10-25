@@ -37,6 +37,8 @@ export interface Atleta {
 
 export interface Bola {
   x: number; y: number; h: number; vx: number; vy: number; vh: number
+  /** 🌀 efeito (curva): quanto a direção da bola gira por segundo (rad/s; + = horário visto de cima). Some no quique. */
+  giro?: number
   dono: Atleta | null
   /** quem tocou por último (lateral/escanteio/tiro de meta) */
   ultimo: Atleta | null
