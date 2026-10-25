@@ -414,7 +414,7 @@ export class Motor2 {
       // 🤝 APITO FINAL (25/10, filmado no 3D: todo mundo parava onde estava e ficava plantado): os 22 vão ANDANDO pro meio-campo se
       // cumprimentar — passo de quem acabou de jogar (1,5 m/s), cada um pro seu lugar num bolo largo em volta do círculo central
       this.atl.forEach((p, i) => {
-        const ax = 34 + ((i % 6) - 2.5) * 1.7, ay = 52.5 + (Math.floor(i / 6) - 1.5) * 1.7
+        const ax = 34 + ((i % 6) - 2.5) * 2.6, ay = 52.5 + (Math.floor(i / 6) - 1.5) * 2.6 // (filmado: a 1,7 m virava bolo; 2,6 m é gente conversando)
         const dx = ax - p.x, dy = ay - p.y, d = len(dx, dy)
         const v = d > 1.2 ? 1.5 : 0
         p.vx += ((dx / (d || 1)) * v - p.vx) * Math.min(1, dt * 4); p.vy += ((dy / (d || 1)) * v - p.vy) * Math.min(1, dt * 4)
