@@ -10,7 +10,8 @@
 - DEPOIS (300 jogos, `npm run motor2`): 1,9 gol · 0×0 10% · 4,0 chutes (58% de dentro da área, 16 m) · conversão ~37% · forte ganha
   81%, perde 4% · lendas × fracos 2,2 gols e 35% de goleada · bola parada 18 s/jogo (era 21). Scripts de medição no scratchpad
   (`motor/m2stats.mts`, `perdas.mts`, `passes.mts`, `trace.mts`, `onde.mts`, `paradas.mts`).
-- PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; 1-2 (tabela) de verdade; mais variedade de drible (hoje 1,7/jogo);
+- FEITO depois: 🤝 TABELA (toca apertado e sai pro espaço; quem recebe devolve de primeira — 3,4 iniciadas e 1,1 completada por jogo).
+- PRÓXIMO: rever no 3D de TV (mapa) o primeiro toque e a curva; mais variedade de drible (hoje 1,7/jogo);
   torcida reagindo; replay; juiz.
 - ⚠️ Testes do Codex `test-three-presentations`/`official-parity`/… precisam de `test-results/animation-library/neymarzetti-current/`
   (fixture local, fora do repo) — já falhavam antes de hoje por ENOENT.

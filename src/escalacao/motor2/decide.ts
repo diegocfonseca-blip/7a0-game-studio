@@ -39,6 +39,8 @@ const CRUZA = 1.8
 const GOLEIRO_CURTO = 0.03
 /** 👀 o quanto a falta de visão engana a leitura do passe (menor = o perna-de-pau força mais passe) */
 const CEGUEIRA = 25
+/** 🤝 o gosto por devolver a tabela (quem me tocou e saiu correndo) */
+const TABELA = 0.03
 /** ⚽ a partir desta finalização o jogador bate de primeira, sem ajeitar */
 const CRAQUE_PRIMEIRA = 88
 
@@ -61,7 +63,9 @@ export function decide(m: Motor2, p: Atleta): Acao {
   const ops: Acao[] = []
   const goleiro = p.grupo === 'GOL'
   // ⏳ acabou de receber: ainda não solta (domina e conduz), a não ser apertado ou com o gol na cara
-  const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 // (só solta antes com o marcador em cima — é aí que o duelo acontece)
+  // 🤝 (quem me tocou saiu pra tabela: devolvo de primeira — o 1-2 não existe se eu "dominar e levantar a cabeça" antes)
+  const tabelaPraMim = time.some(t => { const c = m.corrida.get(t); return !!c && c.tabela === p && c.ate > m.t })
+  const cedo = restr === undefined && !goleiro && m.t < m.segurarAte && pres < 0.8 && !tabelaPraMim // (só solta antes com o marcador em cima — é aí que o duelo acontece)
 
   // 🎯 CHUTAR
   // (22/10: o craque bate de primeira e de mais longe — é ele que transforma domínio em goleada; o fraco precisa ajeitar antes)
@@ -139,6 +143,8 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // (no próprio campo o bônus de avançar é maior: transição rápida, não toque de bola na defesa)
     let u = pOk * (v + 0.008 + DIRETO * clamp(avanca, RECUO_MAX, 1.5) * (aereo ? 0.4 : 1) * (frente(l, p.y) > 55 ? 1.6 : 1)) - (1 - pOk) * perda(l, alvo.x, alvo.y) - 0.002 + (2 * pOk - 1) * MANTER * (f < 30 ? 0.3 : 1) // (perto do gol não existe passe de segurança: vale arriscar) // (o bônus de ganhar metros tem teto: 40 m de bola longa não vale 4× um passe de 10)
     if (enfiada) u += 0.003 * (0.5 + p.at.visao / 200)
+    // 🤝 a TABELA se completa: quem tocou e saiu pro espaço ganha a bola de volta — o 1-2 é a jogada mais bonita do futebol de passe
+    if (enfiada && corre!.tabela === p) u += TABELA * (0.5 + p.at.visao / 200)
     // ↩️ O CORTE PRA TRÁS (25/10): chegou na linha de fundo pela ponta → a bola rasteira pra trás, pra quem chega na marca do pênalti, é
     // a jogada que mais faz gol no futebol de verdade
     const fAlvo = frente(l, alvo.y)

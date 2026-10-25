@@ -173,7 +173,7 @@ export class Motor2 {
   posseLado: Lado = 0
   bloco: Bloco[] = []
   opcaoDe = new Map<Atleta, { x: number; y: number }>()
-  corrida = new Map<Atleta, { ate: number; alvo: { x: number; y: number } }>()
+  corrida = new Map<Atleta, { ate: number; alvo: { x: number; y: number }; /** 🤝 na tabela: pra quem ele tocou (quem deve devolver) */ tabela?: Atleta }>()
   donoDesde: number | null = null
   /** até quando quem acabou de receber segura a bola (não passa nem chuta — a não ser apertado ou de frente pro gol) */
   segurarAte = 0
@@ -590,6 +590,14 @@ export class Motor2 {
     const linha = linhaImpedimento(this, l)
     const impedido = r.lado === l && frente(l, r.y) < linha - 0.3 && frente(l, r.y) < frente(l, b.y) && frente(l, r.y) < L / 2
     b.lance = { tipo: a.tipo, de: p, para: r, t0: this.t, impedido }
+    // 🤝 TABELA (25/10, Diego: "variedade de jogadas"): no toque curto, apertado, quem passou SAI pro espaço na hora (passa e vai) —
+    // o companheiro enxerga a corrida e devolve de primeira (é a `enfiada` de `decide`). Só meia/atacante, e sempre em posição legal
+    if (!a.aereo && d0 < 13 && pres > 0.35 && (p.grupo === 'MEI' || p.grupo === 'ATA') && frente(l, p.y) < 70 && frente(l, p.y) > 12) {
+      const fy = l === 0 ? -1 : 1, lado = p.x < 34 ? 1 : -1, lim = linhaImpedimento(this, l)
+      const alvo = { x: clamp(p.x + lado * 3 + (34 - p.x) * 0.1, 4, W - 4), y: clamp(p.y + fy * 8, 3, L - 3) }
+      if (frente(l, alvo.y) < lim - 1) alvo.y = yDe((1 - l) as Lado, lim - 1)
+      this.corrida.set(p, { ate: this.t + 1.6, alvo, tabela: r }); p.papel = 'infiltra'; this.stats.tabelas = (this.stats.tabelas ?? 0) + 1
+    }
     this.stats.passes[l]++
     if (a.alvo.x >= 0 && a.alvo.x <= W) r.papel = 'recebe' // (chutão pra lateral: ninguém corre atrás dela pra fora do campo)
     const tipo: TipoEvento = a.tipo === 'enfiada' ? 'enfiada' : a.tipo === 'lancamento' ? 'lancamento' : a.tipo === 'inversao' ? 'inversao' : a.tipo === 'cruzamento' ? 'cruzamento' : a.tipo === 'chutao' ? 'chutao' : 'passe'

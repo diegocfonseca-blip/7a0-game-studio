@@ -61,4 +61,6 @@ export interface Estatistica {
   gols: [number, number]; xg: [number, number]; faltas: [number, number]; amarelos: [number, number]; vermelhos: [number, number]
   escanteios: [number, number]; impedimentos: [number, number]; laterais: [number, number]; desarmes: [number, number]; vantagens: [number, number]
   dribles: [number, number]; interceptacoes: [number, number]; defesas: [number, number]; penaltis: [number, number]
+  /** 🤝 quantas vezes alguém tocou e saiu pra tabela (os dois times) */
+  tabelas?: number
 }
