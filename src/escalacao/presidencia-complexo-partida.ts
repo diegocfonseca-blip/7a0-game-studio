@@ -20,7 +20,9 @@ function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,
 function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
 export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void){
  if(!registered){
-  const ground=material('#8d825c'),base=box(scene,125,.3,86,0,-.17,0,ground)
+  // (🏟️ 26/10, caldeirão: a arquibancada encostou no campo — o chão que sobra atrás dos gols e das laterais é gramado quando o
+  // campo já é de grama; na várzea continua terra)
+  const ground=material(stadium&&progressoVisualSetor(stadium,'grama')>=1?'#3f6e34':'#8d825c'),base=box(scene,125,.3,86,0,-.17,0,ground)
   // The grass/dirt strips already form the playing surface. A second broad
   // top face only 22 mm beneath them causes depth artefacts at low camera angles.
   // Keep the earth sides and the exposed apron, without that hidden duplicate.

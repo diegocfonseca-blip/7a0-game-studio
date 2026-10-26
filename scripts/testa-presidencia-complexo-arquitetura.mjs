@@ -68,8 +68,9 @@ for(const {name,save} of samples){
  if(!state.lowerComplete)assert.equal(architecture.counts.upperRows,0,`${name}: segundo andar antes do primeiro`)
  if(name==='vazio'){assert.equal(meshes,0);assert.equal(architecture.counts.seats,0)}
  if(name==='primeiro-anel')assert.equal(architecture.counts.upperRows,0)
- // O campo e os bancos norte ficam livres de estruturas no nível do jogo.
- const ray=new THREE.Raycaster();for(const z of [-42,-34,0,34])for(const x of [-40,-20,0,20,40]){
+ // O campo e os bancos norte ficam livres de estruturas no nível do jogo. (🏟️ 26/10, caldeirão: a arquibancada encostou no campo —
+ // a faixa livre atrás do banco, que fecha em −37,5, é conferida em −39; antes o anel começava a −55 e a sonda ficava em −42)
+ const ray=new THREE.Raycaster();for(const z of [-39,-34,0,34])for(const x of [-40,-20,0,20,40]){
   ray.set(new THREE.Vector3(x,1.7,z),new THREE.Vector3(0,-1,0));ray.far=1.75
   assert.equal(ray.intersectObjects(renderables,false).length,0,`${name}: objeto ocupou campo/bancos em${x},${z}`)
  }

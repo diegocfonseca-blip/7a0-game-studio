@@ -158,9 +158,11 @@ const mapCorners = [{ x: 0, y: 0 }, { x: MAPA_ESTADIO.width, y: 0 },
 
 /** Portais térreos compartilhados pela estrutura, piso, câmera e torcedores. */
 const gates = {
-  home: { id: 'mandantes', approach: { x: 0, z: 116 }, threshold: { x: 0, z: 82 }, inside: { x: 0, z: 74 },
+  // (🏟️ 26/10, caldeirão: a fachada veio pra perto do campo; a portaria fica onde a praça e o transporte já chegam e o corredor
+  // coberto agora vai até a fachada nova — `inside` 12 m / 15,5 m mais pra dentro)
+  home: { id: 'mandantes', approach: { x: 0, z: 116 }, threshold: { x: 0, z: 82 }, inside: { x: 0, z: 62 },
     width: 10, height: 4.2, floor: .16, heading: 0 },
-  away: { id: 'visitantes', approach: { x: 120, z: 6 }, threshold: { x: 105, z: 6 }, inside: { x: 98, z: 6 },
+  away: { id: 'visitantes', approach: { x: 120, z: 6 }, threshold: { x: 105, z: 6 }, inside: { x: 82.5, z: 6 },
     width: 8, height: 4.2, floor: .16, heading: Math.PI / 2 },
 } as const
 

@@ -11157,6 +11157,9 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   depois de ~0,9 s de posse). **Transmissão** e **Lateral próxima** no celular em pé subiram (mais campo, menos arquibancada).
   Textos do seletor seguem só em PT (o componente todo é PT) — falta EN quando liberar geral.
 - Ainda dá pra fazer: o campinho 2D escondido roda um 2º motor igual ao do 3D (~4% do quadro cada).
-- ⏳ **Estádio caldeirão** (pedido 26/10 com print): tirar a faixa marrom "de pista de atletismo" e colar a arquibancada no campo.
-  Hoje o anel interno é um OVAL de 152×110 m (campo 105×68) → ~21 m de folga. Exige trocar o formato pra quase retangular
-  (`outline` em presidencia-complexo-arquitetura.ts), e camarote/entradas/teto/torcida dependem dele. Mockup ANTES.
+- ✅ **Estádio caldeirão** (pedido 26/10 com print, arte aprovada: *"Aprovado"*): a arena inteira apertou em volta do campo e ficou
+  quase retangular (superelipse) — `APERTO` (15,5 m × 12 m) e `FORMA` no `outline` de presidencia-complexo-arquitetura.ts; as medidas
+  da planta seguem no tamanho antigo e o contorno aplica o aperto. Portaria: a entrada fica onde a praça/transporte chegam e o
+  corredor coberto vai até a fachada nova (`inside` dos portões). Chão que sobra em volta do campo = grama quando o campo já é de
+  grama. Testes: os mesmos de antes passam (arquitetura com a sonda dos bancos em −39 em vez de −42; LOD aceita 80–96 cadeiras na
+  fila 1 nos cantos). O camarote ficou onde estava (atrás do 2º anel) — dá pra trazer pra dentro depois, se ele pedir.

@@ -43,12 +43,24 @@ const SECTORS = [
   { id: 'visitante', from: .125, to: .5 },
 ] as const
 const clamp = (n: number) => Math.max(0, Math.min(1, Number.isFinite(n) ? n : 0))
-const perimeter = (o: Outline) => Math.PI * (3 * (o.x + o.z) - Math.sqrt((3 * o.x + o.z) * (o.x + 3 * o.z)))
+const perimeter = (o: Outline) => { let sum = 0; for (let i = 0; i < 256; i++) sum += outline(i / 256, o).distanceTo(outline((i + 1) / 256, o)); return sum }
 
-/** Contorno oval contínuo, centro norte → leste → sul → oeste. */
+/** 🏟️ CALDEIRÃO (26/10, Diego: "estádio mais estilo caldeirão… a arquibancada, cadeira e etc. mais próximo do campo", arte
+ *  aprovada no mesmo dia): a arena inteira — arquibancadas, cobertura, fachada — fica APERTADA em volta do campo, quase
+ *  retangular (superelipse), sem a faixa de ~21 m que parecia pista de atletismo. As medidas desta planta continuam no tamanho
+ *  antigo; o contorno tira o APERTO de cada raio e arredonda os cantos (expoente FORMA). */
+const APERTO = { x: 15.5, z: 12 }
+const FORMA = 5
+/** Contorno contínuo, centro norte → leste → sul → oeste. */
 function outline(t: number, shape: Outline): THREE.Vector3 {
-  const angle = t * Math.PI * 2
-  return new THREE.Vector3(Math.sin(angle) * shape.x, 0, shape.centerZ - Math.cos(angle) * shape.z)
+  const angle = t * Math.PI * 2, s = Math.sin(angle), c = Math.cos(angle), e = 2 / FORMA
+  return new THREE.Vector3(Math.sign(s) * Math.abs(s) ** e * (shape.x - APERTO.x), 0, shape.centerZ - Math.sign(c) * Math.abs(c) ** e * (shape.z - APERTO.z))
+}
+/** O inverso do contorno: em que ponto (0–1) da volta fica esta posição. */
+function voltaDe(x: number, z: number, shape: Outline) {
+  const X = x / (shape.x - APERTO.x), Z = -(z - shape.centerZ) / (shape.z - APERTO.z), k = FORMA / 2
+  const angle = Math.atan2(Math.sign(X) * Math.abs(X) ** k, Math.sign(Z) * Math.abs(Z) ** k) / (Math.PI * 2)
+  return angle < 0 ? angle + 1 : angle
 }
 function tangent(t: number, shape: Outline) {
   return outline(t + .0001, shape).sub(outline(t - .0001, shape)).normalize()
@@ -94,7 +106,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   const seatAccess: AcessoAssentoComplexo[] = []
   const lightAnchors: AncoraLuzComplexo[] = []
   const lowerWalkSurfaces: PisoAcessoComplexo[] = []
-  const angularWidth = (t: number, shape: Outline, metres: number) => metres / Math.hypot(Math.cos(t * Math.PI * 2) * shape.x, Math.sin(t * Math.PI * 2) * shape.z) / (Math.PI * 2)
+  const angularWidth = (t: number, shape: Outline, metres: number) => metres / Math.max(1e-3, outline(t + 1e-4, shape).distanceTo(outline(t - 1e-4, shape)) / 2e-4)
   const portalCuts = accessSpecs.filter(a => a.enabled).map(a => ({
     from: a.portal - angularWidth(a.portal, INNER, 2.2), to: a.portal + angularWidth(a.portal, INNER, 2.2),
   }))
@@ -440,7 +452,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
       }
       const entrance = outline(spec.portal, expanded(INNER, -1.65))
       const corridor = [{ ...gate.inside, y: .16 },
-        ...(spec.side === 'away' ? [{ x: 96, y: .16, z: 6 }, { x: 96, y: .16, z: 0 }] : []),
+        ...(spec.side === 'away' ? [{ x: 96 - APERTO.x, y: .16, z: 6 }, { x: 96 - APERTO.x, y: .16, z: 0 }] : []),
         record(entrance.clone().setY(.16))]
       for (let i = 1; i < corridor.length; i++) {
         const a = corridor[i - 1], b = corridor[i]
@@ -487,8 +499,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
         }
         const front = row === 0 ? .4 : .31
         const standing = { x: seat.position.x + Math.sin(seat.heading) * front, y: seat.position.y, z: seat.position.z + Math.cos(seat.heading) * front }
-        const angle = Math.atan2(seat.position.x / (inner.x + .56), -(seat.position.z - inner.centerZ) / (inner.z + .56)) / (Math.PI * 2)
-        const normalized = angle < 0 ? angle + 1 : angle
+        const normalized = voltaDe(seat.position.x, seat.position.z, expanded(inner, .56))
         const rowRange = { from: Math.min(spec.aisle, normalized) - .0015, to: Math.max(spec.aisle, normalized) + .0015 }
         if (row === 0) {
           // Mantém o pequeno avanço já construído da primeira fila. Nas filas
@@ -598,7 +609,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
       points: route, standing, surfaces: floors })
   }
   function inGate(p: THREE.Vector3) {
-    return Math.abs(p.x) < 6.5 && p.z > 73 || p.x > 97 && Math.abs(p.z - 6) < 5.5
+    return Math.abs(p.x) < 6.5 && p.z > 73 - APERTO.z || p.x > 97 - APERTO.x && Math.abs(p.z - 6) < 5.5 // (🏟️ o vão da portaria acompanha a fachada apertada)
   }
   function facade(range: Range, upper: boolean) {
     // The oval skin remains outside the box. Its former apartment walls,
@@ -659,7 +670,8 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
         box(light, sconce.x, start + 2.25, sconce.z, .09, .28, .035, angle)
       }
       if (module % 2 === 0 && !frontPortal) {
-        const inner = outline(t, upper ? { x: 88, z: 67, centerZ: 6 } : { x: 75, z: 56, centerZ: 1.5 })
+        // (🏟️ caldeirão: a escora de baixo termina atrás da galeria do 1º anel, por baixo do piso — com o anel encostado no campo ela cruzava as filas e a galeria)
+        const inner = outline(t, upper ? { x: 88, z: 67, centerZ: 6 } : { x: 90.5, z: 69.5, centerZ: 1.5 })
         beam(concrete, a.clone().setY(.2), inner.setY(upper ? 13.7 : 5.7), .62, .9)
       }
       counts.facadeModules++
