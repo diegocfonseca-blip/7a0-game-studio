@@ -16,8 +16,8 @@ const pl = (cls, emoji, nome, preco, sub, linhas, bt, fita = '') => `<div class=
   <span class="bt ${cls === 'lenda' ? 'ouro' : 'verde'}">${bt}</span></div>`
 const loja = `<div class="cel"><div class="top">🛒 LOJA DO CLUBE <span class="xx">✕</span></div><div class="pad">
  <div class="h">🪜 PLANOS</div>
- ${pl('craque', '⭐', 'CRAQUE SALAS', '9,90', '/mês · cancela quando quiser', ['🏟️ Crie salas à vontade (acabou o limite de 1 por dia)', '🏆 Minhas Ligas', '🧑‍💼 Crie seu presidente (personagem)', '⚔️ Crie seu clã', '🥈 Nome prata'], 'ASSINAR')}
- ${pl('craque', '⭐', 'CRAQUE COMPLETO', '14,90', '/mês · cancela quando quiser', ['Tudo do Craque Salas +', '🎮 Modo Manual nos seus jogos', '📺 Campo 2D <i>(em breve)</i>', '🔎 Nível e olheiro até Craque', '💾 2 carreiras + nuvem'], 'ASSINAR', '🔥 MAIS ESCOLHIDO')}
+ ${pl('craque', '⭐', 'CRAQUE SALAS', '9,90', 'por mês', ['🏟️ Crie salas à vontade (acabou o limite de 1 por dia)', '🏆 Minhas Ligas', '🧑‍💼 Crie seu presidente (personagem)', '⚔️ Crie seu clã', '🥈 Nome prata'], 'ASSINAR')}
+ ${pl('craque', '⭐', 'CRAQUE COMPLETO', '14,90', 'por mês', ['Tudo do Craque Salas +', '🎮 Modo Manual nos seus jogos', '📺 Campo 2D <i>(em breve)</i>', '🔎 Nível e olheiro até Craque', '💾 2 carreiras + nuvem'], 'ASSINAR', '🔥 MAIS ESCOLHIDO')}
  ${pl('lenda', '👑', 'LENDA', '59,90', 'uma vez · pra sempre · sem mensal', ['Tudo dos dois Craques, pra sempre +', '🔎 Nível e olheiro até Lenda', '💾 4 carreiras', '🥇 Nome DOURADO em todo canto'], 'QUERO PRA SEMPRE')}
  <div class="dupla">
   ${pl('bat', '🖋', 'BATISMO', '79,90', 'uma vez', ['Tudo do Lenda +', '🛡️ Escudo, mascote e manto do SEU clube', '🚁 Entrada de gala'], 'QUERO')}
