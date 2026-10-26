@@ -11163,3 +11163,16 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   corredor coberto vai até a fachada nova (`inside` dos portões). Chão que sobra em volta do campo = grama quando o campo já é de
   grama. Testes: os mesmos de antes passam (arquitetura com a sonda dos bancos em −39 em vez de −42; LOD aceita 80–96 cadeiras na
   fila 1 nos cantos). O camarote ficou onde estava (atrás do 2º anel) — dá pra trazer pra dentro depois, se ele pedir.
+
+### 🧍 26/10 (noite) — Boneco novo de jogador + movimentos de futebol do Mixamo (TESTE, fora do jogo)
+- Diagnóstico: o boneco do 3D só tinha 5 movimentos gravados (parado/andar/trotar/correr/pular) + 1 chute; passe, domínio, giro,
+  cabeçada, carrinho e goleiro eram improviso em código → *"todos fundamentos do jogador ruins"* (Diego).
+- Diego baixou 63 movimentos de futebol do Mixamo (passe, condução, chute, cabeçada, carrinho, lateral, domínio de peito,
+  jogging pra trás/lado, goleiro: defesas, encaixes, reposição…). Arquivos crus ficam FORA do repo (licença Adobe).
+- Estilo escolhido por ele: corpo de jogador de verdade no traço da carta (arte do Pirlo de corpo inteiro), não o cabeçudo.
+  Boneco 3D feito no Meshy (10.378 triângulos, textura 2K) com **esqueleto Mixamo** do próprio Meshy → os movimentos entram direto.
+- Conversão que funciona (bancada `verrig3.mjs` no scratchpad): rotação de mundo com as poses de referência casadas — a fonte
+  (pose em T do Mixamo) é dobrada pra pose em A do boneco, osso a osso, antes de copiar o movimento. Sem isso o tronco deformava.
+- Falta (próximas levas): boneco BASE branco pra pintar a cor de cada clube; cabelos por jogador; trocar o boneco do campo 3D
+  por este; ligar cada movimento ao lance do motor (passe/domínio/chute/cabeçada/carrinho/goleiro/lateral) com o contato no
+  tempo certo; correr de costas/de lado (jogging do Mixamo); peso pro celular (22 bonecos). Mostrar prints antes de publicar.
