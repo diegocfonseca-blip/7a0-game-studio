@@ -3,7 +3,11 @@
   verde do Bom Jogador #2E9E5B ⇄ creme (`radio-pisca.ts`/`.css`). No normal: uma linha só, creme com letra preta, sem "Rádio/Lance/Jogo".
 - **O pisca dura EXATAMENTE a cena do gol** (*"quando a mascote sai… o pisca para ao mesmo tempo"*): placar = até a cena fechar
   (`goalSide` volta a null; reserva 1,8 s), 2D = enquanto dura a `festa`. Gol em cima de gol recomeça com o autor novo.
-- Ainda em aberto: faixa fina de sábado diz "HOJE · 16H" com jogo no domingo (ofereci "AMANHÃ", sem resposta); clã da semana no
+- 🎙️ **Rádio com os jogadores tocando na bola (26/10, publicado pra todos)**: 45 toques entre companheiros (rodam pela escalação
+  inteira), +20 lances, até 22 frases por jogo com escalação. Vale em todo placar novo (carreira, copas, salas online, Minhas Ligas).
+  ⚠️ A Partida Rápida OFFLINE ainda usa o placar antigo (sem rádio) — se ele quiser lá também, é trocar o visual dela (mostrar antes).
+- ✅ Faixa fina de sábado agora diz "AMANHÃ" quando o jogo é no domingo.
+- Ainda em aberto: clã da semana no
   telão junto do pódio (pergunta sem resposta); preço do Campeonato Oficial (30/20/15/10/5 × 10/7/5/4/2).
 
 ## ⚽ Motor novo — futebol de verdade no 11×11 (25/10, conta de prévia; Diego: *"quero futebol real lá dentro do campo"*)
