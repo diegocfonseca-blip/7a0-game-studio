@@ -103,6 +103,13 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- ⏳ ESPERANDO OK DO MOCKUP (26/10, `scripts/mockups/premio-semana-modal.png`): AVISO DE FIM DE SEMANA em qualquer tela. Diego: *"o
+  ranking do clã vai acabar junto com o dos individuais… meia-noite… modal… parabéns… nome do clã vencedor… 30 moedas… zoar o clã
+  perdedor… fechou o X não aparece mais… em qualquer lugar da tela. Dos individuais também: parabéns, moedas e telão"*. O banco JÁ
+  fecha os dois na segunda 0h de Brasília (`esc_fecha_semanas` / `esc_fecha_semanas_clas`) e JÁ paga 30/20/10 (técnico e cada membro
+  do clã) na carreira — hoje só aparece um aviso verde de 6 s ao abrir a carreira. Falta: o aviso grande (global, 1× por conta — marcar
+  `visto_em` no banco, não no aparelho), a zoeira com o 2º colocado (frases variadas + botão do Zap) e o aviso do pódio individual.
+  Proposta no mockup: 2º/3º (técnico e clã) também recebem o aviso, com +20/+10, sem zoeira.
 - FEITO (26/10, partida inteira filmada no mapa em tela de PC): 🔁 a faixa de narração ficava em "Intervalo!" com a bola rolando aos
   55' — o 2º tempo recomeçava sem frase. Agora a saída do 2º tempo diz "Começa o segundo tempo!" (3 versões, PT e EN). ⚠️ O narrador
   usa o MESMO sorteio do jogo: a frase nova é escolhida SEM sorteio e não segura a faixa (segurar calava as frases seguintes e mudava o
