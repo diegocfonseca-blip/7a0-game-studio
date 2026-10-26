@@ -364,6 +364,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     matchCameraController.update(insp.ball,performance.now(),subj,foco,insp.replay?'goal':undefined)}
    // 🎉 torcida: a arquibancada do time que fez o gol pula durante a festa (lado 0 do motor = quem manda no estádio)
    {const fr=game.inspect() as {phase?:string;replay?:boolean;official?:{events?:{tipo:string;lado:number}[]}};let lado:'home'|'away'|null=null;if(fr?.phase==='gol'||fr?.replay){const evs=fr.official?.events;for(let i=(evs?.length??0)-1;i>=0;i--)if(evs![i].tipo==='gol'){lado=evs![i].lado===0?'home':'away';break}}crowd.festa(lado,seconds)}
+   if(crowd.perto(camera.position))renderer.shadowMap.needsUpdate=true // (⚡ os detalhados da torcida acompanham a câmera)
    const cutaway=matchCameraController.inspect().mode!=='free'
    if(cutaway!==cameraRoofCutaway){cameraRoofCutaway=cutaway;for(const entry of cameraRoofMaterials){entry.material.transparent=cutaway||entry.transparent;entry.material.opacity=cutaway?0:entry.opacity;entry.material.depthWrite=cutaway?false:entry.depthWrite;entry.material.needsUpdate=true}}
    residents.update(seconds,camera)

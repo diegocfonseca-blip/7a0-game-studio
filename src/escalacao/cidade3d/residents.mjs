@@ -1,12 +1,14 @@
 import * as T from 'three';
 import {createCivilian,CIVILIAN_VARIANTS} from './civilians.mjs';
 import {cityPopulation} from './population.mjs';
+import {acelerarRaios} from '../presidencia-raio-rapido';
 
 /** Reuse the built sidewalks. Never invent roads, buildings or fan tickets. */
 export function createResidents(scene,environment,solids=[]){
  const root=new T.Group();root.name='city-residents';scene.add(root);
  const roads=environment.userData.roadNetwork?.streets??[],surfaces=[];
  environment.updateMatrixWorld(true);environment.traverse(n=>{if(n.isMesh&&!n.isInstancedMesh&&(Array.isArray(n.material)?n.material:[n.material]).some(m=>m.userData.civilianPavement))surfaces.push(n)});
+ acelerarRaios(surfaces); // ⚡ 25/10: mesmo índice espacial da circulação (que reaproveita) — mesmos pontos de chão, só sem testar todo triângulo
  const ray=new T.Raycaster(),down=new T.Vector3(0,-1,0),routes=[];
  const ground=p=>{ray.set(new T.Vector3(p.x,.6,p.z),down);ray.far=.65;const h=ray.intersectObjects(surfaces,false).find(h=>h.face?.normal.y>.9);return h&&Math.abs(h.point.y-.16)<.03?h.point.y:null};
  for(const road of roads){

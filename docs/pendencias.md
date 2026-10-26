@@ -103,6 +103,19 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- FEITO (25/10, Diego: *"tô achando o mapa pesado… quando aperta em Clube já fica pesado… sem prejudicar o real"*): ⚡ MAPA MAIS LEVE,
+  mesma imagem. Medido no quadro do JOGO no mapa: eram ~3,7 milhões de triângulos por quadro (2,04 mi na tela + 1,63 mi no passe de
+  SOMBRA), agora ~1,8 mi (1,24 mi + 0,57 mi). O que mudou: (1) a sombra dos torcedores detalhados (2300 triângulos cada) é feita por
+  um boneco simples invisível no mesmo lugar — a sombra de um torcedor tem 1–4 pontinhos no mapa de sombras, fica igual
+  (`complexo-torcida-sombra`, fora do grupo da torcida); (2) os ~260 torcedores detalhados ficam nos lugares MAIS PERTO da câmera
+  (refaz quando ela anda 12 m); os mesmos assentos continuam ocupados, com as mesmas cores, e quem está longe usa o boneco simples, que
+  já era 90% da torcida. De perto ficou MELHOR: antes, os da 1ª fila muitas vezes eram o simples; (3) o que faz sombra no
+  bairro é juntado por quadra de 400 m, então o que está longe sai do quadro. Na ABERTURA do Clube: as texturas de chão
+  calculam o ruído uma vez só (pixel a pixel idênticas, conferido), as peças juntadas saem da cena de uma vez (antes, uma a uma, com
+  custo ao quadrado) e os moradores usam o índice espacial dos raios. JavaScript da abertura 7,2 s → 6,1 s na máquina de teste.
+  Conferido: cidade idêntica (moradores, circulação, ruas, pedestres) e vista aérea igual. ⚠️ A trava
+  `testa-presidencia-complexo-torcida-sentada.mjs` já falhava ANTES ("instância renderizada corresponde à inspeção") — não é desta
+  entrega. Fica pra depois: a abertura ainda trava num bloco só (montar a cidade em etapas, quadro a quadro, é cirurgia grande).
 - FEITO (15ª leva, Diego: *"faz o que deixa mais real… depois melhora se precisar"*): ↔️ JOGO PELOS LADOS — o ponta do lado da bola
   pisa na linha antes do último terço (3,5 m), o lateral do lado da bola abre colado na linha (4 m), quem conduz pela ponta longe da
   área corre pela linha em vez de cortar logo pra dentro, e o passe pro companheiro livre aberto no campo de ataque ganha preferência

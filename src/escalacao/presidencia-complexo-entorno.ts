@@ -58,6 +58,22 @@ const inside = (p:PontoComplexo, polygon:readonly PontoComplexo[]) => {
 /** District reconstructed in metres from the registered illustration. All
  * purchased establishments are separate, and doors are actual openings. */
 const RUIDO_PRONTO=new Map<string,Uint8Array>()
+const QUADRA=400
+let CAMPOS_RUIDO:{size:number;fino:Float64Array;mancha:Float64Array}|null=null
+/** grão fino + mancha média (fino) e mancha grande (mancha) do chão — iguais pra toda textura, calculados uma vez por página */
+function camposRuido(size:number){
+  if(CAMPOS_RUIDO?.size===size)return CAMPOS_RUIDO
+  const smooth=(x:number,z:number,step:number)=>{
+    const ix=Math.floor(x/step),iz=Math.floor(z/step),fx=x/step-ix,fz=z/step-iz
+    const u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz)
+    const period=size/step,sample=(px:number,pz:number)=>hash(px%period,pz%period)
+    const a=sample(ix,iz)*(1-u)+sample(ix+1,iz)*u,b=sample(ix,iz+1)*(1-u)+sample(ix+1,iz+1)*u
+    return a*(1-v)+b*v-.5
+  }
+  const fino=new Float64Array(size*size),mancha=new Float64Array(size*size)
+  for(let z=0;z<size;z++)for(let x=0;x<size;x++){const i=z*size+x;fino[i]=(hash(x,z)-.5)*.45+smooth(x,z,16)*.35;mancha[i]=smooth(x,z,128)}
+  return CAMPOS_RUIDO={size,fino,mancha}
+}
 export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   const root=new THREE.Group()
   root.name='complexo-entorno'
@@ -72,19 +88,16 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
     const chaveRuido=`${color}|${grit}|${pavers}|${macro}`,guardado=RUIDO_PRONTO.get(chaveRuido)
     const base=new THREE.Color(color),size=512,pixels=guardado??new Uint8Array(size*size*4)
     if(!guardado){
-    const smooth=(x:number,z:number,step:number)=>{
-      const ix=Math.floor(x/step),iz=Math.floor(z/step),fx=x/step-ix,fz=z/step-iz
-      const u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz)
-      const period=size/step,sample=(px:number,pz:number)=>hash(px%period,pz%period)
-      const a=sample(ix,iz)*(1-u)+sample(ix+1,iz)*u,b=sample(ix,iz+1)*(1-u)+sample(ix+1,iz+1)*u
-      return a*(1-v)+b*v-.5
-    }
+    // ⚡ 25/10 (Diego: "quando aperta em Clube já fica pesado"): o grão e as duas manchas não dependem da cor — eram recalculados nas 10
+    // texturas (8 senos por pixel × 262 mil pixels × 10). Agora saem UMA vez (`camposRuido`) e cada textura só mistura. Mesma conta, na
+    // mesma ordem e em precisão dupla: pixel por pixel idêntico
+    const {fino,mancha}=camposRuido(size)
     for(let z=0;z<size;z++)for(let x=0;x<size;x++){
       // Metre-based UVs: fine aggregate remains visible close up, while broad
       // colour variation avoids a uniform speckled sheet when looking at a block.
-      const grain=((hash(x,z)-.5)*.45+smooth(x,z,16)*.35+smooth(x,z,128)*macro)*grit
+      const i=z*size+x,grain=(fino[i]+mancha[i]*macro)*grit
       const grout=pavers&&(z%128<2||(x+(Math.floor(z/128)%2)*128)%256<2)?-.11:0
-      const at=(z*size+x)*4
+      const at=i*4
       pixels[at]=Math.max(0,Math.min(255,(base.r+grain+grout)*255))
       pixels[at+1]=Math.max(0,Math.min(255,(base.g+grain+grout)*255))
       pixels[at+2]=Math.max(0,Math.min(255,(base.b+grain+grout)*255));pixels[at+3]=255
@@ -1222,14 +1235,23 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
     // Leaf batches also include palm fronds and hedges. Neutral colours keep
     // their material unchanged and all merged attribute layouts compatible.
     if((part.material as THREE.MeshStandardMaterial).vertexColors&&!transformed.getAttribute('color'))transformed.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(transformed.getAttribute('position').count*3).fill(1),3))
-    const mat=part.material as THREE.Material,key=mat.uuid+':'+part.castShadow+':'+(part.userData.batchZone??'local'),batch=batches.get(key)??{mat,cast:part.castShadow,parts:[]}
+    // ⚡ 25/10 (Diego: "o mapa pesado… sem prejudicar o real"): o lote do que faz SOMBRA era por material no mapa inteiro (blocos de até
+    // 2,9 km) e entrava inteiro no passe de sombra, que só cobre a volta da câmera. Agora é por material E quadra de 400 m: mesma
+    // geometria, mesmo material — só fica de fora do quadro (e da sombra) o que está longe dela
+    if(!transformed.boundingBox)transformed.computeBoundingBox()
+    const centro=transformed.boundingBox!.getCenter(new THREE.Vector3()),quadra=part.castShadow?Math.floor(centro.x/QUADRA)+','+Math.floor(centro.z/QUADRA):''
+    const mat=part.material as THREE.Material,key=mat.uuid+':'+part.castShadow+':'+(part.userData.batchZone??'local')+':'+quadra,batch=batches.get(key)??{mat,cast:part.castShadow,parts:[]}
     batch.parts.push(transformed);batches.set(key,batch)
   }
   for(const {mat,cast,parts} of batches.values()){
     const merged=mergeGeometries(parts);if(merged){const value=add(merged,mat);value.name='entorno-material';value.castShadow=cast}
     parts.forEach(g=>g.dispose())
   }
-  parts.forEach(part=>root.remove(part))
+  // ⚡ 25/10: tirar as peças uma a uma procurava cada uma na lista inteira (milhares × milhares — ~0,35 s ao abrir o Clube). Mesmo
+  // resultado do `root.remove`: sem pai, mesmos avisos, e as que ficam na MESMA ordem
+  const tirar=new Set<THREE.Object3D>(parts)
+  root.children=root.children.filter(child=>!tirar.has(child))
+  for(const part of parts){part.parent=null;part.dispatchEvent({type:'removed'});root.dispatchEvent({type:'childremoved',child:part})}
   // Source buffers are no longer rendered after batching. Keep only merged
   // buffers alive so repeated stage previews do not accumulate hidden geometry.
   const rendered=new Set(root.children.flatMap(child=>child instanceof THREE.Mesh?[child.geometry]:[]))
