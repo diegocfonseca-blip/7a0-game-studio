@@ -12,7 +12,7 @@
   },
   "itens": [
     { "tag": "novidade", "texto": "**Os dias passam na Central.** A semana anda sozinha, de domingo a sábado, com o dia de hoje marcado e a **contagem pro próximo jogo**. Isso deixa o jogo **muito mais real**: dá pra sentir a semana entre um jogo e outro." },
-    { "tag": "novidade", "texto": "**Liga e Copa intercaladas**: a **Liga joga no domingo** e a **Copa na quarta**, no meio da semana, como no futebol de verdade. Chegou o dia, aparece **⚽ Dia de jogo!** e o jogo te leva sozinho pra aba Jogos. Apitou, você volta pra Central." },
+    { "tag": "novidade", "texto": "**Liga e Copa intercaladas**: a **Liga joga no domingo** e a **Copa na quarta**, no meio da semana, como no futebol de verdade. Chegou o dia, a semana **para** e aparece **⚽ Dia de jogo!**: você toca em **Ir pro jogo** quando quiser. Apitou, você volta pra Central." },
     { "tag": "melhoria", "texto": "**Jogos e Tabela agora numa aba só**: o placar em cima e, embaixo, a **tabela e os outros jogos** (na Copa, o chaveamento). **Elenco, Rank e Clube** ficam só com o que é deles, e o selo **AO VIVO** avisa quando tem bola rolando." }
   ],
   "rodape": "⚽ leilaolegends.com",

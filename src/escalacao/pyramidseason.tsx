@@ -10523,8 +10523,8 @@ export function PyramidSeasonScreen() {
   useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn && !chegando ? calBarra?.irProJogoNoMapa : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
   // 📅 25/10 — A CENTRAL É A CASA (ideia do Diego, mockup `calendario-fluxo.png`): os dias passam na Central; chegou o dia do
-  // jogo (a semana acabou no automático, ou a Copa da quarta entrou), aparece "Dia de jogo!" e em 3s vai sozinho pra aba Jogos —
-  // dá pra tocar em "ficar aqui". Apitou (e nada pendente), 3s depois volta pra Central. Só com o calendário (conta do Diego).
+  // jogo (a semana acabou no automático, ou a Copa da quarta entrou), aparece "Dia de jogo!" e PARA: a pessoa toca em "Ir pro jogo"
+  // (ou "agora não", e vai depois pelo ⏩ do cartão). Apitou (e nada pendente), 3s depois volta pra Central. Só com o calendário (conta do Diego).
   const diaJogoKey = `${calSn}:${round}:${calFase}`
   const diaDeJogoNaCentral = calOn && !state.co2 && tab === 'central' && (
     (calFase === 'dias' && calLivre && !manual && calDiasOk && round >= 1 && round < 38 && !chegando) || (calFase === 'copa' && copaMidOn) || calFase === 'jogo') // (o 'jogo' = a rodada já está no ar — ex.: abriu a carreira no meio dela: na Central o relógio para)
@@ -10532,11 +10532,8 @@ export function PyramidSeasonScreen() {
   const [ficouAqui, setFicouAqui] = useState('')
   useEffect(() => { if (diaDeJogoNaCentral && ficouAqui !== diaJogoKey && diaJogo !== diaJogoKey) setDiaJogo(diaJogoKey) }, [diaDeJogoNaCentral, ficouAqui, diaJogoKey, diaJogo])
   useEffect(() => { if (diaJogo && tab !== 'central') setDiaJogo(null) }, [diaJogo, tab])
-  useEffect(() => {
-    if (!diaJogo) return
-    const t = setTimeout(() => { setDiaJogo(null); escolheAba('jogos') }, 3000)
-    return () => clearTimeout(t)
-  }, [diaJogo]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🛑 26/10 (Diego: *"não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*): sem relógio —
+  // o aviso fica parado até a pessoa tocar
   const vimDoJogo = useRef(false)
   useEffect(() => { if (tab !== 'jogos') vimDoJogo.current = false; else if (calOn && (calFase === 'jogo' || calFase === 'copa')) vimDoJogo.current = true }, [tab, calOn, calFase])
   useEffect(() => {
@@ -10552,8 +10549,8 @@ export function PyramidSeasonScreen() {
           <div style={{ fontSize: 44, lineHeight: 1 }}>{copaHoje ? '🏆' : '⚽'}</div>
           <b style={{ ...OSWALD, display: 'block', fontSize: 30, textTransform: 'uppercase', margin: '6px 0 2px' }}>{tr('Dia de jogo!', 'Match day!')}</b>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#53534b', margin: '0 0 12px' }}>{copaHoje ? tr(`Copa · ${copaFaseName}`, `Cup · ${copaFaseName}`) : tr(`Liga · rodada ${calFase === 'jogo' ? round : round + 1}`, `League · round ${calFase === 'jogo' ? round : round + 1}`)}</p>
-          <button onClick={() => { setDiaJogo(null); escolheAba('jogos') }} style={{ ...OSWALD, width: '100%', fontSize: 18, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, cursor: 'pointer' }}>{tr('⚽ Indo pro jogo…', '⚽ Off to the match…')}</button>
-          <button onClick={() => { setFicouAqui(diaJogo); setDiaJogo(null) }} style={{ background: 'none', border: 'none', marginTop: 10, fontSize: 12, fontWeight: 800, color: '#53534b', textDecoration: 'underline', cursor: 'pointer' }}>{tr('vai sozinho em 3s · ficar aqui', 'goes by itself in 3s · stay here')}</button>
+          <button onClick={() => { setDiaJogo(null); escolheAba('jogos') }} style={{ ...OSWALD, width: '100%', fontSize: 18, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, cursor: 'pointer' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
+          <button onClick={() => { setFicouAqui(diaJogo); setDiaJogo(null) }} style={{ background: 'none', border: 'none', marginTop: 10, fontSize: 12, fontWeight: 800, color: '#53534b', textDecoration: 'underline', cursor: 'pointer' }}>{tr('agora não', 'not now')}</button>
         </div>
       </div>
     )

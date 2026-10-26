@@ -215,7 +215,7 @@ export function CentralCarreira(p: CentralProps) {
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
-          {p.semana ? <div className="ll-c-hero">{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
+          {p.semana ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0002 0%,#0001 30%,#0C0C0Cc9 66%,#0C0C0Cf5 100%)' }} />
             <div style={{ position: 'relative', padding: '12px 13px 13px', display: 'flex', flexDirection: 'column', minHeight: 372 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>

@@ -1029,6 +1029,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (20) **O DIA DO JOGADOR PESA, PROS 22 (21/10, *"sim, também quero, mas vale pra qualquer jogador dos dois lados"*):** o nível do
   dia é sorteado na faixa INTEIRA lo–hi (dia ruim e ápice tão comuns quanto o meio) e a FORMA do dia vale ±8% no que ele rende
   (técnica; no goleiro, reflexo). Medido com os mesmos 2 times: time no dia ruim ganha 23% · normal 37% · dia bom 56%.
+- **📅 CALENDÁRIO: O DIA DE JOGO NUNCA PULA SOZINHO (26/10, regra dele).** *"Não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*. A semana passa na Central e PARA no dia do jogo com o aviso "⚽ Dia de jogo!" (Ir pro jogo / agora não). Nada de relógio que leva pra aba Jogos.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca
