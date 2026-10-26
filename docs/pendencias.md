@@ -11,10 +11,6 @@
 - Tempo do envelope continua SÓ no Modo Stream (*"deixa só pro modo stream"*), com "45s · padrão".
 - 🌎 Baralho MUNDO sozinho na sala (`deck: 'world'`, START_ONLINE; o `setActiveCatalog` já sabia montar). Testado: leilão de 38 cartas,
   todas do Mundo. Clubes e Liga Draft continuam travados no Todos. Só sala online (carreira/partida rápida não mudam).
-- 🌎 **Baralho depois do campeonato** (26/10, *"algo simples… escolheu a Champions, mostra quais baralhos pode"*): a ordem virou
-  1 jogo · 2 leilão · 3 campeonato · 4 time · 5 partida · 6 sala. Na **Só Champions** (até 36 times) o baralho mostra só Brasil · Europa ·
-  Todos e some a categoria Várzea (medido: o Mundo sozinho no 4-4-2 e a Várzea criam carta fake com 35–36). As travas e a rede do motor
-  que fiz antes ele mandou DESFAZER (*"não gostei"*) — não repor.
 - Quando bater as metas: ligar o modo pra todos é o interruptor de sempre (`*_GERAL` em sport.ts) — a faixa some sozinha com `on`.
 
 ## 📻 Faixa do gol pisca, estilo FM (26/10) — ✅ PUBLICADO PRA TODOS

@@ -3636,141 +3636,6 @@ export function EscLobby() {
               )}
             </Section>
           )}
-          {/* 🏆 O CAMPEONATO (26/10): o que vem depois da liga — só no rápido/ligas/bafo (a carreira tem regras próprias) */}
-          {!isCareer && (
-            <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆">
-              {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
-                  Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
-                  fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
-                  criação da sala RÁPIDA — o desenho que ele já tinha recusado em
-                  22/08 (*"mostra duas vezes sobre bots"*), que vivia apagado atrás de
-                  LIGA_FECHADA_LIBERADA = false. Agora saiu de vez, pra ninguém
-                  religar achando que era feature esquecida.
-                  A tabela sem bots continua existindo — mas SÓ no modo Liga, onde ela
-                  é o ponto: `mode:'liga'` grava `ligaFechada: !ligaComBots`.
-                  Sala rápida = sempre 20 times, os que faltam entram como CPU. */}
-              {/* 🏆 A COPA NÃO EXISTE NA SALA DE ELENCO (Diego 17/08: "não terá copa,
-                  será apenas divisão de 38 rodadas nesse modo"). Em vez de deixar o
-                  seletor ligado e ignorar a escolha depois — que é o tipo de estado
-                  torto que a casa não aceita — o seletor SAI da tela e o motivo fica
-                  escrito. A sala já nasce com copaMode:'liga' travado. */}
-              {isElenco ? (
-                <>
-                <SegField label={tr('Depois da liga', 'After the league')}>
-                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga · 38 rodadas', '📊 League only · 38 rounds')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{getLang() === 'en' ? <>In Bafo <b>there is no Cup</b> — it's the table from start to finish, and the final standings decide who hands a card to whom.</> : <>No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</>}</p>
-                  </div>
-                </SegField>
-                {/* 🃏 O host decide se a partida vale carta de verdade. Amistoso
-                    existe pra galera experimentar o modo sem medo de perder carta
-                    — e é o Diego quem sempre pede o caminho de volta. */}
-                <SegField label={tr('No fim da liga', 'At the end of the league')}>
-                  <Seg options={[[true, tr('🃏 Valendo carta', '🃏 Cards at stake')], [false, tr('🤝 Amistoso', '🤝 Friendly')]] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
-                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {bafoValendo
-                      ? (getLang() === 'en' ? <>Whoever finished behind hands <b>a randomly drawn card</b> from the career they brought to the team right above — and the card <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>)
-                      : tr('Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.', 'Nobody loses or wins cards. Just the table, to play with no risk.')}
-                  </p>
-                </SegField>
-                </>
-              ) : nbaSala ? (
-                // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;
-                // G League/NBA = PLAYOFFS por conferência (automático). Sem seletor.
-                <SegField label={tr('Depois da liga', 'After the league')}>
-                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('🏀 Playoffs (nos andares de cima)', '🏀 Playoffs (upper tiers)')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Na Street League é só a tabela. Na G League e na NBA os melhores vão aos PLAYOFFS por conferência e brigam pelo anel 💍 — automático, igual à NBA de verdade.', 'In the Street League it is just the table. In the G League and the NBA the best go to the conference PLAYOFFS and fight for the ring 💍 — automatic, like the real NBA.')}</p>
-                  </div>
-                </SegField>
-              ) : (ehDraft && roomMode === 'liga') ? (
-                <SegField label={tr('Depois da liga', 'After the league')}>
-                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 A liga · depois, 📋 a noite do draft', '📊 The league · then 📋 draft night')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Sem Copa: acabou a tabela, vem o draft e a próxima temporada.', 'No Cup: the table ends, then the draft and the next season.')}</p>
-                  </div>
-                </SegField>
-              ) : (
-                <SegField label={tr('Depois da liga', 'After the league')}>
-                  {/* 🌎 A Libertadores é a TERCEIRA opção — e nunca vem junto com a
-                      Copa dos 8: é uma OU a outra, porque as duas ocupam o mesmo
-                      lugar (o que acontece quando a liga acaba). Como é um botão
-                      só, não tem estado torto possível. 🔒 Enquanto está em
-                      construção, só a conta do Diego enxerga a opção. */}
-                  {/* 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA, e é de propósito:
-                      aqui ela fica LADO A LADO com a Libertadores (🌎), e o Diego
-                      pegou na tela — *"tem que ter uma diferenciação do emoji de
-                      mundo e liberta"*. 🌍 e 🌎 são o mesmo desenho girado; no
-                      tamanho do botão viram a mesma bolinha azul. NÃO trocar de
-                      volta sem trocar o da Liberta junto. */}
-                  {/* 🌐 "Liga + Copa do Mundo" (01/09, pedido do Diego): a liga
-                      roda normal e, quando ela acaba, os 20 times viram seleções e
-                      rola a Copa do Mundo. Por baixo ela é `copaMode: 'liga'` (sem
-                      Copa dos 8, sem Libertadores) + a marca `mundoNaLiga` — assim
-                      o motor do leilão não muda em NADA, e a Copa entra por cima na
-                      tela de fim de temporada. */}
-                  {/* ⭐ A CHAMPIONS ENTRA AQUI, junto das outras ligas (ordem dele:
-                      *"já pode colocar lá juntos das ligas"*) — com a tarja **EM BREVE**,
-                      **meio apagada** e **sem deixar marcar**. Palavras dele (21/09):
-                      *"é selo de em breve mas ninguém pode jogar ele ainda"*. Ou seja:
-                      a vitrine aparece pra todo mundo (é o recado de que vem aí) e o
-                      botão não acende. Só `CHAMPIONS_TESTERS` (a conta dele) abre, pra
-                      ele poder testar antes de soltar.
-                      🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
-                      isso que estava espremido. */}
-                  {/* 🧩 Duas prateleiras, como no mockup aprovado (10/10): o que se joga COM O
-                      SEU TIME do leilão e o que se joga CONVOCANDO (o time vem do país/clube). */}
-                  {(() => {
-                    type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
-                    const todas: [ModoCopa, string][] = [...((libertaOn
-                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
-                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
-                      // 🏟️ as copas regionais (liberadas pra todos em 11/10)
-                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
-                    const convoca = (v: ModoCopa) => v === 'liga_mundo' || regionalId(v) !== null
-                    const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
-                      <>
-                        <p className="font-black mt-2 mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{titulo}</p>
-                        <Seg options={lista}
-                          value={rapidoCopaMode} onSet={v => { setRapidoCopaMode(v); if (v === 'champions') { if (rapidoDeck === 'world') setRapidoDeck('both'); setRapidoVarzea(false) } }}
-                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
-                          selos={{ liga_mundo: seloNovo(), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
-                      </>
-                    )
-                    return <>
-                      {prateleira(tr('⚽ COM O SEU TIME', '⚽ WITH YOUR TEAM'), todas.filter(([v]) => !convoca(v)))}
-                      {prateleira(tr('📋 CONVOCANDO', '📋 CALL-UP'), todas.filter(([v]) => convoca(v)))}
-                    </>
-                  })()}
-                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {regionalId(rapidoCopaMode) ? (() => {
-                      const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length
-                      return getLang() === 'en'
-                        ? <>{c.emoji} League over, the <b>top {v}</b> pick a club from the region in table order (<b>45s each</b> — miss it and you get the <b>worst club left</b>) and call up their 11 in <b>90s</b>. Two sides of {v / 2}: each club plays the {v / 2} of the <b>other side</b>, then crossed knockouts. The rest of the league sits this one out.</>
-                        : <>{c.emoji} Acabou a liga, os <b>{v} primeiros</b> escolhem um clube da região na ordem da tabela (<b>45s cada</b> — quem não escolher fica com o <b>pior que sobrou</b>) e convocam os 11 em <b>90s</b>. Dois lados de {v / 2}: cada clube joga contra os {v / 2} do <b>outro lado</b>, depois mata-mata cruzado. O resto da liga fica de fora.</>
-                    })() : getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
-                      ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
-                      : rapidoCopaMode === 'champions'
-                      ? <>⭐ <b>No league</b>: after the auction it goes straight to ONE table of 36 — <b>everyone in the room</b> (up to <b>36 people</b>) and, to fill it, clubs owned by real people. 8 games against 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
-                      : rapidoCopaMode === 'liga_liberta'
-                      ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
-                      : rapidoCopaMode === 'liga_copa'
-                        ? <>🏆 League over, the top 8 play the Cup of 8 — home and away up to a single final.</>
-                        : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
-                      ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 6 grupos de 4, passam 16 (os 2 primeiros + os 4 melhores 3ºs) e mata-mata em jogo único, das oitavas à final. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
-                      : rapidoCopaMode === 'champions'
-                      ? <>⭐ <b>Sem liga</b>: acabou o leilão, vai direto pra tabela ÚNICA de 36 — <b>todo mundo da sala</b> (até <b>36 pessoas</b>) e, completando, clubes de gente de verdade. 8 jogos contra 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
-                      : rapidoCopaMode === 'liga_liberta'
-                      ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
-                      : rapidoCopaMode === 'liga_copa'
-                        ? <>🏆 Acabou a liga, os 8 primeiros disputam a Copa dos 8 — ida e volta até a final única.</>
-                        : <>📊 Só a tabela, do começo ao fim. Campeão é quem fizer mais pontos.</>}
-                  </p>
-                </SegField>
-              )}
-            </Section>
-          )}
-
           <Section num={proxSec()} title={criar2 ? tr('O time', 'The team') : tr('O básico', 'The basics')} icon="🃏">
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
@@ -3876,14 +3741,9 @@ export function EscLobby() {
               </div>
             ) : (
               <SegField label={tr('Baralho de craques', 'Deck of stars')}>
-                {/* 🌎 26/10 (Diego: "primeiro escolhe o campeonato… escolheu a Champions, mostra quais baralhos pode"): o baralho vem DEPOIS
-                    do campeonato e só mostra o que fecha sem carta de mentira. Só Champions vai a 36 times: o Mundo sozinho e a Várzea
-                    não têm jogador de verdade pra todos (medido no motor) — saem da lista. */}
-                <Seg options={([['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['world', tr('🌎 Mundo', '🌎 World')], ['both', tr('♾️ Todos', '♾️ All')]] as [DeckChoice, string][]).filter(([d]) => !(rapidoCopaMode === 'champions' && d === 'world'))} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
-                {rapidoCopaMode === 'champions' && <p className="text-[10.5px] font-bold mt-1.5 leading-snug" style={{ color: '#FFD27A' }}>{tr('⭐ Na Só Champions (até 36 times) dá pra jogar com Brasil, Europa ou Todos.', '⭐ In Champions only (up to 36 teams) you can play with Brazil, Europe or All.')}</p>}
-                <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{tr('♾️ Todos = Brasil + Europa + Mundo juntos. 🧱 Leilão de Clubes e Liga Draft usam sempre o Todos.', '♾️ All = Brazil + Europe + World together. 🧱 Club auction and Draft League always use All.')}</p>
-                {/* 🥅 categoria SÓ do baralho Brasil: Todos (padrão) ou Várzea (sem craques) */}
-                {rapidoDeck === 'br' && rapidoCopaMode !== 'champions' && (
+                <Seg options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
+                                {/* 🥅 categoria SÓ do baralho Brasil: Todos (padrão) ou Várzea (sem craques) */}
+                {rapidoDeck === 'br' && (
                   <div className="mt-2.5">
                     <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('Categoria', 'Category')}</p>
                     <Seg options={[[false, tr('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
@@ -3935,6 +3795,141 @@ export function EscLobby() {
                   {tr('🎲 Não escolher — usar rivais padrão', '🎲 Don\'t choose — use default rivals')}
                 </button>
               </div>
+            </Section>
+          )}
+
+          {/* 🏆 O CAMPEONATO (26/10): o que vem depois da liga — só no rápido/ligas/bafo (a carreira tem regras próprias) */}
+          {!isCareer && (
+            <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆">
+              {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
+                  Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
+                  fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
+                  criação da sala RÁPIDA — o desenho que ele já tinha recusado em
+                  22/08 (*"mostra duas vezes sobre bots"*), que vivia apagado atrás de
+                  LIGA_FECHADA_LIBERADA = false. Agora saiu de vez, pra ninguém
+                  religar achando que era feature esquecida.
+                  A tabela sem bots continua existindo — mas SÓ no modo Liga, onde ela
+                  é o ponto: `mode:'liga'` grava `ligaFechada: !ligaComBots`.
+                  Sala rápida = sempre 20 times, os que faltam entram como CPU. */}
+              {/* 🏆 A COPA NÃO EXISTE NA SALA DE ELENCO (Diego 17/08: "não terá copa,
+                  será apenas divisão de 38 rodadas nesse modo"). Em vez de deixar o
+                  seletor ligado e ignorar a escolha depois — que é o tipo de estado
+                  torto que a casa não aceita — o seletor SAI da tela e o motivo fica
+                  escrito. A sala já nasce com copaMode:'liga' travado. */}
+              {isElenco ? (
+                <>
+                <SegField label={tr('Depois da liga', 'After the league')}>
+                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga · 38 rodadas', '📊 League only · 38 rounds')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{getLang() === 'en' ? <>In Bafo <b>there is no Cup</b> — it's the table from start to finish, and the final standings decide who hands a card to whom.</> : <>No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</>}</p>
+                  </div>
+                </SegField>
+                {/* 🃏 O host decide se a partida vale carta de verdade. Amistoso
+                    existe pra galera experimentar o modo sem medo de perder carta
+                    — e é o Diego quem sempre pede o caminho de volta. */}
+                <SegField label={tr('No fim da liga', 'At the end of the league')}>
+                  <Seg options={[[true, tr('🃏 Valendo carta', '🃏 Cards at stake')], [false, tr('🤝 Amistoso', '🤝 Friendly')]] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {bafoValendo
+                      ? (getLang() === 'en' ? <>Whoever finished behind hands <b>a randomly drawn card</b> from the career they brought to the team right above — and the card <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>)
+                      : tr('Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.', 'Nobody loses or wins cards. Just the table, to play with no risk.')}
+                  </p>
+                </SegField>
+                </>
+              ) : nbaSala ? (
+                // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;
+                // G League/NBA = PLAYOFFS por conferência (automático). Sem seletor.
+                <SegField label={tr('Depois da liga', 'After the league')}>
+                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('🏀 Playoffs (nos andares de cima)', '🏀 Playoffs (upper tiers)')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Na Street League é só a tabela. Na G League e na NBA os melhores vão aos PLAYOFFS por conferência e brigam pelo anel 💍 — automático, igual à NBA de verdade.', 'In the Street League it is just the table. In the G League and the NBA the best go to the conference PLAYOFFS and fight for the ring 💍 — automatic, like the real NBA.')}</p>
+                  </div>
+                </SegField>
+              ) : (ehDraft && roomMode === 'liga') ? (
+                <SegField label={tr('Depois da liga', 'After the league')}>
+                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 A liga · depois, 📋 a noite do draft', '📊 The league · then 📋 draft night')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Sem Copa: acabou a tabela, vem o draft e a próxima temporada.', 'No Cup: the table ends, then the draft and the next season.')}</p>
+                  </div>
+                </SegField>
+              ) : (
+                <SegField label={tr('Depois da liga', 'After the league')}>
+                  {/* 🌎 A Libertadores é a TERCEIRA opção — e nunca vem junto com a
+                      Copa dos 8: é uma OU a outra, porque as duas ocupam o mesmo
+                      lugar (o que acontece quando a liga acaba). Como é um botão
+                      só, não tem estado torto possível. 🔒 Enquanto está em
+                      construção, só a conta do Diego enxerga a opção. */}
+                  {/* 🌐 O GLOBO DA COPA DO MUNDO É O DE GRADINHA, e é de propósito:
+                      aqui ela fica LADO A LADO com a Libertadores (🌎), e o Diego
+                      pegou na tela — *"tem que ter uma diferenciação do emoji de
+                      mundo e liberta"*. 🌍 e 🌎 são o mesmo desenho girado; no
+                      tamanho do botão viram a mesma bolinha azul. NÃO trocar de
+                      volta sem trocar o da Liberta junto. */}
+                  {/* 🌐 "Liga + Copa do Mundo" (01/09, pedido do Diego): a liga
+                      roda normal e, quando ela acaba, os 20 times viram seleções e
+                      rola a Copa do Mundo. Por baixo ela é `copaMode: 'liga'` (sem
+                      Copa dos 8, sem Libertadores) + a marca `mundoNaLiga` — assim
+                      o motor do leilão não muda em NADA, e a Copa entra por cima na
+                      tela de fim de temporada. */}
+                  {/* ⭐ A CHAMPIONS ENTRA AQUI, junto das outras ligas (ordem dele:
+                      *"já pode colocar lá juntos das ligas"*) — com a tarja **EM BREVE**,
+                      **meio apagada** e **sem deixar marcar**. Palavras dele (21/09):
+                      *"é selo de em breve mas ninguém pode jogar ele ainda"*. Ou seja:
+                      a vitrine aparece pra todo mundo (é o recado de que vem aí) e o
+                      botão não acende. Só `CHAMPIONS_TESTERS` (a conta dele) abre, pra
+                      ele poder testar antes de soltar.
+                      🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
+                      isso que estava espremido. */}
+                  {/* 🧩 Duas prateleiras, como no mockup aprovado (10/10): o que se joga COM O
+                      SEU TIME do leilão e o que se joga CONVOCANDO (o time vem do país/clube). */}
+                  {(() => {
+                    type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
+                    const todas: [ModoCopa, string][] = [...((libertaOn
+                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
+                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
+                      // 🏟️ as copas regionais (liberadas pra todos em 11/10)
+                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
+                    const convoca = (v: ModoCopa) => v === 'liga_mundo' || regionalId(v) !== null
+                    const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
+                      <>
+                        <p className="font-black mt-2 mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{titulo}</p>
+                        <Seg options={lista}
+                          value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
+                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
+                          selos={{ liga_mundo: seloNovo(), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                      </>
+                    )
+                    return <>
+                      {prateleira(tr('⚽ COM O SEU TIME', '⚽ WITH YOUR TEAM'), todas.filter(([v]) => !convoca(v)))}
+                      {prateleira(tr('📋 CONVOCANDO', '📋 CALL-UP'), todas.filter(([v]) => convoca(v)))}
+                    </>
+                  })()}
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {regionalId(rapidoCopaMode) ? (() => {
+                      const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length
+                      return getLang() === 'en'
+                        ? <>{c.emoji} League over, the <b>top {v}</b> pick a club from the region in table order (<b>45s each</b> — miss it and you get the <b>worst club left</b>) and call up their 11 in <b>90s</b>. Two sides of {v / 2}: each club plays the {v / 2} of the <b>other side</b>, then crossed knockouts. The rest of the league sits this one out.</>
+                        : <>{c.emoji} Acabou a liga, os <b>{v} primeiros</b> escolhem um clube da região na ordem da tabela (<b>45s cada</b> — quem não escolher fica com o <b>pior que sobrou</b>) e convocam os 11 em <b>90s</b>. Dois lados de {v / 2}: cada clube joga contra os {v / 2} do <b>outro lado</b>, depois mata-mata cruzado. O resto da liga fica de fora.</>
+                    })() : getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
+                      ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
+                      : rapidoCopaMode === 'champions'
+                      ? <>⭐ <b>No league</b>: after the auction it goes straight to ONE table of 36 — <b>everyone in the room</b> (up to <b>36 people</b>) and, to fill it, clubs owned by real people. 8 games against 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
+                      : rapidoCopaMode === 'liga_liberta'
+                      ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
+                      : rapidoCopaMode === 'liga_copa'
+                        ? <>🏆 League over, the top 8 play the Cup of 8 — home and away up to a single final.</>
+                        : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
+                      ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 6 grupos de 4, passam 16 (os 2 primeiros + os 4 melhores 3ºs) e mata-mata em jogo único, das oitavas à final. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      : rapidoCopaMode === 'champions'
+                      ? <>⭐ <b>Sem liga</b>: acabou o leilão, vai direto pra tabela ÚNICA de 36 — <b>todo mundo da sala</b> (até <b>36 pessoas</b>) e, completando, clubes de gente de verdade. 8 jogos contra 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
+                      : rapidoCopaMode === 'liga_liberta'
+                      ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      : rapidoCopaMode === 'liga_copa'
+                        ? <>🏆 Acabou a liga, os 8 primeiros disputam a Copa dos 8 — ida e volta até a final única.</>
+                        : <>📊 Só a tabela, do começo ao fim. Campeão é quem fizer mais pontos.</>}
+                  </p>
+                </SegField>
+              )}
             </Section>
           )}
 
@@ -4634,8 +4629,8 @@ export function EscLobby() {
                 {/* 🏀 baralho Brasil/Europa é do futebol — liga de basquete usa o baralho da NBA */}
                 {!nbaSala && <div>
                   <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Baralho', 'Deck')}</p>
-                  <Seg small options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['world', tr('🌎 Mundo', '🌎 World')], ['both', tr('♾️ Todos', '♾️ All')]] as ['br' | 'eu' | 'both' | 'world', string][]}
-                    value={modoEdit.clubes ? 'both' : modoEdit.deck} onSet={v => setModoEdit(m => m && { ...m, deck: v })} travados={modoEdit.clubes ? ['br', 'eu', 'world'] : undefined} />
+                  <Seg small options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as ['br' | 'eu' | 'both' | 'world', string][]}
+                    value={modoEdit.clubes ? 'both' : modoEdit.deck} onSet={v => setModoEdit(m => m && { ...m, deck: v })} travados={modoEdit.clubes ? ['br', 'eu'] : undefined} />
                   {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
                   {modoEdit.copa === 'champions' && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
                 </div>}
