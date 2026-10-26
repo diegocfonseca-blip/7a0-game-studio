@@ -103,6 +103,9 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- FEITO (26/10, Diego aprovou com "Sim"; foto `scripts/mockups/telao-cla-semana.png`): no telão, o anúncio do PÓDIO DA SEMANA ganha uma
+  linha dourada embaixo dos técnicos: "⚔️ CLÃ DA SEMANA: <campeão>" (Diego: *"no mesmo momento que aparece os vitoriosos, coloque após
+  eles clã da semana e o nome do clã vitorioso"*). O anúncio separado dos 3 clãs continua girando depois.
 - FEITO (26/10, mockup aprovado com "Sim", incluindo 2º e 3º): 🏆⚔️ AVISO DE FIM DE SEMANA em qualquer tela (`aviso-semana.tsx`,
   montado no `index.tsx`; espera o fim do leilão se a pessoa estiver no pregão). Técnico no pódio (+30/20/10, medalha 30 dias, telão) e
   membro de clã no pódio (+30/20/10 cada, telão); o CAMPEÃO dos clãs ganha a zoeira com o 2º colocado (8 frases PT/EN, presas na

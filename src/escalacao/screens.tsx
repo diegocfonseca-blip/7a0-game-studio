@@ -8124,6 +8124,7 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
 .placa-o.so{top:22px;font-size:15px;max-height:52px}
 .placa-quem{position:absolute;left:14px;right:14px;top:19px;font:700 11px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#F4ECD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .placa-m.placa-rec{top:35px;font-size:16px;white-space:normal;max-height:36px;line-height:1.08}
+.placa-cla{position:absolute;left:14px;right:14px;top:61px;font:700 12.5px/1.1 Oswald,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#FFC400;text-shadow:0 0 8px #FFC40099;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .placa-l{display:inline-block;transform-origin:50% 60%;animation:placaVira .38s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
 .placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
@@ -8136,6 +8137,7 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
         {ad.podio ? <>
           {/* 🏆 PÓDIO DA SEMANA (19/10): em ROXO (rosa é do Super Chat, dourado é do anúncio), 2 linhas, a semana inteira */}
           <div className="placa-m placa-rec" style={{ top: 22, color: ad.cor, textShadow: `0 0 8px ${ad.cor}99` }}><LetrasVirando texto={ad.texto} /></div>
+          {ad.cla && !ad.podioCla && <div className="placa-cla"><LetrasVirando texto={`${en ? '⚔️ CLAN OF THE WEEK: ' : '⚔️ CLÃ DA SEMANA: '}${ad.cla}`} atraso={260} /></div>}
         </> : ad.recado ? <>
           {/* 💬 RECADO (18/10): quem mandou em cima, o recado em rosa embaixo, em até 2 linhas */}
           <div className="placa-quem">{ad.recado.autor}</div>

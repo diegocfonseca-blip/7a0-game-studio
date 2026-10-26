@@ -145,7 +145,7 @@ const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
-export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string }; podio?: true; podioCla?: true } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
+export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string }; podio?: true; podioCla?: true; cla?: string } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
 export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número máximo de caracteres… tipo o da Vadico")
 function usePodioPassado() {
   const [v, setV] = useState(podioPassada())
@@ -180,8 +180,11 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   // 🏆 PÓDIO DA SEMANA PASSADA (19/10, Diego: "no telão aparece os 3 primeiros da semana… com emoji de medalha"): roda a semana
   // inteira, em roxo. Vem da vitrine (mesma leitura do ranking, cache de 60 s) — zero mensagem nova no canal.
   const podio = usePodioPassado()
-  if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true })
   const podioCla = usePodioClaPassado() // ⚔️ sempre DEPOIS do pódio dos usuários, nunca no lugar dele
+  // ⚔️ 26/10 (Diego: "no telão, no mesmo momento que aparece os vitoriosos, coloque após eles clã da semana e o nome do clã
+  // vitorioso"): o campeão dos clãs vai numa linha embaixo dos 3 técnicos, no MESMO anúncio
+  const claCampeao = podioCla.filter(p => p.pos === 1).map(p => stripEmoji(p.nome).trim()).join(' · ')
+  if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, ...(claCampeao ? { cla: claCampeao } : {}) })
   if (podioCla.length) out.push({ texto: podioCla.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, podioCla: true })
   if (espacosOk()) {
     if (fixos) out.push(...fixos)
