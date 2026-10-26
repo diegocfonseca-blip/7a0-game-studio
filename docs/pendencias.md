@@ -11017,3 +11017,5 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
   - Central sem "⏩ Pular pro jogo" (no Manual o "Próximo adversário" fica, é o único caminho); no Jogos o ⏩ some quando a semana já acabou.
   - Ranking global saiu da Central (e a leitura dele no banco junto) — fica só na aba Rank.
   - Testado sem login: 8s parado no Jogos sem começar; "Começar o jogo" leva da rodada 3 pra 4; sem erro.
+- 🔧 26/10: saiu a faixa amarela "Manutenção rápida no servidor" (*"toda hora aparece"*) — o teste do servidor fica, só re-tenta as pendências (`MaintenanceBanner`, index.tsx). O convite de conta da carreira virou UMA linha: "💾 Pra salvar sua carreira, crie uma conta." + botão "✏️ Criar conta".
+- ⏳ PEDIDO 26/10 (a decidir com ele): conta GRÁTIS salvar na nuvem, mas avisando no 1º salvamento que fica guardado 7 dias; quem apoia = ilimitado e mais de uma carreira. Mexe na regra de 07/10 ("nuvem só pra quem paga") e precisa de limpeza no banco depois dos 7 dias — perguntei as regras antes de fazer.

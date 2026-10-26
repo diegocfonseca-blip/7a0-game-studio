@@ -7645,22 +7645,13 @@ function AvisoContaCarreira() {
         // que sumia no meio dos quadros. Agora tem cara de convite: a carta
         // dourada, o que a pessoa GANHA (não só o que ela perde) e um botão de
         // verdade. Continua UMA peça só, sem virar quadrão.
-        <div className="ll-cx-conta" style={{ ...box('linear-gradient(150deg,#FFF6DE,#FFE7A8)'), overflow: 'hidden', marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px 0' }}>
-            <span style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>🎴</span>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, lineHeight: 1.1 }}>{tr('Sua carreira só existe neste aparelho', 'Your career only exists on this device')}</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.35 }}>
-                {getLang() === 'en' ? <>With an account you <b>don\'t lose the team</b>, play from any phone and <b>win a star card</b> when you become champion.</> : <>Com conta você <b>não perde o time</b>, joga de qualquer celular e <b>ganha carta de craque</b> quando for campeão.</>}
-              </p>
-            </div>
-          </div>
-          <div style={{ padding: '10px 12px 12px' }}>
-            <button onClick={() => setAbrirConta(true)}
-              style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>
-              {tr('✏️ Criar conta grátis', '✏️ Create a free account')}
-            </button>
-          </div>
+        // ✏️ 26/10 (Diego: *"esse botão de criar conta grátis faça menor e diga nele que pra salvar precisa criar uma conta"*): uma linha só
+        <div className="ll-cx-conta" style={{ ...box('#FFF6DE'), display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px 7px 11px', marginBottom: 10 }}>
+          <p style={{ flex: 1, minWidth: 0, fontSize: 11.5, fontWeight: 800, margin: 0, lineHeight: 1.25 }}>{tr('💾 Pra salvar sua carreira, crie uma conta.', '💾 To save your career, create an account.')}</p>
+          <button onClick={() => setAbrirConta(true)}
+            style={{ flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 10px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            {tr('✏️ Criar conta', '✏️ Create account')}
+          </button>
         </div>
       )}
       {abrirConta && (

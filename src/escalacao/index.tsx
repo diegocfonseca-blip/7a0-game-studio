@@ -135,9 +135,9 @@ function ComunidadeBanner() {
   )
 }
 
+// 🔧 26/10 (Diego: *"esse botão amarelo de manutenção tire também… toda hora aparece"*): a faixa amarela SAIU. O teste do servidor
+// continua (é ele que re-tenta o que ficou pendente quando a rede volta), só não mostra mais nada.
 function MaintenanceBanner() {
-  const [down, setDown] = useState(false)
-  const failsRef = useRef(0) // só mostra após FALHAS SEGUIDAS — evita alarme falso por blip de rede no celular
   useEffect(() => {
     let alive = true
     const netErr = (m: string) => /failed to fetch|networkerror|network request failed|load failed|502|503|504|timeout|service unavailable/i.test(m)
@@ -151,19 +151,13 @@ function MaintenanceBanner() {
         ok = !netErr(e instanceof Error ? e.message : String(e))
       }
       if (!alive) return
-      if (ok) { failsRef.current = 0; setDown(false); flushPendingWrites() } // no ar: some na hora + re-tenta pendências
-      else { failsRef.current += 1; if (failsRef.current >= 2) setDown(true) } // 2 falhas seguidas = fora de verdade
+      if (ok) flushPendingWrites() // no ar: re-tenta pendências
     }
     check()
     const iv = setInterval(check, 60_000)
     return () => { alive = false; clearInterval(iv) }
   }, [])
-  if (!down) return <AvisoTopo escondido={false} />
-  return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: '#F5B301', color: '#1a1a1a', borderBottom: '3px solid #1a1a1a', padding: '7px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }}>
-      🔧 Manutenção rápida no servidor — seu progresso está salvo. Já já voltamos! 💛
-    </div>
-  )
+  return <AvisoTopo escondido={false} />
 }
 
 // Aviso RÁPIDO (toast): aparece uns segundos quando o jogador abre o jogo e
