@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, Component, lazy, Suspense, type ReactNode 
 import { AvisoDestaqueTirado } from './aviso-live'
 import { AvisoSemEspaco } from './aviso-espaco' // 📱 aparelho cheio: pede pra salvar antes de fechar (13/10)
 import { PresenteRecebido } from './presente'
+import { AvisoSemana } from './aviso-semana'
 import { PresentesPregao } from './pregao-aberto' // 🎁 'Fulano te deu um presente!' — só depois que o Diego entregou (14/10)
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
@@ -42,6 +43,12 @@ function AmigosGlobal() {
     return () => window.removeEventListener(EVENTO_ENTRAR_SALA, h)
   }, [dispatch])
   return <AvisosAmigos ocupado={!TELAS_LIVRES.has(state.screen)} />
+}
+
+/** 🏆⚔️ o aviso de fim de semana (técnico no pódio / clã no pódio) — em qualquer tela, menos no meio do pregão */
+function AvisoSemanaGlobal() {
+  const { state } = useEsc()
+  return <AvisoSemana tela={state.screen} />
 }
 
 function Router() {
@@ -478,6 +485,7 @@ export default function EscalacaoGame() {
         <AvisoSemEspaco />
         <PresenteRecebido />
         <AmigosGlobal />
+        <AvisoSemanaGlobal />
         <PresentesPregao />{/* 🎁 pregão aberto sem Monte: o que o time ganhou de graça no fim (some sozinho, 16/10) */}
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
