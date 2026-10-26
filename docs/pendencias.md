@@ -1,3 +1,11 @@
+## 📻 Faixa do gol pisca, estilo FM (26/10) — ✅ PUBLICADO PRA TODOS
+- No gol, a faixa da rádio (placar cinema) e a do locutor (Campo 2D) gritam "⚽ GOOOOOOL DO <TIME>! <bordão com o autor>" piscando
+  verde do Bom Jogador #2E9E5B ⇄ creme (`radio-pisca.ts`/`.css`). No normal: uma linha só, creme com letra preta, sem "Rádio/Lance/Jogo".
+- **O pisca dura EXATAMENTE a cena do gol** (*"quando a mascote sai… o pisca para ao mesmo tempo"*): placar = até a cena fechar
+  (`goalSide` volta a null; reserva 1,8 s), 2D = enquanto dura a `festa`. Gol em cima de gol recomeça com o autor novo.
+- Ainda em aberto: faixa fina de sábado diz "HOJE · 16H" com jogo no domingo (ofereci "AMANHÃ", sem resposta); clã da semana no
+  telão junto do pódio (pergunta sem resposta); preço do Campeonato Oficial (30/20/15/10/5 × 10/7/5/4/2).
+
 ## ⚽ Motor novo — futebol de verdade no 11×11 (25/10, conta de prévia; Diego: *"quero futebol real lá dentro do campo"*)
 - Medido ANTES em 120 jogos: 76% dos chutes de fora da área (23 m de média) e 55% viravam gol; bola no pé dentro da área 0,05 s por
   jogo; os 20 jogadores num quadrado de 40×30 m em volta da bola (filmado no 2D, `scratchpad/film2d.mjs`).
