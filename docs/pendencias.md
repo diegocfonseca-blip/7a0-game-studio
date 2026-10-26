@@ -5,7 +5,7 @@
   Números saem na ordem (`proxSec`).
 - ⭐ = precisa de plano pra CRIAR: Minhas ligas, Liga Draft, Carreira, Manual e Campo 2D. **Criar sala no Manual e com o 2D agora é
   do plano** (`useHasManual`, a régua do Modo Manual) — jogar na sala dos outros continua grátis. ⚠️ aviso "só com quem conhece" no Manual.
-- Faixa roxa "LANÇA COM NK 👤 NO INSTA" (Instagram @leilaolegendscom): Liga Draft 5K · Carreira 7K · Bafo 3K (sem plano) · Campo 2D 3K
+- Faixa roxa "LANÇA COM NK 👤 NO INSTA" (Instagram @leilaolegendscom): Liga Draft 5K · Carreira 7K · Campo 2D 3K · 🃏 Bafo OCULTO pra quem não pode criar (26/10, *"deixa oculto, pra não confundir"*; meta dele seria 3K, sem plano)
   (selo no botão). Modo travado NÃO abre nada embaixo: só o quadro roxo (meta, jogar grátis, criar com plano); a Carreira tem propaganda
   própria (Várzea → Série A com o amigo, técnico, vender jogador, coletiva). A Liga Draft agora aparece pra todos (travada).
 - Tempo do envelope continua SÓ no Modo Stream (*"deixa só pro modo stream"*), com "45s · padrão".

@@ -3341,7 +3341,7 @@ export function EscLobby() {
         ]
         // 🏀 no BidLegends existem Rápido, Minhas ligas e a 🌐 Carreira (online do basquete).
         // O Bafo é do futebol — some da lista aqui pra não mostrar cartão que não abre.
-        const MODOS = TODOS_MODOS.filter(m => !nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !('draft' in m && m.draft))) // 📋 a Liga Draft usa os baralhos do futebol: fora do basquete
+        const MODOS = TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !('draft' in m && m.draft)))) // 🃏 26/10 (Diego: "o bafo deixa oculto, pra não confundir"): o Bafo só aparece pra conta que já pode criar // 📋 a Liga Draft usa os baralhos do futebol: fora do basquete
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
         // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
