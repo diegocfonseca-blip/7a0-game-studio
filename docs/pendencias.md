@@ -6,6 +6,8 @@
 - 🎙️ **Rádio com os jogadores tocando na bola (26/10, publicado pra todos)**: 45 toques entre companheiros (rodam pela escalação
   inteira), +20 lances, até 22 frases por jogo com escalação. Vale em todo placar novo (carreira, copas, salas online, Minhas Ligas).
   ✅ Partida Rápida OFFLINE também (26/10, *"óbvio"*): `publicOnlineVisual` não exige mais sala online.
+- ✅ Calendário no MANUAL (26/10, print dele): os dias passam nos dois modos; a coletiva abre sozinha depois do apito com o
+  calendário (senão segurava a semana no domingo); quem caiu na Copa não vê mais a quarta azul/rótulo COPA/Quartas na lista.
 - ✅ Faixa fina de sábado agora diz "AMANHÃ" quando o jogo é no domingo.
 - Ainda em aberto: clã da semana no
   telão junto do pódio (pergunta sem resposta); preço do Campeonato Oficial (30/20/15/10/5 × 10/7/5/4/2).
