@@ -85,7 +85,7 @@ export type CentralProps = {
   /** 🕵️ JANELA CHEGANDO (22/10, mockup do Sondar aprovado): nas últimas rodadas avisa que a janela vai abrir no Sondar */
   janela?: boolean
 }
-export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho'; ha?: number; rodadas?: number; onClick: () => void
+export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
@@ -103,6 +103,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
     switch (s.estado) {
       case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
+      case 'salvo_7d': return [t('✅ Salvo na nuvem · sem plano fica guardada 7 dias sem salvar', '✅ Saved to the cloud · without a plan it stays 7 days without saving'), VERDE]
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
       case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
       case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
@@ -115,7 +116,8 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   const ocupado = s.estado === 'salvando'
   // ☁️ 19/10 (Diego): conta sem plano apertou Salvar → abre os planos (a faixinha que sumia em 2 s parecia bug)
   const [planos, setPlanos] = useState(false)
-  useEffect(() => { if (s.estado === 'salvo_aparelho') setPlanos(true) }, [s.estado])
+  const [aviso7, setAviso7] = useState(false)
+  useEffect(() => { if (s.estado === 'salvo_aparelho') setPlanos(true); if (s.estado === 'salvo_7d') { setAviso7(true); setPlanos(true) } }, [s.estado])
   const salvar = () => { const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
   return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
@@ -127,7 +129,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       </button>
       </span>
     </div>
-    {planos && <JanelaNuvemPlanos onClose={() => setPlanos(false)} />}
+    {planos && <JanelaNuvemPlanos aviso7={aviso7} onClose={() => { setPlanos(false); setAviso7(false) }} />}
   </>)
 }
 

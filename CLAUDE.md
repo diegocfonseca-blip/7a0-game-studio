@@ -752,7 +752,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   O grátis e quem joga sem conta continuam salvando no aparelho… Quem já tem save na nuvem continua igual. Ninguém perde
   nada"*. A régua mora no banco (`esc_nuvem_regra`: paga = Craque/Lenda, fundador/batismo ou sócio em dia; e quais seeds
   JÁ estão na nuvem). Conta grátis só sobe essas; carreira nova fica no aparelho, com aviso e botão ⭐ Craque (abre TODOS os
-  planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
+  planos). Banco sem resposta = sobe como sempre. 🔁 **26/10: GRÁTIS VOLTOU A SUBIR, COM PRAZO** (*"se passar de 7 dias sem uso ela é excluída… só pra quem não tem plano"*): a carreira sobe, e sem plano 7 dias sem Salvar ela é esvaziada na nuvem (`esc_nuvem_gratis_limpa`, só quem subiu a partir de 26/10; quem já tinha save antes e quem paga nunca); aviso no 1º salvamento. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
   jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
 
 - **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda **44,90** (49,90 até 17/10) · 🖋 Batismo 79,90 ·

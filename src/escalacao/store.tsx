@@ -13397,11 +13397,12 @@ export async function nuvemRegra(uid: string, fresca = false): Promise<NuvemRegr
 }
 /** pagante pelo código também vale (lista de reserva do apoio.tsx / batismo do manto.ts) */
 const pagoPeloCodigo = () => souBarao() || myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
-/** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo) */
-export function nuvemAceita(r: NuvemRegra | null, seed: number | undefined): boolean {
-  if (!r || r.pago || pagoPeloCodigo()) return true
-  return seed != null && r.seeds.includes(seed)
-}
+/** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo)
+ *  ☁️ 26/10 (Diego): a conta GRÁTIS também salva na nuvem — mas, sem plano, 7 dias sem apertar Salvar e a carreira sai da
+ *  nuvem (o banco faz isso: `esc_nuvem_gratis_limpa`, todo dia; a do aparelho fica). Por isso agora toda carreira é aceita. */
+export function nuvemAceita(_r: NuvemRegra | null, _seed: number | undefined): boolean { return true }
+/** conta logada SEM plano (a do prazo de 7 dias) */
+export function nuvemSemPlano(r: NuvemRegra | null): boolean { return !!r && !r.pago && !pagoPeloCodigo() }
 /** 📱 pra tela: esta carreira salva SÓ no aparelho? (null = ainda não sabe / deslogado) */
 export function useNuvemSoAparelho(seed: number | undefined): boolean | null {
   const [, setT] = useState(0)
@@ -13417,7 +13418,7 @@ export function useNuvemSoAparelho(seed: number | undefined): boolean | null {
   return !nuvemAceita(regraCache.r, seed)
 }
 /** devolve 'nuvem' (subiu), 'aparelho' (conta grátis + carreira nova: fica só no aparelho) ou undefined */
-export async function savePyramidCloud(state: EscState, force = false): Promise<'nuvem' | 'aparelho' | undefined> {
+export async function savePyramidCloud(state: EscState, force = false): Promise<'nuvem' | 'nuvem7' | 'aparelho' | undefined> {
   try {
     if (!force) return
     const { data } = await supabase.auth.getUser()
@@ -13462,7 +13463,7 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     if (isCareerSave(state) && !aparelhoEmDia) carreiraEmMemoria = { ...state }
     // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
     if (isCareerSave(state)) anotaSubidaNuvem(state)
-    return 'nuvem'
+    return isCareerSave(state) && nuvemSemPlano(regra) ? 'nuvem7' : 'nuvem'
   } catch { /* best effort — o local sempre garante */ }
 }
 // 💾 última subida da carreira pra nuvem, por carreira (seed): quando foi e em que rodada/temporada.

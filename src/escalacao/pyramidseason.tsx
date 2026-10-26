@@ -8070,7 +8070,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const { state } = useEsc()
   const stRef = useRef(state); stRef.current = state
   const [logado, setLogado] = useState<boolean | null>(null)
-  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho'>('quieto')
+  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d'>('quieto')
   const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
   const [, setTick] = useState(0)
   useEffect(() => {
@@ -8086,11 +8086,13 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     const st = stRef.current
     try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     setFase('salvando')
-    let res: 'nuvem' | 'aparelho' | undefined
+    let res: 'nuvem' | 'nuvem7' | 'aparelho' | undefined
     try { res = await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
     const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
-    setFase(res === 'aparelho' ? 'salvo_aparelho' : subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
-    setTimeout(() => setFase('quieto'), 2400)
+    // ☁️ 26/10: conta sem plano, 1º salvamento na nuvem → avisa do prazo de 7 dias (uma vez por aparelho)
+    const avisa7 = res === 'nuvem7' && (() => { try { if (localStorage.getItem('esc-nuvem7-visto')) return false; localStorage.setItem('esc-nuvem7-visto', '1'); return true } catch { return false } })()
+    setFase(res === 'aparelho' ? 'salvo_aparelho' : avisa7 ? 'salvo_7d' : subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
+    setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
   }, [])
   if (!ativo) return undefined
   if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined }
@@ -10490,7 +10492,9 @@ export function PyramidSeasonScreen() {
   const esperandoInicio = calOn && !state.co2 && !manual && calFase === 'dias' && calLivre && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
   const liberaJogo = () => setJogoOk(chaveJogo)
   const diaJogoKey = calFase === 'jogo' ? `${calSn}:${round}:no-ar` : chaveJogo
-  const diaDeJogoNaCentral = (tab === 'central' || tab === 'jogos') && (esperandoInicio || (calOn && !state.co2 && tab === 'central' && calFase === 'jogo'))
+  // (26/10, 2ª: *"por que tá aparecendo essa arte de dia de jogo?"* — com a rodada JÁ rolando ele não aparece mais: o aviso é só
+  // pro dia que chegou e ainda não começou; com o jogo no ar, a Central já tem o "Ver a rodada ao vivo")
+  const diaDeJogoNaCentral = (tab === 'central' || tab === 'jogos') && esperandoInicio
   const [diaJogo, setDiaJogo] = useState<string | null>(null)
   const [ficouAqui, setFicouAqui] = useState('')
   useEffect(() => { if (diaDeJogoNaCentral && ficouAqui !== diaJogoKey && diaJogo !== diaJogoKey) setDiaJogo(diaJogoKey) }, [diaDeJogoNaCentral, ficouAqui, diaJogoKey, diaJogo])
