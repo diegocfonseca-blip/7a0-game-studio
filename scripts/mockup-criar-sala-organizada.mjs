@@ -25,7 +25,7 @@ const chips = (lista, marcado, { cols = 0 } = {}) => `<div class="chips${cols ? 
 const linha = (rot, corpo, dica = '') => `<div class="ln"><p class="rot">${rot}</p>${corpo}${dica}</div>`
 const bloco = (n, ic, titulo, frase, corpo) => `<section class="bl"><header><span class="n">${n}</span><div><h3>${ic} ${titulo}</h3><p>${frase}</p></div></header>${corpo}</section>`
 const IG = '@leilaolegendscom'
-const PLANO = '', META = k => `LANÇA COM ${k}K 👥 NO INSTA`
+const PLANO = '', META = k => `<span class="em">📸</span>ABRE COM ${k}K`
 const MODOS = [
   ['⚡ Rápido', 'Uma temporada. Começa agora.'],
   ['🏆 Minhas ligas', 'A sala da turma que não acaba.', PLANO, true],
@@ -99,15 +99,15 @@ const CSS = `${FONTS}
 .chip b{display:block;font:700 13px Oswald;text-transform:uppercase;line-height:1.15}.chip small{display:block;font-size:10.5px;font-weight:600;color:#6b6250;margin-top:2px;line-height:1.2}
 .chip.on{background:#FFC400;box-shadow:2px 2px 0 #0C0C0C}.chip.on small{color:#3b3000}
 .chip i{position:absolute;top:-8px;right:6px;font:700 9px Oswald;font-style:normal;background:#7C3AED;color:#fff;border:2px solid #0C0C0C;border-radius:6px;padding:0 4px}
-.dica{font-size:11px;font-weight:600;color:#1B7A3D;margin-top:5px}.dica.cinza{color:#6b6250}.chip.fx{padding-top:16px}.chip em{position:absolute;left:-2.5px;right:-2.5px;top:-2.5px;font:700 9px/1 Oswald;font-style:normal;letter-spacing:.06em;background:#7C3AED;color:#fff;border:2.5px solid #0C0C0C;border-radius:10px 10px 0 0;padding:3px 2px}.alerta{margin-top:7px;font-size:11.5px;font-weight:600;line-height:1.35;background:#FDE8E3;border:2.5px solid #C2452F;border-radius:10px;padding:7px 9px}.av{margin:10px 0 8px;background:#F3EDFF;border:3px solid #7C3AED;border-radius:12px;padding:10px;font-size:12px;font-weight:600;line-height:1.4}.av p{margin:0 0 6px}.avt{font:700 15px Oswald;text-transform:uppercase;color:#5B21B6}.barra{display:block;height:12px;border:2.5px solid #0C0C0C;border-radius:8px;background:#fff;overflow:hidden}.barra span{display:block;height:100%;background:#7C3AED}.av small{font-size:10.5px;color:#5B21B6;font-weight:700}.sub2{margin-top:8px;background:#EEF4FB;border:2.5px solid #2E6FB0;border-radius:10px;padding:8px}.pd{font:700 9px Oswald;background:#2E6FB0;color:#fff;border-radius:5px;padding:1px 5px;margin-left:4px}.leg{font:700 13px Oswald;letter-spacing:.06em;color:#7C3AED;margin:2px 0 6px}
+.dica{font-size:11px;font-weight:600;color:#1B7A3D;margin-top:5px}.dica.cinza{color:#6b6250}.chip.fx{padding-top:16px}.chip em{position:absolute;left:-2.5px;right:-2.5px;top:-2.5px;font:700 10px/1 Oswald;font-style:normal;letter-spacing:.06em;background:#7C3AED;color:#fff;border:2.5px solid #0C0C0C;border-radius:10px 10px 0 0;padding:3px 2px;display:flex;align-items:center;justify-content:center;gap:4px;height:19px}.chip em .em{font-size:11px;line-height:1;display:inline-block;transform:translateY(-.5px)}.alerta{margin-top:7px;font-size:11.5px;font-weight:600;line-height:1.35;background:#FDE8E3;border:2.5px solid #C2452F;border-radius:10px;padding:7px 9px}.av{margin:10px 0 8px;background:#F3EDFF;border:3px solid #7C3AED;border-radius:12px;padding:10px;font-size:12px;font-weight:600;line-height:1.4}.av p{margin:0 0 6px}.avt{font:700 15px Oswald;text-transform:uppercase;color:#5B21B6}.barra{display:block;height:12px;border:2.5px solid #0C0C0C;border-radius:8px;background:#fff;overflow:hidden}.barra span{display:block;height:100%;background:#7C3AED}.av small{font-size:10.5px;color:#5B21B6;font-weight:700}.sub2{margin-top:8px;background:#EEF4FB;border:2.5px solid #2E6FB0;border-radius:10px;padding:8px}.pd{font:700 9px Oswald;background:#2E6FB0;color:#fff;border-radius:5px;padding:1px 5px;margin-left:4px}.leg{font:700 13px Oswald;letter-spacing:.06em;color:#7C3AED;margin:2px 0 6px}
 .inp{border:2.5px solid #0C0C0C;border-radius:10px;background:#fff;padding:7px 10px;font:700 14px Oswald}
 .pe{position:relative;background:#0C0C0C;border-radius:16px;padding:11px;margin-top:4px}.pe .rot{color:#FFC400}
 .resumo{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px}.resumo span{font:700 11px Oswald;text-transform:uppercase;background:#2b241a;color:#F4ECD6;border-radius:7px;padding:3px 7px}
 .pe button{width:100%;font:700 20px Oswald;background:#1B7A3D;color:#fff;border:3px solid #F4ECD6;border-radius:12px;padding:11px;box-shadow:3px 3px 0 #FFC400}
 `
 const html = `<!doctype html><meta charset="utf-8"><style>${CSS}</style>
-<p class="cap">🧩 Criar sala — proposta organizada (v3)</p>
-<p class="sub">v3 · ⭐ = precisa de plano pra CRIAR (quem tem plano usa normal) · faixa roxa = ainda não lançado, abre com N mil seguidores no Instagram · jogar é sempre grátis. 3º celular: o que aparece quando toca num modo travado (nada abre embaixo).</p>
+<p class="cap">🧩 Criar sala — proposta organizada (v4)</p>
+<p class="sub">v4 · ⭐ = precisa de plano pra CRIAR (quem tem plano usa normal) · faixa roxa 📸 ABRE COM NK = ainda não lançado, abre quando o Instagram bater N mil seguidores · jogar é sempre grátis. 3º celular: o que aparece quando toca num modo travado (nada abre embaixo).</p>
 <div class="duo"><div class="tel">${tel1}</div><div class="tel">${tel2}</div><div class="tel">${tel3}</div></div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
