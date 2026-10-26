@@ -614,7 +614,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       {narra && !semNarra && (
         <div key={piscaGol ? `g${piscaGol.k}` : 'n'} className={piscaGol ? 'll44-gol-pisca' : undefined}
           style={{ maxWidth: larg, margin: '8px auto 0', background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3, ...(piscaGol ? estiloPisca() : {}) }}
-          dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en').replace(/[<>&"]/g, '')}</span>` : '🎙️ ' + narra }} />
+          dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en', festa?.autor, festa?.min).replace(/[<>&"]/g, '')}</span>` : '🎙️ ' + narra }} />
       )}
     </div>
   )

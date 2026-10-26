@@ -12,7 +12,20 @@ const VERDE = '#2E9E5B', CREME = '#F4ECD6'
 export function estiloPisca(): CSSProperties {
   return { '--ll44-a': VERDE, '--ll44-b': CREME } as CSSProperties
 }
-/** 🔁 26/10 (2ª conversa): durante o pisca a faixa não narra o lance — ela grita o gol, com o nome do time que marcou */
-export function gritoGol(time: string, en: boolean): string {
-  return en ? `⚽ GOOOOAL FOR ${time.toUpperCase()}!` : `⚽ GOOOOOL DO ${time.toUpperCase()}!`
+/** 🔁 26/10 (2ª conversa): durante o pisca a faixa não narra o lance — ela grita o gol, com o time E o autor
+ *  (Diego: *"gooooollll do Neymarzetti, Ronaldo é o nome dele! — com esse bordão falando o nome do jogador"*).
+ *  O bordão varia um pouco (preso no nome + minuto: o mesmo gol grita sempre igual). */
+const BORDOES: [string, string][] = [
+  ['{J} É O NOME DELE!', "{J}'S THE NAME!"],
+  ['É DELE, É DO {J}!', "IT'S {J}, WHO ELSE!"],
+  ['PODE CHAMAR DE {J}!', 'CALL HIM {J}!'],
+  ['QUE GOLAÇO DE {J}!', 'WHAT A GOAL FROM {J}!'],
+]
+export function gritoGol(time: string, en: boolean, jogador?: string, min?: number): string {
+  const t = time.toUpperCase()
+  const base = en ? `⚽ GOOOOAL FOR ${t}!` : `⚽ GOOOOOOL DO ${t}!`
+  if (!jogador) return base
+  let h = (min ?? 0) * 31; for (const c of jogador) h = (h * 33 + c.charCodeAt(0)) >>> 0
+  const b = BORDOES[h % BORDOES.length][en ? 1 : 0].replace('{J}', jogador.toUpperCase())
+  return `${base} ${b}`
 }

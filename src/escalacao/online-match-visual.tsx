@@ -126,7 +126,7 @@ export function OnlineScorePresentation(p: {
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
     {p.radio && p.narracaoNoRadio && <div key={pisca ? `g${pisca.k}` : 'r'} className={`ll43-radio ll43-uma${piscaGol ? ' ll44-gol-pisca' : ''}`} style={piscaGol} aria-live="off">
-      {pisca ? <div className="ll43-ln ll44-grito">{gritoGol(pisca.lado === 'h' ? p.homeName : p.awayName, getLang() === 'en')}</div> : <LinhaFala f={p.radio} semTag />}
+      {pisca ? <div className="ll43-ln ll44-grito">{gritoGol(pisca.lado === 'h' ? p.homeName : p.awayName, getLang() === 'en', p.goals[pisca.k - 1]?.name, p.goals[pisca.k - 1]?.min)}</div> : <LinhaFala f={p.radio} semTag />}
     </div>}
     {p.radio && !p.narracaoNoRadio && <div key={pisca ? `g${pisca.k}` : 'r'} className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}${piscaGol ? ' ll44-gol-pisca' : ''}`} style={piscaGol} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
