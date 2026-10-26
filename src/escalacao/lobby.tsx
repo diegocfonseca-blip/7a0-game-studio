@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
@@ -385,9 +385,10 @@ export function useResumableRoom() {
 }
 
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const claro = useContext(ClaroCtx)
   return (
     <div>
-      <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">{label}</p>
+      <p className={claro ? 'text-[11px] uppercase mb-1.5' : 'text-white/50 text-[11px] font-black uppercase tracking-widest mb-1'} style={claro ? { color: '#6b6250', letterSpacing: '.08em', ...OSWALD } : undefined}>{label}</p>
       <input {...props} className="w-full border-[3px] border-black rounded-lg px-3 py-2 font-black text-black text-sm bg-white" />
     </div>
   )
@@ -419,11 +420,35 @@ function Big({ children, onClick, color = GOLD, disabled = false, fundo }: { chi
   )
 }
 
+// 🧩 26/10 (mockup v5 aprovado, Diego: *"o visual que aprovamos de cor e aparência não tá igual, tá tudo preto"*): a tela de CRIAR
+// SALA é clara — fundo creme, blocos brancos de borda preta, botões separados (creme; escolhido = dourado). Só ela liga o `ClaroCtx`;
+// os mesmos componentes no resto do lobby continuam como sempre.
+const ClaroCtx = createContext(false)
+const CRIAR_CLARO_CSS = `
+.cs-claro{background:#F4ECD6;border:4px solid #0C0C0C;border-radius:24px;box-shadow:5px 5px 0 #0C0C0C;padding:12px;color:#0C0C0C}
+.cs-claro .text-white{color:#0C0C0C!important}
+.cs-claro [class*="text-white/"]{color:#5a5040!important}
+.cs-claro input{background:#fff}
+.cs-claro [style*="color: rgba(255, 255, 255"]{color:#6b6250!important}
+`
 // ── criar sala reformulado: bloco com cabeçalho numerado ──
 // 🗂️ `resumo` (visual novo das salas, 23/10, só na conta do Diego): a seção vira uma LINHA com o que está escolhido e só abre
 // quando a pessoa toca em "mudar". Sem `resumo`, é a seção de sempre, aberta.
-function Section({ num, title, icon, children, resumo, abertaInicio }: { num: number; title: string; icon: string; children: React.ReactNode; resumo?: string; abertaInicio?: boolean }) {
+function Section({ num, title, icon, children, resumo, abertaInicio, sub }: { num: number; title: string; icon: string; children: React.ReactNode; resumo?: string; abertaInicio?: boolean; sub?: string }) {
   const [aberta, setAberta] = useState(!!abertaInicio)
+  const claro = useContext(ClaroCtx)
+  if (claro && resumo === undefined) return (
+    <div className="rounded-2xl" style={{ background: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 11px 12px', color: INK }}>
+      <div className="flex items-center gap-2.5 mb-2.5">
+        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: INK, color: GOLD, fontSize: 15, ...OSWALD }}>{num}</span>
+        <span className="min-w-0">
+          <span className="block uppercase leading-none" style={{ fontSize: 17, ...OSWALD, fontWeight: 700 }}>{icon} {title}</span>
+          {sub && <span className="block font-semibold mt-0.5" style={{ fontSize: 11.5, color: '#6b6250' }}>{sub}</span>}
+        </span>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </div>
+  )
   if (resumo !== undefined) return (
     <div className="rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: aberta ? '#FFF7DB' : '#fff', boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
       <button onClick={() => setAberta(a => !a)} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left">
@@ -597,9 +622,10 @@ function BafoEscolha({ escolha, onEscolha }: {
 }
 
 function SegField({ label, children }: { label: string; children: React.ReactNode }) {
+  const claro = useContext(ClaroCtx)
   return (
     <div>
-      <p className="text-white/50 text-[11px] font-black uppercase tracking-widest mb-1">{label}</p>
+      <p className={claro ? 'text-[11px] uppercase mb-1.5' : 'text-white/50 text-[11px] font-black uppercase tracking-widest mb-1'} style={claro ? { color: '#6b6250', letterSpacing: '.08em', ...OSWALD } : undefined}>{label}</p>
       {children}
     </div>
   )
@@ -624,6 +650,29 @@ function SegField({ label, children }: { label: string; children: React.ReactNod
 // palavra novo brilhando verde"*). O brilho é CSS (`seg-selo-brilho`, online-visual.css), 0 KB.
 function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos, selosBrilho, travados }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>>; selosBrilho?: string[]; travados?: string[] }) {
   const grade = options.length >= 4
+  const claro = useContext(ClaroCtx)
+  if (claro) return (
+    <div className={grade ? 'grid gap-1.5' : 'flex gap-1.5'} style={{ ...(grade ? { gridTemplateColumns: options.length === 6 ? '1fr 1fr 1fr' : '1fr 1fr' } : {}), ...(dim ? { opacity: 0.45 } : {}) }}>
+      {options.map(([v, label], i) => {
+        const selo = selos?.[String(v)]
+        const escolhido = value === v
+        const travado = travados?.includes(String(v)) ?? false
+        const ultimaSozinha = grade && options.length !== 6 && options.length % 2 === 1 && i === options.length - 1
+        return (
+          <button key={String(v)} onClick={() => { if (!travado) onSet(v) }} disabled={travado}
+            className={`${grade ? (ultimaSozinha ? 'col-span-2' : '') : 'flex-1 min-w-0'} uppercase`}
+            style={{ padding: small ? '7px 4px' : '8px 6px', fontSize: small ? 11.5 : 13, background: escolhido ? GOLD : '#F4ECD6', color: INK, border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: escolhido ? `2px 2px 0 ${INK}` : 'none', lineHeight: 1.15, opacity: travado ? 0.5 : 1, cursor: travado ? 'not-allowed' : 'pointer', ...OSWALD }}>
+            {selo && (
+              <span className={selosBrilho?.includes(String(v)) ? 'seg-selo-brilho' : undefined} style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8.5, lineHeight: 1.35,
+                letterSpacing: .6, padding: '1px 6px', borderRadius: 6,
+                border: `1.5px solid ${INK}`, ...(selosBrilho?.includes(String(v)) ? { background: GREEN, color: '#fff' } : { background: '#7C3AED', color: '#fff' }) }}>{selo}</span>
+            )}
+            {label}
+          </button>
+        )
+      })}
+    </div>
+  )
   return (
     <div className={grade ? 'grid grid-cols-2 border-[2.5px] border-black rounded-xl overflow-hidden' : 'flex border-[2.5px] border-black rounded-xl overflow-hidden'}
       style={dim ? { opacity: 0.45 } : undefined}>
@@ -669,19 +718,6 @@ function Sw({ on }: { on: boolean }) {
     <span className="relative flex-none rounded-full" style={{ width: 44, height: 25, border: '2.5px solid #000', background: on ? GREEN : '#d9d2be', transition: '.15s' }}>
       <span className="absolute rounded-full" style={{ top: 1.5, left: on ? 20 : 2, width: 17, height: 17, background: on ? '#fff' : '#000', transition: '.15s' }} />
     </span>
-  )
-}
-// linha com ícone + título + subtítulo + chavinha
-function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: string; sub: string; on: boolean; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="flex items-center gap-2.5 w-full border-[2.5px] border-black rounded-xl px-3 py-2.5 text-left" style={{ background: '#fff', color: '#000' }}>
-      <span className="text-lg leading-none">{icon}</span>
-      <span className="flex-1 min-w-0">
-        <b className="block font-black leading-tight" style={{ fontSize: 13.5, ...OSWALD }}>{title}</b>
-        <small className="font-bold" style={{ fontSize: 10.5, color: 'rgba(0,0,0,.5)' }}>{sub}</small>
-      </span>
-      <Sw on={on} />
-    </button>
   )
 }
 
@@ -3496,18 +3532,22 @@ export function EscLobby() {
         let secN = criar2 ? 1 : 0
         const proxSec = () => ++secN // 🔢 os blocos numeram na ordem em que aparecem (cada modo mostra os seus)
         return (
-        <div className={desk ? undefined : 'space-y-3'} style={desk ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 330px', gap: 20, alignItems: 'start' } : undefined}>
+        <ClaroCtx.Provider value>
+        <style>{CRIAR_CLARO_CSS}</style>
+        <div className={`cs-claro ${desk ? '' : 'space-y-3'}`} style={desk ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 330px', gap: 20, alignItems: 'start' } : undefined}>
         <div className="space-y-3">
           {criar2 && (
-            <div className="online-mode-section rounded-2xl border-[3px] border-black p-3" style={{ background: '#161616', boxShadow: `4px 4px 0 ${INK}` }}>
-              <p className="font-black text-white text-[15px] uppercase leading-none flex items-center gap-2" style={OSWALD}>
-                <span className="inline-flex items-center justify-center shrink-0 border-2 border-black rounded-full" style={{ width: 22, height: 22, background: GOLD, color: INK, fontSize: 12 }}>1</span>
-                {tr('O que vocês vão jogar?', 'What are you going to play?')}
-              </p>
-              <p className="text-white/45 text-[11px] font-bold mt-1 mb-3">{tr('Escolhe um. O resto já está no ponto.', 'Pick one. The rest is ready to go.')}</p>
+            <div className="online-mode-section rounded-2xl p-3" style={{ background: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <span className="grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: INK, color: GOLD, fontSize: 15, ...OSWALD }}>1</span>
+                <span className="min-w-0">
+                  <span className="block uppercase leading-none" style={{ fontSize: 17, ...OSWALD, fontWeight: 700 }}>🎮 {tr('O jogo', 'The game')}</span>
+                  <span className="block font-semibold mt-0.5" style={{ fontSize: 11.5, color: '#6b6250' }}>{tr('O que vocês vão jogar hoje', 'What you are playing today')}</span>
+                </span>
+              </div>
               {/* 🗂️ os modos ficam TODOS à vista pra todo mundo (23/10, Diego: "quero o novo que você fez pra todos no meu também") — acabou o recolher */}
               {/* 🖥️ no computador os modos ficam TODOS à vista, lado a lado (Diego: "ficam tudo abertas, sem recolher") */}
-              <div style={desk ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 } : undefined}>
+              <div style={{ display: 'grid', gridTemplateColumns: desk ? 'repeat(auto-fill, minmax(200px, 1fr))' : '1fr 1fr', gap: 8 }}>
               {MODOS.map(m => {
                 const sel = roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft) // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
@@ -3522,25 +3562,23 @@ export function EscLobby() {
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
                   <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); }}
-                    className={`relative w-full flex items-center gap-3 border-[3px] border-black rounded-xl px-3 py-2.5 ${desk ? '' : 'mb-2'} text-left active:translate-y-0.5 overflow-hidden`}
-                    style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `3px 3px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 28 : undefined }}>
+                    className="relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
+                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
-                    <span style={{ fontSize: 24 }}>{m.ic}</span>
-                    <span className="flex-1 min-w-0">
-                      <span className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-black text-black text-[15px]" style={OSWALD}>{m.estrela ? '⭐ ' : ''}{m.nome}</span>
+                    <span className="min-w-0">
+                      <span className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <span className="text-black text-[14px] uppercase" style={OSWALD}>{m.estrela ? '⭐ ' : ''}{m.ic} {m.nome}</span>
                         {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
                         {emBreve && !meta && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>{tr('EM BREVE', 'COMING SOON')}</span>}
                       </span>
-                      <span className="block text-black/60 text-[11px] font-bold leading-snug mt-0.5">{m.frase}</span>
+                      <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: sel ? '#3b3000' : '#6b6250' }}>{m.frase}</span>
                     </span>
-                    <span style={{ fontSize: 17, opacity: sel ? 1 : 0.2 }}>{sel ? '✅' : '⚪'}</span>
                   </button>
                 )
               })}
               </div>
               {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
-              <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-1" style={{ background: 'rgba(0,0,0,.3)' }}>
+              <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-2.5" style={{ background: CREAM }}>
                 <p className="text-white/65 text-[11px] font-bold leading-snug">{ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : EXPLICA[roomMode]}</p>
                 {modoEscolhido?.emTeste && !(modoEscolhido.meta && !nbaSala && !modoLiberado) && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
@@ -3590,14 +3628,14 @@ export function EscLobby() {
           {(!criar2 || modoLiberado) && (<>
           {/* 🔨 O LEILÃO (26/10, criar sala em blocos): o jeito do lance e o que vai a leilão, juntos */}
           {(roomMode === 'rapido' || roomMode === 'liga') && !isCareer && (
-            <Section num={proxSec()} title={tr('O leilão', 'The auction')} icon="🔨">
+            <Section num={proxSec()} title={tr('O leilão', 'The auction')} icon="🔨" sub={tr('Como os jogadores vão ser comprados', 'How the players get bought')}>
               {/* 🧱 LEILÃO DE CLUBES — liberado no online em 28/09 (Diego: "pro online também, modos
                   rápidos e minhas ligas"). O padrão é sempre Jogador. `CLUBES_GERAL` segue sendo o
                   interruptor: desligado, a opção aparece com NOVO mas travada.
                   Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido.
                   🏀 19/10 (Diego: "quero da NBA"): no basquete o pacote é a POSIÇÃO de uma franquia ("Armadores dos Lakers"). */}
               {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga') && (
-                <SegField label={tr('Tipo de leilão', 'Auction type')}>
+                <SegField label={tr('O que vai a leilão', 'What goes to auction')}>
                   <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
                     travados={clubesOn ? [] : ['true']} /> {/* 🏷️ 12/10: selo NOVO tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
@@ -3619,7 +3657,7 @@ export function EscLobby() {
                   🃏 Bafo e 🌍 Copa do Mundo **não têm leilão nenhum**, e a
                   Carreira online fica no pregão de sempre por decisão. */}
               {(roomMode === 'rapido' || roomMode === 'liga') && (
-                <SegField label={tr('Como é o leilão', 'Auction format')}>
+                <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
                     ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as ['envelope' | 'tocaia' | 'pregao', string][]}
                         selos={{ pregao: tr('novo', 'new') }} selosBrilho={['pregao']}
@@ -3636,7 +3674,7 @@ export function EscLobby() {
               )}
             </Section>
           )}
-          <Section num={proxSec()} title={criar2 ? tr('O time', 'The team') : tr('O básico', 'The basics')} icon="🃏">
+          <Section num={proxSec()} title={criar2 ? tr('O time', 'The team') : tr('O básico', 'The basics')} icon="🃏" sub={tr('De onde vêm as cartas e como o time joga', 'Where the cards come from and how the team plays')}>
             <div>
               {/* 🔁 NA v2 O MODO NÃO SE REPETE (Diego 29/08, olhando a tela:
                   *"lá em cima do modo já é o 1, não precisa repetir embaixo também.
@@ -3740,7 +3778,7 @@ export function EscLobby() {
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
               </div>
             ) : (
-              <SegField label={tr('Baralho de craques', 'Deck of stars')}>
+              <SegField label={tr('Baralho', 'Deck')}>
                 <Seg options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
                                 {/* 🥅 categoria SÓ do baralho Brasil: Todos (padrão) ou Várzea (sem craques) */}
                 {rapidoDeck === 'br' && (
@@ -3763,7 +3801,7 @@ export function EscLobby() {
           {/* ② OS RIVAIS — só na carreira do FUTEBOL (igual offline: host escolhe os CPUs do
               leilão). 🏀 No basquete a liga enche de crews sozinha (sem escolher rivais). */}
           {isCareer && !nbaSala && (
-            <Section num={proxSec()} title={tr('Os rivais', 'The rivals')} icon="🔥">
+            <Section num={proxSec()} title={tr('Os rivais', 'The rivals')} icon="🔥" sub={tr('Os bots que entram no leilão com vocês', 'The bots that join the auction with you')}>
               <div>
                 <p className="text-white/70 text-[11px] font-black uppercase mb-1.5" style={{ letterSpacing: '.1em' }}>{tr('Rivais no leilão (CPUs)', 'Rivals at the auction (CPUs)')}</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -3800,7 +3838,7 @@ export function EscLobby() {
 
           {/* 🏆 O CAMPEONATO (26/10): o que vem depois da liga — só no rápido/ligas/bafo (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆">
+            <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆" sub={tr('O que vem depois das 38 rodadas', 'What comes after the 38 rounds')}>
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
                   fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
@@ -3935,7 +3973,7 @@ export function EscLobby() {
 
           {/* 📺 A PARTIDA — como o jogo passa na tela (ritmo e placar/2D) */}
           {!isCareer && (!roomStream || getSport() !== 'basquete') && (
-            <Section num={proxSec()} title={tr('A partida', 'The match')} icon="📺">
+            <Section num={proxSec()} title={tr('A partida', 'The match')} icon="📺" sub={tr('Como o jogo passa na tela', 'How the match shows on screen')}>
               {/* ⭐ 26/10 (Diego): criar sala no MANUAL é do plano (a régua do Modo Manual de sempre, `useHasManual`). Quem não tem
                   vê a opção com a ⭐ e o porquê; jogar numa sala manual de outra pessoa continua grátis. */}
               {!roomStream && (
@@ -3974,7 +4012,7 @@ export function EscLobby() {
           )}
 
           {/* ③ A SALA — privacidade, chat, stream (+ tempo do leilão) */}
-          <Section num={proxSec()} title={tr('A sala', 'The room')} icon="🚪">
+          <Section num={proxSec()} title={tr('A sala', 'The room')} icon="🚪" sub={tr('Quem entra e como fica', 'Who gets in and how it works')}>
             {/* 🚫 no modo Liga o nome já foi pedido no quadro da liga, lá em cima.
                 Deixar este campo aqui perguntaria a MESMA coisa duas vezes — foi
                 exatamente a bronca que o Diego deu sobre os bots em 22/08. */}
@@ -3992,19 +4030,20 @@ export function EscLobby() {
                     <p className="font-black text-[12.5px] text-white" style={OSWALD}>{tr('🏆 A senha da liga fica lá em cima', '🏆 The league password is up there')}</p>
                     <p className="text-white/50 text-[10.5px] font-bold mt-0.5">{tr('No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.', 'In the league box, next to the day and time. A league always has a password.')}</p>
                   </div>
-                : <ToggleRow icon={roomLocked ? '🔒' : '🔓'} title={roomLocked ? tr('Sala fechada', 'Locked room') : tr('Sala aberta', 'Open room')} sub={roomLocked ? tr('Só entra com senha', 'Password required') : tr('Qualquer um entra', 'Anyone can join')} on={roomLocked} onClick={() => setRoomLocked(v => !v)} />}
+                : <SegField label={tr('Entrada', 'Entry')}><Seg options={[[false, tr('🔓 Aberta', '🔓 Open')], [true, tr('🔒 Com senha', '🔒 Password')]] as [boolean, string][]} value={roomLocked} onSet={v => setRoomLocked(v)} /></SegField>}
               {roomLocked && roomMode !== 'liga' && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
                   placeholder={tr('Senha da sala (avise a galera)', 'Room password (tell your crew)')}
                   className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
               )}
             </div>
-            <ToggleRow icon={roomChat ? '💬' : '🔕'} title={tr('Chat da sala', 'Room chat')} sub={roomChat ? tr('A galera pode zoar na sala', 'The crew can banter in the room') : tr('Sem chat', 'No chat')} on={roomChat} onClick={() => setRoomChat(v => !v)} />
+            <SegField label={tr('Chat', 'Chat')}><Seg options={[[true, tr('💬 Chat ligado', '💬 Chat on')], [false, tr('🔕 Sem chat', '🔕 No chat')]] as [boolean, string][]} value={roomChat} onSet={v => setRoomChat(v)} /></SegField>
             {/* 🎮 RITMO: na carreira NÃO se escolhe na criação — nasce em auto e o
                 HOST liga/desliga o manual DENTRO do jogo (nas partidas). */}
             {!isCareer && (
               <div>
-                <ToggleRow icon="🎥" title={tr('Modo Stream', 'Stream mode')} sub={roomStream ? tr('Valores dos lances ocultos', 'Bid values hidden') : tr('Esconde os valores (pra live)', 'Hides the values (for streaming)')} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
+                <SegField label={tr('Vai transmitir ao vivo?', 'Going live?')}><Seg options={[[false, tr('Não', 'No')], [true, tr('🔴 Modo Stream', '🔴 Stream mode')]] as [boolean, string][]} value={roomStream} onSet={v => { if (!v) setRoomStream(false); else if (!roomStream) setStreamModal(true) }} /></SegField>
+                {roomStream && <p className="text-[10.5px] font-bold mt-1 leading-snug" style={{ color: '#6b6250' }}>{tr('🎥 Os valores dos lances ficam escondidos, pra live.', '🎥 Bid values stay hidden, for the stream.')}</p>}
                 {/* 🔴 LINK DA LIVE (05/10): a sala de quem está transmitindo aparece em DESTAQUE na lista,
                     com o botão de assistir. O link mora na sala: acabou a sala, some junto. */}
                 {roomStream && (
@@ -4061,7 +4100,18 @@ export function EscLobby() {
           </>)}
           {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
               escolhido ainda não abriu — o cartão em breve termina na explicação. */}
-          {!desk && botaoCriar}
+          {/* 📋 SUA SALA + o botão, no pé (mockup v5): o resumo em selinhos, igual ao do computador */}
+          {!desk && botaoCriar && (
+            <div className="rounded-2xl p-3" style={{ background: INK }}>
+              <p className="uppercase mb-2" style={{ fontSize: 12, letterSpacing: '.08em', color: GOLD, ...OSWALD }}>📋 {tr('Sua sala', 'Your room')}</p>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {[nomeModo, ...(roomMode === 'rapido' || roomMode === 'liga' ? [rLeilao] : []), ...(roomMode !== 'elenco' && !isCareer ? [rDeck, formation] : []), ...(!isCareer ? [rCopa[rapidoCopaMode] ?? ''] : []), ...(!isCareer ? [roomManual && hasManual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto')] : []), roomStream ? tr('🔴 Stream', '🔴 Stream') : '', roomMode === 'liga' || roomLocked ? tr('🔒 Com senha', '🔒 Password') : tr('🔓 Aberta', '🔓 Open')].filter(Boolean).map((t, i) => (
+                  <span key={i} className="uppercase" style={{ fontSize: 11, background: '#2b241a', color: CREAM, borderRadius: 7, padding: '3px 7px', ...OSWALD }}>{t}</span>
+                ))}
+              </div>
+              {botaoCriar}
+            </div>
+          )}
         </div>
         {desk && (
           <aside className="space-y-3" style={{ position: 'sticky', top: 16 }}>
@@ -4082,6 +4132,7 @@ export function EscLobby() {
           </aside>
         )}
         </div>
+        </ClaroCtx.Provider>
         )
       })()}
 
