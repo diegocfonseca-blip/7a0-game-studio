@@ -103,6 +103,14 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-estrategia.png`): LOJA PRA VENDER MAIS. Diego trouxe uma proposta
+  de loja com mensal 9,90 + vitalício 199,90 + combo 249,90 + passe 24h e pediu análise. Vendas reais (Pix, 30 dias): 21 compradores
+  (~1 em 100 dos 1.859 que jogaram online na semana); Craque 7 · Lenda 5 (3 eram subida de 20) · Fundador 3 (1 cheio, 2 subidas) ·
+  Batismo 2. Conclusão: a escada funciona (metade do dinheiro dos planos caros é de quem SUBIU), o vitalício de 199,90 mataria a
+  venda e o mensal com tudo engoliria Craque/Lenda (e o Sócio mensal saiu em 14/10). Proposta: mesma escada e mesmos preços, 👑 Lenda
+  em destaque ("mais escolhido"), 🎁 boas-vindas pra conta nova (Craque 19,90 nas primeiras 48 h, só 1ª compra), ⏱️ Passe 24h R$ 4,99
+  (vira Craque por 24,90) e venda NA HORA DA VONTADE (Manual trancado · sala do dia acabou · fichas cheias), com "agora não" que não
+  insiste no mesmo dia. Nada disso existe ainda: boas-vindas e Passe 24h precisam de produto/preço no banco (`esc_mp_preco_ref`).
 - FEITO (26/10, Diego aprovou com "Sim"; foto `scripts/mockups/telao-cla-semana.png`): no telão, o anúncio do PÓDIO DA SEMANA ganha uma
   linha dourada embaixo dos técnicos: "⚔️ CLÃ DA SEMANA: <campeão>" (Diego: *"no mesmo momento que aparece os vitoriosos, coloque após
   eles clã da semana e o nome do clã vitorioso"*). O anúncio separado dos 3 clãs continua girando depois.
