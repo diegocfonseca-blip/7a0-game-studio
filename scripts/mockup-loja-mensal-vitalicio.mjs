@@ -36,7 +36,8 @@ const telaMes = `<div class="cel"><div class="top">🛒 LOJA DO CLUBE <span clas
 const telaSempre = `<div class="cel"><div class="top">🛒 LOJA DO CLUBE <span class="xx">✕</span></div><div class="pad">
  <div class="h">🪜 ESCOLHA SEU PLANO</div>${toggle('sempre')}
  <div class="regra">⬆️ Já tem plano? Paga só a <b>diferença</b> pra subir (+ R$ 5).</div>
- ${PLANOS.map(p => card(p, 'sempre')).join('')}
+ ${PLANOS.filter(p => !p.soMes).map(p => card(p, 'sempre')).join('')}
+ <div class="dica">⭐ O Craque é só mensal (R$ 9,90/mês). Veja em <b>📅 MENSAL</b>.</div>
 </div></div>`
 const escada = `<div class="esc">
  <div class="eh">A ESCADA INTEIRA, DO BARATO AO CARO</div>
@@ -84,7 +85,7 @@ ul{margin:6px 0 6px;padding:0;list-style:none;font-size:13px;font-weight:600;lin
 <p class="sub">A mesma escada, com um botão em cima: 📅 MENSAL (Pix recorrente, renova sozinho, cancela quando quiser) ou ♾️ PRA SEMPRE (uma vez). <b>Craque só mensal (9,90)</b> · <b>Lenda 14,90/mês ou 59,90</b> · Batismo e Fundador só pra sempre. Em cima da escada, um degrau novo pra quem quer tudo: 💎 Presidente.</p>
 <div class="cols">
  <div class="c"><span class="tag">1 · BOTÃO EM MENSAL</span>${telaMes}<p class="nota">Craque só existe mensal. Lenda tem os dois. O texto embaixo manda quem quer Batismo pra cima pro botão PRA SEMPRE.</p></div>
- <div class="c"><span class="tag">2 · BOTÃO EM PRA SEMPRE</span>${telaSempre}<p class="nota">O Craque aparece aqui também, mas só como mensal. Lenda 59,90 e o 💎 Presidente no topo (proposta: o que vai dentro dele você decide).</p></div>
+ <div class="c"><span class="tag">2 · BOTÃO EM PRA SEMPRE</span>${telaSempre}<p class="nota">Sem Craque aqui: ele é só mensal. Lenda 59,90 e o 💎 Presidente no topo (proposta: o que vai dentro dele você decide).</p></div>
  <div class="c"><span class="tag">3 · A ESCADA E AS REGRAS</span>${escada}</div>
 </div></body></html>`
 
