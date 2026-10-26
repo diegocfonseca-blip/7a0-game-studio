@@ -8855,19 +8855,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       const onlineUsed = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
       s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, fracoInicial)
-      // 🛟 26/10 (Diego: *"não pode ter jogador fake jogando"*): baralho PEQUENO (só Mundo, ou Várzea) numa sala GRANDE (Só Champions
-      // com 35–36) não fecha o leilão e nasceria carta de mentira. A tela de criar sala já trava essas combinações; isto é a rede de
-      // segurança pra qualquer outro caminho: se faltou carta real, o leilão é montado de novo com o baralho Todos (e sem a Várzea).
-      let fracoAgora = fracoInicial
-      if (!s.leilaoClubes && !onlineNba && !s.ligaDraft && ((s.deckLeague as string) === 'world' || s.varzea) && SECTORS.some(p => (s.deck[p] ?? []).some(c => c.fake))) {
-        s.deckLeague = 'todos'; s.varzea = false; fracoAgora = false
-        setActiveCatalog(s.deckLeague, false, s.regionalSala)
-        onlineUsed.clear()
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, false)
-      }
       sorteiaEspeciais(s, rng)
-      dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, fracoAgora)
-      if (fracoAgora) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
+      dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, fracoInicial)
+      if (fracoInicial) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
