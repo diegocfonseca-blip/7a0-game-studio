@@ -165,9 +165,13 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const target=name==='KeeperReady_Loop'?readyWeight:(1-readyWeight)*(targets?.[name]??(name===mode?1:0)),current=action.isScheduled()?action.getEffectiveWeight():0;action.play();action.timeScale=0;action.setEffectiveWeight(resetActor||previous==='far'||previous==='hidden'?target:T.MathUtils.lerp(current,target,1-Math.exp(-dt/.18)));}
    const active=(keeperActive&&p.key===keeperTrial.plan.key)||motion?.plans.some(plan=>plan.key===p.key&&frame.time>=plan.start&&frame.time<=plan.end);
    const nearBall=frame.ball.y<1.5&&Math.hypot(p.mx-frame.ball.x,p.mz-frame.ball.z)<1.5;
-   const refresh=active||a.wasAction||nearBall||comemora(p)||!!p.mergulho||(acao&&acao.actor===p.key)||teatro.has(p.name)||(a.detail==='full'&&dt>0)||frame.time-a.lastPose>=1/12||previous!==a.detail||frame.time<a.lastPose;
+   const refresh=active||a.wasAction||nearBall||comemora(p)||!!p.mergulho||(acao&&acao.actor===p.key)||teatro.has(p.name)||(dt>0&&a.detail!=='far')||frame.time-a.lastPose>=1/12||previous!==a.detail||frame.time<a.lastPose;
    if(refresh){a.mixer.update(Math.min(.25,dt));for(const[name,action]of a.actions)if(name.endsWith('_Loop')){const c=gait[{Walk_Loop:'walk',Jog_Fwd_Loop:'run',Sprint_Loop:'sprint'}[name]];action.time=name==='Idle_Loop'||name==='KeeperReady_Loop'?frame.time%action.getClip().duration:(targets&&c&&gaitCurve(c)?gaitCurve(c).phase(a.gaitPhase):((a.gaitPhase+(c?.phaseOffset??0))%1))*action.getClip().duration}a.mixer.update(0);a.lastPose=frame.time;inspection.poseUpdates++;}
    if(!cartoon){a.pelvis.position.x=a.rest.x;a.pelvis.position.z=a.rest.z;}
+   // 〰️ 26/10 (Diego: "os jogadores meio que se tremendo"): a corrida importada sobe e desce a cabeça ~17 cm a cada passada (medido
+   // quadro a quadro) e o boneco médio só mexia o corpo 12×/s — de longe parecia tremedeira. Agora todo boneco à vista anda a cada
+   // quadro e o sobe-e-desce do corpo fica em ~55% (os pés continuam onde a captura põe)
+   if(refresh&&cartoon&&!active&&a.bones?.get('Body_1')){const bb=a.bones.get('Body_1'),y=bb.position.y;a.bodyMean=a.bodyMean===undefined||resetActor?y:a.bodyMean+(y-a.bodyMean)*(1-Math.exp(-Math.max(0,dt)/.5));bb.position.y=a.bodyMean+(y-a.bodyMean)*.55}
    if(refresh)for(const pose of a.nativePose){pose.position.copy(pose.bone.position);pose.quaternion.copy(pose.bone.quaternion)}
    a.holder.position.set(p.mx,a.groundOffset,p.mz);a.holder.rotation.set(0,a.lastHeading,0);a.holder.updateMatrixWorld(true);
    // Both native gait and retargeted captures use the pelvis ground projection
@@ -178,11 +182,14 @@ export async function loadPlayers(scene,state,frame,{style='civil-cartoon',refin
    if(refresh){
     a.holder.position.y=0;a.holder.updateMatrixWorld(true);a.kit.mesh.skeleton.update();let low=Infinity;
     for(const index of a.footIndices)low=Math.min(low,a.kit.mesh.getVertexPosition(index,point).applyMatrix4(a.kit.mesh.matrixWorld).y);
-    a.groundOffset=Number.isFinite(low)?.002-low:0;a.footHeight=Number.isFinite(low)?low+a.groundOffset:.002;
+    {/* 〰️ 26/10 (Diego: "os jogadores meio que se tremendo"): o chão era recolado a cada quadro pelo pé MAIS BAIXO — na corrida, com os
+   dois pés no ar, o corpo inteiro afundava até 15 cm de uma vez e voltava na passada seguinte (medido quadro a quadro). Agora o pé
+   que ENTRA no chão empurra o corpo pra cima na hora, mas o corpo só desce devagar: a passada tem fase de voo, como na vida real */
+   const want=Number.isFinite(low)?.002-low:0;a.groundOffset=resetActor||a.groundOffset===undefined||previous==='far'||previous==='hidden'||want>a.groundOffset?want:a.groundOffset+(want-a.groundOffset)*(1-Math.exp(-Math.max(0,dt)/.45));}a.footHeight=Number.isFinite(low)?low+a.groundOffset:.002;
     a.holder.position.y=a.groundOffset;a.holder.updateMatrixWorld(true);for(const mesh of a.meshes)mesh.skeleton.update();a.kit.mesh.skeleton.update();
    }
    const scheduled=footballActions.action(p.key,frame.time);const control=refinePossession?a.ballControl?.apply(frame,p):null;if(control)(inspection.ballControl??=[]).push({key:p.key,...control});const keeperPose=keeperActive&&p.key===keeperTrial.plan.key?sampleKeeperCapture(a,keeperTrial.plan,official,frame.time):null;const capture=keeperPose??a.motion.apply(frame,p,scheduled?.animationActive?scheduled.plan:null);a.wasAction=!!capture;if(capture){if(!refinePossession)a.ballControl?.reset();if(keeperPose)inspection.keeperCaptures.push({key:p.key,...keeperPose,ball:keeperPose.ball.toArray()});else inspection.activeCaptures.push(capture)}else{if(!refinePossession){const control=a.ballControl?.apply(frame,p);if(control)(inspection.ballControl??=[]).push({key:p.key,...control});}let clearance=a.motion.clearance(frame,p);if(clearance?.rootClearance?.limited)clearance=a.motion.recoverGaitClearance(frame,p,clearance);if(clearance)inspection.clearance.push({key:p.key,...clearance})}
-   if(a.grounding){const grounded=a.grounding.apply(a,{...p,speed:visualSpeed},frame,capture,dt,{reset:resetActor||previous==='far'||previous==='hidden'});a.groundingReport=grounded;inspection.grounding.push({key:p.key,...grounded})}
+   /* ⚡ 26/10: o ajuste fino do pé no chão (até 8 cm) só nos bonecos GRANDES na tela — era 59% do custo do quadro, e no boneco médio (8–32 px) ninguém enxerga 8 cm */if(a.grounding&&a.detail==='full'){const grounded=a.grounding.apply(a,{...p,speed:visualSpeed},frame,capture,dt,{reset:resetActor||previous!=='full'});a.groundingReport=grounded;inspection.grounding.push({key:p.key,...grounded})}
    if(a.grounding&&nearBall)a.motion.clearance(frame,p);
    // 🧤 25/10: o PULO do goleiro — o corpo tomba pro lado da bola a partir dos pés, desliza até o ponto e sobe se a bola vem alta;
    // os braços esticam na linha do corpo (só desenho: quem decide defesa/gol é o motor, e `mergulho` vem do adaptador)

@@ -11141,3 +11141,22 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
   mensal). Novos registros em `apoio_intents`: "🏟️ bateu no limite de sala do dia", "🏟️ limite de sala → ver os planos" e a Loja
   aberta pelo limite (`ancora="loja-salas"`, que agora abre rolada nas Salas extras). O limite só começa a contar a partir de hoje.
 - Ainda combinado e NÃO feito: a janela de ofertas na hora da trava (sala: 4,90 · 9,90/mês · ver planos; Manual: 24h 9,90 · 14,90/mês · ver planos).
+
+### 〰️ 26/10 (noite) — Mapa 3D: tremedeira, trava e câmeras — NO BRANCH, esperando "publica"
+Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero escolha de câmera q dê p ver legal o jogo"*.
+- Medido quadro a quadro a 60 Hz (bancada `jit.mjs` no scratchpad: roda o 3D sem desenhar e grava cabeça/raiz de cada boneco):
+  · o motor anda em passos de 1/20 s e o desenho ligava os pontos em reta → velocidade mudava a cada 3 quadros. Agora curva lisa
+    (B-spline de 3 pontos, `FutebolOficial3D.avanca/curva`), bola junto. Trancos >1 cm: 11% → 0,1% dos quadros.
+  · o "pé no chão" recolava o corpo pelo pé mais baixo: na corrida o corpo afundava 15 cm de uma vez. Agora sobe na hora e desce devagar.
+  · a corrida importada sobe-e-desce a cabeça ~17 cm; amortecido pra ~55% (osso `Body_1`).
+  · boneco médio (8–32 px) mexia o corpo só 12×/s → agora todo quadro.
+  · sombra dos bonecos andava em degraus (15×/s no celular) → com a câmera do jogo: todo quadro no PC, 30×/s no celular.
+- Trava: o ajuste fino do pé (locomotion-grounding) era 59% do custo do quadro; agora só nos bonecos GRANDES. Custo do quadro
+  no PC daqui ~15,6 ms → ~8,3 ms. (Não dá pra medir FPS de celular aqui — placa simulada.)
+- Câmeras: nova **🎥 Acompanhar o lance** (atrás da jogada, no sentido do ataque de quem tem a bola; troca de lado com corte seco
+  depois de ~0,9 s de posse). **Transmissão** e **Lateral próxima** no celular em pé subiram (mais campo, menos arquibancada).
+  Textos do seletor seguem só em PT (o componente todo é PT) — falta EN quando liberar geral.
+- Ainda dá pra fazer: o campinho 2D escondido roda um 2º motor igual ao do 3D (~4% do quadro cada).
+- ⏳ **Estádio caldeirão** (pedido 26/10 com print): tirar a faixa marrom "de pista de atletismo" e colar a arquibancada no campo.
+  Hoje o anel interno é um OVAL de 152×110 m (campo 105×68) → ~21 m de folga. Exige trocar o formato pra quase retangular
+  (`outline` em presidencia-complexo-arquitetura.ts), e camarote/entradas/teto/torcida dependem dele. Mockup ANTES.

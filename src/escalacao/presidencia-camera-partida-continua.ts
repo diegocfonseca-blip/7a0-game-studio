@@ -12,7 +12,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
   explore(){enterFree(false)},
-  update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua){
+  update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua,ataque:1|-1=1){
    ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
    // Slow devices must consume real elapsed camera time instead of needing
    // dozens of rendered frames for a transition. This clock never drives play.
@@ -22,9 +22,9 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    // 🔁 replay do gol: o preset forçado ('Atrás do gol') entra e sai em CORTE seco; a distância do preset do usuário fica guardada
    if(forcar!==forcado){if(forcar){distGuardada=distance;distance=undefined}else distance=distGuardada;forcado=forcar;corte=true}
    const modo=forcado??mode
-   const fit=modo!=='free'?enquadramentoFutebol(camera,ball,subjects,modo):null
+   const fit=modo!=='free'?enquadramentoFutebol(camera,ball,subjects,modo,ataque):null
    if(fit){
-    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast')distance=fit.distance // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
+    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='follow')distance=fit.distance // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
     // Expand promptly for a receiver/high ball; close in only after a sustained
     // smaller play area. Crossing a neighbour-selection boundary cannot make
     // the lens pump in and out on every stride.
@@ -41,6 +41,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    // screen while a fixed-duration cinematic easing catches up behind it.
    // 🥅 'Atrás do gol' trocou de lado (a bola cruzou o meio): CORTE seco, como na TV — nada de a câmera voar 140 m por cima do campo
    if(fit?.preset==='goal'&&Math.abs(camera.position.x)>30&&Math.sign(position.x)!==Math.sign(camera.position.x)){camera.position.copy(position);controls.target.copy(target)}
+   // 🎥 'Acompanhar o lance' virou de lado (a bola trocou de dono e o ataque é pro outro gol): CORTE seco pra trás da jogada nova
+   if(fit?.preset==='follow'&&Math.abs(camera.position.x-target.x)>4&&Math.sign(position.x-target.x)!==Math.sign(camera.position.x-target.x)){camera.position.copy(position);controls.target.copy(target)}
    if(corte&&fit){camera.position.copy(position);controls.target.copy(target);camera.fov=fov;camera.updateProjectionMatrix();corte=false}
    const amount=1-Math.exp(-dt/MathUtils.lerp(.24,.1,edge));camera.position.lerp(position,amount);controls.target.lerp(target,amount)
    const nextFov=MathUtils.lerp(camera.fov,fov,1-Math.exp(-dt/.22))

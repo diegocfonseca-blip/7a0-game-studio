@@ -93,8 +93,8 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  return grass
 }
 
-export type InspecaoPartidaComplexo={replay?:boolean;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
+export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -136,7 +136,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  let match:Match|undefined
  const empty=():InspecaoPartidaComplexo=>({players:0,ball:{x:0,y:.11,z:0}})
  let inspection=empty()
- let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean}[]=[]
+ let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean;key?:string;side?:'home'|'away';keeper?:boolean}[]=[]
  const clearMatch=()=>{
   if(match){match.humanoids?.dispose();match.people.dispose();descartarObjetos(match.root);match=undefined}
   inspection=empty()
@@ -192,7 +192,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
   posicionarBolaFutebol3D(ball,presentation);atualizarRedesGol3D(field,presentation)
   people.update()
-  inspection={replay:snapshot.replay,players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
+  inspection={replay:snapshot.replay,owner:snapshot.owner,players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
  }
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {

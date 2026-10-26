@@ -1,8 +1,9 @@
 import {MathUtils,PerspectiveCamera,Vector3} from 'three'
 export type AlvoCameraFutebol={mx:number;mz:number;visible?:boolean;presentation?:{x:number;z:number}}
 export type BolaCameraFutebol={x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}}
-export type CameraFutebolPreset='broadcast'|'tele'|'wide'|'goal'|'tactical'
+export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'
 const PRESETS={
+ follow:{fov:50,elevation:.5,depth:.86,halfWidth:10,halfDepth:7,radius:18,count:6,minimum:24},
  broadcast:{fov:46,elevation:.64,depth:.77,halfWidth:12,halfDepth:7,radius:19,count:6,minimum:28},
  tele:{fov:36,elevation:.52,depth:.85,halfWidth:8,halfDepth:5,radius:13,count:4,minimum:25},
  wide:{fov:52,elevation:.78,depth:.63,halfWidth:20,halfDepth:12,radius:28,count:10,minimum:42},
@@ -10,7 +11,7 @@ const PRESETS={
  tactical:{fov:48,elevation:.96,depth:.28,halfWidth:55,halfDepth:36,radius:120,count:22,minimum:90},
 } as const
 /** Metres only. Fits the ball and nearby action, never scales characters. */
-export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFutebol,subjects:readonly AlvoCameraFutebol[]=[],preset:CameraFutebolPreset|boolean=false){
+export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFutebol,subjects:readonly AlvoCameraFutebol[]=[],preset:CameraFutebolPreset|boolean=false,ataque:1|-1=1){
  // Boolean callers retain their existing lens; the named spectator presets
  // carry a lens of their own and cannot inherit an office/map zoom.
  const mode=typeof preset==='boolean'?(preset?'tactical':'broadcast'):preset,settings=PRESETS[mode],tactical=mode==='tactical'
@@ -35,7 +36,9 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
    // 📱 25/10 (Diego: "boa experiência com base nos jogadores… e no tamanho da imagem"): no CELULAR EM PÉ a tela é estreita — a TV
    // de verdade (a 70 m) deixava o boneco com 25 px. Em pé, a TV fica mais baixa e mais perto (anel do meio) e mostra ~13 m de
    // largura: boneco com ~40 px, 6–7 jogadores em volta da bola. Deitado continua a TV clássica
-   const cam=tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),portrait?9:9,portrait?44:48):new Vector3(MathUtils.clamp(target.x*(portrait?.5:.32),portrait?-24:-16,portrait?24:16),portrait?19:23,portrait?58:76)
+   // (📱 26/10, Diego: "as câmeras não tão legais… que dê pra ver bem o jogo": em pé a TV olhava de 18° e metade da tela era
+   // arquibancada. Em pé ela sobe ~33° — a tela estreita se enche de CAMPO em volta da bola. Deitado continua igual)
+   const cam=tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),portrait?15:9,portrait?40:48):new Vector3(MathUtils.clamp(target.x*(portrait?.5:.32),portrait?-24:-16,portrait?24:16),portrait?31:23,portrait?50:76)
    const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
    const dist0=cam.distanceTo(target)
    // (o pedaço de campo que a TV mostra em volta da bola: ~34 m de largura deitado, ~22 m em pé; a lateral, bem menos)
@@ -46,6 +49,18 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
   let r=tenta(mode==='tele');if(mode==='tele'&&r.need>maxTan)r=tenta(false)
   const tv=MathUtils.clamp(r.need,Math.tan(MathUtils.degToRad(5)),maxTan)
   return{position:r.cam,target,distance:r.dist0,direction:r.cam.clone().sub(target).normalize(),fov:MathUtils.radToDeg(2*Math.atan(tv)),subjects:near.length,tactical:false,preset:mode}
+ }
+  // 🎥 ACOMPANHAR O LANCE (26/10): a câmera vem ATRÁS da jogada, no sentido do ataque de quem tem a bola, um pouco acima — o campo
+ // corre de baixo pra cima na tela (é a que mais encaixa no celular em pé). `ataque` = pra que lado (±X) o time com a bola ataca
+ if(typeof preset!=='boolean'&&mode==='follow'){
+  const dir=ataque,aspect=Math.max(.1,camera.aspect)
+  target.set(MathUtils.clamp(ball.x+dir*(portrait?6:6),-50,50),focusHeight,MathUtils.clamp(ball.z,-32,32))
+  const cam=new Vector3(MathUtils.clamp(target.x-dir*(portrait?19:24),-80,80),portrait?13:10,MathUtils.clamp(target.z*.8,-30,30))
+  const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
+  let tanH=(portrait?7:12)/cam.distanceTo(target),tanV=0
+  for(const pt of [new Vector3(ball.x,ball.y,ball.z),...near.flatMap(p=>[new Vector3(p.mx,0,p.mz),new Vector3(p.mx,1.78,p.mz)])]){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.85);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.8)}
+  const tv=MathUtils.clamp(Math.max(tanV,tanH/aspect),Math.tan(MathUtils.degToRad(17)),Math.tan(MathUtils.degToRad(36)))
+  return{position:cam,target,distance:cam.distanceTo(target),direction:cam.clone().sub(target).normalize(),fov:MathUtils.radToDeg(2*Math.atan(tv)),subjects:near.length,tactical:false,preset:mode}
  }
  const points=tactical?[-55,55].flatMap(x=>[-36,36].flatMap(z=>[0,2.5].map(y=>new Vector3(x,y,z)))):[
   new Vector3(ball.x-.2,ball.y-.1,ball.z),new Vector3(ball.x+.2,ball.y+.2,ball.z),

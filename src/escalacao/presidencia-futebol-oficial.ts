@@ -27,6 +27,16 @@ export class FutebolOficial3D {
  /** 🤝 quadros desenhados depois do apito final: o relógio da partida para em 93', mas os 22 seguem andando pro meio-campo */
  private fimQuadros=0
  private delivery:EntregaOficial3D|undefined
+ /** 〰️ 26/10 (Diego: "os jogadores meio que se tremendo"): o motor anda em passos de 1/20 s e o desenho ligava os pontos em linha
+  *  reta — a velocidade mudava de uma vez a cada 3 quadros (medido: 11% dos quadros com tranco > 1 cm). Guardamos o ponto de DOIS
+  *  passos atrás e o desenho passa por uma curva lisa (B-spline quadrática) — mesmo caminho, sem quina. Só apresentação. */
+ private ante=new Map<number,{x:number;y:number}>()
+ private anteBola:{x:number;y:number}|undefined
+ private avanca(minuto:number){
+  const g=this.game,t=g.t,ax=g.atl.map(a=>({x:a.ax??a.x,y:a.ay??a.y})),bx={x:g.bolaAnt.x??g.bola.x,y:g.bolaAnt.y??g.bola.y}
+  g.avancaAte(minuto)
+  if(g.t!==t){g.atl.forEach((a,i)=>this.ante.set(a.id,ax[i]));this.anteBola=bx}
+ }
  constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
  private observeDelivery(){
   this.context.observe(this.game)
@@ -62,24 +72,26 @@ export class FutebolOficial3D {
  sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null;this.ante.clear();this.anteBola=undefined}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
   const time=target*90/93,tick=Math.floor(time*120+1e-9)
-  while(this.spinTick<tick){this.spinTick++;this.game.avancaAte((this.spinTick/120)/(90/93));this.observeDelivery();this.spin.step(this.spinPoint(this.spinTick/120,true),1/120)}
-  this.game.avancaAte(target)
+  while(this.spinTick<tick){this.spinTick++;this.avanca((this.spinTick/120)/(90/93));this.observeDelivery();this.spin.step(this.spinPoint(this.spinTick/120,true),1/120)}
+  this.avanca(target)
   // (depois do apito o placar não anda mais, mas cada quadro desenhado leva o motor ~1/60 s adiante por até 45 s: é o tempo de os
   // jogadores chegarem ao meio-campo e se cumprimentarem. Contagem por quadro, não por relógio de parede: o mesmo em todo aparelho)
-  if(this.game.fim){this.fimQuadros=Math.min(this.fimQuadros+1,45*60);this.game.avancaAte(target+(this.fimQuadros/60)/(90/93))}else this.fimQuadros=0
+  if(this.game.fim){this.fimQuadros=Math.min(this.fimQuadros+1,45*60);this.avanca(target+(this.fimQuadros/60)/(90/93))}else this.fimQuadros=0
   this.observeDelivery()
   const rotation=this.spin.preview(this.spinPoint(time),Math.max(0,time-this.spinTick/120)).toArray() as [number,number,number,number]
   const placementReset=this.hasRestartPlacement(),g=this.game,alpha=g.entre,mix=(a:number|undefined,b:number)=>a===undefined?b:a+(b-a)*alpha
+  // (〰️ curva lisa por 3 pontos — p(n-2), p(n-1), p(n); quem foi reposicionado (> 2 m num passo: cobrança, saída) fica na reta)
+  const curva=(pp:{x:number;y:number}|undefined,ax:number|undefined,ay:number|undefined,x:number,y:number)=>{if(!pp||ax===undefined||ay===undefined||placementReset)return undefined;if(Math.hypot(ax-pp.x,ay-pp.y)>2||Math.hypot(x-ax,y-ay)>2)return undefined;const s=alpha,a=.5*(1-s)*(1-s),b=.5+s-s*s,c=.5*s*s;return {x:a*pp.x+b*ax+c*x,y:a*pp.y+b*ay+c*y}}
   const key=(p:typeof g.atl[number])=>identidadeAtleta3D(p.lado===0?'home':'away',p.nome,p.carta?.club,p.carta?.year)
   const players=g.atl.map(p=>{
    const side=p.lado===0?'home' as const:'away' as const
    const roster=side==='home'?[...state.context.home,...state.context.homeSecondHalf??[]]:[...state.context.away,...state.context.awaySecondHalf??[]]
-   const card=roster.find(c=>c.name===p.nome),mx=mix(p.ay,p.y)-52.5,mz=mix(p.ax,p.x)-34
+   const card=roster.find(c=>c.name===p.nome),liso=curva(this.ante.get(p.id),p.ax,p.ay,p.x,p.y),mx=(liso?liso.y:mix(p.ay,p.y))-52.5,mz=(liso?liso.x:mix(p.ax,p.x))-34
    const speed=p.expulso?0:Math.hypot(p.vx,p.vy) // (depois do apito o motor leva todo mundo ANDANDO pro meio: a marcha segue a velocidade)
    const last=this.travel.get(p.id),distance=(last?.distance??0)+(last?Math.hypot(mx-last.x,mz-last.y):0)
    this.travel.set(p.id,{x:mx,y:mz,distance})
@@ -103,8 +115,9 @@ export class FutebolOficial3D {
    this.referee.x=Math.max(-54,Math.min(54,this.referee.x));this.referee.z=Math.max(-35,Math.min(35,this.referee.z));this.referee.speed=g.fim?0:(step+fuga)/dt;if(context.restart)this.referee.heading=Math.atan2(watch.x-this.referee.x,watch.z-this.referee.z);this.referee.distance+=step}
   // Initial/paused restart frames also face the real restart point.
   if(context.restart)this.referee.heading=Math.atan2(context.restart.point.x-this.referee.x,context.restart.point.z-this.referee.z)
-  const presented=this.goalFinish.sample({x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
-  const quadro:QuadroFutebol={players,ball:{x:mix(previous.y,b.y)-52.5,y:mix(previous.h,b.h)+.11,z:mix(previous.x,b.x)-34,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,restart:context.restart,incident:context.incident,incidents:context.incidents,placementReset:placementReset||undefined,owner:b.dono&&g.gkMao!==b.dono?key(b.dono):undefined,/* (🧤 bola na MÃO do goleiro: sem `owner`, senão a apresentação do Codex gruda a bola no pé dele) */officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,requiredContact:context.restartOrigin?.type==='lateral'?'hands':action==='cabeceio'||action==='cabeceio_gol'||b.lance?.golpe==='cabeca'?'head':'foot',restartOrigin:context.restartOrigin,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
+  const bl=curva(this.anteBola,previous.x,previous.y,b.x,b.y),bX=(bl?bl.y:mix(previous.y,b.y))-52.5,bZ=(bl?bl.x:mix(previous.x,b.x))-34 // (〰️ a bola na mesma curva dos jogadores: o pé e a bola andam juntos)
+  const presented=this.goalFinish.sample({x:bX,y:mix(previous.h,b.h)+.11,z:bZ},time,g.festa?g.eventos.findLast(e=>e.tipo==='gol'):undefined)
+  const quadro:QuadroFutebol={players,ball:{x:bX,y:mix(previous.h,b.h)+.11,z:bZ,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,restart:context.restart,incident:context.incident,incidents:context.incidents,placementReset:placementReset||undefined,owner:b.dono&&g.gkMao!==b.dono?key(b.dono):undefined,/* (🧤 bola na MÃO do goleiro: sem `owner`, senão a apresentação do Codex gruda a bola no pé dele) */officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,requiredContact:context.restartOrigin?.type==='lateral'?'hands':action==='cabeceio'||action==='cabeceio_gol'||b.lance?.golpe==='cabeca'?'head':'foot',restartOrigin:context.restartOrigin,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
   return this.comReplay(quadro,time)
