@@ -1,3 +1,17 @@
+## 📻 Faixa do gol pisca, estilo FM (26/10) — ✅ PUBLICADO PRA TODOS
+- No gol, a faixa da rádio (placar cinema) e a do locutor (Campo 2D) gritam "⚽ GOOOOOOL DO <TIME>! <bordão com o autor>" piscando
+  verde do Bom Jogador #2E9E5B ⇄ creme (`radio-pisca.ts`/`.css`). No normal: uma linha só, creme com letra preta, sem "Rádio/Lance/Jogo".
+- **O pisca dura EXATAMENTE a cena do gol** (*"quando a mascote sai… o pisca para ao mesmo tempo"*): placar = até a cena fechar
+  (`goalSide` volta a null; reserva 1,8 s), 2D = enquanto dura a `festa`. Gol em cima de gol recomeça com o autor novo.
+- 🎙️ **Rádio com os jogadores tocando na bola (26/10, publicado pra todos)**: 45 toques entre companheiros (rodam pela escalação
+  inteira), +20 lances, até 22 frases por jogo com escalação. Vale em todo placar novo (carreira, copas, salas online, Minhas Ligas).
+  ✅ Partida Rápida OFFLINE também (26/10, *"óbvio"*): `publicOnlineVisual` não exige mais sala online.
+- ✅ Calendário no MANUAL (26/10, print dele): os dias passam nos dois modos; a coletiva abre sozinha depois do apito com o
+  calendário (senão segurava a semana no domingo); quem caiu na Copa não vê mais a quarta azul/rótulo COPA/Quartas na lista.
+- ✅ Faixa fina de sábado agora diz "AMANHÃ" quando o jogo é no domingo.
+- Ainda em aberto: clã da semana no
+  telão junto do pódio (pergunta sem resposta); preço do Campeonato Oficial (30/20/15/10/5 × 10/7/5/4/2).
+
 ## ⚽ Motor novo — futebol de verdade no 11×11 (25/10, conta de prévia; Diego: *"quero futebol real lá dentro do campo"*)
 - Medido ANTES em 120 jogos: 76% dos chutes de fora da área (23 m de média) e 55% viravam gol; bola no pé dentro da área 0,05 s por
   jogo; os 20 jogadores num quadrado de 40×30 m em volta da bola (filmado no 2D, `scratchpad/film2d.mjs`).
@@ -11070,3 +11084,5 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 - 🛑 26/10: o "Dia de jogo!" não aparece mais com a rodada JÁ rolando (ele perguntou por que aparecia) — só no dia que chegou e ainda não começou.
 - 🛑 26/10 (3º e 4º prints): **a janela "Dia de jogo!" SAIU de vez** (*"continua aparecendo esse modal que eu disse que não quero"*) — chegou o dia, a semana para e o cartão da semana troca o ⏩ por "⚽ Ir pro jogo" (`irJogo` do `CalendarioProximo`); na aba Jogos fica o "▶ Começar o jogo". E onde a faixa do calendário aparece (Elenco/Rank nos dias, Clube), a faixinha grudada "Rodada N/38" do topo some (`faixaCalAqui`) — *"a faixa de calendário deve continuar… o selinho da rodada é que não deve nessas outras abas"*.
 - 🔧 26/10 (prints 23h51–23h54): aba Jogos nos dias = só a semana na horizontal + "▶ Começar o jogo" (a lista vertical "Seus jogos" e o "Ir pro jogo" ficam SÓ na Central); o "Ir pro jogo" aparece mesmo com decisão/evento pendente (a pendência se resolve no Jogos; o jogo só anda depois); saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar (o mapa 3D continua recebendo o jogo via `PublicarPartidaEstadio`); o selinho grudado "Rodada N/38" sai de TODAS as abas menos Jogos.
+- 📻 26/10 (prints do Football Manager): **a faixa de narração pisca no GOL** — verde do Bom Jogador (#2E9E5B) ⇄ creme, fundo e letra trocando, ~2,4 s (`radio-pisca.ts`/`.css`, `PISCA_GOL_MS`), por cima da cena do mascote. Placar cinema (gatilho = número de gols subir) e Campo 2D (gatilho = festa do gol). E a rádio da carreira virou UMA linha, no creme, sem os selos "Rádio Legends/Lance/Jogo" (*"são 3 coisas iguais… tudo numa linha só"*). Vídeos: `scripts/posts/radio-gol-placar.mp4` e `radio-gol-2d.mp4`. **No branch, esperando OK** pra publicar.
+- 📻 26/10 (OK do Diego: *"gostei, só acho que tem que piscar mais rápido"*): no gol a faixa grita "⚽ GOOOOOL DO <TIME>!" e pisca SEM PARAR verde (#2E9E5B) + letra bege ⇄ bege + letra preta, 0,18 s cada cor, por 6 s (`PISCA_GOL_MS`). Placar cinema (carreira e salas) e Campo 2D. Rádio da carreira = uma linha, bege com letra preta, sem selos. PUBLICADO.

@@ -515,3 +515,10 @@
 .ll43-craque .ll43-tg{background:#ffc400;color:#0c0c0c}
 .ll43-velha{opacity:.45;font-size:12px;margin-top:2px}.ll43-velha .ll43-tx{animation:none;-webkit-line-clamp:1}
 .ll30-big .ll43-ln{font-size:14px}.ll30-big .ll43-velha{font-size:12.5px}
+
+/* 📻 26/10 (Diego: *"não precisa ter escrito rádio, lance e jogo… tem que ser tudo numa linha só que vai trocando"*): na carreira a
+   rádio é UMA linha, sem selo, no creme do jogo. No gol ela pisca (radio-pisca.css). */
+.ll43-radio.ll43-uma{background:#F4ECD6;color:#0C0C0C;min-height:0;padding:9px 12px;border-top:0;border-radius:0 0 12px 12px}
+.ll43-uma .ll43-ln{padding:0}
+.ll43-uma .ll43-ln>b{color:#1B7A3D}
+.ll43-uma .ll43-tx{color:#0C0C0C}

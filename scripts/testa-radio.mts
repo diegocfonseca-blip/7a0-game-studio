@@ -1,5 +1,5 @@
 // 📻 trava da Rádio Legends (13/10): `npm run radio`
-import { radioDoJogo, narraRadio, frasesPorJogo, BANCOS_RADIO, ACERVO_RADIO, NOMEADOS_RADIO, type CartaRadio } from '../src/escalacao/radio.ts'
+import { radioDoJogo, narraRadio, frasesPorJogo, BANCOS_RADIO, ACERVO_RADIO, NOMEADOS_RADIO, ACERVO_TOQUES, type CartaRadio } from '../src/escalacao/radio.ts'
 import { chancesDoJogo, sementeDasChances } from '../src/escalacao/chances.ts'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(`  ${c ? '✅' : '❌'} ${m}`); if (!c) falhas++ }
@@ -59,5 +59,33 @@ const sem = radioDoJogo(sementeDasChances(3, 'A', 'B'), [], 16000).map(l => narr
 ok(sem.every(t => !/\{p\}/.test(t)), 'sem escalação, nenhuma frase fica com buraco no lugar do nome')
 const exN = radioDoJogo(sementeDasChances(11, 'Leão da Estradinha', 'Guimarães SCI'), [], 16000).map(l => `${l.min}′ ${narraRadio(l, 'Leão da Estradinha', 'Guimarães SCI', false, { casa, fora: casa })}`)
 console.log('\n  com escalação:\n   ' + exN.join('\n   '))
+// ⚽ 26/10: TOQUES NA BOLA com nome (Diego: *"fale mais os jogadores todos que tão jogando quando encostam na bola"*)
+const xiA: CartaRadio[] = [{ name: 'Taffarel', pos: 'GOL' }, ...['Cafu', 'Aldair', 'Márcio Santos', 'Branco'].map(n => ({ name: n, pos: n === 'Cafu' || n === 'Branco' ? 'LAT' : 'ZAG' })), ...['Mauro Silva', 'Dunga', 'Zinho', 'Mazinho'].map(n => ({ name: n, pos: 'MEI' })), { name: 'Bebeto', pos: 'ATA' }, { name: 'Romário', pos: 'ATA' }]
+const xiB: CartaRadio[] = xiA.map(c => ({ ...c, name: c.name + ' B' }))
+let toqOk = true
+for (const [pt, en] of BANCOS_RADIO.TOQUES) {
+  const vp = (pt.match(/\{[topq]\}/g) ?? []).sort().join(), ve = (en.match(/\{[topq]\}/g) ?? []).sort().join()
+  if (vp !== ve || !vp.includes('{p}') || !vp.includes('{q}')) { toqOk = false; console.log('   toque PT/EN diferentes ou sem os 2 jogadores →', pt, '|', en) }
+}
+ok(toqOk && ACERVO_TOQUES >= 40, `${ACERVO_TOQUES} toques na bola, todos com os dois jogadores e PT/EN batendo`)
+const longo = radioDoJogo(sementeDasChances(5, 'Leão da Estradinha', 'Guimarães SCI'), [30], 90000, false, true)
+ok(longo.length >= 18, `jogo da carreira (1:30) com escalação: ${longo.length} frases (era 9) — quase em tempo real`)
+let jogs = 0, citaTodos = 0, toqueTot = 0, buraco = 0, goleiroNoToque = 0
+for (let r = 0; r < 300; r++) {
+  const rad = radioDoJogo(sementeDasChances(r, 'Leão da Estradinha', 'Guimarães SCI'), [20 + r % 40], 90000, false, true)
+  const txts = rad.map(l => narraRadio(l, 'Leão da Estradinha', 'Guimarães SCI', r % 2 === 1, { casa: xiA, fora: xiB }))
+  jogs++; toqueTot += rad.filter(l => l.i >= 5000).length
+  if (txts.some(t => /\{[pqto]\}/.test(t))) buraco++
+  rad.forEach((l, i) => { if (l.i >= 5000 && /Taffarel/.test(txts[i])) goleiroNoToque++ })
+  const linha = xiA.filter(c => c.pos !== 'GOL').map(c => c.name)
+  if (linha.filter(n => txts.some(t => t.includes(n) && !t.includes(n + ' B'))).length >= 7) citaTodos++
+}
+ok(buraco === 0, 'nenhum toque fica com buraco no lugar do nome (PT e EN)')
+ok(toqueTot / jogs >= 6, `em média ${Math.round(toqueTot / jogs)} toques na bola narrados por jogo`)
+ok(citaTodos / jogs > 0.7, `em ${Math.round(citaTodos / jogs * 100)}% dos jogos a rádio cita 7+ dos 10 jogadores de linha de um time`)
+ok(goleiroNoToque === 0, 'goleiro não entra nos toques (tem as frases dele)')
+const soFake = radioDoJogo(sementeDasChances(9, 'A', 'B'), [], 90000, false, true).map(l => narraRadio(l, 'A', 'B', false, { casa: fora, fora }))
+ok(soFake.every(t => !/\{[pq]\}|Zé Ninguém|Dida/.test(t)), 'time só de carta de mentira: o toque vira frase do clube')
+console.log('\n  carreira com escalação (1:30):\n   ' + longo.map(l => `${l.min}′ ${narraRadio(l, 'Leão da Estradinha', 'Guimarães SCI', false, { casa: xiA, fora: xiB })}`).join('\n   '))
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ rádio ok — variada, sem gol, sem pênalti, sem placar')
 process.exit(falhas ? 1 : 0)

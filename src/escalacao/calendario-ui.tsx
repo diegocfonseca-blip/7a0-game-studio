@@ -84,7 +84,8 @@ export function CalendarioBarra(p: Props) {
   else if (p.fase === 'copa') { titulo = `🌙 ${hoje.longo} · ${horaTxt(21)}`; sub = `🏆 ${p.copaNome ?? tr('Copa', 'Cup')}`; botao = p.naCentral ? { txt: tr('▶ Ir pro jogo', '▶ Go to match'), on: p.onIrJogo } : null }
   else if (p.fase === 'fim') { titulo = `📅 ${hoje.longo}`; sub = tr('fim da temporada', 'end of the season') }
   else if (p.pausado) { titulo = `📅 ${hoje.longo}`; sub = tr('⏸️ tempo parado enquanto você mexe no clube', '⏸️ time stands still while you manage the club'); botao = { txt: tr('▶ Voltar', '▶ Back'), on: p.onVoltar, cls: 'p' } }
-  else if (chegou) { titulo = `⚽ ${tr('Hoje', 'Today')} · ${horaTxt(p.prox?.hora ?? 16)}`; sub = proxTxt; botao = p.naCentral ? { txt: tr('▶ Ir pro jogo', '▶ Go to match'), on: p.onIrJogo } : null }
+  // 26/10 (Diego, "sim"): no sábado, com o jogo no domingo, a faixa dizia "HOJE" — agora diz "AMANHÃ"
+  else if (chegou) { const amanha = !!p.prox && fmtDia(p.prox.dia).dia !== hoje.dia && p.prox.dia > p.hoje; titulo = `⚽ ${amanha ? tr('Amanhã', 'Tomorrow') : tr('Hoje', 'Today')} · ${horaTxt(p.prox?.hora ?? 16)}`; sub = proxTxt; botao = p.naCentral ? { txt: tr('▶ Ir pro jogo', '▶ Go to match'), on: p.onIrJogo } : null }
   else if (p.auto) { titulo = `📅 ${hoje.longo}`; sub = proxTxt; botao = { txt: tr('⏩ Pular', '⏩ Skip'), on: p.onPular } }
   else { titulo = `📅 ${hoje.longo}`; sub = proxTxt; botao = { txt: tr('▶ Próximo adversário', '▶ Next opponent'), on: p.onProximo } }
   const tempo = p.fase === 'dias' && p.auto && p.total > 0 ? Math.min(100, Math.round((p.passo / p.total) * 100)) : null
