@@ -78,7 +78,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
               : c.pedi ? <p style={{ ...OSW, textAlign: 'center', fontSize: 14, color: '#7a6b4a', margin: 0 }}>⏳ {tr('Pedido enviado — o presidente decide', 'Request sent — the president decides')}</p>
               : troca !== null ? <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: 10 }}>
                   <p style={{ fontSize: 13, fontWeight: 800, margin: '0 0 8px' }}>{tr(`Você já participa do ${troca}. Se seguir, você sai dele e ${c.aberto ? `entra no ${c.nome}` : `o pedido vai pro presidente do ${c.nome}`}.`, `You are already in ${troca}. If you go on, you leave it and ${c.aberto ? `join ${c.nome}` : `the request goes to the ${c.nome} president`}.`)}</p>
-                  <p style={{ fontSize: 11.5, fontWeight: 700, margin: '0 0 8px', color: '#5a4a2a' }}>⚔️⚔️ {tr('Quer ficar nos dois? Libere a 2ª vaga por R$ 9,90 na 🛒 Loja do Clube.', 'Want to stay in both? Unlock the 2nd slot for R$ 9.90 in the 🛒 Club Shop.')}</p>
+                  <p style={{ fontSize: 11.5, fontWeight: 700, margin: '0 0 8px', color: '#5a4a2a' }}>⚔️⚔️ {tr('Quer ficar nos dois? Libere a 2ª vaga por R$ 4,90 na 🛒 Loja do Clube.', 'Want to stay in both? Unlock the 2nd slot for R$ 4.90 in the 🛒 Club Shop.')}</p>
                   <button disabled={ocupado} style={bt(GREEN, '#fff')} onClick={() => void entra(true)}>✅ {tr(`Sim, ir pro ${c.nome}`, `Yes, go to ${c.nome}`)}</button>
                   <button style={{ ...bt('#fff', INK), marginTop: 6 }} onClick={() => setTroca(null)}>{tr(`Não, ficar no ${troca}`, `No, stay in ${troca}`)}</button>
                 </div>
