@@ -53,7 +53,7 @@ export type TipoEvento =
   | 'saida' | 'passe' | 'enfiada' | 'lancamento' | 'inversao' | 'cruzamento' | 'chutao' | 'drible' | 'arrancada' | 'desarme' | 'intercepta'
   | 'carrinho' | 'falta' | 'amarelo' | 'vermelho' | 'impedimento' | 'chute' | 'defesa' | 'espalma' | 'encaixa' | 'trave' | 'fora' | 'isolou'
   | 'bloqueio' | 'gol' | 'escanteio' | 'lateral' | 'tiro_de_meta' | 'cobranca_falta' | 'penalti' | 'cabeceio' | 'corte' | 'saida_goleiro' | 'intervalo' | 'fim'
-  | 'vantagem' | 'acrescimo' | 'rebote' | 'cara_a_cara'
+  | 'vantagem' | 'acrescimo' | 'rebote' | 'cara_a_cara' | 'segundo_tempo'
 export interface Evento { t: number; tipo: TipoEvento; lado: Lado; a?: string; b?: string; golpe?: string; x?: number; y?: number; extra?: string }
 
 export interface Estatistica {

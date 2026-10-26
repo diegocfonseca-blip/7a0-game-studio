@@ -103,6 +103,11 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- FEITO (26/10, partida inteira filmada no mapa em tela de PC): 🔁 a faixa de narração ficava em "Intervalo!" com a bola rolando aos
+  55' — o 2º tempo recomeçava sem frase. Agora a saída do 2º tempo diz "Começa o segundo tempo!" (3 versões, PT e EN). ⚠️ O narrador
+  usa o MESMO sorteio do jogo: a frase nova é escolhida SEM sorteio e não segura a faixa (segurar calava as frases seguintes e mudava o
+  sorteio — 5 de 60 jogos mudavam). Conferido: 60 partidas idênticas lance a lance à versão anterior. Também conferido no 3D: o jogo
+  pelas pontas (cruzamento do Hulk pela direita) fica natural.
 - FEITO (25/10, Diego: *"tô achando o mapa pesado… quando aperta em Clube já fica pesado… sem prejudicar o real"*): ⚡ MAPA MAIS LEVE,
   mesma imagem. Medido no quadro do JOGO no mapa: eram ~3,7 milhões de triângulos por quadro (2,04 mi na tela + 1,63 mi no passe de
   SOMBRA), agora ~1,8 mi (1,24 mi + 0,57 mi). O que mudou: (1) a sombra dos torcedores detalhados (2300 triângulos cada) é feita por
