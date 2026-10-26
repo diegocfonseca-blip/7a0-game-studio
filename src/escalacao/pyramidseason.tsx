@@ -12,7 +12,6 @@ import {DiaDoEstadio} from './presidencia-estadio-dia'
 import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import { placarParaK } from './kings-liga'
-import {PresidenciaPartida} from './presidencia-partida'
 import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio,EstadoPartidaEstadio} from './presidencia-partida-model'
 import {criarRelogioLance} from './presidencia-lance-tempo'
@@ -3760,7 +3759,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={relatoOficial?.narration ?? fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {avisoReplay}
-    {estadoEstadio&&<PresidenciaPartida state={estadoEstadio}/>}
+    {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
     {abaixoDosGols}
    </>
   return (<>
@@ -10277,7 +10276,8 @@ export function PyramidSeasonScreen() {
   // 📅 26/10 (Diego, print do Elenco: *"a faixa de calendário deve continuar sim… o selinho da rodada é que não deve nessas outras abas"*):
   // onde a faixa do calendário aparece (Elenco/Rank nos dias, Clube), a faixinha grudada "Rodada N/38" lá em cima SAI — eram duas
   // coisas dizendo o mesmo, uma em cima da outra. (Mesma régua da `barra` do calendário, mais abaixo.)
-  const faixaCalAqui = calOn && tab !== 'jogos' && tab !== 'central' && !(jogoTabela && (tab === 'elenco' || tab === 'ranking') && calFase !== 'dias')
+  // 🔁 26/10, 2º print (Central/Elenco/Rank): *"esse selinho também remova lá de cima do header dessas abas"* — fora da aba Jogos ele SAI sempre
+  const faixaCalAqui = jogoTabela ? tab !== 'jogos' : calOn && tab !== 'jogos' && tab !== 'central'
   const topoMini = (barraOn && cabFora && !faixaCalAqui) ? FAIXA_H : 0
   // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
   // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
@@ -10449,7 +10449,7 @@ export function PyramidSeasonScreen() {
     for (let r = Math.max(1, round - 1); r <= Math.min(38, round + 2); r++) diasDeJogo[diaDaRodada(calSn, r)] = 'liga'
     if (copaMid && !done) copaSemanas.forEach(r => { diasDeJogo[diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS] = 'copa' })
     let jogos: JogoCal[] | null = null
-    if ((tab === 'jogos' || naCentral) && calFase === 'dias') {
+    if (naCentral && calFase === 'dias') { // 26/10 (Diego): a lista vertical "Seus jogos" fica SÓ na Central; no Jogos, a semana na horizontal + o botão
       jogos = calPassados.map(({ r, m }) => {
         const casa = m.hId === youId, gf = casa ? m.hg : m.ag, ga = casa ? m.ag : m.hg
         return { dia: diaDaRodada(calSn, r), comp: 'liga', adv: casa ? m.a : m.h, casa, res: `${gf}-${ga}`, cls: gf > ga ? 'v' : gf === ga ? 'e' : 'd' } as JogoCal
@@ -10474,7 +10474,7 @@ export function PyramidSeasonScreen() {
     const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
       rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
-      irJogo={!manual && calLivre && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
+      irJogo={naCentral && !manual && calFase === 'dias' && !coletivaOpen && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
     // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
@@ -10494,7 +10494,7 @@ export function PyramidSeasonScreen() {
   // (ou "agora não", e vai depois pelo ⏩ do cartão). Apitou (e nada pendente), 3s depois volta pra Central. Só com o calendário (conta do Diego).
   const copaNaQuarta = copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn
   const chaveJogo = `${calSn}:${round}:${copaNaQuarta ? 'c' : 'l'}`
-  const esperandoInicio = calOn && !state.co2 && !manual && calFase === 'dias' && calLivre && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
+  const esperandoInicio = calOn && !state.co2 && !manual && calFase === 'dias' && !coletivaOpen && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
   const liberaJogo = () => setJogoOk(chaveJogo)
   // 🛑 26/10 (3º print: *"continua aparecendo esse modal que eu disse que não quero"*): NADA de janela por cima. Chegou o dia, a
   // semana para e o próprio cartão da semana troca o ⏩ por "⚽ Ir pro jogo"; na aba Jogos fica o "▶ Começar o jogo".
