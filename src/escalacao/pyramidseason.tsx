@@ -3,6 +3,7 @@ import {prepararReplayOficial} from './presidencia-replay-oficial'
 import {useRelatoPartidaOficial} from './partida-relato-hook'
 import {PublicarPartidaEstadio} from './presidencia-partida'
 import {RitmoCampoProvider} from './presidencia-velocidade'
+import { MENSAIS } from './planos-regras'
 import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
 import { useCo2 } from './co2'
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
@@ -177,18 +178,31 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
 function ManualLockButton() {
   const com2d = useCampo2DLiberado() // 📺 com o 2D liberado, o cadeado destrava OS DOIS: Manual e Campo 2D (Diego 20/10)
+  // 💳 26/10 (oferta na hora aprovada: *"Manual trancado = 24 h 9,90 · 14,90/mês · ver planos"*): o toque no cadeado abre AS OFERTAS ali
+  // mesmo — ⭐ Craque Completo 14,90/mês (Vendria) e ver todos os planos. Cada toque cai no painel #admin "Quem apertou nos planos".
+  // (O ⏱️ avulso de 24 h ainda não existe como produto: entra aqui quando for criado.)
+  const [aberto, setAberto] = useState(false)
+  const btn = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 13, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const
   return (
     <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
-      {/* 17/10 (Diego): o cadeado leva pra vitrine de PLANOS, abrindo no topo ("pra onde vai o dinheiro"), não mais na trava do Craque */}
-      <ApoieButton startScreen="choice" trigger={open => (
-        <button onClick={() => { logApoio('👀 abriu: modo manual (trava) → planos'); open() }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
-          <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
-          <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
-        </button>
-      )} />
+      <button onClick={() => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(a => !a) }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }}>
+        <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
+        <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{aberto ? tr('fechar ▴', 'close ▴') : tr('🔒 Desbloquear', '🔒 Unlock')}</span>
+      </button>
+      {aberto && (
+        <div style={{ marginTop: 8, background: '#FFF7DB', border: `2.5px solid ${INK}`, borderRadius: 12, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, color: INK }}>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>{tr('🎮 O Modo Manual (você manda no ritmo e pula quando quiser) vem no ⭐ Craque Completo.', '🎮 Manual Mode (you control the pace and skip whenever you like) comes with ⭐ Star Complete.')}</p>
+          <button onClick={() => { logApoio('🎮 manual trancado → Craque Completo (Vendria)'); window.open(MENSAIS.craque_completo.link, '_blank', 'noopener') }} style={{ ...btn, background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)' }}>{tr(`⭐ CRAQUE COMPLETO · ${reaisPlano(MENSAIS.craque_completo.preco)}/MÊS`, `⭐ STAR COMPLETE · ${reaisPlano(MENSAIS.craque_completo.preco)}/MONTH`)}</button>
+          <p style={{ margin: '-3px 2px 0', fontSize: 10.5, fontWeight: 700, color: '#5a5040', lineHeight: 1.3 }}>{tr('Assine com o MESMO e-mail da sua conta do jogo.', 'Subscribe with the SAME e-mail as your game account.')}</p>
+          <ApoieButton startScreen="choice" trigger={open => (
+            <button onClick={() => { logApoio('🎮 manual trancado → ver todos os planos'); open() }} style={{ ...btn, background: '#fff' }}>{tr('💛 VER TODOS OS PLANOS', '💛 SEE ALL THE PLANS')}</button>
+          )} />
+        </div>
+      )}
     </div>
   )
 }
+const reaisPlano = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`
 
 // 🌱 'V' = VÁRZEA (5ª divisão, embaixo da D) — SÓ existe em carreira nova com a
 // escada ligada (teste do Diego). Nas carreiras normais a tabela V fica vazia e
