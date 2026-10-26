@@ -218,7 +218,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
 
         {!salasAVontade && <>
         {/* 🎟️ SALAS EXTRAS DO DIA (14/10, Diego: "pode fazer sala extras do dia") */}
-        <h2 style={h2}>{tr('🎟️ Salas extras', '🎟️ Extra rooms')} <span style={sub}>{tr('pra criar mais de 1 sala no dia', 'to create more than 1 room a day')}</span></h2>
+        <h2 id="loja-salas" style={h2}>{tr('🎟️ Salas extras', '🎟️ Extra rooms')} <span style={sub}>{tr('pra criar mais de 1 sala no dia', 'to create more than 1 room a day')}</span></h2>
         <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
           <span style={{ fontSize: 30 }}>🎟️</span>
           <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{salasAVontade

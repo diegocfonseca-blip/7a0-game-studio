@@ -611,6 +611,40 @@ function CliquesAnunciosAdmin() {
   )
 }
 
+// 📊 FUNIL DOS PLANOS (26/10). Diego: *"quero saber se tem algum lugar que posso ver quantos estão apertando no 9,90, 14,90 e
+// todos os planos… e quando alguém tenta criar sala online e não consegue"*. Números (hoje e 7 dias) somados no banco
+// (`esc_admin_funil_mensal`) a partir dos toques de `apoio_intents` + quem já assina o mensal pela Vendria.
+type LinhaFunil = { nome: string; hoje: number; pessoas_hoje: number; sete: number; pessoas_sete: number }
+type Assinante = { email: string; plano: string; ate: string; cancelada: boolean; conta_ok: boolean }
+function FunilPlanosAdmin() {
+  const [d, setD] = useState<{ linhas: LinhaFunil[]; assinantes: Assinante[] } | null>(null)
+  const carregar = () => { supabase.rpc('esc_admin_funil_mensal').then(({ data }) => { if (data) setD(data as { linhas: LinhaFunil[]; assinantes: Assinante[] }) }, () => {}) }
+  useEffect(() => { carregar() }, [])
+  const td: React.CSSProperties = { padding: '5px 6px', borderTop: '1px solid rgba(242,232,207,.15)', textAlign: 'center' }
+  const th: React.CSSProperties = { padding: '4px 6px', color: 'rgba(242,232,207,.55)', fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase' }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>📊 Quem apertou nos planos</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Toques (e quantas pessoas diferentes) hoje e nos últimos 7 dias. <button onClick={carregar} style={{ background: 'none', border: 'none', color: '#FFC400', fontWeight: 900, cursor: 'pointer' }}>↻ atualizar</button></p>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5, color: '#F2E8CF', fontWeight: 700 }}>
+        <thead><tr><th style={{ ...th, textAlign: 'left' }}>O quê</th><th style={th}>Hoje</th><th style={th}>7 dias</th></tr></thead>
+        <tbody>
+          {d?.linhas.map(l => <tr key={l.nome}>
+            <td style={{ ...td, textAlign: 'left' }}>{l.nome}</td>
+            <td style={{ ...td, color: '#FFC400', fontWeight: 900 }}>{l.hoje} <span style={{ opacity: .55, fontWeight: 700 }}>· {l.pessoas_hoje} pess.</span></td>
+            <td style={td}>{l.sete} <span style={{ opacity: .55 }}>· {l.pessoas_sete} pess.</span></td>
+          </tr>)}
+          {!d && <tr><td style={{ ...td, textAlign: 'left' }} colSpan={3}>carregando…</td></tr>}
+        </tbody>
+      </table>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#6fdb8f', textTransform: 'uppercase', margin: '12px 0 4px' }}>✅ Assinantes do mensal: {d?.assinantes.length ?? '…'}</p>
+      {d?.assinantes.map(a => <p key={a.email} style={{ fontSize: 11, fontWeight: 700, color: '#F2E8CF', margin: '2px 0' }}>
+        {a.plano === 'craque_completo' ? '⭐ Completo' : '⭐ Salas'} · {a.email} · até {new Date(a.ate).toLocaleDateString('pt-BR')}{a.cancelada ? ' (cancelou)' : ''}{a.conta_ok ? '' : ' ⚠️ sem conta no jogo'}
+      </p>)}
+    </div>
+  )
+}
+
 // 🛒 QUEM QUASE COMPROU (16/10). Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas
 // afogados na lista dos 40 últimos toques. Depois corrigiu o pedido: *"abriu Pix também — é importante saber quem apertou
 // mas não seguiu"*. Então aqui é POR PESSOA: a trilha dos toques dela nos últimos 7 dias (abriu a loja → viu o plano →
@@ -1405,7 +1439,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><FunilPlanosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

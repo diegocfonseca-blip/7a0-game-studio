@@ -11119,3 +11119,10 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 - Pedido do Diego: *"segundo clã na loja coloca 4,90 e escudo a 9,90"*. 2º clã (`cla_extra`) 9,90 → **4,90**; escudo de clã
   (`escudo_cla`) 14,90 → **9,90**. Banco (`esc_mp_preco_ref`, migration `20261026190000`) e textos da tela (cla.tsx, cla-ver.tsx). Criar
   o 1º clã sem plano continua R$ 4,90. Reverter = voltar as duas linhas (9.90 / 14.90).
+
+### 📊 26/10 — Painel "Quem apertou nos planos" no #admin
+- Pedido do Diego: ver quantos apertam no Craque Salas 9,90 · Craque Completo 14,90 · ver todos os planos, e quem tenta criar sala e
+  não consegue. Quadro `FunilPlanosAdmin` (admin.tsx) lendo `esc_admin_funil_mensal` (hoje/7 dias, toques e pessoas + assinantes do
+  mensal). Novos registros em `apoio_intents`: "🏟️ bateu no limite de sala do dia", "🏟️ limite de sala → ver os planos" e a Loja
+  aberta pelo limite (`ancora="loja-salas"`, que agora abre rolada nas Salas extras). O limite só começa a contar a partir de hoje.
+- Ainda combinado e NÃO feito: a janela de ofertas na hora da trava (sala: 4,90 · 9,90/mês · ver planos; Manual: 24h 9,90 · 14,90/mês · ver planos).

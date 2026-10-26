@@ -20,7 +20,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, logApoio } from './apoio'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -1989,7 +1989,7 @@ export function EscLobby() {
       console.error('[createRoom] falhou:', re)
       // 🏟️ 1 SALA POR DIA NO GRÁTIS (Diego 14/10). Quem decide é o BANCO (gatilho `esc_sala_por_dia`, docs/sql/sala-por-dia.sql);
       // a tela só explica o porquê e o caminho: entrar em sala aberta é sempre de graça, e quem apoia cria à vontade.
-      if (re?.message?.includes('LIMITE_SALA_DIA')) { setRoomError(''); setLimiteDia(true); setLoading(false); return }
+      if (re?.message?.includes('LIMITE_SALA_DIA')) { logApoio('🏟️ bateu no limite de sala do dia'); setRoomError(''); setLimiteDia(true); setLoading(false); return }
       // 🚫 21/10 (Diego): nome com preconceito (nazismo, "crioulo", suástica) não cria sala — quem barra é o BANCO
       // (`esc_sala_nome_ofensivo`); a tela só explica o porquê e o caminho
       if (re?.message?.includes('NOME_PROIBIDO')) { setRoomError(tr('🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: nothing offensive in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
@@ -4196,8 +4196,8 @@ export function EscLobby() {
         {/* 14/10 (Diego): os dois caminhos um EMBAIXO do outro. O Lenda abre a tela padrão do Apoie, do começo
             (Pra onde vai o dinheiro → todos os planos); as salas extras abrem a Loja. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
-          <ApoieButton startScreen="choice" trigger={open => <button onClick={open} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('👑 CRIAR QUANTAS QUISER · VER OS PLANOS', '👑 CREATE AS MANY AS YOU LIKE · SEE THE PLANS')}</button>} />
-          <LojaButton style={{ width: '100%', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('🎟️ OU 3 SALAS EXTRAS · R$ 4,90', '🎟️ OR 3 EXTRA ROOMS · R$ 4.90')}</LojaButton>
+          <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🏟️ limite de sala → ver os planos'); open() }} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('👑 CRIAR QUANTAS QUISER · VER OS PLANOS', '👑 CREATE AS MANY AS YOU LIKE · SEE THE PLANS')}</button>} />
+          <LojaButton ancora="loja-salas" style={{ width: '100%', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('🎟️ OU 3 SALAS EXTRAS · R$ 4,90', '🎟️ OR 3 EXTRA ROOMS · R$ 4.90')}</LojaButton>
         </div>
       </div>}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a
