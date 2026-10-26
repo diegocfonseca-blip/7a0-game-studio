@@ -103,6 +103,14 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-craque-mensal-lenda-vez.png`): a proposta DELE depois de 4 rodadas
+  (*"deixar como tá hoje mas remover o plano de 29,90… quando o cara for criar sala extra que não pode aparece avulso 4,90 ou mensal
+  9,90 ou ver todos os planos… teria também 14,90 pra ter sala extra e botão manual + campo 2D; esses dois seriam planos craques; o
+  Lenda seria 59,90 com as coisas do Lenda e do Craque uma vez só; mantenha 79,90 e 99,90"*). Então: SAI o Craque 29,90 (quem tem
+  fica) · ⭐ Craque Salas 9,90/mês (salas à vontade + Minhas Ligas + prata) · ⭐ Craque Completo 14,90/mês (+ Manual + 2D em breve +
+  nível até Craque + 2 carreiras + boneco) · 👑 Lenda 59,90 UMA VEZ (tudo dos dois + até Lenda + 4 carreiras + dourado) · Batismo
+  79,90 e Fundador 99,90 iguais. Oferta na hora: criar sala sem poder → 4,90 avulso · 9,90/mês · ver planos; Manual trancado →
+  14,90/mês · Lenda 59,90 · ver planos. O que vai em cada Craque é proposta minha — ele ajusta.
 - ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-mensal-pecas-vitalicio.png`): a 3ª opção do Diego — mensal
   obrigatório pra jogar (⭐ 9,90 / 👑 14,90), o CLUBE VENDIDO PEÇA POR PEÇA (proposta de preço: escudo 29,90 · mascote 34,90 · manto
   19,90 · nome 9,90 · gala 14,90 · canto 10 · tema 6,90; kit completo 79,90 = 29,60 mais barato que separado) e UM vitalício caro sem
