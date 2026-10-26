@@ -3540,7 +3540,9 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
   const chances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, incidentRoundMs])
   // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
-  const radioLances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], incidentRoundMs, !!relogioKings), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, chances, incidentRoundMs, relogioKings])
+  // ⚽ 26/10: com a escalação na mão a rádio narra os toques na bola, com o nome de quem encosta nela
+  const radioComNomes = !!(elencos?.casa?.length && elencos?.fora?.length)
+  const radioLances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], incidentRoundMs, !!relogioKings, radioComNomes), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, chances, incidentRoundMs, relogioKings, radioComNomes])
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
   useEffect(() => {
     if (lancesVistos.current.key !== roundKey) { lancesVistos.current = { key: roundKey, mins: [] }; if (lanceTimer.current) clearTimeout(lanceTimer.current); setLance(null) }

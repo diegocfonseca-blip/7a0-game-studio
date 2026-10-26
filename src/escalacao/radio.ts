@@ -26,12 +26,12 @@
 import { kParaPlacar, PLACAR_DADO, PLACAR_INTERVALO } from './kings-liga'
 
 type Par = [pt: string, en: string]
-export type RadioLance = { min: number; i: number; a: number; f: number; home: boolean }
+export type RadioLance = { min: number; i: number; a: number; f: number; home: boolean; /** nº do toque desse time (rodízio de quem pega na bola) */ k?: number }
 
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 
 // ⏱️ quanto tempo uma frase precisa ficar na tela pra dar tempo de ler
-export const RADIO_LER_MS = 2200
+export const RADIO_LER_MS = 2000
 /** quantas frases cabem num jogo de `roundMs` (online 16s ≈ 5 · carreira ≈ 4 · rodada instantânea = 0) */
 export function frasesPorJogo(roundMs: number, max = 9): number {
   const dur = Math.max(400, roundMs * 0.82)
@@ -45,6 +45,8 @@ const ABRE: Par[] = [
   ['Ih, rapaz: ', 'Oh boy: '], ['Segura! ', 'Hold on! '], ['Lá vem: ', 'Here it comes: '], ['E agora, ', 'And now, '],
   ['Pois é, ', 'Well, '], ['Repara: ', 'Notice this: '], ['Atenção, torcedor: ', 'Listen up, fans: '], ['Aqui na Rádio Legends: ', 'Here on Radio Legends: '],
   ['Rápido: ', 'Quickly: '], ['Que jogo: ', 'What a game: '], ['Minha nossa: ', 'Good heavens: '], ['Escuta essa: ', 'Listen to this: '],
+  ['Bola rolando: ', 'Ball rolling: '], ['Fica de olho: ', 'Keep an eye on this: '], ['Agora sim: ', 'Now then: '], ['Vem com tudo: ', 'Here they come: '],
+  ['Que beleza: ', 'Beautiful: '], ['Ó o lance: ', 'Here is the play: '], ['Vamos lá: ', 'Here we go: '], ['Atenção, ouvinte: ', 'Listen in: '],
 ]
 const FECHA: Par[] = [
   ['', ''], ['', ''], ['', ''], ['', ''],
@@ -52,6 +54,9 @@ const FECHA: Par[] = [
   [' Jogo pegado!', ' A tight one!'], [' Que ritmo.', ' What a pace.'], [' A arquibancada canta.', ' The stands are singing.'],
   [' O banco levanta.', ' The bench is on its feet.'], [' Ninguém tira o olho.', ' Nobody looks away.'], [' Coisa de clássico.', ' Derby stuff.'],
   [' Anota aí.', ' Write that down.'], [' Tá quente!', ' It is heating up!'], [' Que coisa.', ' Unbelievable.'],
+  [' A torcida aplaude.', ' The crowd applauds.'], [' Bonito de ver.', ' Lovely to watch.'], [' O técnico gostou.', ' The coach liked that.'],
+  [' Bola segue viva.', ' The ball is still live.'], [' Ritmo de final.', ' Cup final pace.'], [' É o futebol.', ' That is football.'],
+  [' Que partida!', ' What a match!'], [' Ninguém senta.', ' Nobody sits down.'],
 ]
 // LANCES — nenhum fala de gol, chance de gol, pênalti, placar ou jogador. {t} sempre é quem faz; {o} o outro.
 const LANCES: Par[] = [
@@ -132,6 +137,27 @@ const LANCES: Par[] = [
   ['a torcida do {t} grita olé a cada toque', 'the {t} fans shout olé at every touch'],
   ['o gramado tá pesado, o {t} sente nas pernas', 'the pitch is heavy, {t} feel it in their legs'],
   ['refletor pisca, susto rápido, e o {t} nem liga', 'a floodlight flickers, a quick scare, and {t} do not care'],
+  // 🔁 26/10 (Diego: *"mais variedades de narrações"*)
+  ['o {t} toca de lado esperando uma brecha', '{t} pass it sideways waiting for an opening'],
+  ['cruzamento do {t} longo demais, passa por todo mundo e sai', 'a {t} cross that is too long, over everyone and out'],
+  ['o {o} fecha o meio e o {t} roda a bola sem achar caminho', '{o} shut the middle and {t} move it around with no way through'],
+  ['falta lateral pro {t}, todo mundo sobe pra área', 'a wide free kick for {t}, everyone goes up into the box'],
+  ['o {t} sai em velocidade pela ponta, a defesa do {o} recua', '{t} break at pace down the wing, the {o} defence drops'],
+  ['o {o} pede mão na bola, o juiz manda seguir', '{o} appeal for handball, the ref waves play on'],
+  ['o {t} ganha o escanteio na raça', '{t} win the corner through sheer effort'],
+  ['bola dividida no meio, o {t} leva a melhor', 'a 50-50 in midfield, {t} come out on top'],
+  ['o {o} dá um balão pra frente, alívio na defesa', '{o} hoof it upfield, relief at the back'],
+  ['o técnico do {t} grita da beira do campo e o time adianta a linha', 'the {t} coach yells from the touchline and the line pushes up'],
+  ['o {t} prende a bola no ataque e espera o time chegar', '{t} hold the ball up front and wait for support'],
+  ['o {o} rouba na saída de bola, o {t} tem que correr pra trás', '{o} win it high up, {t} have to track back'],
+  ['jogo truncado: falta de um lado, falta do outro', 'a scrappy spell: a foul here, a foul there'],
+  ['o {t} arrisca o drible na própria área. Que coragem', '{t} try a dribble in their own box. What nerve'],
+  ['a bola sobe, ninguém domina, e o {o} afasta', 'the ball goes up, nobody controls it, and {o} clear'],
+  ['o {t} cobra o lateral rápido e pega o {o} desarrumado', '{t} take the throw quickly and catch {o} disorganised'],
+  ['o {o} tenta o lançamento, a bola sai pela lateral', '{o} try a long pass, the ball goes out for a throw'],
+  ['o {t} pede calma, toca pra trás e reorganiza', '{t} call for calm, play it back and reorganise'],
+  ['o capitão do {t} reúne o time numa parada', 'the {t} captain gathers the team during a stoppage'],
+  ['o {o} marca em cima, o {t} não consegue respirar', '{o} press tight, {t} cannot breathe'],
 ]
 /** carta que a rádio pode citar: nome + posição (GOL/LAT/ZAG/MEI/ATA). `sec` é o nome da posição nas copas. */
 export type CartaRadio = { name: string; pos?: string; sec?: string; club?: string; fake?: boolean }
@@ -182,6 +208,14 @@ const NOMEADO: Record<string, Nomeado> = {
   'o {t} gira o jogo de um lado pro outro procurando espaço': ['{p} gira o jogo do {t} de um lado pro outro procurando espaço', '{p} switches play for {t} from side to side looking for space', 'MEI', 't'],
   'o juiz para o jogo pra atendimento médico no {o}. Nada grave': ['o juiz para o jogo pra atendimento médico em {p}, do {o}. Nada grave', 'the ref stops play for treatment on {p} of {o}. Nothing serious', 'ATA', 'o'],
   'o {t} troca vinte passes seguidos. Olé na arquibancada': ['o {t} troca vinte passes seguidos, com {p} regendo. Olé na arquibancada', '{t} string twenty passes together, with {p} conducting. Olé from the stands', 'MEI', 't'],
+  'o {t} sai em velocidade pela ponta, a defesa do {o} recua': ['{p} sai em velocidade pela ponta do {t}, a defesa do {o} recua', '{p} breaks at pace down the wing for {t}, the {o} defence drops', 'ATA', 't'],
+  'o {t} ganha o escanteio na raça': ['{p} ganha o escanteio na raça pro {t}', '{p} wins the corner for {t} through sheer effort', 'ATA', 't'],
+  'o {o} dá um balão pra frente, alívio na defesa': ['{p} dá um balão pra frente, alívio na defesa do {o}', '{p} hoofs it upfield, relief at the back for {o}', 'ZAG', 'o'],
+  'o {t} arrisca o drible na própria área. Que coragem': ['{p} arrisca o drible na própria área do {t}. Que coragem', '{p} tries a dribble in the {t} box. What nerve', 'ZAG', 't'],
+  'o capitão do {t} reúne o time numa parada': ['{p}, capitão do {t}, reúne o time numa parada', '{p}, the {t} captain, gathers the team during a stoppage', 'MEI', 't'],
+  'o {t} cobra o lateral rápido e pega o {o} desarrumado': ['{p} cobra o lateral rápido e pega o {o} desarrumado', '{p} takes the throw quickly and catches {o} disorganised', 'LAT', 't'],
+  'o {o} rouba na saída de bola, o {t} tem que correr pra trás': ['{p} rouba na saída de bola pelo {o}, o {t} tem que correr pra trás', '{p} wins it high up for {o}, {t} have to track back', 'ATA', 'o'],
+  'bola dividida no meio, o {t} leva a melhor': ['bola dividida no meio, {p} leva a melhor pro {t}', 'a 50-50 in midfield, {p} comes out on top for {t}', 'MEI', 't'],
 }
 // carta de mentira (filler da Várzea/Pickup) nunca é citada — mesma régua do `ehFake` da súmula
 const deVerdade = (c: CartaRadio) => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup' && !!c.name
@@ -193,6 +227,66 @@ function quemCitar(lista: CartaRadio[] | undefined, pos: string, l: RadioLance, 
   if (!daPos.length) return null
   return daPos[(l.min * 31 + l.a * 7 + l.f) % daPos.length].name
 }
+
+// ⚽ TOQUES NA BOLA (26/10, Diego: *"narração em tempo real… fale mais os jogadores todos que tão jogando quando encostam
+// na bola"*). Dois jogadores do MESMO time trocando a bola: {p} toca, {q} recebe. Só entra quando a escalação está na mão
+// (`comNomes` em `radioDoJogo`) e o time tem 2+ jogadores de verdade. Quem aparece RODA pela escalação inteira (`k`), então
+// ao longo do jogo todo mundo pega na bola. Nada de gol, chute, chance, pênalti ou placar — igual ao resto da rádio.
+const TOQUES: Par[] = [
+  ['{p} domina no peito e toca pra {q}', '{p} chests it down and lays it off to {q}'],
+  ['{p} recebe de costas, gira e acha {q}', '{p} receives with his back to play, turns and finds {q}'],
+  ['{p} abre o jogo com {q} pelo lado', '{p} spreads it wide to {q}'],
+  ['{p} inverte pra {q} do outro lado do campo', '{p} switches it to {q} on the other side'],
+  ['tabelinha entre {p} e {q}, o {o} só olha', 'a one-two between {p} and {q}, {o} just watch'],
+  ['{p} carrega a bola e entrega pra {q}', '{p} carries it forward and gives it to {q}'],
+  ['toque curto de {p} pra {q}, a bola é do {t}', 'a short pass from {p} to {q}, {t} keep the ball'],
+  ['{p} lança {q} nas costas da defesa do {o}', '{p} plays {q} in behind the {o} defence'],
+  ['{p} ganha a dividida e já procura {q}', '{p} wins the 50-50 and looks for {q}'],
+  ['{p} toca de primeira pra {q}. Bonito', '{p} plays it first time to {q}. Lovely'],
+  ['{p} segura, espera {q} passar e solta', '{p} holds it, waits for {q} to overlap and releases'],
+  ['{q} pede, {p} enxerga e serve', '{q} calls for it, {p} sees him and delivers'],
+  ['{p} recua pra {q} e o {t} recomeça a jogada', '{p} plays it back to {q} and {t} start again'],
+  ['{p} dribla um, dribla dois e rola pra {q}', '{p} beats one, beats two and rolls it to {q}'],
+  ['bola com {p}… passa pra {q}… o {t} trabalha', 'ball with {p}… on to {q}… {t} working it'],
+  ['{p} de calcanhar pra {q}! Que categoria', '{p} backheels it to {q}! What class'],
+  ['{p} conduz pelo meio e acha {q} livre', '{p} drives through the middle and finds {q} free'],
+  ['{p} troca passes com {q} na intermediária', '{p} swaps passes with {q} in midfield'],
+  ['{p} rouba e entrega rápido pra {q}', '{p} wins it and quickly gives it to {q}'],
+  ['{p} levanta a cabeça e lança {q} na ponta', '{p} looks up and sends {q} down the wing'],
+  ['{p} protege a bola do {o} e toca pra {q}', '{p} shields it from {o} and plays it to {q}'],
+  ['{p} faz o pivô e escora pra {q}', '{p} holds it up and lays it back to {q}'],
+  ['{p} puxa o contra-ataque e chama {q}', '{p} leads the counter and calls {q} along'],
+  ['{p} toca, {q} devolve, e o {t} gira a bola', '{p} to {q}, straight back, and {t} keep it moving'],
+  ['{q} recebe de {p} e já vira o jogo', '{q} takes it from {p} and switches play'],
+  ['{p} acha {q} entre as linhas do {o}', '{p} finds {q} between the {o} lines'],
+  ['{p} sai da marcação e passa pra {q}', '{p} slips his marker and passes to {q}'],
+  ['{p} dá um toque de efeito pra {q} na lateral', '{p} curls it out to {q} on the touchline'],
+  ['{p} abre espaço e serve {q} na corrida', '{p} makes room and plays {q} in stride'],
+  ['lá vai {p}… acha {q}… o {o} recua', 'there goes {p}… finds {q}… {o} drop off'],
+  ['{p} domina com classe e rola pra {q}', '{p} controls it with class and rolls it to {q}'],
+  ['{p} passa a bola por baixo das pernas do marcador e toca pra {q}', '{p} nutmegs his man and slips it to {q}'],
+  ['{p} tenta {q} pelo alto, a bola sobra pro {o}', '{p} tries to find {q} in the air, the ball falls to {o}'],
+  ['{p} erra o passe pra {q} e o {o} recupera', '{p} misplaces the pass to {q} and {o} win it back'],
+  ['{q} se apresenta e {p} confia nele', '{q} shows for it and {p} trusts him'],
+  ['{p} atrai a marcação e solta pra {q}', '{p} draws the defender and releases {q}'],
+  ['{p} mata no peito, ajeita e serve {q}', '{p} kills it on his chest, sets himself and serves {q}'],
+  ['{p} vê {q} correndo e põe na medida', '{p} spots {q} running and puts it on a plate'],
+  ['{p} toca rápido pra {q}, o {t} acelera', '{p} plays it quickly to {q}, {t} speed up'],
+  ['{p} recebe apertado e se livra com um toque pra {q}', '{p} is closed down and escapes with a touch to {q}'],
+  ['{p} rola pra {q}, que domina e olha o jogo', '{p} rolls it to {q}, who controls and looks up'],
+  ['{p} faz o corta-luz e a bola chega em {q}', '{p} dummies it and the ball runs on to {q}'],
+  ['{p} cabeceia de leve pra {q} no meio', '{p} nods it softly to {q} in midfield'],
+  ['{p} desarma e o {t} sai jogando com {q}', '{p} makes the tackle and {t} play out through {q}'],
+  ['{p} gira em cima do marcador e acha {q}', '{p} spins away from his marker and finds {q}'],
+]
+/** dois companheiros de verdade pra um toque: rodam pela escalação (`k`) — ao longo do jogo todo mundo pega na bola */
+function parDoToque(lista: CartaRadio[] | undefined, l: RadioLance): [string, string] | null {
+  const vivos = (lista ?? []).filter(c => deVerdade(c) && (c.pos ?? c.sec) !== 'GOL') // goleiro tem as frases dele
+  if (vivos.length < 2) return null
+  const n = vivos.length, k = l.k ?? 0, base = (l.a + 2 * k) % n
+  return [vivos[base].name, vivos[(base + 1) % n].name]
+}
+export const ACERVO_TOQUES = TOQUES.length
 
 // 👑 FRASES DA KINGS LEAGUE (15/10): o que acontece numa partida da Kings e não acontece num jogo comum. `c` = versão do
 // clube; `p` = versão com o jogador ({p}) da posição `pos`, do time `quem` (t = quem faz · o = o outro). Nada de gol,
@@ -264,11 +358,14 @@ const TARDE: Par[] = [
 /** 🎲 a rádio de UM jogo: minutos e frases, sem gol, sem chance, sem repetir lance */
 /** `kings`: jogo da Kings League (15/10) — partida longa, então a rádio fala MAIS (até 18 frases) e mistura frases próprias
  *  da Kings (goleiro-linha, presidente na tribuna, campo de futebol 7, arena, DJ…) com as de sempre. */
-export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, kings = false): RadioLance[] {
-  const n = frasesPorJogo(roundMs, kings ? 18 : 9)
+/** `comNomes` (26/10): a escalação está na mão — a rádio fala MAIS (até 22 frases, quase em tempo real) e metade do meio do
+ *  jogo vira TOQUE na bola entre dois jogadores do time, rodando por todo mundo que está em campo. */
+export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, kings = false, comNomes = false): RadioLance[] {
+  const n = frasesPorJogo(roundMs, kings ? 18 : comNomes ? 22 : 14)
   if (n === 0) return []
   const rng = mulberry((seed ^ 0x5AD10) >>> 0)
-  const livre = (m: number, ja: number[]) => ocupados.every(o => Math.abs(o - m) >= 3) && ja.every(o => Math.abs(o - m) >= 5) && !(m >= 44 && m <= 46)
+  const vao = Math.max(2, Math.min(5, Math.floor(88 / Math.max(1, n)) - 1)) // jogo com muita frase: elas ficam mais perto
+  const livre = (m: number, ja: number[]) => ocupados.every(o => Math.abs(o - m) >= 3) && ja.every(o => Math.abs(o - m) >= vao) && !(m >= 44 && m <= 46)
   const mins: number[] = []
   // 👑 Kings: as fases de campo aberto rolam DEVAGAR na tela (5 s por minuto da Kings), então ganham uma frase por
   // minuto da Kings — senão a pessoa passa o 1×1 inteiro sem ouvir nada
@@ -285,7 +382,16 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
   }
   mins.sort((a, b) => a - b)
   const usados = new Set<number>()
+  const toques = { h: 0, a: 0 }
   return mins.map(min => {
+    // ⚽ toque na bola com nome (26/10): só no meio do jogo (começo e fim têm frases próprias), sem Kings
+    if (comNomes && !kings && min > 12 && min < 82 && rng() < 0.6) {
+      let i = Math.floor(rng() * TOQUES.length)
+      for (let t = 0; t < TOQUES.length && usados.has(5000 + i); t++) i = (i + 1) % TOQUES.length
+      usados.add(5000 + i)
+      const home = rng() < 0.5, k = home ? toques.h++ : toques.a++
+      return { min, i: 5000 + i, a: rng() < 0.3 ? Math.floor(rng() * ABRE.length) : 0, f: 0, home, k }
+    }
     if (kings && kingsAberto(min)) {
       let i = Math.floor(rng() * KINGS_FASE.length)
       for (let t = 0; t < KINGS_FASE.length && usados.has(4000 + i); t++) i = (i + 1) % KINGS_FASE.length
@@ -313,6 +419,18 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
 /** o texto da frase, no idioma pedido */
 export function narraRadio(l: RadioLance, casa: string, fora: string, en: boolean, elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }, kings = false): string {
   const k = en ? 1 : 0
+  if (l.i >= 5000) {
+    // ⚽ toque na bola: dois companheiros de verdade; se o time não tem (só carta de mentira), vira um lance do clube
+    const t = l.home ? casa : fora, o = l.home ? fora : casa
+    const par = parDoToque(l.home ? elencos?.casa : elencos?.fora, l)
+    if (!par) return narraRadio({ ...l, i: (l.i - 5000) % LANCES.length, f: 0 }, casa, fora, en, undefined, kings)
+    const cru = TOQUES[(l.i - 5000) % TOQUES.length][k].replace(/\{p\}/g, par[0]).replace(/\{q\}/g, par[1]).replace(/\{t\}/g, t).replace(/\{o\}/g, o)
+    const abre = ABRE[l.a][k]
+    const minuscula = !!abre && (abre.endsWith(', ') || abre.endsWith(': '))
+    const corpo = minuscula || cru.startsWith(par[0]) || cru.startsWith(par[1]) ? cru : cru.charAt(0).toUpperCase() + cru.slice(1)
+    const txt = abre + corpo
+    return /[.!?…]$/.test(txt) ? txt : txt + '.'
+  }
   if (l.i >= 3000) {
     // 👑 frase da Kings: com jogador quando dá (posição pedida), senão a versão do clube
     const kf = l.i >= 4000 ? KINGS_FASE[(l.i - 4000) % KINGS_FASE.length] : KINGS[(l.i - 3000) % KINGS.length]
@@ -351,5 +469,5 @@ export function radioNoMinuto(lances: RadioLance[], min: number): RadioLance | n
 
 /** pra trava: tamanhos dos bancos (PT e EN) e quantas frases diferentes dá pra montar */
 export const ACERVO_RADIO = { abre: ABRE.length, fecha: FECHA.length, lances: LANCES.length, cedo: CEDO.length, tarde: TARDE.length }
-export const BANCOS_RADIO: Record<string, Par[]> = { ABRE, FECHA, LANCES, CEDO, TARDE }
+export const BANCOS_RADIO: Record<string, Par[]> = { ABRE, FECHA, LANCES, CEDO, TARDE, TOQUES }
 export const NOMEADOS_RADIO = NOMEADO
