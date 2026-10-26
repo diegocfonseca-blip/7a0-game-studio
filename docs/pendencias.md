@@ -117,6 +117,17 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- 🟢 LOJA NOVA · ETAPA 2 NO AR (26/10): link do ⭐ Craque Completo 14,90 (`https://app.vendria.com.br/c/mfwRSubfQriKTXsTdkPerrMGJulG04GX`).
+  Diego: *"planos atuais de quem já se deu bem não mude… não mude o visual que já existia no padrão dos planos… até aquele texto de pra
+  onde vai o dinheiro"*. Feito no MESMO padrão (mesmos cartões `SupportPlanCard`, "pra onde vai o dinheiro" intacto):
+  · Vitrine (`support-plans.tsx`): seção "📅 POR MÊS" com ⭐ Craque Salas 9,90 e ⭐ Craque Completo 14,90 (botão abre a Vendria; aviso de
+    usar o MESMO e-mail da conta) no lugar do Craque de 29,90; Lenda 59,90 · dupla 107,90. FAQ (screens.tsx) e Loja do Clube (seção
+    "⭐ Craque por mês"; o Craque de 29,90 sumiu do "Sobe de plano") atualizados. Presente: sem o Craque de uma vez.
+  · Banco (`supabase/migrations/20261026170000_loja_lenda_5990.sql`): `esc_mp_preco` Lenda 59,90, Craque de uma vez = não vende;
+    `esc_plano_rank_fixo` (o mensal NÃO conta como plano pra sempre: assinante paga o Lenda cheio); quem comprou o Lenda a 44,90 continua
+    subindo pela diferença de 44,90 (Batismo 40 · Fundador 60, conferido); presente Lenda 59,90 e dupla 107,90.
+  · Código: `planoFixo` (preço/subida) × `planoAtual` (o que GANHA — mensal = Craque: presidente e clã). Trava `npm run planos` atualizada.
+  FALTA: avisos na hora (sala extra / Manual trancado), Passe 24h R$ 9,90, conferir a 1ª renovação real (17/11), apagar `tmp_direitos_antes`.
 - 🟡 LOJA NOVA · ETAPA 1 FEITA (26/10, invisível pro jogador): o CRAQUE MENSAL já liga sozinho pelo servidor. Diego mandou o link da
   Vendria do ⭐ Craque 9,90 (`https://app.vendria.com.br/c/5NdmF6I4FEuAFrhelEWUS0Ttft_aMNbG`) e lembrou: *"quem já tem plano não muda nada"*.
   · Banco (`supabase/migrations/20261026150000_craque_mensal_vendria.sql`): tabela NOVA `esc_assinatura_mensal` (só soma por cima do que a

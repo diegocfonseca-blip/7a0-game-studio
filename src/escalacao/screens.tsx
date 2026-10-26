@@ -2003,12 +2003,13 @@ function Duvidas() {
       🖋️✨ <b>Legend Naming — R$ 89.90, one time.</b> Everything in Club Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
       Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       </> : <>
-      There are <b>4</b>, all one-off (no monthly fee), and all the details are in the <b>💛 Support</b> button:<br /><br />
-      ⭐ <b>Craque (Star) — R$ 29.90, one time.</b><br />
-      👑 <b>Lenda (Legend) — R$ 44.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
+      All the details are in the <b>💛 Support</b> button:<br /><br />
+      ⭐ <b>Craque Salas (Star Rooms) — R$ 9.90 a month.</b> Unlimited rooms, My Leagues, your president, your clan and a silver name.<br />
+      ⭐ <b>Craque Completo (Star Complete) — R$ 14.90 a month.</b> Everything in Star Rooms + Manual Mode, 2D Pitch (soon) and levels up to Star.<br />
+      👑 <b>Lenda (Legend) — R$ 59.90, one time.</b> Gets <b>everything from both Stars, forever</b>, and more.<br />
       🖋️ <b>Batismo (Club Naming) — R$ 79.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
       🖋️ <b>Fundador (Founder) — R$ 99.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career + a Founder number.<br /><br />
-      Moving up a plan? <b>You only pay the difference.</b><br /><br />
+      Moving up a plan? <b>You only pay the difference.</b> Already have the one-off Star? <b>It stays yours.</b><br /><br />
       </>}
       No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
     </>],
@@ -2070,12 +2071,13 @@ function Duvidas() {
       🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo + entrada de gala única + canto de torcida na Carreira.<br /><br />
       Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       </> : <>
-      São <b>4</b>, todos de uma vez só (nada de mensalidade), e os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
-      ⭐ <b>Craque — R$ 29,90, uma vez só.</b><br />
-      👑 <b>Lenda — R$ 44,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
+      Os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
+      ⭐ <b>Craque Salas — R$ 9,90 por mês.</b> Salas à vontade, Minhas Ligas, seu presidente, seu clã e nome prata.<br />
+      ⭐ <b>Craque Completo — R$ 14,90 por mês.</b> Tudo do Craque Salas + Modo Manual, Campo 2D (em breve) e nível até Craque.<br />
+      👑 <b>Lenda — R$ 59,90, uma vez só.</b> Ganha <b>tudo dos dois Craques, pra sempre</b>, e mais.<br />
       🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
       🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida (na Carreira, nos jogos, e no online, junto com a gala) + número de Fundador.<br /><br />
-      Quer subir de plano? <b>Paga só a diferença.</b><br /><br />
+      Quer subir de plano? <b>Paga só a diferença.</b> Já tem o Craque de uma vez? <b>Continua seu.</b><br /><br />
       </>}
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.
     </>],

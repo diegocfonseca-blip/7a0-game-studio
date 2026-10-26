@@ -35,7 +35,7 @@ const erroTxt = (msg: string) => { const k = Object.keys(ERROS).find(e => msg.in
 export function PresenteBox({ duplo, onClose }: { duplo?: PlanoUnico; onClose?: () => void } = {}) {
   const pixMp = usePixMp() // 💳 15/10: Pix do Mercado Pago — o presente é entregue pro amigo assim que o Pix cai
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
-  const [planoEscolhido, setPlano] = useState<PlanoUnico>('craque')
+  const [planoEscolhido, setPlano] = useState<PlanoUnico>('lenda') // 26/10: o ⭐ Craque de uma vez saiu da venda (virou mensal)
   const plano = duplo ?? planoEscolhido
   const valor = duplo ? PRECOS_DUPLO[duplo] : PRECOS_UNICO[plano]
   const [para, setPara] = useState('')
@@ -77,8 +77,8 @@ export function PresenteBox({ duplo, onClose }: { duplo?: PlanoUnico; onClose?: 
     <p style={{ ...rot, marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>{tr('O QUE VAI DAR', 'WHAT YOU’LL GIVE')}<button onClick={() => { setAberto(false); onClose?.() }} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 12, cursor: 'pointer', color: 'rgba(12,12,12,.5)' }}>✕</button></p>
     {duplo ? <p style={{ ...OSW, fontSize: 15, margin: 0 }}>{tr(`💛 2× ${NOME[duplo][0]}: um pra você, outro de presente · ${reais(valor)}`, `💛 2× ${NOME[duplo][1]}: one for you, one as a gift · ${reais(valor)}`)} <s style={{ fontSize: 12, opacity: .5 }}>{reais(PRECOS_UNICO[duplo] * 2)}</s></p> :
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-      {(Object.keys(NOME) as PlanoUnico[]).map(p => <button key={p} onClick={() => setPlano(p)} style={{ position: 'relative', overflow: 'hidden', ...OSW, fontSize: 13, border: `3px solid ${INK}`, borderRadius: 10, padding: '6px 4px', cursor: 'pointer', background: FUNDO[p], color: p === 'batismo' || p === 'fundador' ? GOLD : INK, boxShadow: plano === p ? `0 0 0 3px ${GOLD}, 2px 2px 0 ${INK}` : 'none', opacity: plano === p ? 1 : .7 }}>
-        {(p === 'craque' || p === 'lenda') && <ApoioSheen holo={p === 'lenda' ? .75 : .5} />}
+      {(Object.keys(NOME) as PlanoUnico[]).filter(p => p !== 'craque').map(p => <button key={p} onClick={() => setPlano(p)} style={{ position: 'relative', overflow: 'hidden', ...OSW, fontSize: 13, border: `3px solid ${INK}`, borderRadius: 10, padding: '6px 4px', cursor: 'pointer', background: FUNDO[p], color: p === 'batismo' || p === 'fundador' ? GOLD : INK, boxShadow: plano === p ? `0 0 0 3px ${GOLD}, 2px 2px 0 ${INK}` : 'none', opacity: plano === p ? 1 : .7 }}>
+        {p === 'lenda' && <ApoioSheen holo={.75} />}
         <span style={{ position: 'relative' }}>{tr(NOME[p][0], NOME[p][1])}<br /><small style={{ fontSize: 11 }}>{reais(PRECOS_UNICO[p])}</small></span>
       </button>)}
     </div>}
