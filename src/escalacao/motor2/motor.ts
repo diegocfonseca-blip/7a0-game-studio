@@ -10,7 +10,7 @@ import { estilo2De, estiloDe, type Estilo, type Golpe } from '../campo2d-estilos
 import { alvoDe, andaBloco, ancora, linhaImpedimento, lugarGoleiro, planeja, type Bloco } from './coletivo'
 import { decide, pressaoEm, type Acao } from './decide'
 import { GIRO, gira, deCostas, AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L, SEG_POR_MIN, TRAVESSAO, W, ATRITO_AR, ATRITO_CHAO, clamp, dist, frente, fundo, len, linhaAtaque, sorteio, vRasteira, xgDe, yDe } from './fisica'
-import { Narrador, PESO } from './narra'
+import { Narrador, PESO, SEGUNDO_TEMPO } from './narra'
 import type { Atleta, Bola, CartaCampo, Estatistica, Evento, Grupo, Lado, TipoEvento } from './tipos'
 import type { Clima } from '../campo2d-clima'
 
@@ -201,6 +201,7 @@ export class Motor2 {
   private tentou = new Map<Atleta, number>()
   private garcom: { de: Atleta; para: Atleta; t: number } | null = null
   private intervalo = false
+  private anunciou2 = false
   private acaoDe = new Map<Atleta, Acao>()
   /** 🦶 quem está conduzindo no toque agora (a bola anda solta à frente dele) */
   private toqueSolto: Atleta | null = null
@@ -611,6 +612,9 @@ export class Motor2 {
     b.dono = null; b.ultimo = p; this.donoDesde = null
     const arremesso = this.parada?.tipo === 'lateral', daMao = this.gkMao === p
     this.gkMao = null
+    // 🔁 (26/10, filmado: aos 55' a faixa ainda dizia "Intervalo!") a saída do 2º tempo ganha a frase dela — sem sorteio, então o jogo
+    // continua IDÊNTICO byte a byte (placar, lances, resultado salvo)
+    if (this.parada?.tipo === 'saida' && this.intervalo && !this.anunciou2) { this.anunciou2 = true; this.emite({ tipo: 'segundo_tempo', lado: l }) }
     if (this.parada) this.parada = null
     if (arremesso) {
       // 🤾 o lateral é com a MÃO: a bola sai de cima da cabeça (~2 m), em arco curto, e chega no peito/pé do companheiro
@@ -1251,6 +1255,7 @@ export class Motor2 {
   emite(e: Omit<Evento, 't'>) {
     const ev: Evento = { t: this.t, ...e }
     this.eventos.push(ev)
+    if (e.tipo === 'segundo_tempo') { this.narra = this.nar.fixo(SEGUNDO_TEMPO, this.t * 7); return } // (só troca o texto: segurar a faixa calaria as frases seguintes, e cada frase calada deixa de gastar o sorteio do jogo)
     const peso = PESO[e.tipo]
     if (peso == null) return
     if (peso < this.narraPeso && this.t < this.narraAte) return

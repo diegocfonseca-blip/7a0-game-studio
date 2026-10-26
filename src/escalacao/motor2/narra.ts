@@ -69,6 +69,8 @@ const CHUTE_TXT: Record<string, [string, string]> = {
   rasteiro: ['{a} bate rasteiro, no canto!', '{a} drills it low into the corner!'],
   cruzado: ['{a} bate cruzado!', '{a} shoots across goal!'],
 }
+/** 🔁 o recomeço do 2º tempo (sem esta, a faixa ficava em "Intervalo!" com a bola rolando aos 55') */
+export const SEGUNDO_TEMPO = [['Começa o segundo tempo!', 'Bola rolando pro segundo tempo!', 'Volta o jogo: segundo tempo!'], ['Second half under way!', 'The ball is rolling again: second half!', 'We are back for the second half!']] as const
 export class Narrador {
   private usados = new Map<string, number>()
   private en: boolean
@@ -87,6 +89,8 @@ export class Narrador {
     this.usados.set(e.tipo, i)
     return this.pinta(lista[i], e)
   }
+  /** 🔁 frase SEM sorteio (o sorteio do narrador é o do jogo: sortear aqui mudaria o resto da partida) — `k` escolhe a versão */
+  fixo(lista: readonly [readonly string[], readonly string[]], k: number) { const l = lista[this.en ? 1 : 0]; return l[Math.abs(Math.floor(k)) % l.length] }
   private pinta(s: string, e: Evento) { return s.replace('{a}', `<b>${e.a ?? ''}</b>`).replace('{b}', `<b>${e.b ?? ''}</b>`) }
 }
 /** os eventos que merecem frase na faixa (passe comum não) e a força de cada um (frase forte não é atropelada) */
