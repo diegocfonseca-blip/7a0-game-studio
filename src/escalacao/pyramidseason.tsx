@@ -10274,7 +10274,11 @@ export function PyramidSeasonScreen() {
   const [placarEncolhido, setPlacarEncolhido] = useState(false)
   const marcaEncolhido = useCallback((v: boolean) => setPlacarEncolhido(v), [])
   const miniPlacarOn = placarEncolhido && !sagrado
-  const topoMini = (barraOn && cabFora) ? FAIXA_H : 0
+  // 📅 26/10 (Diego, print do Elenco: *"a faixa de calendário deve continuar sim… o selinho da rodada é que não deve nessas outras abas"*):
+  // onde a faixa do calendário aparece (Elenco/Rank nos dias, Clube), a faixinha grudada "Rodada N/38" lá em cima SAI — eram duas
+  // coisas dizendo o mesmo, uma em cima da outra. (Mesma régua da `barra` do calendário, mais abaixo.)
+  const faixaCalAqui = calOn && tab !== 'jogos' && tab !== 'central' && !(jogoTabela && (tab === 'elenco' || tab === 'ranking') && calFase !== 'dias')
+  const topoMini = (barraOn && cabFora && !faixaCalAqui) ? FAIXA_H : 0
   // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
   // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
   // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
@@ -10469,7 +10473,8 @@ export function PyramidSeasonScreen() {
     // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
     const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
-      rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))} /> : null
+      rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
+      irJogo={!manual && calLivre && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
     // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
@@ -10491,30 +10496,8 @@ export function PyramidSeasonScreen() {
   const chaveJogo = `${calSn}:${round}:${copaNaQuarta ? 'c' : 'l'}`
   const esperandoInicio = calOn && !state.co2 && !manual && calFase === 'dias' && calLivre && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
   const liberaJogo = () => setJogoOk(chaveJogo)
-  const diaJogoKey = calFase === 'jogo' ? `${calSn}:${round}:no-ar` : chaveJogo
-  // (26/10, 2ª: *"por que tá aparecendo essa arte de dia de jogo?"* — com a rodada JÁ rolando ele não aparece mais: o aviso é só
-  // pro dia que chegou e ainda não começou; com o jogo no ar, a Central já tem o "Ver a rodada ao vivo")
-  const diaDeJogoNaCentral = (tab === 'central' || tab === 'jogos') && esperandoInicio
-  const [diaJogo, setDiaJogo] = useState<string | null>(null)
-  const [ficouAqui, setFicouAqui] = useState('')
-  useEffect(() => { if (diaDeJogoNaCentral && ficouAqui !== diaJogoKey && diaJogo !== diaJogoKey) setDiaJogo(diaJogoKey) }, [diaDeJogoNaCentral, ficouAqui, diaJogoKey, diaJogo])
-  useEffect(() => { if (diaJogo && (!diaDeJogoNaCentral || diaJogo !== diaJogoKey)) setDiaJogo(null) }, [diaJogo, diaDeJogoNaCentral, diaJogoKey])
-  // 🛑 26/10 (Diego: *"não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"* e *"o usuário
-  // tem que tá livre pra dar uma volta nas abas"*): o aviso não tem relógio e, depois do apito, ninguém é levado pra lugar nenhum
-  const avisoDiaDeJogo = diaJogo ? (() => {
-    const copaHoje = copaNaQuarta || calFase === 'copa'
-    return (
-      <div role="dialog" aria-label={tr('Dia de jogo', 'Match day')} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div style={{ background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, padding: '18px 16px', width: '100%', maxWidth: 360, textAlign: 'center' }}>
-          <div style={{ fontSize: 44, lineHeight: 1 }}>{copaHoje ? '🏆' : '⚽'}</div>
-          <b style={{ ...OSWALD, display: 'block', fontSize: 30, textTransform: 'uppercase', margin: '6px 0 2px' }}>{tr('Dia de jogo!', 'Match day!')}</b>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#53534b', margin: '0 0 12px' }}>{copaHoje ? tr(`Copa · ${copaFaseName}`, `Cup · ${copaFaseName}`) : tr(`Liga · rodada ${calFase === 'jogo' ? round : round + 1}`, `League · round ${calFase === 'jogo' ? round : round + 1}`)}</p>
-          <button onClick={() => { setDiaJogo(null); if (calFase !== 'jogo') liberaJogo(); escolheAba('jogos') }} style={{ ...OSWALD, width: '100%', fontSize: 18, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, cursor: 'pointer' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
-          <button onClick={() => { setFicouAqui(diaJogo); setDiaJogo(null) }} style={{ background: 'none', border: 'none', marginTop: 10, fontSize: 12, fontWeight: 800, color: '#53534b', textDecoration: 'underline', cursor: 'pointer' }}>{tr('agora não', 'not now')}</button>
-        </div>
-      </div>
-    )
-  })() : null
+  // 🛑 26/10 (3º print: *"continua aparecendo esse modal que eu disse que não quero"*): NADA de janela por cima. Chegou o dia, a
+  // semana para e o próprio cartão da semana troca o ⏩ por "⚽ Ir pro jogo"; na aba Jogos fica o "▶ Começar o jogo".
   // 🏟️ Campo 3D (só onde o mapa existe — conta do Diego): vai pra aba Clube, dentro do mapa, na câmera de transmissão
   const verNo3D = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && calOn ? () => {
     pedeCameraDoMapa('broadcast'); setClubeSub('estadio'); escolheAba('estadio')
@@ -10793,7 +10776,7 @@ export function PyramidSeasonScreen() {
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
       <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
-      {barraOn && cabFora && (
+      {barraOn && cabFora && !faixaCalAqui && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
@@ -10864,7 +10847,6 @@ export function PyramidSeasonScreen() {
         <AvisoContaCarreira />
         <SocioBaraoBanner />
         {calBarra?.barra}
-        {avisoDiaDeJogo}
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}

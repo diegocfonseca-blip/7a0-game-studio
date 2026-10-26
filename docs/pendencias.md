@@ -11025,3 +11025,4 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
   - (A versão que APAGAVA a linha pedia confirmação no Supabase e travou 2×; ficou ESVAZIAR, que pro jogador é o mesmo.)
   - Trava: `npm run nuvem-craque` (reescrita pra regra nova).
 - 🛑 26/10: o "Dia de jogo!" não aparece mais com a rodada JÁ rolando (ele perguntou por que aparecia) — só no dia que chegou e ainda não começou.
+- 🛑 26/10 (3º e 4º prints): **a janela "Dia de jogo!" SAIU de vez** (*"continua aparecendo esse modal que eu disse que não quero"*) — chegou o dia, a semana para e o cartão da semana troca o ⏩ por "⚽ Ir pro jogo" (`irJogo` do `CalendarioProximo`); na aba Jogos fica o "▶ Começar o jogo". E onde a faixa do calendário aparece (Elenco/Rank nos dias, Clube), a faixinha grudada "Rodada N/38" do topo some (`faixaCalAqui`) — *"a faixa de calendário deve continuar… o selinho da rodada é que não deve nessas outras abas"*.
