@@ -129,6 +129,8 @@ interface PropsProx {
   diasDeJogo?: Record<number, 'liga' | 'copa'>
   rotulo?: string
   onPular?: () => void
+  /** 26/10: na Central o ⏩ some — o jogo só começa pelo aviso "Dia de jogo!" (no manual o "Próximo adversário" fica) */
+  semPular?: boolean
   onProximo?: () => void
 }
 const CSS_PROX = `
@@ -168,7 +170,7 @@ export function CalendarioProximo(p: PropsProx) {
       })}</div>
       {p.auto && <div className="tm"><i style={{ width: `${tempo}%` }} /></div>}
       {p.recado && <div className="rec"><div className="q"><small>{p.recado.k}</small><b>{p.recado.titulo}</b>{p.recado.texto && <p>{p.recado.texto}</p>}</div></div>}
-      {p.auto ? <button className="go" onClick={p.onPular}>{tr('⏩ Pular pro jogo', '⏩ Skip to the match')}</button>
+      {p.auto ? (!p.semPular && <button className="go" onClick={p.onPular}>{tr('⏩ Pular pro jogo', '⏩ Skip to the match')}</button>)
         : <button className="go" onClick={p.onProximo}>{tr('▶ Próximo adversário', '▶ Next opponent')}</button>}
       {p.jogos && p.jogos.length > 0 && <div className="ll-cal-jogos" style={{ padding: '12px 0 0' }}><h5>⚽ {tr('Seus jogos', 'Your matches')}</h5><ul style={{ margin: 0, padding: 0 }}>{p.jogos.map((j, i) => {
         const x = fmtDia(j.dia)

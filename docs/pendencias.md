@@ -11005,3 +11005,10 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 - 📢 Aviso da comunidade pronto: `scripts/posts/aviso-2026-10-25-calendario-carreira.png` — só postar quando o calendário for liberado pra todos (hoje é só da conta dele).
 - 🟢 LIBERADO PRA TODOS em 25/10 (`CALENDARIO_GERAL = true`, sport.ts; *"publique pra todos já sem o mapa 3D e campo 2D"*). Reverter = `false`. Testado sem login: semana na Central, aviso, jogo, volta; sem botão 3D. Pendente: o 3D ainda não foi testado com o mapa aberto na bancada (precisa da conta dele).
 - 🛑 26/10 (Diego, print da Central): *"não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*. Saiu o relógio de 3s: o "Dia de jogo!" fica parado com "⚽ Ir pro jogo" / "agora não" (aí vai pelo ⏩ do cartão). Conserto junto: o cartão da semana na Central não ocupava a linha toda (faltava `flex: 0 0 100%` no lugar do camarote) e ficava estreito/fora de ordem. A volta pra Central depois do apito continua.
+- 🛑 26/10 (2º print, 22h16): *"não quero que apareça esse botão de ir pro jogo [na Central]… se eu não for pro jogo e apertar na aba de jogos, já começa automático, tem que ter o botão ao lado do auto pra iniciar… o usuário tem que tá livre pra dar uma volta nas abas… tire o rank global da central"*. Feito:
+  - Nenhum jogo começa sozinho com o calendário: `jogoOk` (chave `temporada:rodada:l|c`) só é marcado no "⚽ Ir pro jogo" do aviso ou no "▶ Começar o jogo" (aba Jogos, pra todo plano). O auto-avanço da rodada e a Copa da quarta esperam essa chave.
+  - O aviso "Dia de jogo!" aparece na Central E no Jogos (sem relógio); "agora não" some com ele até o próximo jogo.
+  - Saiu a volta automática pra Central depois do apito (a pessoa fica livre).
+  - Central sem "⏩ Pular pro jogo" (no Manual o "Próximo adversário" fica, é o único caminho); no Jogos o ⏩ some quando a semana já acabou.
+  - Ranking global saiu da Central (e a leitura dele no banco junto) — fica só na aba Rank.
+  - Testado sem login: 8s parado no Jogos sem começar; "Começar o jogo" leva da rodada 3 pra 4; sem erro.

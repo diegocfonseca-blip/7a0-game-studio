@@ -6606,42 +6606,7 @@ function GlobalRankConvite() {
 //    posição que ela merece hoje — e logo embaixo, fininha, a sua melhor, com a
 //    posição dela. A fininha SOME quando a de agora vira a melhor.
 // A linha fininha não ocupa posição e ninguém mais a enxerga.
-// 🌍 22/10 (Diego: "esse caixa dos rivais troque pelo rank global de usuários"): o top 5 do ranking global + a SUA carreira de
-// agora, pra Central Legends. A MESMA busca da aba Rank → Global (esc_pyramid_rank + esc_pyramid_career_rank) e a MESMA conta
-// (pontosDaLinha). Só lê quando a Central está aberta, uma vez por temporada (nada de leitura a cada rodada).
-function useRankGlobalCentral(seasonNo: number, careerId: number | undefined, experimental: boolean, ativo: boolean) {
-  const [r, setR] = useState<{ pos: number; nome: string; pts: number; you: boolean }[] | null>(null)
-  useEffect(() => {
-    if (!ativo) return
-    let vivo = true
-    ;(async () => {
-      try {
-        const { data: auth } = await supabase.auth.getUser()
-        const uid = auth?.user?.id ?? null
-        const top = await globalRankRpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 6 }, experimental)
-        if (top.error) return
-        const rows = (top.data ?? []) as GlobalRankRow[]
-        let atual: (GlobalRankRow & { pos: number }) | null = null
-        if (uid && careerId != null) {
-          const { data: cr } = await globalRankRpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId }, experimental)
-          atual = ((cr ?? [])[0] as (GlobalRankRow & { pos: number }) | undefined) ?? null
-        }
-        const outros = rows.filter(x => x.user_id !== uid)
-        let linhas: { pos: number; nome: string; pts: number; you: boolean }[]
-        if (atual && atual.pos <= 5) {
-          const lista = [...outros]; lista.splice(atual.pos - 1, 0, { ...atual, user_id: uid ?? '' })
-          linhas = lista.slice(0, 5).map((x, i) => ({ pos: i + 1, nome: x.team_name || '—', pts: pontosDaLinha(x), you: x.user_id === uid }))
-        } else {
-          linhas = outros.slice(0, 5).map((x, i) => ({ pos: i + 1, nome: x.team_name || '—', pts: pontosDaLinha(x), you: false }))
-          if (atual) linhas.push({ pos: atual.pos, nome: atual.team_name || '—', pts: pontosDaLinha(atual), you: true })
-        }
-        if (vivo) setR(linhas)
-      } catch { /* sem ranking: a caixa simplesmente não aparece */ }
-    })()
-    return () => { vivo = false }
-  }, [seasonNo, careerId, experimental, ativo])
-  return r
-}
+// (o top 5 do ranking global na Central saiu em 26/10 — Diego: *"tire o rank global da central, deixe na aba do rank"*)
 function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [], experimental = false }: { myTeamName: string; seasonNo: number; careerId?: number; intlHistory?: InternationalHistoryEntry[]; experimental?: boolean }) {
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
   // a carreira que você está jogando AGORA (posição + títulos dela)
@@ -8571,7 +8536,6 @@ export function PyramidSeasonScreen() {
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
   const intlEnabled = useInternacionalCarreiraLiberada()
-  const rankGlobalCentral = useRankGlobalCentral(state.seasonNo, state.seed, intlEnabled, tab === 'central' && !!state.agenciaOn) // 🌍 22/10: no lugar da caixa dos rivais
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -9909,6 +9873,10 @@ export function PyramidSeasonScreen() {
   // carreira de novo recomeça a semana do 1º dia vazio — é só o recado que repete).
   const calTotal = calOn && round > 0 && round < 38 ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)).length : 0
   const [calPasso, setCalPasso] = useState<{ r: number; s: number; i: number }>({ r: -1, s: -1, i: 0 })
+  // ▶ 26/10 (Diego: *"se eu não for pro jogo e apertar na aba de jogos, já começa o jogo automático… tem que ter o botão lá ao lado
+  // de auto pra iniciar"*): com o calendário, NENHUM jogo começa sozinho — a pessoa toca em "Ir pro jogo" (aviso) ou "Começar o jogo"
+  // (controle). Guarda a chave do jogo liberado: `temporada:rodada:l` (Liga) ou `:c` (Copa da quarta).
+  const [jogoOk, setJogoOk] = useState('')
   const [clubeAssistir, setClubeAssistir] = useState(false) // 🏟️ aba Clube: o jogo aparece ali (placar/2D) só quando a pessoa pede
   const calI = calPasso.r === round && calPasso.s === calSn ? calPasso.i : 0
   // 🔔 o apito fica GUARDADO: na Central o relógio do placar está escondido/pausado e o `roundReady` volta a dizer "rolando"
@@ -9939,9 +9907,10 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (!copaPendente || copaMidOn || calFase !== 'dias' || calI < CAL_QUARTA) return
     if (!meNaFaseCopa) { setCopaRound(r => r + 1); return }
+    if (jogoOk !== `${calSn}:${round}:c`) return // ▶ espera o "Ir pro jogo" / "Começar o jogo"
     if (state.copaXiSeason !== calSn && mgrMe) dispatch({ type: 'FREEZE_COPA_XI', season: calSn, xi: { [youId]: myXI.map(c => c.id) } }) // 🔒 a Copa não muda mais depois da 1ª fase
     setCopaMidOn(true)
-  }, [copaPendente, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [copaPendente, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn, jogoOk]) // eslint-disable-line react-hooks/exhaustive-deps
   // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular) e a Copa da quarta já foi
   const calDiasOk = !calOn || round === 0 || round >= 38 || (calI >= calTotal && !copaPendente && !copaMidOn)
   // 🏟️ 25/10 (Diego: "chega o dia do jogo e os locais do mapa ficam mais cheios… o estádio também"): no mapa 3D (conta de prévia),
@@ -9987,11 +9956,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk || chegando) return
+    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !roundReady || coletivaOpen || !calDiasOk || chegando || (calOn && round < 38 && jogoOk !== `${calSn}:${round}:l`)) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk, chegando])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk, chegando, calOn, jogoOk, calSn])
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -10499,7 +10468,7 @@ export function PyramidSeasonScreen() {
       jogos.sort((a, b) => a.dia - b.dia)
     }
     // ⏩ Pular: se a semana tem Copa ainda não jogada, pula só ATÉ A QUARTA (a Copa nunca é pulada); senão, até o domingo
-    const irProJogoNoMapa = () => setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal })
+    const irProJogoNoMapa = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); if (!copaPendente) setJogoOk(`${calSn}:${round}:l`) } // (no mapa, o "ir pro jogo" já é a pessoa mandando começar)
     const verJogoNoMapa = () => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
     const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
@@ -10507,7 +10476,7 @@ export function PyramidSeasonScreen() {
     // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
     const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
-      rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} /> : null
+      rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
     // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
@@ -10525,31 +10494,27 @@ export function PyramidSeasonScreen() {
   // 📅 25/10 — A CENTRAL É A CASA (ideia do Diego, mockup `calendario-fluxo.png`): os dias passam na Central; chegou o dia do
   // jogo (a semana acabou no automático, ou a Copa da quarta entrou), aparece "Dia de jogo!" e PARA: a pessoa toca em "Ir pro jogo"
   // (ou "agora não", e vai depois pelo ⏩ do cartão). Apitou (e nada pendente), 3s depois volta pra Central. Só com o calendário (conta do Diego).
-  const diaJogoKey = `${calSn}:${round}:${calFase}`
-  const diaDeJogoNaCentral = calOn && !state.co2 && tab === 'central' && (
-    (calFase === 'dias' && calLivre && !manual && calDiasOk && round >= 1 && round < 38 && !chegando) || (calFase === 'copa' && copaMidOn) || calFase === 'jogo') // (o 'jogo' = a rodada já está no ar — ex.: abriu a carreira no meio dela: na Central o relógio para)
+  const copaNaQuarta = copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn
+  const chaveJogo = `${calSn}:${round}:${copaNaQuarta ? 'c' : 'l'}`
+  const esperandoInicio = calOn && !state.co2 && !manual && calFase === 'dias' && calLivre && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
+  const liberaJogo = () => setJogoOk(chaveJogo)
+  const diaJogoKey = calFase === 'jogo' ? `${calSn}:${round}:no-ar` : chaveJogo
+  const diaDeJogoNaCentral = (tab === 'central' || tab === 'jogos') && (esperandoInicio || (calOn && !state.co2 && tab === 'central' && calFase === 'jogo'))
   const [diaJogo, setDiaJogo] = useState<string | null>(null)
   const [ficouAqui, setFicouAqui] = useState('')
   useEffect(() => { if (diaDeJogoNaCentral && ficouAqui !== diaJogoKey && diaJogo !== diaJogoKey) setDiaJogo(diaJogoKey) }, [diaDeJogoNaCentral, ficouAqui, diaJogoKey, diaJogo])
-  useEffect(() => { if (diaJogo && tab !== 'central') setDiaJogo(null) }, [diaJogo, tab])
-  // 🛑 26/10 (Diego: *"não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*): sem relógio —
-  // o aviso fica parado até a pessoa tocar
-  const vimDoJogo = useRef(false)
-  useEffect(() => { if (tab !== 'jogos') vimDoJogo.current = false; else if (calOn && (calFase === 'jogo' || calFase === 'copa')) vimDoJogo.current = true }, [tab, calOn, calFase])
-  useEffect(() => {
-    if (!calOn || state.co2 || !vimDoJogo.current || tab !== 'jogos' || calFase !== 'dias' || !calLivre) return
-    const t = setTimeout(() => { vimDoJogo.current = false; setTab('central') }, 3000)
-    return () => clearTimeout(t)
-  }, [calOn, state.co2, tab, calFase, calLivre])
+  useEffect(() => { if (diaJogo && (!diaDeJogoNaCentral || diaJogo !== diaJogoKey)) setDiaJogo(null) }, [diaJogo, diaDeJogoNaCentral, diaJogoKey])
+  // 🛑 26/10 (Diego: *"não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"* e *"o usuário
+  // tem que tá livre pra dar uma volta nas abas"*): o aviso não tem relógio e, depois do apito, ninguém é levado pra lugar nenhum
   const avisoDiaDeJogo = diaJogo ? (() => {
-    const copaHoje = calFase === 'copa'
+    const copaHoje = copaNaQuarta || calFase === 'copa'
     return (
       <div role="dialog" aria-label={tr('Dia de jogo', 'Match day')} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
         <div style={{ background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, padding: '18px 16px', width: '100%', maxWidth: 360, textAlign: 'center' }}>
           <div style={{ fontSize: 44, lineHeight: 1 }}>{copaHoje ? '🏆' : '⚽'}</div>
           <b style={{ ...OSWALD, display: 'block', fontSize: 30, textTransform: 'uppercase', margin: '6px 0 2px' }}>{tr('Dia de jogo!', 'Match day!')}</b>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#53534b', margin: '0 0 12px' }}>{copaHoje ? tr(`Copa · ${copaFaseName}`, `Cup · ${copaFaseName}`) : tr(`Liga · rodada ${calFase === 'jogo' ? round : round + 1}`, `League · round ${calFase === 'jogo' ? round : round + 1}`)}</p>
-          <button onClick={() => { setDiaJogo(null); escolheAba('jogos') }} style={{ ...OSWALD, width: '100%', fontSize: 18, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, cursor: 'pointer' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
+          <button onClick={() => { setDiaJogo(null); if (calFase !== 'jogo') liberaJogo(); escolheAba('jogos') }} style={{ ...OSWALD, width: '100%', fontSize: 18, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, cursor: 'pointer' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
           <button onClick={() => { setFicouAqui(diaJogo); setDiaJogo(null) }} style={{ background: 'none', border: 'none', marginTop: 10, fontSize: 12, fontWeight: 800, color: '#53534b', textDecoration: 'underline', cursor: 'pointer' }}>{tr('agora não', 'not now')}</button>
         </div>
       </div>
@@ -10824,7 +10789,7 @@ export function PyramidSeasonScreen() {
     })()
     return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
-      rankGlobal={rankGlobalCentral ? { linhas: rankGlobalCentral, abrir: () => { setTab('ranking'); setRankSub('global') } } : null}
+      rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
       semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} />
   }
@@ -11468,6 +11433,8 @@ export function PyramidSeasonScreen() {
           <Co2Temporada entradasLocais={entradasLocais} round={round} roundReady={roundReady} seasonOver={seasonOver}
             onEscalacao={() => setTab('elenco')} onTatica={() => setTab('elenco')} />
         )}
+        {/* ▶ 26/10: dia de jogo com o calendário — o jogo só começa no toque (vale pra todo plano, com ou sem Manual) */}
+        {esperandoInicio && tab === 'jogos' && <button className="ll-cx-controle" onClick={liberaJogo} style={{ width: '100%', marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{copaNaQuarta ? tr('▶ Começar o jogo da Copa', '▶ Start the Cup match') : tr('▶ Começar o jogo', '▶ Start the match')}</button>}
         {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
             <button className="ll-cx-controle" onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
