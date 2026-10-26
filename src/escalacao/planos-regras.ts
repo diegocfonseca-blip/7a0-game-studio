@@ -25,11 +25,21 @@ export const PRECOS = {
  *  se chamar 🖋️ FUNDADOR (o único que ganha número de fundador daqui pra frente — quem já tem número fica com ele).
  *  Subir de plano = paga só a DIFERENÇA entre os preços de hoje (`precoSubida`). */
 /** 17/10 (Diego): Lenda caiu de 49,90 pra 44,90 — as subidas se ajustam sozinhas (diferença + R$ 5). */
-export const PRECOS_UNICO = { craque: 29.9, lenda: 44.9, batismo: 79.9, fundador: 99.9 } as const
+// 26/10 (loja nova, mockup `loja-craque-mensal-lenda-vez.png`): 👑 Lenda 44,90 → 59,90. O ⭐ Craque de 29,90 NÃO é mais vendido (o
+// Craque virou mensal, `MENSAIS`), mas o 29,90 continua aqui porque é a base da diferença de quem JÁ tem o Craque de uma vez.
+// No banco: `esc_mp_preco` (mesmos números) — mudou aqui, muda lá.
+export const PRECOS_UNICO = { craque: 29.9, lenda: 59.9, batismo: 79.9, fundador: 99.9 } as const
+/** o Lenda custava 44,90 até 26/10: quem comprou nesse preço sobe pela diferença de 44,90 (banco: `esc_mp_preco`, atual = 2) */
+export const LENDA_PRECO_ANTIGO = 44.9
+/** ⭐📅 26/10: os DOIS Craques mensais, no Pix recorrente da Vendria. Quem libera é o webhook (`esc_vendria_aplica`), pelo VALOR. */
+export const MENSAIS = {
+  craque_salas: { preco: 9.9, link: 'https://app.vendria.com.br/c/5NdmF6I4FEuAFrhelEWUS0Ttft_aMNbG' },
+  craque_completo: { preco: 14.9, link: 'https://app.vendria.com.br/c/mfwRSubfQriKTXsTdkPerrMGJulG04GX' },
+} as const
 export type PlanoUnico = keyof typeof PRECOS_UNICO
 /** 💛 PLANO DUPLO (16/10, Diego): 2 do MESMO plano — um pra quem paga, outro de presente — num Pix só, com 10% a menos
  *  (arredondado pro ,90). A MESMA tabela mora no banco (`esc_mp_preco_ref`, ref 'd-<id do presente>'): mudou aqui, muda lá. */
-export const PRECOS_DUPLO: Record<PlanoUnico, number> = { craque: 53.9, lenda: 80.9, batismo: 143.9, fundador: 179.9 }
+export const PRECOS_DUPLO: Record<PlanoUnico, number> = { craque: 53.9, lenda: 107.9, batismo: 143.9, fundador: 179.9 } // 26/10: Lenda 2×59,90 −10%
 /** 💰 14/10 (Diego): *"todo usuário que tem um plano e quer passar pra um novo teria que pagar pelo menos 5 reais a mais"*.
  *  Subir de plano = a diferença + R$ 5. */
 export const TAXA_SUBIDA = 5
@@ -39,7 +49,8 @@ export const SUBIDA_BATISMO_FUNDADOR = 29.9
 export function precoSubida(alvo: PlanoUnico, atual: PlanoUnico | null): number {
   // 17/10 (Diego): *"qm já é batismo pra passar p ser fundador aumente de 25 pra 29,90"* — a única subida com preço fixo.
   if (atual === 'batismo' && alvo === 'fundador') return SUBIDA_BATISMO_FUNDADOR
-  const dif = PRECOS_UNICO[alvo] - (atual ? PRECOS_UNICO[atual] : 0)
+  // (quem tem o Lenda comprou a 44,90 — até 26/10 todos; a tela usa essa base, o banco confere pelo pedido pago)
+  const dif = PRECOS_UNICO[alvo] - (atual === 'lenda' ? LENDA_PRECO_ANTIGO : atual ? PRECOS_UNICO[atual] : 0)
   if (dif <= 0) return 0
   return Math.round((dif + (atual ? TAXA_SUBIDA : 0)) * 100) / 100
 }
@@ -50,6 +61,13 @@ export function planoAtual(d: { batismoPlano: 'antigo' | 'lenda' | 'plus' | null
   if (tier === 'ouro') return 'lenda'
   if (tier === 'prata') return 'craque'
   return null
+}
+
+/** 💳 o plano PAGO PRA SEMPRE (pra preço e subida): o ⭐ Craque mensal NÃO conta — quem assina paga o preço cheio no Pix, igual ao
+ *  banco (`esc_plano_rank_fixo`). Pra saber o que a pessoa GANHA (personagem, clã…), continua `planoAtual`. */
+export function planoFixo(d: Direitos | null, tier: TierCor | null | undefined): PlanoUnico | null {
+  if (d?.mensalPlano) return planoAtual(d, d.craqueAtivo || d.batismo ? 'ouro' : d.tierLegado)
+  return planoAtual(d, tier)
 }
 
 /** "R$ 12,90" / "R$ 12.90" */
@@ -85,6 +103,10 @@ export interface Direitos {
   craqueAtivo: boolean
   craqueAte: string | null
   craqueCancelada: boolean
+  /** ⭐📅 26/10: Craque MENSAL da Vendria ativo (Salas 9,90 · Completo 14,90) — o banco só manda quando o mês está pago */
+  mensalPlano: 'craque_salas' | 'craque_completo' | null
+  mensalAte: string | null
+  mensalCancelada: boolean
   /** a cor/tier na tela (o maior entre o antigo e o que a assinatura/batismo dá) */
   tier: TierCor | null
   manual: boolean
@@ -116,6 +138,9 @@ export function lerDireitos(raw: unknown): Direitos | null {
     craqueAtivo: b('craque_ativo'),
     craqueAte: typeof r.craque_ate === 'string' ? r.craque_ate : null,
     craqueCancelada: b('craque_cancelada'),
+    mensalPlano: r.mensal_plano === 'craque_salas' || r.mensal_plano === 'craque_completo' ? r.mensal_plano : null,
+    mensalAte: typeof r.mensal_ate === 'string' ? r.mensal_ate : null,
+    mensalCancelada: b('mensal_cancelada'),
     tier: ehTier(r.tier) ? r.tier : null,
     manual: b('manual'),
     salasPagas: b('salas_pagas'),
@@ -132,13 +157,16 @@ export function lerDireitos(raw: unknown): Direitos | null {
  */
 export function tierEfetivo(legado: TierCor | null | undefined, d: Direitos | null): TierCor | null {
   if (d && (d.craqueAtivo || d.batismo)) return 'ouro'
+  // ⭐📅 26/10: Craque mensal ativo = prata (quem já é ouro continua ouro — "quem já tem plano não muda nada")
+  if (d?.mensalPlano && legado !== 'ouro') return 'prata'
   return legado ?? null
 }
 
-/** 🎮 Modo Manual: o selo `manual` antigo, Craque/Lenda antigo, assinatura ou batismo */
+/** 🎮 Modo Manual: o selo `manual` antigo, Craque/Lenda antigo, assinatura, batismo ou ⭐ Craque COMPLETO mensal.
+ *  ⚠️ `legado` é o tier COMPRADO (banco/lista), nunca o da tela: o ⭐ Craque Salas mensal pinta prata mas NÃO tem Manual. */
 export function temManual(legado: TierCor | null | undefined, manualCol: boolean, d: Direitos | null): boolean {
   if (manualCol || legado === 'prata' || legado === 'ouro') return true
-  return !!d && (d.manual || d.craqueAtivo || d.batismo)
+  return !!d && (d.manual || d.craqueAtivo || d.batismo || d.mensalPlano === 'craque_completo')
 }
 
 /**

@@ -4,8 +4,8 @@ import { tr, getLang } from './lang'
 import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
-import { APOIO_PERKS, ApoioSheen, useDireitos } from './apoio'
-import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
+import { APOIO_PERKS, ApoioSheen, useDireitos, logApoio } from './apoio'
+import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo, MENSAIS } from './planos-regras'
 import { DuploLinha } from './presente'
 import './support-plans.css'
 import { CartoesBatismo, UmaVezSo } from './support-plans-v2'
@@ -197,7 +197,8 @@ export function SupportPlans(p: Props) {
   const meu = p.name || tr('Seu Time', 'Your Club')
   // 💳 14/10: preços de UMA VEZ SÓ (planos-regras) e subida pagando só a diferença
   const direitos = useDireitos()
-  const atual = planoAtual(direitos, p.tier as 'prata' | 'ouro' | undefined)
+  // (preço/subida pelo plano PAGO pra sempre: quem só assina o mensal paga o Lenda cheio — 26/10)
+  const atual = planoFixo(direitos, p.tier as 'prata' | 'ouro' | undefined)
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
   const subLenda = precoSubida('lenda', atual)
   const meuTier: 'bege' | 'prata' | 'ouro' = p.tier === 'ouro' ? 'ouro' : p.tier === 'prata' ? 'prata' : 'bege'
@@ -218,10 +219,28 @@ export function SupportPlans(p: Props) {
       {meuTier === 'bege' && <p className="ll-vit-hero-pe">{tr('👆 é assim que os outros te veem hoje. ', '👆 this is how others see you today. ')}<b>{tr('Bora mudar isso?', 'Shall we change that?')}</b></p>}
     </div>
 
-    <h3 className="ll-support-section">{tr('⚡ PAGUE UMA VEZ · É SEU PRA SEMPRE', '⚡ PAY ONCE · YOURS FOREVER')}</h3>
-      <SupportPlanCard id="support-prata" title={tr('⭐ Craque', '⭐ Star')} price={reais(PRECOS_UNICO.craque)} cadence={tr('uma vez só', 'one-off payment')} tone="prata">
-        <UmaVezSo />
-        <h3>{tr('Manda no ritmo do jogo, vê o nível dos jogadores até Craque e brilha em prata na sala.', 'Run the pace of the game, see player levels up to Star and shine in silver in the room.')}</h3>
+    {/* ⭐📅 26/10 (Diego, loja aprovada `loja-craque-mensal-lenda-vez.png`): o Craque de 29,90 SAIU da venda; no lugar, os DOIS Craques
+        MENSAIS na Vendria. Mesmo cartão, mesmo visual de sempre — só o conteúdo é novo. Quem já tem o Craque de uma vez continua com ele. */}
+    <h3 className="ll-support-section">{tr('📅 POR MÊS · NO PIX AUTOMÁTICO', '📅 MONTHLY · AUTOMATIC PIX')}</h3>
+      <SupportPlanCard id="support-prata" title={tr('⭐ Craque Salas', '⭐ Star Rooms')} price={reais(MENSAIS.craque_salas.preco)} cadence={tr('por mês', 'per month')} tone="prata">
+        <h3>{tr('Cria quantas salas quiser, monta o seu presidente e o seu clã, e brilha em prata na sala.', 'Create as many rooms as you like, build your president and your clan, and shine in silver in the room.')}</h3>
+        <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
+          <LinhaSala tier="prata" nome={meu} />
+          <div className="ll-vit-grid">
+            <Mini rot={tr('♾️ cria quantas salas online quiser por dia', '♾️ create as many online rooms as you want a day')}><div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>{['A9XHEV', 'K9FC22'].map(c => <span key={c} style={{ ...OSW, fontSize: 9, background: '#fff', border: `2px solid ${INK}`, borderRadius: 5, padding: '1px 5px' }}>{c}</span>)}</div></Mini>
+            <Mini rot={tr('🏆 Minhas Ligas com a sua turma', '🏆 My Leagues with your crew')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div></Mini>
+          </div>
+        </Vitrine>
+        <Ok><b>{tr('🧑‍💼 Crie o seu presidente', '🧑‍💼 Create your president')}</b>{tr(' (o seu personagem)', ' (your character)')}</Ok>
+        <Ok><b>{tr('⚔️ Crie o seu clã', '⚔️ Create your clan')}</b></Ok>
+        <Ok><b>{tr('🥈 Nome prata brilhando', '🥈 Shining silver name')}</b>{tr(' nas salas, na tabela e no chat', ' in rooms, tables and chat')}</Ok>
+        <p className="ll-support-note">{tr('O Modo Manual e o Campo 2D vêm no ⭐ Craque Completo.', 'Manual Mode and the 2D Pitch come with ⭐ Star Complete.')}</p>
+        {direitos?.mensalPlano === 'craque_salas' ? <p className="ll-vit-seu">{tr('✅ você assina o Craque Salas', '✅ you subscribe to Star Rooms')}</p>
+          : <button className="ll-support-button prata" onClick={() => { logApoio('⭐ vitrine → Craque Salas (Vendria)'); window.open(MENSAIS.craque_salas.link, '_blank', 'noopener') }}>{tr(`ASSINAR CRAQUE SALAS · ${reais(MENSAIS.craque_salas.preco)}/MÊS`, `SUBSCRIBE TO STAR ROOMS · ${reais(MENSAIS.craque_salas.preco)}/MONTH`)}</button>}
+      </SupportPlanCard>
+
+      <SupportPlanCard id="support-completo" title={tr('⭐ Craque Completo', '⭐ Star Complete')} price={reais(MENSAIS.craque_completo.preco)} cadence={tr('por mês', 'per month')} tone="prata">
+        <h3>{tr('Tudo do Craque Salas + manda no ritmo do jogo com o Modo Manual, o Campo 2D e vê o nível dos jogadores até Craque.', 'Everything in Star Rooms + run the pace of the game with Manual Mode, the 2D Pitch and see player levels up to Star.')}</h3>
         <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
           <LinhaSala tier="prata" nome={meu} />
           <div className="ll-vit-grid">
@@ -229,16 +248,18 @@ export function SupportPlans(p: Props) {
             <Mini rot={tr('🔎 vê o NÍVEL do jogador: até Craque', '🔎 see the player’s LEVEL: up to Star')}><CartaNivel tier="prata" nome="Zé Craque" nivel={82} /></Mini>
           </div>
         </Vitrine>
+        <Ok><b>{tr('Tudo do ⭐ Craque Salas', 'Everything in ⭐ Star Rooms')}</b>{tr(': salas à vontade, Minhas Ligas, presidente, clã e nome prata', ': unlimited rooms, My Leagues, president, clan and silver name')}</Ok>
+        <Ok><b>{tr('📺 Campo 2D', '📺 2D Pitch')}</b>{tr(' (em breve)', ' (coming soon)')}</Ok>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Craque', ', up to Star level')}</Ok>
         <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
-        <Ok><b>{tr('🏟️ 1 sala online por dia', '🏟️ 1 online room per day')}</b>{tr(' (igual ao grátis) — criar à vontade é do 👑 Lenda', ' (same as free) — unlimited rooms come with 👑 Legend')}</Ok>
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
-        {atual ? <p className="ll-vit-seu">{tr('✅ você já tem o Craque', '✅ you already have Star')}</p>
-          : <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr(`ESCOLHER CRAQUE · ${reais(PRECOS_UNICO.craque)}`, `CHOOSE STAR · ${reais(PRECOS_UNICO.craque)}`)}</button>}
-        {!atual && <DuploLinha pl="craque" atual={atual} subida={precoSubida('craque', atual)} />}
+        {direitos?.mensalPlano === 'craque_completo' ? <p className="ll-vit-seu">{tr('✅ você assina o Craque Completo', '✅ you subscribe to Star Complete')}</p>
+          : <button className="ll-support-button prata" onClick={() => { logApoio('⭐ vitrine → Craque Completo (Vendria)'); window.open(MENSAIS.craque_completo.link, '_blank', 'noopener') }}>{tr(`ASSINAR CRAQUE COMPLETO · ${reais(MENSAIS.craque_completo.preco)}/MÊS`, `SUBSCRIBE TO STAR COMPLETE · ${reais(MENSAIS.craque_completo.preco)}/MONTH`)}</button>}
         {memberButton('prata')}
       </SupportPlanCard>
+      <p className="ll-support-note">{tr('📧 Na hora de pagar, use o MESMO e-mail da sua conta do jogo — é por ele que o plano liga sozinho. Já tem o ⭐ Craque de uma vez? Ele continua seu.', '📧 When paying, use the SAME e-mail as your game account — that’s how the plan switches on by itself. Already have the one-off ⭐ Star? It stays yours.')}</p>
 
+    <h3 className="ll-support-section">{tr('⚡ PAGUE UMA VEZ · É SEU PRA SEMPRE', '⚡ PAY ONCE · YOURS FOREVER')}</h3>
       <SupportPlanCard id="support-ouro" title={tr('👑 Lenda', '👑 Legend')} price={reais(PRECOS_UNICO.lenda)} cadence={tr(`uma vez só · ou + ${reais(precoSubida('lenda', 'craque'))} se já é Craque`, `one-off · or + ${reais(precoSubida('lenda', 'craque'))} if you have Star`)} tone="ouro">
         <UmaVezSo />
         <h3>{tr('Tudo do Craque, sem teto: vê o nível até Lenda, acha jogador fora do leilão até Lenda, brilha em ouro, cria a sua liga e quantas salas quiser.', 'Everything in Star, no ceiling: see levels up to Legend, find players outside the auction up to Legend, shine in gold, create your own league and as many rooms as you like.')}</h3>
@@ -252,7 +273,7 @@ export function SupportPlans(p: Props) {
           </div>
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
-        <Ok><b>{tr('♾️ Cria quantas salas online quiser por dia', '♾️ Create as many online rooms as you like each day')}</b>{tr(' (no grátis e no Craque é 1 por dia)', ' (free and Star: 1 per day)')}</Ok>
+        <Ok><b>{tr('♾️ Cria quantas salas online quiser por dia', '♾️ Create as many online rooms as you like each day')}</b>{tr(' (no grátis é 1 por dia)', ' (free: 1 per day)')}</Ok>
         <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · 🎮 Modo Manual · grupo VIP no WhatsApp com o Diego', ' saved · 🎮 Manual Mode · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando só a diferença.', 'Already have Star? Upgrade to Legend paying only the difference.')}</p>
         {atual && atual !== 'craque' ? <p className="ll-vit-seu">{tr('✅ você já tem o Lenda', '✅ you already have Legend')}</p>

@@ -132,6 +132,67 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- 🟢 LOJA NOVA · ETAPA 2 NO AR (26/10): link do ⭐ Craque Completo 14,90 (`https://app.vendria.com.br/c/mfwRSubfQriKTXsTdkPerrMGJulG04GX`).
+  Diego: *"planos atuais de quem já se deu bem não mude… não mude o visual que já existia no padrão dos planos… até aquele texto de pra
+  onde vai o dinheiro"*. Feito no MESMO padrão (mesmos cartões `SupportPlanCard`, "pra onde vai o dinheiro" intacto):
+  · Vitrine (`support-plans.tsx`): seção "📅 POR MÊS" com ⭐ Craque Salas 9,90 e ⭐ Craque Completo 14,90 (botão abre a Vendria; aviso de
+    usar o MESMO e-mail da conta) no lugar do Craque de 29,90; Lenda 59,90 · dupla 107,90. FAQ (screens.tsx) e Loja do Clube (seção
+    "⭐ Craque por mês"; o Craque de 29,90 sumiu do "Sobe de plano") atualizados. Presente: sem o Craque de uma vez.
+  · Banco (`supabase/migrations/20261026170000_loja_lenda_5990.sql`): `esc_mp_preco` Lenda 59,90, Craque de uma vez = não vende;
+    `esc_plano_rank_fixo` (o mensal NÃO conta como plano pra sempre: assinante paga o Lenda cheio); quem comprou o Lenda a 44,90 continua
+    subindo pela diferença de 44,90 (Batismo 40 · Fundador 60, conferido); presente Lenda 59,90 e dupla 107,90.
+  · Código: `planoFixo` (preço/subida) × `planoAtual` (o que GANHA — mensal = Craque: presidente e clã). Trava `npm run planos` atualizada.
+  FALTA: avisos na hora (sala extra / Manual trancado), Passe 24h R$ 9,90, conferir a 1ª renovação real (17/11), apagar `tmp_direitos_antes`.
+- 🟡 LOJA NOVA · ETAPA 1 FEITA (26/10, invisível pro jogador): o CRAQUE MENSAL já liga sozinho pelo servidor. Diego mandou o link da
+  Vendria do ⭐ Craque 9,90 (`https://app.vendria.com.br/c/5NdmF6I4FEuAFrhelEWUS0Ttft_aMNbG`) e lembrou: *"quem já tem plano não muda nada"*.
+  · Banco (`supabase/migrations/20261026150000_craque_mensal_vendria.sql`): tabela NOVA `esc_assinatura_mensal` (só soma por cima do que a
+    conta já tem) + `esc_vendria_aplica` (só a chave de serviço; plano pelo VALOR assinado pela Vendria: 990 = `craque_salas`, 1490 =
+    `craque_completo`; prazo = `accessEndsAt`, nunca encurta; só ativa se a CONTA do jogo com aquele e-mail já existia, `conta_ok`) +
+    `esc_direitos_de` com `mensal_plano`: mensal ativo = tier PRATA (ouro continua ouro), salas à vontade, nuvem; Manual SÓ no Completo.
+    Conferido: 346 contas (todas as pagantes + 150 recentes) com direitos IDÊNTICOS antes/depois; simulação desfeita: anon barrado,
+    Salas = prata sem Manual, Completo = prata com Manual, evento velho não tira mês, valor estranho ignorado.
+  · Webhook `vendria-webhook` v5 (fase 2): depois de conferir a assinatura e guardar, evento `subscription.*` chama `esc_vendria_aplica`.
+  · Jogo: `planos-regras.ts` lê `mensalPlano`; `tierEfetivo` dá prata; `temManual` recebe o tier COMPRADO (não o da tela) e libera
+    Manual só pro Completo. Trava `npm run planos` com 9 casos novos.
+  ⚠️ FALTA: (1) apagar a tabela `tmp_direitos_antes` (foto de conferência; a ferramenta pediu confirmação ao Diego e expirou) ·
+  (2) link da Vendria do ⭐ Craque COMPLETO 14,90 · (3) a TELA da loja (sem Craque 29,90 à venda, dois mensais com o link, Lenda 59,90
+  no Pix — muda `PRECOS_UNICO` E `esc_mp_preco_ref`) · (4) avisos na hora (sala extra / Manual trancado) · (5) Passe 24h R$ 9,90 (produto
+  novo no Pix + direito de 24 h) · (6) conferir a 1ª RENOVAÇÃO real: o assinante de teste de 17/10 renova em 17/11 — ver se a Vendria manda
+  `subscription.*` na renovação (senão o mês não estende) · (7) o Craque Salas leva 2 fichas e nuvem (vem do prata) — o mockup punha isso
+  só no Completo; perguntar ao Diego se tudo bem.
+- ✅ APROVADO (26/10, *"aprova assim então"*; `scripts/mockups/loja-craque-mensal-lenda-vez.png`, sem "cancela quando quiser", Manual trancado = 24 h 9,90 · 14,90/mês · ver planos). ⚠️ Taxa da Vindi: R$ 2 FIXOS por cobrança recorrente (9,90 → 7,90 líquido, 20%). Proposto subir só o Craque Salas pra 11,90 — esperando resposta: a proposta DELE depois de 4 rodadas
+  (*"deixar como tá hoje mas remover o plano de 29,90… quando o cara for criar sala extra que não pode aparece avulso 4,90 ou mensal
+  9,90 ou ver todos os planos… teria também 14,90 pra ter sala extra e botão manual + campo 2D; esses dois seriam planos craques; o
+  Lenda seria 59,90 com as coisas do Lenda e do Craque uma vez só; mantenha 79,90 e 99,90"*). Então: SAI o Craque 29,90 (quem tem
+  fica) · ⭐ Craque Salas 9,90/mês (salas à vontade + Minhas Ligas + criar personagem + criar clã + prata — personagem e clã nos DOIS Craques, pedido dele) · ⭐ Craque Completo 14,90/mês (+ Manual + 2D em breve +
+  nível até Craque + 2 carreiras + boneco) · 👑 Lenda 59,90 UMA VEZ (tudo dos dois + até Lenda + 4 carreiras + dourado) · Batismo
+  79,90 e Fundador 99,90 iguais. Oferta na hora: criar sala sem poder → 4,90 avulso · 9,90/mês · ver planos; Manual trancado →
+  14,90/mês · Lenda 59,90 · ver planos. O que vai em cada Craque é proposta minha — ele ajusta.
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-mensal-pecas-vitalicio.png`): a 3ª opção do Diego — mensal
+  obrigatório pra jogar (⭐ 9,90 / 👑 14,90), o CLUBE VENDIDO PEÇA POR PEÇA (proposta de preço: escudo 29,90 · mascote 34,90 · manto
+  19,90 · nome 9,90 · gala 14,90 · canto 10 · tema 6,90; kit completo 79,90 = 29,60 mais barato que separado) e UM vitalício caro sem
+  mensal, 💎 Presidente Vitalício 249,90 (Lenda pra sempre + kit + gala única + canto + nº fundador + tema + roupas + 500 🪙 + 2 fichas;
+  o que o assinante pagou nos últimos 6 meses desconta). Regra: peça do clube NÃO dá Manual nem sala.
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-dois-mensais.png`): DOIS MENSAIS + TUDO AVULSO. Diego perguntou
+  *"e se todo mundo tivesse que pagar dois planos mensais, e o resto é tudo coisa avulsa, ou kit com manto, mascote e escudo"*.
+  Proposta: só ⭐ Craque 9,90/mês e 👑 Lenda 14,90/mês dão acesso de jogo (Manual, 2D, níveis, carreiras, salas, cor, boneco); 🛡️ Kit do
+  Clube 79,90 e 🖋 Kit Fundador 99,90 (o Batismo/Fundador de hoje SEM plano dentro, uma vez, segue o e-mail) com 6 MESES DE LENDA DE
+  BRINDE; peças soltas como hoje. Quem já pagou fica como está (13/10). Frase do modelo: "Jogar é mensal. Ter um clube é seu pra sempre".
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-mensal-vitalicio.png`): LOJA COM MENSAL E PRA SEMPRE. Diego recusou
+  a loja só com planos de uma vez (*"não tô gostando… quero plano de valores baixos mensal e vitalício e etc e alto também"*). Ele tem
+  Pix recorrente na Vindi. Proposta: a MESMA escada com um botão 📅 MENSAL / ♾️ PRA SEMPRE: Craque 9,90/mês ou 29,90 · Lenda 14,90/mês
+  ou 44,90 · Batismo 79,90 e Fundador 99,90 só pra sempre (arte feita à mão) · degrau novo 💎 Presidente 199,90 (conteúdo a decidir).
+  🔁 Diego (26/10): *"29,90 não tem sentido tendo mensal… e o de 49,90 coloque 59,90"* → CRAQUE SÓ MENSAL (9,90; quem já comprou
+  fica, regra de 13/10) · LENDA 14,90/mês OU 59,90 pra sempre · 4 meses pagos de Lenda = pra sempre (14,90×4 = 59,60). Mockup refeito. Passe
+  24h 4,99 (desconta se assinar). Só o webhook da Vindi libera o mês (camada de assinatura que vence sozinha já existe desde 08/10).
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-estrategia.png`): LOJA PRA VENDER MAIS. Diego trouxe uma proposta
+  de loja com mensal 9,90 + vitalício 199,90 + combo 249,90 + passe 24h e pediu análise. Vendas reais (Pix, 30 dias): 21 compradores
+  (~1 em 100 dos 1.859 que jogaram online na semana); Craque 7 · Lenda 5 (3 eram subida de 20) · Fundador 3 (1 cheio, 2 subidas) ·
+  Batismo 2. Conclusão: a escada funciona (metade do dinheiro dos planos caros é de quem SUBIU), o vitalício de 199,90 mataria a
+  venda e o mensal com tudo engoliria Craque/Lenda (e o Sócio mensal saiu em 14/10). Proposta: mesma escada e mesmos preços, 👑 Lenda
+  em destaque ("mais escolhido"), 🎁 boas-vindas pra conta nova (Craque 19,90 nas primeiras 48 h, só 1ª compra), ⏱️ Passe 24h R$ 4,99
+  (vira Craque por 24,90) e venda NA HORA DA VONTADE (Manual trancado · sala do dia acabou · fichas cheias), com "agora não" que não
+  insiste no mesmo dia. Nada disso existe ainda: boas-vindas e Passe 24h precisam de produto/preço no banco (`esc_mp_preco_ref`).
 - FEITO (26/10, Diego aprovou com "Sim"; foto `scripts/mockups/telao-cla-semana.png`): no telão, o anúncio do PÓDIO DA SEMANA ganha uma
   linha dourada embaixo dos técnicos: "⚔️ CLÃ DA SEMANA: <campeão>" (Diego: *"no mesmo momento que aparece os vitoriosos, coloque após
   eles clã da semana e o nome do clã vitorioso"*). O anúncio separado dos 3 clãs continua girando depois.
@@ -11068,3 +11129,8 @@ Escada que está saindo da conversa (ele ainda vai fechar o valor do vitalício)
 - 🔧 26/10 (prints 23h51–23h54): aba Jogos nos dias = só a semana na horizontal + "▶ Começar o jogo" (a lista vertical "Seus jogos" e o "Ir pro jogo" ficam SÓ na Central); o "Ir pro jogo" aparece mesmo com decisão/evento pendente (a pendência se resolve no Jogos; o jogo só anda depois); saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar (o mapa 3D continua recebendo o jogo via `PublicarPartidaEstadio`); o selinho grudado "Rodada N/38" sai de TODAS as abas menos Jogos.
 - 📻 26/10 (prints do Football Manager): **a faixa de narração pisca no GOL** — verde do Bom Jogador (#2E9E5B) ⇄ creme, fundo e letra trocando, ~2,4 s (`radio-pisca.ts`/`.css`, `PISCA_GOL_MS`), por cima da cena do mascote. Placar cinema (gatilho = número de gols subir) e Campo 2D (gatilho = festa do gol). E a rádio da carreira virou UMA linha, no creme, sem os selos "Rádio Legends/Lance/Jogo" (*"são 3 coisas iguais… tudo numa linha só"*). Vídeos: `scripts/posts/radio-gol-placar.mp4` e `radio-gol-2d.mp4`. **No branch, esperando OK** pra publicar.
 - 📻 26/10 (OK do Diego: *"gostei, só acho que tem que piscar mais rápido"*): no gol a faixa grita "⚽ GOOOOOL DO <TIME>!" e pisca SEM PARAR verde (#2E9E5B) + letra bege ⇄ bege + letra preta, 0,18 s cada cor, por 6 s (`PISCA_GOL_MS`). Placar cinema (carreira e salas) e Campo 2D. Rádio da carreira = uma linha, bege com letra preta, sem selos. PUBLICADO.
+
+### 💸 26/10 — Clã: 2º clã R$ 4,90 e escudo personalizado R$ 9,90
+- Pedido do Diego: *"segundo clã na loja coloca 4,90 e escudo a 9,90"*. 2º clã (`cla_extra`) 9,90 → **4,90**; escudo de clã
+  (`escudo_cla`) 14,90 → **9,90**. Banco (`esc_mp_preco_ref`, migration `20261026190000`) e textos da tela (cla.tsx, cla-ver.tsx). Criar
+  o 1º clã sem plano continua R$ 4,90. Reverter = voltar as duas linhas (9.90 / 14.90).

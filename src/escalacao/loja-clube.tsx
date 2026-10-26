@@ -21,7 +21,7 @@ import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
-import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type PlanoUnico } from './planos-regras'
+import { precoSubida, precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton, GiroDaRodada } from './screens'
 import { PresenteBox } from './presente'
 import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
@@ -52,6 +52,7 @@ export const SALAS_EXTRAS_QTD = 3
 const MOEDAS: [number, string, string][] = [[10, 'Cafezinho', 'Coffee money'], [50, 'Reforço pontual', 'Quick boost'], [100, 'Fôlego de temporada', 'Season breather']]
 // 🎁 quem JÁ TEM o canto não vê ele à venda (Diego 14/10: "o Tricolor do Arruda já tem canto") — lista do som (`temCantoProprio`).
 const ORDEM: PlanoUnico[] = ['craque', 'lenda', 'batismo', 'fundador']
+// 26/10: o ⭐ Craque de uma vez não é mais vendido (virou mensal, `MENSAIS`) — continua na ORDEM só pra contar quem já tem
 const NOME: Record<PlanoUnico, [string, string]> = { craque: ['⭐ Craque', '⭐ Star'], lenda: ['👑 Lenda', '👑 Legend'], batismo: ['🖋 Batismo', '🖋 Club Naming'], fundador: ['🖋 Fundador', '🖋 Founder'] }
 const GANHO: Record<PlanoUnico, [string, string]> = {
   craque: ['Modo Manual, nível e olheiro até Craque, nome prata', 'Manual Mode, levels and scout up to Star, silver name'],
@@ -132,7 +133,9 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
   const [comprando, setComprandoRaw] = useState<Item | null>(null)
   const [duploAberto, setDuploAberto] = useState<PlanoUnico | null>(null)
   const setComprando = (it: Item | null) => { setComprandoRaw(it); if (it) setTimeout(() => document.getElementById('loja-pagar')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60) }
-  const acima = ORDEM.slice(atual ? ORDEM.indexOf(atual) + 1 : 0)
+  // (preço/subida pelo plano PAGO pra sempre — quem só assina o mensal paga cheio, igual ao banco; e o Craque de 29,90 não aparece mais)
+  const fixo = planoFixo(direitos, tier)
+  const acima = ORDEM.slice(fixo ? ORDEM.indexOf(fixo) + 1 : 0).filter(pl => pl !== 'craque')
   const temBatismo = atual === 'batismo' || atual === 'fundador'
   // 🎟️ salas extras: só pra quem NÃO cria à vontade (grátis e Craque novo). O saldo vem do banco.
   // 14/10 (Diego): "se ele é batismo por que aparece salas extras?" — quem cria à vontade (Lenda+, ou Craque antigo) NEM VÊ a seção
@@ -163,7 +166,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           <ApoioSheen holo={perk.holo} />
           <span style={{ position: 'relative' }}>{atual ? tr(`VOCÊ É ${NOME[atual][0].toUpperCase()}`, `YOU ARE ${NOME[atual][1].toUpperCase()}`) : tr('PLANO GRÁTIS', 'FREE PLAN')}</span>
         </div>
-        <p style={{ fontSize: 13, fontWeight: 700, margin: '8px 0 0', color: 'rgba(12,12,12,.75)' }}>{tr('Tudo aqui é pagamento ÚNICO — nada de mensalidade. Nas salas online ninguém compra vantagem: lá é todo mundo igual.', 'Everything here is a ONE-OFF payment — no monthly fee. In online rooms nobody buys an edge: everyone is equal there.')}</p>
+        <p style={{ fontSize: 13, fontWeight: 700, margin: '8px 0 0', color: 'rgba(12,12,12,.75)' }}>{tr('O ⭐ Craque é por mês; o resto é pagamento ÚNICO, seu pra sempre. Nas salas online ninguém compra vantagem: lá é todo mundo igual.', '⭐ Star is monthly; everything else is a ONE-OFF payment, yours forever. In online rooms nobody buys an edge: everyone is equal there.')}</p>
 
         {/* 💛 14/10 (Diego): da Loja tem que dar pra ver TODOS os planos e "pra onde vai o dinheiro" */}
         <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🛒 loja → ver todos os planos'); open() }} style={{ marginTop: 10, width: '100%', ...OSW, fontSize: 14, background: '#FFF3C4', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', cursor: 'pointer' }}>{tr('💛 VER TODOS OS PLANOS E PRA ONDE VAI O DINHEIRO ›', '💛 SEE ALL PLANS AND WHERE THE MONEY GOES ›')}</button>} />
@@ -171,23 +174,40 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         {/* 🧑‍💼 MEU PRESIDENTE (15/10) — o boneco mora na conta; só pra conta liberada enquanto está em teste */}
         <MeuPresidenteLoja />
 
+        {/* ⭐📅 CRAQUE POR MÊS (26/10, loja aprovada): os dois mensais da Vendria, no MESMO cartão das linhas de plano */}
+        {!(fixo && fixo !== 'craque') && <>
+          <h2 style={h2}>{tr('⭐ Craque por mês', '⭐ Monthly Star')} <span style={sub}>{tr('Pix automático todo mês', 'automatic Pix every month')}</span></h2>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {(['craque_salas', 'craque_completo'] as const).map(m => <div key={m} role="button" tabIndex={0} onClick={() => { if (direitos?.mensalPlano === m) return; logApoio(`🛒 loja → ${m} (Vendria)`); window.open(MENSAIS[m].link, '_blank', 'noopener') }} style={{ ...card, cursor: direitos?.mensalPlano === m ? 'default' : 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: APOIO_PERKS.prata.grad }}>
+              <div style={{ flex: 1 }}>
+                <b style={{ ...OSW, fontSize: 18, display: 'block' }}>{m === 'craque_salas' ? tr('⭐ Craque Salas', '⭐ Star Rooms') : tr('⭐ Craque Completo', '⭐ Star Complete')}</b>
+                <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{m === 'craque_salas'
+                  ? tr('salas à vontade, Minhas Ligas, seu presidente, seu clã e nome prata', 'unlimited rooms, My Leagues, your president, your clan and silver name')
+                  : tr('tudo do Craque Salas + 🎮 Modo Manual, 📺 Campo 2D (em breve) e nível até Craque', 'everything in Star Rooms + 🎮 Manual Mode, 📺 2D Pitch (soon) and levels up to Star')}</small>
+              </div>
+              <span style={{ ...preco, background: '#fff', color: INK }}>{direitos?.mensalPlano === m ? tr('✅ assinando', '✅ subscribed') : `${reais(MENSAIS[m].preco)}${tr('/mês', '/mo')} ›`}</span>
+            </div>)}
+            <small style={{ fontSize: 11, fontWeight: 700, color: 'rgba(12,12,12,.6)', lineHeight: 1.35 }}>{tr('📧 Pague com o MESMO e-mail da sua conta do jogo: é por ele que o plano liga sozinho.', '📧 Pay with the SAME e-mail as your game account: that’s how the plan switches on by itself.')}</small>
+          </div>
+        </>}
+
         {/* ⬆️ SUBIR DE PLANO */}
         {acima.length > 0 && <>
-          <h2 style={h2}>{tr('⬆️ Sobe de plano', '⬆️ Move up a plan')} <span style={sub}>{atual ? tr('paga só a diferença', 'pay only the difference') : tr('pagamento único', 'one-off payment')}</span></h2>
+          <h2 style={h2}>{tr('⬆️ Sobe de plano', '⬆️ Move up a plan')} <span style={sub}>{fixo ? tr('paga só a diferença', 'pay only the difference') : tr('pagamento único', 'one-off payment')}</span></h2>
           <div style={{ display: 'grid', gap: 8 }}>
-            {acima.map(pl => <ApoieButton key={pl} startScreen="choice" trigger={open => <div role="button" tabIndex={0} onClick={() => { logApoio(`🛒 loja → ver plano ${pl}`); open() }} style={{ ...card, cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: pl === 'lenda' ? APOIO_PERKS.ouro.grad : pl === 'craque' ? APOIO_PERKS.prata.grad : pl === 'fundador' ? 'linear-gradient(135deg,#14251a,#1B7A3D)' : INK, color: pl === 'batismo' || pl === 'fundador' ? CREAM : INK }}>
+            {acima.map(pl => <ApoieButton key={pl} startScreen="choice" trigger={open => <div role="button" tabIndex={0} onClick={() => { logApoio(`🛒 loja → ver plano ${pl}`); open() }} style={{ ...card, cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: pl === 'lenda' ? APOIO_PERKS.ouro.grad : pl === 'fundador' ? 'linear-gradient(135deg,#14251a,#1B7A3D)' : INK, color: pl === 'batismo' || pl === 'fundador' ? CREAM : INK }}>
               <div style={{ flex: 1 }}>
                 <b style={{ ...OSW, fontSize: 18, display: 'block', color: pl === 'batismo' || pl === 'fundador' ? GOLD : INK }}>{tr(NOME[pl][0], NOME[pl][1])}</b>
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr(GANHO[pl][0], GANHO[pl][1])}</small>
               </div>
-              <span style={{ ...preco, background: '#fff', color: INK }}>{atual ? '+ ' : ''}{reais(precoSubida(pl, atual))} ›</span>
+              <span style={{ ...preco, background: '#fff', color: INK }}>{fixo ? '+ ' : ''}{reais(precoSubida(pl, fixo))} ›</span>
             </div>} />)}
             {/* 📲 16/10 (Diego: "coloque meu telefone também pra quem faz batismo e fundador caso queira tirar dúvidas") */}
             {acima.some(pl => pl === 'batismo' || pl === 'fundador') && <a href={`https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(tr('Oi Diego! Tenho uma dúvida sobre o batismo/Fundador do Leilão Legends.', 'Hi Diego! I have a question about the Leilão Legends Club Naming/Founder.'))}`} target="_blank" rel="noreferrer"
               style={{ display: 'block', textAlign: 'center', fontSize: 11.5, fontWeight: 800, color: GREEN, textDecoration: 'underline' }}>{tr(`💬 Dúvida sobre Batismo ou Fundador? WhatsApp do Diego: ${WHATSAPP_TXT}`, `💬 Questions about Club Naming or Founder? Diego’s WhatsApp: ${WHATSAPP_TXT}`)}</a>}
             {/* 💛 PLANO DUPLO (16/10, Diego: "plano duplo… 10%… sutilmente embaixo do plano" + "o valor tem que ser um só pagando"):
                 só no Pix novo, e só quando sai mais barato que subir + presentear separado */}
-            {pixMp && acima.filter(pl => PRECOS_DUPLO[pl] < precoSubida(pl, atual) + PRECOS_UNICO[pl]).map(pl => duploAberto === pl
+            {pixMp && acima.filter(pl => PRECOS_DUPLO[pl] < precoSubida(pl, fixo) + PRECOS_UNICO[pl]).map(pl => duploAberto === pl
               ? <PresenteBox key={`d-${pl}`} duplo={pl} onClose={() => setDuploAberto(null)} />
               : <button key={`d-${pl}`} onClick={() => { logApoio(`💛 loja → plano duplo ${pl}`); setDuploAberto(pl) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: '#FFF8E1', border: `2px dashed ${INK}`, borderRadius: 11, padding: '6px 10px', cursor: 'pointer', textAlign: 'left', fontFamily: 'Arial, sans-serif' }}>
                   <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800 }}>{tr(`💛 Leve 2 ${NOME[pl][0]}: um pra você, outro de presente`, `💛 Get 2 ${NOME[pl][1]}: one for you, one as a gift`)}</span>
@@ -287,7 +307,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           <AnunciosPendentes />
         </>}
 
-        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 14,90 no Pix (22/10), só o presidente compra; nome + ideia + zap depois de pagar */}
+        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 9,90 no Pix (26/10), só o presidente compra; nome + ideia + zap depois de pagar */}
         {pixMp && <>
           <h2 id="loja-cla" style={h2}>{tr('⚔️ Seu clã', '⚔️ Your clan')}</h2>
           <EscudoClaLoja />

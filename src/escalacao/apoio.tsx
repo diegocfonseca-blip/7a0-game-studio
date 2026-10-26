@@ -427,7 +427,8 @@ export function useHasManual(): boolean {
   // 🎮 o Modo Manual vem no Craque (prata) e no Lenda (ouro); ou pelo selo `manual`
   // avulso. Promessa (roxo) é só cor.
   useDireitos() // re-renderiza quando a assinatura/batismo chega do banco
-  return temManual(myApoioPerk()?.tier, manualCol, direitos)
+  // (o tier COMPRADO, não o da tela: o ⭐ Craque Salas mensal pinta prata e não tem Manual — 26/10)
+  return temManual(myEmail ? (dbTier ?? FOUNDERS[myEmail] ?? null) : null, manualCol, direitos)
 }
 
 // ✉️ TRAVA DE E-MAIL (04/08): o Supabase avisou de bounce alto — e-mail digitado

@@ -5,7 +5,7 @@
 //   · assina `<Webhook-Id>.<Webhook-Timestamp>.<corpo bruto>` com HMAC-SHA256, em base64url, prefixo `v1,`;
 //   · a entrega é "pelo menos uma vez" (pode repetir e vir fora de ordem) → dedupe pelo `id` do envelope.
 //
-// 🛡️ FASE 1 (esta): SÓ RECEBE, CONFERE A ASSINATURA E GUARDA. Não libera benefício nenhum ainda — a documentação não
+// 🛡️ FASE 1: RECEBE, CONFERE A ASSINATURA E GUARDA. (FASE 2, 26/10: eventos de assinatura ligam o Craque mensal — ver no fim.) (Texto de 14/10:) a documentação não
 //    mostra onde vêm o e-mail do comprador e o produto, e a regra do Diego é nunca liberar nada por informação não
 //    verificada. Com o primeiro pedido de verdade guardado em `esc_vendria_eventos`, a fase 2 lê os campos reais e
 //    liga a entrega (Sócio / Batismo / Batismo Lenda) pelo e-mail.
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
   }
   if (!ok) return new Response('assinatura inválida', { status: 401 })
 
-  let ev: { id?: string; type?: string; schemaVersion?: string; occurredAt?: string; data?: { order?: { id?: string } } }
+  let ev: { id?: string; type?: string; schemaVersion?: string; occurredAt?: string; data?: { order?: { id?: string }; subscription?: unknown } }
   try { ev = JSON.parse(corpo) } catch { return new Response('json inválido', { status: 400 }) }
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
   // dedupe pelo id do envelope: repetição da mesma entrega não grava duas vezes
@@ -71,5 +71,12 @@ Deno.serve(async (req) => {
     ocorrido_em: ev.occurredAt ?? null, pedido_id: ev.data?.order?.id ?? null, payload: ev,
   }, { onConflict: 'id', ignoreDuplicates: true })
   if (error) return new Response('falha ao guardar', { status: 500 }) // a Vendria tenta de novo
+  // ⭐📅 FASE 2 (26/10): evento de ASSINATURA (começou, renovou, cancelou…) liga o Craque mensal pelo e-mail de quem pagou.
+  // `esc_vendria_aplica` decide tudo no banco: só a chave de serviço chama, o plano sai do VALOR cobrado (990 = Craque Salas ·
+  // 1490 = Craque Completo), o prazo é o `accessEndsAt` da Vendria e nunca encurta. É idempotente: repetição não dá mês a mais.
+  if ((ev.type ?? '').startsWith('subscription.') || (ev.data as Record<string, unknown> | undefined)?.subscription) {
+    const { error: e2 } = await db.rpc('esc_vendria_aplica', { p_ev: ev })
+    if (e2) return new Response('falha ao aplicar', { status: 500 }) // a Vendria tenta de novo; aplicar 2× não muda nada
+  }
   return new Response(null, { status: 204 })
 })
