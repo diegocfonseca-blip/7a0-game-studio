@@ -11163,3 +11163,5 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   corredor coberto vai até a fachada nova (`inside` dos portões). Chão que sobra em volta do campo = grama quando o campo já é de
   grama. Testes: os mesmos de antes passam (arquitetura com a sonda dos bancos em −39 em vez de −42; LOD aceita 80–96 cadeiras na
   fila 1 nos cantos). O camarote ficou onde estava (atrás do 2º anel) — dá pra trazer pra dentro depois, se ele pedir.
+
+- ✅ 26/10 **Manual trancado da carreira com 3 opções**: ⏱️ Manual 24 h avulso R$ 9,90 (Pix `manual_24h`, banco libera por 24 h em `esc_direitos_de`) · ⭐ Craque Completo 14,90 · 💛 todos os planos. Painel 📊 manteve as linhas antigas e ganhou o caminho de cada lugar (Manual / limite de sala) + quantos pagaram o 24 h.
