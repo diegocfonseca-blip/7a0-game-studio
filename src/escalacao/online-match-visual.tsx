@@ -92,10 +92,18 @@ export function OnlineScorePresentation(p: {
     const antes = golsAntes.current
     golsAntes.current = nGols
     if (antes == null || nGols <= antes) { if (nGols < (antes ?? 0)) setPisca(null); return }
+    viuCena.current = !!p.goalSide // gol em cima de gol: a cena já está aberta
     setPisca({ k: nGols, lado: p.goals[nGols - 1]?.home ? 'h' : 'a' })
-    const t = setTimeout(() => setPisca(null), PISCA_GOL_MS)
+    const t = setTimeout(() => setPisca(null), PISCA_GOL_MS) // reserva: tela sem cena de gol
     return () => clearTimeout(t)
   }, [nGols]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ⏱️ 26/10 (Diego: *"quando a mascote sai… o pisca para ao mesmo tempo"*): o pisca acaba JUNTO com a cena do gol
+  // (mascote/selo), pra quem não tem mascote também saber quanto dura — e um gol novo em cima recomeça do zero.
+  const viuCena = useRef(false)
+  useEffect(() => {
+    if (p.goalSide) { viuCena.current = true; return }
+    if (viuCena.current) { viuCena.current = false; setPisca(null) }
+  }, [p.goalSide])
   const piscaGol = pisca ? estiloPisca() : undefined
   return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
     {!semFaixa && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>

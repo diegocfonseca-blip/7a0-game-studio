@@ -18,7 +18,7 @@ import { avatarLote1 } from './avatar-lote1'
 import { useT } from './lang'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrás dos gols do campinho do jogo (Vadico · Tidex, trocando)
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
-import { estiloPisca, PISCA_GOL_MS, gritoGol } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
+import { estiloPisca, gritoGol } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
 import { nomeLimpo } from './escudos'
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
@@ -103,14 +103,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const [narra, setNarra] = useState('')
   const [festa, setFesta] = useState<{ lado: 0 | 1; autor: string; assist?: string; min: number } | null>(null)
   const [placarV, setPlacarV] = useState<[number, number]>([0, 0])
-  // 📻 26/10: no gol a faixa do locutor pisca (igual à rádio do placar cinema) — ~2,4 s, na cor de quem marcou ⇄ creme
-  const [piscaGol, setPiscaGol] = useState<{ k: string; lado: 0 | 1 } | null>(null)
-  useEffect(() => {
-    if (!festa) return
-    setPiscaGol({ k: `${festa.lado}|${festa.autor}|${festa.min}`, lado: festa.lado })
-    const tm = setTimeout(() => setPiscaGol(null), PISCA_GOL_MS)
-    return () => clearTimeout(tm)
-  }, [festa])
+  // 📻 26/10: no gol a faixa do locutor pisca (igual à rádio do placar cinema), na cor de quem marcou ⇄ creme —
+  // e para JUNTO com a festa do gol (Diego: *"quando a mascote sai… o pisca para ao mesmo tempo"*)
+  const piscaGol = festa ? { k: `${festa.lado}|${festa.autor}|${festa.min}`, lado: festa.lado } : null
   const ultimos = useRef({ narra: '', festa: '', placar: [-1, -1] as [number, number] })
   const deitado = larg >= DEITADO_A_PARTIR
   // 🌤️ o céu deste jogo (preso na semente: a sala inteira vê o mesmo) — ☀️ sombra atravessando · ☁️ luz chapada · 🌧️ chuva (rara)

@@ -4,8 +4,8 @@
 import type { CSSProperties } from 'react'
 import './radio-pisca.css'
 
-/** quanto tempo a faixa pisca depois do gol (Diego: *"cuidado pra não ficar muito comprido"*) */
-export const PISCA_GOL_MS = 6000
+/** RESERVA: o pisca acaba junto com a cena do gol; isto só vale se a tela não tiver cena (igual à cena: ~1,7 s) */
+export const PISCA_GOL_MS = 1800
 /** o verde do 🎯 Bom Jogador (o mesmo do selo da carta) e o creme do jogo */
 const VERDE = '#2E9E5B', CREME = '#F4ECD6'
 
