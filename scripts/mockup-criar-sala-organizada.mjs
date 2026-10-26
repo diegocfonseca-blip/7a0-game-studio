@@ -25,7 +25,7 @@ const chips = (lista, marcado, { cols = 0 } = {}) => `<div class="chips${cols ? 
 const linha = (rot, corpo, dica = '') => `<div class="ln"><p class="rot">${rot}</p>${corpo}${dica}</div>`
 const bloco = (n, ic, titulo, frase, corpo) => `<section class="bl"><header><span class="n">${n}</span><div><h3>${ic} ${titulo}</h3><p>${frase}</p></div></header>${corpo}</section>`
 const IG = '@leilaolegendscom'
-const PLANO = '', META = k => `<span class="em">📸</span>ABRE COM ${k}K`
+const PLANO = '', META = k => `LANÇA COM ${k}K<span class="em">👤</span>NO INSTA`
 const MODOS = [
   ['⚡ Rápido', 'Uma temporada. Começa agora.'],
   ['🏆 Minhas ligas', 'A sala da turma que não acaba.', PLANO, true],
@@ -106,8 +106,8 @@ const CSS = `${FONTS}
 .pe button{width:100%;font:700 20px Oswald;background:#1B7A3D;color:#fff;border:3px solid #F4ECD6;border-radius:12px;padding:11px;box-shadow:3px 3px 0 #FFC400}
 `
 const html = `<!doctype html><meta charset="utf-8"><style>${CSS}</style>
-<p class="cap">🧩 Criar sala — proposta organizada (v4)</p>
-<p class="sub">v4 · ⭐ = precisa de plano pra CRIAR (quem tem plano usa normal) · faixa roxa 📸 ABRE COM NK = ainda não lançado, abre quando o Instagram bater N mil seguidores · jogar é sempre grátis. 3º celular: o que aparece quando toca num modo travado (nada abre embaixo).</p>
+<p class="cap">🧩 Criar sala — proposta organizada (v5)</p>
+<p class="sub">v5 · ⭐ = precisa de plano pra CRIAR (quem tem plano usa normal) · faixa roxa LANÇA COM NK 👤 NO INSTA = ainda não lançado, abre quando o Instagram bater N mil seguidores · jogar é sempre grátis. 3º celular: o que aparece quando toca num modo travado (nada abre embaixo).</p>
 <div class="duo"><div class="tel">${tel1}</div><div class="tel">${tel2}</div><div class="tel">${tel3}</div></div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
