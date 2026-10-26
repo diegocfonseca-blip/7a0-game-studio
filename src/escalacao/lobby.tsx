@@ -20,7 +20,8 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, useHasManual } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, useHasManual, useDireitos } from './apoio'
+import { ehPagante } from './saf2'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -868,7 +869,10 @@ export function EscLobby() {
   })
   const previewComum = usePreviewComum() // 👁️ ver as telas de quem NÃO é Lenda (só as contas do Diego)
   const criar2 = useCriarSala2() // 🔨 tela de criar sala v2 (só a conta do Diego, 29/08)
-  const canLiga = myApoioPerk()?.tier === 'ouro' // 👑 criar Liga Fechada é benefício do Lenda
+  // ⭐ 26/10 (Diego, print: *"aqui não é Lenda… é qualquer plano, quem tem plano mesmo que seja o de 9,90"*): criar Minhas Ligas é de
+  // QUALQUER plano pago (a régua `ehPagante`: Craque/Lenda, batismo, fundador, sócio…). Antes era só o Lenda (tier ouro).
+  const direitosLiga = useDireitos()
+  const canLiga = ehPagante(myApoioPerk()?.tier, direitosLiga)
   // 🚪 QUEM ENTRA NA LIGA — mudou em 22/08, por decisão do Diego. Antes (regra de
   // 19/08) só Lenda/dono de batismo ENTRAVA. Ele reviu: *"vamos supor q só qm pode
   // criar e o lenda"* e, mais cedo, *"qm entra se tiver aberta pode ser qlqr um"*.
@@ -1973,7 +1977,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     if (liga && !canLiga) {
-      setRoomError((planos2Liberado() ? tr((nbaSala ? '🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e cestinha temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.' : '🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.'), '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr((nbaSala ? '🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e cestinha temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".' : '🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".'), '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
+      setRoomError(tr('🏆 Criar uma Liga é de quem tem plano (qualquer um) — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League needs a plan (any of them) — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.'))
       setLoading(false); return
     }
     // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
@@ -3411,20 +3415,20 @@ export function EscLobby() {
                 <div className="mt-3 rounded-xl border-[3px] border-black p-3.5" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
                   {canLiga && previewComum && (
                     <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: INK, ...OSWALD }}>
-                      {planos2Liberado() ? (tr('👁️ prévia — é isto que quem não é Craque vê aqui', '👁️ preview — this is what non-Stars see here')) : (tr('👁️ prévia — é isto que quem NÃO é Lenda vê aqui', '👁️ preview — this is what non-Legends see here'))}
+                      {tr('👁️ prévia — é isto que quem não tem plano vê aqui', '👁️ preview — this is what people without a plan see here')}
                     </p>
                   )}
-                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>{planos2Liberado() ? (tr('⭐ Criar uma liga é do Craque', '⭐ Creating a league is a Star perk')) : (tr('👑 Criar uma liga é do Lenda', '👑 Creating a league is for Legends'))}</p>
+                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>{tr('⭐ Criar uma liga é de quem tem plano', '⭐ Creating a league needs a plan')}</p>
                   <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
                     {getLang() === 'en' ? <>The league is the room that <b className="text-white">stays up</b>: always the same one, with a set day and time, and the shelf keeping champion and top scorer <b className="text-white">season after season</b>.</> : <>A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e {nbaSala ? 'cestinha' : 'artilheiro'} <b className="text-white">temporada após temporada</b>.</>}
                   </p>
-                  <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
+                  <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }}
                     className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
                     style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-                    {planos2Liberado() ? (tr('⭐ QUERO O CRAQUE · R$ 9,90/MÊS', '⭐ I WANT STAR · R$ 9.90/MONTH')) : (tr('👑 QUERO SER LENDA', '👑 I WANT TO BE LEGEND'))}
+                    {tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}
                   </button>
                   <p className="text-white/55 text-[11px] font-bold leading-snug mt-2.5">
-                    {planos2Liberado() ? (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If someone creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se alguém criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>) : (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If a Legend creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>)}
+                    {planos2Liberado() ? (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If someone creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se alguém criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>) : (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If someone with a plan creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se alguém com plano criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>)}
                   </p>
                   <p className="text-white/35 text-[10px] font-bold leading-snug mt-2">
                     {getLang() === 'en' ? <>Just want to play now? Use <b className="text-white/60">⚡ Quick</b> up there — it's free and always was.</> : <>Quer só jogar agora? Use o <b className="text-white/60">⚡ Rápido</b> aqui em cima — é de graça e sempre foi.</>}
