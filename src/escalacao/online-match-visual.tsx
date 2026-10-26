@@ -81,6 +81,29 @@ export function OnlineScorePresentation(p: {
   // 🥅 17/10 (print do Diego): sem a faixa de narração no topo (ela foi pro rádio), a cena do GOOOL tem que cobrir o placar
   // INTEIRO — antes ela começava 36–46px abaixo (o lugar da faixa) e os escudos apareciam por cima, cortando a arte.
   const semFaixa = !!(p.narracaoNoRadio && p.radio)
+  // 📻 26/10 (Diego, prints do Football Manager): saiu GOL, a faixa da rádio PISCA por uns segundos trocando fundo e letra entre a cor
+  // do time que marcou e o creme — igual à faixa do FM. Só cor (CSS): não mexe em placar, relógio nem narração.
+  // O gatilho é o NÚMERO de gols subir agora (nunca o placar que já abriu com gol, nem o selo de gol que volta a aparecer):
+  // pisca ~4,5 s — o tempo do mascote passar e mais um pouco — e para antes se a rádio já falar de outro lance.
+  const [pisca, setPisca] = useState<{ k: number; lado: 'h' | 'a' } | null>(null)
+  const nGols = p.goals.length
+  const golsAntes = useRef<number | null>(null)
+  useEffect(() => {
+    const antes = golsAntes.current
+    golsAntes.current = nGols
+    if (antes == null || nGols <= antes) { if (nGols < (antes ?? 0)) setPisca(null); return }
+    setPisca({ k: nGols, lado: p.goals[nGols - 1]?.home ? 'h' : 'a' })
+    const t = setTimeout(() => setPisca(null), 4500)
+    return () => clearTimeout(t)
+  }, [nGols]) // eslint-disable-line react-hooks/exhaustive-deps
+  const piscaOn = !!pisca && (!p.radio?.tipo || p.radio.tipo === 'gol')
+  const piscaGol = piscaOn && pisca ? (() => {
+    const c = (pisca.lado === 'h' ? p.homeColor : p.awayColor) || '#1B7A3D'
+    const h = c.replace('#', ''), n = h.length === 3 ? h.split('').map(x => x + x).join('') : h
+    const [r, g, b] = [0, 2, 4].map(i => parseInt(n.slice(i, i + 2), 16) || 0)
+    const claro = (r * 299 + g * 587 + b * 114) / 1000 > 165 // cor clara demais vira tinta preta (senão branco no branco)
+    return { '--ll44-a': claro ? '#0C0C0C' : c, '--ll44-b': '#F4ECD6' } as CSSProperties
+  })() : undefined
   return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
     {!semFaixa && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
       {p.goalSide ? p.stamp : p.narration}
@@ -109,12 +132,12 @@ export function OnlineScorePresentation(p: {
       <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
-    {p.radio && p.narracaoNoRadio && <div className="ll43-radio" aria-live="off">
+    {p.radio && p.narracaoNoRadio && <div key={piscaOn && pisca ? `g${pisca.k}` : 'r'} className={`ll43-radio${piscaGol ? ' ll44-gol-pisca' : ''}`} style={piscaGol} aria-live="off">
       <span className="ll42-radio-tag">📻 {tr('RÁDIO LEGENDS', 'RADIO LEGENDS')}</span>
       <LinhaFala f={p.radio} />
       {p.radio.anterior && <LinhaFala f={p.radio.anterior} velha />}
     </div>}
-    {p.radio && !p.narracaoNoRadio && <div className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}`} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
+    {p.radio && !p.narracaoNoRadio && <div key={piscaOn && pisca ? `g${pisca.k}` : 'r'} className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}${piscaGol ? ' ll44-gol-pisca' : ''}`} style={piscaGol} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
       {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{p.big ? '⚽ ' : ''}{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
       {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}
