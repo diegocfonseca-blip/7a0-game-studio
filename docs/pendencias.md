@@ -5,7 +5,7 @@
   (`goalSide` volta a null; reserva 1,8 s), 2D = enquanto dura a `festa`. Gol em cima de gol recomeça com o autor novo.
 - 🎙️ **Rádio com os jogadores tocando na bola (26/10, publicado pra todos)**: 45 toques entre companheiros (rodam pela escalação
   inteira), +20 lances, até 22 frases por jogo com escalação. Vale em todo placar novo (carreira, copas, salas online, Minhas Ligas).
-  ⚠️ A Partida Rápida OFFLINE ainda usa o placar antigo (sem rádio) — se ele quiser lá também, é trocar o visual dela (mostrar antes).
+  ✅ Partida Rápida OFFLINE também (26/10, *"óbvio"*): `publicOnlineVisual` não exige mais sala online.
 - ✅ Faixa fina de sábado agora diz "AMANHÃ" quando o jogo é no domingo.
 - Ainda em aberto: clã da semana no
   telão junto do pódio (pergunta sem resposta); preço do Campeonato Oficial (30/20/15/10/5 × 10/7/5/4/2).
