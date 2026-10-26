@@ -107,7 +107,8 @@
   a loja só com planos de uma vez (*"não tô gostando… quero plano de valores baixos mensal e vitalício e etc e alto também"*). Ele tem
   Pix recorrente na Vindi. Proposta: a MESMA escada com um botão 📅 MENSAL / ♾️ PRA SEMPRE: Craque 9,90/mês ou 29,90 · Lenda 14,90/mês
   ou 44,90 · Batismo 79,90 e Fundador 99,90 só pra sempre (arte feita à mão) · degrau novo 💎 Presidente 199,90 (conteúdo a decidir).
-  Regra que amarra: 3 MESES PAGOS = PRA SEMPRE (9,90×3 ≈ 29,90), então o mensal é parcelamento sem juros e não briga com o plano. Passe
+  🔁 Diego (26/10): *"29,90 não tem sentido tendo mensal… e o de 49,90 coloque 59,90"* → CRAQUE SÓ MENSAL (9,90; quem já comprou
+  fica, regra de 13/10) · LENDA 14,90/mês OU 59,90 pra sempre · 4 meses pagos de Lenda = pra sempre (14,90×4 = 59,60). Mockup refeito. Passe
   24h 4,99 (desconta se assinar). Só o webhook da Vindi libera o mês (camada de assinatura que vence sozinha já existe desde 08/10).
 - ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-estrategia.png`): LOJA PRA VENDER MAIS. Diego trouxe uma proposta
   de loja com mensal 9,90 + vitalício 199,90 + combo 249,90 + passe 24h e pediu análise. Vendas reais (Pix, 30 dias): 21 compradores

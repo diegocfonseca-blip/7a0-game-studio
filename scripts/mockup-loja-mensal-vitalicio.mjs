@@ -10,16 +10,16 @@ const b64 = f => readFileSync(f).toString('base64')
 const FONTES = [500, 700].map(w => `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}) format('woff2');font-weight:${w}}`).join('')
 
 const PLANOS = [
-  { cls: 'craque', emoji: '⭐', nome: 'CRAQUE', mes: '9,90', sempre: '29,90', linhas: ['🎮 Modo Manual + 📺 Campo 2D', '🔎 Nível e olheiro até Craque', '💾 2 carreiras + nuvem', '🧑‍💼 Seu presidente (boneco)', '🥈 Nome prata'] },
-  { cls: 'lenda', emoji: '👑', nome: 'LENDA', mes: '14,90', sempre: '44,90', fita: '🔥 MAIS ESCOLHIDO', linhas: ['Tudo do Craque +', '🏟️ Salas à vontade + Minhas Ligas', '🔎 Nível e olheiro até Lenda', '💾 4 carreiras', '🥇 Nome DOURADO'] },
+  { cls: 'craque', emoji: '⭐', nome: 'CRAQUE', mes: '9,90', soMes: true, linhas: ['🎮 Modo Manual + 📺 Campo 2D', '🔎 Nível e olheiro até Craque', '💾 2 carreiras + nuvem', '🧑‍💼 Seu presidente (boneco)', '🥈 Nome prata'] },
+  { cls: 'lenda', emoji: '👑', nome: 'LENDA', mes: '14,90', sempre: '59,90', fita: '🔥 MAIS ESCOLHIDO', linhas: ['Tudo do Craque +', '🏟️ Salas à vontade + Minhas Ligas', '🔎 Nível e olheiro até Lenda', '💾 4 carreiras', '🥇 Nome DOURADO'] },
   { cls: 'bat', emoji: '🖋', nome: 'BATISMO', sempre: '79,90', so: true, linhas: ['Tudo do Lenda +', '🛡️ Escudo, mascote e manto do SEU clube', '🚁 Entrada de gala'] },
   { cls: 'fund', emoji: '🖋', nome: 'FUNDADOR', sempre: '99,90', so: true, linhas: ['Tudo do Batismo +', '✨ Gala ÚNICA + 📣 canto', '#️⃣ Número de fundador'] },
   { cls: 'pres', emoji: '💎', nome: 'PRESIDENTE', sempre: '199,90', so: true, novo: true, linhas: ['Tudo do Fundador +', '🎨 Tema do seu clube na sala', '👔 TODAS as roupas do presidente', '🪙 500 moedas + 💾 2 fichas extras', '📺 1 dia de anúncio seu no telão por mês'] },
 ]
 const card = (p, modo) => {
-  const mensal = modo === 'mes' && !p.so
-  const preco = mensal ? `R$ ${p.mes}<small>/mês · cancela quando quiser</small>` : `R$ ${p.sempre}<small>${p.so ? 'só pra sempre · uma vez' : 'uma vez · pra sempre'}</small>`
-  const outro = mensal ? `<div class="outro">ou R$ ${p.sempre} uma vez, pra sempre</div>` : (!p.so ? `<div class="outro">ou R$ ${p.mes}/mês</div>` : '')
+  const mensal = (modo === 'mes' && !p.so) || p.soMes
+  const preco = mensal ? `R$ ${p.mes}<small>/mês · ${p.soMes ? 'só mensal · ' : ''}cancela quando quiser</small>` : `R$ ${p.sempre}<small>${p.so ? 'só pra sempre · uma vez' : 'uma vez · pra sempre'}</small>`
+  const outro = p.soMes ? '' : mensal ? `<div class="outro">ou R$ ${p.sempre} uma vez, pra sempre</div>` : (!p.so ? `<div class="outro">ou R$ ${p.mes}/mês</div>` : '')
   return `<div class="pl ${p.cls}">${p.fita ? `<span class="fita">${p.fita}</span>` : ''}${p.novo ? '<span class="fita novo">NOVO</span>' : ''}
    <div class="plt"><span class="pn">${p.emoji} ${p.nome}</span><span class="pp">${preco}</span></div>
    <ul>${p.linhas.map(l => `<li>${l}</li>`).join('')}</ul>${outro}
@@ -28,7 +28,7 @@ const card = (p, modo) => {
 const toggle = modo => `<div class="tg"><span class="${modo === 'mes' ? 'on' : ''}">📅 MENSAL</span><span class="${modo === 'sempre' ? 'on' : ''}">♾️ PRA SEMPRE</span></div>`
 const telaMes = `<div class="cel"><div class="top">🛒 LOJA DO CLUBE <span class="xx">✕</span></div><div class="pad">
  <div class="h">🪜 ESCOLHA SEU PLANO</div>${toggle('mes')}
- <div class="regra">💡 <b>3 meses pagos = seu pra sempre.</b> Sem pagar mais nada.</div>
+ <div class="regra">💡 <b>Lenda: 4 meses pagos = seu pra sempre.</b> O Craque é só mensal: pra ter pra sempre, o caminho é o Lenda.</div>
  ${PLANOS.filter(p => !p.so).map(p => card(p, 'mes')).join('')}
  <div class="dica">🖋 Batismo, Fundador e 💎 Presidente são só pra sempre: a arte do seu clube é feita à mão. Veja em <b>♾️ PRA SEMPRE</b>.</div>
  <div class="passe"><span class="pe">⏱️</span><div><b>SÓ QUER PROVAR? PASSE DE 24 HORAS</b><small>Manual + Campo 2D por um dia. Os R$ 4,99 descontam se você assinar.</small></div><span class="bt verde mini">R$ 4,99</span></div>
@@ -40,14 +40,14 @@ const telaSempre = `<div class="cel"><div class="top">🛒 LOJA DO CLUBE <span c
 </div></div>`
 const escada = `<div class="esc">
  <div class="eh">A ESCADA INTEIRA, DO BARATO AO CARO</div>
- ${[['⏱️ Passe 24h', 'R$ 4,99', 'um dia', 'provar o Manual e o 2D'], ['🎟️ Avulsos', 'R$ 4,90 a 9,99', 'cada', 'salas, ficha, temas, telão'], ['⭐ Craque', 'R$ 9,90/mês', 'ou R$ 29,90', 'Manual + 2D pra jogar'], ['👑 Lenda', 'R$ 14,90/mês', 'ou R$ 44,90', 'salas à vontade, dourado'], ['🖋 Batismo', 'R$ 79,90', 'pra sempre', 'seu clube com arte própria'], ['🖋 Fundador', 'R$ 99,90', 'pra sempre', 'gala única, canto, número'], ['💎 Presidente', 'R$ 199,90', 'pra sempre · NOVO', 'tudo + tema, roupas, moedas, telão']]
+ ${[['⏱️ Passe 24h', 'R$ 4,99', 'um dia', 'provar o Manual e o 2D'], ['🎟️ Avulsos', 'R$ 4,90 a 9,99', 'cada', 'salas, ficha, temas, telão'], ['⭐ Craque', 'R$ 9,90/mês', 'só mensal', 'Manual + 2D pra jogar'], ['👑 Lenda', 'R$ 14,90/mês', 'ou R$ 59,90', 'salas à vontade, dourado'], ['🖋 Batismo', 'R$ 79,90', 'pra sempre', 'seu clube com arte própria'], ['🖋 Fundador', 'R$ 99,90', 'pra sempre', 'gala única, canto, número'], ['💎 Presidente', 'R$ 199,90', 'pra sempre · NOVO', 'tudo + tema, roupas, moedas, telão']]
   .map(([n, p, q, d], i) => `<div class="deg" style="margin-left:${i * 14}px"><b>${n}</b><span class="dp">${p}</span><small>${q}</small><em>${d}</em></div>`).join('')}
  <div class="eh" style="margin-top:18px">COMO O MENSAL NÃO BRIGA COM O PRA SEMPRE</div>
  <ul class="pq">
-  <li><b>Mesmo plano, dois jeitos de pagar.</b> Quem assina Craque tem o MESMO Craque de quem pagou 29,90 — enquanto paga.</li>
-  <li><b>3 meses pagos viram pra sempre.</b> 9,90 × 3 = 29,70. Ninguém paga mais pelo mensal do que pelo plano. O mensal é um parcelamento sem juros.</li>
-  <li><b>Parou de pagar antes dos 3 meses?</b> Volta pro grátis. O que foi pago fica de crédito se voltar.</li>
-  <li><b>Subir de degrau vale nos dois.</b> Craque mensal → Lenda mensal: paga 14,90 no mês seguinte. Craque pra sempre → Lenda: só a diferença + 5.</li>
+  <li><b>Craque é só mensal (R$ 9,90).</b> É a porta de entrada: barato, renova sozinho, cancela quando quiser. Não existe mais Craque de uma vez — quem já comprou fica com ele pra sempre (regra de 13/10).</li>
+  <li><b>Lenda tem os dois jeitos:</b> R$ 14,90/mês ou R$ 59,90 uma vez. <b>4 meses pagos de Lenda = pra sempre</b> (14,90 × 4 = 59,60). O mensal nunca sai mais caro que o plano.</li>
+  <li><b>Craque mensal → Lenda:</b> no mês seguinte paga 14,90 em vez de 9,90, pronto. Os meses de Craque não contam pro Lenda pra sempre (são planos diferentes).</li>
+  <li><b>Parou de pagar?</b> Volta pro grátis. Nada é apagado: carreira, cartas e conquistas ficam guardadas.</li>
   <li><b>Batismo pra cima é só pra sempre.</b> É arte feita à mão pro clube: não tem como "devolver" no fim do mês.</li>
   <li><b>Cobrança:</b> Pix recorrente da Vindi. Só o aviso da Vindi no servidor libera o mês. Vence sozinho na data (a camada de assinatura já existe no jogo desde 08/10).</li>
  </ul>
@@ -81,10 +81,10 @@ ul{margin:6px 0 6px;padding:0;list-style:none;font-size:13px;font-weight:600;lin
 .nota{font-weight:700;font-size:13.5px;margin:10px 2px 0;line-height:1.4}
 </style></head><body>
 <h1>🛒 Loja com MENSAL e PRA SEMPRE — do barato ao caro</h1>
-<p class="sub">A mesma escada de hoje, com um botão em cima: 📅 MENSAL (Pix recorrente, renova sozinho, cancela quando quiser) ou ♾️ PRA SEMPRE (uma vez, como já é). O que amarra os dois: <b>3 meses pagos = o plano vira pra sempre</b>. Em cima da escada, um degrau novo pra quem quer tudo: 💎 Presidente.</p>
+<p class="sub">A mesma escada, com um botão em cima: 📅 MENSAL (Pix recorrente, renova sozinho, cancela quando quiser) ou ♾️ PRA SEMPRE (uma vez). <b>Craque só mensal (9,90)</b> · <b>Lenda 14,90/mês ou 59,90</b> · Batismo e Fundador só pra sempre. Em cima da escada, um degrau novo pra quem quer tudo: 💎 Presidente.</p>
 <div class="cols">
- <div class="c"><span class="tag">1 · BOTÃO EM MENSAL</span>${telaMes}<p class="nota">Só Craque e Lenda têm mensal. O texto embaixo manda quem quer Batismo pra cima pro botão PRA SEMPRE.</p></div>
- <div class="c"><span class="tag">2 · BOTÃO EM PRA SEMPRE</span>${telaSempre}<p class="nota">É a Loja de hoje, com o 💎 Presidente no topo (proposta: o que vai dentro dele você decide).</p></div>
+ <div class="c"><span class="tag">1 · BOTÃO EM MENSAL</span>${telaMes}<p class="nota">Craque só existe mensal. Lenda tem os dois. O texto embaixo manda quem quer Batismo pra cima pro botão PRA SEMPRE.</p></div>
+ <div class="c"><span class="tag">2 · BOTÃO EM PRA SEMPRE</span>${telaSempre}<p class="nota">O Craque aparece aqui também, mas só como mensal. Lenda 59,90 e o 💎 Presidente no topo (proposta: o que vai dentro dele você decide).</p></div>
  <div class="c"><span class="tag">3 · A ESCADA E AS REGRAS</span>${escada}</div>
 </div></body></html>`
 
