@@ -16,8 +16,8 @@ const pl = (cls, emoji, nome, preco, sub, linhas, bt, fita = '') => `<div class=
   <span class="bt ${cls === 'lenda' ? 'ouro' : 'verde'}">${bt}</span></div>`
 const loja = `<div class="cel"><div class="top">🛒 LOJA DO CLUBE <span class="xx">✕</span></div><div class="pad">
  <div class="h">🪜 PLANOS</div>
- ${pl('craque', '⭐', 'CRAQUE SALAS', '9,90', '/mês · cancela quando quiser', ['🏟️ Crie salas à vontade (acabou o limite de 1 por dia)', '🏆 Minhas Ligas', '🥈 Nome prata'], 'ASSINAR')}
- ${pl('craque', '⭐', 'CRAQUE COMPLETO', '14,90', '/mês · cancela quando quiser', ['Tudo do Craque Salas +', '🎮 Modo Manual nos seus jogos', '📺 Campo 2D <i>(em breve)</i>', '🔎 Nível e olheiro até Craque', '💾 2 carreiras + nuvem · 🧑‍💼 boneco'], 'ASSINAR', '🔥 MAIS ESCOLHIDO')}
+ ${pl('craque', '⭐', 'CRAQUE SALAS', '9,90', '/mês · cancela quando quiser', ['🏟️ Crie salas à vontade (acabou o limite de 1 por dia)', '🏆 Minhas Ligas', '🧑‍💼 Crie seu presidente (personagem)', '⚔️ Crie seu clã', '🥈 Nome prata'], 'ASSINAR')}
+ ${pl('craque', '⭐', 'CRAQUE COMPLETO', '14,90', '/mês · cancela quando quiser', ['Tudo do Craque Salas +', '🎮 Modo Manual nos seus jogos', '📺 Campo 2D <i>(em breve)</i>', '🔎 Nível e olheiro até Craque', '💾 2 carreiras + nuvem'], 'ASSINAR', '🔥 MAIS ESCOLHIDO')}
  ${pl('lenda', '👑', 'LENDA', '59,90', 'uma vez · pra sempre · sem mensal', ['Tudo dos dois Craques, pra sempre +', '🔎 Nível e olheiro até Lenda', '💾 4 carreiras', '🥇 Nome DOURADO em todo canto'], 'QUERO PRA SEMPRE')}
  <div class="dupla">
   ${pl('bat', '🖋', 'BATISMO', '79,90', 'uma vez', ['Tudo do Lenda +', '🛡️ Escudo, mascote e manto do SEU clube', '🚁 Entrada de gala'], 'QUERO')}
@@ -49,8 +49,8 @@ const regras = `<div class="esc">
  <div class="eh">A ESCADA</div>
  <div class="mapa">
   <div><b>🎟️ R$ 4,90</b>3 salas extras, avulso</div>
-  <div><b>⭐ R$ 9,90/mês</b>Craque Salas — salas à vontade</div>
-  <div><b>⭐ R$ 14,90/mês</b>Craque Completo — salas + Manual + 2D</div>
+  <div><b>⭐ R$ 9,90/mês</b>Craque Salas — salas à vontade, personagem e clã</div>
+  <div><b>⭐ R$ 14,90/mês</b>Craque Completo — tudo do Salas + Manual + 2D</div>
   <div><b>👑 R$ 59,90 uma vez</b>Lenda — tudo isso pra sempre, sem mensal</div>
   <div><b>🖋 R$ 79,90 · R$ 99,90</b>Batismo · Fundador — como hoje</div>
  </div>
