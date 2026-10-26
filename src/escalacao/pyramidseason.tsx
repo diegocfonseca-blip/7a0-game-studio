@@ -9890,12 +9890,14 @@ export function PyramidSeasonScreen() {
   const copaPendente = copaMid && !done && round > 0 && copaRound < copaDevidas
   const CAL_QUARTA = 3
   const meNaFaseCopa = !!copa?.rounds[copaRound]?.ties.some(t => t.a.teamId === youId || t.b.teamId === youId)
-  // a semana só anda no AUTOMÁTICO, com o jogo da rodada já apitado e nada pendente — e PARA na quarta se tiver Copa
+  // a semana anda com o jogo da rodada já apitado e nada pendente — e PARA na quarta se tiver Copa.
+  // 🔁 26/10 (Diego, print no MANUAL: *"quando acaba o jogo já aparece o próximo adversário… como se não tivesse passado os dias"*):
+  // os dias passam no Manual TAMBÉM — Manual/Auto é o controle da PARTIDA, não do calendário.
   useEffect(() => {
-    if (!calOn || manual || !calLivre || !calNaTela || calI >= calTotal || (copaPendente && calI >= CAL_QUARTA)) return
+    if (!calOn || !calLivre || !calNaTela || calI >= calTotal || (copaPendente && calI >= CAL_QUARTA)) return
     const t = setTimeout(() => setCalPasso({ r: round, s: calSn, i: calI + 1 }), CAL_MS_POR_DIA)
     return () => clearTimeout(t)
-  }, [calOn, manual, calLivre, calNaTela, calI, calTotal, round, calSn, copaPendente])
+  }, [calOn, calLivre, calNaTela, calI, calTotal, round, calSn, copaPendente])
   // 🌙 chegou a quarta com Copa: se o seu time está na fase, a Copa entra na tela (a fase de sempre, com o placar da Copa);
   // se você já caiu (ou ainda não entrou nesta fase), a fase roda por trás e a semana segue livre
   useEffect(() => {
@@ -10116,7 +10118,8 @@ export function PyramidSeasonScreen() {
     depois?.()
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
-  useEffect(() => { if (coletivaOpen && !manual && !coletivaSala) abreColetiva(null) }, [coletivaOpen, manual, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 📅 26/10: com o calendário, no MANUAL também (senão a coletiva esperando o toque segurava a semana parada no domingo)
+  useEffect(() => { if (coletivaOpen && (!manual || calOn) && !coletivaSala) abreColetiva(null) }, [coletivaOpen, manual, calOn, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (coletivaOpen && coletivaPronta?.ctx.apresentacao?.length && !coletivaSala) abreColetiva(null) }, [coletivaOpen, coletivaPronta, coletivaSala]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!coletivaPronta) setColetivaSala(false) }, [coletivaPronta])
   const coletivaPlacarTxt = (() => {
@@ -10429,7 +10432,7 @@ export function PyramidSeasonScreen() {
     const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? (copaMid && !done ? diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS : diaDaFaseCopa(calSn, copaMid ? Math.max(0, copaRound - nCopaBase) : copaRound)) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
     const naCentral = tab === 'central'
     const grande = naCentral || tab === 'jogos'
-    const pausado = calFase === 'dias' && !manual && !calNaTela && calI < calTotal
+    const pausado = calFase === 'dias' && !calNaTela && calI < calTotal
     let recado = null as ReturnType<typeof recadoDoDia> | null
     if (grande && calFase === 'dias') {
       const minha = tables[myDiv] ?? []
@@ -10449,20 +10452,21 @@ export function PyramidSeasonScreen() {
     }
     const diasDeJogo: Record<number, 'liga' | 'copa'> = {}
     for (let r = Math.max(1, round - 1); r <= Math.min(38, round + 2); r++) diasDeJogo[diaDaRodada(calSn, r)] = 'liga'
-    if (copaMid && !done) copaSemanas.forEach(r => { diasDeJogo[diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS] = 'copa' })
+    if (copaMid && !done) copaSemanas.forEach((r, k) => { if (k >= copaRound && !meNaFaseCopa) return; diasDeJogo[diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS] = 'copa' }) // caiu: a quarta não fica azul
     let jogos: JogoCal[] | null = null
     if (naCentral && calFase === 'dias') { // 26/10 (Diego): a lista vertical "Seus jogos" fica SÓ na Central; no Jogos, a semana na horizontal + o botão
       jogos = calPassados.map(({ r, m }) => {
         const casa = m.hId === youId, gf = casa ? m.hg : m.ag, ga = casa ? m.ag : m.hg
         return { dia: diaDaRodada(calSn, r), comp: 'liga', adv: casa ? m.a : m.h, casa, res: `${gf}-${ga}`, cls: gf > ga ? 'v' : gf === ga ? 'e' : 'd' } as JogoCal
       })
-      for (let r = round + 1; r <= Math.min(38, round + 4); r++) { const a = advDe(par(r)); if (a) jogos.push({ dia: diaDaRodada(calSn, r), comp: 'liga', adv: a.adv, casa: a.casa, prox: r === round + 1 && !copaNaSemana }) }
+      for (let r = round + 1; r <= Math.min(38, round + 4); r++) { const a = advDe(par(r)); if (a) jogos.push({ dia: diaDaRodada(calSn, r), comp: 'liga', adv: a.adv, casa: a.casa, prox: r === round + 1 && !(copaNaSemana && meNaFaseCopa) }) }
       // 🏆 as quartas de Copa da janela (a da semana com o adversário; as próximas só com o nome da fase — anti-spoiler)
       if (copaMid && !done) copaSemanas.forEach((r, k) => {
         if (r < round - 1 || r > round + 3 || k < copaRound - 1) return
+        if (k >= copaRound && !meNaFaseCopa) return // 26/10: caiu (ou não está nesta fase) — a Copa não é jogo seu
         const dia = diaDaRodada(calSn, r) + CAL_QUARTA * DIA_MS
         if (k < copaRound) { const t = copa?.rounds[k]?.ties.find(x => x.a.teamId === youId || x.b.teamId === youId); if (!t) return; const euA = t.a.teamId === youId, gf = euA ? t.aggA : t.aggB, ga = euA ? t.aggB : t.aggA; jogos!.push({ dia, comp: 'copa', adv: euA ? t.b.name : t.a.name, casa: true, res: `${gf}-${ga}${t.pens ? ' (p)' : ''}`, cls: (t.win === 'a') === euA ? 'v' : 'd' }) }
-        else jogos!.push({ dia, comp: 'copa', adv: k === copaRound ? (advCopa(k) ?? copaNome(k)) : copaNome(k), casa: true, prox: k === copaRound && copaNaSemana })
+        else jogos!.push({ dia, comp: 'copa', adv: k === copaRound ? (advCopa(k) ?? copaNome(k)) : copaNome(k), casa: true, prox: k === copaRound && copaNaSemana && meNaFaseCopa })
       })
       jogos.sort((a, b) => a.dia - b.dia)
     }
@@ -10474,14 +10478,14 @@ export function PyramidSeasonScreen() {
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
     // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
     const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
-      escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto={!manual} recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
-      rotulo={prox ? (copaNaSemana ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
-      irJogo={naCentral && !manual && calFase === 'dias' && !coletivaOpen && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
+      escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
+      rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
+      irJogo={naCentral && calFase === 'dias' && !coletivaOpen && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
     // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
     // Jogos + Tabela juntos, Elenco e Rank também ficam sem a faixa — o jogo só aparece na aba dele (e no Clube, no Assistir)
-    const barra = tab === 'jogos' || naCentral || (jogoTabela && (tab === 'elenco' || tab === 'ranking') && calFase !== 'dias') ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto={!manual} pausado={pausado} grande={naCentral} naCentral={naCentral}
+    const barra = tab === 'jogos' || naCentral || (jogoTabela && (tab === 'elenco' || tab === 'ranking') && calFase !== 'dias') ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
       onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba(jogoTabela ? 'central' : 'jogos')} onProximo={proximoAdv} />
