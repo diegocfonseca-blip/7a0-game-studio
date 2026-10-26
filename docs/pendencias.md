@@ -117,6 +117,23 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- 🟡 LOJA NOVA · ETAPA 1 FEITA (26/10, invisível pro jogador): o CRAQUE MENSAL já liga sozinho pelo servidor. Diego mandou o link da
+  Vendria do ⭐ Craque 9,90 (`https://app.vendria.com.br/c/5NdmF6I4FEuAFrhelEWUS0Ttft_aMNbG`) e lembrou: *"quem já tem plano não muda nada"*.
+  · Banco (`supabase/migrations/20261026150000_craque_mensal_vendria.sql`): tabela NOVA `esc_assinatura_mensal` (só soma por cima do que a
+    conta já tem) + `esc_vendria_aplica` (só a chave de serviço; plano pelo VALOR assinado pela Vendria: 990 = `craque_salas`, 1490 =
+    `craque_completo`; prazo = `accessEndsAt`, nunca encurta; só ativa se a CONTA do jogo com aquele e-mail já existia, `conta_ok`) +
+    `esc_direitos_de` com `mensal_plano`: mensal ativo = tier PRATA (ouro continua ouro), salas à vontade, nuvem; Manual SÓ no Completo.
+    Conferido: 346 contas (todas as pagantes + 150 recentes) com direitos IDÊNTICOS antes/depois; simulação desfeita: anon barrado,
+    Salas = prata sem Manual, Completo = prata com Manual, evento velho não tira mês, valor estranho ignorado.
+  · Webhook `vendria-webhook` v5 (fase 2): depois de conferir a assinatura e guardar, evento `subscription.*` chama `esc_vendria_aplica`.
+  · Jogo: `planos-regras.ts` lê `mensalPlano`; `tierEfetivo` dá prata; `temManual` recebe o tier COMPRADO (não o da tela) e libera
+    Manual só pro Completo. Trava `npm run planos` com 9 casos novos.
+  ⚠️ FALTA: (1) apagar a tabela `tmp_direitos_antes` (foto de conferência; a ferramenta pediu confirmação ao Diego e expirou) ·
+  (2) link da Vendria do ⭐ Craque COMPLETO 14,90 · (3) a TELA da loja (sem Craque 29,90 à venda, dois mensais com o link, Lenda 59,90
+  no Pix — muda `PRECOS_UNICO` E `esc_mp_preco_ref`) · (4) avisos na hora (sala extra / Manual trancado) · (5) Passe 24h R$ 9,90 (produto
+  novo no Pix + direito de 24 h) · (6) conferir a 1ª RENOVAÇÃO real: o assinante de teste de 17/10 renova em 17/11 — ver se a Vendria manda
+  `subscription.*` na renovação (senão o mês não estende) · (7) o Craque Salas leva 2 fichas e nuvem (vem do prata) — o mockup punha isso
+  só no Completo; perguntar ao Diego se tudo bem.
 - ✅ APROVADO (26/10, *"aprova assim então"*; `scripts/mockups/loja-craque-mensal-lenda-vez.png`, sem "cancela quando quiser", Manual trancado = 24 h 9,90 · 14,90/mês · ver planos). ⚠️ Taxa da Vindi: R$ 2 FIXOS por cobrança recorrente (9,90 → 7,90 líquido, 20%). Proposto subir só o Craque Salas pra 11,90 — esperando resposta: a proposta DELE depois de 4 rodadas
   (*"deixar como tá hoje mas remover o plano de 29,90… quando o cara for criar sala extra que não pode aparece avulso 4,90 ou mensal
   9,90 ou ver todos os planos… teria também 14,90 pra ter sala extra e botão manual + campo 2D; esses dois seriam planos craques; o

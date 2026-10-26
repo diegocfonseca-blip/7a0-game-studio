@@ -85,6 +85,10 @@ export interface Direitos {
   craqueAtivo: boolean
   craqueAte: string | null
   craqueCancelada: boolean
+  /** ⭐📅 26/10: Craque MENSAL da Vendria ativo (Salas 9,90 · Completo 14,90) — o banco só manda quando o mês está pago */
+  mensalPlano: 'craque_salas' | 'craque_completo' | null
+  mensalAte: string | null
+  mensalCancelada: boolean
   /** a cor/tier na tela (o maior entre o antigo e o que a assinatura/batismo dá) */
   tier: TierCor | null
   manual: boolean
@@ -116,6 +120,9 @@ export function lerDireitos(raw: unknown): Direitos | null {
     craqueAtivo: b('craque_ativo'),
     craqueAte: typeof r.craque_ate === 'string' ? r.craque_ate : null,
     craqueCancelada: b('craque_cancelada'),
+    mensalPlano: r.mensal_plano === 'craque_salas' || r.mensal_plano === 'craque_completo' ? r.mensal_plano : null,
+    mensalAte: typeof r.mensal_ate === 'string' ? r.mensal_ate : null,
+    mensalCancelada: b('mensal_cancelada'),
     tier: ehTier(r.tier) ? r.tier : null,
     manual: b('manual'),
     salasPagas: b('salas_pagas'),
@@ -132,13 +139,16 @@ export function lerDireitos(raw: unknown): Direitos | null {
  */
 export function tierEfetivo(legado: TierCor | null | undefined, d: Direitos | null): TierCor | null {
   if (d && (d.craqueAtivo || d.batismo)) return 'ouro'
+  // ⭐📅 26/10: Craque mensal ativo = prata (quem já é ouro continua ouro — "quem já tem plano não muda nada")
+  if (d?.mensalPlano && legado !== 'ouro') return 'prata'
   return legado ?? null
 }
 
-/** 🎮 Modo Manual: o selo `manual` antigo, Craque/Lenda antigo, assinatura ou batismo */
+/** 🎮 Modo Manual: o selo `manual` antigo, Craque/Lenda antigo, assinatura, batismo ou ⭐ Craque COMPLETO mensal.
+ *  ⚠️ `legado` é o tier COMPRADO (banco/lista), nunca o da tela: o ⭐ Craque Salas mensal pinta prata mas NÃO tem Manual. */
 export function temManual(legado: TierCor | null | undefined, manualCol: boolean, d: Direitos | null): boolean {
   if (manualCol || legado === 'prata' || legado === 'ouro') return true
-  return !!d && (d.manual || d.craqueAtivo || d.batismo)
+  return !!d && (d.manual || d.craqueAtivo || d.batismo || d.mensalPlano === 'craque_completo')
 }
 
 /**

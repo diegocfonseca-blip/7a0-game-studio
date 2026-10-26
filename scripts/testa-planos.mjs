@@ -31,6 +31,20 @@ try {
   assert.equal(R.tierEfetivo(null, pedido), null, 'deixar o WhatsApp não libera nada')
   assert.equal(pedido.pedido?.status, 'novo')
 
+  // ⭐📅 26/10: Craque MENSAL da Vendria (Salas 9,90 · Completo 14,90)
+  const salas = D({ mensal_plano: 'craque_salas', mensal_ate: '2026-11-08T12:00:00Z', tier: 'prata', salas_pagas: true, pago: true })
+  assert.equal(R.tierEfetivo(null, salas), 'prata', 'Craque Salas: nome prata')
+  assert.equal(R.temManual(null, false, salas), false, 'Craque Salas: SEM Modo Manual')
+  assert.equal(R.podeCriarModo('liga', null, salas), true, 'Craque Salas: cria Minhas Ligas')
+  const completo = D({ mensal_plano: 'craque_completo', mensal_ate: '2026-11-08T12:00:00Z', tier: 'prata', manual: true, salas_pagas: true, pago: true })
+  assert.equal(R.tierEfetivo(null, completo), 'prata', 'Craque Completo: nome prata')
+  assert.equal(R.temManual(null, false, completo), true, 'Craque Completo: Modo Manual')
+  assert.equal(R.temManual(null, false, D({ mensal_plano: 'craque_completo' })), true, 'Craque Completo: Manual mesmo se o campo manual faltar')
+  assert.equal(R.tierEfetivo('ouro', salas), 'ouro', 'quem já é Lenda e assina continua ouro (não muda nada)')
+  assert.equal(R.temManual('prata', false, salas), true, 'Craque antigo que assina o Salas não perde o Manual que já tinha')
+  assert.equal(R.tierEfetivo(null, D({ mensal_plano: 'qualquer' })), null, 'plano mensal desconhecido não libera nada')
+  assert.equal(R.tierEfetivo(null, D({ mensal_ate: '2026-11-08T12:00:00Z' })), null, 'sem plano ativo (vencido) não libera nada')
+
   // Craque ativo
   const ativo = D({ craque_ativo: true, craque_ate: '2026-11-08T12:00:00Z', tier: 'ouro', manual: true, salas_pagas: true, pago: true })
   assert.equal(R.tierEfetivo(null, ativo), 'ouro', 'Craque ativo: visual premium')
