@@ -103,6 +103,12 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-mensal-vitalicio.png`): LOJA COM MENSAL E PRA SEMPRE. Diego recusou
+  a loja só com planos de uma vez (*"não tô gostando… quero plano de valores baixos mensal e vitalício e etc e alto também"*). Ele tem
+  Pix recorrente na Vindi. Proposta: a MESMA escada com um botão 📅 MENSAL / ♾️ PRA SEMPRE: Craque 9,90/mês ou 29,90 · Lenda 14,90/mês
+  ou 44,90 · Batismo 79,90 e Fundador 99,90 só pra sempre (arte feita à mão) · degrau novo 💎 Presidente 199,90 (conteúdo a decidir).
+  Regra que amarra: 3 MESES PAGOS = PRA SEMPRE (9,90×3 ≈ 29,90), então o mensal é parcelamento sem juros e não briga com o plano. Passe
+  24h 4,99 (desconta se assinar). Só o webhook da Vindi libera o mês (camada de assinatura que vence sozinha já existe desde 08/10).
 - ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-estrategia.png`): LOJA PRA VENDER MAIS. Diego trouxe uma proposta
   de loja com mensal 9,90 + vitalício 199,90 + combo 249,90 + passe 24h e pediu análise. Vendas reais (Pix, 30 dias): 21 compradores
   (~1 em 100 dos 1.859 que jogaram online na semana); Craque 7 · Lenda 5 (3 eram subida de 20) · Fundador 3 (1 cheio, 2 subidas) ·
