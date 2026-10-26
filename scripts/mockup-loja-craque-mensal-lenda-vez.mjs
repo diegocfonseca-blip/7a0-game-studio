@@ -33,7 +33,7 @@ const popSala = `<div class="cel baixa"><div class="top">🏟️ CRIANDO SALA</d
 </div></div>`
 const popManual = `<div class="cel baixa"><div class="top">⚽ NO JOGO · 🎮 MANUAL TRANCADO</div><div class="pad sombra">
  <div class="pop"><div class="pi">🔒</div><b class="pt">MANUAL + CAMPO 2D SÃO DO CRAQUE COMPLETO</b><p>Bater o pênalti e mexer no time ao vivo.</p>
-  <div class="opc"><span class="bt verde">⭐ CRAQUE COMPLETO · R$ 14,90/MÊS</span><span class="bt ouro">👑 LENDA PRA SEMPRE · R$ 59,90</span><span class="bt branco">VER TODOS OS PLANOS ›</span></div>
+  <div class="opc"><span class="bt verde">⏱️ 24 HORAS · R$ 9,90</span><span class="bt ouro">⭐ CRAQUE COMPLETO · R$ 14,90/MÊS</span><span class="bt branco">VER TODOS OS PLANOS ›</span></div>
   <small class="agora">agora não</small></div>
 </div></div>`
 
@@ -44,7 +44,7 @@ const regras = `<div class="esc">
   <li><b>Entram dois Craques mensais:</b> Salas (9,90) e Completo (14,90, com Manual e 2D em breve).</li>
   <li><b>👑 Lenda vira R$ 59,90 uma vez</b>, com tudo dos Craques e do Lenda, sem mensal.</li>
   <li><b>🖋 Batismo 79,90 e Fundador 99,90</b> ficam iguaizinhos.</li>
-  <li><b>Oferta na hora:</b> só quando a pessoa tenta criar sala e não pode (4,90 · 9,90/mês · ver planos) e quando toca no Manual trancado.</li>
+  <li><b>Oferta na hora:</b> só quando a pessoa tenta criar sala e não pode (4,90 · 9,90/mês · ver planos) e quando toca no Manual trancado (24 h 9,90 · 14,90/mês · ver planos).</li>
  </ul>
  <div class="eh">A ESCADA</div>
  <div class="mapa">
