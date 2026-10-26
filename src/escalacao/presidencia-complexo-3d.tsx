@@ -35,6 +35,7 @@ import './presidencia-complexo-3d.css'
 export type VistaComplexo='original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'
 const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
  {value:'broadcast',label:'Transmissão'},
+ {value:'follow',label:'Acompanhar o lance'},
  {value:'tele',label:'Lateral próxima'},
  {value:'wide',label:'Ampla'},
  {value:'goal',label:'Atrás do gol'},
@@ -317,12 +318,15 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const firstMetro=transportActors?.inspect().vehicles.find(vehicle=>vehicle.kind==='metro')
   if(firstMetro)seconds=firstMetro.markers.arrival+2.2
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)')
-  let lastShadowAt=-Infinity,lastShadowSpan=0
+  let lastShadowAt=-Infinity,lastShadowSpan=0,ataque:1|-1=1,ataqueDesde:number|null=null
   const lastShadowTarget=new THREE.Vector3(Infinity,Infinity,Infinity)
   const updateShadows=()=>{
    const distance=camera.position.distanceTo(controls.target)
    const span=THREE.MathUtils.clamp(distance*.85,24,750),now=performance.now()
-   const cadence=distance>180?250:softwareGPU||el.clientWidth<600?1000/15:1000/30
+   // (〰️ 26/10: vendo o jogo, a sombra do boneco andava em degraus — 15×/s no celular, 30×/s no PC — e "tremia" embaixo dele.
+   // Com a câmera do jogo ligada a sombra acompanha: todo quadro no PC, 30×/s no celular)
+   const jogo=!!matchRef.current&&matchCameraController.inspect().mode!=='free'
+   const cadence=distance>180?250:jogo?(softwareGPU||el.clientWidth<600?1000/31:0):softwareGPU||el.clientWidth<600?1000/15:1000/30
    const urgent=lastShadowTarget.distanceToSquared(controls.target)>144||Math.abs(span-lastShadowSpan)>10
    if(urgent||now-lastShadowAt>=cadence){renderer.shadowMap.needsUpdate=true;lastShadowAt=now;lastShadowSpan=span;lastShadowTarget.copy(controls.target)}
    // A tall portrait view moves the camera much farther back. Keep the map
@@ -358,10 +362,14 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    }
    if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera('broadcast')}
    game.update(matchRef.current,performance.now(),camera,el.clientHeight)
-   {const insp=game.inspect() as {ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}};phase?:string;replay?:boolean};const subj=game.subjects();let foco:{x:number;y:number;z:number}|undefined
+   {const insp=game.inspect() as {ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}};phase?:string;replay?:boolean;owner?:string};const subj=game.subjects();let foco:{x:number;y:number;z:number}|undefined
     if(!!insp.replay!==replayRef.current){replayRef.current=!!insp.replay;setReplayOn(replayRef.current)}
     if(insp.phase==='fim'&&subj.length){let sx=0,sz=0,n=0;for(const q of subj){if(q.visible===false)continue;sx+=q.mx;sz+=q.mz;n++}if(n)foco={x:sx/n,y:.2,z:sz/n}}
-    matchCameraController.update(insp.ball,performance.now(),subj,foco,insp.replay?'goal':undefined)}
+    // 🎥 pra que lado o time com a bola ataca (o goleiro dele defende o outro lado). Só troca depois de ~0,9 s com a posse firme:
+    // dividida e bola batendo-voltando não fazem a câmera 'Acompanhar o lance' virar de lado à toa
+    {const own=insp.owner?subj.find(q=>q.key===insp.owner):undefined,gk=own?subj.find(q=>q.side===own.side&&q.keeper):undefined,want:1|-1|undefined=gk?(gk.mx<0?1:-1):undefined,agora=performance.now()
+     if(want!==undefined&&want!==ataque){ataqueDesde??=agora;if(agora-ataqueDesde>900){ataque=want;ataqueDesde=null}}else ataqueDesde=null}
+    matchCameraController.update(insp.ball,performance.now(),subj,foco,insp.replay?'goal':undefined,ataque)}
    // 🎉 torcida: a arquibancada do time que fez o gol pula durante a festa (lado 0 do motor = quem manda no estádio)
    {const fr=game.inspect() as {phase?:string;replay?:boolean;official?:{events?:{tipo:string;lado:number}[]}};let lado:'home'|'away'|null=null;if(fr?.phase==='gol'||fr?.replay){const evs=fr.official?.events;for(let i=(evs?.length??0)-1;i>=0;i--)if(evs![i].tipo==='gol'){lado=evs![i].lado===0?'home':'away';break}}crowd.festa(lado,seconds)}
    if(crowd.perto(camera.position))renderer.shadowMap.needsUpdate=true // (⚡ os detalhados da torcida acompanham a câmera)

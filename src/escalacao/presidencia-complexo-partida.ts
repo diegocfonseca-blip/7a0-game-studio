@@ -20,7 +20,9 @@ function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,
 function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
 export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void){
  if(!registered){
-  const ground=material('#8d825c'),base=box(scene,125,.3,86,0,-.17,0,ground)
+  // (🏟️ 26/10, caldeirão: a arquibancada encostou no campo — o chão que sobra atrás dos gols e das laterais é gramado quando o
+  // campo já é de grama; na várzea continua terra)
+  const ground=material(stadium&&progressoVisualSetor(stadium,'grama')>=1?'#3f6e34':'#8d825c'),base=box(scene,125,.3,86,0,-.17,0,ground)
   // The grass/dirt strips already form the playing surface. A second broad
   // top face only 22 mm beneath them causes depth artefacts at low camera angles.
   // Keep the earth sides and the exposed apron, without that hidden duplicate.
@@ -93,8 +95,8 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  return grass
 }
 
-export type InspecaoPartidaComplexo={replay?:boolean;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
+export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -136,7 +138,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  let match:Match|undefined
  const empty=():InspecaoPartidaComplexo=>({players:0,ball:{x:0,y:.11,z:0}})
  let inspection=empty()
- let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean}[]=[]
+ let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean;key?:string;side?:'home'|'away';keeper?:boolean}[]=[]
  const clearMatch=()=>{
   if(match){match.humanoids?.dispose();match.people.dispose();descartarObjetos(match.root);match=undefined}
   inspection=empty()
@@ -192,7 +194,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
   posicionarBolaFutebol3D(ball,presentation);atualizarRedesGol3D(field,presentation)
   people.update()
-  inspection={replay:snapshot.replay,players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
+  inspection={replay:snapshot.replay,owner:snapshot.owner,players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
  }
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {
