@@ -1,0 +1,6 @@
+/* 📻 26/10 — GOL: a faixa de narração pisca alternando [cor do time · letra creme] ⇄ [creme · letra na cor do time] (ver radio-pisca.ts).
+   Fica POR CIMA da cena do mascote do gol (z-index 5), senão o escuro da cena apagava o pisca. */
+.ll44-gol-pisca{position:relative;z-index:6;animation:ll44Pisca .4s steps(1,end) 6;background:var(--ll44-a)!important;color:var(--ll44-b)!important}
+.ll44-gol-pisca *{color:inherit!important}
+@keyframes ll44Pisca{0%{background:var(--ll44-a);color:var(--ll44-b)}50%{background:var(--ll44-b);color:var(--ll44-a)}}
+@media (prefers-reduced-motion:reduce){.ll44-gol-pisca{position:relative;z-index:6;animation:none}}

@@ -516,8 +516,9 @@
 .ll43-velha{opacity:.45;font-size:12px;margin-top:2px}.ll43-velha .ll43-tx{animation:none;-webkit-line-clamp:1}
 .ll30-big .ll43-ln{font-size:14px}.ll30-big .ll43-velha{font-size:12.5px}
 
-/* 📻 26/10 — GOL: a faixa da rádio pisca (enquanto o mascote passa + ~1,5 s) alternando fundo e letra (cor do time que marcou ⇄ creme), igual ao Football Manager */
-.ll44-gol-pisca{animation:ll44Pisca .5s steps(1,end) infinite;background:var(--ll44-a);color:var(--ll44-b)}
-.ll44-gol-pisca .ll43-tx,.ll44-gol-pisca .ll42-radio-txt,.ll44-gol-pisca .ll43-ln>b,.ll44-gol-pisca.ll42-radio>b{color:inherit}
-@keyframes ll44Pisca{0%{background:var(--ll44-a);color:var(--ll44-b)}50%{background:var(--ll44-b);color:var(--ll44-a)}}
-@media (prefers-reduced-motion:reduce){.ll44-gol-pisca{animation:none}}
+/* 📻 26/10 (Diego: *"não precisa ter escrito rádio, lance e jogo… tem que ser tudo numa linha só que vai trocando"*): na carreira a
+   rádio é UMA linha, sem selo, no creme do jogo. No gol ela pisca (radio-pisca.css). */
+.ll43-radio.ll43-uma{background:#F4ECD6;color:#0C0C0C;min-height:0;padding:9px 12px;border-top:0;border-radius:0 0 12px 12px}
+.ll43-uma .ll43-ln{padding:0}
+.ll43-uma .ll43-ln>b{color:#1B7A3D}
+.ll43-uma .ll43-tx{color:#0C0C0C}

@@ -18,6 +18,7 @@ import { avatarLote1 } from './avatar-lote1'
 import { useT } from './lang'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrás dos gols do campinho do jogo (Vadico · Tidex, trocando)
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
+import { estiloPisca, PISCA_GOL_MS } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
 import { nomeLimpo } from './escudos'
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
@@ -102,6 +103,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const [narra, setNarra] = useState('')
   const [festa, setFesta] = useState<{ lado: 0 | 1; autor: string; assist?: string; min: number } | null>(null)
   const [placarV, setPlacarV] = useState<[number, number]>([0, 0])
+  // 📻 26/10: no gol a faixa do locutor pisca (igual à rádio do placar cinema) — ~2,4 s, na cor de quem marcou ⇄ creme
+  const [piscaGol, setPiscaGol] = useState<{ k: string; lado: 0 | 1 } | null>(null)
+  useEffect(() => {
+    if (!festa) return
+    setPiscaGol({ k: `${festa.lado}|${festa.autor}|${festa.min}`, lado: festa.lado })
+    const tm = setTimeout(() => setPiscaGol(null), PISCA_GOL_MS)
+    return () => clearTimeout(tm)
+  }, [festa])
   const ultimos = useRef({ narra: '', festa: '', placar: [-1, -1] as [number, number] })
   const deitado = larg >= DEITADO_A_PARTIR
   // 🌤️ o céu deste jogo (preso na semente: a sala inteira vê o mesmo) — ☀️ sombra atravessando · ☁️ luz chapada · 🌧️ chuva (rara)
@@ -603,7 +612,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         </div>
       )}
       {narra && !semNarra && (
-        <div style={{ maxWidth: larg, margin: '8px auto 0', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}
+        <div key={piscaGol ? `g${piscaGol.k}` : 'n'} className={piscaGol ? 'll44-gol-pisca' : undefined}
+          style={{ maxWidth: larg, margin: '8px auto 0', background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3, ...(piscaGol ? estiloPisca() : {}) }}
           dangerouslySetInnerHTML={{ __html: '🎙️ ' + narra }} />
       )}
     </div>
