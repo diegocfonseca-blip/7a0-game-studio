@@ -103,6 +103,11 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-mensal-pecas-vitalicio.png`): a 3ª opção do Diego — mensal
+  obrigatório pra jogar (⭐ 9,90 / 👑 14,90), o CLUBE VENDIDO PEÇA POR PEÇA (proposta de preço: escudo 29,90 · mascote 34,90 · manto
+  19,90 · nome 9,90 · gala 14,90 · canto 10 · tema 6,90; kit completo 79,90 = 29,60 mais barato que separado) e UM vitalício caro sem
+  mensal, 💎 Presidente Vitalício 249,90 (Lenda pra sempre + kit + gala única + canto + nº fundador + tema + roupas + 500 🪙 + 2 fichas;
+  o que o assinante pagou nos últimos 6 meses desconta). Regra: peça do clube NÃO dá Manual nem sala.
 - ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-dois-mensais.png`): DOIS MENSAIS + TUDO AVULSO. Diego perguntou
   *"e se todo mundo tivesse que pagar dois planos mensais, e o resto é tudo coisa avulsa, ou kit com manto, mascote e escudo"*.
   Proposta: só ⭐ Craque 9,90/mês e 👑 Lenda 14,90/mês dão acesso de jogo (Manual, 2D, níveis, carreiras, salas, cor, boneco); 🛡️ Kit do
