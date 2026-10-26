@@ -21,11 +21,11 @@ const FONTS = [400, 500, 600, 700].map(w =>
 
 // chip: [texto, frase, faixa roxa (plano/meta), coroa]
 const chips = (lista, marcado, { cols = 0 } = {}) => `<div class="chips${cols ? ` c${cols}` : ''}">${lista.map(([t, sub, faixa, coroa]) =>
-  `<span class="chip${t === marcado ? ' on' : ''}${faixa ? ' fx' : ''}">${faixa ? `<em>${faixa}</em>` : ''}<b>${coroa ? '👑 ' : ''}${t}</b>${sub ? `<small>${sub}</small>` : ''}</span>`).join('')}</div>`
+  `<span class="chip${t === marcado ? ' on' : ''}${faixa ? ' fx' : ''}">${faixa ? `<em>${faixa}</em>` : ''}<b>${coroa ? '⭐ ' : ''}${t}</b>${sub ? `<small>${sub}</small>` : ''}</span>`).join('')}</div>`
 const linha = (rot, corpo, dica = '') => `<div class="ln"><p class="rot">${rot}</p>${corpo}${dica}</div>`
 const bloco = (n, ic, titulo, frase, corpo) => `<section class="bl"><header><span class="n">${n}</span><div><h3>${ic} ${titulo}</h3><p>${frase}</p></div></header>${corpo}</section>`
 const IG = '@leilaolegendscom'
-const PLANO = 'PLANO', META = k => `META ${k} MIL SEGUIDORES`
+const PLANO = '', META = k => `LANÇA COM ${k}K 👥 NO INSTA`
 const MODOS = [
   ['⚡ Rápido', 'Uma temporada. Começa agora.'],
   ['🏆 Minhas ligas', 'A sala da turma que não acaba.', PLANO, true],
@@ -44,7 +44,7 @@ ${bloco(2, '🔨', 'O leilão', 'Como os jogadores vão ser comprados', `
   ${linha('Jeito do lance', chips([['✉️ Envelope'], ['🐊 Tocaia'], ['🔨 Pregão aberto']], '✉️ Envelope'), '<p class="dica">✉️ Lance secreto: ninguém vê o do outro até abrir.</p>')}
   ${linha('O que vai a leilão', chips([['🃏 Jogador'], ['🧱 Clubes']], '🃏 Jogador'))}`)}
 ${bloco(3, '🃏', 'O time', 'De onde vêm as cartas e como o time joga', `
-  ${linha('Baralho', chips([['🇧🇷 Brasil'], ['🌍 Europa'], ['🌎 Mundo'], ['⭐ Todos']], '⭐ Todos', { cols: 2 }), '<p class="dica cinza">🧱 Leilão de Clubes e Liga Draft usam sempre o Todos.</p>')}
+  ${linha('Baralho', chips([['🇧🇷 Brasil'], ['🌍 Europa'], ['🌎 Mundo'], ['♾️ Todos']], '♾️ Todos', { cols: 2 }), '<p class="dica cinza">🧱 Leilão de Clubes e Liga Draft usam sempre o Todos.</p>')}
   ${linha('Formação (vale pra todos)', chips([['4-3-3'], ['4-4-2']], '4-3-3'))}
   ${linha('Quem comanda cada time', chips([['👤 Solo'], ['🤝 Duplas']], '👤 Solo'))}`)}`
 
@@ -65,7 +65,7 @@ ${bloco(6, '🚪', 'A sala', 'Quem entra e como fica', `
     <p class="dica cinza">Já vem nos <b>45s</b>, o tempo de sempre. No "Sem tempo", você fecha cada envelope no botão, na hora que quiser.</p></div>`)}`)}
 <div class="pe">
   <p class="rot">📋 Sua sala</p>
-  <div class="resumo"><span>⚡ Rápido</span><span>✉️ Envelope 45s</span><span>⭐ Todos</span><span>4-3-3</span><span>🏆 + Copa dos 8</span><span>🎮 Manual</span><span>🔴 Stream · 45s</span><span>🔓 Aberta</span></div>
+  <div class="resumo"><span>⚡ Rápido</span><span>✉️ Envelope 45s</span><span>♾️ Todos</span><span>4-3-3</span><span>🏆 + Copa dos 8</span><span>🎮 Manual</span><span>🔴 Stream · 45s</span><span>🔓 Aberta</span></div>
   <button>🔨 CRIAR SALA</button>
 </div>`
 
@@ -75,12 +75,12 @@ const tel3 = `
 ${bloco(1, '🎮', 'O jogo', 'O que vocês vão jogar hoje', chips(MODOS, '🌐 Carreira', { cols: 2 }) + aviso('🌐 A Carreira online chega com 7 mil seguidores', [
   `Estamos juntando gente no Instagram <b>${IG}</b>. Quando a página bater <b>7 mil seguidores</b>, a Carreira online abre pra todo mundo.`,
   '<small>👉 Siga a página e chame os amigos: quanto antes bater a meta, antes abre.</small>',
-  GRATIS, '👑 <b>Pra CRIAR a sala</b>, só com plano.',
+  GRATIS, '⭐ <b>Pra CRIAR a sala</b>, só com plano.',
 ]))}
 <p class="leg">QUANDO TOCA NO CAMPO 2D</p>
 <section class="bl">${chips([['📊 Placar padrão'], ['📺 Campo 2D', '', META(3), true]], '📺 Campo 2D')}${aviso('📺 O Campo 2D chega com 3 mil seguidores', [
   `O jogo com o campinho e os bonecos correndo abre quando o <b>${IG}</b> bater <b>3 mil seguidores</b>.`,
-  GRATIS, '👑 <b>Pra CRIAR a sala com o 2D</b>, só com plano.',
+  GRATIS, '⭐ <b>Pra CRIAR a sala com o 2D</b>, só com plano.',
 ])}</section>`
 
 const CSS = `${FONTS}
@@ -106,8 +106,8 @@ const CSS = `${FONTS}
 .pe button{width:100%;font:700 20px Oswald;background:#1B7A3D;color:#fff;border:3px solid #F4ECD6;border-radius:12px;padding:11px;box-shadow:3px 3px 0 #FFC400}
 `
 const html = `<!doctype html><meta charset="utf-8"><style>${CSS}</style>
-<p class="cap">🧩 Criar sala — proposta organizada (v2)</p>
-<p class="sub">v2 · 👑 faixa roxa = precisa de plano pra CRIAR · 🎯 meta de seguidores = ainda não lançado · jogar é sempre grátis. 3º celular: o que aparece quando toca num modo travado (nada abre embaixo).</p>
+<p class="cap">🧩 Criar sala — proposta organizada (v3)</p>
+<p class="sub">v3 · ⭐ = precisa de plano pra CRIAR (quem tem plano usa normal) · faixa roxa = ainda não lançado, abre com N mil seguidores no Instagram · jogar é sempre grátis. 3º celular: o que aparece quando toca num modo travado (nada abre embaixo).</p>
 <div class="duo"><div class="tel">${tel1}</div><div class="tel">${tel2}</div><div class="tel">${tel3}</div></div>`
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
