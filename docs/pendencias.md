@@ -103,6 +103,11 @@
 - FEITO (14ª leva): 🦘 BARREIRA PULA no chute direto de falta (só quem está na linha bola→gol, a 7,5–12 m) · ✈️ DISPUTA AÉREA: quem
   chega na bola alta vira de frente pra ela e sobe (até 0,34 m) com os braços · o cabeceador olha pra bola na hora da cabeçada.
   Conferido quadro a quadro no 3D (falta do Ronaldinho, cabeçada do Thiago Silva).
+- ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-dois-mensais.png`): DOIS MENSAIS + TUDO AVULSO. Diego perguntou
+  *"e se todo mundo tivesse que pagar dois planos mensais, e o resto é tudo coisa avulsa, ou kit com manto, mascote e escudo"*.
+  Proposta: só ⭐ Craque 9,90/mês e 👑 Lenda 14,90/mês dão acesso de jogo (Manual, 2D, níveis, carreiras, salas, cor, boneco); 🛡️ Kit do
+  Clube 79,90 e 🖋 Kit Fundador 99,90 (o Batismo/Fundador de hoje SEM plano dentro, uma vez, segue o e-mail) com 6 MESES DE LENDA DE
+  BRINDE; peças soltas como hoje. Quem já pagou fica como está (13/10). Frase do modelo: "Jogar é mensal. Ter um clube é seu pra sempre".
 - ⏳ MOCKUP ENVIADO, ESPERANDO OK (26/10, `scripts/mockups/loja-mensal-vitalicio.png`): LOJA COM MENSAL E PRA SEMPRE. Diego recusou
   a loja só com planos de uma vez (*"não tô gostando… quero plano de valores baixos mensal e vitalício e etc e alto também"*). Ele tem
   Pix recorrente na Vindi. Proposta: a MESMA escada com um botão 📅 MENSAL / ♾️ PRA SEMPRE: Craque 9,90/mês ou 29,90 · Lenda 14,90/mês
