@@ -11,6 +11,11 @@
 - Tempo do envelope continua SÓ no Modo Stream (*"deixa só pro modo stream"*), com "45s · padrão".
 - 🌎 Baralho MUNDO sozinho na sala (`deck: 'world'`, START_ONLINE; o `setActiveCatalog` já sabia montar). Testado: leilão de 38 cartas,
   todas do Mundo. Clubes e Liga Draft continuam travados no Todos. Só sala online (carreira/partida rápida não mudam).
+- 🛟 **Nenhuma carta de mentira** (26/10, *"não pode ter jogador fake jogando"*): medido no motor (START_ONLINE, 4 baralhos × 2/10/20/36
+  pessoas × 4-3-3/4-4-2 × envelope/pregão/Tocaia/duplas): tudo zero, MENOS Só Champions com 35–36 pessoas no **Mundo 4-4-2** (falta meia) e
+  com **36 na Várzea** (bug antigo, sem relação com o Mundo). Criar sala trava essas combinações (Champions ↔ Mundo 4-4-2 ↔ Várzea) com o
+  porquê, e o `START_ONLINE` tem a rede: se o leilão nascer com carta fake no Mundo/Várzea, remonta no Todos sem Várzea. Copa do Mundo,
+  Liberta e convidados da Champions não usam o baralho da sala.
 - Quando bater as metas: ligar o modo pra todos é o interruptor de sempre (`*_GERAL` em sport.ts) — a faixa some sozinha com `on`.
 
 ## 📻 Faixa do gol pisca, estilo FM (26/10) — ✅ PUBLICADO PRA TODOS

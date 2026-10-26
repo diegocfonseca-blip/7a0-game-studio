@@ -3464,6 +3464,12 @@ export function EscLobby() {
         // ele é — mas aí a tela para ali: nada de configurar nem de criar. Mostrar
         // formulário de algo que não dá pra criar é promessa falsa.
         // (📋 26/10: a Liga Draft aparece pra todos, travada; o cartão ESCOLHIDO é o que vale — as duas são 'liga')
+        // 🛟 26/10 (Diego: "não pode ter jogador fake"): a Só Champions chega a 36 times — baralho pequeno não fecha o leilão.
+        // Medido no motor: só Mundo + 4-4-2 falta meia a partir de 35 pessoas; Várzea (sem craques) falta com 36. Essas combinações travam
+        // aqui, com o porquê; o motor ainda tem a rede (`START_ONLINE` remonta no Todos se faltar carta real).
+        const mundoCurto = !rapidoClubes && rapidoDeck === 'world' && formation === '4-4-2'
+        const varzeaCurta = !rapidoClubes && rapidoDeck === 'br' && rapidoVarzea
+        const champCurta = mundoCurto || varzeaCurta
         const modoEscolhido = MODOS.find(m => m.v === roomMode && (m.v !== 'liga' || !!m.draft === ligaDraftSel))
         const modoLiberado = modoEscolhido?.on ?? true
         // 🗂️ visual novo (só na conta do Diego): cada seção vira uma linha com o que está escolhido + o resumo antes do botão.
@@ -3741,13 +3747,14 @@ export function EscLobby() {
               </div>
             ) : (
               <SegField label={tr('Baralho de craques', 'Deck of stars')}>
-                <Seg options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['world', tr('🌎 Mundo', '🌎 World')], ['both', tr('♾️ Todos', '♾️ All')]] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => setRapidoDeck(v)} />
+                <Seg options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['world', tr('🌎 Mundo', '🌎 World')], ['both', tr('♾️ Todos', '♾️ All')]] as [DeckChoice, string][]} value={rapidoDeck} onSet={v => { if (v !== 'world' || !(rapidoCopaMode === 'champions' && formation === '4-4-2')) setRapidoDeck(v) }} travados={rapidoCopaMode === 'champions' && formation === '4-4-2' ? ['world'] : undefined} />
+                {rapidoCopaMode === 'champions' && <p className="text-[10.5px] font-bold mt-1.5 leading-snug" style={{ color: '#FFD27A' }}>{tr('⭐ Na Só Champions cabem até 36 times: o Mundo só fecha no 4-3-3 e a Várzea não fecha. Assim ninguém joga com carta de mentira.', '⭐ Champions only fits up to 36 teams: World only works in 4-3-3 and Várzea does not. That way nobody plays with a fake card.')}</p>}
                 <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{tr('♾️ Todos = Brasil + Europa + Mundo juntos. 🧱 Leilão de Clubes e Liga Draft usam sempre o Todos.', '♾️ All = Brazil + Europe + World together. 🧱 Club auction and Draft League always use All.')}</p>
                 {/* 🥅 categoria SÓ do baralho Brasil: Todos (padrão) ou Várzea (sem craques) */}
                 {rapidoDeck === 'br' && (
                   <div className="mt-2.5">
                     <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('Categoria', 'Category')}</p>
-                    <Seg options={[[false, tr('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
+                    <Seg options={[[false, tr('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => { if (!v || !(rapidoCopaMode === 'champions')) setRapidoVarzea(v) }} travados={rapidoCopaMode === 'champions' ? ['true'] : undefined} />
                     <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? tr('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pick-up football.') : tr('🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.', '🇧🇷 The whole BR deck, from the star to the donkey.')}</p>
                   </div>
                 )}
@@ -3756,7 +3763,7 @@ export function EscLobby() {
             {/* 🏀 formação 4-3-3/4-4-2 é do futebol; o basquete é quinteto (5), sem formação. */}
             {!isCareer && !nbaSala && (
               <SegField label={tr('Formação (vale pra todos)', 'Formation (for everyone)')}>
-                <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
+                <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => { if (v !== '4-4-2' || !(rapidoCopaMode === 'champions' && rapidoDeck === 'world' && !rapidoClubes)) setFormation(v) }} travados={rapidoCopaMode === 'champions' && rapidoDeck === 'world' && !rapidoClubes ? ['4-4-2'] : undefined} />
               </SegField>
             )}
           </Section>
@@ -3896,8 +3903,8 @@ export function EscLobby() {
                         <p className="font-black mt-2 mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{titulo}</p>
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
-                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
-                          selos={{ liga_mundo: seloNovo(), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) && !champCurta ? [] : ['champions' as const]), ...regionalTravadas]}
+                          selos={{ liga_mundo: seloNovo(), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : champCurta ? { champions: varzeaCurta ? tr('não na Várzea', 'not in Várzea') : tr('Mundo só 4-3-3', 'World: 4-3-3 only') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
                       </>
                     )
                     return <>
@@ -3905,6 +3912,7 @@ export function EscLobby() {
                       {prateleira(tr('📋 CONVOCANDO', '📋 CALL-UP'), todas.filter(([v]) => convoca(v)))}
                     </>
                   })()}
+                  {champCurta && championsOn && <p className="text-[10.5px] font-bold mt-1.5 leading-snug" style={{ color: '#FFD27A' }}>{varzeaCurta ? tr('⭐ Só Champions trancada: ela chega a 36 times e a Várzea (sem craques) não tem jogador de verdade pra todos. Escolha a categoria Todos.', '⭐ Champions only is locked: it reaches 36 teams and Várzea (no stars) does not have real players for everyone. Pick the All category.') : tr('⭐ Só Champions trancada: ela chega a 36 times e o baralho Mundo no 4-4-2 não tem meia de verdade pra todos. Use 4-3-3 ou outro baralho.', '⭐ Champions only is locked: it reaches 36 teams and the World deck in 4-4-2 does not have enough real midfielders. Use 4-3-3 or another deck.')}</p>}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {regionalId(rapidoCopaMode) ? (() => {
                       const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length
