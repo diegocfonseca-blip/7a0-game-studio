@@ -53,18 +53,19 @@ ${bloco(4, '🏆', 'O campeonato', 'O que vem depois das 38 rodadas', `
   ${linha('Depois da liga', chips([['📊 Só liga'], ['🏆 + Copa dos 8'], ['🌎 + Liberta'], ['⭐ Só Champions'], ['🌐 + Copa do Mundo'], ['🗺️ + Regional', 'Rio-SP · Sul-Minas · Nordeste']], '🏆 + Copa dos 8', { cols: 2 }))}`)}
 ${bloco(5, '📺', 'A partida', 'Como o jogo passa na tela', `
   ${linha('Ritmo', chips([['⚡ Auto'], ['🎮 Manual', '', PLANO, true]], '🎮 Manual'), `
-    <p class="alerta">⚠️ <b>Só use com gente que você conhece.</b> No Manual, quem criou a sala decide quando cada rodada começa. Se ele sumir, a sala para. Com desconhecidos, prefira o Auto.</p>
-    <p class="rot" style="margin-top:9px">⏱️ Tempo de cada envelope</p>
-    ${chips([['Sem tempo', 'você avança'], ['20s'], ['30s'], ['45s'], ['60s'], ['90s']], '45s', { cols: 3 })}
-    <p class="dica cinza">No "Sem tempo", você fecha cada envelope no botão. No Auto o tempo é sempre 45s.</p>`)}
+    <p class="alerta">⚠️ <b>Só use com gente que você conhece.</b> No Manual, quem criou a sala decide quando cada rodada começa. Se ele sumir, a sala para. Com desconhecidos, prefira o Auto.</p>`)}
   ${linha('Jogo', chips([['📊 Placar padrão'], ['📺 Campo 2D', '', META(3), true]], '📊 Placar padrão'))}`)}
 ${bloco(6, '🚪', 'A sala', 'Quem entra e como fica', `
   ${linha('Nome', '<div class="inp">Sala do Diego</div>')}
   ${linha('Entrada', chips([['🔓 Aberta'], ['🔒 Com senha']], '🔓 Aberta'))}
-  ${linha('Extras', chips([['💬 Chat ligado'], ['🔴 Modo Stream']], '💬 Chat ligado'))}`)}
+  ${linha('Chat', chips([['💬 Chat ligado'], ['🔇 Sem chat']], '💬 Chat ligado'))}
+  ${linha('Vai transmitir ao vivo?', chips([['Não'], ['🔴 Modo Stream']], '🔴 Modo Stream'), `
+    <div class="sub2"><p class="rot">⏱️ Tempo de cada envelope <span class="pd">só no Modo Stream</span></p>
+    ${chips([['Sem tempo', 'você avança'], ['20s'], ['30s'], ['45s', 'PADRÃO'], ['60s'], ['90s']], '45s', { cols: 3 })}
+    <p class="dica cinza">Já vem nos <b>45s</b>, o tempo de sempre. No "Sem tempo", você fecha cada envelope no botão, na hora que quiser.</p></div>`)}`)}
 <div class="pe">
   <p class="rot">📋 Sua sala</p>
-  <div class="resumo"><span>⚡ Rápido</span><span>✉️ Envelope 45s</span><span>⭐ Todos</span><span>4-3-3</span><span>🏆 + Copa dos 8</span><span>🎮 Manual</span><span>🔓 Aberta</span></div>
+  <div class="resumo"><span>⚡ Rápido</span><span>✉️ Envelope 45s</span><span>⭐ Todos</span><span>4-3-3</span><span>🏆 + Copa dos 8</span><span>🎮 Manual</span><span>🔴 Stream · 45s</span><span>🔓 Aberta</span></div>
   <button>🔨 CRIAR SALA</button>
 </div>`
 
@@ -98,7 +99,7 @@ const CSS = `${FONTS}
 .chip b{display:block;font:700 13px Oswald;text-transform:uppercase;line-height:1.15}.chip small{display:block;font-size:10.5px;font-weight:600;color:#6b6250;margin-top:2px;line-height:1.2}
 .chip.on{background:#FFC400;box-shadow:2px 2px 0 #0C0C0C}.chip.on small{color:#3b3000}
 .chip i{position:absolute;top:-8px;right:6px;font:700 9px Oswald;font-style:normal;background:#7C3AED;color:#fff;border:2px solid #0C0C0C;border-radius:6px;padding:0 4px}
-.dica{font-size:11px;font-weight:600;color:#1B7A3D;margin-top:5px}.dica.cinza{color:#6b6250}.chip.fx{padding-top:16px}.chip em{position:absolute;left:-2.5px;right:-2.5px;top:-2.5px;font:700 9px/1 Oswald;font-style:normal;letter-spacing:.06em;background:#7C3AED;color:#fff;border:2.5px solid #0C0C0C;border-radius:10px 10px 0 0;padding:3px 2px}.alerta{margin-top:7px;font-size:11.5px;font-weight:600;line-height:1.35;background:#FDE8E3;border:2.5px solid #C2452F;border-radius:10px;padding:7px 9px}.av{margin:10px 0 8px;background:#F3EDFF;border:3px solid #7C3AED;border-radius:12px;padding:10px;font-size:12px;font-weight:600;line-height:1.4}.av p{margin:0 0 6px}.avt{font:700 15px Oswald;text-transform:uppercase;color:#5B21B6}.barra{display:block;height:12px;border:2.5px solid #0C0C0C;border-radius:8px;background:#fff;overflow:hidden}.barra span{display:block;height:100%;background:#7C3AED}.av small{font-size:10.5px;color:#5B21B6;font-weight:700}.leg{font:700 13px Oswald;letter-spacing:.06em;color:#7C3AED;margin:2px 0 6px}
+.dica{font-size:11px;font-weight:600;color:#1B7A3D;margin-top:5px}.dica.cinza{color:#6b6250}.chip.fx{padding-top:16px}.chip em{position:absolute;left:-2.5px;right:-2.5px;top:-2.5px;font:700 9px/1 Oswald;font-style:normal;letter-spacing:.06em;background:#7C3AED;color:#fff;border:2.5px solid #0C0C0C;border-radius:10px 10px 0 0;padding:3px 2px}.alerta{margin-top:7px;font-size:11.5px;font-weight:600;line-height:1.35;background:#FDE8E3;border:2.5px solid #C2452F;border-radius:10px;padding:7px 9px}.av{margin:10px 0 8px;background:#F3EDFF;border:3px solid #7C3AED;border-radius:12px;padding:10px;font-size:12px;font-weight:600;line-height:1.4}.av p{margin:0 0 6px}.avt{font:700 15px Oswald;text-transform:uppercase;color:#5B21B6}.barra{display:block;height:12px;border:2.5px solid #0C0C0C;border-radius:8px;background:#fff;overflow:hidden}.barra span{display:block;height:100%;background:#7C3AED}.av small{font-size:10.5px;color:#5B21B6;font-weight:700}.sub2{margin-top:8px;background:#EEF4FB;border:2.5px solid #2E6FB0;border-radius:10px;padding:8px}.pd{font:700 9px Oswald;background:#2E6FB0;color:#fff;border-radius:5px;padding:1px 5px;margin-left:4px}.leg{font:700 13px Oswald;letter-spacing:.06em;color:#7C3AED;margin:2px 0 6px}
 .inp{border:2.5px solid #0C0C0C;border-radius:10px;background:#fff;padding:7px 10px;font:700 14px Oswald}
 .pe{position:relative;background:#0C0C0C;border-radius:16px;padding:11px;margin-top:4px}.pe .rot{color:#FFC400}
 .resumo{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px}.resumo span{font:700 11px Oswald;text-transform:uppercase;background:#2b241a;color:#F4ECD6;border-radius:7px;padding:3px 7px}
