@@ -1,3 +1,18 @@
+## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
+- Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
+- Tela (lobby.tsx, criar2): 1 O jogo · 2 O leilão (jeito do lance + jogador/clubes) · 3 O time (solo/duplas, baralho, formação) ·
+  [Rivais, só carreira] · 4 O campeonato (depois da liga) · 5 A partida (ritmo + placar/2D) · 6 A sala (nome, senha, chat, stream).
+  Números saem na ordem (`proxSec`).
+- ⭐ = precisa de plano pra CRIAR: Minhas ligas, Liga Draft, Carreira, Manual e Campo 2D. **Criar sala no Manual e com o 2D agora é
+  do plano** (`useHasManual`, a régua do Modo Manual) — jogar na sala dos outros continua grátis. ⚠️ aviso "só com quem conhece" no Manual.
+- Faixa roxa "LANÇA COM NK 👤 NO INSTA" (Instagram @leilaolegendscom): Liga Draft 5K · Carreira 7K · Bafo 3K (sem plano) · Campo 2D 3K
+  (selo no botão). Modo travado NÃO abre nada embaixo: só o quadro roxo (meta, jogar grátis, criar com plano); a Carreira tem propaganda
+  própria (Várzea → Série A com o amigo, técnico, vender jogador, coletiva). A Liga Draft agora aparece pra todos (travada).
+- Tempo do envelope continua SÓ no Modo Stream (*"deixa só pro modo stream"*), com "45s · padrão".
+- 🌎 Baralho MUNDO sozinho na sala (`deck: 'world'`, START_ONLINE; o `setActiveCatalog` já sabia montar). Testado: leilão de 38 cartas,
+  todas do Mundo. Clubes e Liga Draft continuam travados no Todos. Só sala online (carreira/partida rápida não mudam).
+- Quando bater as metas: ligar o modo pra todos é o interruptor de sempre (`*_GERAL` em sport.ts) — a faixa some sozinha com `on`.
+
 ## 📻 Faixa do gol pisca, estilo FM (26/10) — ✅ PUBLICADO PRA TODOS
 - No gol, a faixa da rádio (placar cinema) e a do locutor (Campo 2D) gritam "⚽ GOOOOOOL DO <TIME>! <bordão com o autor>" piscando
   verde do Bom Jogador #2E9E5B ⇄ creme (`radio-pisca.ts`/`.css`). No normal: uma linha só, creme com letra preta, sem "Rádio/Lance/Jogo".
