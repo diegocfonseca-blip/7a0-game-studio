@@ -11165,3 +11165,5 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   fila 1 nos cantos). O camarote ficou onde estava (atrás do 2º anel) — dá pra trazer pra dentro depois, se ele pedir.
 
 - ✅ 26/10 **Manual trancado da carreira com 3 opções**: ⏱️ Manual 24 h avulso R$ 9,90 (Pix `manual_24h`, banco libera por 24 h em `esc_direitos_de`) · ⭐ Craque Completo 14,90 · 💛 todos os planos. Painel 📊 manteve as linhas antigas e ganhou o caminho de cada lugar (Manual / limite de sala) + quantos pagaram o 24 h.
+
+- 🩹 27/10 **Aviso de fim de semana (pódio + clã) voltava depois do ✕**: `void supabase.rpc(...)` não envia nada (o supabase-js só manda no `.then`), então `visto_em` nunca gravou pra ninguém (conferido: 50 linhas da semana 19/10, todas nulas) e a checagem de 60s trazia o aviso de volta. Agora o ✕ chama de verdade + o aparelho lembra o que fechou. Mesmo erro consertado no convite de amigo (`esc_convite_visto`), no aviso da conta (`esc_aviso_visto`) e na presença da carreira online. **Regra: rpc sem await precisa de `.then(() => {}, () => {})`.**

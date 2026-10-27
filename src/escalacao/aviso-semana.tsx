@@ -44,6 +44,18 @@ const zap = (txt: string) => window.open(`https://wa.me/?text=${encodeURICompone
 
 // (nada de aviso no meio do pregão: espera a pessoa sair do leilão — "nada pode atrasar o ritmo do jogo")
 const TELAS_PREGAO = new Set(['auction', 'monte', 'cerimonia', 'convocacao'])
+// 🩹 27/10 (Diego: "fecham no X e fica aparecendo toda hora… N some nunca"): o `void supabase.rpc(...)` NUNCA mandava o pedido — o
+// supabase-js só envia quando alguém chama `.then` — então a marca não caía na conta e a checagem de 60s trazia o aviso de volta.
+// Agora o ✕ espera o banco de verdade e, de reforço, o aparelho lembra o que já foi fechado (nunca mostra de novo, mesmo se a rede falhar).
+const CHAVE_VISTO = 'esc-aviso-semana-visto'
+const chaveAviso = (a: Pick<Aviso, 'tipo' | 'semana'>) => `${a.tipo}|${a.semana}`
+const lerVistos = (): string[] => { try { const v = JSON.parse(localStorage.getItem(CHAVE_VISTO) ?? '[]'); return Array.isArray(v) ? v.slice(-20) : [] } catch { return [] } }
+const vistosNaMemoria = new Set<string>(lerVistos())
+function marcaVisto(a: Aviso) {
+  vistosNaMemoria.add(chaveAviso(a))
+  try { localStorage.setItem(CHAVE_VISTO, JSON.stringify([...vistosNaMemoria].slice(-20))) } catch { /* sem espaço: a memória da aba e o banco seguram */ }
+  supabase.rpc('esc_aviso_semana_visto', { p_tipo: a.tipo, p_semana: a.semana }).then(() => {}, () => {})
+}
 
 export function AvisoSemana({ tela }: { tela: string }) {
   const [fila, setFila] = useState<Aviso[]>([])
@@ -55,7 +67,7 @@ export function AvisoSemana({ tela }: { tela: string }) {
       const { data } = await supabase.rpc('esc_avisos_semana')
       if (!vivo || !Array.isArray(data)) return
       // (técnico primeiro, depois o clã — quem foi dos dois vê um depois do outro)
-      const lista = (data as Aviso[]).filter(a => a.pos >= 1 && a.pos <= 3).sort((a, b) => (a.tipo === b.tipo ? 0 : a.tipo === 'tecnico' ? -1 : 1))
+      const lista = (data as Aviso[]).filter(a => a.pos >= 1 && a.pos <= 3 && !vistosNaMemoria.has(chaveAviso(a))).sort((a, b) => (a.tipo === b.tipo ? 0 : a.tipo === 'tecnico' ? -1 : 1))
       setFila(lista)
     }
     const t = setTimeout(olha, 3000) // depois do login assentar
@@ -69,8 +81,8 @@ export function AvisoSemana({ tela }: { tela: string }) {
   const a = fila[0]
   if (!a || TELAS_PREGAO.has(tela)) return null
   const fecha = () => {
-    void supabase.rpc('esc_aviso_semana_visto', { p_tipo: a.tipo, p_semana: a.semana })
-    setFila(f => f.slice(1))
+    marcaVisto(a)
+    setFila(f => f.filter(x => chaveAviso(x) !== chaveAviso(a)))
   }
   return createPortal(<AvisoSemanaCard a={a} onClose={fecha} />, document.body)
 }

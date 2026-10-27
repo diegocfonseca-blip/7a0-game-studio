@@ -94,12 +94,12 @@ export async function co2Abrir(salaId: string): Promise<void> {
   ch.subscribe(st => { if (st === 'SUBSCRIBED') void ch.track({ uid }) })
   canal = ch
   // 🕰️ "na sala" no banco (o vice só assume se o dono não deu sinal há 2 min) — 1 gravação por minuto, só banco
-  void supabase.rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true })
-  batida = setInterval(() => { void supabase.rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }) }, 60_000)
+  void supabase.rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }).then(() => {}, () => {})
+  batida = setInterval(() => { void supabase.rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }).then(() => {}, () => {}) }, 60_000)
 }
 export function co2Fechar(): void {
   if (batida) { clearInterval(batida); batida = null }
-  if (canalSala) void supabase.rpc('esc_carr_presenca', { p_sala: canalSala, p_aqui: false })
+  if (canalSala) void supabase.rpc('esc_carr_presenca', { p_sala: canalSala, p_aqui: false }).then(() => {}, () => {})
   try { canal?.unsubscribe() } catch { /* ignora */ }
   canal = null; canalSala = null
   muda({ sala: null, clubes: [], aqui: [], mundo: null })
