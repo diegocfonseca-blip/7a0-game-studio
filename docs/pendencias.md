@@ -1,3 +1,10 @@
+## ⚽🧍 Boneco novo do 3D jogando futebol (27/10) — só na conta do Diego, no branch
+- Queixa dele: *"a bola rola estranho, jogador domina estranho, cai do nada, passe e chute estranhos"*.
+- `players-novo.mjs`: um motor de PREVISÃO roda 1 s na frente e agenda chute/passe/cabeçada pra o pé (ou a cabeça) bater na bola
+  no instante exato do lance (medido: cruzamento 12,98 × pé 12,97; cabeçada 13,19 × cabeça 13,16). Recebe com domínio/peito
+  (não no toque de primeira), bola GRUDADA no pé de quem conduz, e só cai em FALTA (na "vantagem" o jogador segue correndo).
+- Falta: bola maior (~40% só no desenho) ou bola nova — esperando ele dizer.
+
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
 - Tela (lobby.tsx, criar2): 1 O jogo · 2 O leilão (jeito do lance + jogador/clubes) · 3 O time (solo/duplas, baralho, formação) ·

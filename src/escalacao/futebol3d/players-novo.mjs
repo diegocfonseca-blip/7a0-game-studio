@@ -13,6 +13,7 @@ import {uniformeDoTime,GOLEIRO} from './uniformes.mjs'
 import {playerDetail} from './lod.mjs'
 import {BATISMOS} from '../batismos.ts'
 import {legendAvatar} from '../legend-avatars.ts'
+import {identidadeAtleta3D} from '../presidencia-futebol-identidade.ts'
 
 // velocidade (m/s) em que cada corrida do Mixamo foi gravada, por ciclo — o passo acompanha o chão sem patinar
 const CICLO_M=2.9
@@ -22,6 +23,7 @@ const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=
 const CHUTES=new Set(['chute','chutao'])
 const PASSES=new Set(['passe','enfiada','lancamento','inversao','cruzamento','cobranca'])
 const angulo=a=>Math.atan2(Math.sin(a),Math.cos(a))
+// ⏱️ o `time` do quadro já é o relógio do motor (o mesmo de `lance.t0` e `evento.t`): compara direto, sem converter
 
 /** tom de pele (e cabelo) tirados do rosto da carta (só lendas que têm rosto). */
 const aparencias=new Map()
@@ -69,9 +71,27 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   atores.push(ator)
  }
  let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0}
+ // 🔮 OLHAR ADIANTE: uma cópia do MESMO motor (mesma semente: o mesmo jogo) roda ~1 s à frente do desenho. Assim o corpo sabe que
+ // VAI chutar/passar/cabecear antes de a bola sair e começa o movimento a tempo do pé (ou a cabeça) bater na bola no instante certo;
+ // e sabe quem vai RECEBER a bola, pra fazer o domínio quando ela chega. Só apresentação: o placar continua do motor oficial.
+ const {novoMotor2}=await import('../motor2/carreira.ts')
+ const chaveDe=at=>identidadeAtleta3D(at.lado===0?'home':'away',at.nome,at.carta?.club,at.carta?.year)
+ const ADIANTE=1.0,agenda=[];let prev=null,prevAte=0,ultLance=null,ultDono=null
+ const observa=()=>{const b=prev.bola,l=b.lance
+  if(l){const k=l.tipo+':'+l.de.id+':'+l.t0;if(k!==ultLance){ultLance=k;agenda.push({key:chaveDe(l.de),kind:'toque',tipo:l.tipo,golpe:l.golpe,t:l.t0,cab:l.tipo==='cabeceio'||l.tipo==='cabeceio_gol'||l.golpe==='cabeca',longe:l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):30})}}
+  const d=b.dono&&b.h<2.4?b.dono:null
+  if(d&&d!==ultDono)agenda.push({key:chaveDe(d),kind:'recebe',t:prev.t,h:b.h,goleiro:d.grupo==='GOL'})
+  ultDono=d}
+ const preve=ate=>{if(!state.officialInput)return
+  if(!prev||ate<prevAte-.3){prev=novoMotor2(structuredClone(state.officialInput));prevAte=0;ultLance=null;ultDono=null;agenda.length=0}
+  while(prevAte<ate){prevAte=Math.min(ate,prevAte+.05);prev.avancaAte(prevAte);observa()}
+  while(agenda.length&&agenda[0].t<ate-ADIANTE-3)agenda.shift()}
+ // ⚽ bola no pé: com a bola dominada, o desenho cola a bola no pé de quem conduz (o motor deixa ela 1–2 m solta na frente) e solta
+ // no instante do toque — a bola sai DO PÉ. Só desenho: a bola do motor continua mandando no jogo
+ let bolaW=0,bolaVis=null,bolaApresentada=null
  onPrepared?.()
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
- const dispara=(a,nome,{inicio=0,agora}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:c.duration,depois:nome==='cai'?'levanta':null};inspection.tiros++}
+ const dispara=(a,nome,{inicio=0,agora,ate=Infinity}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:Math.min(c.duration,ate),depois:nome==='cai'?'levanta':null};inspection.tiros++}
  const toque=nome=>asset.meta.clips?.[nome]?.toque??.4
  return{
   update(frame,camera,viewportHeight=720){
@@ -81,13 +101,14 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    const acao=frame.officialAction,evs=frame.official?.events??[],usados=new Set()
    // eventos dos últimos 0,4 s, por nome do motor (o mesmo que o teatro do players.mjs usa)
    const recentes=[];for(let i=evs.length-1;i>=0;i--){const e=evs[i],idade=frame.time-e.t;if(idade>.4)break;if(idade>=0)recentes.push(e)}
+   if(!frame.replay)preve(frame.time+ADIANTE) // (no replay do gol o tempo volta: a previsão espera ele acabar)
    for(const p of frame.players){
     const a=atores.find(x=>x.key===p.key&&!usados.has(x))??atores.find(x=>!usados.has(x)&&x.side===p.side&&x.keeper===p.keeper&&!frame.players.some(q=>q.key===x.key));if(!a)continue;usados.add(a);a.key=p.key
     a.detail=p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++
     a.holder.visible=a.detail!=='hidden'
     // deslocamento de verdade deste quadro (a velocidade do motor sozinha não sabe de cobrança/teleporte)
     const ult=a.ultimo,dx=ult&&dt>0?p.mx-ult.x:0,dz=ult&&dt>0?p.mz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:p.mx,z:p.mz}
-    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key
+    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key;a.vel=vel
     // pra onde o CORPO olha (27/10, Diego: "completamente perdidos… desgovernados"): quem se MEXE olha pra onde vai, como gente de
     // verdade; só quem está quase parado vira pra bola (passinho de lado/de costas só aí). Com folga entre os dois limites, senão o
     // corpo ficava trocando de frente a cada passo
@@ -98,18 +119,26 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     a.holder.position.set(p.mx,0,p.mz);a.holder.rotation.set(0,a.rumo,0)
     // ── lances: o motor diz quem fez o quê; o corpo mostra ──
     const agora=frame.time
-    if(acao&&acao.actor===p.key&&acao.startedAt!==undefined&&!a.lances.has('a'+acao.startedAt)&&agora-acao.startedAt<.35&&agora>=acao.startedAt){a.lances.add('a'+acao.startedAt)
-     const desde=agora-acao.startedAt,mao=acao.requiredContact==='hands',cab=acao.requiredContact==='head',corre=vel>2.6
-     const nome=cab?'cabeca2':mao?(frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':'gk_lanca'):null)
-      :p.keeper&&acao.restartOrigin?.type!=='tiro-de-meta'&&acao.restartOrigin?.type!=='tiro_de_meta'&&frame.ball.y>.5?'gk_chutao'
-      :CHUTES.has(acao.type)?(corre?'chute_corrida':'chute'):PASSES.has(acao.type)?(corre||acao.type==='lancamento'||acao.type==='cruzamento'?'chute_corrida':'passe'):null
-     // (a bola sai no `startedAt`: o movimento entra já perto do contato pra o pé bater junto com a saída)
-     if(nome)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.1)+desde,agora})}
+    // (mão: lateral e reposição do goleiro — vêm do lance de AGORA, com o instante passado pra segundos)
+    if(acao&&acao.actor===p.key&&acao.requiredContact==='hands'&&acao.startedAt!==undefined&&!a.lances.has('a'+acao.startedAt)&&agora>=acao.startedAt&&agora-acao.startedAt<.35){a.lances.add('a'+acao.startedAt)
+     const nome=frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':'gk_lanca'):null
+     if(nome)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.1)+agora-acao.startedAt,agora})}
+    // (pé e cabeça: pela PREVISÃO — o movimento começa antes, e o contato dele cai no instante em que a bola sai)
+    if(!frame.replay)for(const it of agenda){if(it.feito||it.key!==p.key)continue
+     if(it.kind==='toque'){if(['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)){it.feito=true;continue}
+      const corre=vel>2.6,nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):(corre||it.longe>24?'chute_corrida':'passe')
+      const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
+      dispara(a,nome,{inicio:agora-ini,agora})}
+     else if(it.kind==='recebe'&&!p.keeper){if(agora<it.t-.45)continue;it.feito=true;if(agora>it.t+.2)continue
+      // de primeira (toca de novo em menos de meio segundo): não domina, já sai o passe/chute
+      if(agenda.some(o=>o.kind==='toque'&&o.key===p.key&&o.t>=it.t-.05&&o.t<it.t+.5))continue
+      const nome=it.h>.9?'peito':'dominio',ini=it.t-toque(nome);dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:toque(nome)+.45})}}
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
-     if((e.tipo==='falta'||e.tipo==='vantagem')&&e.b&&String(e.b).startsWith(nomeP)){a.lances.add(id);dispara(a,'cai',{inicio:.35,agora})}
-     else if(e.tipo==='carrinho'&&e.a&&String(e.a).startsWith(nomeP)){a.lances.add(id);dispara(a,'carrinho',{inicio:0,agora})}
-     else if(e.tipo==='drible'&&e.a&&String(e.a).startsWith(nomeP)&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}}
+     // (só FALTA derruba: na VANTAGEM o jogo segue e o motor continua levando o jogador — cair ali era o "cai do nada" deslizando)
+     if(e.tipo==='falta'&&e.b===nomeP){a.lances.add(id);dispara(a,'cai',{inicio:.35,agora})}
+     else if(e.tipo==='carrinho'&&e.a===nomeP){a.lances.add(id);dispara(a,'carrinho',{inicio:0,agora})}
+     else if(e.tipo==='drible'&&e.a===nomeP&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}}
     if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
      const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):direita?'gk_voo_d':'gk_voo_e'
@@ -137,8 +166,15 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     a.mixer.update(0)
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
+   // bola no pé de quem conduz (ver `bolaW`)
+   {const dono=frame.owner&&!frame.replay&&frame.ball.y<.7&&!frame.ball.presentation?atores.find(a=>a.key===frame.owner&&a.holder.visible&&!a.keeper):null
+    const chutando=dono?.tiro&&!['dominio','peito'].includes(dono.tiro.nome)&&frame.time-dono.tiro.t0>=toque(dono.tiro.nome)-.02
+    const alvo=dono&&!chutando?(dono.vel>3.2?.6:1):0,tau=alvo>bolaW?.12:.07
+    bolaW=dt>0?bolaW+(alvo-bolaW)*(1-Math.exp(-dt/tau)):alvo
+    if(dono)bolaVis={x:dono.holder.position.x+Math.sin(dono.rumo)*.42,z:dono.holder.position.z+Math.cos(dono.rumo)*.42}
+    bolaApresentada=bolaW>.01&&bolaVis?{x:frame.ball.x+(bolaVis.x-frame.ball.x)*bolaW,y:frame.ball.y+(.11-frame.ball.y)*bolaW,z:frame.ball.z+(bolaVis.z-frame.ball.z)*bolaW}:null}
   },
-  presentFrame:frame=>frame,
+  presentFrame:frame=>bolaApresentada&&frame.time===lastTime&&!frame.ball.presentation?{...frame,ball:{...frame.ball,presentation:bolaApresentada}}:frame,
   prepared:()=>Promise.resolve(null),
   inspect:()=>({...inspection,style:'jogador-novo'}),
   inspectActors:()=>({slots:atores.map((a,slot)=>({slot,key:a.key,heading:a.rumo,visible:a.holder.visible,detail:a.detail,tiro:a.tiro?.nome??null}))}),
