@@ -8,6 +8,9 @@
 - Faixa da comunidade: "Já somos 16.703 técnicos… Entre na comunidade" (botão verde). ⚠️ Em 23/10 ele pediu a faixa CLEAN
   (*"sem esse exagero todo do whatsapp"*) — a nova tem botão verde de novo; confirmar.
 - Mockups: `scripts/mockup-abas-carreira.mjs` → `scripts/mockups/abas-carreira-pc.png` e `abas-carreira-celular.png`.
+- 🔁 v2 (27/10, *"não gostei de você fazer várias coisas num lugar só… é uma coisa só em cada lugar"*): **cada aba mostra só o
+  que é dela** (nada de 3 colunas misturando clube/tabela na Central) e **Jogos + Tabela é UMA aba** → 5 abas: Central · Jogos +
+  Tabela · Elenco · Rank · Clube.
 
 ## 🔒 Nome reservado pra quem tem plano (27/10) — ✅ FEITO (mockup aprovado: *"aprovado"*)
 - Pedido: *"quem tem plano reserva o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*.
