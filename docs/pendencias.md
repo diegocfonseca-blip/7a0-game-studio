@@ -11176,3 +11176,11 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
 - Falta (próximas levas): boneco BASE branco pra pintar a cor de cada clube; cabelos por jogador; trocar o boneco do campo 3D
   por este; ligar cada movimento ao lance do motor (passe/domínio/chute/cabeçada/carrinho/goleiro/lateral) com o contato no
   tempo certo; correr de costas/de lado (jogging do Mixamo); peso pro celular (22 bonecos). Mostrar prints antes de publicar.
+- ✅ 27/10 (no branch, NÃO publicado): `public/futebol3d/jogador.glb` (3,2 MB) montado por `scripts/futebol3d/monta-jogador.mjs`
+  — roupa BRANCA pintada no jogo pela cor do time (máscara `jogador-roupa.png`: R camisa · G calção · B meião; alfa = pele/cabelo),
+  e alvo de forma **careca** (o cabelo encolhe até o crânio). Regra do Diego: *"pra quem não é lenda, pode deixar o boneco careca"*;
+  lenda com rosto na carta = pele e cabelo tirados do rosto da carta (`players-novo.mjs`, `aparenciaDaCarta`).
+- ✅ 27/10: `src/escalacao/futebol3d/players-novo.mjs` = controlador dos 22 com o boneco novo (corrida em 8 direções, conduz com a
+  bola, passe/chute/cabeceio/lateral/falta sofrida/carrinho/giro/voo do goleiro pelos lances do motor). Ligado em
+  `presidencia-complexo-partida.ts` (o 3D já é só da conta do Diego); se falhar, volta sozinho pro boneco antigo.
+  `localStorage['esc3d-boneco']='antigo'` força o antigo. Falta: prints pro Diego aprovar → publicar; medir peso no celular.

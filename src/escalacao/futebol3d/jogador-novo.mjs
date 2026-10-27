@@ -23,20 +23,24 @@ export function carregaJogadorNovo(base=(import.meta.env?.BASE_URL??'/')){
  })()
  return pronto
 }
+// tom de pele da arte do boneco (o Pirlo do Meshy), em linear: a pele pedida vira um FATOR sobre ele, assim a sombra pintada fica
+const PELE_BASE=new T.Color('#e8b692')
+function fatorPele(css){if(!css)return new T.Color(1,1,1);const c=new T.Color(css);return new T.Color(Math.min(1.6,c.r/PELE_BASE.r),Math.min(1.6,c.g/PELE_BASE.g),Math.min(1.6,c.b/PELE_BASE.b))}
 /** Material com a roupa pintada: onde a máscara marca camisa/calção/meião, a cor branca da textura vira a cor do clube. */
 function materialRoupa(base,mask,cores){
  const m=base.clone(),u={camisa:{value:new T.Color(cores.camisa)},calcao:{value:new T.Color(cores.calcao)},meiao:{value:new T.Color(cores.meiao)},mascara:{value:mask},
-  pele:{value:new T.Color(cores.pele??'#ffffff')},cabelo:{value:new T.Color(cores.cabelo??'#ffffff')},careca:{value:cores.careca?1:0}}
+  pele:{value:fatorPele(cores.pele)},cabelo:{value:new T.Color(cores.cabelo??'#000000')},tingeCabelo:{value:cores.cabelo?1:0},careca:{value:cores.careca?1:0}}
  // alfa da máscara: 0 cabelo · .5 pele · 1 resto. A pele ganha o tom da lenda; o cabelo, a cor dele — e no careca o fio vira
  // pele lisa (o cabelo já encolheu até o crânio pelo alvo de forma "careca" do GLB).
  const FRAG=`{vec4 m4=texture2D(mascara,vMapUv);vec3 mk=m4.rgb;float fio=clamp(1.-m4.a*2.,0.,1.),cute=clamp(1.-abs(m4.a-.5)*4.,0.,1.);
-  vec3 lisa=vec3(.78,.45,.27)*pele;diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*pele,cute);
-  diffuseColor.rgb=mix(diffuseColor.rgb,mix(diffuseColor.rgb*cabelo,lisa,careca),fio);
+  vec3 lisa=vec3(.80,.47,.29)*pele;diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*pele,cute);
+  float lu=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));vec3 fios=mix(diffuseColor.rgb,cabelo*clamp(lu/.055,.35,2.2),tingeCabelo);
+  diffuseColor.rgb=mix(diffuseColor.rgb,mix(fios,lisa,careca),fio);
   float k=clamp(mk.r+mk.g+mk.b,0.,1.);vec3 tinta=(camisa*mk.r+calcao*mk.g+meiao*mk.b)/max(k,1e-3);diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*tinta,k);}`
  m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,u)
-  sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 camisa;uniform vec3 calcao;uniform vec3 meiao;uniform sampler2D mascara;uniform vec3 pele;uniform vec3 cabelo;uniform float careca;')
+  sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 camisa;uniform vec3 calcao;uniform vec3 meiao;uniform sampler2D mascara;uniform vec3 pele;uniform vec3 cabelo;uniform float tingeCabelo;uniform float careca;')
    .replace('#include <map_fragment>','#include <map_fragment>\n'+FRAG)}
- m.customProgramCacheKey=()=>'jogador-roupa2'
+ m.customProgramCacheKey=()=>'jogador-roupa3'
  m.userData.cores=u
  return m
 }
@@ -49,6 +53,6 @@ export function criarJogadorNovo(asset,cores){
  const mixer=new T.AnimationMixer(root),acoes=new Map()
  const acao=nome=>{let a=acoes.get(nome);if(!a){const c=asset.clips.get(nome);if(!c)return null;a=mixer.clipAction(c);acoes.set(nome,a)}return a}
  return{holder,root,mesh,mixer,acao,
-  setCores(c){const u=mesh.material.userData.cores;u.camisa.value.set(c.camisa);u.calcao.value.set(c.calcao);u.meiao.value.set(c.meiao);if(c.pele)u.pele.value.set(c.pele);if(c.cabelo)u.cabelo.value.set(c.cabelo);u.careca.value=c.careca?1:0;if(mesh.morphTargetInfluences)mesh.morphTargetInfluences[0]=c.careca?1:0},
+  setCores(c){const u=mesh.material.userData.cores;u.camisa.value.set(c.camisa);u.calcao.value.set(c.calcao);u.meiao.value.set(c.meiao);u.pele.value.copy(fatorPele(c.pele));if(c.cabelo)u.cabelo.value.set(c.cabelo);u.tingeCabelo.value=c.cabelo?1:0;u.careca.value=c.careca?1:0;if(mesh.morphTargetInfluences)mesh.morphTargetInfluences[0]=c.careca?1:0},
   dispose(){mixer.stopAllAction();mixer.uncacheRoot(root);mesh.material.dispose();holder.removeFromParent()}}
 }
