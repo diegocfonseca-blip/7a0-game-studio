@@ -10881,7 +10881,6 @@ export function PyramidSeasonScreen() {
         })()}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
-        <AvisoContaCarreira />
         <SocioBaraoBanner />
         {calBarra?.barra}
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
@@ -12590,6 +12589,9 @@ export function PyramidSeasonScreen() {
         )}
         </div>
 
+        {/* 💾 27/10 (Diego: *"pra salvar sua carreira crie uma conta, coloque na parte de baixo"*): o aviso saiu do topo e mora
+            no FIM da página, junto do "Sair e salvar carreira" (no PC a grade põe ele na última linha, de ponta a ponta). */}
+        <AvisoContaCarreira />
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
         ) : (
