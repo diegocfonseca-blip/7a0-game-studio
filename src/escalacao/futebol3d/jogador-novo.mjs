@@ -16,7 +16,7 @@ export function carregaJogadorNovo(base=(import.meta.env?.BASE_URL??'/')){
    fetch(base+'futebol3d/jogador-meta.json').then(r=>r.json()),
   ])
   let mesh;gltf.scene.traverse(o=>{if(o.isSkinnedMesh)mesh=o})
-  mask.flipY=true;mask.colorSpace=T.NoColorSpace // (a máscara fica na convenção da textura original do FBX; o GLB vira a imagem dele ao exportar)
+  mask.flipY=true;mask.colorSpace=T.NoColorSpace;mask.generateMipmaps=false;mask.minFilter=T.LinearFilter // (a máscara fica na convenção da textura original do FBX; o GLB vira a imagem dele ao exportar)
   const clips=new Map(gltf.animations.map(c=>[c.name,c]))
   const bb=new T.Box3().setFromObject(gltf.scene),escala=ALTURA_JOGADOR/bb.getSize(new T.Vector3()).y
   return{gltf,mask,meta,clips,escala}
@@ -36,7 +36,8 @@ function materialRoupa(base,mask,cores){
   vec3 lisa=vec3(.80,.47,.29)*pele;diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*pele,cute);
   float lu=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));vec3 fios=mix(diffuseColor.rgb,cabelo*clamp(lu/.055,.35,2.2),tingeCabelo);
   diffuseColor.rgb=mix(diffuseColor.rgb,mix(fios,lisa,careca),fio);
-  float k=clamp(mk.r+mk.g+mk.b,0.,1.);vec3 tinta=(camisa*mk.r+calcao*mk.g+meiao*mk.b)/max(k,1e-3);diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*tinta,k);}`
+  float k=clamp(mk.r+mk.g+mk.b,0.,1.); // (na costura a máscara chega fraca: qualquer sinal já pinta inteiro, senão vira risco branco)
+  vec3 tinta=(camisa*mk.r+calcao*mk.g+meiao*mk.b)/max(k,1e-3);diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*tinta,smoothstep(.02,.3,k));}`
  m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,u)
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 camisa;uniform vec3 calcao;uniform vec3 meiao;uniform sampler2D mascara;uniform vec3 pele;uniform vec3 cabelo;uniform float tingeCabelo;uniform float careca;')
    .replace('#include <map_fragment>','#include <map_fragment>\n'+FRAG)}

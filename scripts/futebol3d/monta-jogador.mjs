@@ -36,31 +36,37 @@ const r=await page.evaluate(async({PASTA,CLIPS})=>{
  const bb=new T.Box3().setFromBufferAttribute(pos);mesh.updateMatrixWorld(true)
  const ys=[],cls=[];for(let i=0;i<pos.count;i++){let best=0,bw=-1;for(let k=0;k<4;k++){const w=sw.getComponent(i,k);if(w>bw){bw=w;best=si.getComponent(i,k)}}cls.push(classeOsso(bones[best].name));v.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld);ys.push(v.y)}
  // cintura: um pouco acima do quadril (onde a camisa termina e o calção começa)
- const altura=Math.max(...ys)-Math.min(...ys),cintura=hy+altura*.035
+ const altura=Math.max(...ys)-Math.min(...ys),cintura=hy-altura*.012 /* (a barra da camisa cobre o cós do calção: acima do quadril ainda é camisa) */
  // ── pinta cada triângulo no espaço da textura com a parte do corpo dele ──
  const fy=mesh.material.map.flipY!==false
  const part=document.createElement('canvas');part.width=part.height=S;const px=part.getContext('2d');px.fillStyle='#000';px.fillRect(0,0,S,S)
  const idx=geo.index?Array.from(geo.index.array):[...Array(pos.count).keys()]
  const cor=['#fff','#fff','#f00','#0f0','#00f','#fff','#ff0'] // camisa/calção/meião em canal próprio; o resto branco: a borda suavizada nunca vira outra parte
  for(let t=0;t<idx.length;t+=3){const a=idx[t],b=idx[t+1],c=idx[t+2],cs=[cls[a],cls[b],cls[c]],cl=cs.sort((x,y)=>cs.filter(z=>z===y).length-cs.filter(z=>z===x).length)[0];const y=(ys[a]+ys[b]+ys[c])/3
-  let parte=cl===0?6:cl===1?1:cl===2?(y>cintura?2:3):cl===3?3:cl===4?4:cl===5?5:1 // 6 cabeça · 1 antebraço/mão · 2 camisa · 3 calção · 4 meião · 5 chuteira
+  let parte=cl===0?6:cl===1?1:cl===2?(y>cintura?2:3):cl===3?(y>cintura?2:3):cl===4?4:cl===5?5:1 // 6 cabeça · 1 antebraço/mão · 2 camisa · 3 calção · 4 meião · 5 chuteira
   px.fillStyle=cor[parte];px.strokeStyle=cor[parte];px.lineWidth=2;px.beginPath();for(const k of [a,b,c])px.lineTo(uv.getX(k)*S,(fy?1-uv.getY(k):uv.getY(k))*S);px.closePath();px.fill();px.stroke()}
  const pd=px.getImageData(0,0,S,S).data,bd=base.data
  const mask=cx.createImageData(S,S),md=mask.data
- const pele=(r,g,b)=>r>120&&r>g&&g>b&&r-b>35&&r-b<150&&g>70 // tom de pele (não pega camisa vermelha: g baixo no vermelho)
+ const pele=(r,g,b)=>r>120&&r>g&&g>b&&r-b>35&&r-b<150&&g>70&&g/r>.6&&b/r>.4 // tom de pele (o brilho da listra vermelha tem g/r baixo: não é pele)
  const cont=[0,0,0,0,0,0]
-  // roupa vira branco liso (236): a cor do time entra no jogo, sem a listra da arte original
- for(let i=0;i<S*S;i++){const R=pd[i*4],G=pd[i*4+1],B=pd[i*4+2],p=R>200&&G<60&&B<60?2:G>200&&R<60&&B<60?3:B>200&&R<60&&G<60?4:R>200&&G>200&&B<60?6:0,r=bd[i*4],g2=bd[i*4+1],b=bd[i*4+2];md[i*4+3]=255
+  // roupa vira branco com as DOBRAS e o brilho da arte original (cada listra medida pela própria cor: vermelha pelo R, preta pelo
+  // brilho) — a cor do time entra no jogo e o pano continua com volume, sem virar plástico liso
+ const amostra=[],roupa=[]
+ for(let i=0;i<S*S;i++){let R=pd[i*4],G=pd[i*4+1],B=pd[i*4+2],mxp=Math.max(R,G,B),p=R>200&&G>200&&B<60?6:mxp>70&&R===mxp&&R>2*G&&R>2*B?2:mxp>70&&G===mxp&&G>2*R&&G>2*B?3:mxp>70&&B===mxp&&B>2*R&&B>2*G?4:0 /* (a borda suavizada do triângulo também conta: senão vira risco claro na costura) */,r=bd[i*4],g2=bd[i*4+1],b=bd[i*4+2];md[i*4+3]=255
   // alfa da máscara: 255 resto · 128 pele (tom da lenda) · 0 cabelo (some no careca, ganha a cor da lenda)
   if(p===6&&(!pele(r,g2,b)||r<192)){md[i*4+3]=0;cont[1]++;continue}
-  if(p!==2&&p!==3&&p!==4&&pele(r,g2,b)){md[i*4+3]=128;cont[0]++;continue}
-  if((p===2||p===3||p===4)&&!pele(r,g2,b)){const s=236;bd[i*4]=bd[i*4+1]=bd[i*4+2]=s;md[i*4+(p-2)]=255;cont[p]++}else cont[p]++}
+  if(pele(r,g2,b)){md[i*4+3]=128;cont[0]++;continue} // (braço que sai da manga também: é pele, não camisa)
+  if((p===2||p===3||p===4)&&!pele(r,g2,b)){const c=r>g2*1.5&&r>90,v=c?r:Math.max(r,g2,b),k=p*2+(c?1:0);(amostra[k]??=[]).push(v);roupa.push([i,k,v]);md[i*4+(p-2)]=255;cont[p]++}else cont[p]++}
+ amostra.length=0;for(const [,k,v] of roupa)(amostra[k]??=[]).push(v)
+ // cada grupo (parte × listra vermelha/escura) vira branco pela MEDIANA dele: a dobra e o brilho ficam, a listra some
+ const med=amostra.map(a=>{if(!a)return 1;const b=Float32Array.from(a).sort();return Math.max(1,b[b.length>>1])})
+ for(const [i,k,v] of roupa){const s2=Math.round(226*Math.min(1.13,Math.max(.62,v/med[k])));bd[i*4]=bd[i*4+1]=bd[i*4+2]=s2}
  // costura: espalha a roupa 4 px pra fora das ilhas (texel vazio), senão o filtro da textura puxa uma linha clara na emenda
- for(let passo=0;passo<4;passo++){const md0=md.slice(),bd0=bd.slice();for(let y=1;y<S-1;y++)for(let x=1;x<S-1;x++){const i=y*S+x;const tem=j=>md0[j*4]|md0[j*4+1]|md0[j*4+2]||md0[j*4+3]<255;if(Math.max(pd[i*4],pd[i*4+1],pd[i*4+2])>200||tem(i))continue
+ for(let passo=0;passo<8;passo++){const md0=md.slice(),bd0=bd.slice();for(let y=1;y<S-1;y++)for(let x=1;x<S-1;x++){const i=y*S+x;const tem=j=>md0[j*4]|md0[j*4+1]|md0[j*4+2]||md0[j*4+3]<255;if(Math.max(pd[i*4],pd[i*4+1],pd[i*4+2])>200||tem(i))continue
   for(const j of [i-1,i+1,i-S,i+S]){if(tem(j)){for(let k=0;k<4;k++){md[i*4+k]=md0[j*4+k];if(k<3)bd[i*4+k]=bd0[j*4+k]}break}}}}
  cx.putImageData(base,0,0);const baseUrl=cv.toDataURL('image/jpeg',.88)
  const mc=document.createElement('canvas');mc.width=mc.height=S;mc.getContext('2d').putImageData(mask,0,0);await window.__grava('jogador-roupa.png',mc.toDataURL('image/png'))
- const tex=new T.CanvasTexture(cv);tex.colorSpace=T.SRGBColorSpace;tex.flipY=mesh.material.map.flipY;tex.userData.mimeType='image/jpeg';mesh.material=new T.MeshStandardMaterial({map:tex,roughness:.85,metalness:0,name:'jogador'})
+ const tex=new T.CanvasTexture(cv);tex.colorSpace=T.SRGBColorSpace;tex.flipY=mesh.material.map.flipY;tex.userData.mimeType='image/jpeg';mesh.material=new T.MeshStandardMaterial({map:tex,roughness:.5,metalness:0,name:'jogador'})
  // ── movimentos: rotação de mundo com as poses de referência casadas (T do Mixamo → A do boneco) ──
  const tb=new Map();g.traverse(o=>{if(o.isBone)tb.set(o.name,o)});const hips=tb.get('mixamorigHips'),h0=hips.position.clone()
  const depth=o=>{let d=0;while(o.parent){o=o.parent;d++}return d}
