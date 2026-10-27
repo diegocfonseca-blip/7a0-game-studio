@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
-import { travaCarreiraGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
+import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
 import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
@@ -7274,7 +7274,7 @@ function proximoDoDraft(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -12116,7 +12116,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
-      if (travaCarreiraGratis(s.seasonNo, !!action.pago)) return s // 🔒 27/10: sem plano, a carreira grátis para no fim da temporada 50 (a tela mostra o porquê e os planos)
+      if (s.onlineMode !== 'online') { // 🔒 27/10: carreira grátis (solo) — sem plano, para no fim da 50 (ou +10 pra quem já estava acima); a tela mostra o porquê e os planos
+        if (travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s
+        s.careerGratisAte = marcaGratis(s.seasonNo, !!action.pago, s.careerGratisAte)
+      }
       setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
