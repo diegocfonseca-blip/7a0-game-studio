@@ -46,7 +46,7 @@ import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPosseConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
-import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
+import { ComPerfil, MeusAmigos, SinoAmigos, PedidosNaHome, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirComPosse} from './presidente-avulsas'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -2276,6 +2276,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
+        {amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}{/* 🤝⚔️ 27/10: pedidos em cima dos modos, com aceitar ali mesmo */}
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
           <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu time e enfrente a CPU.', 'Build your squad and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
