@@ -1,20 +1,20 @@
-// 🧍⚽ 27/10 — os 22 do campo 3D com o JOGADOR NOVO (boneco do Meshy + movimentos de futebol do Mixamo). Mesmo contrato do
+// 🧍⚽ 27/10 — os 22 do campo 3D com o JOGADOR NOVO (boneco do Tripo + movimentos de futebol do Mixamo). Mesmo contrato do
 // players.mjs (update · presentFrame · inspect · dispose), então o resto do 3D não muda. Só apresentação: posição, bola, placar e
 // quem faz o quê continuam do motor — aqui só se escolhe COMO o corpo mostra o que o motor já decidiu.
 //  · corrida em 8 direções (de frente, de costas, de lado, na diagonal) misturada pela velocidade de verdade; quem tem a bola conduz
 //  · cada lance do motor (passe, chute, cabeceio, lateral, falta sofrida, carrinho, drible, goleiro voando) toca o movimento dele
-//  · camisa/calção/meião = cores do TIME em que joga (Diego: "o Pirlo no Neymarzetti veste a camisa do Neymarzetti")
-//  · lenda com rosto na carta = pele e cabelo tirados do rosto da carta; quem não é lenda = careca (Diego, 27/10)
+//  · uniforme = a ficha do TIME em que joga (uniformes.mjs; Diego: "o Pirlo no Neymarzetti veste a camisa do Neymarzetti")
+//  · pele e cabelo nunca recebem cor de uniforme; lenda com rosto na carta ganha o tom de pele dela
 import * as T from 'three'
 import {carregaJogadorNovo,criarJogadorNovo} from './jogador-novo.mjs'
 import {clubKitFor} from './club-kit.mjs'
-import {matchKitPlan,luminance} from './kit-contrast.mjs'
+import {matchKitPlan} from './kit-contrast.mjs'
+import {uniformeDoTime,GOLEIRO} from './uniformes.mjs'
 import {playerDetail} from './lod.mjs'
 import {BATISMOS} from '../batismos.ts'
 import {legendAvatar} from '../legend-avatars.ts'
+import {identidadeAtleta3D} from '../presidencia-futebol-identidade.ts'
 
-const GOLEIRO={camisa:'#d6b329',calcao:'#1b1b1b',meiao:'#d6b329'}
-const PELES=['#e8bc98','#d6a47e','#b57f5a','#8d5c3d','#64402a']
 // velocidade (m/s) em que cada corrida do Mixamo foi gravada, por ciclo — o passo acompanha o chão sem patinar
 const CICLO_M=2.9
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
@@ -22,10 +22,10 @@ const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,
 const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
 const CHUTES=new Set(['chute','chutao'])
 const PASSES=new Set(['passe','enfiada','lancamento','inversao','cruzamento','cobranca'])
-const hash=s=>{let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)}
 const angulo=a=>Math.atan2(Math.sin(a),Math.cos(a))
+// ⏱️ o `time` do quadro já é o relógio do motor (o mesmo de `lance.t0` e `evento.t`): compara direto, sem converter
 
-/** pele e cabelo tirados do rosto da carta (só lendas que têm rosto). Topo da cabeça com cor de pele = careca. */
+/** tom de pele (e cabelo) tirados do rosto da carta (só lendas que têm rosto). */
 const aparencias=new Map()
 function aparenciaDaCarta(src){
  if(!aparencias.has(src))aparencias.set(src,new Promise(res=>{const im=new Image();im.crossOrigin='anonymous';im.onerror=()=>res(null);im.onload=()=>{try{
@@ -47,31 +47,51 @@ function aparenciaDe(key,name){
  let club,year;try{[,,club,year]=JSON.parse(key)}catch{}
  const art=legendAvatar(name,club??undefined,year??undefined)
  if(art)return{lenda:true,src:(import.meta.env?.BASE_URL??'/').replace(/\/$/,'')+art.src}
- return{lenda:false,cores:{pele:PELES[hash(name)%PELES.length],careca:true}}
+ return{lenda:false}
 }
 
 export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  const asset=await carregaJogadorNovo()
  const teams=state.officialTeams??[]
  const kitPlan=matchKitPlan(state,teams.map(clubKitFor),teams.map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[]))
- const coresTime=side=>{const i=side==='home'?0:1,p=kitPlan[i],cfg=p.config?.variants?.home,manto=BATISMOS.find(c=>c.clube===teams[i])?.manto??[]
-  const camisa=p.color??(side==='home'?state.homeColor:state.awayColor)
-  const calcao=cfg?.shorts?.color??manto.find(c=>c&&c.toLowerCase()!==String(camisa).toLowerCase())??(luminance(camisa)>.45?'#1c1c1c':'#f2f2f2')
-  return{camisa,calcao,meiao:cfg?.socks?.color??camisa}}
+ // 👕 a ficha de uniforme de cada lado (uniformes.mjs): a cadastrada do clube ou a lisa das cores dele; se as duas camisas
+ // brigam, o lado do rival ganha a cor de contraste que o jogo já escolhia (kit-contrast) — tudo dividido pelos 11 do time
+ const fichaDe=side=>{const i=side==='home'?0:1,p=kitPlan[i],cfg=p.config,manto=BATISMOS.find(c=>c.clube===teams[i])?.manto??[]
+  const c1=cfg?.colors?.primary??manto[0]??(side==='home'?state.homeColor:state.awayColor),c2=cfg?.colors?.secondary??manto[1]
+  return uniformeDoTime(teams[i],c1,c2,p.generated?p.color:null)}
+ const fichas={home:fichaDe('home'),away:fichaDe('away')}
  const atores=[]
  for(const p of frame.players){
-  const ap=aparenciaDe(p.key,p.name),base=p.keeper?GOLEIRO:coresTime(p.side)
-  const j=criarJogadorNovo(asset,{...base,...(ap.cores??{pele:PELES[hash(p.name)%PELES.length]})})
+  const ap=aparenciaDe(p.key,p.name),ficha=p.keeper?GOLEIRO:fichas[p.side]
+  const j=criarJogadorNovo(asset,ficha) // (pele e cabelo: os originais do boneco; lenda com rosto na carta ganha o tom de pele dela)
   j.holder.name='jogador:'+p.key;scene.add(j.holder)
   for(const nome of LOOPS){const a=j.acao(nome);if(a){a.play();a.timeScale=0;a.setEffectiveWeight(0)}}
-  const ator={...j,key:p.key,side:p.side,keeper:p.keeper,cores:base,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
-  if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c&&!disposed)ator.setCores({...ator.cores,...c})})
+  const ator={...j,key:p.key,side:p.side,keeper:p.keeper,ficha,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
+  if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c?.pele&&!disposed)ator.setPele(c.pele)})
   atores.push(ator)
  }
  let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0}
+ // 🔮 OLHAR ADIANTE: uma cópia do MESMO motor (mesma semente: o mesmo jogo) roda ~1 s à frente do desenho. Assim o corpo sabe que
+ // VAI chutar/passar/cabecear antes de a bola sair e começa o movimento a tempo do pé (ou a cabeça) bater na bola no instante certo;
+ // e sabe quem vai RECEBER a bola, pra fazer o domínio quando ela chega. Só apresentação: o placar continua do motor oficial.
+ const {novoMotor2}=await import('../motor2/carreira.ts')
+ const chaveDe=at=>identidadeAtleta3D(at.lado===0?'home':'away',at.nome,at.carta?.club,at.carta?.year)
+ const ADIANTE=1.0,agenda=[];let prev=null,prevAte=0,ultLance=null,ultDono=null
+ const observa=()=>{const b=prev.bola,l=b.lance
+  if(l){const k=l.tipo+':'+l.de.id+':'+l.t0;if(k!==ultLance){ultLance=k;agenda.push({key:chaveDe(l.de),kind:'toque',tipo:l.tipo,golpe:l.golpe,t:l.t0,cab:l.tipo==='cabeceio'||l.tipo==='cabeceio_gol'||l.golpe==='cabeca',longe:l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):30})}}
+  const d=b.dono&&b.h<2.4?b.dono:null
+  if(d&&d!==ultDono)agenda.push({key:chaveDe(d),kind:'recebe',t:prev.t,h:b.h,goleiro:d.grupo==='GOL'})
+  ultDono=d}
+ const preve=ate=>{if(!state.officialInput)return
+  if(!prev||ate<prevAte-.3){prev=novoMotor2(structuredClone(state.officialInput));prevAte=0;ultLance=null;ultDono=null;agenda.length=0}
+  while(prevAte<ate){prevAte=Math.min(ate,prevAte+.05);prev.avancaAte(prevAte);observa()}
+  while(agenda.length&&agenda[0].t<ate-ADIANTE-3)agenda.shift()}
+ // ⚽ bola no pé: com a bola dominada, o desenho cola a bola no pé de quem conduz (o motor deixa ela 1–2 m solta na frente) e solta
+ // no instante do toque — a bola sai DO PÉ. Só desenho: a bola do motor continua mandando no jogo
+ let bolaW=0,bolaVis=null,bolaApresentada=null
  onPrepared?.()
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
- const dispara=(a,nome,{inicio=0,agora}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:c.duration,depois:nome==='cai'?'levanta':null};inspection.tiros++}
+ const dispara=(a,nome,{inicio=0,agora,ate=Infinity}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:Math.min(c.duration,ate),depois:nome==='cai'?'levanta':null};inspection.tiros++}
  const toque=nome=>asset.meta.clips?.[nome]?.toque??.4
  return{
   update(frame,camera,viewportHeight=720){
@@ -81,32 +101,44 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    const acao=frame.officialAction,evs=frame.official?.events??[],usados=new Set()
    // eventos dos últimos 0,4 s, por nome do motor (o mesmo que o teatro do players.mjs usa)
    const recentes=[];for(let i=evs.length-1;i>=0;i--){const e=evs[i],idade=frame.time-e.t;if(idade>.4)break;if(idade>=0)recentes.push(e)}
+   if(!frame.replay)preve(frame.time+ADIANTE) // (no replay do gol o tempo volta: a previsão espera ele acabar)
    for(const p of frame.players){
     const a=atores.find(x=>x.key===p.key&&!usados.has(x))??atores.find(x=>!usados.has(x)&&x.side===p.side&&x.keeper===p.keeper&&!frame.players.some(q=>q.key===x.key));if(!a)continue;usados.add(a);a.key=p.key
     a.detail=p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++
     a.holder.visible=a.detail!=='hidden'
     // deslocamento de verdade deste quadro (a velocidade do motor sozinha não sabe de cobrança/teleporte)
     const ult=a.ultimo,dx=ult&&dt>0?p.mx-ult.x:0,dz=ult&&dt>0?p.mz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:p.mx,z:p.mz}
-    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key
-    // pra onde o CORPO olha: correndo forte ou com a bola = pra onde vai; trotando/parado = pra bola (aí aparece o de costas e o de lado)
+    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key;a.vel=vel
+    // pra onde o CORPO olha (27/10, Diego: "completamente perdidos… desgovernados"): quem se MEXE olha pra onde vai, como gente de
+    // verdade; só quem está quase parado vira pra bola (passinho de lado/de costas só aí). Com folga entre os dois limites, senão o
+    // corpo ficava trocando de frente a cada passo
     const bx=frame.ball.x-p.mx,bz=frame.ball.z-p.mz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
-    const alvo=p.mergulho?a.rumo:comBola||vel>4.2?praOnde:Math.hypot(bx,bz)<45?praBola:praOnde
+    if(vel>1.7||comBola)a.olhaBola=false;else if(vel<.8)a.olhaBola=true
+    const alvo=p.mergulho?a.rumo:a.olhaBola&&Math.hypot(bx,bz)<45?praBola:praOnde
     a.rumo+=angulo(alvo-a.rumo)*(dt>0?1-Math.exp(-dt/.16):1)
     a.holder.position.set(p.mx,0,p.mz);a.holder.rotation.set(0,a.rumo,0)
     // ── lances: o motor diz quem fez o quê; o corpo mostra ──
     const agora=frame.time
-    if(acao&&acao.actor===p.key&&acao.startedAt!==undefined&&!a.lances.has('a'+acao.startedAt)&&agora-acao.startedAt<.35&&agora>=acao.startedAt){a.lances.add('a'+acao.startedAt)
-     const desde=agora-acao.startedAt,mao=acao.requiredContact==='hands',cab=acao.requiredContact==='head',corre=vel>2.6
-     const nome=cab?'cabeca2':mao?(frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':'gk_lanca'):null)
-      :p.keeper&&acao.restartOrigin?.type!=='tiro-de-meta'&&acao.restartOrigin?.type!=='tiro_de_meta'&&frame.ball.y>.5?'gk_chutao'
-      :CHUTES.has(acao.type)?(corre?'chute_corrida':'chute'):PASSES.has(acao.type)?(corre||acao.type==='lancamento'||acao.type==='cruzamento'?'chute_corrida':'passe'):null
-     // (a bola sai no `startedAt`: o movimento entra já perto do contato pra o pé bater junto com a saída)
-     if(nome)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.1)+desde,agora})}
+    // (mão: lateral e reposição do goleiro — vêm do lance de AGORA, com o instante passado pra segundos)
+    if(acao&&acao.actor===p.key&&acao.requiredContact==='hands'&&acao.startedAt!==undefined&&!a.lances.has('a'+acao.startedAt)&&agora>=acao.startedAt&&agora-acao.startedAt<.35){a.lances.add('a'+acao.startedAt)
+     const nome=frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':'gk_lanca'):null
+     if(nome)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.1)+agora-acao.startedAt,agora})}
+    // (pé e cabeça: pela PREVISÃO — o movimento começa antes, e o contato dele cai no instante em que a bola sai)
+    if(!frame.replay)for(const it of agenda){if(it.feito||it.key!==p.key)continue
+     if(it.kind==='toque'){if(['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)){it.feito=true;continue}
+      const corre=vel>2.6,nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):(corre||it.longe>24?'chute_corrida':'passe')
+      const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
+      dispara(a,nome,{inicio:agora-ini,agora})}
+     else if(it.kind==='recebe'&&!p.keeper){if(agora<it.t-.45)continue;it.feito=true;if(agora>it.t+.2)continue
+      // de primeira (toca de novo em menos de meio segundo): não domina, já sai o passe/chute
+      if(agenda.some(o=>o.kind==='toque'&&o.key===p.key&&o.t>=it.t-.05&&o.t<it.t+.5))continue
+      const nome=it.h>.9?'peito':'dominio',ini=it.t-toque(nome);dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:toque(nome)+.45})}}
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
-     if((e.tipo==='falta'||e.tipo==='vantagem')&&e.b&&String(e.b).startsWith(nomeP)){a.lances.add(id);dispara(a,'cai',{inicio:.35,agora})}
-     else if(e.tipo==='carrinho'&&e.a&&String(e.a).startsWith(nomeP)){a.lances.add(id);dispara(a,'carrinho',{inicio:0,agora})}
-     else if(e.tipo==='drible'&&e.a&&String(e.a).startsWith(nomeP)&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}}
+     // (só FALTA derruba: na VANTAGEM o jogo segue e o motor continua levando o jogador — cair ali era o "cai do nada" deslizando)
+     if(e.tipo==='falta'&&e.b===nomeP){a.lances.add(id);dispara(a,'cai',{inicio:.35,agora})}
+     else if(e.tipo==='carrinho'&&e.a===nomeP){a.lances.add(id);dispara(a,'carrinho',{inicio:0,agora})}
+     else if(e.tipo==='drible'&&e.a===nomeP&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}}
     if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
      const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):direita?'gk_voo_d':'gk_voo_e'
@@ -134,8 +166,15 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     a.mixer.update(0)
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
+   // bola no pé de quem conduz (ver `bolaW`)
+   {const dono=frame.owner&&!frame.replay&&frame.ball.y<.7&&!frame.ball.presentation?atores.find(a=>a.key===frame.owner&&a.holder.visible&&!a.keeper):null
+    const chutando=dono?.tiro&&!['dominio','peito'].includes(dono.tiro.nome)&&frame.time-dono.tiro.t0>=toque(dono.tiro.nome)-.02
+    const alvo=dono&&!chutando?(dono.vel>3.2?.6:1):0,tau=alvo>bolaW?.12:.07
+    bolaW=dt>0?bolaW+(alvo-bolaW)*(1-Math.exp(-dt/tau)):alvo
+    if(dono)bolaVis={x:dono.holder.position.x+Math.sin(dono.rumo)*.42,z:dono.holder.position.z+Math.cos(dono.rumo)*.42}
+    bolaApresentada=bolaW>.01&&bolaVis?{x:frame.ball.x+(bolaVis.x-frame.ball.x)*bolaW,y:frame.ball.y+(.11-frame.ball.y)*bolaW,z:frame.ball.z+(bolaVis.z-frame.ball.z)*bolaW}:null}
   },
-  presentFrame:frame=>frame,
+  presentFrame:frame=>bolaApresentada&&frame.time===lastTime&&!frame.ball.presentation?{...frame,ball:{...frame.ball,presentation:bolaApresentada}}:frame,
   prepared:()=>Promise.resolve(null),
   inspect:()=>({...inspection,style:'jogador-novo'}),
   inspectActors:()=>({slots:atores.map((a,slot)=>({slot,key:a.key,heading:a.rumo,visible:a.holder.visible,detail:a.detail,tiro:a.tiro?.nome??null}))}),

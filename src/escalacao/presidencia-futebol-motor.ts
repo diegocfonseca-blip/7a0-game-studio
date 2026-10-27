@@ -470,13 +470,23 @@ let official:{id:string;signature:string;motor:FutebolOficial3D;clock:RelogioCam
 /** The match clock may hold its minute while the physical ball is retrieved
  * and the teams take legal kickoff positions. This does not advance the motor. */
 export function aguardandoReinicioFutebol(id:string){return official?.id===id?false:active?.id===id&&active.motor.aguardandoReinicio}
+// ⚡ 27/10 (Diego: "ainda tá lento… será que não tem nada duplicando?"): o placar (rAF próprio) e o 3D (rAF dele) pedem o quadro no
+// MESMO quadro de tela — e cada pedido refazia o JSON da escalação inteira, o relógio, os 22 jogadores e a festa. Agora: o JSON
+// da escalação é feito uma vez por objeto, e o 2º pedido no mesmo instante devolve o MESMO quadro (isso também conserta a
+// volta pro meio-campo depois do apito, que andava 2× mais rápido porque a contagem "por quadro" subia uma vez por pedido)
+const assinaturas=new WeakMap<object,string>()
+const assinatura=(input:object)=>{let s=assinaturas.get(input);if(s===undefined){s=JSON.stringify(input);assinaturas.set(input,s)}return s}
+let ultimo:{state:EstadoPartidaEstadio;now:number;quadro:QuadroFutebol}|undefined
 export function quadroFutebol3D(state:EstadoPartidaEstadio,now:number){
  if(state.officialInput){
-  const signature=JSON.stringify(state.officialInput)
-  if(official?.id!==state.context.id||official.signature!==signature)official={id:state.context.id,signature,motor:new FutebolOficial3D(state.officialInput),clock:new RelogioCampo3D(),state}
+  const signature=assinatura(state.officialInput)
+  if(official?.id!==state.context.id||official.signature!==signature){official={id:state.context.id,signature,motor:new FutebolOficial3D(state.officialInput),clock:new RelogioCampo3D(),state};ultimo=undefined}
   if((state.visualClock?.sampledAt??Infinity)>=(official.state.visualClock?.sampledAt??-Infinity))official.state=state
   const current=official.state
-  return official.motor.sample(current,official.clock.sample(current,now))
+  if(ultimo&&ultimo.state===current&&Math.abs(ultimo.now-now)<1)return ultimo.quadro
+  const quadro=official.motor.sample(current,official.clock.sample(current,now))
+  ultimo={state:current,now,quadro}
+  return quadro
  }
  if(active?.id!==state.context.id)active={id:state.context.id,motor:new MotorFutebol(state),state}
  // React can paint the old map prop once after the scoreboard publishes a new

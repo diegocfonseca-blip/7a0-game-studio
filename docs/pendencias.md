@@ -1,3 +1,10 @@
+## ⚽🧍 Boneco novo do 3D jogando futebol (27/10) — só na conta do Diego, no branch
+- Queixa dele: *"a bola rola estranho, jogador domina estranho, cai do nada, passe e chute estranhos"*.
+- `players-novo.mjs`: um motor de PREVISÃO roda 1 s na frente e agenda chute/passe/cabeçada pra o pé (ou a cabeça) bater na bola
+  no instante exato do lance (medido: cruzamento 12,98 × pé 12,97; cabeçada 13,19 × cabeça 13,16). Recebe com domínio/peito
+  (não no toque de primeira), bola GRUDADA no pé de quem conduz, e só cai em FALTA (na "vantagem" o jogador segue correndo).
+- Falta: bola maior (~40% só no desenho) ou bola nova — esperando ele dizer.
+
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
 - Tela (lobby.tsx, criar2): 1 O jogo · 2 O leilão (jeito do lance + jogador/clubes) · 3 O time (solo/duplas, baralho, formação) ·
@@ -11208,6 +11215,21 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   · Vendria: também tem um 2º PARCEIRO pago em 26/10 21h01 (R$ 250/mês, assinatura ativa até 26/11) — avisar o Diego.
 - ✅ 26/10 **Manual trancado da carreira com 3 opções**: ⏱️ Manual 24 h avulso R$ 9,90 (Pix `manual_24h`, banco libera por 24 h em `esc_direitos_de`) · ⭐ Craque Completo 14,90 · 💛 todos os planos. Painel 📊 manteve as linhas antigas e ganhou o caminho de cada lugar (Manual / limite de sala) + quantos pagaram o 24 h.
 
+### 👕 27/10 — SISTEMA DE UNIFORMES do 3D (boneco do Tripo) — no branch, desligado (`localStorage['esc3d-boneco']='novo'`)
+- Diagnóstico do GLB do Tripo: 1 malha · 1 material · 1 textura-atlas pra tudo (pele, cabelo, roupa) em 98 pedaços, 26 deles
+  misturando pele e pano. Por isso trocar a cor do material pintava a pele, e adivinhar pela cor manchava (sombra de pele ×
+  pano cinza). Não precisa de Blender: nada de geometria, rig, animação ou textura original é mexido.
+- Solução: `monta-jogador.mjs` rasteriza cada triângulo no espaço da textura e grava `public/futebol3d/jogador-uniforme.png`
+  (R região·20 +10 costas · G altura · B posição lateral). Região sai do osso + posição 3D do ponto (manga = perto do eixo
+  ombro→cotovelo; gola = anel do pescoço; barra pela altura) + cor original (pano × pele). Cabeça/antebraço = sempre pele.
+  Medidas do corte em `MEDIDAS` (KGOLA_*, KMANGA_*, KCINT); foto de conferência: `verreg.mjs debug` no scratchpad.
+- Runtime: `jogador-novo.mjs` (shader só recolore regiões de roupa, volume do pano = luminância original ÷ branco de
+  referência) + `uniformes.mjs` (ficha por time: liso · listras_v · listras_h · faixa · metade · padrao, mangas/gola/calção/
+  meião/chuteira próprios; times sem ficha saem lisos das cores do clube; contraste do kit-contrast vira o corpo). Um programa
+  de shader só pra todos; valores divididos por ficha.
+- Testado no mesmo jogador: branca · vermelha listrada de preto (calção preto, meião vermelho) · azul com mangas/gola brancas ·
+  verde com faixa diagonal — pele, rosto, braços e cabelo intactos. Falta: OK do Diego → ligar no 3D dele; o careca saiu (o
+  pedido novo é preservar cabelo); fichas dos clubes de verdade (UNIFORMES) a preencher conforme ele mandar.
 - 🩹 27/10 **Aviso de fim de semana (pódio + clã) voltava depois do ✕**: `void supabase.rpc(...)` não envia nada (o supabase-js só manda no `.then`), então `visto_em` nunca gravou pra ninguém (conferido: 50 linhas da semana 19/10, todas nulas) e a checagem de 60s trazia o aviso de volta. Agora o ✕ chama de verdade + o aparelho lembra o que fechou. Mesmo erro consertado no convite de amigo (`esc_convite_visto`), no aviso da conta (`esc_aviso_visto`) e na presença da carreira online. **Regra: rpc sem await precisa de `.then(() => {}, () => {})`.**
 
 - 👥⚔️ 27/10 **Amigos e clãs à vista — MOCKUP esperando OK** (`scripts/mockups/amigos-clas-visiveis.png`). Medido: 159 pedidos de amizade sem resposta (137 há +2 dias), 4 clãs, 34 pedidos pra entrar em clã sem resposta, chat sem "adicionar". Proposta: (1) pedidos na HOME com aceitar na hora; (2) no jogo só pilulinha 🤝 N no topo (nada pula); (3) tocar no nome no chat → ➕ adicionar + no fim de jogo "adicionar todo mundo da sala"; (4) bloco ⚔️ Clãs da semana na home (top + ENTRAR nos abertos + criar).
