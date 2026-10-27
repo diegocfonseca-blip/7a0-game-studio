@@ -78,13 +78,13 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   const pes={r:osso('righttoe')??osso('rightfoot'),l:osso('lefttoe')??osso('leftfoot')},cabeca=osso('head')
   const local=o=>a0.holder.worldToLocal(o.getWorldPosition(new T.Vector3()))
   const p0=a0.holder.position.clone(),r0=a0.holder.rotation.y;a0.holder.position.set(0,0,0);a0.holder.rotation.set(0,0,0)
-  for(const nome of ['chute','chute_corrida','passe','cabeca2']){const act=a0.acao(nome),m=asset.meta.clips?.[nome];if(!act||!m)continue
+  for(const nome of ['chute','chute_corrida','passe','cavadinha','cabeca2']){const act=a0.acao(nome),m=asset.meta.clips?.[nome];if(!act||!m)continue
    const o=nome==='cabeca2'?cabeca:pes[m.pe??'r'];if(!o)continue
    const pose=t=>{act.reset();act.play();act.setEffectiveWeight(1);act.time=t;a0.mixer.update(0);a0.holder.updateMatrixWorld(true);return local(o)}
    for(const n of LOOPS)a0.acao(n)?.setEffectiveWeight(0)
    const antes=pose(Math.max(0,m.toque-.03)),em=pose(m.toque)
    const varre=nome==='cabeca2'?0:Math.atan2(em.x-antes.x,em.z-antes.z)
-   CONTATO[nome]={off:{x:em.x,z:em.z},ang:Math.abs(varre)<.7?varre:0};act.setEffectiveWeight(0);act.stop()}
+   CONTATO[nome]={off:{x:em.x,z:em.z},ang:Math.abs(varre)<1?varre:0};act.setEffectiveWeight(0);act.stop()}
   a0.holder.position.copy(p0);a0.holder.rotation.y=r0}
  let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0}
  // 🔮 OLHAR ADIANTE (o motor avança em MINUTOS de jogo — 93 em 90 s —, e o desenho e os lances andam em segundos): uma cópia do MESMO motor (mesma semente: o mesmo jogo) roda ~1 s à frente do desenho. Assim o corpo sabe que
@@ -148,7 +148,11 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // (pé e cabeça: pela PREVISÃO — o movimento começa antes, e o contato dele cai no instante em que a bola sai)
     if(!frame.replay)for(const it of agenda){if(it.feito||it.key!==p.key)continue
      if(it.kind==='toque'){if(['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)){it.feito=true;continue}
-      const corre=vel>2.6,nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):(corre||it.longe>24?'chute_corrida':'passe')
+      // (27/10, Diego: "dá impressão que ele faz o mesmo lance pra chutar e passar"): cada jeito de bater tem o SEU movimento —
+      // chute = a bomba (parado ou correndo) · bola longa/cruzamento/inversão = a batida por baixo que levanta a bola ·
+      // passe/enfiada = o toque de lado do pé
+      const corre=vel>2.6,longa=['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26
+      const nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):longa?'cavadinha':'passe'
       const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
       dispara(a,nome,{inicio:agora-ini,agora,mira:it.dir==null?null:it.dir-(CONTATO[nome]?.ang??0),ponto:it.ponto?{x:it.ponto.y-52.5,z:it.ponto.x-34}:null})}
      else if(it.kind==='recebe'&&!p.keeper){if(agora<it.t-.45)continue;it.feito=true;if(agora>it.t+.2)continue

@@ -8,6 +8,9 @@
   (medido o pé de cada movimento do Mixamo: o chute correndo varre ~20° pra esquerda), escorrega até o pé ficar no ponto da batida
   e quem conduz continua com a bola no pé. Medido na bancada: perna × bola com ±5°.
 - Bola: o Diego decidiu NÃO aumentar (27/10).
+- 3ª rodada (27/10, *"dá impressão que ele faz o mesmo lance pra chutar e passar"*): passe/enfiada = toque de lado do pé
+  (`passe`) · cruzamento/lançamento/inversão/bola de 26 m+ = batida por baixo (`cavadinha`) · chute = a bomba. Só existe UM
+  movimento de passe no Mixamo baixado; mais variedade (passe correndo, de chapa, de trivela) precisa de arquivo novo do Mixamo.
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
