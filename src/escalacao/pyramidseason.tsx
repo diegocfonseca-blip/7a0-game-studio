@@ -29,6 +29,7 @@ import {narrarChanceEstadio,narrarGolEstadio,narrarEtapaLanceEstadio} from './pr
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
 import './career-desktop.css'
+import './career-abas.css'
 import { Fragment, createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, ReactNode } from 'react'
@@ -7772,7 +7773,7 @@ function SocioBaraoBanner() {
 type AbaCarr = 'central' | 'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'
 // ícones desenhados (duotone) — mesmo traço da barra da home, 0 KB de imagem
 function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
-  const fill = cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : 'rgba(12,12,12,.10)'
+  const fill = cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : cor === '#FFC400' ? 'rgba(255,196,0,.25)' : 'rgba(12,12,12,.10)'
   const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto' }}>
@@ -7787,35 +7788,46 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
 const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
-function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false, contagem, aoVivo=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; aoVivo?: boolean; contagem?: Partial<Record<AbaCarr, number>> }) {
+// 🧭 27/10 (Diego, depois de olhar o Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as
+// abas de baixo melhoradas… além da logo Leilão Legends no PC lá no header"*). Mockup aprovado: scripts/mockups/abas-carreira-*.png.
+// CELULAR: a barra continua EMBAIXO, mas com ícone e nome em preto de verdade (antes cinza 45%), letra maior, e a aba aberta vira
+// um botão preto com o ícone dourado. COMPUTADOR (carreira nova, ≥1024px): a MESMA barra mora em cima (já era assim desde a
+// carreira desktop) — agora com a logo, o cartão do clube e as abas como botões do jogo. O visual mora em `career-abas.css`.
+// ⚠️ Regra dele no mesmo dia: UMA coisa só em cada aba — esta barra só troca de aba, nunca junta pedaços de abas diferentes.
+function BarraCarreira({ tab, setTab, ponto, pontoClube, combined=false, central=false, contagem, aoVivo=false, clube }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor?: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; aoVivo?: boolean; contagem?: Partial<Record<AbaCarr, number>>; clube?: { nome: string; sub: string } }) {
   // 📺 a Central entra na FRENTE da barra, só pra quem tem (03/10)
   const abas: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
   return (
     <>
       {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a barra
           (mesmo remendo já usado na barra da home) */}
-      <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
-<div className="ll-career-navigation" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+      <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:84px !important}'}</style>
+<div className="ll-career-navigation ll-abas" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989 }}>
+      {clube && <div className="ll-abas-logo"><img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={30} height={30} /><span>Leilão <b>Legends</b></span></div>}
+      <div className="ll-abas-card">
+        {clube && <div className="ll-abas-clube"><Escudo nome={clube.nome} size={40} /><div style={{ minWidth: 0 }}><div className="ll-abas-nome">{nomeLimpo(clube.nome) || clube.nome}</div><div className="ll-abas-sub">{clube.sub}</div></div></div>}
+        <div className="ll-abas-lista">
         {abas.filter(([t]) => !combined || t !== 'tabelas').map(([t, originalLabel]) => {
           const label = combined && t === 'jogos' ? tr('Jogos + Tabela', 'Matches + Table') : tr(originalLabel, ABAS_CARR_EN[t])
           const on = tab === t || (combined && t === 'jogos' && tab === 'tabelas')
           return (
-            <button key={t} onClick={() => setTab(t)} aria-label={label}
-              style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: on ? cor : 'rgba(12,12,12,.45)' }}>
-              <IconeCarr nome={t} cor={on ? cor : 'rgba(12,12,12,.45)'} />
-              <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{label}</span>
+            <button key={t} onClick={() => setTab(t)} aria-label={label} className={`ll-aba${on ? ' on' : ''}`}>
+              <span className="ll-aba-ic"><IconeCarr nome={t} cor={on ? '#FFC400' : '#0C0C0C'} /></span>
+              <span className="ll-aba-n">{label}</span>
               {/* 🔴 pontinho: rodada rolando (Jogos) · recibo novo esperando (Clube).
                   Some assim que a pessoa abre a aba — nunca fica pedindo atenção à toa. */}
               {/* 🔴 BOLINHA COM NÚMERO (22/10, ideia A aprovada): quantas coisas a aba tem pra você
                   resolver. Some sozinha quando resolve — nada muda de lugar. */}
               {/* 🔴 25/10 (só conta do Diego, carreira organizada): com jogo rolando, a aba Jogos + Tabela diz "AO VIVO" */}
-              {t === 'jogos' && aoVivo && !on ? <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#E8503A', color: '#fff', border: '2px solid #0C0C0C', borderRadius: 6, padding: '0 5px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 8.5, lineHeight: '13px', whiteSpace: 'nowrap', letterSpacing: '.03em' }}>{tr('AO VIVO', 'LIVE')}</span>
+              {t === 'jogos' && aoVivo && !on ? <span className="ll-aba-vivo">{tr('AO VIVO', 'LIVE')}</span>
               : (contagem?.[t] ?? 0) > 0 && !on
-                ? <span style={{ position: 'absolute', top: -1, right: '50%', marginRight: -20, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: '#C2452F', border: '2px solid #fff', color: '#fff', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 9.5, lineHeight: '12px', textAlign: 'center', boxSizing: 'border-box' }}>{contagem![t]}</span>
-                : ((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span style={{ position: 'absolute', top: 2, right: '50%', marginRight: -15, width: 7, height: 7, borderRadius: 999, background: '#C2452F', border: '1.5px solid #fff' }} />}
+                ? <span className="ll-aba-num">{contagem![t]}</span>
+                : ((t === 'jogos' && ponto) || (t === 'estadio' && pontoClube)) && !on && <span className="ll-aba-ponto" />}
             </button>
           )
         })}
+        </div>
+      </div>
       </div>
     </>
   )
@@ -10806,7 +10818,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done} />}
+      {barraOn && <BarraCarreira clube={privateCareer && me ? { nome: state.managers[state.youIdx]?.teamName ?? me.team, sub: [`T${state.seasonNo ?? 1}`, DIV_NAME[me.div], !done && round > 0 ? `${me.pos}º ${tr('lugar', 'place')}` : '', done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`].filter(Boolean).join(' · ') } : undefined} tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
