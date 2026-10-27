@@ -1,3 +1,12 @@
+## 🦁 Batismo Vila Esporte Clube (27/10) — código + banco FEITOS, esperando "publica"
+- Dono: oluisantonio.contato@gmail.com (pagou Craque → Lenda → Batismo 79,90 no Pix). Plano Batismo = tier ouro, SEM número de fundador.
+- Série D, no assento do bot Imperador SAF (`OLD_NAME`). Coração: Atlético Mineiro. Gala = a PADRÃO (vem sozinha pela `esc_socios`).
+- Arte: `vila-escudo.webp` 360×359 28,9 KB · `vila-mascote.webp` 401×440 42,9 KB (O Leão, `vila_leao`) · camisa `vila-camisa-v1.webp`.
+  Manto medido na camisa: preto `#0C0C0C` / branco `#DADADA`.
+- Banco: `esc_socios` nº 78 (até 2099) · `esc_nomes_batismo` 'vila esporte clube' (+FC/EC pelo gatilho) · `user_colors` já era ouro+manual.
+- Post: `scripts/posts/batismo-vila-esporte-clube.png`. ⚠️ "Batizado por" saiu em branco — a conta não tem nome; falta o Diego dizer o nome do dono.
+- Falta: publicar na main (SÓ este commit — a trava da carreira grátis T50 está no mesmo branch e ainda espera OK).
+
 ## ⚽🧍 Boneco novo do 3D jogando futebol (27/10) — só na conta do Diego, no branch
 - Queixa dele: *"a bola rola estranho, jogador domina estranho, cai do nada, passe e chute estranhos"*.
 - `players-novo.mjs`: um motor de PREVISÃO roda 1 s na frente e agenda chute/passe/cabeçada pra o pé (ou a cabeça) bater na bola

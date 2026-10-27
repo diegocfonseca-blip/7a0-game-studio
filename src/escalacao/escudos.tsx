@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
@@ -906,6 +907,12 @@ const chelsaoEscudoRender = (size: number) => (
   <img src={chelsaoEscudoImg} height={size} width={Math.round(size * 246 / 360)} alt="Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// ⭐🦁 VILA ESPORTE CLUBE (oluisantonio.contato, batismo de 27/10) — Série D, no assento do bot Imperador SAF. 📏 360×359, 29 KB.
+// Escudo redondo preto e branco com a estrela e o monograma VEC. Fundo verde chroma tirado; conferido sobre creme e verde.
+const vilaEscudoRender = (size: number) => (
+  <img src={vilaEscudoImg} height={size} width={Math.round(size * 360 / 359)} alt="Vila Esporte Clube" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🐐👑 NEYMAR FC (sheeryarie772, batismo de 21/10) — Série D, no assento do bot Galáxia EC. 📏 290×360, 28 KB.
 // Escudo dourado com o bode coroado e o rosto, NEYMAR FC e a bola. Fundo verde chroma tirado; conferido sobre creme e verde.
 const neymarfcEscudoRender = (size: number) => (
@@ -1571,6 +1578,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Chelsão da Massa SC': chelsaoEscudoRender,
   'CRBebê': chelsaoEscudoRender,
   'Peteca FR': chelsaoEscudoRender,
+  // ⭐🦁 Vila Esporte Clube (oluisantonio.contato) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
+  'Vila Esporte Clube': vilaEscudoRender,
+  'Vila Esporte Clube FC': vilaEscudoRender,
+  'Vila Esporte Clube EC': vilaEscudoRender,
+  'Vila Esporte Clube SC': vilaEscudoRender,
+  'Imperador SAF': vilaEscudoRender,
   // 🐐👑 Neymar FC (sheeryarie772) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
   'Neymar_FC': neymarfcEscudoRender, // o nome que ele usa (com underline — chaveEscudo não corta o _FC)
   'Neymar FC': neymarfcEscudoRender,
