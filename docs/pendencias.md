@@ -10,6 +10,9 @@
 - Faixa do topo: sem número de técnicos. Opção B do mockup `faixa-zap-insta.png` (*"bote os dois"*): "Entre na comunidade do Zap
   💬 Entrar | Siga no Instagram 📸 Seguir" (@leilaolegendscom); no celular "Comunidade · Entrar | Instagram · Seguir".
   `ComunidadeBanner` (index.tsx), vale pro site todo. Fotos: `scripts/mockups/faixa-zap-insta-real-*.png`.
+- 💾 *"Pra salvar sua carreira crie uma conta, coloque na parte de baixo"*: `AvisoContaCarreira` saiu do topo e mora no FIM da
+  página, logo acima do "Sair e salvar carreira" (no PC: última linha da grade, de ponta a ponta). Fotos `scripts/mockups/conta-embaixo-*.png`.
+- Logo do PC numa plaquinha creme com borda: na aba Jogos (foto escura do estádio) o "LEILÃO" preto sumia.
 - ⚠️ Visto na foto (já era assim, não mexi): no celular de 375px o título "CENTRAL LEGENDS" encosta no "ROD. 0/38".
 - Código: `BarraCarreira` (pyramidseason.tsx) com classes + `career-abas.css`; no PC (carreira nova ≥1024px) a logo e o cartão do
   clube (escudo · nome · T · série · lugar · rodada) aparecem; de 1024 a 1259px as abas descem pra linha de baixo do cartão.

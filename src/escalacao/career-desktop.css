@@ -45,7 +45,8 @@
   /* 2) cada pedaço na sua célula */
   .ll29-career > .ll-cx > * { grid-column: 1; min-width: 0; }
   .ll29-career > .ll-cx > .ll-cx-lado { grid-row: 1; }
-  .ll29-career > .ll-cx > .ll-cx-conta { grid-row: 2; margin-top: 2px; }
+  /* 💾 27/10: o aviso de criar conta mora no FIM (pedido do Diego) — última linha, de ponta a ponta */
+  .ll29-career > .ll-cx > .ll-cx-conta { grid-row: 5; grid-column: 1 / -1; margin-top: 2px; }
   .ll29-career > .ll-cx > .ll-cx-sair { grid-row: 3; margin-top: 4px !important; }
   .ll29-career > .ll-cx > .ll-cx-aba { grid-column: 2; grid-row: 1 / span 4; }
   /* o fundo creme que começava a 420px (feito pra UMA coluna, com a foto do
@@ -101,7 +102,7 @@
 @media (min-width: 1100px) {
   .ll29-career > .max-w-xl.mx-auto.ll-cx.ll-cx-2d { grid-template-rows: auto auto auto auto 1fr; }
   .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-lado { grid-column: 1 / span 2; grid-row: 1; }
-  .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-conta { grid-row: 2; }
+  .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-conta { grid-row: 5; grid-column: 1 / -1; }
   .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-sair { grid-row: 3; }
   .ll29-career > .ll-cx.ll-cx-2d > .ll-cx-aba { grid-row: 2 / span 4; }
 }
@@ -124,8 +125,8 @@
   html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > * { margin-top: 0 !important; }
   html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-lado { order: 1; }
   html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-aba { order: 2; }
-  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-conta { order: 3; }
-  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-sair { order: 4; }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-sair { order: 3; }
+  html body div.ll-cx:not(.ll-cx-fim):not(.ll-cx-t-central) > .ll-cx-conta { order: 4; }
 
   /* — JOGOS: cabeçalho em faixa larga, placar cinema na largura toda — */
   html body .ll-cx.ll-cx-t-jogos:not(.ll-cx-fim) .ll-cx-lado .ll26-competition {
