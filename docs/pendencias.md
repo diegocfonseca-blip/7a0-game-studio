@@ -21,6 +21,11 @@
   a passada acompanhando; bola parada = o corpo anda tudo). Posse = a bola rola sozinha com atrito e só anda quando a ponta do pé
   do boneco encosta nela; no passe/chute ela espera no pé que bate e sai DELE. Medido na bancada (40 s): bola × osso no contato
   2–22 cm (antes 0,6–1,7 m). O giro da bola segue a bola desenhada. Previsão agora olha 1,8 s adiante.
+- 6ª rodada (27/10, *"a bola parece puxada por uma linha… muda de direção sozinha… passe de cabeça no meio-campo"*):
+  condução por FASE da passada (2 toques do pé direito por ciclo, 37% e 86%; cada toque manda a bola rolar até o pé do próximo
+  toque — sem coleira) e quem conduz no desenho faz o movimento de conduzir · voo em LINHA do pé que bateu ao pé que recebe
+  (andamento e altura da bola do motor) · cabeçada só na área ou em finalização (`deCabeca`; no meio-campo a bola desce pro pé)
+  · o corpo anda 70% do caminho até a bola. Saltos de bola na bancada: 64 → 16 em 40 s (os que sobram: gol/reinício).
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).

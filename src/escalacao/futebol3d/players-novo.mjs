@@ -113,6 +113,10 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
  const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:Math.min(c.duration,ate),depois:nome.startsWith('cai')?'levanta':null,mira,bate:mira!==null||ponto!==null};inspection.tiros++}
  const toque=nome=>asset.meta.clips?.[nome.replace(/_e$/,'')]?.toque??.4
+ // 🎯 cabeçada é coisa de ÁREA (cruzamento, finalização, rebatida do zagueiro). O motor às vezes chama de "cabeceio" um passe alto
+ // no meio-campo — ali o desenho mostra o toque com o pé (a bola desce até ele), nunca um passe de cabeça pro companheiro
+ const naArea=b=>!!b&&Math.abs(b.x)>36&&Math.abs(b.z)<20.2
+ const deCabeca=it=>it.cab&&(it.tipo==='cabeceio_gol'||naArea(it.bola))
  // ⚽ A BOLA DO DESENHO (27/10, Diego: "o domínio não parece real… o passe parece colado no jogador… não parece que foi com o pé").
  // O motor decide pra onde a bola vai e quem fica com ela; aqui ela é DESENHADA presa ao corpo de verdade, osso por osso:
  //  · 'livre' (rolando/voando): é a bola do motor. Quando alguém vai tocar nela (domínio, passe de primeira, cabeçada), ela vai
@@ -121,7 +125,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  //    ponto da passada em que o pé vai mais à frente — cada toque empurra a bola o bastante pra o próximo pé alcançá-la de novo.
  //    No domínio ela acompanha o pé que amortece; no passe/chute ela espera no pé que bate e sai DELE, no instante do contato
  // Só desenho: placar, posse e trajetória continuam do motor (a diferença some em ~0,25 s depois que a bola sai do pé)
- const ATRITO=2.4,JANELA=1.6,bola={modo:'livre',dono:null,B:new T.Vector3(),V:new T.Vector3(),off:new T.Vector3(),offT:0,desde:0,toques:0,vm:new T.Vector3(),mAnt:null}
+ const ATRITO=2.4,JANELA=2,bola={modo:'livre',dono:null,B:new T.Vector3(),V:new T.Vector3(),off:new T.Vector3(),offT:0,desde:0,toques:0,vm:new T.Vector3(),mAnt:null}
  let giro=null,giroT=null
  const _a=new T.Vector3(),_b=new T.Vector3()
  const atorDe=key=>atores.find(a=>a.key===key)
@@ -129,8 +133,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  /** onde o pé/peito/cabeça de `a` encosta na bola no movimento `nome`, com o corpo de agora */
  const pontoDe=(a,nome,base=a.holder.position)=>{const c=CONTATO[nome]??CONTATO.passe,cs=Math.cos(a.rumo),sn=Math.sin(a.rumo)
   return new T.Vector3(base.x+c.off.x*cs+c.off.z*sn,c.alto?c.off.y:RAIO_BOLA_FUTEBOL_3D,base.z-c.off.x*sn+c.off.z*cs)}
- const MEIO_CORPO=.5,CORR_MAX=1.3
- const pegaPosse=(a,P,agora,peito)=>{Object.assign(bola,{modo:'posse',dono:a,desde:agora});bola.B.copy(P)
+ const MEIO_CORPO=.7,CORR_MAX=1.6,TOQUES_CONDUZ=[.37,.86]
+ const pegaPosse=(a,P,agora,peito)=>{Object.assign(bola,{modo:'posse',dono:a,desde:agora,voo:null});a.faseBola=a.fase;bola.B.copy(P)
   if(peito){const f=frente(a);bola.V.set(f.x*1.4+a.mov.x*a.vel*.6,.3,f.z*1.4+a.mov.z*a.vel*.6)}else bola.V.set(a.mov.x*a.vel*.5,0,a.mov.z*a.vel*.5)
   a.zPe=[null,null]}
  // 📏 conferência: em cada contato, a distância entre a bola desenhada e o osso que encosta (pé, peito, cabeça) — lida pela bancada
@@ -142,22 +146,24 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   medidas.push({t:+agora.toFixed(2),tipo,nome,dist:+Math.hypot(P.x-alvo.x,(c?.alto?P.y-alvo.y:0),P.z-alvo.z).toFixed(2)});if(medidas.length>200)medidas.shift()}
  const proximoToque=agora=>{let t=Infinity;for(const it of agenda)if(it.t>agora+.02&&it.t<t&&(it.kind==='recebe'||!['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)))t=it.t;return t}
  const largaEm=(P,M,agora)=>{bola.off.copy(P).sub(M);bola.offT=agora;bola.offDur=Math.min(1.6,Math.max(.35,proximoToque(agora)-agora))}
- const solta=(M,agora)=>{largaEm(bola.B,M,agora);bola.modo='livre';bola.dono=null}
+ const solta=(M,agora)=>{largaEm(bola.B,M,agora);bola.voo={R0:bola.B.clone(),M0:M.clone(),enc:null,trav:0};bola.modo='livre';bola.dono=null}
  function bolaDoDesenho(frame,dt,reset){
   const agora=frame.time,M=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z)
-  if(dt>0&&bola.mAnt){const v=_a.copy(M).sub(bola.mAnt).divideScalar(dt);bola.vm.lerp(v.length()>40?bola.vm:v,.6)}
+  if(dt>0&&bola.mAnt){const v=_a.copy(M).sub(bola.mAnt).divideScalar(dt);bola.vm.lerp(v.length()>40?bola.vm:v,.6);if(bola.voo&&v.length()<=40)bola.voo.trav+=Math.hypot(M.x-bola.mAnt.x,M.z-bola.mAnt.z)}
   bola.mAnt=M.clone()
   if(frame.replay||frame.ball.presentation){bola.modo='livre';bola.dono=null;bola.off.set(0,0,0);bolaApresentada=null;bolaGiro=undefined;giro=null;return}
   if(reset){bola.modo='livre';bola.dono=null;bola.off.set(0,0,0)}
   // o próximo encontro com a bola (domínio, ou toque de primeira de quem NÃO está conduzindo)
   let enc=null
   // (o movimento ainda pode não ter começado: o nome previsto serve pro ponto de contato até lá)
-  const nomeDe=it=>it.nome??(it.kind==='recebe'?(it.h>.9?'peito':'dominio'):it.cab?'cabeca2':'passe')
+  const nomeDe=it=>it.nome??(it.kind==='recebe'?(it.h>.9?'peito':'dominio'):deCabeca(it)?'cabeca2':'passe')
   for(const it of agenda){if(it.bolaFeita||!it.bola||it.t<agora-.03||it.t>agora+JANELA)continue
    if(it.kind==='toque'&&['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo))continue
    if(it.kind==='recebe'&&(it.goleiro||agenda.some(o=>o.kind==='toque'&&o.key===it.key&&o.t>=it.t-.05&&o.t<it.t+.5)))continue
    if(it.kind==='toque'&&bola.modo==='posse'&&bola.dono?.key===it.key)continue
    if(!enc||it.t<enc.t)enc=it}
+  // (quem ia receber continua sendo o alvo até aparecer outro — a previsão às vezes troca "domínio" por "toque de primeira" no meio do voo)
+  if(!enc&&bola.modo==='livre'&&bola.voo?.enc&&!bola.voo.enc.bolaFeita&&bola.voo.enc.t>agora-.03)enc=bola.voo.enc
   const quemEnc=enc&&atorDe(enc.key)
   bola.encDbg=enc?[enc.kind,enc.key.slice(10,22),+enc.t.toFixed(2),enc.nome??null]:null
   if(bola.modo==='posse'){const a=bola.dono
@@ -176,21 +182,21 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     if(B.y<RAIO_BOLA_FUTEBOL_3D){B.y=RAIO_BOLA_FUTEBOL_3D;V.y=V.y<-1?-V.y*.4:0}
     if(B.y<RAIO_BOLA_FUTEBOL_3D+.01){const f=Math.exp(-ATRITO*dt);V.x*=f;V.z*=f}
     const f=frente(a),fx=f.x,fz=f.z
-    if(a.vel>.8&&a.holder.visible){
-     // 🦶 o TOQUE: a ponta do pé chegou no ponto mais à frente da passada, rente ao chão e perto da bola
-     a.pes.forEach((o,i)=>{const pe=o.getWorldPosition(_a),z=(pe.x-a.holder.position.x)*fx+(pe.z-a.holder.position.z)*fz,ant=a.zPe[i];a.zPe[i]=z
-      if(ant===null)return
-      const virou=a.subindo[i]&&z<ant-.002;a.subindo[i]=z>ant+.002?true:z<ant-.002?false:a.subindo[i]
-      if(!virou||pe.y>.16||B.y>.3||Math.hypot(B.x-pe.x,B.z-pe.z)>.65)return
-      // empurra o bastante pra o próximo pé (meia passada adiante) alcançar a bola: x(P) = v·P com atrito
-      const P=Math.min(.6,.5*CICLO_M/Math.max(a.vel,1)),v0=a.vel*P*ATRITO/(1-Math.exp(-ATRITO*P))
-      medidas.push({t:+agora.toFixed(2),tipo:'conduz',dist:+Math.hypot(B.x-pe.x-fx*.13,B.z-pe.z-fz*.13).toFixed(2)});if(medidas.length>200)medidas.shift()
-      B.set(pe.x+fx*.13,RAIO_BOLA_FUTEBOL_3D,pe.z+fz*.13);V.set(a.mov.x*v0,0,a.mov.z*v0);bola.toques++})}
-    else{ // parado: a bola descansa na frente do pé (ou onde o motor deixou, numa cobrança)
-     const alvo=M.distanceTo(_a.set(a.holder.position.x,M.y,a.holder.position.z))<1.6&&M.y<.3?M:_a.set(a.holder.position.x+fx*.45,RAIO_BOLA_FUTEBOL_3D,a.holder.position.z+fz*.45)
-     B.lerp(alvo,1-Math.exp(-dt/.3));V.multiplyScalar(Math.exp(-6*dt))}
-    // coleira: se a bola fugiu do corpo (curva fechada, parada brusca), volta pra frente dele
-    const q=_a.set(a.holder.position.x+fx*.5,B.y,a.holder.position.z+fz*.5),d=B.distanceTo(q);if(d>.9)B.lerp(q,1-Math.exp(-dt*(d-.9)*4))}
+    if(a.vel>.8){
+     // 🦶 o TOQUE: a passada do movimento de conduzir tem dois toques do pé direito por ciclo (medidos no Mixamo: a ponta do pé
+     // vai mais à frente em 37% e 86% do ciclo). Em cada toque a bola ganha a velocidade certa pra rolar (com atrito) e chegar
+     // EXATAMENTE onde o pé vai estar no próximo toque — o corpo corre, o pé empurra, a bola nunca é arrastada
+     const f0=a.faseBola??a.fase,f1=a.fase;a.faseBola=f1
+     const cruzou=u=>f0<=f1?f0<u&&u<=f1:f0<u||u<=f1
+     if(TOQUES_CONDUZ.some(cruzou)){
+      const h=a.holder.position,pe=a.holder.visible&&a.pes[0]?a.pes[0].getWorldPosition(new T.Vector3()):new T.Vector3(h.x+fx*.3-fz*.06,0,h.z+fz*.3+fx*.06)
+      const cps=Math.min(2.6,a.vel/CICLO_M),prox=TOQUES_CONDUZ.find(u=>u>f1+1e-4)??TOQUES_CONDUZ[0]+1,Ph=Math.max(.12,(prox-f1)/cps)
+      const alvo=new T.Vector3(pe.x+a.mov.x*a.vel*Ph+fx*.12,RAIO_BOLA_FUTEBOL_3D,pe.z+a.mov.z*a.vel*Ph+fz*.12)
+      const g=ATRITO/(1-Math.exp(-ATRITO*Ph));V.set((alvo.x-B.x)*g,0,(alvo.z-B.z)*g);V.clampLength(0,a.vel*2.2+2)
+      medidas.push({t:+agora.toFixed(2),tipo:'conduz',dist:+Math.hypot(B.x-pe.x-fx*.12,B.z-pe.z-fz*.12).toFixed(2)});if(medidas.length>200)medidas.shift();bola.toques++}}
+    else a.faseBola=a.fase
+    // (segurança: bola muito longe do corpo — parada brusca, curva fechada — volta devagar pra frente dele)
+    const q=_a.set(a.holder.position.x+fx*.5,B.y,a.holder.position.z+fz*.5),d=B.distanceTo(q);if(d>1.6)B.lerp(q,1-Math.exp(-dt*(d-1.6)*3))}
    if(bola.modo==='posse'&&B.distanceTo(_a.set(a.holder.position.x,B.y,a.holder.position.z))>3)solta(M,agora)}
   let P
   if(bola.modo==='posse')P=bola.B.clone()
@@ -214,11 +220,19 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // (suaviza só o LADO do corpo em que a bola encosta — trocar de pé no meio do caminho não faz a bola pular; o corpo correndo não atrasa nada)
     const h=quemEnc.holder.position,lado=pontoDe(quemEnc,nomeDe(enc)).sub(h);if(!enc.ladoSuav)enc.ladoSuav=lado.clone();else enc.ladoSuav.lerp(lado,dt>0?1-Math.exp(-dt/.08):1)
     enc.cSuav=new T.Vector3(h.x,0,h.z).add(enc.ladoSuav)
-    if(w>0)P.addScaledVector(_b.copy(enc.cSuav).sub(Mt),w)}
+    // ✈️ o VOO: do ponto onde a bola saiu (o pé que bateu) até o pé que recebe, em LINHA (a bola não muda de direção no ar);
+    // o quanto ela já andou e a altura vêm da bola do motor. Se quem vai receber só fica conhecido no meio do voo, a linha
+    // recomeça de onde a bola está desenhada naquele instante — sem pulo
+    if(bola.voo&&bola.voo.enc!==enc&&bolaApresentada){bola.voo={R0:new T.Vector3(bolaApresentada.x,bolaApresentada.y,bolaApresentada.z),M0:M.clone(),enc,trav:0}}
+    // (quanto do voo já foi = o caminho que a bola do motor já andou ÷ esse caminho + o que falta até o toque)
+    if(bola.voo){const {R0,M0,trav}=bola.voo,falta=Math.hypot(Mt.x-M.x,Mt.z-M.z)
+     const sv=trav+falta<.3?T.MathUtils.clamp(w,0,1):T.MathUtils.clamp(trav/(trav+falta),0,1),C=enc.cSuav
+     P.set(R0.x+(C.x-R0.x)*sv,M.y+(R0.y-M0.y)*(1-sv)+(C.y-Mt.y)*sv,R0.z+(C.z-R0.z)*sv);if(P.y<RAIO_BOLA_FUTEBOL_3D)P.y=RAIO_BOLA_FUTEBOL_3D}
+    else if(w>0)P.addScaledVector(_b.copy(enc.cSuav).sub(Mt),w)}
    // (o quadro quase nunca cai no instante exato do toque: a bola do motor já andou v·Δt — no contato ela está NO pé, sempre)
-   if(quemEnc&&agora>=enc.t){enc.bolaFeita=true;P=enc.cSuav?enc.cSuav.clone():pontoDe(quemEnc,nomeDe(enc));quemEnc.corrAlvo.x=quemEnc.corrAlvo.z=0;mede(quemEnc,nomeDe(enc),P,agora,enc.kind)
+   if(quemEnc&&agora>=enc.t){enc.bolaFeita=true;P=enc.cSuav?enc.cSuav.clone():pontoDe(quemEnc,nomeDe(enc));quemEnc.corrAlvo.x=quemEnc.corrAlvo.z=0;mede(quemEnc,nomeDe(enc),P,agora,enc.kind);{const Cm=pontoDe(quemEnc,nomeDe(enc),quemEnc.mpos);medidas.at(-1).gap=+Math.hypot(Cm.x-enc.bola.x,Cm.z-enc.bola.z).toFixed(2)}
     if(enc.kind==='recebe')pegaPosse(quemEnc,P,agora,nomeDe(enc)==='peito')
-    else{largaEm(P,M,agora);bola.toques++}}
+    else{largaEm(P,M,agora);bola.voo={R0:P.clone(),M0:M.clone(),enc:null,trav:0};bola.toques++}}
    // conduzindo sem aviso (cobrança, rebote): a posse vem do motor
    else if(!enc&&frame.owner&&M.y<.5){const a=atorDe(frame.owner);if(a&&!a.keeper&&Math.hypot(M.x-a.holder.position.x,M.z-a.holder.position.z)<2.2)pegaPosse(a,P,agora,false)}}
   // 🌀 o giro acompanha a bola DESENHADA (rola junto com o toque, não com a bola do motor)
@@ -244,7 +258,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     const kc=dt>0?1-Math.exp(-dt/(a.corrAlvo.x||a.corrAlvo.z?.12:.5)):1;a.corr.x+=(a.corrAlvo.x-a.corr.x)*kc;a.corr.z+=(a.corrAlvo.z-a.corr.z)*kc
     a.mpos={x:p.mx,z:p.mz};const px=p.mx+a.corr.x,pz=p.mz+a.corr.z
     const agora=frame.time,ult=a.ultimo,dx=ult&&dt>0?px-ult.x:0,dz=ult&&dt>0?pz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:px,z:pz}
-    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key;a.vel=vel;if(vel>.3){const l=Math.hypot(dx,dz);a.mov={x:dx/l,z:dz/l}}
+    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key||bola.dono===a;a.vel=vel;if(vel>.3){const l=Math.hypot(dx,dz);a.mov={x:dx/l,z:dz/l}}
     // pra onde o CORPO olha (27/10, Diego: "completamente perdidos… desgovernados"): quem se MEXE olha pra onde vai, como gente de
     // verdade; só quem está quase parado vira pra bola (passinho de lado/de costas só aí). Com folga entre os dois limites, senão o
     // corpo ficava trocando de frente a cada passo
@@ -266,10 +280,10 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
       // chute = a bomba (parado ou correndo) · bola longa/cruzamento/inversão = a batida por baixo que levanta a bola ·
       // passe/enfiada = o toque de lado do pé
       const corre=vel>2.6,longa=['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26
-      let nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):longa?'cavadinha':it.longe<13?'passe_curto':'passe'
+      let nome=deCabeca(it)?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):longa?'cavadinha':it.longe<13?'passe_curto':'passe'
       // 🦶 o pé: canhoto famoso bate de canhota, destro famoso de direita; o resto usa o pé do lado pra onde a bola vai
       // (bola saindo pra esquerda do corpo = pé esquerdo), e de frente decide o jeito de cada um (1 em 4 bate de canhota)
-      if(!it.cab){const pe=a.pe,rel=it.dir==null?0:angulo(it.dir-a.rumo)
+      if(!deCabeca(it)){const pe=a.pe,rel=it.dir==null?0:angulo(it.dir-a.rumo)
        const canhota=pe==='canhota'||(pe!=='direita'&&(rel>.9||(rel>=-.9&&a.canhoto)))
        if(canhota&&asset.clips.has(nome+'_e'))nome+='_e'}
       const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
