@@ -7,8 +7,10 @@
   borda preta grossa no topo da barra.
 - Faixa da comunidade: "Já somos 16.703 técnicos… Entre na comunidade" (botão verde). ⚠️ Em 23/10 ele pediu a faixa CLEAN
   (*"sem esse exagero todo do whatsapp"*) — a nova tem botão verde de novo; confirmar.
-- Faixa do zap: *"não precisa botar que já somos tantos técnicos… coloca só: entre na comunidade do WhatsApp"* → texto
-  "Entre na nossa comunidade do WhatsApp" + botão verde "💬 Entrar" (index.tsx `ComunidadeBanner`, vale pro site todo).
+- Faixa do topo: sem número de técnicos. Opção B do mockup `faixa-zap-insta.png` (*"bote os dois"*): "Entre na comunidade do Zap
+  💬 Entrar | Siga no Instagram 📸 Seguir" (@leilaolegendscom); no celular "Comunidade · Entrar | Instagram · Seguir".
+  `ComunidadeBanner` (index.tsx), vale pro site todo. Fotos: `scripts/mockups/faixa-zap-insta-real-*.png`.
+- ⚠️ Visto na foto (já era assim, não mexi): no celular de 375px o título "CENTRAL LEGENDS" encosta no "ROD. 0/38".
 - Código: `BarraCarreira` (pyramidseason.tsx) com classes + `career-abas.css`; no PC (carreira nova ≥1024px) a logo e o cartão do
   clube (escudo · nome · T · série · lugar · rodada) aparecem; de 1024 a 1259px as abas descem pra linha de baixo do cartão.
 - Fotos reais: `scripts/mockups/abas-carreira-real-pc.png` e `abas-carreira-real-celular.png`.

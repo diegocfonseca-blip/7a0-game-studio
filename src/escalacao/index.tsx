@@ -109,6 +109,9 @@ const COMUNIDADE_FECHADA = 'esc-comunidade-zap-fechada'
 // (✕) ou tocar em Entrar aqui some com ESTA faixa pra sempre neste aparelho, e não mexe na da home nem no quadro
 // das salas. Na home ela não aparece (lá já tem a de sempre).
 const COMUNIDADE_JOGO_VISTA = 'esc-comunidade-zap-jogo-vista'
+const INSTAGRAM_LINK = 'https://instagram.com/leilaolegendscom'
+const zapLink: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, color: 'rgba(255,255,255,.88)', textDecoration: 'none', fontWeight: 700, fontSize: 12 }
+const zapBotao: React.CSSProperties = { flex: 'none', border: '2px solid #0C0C0C', borderRadius: 999, padding: '1px 9px', boxShadow: '2px 2px 0 #000', fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: 11, lineHeight: '17px', textTransform: 'uppercase', letterSpacing: '.04em' }
 function ComunidadeBanner() {
   const { state } = useEsc()
   const naHome = state.screen === 'intro'
@@ -131,13 +134,25 @@ function ComunidadeBanner() {
       <style>{':root{--ll-zap-h:32px}'
         + '#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(26px + var(--ll-zap-h))!important}'
         + '@media(max-width:650px){#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h))!important}}'}</style>
-      <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 10px', color: 'rgba(255,255,255,.88)', textDecoration: 'none', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
-        <span style={{ width: 7, height: 7, borderRadius: 99, background: '#25D366', flex: 'none' }} />
-        {/* 💬 27/10 (Diego: *"coloca só: entre na comunidade do WhatsApp"*): o recado é esse, sem número de técnicos; o botão verde do
-            mockup aprovado (scripts/mockups/abas-carreira-*.png) no lugar do "Entrar ›" amarelo. A faixa continua FINA e escura. */}
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{en ? 'Join our WhatsApp community' : 'Entre na nossa comunidade do WhatsApp'}</span>
-        <b style={{ flex: 'none', background: '#25D366', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '1px 10px', boxShadow: '2px 2px 0 #000', fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: 11.5, lineHeight: '18px', textTransform: 'uppercase', letterSpacing: '.04em' }}>{en ? '💬 Join' : '💬 Entrar'}</b>
-      </a>
+      {/* 💬📸 27/10 (Diego, mockup `scripts/mockups/faixa-zap-insta.png`, opção B: *"bote os dois"*): a faixa leva pra
+          comunidade do Zap E pro Instagram. Sem número de técnicos (*"não precisa botar que já somos tantos"*). No celular
+          o texto encurta (`ll-zap-longo`/`ll-zap-curto`) pra caber os dois botões e o ✕. */}
+      <style>{'.ll-zap-curto{display:none}@media(max-width:560px){.ll-zap-longo{display:none}.ll-zap-curto{display:inline}}'}</style>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '0 6px 0 10px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+        <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={zapLink}>
+          <span className="ll-zap-longo" style={{ width: 7, height: 7, borderRadius: 99, background: '#25D366', flex: 'none' }} />
+          <span className="ll-zap-longo">{en ? 'Join our WhatsApp community' : 'Entre na comunidade do Zap'}</span>
+          <span className="ll-zap-curto">{en ? 'Community' : 'Comunidade'}</span>
+          <b style={{ ...zapBotao, background: '#25D366', color: '#0C0C0C' }}>{en ? '💬 Join' : '💬 Entrar'}</b>
+        </a>
+        <span style={{ color: 'rgba(255,255,255,.3)', flex: 'none' }}>|</span>
+        <a href={INSTAGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={zapLink}>
+          <span className="ll-zap-longo" style={{ width: 7, height: 7, borderRadius: 99, background: '#DD2A7B', flex: 'none' }} />
+          <span className="ll-zap-longo">{en ? 'Follow us on Instagram' : 'Siga no Instagram'}</span>
+          <span className="ll-zap-curto">Instagram</span>
+          <b style={{ ...zapBotao, background: 'linear-gradient(90deg,#F58529,#DD2A7B,#8134AF)', color: '#fff' }}>{en ? '📸 Follow' : '📸 Seguir'}</b>
+        </a>
+      </div>
       <button aria-label={en ? 'close' : 'fechar'} onClick={fecha}
         style={{ flex: 'none', background: 'transparent', border: 'none', color: 'rgba(255,255,255,.55)', fontWeight: 700, fontSize: 13, padding: '0 12px', cursor: 'pointer' }}>✕</button>
     </div>
