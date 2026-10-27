@@ -11190,6 +11190,6 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   `customer: null` — sem e-mail não dá pra saber de quem é. O evento `subscription.started` (que traz o e-mail e é o que
   `esc_vendria_aplica` usa) NÃO veio, ao contrário do Parceiro de 17/10, que veio certinho.
 - Liberado À MÃO (Diego mandou o e-mail, conta conferida): matheusribeiro201777@gmail.com (Cifrão SAF) → craque_completo até
-  27/11 01:52 UTC (`vendria_sub` = 'manual-diego-27/10'). **Falta o e-mail do 2º comprador** (Diego vê no painel da Vendria).
+  27/11 01:52 UTC (`vendria_sub` = 'manual-diego-27/10'). 2º comprador também liberado à mão: jesusolhoupramim97@gmail.com (Robgol FC), mesmo prazo. As 2 compras de 26/10 estão cobertas.
 - A CONSERTAR na Vendria: conferir se o produto Craque Salas/Completo é ASSINATURA e se o webhook tem os eventos
   `subscription.*` marcados. Sem isso a renovação do mês que vem também não liga sozinha.
