@@ -3,7 +3,11 @@
 - `players-novo.mjs`: um motor de PREVISÃO roda 1 s na frente e agenda chute/passe/cabeçada pra o pé (ou a cabeça) bater na bola
   no instante exato do lance (medido: cruzamento 12,98 × pé 12,97; cabeçada 13,19 × cabeça 13,16). Recebe com domínio/peito
   (não no toque de primeira), bola GRUDADA no pé de quem conduz, e só cai em FALTA (na "vantagem" o jogador segue correndo).
-- Falta: bola maior (~40% só no desenho) ou bola nova — esperando ele dizer.
+- 2ª rodada (27/10, *"chuta pra frente e a bola vai pro lado"*): a previsão rodava no relógio errado (o motor anda em MINUTOS,
+  93 em 90 s) e não enxergava nada adiantado — o chute começava DEPOIS de a bola sair. Agora o corpo MIRA pra onde a bola vai
+  (medido o pé de cada movimento do Mixamo: o chute correndo varre ~20° pra esquerda), escorrega até o pé ficar no ponto da batida
+  e quem conduz continua com a bola no pé. Medido na bancada: perna × bola com ±5°.
+- Bola: o Diego decidiu NÃO aumentar (27/10).
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
