@@ -35,7 +35,7 @@ export function carregaJogadorNovo(base=(import.meta.env?.BASE_URL??'/')){
 // 🦶 PÉ ESQUERDO (27/10): o Mixamo só tem batida de pé direito. O espelho de cada uma vira a versão de canhota ('<nome>_e'),
 // feita uma vez no carregamento: a rotação de cada osso, medida no corpo inteiro, é refletida no plano do meio do corpo e entregue
 // ao osso do outro lado (o braço esquerdo faz o que o direito fazia, e vice-versa)
-const ESPELHADOS=['passe','passe_curto','chute','chute_corrida','cavadinha','dominio','peito','carrinho']
+const ESPELHADOS=['passe','passe_curto','chute','chute_corrida','cavadinha','dominio','peito','carrinho','passe_chapa','chute_forte']
 const troca=n=>n.includes('Left')?n.replace('Left','Right'):n.includes('Right')?n.replace('Right','Left'):n
 const reflete=q=>q.set(q.x,-q.y,-q.z,q.w) // reflexo no plano x = 0 (o meio do corpo)
 function espelhar(clip,cena){

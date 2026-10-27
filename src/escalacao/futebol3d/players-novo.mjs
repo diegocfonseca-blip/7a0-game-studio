@@ -23,6 +23,10 @@ const CICLO_M=2.9
 const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,'diag_td'],[Math.PI,'re'],[-3*Math.PI/4,'diag_te'],[-Math.PI/2,'lado_e'],[-Math.PI/4,'diag_fe']]
 const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
 const CHUTES=new Set(['chute','chutao'])
+// ✂️ trecho usado de cada movimento gravado de jogador de verdade (pacote do Anderson Rohr: cada arquivo tem o jogador parado
+// antes e depois do lance) — segundos do arquivo
+const TRECHOS={passe_chapa:{de:.85,ate:2.1},chute_forte:{de:1.55,ate:3.4},drible3:{de:.35,ate:2.1},comemora1:{de:.25,ate:3.45},comemora2:{de:.25,ate:3.5},comemora3:{de:.25,ate:3.15}}
+const trecho=nome=>TRECHOS[nome.replace(/_e$/,'')]
 const PASSES=new Set(['passe','enfiada','lancamento','inversao','cruzamento','cobranca'])
 const angulo=a=>Math.atan2(Math.sin(a),Math.cos(a))
 // ⏱️ o `time` do quadro já é o relógio do motor (o mesmo de `lance.t0` e `evento.t`): compara direto, sem converter
@@ -81,7 +85,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   const pes={r:osso('righttoe')??osso('rightfoot'),l:osso('lefttoe')??osso('leftfoot')},cabeca=osso('head'),peito=osso('spine2')
   const local=o=>a0.holder.worldToLocal(o.getWorldPosition(new T.Vector3()))
   const p0=a0.holder.position.clone(),r0=a0.holder.rotation.y;a0.holder.position.set(0,0,0);a0.holder.rotation.set(0,0,0)
-  for(const nome of ['chute','chute_corrida','passe','passe_curto','cavadinha','cabeca2','dominio','peito'].flatMap(n=>[n,n+'_e'])){const act=a0.acao(nome),m=asset.meta.clips?.[nome.replace(/_e$/,'')];if(!act||!m)continue
+  for(const nome of ['chute','chute_corrida','passe','passe_curto','cavadinha','cabeca2','dominio','peito','passe_chapa','chute_forte'].flatMap(n=>[n,n+'_e'])){const act=a0.acao(nome),m=asset.meta.clips?.[nome.replace(/_e$/,'')];if(!act||!m)continue
    const lado=nome.endsWith('_e')?(m.pe==='l'?'r':'l'):(m.pe??'r'),alto=/^(cabeca2|peito)/.test(nome),o=nome.startsWith('cabeca2')?cabeca:nome.startsWith('peito')?peito:pes[lado];if(!o)continue
    const pose=t=>{act.reset();act.play();act.setEffectiveWeight(1);act.time=t;a0.mixer.update(0);a0.holder.updateMatrixWorld(true);return local(o)}
    for(const n of LOOPS)a0.acao(n)?.setEffectiveWeight(0)
@@ -111,8 +115,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  let bolaApresentada=null,bolaGiro=undefined
  onPrepared?.()
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
- const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:Math.min(c.duration,ate),depois:nome.startsWith('cai')?'levanta':null,mira,bate:mira!==null||ponto!==null};inspection.tiros++}
- const toque=nome=>asset.meta.clips?.[nome.replace(/_e$/,'')]?.toque??.4
+ const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;const tr=trecho(nome);a.tiro={nome,t0:agora-inicio,base:tr?.de??0,dur:Math.min(tr?tr.ate-tr.de:c.duration,ate),depois:nome.startsWith('cai')?'levanta':null,mira,bate:mira!==null||ponto!==null};inspection.tiros++}
+ const toque=nome=>(asset.meta.clips?.[nome.replace(/_e$/,'')]?.toque??.4)-(trecho(nome)?.de??0) // (contado do começo do trecho)
  // 🎯 cabeçada é coisa de ÁREA (cruzamento, finalização, rebatida do zagueiro). O motor às vezes chama de "cabeceio" um passe alto
  // no meio-campo — ali o desenho mostra o toque com o pé (a bola desce até ele), nunca um passe de cabeça pro companheiro
  const naArea=b=>!!b&&Math.abs(b.x)>36&&Math.abs(b.z)<20.2
@@ -291,12 +295,16 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
       // chute = a bomba (parado ou correndo) · bola longa/cruzamento/inversão = a batida por baixo que levanta a bola ·
       // passe/enfiada = o toque de lado do pé
       const corre=vel>2.6,longa=['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26
-      let nome=deCabeca(it)?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):longa?'cavadinha':it.longe<13?'passe_curto':'passe'
+      // (⚽ 27/10: passe e chute são os GRAVADOS de jogador de verdade — passe de chapa e chute forte do pacote do Anderson Rohr;
+      // o do Mixamo fica de reserva se o arquivo faltar)
+      const tem=n=>asset.clips.has(n)
+      let nome=deCabeca(it)?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(tem('chute_forte')?'chute_forte':corre?'chute_corrida':'chute'):longa?'cavadinha':tem('passe_chapa')?'passe_chapa':it.longe<13?'passe_curto':'passe'
       // 🦶 o pé: canhoto famoso bate de canhota, destro famoso de direita; o resto usa o pé do lado pra onde a bola vai
       // (bola saindo pra esquerda do corpo = pé esquerdo), e de frente decide o jeito de cada um (1 em 4 bate de canhota)
       if(!deCabeca(it)){const pe=a.pe,rel=it.dir==null?0:angulo(it.dir-a.rumo)
        const canhota=pe==='canhota'||(pe!=='direita'&&(rel>.9||(rel>=-.9&&a.canhoto)))
-       if(canhota&&asset.clips.has(nome+'_e'))nome+='_e'}
+       const baseEsq=asset.meta.clips?.[nome]?.pe==='l' // (o gravado pode ser de canhota: aí o espelho é a versão de direita)
+       if(canhota!==baseEsq&&asset.clips.has(nome+'_e'))nome+='_e'}
       const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
       it.nome=nome;it.ini=agora
       dispara(a,nome,{inicio:agora-ini,agora,mira:it.dir==null?null:it.dir-(CONTATO[nome]?.ang??0),ponto:true})}
@@ -312,7 +320,11 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
       const deCarrinho=evs.some(o=>o.tipo==='carrinho'&&o.a===e.a&&e.t-o.t<1.2&&e.t>=o.t)
       dispara(a,deCarrinho?(vel>3?'cai_carrinho':'cai_parado'):'cai',{inicio:deCarrinho?.1:.35,agora})}
      else if(e.tipo==='carrinho'&&e.a===nomeP){a.lances.add(id);dispara(a,'carrinho',{inicio:0,agora})}
-     else if(e.tipo==='drible'&&e.a===nomeP&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}}
+     else if(e.tipo==='drible'&&e.a===nomeP&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}
+     else if(e.tipo==='drible'&&e.a===nomeP&&asset.clips.has('drible3')){a.lances.add(id);dispara(a,'drible3',{inicio:.2,agora})}
+     else if(e.tipo==='gol'&&e.a&&String(e.a).startsWith(nomeP)&&(e.lado===0)===(p.side==='home')){a.lances.add(id)
+      let h=0;for(const ch of String(e.a))h=(h*31+ch.charCodeAt(0))|0;const n='comemora'+(1+Math.abs(h+Math.floor(e.t*10))%3)
+      if(asset.clips.has(n))dispara(a,n,{inicio:0,agora})}}
     if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
      const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):len<1.7&&m.y<.8?(direita?'gk_bloqueio_d':'gk_bloqueio_e'):direita?'gk_voo_d':'gk_voo_e'
@@ -334,7 +346,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     let wTiro=0
     if(a.tiro){const t=agora-a.tiro.t0,act=a.acao(a.tiro.nome)
      if(t<0||t>a.tiro.dur){act.setEffectiveWeight(0);const {dur,depois}=a.tiro;a.tiro=null;if(t>dur&&depois)dispara(a,depois,{inicio:Math.min(t-dur,.2),agora})}
-     else{wTiro=Math.min(1,t/.12,(a.tiro.dur-t)/.25);act.time=t;act.setEffectiveWeight(wTiro)}}
+     else{wTiro=Math.min(1,t/.12,(a.tiro.dur-t)/.25);act.time=a.tiro.base+t;act.setEffectiveWeight(wTiro)}}
     const k=dt>0?1-Math.exp(-dt/.15):1
     for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*(1-wTiro));const dur=act.getClip().duration;act.time=n.startsWith('idle')||n.startsWith('gk_idle')?agora%dur:a.fase*dur}
     a.mixer.update(0)

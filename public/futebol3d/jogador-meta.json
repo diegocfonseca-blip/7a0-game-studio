@@ -325,6 +325,48 @@
    "deslocamento": 393.347,
    "toque": 1.7917,
    "pe": "r"
+  },
+  "drible3": {
+   "arquivo": "rohr:03_Dribble_03",
+   "duracao": 3.4,
+   "deslocamento": 283.915,
+   "toque": 1.7083,
+   "pe": "l"
+  },
+  "passe_chapa": {
+   "arquivo": "rohr:08_Side_Foot_Kick",
+   "duracao": 4.517,
+   "deslocamento": 64.379,
+   "toque": 1.4167,
+   "pe": "r"
+  },
+  "chute_forte": {
+   "arquivo": "rohr:09_Power_Kick",
+   "duracao": 4.45,
+   "deslocamento": 203.418,
+   "toque": 2.625,
+   "pe": "l"
+  },
+  "comemora1": {
+   "arquivo": "rohr:12_Goal_Celebration_01",
+   "duracao": 3.483,
+   "deslocamento": 73.184,
+   "toque": 0.0417,
+   "pe": "l"
+  },
+  "comemora2": {
+   "arquivo": "rohr:13_Goal_Celebration_02",
+   "duracao": 3.533,
+   "deslocamento": 134.51,
+   "toque": 0.0417,
+   "pe": "l"
+  },
+  "comemora3": {
+   "arquivo": "rohr:14_Goal_Celebration_03",
+   "duracao": 3.183,
+   "deslocamento": 197.135,
+   "toque": 0.0417,
+   "pe": "l"
   }
  }
 }

@@ -30,6 +30,13 @@
   ACELERAVA no caminho (7→17 m/s) e parava 1 quadro no pé. Agora o voo tem física de bola: sai forte e freia na grama (2,3 m/s², o
   atrito do motor), do instante do contato até um PONTO DE ENCONTRO fixo (70% onde a bola do motor vai estar, 30% onde o pé do
   jogador vai estar); o corpo de quem recebe anda até esse ponto sem atraso. Medido: passe 13→8 m/s freando liso; contato 2–20 cm.
+- ⚽ MOVIMENTOS DE JOGADOR DE VERDADE (27/10): o Diego baixou o pacote de futebol do Anderson Rohr (21 arquivos, esqueleto do
+  Unreal) e subiu no Drive. Ficam fora do git em `tmp-rohr/ue5/` (baixar de novo pelo Drive: títulos `NN_Nome_ue5.fbx`). O
+  `monta-jogador.mjs` converte o esqueleto do Unreal (Z pra cima, cm, nomes `pelvis/thigh_l/...`) pro do Mixamo (`UE5` no script,
+  prefixo `rohr:` nos CLIPS). No jogo: **passe de chapa** (passe/enfiada) e **chute forte** (chute) são os gravados, com espelho
+  pra canhota; **drible3** nas fintas; **3 comemorações** no gol (sorteadas pelo autor). Trechos usados em `TRECHOS`
+  (players-novo.mjs). Medido: passe de chapa bola × pé 3–6 cm. Ficaram de fora (pesam no arquivo e ainda não têm lugar): dribles
+  1/2, pênaltis, desarmes, lateral (o lateral converteu estranho) e defesas de goleiro. GLB 2,67 → 2,97 MB.
 - 🎞️ Movimentos grátis achados (27/10, a conferir com o Diego): pacote de futebol do Anderson Rohr (Gumroad, "pague o quanto
   quiser", FBX 60 fps, esqueleto Rokoko/UE5/iClone — precisa de mapa de ossos no `monta-jogador.mjs`, uso comercial liberado
   segundo a série) · pacote pago barato de 28 animações na CGTrader (US$ 7) · Quaternius (CC0, sem futebol específico).
