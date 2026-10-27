@@ -11184,3 +11184,12 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   bola, passe/chute/cabeceio/lateral/falta sofrida/carrinho/giro/voo do goleiro pelos lances do motor). Ligado em
   `presidencia-complexo-partida.ts` (o 3D já é só da conta do Diego); se falhar, volta sozinho pro boneco antigo.
   `localStorage['esc3d-boneco']='antigo'` força o antigo. Falta: prints pro Diego aprovar → publicar; medir peso no celular.
+
+### ⭐📅 27/10 — Craque mensal (Vendria) NÃO liberou sozinho: a Vendria só mandou `order.paid`, sem e-mail
+- 26/10 21h08 e 22h52 (Brasília): 2 compras de **Craque Completo** (R$ 16,89 com taxa). Chegou só `order.paid` com
+  `customer: null` — sem e-mail não dá pra saber de quem é. O evento `subscription.started` (que traz o e-mail e é o que
+  `esc_vendria_aplica` usa) NÃO veio, ao contrário do Parceiro de 17/10, que veio certinho.
+- Liberado À MÃO (Diego mandou o e-mail, conta conferida): matheusribeiro201777@gmail.com (Cifrão SAF) → craque_completo até
+  27/11 01:52 UTC (`vendria_sub` = 'manual-diego-27/10'). **Falta o e-mail do 2º comprador** (Diego vê no painel da Vendria).
+- A CONSERTAR na Vendria: conferir se o produto Craque Salas/Completo é ASSINATURA e se o webhook tem os eventos
+  `subscription.*` marcados. Sem isso a renovação do mês que vem também não liga sozinha.
