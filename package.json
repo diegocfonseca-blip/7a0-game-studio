@@ -76,6 +76,7 @@
     "master": "npx tsx scripts/testa-master.mjs",
     "recarga": "node scripts/testa-recarga.mjs",
     "carreira-limpa": "node scripts/testa-carreira-limpa.mjs",
+    "carreira-gratis": "npx tsx scripts/testa-carreira-gratis.mts",
     "congela": "node scripts/testa-congela.mjs",
     "save-intl": "node scripts/testa-save-intl.mjs",
     "nuvem": "node scripts/testa-nuvem.mjs",

@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { travaCarreiraGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
 import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
@@ -5508,7 +5509,7 @@ type Action =
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
   | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave; co2?: { sala: string; nomes: string[]; assento: number } } // carreira OFFLINE na pirâmide (co2 = 🌐 carreira online v2: N clubes de gente, cada aparelho é o seu) (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
-  | { type: 'CAREER_ADVANCE'; keep: boolean }
+  | { type: 'CAREER_ADVANCE'; keep: boolean; pago?: boolean } // 🔒 `pago`: a tela diz se a conta tem plano (carreira grátis vai até a 50)
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
   | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string; squad?: WonCard[] } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
@@ -12115,6 +12116,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // continua; quem se separou sai e entra time da divisão nova).
       if (!s.careerDivision) return s
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
+      if (travaCarreiraGratis(s.seasonNo, !!action.pago)) return s // 🔒 27/10: sem plano, a carreira grátis para no fim da temporada 50 (a tela mostra o porquê e os planos)
       setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
