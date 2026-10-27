@@ -6,6 +6,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen, useDireitos, logApoio } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo, MENSAIS } from './planos-regras'
+import { assinarMensal } from './vendria-checkout'
 import { DuploLinha } from './presente'
 import './support-plans.css'
 import { CartoesBatismo, UmaVezSo } from './support-plans-v2'
@@ -236,7 +237,7 @@ export function SupportPlans(p: Props) {
         <Ok><b>{tr('🥈 Nome prata brilhando', '🥈 Shining silver name')}</b>{tr(' nas salas, na tabela e no chat', ' in rooms, tables and chat')}</Ok>
         <p className="ll-support-note">{tr('O Modo Manual e o Campo 2D vêm no ⭐ Craque Completo.', 'Manual Mode and the 2D Pitch come with ⭐ Star Complete.')}</p>
         {direitos?.mensalPlano === 'craque_salas' ? <p className="ll-vit-seu">{tr('✅ você assina o Craque Salas', '✅ you subscribe to Star Rooms')}</p>
-          : <button className="ll-support-button prata" onClick={() => { logApoio('⭐ vitrine → Craque Salas (Vendria)'); window.open(MENSAIS.craque_salas.link, '_blank', 'noopener') }}>{tr(`ASSINAR CRAQUE SALAS · ${reais(MENSAIS.craque_salas.preco)}/MÊS`, `SUBSCRIBE TO STAR ROOMS · ${reais(MENSAIS.craque_salas.preco)}/MONTH`)}</button>}
+          : <button className="ll-support-button prata" onClick={() => { logApoio('⭐ vitrine → Craque Salas (Vendria)'); void assinarMensal('craque_salas', tr) }}>{tr(`ASSINAR CRAQUE SALAS · ${reais(MENSAIS.craque_salas.preco)}/MÊS`, `SUBSCRIBE TO STAR ROOMS · ${reais(MENSAIS.craque_salas.preco)}/MONTH`)}</button>}
       </SupportPlanCard>
 
       <SupportPlanCard id="support-completo" title={tr('⭐ Craque Completo', '⭐ Star Complete')} price={reais(MENSAIS.craque_completo.preco)} cadence={tr('por mês', 'per month')} tone="prata">
@@ -254,7 +255,7 @@ export function SupportPlans(p: Props) {
         <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
         {direitos?.mensalPlano === 'craque_completo' ? <p className="ll-vit-seu">{tr('✅ você assina o Craque Completo', '✅ you subscribe to Star Complete')}</p>
-          : <button className="ll-support-button prata" onClick={() => { logApoio('⭐ vitrine → Craque Completo (Vendria)'); window.open(MENSAIS.craque_completo.link, '_blank', 'noopener') }}>{tr(`ASSINAR CRAQUE COMPLETO · ${reais(MENSAIS.craque_completo.preco)}/MÊS`, `SUBSCRIBE TO STAR COMPLETE · ${reais(MENSAIS.craque_completo.preco)}/MONTH`)}</button>}
+          : <button className="ll-support-button prata" onClick={() => { logApoio('⭐ vitrine → Craque Completo (Vendria)'); void assinarMensal('craque_completo', tr) }}>{tr(`ASSINAR CRAQUE COMPLETO · ${reais(MENSAIS.craque_completo.preco)}/MÊS`, `SUBSCRIBE TO STAR COMPLETE · ${reais(MENSAIS.craque_completo.preco)}/MONTH`)}</button>}
         {memberButton('prata')}
       </SupportPlanCard>
       <p className="ll-support-note">{tr('📧 Na hora de pagar, use o MESMO e-mail da sua conta do jogo — é por ele que o plano liga sozinho. Já tem o ⭐ Craque de uma vez? Ele continua seu.', '📧 When paying, use the SAME e-mail as your game account — that’s how the plan switches on by itself. Already have the one-off ⭐ Star? It stays yours.')}</p>

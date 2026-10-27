@@ -11194,3 +11194,15 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   está certo (Assinatura · Mensal · Pix Automático); suspeita: o comprador paga o 1º Pix e não autoriza o automático no banco.
 - A CONSERTAR na Vendria: conferir se o produto Craque Salas/Completo é ASSINATURA e se o webhook tem os eventos
   `subscription.*` marcados. Sem isso a renovação do mês que vem também não liga sozinha.
+- ✅ 27/10 madrugada — **LIBERAÇÃO NA HORA PELA API DA VENDRIA** (pedido do Diego: *"o jogo precisa liberar o e-mail de quem
+  paga na hr"*). Diego criou a chave (só Pedidos · Assinaturas · Clientes · Checkout) e salvou em Secrets `VENDRIA_API_KEY`.
+  API = `https://app.vendria.com.br/api/v1` (Bearer). Achado: as assinaturas EXISTEM lá (Matheus ACTIVE até 27/11, Robgol
+  CANCELLED 22 s depois de pagar), só o aviso `subscription.started` que não veio. Novo fluxo:
+  · `vendria-checkout` (Edge, JWT): logado aperta Assinar → cria o pedido pela API SEM itens (9,90/14,90, mensal, Pix automático,
+    taxa repassada = +1,99) com o e-mail da conta + `reference` → anota em `esc_vendria_pedidos` → devolve o link de pagamento.
+  · `vendria-webhook` v7 (fase 3): `order.paid` → acha o dono na anotação → confere na API que está PAID → liga até o fim do
+    período da assinatura (`esc_vendria_libera`, nunca encurta; `ENDED` corta). Renovação acha pelo `sub_id`.
+  · Botões (vitrine, Loja, limite de sala) chamam `assinarMensal` (`vendria-checkout.ts`); se o servidor falhar, cai no link antigo.
+  · Matheus já anotado (sub_15453373…), então a renovação dele em 27/11 liga sozinha. Testado: pedido criado pela API (201) e
+    cancelado. Falta: publicar o site (os botões) e a 1ª compra real pelo fluxo novo. `vendria-sonda` desligada (pode apagar no painel).
+  · Vendria: também tem um 2º PARCEIRO pago em 26/10 21h01 (R$ 250/mês, assinatura ativa até 26/11) — avisar o Diego.
