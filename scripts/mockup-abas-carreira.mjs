@@ -16,7 +16,8 @@ const ICON = {
 const ic = (k, cor, fill, sw = 2, sz = 24) => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24">${ICON[k]
   .replaceAll(' F/>', ` fill="${fill}" stroke="${cor}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`)
   .replaceAll(' P/>', ` fill="none" stroke="${cor}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`)}</svg>`
-const ABAS = [['central', 'Central'], ['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
+// 🔁 27/10 (Diego: "jogo e tabela é na mesma página… é uma coisa só em cada lugar"): Jogos + Tabela é UMA aba só
+const ABAS = [['central', 'Central'], ['jogos', 'Jogos + Tabela'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
 const css = `
 *{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;color:#0C0C0C}
 .osw{font-family:Oswald,sans-serif}
@@ -57,14 +58,14 @@ const desk = `<!doctype html><html><head><meta charset="utf-8"><link href="https
     </div>
     <div style="flex:1"></div>
     <div style="display:flex;gap:10px">
-      ${ABAS.map((a, i) => abaTopo(a, i === 0, i === 1 ? '<span class="osw" style="position:absolute;top:-10px;right:-6px;background:#E8503A;color:#fff;border:2px solid #0C0C0C;border-radius:6px;padding:0 5px;font-weight:900;font-size:10px">AO VIVO</span>' : i === 5 ? '<span class="osw" style="position:absolute;top:-8px;right:-8px;min-width:20px;height:20px;border-radius:99px;background:#C2452F;color:#fff;border:2px solid #fff;font-weight:900;font-size:11px;display:flex;align-items:center;justify-content:center">2</span>' : '')).join('')}
+      ${ABAS.map((a, i) => abaTopo(a, i === 0, i === 1 ? '<span class="osw" style="position:absolute;top:-10px;right:-6px;background:#E8503A;color:#fff;border:2px solid #0C0C0C;border-radius:6px;padding:0 5px;font-weight:900;font-size:10px">AO VIVO</span>' : i === 4 ? '<span class="osw" style="position:absolute;top:-8px;right:-8px;min-width:20px;height:20px;border-radius:99px;background:#C2452F;color:#fff;border:2px solid #fff;font-weight:900;font-size:11px;display:flex;align-items:center;justify-content:center">2</span>' : '')).join('')}
     </div>
   </div>
 </div>
-<div style="padding:18px 32px 28px;display:grid;grid-template-columns:1fr 2fr 1fr;gap:18px;height:440px">
-  <div class="ph">Clube · caixa · meta</div><div class="ph">📺 Central (jogo do dia, giro, jornal)</div><div class="ph">Tabela · calendário</div>
+<div style="padding:18px 32px 28px;height:440px;display:flex">
+  <div class="ph" style="flex:1">📺 Aqui fica SÓ a Central — do jeito que ela é hoje</div>
 </div>
-<div style="padding:0 32px 26px;font:700 13px Inter;color:rgba(12,12,12,.6)">👆 No computador a barra de baixo SOME — as abas moram em cima, junto do nome do clube, e ficam sempre à vista.</div>
+<div style="padding:0 32px 26px;font:700 13px Inter;color:rgba(12,12,12,.6)">👆 Cada aba mostra só o que é dela. No computador a barra de baixo SOME: as abas moram em cima, junto do nome do clube, sempre à vista.</div>
 </body></html>`
 // ─── CELULAR ───
 const barraHoje = () => `<div style="display:flex;gap:2px;padding:6px 6px 10px;background:rgba(250,247,238,.97);border-top:1.5px solid rgba(12,12,12,.13)">
@@ -74,16 +75,16 @@ const barraNova = () => `<div style="display:flex;gap:3px;padding:8px 6px 12px;b
 ${ABAS.map(([k, n], i) => { const on = i === 0
   return `<div style="flex:1;text-align:center;position:relative">
     <div style="margin:0 auto;width:48px;height:32px;border-radius:11px;display:flex;align-items:center;justify-content:center;${on ? 'background:#0C0C0C;border:2.5px solid #0C0C0C;box-shadow:2px 2px 0 #C2452F' : 'border:2.5px solid transparent'}">${ic(k, on ? '#FFC400' : '#0C0C0C', on ? 'rgba(255,196,0,.25)' : 'rgba(12,12,12,.10)', 2.2, 24)}</div>
-    <div class="osw" style="font-weight:900;font-size:11.5px;text-transform:uppercase;margin-top:3px;color:${on ? '#0C0C0C' : 'rgba(12,12,12,.78)'}">${n}</div>
+    <div class="osw" style="font-weight:900;font-size:11px;line-height:1.05;text-transform:uppercase;margin-top:3px;color:${on ? '#0C0C0C' : 'rgba(12,12,12,.78)'}">${n}</div>
     ${i === 1 ? '<span class="osw" style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#E8503A;color:#fff;border:2px solid #0C0C0C;border-radius:6px;padding:0 5px;font-weight:900;font-size:9.5px;white-space:nowrap">AO VIVO</span>' : ''}
-    ${i === 5 ? '<span class="osw" style="position:absolute;top:-6px;right:4px;min-width:18px;height:18px;border-radius:99px;background:#C2452F;color:#fff;border:2px solid #fff;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center">2</span>' : ''}
+    ${i === 4 ? '<span class="osw" style="position:absolute;top:-6px;right:4px;min-width:18px;height:18px;border-radius:99px;background:#C2452F;color:#fff;border:2px solid #fff;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center">2</span>' : ''}
   </div>` }).join('')}</div>`
 const fone = (titulo, barra, zap) => `<div style="width:390px">
   <div class="osw" style="font-weight:900;font-size:20px;text-transform:uppercase;margin:0 0 10px">${titulo}</div>
   <div style="width:390px;height:700px;border:4px solid #0C0C0C;border-radius:30px;overflow:hidden;background:#F4ECD6;box-shadow:5px 5px 0 #000;display:flex;flex-direction:column">
     ${zap ? `<div class="zap" style="height:34px;font-size:11.5px;gap:7px"><span class="dot"></span><span><b>16.703 técnicos</b> jogando</span><span class="btn" style="font-size:10.5px;padding:2px 9px">💬 Comunidade</span><span class="x" style="right:9px">✕</span></div>` : ''}
     <div style="padding:12px;flex:1;display:flex;flex-direction:column;gap:12px">
-      <div class="ph" style="height:150px">Placar / jogo do dia</div><div class="ph" style="flex:1">Central</div>
+      <div class="ph" style="flex:1">📺 Só a Central</div>
     </div>
     ${barra}
   </div></div>`

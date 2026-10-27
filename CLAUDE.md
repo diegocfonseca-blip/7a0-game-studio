@@ -941,6 +941,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (o mensal só vale em dia: **cancelou, perde a reserva** — *"se cancelar… não continua reservado"*). Nome de grátis não trava ninguém;
   grátis com nome de quem paga (ou de batismo alheio) leva o selo **🎭 FAKE** grudado no nome, decidido pelo BANCO (`esc_meu_nome_fake`)
   e lido no login, igual à medalha da semana. Batismo continua reservado pro dono como antes. É benefício de TODO plano (do Craque Salas).
+- **🧭 UMA COISA SÓ EM CADA ABA (27/10).** *"não gostei de você fazer várias coisas num lugar só. A central é só coisa da central,
+  jogos ali é só coisa dos jogos… jogo e tabela é na mesma página"*. Nunca juntar pedaços de abas diferentes numa tela (nada de
+  "3 colunas com clube + tabela + calendário" na Central, estilo Brasileirinho). Jogos + Tabela = uma aba só.
 - **⚔️🚫 CLÃ NÃO VAI PRA HOME (27/10).** *"o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas"*. Na home só os PEDIDOS (amizade, convite de clã, pedido pro meu clã) com aceitar ali (`PedidosNaHome`). Não repropor bloco de clãs na home.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
