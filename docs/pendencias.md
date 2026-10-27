@@ -11190,6 +11190,7 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   `customer: null` — sem e-mail não dá pra saber de quem é. O evento `subscription.started` (que traz o e-mail e é o que
   `esc_vendria_aplica` usa) NÃO veio, ao contrário do Parceiro de 17/10, que veio certinho.
 - Liberado À MÃO (Diego mandou o e-mail, conta conferida): matheusribeiro201777@gmail.com (Cifrão SAF) → craque_completo até
-  27/11 01:52 UTC (`vendria_sub` = 'manual-diego-27/10'). 2º comprador também liberado à mão: jesusolhoupramim97@gmail.com (Robgol FC), mesmo prazo. As 2 compras de 26/10 estão cobertas.
+  27/11 01:52 UTC (`vendria_sub` = 'manual-diego-27/10'). 2º comprador também liberado à mão: jesusolhoupramim97@gmail.com (Robgol FC), mesmo prazo — e REMOVIDO no mesmo dia: ele cancelou (Diego mandou tirar; plano encerrado em 27/10 02:15 UTC). O produto na Vendria
+  está certo (Assinatura · Mensal · Pix Automático); suspeita: o comprador paga o 1º Pix e não autoriza o automático no banco.
 - A CONSERTAR na Vendria: conferir se o produto Craque Salas/Completo é ASSINATURA e se o webhook tem os eventos
   `subscription.*` marcados. Sem isso a renovação do mês que vem também não liga sozinha.
