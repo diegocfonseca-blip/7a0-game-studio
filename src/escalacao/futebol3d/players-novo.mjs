@@ -98,9 +98,9 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  const chaveDe=at=>identidadeAtleta3D(at.lado===0?'home':'away',at.nome,at.carta?.club,at.carta?.year)
  const ADIANTE=1.8,agenda=[];let prev=null,prevAte=0,ultLance=null,ultDono=null
  const observa=()=>{const b=prev.bola,l=b.lance
-  if(l){const k=l.tipo+':'+l.de.id+':'+l.t0;if(k!==ultLance){ultLance=k;agenda.push({key:chaveDe(l.de),kind:'toque',tipo:l.tipo,golpe:l.golpe,t:l.t0,cab:l.tipo==='cabeceio'||l.tipo==='cabeceio_gol'||l.golpe==='cabeca',longe:l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):30,dir:Math.hypot(b.vx,b.vy)>.5?Math.atan2(b.vy,b.vx):null,ponto:{x:b.x-b.vx*(prev.t-l.t0),y:b.y-b.vy*(prev.t-l.t0)},bola:{x:b.y-b.vy*(prev.t-l.t0)-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-b.vx*(prev.t-l.t0)-34}})}}
+  if(l){const k=l.tipo+':'+l.de.id+':'+l.t0;if(k!==ultLance){ultLance=k;agenda.push({key:chaveDe(l.de),kind:'toque',tipo:l.tipo,golpe:l.golpe,t:l.t0,cab:l.tipo==='cabeceio'||l.tipo==='cabeceio_gol'||l.golpe==='cabeca',longe:l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):30,dir:Math.hypot(b.vx,b.vy)>.5?Math.atan2(b.vy,b.vx):null,ponto:{x:b.x-b.vx*(prev.t-l.t0),y:b.y-b.vy*(prev.t-l.t0)},bola:{x:b.y-b.vy*(prev.t-l.t0)-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-b.vx*(prev.t-l.t0)-34},rec:{x:l.de.y-52.5,z:l.de.x-34}})}}
   const d=b.dono&&b.h<2.4?b.dono:null
-  if(d&&d!==ultDono)agenda.push({key:chaveDe(d),kind:'recebe',t:prev.t,h:b.h,goleiro:d.grupo==='GOL',bola:{x:b.y-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-34}})
+  if(d&&d!==ultDono)agenda.push({key:chaveDe(d),kind:'recebe',t:prev.t,h:b.h,goleiro:d.grupo==='GOL',bola:{x:b.y-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-34},rec:{x:d.y-52.5,z:d.x-34}})
   ultDono=d}
  const preve=ate=>{if(!state.officialInput)return
   if(!prev||ate<prevAte-.3){prev=novoMotor2(structuredClone(state.officialInput));prevAte=0;ultLance=null;ultDono=null;agenda.length=0}
@@ -133,7 +133,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  /** onde o pé/peito/cabeça de `a` encosta na bola no movimento `nome`, com o corpo de agora */
  const pontoDe=(a,nome,base=a.holder.position)=>{const c=CONTATO[nome]??CONTATO.passe,cs=Math.cos(a.rumo),sn=Math.sin(a.rumo)
   return new T.Vector3(base.x+c.off.x*cs+c.off.z*sn,c.alto?c.off.y:RAIO_BOLA_FUTEBOL_3D,base.z-c.off.x*sn+c.off.z*cs)}
- const MEIO_CORPO=.7,CORR_MAX=1.6,TOQUES_CONDUZ=[.37,.86]
+ const ATRITO_CHAO=2.3,MEIO_CORPO=.7,CORR_MAX=2,TOQUES_CONDUZ=[.37,.86]
  const pegaPosse=(a,P,agora,peito)=>{Object.assign(bola,{modo:'posse',dono:a,desde:agora,voo:null});a.faseBola=a.fase;bola.B.copy(P)
   if(peito){const f=frente(a);bola.V.set(f.x*1.4+a.mov.x*a.vel*.6,.3,f.z*1.4+a.mov.z*a.vel*.6)}else bola.V.set(a.mov.x*a.vel*.5,0,a.mov.z*a.vel*.5)
   a.zPe=[null,null]}
@@ -146,10 +146,12 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   medidas.push({t:+agora.toFixed(2),tipo,nome,dist:+Math.hypot(P.x-alvo.x,(c?.alto?P.y-alvo.y:0),P.z-alvo.z).toFixed(2)});if(medidas.length>200)medidas.shift()}
  const proximoToque=agora=>{let t=Infinity;for(const it of agenda)if(it.t>agora+.02&&it.t<t&&(it.kind==='recebe'||!['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)))t=it.t;return t}
  const largaEm=(P,M,agora)=>{bola.off.copy(P).sub(M);bola.offT=agora;bola.offDur=Math.min(1.6,Math.max(.35,proximoToque(agora)-agora))}
- const solta=(M,agora)=>{largaEm(bola.B,M,agora);bola.voo={R0:bola.B.clone(),M0:M.clone(),enc:null,trav:0};bola.modo='livre';bola.dono=null}
+ const novoVoo=(R0,t0,M)=>({R0:R0.clone(),t0,M0y:M.y,maxY:M.y,enc:null})
+ const solta=(M,agora,t0=agora)=>{largaEm(bola.B,M,agora);bola.voo=novoVoo(bola.B,t0,M);bola.modo='livre';bola.dono=null}
  function bolaDoDesenho(frame,dt,reset){
   const agora=frame.time,M=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z)
-  if(dt>0&&bola.mAnt){const v=_a.copy(M).sub(bola.mAnt).divideScalar(dt);bola.vm.lerp(v.length()>40?bola.vm:v,.6);if(bola.voo&&v.length()<=40)bola.voo.trav+=Math.hypot(M.x-bola.mAnt.x,M.z-bola.mAnt.z)}
+  if(dt>0&&bola.mAnt){const v=_a.copy(M).sub(bola.mAnt).divideScalar(dt);bola.vm.lerp(v.length()>40?bola.vm:v,.6)}
+  if(bola.voo)bola.voo.maxY=Math.max(bola.voo.maxY,M.y)
   bola.mAnt=M.clone()
   if(frame.replay||frame.ball.presentation){bola.modo='livre';bola.dono=null;bola.off.set(0,0,0);bolaApresentada=null;bolaGiro=undefined;giro=null;return}
   if(reset){bola.modo='livre';bola.dono=null;bola.off.set(0,0,0)}
@@ -172,7 +174,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   if(bola.modo==='posse'&&dt>0){bola.dono.corrAlvo.x=bola.dono.corrAlvo.z=0;const a=bola.dono,B=bola.B,V=bola.V,tiro=a.tiro,tt=tiro?agora-tiro.t0:0
    a.holder.updateMatrixWorld(true)
    if(tiro?.bate){const tq=toque(tiro.nome)
-    if(tt>=tq-.005){B.copy(pontoDe(a,tiro.nome));mede(a,tiro.nome,B,agora,'bate');solta(M,agora);bola.toques++} // saiu DO pé, agora
+    if(tt>=tq-.005){B.copy(pontoDe(a,tiro.nome));mede(a,tiro.nome,B,agora,'bate');solta(M,agora,tiro.t0+tq);bola.toques++} // saiu DO pé, no instante do contato
     else{B.lerp(pontoDe(a,tiro.nome),1-Math.exp(-dt/Math.max(.015,(tq-tt)*.3)));V.set(0,0,0)}} // espera no pé que vai bater
    else if(tiro?.nome==='dominio'&&tt<tiro.dur){ // amortece: a bola acompanha a ponta do pé que domina, rente ao chão
     const pe=a.holder.visible&&a.pes[0]?.getWorldPosition(_a);if(pe){const f=frente(a);B.lerp(_a.set(pe.x+f.x*.1,RAIO_BOLA_FUTEBOL_3D,pe.z+f.z*.1),1-Math.exp(-dt/.09))}V.set(0,0,0)}
@@ -215,24 +217,33 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    for(const a of atores)if(a!==quemEnc&&a!==bola.dono)a.corrAlvo.x=a.corrAlvo.z=0
    // (onde a bola vai estar no toque: de longe vale a previsão do motor; no último 0,3 s, a bola de agora seguindo a velocidade dela)
    if(quemEnc){const falta=Math.max(0,enc.t-agora),Mt=_a.set(enc.bola.x,enc.bola.y,enc.bola.z).lerp(_b.copy(M).addScaledVector(bola.vm,falta),Math.min(1,Math.max(0,1-falta/.3))),Cm=pontoDe(quemEnc,nomeDe(enc),quemEnc.mpos),parte=1-T.MathUtils.smoothstep(bola.vm.length(),.3,1.5)*(1-MEIO_CORPO)
-    let cx=(Mt.x-Cm.x)*parte*w,cz=(Mt.z-Cm.z)*parte*w;const l=Math.hypot(cx,cz);if(l>CORR_MAX){cx*=CORR_MAX/l;cz*=CORR_MAX/l}
-    quemEnc.corrAlvo.x=cx;quemEnc.corrAlvo.z=cz
+    // 📍 o ponto do ENCONTRO é fixo: 70% onde a bola do motor vai estar, 30% onde o pé do jogador vai estar, no instante do
+    // toque. A bola voa até ele e o corpo anda até ele — ninguém persegue alvo andando (era o que fazia a bola acelerar no fim)
+    if(!enc.encontro){const Cr=pontoDe(quemEnc,nomeDe(enc),enc.rec??quemEnc.mpos),E=enc.bola
+     enc.encontro=new T.Vector3(E.x*parte+Cr.x*(1-parte),Cr.y,E.z*parte+Cr.z*(1-parte))}
+    let cx=(enc.encontro.x-Cm.x)*w,cz=(enc.encontro.z-Cm.z)*w;const l=Math.hypot(cx,cz);if(l>CORR_MAX){cx*=CORR_MAX/l;cz*=CORR_MAX/l}
+    quemEnc.corrAlvo.x=cx;quemEnc.corrAlvo.z=cz;quemEnc.corrDireto=true // (o alvo já anda liso: o corpo segue sem atraso)
     // (suaviza só o LADO do corpo em que a bola encosta — trocar de pé no meio do caminho não faz a bola pular; o corpo correndo não atrasa nada)
     const h=quemEnc.holder.position,lado=pontoDe(quemEnc,nomeDe(enc)).sub(h);if(!enc.ladoSuav)enc.ladoSuav=lado.clone();else enc.ladoSuav.lerp(lado,dt>0?1-Math.exp(-dt/.08):1)
     enc.cSuav=new T.Vector3(h.x,0,h.z).add(enc.ladoSuav)
-    // ✈️ o VOO: do ponto onde a bola saiu (o pé que bateu) até o pé que recebe, em LINHA (a bola não muda de direção no ar);
-    // o quanto ela já andou e a altura vêm da bola do motor. Se quem vai receber só fica conhecido no meio do voo, a linha
-    // recomeça de onde a bola está desenhada naquele instante — sem pulo
-    if(bola.voo&&bola.voo.enc!==enc&&bolaApresentada){bola.voo={R0:new T.Vector3(bolaApresentada.x,bolaApresentada.y,bolaApresentada.z),M0:M.clone(),enc,trav:0}}
-    // (quanto do voo já foi = o caminho que a bola do motor já andou ÷ esse caminho + o que falta até o toque)
-    if(bola.voo){const {R0,M0,trav}=bola.voo,falta=Math.hypot(Mt.x-M.x,Mt.z-M.z)
-     const sv=trav+falta<.3?T.MathUtils.clamp(w,0,1):T.MathUtils.clamp(trav/(trav+falta),0,1),C=enc.cSuav
-     P.set(R0.x+(C.x-R0.x)*sv,M.y+(R0.y-M0.y)*(1-sv)+(C.y-Mt.y)*sv,R0.z+(C.z-R0.z)*sv);if(P.y<RAIO_BOLA_FUTEBOL_3D)P.y=RAIO_BOLA_FUTEBOL_3D}
+    // ✈️ o VOO (27/10, Diego: "a bola é ruim quando vai de encontro até outro jogador"): do pé que bateu até o pé que recebe, em
+    // LINHA, com a física de bola de verdade — sai forte e vai FREANDO na grama (o mesmo atrito do motor, 2,3 m/s²), nunca
+    // acelera no meio do caminho; no ar quase não freia. Chega no pé no instante exato do toque. A altura vem da bola do motor.
+    // Se quem vai receber só fica conhecido no meio do voo, o voo recomeça de onde a bola está desenhada — sem pulo
+    if(bola.voo&&bola.voo.enc!==enc){if(bola.voo.enc&&bolaApresentada)Object.assign(bola.voo,{R0:new T.Vector3(bolaApresentada.x,bolaApresentada.y,bolaApresentada.z),t0:agora,M0y:M.y});bola.voo.enc=enc}
+    if(bola.voo){const v=bola.voo,TT=Math.max(.05,enc.t-v.t0),el=Math.min(TT,Math.max(0,agora-v.t0)),u=el/TT
+     const C=enc.encontro.clone().lerp(enc.cSuav,T.MathUtils.smoothstep(u,.8,1)) // (só o último pedacinho corrige os centímetros até o pé)
+     if(v.aereo===undefined&&el>.1)v.aereo=v.maxY>.35
+     const D=Math.hypot(C.x-v.R0.x,C.z-v.R0.z);let f
+     if(v.aereo)f=u
+     else{let ac=ATRITO_CHAO;if(D/TT<ac*TT/2)ac=2*D/(TT*TT);const v0=D/TT+ac*TT/2;f=D>1e-3?(v0*el-ac*el*el/2)/D:1}
+     P.x=v.R0.x+(C.x-v.R0.x)*f;P.z=v.R0.z+(C.z-v.R0.z)*f
+     P.y=v.aereo?Math.max(RAIO_BOLA_FUTEBOL_3D,M.y+(v.R0.y-v.M0y)*(1-u)+(C.y-Mt.y)*u):RAIO_BOLA_FUTEBOL_3D+(v.R0.y-RAIO_BOLA_FUTEBOL_3D)*(1-u)+(C.y-RAIO_BOLA_FUTEBOL_3D)*u}
     else if(w>0)P.addScaledVector(_b.copy(enc.cSuav).sub(Mt),w)}
    // (o quadro quase nunca cai no instante exato do toque: a bola do motor já andou v·Δt — no contato ela está NO pé, sempre)
-   if(quemEnc&&agora>=enc.t){enc.bolaFeita=true;P=enc.cSuav?enc.cSuav.clone():pontoDe(quemEnc,nomeDe(enc));quemEnc.corrAlvo.x=quemEnc.corrAlvo.z=0;mede(quemEnc,nomeDe(enc),P,agora,enc.kind);{const Cm=pontoDe(quemEnc,nomeDe(enc),quemEnc.mpos);medidas.at(-1).gap=+Math.hypot(Cm.x-enc.bola.x,Cm.z-enc.bola.z).toFixed(2)}
+   if(quemEnc&&agora>=enc.t){enc.bolaFeita=true;P=(enc.cSuav??enc.encontro)?.clone()??pontoDe(quemEnc,nomeDe(enc));quemEnc.corrAlvo.x=quemEnc.corrAlvo.z=0;mede(quemEnc,nomeDe(enc),P,agora,enc.kind);{const Cm=pontoDe(quemEnc,nomeDe(enc),quemEnc.mpos);medidas.at(-1).gap=+Math.hypot(Cm.x-enc.bola.x,Cm.z-enc.bola.z).toFixed(2);if(enc.encontro&&enc.cSuav)medidas.at(-1).falta=+Math.hypot(enc.encontro.x-enc.cSuav.x,enc.encontro.z-enc.cSuav.z).toFixed(2);medidas.at(-1).corr=+Math.hypot(quemEnc.corr.x,quemEnc.corr.z).toFixed(2)}
     if(enc.kind==='recebe')pegaPosse(quemEnc,P,agora,nomeDe(enc)==='peito')
-    else{largaEm(P,M,agora);bola.voo={R0:P.clone(),M0:M.clone(),enc:null,trav:0};bola.toques++}}
+    else{largaEm(P,M,agora);bola.voo=novoVoo(P,enc.t,M);P.addScaledVector(bola.vm,Math.max(0,agora-enc.t));bola.toques++}}
    // conduzindo sem aviso (cobrança, rebote): a posse vem do motor
    else if(!enc&&frame.owner&&M.y<.5){const a=atorDe(frame.owner);if(a&&!a.keeper&&Math.hypot(M.x-a.holder.position.x,M.z-a.holder.position.z)<2.2)pegaPosse(a,P,agora,false)}}
   // 🌀 o giro acompanha a bola DESENHADA (rola junto com o toque, não com a bola do motor)
@@ -255,7 +266,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     a.holder.visible=a.detail!=='hidden'
     // deslocamento de verdade deste quadro (a velocidade do motor sozinha não sabe de cobrança/teleporte)
     // (🏃 o corpo pode dar uns passos até a bola — `corr`, decidido no quadro anterior pela bola — e isso conta na passada)
-    const kc=dt>0?1-Math.exp(-dt/(a.corrAlvo.x||a.corrAlvo.z?.12:.5)):1;a.corr.x+=(a.corrAlvo.x-a.corr.x)*kc;a.corr.z+=(a.corrAlvo.z-a.corr.z)*kc
+    const kc=a.corrDireto?1:dt>0?1-Math.exp(-dt/.5):1;a.corrDireto=false;a.corr.x+=(a.corrAlvo.x-a.corr.x)*kc;a.corr.z+=(a.corrAlvo.z-a.corr.z)*kc
     a.mpos={x:p.mx,z:p.mz};const px=p.mx+a.corr.x,pz=p.mz+a.corr.z
     const agora=frame.time,ult=a.ultimo,dx=ult&&dt>0?px-ult.x:0,dz=ult&&dt>0?pz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:px,z:pz}
     const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key||bola.dono===a;a.vel=vel;if(vel>.3){const l=Math.hypot(dx,dz);a.mov={x:dx/l,z:dz/l}}

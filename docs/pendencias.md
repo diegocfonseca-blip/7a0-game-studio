@@ -26,6 +26,13 @@
   toque — sem coleira) e quem conduz no desenho faz o movimento de conduzir · voo em LINHA do pé que bateu ao pé que recebe
   (andamento e altura da bola do motor) · cabeçada só na área ou em finalização (`deCabeca`; no meio-campo a bola desce pro pé)
   · o corpo anda 70% do caminho até a bola. Saltos de bola na bancada: 64 → 16 em 40 s (os que sobram: gol/reinício).
+- 7ª rodada (27/10, *"a bola é ruim quando vai de encontro até outro jogador"*): no passe a bola desenhada saía devagar e
+  ACELERAVA no caminho (7→17 m/s) e parava 1 quadro no pé. Agora o voo tem física de bola: sai forte e freia na grama (2,3 m/s², o
+  atrito do motor), do instante do contato até um PONTO DE ENCONTRO fixo (70% onde a bola do motor vai estar, 30% onde o pé do
+  jogador vai estar); o corpo de quem recebe anda até esse ponto sem atraso. Medido: passe 13→8 m/s freando liso; contato 2–20 cm.
+- 🎞️ Movimentos grátis achados (27/10, a conferir com o Diego): pacote de futebol do Anderson Rohr (Gumroad, "pague o quanto
+  quiser", FBX 60 fps, esqueleto Rokoko/UE5/iClone — precisa de mapa de ossos no `monta-jogador.mjs`, uso comercial liberado
+  segundo a série) · pacote pago barato de 28 animações na CGTrader (US$ 7) · Quaternius (CC0, sem futebol específico).
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
