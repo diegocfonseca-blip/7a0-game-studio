@@ -8,7 +8,7 @@
 // A pasta precisa estar servida pelo vite (ex.: tmp-meshy/ na raiz do projeto, fora do git).
 import {createRequire} from 'node:module';import fs from 'node:fs';import path from 'node:path'
 const {chromium}=createRequire(import.meta.url)('playwright')
-const PASTA=process.argv[2]||'tmp-meshy',OUT=new URL('../../public/futebol3d/',import.meta.url);fs.mkdirSync(OUT,{recursive:true})
+const PASTA=process.argv[2]||'tmp-meshy',BRANCA=process.env.BRANCA==='1',OUT=new URL('../../public/futebol3d/',import.meta.url);fs.mkdirSync(OUT,{recursive:true})
 // nome no jogo → arquivo do Mixamo
 const CLIPS={idle:'Offensive Soccer Idle',idle_bola:'Playing With Ball Idle',trote:'Soccer Jog Forward',re:'Soccer Jog Backward',lado_e:'Soccer Strafe Left',lado_d:'Soccer Strafe Right',
  diag_fe:'Soccer Jog Diagonal Forward Left',diag_fd:'Soccer Jog Diagonal Forward Right',diag_te:'Soccer Jog Diagonal Backward Left',diag_td:'Soccer Jog Diagonal Backward Right',
@@ -23,13 +23,15 @@ const page=await (await browser.newContext({viewport:{width:800,height:600}})).n
 await page.goto('http://localhost:5190/qa-presidencia-mapa.html',{waitUntil:'load'});await page.waitForFunction(()=>window.qaThree,{},{timeout:240000})
 await page.exposeFunction('__grava',(nome,dataUrl)=>fs.writeFileSync(new URL(nome,OUT),Buffer.from(dataUrl.split(',')[1],'base64')))
 await page.exposeFunction('__gravaTexto',(nome,txt)=>fs.writeFileSync(new URL(nome,OUT),txt))
-const r=await page.evaluate(async({PASTA,CLIPS})=>{
+const r=await page.evaluate(async({PASTA,CLIPS,BRANCA})=>{
  const T=window.qaThree,{FBXLoader}=await import('/node_modules/three/examples/jsm/loaders/FBXLoader.js'),{GLTFExporter}=await import('/node_modules/three/examples/jsm/exporters/GLTFExporter.js')
  const L=new FBXLoader(),g=await L.loadAsync('/'+PASTA+'/rig.fbx');g.updateMatrixWorld(true)
  let mesh;g.traverse(o=>{if(o.isSkinnedMesh)mesh=o});const geo=mesh.geometry,pos=geo.attributes.position,uv=geo.attributes.uv,si=geo.attributes.skinIndex,sw=geo.attributes.skinWeight,bones=mesh.skeleton.bones
  // ── textura: 1024 px ──
  const espera=async()=>{for(let i=0;i<200;i++){const im=mesh.material.map?.image;if(im&&(im.width>0||im.naturalWidth>0)&&(im.complete??true))return im;await new Promise(r=>setTimeout(r,100))}throw Error('textura do boneco não carregou')}
- const S=1024,img=await espera(),cv=document.createElement('canvas');cv.width=cv.height=S;const cx=cv.getContext('2d');cx.drawImage(img,0,0,S,S);const base=cx.getImageData(0,0,S,S)
+ // (27/10: o boneco do Tripo volta do Mixamo com a textura embaralhada — usa a arte original `base.jpg` da pasta, se tiver)
+ const deFora=await fetch('/'+PASTA+'/base.jpg').then(r=>r.ok&&/image/.test(r.headers.get('content-type')??'')?r.blob():null).catch(()=>null)
+ const S=1024,img=deFora?await createImageBitmap(deFora):await espera(),cv=document.createElement('canvas');cv.width=cv.height=S;const cx=cv.getContext('2d');cx.drawImage(img,0,0,S,S);const base=cx.getImageData(0,0,S,S)
  // ── classe de cada vértice pelo osso que mais pesa ──
  const classeOsso=n=>/Head|Neck|headfront/i.test(n)?0:/ForeArm|Hand/i.test(n)?1:/Arm|Shoulder|Spine|Hips/i.test(n)?2:/UpLeg/i.test(n)?3:/Leg/i.test(n)?4:/Foot|Toe/i.test(n)?5:1
  const v=new T.Vector3(),hy=bones.find(b=>/Hips$/.test(b.name)).getWorldPosition(new T.Vector3()).y
@@ -49,6 +51,8 @@ const r=await page.evaluate(async({PASTA,CLIPS})=>{
  const mask=cx.createImageData(S,S),md=mask.data
  const pele=(r,g,b)=>r>120&&r>g&&g>b&&r-b>35&&r-b<150&&g>70&&g/r>.6&&b/r>.4 // tom de pele (o brilho da listra vermelha tem g/r baixo: não é pele)
  const cont=[0,0,0,0,0,0]
+ // roupa: no boneco de uniforme BRANCO (Tripo) é o pano claro e sem cor; no do Meshy (camisa do Milan) é tudo que não é pele
+ const ehRoupa=(r,g,b)=>BRANCA?(Math.max(r,g,b)>60&&(Math.max(r,g,b)-Math.min(r,g,b))/Math.max(r,g,b)<.32):!pele(r,g,b)
   // roupa vira branco com as DOBRAS e o brilho da arte original (cada listra medida pela própria cor: vermelha pelo R, preta pelo
   // brilho) — a cor do time entra no jogo e o pano continua com volume, sem virar plástico liso
  const amostra=[],roupa=[]
@@ -56,7 +60,7 @@ const r=await page.evaluate(async({PASTA,CLIPS})=>{
   // alfa da máscara: 255 resto · 128 pele (tom da lenda) · 0 cabelo (some no careca, ganha a cor da lenda)
   if(p===6&&(!pele(r,g2,b)||r<192)){md[i*4+3]=0;cont[1]++;continue}
   if(pele(r,g2,b)){md[i*4+3]=128;cont[0]++;continue} // (braço que sai da manga também: é pele, não camisa)
-  if((p===2||p===3||p===4)&&!pele(r,g2,b)){const c=r>g2*1.5&&r>90,v=c?r:Math.max(r,g2,b),k=p*2+(c?1:0);(amostra[k]??=[]).push(v);roupa.push([i,k,v]);md[i*4+(p-2)]=255;cont[p]++}else cont[p]++}
+  if((p===2||p===3||p===4)&&ehRoupa(r,g2,b)){const c=r>g2*1.5&&r>90,v=c?r:Math.max(r,g2,b),k=p*2+(c?1:0);(amostra[k]??=[]).push(v);roupa.push([i,k,v]);md[i*4+(p-2)]=255;cont[p]++}else cont[p]++}
  amostra.length=0;for(const [,k,v] of roupa)(amostra[k]??=[]).push(v)
  // cada grupo (parte × listra vermelha/escura) vira branco pela MEDIANA dele: a dobra e o brilho ficam, a listra some
  const med=amostra.map(a=>{if(!a)return 1;const b=Float32Array.from(a).sort();return Math.max(1,b[b.length>>1])})
@@ -129,5 +133,5 @@ const r=await page.evaluate(async({PASTA,CLIPS})=>{
  const metaTxt=JSON.stringify({fonte:'Meshy (boneco do Diego, esqueleto Mixamo) + movimentos Mixamo (Adobe) baixados pela conta do Diego',triangulos:idx.length/3,altura,cintura,partes:cont,clips:meta},null,1)
  await window.__gravaTexto('jogador-meta.json',metaTxt)
  return {flipY:fy,verts:[antes,depois],tri:idx.length/3,clips:clips.length,partes:cont,cintura,hy,altura,glbMB:(glb.byteLength/1e6).toFixed(2)}
-},{PASTA,CLIPS})
+},{PASTA,CLIPS,BRANCA})
 console.log(JSON.stringify(r),'erros',JSON.stringify(logs.slice(0,5)));await browser.close()
