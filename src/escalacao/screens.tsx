@@ -46,7 +46,8 @@ import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPosseConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
-import { ComPerfil, MeusAmigos, SinoAmigos, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
+import { ComPerfil, MeusAmigos, SinoAmigos, PedidosNaHome, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos'
+import { ClasNaHome } from './cla' // ⚔️🏠 27/10: clãs da semana na home // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirComPosse} from './presidente-avulsas'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -2246,6 +2247,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   const [verSalao, setVerSalao] = useState(false)
   const amigosOn = useAmigos() // 👥 18/10: Amigos na HOME, do lado da Loja (Diego: "tem que estar na home") — só a conta dele por enquanto
   const [verAmigos, setVerAmigos] = useState(false)
+  const [abaAmigos, setAbaAmigos] = useState<'amigos' | 'cla'>('amigos') // 👥 27/10: o bloco dos clãs abre direto a aba ⚔️ Clã
   const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
   // 🏀 20/10 (Diego: "trocando a aba lá em cima do futebol pelo basquete"): o botão 🏀 pra ir pro BidLegends. SÓ a conta
   // liberada no basquete (BASQUETE_TESTERS) vê — pra todo o resto `bbOn` é falso e a home fica byte-idêntica (sem botão, sem classe).
@@ -2276,6 +2278,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
+        {amigosOn && <PedidosNaHome onAbrirAmigos={() => { setAbaAmigos('amigos'); setVerAmigos(true) }} />}{/* 🤝⚔️ 27/10: pedidos em cima dos modos, com aceitar ali mesmo */}
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
           <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu time e enfrente a CPU.', 'Build your squad and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
@@ -2289,7 +2292,8 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, gala, canto da torcida e moedas', 'Move up a plan, grand entrance, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
           {amigosOn && <button className="ll-salao-entry ll-amigos-entry" onClick={() => setVerAmigos(true)}><span aria-hidden="true">👥</span><span><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Quem está online', 'Who is online')}</small></span><span aria-hidden="true">›</span></button>}
         </div>
-        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
+        {amigosOn && <ClasNaHome onAbrir={() => { setAbaAmigos('cla'); setVerAmigos(true) }} />}
+        {verAmigos && <MeusAmigos abaInicial={abaAmigos} onClose={() => { setVerAmigos(false); setAbaAmigos('amigos') }} />}
         <div className="ll-extras ll-extras-3">
           <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
           <button className="ll-salao-entry ll-regras-entry" onClick={onManual}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>

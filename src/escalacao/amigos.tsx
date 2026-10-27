@@ -627,6 +627,24 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
   </>
 }
 
+// 🤝 aceitar/recusar amizade e convite/pedido de clã: UMA porta só, usada pelo 🔔 e pelos pedidos da home (27/10) — a mesma
+// função do banco que a aba ⚔️ Clã usa (esc_cla_responder), com as mesmas travas (troca, presidente, "sempre são dois").
+async function responderAmizade(id: number, sim: boolean) { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); lerAvisosAgora() }
+async function responderClaAviso(id: number, sim: boolean, ehConvite = false): Promise<string> {
+  let msg = ''
+  try {
+    const { data } = await supabase.rpc('esc_cla_responder', { p_id: id, p_aceita: sim, p_trocar: false })
+    const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string; ate?: string; cla?: string }
+    if (r.ok) { if (sim) msg = ehConvite ? tr(ENTROU_CLA[0], ENTROU_CLA[1]) : tr('✅ Feito!', '✅ Done!'); esqueceClas() }
+    else if (r.erro === 'trava') msg = `⚠️ ${msgTrava(r.ate, r.cla)}`
+    else if (r.erro === 'confirmar') msg = tr(`⚠️ Você já está no ${r.atual}. Pra trocar, abra 👥 Amigos → ⚔️ Clã.`, `⚠️ You are already in ${r.atual}. To switch, open 👥 Friends → ⚔️ Clan.`)
+    else if (r.erro === 'cheio') msg = tr('⚠️ Você já está em 2 clãs, o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', '⚠️ You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.')
+    else msg = tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.')
+  } catch { msg = tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.') }
+  lerAvisosAgora()
+  return msg
+}
+
 // 🔔 o sininho da home: soma convites abertos + pedidos + amizades aceitas desde a última vez que abriu
 export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
   const on = useAmigos()
@@ -643,22 +661,8 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
   const n = convites.length + pedidos.length + aceitos.length + clas.length + claPedidos.length
   const abrir = () => { setAberto(true); const t = Date.now(); try { localStorage.setItem(SINO_VISTO, String(t)) } catch { /* ignora */ } }
   const fechar = () => { setAberto(false); setVisto(lerVisto()) }
-  const responder = async (id: number, sim: boolean) => { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); lerAvisosAgora() }
-  // ⚔️ convite de clã / pedido pro meu clã: a MESMA porta da aba ⚔️ Clã (esc_cla_responder). Se ele já está em clã, a troca
-  // (com as travas de presidente e "sempre são dois") é na aba — aqui só avisa e leva pra lá.
-  const responderCla = async (id: number, sim: boolean, ehConvite = false) => {
-    setMsgCla('')
-    try {
-      const { data } = await supabase.rpc('esc_cla_responder', { p_id: id, p_aceita: sim, p_trocar: false })
-      const r = (data ?? {}) as { ok?: boolean; erro?: string; atual?: string; ate?: string; cla?: string }
-      if (r.ok) { if (sim) setMsgCla(ehConvite ? tr(ENTROU_CLA[0], ENTROU_CLA[1]) : tr('✅ Feito!', '✅ Done!')); esqueceClas() }
-      else if (r.erro === 'trava') setMsgCla(`⚠️ ${msgTrava(r.ate, r.cla)}`)
-      else if (r.erro === 'confirmar') setMsgCla(tr(`⚠️ Você já está no ${r.atual}. Pra trocar, abra 👥 Amigos → ⚔️ Clã.`, `⚠️ You are already in ${r.atual}. To switch, open 👥 Friends → ⚔️ Clan.`))
-      else if (r.erro === 'cheio') setMsgCla(tr('⚠️ Você já está em 2 clãs, o máximo. Saia de um em 👥 Amigos → ⚔️ Clã.', '⚠️ You are already in 2 clans, the max. Leave one in 👥 Friends → ⚔️ Clan.'))
-      else setMsgCla(tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.'))
-    } catch { setMsgCla(tr('⚠️ Não deu agora. Tenta de novo.', '⚠️ Couldn’t do it now. Try again.')) }
-    lerAvisosAgora()
-  }
+  const responder = (id: number, sim: boolean) => responderAmizade(id, sim)
+  const responderCla = async (id: number, sim: boolean, ehConvite = false) => { setMsgCla(''); setMsgCla(await responderClaAviso(id, sim, ehConvite)) }
   const linha = (uid: string, nome: string, txt: ReactNode, dir: ReactNode, k: string) => (
     <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left' }}>
@@ -692,6 +696,56 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
       {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); lerAvisosAgora() }} onAbrirOutro={u => setPerfil(u)} />}
     </Janela>}
   </>
+}
+
+// 🤝⚔️ PEDIDOS NA HOME (27/10, mockup aprovado: "1 eu aceito"). Medido: 159 pedidos de amizade sem resposta (137 há +2 dias) e 34
+// pedidos pra entrar em clã esperando o dono — o pedido morava só no 🔔 de 40px. Aqui ele fica em cima dos modos, com ACEITAR ali
+// mesmo (a mesma porta do 🔔). Sem pedido, a caixa não existe. A leitura é a mesma do sino (esc_avisos a cada 60s, nada de canal).
+export function PedidosNaHome({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
+  const on = useAmigos()
+  const a = useAvisos()
+  const [perfil, setPerfil] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+  const [indo, setIndo] = useState<Set<string>>(new Set())
+  if (!on || !a) return null
+  const pedidos = a.pedidos ?? [], clas = a.clas ?? [], claPedidos = a.cla_pedidos ?? []
+  if (pedidos.length + clas.length + claPedidos.length === 0 && !msg) return null
+  const vai = async (k: string, fn: () => Promise<string | void>) => {
+    setIndo(v => new Set(v).add(k)); setMsg('')
+    const m = await fn(); if (m) setMsg(m)
+    setIndo(v => { const n = new Set(v); n.delete(k); return n })
+  }
+  const MAX = 3
+  const linha = (k: string, uid: string, nome: string, txt: ReactNode, onSim: () => Promise<string | void>, onNao: () => Promise<string | void>, sim: string) => (
+    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: '1px dashed #d8ccaa' }}>
+      <button onClick={() => setPerfil(uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left', boxShadow: 'none', borderRadius: 0, minHeight: 0, textTransform: 'none' }}>
+        <Rosto uid={uid} nome={nome} size={34} />
+        <span style={{ minWidth: 0 }}><b style={{ ...OSW, fontSize: 14, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b><span style={{ fontSize: 11.5, fontWeight: 700, color: '#666' }}>{txt}</span></span>
+      </button>
+      <button disabled={indo.has(k)} style={bt(GREEN, '#fff')} onClick={() => void vai(k, onSim)}>{sim}</button>
+      <button disabled={indo.has(k)} aria-label={tr('Recusar', 'Decline')} style={bt('#fff', INK)} onClick={() => void vai(k, onNao)}>✕</button>
+    </div>
+  )
+  const mais = (n: number) => n > MAX && <button onClick={onAbrirAmigos} style={{ background: 'none', border: 'none', boxShadow: 'none', minHeight: 0, padding: '6px 0 0', fontWeight: 800, fontSize: 12, textDecoration: 'underline', color: INK, cursor: 'pointer' }}>{tr(`ver todos (${n})`, `see all (${n})`)} ›</button>
+  const nCla = clas.length + claPedidos.length
+  return <div className="ll-pedidos" style={{ margin: '0 0 14px' }}>
+    {pedidos.length > 0 && <div style={{ ...caixa, marginTop: 0, marginBottom: 12 }}>
+      <p style={{ ...OSW, fontSize: 15, margin: '0 0 2px' }}>🤝 {pedidos.length === 1 ? tr('1 pessoa quer ser seu amigo', '1 person wants to be your friend') : tr(`${pedidos.length} pessoas querem ser seu amigo`, `${pedidos.length} people want to be your friend`)}</p>
+      {pedidos.slice(0, MAX).map(x => linha(`p${x.id}`, x.de, x.nome, tr('toque no nome pra ver o perfil', 'tap the name to see the profile'),
+        () => responderAmizade(x.id, true), () => responderAmizade(x.id, false), tr('aceitar', 'accept')))}
+      {mais(pedidos.length)}
+    </div>}
+    {nCla > 0 && <div style={{ ...caixa, marginTop: 0, background: '#FFF3C4' }}>
+      <p style={{ ...OSW, fontSize: 15, margin: '0 0 2px' }}>⚔️ {clas.length === 0 ? (claPedidos.length === 1 ? tr('1 quer entrar no seu clã', '1 wants to join your clan') : tr(`${claPedidos.length} querem entrar no seu clã`, `${claPedidos.length} want to join your clan`)) : tr('Convite de clã', 'Clan invite')}</p>
+      {clas.slice(0, MAX).map(x => linha(`k${x.id}`, x.de, x.nome, <>{tr('te chamou pro clã', 'invited you to the clan')} <b>{x.cla_nome}</b></>,
+        () => responderClaAviso(x.id, true, true), () => responderClaAviso(x.id, false), tr('entrar', 'join')))}
+      {claPedidos.slice(0, Math.max(0, MAX - clas.length)).map(x => linha(`q${x.id}`, x.de, x.nome, <>{tr('pediu pra entrar no', 'asked to join')} <b>{x.cla_nome}</b></>,
+        () => responderClaAviso(x.id, true), () => responderClaAviso(x.id, false), tr('aceitar', 'accept')))}
+      {mais(nCla)}
+    </div>}
+    {msg && <p style={{ ...caixa, background: msg.startsWith('⚠️') ? '#FFE3D6' : '#E9F7EE', fontSize: 12.5, fontWeight: 800, marginTop: 8 }}>{msg}</p>}
+    {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); lerAvisosAgora() }} onAbrirOutro={u => setPerfil(u)} />}
+  </div>
 }
 
 // 🔥 zoeira do rival: ganhei um título numa sala em que o MEU rival está → uma mensagem no chat (uma vez por título)
