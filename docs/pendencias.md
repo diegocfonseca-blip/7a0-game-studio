@@ -15,6 +15,12 @@
   passe). Variedade tirada do que existe: **pé esquerdo** (espelho feito no carregamento, `espelhar` em jogador-novo.mjs: canhoto
   famoso de canhota, destro famoso de direita, o resto pelo lado da bola, 1 em 4 de canhota) · **passe curto** (Low Kick, bola de
   menos de 13 m) · **queda de carrinho** (correndo/parado) · **goleiro**: bloqueio com o corpo e lançamento longo com a mão.
+- 5ª rodada (27/10, *"o domínio não parece real… o passe parece colado… não parece que foi com o pé"* → *"quero perfeição"*):
+  a bola do DESENHO virou uma peça própria (`bolaDoDesenho` em players-novo.mjs). Livre = a bola do motor, que se desvia aos
+  poucos até cair no pé/peito/cabeça de quem vai tocar, no instante do toque (o corpo também anda metade do caminho até ela, com
+  a passada acompanhando; bola parada = o corpo anda tudo). Posse = a bola rola sozinha com atrito e só anda quando a ponta do pé
+  do boneco encosta nela; no passe/chute ela espera no pé que bate e sai DELE. Medido na bancada (40 s): bola × osso no contato
+  2–22 cm (antes 0,6–1,7 m). O giro da bola segue a bola desenhada. Previsão agora olha 1,8 s adiante.
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
