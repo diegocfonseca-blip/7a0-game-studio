@@ -30,6 +30,7 @@ import {narrarChanceEstadio,narrarGolEstadio,narrarEtapaLanceEstadio} from './pr
 
 import './career-desktop.css'
 import './career-abas.css'
+import logoLL from './img/logo-ll.webp' // 🅻🅻 27/10: a logo oficial (o Diego mandou), ao lado do nome Leilão Legends no PC
 import { Fragment, createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, ReactNode } from 'react'
@@ -7803,7 +7804,7 @@ function BarraCarreira({ tab, setTab, ponto, pontoClube, combined=false, central
           (mesmo remendo já usado na barra da home) */}
       <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:84px !important}'}</style>
 <div className="ll-career-navigation ll-abas" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989 }}>
-      {clube && <div className="ll-abas-logo"><img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={30} height={30} /><span>Leilão <b>Legends</b></span></div>}
+      {clube && <div className="ll-abas-logo"><img src={logoLL} alt="LL" width={30} height={30} style={{ borderRadius: 7 }} /><span>Leilão <b>Legends</b></span></div>}
       <div className="ll-abas-card">
         {clube && <div className="ll-abas-clube"><Escudo nome={clube.nome} size={40} /><div style={{ minWidth: 0 }}><div className="ll-abas-nome">{nomeLimpo(clube.nome) || clube.nome}</div><div className="ll-abas-sub">{clube.sub}</div></div></div>}
         <div className="ll-abas-lista">
