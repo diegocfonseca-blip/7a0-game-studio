@@ -133,8 +133,10 @@ function ComunidadeBanner() {
         + '@media(max-width:650px){#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h))!important}}'}</style>
       <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 10px', color: 'rgba(255,255,255,.88)', textDecoration: 'none', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
         <span style={{ width: 7, height: 7, borderRadius: 99, background: '#25D366', flex: 'none' }} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{en ? 'Our WhatsApp community' : 'Nossa comunidade no WhatsApp'}</span>
-        <b style={{ flex: 'none', color: '#FFC400', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em' }}>{en ? 'Join ›' : 'Entrar ›'}</b>
+        {/* 💬 27/10 (Diego: *"coloca só: entre na comunidade do WhatsApp"*): o recado é esse, sem número de técnicos; o botão verde do
+            mockup aprovado (scripts/mockups/abas-carreira-*.png) no lugar do "Entrar ›" amarelo. A faixa continua FINA e escura. */}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{en ? 'Join our WhatsApp community' : 'Entre na nossa comunidade do WhatsApp'}</span>
+        <b style={{ flex: 'none', background: '#25D366', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '1px 10px', boxShadow: '2px 2px 0 #000', fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: 11.5, lineHeight: '18px', textTransform: 'uppercase', letterSpacing: '.04em' }}>{en ? '💬 Join' : '💬 Entrar'}</b>
       </a>
       <button aria-label={en ? 'close' : 'fechar'} onClick={fecha}
         style={{ flex: 'none', background: 'transparent', border: 'none', color: 'rgba(255,255,255,.55)', fontWeight: 700, fontSize: 13, padding: '0 12px', cursor: 'pointer' }}>✕</button>

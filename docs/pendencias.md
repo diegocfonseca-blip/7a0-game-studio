@@ -1,4 +1,4 @@
-## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — MOCKUP enviado, esperando OK do Diego
+## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — FEITO no branch (fotos reais enviadas), esperando "publica"
 - Veio da análise do Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as abas de baixo
   melhoradas… além da logo Leilão Legends no PC lá no header e também o aviso da comunidade do zap"*.
 - PC: abas EM CIMA, num cartão com o nome do clube (T · série · posição · rodada); aba aberta = botão preto com ícone dourado e
@@ -7,6 +7,11 @@
   borda preta grossa no topo da barra.
 - Faixa da comunidade: "Já somos 16.703 técnicos… Entre na comunidade" (botão verde). ⚠️ Em 23/10 ele pediu a faixa CLEAN
   (*"sem esse exagero todo do whatsapp"*) — a nova tem botão verde de novo; confirmar.
+- Faixa do zap: *"não precisa botar que já somos tantos técnicos… coloca só: entre na comunidade do WhatsApp"* → texto
+  "Entre na nossa comunidade do WhatsApp" + botão verde "💬 Entrar" (index.tsx `ComunidadeBanner`, vale pro site todo).
+- Código: `BarraCarreira` (pyramidseason.tsx) com classes + `career-abas.css`; no PC (carreira nova ≥1024px) a logo e o cartão do
+  clube (escudo · nome · T · série · lugar · rodada) aparecem; de 1024 a 1259px as abas descem pra linha de baixo do cartão.
+- Fotos reais: `scripts/mockups/abas-carreira-real-pc.png` e `abas-carreira-real-celular.png`.
 - Mockups: `scripts/mockup-abas-carreira.mjs` → `scripts/mockups/abas-carreira-pc.png` e `abas-carreira-celular.png`.
 - 🔁 v2 (27/10, *"não gostei de você fazer várias coisas num lugar só… é uma coisa só em cada lugar"*): **cada aba mostra só o
   que é dela** (nada de 3 colunas misturando clube/tabela na Central) e **Jogos + Tabela é UMA aba** → 5 abas: Central · Jogos +
