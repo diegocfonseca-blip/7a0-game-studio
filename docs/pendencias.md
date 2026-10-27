@@ -1,3 +1,14 @@
+## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — MOCKUP enviado, esperando OK do Diego
+- Veio da análise do Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as abas de baixo
+  melhoradas… além da logo Leilão Legends no PC lá no header e também o aviso da comunidade do zap"*.
+- PC: abas EM CIMA, num cartão com o nome do clube (T · série · posição · rodada); aba aberta = botão preto com ícone dourado e
+  sombra vermelha; as outras brancas com borda preta. Logo "Leilão LEGENDS" no topo. A barra de baixo some no PC.
+- Celular: barra de baixo com ícone/nome em PRETO (hoje cinza 45%), letra 11,5px (hoje 9,5), aba aberta = botão preto/dourado,
+  borda preta grossa no topo da barra.
+- Faixa da comunidade: "Já somos 16.703 técnicos… Entre na comunidade" (botão verde). ⚠️ Em 23/10 ele pediu a faixa CLEAN
+  (*"sem esse exagero todo do whatsapp"*) — a nova tem botão verde de novo; confirmar.
+- Mockups: `scripts/mockup-abas-carreira.mjs` → `scripts/mockups/abas-carreira-pc.png` e `abas-carreira-celular.png`.
+
 ## 🔒 Nome reservado pra quem tem plano (27/10) — ✅ FEITO (mockup aprovado: *"aprovado"*)
 - Pedido: *"quem tem plano reserva o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*.
   E entra como benefício em TODO plano, do ⭐ Craque Salas pra cima.
