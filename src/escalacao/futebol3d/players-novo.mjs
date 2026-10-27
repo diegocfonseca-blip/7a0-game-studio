@@ -88,9 +88,12 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // deslocamento de verdade deste quadro (a velocidade do motor sozinha não sabe de cobrança/teleporte)
     const ult=a.ultimo,dx=ult&&dt>0?p.mx-ult.x:0,dz=ult&&dt>0?p.mz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:p.mx,z:p.mz}
     const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key
-    // pra onde o CORPO olha: correndo forte ou com a bola = pra onde vai; trotando/parado = pra bola (aí aparece o de costas e o de lado)
+    // pra onde o CORPO olha (27/10, Diego: "completamente perdidos… desgovernados"): quem se MEXE olha pra onde vai, como gente de
+    // verdade; só quem está quase parado vira pra bola (passinho de lado/de costas só aí). Com folga entre os dois limites, senão o
+    // corpo ficava trocando de frente a cada passo
     const bx=frame.ball.x-p.mx,bz=frame.ball.z-p.mz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
-    const alvo=p.mergulho?a.rumo:comBola||vel>4.2?praOnde:Math.hypot(bx,bz)<45?praBola:praOnde
+    if(vel>1.7||comBola)a.olhaBola=false;else if(vel<.8)a.olhaBola=true
+    const alvo=p.mergulho?a.rumo:a.olhaBola&&Math.hypot(bx,bz)<45?praBola:praOnde
     a.rumo+=angulo(alvo-a.rumo)*(dt>0?1-Math.exp(-dt/.16):1)
     a.holder.position.set(p.mx,0,p.mz);a.holder.rotation.set(0,a.rumo,0)
     // ── lances: o motor diz quem fez o quê; o corpo mostra ──

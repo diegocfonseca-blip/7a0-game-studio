@@ -102,6 +102,9 @@ const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA})=>{
  for(const [nome,arq] of Object.entries(CLIPS)){
   let src;try{src=await L.loadAsync('/'+PASTA+'/anim/'+encodeURIComponent(arq)+'.fbx')}catch(e){meta[nome]={erro:'sem arquivo'};continue}
   const clip=src.animations[0];src.updateMatrixWorld(true);const sb=new Map();src.traverse(o=>{if(o.isBone)sb.set(o.name,o)})
+  // altura do quadril da fonte EM PÉ (pose de descanso) — a régua da altura. (Antes era o 1º quadro do movimento: no "levanta" ele
+  // começa deitado, a régua ficava minúscula e o jogador subia até 5 m — o "jogador voando" que o Diego viu em 27/10)
+  const syRest=sb.get('mixamorigHips').getWorldPosition(new T.Vector3()).y
   const names=[...tb.keys()].filter(n=>sb.has(n)&&!/Hand.+\d|Bone_|headfront|_End/.test(n)).sort((x,y)=>depth(tb.get(x))-depth(tb.get(y)))
   const child=(m,n)=>m.get(n).children.find(c=>c.isBone&&m.has(c.name))
   for(const n of names){const s1=sb.get(n),t1=tb.get(n),sc=child(sb,n),tc=child(tb,n);if(!sc||!tc||/Hips|Spine|Neck|Head/.test(n))continue
@@ -115,11 +118,11 @@ const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA})=>{
   for(let i=0;i<=frames;i++){const t=Math.min(dur,i/fps);times.push(+t.toFixed(4));sa.time=t;sm.update(0);src.updateMatrixWorld(true)
    for(const n of names){const rr=ref.get(n),want=sb.get(n).getWorldQuaternion(new T.Quaternion()).multiply(rr.s.clone().invert()).multiply(rr.t),bone=tb.get(n);bone.quaternion.copy(bone.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(want).normalize());bone.updateMatrixWorld(true);vals.get(n).push(...bone.quaternion.toArray().map(x=>+x.toFixed(4)))}
    const p=sh.getWorldPosition(new T.Vector3());if(sy0===null){sy0=p.y;sx0=p.x;sz0=p.z}sxl=p.x;szl=p.z
-   hp.push(h0.x,+(h0.y+(p.y-sy0)*(h0.y/sy0)).toFixed(4),h0.z)
+   hp.push(h0.x,+(h0.y*p.y/syRest).toFixed(4),h0.z)
    for(const [k,nm] of [['l','mixamorigLeftFoot'],['r','mixamorigRightFoot']])foot[k].push(tb.get(nm).getWorldPosition(new T.Vector3()))}
   for(const [b,qq] of saved)b.quaternion.copy(qq);g.updateMatrixWorld(true)
   // velocidade do deslocamento original (escala da fonte → metros pelo quadril) e instante do toque: pé mais rápido
-  const escala=h0.y/sy0/ (g.scale.y||1),dist=Math.hypot(sxl-sx0,szl-sz0)*escala
+  const escala=h0.y/syRest/ (g.scale.y||1),dist=Math.hypot(sxl-sx0,szl-sz0)*escala
   let toque=null,maxv=0,pe=null;for(const k of ['l','r'])for(let i=1;i<foot[k].length;i++){const sp=foot[k][i].distanceTo(foot[k][i-1])*fps;if(sp>maxv){maxv=sp;toque=times[i];pe=k}}
   const tracks=names.map(n=>new T.QuaternionKeyframeTrack(n+'.quaternion',times,vals.get(n)));tracks.push(new T.VectorKeyframeTrack('mixamorigHips.position',times,hp))
   clips.push(new T.AnimationClip(nome,dur,tracks).optimize());meta[nome]={arquivo:arq,duracao:+dur.toFixed(3),deslocamento:+dist.toFixed(3),toque,pe}
