@@ -11207,3 +11207,19 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
     cancelado. Falta: publicar o site (os botões) e a 1ª compra real pelo fluxo novo. `vendria-sonda` desligada (pode apagar no painel).
   · Vendria: também tem um 2º PARCEIRO pago em 26/10 21h01 (R$ 250/mês, assinatura ativa até 26/11) — avisar o Diego.
 - ✅ 26/10 **Manual trancado da carreira com 3 opções**: ⏱️ Manual 24 h avulso R$ 9,90 (Pix `manual_24h`, banco libera por 24 h em `esc_direitos_de`) · ⭐ Craque Completo 14,90 · 💛 todos os planos. Painel 📊 manteve as linhas antigas e ganhou o caminho de cada lugar (Manual / limite de sala) + quantos pagaram o 24 h.
+
+### 👕 27/10 — SISTEMA DE UNIFORMES do 3D (boneco do Tripo) — no branch, desligado (`localStorage['esc3d-boneco']='novo'`)
+- Diagnóstico do GLB do Tripo: 1 malha · 1 material · 1 textura-atlas pra tudo (pele, cabelo, roupa) em 98 pedaços, 26 deles
+  misturando pele e pano. Por isso trocar a cor do material pintava a pele, e adivinhar pela cor manchava (sombra de pele ×
+  pano cinza). Não precisa de Blender: nada de geometria, rig, animação ou textura original é mexido.
+- Solução: `monta-jogador.mjs` rasteriza cada triângulo no espaço da textura e grava `public/futebol3d/jogador-uniforme.png`
+  (R região·20 +10 costas · G altura · B posição lateral). Região sai do osso + posição 3D do ponto (manga = perto do eixo
+  ombro→cotovelo; gola = anel do pescoço; barra pela altura) + cor original (pano × pele). Cabeça/antebraço = sempre pele.
+  Medidas do corte em `MEDIDAS` (KGOLA_*, KMANGA_*, KCINT); foto de conferência: `verreg.mjs debug` no scratchpad.
+- Runtime: `jogador-novo.mjs` (shader só recolore regiões de roupa, volume do pano = luminância original ÷ branco de
+  referência) + `uniformes.mjs` (ficha por time: liso · listras_v · listras_h · faixa · metade · padrao, mangas/gola/calção/
+  meião/chuteira próprios; times sem ficha saem lisos das cores do clube; contraste do kit-contrast vira o corpo). Um programa
+  de shader só pra todos; valores divididos por ficha.
+- Testado no mesmo jogador: branca · vermelha listrada de preto (calção preto, meião vermelho) · azul com mangas/gola brancas ·
+  verde com faixa diagonal — pele, rosto, braços e cabelo intactos. Falta: OK do Diego → ligar no 3D dele; o careca saiu (o
+  pedido novo é preservar cabelo); fichas dos clubes de verdade (UNIFORMES) a preencher conforme ele mandar.

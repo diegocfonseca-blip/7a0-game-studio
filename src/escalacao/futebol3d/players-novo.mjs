@@ -1,20 +1,19 @@
-// 🧍⚽ 27/10 — os 22 do campo 3D com o JOGADOR NOVO (boneco do Meshy + movimentos de futebol do Mixamo). Mesmo contrato do
+// 🧍⚽ 27/10 — os 22 do campo 3D com o JOGADOR NOVO (boneco do Tripo + movimentos de futebol do Mixamo). Mesmo contrato do
 // players.mjs (update · presentFrame · inspect · dispose), então o resto do 3D não muda. Só apresentação: posição, bola, placar e
 // quem faz o quê continuam do motor — aqui só se escolhe COMO o corpo mostra o que o motor já decidiu.
 //  · corrida em 8 direções (de frente, de costas, de lado, na diagonal) misturada pela velocidade de verdade; quem tem a bola conduz
 //  · cada lance do motor (passe, chute, cabeceio, lateral, falta sofrida, carrinho, drible, goleiro voando) toca o movimento dele
-//  · camisa/calção/meião = cores do TIME em que joga (Diego: "o Pirlo no Neymarzetti veste a camisa do Neymarzetti")
-//  · lenda com rosto na carta = pele e cabelo tirados do rosto da carta; quem não é lenda = careca (Diego, 27/10)
+//  · uniforme = a ficha do TIME em que joga (uniformes.mjs; Diego: "o Pirlo no Neymarzetti veste a camisa do Neymarzetti")
+//  · pele e cabelo nunca recebem cor de uniforme; lenda com rosto na carta ganha o tom de pele dela
 import * as T from 'three'
 import {carregaJogadorNovo,criarJogadorNovo} from './jogador-novo.mjs'
 import {clubKitFor} from './club-kit.mjs'
-import {matchKitPlan,luminance} from './kit-contrast.mjs'
+import {matchKitPlan} from './kit-contrast.mjs'
+import {uniformeDoTime,GOLEIRO} from './uniformes.mjs'
 import {playerDetail} from './lod.mjs'
 import {BATISMOS} from '../batismos.ts'
 import {legendAvatar} from '../legend-avatars.ts'
 
-const GOLEIRO={camisa:'#d6b329',calcao:'#1b1b1b',meiao:'#d6b329'}
-const PELES=['#e8bc98','#d6a47e','#b57f5a','#8d5c3d','#64402a']
 // velocidade (m/s) em que cada corrida do Mixamo foi gravada, por ciclo — o passo acompanha o chão sem patinar
 const CICLO_M=2.9
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
@@ -22,10 +21,9 @@ const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,
 const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
 const CHUTES=new Set(['chute','chutao'])
 const PASSES=new Set(['passe','enfiada','lancamento','inversao','cruzamento','cobranca'])
-const hash=s=>{let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)}
 const angulo=a=>Math.atan2(Math.sin(a),Math.cos(a))
 
-/** pele e cabelo tirados do rosto da carta (só lendas que têm rosto). Topo da cabeça com cor de pele = careca. */
+/** tom de pele (e cabelo) tirados do rosto da carta (só lendas que têm rosto). */
 const aparencias=new Map()
 function aparenciaDaCarta(src){
  if(!aparencias.has(src))aparencias.set(src,new Promise(res=>{const im=new Image();im.crossOrigin='anonymous';im.onerror=()=>res(null);im.onload=()=>{try{
@@ -47,25 +45,27 @@ function aparenciaDe(key,name){
  let club,year;try{[,,club,year]=JSON.parse(key)}catch{}
  const art=legendAvatar(name,club??undefined,year??undefined)
  if(art)return{lenda:true,src:(import.meta.env?.BASE_URL??'/').replace(/\/$/,'')+art.src}
- return{lenda:false,cores:{pele:PELES[hash(name)%PELES.length],careca:true}}
+ return{lenda:false}
 }
 
 export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  const asset=await carregaJogadorNovo()
  const teams=state.officialTeams??[]
  const kitPlan=matchKitPlan(state,teams.map(clubKitFor),teams.map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[]))
- const coresTime=side=>{const i=side==='home'?0:1,p=kitPlan[i],cfg=p.config?.variants?.home,manto=BATISMOS.find(c=>c.clube===teams[i])?.manto??[]
-  const camisa=p.color??(side==='home'?state.homeColor:state.awayColor)
-  const calcao=cfg?.shorts?.color??manto.find(c=>c&&c.toLowerCase()!==String(camisa).toLowerCase())??(luminance(camisa)>.45?'#1c1c1c':'#f2f2f2')
-  return{camisa,calcao,meiao:cfg?.socks?.color??camisa}}
+ // 👕 a ficha de uniforme de cada lado (uniformes.mjs): a cadastrada do clube ou a lisa das cores dele; se as duas camisas
+ // brigam, o lado do rival ganha a cor de contraste que o jogo já escolhia (kit-contrast) — tudo dividido pelos 11 do time
+ const fichaDe=side=>{const i=side==='home'?0:1,p=kitPlan[i],cfg=p.config,manto=BATISMOS.find(c=>c.clube===teams[i])?.manto??[]
+  const c1=cfg?.colors?.primary??manto[0]??(side==='home'?state.homeColor:state.awayColor),c2=cfg?.colors?.secondary??manto[1]
+  return uniformeDoTime(teams[i],c1,c2,p.generated?p.color:null)}
+ const fichas={home:fichaDe('home'),away:fichaDe('away')}
  const atores=[]
  for(const p of frame.players){
-  const ap=aparenciaDe(p.key,p.name),base=p.keeper?GOLEIRO:coresTime(p.side)
-  const j=criarJogadorNovo(asset,{...base,...(ap.cores??{pele:PELES[hash(p.name)%PELES.length]})})
+  const ap=aparenciaDe(p.key,p.name),ficha=p.keeper?GOLEIRO:fichas[p.side]
+  const j=criarJogadorNovo(asset,ficha) // (pele e cabelo: os originais do boneco; lenda com rosto na carta ganha o tom de pele dela)
   j.holder.name='jogador:'+p.key;scene.add(j.holder)
   for(const nome of LOOPS){const a=j.acao(nome);if(a){a.play();a.timeScale=0;a.setEffectiveWeight(0)}}
-  const ator={...j,key:p.key,side:p.side,keeper:p.keeper,cores:base,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
-  if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c&&!disposed)ator.setCores({...ator.cores,...c})})
+  const ator={...j,key:p.key,side:p.side,keeper:p.keeper,ficha,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
+  if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c?.pele&&!disposed)ator.setPele(c.pele)})
   atores.push(ator)
  }
  let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0}

@@ -1,25 +1,15 @@
 {
- "fonte": "Meshy (boneco do Diego, esqueleto Mixamo) + movimentos Mixamo (Adobe) baixados pela conta do Diego",
+ "fonte": "Tripo (boneco do Diego, uniforme branco) + esqueleto e movimentos Mixamo (Adobe) baixados pela conta do Diego",
  "triangulos": 18870,
  "altura": 180,
- "cintura": 101.68663391113282,
- "partes": [
-  541437,
-  83607,
-  200465,
-  161569,
-  61498,
-  0,
-  {
-   "cabeloVert": 1328,
-   "raio": 6.12,
-   "c": [
-    -1,
-    164.9,
-    3.7
-   ]
-  }
- ],
+ "uniforme": {
+  "ilhas": 98,
+  "ilhasMistas": 26,
+  "texelsRoupa": 415833,
+  "branco": 0.601,
+  "cintura": 0.577,
+  "gola": 0.767
+ },
  "clips": {
   "idle": {
    "arquivo": "Offensive Soccer Idle",

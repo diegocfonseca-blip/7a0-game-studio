@@ -1,14 +1,15 @@
-// 🧍 27/10 — monta o JOGADOR NOVO do 3D a partir do boneco do Meshy (esqueleto Mixamo) e dos movimentos de futebol do Mixamo.
-// Os arquivos crus (FBX do Meshy e da Adobe) NÃO entram no repositório; este script lê de uma pasta local e grava só o resultado:
-//   public/futebol3d/jogador.glb        boneco leve + esqueleto + movimentos já convertidos pro esqueleto dele
-//   public/futebol3d/jogador-roupa.png  máscara: R camisa · G calção · B meião (cor do clube) · alfa 0 cabelo · 128 pele (tom da lenda)
-//   (o GLB leva também o alvo de forma "careca": o cabelo encolhe até o crânio pra quem não é lenda)
-//   public/futebol3d/jogador-meta.json  dados dos movimentos (velocidade da corrida, instante do toque na bola)
-// Uso (com o vite de pé na porta 5190 e DEPLOY_BASE=/):  node scripts/futebol3d/monta-jogador.mjs <pasta-com-rig.fbx-e-anim/>
-// A pasta precisa estar servida pelo vite (ex.: tmp-meshy/ na raiz do projeto, fora do git).
+// 🧍 27/10 — monta o JOGADOR do 3D: boneco do Tripo (uniforme branco liso) com esqueleto Mixamo + os movimentos de futebol do Mixamo.
+// Os arquivos crus (Tripo/Mixamo/Adobe) NÃO entram no repositório; este script lê de uma pasta local e grava só o resultado:
+//   public/futebol3d/jogador.glb          boneco + esqueleto + movimentos, com a textura ORIGINAL (nunca repintada)
+//   public/futebol3d/jogador-uniforme.png MAPA DE REGIÕES (R região·20 +10 nas costas · G altura · B posição lateral): diz,
+//                                          texel a texel, o que é pele/cabelo/camisa/mangas/gola/calção/meião/chuteira — é por ele
+//                                          que o jogo veste cada time (jogador-novo.mjs + uniformes.mjs)
+//   public/futebol3d/jogador-meta.json    dados dos movimentos (velocidade, instante do toque) + medidas do uniforme
+// Uso (com o vite de pé na porta 5190 e DEPLOY_BASE=/):  node scripts/futebol3d/monta-jogador.mjs tmp-tripo
+// A pasta (fora do git) tem rig.fbx (do Mixamo), base.jpg (a arte original do Tripo) e anim/ (os FBX dos movimentos).
 import {createRequire} from 'node:module';import fs from 'node:fs';import path from 'node:path'
 const {chromium}=createRequire(import.meta.url)('playwright')
-const PASTA=process.argv[2]||'tmp-meshy',BRANCA=process.env.BRANCA==='1',OUT=new URL('../../public/futebol3d/',import.meta.url);fs.mkdirSync(OUT,{recursive:true})
+const PASTA=process.argv[2]||'tmp-meshy',OUT=new URL('../../public/futebol3d/',import.meta.url);fs.mkdirSync(OUT,{recursive:true})
 // nome no jogo → arquivo do Mixamo
 const CLIPS={idle:'Offensive Soccer Idle',idle_bola:'Playing With Ball Idle',trote:'Soccer Jog Forward',re:'Soccer Jog Backward',lado_e:'Soccer Strafe Left',lado_d:'Soccer Strafe Right',
  diag_fe:'Soccer Jog Diagonal Forward Left',diag_fd:'Soccer Jog Diagonal Forward Right',diag_te:'Soccer Jog Diagonal Backward Left',diag_td:'Soccer Jog Diagonal Backward Right',
@@ -23,54 +24,77 @@ const page=await (await browser.newContext({viewport:{width:800,height:600}})).n
 await page.goto('http://localhost:5190/qa-presidencia-mapa.html',{waitUntil:'load'});await page.waitForFunction(()=>window.qaThree,{},{timeout:240000})
 await page.exposeFunction('__grava',(nome,dataUrl)=>fs.writeFileSync(new URL(nome,OUT),Buffer.from(dataUrl.split(',')[1],'base64')))
 await page.exposeFunction('__gravaTexto',(nome,txt)=>fs.writeFileSync(new URL(nome,OUT),txt))
-const r=await page.evaluate(async({PASTA,CLIPS,BRANCA})=>{
+const MED=JSON.parse(process.env.MEDIDAS||'{}'),SO_MAPA=process.env.SO_MAPA==='1' // (ajuste fino do corte e teste rápido só do mapa)
+const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA})=>{
  const T=window.qaThree,{FBXLoader}=await import('/node_modules/three/examples/jsm/loaders/FBXLoader.js'),{GLTFExporter}=await import('/node_modules/three/examples/jsm/exporters/GLTFExporter.js')
  const L=new FBXLoader(),g=await L.loadAsync('/'+PASTA+'/rig.fbx');g.updateMatrixWorld(true)
  let mesh;g.traverse(o=>{if(o.isSkinnedMesh)mesh=o});const geo=mesh.geometry,pos=geo.attributes.position,uv=geo.attributes.uv,si=geo.attributes.skinIndex,sw=geo.attributes.skinWeight,bones=mesh.skeleton.bones
- // ── textura: 1024 px ──
+ // ── textura ORIGINAL do boneco (nunca é repintada: a cor do time entra no jogo, por cima, só onde o mapa de regiões manda) ──
  const espera=async()=>{for(let i=0;i<200;i++){const im=mesh.material.map?.image;if(im&&(im.width>0||im.naturalWidth>0)&&(im.complete??true))return im;await new Promise(r=>setTimeout(r,100))}throw Error('textura do boneco não carregou')}
- // (27/10: o boneco do Tripo volta do Mixamo com a textura embaralhada — usa a arte original `base.jpg` da pasta, se tiver)
+ // (o boneco do Tripo volta do Mixamo com a textura embaralhada — usa a arte original `base.jpg` da pasta, se tiver)
  const deFora=await fetch('/'+PASTA+'/base.jpg').then(r=>r.ok&&/image/.test(r.headers.get('content-type')??'')?r.blob():null).catch(()=>null)
- const S=1024,img=deFora?await createImageBitmap(deFora):await espera(),cv=document.createElement('canvas');cv.width=cv.height=S;const cx=cv.getContext('2d');cx.drawImage(img,0,0,S,S);const base=cx.getImageData(0,0,S,S)
- // ── classe de cada vértice pelo osso que mais pesa ──
- const classeOsso=n=>/Head|Neck|headfront/i.test(n)?0:/ForeArm|Hand/i.test(n)?1:/Arm|Shoulder|Spine|Hips/i.test(n)?2:/UpLeg/i.test(n)?3:/Leg/i.test(n)?4:/Foot|Toe/i.test(n)?5:1
- const v=new T.Vector3(),hy=bones.find(b=>/Hips$/.test(b.name)).getWorldPosition(new T.Vector3()).y
- const bb=new T.Box3().setFromBufferAttribute(pos);mesh.updateMatrixWorld(true)
- const ys=[],cls=[];for(let i=0;i<pos.count;i++){let best=0,bw=-1;for(let k=0;k<4;k++){const w=sw.getComponent(i,k);if(w>bw){bw=w;best=si.getComponent(i,k)}}cls.push(classeOsso(bones[best].name));v.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld);ys.push(v.y)}
- // cintura: um pouco acima do quadril (onde a camisa termina e o calção começa)
- const altura=Math.max(...ys)-Math.min(...ys),cintura=hy-altura*.012 /* (a barra da camisa cobre o cós do calção: acima do quadril ainda é camisa) */
- // ── pinta cada triângulo no espaço da textura com a parte do corpo dele ──
- const fy=mesh.material.map.flipY!==false
- const part=document.createElement('canvas');part.width=part.height=S;const px=part.getContext('2d');px.fillStyle='#000';px.fillRect(0,0,S,S)
+ const S=1024,img=deFora?await createImageBitmap(deFora):await espera(),cv=document.createElement('canvas');cv.width=cv.height=S;const cx=cv.getContext('2d');cx.drawImage(img,0,0,S,S);const bd=cx.getImageData(0,0,S,S).data
+ const fy=mesh.material.map?.flipY!==false
+ // ── ossos na pose de descanso (posição de cada parte do corpo) ──
+ mesh.updateMatrixWorld(true);const ow=n=>{const b=bones.find(b=>b.name.replace(/[:]/g,'')==='mixamorig'+n);return b?b.getWorldPosition(new T.Vector3()):null}
+ const O={hips:ow('Hips'),spine:ow('Spine1'),neck:ow('Neck'),head:ow('Head'),ombroE:ow('LeftArm'),ombroD:ow('RightArm'),cotoE:ow('LeftForeArm'),cotoD:ow('RightForeArm'),coxaE:ow('LeftUpLeg'),coxaD:ow('RightUpLeg'),joelhoE:ow('LeftLeg'),joelhoD:ow('RightLeg'),peE:ow('LeftFoot'),peD:ow('RightFoot')}
+ const P=[],cls=[],v=new T.Vector3();for(let i=0;i<pos.count;i++){P.push(v.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld).clone());let best=0,bw=-1;for(let k=0;k<4;k++){const w=sw.getComponent(i,k);if(w>bw){bw=w;best=si.getComponent(i,k)}}cls.push(bones[best].name.replace(/[:]/g,''))}
+ const ys=P.map(p=>p.y),y0=Math.min(...ys),altura=Math.max(...ys)-y0,ax=(O.spine.x+O.hips.x)/2,az=(O.spine.z+O.hips.z)/2
+ // zona do corpo pelo osso que mais pesa no vértice: cabeça · braço · tronco · coxa · canela · pé
+ const zonaDe=n=>/Head|Neck/.test(n)?'cabeca':/Hand|ForeArm/.test(n)?'antebraco':/Arm|Shoulder/.test(n)?'braco':/Spine|Hips/.test(n)?'tronco':/UpLeg/.test(n)?'coxa':/Leg/.test(n)?'canela':/Foot|Toe/.test(n)?'pe':'tronco'
  const idx=geo.index?Array.from(geo.index.array):[...Array(pos.count).keys()]
- const cor=['#fff','#fff','#f00','#0f0','#00f','#fff','#ff0'] // camisa/calção/meião em canal próprio; o resto branco: a borda suavizada nunca vira outra parte
- for(let t=0;t<idx.length;t+=3){const a=idx[t],b=idx[t+1],c=idx[t+2],cs=[cls[a],cls[b],cls[c]],cl=cs.sort((x,y)=>cs.filter(z=>z===y).length-cs.filter(z=>z===x).length)[0];const y=(ys[a]+ys[b]+ys[c])/3
-  let parte=cl===0?6:cl===1?1:cl===2?(y>cintura?2:3):cl===3?(y>cintura?2:3):cl===4?4:cl===5?5:1 // 6 cabeça · 1 antebraço/mão · 2 camisa · 3 calção · 4 meião · 5 chuteira
-  px.fillStyle=cor[parte];px.strokeStyle=cor[parte];px.lineWidth=2;px.beginPath();for(const k of [a,b,c])px.lineTo(uv.getX(k)*S,(fy?1-uv.getY(k):uv.getY(k))*S);px.closePath();px.fill();px.stroke()}
- const pd=px.getImageData(0,0,S,S).data,bd=base.data
- const mask=cx.createImageData(S,S),md=mask.data
- const pele=(r,g,b)=>r>120&&r>g&&g>b&&r-b>35&&r-b<150&&g>70&&g/r>.6&&b/r>.4 // tom de pele (o brilho da listra vermelha tem g/r baixo: não é pele)
- const cont=[0,0,0,0,0,0]
- // roupa: no boneco de uniforme BRANCO (Tripo) é o pano claro e sem cor; no do Meshy (camisa do Milan) é tudo que não é pele
- const ehRoupa=(r,g,b)=>BRANCA?(Math.max(r,g,b)>60&&(Math.max(r,g,b)-Math.min(r,g,b))/Math.max(r,g,b)<.32):!pele(r,g,b)
-  // roupa vira branco com as DOBRAS e o brilho da arte original (cada listra medida pela própria cor: vermelha pelo R, preta pelo
-  // brilho) — a cor do time entra no jogo e o pano continua com volume, sem virar plástico liso
- const amostra=[],roupa=[]
- for(let i=0;i<S*S;i++){let R=pd[i*4],G=pd[i*4+1],B=pd[i*4+2],mxp=Math.max(R,G,B),p=R>200&&G>200&&B<60?6:mxp>70&&R===mxp&&R>2*G&&R>2*B?2:mxp>70&&G===mxp&&G>2*R&&G>2*B?3:mxp>70&&B===mxp&&B>2*R&&B>2*G?4:0 /* (a borda suavizada do triângulo também conta: senão vira risco claro na costura) */,r=bd[i*4],g2=bd[i*4+1],b=bd[i*4+2];md[i*4+3]=255
-  // alfa da máscara: 255 resto · 128 pele (tom da lenda) · 0 cabelo (some no careca, ganha a cor da lenda)
-  if(p===6&&(!pele(r,g2,b)||r<192)){md[i*4+3]=0;cont[1]++;continue}
-  if(pele(r,g2,b)){md[i*4+3]=128;cont[0]++;continue} // (braço que sai da manga também: é pele, não camisa)
-  if((p===2||p===3||p===4)&&ehRoupa(r,g2,b)){const c=r>g2*1.5&&r>90,v=c?r:Math.max(r,g2,b),k=p*2+(c?1:0);(amostra[k]??=[]).push(v);roupa.push([i,k,v]);md[i*4+(p-2)]=255;cont[p]++}else cont[p]++}
- amostra.length=0;for(const [,k,v] of roupa)(amostra[k]??=[]).push(v)
- // cada grupo (parte × listra vermelha/escura) vira branco pela MEDIANA dele: a dobra e o brilho ficam, a listra some
- const med=amostra.map(a=>{if(!a)return 1;const b=Float32Array.from(a).sort();return Math.max(1,b[b.length>>1])})
- for(const [i,k,v] of roupa){const s2=Math.round(226*Math.min(1.13,Math.max(.62,v/med[k])));bd[i*4]=bd[i*4+1]=bd[i*4+2]=s2}
- // costura: espalha a roupa 4 px pra fora das ilhas (texel vazio), senão o filtro da textura puxa uma linha clara na emenda
- for(let passo=0;passo<8;passo++){const md0=md.slice(),bd0=bd.slice();for(let y=1;y<S-1;y++)for(let x=1;x<S-1;x++){const i=y*S+x;const tem=j=>md0[j*4]|md0[j*4+1]|md0[j*4+2]||md0[j*4+3]<255;if(Math.max(pd[i*4],pd[i*4+1],pd[i*4+2])>200||tem(i))continue
-  for(const j of [i-1,i+1,i-S,i+S]){if(tem(j)){for(let k=0;k<4;k++){md[i*4+k]=md0[j*4+k];if(k<3)bd[i*4+k]=bd0[j*4+k]}break}}}}
- cx.putImageData(base,0,0);const baseUrl=cv.toDataURL('image/jpeg',.88)
- const mc=document.createElement('canvas');mc.width=mc.height=S;mc.getContext('2d').putImageData(mask,0,0);await window.__grava('jogador-roupa.png',mc.toDataURL('image/png'))
- const tex=new T.CanvasTexture(cv);tex.colorSpace=T.SRGBColorSpace;tex.flipY=mesh.material.map.flipY;tex.userData.mimeType='image/jpeg';mesh.material=new T.MeshStandardMaterial({map:tex,roughness:.5,metalness:0,name:'jogador'})
+ // ── 1) rasteriza cada triângulo NO ESPAÇO DA TEXTURA: cada texel sabe a que triângulo pertence e onde fica no corpo (3D) ──
+ const triDe=new Int32Array(S*S).fill(-1),px3=new Float32Array(S*S*3),U=i=>uv.getX(i)*S,V=i=>(fy?1-uv.getY(i):uv.getY(i))*S
+ const zonaTri=[];for(let t=0;t<idx.length;t+=3){const zs=[cls[idx[t]],cls[idx[t+1]],cls[idx[t+2]]].map(zonaDe);zonaTri.push(zs.sort((a,b)=>zs.filter(z=>z===b).length-zs.filter(z=>z===a).length)[0])}
+ for(let t=0,ti=0;t<idx.length;t+=3,ti++){const a=idx[t],b=idx[t+1],c=idx[t+2],x0=U(a),y0_=V(a),x1=U(b),y1=V(b),x2=U(c),y2=V(c),den=(y1-y2)*(x0-x2)+(x2-x1)*(y0_-y2);if(Math.abs(den)<1e-9)continue
+  const mnx=Math.max(0,Math.floor(Math.min(x0,x1,x2)-1)),mxx=Math.min(S-1,Math.ceil(Math.max(x0,x1,x2)+1)),mny=Math.max(0,Math.floor(Math.min(y0_,y1,y2)-1)),mxy=Math.min(S-1,Math.ceil(Math.max(y0_,y1,y2)+1)),e=.6/Math.sqrt(Math.abs(den))
+  for(let y=mny;y<=mxy;y++)for(let x=mnx;x<=mxx;x++){const qx=x+.5,qy=y+.5,l0=((y1-y2)*(qx-x2)+(x2-x1)*(qy-y2))/den,l1=((y2-y0_)*(qx-x2)+(x0-x2)*(qy-y2))/den,l2=1-l0-l1;if(l0<-e||l1<-e||l2<-e)continue
+   const i=y*S+x;if(triDe[i]>=0&&Math.min(l0,l1,l2)<0)continue;triDe[i]=ti;const pa=P[a],pb=P[b],pc=P[c];px3[i*3]=pa.x*l0+pb.x*l1+pc.x*l2;px3[i*3+1]=pa.y*l0+pb.y*l1+pc.y*l2;px3[i*3+2]=pa.z*l0+pb.z*l1+pc.z*l2}}
+ // ── 2) cor de cada texel: pano (branco/cinza, sem cor) · pele (alaranjado) · escuro (chuteira/cabelo) ──
+ const tipoCor=i=>{const r=bd[i*4],g=bd[i*4+1],b=bd[i*4+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx?(mx-mn)/mx:0;return mx<55?'escuro':sat<.27&&mx>70?'pano':'pele'}
+ // ── diagnóstico: ilhas do atlas (triângulos ligados pelo UV) e quantas misturam pele e pano ──
+ const pai=new Int32Array(idx.length/3).map((_,i)=>i),acha=i=>{while(pai[i]!==i){pai[i]=pai[pai[i]];i=pai[i]}return i},q=new Map()
+ for(let t=0,ti=0;t<idx.length;t+=3,ti++)for(let k=0;k<3;k++){const key=Math.round(uv.getX(idx[t+k])*8192)+','+Math.round(uv.getY(idx[t+k])*8192),o=q.get(key);if(o===undefined)q.set(key,ti);else pai[acha(ti)]=acha(o)}
+ const ilha=new Map();for(let i=0;i<S*S;i++){if(triDe[i]<0)continue;const k=acha(triDe[i]);let o=ilha.get(k);if(!o){o={pano:0,pele:0,escuro:0};ilha.set(k,o)}o[tipoCor(i)]++}
+ const mistas=[...ilha.values()].filter(o=>Math.min(o.pano,o.pele)>40).length
+ // medidas do corte (frações da altura do boneco) — conferidas na foto de regiões (tmp-tripo/regioes + verreg)
+ const {KCINT=0,KGOLA_Y=.05,KGOLA_YC=.018,KGOLA_R=.065,KMANGA_T=.05,KMANGA_R=.056}=MED
+ // ── 3) REGIÃO de cada texel = zona do corpo (osso + posição 3D) × tipo de cor. Tudo que não é roupa fica com a arte original ──
+ // 0 vazio · 1 pele · 2 cabelo · 3 camisa · 4 mangas · 5 gola · 6 calção · 7 meião · 8 chuteira
+ const H=altura,cint=O.hips.y+H*KCINT,golaY=O.neck.y-H*KGOLA_Y
+ // manga = pano perto do EIXO DO BRAÇO (ombro→cotovelo), já pra fora do ombro: corte limpo na costura, não desce pela lateral
+ const segDist=(p,a,b)=>{const ab=b.clone().sub(a),t=T.MathUtils.clamp(p.clone().sub(a).dot(ab)/ab.lengthSq(),-1,2),q=a.clone().addScaledVector(ab,t);return{d:p.distanceTo(q),t}}
+ const manga=p=>{const ehE=Math.sign(O.ombroE.x-ax)===Math.sign(p.x-ax);const [a,b]=ehE?[O.ombroE,O.cotoE]:[O.ombroD,O.cotoD];const r=segDist(p,a,b);return r.t>KMANGA_T&&r.d<H*KMANGA_R}
+ // gola = pano colado no pescoço (anel em volta dele), não o peito
+ // (nas costas a gola é mais alta e fina que na frente, onde as pontas descem no peito)
+ const gola=p=>Math.hypot(p.x-O.neck.x,p.z-O.neck.z)<H*KGOLA_R&&p.y>(p.z<O.neck.z?O.neck.y-H*KGOLA_YC:golaY)
+ const reg=new Uint8Array(S*S);let nRoupa=0
+ for(let i=0;i<S*S;i++){const t=triDe[i];if(t<0)continue;const z=zonaTri[t],c=tipoCor(i),x=px3[i*3]-ax,y=px3[i*3+1],k=c==='pano'
+  let r=1
+  if(z==='cabeca')r=k&&y<O.head.y?5:(c==='pele'?1:2)                      // cabeça nunca recebe cor do time (só a gola que sobe no pescoço: pano claro abaixo do crânio)
+  else if(z==='antebraco')r=1                                              // antebraço e mão: sempre pele
+  else if(z==='braco'||z==='tronco'){const p=new T.Vector3(px3[i*3],y,px3[i*3+2]);if(!k)r=1;else if(gola(p))r=5;else if(manga(p))r=4;else r=y<cint?6:3}
+  else if(z==='coxa')r=k?(y<cint&&y>O.joelhoE.y?6:7):1
+  else if(z==='canela')r=k?7:(c==='escuro'?8:1)
+  else if(z==='pe')r=c==='escuro'||c==='pele'?8:7
+  reg[i]=r;if(r>=3)nRoupa++}
+ // limpeza: ponto isolado (cor de sombra/brilho) segue a maioria dos vizinhos do MESMO triângulo-ilha — tira as pintas
+ for(let it=0;it<2;it++){const r0=reg.slice();for(let y=2;y<S-2;y++)for(let x=2;x<S-2;x++){const i=y*S+x;if(!r0[i])continue;const n=new Uint16Array(9);let tot=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const j=i+dy*S+dx;if(r0[j]&&acha(triDe[j])===acha(triDe[i])){n[r0[j]]++;tot++}}let m=r0[i];for(let k2=1;k2<9;k2++)if(n[k2]>n[m])m=k2;if(m!==r0[i]&&n[m]>tot*.6&&!(r0[i]===1&&zonaTri[triDe[i]]==='cabeca'))reg[i]=m}}
+ // ── 4) mapa de regiões (RGBA): R = região·20 (+10 nas costas) · G = altura no corpo · B = posição lateral (esquerda→direita)
+ //    — listras e faixas seguem o CORPO, como numa camisa de verdade, não os pedaços do atlas · A = 255. Espalhado 6 px pra fora das ilhas (o filtro da textura não puxa vazio)
+ const mapa=new Uint8ClampedArray(S*S*4);for(let i=0;i<S*S;i++){if(!reg[i])continue;const x=px3[i*3]-ax,z=px3[i*3+2]-az;mapa[i*4]=reg[i]*20+(z<0?10:0);mapa[i*4+1]=Math.round((px3[i*3+1]-y0)/H*255);mapa[i*4+2]=Math.round(T.MathUtils.clamp(.5+x/(.64*H),0,1)*255);mapa[i*4+3]=255}
+ for(let passo=0;passo<6;passo++){const m0=mapa.slice();for(let y=1;y<S-1;y++)for(let x=1;x<S-1;x++){const i=y*S+x;if(m0[i*4+3])continue;for(const j of [i-1,i+1,i-S,i+S])if(m0[j*4+3]){for(let k=0;k<4;k++)mapa[i*4+k]=m0[j*4+k];break}}}
+ const mc=document.createElement('canvas');mc.width=mc.height=S;mc.getContext('2d').putImageData(new ImageData(mapa,S,S),0,0);await window.__grava('jogador-uniforme.png',mc.toDataURL('image/png'))
+ // (imagem de conferência: cada região numa cor)
+ const CORES=[[0,0,0],[230,180,140],[90,50,20],[220,30,30],[240,140,0],[250,240,0],[30,90,220],[30,180,60],[40,40,40]],dbg=new Uint8ClampedArray(S*S*4)
+ for(let i=0;i<S*S;i++){const c=CORES[reg[i]];dbg[i*4]=c[0];dbg[i*4+1]=c[1];dbg[i*4+2]=c[2];dbg[i*4+3]=255}
+ const dc=document.createElement('canvas');dc.width=dc.height=S;dc.getContext('2d').putImageData(new ImageData(dbg,S,S),0,0);await window.__grava('../../tmp-tripo/regioes.png',dc.toDataURL('image/png'))
+ // branco de referência do pano (luminância linear mediana): no jogo, sombra = luminância ÷ esse branco
+ const lin=c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4},lums=[];for(let i=0;i<S*S;i+=7)if(reg[i]>=3&&reg[i]<=7)lums.push(.2126*lin(bd[i*4])+.7152*lin(bd[i*4+1])+.0722*lin(bd[i*4+2]))
+ lums.sort((a,b)=>a-b);const branco=lums[lums.length>>1]
+ const cont={ilhas:ilha.size,ilhasMistas:mistas,texelsRoupa:nRoupa,branco:+branco.toFixed(3),cintura:+((cint-y0)/H).toFixed(3),gola:+((golaY-y0)/H).toFixed(3)}
+ const tex=new T.Texture(img);tex.needsUpdate=true;tex.colorSpace=T.SRGBColorSpace;tex.flipY=fy;tex.userData.mimeType='image/jpeg';mesh.material=new T.MeshStandardMaterial({map:tex,roughness:.6,metalness:0,name:'jogador'})
+ if(SO_MAPA)return{uniforme:cont}
  // ── movimentos: rotação de mundo com as poses de referência casadas (T do Mixamo → A do boneco) ──
  const tb=new Map();g.traverse(o=>{if(o.isBone)tb.set(o.name,o)});const hips=tb.get('mixamorigHips'),h0=hips.position.clone()
  const depth=o=>{let d=0;while(o.parent){o=o.parent;d++}return d}
@@ -100,38 +124,13 @@ const r=await page.evaluate(async({PASTA,CLIPS,BRANCA})=>{
   const tracks=names.map(n=>new T.QuaternionKeyframeTrack(n+'.quaternion',times,vals.get(n)));tracks.push(new T.VectorKeyframeTrack('mixamorigHips.position',times,hp))
   clips.push(new T.AnimationClip(nome,dur,tracks).optimize());meta[nome]={arquivo:arq,duracao:+dur.toFixed(3),deslocamento:+dist.toFixed(3),toque,pe}
  }
- // ── careca (quem não é lenda): alvo de forma que encolhe o cabelo até o crânio ──
- {const pel=new Uint8Array(pos.count),cab=new Uint8Array(pos.count),w=new T.Vector3(),inv=mesh.matrixWorld.clone().invert(),P=[]
-  for(let i=0;i<pos.count;i++){const x=Math.min(S-1,Math.floor(uv.getX(i)*S)),y=Math.min(S-1,Math.floor((fy?1-uv.getY(i):uv.getY(i))*S));const al=md[(y*S+x)*4+3];cab[i]=al<64?1:0;pel[i]=cls[i]===0&&al>100&&al<160?1:0;P.push(w.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld).clone())}
-  // crânio = elipsoide medido pela pele do rosto (largura das orelhas, testa, frente); todo vértice da cabeça que não é pele e
-  // fica fora dele é puxado pra superfície (+3%). Pele nunca se mexe — o rosto continua igual.
-  const pz=P.filter((p,i)=>pel[i]&&p.y>140),q=(k,f)=>{const v=pz.map(p=>p[k]).sort((x,y)=>x-y);return v[Math.floor(f*(v.length-1))]}
-  const rx=(q('x',.95)-q('x',.05))/2,c=new T.Vector3((q('x',.95)+q('x',.05))/2,q('y',.95)-rx*1.15,q('z',.95)-rx*1.2),R3=new T.Vector3(rx,rx*1.28,rx*1.18)
-  // o FBX vem com vértice repetido por triângulo: decide por PONTO (todas as cópias juntas), senão uma cópia anda e a outra
-  // fica e o triângulo vira espinho. Ponto em dúvida segue a maioria dos vizinhos (2 passadas).
-  const gid=new Int32Array(pos.count),chave=new Map(),G=[];for(let i=0;i<pos.count;i++){const p=P[i],k=Math.round(p.x*200)+','+Math.round(p.y*200)+','+Math.round(p.z*200);let g=chave.get(k);if(g===undefined){g=G.length;chave.set(k,g);G.push({v:[],p,c0:false,sim:0,pele:0})}gid[i]=g;const o=G[g];o.v.push(i);if(cls[i]===0)o.c0=true;if(pel[i])o.pele++;else if(cls[i]===0||(cab[i]&&p.y>c.y-R3.y*1.6))o.sim++}
-  const viz=G.map(()=>new Set());for(let t=0;t<idx.length;t+=3){const a=gid[idx[t]],b=gid[idx[t+1]],e=gid[idx[t+2]];viz[a].add(b).add(e);viz[b].add(a).add(e);viz[e].add(a).add(b)}
-  const fora=o=>o.p.clone().sub(c).divide(R3).length()>1.03
-  let mexe=G.map(o=>o.sim>o.pele) // cabelo de dentro também vai pra superfície: camadas em alturas diferentes deixavam a cabeça amassada
-  for(let it=0;it<2;it++){const m2=mexe.slice();G.forEach((o,g)=>{if(mexe[g]||!(o.c0||o.sim)||!fora(o))return;let s=0;for(const h of viz[g])s+=mexe[h];if(viz[g].size&&s/viz[g].size>=.6)m2[g]=true});mexe=m2}
-  const d=new Float32Array(pos.count*3),dn=new Float32Array(pos.count*3),nor=geo.attributes.normal,nm=new T.Matrix3().getNormalMatrix(inv),nv=new T.Vector3();let n=0
-  const pescoco=c.y-R3.y*.55,rp=rx*.68,eixo=new T.Vector3(c.x,0,c.z-R3.z*.12)
-  G.forEach((o,g)=>{if(!mexe[g])return;const p=o.p;let alvo,nn
-   if(p.y>=pescoco){const e=p.clone().sub(c).divide(R3),k=e.length();alvo=c.clone().add(e.multiplyScalar(1.03/k).multiply(R3));nn=alvo.clone().sub(c).divide(R3).divide(R3).normalize()}
-   else{const h=new T.Vector3(p.x-eixo.x,0,p.z-eixo.z),l=h.length();if(l<=rp)return;alvo=new T.Vector3(eixo.x,p.y,eixo.z).add(h.multiplyScalar(rp/l));nn=new T.Vector3(alvo.x-eixo.x,0,alvo.z-eixo.z).normalize()}
-   // (cabelo comprido caído na nuca vira uma camada fina em volta do pescoço, sem puxar a gola pro crânio)
-   const al=alvo.clone().applyMatrix4(inv);nv.copy(nn).applyMatrix3(nm).normalize();n++
-   for(const i of o.v){const ol=w.fromBufferAttribute(pos,i);d[i*3]=al.x-ol.x;d[i*3+1]=al.y-ol.y;d[i*3+2]=al.z-ol.z;dn[i*3]=nv.x-nor.getX(i);dn[i*3+1]=nv.y-nor.getY(i);dn[i*3+2]=nv.z-nor.getZ(i)}})
-  const r=rx
-  geo.morphAttributes.position=[new T.BufferAttribute(d,3)];geo.morphAttributes.normal=[new T.BufferAttribute(dn,3)];geo.morphTargetsRelative=true;mesh.updateMorphTargets();mesh.morphTargetDictionary={careca:0};mesh.morphTargetInfluences=[0]
-  cont.push({cabeloVert:n,raio:+r.toFixed(2),c:c.toArray().map(x=>+x.toFixed(1))})}
  // ── exporta o boneco + movimentos ── (vértices repetidos do FBX juntados: 31 mil → ~5 mil)
  const {mergeVertices}=await import('/node_modules/three/examples/jsm/utils/BufferGeometryUtils.js');const antes=mesh.geometry.attributes.position.count;mesh.geometry=mergeVertices(mesh.geometry,1e-5);const depois=mesh.geometry.attributes.position.count
  const glb=await new GLTFExporter().parseAsync(g,{binary:true,animations:clips,onlyVisible:true})
  const blob=new Blob([glb]),url=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob)})
  await window.__grava('jogador.glb',url)
- const metaTxt=JSON.stringify({fonte:'Meshy (boneco do Diego, esqueleto Mixamo) + movimentos Mixamo (Adobe) baixados pela conta do Diego',triangulos:idx.length/3,altura,cintura,partes:cont,clips:meta},null,1)
+ const metaTxt=JSON.stringify({fonte:'Tripo (boneco do Diego, uniforme branco) + esqueleto e movimentos Mixamo (Adobe) baixados pela conta do Diego',triangulos:idx.length/3,altura,uniforme:cont,clips:meta},null,1)
  await window.__gravaTexto('jogador-meta.json',metaTxt)
- return {flipY:fy,verts:[antes,depois],tri:idx.length/3,clips:clips.length,partes:cont,cintura,hy,altura,glbMB:(glb.byteLength/1e6).toFixed(2)}
-},{PASTA,CLIPS,BRANCA})
+ return {flipY:fy,verts:[antes,depois],tri:idx.length/3,clips:clips.length,uniforme:cont,altura,glbMB:(glb.byteLength/1e6).toFixed(2)}
+},{PASTA,CLIPS,MED,SO_MAPA})
 console.log(JSON.stringify(r),'erros',JSON.stringify(logs.slice(0,5)));await browser.close()
