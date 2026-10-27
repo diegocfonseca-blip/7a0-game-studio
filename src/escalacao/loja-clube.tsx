@@ -22,6 +22,7 @@ import { tr, getLang } from './lang'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
+import { assinarMensal } from './vendria-checkout'
 import { PixBox, APOIO_IG, ApoieButton, GiroDaRodada } from './screens'
 import { PresenteBox } from './presente'
 import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
@@ -178,7 +179,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         {!(fixo && fixo !== 'craque') && <>
           <h2 style={h2}>{tr('⭐ Craque por mês', '⭐ Monthly Star')} <span style={sub}>{tr('Pix automático todo mês', 'automatic Pix every month')}</span></h2>
           <div style={{ display: 'grid', gap: 8 }}>
-            {(['craque_salas', 'craque_completo'] as const).map(m => <div key={m} role="button" tabIndex={0} onClick={() => { if (direitos?.mensalPlano === m) return; logApoio(`🛒 loja → ${m} (Vendria)`); window.open(MENSAIS[m].link, '_blank', 'noopener') }} style={{ ...card, cursor: direitos?.mensalPlano === m ? 'default' : 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: APOIO_PERKS.prata.grad }}>
+            {(['craque_salas', 'craque_completo'] as const).map(m => <div key={m} role="button" tabIndex={0} onClick={() => { if (direitos?.mensalPlano === m) return; logApoio(`🛒 loja → ${m} (Vendria)`); void assinarMensal(m, tr) }} style={{ ...card, cursor: direitos?.mensalPlano === m ? 'default' : 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: APOIO_PERKS.prata.grad }}>
               <div style={{ flex: 1 }}>
                 <b style={{ ...OSW, fontSize: 18, display: 'block' }}>{m === 'craque_salas' ? tr('⭐ Craque Salas', '⭐ Star Rooms') : tr('⭐ Craque Completo', '⭐ Star Complete')}</b>
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{m === 'craque_salas'

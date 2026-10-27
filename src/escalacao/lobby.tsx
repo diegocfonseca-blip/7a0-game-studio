@@ -22,7 +22,7 @@ import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, useHasManual, useDireitos, logApoio } from './apoio'
 import { ehPagante } from './saf2'
-import { MENSAIS } from './planos-regras'
+import { assinarMensal } from './vendria-checkout'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -4335,7 +4335,7 @@ export function EscLobby() {
           {/* ⭐ 26/10 (oferta na hora aprovada: *"quando o cara for criar sala extra que não pode aparece avulso 4,90 ou mensal 9,90 ou ver
               todos os planos"*): o 🎟️ 4,90 vem na frente (Diego: *"começa com 4,90 na frente"*), depois o ⭐ Craque Salas 9,90/mês (Vendria) — o clique cai no painel #admin "Quem apertou nos planos" */}
           <LojaButton ancora="loja-salas" style={{ width: '100%', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('🎟️ OU 3 SALAS EXTRAS · R$ 4,90', '🎟️ OR 3 EXTRA ROOMS · R$ 4.90')}</LojaButton>
-          <button onClick={() => { logApoio('🏟️ limite de sala → Craque Salas (Vendria)'); window.open(MENSAIS.craque_salas.link, '_blank', 'noopener') }} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('⭐ SALAS À VONTADE · R$ 9,90/MÊS', '⭐ UNLIMITED ROOMS · R$ 9.90/MONTH')}</button>
+          <button onClick={() => { logApoio('🏟️ limite de sala → Craque Salas (Vendria)'); void assinarMensal('craque_salas', tr) }} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('⭐ SALAS À VONTADE · R$ 9,90/MÊS', '⭐ UNLIMITED ROOMS · R$ 9.90/MONTH')}</button>
           <p style={{ margin: '-2px 2px 0', fontSize: 11, fontWeight: 700, color: '#5a5040', lineHeight: 1.3 }}>{tr('Craque Salas: crie quantas salas e ligas quiser. Assine com o MESMO e-mail da sua conta do jogo.', 'Star Rooms: create as many rooms and leagues as you like. Subscribe with the SAME e-mail as your game account.')}</p>
           <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🏟️ limite de sala → ver os planos'); open() }} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('💛 VER TODOS OS PLANOS', '💛 SEE ALL THE PLANS')}</button>} />
         </div>

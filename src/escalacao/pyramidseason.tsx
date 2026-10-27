@@ -4,6 +4,7 @@ import {useRelatoPartidaOficial} from './partida-relato-hook'
 import {PublicarPartidaEstadio} from './presidencia-partida'
 import {RitmoCampoProvider} from './presidencia-velocidade'
 import { MENSAIS } from './planos-regras'
+import { assinarMensal } from './vendria-checkout'
 import { PixMP } from './pix-mp'
 import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
 import { useCo2 } from './co2'
@@ -196,7 +197,7 @@ function ManualLockButton() {
           <p style={{ margin: 0, fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>{tr('🎮 Com o Modo Manual você manda no ritmo do jogo e pula quando quiser.', '🎮 With Manual Mode you control the pace and skip whenever you like.')}</p>
           {pix24 ? <div style={{ background: '#fff', borderRadius: 12, padding: 8 }}><PixMP produto="manual_24h" valor={9.9} aoPagar={() => { setPix24(false); setAberto(false) }} /></div>
             : <button onClick={() => { logApoio('🎮 manual trancado → avulso 24 h (R$ 9,90)'); setPix24(true) }} style={{ ...btn, background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)' }}>{tr('⏱️ MANUAL POR 24 HORAS · R$ 9,90 AVULSO', '⏱️ MANUAL FOR 24 HOURS · R$ 9.90 ONE-OFF')}</button>}
-          <button onClick={() => { logApoio('🎮 manual trancado → Craque Completo (Vendria)'); window.open(MENSAIS.craque_completo.link, '_blank', 'noopener') }} style={{ ...btn, background: '#fff' }}>{tr(`⭐ CRAQUE COMPLETO · ${reaisPlano(MENSAIS.craque_completo.preco)}/MÊS`, `⭐ STAR COMPLETE · ${reaisPlano(MENSAIS.craque_completo.preco)}/MONTH`)}</button>
+          <button onClick={() => { logApoio('🎮 manual trancado → Craque Completo (Vendria)'); void assinarMensal('craque_completo', tr) }} style={{ ...btn, background: '#fff' }}>{tr(`⭐ CRAQUE COMPLETO · ${reaisPlano(MENSAIS.craque_completo.preco)}/MÊS`, `⭐ STAR COMPLETE · ${reaisPlano(MENSAIS.craque_completo.preco)}/MONTH`)}</button>
           <p style={{ margin: '-3px 2px 0', fontSize: 10.5, fontWeight: 700, color: '#5a5040', lineHeight: 1.3 }}>{tr('Assine com o MESMO e-mail da sua conta do jogo.', 'Subscribe with the SAME e-mail as your game account.')}</p>
           <ApoieButton startScreen="choice" trigger={open => (
             <button onClick={() => { logApoio('🎮 manual trancado → ver todos os planos'); open() }} style={{ ...btn, background: '#fff' }}>{tr('💛 VER TODOS OS PLANOS', '💛 SEE ALL THE PLANS')}</button>

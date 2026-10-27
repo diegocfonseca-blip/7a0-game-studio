@@ -1,0 +1,291 @@
+{
+ "fonte": "Meshy (boneco do Diego, esqueleto Mixamo) + movimentos Mixamo (Adobe) baixados pela conta do Diego",
+ "triangulos": 10378,
+ "altura": 170.0000290753594,
+ "cintura": 95.30251470333364,
+ "partes": [
+  561715,
+  331218,
+  71765,
+  42587,
+  41291,
+  0,
+  {
+   "cabeloVert": 2236,
+   "raio": 8.66,
+   "c": [
+    0,
+    152.3,
+    -0.4
+   ]
+  }
+ ],
+ "clips": {
+  "idle": {
+   "arquivo": "Offensive Soccer Idle",
+   "duracao": 4,
+   "deslocamento": 0.033,
+   "toque": 3.7917,
+   "pe": "l"
+  },
+  "idle_bola": {
+   "arquivo": "Playing With Ball Idle",
+   "duracao": 4,
+   "deslocamento": 0.112,
+   "toque": 3.5833,
+   "pe": "l"
+  },
+  "trote": {
+   "arquivo": "Soccer Jog Forward",
+   "duracao": 0.833,
+   "deslocamento": 0,
+   "toque": 0.4583,
+   "pe": "r"
+  },
+  "re": {
+   "arquivo": "Soccer Jog Backward",
+   "duracao": 0.8,
+   "deslocamento": 0,
+   "toque": 0.75,
+   "pe": "l"
+  },
+  "lado_e": {
+   "arquivo": "Soccer Strafe Left",
+   "duracao": 0.7,
+   "deslocamento": 0,
+   "toque": 0.375,
+   "pe": "r"
+  },
+  "lado_d": {
+   "arquivo": "Soccer Strafe Right",
+   "duracao": 0.733,
+   "deslocamento": 0.004,
+   "toque": 0.4167,
+   "pe": "l"
+  },
+  "diag_fe": {
+   "arquivo": "Soccer Jog Diagonal Forward Left",
+   "duracao": 0.833,
+   "deslocamento": 0,
+   "toque": 0.0833,
+   "pe": "r"
+  },
+  "diag_fd": {
+   "arquivo": "Soccer Jog Diagonal Forward Right",
+   "duracao": 0.8,
+   "deslocamento": 0,
+   "toque": 0.5,
+   "pe": "l"
+  },
+  "diag_te": {
+   "arquivo": "Soccer Jog Diagonal Backward Left",
+   "duracao": 0.833,
+   "deslocamento": 1.445,
+   "toque": 0.375,
+   "pe": "r"
+  },
+  "diag_td": {
+   "arquivo": "Soccer Jog Diagonal Backward Right",
+   "duracao": 0.733,
+   "deslocamento": 0,
+   "toque": 0.0833,
+   "pe": "r"
+  },
+  "conduz": {
+   "arquivo": "Forward Jog Dribbling Soccer Ball",
+   "duracao": 1.733,
+   "deslocamento": 5.067,
+   "toque": 0.9583,
+   "pe": "l"
+  },
+  "passe": {
+   "arquivo": "Soccer Pass From Idle Pose",
+   "duracao": 1.6,
+   "deslocamento": 0,
+   "toque": 0.4583,
+   "pe": "r"
+  },
+  "chute": {
+   "arquivo": "Male Soccer Penalty Kick",
+   "duracao": 1.5,
+   "deslocamento": 3.288,
+   "toque": 0.75,
+   "pe": "r"
+  },
+  "chute_corrida": {
+   "arquivo": "Jogging And Kicking A Soccerball Forward",
+   "duracao": 1.3,
+   "deslocamento": 0,
+   "toque": 0.4583,
+   "pe": "r"
+  },
+  "cavadinha": {
+   "arquivo": "Soccer Chip Shot While Jogging",
+   "duracao": 1.667,
+   "deslocamento": 5.779,
+   "toque": 0.5,
+   "pe": "r"
+  },
+  "cabeca": {
+   "arquivo": "Soccer Header In Place",
+   "duracao": 2.367,
+   "deslocamento": 0,
+   "toque": 0.875,
+   "pe": "r"
+  },
+  "cabeca2": {
+   "arquivo": "Idle Soccer Header",
+   "duracao": 1.433,
+   "deslocamento": 0.003,
+   "toque": 0.25,
+   "pe": "r"
+  },
+  "peito": {
+   "arquivo": "Soccer Idle Chest Receive",
+   "duracao": 1.4,
+   "deslocamento": 0,
+   "toque": 0.2917,
+   "pe": "l"
+  },
+  "dominio": {
+   "arquivo": "Receiving A Soccerball And Playing With It",
+   "duracao": 5.133,
+   "deslocamento": 2.833,
+   "toque": 0.3333,
+   "pe": "r"
+  },
+  "giro": {
+   "arquivo": "Soccer 360 Spin",
+   "duracao": 1.267,
+   "deslocamento": 3.902,
+   "toque": 0.2083,
+   "pe": "r"
+  },
+  "bicicleta": {
+   "arquivo": "Soccer Scissor Kick To Goal",
+   "duracao": 2.767,
+   "deslocamento": 0.342,
+   "toque": 0.75,
+   "pe": "r"
+  },
+  "lateral": {
+   "arquivo": "Soccer Sideline Throw In",
+   "duracao": 2.767,
+   "deslocamento": 3.289,
+   "toque": 1.1667,
+   "pe": "l"
+  },
+  "carrinho": {
+   "arquivo": "Soccer Slide Tackle",
+   "duracao": 1.767,
+   "deslocamento": 4.611,
+   "toque": 0.1667,
+   "pe": "l"
+  },
+  "cai": {
+   "arquivo": "Tripping Over A Soccer Tackle",
+   "duracao": 1.6,
+   "deslocamento": 4.254,
+   "toque": 0.75,
+   "pe": "r"
+  },
+  "levanta": {
+   "arquivo": "Standing Up From A Soccer Fall",
+   "duracao": 1.667,
+   "deslocamento": 4.323,
+   "toque": 1.0833,
+   "pe": "r"
+  },
+  "gk_idle": {
+   "arquivo": "Goalkeeper Idle Without Ball",
+   "duracao": 4.633,
+   "deslocamento": 0,
+   "toque": 1.9167,
+   "pe": "r"
+  },
+  "gk_idle_bola": {
+   "arquivo": "Goalkeeper Idle Holding Ball",
+   "duracao": 3.333,
+   "deslocamento": 0,
+   "toque": 0.5417,
+   "pe": "l"
+  },
+  "gk_voo_e": {
+   "arquivo": "Goalkeeper Left Diving Save",
+   "duracao": 3.4,
+   "deslocamento": 2.992,
+   "toque": 1.4583,
+   "pe": "r"
+  },
+  "gk_voo_d": {
+   "arquivo": "Goalkeeper Right Diving Save",
+   "duracao": 3.233,
+   "deslocamento": 3.053,
+   "toque": 1.2917,
+   "pe": "r"
+  },
+  "gk_pega_baixo": {
+   "arquivo": "Goalkeeper Catching Ball Low Height",
+   "duracao": 2.1,
+   "deslocamento": 1.242,
+   "toque": 1.2083,
+   "pe": "r"
+  },
+  "gk_pega": {
+   "arquivo": "Goalkeeper Catching Ball Medium Height",
+   "duracao": 1.267,
+   "deslocamento": 0.687,
+   "toque": 0.7917,
+   "pe": "l"
+  },
+  "gk_pega_alto": {
+   "arquivo": "Goalkeeper Jump Catching Ball High Height",
+   "duracao": 2.733,
+   "deslocamento": 0.583,
+   "toque": 0.5833,
+   "pe": "l"
+  },
+  "gk_passo_e": {
+   "arquivo": "Goalkeeper Left Sidestep",
+   "duracao": 0.533,
+   "deslocamento": 1.5,
+   "toque": 0.3333,
+   "pe": "l"
+  },
+  "gk_passo_d": {
+   "arquivo": "Goalkeeper Right Sidestep",
+   "duracao": 0.5,
+   "deslocamento": 1.868,
+   "toque": 0.2083,
+   "pe": "l"
+  },
+  "gk_chutao": {
+   "arquivo": "Goalkeeper Drop Kicking Ball",
+   "duracao": 3.9,
+   "deslocamento": 3.694,
+   "toque": 2.125,
+   "pe": "r"
+  },
+  "gk_lanca": {
+   "arquivo": "Goalie Overhand Throw",
+   "duracao": 3.833,
+   "deslocamento": 1.11,
+   "toque": 0.9583,
+   "pe": "r"
+  },
+  "gk_rola": {
+   "arquivo": "Goalkeeper Rolling Pass",
+   "duracao": 3.133,
+   "deslocamento": 0.881,
+   "toque": 0.6667,
+   "pe": "l"
+  },
+  "gk_recolhe": {
+   "arquivo": "Goalkeeper Scooping The Ball From A Roll",
+   "duracao": 2.6,
+   "deslocamento": 4.173,
+   "toque": 1,
+   "pe": "l"
+  }
+ }
+}

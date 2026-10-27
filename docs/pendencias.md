@@ -11164,6 +11164,48 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   grama. Testes: os mesmos de antes passam (arquitetura com a sonda dos bancos em −39 em vez de −42; LOD aceita 80–96 cadeiras na
   fila 1 nos cantos). O camarote ficou onde estava (atrás do 2º anel) — dá pra trazer pra dentro depois, se ele pedir.
 
+### 🧍 26/10 (noite) — Boneco novo de jogador + movimentos de futebol do Mixamo (TESTE, fora do jogo)
+- Diagnóstico: o boneco do 3D só tinha 5 movimentos gravados (parado/andar/trotar/correr/pular) + 1 chute; passe, domínio, giro,
+  cabeçada, carrinho e goleiro eram improviso em código → *"todos fundamentos do jogador ruins"* (Diego).
+- Diego baixou 63 movimentos de futebol do Mixamo (passe, condução, chute, cabeçada, carrinho, lateral, domínio de peito,
+  jogging pra trás/lado, goleiro: defesas, encaixes, reposição…). Arquivos crus ficam FORA do repo (licença Adobe).
+- Estilo escolhido por ele: corpo de jogador de verdade no traço da carta (arte do Pirlo de corpo inteiro), não o cabeçudo.
+  Boneco 3D feito no Meshy (10.378 triângulos, textura 2K) com **esqueleto Mixamo** do próprio Meshy → os movimentos entram direto.
+- Conversão que funciona (bancada `verrig3.mjs` no scratchpad): rotação de mundo com as poses de referência casadas — a fonte
+  (pose em T do Mixamo) é dobrada pra pose em A do boneco, osso a osso, antes de copiar o movimento. Sem isso o tronco deformava.
+- Falta (próximas levas): boneco BASE branco pra pintar a cor de cada clube; cabelos por jogador; trocar o boneco do campo 3D
+  por este; ligar cada movimento ao lance do motor (passe/domínio/chute/cabeçada/carrinho/goleiro/lateral) com o contato no
+  tempo certo; correr de costas/de lado (jogging do Mixamo); peso pro celular (22 bonecos). Mostrar prints antes de publicar.
+- ✅ 27/10 (no branch, NÃO publicado): `public/futebol3d/jogador.glb` (3,2 MB) montado por `scripts/futebol3d/monta-jogador.mjs`
+  — roupa BRANCA pintada no jogo pela cor do time (máscara `jogador-roupa.png`: R camisa · G calção · B meião; alfa = pele/cabelo),
+  e alvo de forma **careca** (o cabelo encolhe até o crânio). Regra do Diego: *"pra quem não é lenda, pode deixar o boneco careca"*;
+  lenda com rosto na carta = pele e cabelo tirados do rosto da carta (`players-novo.mjs`, `aparenciaDaCarta`).
+- ✅ 27/10: `src/escalacao/futebol3d/players-novo.mjs` = controlador dos 22 com o boneco novo (corrida em 8 direções, conduz com a
+  bola, passe/chute/cabeceio/lateral/falta sofrida/carrinho/giro/voo do goleiro pelos lances do motor). Ligado em
+  `presidencia-complexo-partida.ts` (o 3D já é só da conta do Diego); se falhar, volta sozinho pro boneco antigo.
+  `localStorage['esc3d-boneco']='antigo'` força o antigo. Falta: prints pro Diego aprovar → publicar; medir peso no celular.
+
+### ⭐📅 27/10 — Craque mensal (Vendria) NÃO liberou sozinho: a Vendria só mandou `order.paid`, sem e-mail
+- 26/10 21h08 e 22h52 (Brasília): 2 compras de **Craque Completo** (R$ 16,89 com taxa). Chegou só `order.paid` com
+  `customer: null` — sem e-mail não dá pra saber de quem é. O evento `subscription.started` (que traz o e-mail e é o que
+  `esc_vendria_aplica` usa) NÃO veio, ao contrário do Parceiro de 17/10, que veio certinho.
+- Liberado À MÃO (Diego mandou o e-mail, conta conferida): matheusribeiro201777@gmail.com (Cifrão SAF) → craque_completo até
+  27/11 01:52 UTC (`vendria_sub` = 'manual-diego-27/10'). 2º comprador também liberado à mão: jesusolhoupramim97@gmail.com (Robgol FC), mesmo prazo — e REMOVIDO no mesmo dia: ele cancelou (Diego mandou tirar; plano encerrado em 27/10 02:15 UTC). O produto na Vendria
+  está certo (Assinatura · Mensal · Pix Automático); suspeita: o comprador paga o 1º Pix e não autoriza o automático no banco.
+- A CONSERTAR na Vendria: conferir se o produto Craque Salas/Completo é ASSINATURA e se o webhook tem os eventos
+  `subscription.*` marcados. Sem isso a renovação do mês que vem também não liga sozinha.
+- ✅ 27/10 madrugada — **LIBERAÇÃO NA HORA PELA API DA VENDRIA** (pedido do Diego: *"o jogo precisa liberar o e-mail de quem
+  paga na hr"*). Diego criou a chave (só Pedidos · Assinaturas · Clientes · Checkout) e salvou em Secrets `VENDRIA_API_KEY`.
+  API = `https://app.vendria.com.br/api/v1` (Bearer). Achado: as assinaturas EXISTEM lá (Matheus ACTIVE até 27/11, Robgol
+  CANCELLED 22 s depois de pagar), só o aviso `subscription.started` que não veio. Novo fluxo:
+  · `vendria-checkout` (Edge, JWT): logado aperta Assinar → cria o pedido pela API SEM itens (9,90/14,90, mensal, Pix automático,
+    taxa repassada = +1,99) com o e-mail da conta + `reference` → anota em `esc_vendria_pedidos` → devolve o link de pagamento.
+  · `vendria-webhook` v7 (fase 3): `order.paid` → acha o dono na anotação → confere na API que está PAID → liga até o fim do
+    período da assinatura (`esc_vendria_libera`, nunca encurta; `ENDED` corta). Renovação acha pelo `sub_id`.
+  · Botões (vitrine, Loja, limite de sala) chamam `assinarMensal` (`vendria-checkout.ts`); se o servidor falhar, cai no link antigo.
+  · Matheus já anotado (sub_15453373…), então a renovação dele em 27/11 liga sozinha. Testado: pedido criado pela API (201) e
+    cancelado. Falta: publicar o site (os botões) e a 1ª compra real pelo fluxo novo. `vendria-sonda` desligada (pode apagar no painel).
+  · Vendria: também tem um 2º PARCEIRO pago em 26/10 21h01 (R$ 250/mês, assinatura ativa até 26/11) — avisar o Diego.
 - ✅ 26/10 **Manual trancado da carreira com 3 opções**: ⏱️ Manual 24 h avulso R$ 9,90 (Pix `manual_24h`, banco libera por 24 h em `esc_direitos_de`) · ⭐ Craque Completo 14,90 · 💛 todos os planos. Painel 📊 manteve as linhas antigas e ganhou o caminho de cada lugar (Manual / limite de sala) + quantos pagaram o 24 h.
 
 - 🩹 27/10 **Aviso de fim de semana (pódio + clã) voltava depois do ✕**: `void supabase.rpc(...)` não envia nada (o supabase-js só manda no `.then`), então `visto_em` nunca gravou pra ninguém (conferido: 50 linhas da semana 19/10, todas nulas) e a checagem de 60s trazia o aviso de volta. Agora o ✕ chama de verdade + o aparelho lembra o que fechou. Mesmo erro consertado no convite de amigo (`esc_convite_visto`), no aviso da conta (`esc_aviso_visto`) e na presença da carreira online. **Regra: rpc sem await precisa de `.then(() => {}, () => {})`.**
