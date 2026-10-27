@@ -30,7 +30,7 @@ export function AvisoConta() {
   if (!a) return null
   const fecha = () => {
     setAvisos(l => l.slice(1))
-    void supabase.rpc('esc_aviso_visto', { p_id: a.id })
+    void supabase.rpc('esc_aviso_visto', { p_id: a.id }).then(() => {}, () => {})
   }
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>

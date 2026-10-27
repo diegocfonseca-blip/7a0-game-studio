@@ -602,7 +602,7 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
   if (!on || !a) return null
   // ✉️ convite: aparece em qualquer tela, MENOS no meio de partida/leilão (aí espera; o sininho guarda)
   const convite = ocupado ? null : a.convites.find(c => c.status === 'waiting' && !fechados.has(c.id) && c.code !== salaEsperaAtual) ?? null
-  const fecha = (id: number) => { setFechados(f => new Set(f).add(id)); void supabase.rpc('esc_convite_visto', { p_id: id }) }
+  const fecha = (id: number) => { setFechados(f => new Set(f).add(id)); void supabase.rpc('esc_convite_visto', { p_id: id }).then(() => {}, () => {}) }
   return <>
     {toast && !ocupado && createPortal(
       <div style={{ position: 'fixed', left: '50%', top: 12, transform: 'translateX(-50%)', zIndex: 99970, width: 'calc(100% - 32px)', maxWidth: 360, display: 'flex', alignItems: 'center', gap: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px' }}>
@@ -678,7 +678,7 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
       <div style={caixa}>
         {convites.length + pedidos.length + todos.length + clas.length + claPedidos.length === 0 && <p style={{ fontSize: 12.5, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nada novo por aqui. Quando um amigo te chamar pra sala ou te adicionar, aparece aqui.', 'Nothing new. When a friend invites you to a room or adds you, it shows up here.')}</p>}
         {convites.map(c => linha(c.de, c.nome, <>{tr('te chamou pra sala', 'invited you to room')} <b>{c.code}</b></>,
-          salaEsperaAtual ? null : <button style={bt(GREEN, '#fff')} onClick={() => { void supabase.rpc('esc_convite_visto', { p_id: c.id }); fechar(); entrarNaSala(c.code) }}>🚪 {tr('Entrar', 'Join')}</button>, `c${c.id}`))}
+          salaEsperaAtual ? null : <button style={bt(GREEN, '#fff')} onClick={() => { void supabase.rpc('esc_convite_visto', { p_id: c.id }).then(() => {}, () => {}); fechar(); entrarNaSala(c.code) }}>🚪 {tr('Entrar', 'Join')}</button>, `c${c.id}`))}
         {pedidos.map(x => linha(x.de, x.nome, tr('quer ser seu amigo', 'wants to be your friend'),
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.id, false)}>✕</button></span>, `p${x.id}`))}
         {clas.map(x => linha(x.de, x.nome, <>{tr('te chamou pro clã', 'invited you to the clan')} <b>⚔️ {x.cla_nome}</b></>,
