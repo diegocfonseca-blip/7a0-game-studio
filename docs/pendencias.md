@@ -11206,3 +11206,4 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
   · Matheus já anotado (sub_15453373…), então a renovação dele em 27/11 liga sozinha. Testado: pedido criado pela API (201) e
     cancelado. Falta: publicar o site (os botões) e a 1ª compra real pelo fluxo novo. `vendria-sonda` desligada (pode apagar no painel).
   · Vendria: também tem um 2º PARCEIRO pago em 26/10 21h01 (R$ 250/mês, assinatura ativa até 26/11) — avisar o Diego.
+- ✅ 26/10 **Manual trancado da carreira com 3 opções**: ⏱️ Manual 24 h avulso R$ 9,90 (Pix `manual_24h`, banco libera por 24 h em `esc_direitos_de`) · ⭐ Craque Completo 14,90 · 💛 todos os planos. Painel 📊 manteve as linhas antigas e ganhou o caminho de cada lugar (Manual / limite de sala) + quantos pagaram o 24 h.

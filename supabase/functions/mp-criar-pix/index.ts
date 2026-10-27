@@ -22,6 +22,7 @@ const NOMES: Record<string, string> = {
   escudo_cla: 'Escudo de clã personalizado', // 22/10: R$ 14,90 (era 19,90), só presidente de clã; o Diego desenha em até 24 h
   cla_criar: 'Liberar clã (sem plano)', // 21/10: R$ 9,90, quem não tem plano cria 1 clã
   cla_extra: '2º clã', // 21/10: R$ 9,90 só pra criar (o escudo personalizado é à parte, R$ 14,90)
+  manual_24h: 'Modo Manual por 24 horas', // 26/10: R$ 9,90 avulso (quem já tem Manual não compra)
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60
