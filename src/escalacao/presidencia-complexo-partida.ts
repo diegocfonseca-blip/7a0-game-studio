@@ -127,9 +127,9 @@ function reservasReais(bench:readonly AtletaEstadio[]|undefined,activeIds:Set<st
 /** Field and match objects for the complex's one renderer. There is no clock,
  * RAF, score update or autonomous simulation here: all poses come from the
  * same shared frame used by the existing live match view. */
-// 🧍 27/10: boneco novo dos 22 — PARADO (Diego achou feio: a arte do Meshy vem com a camisa pintada no corpo). Fica desligado;
-// só liga no aparelho com `localStorage['esc3d-boneco']='novo'` (bancada). O 3D continua com o boneco de antes
-function bonecoNovo(){try{return localStorage.getItem('esc3d-boneco')==='novo'}catch{return false}}
+// 🧍 27/10: boneco novo dos 22 (Tripo + movimentos Mixamo + uniformes por região — APROVADO pelo Diego). O 3D inteiro já é só
+// da conta dele. `localStorage['esc3d-boneco']='antigo'` volta pro boneco de antes; se o novo falhar, volta sozinho
+function bonecoNovo(){try{return localStorage.getItem('esc3d-boneco')!=='antigo'}catch{return true}}
 export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined):PartidaComplexo{
  const field=new THREE.Scene();field.name='complexo-campo'
  let disposed=false
