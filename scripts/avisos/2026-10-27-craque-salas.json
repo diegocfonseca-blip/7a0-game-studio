@@ -1,21 +1,22 @@
 {
   "data": "🏟️ Salas online · 27 de outubro de 2026",
   "titulo": "Quer criar mais salas? Agora tem plano pra isso",
-  "destaque": {
-    "passos": [
-      { "emoji": "🎟️", "titulo": "3 salas extras", "sub": "R$ 4,90 · avulso" },
-      { "emoji": "⭐", "titulo": "Craque Salas", "sub": "R$ 9,90 por mês" },
-      { "emoji": "🏟️", "titulo": "Salas à vontade", "sub": "sem limite no dia" }
+  "oferta": {
+    "plano": "⭐ Craque Salas",
+    "preco": "R$ 9,90",
+    "sub": "por mês",
+    "ganha": [
+      { "emoji": "🏟️", "texto": "**Salas à vontade**, quantas quiser, todo dia" },
+      { "emoji": "🏆", "texto": "**Minhas Ligas**: a liga da sua turma" },
+      { "emoji": "🧑‍💼", "texto": "**Seu presidente**: monte o seu personagem" },
+      { "emoji": "⚔️", "texto": "**Seu clã**: crie e chame os amigos" },
+      { "emoji": "🥈", "texto": "**Nome prata** em todo canto do jogo" },
+      { "emoji": "⚡", "texto": "**Vale na hora** em que assinar" }
     ],
-    "nome": "⭐ Craque Salas · R$ 9,90 por mês",
-    "linha": "Crie quantas salas quiser, todo dia, sem esperar o dia seguinte"
+    "extra": "🎟️ Só quer umas salas a mais? As **3 salas extras por R$ 4,90** continuam na Loja"
   },
-  "itens": [
-    { "tag": "novidade", "texto": "**Muita gente pediu mais salas.** Quem joga de graça cria **1 sala por dia**, e o avulso de **R$ 4,90 com 3 salas extras** continua na Loja, como todo mundo já conhece." },
-    { "tag": "novidade", "texto": "**Plano novo: ⭐ Craque Salas por R$ 9,90 por mês.** Você cria **quantas salas quiser**, joga as **Minhas Ligas**, monta o seu **🧑‍💼 presidente** (personagem), cria o seu **⚔️ clã** e ainda ganha o **nome prata** em todo canto do jogo." },
-    { "tag": "melhoria", "texto": "**Assinou, já vale na hora.** Bateu no limite da sala? Os botões aparecem ali mesmo: **🎟️ 3 salas extras · R$ 4,90**, **⭐ salas à vontade · R$ 9,90/mês** ou **ver todos os planos**." }
-  ],
+  "itens": [],
   "rodape": "⚽ leilaolegends.com",
-  "rodapeSub": "Cria a sua sala e chama a galera 💛",
+  "rodapeSub": "Bateu no limite da sala? Os botões aparecem ali mesmo 💛",
   "saida": "scripts/posts/aviso-2026-10-27-craque-salas.png"
 }
