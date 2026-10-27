@@ -10875,11 +10875,11 @@ function NbaCareerEndPanel() {
 }
 function CareerEndPanel() {
   const { state, dispatch } = useEsc()
-  // 🔒 27/10: carreira grátis até a temporada 50. Logado com o plano ainda carregando = "conferindo" (nunca tranca quem paga à toa).
+  // 🔒 27/10: carreira grátis até a temporada 50. Diego: *"quem tem plano não muda nada e não aparece nada"* — então, logado com o
+  // plano ainda carregando, vale a tela de sempre (os direitos já chegam no login, bem antes do fim da temporada).
   const direitosC = useDireitos()
-  const pagante = ehPagante(myApoioPerk()?.tier, direitosC)
-  const conferindoPlano = !pagante && !!loggedEmail() && !direitosC && state.seasonNo === CARREIRA_GRATIS_ATE
-  const travadoGratis = !conferindoPlano && travaCarreiraGratis(state.seasonNo, pagante)
+  const pagante = ehPagante(myApoioPerk()?.tier, direitosC) || (!!loggedEmail() && !direitosC)
+  const travadoGratis = travaCarreiraGratis(state.seasonNo, pagante)
   const div = state.careerDivision!
   const you = state.managers[state.youIdx]
   const table = sortedTable(state.league)
@@ -10941,8 +10941,7 @@ function CareerEndPanel() {
         <p className="font-black text-white text-xl" style={OSWALD}>{banner.txt}</p>
         <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · {tr('Temporada', 'Season')} {state.seasonNo} · {state.careerTitles} {state.careerTitles === 1 ? tr('título', 'title') : tr('títulos', 'titles')} {tr('na carreira', 'in the career')}{totalA > 0 && !wonA ? ` · ${totalA}⭐ Série A` : ''}</p>
       </div>
-      {conferindoPlano ? <p className="text-center font-black text-sm text-black/60 py-3" style={OSWALD}>{tr('⏳ Conferindo seu plano…', '⏳ Checking your plan…')}</p>
-      : travadoGratis ? <div className="rounded-2xl border-4 border-black p-4 text-center bg-white" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+      {travadoGratis ? <div className="rounded-2xl border-4 border-black p-4 text-center bg-white" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-4xl leading-none">🔒</p>
         <p className="font-black text-black text-xl leading-tight mt-1" style={OSWALD}>{tr(`A CARREIRA GRÁTIS VAI ATÉ A TEMPORADA ${CARREIRA_GRATIS_ATE}`, `THE FREE CAREER GOES UP TO SEASON ${CARREIRA_GRATIS_ATE}`)}</p>
         <p className="font-bold text-sm text-black/80 mt-2">{tr(`Pra jogar a temporada ${CARREIRA_GRATIS_ATE + 1} em diante com o ${you.teamName}, escolha qualquer plano.`, `To play season ${CARREIRA_GRATIS_ATE + 1} onwards with ${you.teamName}, pick any plan.`)}</p>
