@@ -1,3 +1,20 @@
+## 🔒 Nome reservado pra quem tem plano (27/10) — ✅ FEITO (mockup aprovado: *"aprovado"*)
+- Pedido: *"quem tem plano reserva o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*.
+  E entra como benefício em TODO plano, do ⭐ Craque Salas pra cima.
+- Hoje (`esc_nome_livre`): o nome já é único pra TODO MUNDO (grátis inclusive) + batismo reservado pro dono. Muda: grátis deixa de travar.
+- Medido: 201 contas pagantes (user_colors), 197 com nome; 37 contas grátis já usam o nome de um pagante (ex.: Neymar FC, São Paulo FC).
+- Mockup: `scripts/mockup-nome-reservado.mjs` → `scripts/mockups/nome-reservado.png` (selo 🔒 no dono, 🎭 FAKE na cópia grátis,
+  linha "🔒 Seu nome reservado no jogo" nos planos, avisos na hora de escolher o nome).
+- Mensal cancelado = perde a reserva (Diego: *"se cancelar… não continua reservado"*) — é a régua `pago` do `esc_direitos_de`.
+- Banco (`20261027230000_nome_reservado_plano.sql`): `esc_nome_livre` só barra nome de OUTRA conta com plano (e só pra quem também
+  tem plano; grátis recebe `fake: true`); `esc_meu_nome_fake()` diz se o nome da MINHA conta é cópia. Testado numa transação desfeita:
+  grátis→nome de pagante = livre+fake · pagante→nome de pagante = em_uso · dono re-salva = livre · grátis→nome de grátis = livre.
+- Jogo: `MARCA_FAKE`/`carregaNomeFake`/`separaFake`/`SeloFake`/`NomeComFake` em `apoio.tsx`; o selo vai grudado no nome pelo
+  `apoioSelo()` (o mesmo da medalha) e vira etiqueta vermelha na lista da sala de espera e no chat. Nos outros lugares aparece como
+  texto ("🎭FAKE"). A identidade na sala é pela conta, nunca pelo nome — o selo não mexe em assento.
+- Planos: linha "🔒 Seu nome reservado no jogo" (NOVO) no Craque Salas e no Lenda; o Completo cita no "Tudo do Craque Salas"; o Batismo já tinha.
+- ⚠️ Quem vira fake só vê o selo depois de entrar de novo (a leitura é no login / troca de nome).
+
 ## 🦁 Batismo Vila Esporte Clube (27/10) — ✅ PUBLICADO (código + banco)
 - Dono: oluisantonio.contato@gmail.com (pagou Craque → Lenda → Batismo 79,90 no Pix). Plano Batismo = tier ouro, SEM número de fundador.
 - Série D, no assento do bot Imperador SAF (`OLD_NAME`). Coração: Atlético Mineiro. Gala = a PADRÃO (vem sozinha pela `esc_socios`).
@@ -11250,3 +11267,4 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
 
 - 👥⚔️ 27/10 **Amigos e clãs à vista — MOCKUP esperando OK** (`scripts/mockups/amigos-clas-visiveis.png`). Medido: 159 pedidos de amizade sem resposta (137 há +2 dias), 4 clãs, 34 pedidos pra entrar em clã sem resposta, chat sem "adicionar". Proposta: (1) pedidos na HOME com aceitar na hora; (2) no jogo só pilulinha 🤝 N no topo (nada pula); (3) tocar no nome no chat → ➕ adicionar + no fim de jogo "adicionar todo mundo da sala"; (4) bloco ⚔️ Clãs da semana na home (top + ENTRAR nos abertos + criar).
 - ✅ 27/10 **Pedidos na home (item 1 do mockup)**: `PedidosNaHome` (amigos.tsx) em cima dos modos — pedidos de amizade, convites de clã e pedidos pro meu clã, com aceitar ali (mesmas funções do 🔔: `responderAmizade`/`responderClaAviso`). ⚔️ O bloco Clãs da semana na home SAIU (Diego: "o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas") — não repropor. Chat: já abria o perfil com ➕ desde 18/10 (Diego confirmou). Item 2 (pilulinha no jogo) e "adicionar todo mundo da sala" NÃO foram pedidos.
+- 🔒 27/10 **Carreira grátis até a temporada 50** (mockup `scripts/mockups/carreira-50.png` aprovado). Sem plano, a decisão do fim da T50 troca "Continuar/Trocar tudo" pelo 🔒 + ⭐ Ver os planos e destravar (toque vai pro painel: "🔒 carreira grátis T50 → ver os planos"); o motor (`CAREER_ADVANCE`) recusa com a mesma régua (`travaCarreiraGratis`, `carreira-gratis.ts`). Quem já passou da 50 segue livre (333 carreiras na nuvem em 27/10); acima da 50 = livre, então mensal cancelado depois da 51 também segue. Plano = `ehPagante` (mensal conta; Manual 24 h não). Trava: `npm run carreira-gratis`. 🔁 Mesmo dia: quem JÁ estava acima da 50 sem plano ganha **+10 temporadas** (a 1ª virada grava `careerGratisAte` = temporada + 10; trava no fim dela, banner diz a temporada certa). Com plano nunca aparece nada; pagou = destrava na hora.

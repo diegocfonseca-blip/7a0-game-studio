@@ -75,6 +75,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
   const [carregando, setCarregando] = useState(false)
   // ✓/✗ do nome do time enquanto digita (a mesma trava do resto do jogo)
   const [nomeSit, setNomeSit] = useState<'vazio' | 'checando' | 'livre' | 'ocupado'>('vazio')
+  const [nomeFakeAviso, setNomeFakeAviso] = useState(false) // 🎭 27/10: o nome é de quem tem plano — pode usar, mas sai como fake
   // Preferência opcional fica no perfil; nunca atrasa o cadastro.
   const nomeSeq = useRef(0)
 
@@ -125,6 +126,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
       const r = await nomeLivre(nm, aba === 'criar' ? email : undefined)
       if (nomeSeq.current !== meu) return
       setNomeSit(r.livre ? 'livre' : 'ocupado')
+      setNomeFakeAviso(!!r.livre && !!r.fake)
       if (!r.livre) setErro(NOME_MSG[r.motivo ?? 'em_uso'])
       else setErro(e => (e && /nome/i.test(e) ? '' : e))
     }, 500)
@@ -275,7 +277,8 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
                   {nomeSit === 'livre' ? tr('✓ livre', '✓ free') : nomeSit === 'ocupado' ? tr('✕ em uso', '✕ taken') : nomeSit === 'checando' ? '…' : ''}
                 </span>
               </div>
-              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>{tr('É o nome que aparece no ranking. Só pode existir um de cada.', 'It is the name that shows in the ranking. There can only be one of each.')}</p>
+              {nomeFakeAviso && nomeSit === 'livre' && <p style={{ margin: '0 0 6px', background: '#DDF2E3', border: `2px solid ${INK}`, borderRadius: 8, padding: '6px 8px', fontSize: 12, fontWeight: 700, color: INK, lineHeight: 1.35 }}>{NOME_MSG.fake}</p>}
+              <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.45)' }}>{tr('É o nome que aparece no ranking. Quem tem plano trava o nome só pra ele.', 'It is the name that shows in the ranking. Plan holders lock their name for themselves.')}</p>
 
 
             </>

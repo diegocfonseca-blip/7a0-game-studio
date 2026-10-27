@@ -53,6 +53,11 @@ function Mini({ rot, children }: { rot: string; children: ReactNode }) {
   return <div className="ll-vit-mini">{children}<p>{rot}</p></div>
 }
 const Ok = ({ children }: { children: ReactNode }) => <div className="ll-vit-ok"><span>✓</span><span>{children}</span></div>
+// 🔒 27/10 (Diego: "inclua esse negócio de Seu nome reservado… isso serve p qualquer plano, desde o Craque Salas"). Mockup
+// `scripts/mockups/nome-reservado.png`: a linha nova vem em destaque amarelo com o selo NOVO.
+const NomeReservado = () => <div style={{ background: '#FFF4C2', border: '2px solid #0C0C0C', borderRadius: 8, boxShadow: '2px 2px 0 #000', padding: '1px 7px 4px', marginTop: 6 }}>
+  <Ok><b>{tr('🔒 Seu nome reservado no jogo', '🔒 Your name reserved in the game')}</b> <span style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: 10, background: '#1B7A3D', color: '#fff', borderRadius: 4, padding: '0 5px' }}>{tr('NOVO', 'NEW')}</span><br /><span style={{ fontWeight: 500 }}>{tr('ninguém mais usa o nome do seu time · quem já usava aparece como 🎭 fake', 'nobody else uses your team name · whoever already had it shows up as 🎭 fake')}</span></Ok>
+</div>
 const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
   {['¼×', '½×', '2×', '4×', tr('⏭ PULAR', '⏭ SKIP')].map((v, i) => <span key={v} style={{ ...OSW, fontSize: 9, border: `2px solid ${INK}`, borderRadius: 6, padding: '2px 5px', background: i === 2 ? INK : '#fff', color: i === 2 ? '#fff' : INK }}>{v}</span>)}
 </div>
@@ -234,6 +239,7 @@ export function SupportPlans(p: Props) {
         </Vitrine>
         <Ok><b>{tr('🧑‍💼 Crie o seu presidente', '🧑‍💼 Create your president')}</b>{tr(' (o seu personagem)', ' (your character)')}</Ok>
         <Ok><b>{tr('⚔️ Crie o seu clã', '⚔️ Create your clan')}</b></Ok>
+        <NomeReservado />
         <Ok><b>{tr('🥈 Nome prata brilhando', '🥈 Shining silver name')}</b>{tr(' nas salas, na tabela e no chat', ' in rooms, tables and chat')}</Ok>
         <p className="ll-support-note">{tr('O Modo Manual e o Campo 2D vêm no ⭐ Craque Completo.', 'Manual Mode and the 2D Pitch come with ⭐ Star Complete.')}</p>
         {direitos?.mensalPlano === 'craque_salas' ? <p className="ll-vit-seu">{tr('✅ você assina o Craque Salas', '✅ you subscribe to Star Rooms')}</p>
@@ -249,7 +255,7 @@ export function SupportPlans(p: Props) {
             <Mini rot={tr('🔎 vê o NÍVEL do jogador: até Craque', '🔎 see the player’s LEVEL: up to Star')}><CartaNivel tier="prata" nome="Zé Craque" nivel={82} /></Mini>
           </div>
         </Vitrine>
-        <Ok><b>{tr('Tudo do ⭐ Craque Salas', 'Everything in ⭐ Star Rooms')}</b>{tr(': salas à vontade, Minhas Ligas, presidente, clã e nome prata', ': unlimited rooms, My Leagues, president, clan and silver name')}</Ok>
+        <Ok><b>{tr('Tudo do ⭐ Craque Salas', 'Everything in ⭐ Star Rooms')}</b>{tr(': salas à vontade, Minhas Ligas, presidente, clã, nome reservado e nome prata', ': unlimited rooms, My Leagues, president, clan, reserved name and silver name')}</Ok>
         <Ok><b>{tr('📺 Campo 2D', '📺 2D Pitch')}</b>{tr(' (em breve)', ' (coming soon)')}</Ok>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Craque', ', up to Star level')}</Ok>
         <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
@@ -275,6 +281,7 @@ export function SupportPlans(p: Props) {
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
         <Ok><b>{tr('♾️ Cria quantas salas online quiser por dia', '♾️ Create as many online rooms as you like each day')}</b>{tr(' (no grátis é 1 por dia)', ' (free: 1 per day)')}</Ok>
+        <NomeReservado />
         <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · 🎮 Modo Manual · grupo VIP no WhatsApp com o Diego', ' saved · 🎮 Manual Mode · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando só a diferença.', 'Already have Star? Upgrade to Legend paying only the difference.')}</p>
         {atual && atual !== 'craque' ? <p className="ll-vit-seu">{tr('✅ você já tem o Lenda', '✅ you already have Legend')}</p>
