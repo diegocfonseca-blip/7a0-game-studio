@@ -1,11 +1,19 @@
-## 🔒 Nome reservado pra quem tem plano (27/10) — MOCKUP enviado, esperando OK do Diego
+## 🔒 Nome reservado pra quem tem plano (27/10) — ✅ FEITO (mockup aprovado: *"aprovado"*)
 - Pedido: *"quem tem plano reserva o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*.
   E entra como benefício em TODO plano, do ⭐ Craque Salas pra cima.
 - Hoje (`esc_nome_livre`): o nome já é único pra TODO MUNDO (grátis inclusive) + batismo reservado pro dono. Muda: grátis deixa de travar.
 - Medido: 201 contas pagantes (user_colors), 197 com nome; 37 contas grátis já usam o nome de um pagante (ex.: Neymar FC, São Paulo FC).
 - Mockup: `scripts/mockup-nome-reservado.mjs` → `scripts/mockups/nome-reservado.png` (selo 🔒 no dono, 🎭 FAKE na cópia grátis,
   linha "🔒 Seu nome reservado no jogo" nos planos, avisos na hora de escolher o nome).
-- Em aberto: Craque Salas é MENSAL — cancelou, o nome continua reservado?
+- Mensal cancelado = perde a reserva (Diego: *"se cancelar… não continua reservado"*) — é a régua `pago` do `esc_direitos_de`.
+- Banco (`20261027230000_nome_reservado_plano.sql`): `esc_nome_livre` só barra nome de OUTRA conta com plano (e só pra quem também
+  tem plano; grátis recebe `fake: true`); `esc_meu_nome_fake()` diz se o nome da MINHA conta é cópia. Testado numa transação desfeita:
+  grátis→nome de pagante = livre+fake · pagante→nome de pagante = em_uso · dono re-salva = livre · grátis→nome de grátis = livre.
+- Jogo: `MARCA_FAKE`/`carregaNomeFake`/`separaFake`/`SeloFake`/`NomeComFake` em `apoio.tsx`; o selo vai grudado no nome pelo
+  `apoioSelo()` (o mesmo da medalha) e vira etiqueta vermelha na lista da sala de espera e no chat. Nos outros lugares aparece como
+  texto ("🎭FAKE"). A identidade na sala é pela conta, nunca pelo nome — o selo não mexe em assento.
+- Planos: linha "🔒 Seu nome reservado no jogo" (NOVO) no Craque Salas e no Lenda; o Completo cita no "Tudo do Craque Salas"; o Batismo já tinha.
+- ⚠️ Quem vira fake só vê o selo depois de entrar de novo (a leitura é no login / troca de nome).
 
 ## 🦁 Batismo Vila Esporte Clube (27/10) — ✅ PUBLICADO (código + banco)
 - Dono: oluisantonio.contato@gmail.com (pagou Craque → Lenda → Batismo 79,90 no Pix). Plano Batismo = tier ouro, SEM número de fundador.

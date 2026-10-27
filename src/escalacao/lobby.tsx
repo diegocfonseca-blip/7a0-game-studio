@@ -20,7 +20,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, useHasManual, useDireitos, logApoio } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, NomeComFake, useHasManual, useDireitos, logApoio } from './apoio'
 import { ehPagante } from './saf2'
 import { assinarMensal } from './vendria-checkout'
 import { isMuted } from './sound'
@@ -760,7 +760,7 @@ export function EscLobby() {
   const [user, setUser] = useState<User | null>(null)
   // 🥇 medalha da semana (13/10): busca a MINHA posição no ranking quando a conta aparece, pra ela ir
   // grudada no nome (apoioSelo) ao criar/entrar numa sala. Sem banco = sem medalha, nunca trava.
-  useEffect(() => { if (user) void carregaMedalhaDaSemana() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user) { void carregaMedalhaDaSemana(); void carregaNomeFake() } }, [user?.id, user?.user_metadata?.display_name]) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<Phase>('auth')
   const [authTab] = useState<AuthTab>(() => {
     // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar
@@ -4949,8 +4949,8 @@ export function EscLobby() {
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
                 <div className="flex-1 min-w-0 flex flex-col items-start">{/* ⚔️ 21/10: o selo do clã vai na linha de BAIXO do nome (sem tirar nada do lugar) */}
                 {amigosOn && !duplasOn && contaValida(p.user_id)
-                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
-                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}<NomeComFake nome={p.manager_name} /></button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : <NomeComFake nome={p.manager_name} />}</span>}
                   <SeloCla uid={p.user_id} />
                 </div>
                 {gala && <GalaMascoteMini clube={gala} />}

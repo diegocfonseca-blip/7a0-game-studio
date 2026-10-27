@@ -936,6 +936,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
   carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
 - **🔒 CARREIRA GRÁTIS VAI ATÉ A TEMPORADA 50 (27/10, regra dele).** *"chegando na temporada 50 só avança quem tem plano pago… ela pagando descongela… quem já passou sem problemas"*. Trava na decisão do fim da T50 (tela + motor, `travaCarreiraGratis`); save congelado, nunca apagado. 🔁 Mesmo dia: *"quem já passou da temporada 50… limite de mais dez temporadas"* → quem estava acima da 50 sem plano ganha +10 (marca `careerGratisAte` na 1ª virada). **Com plano não aparece NADA** (nem "conferindo"); pagou, avança. Trava: `npm run carreira-gratis`.
+- **🔒🎭 NOME RESERVADO É DE QUEM TEM PLANO (27/10, mockup `scripts/mockups/nome-reservado.png` aprovado).** *"quem tem plano reserva
+  o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*. Régua = `esc_direitos_de(...)->>'pago'`
+  (o mensal só vale em dia: **cancelou, perde a reserva** — *"se cancelar… não continua reservado"*). Nome de grátis não trava ninguém;
+  grátis com nome de quem paga (ou de batismo alheio) leva o selo **🎭 FAKE** grudado no nome, decidido pelo BANCO (`esc_meu_nome_fake`)
+  e lido no login, igual à medalha da semana. Batismo continua reservado pro dono como antes. É benefício de TODO plano (do Craque Salas).
 - **⚔️🚫 CLÃ NÃO VAI PRA HOME (27/10).** *"o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas"*. Na home só os PEDIDOS (amizade, convite de clã, pedido pro meu clã) com aceitar ali (`PedidosNaHome`). Não repropor bloco de clãs na home.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
