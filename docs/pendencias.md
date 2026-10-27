@@ -1,4 +1,5 @@
-## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — FEITO no branch (fotos reais enviadas), esperando "publica"
+## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
+- Logo oficial LL (`img/logo-ll.webp`, 96px, 1 KB — enviada pelo Diego) ao lado do nome no PC.
 - Veio da análise do Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as abas de baixo
   melhoradas… além da logo Leilão Legends no PC lá no header e também o aviso da comunidade do zap"*.
 - PC: abas EM CIMA, num cartão com o nome do clube (T · série · posição · rodada); aba aberta = botão preto com ícone dourado e
