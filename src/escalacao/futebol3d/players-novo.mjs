@@ -14,6 +14,7 @@ import {playerDetail} from './lod.mjs'
 import {BATISMOS} from '../batismos.ts'
 import {legendAvatar} from '../legend-avatars.ts'
 import {identidadeAtleta3D} from '../presidencia-futebol-identidade.ts'
+import {peDe} from '../campo2d-estilos.ts'
 
 // velocidade (m/s) em que cada corrida do Mixamo foi gravada, por ciclo — o passo acompanha o chão sem patinar
 const CICLO_M=2.9
@@ -66,7 +67,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   const j=criarJogadorNovo(asset,ficha) // (pele e cabelo: os originais do boneco; lenda com rosto na carta ganha o tom de pele dela)
   j.holder.name='jogador:'+p.key;scene.add(j.holder)
   for(const nome of LOOPS){const a=j.acao(nome);if(a){a.play();a.timeScale=0;a.setEffectiveWeight(0)}}
-  const ator={...j,key:p.key,side:p.side,keeper:p.keeper,ficha,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
+  const ator={...j,pe:ap.lenda?peDe(p.name,10):null,canhoto:[...p.name].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7)%4<1,key:p.key,side:p.side,keeper:p.keeper,ficha,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
   if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c?.pele&&!disposed)ator.setPele(c.pele)})
   atores.push(ator)
  }
@@ -78,8 +79,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   const pes={r:osso('righttoe')??osso('rightfoot'),l:osso('lefttoe')??osso('leftfoot')},cabeca=osso('head')
   const local=o=>a0.holder.worldToLocal(o.getWorldPosition(new T.Vector3()))
   const p0=a0.holder.position.clone(),r0=a0.holder.rotation.y;a0.holder.position.set(0,0,0);a0.holder.rotation.set(0,0,0)
-  for(const nome of ['chute','chute_corrida','passe','cavadinha','cabeca2']){const act=a0.acao(nome),m=asset.meta.clips?.[nome];if(!act||!m)continue
-   const o=nome==='cabeca2'?cabeca:pes[m.pe??'r'];if(!o)continue
+  for(const nome of ['chute','chute_corrida','passe','passe_curto','cavadinha','cabeca2'].flatMap(n=>[n,n+'_e'])){const act=a0.acao(nome),m=asset.meta.clips?.[nome.replace(/_e$/,'')];if(!act||!m)continue
+   const lado=nome.endsWith('_e')?(m.pe==='l'?'r':'l'):(m.pe??'r'),o=nome==='cabeca2'?cabeca:pes[lado];if(!o)continue
    const pose=t=>{act.reset();act.play();act.setEffectiveWeight(1);act.time=t;a0.mixer.update(0);a0.holder.updateMatrixWorld(true);return local(o)}
    for(const n of LOOPS)a0.acao(n)?.setEffectiveWeight(0)
    const antes=pose(Math.max(0,m.toque-.03)),em=pose(m.toque)
@@ -107,8 +108,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  let bolaW=0,bolaVis=null,bolaApresentada=null,offBola={x:0,z:.42}
  onPrepared?.()
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
- const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:Math.min(c.duration,ate),depois:nome==='cai'?'levanta':null,mira,ponto};inspection.tiros++}
- const toque=nome=>asset.meta.clips?.[nome]?.toque??.4
+ const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;a.tiro={nome,t0:agora-inicio,dur:Math.min(c.duration,ate),depois:nome.startsWith('cai')?'levanta':null,mira,ponto};inspection.tiros++}
+ const toque=nome=>asset.meta.clips?.[nome.replace(/_e$/,'')]?.toque??.4
  return{
   update(frame,camera,viewportHeight=720){
    if(disposed)return
@@ -143,7 +144,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // ── lances: o motor diz quem fez o quê; o corpo mostra ──
     // (mão: lateral e reposição do goleiro — vêm do lance de AGORA, com o instante passado pra segundos)
     if(acao&&acao.actor===p.key&&acao.requiredContact==='hands'&&acao.startedAt!==undefined&&!a.lances.has('a'+acao.startedAt)&&agora>=acao.startedAt&&agora-acao.startedAt<.35){a.lances.add('a'+acao.startedAt)
-     const nome=frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':'gk_lanca'):null
+     const nome=frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':acao.type==='lancamento'?'gk_lanca_longe':'gk_lanca'):null
      if(nome)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.1)+agora-acao.startedAt,agora})}
     // (pé e cabeça: pela PREVISÃO — o movimento começa antes, e o contato dele cai no instante em que a bola sai)
     if(!frame.replay)for(const it of agenda){if(it.feito||it.key!==p.key)continue
@@ -152,7 +153,12 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
       // chute = a bomba (parado ou correndo) · bola longa/cruzamento/inversão = a batida por baixo que levanta a bola ·
       // passe/enfiada = o toque de lado do pé
       const corre=vel>2.6,longa=['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26
-      const nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):longa?'cavadinha':'passe'
+      let nome=it.cab?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(corre?'chute_corrida':'chute'):longa?'cavadinha':it.longe<13?'passe_curto':'passe'
+      // 🦶 o pé: canhoto famoso bate de canhota, destro famoso de direita; o resto usa o pé do lado pra onde a bola vai
+      // (bola saindo pra esquerda do corpo = pé esquerdo), e de frente decide o jeito de cada um (1 em 4 bate de canhota)
+      if(!it.cab){const pe=a.pe,rel=it.dir==null?0:angulo(it.dir-a.rumo)
+       const canhota=pe==='canhota'||(pe!=='direita'&&(rel>.9||(rel>=-.9&&a.canhoto)))
+       if(canhota&&asset.clips.has(nome+'_e'))nome+='_e'}
       const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
       dispara(a,nome,{inicio:agora-ini,agora,mira:it.dir==null?null:it.dir-(CONTATO[nome]?.ang??0),ponto:it.ponto?{x:it.ponto.y-52.5,z:it.ponto.x-34}:null})}
      else if(it.kind==='recebe'&&!p.keeper){if(agora<it.t-.45)continue;it.feito=true;if(agora>it.t+.2)continue
@@ -162,12 +168,15 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
      // (só FALTA derruba: na VANTAGEM o jogo segue e o motor continua levando o jogador — cair ali era o "cai do nada" deslizando)
-     if(e.tipo==='falta'&&e.b===nomeP){a.lances.add(id);dispara(a,'cai',{inicio:.35,agora})}
+     if(e.tipo==='falta'&&e.b===nomeP){a.lances.add(id)
+      // (falta que veio de carrinho = tropeça por cima dele; correndo voa mais longe, parado cai ali mesmo)
+      const deCarrinho=evs.some(o=>o.tipo==='carrinho'&&o.a===e.a&&e.t-o.t<1.2&&e.t>=o.t)
+      dispara(a,deCarrinho?(vel>3?'cai_carrinho':'cai_parado'):'cai',{inicio:deCarrinho?.1:.35,agora})}
      else if(e.tipo==='carrinho'&&e.a===nomeP){a.lances.add(id);dispara(a,'carrinho',{inicio:0,agora})}
      else if(e.tipo==='drible'&&e.a===nomeP&&(e.golpe==='roleta'||e.golpe==='cruyff'||e.golpe==='giro')){a.lances.add(id);dispara(a,'giro',{inicio:.05,agora})}}
     if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
-     const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):direita?'gk_voo_d':'gk_voo_e'
+     const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):len<1.7&&m.y<.8?(direita?'gk_bloqueio_d':'gk_bloqueio_e'):direita?'gk_voo_d':'gk_voo_e'
      // (o mergulho do motor chega no ponto em ~0,42 s: o voo do Mixamo encosta na bola no `toque` dele)
      dispara(a,nome,{inicio:Math.max(0,toque(nome)-.42*(1-m.k)),agora})}
     if(!p.mergulho)a.mergulhou=false

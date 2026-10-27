@@ -18,7 +18,9 @@ const CLIPS={idle:'Offensive Soccer Idle',idle_bola:'Playing With Ball Idle',tro
  lateral:'Soccer Sideline Throw In',carrinho:'Soccer Slide Tackle',cai:'Tripping Over A Soccer Tackle',levanta:'Standing Up From A Soccer Fall',
  gk_idle:'Goalkeeper Idle Without Ball',gk_idle_bola:'Goalkeeper Idle Holding Ball',gk_voo_e:'Goalkeeper Left Diving Save',gk_voo_d:'Goalkeeper Right Diving Save',gk_pega_baixo:'Goalkeeper Catching Ball Low Height',
  gk_pega:'Goalkeeper Catching Ball Medium Height',gk_pega_alto:'Goalkeeper Jump Catching Ball High Height',gk_passo_e:'Goalkeeper Left Sidestep',gk_passo_d:'Goalkeeper Right Sidestep',gk_chutao:'Goalkeeper Drop Kicking Ball',
- gk_lanca:'Goalie Overhand Throw',gk_rola:'Goalkeeper Rolling Pass',gk_recolhe:'Goalkeeper Scooping The Ball From A Roll'}
+ gk_lanca:'Goalie Overhand Throw',gk_rola:'Goalkeeper Rolling Pass',gk_recolhe:'Goalkeeper Scooping The Ball From A Roll',
+ passe_curto:'Low Kick To Idle Transition',cai_carrinho:'Running Fall Over A Soccer Slide Tackle',cai_parado:'Standing Fall Over A Soccer Slide Tackle',
+ gk_bloqueio_e:'Goalkeeper Left Body Block',gk_bloqueio_d:'Goalkeeper Right Body Block',gk_erra:'Goalkeeper Jump And Miss',gk_lanca_longe:'Goalkeeper Far Overhand Throw'}
 const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader','--ignore-gpu-blocklist']})
 const page=await (await browser.newContext({viewport:{width:800,height:600}})).newPage();const logs=[];page.on('pageerror',e=>logs.push(e.message));page.on('console',m=>{if(m.type()==='error')logs.push(m.text())})
 await page.goto('http://localhost:5190/qa-presidencia-mapa.html',{waitUntil:'load'});await page.waitForFunction(()=>window.qaThree,{},{timeout:240000})

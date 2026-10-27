@@ -11,6 +11,10 @@
 - 3ª rodada (27/10, *"dá impressão que ele faz o mesmo lance pra chutar e passar"*): passe/enfiada = toque de lado do pé
   (`passe`) · cruzamento/lançamento/inversão/bola de 26 m+ = batida por baixo (`cavadinha`) · chute = a bomba. Só existe UM
   movimento de passe no Mixamo baixado; mais variedade (passe correndo, de chapa, de trivela) precisa de arquivo novo do Mixamo.
+- 4ª rodada (27/10): o Diego já mandou TUDO que o Mixamo tem de futebol (63; o "Soccer Pass" que ele mandou depois é o mesmo
+  passe). Variedade tirada do que existe: **pé esquerdo** (espelho feito no carregamento, `espelhar` em jogador-novo.mjs: canhoto
+  famoso de canhota, destro famoso de direita, o resto pelo lado da bola, 1 em 4 de canhota) · **passe curto** (Low Kick, bola de
+  menos de 13 m) · **queda de carrinho** (correndo/parado) · **goleiro**: bloqueio com o corpo e lançamento longo com a mão.
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).

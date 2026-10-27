@@ -26,10 +26,40 @@ export function carregaJogadorNovo(base=(import.meta.env?.BASE_URL??'/')){
   // (região é número: nunca misturar dois texels vizinhos — sem filtro e sem mipmap. O mapa fica na convenção do FBX original)
   regioes.flipY=true;regioes.colorSpace=T.NoColorSpace;regioes.generateMipmaps=false;regioes.minFilter=regioes.magFilter=T.NearestFilter
   const clips=new Map(gltf.animations.map(c=>[c.name,c]))
+  for(const nome of ESPELHADOS){const c=clips.get(nome);if(c)clips.set(nome+'_e',espelhar(c,gltf.scene))}
   const bb=new T.Box3().setFromObject(gltf.scene),escala=ALTURA_JOGADOR/bb.getSize(new T.Vector3()).y
   return{gltf,regioes,meta,clips,escala}
  })()
  return pronto
+}
+// 🦶 PÉ ESQUERDO (27/10): o Mixamo só tem batida de pé direito. O espelho de cada uma vira a versão de canhota ('<nome>_e'),
+// feita uma vez no carregamento: a rotação de cada osso, medida no corpo inteiro, é refletida no plano do meio do corpo e entregue
+// ao osso do outro lado (o braço esquerdo faz o que o direito fazia, e vice-versa)
+const ESPELHADOS=['passe','passe_curto','chute','chute_corrida','cavadinha','dominio','peito','carrinho']
+const troca=n=>n.includes('Left')?n.replace('Left','Right'):n.includes('Right')?n.replace('Right','Left'):n
+const reflete=q=>q.set(q.x,-q.y,-q.z,q.w) // reflexo no plano x = 0 (o meio do corpo)
+function espelhar(clip,cena){
+ const raiz=clone(cena),ossos=new Map();raiz.position.set(0,0,0);raiz.quaternion.identity();raiz.scale.set(1,1,1)
+ raiz.traverse(o=>{if(o.isBone)ossos.set(o.name,o)});raiz.updateMatrixWorld(true)
+ const repouso=new Map([...ossos].map(([n,o])=>[n,o.getWorldQuaternion(new T.Quaternion())]))
+ const mixer=new T.AnimationMixer(raiz),act=mixer.clipAction(clip);act.play()
+ const passo=1/30,n=Math.max(2,Math.round(clip.duration/passo)+1),tempos=new Float32Array(n),rot=new Map([...ossos.keys()].map(k=>[k,new Float32Array(n*4)])),quadril=new Float32Array(n*3)
+ const hips=ossos.get('mixamorigHips'),paiHips=hips.parent,W=new Map(),D=new T.Quaternion(),Q=new T.Quaternion(),P=new T.Vector3()
+ // (do pai pros filhos: o osso precisa da rotação NOVA do pai pra virar rotação local)
+ const ordem=[];hips.traverse(o=>{if(o.isBone)ordem.push(o)})
+ for(let i=0;i<n;i++){const t=Math.min(clip.duration,i*passo);tempos[i]=t;act.time=t;mixer.update(0);raiz.updateMatrixWorld(true)
+  for(const [k,o] of ossos)W.set(k,o.getWorldQuaternion(new T.Quaternion()))
+  const novo=new Map()
+  for(const o of ordem){const fonte=ossos.has(troca(o.name))?troca(o.name):o.name
+   D.copy(W.get(fonte)).multiply(Q.copy(repouso.get(fonte)).invert());reflete(D) // quanto a fonte girou desde o repouso, refletido
+   const w=D.clone().multiply(repouso.get(o.name));novo.set(o.name,w)
+   const pai=o.parent.isBone?novo.get(o.parent.name):o.parent.getWorldQuaternion(new T.Quaternion())
+   Q.copy(pai).invert().multiply(w).toArray(rot.get(o.name),i*4)}
+  hips.getWorldPosition(P);P.x=-P.x;paiHips.worldToLocal(P);P.toArray(quadril,i*3)}
+ act.stop();mixer.uncacheRoot(raiz)
+ const tracks=[new T.VectorKeyframeTrack(hips.name+'.position',tempos,quadril)]
+ for(const o of ordem)tracks.push(new T.QuaternionKeyframeTrack(o.name+'.quaternion',tempos,rot.get(o.name)))
+ const meta=clip.userData;const c=new T.AnimationClip(clip.name+'_e',clip.duration,tracks).optimize();c.userData=meta;return c
 }
 // valores do uniforme DIVIDIDOS por todos os jogadores com a mesma ficha (um time = um conjunto de valores; nada vaza entre times)
 const fichas=new Map(),imagens=new Map()
