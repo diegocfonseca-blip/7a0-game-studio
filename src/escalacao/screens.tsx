@@ -79,7 +79,7 @@ import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
 import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto' // 🆚 retrospecto entre amigos (13/10)
-import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
+import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
@@ -7329,7 +7329,7 @@ export function EscSeason() {
           </>
         ) : null
         return (
-          <TemaCompCtx.Provider value={temaFora || cupNow || relS ? null : chS ? 'champions' : libS ? 'liberta' : 'copa8'}>{/* ⚡ Relâmpago: sem a taça "8" da Copa dos 8 */}
+          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
             {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{relS ? LS('Mata-mata Relâmpago: sem liga, a chave foi sorteada depois do leilão. Ida e volta em todas as fases e a final em jogo único — empate no placar somado vai pros pênaltis.', 'Lightning Knockout: no league, the draw was made after the auction. Two legs in every round and a single-match final — level on aggregate goes to penalties.') : libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : kingsS ? LS('Kings League Brasil: o 1º da liga vai direto pra SEMI. Quartas: 2º × 7º, 3º × 6º e 4º × 5º. Semis: 1º × quem passar do 4º × 5º, e os outros dois. TUDO jogo único, empate = SHOOTOUT.', 'Kings League Brasil: 1st goes straight to the SEMI. Quarters: 2nd × 7th, 3rd × 6th and 4th × 5th. Semis: 1st × the 4th-5th winner, and the other two. ALL single games, level = SHOOTOUT.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
@@ -7352,7 +7352,7 @@ export function EscSeason() {
                 const seg = manual ? null : firstLegPending ? copaFirstLeft : aberturaLeft
                 const total = firstLegPending ? COPA_INTRO_SECONDS : Math.ceil(respiroFaseMs / speedFactor / 1000)
                 const espera = canAdvance ? LS('▶️ Comece nos controles da partida', '▶️ Start from the match controls') : LS('⏳ O host dá a largada', '⏳ The host kicks off')
-                const cor = chS ? '#7C3AED' : libS ? '#2F6FDB' : '#FFC400'
+                const cor = chS ? '#7C3AED' : libS ? '#2F6FDB' : relS ? '#FFE14D' : '#FFC400'
                 // ✅❌ primeiro o RESUMO da fase que fechou (quem passou / quem caiu), depois a abertura da próxima
                 const fechada = resumoOn ? qc.bracket[qc.bracket.length - 1] : null
                 if (fechada) {
@@ -7365,9 +7365,11 @@ export function EscSeason() {
                 // túnel, na paleta da competição — o MESMO relógio, nada a mais
                 if (qc.phase === 'final' && qc.ties.length === 1 && !bbS && !kingsS && !cupNow) {
                   const t0 = qc.ties[0]
-                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : 'copa8'} seg={seg} total={total} espera={espera}
+                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : relS ? 'relampago' : 'copa8'} seg={seg} total={total} espera={espera}
                     casa={{ nome: nameOf(t0.aId), crest: <Escudo nome={nameOf(t0.aId)} size={96} /> }} fora={{ nome: nameOf(t0.bId), crest: <Escudo nome={nameOf(t0.bId)} size={96} /> }} />
                 }
+                // ⚡ Relâmpago: a 1ª abertura é o SORTEIO DA CHAVE com suspense (mesmo relógio da abertura de sempre)
+                if (relS && firstLegPending && qc.bracket.length === 0) return <SorteioRelampago fases={fases} confrontos={confrontos} seg={seg} total={total} espera={espera} />
                 return <AberturaCopa fases={fases} confrontos={confrontos} seg={seg} total={total} cor={cor} espera={espera} />
               })()}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
@@ -11671,7 +11673,7 @@ export function EscEnd() {
     if (qc?.champion && qc.phase === 'done') {
       const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
       const linha = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : ''
-      out.push({ key: 'copa', comp: state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha })
+      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha })
     }
     return out
   })()
@@ -12035,7 +12037,7 @@ export function EscEnd() {
           : `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}`
         return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : relEnd ? LE('CAMPEÃO DO RELÂMPAGO ⚡', 'LIGHTNING KNOCKOUT CHAMPION ⚡') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : bbEnd ? LE('💍 CAMPEÃO DOS PLAYOFFS', '💍 PLAYOFF CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
           nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
-          trofeu={kEnd || bbEnd ? undefined : <Trofeu comp={libEnd ? 'liberta' : chEnd ? 'champions' : relEnd ? 'liga' : 'copa8'} size={64} />}
+          trofeu={kEnd || bbEnd ? undefined : <Trofeu comp={libEnd ? 'liberta' : chEnd ? 'champions' : relEnd ? 'relampago' : 'copa8'} size={64} />}
           sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
       })()}
       {copaChampIsYou && (
