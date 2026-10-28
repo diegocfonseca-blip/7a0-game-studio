@@ -9,6 +9,8 @@ import type { EscState } from '../src/escalacao/types'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 const SECT = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const
+import { openSlots } from '../src/escalacao/store'
+const openVaga = (m: EscState['managers'][number], p: string) => openSlots(m, p as never) > 0
 
 // cada humano dá lance em até (vagas) cartas de cada posição, com o dinheiro dividido — igual a tela faz
 function envelopeDe(s: EscState, mgrId: number, agressivo: number) {
@@ -16,18 +18,21 @@ function envelopeDe(s: EscState, mgrId: number, agressivo: number) {
   const bids: { cardId: string; amount: number }[] = []
   let caixa = m.money
   for (const p of SECT) {
-    const cartas = s.currentCards.filter(c => c.pos === p).slice(0, 2)
+    const cartas = s.currentCards.filter(c => c.pos === p).slice(0, openSlots(m, p)) // igual à tela: no máximo um lance por vaga aberta
     for (const c of cartas) { const v = Math.min(caixa, agressivo); if (v <= 0) break; bids.push({ cardId: c.id, amount: v }); caixa -= v }
   }
   return bids
 }
 
+// 🔁 2ª lista (28/10): anota o que veio em cada lista e se a 2ª só trouxe posição onde algum humano ainda tinha vaga
+const r2: { cartas: number; semVaga: number; monteAntes: number }[] = []
 function anda(s: EscState, lance: (s: EscState) => EscState): { s: EscState; viuEnvelope: number; viuDesempate: boolean; revelacoes: number } {
   let viuEnvelope = 0, viuDesempate = false, revelacoes = 0
   for (let i = 0; i < 8000 && s.screen !== 'season'; i++) {
     if (s.screen === 'auction') {
       if (s.phase === 'envelope') {
         viuEnvelope++
+        if (s.euRodada === 2) r2.push({ cartas: s.currentCards.length, monteAntes: s.monte.length, semVaga: s.currentCards.filter(c => !s.managers.some(m => m.isHuman && m.money > 0 && (m.squad.filter(x => x.pos === c.pos).length < 99) && openVaga(m, c.pos))).length })
         const antes = s
         s = lance(s)
         if (s === antes || s.phase === 'envelope') s = reducer({ ...s, phaseDeadline: 1 }, { type: 'FORCE_SEAL' })
@@ -54,11 +59,14 @@ console.log('⚡ 1) Partida Rápida')
   const dur = (s.phaseDeadline ?? 0) - Date.now()
   ok(dur > ENVELOPE_UNICO_MS - 2000 && dur <= ENVELOPE_UNICO_MS, `relógio de 180s (${Math.round(dur / 1000)}s)`)
   const eu = s.managers[s.youIdx]
-  const r = anda(s, st => reducer(st, { type: 'SUBMIT_ENVELOPE', mgrId: eu.id, bids: envelopeDe(st, eu.id, 6) }))
+  // 1ª lista: só lance no GOL (deixa buraco no resto) · 2ª lista: lance onde sobrou
+  const r = anda(s, st => reducer(st, { type: 'SUBMIT_ENVELOPE', mgrId: eu.id, bids: st.euRodada === 2 ? envelopeDe(st, eu.id, 3) : envelopeDe(st, eu.id, 6).filter(b => st.currentCards.find(c => c.id === b.cardId)?.pos === 'GOL') }))
   s = r.s
-  ok(r.viuEnvelope === 1, `um envelope só (${r.viuEnvelope})`)
+  ok(r.viuEnvelope === 2, `duas listas: a de todas e a 2ª com as sobras (${r.viuEnvelope})`)
+  ok(r2.length === 1 && r2[0].cartas > 0, `a 2ª lista trouxe ${r2[0]?.cartas} carta(s) que sobraram`)
+  ok(r2.every(x => x.semVaga === 0), 'a 2ª lista só tem posição em que ainda tem gente com vaga')
   ok(!r.viuDesempate, 'empate não abre rodada de desempate (sorteio na hora)')
-  ok(r.revelacoes === 1, `uma revelação só (${r.revelacoes})`)
+  ok(r.revelacoes <= 2, `no máximo duas revelações (${r.revelacoes})`)
   ok(s.screen === 'season', `chegou na temporada (${s.screen})`)
   const neg = s.managers.filter(m => m.money < 0).length
   ok(neg === 0, 'ninguém com caixa negativa')
@@ -80,7 +88,7 @@ console.log('\n🌐 2) Sala online (3 pessoas)')
     return x
   })
   s = r.s
-  ok(r.viuEnvelope === 1 && !r.viuDesempate && r.revelacoes === 1, `um envelope, sem desempate, uma revelação (${r.viuEnvelope}/${r.viuDesempate}/${r.revelacoes})`)
+  ok(r.viuEnvelope <= 2 && !r.viuDesempate && r.revelacoes <= 2, `no máximo 2 listas, sem desempate, no máximo 2 revelações (${r.viuEnvelope}/${r.viuDesempate}/${r.revelacoes})`)
   ok(s.screen === 'season', `chegou na temporada (${s.screen})`)
   for (const id of humanos) {
     const m = s.managers.find(x => x.id === id)!

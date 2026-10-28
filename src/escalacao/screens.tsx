@@ -4488,8 +4488,9 @@ function EnvelopeUnico() {
   const [now, setNow] = useState(() => agoraSala())
   useEffect(() => { const iv = setInterval(() => setNow(agoraSala()), 250); return () => clearInterval(iv) }, [])
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 180
-  const setores = SECTORS.map(p => ({ p, cards: state.currentCards.filter(c => c.pos === p), vagas: you ? openSlots(you, p) : 0 }))
-  const precisaLacrar = !!you && !state.espectador && you.money > 0 && setores.some(x => x.vagas > 0)
+  // 2ª lista: posição sem carta sobrando não conta (nem pede lance nem aparece na barra)
+  const setores = SECTORS.map(p => ({ p, cards: state.currentCards.filter(c => c.pos === p), vagas: you ? openSlots(you, p) : 0 })).filter(x => state.euRodada !== 2 || x.cards.length > 0)
+  const precisaLacrar = !!you && !state.espectador && you.money > 0 && setores.some(x => x.vagas > 0 && x.cards.length > 0)
   const podeLance = precisaLacrar && !iSubmitted && !pending
   const total = Object.values(bids).reduce((a, b) => a + b, 0)
   const lancesNa = (p: string) => Object.keys(bids).filter(id => state.currentCards.find(c => c.id === id)?.pos === p).length
@@ -4561,9 +4562,11 @@ function EnvelopeUnico() {
     <Shell bar={barra}>
       <div className="space-y-3" style={{ paddingBottom: 170 }}>
         <Box bg="#FFF3D6" className="p-3">
-          <p className="font-black text-[15px] text-black" style={OSWALD}>⚡ {tr('ENVELOPE ÚNICO', 'SINGLE ENVELOPE')}</p>
+          <p className="font-black text-[15px] text-black" style={OSWALD}>⚡ {state.euRodada === 2 ? tr('ENVELOPE ÚNICO · 2ª LISTA', 'SINGLE ENVELOPE · 2ND LIST') : tr('ENVELOPE ÚNICO', 'SINGLE ENVELOPE')}</p>
           <p className="text-[12px] font-bold text-black/70 leading-snug mt-0.5">
-            {tr('As 5 posições numa tela só. Dê seus lances em todas e aperte LACRAR TUDO — vem uma revelação só. Empate = sorteio.', 'All 5 positions on one screen. Bid on all of them and hit SEAL ALL — one reveal only. Tie = draw.')}
+            {state.euRodada === 2
+              ? tr('As cartas que sobraram da 1ª lista, só nas posições em que ainda tem vaga. Última chance antes do Monte. Empate = sorteio.', 'The cards left over from the 1st list, only in positions that still have open slots. Last chance before the Pile. Tie = draw.')
+              : tr('As 5 posições numa tela só. Dê seus lances em todas e aperte LACRAR TUDO. Depois da revelação, o que sobrar volta numa 2ª lista antes do Monte. Empate = sorteio.', 'All 5 positions on one screen. Bid on all of them and hit SEAL ALL. After the reveal, whatever is left comes back in a 2nd list before the Pile. Tie = draw.')}
           </p>
         </Box>
         {state.espectador && <Box bg="#E7E1F7" className="p-3"><p className="text-sm font-black text-black" style={OSWALD}>{tr('👁️ Você está só assistindo — lance é só pra quem joga.', '👁️ You are just watching — bids are for players only.')}</p></Box>}

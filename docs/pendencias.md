@@ -1,3 +1,9 @@
+## ⚡🔁 Envelope único: 2ª LISTA antes do Monte (28/10) — no branch, esperando "publica"
+Diego testou: *"tá ficando muita carta no monte… depois da primeira leva volta pras sobras… uma segunda lista… só depois disso que vai
+ter monte"*. Agora: 1ª lista (as 5 posições, 180s) → revelação → **2ª lista** com o que sobrou, só nas posições em que ainda tem GENTE
+com vaga e dinheiro (90s, `ENVELOPE_UNICO_2_MS`; bot entra no modo repescagem) → revelação → Monte. Sobra de posição que ninguém
+precisa vai direto pro Monte. Estado: `euRodada` (1|2) e `euSobras`. Trava `npm run envelope-unico` confere as duas listas.
+
 ## 🏟️ Queda repetida na saída do Neymarzetti (28/10) — correção de apresentação
 
 Reproduzida a carreira atual em cópia local da tela real (`PyramidSeasonScreen` → Clube → mapa/replay), com todo tráfego externo bloqueado. Leitura autorizada do save em `esc_pyramid_saves`, projeto `faabglpjutwursgmrpny`: o nome administrativo “Copa Mania” também contém as tabelas do Leilão. Nenhum write de save/banco. Temporada 8, rodada 1, Neymarzetti × Leão da Estradinha.
