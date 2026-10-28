@@ -27,7 +27,7 @@ export class RotacaoBola3D{
   }
   // 🌀 25/10: a bola com efeito (cruzamento fechando, falta colocada) gira em torno do eixo vertical enquanto voa — é o que se vê
   // na TV: o desenho da bola rodando de lado. O giro visual é ~20× a curva (rad/s), com teto
-  if(!ground&&!point.held&&point.curl)this.omega.y=Math.max(-45,Math.min(45,point.curl*20))
+  if(!ground&&!point.held&&point.curl!==undefined)this.omega.y=Math.max(-45,Math.min(45,point.curl*20))
   const speed=this.omega.length()
   if(speed>0){this.delta.setFromAxisAngle(this.omega.clone().multiplyScalar(1/speed),speed*dt);this.quaternion.premultiply(this.delta).normalize()}
   this.previous={...point};return this.quaternion

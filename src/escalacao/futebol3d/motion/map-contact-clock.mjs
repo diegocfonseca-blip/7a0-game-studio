@@ -11,6 +11,6 @@ export function contactFrame(frame,time,timeline){
   restart:sample.phase===frame.phase?frame.restart:undefined,
   officialAction:frame.officialAction?.startedAt<=time+1e-7?frame.officialAction:undefined,
   official:frame.official?{...frame.official,finished:sample.phase==='fim',events:frame.official.events.filter(e=>e.t<=time+1e-7)}:undefined,
-  ball:{...frame.ball,x:b.x,y:b.y,z:b.z,presentation:undefined,heldBy:sample.heldBy,velocity:{x:b.vx,y:b.vy,z:b.vz}},
+  ball:{...frame.ball,x:b.x,y:b.y,z:b.z,curl:b.curl,presentation:undefined,heldBy:sample.heldBy,velocity:{x:b.vx,y:b.vy,z:b.vz}},
   players:frame.players.map(p=>{const q=timeline.sample(time,p.key).player;if(!q)return p;return{...p,mx:q.x,mz:q.z,sourceAnchor:{x:q.x,z:q.z},heading:q.heading,speed:q.speed,visible:q.visible,mergulho:q.mergulho}})};
 }

@@ -6,13 +6,13 @@ const releases=new Set(['passe','enfiada','lancamento','inversao','cruzamento','
  * it cannot emit events, persist a result or change a career. */
 export async function prepareMapTimeline(state){
  const motor=new FutebolOficial3D(state.officialInput),first=motor.sample(state,0,{replay:false,postMatchWalk:false}),keys=first.players.map(p=>p.key),slots=new Map(keys.map((k,i)=>[k,i])),count=keys.length;
- const bodies=new Float32Array(MAX*count*5),balls=new Float32Array(MAX*6),owners=new Int16Array(MAX).fill(-1),held=new Int16Array(MAX).fill(-1),phases=new Uint8Array(MAX),placements=new Uint8Array(MAX),phaseNames=[],dives=new Map(),agenda=[],seen=new Set();
+ const bodies=new Float32Array(MAX*count*5),balls=new Float32Array(MAX*6),curls=new Float32Array(MAX),owners=new Int16Array(MAX).fill(-1),held=new Int16Array(MAX).fill(-1),phases=new Uint8Array(MAX),placements=new Uint8Array(MAX),phaseNames=[],dives=new Map(),agenda=[],seen=new Set();
  let length=0,previous=null,official,ownerSince=0,started=performance.now();
  const keeperEvents=new Set(['defesa','espalma','rebote','encaixa']);
  for(let i=0;i<MAX;i++){
   const time=i/RATE,f=i?motor.sample(state,time*93/90,{replay:false,postMatchWalk:false}):first,b=f.ball,v=b.velocity??{x:0,y:0,z:0};
   for(const p of f.players){const slot=slots.get(p.key);if(slot===undefined)continue;const at=(i*count+slot)*5,pos=p.sourceAnchor??{x:p.mx,z:p.mz};bodies.set([pos.x,pos.z,p.heading,p.speed,p.visible===false?0:1],at)}
-  balls.set([b.x,b.y,b.z,v.x,v.y,v.z],i*6);owners[i]=slots.get(f.owner)??-1;held[i]=slots.get(b.heldBy)??-1;length=i+1;
+  balls.set([b.x,b.y,b.z,v.x,v.y,v.z],i*6);curls[i]=b.curl??0;owners[i]=slots.get(f.owner)??-1;held[i]=slots.get(b.heldBy)??-1;length=i+1;
   let phase=phaseNames.indexOf(f.phase);if(phase<0){phase=phaseNames.length;phaseNames.push(f.phase)}phases[i]=phase;placements[i]=f.placementReset?1:0;
   const diving=f.players.find(p=>p.mergulho);if(diving)dives.set(i,{key:diving.key,value:diving.mergulho});
   const action=f.officialAction;
@@ -28,7 +28,7 @@ export async function prepareMapTimeline(state){
   if(performance.now()-started>12){await new Promise(r=>setTimeout(r,0));started=performance.now()}
  }
  const sample=(time,key)=>{let f=Math.max(0,Math.min(length-1,time*RATE));if(Math.abs(f-Math.round(f))<1e-6)f=Math.round(f);const i=Math.floor(f),j=Math.min(length-1,i+1),u=f-i,slot=slots.get(key),mix=(xs,k,n)=>xs[i*n+k]+(xs[j*n+k]-xs[i*n+k])*u;
-  const ball={x:mix(balls,0,6),y:mix(balls,1,6),z:mix(balls,2,6),vx:mix(balls,3,6),vy:mix(balls,4,6),vz:mix(balls,5,6)};let player;
+  const ball={x:mix(balls,0,6),y:mix(balls,1,6),z:mix(balls,2,6),vx:mix(balls,3,6),vy:mix(balls,4,6),vz:mix(balls,5,6),curl:curls[i]};let player;
   if(slot!==undefined){const at=(i*count+slot)*5,to=(j*count+slot)*5;player={x:bodies[at]+(bodies[to]-bodies[at])*u,z:bodies[at+1]+(bodies[to+1]-bodies[at+1])*u,heading:bodies[at+2]+angle(bodies[to+2]-bodies[at+2])*u,speed:bodies[at+3]+(bodies[to+3]-bodies[at+3])*u,visible:!!bodies[at+4],mergulho:dives.get(i)?.key===key?dives.get(i).value:undefined}}
   return{time,ball,player,owner:keys[owners[i]],heldBy:keys[held[i]],phase:phaseNames[phases[i]],placementReset:!!placements[i]};
  };
@@ -36,5 +36,5 @@ export async function prepareMapTimeline(state){
  for(const save of agenda.filter(a=>a.saveType==='encaixa')){const capture=agenda.find(a=>a.goleiro&&a.key===save.key&&Math.abs(a.t-save.t)<.06);if(capture){Object.assign(capture,{save:true,saveType:'encaixa',hands:true});save.disabled=true}}
  const impacts=motor.keeperImpacts();
  agenda.sort((a,b)=>a.t-b.t);for(const it of agenda){const f=sample(it.t,it.key);it.bola=f.ball;it.rec=f.player;if(it.save&&!it.disabled){const physical=impacts.find(p=>Math.abs(p.t-it.t)<1e-5&&it.key.includes(p.name));if(physical){it.bola={...physical.ball};it.physicalImpact=true}}}
- return{agenda,sample,keys,official,duration:(length-1)/RATE,bytes:bodies.byteLength+balls.byteLength+owners.byteLength+held.byteLength+phases.byteLength+placements.byteLength,prepared:true};
+ return{agenda,sample,keys,official,duration:(length-1)/RATE,bytes:bodies.byteLength+balls.byteLength+curls.byteLength+owners.byteLength+held.byteLength+phases.byteLength+placements.byteLength,prepared:true};
 }

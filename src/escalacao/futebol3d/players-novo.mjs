@@ -27,12 +27,12 @@ import {prepareMapGaits,gaitTime} from './motion/map-gait.mjs'
 import {keeperCatchIntent} from './motion/map-keeper-intent.mjs'
 import {contactSteps,contactFrame} from './motion/map-contact-clock.mjs'
 import {keeperFlight,sampleKeeperFlight} from './motion/map-keeper-flight.mjs'
+import {selectMapKick} from './motion/map-kick-selection.mjs'
 import {VisualPlayerCollisions} from './visual-player-collisions.mjs'
 
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
 const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,'diag_td'],[Math.PI,'re'],[-3*Math.PI/4,'diag_te'],[-Math.PI/2,'lado_e'],[-Math.PI/4,'diag_fe']]
 const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
-const CHUTES=new Set(['chute','chutao'])
 // ✂️ trecho usado de cada movimento gravado de jogador de verdade (pacote do Anderson Rohr: cada arquivo tem o jogador parado
 // antes e depois do lance) — segundos do arquivo
 const TRECHOS={passe_chapa:{de:.85,ate:2.1},chute_forte:{de:1.55,ate:3.4},drible3:{de:.35,ate:2.1},comemora1:{de:.25,ate:3.45},comemora2:{de:.25,ate:3.5},comemora3:{de:.25,ate:3.15}}
@@ -131,9 +131,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   else if(it.kind==='recebe')it.nome=it.goleiro||it.pickup?'gk_recolhe':it.h>.9?'peito':'dominio'
   else if(it.hands){const outgoing=timeline.sample(it.t+.05).ball;it.nome=it.keeper?(it.tipo==='lancamento'?'gk_lanca_longe':outgoing.vy>2?'gk_lanca':'gk_rola'):'lateral'}
   else if(it.cab)it.nome=it.bola.y>1.7?'cabeca':'cabeca2'
-  else if(CHUTES.has(it.tipo)||it.tipo==='corte')it.nome=quick?'chute_corrida':'chute_forte'
-  else if(['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26)it.nome='cavadinha'
-  else it.nome=prevReceive&&it.t-prevReceive.t<.8?'passe':'passe_chapa'
+  else{it.variation=selectMapKick(it,{quick:!!quick,moving:(it.rec?.speed??0)>2});it.nome=it.variation.clip}
   if(it.kind==='toque'&&!it.hands&&!it.cab){const wantLeft=a.pe==='canhota'||a.pe!=='direita'&&a.canhoto,baseLeft=asset.meta.clips[it.nome]?.pe==='l';if(wantLeft!==baseLeft&&asset.clips.has(it.nome+'_e'))it.nome+='_e'}
   if(it.goleiro||it.save){const intent=keeperCatchIntent(it,agenda,key=>atores.find(a=>a.key===key)?.side);it.dir=intent.heading;it.incomingShot=intent.shot}
   it.mira=it.dir??it.rec.heading

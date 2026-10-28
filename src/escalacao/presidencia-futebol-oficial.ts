@@ -51,7 +51,7 @@ export class FutebolOficial3D {
   const key=l.tipo+':'+l.de.id+':'+l.t0
   if(key===this.deliveryKey)return
   this.deliveryKey=key
-  this.delivery=descreverEntregaOficial3D(l.tipo,{x:b.vy,y:b.vh,z:b.vx},b.h+RAIO_BOLA_FUTEBOL_3D,l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):null)
+  this.delivery=descreverEntregaOficial3D(l.tipo,{x:b.vy,y:b.vh,z:b.vx},b.h+RAIO_BOLA_FUTEBOL_3D,l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):null,{technique:l.golpe,curveRate:b.giro})
  }
  private hasRestartPlacement(){const g=this.game,b=g.bola,p=g.bolaAnt;return g.parada?.tipo==='saida'&&(Math.hypot(b.x-(p.x??b.x),b.y-(p.y??b.y))>2.5||g.atl.some(a=>Math.hypot(a.x-(a.ax??a.x),a.y-(a.ay??a.y))>2.5))}
  private spinPoint(time=0,commit=false):PontoRotacaoBola{
@@ -128,6 +128,7 @@ export class FutebolOficial3D {
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
   quadro.ball.heldBy=g.gkMao?key(g.gkMao):undefined
   quadro.ball.velocity={x:b.vy,y:b.vh,z:b.vx}
+  quadro.ball.curl=b.giro??0
   return options.replay===false?quadro:this.comReplay(quadro,time)
  }
  /** 🔁 REPLAY DO GOL (aprovado pelo Diego 25/10): guarda os últimos 4 s de quadros; na festa, dos 0,35 s aos 1,95 s, mostra de novo os

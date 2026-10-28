@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {descreverEntregaOficial3D as describe} from '../../src/escalacao/presidencia-entrega-oficial.ts';
+import {selectMapKick as select} from '../../src/escalacao/futebol3d/motion/map-kick-selection.mjs';
+import {RotacaoBola3D} from '../../src/escalacao/presidencia-bola-rotacao.ts';
+const cue=(type,speed,vertical,distance,technique,curveRate=0)=>({tipo:type,delivery:describe(type,{x:speed,y:vertical,z:0},.11,distance,{technique,curveRate})});
+const ground=cue('inversao',22,0,38),high=cue('chute',29,10,null),chip=cue('chute',17,10,null,'cobertura'),short=cue('passe',13,0,8),placed=cue('chute',23,4,null,'colocado',.6),cross=cue('cruzamento',22,6,25,undefined,-.5);
+assert.equal(select(ground).clip,'passe_chapa');assert.equal(select(ground).trajectory,'ground');assert.equal(select(high).clip,'chute_forte');assert.equal(select(high).style,'high-shot');assert.equal(select(chip).clip,'cavadinha');assert.equal(select(short).clip,'passe','Use the football pass, not Low Kick To Idle Transition');assert.equal(select(placed).style,'placed-shot');assert.equal(select(placed).adaptation,'captured-strike-with-official-curve');
+assert.equal(select(cross).style,'aerial-cross');assert.equal(select(cross).clip,'chute');assert.equal(cross.delivery.curveRate,-.5);assert.equal(cross.delivery.curve,'source');assert.equal(short.delivery.curve,'none');
+assert.equal(select(high,{quick:true,moving:true}).clip,'chute_corrida');assert.equal(select(high,{quick:true,moving:false}).clip,'chute_forte');
+assert.equal(select(cue('chutao',27,9,40)).clip,'chute_forte','A clearance must not become a delicate chipped pass');
+const snapshot=JSON.stringify(ground);for(let i=0;i<20;i++)assert.deepEqual(select({...ground,outcome:i%2?'gol':'fora'}),select(ground));assert.equal(JSON.stringify(ground),snapshot);
+const spin=new RotacaoBola3D(.11,{x:0,y:.11,z:0});spin.step({x:.2,y:.4,z:0,curl:.3},1/60);assert.equal(spin.inspect().angularVelocity[1],6);spin.step({x:.4,y:.5,z:0,curl:0},1/60);assert.equal(spin.inspect().angularVelocity[1],0,'A source without curve must clear the previous visual sidespin');
+console.log('PASS: long ground pass is not a lob, high shot is not a chip, genuine source technique/curve, quick moving strike, unchanged source and outcome');
