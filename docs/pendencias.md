@@ -23,14 +23,7 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
-- **Bots do leilão também ganham o bônus da casa (28/10, só análise)**: no motor, `bh = (!H.human && !H.rival) ? BM[div] : 0` — os bots que
-  montaram time no mesmo leilão (Neymarzetti, Labubu…) não são humanos nem "rival escolhido", então levam o bônus como se fossem CPU
-  nativo (o comentário diz "CPU NATIVOS"). Medido (motor real, humano 79, rivais com o nível real da simulação, bônus v5): Várzea sobe
-  45% hoje × 68% sem o bônus desses bots; Série D 35% × 45%. Na D eles são 78–80 + 3 = 81–83. 
-  ✅ **DECIDIDO (28/10): fica como está.** Os bots do leilão seguem a mesma tabela dos times da casa (*"rival ou bot tanto faz"*). E o
-  RIVAL ESCOLHIDO continua SEM bônus (é a rixa de igual pra igual): com bônus ele ganharia de você 62% em vez de 48% na Várzea, sem
-  mudar sua chance de subir. Palavras dele: *"Ok deixe como está então"*.
-- ✅ **FEITO no branch (28/10, esperando o OK pra publicar) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
+- ✅ **PUBLICADO (28/10, *"Sim"*) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
   Saiu da Várzea!" só aparece com o time FORA da Várzea (quem caiu de volta não lê mais isso; o aviso espera a próxima subida);
   (2) a linha "🤝 Patrocínio" (sobra do pontual, sempre 0) e as linhas de "Agência"/"Empresário" só entram no extrato com dinheiro de
   verdade — o patrocinador de verdade já entra com o nome da marca ("🏆 Master · Vadico", "👟 Material", "🎯 Meta batida").
@@ -11431,3 +11424,32 @@ nada dentro; as 5 posições resolvem em ordem GOL→ATA com o MESMO motor, empa
 sala (Rápido e Minhas Ligas, fora de duplas e carreira). Gate `ENVELOPE_UNICO_GERAL` em sport.ts. Trava: `npm run envelope-unico`.
 Fotos: `scripts/mockups/envelope-unico-real.png` e `envelope-unico-revelacao.png`.
 Falta: a lista de salas ainda mostra o selo do envelope de sempre (às cegas) pra sala de envelope único; o Monte NÃO foi pra 30s (é o de sempre).
+
+## 🏆 Perfil com taças (28/10) — FEITO no branch (Diego: "rank do online… só global e não mensal"), falta publicar
+Pedido do Diego (print do perfil): rankings da carreira e do online LADO A LADO e mais sutis; títulos da carreira com as IMAGENS das taças
+(as da Sala de Troféus `public/trofeus-v137/` + o `Trofeu` de `competicoes-visual.tsx`); embaixo, o mesmo pro online. Mockup:
+`scripts/mockups/perfil-trofeus.png`. ⚠️ `game_champions` não guarda QUAL competição a sala jogou — os títulos antigos do online caem na
+taça da Liga; separar por competição exige anotar o tipo daqui pra frente (coluna nova + quem grava o campeão).
+FEITO: rankings lado a lado (carreira = melhor save + temporada · online = TODOS OS TEMPOS, nunca o mensal) · grade de taças da carreira
+(Série A, ligas, Copa, Supercopa, Liberta, Champions, Mundial, Copa do Mundo) e do online por competição (`esc_tacas_online`, lê
+`human_results`: liga · copa · libertadores · mundial(=Copa do Mundo) · regional; Só Champions/Relâmpago ganharam a etiqueta `comp` a partir
+de 28/10 — os de antes contam como Liga) + medalhas. O quadro "semana/mês/sempre" saiu do perfil.
+
+## 🧭🏆 Barra da carreira igual à do online + taças nos rankings das salas (28/10) — FEITO ("Aprovado"), no branch esperando ordem de publicar
+Pedido do Diego: (1) a barra de baixo da carreira (celular) com o visual da barra das salas online (`LigaHub`: creme, ícone/nome finos,
+aba aberta em dourado); (2) na Sala de Troféus da sala rápida (`SalaTrofeusRapida`) e no Rank das Minhas Ligas (`AbaRank`), a TAÇA de
+cada título do lado do nome — só de quem ganhou, mesmo tamanho do perfil. Mockup: `scripts/mockups/barra-trofeus-salas.png`.
+⚠️ Lembrar: em 27/10 ele pediu as abas da carreira MAIS fortes ("tão apagadas"); a barra do online é mais clara — o mockup mostra as duas.
+🔁 Corrigido no mesmo dia: eu entendi AO CONTRÁRIO e mudei a barra da carreira. O pedido era a barra das SALAS ONLINE (sala rápida
+e Minhas Ligas) ficar com a cara da barra da CARREIRA, **sem mudar nome nenhum** (*"não mexer em relação ao modo carreira… eu só
+pedi pra você melhorar visualmente o que tem hoje"*). A carreira voltou a ser como era; a barra do `LigaHub` agora é a da carreira
+(fundo claro, linha preta grossa, aba aberta = botão preto com ícone dourado) — foto `scripts/mockups/barra-online-igual-carreira.png`.
+✅ Taças: `TacasNome` em `ligahub.tsx` — pequenas (17px), em fila depois do nome, ×N do lado
+(*"precisa ser menor e alinhado"*), só o que ganhou; Só Champions/Relâmpago usam a taça deles (`comp`). Os chips de Liga/Copa da sala
+rápida saíram (a taça diz isso); Top 8 e rebaixamento continuam.
+
+## ⚡ Envelope único liberado também pro Futpoint FC (28/10) — partida rápida e salas, mesma trava (`ENVELOPE_UNICO_TESTERS`)
+
+## 📖 MEU ÁLBUM saiu da home (28/10)
+Diego: *"a página meu álbum da home pode tirar… dentro da página amigos já tem"*. O botão some da home (futebol e basquete) pra quem tem
+os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o caminho. A tela do álbum continua existindo (é a mesma dos Amigos).

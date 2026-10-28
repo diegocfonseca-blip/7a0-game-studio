@@ -355,7 +355,7 @@ function applyRelampago(email?: string | null): void {
 // ⚡ ENVELOPE ÚNICO (28/10, Diego: "pode fazer esse modo mas apenas na minha conta por enquanto e faça tb pro partida rápida").
 // Liberar geral = ENVELOPE_UNICO_GERAL = true.
 const ENVELOPE_UNICO_GERAL = false
-const ENVELOPE_UNICO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const ENVELOPE_UNICO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com']) // + Futpoint FC (28/10, Diego: "libere pro Futpoint… partida rápida também")
 let envelopeUnicoOk = ENVELOPE_UNICO_GERAL
 function applyEnvelopeUnico(email?: string | null): void {
   const u = ENVELOPE_UNICO_GERAL || (!!email && ENVELOPE_UNICO_TESTERS.has(email.toLowerCase()))

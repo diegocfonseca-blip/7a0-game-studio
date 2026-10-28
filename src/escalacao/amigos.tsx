@@ -15,6 +15,7 @@ import { tr } from './lang'
 import { APOIO_PERKS, ApoioSheen, type ApoioTier } from './apoio'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
+import { Trofeu, type CompId } from './competicoes-visual' // 🏆 28/10: as taças do jogo no perfil
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
@@ -89,6 +90,23 @@ const caixa: CSSProperties = { color: INK, background: '#fff', border: `3px soli
 const h3: CSSProperties = { ...OSW, fontSize: 14, margin: '0 0 6px', color: INK }
 const bt = (bg: string, cor: string): CSSProperties => ({ ...OSW, fontSize: 12, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 10px', background: bg, color: cor, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' })
 
+// 🏆 a grade de taças do perfil (28/10): a arte é a do jogo (`Trofeu` — Sala de Troféus + competições do online), nunca a oficial
+function GradeTacas({ itens }: { itens: [CompId, number, string][] }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+      {itens.map(([comp, n, nome]) => (
+        <div key={nome} style={{ position: 'relative', border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px 4px', background: n > 0 ? '#FFF7DA' : '#f3eee0' }}>
+          <div style={{ height: 62, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', ...(n > 0 ? {} : { filter: 'grayscale(1)', opacity: .35 }) }}>
+            <Trofeu comp={comp} size={44} />
+          </div>
+          {n > 0 && <span style={{ position: 'absolute', top: 4, right: 4, background: INK, color: GOLD, ...OSW, fontSize: 11, borderRadius: 7, padding: '0 5px' }}>×{n}</span>}
+          <div style={{ fontSize: 9.5, fontWeight: 800, color: '#444', marginTop: 3, lineHeight: 1.1 }}>{nome}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ── 👤 PERFIL ──────────────────────────────────────────────────────────────────────────────────────────────────
 export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onClose: () => void; onAbrirOutro?: (uid: string) => void }) {
   const [p, setP] = useState<Perfil | null | 'erro'>(null)
@@ -100,15 +118,13 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
     supabase.rpc('esc_perfil_publico2', { p_uid: u }).then(({ data, error }) => setP(error || !data ? 'erro' : data as Perfil), () => setP('erro'))
   }
   useEffect(() => { carrega(atual) }, [atual])
+  // 🏆 28/10: as taças do online por competição (o que cada sala anotou em human_results)
+  const [tacas, setTacas] = useState<Record<string, number> | null>(null)
+  useEffect(() => { setTacas(null); supabase.rpc('esc_tacas_online', { p_uid: atual }).then(({ data }) => setTacas((data ?? null) as Record<string, number> | null), () => setTacas(null)) }, [atual])
   const abrir = (u: string) => { if (onAbrirOutro) onAbrirOutro(u); else setAtual(u) }
   const acao = async (fn: () => PromiseLike<unknown>) => { setOcupado(true); try { await fn() } finally { setOcupado(false); carrega(atual) } }
 
   const perk = APOIO_PERKS[(p && p !== 'erro' && p.tier && APOIO_PERKS[p.tier]) ? p.tier : 'bege']
-  const tits: [string, string, keyof Titulos][] = [
-    ['🥇', tr('Ligas', 'Leagues'), 'ligas'], ['🏆', tr('Copas', 'Cups'), 'copas'], ['🛡️', tr('Supercopas', 'Super Cups'), 'supercopas'],
-    ['🌎', 'Libertadores', 'libertadores'], ['⭐', 'Champions', 'champions'], ['🌍', tr('Mundial', 'Club World Cup'), 'mundial'],
-    ['🌐', tr('Copa do Mundo', 'World Cup'), 'copa_mundo'], ['🥇', tr('Série A', 'Serie A'), 'serie_a'], ['📅', tr('Temporadas', 'Seasons'), 'temporadas'],
-  ]
   return (
     <Janela titulo={tr('👤 Perfil', '👤 Profile')} onClose={onClose}>
       {p === null && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
@@ -176,56 +192,41 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             </div>}
           </div>
         )}
-        {/* 📊 19/10 (Diego, regra final): o save com a MELHOR posição no ranking global, na temporada em que esse save está
-            (esc_perfil_rank). Só o número grande e a temporada embaixo — nada de carreira, clube ou save. */}
-        <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ textAlign: 'center', minWidth: 92 }}>
-            <div style={{ ...OSW, fontSize: 34, lineHeight: 1, color: INK }}>{p.rank ? `${p.rank.pos}º` : '—'}</div>
-            {p.rank && <div style={{ fontSize: 11.5, fontWeight: 800, color: '#555', marginTop: 3 }}>{tr('na temporada', 'in season')} {p.rank.temporada}</div>}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ ...h3, margin: 0 }}>📊 {tr('Ranking global da carreira', 'Global career ranking')}</p>
-            {!p.rank && <p style={{ fontSize: 12, fontWeight: 700, color: '#555', margin: '3px 0 0', lineHeight: 1.35 }}>{tr('Ainda sem carreira no ranking (só conta carreira salva na nuvem).', 'No career in the ranking yet (only cloud-saved careers count).')}</p>}
-          </div>
+        {/* 📊 28/10 (mockup perfil-trofeus.png, Diego): os DOIS rankings lado a lado e discretos — carreira (o melhor save, na
+            temporada dele) e o online de TODOS OS TEMPOS ("rank do online não deixa só global e não mensal") */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          {([
+            [p.rank ? `${p.rank.pos}º` : '—', tr('📊 Ranking da carreira', '📊 Career ranking'), p.rank ? tr(`temporada ${p.rank.temporada}`, `season ${p.rank.temporada}`) : tr('sem carreira na nuvem', 'no cloud career')],
+            [p.sempre ? `${p.sempre.pos}º` : '—', tr('🔨 Ranking do online', '🔨 Online ranking'), p.sempre ? tr(`geral · ${p.sempre.titulos} ${p.sempre.titulos === 1 ? 'título' : 'títulos'}`, `all-time · ${p.sempre.titulos} ${p.sempre.titulos === 1 ? 'title' : 'titles'}`) : tr('sem título ainda', 'no title yet')],
+          ] as const).map(([num, rot, sub]) => (
+            <div key={rot} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 7, background: '#FFF7DA', border: `2px solid ${INK}`, borderRadius: 12, padding: '6px 8px', color: INK }}>
+              <span style={{ ...OSW, fontSize: 21, lineHeight: 1 }}>{num}</span>
+              <span style={{ minWidth: 0, fontSize: 10.5, fontWeight: 800, color: '#555', lineHeight: 1.15 }}><b style={{ display: 'block', color: INK }}>{rot}</b>{sub}</span>
+            </div>
+          ))}
         </div>
 
+        {/* 🏆 títulos da carreira com as TAÇAS do jogo (as da Sala de Troféus): ganhou = colorida com ×N; falta = apagadinha */}
         <div style={caixa}>
           <p style={h3}>🏆 {tr('Títulos na carreira', 'Career titles')}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
-            {tits.map(([ic, nome, k]) => (
-              <div key={k} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: (p.titulos?.[k] ?? 0) > 0 ? '#FFF7DA' : '#f3eee0' }}>
-                <div style={{ fontSize: 18 }}>{ic}</div>
-                <div style={{ ...OSW, fontSize: 18, color: INK }}>{p.titulos?.[k] ?? 0}</div>
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#555' }}>{nome}</div>
-              </div>
-            ))}
-          </div>
-          <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('Somando todas as carreiras salvas na nuvem.', 'All careers saved in the cloud added up.')}</p>
+          <GradeTacas itens={[
+            ['carA', p.titulos?.serie_a ?? 0, tr('Série A', 'Serie A')], ['carC', p.titulos?.ligas ?? 0, tr('Ligas (todas)', 'Leagues (all)')],
+            ['copabr', p.titulos?.copas ?? 0, tr('Copa do Brasil', 'Cup')], ['supercopa', p.titulos?.supercopas ?? 0, tr('Supercopa', 'Super Cup')],
+            ['liberta', p.titulos?.libertadores ?? 0, 'Libertadores'], ['champions', p.titulos?.champions ?? 0, 'Champions'],
+            ['mundial', p.titulos?.mundial ?? 0, tr('Mundial', 'Club World Cup')], ['mundo', p.titulos?.copa_mundo ?? 0, tr('Copa do Mundo', 'World Cup')],
+          ]} />
+          <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr(`${p.titulos?.temporadas ?? 0} temporadas · somando todas as carreiras salvas na nuvem`, `${p.titulos?.temporadas ?? 0} seasons · all cloud-saved careers added up`)}</p>
         </div>
 
-        {/* 🔨 títulos de sala online, em forma de taça (até 15 desenhadas; o resto vira "+N") */}
+        {/* 🔨 títulos de sala online, por competição, com as taças + as medalhas do pódio da semana */}
         <div style={caixa}>
           <p style={h3}>🔨 {tr('Títulos no online', 'Online titles')} ({p.titulos?.salas ?? 0})</p>
-          {(p.titulos?.salas ?? 0) === 0
-            ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Ainda sem título em sala online.', 'No online room title yet.')}</p>
-            : <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
-              {Array.from({ length: Math.min(15, p.titulos.salas) }, (_, i) => <span key={i} style={{ fontSize: 26, filter: 'drop-shadow(1px 2px 0 rgba(0,0,0,.35))' }}>🏆</span>)}
-              {p.titulos.salas > 15 && <span style={{ ...OSW, fontSize: 16, marginLeft: 4 }}>+{p.titulos.salas - 15}</span>}
-            </div>}
-        </div>
-
-        {/* 📊 a posição no ranking do online (títulos de sala) na semana, no mês e de TODOS OS TEMPOS (19/10, desde 02/09) + as medalhas do pódio semanal */}
-        <div style={caixa}>
-          <p style={h3}>📊 {tr('No online', 'Online')}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-            {([[tr('Esta semana', 'This week'), p.semana], [tr('Este mês', 'This month'), p.mes], [tr('Todos os tempos', 'All time'), p.sempre]] as const).map(([rot, r]) => (
-              <div key={rot} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: r ? '#FFF7DA' : '#f3eee0' }}>
-                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{rot}</div>
-                <div style={{ ...OSW, fontSize: 24, lineHeight: 1.05, color: INK }}>{r ? `${r.pos}º` : '—'}</div>
-                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{r ? tr(`${r.titulos} ${r.titulos === 1 ? 'título' : 'títulos'}`, `${r.titulos} ${r.titulos === 1 ? 'title' : 'titles'}`) : tr('sem título ainda', 'no title yet')}</div>
-              </div>
-            ))}
-          </div>
+          <GradeTacas itens={[
+            ['liga', tacas?.liga ?? (tacas ? 0 : (p.titulos?.salas ?? 0)), tr('Liga', 'League')], ['copa8', tacas?.copa ?? 0, tr('Copa dos 8', 'Cup of 8')],
+            ['liberta', tacas?.libertadores ?? 0, 'Libertadores'], ['champions', tacas?.champions ?? 0, 'Champions'],
+            ['relampago', tacas?.relampago ?? 0, tr('Relâmpago', 'Lightning')], ['mundo', tacas?.mundial ?? 0, tr('Copa do Mundo', 'World Cup')],
+            ['riosp', tacas?.regional ?? 0, tr('Regionais', 'Regionals')],
+          ]} />
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, ...OSW, fontSize: 15, color: INK }}>
             <span title={tr('1º da semana', '1st of the week')}>🥇 {p.medalhas?.ouro ?? 0}</span>
             <span title={tr('2º da semana', '2nd of the week')}>🥈 {p.medalhas?.prata ?? 0}</span>

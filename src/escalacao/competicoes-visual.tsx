@@ -56,10 +56,11 @@ function Grads({ id }: { id: string }) {
   </defs>
 }
 const TROFEU_CARREIRA: Partial<Record<CompId, string>> = { carV: 'liga-V', carD: 'liga-D', carC: 'liga-C', carB: 'liga-B', carA: 'liga-A', copabr: 'copa', supercopa: 'supercopa' }
-export function Trofeu({ comp, size = 120 }: { comp: CompId; size?: number }) {
+export function Trofeu({ comp, size = 120, sombra = 4 }: { comp: CompId; size?: number; sombra?: number }) {
+  const sb = `drop-shadow(${sombra}px ${sombra}px 0 rgba(0,0,0,.55))`
   // 🏆 carreira: a MESMA arte da Sala de Troféus (arquivo separado, só baixa quem vê)
   const arte = TROFEU_CARREIRA[comp]
-  if (arte) return <img src={`${import.meta.env.BASE_URL}trofeus-v137/${arte}.webp`} alt="" width={size} height={Math.round(size * 170 / 120)} style={{ display: 'block', objectFit: 'contain', filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,.55))' }} />
+  if (arte) return <img src={`${import.meta.env.BASE_URL}trofeus-v137/${arte}.webp`} alt="" width={size} height={Math.round(size * 170 / 120)} style={{ display: 'block', objectFit: 'contain', filter: sb }} />
   const id = `tr-${comp}`, o = `url(#${id}o)`, pr = `url(#${id}p)`
   const corpo: Partial<Record<CompId, ReactNode>> = {
     mundo: <><rect x="38" y="138" width="44" height="22" rx="4" fill={o} {...S} /><rect x="38" y="143" width="44" height="5" fill={`url(#${id}v)`} /><rect x="38" y="152" width="44" height="5" fill={`url(#${id}v)`} /><path d="M44 138 C30 110,40 92,52 82 C44 70,46 56,60 52 C74 56,76 70,68 82 C80 92,90 110,76 138 Z" fill={o} {...S} /><path d="M50 128 C46 112,54 100,60 94 M70 128 C74 112,66 100,60 94" fill="none" stroke="#9a6a00" strokeWidth={2.5} /><circle cx="60" cy="40" r="24" fill={o} {...S} /><path d="M38 40 H82 M60 16 C48 28,48 52,60 64 M60 16 C72 28,72 52,60 64" fill="none" stroke="#9a6a00" strokeWidth={2} /></>,
@@ -74,7 +75,7 @@ export function Trofeu({ comp, size = 120 }: { comp: CompId; size?: number }) {
     relampago: <><rect x="34" y="140" width="52" height="20" rx="4" fill="#3b1f8f" {...S} /><path d="M52 140 L56 114 H64 L68 140 Z" fill={o} {...S} /><path d="M28 34 H92 C92 80,80 106,60 114 C40 106,28 80,28 34 Z" fill={pr} {...S} /><path d="M28 46 C12 46,12 74,32 78 M92 46 C108 46,108 74,88 78" fill="none" {...S} /><path d="M66 38 L46 76 H60 L52 106 L78 62 H63 L72 38 Z" fill={o} stroke={INK} strokeWidth={3} strokeLinejoin="round" /><path d="M20 20 L14 32 H20 L16 42" fill="none" stroke="#FFE14D" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /><path d="M100 16 L94 28 H100 L96 38" fill="none" stroke="#FFE14D" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /></>,
     nordeste: <><g stroke="#E86A1C" strokeWidth={5} strokeLinecap="round" opacity={0.9}><path d="M60 8 V22 M20 28 L30 38 M100 28 L90 38 M8 68 H22 M98 68 H112" /></g><rect x="36" y="142" width="48" height="18" rx="4" fill="#7A3B12" {...S} /><path d="M50 142 L54 116 H66 L70 142 Z" fill={o} {...S} /><path d="M32 44 H88 C88 86,76 108,60 116 C44 108,32 86,32 44 Z" fill={o} {...S} /><path d="M60 62 V100 M50 72 V84 H60 M70 66 V80 H60" stroke="#1B7A3D" strokeWidth={5} strokeLinecap="round" fill="none" /></>,
   }
-  return <svg viewBox="0 0 120 170" width={size} height={Math.round(size * 170 / 120)} style={{ display: 'block', filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,.55))' }}><Grads id={id} />{corpo[comp]}</svg>
+  return <svg viewBox="0 0 120 170" width={size} height={Math.round(size * 170 / 120)} style={{ display: 'block', filter: sb }}><Grads id={id} />{corpo[comp]}</svg>
 }
 
 function Enfeite({ tipo }: { tipo?: Comp['extra'] }) {
