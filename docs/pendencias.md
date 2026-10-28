@@ -23,6 +23,10 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
+- **Várzea real na T26 (simulação, 28/10)**: 15 CPU da casa (74–80, +2) + 4 bots do leilão (76–80, +2) + o humano 79. No motor real
+  (100 temp) um 79 sobe 31% e termina em 8º na média; o robô fez 16º/9º/15º/10º. O teto "Bom" vai de 76 a 85 e no leilão às cegas não
+  dá pra ver qual é qual: quem acerta chega a ~84 e sobe 80%. Escalação do robô conferida (XI 79,1, certo). Achado do robô: no
+  "Próxima fase" da Copa com o time já eliminado, o toque às vezes não anda (o robô precisou de outro botão) — investigar se acontece com gente.
 - ✅ **PUBLICADO (28/10, *"Sim"*) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
   Saiu da Várzea!" só aparece com o time FORA da Várzea (quem caiu de volta não lê mais isso; o aviso espera a próxima subida);
   (2) a linha "🤝 Patrocínio" (sobra do pontual, sempre 0) e as linhas de "Agência"/"Empresário" só entram no extrato com dinheiro de
