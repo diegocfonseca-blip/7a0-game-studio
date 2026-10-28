@@ -951,7 +951,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   "3 colunas com clube + tabela + calendário" na Central, estilo Brasileirinho). Jogos + Tabela = uma aba só.
 - **⚔️🚫 CLÃ NÃO VAI PRA HOME (27/10).** *"o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas"*. Na home só os PEDIDOS (amizade, convite de clã, pedido pro meu clã) com aceitar ali (`PedidosNaHome`). Não repropor bloco de clãs na home.
 - **👁️ ESPECTADOR "FANTASMA" (28/10, mockup `scripts/mockups/espectador.png`, *"Perfeito"*).** Pra campeonatos: só quem ele libera no
-  #admin vê 👁️ ASSISTIR; entra em qualquer sala, vê tudo e fala no chat (selo 👁️), mas **não joga e não aparece em lista nenhuma** (nem na
+  #admin vê 👁️ ASSISTIR; entra em qualquer sala, vê tudo e **só LÊ o chat** (28/10, depois do 1º teste: *"eu comentar pode ser que atrapalhe algo"* — inclusive o da sala de espera), mas **não joga e não aparece em lista nenhuma** (nem na
   do dono). Medo dele: *"não quero erro… medo de mudar cadeira"*. Régua de construção: o fantasma NUNCA ganha linha em `room_players`, nunca
   entra no `seatUids`, nunca faz `track()`, nunca manda ação e nunca vira dono; e `espectador.ts` barra no aparelho dele TODA gravação no
   banco. Quem mexer em coroa/presença/dispatch: manter o `if (espectador)`. Trava: `npm run espectador`.

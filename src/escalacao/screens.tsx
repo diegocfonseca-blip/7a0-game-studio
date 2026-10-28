@@ -835,6 +835,12 @@ export function ChatWidget() {
                   </div>
                 )}
                 <style>{FIG_CSS}</style>
+                {/* 👁️ espectador (28/10, Diego: "acho que eu não poderia comentar no chat… pode atrapalhar"): só LÊ */}
+                {state.espectador ? (
+                  <p style={{ margin: 0, padding: '9px 12px', borderTop: '2px solid #000', background: '#E7E1F7', color: INK, fontWeight: 800, fontSize: 12 }}>
+                    {tr('👁️ Você está assistindo: só lê o chat (das mensagens de quando você entrou pra frente).', '👁️ You are watching: read-only chat (messages from when you joined on).')}
+                  </p>
+                ) : (
                 <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
                   {temFig && <button onClick={() => setFigAberta(a => !a)} aria-label={tr('Figurinhas do mascote', 'Mascot stickers')} style={{ width: 38, flexShrink: 0, background: figAberta ? GOLD : '#fff', border: '2px solid #000', borderRadius: 9, fontSize: 18, boxShadow: '2px 2px 0 0 #000', cursor: 'pointer' }}>🐊</button>}
                   <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
@@ -842,6 +848,7 @@ export function ChatWidget() {
                     style={{ flex: 1, minWidth: 0, color: INK, background: '#fff', border: '2px solid #000', borderRadius: 9, padding: '7px 10px', fontSize: 13, fontWeight: 600 }} />
                   <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>{tr('Enviar', 'Send')}</button>
                 </div>
+                )}
               </>
             )}
           </div>

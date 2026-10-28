@@ -11374,3 +11374,4 @@ FIX_YOU_IDX/host_change/kick ignorados · e `espectador.ts` barra toda gravaçã
 Teste: `npm run espectador`. Foto real: `scripts/mockups/espectador-real.png`.
 Ainda não: no pregão aberto/Tocaia/Monte os botões de lance APARECEM pro fantasma mas não fazem nada (o motor barra) — esconder
 igual ao envelope se o Diego pedir. Sala de espera sem chat pro fantasma (o chat dele é o da partida).
+✅ 28/10 1º teste do Diego numa sala ao vivo: *"deu muito certo e não influenciou em nada… sem bugs"*. Pedido: o fantasma só LÊ o chat (não escreve) e precisa ver o papo — FEITO no branch: caixa do chat sem campo de escrever + o chat da sala de espera (canal `esclobby`, só escuta). O chat mostra as mensagens de quando ele entrou pra frente (o histórico vive no aparelho de cada um).

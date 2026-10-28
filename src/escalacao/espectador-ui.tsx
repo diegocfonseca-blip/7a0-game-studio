@@ -26,6 +26,18 @@ export function EspectadorEspera({ sala, onSair }: { sala: SalaAssistida; onSair
   const [aviso, setAviso] = useState<string | null>(null)
   const ultimoPesado = useRef(0)
   const entrou = useRef(false)
+  // 💬 o chat da SALA DE ESPERA (canal `esclobby`), só pra LER: o fantasma escuta, não anuncia presença e não manda nada
+  const [papo, setPapo] = useState<{ id: string; name: string; text: string }[]>([])
+  useEffect(() => {
+    const ch = supabase.channel(`esclobby:${sala.id}`)
+      .on('broadcast', { event: 'chat' }, ({ payload }: { payload: { id?: string; name?: string; text?: string } }) => {
+        if (!payload?.id || !payload.text) return
+        const m = { id: payload.id, name: payload.name ?? '—', text: String(payload.text).slice(0, 160) }
+        setPapo(p => p.some(x => x.id === m.id) ? p : [...p.slice(-40), m])
+      })
+      .subscribe()
+    return () => { try { void supabase.removeChannel(ch) } catch { /* ignora */ } }
+  }, [sala.id])
   useEffect(() => {
     let vivo = true
     entrou.current = false
@@ -70,7 +82,7 @@ export function EspectadorEspera({ sala, onSair }: { sala: SalaAssistida; onSair
       <div className="max-w-md mx-auto">
         <div style={{ background: ROXO, color: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '14px 16px' }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, margin: 0, textTransform: 'uppercase' }}>👁️ <span style={{ color: '#FFE14D' }}>{tr('Você está assistindo', 'You are watching')}</span></p>
-          <p style={{ fontWeight: 600, fontSize: 13, margin: '4px 0 0', opacity: .9 }}>{tr('Ninguém vê você na lista. Você não dá lance nem escala — só olha e fala no chat.', 'Nobody sees you in the list. You don’t bid or pick a lineup — you just watch and chat.')}</p>
+          <p style={{ fontWeight: 600, fontSize: 13, margin: '4px 0 0', opacity: .9 }}>{tr('Ninguém vê você na lista. Você não dá lance nem escala — só olha e lê o chat.', 'Nobody sees you in the list. You don’t bid or pick a lineup — you just watch and read the chat.')}</p>
         </div>
         <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `3px 3px 0 ${INK}`, padding: '12px 14px', marginTop: 14 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>{sala.nome || sala.code}</p>
@@ -79,6 +91,12 @@ export function EspectadorEspera({ sala, onSair }: { sala: SalaAssistida; onSair
           </p>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: '0 0 4px' }}>👥 {tr('NA SALA', 'IN THE ROOM')} ({nomes.length})</p>
           {nomes.map((n, i) => <p key={i} style={{ fontWeight: 700, fontSize: 14, margin: 0, padding: '4px 0', borderBottom: '1px dashed rgba(0,0,0,.18)' }}>{n}</p>)}
+        </div>
+        <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `3px 3px 0 ${INK}`, padding: '12px 14px', marginTop: 14 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: '0 0 6px' }}>💬 {tr('CHAT DA SALA', 'ROOM CHAT')} <span style={{ fontWeight: 700, fontSize: 11, color: '#5a5647' }}>· {tr('você só lê', 'read-only')}</span></p>
+          {papo.length === 0
+            ? <p style={{ fontWeight: 600, fontSize: 12.5, margin: 0, color: '#8a7d59' }}>{tr('As mensagens aparecem aqui assim que alguém escrever.', 'Messages show up here as soon as someone writes.')}</p>
+            : papo.map(m => <p key={m.id} style={{ fontSize: 13, margin: '3px 0', wordBreak: 'break-word' }}><b style={{ ...OSWALD }}>{m.name}:</b> {m.text}</p>)}
         </div>
         <button onClick={onSair} style={{ ...OSWALD, marginTop: 14, width: '100%', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 0', fontWeight: 900, fontSize: 15, cursor: 'pointer' }}>
           {tr('SAIR ✕', 'LEAVE ✕')}

@@ -13876,13 +13876,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meuNome = d?.partnerUid
       ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
       : undefined
-    // 👁️ fantasma fala com o PRÓPRIO nome de conta e o selo 👁️ (nunca com o time por cujos olhos ele assiste)
-    if (st.espectador) {
-      const mE: ChatMsg = { id: Math.random().toString(36).slice(2), from: -1, uid: st.youUid, name: myDisplayNameRef.current || 'Espectador', text: t, ts: Date.now(), esp: true, ...(re ? { re } : {}) }
-      addChat(mE, true)
-      channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: mE })
-      return
-    }
+    // 👁️ fantasma SÓ LÊ o chat (28/10, Diego: "eu comentar pode ser que atrapalhe algo") — nada sai do aparelho dele
+    if (st.espectador) return
     const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now(), ...(re ? { re } : {}), ...(fig != null ? { fig } : {}) } // ↩ resposta (13/10) · 🐊 figurinha (21/10): o texto vai junto pra versão velha mostrar escrito
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })

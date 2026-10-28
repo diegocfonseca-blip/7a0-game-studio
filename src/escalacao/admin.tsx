@@ -356,7 +356,7 @@ function EspectadoresAdmin() {
   return (
     <div style={{ border: '2px solid #a58cff', borderRadius: 16, padding: 14, marginTop: 16 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#c7b8ff', textTransform: 'uppercase', margin: '0 0 4px' }}>👁️ Espectadores liberados</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Vê o botão 👁️ ASSISTIR em toda sala: entra, vê tudo e fala no chat, mas não joga e não aparece na lista. A sua conta sempre pode.</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Vê o botão 👁️ ASSISTIR em toda sala: entra, vê tudo e LÊ o chat, mas não escreve, não joga e não aparece na lista. A sua conta sempre pode.</p>
       {lista.map(r => (
         <div key={r.email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderTop: '1px solid rgba(242,232,207,.15)', fontSize: 12.5, fontWeight: 700 }}>
           <span>{r.email}</span>
