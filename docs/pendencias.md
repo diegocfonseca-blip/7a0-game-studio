@@ -23,6 +23,11 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
+- ✅ **PUBLICADO (28/10, *"Sim"*) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
+  Saiu da Várzea!" só aparece com o time FORA da Várzea (quem caiu de volta não lê mais isso; o aviso espera a próxima subida);
+  (2) a linha "🤝 Patrocínio" (sobra do pontual, sempre 0) e as linhas de "Agência"/"Empresário" só entram no extrato com dinheiro de
+  verdade — o patrocinador de verdade já entra com o nome da marca ("🏆 Master · Vadico", "👟 Material", "🎯 Meta batida").
+  🚫 Bilheteria do estádio: NÃO mexer (*"da bilheteria não mexe não"*).
 - ✅ **PUBLICADO PRA TODOS (28/10, *"publique sim. P todos"*) — bônus da casa novo (simV 5)**, ordem do Diego: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e
   série A coloque 3"* (B fica 4). `CPU_DIV_BOOST_V5` = A 2 (*"série a deixe 2 msm"*) · B 4 · C 4 · D 3 · V 2. Só vale de temporada NOVA (trava simV, inclusive no
   "mesmo time" — `CONFIRM_MESMO_TIME` agora também carimba): temporada em andamento termina na tabela antiga. Medido no motor: time no teto

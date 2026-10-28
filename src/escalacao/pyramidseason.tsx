@@ -12785,7 +12785,8 @@ export function ReserveListScreen() {
             <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: 0 }}>{getLang() === 'en' ? <>Now you can <b>list players for auction</b> (and bid them back).</> : <>Agora você pode <b>listar jogadores pra leilão</b> (e disputá-los de volta).</>}</p>
           </div>
         )}
-        {state.escadaOn && state.escadaSubiu && (
+        {/* 🪜 28/10: só enquanto o time está FORA da Várzea — quem cai de volta não lê "Saiu da Várzea!" (o aviso espera a próxima subida) */}
+        {state.escadaOn && state.escadaSubiu && (state.careerPlacements?.[`m${youId}`] ?? 'V') !== 'V' && (
           <UnlockBanner k="profissional" tag={tr('🪜 subiu de divisão', '🪜 promoted')} title={tr('Virou profissional!', 'You turned professional!')} ctaBg={GREEN} ctaColor="#fff">
             {tr('Saiu da Várzea! Agora o contrato dos seus jogadores passa a valer de verdade — pode vencer, você renova ou deixa ir.', 'Out of Várzea! Your players\' contracts now count for real — they can expire, and you renew or let go.')}
           </UnlockBanner>
