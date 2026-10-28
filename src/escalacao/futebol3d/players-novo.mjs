@@ -20,11 +20,12 @@ import {bootContact} from './motion/map-contact.mjs'
 import {createMapRigSurface} from './motion/map-rig-surface.mjs'
 import {prepareMapTimeline} from './motion/map-football-timeline.mjs'
 import {groundDelivery,sampleGroundDelivery} from './motion/map-ball-flight.mjs'
-import {rootTrack,controlledRoot} from './motion/map-root-track.mjs'
+import {prepareBodyTrack} from './motion/map-root-track.mjs'
+import {MapFootPlant} from './motion/map-foot-plant.mjs'
+import {groundContactShadows} from './motion/ground-contact-shadows.mjs'
+import {prepareMapGaits,gaitTime} from './motion/map-gait.mjs'
 import {VisualPlayerCollisions} from './visual-player-collisions.mjs'
 
-// velocidade (m/s) em que cada corrida do Mixamo foi gravada, por ciclo — o passo acompanha o chão sem patinar
-const CICLO_M=2.9
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
 const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,'diag_td'],[Math.PI,'re'],[-3*Math.PI/4,'diag_te'],[-Math.PI/2,'lado_e'],[-Math.PI/4,'diag_fe']]
 const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
@@ -68,6 +69,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // ground strike (toe already 29 cm high). Keep shared imported clips intact.
  const asset={...original,meta:{...original.meta,clips:{...original.meta.clips,chute_forte:{...original.meta.clips.chute_forte,toque:2.5833333333333},chute_corrida:{...original.meta.clips.chute_corrida,toque:5/12},conduz:{...original.meta.clips.conduz,toque:2/3,pe:'r'},cabeca:{...original.meta.clips.cabeca,toque:1.1333333333333},gk_recolhe:{...original.meta.clips.gk_recolhe,toque:.75},gk_lanca:{...original.meta.clips.gk_lanca,toque:1.6166666666667},gk_lanca_longe:{...original.meta.clips.gk_lanca_longe,toque:1.45},gk_rola:{...original.meta.clips.gk_rola,toque:1.1333333333333},lateral:{...original.meta.clips.lateral,toque:1.5333333333333},controle_corrida:{...original.meta.clips.conduz,toque:2/3,pe:'r'}}}}
  asset.clips=new Map(original.clips);const runningControl=original.clips.get('conduz').clone();runningControl.name='controle_corrida';asset.clips.set(runningControl.name,runningControl)
+ const gaitActor=criarJogadorNovo(asset,GOLEIRO),gaits=prepareMapGaits(asset,gaitActor,['conduz',...DIRS.map(d=>d[1])]);gaitActor.dispose();
  const teams=state.officialTeams??[]
  const kitPlan=matchKitPlan(state,teams.map(clubKitFor),teams.map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[]))
  // 👕 a ficha de uniforme de cada lado (uniformes.mjs): a cadastrada do clube ou a lisa das cores dele; se as duas camisas
@@ -85,7 +87,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   const ator={...j,pe:ap.lenda?peDe(p.name,10):null,canhoto:[...p.name].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7)%4<1,key:p.key,side:p.side,keeper:p.keeper,ficha,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
   {const osso=n=>{let r;j.root.traverse(o=>{if(o.isBone&&o.name.toLowerCase().includes(n))r??=o});return r};ator.pes=[osso('righttoe'),osso('lefttoe')].filter(Boolean);ator.corr={x:0,z:0};ator.corrAlvo={x:0,z:0};ator.bones=new Map();ator.root.traverse(o=>{if(o.isBone)ator.bones.set(o.name,o)});ator.contactHistory=null;ator.lastConfirmed=-Infinity}
   if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c?.pele&&!disposed)ator.setPele(c.pele)})
-  ator.surface=createMapRigSurface(ator);ator.knots=[];atores.push(ator)
+  ator.surface=createMapRigSurface(ator);ator.grounding=new MapFootPlant();ator.knots=[];atores.push(ator)
  }
  // Contact calibration samples the imported pose on the ORIGINAL skinned mesh.
  const CONTATO={},agenda=timeline.agenda,calibrator=atores[0],poseCache=new Map()
@@ -152,7 +154,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   if(it.cab)it.extraRise=Math.max(0,Math.min(.5,it.bola.y-off.y))
   // Hand ownership is attachment after a measured catch, never a foot action.
   if(it.hands&&it.keeper&&it.kind==='toque')continue
-  a.knots.push({t:it.t,...it.root,budget:it.pickup?4.5:3,plan:it})
+  a.knots.push({t:it.t,...it.root,budget:it.pickup?4.5:3,approach:it.pickup?2:undefined,plan:it})
  }
  // Receiving ownership in the source is a tactical assignment. Its settling
  // spring must not be drawn as a ball moving away and returning by itself.
@@ -170,18 +172,26 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // of the same ownership spring, without manufacturing another touch/decision.
  const physical=agenda.filter(it=>!it.disabled&&!(it.firstTime&&it.kind==='recebe'));
  for(let i=0;i<physical.length-1;i++){const p=physical[i],q=physical[i+1];if(!['recebe','carry'].includes(p.kind)||p.hands||p.goleiro||q.hands||p.bola.y>.13||q.bola.y>.13||q.t-p.t>2.5||!groundInterval(p,q)||groundFlights.some(f=>Math.abs(f.start-p.t)<1e-5))continue;const f=groundDelivery(p.t,q.t,p.bola,q.bola);if(f){groundFlights.push(f);controlSpans.push(f)}}
- const bodyTrack=(a,time,base=timeline.sample(time,a.key).player)=>controlledRoot(a.controls,time,base)??rootTrack(a.knots,time);
+ for(const a of atores)a.bodyTrack=prepareBodyTrack(a.knots,a.controls,time=>timeline.sample(time,a.key).player);
+ const bodyTrack=(a,time)=>a.bodyTrack(time);
  for(const action of calibrator.mixer._actions)action.setEffectiveWeight(0)
  calibrator.holder.position.set(0,0,0);calibrator.holder.rotation.set(0,0,0)
  // Fit each captured action into the available official interval. In particular,
  // a keeper must finish collecting before starting a throw; crop its idle lead-in.
  for(const a of atores){let previous=null;for(const it of agenda.filter(i=>i.key===a.key&&!i.disabled&&!(i.firstTime&&i.kind==='recebe'))){
   const raw=rawTouch(it.nome),begin=it.kind==='carry'?.27:trecho(it.nome)?.de??0;
-  it.start=it.t-(raw-begin);const moving=!it.hands&&!it.goleiro&&!it.pickup&&!it.cab&&(it.rec?.speed??0)>3.5;if(moving&&(it.kind==='recebe'||it.kind==='carry'||['passe','enfiada'].includes(it.tipo)))it.start=Math.max(it.start,it.t-(it.kind==='recebe'?.24:.28));if(previous&&previous.t<it.t&&it.start<previous.t+.10)it.start=Math.min(it.t-.13,previous.t+.10);
-  it.clipStart=raw-(it.t-it.start);it.clipEnd=Math.min(trecho(it.nome)?.ate??asset.clips.get(it.nome).duration,raw+(it.goleiro?.3:moving?.30:it.kind==='recebe'?.4:.65));
+  it.start=it.t-(raw-begin);const moving=!it.hands&&!it.goleiro&&!it.pickup&&!it.cab&&(it.rec?.speed??0)>3.5;if(moving&&(it.kind==='recebe'||it.kind==='carry'||['passe','enfiada'].includes(it.tipo)))it.start=Math.max(it.start,it.t-(it.kind==='recebe'?.24:.28));
+  const settle=(previous?.goleiro||previous?.pickup) ? .18 : .10;
+  if(previous&&previous.t<it.t&&it.start<previous.t+settle)it.start=Math.min(it.t-.19,previous.t+settle);
+  const shortPass=it.kind==='toque'&&!it.hands&&['passe','enfiada'].includes(it.tipo);
+  it.clipStart=raw-(it.t-it.start);it.clipEnd=Math.min(trecho(it.nome)?.ate??asset.clips.get(it.nome).duration,raw+(it.goleiro ? .3 : moving ? .30 : (it.kind==='recebe'||shortPass) ? .4 : .65));
   previous=it;
  }}
  const navigation=new VisualPlayerCollisions({radius:.32,budget:.42})
+ const soleShadows=groundContactShadows(scene,atores.length,{bones:{left:'mixamorigLeftFoot',right:'mixamorigRightFoot'},contacts:a=>a.plants});
+ // Release collision steering gradually around a fixed contact. A binary
+ // lock used to erase up to 60 cm of avoidance in a single video frame.
+ const contactFreedom=(a,time)=>{const distance=Math.min(Infinity,...(a?.knots??[]).map(k=>Math.abs(k.t-time)));return T.MathUtils.smoothstep(distance,.08,.4)};
  let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0},navInfo=null
  const bola={modo:'livre',dono:null,toques:0},medidas=[];let visualBall=null,visualRotation=null,spin=null,handState=null,handFlight=null
  onPrepared?.()
@@ -230,7 +240,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    if(lastTime===frame.time&&!frame.official?.finished){
     inspection={full:0,intermediate:0,far:0,hidden:0,tiros:inspection.tiros}
     for(const a of atores){const p=frame.players.find(p=>p.key===a.key);a.detail=!p||p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;a.holder.visible=a.detail!=='hidden'}
-    return
+    soleShadows.update(atores);return
    }
    const firstFrame=lastTime===null;const dt=lastTime===null||frame.time<lastTime||frame.time-lastTime>1?0:frame.time-lastTime,reset=dt===0&&lastTime!==null&&frame.time!==lastTime;lastTime=frame.time
    if(reset){handState=null;handFlight=null}
@@ -240,8 +250,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    // eventos dos últimos 0,4 s, por nome do motor (o mesmo que o teatro do players.mjs usa)
    const recentes=[];for(let i=evs.length-1;i>=0;i--){const e=evs[i],idade=frame.time-e.t;if(idade>.4)break;if(idade>=0)recentes.push(e)}
    const proposed=frame.players.map(p=>{const a=atores.find(a=>a.key===p.key),root=a?bodyTrack(a,frame.time):{x:0,z:0},base=p.sourceAnchor??{x:p.mx,z:p.mz},future=timeline.sample(frame.time+.15,p.key).player,rf=a?bodyTrack(a,frame.time+.15):{x:0,z:0};return{...p,mx:base.x+root.x,mz:base.z+root.z,navigationVelocity:future?{x:(future.x+rf.x-base.x-root.x)/.15,z:(future.z+rf.z-base.z-root.z)/.15}:undefined}})
-   navInfo=navigation.sample({...frame,players:proposed},{action:(key,time)=>{const a=atores.find(a=>a.key===key),close=a?.knots.some(k=>Math.abs(k.t-time)<.10);return close?{collisionFreedom:0}:null}})
-   const safety=navigation.finalize(proposed.filter(p=>p.visible!==false).map(p=>{const shift=navInfo.positions.get(p.key)??{x:0,z:0},a=atores.find(a=>a.key===p.key);return{key:p.key,sourceX:p.mx,sourceZ:p.mz,rootX:p.mx+shift.x,rootZ:p.mz+shift.z,x:p.mx+shift.x,z:p.mz+shift.z,y:1,radius:.22,freedom:a?.knots.some(k=>Math.abs(k.t-frame.time)<.1)?0:1}}));
+   navInfo=navigation.sample({...frame,players:proposed},{action:(key,time)=>{const freedom=contactFreedom(atores.find(a=>a.key===key),time);return freedom<1?{collisionFreedom:freedom}:null}})
+   const safety=navigation.finalize(proposed.filter(p=>p.visible!==false).map(p=>{const shift=navInfo.positions.get(p.key)??{x:0,z:0},a=atores.find(a=>a.key===p.key);return{key:p.key,sourceX:p.mx,sourceZ:p.mz,rootX:p.mx+shift.x,rootZ:p.mz+shift.z,x:p.mx+shift.x,z:p.mz+shift.z,y:1,radius:.22,freedom:contactFreedom(a,frame.time)}}));
    for(const [key,shift]of safety.shifts){const p=navInfo.positions.get(key);if(p){p.x+=shift.x;p.z+=shift.z}}navInfo.diagnostics.final=safety.diagnostics;
    for(const p of frame.players){
     const a=atores.find(x=>x.key===p.key&&!usados.has(x))??atores.find(x=>!usados.has(x)&&x.side===p.side&&x.keeper===p.keeper&&!frame.players.some(q=>q.key===x.key));if(!a)continue;usados.add(a);a.key=p.key
@@ -273,7 +283,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      // Replay/seek uses the same planned capture and exact contact clock.
      if(a.tiro?.planId&&a.tiro.contactAt>=agora-.04&&a.tiro.contactAt<it.t)continue
      dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:it.kind==='recebe'?toque(nome)+.45:Infinity,mira:it.mira,ponto:true})
-     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact
+     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact;a.tiro.blendIn=(it.hands||it.goleiro) ? .18 : .12
     }
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
@@ -298,30 +308,33 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // Keep contact sampling and animation time independent of camera culling.
     // ── corrida: 8 direções em fase comum, peso pela velocidade ──
     const fw=vel>.05?angulo(Math.atan2(dx,dz)-a.rumo):0,lado=-fw // (+ = pra direita do corpo; o eixo do three gira ao contrário)
-    a.fase=(a.fase+(dt>0?Math.min(2.6,vel/(comBola?4.75:CICLO_M))*dt:0))%1
-    if(comBola&&plan?.kind==='carry'&&dt>0){
-     const rate=Math.min(2.6,vel/4.75),remaining=plan.t-agora
-     if(plan.phase===undefined){const ahead=a.fase+rate*remaining;plan.phase=[.385,.866].sort((x,y)=>Math.abs(angulo((x-ahead)*Math.PI*2))-Math.abs(angulo((y-ahead)*Math.PI*2)))[0]}
-     const error=angulo((plan.phase-rate*remaining-a.fase)*Math.PI*2)/(Math.PI*2)
-     a.fase=(a.fase+T.MathUtils.clamp(error*(1-Math.exp(-dt/.07)),-.8*dt,.8*dt)+1)%1
-    }
+    const direction=((lado%(2*Math.PI))+2*Math.PI)%(2*Math.PI),di=Math.floor(direction/(Math.PI/4))%8,du=direction/(Math.PI/4)-di;
+    const gaitName=i=>DIRS[i][1]==='trote'&&comBola?'conduz':DIRS[i][1],n0=gaitName(di),n1=gaitName((di+1)%8);
+    const stride=gaits[n0].distance*(1-du)+gaits[n1].distance*du;
+    a.fase=(a.fase+(dt>0?Math.min(3.6,vel/stride)*dt:0))%2;
     const anda=T.MathUtils.smoothstep(vel,.25,1.1),segura=p.keeper&&frame.ball.y>.6&&frame.ball.y<1.6&&Math.hypot(bx,bz)<1.3
     const parado=p.keeper?(frame.ball.heldBy===p.key||segura?'gk_idle_bola':'gk_idle'):'idle'
     const alvos=new Map(LOOPS.map(n=>[n,0]));alvos.set(parado,1-anda)
-    {const l=((lado%(2*Math.PI))+2*Math.PI)%(2*Math.PI),i=Math.floor(l/(Math.PI/4))%8,u=l/(Math.PI/4)-i // (DIRS vai de 45 em 45°)
-     const nome=k=>DIRS[k][1]==='trote'&&comBola?'conduz':DIRS[k][1],n0=nome(i),n1=nome((i+1)%8)
-     alvos.set(n0,alvos.get(n0)+anda*(1-u));alvos.set(n1,alvos.get(n1)+anda*u)}
+    alvos.set(n0,alvos.get(n0)+anda*(1-du));alvos.set(n1,alvos.get(n1)+anda*du)
     // lance por cima: o tempo do movimento é o relógio do jogo (pausa e replay param junto)
     let wTiro=0
     if(a.tiro){const t=agora-a.tiro.t0,act=a.acao(a.tiro.nome)
      if(t<0||t>a.tiro.dur){act.setEffectiveWeight(0);const {dur,depois}=a.tiro;a.tiro=null;if(t>dur&&depois)dispara(a,depois,{inicio:Math.min(t-dur,.2),agora})}
-     else{wTiro=Math.min(1,t/.12,(a.tiro.dur-t)/.25);act.time=a.tiro.base+t;act.setEffectiveWeight(wTiro)}}
-    let wFade=0;if(a.fade){const old=a.acao(a.fade.nome),u=T.MathUtils.clamp((agora-a.fade.fadeAt)/.12,0,1);if(u>=1||!old){old?.setEffectiveWeight(0);a.fade=null}else{wFade=(1-wTiro)*a.fade.weight*(1-u);old.time=a.fade.base+Math.min(a.fade.dur,Math.max(0,agora-a.fade.t0));old.setEffectiveWeight(wFade)}}
+     else{wTiro=Math.min(1,t/(a.tiro.blendIn??.12),(a.tiro.dur-t)/.25);act.time=a.tiro.base+t;act.setEffectiveWeight(wTiro)}}
+    let wFade=0;if(a.fade){const old=a.acao(a.fade.nome),u=T.MathUtils.clamp((agora-a.fade.fadeAt)/(a.tiro?.blendIn??.12),0,1);if(u>=1||!old){old?.setEffectiveWeight(0);a.fade=null}else{wFade=(1-wTiro)*a.fade.weight*(1-u);old.time=a.fade.base+Math.min(a.fade.dur,Math.max(0,agora-a.fade.t0));old.setEffectiveWeight(wFade)}}
     const k=dt>0?1-Math.exp(-dt/.15):1
-    for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*Math.max(0,1-wTiro-wFade));const dur=act.getClip().duration;act.time=n.startsWith('idle')||n.startsWith('gk_idle')?agora%dur:a.fase*dur}
+    for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*Math.max(0,1-wTiro-wFade));const dur=act.getClip().duration;act.time=gaits[n]?gaitTime(gaits[n],a.fase):agora%dur}
     a.mixer.update(0)
     a.holder.updateMatrixWorld(true);const rawFloor=a.surface.floor();a.holder.position.y+=Math.max(0,Math.min(.08,.003-rawFloor))
     if(a.tiro?.extraRise){const capturedFlight=Math.max(0,rawFloor),height=a.tiro.pose?.feetHeight??.3;a.holder.position.y+=a.tiro.extraRise*T.MathUtils.clamp(capturedFlight/Math.max(.05,height),0,1)}
+    // Keep the striking limb and every calibrated impact untouched. Only the
+    // support foot / gait receives bounded residual IK, on the original rig.
+    const excluded=[],contactSide=a.tiro?.pose?.region;
+    if(['left','right'].includes(contactSide))excluded.push(contactSide);
+    if(plan&&Math.abs(plan.t-agora)<.09)excluded.push('left','right');
+    const plantingBall=frame.ball.presentation??frame.ball;
+    for(const side of ['left','right']){const foot=a.bones.get('mixamorig'+(side==='left'?'Left':'Right')+'Foot').getWorldPosition(new T.Vector3());if(foot.distanceTo(new T.Vector3(plantingBall.x,plantingBall.y,plantingBall.z))<.38)excluded.push(side)}
+    a.plants=a.grounding.apply(a,agora,{reset:reset||!!frame.placementReset||salto,excluded,airborne:/^(cabeca|gk_voo|gk_pega_alto|carrinho|cai|bicicleta|giro)/.test(a.tiro?.nome??'')});
     // Surface clearance is bounded to ten centimetres on the original rig.
     // It moves the limb only; the ball never follows a corrective IK target.
     if(!frame.replay&&!frame.restart&&(comBola||plan&&Math.abs(plan.t-agora)<.09)){
@@ -333,6 +346,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     }
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
+   soleShadows.update(atores);
    // Hands attach only after a measured catch/pickup (or a verified seek restore).
    // Foot deliveries have fixed endpoints; live feet never attract the ball.
    visualBall=groundBall;
@@ -358,7 +372,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      visualBall={x:source.x+(f.start.x-f.source.x)*fade,y:Math.max(.11,y),z:source.z+(f.start.z-f.source.z)*fade};
     }else if(t>d||t<0)handFlight=null;
    }
-   const rollingPoint={...(visualBall??frame.ball.presentation??frame.ball),held:!!held};
+   const rollingPoint={...(visualBall??frame.ball.presentation??frame.ball),curl:frame.ball.curl,held:!!held};
    if(!spin||reset||frame.placementReset){spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,rollingPoint);if(frame.ball.rotation)spin.quaternion.fromArray(frame.ball.rotation)}
    visualRotation=spin.step(rollingPoint,dt).toArray();
    observeContacts(frame,dt,reset)
@@ -366,8 +380,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   presentFrame:frame=>({...frame,ball:{...frame.ball,presentation:visualBall??frame.ball.presentation,rotation:visualRotation??frame.ball.rotation}}),
   prepared:()=>Promise.resolve(null),
   debug:()=>({prepared:true,duration:timeline.duration,ft:lastTime,agenda:agenda.map(({key,...o})=>({k:key,...o})),medidas}),
-  inspect:()=>({...inspection,style:'jogador-novo',football:{diagnostics,controlledIntervals:controlSpans.length,groundDeliveries:groundFlights.length-controlSpans.length,handContact:handState?{key:handState.key,gap:handState.catchGap}:null,handFlight:handFlight?{start:handFlight.t,end:handFlight.end}:null,navigation:navInfo?.diagnostics,preparedBytes:timeline.bytes,actions:atores.filter(a=>a.tiro).map(a=>({key:a.key,tiro:a.tiro,plan:activePlan(a,lastTime),contact:CONTATO[a.tiro.nome],target:a.corrAlvo,root:a.corr,heading:a.rumo})),mode:bola.modo,touches:bola.toques,contacts:medidas.slice(),corrections:atores.filter(a=>Math.hypot(a.corr.x,a.corr.z)>.01).map(a=>({key:a.key,x:a.corr.x,z:a.corr.z}))}}),
+  inspect:()=>({...inspection,style:'jogador-novo',football:{diagnostics,grounding:atores.flatMap(a=>(a.plants??[]).filter(p=>p.applied).map(p=>({key:a.key,...p}))),spin:spin?.inspect(),controlledIntervals:controlSpans.length,groundDeliveries:groundFlights.length-controlSpans.length,handContact:handState?{key:handState.key,gap:handState.catchGap}:null,handFlight:handFlight?{start:handFlight.t,end:handFlight.end}:null,navigation:navInfo?.diagnostics,preparedBytes:timeline.bytes,actions:atores.filter(a=>a.tiro).map(a=>({key:a.key,tiro:a.tiro,plan:activePlan(a,lastTime),contact:CONTATO[a.tiro.nome],target:a.corrAlvo,root:a.corr,heading:a.rumo})),mode:bola.modo,touches:bola.toques,contacts:medidas.slice(),corrections:atores.filter(a=>Math.hypot(a.corr.x,a.corr.z)>.01).map(a=>({key:a.key,x:a.corr.x,z:a.corr.z}))}}),
   inspectActors:()=>({slots:atores.map((a,slot)=>({slot,key:a.key,heading:a.rumo,visible:a.holder.visible,detail:a.detail,tiro:a.tiro?.nome??null}))}),
-  dispose(){if(disposed)return;disposed=true;for(const a of atores)a.dispose()},
+  dispose(){if(disposed)return;disposed=true;soleShadows.dispose();for(const a of atores)a.dispose()},
  }
 }

@@ -17,7 +17,8 @@ export function createMapRigSurface(actor){
   }layouts.set(g,layout);
  }
  function triangles(region){if(region==='feet')return [...triangles('right'),...triangles('left')];if(region==='hands')return [...triangles('rightHand'),...triangles('leftHand')];actor.holder.updateMatrixWorld(true);mesh.skeleton.update();const vertices=new Map(),vertex=i=>{let v=vertices.get(i);if(!v){v=mesh.getVertexPosition(i,new T.Vector3()).applyMatrix4(mesh.matrixWorld);vertices.set(i,v)}return v};return layout[region].triangles.map(ids=>new T.Triangle(...ids.map(vertex)))}
- function floor(){actor.holder.updateMatrixWorld(true);mesh.skeleton.update();let y=Infinity;const p=new T.Vector3();for(const region of ['left','right'])for(const i of layout[region].extrema){mesh.getVertexPosition(i,p).applyMatrix4(mesh.matrixWorld);y=Math.min(y,p.y)}return y}
+ function footBounds(){actor.holder.updateMatrixWorld(true);mesh.skeleton.update();const p=new T.Vector3(),result={};for(const region of ['left','right']){let floor=Infinity,top=-Infinity;for(const i of layout[region].extrema){mesh.getVertexPosition(i,p).applyMatrix4(mesh.matrixWorld);floor=Math.min(floor,p.y);top=Math.max(top,p.y)}result[region]={floor,top}}return result}
+ function floor(){const feet=footBounds();return Math.min(feet.left.floor,feet.right.floor)}
  function probe(point,region){const ts=triangles(region),hit=nearest(point,ts);return{...hit,gap:hit.distance-.11,floor:Math.min(...ts.flatMap(t=>[t.a.y,t.b.y,t.c.y]))}}
  function anchor(region,origin,direction,{height=.11,radius=.11}={}){
   const ts=triangles(region),dir=direction.clone().setY(0).normalize(),point=origin.clone();let outer=.7,inner=null;
@@ -40,5 +41,5 @@ export function createMapRigSurface(actor){
   }
   bones.forEach((b,i)=>b.quaternion.copy(bestPose[i]));actor.holder.updateMatrixWorld(true);return{gap:best,rawGap:original.gap,correction:amount};
  }
- return{triangles,probe,anchor,clearBall,floor};
+ return{triangles,probe,anchor,clearBall,floor,footBounds};
 }

@@ -19,7 +19,9 @@ export class RotacaoBola3D{
   const teleport=Math.hypot(dx,point.y-this.previous.y,dz)>Math.max(1.2,100*dt)
   if(point.held||teleport)this.omega.set(0,0,0)
   else if(ground)this.omega.set(dz,0,-dx).multiplyScalar(1/(this.radius*dt))
-  else if(this.previous.y<=this.radius+.004&&distance>1e-8){
+  else if((this.previous.y<=this.radius+.004||this.previous.held)&&distance>1e-8){
+   // A throw leaves the hands above the ground. Its spin was left at zero
+   // after the catch, so every subsequent airborne frame looked frozen.
    this.omega.set(dz,0,-dx).multiplyScalar(.35/(this.radius*dt))
    this.omega.clampLength(0,40)
   }

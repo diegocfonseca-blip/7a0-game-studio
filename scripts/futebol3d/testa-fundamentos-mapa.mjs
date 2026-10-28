@@ -14,6 +14,12 @@ const nav=new VisualPlayerCollisions({radius:.32,budget:.42});let minimum=Infini
 for(let i=0;i<=120;i++){const time=i/60,players=[{key:'a',mx:-2+2*time,mz:0,speed:2,heading:0,navigationVelocity:{x:2,z:0}},{key:'b',mx:2-2*time,mz:0,speed:2,heading:0,navigationVelocity:{x:-2,z:0}}],snapshot=JSON.stringify(players),frame={time,phase:'dominio',players};
  const n=nav.sample(frame),vs=players.map(p=>{const o=n.positions.get(p.key);return{key:p.key,sourceX:p.mx,sourceZ:p.mz,rootX:p.mx+o.x,rootZ:p.mz+o.z,x:p.mx+o.x,z:p.mz+o.z,y:1,radius:.22,freedom:1}});nav.finalize(vs);minimum=Math.min(minimum,Math.hypot(vs[0].rootX-vs[1].rootX,vs[0].rootZ-vs[1].rootZ));assert.equal(JSON.stringify(players),snapshot,'Navigation cannot write into official positions')}
 assert(minimum>=.37,'Opposite runners cannot pass through one another even when body heading differs from movement');
+// Overtaking with a lateral gap: the avoidance normal must widen that gap.
+// The old arbitrary normal steered the faster runner directly into his rival.
+const overtake=new VisualPlayerCollisions({radius:.32,budget:.42});
+const approaching={time:0,phase:'dominio',players:[{key:'fast',mx:-.3,mz:0,heading:0,speed:4,navigationVelocity:{x:0,z:4}},{key:'slow',mx:.3,mz:1.5,heading:0,speed:0,navigationVelocity:{x:0,z:0}}]};
+const avoidance=overtake.sample(approaching).positions;
+assert(avoidance.get('fast').x<0&&avoidance.get('slow').x>0,'Navigation must select the free side instead of first crossing an opponent');
 console.log('PASS: fixed contact endpoints, no homing, friction, bounded continuous body track, predictive separation, immutable source');
 
 const spans=[{start:2,end:3,from:{x:11,z:3},to:{x:12,z:4}}];

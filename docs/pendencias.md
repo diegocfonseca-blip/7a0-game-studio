@@ -1,3 +1,19 @@
+## ⚽ Campo 3D do mapa — revisão 3 dos fundamentos (28/10, LOCAL, sem publicação)
+- Pedido: continuar corrigindo erros vistos no vídeo. Modelo atual, rig e uniforme preservados.
+- Corrigidos: passada medida nas capturas (2,069 m no trote), fases de apoio entre direções,
+  IK residual do pé de apoio, aproximação/domínio/recuperação sem troca instantânea de velocidade,
+  escolha do lado livre nas disputas, saída do passe, transição captura/reposição do goleiro,
+  giro da bola após sair das mãos e sombras das solas no novo modelo.
+- Verificação: partida inteira a 60 e 30 Hz, 22 atletas, mesmos 67 eventos e placar; 64 contatos
+  programados preservados a 60 Hz; corrida com 67–70% menos deslizamento mediano no teste.
+  Cidade real em celular/desktop e três câmeras; pausa e diagnóstico não alteram poses/eventos.
+- Ainda aberto: sprint, picos de velocidade em colisões, outros voos/recuperações do goleiro,
+  marcha após o apito e desempenho em celular físico. Interpolação dos impactos a 30 Hz ainda
+  tem 12 estimativas fora da tolerância. Não declarar futebol inteiro aprovado.
+- Save histórico: trava mantém bloqueado 1–1 versus 3–0 produzido pela entrada no motor atual.
+  Sem banco, avanço de rodada ou publicação. Detalhes, artefatos e reprodução em
+  `docs/refino-mapa-3d-20261028-v3.md`. Recuperação: `recovery/fundamentos-mapa-v2-50010191`.
+
 ## ⚡ Mata-mata Relâmpago (28/10) — ✅ PUBLICADO PRA TODOS com selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
 - Regras dele: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras normais"* e *"tem q ter ida
   e volta, somente final que não"*. Então: quem cria escolhe CHAVE DE 16 (começa nas oitavas) ou 32 (Rodada de 32); a sala cabe
