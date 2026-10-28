@@ -73,6 +73,7 @@ import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 Com
 import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
@@ -399,6 +400,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 297×440, 44 KB — altura 176. mascote_key = "chelsao_leao".
   chelsao_leao: (
     <img src={chelsaoMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="O Leão da Massa — Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐶 O PITBULL (mascote do dSouza FC — alexandre12cdm, 28/10): o pitbull de boné e moletom dSouza FC carregando os quadros
+  // das lendas, com as caixas da loja dele. Arte do próprio dono. 📏 398×440, 32 KB — altura 176. mascote_key = "dsouza_pitbull".
+  dsouza_pitbull: (
+    <img src={dsouzaMascoteImg} height={176} width={Math.round(176 * 398 / 440)} alt="O Pitbull — dSouza FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦁 O LEÃO (mascote do Vila Esporte Clube — oluisantonio.contato, 27/10): o leão de juba preta e branca, de uniforme listrado
   // preto e branco com o escudo VEC, em posição de ataque. Arte do próprio dono. 📏 401×440, ≤45 KB — altura 176. mascote_key = "vila_leao".
@@ -1248,6 +1254,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Chelsão da Massa SC': 'chelsao_leao',
   'CRBebê': 'chelsao_leao',
   'Peteca FR': 'chelsao_leao',
+  // 🐶 o Pitbull carimba o gol do dSouza FC (alexandre12cdm, 28/10).
+  'dSouza FC': 'dsouza_pitbull',
+  'dSouza': 'dsouza_pitbull',
+  'dSouza EC': 'dsouza_pitbull',
+  'dSouza SC': 'dsouza_pitbull',
   // 🦁 o Leão carimba o gol do Vila Esporte Clube (oluisantonio.contato, 27/10).
   'Vila Esporte Clube': 'vila_leao',
   'Vila Esporte Clube FC': 'vila_leao',
@@ -1400,6 +1411,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   cuiudos: 'O Cuiudo', // 🤠 Cuiudos FC (matheussoaresg2018, 17/10)
   wenmilan_diaba: 'A Diabinha', // 😈 Wen Milan B (vittor@tidex, 17/10)
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
+  dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
   neymarfc_bode: 'O Bode Rei', // 🐐 Neymar FC (sheeryarie772, 21/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)

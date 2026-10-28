@@ -1,8 +1,21 @@
-## ⚡🔁 Envelope único: 2ª LISTA antes do Monte (28/10) — no branch, esperando "publica"
+## ⚡🔁 Envelope único: 2ª LISTA antes do Monte (28/10) — ✅ PUBLICADO
 Diego testou: *"tá ficando muita carta no monte… depois da primeira leva volta pras sobras… uma segunda lista… só depois disso que vai
 ter monte"*. Agora: 1ª lista (as 5 posições, 180s) → revelação → **2ª lista** com o que sobrou, só nas posições em que ainda tem GENTE
 com vaga e dinheiro (90s, `ENVELOPE_UNICO_2_MS`; bot entra no modo repescagem) → revelação → Monte. Sobra de posição que ninguém
 precisa vai direto pro Monte. Estado: `euRodada` (1|2) e `euSobras`. Trava `npm run envelope-unico` confere as duas listas.
+
+## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — ✅ PUBLICADO (*"pode aprovar tudo"*)
+- Dono `alexandre12cdm@gmail.com` (conta de 27/10 ✔; o time dele "Pits FC" virou **dSouza FC** no `display_name`; sem carreira
+  na nuvem). **Série C**, no assento do bot **Kombi United** (`OLD_NAME`; o Kombi segue no jogo rápido, nome velho NÃO desenha o
+  escudo). Técnico "Alexandre". Coração **Palmeiras**. Empresa: **dSouza Empreendimentos** (quadros de futebol, anúncio fixo nº8).
+- Arte (prancha com fundo verde chroma, recorte por distância de cor; neon do desenho intacto): escudo 360×334/26 KB · mascote
+  **O Pitbull** 398×440/32 KB · camisa da Loja 585×620/33 KB. Manto medido: preto #0A0A09 + verde-neon #73E541.
+- Banco: user_colors ouro+manual · esc_socios **79** · esc_fundadores **94** · esc_nomes_batismo "dSouza" · esc_compras_batismo 'plus'.
+- Gala única **"A Galeria"** (`gala-dsouza.tsx`): parede com 6 quadros de futebol (bola · embaixadinha · foto do time · taça · gol ·
+  chuteira, pedido do Diego) com flash, a caixa "dSouza · frete grátis" cai e abre, o Pitbull sobe, escudo com anel neon, QUADRO NA
+  PAREDE · LENDA NO ELENCO · TAÇA NA ESTANTE e a faixa "O DONO DA GALERIA". Vídeo `scripts/posts/gala-dsouza.webm`.
+- Temas da sala: `dsouza` (clube, com o Pitbull) e `dsouza_emp` (🖼️ dSouza Empreendimentos — galeria + recado da loja na faixa).
+- Post: `scripts/posts/batismo-dsouza-fc.png`. ⏳ **Canto da torcida: o Diego manda depois** (a gala entra sem som até lá).
 
 ## 🏟️ Queda repetida na saída do Neymarzetti (28/10) — correção de apresentação
 
