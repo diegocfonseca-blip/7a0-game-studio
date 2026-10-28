@@ -23,6 +23,10 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
+- **Bots do leilão também ganham o bônus da casa (28/10, só análise)**: no motor, `bh = (!H.human && !H.rival) ? BM[div] : 0` — os bots que
+  montaram time no mesmo leilão (Neymarzetti, Labubu…) não são humanos nem "rival escolhido", então levam o bônus como se fossem CPU
+  nativo (o comentário diz "CPU NATIVOS"). Medido (motor real, humano 79, rivais com o nível real da simulação, bônus v5): Várzea sobe
+  45% hoje × 68% sem o bônus desses bots; Série D 35% × 45%. Na D eles são 78–80 + 3 = 81–83. **Esperando o Diego decidir.**
 - ✅ **PUBLICADO PRA TODOS (28/10, *"publique sim. P todos"*) — bônus da casa novo (simV 5)**, ordem do Diego: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e
   série A coloque 3"* (B fica 4). `CPU_DIV_BOOST_V5` = A 2 (*"série a deixe 2 msm"*) · B 4 · C 4 · D 3 · V 2. Só vale de temporada NOVA (trava simV, inclusive no
   "mesmo time" — `CONFIRM_MESMO_TIME` agora também carimba): temporada em andamento termina na tabela antiga. Medido no motor: time no teto
