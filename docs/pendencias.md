@@ -11376,3 +11376,8 @@ Ainda não: no pregão aberto/Tocaia/Monte os botões de lance APARECEM pro fant
 igual ao envelope se o Diego pedir. Sala de espera sem chat pro fantasma (o chat dele é o da partida).
 ✅ 28/10 1º teste do Diego numa sala ao vivo: *"deu muito certo e não influenciou em nada… sem bugs"*. Pedido: o fantasma só LÊ o chat (não escreve) e precisa ver o papo — FEITO no branch: caixa do chat sem campo de escrever + o chat da sala de espera (canal `esclobby`, só escuta). O chat mostra as mensagens de quando ele entrou pra frente (o histórico vive no aparelho de cada um).
 🔎 28/10: no 1º teste o chat da PARTIDA não apareceu pro fantasma (os jogadores escreveram). Lendo o código não achei a causa (o chat vem pelo mesmo canal do estado, que chegou). Ligado o medidor no aparelho do fantasma (`papel = 'espectador'` em `esc_realtime_medidor`, única gravação liberada pra ele): no próximo teste, `select rx from esc_realtime_medidor where papel='espectador'` mostra se 'chat' e 'state' chegaram.
+
+## ⚡ Envelope único (28/10) — MOCKUP enviado, aguardando OK
+Pedido do Diego: um jeito de leilão mais rápido. Proposta: 4º jeito de dar lance (✉️ · 🐊 · 🔨 · ⚡). As 5 posições numa tela só,
+um envelope de 90s, uma revelação só (carta por carta), empate = sorteio na hora, Monte em 30s. Sala rápida, Minhas Ligas e Partida
+Rápida; carreira fica no envelope de sempre. Mockup: `scripts/mockups/envelope-unico.png`.
