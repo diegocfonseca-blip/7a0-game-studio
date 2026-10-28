@@ -38,11 +38,13 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
    // largura: boneco com ~40 px, 6–7 jogadores em volta da bola. Deitado continua a TV clássica
    // (📱 26/10, Diego: "as câmeras não tão legais… que dê pra ver bem o jogo": em pé a TV olhava de 18° e metade da tela era
    // arquibancada. Em pé ela sobe ~33° — a tela estreita se enche de CAMPO em volta da bola. Deitado continua igual)
-   const cam=tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),portrait?15:9,portrait?40:48):new Vector3(MathUtils.clamp(target.x*(portrait?.5:.32),portrait?-24:-16,portrait?24:16),portrait?31:23,portrait?50:76)
+   // (📺 28/10, Diego no mapa de verdade: "a câmera está longe e alta demais… os jogadores viram bonequinhos": no computador a TV
+   // desce do anel de cima pro anel do meio — 46 m da lateral em vez de 76 — e a lateral próxima cola no gramado, a 30 m)
+   const cam=tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),portrait?15:6.5,portrait?40:30):new Vector3(MathUtils.clamp(target.x*(portrait?.5:.4),portrait?-24:-20,portrait?24:20),portrait?31:15,portrait?50:46)
    const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
    const dist0=cam.distanceTo(target)
    // (o pedaço de campo que a TV mostra em volta da bola: ~34 m de largura deitado, ~22 m em pé; a lateral, bem menos)
-   let tanH=(tele?(portrait?5:9):(portrait?6.5:17))/dist0,tanV=0
+   let tanH=(tele?(portrait?5:7):(portrait?6.5:13))/dist0,tanV=0
    for(const pt of fitPts){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.82);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.78)}
    return{cam,dist0,need:Math.max(tanV,tanH/aspect)}
   }

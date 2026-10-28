@@ -81,6 +81,17 @@
   ACELERAVA no caminho (7→17 m/s) e parava 1 quadro no pé. Agora o voo tem física de bola: sai forte e freia na grama (2,3 m/s², o
   atrito do motor), do instante do contato até um PONTO DE ENCONTRO fixo (70% onde a bola do motor vai estar, 30% onde o pé do
   jogador vai estar); o corpo de quem recebe anda até esse ponto sem atraso. Medido: passe 13→8 m/s freando liso; contato 2–20 cm.
+- 📺 O JOGO VISTO DO MAPA DE VERDADE (28/10, Diego: *"tá difícil assistir… 11×11 mais feio que vi na vida"*). Filmei o
+  `qa-presidencia-complexo-carreira.html` com o motor novo e relógio virtual (`scratchpad/real2.mjs`: `performance.now()` da
+  página só anda quando mandamos — a filmagem em tempo real leva 14 s por quadro aqui e o jogo corria até o apito). Achados que a
+  bancada NÃO mostrava: (1) a TV ficava a 76 m e a lateral a 48 m: boneco de 1 cm, bola invisível — no computador a TV desceu pro
+  anel do meio (46 m) e a lateral próxima colou no gramado (30 m); celular em pé não mudou (`enquadramento-futebol.ts`);
+  (2) a sombra do estádio cobria metade do campo em PRETO (`sun.shadow.intensity=.55`); (3) sem a bola, todo mundo parado em pé:
+  a até 14 m da bola o jogador fica em POSIÇÃO DE JOGO (`marca`, a marcação gravada do pacote do Rohr, com fase sorteada por
+  jogador); (4) quem recebe vai buscar a bola mais cedo (`CORR_MAX` 3 m, corpo sai na frente). Medido no mesmo motor (60 s): bola
+  no pé 26% · voando 22% · rolando 41% · parada 11% — o estilo do motor é de muito passe rolando, pouca condução (motor não mudou:
+  resultado é lei). Testes de câmera `complexo-enquadramento.cjs` e `partida-camera.mjs` já falhavam antes. Pedi ao Diego 20 s de
+  gravação da tela do celular: sem a conta dele, é a única forma de ver fps e travadas reais.
 - 🏙️ CIDADE E ENTORNO MAIS CHEIOS, LIGADOS À TORCIDA (28/10, *"a cidade está muito vazia… tem que ter ligação com o número de
   torcedores… muito pouco NPC rondando, muito pouco carro"*): moradores da cidade = 10 + cresce com a torcida (dobrou a torcida
   → +6) + 2 por obra, teto 48 no PC / 20 no celular (`population.mjs`; antes 2–24/10) e espalhados em até 32 calçadas. Entorno do

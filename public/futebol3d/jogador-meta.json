@@ -347,6 +347,13 @@
    "toque": 2.625,
    "pe": "l"
   },
+  "marca": {
+   "arquivo": "rohr:18_Defending_01",
+   "duracao": 6.25,
+   "deslocamento": 45.902,
+   "toque": 4.7917,
+   "pe": "r"
+  },
   "comemora1": {
    "arquivo": "rohr:12_Goal_Celebration_01",
    "duracao": 3.483,

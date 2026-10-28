@@ -142,6 +142,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const hemisphere=new THREE.HemisphereLight('#c9dcf0','#8c7d61',.85);scene.add(hemisphere)
   const sun=new THREE.DirectionalLight('#ffdda5',3.1);sun.position.set(-340,450,270);sun.castShadow=true;sun.shadow.mapSize.set(softwareGPU||el.clientWidth<600?1024:2048,softwareGPU||el.clientWidth<600?1024:2048)
   sun.shadow.normalBias=.055;sun.shadow.bias=-.00012;sun.shadow.radius=2.5
+  sun.shadow.intensity=.55 // 🌤️ 28/10 (Diego no mapa de verdade: a sombra do estádio cobria metade do campo em PRETO e quem estava nela virava vulto): sombra só escurece, nunca apaga
   sun.shadow.camera.near=1;sun.shadow.camera.far=1300;scene.add(sun,sun.target)
   const surround=criarEntornoComplexo(scene,state),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice})
   // Automatic football cameras may sit above the roof. Cut away only its

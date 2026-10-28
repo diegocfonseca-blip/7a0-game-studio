@@ -21,7 +21,7 @@ import {RotacaoBola3D,RAIO_BOLA_FUTEBOL_3D} from '../presidencia-bola-rotacao.ts
 const CICLO_M=2.9
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
 const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,'diag_td'],[Math.PI,'re'],[-3*Math.PI/4,'diag_te'],[-Math.PI/2,'lado_e'],[-Math.PI/4,'diag_fe']]
-const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
+const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz','marca',...DIRS.map(d=>d[1])]
 const CHUTES=new Set(['chute','chutao'])
 // ✂️ trecho usado de cada movimento gravado de jogador de verdade (pacote do Anderson Rohr: cada arquivo tem o jogador parado
 // antes e depois do lance) — segundos do arquivo
@@ -137,7 +137,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  /** onde o pé/peito/cabeça de `a` encosta na bola no movimento `nome`, com o corpo de agora */
  const pontoDe=(a,nome,base=a.holder.position)=>{const c=CONTATO[nome]??CONTATO.passe,cs=Math.cos(a.rumo),sn=Math.sin(a.rumo)
   return new T.Vector3(base.x+c.off.x*cs+c.off.z*sn,c.alto?c.off.y:RAIO_BOLA_FUTEBOL_3D,base.z-c.off.x*sn+c.off.z*cs)}
- const ATRITO_CHAO=2.3,MEIO_CORPO=.7,CORR_MAX=2,TOQUES_CONDUZ=[.37,.86]
+ const ATRITO_CHAO=2.3,MEIO_CORPO=.7,CORR_MAX=3,TOQUES_CONDUZ=[.37,.86]
  const pegaPosse=(a,P,agora,peito)=>{Object.assign(bola,{modo:'posse',dono:a,desde:agora,voo:null});a.faseBola=a.fase;bola.B.copy(P)
   if(peito){const f=frente(a);bola.V.set(f.x*1.4+a.mov.x*a.vel*.6,.3,f.z*1.4+a.mov.z*a.vel*.6)}else bola.V.set(a.mov.x*a.vel*.5,0,a.mov.z*a.vel*.5)
   a.zPe=[null,null]}
@@ -225,7 +225,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // toque. A bola voa até ele e o corpo anda até ele — ninguém persegue alvo andando (era o que fazia a bola acelerar no fim)
     if(!enc.encontro){const Cr=pontoDe(quemEnc,nomeDe(enc),enc.rec??quemEnc.mpos),E=enc.bola
      enc.encontro=new T.Vector3(E.x*parte+Cr.x*(1-parte),Cr.y,E.z*parte+Cr.z*(1-parte))}
-    let cx=(enc.encontro.x-Cm.x)*w,cz=(enc.encontro.z-Cm.z)*w;const l=Math.hypot(cx,cz);if(l>CORR_MAX){cx*=CORR_MAX/l;cz*=CORR_MAX/l}
+    const wc=Math.min(1,w*1.6) // (o corpo sai na frente da bola: começa a ir buscar assim que o passe sai)
+    let cx=(enc.encontro.x-Cm.x)*wc,cz=(enc.encontro.z-Cm.z)*wc;const l=Math.hypot(cx,cz);if(l>CORR_MAX){cx*=CORR_MAX/l;cz*=CORR_MAX/l}
     quemEnc.corrAlvo.x=cx;quemEnc.corrAlvo.z=cz;quemEnc.corrDireto=true // (o alvo já anda liso: o corpo segue sem atraso)
     // (suaviza só o LADO do corpo em que a bola encosta — trocar de pé no meio do caminho não faz a bola pular; o corpo correndo não atrasa nada)
     const h=quemEnc.holder.position,lado=pontoDe(quemEnc,nomeDe(enc)).sub(h);if(!enc.ladoSuav)enc.ladoSuav=lado.clone();else enc.ladoSuav.lerp(lado,dt>0?1-Math.exp(-dt/.08):1)
@@ -337,7 +338,10 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     const fw=vel>.05?angulo(Math.atan2(dx,dz)-a.rumo):0,lado=-fw // (+ = pra direita do corpo; o eixo do three gira ao contrário)
     a.fase=(a.fase+(dt>0?Math.min(2.6,vel/CICLO_M)*dt:0))%1
     const anda=T.MathUtils.smoothstep(vel,.25,1.1),segura=p.keeper&&frame.ball.y>.6&&frame.ball.y<1.6&&Math.hypot(bx,bz)<1.3
-    const parado=p.keeper?(segura?'gk_idle_bola':'gk_idle'):comBola?'idle_bola':'idle'
+    // (28/10, Diego no mapa de verdade: "quem está sem a bola fica parado em pé, igual poste") — perto da bola, sem ela, o jogador
+    // fica em POSIÇÃO DE JOGO (marcação gravada de jogador de verdade: agachado, pés vivos); longe da bola, o parado de sempre
+    const pertoDaBola=!p.keeper&&!comBola&&Math.hypot(bx,bz)<14&&asset.clips.has('marca')
+    const parado=p.keeper?(segura?'gk_idle_bola':'gk_idle'):comBola?'idle_bola':pertoDaBola?'marca':'idle'
     const alvos=new Map(LOOPS.map(n=>[n,0]));alvos.set(parado,1-anda)
     {const l=((lado%(2*Math.PI))+2*Math.PI)%(2*Math.PI),i=Math.floor(l/(Math.PI/4))%8,u=l/(Math.PI/4)-i // (DIRS vai de 45 em 45°)
      const nome=k=>DIRS[k][1]==='trote'&&comBola?'conduz':DIRS[k][1],n0=nome(i),n1=nome((i+1)%8)
@@ -348,7 +352,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      if(t<0||t>a.tiro.dur){act.setEffectiveWeight(0);const {dur,depois}=a.tiro;a.tiro=null;if(t>dur&&depois)dispara(a,depois,{inicio:Math.min(t-dur,.2),agora})}
      else{wTiro=Math.min(1,t/.12,(a.tiro.dur-t)/.25);act.time=a.tiro.base+t;act.setEffectiveWeight(wTiro)}}
     const k=dt>0?1-Math.exp(-dt/.15):1
-    for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*(1-wTiro));const dur=act.getClip().duration;act.time=n.startsWith('idle')||n.startsWith('gk_idle')?agora%dur:a.fase*dur}
+    for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*(1-wTiro));const dur=act.getClip().duration;act.time=n.startsWith('idle')||n.startsWith('gk_idle')||n==='marca'?(agora+(a.desloca??=Math.random()*5))%dur:a.fase*dur}
     a.mixer.update(0)
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
