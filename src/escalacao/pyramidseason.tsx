@@ -7779,7 +7779,7 @@ function SocioBaraoBanner() {
 type AbaCarr = 'central' | 'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'
 // ícones desenhados (duotone) — mesmo traço da barra da home, 0 KB de imagem
 function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
-  const fill = cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : cor === '#FFC400' ? 'rgba(255,196,0,.25)' : 'rgba(12,12,12,.10)'
+  const fill = cor === 'currentColor' ? 'rgba(127,127,127,.14)' : cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : cor === '#FFC400' ? 'rgba(255,196,0,.25)' : 'rgba(12,12,12,.10)'
   const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto' }}>
@@ -7818,7 +7818,7 @@ function BarraCarreira({ tab, setTab, ponto, pontoClube, combined=false, central
           const on = tab === t || (combined && t === 'jogos' && tab === 'tabelas')
           return (
             <button key={t} onClick={() => setTab(t)} aria-label={label} className={`ll-aba${on ? ' on' : ''}`}>
-              <span className="ll-aba-ic"><IconeCarr nome={t} cor={on ? '#FFC400' : '#0C0C0C'} /></span>
+              <span className="ll-aba-ic"><IconeCarr nome={t} cor="currentColor" /></span>
               <span className="ll-aba-n">{label}</span>
               {/* 🔴 pontinho: rodada rolando (Jogos) · recibo novo esperando (Clube).
                   Some assim que a pessoa abre a aba — nunca fica pedindo atenção à toa. */}

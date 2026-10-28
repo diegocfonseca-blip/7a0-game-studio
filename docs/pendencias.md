@@ -11430,8 +11430,12 @@ FEITO: rankings lado a lado (carreira = melhor save + temporada · online = TODO
 `human_results`: liga · copa · libertadores · mundial(=Copa do Mundo) · regional; Só Champions/Relâmpago ganharam a etiqueta `comp` a partir
 de 28/10 — os de antes contam como Liga) + medalhas. O quadro "semana/mês/sempre" saiu do perfil.
 
-## 🧭🏆 Barra da carreira igual à do online + taças nos rankings das salas (28/10) — MOCKUP enviado, aguardando OK
+## 🧭🏆 Barra da carreira igual à do online + taças nos rankings das salas (28/10) — FEITO ("Aprovado"), no branch esperando ordem de publicar
 Pedido do Diego: (1) a barra de baixo da carreira (celular) com o visual da barra das salas online (`LigaHub`: creme, ícone/nome finos,
 aba aberta em dourado); (2) na Sala de Troféus da sala rápida (`SalaTrofeusRapida`) e no Rank das Minhas Ligas (`AbaRank`), a TAÇA de
 cada título do lado do nome — só de quem ganhou, mesmo tamanho do perfil. Mockup: `scripts/mockups/barra-trofeus-salas.png`.
 ⚠️ Lembrar: em 27/10 ele pediu as abas da carreira MAIS fortes ("tão apagadas"); a barra do online é mais clara — o mockup mostra as duas.
+✅ Feito: barra do CELULAR da carreira = a do online (`career-abas.css`; nomes e ordem iguais — *"não pedi pra mudar nomes"*; o PC
+continua com os botões pretos em cima). Taças: `TacasNome` em `ligahub.tsx` — pequenas (17px), em fila depois do nome, ×N do lado
+(*"precisa ser menor e alinhado"*), só o que ganhou; Só Champions/Relâmpago usam a taça deles (`comp`). Os chips de Liga/Copa da sala
+rápida saíram (a taça diz isso); Top 8 e rebaixamento continuam.

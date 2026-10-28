@@ -31,6 +31,7 @@ import { APOIO_PERKS, ApoioSheen } from './apoio'
 import { perkFromSelo } from './pyramidseason'
 import { ApoieButton } from './screens' // 💛 o clique da linha "tem dono de verdade" abre o batismo
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
+import { Trofeu, type CompId } from './competicoes-visual' // 🏆 28/10: a taça de cada título do lado do nome
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
@@ -180,6 +181,32 @@ type PlacarSalaRapida = {
   key: string; nome: string; time: string; pts: number
   liga: number; classificacao: number; rebaixamento: number
   copas: Record<TituloSalaRapida, number>
+  /** 🏆 28/10: as taças pra desenhar do lado do nome (Só Champions / Relâmpago viram a taça deles, não a da liga) */
+  tacas: Partial<Record<CompId, number>>
+}
+
+// 🏆 TAÇAS DO LADO DO NOME (28/10, mockup `barra-trofeus-salas.png` aprovado): pequenas, todas do mesmo
+// tamanho, em fila logo depois do nome. Só aparece o que a pessoa GANHOU — quem não ganhou nada fica sem taça.
+const TACA_DO_TITULO: Record<TituloSalaRapida, CompId> = { copa: 'copa8', libertadores: 'liberta', mundial: 'mundo', regional: 'riosp' }
+const ORDEM_TACAS: CompId[] = ['liga', 'champions', 'relampago', 'copa8', 'liberta', 'mundo', 'riosp']
+export function tacasDoResultado(r: { league_champion: boolean; cup_titles?: TituloSalaRapida[] | null; comp?: 'champions' | 'relampago' }, soma: Partial<Record<CompId, number>>) {
+  const mais = (c: CompId) => { soma[c] = (soma[c] ?? 0) + 1 }
+  if (r.league_champion) mais(r.comp ?? 'liga')
+  for (const t of r.cup_titles ?? []) if (TACA_DO_TITULO[t]) mais(TACA_DO_TITULO[t])
+}
+function TacasNome({ tacas }: { tacas: Partial<Record<CompId, number>> }) {
+  const lista = ORDEM_TACAS.filter(c => (tacas[c] ?? 0) > 0)
+  if (!lista.length) return null
+  return (
+    <span className="inline-flex items-center gap-1 shrink-0" style={{ height: 24 }}>
+      {lista.map(c => (
+        <span key={c} className="inline-flex items-center gap-px">
+          <Trofeu comp={c} size={17} sombra={1.5} />
+          {(tacas[c] ?? 0) > 1 && <b className="text-[10px] text-black/70" style={OSWALD}>×{tacas[c]}</b>}
+        </span>
+      ))}
+    </span>
+  )
 }
 
 export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], humanos: string[]): PlacarSalaRapida[] {
@@ -188,7 +215,7 @@ export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], h
   const normal = (v: string | null | undefined) => (v ?? '').trim()
   const nova = (key: string, nome: string, time = nome): PlacarSalaRapida => ({
     key, nome, time, pts: 0, liga: 0, classificacao: 0, rebaixamento: 0,
-    copas: { copa: 0, libertadores: 0, mundial: 0, regional: 0 },
+    copas: { copa: 0, libertadores: 0, mundial: 0, regional: 0 }, tacas: {},
   })
   for (const m of membros) {
     if (atuais.has(m.user_id)) continue
@@ -221,14 +248,15 @@ export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], h
         if (r.qualified) { p.classificacao++; p.pts += 1 }
         if (r.relegated) { p.rebaixamento++; p.pts -= 1 }
         for (const titulo of r.cup_titles ?? []) if (titulo in p.copas) { p.copas[titulo]++; p.pts += 5 }
+        tacasDoResultado(r, p.tacas)
       }
       continue
     }
     // Compatibilidade com temporadas antigas: só atribui taça quando o nome
     // casa com um usuário atual. Colocação/rebaixamento antigos não eram salvos.
     for (const p of atuais.values()) {
-      if (pertence(row.champion_name, p.nome) || pertence(row.champion_name, p.time)) { p.liga++; p.pts += 5 }
-      if (pertence(row.copa_champion_name, p.nome) || pertence(row.copa_champion_name, p.time)) { p.copas.copa++; p.pts += 5 }
+      if (pertence(row.champion_name, p.nome) || pertence(row.champion_name, p.time)) { p.liga++; p.pts += 5; p.tacas.liga = (p.tacas.liga ?? 0) + 1 }
+      if (pertence(row.copa_champion_name, p.nome) || pertence(row.copa_champion_name, p.time)) { p.copas.copa++; p.pts += 5; p.tacas.copa8 = (p.tacas.copa8 ?? 0) + 1 }
     }
   }
   return [...atuais.values()].sort((a, b) => b.pts - a.pts || b.liga - a.liga || (b.copas.copa + b.copas.libertadores + b.copas.mundial + b.copas.regional) - (a.copas.copa + a.copas.libertadores + a.copas.mundial + a.copas.regional) || a.nome.localeCompare(b.nome))
@@ -578,7 +606,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
               </div>
             )}
             {conteudoRapido && <SalaTrofeusRapida ranking={rankingRapido} rows={rows} />}
-            {sala.ehLiga && abaConteudo === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga />}
+            {sala.ehLiga && abaConteudo === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga rows={rows} />}
             {sala.ehLiga && abaConteudo === 'estante' && <AbaEstante rows={rows} gente={gente} />}
             {sala.ehLiga && abaConteudo === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono} nomes={humanos} recarregar={carregar} />}
             {abaConteudo === 'ajustes' && <AbaAjustes sala={sala} regras={regras} busy={busy} salvarRegras={salvarRegras} patch={patch} excluir={excluir} />}
@@ -659,17 +687,15 @@ function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; row
               <div className="flex items-center gap-2">
                 <span className="font-black text-[15px] w-7 text-center shrink-0" style={{ ...OSWALD, color: i === 0 ? '#7A4D00' : 'rgba(12,12,12,.45)' }}>{i === 0 ? '🥇' : ordinal(i + 1)}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-black text-[13px] truncate" style={OSWALD}>{r.nome}</p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="font-black text-[13px] truncate min-w-0" style={OSWALD}>{r.nome}</p>
+                    <TacasNome tacas={r.tacas} />
+                  </div>
                   {r.time && r.time !== r.nome && <p className="text-[9.5px] font-bold text-black/45 truncate">⚽ {r.time}</p>}
                 </div>
                 <span className="rounded-lg border-2 border-black px-2 py-0.5 font-black text-[14px] shrink-0" style={{ ...OSWALD, background: r.pts < 0 ? '#FDE2DE' : GOLD, color: r.pts < 0 ? '#9C2F22' : INK }}>{r.pts} pts</span>
               </div>
               <div className="flex flex-wrap gap-1 mt-2 ml-9">
-                {r.liga > 0 && chip(`🏆 Liga ×${r.liga}`)}
-                {r.copas.copa > 0 && chip(`🏆 Copa ×${r.copas.copa}`, 'roxo')}
-                {r.copas.libertadores > 0 && chip(`🌎 Libertadores ×${r.copas.libertadores}`, 'roxo')}
-                {r.copas.mundial > 0 && chip(`🌍 Mundial ×${r.copas.mundial}`, 'roxo')}
-                {r.copas.regional > 0 && chip(`🏟️ ${tr('Regional', 'Regional')} ×${r.copas.regional}`, 'roxo')}
                 {r.classificacao > 0 && chip(`🎟️ Top 8 ×${r.classificacao}`, 'verde')}
                 {r.rebaixamento > 0 && chip(`🔻 Rebaixamento ×${r.rebaixamento}`, 'vermelho')}
                 {r.liga === 0 && totalCopas(r) === 0 && r.classificacao === 0 && r.rebaixamento === 0 && <span className="text-[9.5px] font-bold text-black/40">{tr('Ainda sem conquista nesta sala', 'No achievement in this room yet')}</span>}
@@ -712,7 +738,19 @@ function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; row
   )
 }
 
-function AbaRank({ ranking, regras, temLinhas, ehLiga }: { ranking: ReturnType<typeof rankingDaLiga>; regras: LigaRegras; temLinhas: boolean; ehLiga: boolean }) {
+function AbaRank({ ranking, regras, temLinhas, ehLiga, rows }: { ranking: ReturnType<typeof rankingDaLiga>; regras: LigaRegras; temLinhas: boolean; ehLiga: boolean; rows: LinhaCampeao[] }) {
+  // 🏆 as taças de cada time (28/10): pelo resultado gravado de cada temporada (`human_results`); temporada antiga
+  // sem ele cai no nome do campeão da liga/copa — a mesma régua do ranking.
+  const tacasDe = (time: string) => {
+    const soma: Partial<Record<CompId, number>> = {}
+    const t = time.trim()
+    for (const row of rows) {
+      if (row.human_results?.length) { for (const r of row.human_results) if ((r.team_name ?? '').trim() === t) tacasDoResultado(r, soma); continue }
+      if ((row.champion_name ?? '').trim() === t) soma.liga = (soma.liga ?? 0) + 1
+      if ((row.copa_champion_name ?? '').trim() === t) soma.copa8 = (soma.copa8 ?? 0) + 1
+    }
+    return soma
+  }
   if (!temLinhas) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Ainda não tem temporada encerrada aqui. O primeiro campeão aparece quando este jogo acabar. 🏆', 'No finished season here yet. The first champion shows up when this game ends. 🏆')}</p>
   if (ranking.length === 0) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Nenhum título de gente ainda — os campeões até agora foram bots, e bot não entra no ranking. 🤖', 'No human titles yet — the champions so far were bots, and bots don\'t enter the ranking. 🤖')}</p>
   return (
@@ -723,7 +761,10 @@ function AbaRank({ ranking, regras, temLinhas, ehLiga }: { ranking: ReturnType<t
           <div key={r.time} className="flex items-center gap-2 border-2 border-black rounded-xl px-2.5 py-1.5 bg-white">
             <span className="font-black text-[13px] shrink-0 w-6 text-center" style={{ ...OSWALD, color: i === 0 ? '#7a4d00' : 'rgba(12,12,12,.4)' }}>{i === 0 ? '🥇' : ordinal(i + 1)}</span>
             <div className="flex-1 min-w-0">
-              <p className="font-black text-black text-[13px] truncate" style={OSWALD}>{r.time}</p>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <p className="font-black text-black text-[13px] truncate min-w-0" style={OSWALD}>{r.time}</p>
+                <TacasNome tacas={tacasDe(r.time)} />
+              </div>
               <p className="text-black/55 text-[10.5px] font-bold truncate">
                 {regras.ativos.includes('liga') ? `🏆 ${r.v.liga}` : ''}
                 {regras.ativos.includes('copa') ? ` · 🏆🇧🇷 ${r.v.copa}` : ''}
