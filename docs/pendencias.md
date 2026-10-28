@@ -30,7 +30,7 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   ✅ **DECIDIDO (28/10): fica como está.** Os bots do leilão seguem a mesma tabela dos times da casa (*"rival ou bot tanto faz"*). E o
   RIVAL ESCOLHIDO continua SEM bônus (é a rixa de igual pra igual): com bônus ele ganharia de você 62% em vez de 48% na Várzea, sem
   mudar sua chance de subir. Palavras dele: *"Ok deixe como está então"*.
-- ✅ **PUBLICADO (28/10) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
+- ✅ **FEITO no branch (28/10, esperando o OK pra publicar) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
   Saiu da Várzea!" só aparece com o time FORA da Várzea (quem caiu de volta não lê mais isso; o aviso espera a próxima subida);
   (2) a linha "🤝 Patrocínio" (sobra do pontual, sempre 0) e as linhas de "Agência"/"Empresário" só entram no extrato com dinheiro de
   verdade — o patrocinador de verdade já entra com o nome da marca ("🏆 Master · Vadico", "👟 Material", "🎯 Meta batida").
