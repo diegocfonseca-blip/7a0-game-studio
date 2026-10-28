@@ -124,7 +124,7 @@ export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: strin
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' | 'oittolabs' | 'gecg' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' | 'tidex' | 'oittolabs' | 'gecg' | 'dsouza' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
@@ -148,6 +148,9 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   // ⚽ marca REAL do Master (23/10, Diego: "troque o ERO por esse patrocinador"): Grêmio Esportivo Campo Grande, clube de várzea com
   //    estádio próprio em Jurubatuba (Zona Sul de SP). Pega o lugar da ERO (3 temporadas); contrato da ERO correndo vai até o fim.
   { id: 'gecg',        name: 'Grêmio Esportivo Campo Grande', emoji: '⚽', color: '#14286A', tier: 3, logo: 'gecg' },
+  // 🐶 7ª marca REAL do Master (28/10, Diego: "acabou de fechar patrocínio Master… coloque em todos locais"): dSouza Empreendimentos,
+  //    loja de quadros decorativos (futebol) no Mercado Livre. Entra JUNTO, sem tirar ninguém, com 3 temporadas (= Grêmio Campo Grande).
+  { id: 'dsouza',      name: 'dSouza Empreendimentos', emoji: '🐶', color: '#0B3D1A', tier: 3, logo: 'dsouza' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -191,15 +194,17 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   // 🧪 21/10 (Diego: "tira Max Joias e bote ele"): a OittoLabs pega o lugar da Max Joias (1 temporada). Contrato da Max Joias
   //    que já está correndo em save antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
   { brandId: 'oittolabs', anos: 1 },
-  { brandId: 'reidastintas', anos: 2 },
+  // 🚫 28/10 (Diego: "remova a Uomo dos patrocinadores master… e remova Rei das Tintas também"): as duas saíram da mesa. Contrato
+  //    delas que já está correndo em save antigo vai até o fim (as marcas seguem em SPONSOR_BRANDS); só não são oferecidas mais.
+  //    A Uomo virou fornecedor de material (`loja.ts`, no lugar da GuchiGuchi).
   // ⚽ 23/10: o Grêmio Esportivo Campo Grande pega o lugar da ERO (3 temporadas). Contrato da ERO que já está correndo em save
   //    antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
   { brandId: 'gecg', anos: 3 },
+  { brandId: 'dsouza', anos: 3 }, // 🐶 28/10: 7ª marca, mesmo prazo e valor do Grêmio Campo Grande (Diego escolheu)
   // 🅾️ 4 TEMPORADAS, e o número foi escolhido a dedo: a régua do Master é só
   //    divisão × prazo, então quem tem o prazo maior paga mais. Com 4, a Uomo
   //    entra ENTRE a ERO e a Vadico e a **Vadico continua sendo a mais cara**,
   //    que foi a condição que ele pôs. A escada virou 1 · 2 · 3 · 4 · 5.
-  { brandId: 'uomo', anos: 4 },
   // 🤖 19/10 (Diego: "igual a Vadico… porém a cada temporada uma pode ser melhor que a outra com base nos bônus"): mesmo prazo e
   //    mesmo valor da Vadico; quem desempata é a META sorteada de cada uma (`masterMetaOferta` sorteia por marca).
   { brandId: 'tidex', anos: 5 },

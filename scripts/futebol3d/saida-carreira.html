@@ -1,0 +1,16 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reprodução local — carreira Neymarzetti</title><div id="root"></div><script type="module">
+import React from 'react';import{createRoot}from'react-dom/client';import '../../src/index.css';
+try {
+ if(!window.__careerOfflineHarness)throw Error('Abra pela bancada que bloqueia todo acesso remoto: abre-saida-carreira.cjs');
+ const save=await fetch('../../test-results/saida-bola/private/cloud-career-current.json').then(r=>r.json());
+ // Only the local browser copy is mounted. The driver blocks all remote I/O.
+ localStorage.setItem('esc-solo-inprogress-v1',JSON.stringify(save));localStorage.setItem('esc-solo-career',JSON.stringify(save));
+ localStorage.setItem('bl_lang','pt');localStorage.setItem('esc3d-contact-audit','1');
+ await import('../../src/escalacao/screens.tsx');
+ const {EscProvider,useEsc}=await import('../../src/escalacao/store.tsx');
+ const {_bancadaApoio}=await import('../../src/escalacao/apoio.tsx');_bancadaApoio('diego.c.fonseca@gmail.com','ouro');
+ const {PyramidSeasonScreen}=await import('../../src/escalacao/pyramidseason.tsx');
+ function App(){const{state,dispatch}=useEsc();window.qaCareer={state,dispatch};return React.createElement(PyramidSeasonScreen)}
+ createRoot(document.getElementById('root')).render(React.createElement(EscProvider,null,React.createElement(App)));
+}catch(error){window.qaCareerError=error.stack;document.getElementById('root').textContent=error.stack}
+</script></html>

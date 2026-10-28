@@ -1,0 +1,15 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),{loadDependency,browserOptions}=require('../presidencia-runtime.cjs');
+const out=process.env.KEEPER_OUT||'test-results/fundamentos-mapa/goleiro-v4';
+(async()=>{fs.mkdirSync(out,{recursive:true});const b=await loadDependency('playwright').chromium.launch(browserOptions());try{
+ const p=await b.newPage();await p.goto('http://127.0.0.1:5301/scripts/futebol3d/audita-mapa.html');await p.waitForFunction(()=>window.mapAudit?.ready(),{},{timeout:120000});
+ const report=await p.evaluate(()=>{let samples=[];for(let i=0;i<=36*60;i++){const s=mapAudit.seek(i/60);if(i<33.8*60)continue;const keeper=s.actors.find(a=>a.key.includes('Velloso')),dx=s.visibleBall.x-keeper.position[0],dz=s.visibleBall.z-keeper.position[2],angle=Math.abs(Math.atan2(Math.sin(Math.atan2(dx,dz)-keeper.heading),Math.cos(Math.atan2(dx,dz)-keeper.heading)));samples.push({t:s.time,position:keeper.position,heading:keeper.heading,ball:s.visibleBall,ballAngle:angle*180/Math.PI,holding:s.detail.football.handContact,actions:s.detail.football.actions.filter(a=>a.key===keeper.key).map(a=>({name:a.tiro.nome,reactionOnly:!!a.tiro.reactionOnly})),contacts:s.detail.football.contacts.filter(c=>c.key===keeper.key&&c.nome),events:s.official.events})}return samples});
+ const approach=report.filter(r=>r.t>=33.9&&r.t<=34.3),maxAngle=Math.max(...approach.map(r=>r.ballAngle));assert(maxAngle<65,'The keeper must not turn his back while the shot is approaching');
+ assert(approach.some(r=>r.actions.some(a=>a.reactionOnly)),'The keeper must visibly react before collecting the post rebound');
+ const catchFrame=report.find(r=>r.t>=34.6166&&r.holding);assert(catchFrame,'The rebound must reach the hands');assert(Math.sin(catchFrame.heading)>.7,'Collect facing the field');
+ assert(report.filter(r=>r.t<34.6166).every(r=>!r.holding),'No catch before the official collection/contact');
+ const events=report.at(-1).events.filter(e=>e.t>33&&e.t<36);assert(events.some(e=>e.tipo==='trave')&&events.some(e=>e.tipo==='saida_goleiro'));assert(!events.some(e=>e.tipo==='defesa'),'Do not invent a save instead of the official post');
+ const restored=await p.evaluate(()=>{mapAudit.seek(20);mapAudit.seek(34.9);return mapAudit.inspect()});assert(restored.detail.football.handContact,'Seeking during a collection must not start a dive through the held ball');
+ fs.writeFileSync(out+'/medidas.json',JSON.stringify({maxApproachAngle:maxAngle,catchHeading:catchFrame.heading,events,samples:report},null,2));
+ for(const t of [34.1,34.3,34.62,34.9,35.3]){await p.reload();await p.waitForFunction(()=>window.mapAudit?.ready(),{},{timeout:120000});const image=await p.evaluate(t=>{for(let i=Math.floor((t-1.5)*60);i/60<t;i++)mapAudit.seek(i/60);return mapAudit.capture(t,'analysis')},t);fs.writeFileSync(out+'/'+t+'.jpg',Buffer.from(image,'base64'))}
+ console.log({maxApproachAngle:maxAngle,catchHeading:catchFrame.heading,events});
+ }finally{await b.close()}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -44,7 +44,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
    {replay.error&&<p role="status">{t('Este jogo salvo não possui replay compatível. Seu resultado foi preservado.','This saved match has no compatible replay. Its result was preserved.')}</p>}
   </div>}
   <Suspense fallback={<p role="status">{t('Carregando seu estádio e a região…','Loading your stadium and its surroundings…')}</p>}>
-   <Complexo {...adapted.complexo} match={(replayFrame??adapted.complexo.match)?{...(replayFrame??adapted.complexo.match)!,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady} hud={<MapaHud match={retained}/>}/>
+   <Complexo {...adapted.complexo} match={(replayFrame??adapted.complexo.match)?{...(replayFrame??adapted.complexo.match)!,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady} hud={<MapaHud match={replayFrame??retained}/>}/>
   </Suspense>
   {onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
   <p style={{margin:'8px 0 0',fontSize:11}}><a href="./creditos-3d.txt" target="_blank" rel="noreferrer">{t('Créditos dos modelos e animações 3D','3D models and animation credits')}</a></p>

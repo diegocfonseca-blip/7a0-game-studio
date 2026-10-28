@@ -1,0 +1,17 @@
+{
+  "data": "🤝 Novo patrocinador Master · 28 de outubro de 2026",
+  "titulo": "dSouza Empreendimentos chegou no Leilão Legends",
+  "destaque": {
+    "escudo": "scripts/parceiros/dsouza-logo.jpg",
+    "nome": "Quadros decorativos de futebol",
+    "linha": "Loja no Mercado Livre · +1.300 seguidores"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Já imaginou o **seu time, o seu ídolo ou a camisa com o seu nome** num quadro na parede? A **dSouza Empreendimentos** faz isso: quadros de **futebol nacional e internacional** e **personalizados**." },
+    { "tag": "melhoria", "texto": "Quadros a partir de **R$ 64,99**, em **até 3x sem juros** e com **frete grátis**. Tem também quadros religiosos, de profissões, abstratos e muito mais." },
+    { "tag": "apoio", "texto": "No jogo, ela está no **Patrocinador Master da carreira**, nas **placas do campinho**, no **telão** e apresenta a **Libertadores**. Toque no telão e vá direto pra loja." }
+  ],
+  "rodape": "🛒 mercadolivre.com.br/pagina/dsouzaempreendimentos",
+  "rodapeSub": "Obrigado, dSouza Empreendimentos, por fortalecer o Leilão Legends 💛",
+  "saida": "scripts/posts/aviso-2026-10-28-parceiro-dsouza.png"
+}

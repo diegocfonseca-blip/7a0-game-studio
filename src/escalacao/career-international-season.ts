@@ -3,6 +3,7 @@ import { calendarioChampions, potesChampions } from './champions'
 import { INTERNATIONAL_CLUBS, internationalBotSquads, internationalCardKey, validInternationalXI, type InternationalCompetition } from './career-international'
 import { GOAL_TUNE, TACS, mid, mulberry, pickAssist, poisson, rollForm, shuffle } from './pyramidseason'
 import { entradaM2, resultadoM2, sementeM2, taticaM2, type EntradaM2 } from './motor2/carreira'
+import type { VersaoM2 } from './motor2/versao'
 import { disputaPenaltis } from './penaltis'
 import type { Card } from './types'
 
@@ -19,7 +20,7 @@ export type InternationalTeam = {
 export type InternationalGoal = { name: string; card: string; min: number; home: boolean; assist?: string; assistCard?: string }
 /** `m2` = jogo decidido pelo motor novo (21/10): a semente e a tática de cada lado — o campinho remonta o MESMO motor com os
  *  elencos da campanha (`entradaInternacionalM2`), sem guardar os 22 de novo no save */
-export type InternationalMatch = { home: string; away: string; hg: number; ag: number; goals: InternationalGoal[]; m2?: { s: number; t: [number, number] } }
+export type InternationalMatch = { home: string; away: string; hg: number; ag: number; goals: InternationalGoal[]; m2?: { s: number; t: [number, number]; versao?: VersaoM2 } }
 export type InternationalTie = { home: string; away: string; matches: InternationalMatch[]; winner: string; penalties?: [number, number] }
 export type InternationalPhase = { title: string; competition: InternationalCompetition | 'mundial'; matches: InternationalMatch[]; ties?: InternationalTie[] }
 export type InternationalStep = { label: string; libertadores?: InternationalPhase; champions?: InternationalPhase; mundial?: InternationalPhase }
@@ -106,7 +107,7 @@ export function entradaInternacionalM2(teams: readonly InternationalTeam[], matc
   if (!match.m2) return undefined
   const h = teams.find(t => t.id === match.home), a = teams.find(t => t.id === match.away)
   if (!h || !a) return undefined
-  return entradaM2({ seed: match.m2.s, casa: h.xi as never, fora: a.xi as never, tatica: match.m2.t, bots: [!h.you, !a.you] })
+  return entradaM2({ versao: match.m2.versao, seed: match.m2.s, casa: h.xi as never, fora: a.xi as never, tatica: match.m2.t, bots: [!h.you, !a.you] })
 }
 
 /** Resultado e calendário completos são congelados no save no início da campanha.
@@ -114,7 +115,7 @@ export function entradaInternacionalM2(teams: readonly InternationalTeam[], matc
  *  campanha é gasto IGUAL (nenhum jogo de bot muda por causa disso, só o chaveamento que depende de quem passou). */
 export function makeInternationalCampaign(input: {
   season: number; seed: number; representedClub: string | null; userTeam: string; userId: number
-  priority: number | null; userXI: Card[]; motor2?: boolean
+  priority: number | null; userXI: Card[]; motor2?: boolean; versaoM2?: VersaoM2
 }): InternationalCampaign {
   const { season, seed, representedClub, userTeam, userId, priority, userXI, motor2 } = input
   if (representedClub && (!validInternationalXI(userXI) || new Set(userXI.map(c => c.id)).size !== 11 || userXI.some(c => (c as Card & { fake?: boolean }).fake))) throw new Error('Inscrição internacional inválida')
@@ -174,8 +175,10 @@ export function makeInternationalCampaign(input: {
     let out: InternationalMatch = { home: homeId, away: awayId, hg, ag, goals }
     if (motor2 && (h.you || a.you)) {
       // ⚽🧠 jogo do presidente: o motor novo decide (a conta acima só serviu pra gastar o dado igual)
-      const m2 = { s: sementeM2((seed ^ Math.imul(season, 0x9E3779B1)) >>> 0, 'I', matchNo, 0, 0), t: [taticaM2(th), taticaM2(ta)] as [number, number] }
-      const res = resultadoM2(entradaInternacionalM2([h, a], { ...out, m2 })!)
+      const m2 = { versao: input.versaoM2, s: sementeM2((seed ^ Math.imul(season, 0x9E3779B1)) >>> 0, 'I', matchNo, 0, 0), t: [taticaM2(th), taticaM2(ta)] as [number, number] }
+      const e = entradaInternacionalM2([h, a], { ...out, m2 })!
+      m2.versao = e.versao
+      const res = resultadoM2(e)
       const gs: InternationalGoal[] = res.gols.map(g => {
         const xi = g.home ? h.xi : a.xi
         if (g.contra) return { name: `${g.nome} (contra)`, card: '', min: g.min, home: g.home }

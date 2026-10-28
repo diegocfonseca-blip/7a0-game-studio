@@ -1,17 +1,44 @@
-## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — código + banco feitos; gala e 2 temas esperando o OK do Diego
-- Dono `alexandre12cdm@gmail.com` (conta de 27/10, existia antes ✔; o time dele era "Pits FC" → a conta virou **dSouza FC**
-  no `display_name`; sem carreira na nuvem). **Série C**, no assento do bot **Kombi United** (o único bot sem dono da C;
-  `OLD_NAME` leva save antigo; o Kombi segue no jogo rápido, então o nome velho NÃO desenha o escudo). Técnico: "Alexandre".
-  Coração **Palmeiras**. Empresa dele: **dSouza Empreendimentos** (quadros de futebol, anúncio fixo nº8 de 28/10).
-- Arte do dono (uma prancha com fundo verde chroma; recorte por distância de cor, o verde-neon do desenho ficou inteiro,
-  conferido sobre creme e vermelho): escudo 360×334/26 KB · mascote **O Pitbull** 398×440/32 KB · camisa da Loja 585×620/33 KB.
-  Manto medido: preto #0A0A09 (64%) + verde-neon #73E541 (média dos pixels neon).
-- Banco: user_colors ouro+manual · esc_socios **79** (mascote `dsouza_pitbull`, escudo_time "dSouza FC", Palmeiras) ·
-  esc_fundadores **94** · esc_nomes_batismo "dSouza" (FC/EC pelo gatilho) · esc_compras_batismo 'plus' (Fundador).
-- Post: `scripts/posts/batismo-dsouza-fc.png`.
-- ⏳ **Esperando OK**: gala única **"A Galeria"** (`gala-dsouza.tsx`, vídeo `scripts/posts/gala-dsouza.webm`) e os temas
-  `dsouza` (clube, com o Pitbull) e `dsouza_emp` (🖼️ dSouza Empreendimentos, parede de galeria + recado da loja na faixa) —
-  fotos em `scripts/mockups/tema-dsouza*-cel.png`. ⏳ Canto da torcida: o Diego manda depois.
+## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — ✅ PUBLICADO (*"pode aprovar tudo"*)
+- Dono `alexandre12cdm@gmail.com` (conta de 27/10 ✔; o time dele "Pits FC" virou **dSouza FC** no `display_name`; sem carreira
+  na nuvem). **Série C**, no assento do bot **Kombi United** (`OLD_NAME`; o Kombi segue no jogo rápido, nome velho NÃO desenha o
+  escudo). Técnico "Alexandre". Coração **Palmeiras**. Empresa: **dSouza Empreendimentos** (quadros de futebol, anúncio fixo nº8).
+- Arte (prancha com fundo verde chroma, recorte por distância de cor; neon do desenho intacto): escudo 360×334/26 KB · mascote
+  **O Pitbull** 398×440/32 KB · camisa da Loja 585×620/33 KB. Manto medido: preto #0A0A09 + verde-neon #73E541.
+- Banco: user_colors ouro+manual · esc_socios **79** · esc_fundadores **94** · esc_nomes_batismo "dSouza" · esc_compras_batismo 'plus'.
+- Gala única **"A Galeria"** (`gala-dsouza.tsx`): parede com 6 quadros de futebol (bola · embaixadinha · foto do time · taça · gol ·
+  chuteira, pedido do Diego) com flash, a caixa "dSouza · frete grátis" cai e abre, o Pitbull sobe, escudo com anel neon, QUADRO NA
+  PAREDE · LENDA NO ELENCO · TAÇA NA ESTANTE e a faixa "O DONO DA GALERIA". Vídeo `scripts/posts/gala-dsouza.webm`.
+- Temas da sala: `dsouza` (clube, com o Pitbull) e `dsouza_emp` (🖼️ dSouza Empreendimentos — galeria + recado da loja na faixa).
+- Post: `scripts/posts/batismo-dsouza-fc.png`. ⏳ **Canto da torcida: o Diego manda depois** (a gala entra sem som até lá).
+
+## 🏟️ Queda repetida na saída do Neymarzetti (28/10) — correção de apresentação
+
+Reproduzida a carreira atual em cópia local da tela real (`PyramidSeasonScreen` → Clube → mapa/replay), com todo tráfego externo bloqueado. Leitura autorizada do save em `esc_pyramid_saves`, projeto `faabglpjutwursgmrpny`: o nome administrativo “Copa Mania” também contém as tabelas do Leilão. Nenhum write de save/banco. Temporada 8, rodada 1, Neymarzetti × Leão da Estradinha.
+
+- Falta oficial de Alex Alves em Cuadrado aos 5,30 s: o blend antigo colocava o caído em pé antes de começar `levanta`, derrubando o corpo de novo. `cai_parado` e `cai_carrinho` já contêm recuperação e também recebiam um `levanta` redundante. Removida essa cadeia automática.
+- `map-foul-reaction.mjs`: sequências completas dos mesmos clipes, verificadas por equipe e distância, com recuperação antes da próxima preparação de passe. Corpo fica no ponto da falta enquanto está no chão. Apito por vantagem revogada não representa um novo impacto. Se o intervalo oficial não comporta queda/recuperação, o jogador permanece em pé; a falta e a cobrança continuam oficiais.
+- Carrinhos e dribles identificam também o lado, evitando animar a lenda homônima do adversário. HUD do replay recebe seu próprio quadro; antes podia mostrar placar final/FIM por cima de uma reprodução ainda no início. Mapa ampliado fica acima do cabeçalho/abas fixas da carreira, que cobriam o campo; mesma cena/canvas, sem reinício.
+- Validação: `testa-quedas-mapa.mjs`, testes de relógio/contato/transições/fundamentos, build completo e `npm run recarga`. `testa-saida-partida-browser.cjs` percorreu 3.001 quadros do save, com 22 atletas, placar 0×1 e um gol de Alex Alves, assistência de Paulo Wanchope. Passes iniciais e cobrança aos 7,40 s com contato confirmado. Queda inicial passou de duas descidas do corpo para uma; raiz apoiada sem deslocamento no intervalo medido no chão.
+- Bancada da carreira: `abre-saida-carreira.cjs` + `saida-carreira.html`; captura com relógio de navegador controlado em `grava-saida-ui-clock.cjs`. Exige cópia privada do save em `test-results/saida-bola/private/`; fixtures, credenciais e vídeos NÃO entram no bundle nem no commit. Evidências locais em `test-results/saida-bola/`.
+- **Limites registrados:** três contatos da partida completa ainda não confirmados: recolha às 25,70 s (1,73 m), reposição às 26,10 s (23 cm) e recepção aérea às 85,05 s (1,36 m; diagnóstico ainda classifica peito como pé). Não declarar o futebol inteiro aprovado. A captura por renderizador de software não é medição de FPS de celular. Motor, eventos, overalls, acesso exclusivo aos campos e carreira preservados.
+
+## 🅾️🎨 Master sem Uomo e sem Rei das Tintas (28/10) — no branch, esperando "publica"
+Diego: *"remova a Uomo dos patrocinadores master e coloque a Uomo no lugar de alguma marca de fornecedor de material… remova Rei das
+Tintas também"*. Mesa do Master agora: OittoLabs 1 · Grêmio Campo Grande 3 · dSouza 3 · Tidex 5 · Vadico 5. Contrato delas que já corre
+em save antigo vai até o fim. A Uomo Concetto virou fornecedor de material no lugar da GuchiGuchi (Série A, 1 temporada, mesmo id
+`guchiguchi` pra contrato correndo não quebrar). Travas `npm run master`/`master-historia` atualizadas (5 contratos).
+
+## 🐶 Patrocinador Master dSouza Empreendimentos (28/10) — ✅ NO AR (linha do telão id 8 em `esc_anuncios_fixos`)
+Loja de quadros decorativos (futebol nacional/internacional, personalizados) no Mercado Livre:
+https://www.mercadolivre.com.br/pagina/dsouzaempreendimentos/futebol . Arte em `scripts/parceiros/dsouza-*.jpg`.
+- Master da carreira: **7ª marca, 3 temporadas** (= Grêmio Campo Grande; escolha do Diego), `dsouza` em `estadiodata.ts`; logo `patro-dsouza.webp`.
+- Placa do campinho: pitbull + nome (`patro-dsouza-placa.webp`, tirei a frase da arte deles, que vinha com acento errado "Confiànça/Rapìdo").
+- "Apresentada por": **Libertadores** (online e carreira) — a única grande sem patrocinador; o Diego não teve preferência.
+- Telão: `🐶 dSouza · Quadros do seu time pra decorar a parede · Frete grátis · Clique aqui` → página do Mercado Livre.
+  ⚠️ NA HORA DE PUBLICAR: inserir a linha em `esc_anuncios_fixos` (o banco manda; o código é só reserva).
+- Aviãozinho da home: agora é a dSouza (regra: patrocinador novo = avião). Saiu o Grêmio Campo Grande do avião (segue no resto).
+- Aviso da comunidade: `scripts/avisos/2026-10-28-parceiro-dsouza.json` → `scripts/posts/aviso-2026-10-28-parceiro-dsouza.png`.
+  Foto dos lugares: `scripts/posts/dsouza-no-leilao-legends.png`.
 
 ## 🤖 Simulação REAL da carreira pela tela (28/10) — 19 temporadas, achados (nada mexido no jogo)
 Pedido: *"simulação completa até a T120 começando na várzea… descobrir pq MT gente fala q é difícil na várzea… premiação… erros… ideias"*.
@@ -38,10 +65,6 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
-- **Várzea real na T26 (simulação, 28/10)**: 15 CPU da casa (74–80, +2) + 4 bots do leilão (76–80, +2) + o humano 79. No motor real
-  (100 temp) um 79 sobe 31% e termina em 8º na média; o robô fez 16º/9º/15º/10º. O teto "Bom" vai de 76 a 85 e no leilão às cegas não
-  dá pra ver qual é qual: quem acerta chega a ~84 e sobe 80%. Escalação do robô conferida (XI 79,1, certo). Achado do robô: no
-  "Próxima fase" da Copa com o time já eliminado, o toque às vezes não anda (o robô precisou de outro botão) — investigar se acontece com gente.
 - ✅ **PUBLICADO (28/10, *"Sim"*) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
   Saiu da Várzea!" só aparece com o time FORA da Várzea (quem caiu de volta não lê mais isso; o aviso espera a próxima subida);
   (2) a linha "🤝 Patrocínio" (sobra do pontual, sempre 0) e as linhas de "Agência"/"Empresário" só entram no extrato com dinheiro de
@@ -52,6 +75,37 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   "mesmo time" — `CONFIRM_MESMO_TIME` agora também carimba): temporada em andamento termina na tabela antiga. Medido no motor: time no teto
   da Várzea (80) sobe 8% → **28%**; 82 → 35%; 84 → 80%. Reverter = trocar os `s.simV = 5` de volta pra 4.
 - Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
+
+## ⚽ Campo 3D do mapa — revisão 4, goleiro e bola solta (28/10, LOCAL, sem publicação)
+- Pedido: goleiro de costas no chute/recolhimento; continuar refinando os fundamentos com bola.
+- Causa: antecipação usava a velocidade do rebote futuro, virava para a baliza e suprimia a reação.
+  Sequência oficial é **trave → recolhimento → lançamento**, não defesa; significado preservado.
+- Orientação corrigida, reação importada antes da coleta, IK residual das mãos, apoio dos pés
+  conferido na malha deformada e seek sem mergulho durante posse nas mãos.
+- Domínio que escapa: corpo acompanha a bola solta; a trajetória, a perda de posse e o receptor
+  seguem iguais. Condução exige proximidade/altura; orientação usa a bola realmente apresentada.
+- Saída da disputa reserva espaço para os braços. Verificação das malhas deformadas removeu
+  duas interseções; não é apenas uma checagem da distância entre os centros dos atletas.
+- Limites: esta entrada não cobre todas as defesas; mãos ainda têm pequeno resíduo de interseção,
+  impactos a 30 Hz usam estimativas, sprint e mudanças rápidas continuam em refinamento.
+- Sem publicar, acessar banco ou avançar rodada. Replay histórico 1–1 versus 3–0 continua bloqueado.
+  Evidências, testes e recuperação: `docs/refino-mapa-3d-20261028-v4.md`.
+
+## ⚽ Campo 3D do mapa — revisão 3 dos fundamentos (28/10, LOCAL, sem publicação)
+- Pedido: continuar corrigindo erros vistos no vídeo. Modelo atual, rig e uniforme preservados.
+- Corrigidos: passada medida nas capturas (2,069 m no trote), fases de apoio entre direções,
+  IK residual do pé de apoio, aproximação/domínio/recuperação sem troca instantânea de velocidade,
+  escolha do lado livre nas disputas, saída do passe, transição captura/reposição do goleiro,
+  giro da bola após sair das mãos e sombras das solas no novo modelo.
+- Verificação: partida inteira a 60 e 30 Hz, 22 atletas, mesmos 67 eventos e placar; 64 contatos
+  programados preservados a 60 Hz; corrida com 67–70% menos deslizamento mediano no teste.
+  Cidade real em celular/desktop e três câmeras; pausa e diagnóstico não alteram poses/eventos.
+- Ainda aberto: sprint, picos de velocidade em colisões, outros voos/recuperações do goleiro,
+  marcha após o apito e desempenho em celular físico. Interpolação dos impactos a 30 Hz ainda
+  tem 12 estimativas fora da tolerância. Não declarar futebol inteiro aprovado.
+- Save histórico: trava mantém bloqueado 1–1 versus 3–0 produzido pela entrada no motor atual.
+  Sem banco, avanço de rodada ou publicação. Detalhes, artefatos e reprodução em
+  `docs/refino-mapa-3d-20261028-v3.md`. Recuperação: `recovery/fundamentos-mapa-v2-50010191`.
 
 ## ⚡ Mata-mata Relâmpago (28/10) — ✅ PUBLICADO PRA TODOS com selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
 - Regras dele: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras normais"* e *"tem q ter ida
@@ -11466,6 +11520,13 @@ pedi pra você melhorar visualmente o que tem hoje"*). A carreira voltou a ser c
 ✅ Taças: `TacasNome` em `ligahub.tsx` — pequenas (17px), em fila depois do nome, ×N do lado
 (*"precisa ser menor e alinhado"*), só o que ganhou; Só Champions/Relâmpago usam a taça deles (`comp`). Os chips de Liga/Copa da sala
 rápida saíram (a taça diz isso); Top 8 e rebaixamento continuam.
+
+## 👀 ONLINE ABERTO PRA VISITANTE (28/10, pedido do Diego)
+*"o botão de online na home deixe que qualquer pessoa mesmo sem conta entre na página. Porém apertar pra criar sala ou entrar em alguma
+sala aberta não deixe, aí sim aparece com a informação de criar conta"*. Sem conta: a página de salas abre (lista, busca, filtros,
+atualizar, abas Salas abertas/Entrar). Qualquer outro botão (Criar sala, entrar numa sala, código, Minhas Ligas, vitrine…) abre a janela
+da conta com o porquê escrito; "agora não" volta pras salas. Mora em `lobby.tsx` (`visitante`, `pedeConta`, `travaVisitante` no `wrap`;
+o que é só de olhar leva `data-livre`). Convite pendente continua abrindo direto no login. Fotos: `scripts/mockups/online-visitante*.png`.
 
 ## ⚡ Envelope único liberado também pro Futpoint FC (28/10) — partida rápida e salas, mesma trava (`ENVELOPE_UNICO_TESTERS`)
 

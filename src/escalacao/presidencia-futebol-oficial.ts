@@ -27,6 +27,11 @@ export class FutebolOficial3D {
  /** 🤝 quadros desenhados depois do apito final: o relógio da partida para em 93', mas os 22 seguem andando pro meio-campo */
  private fimQuadros=0
  private delivery:EntregaOficial3D|undefined
+ private observedKeeperEvents=0
+ private keeperContacts:{t:number;name:string;side:number;ball:{x:number;y:number;z:number;vx:number;vy:number;vz:number}}[]=[]
+ /** Read-only physical impact samples for the visual rig. Smoothed ball
+  * positions lag a discontinuity and must not define a keeper's impact point. */
+ keeperImpacts(){return this.keeperContacts.map(c=>({...c,ball:{...c.ball}}))}
  /** 〰️ 26/10 (Diego: "os jogadores meio que se tremendo"): o motor anda em passos de 1/20 s e o desenho ligava os pontos em linha
   *  reta — a velocidade mudava de uma vez a cada 3 quadros (medido: 11% dos quadros com tranco > 1 cm). Guardamos o ponto de DOIS
   *  passos atrás e o desenho passa por uma curva lisa (B-spline quadrática) — mesmo caminho, sem quina. Só apresentação. */
@@ -41,11 +46,12 @@ export class FutebolOficial3D {
  private observeDelivery(){
   this.context.observe(this.game)
   const b=this.game.bola,l=b.lance
+  while(this.observedKeeperEvents<this.game.eventos.length){const e=this.game.eventos[this.observedKeeperEvents++];if(['defesa','espalma','rebote'].includes(e.tipo))this.keeperContacts.push({t:e.t,name:e.a??'',side:e.lado,ball:{x:b.y-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-34,vx:b.vy,vy:b.vh,vz:b.vx}})}
   if(!l){this.deliveryKey=null;this.delivery=undefined;return}
   const key=l.tipo+':'+l.de.id+':'+l.t0
   if(key===this.deliveryKey)return
   this.deliveryKey=key
-  this.delivery=descreverEntregaOficial3D(l.tipo,{x:b.vy,y:b.vh,z:b.vx},b.h+RAIO_BOLA_FUTEBOL_3D,l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):null)
+  this.delivery=descreverEntregaOficial3D(l.tipo,{x:b.vy,y:b.vh,z:b.vx},b.h+RAIO_BOLA_FUTEBOL_3D,l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):null,{technique:l.golpe,curveRate:b.giro})
  }
  private hasRestartPlacement(){const g=this.game,b=g.bola,p=g.bolaAnt;return g.parada?.tipo==='saida'&&(Math.hypot(b.x-(p.x??b.x),b.y-(p.y??b.y))>2.5||g.atl.some(a=>Math.hypot(a.x-(a.ax??a.x),a.y-(a.ay??a.y))>2.5))}
  private spinPoint(time=0,commit=false):PontoRotacaoBola{
@@ -69,10 +75,10 @@ export class FutebolOficial3D {
   }else if(this.dive&&!this.dive.crossed&&time>=this.dive.tc-.05)this.dive={...this.dive,crossed:true,tc:Math.min(time,this.dive.tc)}
   else if(this.dive&&!this.dive.crossed&&!l)this.dive={...this.dive,crossed:true,tc:time}
  }
- sample(state:EstadoPartidaEstadio,minute:number):QuadroFutebol{
+ sample(state:EstadoPartidaEstadio,minute:number,options:{replay?:boolean;postMatchWalk?:boolean}={}):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null;this.ante.clear();this.anteBola=undefined}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.observedKeeperEvents=0;this.keeperContacts=[];this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null;this.ante.clear();this.anteBola=undefined}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
@@ -81,7 +87,7 @@ export class FutebolOficial3D {
   this.avanca(target)
   // (depois do apito o placar não anda mais, mas cada quadro desenhado leva o motor ~1/60 s adiante por até 45 s: é o tempo de os
   // jogadores chegarem ao meio-campo e se cumprimentarem. Contagem por quadro, não por relógio de parede: o mesmo em todo aparelho)
-  if(this.game.fim){this.fimQuadros=Math.min(this.fimQuadros+1,45*60);this.avanca(target+(this.fimQuadros/60)/(90/93))}else this.fimQuadros=0
+  if(this.game.fim&&options.postMatchWalk!==false){this.fimQuadros=Math.min(this.fimQuadros+1,45*60);this.avanca(target+(this.fimQuadros/60)/(90/93))}else this.fimQuadros=0
   this.observeDelivery()
   const rotation=this.spin.preview(this.spinPoint(time),Math.max(0,time-this.spinTick/120)).toArray() as [number,number,number,number]
   const placementReset=this.hasRestartPlacement(),g=this.game,alpha=g.entre,mix=(a:number|undefined,b:number)=>a===undefined?b:a+(b-a)*alpha
@@ -95,7 +101,7 @@ export class FutebolOficial3D {
    const speed=p.expulso?0:Math.hypot(p.vx,p.vy) // (depois do apito o motor leva todo mundo ANDANDO pro meio: a marcha segue a velocidade)
    const last=this.travel.get(p.id),distance=(last?.distance??0)+(last?Math.hypot(mx-last.x,mz-last.y):0)
    this.travel.set(p.id,{x:mx,y:mz,distance})
-   return {id:card?.id??String(p.id),name:p.nome,pos:card?.pos??p.carta?.pos??(p.grupo==='GOL'?'GOL':'MEI'),key:key(p),side,keeper:p.grupo==='GOL',x:mx/105+.5,y:mz/68+.5,mx,mz,
+   return {id:card?.id??String(p.id),name:p.nome,pos:card?.pos??p.carta?.pos??(p.grupo==='GOL'?'GOL':'MEI'),key:key(p),side,keeper:p.grupo==='GOL',x:mx/105+.5,y:mz/68+.5,mx,mz,sourceAnchor:{x:mx,z:mz},
     heading:speed>.05&&!(p.grupo==='GOL'&&speed<3.4)?Math.atan2(p.vy,p.vx):Math.atan2(g.bola.y-p.y,g.bola.x-p.x),speed,distance, // (🧤 goleiro em passinho lateral encara a bola, não o passinho)
     kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,temporaryStopUntil:p.atordoado,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
   })
@@ -120,7 +126,10 @@ export class FutebolOficial3D {
   const quadro:QuadroFutebol={players,ball:{x:bX,y:mix(previous.h,b.h)+.11,z:bZ,rotation,presentation:placementReset?{x:b.y-52.5,y:b.h+.11,z:b.x-34}:presented.impact?presented.position:undefined,netImpact:presented.impact},phase,restart:context.restart,incident:context.incident,incidents:context.incidents,placementReset:placementReset||undefined,owner:b.dono&&g.gkMao!==b.dono?key(b.dono):undefined,/* (🧤 bola na MÃO do goleiro: sem `owner`, senão a apresentação do Codex gruda a bola no pé dele) */officialAction:b.lance?{type:b.lance.tipo,actor:key(b.lance.de),receiver:b.lance.para?key(b.lance.para):undefined,startedAt:b.lance.t0,requiredContact:context.restartOrigin?.type==='lateral'?'hands':action==='cabeceio'||action==='cabeceio_gol'||b.lance?.golpe==='cabeca'?'head':'foot',restartOrigin:context.restartOrigin,delivery:this.delivery?{...this.delivery,velocity:[...this.delivery.velocity] as [number,number,number]}:undefined}:undefined,
    referee:{...this.referee},time,
    official:{score:[...g.placar],events:g.eventos.map(e=>({...e})),finished:g.fim}}
-  return this.comReplay(quadro,time)
+  quadro.ball.heldBy=g.gkMao?key(g.gkMao):undefined
+  quadro.ball.velocity={x:b.vy,y:b.vh,z:b.vx}
+  quadro.ball.curl=b.giro??0
+  return options.replay===false?quadro:this.comReplay(quadro,time)
  }
  /** 🔁 REPLAY DO GOL (aprovado pelo Diego 25/10): guarda os últimos 4 s de quadros; na festa, dos 0,35 s aos 1,95 s, mostra de novo os
   *  2,4 s antes de a bola entrar (câmera lenta ~0,67×). Só apresentação — o motor, o placar e a festa seguem iguais; a câmera 'Atrás do

@@ -38,7 +38,8 @@
 .pc3-help-touch{display:none}
 .pc3-error,.pc3-loading{position:absolute;inset:0;display:grid;place-content:center;padding:30px;background:#f4ecd6;text-align:center;margin:0}
 .pc3-error{z-index:4}
-.pc3-expanded{position:fixed;inset:0;z-index:10000;width:100%;height:100vh;height:100dvh;background:#f4ecd6;overscroll-behavior:none}
+/* Above career headers/navigation (99988–99989), without remounting the map. */
+.pc3-expanded{position:fixed;inset:0;z-index:100000;width:100%;height:100vh;height:100dvh;background:#f4ecd6;overscroll-behavior:none}
 .pc3-expanded .pc3-stage{width:100%;height:100%;border:0;border-radius:0}
 @media(pointer:coarse){.pc3-help-touch{display:inline}.pc3-help-mouse{display:none}}
 @media(max-width:600px){
