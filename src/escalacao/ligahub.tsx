@@ -405,7 +405,7 @@ export async function gravaTemporadaSala(roomId: string, humanos: string[], grav
   }
 }
 
-export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo, cinema = false }: {
+export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo }: {
   roomId: string
   souDono: boolean
   humanos: string[]                 // 👥 times de GENTE nesta sala — só eles pontuam
@@ -419,7 +419,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
    *  (📚 Estante), com as três abas de sempre dentro do painel.
    *  Sem isto, a barra continua exatamente como sempre foi. */
   abasJogo?: { valor: string; escolher: (aba: 'jogos' | 'estatisticas' | 'elenco') => void }
-  cinema?: boolean                  // 🎬 prévia fechada: só muda a pele da barra
+  cinema?: boolean                  // 🎬 prévia fechada: era a pele dourada da barra — desde 28/10 a barra é a da carreira pra todos
   gravar?: {                        // 🖊️ só no FIM do jogo: o host grava a temporada
     seasonNo: number; matchSeed?: number
     champName: string; scorerName?: string; scorerGoals?: number; scorerTeamName?: string
@@ -616,7 +616,10 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
 
       {/* 🔽 A BARRA — mesma cara da barra da carreira (foto que o Diego mandou):
           fundo creme translúcido, ícone duotone e rótulo em Oswald maiúsculo. */}
-      <div className={cinema ? 'll31-bottom-nav' : undefined} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+      {/* 🔁 28/10 (Diego: *"só fazer visualmente igual ao do carreira"*, sem mudar nome nenhum): a barra ganhou a cara
+          da barra da CARREIRA no celular (`career-abas.css`) — fundo claro com linha preta grossa, aba aberta num
+          botão preto com o ícone dourado. Vale com e sem o visual novo (o `ll31-bottom-nav` dourado saiu daqui). */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
         {abas.map(t => {
           // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
           // painel nenhum), então acendem quando são a aba da vez — e tocar numa
@@ -624,7 +627,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
           // pessoa acabou de pedir pra ver.
           const daPartida = ehAbaDaPartida(t)
           const on = daPartida ? abasJogo!.valor === t : aba === t
-          const cor = on ? '#B8860B' : 'rgba(12,12,12,.45)'
+          const cor = on ? GOLD : INK
           // 📚 tocar no Estante SEMPRE abre na Estante (o botão promete isso). No
           // celular as pílulas de dentro levam pra Rank e Temporadas.
           // ⬆️ e volta pro topo: a barra fica embaixo, então dá pra trocar de aba
@@ -636,9 +639,11 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
             : () => { if (t === 'estante') setSubAba('estante'); setAba(aba === t ? null : t as Aba) }
           return (
             <button key={t} onClick={tocar} aria-label={rotulo(t)} aria-pressed={on} className={faixaDoBotao(t)}
-              style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: cor }}>
-              <IconeLiga nome={t} cor={cor} />
-              <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{rotulo(t)}</span>
+              style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: INK }}>
+              <span style={{ margin: '0 auto', width: 46, height: 30, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', border: `2.5px solid ${on ? INK : 'transparent'}`, background: on ? INK : 'transparent', boxShadow: on ? '2px 2px 0 #C2452F' : 'none' }}>
+                <IconeLiga nome={t} cor={cor} />
+              </span>
+              <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 11, lineHeight: 1.05, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 3, color: on ? INK : 'rgba(12,12,12,.78)' }}>{rotulo(t)}</span>
             </button>
           )
         })}
