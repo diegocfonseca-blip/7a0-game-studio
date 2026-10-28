@@ -15,6 +15,7 @@
   taça com RAIO, raios no fundo, frase "o raio não cai duas vezes", festa "caiu como um raio") → tema da tela, túnel da final, festa
   do título e taça do fim. `SorteioRelampago` (online-match-visual): na 1ª abertura os confrontos saem um por um com ⚡, no MESMO
   relógio de 10s da abertura (nada de espera a mais). Fotos: `scripts/mockups/relampago-sorteio.png`, `-tunel.png`, `-festa.png`.
+- 📲 Stories do lançamento: `node scripts/stories-relampago.mjs` → `scripts/posts/stories-relampago.png`.
 - Ainda não: Relâmpago no Minhas Ligas e com Duplas (não pedido).
 - Veio da lista de ideias novas pras salas (Clã × Clã, Liga dos Bagres, Copa das Décadas, Leilão de Seleções, Relâmpago, Leilão
   das Pistas, Rei da Noite). Ele escolheu ver o Relâmpago.
