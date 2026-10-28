@@ -51,7 +51,8 @@ export function instalaTravaEspectador(c: Cliente): void {
   c.from = (t: string) => {
     const b = from(t) as Record<string, unknown>
     if (!ativo || !b) return b
-    for (const k of ['insert', 'upsert', 'update', 'delete']) b[k] = () => morto()
+    // a ÚNICA exceção: o medidor do canal (só contagem de mensagens, nada de jogo) — é como a gente enxerga se o chat chega nele
+    for (const k of ['insert', 'upsert', 'update', 'delete']) if (!(k === 'insert' && t === 'esc_realtime_medidor')) b[k] = () => morto()
     return b
   }
   c.rpc = (fn: string, args?: unknown, opts?: unknown) => (ativo && !LEITURA.has(fn) ? morto() : rpc(fn, args, opts))

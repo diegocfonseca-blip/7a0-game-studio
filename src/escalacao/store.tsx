@@ -14191,7 +14191,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
     const ch = instrumenta(canalLimpo(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'sala', state.roomId, true) // 📏 conta tudo que passa no canal da sala
-    medidorPapel(!!state.isHost)
+    medidorPapel(!!state.isHost, !!state.espectador) // 👁️ o fantasma conta como 'espectador' (é o que mostra se o chat chega nele)
 
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
