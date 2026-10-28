@@ -1,3 +1,18 @@
+## 🤖 Simulação REAL da carreira pela tela (28/10) — 19 temporadas, achados (nada mexido no jogo)
+Pedido: *"simulação completa até a T120 começando na várzea… descobrir pq MT gente fala q é difícil na várzea… premiação… erros… ideias"*.
+Robô (Playwright) jogando pela TELA de verdade: leilão às cegas escolhendo pelos mais famosos, Master, coletivas, pular jogo (como Craque),
+leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (não no repo). ~5–10 min por temporada pela tela.
+- **Várzea é sorteio**: XI do robô nível médio 79 × rivais de gente 76–80 → 4º num ano, 20º no outro com o mesmo time. Saiu da V na T2,
+  ioiô V↔D↔C até a T19 (chegou na C na T9 e caiu na hora).
+- **Elenco cheio (27) trava o reforço**: da T7 em diante o leilão não ofereceu vaga nenhuma e o robô ficou 12 temporadas sem comprar, com
+  ~390 🪙 parados. A saída é VENDER — não é óbvio. **Ideia pro Diego**: no leilão, com elenco cheio, avisar "venda alguém pra abrir vaga" com o botão ali.
+- **Dinheiro na V**: ~45/temp (bilheteria 20 · TV 10 · Master 10 · prêmio 2–5) − folha 28 (elenco cheio) ≈ +17/temp.
+- **Conferidos e pagando certo**: colocação (só top 4 + campeão), queda C −10, TV 10/20/30 (V/D/C), Master (renova +25%, multa+rescisão na
+  queda), Bico de Folga, coletiva +2, renovação automática. **Não deu pra conferir** (time não passou da C): Copa, Liberta/Champions, Mundial, Copa do Mundo.
+- **Estranhos**: bilheteria fixa em 20 em V, D e C (sem obra não cresce ao subir — conferir se é de propósito); linha "🤝 Patrocínio 0" em todo
+  extrato (resíduo do pontual); botão CONTINUAR do caixa pode ficar atrás da barra de abas (rolar resolve).
+- Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
+
 ## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
 - Logo oficial LL (`img/logo-ll.webp`, 96px, 1 KB — enviada pelo Diego) ao lado do nome no PC.
 - Veio da análise do Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as abas de baixo
