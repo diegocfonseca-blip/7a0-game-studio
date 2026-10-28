@@ -217,7 +217,7 @@ const PLACAS_CAMPO: PlacaCampo[] = [
   { nome: 'Tidex', logo: TIDEX_LOGO, prop: 837 / 120, fundo: '#0B1220' },
   // ⚽ 23/10: o escudo é vertical, então a placa leva escudo + "GRÊMIO ESPORTIVO / CAMPO GRANDE" em duas linhas, no azul do clube.
   { nome: 'Grêmio Esportivo Campo Grande', logo: GECG_PLACA, prop: 586 / 120, fundo: '#11225A' },
-  { nome: 'dSouza Empreendimentos', logo: DSOUZA_PLACA, prop: 663 / 240, fundo: '#000000' }, // 🐶 28/10: pitbull + nome, no preto da arte deles
+  { nome: 'dSouza Empreendimentos', logo: DSOUZA_PLACA, prop: 1003 / 240, fundo: '#000000' }, // 🐶 28/10: pitbull + nome, no preto da arte deles
 ]
 /** 📐 TAMANHO DA MARCA NA PLACA (21/10, Diego: *"a Tidex está perfeita… a Vadico e a OittoLabs estão desproporcionais e pequenas…
  *  tem que seguir o padrão da Tidex"*). Antes toda marca tinha a MESMA altura (72% da placa), então a marca comprida (Tidex, 7:1)
