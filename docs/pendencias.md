@@ -1,3 +1,10 @@
+## 📅 LEILÃO DE DÉCADAS (28/10) — MOCKUP enviado, esperando OK (`scripts/mockups/leilao-decadas.png`)
+Ideia do Diego: igual ao 🧱 Clubes, mas o pacote é CLUBE + DÉCADA ("Atacantes do Flamengo · anos 80"); o mesmo clube pode sair em
+décadas diferentes. 3ª opção do "Tipo de leilão" (🃏 Jogador · 🧱 Clubes · 📅 Décadas), baralho Todos, selo 📅 DÉCADAS na lista e na
+espera. Conta medida nos 3 baralhos (pacote viável = vaga do 4-3-3 + 1): GOL 28 · LAT 22 · ZAG 30 · MEI 37 · ATA 43 → cabe sala de ~20.
+⚠️ Anos 80 ≈ 1 pacote por setor (nenhum de MEI/ATA), anos 90 1–5; o grosso é 2000/2010/2020. Recomendado: lotes de cartas 80/90.
+Código: chave `clubCanon(club)|década` em `buildDeckClubes` + `nomePacote` com a década.
+
 ## 🟢 Envelope único LIBERADO PRA TODOS (28/10) + selos
 Selo NOVO na criação (sala e partida rápida); Relâmpago trocou "em testes" por NOVO; selo ⚡ ENVELOPE ÚNICO na lista de salas, no filtro
 "⚡ Único" e na sala de espera (o banco grava `ls_pregao = 'unico'`, migration `20261028200000_ls_envunico.sql`). Duplas: ainda NÃO.
