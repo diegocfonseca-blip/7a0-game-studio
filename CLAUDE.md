@@ -941,10 +941,23 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (o mensal só vale em dia: **cancelou, perde a reserva** — *"se cancelar… não continua reservado"*). Nome de grátis não trava ninguém;
   grátis com nome de quem paga (ou de batismo alheio) leva o selo **🎭 FAKE** grudado no nome, decidido pelo BANCO (`esc_meu_nome_fake`)
   e lido no login, igual à medalha da semana. Batismo continua reservado pro dono como antes. É benefício de TODO plano (do Craque Salas).
+- **⚡ MATA-MATA RELÂMPAGO (28/10): chave de 16 ou 32 (quem cria escolhe), IDA E VOLTA e só a FINAL em jogo único, pênaltis
+  AUTOMÁTICOS** (*"tem q ter ida e volta, somente final que não"* · *"pênalti padrão igual as outras normais"*). Sem liga: leilão de
+  sempre → sorteio. ⚠️ **O pênalti que a pessoa BATE só existe na carreira offline** — nas salas é sempre a disputa automática; não
+  prometer pênalti manual online sem conferir (eu errei no mockup). 🟢 Liberado pra todos em 28/10 com o selo verde "EM TESTES"
+  (`RELAMPAGO_GERAL = true`). Cara própria em `competicoes-visual.tsx` (`relampago`: taça com raio, túnel, festa) + `SorteioRelampago`.
 - **🧭 UMA COISA SÓ EM CADA ABA (27/10).** *"não gostei de você fazer várias coisas num lugar só. A central é só coisa da central,
   jogos ali é só coisa dos jogos… jogo e tabela é na mesma página"*. Nunca juntar pedaços de abas diferentes numa tela (nada de
   "3 colunas com clube + tabela + calendário" na Central, estilo Brasileirinho). Jogos + Tabela = uma aba só.
 - **⚔️🚫 CLÃ NÃO VAI PRA HOME (27/10).** *"o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas"*. Na home só os PEDIDOS (amizade, convite de clã, pedido pro meu clã) com aceitar ali (`PedidosNaHome`). Não repropor bloco de clãs na home.
+- **👁️ ESPECTADOR "FANTASMA" (28/10, mockup `scripts/mockups/espectador.png`, *"Perfeito"*).** Pra campeonatos: só quem ele libera no
+  #admin vê 👁️ ASSISTIR; entra em qualquer sala, vê tudo e **só LÊ o chat** (28/10, depois do 1º teste: *"eu comentar pode ser que atrapalhe algo"* — inclusive o da sala de espera), mas **não joga e não aparece em lista nenhuma** (nem na
+  do dono). Medo dele: *"não quero erro… medo de mudar cadeira"*. Régua de construção: o fantasma NUNCA ganha linha em `room_players`, nunca
+  entra no `seatUids`, nunca faz `track()`, nunca manda ação e nunca vira dono; e `espectador.ts` barra no aparelho dele TODA gravação no
+  banco. Quem mexer em coroa/presença/dispatch: manter o `if (espectador)`. Trava: `npm run espectador`.
+- **⚡ ENVELOPE ÚNICO = o 4º jeito de dar lance (28/10, mockup `scripts/mockups/envelope-unico.png`, só na conta dele por enquanto).**
+  As 5 posições num envelope só, **180s** (*"tempo de 90s troque para 180s"*), uma revelação só, empate = sorteio. Partida Rápida + salas
+  (Rápido/Minhas Ligas); nunca carreira, nunca duplas. Usa o MESMO motor da leva (`leilaoResolveLeva`). Trava `npm run envelope-unico`.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).

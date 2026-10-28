@@ -1089,6 +1089,7 @@ import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
+import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
@@ -2604,11 +2605,12 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
 // resolve UMA disputa de desempate: junta os re-lances (humanos já enviados +
 // CPUs auto), o maior leva. Empatou de novo no topo → roleta (sorteio) entre
 // eles. Atualiza dinheiro/elenco do vencedor e a carta na fila de revelação.
-function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
+function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number, sorteio = false) {
   const amounts: Record<number, number> = {}
   for (const id of tb.managers) {
     const m = state.managers.find(x => x.id === id)!
-    let v = m.isHuman ? (state.tiebreakPending[id] ?? tb.amount) : cpuTiebreakBid(m, tb, rng)
+    // ⚡ sorteio (envelope único): ninguém re-lança — todos ficam no valor empatado e a roleta decide
+    let v = sorteio ? tb.amount : m.isHuman ? (state.tiebreakPending[id] ?? tb.amount) : cpuTiebreakBid(m, tb, rng)
     // 🪜 escada: a CPU não cobre o empate além do teto da categoria × economia
     // (a escalada do re-lance era a última rota de "🎯 a preço de ⭐"). O teto
     // acompanha a riqueza da sala; humano decide sozinho.
@@ -4554,6 +4556,47 @@ function abreChampionsDiretoSePrecisa(s: EscState) {
   s.screen = 'champions'
 }
 
+// ⚡ MATA-MATA RELÂMPAGO (28/10, mockup `scripts/mockups/mata-relampago.png`). Pedido do Diego: *"faz c 16 então msm e 32 a pessoa
+// escolhe ao criar e pênalti padrão igual as outras normais"*. O leilão é o de SEMPRE; quando a temporada nasce (rodada 0), o
+// HOST pula a liga e sorteia a chave com os times da sala (gente + bots que completaram). Daí pra frente é o motor da Copa de
+// sempre (`PLAY_COPA_LEG`): ida e volta em toda fase, final em jogo único, empate no agregado = pênaltis automáticos, igual às outras Copas.
+/** o tamanho da chave: o que o dono escolheu, mas nunca menor que o número de pessoas na sala */
+export function chaveRelampago(escolha: number | undefined, pessoas: number): 16 | 32 {
+  return escolha === 32 || pessoas > 16 ? 32 : 16
+}
+/** a fase em que a chave começa: 32 → Rodada de 32 · 16 → oitavas */
+export function faseInicialRelampago(chave: 16 | 32): 'r32' | 'oitavas' { return chave === 32 ? 'r32' : 'oitavas' }
+/** sorteia a chave (os times da SALA — humanos e bots com elenco; nunca o clube de enfeite que completa a tabela) */
+export function seedRelampago(league: LeagueTeam[], chave: 16 | 32, rng: () => number): QuickCopaState {
+  const daSala = league.filter(t => t.isManager)
+  const resto = league.filter(t => !t.isManager)
+  const times = shuffle([...daSala, ...resto].slice(0, chave), rng)
+  const ties: QuickCopaTie[] = []
+  for (let i = 0; i + 1 < times.length; i += 2) ties.push({ aId: times[i].id, bId: times[i + 1].id, aName: times[i].name, bName: times[i + 1].name, legs: [], winner: null })
+  return { phase: faseInicialRelampago(chave), ties, legIdx: 0, bracket: [], scorers: [], assists: [] }
+}
+/** ⚡ até onde cada time chegou na chave → posição final (1 = campeão, 2 = vice, 3 = semi…). Quem caiu na mesma fase divide a posição. */
+export function posicaoNaChave(qc: QuickCopaState): Map<number, number> {
+  const ordem = ['r32', 'oitavas', 'quartas', 'semis', 'final']
+  const chegou = new Map<number, number>()
+  for (const b of qc.bracket) { const f = ordem.indexOf(b.phase); for (const t of b.ties) for (const id of [t.aId, t.bId]) chegou.set(id, Math.max(chegou.get(id) ?? -1, f)) }
+  const pos = new Map<number, number>()
+  for (const [id, f] of chegou) pos.set(id, id === qc.champion?.id ? 1 : f === 4 ? 2 : 2 ** (4 - f) + 1)
+  return pos
+}
+function abreRelampagoSePrecisa(s: EscState) {
+  if (s.copaMode !== 'relampago' || s.screen !== 'season') return
+  // 🌐 só o HOST sorteia — o resultado chega pronto pros outros (regra de ouro do online). Nunca na carreira nem no basquete.
+  if ((s.onlineMode === 'online' && !s.isHost) || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
+  if (s.round !== 0 || !s.league.length) return
+  // 🧹 rodada 0 = qualquer Copa no estado é resto da partida anterior (mesma lição da Só Champions, 25/09)
+  s.champions = null; s.liberta = null; s.quickCopa = null
+  const chave = s.relampagoChave ?? chaveRelampago(undefined, s.managers.filter(m => m.isHuman).length)
+  s.quickCopa = seedRelampago(s.league, chave, mulberry((s.seed ^ 0x5E1A3F0) >>> 0))
+  s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
+  s.news = [tr(`⚡ MATA-MATA RELÂMPAGO! Chave de ${chave} sorteada — ida e volta, final em jogo único.`, `⚡ LIGHTNING KNOCKOUT! ${chave}-team draw is done — two legs, single-match final.`)]
+}
+
 /** a tabela de 36, do 1º ao 36º — MESMO desempate do resto do jogo */
 export function championsTabela(ch: ChampionsState): ChampionsTeam[] {
   return [...ch.times].sort((a, b) =>
@@ -5500,7 +5543,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -5527,7 +5570,7 @@ type Action =
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; envUnico?: boolean; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -5548,6 +5591,7 @@ type Action =
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
+  | { type: 'ASSISTIR_ONLINE'; state: EscState; roomId: string; roomCode: string; youUid: string; hostUid: string } // 👁️ fantasma: só assiste (28/10)
   | { type: 'DUPLA_TOGGLE_CAT'; mgrId: number; cat: DuplaCat; uid: string } // 🤝 alguém tocou numa categoria na tela de dividir (primeiro que toca leva)
   | { type: 'DUPLA_SOLO'; mgrId: number; ficouUid: string } // 🤝 o parceiro SAIU de verdade da sala → quem ficou assume todas as categorias
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -6722,6 +6766,8 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // 🧱 17/10 (Diego): com 🧱 Clubes também — o lote vira o PACOTE do clube (escudo + quantos jogadores), não a carta coberta
   // 🔒 carreira NUNCA abre pregão aberto nem Tocaia (21/10) — mesmo que a marca tenha vazado de um jogo rápido
   if (state.pregaoAberto && !rescue && !state.careerOnline) { abrePregaoAberto(state); return }
+  // ⚡ ENVELOPE ÚNICO (28/10): as 5 posições num envelope só, logo na abertura do leilão (nunca na carreira)
+  if (state.envUnico && !rescue && !state.careerOnline && state.sectorIdx === 0 && state.sectorCursor === 0) { abreEnvelopeUnico(state); return }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
@@ -6871,8 +6917,37 @@ function sealAndResolveTec(state: EscState) {
 // resolve o setor a partir dos envelopes coletados (humanos) + CPUs
 function sealAndResolve(state: EscState) {
   if (state.tecLote) { sealAndResolveTec(state); return } // 🧢 setor técnico
-  const rng = rngOf(state)
+  if (state.euAberto) { selaEnvelopeUnico(state); return } // ⚡ envelope único: as 5 posições de uma vez
   const rescue = state.phase === 'resq_envelope'
+  const { queue, unsold, ties } = leilaoResolveLeva(state, rescue)
+  state.revealQueue = queue
+  state.revealIdx = 0
+  state.currentCards = unsold
+  state.submitted = []
+  state.pendingEnvelopes = {}
+  state.tiebreaks = ties
+  state.tiebreakIdx = 0
+  state.tiebreakPending = {}
+  if (ties.length > 0) {
+    // tem empate no topo: entra na fase de desempate antes da revelação
+    state.phase = 'tiebreak'
+    advanceTiebreaks(state) // para no 1º que precisa de humano, ou já vai pra revelação
+  } else {
+    state.phase = rescue ? 'resq_reveal' : 'reveal'
+    state.phaseDeadline = null
+    // CAUSA-RAIZ da "tela preta": se a leva veio VAZIA (currentCards vazio →
+    // revelação sem nenhuma carta), a tela de Revelação não tinha o que mostrar e
+    // renderizava em branco (o fundo escuro do estúdio aparecia). Aqui a gente
+    // NUNCA entra numa revelação vazia: segue direto pro próximo passo (próxima
+    // leva / repescagem / monte). afterReveal usa o phase que acabamos de setar.
+    if (state.revealQueue.length === 0) afterReveal(state)
+  }
+}
+
+// 🔨 o miolo de SEMPRE de uma leva: junta os lances (bots + envelopes de gente), decide quem leva cada carta, cobra e
+// anota. Separado em 28/10 só pra o ⚡ envelope único poder rodar as 5 posições com o MESMO motor — nada mudou dentro.
+function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
+  const rng = rngOf(state)
   const bidMap: BidMap = new Map()
   const econ = state.careerOnline ? escadaEconFactor(state) : 0 // 💰 teto por categoria × riqueza da sala (TODA carreira — pedido do Diego: 'Pelé por 409' na carreira longa)
   // 🔻 HOLANDÊS: os lances JÁ estão prontos em `pendingEnvelopes` (um por carta,
@@ -6952,28 +7027,67 @@ function sealAndResolve(state: EscState) {
     if (w?.isHuman) voltaCriaSeSobrou(state, w, q.card.pos)
   }
   mirrorWallets(state) // 💰 arremates e vendas do pregão entram na caixa NA HORA
-  state.revealQueue = queue
+  return { queue, unsold, ties }
+}
+
+// ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png, Diego: "ok… tempo de 90s troque para 180s").
+// O leilão às cegas de sempre, só que as 5 posições abrem JUNTAS num envelope de 180s e saem numa revelação só.
+// Empate = sorteio na hora (sem rodada de desempate). O que ninguém levou vai pro Monte de sempre.
+export const ENVELOPE_UNICO_MS = 180_000
+function abreEnvelopeUnico(state: EscState) {
+  state.phase = 'envelope'
+  state.euAberto = true
+  state.euRevelando = false
+  state.currentCards = SECTORS.flatMap(p => state.deck[p] ?? [])
+  state.revealQueue = []
   state.revealIdx = 0
-  state.currentCards = unsold
   state.submitted = []
   state.pendingEnvelopes = {}
-  state.tiebreaks = ties
+  state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ENVELOPE_UNICO_MS
+  if (state.currentCards.length === 0) { selaEnvelopeUnico(state); return }
+  if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[0]).length === 0) selaEnvelopeUnico(state)
+}
+function selaEnvelopeUnico(state: EscState) {
+  const todas = state.currentCards
+  const envs = state.pendingEnvelopes
+  const fila: ResolvedCard[] = []
+  const sobras: Card[] = []
+  // posição por posição, na ordem de sempre (GOL → ATA), com o MESMO motor de uma leva — a caixa de cada um vai
+  // baixando a cada posição, igual ao leilão normal
+  for (let i = 0; i < SECTORS.length; i++) {
+    const ids = new Set((state.deck[SECTORS[i]] ?? []).map(c => c.id))
+    const cards = todas.filter(c => ids.has(c.id))
+    if (cards.length === 0) continue
+    state.sectorIdx = i
+    state.currentCards = cards
+    const env: typeof envs = {}
+    for (const k of Object.keys(envs)) env[Number(k)] = (envs[Number(k)] ?? []).filter(b => ids.has(b.cardId))
+    state.pendingEnvelopes = env
+    state.submitted = []
+    const { queue, unsold, ties } = leilaoResolveLeva(state, false)
+    state.revealQueue = queue // o desempate acha a carta aqui pra anotar quem levou
+    const rng = rngOf(state)
+    for (const tb of ties) resolveOneTiebreak(state, tb, rng, true) // 🎲 empate = sorteio na hora
+    fila.push(...state.revealQueue)
+    sobras.push(...unsold)
+  }
+  montePush(state, sobras)
+  state.currentCards = []
+  state.pendingEnvelopes = {}
+  state.submitted = []
+  state.tiebreaks = []
   state.tiebreakIdx = 0
   state.tiebreakPending = {}
-  if (ties.length > 0) {
-    // tem empate no topo: entra na fase de desempate antes da revelação
-    state.phase = 'tiebreak'
-    advanceTiebreaks(state) // para no 1º que precisa de humano, ou já vai pra revelação
-  } else {
-    state.phase = rescue ? 'resq_reveal' : 'reveal'
-    state.phaseDeadline = null
-    // CAUSA-RAIZ da "tela preta": se a leva veio VAZIA (currentCards vazio →
-    // revelação sem nenhuma carta), a tela de Revelação não tinha o que mostrar e
-    // renderizava em branco (o fundo escuro do estúdio aparecia). Aqui a gente
-    // NUNCA entra numa revelação vazia: segue direto pro próximo passo (próxima
-    // leva / repescagem / monte). afterReveal usa o phase que acabamos de setar.
-    if (state.revealQueue.length === 0) afterReveal(state)
-  }
+  state.euAberto = false
+  // a revelação mostra só carta que teve lance (as sem lance já foram pro Monte) — é o que deixa ela ligeira
+  state.revealQueue = fila.filter(q => q.winner !== null || q.bids.length > 0)
+  state.revealIdx = 0
+  state.sectorIdx = SECTORS.length - 1
+  state.sectorCursor = (state.deck[SECTORS[SECTORS.length - 1]] ?? []).length
+  state.euRevelando = true
+  state.phase = 'reveal'
+  state.phaseDeadline = null
+  if (state.revealQueue.length === 0) afterReveal(state)
 }
 
 // todo humano com vaga aberta e dinheiro precisa enviar (não filtra por presença:
@@ -7010,7 +7124,10 @@ function envelopeQueCabe(s: EscState, mgrId: number, bids: { cardId: string; amo
 
 function humansToSubmit(state: EscState, pos: Sector): number[] {
   // 🧢 setor técnico: não existe "vaga de posição" — quem tem dinheiro dá lance
-  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && (state.tecLote ? m.money > 0 : (openSlots(m, pos) > 0 && m.money > 0)))
+  // ⚡ envelope único: lacra quem tem vaga em QUALQUER posição (e dinheiro)
+  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && (state.tecLote ? m.money > 0
+    : state.euAberto ? (m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0))
+    : (openSlots(m, pos) > 0 && m.money > 0)))
   // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
   // pela tela. Qualquer OUTRO assento humano (o 2º clube do Multiclubes — dormindo,
   // OU com o flag `dormindo` inconsistente por uma troca no meio do leilão) nunca
@@ -7041,6 +7158,14 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
 }
 
 function afterReveal(state: EscState) {
+  // ⚡ acabou a revelação ÚNICA: as 5 posições já foram — segue pro Monte de sempre
+  if (state.euRevelando) {
+    state.euRevelando = false
+    state.currentCards = []
+    state.sectorIdx = SECTORS.length - 1
+    advanceSectorOrFinish(state, rngOf(state))
+    return
+  }
   // 🧢 acabou a revelação do setor técnico: limpa o lote e abre os GOLEIROS
   if (state.tecLote) {
     state.tecLote = null
@@ -7274,7 +7399,7 @@ function proximoDoDraft(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -7294,6 +7419,7 @@ export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
+  if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
   return s
 }
 function reducerBase(state: EscState, action: Action): EscState {
@@ -7372,7 +7498,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // onde está o MEU uid; o id só entra se o mapa não existir (host em versão velha).
       youIdx: (() => {
         const ns = action.newState
-        const meuUid = state.youUid
+        // 👁️ o fantasma não tem cadeira: a tela dele é desenhada pelos olhos do DONO da sala (crachá do dono)
+        if (state.espectador && state.espHostUid && Array.isArray(ns.seatUids)) {
+          const seatH = assentoDoCracha(ns, state.espHostUid)
+          if (seatH >= 0) { const i = ns.managers?.findIndex(m => m.id === seatH) ?? -1; if (i >= 0) return i }
+        }
+        const meuUid = state.espectador ? undefined : state.youUid
         if (meuUid && Array.isArray(ns.seatUids) && ns.seatUids.length > 0) {
           const seat = assentoDoCracha(ns, meuUid)
           if (seat >= 0) { const i = ns.managers?.findIndex(m => m.id === seat) ?? -1; if (i >= 0) return i }
@@ -7383,7 +7514,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         return i >= 0 ? i : state.youIdx
       })(),
       youUid: state.youUid, // 🤝 meu crachá da dupla é LOCAL, igual ao youIdx
-      isHost: state.isHost,
+      espectador: state.espectador, espHostUid: state.espHostUid, // 👁️ local, nunca vem do dono
+      isHost: state.espectador ? false : state.isHost,
       roomId: state.roomId,
       roomCode: state.roomCode,
       onlineMode: state.onlineMode,
@@ -7423,6 +7555,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       isHost: action.isHost,
       youIdx: myIdx,
       youUid: action.youUid ?? state.youUid, // 🤝 crachá da dupla: local, sobrevive à reconexão
+      espectador: undefined, espHostUid: undefined, // 👁️ entrar de verdade numa sala nunca é assistir
       pendingEnvelopes: {},
       tiebreakPending: {},
       // 🧯 host recarregou no meio da coleta de lances (bug 10/08): os envelopes
@@ -7442,6 +7575,16 @@ function reducerBase(state: EscState, action: Action): EscState {
       presence: [],
     })
   }
+  // 👁️ ASSISTIR (fantasma, 28/10): o mesmo caminho da reconexão, só que pelos olhos do DONO e sem nada de jogador —
+  // isHost falso, sem cadeira (o crachá dele não está no seatUids), e a marca `espectador` que tranca tudo no aparelho.
+  if (action.type === 'ASSISTIR_ONLINE') {
+    // 🚫 nunca jogar e assistir ao mesmo tempo: quem tem cadeira na sala (ou está no meio de outra partida online como
+    // jogador) não vira fantasma — a recusa deixa tudo como estava.
+    if (assentoDoCracha(action.state, action.youUid) >= 0) return state
+    if (state.onlineMode === 'online' && !state.espectador && state.roomId && state.screen !== 'lobby' && state.screen !== 'intro') return state
+    const r = reducer(state, { type: 'RESTORE_ONLINE', state: action.state, roomId: action.roomId, roomCode: action.roomCode, isHost: false, playerIndex: 0, youUid: action.hostUid })
+    return { ...r, isHost: false, youUid: action.youUid, espectador: true, espHostUid: action.hostUid, submitted: action.state.submitted ?? [] }
+  }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   // Fui REMOVIDO pela host no meio da partida: saio de vez. Zera tudo e cai no
   // MENU ONLINE (não no meio do jogo). A vaga no banco a host já apagou; o canal
@@ -7449,7 +7592,7 @@ function reducerBase(state: EscState, action: Action): EscState {
   if (action.type === 'KICKED_OUT') return { ...INITIAL, screen: 'lobby' }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
-    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
+    case 'GO_LOBBY': { s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
@@ -7646,6 +7789,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
     case 'BECOME_HOST': {
+      if (s.espectador) return state // 👁️ o fantasma NUNCA vira dono
       // 👑 ASSUMI O COMANDO NO MEIO DO JOGO (o dono sumiu). O detalhe perigoso
       // (Diego 16/08): eu herdo a LISTA de quem já lacrou o envelope, mas NÃO
       // herdo os envelopes — os lances secretos dos outros só existiam na memória
@@ -7676,6 +7820,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // `pendingEnvelopes` aqui faria o próprio host aparecer como "pensando" logo
     // depois de lacrar — o travamento que o F5 escondia.
     case 'RECOVER_LOCAL_HOST': {
+      if (s.espectador) return state // 👁️ idem
       s.isHost = true
       return s
     }
@@ -7683,7 +7828,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // (dep. isHost) re-inscreve como ouvinte e pede o estado do novo dono. Assim
     // NUNCA ficam dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
     case 'STEP_DOWN_HOST': { s.isHost = false; return s }
-    case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
+    case 'FIX_YOU_IDX': { if (s.espectador) return state; s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
     case 'COPA_MUNDO_MURAL_SYNC': {
       // 🌍 mescla por temporada (nunca duplica, nunca perde) — o mural local
       // segue sendo a fonte de verdade pro JOGO; isso aqui é só a cópia que
@@ -7893,6 +8038,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !action.dinastia && !!action.pregaoAberto
       s.paPresentes = undefined
       if (s.pregaoAberto) s.holandes = false
+      // ⚡ envelope único (28/10): só no rápido; é o 4º jeito de dar lance, então desliga os outros dois
+      s.envUnico = !action.career && !action.dinastia && !!action.envUnico; s.euAberto = false; s.euRevelando = false
+      if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
       s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
@@ -8390,7 +8538,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerOnline = true
       // 🔨🐊 21/10 (amigo do Diego criou carreira e caiu no PREGÃO ABERTO): a carreira é SEMPRE o envelope de sempre. Antes daqui
       // nada zerava a marca do jogo rápido anterior (pregão aberto/Tocaia) e a carreira nova herdava.
-      s.pregaoAberto = false; s.pa = undefined; s.holandes = false
+      s.pregaoAberto = false; s.pa = undefined; s.holandes = false; s.envUnico = false; s.euAberto = false; s.euRevelando = false
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
@@ -8691,6 +8839,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // envelope. O motor é seguro com a NBA: fila e sobras saem do ACTIVE_CATALOG (trava `npm run pregao-aberto-nba`).
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
+      // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
+      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; s.euAberto = false; s.euRevelando = false
+      if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
@@ -8723,6 +8874,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      // ⚡ RELÂMPAGO: a chave que o dono escolheu (16 ou 32). Se a sala tiver mais gente que a chave (não devia — a tela trava),
+      // a chave cresce pra caber todo mundo: ninguém fica de fora do sorteio.
+      s.relampagoChave = s.copaMode === 'relampago' ? chaveRelampago(action.relampagoChave, action.playerNames.length) : undefined
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
       // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
@@ -8821,7 +8975,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // com as outras séries. Carreira online mantém a estrutura das divisões.
       // 🏆 LIGA FECHADA: a tabela é só a galera (leagueSize = nº de humanos) → sem
       // bots. Nos outros modos, completa até 20 como sempre.
-      const onlineLeagueSize = s.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
+      // ⚡ Relâmpago: a sala tem EXATAMENTE o tamanho da chave (16 ou 32) — os bots que completam ganham elenco pronto, igual sempre.
+      const onlineLeagueSize = s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
@@ -10557,7 +10712,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if ((s.careerOnline && s.sport !== 'basquete') || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
       // ⭐ Só Champions: a liga nunca é jogada (a rodada fica no fim só de fachada) —
       // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
-      if (s.copaMode === 'champions') return s
+      if (s.copaMode === 'champions' || s.copaMode === 'relampago') return s // ⚡ Relâmpago também não tem liga
       finishSeason(s)
       return s
     }
@@ -10670,6 +10825,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const vitoriasNaSerie = (t: QuickCopaTie): [number, number] =>
         t.legs.reduce<[number, number]>((acc, [a, b]) => { if (a > b) acc[0]++; else acc[1]++; return acc }, [0, 0])
       const kingsCopa = ehKings(s) // 👑 mata-mata da Kings: TUDO jogo único
+      // ⚡ Relâmpago: ida e volta como a Copa de sempre, só a final em jogo único (Diego 28/10: *"tem q ter ida e volta, somente final que não"*)
+      const relampago = s.copaMode === 'relampago'
       const legsNeeded = bbSerie ? 3 : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
@@ -10687,7 +10844,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : s.copaMode === 'relampago' ? 'DO MATA-MATA RELÂMPAGO ⚡' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -10730,7 +10887,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             const a = qc.ties[i], b = qc.ties[i + 1]
             nextTies.push({ aId: a.winner!, bId: b.winner!, aName: winnerName(a), bName: winnerName(b), legs: [], winner: null })
           }
-          qc.phase = qc.phase === 'oitavas' ? 'quartas' : qc.phase === 'quartas' ? 'semis' : 'final'
+          qc.phase = qc.phase === 'r32' ? 'oitavas' : qc.phase === 'oitavas' ? 'quartas' : qc.phase === 'quartas' ? 'semis' : 'final'
           qc.ties = nextTies
           qc.legIdx = 0
         }
@@ -10780,8 +10937,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const bbGiro = s.sport === 'basquete'
       const phaseWord = bbGiro
         ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
-        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
-      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : 'Copa'
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'r32' ? 'RODADA DE 32' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : relampago ? 'Relâmpago' : 'Copa'
       const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
@@ -12421,7 +12578,7 @@ export type EmoteEvent = { id: string; from: number; fromId?: number; kind: stri
 // `from` é o TIME (manager id) — numa dupla os DOIS compartilham o mesmo `from`,
 // então "é minha?" usa `uid` (pessoa de verdade) quando disponível, com `from`
 // como fallback pra mensagem antiga guardada no aparelho sem uid.
-export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number; re?: { name: string; text: string }; fig?: number } // from=cadeira (compat); fromId=CRACHÁ · fig = figurinha do mascote (índice da legenda, 21/10)
+export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number; re?: { name: string; text: string }; fig?: number; esp?: boolean } // from=cadeira (compat); fromId=CRACHÁ · fig = figurinha do mascote (índice da legenda, 21/10)
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
@@ -13773,6 +13930,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // sai — só no aparelho de quem aperta, nada muda no jogo. Desligar = `EMOTE_ESPERA_MS = 0`.
   const ultimoEmoteRef = useRef(0)
   const emote = useCallback((kind: string, cardId?: string, text?: string) => {
+    if (stateRef.current.espectador) return // 👁️ fantasma só fala no chat (reação sairia com a cara do time do dono)
     if (Date.now() - ultimoEmoteRef.current < EMOTE_ESPERA_MS) return
     ultimoEmoteRef.current = Date.now()
     const st0 = stateRef.current
@@ -13807,6 +13965,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meuNome = d?.partnerUid
       ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
       : undefined
+    // 👁️ fantasma SÓ LÊ o chat (28/10, Diego: "eu comentar pode ser que atrapalhe algo") — nada sai do aparelho dele
+    if (st.espectador) return
     const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now(), ...(re ? { re } : {}), ...(fig != null ? { fig } : {}) } // ↩ resposta (13/10) · 🐊 figurinha (21/10): o texto vai junto pra versão velha mostrar escrito
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
@@ -13911,6 +14071,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const leaveRoom = useCallback(async () => {
     const st = stateRef.current
     const rid = st.roomId
+    // 👁️ FANTASMA SAINDO: não tem vaga, time nem coroa — só fecha a tela e volta pro menu (nada vai pra sala)
+    if (st.espectador) { try { channelRef.current?.unsubscribe() } catch { /* ignora */ } channelRef.current = null; rawDispatch({ type: 'GO_LOBBY' }); return }
     // 🏆 MINHAS LIGAS (13/09): o DONO sair NÃO passa a coroa nem apaga a liga — a liga é
     // dele do começo ao fim (regra 21/08, sem admin) e é feita pra ficar de pé. Ele só
     // libera a própria cadeira e vai pro menu; a liga segue em "🏆 Minhas ligas" e ele
@@ -13998,6 +14160,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // 👁️ FANTASMA (28/10): só assiste. Nada sai deste aparelho pro dono (nem lance, nem voto) e nada muda o estado que ele
+    // está vendo — a não ser SAIR. Nem o "liberar a vaga" roda: ele nunca teve vaga.
+    // ASSISTIR é gesto LOCAL deste aparelho: nunca vai pro dono de sala nenhuma.
+    if (action.type === 'ASSISTIR_ONLINE') { rawDispatch(action); return }
+    if (stateRef.current.espectador) {
+      if (['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) rawDispatch(action)
+      return
+    }
     // 🌐 v2: no leilão do dono, o que EU aperto vai pra ele (o meu aparelho só mostra)
     // (e nada mais muda o estado que estou só assistindo: o próximo pacote do dono passaria por cima)
     if (stateRef.current.co2?.espelho) {
@@ -14110,7 +14280,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
     const ch = instrumenta(canalLimpo(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'sala', state.roomId, true) // 📏 conta tudo que passa no canal da sala
-    medidorPapel(!!state.isHost)
+    medidorPapel(!!state.isHost, !!state.espectador) // 👁️ o fantasma conta como 'espectador' (é o que mostra se o chat chega nele)
 
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
@@ -14149,6 +14319,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
       // a cadeira (youIdx), senão o banner ia pra pessoa errada e o certo continuava.
+      if (stateRef.current.espectador) return // 👁️ o fantasma não tem time: expulsão de jogador nunca é com ele
       if (payload.playerIndex !== stateRef.current.managers[stateRef.current.youIdx]?.id) return
       // trava esta sala: nunca reaparece o "voltar pra sala" neste aparelho.
       const rid = stateRef.current.roomId
@@ -14171,7 +14342,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
     ch.on('broadcast', { event: 'host_change' }, ({ payload }: { payload: { newHostIndex: number } }) => {
       const st = stateRef.current
-      if (payload.newHostIndex !== st.youIdx || isHostRef.current) return
+      if (st.espectador || payload.newHostIndex !== st.youIdx || isHostRef.current) return // 👁️ fantasma nunca recebe a coroa
       // 🤝👑 DUPLA = UMA CADEIRA, DUAS PESSOAS (bug ao vivo 25/08, sala 5XPVEI do
       // Tricolor do Arruda). A coroa era entregue pela CADEIRA — e no modo duplas os
       // DOIS aparelhos daquela cadeira publicam o mesmo `youIdx` (a presença da sala
@@ -14222,7 +14393,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
       // presença DEPOIS. O crachá pode demorar; a partida não pode.
       if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
-      await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
+      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) // 👁️ fantasma não anuncia presença
     })
     channelRef.current = ch
     // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
@@ -14563,7 +14734,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -14577,6 +14748,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.roomId) return
     const ch = channelRef.current
     if (!ch) return
+    if (stateRef.current.espectador) return // 👁️ fantasma não anuncia presença
     void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha() }) } catch { /* a reconexão periódica reanuncia */ } })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.youIdx])
@@ -14790,6 +14962,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const lastRoomRef = useRef<string | undefined>(undefined)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
+    if (state.espectador) return // 👁️ fantasma não tem cadeira pra reancorar
     if (state.screen === 'intro' || state.screen === 'lobby') return
     if (state.roomId !== lastRoomRef.current) { lastRoomRef.current = state.roomId; myMgrIdRef.current = null } // sala nova → esquece o crachá antigo
     const clean = (x?: string) => stripEmoji(x ?? '').trim()
@@ -15290,10 +15463,28 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const iOwnThisRoom = (() => { try { return !!state.roomId && localStorage.getItem('esc-room-owner') === state.roomId } catch { return false } })()
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
+  setModoEspectador(!!state.espectador && state.onlineMode === 'online') // 👁️ trava de gravação do fantasma (ver espectador.ts)
   setPokeModo(ehPokemon(state)) // ⚡ a tela (cartas, rótulos dos lotes) pergunta `pokeModo()` — fica em dia a cada render
   return (
     <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
+      {/* 👁️ FANTASMA (28/10, mockup scripts/mockups/espectador.png): faixa fina embaixo, entre o chat e o som — sempre lembrando
+          que ele só assiste, por quais olhos, e com o SAIR à mão. */}
+      {state.espectador && state.onlineMode === 'online' && (
+        <div style={{ position: 'fixed', left: 66, right: 66, bottom: 12, zIndex: 99980, display: 'flex', justifyContent: 'center', pointerEvents: 'none', fontFamily: 'Oswald, sans-serif' }}>
+          <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8, background: '#3b2a6b', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '6px 6px 6px 11px', maxWidth: 420 }}>
+            <span style={{ fontWeight: 900, fontSize: 12.5, lineHeight: 1.15, letterSpacing: .3 }}>
+              👁️ <span style={{ color: '#FFE14D' }}>{tr('VOCÊ ESTÁ ASSISTINDO', 'YOU ARE WATCHING')}</span>
+              <span style={{ display: 'block', fontWeight: 600, fontSize: 10.5, opacity: .85, textTransform: 'none', letterSpacing: 0 }}>
+                {tr(`Ninguém vê você na lista · a tela é a do dono (${state.managers[state.youIdx]?.teamName ?? '—'})`, `Nobody sees you in the list · the screen is the host's (${state.managers[state.youIdx]?.teamName ?? '—'})`)}
+              </span>
+            </span>
+            <button onClick={() => { void leaveRoom() }} style={{ flexShrink: 0, background: '#fff', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 9, padding: '5px 9px', fontWeight: 900, fontSize: 12, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
+              {tr('SAIR ✕', 'LEAVE ✕')}
+            </button>
+          </div>
+        </div>
+      )}
       {hostOutroAparelho && (
         <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 93, fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ background: '#FFF7DB', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>

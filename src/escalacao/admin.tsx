@@ -335,6 +335,44 @@ function SalasExtrasAdmin() {
   )
 }
 
+// 👁️ ESPECTADORES (28/10): quem pode ASSISTIR qualquer sala sem jogar e sem aparecer na lista ("fantasma"). A sua conta
+// sempre pode. Tirar = some o botão 👁️ ASSISTIR da próxima vez que a pessoa abrir a lista de salas.
+function EspectadoresAdmin() {
+  const [lista, setLista] = useState<{ email: string; criado_em: string }[]>([])
+  const [email, setEmail] = useState('')
+  const [msg, setMsg] = useState('')
+  const carrega = async () => {
+    const { data } = await supabase.rpc('esc_admin_espectadores')
+    setLista((data as { email: string; criado_em: string }[] | null) ?? [])
+  }
+  useEffect(() => { void carrega() }, [])
+  const muda = async (em: string, ativo: boolean) => {
+    const e = em.trim().toLowerCase()
+    if (!e.includes('@')) { setMsg('❌ digita o e-mail da conta'); return }
+    const { error } = await supabase.rpc('esc_admin_espectador_set', { p_email: e, p_ativo: ativo })
+    setMsg(error ? `❌ ${error.message.includes('SEM_CONTA') ? 'não existe conta com esse e-mail' : error.message}` : ativo ? `✅ ${e} pode assistir` : `✅ ${e} não assiste mais`)
+    if (!error) { setEmail(''); void carrega() }
+  }
+  return (
+    <div style={{ border: '2px solid #a58cff', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#c7b8ff', textTransform: 'uppercase', margin: '0 0 4px' }}>👁️ Espectadores liberados</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Vê o botão 👁️ ASSISTIR em toda sala: entra, vê tudo e LÊ o chat, mas não escreve, não joga e não aparece na lista. A sua conta sempre pode.</p>
+      {lista.map(r => (
+        <div key={r.email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderTop: '1px solid rgba(242,232,207,.15)', fontSize: 12.5, fontWeight: 700 }}>
+          <span>{r.email}</span>
+          <button onClick={() => { if (window.confirm(`Tirar ${r.email} dos espectadores?`)) void muda(r.email, false) }} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 900, cursor: 'pointer' }}>tirar</button>
+        </div>
+      ))}
+      {lista.length === 0 && <p style={{ fontSize: 11.5, color: 'rgba(242,232,207,.5)', margin: '0 0 6px' }}>ninguém além de você ainda</p>}
+      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta" style={{ flex: 1, border: '2px solid #a58cff', borderRadius: 10, padding: '8px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700 }} />
+        <button onClick={() => { void muda(email, true) }} style={{ border: 'none', borderRadius: 10, padding: '8px 12px', background: '#a58cff', fontWeight: 900, cursor: 'pointer' }}>+ liberar</button>
+      </div>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0' }}>{msg}</p>}
+    </div>
+  )
+}
+
 // 💳 PIX DO MERCADO PAGO (15/10). Cada Pix gerado no jogo vira um pedido; o MP avisa, o servidor confere no MP e libera
 // sozinho o automático (Craque, Lenda, salas extras, tudo do Lenda no Batismo/Fundador). Aqui: o que caiu, quem deixou
 // WhatsApp, o "🖋 Batismos pra fazer" (o que a pessoa escreveu de como imagina o clube) e o Pix de teste de R$ 1.
@@ -1439,7 +1477,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><FunilPlanosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><FunilPlanosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><EspectadoresAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

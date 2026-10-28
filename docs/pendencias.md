@@ -23,11 +23,38 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
-- ✅ **FEITO (branch, 28/10) — bônus da casa novo (simV 5)**, ordem do Diego: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e
+- ✅ **PUBLICADO PRA TODOS (28/10, *"publique sim. P todos"*) — bônus da casa novo (simV 5)**, ordem do Diego: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e
   série A coloque 3"* (B fica 4). `CPU_DIV_BOOST_V5` = A 2 (*"série a deixe 2 msm"*) · B 4 · C 4 · D 3 · V 2. Só vale de temporada NOVA (trava simV, inclusive no
   "mesmo time" — `CONFIRM_MESMO_TIME` agora também carimba): temporada em andamento termina na tabela antiga. Medido no motor: time no teto
   da Várzea (80) sobe 8% → **28%**; 82 → 35%; 84 → 80%. Reverter = trocar os `s.simV = 5` de volta pra 4.
 - Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
+
+## ⚡ Mata-mata Relâmpago (28/10) — ✅ PUBLICADO PRA TODOS com selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
+- Regras dele: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras normais"* e *"tem q ter ida
+  e volta, somente final que não"*. Então: quem cria escolhe CHAVE DE 16 (começa nas oitavas) ou 32 (Rodada de 32); a sala cabe
+  esse tanto de gente e os bots completam; leilão de sempre → sorteio → IDA E VOLTA em toda fase, FINAL EM JOGO ÚNICO; empate no
+  agregado = pênaltis AUTOMÁTICOS de sempre (o pênalti manual só existe na carreira offline — eu tinha escrito errado no mockup).
+- Código: `copaMode: 'relampago'` + `relampagoChave` (marca de modo) · `abreRelampagoSePrecisa`/`seedRelampago`/`posicaoNaChave`
+  (store) · fase nova `'r32'` · telas da Copa, fim sem liga (bloco da Só Champions), ranking/estante sem "campeão de liga" falso ·
+  O MARTELO edição Relâmpago (`montaEdicaoRelampago`) · criar sala: opção na prateleira "Com o seu time" (só sala rápida, sem
+  duplas) + "Tamanho da chave" · rótulos na lista de salas e na sala de espera.
+- Trava: `npm run relampago` (chave 16 e 32, de 2 a 20 pessoas, ida e volta, pênaltis no empate, campeão, sem jogador fake,
+  "mesmo time" sorteia de novo, Liga + Copa intacta). Fotos reais: `scripts/mockups/relampago-real-*.png`.
+- ⚠️ A tela de CRIAR sala não deu pra fotografar (a bancada não loga) — conferir na conta dele. Liberar geral = `RELAMPAGO_GERAL = true`.
+- 🎨 28/10 (*"o desenho do mata-mata relâmpago deve ser algo com raio… túnel da final, festa do título, tudo padrão igual aos
+  outros campeonatos… terá suspense do sorteio"*): `relampago` virou competição no `competicoes-visual.tsx` (paleta roxo-elétrica,
+  taça com RAIO, raios no fundo, frase "o raio não cai duas vezes", festa "caiu como um raio") → tema da tela, túnel da final, festa
+  do título e taça do fim. `SorteioRelampago` (online-match-visual): na 1ª abertura os confrontos saem um por um com ⚡, no MESMO
+  relógio de 10s da abertura (nada de espera a mais). Fotos: `scripts/mockups/relampago-sorteio.png`, `-tunel.png`, `-festa.png`.
+- 📲 Stories do lançamento: `node scripts/stories-relampago.mjs` → `scripts/posts/stories-relampago.png`.
+- Ainda não: Relâmpago no Minhas Ligas e com Duplas (não pedido).
+- Veio da lista de ideias novas pras salas (Clã × Clã, Liga dos Bagres, Copa das Décadas, Leilão de Seleções, Relâmpago, Leilão
+  das Pistas, Rei da Noite). Ele escolheu ver o Relâmpago.
+- Proposta: nova opção no bloco "O campeonato" ao lado de Só a liga / Liga + Copa / Só Champions. Leilão DE SEMPRE → sorteio da
+  chave → mata-mata em jogo único, empate = pênalti manual, sem liga. Até 8 pessoas chave de 8 (quartas); 9–16 chave de 16
+  (oitavas); vaga que sobra vira bot. Quem cai fica assistindo. Usa o motor de mata-mata que já existe (quickCopa) e as mesmas
+  telas da Copa — nada de tela nova (regra da Kings: modo novo nunca ganha placar/tabela própria).
+- Mockup: `scripts/mockup-mata-relampago.mjs` → `scripts/mockups/mata-relampago.png`.
 
 ## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
 - Logo oficial LL (`img/logo-ll.webp`, 96px, 1 KB — enviada pelo Diego) ao lado do nome no PC.
@@ -112,17 +139,6 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   ACELERAVA no caminho (7→17 m/s) e parava 1 quadro no pé. Agora o voo tem física de bola: sai forte e freia na grama (2,3 m/s², o
   atrito do motor), do instante do contato até um PONTO DE ENCONTRO fixo (70% onde a bola do motor vai estar, 30% onde o pé do
   jogador vai estar); o corpo de quem recebe anda até esse ponto sem atraso. Medido: passe 13→8 m/s freando liso; contato 2–20 cm.
-- 📺 O JOGO VISTO DO MAPA DE VERDADE (28/10, Diego: *"tá difícil assistir… 11×11 mais feio que vi na vida"*). Filmei o
-  `qa-presidencia-complexo-carreira.html` com o motor novo e relógio virtual (`scratchpad/real2.mjs`: `performance.now()` da
-  página só anda quando mandamos — a filmagem em tempo real leva 14 s por quadro aqui e o jogo corria até o apito). Achados que a
-  bancada NÃO mostrava: (1) a TV ficava a 76 m e a lateral a 48 m: boneco de 1 cm, bola invisível — no computador a TV desceu pro
-  anel do meio (46 m) e a lateral próxima colou no gramado (30 m); celular em pé não mudou (`enquadramento-futebol.ts`);
-  (2) a sombra do estádio cobria metade do campo em PRETO (`sun.shadow.intensity=.55`); (3) sem a bola, todo mundo parado em pé:
-  a até 14 m da bola o jogador fica em POSIÇÃO DE JOGO (`marca`, a marcação gravada do pacote do Rohr, com fase sorteada por
-  jogador); (4) quem recebe vai buscar a bola mais cedo (`CORR_MAX` 3 m, corpo sai na frente). Medido no mesmo motor (60 s): bola
-  no pé 26% · voando 22% · rolando 41% · parada 11% — o estilo do motor é de muito passe rolando, pouca condução (motor não mudou:
-  resultado é lei). Testes de câmera `complexo-enquadramento.cjs` e `partida-camera.mjs` já falhavam antes. Pedi ao Diego 20 s de
-  gravação da tela do celular: sem a conta dele, é a única forma de ver fps e travadas reais.
 - 🏙️ CIDADE E ENTORNO MAIS CHEIOS, LIGADOS À TORCIDA (28/10, *"a cidade está muito vazia… tem que ter ligação com o número de
   torcedores… muito pouco NPC rondando, muito pouco carro"*): moradores da cidade = 10 + cresce com a torcida (dobrou a torcida
   → +6) + 2 por obra, teto 48 no PC / 20 no celular (`population.mjs`; antes 2–24/10) e espalhados em até 32 calçadas. Entorno do
@@ -11372,3 +11388,34 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
 - 👥⚔️ 27/10 **Amigos e clãs à vista — MOCKUP esperando OK** (`scripts/mockups/amigos-clas-visiveis.png`). Medido: 159 pedidos de amizade sem resposta (137 há +2 dias), 4 clãs, 34 pedidos pra entrar em clã sem resposta, chat sem "adicionar". Proposta: (1) pedidos na HOME com aceitar na hora; (2) no jogo só pilulinha 🤝 N no topo (nada pula); (3) tocar no nome no chat → ➕ adicionar + no fim de jogo "adicionar todo mundo da sala"; (4) bloco ⚔️ Clãs da semana na home (top + ENTRAR nos abertos + criar).
 - ✅ 27/10 **Pedidos na home (item 1 do mockup)**: `PedidosNaHome` (amigos.tsx) em cima dos modos — pedidos de amizade, convites de clã e pedidos pro meu clã, com aceitar ali (mesmas funções do 🔔: `responderAmizade`/`responderClaAviso`). ⚔️ O bloco Clãs da semana na home SAIU (Diego: "o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas") — não repropor. Chat: já abria o perfil com ➕ desde 18/10 (Diego confirmou). Item 2 (pilulinha no jogo) e "adicionar todo mundo da sala" NÃO foram pedidos.
 - 🔒 27/10 **Carreira grátis até a temporada 50** — ✅ PUBLICADO (*"ok publique td sim"*) (mockup `scripts/mockups/carreira-50.png` aprovado). Sem plano, a decisão do fim da T50 troca "Continuar/Trocar tudo" pelo 🔒 + ⭐ Ver os planos e destravar (toque vai pro painel: "🔒 carreira grátis T50 → ver os planos"); o motor (`CAREER_ADVANCE`) recusa com a mesma régua (`travaCarreiraGratis`, `carreira-gratis.ts`). Quem já passou da 50 segue livre (333 carreiras na nuvem em 27/10); acima da 50 = livre, então mensal cancelado depois da 51 também segue. Plano = `ehPagante` (mensal conta; Manual 24 h não). Trava: `npm run carreira-gratis`. 🔁 Mesmo dia: quem JÁ estava acima da 50 sem plano ganha **+10 temporadas** (a 1ª virada grava `careerGratisAte` = temporada + 10; trava no fim dela, banner diz a temporada certa). Com plano nunca aparece nada; pagou = destrava na hora.
+
+## 👁️ Modo espectador "fantasma" (28/10) — FEITO NO BRANCH, mockup aprovado ("Perfeito"); falta o Diego mandar publicar
+Pedido do Diego (pra campeonatos): só contas que ele liberar; entra em qualquer sala (esperando ou já jogando, cheia ou não),
+vê tudo, fala no chat, NÃO joga. *"O nome do telespectador não aparece na lista dos usuários que estão na partida… nem no
+gerenciar do host… como um fantasma"*. Mockup: `scripts/mockups/espectador.png`.
+Plano seguro (cadeiras intocadas): o espectador NUNCA entra em `room_players` nem em `seatUids`, NUNCA faz `track()` de
+presença (nem no canal da partida nem no `esclobby`), youIdx = -1, nunca manda estado, nunca vira host (ignora toda lógica de
+coroa). Liberação por e-mail numa tabela nova lida no #admin. Na dúvida, não entra como espectador.
+FEITO (28/10): banco `esc_espectadores` + `esc_sou_espectador`/`esc_admin_espectadores`/`esc_admin_espectador_set` (migration
+20261028020000) · #admin "👁️ Espectadores liberados" · botão 👁️ ASSISTIR na lista (não aparece em Copa do Mundo, Bafo, carreira
+nem na própria sala) · espera do fantasma (`espectador-ui.tsx`, confere só status a cada 4s, baixa o estado pesado só quando começou)
+· `ASSISTIR_ONLINE` no motor (tela pelos olhos do DONO, `espHostUid`) · chat com selo 👁️ · faixa roxa "VOCÊ ESTÁ ASSISTINDO" + SAIR ·
+no envelope some o lance ("👁️ Você está só assistindo"). TRAVAS: dispatch não manda nada · sem `track()` · BECOME_HOST/RECOVER/
+FIX_YOU_IDX/host_change/kick ignorados · e `espectador.ts` barra toda gravação no banco do aparelho do fantasma (só leitura passa).
+Teste: `npm run espectador`. Foto real: `scripts/mockups/espectador-real.png`.
+Ainda não: no pregão aberto/Tocaia/Monte os botões de lance APARECEM pro fantasma mas não fazem nada (o motor barra) — esconder
+igual ao envelope se o Diego pedir. Sala de espera sem chat pro fantasma (o chat dele é o da partida).
+✅ 28/10 1º teste do Diego numa sala ao vivo: *"deu muito certo e não influenciou em nada… sem bugs"*. Pedido: o fantasma só LÊ o chat (não escreve) e precisa ver o papo — FEITO no branch: caixa do chat sem campo de escrever + o chat da sala de espera (canal `esclobby`, só escuta). O chat mostra as mensagens de quando ele entrou pra frente (o histórico vive no aparelho de cada um).
+🔎 28/10: no 1º teste o chat da PARTIDA não apareceu pro fantasma (os jogadores escreveram). Lendo o código não achei a causa (o chat vem pelo mesmo canal do estado, que chegou). Ligado o medidor no aparelho do fantasma (`papel = 'espectador'` em `esc_realtime_medidor`, única gravação liberada pra ele): no próximo teste, `select rx from esc_realtime_medidor where papel='espectador'` mostra se 'chat' e 'state' chegaram.
+
+## ⚡ Envelope único (28/10) — FEITO, só na conta do Diego ("pode fazer… apenas na minha conta… e faça tb pro partida rápida… 180s")
+Pedido do Diego: um jeito de leilão mais rápido. Proposta: 4º jeito de dar lance (✉️ · 🐊 · 🔨 · ⚡). As 5 posições numa tela só,
+um envelope de 90s, uma revelação só (carta por carta), empate = sorteio na hora, Monte em 30s. Sala rápida, Minhas Ligas e Partida
+Rápida; carreira fica no envelope de sempre. Mockup: `scripts/mockups/envelope-unico.png`.
+FEITO (28/10): motor (`abreEnvelopeUnico`/`selaEnvelopeUnico` em store.tsx — o miolo de uma leva virou `leilaoResolveLeva`, sem mudar
+nada dentro; as 5 posições resolvem em ordem GOL→ATA com o MESMO motor, empate = `resolveOneTiebreak(…, sorteio)`), relógio de 180s
+(`ENVELOPE_UNICO_MS`), revelação única só com carta que teve lance, Monte de sempre (15s por vez, não mudou). Tela `EnvelopeUnico`
+(screens.tsx): barra de posições pra pular, limite de lances = vagas de cada posição, LACRAR TUDO. Opção ⚡ na Partida Rápida e no criar
+sala (Rápido e Minhas Ligas, fora de duplas e carreira). Gate `ENVELOPE_UNICO_GERAL` em sport.ts. Trava: `npm run envelope-unico`.
+Fotos: `scripts/mockups/envelope-unico-real.png` e `envelope-unico-revelacao.png`.
+Falta: a lista de salas ainda mostra o selo do envelope de sempre (às cegas) pra sala de envelope único; o Monte NÃO foi pra 30s (é o de sempre).

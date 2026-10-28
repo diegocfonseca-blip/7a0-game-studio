@@ -387,6 +387,45 @@ export function AberturaCopa({ fases, confrontos, seg, total, cor, espera, mais 
   </div>
 }
 
+// ─── ⚡ O SORTEIO DA CHAVE DO RELÂMPAGO (28/10, Diego: *"terá suspense do sorteio… e depois os mata-matas"*) ───
+// A MESMA caixa da abertura da Copa, no MESMO relógio (os 10s antes da ida) — só que os confrontos saem um por um,
+// com o raio piscando no lugar do nome até a dupla ser "tirada". O seu jogo acende quando sai. Nada a mais de espera:
+// o sorteio de verdade já foi feito pelo dono da sala; aqui é só a revelação, igual em todo aparelho (mesma ordem).
+export function SorteioRelampago({ fases, confrontos, seg, total, espera }: {
+  fases: AberturaFase[]; confrontos: AberturaConfronto[]; seg: number | null; total: number; espera?: string
+}) {
+  // o sorteio cabe em ~70% do relógio (o resto é pra ver a chave inteira antes da bola rolar)
+  const passo = Math.max(220, Math.min(900, Math.round((total * 1000 * 0.7) / Math.max(1, confrontos.length))))
+  const [saiu, setSaiu] = useState(0)
+  useEffect(() => {
+    if (saiu >= confrontos.length) return
+    const t = setTimeout(() => setSaiu(n => n + 1), saiu === 0 ? 600 : passo)
+    return () => clearTimeout(t)
+  }, [saiu, confrontos.length, passo])
+  const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
+  const ultimo = saiu > 0 ? confrontos[saiu - 1] : null
+  const acabou = saiu >= confrontos.length
+  return <div className="ll40-abertura" style={{ background: 'radial-gradient(ellipse at 50% 0%,#5b34d6,#140838 75%)' }}>
+    <style>{'@keyframes srRaio{0%,100%{opacity:.35}50%{opacity:1}}@keyframes srSai{from{transform:scale(1.25);opacity:0}to{transform:scale(1);opacity:1}}'}</style>
+    <div className="ll40-caminho">{fases.map((f, i) => <span key={f.label} className={`${f.estado}${f.meu ? ' meu' : ''}`}>{f.estado === 'ok' ? '✔ ' : ''}{f.label}{i < fases.length - 1 ? <i>›</i> : null}</span>)}</div>
+    <p className="ll40-tit" style={{ color: '#FFE14D' }}>⚡ {acabou ? tr('A CHAVE ESTÁ SORTEADA', 'THE DRAW IS DONE') : tr('O SORTEIO DA CHAVE', 'THE DRAW')} · {Math.min(saiu, confrontos.length)}/{confrontos.length}</p>
+    {/* a dupla que acabou de sair, em destaque */}
+    {ultimo && !acabou && <div key={saiu} style={{ animation: 'srSai .35s ease-out', textAlign: 'center', margin: '4px 0 8px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase', color: '#fff', fontSize: 15 }}>
+      {ultimo.home} <span style={{ color: '#FFE14D' }}>⚡ ×</span> {ultimo.away}
+    </div>}
+    {confrontos.map((c, i) => i < saiu
+      ? <div key={i} className={`ll40-jogo${c.mine ? ' eu' : ''}`} style={i === saiu - 1 ? { animation: 'srSai .35s ease-out' } : undefined}>
+          {c.mine && <span className="ll40-tag">⭐ {tr('SEU JOGO', 'YOUR MATCH')}</span>}
+          <div className="ll40-time">{c.homeCrest}<b>{c.home}</b></div><span className="ll40-x">×</span><div className="ll40-time r"><b>{c.away}</b>{c.awayCrest}</div>
+        </div>
+      : <div key={i} className="ll40-jogo" style={{ opacity: .55 }}>
+          <div className="ll40-time"><b style={{ color: '#FFE14D', animation: 'srRaio .8s ease-in-out infinite' }}>⚡ ?</b></div><span className="ll40-x">×</span><div className="ll40-time r"><b style={{ color: '#FFE14D', animation: 'srRaio .8s ease-in-out infinite' }}>? ⚡</b></div>
+        </div>)}
+    <div className="ll40-bar"><i style={{ width: `${pct}%`, background: '#FFE14D' }} /></div>
+    <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⚽ {tr('A BOLA ROLA EM', 'KICK-OFF IN')} <b>{seg}s</b></>}</p>
+  </div>
+}
+
 // ─── 🌳 CHAVEAMENTO DESENHADO (Diego 13/10, mockup `scripts/mockups/copas-proximos.png` nº 1) ───
 // ⛔ DESLIGADO NO MESMO DIA, por ordem dele: *"deixa só o resumo mesmo, sem chaveamento"* (a chave e o resumo da
 // fase contavam a mesma coisa). Ninguém importa `ChaveCopa` hoje — o bundle tira sozinho. Fica aqui pronto, com a foto

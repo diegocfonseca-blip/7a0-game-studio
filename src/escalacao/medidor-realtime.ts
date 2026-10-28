@@ -22,8 +22,8 @@ const contas = new Map<string, Conta>() // chave = `${canal}|${sala}`
 const nova = (): Conta => ({ rx: {}, tx: {}, rxBytes: 0, txBytes: 0, pessoasMax: 0, desde: Date.now() })
 const tamanho = (p: unknown): number => { try { return JSON.stringify(p ?? '').length } catch { return 0 } }
 const chave = (canal: string, sala: string) => `${canal}|${sala}`
-let papel: 'host' | 'convidado' = 'convidado'
-export function medidorPapel(host: boolean): void { papel = host ? 'host' : 'convidado' }
+let papel: 'host' | 'convidado' | 'espectador' = 'convidado'
+export function medidorPapel(host: boolean, espectador = false): void { papel = espectador ? 'espectador' : host ? 'host' : 'convidado' }
 
 function pega(canal: string, sala: string): Conta {
   const k = chave(canal, sala)

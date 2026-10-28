@@ -16,16 +16,19 @@ import { useTelaPC } from './sport'
 const INK = '#0C0C0C'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
 
-export type CompId = 'liga' | 'copa8' | 'liberta' | 'champions' | 'mundo' | 'mundial' | 'riosp' | 'sulminas' | 'nordeste'
+export type CompId = 'liga' | 'copa8' | 'liberta' | 'champions' | 'mundo' | 'mundial' | 'riosp' | 'sulminas' | 'nordeste' | 'relampago'
   // 🏆 carreira (24/10): as 5 divisões, a Copa e a Supercopa — o troféu é a arte da Sala de Troféus (`public/trofeus-v137/`)
   | 'carV' | 'carD' | 'carC' | 'carB' | 'carA' | 'copabr' | 'supercopa'
 interface Comp {
   nome: [string, string]; bg: string; titulo: string; sub: string; vsBg: string; vsInk: string
-  faixaBg: string; faixaInk: string; frase: [string, string]; campeao: [string, string]; conf: string[]; extra?: 'estrelas' | 'fumaca' | 'faixas' | 'sol'
+  faixaBg: string; faixaInk: string; frase: [string, string]; campeao: [string, string]; conf: string[]; extra?: 'estrelas' | 'fumaca' | 'faixas' | 'sol' | 'raios'
 }
 export const COMPS: Record<CompId, Comp> = {
   liga: { nome: ['Liga Legends', 'Liga Legends'], bg: 'radial-gradient(ellipse at 50% 40%,#3a3220,#0C0C0C 72%)', titulo: '#FFC400', sub: '#F4ECD6', vsBg: '#FFC400', vsInk: INK, faixaBg: '#F4ECD6', faixaInk: INK, frase: ['a liga lendária', 'the legendary league'], campeao: ['campeão da Liga Legends', 'Liga Legends champion'], conf: ['#FFC400', '#F4ECD6', '#1B7A3D', '#fff'] },
   copa8: { nome: ['Copa dos 8', 'Cup of 8'], bg: 'radial-gradient(ellipse at 50% 40%,#d9572f,#5a1408 75%)', titulo: '#FFE79A', sub: '#FFE79A', vsBg: '#FFC400', vsInk: INK, faixaBg: '#FFC400', faixaInk: INK, frase: ['mata-mata é guerra', 'knockout is war'], campeao: ['sobreviveu à guerra', 'survived the war'], conf: ['#FFC400', '#C2452F', '#FFE79A', '#fff'] },
+  // ⚡ MATA-MATA RELÂMPAGO (28/10, Diego: *"o desenho do mata-mata relâmpago deve ser algo com raio… túnel da final, festa do título,
+  // tudo padrão igual aos outros campeonatos"*): noite roxa-elétrica, amarelo de raio e os raios cortando o fundo.
+  relampago: { nome: ['Mata-mata Relâmpago', 'Lightning Knockout'], bg: 'radial-gradient(ellipse at 50% 35%,#5b34d6,#140838 70%)', titulo: '#FFE14D', sub: '#E9E3FF', vsBg: '#FFE14D', vsInk: '#140838', faixaBg: '#FFE14D', faixaInk: '#140838', frase: ['o raio não cai duas vezes', 'lightning never strikes twice'], campeao: ['caiu como um raio', 'struck like lightning'], conf: ['#FFE14D', '#7C3AED', '#FFFFFF', '#B79CFF'], extra: 'raios' },
   liberta: { nome: ['Libertadores', 'Libertadores'], bg: 'radial-gradient(ellipse at 50% 40%,#3a2c08,#0B0B0B 70%)', titulo: '#F2E6C8', sub: '#C9A227', vsBg: '#C9A227', vsInk: '#0B0B0B', faixaBg: '#C9A227', faixaInk: '#0B0B0B', frase: ['a glória eterna', 'eternal glory'], campeao: ['glória eterna', 'eternal glory'], conf: ['#C9A227', '#B5121B', '#F2E6C8', '#fff'], extra: 'fumaca' },
   champions: { nome: ['Champions', 'Champions'], bg: 'radial-gradient(ellipse at 50% 40%,#2c4fb5,#0A1640 70%)', titulo: '#FFFFFF', sub: '#D5DCE4', vsBg: '#D5DCE4', vsInk: '#0A1640', faixaBg: '#FFFFFF', faixaInk: '#0A1640', frase: ['a orelhuda em jogo', 'big ears on the line'], campeao: ['a orelhuda é sua', 'big ears are yours'], conf: ['#D5DCE4', '#FFFFFF', '#1F3A93', '#8E9AA8'], extra: 'estrelas' },
   mundo: { nome: ['Copa do Mundo', 'World Cup'], bg: 'linear-gradient(160deg,#0E5B2A,#1B7A3D 45%,#c9a000 140%)', titulo: '#FFFFFF', sub: '#FFE79A', vsBg: '#FFC400', vsInk: '#0E5B2A', faixaBg: '#FFC400', faixaInk: INK, frase: ['a taça do mundo', 'the world trophy'], campeao: ['campeão do mundo', 'world champion'], conf: ['#FFC400', '#1F7BD8', '#FFFFFF', '#2FBF5A'], extra: 'faixas' },
@@ -67,6 +70,8 @@ export function Trofeu({ comp, size = 120 }: { comp: CompId; size?: number }) {
     copa8: <><rect x="34" y="140" width="52" height="20" rx="4" fill="#C2452F" {...S} /><path d="M50 140 L54 114 H66 L70 140 Z" fill={o} {...S} /><path d="M28 36 H92 L80 104 C74 112,46 112,40 104 Z" fill={o} {...S} /><text x="60" y="88" textAnchor="middle" fontFamily="Oswald" fontWeight={700} fontSize={46} fill={INK}>8</text></>,
     riosp: <><rect x="36" y="142" width="48" height="18" rx="4" fill="#1a1a1a" {...S} /><path d="M50 142 L54 120 H66 L70 142 Z" fill={pr} {...S} /><path d="M42 44 C34 70,36 104,60 120 C84 104,86 70,78 44 Z" fill={pr} {...S} /><path d="M44 52 C22 40,18 82,46 90 M76 52 C98 40,102 82,74 90" fill="none" {...S} /><path d="M40 40 H80 L76 30 H44 Z" fill={pr} {...S} /></>,
     sulminas: <><rect x="38" y="142" width="44" height="18" rx="4" fill="#0E5B2A" {...S} /><path d="M52 142 L55 104 H65 L68 142 Z" fill={pr} {...S} /><path d="M40 26 H80 C80 70,72 98,60 104 C48 98,40 70,40 26 Z" fill={o} {...S} /><path d="M42 34 C30 34,30 62,46 66 M78 34 C90 34,90 62,74 66" fill="none" {...S} /></>,
+    // ⚡ Relâmpago: a taça com um RAIO dourado atravessando o bojo (sem número, sem logo)
+    relampago: <><rect x="34" y="140" width="52" height="20" rx="4" fill="#3b1f8f" {...S} /><path d="M52 140 L56 114 H64 L68 140 Z" fill={o} {...S} /><path d="M28 34 H92 C92 80,80 106,60 114 C40 106,28 80,28 34 Z" fill={pr} {...S} /><path d="M28 46 C12 46,12 74,32 78 M92 46 C108 46,108 74,88 78" fill="none" {...S} /><path d="M66 38 L46 76 H60 L52 106 L78 62 H63 L72 38 Z" fill={o} stroke={INK} strokeWidth={3} strokeLinejoin="round" /><path d="M20 20 L14 32 H20 L16 42" fill="none" stroke="#FFE14D" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /><path d="M100 16 L94 28 H100 L96 38" fill="none" stroke="#FFE14D" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /></>,
     nordeste: <><g stroke="#E86A1C" strokeWidth={5} strokeLinecap="round" opacity={0.9}><path d="M60 8 V22 M20 28 L30 38 M100 28 L90 38 M8 68 H22 M98 68 H112" /></g><rect x="36" y="142" width="48" height="18" rx="4" fill="#7A3B12" {...S} /><path d="M50 142 L54 116 H66 L70 142 Z" fill={o} {...S} /><path d="M32 44 H88 C88 86,76 108,60 116 C44 108,32 86,32 44 Z" fill={o} {...S} /><path d="M60 62 V100 M50 72 V84 H60 M70 66 V80 H60" stroke="#1B7A3D" strokeWidth={5} strokeLinecap="round" fill="none" /></>,
   }
   return <svg viewBox="0 0 120 170" width={size} height={Math.round(size * 170 / 120)} style={{ display: 'block', filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,.55))' }}><Grads id={id} />{corpo[comp]}</svg>
@@ -76,6 +81,10 @@ function Enfeite({ tipo }: { tipo?: Comp['extra'] }) {
   if (tipo === 'estrelas') return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>{[[8, 18], [86, 26], [18, 72], [78, 74], [50, 60], [34, 30], [64, 14]].map(([l, t], i) => <span key={i} style={{ position: 'absolute', left: `${l}%`, top: `${t}%`, color: '#fff', opacity: .75, fontSize: 14 }}>★</span>)}</div>
   if (tipo === 'fumaca') return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(circle at 12% 88%,rgba(181,18,27,.55),transparent 35%),radial-gradient(circle at 88% 88%,rgba(181,18,27,.55),transparent 35%)' }} />
   if (tipo === 'faixas') return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'repeating-linear-gradient(120deg,rgba(255,196,0,.12) 0 18px,transparent 18px 46px)' }} />
+  // ⚡ raios cortando o fundo (CSS/SVG puro — 0 KB de imagem)
+  if (tipo === 'raios') return <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: .5 }}>
+    {['M12 0 L6 22 H11 L4 46', 'M88 4 L94 24 H89 L96 44', 'M30 100 L36 80 H31 L38 62', 'M74 100 L68 82 H73 L66 64'].map((d, i) => <path key={i} d={d} fill="none" stroke="#FFE14D" strokeWidth={1.4} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />)}
+  </svg>
   if (tipo === 'sol') return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'repeating-conic-gradient(from 0deg at 50% 0%,rgba(255,220,120,.16) 0 7deg,transparent 7deg 20deg)' }} />
   return null
 }

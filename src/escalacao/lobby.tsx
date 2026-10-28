@@ -7,6 +7,7 @@ import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { EspectadorEspera, type SalaAssistida } from './espectador-ui'
 import { instrumenta, medeRecebida } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
@@ -49,7 +50,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useAmigos, useLigaVice, useLigaDraftLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasEsperaNova, useTelaPC } from './sport'
+import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useRelampagoLiberado, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasEsperaNova, useTelaPC } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -761,7 +762,16 @@ export function EscLobby() {
   // 🥇 medalha da semana (13/10): busca a MINHA posição no ranking quando a conta aparece, pra ela ir
   // grudada no nome (apoioSelo) ao criar/entrar numa sala. Sem banco = sem medalha, nunca trava.
   useEffect(() => { if (user) { void carregaMedalhaDaSemana(); void carregaNomeFake() } }, [user?.id, user?.user_metadata?.display_name]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!user) { setSouEspectador(false); return }
+    let vivo = true
+    supabase.rpc('esc_sou_espectador').then(({ data, error }) => { if (vivo) setSouEspectador(!error && data === true) }, () => { if (vivo) setSouEspectador(false) })
+    return () => { vivo = false }
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<Phase>('auth')
+  // 👁️ ESPECTADOR "FANTASMA" (28/10): só quem o Diego liberou no #admin vê o 👁️ ASSISTIR. Na dúvida (sem rede/sem conta) = não.
+  const [souEspectador, setSouEspectador] = useState(false)
+  const [assistindo, setAssistindo] = useState<SalaAssistida | null>(null)
   const [authTab] = useState<AuthTab>(() => {
     // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar
     try { if (localStorage.getItem('esc_open_register')) { localStorage.removeItem('esc_open_register'); return 'register' } } catch { /* ignora */ }
@@ -843,6 +853,8 @@ export function EscLobby() {
   // (36 clubes = pregão de ~40 min; Diego topou o teto de 20 clubes).
   const pregaoAbertoOk = usePregaoAberto()
   const [rapidoPregao, setRapidoPregao] = useState(false)
+  const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto
+  const [rapidoEnvUnico, setRapidoEnvUnico] = useState(false)
   // 🧱 LEILÃO DE CLUBES (27/09, em teste): o lote é um setor de clube e no fim vem a
   // convocação. Só aparece pra CLUBES_TESTERS e só no ⚡ Rápido online.
   const clubesOn = useClubesLiberado()
@@ -858,7 +870,9 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'liga_mundo' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
+  const [relampagoChave, setRelampagoChave] = useState<16 | 32>(16) // ⚡ Relâmpago (28/10): chave de 16 ou 32, o dono escolhe
+  const relampagoOn = useRelampagoLiberado() // ⚡ só a conta do Diego cria, por enquanto
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -1681,6 +1695,7 @@ export function EscLobby() {
       // o aparelho dele preferia. Sala antiga não tem o campo → leilão cego.
       holandes: !!gs?.holandes,
       pregaoAberto: !!gs?.pregaoAberto, // 🔨 pregão aberto (17/10): escolha do dono gravada na sala
+      envUnico: !!(gs as GS & { envUnico?: boolean })?.envUnico, // ⚡ envelope único (28/10)
       clubes: !!gs?.clubes, // 🧱 leilão de clubes: escolha do host, gravada na sala
       career: gs?.mode === 'carreira',
       // 🏀 o ESPORTE da sala (14/09). Vem gravado no game_state de quem criou — é a
@@ -1719,6 +1734,7 @@ export function EscLobby() {
       ligaFechada: !!(gs as GS & { ligaFechada?: boolean })?.ligaFechada, // 🏆 liga só com a galera, sem bots
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
       copaMode: gs?.copaMode, // 🏆 rápido: liga só ou liga + Copa dos 8 (escolha do host na criação)
+      relampagoChave: gs?.relampagoChave, // ⚡ Relâmpago: chave de 16 ou 32
       // 🏆 LIGA: a contagem de temporadas CONTINUA quando a turma passa pela sala de
       // espera (13/09 — antes toda volta pela espera recomeçava em "Temporada 1", e a
       // estante já tinha 13). O game_state guarda a ÚLTIMA temporada encerrada (o
@@ -2002,7 +2018,9 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
+    // ⚡ RELÂMPAGO: a sala cabe o tamanho da chave (16 ou 32) — os bots completam o que faltar
+    const relampagoSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'relampago'
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
       ...(liga && ehDraft ? { ligaDraft: true, deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
@@ -2025,7 +2043,7 @@ export function EscLobby() {
     // 🚫 21/10: a mesma régua do banco, avisando antes de tentar
     if (nomeOfensivo(name)) { setRoomError(tr('🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: nothing offensive in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
@@ -2391,7 +2409,7 @@ export function EscLobby() {
   function nomeCopaLiga(c: CopaLiga): string {
     const reg = regionalId(c)
     if (reg) return `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[reg].nomeEn : COPAS_REGIONAIS[reg].nome}`
-    return ({ liga_copa: tr('🏆 Liga + Copa', '🏆 League + Cup'), liga_liberta: tr('🌎 Liga + Liberta', '🌎 League + Liberta'), champions: tr('⭐ Só Champions', '⭐ Champions only'), liga_mundo: tr('🌐 Liga + Mundo', '🌐 League + World'), liga: tr('📊 Só liga', '📊 League only') } as Record<string, string>)[c] ?? ''
+    return ({ liga_copa: tr('🏆 Liga + Copa', '🏆 League + Cup'), liga_liberta: tr('🌎 Liga + Liberta', '🌎 League + Liberta'), champions: tr('⭐ Só Champions', '⭐ Champions only'), relampago: tr('⚡ Relâmpago', '⚡ Lightning'), liga_mundo: tr('🌐 Liga + Mundo', '🌐 League + World'), liga: tr('📊 Só liga', '📊 League only') } as Record<string, string>)[c] ?? ''
   }
   async function salvaModoLiga() {
     if (!room || !modoEdit) return
@@ -3028,6 +3046,8 @@ export function EscLobby() {
     </div>
   )
 
+  // 👁️ escolheu assistir uma sala: a espera do fantasma (entra sozinho quando a partida estiver rolando)
+  if (assistindo) return <EspectadorEspera sala={assistindo} onSair={() => { setAssistindo(null); void fetchOpenRooms(true) }} />
   if (recovering) {
     return wrap(<>
     <div className="text-center">
@@ -3510,8 +3530,8 @@ export function EscLobby() {
         // 🗂️ visual novo (só na conta do Diego): cada seção vira uma linha com o que está escolhido + o resumo antes do botão.
         // Só LÊ o que já foi escolhido (os mesmos estados de sempre) — nada aqui muda regra nem o que vai pro banco.
         const rDeck = rapidoClubes ? tr('🌎 Todos', '🌎 All') : rapidoDeck === 'eu' ? tr('🌍 Europa', '🌍 Europe') : rapidoDeck === 'world' ? tr('🌎 Mundo', '🌎 World') : rapidoDeck === 'both' ? tr('♾️ Todos', '♾️ All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
-        const rLeilao = rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
-        const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
+        const rLeilao = rapidoEnvUnico && envUnicoOk && !roomDuplas ? tr('⚡ Envelope único', '⚡ Single envelope') : rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
+        const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), relampago: tr('Mata-mata Relâmpago', 'Lightning Knockout'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
         const resumoTime = [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tr('🧱 Clubes', '🧱 Clubs') : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
         const resumoPartida = [rLeilao, rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
         const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
@@ -3664,12 +3684,14 @@ export function EscLobby() {
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
-                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as ['envelope' | 'tocaia' | 'pregao', string][]}
-                        selos={{ pregao: tr('novo', 'new') }} selosBrilho={['pregao']}
-                        value={rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia') }} />
+                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
+                        selos={{ pregao: tr('novo', 'new'), unico: tr('teste', 'test') }} selosBrilho={['pregao', 'unico']}
+                        value={rapidoEnvUnico && envUnicoOk && !roomDuplas ? 'unico' : rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia'); setRapidoEnvUnico(v === 'unico') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions'
+                    {rapidoEnvUnico && envUnicoOk && !roomDuplas
+                      ? tr('⚡ As 5 posições numa tela só: cada um dá todos os lances em 180s, aperta LACRAR TUDO e vem uma revelação só. Empate = sorteio na hora. O que ninguém levou vai pro Monte de sempre.', '⚡ All 5 positions on one screen: everyone bids on everything in 180s, hits SEAL ALL and there is one reveal. Tie = draw. Whatever nobody won goes to the usual Monte.')
+                      : pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions'
                       ? tr('🔨 Uma carta por vez, com o lance À VISTA de todos. Cada lance novo zera o relógio; 5s sem lance = vendido. A ordem das posições é embaralhada e não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, with bids IN THE OPEN. Every new bid resets the clock; 5s without a bid = sold. Positions come in shuffled order and there is no pile: empty slots at the end get a free player.')
                       : rapidoHolandes
                       ? tr(`🐊 A leva inteira na tela com UM preço só, abrindo em ${nbaSala ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${nbaSala ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
@@ -3926,11 +3948,13 @@ export function EscLobby() {
                   {/* 🧩 Duas prateleiras, como no mockup aprovado (10/10): o que se joga COM O
                       SEU TIME do leilão e o que se joga CONVOCANDO (o time vem do país/clube). */}
                   {(() => {
-                    type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
+                    type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'relampago' | 'liga_mundo' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
                     const todas: [ModoCopa, string][] = [...((libertaOn
                     ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
                     : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
                       // 🏟️ as copas regionais (liberadas pra todos em 11/10)
+                      // ⚡ Relâmpago (28/10): só sala rápida, sem duplas, e por enquanto só a conta do Diego cria
+                      ...(relampagoOn && roomMode === 'rapido' && !roomDuplas ? [['relampago', tr('⚡ Mata-mata Relâmpago', '⚡ Lightning Knockout')] as ['relampago', string]] : []),
                       ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
                     const convoca = (v: ModoCopa) => v === 'liga_mundo' || regionalId(v) !== null
                     const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
@@ -3939,7 +3963,7 @@ export function EscLobby() {
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                           travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
-                          selos={{ liga_mundo: seloNovo(), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), relampago: tr('em testes', 'beta'), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
                       </>
                     )
                     return <>
@@ -3947,8 +3971,19 @@ export function EscLobby() {
                       {prateleira(tr('📋 CONVOCANDO', '📋 CALL-UP'), todas.filter(([v]) => convoca(v)))}
                     </>
                   })()}
+                  {/* ⚡ Relâmpago: o dono escolhe o tamanho da chave (Diego 28/10: *"faz c 16 então msm e 32 a pessoa escolhe ao criar"*) */}
+                  {rapidoCopaMode === 'relampago' && (
+                    <div className="mt-2">
+                      <p className="font-black mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{tr('⚡ TAMANHO DA CHAVE', '⚡ DRAW SIZE')}</p>
+                      <Seg options={[[16, tr('16 times · começa nas oitavas', '16 teams · starts at R16')], [32, tr('32 times · começa na rodada de 32', '32 teams · starts at R32')]] as [16 | 32, string][]}
+                        value={relampagoChave} onSet={v => setRelampagoChave(v)} />
+                    </div>
+                  )}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {regionalId(rapidoCopaMode) ? (() => {
+                    {rapidoCopaMode === 'relampago' ? (getLang() === 'en'
+                      ? <>⚡ <b>No league</b>: after the auction it goes straight to the draw. <b>Two legs</b> in every round and a <b>single-match final</b>; level on aggregate goes to penalties. The room fits up to <b>{relampagoChave} people</b> — bots fill the rest of the draw.</>
+                      : <>⚡ <b>Sem liga</b>: acabou o leilão, sai o sorteio da chave. <b>Ida e volta</b> em toda fase e <b>final em jogo único</b>; empate no placar somado vai pros pênaltis. A sala cabe até <b>{relampagoChave} pessoas</b> — os bots completam a chave.</>)
+                    : regionalId(rapidoCopaMode) ? (() => {
                       const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length
                       return getLang() === 'en'
                         ? <>{c.emoji} League over, the <b>top {v}</b> pick a club from the region in table order (<b>45s each</b> — miss it and you get the <b>worst club left</b>) and call up their 11 in <b>90s</b>. Two sides of {v / 2}: each club plays the {v / 2} of the <b>other side</b>, then crossed knockouts. The rest of the league sits this one out.</>
@@ -4167,7 +4202,7 @@ export function EscLobby() {
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
             const regLbl = (r.game_state as GS & { regionalNaLiga?: string })?.regionalNaLiga
-            const copaLbl = ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}` : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
+            const copaLbl = ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}` : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'relampago' ? tr(`⚡ mata-mata relâmpago · ${(r.game_state as GS & { relampagoChave?: number })?.relampagoChave ?? 16}`, `⚡ lightning knockout · ${(r.game_state as GS & { relampagoChave?: number })?.relampagoChave ?? 16}`) : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
@@ -4258,6 +4293,15 @@ export function EscLobby() {
                   </button>
                 )}
               </div>
+              {/* 👁️ ASSISTIR (28/10): só pra quem o Diego liberou; em sala esperando OU jogando, cheia ou não. Fora: Copa do
+                  Mundo, Bafo e carreira (outro motor) e a própria sala de quem clica. */}
+              {souEspectador && user && r.host_id !== user.id && !mundoRoom && r.game_state?.mode !== 'elenco' && !isCareerRoom && (
+                <button onClick={() => setAssistindo({ id: r.id, code: r.code, nome: nm })}
+                  className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[3px] border-black rounded-xl py-2 font-black text-sm uppercase"
+                  style={{ background: '#3b2a6b', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
+                  {tr('👁️ Assistir', '👁️ Watch')}
+                </button>
+              )}
               {aoVivo && (
                 <a href={liveUrlSala} target="_blank" rel="noopener noreferrer" className="block mx-3 mb-3 text-center border-[3px] border-black rounded-xl py-2.5 font-black text-sm uppercase no-underline" style={{ background: '#E8503A', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
                   {tr(`▶ Assistir a live no ${plataforma}`, `▶ Watch the live on ${plataforma}`)}
@@ -4570,7 +4614,7 @@ export function EscLobby() {
       gsSala?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid'),
       ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}`
         : gsSala?.mundoNaLiga ? tr('🌍 Liga + Mundo', '🌍 League + World Cup')
-        : gsSala?.copaMode === 'liga' ? tr('🏆 Só a liga', '🏆 League only') : gsSala?.copaMode === 'champions' ? tr('⭐ Só Champions', '⭐ Champions only')
+        : gsSala?.copaMode === 'liga' ? tr('🏆 Só a liga', '🏆 League only') : gsSala?.copaMode === 'champions' ? tr('⭐ Só Champions', '⭐ Champions only') : gsSala?.copaMode === 'relampago' ? tr(`⚡ Mata-mata Relâmpago · chave de ${gsSala?.relampagoChave ?? 16}`, `⚡ Lightning Knockout · ${gsSala?.relampagoChave ?? 16}-team draw`)
         : gsSala?.copaMode === 'liga_liberta' ? tr('🏆 Liga + Liberta', '🏆 League + Liberta') : gsSala?.copaMode === 'liga_champions' ? tr('🏆 Liga + Champions', '🏆 League + Champions') : tr('🏆 Liga + Copa', '🏆 League + Cup'),
       gsSala?.manual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto'),
       gsSala?.clubes ? tr('🧱 Clubes', '🧱 Clubs') : String(gsSala?.deck) === 'eu' ? 'EU' : String(gsSala?.deck) === 'world' ? tr('🌎 Mundo', '🌎 World') : String(gsSala?.deck) === 'both' || String(gsSala?.deck) === 'todos' ? 'B/E/M' : '🇧🇷 BR',
