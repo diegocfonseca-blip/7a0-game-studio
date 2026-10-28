@@ -1,6 +1,6 @@
 import { AREA_LARG, AREA_PROF, G, W, frente, len } from './fisica.ts'
 
-/** Proposta isolada: esperar a descida de um passe livre, em vez de
+/** Recepção contextual, ativada pela versão gravada na partida: esperar a descida de um passe livre, em vez de
  * transformar toda bola alta em passe de cabeça. Sem sorteio ou posse nova.
  * A qualidade/erro do domínio continua sendo decidida pelo motor existente. */
 export const ALTURA_DOMINIO_AEREO = 0.22

@@ -813,6 +813,8 @@ export interface EscState {
   /** ⚽🧠 MOTOR NOVO NA CARREIRA (20/10, só a conta do Diego por enquanto): a partir de qual temporada/rodada (0-based, o próximo
    *  jogo) o SEU jogo é decidido pelo motor v2. Rodada já jogada nunca muda. Ausente = simulação de sempre, byte a byte. */
   motor2Desde?: { season: number; round: number }
+  /** Recepção contextual: somente novas partidas/competições na conta de teste. */
+  motor2RecepcaoDesde?: import('./motor2-recepcao-conta').MarcoRecepcaoM2
   /** 💾 os resultados do motor novo, DENTRO do save (21/10): o mesmo save no celular e no PC mostra o mesmo placar, e ajuste do
    *  motor nunca muda jogo já visto. Chave = assinatura da entrada do jogo; fica a temporada atual e a anterior. */
   m2Res?: Record<string, import('./motor2/carreira').GuardadoM2>

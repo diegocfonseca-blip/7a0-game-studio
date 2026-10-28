@@ -92,3 +92,36 @@ npm run motor2
 
 `recepcao-experimento.cjs` só instrumenta o módulo servido ao navegador de
 testes para comparar a mesma jogada a partir dos 83 s; não é importado pelo jogo.
+
+
+## Integração V8 autorizada em 28/10/2026
+
+O usuário autorizou corrigir a decisão no motor comum e restringiu a ativação à sua conta. Os 8 placares diferentes mencionados no experimento V7 eram a comparação **regra antiga × regra nova**. Não eram diferenças entre as câmeras/2D/cinema. Para uma mesma entrada e versão, todos os modos devem reproduzir o mesmo jogo; somente a cadência de apresentação pode variar.
+
+- `EntradaM2.versao = recepcao-contextual-1` acompanha a partida em todas as visualizações e no cache/save. Ausência mantém o comportamento anterior.
+- `motor2-recepcao-conta.ts` limita a criação de partidas nessa versão à conta autorizada, carreira individual de futebol. O reducer também verifica essa condição. Salas online, carreira compartilhada e outras contas não ativam a regra.
+- `motor2RecepcaoDesde` guarda a temporada e a próxima rodada. Jogos já calculados/guardados não migram; copas nacionais já iniciadas permanecem inteiras na versão anterior. Copa do Mundo e campanha internacional novas registram a versão ao serem criadas.
+- Os caches e resultados pendentes são separados por conta/save. Reabrir uma partida versionada recupera sua regra independentemente da câmera atual.
+- O cálculo rápido novo aguarda o apito final (limite defensivo de 120 minutos simulados). A regra antiga limitava o cálculo a 93, mas a comemoração/cobrança podia adiar o apito: isso apareceu em 4/16 casos locais. Não se alteraram o passo da física nem o relógio das visualizações.
+- Resultado/narrativa existentes continuam sendo a autoridade. Replays incompatíveis com histórico antigo permanecem bloqueados; nenhum gol é acrescentado/removido para forçar compatibilidade.
+
+### Validação executada
+
+- 16 partidas sem versão: eventos, placares e estatísticas idênticos à base V6.
+- 16 partidas novas: resultado rápido, motor do 2D, relato do cinema e adaptador 3D coincidem em eventos, placares, autores, assistências e minutos. Teste a cada minuto, até o apito, incluindo seek/reabertura.
+- Reprodução a 0,5×, 1× e 2×: mesma sequência e timestamps oficiais. Esses valores são cadências da bancada, não novos padrões do produto.
+- Gate no helper e no reducer, troca de conta/save, round trip JSON, proteção de resultado legado e verificação de replay divergente.
+- Liga e copas: teste da próxima rodada; 7 jogos Copa Legends, 7 Copa Brasil, 1 Supercopa, 5 internacionais e 6 da Copa do Mundo com versão propagada e resultado/replay compatíveis.
+- Suíte existente: 300 jogos parecidos + 100 forte/fraco para cada regra. Ambas dentro das faixas estabelecidas. Regra antiga: média 1,75 gol; nova: 1,70. Não se afirma equivalência de resultados entre regras distintas.
+- 40 Copas congeladas reabertas sem mudança; regressão da temporada internacional aprovada.
+- Build completo aprovado, com os avisos já existentes sobre chunks grandes/importações dinâmicas.
+
+### Captura e limites
+
+Captura real WebGL do campo do mapa, 22 atletas, seed local 3. Júnior Baiano lança, Oséas domina após a descida e faz a enfiada. Contato de domínio a 56,55 s: diferença de superfície −0,000471 m, sem cabeceio automático nesse lance, eventos visuais iguais aos oficiais. Vídeo normal e câmera lenta em `/workspace/shared/recepcao-unificada-v8-20261028/`. O arquivo original do save não foi editado e esta seed é um caso de regressão local, não uma rodada gravada na conta.
+
+A primeira captura usou seed 2 e encontrou uma devolução de primeira: a apresentação combina recepção/saída separadas por menos de 0,28 s. Portanto ela não servia como prova de domínio separado; os dados foram preservados na pasta `inversao-de-primeira`. A captura de domínio usa seed 3, cujo intervalo permite observar o amortecimento. Não se reclassificou uma ação nem se alterou a trajetória para aprovar a medição.
+
+Continua sem um domínio de peito completo; a preferência implementada busca a descida aos pés quando há espaço. Cabeceios defensivos, disputas e finalizações na área continuam permitidos. A suíte ainda registra os avisos de distância de reinício preexistentes (16 casos na regra antiga; 24 na nova, abaixo do limite atual da suíte): não são declarados corrigidos por esta entrega.
+
+Sem deploy, push ou escrita no banco/save real. Reversão disponível pela branch `recovery/recepcao-prototipo-aef9eca6`; integração local na branch `fix/recepcao-conta-20261028`.

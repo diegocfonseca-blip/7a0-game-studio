@@ -9,6 +9,8 @@ import { Motor2 } from '../src/escalacao/motor2/motor'
 import { CATALOG, CATALOG_EU } from '../src/escalacao/data'
 
 const N = +(process.argv[2] ?? 300)
+// Mesmas réguas para a regra optativa, sem mudar o padrão dos demais modos.
+const recepcaoContextual = process.argv.includes('--recepcao-contextual')
 type C = { name: string; club: string; year: number; pos: string; fame: number; lo: number; hi: number }
 const todas: C[] = [...Object.entries(CATALOG), ...Object.entries(CATALOG_EU)].flatMap(([pos, cs]) => (cs as C[]).map(c => ({ ...c, pos })))
 function sorte(seed: number) { let s = seed; return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff } }
@@ -23,7 +25,7 @@ function time(seed: number, fames: number[]): C[] {
 }
 const MIN = 90 / 93
 function joga(seed: number, a: C[], b: C[]) {
-  const m = new Motor2(seed, a, b, false, [], [0, 0], 'sol', [true, true]) // (times sorteados = times de bot: o motor escala pelo jeito)
+  const m = new Motor2(seed, a, b, false, [], [0, 0], 'sol', [true, true], { recepcaoContextual }) // (times sorteados = times de bot: o motor escala pelo jeito)
   let foraCampo = 0
   for (let k = 0; k <= 96; k += 0.25) {
     m.avancaAte(k)

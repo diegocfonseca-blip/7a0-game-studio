@@ -212,10 +212,12 @@ export class Motor2 {
   private dribleAte = -1
   /** 🦶 o PRIMEIRO TOQUE de quem acabou de receber: pra onde ele leva a bola (longe do marcador, pro lado do jogo) */
   private toque1: { de: Atleta; ux: number; uy: number; ate: number } | null = null
+  private readonly recepcaoContextual:boolean
 
   /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
   /** `extra`: técnico (nível do dia dele) e evento da rodada de cada lado — o que a simulação da carreira também usa */
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number] } = {}) {
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number]; recepcaoContextual?:boolean } = {}) {
+    this.recepcaoContextual=extra.recepcaoContextual===true
     const s = sorteio(seed)
     this.r = s.r; this.n = s.n
     this.nar = new Narrador(en, this.r)
@@ -262,7 +264,7 @@ export class Motor2 {
     const b = this.bola
     if (b.dono || !p) return { x: b.x, y: b.y }
     const vm = this.vmax(p), molhado = this.clima === 'chuva' ? 0.8 : 1, passo = 0.1
-    const alturaEncontro = prefereDominarLancamento(this, p) ? ALTURA_DOMINIO_AEREO : 2
+    const alturaEncontro = this.recepcaoContextual && prefereDominarLancamento(this, p) ? ALTURA_DOMINIO_AEREO : 2
     let x = b.x, y = b.y, vx = b.vx, vy = b.vy, h = b.h, vh = b.vh, giro = b.giro ?? 0
     const pt = (x: number, y: number) => ({ x: clamp(x, 0.5, W - 0.5), y: clamp(y, 0.5, L - 0.5) })
     for (let tau = 0; tau <= 4; tau += passo) {
@@ -916,7 +918,7 @@ export class Motor2 {
     for (const { p } of cands) {
       // Passe com espaço: procurar a descida e dominar. Esperar não é uma
       // tentativa de contato e não deve consumir a janela de nova tentativa.
-      if (b.h > ALTURA_DOMINIO_AEREO && prefereDominarLancamento(this, p)) continue
+      if (this.recepcaoContextual && b.h > ALTURA_DOMINIO_AEREO && prefereDominarLancamento(this, p)) continue
       this.tentou.set(p, this.t)
       const gk = p.grupo === 'GOL' && this.naAreaDele(p, b)
       if (b.h > (gk ? 2.7 : 2.4)) continue // (bola acima da cabeça passa — só o goleiro, com a mão, alcança mais alto)
