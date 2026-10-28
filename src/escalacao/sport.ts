@@ -343,7 +343,7 @@ export function useLigaDraftLiberada(): boolean {
 // ⚡ MATA-MATA RELÂMPAGO (28/10, mockup `scripts/mockups/mata-relampago.png`) — competição nova das salas online: leilão de sempre
 // e direto pro mata-mata (chave de 16 ou 32, ida e volta, final em jogo único). Começa só na conta do Diego (CRIAR a sala; quem
 // ele chamar entra e joga normal). Liberar geral = RELAMPAGO_GERAL = true.
-const RELAMPAGO_GERAL = false
+const RELAMPAGO_GERAL = true // 🟢 28/10 LIBERADO PRA TODOS com o selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
 const RELAMPAGO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let relampagoOk = RELAMPAGO_GERAL
 function applyRelampago(email?: string | null): void {

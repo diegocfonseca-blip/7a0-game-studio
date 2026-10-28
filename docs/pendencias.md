@@ -1,4 +1,4 @@
-## ⚡ Mata-mata Relâmpago (28/10) — FEITO no branch, SÓ NA CONTA DO DIEGO (`RELAMPAGO_GERAL = false`), esperando ele testar
+## ⚡ Mata-mata Relâmpago (28/10) — ✅ PUBLICADO PRA TODOS com selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
 - Regras dele: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras normais"* e *"tem q ter ida
   e volta, somente final que não"*. Então: quem cria escolhe CHAVE DE 16 (começa nas oitavas) ou 32 (Rodada de 32); a sala cabe
   esse tanto de gente e os bots completam; leilão de sempre → sorteio → IDA E VOLTA em toda fase, FINAL EM JOGO ÚNICO; empate no
