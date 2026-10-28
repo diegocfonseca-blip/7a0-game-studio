@@ -1,3 +1,15 @@
+## 🐶 Patrocinador Master dSouza Empreendimentos (28/10) — NO BRANCH, esperando "publica"
+Loja de quadros decorativos (futebol nacional/internacional, personalizados) no Mercado Livre:
+https://www.mercadolivre.com.br/pagina/dsouzaempreendimentos/futebol . Arte em `scripts/parceiros/dsouza-*.jpg`.
+- Master da carreira: **7ª marca, 3 temporadas** (= Grêmio Campo Grande; escolha do Diego), `dsouza` em `estadiodata.ts`; logo `patro-dsouza.webp`.
+- Placa do campinho: pitbull + nome (`patro-dsouza-placa.webp`, tirei a frase da arte deles, que vinha com acento errado "Confiànça/Rapìdo").
+- "Apresentada por": **Libertadores** (online e carreira) — a única grande sem patrocinador; o Diego não teve preferência.
+- Telão: `🐶 dSouza · Quadros do seu time pra decorar a parede · Frete grátis · Clique aqui` → página do Mercado Livre.
+  ⚠️ NA HORA DE PUBLICAR: inserir a linha em `esc_anuncios_fixos` (o banco manda; o código é só reserva).
+- Aviãozinho da home: agora é a dSouza (regra: patrocinador novo = avião). Saiu o Grêmio Campo Grande do avião (segue no resto).
+- Aviso da comunidade: `scripts/avisos/2026-10-28-parceiro-dsouza.json` → `scripts/posts/aviso-2026-10-28-parceiro-dsouza.png`.
+  Foto dos lugares: `scripts/posts/dsouza-no-leilao-legends.png`.
+
 ## 🤖 Simulação REAL da carreira pela tela (28/10) — 19 temporadas, achados (nada mexido no jogo)
 Pedido: *"simulação completa até a T120 começando na várzea… descobrir pq MT gente fala q é difícil na várzea… premiação… erros… ideias"*.
 Robô (Playwright) jogando pela TELA de verdade: leilão às cegas escolhendo pelos mais famosos, Master, coletivas, pular jogo (como Craque),
