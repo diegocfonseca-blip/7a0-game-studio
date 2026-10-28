@@ -194,7 +194,9 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   // 🧪 21/10 (Diego: "tira Max Joias e bote ele"): a OittoLabs pega o lugar da Max Joias (1 temporada). Contrato da Max Joias
   //    que já está correndo em save antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
   { brandId: 'oittolabs', anos: 1 },
-  { brandId: 'reidastintas', anos: 2 },
+  // 🚫 28/10 (Diego: "remova a Uomo dos patrocinadores master… e remova Rei das Tintas também"): as duas saíram da mesa. Contrato
+  //    delas que já está correndo em save antigo vai até o fim (as marcas seguem em SPONSOR_BRANDS); só não são oferecidas mais.
+  //    A Uomo virou fornecedor de material (`loja.ts`, no lugar da GuchiGuchi).
   // ⚽ 23/10: o Grêmio Esportivo Campo Grande pega o lugar da ERO (3 temporadas). Contrato da ERO que já está correndo em save
   //    antigo continua até acabar (a marca segue em SPONSOR_BRANDS); só não é oferecida mais.
   { brandId: 'gecg', anos: 3 },
@@ -203,7 +205,6 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   //    divisão × prazo, então quem tem o prazo maior paga mais. Com 4, a Uomo
   //    entra ENTRE a ERO e a Vadico e a **Vadico continua sendo a mais cara**,
   //    que foi a condição que ele pôs. A escada virou 1 · 2 · 3 · 4 · 5.
-  { brandId: 'uomo', anos: 4 },
   // 🤖 19/10 (Diego: "igual a Vadico… porém a cada temporada uma pode ser melhor que a outra com base nos bônus"): mesmo prazo e
   //    mesmo valor da Vadico; quem desempata é a META sorteada de cada uma (`masterMetaOferta` sorteia por marca).
   { brandId: 'tidex', anos: 5 },

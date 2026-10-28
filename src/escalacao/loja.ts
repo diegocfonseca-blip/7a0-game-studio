@@ -88,7 +88,9 @@ export const FORNECEDORES: Fornecedor[] = [
   { id: 'eisics', nome: 'Eisics', simb: '≋', anos: 3, loja: 0.30, desde: 'B', cor: '#1C4B8A' },
   { id: 'newbala', nome: 'New Bala', simb: 'N', anos: 5, loja: 0.45, desde: 'B', cor: '#9E1B1B' },
   // 1ª — Elite e Luxo
-  { id: 'guchiguchi', nome: 'GuchiGuchi', simb: '⊛', anos: 1, loja: 0.10, desde: 'A', cor: '#1B5E3A' },
+  // 🅾️ 28/10 (Diego: "coloque a Uomo no lugar de alguma marca de roupa de fornecedor de material"): a Uomo Concetto (alfaiataria,
+  //    marca REAL parceira) pega o lugar da GuchiGuchi, no andar da Elite e Luxo. Mesmo id e mesmo prazo: contrato correndo não muda.
+  { id: 'guchiguchi', nome: 'Uomo Concetto', simb: '🅾️', anos: 1, loja: 0.10, desde: 'A', cor: '#0C0C0C' },
   { id: 'adibas', nome: 'Abibas', simb: '◤', anos: 2, loja: 0.20, desde: 'A', cor: '#0E3E86' },
   { id: 'pumba', nome: 'Pumba', simb: '🐆', anos: 3, loja: 0.30, desde: 'A', cor: '#B5651D' },
   { id: 'naique', nome: 'Naique', simb: '✓', anos: 5, loja: 0.45, desde: 'A', cor: '#1B7A3D' },

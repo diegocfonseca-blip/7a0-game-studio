@@ -1,3 +1,9 @@
+## 🅾️🎨 Master sem Uomo e sem Rei das Tintas (28/10) — no branch, esperando "publica"
+Diego: *"remova a Uomo dos patrocinadores master e coloque a Uomo no lugar de alguma marca de fornecedor de material… remova Rei das
+Tintas também"*. Mesa do Master agora: OittoLabs 1 · Grêmio Campo Grande 3 · dSouza 3 · Tidex 5 · Vadico 5. Contrato delas que já corre
+em save antigo vai até o fim. A Uomo Concetto virou fornecedor de material no lugar da GuchiGuchi (Série A, 1 temporada, mesmo id
+`guchiguchi` pra contrato correndo não quebrar). Travas `npm run master`/`master-historia` atualizadas (5 contratos).
+
 ## 🐶 Patrocinador Master dSouza Empreendimentos (28/10) — ✅ NO AR (linha do telão id 8 em `esc_anuncios_fixos`)
 Loja de quadros decorativos (futebol nacional/internacional, personalizados) no Mercado Livre:
 https://www.mercadolivre.com.br/pagina/dsouzaempreendimentos/futebol . Arte em `scripts/parceiros/dsouza-*.jpg`.

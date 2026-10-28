@@ -11,9 +11,9 @@ console.log('1) as 5 marcas reais, cada uma com o seu prazo (Vadico = mais grana
 // sendo agora 5 marcas. Sendo a Vadico a mais cara ainda mesmo"*.
 // 🤖 19/10: virou SEIS — a Tidex entra IGUAL à Vadico (5 temporadas; o que desempata é a meta sorteada de cada uma)
 // 🧪 21/10: a OittoLabs entrou no LUGAR da Max Joias (1 temporada) — continuam 6
-ok(MASTER_PRAZOS.length === 7, 'são exatamente 7 contratos') // 28/10: + dSouza (3 temporadas)
+ok(MASTER_PRAZOS.length === 5, 'são exatamente 5 contratos') // 28/10: + dSouza (3 temporadas) · saíram Uomo e Rei das Tintas
 ok(MASTER_PRAZOS.every(p => sponsorBrandOf(p.brandId)?.logo), 'todas são marcas REAIS do jogo (têm logo): ' + MASTER_PRAZOS.map(p => sponsorBrandOf(p.brandId).name).join(' · '))
-ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,2,3,3,4,5,5', 'prazos 1 · 2 · 3 · 3 · 4 · 5 · 5 temporadas (dSouza = 3, igual ao Grêmio Campo Grande) · (OittoLabs = 1 · Tidex = 5, igual à Vadico)')
+ok(MASTER_PRAZOS.map(p => p.anos).join(',') === '1,3,3,5,5', 'prazos 1 · 3 · 3 · 5 · 5 temporadas (dSouza = 3, igual ao Grêmio Campo Grande) · (OittoLabs = 1 · Tidex = 5, igual à Vadico)')
 // 🔒 A CONDIÇÃO QUE ELE PÔS, escrita como trava: a Vadico tem que pagar MAIS que
 // qualquer outra em TODA divisão. Como a régua é só divisão × prazo, isso é o
 // mesmo que a Vadico ter o maior prazo — mas a trava confere pelo DINHEIRO, que é
