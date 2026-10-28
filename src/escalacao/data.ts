@@ -3673,6 +3673,7 @@ export const OLD_NAME: Record<string, string> = {
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Pesadelo Verde FC': 'Zé Colmeia', // 🌑🐺 batismo do portaltech.ep (18/09): assumiu o assento da Série C que era do Zé Colmeia — save antigo com Zé Colmeia vira Pesadelo Verde FC ao abrir. (O Zé Colmeia continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
+  'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
   'Vila Esporte Clube': 'Imperador SAF', // ⭐🦁 batismo do oluisantonio.contato (27/10): assumiu o assento da Série D que era do bot Imperador SAF — save antigo com Imperador SAF vira Vila Esporte Clube ao abrir.
   'Neymar_FC': 'Galáxia EC', // 🐐👑 batismo do sheeryarie772 (21/10): assumiu o assento da Série D que era do bot Galáxia EC — save antigo com Galáxia EC vira Neymar FC ao abrir.
   'ComVerissimo FC': 'Soberano Nacional', // 🟢 batismo do cesar.verissimo27 (15/10): assumiu o assento da Série D que era do bot Soberano Nacional — save antigo com Soberano Nacional vira ComVerissimo FC ao abrir.
@@ -4042,7 +4043,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // que é outra lista e não tem nada a ver com as divisões da carreira.
     { name: 'Raivoso', team: 'Raiva Cajuri FC' }, // 🥊 clube BATIZADO por apoiador (feliperamiro0501 — Raiva Cajuri FC; preto e vermelho, mascote O Raiva pulando do ringue; Lenda + fundador nº71 + sócio nº52, 16/09)
     { name: 'Selecta', team: 'Bonança SSFC' }, // 🔊 clube BATIZADO por apoiador (duselecta — Bonança SSFC, ex-Torta de Rã, Série C; paredão de som jamaicano, preto + amarelo com vermelho; mascote O Selecta, Lenda + fundador nº63, 09/09)
-    { name: 'Baixinho da Kombi', team: 'Kombi United' },
+    { name: 'Alexandre', team: 'dSouza FC' }, // 🐶💚 clube BATIZADO por apoiador (alexandre12cdm — dSouza FC, ex-Kombi United, Série C; plano FUNDADOR nº94 + sócio nº79; coração PALMEIRAS; escudo do pitbull de boné com os quadros das lendas, mascote O Pitbull; preto #0A0A09 + verde-neon #73E541 MEDIDOS na camisa; empresa dele: dSouza Empreendimentos, 28/10). `OLD_NAME` leva save antigo pro nome novo.
   ],
   // 🅳 SÉRIE D — a base profissional, logo acima da Várzea. (era a "Série A")
   D: [
