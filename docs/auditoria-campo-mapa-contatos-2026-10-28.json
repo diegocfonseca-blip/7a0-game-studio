@@ -1,0 +1,291 @@
+{
+  "scope": "Somente apresentação do campo 3D do mapa. Teste local com entrada salva.",
+  "model": {
+    "height": 1.78,
+    "ballDiameter": 0.22,
+    "pitch": [
+      105,
+      68
+    ],
+    "glbBytes": 2974720,
+    "changed": false
+  },
+  "tests": [
+    {
+      "hz": 60,
+      "controlRegression": {
+        "interval": [
+          16.2666667,
+          17
+        ],
+        "maxFootGap": 0.26050556139868664,
+        "formerlyOverTwoMetres": true
+      },
+      "frames": 5401,
+      "actors": 22,
+      "events": 67,
+      "score": [
+        3,
+        0
+      ],
+      "sourceUnchanged": true,
+      "errors": [],
+      "closeFrames": 0,
+      "minRootSeparation": 0.44199999999999856,
+      "contacts": 64,
+      "exactContacts": 64,
+      "interpolatedContacts": 0,
+      "maxSurfaceGap": 0.006532481844857663,
+      "minSurfaceGap": -0.0009049104370462135,
+      "maxHeadingErrorDegrees": 1.2894204909263034,
+      "maxRootSpeed": 14.093157973045333,
+      "pausedCameraStable": true,
+      "estimatedContactsOutsideTolerance": []
+    },
+    {
+      "hz": 30,
+      "controlRegression": {
+        "interval": [
+          16.2666667,
+          17
+        ],
+        "maxFootGap": 0.2605064814307365,
+        "formerlyOverTwoMetres": true
+      },
+      "frames": 2701,
+      "actors": 22,
+      "events": 67,
+      "score": [
+        3,
+        0
+      ],
+      "sourceUnchanged": true,
+      "errors": [],
+      "closeFrames": 0,
+      "minRootSeparation": 0.44199999999999984,
+      "contacts": 64,
+      "exactContacts": 33,
+      "interpolatedContacts": 31,
+      "maxSurfaceGap": 0.07752675611292452,
+      "minSurfaceGap": -0.010082069581693512,
+      "maxHeadingErrorDegrees": 0.9205849630083963,
+      "maxRootSpeed": 14.51700231802587,
+      "pausedCameraStable": true,
+      "estimatedContactsOutsideTolerance": [
+        {
+          "t": 7.95,
+          "clip": "dominio",
+          "gap": 0.07752675611292452,
+          "interpolated": true
+        },
+        {
+          "t": 22.25000000000018,
+          "clip": "cavadinha_e",
+          "gap": 0.035650641785136786,
+          "interpolated": true
+        },
+        {
+          "t": 31.95000000000032,
+          "clip": "cavadinha",
+          "gap": 0.03601029974337265,
+          "interpolated": true
+        },
+        {
+          "t": 46.349999999999504,
+          "clip": "cavadinha_e",
+          "gap": 0.0361943708614894,
+          "interpolated": true
+        },
+        {
+          "t": 47.34999999999945,
+          "clip": "cavadinha_e",
+          "gap": 0.03571084374097373,
+          "interpolated": true
+        },
+        {
+          "t": 51.34999999999922,
+          "clip": "passe_chapa",
+          "gap": 0.03337266165443882,
+          "interpolated": true
+        },
+        {
+          "t": 55.35,
+          "clip": "dominio",
+          "gap": 0.061660645901431124,
+          "interpolated": true
+        },
+        {
+          "t": 60.4499999999987,
+          "clip": "cavadinha_e",
+          "gap": 0.03421793068503477,
+          "interpolated": true
+        },
+        {
+          "t": 69.65,
+          "clip": "dominio",
+          "gap": 0.04784452571232441,
+          "interpolated": true
+        },
+        {
+          "t": 71.05,
+          "clip": "dominio",
+          "gap": 0.05401489916587386,
+          "interpolated": true
+        },
+        {
+          "t": 82.04999999999748,
+          "clip": "cavadinha_e",
+          "gap": 0.03546612590229921,
+          "interpolated": true
+        },
+        {
+          "t": 83.65,
+          "clip": "dominio",
+          "gap": 0.07161347690778687,
+          "interpolated": true
+        }
+      ]
+    }
+  ],
+  "city": {
+    "viewports": [
+      {
+        "viewport": [
+          960,
+          720
+        ],
+        "camera": "broadcast",
+        "players": 22,
+        "calls": 121,
+        "memory": {
+          "geometries": 300,
+          "textures": 40
+        }
+      },
+      {
+        "viewport": [
+          960,
+          720
+        ],
+        "camera": "tactical",
+        "players": 22,
+        "calls": 87,
+        "memory": {
+          "geometries": 300,
+          "textures": 40
+        }
+      },
+      {
+        "viewport": [
+          960,
+          720
+        ],
+        "camera": "free",
+        "players": 22,
+        "calls": 187,
+        "memory": {
+          "geometries": 300,
+          "textures": 40
+        }
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "camera": "broadcast",
+        "players": 22,
+        "calls": 102,
+        "memory": {
+          "geometries": 300,
+          "textures": 40
+        }
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "camera": "tactical",
+        "players": 22,
+        "calls": 94,
+        "memory": {
+          "geometries": 300,
+          "textures": 40
+        }
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "camera": "free",
+        "players": 22,
+        "calls": 126,
+        "memory": {
+          "geometries": 300,
+          "textures": 40
+        }
+      }
+    ]
+  },
+  "preparedTrackBytes": 3370068,
+  "historical": {
+    "savedScore": [
+      1,
+      1
+    ],
+    "testScore": [
+      3,
+      0
+    ],
+    "faithfulHistoricalReplay": false,
+    "note": "O motor atual com a entrada antiga reproduz 3–0; o histórico salvo é 1–1. A comparação é antes/depois do patch, não uma reescrita desse jogo. O bloqueio de replay divergente permanece.",
+    "guardVerified": {
+      "valid": false,
+      "expected": [
+        1,
+        1
+      ],
+      "actual": [
+        3,
+        0
+      ]
+    }
+  },
+  "limits": [
+    "Os 64 contatos a 60 Hz foram medidos na superfície deformada. A 30 Hz, impactos entre frames têm estimativa linear da malha, com diferença de até 7,8 cm; essas estimativas não são medições exatas nem aprovação de todos os contatos no celular.",
+    "A aproximação ainda produz alguns picos de velocidade; não é validação de naturalidade perfeita.",
+    "A captura tem FPS de exportação. O teste usa GPU por software, não mede FPS de celular físico."
+  ],
+  "published": false,
+  "databaseWrites": false,
+  "implementation": {
+    "contactMarkers": "Marcadores medidos na malha do rig atual: chute forte, chute em corrida, cabeça, pegada, lançamentos e lateral. Não altera o GLB ou os pesos.",
+    "groundPasses": "26 entregas rasteiras com início/fim fixos na sequência oficial e resistência de rolamento. Nenhuma atração pelo pé em tempo real.",
+    "reception": "22 intervalos de controle/bola solta com trajetória fixa; 16 trechos também corrigem o caminho absoluto do corpo entre recepção e toque seguinte. Corrige o domínio em que a bola se afastava mais de dois metros e voltava sozinha.",
+    "keeper": "Pegada confirmada, bola na mão, transferência para o arremesso e saída contínua. Retomada do mapa reconstrói a posse validada.",
+    "header": "Ponto de contato da cabeça, captura importada de salto e ajuste limitado da altura da raiz, preservando ossos e proporções.",
+    "collisions": "Previsão da direção real de deslocamento e projeção de volumes de corpo. Prioridade para o ator no contato; quadro oficial imutável.",
+    "blending": "Preparações mais curtas em movimento e transição de 120 ms entre capturas; continuação retorna à locomocão.",
+    "preservation": "Nenhum arquivo de motor2, 2D, placar cinema, atributos, regras competitivas, cidade, estádio ou asset modificado. Adapter 3D somente expõe metadados e desativa replay na previsão.",
+    "diagnostics": "Sondagem pesada da malha é opcional em desenvolvimento. A apresentação normal mantém calibração, animações, aproximação e IK; a auditoria usa esc3d-contact-audit=1."
+  },
+  "checks": [
+    "npm run build: passou (TypeScript + Vite)",
+    "testa-fundamentos-mapa.mjs: passou",
+    "testa-contato-mapa.mjs: passou",
+    "test-collision-clusters.mjs: passou",
+    "Comparação integral dos 67 eventos antes/depois: idêntica",
+    "Seis vistas na cidade real: 960×720 e 390×844, transmissão/tática/mapa livre",
+    "Retomada direta no meio da posse do goleiro e bloqueio do replay histórico divergente: passaram",
+    "Regressão do domínio 16,27–17 s: folga máxima pé–bola passou de mais de 2 m para 26,1 cm durante o intervalo inteiro.",
+    "Diagnóstico detalhado ligado/desligado: poses dos 22, bola e eventos idênticos; 26 passes + 22 intervalos de controle."
+  ],
+  "recovery": {
+    "branch": "recovery/fundamentos-mapa-2296f692",
+    "isolatedBranch": "fix/fundamentos-mapa-20261028",
+    "baseBeforeThisFix": "1b462ccf",
+    "rollback": "Reverter somente o commit destas correções; sem alteração no banco."
+  }
+}

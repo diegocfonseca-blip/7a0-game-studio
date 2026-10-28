@@ -1,0 +1,9 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Campo do mapa — teste local</title><style>body{margin:0;background:#f4ecd6;font:16px Arial}#root{height:100vh}#root>section{height:100%}</style><div id="root"></div><script type="module">
+import React from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';
+import Complexo from '../../src/escalacao/presidencia-complexo-3d.tsx';
+try{const f=await fetch('../../test-results/animation-library/neymarzetti-current/football-input.json').then(r=>r.json()),{input,sourceMatch}=f,roster=cs=>cs.map((p,i)=>({id:String(i),name:p.name,pos:p.pos,fake:p.fake}));
+const stadium={inv:{grama:100,geral:100,cadeiras:100},ext:[]},state={viewerClubId:sourceMatch.awayClubId,officialInput:input,officialTeams:[sourceMatch.home,sourceMatch.away],context:{id:'mapa-integracao-'+Date.now(),homeClubId:sourceMatch.homeClubId,awayClubId:sourceMatch.awayClubId,home:roster(input.casa),away:roster(input.fora),stadium},minute:0,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#c2452f',awayColor:'#f0efef'},root=createRoot(document.getElementById('root'));let api;
+const ready=x=>{api=x};const seek=t=>flushSync(()=>root.render(React.createElement(Complexo,{stadium,match:{...state,minute:t*93/90},onReady:ready,circulation:false})));
+window.cityAudit={seek,draw:()=>api.seekCirculation(0),ready:()=>api?.inspect()?.match?.detail?.style==='jogador-novo',inspect:()=>api.inspect(),camera:m=>api.setMatchCamera(m),view:v=>api.view(v),zoom:v=>api.zoom(v)};seek(0);
+}catch(e){window.cityAuditError=e.stack}
+</script></html>

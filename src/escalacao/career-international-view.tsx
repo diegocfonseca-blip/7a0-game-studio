@@ -43,7 +43,9 @@ import { DUR_2D_MS } from './campo2d-motor'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
-import { useHasManual } from './apoio'
+import { loggedEmail, useHasManual } from './apoio'
+import { recepcaoM2Desde } from './motor2-recepcao-conta'
+import { VERSAO_RECEPCAO_M2 } from './motor2/versao'
 import libertaImg from './img/online-liberta-v25.webp'
 import championsImg from './img/online-champions-v25.webp'
 import mundialImg from './img/carreira-mundial-clubes-v1.webp'
@@ -552,7 +554,7 @@ export function CareerInternationalView(p: Props) {
   const m2Intl = state.co2 ? co2M2 != null && (state.seasonNo ?? 1) >= co2M2 : m2Liberado && !!state.motor2Desde
   const begin = (representedClub: string | null, xi: Card[]) => {
     let c: InternationalCampaign
-    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl }) }
+    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl, versaoM2: recepcaoM2Desde(state, loggedEmail()) !== undefined ? VERSAO_RECEPCAO_M2 : undefined }) }
     catch { apagaEscolha(); setClubRaw(null); setComp(null); setRecusado('campanha'); return }
     // ✉️ guarda os convites que ficaram na mesa — o jornal cobra se um deles levantar a taça
     const recusados = representedClub ? convites.filter(cv => cv.club !== representedClub).map(cv => cv.club) : []

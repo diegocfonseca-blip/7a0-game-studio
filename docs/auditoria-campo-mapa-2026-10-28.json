@@ -1,0 +1,197 @@
+{
+  "date": "2026-10-28",
+  "scope": "Somente a apresentação do campo 3D dentro do mapa da cidade",
+  "baseCommit": "8ce7f8f37a94e1b976b9f9e83e8c2c34a95d32b9",
+  "branch": "fix/fundamentos-mapa-20261028",
+  "status": "CORREÇÃO LOCAL PARCIAL; PARTIDA AINDA NÃO APROVADA PARA PUBLICAÇÃO",
+  "testSource": {
+    "type": "Entrada de uma carreira do usuário já disponível no workspace; nenhuma consulta ao save atual ou avanço de rodada",
+    "teams": [
+      "Rei da Bola FC",
+      "Neymarzetti"
+    ],
+    "historicalScore": [
+      1,
+      1
+    ],
+    "currentEngineTestScore": [
+      3,
+      0
+    ],
+    "note": "O registro antigo traz 1–1. O código atual calcula 3–0 antes e depois deste patch. Isso comprova paridade do patch, não fidelidade de replay a um resultado histórico. Nada foi gravado na carreira."
+  },
+  "assets": {
+    "file": "public/futebol3d/jogador.glb",
+    "bytes": 2974720,
+    "triangles": 18870,
+    "importedClips": 51,
+    "heightMetres": 1.78,
+    "ballDiameterMetres": 0.22,
+    "pitchMetres": [
+      105,
+      68
+    ],
+    "changed": false
+  },
+  "fixed": [
+    {
+      "issue": "O renderizador desviava passes para o pé, copiava a bola para o osso e aproximava bolas distantes durante a posse.",
+      "change": "Removida a segunda trajetória de bola de players-novo. O quadro compartilhado, sua rotação, rede e reinícios chegam intactos à apresentação.",
+      "evidence": "Desvio adicional da bola = 0 em todos os 5.401 quadros do teste a 60 Hz e 2.701 a 30 Hz."
+    },
+    {
+      "issue": "Toques de condução eram aceitos pela fase da passada mesmo sem alcance.",
+      "change": "Verificação de volume dos pés com varredura entre quadros. Aproximação limitada do corpo, nunca da bola.",
+      "evidence": "Antes havia contatos registrados a 0,77 m, 0,91 m e 1,38 m. O contador atual só aceita alcance geométrico; isso ainda não valida todos os impulsos da condução oficial."
+    },
+    {
+      "issue": "O marcador do chute forte estava 42 ms atrasado, com a ponta do pé já alta.",
+      "change": "Marcador local calibrado em 2,583333 s; pose importada, orientação antecipada e IK residual limitado.",
+      "evidence": "36 batidas com o pé (26 passes, 4 enfiadas, 2 cruzamentos, 1 lançamento e 3 chutes) alcançaram o volume de contato nos dois ritmos amostrados. A malha ainda tem interseções residuais."
+    },
+    {
+      "issue": "Laterais e reposições de mão podiam receber também uma ação de chute.",
+      "change": "Agenda separa ações provenientes das mãos antes da seleção do clipe."
+    },
+    {
+      "issue": "A pose podia trocar ao mexer na câmera com a partida pausada.",
+      "change": "Quadros repetidos preservam a pose e apenas atualizam visibilidade. Animação não depende da exclusão pela câmera.",
+      "evidence": {
+        "unchanged": true,
+        "players": 22
+      }
+    }
+  ],
+  "remaining": [
+    {
+      "priority": 1,
+      "issue": "Posse e domínio antecipados no comportamento compartilhado",
+      "evidence": "Na troca de posse, 17 de 36 recepções ainda mostram mais de 1 m até o pé. No pior desarme, o corpo já está a 3,25 m na posição de origem, antes do ajuste visual. O trecho motor2/motor.ts de primeiro toque conduz a bola ao dono por posição.",
+      "action": "Definir uma recepção alcançável e compatível com o lance seguinte. Não aumentar alcance, teletransportar a bola ou aceitar ownership como prova de contato. O motor compartilhado não foi alterado."
+    },
+    {
+      "priority": 1,
+      "issue": "Interseção da bola com a chuteira",
+      "evidence": {
+        "minSurfaceGapMetres": -0.09711894227275454,
+        "maxSurfaceGapMetres": 0.012760071629693767,
+        "meaning": "Distância do centro da bola à superfície triangulada menos raio da bola. Negativo é interseção; contato de volume não equivale a ausência de penetração."
+      },
+      "action": "Refinar o ponto de impacto usando a malha e o pé selecionado, mantendo orçamento de IK e altura do apoio."
+    },
+    {
+      "priority": 1,
+      "issue": "Goleiro continua no clipe de voo após recolher a bola",
+      "evidence": "No trecho 34,6–35,2 s, a bola já fica a 0,73 m de altura enquanto gk_voo_e permanece ativo. A folga até as mãos chega a 2,48 m após a posse.",
+      "action": "Transição contextual mergulho → recolher/segurar → repor, com marcações nas mãos. O marcador gerado pelos pés não valida uma defesa."
+    },
+    {
+      "priority": 1,
+      "issue": "Cabeceio sem alcance",
+      "evidence": "Em 77,4 s, folga medida cabeça–bola ≈ 0,993 m. Não aprovado.",
+      "action": "Selecionar e adaptar uma captura aérea compatível com altura e ponto de chegada, mantendo a trajetória oficial."
+    },
+    {
+      "priority": 2,
+      "issue": "Separação corporal nos reinícios e disputa",
+      "evidence": {
+        "note": "Root distance is a diagnostic, not a full mesh collision test.",
+        "minimum": {
+          "d": 3.436493702935195e-05,
+          "seconds": 82.05,
+          "players": [
+            "Elano",
+            "Denis Law"
+          ]
+        },
+        "framesBelow35cm": 20,
+        "examples": [
+          {
+            "seconds": 47.35,
+            "d": 3.484452714985764e-05,
+            "players": [
+              "Elano",
+              "Denis Law"
+            ]
+          },
+          {
+            "seconds": 70.63333333333334,
+            "d": 0.29689153973861493,
+            "players": [
+              "Gonzalo Higuaín",
+              "Athirson"
+            ]
+          },
+          {
+            "seconds": 82.05,
+            "d": 3.436493702935195e-05,
+            "players": [
+              "Elano",
+              "Denis Law"
+            ]
+          }
+        ]
+      },
+      "action": "Resolver posições entre os volumes finais dos dois atletas; posições oficiais iguais precisam de uma distribuição visual coerente nos reinícios."
+    },
+    {
+      "priority": 2,
+      "issue": "Replay histórico recalculado por outra versão do motor",
+      "evidence": "Entrada antiga 1–1, código atual 3–0. Não é divergência introduzida por este patch.",
+      "action": "Usar eventos e versão da partida efetivamente registrada para comparar a carreira, em vez de recalcular um save antigo com outro motor."
+    }
+  ],
+  "verification": {
+    "eventsUnchangedBeforeAfter": true,
+    "events": 67,
+    "players": 22,
+    "samples60Hz": 5401,
+    "samples30Hz": 2701,
+    "browserErrors": [],
+    "viewportTests": [
+      [
+        960,
+        720
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "cameraModes": [
+      "broadcast",
+      "tactical",
+      "free"
+    ],
+    "renderResources": {
+      "geometries": 300,
+      "textures": 40
+    },
+    "performanceLimit": "Chromium com GPU por software. 30/60 Hz são passos do teste; não são FPS medidos de um celular. Contagens de recursos não são bytes de VRAM.",
+    "build": "npm run build (tsc -b + vite build): aprovado; avisos existentes de imports/chunks"
+  },
+  "protected": {
+    "databaseWrites": false,
+    "published": false,
+    "officialEngineChanged": false,
+    "twoDOrCinemaChanged": false,
+    "modelsOrUniformsChanged": false,
+    "careerRulesChanged": false
+  },
+  "reproduction": {
+    "fixture": "test-results/animation-library/neymarzetti-current/football-input.json (local, não incluída no commit)",
+    "dev": "DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npm run dev -- --host 127.0.0.1 --port 5301",
+    "unit": "node scripts/futebol3d/testa-contato-mapa.mjs",
+    "fullMatch": "AUDIT_OUT=test-results/fundamentos-mapa/recheck NO_CAPTURES=1 node scripts/futebol3d/audita-mapa.cjs",
+    "thirtyHz": "AUDIT_HZ=30 AUDIT_OUT=test-results/fundamentos-mapa/recheck30 NO_CAPTURES=1 node scripts/futebol3d/audita-mapa.cjs",
+    "city": "node scripts/futebol3d/confere-cidade.cjs"
+  },
+  "proof": {
+    "cityVideo": "campo-dentro-do-mapa.mp4",
+    "before": "antes.mp4",
+    "after": "depois.mp4",
+    "slowMotion": "depois-lento.mp4",
+    "footMesh": "chuteiras.json",
+    "keeper": "goleiro.json"
+  }
+}

@@ -1,0 +1,30 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const base='test-results/fundamentos-mapa/',out=process.env.REVIEW_OUT||'/workspace/shared/fundamentos-mapa-v4-20261028/entrega';
+const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
+const before=read(base+'v3-final-60hz/match.json'),after=read(base+'v4-final-60hz/match.json'),low=read(base+'v4-final-30hz/match.json');
+function measure(run){
+ const contacts=new Map();for(const r of run.rows)for(const c of r.football?.contacts??[])if(c.nome)contacts.set(c.key+':'+c.t,c);
+ const cc=[...contacts.values()];
+ return{hz:run.hz,frames:run.rows.length,errors:run.errors,players:run.rows[0].actors.length,score:run.rows.at(-1).official.score,events:run.rows.at(-1).official.events.length,contacts:cc.length,exact:cc.filter(c=>!c.interpolated).length,interpolated:cc.filter(c=>c.interpolated).length,contactGap:{min:Math.min(...cc.map(c=>c.gap)),max:Math.max(...cc.map(c=>c.gap)),outsideTolerance:cc.filter(c=>!c.confirmed).map(c=>({t:c.t,gap:c.gap,interpolated:c.interpolated}))}};
+}
+const report={after60:measure(after),after30:measure(low)};
+assert.deepEqual(after.rows.at(-1).official,before.rows.at(-1).official,'All official events, scores, scorers, assists and times must stay unchanged');
+assert.deepEqual(low.rows.at(-1).official,before.rows.at(-1).official);report.officialEventsUnchanged=true;
+assert.equal(report.after60.contacts,64);assert.equal(report.after60.contactGap.outsideTolerance.length,0);
+assert.deepEqual(report.after60.errors,[]);assert.deepEqual(report.after30.errors,[]);
+const keeper=read(base+'goleiro-v4/medidas.json'),surface=read(base+'superficie-goleiro-v4.json');
+report.keeper={maxIncomingBallAngle:keeper.maxApproachAngle,catchHeading:keeper.catchHeading,officialSequence:keeper.events,minimumHandGap:Math.min(...surface.map(r=>r.hands.gap)),minimumSole:Math.min(...surface.map(r=>r.feet.floor))};
+assert(report.keeper.maxIncomingBallAngle<65);assert(report.keeper.minimumHandGap>-.015);assert(report.keeper.minimumSole>-.003);
+const at=(run,t)=>run.rows.reduce((best,r)=>Math.abs(r.t-t)<Math.abs(best.t-t)?r:best),key='["home","Gonzalo Higuaín","Napoli",2016]';
+const distance=r=>{const a=r.actors.find(a=>a.key===key);return Math.hypot(a.p[0]-r.ball.x,a.p[2]-r.ball.z)};
+const prior=new Map(before.rows.map(r=>[r.t,r]));
+const spill=after.rows.filter(r=>r.t>=69.65&&r.t<=71.05);
+assert(spill.every(r=>['x','y','z'].every(k=>Math.abs(r.ball[k]-prior.get(r.t).ball[k])<1e-7)),'Following a spill must not attract or redirect the ball');
+report.looseControl={t:70.6,rootToBallBefore:distance(at(before,70.6)),rootToBallAfter:distance(at(after,70.6)),ballPathUnchanged:true};
+assert(report.looseControl.rootToBallAfter<.85&&report.looseControl.rootToBallAfter<report.looseControl.rootToBallBefore*.6);
+const duel=read(base+'disputa-solta-v4.json');assert(duel.every(r=>!r.intersects),'The recovery must not cross the interceptor mesh');
+report.looseBallDuel={frames:duel.length,from:duel[0].t,to:duel.at(-1).t,meshIntersections:duel.filter(r=>r.intersects).length,minimumMeshDistance:Math.min(...duel.map(r=>r.distance))};
+const city=read(base+'cidade-v4/cidade.json');assert.deepEqual(city.errors,[]);
+report.city=city.reports.map(r=>({viewport:r.viewport,camera:r.mode,players:r.info.match.players,drawCalls:r.info.drawCalls,resources:r.info.memory}));
+report.limits=['Local saved input, not a new match in the account. The historical 1–1 replay remains blocked because the current engine produces 3–0.','This post/rebound collection is not an official save. Other diving saves require more fixture coverage.','30 Hz interpolated impact measurements remain estimates, with outliers recorded above.','Small residual hand overlap is measured; no claim of perfect mesh collision.','No physical mobile device was profiled. Export FPS is not runtime performance.'];
+fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/diagnostico.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));

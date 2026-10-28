@@ -1,0 +1,10 @@
+const fs=require('node:fs'),{loadDependency,browserOptions}=require('../presidencia-runtime.cjs');
+(async()=>{const b=await loadDependency('playwright').chromium.launch(browserOptions());try{const p=await b.newPage();await p.goto('http://127.0.0.1:5301/scripts/futebol3d/audita-mapa.html?audit=0');const rows=await p.evaluate(async()=>{
+ const T=await import('/node_modules/three/build/three.module.js'),{carregaJogadorNovo,criarJogadorNovo}=await import('/src/escalacao/futebol3d/jogador-novo.mjs'),{GOLEIRO}=await import('/src/escalacao/futebol3d/uniformes.mjs'),{createMapRigSurface}=await import('/src/escalacao/futebol3d/motion/map-rig-surface.mjs');
+ const asset=await carregaJogadorNovo(),a=criarJogadorNovo(asset,GOLEIRO);a.bones=new Map();a.root.traverse(b=>{if(b.isBone)a.bones.set(b.name,b)});const surface=createMapRigSurface(a),out={};
+ for(const name of ['gk_pega','gk_pega_baixo','gk_pega_alto','gk_voo_e','gk_voo_d','gk_bloqueio_e','gk_bloqueio_d','gk_lanca','gk_lanca_longe','gk_rola','gk_recolhe']){
+  for(const action of a.mixer._actions)action.setEffectiveWeight(0);const action=a.acao(name);action.reset().play().setEffectiveWeight(1);action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;action.timeScale=0;out[name]=[];
+  for(let i=0;i<=asset.clips.get(name).duration*30;i++){action.time=i/30;a.holder.position.set(0,0,0);a.mixer.update(0);a.holder.updateMatrixWorld(true);const floor=surface.floor(true);a.holder.position.y=Math.max(0,.003-floor);a.holder.updateMatrixWorld(true);const point=n=>a.bones.get('mixamorig'+n).getWorldPosition(new T.Vector3()).toArray();out[name].push({t:i/30,floor,left:point('LeftHand'),right:point('RightHand'),hips:point('Hips')})}
+ }a.dispose();return out;
+ });fs.writeFileSync('test-results/fundamentos-mapa/v5/clipes-goleiro.json',JSON.stringify(rows));console.log(Object.fromEntries(Object.entries(rows).map(([name,s])=>[name,{max:Math.max(...s.flatMap(p=>[p.left[1],p.right[1]])),best:s.reduce((a,b)=>Math.max(...[a.left[1],a.right[1]])>Math.max(...[b.left[1],b.right[1]])?a:b)}])));
+}finally{await b.close()}})().catch(e=>{console.error(e);process.exitCode=1});

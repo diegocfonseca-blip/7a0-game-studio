@@ -19,13 +19,15 @@ export class RotacaoBola3D{
   const teleport=Math.hypot(dx,point.y-this.previous.y,dz)>Math.max(1.2,100*dt)
   if(point.held||teleport)this.omega.set(0,0,0)
   else if(ground)this.omega.set(dz,0,-dx).multiplyScalar(1/(this.radius*dt))
-  else if(this.previous.y<=this.radius+.004&&distance>1e-8){
+  else if((this.previous.y<=this.radius+.004||this.previous.held)&&distance>1e-8){
+   // A throw leaves the hands above the ground. Its spin was left at zero
+   // after the catch, so every subsequent airborne frame looked frozen.
    this.omega.set(dz,0,-dx).multiplyScalar(.35/(this.radius*dt))
    this.omega.clampLength(0,40)
   }
   // 🌀 25/10: a bola com efeito (cruzamento fechando, falta colocada) gira em torno do eixo vertical enquanto voa — é o que se vê
   // na TV: o desenho da bola rodando de lado. O giro visual é ~20× a curva (rad/s), com teto
-  if(!ground&&!point.held&&point.curl)this.omega.y=Math.max(-45,Math.min(45,point.curl*20))
+  if(!ground&&!point.held&&point.curl!==undefined)this.omega.y=Math.max(-45,Math.min(45,point.curl*20))
   const speed=this.omega.length()
   if(speed>0){this.delta.setFromAxisAngle(this.omega.clone().multiplyScalar(1/speed),speed*dt);this.quaternion.premultiply(this.delta).normalize()}
   this.previous={...point};return this.quaternion

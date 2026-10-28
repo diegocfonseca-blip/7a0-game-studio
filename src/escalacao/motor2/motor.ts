@@ -13,6 +13,7 @@ import { GIRO, gira, deCostas, AREA_LARG, AREA_PROF, DECISAO, DT, G, GOL_MEIO, L
 import { Narrador, PESO, SEGUNDO_TEMPO } from './narra'
 import type { Atleta, Bola, CartaCampo, Estatistica, Evento, Grupo, Lado, TipoEvento } from './tipos'
 import type { Clima } from '../campo2d-clima'
+import { ALTURA_DOMINIO_AEREO, prefereDominarLancamento } from './recepcao-aerea'
 
 const grupoDe = (pos?: string): Grupo => (pos === 'GOL' ? 'GOL' : pos === 'LAT' ? 'LAT' : pos === 'ZAG' ? 'DEF' : pos === 'MEI' ? 'MEI' : 'ATA')
 const NEED: Record<string, Record<string, number>> = {
@@ -211,10 +212,12 @@ export class Motor2 {
   private dribleAte = -1
   /** 🦶 o PRIMEIRO TOQUE de quem acabou de receber: pra onde ele leva a bola (longe do marcador, pro lado do jogo) */
   private toque1: { de: Atleta; ux: number; uy: number; ate: number } | null = null
+  private readonly recepcaoContextual:boolean
 
   /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
   /** `extra`: técnico (nível do dia dele) e evento da rodada de cada lado — o que a simulação da carreira também usa */
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number] } = {}) {
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number]; recepcaoContextual?:boolean } = {}) {
+    this.recepcaoContextual=extra.recepcaoContextual===true
     const s = sorteio(seed)
     this.r = s.r; this.n = s.n
     this.nar = new Narrador(en, this.r)
@@ -261,12 +264,13 @@ export class Motor2 {
     const b = this.bola
     if (b.dono || !p) return { x: b.x, y: b.y }
     const vm = this.vmax(p), molhado = this.clima === 'chuva' ? 0.8 : 1, passo = 0.1
+    const alturaEncontro = this.recepcaoContextual && prefereDominarLancamento(this, p) ? ALTURA_DOMINIO_AEREO : 2
     let x = b.x, y = b.y, vx = b.vx, vy = b.vy, h = b.h, vh = b.vh, giro = b.giro ?? 0
     const pt = (x: number, y: number) => ({ x: clamp(x, 0.5, W - 0.5), y: clamp(y, 0.5, L - 0.5) })
     for (let tau = 0; tau <= 4; tau += passo) {
       // (alcança: bola na altura do pé/cabeça e dá tempo de chegar — com 0,8 m de folga do passo e do alcance do pé)
       // (bola acima da cabeça não se pega: espera ela baixar até a altura do cabeceio — senão ele ia ao encontro e ela passava por cima)
-      if (h <= 2 && len(p.x - x, p.y - y) <= vm * tau + (h > 0.05 ? 0 : 0.8)) return pt(x, y)
+      if (h <= alturaEncontro && len(p.x - x, p.y - y) <= vm * tau + (h > 0.05 ? 0 : 0.8)) return pt(x, y)
       if (h > 0 || vh > 0) {
         vh -= G * passo; h += vh * passo
         const k = 1 - ATRITO_AR * passo; vx *= k; vy *= k
@@ -912,6 +916,9 @@ export class Motor2 {
       .map(p => ({ p, d: dist(p, b) })).filter(c => c.d < (c.p.grupo === 'GOL' && this.naAreaDele(c.p, b) ? 1.9 : b.h > 1.5 ? 1.2 : ALCANCE_PE)) // (um passo e o pé alcançam a bola)
       .sort((a, c) => a.d - c.d)
     for (const { p } of cands) {
+      // Passe com espaço: procurar a descida e dominar. Esperar não é uma
+      // tentativa de contato e não deve consumir a janela de nova tentativa.
+      if (this.recepcaoContextual && b.h > ALTURA_DOMINIO_AEREO && prefereDominarLancamento(this, p)) continue
       this.tentou.set(p, this.t)
       const gk = p.grupo === 'GOL' && this.naAreaDele(p, b)
       if (b.h > (gk ? 2.7 : 2.4)) continue // (bola acima da cabeça passa — só o goleiro, com a mão, alcança mais alto)

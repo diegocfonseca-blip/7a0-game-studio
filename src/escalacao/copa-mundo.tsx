@@ -31,6 +31,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill, useApitoDeLargada } from './pyramidseason'
 import { startCrowd, stopCrowd } from './sound' // 🏟️ a Copa do Mundo era MUDA (19/09)
 import { disputaPenaltis } from './penaltis'
+import type { VersaoM2 } from './motor2/versao'
 import { entradaM2, resultadoM2, sementeM2, type EntradaM2 } from './motor2/carreira'
 import { clockMinute, aberturaSegundos, resumoAberto, type CopaClockController } from './copa-clock-preview'
 import { copaStats } from './copa-stats'
@@ -188,7 +189,7 @@ export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.
 // OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
 // Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
 // resultado — a simulação é semeada). Limpa quando a final é gravada.
-export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number; /** 💪 nasceu com o peso de força novo (14/10)? Copa velha termina com o peso velho */ forte?: boolean; /** ⚽🧠 nasceu com o motor novo decidindo o jogo da sua seleção (carreira, 21/10)? */ m2?: boolean; /** 🧊 as 32 seleções CONGELADAS (21/10): carta inteira, pra o torneio ser o mesmo ao reabrir */ ents?: EntCongelada[]; /** ⏯️ a última fase já VISTA (21/10): reabrir continua daqui */ passo?: number } | null }
+export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number; /** 💪 nasceu com o peso de força novo (14/10)? Copa velha termina com o peso velho */ forte?: boolean; /** ⚽🧠 nasceu com o motor novo decidindo o jogo da sua seleção (carreira, 21/10)? */ m2?: boolean; /** Regra fixada quando o torneio nasceu. */ versaoM2?: VersaoM2; /** 🧊 as 32 seleções CONGELADAS (21/10): carta inteira, pra o torneio ser o mesmo ao reabrir */ ents?: EntCongelada[]; /** ⏯️ a última fase já VISTA (21/10): reabrir continua daqui */ passo?: number } | null }
 // 🧊⏯️ COPA QUE NÃO RECOMEÇA (21/10, caso do Gimenes Junior Barranquila: *"eu tinha acabado de eliminar a Inglaterra nas quartas,
 // ao invés de ir pra semi a competição reiniciou em um grupo diferente"*). A Copa guardava só a SUA seleção e simulava o resto de
 // novo a cada abertura: fechou/recarregou no meio, voltava pro 1º passo — e se o catálogo mudou no meio (carta nova, nível novo),
@@ -502,7 +503,7 @@ export function bestXISemRepetir(pool: Record<Sec, PoolCard[]>, f: Formation): P
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false }: { /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false, versaoM2 }: { /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
@@ -575,7 +576,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
         <span style={{ position: 'relative' }}>{tr('🌍 DISPUTAR A COPA DO MUNDO', '🌍 PLAY THE WORLD CUP')}</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>{tr('chegou a hora — ela só volta na temporada', 'the time has come — it only returns in season')} {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} motor2={motor2} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
+      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} motor2={motor2} versaoM2={versaoM2} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
     </>
   )
 }
@@ -593,7 +594,7 @@ export const CMModal = ({ children, wide = false, cinematic = false, onlineBroad
     </div>
   </div>, document.body)
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, onClose, motor2 = false }: { motor2?: boolean; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, onClose, motor2 = false, versaoM2 }: { motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
   // 🔒 ANTI-HACK DO F5 (14/08): se ESTA temporada já tem torneio carimbado
@@ -669,7 +670,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
         // 🔒 CARIMBA a escolha AGORA (antes do 1º jogo): F5 daqui pra frente
         // volta pro MESMO torneio — acabou o "atualiza e troca de seleção".
         const cur = loadCopaSave(seed) ?? save
-        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true, n: COPA_TEAMS, forte: true, m2: motor2 || undefined, ents: montaEntrants(myPais, xi, f).map(congela), passo: 0 } })
+        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true, n: COPA_TEAMS, forte: true, m2: motor2 || undefined, versaoM2: motor2 ? versaoM2 : undefined, ents: montaEntrants(myPais, xi, f).map(congela), passo: 0 } })
         setMyXI(xi); setMyForm(f); setPhase('cup')
       }} />
     </CMModal>
@@ -685,7 +686,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   }
   if (phase === 'cup' && entrants) return (
     <CMModal wide cinematic={CAREER_VISUAL_RELEASED}>
-      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} passoInicial={carimboGravado?.passo} potes={!!carimboGravado?.potes} forte={!!carimboGravado?.forte} m2={!!carimboGravado?.m2} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
+      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} passoInicial={carimboGravado?.passo} potes={!!carimboGravado?.potes} forte={!!carimboGravado?.forte} m2={!!carimboGravado?.m2} versaoM2={carimboGravado?.versaoM2} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
     </CMModal>
   )
   return null
@@ -969,18 +970,18 @@ const GOL_CONTRA = ' (contra)'
 // ⚽🧠 MOTOR NOVO NA COPA DO MUNDO DA CARREIRA (21/10, Diego: *"carreira = motor novo"*). O jogo da SUA seleção é decidido pelo
 // motor v2; a conta antiga roda antes do mesmo jeito (o dado do torneio é gasto igual → os jogos das outras seleções não mudam,
 // só o chaveamento que depende de quem passou). Só a carreira liga (`m2`, carimbado quando a Copa nasce); o online nunca.
-function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: string, h: number, a: number): { e: EntradaM2; g: [number, number]; ev: ScoreGoal[] } {
+function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: string, h: number, a: number, versao?: VersaoM2): { e: EntradaM2; g: [number, number]; ev: ScoreGoal[] } {
   let n = 0
   for (let i = 0; i < jogo.length; i++) n = Math.imul(n ^ jogo.charCodeAt(i), 0x01000193) >>> 0
   const H = entrants[h], A = entrants[a]
-  const e = entradaM2({ seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!H.you, !A.you] })
+  const e = entradaM2({ versao, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!H.you, !A.you] })
   const res = resultadoM2(e)
   const ev: ScoreGoal[] = res.gols.map(g => g.contra ? { home: g.home, min: g.min, name: g.nome + GOL_CONTRA } : { home: g.home, min: g.min, name: g.nome, assist: g.assist })
   return { e, g: [res.placar[0], res.placar[1]], ev }
 }
 /** @param tat ⚔️ a tática de cada time por passo (só o ONLINE manda, lida das linhas CONGELADAS do banco — `copa-taticas.ts`).
  *  Sem ela, a Copa é idêntica à de sempre. */
-export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false, forte = false, m2 = false, tat?: QualTatica) {
+export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false, forte = false, m2 = false, tat?: QualTatica, versao?: VersaoM2) {
   const peso = forte ? PESO_FORCA : PESO_FORCA_VELHO
   const meu = (h: number, a: number) => m2 && (!!entrants[h]?.you || !!entrants[a]?.you)
   {
@@ -1009,7 +1010,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
         const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a], peso)
         m.gh = gh; m.ga = ga
         m.ev = goalEvents(rng, gh, ga, entrants[m.h], entrants[m.a], aBase, `gr${m.h}-${m.a}`)
-        if (meu(m.h, m.a)) { const n = jogoM2(entrants, seed, seasonNo, `gr${m.h}-${m.a}`, m.h, m.a); m.gh = n.g[0]; m.ga = n.g[1]; m.ev = n.ev; m.m2 = n.e }
+        if (meu(m.h, m.a)) { const n = jogoM2(entrants, seed, seasonNo, `gr${m.h}-${m.a}`, m.h, m.a, versao); m.gh = n.g[0]; m.ga = n.g[1]; m.ev = n.ev; m.m2 = n.e }
         else { const t = comTatica(m.h, m.a, ri + 1, `gr${m.h}-${m.a}`); if (t) { m.gh = t.g[0]; m.ga = t.g[1]; m.ev = t.ev } } // rodada r = passo r+1
       } })
       return { teams, matches }
@@ -1041,7 +1042,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       if (meu(h, a)) {
         // a disputa da conta antiga gasta o dado igual; a do motor novo sai de um dado próprio
         if (t.g1[0] === t.g1[1]) pens(rng)
-        const n = jogoM2(entrants, seed, seasonNo, `ko1-${h}-${a}`, h, a)
+        const n = jogoM2(entrants, seed, seasonNo, `ko1-${h}-${a}`, h, a, versao)
         t.g1 = n.g; t.ev1 = n.ev; t.m2 = n.e
         if (t.g1[0] > t.g1[1]) t.winner = h; else if (t.g1[1] > t.g1[0]) t.winner = a
         else { t.pen = pens(mulberry(n.e.seed ^ 0x9E37)); t.winner = t.pen[0] > t.pen[1] ? h : a }
@@ -1067,7 +1068,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     let fpen = fg[0] === fg[1] ? pens(rng) : null
     let fm2: EntradaM2 | undefined
     if (meu(fh, fa)) {
-      const n = jogoM2(entrants, seed, seasonNo, `final-${fh}-${fa}`, fh, fa)
+      const n = jogoM2(entrants, seed, seasonNo, `final-${fh}-${fa}`, fh, fa, versao)
       fg = n.g; fev = n.ev; fm2 = n.e
       fpen = fg[0] === fg[1] ? pens(mulberry(n.e.seed ^ 0x9E37)) : null
     } else {
@@ -1122,7 +1123,7 @@ export function estatisticasDaCopa(world: ReturnType<typeof simulaCopaMundo>, en
   return [...m.values()]
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void; /** ⚔️ táticas congeladas da sala (23/10) */ tat?: QualTatica; /** ⚔️ o cartão de tática da pessoa */ taticaSlot?: ReactNode }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, versaoM2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; versaoM2?: VersaoM2; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void; /** ⚔️ táticas congeladas da sala (23/10) */ tat?: QualTatica; /** ⚔️ o cartão de tática da pessoa */ taticaSlot?: ReactNode }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
@@ -1130,7 +1131,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
   const tatSala = online?.tat
-  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes, forte, m2, tatSala), [entrants, seed, seasonNo, potes, forte, m2, tatSala])
+  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes, forte, m2, tatSala, versaoM2), [entrants, seed, seasonNo, potes, forte, m2, tatSala, versaoM2])
   // 🏆 FESTA DO CAMPEÃO na sala (23/10): quando a Copa acaba, a festa na paleta da Copa do Mundo, 1x por edição
   // 🏆 24/10: na CARREIRA também — só quando a SUA seleção levanta a taça (Diego: "a festa… pode publicar p todos no carreira")
   const festaMundoKey = online ? `esc-festa-mundo-${online.seasonKey}` : `esc-festa-mundo-car-${seed}-${seasonNo}`
