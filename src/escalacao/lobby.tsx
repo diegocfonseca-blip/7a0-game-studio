@@ -7,6 +7,7 @@ import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { EspectadorEspera, type SalaAssistida } from './espectador-ui'
 import { instrumenta, medeRecebida } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
@@ -761,7 +762,16 @@ export function EscLobby() {
   // 🥇 medalha da semana (13/10): busca a MINHA posição no ranking quando a conta aparece, pra ela ir
   // grudada no nome (apoioSelo) ao criar/entrar numa sala. Sem banco = sem medalha, nunca trava.
   useEffect(() => { if (user) { void carregaMedalhaDaSemana(); void carregaNomeFake() } }, [user?.id, user?.user_metadata?.display_name]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!user) { setSouEspectador(false); return }
+    let vivo = true
+    supabase.rpc('esc_sou_espectador').then(({ data, error }) => { if (vivo) setSouEspectador(!error && data === true) }, () => { if (vivo) setSouEspectador(false) })
+    return () => { vivo = false }
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<Phase>('auth')
+  // 👁️ ESPECTADOR "FANTASMA" (28/10): só quem o Diego liberou no #admin vê o 👁️ ASSISTIR. Na dúvida (sem rede/sem conta) = não.
+  const [souEspectador, setSouEspectador] = useState(false)
+  const [assistindo, setAssistindo] = useState<SalaAssistida | null>(null)
   const [authTab] = useState<AuthTab>(() => {
     // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar
     try { if (localStorage.getItem('esc_open_register')) { localStorage.removeItem('esc_open_register'); return 'register' } } catch { /* ignora */ }
@@ -3033,6 +3043,8 @@ export function EscLobby() {
     </div>
   )
 
+  // 👁️ escolheu assistir uma sala: a espera do fantasma (entra sozinho quando a partida estiver rolando)
+  if (assistindo) return <EspectadorEspera sala={assistindo} onSair={() => { setAssistindo(null); void fetchOpenRooms(true) }} />
   if (recovering) {
     return wrap(<>
     <div className="text-center">
@@ -4276,6 +4288,15 @@ export function EscLobby() {
                   </button>
                 )}
               </div>
+              {/* 👁️ ASSISTIR (28/10): só pra quem o Diego liberou; em sala esperando OU jogando, cheia ou não. Fora: Copa do
+                  Mundo, Bafo e carreira (outro motor) e a própria sala de quem clica. */}
+              {souEspectador && user && r.host_id !== user.id && !mundoRoom && r.game_state?.mode !== 'elenco' && !isCareerRoom && (
+                <button onClick={() => setAssistindo({ id: r.id, code: r.code, nome: nm })}
+                  className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[3px] border-black rounded-xl py-2 font-black text-sm uppercase"
+                  style={{ background: '#3b2a6b', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
+                  {tr('👁️ Assistir', '👁️ Watch')}
+                </button>
+              )}
               {aoVivo && (
                 <a href={liveUrlSala} target="_blank" rel="noopener noreferrer" className="block mx-3 mb-3 text-center border-[3px] border-black rounded-xl py-2.5 font-black text-sm uppercase no-underline" style={{ background: '#E8503A', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
                   {tr(`▶ Assistir a live no ${plataforma}`, `▶ Watch the live on ${plataforma}`)}

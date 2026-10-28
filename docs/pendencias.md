@@ -11358,10 +11358,19 @@ Pedido: *"ainda acho q tá MT lento… os jogadores meio q se tremendo… quero 
 - ✅ 27/10 **Pedidos na home (item 1 do mockup)**: `PedidosNaHome` (amigos.tsx) em cima dos modos — pedidos de amizade, convites de clã e pedidos pro meu clã, com aceitar ali (mesmas funções do 🔔: `responderAmizade`/`responderClaAviso`). ⚔️ O bloco Clãs da semana na home SAIU (Diego: "o clã N é pra ficar na home… o ranking do clã já fica lá embaixo das salas abertas") — não repropor. Chat: já abria o perfil com ➕ desde 18/10 (Diego confirmou). Item 2 (pilulinha no jogo) e "adicionar todo mundo da sala" NÃO foram pedidos.
 - 🔒 27/10 **Carreira grátis até a temporada 50** — ✅ PUBLICADO (*"ok publique td sim"*) (mockup `scripts/mockups/carreira-50.png` aprovado). Sem plano, a decisão do fim da T50 troca "Continuar/Trocar tudo" pelo 🔒 + ⭐ Ver os planos e destravar (toque vai pro painel: "🔒 carreira grátis T50 → ver os planos"); o motor (`CAREER_ADVANCE`) recusa com a mesma régua (`travaCarreiraGratis`, `carreira-gratis.ts`). Quem já passou da 50 segue livre (333 carreiras na nuvem em 27/10); acima da 50 = livre, então mensal cancelado depois da 51 também segue. Plano = `ehPagante` (mensal conta; Manual 24 h não). Trava: `npm run carreira-gratis`. 🔁 Mesmo dia: quem JÁ estava acima da 50 sem plano ganha **+10 temporadas** (a 1ª virada grava `careerGratisAte` = temporada + 10; trava no fim dela, banner diz a temporada certa). Com plano nunca aparece nada; pagou = destrava na hora.
 
-## 👁️ Modo espectador "fantasma" (28/10) — AGUARDANDO OK DO MOCKUP
+## 👁️ Modo espectador "fantasma" (28/10) — FEITO NO BRANCH, mockup aprovado ("Perfeito"); falta o Diego mandar publicar
 Pedido do Diego (pra campeonatos): só contas que ele liberar; entra em qualquer sala (esperando ou já jogando, cheia ou não),
 vê tudo, fala no chat, NÃO joga. *"O nome do telespectador não aparece na lista dos usuários que estão na partida… nem no
 gerenciar do host… como um fantasma"*. Mockup: `scripts/mockups/espectador.png`.
 Plano seguro (cadeiras intocadas): o espectador NUNCA entra em `room_players` nem em `seatUids`, NUNCA faz `track()` de
 presença (nem no canal da partida nem no `esclobby`), youIdx = -1, nunca manda estado, nunca vira host (ignora toda lógica de
 coroa). Liberação por e-mail numa tabela nova lida no #admin. Na dúvida, não entra como espectador.
+FEITO (28/10): banco `esc_espectadores` + `esc_sou_espectador`/`esc_admin_espectadores`/`esc_admin_espectador_set` (migration
+20261028020000) · #admin "👁️ Espectadores liberados" · botão 👁️ ASSISTIR na lista (não aparece em Copa do Mundo, Bafo, carreira
+nem na própria sala) · espera do fantasma (`espectador-ui.tsx`, confere só status a cada 4s, baixa o estado pesado só quando começou)
+· `ASSISTIR_ONLINE` no motor (tela pelos olhos do DONO, `espHostUid`) · chat com selo 👁️ · faixa roxa "VOCÊ ESTÁ ASSISTINDO" + SAIR ·
+no envelope some o lance ("👁️ Você está só assistindo"). TRAVAS: dispatch não manda nada · sem `track()` · BECOME_HOST/RECOVER/
+FIX_YOU_IDX/host_change/kick ignorados · e `espectador.ts` barra toda gravação no banco do aparelho do fantasma (só leitura passa).
+Teste: `npm run espectador`. Foto real: `scripts/mockups/espectador-real.png`.
+Ainda não: no pregão aberto/Tocaia/Monte os botões de lance APARECEM pro fantasma mas não fazem nada (o motor barra) — esconder
+igual ao envelope se o Diego pedir. Sala de espera sem chat pro fantasma (o chat dele é o da partida).

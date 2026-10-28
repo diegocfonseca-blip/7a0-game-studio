@@ -39,7 +39,7 @@ export function reValido(re: unknown): ChatRe | undefined {
 // (🥇🥈🥉, de agora e as ganhas de 30 dias) voltam pro crachá, e quem está no pódio AGORA (pela conta) leva a borda de metal
 // + a linha miúda "1º DA SEMANA" em cima.
 const medalhasDoNome = (n: string) => (n.match(/[🥇🥈🥉]/gu) ?? []).join('')
-export function ChatCracha({ name, uid }: { name: string; uid?: string | null }) {
+export function ChatCracha({ name, uid, esp }: { name: string; uid?: string | null; esp?: boolean }) {
   const p = perkDoNome(name)
   const escuro = p.tier === 'roxo' || p.tier === 'verde'
   const pos = podioDeUid(uid)
@@ -52,6 +52,8 @@ export function ChatCracha({ name, uid }: { name: string; uid?: string | null })
       <PodioChatSelo pos={pos} />
       <span style={{ ...OSWALD, display: 'inline-block', fontWeight: 900, fontSize: 10, lineHeight: 1.2, textTransform: 'uppercase', background: p.grad, color: escuro ? '#fff' : INK, border: pos ? `2px solid ${PODIO_BORDA[pos]}` : '1.5px solid #000', boxShadow: pos ? `0 0 0 1px #000, 0 0 6px ${PODIO_BORDA[pos]}99` : undefined, borderRadius: 6, padding: '1px 6px', marginBottom: 3, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {p.selo && p.tier !== 'verde' ? `${p.selo} ` : ''}{nomeSemSelo(separaFake(name).nome)}{med ? ` ${med}` : ''}{fake && <SeloFake />}
+        {/* 👁️ espectador (28/10): está na sala só assistindo, não joga */}
+        {esp && <span title="Só assistindo" style={{ marginLeft: 4, background: '#3b2a6b', color: '#fff', borderRadius: 5, padding: '0 4px', fontSize: 9 }}>👁️</span>}
       </span>
     </span>
   )

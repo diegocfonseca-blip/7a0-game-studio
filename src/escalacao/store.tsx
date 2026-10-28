@@ -1089,6 +1089,7 @@ import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
+import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
@@ -5589,6 +5590,7 @@ type Action =
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
+  | { type: 'ASSISTIR_ONLINE'; state: EscState; roomId: string; roomCode: string; youUid: string; hostUid: string } // 👁️ fantasma: só assiste (28/10)
   | { type: 'DUPLA_TOGGLE_CAT'; mgrId: number; cat: DuplaCat; uid: string } // 🤝 alguém tocou numa categoria na tela de dividir (primeiro que toca leva)
   | { type: 'DUPLA_SOLO'; mgrId: number; ficouUid: string } // 🤝 o parceiro SAIU de verdade da sala → quem ficou assume todas as categorias
   | { type: 'SYNC_STATE'; newState: EscState }
@@ -7414,7 +7416,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // onde está o MEU uid; o id só entra se o mapa não existir (host em versão velha).
       youIdx: (() => {
         const ns = action.newState
-        const meuUid = state.youUid
+        // 👁️ o fantasma não tem cadeira: a tela dele é desenhada pelos olhos do DONO da sala (crachá do dono)
+        if (state.espectador && state.espHostUid && Array.isArray(ns.seatUids)) {
+          const seatH = assentoDoCracha(ns, state.espHostUid)
+          if (seatH >= 0) { const i = ns.managers?.findIndex(m => m.id === seatH) ?? -1; if (i >= 0) return i }
+        }
+        const meuUid = state.espectador ? undefined : state.youUid
         if (meuUid && Array.isArray(ns.seatUids) && ns.seatUids.length > 0) {
           const seat = assentoDoCracha(ns, meuUid)
           if (seat >= 0) { const i = ns.managers?.findIndex(m => m.id === seat) ?? -1; if (i >= 0) return i }
@@ -7425,7 +7432,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         return i >= 0 ? i : state.youIdx
       })(),
       youUid: state.youUid, // 🤝 meu crachá da dupla é LOCAL, igual ao youIdx
-      isHost: state.isHost,
+      espectador: state.espectador, espHostUid: state.espHostUid, // 👁️ local, nunca vem do dono
+      isHost: state.espectador ? false : state.isHost,
       roomId: state.roomId,
       roomCode: state.roomCode,
       onlineMode: state.onlineMode,
@@ -7465,6 +7473,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       isHost: action.isHost,
       youIdx: myIdx,
       youUid: action.youUid ?? state.youUid, // 🤝 crachá da dupla: local, sobrevive à reconexão
+      espectador: undefined, espHostUid: undefined, // 👁️ entrar de verdade numa sala nunca é assistir
       pendingEnvelopes: {},
       tiebreakPending: {},
       // 🧯 host recarregou no meio da coleta de lances (bug 10/08): os envelopes
@@ -7484,6 +7493,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       presence: [],
     })
   }
+  // 👁️ ASSISTIR (fantasma, 28/10): o mesmo caminho da reconexão, só que pelos olhos do DONO e sem nada de jogador —
+  // isHost falso, sem cadeira (o crachá dele não está no seatUids), e a marca `espectador` que tranca tudo no aparelho.
+  if (action.type === 'ASSISTIR_ONLINE') {
+    const r = reducer(state, { type: 'RESTORE_ONLINE', state: action.state, roomId: action.roomId, roomCode: action.roomCode, isHost: false, playerIndex: 0, youUid: action.hostUid })
+    return { ...r, isHost: false, youUid: action.youUid, espectador: true, espHostUid: action.hostUid, submitted: action.state.submitted ?? [] }
+  }
   if (action.type === 'NEW_GAME') return { ...INITIAL }
   // Fui REMOVIDO pela host no meio da partida: saio de vez. Zera tudo e cai no
   // MENU ONLINE (não no meio do jogo). A vaga no banco a host já apagou; o canal
@@ -7491,7 +7506,7 @@ function reducerBase(state: EscState, action: Action): EscState {
   if (action.type === 'KICKED_OUT') return { ...INITIAL, screen: 'lobby' }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
-    case 'GO_LOBBY': { s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
+    case 'GO_LOBBY': { s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
@@ -7688,6 +7703,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // canal realtime re-inscreve como host (reage a s.isHost) e passo a emitir
     // e persistir o estado da sala.
     case 'BECOME_HOST': {
+      if (s.espectador) return state // 👁️ o fantasma NUNCA vira dono
       // 👑 ASSUMI O COMANDO NO MEIO DO JOGO (o dono sumiu). O detalhe perigoso
       // (Diego 16/08): eu herdo a LISTA de quem já lacrou o envelope, mas NÃO
       // herdo os envelopes — os lances secretos dos outros só existiam na memória
@@ -7718,6 +7734,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // `pendingEnvelopes` aqui faria o próprio host aparecer como "pensando" logo
     // depois de lacrar — o travamento que o F5 escondia.
     case 'RECOVER_LOCAL_HOST': {
+      if (s.espectador) return state // 👁️ idem
       s.isHost = true
       return s
     }
@@ -7725,7 +7742,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // (dep. isHost) re-inscreve como ouvinte e pede o estado do novo dono. Assim
     // NUNCA ficam dois hosts rodando a própria liga/Copa (bug do Sapekeiro).
     case 'STEP_DOWN_HOST': { s.isHost = false; return s }
-    case 'FIX_YOU_IDX': { s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
+    case 'FIX_YOU_IDX': { if (s.espectador) return state; s.youIdx = action.idx; return s } // identidade é local (não sincroniza)
     case 'COPA_MUNDO_MURAL_SYNC': {
       // 🌍 mescla por temporada (nunca duplica, nunca perde) — o mural local
       // segue sendo a fonte de verdade pro JOGO; isso aqui é só a cópia que
@@ -12468,7 +12485,7 @@ export type EmoteEvent = { id: string; from: number; fromId?: number; kind: stri
 // `from` é o TIME (manager id) — numa dupla os DOIS compartilham o mesmo `from`,
 // então "é minha?" usa `uid` (pessoa de verdade) quando disponível, com `from`
 // como fallback pra mensagem antiga guardada no aparelho sem uid.
-export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number; re?: { name: string; text: string }; fig?: number } // from=cadeira (compat); fromId=CRACHÁ · fig = figurinha do mascote (índice da legenda, 21/10)
+export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number; re?: { name: string; text: string }; fig?: number; esp?: boolean } // from=cadeira (compat); fromId=CRACHÁ · fig = figurinha do mascote (índice da legenda, 21/10)
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
@@ -13820,6 +13837,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // sai — só no aparelho de quem aperta, nada muda no jogo. Desligar = `EMOTE_ESPERA_MS = 0`.
   const ultimoEmoteRef = useRef(0)
   const emote = useCallback((kind: string, cardId?: string, text?: string) => {
+    if (stateRef.current.espectador) return // 👁️ fantasma só fala no chat (reação sairia com a cara do time do dono)
     if (Date.now() - ultimoEmoteRef.current < EMOTE_ESPERA_MS) return
     ultimoEmoteRef.current = Date.now()
     const st0 = stateRef.current
@@ -13854,6 +13872,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meuNome = d?.partnerUid
       ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
       : undefined
+    // 👁️ fantasma fala com o PRÓPRIO nome de conta e o selo 👁️ (nunca com o time por cujos olhos ele assiste)
+    if (st.espectador) {
+      const mE: ChatMsg = { id: Math.random().toString(36).slice(2), from: -1, uid: st.youUid, name: myDisplayNameRef.current || 'Espectador', text: t, ts: Date.now(), esp: true, ...(re ? { re } : {}) }
+      addChat(mE, true)
+      channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: mE })
+      return
+    }
     const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now(), ...(re ? { re } : {}), ...(fig != null ? { fig } : {}) } // ↩ resposta (13/10) · 🐊 figurinha (21/10): o texto vai junto pra versão velha mostrar escrito
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
@@ -13958,6 +13983,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const leaveRoom = useCallback(async () => {
     const st = stateRef.current
     const rid = st.roomId
+    // 👁️ FANTASMA SAINDO: não tem vaga, time nem coroa — só fecha a tela e volta pro menu (nada vai pra sala)
+    if (st.espectador) { try { channelRef.current?.unsubscribe() } catch { /* ignora */ } channelRef.current = null; rawDispatch({ type: 'GO_LOBBY' }); return }
     // 🏆 MINHAS LIGAS (13/09): o DONO sair NÃO passa a coroa nem apaga a liga — a liga é
     // dele do começo ao fim (regra 21/08, sem admin) e é feita pra ficar de pé. Ele só
     // libera a própria cadeira e vai pro menu; a liga segue em "🏆 Minhas ligas" e ele
@@ -14045,6 +14072,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    // 👁️ FANTASMA (28/10): só assiste. Nada sai deste aparelho pro dono (nem lance, nem voto) e nada muda o estado que ele
+    // está vendo — a não ser SAIR. Nem o "liberar a vaga" roda: ele nunca teve vaga.
+    // ASSISTIR é gesto LOCAL deste aparelho: nunca vai pro dono de sala nenhuma.
+    if (action.type === 'ASSISTIR_ONLINE') { rawDispatch(action); return }
+    if (stateRef.current.espectador) {
+      if (['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) rawDispatch(action)
+      return
+    }
     // 🌐 v2: no leilão do dono, o que EU aperto vai pra ele (o meu aparelho só mostra)
     // (e nada mais muda o estado que estou só assistindo: o próximo pacote do dono passaria por cima)
     if (stateRef.current.co2?.espelho) {
@@ -14196,6 +14231,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
       // a cadeira (youIdx), senão o banner ia pra pessoa errada e o certo continuava.
+      if (stateRef.current.espectador) return // 👁️ o fantasma não tem time: expulsão de jogador nunca é com ele
       if (payload.playerIndex !== stateRef.current.managers[stateRef.current.youIdx]?.id) return
       // trava esta sala: nunca reaparece o "voltar pra sala" neste aparelho.
       const rid = stateRef.current.roomId
@@ -14218,7 +14254,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // o aviso grande. (chega pra todos; só age quem foi escolhido e ainda não é host)
     ch.on('broadcast', { event: 'host_change' }, ({ payload }: { payload: { newHostIndex: number } }) => {
       const st = stateRef.current
-      if (payload.newHostIndex !== st.youIdx || isHostRef.current) return
+      if (st.espectador || payload.newHostIndex !== st.youIdx || isHostRef.current) return // 👁️ fantasma nunca recebe a coroa
       // 🤝👑 DUPLA = UMA CADEIRA, DUAS PESSOAS (bug ao vivo 25/08, sala 5XPVEI do
       // Tricolor do Arruda). A coroa era entregue pela CADEIRA — e no modo duplas os
       // DOIS aparelhos daquela cadeira publicam o mesmo `youIdx` (a presença da sala
@@ -14269,7 +14305,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
       // presença DEPOIS. O crachá pode demorar; a partida não pode.
       if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
-      await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() })
+      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) // 👁️ fantasma não anuncia presença
     })
     channelRef.current = ch
     // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
@@ -14610,7 +14646,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -14624,6 +14660,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.roomId) return
     const ch = channelRef.current
     if (!ch) return
+    if (stateRef.current.espectador) return // 👁️ fantasma não anuncia presença
     void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha() }) } catch { /* a reconexão periódica reanuncia */ } })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.youIdx])
@@ -14837,6 +14874,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const lastRoomRef = useRef<string | undefined>(undefined)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
+    if (state.espectador) return // 👁️ fantasma não tem cadeira pra reancorar
     if (state.screen === 'intro' || state.screen === 'lobby') return
     if (state.roomId !== lastRoomRef.current) { lastRoomRef.current = state.roomId; myMgrIdRef.current = null } // sala nova → esquece o crachá antigo
     const clean = (x?: string) => stripEmoji(x ?? '').trim()
@@ -15337,10 +15375,28 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const iOwnThisRoom = (() => { try { return !!state.roomId && localStorage.getItem('esc-room-owner') === state.roomId } catch { return false } })()
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
+  setModoEspectador(!!state.espectador && state.onlineMode === 'online') // 👁️ trava de gravação do fantasma (ver espectador.ts)
   setPokeModo(ehPokemon(state)) // ⚡ a tela (cartas, rótulos dos lotes) pergunta `pokeModo()` — fica em dia a cada render
   return (
     <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
+      {/* 👁️ FANTASMA (28/10, mockup scripts/mockups/espectador.png): faixa fina embaixo, entre o chat e o som — sempre lembrando
+          que ele só assiste, por quais olhos, e com o SAIR à mão. */}
+      {state.espectador && state.onlineMode === 'online' && (
+        <div style={{ position: 'fixed', left: 66, right: 66, bottom: 12, zIndex: 99980, display: 'flex', justifyContent: 'center', pointerEvents: 'none', fontFamily: 'Oswald, sans-serif' }}>
+          <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8, background: '#3b2a6b', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '6px 6px 6px 11px', maxWidth: 420 }}>
+            <span style={{ fontWeight: 900, fontSize: 12.5, lineHeight: 1.15, letterSpacing: .3 }}>
+              👁️ <span style={{ color: '#FFE14D' }}>{tr('VOCÊ ESTÁ ASSISTINDO', 'YOU ARE WATCHING')}</span>
+              <span style={{ display: 'block', fontWeight: 600, fontSize: 10.5, opacity: .85, textTransform: 'none', letterSpacing: 0 }}>
+                {tr(`Ninguém vê você na lista · a tela é a do dono (${state.managers[state.youIdx]?.teamName ?? '—'})`, `Nobody sees you in the list · the screen is the host's (${state.managers[state.youIdx]?.teamName ?? '—'})`)}
+              </span>
+            </span>
+            <button onClick={() => { void leaveRoom() }} style={{ flexShrink: 0, background: '#fff', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 9, padding: '5px 9px', fontWeight: 900, fontSize: 12, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
+              {tr('SAIR ✕', 'LEAVE ✕')}
+            </button>
+          </div>
+        </div>
+      )}
       {hostOutroAparelho && (
         <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 93, fontFamily: 'Oswald, sans-serif' }}>
           <div style={{ background: '#FFF7DB', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px' }}>

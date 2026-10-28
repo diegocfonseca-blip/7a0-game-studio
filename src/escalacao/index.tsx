@@ -12,6 +12,7 @@ import { COMUNIDADE_LINK } from './comunidade'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
+import { EspectadorEspera } from './espectador-ui'
 import { EscConvocacaoClubes } from './convocacao-clubes' // 🧱 leilão de clubes (em teste)
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
 import { hadLogin } from './apoio'
@@ -52,8 +53,11 @@ function AvisoSemanaGlobal() {
 }
 
 function Router() {
-  const { state } = useEsc()
+  const { state, leaveRoom } = useEsc()
   useEffect(() => { window.scrollTo(0, 0) }, [state.screen, state.sectorIdx, state.phase])
+  // 👁️ FANTASMA entre um leilão e outro (o dono voltou pra sala de espera): fica na espera dele, nunca na home nem na lista
+  if (state.espectador && state.onlineMode === 'online' && state.roomId && (state.screen === 'lobby' || state.screen === 'intro'))
+    return <EspectadorEspera sala={{ id: state.roomId, code: state.roomCode ?? '' }} onSair={() => { void leaveRoom() }} />
   switch (state.screen) {
     case 'intro':     return <EscIntro />
     case 'lobby':     return <EscLobby />

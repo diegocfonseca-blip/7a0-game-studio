@@ -707,6 +707,10 @@ export interface EscState {
   // ⚠️ IDENTIDADE — LOCAL a cada aparelho, igual ao youIdx: NUNCA sincroniza.
   // É o meu user_id; é ele que diz se EU mando na categoria da vez.
   youUid?: string
+  // 👁️ ESPECTADOR "FANTASMA" (28/10) — LOCAL, igual ao youIdx: NUNCA sincroniza. Só assiste: sem cadeira, sem presença, sem
+  // ação, sem coroa. `espHostUid` = o dono da sala, por cujos olhos a tela é desenhada (youIdx ancora na cadeira dele).
+  espectador?: boolean
+  espHostUid?: string
   // leilão
   sectorIdx: number // 0..4 dentro de SECTORS
   deck: Record<Sector, Card[]>

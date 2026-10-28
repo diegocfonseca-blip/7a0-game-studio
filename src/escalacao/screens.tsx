@@ -750,7 +750,7 @@ export function ChatWidget() {
   const send = (t: string) => { if (!t.trim()) return; sendChat(t, resp ?? undefined); setText(''); setResp(null) }
   // 🐊 o MEU clube (o mesmo nome que o chat carimba) tem mascote? só aí aparece o botão
   const meuTime = state.managers[state.youIdx]?.teamName ?? ''
-  const temFig = !!meuTime && !!mascoteKeyDoTime(meuTime)
+  const temFig = !state.espectador && !!meuTime && !!mascoteKeyDoTime(meuTime) // 👁️ fantasma não tem mascote (o time é do dono)
   const mandaFig = (i: number) => {
     if (Date.now() - figUltima.current < FIG_ESPERA_MS) return
     figUltima.current = Date.now()
@@ -802,7 +802,7 @@ export function ChatWidget() {
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
                           <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>
                           <div style={{ textAlign: mine ? 'right' : 'left' }}>
-                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} /></ComPerfil>}
+                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} esp={m.esp} /></ComPerfil>}
                             <div style={{ display: 'inline-block' }}><FigurinhaMascote time={m.name} leg={tr(fig[0], fig[1])} /></div>
                           </div>
                         </div>
@@ -813,7 +813,7 @@ export function ChatWidget() {
                           <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                           <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                             style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
-                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} /></ComPerfil>}
+                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} uid={m.uid} esp={m.esp} /></ComPerfil>}
                             {re && <ChatCita re={re} />}
                             <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                           </div>
@@ -4516,7 +4516,7 @@ function Envelope() {
   // presença → o parceiro que ficou pode assumir o time inteiro num toque.
   const parceiroSumiu = !!donoDaVezUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoDaVezUid)
   const assumirTime = () => dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' })
-  const canBid = myOpen > 0 && you.money > 0 && minhaVez
+  const canBid = myOpen > 0 && you.money > 0 && minhaVez && !state.espectador // 👁️ fantasma nunca dá lance
   const online = state.onlineMode === 'online'
   const iSubmitted = state.submitted.includes(you.id)
   const humanBidders = state.managers.filter(m => m.isHuman && openSlots(m, pos) > 0 && m.money > 0)
@@ -4829,8 +4829,10 @@ function Envelope() {
       </div>
 
       {!canBid && (
-        <Box bg={!minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
-          {!minhaVez ? (
+        <Box bg={state.espectador ? '#E7E1F7' : !minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
+          {state.espectador ? (
+            <p className="text-sm font-black text-black" style={OSWALD}>{L('👁️ Você está só assistindo — lance é só pra quem joga.', '👁️ You are just watching — bids are for players only.')}</p>
+          ) : !minhaVez ? (
             <>
               <p className="text-sm font-black text-black" style={OSWALD}>{L('🔒 Quem decide', '🔒 Who calls')} {secLabel(sport, pos, lang).toUpperCase()} {L('é', 'is')} {quemDecide ? stripEmoji(quemDecide).trim() : L('seu parceiro', 'your partner')}</p>
               <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">
@@ -4983,7 +4985,7 @@ function Envelope() {
           </button>
         </Box>
       )}
-      {minhaVez && (
+      {minhaVez && !state.espectador && (
       <Box bg="#fff" className="p-3 flex items-center justify-between">
         <p className="font-black text-black" style={OSWALD}>{L('ENVELOPE', 'ENVELOPE')}: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
