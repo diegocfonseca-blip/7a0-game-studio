@@ -112,6 +112,8 @@ export type ResultadoHumanoEntrada = {
   relegated: boolean
   leagueChampion: boolean
   cupTitles: TituloSalaRapida[]
+  /** 🏆 28/10: o título "da temporada" de uma sala SEM liga (Só Champions / Relâmpago) — só pra taça certa no perfil */
+  comp?: 'champions' | 'relampago'
   /** 👥 era gente NESTE momento? `false` = time que virou CPU (a pessoa apertou SAIR). Só entra na gravação
    *  se a MESMA partida já tinha anotado esse time como de alguém (ver `herdaDe` abaixo). Sem o campo = gente. */
   humano?: boolean
@@ -125,6 +127,7 @@ type ResultadoHumano = {
   relegated: boolean
   league_champion: boolean
   cup_titles: TituloSalaRapida[]
+  comp?: 'champions' | 'relampago'
 }
 type MembroSala = { user_id: string; manager_name: string; player_index: number }
 
@@ -339,6 +342,7 @@ export async function gravaTemporadaSala(roomId: string, humanos: string[], grav
       // quero dar troféu p eles"*). Quem saiu antes da 1ª gravação nem entra (não tem `velho`).
       league_champion: r.humano === false ? !!velho?.league_champion : r.leagueChampion,
       cup_titles: r.humano === false ? (velho?.cup_titles ?? []) : r.cupTitles,
+      ...(r.comp ? { comp: r.comp } : {}), // 🏆 só a etiqueta da taça no perfil (28/10) — nada mais lê
     }))
   })
   const payload = {

@@ -11389,8 +11389,12 @@ sala (Rápido e Minhas Ligas, fora de duplas e carreira). Gate `ENVELOPE_UNICO_G
 Fotos: `scripts/mockups/envelope-unico-real.png` e `envelope-unico-revelacao.png`.
 Falta: a lista de salas ainda mostra o selo do envelope de sempre (às cegas) pra sala de envelope único; o Monte NÃO foi pra 30s (é o de sempre).
 
-## 🏆 Perfil com taças (28/10) — MOCKUP enviado, aguardando OK
+## 🏆 Perfil com taças (28/10) — FEITO no branch (Diego: "rank do online… só global e não mensal"), falta publicar
 Pedido do Diego (print do perfil): rankings da carreira e do online LADO A LADO e mais sutis; títulos da carreira com as IMAGENS das taças
 (as da Sala de Troféus `public/trofeus-v137/` + o `Trofeu` de `competicoes-visual.tsx`); embaixo, o mesmo pro online. Mockup:
 `scripts/mockups/perfil-trofeus.png`. ⚠️ `game_champions` não guarda QUAL competição a sala jogou — os títulos antigos do online caem na
 taça da Liga; separar por competição exige anotar o tipo daqui pra frente (coluna nova + quem grava o campeão).
+FEITO: rankings lado a lado (carreira = melhor save + temporada · online = TODOS OS TEMPOS, nunca o mensal) · grade de taças da carreira
+(Série A, ligas, Copa, Supercopa, Liberta, Champions, Mundial, Copa do Mundo) e do online por competição (`esc_tacas_online`, lê
+`human_results`: liga · copa · libertadores · mundial(=Copa do Mundo) · regional; Só Champions/Relâmpago ganharam a etiqueta `comp` a partir
+de 28/10 — os de antes contam como Liga) + medalhas. O quadro "semana/mês/sempre" saiu do perfil.

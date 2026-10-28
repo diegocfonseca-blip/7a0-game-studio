@@ -12559,6 +12559,7 @@ export function EscEnd() {
             relegated: chTab || relPos ? false : pos >= 0 && pos + 1 >= zoneBot(table.length),
             leagueChampion: chTab || relPos ? chCamp?.id === m.id : champ.id === m.id,
             cupTitles,
+            ...(relPos ? { comp: 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
             humano: m.isHuman,
           }
         })

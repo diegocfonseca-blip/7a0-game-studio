@@ -22,7 +22,7 @@ const LEITURA = new Set([
   'esc_ranking', 'esc_mural', 'esc_votacao_atual', 'esc_vitrine_salas', 'esc_meus_temas', 'esc_copa_taticas',
   'esc_copa_preview_clock', 'esc_nuvem_regra', 'esc_minhas_fichas_extras', 'esc_clubes_recentes', 'esc_amigos_lista',
   'esc_amigos_lista2', 'esc_meus_direitos', 'esc_meu_nome_fake', 'esc_meu_socio', 'esc_cla_ranking', 'esc_clas_de',
-  'esc_avisos', 'esc_avisos_semana', 'esc_salao_torcidas', 'esc_meta_mes_pct', 'esc_meu_rival',
+  'esc_avisos', 'esc_avisos_semana', 'esc_salao_torcidas', 'esc_meta_mes_pct', 'esc_meu_rival', 'esc_tacas_online',
 ])
 
 type Morto = PromiseLike<{ data: null; error: { message: string } }>
