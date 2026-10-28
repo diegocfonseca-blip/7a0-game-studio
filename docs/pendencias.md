@@ -1,3 +1,34 @@
+## 🤖 Simulação REAL da carreira pela tela (28/10) — 19 temporadas, achados (nada mexido no jogo)
+Pedido: *"simulação completa até a T120 começando na várzea… descobrir pq MT gente fala q é difícil na várzea… premiação… erros… ideias"*.
+Robô (Playwright) jogando pela TELA de verdade: leilão às cegas escolhendo pelos mais famosos, Master, coletivas, pular jogo (como Craque),
+leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (não no repo). ~5–10 min por temporada pela tela.
+- **Várzea é sorteio**: XI do robô nível médio 79 × rivais de gente 76–80 → 4º num ano, 20º no outro com o mesmo time. Saiu da V na T2,
+  ioiô V↔D↔C até a T19 (chegou na C na T9 e caiu na hora).
+- **Elenco cheio (27) trava o reforço**: da T7 em diante o leilão não ofereceu vaga nenhuma e o robô ficou 12 temporadas sem comprar, com
+  ~390 🪙 parados. A saída é VENDER — não é óbvio. **Ideia pro Diego**: no leilão, com elenco cheio, avisar "venda alguém pra abrir vaga" com o botão ali.
+- **Dinheiro na V**: ~45/temp (bilheteria 20 · TV 10 · Master 10 · prêmio 2–5) − folha 28 (elenco cheio) ≈ +17/temp.
+- **Conferidos e pagando certo**: colocação (só top 4 + campeão), queda C −10, TV 10/20/30 (V/D/C), Master (renova +25%, multa+rescisão na
+  queda), Bico de Folga, coletiva +2, renovação automática. **Não deu pra conferir** (time não passou da C): Copa, Liberta/Champions, Mundial, Copa do Mundo.
+- **Estranhos**: bilheteria fixa em 20 em V, D e C (sem obra não cresce ao subir — conferir se é de propósito); linha "🤝 Patrocínio 0" em todo
+  extrato (resíduo do pontual); botão CONTINUAR do caixa pode ficar atrás da barra de abas (rolar resolve).
+- **Sorte medida no motor real** (`simulatePyramid`, 60 temporadas por linha, rivais ~78): nível 78 sobe 18% · 80 → 37% · 82 → 55% ·
+  **84 → 87%** · 86 → 92%. A sorte é justa (4 pontos acima = sobe quase sempre). **A injustiça está no leilão**: (1) o bot avalia a carta
+  pelo NÍVEL escondido (`perceived`, erro de só ±3 em fama 3+) e o humano só vê nome/clube/ano; (2) bot com elenco cheio ainda dá 1 lance
+  de reforço por setor (`reforco` em `cpuEnvelope`) e o humano com 27 não tem lance nenhum até vender na mão.
+- **CAUSA PRINCIPAL achada (escada de categorias, `escadaAllows`)**: V só negocia foi-prof + bom (fama ≤3) e D só bom + promessa. O teto
+  é "Bom" (76–85) nas DUAS — depois do 1º leilão não existe carta melhor pra comprar, os 20 times ficam iguais (76–80) e a tabela vira
+  loteria. Só na C entra o Craque. Explica o ioiô V↔D de 17 temporadas do robô. Também: o aviso "VIROU PROFISSIONAL! Saiu da Várzea!"
+  aparece na tela de vender mesmo depois de cair de volta pra V (aviso da subida da T2 preso).
+- **BÔNUS DOS TIMES DA CASA (`CPU_DIV_BOOST_FAIR`, carreira nova simV 4)**: V +4 · D +3 · C +5 · B +4 · A +2 pros CPU nativos; humano e
+  rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
+  da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
+  sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
+- ✅ **PUBLICADO PRA TODOS (28/10, *"publique sim. P todos"*) — bônus da casa novo (simV 5)**, ordem do Diego: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e
+  série A coloque 3"* (B fica 4). `CPU_DIV_BOOST_V5` = A 2 (*"série a deixe 2 msm"*) · B 4 · C 4 · D 3 · V 2. Só vale de temporada NOVA (trava simV, inclusive no
+  "mesmo time" — `CONFIRM_MESMO_TIME` agora também carimba): temporada em andamento termina na tabela antiga. Medido no motor: time no teto
+  da Várzea (80) sobe 8% → **28%**; 82 → 35%; 84 → 80%. Reverter = trocar os `s.simV = 5` de volta pra 4.
+- Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
+
 ## ⚡ Mata-mata Relâmpago (28/10) — ✅ PUBLICADO PRA TODOS com selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
 - Regras dele: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras normais"* e *"tem q ter ida
   e volta, somente final que não"*. Então: quem cria escolhe CHAVE DE 16 (começa nas oitavas) ou 32 (Rodada de 32); a sala cabe
