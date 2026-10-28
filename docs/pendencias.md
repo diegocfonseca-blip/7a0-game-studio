@@ -1,3 +1,18 @@
+## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — código + banco feitos; gala e 2 temas esperando o OK do Diego
+- Dono `alexandre12cdm@gmail.com` (conta de 27/10, existia antes ✔; o time dele era "Pits FC" → a conta virou **dSouza FC**
+  no `display_name`; sem carreira na nuvem). **Série C**, no assento do bot **Kombi United** (o único bot sem dono da C;
+  `OLD_NAME` leva save antigo; o Kombi segue no jogo rápido, então o nome velho NÃO desenha o escudo). Técnico: "Alexandre".
+  Coração **Palmeiras**. Empresa dele: **dSouza Empreendimentos** (quadros de futebol, anúncio fixo nº8 de 28/10).
+- Arte do dono (uma prancha com fundo verde chroma; recorte por distância de cor, o verde-neon do desenho ficou inteiro,
+  conferido sobre creme e vermelho): escudo 360×334/26 KB · mascote **O Pitbull** 398×440/32 KB · camisa da Loja 585×620/33 KB.
+  Manto medido: preto #0A0A09 (64%) + verde-neon #73E541 (média dos pixels neon).
+- Banco: user_colors ouro+manual · esc_socios **79** (mascote `dsouza_pitbull`, escudo_time "dSouza FC", Palmeiras) ·
+  esc_fundadores **94** · esc_nomes_batismo "dSouza" (FC/EC pelo gatilho) · esc_compras_batismo 'plus' (Fundador).
+- Post: `scripts/posts/batismo-dsouza-fc.png`.
+- ⏳ **Esperando OK**: gala única **"A Galeria"** (`gala-dsouza.tsx`, vídeo `scripts/posts/gala-dsouza.webm`) e os temas
+  `dsouza` (clube, com o Pitbull) e `dsouza_emp` (🖼️ dSouza Empreendimentos, parede de galeria + recado da loja na faixa) —
+  fotos em `scripts/mockups/tema-dsouza*-cel.png`. ⏳ Canto da torcida: o Diego manda depois.
+
 ## 🤖 Simulação REAL da carreira pela tela (28/10) — 19 temporadas, achados (nada mexido no jogo)
 Pedido: *"simulação completa até a T120 começando na várzea… descobrir pq MT gente fala q é difícil na várzea… premiação… erros… ideias"*.
 Robô (Playwright) jogando pela TELA de verdade: leilão às cegas escolhendo pelos mais famosos, Master, coletivas, pular jogo (como Craque),
