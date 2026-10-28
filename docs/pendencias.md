@@ -1,3 +1,15 @@
+## 🐶 Patrocinador Master dSouza Empreendimentos (28/10) — NO BRANCH, esperando "publica"
+Loja de quadros decorativos (futebol nacional/internacional, personalizados) no Mercado Livre:
+https://www.mercadolivre.com.br/pagina/dsouzaempreendimentos/futebol . Arte em `scripts/parceiros/dsouza-*.jpg`.
+- Master da carreira: **7ª marca, 3 temporadas** (= Grêmio Campo Grande; escolha do Diego), `dsouza` em `estadiodata.ts`; logo `patro-dsouza.webp`.
+- Placa do campinho: pitbull + nome (`patro-dsouza-placa.webp`, tirei a frase da arte deles, que vinha com acento errado "Confiànça/Rapìdo").
+- "Apresentada por": **Libertadores** (online e carreira) — a única grande sem patrocinador; o Diego não teve preferência.
+- Telão: `🐶 dSouza · Quadros do seu time pra decorar a parede · Frete grátis · Clique aqui` → página do Mercado Livre.
+  ⚠️ NA HORA DE PUBLICAR: inserir a linha em `esc_anuncios_fixos` (o banco manda; o código é só reserva).
+- Aviãozinho da home: agora é a dSouza (regra: patrocinador novo = avião). Saiu o Grêmio Campo Grande do avião (segue no resto).
+- Aviso da comunidade: `scripts/avisos/2026-10-28-parceiro-dsouza.json` → `scripts/posts/aviso-2026-10-28-parceiro-dsouza.png`.
+  Foto dos lugares: `scripts/posts/dsouza-no-leilao-legends.png`.
+
 ## 🤖 Simulação REAL da carreira pela tela (28/10) — 19 temporadas, achados (nada mexido no jogo)
 Pedido: *"simulação completa até a T120 começando na várzea… descobrir pq MT gente fala q é difícil na várzea… premiação… erros… ideias"*.
 Robô (Playwright) jogando pela TELA de verdade: leilão às cegas escolhendo pelos mais famosos, Master, coletivas, pular jogo (como Craque),
@@ -23,6 +35,11 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
   da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
   sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
+- ✅ **PUBLICADO (28/10, *"Sim"*) — consertos do extrato e do aviso, pedidos do Diego depois da simulação**: (1) o aviso "Virou profissional!
+  Saiu da Várzea!" só aparece com o time FORA da Várzea (quem caiu de volta não lê mais isso; o aviso espera a próxima subida);
+  (2) a linha "🤝 Patrocínio" (sobra do pontual, sempre 0) e as linhas de "Agência"/"Empresário" só entram no extrato com dinheiro de
+  verdade — o patrocinador de verdade já entra com o nome da marca ("🏆 Master · Vadico", "👟 Material", "🎯 Meta batida").
+  🚫 Bilheteria do estádio: NÃO mexer (*"da bilheteria não mexe não"*).
 - ✅ **PUBLICADO PRA TODOS (28/10, *"publique sim. P todos"*) — bônus da casa novo (simV 5)**, ordem do Diego: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e
   série A coloque 3"* (B fica 4). `CPU_DIV_BOOST_V5` = A 2 (*"série a deixe 2 msm"*) · B 4 · C 4 · D 3 · V 2. Só vale de temporada NOVA (trava simV, inclusive no
   "mesmo time" — `CONFIRM_MESMO_TIME` agora também carimba): temporada em andamento termina na tabela antiga. Medido no motor: time no teto
@@ -11473,6 +11490,13 @@ pedi pra você melhorar visualmente o que tem hoje"*). A carreira voltou a ser c
 ✅ Taças: `TacasNome` em `ligahub.tsx` — pequenas (17px), em fila depois do nome, ×N do lado
 (*"precisa ser menor e alinhado"*), só o que ganhou; Só Champions/Relâmpago usam a taça deles (`comp`). Os chips de Liga/Copa da sala
 rápida saíram (a taça diz isso); Top 8 e rebaixamento continuam.
+
+## 👀 ONLINE ABERTO PRA VISITANTE (28/10, pedido do Diego)
+*"o botão de online na home deixe que qualquer pessoa mesmo sem conta entre na página. Porém apertar pra criar sala ou entrar em alguma
+sala aberta não deixe, aí sim aparece com a informação de criar conta"*. Sem conta: a página de salas abre (lista, busca, filtros,
+atualizar, abas Salas abertas/Entrar). Qualquer outro botão (Criar sala, entrar numa sala, código, Minhas Ligas, vitrine…) abre a janela
+da conta com o porquê escrito; "agora não" volta pras salas. Mora em `lobby.tsx` (`visitante`, `pedeConta`, `travaVisitante` no `wrap`;
+o que é só de olhar leva `data-livre`). Convite pendente continua abrindo direto no login. Fotos: `scripts/mockups/online-visitante*.png`.
 
 ## ⚡ Envelope único liberado também pro Futpoint FC (28/10) — partida rápida e salas, mesma trava (`ENVELOPE_UNICO_TESTERS`)
 

@@ -890,7 +890,9 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
     const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro)']]
     const steps = [s0, s1, s2, s3, s4, s45, s5]
     const ids = dorm != null ? [y, dorm] : [y]
-    for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
+    // 🧾 28/10 (Diego): "🤝 Patrocínio" e "Agência" só entram no extrato quando tem dinheiro de verdade — o pontual saiu (19/09) e
+    // a linha ficava 0 todo ano; o Master/Material/metas já entram com o NOME da marca. Prêmios, bilheteria e folha seguem SEMPRE.
+    for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, rows[i][0] !== 'sponsor' && rows[i][0] !== 'empresario')
     return
   }
   if (!online) {
@@ -919,7 +921,8 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   const ids = online ? humans.map(h => h.id) : (dorm != null ? [y, dorm] : [y])
   // `force` = todas as 5 linhas do fim de temporada aparecem SEMPRE (mesmo 0), pra o
   // técnico ver o quadro financeiro completo assim que a temporada acaba.
-  for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
+  // 🧾 28/10: patrocínio/empresário só com valor (ver acima)
+  for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, rows[i][0] !== 'sponsor' && rows[i][0] !== 'empresario')
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
 function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
