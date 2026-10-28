@@ -19,6 +19,10 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   é "Bom" (76–85) nas DUAS — depois do 1º leilão não existe carta melhor pra comprar, os 20 times ficam iguais (76–80) e a tabela vira
   loteria. Só na C entra o Craque. Explica o ioiô V↔D de 17 temporadas do robô. Também: o aviso "VIROU PROFISSIONAL! Saiu da Várzea!"
   aparece na tela de vender mesmo depois de cair de volta pra V (aviso da subida da T2 preso).
+- **BÔNUS DOS TIMES DA CASA (`CPU_DIV_BOOST_FAIR`, carreira nova simV 4)**: V +4 · D +3 · C +5 · B +4 · A +2 pros CPU nativos; humano e
+  rivais não ganham. Somado ao teto da escada (V = time todo "Bom" ≈ 80), o melhor time possível da Várzea fica no máximo igual ao CPU
+  da casa (77+4). Medido no motor real (60 temp): humano 80 sobe 48% SEM o bônus × **12% COM** (35% de cair pro 15º–20º); 84 com bônus
+  sobe 65%. O bônus é de 04/08 (*"tá fácil"*), de antes da escada existir. Técnico pesa 1/12 (`(atk*11+nível)/12`) — quase nada.
 - Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
 
 ## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
