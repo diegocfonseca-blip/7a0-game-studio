@@ -1,4 +1,4 @@
-## 🐶 Patrocinador Master dSouza Empreendimentos (28/10) — NO BRANCH, esperando "publica"
+## 🐶 Patrocinador Master dSouza Empreendimentos (28/10) — ✅ NO AR (linha do telão id 8 em `esc_anuncios_fixos`)
 Loja de quadros decorativos (futebol nacional/internacional, personalizados) no Mercado Livre:
 https://www.mercadolivre.com.br/pagina/dsouzaempreendimentos/futebol . Arte em `scripts/parceiros/dsouza-*.jpg`.
 - Master da carreira: **7ª marca, 3 temporadas** (= Grêmio Campo Grande; escolha do Diego), `dsouza` em `estadiodata.ts`; logo `patro-dsouza.webp`.
