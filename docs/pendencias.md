@@ -11,6 +11,10 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   queda), Bico de Folga, coletiva +2, renovação automática. **Não deu pra conferir** (time não passou da C): Copa, Liberta/Champions, Mundial, Copa do Mundo.
 - **Estranhos**: bilheteria fixa em 20 em V, D e C (sem obra não cresce ao subir — conferir se é de propósito); linha "🤝 Patrocínio 0" em todo
   extrato (resíduo do pontual); botão CONTINUAR do caixa pode ficar atrás da barra de abas (rolar resolve).
+- **Sorte medida no motor real** (`simulatePyramid`, 60 temporadas por linha, rivais ~78): nível 78 sobe 18% · 80 → 37% · 82 → 55% ·
+  **84 → 87%** · 86 → 92%. A sorte é justa (4 pontos acima = sobe quase sempre). **A injustiça está no leilão**: (1) o bot avalia a carta
+  pelo NÍVEL escondido (`perceived`, erro de só ±3 em fama 3+) e o humano só vê nome/clube/ano; (2) bot com elenco cheio ainda dá 1 lance
+  de reforço por setor (`reforco` em `cpuEnvelope`) e o humano com 27 não tem lance nenhum até vender na mão.
 - Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
 
 ## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
