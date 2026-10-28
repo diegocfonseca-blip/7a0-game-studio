@@ -119,6 +119,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'vittor@tidex.com.br': 'ouro', // 👑 batismo Wen Milan B (Série A, plano 🖋 Fundador, no assento do Al Takhadao FC, que desceu pra C) + fundador nº92 + sócio nº76 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
+  'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo Neymar FC (Série D, no assento do bot Galáxia EC) + sócio nº77 (21/10). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
   'luizeduardorossini0013@gmail.com': 'ouro', // 👑 Lenda — batismo Rossini Money (Série A, no assento do Bagres de Wall Street FC, que desceu pra B) + fundador nº90 + sócio nº71 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -472,17 +473,44 @@ export async function carregaMedalhaDaSemana(): Promise<void> {
   // 🏅 19/10: a medalha de AGORA (top 3 da semana) + as GANHAS nos fechos dos últimos 30 dias (`ganhas`, mais nova primeiro)
   try { const v = await buscaVitrine(); medalhaSemana = medalhaDaPos(v?.eu?.pos) + (v?.ganhas ?? '') } catch { /* sem banco: sem medalha */ }
 }
+// 🎭 NOME FAKE (27/10, Diego: "quem tem plano reserva o nome p sempre… o que tava gratuito irá aparecer joaquim fc fake").
+// Quem é GRÁTIS e usa o nome de conta de alguém COM plano (ou de um batismo que não é dele) leva o selo 🎭 FAKE grudado no
+// nome — do mesmo jeito que a medalha da semana: quem decide é o BANCO (`esc_meu_nome_fake`), o aparelho só lê. Ninguém tira
+// o selo digitando, e ninguém "se dá" ele: o stripEmoji arranca o 🎭 de nome digitado.
+export const MARCA_FAKE = ' 🎭FAKE'
+let nomeFake = false
+export function meuNomeFake(): boolean { return nomeFake }
+export async function carregaNomeFake(): Promise<void> {
+  try { const { data, error } = await supabase.rpc('esc_meu_nome_fake'); if (!error) nomeFake = data === true } catch { /* sem banco: sem selo */ }
+}
+/** separa o selo 🎭 FAKE do nome (pra desenhar ele como etiqueta vermelha) */
+export function separaFake(name: string): { nome: string; fake: boolean } {
+  const i = name.indexOf(MARCA_FAKE.trim())
+  return i < 0 ? { nome: name, fake: false } : { nome: (name.slice(0, i) + name.slice(i + MARCA_FAKE.trim().length)).replace(/\s+/g, ' ').trim(), fake: true }
+}
+export function SeloFake() {
+  return <span style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: '0.78em', background: '#C2452F', color: '#fff', borderRadius: 5, padding: '0 5px', marginLeft: 4, letterSpacing: 0.3, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>🎭 FAKE</span>
+}
+
+/** o nome com o 🎭 FAKE desenhado como etiqueta (sala de espera, chat) */
+export function NomeComFake({ nome }: { nome: string }) {
+  const f = separaFake(nome)
+  return <>{f.nome}{f.fake && <SeloFake />}</>
+}
+
 export function apoioSelo(): string {
   const p = myApoioPerk()
   const selo = p && p.selo ? ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}` : ''
-  return medalhaSemana ? `${selo || ' '}${medalhaSemana}` : selo
+  const base = medalhaSemana ? `${selo || ' '}${medalhaSemana}` : selo
+  return nomeFake ? base + MARCA_FAKE : base
 }
 
 // nome com o selo garantido (sem duplicar — saves antigos já podem ter o emoji)
 export function apoioName(name: string): string {
+  const fake = nomeFake && !name.includes(MARCA_FAKE.trim()) ? MARCA_FAKE : ''
   const p = myApoioPerk()
-  if (!p || !p.selo || name.includes(p.selo)) return medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name
-  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${medalhaSemana}`
+  if (!p || !p.selo || name.includes(p.selo)) return (medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name) + fake
+  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${medalhaSemana}${fake}`
 }
 
 // tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos

@@ -114,6 +114,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'ccaonta@gmail.com': ['#032169', '#E4A745'],
   // 🐐👑 Neymar FC — CREME e PRETO, MEDIDOS na camisa que o dono mandou (21/10): creme do corpo (mediana dos pixels claros,
   // #F2D8B8) e o preto das faixas, gola e punhos (#090806). O dourado dos frisos fica de fora (manto é de 2 cores).
+  // ⭐🦁 Vila Esporte Clube — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (27/10): preto das listras/mangas (58%, #0C0C0C)
+  // e o branco das listras (32%, #DADADA).
+  'oluisantonio.contato@gmail.com': ['#0C0C0C', '#DADADA'],
   'sheeryarie772@gmail.com': ['#F2D8B8', '#090806'],
   // 🐰⚪ Labubu FC — BRANCO e AZUL-MARINHO, MEDIDOS na camisa que o dono mandou (14/10): branco do corpo (mediana dos
   // pixels claros, #EFEEED — a marca d'água cinza do bicho puxava pra #DFDDDD) e o marinho da gola e dos punhos (#03101F).
@@ -327,7 +330,8 @@ export function meuMantoC3Buffer(): boolean {
 
 // ─── 🔒 NOME DE TIME ÚNICO (tipo @ do Instagram — pedido do Diego 10/08) ───
 // Antes de gravar um nome novo de técnico/time, pergunta ao servidor se está
-// livre. Regras lá: nome em uso por OUTRA conta → bloqueia; nome de clube de
+// livre. 🔁 27/10: só quem tem PLANO trava o nome (nome de outra conta COM plano → bloqueia
+// pra quem também tem plano; grátis passa com `fake: true` e leva o 🎭 FAKE). Nome de clube de
 // BATISMO → reservado pro dono. Quem JÁ tem nome repetido de antes, mantém
 // (a trava só pega troca/cadastro novos). Servidor fora do ar → deixa passar
 // (não trava o jogo — padrão da casa).
@@ -338,24 +342,27 @@ export function meuMantoC3Buffer(): boolean {
 // era o que o impedia de se cadastrar. Valia pra todo dono de batismo sem conta.
 // 🔒 O banco só aceita esse e-mail quando NÃO HÁ SESSÃO (ou seja, só no cadastro);
 // quem já está logado continua tendo que bater com o e-mail real do login.
-export async function nomeLivre(nome: string, email?: string): Promise<{ livre: boolean; motivo?: string }> {
+export async function nomeLivre(nome: string, email?: string): Promise<{ livre: boolean; motivo?: string; fake?: boolean }> {
   const nm = nome.trim()
   if (!nm) return { livre: true }
   if (nomeOfensivo(nm)) return { livre: false, motivo: 'ofensivo' } // 🚫 21/10: preconceito não passa (o banco também barra)
   try {
     const { data, error } = await supabase.rpc('esc_nome_livre', { p_nome: nm, p_email: email?.trim() || null })
     if (error || !data) return { livre: true }
-    return data as { livre: boolean; motivo?: string }
+    return data as { livre: boolean; motivo?: string; fake?: boolean }
   } catch { return { livre: true } }
 }
 // mensagens prontas (aviso claro: o PORQUÊ e o CAMINHO)
 const NOME_MSG_PT: Record<string, string> = {
-  em_uso: '⚠️ Já existe um técnico com esse nome — nome de time é único, tipo @ do Instagram. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
+  // 🔒 27/10: só quem tem plano trava o nome — então "em uso" agora é sempre o nome de outro clube COM plano
+  em_uso: '🔒 Esse nome já é de outro clube com plano e fica reservado pra ele. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
+  fake: '✅ Pode usar — mas esse nome é de quem tem plano, então você aparece como 🎭 fake. Quer o seu nome só seu? Qualquer plano trava ele.',
   batismo: '🔒 Esse nome é de um clube de BATISMO e fica reservado pro dono dele. Se o clube é teu, entra com a conta do batismo; senão, escolhe outro nome.',
   ofensivo: '🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends (nazismo, racismo, estupro, abuso). Zoeira tudo bem — escolhe outro nome.',
 }
 const NOME_MSG_EN: Record<string, string> = {
-  em_uso: '⚠️ There is already a manager with that name — team names are unique, like an Instagram @. Try a variation: add FC, a number or your nickname.',
+  em_uso: '🔒 That name belongs to another club with a plan and is reserved for it. Try a variation: add FC, a number or your nickname.',
+  fake: '✅ You can use it — but that name belongs to a plan holder, so you show up as 🎭 fake. Want a name that is only yours? Any plan locks it.',
   batismo: '🔒 That name belongs to a NAMED club and is reserved for its owner. If the club is yours, sign in with the club account; otherwise, pick another name.',
   ofensivo: '🚫 That name is not allowed: nothing offensive in Leilão Legends (nazism, racism, rape). Banter is fine — pick another name.',
 }

@@ -1173,6 +1173,7 @@ export interface EscState {
   careerPresidency?: Record<number, import('./presidencia-carreira').BensPresidencia>
   careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
+  careerGratisAte?: number // 🔒 27/10: última temporada da carreira GRÁTIS de quem já estava acima da 50 (= temporada da 1ª virada + 10); ver carreira-gratis.ts
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira
   careerRivals: CareerRival[] // rivais fixos (vida própria na pirâmide)
   // 🧢 TÉCNICOS da carreira (26/08, em teste na conta do Diego): clube → NOME do

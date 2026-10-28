@@ -34,7 +34,9 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos, loggedEmail } from './apoio'
+import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
+import { travaCarreiraGratis, limiteGratis } from './carreira-gratis'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
 import { LojaButton } from './loja-clube'
 import type { ApoioTier } from './apoio'
@@ -10873,6 +10875,12 @@ function NbaCareerEndPanel() {
 }
 function CareerEndPanel() {
   const { state, dispatch } = useEsc()
+  // 🔒 27/10: carreira grátis até a temporada 50. Diego: *"quem tem plano não muda nada e não aparece nada"* — então, logado com o
+  // plano ainda carregando, vale a tela de sempre (os direitos já chegam no login, bem antes do fim da temporada).
+  const direitosC = useDireitos()
+  const pagante = ehPagante(myApoioPerk()?.tier, direitosC) || (!!loggedEmail() && !direitosC)
+  const travadoGratis = state.onlineMode !== 'online' && travaCarreiraGratis(state.seasonNo, pagante, state.careerGratisAte)
+  const ateGratis = limiteGratis(state.seasonNo, state.careerGratisAte)
   const div = state.careerDivision!
   const you = state.managers[state.youIdx]
   const table = sortedTable(state.league)
@@ -10934,10 +10942,19 @@ function CareerEndPanel() {
         <p className="font-black text-white text-xl" style={OSWALD}>{banner.txt}</p>
         <p className="font-bold text-white/80 text-xs mt-0.5">{DIVISION_LABEL[div]} · {tr('Temporada', 'Season')} {state.seasonNo} · {state.careerTitles} {state.careerTitles === 1 ? tr('título', 'title') : tr('títulos', 'titles')} {tr('na carreira', 'in the career')}{totalA > 0 && !wonA ? ` · ${totalA}⭐ Série A` : ''}</p>
       </div>
+      {travadoGratis ? <div className="rounded-2xl border-4 border-black p-4 text-center bg-white" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-4xl leading-none">🔒</p>
+        <p className="font-black text-black text-xl leading-tight mt-1" style={OSWALD}>{tr(`A CARREIRA GRÁTIS VAI ATÉ A TEMPORADA ${ateGratis}`, `THE FREE CAREER GOES UP TO SEASON ${ateGratis}`)}</p>
+        <p className="font-bold text-sm text-black/80 mt-2">{tr(`Pra jogar a temporada ${ateGratis + 1} em diante com o ${you.teamName}, escolha qualquer plano.`, `To play season ${ateGratis + 1} onwards with ${you.teamName}, pick any plan.`)}</p>
+        <p className="font-bold text-sm mt-2 rounded-xl border-2 px-2 py-1.5" style={{ background: '#E9F7EE', borderColor: GREEN, color: INK }}>{tr('✅ Seu save fica guardado do jeito que está. Assinou, ele destrava na hora e você segue de onde parou.', '✅ Your save stays exactly as it is. Subscribe and it unlocks right away — you carry on from here.')}</p>
+        <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🔒 carreira grátis T50 → ver os planos'); open() }} className="w-full mt-3 border-[3px] border-black rounded-xl py-2.5 font-black text-base text-black" style={{ background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS E DESTRAVAR', '⭐ SEE THE PLANS AND UNLOCK')}</button>} />
+        <p className="font-bold text-xs text-black/55 mt-2">{tr('☁️ Sem plano, a cópia na nuvem some se a carreira ficar 7 dias sem salvar. No aparelho ela continua.', '☁️ Without a plan, the cloud copy is removed if the career goes 7 days without saving. On this device it stays.')}</p>
+      </div>
+      : <>
       <p className="text-center font-black text-sm text-black/60" style={OSWALD}>{tr('Como quer seguir?', 'How do you want to go on?')}</p>
-      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tr('▶️ Continuar com o mesmo time', '▶️ Continue with the same team')}</span></Btn>
+      <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: true, pago: pagante })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tr('▶️ Continuar com o mesmo time', '▶️ Continue with the same team')}</span></Btn>
       {nextRivalsHere > 0 ? (
-        <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false })} className="w-full text-lg">{tr('🔄 Trocar tudo (novo leilão)', '🔄 Change everything (new auction)')}</Btn>
+        <Btn onClick={() => dispatch({ type: 'CAREER_ADVANCE', keep: false, pago: pagante })} className="w-full text-lg">{tr('🔄 Trocar tudo (novo leilão)', '🔄 Change everything (new auction)')}</Btn>
       ) : (
         <p className="text-center text-xs font-bold text-black/55 px-2">
           {getLang() === 'en'
@@ -10945,6 +10962,7 @@ function CareerEndPanel() {
             : <>🔒 Sem rival seu na {DIVISION_LABEL[nd.div]} nesta temporada — o leilão não abre (seria só você). Dá pra <b>seguir com o mesmo time</b>; quando um rival subir ou cair pra sua divisão, o "trocar tudo" volta.</>}
         </p>
       )}
+      </>}
       <div className="flex gap-2">
         <div className="flex-1"><Btn onClick={onSaveClick} bg="#fff" className="w-full">{busy ? '...' : tr('💾 Salvar', '💾 Save')}</Btn></div>
         <div className="flex-1"><Btn onClick={() => setExitAsk(true)} bg="#fff" className="w-full">{tr('🚪 Sair', '🚪 Leave')}</Btn></div>

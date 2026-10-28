@@ -1,0 +1,22 @@
+{
+  "data": "🏟️ Salas online · 27 de outubro de 2026",
+  "titulo": "Quer criar mais salas? Agora tem plano pra isso",
+  "oferta": {
+    "plano": "⭐ Craque Salas",
+    "preco": "R$ 9,90",
+    "sub": "por mês",
+    "ganha": [
+      { "emoji": "🏟️", "texto": "**Salas à vontade**, quantas quiser, todo dia" },
+      { "emoji": "🏆", "texto": "**Minhas Ligas**: a liga da sua turma" },
+      { "emoji": "🧑‍💼", "texto": "**Seu presidente**: monte o seu personagem" },
+      { "emoji": "⚔️", "texto": "**Seu clã**: crie e chame os amigos" },
+      { "emoji": "🥈", "texto": "**Nome prata** em todo canto do jogo" },
+      { "emoji": "⚡", "texto": "**Vale na hora** em que assinar" }
+    ],
+    "extra": "🎟️ Só quer umas salas a mais? As **3 salas extras por R$ 4,90** continuam na Loja"
+  },
+  "itens": [],
+  "rodape": "⚽ leilaolegends.com",
+  "rodapeSub": "Bateu no limite da sala? Os botões aparecem ali mesmo 💛",
+  "saida": "scripts/posts/aviso-2026-10-27-craque-salas.png"
+}

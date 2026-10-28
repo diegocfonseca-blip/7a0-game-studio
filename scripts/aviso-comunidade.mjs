@@ -16,6 +16,7 @@
 //                 "passos": [ { "emoji": "🏢", "titulo": "…", "sub": "…" } ]  ← escada no lugar da arte (novidade sem escudo)
 //                 "nome": "Inter Vale FC", "linha": "Série C · preto e branco" },   ← opcional
 //   "itens": [ { "tag": "batismo|novidade|melhoria|mascote|manto|lenda|emprestimo|venda|saf|meta5|meta7|meta10", "texto": "…" } ],
+//   "oferta": { "plano": "⭐ Craque Salas", "preco": "R$ 9,90", "sub": "por mês", "ganha": [ { "emoji": "🏟️", "texto": "…" } ], "extra": "…" },  ← opcional (27/10): plano com PREÇO GRANDE e tudo que ganha
 //   "rodape": "Entre na comunidade…",                                          ← opcional
 //   "saida": "scripts/posts/aviso-xxx.png"
 // }
@@ -88,6 +89,11 @@ h1{margin:8px 0 0;font:700 64px/1.02 Oswald;text-transform:uppercase}
 .meta-bar .mk.fim{left:100%}.meta-bar .mk.fim b{left:auto;right:-4px;transform:none}
 .meta-cta{margin-top:22px;background:#0C0C0C;color:#FFC400;border:4px solid #000;border-radius:16px;padding:14px 18px;font:700 32px/1.2 Oswald;text-align:center;box-shadow:4px 4px 0 #7C3AED}
 .site{text-align:center;margin-top:26px;font:700 24px Oswald;color:rgba(0,0,0,.45);letter-spacing:.06em}
+.of{margin-top:28px;border:4px solid #000;border-radius:26px;box-shadow:6px 6px 0 #000;background:linear-gradient(150deg,#FFE79A,#FFC400 45%,#E8A200 80%,#FFDD70);padding:22px 26px 24px}
+.of-top{display:flex;align-items:center;justify-content:space-between;gap:16px}.of-pl{font:900 44px Oswald,sans-serif;text-transform:uppercase;line-height:1}
+.of-pr{background:#0C0C0C;color:#FFC400;border:4px solid #000;border-radius:20px;padding:10px 20px;text-align:center;box-shadow:4px 4px 0 rgba(0,0,0,.35)}.of-pr b{display:block;font:900 64px Oswald,sans-serif;line-height:1}.of-pr span{font:700 20px Oswald,sans-serif;letter-spacing:1px;text-transform:uppercase;color:#fff}
+.of-g{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.of-i{display:flex;align-items:center;gap:12px;background:#fff;border:3px solid #000;border-radius:16px;padding:12px 14px;box-shadow:3px 3px 0 #000;font-size:24px;line-height:1.2}.of-i em{font-style:normal;font-size:36px;flex:none}
+.of-x{margin-top:16px;font-size:22px;font-weight:600;text-align:center;background:rgba(255,255,255,.75);border:2px dashed #000;border-radius:12px;padding:8px 12px}
 </style></head><body><div class="wrap">
 <div class="top"><div class="marca">⚽ LEILÃO <span>LEGENDS</span></div><div class="pill">🔨 BATEU O MARTELO</div></div>
 <div class="card"><div class="marca-dagua">🔨</div>
@@ -105,7 +111,9 @@ ${d && !d.barra ? `<div class="hero">
   ${d.camisa ? `<div><img src="${url(d.camisa)}" style="height:250px"></div>` : ''}
   ${(d.passos ?? []).map((ps, i) => `${i ? '<div class="seta">➜</div>' : ''}<div class="passo"><div class="pe">${ps.emoji}</div><b>${esc(ps.titulo)}</b><span>${esc(ps.sub ?? '')}</span></div>`).join('')}
 </div>${d.nome ? `<div class="hero-tx"><div class="nm" style="margin-top:18px">${esc(d.nome)}</div>${d.linha ? `<div class="ln">${esc(d.linha)}</div>` : ''}</div>` : ''}` : ''}
-${spec.itens.map(i => { const [t, bg, fg] = TAGS[i.tag] ?? TAGS.novidade; return `<div class="it"><span class="tag" style="background:${bg};color:${fg}">${t}</span><div class="tx">${esc(i.texto)}</div></div>` }).join('')}
+${spec.oferta ? (() => { const o = spec.oferta; return `<div class="of"><div class="of-top"><div class="of-pl">${esc(o.plano)}</div><div class="of-pr"><b>${esc(o.preco)}</b><span>${esc(o.sub ?? '')}</span></div></div>
+<div class="of-g">${(o.ganha ?? []).map(g => `<div class="of-i"><em>${g.emoji}</em><div>${esc(g.texto)}</div></div>`).join('')}</div>${o.extra ? `<div class="of-x">${esc(o.extra)}</div>` : ''}</div>` })() : ''}
+${(spec.itens ?? []).map(i => { const [t, bg, fg] = TAGS[i.tag] ?? TAGS.novidade; return `<div class="it"><span class="tag" style="background:${bg};color:${fg}">${t}</span><div class="tx">${esc(i.texto)}</div></div>` }).join('')}
 </div>
 ${spec.rodape ? `<div class="rod"><span style="font-size:46px">💬</span><div>${esc(spec.rodape)}${spec.rodapeSub ? `<small>${esc(spec.rodapeSub)}</small>` : ''}</div></div>` : ''}
 <div class="site">leilaolegends.com</div>
