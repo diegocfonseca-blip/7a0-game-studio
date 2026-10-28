@@ -941,6 +941,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (o mensal só vale em dia: **cancelou, perde a reserva** — *"se cancelar… não continua reservado"*). Nome de grátis não trava ninguém;
   grátis com nome de quem paga (ou de batismo alheio) leva o selo **🎭 FAKE** grudado no nome, decidido pelo BANCO (`esc_meu_nome_fake`)
   e lido no login, igual à medalha da semana. Batismo continua reservado pro dono como antes. É benefício de TODO plano (do Craque Salas).
+- **⚡ MATA-MATA RELÂMPAGO (28/10): chave de 16 ou 32 (quem cria escolhe), IDA E VOLTA e só a FINAL em jogo único, pênaltis
+  AUTOMÁTICOS** (*"tem q ter ida e volta, somente final que não"* · *"pênalti padrão igual as outras normais"*). Sem liga: leilão de
+  sempre → sorteio. ⚠️ **O pênalti que a pessoa BATE só existe na carreira offline** — nas salas é sempre a disputa automática; não
+  prometer pênalti manual online sem conferir (eu errei no mockup). Só na conta dele por enquanto (`RELAMPAGO_GERAL`).
 - **🧭 UMA COISA SÓ EM CADA ABA (27/10).** *"não gostei de você fazer várias coisas num lugar só. A central é só coisa da central,
   jogos ali é só coisa dos jogos… jogo e tabela é na mesma página"*. Nunca juntar pedaços de abas diferentes numa tela (nada de
   "3 colunas com clube + tabela + calendário" na Central, estilo Brasileirinho). Jogos + Tabela = uma aba só.

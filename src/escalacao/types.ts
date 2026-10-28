@@ -549,7 +549,8 @@ export interface QuickCopaTie {
 // (a Copa dos 8 continua começando nas quartas — nada muda pra ela).
 // ⭐ 'repescao' existe SÓ pra Champions (25/09): o repescão (9º–24º, ida e volta) roda no
 // MESMO motor do mata-mata — relógio, pênaltis e cobrança manual iguais aos da Copa.
-export type CopaFase = 'repescao' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
+// ⚡ 'r32' existe SÓ pro Mata-mata Relâmpago com chave de 32 (28/10): a "Rodada de 32", antes das oitavas.
+export type CopaFase = 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
   phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL
@@ -875,7 +876,11 @@ export interface EscState {
   // pra uma LIBERTADORES DE 32 — eles + os 24 clubes do continente
   // (`LIBERTA_CLUBS`), em 8 grupos de 4. Copa dos 8 e Libertadores nunca rodam
   // juntas: é uma OU a outra, e o seletor da tela reflete isso.
-  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' // 'champions' = SÓ Champions (25/09): sem liga, direto na tabela de 36 — rápido offline e salas online
+  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' // 'champions' = SÓ Champions (25/09): sem liga, direto na tabela de 36 — rápido offline e salas online
+  // ⚡ MATA-MATA RELÂMPAGO (28/10, Diego: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras
+  // normais"*): só sala online. Leilão de sempre → chave sorteada → ida e volta, final em jogo único (*"tem q ter ida e volta,
+  // somente final que não"*); empate no agregado = os pênaltis automáticos de sempre. Sem liga. `relampagoChave` = o tamanho da chave que o dono escolheu ao criar (bots completam).
+  relampagoChave?: 16 | 32
   // 📮 SALA DE CHAMPIONS (25/09, sala 9LSKXI travou com 27): o host tem a "caixa de entrada"
   // própria (`escalacao-in:<sala>`), e o convidado manda o lance SÓ pra ele em vez de espalhar
   // pra sala inteira. Quem liga é o host no START_ONLINE — host de versão velha não liga, e aí

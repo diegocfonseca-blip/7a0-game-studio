@@ -4554,6 +4554,47 @@ function abreChampionsDiretoSePrecisa(s: EscState) {
   s.screen = 'champions'
 }
 
+// ⚡ MATA-MATA RELÂMPAGO (28/10, mockup `scripts/mockups/mata-relampago.png`). Pedido do Diego: *"faz c 16 então msm e 32 a pessoa
+// escolhe ao criar e pênalti padrão igual as outras normais"*. O leilão é o de SEMPRE; quando a temporada nasce (rodada 0), o
+// HOST pula a liga e sorteia a chave com os times da sala (gente + bots que completaram). Daí pra frente é o motor da Copa de
+// sempre (`PLAY_COPA_LEG`): ida e volta em toda fase, final em jogo único, empate no agregado = pênaltis automáticos, igual às outras Copas.
+/** o tamanho da chave: o que o dono escolheu, mas nunca menor que o número de pessoas na sala */
+export function chaveRelampago(escolha: number | undefined, pessoas: number): 16 | 32 {
+  return escolha === 32 || pessoas > 16 ? 32 : 16
+}
+/** a fase em que a chave começa: 32 → Rodada de 32 · 16 → oitavas */
+export function faseInicialRelampago(chave: 16 | 32): 'r32' | 'oitavas' { return chave === 32 ? 'r32' : 'oitavas' }
+/** sorteia a chave (os times da SALA — humanos e bots com elenco; nunca o clube de enfeite que completa a tabela) */
+export function seedRelampago(league: LeagueTeam[], chave: 16 | 32, rng: () => number): QuickCopaState {
+  const daSala = league.filter(t => t.isManager)
+  const resto = league.filter(t => !t.isManager)
+  const times = shuffle([...daSala, ...resto].slice(0, chave), rng)
+  const ties: QuickCopaTie[] = []
+  for (let i = 0; i + 1 < times.length; i += 2) ties.push({ aId: times[i].id, bId: times[i + 1].id, aName: times[i].name, bName: times[i + 1].name, legs: [], winner: null })
+  return { phase: faseInicialRelampago(chave), ties, legIdx: 0, bracket: [], scorers: [], assists: [] }
+}
+/** ⚡ até onde cada time chegou na chave → posição final (1 = campeão, 2 = vice, 3 = semi…). Quem caiu na mesma fase divide a posição. */
+export function posicaoNaChave(qc: QuickCopaState): Map<number, number> {
+  const ordem = ['r32', 'oitavas', 'quartas', 'semis', 'final']
+  const chegou = new Map<number, number>()
+  for (const b of qc.bracket) { const f = ordem.indexOf(b.phase); for (const t of b.ties) for (const id of [t.aId, t.bId]) chegou.set(id, Math.max(chegou.get(id) ?? -1, f)) }
+  const pos = new Map<number, number>()
+  for (const [id, f] of chegou) pos.set(id, id === qc.champion?.id ? 1 : f === 4 ? 2 : 2 ** (4 - f) + 1)
+  return pos
+}
+function abreRelampagoSePrecisa(s: EscState) {
+  if (s.copaMode !== 'relampago' || s.screen !== 'season') return
+  // 🌐 só o HOST sorteia — o resultado chega pronto pros outros (regra de ouro do online). Nunca na carreira nem no basquete.
+  if ((s.onlineMode === 'online' && !s.isHost) || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
+  if (s.round !== 0 || !s.league.length) return
+  // 🧹 rodada 0 = qualquer Copa no estado é resto da partida anterior (mesma lição da Só Champions, 25/09)
+  s.champions = null; s.liberta = null; s.quickCopa = null
+  const chave = s.relampagoChave ?? chaveRelampago(undefined, s.managers.filter(m => m.isHuman).length)
+  s.quickCopa = seedRelampago(s.league, chave, mulberry((s.seed ^ 0x5E1A3F0) >>> 0))
+  s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
+  s.news = [tr(`⚡ MATA-MATA RELÂMPAGO! Chave de ${chave} sorteada — ida e volta, final em jogo único.`, `⚡ LIGHTNING KNOCKOUT! ${chave}-team draw is done — two legs, single-match final.`)]
+}
+
 /** a tabela de 36, do 1º ao 36º — MESMO desempate do resto do jogo */
 export function championsTabela(ch: ChampionsState): ChampionsTeam[] {
   return [...ch.times].sort((a, b) =>
@@ -5527,7 +5568,7 @@ type Action =
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -7274,7 +7315,7 @@ function proximoDoDraft(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -7294,6 +7335,7 @@ export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
+  if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
   return s
 }
 function reducerBase(state: EscState, action: Action): EscState {
@@ -8723,6 +8765,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      // ⚡ RELÂMPAGO: a chave que o dono escolheu (16 ou 32). Se a sala tiver mais gente que a chave (não devia — a tela trava),
+      // a chave cresce pra caber todo mundo: ninguém fica de fora do sorteio.
+      s.relampagoChave = s.copaMode === 'relampago' ? chaveRelampago(action.relampagoChave, action.playerNames.length) : undefined
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
       // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
@@ -8821,7 +8866,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // com as outras séries. Carreira online mantém a estrutura das divisões.
       // 🏆 LIGA FECHADA: a tabela é só a galera (leagueSize = nº de humanos) → sem
       // bots. Nos outros modos, completa até 20 como sempre.
-      const onlineLeagueSize = s.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
+      // ⚡ Relâmpago: a sala tem EXATAMENTE o tamanho da chave (16 ou 32) — os bots que completam ganham elenco pronto, igual sempre.
+      const onlineLeagueSize = s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
@@ -10557,7 +10603,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if ((s.careerOnline && s.sport !== 'basquete') || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
       // ⭐ Só Champions: a liga nunca é jogada (a rodada fica no fim só de fachada) —
       // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
-      if (s.copaMode === 'champions') return s
+      if (s.copaMode === 'champions' || s.copaMode === 'relampago') return s // ⚡ Relâmpago também não tem liga
       finishSeason(s)
       return s
     }
@@ -10670,6 +10716,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const vitoriasNaSerie = (t: QuickCopaTie): [number, number] =>
         t.legs.reduce<[number, number]>((acc, [a, b]) => { if (a > b) acc[0]++; else acc[1]++; return acc }, [0, 0])
       const kingsCopa = ehKings(s) // 👑 mata-mata da Kings: TUDO jogo único
+      // ⚡ Relâmpago: ida e volta como a Copa de sempre, só a final em jogo único (Diego 28/10: *"tem q ter ida e volta, somente final que não"*)
+      const relampago = s.copaMode === 'relampago'
       const legsNeeded = bbSerie ? 3 : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
@@ -10687,7 +10735,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : s.copaMode === 'relampago' ? 'DO MATA-MATA RELÂMPAGO ⚡' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -10730,7 +10778,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             const a = qc.ties[i], b = qc.ties[i + 1]
             nextTies.push({ aId: a.winner!, bId: b.winner!, aName: winnerName(a), bName: winnerName(b), legs: [], winner: null })
           }
-          qc.phase = qc.phase === 'oitavas' ? 'quartas' : qc.phase === 'quartas' ? 'semis' : 'final'
+          qc.phase = qc.phase === 'r32' ? 'oitavas' : qc.phase === 'oitavas' ? 'quartas' : qc.phase === 'quartas' ? 'semis' : 'final'
           qc.ties = nextTies
           qc.legIdx = 0
         }
@@ -10780,8 +10828,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const bbGiro = s.sport === 'basquete'
       const phaseWord = bbGiro
         ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
-        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
-      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : 'Copa'
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'r32' ? 'RODADA DE 32' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : relampago ? 'Relâmpago' : 'Copa'
       const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {

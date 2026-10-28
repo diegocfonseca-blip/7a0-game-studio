@@ -1,4 +1,16 @@
-## ⚡ Mata-mata Relâmpago (28/10) — MOCKUP enviado, esperando OK do Diego
+## ⚡ Mata-mata Relâmpago (28/10) — FEITO no branch, SÓ NA CONTA DO DIEGO (`RELAMPAGO_GERAL = false`), esperando ele testar
+- Regras dele: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras normais"* e *"tem q ter ida
+  e volta, somente final que não"*. Então: quem cria escolhe CHAVE DE 16 (começa nas oitavas) ou 32 (Rodada de 32); a sala cabe
+  esse tanto de gente e os bots completam; leilão de sempre → sorteio → IDA E VOLTA em toda fase, FINAL EM JOGO ÚNICO; empate no
+  agregado = pênaltis AUTOMÁTICOS de sempre (o pênalti manual só existe na carreira offline — eu tinha escrito errado no mockup).
+- Código: `copaMode: 'relampago'` + `relampagoChave` (marca de modo) · `abreRelampagoSePrecisa`/`seedRelampago`/`posicaoNaChave`
+  (store) · fase nova `'r32'` · telas da Copa, fim sem liga (bloco da Só Champions), ranking/estante sem "campeão de liga" falso ·
+  O MARTELO edição Relâmpago (`montaEdicaoRelampago`) · criar sala: opção na prateleira "Com o seu time" (só sala rápida, sem
+  duplas) + "Tamanho da chave" · rótulos na lista de salas e na sala de espera.
+- Trava: `npm run relampago` (chave 16 e 32, de 2 a 20 pessoas, ida e volta, pênaltis no empate, campeão, sem jogador fake,
+  "mesmo time" sorteia de novo, Liga + Copa intacta). Fotos reais: `scripts/mockups/relampago-real-*.png`.
+- ⚠️ A tela de CRIAR sala não deu pra fotografar (a bancada não loga) — conferir na conta dele. Liberar geral = `RELAMPAGO_GERAL = true`.
+- Ainda não: Relâmpago no Minhas Ligas e com Duplas (não pedido).
 - Veio da lista de ideias novas pras salas (Clã × Clã, Liga dos Bagres, Copa das Décadas, Leilão de Seleções, Relâmpago, Leilão
   das Pistas, Rei da Noite). Ele escolheu ver o Relâmpago.
 - Proposta: nova opção no bloco "O campeonato" ao lado de Só a liga / Liga + Copa / Só Champions. Leilão DE SEMPRE → sorteio da

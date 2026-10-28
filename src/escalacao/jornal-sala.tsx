@@ -21,7 +21,7 @@
 // ao montar aquela tela que a carta é gravada na conta.
 import { useMemo, useRef, useState } from 'react'
 import type { EscState, LeagueTeam, QuickCopaState } from './types'
-import { sortedTable, topScorers, championsTabela } from './store'
+import { sortedTable, topScorers, championsTabela, posicaoNaChave } from './store'
 import { Escudo } from './escudos'
 import './online-visual.css'
 import onlineVictoryArt from './img/online-jornal-v20.webp'
@@ -39,8 +39,8 @@ const COND = { fontFamily: 'Oswald, sans-serif' } as const
 export type CopaStatus = 'campeao' | 'vice' | 'caiu' | 'fora'
 export interface CopaRunSala { status: CopaStatus; fase?: string; vs?: string; pens?: boolean }
 
-const NOME_FASE: Record<string, string> = { repescao: 'no repescão', oitavas: 'nas oitavas', quartas: 'nas quartas', semis: 'na semifinal', final: 'na final' }
-const NOME_FASE_EN: Record<string, string> = { repescao: 'in the playoff', oitavas: 'in the round of 16', quartas: 'in the quarters', semis: 'in the semi-final', final: 'in the final' }
+const NOME_FASE: Record<string, string> = { repescao: 'no repescão', r32: 'na rodada de 32', oitavas: 'nas oitavas', quartas: 'nas quartas', semis: 'na semifinal', final: 'na final' }
+const NOME_FASE_EN: Record<string, string> = { repescao: 'in the playoff', r32: 'in the round of 32', oitavas: 'in the round of 16', quartas: 'in the quarters', semis: 'in the semi-final', final: 'in the final' }
 
 // Lê o chaveamento e diz, pra cada id, até onde foi. `bracket` guarda as fases já
 // fechadas; `ties` é a fase em andamento (no fim, já entrou no bracket).
@@ -297,6 +297,44 @@ function montaEdicaoChampions(state: EscState): EdicaoSala {
   return { linhas, campeaoLiga, campeaoCopa: null, mesmoDono: false, artilheiro, lanterna, manchete, linhaFina, copaNome: 'Champions', nTecnicos: linhas.filter(l => l.humano).length, offline, soChampions: true }
 }
 
+// ⚡ EDIÇÃO DO RELÂMPAGO: sem liga — quem manda é a chave. Linhas = as pessoas da sala (+ campeão e vice), em ordem de até
+// onde chegaram; manchete do campeão; o "lanterna" não existe (perdeu na estreia é só eliminado).
+function montaEdicaoRelampago(state: EscState): EdicaoSala {
+  const qc = state.quickCopa!
+  const en = getLang() === 'en'
+  const pos = posicaoNaChave(qc)
+  const mgr = (id: number) => state.managers.find(m => m.id === id)
+  const nomeDe = (id: number) => state.league.find(t => t.id === id)?.name ?? mgr(id)?.teamName ?? '?'
+  const offline = state.onlineMode !== 'online'
+  const meuId = state.managers[state.youIdx]?.id
+  const champ = qc.champion ?? null
+  const final = qc.bracket.find(b => b.phase === 'final')?.ties[0]
+  const viceId = final && final.winner != null ? (final.winner === final.aId ? final.bId : final.aId) : null
+  const fase = (p: number) => p === 1 ? (en ? 'Champion' : 'Campeão') : p === 2 ? (en ? 'Runner-up' : 'Vice') : p === 3 ? (en ? 'Out in the semis' : 'Caiu na semi')
+    : p === 5 ? (en ? 'Out in the quarters' : 'Caiu nas quartas') : p === 9 ? (en ? 'Out in the round of 16' : 'Caiu nas oitavas') : (en ? 'Out in the round of 32' : 'Caiu na rodada de 32')
+  const linhas: LinhaSala[] = []
+  for (const [id, p] of [...pos.entries()].sort((a, b) => a[1] - b[1])) {
+    const m = mgr(id)
+    const humano = !!m?.isHuman
+    const chave = id === champ?.id || id === viceId
+    if (offline) { if (p > 3 && id !== meuId && !chave) continue }
+    else if (!humano && !chave) continue
+    linhas.push({ id, time: nomeDe(id), quem: m?.name ?? '', pos: p, pts: 0, humano, voce: id === meuId, nota: `${fase(p)}.`, destaque: p === 1 ? 'ouro' : p === 2 ? 'roxo' : undefined })
+  }
+  const placar = final ? `${final.aName} ${final.legs.reduce((a, g) => a + g[0], 0)} × ${final.legs.reduce((a, g) => a + g[1], 0)} ${final.bName}${final.pens ? ` (${en ? 'pens' : 'pên.'} ${final.pens[0]}×${final.pens[1]})` : ''}` : ''
+  const campeaoLiga = champ ? { nome: champ.name, quem: mgr(champ.id)?.name ?? '', pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 } : null
+  const sc = [...(qc.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
+  const artilheiro = sc ? { nome: sc.name, time: sc.teamName, gols: sc.goals } : null
+  const n = pos.size
+  const manchete = campeaoLiga
+    ? (en ? `${campeaoLiga.nome.toUpperCase()} WINS THE LIGHTNING KNOCKOUT!` : `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO DO RELÂMPAGO!`)
+    : (en ? 'FULL TIME IN THE LIGHTNING KNOCKOUT' : 'FIM DE JOGO NO RELÂMPAGO')
+  const linhaFina = campeaoLiga
+    ? (en ? `${n} clubs, no league, two legs every round — and the final went to ${campeaoLiga.nome}${placar ? ` (${placar})` : ''}.` : `${n} clubes, sem liga, ida e volta em toda fase — e a final ficou com o ${campeaoLiga.nome}${placar ? ` (${placar})` : ''}.`)
+    : (en ? 'The draw is closed.' : 'A chave fechou.')
+  return { linhas, campeaoLiga, campeaoCopa: null, mesmoDono: false, artilheiro, lanterna: null, manchete, linhaFina, copaNome: en ? 'Lightning Knockout' : 'Relâmpago', nTecnicos: linhas.filter(l => l.humano).length, offline, soRelampago: true, subCampeao: placar ? `${en ? 'final' : 'final'}: ${placar}` : undefined }
+}
+
 // ── monta a edição inteira a partir do estado ───────────────────────────────
 // bandeirinha do país no nome do campeão do mundo — o jornal é imagem, então
 // aqui é texto puro mesmo (o mapa completo mora em copa-mundo.tsx).
@@ -332,6 +370,10 @@ export interface EdicaoSala {
   // CAMPEÃO DA CHAMPIONS, a "posição" de cada um é a da TABELA DE 36 e as etiquetas trocam
   // "liga" por "Champions/tabela". Mesmo jornal, mesma cara — só o conteúdo muda.
   soChampions?: boolean
+  // ⚡ MATA-MATA RELÂMPAGO (28/10): também não tem liga. O destaque é o campeão do mata-mata, a "posição" é até onde cada um
+  // chegou na chave e a linha de baixo do campeão é a FINAL (não pontos). Mesmo jornal, mesma cara.
+  soRelampago?: boolean
+  subCampeao?: string // texto embaixo do campeão quando não é "N pontos" (Relâmpago: o placar da final)
 }
 
 // 🌍 `mundo` = o campeão da COPA DO MUNDO da sala (01/09). Quando ele vem, o
@@ -345,6 +387,7 @@ export interface EdicaoSala {
 // Pedido do Diego: *"tudo deve ser igual… troféus, motor, tudo parecido c outros modos"*.
 export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: number, mundo?: { nome: string; pais: string; copa?: string } | null): EdicaoSala {
   if (state.copaMode === 'champions' && state.champions) return montaEdicaoChampions(state)
+  if (state.copaMode === 'relampago' && state.quickCopa) return montaEdicaoRelampago(state)
   const table = sortedTable(state.league)
   const n = table.length
   // "Rio × São Paulo" vira "Copa Rio × São Paulo" (EN: "Rio × São Paulo Cup"), pra manchete fechar
@@ -466,8 +509,8 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       {/* banner(s) dos campeões */}
       <div className="newspaper-champions" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {ed.campeaoLiga && (
-          <Banner faixa={ed.soChampions ? 'CHAMPIONS LEAGUE' : 'LIGA LEGENDS'} tag={tr('CAMPEÃO', 'CHAMPION')} time={ed.campeaoLiga.nome}
-            sub={`${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}
+          <Banner faixa={ed.soRelampago ? tr('MATA-MATA RELÂMPAGO', 'LIGHTNING KNOCKOUT') : ed.soChampions ? 'CHAMPIONS LEAGUE' : 'LIGA LEGENDS'} tag={tr('CAMPEÃO', 'CHAMPION')} time={ed.campeaoLiga.nome}
+            sub={`${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`}
             c1="#2E9E5B" c2="#14532d" fita="#DFF3E3" />
         )}
         {ed.campeaoCopa && !ed.mesmoDono && (
@@ -482,7 +525,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
         <p style={{ ...COND, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, padding: '7px 10px', letterSpacing: '.05em' }}>{ed.offline ? tr('🏆 OS DONOS DO TORNEIO', '🏆 OWNERS OF THE TOURNAMENT') : tr('🏆 OS DONOS DA NOITE', '🏆 OWNERS OF THE NIGHT')}</p>
         <div style={{ background: '#fff' }}>
           {([
-            ed.campeaoLiga && ['🏆', ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, GOLD],
+            ed.campeaoLiga && ['🏆', ed.soRelampago ? tr('CAMPEÃO DO RELÂMPAGO', 'LIGHTNING KNOCKOUT WINNER') : ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`, GOLD],
             ed.campeaoCopa && ['🥇', tr(`CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, `${ed.copaNome.toUpperCase()} CHAMPION`), ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO],
             ed.artilheiro && (ed.bb
               ? ['🏀', ed.offline ? tr('CESTINHA DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('CESTINHA DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('pontos', 'points')}`, GREEN]
@@ -513,7 +556,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p style={{ ...SERIF, fontWeight: 700, fontSize: 13, margin: 0, lineHeight: 1.15 }}>{l.time}
                     {l.voce && <span style={{ ...COND, fontSize: 8.5, background: INK, color: GOLD, borderRadius: 4, padding: '1px 5px', marginLeft: 5 }}>{tr('VOCÊ', 'YOU')}</span>}
-                    {l.quem && <span style={{ ...COND, fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.45)', marginLeft: 5 }}>{l.quem} · {l.pts} pts</span>}</p>
+                    {l.quem && <span style={{ ...COND, fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.45)', marginLeft: 5 }}>{l.quem}{ed.soRelampago ? '' : ` · ${l.pts} pts`}</span>}</p>
                   <p style={{ ...SERIF, fontSize: 11.5, margin: '2px 0 0', lineHeight: 1.35, color: 'rgba(0,0,0,.78)' }}>{l.nota}</p>
                 </div>
               </div>
@@ -633,7 +676,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     x.font = `700 20px ${OSW}`; x.fillStyle = GOLD
     x.fillText(tr('🏆 CAMPEÃO', '🏆 CHAMPION'), bx + bw / 2, y + 180)
   }
-  if (ed.campeaoLiga) desenhaBanner(L, ed.soChampions ? 'CHAMPIONS LEAGUE' : 'LIGA LEGENDS', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, '#2E9E5B', '#14532d')
+  if (ed.campeaoLiga) desenhaBanner(L, ed.soRelampago ? tr('MATA-MATA RELÂMPAGO', 'LIGHTNING KNOCKOUT') : ed.soChampions ? 'CHAMPIONS LEAGUE' : 'LIGA LEGENDS', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`, '#2E9E5B', '#14532d')
   if (dois && ed.campeaoCopa) desenhaBanner(L + bw + 16, ed.copaNome.toUpperCase(), ed.campeaoCopa.nome, ed.campeaoCopa.quem ? tr(`o time do ${ed.campeaoCopa.quem}`, `${ed.campeaoCopa.quem}'s team`) : tr('campeão do mata-mata', 'knockout champion'), '#8B5CF6', '#4C1D95')
   y += bh + 30
 
@@ -643,7 +686,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   x.fillText(ed.offline ? tr('🏆 OS DONOS DO TORNEIO', '🏆 OWNERS OF THE TOURNAMENT') : tr('🏆 OS DONOS DA NOITE', '🏆 OWNERS OF THE NIGHT'), L + 14, y + 32)
   let dy = y + 46
   const donos: [string, string, string, string, string][] = []
-  if (ed.campeaoLiga) donos.push(['🏆', ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`, GOLD])
+  if (ed.campeaoLiga) donos.push(['🏆', ed.soRelampago ? tr('CAMPEÃO DO RELÂMPAGO', 'LIGHTNING KNOCKOUT WINNER') : ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), ed.campeaoLiga.nome, `${ed.campeaoLiga.quem} · ${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`, GOLD])
   if (ed.campeaoCopa) donos.push(['🥇', tr(`CAMPEÃO DA ${ed.copaNome.toUpperCase()}`, `${ed.copaNome.toUpperCase()} CHAMPION`), ed.campeaoCopa.nome, ed.campeaoCopa.quem, ROXO])
   if (ed.artilheiro) donos.push(ed.bb
     ? ['🏀', ed.offline ? tr('CESTINHA DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('CESTINHA DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('pontos', 'points')}`, GREEN]
@@ -681,7 +724,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     x.font = `700 23px ${SER}`; x.fillStyle = INK
     x.fillText(l.time, L + 74, ny + 30)
     const tw = x.measureText(l.time).width
-    if (l.quem) { x.font = `700 15px ${OSW}`; x.fillStyle = 'rgba(0,0,0,.45)'; x.fillText(`${l.quem} · ${l.pts} pts`, L + 74 + tw + 12, ny + 29) }
+    if (l.quem) { x.font = `700 15px ${OSW}`; x.fillStyle = 'rgba(0,0,0,.45)'; x.fillText(ed.soRelampago ? l.quem : `${l.quem} · ${l.pts} pts`, L + 74 + tw + 12, ny + 29) }
     x.font = `22px ${SER}`; x.fillStyle = 'rgba(0,0,0,.78)'
     let ly = ny + 58
     for (const ln of linhasNota) { x.fillText(ln, L + 74, ly); ly += 28 }
