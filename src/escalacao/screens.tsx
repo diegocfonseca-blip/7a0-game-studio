@@ -1894,7 +1894,8 @@ function BidLegendsHome() {
         <div className="ll-extras ll-extras-3">
           <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
           <button className="ll-salao-entry ll-regras-entry" onClick={() => setShowManual(true)}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
-          <button className="ll-salao-entry ll-album-entry" onClick={() => dispatch({ type: 'GO_ALBUM' })}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+          {/* 📖 28/10 (Diego): o MEU ÁLBUM saiu da home — o álbum já mora dentro dos 👥 Amigos. Sem Amigos (deslogado), fica. */}
+          {!amigosOn && <button className="ll-salao-entry ll-album-entry" onClick={() => dispatch({ type: 'GO_ALBUM' })}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>}
         </div>
       </section>
       <footer className="ll-footer">
@@ -2303,7 +2304,8 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         <div className="ll-extras ll-extras-3">
           <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
           <button className="ll-salao-entry ll-regras-entry" onClick={onManual}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
-          <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+          {/* 📖 28/10 (Diego): o MEU ÁLBUM saiu da home — o álbum já mora dentro dos 👥 Amigos. Sem Amigos (deslogado), fica. */}
+          {!amigosOn && <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>}
         </div>
       </section>
       <footer className="ll-footer">

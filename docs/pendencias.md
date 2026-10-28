@@ -11473,3 +11473,7 @@ pedi pra você melhorar visualmente o que tem hoje"*). A carreira voltou a ser c
 ✅ Taças: `TacasNome` em `ligahub.tsx` — pequenas (17px), em fila depois do nome, ×N do lado
 (*"precisa ser menor e alinhado"*), só o que ganhou; Só Champions/Relâmpago usam a taça deles (`comp`). Os chips de Liga/Copa da sala
 rápida saíram (a taça diz isso); Top 8 e rebaixamento continuam.
+
+## 📖 MEU ÁLBUM saiu da home (28/10)
+Diego: *"a página meu álbum da home pode tirar… dentro da página amigos já tem"*. O botão some da home (futebol e basquete) pra quem tem
+os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o caminho. A tela do álbum continua existindo (é a mesma dos Amigos).

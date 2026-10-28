@@ -469,7 +469,7 @@ function NovaTroca({ meuNome, minhas, inicial, onEnviada }: { meuNome: string; m
 
 // ─── 👥📖 ÁLBUM DENTRO DOS AMIGOS (19/10, mockup `scripts/mockups/amigos-album.png`, Diego: "ok pode fazer") ─────────────
 // É o MESMO álbum (as mesmas cópias, coleções e trocas) — só que dentro da janela dos Amigos, onde fica mais fácil trocar.
-// O 📖 MEU ÁLBUM da home continua lá.
+// 🔁 28/10: o 📖 MEU ÁLBUM saiu da home (só aparece pra quem não tem os Amigos) — o álbum agora é aqui.
 export function AlbumNosAmigos({ propor }: { propor?: { uid: string; nome: string } }) {
   const t = useT()
   const { copias, recarregar } = useMinhasCopias(true)
