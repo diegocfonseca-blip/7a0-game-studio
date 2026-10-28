@@ -18,14 +18,24 @@ const CLIPS={idle:'Offensive Soccer Idle',idle_bola:'Playing With Ball Idle',tro
  lateral:'Soccer Sideline Throw In',carrinho:'Soccer Slide Tackle',cai:'Tripping Over A Soccer Tackle',levanta:'Standing Up From A Soccer Fall',
  gk_idle:'Goalkeeper Idle Without Ball',gk_idle_bola:'Goalkeeper Idle Holding Ball',gk_voo_e:'Goalkeeper Left Diving Save',gk_voo_d:'Goalkeeper Right Diving Save',gk_pega_baixo:'Goalkeeper Catching Ball Low Height',
  gk_pega:'Goalkeeper Catching Ball Medium Height',gk_pega_alto:'Goalkeeper Jump Catching Ball High Height',gk_passo_e:'Goalkeeper Left Sidestep',gk_passo_d:'Goalkeeper Right Sidestep',gk_chutao:'Goalkeeper Drop Kicking Ball',
- gk_lanca:'Goalie Overhand Throw',gk_rola:'Goalkeeper Rolling Pass',gk_recolhe:'Goalkeeper Scooping The Ball From A Roll'}
+ gk_lanca:'Goalie Overhand Throw',gk_rola:'Goalkeeper Rolling Pass',gk_recolhe:'Goalkeeper Scooping The Ball From A Roll',
+ passe_curto:'Low Kick To Idle Transition',cai_carrinho:'Running Fall Over A Soccer Slide Tackle',cai_parado:'Standing Fall Over A Soccer Slide Tackle',
+ gk_bloqueio_e:'Goalkeeper Left Body Block',gk_bloqueio_d:'Goalkeeper Right Body Block',gk_erra:'Goalkeeper Jump And Miss',gk_lanca_longe:'Goalkeeper Far Overhand Throw',
+ // ⚽ mocap de jogador de verdade (pacote grátis de futebol do Anderson Rohr, esqueleto do Unreal — 'rohr:' = tmp-rohr/ue5/<nome>_ue5.fbx)
+ // (só os que o jogo usa — dribles 1/2, pênaltis, desarmes, lateral e goleiro ficam de fora até ganharem lugar: cada um pesa no arquivo)
+ drible3:'rohr:03_Dribble_03',passe_chapa:'rohr:08_Side_Foot_Kick',chute_forte:'rohr:09_Power_Kick',
+ comemora1:'rohr:12_Goal_Celebration_01',comemora2:'rohr:13_Goal_Celebration_02',comemora3:'rohr:14_Goal_Celebration_03'}
+// esqueleto do Unreal (Manny) → nomes do Mixamo (o resto do caminho é o mesmo dos movimentos do Mixamo)
+const UE5={pelvis:'Hips',spine_01:'Spine',spine_03:'Spine1',spine_05:'Spine2',neck_01:'Neck',head:'Head',
+ clavicle_l:'LeftShoulder',upperarm_l:'LeftArm',lowerarm_l:'LeftForeArm',hand_l:'LeftHand',clavicle_r:'RightShoulder',upperarm_r:'RightArm',lowerarm_r:'RightForeArm',hand_r:'RightHand',
+ thigh_l:'LeftUpLeg',calf_l:'LeftLeg',foot_l:'LeftFoot',ball_l:'LeftToeBase',thigh_r:'RightUpLeg',calf_r:'RightLeg',foot_r:'RightFoot',ball_r:'RightToeBase'}
 const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader','--ignore-gpu-blocklist']})
 const page=await (await browser.newContext({viewport:{width:800,height:600}})).newPage();const logs=[];page.on('pageerror',e=>logs.push(e.message));page.on('console',m=>{if(m.type()==='error')logs.push(m.text())})
 await page.goto('http://localhost:5190/qa-presidencia-mapa.html',{waitUntil:'load'});await page.waitForFunction(()=>window.qaThree,{},{timeout:240000})
 await page.exposeFunction('__grava',(nome,dataUrl)=>fs.writeFileSync(new URL(nome,OUT),Buffer.from(dataUrl.split(',')[1],'base64')))
 await page.exposeFunction('__gravaTexto',(nome,txt)=>fs.writeFileSync(new URL(nome,OUT),txt))
 const MED=JSON.parse(process.env.MEDIDAS||'{}'),SO_MAPA=process.env.SO_MAPA==='1' // (ajuste fino do corte e teste rápido só do mapa)
-const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA})=>{
+const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA,UE5})=>{
  const T=window.qaThree,{FBXLoader}=await import('/node_modules/three/examples/jsm/loaders/FBXLoader.js'),{GLTFExporter}=await import('/node_modules/three/examples/jsm/exporters/GLTFExporter.js')
  const L=new FBXLoader(),g=await L.loadAsync('/'+PASTA+'/rig.fbx');g.updateMatrixWorld(true)
  let mesh;g.traverse(o=>{if(o.isSkinnedMesh)mesh=o});const geo=mesh.geometry,pos=geo.attributes.position,uv=geo.attributes.uv,si=geo.attributes.skinIndex,sw=geo.attributes.skinWeight,bones=mesh.skeleton.bones
@@ -100,8 +110,16 @@ const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA})=>{
  const depth=o=>{let d=0;while(o.parent){o=o.parent;d++}return d}
  const clips=[],meta={}
  for(const [nome,arq] of Object.entries(CLIPS)){
-  let src;try{src=await L.loadAsync('/'+PASTA+'/anim/'+encodeURIComponent(arq)+'.fbx')}catch(e){meta[nome]={erro:'sem arquivo'};continue}
-  const clip=src.animations[0];src.updateMatrixWorld(true);const sb=new Map();src.traverse(o=>{if(o.isBone)sb.set(o.name,o)})
+  const rohr=arq.startsWith('rohr:')
+  let src;try{src=await L.loadAsync(rohr?'/tmp-rohr/ue5/'+encodeURIComponent(arq.slice(5))+'_ue5.fbx':'/'+PASTA+'/anim/'+encodeURIComponent(arq)+'.fbx')}catch(e){meta[nome]={erro:'sem arquivo'};continue}
+  const clip=src.animations[0]
+  if(rohr){
+   // (Unreal: Z pra cima e frente em −Y, em cm → gira a cena pro Y pra cima/frente em +Z do boneco; o osso `root` leva o
+   // deslocamento pelo campo — fica parado, o jogo é quem anda; e os ossos ganham o nome do Mixamo)
+   src.rotation.x=-Math.PI/2
+   clip.tracks=clip.tracks.filter(t=>!t.name.startsWith('root.')).map(t=>{const [b,pr]=t.name.split('.');if(UE5[b])t.name='mixamorig'+UE5[b]+'.'+pr;return t})
+   src.traverse(o=>{if(o.isBone&&UE5[o.name])o.name='mixamorig'+UE5[o.name]})
+   src.updateMatrixWorld(true)}src.updateMatrixWorld(true);const sb=new Map();src.traverse(o=>{if(o.isBone)sb.set(o.name,o)})
   // altura do quadril da fonte EM PÉ (pose de descanso) — a régua da altura. (Antes era o 1º quadro do movimento: no "levanta" ele
   // começa deitado, a régua ficava minúscula e o jogador subia até 5 m — o "jogador voando" que o Diego viu em 27/10)
   const syRest=sb.get('mixamorigHips').getWorldPosition(new T.Vector3()).y
@@ -135,5 +153,5 @@ const r=await page.evaluate(async({PASTA,CLIPS,MED,SO_MAPA})=>{
  const metaTxt=JSON.stringify({fonte:'Tripo (boneco do Diego, uniforme branco) + esqueleto e movimentos Mixamo (Adobe) baixados pela conta do Diego',triangulos:idx.length/3,altura,uniforme:cont,clips:meta},null,1)
  await window.__gravaTexto('jogador-meta.json',metaTxt)
  return {flipY:fy,verts:[antes,depois],tri:idx.length/3,clips:clips.length,uniforme:cont,altura,glbMB:(glb.byteLength/1e6).toFixed(2)}
-},{PASTA,CLIPS,MED,SO_MAPA})
+},{PASTA,CLIPS,MED,SO_MAPA,UE5})
 console.log(JSON.stringify(r),'erros',JSON.stringify(logs.slice(0,5)));await browser.close()

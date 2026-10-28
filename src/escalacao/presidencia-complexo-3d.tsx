@@ -275,7 +275,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    }
    const key=JSON.stringify([population.actorKey,accesses.map(access=>access.id),flow.used,flow.transport,flow.pedestrians,flow.fans,flow.streetCars])
    if(key===previousActorKey){refreshSeats();return residentChanged}
-   const circulationKey=JSON.stringify([population.actorKey,flow.pedestrians,flow.fans,flow.streetCars])
+   const circulationKey=JSON.stringify([population.actorKey,flow.pedestrians,flow.fans,flow.streetCars,flow.rua])
    if(circulationKey!==previousCirculationKey){circulationActors?.dispose();circulationActors=undefined}
    const visitKey=JSON.stringify(accesses.map(access=>access.id))
    if(visitKey!==previousVisitKey){
@@ -303,7 +303,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    refreshSeats()
    if(population.enabled&&!circulationActors){
     circulationActors=criarCirculacaoComplexo(scene,state,surround.solids,{...population.options,journey:journeyRef.current,
-     pedestrians:flow.pedestrians,homeFans:flow.fans.home,awayFans:flow.fans.away,cars:flow.streetCars})
+     pedestrians:flow.pedestrians,homeFans:flow.rua.fansHome,awayFans:flow.rua.fansAway,cars:flow.rua.cars})
     circulationActors.update(seconds);populationRebuilds++
    }
    previousCirculationKey=circulationKey

@@ -276,6 +276,97 @@
    "deslocamento": 408.392,
    "toque": 1,
    "pe": "l"
+  },
+  "passe_curto": {
+   "arquivo": "Low Kick To Idle Transition",
+   "duracao": 0.767,
+   "deslocamento": 2.961,
+   "toque": 0.2083,
+   "pe": "r"
+  },
+  "cai_carrinho": {
+   "arquivo": "Running Fall Over A Soccer Slide Tackle",
+   "duracao": 2.733,
+   "deslocamento": 401.145,
+   "toque": 0.625,
+   "pe": "r"
+  },
+  "cai_parado": {
+   "arquivo": "Standing Fall Over A Soccer Slide Tackle",
+   "duracao": 2.3,
+   "deslocamento": 0,
+   "toque": 0.3333,
+   "pe": "r"
+  },
+  "gk_bloqueio_e": {
+   "arquivo": "Goalkeeper Left Body Block",
+   "duracao": 3.433,
+   "deslocamento": 86.232,
+   "toque": 1.2083,
+   "pe": "r"
+  },
+  "gk_bloqueio_d": {
+   "arquivo": "Goalkeeper Right Body Block",
+   "duracao": 2.467,
+   "deslocamento": 62.825,
+   "toque": 0.3333,
+   "pe": "r"
+  },
+  "gk_erra": {
+   "arquivo": "Goalkeeper Jump And Miss",
+   "duracao": 2.933,
+   "deslocamento": 77.253,
+   "toque": 0.75,
+   "pe": "r"
+  },
+  "gk_lanca_longe": {
+   "arquivo": "Goalkeeper Far Overhand Throw",
+   "duracao": 2.833,
+   "deslocamento": 393.347,
+   "toque": 1.7917,
+   "pe": "r"
+  },
+  "drible3": {
+   "arquivo": "rohr:03_Dribble_03",
+   "duracao": 3.4,
+   "deslocamento": 283.915,
+   "toque": 1.7083,
+   "pe": "l"
+  },
+  "passe_chapa": {
+   "arquivo": "rohr:08_Side_Foot_Kick",
+   "duracao": 4.517,
+   "deslocamento": 64.379,
+   "toque": 1.4167,
+   "pe": "r"
+  },
+  "chute_forte": {
+   "arquivo": "rohr:09_Power_Kick",
+   "duracao": 4.45,
+   "deslocamento": 203.418,
+   "toque": 2.625,
+   "pe": "l"
+  },
+  "comemora1": {
+   "arquivo": "rohr:12_Goal_Celebration_01",
+   "duracao": 3.483,
+   "deslocamento": 73.184,
+   "toque": 0.0417,
+   "pe": "l"
+  },
+  "comemora2": {
+   "arquivo": "rohr:13_Goal_Celebration_02",
+   "duracao": 3.533,
+   "deslocamento": 134.51,
+   "toque": 0.0417,
+   "pe": "l"
+  },
+  "comemora3": {
+   "arquivo": "rohr:14_Goal_Celebration_03",
+   "duracao": 3.183,
+   "deslocamento": 197.135,
+   "toque": 0.0417,
+   "pe": "l"
   }
  }
 }

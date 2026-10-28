@@ -88,6 +88,43 @@
 - 3ª rodada (27/10, *"dá impressão que ele faz o mesmo lance pra chutar e passar"*): passe/enfiada = toque de lado do pé
   (`passe`) · cruzamento/lançamento/inversão/bola de 26 m+ = batida por baixo (`cavadinha`) · chute = a bomba. Só existe UM
   movimento de passe no Mixamo baixado; mais variedade (passe correndo, de chapa, de trivela) precisa de arquivo novo do Mixamo.
+- 4ª rodada (27/10): o Diego já mandou TUDO que o Mixamo tem de futebol (63; o "Soccer Pass" que ele mandou depois é o mesmo
+  passe). Variedade tirada do que existe: **pé esquerdo** (espelho feito no carregamento, `espelhar` em jogador-novo.mjs: canhoto
+  famoso de canhota, destro famoso de direita, o resto pelo lado da bola, 1 em 4 de canhota) · **passe curto** (Low Kick, bola de
+  menos de 13 m) · **queda de carrinho** (correndo/parado) · **goleiro**: bloqueio com o corpo e lançamento longo com a mão.
+- 5ª rodada (27/10, *"o domínio não parece real… o passe parece colado… não parece que foi com o pé"* → *"quero perfeição"*):
+  a bola do DESENHO virou uma peça própria (`bolaDoDesenho` em players-novo.mjs). Livre = a bola do motor, que se desvia aos
+  poucos até cair no pé/peito/cabeça de quem vai tocar, no instante do toque (o corpo também anda metade do caminho até ela, com
+  a passada acompanhando; bola parada = o corpo anda tudo). Posse = a bola rola sozinha com atrito e só anda quando a ponta do pé
+  do boneco encosta nela; no passe/chute ela espera no pé que bate e sai DELE. Medido na bancada (40 s): bola × osso no contato
+  2–22 cm (antes 0,6–1,7 m). O giro da bola segue a bola desenhada. Previsão agora olha 1,8 s adiante.
+- 6ª rodada (27/10, *"a bola parece puxada por uma linha… muda de direção sozinha… passe de cabeça no meio-campo"*):
+  condução por FASE da passada (2 toques do pé direito por ciclo, 37% e 86%; cada toque manda a bola rolar até o pé do próximo
+  toque — sem coleira) e quem conduz no desenho faz o movimento de conduzir · voo em LINHA do pé que bateu ao pé que recebe
+  (andamento e altura da bola do motor) · cabeçada só na área ou em finalização (`deCabeca`; no meio-campo a bola desce pro pé)
+  · o corpo anda 70% do caminho até a bola. Saltos de bola na bancada: 64 → 16 em 40 s (os que sobram: gol/reinício).
+- 7ª rodada (27/10, *"a bola é ruim quando vai de encontro até outro jogador"*): no passe a bola desenhada saía devagar e
+  ACELERAVA no caminho (7→17 m/s) e parava 1 quadro no pé. Agora o voo tem física de bola: sai forte e freia na grama (2,3 m/s², o
+  atrito do motor), do instante do contato até um PONTO DE ENCONTRO fixo (70% onde a bola do motor vai estar, 30% onde o pé do
+  jogador vai estar); o corpo de quem recebe anda até esse ponto sem atraso. Medido: passe 13→8 m/s freando liso; contato 2–20 cm.
+- 🏙️ CIDADE E ENTORNO MAIS CHEIOS, LIGADOS À TORCIDA (28/10, *"a cidade está muito vazia… tem que ter ligação com o número de
+  torcedores… muito pouco NPC rondando, muito pouco carro"*): moradores da cidade = 10 + cresce com a torcida (dobrou a torcida
+  → +6) + 2 por obra, teto 48 no PC / 20 no celular (`population.mjs`; antes 2–24/10) e espalhados em até 32 calçadas. Entorno do
+  estádio: o orçamento de sempre (transporte, visitas, contas) NÃO mudou; por cima dele, `rua` (fluxo.ts) soma torcedores a pé
+  (até 10 da casa / 5 de fora) e carros na rua (até 10, vários por pista, espaçados) pela torcida. Dia de jogo com relógio da
+  jornada continua 1 torcedor por lado. Bonecos da cidade continuam os pequenos de sempre (pedido dele). Medido na bancada:
+  carros 2 → 9, torcedores a pé 0 → 9. Testes do complexo: fluxo/circulação/torcidas/transporte/lifecycle/luzes passam
+  (transporte-assento e jornada-movimento já falhavam antes, sem relação).
+- ⚽ MOVIMENTOS DE JOGADOR DE VERDADE (27/10): o Diego baixou o pacote de futebol do Anderson Rohr (21 arquivos, esqueleto do
+  Unreal) e subiu no Drive. Ficam fora do git em `tmp-rohr/ue5/` (baixar de novo pelo Drive: títulos `NN_Nome_ue5.fbx`). O
+  `monta-jogador.mjs` converte o esqueleto do Unreal (Z pra cima, cm, nomes `pelvis/thigh_l/...`) pro do Mixamo (`UE5` no script,
+  prefixo `rohr:` nos CLIPS). No jogo: **passe de chapa** (passe/enfiada) e **chute forte** (chute) são os gravados, com espelho
+  pra canhota; **drible3** nas fintas; **3 comemorações** no gol (sorteadas pelo autor). Trechos usados em `TRECHOS`
+  (players-novo.mjs). Medido: passe de chapa bola × pé 3–6 cm. Ficaram de fora (pesam no arquivo e ainda não têm lugar): dribles
+  1/2, pênaltis, desarmes, lateral (o lateral converteu estranho) e defesas de goleiro. GLB 2,67 → 2,97 MB.
+- 🎞️ Movimentos grátis achados (27/10, a conferir com o Diego): pacote de futebol do Anderson Rohr (Gumroad, "pague o quanto
+  quiser", FBX 60 fps, esqueleto Rokoko/UE5/iClone — precisa de mapa de ossos no `monta-jogador.mjs`, uso comercial liberado
+  segundo a série) · pacote pago barato de 28 animações na CGTrader (US$ 7) · Quaternius (CC0, sem futebol específico).
 
 ## 🧩 Criar sala em blocos (26/10) — ✅ PUBLICADO PRA TODOS (*"agora pode publicar pra todos isso já"*)
 - Mockup aprovado: `scripts/mockup-criar-sala-organizada.mjs` → `scripts/mockups/criar-sala-organizada.png` (v5).
