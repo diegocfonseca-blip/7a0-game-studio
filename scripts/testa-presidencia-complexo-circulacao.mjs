@@ -29,8 +29,13 @@ assert.deepEqual(movement.inspect().problems, [], 'percursos registrados devem e
 assert(movement.inspect().pedestrian, 'loja comprada precisa ter visitante')
 assert.equal(movement.inspect().destinationBudget, 3)
 assert.deepEqual(movement.inspect().pedestrians.map(entry => entry.destination), ['loja', 'hotel', 'chopp'])
-assert.equal(movement.inspect().cars.length, 2, 'amostra deve ficar limitada a dois carros')
-assert.equal(movement.wheels.length, 8, 'lista física só inclui rodas dos carros habilitados')
+assert.equal(movement.inspect().cars.length, 10, 'amostra deve ficar limitada a dez carros (28/10: a quantidade cresce com a torcida)')
+assert.equal(movement.wheels.length, 40, 'lista física só inclui rodas dos carros habilitados')
+// (carros na mesma pista nunca colados: cada um num ponto da volta)
+// (pares e ímpares são mãos opostas da rua — cruzar é normal; na MESMA mão, nunca colados)
+for (let t = 0; t < 60; t += 3) { movement.update(t); const cs = movement.inspect().cars
+  for (let i = 0; i < cs.length; i++) for (let j = i + 2; j < cs.length; j += 2) if (cs[i] && cs[j]) assert(Math.hypot(cs[i].x - cs[j].x, cs[i].z - cs[j].z) > 4.5, `carros ${i} e ${j} colados em ${t}s`) }
+movement.update(0)
 assert.equal(movement.inspect().mode, 'qa-sample')
 const solids = environment.solids.map(s => ({ ...s, polygon: s.footprint.map(p => ({ x: p.x, y: p.z })) }))
 const solidCheck = (actor, radius, height) => {

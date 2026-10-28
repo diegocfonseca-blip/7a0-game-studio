@@ -81,6 +81,14 @@
   ACELERAVA no caminho (7→17 m/s) e parava 1 quadro no pé. Agora o voo tem física de bola: sai forte e freia na grama (2,3 m/s², o
   atrito do motor), do instante do contato até um PONTO DE ENCONTRO fixo (70% onde a bola do motor vai estar, 30% onde o pé do
   jogador vai estar); o corpo de quem recebe anda até esse ponto sem atraso. Medido: passe 13→8 m/s freando liso; contato 2–20 cm.
+- 🏙️ CIDADE E ENTORNO MAIS CHEIOS, LIGADOS À TORCIDA (28/10, *"a cidade está muito vazia… tem que ter ligação com o número de
+  torcedores… muito pouco NPC rondando, muito pouco carro"*): moradores da cidade = 10 + cresce com a torcida (dobrou a torcida
+  → +6) + 2 por obra, teto 48 no PC / 20 no celular (`population.mjs`; antes 2–24/10) e espalhados em até 32 calçadas. Entorno do
+  estádio: o orçamento de sempre (transporte, visitas, contas) NÃO mudou; por cima dele, `rua` (fluxo.ts) soma torcedores a pé
+  (até 10 da casa / 5 de fora) e carros na rua (até 10, vários por pista, espaçados) pela torcida. Dia de jogo com relógio da
+  jornada continua 1 torcedor por lado. Bonecos da cidade continuam os pequenos de sempre (pedido dele). Medido na bancada:
+  carros 2 → 9, torcedores a pé 0 → 9. Testes do complexo: fluxo/circulação/torcidas/transporte/lifecycle/luzes passam
+  (transporte-assento e jornada-movimento já falhavam antes, sem relação).
 - ⚽ MOVIMENTOS DE JOGADOR DE VERDADE (27/10): o Diego baixou o pacote de futebol do Anderson Rohr (21 arquivos, esqueleto do
   Unreal) e subiu no Drive. Ficam fora do git em `tmp-rohr/ue5/` (baixar de novo pelo Drive: títulos `NN_Nome_ue5.fbx`). O
   `monta-jogador.mjs` converte o esqueleto do Unreal (Z pra cima, cm, nomes `pelvis/thigh_l/...`) pro do Mixamo (`UE5` no script,

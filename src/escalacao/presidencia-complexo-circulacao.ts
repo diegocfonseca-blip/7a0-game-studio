@@ -36,11 +36,14 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   const attendance = population.stadium ? publicoDoEstadio(population.stadium, population.day) : undefined
   const destinationBudget = state.valid ? Math.min(requested(population.pedestrians ?? attendance?.outside, 3), attendance?.outside ?? 3) : 0
   const awayAttendance = population.awayStadium ? publicoDoEstadio(population.awayStadium, population.awayDay) : undefined
+  // 🚗🚶 28/10 (Diego: "muito pouco NPC rondando, muito pouco carro… tem que ter ligação com o número de torcedores"): os
+  // torcedores a pé e os carros crescem com a torcida do clube (dobrou a torcida, mais um ou dois), com teto pra não pesar
+  const porTorcida = (base: number, cada: number, teto: number) => attendance ? clamp(Math.round(base + Math.log2(1 + attendance.supporters / 4000) * cada), base, teto) : undefined
   const fanCounts = {
-    home: state.valid ? requested(population.homeFans ?? attendance?.outside, population.journey ? 1 : 3) : 0,
-    away: state.valid ? requested(population.awayFans ?? (awayAttendance ? awayAttendance.playing ? awayAttendance.outside : 0 : attendance ? 0 : 1), population.journey ? 1 : 2) : 0,
+    home: state.valid ? requested(population.homeFans ?? (attendance ? Math.max(attendance.outside * 2, porTorcida(2, 1.2, 10)!) : undefined), population.journey ? 1 : 10) : 0,
+    away: state.valid ? requested(population.awayFans ?? (awayAttendance ? awayAttendance.playing ? awayAttendance.outside * 2 : 0 : attendance ? 0 : 1), population.journey ? 1 : 5) : 0,
   }
-  const carCount = state.valid ? requested(population.cars ?? attendance?.cars, 2) : 0
+  const carCount = state.valid ? requested(population.cars ?? (attendance ? Math.max(attendance.cars, porTorcida(3, 1.2, 10)!) : undefined), 10) : 0
   const root = new THREE.Group()
   root.name = 'complexo-circulacao'
   const surfaceRoot = scene.getObjectByName('complexo-entorno') ?? scene
@@ -134,7 +137,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
       legs: prepare(`pedestre-${destination}`, route, PEDESTRIAN_RADIUS, PEDESTRIAN_HEIGHT, approach.length, destination, true) }
   })
   const carLegs = Array.from({ length: carCount }, (_, i) => {
-    const id = i ? 'roadBack' : 'roadOut'
+    const id = i % 2 ? 'roadBack' : 'roadOut'
     return { id, legs: prepare(id, PLANTA_COMPLEXO.routes[id].points, CAR_RADIUS, 1.5) }
   })
 
@@ -218,7 +221,8 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   function carAt(legs: Leg[], seconds: number, index: number): Pose | undefined {
     const length = legs.reduce((sum, leg) => sum + leg.length, 0)
     if (!length) return undefined
-    const speed = 6, progress = ((seconds * speed + length * (index ? .65 : .15)) % length + length) % length
+    // (vários carros na mesma pista: cada um num ponto da volta, espaçados)
+    const speed = 6, progress = ((seconds * speed + length * (((index % 2 ? .65 : .15) + Math.floor(index / 2) * .27) % 1)) % length + length) % length
     let distance = progress
     const leg = legs.find(candidate => { if (distance <= candidate.length) return true; distance -= candidate.length; return false }) ?? legs.at(-1)!
     const legIndex = legs.indexOf(leg), blend = Math.min(2, leg.length / 3)

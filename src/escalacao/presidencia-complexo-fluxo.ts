@@ -23,6 +23,22 @@ export type OpcoesFluxoComplexo = {
   retainedMetroSide?: 'home' | 'away'
 }
 const count = (value: number | undefined, limit: number) => Number.isFinite(value) ? Math.max(0, Math.min(limit, Math.floor(value!))) : 0
+// 🚗🚶 28/10 (Diego: "muito pouco NPC rondando, muito pouco carro… tem que ter ligação com o número de torcedores"): o
+// orçamento da rua cresce com a TORCIDA do clube (dobrou a torcida → mais gente e mais carro), com teto pra não pesar
+const pelaTorcida = (d: Demand | undefined, base: number, cada: number) => {
+  const s = (d as { supporters?: number } | undefined)?.supporters
+  return Number.isFinite(s) ? Math.round(base + Math.log2(1 + s! / 4000) * cada) : 0 }
+const TETO = { fansHome: 10, fansAway: 5, streetCars: 10 }
+/** O que a RUA mostra de verdade: o orçamento de sempre (que o transporte, as visitas e as contas usam) + o que a torcida soma
+ *  por cima — só torcedores a pé e carros da rua, que não ocupam assento, ônibus nem vaga. No dia de jogo com relógio da
+ *  jornada continua 1 torcedor por lado (é ele que o relógio acompanha). */
+const ruaDaTorcida = (input: OpcoesFluxoComplexo, active: boolean, qa: boolean, fans: { home: number; away: number }, streetCars: number, visitando: { home: boolean; away: boolean }) => {
+  if (!active || qa || input.journey) return { fansHome: fans.home, fansAway: fans.away, cars: streetCars }
+  // (quem está numa visita ao assento é o torcedor daquele lado: aí a rua não ganha outro)
+  return { fansHome: visitando.home ? 0 : Math.min(TETO.fansHome, Math.max(fans.home, pelaTorcida(input.home, 2, 1.4))),
+    fansAway: visitando.away ? 0 : Math.min(TETO.fansAway, fans.away * 2),
+    cars: Math.min(TETO.streetCars, Math.max(streetCars, pelaTorcida(input.home, 3, 1.2))) }
+}
 export function distribuirFluxoComplexo(input: OpcoesFluxoComplexo) {
   if(input.transportSeats)return distribuirFluxoIntegrado(input)
   const active = input.enabled && input.mode !== 'off'
@@ -59,13 +75,14 @@ export function distribuirFluxoComplexo(input: OpcoesFluxoComplexo) {
   const pedestrians = Math.min(3, count(input.destinations, 3), home); home -= pedestrians
   const fans = { home: visits.home ? 0 : Math.min(input.journey ? 1 : 3, home), away: visits.away ? 0 : Math.min(input.journey ? 1 : 2, away) }
   const streetCars = Math.max(0, Math.min(2, budget.cars - parkingCars))
+  const rua = ruaDaTorcida(input, active, qa, fans, streetCars, { home: !!visits.home, away: !!visits.away })
   const used = { home: visits.home + busPassengers + parkingPassengers + pedestrians + fans.home,
     away: visits.away + metroPassengers + fans.away, cars: streetCars + parkingCars }
   const draining = { home: Math.max(0, busPassengers + parkingPassengers - budget.home),
     away: Math.max(0, metroPassengers - budget.away), cars: Math.max(0, parkingCars - budget.cars) }
   const reservedTransport = reserveDeparture ? Object.fromEntries(Object.entries(arrivalAllocation).map(([key, value]) =>
     [key, Math.max(0, value - count(effective?.[key as keyof TransporteFluxoComplexo], 1))])) as TransporteFluxoComplexo : undefined
-  return { budget, used, draining, reservedTransport, journey: input.journey ? { ...input.journey } : undefined, visits, transportVisits:{home:0,away:0},metroSide:'away' as const, pedestrians, fans, streetCars,
+  return { budget, used, draining, reservedTransport, journey: input.journey ? { ...input.journey } : undefined, visits, transportVisits:{home:0,away:0},metroSide:'away' as const, pedestrians, fans, streetCars, rua,
     transport: { metroPassengers, busPassengers, parkingPassengers, cars: parkingCars } }
 }
 
@@ -99,8 +116,9 @@ function distribuirFluxoIntegrado(input:OpcoesFluxoComplexo){
  const pedestrians=Math.min(3,count(input.destinations,3),left.home);left.home-=pedestrians
  const fans={home:visits.home||transportVisits.home?0:Math.min(input.journey?1:3,left.home),away:visits.away||transportVisits.away?0:Math.min(input.journey?1:2,left.away)}
  const streetCars=Math.max(0,Math.min(2,budget.cars-transport.cars))
+ const rua=ruaDaTorcida(input,active,qa,fans,streetCars,{home:!!(visits.home||transportVisits.home),away:!!(visits.away||transportVisits.away)})
  const used={home:passengers.home+visits.home+pedestrians+fans.home,away:passengers.away+visits.away+fans.away,cars:transport.cars+streetCars}
  const draining={home:Math.max(0,passengers.home-budget.home),away:Math.max(0,passengers.away-budget.away),cars:Math.max(0,transport.cars-budget.cars)}
  const reservedTransport=leaving?Object.fromEntries(Object.entries(desired).map(([key,n])=>[key,Math.max(0,n-count(effective?.[key as keyof TransporteFluxoComplexo],1))])) as TransporteFluxoComplexo:undefined
- return{budget,used,draining,reservedTransport,journey:input.journey?{...input.journey}:undefined,visits,transportVisits,metroSide,pedestrians,fans,streetCars,transport}
+ return{budget,used,draining,reservedTransport,journey:input.journey?{...input.journey}:undefined,visits,transportVisits,metroSide,pedestrians,fans,streetCars,rua,transport}
 }

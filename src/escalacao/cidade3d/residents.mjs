@@ -12,7 +12,7 @@ export function createResidents(scene,environment,solids=[]){
  const ray=new T.Raycaster(),down=new T.Vector3(0,-1,0),routes=[];
  const ground=p=>{ray.set(new T.Vector3(p.x,.6,p.z),down);ray.far=.65;const h=ray.intersectObjects(surfaces,false).find(h=>h.face?.normal.y>.9);return h&&Math.abs(h.point.y-.16)<.03?h.point.y:null};
  for(const road of roads){
-  if(routes.length>=12)break;
+  if(routes.length>=32)break; // (mais calçadas: com mais gente, cada um no seu trecho)
   if(!road.walk||road.walk<1.6)continue;
   for(const side of [-1,1]){
    const points=road.points.map((p,i)=>{const a=road.points[Math.max(0,i-1)],b=road.points[Math.min(road.points.length-1,i+1)],length=Math.hypot(b.x-a.x,b.z-a.z)||1,offset=side*(road.width/2+road.walk/2);return{x:p.x-(b.z-a.z)/length*offset,z:p.z+(b.x-a.x)/length*offset}});
@@ -28,7 +28,7 @@ export function createResidents(scene,environment,solids=[]){
  const actors=[];let configuration={enabled:false},seconds=0;
  function configure(value){configuration={...value};const count=routes.length?cityPopulation(value):0;
   while(actors.length>count){actors.pop().body.dispose()}
-  while(actors.length<count){const i=actors.length,route=routes[Math.floor(i/2)%routes.length],body=createCivilian(root,{id:'resident-'+i,variant:CIVILIAN_VARIANTS[i%CIVILIAN_VARIANTS.length].id});actors.push({body,route,offset:i*5.3,position:new T.Vector3(),heading:0,visible:false})}
+  while(actors.length<count){const i=actors.length,route=routes[(i*7)%routes.length],body=createCivilian(root,{id:'resident-'+i,variant:CIVILIAN_VARIANTS[i%CIVILIAN_VARIANTS.length].id});actors.push({body,route,offset:i*5.3,position:new T.Vector3(),heading:0,visible:false})}
  }
  function update(time,camera){seconds=Number.isFinite(time)?Math.max(0,time):0;
   for(const [i,a]of actors.entries()){
