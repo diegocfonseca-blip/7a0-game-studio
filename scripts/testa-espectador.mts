@@ -27,6 +27,13 @@ ok(esp.managers[esp.youIdx]?.id === 0 && esp.managers[esp.youIdx]?.name === 'Don
 ok(esp.youUid === 'uid-fantasma' && !(esp.seatUids ?? []).includes('uid-fantasma'), 'o crachá dele é o próprio e NÃO está em cadeira nenhuma')
 ok(JSON.stringify({ seat: esp.seatUids, mg: esp.managers.map(m => [m.id, m.isHuman, m.name]) }) === fotoCadeiras, 'cadeiras e times idênticos aos do dono')
 
+console.log('\n🚫 1b) jogar e assistir ao mesmo tempo, nunca')
+const jogadorTentando = reducer(structuredClone(INITIAL) as EscState, { type: 'ASSISTIR_ONLINE', state: structuredClone(host), roomId: 'sala1', roomCode: 'ABC123', youUid: 'uid-ana', hostUid: 'uid-dono' })
+ok(!jogadorTentando.espectador && jogadorTentando.onlineMode !== 'online', 'quem tem cadeira na sala (Ana) NÃO entra como fantasma')
+const anaJogando = reducer(structuredClone(INITIAL) as EscState, { type: 'RESTORE_ONLINE', state: structuredClone(host), roomId: 'sala1', roomCode: 'ABC123', isHost: false, playerIndex: 1, youUid: 'uid-ana' })
+const anaTenta = reducer(anaJogando, { type: 'ASSISTIR_ONLINE', state: structuredClone(host), roomId: 'sala2', roomCode: 'XYZ999', youUid: 'uid-fantasma', hostUid: 'uid-dono' })
+ok(anaTenta === anaJogando, 'quem está no meio de uma partida como jogador não vira fantasma de outra sala')
+
 console.log('\n👑 2) coroa e cadeira nunca pegam no fantasma')
 ok(reducer(esp, { type: 'BECOME_HOST' }).isHost === false, 'BECOME_HOST é ignorado')
 ok(reducer(esp, { type: 'RECOVER_LOCAL_HOST' } as never).isHost === false, 'RECOVER_LOCAL_HOST é ignorado')

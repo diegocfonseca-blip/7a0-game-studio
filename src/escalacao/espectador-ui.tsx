@@ -41,6 +41,13 @@ export function EspectadorEspera({ sala, onSair }: { sala: SalaAssistida; onSair
         const row = r as { status?: string; host_id?: string }
         const { data: ps } = await supabase.from('room_players').select('manager_name, player_index, user_id').eq('room_id', sala.id).order('player_index')
         if (vivo) setNomes((ps ?? []).map((p: { manager_name?: string | null; user_id?: string }) => `${p.user_id === row.host_id ? '👑' : '⚽'} ${p.manager_name ?? '—'}`))
+        // 🚫 JOGAR E ASSISTIR AO MESMO TEMPO, NUNCA (Diego 28/10): se esta conta tem cadeira nesta sala (dono, jogador ou
+        // parceiro de dupla), não entra como fantasma — nem em outro aparelho.
+        if ((ps ?? []).some((p: { user_id?: string }) => p.user_id === eu) || row.host_id === eu) {
+          setAviso(tr('🚫 Você está JOGANDO nesta sala — não dá pra jogar e assistir ao mesmo tempo. Saia daqui e volte pela sala como jogador.', '🚫 You are PLAYING in this room — you can’t play and watch at the same time. Leave and go back to the room as a player.'))
+          entrou.current = true
+          return
+        }
         if (row.status !== 'started' || !row.host_id) { setAviso(null); return }
         // começou: baixa o estado inteiro (no máximo a cada 6s, enquanto o dono ainda não gravou a partida)
         if (Date.now() - ultimoPesado.current < 6000) return

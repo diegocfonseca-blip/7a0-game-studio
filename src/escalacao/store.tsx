@@ -7496,6 +7496,10 @@ function reducerBase(state: EscState, action: Action): EscState {
   // 👁️ ASSISTIR (fantasma, 28/10): o mesmo caminho da reconexão, só que pelos olhos do DONO e sem nada de jogador —
   // isHost falso, sem cadeira (o crachá dele não está no seatUids), e a marca `espectador` que tranca tudo no aparelho.
   if (action.type === 'ASSISTIR_ONLINE') {
+    // 🚫 nunca jogar e assistir ao mesmo tempo: quem tem cadeira na sala (ou está no meio de outra partida online como
+    // jogador) não vira fantasma — a recusa deixa tudo como estava.
+    if (assentoDoCracha(action.state, action.youUid) >= 0) return state
+    if (state.onlineMode === 'online' && !state.espectador && state.roomId && state.screen !== 'lobby' && state.screen !== 'intro') return state
     const r = reducer(state, { type: 'RESTORE_ONLINE', state: action.state, roomId: action.roomId, roomCode: action.roomCode, isHost: false, playerIndex: 0, youUid: action.hostUid })
     return { ...r, isHost: false, youUid: action.youUid, espectador: true, espHostUid: action.hostUid, submitted: action.state.submitted ?? [] }
   }
