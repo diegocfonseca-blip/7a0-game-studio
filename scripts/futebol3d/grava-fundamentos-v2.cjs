@@ -7,8 +7,9 @@ const mode=process.env.CAPTURE_MODE||'close',captures=[];
  const p=await browser.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());if(p.routeWebSocket)await p.routeWebSocket('**/*',s=>s.close());
  await p.goto(origin+'/scripts/futebol3d/audita-mapa.html');await p.waitForFunction(()=>window.mapAudit?.ready(),{},{timeout:120000});await p.evaluate(()=>mapAudit.size(960,540));let index=0,chapter=[],lastChapter=-1;
  for(let i=0;i<=Math.max(...windows.map(w=>w[1]))*60;i++){const t=i/60,wi=windows.findIndex(([a,b])=>t>=a-1e-8&&t<b-1e-8),capture=wi>=0&&i%3===0;
-  const jpg=await p.evaluate(({t,capture,mode})=>{mapAudit.seek(t);return capture?mapAudit.capture(t,mode):null},{t,capture,mode});
-  if(jpg){if(lastChapter!==wi){chapter.push({second:index/fps,matchTime:t,label:windows[wi][2]});lastChapter=wi}captures.push({index,time:t,window:wi});const bytes=Buffer.from(jpg,'base64');fs.writeFileSync(path.join(frames,String(index++).padStart(5,'0')+'.jpg'),bytes);if(index%20===0)console.log('capturados',index,'tempo',t)}
+  const captureMode=windows[wi]?.[3]||mode;
+  const jpg=await p.evaluate(({t,capture,mode})=>{mapAudit.seek(t);return capture?mapAudit.capture(t,mode):null},{t,capture,mode:captureMode});
+  if(jpg){if(lastChapter!==wi){chapter.push({second:index/fps,matchTime:t,label:windows[wi][2],mode:captureMode});lastChapter=wi}captures.push({index,time:t,window:wi,mode:captureMode});const bytes=Buffer.from(jpg,'base64');fs.writeFileSync(path.join(frames,String(index++).padStart(5,'0')+'.jpg'),bytes);if(index%20===0)console.log('capturados',index,'tempo',t)}
  }
  if(errors.length)throw Error(errors.join('\n'));
  execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-framerate',String(fps),'-i',frames+'/%05d.jpg','-vf','scale=in_range=full:out_range=tv,format=yuv420p','-c:v','libx264','-crf','25','-color_range','tv','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'fundamentos-normal.mp4')]);

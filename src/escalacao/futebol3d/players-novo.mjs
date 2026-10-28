@@ -24,6 +24,7 @@ import {prepareBodyTrack} from './motion/map-root-track.mjs'
 import {MapFootPlant} from './motion/map-foot-plant.mjs'
 import {groundContactShadows} from './motion/ground-contact-shadows.mjs'
 import {prepareMapGaits,gaitTime} from './motion/map-gait.mjs'
+import {keeperCatchIntent} from './motion/map-keeper-intent.mjs'
 import {VisualPlayerCollisions} from './visual-player-collisions.mjs'
 
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
@@ -97,7 +98,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   for(const action of calibrator.mixer._actions)action.setEffectiveWeight(0)
   calibrator.holder.position.set(0,0,0);calibrator.holder.rotation.set(0,0,0)
   const action=calibrator.acao(nome);action.reset().play();action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;action.time=time;action.timeScale=0;action.setEffectiveWeight(1);calibrator.mixer.update(0);calibrator.holder.updateMatrixWorld(true)
-  const floor=calibrator.surface.floor(),ground=Math.max(0,.003-floor);calibrator.holder.position.y+=ground;calibrator.holder.updateMatrixWorld(true)
+  const floor=calibrator.surface.floor(/^gk_(recolhe|pega|rola|lanca)/.test(nome)),ground=Math.max(0,.003-floor);calibrator.holder.position.y+=ground;calibrator.holder.updateMatrixWorld(true)
   const point=n=>calibrator.bones.get('mixamorig'+n).getWorldPosition(new T.Vector3()),meta=asset.meta.clips[nome.replace(/_e$/,'')],left=(meta?.pe==='l')!==nome.endsWith('_e')
   region??=/^cabeca/.test(nome)?'head':/^gk_|lateral/.test(nome)?'hands':/^peito/.test(nome)?'chest':left?'left':'right'
   let off,fit=true
@@ -125,6 +126,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   else if(['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26)it.nome='cavadinha'
   else it.nome=prevReceive&&it.t-prevReceive.t<.8?'passe':'passe_chapa'
   if(it.kind==='toque'&&!it.hands&&!it.cab){const wantLeft=a.pe==='canhota'||a.pe!=='direita'&&a.canhoto,baseLeft=asset.meta.clips[it.nome]?.pe==='l';if(wantLeft!==baseLeft&&asset.clips.has(it.nome+'_e'))it.nome+='_e'}
+  if(it.goleiro){const intent=keeperCatchIntent(it,agenda,key=>atores.find(a=>a.key===key)?.side);it.dir=intent.heading;it.incomingShot=intent.shot}
   it.mira=it.dir??it.rec.heading
  }
  for(const it of agenda){if(it.kind!=='recebe'||it.goleiro||it.pickup)continue;
@@ -171,7 +173,16 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // A failed control can roll to an opponent. Keep that loose interval free
  // of the same ownership spring, without manufacturing another touch/decision.
  const physical=agenda.filter(it=>!it.disabled&&!(it.firstTime&&it.kind==='recebe'));
- for(let i=0;i<physical.length-1;i++){const p=physical[i],q=physical[i+1];if(!['recebe','carry'].includes(p.kind)||p.hands||p.goleiro||q.hands||p.bola.y>.13||q.bola.y>.13||q.t-p.t>2.5||!groundInterval(p,q)||groundFlights.some(f=>Math.abs(f.start-p.t)<1e-5))continue;const f=groundDelivery(p.t,q.t,p.bola,q.bola);if(f){groundFlights.push(f);controlSpans.push(f)}}
+ for(let i=0;i<physical.length-1;i++){const p=physical[i],q=physical[i+1];if(!['recebe','carry'].includes(p.kind)||p.hands||p.goleiro||q.hands||p.bola.y>.13||q.bola.y>.13||q.t-p.t>2.5||!groundInterval(p,q)||groundFlights.some(f=>Math.abs(f.start-p.t)<1e-5))continue;const f=groundDelivery(p.t,q.t,p.bola,q.bola);if(!f)continue;groundFlights.push(f);controlSpans.push(f);
+  // A spilled first touch stays loose. The receiver follows its fixed roll
+  // until the source relinquishes possession, instead of running past it while
+  // playing a dribbling loop. No extra touch or ball attraction is manufactured.
+  if(p.key!==q.key){const a=atores.find(a=>a.key===p.key),dx=f.to.x-f.from.x,dz=f.to.z-f.from.z,d=Math.hypot(dx,dz);if(!a||d<.4)continue;
+   let end=Math.min(q.t-.18,p.t+1.5);for(let t=p.t+.05;t<end;t+=1/60)if(timeline.sample(t).owner!==p.key){end=t;break}
+   let to;while(end>p.t+.35){const ball=sampleGroundDelivery(f,end),base=timeline.sample(end,p.key).player;to={x:ball.x-dx/d*.8,z:ball.z-dz/d*.8};if(Math.hypot(to.x-base.x,to.z-base.z)<2.85)break;end-=.05}
+   if(end>p.t+.35)a.controls.push({start:p.t,end,from:{x:p.rec.x+p.root.x,z:p.rec.z+p.root.z},to,loose:true,intent:Math.atan2(dx,dz),recovery:1});
+  }
+ }
  for(const a of atores)a.bodyTrack=prepareBodyTrack(a.knots,a.controls,time=>timeline.sample(time,a.key).player);
  const bodyTrack=(a,time)=>a.bodyTrack(time);
  for(const action of calibrator.mixer._actions)action.setEffectiveWeight(0)
@@ -181,6 +192,9 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  for(const a of atores){let previous=null;for(const it of agenda.filter(i=>i.key===a.key&&!i.disabled&&!(i.firstTime&&i.kind==='recebe'))){
   const raw=rawTouch(it.nome),begin=it.kind==='carry'?.27:trecho(it.nome)?.de??0;
   it.start=it.t-(raw-begin);const moving=!it.hands&&!it.goleiro&&!it.pickup&&!it.cab&&(it.rec?.speed??0)>3.5;if(moving&&(it.kind==='recebe'||it.kind==='carry'||['passe','enfiada'].includes(it.tipo)))it.start=Math.max(it.start,it.t-(it.kind==='recebe'?.24:.28));
+  // React to the shot first. The low collection starts only when the ball is
+  // approaching the ground, not a full second before a high shot reaches goal.
+  if(it.goleiro&&it.incomingShot)it.start=Math.max(it.start,it.t-.28);
   const settle=(previous?.goleiro||previous?.pickup) ? .18 : .10;
   if(previous&&previous.t<it.t&&it.start<previous.t+settle)it.start=Math.min(it.t-.19,previous.t+settle);
   const shortPass=it.kind==='toque'&&!it.hands&&['passe','enfiada'].includes(it.tipo);
@@ -192,6 +206,10 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // Release collision steering gradually around a fixed contact. A binary
  // lock used to erase up to 60 cm of avoidance in a single video frame.
  const contactFreedom=(a,time)=>{const distance=Math.min(Infinity,...(a?.knots??[]).map(k=>Math.abs(k.t-time)));return T.MathUtils.smoothstep(distance,.08,.4)};
+ // A runner recovering from a spilled touch swings his arms while passing
+ // the interceptor. Reserve that extra body space gradually, without shifting
+ // the interceptor's fixed contact or enlarging any visible model.
+ const recoveryRadius=(a,time)=>Math.max(.22,...(a?.controls??[]).filter(s=>s.loose).map(s=>.22+.36*T.MathUtils.smoothstep(time,s.end-.3,s.end)*(1-T.MathUtils.smoothstep(time,s.end+.5,s.end+(s.recovery??1)))));
  let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0},navInfo=null
  const bola={modo:'livre',dono:null,toques:0},medidas=[];let visualBall=null,visualRotation=null,spin=null,handState=null,handFlight=null
  onPrepared?.()
@@ -251,7 +269,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    const recentes=[];for(let i=evs.length-1;i>=0;i--){const e=evs[i],idade=frame.time-e.t;if(idade>.4)break;if(idade>=0)recentes.push(e)}
    const proposed=frame.players.map(p=>{const a=atores.find(a=>a.key===p.key),root=a?bodyTrack(a,frame.time):{x:0,z:0},base=p.sourceAnchor??{x:p.mx,z:p.mz},future=timeline.sample(frame.time+.15,p.key).player,rf=a?bodyTrack(a,frame.time+.15):{x:0,z:0};return{...p,mx:base.x+root.x,mz:base.z+root.z,navigationVelocity:future?{x:(future.x+rf.x-base.x-root.x)/.15,z:(future.z+rf.z-base.z-root.z)/.15}:undefined}})
    navInfo=navigation.sample({...frame,players:proposed},{action:(key,time)=>{const freedom=contactFreedom(atores.find(a=>a.key===key),time);return freedom<1?{collisionFreedom:freedom}:null}})
-   const safety=navigation.finalize(proposed.filter(p=>p.visible!==false).map(p=>{const shift=navInfo.positions.get(p.key)??{x:0,z:0},a=atores.find(a=>a.key===p.key);return{key:p.key,sourceX:p.mx,sourceZ:p.mz,rootX:p.mx+shift.x,rootZ:p.mz+shift.z,x:p.mx+shift.x,z:p.mz+shift.z,y:1,radius:.22,freedom:contactFreedom(a,frame.time)}}));
+   const safety=navigation.finalize(proposed.filter(p=>p.visible!==false).map(p=>{const shift=navInfo.positions.get(p.key)??{x:0,z:0},a=atores.find(a=>a.key===p.key);return{key:p.key,sourceX:p.mx,sourceZ:p.mz,rootX:p.mx+shift.x,rootZ:p.mz+shift.z,x:p.mx+shift.x,z:p.mz+shift.z,y:1,radius:recoveryRadius(a,frame.time),freedom:contactFreedom(a,frame.time)}}));
    for(const [key,shift]of safety.shifts){const p=navInfo.positions.get(key);if(p){p.x+=shift.x;p.z+=shift.z}}navInfo.diagnostics.final=safety.diagnostics;
    for(const p of frame.players){
     const a=atores.find(x=>x.key===p.key&&!usados.has(x))??atores.find(x=>!usados.has(x)&&x.side===p.side&&x.keeper===p.keeper&&!frame.players.some(q=>q.key===x.key));if(!a)continue;usados.add(a);a.key=p.key
@@ -262,17 +280,19 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     const plan=activePlan(a,frame.time),name=planName(plan),aim=plan?.dir!=null?plan.dir-(CONTATO[name]?.ang??0):a.rumo
     const target=bodyTrack(a,frame.time),nav=navInfo.positions.get(p.key)??{x:0,z:0},base=p.sourceAnchor??{x:p.mx,z:p.mz}
     a.corrAlvo=target;a.corr={x:target.x+nav.x,z:target.z+nav.z}
-    if(reset||frame.placementReset){a.ultimo=null;a.contactHistory=null;if(reset&&a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0);a.tiro=null}if(reset&&a.fade){a.acao(a.fade.nome)?.setEffectiveWeight(0);a.fade=null}}
+    if(reset||frame.placementReset){a.ultimo=null;a.contactHistory=null;if(reset){a.mergulhou=false;a.lances.clear()}if(reset&&a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0);a.tiro=null}if(reset&&a.fade){a.acao(a.fade.nome)?.setEffectiveWeight(0);a.fade=null}}
     const px=base.x+a.corr.x,pz=base.z+a.corr.z
     const agora=frame.time,ult=a.ultimo,dx=ult&&dt>0?px-ult.x:0,dz=ult&&dt>0?pz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:px,z:pz}
-    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key&&!p.keeper&&Math.hypot(frame.ball.x-p.mx,frame.ball.z-p.mz)<2
+    const shownBall=frame.ball.presentation??frame.ball,loose=a.controls.find(s=>s.loose&&agora>=s.start&&agora<=s.end);
+    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key&&!p.keeper&&!loose&&shownBall.y<.8&&Math.hypot(shownBall.x-px,shownBall.z-pz)<1.35
     // pra onde o CORPO olha (27/10, Diego: "completamente perdidos… desgovernados"): quem se MEXE olha pra onde vai, como gente de
     // verdade; só quem está quase parado vira pra bola (passinho de lado/de costas só aí). Com folga entre os dois limites, senão o
     // corpo ficava trocando de frente a cada passo
-    const bx=frame.ball.x-p.mx,bz=frame.ball.z-p.mz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
+    const bx=shownBall.x-px,bz=shownBall.z-pz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
     if(vel>1.7||comBola)a.olhaBola=false;else if(vel<.8)a.olhaBola=true
-    const antecipa=plan?.dir!=null&&plan.t-agora<.8;const mirando=antecipa||a.tiro?.mira!=null&&agora-a.tiro.t0<(a.tiro.touch??toque(a.tiro.nome))+.4
-    const alvo=p.mergulho&&!plan?a.rumo:mirando?(antecipa?aim:a.tiro.mira):a.olhaBola&&Math.hypot(bx,bz)<45?praBola:praOnde
+    const holdIntent=(a.tiro?.kind==='recebe'&&!p.keeper) ? .12 : /^passe/.test(a.tiro?.nome??'') ? .22 : .4;
+    const antecipa=plan?.dir!=null&&plan.t-agora<.8;const mirando=antecipa||a.tiro?.mira!=null&&agora-a.tiro.t0<(a.tiro.touch??toque(a.tiro.nome))+holdIntent
+    const alvo=p.mergulho&&!plan?a.rumo:mirando?(antecipa?aim:a.tiro.mira):loose?loose.intent:(p.keeper||a.olhaBola&&Math.hypot(bx,bz)<45)?praBola:praOnde
     const giro=angulo(alvo-a.rumo);a.rumo+=dt>0?T.MathUtils.clamp(giro*(1-Math.exp(-dt/(mirando?.10:.18))),-7*dt,7*dt):giro
     a.holder.position.set(px,0,pz);a.holder.rotation.set(0,a.rumo,0)
     // ── lances: o motor diz quem fez o quê; o corpo mostra ──
@@ -283,7 +303,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      // Replay/seek uses the same planned capture and exact contact clock.
      if(a.tiro?.planId&&a.tiro.contactAt>=agora-.04&&a.tiro.contactAt<it.t)continue
      dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:it.kind==='recebe'?toque(nome)+.45:Infinity,mira:it.mira,ponto:true})
-     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact;a.tiro.blendIn=(it.hands||it.goleiro) ? .18 : .12
+     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.kind=it.kind;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact;a.tiro.blendIn=(it.hands||it.goleiro) ? .18 : .12
     }
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
@@ -298,11 +318,17 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      else if(e.tipo==='gol'&&e.a&&String(e.a).startsWith(nomeP)&&(e.lado===0)===(p.side==='home')){a.lances.add(id)
       let h=0;for(const ch of String(e.a))h=(h*31+ch.charCodeAt(0))|0;const n='comemora'+(1+Math.abs(h+Math.floor(e.t*10))%3)
       if(asset.clips.has(n))dispara(a,n,{inicio:0,agora})}}
-    if(p.mergulho&&!a.mergulhou&&!agenda.some(it=>it.key===p.key&&it.goleiro&&Math.abs(it.t-agora)<1)){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
+    if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
+     const collection=agenda.find(it=>it.key===p.key&&it.goleiro&&it.t>agora-1.2&&it.t-agora<1);
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
      const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):len<1.7&&m.y<.8?(direita?'gk_bloqueio_d':'gk_bloqueio_e'):direita?'gk_voo_d':'gk_voo_e'
      // (o mergulho do motor chega no ponto em ~0,42 s: o voo do Mixamo encosta na bola no `toque` dele)
-     dispara(a,nome,{inicio:Math.max(0,toque(nome)-.42*(1-m.k)),agora})}
+     if(collection&&agora<collection.start){
+      // A nearby rebound pickup has no time for a complete dive and stand-up.
+      // Use the existing standing reach, without attaching the ball or adding
+      // a save event. The collection still requires its measured hand contact.
+      dispara(a,m.y>.9?'gk_pega':'gk_pega_baixo',{inicio:Math.max(0,agora-(collection.t-.75)),agora,ate:.75,mira:collection.mira});a.tiro.reactionOnly=true;
+     }else if(!collection)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.42*(1-m.k)),agora})}
     if(!p.mergulho)a.mergulhou=false
     if(a.lances.size>40)a.lances=new Set([...a.lances].slice(-20))
     // Keep contact sampling and animation time independent of camera culling.
@@ -325,7 +351,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     const k=dt>0?1-Math.exp(-dt/.15):1
     for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*Math.max(0,1-wTiro-wFade));const dur=act.getClip().duration;act.time=gaits[n]?gaitTime(gaits[n],a.fase):agora%dur}
     a.mixer.update(0)
-    a.holder.updateMatrixWorld(true);const rawFloor=a.surface.floor();a.holder.position.y+=Math.max(0,Math.min(.08,.003-rawFloor))
+    a.holder.updateMatrixWorld(true);const groundedKeeper=/^gk_(recolhe|pega|rola|lanca)/.test(a.tiro?.nome??''),rawFloor=a.surface.floor(groundedKeeper),floorBudget=groundedKeeper?.16:.08;a.holder.position.y+=Math.max(0,Math.min(floorBudget,.003-rawFloor))
     if(a.tiro?.extraRise){const capturedFlight=Math.max(0,rawFloor),height=a.tiro.pose?.feetHeight??.3;a.holder.position.y+=a.tiro.extraRise*T.MathUtils.clamp(capturedFlight/Math.max(.05,height),0,1)}
     // Keep the striking limb and every calibrated impact untouched. Only the
     // support foot / gait receives bounded residual IK, on the original rig.
@@ -334,7 +360,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     if(plan&&Math.abs(plan.t-agora)<.09)excluded.push('left','right');
     const plantingBall=frame.ball.presentation??frame.ball;
     for(const side of ['left','right']){const foot=a.bones.get('mixamorig'+(side==='left'?'Left':'Right')+'Foot').getWorldPosition(new T.Vector3());if(foot.distanceTo(new T.Vector3(plantingBall.x,plantingBall.y,plantingBall.z))<.38)excluded.push(side)}
-    a.plants=a.grounding.apply(a,agora,{reset:reset||!!frame.placementReset||salto,excluded,airborne:/^(cabeca|gk_voo|gk_pega_alto|carrinho|cai|bicicleta|giro)/.test(a.tiro?.nome??'')});
+    a.plants=a.grounding.apply(a,agora,{reset:reset||!!frame.placementReset||salto,excluded,airborne:groundedKeeper||/^(cabeca|gk_voo|gk_pega_alto|carrinho|cai|bicicleta|giro)/.test(a.tiro?.nome??'')});
     // Surface clearance is bounded to ten centimetres on the original rig.
     // It moves the limb only; the ball never follows a corrective IK target.
     if(!frame.replay&&!frame.restart&&(comBola||plan&&Math.abs(plan.t-agora)<.09)){
@@ -344,6 +370,10 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
       if(toe.distanceTo(new T.Vector3(B.x,B.y,B.z))<.38)a.surface.clearBall(new T.Vector3(B.x,B.y,B.z),side);
      }
     }
+    // The incoming rebound remains on its fixed trajectory. Correct only the
+    // residual arm overlap just before collection; the calibrated impact stays
+    // untouched and is still required before the ball can attach.
+    if(plan?.goleiro&&agora<plan.t-1e-5&&plan.t-agora<.09){const B=frame.ball.presentation??frame.ball,point=new T.Vector3(B.x,B.y,B.z);for(const side of ['left','right'])a.surface.clearHand(point,side)}
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
    soleShadows.update(atores);
@@ -358,7 +388,11 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     if(!handState||handState.key!==held||reset){const catchCue=agenda.findLast(it=>it.key===held&&(it.goleiro||it.pickup)&&it.t<=frame.time+.001),B=frame.ball.presentation??frame.ball,gap=anchor.distanceTo(new T.Vector3(B.x,B.y,B.z));
      const restore=(reset||firstFrame)&&catchCue?.contact?.fitted&&Math.hypot(catchCue.root.x,catchCue.root.z)<=(catchCue.pickup?4.5:3);if(catchCue&&(gap<.25||restore)){handState={key:held,t:frame.time,offset:new T.Vector3(B.x,B.y,B.z).sub(anchor),catchGap:restore?null:gap,restored:!!restore,release:agenda.find(it=>it.key===held&&it.hands&&it.t>catchCue.t)};if(restore)handState.offset.set(0,0,0)}
     }
-    if(handState?.key===held){anchor.addScaledVector(handState.offset,1-T.MathUtils.smoothstep(frame.time,handState.t,handState.t+.12));visualBall={x:anchor.x,y:anchor.y,z:anchor.z};handState.last={...visualBall};handState.lastTime=frame.time}
+    if(handState?.key===held){anchor.addScaledVector(handState.offset,1-T.MathUtils.smoothstep(frame.time,handState.t,handState.t+.12));visualBall={x:anchor.x,y:anchor.y,z:anchor.z};
+     // Right palm carries the ball. The supporting left hand may cross it
+     // during collection → throw blending; a bounded arm correction keeps the
+     // sphere outside the fingers without moving it away from the carrying hand.
+     keeper.surface.clearHand(anchor,'left');handState.last={...visualBall};handState.lastTime=frame.time}
    }else if(handState){
     const release=handState.release;
     if(release&&frame.time>=release.t&&frame.time-release.t<.12)handFlight=handArc(release);

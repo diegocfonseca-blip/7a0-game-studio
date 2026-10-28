@@ -38,7 +38,7 @@ export function prepareBodyTrack(knots,controls,source,{approach=1.6,recovery=.4
    if(dt>1e-4)joins.push({start,end:span.start,from:native(start),to:span.from,v:velocity(start),w:{x:0,z:0}});
   }
   if(!controls.some(s=>s!==span&&Math.abs(s.start-span.end)<1e-6)){
-   const dt=Math.min(recovery,after?(after.t-span.end)*.45:recovery),end=span.end+dt;
+   const recover=span.recovery??recovery,dt=Math.min(recover,after?(after.t-span.end)*.45:recover),end=span.end+dt;
    if(dt>1e-4)joins.push({start:span.end,end,from:span.to,to:native(end),v:{x:0,z:0},w:velocity(end)});
   }
  }

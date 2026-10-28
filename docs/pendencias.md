@@ -1,3 +1,18 @@
+## ⚽ Campo 3D do mapa — revisão 4, goleiro e bola solta (28/10, LOCAL, sem publicação)
+- Pedido: goleiro de costas no chute/recolhimento; continuar refinando os fundamentos com bola.
+- Causa: antecipação usava a velocidade do rebote futuro, virava para a baliza e suprimia a reação.
+  Sequência oficial é **trave → recolhimento → lançamento**, não defesa; significado preservado.
+- Orientação corrigida, reação importada antes da coleta, IK residual das mãos, apoio dos pés
+  conferido na malha deformada e seek sem mergulho durante posse nas mãos.
+- Domínio que escapa: corpo acompanha a bola solta; a trajetória, a perda de posse e o receptor
+  seguem iguais. Condução exige proximidade/altura; orientação usa a bola realmente apresentada.
+- Saída da disputa reserva espaço para os braços. Verificação das malhas deformadas removeu
+  duas interseções; não é apenas uma checagem da distância entre os centros dos atletas.
+- Limites: esta entrada não cobre todas as defesas; mãos ainda têm pequeno resíduo de interseção,
+  impactos a 30 Hz usam estimativas, sprint e mudanças rápidas continuam em refinamento.
+- Sem publicar, acessar banco ou avançar rodada. Replay histórico 1–1 versus 3–0 continua bloqueado.
+  Evidências, testes e recuperação: `docs/refino-mapa-3d-20261028-v4.md`.
+
 ## ⚽ Campo 3D do mapa — revisão 3 dos fundamentos (28/10, LOCAL, sem publicação)
 - Pedido: continuar corrigindo erros vistos no vídeo. Modelo atual, rig e uniforme preservados.
 - Corrigidos: passada medida nas capturas (2,069 m no trote), fases de apoio entre direções,
