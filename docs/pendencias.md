@@ -11377,7 +11377,14 @@ igual ao envelope se o Diego pedir. Sala de espera sem chat pro fantasma (o chat
 ✅ 28/10 1º teste do Diego numa sala ao vivo: *"deu muito certo e não influenciou em nada… sem bugs"*. Pedido: o fantasma só LÊ o chat (não escreve) e precisa ver o papo — FEITO no branch: caixa do chat sem campo de escrever + o chat da sala de espera (canal `esclobby`, só escuta). O chat mostra as mensagens de quando ele entrou pra frente (o histórico vive no aparelho de cada um).
 🔎 28/10: no 1º teste o chat da PARTIDA não apareceu pro fantasma (os jogadores escreveram). Lendo o código não achei a causa (o chat vem pelo mesmo canal do estado, que chegou). Ligado o medidor no aparelho do fantasma (`papel = 'espectador'` em `esc_realtime_medidor`, única gravação liberada pra ele): no próximo teste, `select rx from esc_realtime_medidor where papel='espectador'` mostra se 'chat' e 'state' chegaram.
 
-## ⚡ Envelope único (28/10) — MOCKUP enviado, aguardando OK
+## ⚡ Envelope único (28/10) — FEITO, só na conta do Diego ("pode fazer… apenas na minha conta… e faça tb pro partida rápida… 180s")
 Pedido do Diego: um jeito de leilão mais rápido. Proposta: 4º jeito de dar lance (✉️ · 🐊 · 🔨 · ⚡). As 5 posições numa tela só,
 um envelope de 90s, uma revelação só (carta por carta), empate = sorteio na hora, Monte em 30s. Sala rápida, Minhas Ligas e Partida
 Rápida; carreira fica no envelope de sempre. Mockup: `scripts/mockups/envelope-unico.png`.
+FEITO (28/10): motor (`abreEnvelopeUnico`/`selaEnvelopeUnico` em store.tsx — o miolo de uma leva virou `leilaoResolveLeva`, sem mudar
+nada dentro; as 5 posições resolvem em ordem GOL→ATA com o MESMO motor, empate = `resolveOneTiebreak(…, sorteio)`), relógio de 180s
+(`ENVELOPE_UNICO_MS`), revelação única só com carta que teve lance, Monte de sempre (15s por vez, não mudou). Tela `EnvelopeUnico`
+(screens.tsx): barra de posições pra pular, limite de lances = vagas de cada posição, LACRAR TUDO. Opção ⚡ na Partida Rápida e no criar
+sala (Rápido e Minhas Ligas, fora de duplas e carreira). Gate `ENVELOPE_UNICO_GERAL` em sport.ts. Trava: `npm run envelope-unico`.
+Fotos: `scripts/mockups/envelope-unico-real.png` e `envelope-unico-revelacao.png`.
+Falta: a lista de salas ainda mostra o selo do envelope de sempre (às cegas) pra sala de envelope único; o Monte NÃO foi pra 30s (é o de sempre).

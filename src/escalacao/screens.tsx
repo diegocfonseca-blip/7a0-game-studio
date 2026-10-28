@@ -84,7 +84,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useAmigos, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -2839,6 +2839,8 @@ export function EscSetup() {
   // 🔨 PREGÃO ABERTO (16/10): o 3º jeito de dar lance — uma carta por vez, lance à vista, ordem embaralhada,
   // martelo em 6s. Só pra conta de teste (`PREGAO_ABERTO_TESTERS`); pra todo o resto o jogo segue idêntico.
   const [pregaoAb, setPregaoAb] = useState(false)
+  const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto
+  const [envUnico, setEnvUnico] = useState(false)
   const pregaoAbertoOk = usePregaoAberto()
   // 🌎 a Libertadores também aparece no rápido OFFLINE — é onde dá pra testar
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
@@ -2937,7 +2939,7 @@ export function EscSetup() {
       })
     }
     else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, intro: true })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes && !pokeLigado, kings: kingsLigado || undefined, pokemon: pokeLigado || undefined, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !kingsLigado && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado, kings: kingsLigado || undefined, pokemon: pokeLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -3203,11 +3205,11 @@ export function EscSetup() {
         {!career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
-            <div className={`grid ${pregaoAbertoOk ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
+            <div className={`grid ${pregaoAbertoOk || envUnicoOk ? 'grid-cols-2' : 'grid-cols-2'} gap-2`}>
               {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${t(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]).map(([m, label]) => (
-                <button key={String(m)} onClick={() => { setHolandes(m); setPregaoAb(false) }}
+                <button key={String(m)} onClick={() => { setHolandes(m); setPregaoAb(false); setEnvUnico(false) }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
-                  style={{ backgroundColor: !pregaoAb && holandes === m ? GOLD : '#fff', boxShadow: !pregaoAb && holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  style={{ backgroundColor: !pregaoAb && !envUnico && holandes === m ? GOLD : '#fff', boxShadow: !pregaoAb && !envUnico && holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {/* 🏷️ tarja NOVO — a MESMA da sala online, pra as duas telas não
                       contarem histórias diferentes. Ela some sozinha 45 dias depois
                       de o modo nascer (`MODO_NOME_NASCEU`), igual às novidades
@@ -3225,9 +3227,9 @@ export function EscSetup() {
                 </button>
               ))}
               {pregaoAbertoOk && (
-                <button onClick={() => { setPregaoAb(true); setHolandes(false) }}
+                <button onClick={() => { setPregaoAb(true); setHolandes(false); setEnvUnico(false) }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
-                  style={{ backgroundColor: pregaoAb ? GOLD : '#fff', boxShadow: pregaoAb ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  style={{ backgroundColor: pregaoAb && !envUnico ? GOLD : '#fff', boxShadow: pregaoAb && !envUnico ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   <span className="seg-selo-brilho" style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                     letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
                     border: `1.5px solid ${INK}`, background: GREEN, color: '#fff' }}>
@@ -3236,9 +3238,23 @@ export function EscSetup() {
                   {t('🔨 Pregão aberto', '🔨 Open auction')}
                 </button>
               )}
+              {envUnicoOk && (
+                <button onClick={() => { setEnvUnico(true); setPregaoAb(false); setHolandes(false) }}
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  style={{ backgroundColor: envUnico ? GOLD : '#fff', boxShadow: envUnico ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  <span className="seg-selo-brilho" style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                    letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                    border: `1.5px solid ${INK}`, background: GREEN, color: '#fff' }}>
+                    {t('novo', 'new')}
+                  </span>
+                  {t('⚡ Envelope único', '⚡ Single envelope')}
+                </button>
+              )}
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
-              {pregaoAb
+              {envUnico
+                ? t('⚡ As 5 posições numa tela só: você dá todos os lances em 180s, aperta LACRAR TUDO e vem uma revelação só. Empate = sorteio na hora. O que ninguém levou vai pro Monte de sempre.', '⚡ All 5 positions on one screen: bid on everything in 180s, hit SEAL ALL and there is one reveal. Tie = draw. Whatever nobody won goes to the usual Monte.')
+                : pregaoAb
                 ? t('🔨 Uma carta por vez, lance ABERTO na frente de todos: dou 10… 11… 12… uma, duas, três, vendido! A ordem das posições vem embaralhada (ninguém sabe a próxima carta), 5 segundos sem lance novo bate o martelo, e quem já fechou a posição só assiste. Não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, OPEN bidding in front of everyone: 10… 11… 12… going once, twice, sold! Positions come shuffled (nobody knows the next card), 5 seconds without a new bid drops the hammer, and whoever already filled the position just watches. No pile: empty slots at the end get a free player.')
                 : holandes
                 ? t(`🐊 A leva inteira na tela com UM preço só, abrindo em ${getSport() === 'basquete' ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${getSport() === 'basquete' ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
@@ -3685,6 +3701,8 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
 
 export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
   const { state, dispatch } = useEsc()
+  // ⚡ revelação ÚNICA: a barra acende a posição da carta que está sendo revelada (o motor deixa o setor no último)
+  const secBarra = state.euRevelando ? Math.max(0, SECTORS.indexOf(state.revealQueue[state.revealIdx]?.card.pos as typeof SECTORS[number])) : state.sectorIdx
   const you = state.managers[state.youIdx]
   const [regras, setRegras] = useState(false)
   const V = useT()
@@ -3705,7 +3723,7 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
         <div className="flex gap-1.5">
           {SECTORS.map((p, i) => (
             <span key={p} className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
-              style={{ backgroundColor: i < state.sectorIdx ? INK : i === state.sectorIdx ? GOLD : '#fff', color: i < state.sectorIdx ? '#fff' : INK }}>
+              style={{ backgroundColor: i < secBarra ? INK : i === secBarra ? GOLD : '#fff', color: i < secBarra ? '#fff' : INK }}>
               {posTag(p)}
             </span>
           ))}
@@ -4109,6 +4127,7 @@ export function EscAuction() {
   let sub
   if (state.phase === 'pregao') sub = <PregaoAberto />
   else if (state.phase === 'holandes') sub = <Holandes />
+  else if (state.phase === 'envelope' && state.euAberto) sub = <EnvelopeUnico /> // ⚡ as 5 posições de uma vez (28/10)
   else if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
   else if (state.phase === 'tiebreak') sub = <Tiebreak />
   else sub = <Reveal />
@@ -4446,6 +4465,159 @@ function Holandes() {
           👑 {L('Quem faz o preço cair é o host da sala.', 'The room host runs the clock.')}
         </p>
       )}
+    </Shell>
+  )
+}
+
+// ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png): as 5 posições numa tela só, 180s, um LACRAR TUDO.
+// Peças de casa (Shell, CardFace, HoldButton, Box). O limite de lances de cada posição = as vagas abertas nela; a soma nunca
+// passa da caixa (o motor confere de novo em `envelopeQueCabe`). Fantasma (👁️) vê tudo, sem os controles.
+function EnvelopeUnico() {
+  const { state, dispatch } = useEsc()
+  const you = state.managers[state.youIdx]
+  const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
+  const lang: 'pt' | 'en' = getLang() === 'en' ? 'en' : 'pt'
+  const online = state.onlineMode === 'online'
+  const [bids, setBids] = useState<Record<string, number>>({})
+  const [pending, setPending] = useState(false)
+  const [peek, setPeek] = useState(false)
+  const pendingRef = useRef<{ cardId: string; amount: number }[]>([])
+  const iSubmitted = !!you && state.submitted.includes(you.id)
+  const [now, setNow] = useState(() => agoraSala())
+  useEffect(() => { const iv = setInterval(() => setNow(agoraSala()), 250); return () => clearInterval(iv) }, [])
+  const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 180
+  const setores = SECTORS.map(p => ({ p, cards: state.currentCards.filter(c => c.pos === p), vagas: you ? openSlots(you, p) : 0 }))
+  const precisaLacrar = !!you && !state.espectador && you.money > 0 && setores.some(x => x.vagas > 0)
+  const podeLance = precisaLacrar && !iSubmitted && !pending
+  const total = Object.values(bids).reduce((a, b) => a + b, 0)
+  const lancesNa = (p: string) => Object.keys(bids).filter(id => state.currentCards.find(c => c.id === id)?.pos === p).length
+  const masked = !!state.streamMode && !peek
+  function bump(c: Card, dir: 1 | -1) {
+    if (!you || !podeLance) return
+    const floor = (c as { paid?: number }).paid ?? 0
+    if (dir > 0) playCoin()
+    setBids(prev => {
+      const cur = prev[c.id] ?? 0
+      if (dir < 0) { const v = Math.max(0, cur - 1); const n = { ...prev }; if (v === 0) delete n[c.id]; else n[c.id] = v; return n }
+      const outros = Object.entries(prev).reduce((a, [k, v]) => (k === c.id ? a : a + v), 0)
+      const cabe = you.money - outros
+      if (cur >= cabe) return prev
+      if (cur === 0) {
+        const naPos = Object.keys(prev).filter(id => state.currentCards.find(x => x.id === id)?.pos === c.pos).length
+        if (naPos >= openSlots(you, c.pos)) return prev // já tem lance em todas as vagas desta posição
+      }
+      const v = Math.min(cur === 0 && floor > 0 ? floor : cur + 1, cabe)
+      if (cur === 0 && floor > 0 && v < floor) return prev
+      return { ...prev, [c.id]: v }
+    })
+  }
+  function seal() {
+    if (!you) return
+    playSeal()
+    const payload = Object.entries(bids).map(([cardId, amount]) => ({ cardId, amount }))
+    pendingRef.current = payload
+    setPending(true)
+    dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: payload, by: state.youUid })
+  }
+  useEffect(() => { if (iSubmitted) setPending(false) }, [iSubmitted])
+  useEffect(() => { if (remaining >= 1 && remaining <= 5 && !iSubmitted && precisaLacrar) playTick() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
+  // online: reenvia enquanto o dono não confirmou (mesma rede do envelope de sempre)
+  useEffect(() => {
+    if (!online || !pending || iSubmitted || !you) return
+    const iv = setInterval(() => dispatch({ type: 'SUBMIT_ENVELOPE', mgrId: you.id, bids: pendingRef.current, by: state.youUid }), 4000)
+    return () => clearInterval(iv)
+  }, [online, pending, iSubmitted, dispatch, you, state.youUid])
+  // ⏱️ acabou o tempo: lacra o que eu tinha marcado e pede pro dono fechar (o motor confere o prazo e ignora repetido)
+  const zerou = remaining <= 0 && !!state.phaseDeadline
+  useEffect(() => {
+    if (!zerou) return
+    if (precisaLacrar && !iSubmitted && !pending) seal()
+    dispatch({ type: 'FORCE_SEAL' })
+    const iv = setInterval(() => dispatch({ type: 'FORCE_SEAL' }), 2500)
+    return () => clearInterval(iv)
+  }, [zerou]) // eslint-disable-line react-hooks/exhaustive-deps
+  const faltam = setores.filter(x => x.vagas > 0 && lancesNa(x.p) === 0).map(x => x.p)
+  const esperando = state.managers.filter(m => m.isHuman && !m.dormindo && m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0) && !state.submitted.includes(m.id))
+  const vaiPara = (p: string) => { try { document.getElementById(`eu-${p}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch { /* ignora */ } }
+  const barra = (
+    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
+      <div className="flex gap-1 flex-wrap">
+        {setores.map(x => (
+          <button key={x.p} onClick={() => vaiPara(x.p)} className="border-2 border-black rounded-full px-2 py-0.5 text-[11px] font-black"
+            style={{ ...OSWALD, background: x.vagas === 0 ? '#ddd' : lancesNa(x.p) > 0 ? GOLD : '#fff', color: INK }}>
+            {x.p}{x.vagas > 0 && lancesNa(x.p) > 0 ? ' ✓' : ''}
+          </button>
+        ))}
+      </div>
+      <div className="text-center border-[3px] border-black rounded-xl px-2 py-0.5" style={{ background: remaining <= 15 ? RED : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}` }}>
+        <p className="text-[8px] font-black leading-none" style={OSWALD}>{lang === 'en' ? 'TIME' : 'TEMPO'}</p>
+        <p className="font-black text-xl leading-none" style={OSWALD}>{remaining}s</p>
+      </div>
+    </div>
+  )
+  return (
+    <Shell bar={barra}>
+      <div className="space-y-3" style={{ paddingBottom: 170 }}>
+        <Box bg="#FFF3D6" className="p-3">
+          <p className="font-black text-[15px] text-black" style={OSWALD}>⚡ {tr('ENVELOPE ÚNICO', 'SINGLE ENVELOPE')}</p>
+          <p className="text-[12px] font-bold text-black/70 leading-snug mt-0.5">
+            {tr('As 5 posições numa tela só. Dê seus lances em todas e aperte LACRAR TUDO — vem uma revelação só. Empate = sorteio.', 'All 5 positions on one screen. Bid on all of them and hit SEAL ALL — one reveal only. Tie = draw.')}
+          </p>
+        </Box>
+        {state.espectador && <Box bg="#E7E1F7" className="p-3"><p className="text-sm font-black text-black" style={OSWALD}>{tr('👁️ Você está só assistindo — lance é só pra quem joga.', '👁️ You are just watching — bids are for players only.')}</p></Box>}
+        {setores.map(x => x.cards.length === 0 ? null : (
+          <div key={x.p} id={`eu-${x.p}`} style={{ scrollMarginTop: 70 }}>
+            <div className="flex items-baseline justify-between px-1 mb-1">
+              <p className="font-black text-[16px] uppercase text-black" style={OSWALD}>{secLabel(sport, x.p, lang)}</p>
+              <p className="text-[11px] font-black text-black/55" style={OSWALD}>
+                {x.vagas === 0 ? tr('posição completa', 'position full') : tr(`${x.vagas} ${x.vagas === 1 ? 'vaga' : 'vagas'} · ${lancesNa(x.p)} lance(s)`, `${x.vagas} ${x.vagas === 1 ? 'slot' : 'slots'} · ${lancesNa(x.p)} bid(s)`)}
+              </p>
+            </div>
+            <div className="space-y-2">
+              {x.cards.map(c => {
+                const bid = bids[c.id] ?? 0
+                const chosen = bid > 0
+                const cheia = !chosen && lancesNa(x.p) >= x.vagas
+                return (
+                  <Box key={c.id} className="p-3 flex items-center justify-between gap-2">
+                    <div className="min-w-0"><CardFace c={c} surprise={c.id === state.surpriseId} mudo={c.id === state.mudoId} /></div>
+                    {podeLance && x.vagas > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
+                        <span className="w-12 h-8 grid place-items-center text-base font-black border-2 border-black rounded-lg bg-white" style={{ ...OSWALD, color: chosen ? INK : 'rgba(0,0,0,.35)' }}>{masked ? '🔒' : bid}</span>
+                        <HoldButton onStep={() => bump(c, 1)} disabled={!masked && (cheia || total >= (you?.money ?? 0))}
+                          className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!masked && (cheia || total >= (you?.money ?? 0)) ? 'opacity-40' : ''}`} style={{ backgroundColor: GOLD }}>+</HoldButton>
+                      </div>
+                    )}
+                  </Box>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* rodapé fixo: quanto já foi, onde falta e o botão único */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, padding: '8px 12px 66px', background: 'linear-gradient(transparent, rgba(244,236,214,.96) 22%)' }}>{/* 66px: acima dos botões redondos do canto (som/chat) */}
+        <div className="max-w-xl mx-auto">
+          {iSubmitted || !precisaLacrar ? (
+            <Box bg="#E9F6EC" className="p-3 text-center">
+              <p className="font-black text-sm text-black" style={OSWALD}>{iSubmitted ? tr('✅ Envelope lacrado!', '✅ Envelope sealed!') : state.espectador ? tr('👁️ Assistindo', '👁️ Watching') : tr('Seu time já está completo — só assiste.', 'Your squad is full — just watching.')}</p>
+              {esperando.length > 0 && <p className="text-[11px] font-bold text-black/60 mt-0.5">{tr('Esperando', 'Waiting for')}: {esperando.map(m => stripEmoji(m.name)).join(', ')}</p>}
+            </Box>
+          ) : (
+            <div className="border-[3px] border-black rounded-2xl p-2.5" style={{ background: INK, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-black text-white" style={OSWALD}>✉️ {tr('ENVELOPE', 'ENVELOPE')}: <span style={{ color: GOLD }}>{masked ? '🔒' : total} / {you?.money ?? 0}</span></p>
+                  <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{faltam.length ? `${tr('Faltam lances em', 'No bids yet in')}: ${faltam.join(' · ')}` : tr('Todas as posições com lance', 'Bids in every position')}</p>
+                  {state.streamMode && <button onClick={() => setPeek(v => !v)} className="text-[10px] font-black underline" style={{ color: GOLD }}>{peek ? tr('🙈 esconder meus lances', '🙈 hide my bids') : tr('👁️ ver meus lances', '👁️ show my bids')}</button>}
+                </div>
+                <Btn onClick={seal} bg={RED}><span className="text-white whitespace-nowrap">{pending ? tr('ENVIANDO…', 'SENDING…') : tr('LACRAR TUDO 🔒', 'SEAL ALL 🔒')}</span></Btn>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </Shell>
   )
 }
@@ -11246,6 +11418,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // reenviada aqui, uma a uma.
         holandes: state.holandes,
         pregaoAberto: state.pregaoAberto, // 🔨 o pregão aberto também continua no novo leilão (17/10)
+        envUnico: state.envUnico, // ⚡ o envelope único também continua no novo leilão (28/10)
         // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".

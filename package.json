@@ -79,6 +79,7 @@
     "carreira-gratis": "npx tsx scripts/testa-carreira-gratis.mts",
     "relampago": "npx tsx scripts/testa-relampago.mts",
     "espectador": "npx tsx scripts/testa-espectador.mts",
+    "envelope-unico": "npx tsx scripts/testa-envelope-unico.mts",
     "congela": "node scripts/testa-congela.mjs",
     "save-intl": "node scripts/testa-save-intl.mjs",
     "nuvem": "node scripts/testa-nuvem.mjs",

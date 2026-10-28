@@ -755,6 +755,11 @@ export interface EscState {
   convocacaoEscolhas?: Record<number, string[]>
   /** 🔨 modo PREGÃO ABERTO ligado nesta partida (16/10, em teste) */
   pregaoAberto?: boolean
+  /** ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png): as 5 posições num envelope só, 180s, uma revelação */
+  envUnico?: boolean
+  /** ⚡ o envelope único está aberto (a fila tem as cartas das 5 posições) / a revelação única está rolando */
+  euAberto?: boolean
+  euRevelando?: boolean
   /** 🔨 estado vivo do pregão aberto (só existe enquanto `phase === 'pregao'`) */
   pa?: PregaoAbertoState
   /** 🎁 pregão aberto sem Monte (16/10): as cartas dadas de graça a cada time no fim (id do técnico → ids das cartas) */

@@ -2605,11 +2605,12 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
 // resolve UMA disputa de desempate: junta os re-lances (humanos já enviados +
 // CPUs auto), o maior leva. Empatou de novo no topo → roleta (sorteio) entre
 // eles. Atualiza dinheiro/elenco do vencedor e a carta na fila de revelação.
-function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
+function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number, sorteio = false) {
   const amounts: Record<number, number> = {}
   for (const id of tb.managers) {
     const m = state.managers.find(x => x.id === id)!
-    let v = m.isHuman ? (state.tiebreakPending[id] ?? tb.amount) : cpuTiebreakBid(m, tb, rng)
+    // ⚡ sorteio (envelope único): ninguém re-lança — todos ficam no valor empatado e a roleta decide
+    let v = sorteio ? tb.amount : m.isHuman ? (state.tiebreakPending[id] ?? tb.amount) : cpuTiebreakBid(m, tb, rng)
     // 🪜 escada: a CPU não cobre o empate além do teto da categoria × economia
     // (a escalada do re-lance era a última rota de "🎯 a preço de ⭐"). O teto
     // acompanha a riqueza da sala; humano decide sozinho.
@@ -5542,7 +5543,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -5569,7 +5570,7 @@ type Action =
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; envUnico?: boolean; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -6765,6 +6766,8 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // 🧱 17/10 (Diego): com 🧱 Clubes também — o lote vira o PACOTE do clube (escudo + quantos jogadores), não a carta coberta
   // 🔒 carreira NUNCA abre pregão aberto nem Tocaia (21/10) — mesmo que a marca tenha vazado de um jogo rápido
   if (state.pregaoAberto && !rescue && !state.careerOnline) { abrePregaoAberto(state); return }
+  // ⚡ ENVELOPE ÚNICO (28/10): as 5 posições num envelope só, logo na abertura do leilão (nunca na carreira)
+  if (state.envUnico && !rescue && !state.careerOnline && state.sectorIdx === 0 && state.sectorCursor === 0) { abreEnvelopeUnico(state); return }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
@@ -6914,8 +6917,37 @@ function sealAndResolveTec(state: EscState) {
 // resolve o setor a partir dos envelopes coletados (humanos) + CPUs
 function sealAndResolve(state: EscState) {
   if (state.tecLote) { sealAndResolveTec(state); return } // 🧢 setor técnico
-  const rng = rngOf(state)
+  if (state.euAberto) { selaEnvelopeUnico(state); return } // ⚡ envelope único: as 5 posições de uma vez
   const rescue = state.phase === 'resq_envelope'
+  const { queue, unsold, ties } = leilaoResolveLeva(state, rescue)
+  state.revealQueue = queue
+  state.revealIdx = 0
+  state.currentCards = unsold
+  state.submitted = []
+  state.pendingEnvelopes = {}
+  state.tiebreaks = ties
+  state.tiebreakIdx = 0
+  state.tiebreakPending = {}
+  if (ties.length > 0) {
+    // tem empate no topo: entra na fase de desempate antes da revelação
+    state.phase = 'tiebreak'
+    advanceTiebreaks(state) // para no 1º que precisa de humano, ou já vai pra revelação
+  } else {
+    state.phase = rescue ? 'resq_reveal' : 'reveal'
+    state.phaseDeadline = null
+    // CAUSA-RAIZ da "tela preta": se a leva veio VAZIA (currentCards vazio →
+    // revelação sem nenhuma carta), a tela de Revelação não tinha o que mostrar e
+    // renderizava em branco (o fundo escuro do estúdio aparecia). Aqui a gente
+    // NUNCA entra numa revelação vazia: segue direto pro próximo passo (próxima
+    // leva / repescagem / monte). afterReveal usa o phase que acabamos de setar.
+    if (state.revealQueue.length === 0) afterReveal(state)
+  }
+}
+
+// 🔨 o miolo de SEMPRE de uma leva: junta os lances (bots + envelopes de gente), decide quem leva cada carta, cobra e
+// anota. Separado em 28/10 só pra o ⚡ envelope único poder rodar as 5 posições com o MESMO motor — nada mudou dentro.
+function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
+  const rng = rngOf(state)
   const bidMap: BidMap = new Map()
   const econ = state.careerOnline ? escadaEconFactor(state) : 0 // 💰 teto por categoria × riqueza da sala (TODA carreira — pedido do Diego: 'Pelé por 409' na carreira longa)
   // 🔻 HOLANDÊS: os lances JÁ estão prontos em `pendingEnvelopes` (um por carta,
@@ -6995,28 +7027,67 @@ function sealAndResolve(state: EscState) {
     if (w?.isHuman) voltaCriaSeSobrou(state, w, q.card.pos)
   }
   mirrorWallets(state) // 💰 arremates e vendas do pregão entram na caixa NA HORA
-  state.revealQueue = queue
+  return { queue, unsold, ties }
+}
+
+// ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png, Diego: "ok… tempo de 90s troque para 180s").
+// O leilão às cegas de sempre, só que as 5 posições abrem JUNTAS num envelope de 180s e saem numa revelação só.
+// Empate = sorteio na hora (sem rodada de desempate). O que ninguém levou vai pro Monte de sempre.
+export const ENVELOPE_UNICO_MS = 180_000
+function abreEnvelopeUnico(state: EscState) {
+  state.phase = 'envelope'
+  state.euAberto = true
+  state.euRevelando = false
+  state.currentCards = SECTORS.flatMap(p => state.deck[p] ?? [])
+  state.revealQueue = []
   state.revealIdx = 0
-  state.currentCards = unsold
   state.submitted = []
   state.pendingEnvelopes = {}
-  state.tiebreaks = ties
+  state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ENVELOPE_UNICO_MS
+  if (state.currentCards.length === 0) { selaEnvelopeUnico(state); return }
+  if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[0]).length === 0) selaEnvelopeUnico(state)
+}
+function selaEnvelopeUnico(state: EscState) {
+  const todas = state.currentCards
+  const envs = state.pendingEnvelopes
+  const fila: ResolvedCard[] = []
+  const sobras: Card[] = []
+  // posição por posição, na ordem de sempre (GOL → ATA), com o MESMO motor de uma leva — a caixa de cada um vai
+  // baixando a cada posição, igual ao leilão normal
+  for (let i = 0; i < SECTORS.length; i++) {
+    const ids = new Set((state.deck[SECTORS[i]] ?? []).map(c => c.id))
+    const cards = todas.filter(c => ids.has(c.id))
+    if (cards.length === 0) continue
+    state.sectorIdx = i
+    state.currentCards = cards
+    const env: typeof envs = {}
+    for (const k of Object.keys(envs)) env[Number(k)] = (envs[Number(k)] ?? []).filter(b => ids.has(b.cardId))
+    state.pendingEnvelopes = env
+    state.submitted = []
+    const { queue, unsold, ties } = leilaoResolveLeva(state, false)
+    state.revealQueue = queue // o desempate acha a carta aqui pra anotar quem levou
+    const rng = rngOf(state)
+    for (const tb of ties) resolveOneTiebreak(state, tb, rng, true) // 🎲 empate = sorteio na hora
+    fila.push(...state.revealQueue)
+    sobras.push(...unsold)
+  }
+  montePush(state, sobras)
+  state.currentCards = []
+  state.pendingEnvelopes = {}
+  state.submitted = []
+  state.tiebreaks = []
   state.tiebreakIdx = 0
   state.tiebreakPending = {}
-  if (ties.length > 0) {
-    // tem empate no topo: entra na fase de desempate antes da revelação
-    state.phase = 'tiebreak'
-    advanceTiebreaks(state) // para no 1º que precisa de humano, ou já vai pra revelação
-  } else {
-    state.phase = rescue ? 'resq_reveal' : 'reveal'
-    state.phaseDeadline = null
-    // CAUSA-RAIZ da "tela preta": se a leva veio VAZIA (currentCards vazio →
-    // revelação sem nenhuma carta), a tela de Revelação não tinha o que mostrar e
-    // renderizava em branco (o fundo escuro do estúdio aparecia). Aqui a gente
-    // NUNCA entra numa revelação vazia: segue direto pro próximo passo (próxima
-    // leva / repescagem / monte). afterReveal usa o phase que acabamos de setar.
-    if (state.revealQueue.length === 0) afterReveal(state)
-  }
+  state.euAberto = false
+  // a revelação mostra só carta que teve lance (as sem lance já foram pro Monte) — é o que deixa ela ligeira
+  state.revealQueue = fila.filter(q => q.winner !== null || q.bids.length > 0)
+  state.revealIdx = 0
+  state.sectorIdx = SECTORS.length - 1
+  state.sectorCursor = (state.deck[SECTORS[SECTORS.length - 1]] ?? []).length
+  state.euRevelando = true
+  state.phase = 'reveal'
+  state.phaseDeadline = null
+  if (state.revealQueue.length === 0) afterReveal(state)
 }
 
 // todo humano com vaga aberta e dinheiro precisa enviar (não filtra por presença:
@@ -7053,7 +7124,10 @@ function envelopeQueCabe(s: EscState, mgrId: number, bids: { cardId: string; amo
 
 function humansToSubmit(state: EscState, pos: Sector): number[] {
   // 🧢 setor técnico: não existe "vaga de posição" — quem tem dinheiro dá lance
-  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && (state.tecLote ? m.money > 0 : (openSlots(m, pos) > 0 && m.money > 0)))
+  // ⚡ envelope único: lacra quem tem vaga em QUALQUER posição (e dinheiro)
+  const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && (state.tecLote ? m.money > 0
+    : state.euAberto ? (m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0))
+    : (openSlots(m, pos) > 0 && m.money > 0)))
   // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
   // pela tela. Qualquer OUTRO assento humano (o 2º clube do Multiclubes — dormindo,
   // OU com o flag `dormindo` inconsistente por uma troca no meio do leilão) nunca
@@ -7084,6 +7158,14 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
 }
 
 function afterReveal(state: EscState) {
+  // ⚡ acabou a revelação ÚNICA: as 5 posições já foram — segue pro Monte de sempre
+  if (state.euRevelando) {
+    state.euRevelando = false
+    state.currentCards = []
+    state.sectorIdx = SECTORS.length - 1
+    advanceSectorOrFinish(state, rngOf(state))
+    return
+  }
   // 🧢 acabou a revelação do setor técnico: limpa o lote e abre os GOLEIROS
   if (state.tecLote) {
     state.tecLote = null
@@ -7317,7 +7399,7 @@ function proximoDoDraft(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -7956,6 +8038,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !action.dinastia && !!action.pregaoAberto
       s.paPresentes = undefined
       if (s.pregaoAberto) s.holandes = false
+      // ⚡ envelope único (28/10): só no rápido; é o 4º jeito de dar lance, então desliga os outros dois
+      s.envUnico = !action.career && !action.dinastia && !!action.envUnico; s.euAberto = false; s.euRevelando = false
+      if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
       s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
@@ -8453,7 +8538,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerOnline = true
       // 🔨🐊 21/10 (amigo do Diego criou carreira e caiu no PREGÃO ABERTO): a carreira é SEMPRE o envelope de sempre. Antes daqui
       // nada zerava a marca do jogo rápido anterior (pregão aberto/Tocaia) e a carreira nova herdava.
-      s.pregaoAberto = false; s.pa = undefined; s.holandes = false
+      s.pregaoAberto = false; s.pa = undefined; s.holandes = false; s.envUnico = false; s.euAberto = false; s.euRevelando = false
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
@@ -8754,6 +8839,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // envelope. O motor é seguro com a NBA: fila e sobras saem do ACTIVE_CATALOG (trava `npm run pregao-aberto-nba`).
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
+      // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
+      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; s.euAberto = false; s.euRevelando = false
+      if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
