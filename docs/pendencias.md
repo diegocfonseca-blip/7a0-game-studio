@@ -11443,6 +11443,13 @@ pedi pra você melhorar visualmente o que tem hoje"*). A carreira voltou a ser c
 (*"precisa ser menor e alinhado"*), só o que ganhou; Só Champions/Relâmpago usam a taça deles (`comp`). Os chips de Liga/Copa da sala
 rápida saíram (a taça diz isso); Top 8 e rebaixamento continuam.
 
+## 👀 ONLINE ABERTO PRA VISITANTE (28/10, pedido do Diego)
+*"o botão de online na home deixe que qualquer pessoa mesmo sem conta entre na página. Porém apertar pra criar sala ou entrar em alguma
+sala aberta não deixe, aí sim aparece com a informação de criar conta"*. Sem conta: a página de salas abre (lista, busca, filtros,
+atualizar, abas Salas abertas/Entrar). Qualquer outro botão (Criar sala, entrar numa sala, código, Minhas Ligas, vitrine…) abre a janela
+da conta com o porquê escrito; "agora não" volta pras salas. Mora em `lobby.tsx` (`visitante`, `pedeConta`, `travaVisitante` no `wrap`;
+o que é só de olhar leva `data-livre`). Convite pendente continua abrindo direto no login. Fotos: `scripts/mockups/online-visitante*.png`.
+
 ## ⚡ Envelope único liberado também pro Futpoint FC (28/10) — partida rápida e salas, mesma trava (`ENVELOPE_UNICO_TESTERS`)
 
 ## 📖 MEU ÁLBUM saiu da home (28/10)

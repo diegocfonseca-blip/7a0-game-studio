@@ -768,7 +768,11 @@ export function EscLobby() {
     supabase.rpc('esc_sou_espectador').then(({ data, error }) => { if (vivo) setSouEspectador(!error && data === true) }, () => { if (vivo) setSouEspectador(false) })
     return () => { vivo = false }
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
-  const [phase, setPhase] = useState<Phase>('auth')
+  // 👀 28/10 (Diego): o ONLINE abre pra QUALQUER UM, mesmo sem conta — a pessoa vê as salas. A conta só é pedida na hora
+  // de CRIAR sala ou ENTRAR numa (`pedeConta`, pela trava de clique no `wrap`). Com convite pendente continua abrindo no login.
+  const [phase, setPhase] = useState<Phase>(() => loadInvite() ? 'auth' : 'menu')
+  const [sessaoLida, setSessaoLida] = useState(false) // só depois de ler a sessão dá pra dizer "é visitante"
+  const [contaPedida, setContaPedida] = useState(false)
   // 👁️ ESPECTADOR "FANTASMA" (28/10): só quem o Diego liberou no #admin vê o 👁️ ASSISTIR. Na dúvida (sem rede/sem conta) = não.
   const [souEspectador, setSouEspectador] = useState(false)
   const [assistindo, setAssistindo] = useState<SalaAssistida | null>(null)
@@ -1142,18 +1146,18 @@ export function EscLobby() {
     void supabase.auth.getSession().then(({ data }) => {
       if (!ativo || eventoRecebido) return
       const u = data.session?.user ?? null
-      setUser(u); if (u && !recoveringRef.current) setPhase(p => p === 'auth' ? 'menu' : p)
-    }).catch(() => { /* JanelaConta mostra o erro e permite tentar novamente. */ })
+      setUser(u); setSessaoLida(true); if (u && !recoveringRef.current) setPhase(p => p === 'auth' ? 'menu' : p)
+    }).catch(() => { setSessaoLida(true) /* JanelaConta mostra o erro e permite tentar novamente. */ })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!ativo) return
       eventoRecebido = true
       const u = session?.user ?? null
       // 🔑 voltou pelo link de redefinição: NÃO cai no menu — abre a tela de nova senha
       if (event === 'PASSWORD_RECOVERY') { setUser(u); startRecovery(); return }
-      setUser(u)
+      setUser(u); setSessaoLida(true)
       if (!recoveringRef.current) {
         if (u) setPhase(p => p === 'auth' ? 'menu' : p)
-        else if (event === 'SIGNED_OUT') setPhase('auth')
+        else if (event === 'SIGNED_OUT') setPhase('menu') // 👀 saiu da conta: continua vendo as salas, como visitante
       }
     })
     return () => { ativo = false; subscription.unsubscribe() }
@@ -3033,6 +3037,16 @@ export function EscLobby() {
   const temaSala = phase === 'waiting' && room ? temaValido((room.game_state as GS & { tema?: string })?.tema) : null
   const meusTemas = useTemasDaConta(user?.email) // 🎨 os temas que ESTA conta pode pôr na sala (código + Loja)
   useEffect(() => { if (phase === 'waiting' && user?.email) releMeusTemas(user.email) }, [phase, user?.email]) // comprou agora na Loja → já aparece
+  // 👀 VISITANTE (28/10): olhar pode; qualquer botão que não seja só de OLHAR (aba Salas abertas/Entrar, filtros,
+  // atualizar — marcados com `data-livre`) abre a conta, com o porquê escrito.
+  const visitante = phase === 'menu' && sessaoLida && !user
+  const pedeConta = () => { setContaPedida(true); setPhase('auth') }
+  const travaVisitante = (e: React.MouseEvent) => {
+    if (!visitante) return
+    const alvo = e.target as HTMLElement
+    if (!alvo.closest('button') || alvo.closest('[data-livre]')) return
+    e.preventDefault(); e.stopPropagation(); pedeConta()
+  }
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
     <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
       {temaSala && <TemaFundo tema={temaSala} />}
@@ -3042,7 +3056,7 @@ export function EscLobby() {
           <span className="text-xl leading-none">←</span> Home
         </button>
       )}
-      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`}>{children}</div>
+      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{children}</div>
     </div>
   )
 
@@ -3072,14 +3086,16 @@ export function EscLobby() {
       titulo={tr('Minha conta · Online', 'My account · Online')}
       contexto={pendingInvite
         ? tr('Entre para continuar na sala ', 'Sign in to continue to room ') + pendingInvite
-        : tr('Uma conta só para o Online e a Carreira.', 'One account for Online and Career.')}
+        : contaPedida
+          ? tr('Pra criar sala ou entrar numa sala, você precisa de uma conta. É grátis e leva 1 minuto.', 'To create or join a room you need an account. It is free and takes 1 minute.')
+          : tr('Uma conta só para o Online e a Carreira.', 'One account for Online and Career.')}
       comecarEmCriar={authTab === 'register'}
       onPronto={() => {
         void supabase.auth.getSession().then(({ data }) => {
           if (data.session && !recoveringRef.current) { setUser(data.session.user); setPhase(p => p === 'auth' ? 'menu' : p) }
         }).catch(() => setAuthError(tr('Não consegui consultar sua conta. Tente novamente.', 'Could not check your account. Try again.')))
       }}
-      onFechar={() => dispatch({ type: 'GO_LOBBY' })}
+      onFechar={() => { if (pendingInvite) { dispatch({ type: 'GO_LOBBY' }); return } setContaPedida(false); setPhase('menu') }}
     />
   }
 
@@ -3173,8 +3189,11 @@ export function EscLobby() {
           </p>
         </div>}
         <div className="online-identity px-4 py-2 flex items-center gap-2 justify-between" style={{ background: '#1a1220' }}>
-          <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">{tr('Logado como', 'Signed in as')}</span>
-          {editingName ? (
+          <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">{visitante ? tr('Você está só olhando', 'Just browsing') : tr('Logado como', 'Signed in as')}</span>
+          {visitante ? (
+            <button onClick={pedeConta} className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border-2 font-black text-xs"
+              style={{ background: GOLD, borderColor: '#000', color: '#000', ...OSWALD }}>{tr('👤 Entrar / criar conta', '👤 Sign in / create account')}</button>
+          ) : editingName ? (
             <div className="flex gap-1.5 items-stretch flex-1 ml-2">
               <input autoFocus value={nameDraft} onChange={e => setNameDraft(stripEmoji(e.target.value))} maxLength={20}
                 placeholder={tr('Nome do seu time', 'Your team name')} onKeyDown={e => e.key === 'Enter' && saveName()}
@@ -3367,7 +3386,7 @@ export function EscLobby() {
       {/* abas */}
       <div className="online-tabs flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
-          <button key={t.id} onClick={() => { setTab(t.id); setRoomError('') }}
+          <button key={t.id} data-livre={t.id !== 'create' ? '1' : undefined} onClick={() => { setTab(t.id); setRoomError('') }}
             className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? PURPLE : '#fff', color: tab === t.id ? '#fff' : '#000', ...OSWALD }}>
             {t.label}{salasNovo && t.id === 'open' && openRooms.length > 0 ? ` (${openRooms.length})` : ''}
           </button>
@@ -4181,7 +4200,7 @@ export function EscLobby() {
         {salasNovo && (
           <div className="flex flex-wrap gap-1.5">
             {([['todas', tr('Todas', 'All')], ['envelope', tr('✉️ Envelope', '✉️ Sealed')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão', '🔨 Open')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['duplas', tr('🤝 Duplas', '🤝 Duos')]] as [typeof filtroSala, string][]).map(([v, lb]) => (
-              <button key={v} onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
+              <button key={v} data-livre="1" onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
                 style={{ borderColor: filtroSala === v ? INK : 'rgba(255,255,255,.7)', background: filtroSala === v ? '#fff' : 'transparent', color: filtroSala === v ? INK : '#fff' }}>{lb}</button>
             ))}
           </div>
@@ -4317,7 +4336,7 @@ export function EscLobby() {
             )
           })}
         </div>
-        <Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big>
+        <div data-livre="1"><Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big></div>
         {/* 🏆📊🖋️ vitrine: campeões de hoje · ranking da semana · último batismo (13/10, mockup aprovado) */}
         <VitrineSalas logado={!!user} />
         {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
@@ -4504,7 +4523,7 @@ export function EscLobby() {
       )}
       {salasNovo && <div className="space-y-5">{blocoCarreiras}</div>}
       <AdminButton />
-      <button onClick={() => { if (!window.confirm(tr('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.', 'Sign out? You will need to sign in again (e-mail/password or Google) next time.'))) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">{tr('Sair da conta', 'Sign out')}</button>
+      {!visitante && <button onClick={() => { if (!window.confirm(tr('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.', 'Sign out? You will need to sign in again (e-mail/password or Google) next time.'))) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">{tr('Sair da conta', 'Sign out')}</button>}
       <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>
     </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
