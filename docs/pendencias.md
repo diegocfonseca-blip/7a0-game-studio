@@ -1,3 +1,12 @@
+## ⚡ Mata-mata Relâmpago (28/10) — MOCKUP enviado, esperando OK do Diego
+- Veio da lista de ideias novas pras salas (Clã × Clã, Liga dos Bagres, Copa das Décadas, Leilão de Seleções, Relâmpago, Leilão
+  das Pistas, Rei da Noite). Ele escolheu ver o Relâmpago.
+- Proposta: nova opção no bloco "O campeonato" ao lado de Só a liga / Liga + Copa / Só Champions. Leilão DE SEMPRE → sorteio da
+  chave → mata-mata em jogo único, empate = pênalti manual, sem liga. Até 8 pessoas chave de 8 (quartas); 9–16 chave de 16
+  (oitavas); vaga que sobra vira bot. Quem cai fica assistindo. Usa o motor de mata-mata que já existe (quickCopa) e as mesmas
+  telas da Copa — nada de tela nova (regra da Kings: modo novo nunca ganha placar/tabela própria).
+- Mockup: `scripts/mockup-mata-relampago.mjs` → `scripts/mockups/mata-relampago.png`.
+
 ## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
 - Logo oficial LL (`img/logo-ll.webp`, 96px, 1 KB — enviada pelo Diego) ao lado do nome no PC.
 - Veio da análise do Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as abas de baixo
