@@ -15,6 +15,10 @@ leilão de transferências. Roteiro e dados ficaram no scratchpad da sessão (n�
   **84 → 87%** · 86 → 92%. A sorte é justa (4 pontos acima = sobe quase sempre). **A injustiça está no leilão**: (1) o bot avalia a carta
   pelo NÍVEL escondido (`perceived`, erro de só ±3 em fama 3+) e o humano só vê nome/clube/ano; (2) bot com elenco cheio ainda dá 1 lance
   de reforço por setor (`reforco` em `cpuEnvelope`) e o humano com 27 não tem lance nenhum até vender na mão.
+- **CAUSA PRINCIPAL achada (escada de categorias, `escadaAllows`)**: V só negocia foi-prof + bom (fama ≤3) e D só bom + promessa. O teto
+  é "Bom" (76–85) nas DUAS — depois do 1º leilão não existe carta melhor pra comprar, os 20 times ficam iguais (76–80) e a tabela vira
+  loteria. Só na C entra o Craque. Explica o ioiô V↔D de 17 temporadas do robô. Também: o aviso "VIROU PROFISSIONAL! Saiu da Várzea!"
+  aparece na tela de vender mesmo depois de cair de volta pra V (aviso da subida da T2 preso).
 - Pendente: ensinar o robô a VENDER e rodar até a T120 (≈12 h+) pra conferir os prêmios das copas — esperando o Diego dizer se quer.
 
 ## 🧭 Abas da carreira + logo + faixa da comunidade (27/10) — ✅ PUBLICADO (*"pode publicar"*)
