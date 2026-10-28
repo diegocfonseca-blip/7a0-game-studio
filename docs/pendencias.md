@@ -1,3 +1,7 @@
+## 🟢 Envelope único LIBERADO PRA TODOS (28/10) + selos
+Selo NOVO na criação (sala e partida rápida); Relâmpago trocou "em testes" por NOVO; selo ⚡ ENVELOPE ÚNICO na lista de salas, no filtro
+"⚡ Único" e na sala de espera (o banco grava `ls_pregao = 'unico'`, migration `20261028200000_ls_envunico.sql`). Duplas: ainda NÃO.
+
 ## ⚡🔁 Envelope único: 2ª LISTA antes do Monte (28/10) — ✅ PUBLICADO
 Diego testou: *"tá ficando muita carta no monte… depois da primeira leva volta pras sobras… uma segunda lista… só depois disso que vai
 ter monte"*. Agora: 1ª lista (as 5 posições, 180s) → revelação → **2ª lista** com o que sobrou, só nas posições em que ainda tem GENTE
