@@ -5,6 +5,7 @@ import {criarPartidaComplexo} from '../../src/escalacao/presidencia-complexo-par
 import {quadroFutebol3D} from '../../src/escalacao/presidencia-futebol-motor.ts';
 import {enquadramentoFutebol} from '../../src/escalacao/presidencia-enquadramento-futebol.ts';
 try {
+ localStorage.setItem('esc3d-contact-audit',new URLSearchParams(location.search).get('audit')==='0'?'0':'1');
  const fixture=await fetch('../../test-results/animation-library/neymarzetti-current/football-input.json').then(r=>r.json());
  const {input,sourceMatch}=fixture,roster=cs=>cs.map((p,i)=>({id:String(i),name:p.name,pos:p.pos,fake:p.fake}));
  const state={viewerClubId:sourceMatch.awayClubId,officialInput:input,officialTeams:[sourceMatch.home,sourceMatch.away],context:{id:'auditoria-mapa-'+Date.now(),homeClubId:sourceMatch.homeClubId,awayClubId:sourceMatch.awayClubId,home:roster(input.casa),away:roster(input.fora),stadium:{inv:{grama:100,geral:100,cadeiras:100},ext:[]}},minute:0,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#c2452f',awayColor:'#f0efef'};
@@ -29,5 +30,5 @@ try {
   for(const ids of indices){triangle.set(...ids.map(vertex));triangle.closestPointToPoint(ball,point);gap=Math.min(gap,ball.distanceTo(point)-.11)}
   return{gap,floor,triangles:indices.length};
  }
- window.mapAudit={measureBoot,ready:()=>{game.update(state,0);return !!game.inspect().detail},seek,inspect,render,camera:m=>{mode=m},capture:(t,m='close')=>{mode=m;seek(t,true);return renderer.domElement.toDataURL('image/jpeg',.9).split(',')[1]},size:(w,h)=>{renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix()},dispose:()=>{game.dispose();renderer.dispose()}};
+ window.mapAudit={historicalProof:()=>import('../../src/escalacao/presidencia-replay-oficial.ts').then(m=>m.prepararReplayOficial(input,sourceMatch.goals)).then(p=>({valid:p.valid,expected:sourceMatch.score,actual:p.relato.frames.at(-1).score})),timeline:()=>import('../../src/escalacao/futebol3d/motion/map-football-timeline.mjs').then(m=>m.prepareMapTimeline(state)).then(t=>({agenda:t.agenda,duration:t.duration,bytes:t.bytes})),measureBoot,ready:()=>{game.update(state,0);return !!game.inspect().detail},seek,inspect,render,camera:m=>{mode=m},capture:(t,m='close')=>{mode=m;seek(t,true);return renderer.domElement.toDataURL('image/jpeg',.9).split(',')[1]},size:(w,h)=>{renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix()},dispose:()=>{game.dispose();renderer.dispose()}};
 } catch(e){window.mapAuditError=e.stack;document.getElementById('status').textContent=e.stack}
