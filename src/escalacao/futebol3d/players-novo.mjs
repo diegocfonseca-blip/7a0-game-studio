@@ -25,6 +25,8 @@ import {MapFootPlant} from './motion/map-foot-plant.mjs'
 import {groundContactShadows} from './motion/ground-contact-shadows.mjs'
 import {prepareMapGaits,gaitTime} from './motion/map-gait.mjs'
 import {keeperCatchIntent} from './motion/map-keeper-intent.mjs'
+import {contactSteps,contactFrame} from './motion/map-contact-clock.mjs'
+import {keeperFlight,sampleKeeperFlight} from './motion/map-keeper-flight.mjs'
 import {VisualPlayerCollisions} from './visual-player-collisions.mjs'
 
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
@@ -100,13 +102,18 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   const action=calibrator.acao(nome);action.reset().play();action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;action.time=time;action.timeScale=0;action.setEffectiveWeight(1);calibrator.mixer.update(0);calibrator.holder.updateMatrixWorld(true)
   const floor=calibrator.surface.floor(/^gk_(recolhe|pega|rola|lanca)/.test(nome)),ground=Math.max(0,.003-floor);calibrator.holder.position.y+=ground;calibrator.holder.updateMatrixWorld(true)
   const point=n=>calibrator.bones.get('mixamorig'+n).getWorldPosition(new T.Vector3()),meta=asset.meta.clips[nome.replace(/_e$/,'')],left=(meta?.pe==='l')!==nome.endsWith('_e')
-  region??=/^cabeca/.test(nome)?'head':/^gk_|lateral/.test(nome)?'hands':/^peito/.test(nome)?'chest':left?'left':'right'
+  const catchHands=region==='catchHands',handHeight=catchHands||region==='hands'||nome==='gk_recolhe';if(catchHands)region='hands';region??=/^cabeca/.test(nome)?'head':/^gk_|lateral/.test(nome)?'hands':/^peito/.test(nome)?'chest':left?'left':'right'
   let off,fit=true
-  if(region==='hands'){off=point('RightHand').add(point('LeftHand')).multiplyScalar(.5);off=calibrator.surface.anchor('hands',off,new T.Vector3(0,0,1),{height:nome==='gk_recolhe'?ballHeight:off.y}).point}
-  else if(region==='rightHand'){off=point('RightHand');off=calibrator.surface.anchor('rightHand',off,new T.Vector3(0,0,1),{height:off.y}).point}
+  if(region==='hands'){off=point('RightHand').add(point('LeftHand')).multiplyScalar(.5);const height=handHeight?ballHeight:off.y,direction=new T.Vector3(0,0,1);let anchor=catchHands?calibrator.surface.anchor('rightHand',point('RightHand'),direction,{height}):calibrator.surface.anchor('hands',off,direction,{height});
+   // In an open-hand save the middle of the palms is empty space. Fit an
+   // actual glove instead of treating that empty-space fallback as contact.
+   if(!catchHands&&!anchor.fitted)for(const side of ['Right','Left']){const candidate=calibrator.surface.anchor('hands',point(side+'Hand'),direction,{height});if(candidate.fitted){anchor=candidate;break}}
+   off=anchor.point;fit=anchor.fitted}
+  else if(region==='rightHand'){off=point('RightHand');const anchor=calibrator.surface.anchor('rightHand',off,new T.Vector3(0,0,1),{height:off.y});off=anchor.point;fit=anchor.fitted}
   else if(region==='chest'){off=point('Spine2');off.z+=.20}
   else{const origin=point(region==='head'?'Head':region==='left'?'LeftToeBase':'RightToeBase'),height=region==='head'?origin.y+.12:ballHeight,anchor=calibrator.surface.anchor(region,origin,new T.Vector3(0,0,1),{height});off=anchor.point;fit=anchor.fitted}
-  const handLocal=['hands','rightHand'].includes(region)?calibrator.bones.get('mixamorigRightHand').worldToLocal(off.clone()).toArray():null;const value={handLocal,off:{x:off.x,y:off.y,z:off.z},ground,floor,region,fitted:fit,feetHeight:Math.max(0,floor),head:point('Head').toArray()};poseCache.set(key,value);action.setEffectiveWeight(0);return value
+  const handBone=region==='hands'&&calibrator.surface.probe(off,'leftHand').gap<calibrator.surface.probe(off,'rightHand').gap?'mixamorigLeftHand':'mixamorigRightHand';
+  const handLocal=['hands','rightHand'].includes(region)?calibrator.bones.get(handBone).worldToLocal(off.clone()).toArray():null;const value={handLocal,handBone,off:{x:off.x,y:off.y,z:off.z},ground,floor,region,fitted:fit,feetHeight:Math.max(0,floor),head:point('Head').toArray()};poseCache.set(key,value);action.setEffectiveWeight(0);return value
  }
  for(const nome of ['conduz','chute','chute_corrida','passe','passe_curto','cavadinha','cabeca','cabeca2','dominio','peito','passe_chapa','chute_forte','gk_recolhe','gk_pega','gk_pega_baixo','gk_idle_bola','gk_rola','gk_lanca','gk_lanca_longe','lateral'].flatMap(n=>[n,n+'_e'])){
   if(!asset.clips.has(nome))continue;const sample=samplePose(nome);CONTATO[nome]={...sample,alto:['head','chest','hands'].includes(sample.region),ang:0}
@@ -115,19 +122,35 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // throw. The source's ground-to-two-metres placement is never drawn as a jump.
  for(const release of [...agenda])if(release.hands&&!release.keeper){const t=release.t-.4,f=timeline.sample(t,release.key);agenda.push({id:'pickup:'+release.id,key:release.key,kind:'recebe',pickup:true,hands:true,keeper:false,t,h:f.ball.y-.11,requiredContact:'hands',dir:release.dir,bola:f.ball,rec:f.player})}
  agenda.sort((a,b)=>a.t-b.t);
+ const keeperFlights=agenda.filter(it=>it.physicalImpact&&!it.disabled).map(it=>keeperFlight(it,timeline.sample,agenda)).filter(Boolean);
  // Choose a pose once from the official sequence, independent of camera/FPS.
  for(const it of agenda){const a=atores.find(a=>a.key===it.key);if(!a)continue
   const prevReceive=agenda.findLast(o=>o.key===it.key&&o.kind==='recebe'&&o.t<=it.t+.001),quick=prevReceive&&it.t-prevReceive.t<.28
   if(it.kind==='carry')it.nome='controle_corrida'
+  else if(it.save)it.nome=it.bola.y>1.5?'gk_pega_alto':it.bola.y>.95?'gk_pega':'gk_pega_baixo'
   else if(it.kind==='recebe')it.nome=it.goleiro||it.pickup?'gk_recolhe':it.h>.9?'peito':'dominio'
-  else if(it.hands)it.nome=it.keeper?(it.tipo==='lancamento'?'gk_lanca_longe':'gk_rola'):'lateral'
+  else if(it.hands){const outgoing=timeline.sample(it.t+.05).ball;it.nome=it.keeper?(it.tipo==='lancamento'?'gk_lanca_longe':outgoing.vy>2?'gk_lanca':'gk_rola'):'lateral'}
   else if(it.cab)it.nome=it.bola.y>1.7?'cabeca':'cabeca2'
   else if(CHUTES.has(it.tipo)||it.tipo==='corte')it.nome=quick?'chute_corrida':'chute_forte'
   else if(['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26)it.nome='cavadinha'
   else it.nome=prevReceive&&it.t-prevReceive.t<.8?'passe':'passe_chapa'
   if(it.kind==='toque'&&!it.hands&&!it.cab){const wantLeft=a.pe==='canhota'||a.pe!=='direita'&&a.canhoto,baseLeft=asset.meta.clips[it.nome]?.pe==='l';if(wantLeft!==baseLeft&&asset.clips.has(it.nome+'_e'))it.nome+='_e'}
-  if(it.goleiro){const intent=keeperCatchIntent(it,agenda,key=>atores.find(a=>a.key===key)?.side);it.dir=intent.heading;it.incomingShot=intent.shot}
+  if(it.goleiro||it.save){const intent=keeperCatchIntent(it,agenda,key=>atores.find(a=>a.key===key)?.side);it.dir=intent.heading;it.incomingShot=intent.shot}
   it.mira=it.dir??it.rec.heading
+ }
+ // Calibrate saves by glove height/reach in the imported captures. Metadata
+ // inherited from foot-contact detection cannot time a goalkeeper's hands.
+ for(const it of agenda){if(it.disabled||!(it.save||it.goleiro&&it.bola.y>.35))continue;
+  const localX=(it.bola.x-it.rec.x)*Math.cos(it.mira)-(it.bola.z-it.rec.z)*Math.sin(it.mira),high=it.bola.y>1.55;
+  const ranges=high?[[Math.abs(localX)>1&&it.bola.y<1.95?(localX<0?'gk_voo_d':'gk_voo_e'):'gk_pega_alto',.55,1.0]]:it.bola.y>.95?[['gk_pega',.2,.85]]:[['gk_pega_baixo',.4,.9]];
+  let best=null;
+  for(const [name,begin,end]of ranges)for(let time=begin;time<=end+1e-7;time+=1/60){
+   const natural=samplePose(name,time),rise=Math.max(0,it.bola.y-natural.off.y),candidate=samplePose(name,time,it.goleiro?'catchHands':'hands',it.bola.y-Math.min(.45,rise));
+   if(!candidate.fitted||rise>.45)continue;
+   const cost=rise*2+Math.abs(time-(name==='gk_pega'?.4:.8))*.08;
+   if(!best||cost<best.cost)best={name,time,candidate,rise,cost};
+  }
+  if(best){it.nome=best.name;it.rawTouch=best.time;it.contactHeight=it.bola.y-best.rise;it.extraRise=best.rise;it.handPoseFitted=true}else it.handPoseFitted=false;
  }
  for(const it of agenda){if(it.kind!=='recebe'||it.goleiro||it.pickup)continue;
   const next=agenda.find(o=>o.key===it.key&&o.kind==='toque'&&o.t>=it.t);
@@ -151,7 +174,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  }
  // Cues for both reception and release share one continuous root track.
  for(const it of agenda){const a=atores.find(a=>a.key===it.key);if(!a||it.firstTime&&it.kind==='recebe'||it.disabled)continue
-  const pose=samplePose(it.nome,rawTouch(it.nome),it.hands&&it.kind==='toque'&&it.keeper?'rightHand':null,it.bola.y),cs=Math.cos(it.mira),sn=Math.sin(it.mira),off=pose.off
+  const pose=samplePose(it.nome,it.rawTouch??rawTouch(it.nome),it.hands&&it.kind==='toque'&&it.keeper?'rightHand':it.goleiro&&it.bola.y>.35?'catchHands':it.save||it.goleiro?'hands':null,it.contactHeight??it.bola.y),cs=Math.cos(it.mira),sn=Math.sin(it.mira),off=pose.off
   it.contact=pose;it.root={x:it.bola.x-it.rec.x-(off.x*cs+off.z*sn),z:it.bola.z-it.rec.z-(-off.x*sn+off.z*cs)}
   if(it.cab)it.extraRise=Math.max(0,Math.min(.5,it.bola.y-off.y))
   // Hand ownership is attachment after a measured catch, never a foot action.
@@ -190,13 +213,13 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
  // Fit each captured action into the available official interval. In particular,
  // a keeper must finish collecting before starting a throw; crop its idle lead-in.
  for(const a of atores){let previous=null;for(const it of agenda.filter(i=>i.key===a.key&&!i.disabled&&!(i.firstTime&&i.kind==='recebe'))){
-  const raw=rawTouch(it.nome),begin=it.kind==='carry'?.27:trecho(it.nome)?.de??0;
+  const raw=it.rawTouch??rawTouch(it.nome),begin=it.kind==='carry'?.27:trecho(it.nome)?.de??0;
   it.start=it.t-(raw-begin);const moving=!it.hands&&!it.goleiro&&!it.pickup&&!it.cab&&(it.rec?.speed??0)>3.5;if(moving&&(it.kind==='recebe'||it.kind==='carry'||['passe','enfiada'].includes(it.tipo)))it.start=Math.max(it.start,it.t-(it.kind==='recebe'?.24:.28));
   // React to the shot first. The low collection starts only when the ball is
   // approaching the ground, not a full second before a high shot reaches goal.
-  if(it.goleiro&&it.incomingShot)it.start=Math.max(it.start,it.t-.28);
+  if(it.goleiro&&it.incomingShot&&!it.save&&it.bola.y<.35)it.start=Math.max(it.start,it.t-.28);
   const settle=(previous?.goleiro||previous?.pickup) ? .18 : .10;
-  if(previous&&previous.t<it.t&&it.start<previous.t+settle)it.start=Math.min(it.t-.19,previous.t+settle);
+  if(previous&&previous.t<it.t&&it.start<previous.t+settle)it.start=it.hands?Math.min(it.t-.025,previous.t+Math.min(.04,(it.t-previous.t)*.15)):Math.min(it.t-.19,previous.t+settle);
   const shortPass=it.kind==='toque'&&!it.hands&&['passe','enfiada'].includes(it.tipo);
   it.clipStart=raw-(it.t-it.start);it.clipEnd=Math.min(trecho(it.nome)?.ate??asset.clips.get(it.nome).duration,raw+(it.goleiro ? .3 : moving ? .30 : (it.kind==='recebe'||shortPass) ? .4 : .65));
   previous=it;
@@ -249,8 +272,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   }
   if(medidas.length>200)medidas.splice(0,medidas.length-200)
  }
- return{
-  update(frame,camera,viewportHeight=720){
+ let contactSubsteps=0;
+ const updateFrame=(frame,camera,viewportHeight=720)=>{
    if(disposed)return
    // Orbit/zoom and a paused clock may draw the SAME football frame again.
    // Re-evaluating a zero-speed gait here used to replace a running pose with
@@ -263,7 +286,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    const firstFrame=lastTime===null;const dt=lastTime===null||frame.time<lastTime||frame.time-lastTime>1?0:frame.time-lastTime,reset=dt===0&&lastTime!==null&&frame.time!==lastTime;lastTime=frame.time
    if(reset){handState=null;handFlight=null}
    inspection={full:0,intermediate:0,far:0,hidden:0,tiros:inspection.tiros}
-   const groundFlight=groundFlights.find(f=>frame.time>=f.start&&frame.time<=f.end),groundBall=sampleGroundDelivery(groundFlight,frame.time);if(groundBall)frame={...frame,ball:{...frame.ball,presentation:groundBall}};
+   const deflection=keeperFlights.find(f=>frame.time>=f.start&&frame.time<=f.end),groundFlight=groundFlights.find(f=>frame.time>=f.start&&frame.time<=f.end),groundBall=sampleKeeperFlight(deflection,frame.time)??sampleGroundDelivery(groundFlight,frame.time);if(groundBall)frame={...frame,ball:{...frame.ball,presentation:groundBall}};
    const evs=frame.official?.events??[],usados=new Set()
    // eventos dos últimos 0,4 s, por nome do motor (o mesmo que o teatro do players.mjs usa)
    const recentes=[];for(let i=evs.length-1;i>=0;i--){const e=evs[i],idade=frame.time-e.t;if(idade>.4)break;if(idade>=0)recentes.push(e)}
@@ -277,7 +300,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     a.holder.visible=a.detail!=='hidden'
     // deslocamento de verdade deste quadro (a velocidade do motor sozinha não sabe de cobrança/teleporte)
     // A aproximação visual do corpo também conta na distância da passada.
-    const plan=activePlan(a,frame.time),name=planName(plan),aim=plan?.dir!=null?plan.dir-(CONTATO[name]?.ang??0):a.rumo
+    const plan=activePlan(a,frame.time),facingPlan=frame.ball.heldBy===p.key&&plan?.t<frame.time-1e-6?(agenda.find(it=>it.key===p.key&&it.hands&&it.kind==='toque'&&it.t>frame.time&&it.t-frame.time<.8)??plan):plan,name=planName(facingPlan),aim=facingPlan?.dir!=null?facingPlan.dir-(CONTATO[name]?.ang??0):a.rumo
     const target=bodyTrack(a,frame.time),nav=navInfo.positions.get(p.key)??{x:0,z:0},base=p.sourceAnchor??{x:p.mx,z:p.mz}
     a.corrAlvo=target;a.corr={x:target.x+nav.x,z:target.z+nav.z}
     if(reset||frame.placementReset){a.ultimo=null;a.contactHistory=null;if(reset){a.mergulhou=false;a.lances.clear()}if(reset&&a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0);a.tiro=null}if(reset&&a.fade){a.acao(a.fade.nome)?.setEffectiveWeight(0);a.fade=null}}
@@ -291,7 +314,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     const bx=shownBall.x-px,bz=shownBall.z-pz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
     if(vel>1.7||comBola)a.olhaBola=false;else if(vel<.8)a.olhaBola=true
     const holdIntent=(a.tiro?.kind==='recebe'&&!p.keeper) ? .12 : /^passe/.test(a.tiro?.nome??'') ? .22 : .4;
-    const antecipa=plan?.dir!=null&&plan.t-agora<.8;const mirando=antecipa||a.tiro?.mira!=null&&agora-a.tiro.t0<(a.tiro.touch??toque(a.tiro.nome))+holdIntent
+    const antecipa=facingPlan?.dir!=null&&facingPlan.t-agora<.8;const mirando=antecipa||a.tiro?.mira!=null&&agora-a.tiro.t0<(a.tiro.touch??toque(a.tiro.nome))+holdIntent
     const alvo=p.mergulho&&!plan?a.rumo:mirando?(antecipa?aim:a.tiro.mira):loose?loose.intent:(p.keeper||a.olhaBola&&Math.hypot(bx,bz)<45)?praBola:praOnde
     const giro=angulo(alvo-a.rumo);a.rumo+=dt>0?T.MathUtils.clamp(giro*(1-Math.exp(-dt/(mirando?.10:.18))),-7*dt,7*dt):giro
     a.holder.position.set(px,0,pz);a.holder.rotation.set(0,a.rumo,0)
@@ -303,7 +326,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      // Replay/seek uses the same planned capture and exact contact clock.
      if(a.tiro?.planId&&a.tiro.contactAt>=agora-.04&&a.tiro.contactAt<it.t)continue
      dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:it.kind==='recebe'?toque(nome)+.45:Infinity,mira:it.mira,ponto:true})
-     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.kind=it.kind;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact;a.tiro.blendIn=(it.hands||it.goleiro) ? .18 : .12
+     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.kind=it.kind;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact;a.tiro.blendIn=(it.hands||it.goleiro) ? Math.min(.18,Math.max(.025,(it.t-it.start)*.45)) : .12
     }
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
@@ -318,6 +341,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      else if(e.tipo==='gol'&&e.a&&String(e.a).startsWith(nomeP)&&(e.lado===0)===(p.side==='home')){a.lances.add(id)
       let h=0;for(const ch of String(e.a))h=(h*31+ch.charCodeAt(0))|0;const n='comemora'+(1+Math.abs(h+Math.floor(e.t*10))%3)
       if(asset.clips.has(n))dispara(a,n,{inicio:0,agora})}}
+    if(p.mergulho&&agenda.some(it=>it.key===p.key&&!it.disabled&&(it.save||it.goleiro)&&agora>=it.start&&agora<=it.t+.35))a.mergulhou=true;
     if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
      const collection=agenda.find(it=>it.key===p.key&&it.goleiro&&it.t>agora-1.2&&it.t-agora<1);
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
@@ -352,7 +376,8 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*Math.max(0,1-wTiro-wFade));const dur=act.getClip().duration;act.time=gaits[n]?gaitTime(gaits[n],a.fase):agora%dur}
     a.mixer.update(0)
     a.holder.updateMatrixWorld(true);const groundedKeeper=/^gk_(recolhe|pega|rola|lanca)/.test(a.tiro?.nome??''),rawFloor=a.surface.floor(groundedKeeper),floorBudget=groundedKeeper?.16:.08;a.holder.position.y+=Math.max(0,Math.min(floorBudget,.003-rawFloor))
-    if(a.tiro?.extraRise){const capturedFlight=Math.max(0,rawFloor),height=a.tiro.pose?.feetHeight??.3;a.holder.position.y+=a.tiro.extraRise*T.MathUtils.clamp(capturedFlight/Math.max(.05,height),0,1)}
+    if(a.tiro?.extraRise){const capturedFlight=Math.max(0,rawFloor),height=a.tiro.pose?.feetHeight??.3;a.holder.position.y+=a.tiro.extraRise*T.MathUtils.clamp(capturedFlight/Math.max(.05,height),0,1)*wTiro}
+    if(a.fade?.extraRise)a.holder.position.y+=a.fade.extraRise*wFade;
     // Keep the striking limb and every calibrated impact untouched. Only the
     // support foot / gait receives bounded residual IK, on the original rig.
     const excluded=[],contactSide=a.tiro?.pose?.region;
@@ -374,6 +399,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
     // residual arm overlap just before collection; the calibrated impact stays
     // untouched and is still required before the ball can attach.
     if(plan?.goleiro&&agora<plan.t-1e-5&&plan.t-agora<.09){const B=frame.ball.presentation??frame.ball,point=new T.Vector3(B.x,B.y,B.z);for(const side of ['left','right'])a.surface.clearHand(point,side)}
+    if(a.tiro?.kind==='defende'&&agora>a.tiro.contactAt+1e-5&&agora-a.tiro.contactAt<.15){const B=frame.ball.presentation??frame.ball,point=new T.Vector3(B.x,B.y,B.z);for(const side of ['left','right'])a.surface.clearHand(point,side,{includeArm:true})}
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
    soleShadows.update(atores);
@@ -382,20 +408,31 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    visualBall=groundBall;
    const throwIn=agenda.find(it=>it.pickup&&frame.time>=it.t-1e-7&&frame.time<=(agenda.find(o=>o.id===it.id.slice(7))?.t??it.t)+1e-7),held=frame.ball.heldBy??throwIn?.key,keeper=held?atores.find(a=>a.key===held):null;
    if(keeper){
-    const catchCue=agenda.findLast(it=>it.key===held&&(it.goleiro||it.pickup)&&it.t<=frame.time+.001),releaseCue=catchCue&&agenda.find(it=>it.key===held&&it.hands&&it.t>catchCue.t),bone=keeper.bones.get('mixamorigRightHand'),local=catchCue?.contact?.handLocal;
-    const anchor=local?bone.localToWorld(new T.Vector3(...local)):bone.getWorldPosition(new T.Vector3()),shot=keeper.tiro,throwing=shot&&(/^gk_(rola|lanca)/.test(shot.nome)||shot.nome==='lateral'),transfer=throwing?T.MathUtils.smoothstep(frame.time,shot.contactAt-.35,shot.contactAt):0;
-    if(releaseCue?.contact?.handLocal)anchor.lerp(bone.localToWorld(new T.Vector3(...releaseCue.contact.handLocal)),transfer);
+    const catchCue=agenda.findLast(it=>it.key===held&&(it.goleiro||it.pickup)&&it.t<=frame.time+.001),releaseCue=catchCue&&agenda.find(it=>it.key===held&&it.hands&&it.kind==='toque'&&it.t>catchCue.t),bone=keeper.bones.get(catchCue?.contact?.handBone??'mixamorigRightHand'),local=catchCue?.contact?.handLocal;
+    const anchor=local?bone.localToWorld(new T.Vector3(...local)):bone.getWorldPosition(new T.Vector3()),shot=keeper.tiro,throwing=shot&&(/^gk_(rola|lanca)/.test(shot.nome)||shot.nome==='lateral'),transfer=throwing?T.MathUtils.smoothstep(frame.time,Math.max(shot.t0,shot.contactAt-.35),shot.contactAt):0;
+    if(releaseCue?.contact?.handLocal)anchor.lerp(keeper.bones.get(releaseCue.contact.handBone??'mixamorigRightHand').localToWorld(new T.Vector3(...releaseCue.contact.handLocal)),transfer);
     if(!handState||handState.key!==held||reset){const catchCue=agenda.findLast(it=>it.key===held&&(it.goleiro||it.pickup)&&it.t<=frame.time+.001),B=frame.ball.presentation??frame.ball,gap=anchor.distanceTo(new T.Vector3(B.x,B.y,B.z));
-     const restore=(reset||firstFrame)&&catchCue?.contact?.fitted&&Math.hypot(catchCue.root.x,catchCue.root.z)<=(catchCue.pickup?4.5:3);if(catchCue&&(gap<.25||restore)){handState={key:held,t:frame.time,offset:new T.Vector3(B.x,B.y,B.z).sub(anchor),catchGap:restore?null:gap,restored:!!restore,release:agenda.find(it=>it.key===held&&it.hands&&it.t>catchCue.t)};if(restore)handState.offset.set(0,0,0)}
+     const point=new T.Vector3(B.x,B.y,B.z),surfaceGap=Math.min(keeper.surface.probe(point,'leftHand').gap,keeper.surface.probe(point,'rightHand').gap);
+     const restore=(reset||firstFrame)&&catchCue?.contact?.fitted&&Math.hypot(catchCue.root.x,catchCue.root.z)<=(catchCue.pickup?4.5:3);if(catchCue&&catchCue.contact.fitted&&(gap<.25&&surfaceGap>=-.025&&surfaceGap<=.04||restore)){handState={key:held,t:frame.time,offset:point.sub(anchor),catchGap:restore?null:gap,restored:!!restore,release:agenda.find(it=>it.key===held&&it.hands&&it.kind==='toque'&&it.t>catchCue.t)};if(restore)handState.offset.set(0,0,0)}
     }
-    if(handState?.key===held){anchor.addScaledVector(handState.offset,1-T.MathUtils.smoothstep(frame.time,handState.t,handState.t+.12));visualBall={x:anchor.x,y:anchor.y,z:anchor.z};
-     // Right palm carries the ball. The supporting left hand may cross it
-     // during collection → throw blending; a bounded arm correction keeps the
-     // sphere outside the fingers without moving it away from the carrying hand.
-     keeper.surface.clearHand(anchor,'left');handState.last={...visualBall};handState.lastTime=frame.time}
+    if(handState?.key===held){anchor.addScaledVector(handState.offset,1-T.MathUtils.smoothstep(frame.time,handState.t,handState.t+.12));
+     // After a verified catch, constrain the held sphere to the carrying glove.
+     // Blending two palm anchors can cut through the skinned fingers. This
+     // bounded clearance is only for an already held ball, never an attraction
+     // of an incoming/free ball or a change to its official path.
+     const carrying=bone.name.includes('Left')&&transfer<.5?'left':'right',palm=keeper.surface.probe(anchor,carrying+'Hand');
+     if(palm.gap<-.002&&palm.gap>-.06)anchor.addScaledVector(anchor.clone().sub(palm.surface).normalize(),-palm.gap+.001);
+     visualBall={x:anchor.x,y:anchor.y,z:anchor.z};
+     keeper.surface.clearHand(anchor,carrying==='left'?'right':'left');handState.last={...visualBall};handState.lastTime=frame.time}
    }else if(handState){
     const release=handState.release;
-    if(release&&frame.time>=release.t&&frame.time-release.t<.12)handFlight=handArc(release);
+    if(release&&frame.time>=release.t&&frame.time-release.t<.12){handFlight=handArc(release);
+     // Some official releases remove heldBy on the impact frame, others on the
+     // next sample. In both cases release from the actual glove, including the
+     // remaining body turn of a quick throw, rather than its ideal future pose.
+     if(Math.abs(frame.time-release.t)<1e-5&&release.contact.handLocal){const actor=atores.find(a=>a.key===release.key),bone=actor.bones.get(release.contact.handBone),point=bone.localToWorld(new T.Vector3(...release.contact.handLocal));actor.surface.clearHand(point,bone.name.includes('Right')?'left':'right');handFlight.start={x:point.x,y:point.y,z:point.z}}
+     else if(handState.last&&Math.abs(handState.lastTime-release.t)<1e-5)handFlight.start={...handState.last}
+    }
     handState=null;
    }
    if((reset||firstFrame)&&!keeper){const release=agenda.findLast(it=>it.kind==='toque'&&it.hands&&it.t<=frame.time&&frame.time-it.t<.55);if(release?.contact?.fitted)handFlight=handArc(release)}
@@ -410,11 +447,17 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
    if(!spin||reset||frame.placementReset){spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,rollingPoint);if(frame.ball.rotation)spin.quaternion.fromArray(frame.ball.rotation)}
    visualRotation=spin.step(rollingPoint,dt).toArray();
    observeContacts(frame,dt,reset)
+  };
+ return{
+  update(frame,camera,viewportHeight=720){
+   if(disposed)return;
+   for(const time of contactSteps(agenda,lastTime,frame.time)){updateFrame(contactFrame(frame,time,timeline),camera,viewportHeight);contactSubsteps++}
+   updateFrame(frame,camera,viewportHeight);
   },
   presentFrame:frame=>({...frame,ball:{...frame.ball,presentation:visualBall??frame.ball.presentation,rotation:visualRotation??frame.ball.rotation}}),
   prepared:()=>Promise.resolve(null),
   debug:()=>({prepared:true,duration:timeline.duration,ft:lastTime,agenda:agenda.map(({key,...o})=>({k:key,...o})),medidas}),
-  inspect:()=>({...inspection,style:'jogador-novo',football:{diagnostics,grounding:atores.flatMap(a=>(a.plants??[]).filter(p=>p.applied).map(p=>({key:a.key,...p}))),spin:spin?.inspect(),controlledIntervals:controlSpans.length,groundDeliveries:groundFlights.length-controlSpans.length,handContact:handState?{key:handState.key,gap:handState.catchGap}:null,handFlight:handFlight?{start:handFlight.t,end:handFlight.end}:null,navigation:navInfo?.diagnostics,preparedBytes:timeline.bytes,actions:atores.filter(a=>a.tiro).map(a=>({key:a.key,tiro:a.tiro,plan:activePlan(a,lastTime),contact:CONTATO[a.tiro.nome],target:a.corrAlvo,root:a.corr,heading:a.rumo})),mode:bola.modo,touches:bola.toques,contacts:medidas.slice(),corrections:atores.filter(a=>Math.hypot(a.corr.x,a.corr.z)>.01).map(a=>({key:a.key,x:a.corr.x,z:a.corr.z}))}}),
+  inspect:()=>({...inspection,style:'jogador-novo',football:{diagnostics,contactSubsteps,grounding:atores.flatMap(a=>(a.plants??[]).filter(p=>p.applied).map(p=>({key:a.key,...p}))),spin:spin?.inspect(),controlledIntervals:controlSpans.length,groundDeliveries:groundFlights.length-controlSpans.length,handContact:handState?{key:handState.key,gap:handState.catchGap}:null,handFlight:handFlight?{start:handFlight.t,end:handFlight.end}:null,navigation:navInfo?.diagnostics,preparedBytes:timeline.bytes,actions:atores.filter(a=>a.tiro).map(a=>({key:a.key,tiro:a.tiro,plan:activePlan(a,lastTime),contact:CONTATO[a.tiro.nome],target:a.corrAlvo,root:a.corr,heading:a.rumo})),mode:bola.modo,touches:bola.toques,contacts:medidas.slice(),corrections:atores.filter(a=>Math.hypot(a.corr.x,a.corr.z)>.01).map(a=>({key:a.key,x:a.corr.x,z:a.corr.z}))}}),
   inspectActors:()=>({slots:atores.map((a,slot)=>({slot,key:a.key,heading:a.rumo,visible:a.holder.visible,detail:a.detail,tiro:a.tiro?.nome??null}))}),
   dispose(){if(disposed)return;disposed=true;soleShadows.dispose();for(const a of atores)a.dispose()},
  }

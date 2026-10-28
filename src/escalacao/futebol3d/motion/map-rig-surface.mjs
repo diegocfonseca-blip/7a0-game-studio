@@ -3,7 +3,7 @@ import {nearest} from './nearest.mjs';
 import {solveLimbContact} from './contact-ik.mjs';
 
 const layouts=new WeakMap();
-const regions={right:/Right(Foot|Toe)/,left:/Left(Foot|Toe)/,head:/Head/,rightHand:/RightHand/,leftHand:/LeftHand/};
+const regions={right:/Right(Foot|Toe)/,left:/Left(Foot|Toe)/,head:/Head/,rightHand:/RightHand/,leftHand:/LeftHand/,rightArm:/Right(Arm|ForeArm|Hand)/,leftArm:/Left(Arm|ForeArm|Hand)/};
 /** Surface probes use the supplied skinned mesh. No topology, weight, bind pose
  * or skeleton change. Indices are shared by the 22 clones. */
 export function createMapRigSurface(actor){
@@ -41,8 +41,8 @@ export function createMapRigSurface(actor){
   }
   bones.forEach((b,i)=>b.quaternion.copy(bestPose[i]));actor.holder.updateMatrixWorld(true);return{gap:best,rawGap:original.gap,correction:amount};
  }
- function clearHand(ball,side,{maxCorrection=.10,maxAngle=.35}={}){
-  const suffix=side==='left'?'Left':'Right',region=side+'Hand',names=['Arm','ForeArm','Hand'].map(n=>'mixamorig'+suffix+n),bones=names.map(n=>actor.bones.get(n));
+ function clearHand(ball,side,{maxCorrection=.10,maxAngle=.35,includeArm=false}={}){
+  const suffix=side==='left'?'Left':'Right',region=side+(includeArm?'Arm':'Hand'),names=['Arm','ForeArm','Hand'].map(n=>'mixamorig'+suffix+n),bones=names.map(n=>actor.bones.get(n));
   const original=probe(ball,region);if(original.gap>=-.002)return{gap:original.gap,correction:0};
   const saved=bones.map(b=>b.quaternion.clone()),start=bones[2].getWorldPosition(new T.Vector3());
   // A finger can cross the centre of the sphere during a blend. In that case

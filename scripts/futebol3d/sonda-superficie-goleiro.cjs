@@ -13,7 +13,7 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),{loadDependency
    }
    return r;
   });
-  fs.writeFileSync('test-results/fundamentos-mapa/superficie-goleiro-v4.json',JSON.stringify(rows));
+  fs.writeFileSync(process.env.SURFACE_OUT||'test-results/fundamentos-mapa/superficie-goleiro-v4.json',JSON.stringify(rows));
   const minimumHandGap=Math.min(...rows.map(r=>r.hands.gap)),minimumSole=Math.min(...rows.map(r=>r.feet.floor));
   assert(rows.filter(r=>r.t<34.4).every(r=>r.body.gap>0),'Do not add an unrecorded body save before the post');
   assert(minimumHandGap>-.015,'Collection and transfer must not bury the sphere in either hand');
