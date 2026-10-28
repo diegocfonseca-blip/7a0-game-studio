@@ -232,9 +232,9 @@ const CPU_DIV_BOOST: Record<Div, number> = { A: 6, B: 9, C: 12, D: 2, V: 0 }
 const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 4, C: 5, D: 3, V: 4 } // 04/08 (pedido do Diego: 'tá fácil'): B/C/D/V subiram +1-2; A fica em 2 — subir mais no topo ressuscitava o ioiô (simulado). Chegada na A: T13-T23
 // 🪜 ESCADA v5 (Diego 28/10, depois da simulação real pela tela): com o teto da escada (Várzea só vende até 🎯 Bom
 // Jogador), o melhor time possível da Várzea (~80) ficava IGUAL ao time da casa (77 + 4) — medido no motor: subia só 12%
-// das vezes. Ordem dele: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4 e série A coloque 3"* (B fica 4).
+// das vezes. Ordem dele: *"na várzea bote pra 2. Série D mantém 3, série C coloque 4"* — e a A ficou em 2 (*"série a deixe 2 msm"*); B fica 4.
 // Trava simV 5: temporada em andamento termina na tabela em que começou; a próxima já entra nesta.
-const CPU_DIV_BOOST_V5: Record<Div, number> = { A: 3, B: 4, C: 4, D: 3, V: 2 }
+const CPU_DIV_BOOST_V5: Record<Div, number> = { A: 2, B: 4, C: 4, D: 3, V: 2 }
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
