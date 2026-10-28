@@ -3,7 +3,8 @@
 // Pedido do Diego (28/10, batismo FUNDADOR do alexandre12cdm): *"faça entrada de gala personalizada"*. O dono vende
 // QUADROS de futebol (dSouza Empreendimentos — "quadros do seu time pra decorar a parede · frete grátis"), e a mascote é
 // O Pitbull de boné e moletom dSouza FC carregando os quadros das lendas. Preto e verde-neon. Então:
-// 1) a parede da GALERIA acende: friso neon e seis quadros de lenda que pipocam um a um, cada um com flash de foto
+// 1) a parede da GALERIA acende: friso neon e seis quadros de futebol (bola, embaixadinha, foto do time, taça, gol e chuteira)
+//    que pipocam um a um, cada um com flash de foto
 // 2) cai uma CAIXA de entrega com a fita dSouza, quica no chão e leva o carimbo FRETE GRÁTIS
 // 3) a caixa ABRE num estouro verde e O PITBULL sobe de dentro dela, de olho aceso
 // 4) o ESCUDO desce no meio da galeria com anel neon (brilho passando) e o pitbull vai pro canto
@@ -39,7 +40,7 @@ const CSS = `
 /* 🖼️ os seis quadros de lenda */
 .gds-quadro{position:absolute;width:108px;height:132px;border:8px solid ${MADEIRA};border-radius:3px;background:linear-gradient(160deg,#e9e9e9,#9c9c9c);
   box-shadow:inset 0 0 0 4px #f4f4f4,4px 5px 0 rgba(0,0,0,.6);opacity:0;animation:gdsQuadro 700ms cubic-bezier(.2,1.4,.4,1) both,gdsApaga ${T}ms linear forwards}
-.gds-quadro svg{position:absolute;left:50%;bottom:6px;width:62px;height:96px;margin-left:-31px}
+.gds-quadro svg{position:absolute;left:50%;top:50%;width:70px;height:108px;margin:-54px 0 0 -35px}
 @keyframes gdsQuadro{0%{opacity:0;transform:scale(.4) rotate(-8deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:scale(1) rotate(var(--r))}}
 @keyframes gdsApaga{0%,${pct(4300)}{filter:none}${pct(4700)}{filter:brightness(.38) saturate(.6)}100%{filter:brightness(.38) saturate(.6)}}
 .gds-flash{position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95),rgba(115,229,65,.25) 45%,transparent 70%);opacity:0;animation:gdsFlash 520ms ease-out both}
@@ -115,16 +116,69 @@ const FRASES: { pt: [string, string]; en: [string, string]; t: number; y: number
   { pt: ['TAÇA ', 'NA ESTANTE'], en: ['TROPHY ', 'ON THE SHELF'], t: 6150, y: 482 },
 ]
 
-// silhueta de jogador (o quadro de lenda — como os da arte do dono, em preto e branco)
-function Silhueta({ i }: { i: number }) {
-  const chute = i % 2 === 0
+// 🖼️ o que tem dentro de cada quadro (28/10, Diego: *"coloca coisas de futebol, bola, jogador fazendo embaixadinha, time"*):
+// seis cenas diferentes, em preto e branco como os quadros da arte do dono — bola · embaixadinha · foto do time · taça · gol · chuteira
+const P = '#151515'
+function Bola({ cx, cy, r }: { cx: number; cy: number; r: number }) {
   return (
-    <svg viewBox="0 0 62 96" aria-hidden>
-      <circle cx="31" cy="12" r="8" fill="#151515" />
-      <path d="M22 22h18l4 30h-8l-1 40h-6l-2-26-2 26h-6l-1-40h-8z" fill="#151515" transform={chute ? 'rotate(-6 31 50)' : undefined} />
-      {chute ? <circle cx="50" cy="88" r="6" fill="#fff" stroke="#151515" strokeWidth="2" /> : <path d="M40 24l12 16-4 3-10-12z" fill="#151515" />}
-    </svg>
+    <g>
+      <circle cx={cx} cy={cy} r={r} fill="#fff" stroke={P} strokeWidth={r * 0.14} />
+      <path d={`M${cx} ${cy - r * 0.42} l${r * 0.4} ${r * 0.29} l${-r * 0.15} ${r * 0.47} h${-r * 0.5} l${-r * 0.15} ${-r * 0.47}z`} fill={P} />
+      {[0, 72, 144, 216, 288].map(g => { const t = (g - 90) * Math.PI / 180; return <circle key={g} cx={cx + Math.cos(t) * r * 0.86} cy={cy + Math.sin(t) * r * 0.86} r={r * 0.2} fill={P} /> })}
+    </g>
   )
+}
+function Cena({ i }: { i: number }) {
+  switch (i % 6) {
+    case 0: // ⚽ a bola, grande
+      return <svg viewBox="0 0 62 96" aria-hidden><ellipse cx="31" cy="86" rx="20" ry="4" fill="rgba(0,0,0,.25)" /><Bola cx={31} cy={56} r={24} /></svg>
+    case 1: // 🤹 embaixadinha: o jogador de perna levantada e a bola no ar em cima do pé
+      return (
+        <svg viewBox="0 0 62 96" aria-hidden>
+          <circle cx="24" cy="14" r="7" fill={P} />
+          <path d="M17 23h14l3 26h-6l-1 40h-6l-1-22-6 0z" fill={P} />
+          <path d="M28 52l16 8 8-6 3 4-10 9-18-8z" fill={P} />
+          <path d="M18 25l-9 16 4 2 9-13zM31 25l9 13-4 2-8-10z" fill={P} />
+          <Bola cx={49} cy={34} r={7} />
+          <path d="M49 44v4M45 47l-2 3M53 47l2 3" stroke={P} strokeWidth="1.6" />
+        </svg>
+      )
+    case 2: // 📸 foto do time: duas fileiras de jogadores, os de trás em pé e os da frente agachados, com a bola no meio
+      return (
+        <svg viewBox="0 0 62 96" aria-hidden>
+          {[8, 20, 31, 42, 54].map(x => <g key={`t${x}`}><circle cx={x} cy={34} r="4.6" fill={P} /><path d={`M${x - 5} 40h10l1 18h-12z`} fill={P} /></g>)}
+          {[13, 25, 37, 49].map(x => <g key={`f${x}`}><circle cx={x} cy={60} r="4.6" fill={P} /><path d={`M${x - 5} 66h10l2 12h-14z`} fill={P} /></g>)}
+          <Bola cx={31} cy={84} r={5} />
+        </svg>
+      )
+    case 3: // 🏆 a taça
+      return (
+        <svg viewBox="0 0 62 96" aria-hidden>
+          <path d="M16 22h30v12c0 12-7 20-15 21-8-1-15-9-15-21z" fill={P} />
+          <path d="M16 26H8c0 9 4 14 10 15M46 26h8c0 9-4 14-10 15" fill="none" stroke={P} strokeWidth="3.5" />
+          <path d="M27 55h8v10h-8z" fill={P} /><path d="M19 66h24v7H19z" fill={P} /><path d="M15 74h32v8H15z" fill={P} />
+          <path d="M31 29l2 4 4 .5-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3 4-.5z" fill="#fff" />
+        </svg>
+      )
+    case 4: // 🥅 o gol: a trave, a rede e a bola estufando a rede
+      return (
+        <svg viewBox="0 0 62 96" aria-hidden>
+          <path d="M6 34h50v52" fill="none" stroke={P} strokeWidth="4" /><path d="M6 34v52" stroke={P} strokeWidth="4" />
+          {[14, 22, 30, 38, 46].map(x => <path key={`v${x}`} d={`M${x} 34v52`} stroke="rgba(21,21,21,.45)" strokeWidth="1" />)}
+          {[44, 54, 64, 74].map(y => <path key={`h${y}`} d={`M6 ${y}h50`} stroke="rgba(21,21,21,.45)" strokeWidth="1" />)}
+          <Bola cx={38} cy={58} r={9} />
+        </svg>
+      )
+    default: // 👟 a chuteira, com as travas
+      return (
+        <svg viewBox="0 0 62 96" aria-hidden>
+          <path d="M6 58c8-2 14-12 18-20 6 4 12 6 18 6 8 0 14 6 14 14v6H6z" fill={P} />
+          <path d="M24 46l8 4M27 42l8 4M30 38l7 4" stroke="#fff" strokeWidth="1.8" />
+          {[12, 22, 34, 46].map(x => <rect key={x} x={x} y="64" width="5" height="6" fill={P} />)}
+          <Bola cx={50} cy={34} r={6} />
+        </svg>
+      )
+  }
 }
 
 export function GalaDsouza({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
@@ -140,7 +194,7 @@ export function GalaDsouza({ clube, chave, mostra, grito }: { clube: string; cha
           <div className="gds-friso" style={{ top: 30 }} /><div className="gds-friso" style={{ top: 392, animationDelay: '120ms' }} />
           <div className="gds-chao" />
           {QUADROS.map((q, i) => (
-            <div key={`q${i}`} className="gds-quadro" style={{ left: q.x, top: q.y, ['--r' as string]: `${q.r}deg`, animationDelay: `${q.t}ms, 0ms` }}><Silhueta i={i} /></div>
+            <div key={`q${i}`} className="gds-quadro" style={{ left: q.x, top: q.y, ['--r' as string]: `${q.r}deg`, animationDelay: `${q.t}ms, 0ms` }}><Cena i={i} /></div>
           ))}
           {QUADROS.map((q, i) => <span key={`f${i}`} className="gds-flash" style={{ left: q.x - 21, top: q.y - 9, animationDelay: `${q.t}ms` }} />)}
           {FAISCAS.map((b, i) => <span key={`p${i}`} className="gds-faisca" style={{ left: b.x, animationDelay: `${b.d}ms`, ['--dx' as string]: `${b.dx}px` }} />)}
