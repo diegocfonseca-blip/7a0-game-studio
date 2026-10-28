@@ -11429,3 +11429,9 @@ FEITO: rankings lado a lado (carreira = melhor save + temporada · online = TODO
 (Série A, ligas, Copa, Supercopa, Liberta, Champions, Mundial, Copa do Mundo) e do online por competição (`esc_tacas_online`, lê
 `human_results`: liga · copa · libertadores · mundial(=Copa do Mundo) · regional; Só Champions/Relâmpago ganharam a etiqueta `comp` a partir
 de 28/10 — os de antes contam como Liga) + medalhas. O quadro "semana/mês/sempre" saiu do perfil.
+
+## 🧭🏆 Barra da carreira igual à do online + taças nos rankings das salas (28/10) — MOCKUP enviado, aguardando OK
+Pedido do Diego: (1) a barra de baixo da carreira (celular) com o visual da barra das salas online (`LigaHub`: creme, ícone/nome finos,
+aba aberta em dourado); (2) na Sala de Troféus da sala rápida (`SalaTrofeusRapida`) e no Rank das Minhas Ligas (`AbaRank`), a TAÇA de
+cada título do lado do nome — só de quem ganhou, mesmo tamanho do perfil. Mockup: `scripts/mockups/barra-trofeus-salas.png`.
+⚠️ Lembrar: em 27/10 ele pediu as abas da carreira MAIS fortes ("tão apagadas"); a barra do online é mais clara — o mockup mostra as duas.
