@@ -32,6 +32,7 @@
 import type { Div, SimTeam, Goal, SeasonScorer, SeasonAssist, RoundLineups, PoolCard, Tac, CopaResult, CopaRound, GolCopaM2 } from './pyramidseason'
 import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist, jogoCopaM2, pensCopaM2, golCopaSemCarta } from './pyramidseason'
 import type { EntradaM2 } from './motor2/carreira'
+import type { VersaoM2 } from './motor2/versao'
 
 type Entrant = { t: SimTeam; div: Div }
 
@@ -91,7 +92,7 @@ const ROUND_NAMES = ['Rodada de 64', 'Rodada de 32', 'Oitavas', 'Quartas', 'Semi
 const ROUND_LEGS: Record<string, 1 | 2> = { 'Rodada de 64': 1, 'Rodada de 32': 1, Oitavas: 2, Quartas: 2, Semifinal: 2, Final: 1 }
 const FREE_DRAW = new Set(['Rodada de 64', 'Rodada de 32']) // sorteio livre só até aqui
 
-export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false): CopaBrasilResult {
+export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): CopaBrasilResult {
   const empty: CopaBrasilResult = { groups: [], round64: null, rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xB0A5111) >>> 0)
   const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
@@ -202,7 +203,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     if (!m2On || !(H.t.human || Aw.t.human)) return { ...velho, hg0: hg, ag0: ag, m2: undefined as EntradaM2 | undefined }
     // ⚽🧠 jogo de gente: o motor novo decide (a conta acima só serviu pra gastar o dado igual)
     desfazCopa(H, velho.hEvs); desfazCopa(Aw, velho.aEvs)
-    const n = jogoCopaM2(seed, seasonNo, 'B', jogo, H.t, Aw.t, th, ta)
+    const n = jogoCopaM2(seed, seasonNo, 'B', jogo, H.t, Aw.t, th, ta, versao)
     return { hg: n.hg, ag: n.ag, hEvs: creditaCopa(H, n.h), aEvs: creditaCopa(Aw, n.a), hg0: hg, ag0: ag, m2: n.e }
   }
   const pensDecide = (): [number, number] => {
@@ -355,7 +356,7 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
 // time ganhar as duas, quem joga no lugar dele é o VICE da Série A.
 // Genérico por design — recebe "quem é o campeão da copa" como parâmetro,
 // não fica hard-coded pra Copa do Brasil especificamente. ──
-export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: SimTeam | null, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false): CBTie | null {
+export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: SimTeam | null, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): CBTie | null {
   if (!copaChampion) return null
   // 🔁 a Supercopa é o ÚLTIMO jogo da temporada — vem depois da final da Copa do
   // Brasil, então lê o slot logo acima do dela (mesma regra de substituição por
@@ -413,7 +414,7 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
   // ⚽🧠 jogo de gente: o motor novo decide (é o último jogo da temporada, com dado próprio — não mexe em nenhum outro)
   let m2: EntradaM2 | undefined
   if (m2On && (ligaEnt.t.human || copaEnt.t.human)) {
-    const n = jogoCopaM2(seed, seasonNo, 'S', 1, ligaEnt.t, copaEnt.t, th, ta)
+    const n = jogoCopaM2(seed, seasonNo, 'S', 1, ligaEnt.t, copaEnt.t, th, ta, versao)
     m2 = n.e; hg = n.hg; ag = n.ag
     passes.length = 0
     for (const g of [...n.h, ...n.a]) if (g.garcom) passes.push(g.garcom)

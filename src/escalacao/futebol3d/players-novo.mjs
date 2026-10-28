@@ -13,21 +13,30 @@ import {uniformeDoTime,GOLEIRO} from './uniformes.mjs'
 import {playerDetail} from './lod.mjs'
 import {BATISMOS} from '../batismos.ts'
 import {legendAvatar} from '../legend-avatars.ts'
-import {identidadeAtleta3D} from '../presidencia-futebol-identidade.ts'
 import {peDe} from '../campo2d-estilos.ts'
 import {RotacaoBola3D,RAIO_BOLA_FUTEBOL_3D} from '../presidencia-bola-rotacao.ts'
+import {nearest} from './motion/nearest.mjs'
+import {bootContact} from './motion/map-contact.mjs'
+import {createMapRigSurface} from './motion/map-rig-surface.mjs'
+import {prepareMapTimeline} from './motion/map-football-timeline.mjs'
+import {groundDelivery,sampleGroundDelivery} from './motion/map-ball-flight.mjs'
+import {prepareBodyTrack} from './motion/map-root-track.mjs'
+import {MapFootPlant} from './motion/map-foot-plant.mjs'
+import {groundContactShadows} from './motion/ground-contact-shadows.mjs'
+import {prepareMapGaits,gaitTime} from './motion/map-gait.mjs'
+import {keeperCatchIntent} from './motion/map-keeper-intent.mjs'
+import {contactSteps,contactFrame} from './motion/map-contact-clock.mjs'
+import {keeperFlight,sampleKeeperFlight} from './motion/map-keeper-flight.mjs'
+import {selectMapKick} from './motion/map-kick-selection.mjs'
+import {VisualPlayerCollisions} from './visual-player-collisions.mjs'
 
-// velocidade (m/s) em que cada corrida do Mixamo foi gravada, por ciclo — o passo acompanha o chão sem patinar
-const CICLO_M=2.9
 // direção da corrida em relação ao corpo (0 = pra frente, + = pra direita) → movimento
 const DIRS=[[0,'trote'],[Math.PI/4,'diag_fd'],[Math.PI/2,'lado_d'],[3*Math.PI/4,'diag_td'],[Math.PI,'re'],[-3*Math.PI/4,'diag_te'],[-Math.PI/2,'lado_e'],[-Math.PI/4,'diag_fe']]
 const LOOPS=['idle','idle_bola','gk_idle','gk_idle_bola','conduz',...DIRS.map(d=>d[1])]
-const CHUTES=new Set(['chute','chutao'])
 // ✂️ trecho usado de cada movimento gravado de jogador de verdade (pacote do Anderson Rohr: cada arquivo tem o jogador parado
 // antes e depois do lance) — segundos do arquivo
 const TRECHOS={passe_chapa:{de:.85,ate:2.1},chute_forte:{de:1.55,ate:3.4},drible3:{de:.35,ate:2.1},comemora1:{de:.25,ate:3.45},comemora2:{de:.25,ate:3.5},comemora3:{de:.25,ate:3.15}}
 const trecho=nome=>TRECHOS[nome.replace(/_e$/,'')]
-const PASSES=new Set(['passe','enfiada','lancamento','inversao','cruzamento','cobranca'])
 const angulo=a=>Math.atan2(Math.sin(a),Math.cos(a))
 // ⏱️ o `time` do quadro já é o relógio do motor (o mesmo de `lance.t0` e `evento.t`): compara direto, sem converter
 
@@ -57,7 +66,13 @@ function aparenciaDe(key,name){
 }
 
 export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
- const asset=await carregaJogadorNovo()
+ let diagnostics=false;try{diagnostics=!!import.meta.env.DEV&&localStorage.getItem('esc3d-contact-audit')==='1'}catch{}
+ const [original,timeline]=await Promise.all([carregaJogadorNovo(),prepareMapTimeline(state)])
+ // Measured on the supplied rig: peak whole-foot speed was 42 ms AFTER the
+ // ground strike (toe already 29 cm high). Keep shared imported clips intact.
+ const asset={...original,meta:{...original.meta,clips:{...original.meta.clips,chute_forte:{...original.meta.clips.chute_forte,toque:2.5833333333333},chute_corrida:{...original.meta.clips.chute_corrida,toque:5/12},conduz:{...original.meta.clips.conduz,toque:2/3,pe:'r'},cabeca:{...original.meta.clips.cabeca,toque:1.1333333333333},gk_recolhe:{...original.meta.clips.gk_recolhe,toque:.75},gk_lanca:{...original.meta.clips.gk_lanca,toque:1.6166666666667},gk_lanca_longe:{...original.meta.clips.gk_lanca_longe,toque:1.45},gk_rola:{...original.meta.clips.gk_rola,toque:1.1333333333333},lateral:{...original.meta.clips.lateral,toque:1.5333333333333},controle_corrida:{...original.meta.clips.conduz,toque:2/3,pe:'r'}}}}
+ asset.clips=new Map(original.clips);const runningControl=original.clips.get('conduz').clone();runningControl.name='controle_corrida';asset.clips.set(runningControl.name,runningControl)
+ const gaitActor=criarJogadorNovo(asset,GOLEIRO),gaits=prepareMapGaits(asset,gaitActor,['conduz',...DIRS.map(d=>d[1])]);gaitActor.dispose();
  const teams=state.officialTeams??[]
  const kitPlan=matchKitPlan(state,teams.map(clubKitFor),teams.map(name=>BATISMOS.find(c=>c.clube===name)?.manto??[]))
  // 👕 a ficha de uniforme de cada lado (uniformes.mjs): a cadastrada do clube ou a lisa das cores dele; se as duas camisas
@@ -73,245 +88,244 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
   j.holder.name='jogador:'+p.key;scene.add(j.holder)
   for(const nome of LOOPS){const a=j.acao(nome);if(a){a.play();a.timeScale=0;a.setEffectiveWeight(0)}}
   const ator={...j,pe:ap.lenda?peDe(p.name,10):null,canhoto:[...p.name].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7)%4<1,key:p.key,side:p.side,keeper:p.keeper,ficha,fase:0,rumo:p.heading,ultimo:null,tiro:null,lances:new Set(),mergulhou:false,detail:'full',pesos:new Map()}
-  {const osso=n=>{let r;j.root.traverse(o=>{if(o.isBone&&o.name.toLowerCase().includes(n))r??=o});return r};ator.pes=[osso('righttoe'),osso('lefttoe')].filter(Boolean);ator.zPe=[null,null];ator.subindo=[false,false];ator.mov={x:0,z:1};ator.corr={x:0,z:0};ator.corrAlvo={x:0,z:0};ator.mpos={x:p.mx,z:p.mz}}
+  {const osso=n=>{let r;j.root.traverse(o=>{if(o.isBone&&o.name.toLowerCase().includes(n))r??=o});return r};ator.pes=[osso('righttoe'),osso('lefttoe')].filter(Boolean);ator.corr={x:0,z:0};ator.corrAlvo={x:0,z:0};ator.bones=new Map();ator.root.traverse(o=>{if(o.isBone)ator.bones.set(o.name,o)});ator.contactHistory=null;ator.lastConfirmed=-Infinity}
   if(ap.lenda)aparenciaDaCarta(ap.src).then(c=>{if(c?.pele&&!disposed)ator.setPele(c.pele)})
-  atores.push(ator)
+  ator.surface=createMapRigSurface(ator);ator.grounding=new MapFootPlant();ator.knots=[];atores.push(ator)
  }
- // 🦶 ONDE e PRA ONDE o pé (ou a cabeça) bate em cada movimento do Mixamo, medido no próprio boneco no instante do toque:
- // `off` = o ponto do contato em relação ao corpo (o pé do chute fica ~0,4 m à direita, não no meio) · `ang` = pra onde ele
- // varre (o chute correndo varre ~20° pra esquerda). Com isso o corpo mira a bola pro lado CERTO e a bola espera no pé que bate
- const CONTATO={}
- {const a0=atores[0],osso=n=>{let r;a0.root.traverse(o=>{if(o.isBone&&o.name.toLowerCase().includes(n))r??=o});return r}
-  const pes={r:osso('righttoe')??osso('rightfoot'),l:osso('lefttoe')??osso('leftfoot')},cabeca=osso('head'),peito=osso('spine2')
-  const local=o=>a0.holder.worldToLocal(o.getWorldPosition(new T.Vector3()))
-  const p0=a0.holder.position.clone(),r0=a0.holder.rotation.y;a0.holder.position.set(0,0,0);a0.holder.rotation.set(0,0,0)
-  for(const nome of ['chute','chute_corrida','passe','passe_curto','cavadinha','cabeca2','dominio','peito','passe_chapa','chute_forte'].flatMap(n=>[n,n+'_e'])){const act=a0.acao(nome),m=asset.meta.clips?.[nome.replace(/_e$/,'')];if(!act||!m)continue
-   const lado=nome.endsWith('_e')?(m.pe==='l'?'r':'l'):(m.pe??'r'),alto=/^(cabeca2|peito)/.test(nome),o=nome.startsWith('cabeca2')?cabeca:nome.startsWith('peito')?peito:pes[lado];if(!o)continue
-   const pose=t=>{act.reset();act.play();act.setEffectiveWeight(1);act.time=t;a0.mixer.update(0);a0.holder.updateMatrixWorld(true);return local(o)}
-   for(const n of LOOPS)a0.acao(n)?.setEffectiveWeight(0)
-   const antes=pose(Math.max(0,m.toque-.03)),em=pose(m.toque)
-   const varre=alto||nome.startsWith('dominio')?0:Math.atan2(em.x-antes.x,em.z-antes.z)
-   // (cabeça e peito: a bola encosta um palmo À FRENTE do osso, não dentro dele)
-   CONTATO[nome]={off:{x:em.x,y:em.y,z:em.z+(alto?.16:.06)},alto,ang:Math.abs(varre)<1?varre:0};act.setEffectiveWeight(0);act.stop()}
-  a0.holder.position.copy(p0);a0.holder.rotation.y=r0}
- let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0}
- // 🔮 OLHAR ADIANTE (o motor avança em MINUTOS de jogo — 93 em 90 s —, e o desenho e os lances andam em segundos): uma cópia do MESMO motor (mesma semente: o mesmo jogo) roda ~1 s à frente do desenho. Assim o corpo sabe que
- // VAI chutar/passar/cabecear antes de a bola sair e começa o movimento a tempo do pé (ou a cabeça) bater na bola no instante certo;
- // e sabe quem vai RECEBER a bola, pra fazer o domínio quando ela chega. Só apresentação: o placar continua do motor oficial.
- const {novoMotor2}=await import('../motor2/carreira.ts')
- const chaveDe=at=>identidadeAtleta3D(at.lado===0?'home':'away',at.nome,at.carta?.club,at.carta?.year)
- const ADIANTE=1.8,agenda=[];let prev=null,prevAte=0,ultLance=null,ultDono=null
- const observa=()=>{const b=prev.bola,l=b.lance
-  if(l){const k=l.tipo+':'+l.de.id+':'+l.t0;if(k!==ultLance){ultLance=k;agenda.push({key:chaveDe(l.de),kind:'toque',tipo:l.tipo,golpe:l.golpe,t:l.t0,cab:l.tipo==='cabeceio'||l.tipo==='cabeceio_gol'||l.golpe==='cabeca',longe:l.para?Math.hypot(l.para.x-b.x,l.para.y-b.y):30,dir:Math.hypot(b.vx,b.vy)>.5?Math.atan2(b.vy,b.vx):null,ponto:{x:b.x-b.vx*(prev.t-l.t0),y:b.y-b.vy*(prev.t-l.t0)},bola:{x:b.y-b.vy*(prev.t-l.t0)-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-b.vx*(prev.t-l.t0)-34},rec:{x:l.de.y-52.5,z:l.de.x-34}})}}
-  const d=b.dono&&b.h<2.4?b.dono:null
-  if(d&&d!==ultDono)agenda.push({key:chaveDe(d),kind:'recebe',t:prev.t,h:b.h,goleiro:d.grupo==='GOL',bola:{x:b.y-52.5,y:b.h+RAIO_BOLA_FUTEBOL_3D,z:b.x-34},rec:{x:d.y-52.5,z:d.x-34}})
-  ultDono=d}
- const preve=ate=>{if(!state.officialInput)return
-  if(!prev||ate<prevAte-.3){prev=novoMotor2(structuredClone(state.officialInput));prevAte=0;ultLance=null;ultDono=null;agenda.length=0}
-  while(prevAte<ate){prevAte=Math.min(ate,prevAte+.05);prev.avancaAte(prevAte*93/90);observa()}
-  while(agenda.length&&agenda[0].t<ate-ADIANTE-3)agenda.shift()}
- // ⚽ bola no pé: com a bola dominada, o desenho cola a bola no pé de quem conduz (o motor deixa ela 1–2 m solta na frente) e solta
- // no instante do toque — a bola sai DO PÉ. Só desenho: a bola do motor continua mandando no jogo
- let bolaApresentada=null,bolaGiro=undefined
+ // Contact calibration samples the imported pose on the ORIGINAL skinned mesh.
+ const CONTATO={},agenda=timeline.agenda,calibrator=atores[0],poseCache=new Map()
+ const rawTouch=nome=>asset.meta.clips?.[nome.replace(/_e$/,'')]?.toque??.4
+ function samplePose(nome,time=rawTouch(nome),region=null,ballHeight=.11){
+  const key=[nome,time.toFixed(5),region,ballHeight.toFixed(3)].join(':');if(poseCache.has(key))return poseCache.get(key)
+  for(const action of calibrator.mixer._actions)action.setEffectiveWeight(0)
+  calibrator.holder.position.set(0,0,0);calibrator.holder.rotation.set(0,0,0)
+  const action=calibrator.acao(nome);action.reset().play();action.setLoop(T.LoopOnce,1);action.clampWhenFinished=true;action.time=time;action.timeScale=0;action.setEffectiveWeight(1);calibrator.mixer.update(0);calibrator.holder.updateMatrixWorld(true)
+  const floor=calibrator.surface.floor(/^gk_(recolhe|pega|rola|lanca)/.test(nome)),ground=Math.max(0,.003-floor);calibrator.holder.position.y+=ground;calibrator.holder.updateMatrixWorld(true)
+  const point=n=>calibrator.bones.get('mixamorig'+n).getWorldPosition(new T.Vector3()),meta=asset.meta.clips[nome.replace(/_e$/,'')],left=(meta?.pe==='l')!==nome.endsWith('_e')
+  const catchHands=region==='catchHands',handHeight=catchHands||region==='hands'||nome==='gk_recolhe';if(catchHands)region='hands';region??=/^cabeca/.test(nome)?'head':/^gk_|lateral/.test(nome)?'hands':/^peito/.test(nome)?'chest':left?'left':'right'
+  let off,fit=true
+  if(region==='hands'){off=point('RightHand').add(point('LeftHand')).multiplyScalar(.5);const height=handHeight?ballHeight:off.y,direction=new T.Vector3(0,0,1);let anchor=catchHands?calibrator.surface.anchor('rightHand',point('RightHand'),direction,{height}):calibrator.surface.anchor('hands',off,direction,{height});
+   // In an open-hand save the middle of the palms is empty space. Fit an
+   // actual glove instead of treating that empty-space fallback as contact.
+   if(!catchHands&&!anchor.fitted)for(const side of ['Right','Left']){const candidate=calibrator.surface.anchor('hands',point(side+'Hand'),direction,{height});if(candidate.fitted){anchor=candidate;break}}
+   off=anchor.point;fit=anchor.fitted}
+  else if(region==='rightHand'){off=point('RightHand');const anchor=calibrator.surface.anchor('rightHand',off,new T.Vector3(0,0,1),{height:off.y});off=anchor.point;fit=anchor.fitted}
+  else if(region==='chest'){off=point('Spine2');off.z+=.20}
+  else{const origin=point(region==='head'?'Head':region==='left'?'LeftToeBase':'RightToeBase'),height=region==='head'?origin.y+.12:ballHeight,anchor=calibrator.surface.anchor(region,origin,new T.Vector3(0,0,1),{height});off=anchor.point;fit=anchor.fitted}
+  const handBone=region==='hands'&&calibrator.surface.probe(off,'leftHand').gap<calibrator.surface.probe(off,'rightHand').gap?'mixamorigLeftHand':'mixamorigRightHand';
+  const handLocal=['hands','rightHand'].includes(region)?calibrator.bones.get(handBone).worldToLocal(off.clone()).toArray():null;const value={handLocal,handBone,off:{x:off.x,y:off.y,z:off.z},ground,floor,region,fitted:fit,feetHeight:Math.max(0,floor),head:point('Head').toArray()};poseCache.set(key,value);action.setEffectiveWeight(0);return value
+ }
+ for(const nome of ['conduz','chute','chute_corrida','passe','passe_curto','cavadinha','cabeca','cabeca2','dominio','peito','passe_chapa','chute_forte','gk_recolhe','gk_pega','gk_pega_baixo','gk_idle_bola','gk_rola','gk_lanca','gk_lanca_longe','lateral'].flatMap(n=>[n,n+'_e'])){
+  if(!asset.clips.has(nome))continue;const sample=samplePose(nome);CONTATO[nome]={...sample,alto:['head','chest','hands'].includes(sample.region),ang:0}
+ }
+ // A touchline restart needs the ball to be picked up before the imported
+ // throw. The source's ground-to-two-metres placement is never drawn as a jump.
+ for(const release of [...agenda])if(release.hands&&!release.keeper){const t=release.t-.4,f=timeline.sample(t,release.key);agenda.push({id:'pickup:'+release.id,key:release.key,kind:'recebe',pickup:true,hands:true,keeper:false,t,h:f.ball.y-.11,requiredContact:'hands',dir:release.dir,bola:f.ball,rec:f.player})}
+ agenda.sort((a,b)=>a.t-b.t);
+ const keeperFlights=agenda.filter(it=>it.physicalImpact&&!it.disabled).map(it=>keeperFlight(it,timeline.sample,agenda)).filter(Boolean);
+ // Choose a pose once from the official sequence, independent of camera/FPS.
+ for(const it of agenda){const a=atores.find(a=>a.key===it.key);if(!a)continue
+  const prevReceive=agenda.findLast(o=>o.key===it.key&&o.kind==='recebe'&&o.t<=it.t+.001),quick=prevReceive&&it.t-prevReceive.t<.28
+  if(it.kind==='carry')it.nome='controle_corrida'
+  else if(it.save)it.nome=it.bola.y>1.5?'gk_pega_alto':it.bola.y>.95?'gk_pega':'gk_pega_baixo'
+  else if(it.kind==='recebe')it.nome=it.goleiro||it.pickup?'gk_recolhe':it.h>.9?'peito':'dominio'
+  else if(it.hands){const outgoing=timeline.sample(it.t+.05).ball;it.nome=it.keeper?(it.tipo==='lancamento'?'gk_lanca_longe':outgoing.vy>2?'gk_lanca':'gk_rola'):'lateral'}
+  else if(it.cab)it.nome=it.bola.y>1.7?'cabeca':'cabeca2'
+  else{it.variation=selectMapKick(it,{quick:!!quick,moving:(it.rec?.speed??0)>2});it.nome=it.variation.clip}
+  if(it.kind==='toque'&&!it.hands&&!it.cab){const wantLeft=a.pe==='canhota'||a.pe!=='direita'&&a.canhoto,baseLeft=asset.meta.clips[it.nome]?.pe==='l';if(wantLeft!==baseLeft&&asset.clips.has(it.nome+'_e'))it.nome+='_e'}
+  if(it.goleiro||it.save){const intent=keeperCatchIntent(it,agenda,key=>atores.find(a=>a.key===key)?.side);it.dir=intent.heading;it.incomingShot=intent.shot}
+  it.mira=it.dir??it.rec.heading
+ }
+ // Calibrate saves by glove height/reach in the imported captures. Metadata
+ // inherited from foot-contact detection cannot time a goalkeeper's hands.
+ for(const it of agenda){if(it.disabled||!(it.save||it.goleiro&&it.bola.y>.35))continue;
+  const localX=(it.bola.x-it.rec.x)*Math.cos(it.mira)-(it.bola.z-it.rec.z)*Math.sin(it.mira),high=it.bola.y>1.55;
+  const ranges=high?[[Math.abs(localX)>1&&it.bola.y<1.95?(localX<0?'gk_voo_d':'gk_voo_e'):'gk_pega_alto',.55,1.0]]:it.bola.y>.95?[['gk_pega',.2,.85]]:[['gk_pega_baixo',.4,.9]];
+  let best=null;
+  for(const [name,begin,end]of ranges)for(let time=begin;time<=end+1e-7;time+=1/60){
+   const natural=samplePose(name,time),rise=Math.max(0,it.bola.y-natural.off.y),candidate=samplePose(name,time,it.goleiro?'catchHands':'hands',it.bola.y-Math.min(.45,rise));
+   if(!candidate.fitted||rise>.45)continue;
+   const cost=rise*2+Math.abs(time-(name==='gk_pega'?.4:.8))*.08;
+   if(!best||cost<best.cost)best={name,time,candidate,rise,cost};
+  }
+  if(best){it.nome=best.name;it.rawTouch=best.time;it.contactHeight=it.bola.y-best.rise;it.extraRise=best.rise;it.handPoseFitted=true}else it.handPoseFitted=false;
+ }
+ for(const it of agenda){if(it.kind!=='recebe'||it.goleiro||it.pickup)continue;
+  const next=agenda.find(o=>o.key===it.key&&o.kind==='toque'&&o.t>=it.t);
+  // The available reception capture is a ground control. An airborne assignment
+  // is anticipation until the ball descends, never an invented knee/chest trap.
+  if(it.bola.y>.3&&it.bola.y<1.1){it.assignedAt=it.t;const end=Math.min(next?.t??it.t+.5,it.t+.5);while(it.t<end&&timeline.sample(it.t).ball.y>.22)it.t=Math.min(end,it.t+1/60);const f=timeline.sample(it.t,it.key);it.bola=f.ball;it.rec=f.player;it.adaptation='wait-for-ground'}
+  if(next&&next.t-it.t<.28){it.firstTime=next.id;next.firstTime=true}
+  // Receive with an open body when the next pass leaves immediately. Facing
+  // directly backwards then attempting a 170-degree turn in .25 s is impossible.
+  if(next&&next.t-it.t<.8){it.mira=next.mira;it.dir=next.dir}
+ }
+ agenda.sort((a,b)=>a.t-b.t);
+ for(const it of agenda)if(it.kind==='carry')it.disabled=agenda.some(o=>o.key===it.key&&o.kind!=='carry'&&Math.abs(o.t-it.t)<.4);
+ const groundFlights=[];
+ for(const it of agenda){if(it.kind!=='toque'||it.hands||it.cab||!['passe','enfiada','inversao'].includes(it.tipo)||it.bola.y>.13)continue;
+  let receive=agenda.find(o=>o.kind==='recebe'&&o.t>it.t&&!o.goleiro&&!o.pickup);if(!receive)continue;
+  if(receive.firstTime)receive=agenda.find(o=>o.id===receive.firstTime);
+  if(!receive||receive.bola.y>.13||receive.t-it.t>4)continue;
+  const intervening=agenda.find(o=>o.kind==='toque'&&o.t>it.t+.001&&o.t<receive.t-.001);if(intervening)continue;
+  const flight=groundDelivery(it.t,receive.t,it.bola,receive.bola,it.delivery);if(flight)groundFlights.push(flight);
+ }
+ // Cues for both reception and release share one continuous root track.
+ for(const it of agenda){const a=atores.find(a=>a.key===it.key);if(!a||it.firstTime&&it.kind==='recebe'||it.disabled)continue
+  const pose=samplePose(it.nome,it.rawTouch??rawTouch(it.nome),it.hands&&it.kind==='toque'&&it.keeper?'rightHand':it.goleiro&&it.bola.y>.35?'catchHands':it.save||it.goleiro?'hands':null,it.contactHeight??it.bola.y),cs=Math.cos(it.mira),sn=Math.sin(it.mira),off=pose.off
+  it.contact=pose;it.root={x:it.bola.x-it.rec.x-(off.x*cs+off.z*sn),z:it.bola.z-it.rec.z-(-off.x*sn+off.z*cs)}
+  if(it.cab)it.extraRise=Math.max(0,Math.min(.5,it.bola.y-off.y))
+  // Hand ownership is attachment after a measured catch, never a foot action.
+  if(it.hands&&it.keeper&&it.kind==='toque')continue
+  a.knots.push({t:it.t,...it.root,budget:it.pickup?4.5:3,approach:it.pickup?2:undefined,plan:it})
+ }
+ // Receiving ownership in the source is a tactical assignment. Its settling
+ // spring must not be drawn as a ball moving away and returning by itself.
+ // Connect measured control contacts, and move the body along that same fixed
+ // interval instead of adding offsets to a source root that may run elsewhere.
+ const groundInterval=(p,q)=>{for(let t=p.t;t<=q.t;t+=.05)if(timeline.sample(t).ball.y>.3)return false;return true};
+ const controlSpans=[];
+ for(const a of atores){a.controls=[];for(let i=0;i<a.knots.length-1;i++){const first=a.knots[i],last=a.knots[i+1],p=first.plan,q=last.plan;
+  if(!['recebe','carry'].includes(p.kind)||p.hands||p.goleiro||p.firstTime||q.hands||q.cab||q.t-p.t>1.9||p.bola.y>.23||q.bola.y>.13||!groundInterval(p,q))continue;
+  let owned=true;for(let t=p.t+.04;t<q.t-.015;t+=.05)if(timeline.sample(t).owner!==a.key){owned=false;break}if(!owned)continue;
+  const flight=groundDelivery(p.t,q.t,p.bola,q.bola);if(flight){groundFlights.push(flight);controlSpans.push(flight)}
+  a.controls.push({start:p.t,end:q.t,from:{x:p.rec.x+p.root.x,z:p.rec.z+p.root.z},to:{x:q.rec.x+q.root.x,z:q.rec.z+q.root.z}});
+ }}
+ // A failed control can roll to an opponent. Keep that loose interval free
+ // of the same ownership spring, without manufacturing another touch/decision.
+ const physical=agenda.filter(it=>!it.disabled&&!(it.firstTime&&it.kind==='recebe'));
+ for(let i=0;i<physical.length-1;i++){const p=physical[i],q=physical[i+1];if(!['recebe','carry'].includes(p.kind)||p.hands||p.goleiro||q.hands||p.bola.y>.13||q.bola.y>.13||q.t-p.t>2.5||!groundInterval(p,q)||groundFlights.some(f=>Math.abs(f.start-p.t)<1e-5))continue;const f=groundDelivery(p.t,q.t,p.bola,q.bola);if(!f)continue;groundFlights.push(f);controlSpans.push(f);
+  // A spilled first touch stays loose. The receiver follows its fixed roll
+  // until the source relinquishes possession, instead of running past it while
+  // playing a dribbling loop. No extra touch or ball attraction is manufactured.
+  if(p.key!==q.key){const a=atores.find(a=>a.key===p.key),dx=f.to.x-f.from.x,dz=f.to.z-f.from.z,d=Math.hypot(dx,dz);if(!a||d<.4)continue;
+   let end=Math.min(q.t-.18,p.t+1.5);for(let t=p.t+.05;t<end;t+=1/60)if(timeline.sample(t).owner!==p.key){end=t;break}
+   let to;while(end>p.t+.35){const ball=sampleGroundDelivery(f,end),base=timeline.sample(end,p.key).player;to={x:ball.x-dx/d*.8,z:ball.z-dz/d*.8};if(Math.hypot(to.x-base.x,to.z-base.z)<2.85)break;end-=.05}
+   if(end>p.t+.35)a.controls.push({start:p.t,end,from:{x:p.rec.x+p.root.x,z:p.rec.z+p.root.z},to,loose:true,intent:Math.atan2(dx,dz),recovery:1});
+  }
+ }
+ for(const a of atores)a.bodyTrack=prepareBodyTrack(a.knots,a.controls,time=>timeline.sample(time,a.key).player);
+ const bodyTrack=(a,time)=>a.bodyTrack(time);
+ for(const action of calibrator.mixer._actions)action.setEffectiveWeight(0)
+ calibrator.holder.position.set(0,0,0);calibrator.holder.rotation.set(0,0,0)
+ // Fit each captured action into the available official interval. In particular,
+ // a keeper must finish collecting before starting a throw; crop its idle lead-in.
+ for(const a of atores){let previous=null;for(const it of agenda.filter(i=>i.key===a.key&&!i.disabled&&!(i.firstTime&&i.kind==='recebe'))){
+  const raw=it.rawTouch??rawTouch(it.nome),begin=it.kind==='carry'?.27:trecho(it.nome)?.de??0;
+  it.start=it.t-(raw-begin);const moving=!it.hands&&!it.goleiro&&!it.pickup&&!it.cab&&(it.rec?.speed??0)>3.5;if(moving&&(it.kind==='recebe'||it.kind==='carry'||['passe','enfiada'].includes(it.tipo)))it.start=Math.max(it.start,it.t-(it.kind==='recebe'?.24:.28));
+  // React to the shot first. The low collection starts only when the ball is
+  // approaching the ground, not a full second before a high shot reaches goal.
+  if(it.goleiro&&it.incomingShot&&!it.save&&it.bola.y<.35)it.start=Math.max(it.start,it.t-.28);
+  const settle=(previous?.goleiro||previous?.pickup) ? .18 : .10;
+  if(previous&&previous.t<it.t&&it.start<previous.t+settle)it.start=it.hands?Math.min(it.t-.025,previous.t+Math.min(.04,(it.t-previous.t)*.15)):Math.min(it.t-.19,previous.t+settle);
+  const shortPass=it.kind==='toque'&&!it.hands&&['passe','enfiada'].includes(it.tipo);
+  it.clipStart=raw-(it.t-it.start);it.clipEnd=Math.min(trecho(it.nome)?.ate??asset.clips.get(it.nome).duration,raw+(it.goleiro ? .3 : moving ? .30 : (it.kind==='recebe'||shortPass) ? .4 : .65));
+  previous=it;
+ }}
+ const navigation=new VisualPlayerCollisions({radius:.32,budget:.42})
+ const soleShadows=groundContactShadows(scene,atores.length,{bones:{left:'mixamorigLeftFoot',right:'mixamorigRightFoot'},contacts:a=>a.plants});
+ // Release collision steering gradually around a fixed contact. A binary
+ // lock used to erase up to 60 cm of avoidance in a single video frame.
+ const contactFreedom=(a,time)=>{const distance=Math.min(Infinity,...(a?.knots??[]).map(k=>Math.abs(k.t-time)));return T.MathUtils.smoothstep(distance,.08,.4)};
+ // A runner recovering from a spilled touch swings his arms while passing
+ // the interceptor. Reserve that extra body space gradually, without shifting
+ // the interceptor's fixed contact or enlarging any visible model.
+ const recoveryRadius=(a,time)=>Math.max(.22,...(a?.controls??[]).filter(s=>s.loose).map(s=>.22+.36*T.MathUtils.smoothstep(time,s.end-.3,s.end)*(1-T.MathUtils.smoothstep(time,s.end+.5,s.end+(s.recovery??1)))));
+ let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0},navInfo=null
+ const bola={modo:'livre',dono:null,toques:0},medidas=[];let visualBall=null,visualRotation=null,spin=null,handState=null,handFlight=null
  onPrepared?.()
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
- const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;const tr=trecho(nome);a.tiro={nome,t0:agora-inicio,base:tr?.de??0,dur:Math.min(tr?tr.ate-tr.de:c.duration,ate),depois:nome.startsWith('cai')?'levanta':null,mira,bate:mira!==null||ponto!==null};inspection.tiros++}
+ const dispara=(a,nome,{inicio=0,agora,ate=Infinity,mira=null,ponto=null}={})=>{const c=asset.clips.get(nome);if(!c)return;if(a.fade){a.acao(a.fade.nome)?.setEffectiveWeight(0);a.fade=null}if(a.tiro){const old=a.acao(a.tiro.nome);if(a.tiro.nome!==nome)a.fade={...a.tiro,weight:old?.getEffectiveWeight()??0,fadeAt:agora};old?.setEffectiveWeight(0)}const act=a.acao(nome);act.reset();act.play();act.timeScale=0;act.setLoop(T.LoopOnce,1);act.clampWhenFinished=true;const tr=trecho(nome);a.tiro={nome,t0:agora-inicio,base:tr?.de??0,dur:Math.min(tr?tr.ate-tr.de:c.duration,ate),depois:nome.startsWith('cai')?'levanta':null,mira,bate:mira!==null||ponto!==null};inspection.tiros++}
  const toque=nome=>(asset.meta.clips?.[nome.replace(/_e$/,'')]?.toque??.4)-(trecho(nome)?.de??0) // (contado do começo do trecho)
- // 🎯 cabeçada é coisa de ÁREA (cruzamento, finalização, rebatida do zagueiro). O motor às vezes chama de "cabeceio" um passe alto
- // no meio-campo — ali o desenho mostra o toque com o pé (a bola desce até ele), nunca um passe de cabeça pro companheiro
- const naArea=b=>!!b&&Math.abs(b.x)>36&&Math.abs(b.z)<20.2
- const deCabeca=it=>it.cab&&(it.tipo==='cabeceio_gol'||naArea(it.bola))
- // ⚽ A BOLA DO DESENHO (27/10, Diego: "o domínio não parece real… o passe parece colado no jogador… não parece que foi com o pé").
- // O motor decide pra onde a bola vai e quem fica com ela; aqui ela é DESENHADA presa ao corpo de verdade, osso por osso:
- //  · 'livre' (rolando/voando): é a bola do motor. Quando alguém vai tocar nela (domínio, passe de primeira, cabeçada), ela vai
- //    se desviando aos poucos pra chegar EXATAMENTE no pé (peito/cabeça) dele no instante do toque
- //  · 'posse' (alguém conduz): ela rola sozinha no chão, com atrito, e só anda quando a PONTA DO PÉ do boneco encosta nela, no
- //    ponto da passada em que o pé vai mais à frente — cada toque empurra a bola o bastante pra o próximo pé alcançá-la de novo.
- //    No domínio ela acompanha o pé que amortece; no passe/chute ela espera no pé que bate e sai DELE, no instante do contato
- // Só desenho: placar, posse e trajetória continuam do motor (a diferença some em ~0,25 s depois que a bola sai do pé)
- const ATRITO=2.4,JANELA=2,bola={modo:'livre',dono:null,B:new T.Vector3(),V:new T.Vector3(),off:new T.Vector3(),offT:0,desde:0,toques:0,vm:new T.Vector3(),mAnt:null}
- let giro=null,giroT=null
- const _a=new T.Vector3(),_b=new T.Vector3()
- const atorDe=key=>atores.find(a=>a.key===key)
- const frente=a=>_b.set(Math.sin(a.rumo),0,Math.cos(a.rumo))
- /** onde o pé/peito/cabeça de `a` encosta na bola no movimento `nome`, com o corpo de agora */
- const pontoDe=(a,nome,base=a.holder.position)=>{const c=CONTATO[nome]??CONTATO.passe,cs=Math.cos(a.rumo),sn=Math.sin(a.rumo)
-  return new T.Vector3(base.x+c.off.x*cs+c.off.z*sn,c.alto?c.off.y:RAIO_BOLA_FUTEBOL_3D,base.z-c.off.x*sn+c.off.z*cs)}
- const ATRITO_CHAO=2.3,MEIO_CORPO=.7,CORR_MAX=2,TOQUES_CONDUZ=[.37,.86]
- const pegaPosse=(a,P,agora,peito)=>{Object.assign(bola,{modo:'posse',dono:a,desde:agora,voo:null});a.faseBola=a.fase;bola.B.copy(P)
-  if(peito){const f=frente(a);bola.V.set(f.x*1.4+a.mov.x*a.vel*.6,.3,f.z*1.4+a.mov.z*a.vel*.6)}else bola.V.set(a.mov.x*a.vel*.5,0,a.mov.z*a.vel*.5)
-  a.zPe=[null,null]}
- // 📏 conferência: em cada contato, a distância entre a bola desenhada e o osso que encosta (pé, peito, cabeça) — lida pela bancada
- const medidas=[],ossoDe=(a,nome)=>{a.holder.updateMatrixWorld(true);const alto=/^(cabeca2|peito)/.test(nome);let o
-  if(alto){const n=nome.startsWith('cabeca2')?'head':'spine2';a.root.traverse(x=>{if(x.isBone&&x.name.toLowerCase().includes(n))o??=x})}
-  else{const m=asset.meta.clips?.[nome.replace(/_e$/,'')],lado=nome.endsWith('_e')?(m?.pe==='l'?0:1):(m?.pe==='l'?1:0);o=a.pes[lado]}
-  return o?o.getWorldPosition(new T.Vector3()):null}
- const mede=(a,nome,P,agora,tipo)=>{const o=ossoDe(a,nome);if(!o)return;const c=CONTATO[nome];const alvo=c?.alto?o.add(frente(a).clone().multiplyScalar(.16)):o
-  medidas.push({t:+agora.toFixed(2),tipo,nome,dist:+Math.hypot(P.x-alvo.x,(c?.alto?P.y-alvo.y:0),P.z-alvo.z).toFixed(2)});if(medidas.length>200)medidas.shift()}
- const proximoToque=agora=>{let t=Infinity;for(const it of agenda)if(it.t>agora+.02&&it.t<t&&(it.kind==='recebe'||!['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)))t=it.t;return t}
- const largaEm=(P,M,agora)=>{bola.off.copy(P).sub(M);bola.offT=agora;bola.offDur=Math.min(1.6,Math.max(.35,proximoToque(agora)-agora))}
- const novoVoo=(R0,t0,M)=>({R0:R0.clone(),t0,M0y:M.y,maxY:M.y,enc:null})
- const solta=(M,agora,t0=agora)=>{largaEm(bola.B,M,agora);bola.voo=novoVoo(bola.B,t0,M);bola.modo='livre';bola.dono=null}
- function bolaDoDesenho(frame,dt,reset){
-  const agora=frame.time,M=new T.Vector3(frame.ball.x,frame.ball.y,frame.ball.z)
-  if(dt>0&&bola.mAnt){const v=_a.copy(M).sub(bola.mAnt).divideScalar(dt);bola.vm.lerp(v.length()>40?bola.vm:v,.6)}
-  if(bola.voo)bola.voo.maxY=Math.max(bola.voo.maxY,M.y)
-  bola.mAnt=M.clone()
-  if(frame.replay||frame.ball.presentation){bola.modo='livre';bola.dono=null;bola.off.set(0,0,0);bolaApresentada=null;bolaGiro=undefined;giro=null;return}
-  if(reset){bola.modo='livre';bola.dono=null;bola.off.set(0,0,0)}
-  // o próximo encontro com a bola (domínio, ou toque de primeira de quem NÃO está conduzindo)
-  let enc=null
-  // (o movimento ainda pode não ter começado: o nome previsto serve pro ponto de contato até lá)
-  const nomeDe=it=>it.nome??(it.kind==='recebe'?(it.h>.9?'peito':'dominio'):deCabeca(it)?'cabeca2':'passe')
-  for(const it of agenda){if(it.bolaFeita||!it.bola||it.t<agora-.03||it.t>agora+JANELA)continue
-   if(it.kind==='toque'&&['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo))continue
-   if(it.kind==='recebe'&&(it.goleiro||agenda.some(o=>o.kind==='toque'&&o.key===it.key&&o.t>=it.t-.05&&o.t<it.t+.5)))continue
-   if(it.kind==='toque'&&bola.modo==='posse'&&bola.dono?.key===it.key)continue
-   if(!enc||it.t<enc.t)enc=it}
-  // (quem ia receber continua sendo o alvo até aparecer outro — a previsão às vezes troca "domínio" por "toque de primeira" no meio do voo)
-  if(!enc&&bola.modo==='livre'&&bola.voo?.enc&&!bola.voo.enc.bolaFeita&&bola.voo.enc.t>agora-.03)enc=bola.voo.enc
-  const quemEnc=enc&&atorDe(enc.key)
-  bola.encDbg=enc?[enc.kind,enc.key.slice(10,22),+enc.t.toFixed(2),enc.nome??null]:null
-  if(bola.modo==='posse'){const a=bola.dono
-   const doDonoAntes=quemEnc&&agenda.some(o=>o.kind==='toque'&&o.key===a?.key&&!o.bolaFeita&&o.t>agora-.05&&o.t<enc.t)
-   if(!a||(quemEnc&&quemEnc!==a&&!doDonoAntes)||(frame.owner&&frame.owner!==a.key&&agora-bola.desde>.35)||a.keeper)solta(M,agora)}
-  if(bola.modo==='posse'&&dt>0){bola.dono.corrAlvo.x=bola.dono.corrAlvo.z=0;const a=bola.dono,B=bola.B,V=bola.V,tiro=a.tiro,tt=tiro?agora-tiro.t0:0
+ const deCabeca=it=>it.cab
+ const activePlan=(a,now)=>agenda.find(it=>it.key===a.key&&!it.disabled&&!(it.firstTime&&it.kind==='recebe')&&it.bola&&it.t>=now-.05&&it.t<now+(it.kind==='carry'?.65:1.2))
+ const planName=it=>it?.nome??'dominio'
+ const handReleasePoint=it=>{const a=atores.find(a=>a.key===it.key),root=bodyTrack(a,it.t),off=it.contact.off,c=Math.cos(it.mira),s=Math.sin(it.mira);return{x:it.rec.x+root.x+off.x*c+off.z*s,y:off.y,z:it.rec.z+root.z-off.x*s+off.z*c}}
+ const handArc=it=>({t:it.t,end:Math.min(it.t+.55,agenda.find(o=>o.kind==='recebe'&&o.t>it.t+.001)?.t??Infinity),start:handReleasePoint(it),source:timeline.sample(it.t).ball});
+ const contactRegion=it=>it.hands||it.goleiro?'hands':it.cab?'head':'feet';
+ const footPositions=a=>a.pes.map(b=>b.getWorldPosition(new T.Vector3()))
+ function observeContacts(frame,dt,reset){
+  bola.modo='livre';bola.dono=null
+  const B=visualBall??frame.ball.presentation??frame.ball
+  for(const a of atores){
    a.holder.updateMatrixWorld(true)
-   if(tiro?.bate){const tq=toque(tiro.nome)
-    if(tt>=tq-.005){B.copy(pontoDe(a,tiro.nome));mede(a,tiro.nome,B,agora,'bate');solta(M,agora,tiro.t0+tq);bola.toques++} // saiu DO pé, no instante do contato
-    else{B.lerp(pontoDe(a,tiro.nome),1-Math.exp(-dt/Math.max(.015,(tq-tt)*.3)));V.set(0,0,0)}} // espera no pé que vai bater
-   else if(tiro?.nome==='dominio'&&tt<tiro.dur){ // amortece: a bola acompanha a ponta do pé que domina, rente ao chão
-    const pe=a.holder.visible&&a.pes[0]?.getWorldPosition(_a);if(pe){const f=frente(a);B.lerp(_a.set(pe.x+f.x*.1,RAIO_BOLA_FUTEBOL_3D,pe.z+f.z*.1),1-Math.exp(-dt/.09))}V.set(0,0,0)}
-   else{
-    // a bola rola sozinha (atrito no chão, gravidade no ar — o peito solta a bola pra cair na frente)
-    V.y-=9.8*dt;B.addScaledVector(V,dt)
-    if(B.y<RAIO_BOLA_FUTEBOL_3D){B.y=RAIO_BOLA_FUTEBOL_3D;V.y=V.y<-1?-V.y*.4:0}
-    if(B.y<RAIO_BOLA_FUTEBOL_3D+.01){const f=Math.exp(-ATRITO*dt);V.x*=f;V.z*=f}
-    const f=frente(a),fx=f.x,fz=f.z
-    if(a.vel>.8){
-     // 🦶 o TOQUE: a passada do movimento de conduzir tem dois toques do pé direito por ciclo (medidos no Mixamo: a ponta do pé
-     // vai mais à frente em 37% e 86% do ciclo). Em cada toque a bola ganha a velocidade certa pra rolar (com atrito) e chegar
-     // EXATAMENTE onde o pé vai estar no próximo toque — o corpo corre, o pé empurra, a bola nunca é arrastada
-     const f0=a.faseBola??a.fase,f1=a.fase;a.faseBola=f1
-     const cruzou=u=>f0<=f1?f0<u&&u<=f1:f0<u||u<=f1
-     if(TOQUES_CONDUZ.some(cruzou)){
-      const h=a.holder.position,pe=a.holder.visible&&a.pes[0]?a.pes[0].getWorldPosition(new T.Vector3()):new T.Vector3(h.x+fx*.3-fz*.06,0,h.z+fz*.3+fx*.06)
-      const cps=Math.min(2.6,a.vel/CICLO_M),prox=TOQUES_CONDUZ.find(u=>u>f1+1e-4)??TOQUES_CONDUZ[0]+1,Ph=Math.max(.12,(prox-f1)/cps)
-      const alvo=new T.Vector3(pe.x+a.mov.x*a.vel*Ph+fx*.12,RAIO_BOLA_FUTEBOL_3D,pe.z+a.mov.z*a.vel*Ph+fz*.12)
-      const g=ATRITO/(1-Math.exp(-ATRITO*Ph));V.set((alvo.x-B.x)*g,0,(alvo.z-B.z)*g);V.clampLength(0,a.vel*2.2+2)
-      medidas.push({t:+agora.toFixed(2),tipo:'conduz',dist:+Math.hypot(B.x-pe.x-fx*.12,B.z-pe.z-fz*.12).toFixed(2)});if(medidas.length>200)medidas.shift();bola.toques++}}
-    else a.faseBola=a.fase
-    // (segurança: bola muito longe do corpo — parada brusca, curva fechada — volta devagar pra frente dele)
-    const q=_a.set(a.holder.position.x+fx*.5,B.y,a.holder.position.z+fz*.5),d=B.distanceTo(q);if(d>1.6)B.lerp(q,1-Math.exp(-dt*(d-1.6)*3))}
-   if(bola.modo==='posse'&&B.distanceTo(_a.set(a.holder.position.x,B.y,a.holder.position.z))>3)solta(M,agora)}
-  let P
-  if(bola.modo==='posse')P=bola.B.clone()
-  else{
-   // a diferença do instante em que saiu do pé some em ~0,25 s; chegando num pé, a bola se desvia pra ele aos poucos
-   if(enc)enc.visto??=agora // (o desvio começa do zero quando o toque fica conhecido — nunca no meio)
-   const ini=enc?Math.max(bola.offT,enc.t-JANELA,enc.visto):0
-   const w=quemEnc?T.MathUtils.smoothstep(enc.t-ini<.02?1:(agora-ini)/(enc.t-ini),0,1):0
-   const u=Math.min(1,Math.max(0,(agora-bola.offT)/(bola.offDur??.35)))
-   P=M.clone().addScaledVector(bola.off,(1-T.MathUtils.smootherstep(u,0,1))*(1-w))
-   // onde a bola do motor vai estar no instante do toque (seguindo a velocidade de agora — quanto mais perto, mais exato): o
-   // desvio é o que falta pra ela cair no pé. Bola PARADA (cobrança) não se mexe: quem anda até ela é o corpo
-   // 🏃⚽ a distância que falta entre o pé e a bola é dividida: o CORPO anda metade até a bola (como gente de verdade, e a passada
-   // acompanha) e a bola faz o resto; com a bola PARADA (cobrança) o corpo anda tudo e a bola não se mexe
-   const parada=bola.vm.length()<.3
-   for(const a of atores)if(a!==quemEnc&&a!==bola.dono)a.corrAlvo.x=a.corrAlvo.z=0
-   // (onde a bola vai estar no toque: de longe vale a previsão do motor; no último 0,3 s, a bola de agora seguindo a velocidade dela)
-   if(quemEnc){const falta=Math.max(0,enc.t-agora),Mt=_a.set(enc.bola.x,enc.bola.y,enc.bola.z).lerp(_b.copy(M).addScaledVector(bola.vm,falta),Math.min(1,Math.max(0,1-falta/.3))),Cm=pontoDe(quemEnc,nomeDe(enc),quemEnc.mpos),parte=1-T.MathUtils.smoothstep(bola.vm.length(),.3,1.5)*(1-MEIO_CORPO)
-    // 📍 o ponto do ENCONTRO é fixo: 70% onde a bola do motor vai estar, 30% onde o pé do jogador vai estar, no instante do
-    // toque. A bola voa até ele e o corpo anda até ele — ninguém persegue alvo andando (era o que fazia a bola acelerar no fim)
-    if(!enc.encontro){const Cr=pontoDe(quemEnc,nomeDe(enc),enc.rec??quemEnc.mpos),E=enc.bola
-     enc.encontro=new T.Vector3(E.x*parte+Cr.x*(1-parte),Cr.y,E.z*parte+Cr.z*(1-parte))}
-    let cx=(enc.encontro.x-Cm.x)*w,cz=(enc.encontro.z-Cm.z)*w;const l=Math.hypot(cx,cz);if(l>CORR_MAX){cx*=CORR_MAX/l;cz*=CORR_MAX/l}
-    quemEnc.corrAlvo.x=cx;quemEnc.corrAlvo.z=cz;quemEnc.corrDireto=true // (o alvo já anda liso: o corpo segue sem atraso)
-    // (suaviza só o LADO do corpo em que a bola encosta — trocar de pé no meio do caminho não faz a bola pular; o corpo correndo não atrasa nada)
-    const h=quemEnc.holder.position,lado=pontoDe(quemEnc,nomeDe(enc)).sub(h);if(!enc.ladoSuav)enc.ladoSuav=lado.clone();else enc.ladoSuav.lerp(lado,dt>0?1-Math.exp(-dt/.08):1)
-    enc.cSuav=new T.Vector3(h.x,0,h.z).add(enc.ladoSuav)
-    // ✈️ o VOO (27/10, Diego: "a bola é ruim quando vai de encontro até outro jogador"): do pé que bateu até o pé que recebe, em
-    // LINHA, com a física de bola de verdade — sai forte e vai FREANDO na grama (o mesmo atrito do motor, 2,3 m/s²), nunca
-    // acelera no meio do caminho; no ar quase não freia. Chega no pé no instante exato do toque. A altura vem da bola do motor.
-    // Se quem vai receber só fica conhecido no meio do voo, o voo recomeça de onde a bola está desenhada — sem pulo
-    if(bola.voo&&bola.voo.enc!==enc){if(bola.voo.enc&&bolaApresentada)Object.assign(bola.voo,{R0:new T.Vector3(bolaApresentada.x,bolaApresentada.y,bolaApresentada.z),t0:agora,M0y:M.y});bola.voo.enc=enc}
-    if(bola.voo){const v=bola.voo,TT=Math.max(.05,enc.t-v.t0),el=Math.min(TT,Math.max(0,agora-v.t0)),u=el/TT
-     const C=enc.encontro.clone().lerp(enc.cSuav,T.MathUtils.smoothstep(u,.8,1)) // (só o último pedacinho corrige os centímetros até o pé)
-     if(v.aereo===undefined&&el>.1)v.aereo=v.maxY>.35
-     const D=Math.hypot(C.x-v.R0.x,C.z-v.R0.z);let f
-     if(v.aereo)f=u
-     else{let ac=ATRITO_CHAO;if(D/TT<ac*TT/2)ac=2*D/(TT*TT);const v0=D/TT+ac*TT/2;f=D>1e-3?(v0*el-ac*el*el/2)/D:1}
-     P.x=v.R0.x+(C.x-v.R0.x)*f;P.z=v.R0.z+(C.z-v.R0.z)*f
-     P.y=v.aereo?Math.max(RAIO_BOLA_FUTEBOL_3D,M.y+(v.R0.y-v.M0y)*(1-u)+(C.y-Mt.y)*u):RAIO_BOLA_FUTEBOL_3D+(v.R0.y-RAIO_BOLA_FUTEBOL_3D)*(1-u)+(C.y-RAIO_BOLA_FUTEBOL_3D)*u}
-    else if(w>0)P.addScaledVector(_b.copy(enc.cSuav).sub(Mt),w)}
-   // (o quadro quase nunca cai no instante exato do toque: a bola do motor já andou v·Δt — no contato ela está NO pé, sempre)
-   if(quemEnc&&agora>=enc.t){enc.bolaFeita=true;P=(enc.cSuav??enc.encontro)?.clone()??pontoDe(quemEnc,nomeDe(enc));quemEnc.corrAlvo.x=quemEnc.corrAlvo.z=0;mede(quemEnc,nomeDe(enc),P,agora,enc.kind);{const Cm=pontoDe(quemEnc,nomeDe(enc),quemEnc.mpos);medidas.at(-1).gap=+Math.hypot(Cm.x-enc.bola.x,Cm.z-enc.bola.z).toFixed(2);if(enc.encontro&&enc.cSuav)medidas.at(-1).falta=+Math.hypot(enc.encontro.x-enc.cSuav.x,enc.encontro.z-enc.cSuav.z).toFixed(2);medidas.at(-1).corr=+Math.hypot(quemEnc.corr.x,quemEnc.corr.z).toFixed(2)}
-    if(enc.kind==='recebe')pegaPosse(quemEnc,P,agora,nomeDe(enc)==='peito')
-    else{largaEm(P,M,agora);bola.voo=novoVoo(P,enc.t,M);P.addScaledVector(bola.vm,Math.max(0,agora-enc.t));bola.toques++}}
-   // conduzindo sem aviso (cobrança, rebote): a posse vem do motor
-   else if(!enc&&frame.owner&&M.y<.5){const a=atorDe(frame.owner);if(a&&!a.keeper&&Math.hypot(M.x-a.holder.position.x,M.z-a.holder.position.z)<2.2)pegaPosse(a,P,agora,false)}}
-  // 🌀 o giro acompanha a bola DESENHADA (rola junto com o toque, não com a bola do motor)
-  const pg={x:P.x,y:P.y,z:P.z,curl:bola.modo==='livre'?frame.ball.curl:undefined}
-  if(!giro||giroT===null||agora<giroT||agora-giroT>1){giro=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,pg)}else giro.step(pg,agora-giroT)
-  giroT=agora;bolaGiro=giro.quaternion.toArray();bolaApresentada={x:P.x,y:P.y,z:P.z}
+   const feet=footPositions(a),old=reset||!(dt>0)||dt>.1?null:a.contactHistory,hit=bootContact(B,feet,old)
+   a.contactHistory={time:frame.time,ball:{...B},feet};a.contactGap=hit.gap
+   const owned=frame.owner===a.key&&!a.keeper&&!frame.restart&&!frame.replay
+   if(owned&&hit.contact){bola.modo='contato';bola.dono=a}
+   const plan=agenda.find(it=>it.key===a.key&&!it.measured&&it.t<=frame.time+1e-7&&it.t>=frame.time-.1&&!it.disabled&&!(it.firstTime&&it.kind==='recebe'))
+   if(plan&&diagnostics){plan.measured=true;const aerial=deCabeca(plan),hands=plan.hands||plan.goleiro,ballPoint=new T.Vector3(B.x,B.y,B.z);let measured;
+    if(hands){const actual=visualBall??B,pt=new T.Vector3(actual.x,actual.y,actual.z),left=a.surface.probe(pt,'leftHand'),right=a.surface.probe(pt,'rightHand');measured=left.gap<right.gap?left:right}
+    else if(aerial)measured=a.surface.probe(ballPoint,'head');
+    else{const left=a.surface.probe(ballPoint,'left'),right=a.surface.probe(ballPoint,'right');measured=left.gap<right.gap?left:right}
+    const sampleGap=measured.gap,region=contactRegion(plan);let interpolated=false;
+    // At 30 Hz the 20 Hz official impact can fall between rendered frames.
+    // Interpolate the actual deformed triangles, not a planned toe-radius proxy.
+    if(frame.time-plan.t>1e-6&&old?.time<plan.t&&old.mesh?.region===region&&frame.time-old.time<=.07){const u=(plan.t-old.time)/(frame.time-old.time),current=a.surface.triangles(region),before=old.mesh.triangles;
+     if(current.length===before.length){const triangles=current.map((t,i)=>new T.Triangle(...['a','b','c'].map(k=>before[i][k].clone().lerp(t[k],u)))),point=plan.hands&&plan.kind==='toque'?handReleasePoint(plan):plan.bola,hit=nearest(new T.Vector3(point.x,point.y,point.z),triangles);measured={gap:hit.distance-.11,floor:measured.floor};interpolated=true}
+    }
+    const confirmed=measured.gap>=-.025&&measured.gap<=.03;medidas.push({contactType:hands?'hands':aerial?'head':'foot',kind:plan.kind,t:plan.t,sampledAt:frame.time,interpolated,gapAtSample:sampleGap,key:a.key,tipo:plan.tipo??(plan.kind==='carry'?'conduz':'recepcao'),nome:planName(plan),dist:measured.gap+.11,gap:measured.gap,floor:measured.floor,confirmed,swept:false,bodyAngleDegrees:Math.abs(angulo(a.rumo-plan.mira))*180/Math.PI});if(confirmed)bola.toques++}
+   const next=agenda.find(it=>it.key===a.key&&!it.disabled&&!(it.firstTime&&it.kind==='recebe')&&it.t>frame.time+1e-7&&it.t-frame.time<=.051);if(next&&diagnostics){const region=contactRegion(next);a.contactHistory.mesh={region,triangles:a.surface.triangles(region)}}
+   if(owned&&hit.contact&&frame.time-a.lastConfirmed>.2){a.lastConfirmed=frame.time;bola.toques++;medidas.push({t:frame.time,key:a.key,tipo:'conduz',dist:hit.gap+.175,gap:hit.gap,confirmed:true,swept:hit.swept})}
+  }
+  if(medidas.length>200)medidas.splice(0,medidas.length-200)
  }
- return{
-  update(frame,camera,viewportHeight=720){
+ let contactSubsteps=0;
+ const updateFrame=(frame,camera,viewportHeight=720)=>{
    if(disposed)return
-   const dt=lastTime===null||frame.time<lastTime||frame.time-lastTime>1?0:frame.time-lastTime,reset=dt===0&&lastTime!==null&&frame.time!==lastTime;lastTime=frame.time
+   // Orbit/zoom and a paused clock may draw the SAME football frame again.
+   // Re-evaluating a zero-speed gait here used to replace a running pose with
+   // idle and turn the body while the ball and match were paused.
+   if(lastTime===frame.time&&!frame.official?.finished){
+    inspection={full:0,intermediate:0,far:0,hidden:0,tiros:inspection.tiros}
+    for(const a of atores){const p=frame.players.find(p=>p.key===a.key);a.detail=!p||p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;a.holder.visible=a.detail!=='hidden'}
+    soleShadows.update(atores);return
+   }
+   const firstFrame=lastTime===null;const dt=lastTime===null||frame.time<lastTime||frame.time-lastTime>1?0:frame.time-lastTime,reset=dt===0&&lastTime!==null&&frame.time!==lastTime;lastTime=frame.time
+   if(reset){handState=null;handFlight=null}
    inspection={full:0,intermediate:0,far:0,hidden:0,tiros:inspection.tiros}
-   const acao=frame.officialAction,evs=frame.official?.events??[],usados=new Set()
+   const deflection=keeperFlights.find(f=>frame.time>=f.start&&frame.time<=f.end),groundFlight=groundFlights.find(f=>frame.time>=f.start&&frame.time<=f.end),groundBall=sampleKeeperFlight(deflection,frame.time)??sampleGroundDelivery(groundFlight,frame.time);if(groundBall)frame={...frame,ball:{...frame.ball,presentation:groundBall}};
+   const evs=frame.official?.events??[],usados=new Set()
    // eventos dos últimos 0,4 s, por nome do motor (o mesmo que o teatro do players.mjs usa)
    const recentes=[];for(let i=evs.length-1;i>=0;i--){const e=evs[i],idade=frame.time-e.t;if(idade>.4)break;if(idade>=0)recentes.push(e)}
-   if(!frame.replay)preve(frame.time+ADIANTE) // (no replay do gol o tempo volta: a previsão espera ele acabar)
+   const proposed=frame.players.map(p=>{const a=atores.find(a=>a.key===p.key),root=a?bodyTrack(a,frame.time):{x:0,z:0},base=p.sourceAnchor??{x:p.mx,z:p.mz},future=timeline.sample(frame.time+.15,p.key).player,rf=a?bodyTrack(a,frame.time+.15):{x:0,z:0};return{...p,mx:base.x+root.x,mz:base.z+root.z,navigationVelocity:future?{x:(future.x+rf.x-base.x-root.x)/.15,z:(future.z+rf.z-base.z-root.z)/.15}:undefined}})
+   navInfo=navigation.sample({...frame,players:proposed},{action:(key,time)=>{const freedom=contactFreedom(atores.find(a=>a.key===key),time);return freedom<1?{collisionFreedom:freedom}:null}})
+   const safety=navigation.finalize(proposed.filter(p=>p.visible!==false).map(p=>{const shift=navInfo.positions.get(p.key)??{x:0,z:0},a=atores.find(a=>a.key===p.key);return{key:p.key,sourceX:p.mx,sourceZ:p.mz,rootX:p.mx+shift.x,rootZ:p.mz+shift.z,x:p.mx+shift.x,z:p.mz+shift.z,y:1,radius:recoveryRadius(a,frame.time),freedom:contactFreedom(a,frame.time)}}));
+   for(const [key,shift]of safety.shifts){const p=navInfo.positions.get(key);if(p){p.x+=shift.x;p.z+=shift.z}}navInfo.diagnostics.final=safety.diagnostics;
    for(const p of frame.players){
     const a=atores.find(x=>x.key===p.key&&!usados.has(x))??atores.find(x=>!usados.has(x)&&x.side===p.side&&x.keeper===p.keeper&&!frame.players.some(q=>q.key===x.key));if(!a)continue;usados.add(a);a.key=p.key
     a.detail=p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++
     a.holder.visible=a.detail!=='hidden'
     // deslocamento de verdade deste quadro (a velocidade do motor sozinha não sabe de cobrança/teleporte)
-    // (🏃 o corpo pode dar uns passos até a bola — `corr`, decidido no quadro anterior pela bola — e isso conta na passada)
-    const kc=a.corrDireto?1:dt>0?1-Math.exp(-dt/.5):1;a.corrDireto=false;a.corr.x+=(a.corrAlvo.x-a.corr.x)*kc;a.corr.z+=(a.corrAlvo.z-a.corr.z)*kc
-    a.mpos={x:p.mx,z:p.mz};const px=p.mx+a.corr.x,pz=p.mz+a.corr.z
+    // A aproximação visual do corpo também conta na distância da passada.
+    const plan=activePlan(a,frame.time),facingPlan=frame.ball.heldBy===p.key&&plan?.t<frame.time-1e-6?(agenda.find(it=>it.key===p.key&&it.hands&&it.kind==='toque'&&it.t>frame.time&&it.t-frame.time<.8)??plan):plan,name=planName(facingPlan),aim=facingPlan?.dir!=null?facingPlan.dir-(CONTATO[name]?.ang??0):a.rumo
+    const target=bodyTrack(a,frame.time),nav=navInfo.positions.get(p.key)??{x:0,z:0},base=p.sourceAnchor??{x:p.mx,z:p.mz}
+    a.corrAlvo=target;a.corr={x:target.x+nav.x,z:target.z+nav.z}
+    if(reset||frame.placementReset){a.ultimo=null;a.contactHistory=null;if(reset){a.mergulhou=false;a.lances.clear()}if(reset&&a.tiro){a.acao(a.tiro.nome)?.setEffectiveWeight(0);a.tiro=null}if(reset&&a.fade){a.acao(a.fade.nome)?.setEffectiveWeight(0);a.fade=null}}
+    const px=base.x+a.corr.x,pz=base.z+a.corr.z
     const agora=frame.time,ult=a.ultimo,dx=ult&&dt>0?px-ult.x:0,dz=ult&&dt>0?pz-ult.z:0,salto=Math.hypot(dx,dz)>2.5;a.ultimo={x:px,z:pz}
-    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key||bola.dono===a;a.vel=vel;if(vel>.3){const l=Math.hypot(dx,dz);a.mov={x:dx/l,z:dz/l}}
+    const shownBall=frame.ball.presentation??frame.ball,loose=a.controls.find(s=>s.loose&&agora>=s.start&&agora<=s.end);
+    const vel=dt>0&&!salto?Math.min(9,Math.hypot(dx,dz)/dt):0,comBola=frame.owner===p.key&&!p.keeper&&!loose&&shownBall.y<.8&&Math.hypot(shownBall.x-px,shownBall.z-pz)<1.35
     // pra onde o CORPO olha (27/10, Diego: "completamente perdidos… desgovernados"): quem se MEXE olha pra onde vai, como gente de
     // verdade; só quem está quase parado vira pra bola (passinho de lado/de costas só aí). Com folga entre os dois limites, senão o
     // corpo ficava trocando de frente a cada passo
-    const bx=frame.ball.x-p.mx,bz=frame.ball.z-p.mz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
+    const bx=shownBall.x-px,bz=shownBall.z-pz,praBola=Math.atan2(bx,bz),praOnde=vel>.3?Math.atan2(dx,dz):p.heading
     if(vel>1.7||comBola)a.olhaBola=false;else if(vel<.8)a.olhaBola=true
-    const mirando=a.tiro?.mira!=null&&agora-a.tiro.t0<toque(a.tiro.nome)+.25
-    const alvo=p.mergulho?a.rumo:mirando?a.tiro.mira:a.olhaBola&&Math.hypot(bx,bz)<45?praBola:praOnde
-    a.rumo+=angulo(alvo-a.rumo)*(dt>0?1-Math.exp(-dt/(mirando?.07:.16)):1)
+    const holdIntent=(a.tiro?.kind==='recebe'&&!p.keeper) ? .12 : /^passe/.test(a.tiro?.nome??'') ? .22 : .4;
+    const antecipa=facingPlan?.dir!=null&&facingPlan.t-agora<.8;const mirando=antecipa||a.tiro?.mira!=null&&agora-a.tiro.t0<(a.tiro.touch??toque(a.tiro.nome))+holdIntent
+    const alvo=p.mergulho&&!plan?a.rumo:mirando?(antecipa?aim:a.tiro.mira):loose?loose.intent:(p.keeper||a.olhaBola&&Math.hypot(bx,bz)<45)?praBola:praOnde
+    const giro=angulo(alvo-a.rumo);a.rumo+=dt>0?T.MathUtils.clamp(giro*(1-Math.exp(-dt/(mirando?.10:.18))),-7*dt,7*dt):giro
     a.holder.position.set(px,0,pz);a.holder.rotation.set(0,a.rumo,0)
     // ── lances: o motor diz quem fez o quê; o corpo mostra ──
-    // (mão: lateral e reposição do goleiro — vêm do lance de AGORA, com o instante passado pra segundos)
-    if(acao&&acao.actor===p.key&&acao.requiredContact==='hands'&&acao.startedAt!==undefined&&!a.lances.has('a'+acao.startedAt)&&agora>=acao.startedAt&&agora-acao.startedAt<.35){a.lances.add('a'+acao.startedAt)
-     const nome=frame.phase==='lateral'||acao.restartOrigin?.type==='lateral'?'lateral':p.keeper?(acao.type==='passe'?'gk_rola':acao.type==='lancamento'?'gk_lanca_longe':'gk_lanca'):null
-     if(nome)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.1)+agora-acao.startedAt,agora})}
     // (pé e cabeça: pela PREVISÃO — o movimento começa antes, e o contato dele cai no instante em que a bola sai)
-    if(!frame.replay)for(const it of agenda){if(it.feito||it.key!==p.key)continue
-     if(it.kind==='toque'){if(['conduz','drible','desvio','rebote','arrancada'].includes(it.tipo)){it.feito=true;continue}
-      // (27/10, Diego: "dá impressão que ele faz o mesmo lance pra chutar e passar"): cada jeito de bater tem o SEU movimento —
-      // chute = a bomba (parado ou correndo) · bola longa/cruzamento/inversão = a batida por baixo que levanta a bola ·
-      // passe/enfiada = o toque de lado do pé
-      const corre=vel>2.6,longa=['cruzamento','lancamento','inversao'].includes(it.tipo)||it.longe>26
-      // (⚽ 27/10: passe e chute são os GRAVADOS de jogador de verdade — passe de chapa e chute forte do pacote do Anderson Rohr;
-      // o do Mixamo fica de reserva se o arquivo faltar)
-      const tem=n=>asset.clips.has(n)
-      let nome=deCabeca(it)?'cabeca2':CHUTES.has(it.tipo)||it.tipo==='corte'?(tem('chute_forte')?'chute_forte':corre?'chute_corrida':'chute'):longa?'cavadinha':tem('passe_chapa')?'passe_chapa':it.longe<13?'passe_curto':'passe'
-      // 🦶 o pé: canhoto famoso bate de canhota, destro famoso de direita; o resto usa o pé do lado pra onde a bola vai
-      // (bola saindo pra esquerda do corpo = pé esquerdo), e de frente decide o jeito de cada um (1 em 4 bate de canhota)
-      if(!deCabeca(it)){const pe=a.pe,rel=it.dir==null?0:angulo(it.dir-a.rumo)
-       const canhota=pe==='canhota'||(pe!=='direita'&&(rel>.9||(rel>=-.9&&a.canhoto)))
-       const baseEsq=asset.meta.clips?.[nome]?.pe==='l' // (o gravado pode ser de canhota: aí o espelho é a versão de direita)
-       if(canhota!==baseEsq&&asset.clips.has(nome+'_e'))nome+='_e'}
-      const ini=it.t-toque(nome);if(agora<ini)continue;it.feito=true;if(agora>it.t+.25)continue
-      it.nome=nome;it.ini=agora
-      dispara(a,nome,{inicio:agora-ini,agora,mira:it.dir==null?null:it.dir-(CONTATO[nome]?.ang??0),ponto:true})}
-     else if(it.kind==='recebe'&&!p.keeper){if(agora<it.t-.45)continue;it.feito=true;if(agora>it.t+.2)continue
-      // de primeira (toca de novo em menos de meio segundo): não domina, já sai o passe/chute
-      if(agenda.some(o=>o.kind==='toque'&&o.key===p.key&&o.t>=it.t-.05&&o.t<it.t+.5))continue
-      const nome=it.h>.9?'peito':'dominio',ini=it.t-toque(nome);it.nome=nome;it.ini=agora;dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:toque(nome)+.45})}}
+    for(const it of agenda){if(it.key!==p.key||it.disabled||it.firstTime&&it.kind==='recebe')continue
+     const nome=it.nome,ini=it.start;if(agora<ini||agora>it.t+.1)continue
+     if(a.tiro?.planId===it.id)continue
+     // Replay/seek uses the same planned capture and exact contact clock.
+     if(a.tiro?.planId&&a.tiro.contactAt>=agora-.04&&a.tiro.contactAt<it.t)continue
+     dispara(a,nome,{inicio:Math.max(0,agora-ini),agora,ate:it.kind==='recebe'?toque(nome)+.45:Infinity,mira:it.mira,ponto:true})
+     a.tiro.base=it.clipStart;a.tiro.dur=it.clipEnd-it.clipStart;a.tiro.touch=it.t-it.start;a.tiro.planId=it.id;a.tiro.kind=it.kind;a.tiro.contactAt=it.t;a.tiro.extraRise=it.extraRise??0;a.tiro.pose=it.contact;a.tiro.blendIn=(it.hands||it.goleiro) ? Math.min(.18,Math.max(.025,(it.t-it.start)*.45)) : .12
+    }
     for(const e of recentes){const id=e.tipo+e.t;if(a.lances.has(id))continue
      const nomeP=p.name
      // (só FALTA derruba: na VANTAGEM o jogo segue e o motor continua levando o jogador — cair ali era o "cai do nada" deslizando)
@@ -325,40 +339,124 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared}={}){
      else if(e.tipo==='gol'&&e.a&&String(e.a).startsWith(nomeP)&&(e.lado===0)===(p.side==='home')){a.lances.add(id)
       let h=0;for(const ch of String(e.a))h=(h*31+ch.charCodeAt(0))|0;const n='comemora'+(1+Math.abs(h+Math.floor(e.t*10))%3)
       if(asset.clips.has(n))dispara(a,n,{inicio:0,agora})}}
+    if(p.mergulho&&agenda.some(it=>it.key===p.key&&!it.disabled&&(it.save||it.goleiro)&&agora>=it.start&&agora<=it.t+.35))a.mergulhou=true;
     if(p.mergulho&&!a.mergulhou){a.mergulhou=true;const m=p.mergulho,mx=m.x-(m.ax??p.mx),mz=m.z-(m.az??p.mz),len=Math.hypot(mx,mz)
+     const collection=agenda.find(it=>it.key===p.key&&it.goleiro&&it.t>agora-1.2&&it.t-agora<1);
      const direita=(mx*-Math.cos(a.rumo)+mz*Math.sin(a.rumo))>0
      const nome=m.vertical||(len<=.6&&m.y>1.2)?'gk_pega_alto':len<.9?(m.y<.6?'gk_pega_baixo':'gk_pega'):len<1.7&&m.y<.8?(direita?'gk_bloqueio_d':'gk_bloqueio_e'):direita?'gk_voo_d':'gk_voo_e'
      // (o mergulho do motor chega no ponto em ~0,42 s: o voo do Mixamo encosta na bola no `toque` dele)
-     dispara(a,nome,{inicio:Math.max(0,toque(nome)-.42*(1-m.k)),agora})}
+     if(collection&&agora<collection.start){
+      // A nearby rebound pickup has no time for a complete dive and stand-up.
+      // Use the existing standing reach, without attaching the ball or adding
+      // a save event. The collection still requires its measured hand contact.
+      dispara(a,m.y>.9?'gk_pega':'gk_pega_baixo',{inicio:Math.max(0,agora-(collection.t-.75)),agora,ate:.75,mira:collection.mira});a.tiro.reactionOnly=true;
+     }else if(!collection)dispara(a,nome,{inicio:Math.max(0,toque(nome)-.42*(1-m.k)),agora})}
     if(!p.mergulho)a.mergulhou=false
     if(a.lances.size>40)a.lances=new Set([...a.lances].slice(-20))
-    if(!a.holder.visible)continue
+    // Keep contact sampling and animation time independent of camera culling.
     // ── corrida: 8 direções em fase comum, peso pela velocidade ──
     const fw=vel>.05?angulo(Math.atan2(dx,dz)-a.rumo):0,lado=-fw // (+ = pra direita do corpo; o eixo do three gira ao contrário)
-    a.fase=(a.fase+(dt>0?Math.min(2.6,vel/CICLO_M)*dt:0))%1
+    const direction=((lado%(2*Math.PI))+2*Math.PI)%(2*Math.PI),di=Math.floor(direction/(Math.PI/4))%8,du=direction/(Math.PI/4)-di;
+    const gaitName=i=>DIRS[i][1]==='trote'&&comBola?'conduz':DIRS[i][1],n0=gaitName(di),n1=gaitName((di+1)%8);
+    const stride=gaits[n0].distance*(1-du)+gaits[n1].distance*du;
+    a.fase=(a.fase+(dt>0?Math.min(3.6,vel/stride)*dt:0))%2;
     const anda=T.MathUtils.smoothstep(vel,.25,1.1),segura=p.keeper&&frame.ball.y>.6&&frame.ball.y<1.6&&Math.hypot(bx,bz)<1.3
-    const parado=p.keeper?(segura?'gk_idle_bola':'gk_idle'):comBola?'idle_bola':'idle'
+    const parado=p.keeper?(frame.ball.heldBy===p.key||segura?'gk_idle_bola':'gk_idle'):'idle'
     const alvos=new Map(LOOPS.map(n=>[n,0]));alvos.set(parado,1-anda)
-    {const l=((lado%(2*Math.PI))+2*Math.PI)%(2*Math.PI),i=Math.floor(l/(Math.PI/4))%8,u=l/(Math.PI/4)-i // (DIRS vai de 45 em 45°)
-     const nome=k=>DIRS[k][1]==='trote'&&comBola?'conduz':DIRS[k][1],n0=nome(i),n1=nome((i+1)%8)
-     alvos.set(n0,alvos.get(n0)+anda*(1-u));alvos.set(n1,alvos.get(n1)+anda*u)}
+    alvos.set(n0,alvos.get(n0)+anda*(1-du));alvos.set(n1,alvos.get(n1)+anda*du)
     // lance por cima: o tempo do movimento é o relógio do jogo (pausa e replay param junto)
     let wTiro=0
     if(a.tiro){const t=agora-a.tiro.t0,act=a.acao(a.tiro.nome)
      if(t<0||t>a.tiro.dur){act.setEffectiveWeight(0);const {dur,depois}=a.tiro;a.tiro=null;if(t>dur&&depois)dispara(a,depois,{inicio:Math.min(t-dur,.2),agora})}
-     else{wTiro=Math.min(1,t/.12,(a.tiro.dur-t)/.25);act.time=a.tiro.base+t;act.setEffectiveWeight(wTiro)}}
+     else{wTiro=Math.min(1,t/(a.tiro.blendIn??.12),(a.tiro.dur-t)/.25);act.time=a.tiro.base+t;act.setEffectiveWeight(wTiro)}}
+    let wFade=0;if(a.fade){const old=a.acao(a.fade.nome),u=T.MathUtils.clamp((agora-a.fade.fadeAt)/(a.tiro?.blendIn??.12),0,1);if(u>=1||!old){old?.setEffectiveWeight(0);a.fade=null}else{wFade=(1-wTiro)*a.fade.weight*(1-u);old.time=a.fade.base+Math.min(a.fade.dur,Math.max(0,agora-a.fade.t0));old.setEffectiveWeight(wFade)}}
     const k=dt>0?1-Math.exp(-dt/.15):1
-    for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*(1-wTiro));const dur=act.getClip().duration;act.time=n.startsWith('idle')||n.startsWith('gk_idle')?agora%dur:a.fase*dur}
+    for(const n of LOOPS){const act=a.acao(n);if(!act)continue;const w0=a.pesos.get(n)??0,w=w0+((alvos.get(n)??0)-w0)*(reset?1:k);a.pesos.set(n,w);act.setEffectiveWeight(w*Math.max(0,1-wTiro-wFade));const dur=act.getClip().duration;act.time=gaits[n]?gaitTime(gaits[n],a.fase):agora%dur}
     a.mixer.update(0)
+    a.holder.updateMatrixWorld(true);const groundedKeeper=/^gk_(recolhe|pega|rola|lanca)/.test(a.tiro?.nome??''),rawFloor=a.surface.floor(groundedKeeper),floorBudget=groundedKeeper?.16:.08;a.holder.position.y+=Math.max(0,Math.min(floorBudget,.003-rawFloor))
+    if(a.tiro?.extraRise){const capturedFlight=Math.max(0,rawFloor),height=a.tiro.pose?.feetHeight??.3;a.holder.position.y+=a.tiro.extraRise*T.MathUtils.clamp(capturedFlight/Math.max(.05,height),0,1)*wTiro}
+    if(a.fade?.extraRise)a.holder.position.y+=a.fade.extraRise*wFade;
+    // Keep the striking limb and every calibrated impact untouched. Only the
+    // support foot / gait receives bounded residual IK, on the original rig.
+    const excluded=[],contactSide=a.tiro?.pose?.region;
+    if(['left','right'].includes(contactSide))excluded.push(contactSide);
+    if(plan&&Math.abs(plan.t-agora)<.09)excluded.push('left','right');
+    const plantingBall=frame.ball.presentation??frame.ball;
+    for(const side of ['left','right']){const foot=a.bones.get('mixamorig'+(side==='left'?'Left':'Right')+'Foot').getWorldPosition(new T.Vector3());if(foot.distanceTo(new T.Vector3(plantingBall.x,plantingBall.y,plantingBall.z))<.38)excluded.push(side)}
+    a.plants=a.grounding.apply(a,agora,{reset:reset||!!frame.placementReset||salto,excluded,airborne:groundedKeeper||/^(cabeca|gk_voo|gk_pega_alto|carrinho|cai|bicicleta|giro)/.test(a.tiro?.nome??'')});
+    // Surface clearance is bounded to ten centimetres on the original rig.
+    // It moves the limb only; the ball never follows a corrective IK target.
+    if(!frame.replay&&!frame.restart&&(comBola||plan&&Math.abs(plan.t-agora)<.09)){
+     a.holder.updateMatrixWorld(true);const B=frame.ball.presentation??frame.ball;
+     if(B.y<.4)for(const side of ['left','right']){
+      const toe=a.bones.get('mixamorig'+(side==='left'?'Left':'Right')+'ToeBase').getWorldPosition(new T.Vector3());
+      if(toe.distanceTo(new T.Vector3(B.x,B.y,B.z))<.38)a.surface.clearBall(new T.Vector3(B.x,B.y,B.z),side);
+     }
+    }
+    // The incoming rebound remains on its fixed trajectory. Correct only the
+    // residual arm overlap just before collection; the calibrated impact stays
+    // untouched and is still required before the ball can attach.
+    if(plan?.goleiro&&agora<plan.t-1e-5&&plan.t-agora<.09){const B=frame.ball.presentation??frame.ball,point=new T.Vector3(B.x,B.y,B.z);for(const side of ['left','right'])a.surface.clearHand(point,side)}
+    if(a.tiro?.kind==='defende'&&agora>a.tiro.contactAt+1e-5&&agora-a.tiro.contactAt<.15){const B=frame.ball.presentation??frame.ball,point=new T.Vector3(B.x,B.y,B.z);for(const side of ['left','right'])a.surface.clearHand(point,side,{includeArm:true})}
    }
    for(const a of atores)if(!usados.has(a))a.holder.visible=false
-   bolaDoDesenho(frame,dt,reset)
+   soleShadows.update(atores);
+   // Hands attach only after a measured catch/pickup (or a verified seek restore).
+   // Foot deliveries have fixed endpoints; live feet never attract the ball.
+   visualBall=groundBall;
+   const throwIn=agenda.find(it=>it.pickup&&frame.time>=it.t-1e-7&&frame.time<=(agenda.find(o=>o.id===it.id.slice(7))?.t??it.t)+1e-7),held=frame.ball.heldBy??throwIn?.key,keeper=held?atores.find(a=>a.key===held):null;
+   if(keeper){
+    const catchCue=agenda.findLast(it=>it.key===held&&(it.goleiro||it.pickup)&&it.t<=frame.time+.001),releaseCue=catchCue&&agenda.find(it=>it.key===held&&it.hands&&it.kind==='toque'&&it.t>catchCue.t),bone=keeper.bones.get(catchCue?.contact?.handBone??'mixamorigRightHand'),local=catchCue?.contact?.handLocal;
+    const anchor=local?bone.localToWorld(new T.Vector3(...local)):bone.getWorldPosition(new T.Vector3()),shot=keeper.tiro,throwing=shot&&(/^gk_(rola|lanca)/.test(shot.nome)||shot.nome==='lateral'),transfer=throwing?T.MathUtils.smoothstep(frame.time,Math.max(shot.t0,shot.contactAt-.35),shot.contactAt):0;
+    if(releaseCue?.contact?.handLocal)anchor.lerp(keeper.bones.get(releaseCue.contact.handBone??'mixamorigRightHand').localToWorld(new T.Vector3(...releaseCue.contact.handLocal)),transfer);
+    if(!handState||handState.key!==held||reset){const catchCue=agenda.findLast(it=>it.key===held&&(it.goleiro||it.pickup)&&it.t<=frame.time+.001),B=frame.ball.presentation??frame.ball,gap=anchor.distanceTo(new T.Vector3(B.x,B.y,B.z));
+     const point=new T.Vector3(B.x,B.y,B.z),surfaceGap=Math.min(keeper.surface.probe(point,'leftHand').gap,keeper.surface.probe(point,'rightHand').gap);
+     const restore=(reset||firstFrame)&&catchCue?.contact?.fitted&&Math.hypot(catchCue.root.x,catchCue.root.z)<=(catchCue.pickup?4.5:3);if(catchCue&&catchCue.contact.fitted&&(gap<.25&&surfaceGap>=-.025&&surfaceGap<=.04||restore)){handState={key:held,t:frame.time,offset:point.sub(anchor),catchGap:restore?null:gap,restored:!!restore,release:agenda.find(it=>it.key===held&&it.hands&&it.kind==='toque'&&it.t>catchCue.t)};if(restore)handState.offset.set(0,0,0)}
+    }
+    if(handState?.key===held){anchor.addScaledVector(handState.offset,1-T.MathUtils.smoothstep(frame.time,handState.t,handState.t+.12));
+     // After a verified catch, constrain the held sphere to the carrying glove.
+     // Blending two palm anchors can cut through the skinned fingers. This
+     // bounded clearance is only for an already held ball, never an attraction
+     // of an incoming/free ball or a change to its official path.
+     const carrying=bone.name.includes('Left')&&transfer<.5?'left':'right',palm=keeper.surface.probe(anchor,carrying+'Hand');
+     if(palm.gap<-.002&&palm.gap>-.06)anchor.addScaledVector(anchor.clone().sub(palm.surface).normalize(),-palm.gap+.001);
+     visualBall={x:anchor.x,y:anchor.y,z:anchor.z};
+     keeper.surface.clearHand(anchor,carrying==='left'?'right':'left');handState.last={...visualBall};handState.lastTime=frame.time}
+   }else if(handState){
+    const release=handState.release;
+    if(release&&frame.time>=release.t&&frame.time-release.t<.12){handFlight=handArc(release);
+     // Some official releases remove heldBy on the impact frame, others on the
+     // next sample. In both cases release from the actual glove, including the
+     // remaining body turn of a quick throw, rather than its ideal future pose.
+     if(Math.abs(frame.time-release.t)<1e-5&&release.contact.handLocal){const actor=atores.find(a=>a.key===release.key),bone=actor.bones.get(release.contact.handBone),point=bone.localToWorld(new T.Vector3(...release.contact.handLocal));actor.surface.clearHand(point,bone.name.includes('Right')?'left':'right');handFlight.start={x:point.x,y:point.y,z:point.z}}
+     else if(handState.last&&Math.abs(handState.lastTime-release.t)<1e-5)handFlight.start={...handState.last}
+    }
+    handState=null;
+   }
+   if((reset||firstFrame)&&!keeper){const release=agenda.findLast(it=>it.kind==='toque'&&it.hands&&it.t<=frame.time&&frame.time-it.t<.55);if(release?.contact?.fitted)handFlight=handArc(release)}
+   if(!keeper&&handFlight){const f=handFlight,t=frame.time-f.t,d=f.end-f.t;if(t>=0&&t<=d){const source=frame.ball.presentation??frame.ball;
+     // Rejoin the source arc continuously after hand release, with a fixed
+     // initial offset. No live receiver target or change to official events.
+     const settle=Math.min(d,.55),fade=1-T.MathUtils.smoothstep(t,0,settle),y=source.y+(f.start.y-f.source.y)*fade;
+     visualBall={x:source.x+(f.start.x-f.source.x)*fade,y:Math.max(.11,y),z:source.z+(f.start.z-f.source.z)*fade};
+    }else if(t>d||t<0)handFlight=null;
+   }
+   const rollingPoint={...(visualBall??frame.ball.presentation??frame.ball),curl:frame.ball.curl,held:!!held};
+   if(!spin||reset||frame.placementReset){spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,rollingPoint);if(frame.ball.rotation)spin.quaternion.fromArray(frame.ball.rotation)}
+   visualRotation=spin.step(rollingPoint,dt).toArray();
+   observeContacts(frame,dt,reset)
+  };
+ return{
+  update(frame,camera,viewportHeight=720){
+   if(disposed)return;
+   for(const time of contactSteps(agenda,lastTime,frame.time)){updateFrame(contactFrame(frame,time,timeline),camera,viewportHeight);contactSubsteps++}
+   updateFrame(frame,camera,viewportHeight);
   },
-  presentFrame:frame=>bolaApresentada&&frame.time===lastTime&&!frame.ball.presentation?{...frame,ball:{...frame.ball,presentation:bolaApresentada,rotation:bolaGiro}}:frame,
+  presentFrame:frame=>({...frame,ball:{...frame.ball,presentation:visualBall??frame.ball.presentation,rotation:visualRotation??frame.ball.rotation}}),
   prepared:()=>Promise.resolve(null),
-  debug:()=>({prevAte,ft:lastTime,agenda:agenda.map(({key,...o})=>({k:key.slice(10,30),...o})),bola:{modo:bola.modo,dono:bola.dono?.key.slice(10,30)??null,toques:bola.toques,off:bola.off.toArray().map(v=>+v.toFixed(2)),offT:bola.offT,offDur:bola.offDur,vm:+bola.vm.length().toFixed(2),enc:bola.encDbg},medidas}),
-  inspect:()=>({...inspection,style:'jogador-novo'}),
+  debug:()=>({prepared:true,duration:timeline.duration,ft:lastTime,agenda:agenda.map(({key,...o})=>({k:key,...o})),medidas}),
+  inspect:()=>({...inspection,style:'jogador-novo',football:{diagnostics,contactSubsteps,grounding:atores.flatMap(a=>(a.plants??[]).filter(p=>p.applied).map(p=>({key:a.key,...p}))),spin:spin?.inspect(),controlledIntervals:controlSpans.length,groundDeliveries:groundFlights.length-controlSpans.length,handContact:handState?{key:handState.key,gap:handState.catchGap}:null,handFlight:handFlight?{start:handFlight.t,end:handFlight.end}:null,navigation:navInfo?.diagnostics,preparedBytes:timeline.bytes,actions:atores.filter(a=>a.tiro).map(a=>({key:a.key,tiro:a.tiro,plan:activePlan(a,lastTime),contact:CONTATO[a.tiro.nome],target:a.corrAlvo,root:a.corr,heading:a.rumo})),mode:bola.modo,touches:bola.toques,contacts:medidas.slice(),corrections:atores.filter(a=>Math.hypot(a.corr.x,a.corr.z)>.01).map(a=>({key:a.key,x:a.corr.x,z:a.corr.z}))}}),
   inspectActors:()=>({slots:atores.map((a,slot)=>({slot,key:a.key,heading:a.rumo,visible:a.holder.visible,detail:a.detail,tiro:a.tiro?.nome??null}))}),
-  dispose(){if(disposed)return;disposed=true;for(const a of atores)a.dispose()},
+  dispose(){if(disposed)return;disposed=true;soleShadows.dispose();for(const a of atores)a.dispose()},
  }
 }

@@ -6,9 +6,9 @@ export class VisualPlayerCollisions{
  constructor({radius=.35,budget=.38}={}){this.radius=radius;this.budget=budget;this.offsets=new Map();this.pairs=new Map();this.last=null;this.sources=new Map();}
  reset(){this.offsets.clear();this.pairs.clear();this.last=null;this.sources=new Map();}
  sample(frame,controller){const deadBall=['saida','gol','falta','lateral','tiro-de-meta','escanteio','penalti','fim'].includes(frame.phase),sourceReset=deadBall&&frame.players.some(p=>{const old=this.sources.get(p.key);return old&&Math.hypot(p.mx-old.x,p.mz-old.z)>2.5});this.sources=new Map(frame.players.map(p=>[p.key,{x:p.mx,z:p.mz}]));const dt=this.last===null?0:frame.time-this.last,reset=this.last===null||dt<0||dt>.5||sourceReset;if(reset){this.offsets.clear();this.pairs.clear()}this.last=frame.time;
- const ps=frame.players.filter(p=>p.visible!==false).map(p=>({...p,vx:Math.sin(p.heading)*p.speed,vz:Math.cos(p.heading)*p.speed,freedom:controller?.action(p.key,frame.time)?.collisionFreedom??(frame.owner===p.key?.25:1),scheduled:!!controller?.action(p.key,frame.time),ox:0,oz:0}));
+ const ps=frame.players.filter(p=>p.visible!==false).map(p=>({...p,vx:p.navigationVelocity?.x??Math.sin(p.heading)*p.speed,vz:p.navigationVelocity?.z??Math.cos(p.heading)*p.speed,freedom:controller?.action(p.key,frame.time)?.collisionFreedom??(frame.owner===p.key?.25:1),scheduled:!!controller?.action(p.key,frame.time),ox:0,oz:0}));
  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=ps[i],b=ps[j],dx=b.mx-a.mx,dz=b.mz-a.mz,vx=b.vx-a.vx,vz=b.vz-a.vz,v2=vx*vx+vz*vz,t=v2>1e-6?clamp(-(dx*vx+dz*vz)/v2,0,.45):0,d=Math.hypot(dx,dz),future=Math.hypot(dx+vx*t,dz+vz*t),key=[a.key,b.key].sort().join('|');let pair=this.pairs.get(key);
- if(t>0&&future<2*this.radius+.12&&v2>1&&!pair){const v=Math.sqrt(v2);pair={nx:-vz/v,nz:vx/v};this.pairs.set(key,pair)}
+ if(t>0&&future<2*this.radius+.12&&v2>1&&!pair){const v=Math.sqrt(v2),nx=-vz/v,nz=vx/v,side=dx*nx+dz*nz>0?-1:1;pair={nx:nx*side,nz:nz*side};this.pairs.set(key,pair)}
  if(pair&&d>1.2&&t===0){this.pairs.delete(key);pair=null}
  if(pair){const weight=clamp((.45-t)/.25,.3,1),amount=this.radius*weight;a.ox+=pair.nx*amount*a.freedom;a.oz+=pair.nz*amount*a.freedom;b.ox-=pair.nx*amount*b.freedom;b.oz-=pair.nz*amount*b.freedom}
  }

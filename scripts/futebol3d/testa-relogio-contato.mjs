@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {contactSteps,contactFrame} from '../../src/escalacao/futebol3d/motion/map-contact-clock.mjs';
+const agenda=[{t:1.05},{t:1.05},{t:1.055,disabled:true},{t:1.06,kind:'recebe',firstTime:'release'},{t:1.07}];
+assert.deepEqual(contactSteps(agenda,1.033333,1.066667),[1.05]);
+assert.deepEqual(contactSteps(agenda,1.05,1.07),[]);
+for(const [a,b]of [[null,1.07],[1.07,1.07],[1.07,1],[0,20]])assert.deepEqual(contactSteps(agenda,a,b),[]);
+const frame={time:1.066667,phase:'passe',owner:'outro',official:{score:[0,0],events:[{t:1,tipo:'passe'},{t:1.06,tipo:'intercepta'}]},players:[{key:'a',name:'Atleta',mx:100,mz:100}],ball:{x:100,y:100,z:100,presentation:{x:101,y:101,z:101}}};
+const snapshot=JSON.stringify(frame),timeline={sample:(time,key)=>({ball:{x:time,y:.11,z:3,vx:2,vy:0,vz:1},phase:'passe',owner:'a',heldBy:undefined,placementReset:false,player:key?{x:time-.3,z:3,heading:.2,speed:4,visible:true}:undefined})};
+const step=contactFrame(frame,1.05,timeline);assert.equal(JSON.stringify(frame),snapshot);assert.equal(step.time,1.05);assert.equal(step.owner,'a');assert.equal(step.ball.x,1.05);assert.equal(step.ball.presentation,undefined);assert.equal(step.players[0].mx,.75);assert.equal(step.players[0].name,'Atleta');assert.deepEqual(step.official.events,[{t:1,tipo:'passe'}]);
+console.log('PASS: contact substeps, no duplication, pause/seek, canonical positions, no future events and immutable official frame');

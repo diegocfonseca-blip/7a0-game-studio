@@ -44,6 +44,7 @@ import { summarizeInternationalCampaign, artilheirosInternacionais, INTL_ARTILHE
 import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS, CARTAS_RENOMEADAS } from './data'
 import { stripEmoji, myApoioPerk, loggedEmail } from './apoio'
+import { marcoNovaRecepcaoM2 } from './motor2-recepcao-conta'
 import { fichasDoPlano } from './planos-regras'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
@@ -5695,6 +5696,7 @@ type Action =
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
+  | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
   | { type: 'MARK_CAREER_SEEN'; key: string } // 🗺️ Guia da carreira: fecha um banner de desbloqueio explicado — nunca mais aparece nesta carreira
   | { type: 'BACKFILL_CAREER_SEEN' } // 🗺️ carreira ANTIGA (save de antes do Guia): marca como "já visto" só o que a etapa já passou — não retroage banner de coisa que já rolava há um tempo, só avisa do que ainda tá por vir
@@ -10337,6 +10339,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const [k, v] of Object.entries(s.m2Res ?? {})) if (v[3] >= t - 1) out[k] = v
       for (const [k, v] of Object.entries(action.novos)) if (!out[k]) out[k] = v
       s.m2Res = out
+      return s
+    }
+    case 'LIGA_RECEPCAO_M2': {
+      const marco = marcoNovaRecepcaoM2(s, loggedEmail())
+      if (marco) s.motor2RecepcaoDesde = marco
       return s
     }
     case 'LIGA_MOTOR2': {

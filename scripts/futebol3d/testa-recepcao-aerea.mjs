@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {prefereDominarLancamento as control} from '../../src/escalacao/motor2/recepcao-aerea.ts';
+const player={id:1,lado:1,grupo:'MEI',x:12,y:40,vx:0,vy:0,atordoado:0},sender={...player,id:2,x:34,y:52.5},rival={...player,id:3,lado:0,x:20};
+const state={t:10,atl:[player,sender,rival],bola:{x:12,y:40,h:2.2,vh:-8,lance:{tipo:'lancamento',de:sender,para:player}}};
+const snapshot=structuredClone(state);assert(control(state,player),'Free teammate receives instead of heading automatically');assert.deepEqual(state,snapshot,'The decision must not assign possession or move the ball');
+const contested=structuredClone(state);contested.atl[2].x=13.5;assert(!control(contested,player),'Aerial contest remains available');
+const closing=structuredClone(state);closing.atl[2].x=14.4;closing.atl[2].vx=-9;assert(!control(closing,player),'Closing opponent can reach before the ball is controlled');
+const cross=structuredClone(state);cross.bola.lance.tipo='cruzamento';cross.bola.x=34;cross.bola.y=95;assert(!control(cross,player),'Attacking cross in the box still allows a header at goal');
+const defence=structuredClone(state);defence.bola.lance.de.lado=0;assert(!control(defence,player),'Do not disable defensive headers');
+assert(!control(state,{...player,grupo:'GOL'}),'Keeper reception stays with keeper logic');
+assert(!control(state,sender),'The sender cannot recapture its own pass');
+const excluded=structuredClone(state);excluded.atl[2].x=12;excluded.atl[2].expulso=true;assert(control(excluded,player),'Sent-off opponent is not pressure');
+const shot=structuredClone(state);shot.bola.lance.tipo='chute';assert(!control(shot,player),'Do not turn a shot into a pass');
+console.log('PASS: free reception, imminent contest, attacking cross, defensive header, keeper, shot and immutable context');

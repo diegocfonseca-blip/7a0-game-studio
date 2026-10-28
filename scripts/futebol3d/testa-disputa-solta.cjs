@@ -1,0 +1,5 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),{loadDependency,browserOptions}=require('../presidencia-runtime.cjs');
+(async()=>{const b=await loadDependency('playwright').chromium.launch(browserOptions());try{const p=await b.newPage();await p.goto('http://127.0.0.1:5301/scripts/futebol3d/audita-mapa.html');await p.waitForFunction(()=>window.mapAudit?.ready(),{},{timeout:120000});
+ const rows=await p.evaluate(async()=>{const r=[];for(let i=68*60;i<=71.5*60;i++){const t=i/60,s=mapAudit.seek(t);if(t<70.75||t>71.3)continue;const a=s.actors.find(a=>a.key.includes('Higuaín')),b=s.actors.find(a=>a.key.includes('Athirson'));r.push({t,...await mapAudit.measureActorPair(a.key,b.key)})}return r});
+ fs.writeFileSync('test-results/fundamentos-mapa/disputa-solta-v4.json',JSON.stringify(rows,null,2));console.log(rows);assert(rows.every(r=>!r.intersects),'The recovering receiver intersects the player collecting the loose ball');
+}finally{await b.close()}})().catch(e=>{console.error(e);process.exitCode=1});
