@@ -53,3 +53,6 @@
 /* 🤖 Tidex (19/10): o logo é largo (837×120) — vai inteiro, colorido e mais aceso que escudo de clube */
 .tema-sala.tema-tidex .tema-marca{filter:drop-shadow(0 0 18px rgba(34,205,213,.5));opacity:.55;width:min(78vw,420px);top:auto;bottom:108px;transform:translateX(-50%)}
 .tema-sala.tema-tidex .tema-faixa{background:#22CDD5;color:#0B1220}
+/* 🖼️ dSouza Empreendimentos (28/10): logo grande com brilho neon e a faixa verde da marca */
+.tema-sala.tema-dsouza_emp .tema-marca{filter:drop-shadow(0 0 18px rgba(115,229,65,.55));opacity:.6;width:min(70vw,380px);top:auto;bottom:108px;transform:translateX(-50%)}
+.tema-sala.tema-dsouza_emp .tema-faixa{background:#73E541;color:#0A0A09}

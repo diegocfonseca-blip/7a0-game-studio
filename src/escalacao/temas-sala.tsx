@@ -29,6 +29,8 @@ import futpointEscudo from './img/futpoint-escudo.webp'
 import futpointMascote from './img/futpoint-mascote.webp'
 import wenMilanEscudo from './img/wenmilan-escudo.webp'
 import wenMilanMascote from './img/wenmilan-mascote.webp'
+import dsouzaEscudo from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (28/10): o mesmo escudo do batismo, 0 KB novo
+import dsouzaMascote from './img/dsouza-mascote.webp'
 import interValeEscudo from './img/intervale-escudo.webp'
 import interValeMascote from './img/intervale-mascote.webp'
 import guimaraesEscudo from './img/guimaraes-escudo.webp'
@@ -38,7 +40,7 @@ import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale' | 'guimaraes'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale' | 'guimaraes' | 'dsouza' | 'dsouza_emp'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -73,6 +75,8 @@ function TEMAS_FUNDADOR_PRONTOS() {
     intervale: temaFundador('intervale', 'Inter Vale FC', '🥊', interValeEscudo, interValeMascote, '#3a3a3a', 'rgba(228,227,225,.14)', '#E4E3E1', '#0c0c0c'),
     // 🌪️🔴⚪ Guimarães SCI (23/10, virou Fundador): vermelho e branco do manto (os medidos, #C50208/#FEFBFC), o filete branco e o Saci na tela
     guimaraes: temaFundador('guimaraes', 'Guimarães SCI', '🌪️', guimaraesEscudo, guimaraesMascote, '#8a0206', 'rgba(254,251,252,.16)', '#C50208', '#fff'),
+    // 🐶💚 dSouza FC (28/10, batismo Fundador): preto e verde-neon medidos na camisa (#0A0A09/#73E541), o filete neon e o Pitbull na tela
+    dsouza: { ...temaFundador('dsouza', 'dSouza FC', '🐶', dsouzaEscudo, dsouzaMascote, '#1f5a12', 'rgba(115,229,65,.18)', '#73E541', '#0A0A09'), selo: '🐶 TEMA DO CLUBE · dSouza FC' }, // selo sem caixa-alta: o nome é dSouza, com d minúsculo
     wenmilan: temaFundador('wenmilan', 'Wen Milan B', '😈', wenMilanEscudo, wenMilanMascote, '#8a0a16', 'rgba(223,18,36,.22)', '#DF1224', '#fff'),
     seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
   } satisfies Partial<Record<TemaClubeId, Tema>>
@@ -87,6 +91,15 @@ export const TEMAS_SALA: Record<TemaClubeId, Tema> = {
     botao: 'linear-gradient(135deg,#7FF3F7 0%,#22CDD5 45%,#0FA3AB 100%)', botaoTxt: '#0B1220', enfeite: 'nenhum', seloBg: '#0B1220', seloBorda: '#22CDD5',
     faixa: ['TIDEX · SUA MARCA DENTRO DAS IAs', 'TIDEX · YOUR BRAND INSIDE AI'],
     pano: 'repeating-linear-gradient(0deg,rgba(34,205,213,.07) 0 1px,transparent 1px 44px),repeating-linear-gradient(90deg,rgba(34,205,213,.07) 0 1px,transparent 1px 44px),radial-gradient(ellipse at 50% 0%,rgba(34,205,213,.35) 0%,transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(34,205,213,.18) 0%,transparent 60%),#0B1220',
+  },
+  // 🖼️ dSOUZA EMPREENDIMENTOS (28/10, Diego: *"tema da empresa dele… a dSouza empreendimentos q anunciou hj no nosso jogo"*).
+  // Tema de MARCA (como o da Tidex), não de clube: parede de galeria com molduras, o verde-neon da marca, o escudo-logo grande e o
+  // recado da loja na faixa (o mesmo do Anúncio do dia). Sem mascote — a mascote fica no tema do clube.
+  dsouza_emp: {
+    id: 'dsouza_emp', nome: '🖼️ dSouza Empreendimentos', nomeEn: '🖼️ dSouza Empreendimentos', selo: '🖼️ TEMA · dSOUZA EMPREENDIMENTOS', escudo: dsouzaEscudo, mascote: null, claro: false,
+    botao: 'linear-gradient(135deg,#B8FF8F 0%,#73E541 45%,#3E9E1C 100%)', botaoTxt: '#0A0A09', enfeite: 'nenhum', seloBg: '#0A0A09', seloBorda: '#73E541',
+    faixa: ['dSOUZA · QUADROS DO SEU TIME PRA DECORAR A PAREDE · FRETE GRÁTIS', 'dSOUZA · FRAMES OF YOUR CLUB FOR YOUR WALL · FREE SHIPPING'],
+    pano: 'linear-gradient(rgba(10,10,9,.55),rgba(10,10,9,.55)),repeating-linear-gradient(90deg,transparent 0 22px,rgba(115,229,65,.12) 22px 26px,transparent 26px 120px),repeating-linear-gradient(0deg,transparent 0 30px,rgba(115,229,65,.12) 30px 34px,transparent 34px 150px),radial-gradient(ellipse at 50% 0%,rgba(115,229,65,.35) 0%,transparent 55%),radial-gradient(ellipse at 50% 100%,#14240f 0%,#0A0A09 70%)',
   },
   neymarzetti_noite: { id: 'neymarzetti_noite', nome: '🦇 Noite do Morcego', nomeEn: '🦇 Bat Night', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: false, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'morcegos' },
   neymarzetti_branco: { id: 'neymarzetti_branco', nome: '⚪ Manto Branco', nomeEn: '⚪ White Kit', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: true, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'nenhum' },
@@ -107,14 +120,15 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'glaucomiranda@outlook.com': ['seven'],
   'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
   'marcus.viniciuslopessantos79@gmail.com': ['intervale'], // 🥊 Inter Vale FC (virou Fundador em 21/10)
-  'jadriovani@gmail.com': ['guimaraes'], // 🌪️ Guimarães SCI (virou Fundador em 23/10)
+  'jadriovani@gmail.com': ['guimaraes'],
+  'alexandre12cdm@gmail.com': ['dsouza', 'dsouza_emp'], // 🐶 dSouza FC (Fundador, 28/10) + 🖼️ tema da dSouza Empreendimentos, a empresa dele que anuncia no jogo (pedido do Diego, 28/10) // 🌪️ Guimarães SCI (virou Fundador em 23/10)
   'vittor@tidex.com.br': ['wenmilan', 'tidex'], // 😈 Wen Milan B (conta criada em 19/10) + 🤖 tema da Tidex, a empresa dele que patrocina o jogo (19/10, aprovado pelo Diego)
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
-  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'], 'Guimarães SCI': ['guimaraes'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'], 'dSouza FC': ['dsouza'], 'Guimarães SCI': ['guimaraes'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão
