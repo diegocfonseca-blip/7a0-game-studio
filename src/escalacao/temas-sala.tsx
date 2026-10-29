@@ -216,6 +216,21 @@ export function temaValido(id: unknown): Tema | null {
   return id in TEMAS_SALA ? TEMAS_SALA[id as TemaClubeId] : null
 }
 export const nomeTema = (t: Tema) => tr(t.nome, t.nomeEn)
+// 🖼️ MINIATURA do tema (29/10, mockup `scripts/mockups/tema-sala-achar.png`, Diego: *"não está muito claro pra ele o que ele tem de
+// tema pra botar"*): o fundo do tema + o escudo + a mascote num cartãozinho, pro dono VER como a sala fica antes de tocar.
+export function MiniTemaSala({ tema, ativo, onClick }: { tema: Tema | null; ativo: boolean; onClick: () => void }) {
+  const fundo = !tema ? '#2a2a2a' : tema.coracao ? (tema.coracao.listra ?? `repeating-linear-gradient(160deg,${tema.coracao.c1} 0 12px,${tema.coracao.c2} 12px 24px)`) : (tema.pano ?? (tema.claro ? '#f2f2f2' : '#141414'))
+  return (
+    <button type="button" onClick={onClick} aria-pressed={ativo} style={{ flex: '1 1 0', minWidth: 0, position: 'relative', border: '3px solid #0C0C0C', borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: '2px 2px 0 #0C0C0C', padding: 0, cursor: 'pointer', outline: ativo ? '4px solid #1B7A3D' : 'none', outlineOffset: -1 }}>
+      {ativo && <span style={{ position: 'absolute', left: 4, top: 4, zIndex: 2, background: '#1B7A3D', color: '#fff', font: '700 9px Oswald, sans-serif', borderRadius: 6, padding: '1px 5px', border: '2px solid #000' }}>{tr('✓ NA SALA', '✓ ON')}</span>}
+      <span style={{ display: 'flex', height: 66, position: 'relative', alignItems: 'center', justifyContent: 'center', background: fundo }}>
+        {tema ? <img src={tema.escudo} alt="" style={{ height: 50, maxWidth: '80%', objectFit: 'contain' }} /> : <span style={{ color: '#fff', font: '700 22px Oswald, sans-serif' }}>—</span>}
+        {tema?.mascote && <img src={tema.mascote} alt="" style={{ position: 'absolute', right: 2, bottom: 0, height: 42, maxWidth: '45%', objectFit: 'contain' }} />}
+      </span>
+      <b style={{ display: 'block', font: '700 10.5px/1.15 Oswald, sans-serif', textAlign: 'center', padding: '4px 3px 5px', textTransform: 'uppercase', color: '#0C0C0C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tema ? nomeTema(tema) : tr('Sem tema', 'No theme')}</b>
+    </button>
+  )
+}
 
 /** a camada de fundo do tema: escudo gigante, enfeites, mascote e o selo — atrás do conteúdo, sem pegar clique */
 export function TemaFundo({ tema }: { tema: Tema }) {

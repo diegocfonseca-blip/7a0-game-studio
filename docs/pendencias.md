@@ -1,3 +1,10 @@
+## 🎨 Tema da sala: automático + miniaturas + tema dos 3 Fundadores de 29/10 — ⏳ no branch, falta publicar
+- Diego: *"já deixe no automático… todos que já têm tema do fundador mascote, cria sala e já vem com tema"*. `createRoom` grava o 1º
+  tema de CLUBE/MASCOTE da conta em `game_state.tema` (coração não entra sozinho). O dono troca/tira na sala de espera.
+- A caixa do tema (já ficava logo embaixo do código) virou DOURADA com miniaturas (`MiniTemaSala`, temas-sala.tsx) e "✓ NA SALA".
+- Tema de mascote do plano pro Lulubaba (`lulubaba`), Piranhão (`piranhao`) e Neymar_FC (`neymarfc`) — eu tinha esquecido na entrega.
+  ⚠️ Roteiro de Fundador: o TEMA DE MASCOTE (`temaFundador` + `TEMAS_DA_CONTA` + `TEMAS_POR_CLUBE`) faz parte da entrega.
+
 ## ⭐ Cativeiro FC (ws251338) — Craque Completo ligado de verdade (29/10)
 - O Diego tinha dado "Craque" pelo 💛 (só `user_colors` prata = Craque ANTIGO, sem sala à vontade). O Craque Completo mensal mora em
   `esc_assinatura_mensal` (plano `craque_completo`, `conta_ok`, `valido_ate`). Inserida a linha → `salas_pagas` = true. **Exceção do Diego: 12 meses (até 29/10/2027)**; se ele virar Lenda, aí é definitivo.
