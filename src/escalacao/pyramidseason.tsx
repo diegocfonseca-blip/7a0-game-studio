@@ -116,7 +116,8 @@ import { loggedEmail, useDireitos, meusDireitos, logApoio } from './apoio' // �
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
-import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
+import { tr, ordinal, getLang } from './lang'
+import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10) // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, BEGE_MANTO, type EstadoJogador } from './jogadorcampo'
 import { MASCOTES, carimboDoTime, mascoteInteiraDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
@@ -1704,7 +1705,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
 }) {
   const [open, setOpen] = useState<AgCard | null>(null)
   const [convocando, setConvocando] = useState(false)
-  const [dispensadas, setDispensadas] = useState<Set<string>>(new Set()) // "deixa assim" do aviso de troca
+  const [dispensadas, setDispensadas] = useState<Set<string>>(new Set()) // "deixa assim" do aviso de troca (✕ 29/10: também guardado no aparelho, `avisoFechado('agencia-'+carta)`)
   const [verFora, setVerFora] = useState(false)                          // 💤 mostra todos os que esperam a vez
   // 🧑 rosto de lenda no quadradinho (pedido do Diego 13/09: *"os agenciados estão
   // sem avatar… claro, os que têm foto apenas"*). Hoje TODA arte é de carta 👑 LENDA,
@@ -1746,7 +1747,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
   // tinha que descobrir sozinha, comparando na mão)
   const sugestao = (() => {
     if (cards.length === 0 || fora.length === 0) return null
-    const entra = fora.find(c => !ativaNomes.has(c.name) && !dispensadas.has(agKeyOf(c)))
+    const entra = fora.find(c => !ativaNomes.has(c.name) && !dispensadas.has(agKeyOf(c)) && !avisoFechado('agencia-' + agKeyOf(c)))
     if (!entra) return null
     const sai = [...cards].sort((a, b) => peso(a) - peso(b))[0]
     // ⚠️ só avisa quando a troca põe DINHEIRO no bolso hoje. Sem isto, com a obra
@@ -1868,7 +1869,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => onSet([...cards.filter(c => agKeyOf(c) !== agKeyOf(sugestao.sai)), sugestao.entra])}
               style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 4px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#7C3AED', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Trocar', 'Swap')}</button>
-            <button onClick={() => setDispensadas(prev => new Set([...prev, agKeyOf(sugestao.entra)]))}
+            <button onClick={() => { fechaAviso('agencia-' + agKeyOf(sugestao.entra)); setDispensadas(prev => new Set([...prev, agKeyOf(sugestao.entra)])) }}
               style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 4px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#fff', color: INK, cursor: 'pointer' }}>{tr('Deixa assim', 'Leave it')}</button>
           </div>
         </div>
@@ -7631,7 +7632,7 @@ function AvisoContaCarreira() {
   const { state } = useEsc()
   const [logado, setLogado] = useState<boolean | null>(null)
   const [abrirConta, setAbrirConta] = useState(false)
-  const [adiado, setAdiado] = useState(false)
+  const [adiado, setAdiado] = useState(() => avisoFechado('conta-carreira')) // ✕ 29/10: "agora não" vale pra sempre (regra do Diego)
   useEffect(() => {
     let vivo = true
     const ver = async () => {
@@ -7668,7 +7669,7 @@ function AvisoContaCarreira() {
           <button onClick={() => setAbrirConta(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>
             {tr('✏️ Criar conta grátis', '✏️ Create a free account')}
           </button>
-          <button onClick={() => setAdiado(true)} style={{ width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(0,0,0,.45)', cursor: 'pointer', marginTop: 7 }}>
+          <button onClick={() => { fechaAviso('conta-carreira'); setAdiado(true) }} style={{ width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(0,0,0,.45)', cursor: 'pointer', marginTop: 7 }}>
             {tr('agora não', 'not now')}
           </button>
         </div>

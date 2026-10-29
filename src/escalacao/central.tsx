@@ -20,6 +20,7 @@ import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem p
 import { CardColetiva, FotoLendas, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
 import { Escudo } from './escudos'
 import { getLang, useT } from './lang'
+import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10)
 import type { Jornal, Contratacao } from './central-noticias'
 import estadioArt from './img/online-estadio-v25.webp'
 import tacaArt from './img/jornal-liga-v22.webp'
@@ -117,7 +118,12 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   // ☁️ 19/10 (Diego): conta sem plano apertou Salvar → abre os planos (a faixinha que sumia em 2 s parecia bug)
   const [planos, setPlanos] = useState(false)
   const [aviso7, setAviso7] = useState(false)
-  useEffect(() => { if (s.estado === 'salvo_aparelho') setPlanos(true); if (s.estado === 'salvo_7d') { setAviso7(true); setPlanos(true) } }, [s.estado])
+  // ✕ 29/10 (Diego: "fechou, não volta"): a janela que abre SOZINHA depois do salvamento aparece uma vez por aviso; o botão Salvar
+  // de quem não tem plano continua abrindo (aí foi a pessoa que pediu)
+  useEffect(() => {
+    if (s.estado === 'salvo_aparelho' && !avisoFechado('nuvem-aparelho')) { fechaAviso('nuvem-aparelho'); setPlanos(true) }
+    if (s.estado === 'salvo_7d' && !avisoFechado('nuvem-7d')) { fechaAviso('nuvem-7d'); setAviso7(true); setPlanos(true) }
+  }, [s.estado])
   const salvar = () => { const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
   return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>

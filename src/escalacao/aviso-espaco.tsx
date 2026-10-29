@@ -6,11 +6,12 @@
 import { useState } from 'react'
 import { useSemEspaco, useEsc } from './store'
 import { tr } from './lang'
+import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10)
 
 export function AvisoSemEspaco() {
   const cheio = useSemEspaco()
   const { state } = useEsc()
-  const [fechado, setFechado] = useState(false)
+  const [fechado, setFechado] = useState(() => avisoFechado('sem-espaco'))
   // 🎯 só DENTRO da carreira solo (13/10, print do Diego: o aviso aparecia na lista de salas online — nada a ver)
   const naCarreira = !!state.careerOnline && state.onlineMode !== 'online' && !['intro', 'lobby', 'setup', 'album', 'ranking'].includes(state.screen)
   if (!cheio || fechado || !naCarreira) return null
@@ -21,7 +22,7 @@ export function AvisoSemEspaco() {
         {tr('Seu celular está sem espaço pra guardar a carreira sozinho. Ela continua segura na nuvem. ', 'Your phone has no room to save the career on its own. It stays safe in the cloud. ')}
         <b>{tr('Antes de fechar o jogo, aperte "Sair e salvar carreira".', 'Before closing the game, tap "Exit and save career".')}</b>
       </p>
-      <button onClick={() => setFechado(true)} aria-label={tr('Fechar', 'Close')}
+      <button onClick={() => { fechaAviso('sem-espaco'); setFechado(true) }} aria-label={tr('Fechar', 'Close')}
         style={{ width: 26, height: 26, borderRadius: 999, border: '2px solid #0C0C0C', background: '#FFC400', fontWeight: 900, cursor: 'pointer', flexShrink: 0 }}>✕</button>
     </div>
   )

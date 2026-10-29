@@ -1,3 +1,10 @@
+## ✕ Aviso fechado não volta (29/10) — regra nova no CLAUDE.md
+- Auditoria: 6 avisos voltavam depois do ✕ (só `useState`/`sessionStorage`). Agora todos usam `avisos-fechados.ts`: celular sem espaço
+  (`aviso-espaco`), "💾 guarde sua carreira · agora não" (`AvisoContaCarreira`), sugestão de troca da Agência "deixa assim", "abra no
+  navegador" (Instagram/TikTok), "sua sessão caiu", e a janela dos planos que abria sozinha depois do salvamento (1 vez por aviso).
+- Ficaram como estão (de propósito, são do momento): popup da carta de campeão, túnel da final, "VOCÊ VIROU O HOST", "MANDA SEU LANCE
+  DE NOVO", "VOCÊ FOI EXPULSO", toasts de amigo.
+
 ## 🚫 Moderação 29/10: "Abusa Rindo" → "A Rindo" · "Exu Tranca Ru4" → "E Tranca Ru4"
 - mateus.eduardo.ribeiro: `display_name` virou "A Rindo" (+ linhas abertas do room_players) e aviso de uma vez (`esc_avisos_conta`).
 - daniagustosan23 (0af7af1e): jogou como "Exu Tranca Ru4" à tarde, mas o nome da conta JÁ estava "Danielvorcarofc" — não sobrescrevi;

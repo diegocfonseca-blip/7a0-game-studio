@@ -20,7 +20,8 @@ import { testaEscrita, medeStorage, guardaStorage, type ProbeStorage } from '../
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
-import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos de app/sessão, tela de erro e página de e-mail
+import { tr, getLang } from './lang'
+import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10) // 🌐 BR/EN (12/09): avisos de app/sessão, tela de erro e página de e-mail
 import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
@@ -222,7 +223,7 @@ function AnnouncementToast() {
 // mostra um aviso: Android tenta abrir o Chrome direto (intent://); iPhone
 // ganha o passo a passo (lá não dá pra forçar). Dispensável no ✕ (por sessão).
 function OpenInBrowserBanner() {
-  const [dismissed, setDismissed] = useState(() => { try { return sessionStorage.getItem('esc-inapp-dismiss') === '1' } catch { return false } })
+  const [dismissed, setDismissed] = useState(() => avisoFechado('abrir-navegador')) // ✕ 29/10: fechou = não volta (antes era por sessão)
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
   const inApp = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Snapchat|Line\//i.test(ua)
   const android = /Android/i.test(ua)
@@ -247,7 +248,7 @@ function OpenInBrowserBanner() {
           {getLang() === 'en' ? <>🚀 <b>Playing inside an app?</b> Tap the <b>three dots (⋯)</b> in the corner and choose <b>“Open in external browser”</b> — your login and your save are safe there.</> : <>🚀 <b>Jogando dentro do app?</b> Toca nos <b>três pontinhos (⋯)</b> aí no canto e escolhe <b>“Abrir no navegador externo”</b> — teu login e teu save ficam seguros lá.</>}
         </>
       )}
-      <button onClick={() => { setDismissed(true); try { sessionStorage.setItem('esc-inapp-dismiss', '1') } catch { /* ignora */ } }} aria-label="Fechar"
+      <button onClick={() => { setDismissed(true); fechaAviso('abrir-navegador') }} aria-label="Fechar"
         style={{ position: 'absolute', top: 4, right: 6, background: 'transparent', border: 'none', color: '#fff', fontSize: 17, fontWeight: 900, lineHeight: 1, cursor: 'pointer', padding: '2px 5px' }}>×</button>
     </div>
   )
@@ -333,7 +334,7 @@ function SessionExpiredBanner() {
   useEffect(() => {
     let alive = true
     let dismissed = false
-    try { dismissed = sessionStorage.getItem('esc-sess-x') === '1' } catch { /* ignora */ }
+    dismissed = avisoFechado('sessao-caiu') // ✕ 29/10: fechou = não volta (antes era por sessão)
     const check = async () => {
       if (!alive) return
       if (dismissed || !hadLogin()) { setShow(false); return }
@@ -348,7 +349,7 @@ function SessionExpiredBanner() {
     return () => { alive = false; subscription.unsubscribe() }
   }, [])
   if (!show) return null
-  const close = () => { try { sessionStorage.setItem('esc-sess-x', '1') } catch { /* ignora */ } setShow(false) }
+  const close = () => { fechaAviso('sessao-caiu'); setShow(false) }
   const cheio = probe?.escrita === 'cheio'
   const liberar = () => {
     const r = guardaStorage()
