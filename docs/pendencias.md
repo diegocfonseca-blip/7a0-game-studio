@@ -1,14 +1,20 @@
-## 🎨 Tema da sala: automático + miniaturas + tema dos 3 Fundadores de 29/10 — ⏳ no branch, falta publicar
+## 🎨 Tema da sala: automático + miniaturas + tema dos 3 Fundadores de 29/10 — ✅ publicado
 - Diego: *"já deixe no automático… todos que já têm tema do fundador mascote, cria sala e já vem com tema"*. `createRoom` grava o 1º
   tema de CLUBE/MASCOTE da conta em `game_state.tema` (coração não entra sozinho). O dono troca/tira na sala de espera.
 - A caixa do tema (já ficava logo embaixo do código) virou DOURADA com miniaturas (`MiniTemaSala`, temas-sala.tsx) e "✓ NA SALA".
 - Tema de mascote do plano pro Lulubaba (`lulubaba`), Piranhão (`piranhao`) e Neymar_FC (`neymarfc`) — eu tinha esquecido na entrega.
   ⚠️ Roteiro de Fundador: o TEMA DE MASCOTE (`temaFundador` + `TEMAS_DA_CONTA` + `TEMAS_POR_CLUBE`) faz parte da entrega.
 
-## ⭐ Cativeiro FC (ws251338) — Craque Completo ligado de verdade (29/10)
-- O Diego tinha dado "Craque" pelo 💛 (só `user_colors` prata = Craque ANTIGO, sem sala à vontade). O Craque Completo mensal mora em
-  `esc_assinatura_mensal` (plano `craque_completo`, `conta_ok`, `valido_ate`). Inserida a linha → `salas_pagas` = true. **Exceção do Diego: 12 meses (até 29/10/2027)**; se ele virar Lenda, aí é definitivo.
-- ⚠️ A pensar: o botão 💛 do #admin dá só a COR, não o plano mensal. Dar "Craque completo" pelo #admin deveria gravar a assinatura.
+## 🪜 Bônus da casa: Série C e Série B +4 → +3 (29/10, *"série C coloque 3 e série B coloque 3 tb"*) — no branch, esperando "publica"
+`CPU_DIV_BOOST_V7` = A 2 · B 3 · C 3 · D 2 · V 2, travado por `simV = 7` (só de temporada nova). Reverter = `s.simV = 7` → 6.
+
+## 🪜 Bônus da casa da Série D: +3 → +2 (29/10, *"coloque a série D +2 então"*) — ✅ PUBLICADO
+Análise pedida (*"acho que tá difícil subir da várzea pra D e da D pra C"*): no banco, 66% das carreiras param nas 4 primeiras
+temporadas; com 10–19 temporadas só 29% ganharam a D e 5% a C. Causa (já anotada em 28/10): V e D só compram até "Bom" + o bônus dos
+times da casa. Feito: `CPU_DIV_BOOST_V6` = A 2 · B 4 · C 4 · **D 2** · V 2, travado por `simV = 6` (só de temporada NOVA; a que está rolando
+termina na tabela antiga). Reverter = trocar os `s.simV = 6` de volta pra 5. ⚠️ Tentei medir numa bancada rápida (buildPyramid + simulatePyramid
+com elenco sintético) e ela deu 100% de acesso em tudo — o mundo montado sem as colocações reais não representa a carreira; NÃO usar
+esses números. Medida de verdade = a simulação pela tela (sessão de 28/10).
 
 ## 🐐👑 Neymar_FC vira FUNDADOR nº97 + canto do São Paulo + gala própria (29/10) — ✅ publicado (frase "SAI DA FRENTE QUE O GOAT CHEGOU")
 - Dono `sheeryarie772@gmail.com` (já tinha comprado o plano Fundador: `esc_compras_batismo` = 'plus'). Código no branch:
