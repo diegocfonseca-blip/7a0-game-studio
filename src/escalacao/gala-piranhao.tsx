@@ -5,7 +5,7 @@
 // Combinado com o Diego: tema PRESIDENCIAL, sem desenhar rosto de ninguém além da arte que o dono mandou. Então é uma posse:
 // 1) noite em Brasília: as colunas do Palácio acendem, holofotes verde e amarelo cruzam o céu, flashes da imprensa
 // 2) o TAPETE VERMELHO desenrola pela rampa e a guarda (bonecos de CSS) faz alas
-// 3) o PRESIDENTE sobe a rampa e pousa no centro; SALVA DE TIROS (21 fogos preto, branco e dourado), a tela treme
+// 3) o PRESIDENTE sobe a rampa e pousa no centro, a tela treme (a salva de 21 tiros saiu: o Diego não gostou, 29/10)
 // 4) a FAIXA PRESIDENCIAL atravessa a tela e o cardume de PIRANHAS salta do rio de baixo, de dente arreganhado
 // 5) o Presidente vai pro canto, o escudo acende com a estrela solitária do Botafogo girando atrás
 // 6) a frase do escudo dele bate — LÁ EM CASA TODO MUNDO É 13 (pedido do Diego, 29/10) — e a faixa "CHEGOU NA SALA · TOMOU POSSE"
@@ -24,7 +24,6 @@ const pct = (ms: number) => (ms / T * 100).toFixed(1) + '%'
 const VERDE = '#1B9A47', AMARELO = '#FFD60A', BRANCO = '#F4F4F2', GOLD = '#FFC400', TAPETE = '#B3121F'
 const sorte = (i: number) => ((i * 7919) % 997) / 997 // espalhado e sempre igual (a gala é igual pra todos)
 const MH = 300, MW = Math.round(MH * 407 / 440)
-const FOGOS = 21
 
 const CSS = `
 .gpz{position:fixed;inset:0;z-index:99990;pointer-events:none;overflow:hidden;animation:gpzVis ${T}ms ease forwards}
@@ -68,14 +67,6 @@ const CSS = `
 .gpz-pres{position:absolute;left:${210 - MW / 2}px;top:${470 - MH}px;width:${MW}px;height:${MH}px;z-index:10;opacity:0;transform-origin:50% 100%;animation:gpzPres ${T}ms cubic-bezier(.25,1.2,.45,1) forwards}
 @keyframes gpzPres{0%,${pct(2300)}{opacity:0;transform:translateY(300px) scale(.35)}${pct(2450)}{opacity:1;transform:translateY(280px) scale(.38)}${pct(3500)}{opacity:1;transform:translateY(30px) scale(.85)}${pct(3900)}{transform:translateY(-36px) scale(1.06)}${pct(4000)}{transform:translateY(0) scale(1)}${pct(4120)}{transform:translateY(-8px) scale(1)}${pct(4250)}{transform:none}${pct(5000)}{opacity:1;transform:none}${pct(5600)}{opacity:1;transform:translate(-136px,134px) scale(.5)}100%{opacity:1;transform:translate(-136px,134px) scale(.5)}}
 .gpz-pres img{width:100%;height:100%;display:block;filter:drop-shadow(5px 7px 0 rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,214,10,.35))}
-/* SALVA DE TIROS: 21 fogos */
-.gpz-fogo{position:absolute;width:0;height:0;opacity:0;animation:gpzFogo 1100ms ease-out both}
-.gpz-fogo i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);transform:rotate(var(--a)) translateX(0)}
-@keyframes gpzFogo{0%{opacity:0}5%{opacity:1}80%{opacity:1}100%{opacity:0}}
-.gpz-fogo i{animation:gpzFagulha 1100ms cubic-bezier(.1,.8,.3,1) both;animation-delay:inherit}
-@keyframes gpzFagulha{0%{transform:rotate(var(--a)) translateX(0) scale(1.4)}100%{transform:rotate(var(--a)) translateX(var(--r)) translateY(20px) scale(.4)}}
-.gpz-tiro{position:absolute;left:0;right:0;top:120px;z-index:13;text-align:center;font:700 22px Oswald,sans-serif;letter-spacing:.24em;color:${GOLD};text-shadow:2px 2px 0 #000;opacity:0;animation:gpzTiro ${T}ms ease forwards}
-@keyframes gpzTiro{0%,${pct(3950)}{opacity:0;transform:scale(.6)}${pct(4150)}{opacity:1;transform:scale(1.1)}${pct(4350)}{transform:scale(1)}${pct(4900)}{opacity:1}${pct(5150)}{opacity:0}100%{opacity:0}}
 /* a FAIXA PRESIDENCIAL atravessando a tela */
 .gpz-faixapres{position:absolute;left:-80px;top:470px;width:600px;height:46px;z-index:9;background:linear-gradient(180deg,${VERDE} 0 42%,${AMARELO} 42% 58%,${VERDE} 58%);border-top:3px solid ${GOLD};border-bottom:3px solid ${GOLD};box-shadow:0 6px 0 rgba(0,0,0,.4);transform:rotate(-16deg) translateX(-700px);animation:gpzFaixaPres ${T}ms cubic-bezier(.2,1,.3,1) forwards}
 @keyframes gpzFaixaPres{0%,${pct(4200)}{transform:rotate(-16deg) translateX(-700px)}${pct(4700)}{transform:rotate(-16deg) translateX(0)}${pct(5100)}{opacity:1}${pct(5500)}{opacity:0;transform:rotate(-16deg) translateX(0)}100%{opacity:0}}
@@ -101,7 +92,7 @@ const CSS = `
 .gpz-faixa em{display:inline-block;font-style:normal;font:700 13px Oswald,sans-serif;color:#0b3d1d;background:linear-gradient(90deg,${VERDE},${AMARELO},${VERDE});border-radius:7px;padding:2px 9px;margin-top:5px;letter-spacing:.1em}
 .gpz-branco{position:absolute;inset:0;z-index:20;background:#fff;opacity:0;animation:gpzBranco ${T}ms linear forwards}
 @keyframes gpzBranco{0%,${pct(3960)}{opacity:0}${pct(4000)}{opacity:.6}${pct(4250)}{opacity:0}100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){.gpz-holo,.gpz-astro,.gpz-fotos,.gpz-fogo,.gpz-tiro,.gpz-faixapres,.gpz-piranha,.gpz-estrela,.gpz-branco{display:none}.gpz-treme,.gpz-tapete{animation:none}.gpz-esc,.gpz-pres,.gpz-palacio,.gpz-faixa,.gpz-frase span{animation:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.gpz-holo,.gpz-astro,.gpz-fotos,.gpz-faixapres,.gpz-piranha,.gpz-estrela,.gpz-branco{display:none}.gpz-treme,.gpz-tapete{animation:none}.gpz-esc,.gpz-pres,.gpz-palacio,.gpz-faixa,.gpz-frase span{animation:none;opacity:1}}
 `
 
 function useEscala() {
@@ -133,7 +124,6 @@ export function GalaPiranhao({ clube, chave, mostra, grito }: { clube: string; c
   useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-lulubaba-v1.mp3`, T), [chave])
   // a frase da faixa do escudo do dono (não se traduz: é o lema do clube)
   const frase = ['LÁ EM CASA', 'TODO MUNDO É', '13']
-  const coresFogo = [BRANCO, GOLD, '#9aa6b2', AMARELO]
   return createPortal(
     <div key={chave} className="gpz" aria-hidden>
       <style>{CSS}</style>
@@ -166,15 +156,6 @@ export function GalaPiranhao({ clube, chave, mostra, grito }: { clube: string; c
         </div>
         <div className="gpz-estrela"><Estrela /></div>
         <div className="gpz-esc"><Escudo nome={clube} size={220} /></div>
-        {Array.from({ length: FOGOS }, (_, i) => {
-          const c = coresFogo[i % coresFogo.length]
-          return (
-            <div key={i} className="gpz-fogo" style={{ left: 30 + Math.round(sorte(i * 7 + 2) * 360), top: 40 + Math.round(sorte(i * 5 + 9) * 230), animationDelay: `${3980 + i * 55}ms` }}>
-              {Array.from({ length: 10 }, (_, k) => <i key={k} style={{ ['--a' as string]: `${k * 36}deg`, ['--r' as string]: `${34 + Math.round(sorte(i + k) * 26)}px`, ['--c' as string]: c, animationDelay: `${3980 + i * 55}ms` }} />)}
-            </div>
-          )
-        })}
-        <div className="gpz-tiro">{tr('💥 SALVA DE 21 TIROS 💥', '💥 21-GUN SALUTE 💥')}</div>
         <div className="gpz-faixapres"><b>{tr('PRESIDENTE', 'PRESIDENT')}</b></div>
         <div className="gpz-pres"><img src={presidenteImg} alt="" /></div>
         {Array.from({ length: 14 }, (_, i) => (

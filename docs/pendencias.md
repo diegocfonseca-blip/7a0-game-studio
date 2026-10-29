@@ -1,4 +1,4 @@
-## 🐟🏛️ Batismo FUNDADOR Piranhão FC (29/10) — ⏳ esperando OK do Diego
+## 🐟🏛️ Batismo FUNDADOR Piranhão FC (29/10) — ✅ publicado (a salva de 21 tiros saiu da gala: o Diego não gostou)
 - Dono `bruno.cunha2007@gmail.com` (conta de 29/10 02:02 UTC, "Piranhao FC", coração **Botafogo**; já comprou o plano Fundador —
   `esc_compras_batismo` = 'plus').
 - Código (no branch): escudo (o 2º que o Diego mandou, com "LÁ EM CASA TODO MUNDO É 13"; 269×290, 29 KB — 290 e não 360 pra caber
