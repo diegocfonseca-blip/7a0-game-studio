@@ -1,3 +1,8 @@
+## ⭐ Cativeiro FC (ws251338) — Craque Completo ligado de verdade (29/10)
+- O Diego tinha dado "Craque" pelo 💛 (só `user_colors` prata = Craque ANTIGO, sem sala à vontade). O Craque Completo mensal mora em
+  `esc_assinatura_mensal` (plano `craque_completo`, `conta_ok`, `valido_ate`). Inserida a linha até 29/11/2026 → `salas_pagas` = true.
+- ⚠️ A pensar: o botão 💛 do #admin dá só a COR, não o plano mensal. Dar "Craque completo" pelo #admin deveria gravar a assinatura.
+
 ## 🐐👑 Neymar_FC vira FUNDADOR nº97 + canto do São Paulo + gala própria (29/10) — ✅ publicado (frase "SAI DA FRENTE QUE O GOAT CHEGOU")
 - Dono `sheeryarie772@gmail.com` (já tinha comprado o plano Fundador: `esc_compras_batismo` = 'plus'). Código no branch:
   `FUNDADOR_N` 97, saiu do `SEM_FUNDADOR`, canto = o MESMO do Wen Milan B (`torcida-spfc-wen-v1.mp3`), gala única `gala-neymarfc.tsx`
