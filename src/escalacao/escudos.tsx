@@ -911,10 +911,10 @@ const chelsaoEscudoRender = (size: number) => (
 
 // ⭐🦁 VILA ESPORTE CLUBE (oluisantonio.contato, batismo de 27/10) — Série D, no assento do bot Imperador SAF. 📏 360×359, 29 KB.
 // Escudo redondo preto e branco com a estrela e o monograma VEC. Fundo verde chroma tirado; conferido sobre creme e verde.
-// 🧤💛 LULUBABA FC (lucasfonseca363, batismo de 29/10) — Série D, no assento do bot Fênix Dourada. 📏 297×360, 27 KB.
+// 🧤🖤 LULUBABA FC (lucasfonseca363, batismo de 29/10; virou 🖋 Fundador e trocou a arte no mesmo dia — goleiro do Botafogo) — Série D, no assento do bot Fênix Dourada. 📏 328×360, 26 KB.
 // O goleiro de cabelo platinado com as luvas de coroa, na frente do gol, amarelo e preto. Fundo verde chroma tirado; conferido sobre vermelho.
 const lulubabaEscudoRender = (size: number) => (
-  <img src={lulubabaEscudoImg} height={size} width={Math.round(size * 297 / 360)} alt="Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={lulubabaEscudoImg} height={size} width={Math.round(size * 328 / 360)} alt="Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🐶💚 dSOUZA FC (alexandre12cdm, batismo FUNDADOR de 28/10) — Série C, no assento do bot Kombi United. 📏 360×334, 26 KB.
 // O pitbull de boné dSouza FC com os quadros das lendas, preto e verde-neon. Fundo verde chroma tirado; conferido sobre creme e vermelho.
