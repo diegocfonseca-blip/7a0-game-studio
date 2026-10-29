@@ -1,3 +1,10 @@
+## 🎨 Tema da sala: automático + miniaturas + tema dos 3 Fundadores de 29/10 — ✅ publicado
+- Diego: *"já deixe no automático… todos que já têm tema do fundador mascote, cria sala e já vem com tema"*. `createRoom` grava o 1º
+  tema de CLUBE/MASCOTE da conta em `game_state.tema` (coração não entra sozinho). O dono troca/tira na sala de espera.
+- A caixa do tema (já ficava logo embaixo do código) virou DOURADA com miniaturas (`MiniTemaSala`, temas-sala.tsx) e "✓ NA SALA".
+- Tema de mascote do plano pro Lulubaba (`lulubaba`), Piranhão (`piranhao`) e Neymar_FC (`neymarfc`) — eu tinha esquecido na entrega.
+  ⚠️ Roteiro de Fundador: o TEMA DE MASCOTE (`temaFundador` + `TEMAS_DA_CONTA` + `TEMAS_POR_CLUBE`) faz parte da entrega.
+
 ## 🪜 Bônus da casa: Série C e Série B +4 → +3 (29/10, *"série C coloque 3 e série B coloque 3 tb"*) — no branch, esperando "publica"
 `CPU_DIV_BOOST_V7` = A 2 · B 3 · C 3 · D 2 · V 2, travado por `simV = 7` (só de temporada nova). Reverter = `s.simV = 7` → 6.
 
