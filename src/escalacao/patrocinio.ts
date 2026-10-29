@@ -178,6 +178,7 @@ function usePodioClaPassado() {
   useEffect(() => { if (!liga) return; let vivo = true; void lePodioCla().then(() => { if (vivo) setV(podioClaCache) }); return () => { vivo = false } }, [liga])
   return liga ? v : []
 }
+const PODIO_NO_TELAO = false
 export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
   const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
@@ -190,8 +191,10 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   // ⚔️ 26/10 (Diego: "no telão, no mesmo momento que aparece os vitoriosos, coloque após eles clã da semana e o nome do clã
   // vitorioso"): o campeão dos clãs vai numa linha embaixo dos 3 técnicos, no MESMO anúncio
   const claCampeao = podioCla.filter(p => p.pos === 1).map(p => stripEmoji(p.nome).trim()).join(' · ')
-  if (podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, ...(claCampeao ? { cla: claCampeao } : {}) })
-  if (podioCla.length) out.push({ texto: podioCla.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, podioCla: true })
+  // 🚫 29/10 (Diego: "tire o rank da semana e clã da semana do telão das salas… não prometam mais isso"): o telão não passa mais
+  // o pódio. As leituras ficam (são baratas e cacheadas), só não vão pro letreiro. Pra voltar: `PODIO_NO_TELAO = true`.
+  if (PODIO_NO_TELAO && podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, ...(claCampeao ? { cla: claCampeao } : {}) })
+  if (PODIO_NO_TELAO && podioCla.length) out.push({ texto: podioCla.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, podioCla: true })
   if (espacosOk()) {
     if (fixos) out.push(...fixos)
     else if (fixos === null) {

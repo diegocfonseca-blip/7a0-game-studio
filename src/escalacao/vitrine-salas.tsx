@@ -85,7 +85,7 @@ export function RankingClasCaixa() {
       </div>
       {l.length > 0 && <p style={{ margin: '5px 0 0', fontSize: 10.5, fontWeight: 800, color: '#7C3AED', textAlign: 'center' }}>👆 {tr('Toque num clã da lista pra ver os membros.', 'Tap a clan in the list to see its members.')}</p>}
       {ver !== null && <ClaVer id={ver} onClose={() => setVer(null)} />}
-      <p style={{ margin: '7px 0 0', fontSize: 11, fontWeight: 800, color: INK }}>{tr('🎁 Prêmio pra CADA membro que está no clã desde segunda: 🥇 30 · 🥈 20 · 🥉 10 🪙 pra carreira + o clã no 📺 telão a semana toda.', '🎁 Prize for EVERY member in the clan since Monday: 🥇 30 · 🥈 20 · 🥉 10 🪙 for career + the clan on the 📺 big screen all week.')}</p>
+      <p style={{ margin: '7px 0 0', fontSize: 11, fontWeight: 800, color: INK }}>{tr('🎁 Prêmio pra CADA membro que está no clã desde segunda: 🥇 30 · 🥈 20 · 🥉 10 🪙 pra carreira.', '🎁 Prize for EVERY member in the clan since Monday: 🥇 30 · 🥈 20 · 🥉 10 🪙 for career.')}</p>
       <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('O clã campeão joga a semana seguinte com 🏆 no selo de cada membro. Entre num clã em 👥 Amigos → ⚔️ Clã.', 'The champion clan plays the next week with 🏆 on every member’s badge. Join a clan in 👥 Friends → ⚔️ Clan.')}</p>
     </Caixa>
   )
@@ -173,7 +173,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           )}
           <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam a semana com a medalha 🥇🥈🥉 ao lado do nome, a moldura de metal e a fita "1º DA SEMANA" nas salas e no chat. Quem fecha a semana no pódio fica com a medalha no nome por 30 dias.', '⏳ Resets every Monday at midnight. The top 3 play the week with the 🥇🥈🥉 medal next to their name, the metal frame and the "#1 OF THE WEEK" ribbon in the rooms and the chat. Whoever closes the week on the podium keeps the medal on their name for 30 days.')}</p>
           {/* 🪙 17/10 (Diego: "encaixa sutilmente aí… 1º 20 · 2º 10 · 3º 5") — o mesmo número de RANKING_SEMANA_MOEDAS */}
-          <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]} — e 📺 propaganda da vitória no telão de TODAS as salas, a semana inteira.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]} — and 📺 your win advertised on the ticker in EVERY room, all week long.`)}</p>
+          <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]}.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]}.`)}</p>
         </Caixa>
       )}
       {clasLiberado() && <RankingClasCaixa />}

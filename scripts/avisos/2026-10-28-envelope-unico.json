@@ -1,0 +1,20 @@
+{
+  "data": "28 de outubro de 2026",
+  "titulo": "Novo jeito de leilão: Envelope único",
+  "destaque": {
+    "passos": [
+      { "emoji": "✉️", "titulo": "Um envelope", "sub": "as 5 posições juntas" },
+      { "emoji": "🎬", "titulo": "Uma revelação", "sub": "de tudo de uma vez" },
+      { "emoji": "🔁", "titulo": "2ª lista", "sub": "com as sobras" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Agora são **4 jeitos de dar lance**: ✉️ Envelope cego, 🐊 Tocaia, 🔨 Pregão aberto e o novo **⚡ Envelope único** — o leilão mais rápido do jogo." },
+    { "tag": "regra", "texto": "Goleiro, laterais, zagueiros, meias e atacantes **na mesma tela**. Você tem **3 minutos** pra dar todos os lances e aperta **LACRAR TUDO**. Depois vem **uma revelação só**." },
+    { "tag": "regra", "texto": "Sobrou carta? Ela volta numa **2ª lista** (1 minuto e meio), só nas posições em que ainda tem vaga. **Só depois disso** vem o Monte. **Empate = sorteio** na hora." },
+    { "tag": "melhoria", "texto": "Dá pra montar o time pensando no **conjunto**: guardar dinheiro pro atacante dos sonhos ou gastar tudo no goleiro. A estratégia é sua, num envelope só." }
+  ],
+  "rodape": "Já tá valendo: Partida Rápida e salas online!",
+  "rodapeSub": "Na hora de criar a sala: Como é o leilão → ⚡ Envelope único.",
+  "saida": "scripts/posts/aviso-2026-10-28-envelope-unico.png"
+}

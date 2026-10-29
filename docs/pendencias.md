@@ -1,4 +1,4 @@
-## 🧤🖤 Lulubaba FC vira FUNDADOR + arte nova + canto + gala própria (29/10) — ⏳ esperando OK do Diego
+## 🧤🖤 Lulubaba FC vira FUNDADOR + arte nova + canto + gala própria (29/10) — ✅ publicado (29/10)
 - Pedido: *"atualize o time do lulubaba fc c/ canto de torcida, novo visual… quero ele fundador agora e c/ entrada personalizada
   lembrando q ele é goleiro do Botafogo"*.
 - Código (no branch): escudo/mascote novos (328×360 26 KB · 440×342 42 KB), manto **preto #161516 + branco #E3E2E2** medido na
@@ -8,6 +8,18 @@
 - ⏳ **Banco, NA HORA DE PUBLICAR**: `esc_fundadores` (lucasfonseca363, 95) · `esc_socios` manto → #161516/#E3E2E2 (o banco
   ganha do código!) · `esc_compras_batismo` plano 'lenda' → 'plus'.
 - Post: `scripts/posts/batismo-lulubaba-fc-v2.png` · vídeo `scripts/posts/gala-lulubaba.mp4`.
+
+## 📺🚫 Pódio da semana (técnicos e clãs) SAIU do telão (29/10) — no branch, esperando "publica"
+Diego: *"tire o rank da semana e clã da semana do telão das salas… e tire a info lá do rank da semana e do clã… não prometam mais
+isso"*. `PODIO_NO_TELAO = false` (patrocinio.ts); textos tirados da vitrine (ranking e clãs), do aviso de fim de semana
+(`aviso-semana.tsx`), da descrição do escudo do clã (`cla.tsx`) e de 2 linhas das novidades.
+
+## 📅 LEILÃO DE DÉCADAS (28/10) — MOCKUP enviado, esperando OK (`scripts/mockups/leilao-decadas.png`)
+Ideia do Diego: igual ao 🧱 Clubes, mas o pacote é CLUBE + DÉCADA ("Atacantes do Flamengo · anos 80"); o mesmo clube pode sair em
+décadas diferentes. 3ª opção do "Tipo de leilão" (🃏 Jogador · 🧱 Clubes · 📅 Décadas), baralho Todos, selo 📅 DÉCADAS na lista e na
+espera. Conta medida nos 3 baralhos (pacote viável = vaga do 4-3-3 + 1): GOL 28 · LAT 22 · ZAG 30 · MEI 37 · ATA 43 → cabe sala de ~20.
+⚠️ Anos 80 ≈ 1 pacote por setor (nenhum de MEI/ATA), anos 90 1–5; o grosso é 2000/2010/2020. Recomendado: lotes de cartas 80/90.
+Código: chave `clubCanon(club)|década` em `buildDeckClubes` + `nomePacote` com a década.
 
 ## 🧤💛 Batismo Lulubaba FC (29/10) — ✅ código + banco feitos
 - Dono `lucasfonseca363@gmail.com` (conta de 29/10 00:40 UTC, nome "Lulubaba FC", coração **Botafogo**). ⚠️ O Diego tinha mandado

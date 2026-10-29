@@ -641,7 +641,7 @@ export function EscudoClaLoja() {
       pode: !!info && info.vagas < 2,
       porque: info && info.vagas >= 2 ? ['✅ Você já tem a 2ª vaga (pra sempre).', '✅ You already have the 2nd slot (forever).'] : ['Primeiro entre ou crie um clã (👥 Amigos → ⚔️ Clã).', 'First join or create a clan (👥 Friends → ⚔️ Clan).'] },
     { prod: 'escudo_cla', titulo: ['🛡️ Escudo de clã personalizado', '🛡️ Custom clan crest'],
-      texto: ['Desenho exclusivo, feito à mão pro SEU clã. Aparece no selo de todos os membros, no ranking e no telão. Fica pronto em até 24 h.', 'An exclusive crest, hand-made for YOUR clan. Shows on every member’s badge, in the ranking and on the big screen. Ready within 24 h.'],
+      texto: ['Desenho exclusivo, feito à mão pro SEU clã. Aparece no selo de todos os membros e no ranking. Fica pronto em até 24 h.', 'An exclusive crest, hand-made for YOUR clan. Shows on every member’s badge, and in the ranking. Ready within 24 h.'],
       pode: presidente, porque: info ? [`Só o presidente do ${info.nome} pode encomendar o escudo.`, `Only the ${info.nome} president can order the crest.`] : ['Pra encomendar, você precisa ser presidente de um clã (👥 Amigos → ⚔️ Clã).', 'To order, you need to be a clan president (👥 Friends → ⚔️ Clan).'] },
   ]
   return <>

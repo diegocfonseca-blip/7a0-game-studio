@@ -119,11 +119,9 @@ export function AvisoSemanaCard({ a, onClose: fecha }: { a: Aviso; onClose: () =
           <span style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.25 }}>{cla ? tr('pra CADA membro jogar no modo carreira', 'for EVERY member to use in career mode') : tr('pra jogar no modo carreira', 'to use in career mode')}<br />
             <small style={{ fontWeight: 600, opacity: .85, fontSize: 11.5 }}>{tr('caem sozinhas na próxima vez que você abrir a carreira', 'they land automatically next time you open your career')}</small></span>
         </div>
-        {cla
-          ? <div style={{ ...caixa, border: `2px dashed ${INK}`, textAlign: 'center', marginBottom: 10 }}>{tr(`📺 O ${a.nome} passa no telão de todas as salas a semana inteira`, `📺 ${a.nome} shows on the big screen in every room all week`)}</div>
-          : <div style={{ ...caixa, marginBottom: 12 }}>
+        {/* 🚫 29/10: o telão saiu do prêmio (Diego: "não prometam mais isso") */}
+        {!cla && <div style={{ ...caixa, marginBottom: 12 }}>
               <div>{tr(`${MEDALHA[a.pos]} Medalha no nome por 30 dias`, `${MEDALHA[a.pos]} Medal next to your name for 30 days`)}</div>
-              <div>{tr('📺 Sua vitória no telão de TODAS as salas a semana inteira', '📺 Your win on the big screen in EVERY room all week')}</div>
             </div>}
         {zoeira && <div style={{ textAlign: 'left', background: '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 12px', fontWeight: 600, fontSize: 14.5, lineHeight: 1.3, marginBottom: 12, boxShadow: `3px 3px 0 ${INK}` }}>
           <small style={{ display: 'block', ...OSW, fontSize: 11.5, letterSpacing: 1, color: '#C2452F', marginBottom: 2 }}>{tr('😜 ZOEIRA LIBERADA', '😜 TEASING ALLOWED')}</small>{zoeira}
