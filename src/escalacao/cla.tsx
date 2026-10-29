@@ -8,7 +8,7 @@
 // · O SELO é da PESSOA: sala de espera, chat, perfil e amigos — SEMPRE na linha de baixo do nome, pequeno, sem tirar nada do
 //   lugar (escudo, presidente, cor do plano, medalha). Tabela/placar/jogo/leilão NUNCA mostram clã (lá é o clube).
 // · Os selos vêm em LOTE (uma ida ao banco pra sala inteira) e ficam guardados na memória — nada de canal (regra do tráfego).
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
 import { Escudo } from './escudos'
@@ -171,7 +171,7 @@ const REGRA_DOIS: [string, string] = ['⚔️⚔️ Sempre são dois: com a 2ª 
 const Descricao = ({ t, escuro }: { t?: string | null; escuro?: boolean }) => t ? <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', margin: '4px 0 0', lineHeight: 1.35, color: escuro ? '#e8e2d0' : '#4a4030', overflowWrap: 'anywhere' }}>“{t}”</p> : null
 const dataCurta = (iso: string) => { const d = new Date(iso); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }
 
-export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: string }[]; onPerfil: (uid: string) => void }) {
+export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string; nome: string }[]; onPerfil: (uid: string) => void; querCriar?: boolean }) {
   const [p, setP] = useState<Painel | null | 'erro'>(null)
   const [msg, setMsg] = useState('')
   const [ocupado, setOcupado] = useState(false)
@@ -186,6 +186,15 @@ export function AbaCla({ amigos, onPerfil }: { amigos: { uid: string; nome: stri
   const [semPlano, setSemPlano] = useState(false) // 🔒 tocou em "Criar clã" sem plano → caixa explicando + botão dos planos
   // 🔁 21/10 (Diego): já tem clã e vai pra outro (convite ou pedido) → aviso lembrando do clã atual, pra seguir ou não
   const [troca, setTroca] = useState<{ info: TrocaInfo; destino: string; destinoEmblema: string; aberto: boolean; criar?: boolean; seguir: () => void } | null>(null)
+  // ⚔️ 29/10 (Diego: "quem não tem plano e quer criar clã poderia aparecer o botão do avulso de 4,90 ou ver todos os planos"):
+  // veio do botão CRIAR da caixa "Clãs da semana" → sem plano já abre a caixa do 🔓 R$ 4,90 / ⭐ planos; com plano e sem clã, direto no criar
+  const pediuCriar = useRef(!!querCriar)
+  useEffect(() => {
+    if (!pediuCriar.current || !p || p === 'erro') return
+    pediuCriar.current = false
+    if (!p.pode_criar) setSemPlano(true)
+    else if (!p.cla) setTela('criar')
+  }, [p])
   const carrega = () => { supabase.rpc('esc_cla_painel').then(({ data, error }) => setP(error || !data ? 'erro' : data as Painel), () => setP('erro')) }
   useEffect(carrega, [])
   const faz = async (rpc: string, args: Record<string, unknown>, ok?: string, destino?: { nome: string; emblema: string; aberto: boolean }) => {

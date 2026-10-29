@@ -71,7 +71,7 @@ export function RankingClasCaixa() {
           as posições sem clã viram VAGA ABERTA com o botão de criar ali mesmo, e embaixo os dois caminhos lado a lado (entrar · criar).
           Os dois levam pra aba ⚔️ Clã dos Amigos (lá tem a busca e o criar). */}
       {l.length > 0 && Array.from({ length: Math.max(0, 5 - l.length) }, (_, k) => l.length + k + 1).map(p => (
-        <div key={`vaga${p}`} role="button" tabIndex={0} onClick={() => abreAmigosSolto('cla')} onKeyDown={e => { if (e.key === 'Enter') abreAmigosSolto('cla') }}
+        <div key={`vaga${p}`} role="button" tabIndex={0} onClick={() => abreAmigosSolto('cla', true)} onKeyDown={e => { if (e.key === 'Enter') abreAmigosSolto('cla', true) }}
           style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '5px 6px', marginTop: 4, borderRadius: 9, border: `2px dashed #0C0C0C55`, background: '#ffffff80' }}>
           <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center', color: '#0007' }}>{p}º</span>
           <span style={{ width: 24, height: 24, borderRadius: 7, border: `2px dashed #0C0C0C55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>⚔️</span>
@@ -81,7 +81,7 @@ export function RankingClasCaixa() {
       ))}
       <div style={{ display: 'flex', gap: 8, marginTop: 9 }}>
         <button onClick={() => abreAmigosSolto('cla')} style={{ ...OSW, flex: 1, fontSize: 13, background: '#fff', color: INK, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 6px', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>🔎 {tr('Entrar num clã', 'Join a clan')}</button>
-        <button onClick={() => abreAmigosSolto('cla')} style={{ ...OSW, flex: 1, fontSize: 13, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 6px', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>⚔️ {tr('Criar meu clã', 'Create my clan')}</button>
+        <button onClick={() => abreAmigosSolto('cla', true)} style={{ ...OSW, flex: 1, fontSize: 13, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 6px', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>⚔️ {tr('Criar meu clã', 'Create my clan')}</button>
       </div>
       {l.length > 0 && <p style={{ margin: '5px 0 0', fontSize: 10.5, fontWeight: 800, color: '#7C3AED', textAlign: 'center' }}>👆 {tr('Toque num clã da lista pra ver os membros.', 'Tap a clan in the list to see its members.')}</p>}
       {ver !== null && <ClaVer id={ver} onClose={() => setVer(null)} />}
