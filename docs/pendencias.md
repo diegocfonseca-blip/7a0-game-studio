@@ -5,13 +5,6 @@
 - ⏳ **Banco, NA HORA DE PUBLICAR**: `esc_fundadores` (sheeryarie772, 97).
 - Vídeo `scripts/posts/gala-neymarfc.mp4` · quadros `scripts/posts/gala-neymarfc-quadros.png`.
 
-## 📷 Telão com foto do produto (29/10) — ✅ publicado
-- Mockup `scripts/mockups/telao-foto-haval.png` (*"ok publique esse do haval"*). Foto pequena no canto direito da MESMA placa (84 px,
-  medido), só no anúncio que tem foto. A foto casa pelo TEXTO (`FOTOS_ANUNCIO` em `patrocinio.ts`, regex): trocou o carro no #admin,
-  a foto do Haval some sozinha. Banco: linha 1 de `esc_anuncios_fixos` virou "Haval H6 0 km blindado" (o link do zap falava do Kwid).
-- Próximo patrocinador com foto = 1 arquivo `img/anuncio-<marca>.webp` (~10 KB, 240 px) + 1 linha em `FOTOS_ANUNCIO`. dSouza: falta a
-  foto de um quadro.
-
 ## 🐟🏛️ Batismo FUNDADOR Piranhão FC (29/10) — ✅ publicado (a salva de 21 tiros saiu da gala: o Diego não gostou)
 - Dono `bruno.cunha2007@gmail.com` (conta de 29/10 02:02 UTC, "Piranhao FC", coração **Botafogo**; já comprou o plano Fundador —
   `esc_compras_batismo` = 'plus').
