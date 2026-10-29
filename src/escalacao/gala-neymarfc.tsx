@@ -8,7 +8,7 @@
 // 3) o 10 gigante dourado acende atrás, o pedestal sobe e O BODE REI chega nele; o balão "BÉÉÉ!" (zoeira)
 // 4) a COROA desce girando do céu e pousa na cabeça do bode, chuva de moedas de ouro, flash
 // 5) o Bode vai pro canto, o escudo acende com os raios dourados girando atrás
-// 6) a frase bate — SAI DA FRENTE QUE O BODE CHEGOU — e a faixa "CHEGOU NA SALA · O G.O.A.T."
+// 6) a frase bate — SAI DA FRENTE QUE O GOAT CHEGOU — e a faixa "CHEGOU NA SALA · O G.O.A.T."
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
 // Som: o canto do São Paulo, o MESMO do Wen Milan B (`sfx/torcida-spfc-wen-v1.mp3`), pedido do Diego — o mesmo da carreira dele.
 import { useEffect, useState } from 'react'
@@ -103,7 +103,7 @@ export function GalaNeymarFC({ clube, chave, mostra, grito }: { clube: string; c
   const s = useEscala()
   void grito
   useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-spfc-wen-v1.mp3`, T), [chave])
-  const frase = [tr('SAI DA FRENTE', 'MAKE WAY,'), tr('QUE O BODE', 'THE GOAT'), tr('CHEGOU', 'IS HERE')]
+  const frase = [tr('SAI DA FRENTE', 'MAKE WAY,'), tr('QUE O GOAT', 'THE GOAT'), tr('CHEGOU', 'IS HERE')] // 29/10: "o GOAT", não "o bode" (pedido do Diego)
   return createPortal(
     <div key={chave} className="gnf" aria-hidden>
       <style>{CSS + LETRAS.map((_, i) => kfLetra(i) + kfPonto(i)).join('\n')}</style>
