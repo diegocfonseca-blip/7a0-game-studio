@@ -239,6 +239,8 @@ const CPU_DIV_BOOST_FAIR: Record<Div, number> = { A: 2, B: 4, C: 5, D: 3, V: 4 }
 const CPU_DIV_BOOST_V5: Record<Div, number> = { A: 2, B: 4, C: 4, D: 3, V: 2 }
 // 🪜 v6 (29/10, Diego: "coloque a série D +2 então"): a D desce de +3 pra +2 (análise: a subida da Várzea e da D estava lenta). Resto igual.
 const CPU_DIV_BOOST_V6: Record<Div, number> = { A: 2, B: 4, C: 4, D: 2, V: 2 }
+// 🪜 v7 (29/10, Diego: "série C coloque 3 e série B coloque 3 também"). Trava simV 7: temporada em andamento termina na tabela em que começou.
+const CPU_DIV_BOOST_V7: Record<Div, number> = { A: 2, B: 3, C: 3, D: 2, V: 2 }
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
@@ -855,7 +857,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -965,7 +967,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
     // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
     // elenco real que montaram).
-    const BM = fairBoost === 6 ? CPU_DIV_BOOST_V6 : fairBoost === 5 ? CPU_DIV_BOOST_V5 : fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
+    const BM = fairBoost === 7 ? CPU_DIV_BOOST_V7 : fairBoost === 6 ? CPU_DIV_BOOST_V6 : fairBoost === 5 ? CPU_DIV_BOOST_V5 : fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
     const bh = (!H.human && !H.rival) ? BM[div] : 0, ba = (!A.human && !A.rival) ? BM[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     // 🎭 evento "escalar assim mesmo": queda pequena SÓ na rodada do causo (humano)
@@ -1084,7 +1086,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -8367,7 +8369,7 @@ export function PyramidSeasonScreen() {
   const capElite = realGoals ? 1.12 : (state.simV ?? 1) >= 2 ? 1.28 : 1.2
   // ⚖️ escada justa (bônus dos bots reduzido) só a partir do simV 4 — temporada
   // em andamento (simV<4) termina na escada antiga; a próxima já entra na nova.
-  const fairBoost: boolean | 5 | 6 = (state.simV ?? 1) >= 6 ? 6 : (state.simV ?? 1) >= 5 ? 5 : (state.simV ?? 1) >= 4 // 🪜 v5 (28/10): bônus da casa novo
+  const fairBoost: boolean | 5 | 6 | 7 = (state.simV ?? 1) >= 7 ? 7 : (state.simV ?? 1) >= 6 ? 6 : (state.simV ?? 1) >= 5 ? 5 : (state.simV ?? 1) >= 4 // 🪜 v5 (28/10): bônus da casa novo
   // 🎲 seed da simulação MUDA a cada temporada (mistura seed + seasonNo). Sem isto,
   // no online "mesmo time" a seed ficava fixa e TODA temporada refazia os MESMOS
   // sorteios — a mesma goleada, o mesmo placar, temporada após temporada. É

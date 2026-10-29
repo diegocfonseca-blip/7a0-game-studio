@@ -8569,7 +8569,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
       if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
       s.careerPresidency = undefined
-      s.simV = 6 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
+      s.simV = 7 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
       // 1º clube (o da fundação). Save antigo segue no empresário clássico.
@@ -8722,7 +8722,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.isHost = true
       s.careerOnline = true
       limpaMarcasDeModo(s) // 🧼 o jogo rápido vira carreira: as escolhas do rápido ficam pra trás (21/10)
-      s.simV = 6
+      s.simV = 7
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
@@ -8827,7 +8827,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏀 19/10: no basquete também — o pacote é a POSIÇÃO de uma franquia da NBA (o baralho ativo é o da NBA).
       s.leilaoClubes = !!action.clubes && !action.career
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
-      s.simV = 6 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 7 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
@@ -11595,7 +11595,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'REAUCTION_ONLINE': {
       if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
-      s.simV = 6 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 7 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
@@ -11736,7 +11736,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CONFIRM_MESMO_TIME': {
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção
-      s.simV = 6 // 🪜 28/10: quem segue com o mesmo time também entra no bônus da casa novo (v5) na temporada que começa
+      s.simV = 7 // 🪜 28/10: quem segue com o mesmo time também entra no bônus da casa novo (v5) na temporada que começa
       // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
       // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
       // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
@@ -11871,7 +11871,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'RESERVE_AUCTION_ONLINE': {
-      s.simV = 6 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 7 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
       // consome a lista (tira os listados dos times e joga no baralho — o dono
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a
