@@ -1,4 +1,4 @@
-## 🪜 Bônus da casa: Série C e Série B +4 → +3 (29/10, *"série C coloque 3 e série B coloque 3 tb"*) — no branch, esperando "publica"
+## 🪜 Bônus da casa: Série C e Série B +4 → +3 (29/10, *"série C coloque 3 e série B coloque 3 tb"*) — ✅ PUBLICADO
 `CPU_DIV_BOOST_V7` = A 2 · B 3 · C 3 · D 2 · V 2, travado por `simV = 7` (só de temporada nova). Reverter = `s.simV = 7` → 6.
 
 ## 🪜 Bônus da casa da Série D: +3 → +2 (29/10, *"coloque a série D +2 então"*) — ✅ PUBLICADO
