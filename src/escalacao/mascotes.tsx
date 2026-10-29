@@ -73,6 +73,7 @@ import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 Com
 import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import piranhaoMascoteImg from './img/piranhao-mascote.webp' // 🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
 import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
@@ -405,6 +406,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 🧤 O GOLEIRO (mascote do Lulubaba FC — lucasfonseca363, 29/10): o goleiro de cabelo platinado voando na bola, de uniforme
   // amarelo e preto e luvas com coroa, numa explosão de tinta verde e amarela. Arte do próprio dono. 📏 440×351, 42 KB — altura 176.
   // mascote_key = "lulubaba_goleiro".
+  // 🏛️ O PRESIDENTE (mascote do Piranhão FC — bruno.cunha2007, 29/10): o Presidente ajoelhado no gramado comemorando de punho
+  // cerrado, de camisa alvinegra e luvas com coroa. Arte do próprio dono. 📏 407×440, 44 KB — altura 176. mascote_key = "piranhao_presidente".
+  piranhao_presidente: (
+    <img src={piranhaoMascoteImg} height={176} width={Math.round(176 * 407 / 440)} alt="O Presidente — Piranhão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   lulubaba_goleiro: (
     <img src={lulubabaMascoteImg} height={176} width={Math.round(176 * 440 / 342)} alt="O Goleiro — Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1262,6 +1268,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'CRBebê': 'chelsao_leao',
   'Peteca FR': 'chelsao_leao',
   // 🧤 o Goleiro carimba o gol do Lulubaba FC (lucasfonseca363, 29/10).
+  // 🏛️ o Presidente carimba o gol do Piranhão FC (bruno.cunha2007, 29/10).
+  'Piranhão FC': 'piranhao_presidente',
+  'Piranhão': 'piranhao_presidente',
+  'Piranhão EC': 'piranhao_presidente',
+  'Piranhão SC': 'piranhao_presidente',
+  'Piranhao FC': 'piranhao_presidente',
+  'Piranhao': 'piranhao_presidente',
+  'Continental Real': 'piranhao_presidente',
   'Lulubaba FC': 'lulubaba_goleiro',
   'Lulubaba': 'lulubaba_goleiro',
   'Lulubaba EC': 'lulubaba_goleiro',
@@ -1424,6 +1438,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   cuiudos: 'O Cuiudo', // 🤠 Cuiudos FC (matheussoaresg2018, 17/10)
   wenmilan_diaba: 'A Diabinha', // 😈 Wen Milan B (vittor@tidex, 17/10)
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
+  piranhao_presidente: 'O Presidente', // 🏛️ Piranhão FC (bruno.cunha2007, 29/10)
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)

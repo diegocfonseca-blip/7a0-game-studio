@@ -1,3 +1,15 @@
+## 🐟🏛️ Batismo FUNDADOR Piranhão FC (29/10) — ✅ publicado (a salva de 21 tiros saiu da gala: o Diego não gostou)
+- Dono `bruno.cunha2007@gmail.com` (conta de 29/10 02:02 UTC, "Piranhao FC", coração **Botafogo**; já comprou o plano Fundador —
+  `esc_compras_batismo` = 'plus').
+- Código (no branch): escudo (o 2º que o Diego mandou, com "LÁ EM CASA TODO MUNDO É 13"; 269×290, 29 KB — 290 e não 360 pra caber
+  no teto), mascote **O Presidente** `piranhao_presidente` (407×440, 44 KB), manto **preto #100F0E + branco #E2E1E1**, Série D no
+  assento do bot **Continental Real**, `FUNDADOR_N` **96**, canto = o MESMO do Lulubaba (`torcida-lulubaba-v1.mp3`), gala única
+  `gala-piranhao.tsx` ("A Posse": Palácio, tapete vermelho, salva de 21 tiros, faixa presidencial, piranhas, frase "LÁ EM CASA
+  TODO MUNDO É 13"). Combinado com o Diego: tema presidencial, sem desenhar rosto além da arte do dono.
+- ⏳ **Banco, NA HORA DE PUBLICAR**: `user_colors` ouro+manual · `esc_socios` (próximo nº, manto, `piranhao_presidente`,
+  `escudo_time` 'Piranhão FC', Botafogo, origem batismo, 2099) · `esc_fundadores` 96 · `esc_nomes_batismo` "Piranhão" (+ "Piranhao").
+- Post: `scripts/posts/batismo-piranhao-fc.png` · vídeo `scripts/posts/gala-piranhao.mp4`.
+
 ## 🧤🖤 Lulubaba FC vira FUNDADOR + arte nova + canto + gala própria (29/10) — ✅ publicado (29/10)
 - Pedido: *"atualize o time do lulubaba fc c/ canto de torcida, novo visual… quero ele fundador agora e c/ entrada personalizada
   lembrando q ele é goleiro do Botafogo"*.
