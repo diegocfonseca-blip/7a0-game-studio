@@ -1,7 +1,7 @@
 ## 🚫 Moderação 29/10: "Abusa Rindo" → "A Rindo" · "Exu Tranca Ru4" → "E Tranca Ru4"
 - mateus.eduardo.ribeiro: `display_name` virou "A Rindo" (+ linhas abertas do room_players) e aviso de uma vez (`esc_avisos_conta`).
 - daniagustosan23 (0af7af1e): jogou como "Exu Tranca Ru4" à tarde, mas o nome da conta JÁ estava "Danielvorcarofc" — não sobrescrevi;
-  só o aviso foi mandado (e linhas abertas com o nome velho trocadas, nenhuma achada).
+  o aviso dele foi CANCELADO (Diego: "se ele já trocou, tudo bem"). Se voltar a jogar como "Exu Tranca…", manda o aviso (id 4 é o modelo).
 - ⏳ Diego: *"se a pessoa aperta X no banner deve sumir pra sempre"* — o `AvisoConta` já marca visto no banco (os 2 avisos antigos ainda
   estão sem visto porque as contas nunca mais logaram). Perguntei QUAL banner volta depois do X pra achar o certo.
 
