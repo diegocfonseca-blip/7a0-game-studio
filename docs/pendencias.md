@@ -1,4 +1,4 @@
-## 🪜 Bônus da casa da Série D: +3 → +2 (29/10, *"coloque a série D +2 então"*) — no branch, esperando "publica"
+## 🪜 Bônus da casa da Série D: +3 → +2 (29/10, *"coloque a série D +2 então"*) — ✅ PUBLICADO
 Análise pedida (*"acho que tá difícil subir da várzea pra D e da D pra C"*): no banco, 66% das carreiras param nas 4 primeiras
 temporadas; com 10–19 temporadas só 29% ganharam a D e 5% a C. Causa (já anotada em 28/10): V e D só compram até "Bom" + o bônus dos
 times da casa. Feito: `CPU_DIV_BOOST_V6` = A 2 · B 4 · C 4 · **D 2** · V 2, travado por `simV = 6` (só de temporada NOVA; a que está rolando
