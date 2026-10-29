@@ -193,6 +193,7 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 // O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
 // Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'sheeryarie772@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 🐐👑 Neymar_FC (29/10, virou Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
   'bruno.cunha2007@gmail.com': 'sfx/torcida-lulubaba-v1.mp3', // 🐟🏛️ Piranhão FC (29/10, Fundador): o MESMO canto do Lulubaba FC (torcida do Botafogo), pedido do Diego
   'lucasfonseca363@gmail.com': 'sfx/torcida-lulubaba-v1.mp3', // 🧤🖤 Lulubaba FC (29/10, virou Fundador): 9 s da torcida do Botafogo no Nilton Santos, do vídeo que o Diego mandou (gala + carreira)
   'jadriovani@gmail.com': 'sfx/torcida-guimaraes-v1.mp3', // 🌪️🔴 Guimarães SCI (23/10, virou Fundador): o canto que o Diego mandou (10 s), gala + carreira
