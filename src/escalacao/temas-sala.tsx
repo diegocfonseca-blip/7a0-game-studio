@@ -35,12 +35,18 @@ import interValeEscudo from './img/intervale-escudo.webp'
 import interValeMascote from './img/intervale-mascote.webp'
 import guimaraesEscudo from './img/guimaraes-escudo.webp'
 import guimaraesMascote from './img/guimaraes-mascote.webp'
+import lulubabaEscudo from './img/lulubaba-escudo.webp' // 🧤🖤 Lulubaba FC (Fundador, 29/10): os mesmos do batismo, 0 KB novo
+import lulubabaMascote from './img/lulubaba-mascote.webp'
+import piranhaoEscudo from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (Fundador, 29/10)
+import piranhaoMascote from './img/piranhao-mascote.webp'
+import neymarfcEscudo from './img/neymarfc-escudo.webp' // 🐐👑 Neymar_FC (Fundador, 29/10)
+import neymarfcMascote from './img/neymarfc-mascote.webp'
 import tidexLogo from './img/patro-tidex.webp' // 🤖 tema da Tidex (19/10): o mesmo logo do patrocínio, 0 KB novo
 import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale' | 'guimaraes' | 'dsouza' | 'dsouza_emp'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale' | 'guimaraes' | 'dsouza' | 'dsouza_emp' | 'lulubaba' | 'piranhao' | 'neymarfc'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -77,6 +83,11 @@ function TEMAS_FUNDADOR_PRONTOS() {
     guimaraes: temaFundador('guimaraes', 'Guimarães SCI', '🌪️', guimaraesEscudo, guimaraesMascote, '#8a0206', 'rgba(254,251,252,.16)', '#C50208', '#fff'),
     // 🐶💚 dSouza FC (28/10, batismo Fundador): preto e verde-neon medidos na camisa (#0A0A09/#73E541), o filete neon e o Pitbull na tela
     dsouza: { ...temaFundador('dsouza', 'dSouza FC', '🐶', dsouzaEscudo, dsouzaMascote, '#1f5a12', 'rgba(115,229,65,.18)', '#73E541', '#0A0A09'), selo: '🐶 TEMA DO CLUBE · dSouza FC' }, // selo sem caixa-alta: o nome é dSouza, com d minúsculo
+    // 🧤🖤 / 🐟🏛️ / 🐐👑 os três Fundadores de 29/10 (Diego: *"eles têm que ter o do mascote"*): o tema de mascote do plano, nas 2 cores
+    // MEDIDAS do manto de cada um (as mesmas de `batismos.ts`), o escudo de fundo e a mascote na tela
+    lulubaba: temaFundador('lulubaba', 'Lulubaba FC', '🧤', lulubabaEscudo, lulubabaMascote, '#3a3a3a', 'rgba(227,226,226,.14)', '#E3E2E2', '#0c0c0c'),
+    piranhao: temaFundador('piranhao', 'Piranhão FC', '🐟', piranhaoEscudo, piranhaoMascote, '#3a3a3a', 'rgba(226,225,225,.14)', '#E2E1E1', '#0c0c0c'),
+    neymarfc: { ...temaFundador('neymarfc', 'Neymar_FC', '🐐', neymarfcEscudo, neymarfcMascote, '#6b5534', 'rgba(242,216,184,.18)', '#F2D8B8', '#0c0c0c'), selo: '🐐 TEMA DO CLUBE · Neymar_FC' },
     wenmilan: temaFundador('wenmilan', 'Wen Milan B', '😈', wenMilanEscudo, wenMilanMascote, '#8a0a16', 'rgba(223,18,36,.22)', '#DF1224', '#fff'),
     seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
   } satisfies Partial<Record<TemaClubeId, Tema>>
@@ -121,6 +132,9 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
   'marcus.viniciuslopessantos79@gmail.com': ['intervale'], // 🥊 Inter Vale FC (virou Fundador em 21/10)
   'jadriovani@gmail.com': ['guimaraes'],
+  'lucasfonseca363@gmail.com': ['lulubaba'], // 🧤🖤 Lulubaba FC (Fundador, 29/10)
+  'bruno.cunha2007@gmail.com': ['piranhao'], // 🐟🏛️ Piranhão FC (Fundador, 29/10)
+  'sheeryarie772@gmail.com': ['neymarfc'], // 🐐👑 Neymar_FC (Fundador, 29/10)
   'alexandre12cdm@gmail.com': ['dsouza', 'dsouza_emp'], // 🐶 dSouza FC (Fundador, 28/10) + 🖼️ tema da dSouza Empreendimentos, a empresa dele que anuncia no jogo (pedido do Diego, 28/10) // 🌪️ Guimarães SCI (virou Fundador em 23/10)
   'vittor@tidex.com.br': ['wenmilan', 'tidex'], // 😈 Wen Milan B (conta criada em 19/10) + 🤖 tema da Tidex, a empresa dele que patrocina o jogo (19/10, aprovado pelo Diego)
 }
@@ -128,7 +142,7 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
-  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'], 'dSouza FC': ['dsouza'], 'Guimarães SCI': ['guimaraes'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'], 'dSouza FC': ['dsouza'], 'Guimarães SCI': ['guimaraes'], 'Lulubaba FC': ['lulubaba'], 'Piranhão FC': ['piranhao'], 'Neymar_FC': ['neymarfc'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão
