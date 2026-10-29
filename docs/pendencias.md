@@ -1,3 +1,12 @@
+## ⚫⭐ Batismo Lulubaba FC (29/10) — BANCO FEITO, CÓDIGO ESPERANDO A ARTE
+- Dono `lucasfonseca363@gmail.com` (conta criada 29/10 00:40 UTC, nome "Lulubaba FC", coração **Botafogo**). ⚠️ O Diego tinha mandado
+  `lucasfgbarreto@gmail.com` — essa conta também foi criada 2 min antes, com o nome "Lucas_14". Diego: *"faça… ele fez nesse e-mail aí
+  q tá lulubaba"* → o batismo é do **lucasfonseca363**.
+- Banco feito: user_colors ouro+manual · esc_socios **80** (escudo_time "Lulubaba FC", Botafogo; manto/mascote vazios até a arte) ·
+  esc_nomes_batismo "Lulubaba" (FC/EC pelo gatilho) · esc_compras_batismo 'lenda' (Batismo 79,90 → SEM número de fundador).
+- ⏳ Falta: arte (escudo, mascote, camisa) → código padrão (`LOGOS_PRONTAS`, `MASCOTES`, `data.ts` + assento, `apoio.tsx`, `manto.ts`,
+  `batismos.ts`, `salao-camisas.ts`, `checa-batismos.mjs` com `SEM_FUNDADOR`) + manto/mascote no `esc_socios` + post.
+
 ## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — ✅ PUBLICADO (*"pode aprovar tudo"*)
 - Dono `alexandre12cdm@gmail.com` (conta de 27/10 ✔; o time dele "Pits FC" virou **dSouza FC** no `display_name`; sem carreira
   na nuvem). **Série C**, no assento do bot **Kombi United** (`OLD_NAME`; o Kombi segue no jogo rápido, nome velho NÃO desenha o
