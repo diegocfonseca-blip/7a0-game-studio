@@ -760,6 +760,10 @@ export interface EscState {
   /** ⚡ o envelope único está aberto (a fila tem as cartas das 5 posições) / a revelação única está rolando */
   euAberto?: boolean
   euRevelando?: boolean
+  /** ⚡ 28/10: 1 = a lista de todas as cartas · 2 = a 2ª LISTA, só com as sobras da 1ª (depois dela, Monte) */
+  euRodada?: 1 | 2
+  /** ⚡ o que sobrou da 1ª lista, esperando a revelação acabar pra abrir a 2ª */
+  euSobras?: Card[]
   /** 🔨 estado vivo do pregão aberto (só existe enquanto `phase === 'pregao'`) */
   pa?: PregaoAbertoState
   /** 🎁 pregão aberto sem Monte (16/10): as cartas dadas de graça a cada time no fim (id do técnico → ids das cartas) */

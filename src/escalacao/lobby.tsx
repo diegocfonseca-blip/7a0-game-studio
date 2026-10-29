@@ -949,7 +949,7 @@ export function EscLobby() {
   // 🖥️ CRIAR SALA NO COMPUTADOR (23/10, liberado pra todos, só ≥1100px): todas as etapas abertas + "Sua sala" ao lado
   const desk = useTelaPC()
   const salasEspera = useSalasEsperaNova() // 🗂️③ só a SALA DE ESPERA nova está liberada pra todos (23/10)
-  const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'clubes' | 'duplas'>('todas')
+  const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'unico' | 'clubes' | 'duplas'>('todas')
   const [regrasAbertas, setRegrasAbertas] = useState(false)
   const [room2d, setRoom2d] = useState(false)
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
@@ -2151,7 +2151,7 @@ export function EscLobby() {
     // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).filter(r => r.gdraft !== 'true').map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos', 'world'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined, pregaoAberto: r.gpregao === 'true' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos', 'world'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined, pregaoAberto: r.gpregao === 'true' || undefined, envUnico: r.gpregao === 'unico' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -2391,7 +2391,7 @@ export function EscLobby() {
   }
   // 🔁 rótulo curto do modo da liga (chips da sala e aviso pros amigos)
   function rotuloModoLiga(gs: GS | undefined): string[] {
-    const lance = gs?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gs?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope', '✉️ Sealed bid')
+    const lance = (gs as GS & { envUnico?: boolean })?.envUnico ? tr('⚡ Envelope único', '⚡ Single envelope') : gs?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gs?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope', '✉️ Sealed bid')
     const tipo = gs?.clubes ? tr('🧱 Clubes', '🧱 Clubs') : tr('🃏 Jogador', '🃏 Player')
     const d: string = typeof gs?.deckSala === 'string' ? gs.deckSala : typeof gs?.deck === 'string' ? gs.deck : 'br'
     const deck = d === 'eu' ? tr('🌍 Europa', '🌍 Europe') : d === 'world' ? tr('🌎 Mundo', '🌎 World') : d === 'both' || d === 'todos' ? tr('♾️ Todos', '♾️ All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
@@ -3111,7 +3111,8 @@ export function EscLobby() {
       const g = r.game_state as GS & { holandes?: boolean; duplasMode?: boolean }
       if (filtroSala === 'pregao') return !!g?.pregaoAberto
       if (filtroSala === 'tocaia') return g?.holandes === true && !g?.pregaoAberto
-      if (filtroSala === 'envelope') return g?.holandes === false && !g?.pregaoAberto && g?.mode !== 'mundo' && g?.mode !== 'elenco'
+      if (filtroSala === 'unico') return !!(g as GS & { envUnico?: boolean })?.envUnico
+      if (filtroSala === 'envelope') return g?.holandes === false && !g?.pregaoAberto && !(g as GS & { envUnico?: boolean })?.envUnico && g?.mode !== 'mundo' && g?.mode !== 'elenco'
       if (filtroSala === 'clubes') return !!g?.clubes
       return !!g?.duplasMode
     })
@@ -3704,7 +3705,7 @@ export function EscLobby() {
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
                     ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
-                        selos={{ pregao: tr('novo', 'new'), unico: tr('teste', 'test') }} selosBrilho={['pregao', 'unico']}
+                        selos={{ pregao: tr('novo', 'new'), unico: tr('novo', 'new') }} selosBrilho={['pregao', 'unico']}
                         value={rapidoEnvUnico && envUnicoOk && !roomDuplas ? 'unico' : rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia'); setRapidoEnvUnico(v === 'unico') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
@@ -3982,7 +3983,7 @@ export function EscLobby() {
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                           travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
-                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), relampago: tr('em testes', 'beta'), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), relampago: tr('novo', 'new'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
                       </>
                     )
                     return <>
@@ -4199,7 +4200,7 @@ export function EscLobby() {
         <Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('Buscar sala…', 'Search room…')} />
         {salasNovo && (
           <div className="flex flex-wrap gap-1.5">
-            {([['todas', tr('Todas', 'All')], ['envelope', tr('✉️ Envelope', '✉️ Sealed')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão', '🔨 Open')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['duplas', tr('🤝 Duplas', '🤝 Duos')]] as [typeof filtroSala, string][]).map(([v, lb]) => (
+            {([['todas', tr('Todas', 'All')], ['envelope', tr('✉️ Envelope', '✉️ Sealed')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão', '🔨 Open')], ['unico', tr('⚡ Único', '⚡ Single')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['duplas', tr('🤝 Duplas', '🤝 Duos')]] as [typeof filtroSala, string][]).map(([v, lb]) => (
               <button key={v} data-livre="1" onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
                 style={{ borderColor: filtroSala === v ? INK : 'rgba(255,255,255,.7)', background: filtroSala === v ? '#fff' : 'transparent', color: filtroSala === v ? INK : '#fff' }}>{lb}</button>
             ))}
@@ -4279,7 +4280,9 @@ export function EscLobby() {
                     {temPregao && r.game_state?.clubes && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: INK, color: GOLD, ...OSWALD }} title={tr('Leilão de Clubes: cada lote é um setor de um clube, e no fim cada um convoca quem joga', 'Club Auction: each lot is a club sector, and at the end everyone calls up who plays')}>{tr('🧱 CLUBES', '🧱 CLUBS')}</span>
                     )}
-                    {temPregao && (r.game_state as GS)?.pregaoAberto ? (
+                    {temPregao && (r.game_state as GS & { envUnico?: boolean })?.envUnico ? (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Envelope único: as 5 posições num envelope só; o que sobra volta numa 2ª lista antes do Monte.', 'Single envelope: all 5 positions in one envelope; leftovers come back in a 2nd list before the Pile.')}>{tr('⚡ ENVELOPE ÚNICO', '⚡ SINGLE ENVELOPE')}</span>
+                    ) : temPregao && (r.game_state as GS)?.pregaoAberto ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Pregão aberto: uma carta por vez, lance à vista de todos, martelo em 5s sem lance novo.', 'Open auction: one card at a time, bids in front of everyone, hammer after 5s without a new bid.')}>{tr('🔨 PREGÃO ABERTO', '🔨 OPEN AUCTION')}</span>
                     ) : temPregao && pregaoLido && (holandesRoom ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
@@ -4630,7 +4633,7 @@ export function EscLobby() {
     const gsSala = (room.game_state as GS & { holandes?: boolean; duplasMode?: boolean; mundoNaLiga?: boolean; regionalNaLiga?: string })
     const regLbl = gsSala?.regionalNaLiga
     const selosSala: string[] = salasEspera && !ehMundoSala && !elencoOn ? [
-      gsSala?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid'),
+      (gsSala as GS & { envUnico?: boolean })?.envUnico ? tr('⚡ Envelope único', '⚡ Single envelope') : gsSala?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid'),
       ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}`
         : gsSala?.mundoNaLiga ? tr('🌍 Liga + Mundo', '🌍 League + World Cup')
         : gsSala?.copaMode === 'liga' ? tr('🏆 Só a liga', '🏆 League only') : gsSala?.copaMode === 'champions' ? tr('⭐ Só Champions', '⭐ Champions only') : gsSala?.copaMode === 'relampago' ? tr(`⚡ Mata-mata Relâmpago · chave de ${gsSala?.relampagoChave ?? 16}`, `⚡ Lightning Knockout · ${gsSala?.relampagoChave ?? 16}-team draw`)
@@ -4639,7 +4642,8 @@ export function EscLobby() {
       gsSala?.clubes ? tr('🧱 Clubes', '🧱 Clubs') : String(gsSala?.deck) === 'eu' ? 'EU' : String(gsSala?.deck) === 'world' ? tr('🌎 Mundo', '🌎 World') : String(gsSala?.deck) === 'both' || String(gsSala?.deck) === 'todos' ? 'B/E/M' : '🇧🇷 BR',
       ...(gsSala?.duplasMode ? [tr('🤝 Duplas', '🤝 Duos')] : []),
     ] : []
-    const regraLonga = gsSala?.pregaoAberto ? tr('🔨 Pregão aberto: lance à vista, martelo em 5s sem lance novo.', '🔨 Open auction: bids in the open, hammer after 5s without a new bid.')
+    const regraLonga = (gsSala as GS & { envUnico?: boolean })?.envUnico ? tr('⚡ Envelope único: as 5 posições num envelope só (180s); o que sobra volta numa 2ª lista antes do Monte.', '⚡ Single envelope: all 5 positions in one envelope (180s); leftovers come back in a 2nd list before the Pile.')
+      : gsSala?.pregaoAberto ? tr('🔨 Pregão aberto: lance à vista, martelo em 5s sem lance novo.', '🔨 Open auction: bids in the open, hammer after 5s without a new bid.')
       : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}: ${tr('o preço CAI e quem apertar primeiro leva.', 'the price DROPS and first to tap wins.')}`
       : tr('✉️ Às cegas: cada um lacra o lance no envelope e o maior leva no martelo.', '✉️ Sealed bid: everyone seals their bid and the highest wins at the hammer.')
     return wrap(<>
@@ -4674,7 +4678,13 @@ export function EscLobby() {
             Quem entrou pelo código precisa saber em que jogo está se metendo —
             Tocaia e envelope cego são regras de lance diferentes. Some nas salas
             que não têm pregão (Copa do Mundo e Bafo). */}
-        {!ehMundoSala && !elencoOn && (room.game_state as GS)?.pregaoAberto ? (
+        {!ehMundoSala && !elencoOn && (room.game_state as GS & { envUnico?: boolean })?.envUnico ? (
+          <p className="mt-2">
+            <span className="inline-block text-[10px] font-black px-2 py-1 rounded-full border-2 border-black leading-none" style={{ ...OSWALD, background: GOLD, color: '#000' }}>
+              {tr('⚡ ENVELOPE ÚNICO · as 5 posições num envelope só, depois a 2ª lista com as sobras', '⚡ SINGLE ENVELOPE · all 5 positions in one envelope, then a 2nd list with the leftovers')}
+            </span>
+          </p>
+        ) : !ehMundoSala && !elencoOn && (room.game_state as GS)?.pregaoAberto ? (
           <p className="mt-2">
             <span className="inline-block text-[10px] font-black px-2 py-1 rounded-full border-2 border-black leading-none" style={{ ...OSWALD, background: GREEN, color: '#fff' }}>
               {tr('🔨 PREGÃO ABERTO · lance à vista, martelo em 5s sem lance novo', '🔨 OPEN AUCTION · bids in the open, hammer after 5s without a new bid')}

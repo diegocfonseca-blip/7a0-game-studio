@@ -955,9 +955,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   do dono). Medo dele: *"não quero erro… medo de mudar cadeira"*. Régua de construção: o fantasma NUNCA ganha linha em `room_players`, nunca
   entra no `seatUids`, nunca faz `track()`, nunca manda ação e nunca vira dono; e `espectador.ts` barra no aparelho dele TODA gravação no
   banco. Quem mexer em coroa/presença/dispatch: manter o `if (espectador)`. Trava: `npm run espectador`.
-- **⚡ ENVELOPE ÚNICO = o 4º jeito de dar lance (28/10, mockup `scripts/mockups/envelope-unico.png`, só na conta dele por enquanto).**
+- **⚡ ENVELOPE ÚNICO = o 4º jeito de dar lance (28/10, mockup `scripts/mockups/envelope-unico.png`; 🟢 LIBERADO PRA TODOS no mesmo dia com selo NOVO, e o Relâmpago trocou "em testes" por NOVO).**
   As 5 posições num envelope só, **180s** (*"tempo de 90s troque para 180s"*), uma revelação só, empate = sorteio. Partida Rápida + salas
-  (Rápido/Minhas Ligas); nunca carreira, nunca duplas. Usa o MESMO motor da leva (`leilaoResolveLeva`). Trava `npm run envelope-unico`.
+  (Rápido/Minhas Ligas); nunca carreira, nunca duplas. Usa o MESMO motor da leva (`leilaoResolveLeva`). 🔁 **2ª LISTA** (28/10, *"muita carta no monte"*): o que sobra volta num 2º envelope (90s, só posições com vaga de gente) e só depois vai pro Monte. Selo na lista de salas = `ls_pregao = 'unico'`. Trava `npm run envelope-unico`.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).

@@ -7039,16 +7039,21 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
 // O leilão às cegas de sempre, só que as 5 posições abrem JUNTAS num envelope de 180s e saem numa revelação só.
 // Empate = sorteio na hora (sem rodada de desempate). O que ninguém levou vai pro Monte de sempre.
 export const ENVELOPE_UNICO_MS = 180_000
-function abreEnvelopeUnico(state: EscState) {
+// 🔁 2ª LISTA (28/10, Diego testou e viu "muita carta no monte"): depois da 1ª revelação, o que SOBROU volta num 2º envelope
+// (só as posições em que ainda tem gente com vaga). Só depois dela é que vai pro Monte. Mais curta: são poucas cartas.
+export const ENVELOPE_UNICO_2_MS = 90_000
+function abreEnvelopeUnico(state: EscState, sobras?: Card[]) {
   state.phase = 'envelope'
   state.euAberto = true
   state.euRevelando = false
-  state.currentCards = SECTORS.flatMap(p => state.deck[p] ?? [])
+  state.euRodada = sobras ? 2 : 1
+  state.euSobras = undefined
+  state.currentCards = sobras ?? SECTORS.flatMap(p => state.deck[p] ?? [])
   state.revealQueue = []
   state.revealIdx = 0
   state.submitted = []
   state.pendingEnvelopes = {}
-  state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ENVELOPE_UNICO_MS
+  state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + (sobras ? ENVELOPE_UNICO_2_MS : ENVELOPE_UNICO_MS)
   if (state.currentCards.length === 0) { selaEnvelopeUnico(state); return }
   if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[0]).length === 0) selaEnvelopeUnico(state)
 }
@@ -7069,14 +7074,16 @@ function selaEnvelopeUnico(state: EscState) {
     for (const k of Object.keys(envs)) env[Number(k)] = (envs[Number(k)] ?? []).filter(b => ids.has(b.cardId))
     state.pendingEnvelopes = env
     state.submitted = []
-    const { queue, unsold, ties } = leilaoResolveLeva(state, false)
+    const { queue, unsold, ties } = leilaoResolveLeva(state, state.euRodada === 2) // 2ª lista = repescagem (o bot entra no modo de completar)
     state.revealQueue = queue // o desempate acha a carta aqui pra anotar quem levou
     const rng = rngOf(state)
     for (const tb of ties) resolveOneTiebreak(state, tb, rng, true) // 🎲 empate = sorteio na hora
     fila.push(...state.revealQueue)
     sobras.push(...unsold)
   }
-  montePush(state, sobras)
+  // 1ª lista: as sobras ESPERAM a revelação acabar e voltam na 2ª lista · 2ª lista: aí sim, Monte
+  if (state.euRodada === 2) montePush(state, sobras)
+  else state.euSobras = sobras
   state.currentCards = []
   state.pendingEnvelopes = {}
   state.submitted = []
@@ -7131,7 +7138,7 @@ function humansToSubmit(state: EscState, pos: Sector): number[] {
   // 🧢 setor técnico: não existe "vaga de posição" — quem tem dinheiro dá lance
   // ⚡ envelope único: lacra quem tem vaga em QUALQUER posição (e dinheiro)
   const eligible = state.managers.filter(m => m.isHuman && !m.dormindo && (state.tecLote ? m.money > 0
-    : state.euAberto ? (m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0))
+    : state.euAberto ? (m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0 && state.currentCards.some(c => c.pos === p))) // 2ª lista: só quem tem vaga onde sobrou carta
     : (openSlots(m, pos) > 0 && m.money > 0)))
   // 🏛️ MULTICLUBES / SOLO: no solo SÓ o assento ATIVO (youIdx) consegue lacrar
   // pela tela. Qualquer OUTRO assento humano (o 2º clube do Multiclubes — dormindo,
@@ -7166,6 +7173,17 @@ function afterReveal(state: EscState) {
   // ⚡ acabou a revelação ÚNICA: as 5 posições já foram — segue pro Monte de sempre
   if (state.euRevelando) {
     state.euRevelando = false
+    // 🔁 acabou a 1ª revelação: as sobras das posições em que ainda tem GENTE com vaga e dinheiro voltam na 2ª lista
+    // (mesma régua da repescagem de sempre: bot fiador não força lista nova). O resto vai pro Monte já.
+    if (state.euRodada === 1) {
+      const sobras = state.euSobras ?? []
+      state.euSobras = undefined
+      const comVaga = new Set(SECTORS.filter(p => state.managers.some(m => m.isHuman && !m.backstop && !m.dormindo && m.money > 0 && openSlots(m, p) > 0)))
+      const volta = sobras.filter(c => comVaga.has(c.pos as Sector))
+      montePush(state, sobras.filter(c => !comVaga.has(c.pos as Sector)))
+      if (volta.length) { abreEnvelopeUnico(state, volta); return }
+    }
+    state.euRodada = undefined
     state.currentCards = []
     state.sectorIdx = SECTORS.length - 1
     advanceSectorOrFinish(state, rngOf(state))
@@ -7404,7 +7422,7 @@ function proximoDoDraft(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -8044,7 +8062,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.paPresentes = undefined
       if (s.pregaoAberto) s.holandes = false
       // ⚡ envelope único (28/10): só no rápido; é o 4º jeito de dar lance, então desliga os outros dois
-      s.envUnico = !action.career && !action.dinastia && !!action.envUnico; s.euAberto = false; s.euRevelando = false
+      s.envUnico = !action.career && !action.dinastia && !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
@@ -8543,7 +8561,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerOnline = true
       // 🔨🐊 21/10 (amigo do Diego criou carreira e caiu no PREGÃO ABERTO): a carreira é SEMPRE o envelope de sempre. Antes daqui
       // nada zerava a marca do jogo rápido anterior (pregão aberto/Tocaia) e a carreira nova herdava.
-      s.pregaoAberto = false; s.pa = undefined; s.holandes = false; s.envUnico = false; s.euAberto = false; s.euRevelando = false
+      s.pregaoAberto = false; s.pa = undefined; s.holandes = false; s.envUnico = false; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
@@ -8845,7 +8863,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
       // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
-      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; s.euAberto = false; s.euRevelando = false
+      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).

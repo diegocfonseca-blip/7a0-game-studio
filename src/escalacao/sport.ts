@@ -343,7 +343,7 @@ export function useLigaDraftLiberada(): boolean {
 // ⚡ MATA-MATA RELÂMPAGO (28/10, mockup `scripts/mockups/mata-relampago.png`) — competição nova das salas online: leilão de sempre
 // e direto pro mata-mata (chave de 16 ou 32, ida e volta, final em jogo único). Começa só na conta do Diego (CRIAR a sala; quem
 // ele chamar entra e joga normal). Liberar geral = RELAMPAGO_GERAL = true.
-const RELAMPAGO_GERAL = true // 🟢 28/10 LIBERADO PRA TODOS com o selo verde "EM TESTES" (*"qd publicar pode por o todos e apenas escrever em testes"*)
+const RELAMPAGO_GERAL = true // 🟢 28/10 LIBERADO PRA TODOS — o selo "EM TESTES" virou "NOVO" no mesmo dia (Diego) (*"qd publicar pode por o todos e apenas escrever em testes"*)
 const RELAMPAGO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let relampagoOk = RELAMPAGO_GERAL
 function applyRelampago(email?: string | null): void {
@@ -354,7 +354,7 @@ function applyRelampago(email?: string | null): void {
 }
 // ⚡ ENVELOPE ÚNICO (28/10, Diego: "pode fazer esse modo mas apenas na minha conta por enquanto e faça tb pro partida rápida").
 // Liberar geral = ENVELOPE_UNICO_GERAL = true.
-const ENVELOPE_UNICO_GERAL = false
+const ENVELOPE_UNICO_GERAL = true // 🟢 28/10: liberado pra todos (Diego: "publique p todos agora e coloque selo de novo")
 const ENVELOPE_UNICO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com']) // + Futpoint FC (28/10, Diego: "libere pro Futpoint… partida rápida também")
 let envelopeUnicoOk = ENVELOPE_UNICO_GERAL
 function applyEnvelopeUnico(email?: string | null): void {

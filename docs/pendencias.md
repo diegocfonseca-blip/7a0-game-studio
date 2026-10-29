@@ -10,6 +10,16 @@
   esc_compras_batismo 'lenda'. Gala: a PADRÃO de batismo (liga sozinha pelo e-mail).
 - Post: `scripts/posts/batismo-lulubaba-fc.png`.
 
+## 🟢 Envelope único LIBERADO PRA TODOS (28/10) + selos
+Selo NOVO na criação (sala e partida rápida); Relâmpago trocou "em testes" por NOVO; selo ⚡ ENVELOPE ÚNICO na lista de salas, no filtro
+"⚡ Único" e na sala de espera (o banco grava `ls_pregao = 'unico'`, migration `20261028200000_ls_envunico.sql`). Duplas: ainda NÃO.
+
+## ⚡🔁 Envelope único: 2ª LISTA antes do Monte (28/10) — ✅ PUBLICADO
+Diego testou: *"tá ficando muita carta no monte… depois da primeira leva volta pras sobras… uma segunda lista… só depois disso que vai
+ter monte"*. Agora: 1ª lista (as 5 posições, 180s) → revelação → **2ª lista** com o que sobrou, só nas posições em que ainda tem GENTE
+com vaga e dinheiro (90s, `ENVELOPE_UNICO_2_MS`; bot entra no modo repescagem) → revelação → Monte. Sobra de posição que ninguém
+precisa vai direto pro Monte. Estado: `euRodada` (1|2) e `euSobras`. Trava `npm run envelope-unico` confere as duas listas.
+
 ## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — ✅ PUBLICADO (*"pode aprovar tudo"*)
 - Dono `alexandre12cdm@gmail.com` (conta de 27/10 ✔; o time dele "Pits FC" virou **dSouza FC** no `display_name`; sem carreira
   na nuvem). **Série C**, no assento do bot **Kombi United** (`OLD_NAME`; o Kombi segue no jogo rápido, nome velho NÃO desenha o
