@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
@@ -910,6 +911,11 @@ const chelsaoEscudoRender = (size: number) => (
 
 // ⭐🦁 VILA ESPORTE CLUBE (oluisantonio.contato, batismo de 27/10) — Série D, no assento do bot Imperador SAF. 📏 360×359, 29 KB.
 // Escudo redondo preto e branco com a estrela e o monograma VEC. Fundo verde chroma tirado; conferido sobre creme e verde.
+// 🧤💛 LULUBABA FC (lucasfonseca363, batismo de 29/10) — Série D, no assento do bot Fênix Dourada. 📏 297×360, 27 KB.
+// O goleiro de cabelo platinado com as luvas de coroa, na frente do gol, amarelo e preto. Fundo verde chroma tirado; conferido sobre vermelho.
+const lulubabaEscudoRender = (size: number) => (
+  <img src={lulubabaEscudoImg} height={size} width={Math.round(size * 297 / 360)} alt="Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐶💚 dSOUZA FC (alexandre12cdm, batismo FUNDADOR de 28/10) — Série C, no assento do bot Kombi United. 📏 360×334, 26 KB.
 // O pitbull de boné dSouza FC com os quadros das lendas, preto e verde-neon. Fundo verde chroma tirado; conferido sobre creme e vermelho.
 const dsouzaEscudoRender = (size: number) => (
@@ -1584,6 +1590,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Chelsão da Massa SC': chelsaoEscudoRender,
   'CRBebê': chelsaoEscudoRender,
   'Peteca FR': chelsaoEscudoRender,
+  // 🧤💛 Lulubaba FC (lucasfonseca363) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
+  'Lulubaba FC': lulubabaEscudoRender,
+  'Lulubaba': lulubabaEscudoRender,
+  'Lulubaba EC': lulubabaEscudoRender,
+  'Lulubaba SC': lulubabaEscudoRender,
+  'Fênix Dourada': lulubabaEscudoRender,
   // 🐶💚 dSouza FC (alexandre12cdm) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Kombi United (bot que cedeu o
   // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'dSouza FC': dsouzaEscudoRender,

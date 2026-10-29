@@ -1,3 +1,15 @@
+## 🧤💛 Batismo Lulubaba FC (29/10) — ✅ código + banco feitos
+- Dono `lucasfonseca363@gmail.com` (conta de 29/10 00:40 UTC, nome "Lulubaba FC", coração **Botafogo**). ⚠️ O Diego tinha mandado
+  `lucasfgbarreto@gmail.com` (conta "Lucas_14", criada 2 min antes); ele confirmou: *"ele fez nesse e-mail aí q tá lulubaba"*.
+- **Série D**, no assento do bot **Fênix Dourada** (`OLD_NAME`; o nome velho também desenha o escudo — só existia na pirâmide).
+  Técnico "Lucas". Batismo de 79,90 → SEM número de fundador (`SEM_FUNDADOR`).
+- Arte do dono (prancha com fundo verde; recorte com peso maior no azul pra não comer o verde da tinta atrás do goleiro; pontinhos
+  soltos tirados): escudo 297×360/27 KB · mascote **O Goleiro** 440×351/42 KB · camisa da Loja 536×620/35 KB.
+  Manto medido: amarelo #D9D811 + preto #090906.
+- Banco: user_colors ouro+manual · esc_socios **80** (manto, `lulubaba_goleiro`, Botafogo) · esc_nomes_batismo "Lulubaba" ·
+  esc_compras_batismo 'lenda'. Gala: a PADRÃO de batismo (liga sozinha pelo e-mail).
+- Post: `scripts/posts/batismo-lulubaba-fc.png`.
+
 ## 🟢 Envelope único LIBERADO PRA TODOS (28/10) + selos
 Selo NOVO na criação (sala e partida rápida); Relâmpago trocou "em testes" por NOVO; selo ⚡ ENVELOPE ÚNICO na lista de salas, no filtro
 "⚡ Único" e na sala de espera (o banco grava `ls_pregao = 'unico'`, migration `20261028200000_ls_envunico.sql`). Duplas: ainda NÃO.

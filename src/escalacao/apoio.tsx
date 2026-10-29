@@ -119,6 +119,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'vittor@tidex.com.br': 'ouro', // 👑 batismo Wen Milan B (Série A, plano 🖋 Fundador, no assento do Al Takhadao FC, que desceu pra C) + fundador nº92 + sócio nº76 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
+  'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo Lulubaba FC (Série D, no assento do bot Fênix Dourada) + sócio nº80 (29/10). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo Neymar FC (Série D, no assento do bot Galáxia EC) + sócio nº77 (21/10). Batismo de 79,90: SEM número de fundador (regra 14/10).

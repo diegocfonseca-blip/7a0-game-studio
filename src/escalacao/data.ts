@@ -3673,6 +3673,7 @@ export const OLD_NAME: Record<string, string> = {
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Pesadelo Verde FC': 'Zé Colmeia', // 🌑🐺 batismo do portaltech.ep (18/09): assumiu o assento da Série C que era do Zé Colmeia — save antigo com Zé Colmeia vira Pesadelo Verde FC ao abrir. (O Zé Colmeia continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
+  'Lulubaba FC': 'Fênix Dourada', // 🧤💛 batismo do lucasfonseca363 (29/10): assumiu o assento da Série D que era do bot Fênix Dourada — save antigo com Fênix Dourada vira Lulubaba FC ao abrir.
   'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
   'Vila Esporte Clube': 'Imperador SAF', // ⭐🦁 batismo do oluisantonio.contato (27/10): assumiu o assento da Série D que era do bot Imperador SAF — save antigo com Imperador SAF vira Vila Esporte Clube ao abrir.
   'Neymar_FC': 'Galáxia EC', // 🐐👑 batismo do sheeryarie772 (21/10): assumiu o assento da Série D que era do bot Galáxia EC — save antigo com Galáxia EC vira Neymar FC ao abrir.
@@ -4055,7 +4056,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Bode Rei', team: 'Neymar_FC' }, // 🐐👑 clube BATIZADO por apoiador (sheeryarie772 — Neymar_FC (com underline, é como ele joga), ex-Galáxia EC, Série D; coração SÃO PAULO; escudo dourado com o bode coroado, mascote O Bode Rei; creme #F2D8B8 + preto #090806 MEDIDOS na camisa; ouro + sócio nº77, 21/10). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Leão', team: 'Vila Esporte Clube' }, // ⭐🦁 clube BATIZADO por apoiador (oluisantonio.contato — Vila Esporte Clube, ex-Imperador SAF, Série D; coração ATLÉTICO MINEIRO; escudo VEC com a estrela, mascote O Leão; preto #0C0C0C + branco #DADADA MEDIDOS na camisa; ouro + sócio nº78, 27/10). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Realeza', team: 'Scorporila FC' }, // ⚽ clube BATIZADO por apoiador (lucassrribeiroo2023 — Scorporila FC, ex-Realeza FC)
-    { name: 'Fênix', team: 'Fênix Dourada' },
+    { name: 'Lucas', team: 'Lulubaba FC' }, // 🧤💛 clube BATIZADO por apoiador (lucasfonseca363 — Lulubaba FC, ex-Fênix Dourada, Série D; coração BOTAFOGO; escudo do goleiro platinado com as luvas de coroa, mascote O Goleiro; amarelo #D9D811 + preto #090906 MEDIDOS na camisa; ouro + sócio nº80, 29/10). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Gabriel', team: 'Deportivo Montreal' }, // ⚽ clube BATIZADO por apoiador (nevesgabriel95 — Deportivo Montreal, ex-Titan Capital; Lenda + fundador, 11/08)
     { name: 'Luiz', team: 'Remoçada' }, // ⚽ clube BATIZADO por apoiador (luiz.maia.luiz — Remoçada, ex-Olimpo FC; Leão do Remo/Thor, Lenda + fundador nº35, 12/08)
     { name: 'Continental', team: 'Continental Real' },
