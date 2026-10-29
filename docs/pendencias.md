@@ -1,3 +1,14 @@
+## 🧤🖤 Lulubaba FC vira FUNDADOR + arte nova + canto + gala própria (29/10) — ⏳ esperando OK do Diego
+- Pedido: *"atualize o time do lulubaba fc c/ canto de torcida, novo visual… quero ele fundador agora e c/ entrada personalizada
+  lembrando q ele é goleiro do Botafogo"*.
+- Código (no branch): escudo/mascote novos (328×360 26 KB · 440×342 42 KB), manto **preto #161516 + branco #E3E2E2** medido na
+  camisa nova (`manto.ts` + `batismos.ts`), camisa da Loja `lulubaba-camisa-v2.webp`, `FUNDADOR_N` **95**, saiu do `SEM_FUNDADOR`,
+  canto `sfx/torcida-lulubaba-v1.mp3` (9 s da torcida do Botafogo, −20,6 dB) na carreira e na gala, gala única `gala-lulubaba.tsx`
+  ("O Paredão Alvinegro": estrela solitária, 3 chutes, o Goleiro pega no ângulo).
+- ⏳ **Banco, NA HORA DE PUBLICAR**: `esc_fundadores` (lucasfonseca363, 95) · `esc_socios` manto → #161516/#E3E2E2 (o banco
+  ganha do código!) · `esc_compras_batismo` plano 'lenda' → 'plus'.
+- Post: `scripts/posts/batismo-lulubaba-fc-v2.png` · vídeo `scripts/posts/gala-lulubaba.mp4`.
+
 ## 🧤💛 Batismo Lulubaba FC (29/10) — ✅ código + banco feitos
 - Dono `lucasfonseca363@gmail.com` (conta de 29/10 00:40 UTC, nome "Lulubaba FC", coração **Botafogo**). ⚠️ O Diego tinha mandado
   `lucasfgbarreto@gmail.com` (conta "Lucas_14", criada 2 min antes); ele confirmou: *"ele fez nesse e-mail aí q tá lulubaba"*.

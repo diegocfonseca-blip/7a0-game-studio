@@ -406,7 +406,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // amarelo e preto e luvas com coroa, numa explosão de tinta verde e amarela. Arte do próprio dono. 📏 440×351, 42 KB — altura 176.
   // mascote_key = "lulubaba_goleiro".
   lulubaba_goleiro: (
-    <img src={lulubabaMascoteImg} height={176} width={Math.round(176 * 440 / 351)} alt="O Goleiro — Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={lulubabaMascoteImg} height={176} width={Math.round(176 * 440 / 342)} alt="O Goleiro — Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐶 O PITBULL (mascote do dSouza FC — alexandre12cdm, 28/10): o pitbull de boné e moletom dSouza FC carregando os quadros
   // das lendas, com as caixas da loja dele. Arte do próprio dono. 📏 398×440, 32 KB — altura 176. mascote_key = "dsouza_pitbull".
