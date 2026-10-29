@@ -1,3 +1,10 @@
+## 🐐👑 Neymar_FC vira FUNDADOR nº97 + canto do São Paulo + gala própria (29/10) — ⏳ esperando OK do Diego
+- Dono `sheeryarie772@gmail.com` (já tinha comprado o plano Fundador: `esc_compras_batismo` = 'plus'). Código no branch:
+  `FUNDADOR_N` 97, saiu do `SEM_FUNDADOR`, canto = o MESMO do Wen Milan B (`torcida-spfc-wen-v1.mp3`), gala única `gala-neymarfc.tsx`
+  ("O G.O.A.T.": as letras G·O·A·T carimbam, o 10 dourado, o Bode Rei no pedestal, BÉÉÉ!, a coroa na cabeça do bode, moedas).
+- ⏳ **Banco, NA HORA DE PUBLICAR**: `esc_fundadores` (sheeryarie772, 97).
+- Vídeo `scripts/posts/gala-neymarfc.mp4` · quadros `scripts/posts/gala-neymarfc-quadros.png`.
+
 ## 📷 Telão com foto do produto (29/10) — ✅ publicado
 - Mockup `scripts/mockups/telao-foto-haval.png` (*"ok publique esse do haval"*). Foto pequena no canto direito da MESMA placa (84 px,
   medido), só no anúncio que tem foto. A foto casa pelo TEXTO (`FOTOS_ANUNCIO` em `patrocinio.ts`, regex): trocou o carro no #admin,

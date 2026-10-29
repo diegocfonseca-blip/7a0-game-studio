@@ -123,7 +123,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
-  'sheeryarie772@gmail.com': 'ouro', // 👑 batismo Neymar FC (Série D, no assento do bot Galáxia EC) + sócio nº77 (21/10). Batismo de 79,90: SEM número de fundador (regra 14/10).
+  'sheeryarie772@gmail.com': 'ouro', // 👑 batismo FUNDADOR Neymar FC (Série D, no assento do bot Galáxia EC) + fundador nº97 + sócio nº77 (21/10; subiu de Batismo pra Fundador em 29/10).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
   'luizeduardorossini0013@gmail.com': 'ouro', // 👑 Lenda — batismo Rossini Money (Série A, no assento do Bagres de Wall Street FC, que desceu pra B) + fundador nº90 + sócio nº71 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'henriquejunger07@gmail.com': 'ouro', // 👑 Lenda — batismo Le Prince FC (Várzea, no assento do bot Perna de Pau City) + fundador nº87 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -242,7 +242,8 @@ const FUNDADOR_N: Record<string, number> = {
   'vittor@tidex.com.br': 92, // 😈🔴⚫ Wen Milan B (17/10, plano Fundador)
   'alexandre12cdm@gmail.com': 94, // 🐶💚 dSouza FC (28/10, plano Fundador)
   'lucasfonseca363@gmail.com': 95,
-  'bruno.cunha2007@gmail.com': 96, // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
+  'bruno.cunha2007@gmail.com': 96,
+  'sheeryarie772@gmail.com': 97, // 🐐👑 Neymar_FC (29/10, subiu de Batismo pra Fundador) // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
   'gfpicolo13@gmail.com': 93, // 📍 Futpoint FC (18/10, Diego deu o plano Fundador; o 92 está guardado pro Wen Milan B)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)
   'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)
