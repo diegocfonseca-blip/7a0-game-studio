@@ -1,11 +1,14 @@
-## ⚫⭐ Batismo Lulubaba FC (29/10) — BANCO FEITO, CÓDIGO ESPERANDO A ARTE
-- Dono `lucasfonseca363@gmail.com` (conta criada 29/10 00:40 UTC, nome "Lulubaba FC", coração **Botafogo**). ⚠️ O Diego tinha mandado
-  `lucasfgbarreto@gmail.com` — essa conta também foi criada 2 min antes, com o nome "Lucas_14". Diego: *"faça… ele fez nesse e-mail aí
-  q tá lulubaba"* → o batismo é do **lucasfonseca363**.
-- Banco feito: user_colors ouro+manual · esc_socios **80** (escudo_time "Lulubaba FC", Botafogo; manto/mascote vazios até a arte) ·
-  esc_nomes_batismo "Lulubaba" (FC/EC pelo gatilho) · esc_compras_batismo 'lenda' (Batismo 79,90 → SEM número de fundador).
-- ⏳ Falta: arte (escudo, mascote, camisa) → código padrão (`LOGOS_PRONTAS`, `MASCOTES`, `data.ts` + assento, `apoio.tsx`, `manto.ts`,
-  `batismos.ts`, `salao-camisas.ts`, `checa-batismos.mjs` com `SEM_FUNDADOR`) + manto/mascote no `esc_socios` + post.
+## 🧤💛 Batismo Lulubaba FC (29/10) — ✅ código + banco feitos
+- Dono `lucasfonseca363@gmail.com` (conta de 29/10 00:40 UTC, nome "Lulubaba FC", coração **Botafogo**). ⚠️ O Diego tinha mandado
+  `lucasfgbarreto@gmail.com` (conta "Lucas_14", criada 2 min antes); ele confirmou: *"ele fez nesse e-mail aí q tá lulubaba"*.
+- **Série D**, no assento do bot **Fênix Dourada** (`OLD_NAME`; o nome velho também desenha o escudo — só existia na pirâmide).
+  Técnico "Lucas". Batismo de 79,90 → SEM número de fundador (`SEM_FUNDADOR`).
+- Arte do dono (prancha com fundo verde; recorte com peso maior no azul pra não comer o verde da tinta atrás do goleiro; pontinhos
+  soltos tirados): escudo 297×360/27 KB · mascote **O Goleiro** 440×351/42 KB · camisa da Loja 536×620/35 KB.
+  Manto medido: amarelo #D9D811 + preto #090906.
+- Banco: user_colors ouro+manual · esc_socios **80** (manto, `lulubaba_goleiro`, Botafogo) · esc_nomes_batismo "Lulubaba" ·
+  esc_compras_batismo 'lenda'. Gala: a PADRÃO de batismo (liga sozinha pelo e-mail).
+- Post: `scripts/posts/batismo-lulubaba-fc.png`.
 
 ## 🐶💚 Batismo FUNDADOR dSouza FC (28/10) — ✅ PUBLICADO (*"pode aprovar tudo"*)
 - Dono `alexandre12cdm@gmail.com` (conta de 27/10 ✔; o time dele "Pits FC" virou **dSouza FC** no `display_name`; sem carreira
