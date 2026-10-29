@@ -119,6 +119,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'vittor@tidex.com.br': 'ouro', // 👑 batismo Wen Milan B (Série A, plano 🖋 Fundador, no assento do Al Takhadao FC, que desceu pra C) + fundador nº92 + sócio nº76 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
+  'bruno.cunha2007@gmail.com': 'ouro', // 👑 batismo FUNDADOR Piranhão FC (Série D, no assento do bot Continental Real) + fundador nº96 + sócio nº81 (29/10).
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
@@ -240,7 +241,8 @@ const FUNDADOR_N: Record<string, number> = {
   'matheussoaresg2018@gmail.com': 91, // 🤠🔵 Cuiudos FC (17/10, plano Fundador)
   'vittor@tidex.com.br': 92, // 😈🔴⚫ Wen Milan B (17/10, plano Fundador)
   'alexandre12cdm@gmail.com': 94, // 🐶💚 dSouza FC (28/10, plano Fundador)
-  'lucasfonseca363@gmail.com': 95, // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
+  'lucasfonseca363@gmail.com': 95,
+  'bruno.cunha2007@gmail.com': 96, // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
   'gfpicolo13@gmail.com': 93, // 📍 Futpoint FC (18/10, Diego deu o plano Fundador; o 92 está guardado pro Wen Milan B)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)
   'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)

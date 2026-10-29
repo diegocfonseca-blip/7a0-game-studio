@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
 import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
@@ -913,6 +914,12 @@ const chelsaoEscudoRender = (size: number) => (
 // Escudo redondo preto e branco com a estrela e o monograma VEC. Fundo verde chroma tirado; conferido sobre creme e verde.
 // 🧤🖤 LULUBABA FC (lucasfonseca363, batismo de 29/10; virou 🖋 Fundador e trocou a arte no mesmo dia — goleiro do Botafogo) — Série D, no assento do bot Fênix Dourada. 📏 328×360, 26 KB.
 // O goleiro de cabelo platinado com as luvas de coroa, na frente do gol, amarelo e preto. Fundo verde chroma tirado; conferido sobre vermelho.
+// 🐟🏛️ PIRANHÃO FC (bruno.cunha2007, batismo FUNDADOR de 29/10) — Série D, no assento do bot Continental Real. 📏 269×290, 29 KB
+// (290 e não 360: arte cheia de detalhe, em 360 dava 39 KB; na tela o escudo nunca passa de 78px). O Presidente coroado de camisa
+// alvinegra, as duas piranhas na água, os louros e a faixa "LÁ EM CASA TODO MUNDO É 13". Fundo verde chroma tirado; conferido sobre vermelho.
+const piranhaoEscudoRender = (size: number) => (
+  <img src={piranhaoEscudoImg} height={size} width={Math.round(size * 269 / 290)} alt="Piranhão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const lulubabaEscudoRender = (size: number) => (
   <img src={lulubabaEscudoImg} height={size} width={Math.round(size * 328 / 360)} alt="Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1591,6 +1598,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'CRBebê': chelsaoEscudoRender,
   'Peteca FR': chelsaoEscudoRender,
   // 🧤💛 Lulubaba FC (lucasfonseca363) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
+  'Piranhão FC': piranhaoEscudoRender, // 🐟🏛️ Piranhão FC (bruno.cunha2007) — BATISMO FUNDADOR. As formas do nome (com e sem til) + o bot que cedeu o assento.
+  'Piranhão': piranhaoEscudoRender,
+  'Piranhão EC': piranhaoEscudoRender,
+  'Piranhão SC': piranhaoEscudoRender,
+  'Piranhao FC': piranhaoEscudoRender,
+  'Piranhao': piranhaoEscudoRender,
+  'Continental Real': piranhaoEscudoRender,
   'Lulubaba FC': lulubabaEscudoRender,
   'Lulubaba': lulubabaEscudoRender,
   'Lulubaba EC': lulubabaEscudoRender,
