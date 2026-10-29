@@ -1,3 +1,11 @@
+## 🪜 Bônus da casa da Série D: +3 → +2 (29/10, *"coloque a série D +2 então"*) — no branch, esperando "publica"
+Análise pedida (*"acho que tá difícil subir da várzea pra D e da D pra C"*): no banco, 66% das carreiras param nas 4 primeiras
+temporadas; com 10–19 temporadas só 29% ganharam a D e 5% a C. Causa (já anotada em 28/10): V e D só compram até "Bom" + o bônus dos
+times da casa. Feito: `CPU_DIV_BOOST_V6` = A 2 · B 4 · C 4 · **D 2** · V 2, travado por `simV = 6` (só de temporada NOVA; a que está rolando
+termina na tabela antiga). Reverter = trocar os `s.simV = 6` de volta pra 5. ⚠️ Tentei medir numa bancada rápida (buildPyramid + simulatePyramid
+com elenco sintético) e ela deu 100% de acesso em tudo — o mundo montado sem as colocações reais não representa a carreira; NÃO usar
+esses números. Medida de verdade = a simulação pela tela (sessão de 28/10).
+
 ## 🐐👑 Neymar_FC vira FUNDADOR nº97 + canto do São Paulo + gala própria (29/10) — ✅ publicado (frase "SAI DA FRENTE QUE O GOAT CHEGOU")
 - Dono `sheeryarie772@gmail.com` (já tinha comprado o plano Fundador: `esc_compras_batismo` = 'plus'). Código no branch:
   `FUNDADOR_N` 97, saiu do `SEM_FUNDADOR`, canto = o MESMO do Wen Milan B (`torcida-spfc-wen-v1.mp3`), gala única `gala-neymarfc.tsx`
