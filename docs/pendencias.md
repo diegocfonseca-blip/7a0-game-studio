@@ -1,6 +1,6 @@
 ## ⭐ Cativeiro FC (ws251338) — Craque Completo ligado de verdade (29/10)
 - O Diego tinha dado "Craque" pelo 💛 (só `user_colors` prata = Craque ANTIGO, sem sala à vontade). O Craque Completo mensal mora em
-  `esc_assinatura_mensal` (plano `craque_completo`, `conta_ok`, `valido_ate`). Inserida a linha até 29/11/2026 → `salas_pagas` = true.
+  `esc_assinatura_mensal` (plano `craque_completo`, `conta_ok`, `valido_ate`). Inserida a linha → `salas_pagas` = true. **Exceção do Diego: 12 meses (até 29/10/2027)**; se ele virar Lenda, aí é definitivo.
 - ⚠️ A pensar: o botão 💛 do #admin dá só a COR, não o plano mensal. Dar "Craque completo" pelo #admin deveria gravar a assinatura.
 
 ## 🐐👑 Neymar_FC vira FUNDADOR nº97 + canto do São Paulo + gala própria (29/10) — ✅ publicado (frase "SAI DA FRENTE QUE O GOAT CHEGOU")
