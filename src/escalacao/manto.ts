@@ -114,6 +114,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'ccaonta@gmail.com': ['#032169', '#E4A745'],
   // 🐐👑 Neymar FC — CREME e PRETO, MEDIDOS na camisa que o dono mandou (21/10): creme do corpo (mediana dos pixels claros,
   // #F2D8B8) e o preto das faixas, gola e punhos (#090806). O dourado dos frisos fica de fora (manto é de 2 cores).
+  // 🧤💛 Lulubaba FC — AMARELO e PRETO, MEDIDOS na camisa que o dono mandou (29/10): amarelo do corpo (média, #D9D811) e o
+  // preto das laterais e da gola (#090906).
+  'lucasfonseca363@gmail.com': ['#D9D811', '#090906'],
   // 🐶💚 dSouza FC — PRETO e VERDE-NEON, MEDIDOS na camisa que o dono mandou (28/10): preto do corpo (64%, #0A0A09) e o
   // verde-neon das faixas (média dos pixels neon, #73E541).
   'alexandre12cdm@gmail.com': ['#0A0A09', '#73E541'],
