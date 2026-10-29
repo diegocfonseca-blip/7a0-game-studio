@@ -881,8 +881,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Quem FECHA a semana no top 3 fica com a medalha 🥇🥈🥉 no nome por 30 dias (`ganhas` na vitrine, lida de `esc_premio_semana`);
   quem está no pódio AGORA leva medalha + moldura + fita na sala **e no chat** (linha miúda "1º DA SEMANA" em cima do crachá). ⚠️ A
   moldura olha o **id da conta** (`podioDeUid`, vitrine-dados), nunca o emoji do nome — com medalha de 30 dias no nome, "tem 🥇"
-  não diz mais quem é o 1º de agora. Pódio da semana passada: caixa embaixo do ranking + telão **ROXO** nas salas (rosa é do Super
-  Chat, dourado é do anúncio), a semana inteira — e o texto do ranking promete isso como prêmio (*"propaganda da vitória no telão"*).
+  não diz mais quem é o 1º de agora. Pódio da semana passada: caixa embaixo do ranking. 🚫 **29/10: SAIU DO TELÃO** (técnicos E clãs) e nenhum texto promete
+  mais isso (*"tire o rank da semana e clã da semana do telão… não prometam mais isso"*) — o Diego vai usar o telão pra outra coisa.
+  Desligado em `PODIO_NO_TELAO` (patrocinio.ts). Não religar sem ele pedir.
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,

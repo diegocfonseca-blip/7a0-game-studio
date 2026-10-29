@@ -1,3 +1,8 @@
+## 📺🚫 Pódio da semana (técnicos e clãs) SAIU do telão (29/10) — no branch, esperando "publica"
+Diego: *"tire o rank da semana e clã da semana do telão das salas… e tire a info lá do rank da semana e do clã… não prometam mais
+isso"*. `PODIO_NO_TELAO = false` (patrocinio.ts); textos tirados da vitrine (ranking e clãs), do aviso de fim de semana
+(`aviso-semana.tsx`), da descrição do escudo do clã (`cla.tsx`) e de 2 linhas das novidades.
+
 ## 📅 LEILÃO DE DÉCADAS (28/10) — MOCKUP enviado, esperando OK (`scripts/mockups/leilao-decadas.png`)
 Ideia do Diego: igual ao 🧱 Clubes, mas o pacote é CLUBE + DÉCADA ("Atacantes do Flamengo · anos 80"); o mesmo clube pode sair em
 décadas diferentes. 3ª opção do "Tipo de leilão" (🃏 Jogador · 🧱 Clubes · 📅 Décadas), baralho Todos, selo 📅 DÉCADAS na lista e na
