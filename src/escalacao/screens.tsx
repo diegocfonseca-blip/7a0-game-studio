@@ -8325,7 +8325,10 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
 @keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
 .placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
 @keyframes placaBar{from{width:0}to{width:100%}}
-@media (prefers-reduced-motion:reduce){.placa-l{animation:none}}`}</style>
+.placa-foto{position:absolute;right:8px;top:9px;width:104px;height:66px;border-radius:9px;border:2px solid #FFC400;box-shadow:0 0 12px #FFC40088;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,#2a2a2a,#0a0a0a);animation:placaFoto .45s 1s cubic-bezier(.2,1.2,.4,1) both}
+.placa-foto img{width:100%;height:100%;object-fit:contain;display:block;padding:3px;box-sizing:border-box}
+@keyframes placaFoto{from{opacity:0;transform:translateX(24px) scale(.85)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.placa-l,.placa-foto{animation:none}}`}</style>
       {/* 17/10 (Diego): saiu a faixa creme de título ("pra ser mais discreto e um pouco menor") — o "Anúncio do dia" mora DENTRO da placa */}
       <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
         onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
@@ -8339,8 +8342,10 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
           <div className="placa-quem">{ad.recado.autor}</div>
           <div className="placa-m placa-rec" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99` }}><LetrasVirando texto={ad.texto} /></div>
         </> : <>
-          {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 16 : undefined }}><LetrasVirando texto={marca} /></div>}
-          <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
+          {/* 📷 29/10: anúncio com foto do produto — a foto no canto direito e o texto para antes dela (a placa não muda de tamanho) */}
+          {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 || (ad.foto && marca.length > 16) ? 16 : undefined, ...(ad.foto ? { right: 124 } : {}) }}><LetrasVirando texto={marca} /></div>}
+          <div className={`placa-o${marca ? '' : ' so'}`} style={ad.foto ? { right: 124 } : undefined}><LetrasVirando texto={oferta} atraso={180} /></div>
+          {ad.foto && <div className="placa-foto"><img src={ad.foto} alt="" /></div>}
         </>}
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>

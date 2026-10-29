@@ -17,6 +17,7 @@ import VADICO_PLACA from './img/placa-vadico.webp' // 🏟️ 23/10: placas no p
 import OITTO_PLACA from './img/placa-oittolabs.webp'
 import DSOUZA_LOGO from './img/patro-dsouza.webp' // 🐶 dSouza Empreendimentos (28/10): patrocínio Master
 import DSOUZA_PLACA from './img/patro-dsouza-placa.webp'
+import FOTO_HAVAL from './img/anuncio-vadico-haval.webp' // 🚗 29/10: a foto do Haval H6 que o Diego mandou, pro telão (240×168, 9 KB)
 import GECG_PLACA from './img/patro-gecg-placa.webp' // ⚽ Grêmio Campo Grande (23/10): placa deitada (escudo + nome) revezando com a Tidex
 
 export type Patrocinio = { nome: string; emoji: string }
@@ -123,7 +124,7 @@ export function usePatrocinio(kind: Competicao | null): Patrocinio | null {
 // 📢 ANÚNCIO DO DIA (o letreiro que era o giro da rodada): o avulso pago (24 h) passa antes do manual.
 // 📌 19/10 (Diego: "deveria aparecer no painel as três p eu remover editar ou add nova"): os MANUAIS agora moram no banco
 // (`esc_anuncios_fixos`, editados no #admin → "📌 Anúncios fixos"). A lista abaixo virou só RESERVA, usada quando a leitura falha.
-const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // reserva
+const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Haval H6 0 km blindado · Toque e fale com a loja' // reserva (29/10: o mesmo texto da linha do banco)
 // 🔗 17/10 (Diego): tocar na Vadico abre a oferta do carro do anúncio no site dela. Só anúncio MANUAL leva link (o pago de 24 h é
 // texto escrito pelo comprador e vai pro ar sem ninguém olhar — link ali seria porta pra golpe).
 // 📢 MAIS ANÚNCIOS MANUAIS (17/10, Diego), passando depois da Vadico, cada um com o próprio link:
@@ -151,7 +152,7 @@ const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
 ]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
-export type AnuncioGiro = { texto: string; cor: string; link?: string; recado?: { autor: string }; podio?: true; podioCla?: true; cla?: string } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
+export type AnuncioGiro = { texto: string; cor: string; link?: string; foto?: string; recado?: { autor: string }; podio?: true; podioCla?: true; cla?: string } // 💬 recado de jogador: rosa + nome do time · 🏆 pódio da semana: roxo (19/10)
 export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número máximo de caracteres… tipo o da Vadico")
 function usePodioPassado() {
   const [v, setV] = useState(podioPassada())
@@ -179,6 +180,13 @@ function usePodioClaPassado() {
   return liga ? v : []
 }
 const PODIO_NO_TELAO = false
+// 📷 FOTO DO PRODUTO NO TELÃO (29/10, mockup `scripts/mockups/telao-foto-haval.png`, *"ok publique esse do haval"*): pequena, no canto
+// direito da MESMA placa (o telão não muda de tamanho), só no anúncio que tem foto. A foto casa pelo TEXTO do anúncio (não pela
+// marca): se o Diego trocar o carro no #admin, a foto do Haval some sozinha em vez de mostrar o carro errado.
+const FOTOS_ANUNCIO: { quando: RegExp; foto: string }[] = [
+  { quando: /haval/i, foto: FOTO_HAVAL },
+]
+const comFoto = (a: AnuncioGiro): AnuncioGiro => { const f = FOTOS_ANUNCIO.find(x => x.quando.test(a.texto)); return f ? { ...a, foto: f.foto } : a }
 export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
   const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
@@ -196,9 +204,9 @@ export function useAnunciosGiro(): AnuncioGiro[] {
   if (PODIO_NO_TELAO && podio.length) out.push({ texto: podio.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, ...(claCampeao ? { cla: claCampeao } : {}) })
   if (PODIO_NO_TELAO && podioCla.length) out.push({ texto: podioCla.map(p => `${['', '🥇', '🥈', '🥉'][p.pos] ?? '🏅'} ${stripEmoji(p.nome).trim()}`).join(' · '), cor: '#C9A9FF', podio: true, podioCla: true })
   if (espacosOk()) {
-    if (fixos) out.push(...fixos)
+    if (fixos) out.push(...fixos.map(comFoto))
     else if (fixos === null) {
-      if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
+      if (GIRO_ANUNCIO) out.push(comFoto({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK }))
       out.push(...GIRO_MANUAIS)
     }
   }
