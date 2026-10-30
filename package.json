@@ -12,6 +12,7 @@
     "novidades": "node scripts/novidades-jogadores.mjs",
     "reddit": "node scripts/reddit-radar.mjs",
     "paises": "node scripts/paises-check.mjs",
+    "escudos-selecao": "node scripts/testa-escudos-selecao.mjs",
     "vigias": "node scripts/checa-vigias-online.mjs",
     "rank": "node scripts/checa-rank-liga.mjs",
     "telas": "node scripts/checa-telas.mjs",

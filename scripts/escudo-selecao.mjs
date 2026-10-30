@@ -118,6 +118,13 @@ if (MOCKUP) {
   const jogo = (a, b, s) => `
     <div style="display:flex;align-items:center;gap:8px;background:#fff;border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};padding:8px 10px;margin:6px 0;font:700 13px Oswald;text-transform:uppercase">
       ${img(a[0], s)} ${a[1]} <b style="margin:0 8px;font-size:16px">2 × 1</b> ${b[1]} ${img(b[0], s)}</div>`
+  // 🏷️ no jogo aparece o nome EM PORTUGUÊS (a chave de national-crest.tsx), nunca o nome do arquivo
+  // (30/10: o mockup mostrava "ALGERIA" e o Diego cortou: "é Argélia, não Algeria")
+  const crestSrc = readFileSync('src/escalacao/national-crest.tsx', 'utf8')
+  const nomesPt = JSON.parse(crestSrc.match(/const names: Record<string,string> = (\{.*\})/)[1])
+  const ptDe = f => Object.keys(nomesPt).find(k => nomesPt[k] === f) ?? f
+  const pares = []
+  for (let i = 0; i < feitos.length; i += 2) pares.push([feitos[i], feitos[i + 1] ?? 'paraguay'])
   const p2 = await browser.newPage({ viewport: { width: 412, height: 560 }, deviceScaleFactor: 2 })
   await p2.setContent(`<style>${FONTES}body{margin:0;background:#F4ECD6;color:${INK};padding:16px;width:380px}</style>
     <div style="font:700 18px Oswald;text-transform:uppercase">Copa do Mundo · escudos novos</div>
@@ -126,8 +133,7 @@ if (MOCKUP) {
     ${linha(25, 'tamanho dos jogos (25px)')}
     ${linha(20, 'tamanho dos pênaltis (20px)')}
     <div style="font:600 11px Oswald;opacity:.55;text-transform:uppercase;margin:12px 0 4px">como fica num jogo</div>
-    ${jogo([feitos[0], feitos[0]], ['paraguay', 'Paraguai'], 25)}
-    ${feitos[1] ? jogo([feitos[1], feitos[1]], [feitos[2] || 'chile', feitos[2] || 'Chile'], 25) : ''}`)
+    ${pares.map(([a, b]) => jogo([a, ptDe(a)], [b, ptDe(b)], 25)).join('')}`)
   await p2.evaluate(() => document.fonts.ready)
   await p2.screenshot({ path: 'mockup-escudos-selecao.png', fullPage: true })
   console.log('conferência: mockup-escudos-selecao.png')
