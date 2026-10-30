@@ -2915,7 +2915,7 @@ const L45_EU_MEI: C[] = [
   { name: "Antonio Conte", club: "Juventus", year: 1996, fame: 4, lo: 81, hi: 91 },
   { name: "Paul Ince", club: "Man United", year: 1994, fame: 4, lo: 81, hi: 91 },
   { name: "Andrey Santos", club: "Chelsea", year: 2026, fame: 3, lo: 75, hi: 86 },
-  { name: "João Gomes", club: "Aston Villa", year: 2026, fame: 3, lo: 77, hi: 85 },
+  { name: "João Gomes", club: "Wolves", year: 2026, fame: 3, lo: 77, hi: 85 },
   { name: "Marlon Gomes", club: "Shakhtar Donetsk", year: 2026, fame: 3, lo: 74, hi: 84 },
   { name: "Yordan Letchkov", club: "Hamburg", year: 1994, fame: 3, lo: 75, hi: 84 },
   { name: "Papa Bouba Diop", club: "Lens", year: 2002, fame: 3, lo: 75, hi: 86 },
