@@ -11728,3 +11728,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - ✅ Diego mandou tirar os 26 contra a Cobra Coral: `desde` das 2 contas antigas do grupo 'geovany' voltou pra segunda 26/10 0h
   (início da semana). O Arruda ficou com **2 títulos** na semana (1 legítimo + 1 do convidado sem conta) e saiu do top 5.
   Semanas já fechadas (`esc_premio_semana`) não foram mexidas.
+- 🔁 Mesma tarde, Diego: *"Cobra Coral pode ficar os títulos no Oliver Clã… e coloque Arruda com 16 títulos"*. Feito pelo `desde`:
+  Arruda `desde` = 30/10 02:33 UTC (conta os 14 contra a Cobra Coral até ali + 1 legítimo + 1 do convidado = **16**, 13º lugar);
+  Cobra Coral `desde` = 2099 (os títulos DELA valem — Oliver Clã 6 → 9). Os do Arruda contra ela depois das 02:33 e contra a
+  "3 Cores" continuam fora. Lado A-DPA 119 → 133.
