@@ -11709,3 +11709,10 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - Conserto (`screens.tsx`): `useNumerosAntes` tira a foto dos números antes do jogo novo e `NumerosAntesCtx` faz o campinho
   mostrar essa foto até a MESMA trava do giro (`giroReady`; na Champions, `revealed`). Abriu no meio do jogo = selos somem até o apito.
   Só leitura de tela: não muda placar, lance, coroa nem save.
+
+## 🖋 30/10 — Fundador enzocromero9@gmail.com ("Paizão") — BANCO FEITO, código esperando a arte
+- Conta de 30/10 00:05 UTC conferida. Banco (sem deploy, já vale): user_colors ouro+manual · esc_fundadores **98** · esc_socios **82**
+  (batismo, até 2099) · esc_compras_batismo 'plus'. `esc_direitos_de` = pago · fundador · ouro · manual.
+- ⏳ Falta (quando o Diego mandar a arte): nome do clube (é "Paizão"?) → esc_nomes_batismo + `escudo_time`/`mascote_key`/manto em
+  esc_socios; código (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio.tsx FUNDADOR_N 98, manto.ts, batismos.ts, salao-camisas,
+  checa-batismos), time de coração, gala/canto se ele quiser, mockup do post.
