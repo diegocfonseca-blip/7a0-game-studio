@@ -1,3 +1,24 @@
+## 📉 PLANO PRA ALIVIAR O BANCO (30/10, depois da queda) — esperando o Diego escolher
+Medido nas últimas 24h (chamadas/dia): PATCH game_rooms 530k · GET game_rooms 500k · GET room_players 330k · /auth/v1/user 277k ·
+room_acoes 136k · live_beats 134k · esc_retrospecto 132k · user_cards 119k · esc_avisos 113k · esc_copa_salas 106k. E o realtime
+decodifica TODA gravação do game_rooms (game_state médio 53 KB, máx 167 KB) porque game_rooms/room_players estão na publicação.
+**Grupo A — seguro (não encosta em sala, lance, coroa nem relógio):**
+1. `MaintenanceBanner` (index.tsx:177) lê user_cards a cada 60 s por aba aberta só pra testar a rede → só quando houver pendência.
+2. `getSession` (local) no lugar de `getUser` (vai ao servidor) num helper único; e os `onAuthStateChange` (manto, sport, online-preview,
+   presidente-*, aviso-conta, presente, apoio, aviso-semana) só agem se a CONTA mudou — hoje rodam em todo volta-pro-app.
+3. `useHasManual` (apoio.tsx:417) e `esc_meu_socio` (manto.ts) com cache por conta.
+4. Retrospecto (screens.tsx:7312): ler por temporada, não por rodada (~38× menos).
+5. esc_avisos 60→120 s; esc_avisos_semana throttle 10–30 min; vitrine 60 s→5 min; live_beats 60→120 s; medidor 30 min.
+6. Lista de salas abertas: não ler com a aba escondida + 20 s.
+7. Cache no banco (como o do ranking) em esc_vitrine_salas, esc_meu_nome_fake, esc_cla_painel.
+**Grupo B — mexe no coração da sala (só com OK dele, risco explicado):**
+8. Sala de espera: o batimento do dono (lobby.tsx:1420-1426) roda de novo a CADA eco do banco (deps `room` inteiro) — provável laço
+   de várias gravações por segundo por dono esperando. Conserto: deps `room?.id`.
+9. Dono gravando "tô vivo" a cada 3 s sem mudança → 12–15 s (a coroa lê `saveFresco < 9s` em store.tsx:14641 — mexer junto).
+10. Dono conferindo a coroa a cada 5 s → 15–20 s. 11. Tela de votação do fim (screens.tsx:11289) 3 s → 10 s.
+12. Copa online lendo a cada 2 s → 4–5 s. 13. room_acoes do dono 3 s → 5 s.
+14. Tirar game_rooms da publicação do realtime (largada por broadcast) — o maior ganho, o maior risco.
+
 ## 🚑 Banco travou 29/10 ~23h58 (Brasília) — online parado ~10 min
 - Causa: `esc_cla_ranking()` (caixa "Clãs da semana" na lista de salas) custava ~3 s por chamada e rodava a cada abertura da lista:
   2.498 chamadas = 7.584 s de banco. Com o pico da noite, o banco engasgou (timeouts, "connect timeout", 500 em ~60% das chamadas).
