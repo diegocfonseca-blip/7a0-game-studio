@@ -11736,3 +11736,14 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   mandou: Choconait sai (sem trava — a trava de 7 dias só segura quem SAI por vontade própria), Arruda volta (linha 24 reaberta) e
   volta a ser PRESIDENTE (no lugar do Neymar FC). Aviso de conta pro Choconait (some pra sempre no ✕: `esc_aviso_visto`).
   ⚠️ O `execute_sql` passou a pedir confirmação pra gravar e ela não chegava no Diego — foi pelo `apply_migration`.
+
+## 📚 30/10 — LOTE 45: 253 cartas novas (pedido do Diego, categorias e níveis decididos pelo Claude) — ✅ publicado
+- Décadas (anos 60–90), convocação do Brasil 2026, lista do Diego (PSG/Chelsea/Everton/Leeds/Newcastle…), heróis de Copa, países
+  campeões do mundo, Copas lendárias (Brasil 58→2002, Hungria 54, Holanda 74, Polônia 74, Marrocos 2022…) e filhos de famosos.
+  Lista mestre: `docs/cartas-novas-30-10.json` · stories: `scripts/posts/cartas-novas-30-10-parte{1,2}.png`.
+- Lotes `L45_{BR,EU,WORLD}_{POS}` em `data.ts`; país de cada um em `paises.ts` (PAIS + MESMO_JOGADOR + 6 PAIS_POR_CARTA).
+- Régua usada: lenda fame 5 (≈88–93) · craque 4 (≈83–90) · bom 3 (≈76–85) · promessa = 3 + promessa (≈75–84) · Kežman e Enzo Zidane
+  fame 2 · "bagre" (Delap, Niasse) fame 1 folclórico. 17 lendas: Sepp Maier, Facchetti, Scirea, Rivellino, Obdulio Varela, Schiaffino,
+  Kopa, Fritz Walter, Gento, Sandro Mazzola, Dixie Dean, Fontaine, Uwe Seeler, Gigi Riva, Meazza, Piola, Kocsis.
+- Saíram na conferência final por já existirem: Preben Elkjær (Verona 1985) e Morten Olsen (Anderlecht 1983).
+- Danilo (Botafogo 2026) e Danilo (Corinthians 2012) são pessoas diferentes no mesmo baralho — o clube separa (regra do Diego, 30/10).
