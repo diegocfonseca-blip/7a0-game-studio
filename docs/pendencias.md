@@ -44,6 +44,8 @@ decodifica TODA gravação do game_rooms (game_state médio 53 KB, máx 167 KB) 
 - ⏳ Diego: *"se a pessoa aperta X no banner deve sumir pra sempre"* — o `AvisoConta` já marca visto no banco (os 2 avisos antigos ainda
   estão sem visto porque as contas nunca mais logaram). Perguntei QUAL banner volta depois do X pra achar o certo.
 
+## 🪜 Bônus da casa: Série C e Série B +4 → +3 (29/10, *"série C coloque 3 e série B coloque 3 tb"*) — ✅ PUBLICADO
+
 ## 🎨 Tema da sala: automático + miniaturas + tema dos 3 Fundadores de 29/10 — ✅ publicado
 - Diego: *"já deixe no automático… todos que já têm tema do fundador mascote, cria sala e já vem com tema"*. `createRoom` grava o 1º
   tema de CLUBE/MASCOTE da conta em `game_state.tema` (coração não entra sozinho). O dono troca/tira na sala de espera.

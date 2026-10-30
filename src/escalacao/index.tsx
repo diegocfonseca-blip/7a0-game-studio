@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, Component, lazy, Suspense, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, Component, lazy, Suspense, type ReactNode } from 'react'
 import { AvisoDestaqueTirado } from './aviso-live'
 import { AvisoSemEspaco } from './aviso-espaco' // 📱 aparelho cheio: pede pra salvar antes de fechar (13/10)
 import { PresenteRecebido } from './presente'
@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc, ehPokemon } from './store'
+import { LojaButton } from './loja-clube' // 🔥 30/10: "Ver planos" do recado do servidor na home
 import { COMUNIDADE_LINK } from './comunidade'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
@@ -92,12 +93,52 @@ function Router() {
 // 📣 AVISO FIXO NO TOPO (08/10, pedido do Diego: *"faixinha amarela no header em cima p todos q em breve o
 // sistema passará por uma manutenção"*). Mesma cara da faixa de manutenção logo abaixo. Liga/desliga aqui:
 // `AVISO_TOPO = null` tira a faixa (publicar de novo). Some sozinha se a faixa de servidor-fora estiver na tela.
-const AVISO_TOPO: { pt: string; en: string } | null = null // 08/10: tirada a pedido do Diego
+// 🔧 30/10 (Diego, servidor no limite à meia-noite: "coloque em manutenção p todos um banner rápido… diga que o servidor lotou e já
+// voltamos"). Tirar: voltar pra null e publicar.
+const AVISO_TOPO: { pt: string; en: string } | null = null // 30/10: o servidor voltou — a faixa de manutenção saiu (ficou só o recado na home, `AvisoServidorHome`)
 function AvisoTopo({ escondido }: { escondido: boolean }) {
   if (!AVISO_TOPO || escondido) return null
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99998, background: '#F5B301', color: '#1a1a1a', borderBottom: '3px solid #1a1a1a', padding: '7px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }}>
       {getLang() === 'en' ? AVISO_TOPO.en : AVISO_TOPO.pt}
+    </div>
+  )
+}
+
+// 🔥 30/10 (Diego, depois de subir o servidor de Small pra Medium): recado SÓ NA HOME, faixa fina no topo — pede desculpa pela
+// travada e, sutil, chama pros planos ("ajude o amigo aqui pq tive que pagar mais"). Some sozinha depois de AVISO_SERVIDOR_ATE
+// e quem fechar no ✕ não vê mais. Tirar antes: AVISO_SERVIDOR_ATE = 0.
+const AVISO_SERVIDOR_ATE = Date.parse('2026-11-02T23:59:00-03:00')
+const AVISO_SERVIDOR_K = 'esc-aviso-servidor-30-10'
+function AvisoServidorHome() {
+  const { state } = useEsc()
+  const [fechado, setFechado] = useState(() => { try { return localStorage.getItem(AVISO_SERVIDOR_K) === '1' } catch { return false } })
+  const [alt, setAlt] = useState(0)
+  const medir = useCallback((el: HTMLDivElement | null) => {
+    if (!el || typeof ResizeObserver === 'undefined') return
+    setAlt(el.offsetHeight)
+    new ResizeObserver(() => setAlt(el.offsetHeight)).observe(el)
+  }, [])
+  // 🔁 30/10 (Diego): "coloque um banner p todos… pode aparecer em qualquer lugar mas não atrapalhe onde mostra moedas… se precisar
+  // diminua o texto". Fica NO FLUXO da página (empurra, nunca cobre as moedas) e, igual à faixa da comunidade, some só no LEILÃO
+  // (relógio correndo). Texto curto fora da home.
+  if (fechado || Date.now() > AVISO_SERVIDOR_ATE || ['auction', 'monte', 'convocacao', 'streamIntro'].includes(state.screen)) return null
+  const naHome = state.screen === 'intro'
+  const en = getLang() === 'en'
+  const fecha = () => { try { localStorage.setItem(AVISO_SERVIDOR_K, '1') } catch { /* ignora */ } setFechado(true) }
+  return (
+    <div ref={medir} className="ll-aviso-servidor" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFC400', color: '#0C0C0C', borderBottom: '3px solid #0C0C0C', padding: naHome ? '7px 8px 7px 12px' : '4px 6px 4px 10px', fontSize: naHome ? 12.5 : 11.5, fontWeight: 700, lineHeight: 1.35 }}>
+      {/* o botão de som da home é fixo no topo: desce a altura desta faixa (igual à faixa da comunidade) */}
+      <style>{`html body #root:has(.ll-aviso-servidor) button[aria-label="Desligar som"],html body #root:has(.ll-aviso-servidor) button[aria-label="Ligar som"]{top:calc(26px + var(--ll-zap-h,0px) + ${alt}px)!important}@media(max-width:650px){html body #root:has(.ll-aviso-servidor) button[aria-label="Desligar som"],html body #root:has(.ll-aviso-servidor) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h,0px) + ${alt}px)!important}}`}</style>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        {!naHome
+          ? (en ? <>🔥 <b>Sorry for the freeze!</b> The server got packed and I’ve upgraded it. Give us a hand? 💛 </> : <>🔥 <b>Desculpa a travada!</b> O servidor lotou e já aumentei. Dá uma força? 💛 </>)
+          : en
+          ? <>🔥 <b>Sorry! The server got packed with so many players and froze.</b> I’ve already upgraded it to handle more. Want to give the game a hand (it now costs me a bit more 😅)? Check out the plans. 💛 </>
+          : <>🔥 <b>Pedimos desculpas! O servidor lotou com tanta gente jogando e travou.</b> Já aumentei o servidor pra aguentar mais. Se quiser dar aquela força pro jogo (que agora custa um pouquinho mais pra mim 😅), dá uma olhada nos planos. 💛 </>}
+        <LojaButton ancora="planos" style={{ background: 'none', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', color: '#0C0C0C', fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>{en ? 'See plans ›' : 'Ver planos ›'}</LojaButton>
+      </span>
+      <button aria-label={en ? 'close' : 'fechar'} onClick={fecha} style={{ flex: 'none', background: 'transparent', border: 'none', fontWeight: 900, fontSize: 14, cursor: 'pointer', color: '#0C0C0C' }}>✕</button>
     </div>
   )
 }
@@ -517,6 +558,7 @@ export default function EscalacaoGame() {
             TUDO, o pior caso é uma tela creme com o rodapé (dá pra sair por ali),
             nunca mais um preto assustador. */}
         <div className="tela-cheia" style={{ background: '#F4ECD6' }}>
+          <AvisoServidorHome />
           <ComunidadeBanner />
           <Router />
           <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
