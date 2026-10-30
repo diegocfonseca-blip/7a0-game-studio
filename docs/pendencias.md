@@ -11750,3 +11750,6 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - 🔁 30/10 noite: saiu **Roberto Rivellino** (Fluminense 1976) — o baralho BR já tinha **Rivelino** (Corinthians 1972), a mesma
   pessoa com outra grafia (o Diego pegou). Ficam 252 cartas e 16 lendas. Conferência nova por grafia parecida (letra dobrada,
   y/i, k/c) rodada em todas as 252: nenhum outro repetido. João Gomes foi pro Wolves (pedido do Diego).
+- 🔁 30/10 noite, Diego: *"não coloque nenhum como lenda, coloque como craques… coloque o Salah como lenda"*. As 16 lendas do Lote 45
+  viraram CRAQUE (fame 4, faixa −3/−2) e o **Mohamed Salah** (Liverpool 2019, a única carta dele) virou LENDA (89–94). O Lote 45
+  ficou sem nenhuma lenda.
