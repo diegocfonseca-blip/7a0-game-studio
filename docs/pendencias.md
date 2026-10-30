@@ -11747,3 +11747,6 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   Kopa, Fritz Walter, Gento, Sandro Mazzola, Dixie Dean, Fontaine, Uwe Seeler, Gigi Riva, Meazza, Piola, Kocsis.
 - Saíram na conferência final por já existirem: Preben Elkjær (Verona 1985) e Morten Olsen (Anderlecht 1983).
 - Danilo (Botafogo 2026) e Danilo (Corinthians 2012) são pessoas diferentes no mesmo baralho — o clube separa (regra do Diego, 30/10).
+- 🔁 30/10 noite: saiu **Roberto Rivellino** (Fluminense 1976) — o baralho BR já tinha **Rivelino** (Corinthians 1972), a mesma
+  pessoa com outra grafia (o Diego pegou). Ficam 252 cartas e 16 lendas. Conferência nova por grafia parecida (letra dobrada,
+  y/i, k/c) rodada em todas as 252: nenhum outro repetido. João Gomes foi pro Wolves (pedido do Diego).

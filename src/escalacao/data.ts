@@ -1658,7 +1658,6 @@ const L45_BR_ZAG: C[] = [
 ]
 const L45_BR_MEI: C[] = [
   { name: "Paulo César Carpegiani", club: "Internacional", year: 1976, fame: 4, lo: 81, hi: 90 },
-  { name: "Roberto Rivellino", club: "Fluminense", year: 1976, fame: 5, lo: 86, hi: 92 },
   { name: "Tita", club: "Flamengo", year: 1981, fame: 4, lo: 84, hi: 89 },
   { name: "Silas", club: "São Paulo", year: 1986, fame: 4, lo: 83, hi: 90 },
   { name: "Pita", club: "São Paulo", year: 1986, fame: 3, lo: 75, hi: 85 },
