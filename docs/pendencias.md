@@ -11713,6 +11713,8 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 ## 🖋 30/10 — Fundador enzocromero9@gmail.com ("Paizão") — BANCO FEITO, código esperando a arte
 - Conta de 30/10 00:05 UTC conferida. Banco (sem deploy, já vale): user_colors ouro+manual · esc_fundadores **98** · esc_socios **82**
   (batismo, até 2099) · esc_compras_batismo 'plus'. `esc_direitos_de` = pago · fundador · ouro · manual.
-- ⏳ Falta (quando o Diego mandar a arte): nome do clube (é "Paizão"?) → esc_nomes_batismo + `escudo_time`/`mascote_key`/manto em
-  esc_socios; código (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio.tsx FUNDADOR_N 98, manto.ts, batismos.ts, salao-camisas,
-  checa-batismos), time de coração, gala/canto se ele quiser, mockup do post.
+- ✅ Arte chegou (30/10): clube **Paizão FC**, Série D no assento do bot **Monarca EC**. Escudo = o 2º que o Diego mandou (333×360,
+  28 KB), mascote **O Paizão** `paizao_cartola` (258×440, 19 KB), manto **preto #100F0F + dourado #D99C32** medidos na camisa.
+  Código no branch (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio 98, manto.ts, batismos.ts, salao-camisas, checa-batismos);
+  banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Post
+  `scripts/posts/batismo-paizao-fc.png`. ⏳ time de coração, gala/canto (se ele quiser) e publicar.

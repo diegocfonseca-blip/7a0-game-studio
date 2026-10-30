@@ -118,6 +118,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐟🏛️ Piranhão FC — PRETO e BRANCO do Botafogo, MEDIDOS na camisa que o dono mandou (29/10): preto das listras (#100F0E) e o
   // branco (#E2E1E1). O dourado da gola e dos punhos fica de fora (manto é de 2 cores).
   'bruno.cunha2007@gmail.com': ['#100F0E', '#E2E1E1'],
+  // 👑🎩 Paizão FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (30/10): preto do corpo (66%, #100F0F) e o dourado das
+  // pinceladas, gola e punhos (#D99C32).
+  'enzocromero9@gmail.com': ['#100F0F', '#D99C32'],
   // 🧤🖤 Lulubaba FC — PRETO e BRANCO do Botafogo, MEDIDOS na camisa NOVA que o dono mandou (29/10, quando virou Fundador):
   // preto do corpo (média dos escuros, #161516) e o branco dos frisos e da gola (#E3E2E2). (A 1ª camisa era amarela e preta.)
   'lucasfonseca363@gmail.com': ['#161516', '#E3E2E2'],
