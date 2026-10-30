@@ -36,6 +36,8 @@ export async function resilientWrite(p: Pending): Promise<void> {
 
 // Re-tenta tudo que ficou pendente. Chamado ao abrir o jogo. Só mantém na fila
 // o que ainda falha por rede; erro não-rede (ex.: já salvo) sai da fila.
+/** 📉 30/10: tem jogada esperando pra salvar? (o teste de internet só roda quando tem) */
+export function temPendencias(): boolean { return load().length > 0 }
 export async function flushPendingWrites(): Promise<void> {
   const a = load()
   if (!a.length) return

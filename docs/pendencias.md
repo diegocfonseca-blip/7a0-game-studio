@@ -11622,3 +11622,14 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - Mockup `scripts/mockups/carreira-mercado-sondar.png` aprovado (*"pode publicar"*). Cada linha mostra a carta virada (só a posição), a etiqueta 🎴 clube · ano DA CARTA e "📍 está no <clube>"; botões de posição; faixa verde por setor; quem tem contrato dobrado em "🔒 Com contrato ainda (N) — ver".
 - ✔ Sondado agora só pinta a linha do clube escolhido (antes, a mesma carta em 2 clubes pintava as duas).
 - ⚠️ PENDENTE (investigar): no print de um jogador apareceram DOIS Figueroa (Nacional do Agreste e Wen Milan B) — só existe UMA carta Figueroa (Internacional 1976). Ou seja, a mesma carta em 2 clubes daquela carreira (provavelmente times de fundo / ficha `cpuSquads`). Achar a origem antes de mexer.
+
+## 📉 30/10 — Aliviar o banco, parte 1 (Grupo A, OK do Diego) — ✅ publicado
+- Banco: `esc_vitrine_salas` com cache de 5 min pra todo mundo (a parte de cada um — `eu` e `ganhas` — segue por conta);
+  Campeões de hoje = 3 últimos; `esc_cla_ranking` 2 → 5 min. Linha "🔄 atualiza a cada 5 min" nas 3 caixas.
+  Migration `supabase/migrations/20261030050000_vitrine_cache_5min.sql`.
+- Jogo: `conta-vez.ts` — plano/cor/manto/sócio/presidente/avisos de conta só se releem quando a CONTA muda (antes, a cada volta
+  pro app). Quem aperta pagar (Vendria) relê tudo por 30 min na volta (`foiPagar`/`pagando`), sem piscar a cor.
+  Teste de internet só com jogada esperando pra salvar (`temPendencias`). Aviso do pódio: 1 pergunta a cada 30 min.
+- Selo FAKE já só era pedido no login/troca de nome (nada a mudar).
+- ⏳ Grupo B (mexe na sala) continua parado esperando OK, um por vez.
+- ⏳ Medir de novo daqui a 24h (chamadas por dia) pra ver o ganho e se dá pra voltar pro Small.

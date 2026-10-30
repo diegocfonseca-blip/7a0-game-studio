@@ -14,6 +14,7 @@ import { PRECOS_UNICO, PRECOS_DUPLO, precoTxt, type PlanoUnico } from './planos-
 import { PixBox, APOIO_IG } from './screens'
 import { PixMP } from './pix-mp'
 import { usePixMp } from './sport'
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -109,7 +110,7 @@ export function PresenteRecebido() {
       if (vivo && Array.isArray(data)) setFila(data as typeof fila)
     }
     const t = setTimeout(olha, 2500) // depois do login assentar; uma vez por abertura do jogo
-    const { data: sub } = supabase.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN') setTimeout(olha, 1500) })
+    const { data: sub } = supabase.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' && releConta('presente', s?.user?.id)) setTimeout(olha, 1500) })
     return () => { vivo = false; clearTimeout(t); sub.subscription.unsubscribe() }
   }, [])
   const p = fila[0]
