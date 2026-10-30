@@ -91,7 +91,12 @@ function Router() {
 // 📣 AVISO FIXO NO TOPO (08/10, pedido do Diego: *"faixinha amarela no header em cima p todos q em breve o
 // sistema passará por uma manutenção"*). Mesma cara da faixa de manutenção logo abaixo. Liga/desliga aqui:
 // `AVISO_TOPO = null` tira a faixa (publicar de novo). Some sozinha se a faixa de servidor-fora estiver na tela.
-const AVISO_TOPO: { pt: string; en: string } | null = null // 08/10: tirada a pedido do Diego
+// 🔧 30/10 (Diego, servidor no limite à meia-noite: "coloque em manutenção p todos um banner rápido… diga que o servidor lotou e já
+// voltamos"). Tirar: voltar pra null e publicar.
+const AVISO_TOPO: { pt: string; en: string } | null = {
+  pt: '⚠️ O servidor lotou com tanta gente jogando! Estamos em manutenção rápida e já voltamos. Se travar, espere uns minutinhos e recarregue.',
+  en: '⚠️ The server is packed with so many players! Quick maintenance in progress, we’ll be right back. If it freezes, wait a few minutes and reload.',
+}
 function AvisoTopo({ escondido }: { escondido: boolean }) {
   if (!AVISO_TOPO || escondido) return null
   return (
