@@ -33,3 +33,9 @@ on conflict (conta) do nothing;
 --   and (x->>'user_id' is null or x->>'user_id' not in (select conta::text from esc_contas_ligadas)
 --        or esc_titulo_vale(g.human_results, x->>'user_id'))
 -- Medido: vitrine ~0,09s (sem o caminho rápido ia a 0,4–0,7s — não tirar o `not in`).
+
+-- 🔁 30/10, mesmo dia (Diego: "volte os títulos dele, só não deixa contar mais pra frente"): a regra NÃO é retroativa.
+-- Coluna `desde` (default now()) e a função ganhou o 3º parâmetro com a data do título; título de ANTES do `desde` conta.
+alter table public.esc_contas_ligadas add column if not exists desde timestamptz not null default now();
+-- esc_titulo_vale(hr jsonb, uid text, quando timestamptz): igual à de cima + `if g is null or quando < d then return true`.
+-- Nas 4 funções a chamada virou esc_titulo_vale(g.human_results, x->>'user_id', g.created_at).

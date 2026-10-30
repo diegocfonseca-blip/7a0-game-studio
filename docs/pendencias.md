@@ -1,5 +1,5 @@
 ## 🕵️ Contas ligadas: Arruda não pontua no ranking jogando com a 2ª conta (30/10, *"não quero deixar o Arruda ganhar pts no ranking qd jogar c as contas dele"*) — ✅ NO BANCO (vale na hora, sem deploy)
-- Achado: souzact12 (Tricolor do Arruda) abria sala só com geovanysouza134 ("Cobra Coral do Arruda"/"G_1MPACT") — 15 das 16 ligas da semana vieram daí (2º no ranking → cai pra 1 título).
+- Achado: souzact12 (Tricolor do Arruda) abria sala só com geovanysouza134 ("Cobra Coral do Arruda"/"G_1MPACT") — 15 das 16 ligas da semana vieram daí (2º no ranking). 🔁 Mesmo dia o Diego mandou VOLTAR os títulos já ganhos: a regra vale só DAQUI PRA FRENTE (coluna `desde`).
 - `esc_contas_ligadas` (mesmo `grupo` = mesma pessoa) + `esc_titulo_vale`; filtro nas 4 funções do ranking (semana, prêmio da semana, rank online, clãs). Sala de Troféus/perfil continuam mostrando tudo. SQL: `docs/sql/contas-ligadas-ranking.sql`.
 - Só entra conta com PROVA. Suspeitos sem prova (não ligados): Januzaj FC × "Kami FC" (pietravieira467, só jogou com ele, 13 das 22 ligas) e mauricioexecutivo × dnini.reis/dianini.rueda. Ideia recusada por enquanto: sala de 2 não conta pro ranking.
 - Reverter: `delete from esc_contas_ligadas where grupo = 'geovany'` (o resto volta sozinho a contar).
