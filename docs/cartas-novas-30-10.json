@@ -180,12 +180,6 @@
 "pos": "MEI"
 },
 {
-"nome": "Pita",
-"clube": "São Paulo",
-"ano": 1986,
-"pos": "MEI"
-},
-{
 "nome": "Hugo De León",
 "clube": "Grêmio",
 "ano": 1983,
@@ -474,12 +468,6 @@
 "pos": "GOL"
 },
 {
-"nome": "Faryd Mondragón",
-"clube": "Independiente",
-"ano": 2001,
-"pos": "GOL"
-},
-{
 "nome": "Sergio Romero",
 "clube": "Boca Juniors",
 "ano": 2023,
@@ -492,33 +480,15 @@
 "pos": "GOL"
 },
 {
-"nome": "Kléber",
-"clube": "Santos",
-"ano": 2004,
-"pos": "LAT"
-},
-{
 "nome": "Renan Lodi",
 "clube": "Athletico-PR",
 "ano": 2018,
 "pos": "LAT"
 },
 {
-"nome": "Mayke",
-"clube": "Palmeiras",
-"ano": 2021,
-"pos": "LAT"
-},
-{
 "nome": "Javier Zanetti",
 "clube": "Banfield",
 "ano": 1995,
-"pos": "LAT"
-},
-{
-"nome": "Hugo Ibarra",
-"clube": "Boca Juniors",
-"ano": 2000,
 "pos": "LAT"
 },
 {
@@ -567,12 +537,6 @@
 "nome": "Luizinho",
 "clube": "Atlético-MG",
 "ano": 1980,
-"pos": "ZAG"
-},
-{
-"nome": "Brito",
-"clube": "Vasco",
-"ano": 1970,
 "pos": "ZAG"
 },
 {
@@ -762,12 +726,6 @@
 "pos": "ATA"
 },
 {
-"nome": "Kennet Andersson",
-"clube": "Bologna",
-"ano": 1998,
-"pos": "ATA"
-},
-{
 "nome": "İlhan Mansız",
 "clube": "Beşiktaş",
 "ano": 2002,
@@ -777,12 +735,6 @@
 "nome": "Papa Bouba Diop",
 "clube": "Lens",
 "ano": 2002,
-"pos": "MEI"
-},
-{
-"nome": "Siphiwe Tshabalala",
-"clube": "Kaizer Chiefs",
-"ano": 2010,
 "pos": "MEI"
 },
 {
@@ -822,12 +774,6 @@
 "pos": "ATA"
 },
 {
-"nome": "Salem Al-Dawsari",
-"clube": "Al-Hilal",
-"ano": 2022,
-"pos": "ATA"
-},
-{
 "nome": "Ritsu Doan",
 "clube": "Freiburg",
 "ano": 2022,
@@ -844,12 +790,6 @@
 "clube": "Chelsea",
 "ano": 2004,
 "pos": "ATA"
-},
-{
-"nome": "Fabiano Eller",
-"clube": "Internacional",
-"ano": 2006,
-"pos": "ZAG"
 },
 {
 "nome": "Fabián Ruiz",
@@ -1272,12 +1212,6 @@
 "pos": "ATA"
 },
 {
-"nome": "Zózimo",
-"clube": "Bangu",
-"ano": 1958,
-"pos": "ZAG"
-},
-{
 "nome": "Everaldo",
 "clube": "Grêmio",
 "ano": 1970,
@@ -1293,12 +1227,6 @@
 "nome": "Dirceu",
 "clube": "Vasco",
 "ano": 1978,
-"pos": "MEI"
-},
-{
-"nome": "Batista",
-"clube": "Internacional",
-"ano": 1979,
 "pos": "MEI"
 },
 {
@@ -1344,12 +1272,6 @@
 "pos": "ATA"
 },
 {
-"nome": "Gyula Grosics",
-"clube": "Honvéd",
-"ano": 1954,
-"pos": "GOL"
-},
-{
 "nome": "József Bozsik",
 "clube": "Honvéd",
 "ano": 1954,
@@ -1392,12 +1314,6 @@
 "pos": "ZAG"
 },
 {
-"nome": "Henri Camara",
-"clube": "Sedan",
-"ano": 2002,
-"pos": "ATA"
-},
-{
 "nome": "Hasan Şaş",
 "clube": "Galatasaray",
 "ano": 2002,
@@ -1414,12 +1330,6 @@
 "clube": "Legia Varsóvia",
 "ano": 1974,
 "pos": "MEI"
-},
-{
-"nome": "Jan Tomaszewski",
-"clube": "ŁKS Łódź",
-"ano": 1974,
-"pos": "GOL"
 },
 {
 "nome": "Benedikt Höwedes",
