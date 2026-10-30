@@ -1,3 +1,15 @@
+## 🛡️🏆 Escudos que faltavam + taças reais redesenhadas (30/10, pedido do Diego) — escudos NO BRANCH esperando OK · taças só MOCKUP
+- **Seleções**: 8 da Copa de 32 apareciam com o NOME escrito no lugar do escudo (Escócia, Sérvia, Turquia, Irlanda, Argélia, Gana,
+  Costa do Marfim; Suécia tinha arquivo e não tinha nome) + Austrália/Irã/Nigéria/Suíça. Escudos oficiais de github.com/JoseArroyave/football-logos
+  → `scripts/escudo-selecao.mjs`. Trava nova: `npm run escudos-selecao`.
+- **Clubes das copas regionais**: 17 escudos oficiais novos (Bangu, America-RJ, Madureira, Volta Redonda, Guarani, Juventude, Caxias,
+  Figueirense, Avaí, Londrina, ABC, Botafogo-PB, CSA, CRB, Criciúma, Paraná, Sampaio Corrêa) em `scripts/escudos-oficiais.mjs`.
+  ⏳ Ainda SEM escudo em acervo nenhum (selo estilo B): Portuguesa, São Caetano, Ipatinga, América-RN, Confiança, Moto Club, River-PI.
+- **Taças**: mockup `node scripts/mockup-tacas-reais.mjs <fotos> <saida.png>` (fotos de referência: Brasfoot-Next/database trophies/).
+  Desenhos em `scripts/tacas-reais-svg.mjs`: Libertadores, Champions, Copa do Mundo, Mundial, Nordeste, Rio×SP, Copa do Brasil,
+  Supercopa, Séries A/B/C/D (+ Várzea inventada nova). Depois do OK: virar JSX no `Trofeu` (competicoes-visual.tsx) e decidir se a
+  Sala de Troféus (`public/trofeus-v137/`, arte foto-realista) também troca pelo desenho.
+
 ## 🕵️ Contas ligadas: Arruda não pontua no ranking jogando com a 2ª conta (30/10, *"não quero deixar o Arruda ganhar pts no ranking qd jogar c as contas dele"*) — ✅ NO BANCO (vale na hora, sem deploy)
 - Achado: souzact12 (Tricolor do Arruda) abria sala só com geovanysouza134 ("Cobra Coral do Arruda"/"G_1MPACT") — 15 das 16 ligas da semana vieram daí (2º no ranking). 🔁 Mesmo dia o Diego mandou VOLTAR os títulos já ganhos: a regra vale só DAQUI PRA FRENTE (coluna `desde`).
 - `esc_contas_ligadas` (mesmo `grupo` = mesma pessoa) + `esc_titulo_vale`; filtro nas 4 funções do ranking (semana, prêmio da semana, rank online, clãs). Sala de Troféus/perfil continuam mostrando tudo. SQL: `docs/sql/contas-ligadas-ranking.sql`.

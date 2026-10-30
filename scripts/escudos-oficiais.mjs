@@ -53,6 +53,13 @@ const MLS = npmPack('mls-team-logos@1.6.0', 'mls-team-logos') // 🇺🇸 Orland
 //   · sportlogos/football.db.logos (PNG/GIF menores) — os mexicanos, Stoke, Atlético Nacional,
 //     Alianza Lima, U. de Chile
 const clonaSem = (repo, pasta, cheio = false) => { const d = path.join(FONTES, pasta); if (!existsSync(d)) execSync(`git clone -q --depth 1 ${cheio ? '' : '--filter=blob:none --no-checkout'} https://github.com/${repo} "${d}"`, { stdio: 'inherit' }); return d }
+// 🌵 30/10 (Diego: "clubes da Copa do Nordeste e estaduais sem escudo oficial"): mais 2 acervos do GitHub
+//   · JoseArroyave/football-logos (SVG, por país) — Bangu, America-RJ, Madureira, Volta Redonda, Guarani, Juventude,
+//     Caxias, Figueirense, Avaí, Londrina, ABC, Botafogo-PB, CSA
+//   · Brasfoot-Next/database (crest.png) — CRB, Criciúma
+//   Ainda SEM escudo em acervo nenhum (ficam no selo estilo B): Portuguesa, São Caetano, Ipatinga, América-RN,
+//   Confiança, Moto Club, River-PI.
+const JA = clonaSem('JoseArroyave/football-logos', 'josearroyave'), BFN = clonaSem('Brasfoot-Next/database', 'brasfoot')
 const FCL = clonaSem('FCLOGO/fclogo.top', 'fclogo'), SPL = clonaSem('sportlogos/football.db.logos', 'sportlogos'), HUGO = clonaSem('hugomiura/escudos-times-brasil-svg', 'hugo', true)
 const doGit = (repo, arq) => { const dst = path.join(FONTES, 'git-' + arq.replace(/[^a-zA-Z0-9.]+/g, '_')); if (!existsSync(dst)) writeFileSync(dst, execSync(`git -C "${repo}" show "HEAD:${arq}"`, { maxBuffer: 64 << 20 })); return dst }
 const hugoSvg = id => { for (const f of ['serie-a.svg', 'serie-b.svg']) { const t = readFileSync(path.join(HUGO, f), 'utf8'); const m = t.match(new RegExp(`<symbol viewBox="([^"]+)" id="${id}">([\\s\\S]*?)</symbol>`)); if (m) return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${m[1]}">${m[2]}</svg>` } return null }
@@ -83,6 +90,7 @@ for (const pais of readdirSync(path.join(FB, 'badges'))) { const d = path.join(F
 const mlsSvg = code => { const m = req(path.join(MLS, 'dist/logos', `${code}.js`)); const C = m.default ?? Object.values(m).find(v => typeof v === 'function'); return renderToStaticMarkup(React.createElement(C, { size: 400, width: 400, height: 400 })) }
 const U = c => ({ svg: () => mlsSvg(c) }), W = c => ({ fl: c })
 const C = a => ({ git: [FCL, 'src/data/logos/' + a] }), S = a => ({ git: [SPL, a] }), H = id => ({ svg: () => hugoSvg(id) })
+const J = n => ({ svg: () => readFileSync(doGit(JA, `logos/brazil/${n}.svg`), 'utf8') }), B = c => ({ git: [BFN, `clubs/bra/${c}/crest.png`] })
 const E = n => ({ png: n }), F = n => ({ svgFile: fbSvgs.get(n) ?? '', n }), R = c => ({ svg: () => rbSvg(c) })
 const MAPA = {
   // 🇧🇷
@@ -109,8 +117,14 @@ const MAPA = {
   'Necaxa': S('north-america/mx-mexico/necaxa.gif'), 'Pumas': S('north-america/mx-mexico/pumas.gif'), 'Tigres': S('north-america/mx-mexico/tigres.gif'),
   'Toluca': S('north-america/mx-mexico/toluca.gif'), 'Stoke City': S('europe/en-england/stoke.png'), 'Atlético Nacional': S('south-america/co-colombia/atleticonacional.png'),
   'Alianza Lima': S('south-america/pe-peru/alianzalima.gif'), 'U. de Chile': S('south-america/cl-chile/udechile.gif'),
+  // 🌵 copas regionais (30/10)
+  'Bangu': J('Bangu'), 'America-RJ': J('America_Football_Club_(RJ)'), 'Madureira': J('Madureira_Esporte_Clube'),
+  'Volta Redonda': J('Volta_Redonda'), 'Guarani': J('Guarani'), 'Juventude': J('Juventude'), 'Caxias': J('Caxias'),
+  'Figueirense': J('Figueirense'), 'Avaí': J('Avai'), 'Londrina': J('Londrina'), 'ABC': J('ABC_Futebol_Clube'),
+  'Botafogo-PB': J('Botafogo_PB'), 'CSA': J('CSA'), 'CRB': B('crb'), 'Criciúma': B('criciuma'),
+  'Paraná': H('parana'), 'Sampaio Corrêa': H('sampaio-correa'),
   // 🌍 football-logos.cc (baixa quando o host estiver liberado)
-  'Bangu': W('brazil/bangu'), 'Blackburn': W('england/blackburn-rovers'), 'América de Cali': W('colombia/america-de-cali'),
+  'Blackburn': W('england/blackburn-rovers'), 'América de Cali': W('colombia/america-de-cali'),
   // 🇪🇺
   'Real Madrid': E('Real Madrid'), 'Barcelona': E('FC Barcelona'), 'Atlético de Madrid': E('Atlético de Madrid'), 'Sevilla': E('Sevilla FC'),
   'Valencia': E('Valencia CF'), 'Villarreal': E('Villarreal CF'), 'Real Betis': E('Real Betis Balompié'), 'Real Sociedad': E('Real Sociedad'),
@@ -150,8 +164,8 @@ for (const [chave, src] of Object.entries(MAPA)) {
   } else {
     const svg = src.svg ? src.svg() : existsSync(src.svgFile) ? readFileSync(src.svgFile, 'utf8') : null
     if (!svg) { falta.push(chave); continue }
-    await pg.setContent(`<html><body style="margin:0;background:transparent"><div id="c" style="width:400px;height:400px;display:flex;align-items:center;justify-content:center">${svg}</div><style>#c svg{width:400px;height:400px}</style></body></html>`)
-    await pg.locator('#c').screenshot({ path: png, omitBackground: true })
+    await pg.setContent(`<html><body style="margin:0;background:transparent"><div id="zzcaixa" style="width:400px;height:400px;display:flex;align-items:center;justify-content:center">${svg}</div><style>#zzcaixa svg{width:400px;height:400px}</style></body></html>`)
+    await pg.locator("#zzcaixa").screenshot({ path: png, omitBackground: true })
   }
   const out = path.join(SAIDA, slug(chave) + '.webp')
   const dims = execSync(`python3 - "${png}" "${out}"`, { input: `

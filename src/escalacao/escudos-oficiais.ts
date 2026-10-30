@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 114 escudos · 1033 KB somados.
+// 131 escudos · 1175 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -292,6 +292,91 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "U. de Chile": {
     "src": "escudos-clubes/u-de-chile.webp",
     "w": 122,
+    "h": 160
+  },
+  "Bangu": {
+    "src": "escudos-clubes/bangu.webp",
+    "w": 150,
+    "h": 160
+  },
+  "America-RJ": {
+    "src": "escudos-clubes/america-rj.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Madureira": {
+    "src": "escudos-clubes/madureira.webp",
+    "w": 150,
+    "h": 160
+  },
+  "Volta Redonda": {
+    "src": "escudos-clubes/volta-redonda.webp",
+    "w": 126,
+    "h": 160
+  },
+  "Guarani": {
+    "src": "escudos-clubes/guarani.webp",
+    "w": 131,
+    "h": 160
+  },
+  "Juventude": {
+    "src": "escudos-clubes/juventude.webp",
+    "w": 135,
+    "h": 160
+  },
+  "Caxias": {
+    "src": "escudos-clubes/caxias.webp",
+    "w": 160,
+    "h": 158
+  },
+  "Figueirense": {
+    "src": "escudos-clubes/figueirense.webp",
+    "w": 140,
+    "h": 160
+  },
+  "Avaí": {
+    "src": "escudos-clubes/avai.webp",
+    "w": 126,
+    "h": 160
+  },
+  "Londrina": {
+    "src": "escudos-clubes/londrina.webp",
+    "w": 140,
+    "h": 160
+  },
+  "ABC": {
+    "src": "escudos-clubes/abc.webp",
+    "w": 119,
+    "h": 160
+  },
+  "Botafogo-PB": {
+    "src": "escudos-clubes/botafogo-pb.webp",
+    "w": 122,
+    "h": 160
+  },
+  "CSA": {
+    "src": "escudos-clubes/csa.webp",
+    "w": 102,
+    "h": 160
+  },
+  "CRB": {
+    "src": "escudos-clubes/crb.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Criciúma": {
+    "src": "escudos-clubes/criciuma.webp",
+    "w": 160,
+    "h": 114
+  },
+  "Paraná": {
+    "src": "escudos-clubes/parana.webp",
+    "w": 101,
+    "h": 160
+  },
+  "Sampaio Corrêa": {
+    "src": "escudos-clubes/sampaio-correa.webp",
+    "w": 156,
     "h": 160
   },
   "Real Madrid": {
