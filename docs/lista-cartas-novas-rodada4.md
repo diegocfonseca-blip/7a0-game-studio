@@ -7,7 +7,7 @@
 | Marco Verratti | PSG 2018 | MEI | |
 | Dominik Szoboszlai | Liverpool 2024 | MEI | |
 | Nicolas Jackson | Villarreal 2023 | ATA | promessa |
-| Timo Werner | **RB Leipzig** 2020 (ele nunca jogou no Dortmund) | ATA | promessa |
+| Timo Werner | RB Leipzig 2020 (escolha do Diego) | ATA | promessa |
 | Matheusinho | Vitória 2025 | MEI | |
 | Morgan Rogers | Aston Villa 2025 | MEI | promessa |
 | Reece James | Chelsea 2022 | LAT | |
