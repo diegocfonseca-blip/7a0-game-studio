@@ -120,6 +120,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'vittor@tidex.com.br': 'ouro', // 👑 batismo Wen Milan B (Série A, plano 🖋 Fundador, no assento do Al Takhadao FC, que desceu pra C) + fundador nº92 + sócio nº76 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
+  'enzocromero9@gmail.com': 'ouro', // 👑 batismo FUNDADOR Paizão FC (Série D, no assento do bot Monarca EC) + fundador nº98 + sócio nº82 (30/10).
   'bruno.cunha2007@gmail.com': 'ouro', // 👑 batismo FUNDADOR Piranhão FC (Série D, no assento do bot Continental Real) + fundador nº96 + sócio nº81 (29/10).
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
@@ -244,6 +245,7 @@ const FUNDADOR_N: Record<string, number> = {
   'alexandre12cdm@gmail.com': 94, // 🐶💚 dSouza FC (28/10, plano Fundador)
   'lucasfonseca363@gmail.com': 95,
   'bruno.cunha2007@gmail.com': 96,
+  'enzocromero9@gmail.com': 98, // 👑🎩 Paizão FC (30/10, plano Fundador)
   'sheeryarie772@gmail.com': 97, // 🐐👑 Neymar_FC (29/10, subiu de Batismo pra Fundador) // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
   'gfpicolo13@gmail.com': 93, // 📍 Futpoint FC (18/10, Diego deu o plano Fundador; o 92 está guardado pro Wen Milan B)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)

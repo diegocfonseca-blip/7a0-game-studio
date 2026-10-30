@@ -1,3 +1,49 @@
+## 📉 PLANO PRA ALIVIAR O BANCO (30/10, depois da queda) — esperando o Diego escolher
+Medido nas últimas 24h (chamadas/dia): PATCH game_rooms 530k · GET game_rooms 500k · GET room_players 330k · /auth/v1/user 277k ·
+room_acoes 136k · live_beats 134k · esc_retrospecto 132k · user_cards 119k · esc_avisos 113k · esc_copa_salas 106k. E o realtime
+decodifica TODA gravação do game_rooms (game_state médio 53 KB, máx 167 KB) porque game_rooms/room_players estão na publicação.
+**Grupo A — seguro (não encosta em sala, lance, coroa nem relógio):**
+1. `MaintenanceBanner` (index.tsx:177) lê user_cards a cada 60 s por aba aberta só pra testar a rede → só quando houver pendência.
+2. `getSession` (local) no lugar de `getUser` (vai ao servidor) num helper único; e os `onAuthStateChange` (manto, sport, online-preview,
+   presidente-*, aviso-conta, presente, apoio, aviso-semana) só agem se a CONTA mudou — hoje rodam em todo volta-pro-app.
+3. `useHasManual` (apoio.tsx:417) e `esc_meu_socio` (manto.ts) com cache por conta.
+4. Retrospecto (screens.tsx:7312): ler por temporada, não por rodada (~38× menos).
+5. esc_avisos 60→120 s; esc_avisos_semana throttle 10–30 min; vitrine 60 s→5 min; live_beats 60→120 s; medidor 30 min.
+6. Lista de salas abertas: não ler com a aba escondida + 20 s.
+7. Cache no banco (como o do ranking) em esc_vitrine_salas, esc_meu_nome_fake, esc_cla_painel.
+**Grupo B — mexe no coração da sala (só com OK dele, risco explicado):**
+8. Sala de espera: o batimento do dono (lobby.tsx:1420-1426) roda de novo a CADA eco do banco (deps `room` inteiro) — provável laço
+   de várias gravações por segundo por dono esperando. Conserto: deps `room?.id`.
+9. Dono gravando "tô vivo" a cada 3 s sem mudança → 12–15 s (a coroa lê `saveFresco < 9s` em store.tsx:14641 — mexer junto).
+10. Dono conferindo a coroa a cada 5 s → 15–20 s. 11. Tela de votação do fim (screens.tsx:11289) 3 s → 10 s.
+12. Copa online lendo a cada 2 s → 4–5 s. 13. room_acoes do dono 3 s → 5 s.
+14. Tirar game_rooms da publicação do realtime (largada por broadcast) — o maior ganho, o maior risco.
+
+## 🚑 Banco travou 29/10 ~23h58 (Brasília) — online parado ~10 min
+- Causa: `esc_cla_ranking()` (caixa "Clãs da semana" na lista de salas) custava ~3 s por chamada e rodava a cada abertura da lista:
+  2.498 chamadas = 7.584 s de banco. Com o pico da noite, o banco engasgou (timeouts, "connect timeout", 500 em ~60% das chamadas).
+- ✅ Conserto no BANCO (03:06 UTC, sem deploy): cache de 2 min em `esc_cache_rpc` + trava pra não calcular em paralelo. Erros
+  zeraram às 03:08. Arquivo: `supabase/migrations/20261030030500_cla_ranking_cache.sql`.
+- Mesmo com o cache, o banco Small (2 GB, 90 conexões) seguiu sem fôlego (timeouts até em leitura simples). O Diego subiu o
+  servidor de **Small pra Medium** às ~00h18 de Brasília: erro zero desde 03:19 UTC, ~4 mil chamadas/min normais, 24 salas andando.
+- ⏳ Pra poder voltar ao Small um dia (é ele que paga): baixar o custo das contas pesadas abaixo + medir a carga num pico.
+- ⏳ Outros pesados pra cuidar com calma (pedir OK): `esc_avisos` (40 mil chamadas, ~100 ms), `esc_vitrine_salas` (~300 ms),
+  `esc_meu_nome_fake` (~320 ms), `esc_cla_painel` (~730 ms).
+
+## ✕ Aviso fechado não volta (29/10) — regra nova no CLAUDE.md
+- Auditoria: 6 avisos voltavam depois do ✕ (só `useState`/`sessionStorage`). Agora todos usam `avisos-fechados.ts`: celular sem espaço
+  (`aviso-espaco`), "💾 guarde sua carreira · agora não" (`AvisoContaCarreira`), sugestão de troca da Agência "deixa assim", "abra no
+  navegador" (Instagram/TikTok), "sua sessão caiu", e a janela dos planos que abria sozinha depois do salvamento (1 vez por aviso).
+- Ficaram como estão (de propósito, são do momento): popup da carta de campeão, túnel da final, "VOCÊ VIROU O HOST", "MANDA SEU LANCE
+  DE NOVO", "VOCÊ FOI EXPULSO", toasts de amigo.
+
+## 🚫 Moderação 29/10: "Abusa Rindo" → "A Rindo" · "Exu Tranca Ru4" → "E Tranca Ru4"
+- mateus.eduardo.ribeiro: `display_name` virou "A Rindo" (+ linhas abertas do room_players) e aviso de uma vez (`esc_avisos_conta`).
+- daniagustosan23 (0af7af1e): jogou como "Exu Tranca Ru4" à tarde, mas o nome da conta JÁ estava "Danielvorcarofc" — não sobrescrevi;
+  o aviso dele foi CANCELADO (Diego: "se ele já trocou, tudo bem"). Se voltar a jogar como "Exu Tranca…", manda o aviso (id 4 é o modelo).
+- ⏳ Diego: *"se a pessoa aperta X no banner deve sumir pra sempre"* — o `AvisoConta` já marca visto no banco (os 2 avisos antigos ainda
+  estão sem visto porque as contas nunca mais logaram). Perguntei QUAL banner volta depois do X pra achar o certo.
+
 ## 🛡️🏆 Escudos que faltavam + taças reais redesenhadas (30/10, pedido do Diego) — escudos NO BRANCH esperando OK · taças só MOCKUP
 - **Seleções**: 8 da Copa de 32 apareciam com o NOME escrito no lugar do escudo (Escócia, Sérvia, Turquia, Irlanda, Argélia, Gana,
   Costa do Marfim; Suécia tinha arquivo e não tinha nome) + Austrália/Irã/Nigéria/Suíça. Escudos oficiais de github.com/JoseArroyave/football-logos
@@ -11652,7 +11698,6 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - ⏳ Grupo B (mexe na sala) continua parado esperando OK, um por vez.
 - ⏳ Medir de novo daqui a 24h (chamadas por dia) pra ver o ganho e se dá pra voltar pro Small.
 
-
 ## ⭐ 30/10 — Oliveira FC (pietro.oliveira23061721@gmail.com): Craque Completo por 12 meses, dado pelo Diego
 - Igual ao Cativeiro FC: linha em `esc_assinatura_mensal` (craque_completo, até 30/10/2027, sem `vendria_sub`). Conta de 15/09 conferida.
   Conferido no `esc_direitos_de`: pago · prata · manual · salas_pagas. Se ele virar Lenda, aí é definitivo.
@@ -11664,3 +11709,12 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - Conserto (`screens.tsx`): `useNumerosAntes` tira a foto dos números antes do jogo novo e `NumerosAntesCtx` faz o campinho
   mostrar essa foto até a MESMA trava do giro (`giroReady`; na Champions, `revealed`). Abriu no meio do jogo = selos somem até o apito.
   Só leitura de tela: não muda placar, lance, coroa nem save.
+
+## 🖋 30/10 — Fundador enzocromero9@gmail.com ("Paizão") — BANCO FEITO, código esperando a arte
+- Conta de 30/10 00:05 UTC conferida. Banco (sem deploy, já vale): user_colors ouro+manual · esc_fundadores **98** · esc_socios **82**
+  (batismo, até 2099) · esc_compras_batismo 'plus'. `esc_direitos_de` = pago · fundador · ouro · manual.
+- ✅ Arte chegou (30/10): clube **Paizão FC**, Série D no assento do bot **Monarca EC**. Escudo = o 2º que o Diego mandou (333×360,
+  28 KB), mascote **O Paizão** `paizao_cartola` (258×440, 19 KB), manto **preto #100F0F + dourado #D99C32** medidos na camisa.
+  Código no branch (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio 98, manto.ts, batismos.ts, salao-camisas, checa-batismos);
+  banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Post
+  `scripts/posts/batismo-paizao-fc.png`. ⏳ time de coração, gala/canto (se ele quiser) e publicar.
