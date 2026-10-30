@@ -11725,3 +11725,6 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   ela (22 contando copas) saíram do ranking na hora (cache da vitrine apagado).
 - Ficou contando (regra do `desde`, decidida antes: não é retroativo): 26 títulos contra a Cobra Coral ANTES da trava + 1 com a
   "Cobra Coral" entrando SEM CONTA (brecha: convidado sem conta não é pego pela trava) + 1 legítimo. ⏳ Perguntei se ele quer tirar.
+- ✅ Diego mandou tirar os 26 contra a Cobra Coral: `desde` das 2 contas antigas do grupo 'geovany' voltou pra segunda 26/10 0h
+  (início da semana). O Arruda ficou com **2 títulos** na semana (1 legítimo + 1 do convidado sem conta) e saiu do top 5.
+  Semanas já fechadas (`esc_premio_semana`) não foram mexidas.
