@@ -118,15 +118,21 @@ function AvisoServidorHome() {
     setAlt(el.offsetHeight)
     new ResizeObserver(() => setAlt(el.offsetHeight)).observe(el)
   }, [])
-  if (fechado || state.screen !== 'intro' || Date.now() > AVISO_SERVIDOR_ATE) return null
+  // 🔁 30/10 (Diego): "coloque um banner p todos… pode aparecer em qualquer lugar mas não atrapalhe onde mostra moedas… se precisar
+  // diminua o texto". Fica NO FLUXO da página (empurra, nunca cobre as moedas) e, igual à faixa da comunidade, some só no LEILÃO
+  // (relógio correndo). Texto curto fora da home.
+  if (fechado || Date.now() > AVISO_SERVIDOR_ATE || ['auction', 'monte', 'convocacao', 'streamIntro'].includes(state.screen)) return null
+  const naHome = state.screen === 'intro'
   const en = getLang() === 'en'
   const fecha = () => { try { localStorage.setItem(AVISO_SERVIDOR_K, '1') } catch { /* ignora */ } setFechado(true) }
   return (
-    <div ref={medir} className="ll-aviso-servidor" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFC400', color: '#0C0C0C', borderBottom: '3px solid #0C0C0C', padding: '7px 8px 7px 12px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.35 }}>
+    <div ref={medir} className="ll-aviso-servidor" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFC400', color: '#0C0C0C', borderBottom: '3px solid #0C0C0C', padding: naHome ? '7px 8px 7px 12px' : '4px 6px 4px 10px', fontSize: naHome ? 12.5 : 11.5, fontWeight: 700, lineHeight: 1.35 }}>
       {/* o botão de som da home é fixo no topo: desce a altura desta faixa (igual à faixa da comunidade) */}
       <style>{`html body #root:has(.ll-aviso-servidor) button[aria-label="Desligar som"],html body #root:has(.ll-aviso-servidor) button[aria-label="Ligar som"]{top:calc(26px + var(--ll-zap-h,0px) + ${alt}px)!important}@media(max-width:650px){html body #root:has(.ll-aviso-servidor) button[aria-label="Desligar som"],html body #root:has(.ll-aviso-servidor) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h,0px) + ${alt}px)!important}}`}</style>
       <span style={{ flex: 1, minWidth: 0 }}>
-        {en
+        {!naHome
+          ? (en ? <>🔥 <b>Sorry for the freeze!</b> The server got packed and I’ve upgraded it. Give us a hand? 💛 </> : <>🔥 <b>Desculpa a travada!</b> O servidor lotou e já aumentei. Dá uma força? 💛 </>)
+          : en
           ? <>🔥 <b>Sorry! The server got packed with so many players and froze.</b> I’ve already upgraded it to handle more. Want to give the game a hand (it now costs me a bit more 😅)? Check out the plans. 💛 </>
           : <>🔥 <b>Pedimos desculpas! O servidor lotou com tanta gente jogando e travou.</b> Já aumentei o servidor pra aguentar mais. Se quiser dar aquela força pro jogo (que agora custa um pouquinho mais pra mim 😅), dá uma olhada nos planos. 💛 </>}
         <LojaButton ancora="planos" style={{ background: 'none', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', color: '#0C0C0C', fontSize: 12.5, fontFamily: 'Oswald, sans-serif' }}>{en ? 'See plans ›' : 'Ver planos ›'}</LojaButton>
