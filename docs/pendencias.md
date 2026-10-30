@@ -11776,3 +11776,8 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   `estudante.rs.gov.br`, colégios). Cuidado: computador de escola tem várias contas no mesmo aparelho de forma honesta.
 - Teste combinado: ligar primeiro só pra contas criadas pelo Diego (e-mail `+teste` dele), conferir o código chegando, e
   painel no #admin com contas novas × confirmadas × não confirmadas por dia + aparelhos com 5+ contas.
+- ✅ 30/10: **trava do e-mail inventado no CADASTRO** (Diego aprovou: *"recusar na hora do cadastro e-mails falsos… gmail.comxy,
+  Gmail com N"*). `email-novo.ts` (`emailNovoProblema`), chamada só no "Criar conta" do `conta.tsx` — login e "esqueci a senha"
+  não mudam, quem já tem conta não é tocado. Barra domínio parecido com Gmail/Hotmail/Outlook/Yahoo/iCloud que não é o certo e
+  final que não existe (.vom, .comxyz, .c0m). Trava `npm run email-novo` (48 domínios reais do banco passam; 55 de 60 inventados caem).
+  Trava do aparelho e confirmação de e-mail: NÃO aprovadas — Diego ainda pensando (limite de 100/dia do Resend grátis desanimou).
