@@ -160,13 +160,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Roberto Rivellino",
-    "baralho": "BR",
-    "nivel": "lenda",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Tita",
     "baralho": "BR",
     "nivel": "craque",
