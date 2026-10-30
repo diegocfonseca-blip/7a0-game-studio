@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { supabase } from '../lib/supabase'
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 // Prévia de apresentação local. Nunca vai para o estado compartilhado da sala.
 // Não é uma autorização de dados: RLS e permissões do host continuam independentes.
@@ -27,7 +28,8 @@ async function verify() {
 function start() {
   if (started) return
   started = true
-  supabase.auth.onAuthStateChange(() => {
+  supabase.auth.onAuthStateChange((_e, s) => {
+    if (!releConta('online-preview', s?.user?.id)) return
     ++revision
     publish(false)
     // Fora do callback de Auth: não bloqueia o lock interno do cliente.

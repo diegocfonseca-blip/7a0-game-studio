@@ -14,6 +14,7 @@ import { tr } from './lang'
 import { loggedEmail } from './apoio'
 import { EmblemaCla } from './cla'
 import { RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS } from './store'
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', ROXO = '#7C3AED', CREME = '#FFF8E6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -62,7 +63,7 @@ export function AvisoSemana({ tela }: { tela: string }) {
   useEffect(() => {
     let vivo = true, ultima = 0
     const olha = async () => {
-      if (!loggedEmail() || Date.now() - ultima < 60_000) return
+      if (!loggedEmail() || Date.now() - ultima < 30 * 60_000) return // 📉 30/10: o pódio só muda segunda 0h — 1 pergunta a cada 30 min basta
       ultima = Date.now()
       const { data } = await supabase.rpc('esc_avisos_semana')
       if (!vivo || !Array.isArray(data)) return
@@ -71,7 +72,7 @@ export function AvisoSemana({ tela }: { tela: string }) {
       setFila(lista)
     }
     const t = setTimeout(olha, 3000) // depois do login assentar
-    const { data: sub } = supabase.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN') setTimeout(olha, 1500) })
+    const { data: sub } = supabase.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' && releConta('aviso-semana', s?.user?.id)) { ultima = 0; setTimeout(olha, 1500) } })
     // (quem deixa o jogo aberto virando a meia-noite de domingo: confere de novo a cada 30 min e quando volta pra aba)
     const iv = setInterval(olha, 30 * 60_000)
     const vis = () => { if (document.visibilityState === 'visible') olha() }

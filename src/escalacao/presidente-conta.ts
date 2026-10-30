@@ -20,6 +20,7 @@ import { esquecerPresidente } from './presidente-avatar'
 import { podeUsarPecaAvulsa, podeVestirRoupaAvulsa, temBoneco, type PosseAvulsa } from './presidente-avulsas'
 import { aparenciaModular } from './presidente-aparencia'
 import { roupaModularValida } from './presidente-vestuario-modular'
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 const PRESIDENTE_CONTA_GERAL = true // 🟢 16/10: liberado pra todos (Diego: "já pode publicar p todos p personagem")
 const PRESIDENTE_CONTA_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com']) // 16/10: + diego2 (grátis), pra ele ver como o plano gratuito enxerga o editor e os preços
@@ -138,7 +139,8 @@ export function usePresidenteConta(): EstadoPresidenteConta {
 }
 
 // trocou de conta / deslogou: zera e, se alguém está olhando, relê. Nunca espera o Supabase DENTRO do callback.
-supabase.auth.onAuthStateChange(() => {
+supabase.auth.onAuthStateChange((_e, s) => {
+  if (!releConta('presidente-conta', s?.user?.id)) return
   pedido++
   if (pecas.email !== loggedEmail()) { pedidoPecas++; pecas = { email: null, lista: [] }; if (ouvintesPecas.size) queueMicrotask(() => { void recarregarMinhasPecas() }) }
   muda({ status: 'parado', value: null, email: null })

@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { tr } from './lang' // 🌐 BR/EN (12/09)
 import { lerDireitos, tierEfetivo, temManual, type Direitos } from './planos-regras'
 import { buscaVitrine, medalhaDaPos } from './vitrine-dados' // 🥇 medalha da semana (13/10)
+import { pagando } from './conta-vez' // 💳 30/10: voltou de pagar → relê o plano
 
 export type ApoioTier = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
@@ -343,7 +344,18 @@ export function useDireitos(): Direitos | null {
 /** o tier de SEMPRE (banco ou lista do código), sem a assinatura — é o que nunca vence */
 export function meuTierLegado(): ApoioTier | null { return myEmail ? (dbTier ?? FOUNDERS[myEmail] ?? null) : null }
 supabase.auth.getUser().then(({ data }) => { if (bancadaFixa) return; myEmail = data?.user?.email?.toLowerCase() ?? null; if (myEmail) markHadLogin(); fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { if (bancadaFixa) return; const em = s?.user?.email?.toLowerCase() ?? null; if (em) markHadLogin(); if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
+supabase.auth.onAuthStateChange((_e, s) => { if (bancadaFixa) return; const em = s?.user?.email?.toLowerCase() ?? null; if (em) markHadLogin(); if (em !== myEmail) { myEmail = em; fetchDbTier(em) } else if (pagando()) relePlano(); fixOldEmojiName(s?.user) }) // 💳 30/10: voltou de pagar → relê o plano na hora
+// 💳 30/10: relê plano e tier SEM apagar o que está na tela (nada de piscar bege) — usado na volta de quem foi pagar
+function relePlano() {
+  const em = myEmail
+  if (!em) return
+  fetchDireitos(em)
+  supabase.from('user_colors').select('tier').eq('email', em).maybeSingle().then(({ data }) => {
+    const t = (data?.tier ?? '') as ApoioTier
+    if (myEmail === em && t && t in APOIO_PERKS && t !== dbTier) { dbTier = t; avisaDireitos() }
+  }, () => {})
+}
+if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && pagando()) relePlano() })
 
 // cadastro ANTIGO com emoji no nome: corrige no banco uma vez, no login.
 // (nome que era só emoji vira o prefixo do e-mail.)
@@ -428,8 +440,11 @@ export function useHasManual(): boolean {
         if (alive) setManualCol((data as { manual?: boolean } | null)?.manual === true)
       } catch { if (alive) setManualCol(false) } // coluna ainda não existe / rede: cai no Lenda
     }
-    supabase.auth.getUser().then(({ data }) => check(data?.user?.email), () => {})
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => check(s?.user?.email))
+    // 📉 30/10: só relê quando a conta muda (ou voltou de pagar) — antes era a cada volta pro jogo
+    let visto: string | null | undefined
+    const vez = (email?: string | null) => { const em = (email ?? '').toLowerCase(); if (em === visto && !pagando()) return; visto = em; void check(em) }
+    supabase.auth.getSession().then(({ data }) => vez(data?.session?.user?.email), () => {})
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => vez(s?.user?.email))
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
   // 🎮 o Modo Manual vem no Craque (prata) e no Lenda (ouro); ou pelo selo `manual`

@@ -30,7 +30,7 @@ function guardaPodio(v: Vitrine | null) {
 
 let cache: { em: number; dado: Promise<Vitrine | null> } | null = null
 export function buscaVitrine(forcar = false): Promise<Vitrine | null> {
-  if (!forcar && cache && Date.now() - cache.em < 60_000) return cache.dado
+  if (!forcar && cache && Date.now() - cache.em < 120_000) return cache.dado // 30/10: o banco já guarda 5 min; 2 min aqui poupa ida à toa
   const dado = Promise.resolve(supabase.rpc('esc_vitrine_salas'))
     .then(({ data, error }) => { const v = error || !data ? null : (data as Vitrine); guardaPodio(v); return v }, () => null)
   cache = { em: Date.now(), dado }

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { supabase } from '../lib/supabase'
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 // Prévia de apresentação local. Nunca vai para o estado compartilhado da sala.
 // Não é uma autorização de dados: RLS e permissões do host continuam independentes.
@@ -58,6 +59,7 @@ function start() {
   if (started) return
   started = true
   supabase.auth.onAuthStateChange((event, session) => {
+    if (!releConta('presidente-acesso', session?.user?.id)) return
     ++revision
     // só desliga NA HORA quando saiu da conta ou a sessão agora é de outra conta; renovação da mesma conta espera a conferência
     if (event === 'SIGNED_OUT' || !presidentPreviewEmail(session?.user?.email)) publish(false)
