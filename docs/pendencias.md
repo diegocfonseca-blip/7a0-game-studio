@@ -11716,5 +11716,5 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - ✅ Arte chegou (30/10): clube **Paizão FC**, Série D no assento do bot **Monarca EC**. Escudo = o 2º que o Diego mandou (333×360,
   28 KB), mascote **O Paizão** `paizao_cartola` (258×440, 19 KB), manto **preto #100F0F + dourado #D99C32** medidos na camisa.
   Código no branch (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio 98, manto.ts, batismos.ts, salao-camisas, checa-batismos);
-  banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Post
+  banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Gala única "O Prêmio" (`gala-paizao.tsx`: AO VIVO, Melhor Cartoleiro 2023, o Paizão sai da cartola, Influenciador da Seleção 2022, frase O PAI TÁ ON; quadros `scripts/posts/gala-paizao-quadros.png`). Post
   `scripts/posts/batismo-paizao-fc.png`. ⏳ time de coração, gala/canto (se ele quiser) e publicar.
