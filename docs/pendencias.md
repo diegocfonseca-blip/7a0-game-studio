@@ -11661,3 +11661,8 @@ o que é só de olhar leva `data-livre`). Convite pendente continua abrindo dire
 ## 📖 MEU ÁLBUM saiu da home (28/10)
 Diego: *"a página meu álbum da home pode tirar… dentro da página amigos já tem"*. O botão some da home (futebol e basquete) pra quem tem
 os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o caminho. A tela do álbum continua existindo (é a mesma dos Amigos).
+
+## 🛒 30/10 — Mercado da bola (Sondar jogador, carreira) — FEITO e publicado
+- Mockup `scripts/mockups/carreira-mercado-sondar.png` aprovado (*"pode publicar"*). Cada linha mostra a carta virada (só a posição), a etiqueta 🎴 clube · ano DA CARTA e "📍 está no <clube>"; botões de posição; faixa verde por setor; quem tem contrato dobrado em "🔒 Com contrato ainda (N) — ver".
+- ✔ Sondado agora só pinta a linha do clube escolhido (antes, a mesma carta em 2 clubes pintava as duas).
+- ⚠️ PENDENTE (investigar): no print de um jogador apareceram DOIS Figueroa (Nacional do Agreste e Wen Milan B) — só existe UMA carta Figueroa (Internacional 1976). Ou seja, a mesma carta em 2 clubes daquela carreira (provavelmente times de fundo / ficha `cpuSquads`). Achar a origem antes de mexer.
