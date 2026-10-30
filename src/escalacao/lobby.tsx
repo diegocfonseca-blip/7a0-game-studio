@@ -54,7 +54,7 @@ import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigo
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
-import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { TemaFundo, MiniTemaSala, temaValido, useTemasDaConta, releMeusTemas, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
@@ -2046,6 +2046,10 @@ export function EscLobby() {
     }
     // 🚫 21/10: a mesma régua do banco, avisando antes de tentar
     if (nomeOfensivo(name)) { setRoomError(tr('🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends. Troque o nome da sala (ou o seu apelido) e tente de novo.', '🚫 That name is not allowed: nothing offensive in Leilão Legends. Change the room name (or your nickname) and try again.')); setLoading(false); return }
+    // 🎨 29/10 (Diego: *"já deixe no automático… todos que já têm tema do fundador mascote, cria sala e já vem com tema"*): quem tem
+    // tema de CLUBE/MASCOTE na conta cria a sala já vestida com o 1º dele (o dono troca ou tira na sala de espera). Tema de time de
+    // coração não entra sozinho — é escolha do dono.
+    { const auto = meusTemas.find(id => !id.startsWith('c:')); if (auto && temaValido(auto)) (gs as Record<string, unknown>).tema = auto }
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -4702,13 +4706,17 @@ export function EscLobby() {
         )}
       </div>}
 
-      {/* 🎨 TEMA DO CLUBE (18/10): só o dono, e só se a conta dele tiver tema (batismo) */}
+      {/* 🎨 TEMA DO CLUBE (18/10): só o dono, e só se a conta dele tiver tema (batismo).
+          🖼️ 29/10 (mockup `tema-sala-achar.png`): em DOURADO, com a miniatura de cada tema e o "✓ NA SALA" — o dono não percebia que
+          tinha tema. Até 3 temas cabem numa linha; com mais, quebra (o "Sem tema" vai por último). */}
       {isHost && meusTemas.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black p-2.5 bg-white" style={{ boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
-          <p className="font-black text-[12px] uppercase mb-1.5" style={OSWALD}>{tr('🎨 Tema da sala', '🎨 Room theme')}</p>
-          <Seg small options={[['', tr('Sem tema', 'No theme')], ...meusTemas.map(id => [id, temaValido(id) ? nomeTema(temaValido(id)!) : id] as [string, string])]}
-            value={temaSala?.id ?? ''} onSet={v => void salvaTema((v || null) as TemaSalaId | null)} />
-          <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('Todo mundo que entra na sala vê. Muda só o visual da sala de espera.', 'Everyone who joins sees it. Only the waiting room look changes.')}</p>
+        <div className="rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
+          <p className="font-black text-[14px] uppercase leading-tight" style={OSWALD}>{meusTemas.length === 1 ? tr('🎨 Você tem 1 tema · vista a sala', '🎨 You have 1 theme · dress the room') : tr(`🎨 Você tem ${meusTemas.length} temas · vista a sala`, `🎨 You have ${meusTemas.length} themes · dress the room`)}</p>
+          <p className="text-[11px] font-bold mb-2" style={{ color: 'rgba(12,12,12,.75)' }}>{tr('Toque num tema. Todo mundo que entrar vê a sala com ele.', 'Tap a theme. Everyone who joins sees the room with it.')}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {meusTemas.map(id => <div key={id} style={{ flex: '1 1 30%', minWidth: 96, display: 'flex' }}><MiniTemaSala tema={temaValido(id)} ativo={temaSala?.id === id} onClick={() => void salvaTema(id)} /></div>)}
+            <div style={{ flex: '1 1 30%', minWidth: 96, display: 'flex' }}><MiniTemaSala tema={null} ativo={!temaSala} onClick={() => void salvaTema(null)} /></div>
+          </div>
         </div>
       )}
 

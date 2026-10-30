@@ -50,7 +50,7 @@ type ClaRank = { id: number; nome: string; emblema: string; membros: number; tit
 export function RankingClasCaixa() {
   const [l, setL] = useState<ClaRank[] | null>(null)
   const [ver, setVer] = useState<number | null>(null)
-  useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 5)) }, () => {}); return () => { vivo = false } }, [])
+  useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 20)) }, () => {}); return () => { vivo = false } }, [])
   if (!l) return null // 🔁 21/10 (Diego): a caixa aparece SEMPRE, mesmo sem clã nenhum — vazia, ela chama a galera pra criar o primeiro
   return (
     <Caixa titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
@@ -67,10 +67,11 @@ export function RankingClasCaixa() {
           <span style={{ ...OSW, fontSize: 16, color: '#0006' }}>›</span>
         </div>
       ))}
-      {/* ⚔️ 29/10 (Diego: "coloque enfileirados ali embaixo dos nomes… até agora ninguém fez o 4º clã"): a lista vai sempre até o 5º —
-          as posições sem clã viram VAGA ABERTA com o botão de criar ali mesmo, e embaixo os dois caminhos lado a lado (entrar · criar).
+      {/* ⚔️ 29/10 (Diego: "coloque enfileirados ali embaixo dos nomes… até agora ninguém fez o 4º clã"): as posições sem clã viram VAGA ABERTA.
+          🔁 29/10 à noite (Diego: "aumente pra poder criar mais dois listado embaixo e bote os clãs que não aparecem"): a lista mostra TODOS os
+          clãs que o ranking devolve (até 20, não mais 5) e embaixo vão SEMPRE 2 vagas abertas com o botão de criar ali mesmo, e embaixo os dois caminhos lado a lado (entrar · criar).
           Os dois levam pra aba ⚔️ Clã dos Amigos (lá tem a busca e o criar). */}
-      {l.length > 0 && Array.from({ length: Math.max(0, 5 - l.length) }, (_, k) => l.length + k + 1).map(p => (
+      {l.length > 0 && Array.from({ length: 2 }, (_, k) => l.length + k + 1).map(p => (
         <div key={`vaga${p}`} role="button" tabIndex={0} onClick={() => abreAmigosSolto('cla', true)} onKeyDown={e => { if (e.key === 'Enter') abreAmigosSolto('cla', true) }}
           style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '5px 6px', marginTop: 4, borderRadius: 9, border: `2px dashed #0C0C0C55`, background: '#ffffff80' }}>
           <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center', color: '#0007' }}>{p}º</span>
