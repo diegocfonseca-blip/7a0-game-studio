@@ -11753,3 +11753,9 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - 🔁 30/10 noite, Diego: *"não coloque nenhum como lenda, coloque como craques… coloque o Salah como lenda"*. As 16 lendas do Lote 45
   viraram CRAQUE (fame 4, faixa −3/−2) e o **Mohamed Salah** (Liverpool 2019, a única carta dele) virou LENDA (89–94). O Lote 45
   ficou sem nenhuma lenda.
+- 🔁 30/10 noite, Diego escolheu quem FICA dos menos conhecidos (Orlando Peçanha, De Sordi, Everaldo, Scarone, Nasazzi, Omam-Biyik,
+  Jongbloed, Răducioiu, Kostadinov, Dumitrescu, Ounahi; Tarciso e Máspoli já tinham ficado). **Saíram 15**: Zózimo, Brito, Batista
+  (Inter 79), Pita, Kléber (Santos 04), Mayke, Fabiano Eller, Mondragón, Hugo Ibarra, Tshabalala, Al-Dawsari, Tomaszewski, Grosics,
+  Kennet Andersson e Henri Camara. Lote 45 = **237 cartas**. Tirados de data.ts, foto, novidades geradas (à mão, sem rodar o
+  gerador), paises.ts e lista mestre; stories refeitos (parte 1 = GOL/LAT/ATA, parte 2 = ZAG/MEI — GOL→MEI juntos estourava).
+  ⏳ Ainda NÃO publicado: aguarda "publica".

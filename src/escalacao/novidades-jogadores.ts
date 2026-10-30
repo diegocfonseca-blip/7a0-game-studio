@@ -35,23 +35,9 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Kléber",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Renan Lodi",
     "baralho": "BR",
     "nivel": "promessa",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Mayke",
-    "baralho": "BR",
-    "nivel": "bom jogador",
     "data": "2026-10-30"
   },
   {
@@ -126,28 +112,7 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Brito",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Fabiano Eller",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Orlando Peçanha",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Zózimo",
     "baralho": "BR",
     "nivel": "bom jogador",
     "data": "2026-10-30"
@@ -178,13 +143,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Silas",
     "baralho": "BR",
     "nivel": "craque",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Pita",
-    "baralho": "BR",
-    "nivel": "bom jogador",
     "data": "2026-10-30"
   },
   {
@@ -227,13 +185,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Dirceu",
     "baralho": "BR",
     "nivel": "craque",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Batista",
-    "baralho": "BR",
-    "nivel": "bom jogador",
     "data": "2026-10-30"
   },
   {
@@ -358,20 +309,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Jan Jongbloed",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Gyula Grosics",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-30"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jan Tomaszewski",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-10-30"

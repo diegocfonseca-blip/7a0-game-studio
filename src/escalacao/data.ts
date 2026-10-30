@@ -1635,9 +1635,7 @@ const L45_BR_GOL: C[] = [
   { name: "Pedro Morisco", club: "Coritiba", year: 2026, fame: 3, lo: 75, hi: 85, promessa: true },
 ]
 const L45_BR_LAT: C[] = [
-  { name: "Kléber", club: "Santos", year: 2004, fame: 3, lo: 74, hi: 86 },
   { name: "Renan Lodi", club: "Athletico-PR", year: 2018, fame: 3, lo: 74, hi: 84, promessa: true },
-  { name: "Mayke", club: "Palmeiras", year: 2021, fame: 3, lo: 74, hi: 86 },
   { name: "De Sordi", club: "São Paulo", year: 1958, fame: 3, lo: 74, hi: 84 },
   { name: "Everaldo", club: "Grêmio", year: 1970, fame: 3, lo: 76, hi: 84 },
   { name: "Marinho Chagas", club: "Botafogo", year: 1974, fame: 4, lo: 84, hi: 89 },
@@ -1650,24 +1648,19 @@ const L45_BR_ZAG: C[] = [
   { name: "Jonathan Jesus", club: "Cruzeiro", year: 2026, fame: 3, lo: 74, hi: 86 },
   { name: "Leonardo Silva", club: "Atlético-MG", year: 2013, fame: 3, lo: 77, hi: 84 },
   { name: "Luizinho", club: "Atlético-MG", year: 1980, fame: 4, lo: 81, hi: 91 },
-  { name: "Brito", club: "Vasco", year: 1970, fame: 3, lo: 76, hi: 85 },
-  { name: "Fabiano Eller", club: "Internacional", year: 2006, fame: 3, lo: 76, hi: 84 },
   { name: "Orlando Peçanha", club: "Vasco", year: 1958, fame: 3, lo: 77, hi: 86 },
-  { name: "Zózimo", club: "Bangu", year: 1958, fame: 3, lo: 75, hi: 84 },
   { name: "Anderson Polga", club: "Grêmio", year: 2002, fame: 3, lo: 75, hi: 85 },
 ]
 const L45_BR_MEI: C[] = [
   { name: "Paulo César Carpegiani", club: "Internacional", year: 1976, fame: 4, lo: 81, hi: 90 },
   { name: "Tita", club: "Flamengo", year: 1981, fame: 4, lo: 84, hi: 89 },
   { name: "Silas", club: "São Paulo", year: 1986, fame: 4, lo: 83, hi: 90 },
-  { name: "Pita", club: "São Paulo", year: 1986, fame: 3, lo: 75, hi: 85 },
   { name: "Zenon", club: "Corinthians", year: 1983, fame: 3, lo: 74, hi: 85 },
   { name: "André Luiz", club: "Corinthians", year: 2026, fame: 3, lo: 74, hi: 83, promessa: true },
   { name: "Danilo", club: "Botafogo", year: 2026, fame: 3, lo: 75, hi: 86 },
   { name: "Matheusinho", club: "Vitória", year: 2025, fame: 3, lo: 74, hi: 84 },
   { name: "Hakim Ziyech", club: "Botafogo", year: 2026, fame: 3, lo: 76, hi: 84 },
   { name: "Dirceu", club: "Vasco", year: 1978, fame: 4, lo: 81, hi: 91 },
-  { name: "Batista", club: "Internacional", year: 1979, fame: 3, lo: 74, hi: 84 },
   { name: "Zé Elias", club: "Corinthians", year: 1995, fame: 3, lo: 76, hi: 86 },
 ]
 const L45_BR_ATA: C[] = [
@@ -2859,8 +2852,6 @@ const L45_EU_GOL: C[] = [
   { name: "Édouard Mendy", club: "Chelsea", year: 2021, fame: 4, lo: 81, hi: 91 },
   { name: "Unai Simón", club: "Athletic Bilbao", year: 2024, fame: 3, lo: 77, hi: 84 },
   { name: "Jan Jongbloed", club: "FC Amsterdam", year: 1974, fame: 3, lo: 76, hi: 85 },
-  { name: "Gyula Grosics", club: "Honvéd", year: 1954, fame: 4, lo: 83, hi: 90 },
-  { name: "Jan Tomaszewski", club: "ŁKS Łódź", year: 1974, fame: 3, lo: 75, hi: 86 },
 ]
 const L45_EU_LAT: C[] = [
   { name: "Giacinto Facchetti", club: "Inter", year: 1965, fame: 4, lo: 84, hi: 92 },
@@ -2969,7 +2960,6 @@ const L45_EU_ATA: C[] = [
   { name: "Rayan", club: "Bournemouth", year: 2026, fame: 3, lo: 73, hi: 85, promessa: true },
   { name: "Oleg Salenko", club: "Logroñés", year: 1994, fame: 3, lo: 75, hi: 84 },
   { name: "Florin Răducioiu", club: "Espanyol", year: 1996, fame: 3, lo: 74, hi: 85 },
-  { name: "Kennet Andersson", club: "Bologna", year: 1998, fame: 3, lo: 75, hi: 84 },
   { name: "İlhan Mansız", club: "Beşiktaş", year: 2002, fame: 3, lo: 76, hi: 85 },
   { name: "Joel Campbell", club: "Arsenal", year: 2014, fame: 3, lo: 74, hi: 86 },
   { name: "Youssef En-Nesyri", club: "Sevilla", year: 2022, fame: 3, lo: 77, hi: 86 },
@@ -3009,7 +2999,6 @@ const L45_EU_ATA: C[] = [
   { name: "François Omam-Biyik", club: "Laval", year: 1990, fame: 3, lo: 74, hi: 84 },
   { name: "Emil Kostadinov", club: "Porto", year: 1994, fame: 3, lo: 75, hi: 84 },
   { name: "Ilie Dumitrescu", club: "Steaua Bucareste", year: 1994, fame: 3, lo: 77, hi: 84 },
-  { name: "Henri Camara", club: "Sedan", year: 2002, fame: 3, lo: 76, hi: 86 },
   { name: "Hasan Şaş", club: "Galatasaray", year: 2002, fame: 3, lo: 76, hi: 86 },
   { name: "Grzegorz Lato", club: "Stal Mielec", year: 1974, fame: 4, lo: 83, hi: 89 },
   { name: "André Schürrle", club: "Chelsea", year: 2014, fame: 3, lo: 77, hi: 84 },
@@ -3708,7 +3697,6 @@ const L45_WORLD_GOL: C[] = [
   { name: "Franco Armani", club: "River Plate", year: 2018, fame: 3, lo: 76, hi: 84 },
   { name: "Keylor Navas", club: "Saprissa", year: 2008, fame: 3, lo: 74, hi: 86 },
   { name: "Tim Howard", club: "MetroStars", year: 2002, fame: 3, lo: 77, hi: 84 },
-  { name: "Faryd Mondragón", club: "Independiente", year: 2001, fame: 3, lo: 76, hi: 85 },
   { name: "Sergio Romero", club: "Boca Juniors", year: 2023, fame: 3, lo: 77, hi: 84 },
   { name: "Esteban Andrada", club: "Boca Juniors", year: 2019, fame: 3, lo: 76, hi: 86 },
   { name: "Roque Máspoli", club: "Peñarol", year: 1950, fame: 4, lo: 83, hi: 89 },
@@ -3717,7 +3705,6 @@ const L45_WORLD_GOL: C[] = [
 ]
 const L45_WORLD_LAT: C[] = [
   { name: "Javier Zanetti", club: "Banfield", year: 1995, fame: 3, lo: 74, hi: 85, promessa: true },
-  { name: "Hugo Ibarra", club: "Boca Juniors", year: 2000, fame: 3, lo: 76, hi: 85 },
   { name: "Marcos Acuña", club: "Racing", year: 2017, fame: 3, lo: 75, hi: 85 },
   { name: "Nicolás Tagliafico", club: "Independiente", year: 2017, fame: 3, lo: 75, hi: 85 },
   { name: "Mauricio Isla", club: "Universidad Católica", year: 2007, fame: 3, lo: 74, hi: 86 },
@@ -3746,7 +3733,6 @@ const L45_WORLD_MEI: C[] = [
   { name: "Rúben Neves", club: "Al-Hilal", year: 2024, fame: 3, lo: 74, hi: 86 },
   { name: "Dunga", club: "Júbilo Iwata", year: 1997, fame: 4, lo: 84, hi: 91 },
   { name: "Pablo Aimar", club: "River Plate", year: 1999, fame: 4, lo: 82, hi: 89 },
-  { name: "Siphiwe Tshabalala", club: "Kaizer Chiefs", year: 2010, fame: 3, lo: 76, hi: 85 },
   { name: "Obdulio Varela", club: "Peñarol", year: 1950, fame: 4, lo: 85, hi: 91 },
   { name: "Juan Alberto Schiaffino", club: "Peñarol", year: 1950, fame: 4, lo: 86, hi: 90 },
 ]
@@ -3757,7 +3743,6 @@ const L45_WORLD_ATA: C[] = [
   { name: "Gary Lineker", club: "Nagoya Grampus", year: 1993, fame: 3, lo: 77, hi: 85 },
   { name: "Hristo Stoichkov", club: "Kashiwa Reysol", year: 1999, fame: 3, lo: 75, hi: 85 },
   { name: "Edinson Cavani", club: "Boca Juniors", year: 2024, fame: 3, lo: 76, hi: 84 },
-  { name: "Salem Al-Dawsari", club: "Al-Hilal", year: 2022, fame: 3, lo: 76, hi: 86 },
   { name: "Alcides Ghiggia", club: "Peñarol", year: 1950, fame: 4, lo: 84, hi: 89 },
   { name: "Héctor Scarone", club: "Nacional-URU", year: 1930, fame: 4, lo: 83, hi: 91 },
 ]
