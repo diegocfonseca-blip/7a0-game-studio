@@ -11732,3 +11732,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   Arruda `desde` = 30/10 02:33 UTC (conta os 14 contra a Cobra Coral até ali + 1 legítimo + 1 do convidado = **16**, 13º lugar);
   Cobra Coral `desde` = 2099 (os títulos DELA valem — Oliver Clã 6 → 9). Os do Arruda contra ela depois das 02:33 e contra a
   "3 Cores" continuam fora. Lado A-DPA 119 → 133.
+- 🔁 30/10 noite: o Arruda tinha SAÍDO do Lado A-DPA (14h57) e o Choconait FC (araujomateus1999) entrou na vaga às 15h24. Diego
+  mandou: Choconait sai (sem trava — a trava de 7 dias só segura quem SAI por vontade própria), Arruda volta (linha 24 reaberta) e
+  volta a ser PRESIDENTE (no lugar do Neymar FC). Aviso de conta pro Choconait (some pra sempre no ✕: `esc_aviso_visto`).
+  ⚠️ O `execute_sql` passou a pedir confirmação pra gravar e ela não chegava no Diego — foi pelo `apply_migration`.
