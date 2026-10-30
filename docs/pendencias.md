@@ -11718,3 +11718,32 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   Código no branch (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio 98, manto.ts, batismos.ts, salao-camisas, checa-batismos);
   banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Gala única "O Prêmio" (`gala-paizao.tsx`: AO VIVO, Melhor Cartoleiro 2023, o Paizão sai da cartola, Influenciador da Seleção 2022, frase O PAI TÁ ON; quadros `scripts/posts/gala-paizao-quadros.png`). Post
   `scripts/posts/batismo-paizao-fc.png`. ⏳ time de coração, gala/canto (se ele quiser) e publicar.
+
+## 🕵️ 30/10 tarde — 3ª conta do Tricolor do Arruda ligada (Diego: "pode remover os 16 dele")
+- `xaumipocom3@gmail.com` ("3 Cores", apelido do Santa Cruz) criada 30/10 11h28 — DEPOIS da trava das 01h39 — e jogou 16 temporadas
+  só com o Arruda (nunca com mais ninguém). Entrou em `esc_contas_ligadas` (grupo 'geovany', `desde` 17:13 UTC). Os títulos dele contra
+  ela (22 contando copas) saíram do ranking na hora (cache da vitrine apagado).
+- Ficou contando (regra do `desde`, decidida antes: não é retroativo): 26 títulos contra a Cobra Coral ANTES da trava + 1 com a
+  "Cobra Coral" entrando SEM CONTA (brecha: convidado sem conta não é pego pela trava) + 1 legítimo. ⏳ Perguntei se ele quer tirar.
+- ✅ Diego mandou tirar os 26 contra a Cobra Coral: `desde` das 2 contas antigas do grupo 'geovany' voltou pra segunda 26/10 0h
+  (início da semana). O Arruda ficou com **2 títulos** na semana (1 legítimo + 1 do convidado sem conta) e saiu do top 5.
+  Semanas já fechadas (`esc_premio_semana`) não foram mexidas.
+- 🔁 Mesma tarde, Diego: *"Cobra Coral pode ficar os títulos no Oliver Clã… e coloque Arruda com 16 títulos"*. Feito pelo `desde`:
+  Arruda `desde` = 30/10 02:33 UTC (conta os 14 contra a Cobra Coral até ali + 1 legítimo + 1 do convidado = **16**, 13º lugar);
+  Cobra Coral `desde` = 2099 (os títulos DELA valem — Oliver Clã 6 → 9). Os do Arruda contra ela depois das 02:33 e contra a
+  "3 Cores" continuam fora. Lado A-DPA 119 → 133.
+- 🔁 30/10 noite: o Arruda tinha SAÍDO do Lado A-DPA (14h57) e o Choconait FC (araujomateus1999) entrou na vaga às 15h24. Diego
+  mandou: Choconait sai (sem trava — a trava de 7 dias só segura quem SAI por vontade própria), Arruda volta (linha 24 reaberta) e
+  volta a ser PRESIDENTE (no lugar do Neymar FC). Aviso de conta pro Choconait (some pra sempre no ✕: `esc_aviso_visto`).
+  ⚠️ O `execute_sql` passou a pedir confirmação pra gravar e ela não chegava no Diego — foi pelo `apply_migration`.
+
+## 📚 30/10 — LOTE 45: 253 cartas novas (pedido do Diego, categorias e níveis decididos pelo Claude) — ✅ publicado
+- Décadas (anos 60–90), convocação do Brasil 2026, lista do Diego (PSG/Chelsea/Everton/Leeds/Newcastle…), heróis de Copa, países
+  campeões do mundo, Copas lendárias (Brasil 58→2002, Hungria 54, Holanda 74, Polônia 74, Marrocos 2022…) e filhos de famosos.
+  Lista mestre: `docs/cartas-novas-30-10.json` · stories: `scripts/posts/cartas-novas-30-10-parte{1,2}.png`.
+- Lotes `L45_{BR,EU,WORLD}_{POS}` em `data.ts`; país de cada um em `paises.ts` (PAIS + MESMO_JOGADOR + 6 PAIS_POR_CARTA).
+- Régua usada: lenda fame 5 (≈88–93) · craque 4 (≈83–90) · bom 3 (≈76–85) · promessa = 3 + promessa (≈75–84) · Kežman e Enzo Zidane
+  fame 2 · "bagre" (Delap, Niasse) fame 1 folclórico. 17 lendas: Sepp Maier, Facchetti, Scirea, Rivellino, Obdulio Varela, Schiaffino,
+  Kopa, Fritz Walter, Gento, Sandro Mazzola, Dixie Dean, Fontaine, Uwe Seeler, Gigi Riva, Meazza, Piola, Kocsis.
+- Saíram na conferência final por já existirem: Preben Elkjær (Verona 1985) e Morten Olsen (Anderlecht 1983).
+- Danilo (Botafogo 2026) e Danilo (Corinthians 2012) são pessoas diferentes no mesmo baralho — o clube separa (regra do Diego, 30/10).
