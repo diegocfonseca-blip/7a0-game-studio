@@ -11701,3 +11701,11 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 ## ⭐ 30/10 — Oliveira FC (pietro.oliveira23061721@gmail.com): Craque Completo por 12 meses, dado pelo Diego
 - Igual ao Cativeiro FC: linha em `esc_assinatura_mensal` (craque_completo, até 30/10/2027, sem `vendria_sub`). Conta de 15/09 conferida.
   Conferido no `esc_direitos_de`: pago · prata · manual · salas_pagas. Se ele virar Lenda, aí é definitivo.
+
+## 🙈 30/10 — Spoiler na aba ELENCO das salas (aviso de jogador ao Diego) — conserto pronto no branch
+- Causa: o campinho do Elenco soma ⚽/🅰️ de `golsNoJogo`/`assistsNoJogo`, que já têm o jogo da vez assim que ele é SORTEADO
+  (antes da animação). No mata-mata, o ⚽ do atacante subia antes do gol aparecer → dava pra saber quem passava.
+  Vale pra liga, Copa dos 8/Liberta/Relâmpago (mata-mata) e Champions — e pros campinhos dos outros times da sala.
+- Conserto (`screens.tsx`): `useNumerosAntes` tira a foto dos números antes do jogo novo e `NumerosAntesCtx` faz o campinho
+  mostrar essa foto até a MESMA trava do giro (`giroReady`; na Champions, `revealed`). Abriu no meio do jogo = selos somem até o apito.
+  Só leitura de tela: não muda placar, lance, coroa nem save.
