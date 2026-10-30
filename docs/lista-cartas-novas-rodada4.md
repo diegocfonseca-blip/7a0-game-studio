@@ -1,6 +1,6 @@
 # Lista do Diego (30/10) — o que dá pra aproveitar
 
-## ✅ Entram (16) — todos no baralho 🇪🇺 Europa, menos o Matheusinho (🇧🇷)
+## ✅ Entram (17 com o Ziyech) — todos no baralho 🇪🇺 Europa, menos o Matheusinho (🇧🇷)
 | Jogador | Clube · ano | Pos | Categoria (opinião do Diego) |
 |---|---|---|---|
 | Fabián Ruiz | PSG 2023 | MEI | |
@@ -28,6 +28,5 @@
 - Raphinha (Leeds) — o baralho Europa já tem o Raphinha do Barcelona; o mesmo jogador não pode 2× no mesmo baralho
 - Mendy (Al-Ahli) — o baralho Mundo já tem o Mendy (a carta do Chelsea 2021 mora lá, por causa da Copa); então o 2º Mendy vai pra Europa (Chelsea), que é onde ele pediu "craque"
 
-## ❓ Confirmar
-- Hakim Ziyech no Botafogo — não achei registro dele jogando no Botafogo (depois do Chelsea foi pra Galatasaray, Al-Duhail e Wydad).
-  Se ele foi mesmo pro Botafogo, entra no baralho 🇧🇷 (no Europa ele já tem a do Ajax).
+## ✅ Confirmado pelo Diego (30/10)
+- 🇧🇷 **Hakim Ziyech** — Botafogo 2026 · MEI (chegou ao Botafogo em 2026; no Europa ele já tem a do Ajax)
