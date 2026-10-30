@@ -11758,7 +11758,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   (Inter 79), Pita, Kléber (Santos 04), Mayke, Fabiano Eller, Mondragón, Hugo Ibarra, Tshabalala, Al-Dawsari, Tomaszewski, Grosics,
   Kennet Andersson e Henri Camara. Lote 45 = **237 cartas**. Tirados de data.ts, foto, novidades geradas (à mão, sem rodar o
   gerador), paises.ts e lista mestre; stories refeitos (parte 1 = GOL/LAT/ATA, parte 2 = ZAG/MEI — GOL→MEI juntos estourava).
-  ⏳ Ainda NÃO publicado: aguarda "publica".
+  ✅ Publicado em 30/10 noite junto com as 6 lendas (main 061b75d).
 - 🔁 30/10 noite, Diego: *"só os caras que devem ser lendas mesmo"*. Voltaram pra LENDA (fame 5, faixa +3/+2): **Sepp Maier**
   (Bayern 1974), **Facchetti** (Inter 1965), **Gento** (Real Madrid 1960), **Meazza** (Inter 1934) e **Kopa** (Real Madrid 1958).
   Com o **Salah** (Liverpool 2019) o Lote 45 tem 6 lendas. Nenhum deles tem outra carta no jogo.
