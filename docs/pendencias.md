@@ -11718,3 +11718,10 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   Código no branch (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio 98, manto.ts, batismos.ts, salao-camisas, checa-batismos);
   banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Gala única "O Prêmio" (`gala-paizao.tsx`: AO VIVO, Melhor Cartoleiro 2023, o Paizão sai da cartola, Influenciador da Seleção 2022, frase O PAI TÁ ON; quadros `scripts/posts/gala-paizao-quadros.png`). Post
   `scripts/posts/batismo-paizao-fc.png`. ⏳ time de coração, gala/canto (se ele quiser) e publicar.
+
+## 🕵️ 30/10 tarde — 3ª conta do Tricolor do Arruda ligada (Diego: "pode remover os 16 dele")
+- `xaumipocom3@gmail.com` ("3 Cores", apelido do Santa Cruz) criada 30/10 11h28 — DEPOIS da trava das 01h39 — e jogou 16 temporadas
+  só com o Arruda (nunca com mais ninguém). Entrou em `esc_contas_ligadas` (grupo 'geovany', `desde` 17:13 UTC). Os títulos dele contra
+  ela (22 contando copas) saíram do ranking na hora (cache da vitrine apagado).
+- Ficou contando (regra do `desde`, decidida antes: não é retroativo): 26 títulos contra a Cobra Coral ANTES da trava + 1 com a
+  "Cobra Coral" entrando SEM CONTA (brecha: convidado sem conta não é pego pela trava) + 1 legítimo. ⏳ Perguntei se ele quer tirar.
