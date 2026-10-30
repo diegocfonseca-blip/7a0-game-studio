@@ -115,7 +115,8 @@
     "copa-maquina": "node scripts/testa-copa-maquina.mjs",
     "copa-congelada": "node scripts/testa-copa-congelada.mjs",
     "copa-tatica": "node scripts/testa-copa-tatica.mjs",
-    "escalacao-ab": "npx tsx scripts/testa-escalacao-ab.mts && node scripts/testa-escalacao-ab-motor.mjs"
+    "escalacao-ab": "npx tsx scripts/testa-escalacao-ab.mts && node scripts/testa-escalacao-ab-motor.mjs",
+    "email-novo": "npx tsx scripts/testa-email-novo.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

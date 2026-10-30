@@ -19,6 +19,7 @@ import type { User } from '@supabase/supabase-js'
 import { CampoSenha, erroSenhaNova } from './campo-senha'
 import { supabase } from '../lib/supabase'
 import { stripEmoji, emailProblema, logout } from './apoio'
+import { emailNovoProblema } from './email-novo'
 import { nomeLivre, NOME_MSG } from './manto'
 import { tr } from './lang' // 🌐 BR/EN do site
 import { nomeDeTime } from './nome-time' // 🔤 21/10: 1ª letra maiúscula, resto minúscula, FC maiúsculo
@@ -150,7 +151,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
       // ── criar conta ──
       const nm = nomeDeTime(stripEmoji(time))
       if (!nm) { setErro(tr('Escolha o nome do seu time.', 'Choose your team name.')); setCarregando(false); return }
-      const prob = emailProblema(email)
+      const prob = emailProblema(email) ?? emailNovoProblema(email, tr) // ✉️ 30/10: domínio inventado (gmail.comxyz) só no cadastro
       if (prob) { setErro(prob); setCarregando(false); return }
       const problemaSenha = erroSenhaNova(senha, confirmacao)
       if (problemaSenha) { setErro(problemaSenha); return }
