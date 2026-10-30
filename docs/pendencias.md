@@ -3,6 +3,9 @@
   2.498 chamadas = 7.584 s de banco. Com o pico da noite, o banco engasgou (timeouts, "connect timeout", 500 em ~60% das chamadas).
 - ✅ Conserto no BANCO (03:06 UTC, sem deploy): cache de 2 min em `esc_cache_rpc` + trava pra não calcular em paralelo. Erros
   zeraram às 03:08. Arquivo: `supabase/migrations/20261030030500_cla_ranking_cache.sql`.
+- Mesmo com o cache, o banco Small (2 GB, 90 conexões) seguiu sem fôlego (timeouts até em leitura simples). O Diego subiu o
+  servidor de **Small pra Medium** às ~00h18 de Brasília: erro zero desde 03:19 UTC, ~4 mil chamadas/min normais, 24 salas andando.
+- ⏳ Pra poder voltar ao Small um dia (é ele que paga): baixar o custo das contas pesadas abaixo + medir a carga num pico.
 - ⏳ Outros pesados pra cuidar com calma (pedir OK): `esc_avisos` (40 mil chamadas, ~100 ms), `esc_vitrine_salas` (~300 ms),
   `esc_meu_nome_fake` (~320 ms), `esc_cla_painel` (~730 ms).
 
