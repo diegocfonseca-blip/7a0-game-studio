@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import paizaoEscudoImg from './img/paizao-escudo.webp' // 👑🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
 import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
@@ -917,6 +918,12 @@ const chelsaoEscudoRender = (size: number) => (
 // 🐟🏛️ PIRANHÃO FC (bruno.cunha2007, batismo FUNDADOR de 29/10) — Série D, no assento do bot Continental Real. 📏 269×290, 29 KB
 // (290 e não 360: arte cheia de detalhe, em 360 dava 39 KB; na tela o escudo nunca passa de 78px). O Presidente coroado de camisa
 // alvinegra, as duas piranhas na água, os louros e a faixa "LÁ EM CASA TODO MUNDO É 13". Fundo verde chroma tirado; conferido sobre vermelho.
+// 👑🎩 PAIZÃO FC (enzocromero9, batismo FUNDADOR de 30/10) — Série D, no assento do bot Monarca EC. 📏 333×360, 28 KB.
+// O Paizão sorrindo com a coroa, Kick/Instagram/TikTok e a estrela, preto e dourado (2º escudo que o Diego mandou, 30/10). Fundo verde chroma tirado;
+// conferido sobre vermelho.
+const paizaoEscudoRender = (size: number) => (
+  <img src={paizaoEscudoImg} height={size} width={Math.round(size * 333 / 360)} alt="Paizão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const piranhaoEscudoRender = (size: number) => (
   <img src={piranhaoEscudoImg} height={size} width={Math.round(size * 269 / 290)} alt="Piranhão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1605,6 +1612,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Piranhao FC': piranhaoEscudoRender,
   'Piranhao': piranhaoEscudoRender,
   'Continental Real': piranhaoEscudoRender,
+  'Paizão FC': paizaoEscudoRender, // 👑🎩 Paizão FC (enzocromero9) — BATISMO FUNDADOR. As formas do nome (com e sem til) + o bot que cedeu o assento.
+  'Paizão': paizaoEscudoRender,
+  'Paizão EC': paizaoEscudoRender,
+  'Paizão SC': paizaoEscudoRender,
+  'Paizao FC': paizaoEscudoRender,
+  'Paizao': paizaoEscudoRender,
+  'Monarca EC': paizaoEscudoRender,
   'Lulubaba FC': lulubabaEscudoRender,
   'Lulubaba': lulubabaEscudoRender,
   'Lulubaba EC': lulubabaEscudoRender,

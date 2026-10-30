@@ -50,6 +50,7 @@ import { GalaDsouza, DSOUZA_MS } from './gala-dsouza'
 import { GalaLulubaba, LULUBABA_MS } from './gala-lulubaba'
 import { GalaPiranhao, PIRANHAO_MS } from './gala-piranhao'
 import { GalaNeymarFC, NEYMARFC_MS } from './gala-neymarfc'
+import { GalaPaizao, PAIZAO_MS } from './gala-paizao'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -72,6 +73,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Cuiudos FC': { ms: CUIUDOS_MS, Show: GalaCuiudos }, // 🤠🔵 porteira, caminhonete, chapéu e laço no escudo (17/10, Fundador)
   'Inter Vale FC': { ms: INTERVALE_MS, Show: GalaInterVale }, // 🥊⚫⚪ ringue, gongo, o Lutador soca e trinca a tela, DISCIPLINA·FORÇA·VALE (21/10, virou Fundador)
   'Guimarães SCI': { ms: GUIMARAES_MS, Show: GalaGuimaraes }, // 🌪️🔴 o Saci chega no redemoinho e pousa numa perna só (23/10, virou Fundador)
+  'Paizão FC': { ms: PAIZAO_MS, Show: GalaPaizao }, // 👑🎩 O Prêmio: ao vivo, Melhor Cartoleiro 2023, o Paizão sai da cartola, Influenciador da Seleção 2022 (30/10, Fundador)
   'Neymar_FC': { ms: NEYMARFC_MS, Show: GalaNeymarFC }, // 🐐👑 O G.O.A.T.: as letras carimbam, o 10 dourado, o Bode Rei no pedestal e a coroa (29/10, virou Fundador)
   'Piranhão FC': { ms: PIRANHAO_MS, Show: GalaPiranhao }, // 🐟🏛️ A Posse: Palácio, tapete vermelho, salva de 21 tiros, faixa presidencial e as piranhas (29/10, Fundador)
   'Lulubaba FC': { ms: LULUBABA_MS, Show: GalaLulubaba }, // 🧤🖤 O Paredão Alvinegro: estrela solitária, 3 chutes, o Goleiro pega no ângulo (29/10, virou Fundador)

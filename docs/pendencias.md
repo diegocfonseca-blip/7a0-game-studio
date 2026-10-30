@@ -1,3 +1,49 @@
+## 📉 PLANO PRA ALIVIAR O BANCO (30/10, depois da queda) — esperando o Diego escolher
+Medido nas últimas 24h (chamadas/dia): PATCH game_rooms 530k · GET game_rooms 500k · GET room_players 330k · /auth/v1/user 277k ·
+room_acoes 136k · live_beats 134k · esc_retrospecto 132k · user_cards 119k · esc_avisos 113k · esc_copa_salas 106k. E o realtime
+decodifica TODA gravação do game_rooms (game_state médio 53 KB, máx 167 KB) porque game_rooms/room_players estão na publicação.
+**Grupo A — seguro (não encosta em sala, lance, coroa nem relógio):**
+1. `MaintenanceBanner` (index.tsx:177) lê user_cards a cada 60 s por aba aberta só pra testar a rede → só quando houver pendência.
+2. `getSession` (local) no lugar de `getUser` (vai ao servidor) num helper único; e os `onAuthStateChange` (manto, sport, online-preview,
+   presidente-*, aviso-conta, presente, apoio, aviso-semana) só agem se a CONTA mudou — hoje rodam em todo volta-pro-app.
+3. `useHasManual` (apoio.tsx:417) e `esc_meu_socio` (manto.ts) com cache por conta.
+4. Retrospecto (screens.tsx:7312): ler por temporada, não por rodada (~38× menos).
+5. esc_avisos 60→120 s; esc_avisos_semana throttle 10–30 min; vitrine 60 s→5 min; live_beats 60→120 s; medidor 30 min.
+6. Lista de salas abertas: não ler com a aba escondida + 20 s.
+7. Cache no banco (como o do ranking) em esc_vitrine_salas, esc_meu_nome_fake, esc_cla_painel.
+**Grupo B — mexe no coração da sala (só com OK dele, risco explicado):**
+8. Sala de espera: o batimento do dono (lobby.tsx:1420-1426) roda de novo a CADA eco do banco (deps `room` inteiro) — provável laço
+   de várias gravações por segundo por dono esperando. Conserto: deps `room?.id`.
+9. Dono gravando "tô vivo" a cada 3 s sem mudança → 12–15 s (a coroa lê `saveFresco < 9s` em store.tsx:14641 — mexer junto).
+10. Dono conferindo a coroa a cada 5 s → 15–20 s. 11. Tela de votação do fim (screens.tsx:11289) 3 s → 10 s.
+12. Copa online lendo a cada 2 s → 4–5 s. 13. room_acoes do dono 3 s → 5 s.
+14. Tirar game_rooms da publicação do realtime (largada por broadcast) — o maior ganho, o maior risco.
+
+## 🚑 Banco travou 29/10 ~23h58 (Brasília) — online parado ~10 min
+- Causa: `esc_cla_ranking()` (caixa "Clãs da semana" na lista de salas) custava ~3 s por chamada e rodava a cada abertura da lista:
+  2.498 chamadas = 7.584 s de banco. Com o pico da noite, o banco engasgou (timeouts, "connect timeout", 500 em ~60% das chamadas).
+- ✅ Conserto no BANCO (03:06 UTC, sem deploy): cache de 2 min em `esc_cache_rpc` + trava pra não calcular em paralelo. Erros
+  zeraram às 03:08. Arquivo: `supabase/migrations/20261030030500_cla_ranking_cache.sql`.
+- Mesmo com o cache, o banco Small (2 GB, 90 conexões) seguiu sem fôlego (timeouts até em leitura simples). O Diego subiu o
+  servidor de **Small pra Medium** às ~00h18 de Brasília: erro zero desde 03:19 UTC, ~4 mil chamadas/min normais, 24 salas andando.
+- ⏳ Pra poder voltar ao Small um dia (é ele que paga): baixar o custo das contas pesadas abaixo + medir a carga num pico.
+- ⏳ Outros pesados pra cuidar com calma (pedir OK): `esc_avisos` (40 mil chamadas, ~100 ms), `esc_vitrine_salas` (~300 ms),
+  `esc_meu_nome_fake` (~320 ms), `esc_cla_painel` (~730 ms).
+
+## ✕ Aviso fechado não volta (29/10) — regra nova no CLAUDE.md
+- Auditoria: 6 avisos voltavam depois do ✕ (só `useState`/`sessionStorage`). Agora todos usam `avisos-fechados.ts`: celular sem espaço
+  (`aviso-espaco`), "💾 guarde sua carreira · agora não" (`AvisoContaCarreira`), sugestão de troca da Agência "deixa assim", "abra no
+  navegador" (Instagram/TikTok), "sua sessão caiu", e a janela dos planos que abria sozinha depois do salvamento (1 vez por aviso).
+- Ficaram como estão (de propósito, são do momento): popup da carta de campeão, túnel da final, "VOCÊ VIROU O HOST", "MANDA SEU LANCE
+  DE NOVO", "VOCÊ FOI EXPULSO", toasts de amigo.
+
+## 🚫 Moderação 29/10: "Abusa Rindo" → "A Rindo" · "Exu Tranca Ru4" → "E Tranca Ru4"
+- mateus.eduardo.ribeiro: `display_name` virou "A Rindo" (+ linhas abertas do room_players) e aviso de uma vez (`esc_avisos_conta`).
+- daniagustosan23 (0af7af1e): jogou como "Exu Tranca Ru4" à tarde, mas o nome da conta JÁ estava "Danielvorcarofc" — não sobrescrevi;
+  o aviso dele foi CANCELADO (Diego: "se ele já trocou, tudo bem"). Se voltar a jogar como "Exu Tranca…", manda o aviso (id 4 é o modelo).
+- ⏳ Diego: *"se a pessoa aperta X no banner deve sumir pra sempre"* — o `AvisoConta` já marca visto no banco (os 2 avisos antigos ainda
+  estão sem visto porque as contas nunca mais logaram). Perguntei QUAL banner volta depois do X pra achar o certo.
+
 ## 🛡️🏆 Escudos que faltavam + taças reais redesenhadas (30/10, pedido do Diego) — escudos NO BRANCH esperando OK · taças só MOCKUP
 - **Seleções**: 8 da Copa de 32 apareciam com o NOME escrito no lugar do escudo (Escócia, Sérvia, Turquia, Irlanda, Argélia, Gana,
   Costa do Marfim; Suécia tinha arquivo e não tinha nome) + Austrália/Irã/Nigéria/Suíça. Escudos oficiais de github.com/JoseArroyave/football-logos
@@ -11651,3 +11697,68 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - Selo FAKE já só era pedido no login/troca de nome (nada a mudar).
 - ⏳ Grupo B (mexe na sala) continua parado esperando OK, um por vez.
 - ⏳ Medir de novo daqui a 24h (chamadas por dia) pra ver o ganho e se dá pra voltar pro Small.
+
+## ⭐ 30/10 — Oliveira FC (pietro.oliveira23061721@gmail.com): Craque Completo por 12 meses, dado pelo Diego
+- Igual ao Cativeiro FC: linha em `esc_assinatura_mensal` (craque_completo, até 30/10/2027, sem `vendria_sub`). Conta de 15/09 conferida.
+  Conferido no `esc_direitos_de`: pago · prata · manual · salas_pagas. Se ele virar Lenda, aí é definitivo.
+
+## 🙈 30/10 — Spoiler na aba ELENCO das salas (aviso de jogador ao Diego) — conserto pronto no branch
+- Causa: o campinho do Elenco soma ⚽/🅰️ de `golsNoJogo`/`assistsNoJogo`, que já têm o jogo da vez assim que ele é SORTEADO
+  (antes da animação). No mata-mata, o ⚽ do atacante subia antes do gol aparecer → dava pra saber quem passava.
+  Vale pra liga, Copa dos 8/Liberta/Relâmpago (mata-mata) e Champions — e pros campinhos dos outros times da sala.
+- Conserto (`screens.tsx`): `useNumerosAntes` tira a foto dos números antes do jogo novo e `NumerosAntesCtx` faz o campinho
+  mostrar essa foto até a MESMA trava do giro (`giroReady`; na Champions, `revealed`). Abriu no meio do jogo = selos somem até o apito.
+  Só leitura de tela: não muda placar, lance, coroa nem save.
+
+## 🖋 30/10 — Fundador enzocromero9@gmail.com ("Paizão") — BANCO FEITO, código esperando a arte
+- Conta de 30/10 00:05 UTC conferida. Banco (sem deploy, já vale): user_colors ouro+manual · esc_fundadores **98** · esc_socios **82**
+  (batismo, até 2099) · esc_compras_batismo 'plus'. `esc_direitos_de` = pago · fundador · ouro · manual.
+- ✅ Arte chegou (30/10): clube **Paizão FC**, Série D no assento do bot **Monarca EC**. Escudo = o 2º que o Diego mandou (333×360,
+  28 KB), mascote **O Paizão** `paizao_cartola` (258×440, 19 KB), manto **preto #100F0F + dourado #D99C32** medidos na camisa.
+  Código no branch (LOGOS_PRONTAS, MASCOTES, CARIMBO_GOL, data.ts, apoio 98, manto.ts, batismos.ts, salao-camisas, checa-batismos);
+  banco: esc_nomes_batismo (Paizão/Paizao + FC/EC pelo gatilho) e esc_socios (manto, mascote, escudo_time). Gala única "O Prêmio" (`gala-paizao.tsx`: AO VIVO, Melhor Cartoleiro 2023, o Paizão sai da cartola, Influenciador da Seleção 2022, frase O PAI TÁ ON; quadros `scripts/posts/gala-paizao-quadros.png`). Post
+  `scripts/posts/batismo-paizao-fc.png`. ⏳ time de coração, gala/canto (se ele quiser) e publicar.
+
+## 🕵️ 30/10 tarde — 3ª conta do Tricolor do Arruda ligada (Diego: "pode remover os 16 dele")
+- `xaumipocom3@gmail.com` ("3 Cores", apelido do Santa Cruz) criada 30/10 11h28 — DEPOIS da trava das 01h39 — e jogou 16 temporadas
+  só com o Arruda (nunca com mais ninguém). Entrou em `esc_contas_ligadas` (grupo 'geovany', `desde` 17:13 UTC). Os títulos dele contra
+  ela (22 contando copas) saíram do ranking na hora (cache da vitrine apagado).
+- Ficou contando (regra do `desde`, decidida antes: não é retroativo): 26 títulos contra a Cobra Coral ANTES da trava + 1 com a
+  "Cobra Coral" entrando SEM CONTA (brecha: convidado sem conta não é pego pela trava) + 1 legítimo. ⏳ Perguntei se ele quer tirar.
+- ✅ Diego mandou tirar os 26 contra a Cobra Coral: `desde` das 2 contas antigas do grupo 'geovany' voltou pra segunda 26/10 0h
+  (início da semana). O Arruda ficou com **2 títulos** na semana (1 legítimo + 1 do convidado sem conta) e saiu do top 5.
+  Semanas já fechadas (`esc_premio_semana`) não foram mexidas.
+- 🔁 Mesma tarde, Diego: *"Cobra Coral pode ficar os títulos no Oliver Clã… e coloque Arruda com 16 títulos"*. Feito pelo `desde`:
+  Arruda `desde` = 30/10 02:33 UTC (conta os 14 contra a Cobra Coral até ali + 1 legítimo + 1 do convidado = **16**, 13º lugar);
+  Cobra Coral `desde` = 2099 (os títulos DELA valem — Oliver Clã 6 → 9). Os do Arruda contra ela depois das 02:33 e contra a
+  "3 Cores" continuam fora. Lado A-DPA 119 → 133.
+- 🔁 30/10 noite: o Arruda tinha SAÍDO do Lado A-DPA (14h57) e o Choconait FC (araujomateus1999) entrou na vaga às 15h24. Diego
+  mandou: Choconait sai (sem trava — a trava de 7 dias só segura quem SAI por vontade própria), Arruda volta (linha 24 reaberta) e
+  volta a ser PRESIDENTE (no lugar do Neymar FC). Aviso de conta pro Choconait (some pra sempre no ✕: `esc_aviso_visto`).
+  ⚠️ O `execute_sql` passou a pedir confirmação pra gravar e ela não chegava no Diego — foi pelo `apply_migration`.
+
+## 📚 30/10 — LOTE 45: 253 cartas novas (pedido do Diego, categorias e níveis decididos pelo Claude) — ✅ publicado
+- Décadas (anos 60–90), convocação do Brasil 2026, lista do Diego (PSG/Chelsea/Everton/Leeds/Newcastle…), heróis de Copa, países
+  campeões do mundo, Copas lendárias (Brasil 58→2002, Hungria 54, Holanda 74, Polônia 74, Marrocos 2022…) e filhos de famosos.
+  Lista mestre: `docs/cartas-novas-30-10.json` · stories: `scripts/posts/cartas-novas-30-10-parte{1,2}.png`.
+- Lotes `L45_{BR,EU,WORLD}_{POS}` em `data.ts`; país de cada um em `paises.ts` (PAIS + MESMO_JOGADOR + 6 PAIS_POR_CARTA).
+- Régua usada: lenda fame 5 (≈88–93) · craque 4 (≈83–90) · bom 3 (≈76–85) · promessa = 3 + promessa (≈75–84) · Kežman e Enzo Zidane
+  fame 2 · "bagre" (Delap, Niasse) fame 1 folclórico. 17 lendas: Sepp Maier, Facchetti, Scirea, Rivellino, Obdulio Varela, Schiaffino,
+  Kopa, Fritz Walter, Gento, Sandro Mazzola, Dixie Dean, Fontaine, Uwe Seeler, Gigi Riva, Meazza, Piola, Kocsis.
+- Saíram na conferência final por já existirem: Preben Elkjær (Verona 1985) e Morten Olsen (Anderlecht 1983).
+- Danilo (Botafogo 2026) e Danilo (Corinthians 2012) são pessoas diferentes no mesmo baralho — o clube separa (regra do Diego, 30/10).
+- 🔁 30/10 noite: saiu **Roberto Rivellino** (Fluminense 1976) — o baralho BR já tinha **Rivelino** (Corinthians 1972), a mesma
+  pessoa com outra grafia (o Diego pegou). Ficam 252 cartas e 16 lendas. Conferência nova por grafia parecida (letra dobrada,
+  y/i, k/c) rodada em todas as 252: nenhum outro repetido. João Gomes foi pro Wolves (pedido do Diego).
+- 🔁 30/10 noite, Diego: *"não coloque nenhum como lenda, coloque como craques… coloque o Salah como lenda"*. As 16 lendas do Lote 45
+  viraram CRAQUE (fame 4, faixa −3/−2) e o **Mohamed Salah** (Liverpool 2019, a única carta dele) virou LENDA (89–94). O Lote 45
+  ficou sem nenhuma lenda.
+- 🔁 30/10 noite, Diego escolheu quem FICA dos menos conhecidos (Orlando Peçanha, De Sordi, Everaldo, Scarone, Nasazzi, Omam-Biyik,
+  Jongbloed, Răducioiu, Kostadinov, Dumitrescu, Ounahi; Tarciso e Máspoli já tinham ficado). **Saíram 15**: Zózimo, Brito, Batista
+  (Inter 79), Pita, Kléber (Santos 04), Mayke, Fabiano Eller, Mondragón, Hugo Ibarra, Tshabalala, Al-Dawsari, Tomaszewski, Grosics,
+  Kennet Andersson e Henri Camara. Lote 45 = **237 cartas**. Tirados de data.ts, foto, novidades geradas (à mão, sem rodar o
+  gerador), paises.ts e lista mestre; stories refeitos (parte 1 = GOL/LAT/ATA, parte 2 = ZAG/MEI — GOL→MEI juntos estourava).
+  ⏳ Ainda NÃO publicado: aguarda "publica".
+- 🔁 30/10 noite, Diego: *"só os caras que devem ser lendas mesmo"*. Voltaram pra LENDA (fame 5, faixa +3/+2): **Sepp Maier**
+  (Bayern 1974), **Facchetti** (Inter 1965), **Gento** (Real Madrid 1960), **Meazza** (Inter 1934) e **Kopa** (Real Madrid 1958).
+  Com o **Salah** (Liverpool 2019) o Lote 45 tem 6 lendas. Nenhum deles tem outra carta no jogo.

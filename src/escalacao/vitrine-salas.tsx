@@ -41,7 +41,7 @@ const haQuanto = (iso: string) => {
 // 🖋️ BATISMO EM DESTAQUE (13/10, Diego: "troque o último batismo do Rossini pelo do K9 e não quero mais que seja último
 // batismo… vou fazer uns rodízios"). Quem escolhe o clube é o Diego: pra trocar, é só mudar esta linha (clube + data
 // em que ele chegou no jogo). Não depende mais do banco.
-const DESTAQUE = { clube: 'Labubu FC', desde: '2026-10-14' } // 🔁 21/10: Labubu FC (Diego: "troque o batizado em destaque das salas online pro Labubu") · antes: K9 FC (16/10)
+const DESTAQUE = { clube: 'dSouza FC', desde: '2026-10-28' } // 🔁 30/10: dSouza FC (Diego: "troque o batismo da semana e bote do dsouza fc") · antes: Labubu FC (21/10) · K9 FC (16/10)
 const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}º`)
 
 // ⚔️ RANKING DOS CLÃS DA SEMANA (21/10, Diego: "o ranking da semana também terá de clãs agora"): os 5 clãs com mais títulos
