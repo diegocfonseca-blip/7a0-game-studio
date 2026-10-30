@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
 import estadioCerArt from './img/online-estadio-v25.webp'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
@@ -1091,6 +1091,27 @@ function turfColors(state: EscState): [string, string] {
 // Aprovado pelo Diego 09/08 (arte manto-real.png). Sem manto, nada muda.
 // 🧪 exportado SÓ pra bancada (`scripts/teste-campinho-leilao`) poder montar o
 // campinho do leilão de verdade — nada do jogo muda por causa do `export`.
+// 🙈 30/10: null = mostra os números de agora · { antes } = jogo animando, mostra a foto de antes dele (ou nada)
+const NumerosAntesCtx = createContext<{ antes: Map<string, [number, number]> | null } | null>(null)
+/** foto dos ⚽/🅰️ de cada carta (nome|time) tirada ANTES da rodada/perna da vez. `chave` muda quando o jogo novo é sorteado:
+ *  aí a foto da renderização anterior (ainda sem o jogo novo) vira o "antes". Só lê o estado — não muda nada no jogo. */
+function useNumerosAntes(chave: string): Map<string, [number, number]> | null {
+  const { state } = useEsc()
+  const totais = useMemo(() => {
+    const mp = new Map<string, [number, number]>()
+    for (const m of state.managers) for (const c of m.squad) {
+      const k = `${c.name}|${m.id}`
+      if (!mp.has(k)) mp.set(k, [golsNoJogo(state, c.name, m.id), assistsNoJogo(state, c.name, m.id)])
+    }
+    return mp
+  }, [state.managers, state.scorers, state.assists, state.quickCopa, state.champions, state.liberta]) // eslint-disable-line react-hooks/exhaustive-deps
+  const ref = useRef<{ chave: string; totais: Map<string, [number, number]>; antes: Map<string, [number, number]> | null } | null>(null)
+  if (!ref.current) ref.current = { chave, totais, antes: null }
+  else if (ref.current.chave !== chave) ref.current = { chave, totais, antes: ref.current.totais }
+  else ref.current.totais = totais
+  return ref.current.antes
+}
+
 export function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90, mantoC3 = null, mantoC3Buf = false }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number; mantoC3?: string | null; mantoC3Buf?: boolean }) {
   const { state } = useEsc()
   const [g1, g2] = turfColors(state)
@@ -1101,8 +1122,12 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
   // 🏆 26/09: a conta vem do store (`golsNoJogo`), que sabe olhar TODAS as listas —
   // liga, Champions, Libertadores e mata-mata. Antes era só a da liga, e no modo
   // "⭐ Só Champions" (que não tem liga) o boneco ficava sempre pelado.
-  const golsDe = (nome: string) => golsNoJogo(state, nome, m.id)
-  const assistDe = (nome: string) => assistsNoJogo(state, nome, m.id)
+  // 🙈 30/10 (spoiler do campinho, aviso de jogador): enquanto o jogo da vez anima, o campinho mostra os números de ANTES
+  // dele — senão o ⚽ do atacante subia antes do gol aparecer e entregava quem passa. Sem foto (abriu no meio do jogo)
+  // os selos somem até o apito.
+  const seg = useContext(NumerosAntesCtx)
+  const golsDe = (nome: string) => seg ? (seg.antes?.get(`${nome}|${m.id}`)?.[0] ?? 0) : golsNoJogo(state, nome, m.id)
+  const assistDe = (nome: string) => seg ? (seg.antes?.get(`${nome}|${m.id}`)?.[1] ?? 0) : assistsNoJogo(state, nome, m.id)
   const rows: { key: string; slots: { pos: Sector; card: WonCard | null }[] }[] = useMemo(() => {
     const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
     const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
@@ -7280,6 +7305,9 @@ export function EscSeason() {
   // que esperar a MESMA trava do botão (copaAdvReady, que inclui os pênaltis),
   // senão a manchete entrega o vencedor no meio das cobranças (bug do Diego 28/07).
   const giroReady = copaLive ? (copaMin >= 93 && copaAdvReady) : (resultRevealed || state.lastResults.length === 0)
+  // 🙈 30/10: o campinho do Elenco segura os ⚽/🅰️ do jogo da vez até o apito (mesma trava do giro)
+  const numerosAntes = useNumerosAntes(`${state.round}|${copaTieKey}|${state.champions?.rodada ?? ''}|${state.liberta?.rodada ?? ''}`)
+  const segurarNumeros = !giroReady
   const giroRef = useRef<string[] | null>(null)
   if (giroReady) giroRef.current = state.news
   const giroNews = giroRef.current ?? []
@@ -7969,6 +7997,7 @@ export function EscSeason() {
             relógio (93'), que fecha de verdade no apito. */}
         {(!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">{LS('Assistências disponíveis após o apito final.', 'Assists available after the final whistle.')}</Box>}
       </div>
+      <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       <YourPitch small />
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
@@ -7979,6 +8008,7 @@ export function EscSeason() {
         <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
       ))}
       </div>
+      </NumerosAntesCtx.Provider>
       {state.careerDivision && <RivalTracker />}
       {/* 🏆 A LIGA NUM LUGAR SÓ — aparece assim que o PREGÃO ACABA, que é
           exatamente esta tela (a simulação dos jogos). Pedido do Diego 23/08:
@@ -9199,6 +9229,7 @@ export function EscChampions() {
     }
   }, [ch?.rodada, ch?.fase, ch?.repescaoLeg, canAdvance, manual, roundMs, speedFactor, dispatch, noPortao, revealed, state.quickCopa])
 
+  const numerosAntesCh = useNumerosAntes(`${ch?.fase}|${ch?.rodada}|${passo}`) // 🙈 30/10: antes do `return` (regra dos hooks)
   if (!ch) return null
   const nomeDe = (id: number) => ch.times.find(t => t.id === id)?.name ?? '?'
   // anti-spoiler: enquanto anima, a tabela mostra como estava ANTES desta rodada
@@ -9491,10 +9522,12 @@ export function EscChampions() {
         </> : <Box className="p-4"><p className="text-xs font-bold">{T('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p></Box>}
       </div>
 
-      {/* 👕 ELENCO — o mesmo campinho da liga */}
+      {/* 👕 ELENCO — o mesmo campinho da liga (🙈 30/10: números de antes do jogo até o apito) */}
+      <NumerosAntesCtx.Provider value={revealed || ch.rodada === 0 ? null : { antes: numerosAntesCh }}>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
         <YourPitch small />
       </div>
+      </NumerosAntesCtx.Provider>
       <FraseCopa />
     </Shell>
     </TemaCompCtx.Provider>
