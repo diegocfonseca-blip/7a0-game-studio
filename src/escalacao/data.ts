@@ -2843,7 +2843,7 @@ const L44_EU_ATA: C[] = [
 // 📚 Lote 45 (30/10, pedido do Diego): décadas, Copas lendárias, países campeões, a convocação de 2026 e os nomes que ele mandou.
 //    Categoria e faixa decididas pelo Claude a mando dele (*"categorias e over vc decide de todos"*). Lista mestre: docs/cartas-novas-30-10.json
 const L45_EU_GOL: C[] = [
-  { name: "Sepp Maier", club: "Bayern", year: 1974, fame: 4, lo: 86, hi: 92 },
+  { name: "Sepp Maier", club: "Bayern", year: 1974, fame: 5, lo: 89, hi: 94 },
   { name: "Ray Clemence", club: "Liverpool", year: 1977, fame: 4, lo: 81, hi: 89 },
   { name: "Bruce Grobbelaar", club: "Liverpool", year: 1984, fame: 4, lo: 82, hi: 91 },
   { name: "Andoni Zubizarreta", club: "Barcelona", year: 1992, fame: 4, lo: 84, hi: 89 },
@@ -2854,7 +2854,7 @@ const L45_EU_GOL: C[] = [
   { name: "Jan Jongbloed", club: "FC Amsterdam", year: 1974, fame: 3, lo: 76, hi: 85 },
 ]
 const L45_EU_LAT: C[] = [
-  { name: "Giacinto Facchetti", club: "Inter", year: 1965, fame: 4, lo: 84, hi: 92 },
+  { name: "Giacinto Facchetti", club: "Inter", year: 1965, fame: 5, lo: 87, hi: 94 },
   { name: "Tarcisio Burgnich", club: "Inter", year: 1965, fame: 4, lo: 84, hi: 89 },
   { name: "Paul Breitner", club: "Bayern", year: 1974, fame: 4, lo: 84, hi: 91 },
   { name: "Mauro Tassotti", club: "Milan", year: 1989, fame: 4, lo: 82, hi: 89 },
@@ -2927,7 +2927,7 @@ const L45_EU_MEI: C[] = [
   { name: "Luis Enrique", club: "Barcelona", year: 1998, fame: 4, lo: 82, hi: 89 },
   { name: "Dani Olmo", club: "Barcelona", year: 2024, fame: 4, lo: 82, hi: 91 },
   { name: "Christian Karembeu", club: "Real Madrid", year: 1998, fame: 3, lo: 74, hi: 84 },
-  { name: "Raymond Kopa", club: "Real Madrid", year: 1958, fame: 4, lo: 85, hi: 92 },
+  { name: "Raymond Kopa", club: "Real Madrid", year: 1958, fame: 5, lo: 88, hi: 94 },
   { name: "Aurélien Tchouaméni", club: "Real Madrid", year: 2024, fame: 4, lo: 84, hi: 90 },
   { name: "Fritz Walter", club: "Kaiserslautern", year: 1954, fame: 4, lo: 86, hi: 92 },
   { name: "Günter Netzer", club: "Borussia Mönchengladbach", year: 1972, fame: 4, lo: 81, hi: 89 },
@@ -2943,7 +2943,7 @@ const L45_EU_MEI: C[] = [
   { name: "Ianis Hagi", club: "Rangers", year: 2021, fame: 3, lo: 74, hi: 86 },
 ]
 const L45_EU_ATA: C[] = [
-  { name: "Francisco Gento", club: "Real Madrid", year: 1960, fame: 4, lo: 86, hi: 92 },
+  { name: "Francisco Gento", club: "Real Madrid", year: 1960, fame: 5, lo: 89, hi: 94 },
   { name: "José Torres", club: "Benfica", year: 1965, fame: 4, lo: 83, hi: 90 },
   { name: "Sandro Mazzola", club: "Inter", year: 1965, fame: 4, lo: 83, hi: 90 },
   { name: "Jair da Costa", club: "Inter", year: 1965, fame: 4, lo: 82, hi: 91 },
@@ -2988,7 +2988,7 @@ const L45_EU_ATA: C[] = [
   { name: "Leroy Sané", club: "Bayern", year: 2023, fame: 4, lo: 83, hi: 90 },
   { name: "Alberto Gilardino", club: "Milan", year: 2007, fame: 3, lo: 75, hi: 86 },
   { name: "Gigi Riva", club: "Cagliari", year: 1970, fame: 4, lo: 86, hi: 92 },
-  { name: "Giuseppe Meazza", club: "Inter", year: 1934, fame: 4, lo: 85, hi: 91 },
+  { name: "Giuseppe Meazza", club: "Inter", year: 1934, fame: 5, lo: 88, hi: 93 },
   { name: "Silvio Piola", club: "Lazio", year: 1938, fame: 4, lo: 83, hi: 90 },
   { name: "Roberto Mancini", club: "Sampdoria", year: 1991, fame: 4, lo: 82, hi: 91 },
   { name: "Jorge Valdano", club: "Real Madrid", year: 1986, fame: 4, lo: 83, hi: 91 },
