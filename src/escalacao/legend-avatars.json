@@ -1335,5 +1335,47 @@
     "year": 2025,
     "src": "/avatars/lendas-v2/kelvin-oliveira-k9-g3x-2025.webp",
     "transparent": true
+  },
+  {
+    "name": "Mohamed Salah",
+    "club": "Liverpool",
+    "year": 2019,
+    "src": "/avatars/lendas-v2/mohamed-salah-liverpool-2019.webp",
+    "transparent": true
+  },
+  {
+    "name": "Sepp Maier",
+    "club": "Bayern",
+    "year": 1974,
+    "src": "/avatars/lendas-v2/sepp-maier-bayern-1974.webp",
+    "transparent": true
+  },
+  {
+    "name": "Giacinto Facchetti",
+    "club": "Inter",
+    "year": 1965,
+    "src": "/avatars/lendas-v2/giacinto-facchetti-inter-1965.webp",
+    "transparent": true
+  },
+  {
+    "name": "Francisco Gento",
+    "club": "Real Madrid",
+    "year": 1960,
+    "src": "/avatars/lendas-v2/francisco-gento-real-madrid-1960.webp",
+    "transparent": true
+  },
+  {
+    "name": "Giuseppe Meazza",
+    "club": "Inter",
+    "year": 1934,
+    "src": "/avatars/lendas-v2/giuseppe-meazza-inter-1934.webp",
+    "transparent": true
+  },
+  {
+    "name": "Raymond Kopa",
+    "club": "Real Madrid",
+    "year": 1958,
+    "src": "/avatars/lendas-v2/raymond-kopa-real-madrid-1958.webp",
+    "transparent": true
   }
 ]
