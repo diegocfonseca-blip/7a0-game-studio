@@ -254,7 +254,7 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "tipo": "entrou",
     "nome": "Sepp Maier",
     "baralho": "EU",
-    "nivel": "craque",
+    "nivel": "lenda",
     "data": "2026-10-30"
   },
   {
@@ -317,7 +317,7 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "tipo": "entrou",
     "nome": "Giacinto Facchetti",
     "baralho": "EU",
-    "nivel": "craque",
+    "nivel": "lenda",
     "data": "2026-10-30"
   },
   {
