@@ -11697,3 +11697,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - Selo FAKE já só era pedido no login/troca de nome (nada a mudar).
 - ⏳ Grupo B (mexe na sala) continua parado esperando OK, um por vez.
 - ⏳ Medir de novo daqui a 24h (chamadas por dia) pra ver o ganho e se dá pra voltar pro Small.
+
+## ⭐ 30/10 — Oliveira FC (pietro.oliveira23061721@gmail.com): Craque Completo por 12 meses, dado pelo Diego
+- Igual ao Cativeiro FC: linha em `esc_assinatura_mensal` (craque_completo, até 30/10/2027, sem `vendria_sub`). Conta de 15/09 conferida.
+  Conferido no `esc_direitos_de`: pago · prata · manual · salas_pagas. Se ele virar Lenda, aí é definitivo.
