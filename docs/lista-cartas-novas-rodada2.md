@@ -1,6 +1,6 @@
 # Mais jogadores famosos pra entrar (30/10) — rodada 2
 
-**64 cartas**, além das 86 da lista anterior (décadas + convocação).
+**61 cartas**, além das 86 da lista anterior (décadas + convocação).
 
 Como o jogo está hoje (cartas por posição): 🇧🇷 Brasil GOL 82 · LAT 90 · ZAG 93 · MEI 198 · ATA 240 — 🇪🇺 Europa GOL 88 · LAT 149 · ZAG 166 · MEI 265 · ATA 289 — 🌎 Mundo GOL 51 · LAT 75 · ZAG 75 · MEI 141 · ATA 165.
 Como o time usa 2 laterais e 2 zagueiros, os buracos são **LATERAL e ZAGUEIRO (nos três baralhos)** e **GOLEIRO no Mundo** — por isso a maioria aqui é de defesa.
@@ -20,11 +20,10 @@ Bandeira = baralho: 🇧🇷 Brasil · 🇪🇺 Europa · 🌎 Mundo.
 - 🌎 **Sergio Romero** — Boca Juniors 2023
 - 🌎 **Esteban Andrada** — Boca Juniors 2019
 
-## ↔️ LATERAIS — 16
+## ↔️ LATERAIS — 15
 - 🇧🇷 **Kléber** — Santos 2004
 - 🇧🇷 **Renan Lodi** — Athletico-PR 2018
 - 🇧🇷 **Mayke** — Palmeiras 2021
-- 🇧🇷 **Ayrton Lucas** — Flamengo 2023
 - 🇧🇷 **Marlon** — Fluminense 2012
 - 🌎 **Javier Zanetti** — Banfield 1995
 - 🌎 **Hugo Ibarra** — Boca Juniors 2000
@@ -59,10 +58,8 @@ Bandeira = baralho: 🇧🇷 Brasil · 🇪🇺 Europa · 🌎 Mundo.
 - 🇪🇺 **Tony Adams** — Arsenal 1998
 - 🇪🇺 **Juan** — Roma 2008
 
-## 🎯 MEIAS — 12
-- 🇧🇷 **Arturo Vidal** — Flamengo 2022
+## 🎯 MEIAS — 10
 - 🇧🇷 **Igor Coronado** — Corinthians 2024
-- 🇧🇷 **Thiago Maia** — Flamengo 2022
 - 🌎 **Kaká** — Orlando City 2015
 - 🌎 **Andrea Pirlo** — New York City 2016
 - 🌎 **Frank Lampard** — New York City 2016
@@ -84,3 +81,5 @@ Bandeira = baralho: 🇧🇷 Brasil · 🇪🇺 Europa · 🌎 Mundo.
 
 ## Já estavam no jogo (não entram de novo)
 Buffon, Casillas, Neuer, Kahn, Čech, Courtois, Alisson, Ederson, Oblak, Dibu Martínez, Marcos, Rogério Ceni, Dida, Júlio César, Cássio, Victor, Weverton, Chilavert, Córdoba, Bravo, Ospina, Memo Ochoa · Sergio Ramos, Puyol, Piqué, Nesta, Ferdinand, Carragher, Vidić, Van Dijk, Varane, Chiellini, Bonucci, Thiago Silva, Marquinhos, Militão, Lúcio, Samuel, Godín, Demichelis, Gamarra · Lahm, Alba, Carvajal, Ashley Cole, Evra, Trent, Robertson, Cafu, Roberto Carlos, Marcelo, Maicon, Daniel Alves, Filipe Luís, Rafinha, Léo Moura · Seedorf (Botafogo), Tevez, Gallardo, Suárez (Grêmio), Arrascaeta, Ganso, Arias, Memphis, Calleri, Hugo Souza (Neneca).
+
+Saíram a pedido do Diego (30/10): Arturo Vidal, Thiago Maia e Ayrton Lucas — *"o Flamengo já tá com muito jogador"*.
