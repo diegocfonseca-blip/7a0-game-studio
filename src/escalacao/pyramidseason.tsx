@@ -5668,6 +5668,8 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   const olheiroGrad = olheiroTier === 'ouro' ? APOIO_PERKS.ouro.grad : olheiroTier === 'prata' ? APOIO_PERKS.prata.grad : APOIO_PERKS.bege.grad
   const [passo, setPasso] = useState<'inicio' | 'tec' | 'jog'>('inicio')
   const [soLivres, setSoLivres] = useState(true)
+  const [posF, setPosF] = useState<Sector | null>(null) // 🗂️ mercado da bola (30/10): filtro por posição
+  const [verTrav, setVerTrav] = useState<Partial<Record<Sector, boolean>>>({}) // 🔒 quem tem contrato fica dobrado no fim do setor
   // semeia os técnicos da divisão na primeira visita (idempotente; vai pro save)
   // 🪜 a divisão de VERDADE é o placement (careerDivision fica congelado na de
   // fundação — foi o bug do "Lisca Doido na Série A", 28/08). Re-semeia quando
@@ -5764,12 +5766,19 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   const pilula = (on: boolean, rotulo: string, onClick: () => void) => (
     <button key={rotulo} onClick={onClick} style={{ fontSize: 10.5, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', background: on ? INK : '#fff', color: on ? '#fff' : INK, cursor: 'pointer' }}>{rotulo}</button>
   )
-  const linha = (chave: string, marcado: boolean, travado: string | undefined, onClick: () => void, titulo: React.ReactNode, detalhe: React.ReactNode, historia: string | null) => (
+  const linha = (chave: string, marcado: boolean, travado: string | undefined, onClick: () => void, titulo: React.ReactNode, detalhe: React.ReactNode, historia: string | null, carta?: { pos: string; etiqueta: string }) => (
     <div key={chave} style={{ marginBottom: 8 }}>
       <div onClick={() => { if (marcado || !travado) onClick() }}
         style={{ display: 'flex', alignItems: 'center', gap: 9, border: `3px solid ${marcado ? GREEN : INK}`, borderRadius: 14, padding: '8px 9px', background: travado && !marcado ? '#efe9d8' : '#fff', boxShadow: `2px 2px 0 0 ${marcado ? GREEN : INK}`, cursor: marcado || !travado ? 'pointer' : 'default', opacity: travado && !marcado ? .6 : 1 }}>
+        {/* 🎴 carta VIRADA (30/10): só a posição — categoria, nível e cor continuam escondidos */}
+        {carta && (
+          <span style={{ flex: 'none', width: 38, height: 52, border: `2.5px solid ${INK}`, borderRadius: 7, background: `repeating-linear-gradient(45deg, ${GOLD} 0 5px, #f2b400 5px 10px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 10.5, lineHeight: 1.1, boxShadow: `1.5px 1.5px 0 0 ${INK}` }}>
+            <span style={{ fontSize: 16 }}>?</span>{carta.pos}
+          </span>
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', lineHeight: 1.1, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titulo}</p>
+          {carta && <span style={{ display: 'inline-block', maxWidth: '100%', marginTop: 3, fontSize: 10.5, fontWeight: 900, background: '#F4ECD6', border: `1.5px solid ${INK}`, borderRadius: 6, padding: '1px 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🎴 {carta.etiqueta}</span>}
           <p style={{ fontSize: 10, fontWeight: 800, color: '#5a5647', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{detalhe}</p>
         </div>
         <span style={{ flex: 'none', ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 8px', background: marcado ? GREEN : travado ? '#d8cfb5' : GOLD, color: marcado ? '#fff' : INK, boxShadow: travado && !marcado ? 'none' : `2px 2px 0 0 ${INK}` }}>
@@ -5822,37 +5831,56 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
 
   // ── ⚽ LISTA DE JOGADORES (só quem o olheiro ALCANÇA) ──
   if (passo === 'jog') {
-    const lista = soLivres ? jogs.filter(j => j.falta <= 0 || marcadosJ.includes(j.card.id)) : jogs
+    // 🛒 MERCADO DA BOLA (Diego 30/10, mockup `scripts/mockups/carreira-mercado-sondar.png`, *"pode publicar"*): cada linha mostra
+    // o clube e o ano DA CARTA (Neymar do Santos × Neymar do Barcelona) e onde ele está hoje; botões de posição no topo; quem
+    // ainda tem contrato fica dobrado no fim do setor. As regras do olheiro e do 1 por temporada NÃO mudaram.
+    // ✔ Sondado só no clube marcado: se a MESMA carta aparece em dois clubes, só a linha do clube escolhido fica verde.
+    const fundoMarcado = state.aliciarFundo?.clube ?? null
+    const ehMarcado = (j: LinhaJog) => marcadosJ.includes(j.card.id) && (fundoMarcado ? j.clube.teamName === fundoMarcado : !j.clube.fundo)
+    const setores = posF ? [posF] : SECTORS
     return (
       <div style={{ marginTop: 4 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-          <button onClick={fecha} style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: 'none', border: 'none', color: INK, cursor: 'pointer', padding: 0 }}>{tr('← ⚽ Sondar jogador', '← ⚽ Scout a player')}</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <button onClick={fecha} style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: 'none', border: 'none', color: INK, cursor: 'pointer', padding: 0 }}>{tr('← ⚽ Mercado da bola', '← ⚽ Transfer market')}</button>
           <span style={{ fontSize: 11, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 9px', background: '#fff' }}>{marcadosJ.length}/1</span>
         </div>
         <p style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroGrad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
           <span style={{ fontSize: 10, fontWeight: 800, color: '#5a5647' }}>{olheiroTier === 'ouro' ? tr('acha qualquer jogador, lenda inclusive', 'finds any player, legends included') : olheiroTier === 'prata' ? tr('acha de craque pra baixo', 'finds from star down') : tr('acha foi profissional, bom jogador e promessa', 'finds ex-pros, good players and prospects')}</span>
         </p>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 9 }}>
-          {pilula(soLivres, `${tr('🆓 Sem contrato', '🆓 No contract')} (${jogLivres})`, () => setSoLivres(true))}
-          {pilula(!soLivres, `${tr('Todos que ele achou', 'All he found')} (${jogs.length})`, () => setSoLivres(false))}
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
+          {pilula(posF === null, tr('Todas', 'All'), () => setPosF(null))}
+          {SECTORS.map(p => pilula(posF === p, p, () => setPosF(p)))}
         </div>
-        {!lista.length && <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', textAlign: 'center', margin: '14px 0' }}>{tr('😶 Seu olheiro não achou ninguém sem contrato ao alcance dele.', '😶 Your scout found nobody out of contract within his reach.')}</p>}
-        {SECTORS.map(pos => {
-          const cs = lista.filter(j => j.card.pos === pos).sort((a, b) => (a.falta > 0 ? 1 : 0) - (b.falta > 0 ? 1 : 0) || a.card.name.localeCompare(b.card.name))
-          if (!cs.length) return null
+        {!jogs.length && <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', textAlign: 'center', margin: '14px 0' }}>{tr('😶 Seu olheiro não achou ninguém sem contrato ao alcance dele.', '😶 Your scout found nobody out of contract within his reach.')}</p>}
+        {setores.map(pos => {
+          const doSetor = jogs.filter(j => j.card.pos === pos)
+          const livres = doSetor.filter(j => j.falta <= 0 || ehMarcado(j)).sort((a, b) => a.card.name.localeCompare(b.card.name) || a.clube.teamName.localeCompare(b.clube.teamName))
+          const presos = doSetor.filter(j => j.falta > 0 && !ehMarcado(j)).sort((a, b) => a.falta - b.falta || a.card.name.localeCompare(b.card.name))
+          if (!doSetor.length) return null
+          const mostra = verTrav[pos] ? [...livres, ...presos] : livres
           return (
             <div key={pos}>
-              <p style={{ ...OSWALD, fontWeight: 800, fontSize: 10, textTransform: 'uppercase', color: GREEN, margin: '8px 2px 4px' }}>{POS_LABEL[pos]}</p>
-              {cs.map(j => {
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 10, padding: '4px 10px', margin: '12px 0 7px', boxShadow: `2px 2px 0 0 ${INK}` }}>
+                <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.04em' }}>{POS_LABEL[pos]}</span>
+                <span style={{ fontSize: 10.5, fontWeight: 900 }}>{getLang() === 'en' ? `${livres.length} free` : `${livres.length} ${livres.length === 1 ? 'livre' : 'livres'}`}</span>
+              </div>
+              {!livres.length && !verTrav[pos] && <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5a5647', margin: '0 2px 6px' }}>{tr('😶 Ninguém sem contrato nesta posição.', '😶 Nobody out of contract in this position.')}</p>}
+              {mostra.map(j => {
                 const x = j.card, c = j.clube
-                const marcado = marcadosJ.includes(x.id)
+                const marcado = ehMarcado(j)
                 const trava = j.falta > 0 ? (getLang() === 'en' ? `${j.falta} left` : `falta${j.falta > 1 ? 'm' : ''} ${j.falta}`) : (!marcado && marcadosJ.length >= 1 ? '1/1' : undefined)
-                return linha(`j:${x.id}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }),
+                return linha(`j:${x.id}:${c.teamName}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }),
                   <>{x.name}</>,
-                  <>{rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {contratoTxt(j.falta)}</>,
-                  marcado ? historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo) : null)
+                  <>📍 {tr('está no', 'at')} {rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {contratoTxt(j.falta)}</>,
+                  marcado ? historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo) : null,
+                  { pos: x.pos, etiqueta: `${x.club} · ${x.year}` })
               })}
+              {presos.length > 0 && (
+                <button onClick={() => setVerTrav(v => ({ ...v, [pos]: !v[pos] }))} style={{ width: '100%', textAlign: 'left', fontSize: 10.5, fontWeight: 900, color: '#5a5647', background: '#efe9d8', border: `2px dashed ${INK}`, borderRadius: 10, padding: '6px 9px', marginBottom: 4, cursor: 'pointer' }}>
+                  {verTrav[pos] ? tr('🔒 Esconder quem tem contrato ▴', '🔒 Hide players under contract ▴') : (getLang() === 'en' ? `🔒 Still under contract (${presos.length}) — see ▾` : `🔒 Com contrato ainda (${presos.length}) — ver ▾`)}
+                </button>
+              )}
             </div>
           )
         })}
