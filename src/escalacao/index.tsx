@@ -6,7 +6,7 @@ import { AvisoSemana } from './aviso-semana'
 import { PresentesPregao } from './pregao-aberto' // 🎁 'Fulano te deu um presente!' — só depois que o Diego entregou (14/10)
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
-import { flushPendingWrites } from './pending'
+import { flushPendingWrites, temPendencias } from './pending'
 import { EscProvider, useEsc, ehPokemon } from './store'
 import { LojaButton } from './loja-clube' // 🔥 30/10: "Ver planos" do recado do servidor na home
 import { COMUNIDADE_LINK } from './comunidade'
@@ -213,6 +213,7 @@ function MaintenanceBanner() {
     const netErr = (m: string) => /failed to fetch|networkerror|network request failed|load failed|502|503|504|timeout|service unavailable/i.test(m)
     const check = async () => {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return // aba escondida não testa (conta do Supabase, 06/10)
+      if (!temPendencias()) return // 📉 30/10: nada esperando pra salvar = nada pra testar (eram ~119 mil idas por dia)
       let ok = false
       try {
         const { error } = await supabase.from('user_cards').select('user_id').limit(1) // leitura pública, bem leve

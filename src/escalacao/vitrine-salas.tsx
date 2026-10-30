@@ -53,7 +53,7 @@ export function RankingClasCaixa() {
   useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 20)) }, () => {}); return () => { vivo = false } }, [])
   if (!l) return null // 🔁 21/10 (Diego): a caixa aparece SEMPRE, mesmo sem clã nenhum — vazia, ela chama a galera pra criar o primeiro
   return (
-    <Caixa titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
+    <Caixa cincoMin titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
       {l.length === 0 && <div style={{ textAlign: 'center', padding: '8px 4px', border: `2px dashed ${INK}`, borderRadius: 10, background: '#fff' }}>
         <p style={{ ...OSW, margin: 0, fontSize: 15 }}>⚔️ {tr('Nenhum clã ainda', 'No clans yet')}</p>
         <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 700, color: '#5a5240' }}>{tr('Seja o primeiro: 👥 Amigos → ⚔️ Clã. Entrar é de graça; criar é de quem tem plano.', 'Be the first: 👥 Friends → ⚔️ Clan. Joining is free; creating needs a plan.')}</p>
@@ -92,11 +92,13 @@ export function RankingClasCaixa() {
   )
 }
 
-function Caixa({ titulo, sub, escura = false, children }: { titulo: string; sub: string; escura?: boolean; children: React.ReactNode }) {
+// 🔄 (30/10) o banco recalcula estas caixas a cada 5 min pra todo mundo (cache em `esc_cache_rpc`) — a linha avisa quem ainda não se viu
+function Caixa({ titulo, sub, escura = false, cincoMin = false, children }: { titulo: string; sub: string; escura?: boolean; cincoMin?: boolean; children: React.ReactNode }) {
   return (
     <div style={{ background: escura ? 'linear-gradient(150deg,#1f1a14,#0c0c0c)' : CREME, color: escura ? '#fff' : INK, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 12px 10px' }}>
       <p style={{ ...OSW, margin: 0, fontSize: 17, textTransform: 'uppercase', color: escura ? GOLD : INK }}>{titulo}</p>
-      <p style={{ margin: '2px 0 8px', fontSize: 11, fontWeight: 700, color: escura ? '#bbb' : '#5a5240' }}>{sub}</p>
+      <p style={{ margin: cincoMin ? '2px 0 1px' : '2px 0 8px', fontSize: 11, fontWeight: 700, color: escura ? '#bbb' : '#5a5240' }}>{sub}</p>
+      {cincoMin && <p style={{ margin: '0 0 8px', fontSize: 10, fontWeight: 700, fontStyle: 'italic', color: escura ? '#999' : '#8a8270' }}>{tr('🔄 atualiza a cada 5 min', '🔄 updates every 5 min')}</p>}
       {children}
     </div>
   )
@@ -122,10 +124,10 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           <span style={{ fontSize: 11.5, fontWeight: 800, color: '#F4ECD6', textShadow: '0 1px 2px rgba(0,0,0,.6)' }}>{tr('tudo aqui embaixo é novo ↓', 'everything below is new ↓')}</span>
         </div>
       )}
-      <Caixa titulo={tr('🏆 Campeões de hoje', '🏆 Today’s champions')} sub={tr('Quem levantou taça nas salas online hoje — só gente, nunca bot.', 'Who lifted a trophy in the online rooms today — people only, never bots.')}>
+      <Caixa cincoMin titulo={tr('🏆 Campeões de hoje', '🏆 Today’s champions')} sub={tr('Quem levantou taça nas salas online hoje — só gente, nunca bot.', 'Who lifted a trophy in the online rooms today — people only, never bots.')}>
         {v.hoje.length === 0
           ? <p style={{ margin: 0, fontSize: 12, fontWeight: 800 }}>{tr('Ninguém levantou taça hoje ainda. O primeiro pode ser você! 👀', 'Nobody has lifted a trophy today yet. The first one could be you! 👀')}</p>
-          : v.hoje.map((c, i) => (
+          : v.hoje.slice(0, 3).map((c, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 2px', borderTop: i ? '1.5px solid #0001' : 'none' }}>
               <span style={{ fontSize: 17 }}>🏆</span>
               <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.time || c.nome}</b>
@@ -136,7 +138,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
       </Caixa>
 
       {(v.semana.length > 0 || (v.passada?.length ?? 0) > 0) && (
-        <Caixa titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais títulos online nesta semana.', 'The managers with the most online titles this week.')}>
+        <Caixa cincoMin titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais títulos online nesta semana.', 'The managers with the most online titles this week.')}>
           {v.semana.length === 0 && <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 800 }}>{tr('Semana nova, ranking zerado. O primeiro título é seu? ⚽', 'New week, fresh ranking. Will the first title be yours? ⚽')}</p>}
           {/* 🏆 16/10 (Diego: "no ranking coloque a moldura que falamos"): o top 3 aparece aqui com a MESMA moldura de
               metal + fita que ele já leva na lista de técnicos da sala (`podio-semana.tsx`). A posição vem do ranking. */}

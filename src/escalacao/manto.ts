@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 import { loggedEmail } from './apoio'
 import { registraMeuBatismo } from './mimos'
 import { getLang } from './lang' // 🌐 NOME_MSG sai no idioma do botão BR/EN
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
@@ -208,8 +209,8 @@ async function fetchMeuSocio() {
   registraMeuBatismo(meu?.ativo ? meu.escudoTime : null, meu?.ativo ? meu.mascoteKey : null)
   listeners.forEach(fn => fn())
 }
-supabase.auth.getUser().then(() => fetchMeuSocio(), () => {})
-supabase.auth.onAuthStateChange(() => { fetchMeuSocio() })
+supabase.auth.getSession().then(({ data }) => { if (releConta('manto', data.session?.user?.id)) fetchMeuSocio() }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { if (releConta('manto', s?.user?.id)) fetchMeuSocio() })
 
 // manto da conta logada NESTE aparelho — banco primeiro, reserva do código
 // depois. Só decora o PRÓPRIO time de quem vê (nunca sincroniza pros outros).

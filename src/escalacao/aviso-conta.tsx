@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
+import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 type Aviso = { id: number; titulo: string; texto: string }
 
@@ -23,7 +24,7 @@ export function AvisoConta() {
       } catch { /* sem rede: tenta no próximo login */ }
     }
     void le()
-    const { data: sub } = supabase.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') void le() })
+    const { data: sub } = supabase.auth.onAuthStateChange((ev, s) => { if ((ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') && releConta('aviso-conta', s?.user?.id)) void le() })
     return () => { vivo = false; sub.subscription.unsubscribe() }
   }, [])
   const a = avisos[0]
