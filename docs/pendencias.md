@@ -1,3 +1,11 @@
+## 🚑 Banco travou 29/10 ~23h58 (Brasília) — online parado ~10 min
+- Causa: `esc_cla_ranking()` (caixa "Clãs da semana" na lista de salas) custava ~3 s por chamada e rodava a cada abertura da lista:
+  2.498 chamadas = 7.584 s de banco. Com o pico da noite, o banco engasgou (timeouts, "connect timeout", 500 em ~60% das chamadas).
+- ✅ Conserto no BANCO (03:06 UTC, sem deploy): cache de 2 min em `esc_cache_rpc` + trava pra não calcular em paralelo. Erros
+  zeraram às 03:08. Arquivo: `supabase/migrations/20261030030500_cla_ranking_cache.sql`.
+- ⏳ Outros pesados pra cuidar com calma (pedir OK): `esc_avisos` (40 mil chamadas, ~100 ms), `esc_vitrine_salas` (~300 ms),
+  `esc_meu_nome_fake` (~320 ms), `esc_cla_painel` (~730 ms).
+
 ## ✕ Aviso fechado não volta (29/10) — regra nova no CLAUDE.md
 - Auditoria: 6 avisos voltavam depois do ✕ (só `useState`/`sessionStorage`). Agora todos usam `avisos-fechados.ts`: celular sem espaço
   (`aviso-espaco`), "💾 guarde sua carreira · agora não" (`AvisoContaCarreira`), sugestão de troca da Agência "deixa assim", "abra no
