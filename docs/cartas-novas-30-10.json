@@ -1,0 +1,1532 @@
+[
+{
+"nome": "Dorval",
+"clube": "Santos",
+"ano": 1962,
+"pos": "ATA"
+},
+{
+"nome": "Francisco Gento",
+"clube": "Real Madrid",
+"ano": 1960,
+"pos": "ATA"
+},
+{
+"nome": "José Santamaría",
+"clube": "Real Madrid",
+"ano": 1960,
+"pos": "ZAG"
+},
+{
+"nome": "Mário Coluna",
+"clube": "Benfica",
+"ano": 1962,
+"pos": "MEI"
+},
+{
+"nome": "José Torres",
+"clube": "Benfica",
+"ano": 1965,
+"pos": "ATA"
+},
+{
+"nome": "Giacinto Facchetti",
+"clube": "Inter",
+"ano": 1965,
+"pos": "LAT"
+},
+{
+"nome": "Tarcisio Burgnich",
+"clube": "Inter",
+"ano": 1965,
+"pos": "LAT"
+},
+{
+"nome": "Sandro Mazzola",
+"clube": "Inter",
+"ano": 1965,
+"pos": "ATA"
+},
+{
+"nome": "Jair da Costa",
+"clube": "Inter",
+"ano": 1965,
+"pos": "ATA"
+},
+{
+"nome": "Cesare Maldini",
+"clube": "Milan",
+"ano": 1963,
+"pos": "ZAG"
+},
+{
+"nome": "Giovanni Trapattoni",
+"clube": "Milan",
+"ano": 1963,
+"pos": "MEI"
+},
+{
+"nome": "Nobby Stiles",
+"clube": "Man United",
+"ano": 1968,
+"pos": "MEI"
+},
+{
+"nome": "Arie Haan",
+"clube": "Ajax",
+"ano": 1972,
+"pos": "MEI"
+},
+{
+"nome": "Johnny Rep",
+"clube": "Ajax",
+"ano": 1973,
+"pos": "ATA"
+},
+{
+"nome": "Sepp Maier",
+"clube": "Bayern",
+"ano": 1974,
+"pos": "GOL"
+},
+{
+"nome": "Paul Breitner",
+"clube": "Bayern",
+"ano": 1974,
+"pos": "LAT"
+},
+{
+"nome": "Uli Hoeneß",
+"clube": "Bayern",
+"ano": 1974,
+"pos": "MEI"
+},
+{
+"nome": "Wilson Piazza",
+"clube": "Cruzeiro",
+"ano": 1976,
+"pos": "ZAG"
+},
+{
+"nome": "Paulo César Carpegiani",
+"clube": "Internacional",
+"ano": 1976,
+"pos": "MEI"
+},
+{
+"nome": "Valdomiro",
+"clube": "Internacional",
+"ano": 1976,
+"pos": "ATA"
+},
+{
+"nome": "Leivinha",
+"clube": "Palmeiras",
+"ano": 1972,
+"pos": "ATA"
+},
+{
+"nome": "Roberto Rivellino",
+"clube": "Fluminense",
+"ano": 1976,
+"pos": "MEI"
+},
+{
+"nome": "Doval",
+"clube": "Fluminense",
+"ano": 1976,
+"pos": "ATA"
+},
+{
+"nome": "Ray Clemence",
+"clube": "Liverpool",
+"ano": 1977,
+"pos": "GOL"
+},
+{
+"nome": "Emlyn Hughes",
+"clube": "Liverpool",
+"ano": 1977,
+"pos": "ZAG"
+},
+{
+"nome": "Kevin Keegan",
+"clube": "Liverpool",
+"ano": 1977,
+"pos": "ATA"
+},
+{
+"nome": "Tita",
+"clube": "Flamengo",
+"ano": 1981,
+"pos": "MEI"
+},
+{
+"nome": "Cantarele",
+"clube": "Flamengo",
+"ano": 1981,
+"pos": "GOL"
+},
+{
+"nome": "Gilmar Rinaldi",
+"clube": "São Paulo",
+"ano": 1986,
+"pos": "GOL"
+},
+{
+"nome": "Darío Pereyra",
+"clube": "São Paulo",
+"ano": 1986,
+"pos": "ZAG"
+},
+{
+"nome": "Silas",
+"clube": "São Paulo",
+"ano": 1986,
+"pos": "MEI"
+},
+{
+"nome": "Pita",
+"clube": "São Paulo",
+"ano": 1986,
+"pos": "MEI"
+},
+{
+"nome": "Hugo De León",
+"clube": "Grêmio",
+"ano": 1983,
+"pos": "ZAG"
+},
+{
+"nome": "Tarciso",
+"clube": "Grêmio",
+"ano": 1983,
+"pos": "ATA"
+},
+{
+"nome": "Zenon",
+"clube": "Corinthians",
+"ano": 1983,
+"pos": "MEI"
+},
+{
+"nome": "Gaetano Scirea",
+"clube": "Juventus",
+"ano": 1982,
+"pos": "ZAG"
+},
+{
+"nome": "Claudio Gentile",
+"clube": "Juventus",
+"ano": 1982,
+"pos": "ZAG"
+},
+{
+"nome": "Marco Tardelli",
+"clube": "Juventus",
+"ano": 1982,
+"pos": "MEI"
+},
+{
+"nome": "Zbigniew Boniek",
+"clube": "Juventus",
+"ano": 1983,
+"pos": "ATA"
+},
+{
+"nome": "Mauro Tassotti",
+"clube": "Milan",
+"ano": 1989,
+"pos": "LAT"
+},
+{
+"nome": "Carlo Ancelotti",
+"clube": "Milan",
+"ano": 1989,
+"pos": "MEI"
+},
+{
+"nome": "Roberto Donadoni",
+"clube": "Milan",
+"ano": 1989,
+"pos": "MEI"
+},
+{
+"nome": "Bruce Grobbelaar",
+"clube": "Liverpool",
+"ano": 1984,
+"pos": "GOL"
+},
+{
+"nome": "Phil Neal",
+"clube": "Liverpool",
+"ano": 1984,
+"pos": "LAT"
+},
+{
+"nome": "John Barnes",
+"clube": "Liverpool",
+"ano": 1988,
+"pos": "ATA"
+},
+{
+"nome": "Peter Beardsley",
+"clube": "Liverpool",
+"ano": 1988,
+"pos": "ATA"
+},
+{
+"nome": "Alemão",
+"clube": "Napoli",
+"ano": 1989,
+"pos": "MEI"
+},
+{
+"nome": "Christian Panucci",
+"clube": "Milan",
+"ano": 1994,
+"pos": "LAT"
+},
+{
+"nome": "Demetrio Albertini",
+"clube": "Milan",
+"ano": 1994,
+"pos": "MEI"
+},
+{
+"nome": "Daniele Massaro",
+"clube": "Milan",
+"ano": 1994,
+"pos": "ATA"
+},
+{
+"nome": "Ciro Ferrara",
+"clube": "Juventus",
+"ano": 1996,
+"pos": "ZAG"
+},
+{
+"nome": "Antonio Conte",
+"clube": "Juventus",
+"ano": 1996,
+"pos": "MEI"
+},
+{
+"nome": "Andoni Zubizarreta",
+"clube": "Barcelona",
+"ano": 1992,
+"pos": "GOL"
+},
+{
+"nome": "Steve Bruce",
+"clube": "Man United",
+"ano": 1994,
+"pos": "ZAG"
+},
+{
+"nome": "Gary Pallister",
+"clube": "Man United",
+"ano": 1994,
+"pos": "ZAG"
+},
+{
+"nome": "Paul Ince",
+"clube": "Man United",
+"ano": 1994,
+"pos": "MEI"
+},
+{
+"nome": "Ole Gunnar Solskjær",
+"clube": "Man United",
+"ano": 1999,
+"pos": "ATA"
+},
+{
+"nome": "Finidi George",
+"clube": "Ajax",
+"ano": 1995,
+"pos": "ATA"
+},
+{
+"nome": "Bento",
+"clube": "Al-Nassr",
+"ano": 2026,
+"pos": "GOL"
+},
+{
+"nome": "Lucas Perri",
+"clube": "Torino",
+"ano": 2026,
+"pos": "GOL"
+},
+{
+"nome": "Pedro Morisco",
+"clube": "Coritiba",
+"ano": 2026,
+"pos": "GOL"
+},
+{
+"nome": "Arthur Dias",
+"clube": "Athletico-PR",
+"ano": 2026,
+"pos": "ZAG"
+},
+{
+"nome": "Carlos Augusto",
+"clube": "Inter",
+"ano": 2026,
+"pos": "LAT"
+},
+{
+"nome": "Douglas Santos",
+"clube": "Zenit",
+"ano": 2026,
+"pos": "LAT"
+},
+{
+"nome": "Jair Cunha",
+"clube": "Nottingham Forest",
+"ano": 2026,
+"pos": "ZAG"
+},
+{
+"nome": "Jonathan Jesus",
+"clube": "Cruzeiro",
+"ano": 2026,
+"pos": "ZAG"
+},
+{
+"nome": "Vitor Reis",
+"clube": "Man City",
+"ano": 2026,
+"pos": "ZAG"
+},
+{
+"nome": "André Luiz",
+"clube": "Corinthians",
+"ano": 2026,
+"pos": "MEI"
+},
+{
+"nome": "Andrey Santos",
+"clube": "Chelsea",
+"ano": 2026,
+"pos": "MEI"
+},
+{
+"nome": "Danilo",
+"clube": "Botafogo",
+"ano": 2026,
+"pos": "MEI"
+},
+{
+"nome": "João Gomes",
+"clube": "Aston Villa",
+"ano": 2026,
+"pos": "MEI"
+},
+{
+"nome": "Marlon Gomes",
+"clube": "Shakhtar Donetsk",
+"ano": 2026,
+"pos": "MEI"
+},
+{
+"nome": "Alisson Santana",
+"clube": "Shakhtar Donetsk",
+"ano": 2026,
+"pos": "ATA"
+},
+{
+"nome": "Allan",
+"clube": "Man City",
+"ano": 2026,
+"pos": "ATA"
+},
+{
+"nome": "Rayan",
+"clube": "Bournemouth",
+"ano": 2026,
+"pos": "ATA"
+},
+{
+"nome": "Germán Burgos",
+"clube": "River Plate",
+"ano": 1998,
+"pos": "GOL"
+},
+{
+"nome": "Roberto Abbondanzieri",
+"clube": "Boca Juniors",
+"ano": 2003,
+"pos": "GOL"
+},
+{
+"nome": "Franco Armani",
+"clube": "River Plate",
+"ano": 2018,
+"pos": "GOL"
+},
+{
+"nome": "Keylor Navas",
+"clube": "Saprissa",
+"ano": 2008,
+"pos": "GOL"
+},
+{
+"nome": "Tim Howard",
+"clube": "MetroStars",
+"ano": 2002,
+"pos": "GOL"
+},
+{
+"nome": "Faryd Mondragón",
+"clube": "Independiente",
+"ano": 2001,
+"pos": "GOL"
+},
+{
+"nome": "Sergio Romero",
+"clube": "Boca Juniors",
+"ano": 2023,
+"pos": "GOL"
+},
+{
+"nome": "Esteban Andrada",
+"clube": "Boca Juniors",
+"ano": 2019,
+"pos": "GOL"
+},
+{
+"nome": "Kléber",
+"clube": "Santos",
+"ano": 2004,
+"pos": "LAT"
+},
+{
+"nome": "Renan Lodi",
+"clube": "Athletico-PR",
+"ano": 2018,
+"pos": "LAT"
+},
+{
+"nome": "Mayke",
+"clube": "Palmeiras",
+"ano": 2021,
+"pos": "LAT"
+},
+{
+"nome": "Javier Zanetti",
+"clube": "Banfield",
+"ano": 1995,
+"pos": "LAT"
+},
+{
+"nome": "Hugo Ibarra",
+"clube": "Boca Juniors",
+"ano": 2000,
+"pos": "LAT"
+},
+{
+"nome": "Marcos Acuña",
+"clube": "Racing",
+"ano": 2017,
+"pos": "LAT"
+},
+{
+"nome": "Nicolás Tagliafico",
+"clube": "Independiente",
+"ano": 2017,
+"pos": "LAT"
+},
+{
+"nome": "Mauricio Isla",
+"clube": "Universidad Católica",
+"ano": 2007,
+"pos": "LAT"
+},
+{
+"nome": "Maxi Pereira",
+"clube": "Defensor Sporting",
+"ano": 2006,
+"pos": "LAT"
+},
+{
+"nome": "João Cancelo",
+"clube": "Al-Hilal",
+"ano": 2024,
+"pos": "LAT"
+},
+{
+"nome": "Renan Lodi",
+"clube": "Al-Hilal",
+"ano": 2024,
+"pos": "LAT"
+},
+{
+"nome": "Leonardo Silva",
+"clube": "Atlético-MG",
+"ano": 2013,
+"pos": "ZAG"
+},
+{
+"nome": "Luizinho",
+"clube": "Atlético-MG",
+"ano": 1980,
+"pos": "ZAG"
+},
+{
+"nome": "Brito",
+"clube": "Vasco",
+"ano": 1970,
+"pos": "ZAG"
+},
+{
+"nome": "Roberto Ayala",
+"clube": "River Plate",
+"ano": 1995,
+"pos": "ZAG"
+},
+{
+"nome": "Gabriel Heinze",
+"clube": "Newell's Old Boys",
+"ano": 1998,
+"pos": "ZAG"
+},
+{
+"nome": "Diego Lugano",
+"clube": "Nacional-URU",
+"ano": 2002,
+"pos": "ZAG"
+},
+{
+"nome": "Rafael Márquez",
+"clube": "Atlas",
+"ano": 1998,
+"pos": "ZAG"
+},
+{
+"nome": "Mario Yepes",
+"clube": "River Plate",
+"ano": 2002,
+"pos": "ZAG"
+},
+{
+"nome": "Nicolás Otamendi",
+"clube": "Vélez Sarsfield",
+"ano": 2009,
+"pos": "ZAG"
+},
+{
+"nome": "Lisandro Martínez",
+"clube": "Defensa y Justicia",
+"ano": 2018,
+"pos": "ZAG"
+},
+{
+"nome": "Kalidou Koulibaly",
+"clube": "Al-Hilal",
+"ano": 2024,
+"pos": "ZAG"
+},
+{
+"nome": "Laurent Blanc",
+"clube": "Barcelona",
+"ano": 1997,
+"pos": "ZAG"
+},
+{
+"nome": "Javier Mascherano",
+"clube": "Barcelona",
+"ano": 2011,
+"pos": "ZAG"
+},
+{
+"nome": "Tony Adams",
+"clube": "Arsenal",
+"ano": 1998,
+"pos": "ZAG"
+},
+{
+"nome": "Juan",
+"clube": "Roma",
+"ano": 2008,
+"pos": "ZAG"
+},
+{
+"nome": "Kaká",
+"clube": "Orlando City",
+"ano": 2015,
+"pos": "MEI"
+},
+{
+"nome": "Andrea Pirlo",
+"clube": "New York City",
+"ano": 2016,
+"pos": "MEI"
+},
+{
+"nome": "Frank Lampard",
+"clube": "New York City",
+"ano": 2016,
+"pos": "MEI"
+},
+{
+"nome": "N'Golo Kanté",
+"clube": "Al-Ittihad",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Fabinho",
+"clube": "Al-Ittihad",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Sergej Milinković-Savić",
+"clube": "Al-Hilal",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Rúben Neves",
+"clube": "Al-Hilal",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Dunga",
+"clube": "Júbilo Iwata",
+"ano": 1997,
+"pos": "MEI"
+},
+{
+"nome": "Pablo Aimar",
+"clube": "River Plate",
+"ano": 1999,
+"pos": "MEI"
+},
+{
+"nome": "Diego Forlán",
+"clube": "Internacional",
+"ano": 2012,
+"pos": "ATA"
+},
+{
+"nome": "Thierry Henry",
+"clube": "New York Red Bulls",
+"ano": 2011,
+"pos": "ATA"
+},
+{
+"nome": "Wayne Rooney",
+"clube": "DC United",
+"ano": 2018,
+"pos": "ATA"
+},
+{
+"nome": "Didier Drogba",
+"clube": "Montreal Impact",
+"ano": 2015,
+"pos": "ATA"
+},
+{
+"nome": "Gary Lineker",
+"clube": "Nagoya Grampus",
+"ano": 1993,
+"pos": "ATA"
+},
+{
+"nome": "Hristo Stoichkov",
+"clube": "Kashiwa Reysol",
+"ano": 1999,
+"pos": "ATA"
+},
+{
+"nome": "Edinson Cavani",
+"clube": "Boca Juniors",
+"ano": 2024,
+"pos": "ATA"
+},
+{
+"nome": "Oleg Salenko",
+"clube": "Logroñés",
+"ano": 1994,
+"pos": "ATA"
+},
+{
+"nome": "Yordan Letchkov",
+"clube": "Hamburg",
+"ano": 1994,
+"pos": "MEI"
+},
+{
+"nome": "Florin Răducioiu",
+"clube": "Espanyol",
+"ano": 1996,
+"pos": "ATA"
+},
+{
+"nome": "Kennet Andersson",
+"clube": "Bologna",
+"ano": 1998,
+"pos": "ATA"
+},
+{
+"nome": "İlhan Mansız",
+"clube": "Beşiktaş",
+"ano": 2002,
+"pos": "ATA"
+},
+{
+"nome": "Papa Bouba Diop",
+"clube": "Lens",
+"ano": 2002,
+"pos": "MEI"
+},
+{
+"nome": "Siphiwe Tshabalala",
+"clube": "Kaizer Chiefs",
+"ano": 2010,
+"pos": "MEI"
+},
+{
+"nome": "Joel Campbell",
+"clube": "Arsenal",
+"ano": 2014,
+"pos": "ATA"
+},
+{
+"nome": "Bryan Ruiz",
+"clube": "Fulham",
+"ano": 2012,
+"pos": "MEI"
+},
+{
+"nome": "Yassine Bounou",
+"clube": "Sevilla",
+"ano": 2022,
+"pos": "GOL"
+},
+{
+"nome": "Sofyan Amrabat",
+"clube": "Fiorentina",
+"ano": 2022,
+"pos": "MEI"
+},
+{
+"nome": "Youssef En-Nesyri",
+"clube": "Sevilla",
+"ano": 2022,
+"pos": "ATA"
+},
+{
+"nome": "Wout Weghorst",
+"clube": "Burnley",
+"ano": 2022,
+"pos": "ATA"
+},
+{
+"nome": "Salem Al-Dawsari",
+"clube": "Al-Hilal",
+"ano": 2022,
+"pos": "ATA"
+},
+{
+"nome": "Ritsu Doan",
+"clube": "Freiburg",
+"ano": 2022,
+"pos": "MEI"
+},
+{
+"nome": "Rodrigo De Paul",
+"clube": "Atlético de Madrid",
+"ano": 2022,
+"pos": "MEI"
+},
+{
+"nome": "Mateja Kežman",
+"clube": "Chelsea",
+"ano": 2004,
+"pos": "ATA"
+},
+{
+"nome": "Fabiano Eller",
+"clube": "Internacional",
+"ano": 2006,
+"pos": "ZAG"
+},
+{
+"nome": "Fabián Ruiz",
+"clube": "PSG",
+"ano": 2023,
+"pos": "MEI"
+},
+{
+"nome": "Marco Verratti",
+"clube": "PSG",
+"ano": 2018,
+"pos": "MEI"
+},
+{
+"nome": "Dominik Szoboszlai",
+"clube": "Liverpool",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Nicolas Jackson",
+"clube": "Villarreal",
+"ano": 2023,
+"pos": "ATA"
+},
+{
+"nome": "Timo Werner",
+"clube": "RB Leipzig",
+"ano": 2020,
+"pos": "ATA"
+},
+{
+"nome": "Matheusinho",
+"clube": "Vitória",
+"ano": 2025,
+"pos": "MEI"
+},
+{
+"nome": "Morgan Rogers",
+"clube": "Aston Villa",
+"ano": 2025,
+"pos": "MEI"
+},
+{
+"nome": "Reece James",
+"clube": "Chelsea",
+"ano": 2022,
+"pos": "LAT"
+},
+{
+"nome": "Édouard Mendy",
+"clube": "Chelsea",
+"ano": 2021,
+"pos": "GOL"
+},
+{
+"nome": "Liam Delap",
+"clube": "Chelsea",
+"ano": 2025,
+"pos": "ATA"
+},
+{
+"nome": "Peter Lorimer",
+"clube": "Leeds",
+"ano": 1972,
+"pos": "ATA"
+},
+{
+"nome": "Anthony Gordon",
+"clube": "Newcastle",
+"ano": 2024,
+"pos": "ATA"
+},
+{
+"nome": "Yoane Wissa",
+"clube": "Newcastle",
+"ano": 2025,
+"pos": "ATA"
+},
+{
+"nome": "Dixie Dean",
+"clube": "Everton",
+"ano": 1928,
+"pos": "ATA"
+},
+{
+"nome": "Graeme Sharp",
+"clube": "Everton",
+"ano": 1985,
+"pos": "ATA"
+},
+{
+"nome": "Oumar Niasse",
+"clube": "Everton",
+"ano": 2017,
+"pos": "ATA"
+},
+{
+"nome": "Hakim Ziyech",
+"clube": "Botafogo",
+"ano": 2026,
+"pos": "MEI"
+},
+{
+"nome": "Obdulio Varela",
+"clube": "Peñarol",
+"ano": 1950,
+"pos": "MEI"
+},
+{
+"nome": "Alcides Ghiggia",
+"clube": "Peñarol",
+"ano": 1950,
+"pos": "ATA"
+},
+{
+"nome": "Juan Alberto Schiaffino",
+"clube": "Peñarol",
+"ano": 1950,
+"pos": "MEI"
+},
+{
+"nome": "Roque Máspoli",
+"clube": "Peñarol",
+"ano": 1950,
+"pos": "GOL"
+},
+{
+"nome": "José Nasazzi",
+"clube": "Nacional-URU",
+"ano": 1930,
+"pos": "ZAG"
+},
+{
+"nome": "Héctor Scarone",
+"clube": "Nacional-URU",
+"ano": 1930,
+"pos": "ATA"
+},
+{
+"nome": "Ronald Araújo",
+"clube": "Barcelona",
+"ano": 2023,
+"pos": "ZAG"
+},
+{
+"nome": "Lucas Torreira",
+"clube": "Arsenal",
+"ano": 2019,
+"pos": "MEI"
+},
+{
+"nome": "Jack Charlton",
+"clube": "Leeds",
+"ano": 1966,
+"pos": "ZAG"
+},
+{
+"nome": "Alan Ball",
+"clube": "Everton",
+"ano": 1970,
+"pos": "MEI"
+},
+{
+"nome": "Martin Peters",
+"clube": "West Ham",
+"ano": 1966,
+"pos": "MEI"
+},
+{
+"nome": "Geoff Hurst",
+"clube": "West Ham",
+"ano": 1966,
+"pos": "ATA"
+},
+{
+"nome": "Roger Hunt",
+"clube": "Liverpool",
+"ano": 1966,
+"pos": "ATA"
+},
+{
+"nome": "Jimmy Greaves",
+"clube": "Tottenham",
+"ano": 1962,
+"pos": "ATA"
+},
+{
+"nome": "David Platt",
+"clube": "Sampdoria",
+"ano": 1993,
+"pos": "MEI"
+},
+{
+"nome": "Stuart Pearce",
+"clube": "Nottingham Forest",
+"ano": 1990,
+"pos": "LAT"
+},
+{
+"nome": "Bryan Robson",
+"clube": "Man United",
+"ano": 1985,
+"pos": "MEI"
+},
+{
+"nome": "Bukayo Saka",
+"clube": "Arsenal",
+"ano": 2024,
+"pos": "ATA"
+},
+{
+"nome": "John Stones",
+"clube": "Man City",
+"ano": 2023,
+"pos": "ZAG"
+},
+{
+"nome": "Matt Le Tissier",
+"clube": "Southampton",
+"ano": 1995,
+"pos": "MEI"
+},
+{
+"nome": "Ian Wright",
+"clube": "Arsenal",
+"ano": 1997,
+"pos": "ATA"
+},
+{
+"nome": "Juan Mata",
+"clube": "Chelsea",
+"ano": 2012,
+"pos": "MEI"
+},
+{
+"nome": "Fernando Llorente",
+"clube": "Athletic Bilbao",
+"ano": 2012,
+"pos": "ATA"
+},
+{
+"nome": "Luis Enrique",
+"clube": "Barcelona",
+"ano": 1998,
+"pos": "MEI"
+},
+{
+"nome": "Dani Olmo",
+"clube": "Barcelona",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Unai Simón",
+"clube": "Athletic Bilbao",
+"ano": 2024,
+"pos": "GOL"
+},
+{
+"nome": "Álvaro Morata",
+"clube": "Atlético de Madrid",
+"ano": 2023,
+"pos": "ATA"
+},
+{
+"nome": "Christian Karembeu",
+"clube": "Real Madrid",
+"ano": 1998,
+"pos": "MEI"
+},
+{
+"nome": "Just Fontaine",
+"clube": "Reims",
+"ano": 1958,
+"pos": "ATA"
+},
+{
+"nome": "Raymond Kopa",
+"clube": "Real Madrid",
+"ano": 1958,
+"pos": "MEI"
+},
+{
+"nome": "Aurélien Tchouaméni",
+"clube": "Real Madrid",
+"ano": 2024,
+"pos": "MEI"
+},
+{
+"nome": "Fritz Walter",
+"clube": "Kaiserslautern",
+"ano": 1954,
+"pos": "MEI"
+},
+{
+"nome": "Helmut Rahn",
+"clube": "Rot-Weiss Essen",
+"ano": 1954,
+"pos": "ATA"
+},
+{
+"nome": "Uwe Seeler",
+"clube": "Hamburg",
+"ano": 1966,
+"pos": "ATA"
+},
+{
+"nome": "Günter Netzer",
+"clube": "Borussia Mönchengladbach",
+"ano": 1972,
+"pos": "MEI"
+},
+{
+"nome": "Pierre Littbarski",
+"clube": "Köln",
+"ano": 1990,
+"pos": "ATA"
+},
+{
+"nome": "Matthias Sammer",
+"clube": "Dortmund",
+"ano": 1996,
+"pos": "ZAG"
+},
+{
+"nome": "Thomas Häßler",
+"clube": "Roma",
+"ano": 1991,
+"pos": "MEI"
+},
+{
+"nome": "Leroy Sané",
+"clube": "Bayern",
+"ano": 2023,
+"pos": "ATA"
+},
+{
+"nome": "Mauro Camoranesi",
+"clube": "Juventus",
+"ano": 2006,
+"pos": "MEI"
+},
+{
+"nome": "Alberto Gilardino",
+"clube": "Milan",
+"ano": 2007,
+"pos": "ATA"
+},
+{
+"nome": "Gigi Riva",
+"clube": "Cagliari",
+"ano": 1970,
+"pos": "ATA"
+},
+{
+"nome": "Giuseppe Meazza",
+"clube": "Inter",
+"ano": 1934,
+"pos": "ATA"
+},
+{
+"nome": "Silvio Piola",
+"clube": "Lazio",
+"ano": 1938,
+"pos": "ATA"
+},
+{
+"nome": "Roberto Mancini",
+"clube": "Sampdoria",
+"ano": 1991,
+"pos": "ATA"
+},
+{
+"nome": "Nicolò Barella",
+"clube": "Inter",
+"ano": 2023,
+"pos": "MEI"
+},
+{
+"nome": "Ubaldo Fillol",
+"clube": "River Plate",
+"ano": 1978,
+"pos": "GOL"
+},
+{
+"nome": "Jorge Valdano",
+"clube": "Real Madrid",
+"ano": 1986,
+"pos": "ATA"
+},
+{
+"nome": "Sergio Goycochea",
+"clube": "Racing",
+"ano": 1990,
+"pos": "GOL"
+},
+{
+"nome": "Nahuel Molina",
+"clube": "Atlético de Madrid",
+"ano": 2023,
+"pos": "LAT"
+},
+{
+"nome": "Orlando Peçanha",
+"clube": "Vasco",
+"ano": 1958,
+"pos": "ZAG"
+},
+{
+"nome": "De Sordi",
+"clube": "São Paulo",
+"ano": 1958,
+"pos": "LAT"
+},
+{
+"nome": "Mazzola",
+"clube": "Palmeiras",
+"ano": 1958,
+"pos": "ATA"
+},
+{
+"nome": "Zózimo",
+"clube": "Bangu",
+"ano": 1958,
+"pos": "ZAG"
+},
+{
+"nome": "Everaldo",
+"clube": "Grêmio",
+"ano": 1970,
+"pos": "LAT"
+},
+{
+"nome": "Marinho Chagas",
+"clube": "Botafogo",
+"ano": 1974,
+"pos": "LAT"
+},
+{
+"nome": "Dirceu",
+"clube": "Vasco",
+"ano": 1978,
+"pos": "MEI"
+},
+{
+"nome": "Batista",
+"clube": "Internacional",
+"ano": 1979,
+"pos": "MEI"
+},
+{
+"nome": "Éder",
+"clube": "Atlético-MG",
+"ano": 1982,
+"pos": "ATA"
+},
+{
+"nome": "Anderson Polga",
+"clube": "Grêmio",
+"ano": 2002,
+"pos": "ZAG"
+},
+{
+"nome": "Rob Rensenbrink",
+"clube": "Anderlecht",
+"ano": 1976,
+"pos": "ATA"
+},
+{
+"nome": "Jan Jongbloed",
+"clube": "FC Amsterdam",
+"ano": 1974,
+"pos": "GOL"
+},
+{
+"nome": "Sándor Kocsis",
+"clube": "Honvéd",
+"ano": 1954,
+"pos": "ATA"
+},
+{
+"nome": "Nándor Hidegkuti",
+"clube": "MTK",
+"ano": 1954,
+"pos": "ATA"
+},
+{
+"nome": "Zoltán Czibor",
+"clube": "Honvéd",
+"ano": 1954,
+"pos": "ATA"
+},
+{
+"nome": "Gyula Grosics",
+"clube": "Honvéd",
+"ano": 1954,
+"pos": "GOL"
+},
+{
+"nome": "József Bozsik",
+"clube": "Honvéd",
+"ano": 1954,
+"pos": "MEI"
+},
+{
+"nome": "François Omam-Biyik",
+"clube": "Laval",
+"ano": 1990,
+"pos": "ATA"
+},
+{
+"nome": "Emil Kostadinov",
+"clube": "Porto",
+"ano": 1994,
+"pos": "ATA"
+},
+{
+"nome": "Krasimir Balakov",
+"clube": "Sporting",
+"ano": 1994,
+"pos": "MEI"
+},
+{
+"nome": "Ilie Dumitrescu",
+"clube": "Steaua Bucareste",
+"ano": 1994,
+"pos": "ATA"
+},
+{
+"nome": "Dan Petrescu",
+"clube": "Chelsea",
+"ano": 1997,
+"pos": "LAT"
+},
+{
+"nome": "Slaven Bilić",
+"clube": "West Ham",
+"ano": 1996,
+"pos": "ZAG"
+},
+{
+"nome": "Henri Camara",
+"clube": "Sedan",
+"ano": 2002,
+"pos": "ATA"
+},
+{
+"nome": "Hasan Şaş",
+"clube": "Galatasaray",
+"ano": 2002,
+"pos": "ATA"
+},
+{
+"nome": "Grzegorz Lato",
+"clube": "Stal Mielec",
+"ano": 1974,
+"pos": "ATA"
+},
+{
+"nome": "Kazimierz Deyna",
+"clube": "Legia Varsóvia",
+"ano": 1974,
+"pos": "MEI"
+},
+{
+"nome": "Jan Tomaszewski",
+"clube": "ŁKS Łódź",
+"ano": 1974,
+"pos": "GOL"
+},
+{
+"nome": "Preben Elkjær",
+"clube": "Verona",
+"ano": 1985,
+"pos": "ATA"
+},
+{
+"nome": "Morten Olsen",
+"clube": "Anderlecht",
+"ano": 1986,
+"pos": "ZAG"
+},
+{
+"nome": "Benedikt Höwedes",
+"clube": "Schalke",
+"ano": 2014,
+"pos": "ZAG"
+},
+{
+"nome": "André Schürrle",
+"clube": "Chelsea",
+"ano": 2014,
+"pos": "ATA"
+},
+{
+"nome": "Sofiane Boufal",
+"clube": "Angers",
+"ano": 2022,
+"pos": "ATA"
+},
+{
+"nome": "Azzedine Ounahi",
+"clube": "Angers",
+"ano": 2022,
+"pos": "MEI"
+},
+{
+"nome": "Noussair Mazraoui",
+"clube": "Bayern",
+"ano": 2023,
+"pos": "LAT"
+},
+{
+"nome": "Jordi Cruyff",
+"clube": "Barcelona",
+"ano": 1995,
+"pos": "ATA"
+},
+{
+"nome": "Enzo Zidane",
+"clube": "Real Madrid",
+"ano": 2017,
+"pos": "MEI"
+},
+{
+"nome": "Daniel Maldini",
+"clube": "Milan",
+"ano": 2021,
+"pos": "ATA"
+},
+{
+"nome": "Justin Kluivert",
+"clube": "Roma",
+"ano": 2019,
+"pos": "ATA"
+},
+{
+"nome": "Giovanni Simeone",
+"clube": "Napoli",
+"ano": 2023,
+"pos": "ATA"
+},
+{
+"nome": "Marcus Thuram",
+"clube": "Inter",
+"ano": 2024,
+"pos": "ATA"
+},
+{
+"nome": "Khéphren Thuram",
+"clube": "Juventus",
+"ano": 2025,
+"pos": "MEI"
+},
+{
+"nome": "Timothy Weah",
+"clube": "Juventus",
+"ano": 2024,
+"pos": "LAT"
+},
+{
+"nome": "Ianis Hagi",
+"clube": "Rangers",
+"ano": 2021,
+"pos": "MEI"
+},
+{
+"nome": "Zé Elias",
+"clube": "Corinthians",
+"ano": 1995,
+"pos": "MEI"
+}
+]
