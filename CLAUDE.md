@@ -701,6 +701,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 
+- **🏷️ NOME DE CARTA NÃO LEVA CLUBE ENTRE PARÊNTESES (30/10).** *"Danilo do Botafogo não precisa chamar Danilo (Botafogo)… embaixo
+  dele já vai aparecer o time. O time já é a diferenciação"*. Carta nova com nome igual a outra do mesmo baralho fica com o nome
+  limpo; quem separa é o clube (a chave é `nome|clube|ano`). Os antigos com parênteses ficam como estão (é identidade de save).
 - **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09) — MAS SÓ QUANDO ELE MANDA PROMOVER.** ⚠️ Não vale pra carta NOVA: carta nova tem a categoria do jogador NAQUELE clube e NAQUELE ano, mesmo que ele já seja lenda em outra carta (o Messi é lenda no Barça e no Inter Miami; Maradona é lenda no Napoli E no Boca de 81). Eu errei isso no Lote 35 e ele corrigiu: *"você que tem que dizer se era lenda ou não no ano e time que jogou"*. Quando ele manda
   "fulano vira lenda" e o jogador tem mais de uma carta, sobe SÓ a do melhor clube (Seedorf =
   Milan, não Botafogo; Lúcio = Inter 2010, não Internacional 2000). Palavras dele: *"óbvio que

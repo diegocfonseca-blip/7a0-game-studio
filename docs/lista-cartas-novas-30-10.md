@@ -14,8 +14,8 @@ Regra conferida em todas: o mesmo jogador só UMA vez em cada baralho (🇧🇷 
 - ZAG **Jonathan Jesus** — Cruzeiro · 🇧🇷 Brasil
 - ZAG **Vitor Reis** — Man City · 🇪🇺 Europa  _( já está no Palmeiras (Brasil) — aqui entra na Europa )_
 - MEI **André Luiz** — Corinthians · 🇧🇷 Brasil
-- MEI **Andrey Santos** — Man United · 🇪🇺 Europa
-- MEI **Danilo (Botafogo)** — Botafogo · 🇧🇷 Brasil  _( o baralho Brasil já tem OUTRO Danilo (Corinthians 2012), por isso o nome leva o clube )_
+- MEI **Andrey Santos** — Chelsea · 🇪🇺 Europa
+- MEI **Danilo** — Botafogo · 🇧🇷 Brasil  _( o clube embaixo do nome já separa do Danilo do Corinthians 2012 )_
 - MEI **João Gomes** — Aston Villa · 🇪🇺 Europa  _( já está no Flamengo (Brasil) — aqui entra na Europa )_
 - MEI **Marlon Gomes** — Shakhtar Donetsk · 🇪🇺 Europa
 - ATA **Alisson Santana** — Shakhtar Donetsk · 🇪🇺 Europa
