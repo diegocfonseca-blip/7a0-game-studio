@@ -433,6 +433,15 @@ export function useSalasEsperaNova(): boolean {
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
   return SALAS_ESPERA_GERAL || salasVisualOk
 }
+// 🗂️④ A LISTA DE SALAS ABERTAS SAIU DO TESTE (31/10, Diego mandou o print: *"libere essa forma aqui de visualização de salas
+// criadas igual já é do meu perfil"*). Só a LISTA: filtros por tipo, contador "N/20 técnicos" grande e o selo de quem pode entrar.
+// O criar sala e o cartão de Minhas Ligas continuam só na conta dele (useSalasVisualNovo). Voltar = SALAS_LISTA_GERAL = false.
+const SALAS_LISTA_GERAL = true
+export function useSalasListaNova(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return SALAS_LISTA_GERAL || salasVisualOk
+}
 export function useSalasVisualNovo(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])

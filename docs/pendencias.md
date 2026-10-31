@@ -11845,3 +11845,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 `CPU_DIV_BOOST_V8` = A 2 · B 3 · C 3 · D 2 · **V 1**, travado por `simV = 8` (só de temporada NOVA; a que está rolando termina na
 tabela antiga). Reverter = trocar os `s.simV = 8` de volta pra 7. Medido antes (28/10): o teto da Várzea (~80) sobe ~28% com +2 e
 ~48% sem bônus nenhum — com +1 fica no meio.
+
+## 31/10 — Lista de salas abertas nova LIBERADA pra todos
+- `SALAS_LISTA_GERAL = true` (`useSalasListaNova`, sport.ts): filtros por tipo, "N/20 técnicos" grande, selo de quem entra. Criar sala e cartão de Minhas Ligas novos seguem só na conta dele (`useSalasVisualNovo`). Voltar = `false`.
+- 🏳️ Ideia "leilão de SELEÇÕES" (pacote = "Atacantes do Brasil"): **NÃO dividir por ano/década** (Diego, 31/10: *"não quero por década"*). Só país: hoje dá ~25 pessoas (lateral é o gargalo: 26 países com 3+). Em aberto.
