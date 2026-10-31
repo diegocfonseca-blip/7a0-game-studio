@@ -11808,8 +11808,8 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 ## 🇪🇺 31/10 — LIGA + EUROCOPA nas salas (em teste, só na conta do Diego, NÃO publicado)
 - Diego: *"Eurocopa são 24 seleções… 6 grupos de 4, passam os 2 primeiros + os 4 melhores terceiros"* → formato único de 24
   (`formatoCopa(24)`, o mesmo motor da Copa do Mundo). A 1ª ideia de 16/32 foi descartada por ele.
-- Seleções: `EUROPA_24` em `copa-mundo-online.tsx` (15 que já fechavam + Polônia, Rússia, Romênia, Hungria, Ucrânia, Rep. Tcheca,
-  Suíça, Áustria, Grécia). Sala: marca `euroNaLiga: 24` junto do `mundoNaLiga` (mesma porta da Copa do Mundo depois da liga).
+- Seleções: `EUROPA_24` em `copa-mundo-online.tsx` (15 que já fechavam + Polônia, Rússia, Romênia, Noruega, Ucrânia, Rep. Tcheca,
+  Suíça, Áustria, Grécia — a Noruega entrou no lugar da Hungria, pedido do Diego: *"tem mais famosos conhecidos"*). Sala: marca `euroNaLiga: 24` junto do `mundoNaLiga` (mesma porta da Copa do Mundo depois da liga).
   Gate `EURO_GERAL` em `sport.ts`. Opção "🇪🇺 Liga + Eurocopa" no criar sala e no editar modo da liga.
 - Tema `euro` em `competicoes-visual.tsx` (azul-noite, prata, estrelas; taça Henri Delaunay em SVG), túnel e festa — fotos
   `scripts/mockups/eurocopa-tunel.png` / `eurocopa-festa.png`.

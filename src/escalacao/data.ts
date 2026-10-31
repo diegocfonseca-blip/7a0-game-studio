@@ -3011,15 +3011,15 @@ const L45_EU_ATA: C[] = [
 ]
 // 🇪🇺 LOTE 46 (31/10, Diego): fechar as 24 seleções da EUROCOPA nas salas. Todas no baralho Europa; ninguém já estava no jogo.
 const L46_EU_GOL: C[] = [
+  { name: "Erik Thorstvedt", club: "Tottenham", year: 1991, fame: 3, lo: 75, hi: 84 }, // Noruega
   { name: "Helmuth Duckadam", club: "Steaua Bucareste", year: 1986, fame: 4, lo: 84, hi: 89 }, // Romênia
-  { name: "Gábor Király", club: "Crystal Palace", year: 2005, fame: 3, lo: 77, hi: 85, folk: true }, // Hungria
   { name: "Alexander Manninger", club: "Arsenal", year: 1998, fame: 3, lo: 77, hi: 85 }, // Áustria
   { name: "Antonios Nikopolidis", club: "Panathinaikos", year: 2004, fame: 3, lo: 74, hi: 85 }, // Grécia
 ]
 const L46_EU_LAT: C[] = [
+  { name: "Stig Inge Bjørnebye", club: "Liverpool", year: 1997, fame: 3, lo: 75, hi: 84 }, // Noruega
   { name: "Marek Jankulovski", club: "Milan", year: 2007, fame: 3, lo: 76, hi: 84 }, // Rep. Tcheca
   { name: "Vladimír Coufal", club: "West Ham", year: 2023, fame: 3, lo: 76, hi: 84 }, // Rep. Tcheca
-  { name: "Mihály Lantos", club: "MTK", year: 1954, fame: 3, lo: 74, hi: 83 }, // Hungria
   { name: "Stephan Lichtsteiner", club: "Juventus", year: 2015, fame: 4, lo: 84, hi: 89 }, // Suíça
   { name: "Ricardo Rodríguez", club: "Wolfsburg", year: 2015, fame: 3, lo: 76, hi: 84 }, // Suíça
   { name: "Oleksandr Zinchenko", club: "Arsenal", year: 2023, fame: 3, lo: 74, hi: 84 }, // Ucrânia
@@ -3031,13 +3031,13 @@ const L46_EU_LAT: C[] = [
   { name: "Takis Fyssas", club: "Benfica", year: 2004, fame: 3, lo: 76, hi: 84 }, // Grécia
 ]
 const L46_EU_ZAG: C[] = [
+  { name: "Ronny Johnsen", club: "Man United", year: 1999, fame: 3, lo: 76, hi: 85 }, // Noruega
+  { name: "Henning Berg", club: "Blackburn", year: 1995, fame: 3, lo: 75, hi: 84 }, // Noruega
   { name: "Jakub Kiwior", club: "Arsenal", year: 2024, fame: 3, lo: 77, hi: 85 }, // Polônia
   { name: "Tomáš Ujfaluši", club: "Fiorentina", year: 2006, fame: 3, lo: 76, hi: 84 }, // Rep. Tcheca
   { name: "Miroslav Kadlec", club: "Kaiserslautern", year: 1996, fame: 3, lo: 77, hi: 85 }, // Rep. Tcheca
   { name: "Cristian Chivu", club: "Inter", year: 2010, fame: 4, lo: 83, hi: 89 }, // Romênia
   { name: "Radu Drăgușin", club: "Tottenham", year: 2024, fame: 3, lo: 75, hi: 83 }, // Romênia
-  { name: "Gyula Lóránt", club: "Honvéd", year: 1954, fame: 3, lo: 77, hi: 83 }, // Hungria
-  { name: "Willi Orbán", club: "RB Leipzig", year: 2023, fame: 3, lo: 77, hi: 84 }, // Hungria
   { name: "Manuel Akanji", club: "Man City", year: 2023, fame: 4, lo: 84, hi: 90 }, // Suíça
   { name: "Fabian Schär", club: "Newcastle", year: 2023, fame: 3, lo: 75, hi: 83 }, // Suíça
   { name: "Sergei Ignashevich", club: "CSKA Moscou", year: 2018, fame: 3, lo: 75, hi: 84 }, // Rússia
@@ -3046,11 +3046,11 @@ const L46_EU_ZAG: C[] = [
   { name: "Traianos Dellas", club: "Roma", year: 2004, fame: 3, lo: 75, hi: 84 }, // Grécia
 ]
 const L46_EU_MEI: C[] = [
+  { name: "Morten Gamst Pedersen", club: "Blackburn", year: 2006, fame: 3, lo: 74, hi: 84 }, // Noruega
   { name: "Jakub Błaszczykowski", club: "Dortmund", year: 2012, fame: 3, lo: 74, hi: 83 }, // Polônia
   { name: "Piotr Zieliński", club: "Napoli", year: 2022, fame: 4, lo: 83, hi: 90 }, // Polônia
   { name: "Tomáš Souček", club: "West Ham", year: 2023, fame: 3, lo: 74, hi: 85 }, // Rep. Tcheca
   { name: "Nicolae Stanciu", club: "Slavia Praga", year: 2021, fame: 3, lo: 75, hi: 83 }, // Romênia
-  { name: "Zoltán Gera", club: "Fulham", year: 2010, fame: 3, lo: 74, hi: 83 }, // Hungria
   { name: "Xherdan Shaqiri", club: "Bayern", year: 2013, fame: 4, lo: 83, hi: 89 }, // Suíça
   { name: "Anatoliy Tymoshchuk", club: "Bayern", year: 2010, fame: 3, lo: 77, hi: 85 }, // Ucrânia
   { name: "Andriy Yarmolenko", club: "Dynamo Kyiv", year: 2016, fame: 3, lo: 75, hi: 85 }, // Ucrânia

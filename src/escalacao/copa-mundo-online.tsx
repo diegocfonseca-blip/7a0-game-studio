@@ -120,7 +120,7 @@ export const paisesDaCopa = (euro?: 24): string[] => euro ? paisesDaEuro() : ran
 // as 24 seleções TRADICIONAIS da Europa (todas fecham time desde o Lote 46), da que tem mais carta pra que tem menos. O formato
 // sai do nº de times (`formatoCopa(24)` = 6 grupos + 4 melhores 3ºs → oitavas), o mesmo motor da Copa do Mundo.
 export const EUROPA_24 = new Set(['Inglaterra', 'França', 'Espanha', 'Itália', 'Holanda', 'Alemanha', 'Portugal', 'Bélgica', 'Croácia', 'Dinamarca',
-  'Escócia', 'Turquia', 'Suécia', 'Sérvia', 'Irlanda', 'Polônia', 'Rússia', 'Romênia', 'Hungria', 'Ucrânia', 'Rep. Tcheca', 'Suíça', 'Áustria', 'Grécia'])
+  'Escócia', 'Turquia', 'Suécia', 'Sérvia', 'Irlanda', 'Polônia', 'Rússia', 'Romênia', 'Noruega', 'Ucrânia', 'Rep. Tcheca', 'Suíça', 'Áustria', 'Grécia'])
 export const paisesDaEuro = (): string[] => rankingSelecoes().filter(p => EUROPA_24.has(p.pais)).map(p => p.pais)
 export const timesDaCopa = (euro?: 24): number => euro ?? COPA_TEAMS
 
