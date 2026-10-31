@@ -1,0 +1,126 @@
+# 🇪🇺 Eurocopa: cartas pra fechar as seleções (proposta 31/10, aguardando OK do Diego)
+
+Formato: país | posição | nome | clube | ano. Conferido: nenhum já existe no jogo (checagem por nome e sobrenome nos 3 baralhos).
+
+- Polônia|ZAG|Jan Bednarek|Southampton|2020
+- Polônia|MEI|Jakub Błaszczykowski|Dortmund|2012
+- Polônia|MEI|Piotr Zieliński|Napoli|2022
+- Rep. Tcheca|LAT|Marek Jankulovski|Milan|2007
+- Rep. Tcheca|LAT|Zdeněk Grygera|Juventus|2008
+- Rep. Tcheca|ZAG|Tomáš Ujfaluši|Fiorentina|2006
+- Rep. Tcheca|ZAG|Miroslav Kadlec|Kaiserslautern|1996
+- Rep. Tcheca|MEI|Karel Poborský|Man United|1997
+- Rep. Tcheca|ATA|Milan Baroš|Liverpool|2005
+- Romênia|GOL|Helmuth Duckadam|Steaua Bucareste|1986
+- Romênia|ZAG|Cristian Chivu|Inter|2010
+- Romênia|MEI|Ioan Lupescu|Leverkusen|1994
+- Hungria|GOL|Gábor Király|Crystal Palace|2005
+- Hungria|LAT|Mihály Lantos|MTK|1954
+- Hungria|ZAG|Gyula Lóránt|Honvéd|1954
+- Hungria|ZAG|Willi Orbán|RB Leipzig|2023
+- Hungria|MEI|Zoltán Gera|Fulham|2010
+- Suíça|LAT|Stephan Lichtsteiner|Juventus|2015
+- Suíça|LAT|Ricardo Rodríguez|Wolfsburg|2015
+- Suíça|ZAG|Manuel Akanji|Man City|2023
+- Suíça|ZAG|Stéphane Henchoz|Liverpool|2001
+- Suíça|MEI|Xherdan Shaqiri|Bayern|2013
+- Suíça|ATA|Stéphane Chapuisat|Dortmund|1997
+- Suíça|ATA|Alexander Frei|Dortmund|2007
+- Suíça|ATA|Breel Embolo|Monaco|2023
+- Ucrânia|LAT|Oleksandr Zinchenko|Arsenal|2023
+- Ucrânia|LAT|Vitaliy Mykolenko|Everton|2023
+- Ucrânia|MEI|Anatoliy Tymoshchuk|Bayern|2010
+- Ucrânia|MEI|Andriy Yarmolenko|Dynamo Kyiv|2016
+- Ucrânia|MEI|Ruslan Malinovskyi|Atalanta|2021
+- Ucrânia|ATA|Oleg Blokhin|Dynamo Kyiv|1975
+- Rússia|LAT|Yuri Zhirkov|Chelsea|2010
+- Rússia|LAT|Aleksandr Anyukov|Zenit|2008
+- Rússia|ZAG|Sergei Ignashevich|CSKA Moscou|2018
+- Rússia|ZAG|Vasili Berezutski|CSKA Moscou|2008
+- Rússia|MEI|Aleksandr Mostovoi|Celta|2000
+- Rússia|MEI|Valeri Karpin|Celta|1999
+- Rússia|MEI|Aleksandr Golovin|Monaco|2022
+- Rússia|ATA|Roman Pavlyuchenko|Tottenham|2009
+- Áustria|GOL|Alexander Manninger|Arsenal|1998
+- Áustria|LAT|Emanuel Pogatetz|Middlesbrough|2006
+- Áustria|ZAG|Martin Hinteregger|Eintracht Frankfurt|2022
+- Áustria|MEI|Andreas Herzog|Werder Bremen|1998
+- Áustria|MEI|Marcel Sabitzer|RB Leipzig|2020
+- Áustria|MEI|Herbert Prohaska|Inter|1981
+- Áustria|ATA|Hans Krankl|Barcelona|1979
+- Áustria|ATA|Toni Polster|Köln|1993
+- Áustria|ATA|Marko Arnautović|West Ham|2018
+- Grécia|GOL|Antonios Nikopolidis|Panathinaikos|2004
+- Grécia|LAT|Giourkas Seitaridis|Porto|2004
+- Grécia|LAT|Takis Fyssas|Benfica|2004
+- Grécia|ZAG|Traianos Dellas|Roma|2004
+- Grécia|MEI|Theodoros Zagorakis|AEK Atenas|2004
+- Grécia|MEI|Giorgos Karagounis|Inter|2004
+- Grécia|MEI|Kostas Katsouranis|AEK Atenas|2004
+- Grécia|ATA|Angelos Charisteas|Werder Bremen|2004
+- Grécia|ATA|Zisis Vryzas|Fiorentina|2004
+- Grécia|ATA|Giorgos Samaras|Celtic|2010
+- Noruega|GOL|Erik Thorstvedt|Tottenham|1991
+- Noruega|ZAG|Ronny Johnsen|Man United|1999
+- Noruega|ZAG|Henning Berg|Blackburn|1995
+- Noruega|MEI|Morten Gamst Pedersen|Blackburn|2006
+- Bulgária|GOL|Borislav Mihaylov|Reading|1996
+- Bulgária|LAT|Radostin Kishishev|Charlton|2003
+- Bulgária|LAT|Tsanko Tsvetanov|Waldhof Mannheim|1994
+- Bulgária|ZAG|Trifon Ivanov|Rapid Viena|1996
+- Bulgária|ZAG|Petar Hubchev|Hamburg|1994
+- País de Gales|GOL|Neville Southall|Everton|1985
+- País de Gales|LAT|Ben Davies|Tottenham|2019
+- País de Gales|LAT|Neco Williams|Nottingham Forest|2024
+- País de Gales|ZAG|Ashley Williams|Swansea|2015
+- País de Gales|ZAG|Kevin Ratcliffe|Everton|1985
+- País de Gales|MEI|Gary Speed|Newcastle|1998
+- País de Gales|ATA|Mark Hughes|Man United|1991
+- Eslováquia|GOL|Martin Dúbravka|Newcastle|2019
+- Eslováquia|LAT|Peter Pekarík|Hertha|2017
+- Eslováquia|LAT|Dávid Hancko|Feyenoord|2024
+- Eslováquia|ZAG|Martin Škrtel|Liverpool|2012
+- Eslováquia|ZAG|Milan Škriniar|Inter|2021
+- Eslováquia|MEI|Juraj Kucka|Milan|2016
+- Eslováquia|MEI|Stanislav Lobotka|Napoli|2023
+- Eslováquia|ATA|Róbert Vittek|Nürnberg|2006
+- Eslováquia|ATA|Szilárd Németh|Middlesbrough|2003
+- Eslováquia|ATA|Ondrej Duda|Hertha|2017
+- Bósnia|GOL|Asmir Begović|Stoke|2014
+- Bósnia|LAT|Sead Kolašinac|Arsenal|2018
+- Bósnia|LAT|Mensur Mujdža|Freiburg|2014
+- Bósnia|ZAG|Emir Spahić|Leverkusen|2014
+- Bósnia|ZAG|Ermin Bičakčić|Hoffenheim|2017
+- Bósnia|MEI|Hasan Salihamidžić|Bayern|2001
+- Bósnia|MEI|Zvjezdan Misimović|Wolfsburg|2009
+- Bósnia|ATA|Vedad Ibišević|Hertha|2016
+- Bósnia|ATA|Elvir Bolić|Fenerbahçe|1998
+- Geórgia|LAT|Kakha Kaladze|Milan|2007
+- Geórgia|LAT|Levan Kobiashvili|Schalke|2005
+- Geórgia|ZAG|Zurab Khizanishvili|Rangers|2004
+- Geórgia|ZAG|Guram Kashia|Vitesse|2016
+- Geórgia|MEI|Georgi Kinkladze|Man City|1996
+- Geórgia|MEI|Temuri Ketsbaia|Newcastle|1998
+- Geórgia|MEI|Giorgi Chakvetadze|Gent|2023
+- Geórgia|ATA|Shota Arveladze|Ajax|1999
+- Geórgia|ATA|Georges Mikautadze|Lyon|2025
+- Islândia|GOL|Hannes Halldórsson|Randers|2016
+- Islândia|LAT|Birkir Már Sævarsson|Hammarby|2016
+- Islândia|LAT|Ari Freyr Skúlason|Lokeren|2016
+- Islândia|ZAG|Ragnar Sigurðsson|Krasnodar|2016
+- Islândia|ZAG|Kári Árnason|Malmö|2016
+- Islândia|MEI|Aron Gunnarsson|Cardiff|2016
+- Islândia|MEI|Gylfi Sigurðsson|Swansea|2016
+- Islândia|MEI|Birkir Bjarnason|Basel|2016
+- Islândia|ATA|Eiður Guðjohnsen|Chelsea|2005
+- Islândia|ATA|Alfreð Finnbogason|Augsburg|2016
+- Islândia|ATA|Kolbeinn Sigþórsson|Nantes|2016
+- Irlanda do Norte|GOL|Pat Jennings|Tottenham|1975
+- Irlanda do Norte|LAT|Pat Rice|Arsenal|1979
+- Irlanda do Norte|LAT|Aaron Hughes|Newcastle|2002
+- Irlanda do Norte|ZAG|Jonny Evans|Leicester|2021
+- Irlanda do Norte|ZAG|Gareth McAuley|West Brom|2016
+- Irlanda do Norte|MEI|Danny Blanchflower|Tottenham|1961
+- Irlanda do Norte|MEI|Steven Davis|Rangers|2017
+- Irlanda do Norte|MEI|Norman Whiteside|Man United|1985
+- Irlanda do Norte|ATA|David Healy|Leeds|2007
