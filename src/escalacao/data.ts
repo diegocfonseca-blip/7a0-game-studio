@@ -1630,7 +1630,7 @@ const L43_BR_ATA: C[] = [
 // 📚 Lote 45 (30/10, pedido do Diego): décadas, Copas lendárias, países campeões, a convocação de 2026 e os nomes que ele mandou.
 //    Categoria e faixa decididas pelo Claude a mando dele (*"categorias e over vc decide de todos"*). Lista mestre: docs/cartas-novas-30-10.json
 const L45_BR_GOL: C[] = [
-  { name: "Lucas Barreto", club: "Botafogo", year: 2026, fame: 3, lo: 74, hi: 83, bio: "Goleiro cria do Botafogo — herói nos pênaltis da Copinha, rodou pelo Atlético-GO em 2025 e voltou pro Glorioso." }, // 31/10, pedido do Diego
+  { name: "Lucas Barreto", club: "Botafogo", year: 2026, fame: 3, lo: 70, hi: 81, bio: "Goleiro cria do Botafogo — herói nos pênaltis da Copinha, rodou pelo Atlético-GO em 2025 e voltou pro Glorioso." }, // 31/10, pedido do Diego
   { name: "Cantarele", club: "Flamengo", year: 1981, fame: 3, lo: 77, hi: 85 },
   { name: "Gilmar Rinaldi", club: "São Paulo", year: 1986, fame: 3, lo: 76, hi: 85 },
   { name: "Pedro Morisco", club: "Coritiba", year: 2026, fame: 3, lo: 75, hi: 85, promessa: true },
