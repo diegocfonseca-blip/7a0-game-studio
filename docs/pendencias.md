@@ -11836,3 +11836,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   das marcas da sala, store.tsx). Salas criadas antes do conserto continuam Copa do Mundo. Aviso e story: `scripts/posts/aviso-2026-10-31-eurocopa.png`,
   `scripts/posts/story-eurocopa.png` (`scripts/mockup-story-eurocopa.mjs`).
 - ⏳ Falta: na LISTA de salas a Euro aparece como "Liga + Mundo" (a lista só lê `ls_copa2`); testar uma sala de verdade com o Diego.
+
+## ⭐ 31/10 — Duarte FC Delas (luizfelipeduarte212@gmail.com): Craque Salas por 12 meses, dado pelo Diego
+- Linha em `esc_assinatura_mensal` (craque_salas, até 31/10/2027, sem `vendria_sub`). Conta de 13/09 conferida. `esc_direitos_de`:
+  pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo).
