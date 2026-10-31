@@ -8,6 +8,7 @@ import { SELOS } from './selos-clubes'
 import { clubCanon } from './data'
 import { Escudo } from './escudos'
 import { escudoOficialDoClube } from './escudos-clube-resolver'
+import { NationalCrest, temEscudoNacional } from './national-crest'
 export { escudoOficialDoClube } from './escudos-clube-resolver'
 
 const INK = '#0C0C0C'
@@ -69,4 +70,11 @@ export function SeloClube({ clube, size = 40 }: { clube: string; size?: number }
       )}
     </svg>
   )
+}
+
+/** 🧱🏳️ o selo do PACOTE: escudo do clube (de sempre) ou, no leilão de Seleções (31/10), o escudo da seleção. */
+export function SeloPacote({ c, size = 40 }: { c: { club: string; pacote?: { clube: string; selecao?: boolean } }; size?: number }) {
+  const nome = c.pacote?.clube ?? c.club
+  if (c.pacote?.selecao) return temEscudoNacional(nome) ? <NationalCrest country={nome} size={size} /> : <Escudo nome={nome} size={size} />
+  return <SeloClube clube={nome} size={size} />
 }
