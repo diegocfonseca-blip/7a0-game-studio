@@ -113,3 +113,15 @@ export async function logTravaSalva(fase: string, tentativa: number, roomId: str
     })
   } catch { /* silencioso — medição nunca atrapalha o jogo */ }
 }
+
+// 📱 30/10: avisa o banco que esta conta usa este aparelho (`esc_aparelho_contas`). É o que deixa o gatilho da sala saber
+// que é a 3ª+ conta do mesmo aparelho e pedir o código do e-mail. Uma vez por conta por carregamento.
+const aparelhoVisto = new Set<string>()
+export async function registraAparelho(): Promise<void> {
+  try {
+    const user = await authUser()
+    if (!user || aparelhoVisto.has(user.id)) return
+    aparelhoVisto.add(user.id)
+    await supabase.rpc('esc_aparelho_registra', { p_sid: sessionId() })
+  } catch { /* silencioso */ }
+}
