@@ -111,7 +111,7 @@ type GS = EscState & { __game?: string; pregaoAberto?: boolean; formation?: Form
 /** 🧱🏳️📅 o nome do tipo de pacote da sala (31/10): Clubes · Seleções, e "por década" quando for */
 function tipoPacote(gs: { clubes?: boolean; pacSelecao?: boolean; pacDecada?: boolean } | undefined, curto = false): string {
   const base = gs?.pacSelecao ? tr('🏳️ Seleções', '🏳️ Nations') : tr('🧱 Clubes', '🧱 Clubs')
-  return gs?.pacDecada ? `${base}${curto ? ' 📅' : tr(' · por década', ' · by decade')}` : base
+  return gs?.pacDecada ? `${base}${curto ? ' 🕰️' : tr(' · por década', ' · by decade')}` : base
 }interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string; liga_dono?: string | null; liga_vice?: string | null } // ⭐ liga_dono/liga_vice: vice das Minhas Ligas (19/10)
 type OpenRoom = RoomInfo & { count: number }
 
@@ -3740,7 +3740,7 @@ export function EscLobby() {
                   {rapidoClubes && clubesOn && !nbaSala && (
                     <div className="mt-2">
                       <p className="text-[11px] uppercase mb-1.5" style={{ color: '#6b6250', letterSpacing: '.08em', ...OSWALD }}>{tr('Época', 'Era')}</p>
-                      <Seg options={[[false, tr('🌍 Todas as épocas', '🌍 All eras')], [true, tr('📅 Por década', '📅 By decade')]] as [boolean, string][]} value={pacDecada} onSet={v => setPacDecada(v)}
+                      <Seg options={[[false, tr('🌍 Todas as épocas', '🌍 All eras')], [true, tr('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]} value={pacDecada} onSet={v => setPacDecada(v)}
                         selos={{ true: tr('em teste', 'testing') }} />
                     </div>
                   )}
@@ -3749,10 +3749,10 @@ export function EscLobby() {
                       ? tr('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Cada um leva um pacote por posição e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto (90s). Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). Everyone takes one pack per position and, at the end, CALLS UP who plays — 1 per position, your starting five (90s). Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
                       : rapidoClubes && pacSelecao
                       ? (pacDecada
-                        ? tr('🏳️📅 Cada lote é um SETOR de uma SELEÇÃO numa década (ex.: Ataque do Brasil · anos 90). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Usa os 3 baralhos juntos. Vale com envelope cego, Tocaia ou pregão aberto.', '🏳️📅 Each lot is a SECTOR of a NATIONAL TEAM in one decade (e.g. Attack of Brasil · the \'90s). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Uses all 3 decks. Works with sealed bid, Ambush or open auction.')
+                        ? tr('🏳️🕰️ Cada lote é um SETOR de uma SELEÇÃO numa década (ex.: Ataque do Brasil · anos 90). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Usa os 3 baralhos juntos. Vale com envelope cego, Tocaia ou pregão aberto.', '🏳️🕰️ Each lot is a SECTOR of a NATIONAL TEAM in one decade (e.g. Attack of Brasil · the \'90s). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Uses all 3 decks. Works with sealed bid, Ambush or open auction.')
                         : tr('🏳️ Cada lote é um SETOR de uma SELEÇÃO (ex.: Ataque da Argentina), com jogadores de todas as épocas. Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Usa os 3 baralhos juntos. Vale com envelope cego, Tocaia ou pregão aberto.', '🏳️ Each lot is a SECTOR of a NATIONAL TEAM (e.g. Attack of Argentina), with players from every era. Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Uses all 3 decks. Works with sealed bid, Ambush or open auction.'))
                       : rapidoClubes && pacDecada && !nbaSala
-                      ? tr('🧱📅 Cada lote é um SETOR de um clube numa década (ex.: Meio do Milan · anos 90). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Usa os 3 baralhos juntos. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱📅 Each lot is a SECTOR of a club in one decade (e.g. Midfield of Milan · the \'90s). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Uses all 3 decks. Works with sealed bid, Ambush or open auction.')
+                      ? tr('🧱🕰️ Cada lote é um SETOR de um clube numa década (ex.: Meio do Milan · anos 90). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Usa os 3 baralhos juntos. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱🕰️ Each lot is a SECTOR of a club in one decade (e.g. Midfield of Milan · the \'90s). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Uses all 3 decks. Works with sealed bid, Ambush or open auction.')
                       : rapidoClubes
                       ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
                       : clubesOn

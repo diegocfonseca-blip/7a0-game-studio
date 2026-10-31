@@ -8,8 +8,8 @@ const FONTES = [500, 700].map(w => `@font-face{font-family:Oswald;src:url(data:f
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6', RED = '#C2452F', ROXO = '#7C3AED'
 const MODOS = [
   { n: 1, cor: GREEN, tit: '🏳️ Seleções', sub: 'todas as épocas', lote: 'Atacantes da Argentina', cartas: [['Batistuta', 'Fiorentina 1998'], ['Crespo', 'Inter 2003'], ['Agüero', 'Man City 2015']] },
-  { n: 2, cor: RED, tit: '🧱 Clubes', sub: 'por década', lote: 'Meias do Milan · anos 90', cartas: [['Boban', '1998'], ['Savićević', '1994'], ['Albertini', '1994'], ['Leonardo', '1999']] },
-  { n: 3, cor: ROXO, tit: '🏳️ Seleções', sub: 'por década', lote: 'Atacantes do Brasil · anos 90', cartas: [['Romário', 'Barcelona 1994'], ['Ronaldo Fenômeno', 'Inter 1998'], ['Edmundo', 'Vasco 1997']] },
+  { n: 2, cor: RED, tit: '🧱 Clubes', sub: '🕰️ por década', lote: 'Meias do Milan · anos 90', cartas: [['Boban', '1998'], ['Savićević', '1994'], ['Albertini', '1994'], ['Leonardo', '1999']] },
+  { n: 3, cor: ROXO, tit: '🏳️ Seleções', sub: '🕰️ por década', lote: 'Atacantes do Brasil · anos 90', cartas: [['Romário', 'Barcelona 1994'], ['Ronaldo Fenômeno', 'Inter 1998'], ['Edmundo', 'Vasco 1997']] },
 ]
 const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box;margin:0}body{width:1080px;height:1920px;background:${CREME};font-family:Oswald,sans-serif;color:${INK};padding:64px 56px;display:flex;flex-direction:column}
