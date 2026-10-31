@@ -12075,7 +12075,7 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
-  const [euroNaLiga, setEuroNaLiga] = useState<16 | 32 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (16/32)
+  const [euroNaLiga, setEuroNaLiga] = useState<24 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (24 seleções)
   // 🏟️ COPA REGIONAL (10/10): mesma porta da Copa do Mundo — a marca `regionalNaLiga` é da SALA
   const [regionalNaLiga, setRegionalNaLiga] = useState<CopaRegionalId | null>(null)
   const [mundoChecado, setMundoChecado] = useState(false)
@@ -12100,7 +12100,7 @@ export function EscEnd() {
       .then(({ data }) => {
         if (!vivo) return
         const d = data as { flag?: string; reg?: string; euro?: string } | null
-        setEuroNaLiga(d?.euro === '16' ? 16 : d?.euro === '32' ? 32 : undefined)
+        setEuroNaLiga(d?.euro === '24' || d?.euro === 'true' ? 24 : undefined)
         // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
         // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
         // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.
