@@ -11781,3 +11781,13 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   não mudam, quem já tem conta não é tocado. Barra domínio parecido com Gmail/Hotmail/Outlook/Yahoo/iCloud que não é o certo e
   final que não existe (.vom, .comxyz, .c0m). Trava `npm run email-novo` (48 domínios reais do banco passam; 55 de 60 inventados caem).
   Trava do aparelho e confirmação de e-mail: NÃO aprovadas — Diego ainda pensando (limite de 100/dia do Resend grátis desanimou).
+- 🧪 30/10 noite: **3ª conta no mesmo aparelho confirma o e-mail pra criar sala** — FEITO, em TESTE (só no aparelho do Diego).
+  Banco: `supabase/migrations/20261030230000_confirma_email_aparelho.sql` (aplicada). `esc_conf_cfg.ligado = false` + `testador` =
+  conta do Diego → só vale em aparelho onde a conta dele já entrou, e no teste já a partir da 2ª conta (`min_outros` 2 quando ligar).
+  Tela: `confirma-email.tsx` (código de 6, reenviar, usar outro e-mail — troca o e-mail da conta depois do código certo —, entrar com
+  a conta que já tenho, ver salas). Aparelho registrado em `esc_aparelho_contas` no createRoom (`registraAparelho`, analytics.ts).
+  Falha nossa (Resend recusou, teto de 40/dia, sem chave) = `esc_conf_passe` no dia = cria a sala direto.
+  ⚠️ A cota do Resend grátis (100/dia) é DIVIDIDA com a campanha de e-mail (`esc_email_config.por_dia = 95`, cron 13h UTC). Hoje a
+  fila está parada, mas campanha nova + códigos estoura: ao ligar pra todos, baixar a campanha pra ~55/dia.
+  Ligar pra todos = `update esc_conf_cfg set ligado = true, desde = now()`. Desligar = `ligado = false, testador = null`.
+  Falta: painel no #admin (confirmados × liberados por falha × aparelhos com 5+ contas).
