@@ -20,7 +20,7 @@ const entrada = (senha) => `
   <div style="margin-top:8px;background:${senha ? '#EAF5EE' : '#FFF4D6'};border:2.5px solid ${INK};border-radius:12px;padding:9px 11px;font:400 13.5px/1.35 system-ui">
     ${novo}${senha
       ? '<b>🔒 Só amigos.</b> Só entra quem tem a senha — passe ela no grupo de vocês.'
-      : '<b>🔓 Qualquer pessoa do jogo pode entrar.</b> Quer jogar só com seus amigos? Escolha <b>🔒 Com senha</b>.'}
+      : '<b>🔓 Sala aberta é feita pra qualquer um entrar.</b> Quer exclusividade? Escolha <b>🔒 Com senha</b>.'}
   </div>`
 
 // 2 — o resumo "Sua sala" com o compromisso do dono
@@ -30,11 +30,11 @@ const resumo = (senha) => `
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0">${['Rápido', '✉️ Envelope cego', '🇧🇷 Brasil', '4-3-3', 'Liga + Copa', senha ? '🔒 Com senha' : '🔓 Aberta'].map(c => `<span style="font:500 13px Oswald;color:#F4ECD6;background:#2a2622;border-radius:8px;padding:4px 9px;text-transform:uppercase">${c}</span>`).join('')}</div>
     <div style="background:${CREME};border:2.5px solid ${INK};border-radius:12px;padding:10px 12px;margin-bottom:10px">
       <div style="font:700 15px Oswald;text-transform:uppercase">${novo}👑 Você é o dono da sala</div>
-      <div style="font:400 13px/1.4 system-ui;margin-top:5px">
-        A partida de todo mundo depende de você até o fim:<br>
-        ✅ <b>Precisa ir embora?</b> Aperte <b>SAIR</b> — a coroa passa pra outro e a partida segue.<br>
-        ❌ <b>Fechar o jogo no meio</b> para a sala de todo mundo.<br>
-        ❌ <b>Remover quem está jogando</b> estraga a partida dos outros${senha ? '' : ' — sala aberta é pra quem chegar'}.
+      <div style="font:400 13px/1.45 system-ui;margin-top:5px">
+        Quem cria a sala fica <b>responsável pela partida</b>.<br>
+        🏁 <b>Vá até o final</b> — largar no meio estraga a chance de todo mundo.<br>
+        ❌ <b>Remover quem está jogando</b> estraga a partida dos outros.${senha ? '' : `<br>
+        🔓 <b>Sala aberta é feita pra qualquer um entrar.</b> Quer exclusividade? Crie a sala <b>com senha</b>.`}
       </div>
     </div>
     <div style="background:${GREEN};border:3px solid ${INK};border-radius:12px;padding:12px;text-align:center;font:700 18px Oswald;color:#fff;text-transform:uppercase">🔨 Criar e chamar a galera</div>
@@ -57,7 +57,7 @@ const salaCard = (nome, dono, senha, gente) => `
 const espera = `
   <div style="background:${GOLD};border:3px solid ${INK};border-radius:12px;padding:9px 11px;font:400 13px/1.35 system-ui;box-shadow:3px 3px 0 ${INK}">
     <b style="font:700 14px Oswald;text-transform:uppercase">👑 A sala é sua até o fim</b><br>
-    Se precisar sair, aperte <b>SAIR</b> que a coroa passa pra outro. Fechar o jogo no meio para a partida de todo mundo.
+    Você é responsável pela partida: vá até o final e não remova quem está jogando.
   </div>
   <div style="margin-top:10px;font:600 13px Oswald;color:#6b6250">TÉCNICOS NA SALA (4)</div>
   ${['👑 Oooo FC (você)', 'Futpoint FC', 'Januzaj FC', 'Leão da Estradinha'].map(n => `<div style="background:#fff;border:2.5px solid ${INK};border-radius:10px;padding:8px 10px;margin-top:6px;font:500 14px Oswald">${n}</div>`).join('')}`
