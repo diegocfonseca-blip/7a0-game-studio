@@ -56,6 +56,8 @@ import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, MiniTemaSala, temaValido, useTemasDaConta, releMeusTemas, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
+import { ConfirmaEmail } from './confirma-email' // 📱✉️ 30/10
+import { registraAparelho } from './analytics'
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
@@ -990,6 +992,7 @@ export function EscLobby() {
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
   const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
+  const [confirmaEmail, setConfirmaEmail] = useState(false) // 📱✉️ 3ª conta do aparelho: confirmar e-mail pra criar sala (30/10)
   // 🚪 códigos das salas que estão travando a criação (ver a trava mais abaixo)
   const [salasPresas, setSalasPresas] = useState<string[]>([])
   const [encerrando, setEncerrando] = useState(false)
@@ -2075,6 +2078,7 @@ export function EscLobby() {
     // tema de CLUBE/MASCOTE na conta cria a sala já vestida com o 1º dele (o dono troca ou tira na sala de espera). Tema de time de
     // coração não entra sozinho — é escolha do dono.
     { const auto = meusTemas.find(id => !id.startsWith('c:')); if (auto && temaValido(auto)) (gs as Record<string, unknown>).tema = auto }
+    await registraAparelho() // 📱 30/10: o banco precisa saber o aparelho ANTES do gatilho da sala decidir
     const { data: rd, error: re } = await supabase.from('game_rooms')
       .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS, game_state: gs })
       .select().single()
@@ -2086,6 +2090,8 @@ export function EscLobby() {
       console.error('[createRoom] falhou:', re)
       // 🏟️ 1 SALA POR DIA NO GRÁTIS (Diego 14/10). Quem decide é o BANCO (gatilho `esc_sala_por_dia`, docs/sql/sala-por-dia.sql);
       // a tela só explica o porquê e o caminho: entrar em sala aberta é sempre de graça, e quem apoia cria à vontade.
+      // 📱✉️ 30/10: 3ª+ conta no mesmo aparelho — o banco pede o e-mail confirmado ANTES da regra da sala do dia (as duas telas nunca juntas)
+      if (re?.message?.includes('CONFIRMA_EMAIL')) { setRoomError(''); setLimiteDia(false); setConfirmaEmail(true); setLoading(false); return }
       if (re?.message?.includes('LIMITE_SALA_DIA')) { logApoio('🏟️ bateu no limite de sala do dia'); setRoomError(''); setLimiteDia(true); setLoading(false); return }
       // 🚫 21/10 (Diego): nome com preconceito (nazismo, "crioulo", suástica) não cria sala — quem barra é o BANCO
       // (`esc_sala_nome_ofensivo`); a tela só explica o porquê e o caminho
@@ -4421,6 +4427,7 @@ export function EscLobby() {
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      {confirmaEmail && <ConfirmaEmail onLiberado={() => { setConfirmaEmail(false); void createRoom() }} onVerSalas={() => { setConfirmaEmail(false); setTab('open') }} />}
       {limiteDia && <div style={{ background: '#FFF3C4', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '10px 12px', margin: '8px 0' }}>
         <p style={{ margin: 0, fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif' }}>{tr('🏟️ HOJE VOCÊ JÁ CRIOU A SUA SALA', '🏟️ YOU ALREADY CREATED YOUR ROOM TODAY')}</p>
         <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>

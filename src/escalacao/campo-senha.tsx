@@ -1,8 +1,11 @@
 import { useId, useState } from 'react'
 import { tr } from './lang'
 
-export function erroSenhaNova(senha: string, confirmacao: string): string {
+// 🔠 31/10 (Diego): CONTA NOVA precisa de pelo menos 1 letra MAIÚSCULA na senha. Só no "Criar conta" (`contaNova`):
+// trocar senha / esqueci a senha de quem já tem conta continua como era.
+export function erroSenhaNova(senha: string, confirmacao: string, contaNova = false): string {
   if (senha.length < 6) return tr('A senha precisa de pelo menos 6 caracteres.', 'The password needs at least 6 characters.')
+  if (contaNova && !/[A-ZÀ-Ý]/.test(senha)) return tr('A senha precisa de pelo menos 1 letra MAIÚSCULA (ex.: Leilao123).', 'The password needs at least 1 CAPITAL letter (e.g.: Auction123).')
   if (senha !== confirmacao) return tr('As senhas não coincidem. Digite a mesma senha nos dois campos.', 'Passwords do not match. Enter the same password in both fields.')
   return ''
 }
