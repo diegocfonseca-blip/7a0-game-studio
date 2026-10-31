@@ -11832,4 +11832,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   publicar (Diego: *"ideal é ter 24 de uma vez só"*): Bulgária, Gales, Eslováquia, Bósnia, Geórgia, Islândia, Noruega, Irlanda do Norte.
 - Sobrou no código (inofensivo, nunca roda com 24/32): caminho da copa de 16 sem oitavas (`copaSemOitavas`) e no relógio do banco
   (`20261031120000_copa_clock_euro16.sql`: só age com ≤16 seleções).
+- ✅ 31/10: conserto publicado (main 4695763) — a Euro virava Copa do Mundo porque o 1º save apagava `euroNaLiga` (faltava na guarda
+  das marcas da sala, store.tsx). Salas criadas antes do conserto continuam Copa do Mundo. Aviso e story: `scripts/posts/aviso-2026-10-31-eurocopa.png`,
+  `scripts/posts/story-eurocopa.png` (`scripts/mockup-story-eurocopa.mjs`).
 - ⏳ Falta: na LISTA de salas a Euro aparece como "Liga + Mundo" (a lista só lê `ls_copa2`); testar uma sala de verdade com o Diego.
