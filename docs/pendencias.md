@@ -11797,3 +11797,10 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - ✅ 31/10: **senha de CONTA NOVA precisa de 1 letra MAIÚSCULA** (Diego: *"só pras novas contas… qm já fez N mude nada"*).
   `erroSenhaNova(…, contaNova=true)` só no "Criar conta" do `conta.tsx`, com aviso embaixo da senha (fica verde quando cumpre).
   Trocar senha e "esqueci a senha" continuam como eram.
+- 📏 31/10 04h58 UTC — medição 24h depois do alívio (janela 30/10 04h58 → 31/10 04h58 × a mesma janela de 29→30/10):
+  /auth/v1/user 337k → 257k (−24%) · user_cards 142k → 19k (−86%) · esc_meu_socio 67k → 24k (−65%) · user_colors 73k → 46k (−37%) ·
+  esc_avisos_semana 26k → 19k (−28%) · esc_meus_direitos 20k → 20k · esc_vitrine_salas 27k → 27k e esc_cla_ranking 13k → 13k
+  (mesmo nº de chamadas, mas agora saem do cache de 5 min). Total do dia ~3,7 mi (igual: entrou muita conta nova, ~800/dia).
+  Erros 5xx quase zero no Medium. Pico 249 mil chamadas/hora (~4.150/min — a carga em que o Small engasgou em 29/10).
+  O maior gasto do banco continua sendo o REALTIME decodificando as gravações do game_rooms (~15 mil s de banco no pg_stat) —
+  isso é o Grupo B (item 14), que mexe na sala. **Veredito: ainda NÃO dá pra voltar pro Small** sem atacar o Grupo B.
