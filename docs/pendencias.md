@@ -11791,3 +11791,9 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   fila está parada, mas campanha nova + códigos estoura: ao ligar pra todos, baixar a campanha pra ~55/dia.
   Ligar pra todos = `update esc_conf_cfg set ligado = true, desde = now()`. Desligar = `ligado = false, testador = null`.
   Falta: painel no #admin (confirmados × liberados por falha × aparelhos com 5+ contas).
+- ✅ 31/10 madrugada: Diego testou (*"deu certo"*) e mandou ligar pra todos → `esc_conf_cfg.ligado = true` (3ª conta do mesmo aparelho
+  em diante, só contas criadas depois de 30/10 23h57 UTC). Campanha de e-mail baixada de 95 pra **55/dia** (`esc_email_config.por_dia`)
+  pra sobrar cota pros códigos (teto 40/dia).
+- ✅ 31/10: **senha de CONTA NOVA precisa de 1 letra MAIÚSCULA** (Diego: *"só pras novas contas… qm já fez N mude nada"*).
+  `erroSenhaNova(…, contaNova=true)` só no "Criar conta" do `conta.tsx`, com aviso embaixo da senha (fica verde quando cumpre).
+  Trocar senha e "esqueci a senha" continuam como eram.

@@ -153,7 +153,7 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
       if (!nm) { setErro(tr('Escolha o nome do seu time.', 'Choose your team name.')); setCarregando(false); return }
       const prob = emailProblema(email) ?? emailNovoProblema(email, tr) // ✉️ 30/10: domínio inventado (gmail.comxyz) só no cadastro
       if (prob) { setErro(prob); setCarregando(false); return }
-      const problemaSenha = erroSenhaNova(senha, confirmacao)
+      const problemaSenha = erroSenhaNova(senha, confirmacao, true) // 🔠 31/10: maiúscula só pra conta nova
       if (problemaSenha) { setErro(problemaSenha); return }
       // 🔒 nome único (tipo @ do Instagram, regra do Diego 10/08) — confere de
       // novo aqui, mesmo já tendo o ✓ na tela: entre digitar e enviar alguém
@@ -290,6 +290,9 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
 
           <CampoSenha label={tr('Senha', 'Password')} value={senha} onChange={setSenha} nova={aba === 'criar'} onEnter={() => void enviar()} />
           {aba === 'criar' && <CampoSenha label={tr('Confirmar senha', 'Confirm password')} value={confirmacao} onChange={setConfirmacao} nova onEnter={() => void enviar()} />}
+          {aba === 'criar' && <p style={{ margin: '-4px 0 10px', fontSize: 12, fontWeight: 700, color: /[A-ZÀ-Ý]/.test(senha) && senha.length >= 6 ? '#1B7A3D' : '#565656' }}>
+            {/[A-ZÀ-Ý]/.test(senha) && senha.length >= 6 ? '✅ ' : '🔠 '}{tr('A senha precisa de 6+ caracteres e pelo menos 1 letra MAIÚSCULA.', 'The password needs 6+ characters and at least 1 CAPITAL letter.')}
+          </p>}
 
           {aba === 'entrar' && (
             <button disabled={carregando} onClick={esqueci} style={{ display: 'block', marginLeft: 'auto', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.5)', cursor: 'pointer', marginBottom: 10 }}>
