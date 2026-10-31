@@ -109,6 +109,7 @@
     "nba-carreiras": "npx tsx scripts/testa-nba-carreiras.mts",
     "pregao-aberto-nba": "npx tsx scripts/testa-pregao-aberto-nba.mts",
     "clubes-nba": "npx tsx scripts/testa-clubes-nba.mts",
+    "selecoes-decada": "npx tsx scripts/testa-selecoes-decada.mts",
     "carreira-online": "node scripts/carreira-online/testa-gavetas.mjs",
     "carreira-online-fluxo": "node scripts/carreira-online/testa-fluxo.mjs",
     "dupla-copa-estado": "npx tsx scripts/testa-dupla-copa-estado.mts",

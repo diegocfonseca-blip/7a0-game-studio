@@ -6,7 +6,7 @@
 //  · quem não for convocado vai pros bots (o motor faz isso no CONVOCAR_CLUBES).
 // Setor sem pacote (ninguém ganhou nem no monte) o motor completa com sobra DE
 // VERDADE — nunca jogador de mentira.
-import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
+import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEsc, vagasBase } from './store'
 import { POS_LABELS } from './sportcfg'
@@ -193,7 +193,7 @@ export function EscConvocacaoClubes() {
         <Box className="p-0 overflow-hidden" shadow={3}>
           {lote ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: `3px solid ${INK}`, background: '#FFF4CF' }}>
-              <SeloClube clube={lote.pacote?.clube ?? lote.club} size={44} />
+              <SeloPacote c={lote} size={44} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', lineHeight: 1.1 }}>{nomePacote(lote)}</p>
                 <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{meuSetor(tab) ? t(`Convoque ${precisa(tab)} de ${lista.length}`, `Call up ${precisa(tab)} of ${lista.length}`) : t(`${lista.length} no pacote · 🔒 ${quemNoSetor(tab)} escolhe`, `${lista.length} in the pack · 🔒 ${quemNoSetor(tab)} picks`)}</p>

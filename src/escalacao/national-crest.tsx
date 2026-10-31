@@ -29,3 +29,9 @@ export function NationalCrest({ country, size = 48 }: { country: string; size?: 
     </span>
   )
 }
+
+/** 🏳️ 31/10: a seleção tem escudo desenhado? (o leilão de Seleções cai no escudo genérico quando não tem) */
+export function temEscudoNacional(country: string): boolean {
+  const key = names[country]
+  return !!key && !!files[`./img/nations-v25/${key}.webp`]
+}

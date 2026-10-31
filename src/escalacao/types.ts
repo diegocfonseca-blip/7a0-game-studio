@@ -121,7 +121,7 @@ export interface Card {
   paidAntes?: number
   /** 🧱 LEILÃO DE CLUBES: esta "carta" é um PACOTE — o setor de um clube (todos os
    *  goleiros do Palmeiras…). Quem ganha convoca os que vão jogar depois do pregão. */
-  pacote?: { clube: string; cartas: Card[] }
+  pacote?: { clube: string; cartas: Card[]; /** 🏳️ pacote de seleção (31/10) */ selecao?: boolean; /** 📅 década do pacote, ex. 1990 (31/10) */ decada?: number }
   cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
@@ -743,6 +743,10 @@ export interface EscState {
   holandes?: boolean
   /** 🧱 LEILÃO DE CLUBES: o lote é o setor de um clube (27/09, em teste) */
   leilaoClubes?: boolean
+  /** 🏳️ 31/10 (em teste): com leilaoClubes, o pacote é de SELEÇÃO ("Ataque da Argentina") em vez de clube */
+  leilaoSelecao?: boolean
+  /** 📅 31/10 (em teste): com leilaoClubes, o pacote é de clube/seleção NUMA DÉCADA ("Meio do Milan · anos 90") */
+  leilaoDecada?: boolean
   /** 🧱 a convocação já foi feita nesta partida (o pacote já virou cartas) */
   leilaoClubesConvocado?: boolean
   /** 🧱 relógio da convocação (80s, igual à Copa) — ms */
