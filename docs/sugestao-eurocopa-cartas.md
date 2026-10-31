@@ -1,19 +1,21 @@
-# 🇪🇺 Eurocopa: cartas pra fechar as seleções (proposta 31/10, aguardando OK do Diego)
+# 🇪🇺 Eurocopa: cartas pra fechar as seleções (proposta 31/10, refinada, aguardando OK do Diego)
 
-Formato: país | posição | nome | clube | ano. Conferido: nenhum já existe no jogo (checagem por nome e sobrenome nos 3 baralhos).
+Formato: país | posição | nome | clube | ano. Nenhum já existe no jogo (conferido por nome e sobrenome nos 3 baralhos).
+Países mais fracos de fama (sem famoso na posição): Bulgária (laterais), Bósnia (lateral), Geórgia (zagueiros), Eslováquia (laterais/ataque).
 
-- Polônia|ZAG|Jan Bednarek|Southampton|2020
+- Polônia|ZAG|Jakub Kiwior|Arsenal|2024
 - Polônia|MEI|Jakub Błaszczykowski|Dortmund|2012
 - Polônia|MEI|Piotr Zieliński|Napoli|2022
 - Rep. Tcheca|LAT|Marek Jankulovski|Milan|2007
-- Rep. Tcheca|LAT|Zdeněk Grygera|Juventus|2008
+- Rep. Tcheca|LAT|Vladimír Coufal|West Ham|2023
 - Rep. Tcheca|ZAG|Tomáš Ujfaluši|Fiorentina|2006
 - Rep. Tcheca|ZAG|Miroslav Kadlec|Kaiserslautern|1996
-- Rep. Tcheca|MEI|Karel Poborský|Man United|1997
+- Rep. Tcheca|MEI|Tomáš Souček|West Ham|2023
 - Rep. Tcheca|ATA|Milan Baroš|Liverpool|2005
 - Romênia|GOL|Helmuth Duckadam|Steaua Bucareste|1986
 - Romênia|ZAG|Cristian Chivu|Inter|2010
-- Romênia|MEI|Ioan Lupescu|Leverkusen|1994
+- Romênia|ZAG|Radu Drăgușin|Tottenham|2024
+- Romênia|MEI|Nicolae Stanciu|Slavia Praga|2021
 - Hungria|GOL|Gábor Király|Crystal Palace|2005
 - Hungria|LAT|Mihály Lantos|MTK|1954
 - Hungria|ZAG|Gyula Lóránt|Honvéd|1954
@@ -22,7 +24,7 @@ Formato: país | posição | nome | clube | ano. Conferido: nenhum já existe no
 - Suíça|LAT|Stephan Lichtsteiner|Juventus|2015
 - Suíça|LAT|Ricardo Rodríguez|Wolfsburg|2015
 - Suíça|ZAG|Manuel Akanji|Man City|2023
-- Suíça|ZAG|Stéphane Henchoz|Liverpool|2001
+- Suíça|ZAG|Fabian Schär|Newcastle|2023
 - Suíça|MEI|Xherdan Shaqiri|Bayern|2013
 - Suíça|ATA|Stéphane Chapuisat|Dortmund|1997
 - Suíça|ATA|Alexander Frei|Dortmund|2007
@@ -34,19 +36,19 @@ Formato: país | posição | nome | clube | ano. Conferido: nenhum já existe no
 - Ucrânia|MEI|Ruslan Malinovskyi|Atalanta|2021
 - Ucrânia|ATA|Oleg Blokhin|Dynamo Kyiv|1975
 - Rússia|LAT|Yuri Zhirkov|Chelsea|2010
-- Rússia|LAT|Aleksandr Anyukov|Zenit|2008
+- Rússia|LAT|Mário Fernandes|CSKA Moscou|2018
 - Rússia|ZAG|Sergei Ignashevich|CSKA Moscou|2018
 - Rússia|ZAG|Vasili Berezutski|CSKA Moscou|2008
 - Rússia|MEI|Aleksandr Mostovoi|Celta|2000
-- Rússia|MEI|Valeri Karpin|Celta|1999
+- Rússia|MEI|Denis Cheryshev|Villarreal|2018
 - Rússia|MEI|Aleksandr Golovin|Monaco|2022
-- Rússia|ATA|Roman Pavlyuchenko|Tottenham|2009
+- Rússia|ATA|Artem Dzyuba|Zenit|2018
 - Áustria|GOL|Alexander Manninger|Arsenal|1998
 - Áustria|LAT|Emanuel Pogatetz|Middlesbrough|2006
 - Áustria|ZAG|Martin Hinteregger|Eintracht Frankfurt|2022
 - Áustria|MEI|Andreas Herzog|Werder Bremen|1998
 - Áustria|MEI|Marcel Sabitzer|RB Leipzig|2020
-- Áustria|MEI|Herbert Prohaska|Inter|1981
+- Áustria|MEI|Konrad Laimer|Bayern|2024
 - Áustria|ATA|Hans Krankl|Barcelona|1979
 - Áustria|ATA|Toni Polster|Köln|1993
 - Áustria|ATA|Marko Arnautović|West Ham|2018
