@@ -85,6 +85,8 @@ export interface CopaFicha {
   maquina2?: boolean
   /** ⚔️ nasceu com TÁTICA (23/10)? Copa velha termina sem — ver `TATICA_DESDE` */
   tatica?: boolean
+  /** 🇪🇺 é a EUROCOPA da sala (16 ou 32 seleções da Europa) — vem da marca `euroNaLiga` da sala */
+  euro?: 16 | 32
 }
 
 // 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
@@ -113,7 +115,15 @@ export function selecoesFortesDaMaquina(): Set<string> { return SELECOES_GRANDES
 const MAQUINA_FRACA_MENOS = 1
 
 /** as 32 seleções do jogo (Copa de 32, 02/10), na ordem de quem tem mais carta no baralho */
-export const paisesDaCopa = (): string[] => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
+export const paisesDaCopa = (euro?: 16 | 32): string[] => euro ? paisesDaEuro(euro) : rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
+// 🇪🇺 EUROCOPA DA SALA (31/10, Diego: *"liga + Eurocopa… 16 ou 32 igual o relâmpago"*): as seleções da EUROPA, da que tem mais carta pra
+// que tem menos (a mesma régua da Copa do Mundo). Todas as 32 fecham um time de 11 desde o Lote 46 (data.ts).
+export const EUROPA = new Set(['Inglaterra', 'França', 'Espanha', 'Itália', 'Holanda', 'Alemanha', 'Portugal', 'Bélgica', 'Croácia', 'Dinamarca',
+  'Escócia', 'Turquia', 'Suécia', 'Sérvia', 'Irlanda', 'Bulgária', 'Polônia', 'Rússia', 'Romênia', 'Hungria', 'Ucrânia', 'Rep. Tcheca', 'Suíça',
+  'Geórgia', 'Áustria', 'Grécia', 'País de Gales', 'Eslováquia', 'Bósnia', 'Islândia', 'Noruega', 'Irlanda do Norte'])
+export const paisesDaEuro = (n: 16 | 32): string[] => rankingSelecoes().filter(p => EUROPA.has(p.pais)).slice(0, n).map(p => p.pais)
+/** quantas seleções a copa da sala tem: Euro de 16/32 ou a Copa do Mundo (32) */
+export const timesDaCopa = (euro?: 16 | 32): number => euro ?? COPA_TEAMS
 
 // ── o host monta a ficha: gente primeiro, máquina completando até 24 ─────────
 // A ordem é ESTÁVEL (ordenada pelo uid) pra que dois hosts, ou o mesmo host
@@ -279,7 +289,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic} onlineBroadcast>
-      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} potes={ficha.potes} forte={ficha.forte}
+      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} euro={ficha.euro} potes={ficha.potes} forte={ficha.forte}
         myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>
   )
@@ -453,8 +463,8 @@ const SEG_BANDEIRA = 40, SEG_BANNER = 15, SEG_CONVOCA = 90
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
-const piorLivre = (pegos: Set<string>): string => {
-  const todas = paisesDaCopa() // já vem da melhor pra pior (nº de cartas)
+const piorLivre = (pegos: Set<string>, euro?: 16 | 32): string => {
+  const todas = paisesDaCopa(euro) // já vem da melhor pra pior (nº de cartas)
   for (let i = todas.length - 1; i >= 0; i--) if (!pegos.has(todas[i])) return todas[i]
   return todas[todas.length - 1]
 }
@@ -472,6 +482,7 @@ export function montaFichaDaLiga(
   picks: Map<string, CopaPick>,
   seed: number,
   edicao: number,
+  euro?: 16 | 32, // 🇪🇺 31/10
 ): CopaFicha {
   const times: CopaTime[] = []
   const pegos = new Set<string>()
@@ -484,12 +495,13 @@ export function montaFichaDaLiga(
   // que eu nem convoquei"*. Agora o que GENTE escolheu fica reservado desde o
   // começo: bot só pega do que sobrou depois das escolhas de todo mundo.
   const reservados = new Set<string>()
-  for (const lugar of classificacao) {
+  for (const lugar of classificacao.slice(0, timesDaCopa(euro))) { // 🇪🇺 só reserva quem vai jogar (Euro de 16: os 16 primeiros)
     if (!lugar.humano) continue
     const uid = uidDe.get(lugar.id); const pick = uid ? picks.get(uid) : undefined
     if (temPais(pick)) reservados.add(pick.pais)
   }
-  const melhorLivre = (): string => paisesDaCopa().find(p => !pegos.has(p) && !reservados.has(p)) ?? paisesDaCopa().find(p => !pegos.has(p)) ?? paisesDaCopa()[0]
+  const lista = paisesDaCopa(euro), nTimes = timesDaCopa(euro)
+  const melhorLivre = (): string => lista.find(p => !pegos.has(p) && !reservados.has(p)) ?? lista.find(p => !pegos.has(p)) ?? lista[0]
   for (const lugar of classificacao) {
     const uid = uidDe.get(lugar.id)
     const pick = uid ? picks.get(uid) : undefined
@@ -502,7 +514,8 @@ export function montaFichaDaLiga(
     // ⚠️ quem é GENTE vem do `humano` da tabela, NÃO de "tem uid": o guarda pegou
     // isso (01/09) — num teste em que todo assento tinha uid, os bots levaram o
     // castigo dos humanos. O uid serve pra dizer QUEM é a pessoa, não SE é.
-    const pais = temPais(pick) && !pegos.has(pick.pais) ? pick.pais : lugar.humano ? piorLivre(pegos) : melhorLivre()
+    if (times.length >= nTimes) break // 🇪🇺 Euro de 16: quem passou do 16º da tabela assiste
+    const pais = temPais(pick) && !pegos.has(pick.pais) && lista.includes(pick.pais) ? pick.pais : lugar.humano ? piorLivre(pegos, euro) : melhorLivre()
     pegos.add(pais)
     // 🥴 quem escolheu a bandeira mas NÃO convocou entra com os piores 11 — é o
     // castigo do Diego, e ele precisa viajar na ficha (senão cada aparelho
@@ -515,12 +528,12 @@ export function montaFichaDaLiga(
       : undefined
     times.push({ pais, nome: lugar.nome, ...(uid ? { uid } : {}), ...(xiKeys ? { xiKeys } : {}) })
   }
-  for (const p of paisesDaCopa()) {
-    if (times.length >= COPA_TEAMS) break
+  for (const p of lista) {
+    if (times.length >= nTimes) break
     if (pegos.has(p)) continue
     pegos.add(p); times.push({ pais: p, nome: p })
   }
-  return { seed, edicao, times: times.slice(0, COPA_TEAMS) }
+  return { seed, edicao, times: times.slice(0, nTimes), ...(euro ? { euro } : {}) }
 }
 
 // ── o relógio grande, igual ao do leilão ──
@@ -544,13 +557,14 @@ function Relogio({ seg, total, cor = GOLD }: { seg: number; total: number; cor?:
 // Agora: escudo grande (56px), nome em Oswald de 15, 2 colunas no celular e 3 no
 // monitor, e SEM caixa com rolagem — a lista é a própria tela. Quem não é a vez
 // vê a mesma grade (só sem poder tocar): fica sabendo quem já levou o quê.
-function GradeDeSelecoes({ pegas, marcado, podeMarcar, aoMarcar }: {
+function GradeDeSelecoes({ pegas, marcado, podeMarcar, aoMarcar, euro }: {
+  euro?: 16 | 32
   pegas: Map<string, string>
   marcado: string | null
   podeMarcar: boolean
   aoMarcar: (p: string) => void
 }) {
-  const paises = useMemo(paisesDaCopa, [])
+  const paises = useMemo(() => paisesDaCopa(euro), [euro])
   return (
     <div className="ll27-selecoes">
       {paises.map(p => {
@@ -574,7 +588,8 @@ function GradeDeSelecoes({ pegas, marcado, podeMarcar, aoMarcar }: {
 // o formato da Copa dos 8/Libertadores — *"de cara aparece o banner top da Copa e
 // embaixo, maior, a escolha dos países"*. Quando vira a MINHA vez, a tela rola
 // até aqui sozinha (`scrollIntoView`), que é o "aparecer de cara" sem tapar nada.
-function EscolheBandeira({ pegas, seg, aoConfirmar }: {
+function EscolheBandeira({ pegas, seg, aoConfirmar, euro }: {
+  euro?: 16 | 32
   pegas: Map<string, string>
   seg: number
   aoConfirmar: (pais: string) => void
@@ -600,7 +615,7 @@ function EscolheBandeira({ pegas, seg, aoConfirmar }: {
       <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '6px 0 10px', lineHeight: 1.4 }}>
         {getLang() === 'en' ? <>Tap to mark and confirm. If time runs out, you take the one marked — and, with none marked, <b>the worst one left</b>.</> : <>Toque pra marcar e confirme. Se o tempo acabar, você leva a que estiver marcada — e, sem nenhuma marcada, <b>a pior que sobrou</b>.</>}
       </p>
-      <GradeDeSelecoes pegas={pegas} marcado={marcado} podeMarcar aoMarcar={setMarcado} />
+      <GradeDeSelecoes pegas={pegas} marcado={marcado} podeMarcar aoMarcar={setMarcado} euro={euro} />
       {/* 📌 o CONFIRMAR gruda no pé da tela: a grade é comprida e ninguém tem que
           rolar até o fim pra fechar a escolha com o relógio correndo. */}
       <div className="ll27-confirmar-barra">
@@ -638,9 +653,10 @@ function BannerDaCopa({ seg }: { seg: number }) {
 // fila e botão do dono → grade das seleções → banner → convocação → torneio.
 // Só desenho: quem manda na fase, no relógio e no banco continua sendo o
 // `CopaDaLigaGate` (e só o dono escreve).
-export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa, aoRemover, dupla = null, duplaDe }: {
+export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa, aoRemover, dupla = null, duplaDe }: {
   /** 🤝 eu sou de dupla: quem convoca por ela e se eu só assisto (15/10) */
   dupla?: { soAssisto: boolean; nomeAge: string } | null
+  euro?: 16 | 32
   duplaDe?: (assento: number) => { nomeAge: string; nomeOutro: string } | null
   nLiga: number
   fase: FaseCopa | null
@@ -678,7 +694,7 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
     <button onClick={onClick} disabled={disabled} className={`ll27-portao-botao${cor === GREEN ? ' verde' : ''}`}>{txt}</button>
   )
   return (
-    <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
+    <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={euro ? tr(`Eurocopa · ${euro} seleções`, `Euro · ${euro} nations`) : tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
       <div className="ll26-cup-entry">
         {dupla?.soAssisto && <AvisoDupla quem={dupla.nomeAge} />}
         {/* 🔜 NÃO SAI (Diego 13/10): quem está na fila e ainda não escolheu vê que ainda joga */}
@@ -712,24 +728,24 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
         {/* ainda não começou: o dono puxa — só depois da 1ª leitura bem-sucedida do banco */}
         {!fase && lido && (souDono
           ? <>
-              {botaoGrande(comecando ? tr('⏳ Começando…', '⏳ Starting…') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP'), aoComecar, GOLD, comecando)}
+              {botaoGrande(comecando ? tr('⏳ Começando…', '⏳ Starting…') : (euro ? tr('🇪🇺 COMEÇAR A EUROCOPA', '🇪🇺 START THE EURO') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP')), aoComecar, GOLD, comecando)}
               <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 2px 0', lineHeight: 1.45 }}>
                 {en ? <>From then on the clock runs: <b>{SEG_BANDEIRA}s</b> for each one to pick a national team, in table order, and then <b>{SEG_CONVOCA}s</b> for everyone to call up their 11 together.</> : <>A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.</>}
               </p>
             </>
-          : <p className="ll27-portao-aviso">{tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.')}</p>)}
-        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>{tr(`${COPA_TEAMS} seleções em 8 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 8 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
+          : <p className="ll27-portao-aviso">{(euro ? tr('⏳ O dono da sala abre a Eurocopa — segura aí.', '⏳ The room owner opens the Euro — hang on.') : tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.'))}</p>)}
+        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>euro === 16 ? tr('16 seleções da Europa em 4 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 8. Quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Só os 16 primeiros da liga escolhem seleção. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '16 European nations in 4 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 8. Quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Only the top 16 of the league pick a nation. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : euro === 32 ? tr('32 seleções da Europa em 8 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '32 European nations in 8 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : {tr(`${COPA_TEAMS} seleções em 8 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 8 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
 
         {/* fase 1 — a bandeira: quem é a vez escolhe AQUI; os outros veem a grade travada */}
         {fase === 'bandeira' && (souAVez
-          ? <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={aoConfirmarPais} />
+          ? <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={aoConfirmarPais} euro={euro} />
           : <>
               <p className="ll27-portao-aviso">
                 {minha
                   ? (en ? <><NationalCrest country={minha.pais} size={22} /> You are <b>{minha.pais}</b>. Now wait for the line — <b>{daVezNome}</b> is picking ({seg}s).</> : <><NationalCrest country={minha.pais} size={22} /> Você é a <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>)
                   : (en ? <>⏳ <b>{daVezNome}</b> is picking a national team ({seg}s). Your turn comes in table order.</> : <>⏳ <b>{daVezNome}</b> está escolhendo a seleção ({seg}s). A sua vez vem na ordem da tabela.</>)}
               </p>
-              <GradeDeSelecoes pegas={pegas} marcado={minha?.pais ?? null} podeMarcar={false} aoMarcar={() => {}} />
+              <GradeDeSelecoes pegas={pegas} marcado={minha?.pais ?? null} podeMarcar={false} aoMarcar={() => {}} euro={euro} />
             </>)}
 
         {/* fase 2 — os 15s de respiro */}
@@ -792,7 +808,9 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
   )
 }
 
-export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed, aoStatus, seasonNo = 1, aoRemover, assentos, duplas }: {
+export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classificacaoToda, matchSeed, aoStatus, seasonNo = 1, aoRemover, assentos, duplas, euro }: {
+  /** 🇪🇺 31/10: a sala é Liga + EUROCOPA (16 ou 32 seleções da Europa) */
+  euro?: 16 | 32
   /** 🪑 quem senta em cada assento e as duplas — do ESTADO da partida (20/10, sala ZESM9K): manda mais que o número do banco */
   assentos?: string[]
   duplas?: Record<number, DuplaDoEstado>
@@ -817,6 +835,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   /** ⚙️ o dono remove quem está demorando (o id é o do técnico na tabela) */
   aoRemover?: (id: number, nome: string) => void
 }) {
+  // 🇪🇺 Euro de 16: só os 16 primeiros da tabela entram na fila (o resto assiste)
+  const classificacao = useMemo(() => euro ? classificacaoToda.slice(0, euro) : classificacaoToda, [classificacaoToda, euro])
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
   const privateVisual = ONLINE_VISUAL_RELEASED
   const [fase, setFase] = useState<LinhaFase | null>(null)
@@ -945,7 +965,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     if (f.fase === 'convocacao') {
       const todosMontaram = filaAgora.every(x => temTime(pk.get(x.uid)))
       if (!venceu && !todosMontaram) return
-      const ficha = montaFichaDaLiga(classificacao, porEstado ? soQuemEstaNaSala(porEstado, assentos, duplas, new Set(lido.linhas.map(x => x.user_id))) : quemAgePorAssento(lido.linhas), pk, f.seed, f.edicao)
+      const ficha = montaFichaDaLiga(classificacao, porEstado ? soQuemEstaNaSala(porEstado, assentos, duplas, new Set(lido.linhas.map(x => x.user_id))) : quemAgePorAssento(lido.linhas), pk, f.seed, f.edicao, euro)
       await supabase.from('esc_copa_salas').update({ fase: 'torneio', vez_uid: null, ate: null, times: ficha.times }).eq('room_id', roomId).eq('edicao', f.edicao)
     }
   }, [souDono, ler, classificacao, roomId, porEstado, assentos, duplas])
@@ -999,7 +1019,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em), maquina2: copaMaquina2(fase.criada_em), tatica: copaComTatica(fase.criada_em) } : null
+  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { ...(euro ? { euro } : {}), seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em), maquina2: copaMaquina2(fase.criada_em), tatica: copaComTatica(fase.criada_em) } : null
   // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
   // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
   // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser
@@ -1036,14 +1056,14 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
       {/* na convocação a tela dos 11 já abre sozinha: lá só vibra/apita, sem cartão (não gasta toque do relógio) */}
-      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={tr(`Copa do Mundo · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `World Cup · you have ${SEG_BANDEIRA}s to pick your nation`)} botao={tr('Escolher minha seleção', 'Pick my nation')} aoFechar={chama.fechar} />}
+      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={euro ? tr(`Eurocopa · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `Euro · you have ${SEG_BANDEIRA}s to pick your nation`) : tr(`Copa do Mundo · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `World Cup · you have ${SEG_BANDEIRA}s to pick your nation`)} botao={tr('Escolher minha seleção', 'Pick my nation')} aoFechar={chama.fechar} />}
       {/* 🚪 O PORTÃO (19/09): o banner grande da Copa no TOPO do fim da liga, com a
           fila, a grade das seleções e a convocação embaixo dele — o mesmo desenho
           da Copa dos 8/Libertadores. Antes a escolha da bandeira subia num modal
           por cima de tudo (Diego 01/09) e o resto era uma caixinha depois da tabela;
           ele pediu de volta o formato das outras copas, com a tabela indo pra baixo.
           A tela rola sozinha até a grade quando vira a sua vez. */}
-      <PortaoDaCopa nLiga={classificacao.length} fase={fase?.fase ?? null} lido={lido} souDono={souDono} comecando={comecando} erro={erro}
+      <PortaoDaCopa euro={euro} nLiga={classificacao.length} fase={fase?.fase ?? null} lido={lido} souDono={souDono} comecando={comecando} erro={erro}
         fila={fila} picks={picks} pegas={pegas} seg={seg} meuUid={euUid} minha={minha} souAVez={souAVez} daVezNome={daVezNome}
         dupla={dupla ? { soAssisto, nomeAge: dupla.nomeAge } : null} duplaDe={id => (porEstado ? duplaDoAssentoPeloEstado(assentos, duplas, id) : duplaDoAssento(linhas, id))}
         temFicha={!!ficha} aberta={aberta}
