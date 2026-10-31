@@ -904,7 +904,7 @@ export function EscLobby() {
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_euro' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   const [relampagoChave, setRelampagoChave] = useState<16 | 32>(16) // ⚡ Relâmpago (28/10): chave de 16 ou 32, o dono escolhe
   const relampagoOn = useRelampagoLiberado() // ⚡ só a conta do Diego cria, por enquanto
-  const euroOn = useEuroLiberada() // 🇪🇺 31/10: Liga + Eurocopa (24 seleções) — só a conta do Diego cria, por enquanto
+  const euroOn = useEuroLiberada() // 🇪🇺 31/10: Liga + Eurocopa (24 seleções) — liberada pra todos com selo NOVO
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -4012,7 +4012,7 @@ export function EscLobby() {
                     : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
                       // 🏟️ as copas regionais (liberadas pra todos em 11/10)
                       // ⚡ Relâmpago (28/10): só sala rápida, sem duplas, e por enquanto só a conta do Diego cria
-                      // 🇪🇺 Liga + Eurocopa (31/10): só a conta do Diego cria, por enquanto
+                      // 🇪🇺 Liga + Eurocopa (31/10): na prateleira de CONVOCAR, selo NOVO
                       ...(euroOn ? [['liga_euro', tr('🇪🇺 Liga + Eurocopa', '🇪🇺 League + Euro')] as ['liga_euro', string]] : []),
                       ...(relampagoOn && roomMode === 'rapido' && !roomDuplas ? [['relampago', tr('⚡ Mata-mata Relâmpago', '⚡ Lightning Knockout')] as ['relampago', string]] : []),
                       ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
