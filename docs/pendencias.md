@@ -11804,3 +11804,17 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   Erros 5xx quase zero no Medium. Pico 249 mil chamadas/hora (~4.150/min — a carga em que o Small engasgou em 29/10).
   O maior gasto do banco continua sendo o REALTIME decodificando as gravações do game_rooms (~15 mil s de banco no pg_stat) —
   isso é o Grupo B (item 14), que mexe na sala. **Veredito: ainda NÃO dá pra voltar pro Small** sem atacar o Grupo B.
+
+## 🇪🇺 31/10 — LIGA + EUROCOPA nas salas (em teste, só na conta do Diego, NÃO publicado)
+- Diego: *"Eurocopa são 24 seleções… 6 grupos de 4, passam os 2 primeiros + os 4 melhores terceiros"* → formato único de 24
+  (`formatoCopa(24)`, o mesmo motor da Copa do Mundo). A 1ª ideia de 16/32 foi descartada por ele.
+- Seleções: `EUROPA_24` em `copa-mundo-online.tsx` (15 que já fechavam + Polônia, Rússia, Romênia, Hungria, Ucrânia, Rep. Tcheca,
+  Suíça, Áustria, Grécia). Sala: marca `euroNaLiga: 24` junto do `mundoNaLiga` (mesma porta da Copa do Mundo depois da liga).
+  Gate `EURO_GERAL` em `sport.ts`. Opção "🇪🇺 Liga + Eurocopa" no criar sala e no editar modo da liga.
+- Tema `euro` em `competicoes-visual.tsx` (azul-noite, prata, estrelas; taça Henri Delaunay em SVG), túnel e festa — fotos
+  `scripts/mockups/eurocopa-tunel.png` / `eurocopa-festa.png`.
+- Lote 46 (125 cartas, data.ts) — fecha 32 seleções europeias; a Euro usa 24. Perguntado ao Diego se tira as cartas dos 8 países
+  que ficaram fora (Bulgária, Gales, Eslováquia, Bósnia, Geórgia, Islândia, Noruega, Irlanda do Norte).
+- Sobrou no código (inofensivo, nunca roda com 24/32): caminho da copa de 16 sem oitavas (`copaSemOitavas`) e no relógio do banco
+  (`20261031120000_copa_clock_euro16.sql`: só age com ≤16 seleções).
+- ⏳ Falta: na LISTA de salas a Euro aparece como "Liga + Mundo" (a lista só lê `ls_copa2`); testar uma sala de verdade com o Diego.
