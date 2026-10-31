@@ -1,3 +1,12 @@
+## 👑 Sala aberta × com senha + dono responsável (31/10, *"pode colocar só a 1 e 2. Publique"*) — ✅ PUBLICADO
+- Motivo: muita reclamação de dono que cria sala ABERTA e remove quem entra/está ganhando, ou larga no meio.
+- Feito (só aviso, nenhuma regra muda): texto embaixo de Aberta/Com senha (`ExplicaEntrada`), caixa "👑 Você é o dono da sala"
+  no resumo da criação (`DonoResponsavel`, celular e computador) e selo na lista de salas ("🔓 Aberta · qualquer um entra" /
+  "🔒 Só amigos · precisa da senha"). Mockup: `scripts/mockup-dono-responsavel.mjs`.
+- ⚠️ NÃO citar o botão SAIR nesses textos (ele quer testar a passagem de coroa antes).
+- ⏳ Ficou de fora (item 3 do mockup): a faixa amarela pro dono na sala de espera. E a ideia de, em sala aberta já começada,
+  o dono só poder remover quem estiver ausente — ainda não aprovada.
+
 ## 📉 PLANO PRA ALIVIAR O BANCO (30/10, depois da queda) — esperando o Diego escolher
 Medido nas últimas 24h (chamadas/dia): PATCH game_rooms 530k · GET game_rooms 500k · GET room_players 330k · /auth/v1/user 277k ·
 room_acoes 136k · live_beats 134k · esc_retrospecto 132k · user_cards 119k · esc_avisos 113k · esc_copa_salas 106k. E o realtime

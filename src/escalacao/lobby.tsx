@@ -633,6 +633,31 @@ function SegField({ label, children }: { label: string; children: React.ReactNod
     </div>
   )
 }
+// 👑 SALA ABERTA × COM SENHA + O DONO RESPONSÁVEL (31/10, mockup `scripts/mockup-dono-responsavel.mjs`, Diego: *"pode colocar só a 1 e 2"*).
+// Muita gente reclamando de dono que cria sala aberta e remove quem entra (ou larga no meio). Nenhuma regra muda: é só
+// AVISO na hora de criar e selo na lista. ⚠️ Não citar o SAIR aqui (ordem dele: *"não diga de apertar pra sair… preciso testar"*).
+function ExplicaEntrada({ senha }: { senha: boolean }) {
+  return (
+    <div style={{ marginTop: 8, background: senha ? '#EAF5EE' : '#FFF4D6', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 10px', fontSize: 12.5, lineHeight: 1.35, color: INK }}>
+      {senha
+        ? <><b>{tr('🔒 Só amigos.', '🔒 Friends only.')}</b> {tr('Só entra quem tem a senha — passe ela no grupo de vocês.', 'Only people with the password get in — share it in your group.')}</>
+        : <><b>{tr('🔓 Sala aberta é feita pra qualquer um entrar.', '🔓 An open room is made for anyone to join.')}</b> {tr('Quer exclusividade? Escolha 🔒 Com senha.', 'Want it exclusive? Pick 🔒 Password.')}</>}
+    </div>
+  )
+}
+function DonoResponsavel({ aberta }: { aberta: boolean }) {
+  return (
+    <div style={{ background: CREAM, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 10, color: INK }}>
+      <p className="uppercase" style={{ fontSize: 14, fontWeight: 900, margin: 0, ...OSWALD }}>{tr('👑 Você é o dono da sala', '👑 You own this room')}</p>
+      <div style={{ fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>
+        {tr('Quem cria a sala fica ', 'Whoever creates the room is ')}<b>{tr('responsável pela partida', 'responsible for the match')}</b>.<br />
+        🏁 <b>{tr('Vá até o final', 'Play it to the end')}</b> — {tr('largar no meio estraga a chance de todo mundo.', 'quitting midway ruins everyone\u2019s chance.')}<br />
+        ❌ <b>{tr('Remover quem está jogando', 'Removing people who are playing')}</b> {tr('estraga a partida dos outros.', 'ruins the match for the others.')}
+        {aberta && <><br />🔓 <b>{tr('Sala aberta é feita pra qualquer um entrar.', 'An open room is made for anyone to join.')}</b> {tr('Quer exclusividade? Crie a sala com senha.', 'Want it exclusive? Create the room with a password.')}</>}
+      </div>
+    </div>
+  )
+}
 // controle segmentado genérico (selecionado = dourado)
 // 🏷️ `selos` = uma tarjinha EM CIMA do texto de uma opção ("NOVO"). Ela mora
 // DENTRO do botão de propósito: a moldura do Seg é `overflow-hidden`, então
@@ -4094,7 +4119,7 @@ export function EscLobby() {
                     <p className="font-black text-[12.5px] text-white" style={OSWALD}>{tr('🏆 A senha da liga fica lá em cima', '🏆 The league password is up there')}</p>
                     <p className="text-white/50 text-[10.5px] font-bold mt-0.5">{tr('No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.', 'In the league box, next to the day and time. A league always has a password.')}</p>
                   </div>
-                : <SegField label={tr('Entrada', 'Entry')}><Seg options={[[false, tr('🔓 Aberta', '🔓 Open')], [true, tr('🔒 Com senha', '🔒 Password')]] as [boolean, string][]} value={roomLocked} onSet={v => setRoomLocked(v)} /></SegField>}
+                : <SegField label={tr('Entrada', 'Entry')}><Seg options={[[false, tr('🔓 Aberta', '🔓 Open')], [true, tr('🔒 Com senha', '🔒 Password')]] as [boolean, string][]} value={roomLocked} onSet={v => setRoomLocked(v)} /><ExplicaEntrada senha={roomLocked} /></SegField>}
               {roomLocked && roomMode !== 'liga' && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
                   placeholder={tr('Senha da sala (avise a galera)', 'Room password (tell your crew)')}
@@ -4173,6 +4198,7 @@ export function EscLobby() {
                   <span key={i} className="uppercase" style={{ fontSize: 11, background: '#2b241a', color: CREAM, borderRadius: 7, padding: '3px 7px', ...OSWALD }}>{t}</span>
                 ))}
               </div>
+              <DonoResponsavel aberta={roomMode !== 'liga' && !roomLocked} />
               {botaoCriar}
             </div>
           )}
@@ -4187,6 +4213,7 @@ export function EscLobby() {
                   <span className="text-[12.5px] font-bold text-right leading-snug">{v}</span>
                 </div>
               ))}
+              {botaoCriar && <div className="mt-3"><DonoResponsavel aberta={roomMode !== 'liga' && !roomLocked} /></div>}
               <div className="mt-3">{botaoCriar || (
                 <p className="text-[12px] font-bold leading-snug" style={{ color: '#5a5647' }}>{tr('🔜 Este modo ainda não abriu pra criar sala.', '🔜 This mode is not open for new rooms yet.')}</p>
               )}</div>
@@ -4295,6 +4322,8 @@ export function EscLobby() {
                     ))}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">{salasNovo && !duplasRoom ? '' : <>👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · </>}{r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
+                  {/* 👑 31/10: quem pode entrar, sem precisar adivinhar pelo cadeado */}
+                  <span className="inline-block mt-1 uppercase" style={{ fontSize: 10.5, fontWeight: 900, borderRadius: 7, padding: '2px 7px', ...OSWALD, ...(r.game_state?.locked ? { background: INK, color: GOLD } : { background: GREEN, color: '#fff' }) }}>{r.game_state?.locked ? tr('🔒 Só amigos · precisa da senha', '🔒 Friends only · password needed') : tr('🔓 Aberta · qualquer um entra', '🔓 Open · anyone can join')}</span>
                   {ligaRoom && (
                     <p className="font-black text-[11.5px] mt-0.5" style={{ ...OSWALD, color: quandoLiga((r.game_state as GS)?.ligaAt).cor }}>
                       📅 {quandoLiga((r.game_state as GS)?.ligaAt).txt}
