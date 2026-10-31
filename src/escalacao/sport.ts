@@ -371,7 +371,7 @@ export function useEnvelopeUnicoLiberado(): boolean {
 // 🇪🇺 LIGA + EUROCOPA NAS SALAS (31/10, Diego: *"liga + Eurocopa… 16 ou 32 igual o relâmpago… temática, troféu, túnel, arte do vencedor"*).
 // Mockup `scripts/mockups/eurocopa-16.png`. A mesma porta da Copa do Mundo depois da liga, só com seleções da Europa. Começa só na conta
 // do Diego (CRIAR a sala; quem ele chamar entra e joga). Liberar geral = EURO_GERAL = true.
-const EURO_GERAL = false
+const EURO_GERAL = true // 🟢 31/10 LIBERADO PRA TODOS com selo NOVO (Diego: *"pode publicar e coloque como novo… de convocar, liga + eurocopa"*)
 const EURO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let euroOk = EURO_GERAL
 function applyEuro(email?: string | null): void {
