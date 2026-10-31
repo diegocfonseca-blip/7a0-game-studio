@@ -3009,7 +3009,144 @@ const L45_EU_ATA: C[] = [
   { name: "Giovanni Simeone", club: "Napoli", year: 2023, fame: 3, lo: 77, hi: 86 },
   { name: "Marcus Thuram", club: "Inter", year: 2024, fame: 4, lo: 83, hi: 89 },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL, ...L45_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT, ...L45_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG, ...L45_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI, ...L45_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA, ...L45_EU_ATA] }
+// 🇪🇺 LOTE 46 (31/10, Diego): fechar as seleções da EUROCOPA nas salas (16/32). Todas no baralho Europa; ninguém já estava no jogo.
+const L46_EU_GOL: C[] = [
+  { name: "Helmuth Duckadam", club: "Steaua Bucareste", year: 1986, fame: 4, lo: 84, hi: 89 }, // Romênia
+  { name: "Gábor Király", club: "Crystal Palace", year: 2005, fame: 3, lo: 77, hi: 85, folk: true }, // Hungria
+  { name: "Alexander Manninger", club: "Arsenal", year: 1998, fame: 3, lo: 77, hi: 85 }, // Áustria
+  { name: "Antonios Nikopolidis", club: "Panathinaikos", year: 2004, fame: 3, lo: 74, hi: 85 }, // Grécia
+  { name: "Erik Thorstvedt", club: "Tottenham", year: 1991, fame: 3, lo: 77, hi: 84 }, // Noruega
+  { name: "Borislav Mihaylov", club: "Reading", year: 1996, fame: 3, lo: 76, hi: 85 }, // Bulgária
+  { name: "Neville Southall", club: "Everton", year: 1985, fame: 4, lo: 83, hi: 89 }, // País de Gales
+  { name: "Martin Dúbravka", club: "Newcastle", year: 2019, fame: 3, lo: 75, hi: 83 }, // Eslováquia
+  { name: "Asmir Begović", club: "Stoke", year: 2014, fame: 3, lo: 75, hi: 84 }, // Bósnia
+  { name: "Hannes Halldórsson", club: "Randers", year: 2016, fame: 3, lo: 76, hi: 83 }, // Islândia
+  { name: "Pat Jennings", club: "Tottenham", year: 1975, fame: 4, lo: 85, hi: 90 }, // Irlanda do Norte
+]
+const L46_EU_LAT: C[] = [
+  { name: "Stig Inge Bjørnebye", club: "Liverpool", year: 1997, fame: 3, lo: 75, hi: 84 }, // Noruega
+  { name: "Marek Jankulovski", club: "Milan", year: 2007, fame: 3, lo: 76, hi: 84 }, // Rep. Tcheca
+  { name: "Vladimír Coufal", club: "West Ham", year: 2023, fame: 3, lo: 76, hi: 84 }, // Rep. Tcheca
+  { name: "Mihály Lantos", club: "MTK", year: 1954, fame: 3, lo: 74, hi: 83 }, // Hungria
+  { name: "Stephan Lichtsteiner", club: "Juventus", year: 2015, fame: 4, lo: 84, hi: 89 }, // Suíça
+  { name: "Ricardo Rodríguez", club: "Wolfsburg", year: 2015, fame: 3, lo: 76, hi: 84 }, // Suíça
+  { name: "Oleksandr Zinchenko", club: "Arsenal", year: 2023, fame: 3, lo: 74, hi: 84 }, // Ucrânia
+  { name: "Vitaliy Mykolenko", club: "Everton", year: 2023, fame: 3, lo: 77, hi: 85 }, // Ucrânia
+  { name: "Yuri Zhirkov", club: "Chelsea", year: 2010, fame: 3, lo: 76, hi: 83 }, // Rússia
+  { name: "Mário Fernandes", club: "CSKA Moscou", year: 2018, fame: 3, lo: 77, hi: 83 }, // Rússia
+  { name: "Emanuel Pogatetz", club: "Middlesbrough", year: 2006, fame: 2, lo: 68, hi: 82 }, // Áustria
+  { name: "Giourkas Seitaridis", club: "Porto", year: 2004, fame: 3, lo: 77, hi: 85 }, // Grécia
+  { name: "Takis Fyssas", club: "Benfica", year: 2004, fame: 3, lo: 76, hi: 84 }, // Grécia
+  { name: "Radostin Kishishev", club: "Charlton", year: 2003, fame: 2, lo: 68, hi: 82 }, // Bulgária
+  { name: "Tsanko Tsvetanov", club: "Waldhof Mannheim", year: 1994, fame: 2, lo: 66, hi: 80 }, // Bulgária
+  { name: "Ben Davies", club: "Tottenham", year: 2019, fame: 3, lo: 76, hi: 85 }, // País de Gales
+  { name: "Neco Williams", club: "Nottingham Forest", year: 2024, fame: 2, lo: 67, hi: 81 }, // País de Gales
+  { name: "Peter Pekarík", club: "Hertha", year: 2017, fame: 2, lo: 67, hi: 81 }, // Eslováquia
+  { name: "Dávid Hancko", club: "Feyenoord", year: 2024, fame: 3, lo: 76, hi: 84 }, // Eslováquia
+  { name: "Sead Kolašinac", club: "Arsenal", year: 2018, fame: 3, lo: 77, hi: 83 }, // Bósnia
+  { name: "Mensur Mujdža", club: "Freiburg", year: 2014, fame: 2, lo: 67, hi: 81 }, // Bósnia
+  { name: "Kakha Kaladze", club: "Milan", year: 2007, fame: 4, lo: 84, hi: 89 }, // Geórgia
+  { name: "Levan Kobiashvili", club: "Schalke", year: 2005, fame: 2, lo: 68, hi: 82 }, // Geórgia
+  { name: "Birkir Már Sævarsson", club: "Hammarby", year: 2016, fame: 2, lo: 66, hi: 80 }, // Islândia
+  { name: "Ari Freyr Skúlason", club: "Lokeren", year: 2016, fame: 2, lo: 67, hi: 81 }, // Islândia
+  { name: "Pat Rice", club: "Arsenal", year: 1979, fame: 3, lo: 77, hi: 83 }, // Irlanda do Norte
+  { name: "Aaron Hughes", club: "Newcastle", year: 2002, fame: 3, lo: 77, hi: 83 }, // Irlanda do Norte
+]
+const L46_EU_ZAG: C[] = [
+  { name: "Jakub Kiwior", club: "Arsenal", year: 2024, fame: 3, lo: 77, hi: 85 }, // Polônia
+  { name: "Tomáš Ujfaluši", club: "Fiorentina", year: 2006, fame: 3, lo: 76, hi: 84 }, // Rep. Tcheca
+  { name: "Miroslav Kadlec", club: "Kaiserslautern", year: 1996, fame: 3, lo: 77, hi: 85 }, // Rep. Tcheca
+  { name: "Cristian Chivu", club: "Inter", year: 2010, fame: 4, lo: 83, hi: 89 }, // Romênia
+  { name: "Radu Drăgușin", club: "Tottenham", year: 2024, fame: 3, lo: 75, hi: 83 }, // Romênia
+  { name: "Gyula Lóránt", club: "Honvéd", year: 1954, fame: 3, lo: 77, hi: 83 }, // Hungria
+  { name: "Willi Orbán", club: "RB Leipzig", year: 2023, fame: 3, lo: 77, hi: 84 }, // Hungria
+  { name: "Manuel Akanji", club: "Man City", year: 2023, fame: 4, lo: 84, hi: 90 }, // Suíça
+  { name: "Fabian Schär", club: "Newcastle", year: 2023, fame: 3, lo: 75, hi: 83 }, // Suíça
+  { name: "Sergei Ignashevich", club: "CSKA Moscou", year: 2018, fame: 3, lo: 75, hi: 84 }, // Rússia
+  { name: "Vasili Berezutski", club: "CSKA Moscou", year: 2008, fame: 3, lo: 77, hi: 85 }, // Rússia
+  { name: "Martin Hinteregger", club: "Eintracht Frankfurt", year: 2022, fame: 3, lo: 75, hi: 85 }, // Áustria
+  { name: "Traianos Dellas", club: "Roma", year: 2004, fame: 3, lo: 75, hi: 84 }, // Grécia
+  { name: "Ronny Johnsen", club: "Man United", year: 1999, fame: 3, lo: 77, hi: 85 }, // Noruega
+  { name: "Henning Berg", club: "Blackburn", year: 1995, fame: 3, lo: 77, hi: 84 }, // Noruega
+  { name: "Trifon Ivanov", club: "Rapid Viena", year: 1996, fame: 3, lo: 75, hi: 84, folk: true }, // Bulgária
+  { name: "Petar Hubchev", club: "Hamburg", year: 1994, fame: 2, lo: 67, hi: 81 }, // Bulgária
+  { name: "Ashley Williams", club: "Swansea", year: 2015, fame: 3, lo: 75, hi: 84 }, // País de Gales
+  { name: "Kevin Ratcliffe", club: "Everton", year: 1985, fame: 3, lo: 76, hi: 85 }, // País de Gales
+  { name: "Martin Škrtel", club: "Liverpool", year: 2012, fame: 3, lo: 75, hi: 83 }, // Eslováquia
+  { name: "Milan Škriniar", club: "Inter", year: 2021, fame: 4, lo: 84, hi: 89 }, // Eslováquia
+  { name: "Emir Spahić", club: "Leverkusen", year: 2014, fame: 3, lo: 75, hi: 85 }, // Bósnia
+  { name: "Ermin Bičakčić", club: "Hoffenheim", year: 2017, fame: 2, lo: 67, hi: 81 }, // Bósnia
+  { name: "Zurab Khizanishvili", club: "Rangers", year: 2004, fame: 2, lo: 67, hi: 81 }, // Geórgia
+  { name: "Guram Kashia", club: "Vitesse", year: 2016, fame: 2, lo: 68, hi: 82 }, // Geórgia
+  { name: "Ragnar Sigurðsson", club: "Krasnodar", year: 2016, fame: 3, lo: 76, hi: 85 }, // Islândia
+  { name: "Kári Árnason", club: "Malmö", year: 2016, fame: 2, lo: 68, hi: 82 }, // Islândia
+  { name: "Jonny Evans", club: "Leicester", year: 2021, fame: 3, lo: 76, hi: 83 }, // Irlanda do Norte
+  { name: "Gareth McAuley", club: "West Brom", year: 2016, fame: 2, lo: 67, hi: 81 }, // Irlanda do Norte
+]
+const L46_EU_MEI: C[] = [
+  { name: "Jakub Błaszczykowski", club: "Dortmund", year: 2012, fame: 3, lo: 74, hi: 83 }, // Polônia
+  { name: "Piotr Zieliński", club: "Napoli", year: 2022, fame: 4, lo: 83, hi: 90 }, // Polônia
+  { name: "Tomáš Souček", club: "West Ham", year: 2023, fame: 3, lo: 74, hi: 85 }, // Rep. Tcheca
+  { name: "Nicolae Stanciu", club: "Slavia Praga", year: 2021, fame: 3, lo: 75, hi: 83 }, // Romênia
+  { name: "Zoltán Gera", club: "Fulham", year: 2010, fame: 3, lo: 74, hi: 83 }, // Hungria
+  { name: "Xherdan Shaqiri", club: "Bayern", year: 2013, fame: 4, lo: 83, hi: 89 }, // Suíça
+  { name: "Anatoliy Tymoshchuk", club: "Bayern", year: 2010, fame: 3, lo: 77, hi: 85 }, // Ucrânia
+  { name: "Andriy Yarmolenko", club: "Dynamo Kyiv", year: 2016, fame: 3, lo: 75, hi: 85 }, // Ucrânia
+  { name: "Ruslan Malinovskyi", club: "Atalanta", year: 2021, fame: 3, lo: 76, hi: 85 }, // Ucrânia
+  { name: "Aleksandr Mostovoi", club: "Celta", year: 2000, fame: 3, lo: 74, hi: 84 }, // Rússia
+  { name: "Denis Cheryshev", club: "Villarreal", year: 2018, fame: 3, lo: 75, hi: 83 }, // Rússia
+  { name: "Aleksandr Golovin", club: "Monaco", year: 2022, fame: 3, lo: 75, hi: 84 }, // Rússia
+  { name: "Andreas Herzog", club: "Werder Bremen", year: 1998, fame: 3, lo: 74, hi: 83 }, // Áustria
+  { name: "Marcel Sabitzer", club: "RB Leipzig", year: 2020, fame: 3, lo: 77, hi: 84 }, // Áustria
+  { name: "Konrad Laimer", club: "Bayern", year: 2024, fame: 3, lo: 75, hi: 83 }, // Áustria
+  { name: "Theodoros Zagorakis", club: "AEK Atenas", year: 2004, fame: 4, lo: 83, hi: 90 }, // Grécia
+  { name: "Giorgos Karagounis", club: "Inter", year: 2004, fame: 3, lo: 74, hi: 84 }, // Grécia
+  { name: "Kostas Katsouranis", club: "AEK Atenas", year: 2004, fame: 3, lo: 76, hi: 83 }, // Grécia
+  { name: "Morten Gamst Pedersen", club: "Blackburn", year: 2006, fame: 3, lo: 75, hi: 84 }, // Noruega
+  { name: "Gary Speed", club: "Newcastle", year: 1998, fame: 3, lo: 75, hi: 84 }, // País de Gales
+  { name: "Juraj Kucka", club: "Milan", year: 2016, fame: 3, lo: 75, hi: 83 }, // Eslováquia
+  { name: "Stanislav Lobotka", club: "Napoli", year: 2023, fame: 3, lo: 74, hi: 84 }, // Eslováquia
+  { name: "Hasan Salihamidžić", club: "Bayern", year: 2001, fame: 3, lo: 75, hi: 83 }, // Bósnia
+  { name: "Zvjezdan Misimović", club: "Wolfsburg", year: 2009, fame: 3, lo: 74, hi: 83 }, // Bósnia
+  { name: "Georgi Kinkladze", club: "Man City", year: 1996, fame: 3, lo: 75, hi: 85 }, // Geórgia
+  { name: "Temuri Ketsbaia", club: "Newcastle", year: 1998, fame: 3, lo: 74, hi: 85 }, // Geórgia
+  { name: "Giorgi Chakvetadze", club: "Gent", year: 2023, fame: 2, lo: 68, hi: 82 }, // Geórgia
+  { name: "Aron Gunnarsson", club: "Cardiff", year: 2016, fame: 3, lo: 76, hi: 83 }, // Islândia
+  { name: "Gylfi Sigurðsson", club: "Swansea", year: 2016, fame: 3, lo: 75, hi: 85 }, // Islândia
+  { name: "Birkir Bjarnason", club: "Basel", year: 2016, fame: 3, lo: 75, hi: 85 }, // Islândia
+  { name: "Danny Blanchflower", club: "Tottenham", year: 1961, fame: 4, lo: 83, hi: 90 }, // Irlanda do Norte
+  { name: "Steven Davis", club: "Rangers", year: 2017, fame: 3, lo: 77, hi: 83 }, // Irlanda do Norte
+  { name: "Norman Whiteside", club: "Man United", year: 1985, fame: 3, lo: 74, hi: 85 }, // Irlanda do Norte
+]
+const L46_EU_ATA: C[] = [
+  { name: "Kyle Lafferty", club: "Rangers", year: 2012, fame: 2, lo: 67, hi: 80 }, // Irlanda do Norte
+  { name: "Milan Baroš", club: "Liverpool", year: 2005, fame: 4, lo: 84, hi: 90 }, // Rep. Tcheca
+  { name: "Stéphane Chapuisat", club: "Dortmund", year: 1997, fame: 3, lo: 74, hi: 84 }, // Suíça
+  { name: "Alexander Frei", club: "Dortmund", year: 2007, fame: 3, lo: 76, hi: 85 }, // Suíça
+  { name: "Breel Embolo", club: "Monaco", year: 2023, fame: 3, lo: 76, hi: 85 }, // Suíça
+  { name: "Oleg Blokhin", club: "Dynamo Kyiv", year: 1975, fame: 4, lo: 85, hi: 89 }, // Ucrânia
+  { name: "Artem Dzyuba", club: "Zenit", year: 2018, fame: 3, lo: 75, hi: 83, folk: true }, // Rússia
+  { name: "Hans Krankl", club: "Barcelona", year: 1979, fame: 4, lo: 84, hi: 89 }, // Áustria
+  { name: "Toni Polster", club: "Köln", year: 1993, fame: 3, lo: 74, hi: 84 }, // Áustria
+  { name: "Marko Arnautović", club: "West Ham", year: 2018, fame: 3, lo: 77, hi: 85 }, // Áustria
+  { name: "Angelos Charisteas", club: "Werder Bremen", year: 2004, fame: 3, lo: 75, hi: 83 }, // Grécia
+  { name: "Zisis Vryzas", club: "Fiorentina", year: 2004, fame: 3, lo: 75, hi: 85 }, // Grécia
+  { name: "Giorgos Samaras", club: "Celtic", year: 2010, fame: 3, lo: 74, hi: 84 }, // Grécia
+  { name: "Mark Hughes", club: "Man United", year: 1991, fame: 4, lo: 83, hi: 89 }, // País de Gales
+  { name: "Róbert Vittek", club: "Nürnberg", year: 2006, fame: 2, lo: 66, hi: 80 }, // Eslováquia
+  { name: "Szilárd Németh", club: "Middlesbrough", year: 2003, fame: 2, lo: 68, hi: 82 }, // Eslováquia
+  { name: "Ondrej Duda", club: "Hertha", year: 2017, fame: 2, lo: 66, hi: 80 }, // Eslováquia
+  { name: "Vedad Ibišević", club: "Hertha", year: 2016, fame: 3, lo: 75, hi: 83 }, // Bósnia
+  { name: "Elvir Bolić", club: "Fenerbahçe", year: 1998, fame: 2, lo: 67, hi: 81 }, // Bósnia
+  { name: "Shota Arveladze", club: "Ajax", year: 1999, fame: 3, lo: 74, hi: 83 }, // Geórgia
+  { name: "Georges Mikautadze", club: "Lyon", year: 2025, fame: 3, lo: 74, hi: 83 }, // Geórgia
+  { name: "Eiður Guðjohnsen", club: "Chelsea", year: 2005, fame: 3, lo: 75, hi: 83 }, // Islândia
+  { name: "Alfreð Finnbogason", club: "Augsburg", year: 2016, fame: 3, lo: 77, hi: 84 }, // Islândia
+  { name: "Kolbeinn Sigþórsson", club: "Nantes", year: 2016, fame: 2, lo: 67, hi: 81 }, // Islândia
+  { name: "David Healy", club: "Leeds", year: 2007, fame: 3, lo: 77, hi: 85 }, // Irlanda do Norte
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL, ...L45_EU_GOL, ...L46_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT, ...L45_EU_LAT, ...L46_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG, ...L45_EU_ZAG, ...L46_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI, ...L45_EU_MEI, ...L46_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA, ...L45_EU_ATA, ...L46_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
