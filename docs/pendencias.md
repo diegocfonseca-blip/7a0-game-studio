@@ -1,4 +1,4 @@
-## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — no branch, SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
+## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
   MESMO `planosBots` que o motor usa: titulares cansados, lesionados, quantos vai poupar) e os 3 melhores do XI da rodada.
 - `CartaoRaioX` em central.tsx; conta em `renderCentral` (pyramidseason.tsx). Mockup: `scripts/mockup-raiox.mjs`.
