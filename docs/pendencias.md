@@ -11840,3 +11840,8 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 ## ⭐ 31/10 — Duarte FC Delas (luizfelipeduarte212@gmail.com): Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 31/10/2027, sem `vendria_sub`). Conta de 13/09 conferida. `esc_direitos_de`:
   pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo).
+
+## 🪜 31/10 — Várzea: bônus dos times da casa +2 → +1 (Diego: *"a várzea ainda está muito difícil… só diminua mais um ponto"*)
+`CPU_DIV_BOOST_V8` = A 2 · B 3 · C 3 · D 2 · **V 1**, travado por `simV = 8` (só de temporada NOVA; a que está rolando termina na
+tabela antiga). Reverter = trocar os `s.simV = 8` de volta pra 7. Medido antes (28/10): o teto da Várzea (~80) sobe ~28% com +2 e
+~48% sem bônus nenhum — com +1 fica no meio.
