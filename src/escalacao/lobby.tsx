@@ -50,7 +50,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasEsperaNova, useTelaPC } from './sport'
+import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -981,6 +981,7 @@ export function EscLobby() {
   const campo2dOn = useCampo2DLiberado()
   // 🗂️ visual novo das salas (23/10, só a conta do Diego): filtro da lista e os modos recolhidos no criar
   const salasNovo = useSalasVisualNovo()
+  const salasLista = useSalasListaNova() // 🗂️ lista de salas abertas nova: liberada pra todos em 31/10
   // 🖥️ CRIAR SALA NO COMPUTADOR (23/10, liberado pra todos, só ≥1100px): todas as etapas abertas + "Sua sala" ao lado
   const desk = useTelaPC()
   const salasEspera = useSalasEsperaNova() // 🗂️③ só a SALA DE ESPERA nova está liberada pra todos (23/10)
@@ -3154,7 +3155,7 @@ export function EscLobby() {
     const filtered = openRooms.filter(r => {
       const nm = r.game_state?.roomName ?? r.code
       if (!nm.toLowerCase().includes(search.trim().toLowerCase())) return false
-      if (!salasNovo || filtroSala === 'todas') return true
+      if (!salasLista || filtroSala === 'todas') return true
       const g = r.game_state as GS & { holandes?: boolean; duplasMode?: boolean }
       if (filtroSala === 'pregao') return !!g?.pregaoAberto
       if (filtroSala === 'tocaia') return g?.holandes === true && !g?.pregaoAberto
@@ -3436,7 +3437,7 @@ export function EscLobby() {
         {TABS.map(t => (
           <button key={t.id} data-livre={t.id !== 'create' ? '1' : undefined} onClick={() => { setTab(t.id); setRoomError('') }}
             className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? PURPLE : '#fff', color: tab === t.id ? '#fff' : '#000', ...OSWALD }}>
-            {t.label}{salasNovo && t.id === 'open' && openRooms.length > 0 ? ` (${openRooms.length})` : ''}
+            {t.label}{salasLista && t.id === 'open' && openRooms.length > 0 ? ` (${openRooms.length})` : ''}
           </button>
         ))}
       </div>
@@ -4271,7 +4272,7 @@ export function EscLobby() {
 
       {tab === 'open' && <div className="space-y-3">
         <Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('Buscar sala…', 'Search room…')} />
-        {salasNovo && (
+        {salasLista && (
           <div className="flex flex-wrap gap-1.5">
             {([['todas', tr('Todas', 'All')], ['envelope', tr('✉️ Envelope', '✉️ Sealed')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão', '🔨 Open')], ['unico', tr('⚡ Único', '⚡ Single')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['duplas', tr('🤝 Duplas', '🤝 Duos')]] as [typeof filtroSala, string][]).map(([v, lb]) => (
               <button key={v} data-livre="1" onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
@@ -4284,7 +4285,7 @@ export function EscLobby() {
             nenhuma — continua uma embaixo da outra, igualzinho. */}
         <div className="salas-grade space-y-2">
           {listLoading && <p className="text-white/50 text-sm font-bold text-center py-3">{tr('Carregando salas…', 'Loading rooms…')}</p>}
-          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">{salasNovo && filtroSala !== 'todas' && openRooms.length > 0 ? tr('Nenhuma sala desse tipo agora. Toque em "Todas" ou crie a sua! 🔨', 'No rooms of this kind right now. Tap "All" or create yours! 🔨') : tr('Nenhuma sala aberta agora. Crie a sua! 🔨', 'No open rooms right now. Create yours! 🔨')}</p>}
+          {!listLoading && filtered.length === 0 && <p className="text-white/50 text-sm font-bold text-center py-3">{salasLista && filtroSala !== 'todas' && openRooms.length > 0 ? tr('Nenhuma sala desse tipo agora. Toque em "Todas" ou crie a sua! 🔨', 'No rooms of this kind right now. Tap "All" or create yours! 🔨') : tr('Nenhuma sala aberta agora. Crie a sua! 🔨', 'No open rooms right now. Create yours! 🔨')}</p>}
           {filtered.map(r => {
             const nm = r.game_state?.roomName ?? r.code
             const full = r.count >= r.max_players
@@ -4363,7 +4364,7 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#fff', color: '#000', ...OSWALD }} title={tr('Às cegas: cada um escreve o lance no envelope e só abre no martelo. É o pregão de sempre.', 'Sealed bid: everyone writes their bid in an envelope and it only opens at the hammer. The usual auction.')}>{tr('✉️ ÀS CEGAS', '✉️ SEALED')}</span>
                     ))}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">{salasNovo && !duplasRoom ? '' : <>👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · </>}{r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
+                  <p className="text-black/60 text-xs font-bold mt-0.5">{salasLista && !duplasRoom ? '' : <>👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · </>}{r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
                   {/* 👑 31/10: quem pode entrar, sem precisar adivinhar pelo cadeado */}
                   <span className="inline-block mt-1 uppercase" style={{ fontSize: 10.5, fontWeight: 900, borderRadius: 7, padding: '2px 7px', ...OSWALD, ...(r.game_state?.locked ? { background: INK, color: GOLD } : { background: GREEN, color: '#fff' }) }}>{r.game_state?.locked ? tr('🔒 Só amigos · precisa da senha', '🔒 Friends only · password needed') : tr('🔓 Aberta · qualquer um entra', '🔓 Open · anyone can join')}</span>
                   {ligaRoom && (
@@ -4372,7 +4373,7 @@ export function EscLobby() {
                     </p>
                   )}
                 </div>
-                {salasNovo && !duplasRoom && (
+                {salasLista && !duplasRoom && (
                   <div className="shrink-0 text-center leading-none">
                     <b className="block text-[22px] text-black" style={OSWALD}>{r.count}/{r.max_players}</b>
                     <span className="block text-[9.5px] font-black uppercase" style={{ color: '#5a5647' }}>{tr('técnicos', 'managers')}</span>
