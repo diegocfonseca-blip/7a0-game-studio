@@ -15400,9 +15400,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // estado do jogo guarda isso com OUTRO nome (`leilaoClubes`) — sem a guarda, o 1º
         // save apagava a escolha: o selo 🧱 da lista sumia e a próxima rodada de uma Minha
         // Liga de Clubes voltava como leilão de Jogador.
+        // 🇪🇺 `euroNaLiga` entra na lista (31/10): a marca da Liga + Eurocopa. Sem ela o 1º save apagava a marca e a sala
+        // abria a COPA DO MUNDO no fim da liga (o `mundoNaLiga` ficava, o `euroNaLiga` sumia) — bug do 1º dia da Euro.
         // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
         // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl', 'tema']) { // 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'euroNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl', 'tema']) { // 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda
