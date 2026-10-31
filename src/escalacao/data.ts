@@ -3065,6 +3065,18 @@ const L46_EU_MEI: C[] = [
   { name: "Theodoros Zagorakis", club: "AEK Atenas", year: 2004, fame: 4, lo: 83, hi: 90 }, // Grécia
   { name: "Giorgos Karagounis", club: "Inter", year: 2004, fame: 3, lo: 74, hi: 84 }, // Grécia
   { name: "Kostas Katsouranis", club: "AEK Atenas", year: 2004, fame: 3, lo: 76, hi: 83 }, // Grécia
+  // 🏳️ Lote 47 (31/10, aprovado pelo Diego): meias pro leilão de SELEÇÕES fechar 36 pessoas + completar pacotes de clube por década
+  { name: "Karel Poborský", club: "Man United", year: 1997, fame: 3, lo: 75, hi: 84 }, // Rep. Tcheca
+  { name: "Grzegorz Krychowiak", club: "Sevilla", year: 2015, fame: 3, lo: 75, hi: 84 }, // Polônia
+  { name: "Gökhan Inler", club: "Napoli", year: 2013, fame: 3, lo: 75, hi: 84 }, // Suíça
+  { name: "Valeri Karpin", club: "Celta", year: 2000, fame: 3, lo: 75, hi: 84 }, // Rússia
+  { name: "Leonardo", club: "Milan", year: 1999, fame: 4, lo: 83, hi: 90 }, // Brasil
+  { name: "Jordan Henderson", club: "Liverpool", year: 2019, fame: 3, lo: 76, hi: 85 }, // Inglaterra
+  { name: "İlkay Gündoğan", club: "Man City", year: 2018, fame: 4, lo: 83, hi: 90 }, // Alemanha
+  { name: "Thiago Motta", club: "PSG", year: 2013, fame: 3, lo: 76, hi: 85 }, // Itália
+  { name: "Sandro Tonali", club: "Milan", year: 2022, fame: 3, lo: 76, hi: 85 }, // Itália
+  { name: "Thomas Partey", club: "Arsenal", year: 2022, fame: 3, lo: 76, hi: 84 }, // Gana
+  { name: "Henrikh Mkhitaryan", club: "Inter", year: 2023, fame: 3, lo: 76, hi: 85 }, // Armênia
 ]
 const L46_EU_ATA: C[] = [
   { name: "Milan Baroš", club: "Liverpool", year: 2005, fame: 4, lo: 84, hi: 90 }, // Rep. Tcheca
