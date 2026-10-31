@@ -6,16 +6,16 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
-    "nome": "Helmuth Duckadam",
+    "nome": "Erik Thorstvedt",
     "baralho": "EU",
-    "nivel": "craque",
+    "nivel": "bom jogador",
     "data": "2026-10-31"
   },
   {
     "tipo": "entrou",
-    "nome": "Gábor Király",
+    "nome": "Helmuth Duckadam",
     "baralho": "EU",
-    "nivel": "bom jogador",
+    "nivel": "craque",
     "data": "2026-10-31"
   },
   {
@@ -34,6 +34,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
+    "nome": "Stig Inge Bjørnebye",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-10-31"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Marek Jankulovski",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -42,13 +49,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Vladimír Coufal",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Mihály Lantos",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-10-31"
@@ -118,6 +118,20 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
+    "nome": "Ronny Johnsen",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-10-31"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Henning Berg",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-10-31"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Jakub Kiwior",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -147,20 +161,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Radu Drăgușin",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Gyula Lóránt",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Willi Orbán",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-10-31"
@@ -209,6 +209,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
+    "nome": "Morten Gamst Pedersen",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-10-31"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Jakub Błaszczykowski",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -231,13 +238,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Nicolae Stanciu",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Zoltán Gera",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-10-31"
