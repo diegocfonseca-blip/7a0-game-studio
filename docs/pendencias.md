@@ -1,3 +1,9 @@
+## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — no branch, SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
+- Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
+  MESMO `planosBots` que o motor usa: titulares cansados, lesionados, quantos vai poupar) e os 3 melhores do XI da rodada.
+- `CartaoRaioX` em central.tsx; conta em `renderCentral` (pyramidseason.tsx). Mockup: `scripts/mockup-raiox.mjs`.
+- ⏳ Falta: ele aprovar o visual e mandar publicar/liberar pra todos (`RAIOX_GERAL = true`).
+
 ## 👑 Sala aberta × com senha + dono responsável (31/10, *"pode colocar só a 1 e 2. Publique"*) — ✅ PUBLICADO
 - Motivo: muita reclamação de dono que cria sala ABERTA e remove quem entra/está ganhando, ou larga no meio.
 - Feito (só aviso, nenhuma regra muda): texto embaixo de Aberta/Com senha (`ExplicaEntrada`), caixa "👑 Você é o dono da sala"

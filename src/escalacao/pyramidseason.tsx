@@ -96,7 +96,7 @@ import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
-import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps } from './central'
+import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
@@ -107,7 +107,7 @@ import { EscalacaoAB, timeEmCampo } from './escalacao-ab-ui' // 💾 escalação
 import { formacaoNoCardapio } from './cardapio-formacoes' // 🎽 cardápio do técnico: uma função só (23/10)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
-import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
+import { FORMACOES15, formacaoAtual, formacaoPorRotulo, ESTILO_ROTULO } from './formacoes'
 import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa, CB_SCORER_BONUS, SUPERCOPA_SCORER_BONUS } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
@@ -133,7 +133,7 @@ import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
-import { useColetiva, useCalendarioCarreira } from './sport'
+import { useColetiva, useCalendarioCarreira, useRaioX } from './sport'
 import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
@@ -8502,6 +8502,7 @@ export function PyramidSeasonScreen() {
   // régua do seu gás (só quando o seu gás está ligado, ou seja, Série C pra cima) e só a partir da
   // temporada em que a regra nasceu (`botFadigaDesde`): temporada em andamento nunca muda de placar.
   const botBancoOn = useBotBanco()
+  const raioxOn = useRaioX() // 🔎 31/10: Raio-X do adversário na Central (só conta do Diego por enquanto)
   const botFadigaOn = botBancoOn && condOn && state.botFadigaDesde != null && (state.seasonNo ?? 1) >= state.botFadigaDesde
   const planosBots = useMemo<Record<string, PlanoBot>>(() => {
     if (!botFadigaOn) return {}
@@ -10673,6 +10674,27 @@ export function PyramidSeasonScreen() {
       const par = confrontoDaRodada(world[myDiv] ?? [], divSeed, rNext).find(([h, a]) => h.teamId === youId || a.teamId === youId)
       return par ? { rodada: rNext, casa: par[0].name, fora: par[1].name, rolando } : null
     })()
+    // 🔎 RAIO-X DO ADVERSÁRIO (31/10): só o que o jogo JÁ sabe do rival da próxima rodada da liga. O XI e o cansaço
+    // saem do MESMO plano que o motor usa (`planosBots`); sem o gás ligado, cansaço fica de fora e o XI é o melhor 11.
+    const raioX: RaioX | null = (() => {
+      if (!raioxOn || !proximo) return null
+      const advNome = proximo.casa === euNome ? proximo.fora : proximo.casa
+      const t = (world[myDiv] ?? []).find(x => x.name === advNome)
+      if (!t) return null
+      const mgr = state.managers.find(m => m.id === t.teamId)
+      const fz = formacaoAtual({ formation: t.formation ?? '4-3-3', formationView: mgr?.formationView })
+      const plano = t.human ? undefined : planosBots[t.name]
+      const r = proximo.rodada - 1
+      const ids = plano?.xi[r]
+      const xi = ids ? ids.map(id => t.squad.find(c => c.id === id)).filter((c): c is PoolCard => !!c) : bestXI(t.squad, t.formation)
+      const top = xi.filter(c => !c.fake).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi)).slice(0, 3).map(c => ({ nome: c.name, club: c.club, year: c.year, fame: c.fame }))
+      const cansaco = plano && ids ? {
+        cansados: ids.filter(id => (plano.mods[r]?.[id] ?? 0) < 0).length,
+        lesionados: plano.lesoes.filter(l => r >= l.r && r < l.r + l.rodadas).length,
+        poupados: plano.poupados[r] ?? 0,
+      } : null
+      return { nome: t.name, formacao: fz.rotulo, estilo: ESTILO_ROTULO[fz.estilo], top, forma: centralFormas[t.name], cansaco }
+    })()
     // 📣 giro: o seu jogo primeiro, depois o do líder, depois o mais movimentado
     const giro = (() => {
       if (revCentral < 1) return null
@@ -10850,7 +10872,7 @@ export function PyramidSeasonScreen() {
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
-      semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} />
+      semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} raioX={compProximo || compPalco ? null : raioX} />
   }
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
