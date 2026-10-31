@@ -351,9 +351,12 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
 // recalculada com 8 grupos no meio do caminho.
 const GROUP_SIZE = 4, GROUP_ROUNDS = RODADAS_GRUPO
 export const COPA_TEAMS = 32
-export const formatoCopa = (n: number): { grupos: number; terceiros: number } => n >= 32 ? { grupos: 8, terceiros: 0 } : { grupos: 6, terceiros: 4 }
+// 🇪🇺 16 (31/10, Eurocopa de 16 nas salas): 4 grupos, passam os 2 primeiros = 8 → QUARTAS direto (sem oitavas)
+export const formatoCopa = (n: number): { grupos: number; terceiros: number } => n >= 32 ? { grupos: 8, terceiros: 0 } : n <= 16 ? { grupos: 4, terceiros: 0 } : { grupos: 6, terceiros: 4 }
+/** 🇪🇺 Copa de 16: o mata-mata começa nas QUARTAS (o passo das oitavas é pulado — na sala, o relógio do banco pula também) */
+export const copaSemOitavas = (nTimes: number): boolean => nTimes <= 16
 /** quantos 3ºs passam, pelo número de grupos da Copa (6 grupos → 4 · 8 grupos → nenhum) */
-export const vagasTerceiros = (nGrupos: number) => nGrupos >= 8 ? 0 : 4
+export const vagasTerceiros = (nGrupos: number) => nGrupos >= 8 || nGrupos <= 4 ? 0 : 4 // 🇪🇺 4 grupos (Copa de 16) também não tem 3º
 /** @deprecated use `vagasTerceiros(grupos)` — fica pra quem importava o número da Copa de 24 */
 export const VAGAS_TERCEIROS = 4
 const LETRAS_GRUPO = 'ABCDEFGH'
@@ -1059,8 +1062,11 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       }
       return t
     }
-    const r16 = Array.from({ length: 8 }, (_, k) => mkTie(ord[2 * k], ord[2 * k + 1], PASSO_COPA.OITAVAS))
-    const qf = Array.from({ length: 4 }, (_, k) => mkTie(r16[2 * k].winner!, r16[2 * k + 1].winner!, PASSO_COPA.QUARTAS))
+    // 🇪🇺 Copa de 16: os 8 classificados (sorteados acima, sem reencontro de grupo) já são as QUARTAS
+    const semOit = copaSemOitavas(entrants.length)
+    const r16: KoTie[] = semOit ? [] : Array.from({ length: 8 }, (_, k) => mkTie(ord[2 * k], ord[2 * k + 1], PASSO_COPA.OITAVAS))
+    const qf = semOit ? Array.from({ length: 4 }, (_, k) => mkTie(ord[2 * k], ord[2 * k + 1], PASSO_COPA.QUARTAS))
+      : Array.from({ length: 4 }, (_, k) => mkTie(r16[2 * k].winner!, r16[2 * k + 1].winner!, PASSO_COPA.QUARTAS))
     const sf = [mkTie(qf[0].winner!, qf[1].winner!, PASSO_COPA.SEMI), mkTie(qf[2].winner!, qf[3].winner!, PASSO_COPA.SEMI)]
     const fh = sf[0].winner!, fa = sf[1].winner!
     let fg = playMatch(rng, entrants[fh], entrants[fa], peso)
@@ -1123,7 +1129,7 @@ export function estatisticasDaCopa(world: ReturnType<typeof simulaCopaMundo>, en
   return [...m.values()]
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, versaoM2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; versaoM2?: VersaoM2; myForm: Formation; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void; /** ⚔️ táticas congeladas da sala (23/10) */ tat?: QualTatica; /** ⚔️ o cartão de tática da pessoa */ taticaSlot?: ReactNode }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes, forte, m2, versaoM2, euro, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** ⏯️ carreira: a última fase já vista (reabrir continua daqui) */ passoInicial?: number; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; /** 💪 peso de força novo (Copa nascida depois de 14/10) */ forte?: boolean; /** ⚽🧠 motor novo no jogo da sua seleção (carreira) */ m2?: boolean; versaoM2?: VersaoM2; myForm: Formation; /** 🇪🇺 31/10: é a EUROCOPA da sala (16 ou 32) — muda nome, taça, túnel e festa; o formato sai do nº de times */ euro?: 16 | 32; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void; /** ⚔️ táticas congeladas da sala (23/10) */ tat?: QualTatica; /** ⚔️ o cartão de tática da pessoa */ taticaSlot?: ReactNode }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
@@ -1143,6 +1149,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // `copa-passos.ts`, junto com a cópia que o relógio da sala usa no banco).
   const GR = GROUP_ROUNDS
   const { SORTEIO, OITAVAS, QUARTAS, SEMI, FINAL, FIM } = PASSO_COPA
+  // 🇪🇺 31/10: Copa de 16 (Euro) não tem oitavas — o passo das oitavas é pulado (na sala, o relógio do banco pula junto)
+  const semOit = copaSemOitavas(entrants.length)
+  const comp: 'mundo' | 'euro' = euro ? 'euro' : 'mundo'
   const synced = privateOnline ? online?.clock : undefined
   const [localStep, setStep] = useState(() => Math.max(0, Math.min(passoInicial ?? 0, PASSO_COPA.FIM - 1))) // ⏯️ 21/10: reabriu, continua da fase em que parou
   const [localLiveDone, setLiveDone] = useState(true)
@@ -1233,7 +1242,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   const avanca = (jaResolvida: boolean) => {
     if (synced) { if (synced.isHost) void synced.command('next'); return }
     setStep(atual => {
-      const s = atual + 1
+      const s = atual + 1 === OITAVAS && semOit ? QUARTAS : atual + 1
       if (LIVE(s)) { setRoundKey(k => k + 1); setLiveDone(jaResolvida) }
       return s
     })
@@ -1496,14 +1505,14 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
 
   // 🎬 ABERTURA DA RODADA (Diego 13/10, só na SALA): bola parada e o próximo passo roda bola → o palco mostra o
   // caminho da Copa + os confrontos que vêm (bandeira×bandeira, o seu em destaque) + a contagem. Some ao rolar.
-  const proxPasso = step + 1
+  const proxPasso = step + 1 === OITAVAS && semOit ? QUARTAS : step + 1 // 🇪🇺 Copa de 16: depois do sorteio vêm as quartas
   const aberturaMundo = online && privateVisual && liveDone && !done && LIVE(proxPasso) ? (() => {
     const jogosProx: { h: number; a: number }[] = proxPasso <= GR ? world.groups.flatMap(g => g.matches[proxPasso - 1] ?? [])
       : proxPasso === OITAVAS ? world.r16 : proxPasso === QUARTAS ? world.qf : proxPasso === SEMI ? world.sf : [world.final]
     const minhaEm = (js: { h: number; a: number }[]) => js.some(j => isYou(j.h) || isYou(j.a))
     const ordem: { label: string; passos: number[]; jogos: { h: number; a: number }[] }[] = [
       { label: tr('GRUPOS', 'GROUPS'), passos: Array.from({ length: GR }, (_, i) => i + 1), jogos: world.groups.flatMap(g => g.matches.flat()) },
-      { label: tr('OITAVAS', 'R16'), passos: [OITAVAS], jogos: world.r16 }, { label: tr('QUARTAS', 'QF'), passos: [QUARTAS], jogos: world.qf },
+      ...(semOit ? [] : [{ label: tr('OITAVAS', 'R16'), passos: [OITAVAS], jogos: world.r16 }]), { label: tr('QUARTAS', 'QF'), passos: [QUARTAS], jogos: world.qf },
       { label: 'SEMI', passos: [SEMI], jogos: world.sf }, { label: 'FINAL', passos: [FINAL], jogos: [world.final] },
     ]
     const idxOn = ordem.findIndex(o => o.passos.includes(proxPasso))
@@ -1518,21 +1527,22 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
     // e quem caiu. Antes das oitavas é o resumo dos GRUPOS (16 passam, o resto cai, em linha corrida).
     if (synced?.row && resumoAberto(synced.row, synced.now)) {
       const sel = (i: number) => ({ nome: entrants[i].pais, crest: <NationalCrest country={entrants[i].pais} size={18} />, meu: isYou(i) })
-      const fechada: KoTie[] | null = proxPasso === QUARTAS ? world.r16 : proxPasso === SEMI ? world.qf : proxPasso === FINAL ? world.sf : null
-      const passaram = fechada ? fechada.map(t => sel(t.winner ?? t.h)) : world.r16.flatMap(t => [sel(t.h), sel(t.a)])
-      const dentro = new Set(fechada ? fechada.map(t => t.winner) : world.r16.flatMap(t => [t.h, t.a]))
+      const koIni = semOit ? world.qf : world.r16 // 🇪🇺 o 1º mata-mata (quartas na Copa de 16)
+      const fechada: KoTie[] | null = proxPasso === QUARTAS && !semOit ? world.r16 : proxPasso === SEMI ? world.qf : proxPasso === FINAL ? world.sf : null
+      const passaram = fechada ? fechada.map(t => sel(t.winner ?? t.h)) : koIni.flatMap(t => [sel(t.h), sel(t.a)])
+      const dentro = new Set(fechada ? fechada.map(t => t.winner) : koIni.flatMap(t => [t.h, t.a]))
       const cairam = fechada ? fechada.map(t => sel(t.winner === t.h ? t.a : t.h)) : entrants.map((_, i) => i).filter(i => !dentro.has(i)).map(sel)
-      const titulo = proxPasso === OITAVAS ? tr('FASE DE GRUPOS ENCERRADA', 'GROUP STAGE OVER') : proxPasso === QUARTAS ? tr('OITAVAS ENCERRADAS', 'ROUND OF 16 OVER') : proxPasso === SEMI ? tr('QUARTAS ENCERRADAS', 'QUARTER-FINALS OVER') : tr('SEMIFINAIS ENCERRADAS', 'SEMI-FINALS OVER')
+      const titulo = proxPasso === OITAVAS || (semOit && proxPasso === QUARTAS) ? tr('FASE DE GRUPOS ENCERRADA', 'GROUP STAGE OVER') : proxPasso === QUARTAS ? tr('OITAVAS ENCERRADAS', 'ROUND OF 16 OVER') : proxPasso === SEMI ? tr('QUARTAS ENCERRADAS', 'QUARTER-FINALS OVER') : tr('SEMIFINAIS ENCERRADAS', 'SEMI-FINALS OVER')
       const proxima = proxPasso === OITAVAS ? tr('OITAVAS', 'ROUND OF 16') : proxPasso === QUARTAS ? tr('QUARTAS', 'QUARTER-FINALS') : proxPasso === SEMI ? tr('SEMIFINAIS', 'SEMI-FINALS') : tr('A FINAL', 'THE FINAL')
       return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxima} seg={seg} total={total} cor="#2F6FDB" espera={espera} />
     }
     // 🎬 TÚNEL DA FINAL (23/10): a abertura da final vira o túnel na paleta da Copa do Mundo (mesmo relógio)
-    if (proxPasso === FINAL) { const f = world.final; return <TunelFinal comp="mundo" seg={seg} total={total} espera={espera} casa={{ nome: entrants[f.h].pais, crest: <NationalCrest country={entrants[f.h].pais} size={92} /> }} fora={{ nome: entrants[f.a].pais, crest: <NationalCrest country={entrants[f.a].pais} size={92} /> }} /> }
+    if (proxPasso === FINAL) { const f = world.final; return <TunelFinal comp={comp} seg={seg} total={total} espera={espera} casa={{ nome: entrants[f.h].pais, crest: <NationalCrest country={entrants[f.h].pais} size={92} /> }} fora={{ nome: entrants[f.a].pais, crest: <NationalCrest country={entrants[f.a].pais} size={92} /> }} /> }
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#2F6FDB" espera={espera} />
   })() : null
   return (
-    <TemaCompCtx.Provider value={online ? 'mundo' : null}>
-      {privateVisual ? <CompetitionStage kind="world" title={online ? tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP') : `${tr('COPA DO MUNDO LEGENDS · TEMPORADA', 'LEGENDS WORLD CUP · SEASON')} ${seasonNo}`} phase={done ? tr('Campeão definido', 'Champion decided') : step <= GR ? tr('Fase de grupos', 'Group stage') : step === SORTEIO ? tr('Sorteio do mata-mata', 'Knockout draw') : step === OITAVAS ? tr('Oitavas de final', 'Round of 16') : step === QUARTAS ? tr('Quartas de final', 'Quarter-finals') : step === SEMI ? tr('Semifinais', 'Semi-finals') : tr('A grande final', 'The grand final')} detail={step <= GR ? `${tr('Rodada', 'Round')} ${Math.max(1, gRound)} ${tr('de', 'of')} ${GR} · ${tr('passam os 2 primeiros de cada grupo + os 4 melhores 3ºs', 'top 2 of each group + the 4 best 3rd-placed go through')}` : step === SORTEIO ? tr('Dezesseis seleções classificadas · sorteio livre · jogo único', 'Sixteen teams through · open draw · one-off ties') : step <= SEMI ? tr('Jogo único · empate leva aos pênaltis', 'Single match · a draw goes to penalties') : tr('Jogo único · o campeão ganha uma carta', 'Single match · the champion wins a card')} status={!liveDone ? tr('Bola rolando · resultados revelados no ritmo da partida', 'Ball rolling · results revealed at match pace') : done ? tr('Competição encerrada', 'Competition over') : tr('Confira os resultados e a próxima fase', 'Check the results and the next stage')}>{aberturaMundo}</CompetitionStage> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
+    <TemaCompCtx.Provider value={online ? comp : null}>
+      {privateVisual ? <CompetitionStage kind="world" title={online ? (euro ? tr('EUROCOPA LEGENDS', 'LEGENDS EURO') : tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP')) : `${tr('COPA DO MUNDO LEGENDS · TEMPORADA', 'LEGENDS WORLD CUP · SEASON')} ${seasonNo}`} phase={done ? tr('Campeão definido', 'Champion decided') : step <= GR ? tr('Fase de grupos', 'Group stage') : step === SORTEIO ? tr('Sorteio do mata-mata', 'Knockout draw') : step === OITAVAS ? tr('Oitavas de final', 'Round of 16') : step === QUARTAS ? tr('Quartas de final', 'Quarter-finals') : step === SEMI ? tr('Semifinais', 'Semi-finals') : tr('A grande final', 'The grand final')} detail={step <= GR ? `${tr('Rodada', 'Round')} ${Math.max(1, gRound)} ${tr('de', 'of')} ${GR} · ${tr('passam os 2 primeiros de cada grupo + os 4 melhores 3ºs', 'top 2 of each group + the 4 best 3rd-placed go through')}` : step === SORTEIO ? tr('Dezesseis seleções classificadas · sorteio livre · jogo único', 'Sixteen teams through · open draw · one-off ties') : step <= SEMI ? tr('Jogo único · empate leva aos pênaltis', 'Single match · a draw goes to penalties') : tr('Jogo único · o campeão ganha uma carta', 'Single match · the champion wins a card')} status={!liveDone ? tr('Bola rolando · resultados revelados no ritmo da partida', 'Ball rolling · results revealed at match pace') : done ? tr('Competição encerrada', 'Competition over') : tr('Confira os resultados e a próxima fase', 'Check the results and the next stage')}>{aberturaMundo}</CompetitionStage> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
         {!privateVisual && <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>}
         <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>{tr('Copa do Mundo Legends', 'Legends World Cup')}</p>
@@ -1643,7 +1653,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
             {onlineWorldControls}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>{tr('⚔️ MATA-MATA', '⚔️ KNOCKOUTS')} <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'none' }}>{tr('(sorteio livre — jogo único)', '(open draw — one-off ties)')}</span><span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
-              {fase(world.r16, OITAVAS, tr('OITAVAS DE FINAL', 'ROUND OF 16'))}
+              {!semOit && fase(world.r16, OITAVAS, tr('OITAVAS DE FINAL', 'ROUND OF 16'))}
               {step >= QUARTAS && fase(world.qf, QUARTAS, tr('QUARTAS DE FINAL', 'QUARTER-FINALS'))}
               {step >= SEMI && fase(world.sf, SEMI, tr('SEMIFINAIS', 'SEMI-FINALS'))}
               {step === FINAL && liveDone && (
@@ -1658,23 +1668,23 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
         )
       })()}
 
-      {privateVisual && step > OITAVAS && <details className="ll26-bracket-history"><summary>{tr('OITAVAS ENCERRADAS · RESULTADOS E CLASSIFICADOS', 'ROUND OF 16 OVER · RESULTS AND QUALIFIERS')}</summary>{world.r16.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
+      {privateVisual && step > OITAVAS && !semOit && <details className="ll26-bracket-history"><summary>{tr('OITAVAS ENCERRADAS · RESULTADOS E CLASSIFICADOS', 'ROUND OF 16 OVER · RESULTS AND QUALIFIERS')}</summary>{world.r16.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
       {privateVisual && step > QUARTAS && <details className="ll26-bracket-history"><summary>{tr('QUARTAS ENCERRADAS · RESULTADOS E CLASSIFICADOS', 'QUARTERS OVER · RESULTS AND QUALIFIERS')}</summary>{world.qf.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
       {privateVisual && step > SEMI && <details className="ll26-bracket-history"><summary>{tr('SEMIFINAIS ENCERRADAS · RESULTADOS E FINALISTAS', 'SEMI-FINALS OVER · RESULTS AND FINALISTS')}</summary>{world.sf.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
       {step === SORTEIO && (
         // `color: INK` de propósito: dentro do modal cinematográfico o texto herda creme,
         // e a caixa é branca — o sorteio ficava ilegível (pego no print de 19/09).
         <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>{tr('🎲 O SORTEIO DAS OITAVAS (jogo único · ninguém reencontra o próprio grupo)', '🎲 THE ROUND-OF-16 DRAW (one-off · nobody meets their own group)')}</p>
-          {world.r16.map((t, i) => (
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>{semOit ? tr('🎲 O SORTEIO DAS QUARTAS (jogo único · ninguém reencontra o próprio grupo)', '🎲 THE QUARTER-FINAL DRAW (one-off · nobody meets their own group)') : tr('🎲 O SORTEIO DAS OITAVAS (jogo único · ninguém reencontra o próprio grupo)', '🎲 THE ROUND-OF-16 DRAW (one-off · nobody meets their own group)')}</p>
+          {(semOit ? world.qf : world.r16).map((t, i) => (
             <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}{(isYou(t.h) || isYou(t.a)) ? tr(' 👈 VOCÊ', ' 👈 YOU') : ''}</div>
           ))}
         </div>
       )}
 
-      {tunelMundo != null && tunelMundo > 0 && <div style={{ display: 'none' }}><TunelFinal comp="mundo" seg={tunelMundo} total={4} onFechar={fechaTunelMundo}
+      {tunelMundo != null && tunelMundo > 0 && <div style={{ display: 'none' }}><TunelFinal comp={comp} seg={tunelMundo} total={4} onFechar={fechaTunelMundo}
         casa={{ nome: entrants[world.final.h].pais, crest: <NationalCrest country={entrants[world.final.h].pais} size={92} /> }} fora={{ nome: entrants[world.final.a].pais, crest: <NationalCrest country={entrants[world.final.a].pais} size={92} /> }} /></div>}
-      {done && (online || isYou(world.final.champion)) && !festaMundoVista && <FestaCampeao comp="mundo" nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
+      {done && (online || isYou(world.final.champion)) && !festaMundoVista && <FestaCampeao comp={comp} nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
         souCampeao={isYou(world.final.champion)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
         artilheiro={(() => { const r = artilhariaDaCopa(world)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = [...copaStats(world, step, liveDone).assists].sort((x, y) => y.total - x.total || x.name.localeCompare(y.name))[0]; return r && r.total > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.total } : null })()}
@@ -1683,8 +1693,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       {done && (
         <div style={{ ...box(isYou(world.final.champion) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), padding: 14, marginBottom: 10, borderRadius: 14, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           {isYou(world.final.champion) && <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />}
-          <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}><Trofeu comp="mundo" size={64} /></div>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} {tr('CAMPEÃO DO MUNDO!', 'WORLD CHAMPION!')}</p>
+          <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}><Trofeu comp={comp} size={64} /></div>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{nm(world.final.champion)} {euro ? tr('CAMPEÃO DA EUROPA!', 'EUROPEAN CHAMPION!') : tr('CAMPEÃO DO MUNDO!', 'WORLD CHAMPION!')}</p>
           <p style={{ fontSize: 10.5, fontWeight: 800, margin: '3px 0 0', position: 'relative' }}>{online
             ? (isYou(world.final.champion)
               ? (getLang() === 'en' ? <>YOU ({club(world.final.champion)}) are the WORLD CHAMPION! 🎉 Title saved in your Rank + 🎴 the champion's card below.</> : <>VOCÊ ({club(world.final.champion)}) é o CAMPEÃO DO MUNDO! 🎉 Título gravado no seu Rank + 🎴 a carta do campeão aí embaixo.</>)
@@ -1701,7 +1711,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
           carreira. */}
       {finalSeen && online && isYou(world.final.champion) && (
         <div style={{ marginBottom: 10 }}>
-          <CardCollectPrompt motivo={tr('🌍 Campeão do Mundo Legends', '🌍 Legends World Cup champion')} seasonKey={online.seasonKey} origin="online" />
+          <CardCollectPrompt motivo={euro ? tr('🇪🇺 Campeão da Eurocopa Legends', '🇪🇺 Legends Euro champion') : tr('🌍 Campeão do Mundo Legends', '🌍 Legends World Cup champion')} seasonKey={online.seasonKey} origin="online" />
         </div>
       )}
       {finalSeen && !online && isYou(world.final.champion) && !jaGravada && (
@@ -1721,10 +1731,10 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
           const carta = entrants[r.team].xi.find(c => c.name === r.name)
           return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <NationalCrest country={entrants[r.team].pais} size={40} />, meu: isYou(r.team) }
         })
-        return <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA DO MUNDO', 'WORLD CUP TOP SCORER')} linhas={linhas} />
+        return <ArtilheiroCopaCard titulo={euro ? tr('ARTILHEIRO DA EUROCOPA', 'EURO TOP SCORER') : tr('ARTILHEIRO DA COPA DO MUNDO', 'WORLD CUP TOP SCORER')} linhas={linhas} />
       })()}
       {privateVisual && <details className="ll27-copa-stats">
-        <summary>{tr('ESTATÍSTICAS DA COPA DO MUNDO', 'WORLD CUP STATS')}</summary>
+        <summary>{euro ? tr('ESTATÍSTICAS DA EUROCOPA', 'EURO STATS') : tr('ESTATÍSTICAS DA COPA DO MUNDO', 'WORLD CUP STATS')}</summary>
         <p>{tr('Gols e assistências dos jogos encerrados desta Copa.', 'Goals and assists from the finished games of this Cup.')}</p>
         {Object.entries(copaStats(world,step,liveDone)).map(([kind,rows])=><section key={kind}>
           <h3>{kind==='goals'?tr('ARTILHEIROS', 'TOP SCORERS'):tr('ASSISTÊNCIAS', 'ASSISTS')}</h3>
