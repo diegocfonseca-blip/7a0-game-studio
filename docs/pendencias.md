@@ -1,3 +1,18 @@
+## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — no branch, SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
+- Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
+  MESMO `planosBots` que o motor usa: titulares cansados, lesionados, quantos vai poupar) e os 3 melhores do XI da rodada.
+- `CartaoRaioX` em central.tsx; conta em `renderCentral` (pyramidseason.tsx). Mockup: `scripts/mockup-raiox.mjs`.
+- ⏳ Falta: ele aprovar o visual e mandar publicar/liberar pra todos (`RAIOX_GERAL = true`).
+
+## 👑 Sala aberta × com senha + dono responsável (31/10, *"pode colocar só a 1 e 2. Publique"*) — ✅ PUBLICADO
+- Motivo: muita reclamação de dono que cria sala ABERTA e remove quem entra/está ganhando, ou larga no meio.
+- Feito (só aviso, nenhuma regra muda): texto embaixo de Aberta/Com senha (`ExplicaEntrada`), caixa "👑 Você é o dono da sala"
+  no resumo da criação (`DonoResponsavel`, celular e computador) e selo na lista de salas ("🔓 Aberta · qualquer um entra" /
+  "🔒 Só amigos · precisa da senha"). Mockup: `scripts/mockup-dono-responsavel.mjs`.
+- ⚠️ NÃO citar o botão SAIR nesses textos (ele quer testar a passagem de coroa antes).
+- ⏳ Ficou de fora (item 3 do mockup): a faixa amarela pro dono na sala de espera. E a ideia de, em sala aberta já começada,
+  o dono só poder remover quem estiver ausente — ainda não aprovada.
+
 ## 📉 PLANO PRA ALIVIAR O BANCO (30/10, depois da queda) — esperando o Diego escolher
 Medido nas últimas 24h (chamadas/dia): PATCH game_rooms 530k · GET game_rooms 500k · GET room_players 330k · /auth/v1/user 277k ·
 room_acoes 136k · live_beats 134k · esc_retrospecto 132k · user_cards 119k · esc_avisos 113k · esc_copa_salas 106k. E o realtime
@@ -11805,7 +11820,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   O maior gasto do banco continua sendo o REALTIME decodificando as gravações do game_rooms (~15 mil s de banco no pg_stat) —
   isso é o Grupo B (item 14), que mexe na sala. **Veredito: ainda NÃO dá pra voltar pro Small** sem atacar o Grupo B.
 
-## 🇪🇺 31/10 — LIGA + EUROCOPA nas salas (em teste, só na conta do Diego, NÃO publicado)
+## 🇪🇺 31/10 — LIGA + EUROCOPA nas salas — ✅ PUBLICADA pra todos com selo NOVO (main 260d249)
 - Diego: *"Eurocopa são 24 seleções… 6 grupos de 4, passam os 2 primeiros + os 4 melhores terceiros"* → formato único de 24
   (`formatoCopa(24)`, o mesmo motor da Copa do Mundo). A 1ª ideia de 16/32 foi descartada por ele.
 - Seleções: `EUROPA_24` em `copa-mundo-online.tsx` (15 que já fechavam + Polônia, Rússia, Romênia, Noruega, Ucrânia, Rep. Tcheca,

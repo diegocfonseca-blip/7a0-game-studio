@@ -41,6 +41,46 @@ const G_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)'
 export type CentralJogo = { h: string; a: string; hg: number; ag: number; hId: number; aId: number }
 export type CentralArte = 'estadio' | 'copaBr' | 'copaLeg' | 'super' | 'liberta' | 'champions' | 'mundial' | 'mundo'
 export type CentralAgenda = { arte: 'copaBr' | 'copaLeg' | 'liberta' | 'mundo'; titulo: [string, string]; sub: [string, string] }
+export type RaioX = {
+  nome: string
+  formacao: string
+  estilo: string
+  top: { nome: string; club: string; year: number; fame: number }[]
+  forma?: string
+  cansaco?: { cansados: number; lesionados: number; poupados: number } | null
+}
+const CATEG = (f: number, en: boolean) => f >= 5 ? (en ? '👑 Legend' : '👑 Lenda') : f === 4 ? (en ? '⭐ Star' : '⭐ Craque') : f >= 2 ? (en ? '🎯 Good' : '🎯 Bom') : (en ? '🪵 Pro' : '🪵 Profissional')
+function CartaoRaioX({ r }: { r: RaioX }) {
+  const t = useT()
+  const en = getLang() === 'en'
+  const lin = (rot: string, v: React.ReactNode) => (
+    <div className="ll-central-row" style={{ padding: '6px 11px', gap: 8, fontSize: 11.5, alignItems: 'center' }}>
+      <span style={{ width: 92, flex: 'none', color: '#6a6250', fontWeight: 800 }}>{rot}</span>
+      <span style={{ flex: 1, minWidth: 0, fontWeight: 800 }}>{v}</span>
+    </div>
+  )
+  const c = r.cansaco
+  return (
+    <div className="ll-central-card ll-c-raiox" style={{ background: CREME, color: INK }}>
+      <Cabecalho titulo={t('🔎 Raio-X do adversário', '🔎 Opponent scouting')} sub={r.nome} />
+      {lin(t('Formação', 'Formation'), <>{r.formacao} <span style={{ color: '#6a6250', fontWeight: 700 }}>· {r.estilo}</span></>)}
+      {lin(t('Últimos 5', 'Last 5'), r.forma ? <Forma f={r.forma} /> : <span style={{ color: '#888' }}>{t('ainda não jogou', 'no games yet')}</span>)}
+      {c && lin(t('Cansaço', 'Fitness'), c.cansados + c.lesionados + c.poupados === 0
+        ? <span style={{ color: '#1B7A3D' }}>{t('💪 time inteiro', '💪 fully fit')}</span>
+        : <>{[c.cansados ? t(`😓 ${c.cansados} titular${c.cansados > 1 ? 'es' : ''} cansado${c.cansados > 1 ? 's' : ''}`, `😓 ${c.cansados} tired starter${c.cansados > 1 ? 's' : ''}`) : '', c.lesionados ? t(`🚑 ${c.lesionados} lesionado${c.lesionados > 1 ? 's' : ''}`, `🚑 ${c.lesionados} injured`) : '', c.poupados ? t(`🔁 vai poupar ${c.poupados}`, `🔁 resting ${c.poupados}`) : ''].filter(Boolean).join(' · ')}</>)}
+      <div style={{ padding: '7px 11px 9px' }}>
+        <small style={{ ...OSW, fontSize: 10, letterSpacing: '.08em', color: '#7a7462' }}>{t('Os 3 melhores', 'Top 3')}</small>
+        {r.top.map((x, i) => (
+          <div key={x.nome + x.club + x.year} style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 4, fontSize: 11.5 }}>
+            <span style={{ width: 16 }}>{['🥇', '🥈', '🥉'][i]}</span>
+            <b style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.nome} <span style={{ fontWeight: 700, color: '#6a6250' }}>· {x.club} {x.year}</span></b>
+            <span style={{ fontSize: 10, fontWeight: 900, whiteSpace: 'nowrap' }}>{CATEG(x.fame, en)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 export type CentralProps = {
   seasonNo: number
   round: number
@@ -52,6 +92,9 @@ export type CentralProps = {
    *  após a liga devem ir mexendo também na central"*): `rotulo` troca o selo, `frase` troca a linha de
    *  baixo e `arte` troca o fundo pela arte da copa. Sem eles, é a liga de sempre. */
   proximo: { rodada: number; casa: string; fora: string; rolando: boolean; rotulo?: string; frase?: string; arte?: CentralArte } | null
+  /** 🔎 RAIO-X DO ADVERSÁRIO (31/10, só na conta do Diego por enquanto): o que o jogo JÁ sabe do rival da próxima
+   *  rodada da liga — formação, estilo, os 3 melhores do XI, cansaço (só com o gás ligado) e últimos 5. Nada inventado. */
+  raioX?: RaioX | null
   /** camarote sem jogo (convites, fim de temporada…): selo e frase próprios */
   palco?: { rotulo: string; frase?: string; arte?: CentralArte } | null
   /** forma recente por clube ('VVEVD', a mais recente por último) — só rodadas reveladas */
@@ -248,6 +291,7 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>}
 
+          {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
             <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
