@@ -162,8 +162,17 @@ const t1 = reducer(s, { type: 'MLD_FORMACAO', mgrId: 0, formation: outra } as ne
 const need2 = FORMATIONS[outra]
 const cabe = SECTORS.every(p => s.managers[0].squad.filter(c => c.pos === p).length >= need2[p])
 assert.equal(t1.managers[0].formation, cabe ? outra : f0, cabe ? 'formação trocada' : 'formação que não fecha é recusada')
+const botsAntes = JSON.stringify(s.managers.filter(m => !m.isHuman).map(m => m.squad.map(c => c.name)))
 s = reducer(s, { type: 'DRAFT_SEGUIR' } as never)
-assert.equal(s.screen, 'season'); assert.equal(s.seasonNo, 2); assert.equal(s.draft, null); assert.equal(s.draftFeito, 1)
+assert.equal(s.screen, 'season'); assert.equal(s.seasonNo, 2)
+const bots = s.managers.filter(m => !m.isHuman)
+const novos = bots.flatMap(m => m.squad.filter(c => c.id.startsWith('mlb')))
+assert.ok(JSON.stringify(bots.map(m => m.squad.map(c => c.name))) !== botsAntes && novos.length > 0, 'bots ganharam reforço calado')
+assert.ok(novos.every(c => c.fame >= 2 && c.fame <= 4 && !c.promessa), 'reforço de bot nunca é lenda nem promessa')
+assert.ok(bots.every(m => m.squad.length === JSON.parse(botsAntes)[bots.indexOf(m)].length), 'bot troca 1 por 1 (elenco do mesmo tamanho)')
+const todos = s.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => chaveNome(c.name)))
+assert.equal(new Set(todos).size, todos.length, 'ninguém repetido na liga depois do reforço')
+console.log('✅ bots: reforço calado em', novos.length, 'times (bom/craque, sem lenda)'); assert.equal(s.draft, null); assert.equal(s.draftFeito, 1)
 console.log('✅ escalação → temporada 2')
 
 // ⑪ elenco cheio (22): o draft exige quem sai, sem furar posição; o motor joga só com o XI

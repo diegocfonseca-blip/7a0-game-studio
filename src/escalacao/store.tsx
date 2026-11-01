@@ -7485,11 +7485,32 @@ function mldEscala(s: EscState): void {
 function mldComecaTemporada(s: EscState): void {
   const d = s.draft
   if (!d) return
+  mldReforcaBots(s)
   s.draftFeito = d.temporada
   const soma = d.somaTemporada !== false
   s.draft = null
   comecaTemporadaMesmoTime(s)
   if (soma) s.seasonNo++
+}
+// 🤖 reforço CALADO dos bots (01/11, Diego: *"não precisa fazer anúncio… não vai pegar lenda… o que sai volta pras sobras"*):
+// depois do draft e do leilão de vocês, cada bot troca o PIOR jogador de uma posição por um livre BOM ou CRAQUE (nunca lenda nem
+// promessa) — só se for melhor que ele. Quem sai volta a ser livre (a régua do "único na liga" é quem está num elenco). O foco
+// continua nos usuários: o bot escolhe por último, não sonda, não dá lance e não aparece em lugar nenhum.
+function mldReforcaBots(s: EscState): void {
+  const d = s.draft
+  if (!d) return
+  const rng = mulberry((s.seed ^ (0xB07 * (d.temporada + 1))) >>> 0)
+  const forcaC = (c: Card) => (c.fake ? -1 : c.fame) * 1000 + (c.hi ?? 0) * 2 + (c.lo ?? 0)
+  for (const m of s.managers) {
+    if (m.isHuman || !m.squad.length) continue
+    const pos = SECTORS[Math.floor(rng() * SECTORS.length)]
+    const pior = [...m.squad.filter(c => c.pos === pos)].sort((a, b) => forcaC(a) - forcaC(b))[0]
+    if (!pior) continue
+    const livres = cartasLivres(nomesOcupados(s.managers)).filter(c => c.pos === pos && c.fame >= 2 && c.fame <= 4 && !c.promessa && forcaC(c) > forcaC(pior))
+    if (!livres.length) continue
+    const nova = livres[Math.floor(rng() * livres.length)]
+    m.squad = m.squad.map(c => c.id === pior.id ? { ...nova, id: `mlb${d.temporada}-${m.id}`, paid: pior.paid ?? 1, via: 'leilao' } as WonCard : c)
+  }
 }
 // o próximo lote esperando "igualar" — ou, se não tem mais, aplica o leilão e vai pra escalação
 function mldProximoIgualar(s: EscState): void {

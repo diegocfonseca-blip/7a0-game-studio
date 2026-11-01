@@ -72,6 +72,8 @@
     durante a temporada. 🔨 O leilão dos sondados tem a cara do ENVELOPE de sempre (barra com TEMPO, − / +, LACRAR TUDO).
     Print: `scripts/mockups/minha-liga-draft-escalacao-leilao.png`.
     🕵️📋 **Na sua vez: os DOIS botões juntos** (Pegar do draft · Sondar um amigo), qualquer um começa os 45 s (01/11).
+    🤖 **Bots se reforçam CALADOS (01/11):** depois do draft/leilão, cada bot troca o pior de 1 posição por um livre bom/craque
+    (nunca lenda/promessa); quem sai volta a ser livre. Sem anúncio. Com/sem bots continua escolha de quem cria (sem bots = 4+).
     📏 **Tamanho da liga: 20 (padrão) ou 10 times**, bots completam; com mais de 10 pessoas cresce até caber (01/11, `tamanhoLiga`).
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
