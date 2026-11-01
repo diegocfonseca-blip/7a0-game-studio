@@ -18,8 +18,8 @@ Nada aprovado ainda. Todas ancoradas no que o jogo já tem (leilão, salas, Minh
 6. **🗓️ Desafio do Dia** — um leilão IGUAL pra todo mundo no dia (mesma semente, mesmas cartas, mesmos bots), na Partida
    Rápida. Ranking do dia de quem fez mais pontos; volta amanhã pra outro. Igual Wordle: dá papo no grupo. Servidor só guarda o
    resultado (1 linha por pessoa).
-7. **👑 Rei da Sala** — sala fixa que nunca fecha: quem ganha vira o REI e defende a coroa na partida seguinte. Contador de
-   defesas no nome ("👑 5 defesas"). Quem derruba o rei leva selo especial.
+7. **🥊 Cinturão da Sala** — sala fixa: quem ganha fica com o CINTURÃO e defende na partida seguinte. Contador de defesas no
+   nome ("🥊 5 defesas"). Quem derruba o campeão leva selo especial. (Nome "cinturão", não "coroa": coroa é o DONO da sala.)
 8. **⬆️⬇️ Minhas Ligas com Série A e Série B** — turma grande (20+) vira duas ligas ligadas: no fim da temporada os 4 últimos da A
    caem e os 4 primeiros da B sobem. A pirâmide da carreira, só que entre amigos.
 9. **🔎 Dica do Olheiro (opção da sala)** — cada técnico ganha 1 dica por posição no leilão: vê a faixa de nível de UMA carta
