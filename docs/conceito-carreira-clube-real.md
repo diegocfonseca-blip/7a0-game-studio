@@ -5,7 +5,7 @@ clube de verdade** (Flamengo, Real Madrid, Boca…). Daí pra frente é a carrei
 clube inventado.
 
 Mockups: `scripts/mockups/carreira-clube-real-2.png` (fluxo) · `scripts/mockups/carreira-clube-real.png` (1ª versão).
-Nada disto está no jogo ainda. Os itens marcados **❓** ainda precisam de resposta do Diego.
+Nada disto está no jogo ainda. Os itens marcados **❓** ainda precisam de resposta do Diego; os ✅ ele já decidiu.
 
 ---
 
@@ -65,11 +65,12 @@ Nada disto está no jogo ainda. Os itens marcados **❓** ainda precisam de resp
 ## 7. SAF e 2º clube
 - **Pode tudo, igual à carreira de sempre:** comprar SAF, assumir o comando dela, ter o 2º clube, vender, emprestar
   entre os dois. O clube real é o **principal**.
-- ❓ Se o 2º clube também puder ser real ou só inventado — sugestão: só inventado (simples e mantém o batismo).
+- ✅ **O 2º clube também pode ser real** (decidido 01/11), e ele **começa na última divisão (Várzea)**, com o mesmo sorteio
+  de 11 cartas fracas do clube escolhido. Não pode ser o mesmo clube do principal.
 
 ## 8. Ranking global, troféus, cartinhas
-- **Ranking global:** conta normal, como a carreira de sempre. ❓ (antes eu tinha sugerido contar só clube próprio — o
-  Diego decide).
+- ✅ **Ranking NOVO, só de clubes reais** (decidido 01/11). A carreira de clube real NÃO entra no ranking global de hoje
+  (que continua só de clube próprio) e ganha um ranking dela, com a mesma régua de pontos por título (`PTS_TITULO`).
 - Sala de troféus, cartinha de título, Bola de Ouro, artilharia, coleção: **tudo igual**.
 
 ## 9. O que NÃO muda (segurança)
