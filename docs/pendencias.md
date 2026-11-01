@@ -14,6 +14,17 @@
   lance; vendeu → o dinheiro vai pro dono; ninguém deu lance → volta pro dono de graça. Jogador do draft chega valendo 10 🪙.
   Draft não acaba: ~2.200 jogadores diferentes no jogo. Mockup: `scripts/mockup-ligas-sondar.mjs`.
   ❓ Em aberto: se o DONO ganha o próprio sondado, ele paga o lance (dinheiro some) ou fica de graça?
+- ✅ **VERSÃO FINAL (01/11, depois de muita volta — vale ESTA):** tudo AO VIVO, numa noite, sem prazo de 24 h.
+  · Começo de cada temporada nova: 📋 DRAFT na hora (ordem da tabela da anterior, suspense da Liga Draft, 30 s cada; quem não
+    está = o jogo escolhe) → 🔨 LEILÃO (T1 normal de 11; T2+ o time CONTINUA e o leilão é reforço) → ⚽ competição.
+  · Competição da temporada: LIGA (38 rodadas) ou ⚡ MATA-MATA RELÂMPAGO. Copa não. O dono escolhe a cada temporada o formato
+    (jogador/clubes/seleções · envelope/Tocaia/único/pregão · baralho), igual criar sala. Clubes/seleções: só dá lance quem tem
+    vaga pro pacote inteiro.
+  · Fim da temporada: 💰 moedas pela colocação (no Relâmpago: pela fase em que caiu).
+  · Faltou ou caiu: o time joga sozinho com a última escalação; volta e retoma da rodada atual; draft = o jogo escolhe; leilão =
+    não reforça (mas não perde ninguém).
+  · O dono pode excluir quem quiser (regra dele).
+  · Fica pra depois: sondar, elenco de 22, pirâmide de séries.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
