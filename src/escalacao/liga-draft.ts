@@ -19,6 +19,8 @@ import type { Card, Manager, Sector, WonCard } from './types'
 import { SECTORS } from './types'
 
 export const DRAFT_ESCOLHA_MS = 60_000
+// 📋🏆 MINHA LIGA DRAFT (01/11, Diego): 45 s por vez, e o relógio só corre depois que a pessoa aperta ✋ PRONTO
+export const DRAFT_ESCOLHA_MINHA_MS = 45_000
 export const DRAFT_PISTA_MS = 2_000
 // ⏱️ o anúncio: 4 tempos de pista (0 · 2 · 4 · 6 s), a carta vira aos 8 s e fica na tela até os 12 s
 export const DRAFT_VIRA_MS = 4 * DRAFT_PISTA_MS
@@ -34,10 +36,11 @@ export interface DraftEstado {
   temporada: number // a temporada que ACABOU (o draft é a ponte pra próxima)
   ordem: number[] // ids dos técnicos humanos, campeão primeiro
   idx: number // de quem é a vez
-  fase: 'escolha' | 'revela'
+  fase: 'escolha' | 'revela' | 'aguarda' // 'aguarda' = Minha Liga Draft: esperando o ✋ pronto de quem está na vez
   prazo: number // relógio do dono (ms): fim da escolha ou fim do anúncio
   inicioRevela?: number // quando o anúncio começou (as pistas contam a partir daqui)
   picks: DraftPick[]
+  pulados?: number[] // 📋🏆 Minha Liga Draft: quem perdeu a vez (o dono pulou ou o tempo acabou) — fica sem jogador do draft
   somaTemporada?: boolean // true = draft aberto no fim da temporada (a próxima soma +1); false = veio da sala de espera (o número já é o da próxima)
 }
 
@@ -144,7 +147,7 @@ export function paisDaCarta(c: { name: string; club: string; year: number }): st
 // (a mesma lista que monta os técnicos no lobby). Assento antigo → conta pelo `seatUids` (índice = id do humano).
 type PartidaGravada = {
   managers?: Manager[]; seatUids?: string[]; league?: { id: number; name: string; pts: number; w: number; gf: number; ga: number }[]
-  fixtures?: unknown[]; round?: number; seasonNo?: number; draftFeito?: number
+  fixtures?: unknown[]; round?: number; seasonNo?: number; draftFeito?: number; draft?: DraftEstado | null
 }
 export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]): DraftCarry | undefined {
   const mgrs = prev?.managers, seat = prev?.seatUids
@@ -164,6 +167,13 @@ export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]
     // mesma ordem da tabela do jogo (pontos → vitórias → saldo → gols pró → nome)
     const tab = [...prev.league].sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
     ordem = tab.map(t => novoDoVelho[t.id]).filter((x): x is number => x != null)
+    // 📋🏆 (01/11) o dono saiu NO MEIO do draft: a fila continua de onde parou — quem já escolheu (ou perdeu a vez) não
+    // escolhe de novo, e quem estava na vez ganha a vez inteira de novo (o elenco gravado já tem as escolhas feitas).
+    const d = prev.draft
+    if (d && d.temporada === prev.seasonNo && Array.isArray(d.ordem)) {
+      const jaFoi = d.fase === 'revela' ? d.idx + 1 : d.idx
+      ordem = d.ordem.slice(jaFoi).map(id => novoDoVelho[id]).filter((x): x is number => x != null)
+    }
   }
   return { squads, bots, draftFeito: prev.draftFeito, ordem, temporada: prev.seasonNo }
 }

@@ -50,7 +50,7 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useRelampagoLiberado, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasEsperaNova, useTelaPC } from './sport'
+import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasEsperaNova, useTelaPC } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -931,7 +931,14 @@ export function EscLobby() {
   // `ligaDraftSel` — assim a casa da turma (senha, dia/hora, troféus, dono fixo) vem inteira, sem caminho novo.
   const draftOn = useLigaDraftLiberada()
   const [ligaDraftSel, setLigaDraftSel] = useState(false)
-  const ehDraft = draftOn && ligaDraftSel
+  // 📋🏆 MINHA LIGA DRAFT (01/11): só Diego e Futpoint veem/criam. Por baixo é a Liga Draft (mesma tela de draft e anúncio), com
+  // a marca `minhaLigaDraft` (1ª temporada com leilão normal, 45 s com ✋ pronto, perde a vez). `ehDraft` vale pras duas.
+  const minhaOn = useMinhaLigaDraft()
+  const [minhaSel, setMinhaSel] = useState(false)
+  const ehMinha = minhaOn && minhaSel
+  const ehDraft = (draftOn && ligaDraftSel && !minhaSel) || ehMinha
+  const chaveSel = roomMode === 'liga' ? (minhaSel ? 'liga-minha' : ligaDraftSel ? 'liga-draft' : 'liga') : roomMode
+  const chaveModo = (m: { v: string; draft?: boolean; minha?: boolean }) => m.v === 'liga' ? (m.minha ? 'liga-minha' : m.draft ? 'liga-draft' : 'liga') : m.v
   const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
   const co2On = useCarreiraOnline2() // 🌐 carreira online v2 (19/10, só Diego)
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
@@ -1777,6 +1784,7 @@ export function EscLobby() {
       liga: gs?.mode === 'liga', // 🏆 o estado passa a saber que é Minhas Ligas (13/09)
       // 📋 LIGA DRAFT: os elencos da partida anterior voltam (o reducer só usa se TODO MUNDO já tinha time)
       ligaDraft: !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft,
+      minhaLigaDraft: !!(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft, // 📋🏆 Minha Liga Draft (01/11)
       campo2d: !!(gs as GS & { campo2d?: boolean })?.campo2d, // 📺 sala 2D (escolha do dono na criação)
       draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
     })
@@ -1976,7 +1984,7 @@ export function EscLobby() {
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
     // temporada. O campo fica no quadro da liga, lá na criação.
-    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
+    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehMinha ? 'My Draft League' : ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehMinha ? 'Minha Liga Draft' : ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
@@ -2054,7 +2062,7 @@ export function EscLobby() {
     const relampagoSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'relampago'
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true } : {}), deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -3448,10 +3456,11 @@ export function EscLobby() {
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
         // 🗂️ 26/10 (mockup v5 aprovado: *"agora pode publicar pra todos"*): ⭐ = precisa de plano pra CRIAR (quem tem plano usa
         // normal; jogar é sempre grátis) · `meta` = ainda não lançado: abre quando o Instagram bater N mil seguidores (faixa roxa)
-        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
+        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, estrela: true },
           { v: 'liga' as const, draft: true, ic: '📋', nome: 'Liga Draft', frase: tr('Todo mundo começa fraco. A cada temporada, 1 jogador no draft.', 'Everyone starts weak. Every season, 1 player in the draft.'), on: ligaOn && draftOn, emTeste: true, estrela: true, meta: 5 },
+          ...(minhaOn ? [{ v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: tr('Minha Liga Draft', 'My Draft League'), frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn, estrela: true, selo: tr('SÓ VOCÊS', 'PRIVATE') }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -3580,7 +3589,7 @@ export function EscLobby() {
         // ele é — mas aí a tela para ali: nada de configurar nem de criar. Mostrar
         // formulário de algo que não dá pra criar é promessa falsa.
         // (📋 26/10: a Liga Draft aparece pra todos, travada; o cartão ESCOLHIDO é o que vale — as duas são 'liga')
-        const modoEscolhido = MODOS.find(m => m.v === roomMode && (m.v !== 'liga' || !!m.draft === ligaDraftSel))
+        const modoEscolhido = MODOS.find(m => chaveModo(m) === chaveSel)
         const modoLiberado = modoEscolhido?.on ?? true
         // 🗂️ visual novo (só na conta do Diego): cada seção vira uma linha com o que está escolhido + o resumo antes do botão.
         // Só LÊ o que já foi escolhido (os mesmos estados de sempre) — nada aqui muda regra nem o que vai pro banco.
@@ -3590,7 +3599,7 @@ export function EscLobby() {
         const resumoTime = [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tr('🧱 Clubes', '🧱 Clubs') : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
         const resumoPartida = [rLeilao, rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
         const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
-        const nomeModo = MODOS.find(m => m.v === roomMode && (m.v !== 'liga' || !!m.draft === ehDraft))?.nome ?? ''
+        const nomeModo = MODOS.find(m => chaveModo(m) === chaveSel)?.nome ?? ''
         const EXPLICA: Record<string, string> = {
           rapido: tr('🔨 O leilão de sempre — uma temporada avulsa. Acabou o campeonato, acabou a sala.', '🔨 The usual auction — a one-off season. Championship over, room over.'),
           liga: tr('🏆 A liga da sua turma: você marca o dia e a hora, é sempre a MESMA sala, e os troféus ficam guardados nela — temporada após temporada.', '🏆 Your crew\'s league: you set the day and time, it\'s always the SAME room, and the trophies stay stored in it — season after season.'),
@@ -3629,7 +3638,7 @@ export function EscLobby() {
               {/* 🖥️ no computador os modos ficam TODOS à vista, lado a lado (Diego: "ficam tudo abertas, sem recolher") */}
               <div style={{ display: 'grid', gridTemplateColumns: desk ? 'repeat(auto-fill, minmax(200px, 1fr))' : '1fr 1fr', gap: 8 }}>
               {MODOS.map(m => {
-                const sel = roomMode === m.v && (m.v !== 'liga' || !!m.draft === ehDraft) // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
+                const sel = chaveModo(m) === chaveSel // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
                 // teste, então pra ele o cartão continua clicável — mas leva o selo,
                 // porque ele pediu pra ver a tela como quem não pode jogar
@@ -3641,7 +3650,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button key={m.v + (m.draft ? '-draft' : '')} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); }}
+                  <button key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha) }}
                     className="relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
                     style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
@@ -3659,7 +3668,7 @@ export function EscLobby() {
               </div>
               {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
               <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-2.5" style={{ background: CREAM }}>
-                <p className="text-white/65 text-[11px] font-bold leading-snug">{ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : EXPLICA[roomMode]}</p>
+                <p className="text-white/65 text-[11px] font-bold leading-snug">{minhaSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre (todas as categorias). Depois de cada temporada vem o DRAFT: na ordem da tabela (o campeão primeiro), cada técnico aperta ✋ PRONTO e tem 45 s pra pegar 1 jogador livre de todo o jogo. Quem não der pronto ou deixar o tempo acabar PERDE A VEZ. Cada jogador é único na liga.', '📋 Season 1 is the usual auction (every category). After each season comes the DRAFT: in table order (champion first), each manager taps ✋ READY and has 45 s to take 1 free player from the whole game. Whoever is not ready or runs out of time LOSES THE TURN. Each player is unique in the league.') : ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : EXPLICA[roomMode]}</p>
                 {modoEscolhido?.emTeste && !(modoEscolhido.meta && !nbaSala && !modoLiberado) && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
                     {getLang() === 'en' ? <>🔜 Still under construction — <b>creating</b> this mode unlocks soon. Keep an eye on the news!</> : <>🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!</>}

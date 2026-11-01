@@ -51,6 +51,13 @@
     e o dono vê a lista (✅/⏳). **O dono SEMPRE decide** quando começa (pode começar com gente faltando). No draft, cada vez
     também: quem está na vez dá "pronto" e aí corre o relógio de 45 s; não deu pronto → o dono pode ⏭ pular a vez dele. Nada
     começa nem volta sozinho depois de pausa: sempre pelo botão do dono.
+  · 🟢 **FASE 1 NO AR (01/11, *"já libere pra mim e Futpoint"*): modo "📋 Minha Liga Draft" no criar sala**, só Diego e Futpoint
+    (gfpicolo13) veem/criam (`MINHA_LIGA_DRAFT_*` em sport.ts); quem eles chamarem com código + senha joga normal. Por baixo é a
+    Liga Draft (MESMA tela e MESMO anúncio com a carta real) + a marca `minhaLigaDraft`: T1 leilão NORMAL · vez começa parada
+    (✋ pronto) · 45 s · dono ⏭ pula · tempo acabou = perde a vez (sem automático) · dono saiu no meio = volta de onde parou.
+    Trava `npm run minha-liga-draft`. Prints: `scripts/mockups/minha-liga-draft-telas.png`.
+    ⏳ **FASE 2 (falta):** 🕵️ sondar + 🔨 leilão dos sondados/à venda (igualar) · elenco de 22 + "quem sai" 30 s · ✋ prontos antes
+    de cada etapa · escalação 45 s · moedas pela colocação · jogador do draft valendo 10 🪙. (Hoje o draft troca 1 por 1 na mesma posição, time de 11.)
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)

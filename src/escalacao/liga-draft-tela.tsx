@@ -41,6 +41,8 @@ export function EscLigaDraft() {
   const vezId = d.ordem[d.idx]
   const daVez = state.managers.find(m => m.id === vezId)
   const minhaVez = d.fase === 'escolha' && vezId === you.id
+  const minha = !!state.minhaLigaDraft // 📋🏆 Minha Liga Draft: ✋ pronto, 45 s, perde a vez
+  const souDono = !online || state.isHost
   const restante = Math.max(0, Math.ceil((d.prazo - agora) / 1000))
   const ultimo = d.fase === 'revela' ? d.picks[d.picks.length - 1] : undefined
   const nome = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? '?'
@@ -56,12 +58,16 @@ export function EscLigaDraft() {
           </div>
         </div>
 
-        <OrdemDraft ordem={d.ordem} idx={d.idx} fase={d.fase} picks={d.picks} nome={nome} youId={you.id} />
+        <OrdemDraft ordem={d.ordem} idx={d.idx} fase={d.fase} picks={d.picks} pulados={d.pulados ?? []} nome={nome} youId={you.id} />
 
         {ultimo ? (
           <AnuncioDraft key={`${ultimo.mgrId}-${d.idx}`} pick={ultimo} n={d.idx + 1} quem={nome(ultimo.mgrId)} decorrido={agora - (d.inicioRevela ?? agora)} />
+        ) : d.fase === 'aguarda' ? (
+          <AguardaPronto n={d.idx + 1} quem={daVez?.teamName ?? '?'} minhaVez={vezId === you.id}
+            onPronto={() => dispatch({ type: 'DRAFT_PRONTO', mgrId: you.id, by: state.youUid })}
+            onPular={souDono && vezId !== you.id ? () => dispatch({ type: 'DRAFT_PULAR' }) : undefined} />
         ) : minhaVez ? (
-          <EscolhaDraft restante={restante} n={d.idx + 1} />
+          <EscolhaDraft restante={restante} n={d.idx + 1} minha={minha} />
         ) : (
           <div className="space-y-2.5">
             <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: ROXO, boxShadow: `3px 3px 0 ${INK}` }}>
@@ -70,7 +76,13 @@ export function EscLigaDraft() {
             </div>
             <Coberta etapa={0} />
             <p className="text-center font-black text-[13px]" style={{ ...OSW, color: restante <= 10 ? RED : INK }}>⏱ {restante}s</p>
-            <p className="text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, o jogo escolhe o melhor jogador livre por ele.', 'Nobody sees the pick until the card flips. If time runs out, the game takes the best free player for them.')}</p>
+            {minha && souDono && (
+              <button onClick={() => dispatch({ type: 'DRAFT_PULAR' })} className="w-full border-[3px] border-black rounded-xl py-2 uppercase"
+                style={{ ...OSW, fontSize: 15, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
+            )}
+            {minha ? (
+              <p className="text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, ele PERDE A VEZ.', 'Nobody sees the pick until the card flips. If time runs out, they LOSE THE TURN.')}</p>
+            ) : <p className="text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, o jogo escolhe o melhor jogador livre por ele.', 'Nobody sees the pick until the card flips. If time runs out, the game takes the best free player for them.')}</p>}
           </div>
         )}
       </div>
@@ -78,7 +90,33 @@ export function EscLigaDraft() {
   )
 }
 
-function OrdemDraft({ ordem, idx, fase, picks, nome, youId }: { ordem: number[]; idx: number; fase: 'escolha' | 'revela'; picks: DraftPick[]; nome: (id: number) => string; youId: number }) {
+// ✋ Minha Liga Draft: a vez começa PARADA. Quem está na vez aperta PRONTO (aí correm os 45 s); o dono pode pular quem não deu.
+function AguardaPronto({ n, quem, minhaVez, onPronto, onPular }: { n: number; quem: string; minhaVez: boolean; onPronto: () => void; onPular?: () => void }) {
+  const t = useT()
+  return (
+    <div className="space-y-2.5">
+      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: ROXO, boxShadow: `3px 3px 0 ${INK}` }}>
+        <p className="text-white/85 text-[12px] uppercase tracking-wider" style={OSW}>{t(`${n}ª escolha do draft`, `Draft pick #${n}`)}</p>
+        <p className="text-white uppercase leading-tight" style={{ ...OSW, fontSize: 24 }}>{minhaVez ? t('É a sua vez!', 'It\'s your turn!') : t(`Vez do ${quem}`, `${quem}'s turn`)}</p>
+      </div>
+      <Coberta etapa={0} />
+      {minhaVez ? (<>
+        <button onClick={onPronto} className="w-full border-[3px] border-black rounded-xl py-3 uppercase"
+          style={{ ...OSW, fontSize: 19, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('✋ Pronto, quero escolher', '✋ Ready, let me pick')}</button>
+        <p className="text-center text-[11.5px] font-bold text-black/60">{t('Quando apertar, você tem 45 s pra escolher. Acabou o tempo, perde a vez.', 'Once you tap, you have 45 s to pick. If time runs out, you lose the turn.')}</p>
+      </>) : (
+        <p className="text-center text-[12.5px] font-bold text-black/65">{t(`⏳ Esperando o ${quem} dizer que está pronto…`, `⏳ Waiting for ${quem} to say they're ready…`)}</p>
+      )}
+      {onPular && (<>
+        <button onClick={onPular} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
+          style={{ ...OSW, fontSize: 16, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
+        <p className="text-center text-[11px] font-bold text-black/55">{t('Só você (dono) vê. Quem é pulado fica sem jogador do draft nesta temporada.', 'Only you (owner) see this. Whoever is skipped gets no draft player this season.')}</p>
+      </>)}
+    </div>
+  )
+}
+
+function OrdemDraft({ ordem, idx, fase, picks, pulados, nome, youId }: { ordem: number[]; idx: number; fase: 'escolha' | 'revela' | 'aguarda'; picks: DraftPick[]; pulados: number[]; nome: (id: number) => string; youId: number }) {
   const t = useT()
   return (
     <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
@@ -87,13 +125,14 @@ function OrdemDraft({ ordem, idx, fase, picks, nome, youId }: { ordem: number[];
         const pick = picks.find(p => p.mgrId === id)
         // na hora do anúncio a carta ainda está coberta: o nome do escolhido só aparece depois que ela vira
         const escondido = i === idx && fase === 'revela'
-        const vez = i === idx && fase === 'escolha'
+        const vez = i === idx && fase !== 'revela'
+        const pulou = pulados.includes(id) && !pick
         return (
           <div key={id} className="flex items-center gap-2 px-3 py-1.5 border-t border-black/10" style={{ background: vez ? '#FFF1B8' : undefined }}>
             <span className="w-7 shrink-0" style={{ ...OSW, fontSize: 15 }}>{i + 1}º</span>
             <span className="flex-1 min-w-0 truncate text-[13px]" style={OSW}>{nome(id)}{id === youId ? t(' (você)', ' (you)') : ''}{i === 0 ? ' 🏆' : ''}</span>
             <span className="shrink-0 text-[12.5px]" style={{ ...OSW, color: pick && !escondido ? GREEN : vez ? RED : 'rgba(0,0,0,.35)' }}>
-              {pick && !escondido ? `✓ ${pick.carta.name}${pick.auto ? ' ⏱' : ''}` : vez ? t('⏱ NA VEZ', '⏱ ON THE CLOCK') : escondido ? '🥁' : '…'}
+              {pick && !escondido ? `✓ ${pick.carta.name}${pick.auto ? ' ⏱' : ''}` : pulou ? t('⏭ perdeu a vez', '⏭ lost the turn') : vez ? (fase === 'aguarda' ? t('✋ NA VEZ', '✋ UP NEXT') : t('⏱ NA VEZ', '⏱ ON THE CLOCK')) : escondido ? '🥁' : '…'}
             </span>
           </div>
         )
@@ -170,7 +209,7 @@ function AnuncioDraft({ pick, n, quem, decorrido }: { pick: DraftPick; n: number
   )
 }
 
-function EscolhaDraft({ restante, n }: { restante: number; n: number }) {
+function EscolhaDraft({ restante, n, minha }: { restante: number; n: number; minha?: boolean }) {
   const { state, dispatch } = useEsc()
   const t = useT()
   const you = state.managers[state.youIdx]
@@ -209,7 +248,7 @@ function EscolhaDraft({ restante, n }: { restante: number; n: number }) {
     <div className="space-y-2.5">
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>{t(`Sua vez · ${n}ª escolha`, `Your turn · pick #${n}`)}</p>
-        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> {t('pra escolher · acabou o tempo, o jogo pega o melhor livre pra você', 'to pick · if time runs out, the game takes the best free player for you')}</p>
+        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> {minha ? t('pra escolher · acabou o tempo, você perde a vez', 'to pick · if time runs out, you lose the turn') : t('pra escolher · acabou o tempo, o jogo pega o melhor livre pra você', 'to pick · if time runs out, the game takes the best free player for you')}</p>
       </div>
       {!carta ? (<>
         <input value={busca} onChange={e => setBusca(e.target.value)} placeholder={t('🔎 buscar jogador ou clube…', '🔎 search player or club…')}

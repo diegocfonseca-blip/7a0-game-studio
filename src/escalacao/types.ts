@@ -915,6 +915,7 @@ export interface EscState {
   // 📋 LIGA DRAFT (19/10, só a conta do Diego): liga do "Minhas Ligas" que começa com time fraco e, entre as temporadas,
   // abre a noite do draft (1 jogador por técnico, de todo o jogo, campeão primeiro). Regras em `liga-draft.ts`.
   ligaDraft?: boolean
+  minhaLigaDraft?: boolean // 📋🏆 Minha Liga Draft (01/11): T1 leilão normal, draft 45 s com ✋ pronto, perde a vez sem auto
   draft?: import('./liga-draft').DraftEstado | null
   draftFeito?: number // a temporada cujo draft já aconteceu (não abre duas vezes)
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim

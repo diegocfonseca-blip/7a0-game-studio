@@ -16,11 +16,12 @@ import type { EscState, Card } from '../../src/escalacao/types'
 const q = new URLSearchParams(location.search)
 const cena = q.get('cena') ?? 'escolha'
 const T = Number(q.get('t') ?? 0)
+const MINHA = q.get('minha') === '1' // 📋🏆 Minha Liga Draft (01/11): ?minha=1&cena=aguarda (sua vez, ✋ pronto) · cena=aguarda-dono (vez do outro, ⏭ pular)
 try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ }
 
 function monta(): EscState {
   let s = reducer({} as EscState, { type: 'NEW_GAME' } as never)
-  s = reducer(s, { type: 'START_ONLINE', ligaDraft: true, liga: true, seasonNo: 1, roomId: 'r', roomCode: 'DRAFT1', isHost: true, playerIndex: 0,
+  s = reducer(s, { type: 'START_ONLINE', ligaDraft: true, minhaLigaDraft: MINHA, liga: true, seasonNo: 1, roomId: 'r', roomCode: 'DRAFT1', isHost: true, playerIndex: 0,
     playerNames: ['Butinas FC', 'Fabulous EC', 'K9 FC', 'Tocaia SC'], seatUids: ['u0', 'u1', 'u2', 'u3'], formation: '4-3-3', deck: 'todos', copaMode: 'liga' } as never)
   // elencos fracos de verdade (profissional e bom) pros 4 humanos
   const usados = new Set(s.managers.flatMap(m => m.squad.map(c => chaveNome(c.name))))
@@ -43,9 +44,10 @@ function monta(): EscState {
   s = reducer(s, { type: 'DRAFT_ESCOLHER', mgrId: 2, carta: chaveCarta(romario), sai: s.managers[2].squad.find(c => c.pos === 'ATA')!.id } as never)
   const d = s.draft!
   if (cena === 'revela') { d.inicioRevela = Date.now() - T; d.prazo = Date.now() + 3_600_000 }
-  else { d.idx = 1; d.fase = 'escolha'; d.inicioRevela = undefined; d.prazo = Date.now() + 47_000 }
+  else if (cena.startsWith('aguarda')) { d.idx = 1; d.fase = 'aguarda'; d.inicioRevela = undefined; d.prazo = 0; d.pulados = [] }
+  else { d.idx = 1; d.fase = 'escolha'; d.inicioRevela = undefined; d.prazo = Date.now() + (MINHA ? 38_000 : 47_000) }
   s.onlineMode = 'cpu'; s.isHost = true
-  s.youIdx = cena === 'espera' ? 1 : 0 // espera: sou o Fabulous olhando o Butinas escolher
+  s.youIdx = cena === 'espera' || cena === 'aguarda-dono' ? 1 : 0 // espera: sou o Fabulous olhando o Butinas escolher
   return s
 }
 const ESTADO = monta()

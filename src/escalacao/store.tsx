@@ -1106,7 +1106,7 @@ import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
-import { ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_REVELA_MS, type DraftCarry } from './liga-draft' // 📋 Liga Draft (19/10)
+import { ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -2856,7 +2856,7 @@ function cpuAdjFor(s: EscState): { atk: number; def: number } {
     const b = s.nbaTier === 'nba' ? 6 : s.nbaTier === 'gleague' ? 3 : 0
     return { atk: b, def: b }
   }
-  const target = s.onlineMode === 'online' ? ((s.varzea || s.ligaDraft) ? VARZEA_BASE : ONLINE_BASE) : DIVISION_BASE[s.careerDivision ?? 'D'] // 📋 Liga Draft: os bots no nível do começo fraco
+  const target = s.onlineMode === 'online' ? ((s.varzea || (s.ligaDraft && !s.minhaLigaDraft)) ? VARZEA_BASE : ONLINE_BASE) : DIVISION_BASE[s.careerDivision ?? 'D'] // 📋 Liga Draft: os bots no nível do começo fraco
   return fillerAdj(s.managers, target)
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
@@ -5573,8 +5573,10 @@ type Action =
   | { type: 'RESUME_DINASTIA' }
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
+  | { type: 'DRAFT_PRONTO'; mgrId: number; by?: string } // 📋🏆 Minha Liga Draft: quem está na vez aperta ✋ pronto e o relógio de 45 s começa
+  | { type: 'DRAFT_PULAR' } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; envUnico?: boolean; ligaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -7407,7 +7409,8 @@ function proximoDoDraft(s: EscState): void {
   const d = s.draft
   if (!d) return
   d.idx++
-  if (d.idx < d.ordem.length) { d.fase = 'escolha'; d.inicioRevela = undefined; d.prazo = Date.now() + DRAFT_ESCOLHA_MS; return }
+  // 📋🏆 Minha Liga Draft: a vez do próximo começa PARADA, esperando o ✋ pronto dele (o relógio de 45 s só corre depois)
+  if (d.idx < d.ordem.length) { d.inicioRevela = undefined; if (s.minhaLigaDraft) { d.fase = 'aguarda'; d.prazo = 0 } else { d.fase = 'escolha'; d.prazo = Date.now() + DRAFT_ESCOLHA_MS } return }
   s.draftFeito = d.temporada
   const soma = d.somaTemporada !== false
   s.draft = null
@@ -7420,7 +7423,7 @@ function proximoDoDraft(s: EscState): void {
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
-  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
@@ -8868,8 +8871,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
+      s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       s.draft = null; s.draftFeito = undefined
-      const fracoInicial = onlineVarzea || s.ligaDraft
+      const fracoInicial = onlineVarzea || (s.ligaDraft && !s.minhaLigaDraft)
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = nbaCareerRoom // 🏀 online rápido/liga: não é a carreira salva; carreira online: é
@@ -9140,7 +9144,9 @@ function reducerBase(state: EscState, action: Action): EscState {
           comecaTemporadaMesmoTime(s)
           const ordem = (dc.ordem ?? []).filter(id => humanos.some(h => h.id === id))
           if (ordem.length && dc.temporada != null && dc.draftFeito !== dc.temporada) {
-            s.draft = { temporada: dc.temporada, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: false }
+            s.draft = s.minhaLigaDraft
+              ? { temporada: dc.temporada, ordem, idx: 0, fase: 'aguarda', prazo: 0, picks: [], somaTemporada: false }
+              : { temporada: dc.temporada, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: false }
             s.screen = 'draft'
           }
           return s
@@ -12518,7 +12524,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
       const ordem = ordemDoDraft(sortedTable(s.league), humanos)
       if (!ordem.length) return state
-      s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: true }
+      s.draft = s.minhaLigaDraft
+        ? { temporada: s.seasonNo, ordem, idx: 0, fase: 'aguarda', prazo: 0, picks: [], somaTemporada: true }
+        : { temporada: s.seasonNo, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: true }
       s.seasonVotes = {}
       s.screen = 'draft'
       return s
@@ -12536,9 +12544,32 @@ function reducerBase(state: EscState, action: Action): EscState {
       aplicaPickDraft(s, m, carta, sai, false)
       return s
     }
+    case 'DRAFT_PRONTO': {
+      // ✋ só quem está NA VEZ, e só enquanto a vez está parada esperando — repetido não reinicia o relógio
+      const d = s.draft
+      if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || d.fase !== 'aguarda' || d.ordem[d.idx] !== action.mgrId) return state
+      d.fase = 'escolha'
+      d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS
+      return s
+    }
+    case 'DRAFT_PULAR': {
+      // ⏭ só o DONO (o convidado nunca roda o reducer da sala) e nunca no meio do anúncio
+      const d = s.draft
+      if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || d.fase === 'revela' || (s.onlineMode === 'online' && !s.isHost)) return state
+      d.pulados = [...(d.pulados ?? []), d.ordem[d.idx]]
+      ;(s.marketLog = s.marketLog ?? []).push(`⏭ ${s.managers.find(m => m.id === d.ordem[d.idx])?.teamName ?? '?'} perdeu a vez no draft`)
+      proximoDoDraft(s)
+      return s
+    }
     case 'DRAFT_TICK': {
       const d = s.draft
-      if (!d || s.screen !== 'draft' || Date.now() < d.prazo) return state
+      if (!d || s.screen !== 'draft' || d.fase === 'aguarda' || Date.now() < d.prazo) return state
+      if (d.fase === 'escolha' && s.minhaLigaDraft) {
+        // 📋🏆 Minha Liga Draft: acabou o tempo = PERDE A VEZ (o jogo não escolhe por ninguém — ordem do Diego)
+        d.pulados = [...(d.pulados ?? []), d.ordem[d.idx]]
+        proximoDoDraft(s)
+        return s
+      }
       if (d.fase === 'escolha') {
         // ⏱️ acabou o tempo: o jogo pega o MELHOR livre e tira o mais fraco daquela posição (nunca trava a sala)
         const m = s.managers.find(x => x.id === d.ordem[d.idx])
@@ -14249,7 +14280,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       // 📋 a escolha do draft é recado ÚNICO (se sumir, o tempo acaba e o jogo escolhe por ele): vai pelas duas estradas
-      if (action.type === 'DRAFT_ESCOLHER' && stateRef.current.roomId) {
+      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO') && stateRef.current.roomId) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
@@ -14733,7 +14764,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
