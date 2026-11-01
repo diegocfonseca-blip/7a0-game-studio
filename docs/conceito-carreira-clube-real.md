@@ -18,25 +18,27 @@ Nada disto está no jogo ainda. Os itens marcados **❓** ainda precisam de resp
 ## 2. O começo
 1. **Nova carreira → como você quer começar?** 🛡️ Meu clube (como sempre) · 🌍 Clube real (⭐ com plano).
 2. **Escolha o clube.** Lista com escudo e filtro 🇧🇷 Brasil · 🇪🇺 Europa · 🌎 Mundo.
-3. **O sorteio dos 11.** O jogo sorteia 11 cartas DO CLUBE **só pela posição** (formação escolhida). Ninguém escolhe a dedo.
-4. **Todo mundo começa na Várzea** e sobe a escada inteira, igual à carreira de sempre.
-   - Pra fazer sentido na Várzea, o sorteio usa **só as cartas fracas do clube** (bom jogador e profissional — a régua
-     da Várzea de hoje). As lendas e craques do clube ficam no baralho e **aparecem no leilão conforme você sobe**
-     (Zico, Romário, Gabigol… você vai ter que ganhar no envelope).
-   - ❓ Ideia a mais: jogador do SEU clube que aparece no leilão ganha um selo ❤️ "é da casa" (só visual, sem vantagem).
-
+3. ✅ **O sorteio dos 11 é TOTALMENTE ALEATÓRIO** (decidido 01/11): 11 cartas do clube, só respeitando a posição da
+   formação, **de qualquer categoria**. Pode vir o Pelé no Cosmos, pode não vir lenda nenhuma — é sorte, igual ao leilão
+   às cegas. (O Diego pesou "o pior 11 do clube" e escolheu o aleatório: cada carreira nasce diferente, e o pior 11 é
+   injusto entre clubes — o do Peñarol é forte, o do Flamengo é fraco.)
+4. ✅ **Todo mundo começa na Várzea** e sobe a escada inteira, igual à carreira de sempre.
+   
 ## 3. Os clubes da lista
-- Entra quem consegue montar **11 só com cartas fracas, no 4-3-3 e no 4-4-2**.
-- **Hoje dá pra 17 clubes:** Flamengo, Corinthians, Palmeiras, São Paulo, Santos, Vasco, Botafogo, Grêmio, Internacional,
-  Real Madrid, Man United, Juventus, Chelsea, Liverpool, Arsenal, Sevilla, Newcastle.
-- **Mais 31 clubes** têm time completo, mas faltam cartas fracas (só têm craque/lenda numa posição — Milan sem goleiro
-  fraco, Barça e Bayern sem meia/zagueiro fraco, River e Peñarol quase sem carta fraca). São **73 cartas** de jogador
-  conhecido e comum (o reserva famoso, o folclórico do clube) pra todos entrarem.
-- ❓ **Lançar já com os 17** e ir somando, **ou** fazer as 73 cartas antes e lançar com os 48.
+- Entra quem tem **pelo menos 11 cartas pra fechar 4-3-3 e 4-4-2** (GOL 1 · LAT 2 · ZAG 2 · MEI 4 · ATA 3), de qualquer
+  categoria (o sorteio é aleatório de tudo).
+- ✅ **A lista: 100 clubes, em 5 grupos de 20**, na ordem dos melhores do mundo hoje (ordem montada no papo de 01/11 —
+  mockup `scripts/mockups/clube-real-100.png`). A ordem só decide **quem aparece primeiro** na tela de escolha; todo mundo
+  começa na Várzea.
+- Hoje **48 dos 100 já estão prontos**. Faltam **141 cartas** pra todos (A 0 · B 14 · C 28 · D 46 · V 53). Muitos clubes
+  precisam de só +1 (Lazio, Celtic, Colo-Colo, Racing, LDU, Bahia, Olimpia…).
+- ❓ Lançar com os prontos e ir somando, ou fazer as 141 cartas antes.
 - Clube novo na lista = rodar a conferência (vai virar trava: `npm run clube-real`).
 
 ## 4. O leilão e o elenco
-- O leilão é **o envelope de sempre**, com a **escada de categorias de sempre** (Várzea só bom/profissional, e por aí vai).
+- O leilão é **o envelope de sempre**, mas ✅ **MISTURADO desde a Várzea** (decidido 01/11): qualquer jogador, lenda
+  inclusive, em todas as divisões — sem a régua de categorias da carreira nova. Os bots também disputam tudo, então a
+  sorte do sorteio não decide a carreira sozinha. (O jogo já sabe fazer isso: é o jeito das carreiras de antes da régua.)
 - As outras cartas do seu clube (as que não saíram no sorteio) vão pro baralho como qualquer carta.
 - Contrato, salário, piso, renovação, condição física, Agência, técnico, preparador — **tudo igual**.
 - Os rivais na tabela são **os bots de sempre**. Os outros clubes reais não viram rivais; são só a lista de escolha.
@@ -66,7 +68,7 @@ Nada disto está no jogo ainda. Os itens marcados **❓** ainda precisam de resp
 - **Pode tudo, igual à carreira de sempre:** comprar SAF, assumir o comando dela, ter o 2º clube, vender, emprestar
   entre os dois. O clube real é o **principal**.
 - ✅ **O 2º clube também pode ser real** (decidido 01/11), e ele **começa na última divisão (Várzea)**, com o mesmo sorteio
-  de 11 cartas fracas do clube escolhido. Não pode ser o mesmo clube do principal.
+  de 11 cartas (aleatório) do clube escolhido. Não pode ser o mesmo clube do principal.
 
 ## 8. Ranking global, troféus, cartinhas
 - ✅ **Ranking NOVO, só de clubes reais** (decidido 01/11). A carreira de clube real NÃO entra no ranking global de hoje
@@ -80,7 +82,7 @@ Nada disto está no jogo ainda. Os itens marcados **❓** ainda precisam de resp
 - Marca nova de modo entra na lista `MARCAS_DE_MODO` (zerada em todo começo de carreira) — trava `npm run carreira-limpa`.
 
 ## 10. Como construir (etapas)
-1. **Lista de clubes + sorteio** (motor puro, sem tela) + trava `npm run clube-real`: todo clube da lista fecha 11 fraco
+1. **Lista de clubes + sorteio** (motor puro, sem tela) + trava `npm run clube-real`: todo clube da lista fecha 11
    nos dois esquemas, o sorteio nunca repete carta, as cartas do clube voltam pro baralho.
 2. **Tela de começo** (3 passos do mockup) — só na conta do Diego primeiro.
 3. **Escudo/manto/nome** do clube real em todos os lugares onde aparece o clube do usuário.
