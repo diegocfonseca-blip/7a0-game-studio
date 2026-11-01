@@ -1330,7 +1330,7 @@ export function YourPitch({ small = false }: { small?: boolean }) {
   const mantoAng = meuMantoAngle()
   const mantoC3 = meuMantoC3() // 🟢 3ª cor (só do próprio dono, ex.: Desportivo Montreal)
   const mantoC3Buf = meuMantoC3Buffer() // 🚫🔴⚫ amortecedor: pro Arruda, vermelho não pode encostar em preto
-  if (state.reserveAuction) {
+  if (state.reserveAuction || (state.minhaLigaDraft && shown.squad.length > 11)) { // 📋🏆 Minha Liga Draft: até 22 = titulares + banco
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
     const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
@@ -11362,7 +11362,8 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
     if (data && new Set((data as { user_id: string }[]).map(p => p.user_id)).size < 2) { await vaiPraEsperaSozinho(); return }
     if (data) {
       const ativos = new Set((data as { player_index: number }[]).map(p => p.player_index))
-      for (const m of state.managers.filter(m => m.isHuman && m.id !== youId)) if (!ativos.has(m.id)) kickPlayer(m.id)
+      // 📋🏆 Minha Liga Draft: quem não está NÃO sai da liga (o time segue; no draft ele perde a vez)
+      if (!state.minhaLigaDraft) for (const m of state.managers.filter(m => m.isHuman && m.id !== youId)) if (!ativos.has(m.id)) kickPlayer(m.id)
       await new Promise(r => setTimeout(r, 120))
     }
     dispatch({ type: 'DRAFT_ABRIR' })

@@ -50,7 +50,18 @@ s.screen = 'end'
 s = reducer(s, { type: 'DRAFT_ABRIR' } as never)
 assert.equal(s.screen, 'draft')
 assert.deepEqual(s.draft!.ordem, [0, 1, 2, 3])
+assert.equal(s.draft!.fase, 'prontos', 'antes do draft: ✋ prontos (o dono decide quando começa)')
+const caixaAntes = 0
+assert.ok(s.draft!.premios && s.draft!.premios[0] === 40 && s.draft!.premios[3] === 20, 'moedas pela colocação: 1º 40 · 4º 20')
+assert.equal(reducer({ ...s, isHost: false, onlineMode: 'online' } as EscState, { type: 'DRAFT_SEGUIR', by: 'u1' } as never).draft!.fase, 'prontos', 'convidado não começa o draft')
+s = reducer(s, { type: 'DRAFT_ESTOU_PRONTO', mgrId: 1 } as never)
+assert.deepEqual(s.draft!.prontos, [1])
+// Tocaia põe 1 jogador à venda
+const vendaTocaia = s.managers[3].squad.find(c => c.pos === 'MEI')!
+s = reducer(s, { type: 'DRAFT_VENDER', mgrId: 3, cardId: vendaTocaia.id } as never)
+s = reducer(s, { type: 'DRAFT_SEGUIR' } as never)
 assert.equal(s.draft!.fase, 'aguarda', 'a vez começa parada, esperando o pronto')
+void caixaAntes
 
 // ③ o relógio não corre sem pronto; só quem está na vez dá pronto
 avanca(10 * 60_000)
@@ -66,6 +77,8 @@ assert.equal(s.draft!.prazo, prazo, 'pronto repetido não reinicia o relógio')
 const lenda = todasAsCartas().find(c => c.fame === 5 && c.pos === 'ATA' && !usados.has(chaveNome(c.name)))!
 s = reducer(s, { type: 'DRAFT_ESCOLHER', mgrId: 0, carta: chaveCarta(lenda), sai: s.managers[0].squad.find(c => c.pos === 'ATA')!.id } as never)
 assert.equal(s.draft!.fase, 'revela')
+assert.equal(s.managers[0].squad.length, 12, 'com vaga (menos de 22) ninguém sai: o elenco cresce')
+assert.equal(s.managers[0].squad.at(-1)!.paid, 10, 'jogador do draft chega valendo 10')
 assert.equal(reducer(s, { type: 'DRAFT_PULAR' } as never), s, 'ninguém pula no meio do anúncio')
 avanca(DRAFT_REVELA_MS); s = reducer(s, { type: 'DRAFT_TICK' } as never)
 assert.equal(s.draft!.idx, 1); assert.equal(s.draft!.fase, 'aguarda', 'próxima vez também começa parada')
@@ -95,9 +108,73 @@ assert.deepEqual(s.draft!.pulados, [1, 2]); assert.equal(s.draft!.picks.length, 
 assert.equal(JSON.stringify(s.managers[2].squad), antes, 'o elenco do K9 não mudou')
 console.log('✅ pulado pelo dono e tempo esgotado = perdeu a vez, sem jogador')
 
-// ⑧ Tocaia é pulado → acabou a fila, temporada 2 começa
-s = reducer(s, { type: 'DRAFT_PULAR' } as never)
+// ⑧ Tocaia dá pronto e SONDA o Romário… quer dizer, a lenda do Butinas → perde a vez, fila acaba
+s = reducer(s, { type: 'DRAFT_PRONTO', mgrId: 3 } as never)
+const alvo = s.managers[0].squad.find(c => c.name === lenda.name)!
+assert.equal(reducer(s, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 3, cardId: vendaTocaia.id } as never).draft!.sondagens!.length, 0, 'não sonda a si mesmo')
+s = reducer(s, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 0, cardId: alvo.id } as never)
+assert.equal(s.draft!.fase, 'prontos'); assert.equal(s.draft!.proxima, 'leilao')
+assert.equal(s.draft!.lotes!.length, 2, 'lotes: o sondado + o que o Tocaia pôs à venda')
+const iS = s.draft!.lotes!.findIndex(l => l.sondador === 3), iV = s.draft!.lotes!.findIndex(l => l.sondador == null)
+console.log('✅ sondou', alvo.name, '· lotes:', s.draft!.lotes!.map(l => l.carta.name).join(', '))
+
+// ⑨ leilão: K9 dá o maior lance no sondado, Fabulous compra o à venda; Tocaia (quem sondou) IGUALA
+s = reducer(s, { type: 'DRAFT_SEGUIR' } as never)
+assert.equal(s.draft!.fase, 'leilao')
+for (const m of s.managers) if (m.isHuman) m.money = 100
+const piso = s.draft!.lotes![iS].piso
+assert.equal(reducer(s, { type: 'DRAFT_LANCE', mgrId: 2, lote: iS, valor: piso - 1 } as never).draft!.lances?.[iS]?.[2], undefined, 'abaixo do piso é recusado')
+assert.equal(reducer(s, { type: 'DRAFT_LANCE', mgrId: 2, lote: iS, valor: 101 } as never).draft!.lances?.[iS]?.[2], undefined, 'acima do caixa é recusado')
+s = reducer(s, { type: 'DRAFT_LANCE', mgrId: 2, lote: iS, valor: 50 } as never)
+s = reducer(s, { type: 'DRAFT_LANCE', mgrId: 3, lote: iS, valor: 30 } as never)
+s = reducer(s, { type: 'DRAFT_LANCE', mgrId: 1, lote: iV, valor: 20 } as never)
+avanca(60_000); s = reducer(s, { type: 'DRAFT_TICK' } as never)
+assert.equal(s.draft!.fase, 'igualar'); assert.equal(s.draft!.igualarIdx, iS)
+assert.equal(reducer(s, { type: 'DRAFT_IGUALAR', mgrId: 2, sim: true } as never).draft!.lotes![iS].igualou, undefined, 'só quem sondou iguala')
+s = reducer(s, { type: 'DRAFT_IGUALAR', mgrId: 3, sim: true } as never)
+assert.equal(s.draft!.fase, 'escala')
+const tocaia = s.managers[3], butinas = s.managers[0], fab = s.managers[1], k9 = s.managers[2]
+assert.ok(tocaia.squad.some(c => c.name === lenda.name), 'Tocaia igualou e levou a lenda')
+assert.ok(!butinas.squad.some(c => c.name === lenda.name), 'saiu do Butinas')
+assert.equal(butinas.money, 150, 'o dono recebeu os 50')
+assert.equal(tocaia.money, 100 - 50 + 20, 'Tocaia pagou 50 e recebeu 20 da venda')
+assert.equal(k9.money, 100, 'o K9 não pagou nada (perdeu no igualar)')
+assert.ok(fab.squad.some(c => c.name === vendaTocaia.name) && fab.money === 80, 'Fabulous comprou o à venda por 20')
+const need = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 } as const
+for (const m of [butinas, tocaia]) for (const p of SECTORS) assert.ok(m.squad.filter(c => c.pos === p).length >= need[p], `${m.teamName} fecha a formação em ${p}`)
+console.log('✅ leilão: K9 50 · Tocaia igualou · venda do Tocaia pro Fabulous · ninguém ficou furado')
+
+// ⑩ escalação: troca titular ↔ reserva da mesma posição; o dono começa a temporada
+const ata = butinas.squad.filter(c => c.pos === 'ATA')
+if (ata.length > 3) {
+  s = reducer(s, { type: 'MLD_TROCA', mgrId: 0, a: ata[0].id, b: ata[3].id } as never)
+  assert.equal(s.managers[0].squad.filter(c => c.pos === 'ATA')[0].id, ata[3].id, 'o reserva virou titular')
+}
+const gol = s.managers[0].squad.find(c => c.pos === 'GOL')!
+assert.equal(reducer(s, { type: 'MLD_TROCA', mgrId: 0, a: gol.id, b: ata[0].id } as never), s, 'posições diferentes não trocam')
+s = reducer(s, { type: 'DRAFT_SEGUIR' } as never)
 assert.equal(s.screen, 'season'); assert.equal(s.seasonNo, 2); assert.equal(s.draft, null); assert.equal(s.draftFeito, 1)
-console.log('✅ fim da fila → temporada 2')
+console.log('✅ escalação → temporada 2')
+
+// ⑪ elenco cheio (22): o draft exige quem sai, sem furar posição; o motor joga só com o XI
+const cheio = JSON.parse(JSON.stringify(s)) as EscState
+const m0 = cheio.managers[0]
+const extra = todasAsCartas().filter(c => c.fame <= 2 && !c.promessa && !cheio.managers.some(m => m.squad.some(x => chaveNome(x.name) === chaveNome(c.name))))
+for (let i = 0; m0.squad.length < 22; i++) m0.squad.push({ ...extra[i], id: `x${i}`, paid: 1, via: 'leilao' } as never)
+cheio.league = cheio.league.map(t => ({ ...t })); cheio.round = 38; cheio.screen = 'end'
+let c2 = reducer(cheio, { type: 'DRAFT_ABRIR' } as never)
+c2 = reducer(c2, { type: 'DRAFT_SEGUIR' } as never)
+const vez = c2.draft!.ordem[0]
+c2.draft!.ordem = [0, ...c2.draft!.ordem.filter(x => x !== 0)]; void vez
+c2 = reducer(c2, { type: 'DRAFT_PRONTO', mgrId: 0 } as never)
+const nova = todasAsCartas().find(c => c.pos === 'GOL' && !c2.managers.some(m => m.squad.some(x => chaveNome(x.name) === chaveNome(c.name))))!
+assert.equal(reducer(c2, { type: 'DRAFT_ESCOLHER', mgrId: 0, carta: chaveCarta(nova), sai: '' } as never), c2, 'elenco cheio: tem que dizer quem sai')
+const unicoGol = c2.managers[0].squad.filter(c => c.pos === 'GOL')
+const zag = c2.managers[0].squad.filter(c => c.pos === 'ZAG')
+if (zag.length === 2) assert.equal(reducer(c2, { type: 'DRAFT_ESCOLHER', mgrId: 0, carta: chaveCarta(nova), sai: zag[0].id } as never), c2, 'não pode tirar quem fura a posição')
+c2 = reducer(c2, { type: 'DRAFT_ESCOLHER', mgrId: 0, carta: chaveCarta(nova), sai: unicoGol[0].id } as never)
+assert.equal(c2.managers[0].squad.length, 22, 'continua com 22')
+console.log('✅ elenco cheio: escolhe quem sai, sem furar posição')
+console.log('📋🏆 Minha Liga Draft (fase 2): tudo certo')
 console.log('📋🏆 Minha Liga Draft: tudo certo')
 process.exit(0)

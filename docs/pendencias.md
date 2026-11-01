@@ -56,8 +56,18 @@
     Liga Draft (MESMA tela e MESMO anúncio com a carta real) + a marca `minhaLigaDraft`: T1 leilão NORMAL · vez começa parada
     (✋ pronto) · 45 s · dono ⏭ pula · tempo acabou = perde a vez (sem automático) · dono saiu no meio = volta de onde parou.
     Trava `npm run minha-liga-draft`. Prints: `scripts/mockups/minha-liga-draft-telas.png`.
-    ⏳ **FASE 2 (falta):** 🕵️ sondar + 🔨 leilão dos sondados/à venda (igualar) · elenco de 22 + "quem sai" 30 s · ✋ prontos antes
-    de cada etapa · escalação 45 s · moedas pela colocação · jogador do draft valendo 10 🪙. (Hoje o draft troca 1 por 1 na mesma posição, time de 11.)
+    🟢 **FASE 2 FEITA (01/11, *"não, já faça tudinho"*), ainda só Diego + Futpoint:** fim da temporada = 💰 moedas pela
+    colocação (40·32·26·20·16·14·12·10·8, depois 6) + ✋ prontos (o dono começa) → draft (✋ pronto · 45 s · 📋 escolher OU
+    🕵️ sondar · 🏷️ cada um pode pôr 1 jogador à venda) → ✋ prontos → 🔨 leilão de 60 s em envelope (lance mínimo = o que o dono
+    pagou; empate: dono → quem sondou) → ⚡ quem sondou pode IGUALAR (15 s) → 👕 escalação (45 s, troca titular↔reserva tocando) →
+    o dono começa a temporada. Elenco até 22 (jogador do draft entra no banco valendo 10 🪙; cheio = escolhe quem sai sem furar
+    posição). O jogo usa só o XI (os primeiros de cada posição = o que o campinho mostra); o banco aparece no campinho de baixo.
+    Trava `npm run minha-liga-draft`. Prints: `scripts/mockups/minha-liga-draft-fase2.png`.
+    ⚠️ **Decisões que EU tomei (confirmar com o Diego):** (1) o dono que segura o próprio jogador PAGA o lance (o dinheiro some —
+    senão ele chutava 999 de graça); (2) quem ganha no leilão com elenco cheio perde sozinho o reserva mais barato (sem janela de
+    30 s); (3) o dono que perde um jogador e fica faltando gente na posição ganha um livre (profissional/bom) de graça; (4) o dono
+    saindo no meio do LEILÃO/ESCALAÇÃO: na volta pula direto pra temporada (os lotes caem; o draft já feito fica); (5) trocar
+    titular durante a temporada ainda não tem tela — só na escalação de 45 s.
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)

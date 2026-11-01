@@ -43,6 +43,24 @@ function monta(): EscState {
   const romario = todasAsCartas().find(c => c.name === 'Romário' && c.club === 'Vasco' && c.year === 2000)!
   s = reducer(s, { type: 'DRAFT_ESCOLHER', mgrId: 2, carta: chaveCarta(romario), sai: s.managers[2].squad.find(c => c.pos === 'ATA')!.id } as never)
   const d = s.draft!
+  // 📋🏆 Minha Liga Draft (fase 2): ?minha=1&cena=prontos | leilao | igualar | escala | sondar
+  if (MINHA && ['prontos', 'leilao', 'igualar', 'escala'].includes(cena)) {
+    s.onlineMode = 'cpu'; s.isHost = true; s.youIdx = cena === 'igualar' ? 3 : 0
+    for (const m of s.managers) if (m.isHuman) m.money = 120
+    if (cena === 'prontos') { d.prontos = [2, 1] ; return s }
+    const r = s.managers[2].squad.find(c => c.pos === 'ATA')!
+    const v = s.managers[3].squad.find(c => c.pos === 'MEI')!
+    d.lotes = [{ dono: 2, sondador: 3, carta: { ...r }, piso: 38 }, { dono: 3, carta: { ...v }, piso: 6 }]
+    if (cena === 'leilao') { d.fase = 'leilao'; d.prazo = Date.now() + 41_000; d.lances = { 0: { 0: 45 } } }
+    if (cena === 'igualar') { d.fase = 'igualar'; d.igualarIdx = 0; d.lotes[0].vencedor = 1; d.lotes[0].valor = 52; d.lotes[0].igualar = true; d.prazo = Date.now() + 12_000 }
+    if (cena === 'escala') {
+      d.fase = 'escala'; d.prazo = Date.now() + 33_000; d.prontos = [1]
+      d.lotes[0].vencedor = 1; d.lotes[0].valor = 52; d.lotes[1].vencedor = 3; d.lotes[1].valor = 0
+      const extra = todasAsCartas().filter(c => c.fame >= 3 && !s.managers.some(m => m.squad.some(x => chaveNome(x.name) === chaveNome(c.name))))
+      for (const pos of ['ATA', 'MEI', 'ZAG', 'GOL'] as const) { const c = extra.find(x => x.pos === pos)!; s.managers[0].squad.push({ ...c, id: `e${pos}`, paid: 10, via: 'leilao' } as never) }
+    }
+    return s
+  }
   if (cena === 'revela') { d.inicioRevela = Date.now() - T; d.prazo = Date.now() + 3_600_000 }
   else if (cena.startsWith('aguarda')) { d.idx = 1; d.fase = 'aguarda'; d.inicioRevela = undefined; d.prazo = 0; d.pulados = [] }
   else { d.idx = 1; d.fase = 'escolha'; d.inicioRevela = undefined; d.prazo = Date.now() + (MINHA ? 38_000 : 47_000) }
@@ -55,6 +73,14 @@ const ESTADO = monta()
 function Bancada() {
   const { dispatch } = useEsc()
   useEffect(() => { dispatch({ type: 'SYNC_STATE', newState: ESTADO } as never) }, [dispatch])
+  useEffect(() => {
+    if (cena !== 'sondar') return
+    const iv = setInterval(() => {
+      const b = [...document.querySelectorAll('button')].find(x => x.textContent?.includes('sondar um amigo'))
+      if (b) { (b as HTMLButtonElement).click(); clearInterval(iv); setTimeout(() => (document.querySelectorAll('.max-h-80 button')[0] as HTMLButtonElement | undefined)?.click(), 300) }
+    }, 200)
+    return () => clearInterval(iv)
+  }, [])
   useEffect(() => {
     if (cena !== 'sai') return
     const iv = setInterval(() => {
