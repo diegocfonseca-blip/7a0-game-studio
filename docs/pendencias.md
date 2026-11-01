@@ -24,7 +24,10 @@
   · Faltou ou caiu: o time joga sozinho com a última escalação; volta e retoma da rodada atual; draft = o jogo escolhe; leilão =
     não reforça (mas não perde ninguém).
   · O dono pode excluir quem quiser (regra dele).
-  · Fica pra depois: sondar, elenco de 22, pirâmide de séries.
+  · Elenco até 22: na T2+ o leilão deixa comprar até mais 11 (fecha 22); cheio = manda um pras sobras.
+  · O dono escolhe a cada temporada o que abre a temporada: 📋 só draft · 📋+🔨 draft e leilão · 🔨 só leilão (novo).
+  · Com bots ou sem bots (sem bots só com 4+ usuários — mesma régua de hoje).
+  · Fica pra depois: sondar, pirâmide de séries.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
