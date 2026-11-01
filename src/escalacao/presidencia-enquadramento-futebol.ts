@@ -17,7 +17,8 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
  const mode=typeof preset==='boolean'?(preset?'tactical':'broadcast'):preset,settings=PRESETS[mode],tactical=mode==='tactical'
  const fov=typeof preset==='boolean'?camera.fov:settings.fov
  ball=ball.presentation??ball;subjects=subjects.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)
- const portrait=camera.aspect<1,radius=settings.radius*(portrait?.68:1)
+ const portrait=camera.aspect<1,closePortrait=portrait&&typeof preset!=='boolean'&&(mode==='broadcast'||mode==='tele')
+ const radius=closePortrait?(mode==='tele'?7:8.5):settings.radius*(portrait?.68:1)
  const near=subjects.filter(p=>p.visible!==false&&Number.isFinite(p.mx)&&Number.isFinite(p.mz)&&Math.hypot(p.mx-ball.x,p.mz-ball.z)<(p.priority?25:radius)).sort((a,b)=>Number(!!b.priority)-Number(!!a.priority)||Math.hypot(a.mx-ball.x,a.mz-ball.z)-Math.hypot(b.mx-ball.x,b.mz-ball.z)).slice(0,portrait?Math.ceil(settings.count/2):settings.count)
  const focusHeight=.6+MathUtils.clamp((ball.y-2)*.3,0,5)
  const target=tactical?new Vector3(0,.6,0):new Vector3(MathUtils.clamp(ball.x,-44,44),focusHeight,MathUtils.clamp(ball.z,-25,25))
@@ -30,6 +31,14 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
   // (a LATERAL PRÓXIMA é a mesma câmera de TV, só que no anel de baixo, colada no campo: mais perto e mais fechada. Se o lance não cabe
   // nela — bola muito alta, no canto colado — ela sobe pra posição da TV principal naquele quadro)
   target.set(MathUtils.clamp(ball.x,-54,54),focusHeight,MathUtils.clamp(ball.z,-36,36)) // (a TV gira até a bandeirinha: mira na bola mesmo)
+  // A distant support player must not turn a narrow phone view into the
+  // tactical camera. Balance the local action instead of leaving half of the
+  // shot empty on the opposite side of a nearby receiver.
+  if(closePortrait&&near.length){
+   const x=near.reduce((s,p)=>s+p.mx,0)/near.length,z=near.reduce((s,p)=>s+p.mz,0)/near.length
+   target.x+=MathUtils.clamp((x-ball.x)*.25,-1.8,1.8)
+   target.z+=MathUtils.clamp((z-ball.z)*.25,-1.4,1.4)
+  }
   const aspect=Math.max(.1,camera.aspect),maxTan=Math.tan(MathUtils.degToRad(38))
   const fitPts=[new Vector3(ball.x,ball.y,ball.z),...near.flatMap(p=>[new Vector3(p.mx,0,p.mz),new Vector3(p.mx,1.78,p.mz)])]
   const tenta=(tele:boolean)=>{
@@ -42,7 +51,7 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
    const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
    const dist0=cam.distanceTo(target)
    // (o pedaço de campo que a TV mostra em volta da bola: ~34 m de largura deitado, ~22 m em pé; a lateral, bem menos)
-   let tanH=(tele?(portrait?5:9):(portrait?6.5:17))/dist0,tanV=0
+   let tanH=(tele?(portrait?4.5:9):(portrait?5.5:17))/dist0,tanV=0
    for(const pt of fitPts){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.82);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.78)}
    return{cam,dist0,need:Math.max(tanV,tanH/aspect)}
   }

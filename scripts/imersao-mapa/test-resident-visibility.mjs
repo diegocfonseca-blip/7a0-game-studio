@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {Vector3,PerspectiveCamera} from 'three';
+import {residentVisibility} from '../../src/escalacao/cidade3d/resident-visibility.mjs';
+const camera=new PerspectiveCamera(38,16/9,.1,2000),point=new Vector3(0,.16,0);camera.position.set(0,180,180);camera.lookAt(0,.16,0);camera.updateMatrixWorld(true);
+const beforeScale=point.clone(),q=residentVisibility(point,1.76,camera,720);
+assert(q.visible&&q.detail==='far'&&q.pixels>1.5,'Visible residents survive the old 150m culling limit with cheaper poses');
+assert.deepEqual(point,beforeScale,'Never enlarge/move people for a distant view');
+assert(!residentVisibility(new Vector3(0,.16,600),1.76,camera,720).visible,'Offscreen/behind-camera walkers remain culled');
+camera.position.set(0,2,5);camera.lookAt(point);camera.updateMatrixWorld(true);assert.equal(residentVisibility(point,1.76,camera,720).detail,'full');
+assert(residentVisibility(point,1.18,camera,720).pixels<residentVisibility(point,1.76,camera,720).pixels,'Children preserve their physical scale');
+console.log({distant:q,unchangedScale:true,nearDetail:'full'});

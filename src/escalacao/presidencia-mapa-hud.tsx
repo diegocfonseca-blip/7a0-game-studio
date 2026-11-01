@@ -4,7 +4,7 @@
 import type { CSSProperties } from 'react'
 import type { EstadoPartidaEstadio } from './presidencia-partida-model'
 import { useControleMapa } from './controle-partida-mapa'
-import { useRitmoCampo } from './presidencia-velocidade'
+import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
 import { useT } from './lang'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
@@ -37,7 +37,7 @@ export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefi
     </div>
     {(ctl?.manualOk || (ritmo && vivo)) && <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
       {ctl && ctl.manualOk && <span style={grupo}><button type="button" style={chip(!ctl.manual)} onClick={() => { if (ctl.manual) ctl.alternaManual() }}>🔁 {t('AUTO', 'AUTO')}</button><button type="button" style={chip(ctl.manual)} onClick={() => { if (!ctl.manual) ctl.alternaManual() }}>🎮 MANUAL</button></span>}
-      {ritmo && vivo && <span style={grupo}>{[.25, .5, 1].map(v => <button key={v} type="button" style={chip(ritmo.speed === v)} onClick={() => ritmo.onSet(v)}>{v === 1 ? '1×' : v === .5 ? '0,5×' : '0,25×'}</button>)}</span>}
+      {ritmo && vivo && <span style={{...grupo,flexWrap:'wrap',maxWidth:'100%'}}>{VELOCIDADES_ESTADIO.map(v => <button key={v} type="button" aria-pressed={ritmo.speed===v} aria-label={t('Velocidade da partida','Match speed')+' '+rotuloVelocidadeCampo(v)} style={chip(ritmo.speed === v)} onClick={() => ritmo.onSet(v)}>{rotuloVelocidadeCampo(v)}</button>)}</span>}
       {ctl && ctl.manual && !(ritmo && vivo) && <span style={grupo}>{[1, 2, 4].map(v => <button key={v} type="button" style={chip(ctl.velocidade === v)} onClick={() => ctl.mudaVelocidade(v)}>{v}×</button>)}</span>}
     </div>}
     {vivo && match?.officialNarration && <div style={{ fontSize: 11, fontWeight: 700, color: '#FFE79A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🎙️ {match.officialNarration}</div>}
