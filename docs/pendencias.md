@@ -25,7 +25,7 @@
     não reforça (mas não perde ninguém).
   · O dono pode excluir quem quiser (regra dele).
   · Elenco até 22: na T2+ o leilão deixa comprar até mais 11 (fecha 22); cheio = manda um pras sobras.
-  · O dono escolhe a cada temporada o que abre a temporada: 📋 só draft · 📋+🔨 draft e leilão · 🔨 só leilão (novo).
+  · O dono escolhe a cada temporada o que abre a temporada: 📋 só draft · 📋+🔨 draft e leilão · 🔨 só leilão. NINGUÉM zera o time (correção do Diego: "só leilão" = leilão de reforço sem draft).
   · Com bots ou sem bots (sem bots só com 4+ usuários — mesma régua de hoje).
   · Fica pra depois: sondar, pirâmide de séries.
 
