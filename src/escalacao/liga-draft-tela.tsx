@@ -30,6 +30,7 @@ export function EscLigaDraft() {
   const online = state.onlineMode === 'online'
   const euTico = !online || state.isHost
   const [agora, setAgora] = useState(agoraSala())
+  const [sondarNaVez, setSondarNaVez] = useState<number | null>(null) // 🕵️ apertou "Sondar um amigo" nesta vez → abre direto na sondagem
   useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
   // ⏱️ só o dono tica (o reducer confere o prazo): tempo esgotado → escolha automática; anúncio acabou → próximo
   useEffect(() => {
@@ -71,10 +72,11 @@ export function EscLigaDraft() {
           <AnuncioDraft key={`${ultimo.mgrId}-${d.idx}`} pick={ultimo} n={d.idx + 1} quem={nome(ultimo.mgrId)} decorrido={agora - (d.inicioRevela ?? agora)} />
         ) : d.fase === 'aguarda' ? (
           <AguardaPronto n={d.idx + 1} quem={daVez?.teamName ?? '?'} minhaVez={vezId === you.id}
-            onPronto={() => dispatch({ type: 'DRAFT_PRONTO', mgrId: you.id, by: state.youUid })}
+            onPronto={(sondar) => { setSondarNaVez(sondar ? d.idx : null); dispatch({ type: 'DRAFT_PRONTO', mgrId: you.id, by: state.youUid }) }}
+            duasEscolhas={minha}
             onPular={souDono && vezId !== you.id ? () => dispatch({ type: 'DRAFT_PULAR', by: state.youUid }) : undefined} />
         ) : minhaVez ? (
-          <EscolhaDraft restante={restante} n={d.idx + 1} minha={minha} />
+          <EscolhaDraft key={`vez-${d.idx}`} restante={restante} n={d.idx + 1} minha={minha} comecaSondando={minha && sondarNaVez === d.idx} />
         ) : (
           <div className="space-y-2.5">
             <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: ROXO, boxShadow: `3px 3px 0 ${INK}` }}>
@@ -100,7 +102,7 @@ export function EscLigaDraft() {
 }
 
 // ✋ Minha Liga Draft: a vez começa PARADA. Quem está na vez aperta PRONTO (aí correm os 45 s); o dono pode pular quem não deu.
-function AguardaPronto({ n, quem, minhaVez, onPronto, onPular }: { n: number; quem: string; minhaVez: boolean; onPronto: () => void; onPular?: () => void }) {
+function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, duasEscolhas }: { n: number; quem: string; minhaVez: boolean; onPronto: (sondar: boolean) => void; onPular?: () => void; duasEscolhas?: boolean }) {
   const t = useT()
   return (
     <div className="space-y-2.5">
@@ -109,8 +111,23 @@ function AguardaPronto({ n, quem, minhaVez, onPronto, onPular }: { n: number; qu
         <p className="text-white uppercase leading-tight" style={{ ...OSW, fontSize: 24 }}>{minhaVez ? t('É a sua vez!', 'It\'s your turn!') : t(`Vez do ${quem}`, `${quem}'s turn`)}</p>
       </div>
       <Coberta etapa={0} />
-      {minhaVez ? (<>
-        <button onClick={onPronto} className="w-full border-[3px] border-black rounded-xl py-3 uppercase"
+      {minhaVez && duasEscolhas ? (<>
+        {/* 📋🕵️ as DUAS jogadas da vez, lado a lado (Diego 01/11: "não teria que ter o botão junto, draft e sondar do amigo?") */}
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => onPronto(false)} className="border-[3px] border-black rounded-xl px-2 py-3 text-center"
+            style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
+            <span className="block uppercase" style={{ ...OSW, fontSize: 18 }}>📋 {t('Pegar do draft', 'Draft a player')}</span>
+            <span className="block text-[10.5px] font-bold text-white/85 mt-0.5">{t('1 jogador livre de todo o jogo', '1 free player from the whole game')}</span>
+          </button>
+          <button onClick={() => onPronto(true)} className="border-[3px] border-black rounded-xl px-2 py-3 text-center"
+            style={{ background: '#F4ECD6', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
+            <span className="block uppercase" style={{ ...OSW, fontSize: 18 }}>🕵️ {t('Sondar um amigo', 'Scout a friend')}</span>
+            <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">{t('o jogador dele vai pro leilão', 'his player goes to auction')}</span>
+          </button>
+        </div>
+        <p className="text-center text-[11.5px] font-bold text-black/60">{t('Escolha UMA. Ao apertar, você tem 45 s. Acabou o tempo, perde a vez.', 'Pick ONE. Once you tap, you have 45 s. If time runs out, you lose the turn.')}</p>
+      </>) : minhaVez ? (<>
+        <button onClick={() => onPronto(false)} className="w-full border-[3px] border-black rounded-xl py-3 uppercase"
           style={{ ...OSW, fontSize: 19, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('✋ Pronto, quero escolher', '✋ Ready, let me pick')}</button>
         <p className="text-center text-[11.5px] font-bold text-black/60">{t('Quando apertar, você tem 45 s pra escolher. Acabou o tempo, perde a vez.', 'Once you tap, you have 45 s to pick. If time runs out, you lose the turn.')}</p>
       </>) : (
@@ -218,7 +235,7 @@ function AnuncioDraft({ pick, n, quem, decorrido }: { pick: DraftPick; n: number
   )
 }
 
-function EscolhaDraft({ restante, n, minha }: { restante: number; n: number; minha?: boolean }) {
+function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number; n: number; minha?: boolean; comecaSondando?: boolean }) {
   const { state, dispatch } = useEsc()
   const t = useT()
   const you = state.managers[state.youIdx]
@@ -247,7 +264,7 @@ function EscolhaDraft({ restante, n, minha }: { restante: number; n: number; min
     for (const [k, dono] of donoDe) if (k.includes(q) && !vistos.has(k)) { vistos.add(k); out.push({ name: k, dono }) }
     return out.slice(0, 4)
   }, [donoDe, q])
-  const [sondando, setSondando] = useState(false)
+  const [sondando, setSondando] = useState(!!comecaSondando)
   if (!you) return null
   // 📋🏆 Minha Liga Draft: com vaga (menos de 22) ninguém sai; cheio = sai quem ele escolher, sem furar posição
   const temVaga = !!minha && you.squad.length < MLD_ELENCO_MAX
