@@ -344,7 +344,7 @@ export function useLigaDraftLiberada(): boolean {
 // + Draft"): 1ª temporada com o leilão NORMAL, draft de 45 s por vez com ✋ pronto, o dono pode pular, tempo acabou = perde a vez.
 // Só Diego e Futpoint FC VEEM e CRIAM; quem eles chamarem com código + senha entra e joga normal. Liberar geral = MINHA_LIGA_DRAFT_GERAL.
 const MINHA_LIGA_DRAFT_GERAL = false
-const MINHA_LIGA_DRAFT_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com'])
+const MINHA_LIGA_DRAFT_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com', 'vbtrabalhos22@gmail.com']) // + vbtrabalhos22 (01/11, pedido do Diego)
 let minhaLigaDraftOk = MINHA_LIGA_DRAFT_GERAL
 function applyMinhaLigaDraft(email?: string | null): void {
   const u = MINHA_LIGA_DRAFT_GERAL || (!!email && MINHA_LIGA_DRAFT_TESTERS.has(email.toLowerCase()))
