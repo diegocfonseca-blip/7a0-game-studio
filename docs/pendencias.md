@@ -8,6 +8,12 @@
   ninguém quis. Ninguém é tirado da liga por faltar; o dono tem "⏭ pular" (draft só depois de 12 h; leilão "começar sem ele").
 - Ficou pra depois (talvez): pirâmide de séries, rodada assíncrona por bloco com OK de todos, elenco de 22. Ele pode trocar a Liga
   Draft por esta (*"talvez eu nem faça mais e siga com essa aqui"*).
+- 🔁 Mesmo dia, mais regras: **elenco até 22** (cheio → manda um pras sobras pra trazer outro); **🕵️ SONDAR** no lugar de tirar
+  jogador no draft: no fim da temporada cada um faz UMA jogada — draft OU sondar 1 jogador de um amigo (quem sonda PERDE a vez
+  no draft). O sondado vai pro próximo leilão com lance inicial = o que o dono pagou (piso, igual à carreira); o dono também dá
+  lance; vendeu → o dinheiro vai pro dono; ninguém deu lance → volta pro dono de graça. Jogador do draft chega valendo 10 🪙.
+  Draft não acaba: ~2.200 jogadores diferentes no jogo. Mockup: `scripts/mockup-ligas-sondar.mjs`.
+  ❓ Em aberto: se o DONO ganha o próprio sondado, ele paga o lance (dinheiro some) ou fica de graça?
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
