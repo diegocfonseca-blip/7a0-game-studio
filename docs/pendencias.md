@@ -33,11 +33,13 @@
     T1 continua com o leilão normal de 11. (Substitui a escolha "só draft / draft+leilão / só leilão".)
   · ✅ **Fechado 01/11 (*"fechamos assim"*):** quem SONDOU tem **direito de igualar** o maior lance no martelo (só perde se o
     maior lance for do DONO, que defende o próprio jogador). Cada um também pode **pôr 1 jogador seu à venda** nesse leilão.
-  · 👕 **Escalação (proposta 01/11, aguardando OK):** tela de escalação de sempre, aberta logo depois do draft/leilão, com
-    tempo (60 s); durante a temporada mexe como hoje (intervalo/controle). Ausente = joga com a última escalação.
-  · 🔢 **Elenco cheio (proposta 01/11, aguardando OK):** com 22, quem recebe jogador novo (draft ou leilão) escolhe NA HORA
+  · 👕 **Escalação (01/11, 45 s):** tela de escalação de sempre, aberta logo depois do draft/leilão, com
+    tempo (45 s); durante a temporada mexe como hoje (intervalo/controle). Ausente = joga com a última escalação.
+  · 🔢 **Elenco cheio (01/11, 30 s):** com 22, quem recebe jogador novo (draft ou leilão) escolhe NA HORA
     quem sai (30 s); quem sai vira LIVRE e entra no draft. Não escolheu = sai sozinho o reserva de menor valor (nunca titular).
-  · Fica pra depois: pirâmide de séries.
+  · 🏆 **SÓ LIGA por enquanto (01/11, *"melhor deixar por enquanto só a liga mesmo"*):** nada de Mata-mata Relâmpago nesse
+    modo. Com bots = sempre 20 times / 38 rodadas (serve pra 2 a 20 pessoas); sem bots (4+) = só a turma, turno e returno.
+  · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
