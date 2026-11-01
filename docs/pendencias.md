@@ -39,6 +39,9 @@
     quem sai (30 s); quem sai vira LIVRE e entra no draft. Não escolheu = sai sozinho o reserva de menor valor (nunca titular).
   · 🏆 **SÓ LIGA por enquanto (01/11, *"melhor deixar por enquanto só a liga mesmo"*):** nada de Mata-mata Relâmpago nesse
     modo. Com bots = sempre 20 times / 38 rodadas (serve pra 2 a 20 pessoas); sem bots (4+) = só a turma, turno e returno.
+  · ⏱️ **Vez no draft (01/11):** mesma régua da Liga Draft — campeão escolhe primeiro, 60 s por vez. Na vez: 📋 escolher OU
+    🕵️ sondar. **Acabou o tempo ou a pessoa não está = PERDE A VEZ** (fica sem jogador do draft naquela temporada; o jogo
+    NÃO escolhe por ela — *"o sistema passa a vez dele. Melhor"*). Ordem da noite: draft → leilão dos sondados → escalação 45 s → temporada.
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
