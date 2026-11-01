@@ -73,3 +73,12 @@ const pushPath=prepareActionRootPath(pushRoute,[{...earlyReceive,t:1,start:.76},
 assert.deepEqual(pushPath.sample(1.5),pushRoute(1.5),'Intermediate verified push remains an exact root contact');
 for(let t=1.62;t<1.88;t+=.02){const p=pushPath.sample(t),q=pushRoute(t);assert(Math.hypot(p.x-q.x,p.z-q.z)<.015,'A new dribbling contact must not erase the subsequent pursuit/turn');}
 console.log('PASS: verified intermediate pushes retain the following carrying path');
+
+// A verified dribble used to acquire the next kick's facing as travel velocity,
+// sending the carrier away from a forward rolling ball immediately after push.
+const carrier=t=>({x:3*t,z:0}),rolling=t=>({x:3*t+.45,y:.11,z:0}),push={t:1,start:.82,kind:'carry',verifiedGroundTouch:{t:1},nome:'controle_corrida',mira:-Math.PI/2,bola:rolling(1)};
+const continuation=prepareActionRootPath(carrier,[push,{t:2.3,start:2,kind:'toque',nome:'passe_chapa',mira:Math.PI/2}],{ballAt:rolling,ownedAt:()=>true});
+assert.deepEqual(continuation.sample(1),carrier(1),'Keep the recorded physical push');
+const initial=continuation.sample(1.002),impact=continuation.sample(1);assert(initial.x>impact.x&&Math.abs(initial.z-impact.z)<.0001,'Carry continues along the actual roll, not a backwards kick-facing tangent');
+assert.deepEqual(continuation.sample(2.3),carrier(2.3),'The subsequent official pass remains fixed');
+console.log('PASS verified carrying tangent follows recorded rolling ball');

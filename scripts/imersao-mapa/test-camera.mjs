@@ -16,3 +16,13 @@ for(const rate of [2,4])for(const fps of [10,60]){
  for(let i=0;i<=fps*4/rate;i++){const b=ballAt(i/fps*rate);c.update(b,time+=1000/fps,[{mx:b.x-1,mz:b.z-1}]);const v=new Vector3(b.x,b.y,b.z).project(cam);assert(Math.abs(v.x)<.96&&Math.abs(v.y)<.94&&v.z>-1&&v.z<1,'Ball visible in accelerated play '+rate+'x/'+fps+'fps: '+JSON.stringify(v))}
 }
 console.log('PASS moving ball at 2x/4x, low and normal frame rates');
+// Portrait must not flatten the pitch angle as the ball reaches the far side.
+for(const z of [-34,-15,0,34]){
+ const ball={x:12,y:.11,z},camera=new PerspectiveCamera(38,390/844,.12,4000),fit=enquadramentoFutebol(camera,ball,[],'broadcast');
+ const offset=fit.position.clone().sub(fit.target),angle=Math.atan2(offset.y,Math.hypot(offset.x,offset.z))*180/Math.PI;
+ assert(angle>45&&angle<55,'A stable downward portrait angle prevents an empty upper half of stands');
+ assert.equal(fit.position.z-fit.target.z,28);assert.equal(ball.z,z,'Only the camera moves');
+}
+const landscapeFit=enquadramentoFutebol(new PerspectiveCamera(38,16/9,.12,4000),{x:12,y:.11,z:-30},[],'broadcast');
+assert.equal(landscapeFit.position.y,23);assert.equal(landscapeFit.position.z,76,'Landscape keeps its existing grandstand anchor');
+console.log('PASS portrait pitch angle at both touchlines; landscape anchor retained');

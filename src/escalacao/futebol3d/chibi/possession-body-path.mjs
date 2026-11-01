@@ -6,11 +6,14 @@ const limit=(x,z,r)=>{const d=Math.hypot(x,z),k=d>r?r/d:1;return{x:x*k,z:z*k}};
  * This local presentation path starts only AFTER a planned foot reception.
  * Free/missed passes, hands, restarts and the calibrated impact poses win.
  */
-export function preparePossessionBodyPath(source,sample,key,events,{duration,ballAt,controls=[],rate=60,budget=2,looseBudget=3.25,reactionWindow=1.25}={}){
+export function preparePossessionBodyPath(source,sample,key,events,{duration,ballAt,controls=[],physicalContacts=null,rate=60,budget=2,looseBudget=3.25,reactionWindow=1.25}={}){
  const count=Math.ceil(duration*rate)+1,offsets=new Float32Array(count*2);
  const cues=events.filter(e=>!e.disabled&&!(e.firstTime&&e.kind==='recebe')).sort((a,b)=>a.t-b.t);
- let cursor=0,received=null,receivingOffset=null,lostAt=null,pursuit=null,returningUntil=-Infinity,offset={x:0,z:0},previous=null,maxCorrection=0;
+ let cursor=0,received=null,receivingOffset=null,lostAt=null,pursuit=null,returningUntil=-Infinity,offset={x:0,z:0},previous=null,previousShown=null,maxCorrection=0;
  const pursuits=[];
+ const physical=physicalContacts?.filter(e=>!e.disabled&&!(e.firstTime&&e.kind==='recebe')).sort((a,b)=>a.t-b.t);
+ const handoffs=physical?.filter(e=>(e.key??key)!==key);
+ let shownVelocity={x:0,z:0};
  for(let i=0;i<count;i++){
   const t=i/rate,frame=sample(t),base=source(t),ball=ballAt?.(t)??frame.ball;
   while(cursor<cues.length&&cues[cursor].t<=t+1e-7){const e=cues[cursor++];received=(e.kind==='recebe'||e.verifiedGroundTouch)&&!e.hands&&!e.goleiro&&!e.pickup&&e.bola?.y<.24&&frame.owner===key?e:null;lostAt=null;receivingOffset=null;
@@ -20,13 +23,16 @@ export function preparePossessionBodyPath(source,sample,key,events,{duration,bal
   // Keep the recovery intent until another player controls it, a restart/kick
   // intervenes, or the bounded reaction window expires. No ball path or owner
   // is changed and a failed touch never becomes a successful reception here.
-  if(received&&frame.owner!==key){
-   if(frame.owner||frame.phase!=='dominio'||frame.placementReset){received=null;receivingOffset=null;returningUntil=t+.6}
-   else{lostAt??=t;if(t-lostAt>reactionWindow){received=null;receivingOffset=null;returningUntil=t+.6}}
+  const otherContact=received&&handoffs?.findLast(e=>e.t<=t+1e-7&&e.t>received.t+1e-7);
+  if(received&&(frame.owner!==key||otherContact)){
+   // A source owner can be an anticipated receiver who has not reached the
+   // ball. Until the recorded other contact, this remains a loose recovery.
+   if(otherContact||(!handoffs&&frame.owner)||frame.phase!=='dominio'||frame.placementReset){received=null;receivingOffset=null;returningUntil=t+.6}
+   else{lostAt??=t;if(t-lostAt>reactionWindow&&!physical?.some(e=>e.t>t+1e-7)){received=null;receivingOffset=null;returningUntil=t+.6}}
   }
   const recovering=!!received&&lostAt!==null&&frame.owner!==key;
   if(recovering&&!pursuit){pursuit={start:t,end:t,receivedAt:received.t};pursuits.push(pursuit)}
-  if(pursuit){pursuit.end=t;if(!recovering){pursuit.reason=frame.owner?'controlled-by-player':frame.phase!=='dominio'?'play-changed':'reaction-ended';pursuit=null;returningUntil=t+.6}}
+  if(pursuit){pursuit.end=t;if(!recovering){pursuit.reason=otherContact?'physical-contact':frame.owner?'controlled-by-player':frame.phase!=='dominio'?'play-changed':'reaction-ended';pursuit=null;returningUntil=t+.6}}
   let desired={x:0,z:0};
   const loose=controls.some(c=>c.loose&&t>=c.start&&t<=c.end+(c.recovery??1));
   if(received&&frame.phase==='dominio'&&ball.y<.3&&!loose){
@@ -51,8 +57,30 @@ export function preparePossessionBodyPath(source,sample,key,events,{duration,bal
   offset={x:offset.x+delta.x,z:offset.z+delta.z};
   // Authoritative dead-ball placement is a reset, never a chase across the pitch.
   if(frame.placementReset||previous&&Math.hypot(base.x-previous.x,base.z-previous.z)>2.5)offset={x:0,z:0};
-  offsets[i*2]=offset.x*freedom;offsets[i*2+1]=offset.z*freedom;
-  maxCorrection=Math.max(maxCorrection,Math.hypot(offsets[i*2],offsets[i*2+1]));previous=base;
+  let displayed={x:offset.x*freedom,z:offset.z*freedom};
+  if(handoffs&&recovering&&!loose&&freedom>1-1e-7&&previousShown&&ball.y<.3&&!frame.placementReset){
+   // Integrate the runner in world space. Adding a capped offset to a
+   // tactical anchor running away still drags the player away from the ball.
+   const oldBall=ballAt?.(Math.max(0,t-1/rate))??sample(Math.max(0,t-1/rate)).ball;
+   const bv=limit((ball.x-oldBall.x)*rate,(ball.z-oldBall.z)*rate,14),speed=Math.hypot(bv.x,bv.z);
+   const toward=speed>.5?{x:bv.x/speed,z:bv.z/speed}:(()=>{const dx=ball.x-previousShown.x,dz=ball.z-previousShown.z,d=Math.max(.001,Math.hypot(dx,dz));return{x:dx/d,z:dz/d}})();
+   const wanted=limit(bv.x+5*(ball.x-toward.x*.65-previousShown.x),bv.z+5*(ball.z-toward.z*.65-previousShown.z),9.5);
+   const acceleration=limit(wanted.x-shownVelocity.x,wanted.z-shownVelocity.z,12/rate);
+   const v=limit(shownVelocity.x+acceleration.x,shownVelocity.z+acceleration.z,9.5);
+   displayed=limit(previousShown.x+v.x/rate-base.x,previousShown.z+v.z/rate-base.z,looseBudget);offset={...displayed};
+  }
+  // A recovery offset must not add a second sprint to a runner already moving
+  // at full speed. Bound only the free pursuit between calibrated contacts;
+  // keep their protected approach/impact roots exactly as planned.
+  if((received||handoffs&&Math.hypot(offset.x,offset.z)>.01)&&!frame.placementReset&&freedom>1-1e-7&&previous&&previousShown&&Math.hypot(base.x-previous.x,base.z-previous.z)<2.5){
+   const nativeSpeed=Math.hypot(base.x-previous.x,base.z-previous.z)*rate;
+   const step=limit(base.x+displayed.x-previousShown.x,base.z+displayed.z-previousShown.z,(handoffs&&(!received||recovering)?9.5:Math.max(9.5,nativeSpeed))/rate);
+   displayed={x:previousShown.x+step.x-base.x,z:previousShown.z+step.z-base.z};offset={...displayed};
+  }
+  offsets[i*2]=displayed.x;offsets[i*2+1]=displayed.z;
+  if(previousShown)shownVelocity={x:(base.x+displayed.x-previousShown.x)*rate,z:(base.z+displayed.z-previousShown.z)*rate};
+  previousShown={x:base.x+displayed.x,z:base.z+displayed.z};
+  maxCorrection=Math.max(maxCorrection,Math.hypot(displayed.x,displayed.z));previous=base;
  }
- return{maxCorrection,pursuits,sample:t=>{const f=Math.max(0,Math.min(count-1,t*rate)),i=Math.floor(f),j=Math.min(count-1,i+1),u=f-i,p=source(t);return{x:p.x+offsets[i*2]*(1-u)+offsets[j*2]*u,z:p.z+offsets[i*2+1]*(1-u)+offsets[j*2+1]*u}}};
+ return{maxCorrection,pursuits,recoveryAt:t=>pursuits.find(p=>t>=p.start&&t<p.end),sample:t=>{const f=Math.max(0,Math.min(count-1,t*rate)),i=Math.floor(f),j=Math.min(count-1,i+1),u=f-i,p=source(t);return{x:p.x+offsets[i*2]*(1-u)+offsets[j*2]*u,z:p.z+offsets[i*2+1]*(1-u)+offsets[j*2+1]*u}}};
 }

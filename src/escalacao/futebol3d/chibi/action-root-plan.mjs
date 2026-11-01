@@ -30,11 +30,13 @@ export function prepareActionRootPath(source,events,{controls=[],breaks=[],ballA
   for(const c of [a,b]){c.v=c.headerFlow?{x:(c.v.x+v.x)*.5,z:(c.v.z+v.z)*.5}:{...v};c.headerFlow=true}
  }
  // Tactical speed before acquisition describes the approach, not the speed
- // of a controlled ball after impact. Match the body to the actual outgoing
+ // of a controlled ball after impact. The same applies to a verified dribble
+ // push: the next pass direction is not a command to run away from the ball.
+ // Match the body to the actual outgoing
  // roll, so an arriving runner does not overtake a slowing first touch.
  const receptionTangents=[];
  if(ballAt&&ownedAt)for(const c of contacts){
-  const e=c.event;if(e.kind!=='recebe'||e.firstTime||e.hands||e.goleiro||e.pickup||e.bola?.y>.24)continue;
+  const e=c.event;if((e.kind!=='recebe'&&!e.verifiedGroundTouch)||e.firstTime||e.hands||e.goleiro||e.pickup||e.bola?.y>.24)continue;
   const end=Math.min(c.t+.18,contacts.find(n=>n.t>c.t+1e-6)?.t??Infinity);
   if(end-c.t<.08||!ownedAt(c.t+.04)||!ownedAt(end-.01)||breaks.some(b=>b.before>=c.t&&b.after<=end))continue;
   const a=ballAt(c.t+.02),b=ballAt(end);if(!a||!b||a.y>.24||b.y>.24)continue;

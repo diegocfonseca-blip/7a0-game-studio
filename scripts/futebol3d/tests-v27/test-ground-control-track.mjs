@@ -30,3 +30,14 @@ assert(Math.abs(afterLoss-beforeLoss)<.15,'Do not snap back to a tactical anchor
 assert(kept.sample(1.8).z-running(1.8).z<-.1,'Rejoin gradually after ownership changes');
 assert.equal(owned(1.8).owner,'opponent');assert.deepEqual(slowing(1.8),{x:0,y:.11,z:11.25});
 console.log('PASS slowing first touch keeps receiver on the same side; opponent ownership preserved with smooth recovery');
+
+for(const decision of p.diagnostics.groundControlTracks.filter(d=>d.applied))assert(decision.after.behindSeconds<=decision.before.behindSeconds+.015,'Closing the gap must not increase running past the ball');
+
+const fastSource=t=>({x:8*t,z:0}),fastBall=t=>({x:8.45+11*(t-1),y:.11,z:0}),fastFrame=t=>({owner:'runner',phase:'dominio',ball:fastBall(t)});
+const chase=preparePossessionBodyPath(fastSource,fastFrame,'runner',[{kind:'recebe',t:1,bola:fastBall(1),contact:{fitted:true}}],{duration:3,ballAt:fastBall});
+assert.deepEqual(chase.sample(1),fastSource(1),'Pursuit cannot move the impact root');
+for(let i=67;i<120;i++){const a=chase.sample((i-1)/60),b=chase.sample(i/60);assert(Math.hypot(b.x-a.x,b.z-a.z)*60<=9.501,'Do not add an extra sprint to the source run')}
+console.log('PASS bounded pursuit after contact, original impact root retained');
+
+const resetChase=preparePossessionBodyPath(fastSource,t=>({...fastFrame(t),placementReset:Math.abs(t-1.5)<1e-7}),'runner',[{kind:'recebe',t:1,bola:fastBall(1),contact:{fitted:true}}],{duration:3,ballAt:fastBall});
+assert.deepEqual(resetChase.sample(1.5),fastSource(1.5),'An official placement resets pursuit exactly, even while the source owner remains assigned');

@@ -60,7 +60,9 @@ export function prepareGroundControlTrack(path,events,controls,{ballAt,ownedAt,b
     return{x:b.x-Math.sin(theta)*r,z:b.z-Math.cos(theta)*r};
    };
    const after=assess(fn,start,end);
-   if(after.minGap<Math.min(.22,r0,r1)-.005||after.maxGap>Math.max(.85,r0,r1)+.01||after.peak>Math.max(9,before.peak+.01)||after.maxOffset>2.25)continue;
+   // A shorter body–ball gap cannot justify running past the ball and
+   // keeping it behind the movement direction for longer than the source.
+   if(after.behindSeconds>before.behindSeconds+.015||after.minGap<Math.min(.22,r0,r1)-.005||after.maxGap>Math.max(.85,r0,r1)+.01||after.peak>Math.max(9,before.peak+.01)||after.maxOffset>2.25)continue;
    const cost=after.maxGap+after.behindSeconds*3+after.peak*.015;
    if(!best||cost<best.cost)best={sample:fn,after,cost,middleRadius};
   }
