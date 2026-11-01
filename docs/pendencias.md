@@ -39,7 +39,7 @@
     quem sai (30 s); quem sai vira LIVRE e entra no draft. Não escolheu = sai sozinho o reserva de menor valor (nunca titular).
   · 🏆 **SÓ LIGA por enquanto (01/11, *"melhor deixar por enquanto só a liga mesmo"*):** nada de Mata-mata Relâmpago nesse
     modo. Com bots = sempre 20 times / 38 rodadas (serve pra 2 a 20 pessoas); sem bots (4+) = só a turma, turno e returno.
-  · ⏱️ **Vez no draft (01/11):** mesma régua da Liga Draft — campeão escolhe primeiro, 60 s por vez. Na vez: 📋 escolher OU
+  · ⏱️ **Vez no draft (01/11):** campeão escolhe primeiro, **45 s por vez** (01/11). Lista = TODOS os jogadores livres do jogo, com 🔎 pesquisa + filtro de posição/categoria. Cada escolha vira na hora com o suspense da Liga Draft (~8 s). Dono saiu no meio = congela; quem estava na vez ganha os 45 s inteiros de novo. Na vez: 📋 escolher OU
     🕵️ sondar. **Acabou o tempo ou a pessoa não está = PERDE A VEZ** (fica sem jogador do draft naquela temporada; o jogo
     NÃO escolhe por ela — *"o sistema passa a vez dele. Melhor"*). Ordem da noite: draft → leilão dos sondados → escalação 45 s → temporada.
   · 🗓️ **Ordem da noite (01/11, confirmada):** draft → leilão (sondados + quem pôs à venda) → escalação 45 s → liga.
