@@ -138,7 +138,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()})
  scene.add(field)
  type Body=ReturnType<typeof person>
- type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
+ type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'|'cameraSubjects'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
  let match:Match|undefined
  const empty=():InspecaoPartidaComplexo=>({players:0,ball:{x:0,y:.11,z:0}})
  let inspection=empty()
@@ -197,7 +197,10 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}
   match.humanoids?.update(snapshot,camera,viewportHeight)
   const presentation=match.humanoids?.presentFrame(snapshot)??snapshot
-  if(snapshot.phase==='falta'){const r=presentation.referee;cameraSubjects=[...snapshot.players,{mx:r.x,mz:r.z,visible:true,key:'referee',priority:true}]}
+  // Frame the rendered bodies, including their contact approach, rather than
+  // tactical anchors that can be metres away from the visible football action.
+  cameraSubjects=match.humanoids?.cameraSubjects?.()??snapshot.players
+  if(snapshot.phase==='falta'){const r=presentation.referee;cameraSubjects=[...cameraSubjects,{mx:r.x,mz:r.z,visible:true,key:'referee',priority:true}]}
   for(const p of snapshot.players){const body=bodies.get(p.key);if(!body)continue;body.group.visible=p.visible!==false;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
   for(const {body,side,keeper} of reserves)body.kit.color.set(keeper?'#d6b329':side==='home'?current.homeColor:current.awayColor)
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})

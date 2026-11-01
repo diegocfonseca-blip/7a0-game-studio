@@ -2,7 +2,7 @@ import {receptionTravelVelocity} from './reception-locomotion.mjs';
 import {boundedRootProgress} from './bounded-root-progress.mjs';
 // Continuous contact-constrained body path. The authoritative event clock stays intact.
 const hermite=(a,b,v,w,u,d)=>{const h=2*u*u*u-3*u*u+1,j=u*u*u-2*u*u+u,k=-2*u*u*u+3*u*u,l=u*u*u-u*u;return{x:h*a.x+j*d*v.x+k*b.x+l*d*w.x,z:h*a.z+j*d*v.z+k*b.z+l*d*w.z}};
-export function prepareActionRootPath(source,events,{controls=[],breaks=[]}={}){
+export function prepareActionRootPath(source,events,{controls=[],breaks=[],ballAt,ownedAt}={}){
  const velocity=t=>{const a=source(Math.max(0,t-.005)),b=source(t+.005);return{x:(b.x-a.x)/.01,z:(b.z-a.z)/.01}};
  const contacts=events.filter(e=>!e.disabled&&!(e.firstTime&&e.kind==='recebe')&&(['toque','recebe'].includes(e.kind)||e.verifiedGroundTouch)).sort((a,b)=>a.t-b.t).map(e=>{const moving=e.movingPickup||(e.variation?.locomotion==='continuous'||/^(chute_corrida|controle_corrida)/.test(e.nome??''))&&!e.hands,speed=e.movingPickup?1.6:e.variation?.locomotion==='continuous'?e.variation.contactSpeed??3.4:3.4;return{t:e.t,p:source(e.t),v:receptionTravelVelocity(e,{controlled:controls.some(s=>!s.loose&&Math.abs(s.start-e.t)<1e-6&&s.end>e.t+.08)})??(moving?{x:Math.sin(e.mira)*speed,z:Math.cos(e.mira)*speed}:{x:0,z:0}),event:e}});
  // Intermediate pushes need the tangent of their fixed control segment, not
@@ -28,6 +28,19 @@ export function prepareActionRootPath(source,events,{controls=[],breaks=[]}={}){
   if(!a.event.cab||!b.event.cab||a.event.hands||b.event.hands||dt<.2||dt>1.2||distance<.35||distance/dt>9||breaks.some(c=>c.before>=a.t&&c.after<=b.t))continue;
   const v={x:dx/dt,z:dz/dt};
   for(const c of [a,b]){c.v=c.headerFlow?{x:(c.v.x+v.x)*.5,z:(c.v.z+v.z)*.5}:{...v};c.headerFlow=true}
+ }
+ // Tactical speed before acquisition describes the approach, not the speed
+ // of a controlled ball after impact. Match the body to the actual outgoing
+ // roll, so an arriving runner does not overtake a slowing first touch.
+ const receptionTangents=[];
+ if(ballAt&&ownedAt)for(const c of contacts){
+  const e=c.event;if(e.kind!=='recebe'||e.firstTime||e.hands||e.goleiro||e.pickup||e.bola?.y>.24)continue;
+  const end=Math.min(c.t+.18,contacts.find(n=>n.t>c.t+1e-6)?.t??Infinity);
+  if(end-c.t<.08||!ownedAt(c.t+.04)||!ownedAt(end-.01)||breaks.some(b=>b.before>=c.t&&b.after<=end))continue;
+  const a=ballAt(c.t+.02),b=ballAt(end);if(!a||!b||a.y>.24||b.y>.24)continue;
+  const v={x:(b.x-a.x)/(end-c.t-.02),z:(b.z-a.z)/(end-c.t-.02)},speed=Math.hypot(v.x,v.z);
+  if(speed>9)continue;
+  receptionTangents.push({t:c.t,before:{...c.v},after:{...v}});c.v=v;c.incomingRun=speed>3.5;
  }
  const anchors=[],ranges=[],actionWindows=[];
  for(let i=0;i<contacts.length;i++){const c=contacts[i],prev=contacts[i-1],next=contacts[i+1],stationary=!c.headerFlow&&Math.hypot(c.v.x,c.v.z)<.01;
@@ -125,5 +138,5 @@ export function prepareActionRootPath(source,events,{controls=[],breaks=[]}={}){
   if(timing)progress.set(a,timing);
  }
  const sample=t=>{if(breaks.some(c=>t>=c.before&&t<=c.after))return source(t);let i=-1;for(let k=0;k<guided.length;k++){if(guided[k].t<=t)i=k;else break}const a=guided[i],b=guided[i+1];if(!a||!b||b.t-a.t<1e-8||!windows.some(w=>t>=w.start&&t<=w.end))return source(t);const u=(t-a.t)/(b.t-a.t);return hermite(a.p,b.p,a.v,b.v,progress.get(a)?.sample(u)??u,b.t-a.t)};
- return{sample,contacts,diagnostics:{acceptedGuides,rejectedGuideSpans,retimedApproaches:[...progress].map(([a,p])=>({start:a.t,before:p.before,after:p.after}))}};
+ return{sample,contacts,diagnostics:{receptionTangents,acceptedGuides,rejectedGuideSpans,retimedApproaches:[...progress].map(([a,p])=>({start:a.t,before:p.before,after:p.after}))}};
 }
