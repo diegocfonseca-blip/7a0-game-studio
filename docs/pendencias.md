@@ -47,6 +47,10 @@
     a vez no draft enquanto fora) e volta quando quiser. Largar de vez = o dono exclui: o time termina a temporada com o
     elenco dele e na próxima sai da tabela. 👑 O dono é SEMPRE quem criou (regra da coroa): sem ele a liga PAUSA e fica
     guardada; volta quando ele entrar. Nunca acaba sozinha.
+  · ✋ **"ESTOU PRONTO" em toda etapa (01/11, ideia dele):** antes do draft, do leilão e da liga, cada um aperta ✋ Estou pronto
+    e o dono vê a lista (✅/⏳). **O dono SEMPRE decide** quando começa (pode começar com gente faltando). No draft, cada vez
+    também: quem está na vez dá "pronto" e aí corre o relógio de 45 s; não deu pronto → o dono pode ⏭ pular a vez dele. Nada
+    começa nem volta sozinho depois de pausa: sempre pelo botão do dono.
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
