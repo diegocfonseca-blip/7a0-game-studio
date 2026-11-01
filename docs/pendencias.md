@@ -71,6 +71,8 @@
     pílula de Formação — `MLD_FORMACAO` só aceita formação que o elenco preenche). Vale na escalação de 45 s E na aba Elenco
     durante a temporada. 🔨 O leilão dos sondados tem a cara do ENVELOPE de sempre (barra com TEMPO, − / +, LACRAR TUDO).
     Print: `scripts/mockups/minha-liga-draft-escalacao-leilao.png`.
+    🕵️📋 **Na sua vez: os DOIS botões juntos** (Pegar do draft · Sondar um amigo), qualquer um começa os 45 s (01/11).
+    📏 **Tamanho da liga: 20 (padrão) ou 10 times**, bots completam; com mais de 10 pessoas cresce até caber (01/11, `tamanhoLiga`).
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)

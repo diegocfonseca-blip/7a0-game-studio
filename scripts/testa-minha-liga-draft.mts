@@ -29,6 +29,9 @@ assert.equal(s.minhaLigaDraft, true)
 const noBaralho = SECTORS.flatMap(p => s.deck[p])
 assert.ok(noBaralho.some(c => c.fame >= 4), 'tem craque/lenda no 1º leilão (não é o leilão fraco)')
 assert.equal(start({ minhaLigaDraft: false }).minhaLigaDraft, false, 'Liga Draft de antes continua igual')
+const dez = start({ tamanhoLiga: 10 })
+assert.equal(dez.managers.length, 10, 'liga de 10: 4 pessoas + 6 bots')
+assert.equal(start().managers.length, 20, 'padrão continua 20')
 console.log('✅ 1ª temporada com leilão normal:', noBaralho.filter(c => c.fame >= 4).length, 'craques/lendas no pregão')
 
 // ② fim da temporada: elencos de 11 e tabela pronta

@@ -864,6 +864,7 @@ export function EscLobby() {
   const [ligaData, setLigaData] = useState(proxMeiaHora.dia)
   const [ligaHora, setLigaHora] = useState(proxMeiaHora.hora)
   const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
+  const [ligaTamanho, setLigaTamanho] = useState<20 | 10>(20) // 📋🏆 Minha Liga Draft (01/11): 20 times (padrão) ou 10, bots completam
   const [ligaPw, setLigaPw] = useState('') // 🔒 senha OBRIGATÓRIA da liga (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
@@ -1796,6 +1797,7 @@ export function EscLobby() {
       // 📋 LIGA DRAFT: os elencos da partida anterior voltam (o reducer só usa se TODO MUNDO já tinha time)
       ligaDraft: !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft,
       minhaLigaDraft: !!(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft, // 📋🏆 Minha Liga Draft (01/11)
+      tamanhoLiga: (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : undefined, // 📏 20 (padrão) ou 10 times
       campo2d: !!(gs as GS & { campo2d?: boolean })?.campo2d, // 📺 sala 2D (escolha do dono na criação)
       draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
     })
@@ -2073,7 +2075,7 @@ export function EscLobby() {
     const relampagoSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'relampago'
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }),
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true } : {}), deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}) } : {}), deck: 'todos', deckSala: 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -3559,6 +3561,12 @@ export function EscLobby() {
                       ? tr('🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.', '🤖 Default. 20-team table — the missing ones join as CPU, like the usual quick match.')
                       : tr('🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores. ⚠️ Sem bots só vale com 4 ou mais pessoas: se começarem com menos, a liga completa com bots.', '🏆 Only your crew in the table. The league is as big as you are (home and away). Cup unlocks with 8+ players. ⚠️ No bots only applies with 4 or more people: start with fewer and the league fills up with bots.')}
                   </p>
+                  {ehMinha && ligaComBots && (<>
+                    {/* 📋🏆 Minha Liga Draft (01/11, Diego: "padrão 20 totais ou 10 totais contando usuários… o que sobra com bots") */}
+                    <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>{tr('📏 Tamanho da liga', '📏 League size')}</p>
+                    <Seg options={[[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]] as [20 | 10, string][]} value={ligaTamanho} onSet={v => setLigaTamanho(v)} />
+                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{ligaTamanho === 10 ? tr('10 times contando vocês; os bots completam. Temporada de 18 rodadas. Se vierem mais de 10 pessoas, a liga cresce até caber todo mundo.', '10 teams counting you; bots fill the rest. 18-round season. If more than 10 people join, the league grows to fit everyone.') : tr('20 times contando vocês; os bots completam. Temporada de 38 rodadas.', '20 teams counting you; bots fill the rest. 38-round season.')}</p>
+                  </>)}
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
                       com senha, mas deixe avisado que essa sala é somente com senha.
                       Também avise as regras da sala, deixe claro: pode ter agendamento,
