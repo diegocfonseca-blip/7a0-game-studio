@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import{createBustActionTrack}from'../../../src/escalacao/futebol3d/chibi/bust-action-track.mjs';
+const key='receiver',receive={id:'r',kind:'recebe',key,t:2,dir:1.4},release={id:'p',kind:'toque',key,t:2.38,dir:1.4,tipo:'passe'};
+const timeline={duration:4,keys:[key],sample:()=>({player:{heading:0}}),agenda:[receive,release]};
+const before=JSON.stringify(timeline.agenda),track=createBustActionTrack(timeline);
+assert(track.plans.some(p=>p.id==='r'),'A two-touch reception needs its own orientation constraint');
+assert(Math.abs(track.sample(key,2).heading-1.4)<1e-9,'The body is oriented for the actual reception, not just the next pass');
+assert(Math.abs(track.sample(key,2.38).heading-1.4)<1e-9,'The outgoing pass still has its exact orientation');
+const first=createBustActionTrack({...timeline,agenda:[{...receive,firstTime:'p'},{...release,firstTime:true,t:2.1}]});
+assert(!first.plans.some(p=>p.id==='r'),'A genuinely merged first-time strike is not presented as a second touch');
+assert.equal(JSON.stringify(timeline.agenda),before);
+console.log('PASS: distinct reception facing constraints, preserved release facing, genuine first-time strike priority');

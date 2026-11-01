@@ -1,3 +1,4 @@
+import {playWhistle} from './sound'
 import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
@@ -96,7 +97,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
 }
 
 export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -137,11 +138,11 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()})
  scene.add(field)
  type Body=ReturnType<typeof person>
- type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
+ type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'|'cameraSubjects'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
  let match:Match|undefined
  const empty=():InspecaoPartidaComplexo=>({players:0,ball:{x:0,y:.11,z:0}})
  let inspection=empty()
- let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean;key?:string;side?:'home'|'away';keeper?:boolean}[]=[]
+ let cameraSubjects:readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[]=[]
  const clearMatch=()=>{
   if(match){match.humanoids?.dispose();match.people.dispose();descartarObjetos(match.root);match=undefined}
   inspection=empty()
@@ -152,7 +153,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   if(!current||(!entradaOficialCompleta(current)&&atletasEmCampo(current).length!==22)){clearMatch();return}
   const snapshot=quadroFutebol3D(current,now)
   if(!snapshot.players.length||(!current.officialInput&&snapshot.players.length!==22)){clearMatch();return}
-  cameraSubjects=snapshot.players
+  cameraSubjects=snapshot.phase==='falta'?[...snapshot.players,{mx:snapshot.referee.x,mz:snapshot.referee.z,visible:true,key:'referee',priority:true}]:snapshot.players
   const lineup=current.officialInput?atletasEmCampo(current):snapshot.players
   const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(lineup.filter(p=>p.side===side).map(p=>p.id))))
   // A dismissal hides/releases the existing slot; it must neither erase the
@@ -189,13 +190,17 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
    if(current.officialInput){const target=match,prepared=()=>{if(!disposed&&match===target)onReady?.()}
     const antigo=()=>import('./futebol3d/players.mjs').then(module=>module.loadPlayers(root,current,snapshot,{president:getPresident?.(),onPrepared:prepared}))
     // 🧍 27/10: o JOGADOR NOVO (Meshy + movimentos Mixamo). Se não carregar, volta sozinho pro boneco de antes — o jogo nunca fica sem os 22
-    const carrega=bonecoNovo()?import('./futebol3d/players-novo.mjs').then(module=>module.loadPlayersNovo(root,current,snapshot,{onPrepared:prepared})).catch(error=>{console.warn('Jogador novo indisponível; usando o boneco de antes',error);return antigo()}):antigo()
+    const carrega=bonecoNovo()?import('./futebol3d/players-novo.mjs').then(module=>module.loadPlayersNovo(root,current,snapshot,{onPrepared:prepared,onWhistle:playWhistle})).catch(error=>{console.warn('Jogador novo indisponível; usando o boneco de antes',error);return antigo()}):antigo()
     carrega.then(players=>{if(disposed||match!==target){players.dispose();return}target.humanoids=players;onReady?.()}).catch(error=>console.error('Humanoide 3D indisponível',error))}
   }
   const {bodies,referee,coaches,reserves,ball,people}=match
   for(const {body,x} of coaches){body.group.rotation.y=Math.atan2(snapshot.ball.x-x,snapshot.ball.z-TECNICO_Z)-Math.PI;body.arms[0].rotation.x=-.2-Math.sin(snapshot.time*1.2+x)*.08;body.elbows[0].rotation.x=-.35}
   match.humanoids?.update(snapshot,camera,viewportHeight)
   const presentation=match.humanoids?.presentFrame(snapshot)??snapshot
+  // Frame the rendered bodies, including their contact approach, rather than
+  // tactical anchors that can be metres away from the visible football action.
+  cameraSubjects=match.humanoids?.cameraSubjects?.()??snapshot.players
+  if(snapshot.phase==='falta'){const r=presentation.referee;cameraSubjects=[...cameraSubjects,{mx:r.x,mz:r.z,visible:true,key:'referee',priority:true}]}
   for(const p of snapshot.players){const body=bodies.get(p.key);if(!body)continue;body.group.visible=p.visible!==false;pose(body,p);body.kit.color.set(p.keeper?'#d6b329':p.side==='home'?current.homeColor:current.awayColor)}
   for(const {body,side,keeper} of reserves)body.kit.color.set(keeper?'#d6b329':side==='home'?current.homeColor:current.awayColor)
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})

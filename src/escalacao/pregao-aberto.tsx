@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useEsc, paPodeLancar, paMinimo, paMesa, paMesasAtivas, PA_TICK_MS, PA_MARTELO_MS } from './store'
 import { Shell, AuctionBar, CollectibleCard, YourPitch, nomePacote } from './screens'
-import { SeloClube } from './selo-clube'
+import { SeloPacote } from './selo-clube'
 import { useT } from './lang'
 import { playTick, playHammer } from './sound'
 import type { Sector, Card } from './types'
@@ -278,7 +278,7 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
   return (
     <div style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
       <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{tagPos(c.pos)}</span>
-      <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloClube clube={c.pacote?.clube ?? c.club} size={compacto ? 58 : 96} /></div>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloPacote c={c} size={compacto ? 58 : 96} /></div>
       {/* 📐 17/10 (Diego, print da mesa dupla): o nome ocupa SEMPRE 2 linhas na mesa dupla — senão "Goleiros do Everton"
           (2 linhas) empurrava o lance atual dele pra baixo do "Meio do Newcastle" (1 linha) e as duas mesas desalinhavam */}
       <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1.05, textTransform: 'uppercase', ...(compacto ? { minHeight: '2.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'block' }) }}>{nomePacote(c)}</b>

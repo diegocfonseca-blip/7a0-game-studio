@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';import{isFirstTimeReception}from'../../../src/escalacao/futebol3d/chibi/first-time-reception.mjs';
+const receive={key:'away-wanchope',kind:'recebe',t:16+2/3},release={key:receive.key,kind:'toque',t:17.05};
+const before=JSON.stringify([receive,release]);
+assert.equal(isFirstTimeReception(receive,release),false,'Preserve the actual reception 383ms before the pass');
+assert.equal(isFirstTimeReception(receive,{...release,t:receive.t+.083333}),true,'Retain a genuine near-immediate first-time strike');
+assert.equal(isFirstTimeReception(receive,{...release,t:receive.t+.2}),false,'A short settling touch must not disappear');
+assert.equal(isFirstTimeReception(receive,{...release,key:'other-side-wanchope',t:receive.t+.1}),false,'Same name on another side is not this receiver');
+for(const flag of ['hands','goleiro','pickup','disabled'])assert.equal(isFirstTimeReception({...receive,[flag]:true},{...release,t:receive.t+.1}),false);
+assert.equal(isFirstTimeReception(receive,{...release,t:receive.t-.01}),false,'No release before the reception');
+assert.equal(isFirstTimeReception(receive,{...release,t:NaN}),false);
+assert.equal(JSON.stringify([receive,release]),before,'Never change canonical events to obtain two touches');
+console.log('PASS: two-touch settling stays visible; only near-immediate releases share a strike; immutable identity/hand guards');

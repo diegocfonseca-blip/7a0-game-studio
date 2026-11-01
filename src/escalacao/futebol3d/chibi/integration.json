@@ -1,0 +1,205 @@
+{
+  "revision": "chibi-career-fundamentals-27",
+  "assetBytes": 4756492,
+  "assetSha256": "3059bb9f7e13b264862ab2c8c09bf4453d1580f5d6bd7e52dfb7d3718b3f4d0f",
+  "modules": [
+    {
+      "source": "scripts/futebol3d/action-root-plan.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/action-root-plan.mjs",
+      "sourceSha256": "c76dde7097a749b6620cb711dae515c3377dffaf6c82288e3f305cfb296eb164",
+      "runtimeSha256": "c792ede0674d87bf296b5f6402b542c9466e72dd894a1804fd643ae82d723d0a"
+    },
+    {
+      "source": "scripts/futebol3d/action-travel-freedom.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/action-travel-freedom.mjs",
+      "sourceSha256": "636b74e7d58ce1604fea1a5a5afa497334b2567f05ba8cc4529089061fed6047",
+      "runtimeSha256": "636b74e7d58ce1604fea1a5a5afa497334b2567f05ba8cc4529089061fed6047"
+    },
+    {
+      "source": "scripts/futebol3d/bounded-root-progress.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/bounded-root-progress.mjs",
+      "sourceSha256": "4b89dd63a9344cb6181388f9fa1210a5542aec36402eaa931c6002f39263c3ba",
+      "runtimeSha256": "4b89dd63a9344cb6181388f9fa1210a5542aec36402eaa931c6002f39263c3ba"
+    },
+    {
+      "source": "scripts/futebol3d/bust-action-track.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/bust-action-track.mjs",
+      "sourceSha256": "3e5ef8d0fcfd4843fe94ad0a0a285df08abc8caf8aa1ed09b1887553f4068bad",
+      "runtimeSha256": "3e5ef8d0fcfd4843fe94ad0a0a285df08abc8caf8aa1ed09b1887553f4068bad"
+    },
+    {
+      "source": "scripts/futebol3d/captured-arm-layer.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/captured-arm-layer.mjs",
+      "sourceSha256": "ff5a8632aa59a5f5998fdaf098b2e00eb5e0586a141dc7c2c1a6dcc09a6c822b",
+      "runtimeSha256": "ff5a8632aa59a5f5998fdaf098b2e00eb5e0586a141dc7c2c1a6dcc09a6c822b"
+    },
+    {
+      "source": "scripts/futebol3d/captured-body-feint.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/captured-body-feint.mjs",
+      "sourceSha256": "6d19166c6f0b1e1a8fa6143c5893eb95a470396554ac50e32997fd330d60d3d1",
+      "runtimeSha256": "6d19166c6f0b1e1a8fa6143c5893eb95a470396554ac50e32997fd330d60d3d1"
+    },
+    {
+      "source": "scripts/futebol3d/captured-gait-cycle.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/captured-gait-cycle.mjs",
+      "sourceSha256": "ac296b8185f6b0233c98e67fa330dbc3d3ff252bc7f1d4fb0eb2cfe58167b38d",
+      "runtimeSha256": "ac296b8185f6b0233c98e67fa330dbc3d3ff252bc7f1d4fb0eb2cfe58167b38d"
+    },
+    {
+      "source": "scripts/futebol3d/captured-kick-timing.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/captured-kick-timing.mjs",
+      "sourceSha256": "6b6d8a24729ef3dc12e0cef7d6b29083bae4d57e0ccfdb76d5b3e9ec0048aa26",
+      "runtimeSha256": "6b6d8a24729ef3dc12e0cef7d6b29083bae4d57e0ccfdb76d5b3e9ec0048aa26"
+    },
+    {
+      "source": "scripts/futebol3d/chibi-player-asset.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/chibi-player-asset.mjs",
+      "sourceSha256": "1fdb8ccab3830dae67633e697a4dec7364c9bb3fc79978351a3ee0b5c41b7a17",
+      "runtimeSha256": "700222b3940899614e25d4e98e437f623f823366c387929266aabece2eaf037a"
+    },
+    {
+      "source": "scripts/futebol3d/collective-presentation.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/collective-presentation.mjs",
+      "sourceSha256": "2886a388b95c98d41c859d602c1df09f304cbb44dafab8652c8c8966860289cc",
+      "runtimeSha256": "2886a388b95c98d41c859d602c1df09f304cbb44dafab8652c8c8966860289cc"
+    },
+    {
+      "source": "scripts/futebol3d/contact-preserving-separation.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/contact-preserving-separation.mjs",
+      "sourceSha256": "8d63838c116d2b7802c7637bbd77320478bc27f5ff3d1fc5cd18dc58198de5d5",
+      "runtimeSha256": "7ca25fdb300abc7f27698a71266d290508b0762838944cc77f0be3f654f50047"
+    },
+    {
+      "source": "scripts/futebol3d/contextual-dribble-presentation.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/contextual-dribble-presentation.mjs",
+      "sourceSha256": "0d7ad7dc05c5b2add04dd30388c6707e570ef9ac589edd9519df7fc699b291d0",
+      "runtimeSha256": "0d7ad7dc05c5b2add04dd30388c6707e570ef9ac589edd9519df7fc699b291d0"
+    },
+    {
+      "source": "scripts/futebol3d/contextual-kick-selection.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/contextual-kick-selection.mjs",
+      "sourceSha256": "3ffc306e1053e7c03ad010ec97222f4aee109c4c5340c755c1b2b6212c9ad743",
+      "runtimeSha256": "3ffc306e1053e7c03ad010ec97222f4aee109c4c5340c755c1b2b6212c9ad743"
+    },
+    {
+      "source": "scripts/futebol3d/controlled-ball-approach.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/controlled-ball-approach.mjs",
+      "sourceSha256": "6febc4c1b92d0cc6a56abba311da7c3c5e4b5eb8632d76cdbd6201776dcb1799",
+      "runtimeSha256": "6febc4c1b92d0cc6a56abba311da7c3c5e4b5eb8632d76cdbd6201776dcb1799"
+    },
+    {
+      "source": "scripts/futebol3d/first-time-reception.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/first-time-reception.mjs",
+      "sourceSha256": "662f1e542bdd83ec5158c544ae7b8b53720a1a36edd26d5a9b90adaee463c7af",
+      "runtimeSha256": "662f1e542bdd83ec5158c544ae7b8b53720a1a36edd26d5a9b90adaee463c7af"
+    },
+    {
+      "source": "scripts/futebol3d/foot-action-proximity.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/foot-action-proximity.mjs",
+      "sourceSha256": "79e6bd30acec6183e459045b55b4312f1fcccc4c1ef6bdf91b7976ccd018c67a",
+      "runtimeSha256": "79e6bd30acec6183e459045b55b4312f1fcccc4c1ef6bdf91b7976ccd018c67a"
+    },
+    {
+      "source": "scripts/futebol3d/ground-continuation-kind.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/ground-continuation-kind.mjs",
+      "sourceSha256": "f3a3e8a88b019b5fb9a9593c849ae939d2c717572811b414e246e18fc849f86f",
+      "runtimeSha256": "f3a3e8a88b019b5fb9a9593c849ae939d2c717572811b414e246e18fc849f86f"
+    },
+    {
+      "source": "scripts/futebol3d/ground-reception-contact.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/ground-reception-contact.mjs",
+      "sourceSha256": "4cb2b1afdf81aeeb13afaf0fd79691403a9b754d6b6511d07e9e8c583ed25881",
+      "runtimeSha256": "4cb2b1afdf81aeeb13afaf0fd79691403a9b754d6b6511d07e9e8c583ed25881"
+    },
+    {
+      "source": "scripts/futebol3d/live-ground-interval.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/live-ground-interval.mjs",
+      "sourceSha256": "a58bed0497f35f0c3cbac6a9a4fc223b592cec51ab50487e8954a135ee793185",
+      "runtimeSha256": "a58bed0497f35f0c3cbac6a9a4fc223b592cec51ab50487e8954a135ee793185"
+    },
+    {
+      "source": "scripts/futebol3d/motion-refinements.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/motion-refinements.mjs",
+      "sourceSha256": "99edb1ba0d0b09bdf0fbb72a442fa3d9cd6f94cdf4498c8466969bcbbfaa2b29",
+      "runtimeSha256": "99edb1ba0d0b09bdf0fbb72a442fa3d9cd6f94cdf4498c8466969bcbbfaa2b29"
+    },
+    {
+      "source": "scripts/futebol3d/fullbody-chibi-match-experiment.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/players.mjs",
+      "sourceSha256": "a409e2030a68735d63b13087f8bc5efaf31868a9070e30959e1116877d4cb1f0",
+      "runtimeSha256": "1108e0b24bdb581a238a49d8f16d81b37a7c20501c3e85c0c5aaacef0e83a941"
+    },
+    {
+      "source": "scripts/futebol3d/possession-body-path.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/possession-body-path.mjs",
+      "sourceSha256": "926e9c4149f860c779fbaec95b0d43fcc304ade66084e19fd9e8d99aac66c43b",
+      "runtimeSha256": "7a502e519832dba3f8ed4438f080867076dbb6b154c1c0738312f4ba19bb2a02"
+    },
+    {
+      "source": "scripts/futebol3d/reach-surface-contact.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/reach-surface-contact.mjs",
+      "sourceSha256": "9cb88030efa0d81fd76046b02ae633494f15aebcdd7ed73f87ed534d3678e04f",
+      "runtimeSha256": "d448ee87f77abc16f43dde867cfa9458cfc1eb632226884acca0ccddf78d6503"
+    },
+    {
+      "source": "scripts/futebol3d/reception-locomotion.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/reception-locomotion.mjs",
+      "sourceSha256": "98e1a3eb1bc642015305846c745b31e73f6038a7e0537b9a397c0ab01c360b3e",
+      "runtimeSha256": "98e1a3eb1bc642015305846c745b31e73f6038a7e0537b9a397c0ab01c360b3e"
+    },
+    {
+      "source": "scripts/futebol3d/resilient-contact-clock.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/resilient-contact-clock.mjs",
+      "sourceSha256": "a500d0b942de434a0c98b07b1857d7b540e60b87e3e0741186ff0feee2ef59ce",
+      "runtimeSha256": "a500d0b942de434a0c98b07b1857d7b540e60b87e3e0741186ff0feee2ef59ce"
+    },
+    {
+      "source": "scripts/futebol3d/secondary-football-action.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/secondary-football-action.mjs",
+      "sourceSha256": "bf1f9745eec298793ef78bf6c9eb1d07cab3cf6ad766d67350ab46fc786b7216",
+      "runtimeSha256": "bf1f9745eec298793ef78bf6c9eb1d07cab3cf6ad766d67350ab46fc786b7216"
+    },
+    {
+      "source": "scripts/futebol3d/segmented-body-track.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/segmented-body-track.mjs",
+      "sourceSha256": "55bf4a3ee7bc49aa443fc7606d8d0011e8a5324d8a359900712a70a9be7f1ca6",
+      "runtimeSha256": "6627a698c2a1251db57c20da0645b595d0c0724064459f540d1665631a35e9bc"
+    },
+    {
+      "source": "scripts/futebol3d/skinned-frustum-bounds.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/skinned-frustum-bounds.mjs",
+      "sourceSha256": "7a5599fec0e4dbfcc809eae4ae8442b67d4bb8a56682acf9a1e095a35b246c55",
+      "runtimeSha256": "7a5599fec0e4dbfcc809eae4ae8442b67d4bb8a56682acf9a1e095a35b246c55"
+    },
+    {
+      "source": "scripts/futebol3d/stable-action-facing.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/stable-action-facing.mjs",
+      "sourceSha256": "7bf3fa645e70f8bd7258d5cfbf7632a6eaa94f080b45b078124dedbf862d2754",
+      "runtimeSha256": "7bf3fa645e70f8bd7258d5cfbf7632a6eaa94f080b45b078124dedbf862d2754"
+    },
+    {
+      "source": "scripts/futebol3d/verified-dribble-plan.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/verified-dribble-plan.mjs",
+      "sourceSha256": "f380d2696549d42c8aa2c72310400c2e50ccda8e74d60abdf7251dd69b98cc1d",
+      "runtimeSha256": "f380d2696549d42c8aa2c72310400c2e50ccda8e74d60abdf7251dd69b98cc1d"
+    },
+    {
+      "source": "scripts/futebol3d/verified-root-recovery.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/verified-root-recovery.mjs",
+      "sourceSha256": "27302172b55a89849ce742113625b7a464a96b8aba130a4948a8f76cfdcd2ec7",
+      "runtimeSha256": "27302172b55a89849ce742113625b7a464a96b8aba130a4948a8f76cfdcd2ec7"
+    },
+    {
+      "source": "scripts/futebol3d/verify-clearance-warning.mjs",
+      "runtime": "src/escalacao/futebol3d/chibi/verify-clearance-warning.mjs",
+      "sourceSha256": "7ae739ca143911a2d049177c56e5813dd2d88e16efe8b16fdd59817cbf1ee3bc",
+      "runtimeSha256": "7ae739ca143911a2d049177c56e5813dd2d88e16efe8b16fdd59817cbf1ee3bc"
+    },
+    {
+      "runtime": "src/escalacao/futebol3d/chibi/ground-control-track.mjs",
+      "origin": "Correção local da trajetória do corpo entre contatos existentes; não altera a bola ou o motor oficial.",
+      "runtimeSha256": "d3bf1cd56f1511ea56033876a6885c62894b06dca0ddc97582b33934f97ba33a"
+    }
+  ],
+  "basedOnCommit": "4bc924039ab0d8f15cd62151119fa08f29635fc8"
+}

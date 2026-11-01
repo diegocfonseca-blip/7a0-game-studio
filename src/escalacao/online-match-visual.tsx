@@ -160,11 +160,11 @@ export function OnlineMatchTabs({ value, onChange }: { value: OnlineMatchTab; on
 }
 
 export function CompetitionStage({ kind, title, phase, detail, status, children, patroKind }: {
-  kind: 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
+  kind: 'copa8' | 'liberta' | 'world' | 'euro' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
   detail: string; status?: string; children?: ReactNode
   patroKind?: Competicao | null // 💼 de quem é o "apresentada por" (padrão: o próprio kind; null = nenhum) — a carreira usa o dela
 }) {
-  const patro = usePatrocinio(patroKind === undefined ? kind : patroKind)
+  const patro = usePatrocinio(patroKind === undefined ? (kind === 'euro' ? 'world' : kind) : patroKind) // 🇪🇺 a Euro usa o patrocinador da Copa
   const tema = useTemaComp() // 🎨 23/10: dentro de sala/partida rápida, troféu no canto e faixa na paleta da copa
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`} style={tema ? { position: 'relative' } : undefined}>
     <LedEstadio />

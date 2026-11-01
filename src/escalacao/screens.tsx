@@ -11,7 +11,7 @@ import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } 
 import { PixMP } from './pix-mp'
 import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo } from './types'
-import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
+import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
@@ -1354,7 +1354,7 @@ function PacotesDoTime({ m }: { m: Manager }) {
           <div key={pos} className="flex items-center gap-2 px-3 py-2" style={{ borderTop: '2px solid rgba(0,0,0,.08)' }}>
             <span className="text-[10px] font-black rounded-md px-1.5 py-0.5 flex-none" style={{ background: INK, color: '#fff' }}>{pos}</span>
             {c ? <>
-              <span className="flex-none"><SeloClube clube={c.pacote?.clube ?? c.club} size={30} /></span>
+              <span className="flex-none"><SeloPacote c={c} size={30} /></span>
               <span className="font-black text-[13px] uppercase truncate" style={OSWALD}>{nomePacote(c)}</span>
             </> : <span className="text-[12px] font-bold text-black/40">{L('ainda sem pacote', 'no pack yet')}</span>}
           </div>
@@ -1368,11 +1368,24 @@ function PacotesDoTime({ m }: { m: Manager }) {
 // nome e clube em branco. Sem a prop, tudo fica EXATAMENTE como sempre foi — é
 // por isso que ela é opcional, pra não encostar nos outros 4 lugares que usam.
 const SETOR_PACOTE: Record<Sector, { ic: string; pt: string; en: string }> = {
-  GOL: { ic: '🧤', pt: 'Goleiros do', en: 'Goalkeepers of' },
-  LAT: { ic: '↔️', pt: 'Laterais do', en: 'Full-backs of' },
-  ZAG: { ic: '🛡️', pt: 'Zaga do', en: 'Centre-backs of' },
-  MEI: { ic: '🎯', pt: 'Meio do', en: 'Midfield of' },
-  ATA: { ic: '⚡', pt: 'Ataque do', en: 'Attack of' },
+  GOL: { ic: '🧤', pt: 'Goleiros', en: 'Goalkeepers of' },
+  LAT: { ic: '↔️', pt: 'Laterais', en: 'Full-backs of' },
+  ZAG: { ic: '🛡️', pt: 'Zaga', en: 'Centre-backs of' },
+  MEI: { ic: '🎯', pt: 'Meio', en: 'Midfield of' },
+  ATA: { ic: '⚡', pt: 'Ataque', en: 'Attack of' },
+}
+// 🏳️ "Ataque DA Argentina", "Meio DO Brasil", "Zaga DE Portugal", "Goleiros DOS EUA" (clube é sempre "do", como sempre foi)
+const PAIS_DE = new Set(['Portugal', 'Israel', 'Cabo Verde', 'Angola', 'Cuba', 'Moçambique', 'Gales', 'Honduras', 'Trinidad e Tobago', 'Andorra', 'Mônaco', 'San Marino'])
+function artigoPais(p: string): string {
+  if (PAIS_DE.has(p)) return 'de'
+  if (p === 'EUA' || p === 'Estados Unidos' || p === 'Emirados Árabes' || p === 'Camarões') return 'dos'
+  if (/^(Coreia|Costa|Arábia|Rep\.|República|Bósnia|Nova Zelândia|Guiné)/.test(p) || /a$/.test(p)) return 'da'
+  return 'do'
+}
+/** 📅 a década do pacote na língua da pessoa: "anos 90" · "anos 2000" · "the '90s" · "the 2000s" */
+function decadaTxt(d: number): string {
+  if (getLang() === 'en') return d >= 2000 ? `the ${d}s` : `the '${String(d).slice(2)}s`
+  return d >= 2000 ? `anos ${d}` : `anos ${String(d).slice(2)}`
 }
 /** "Goleiros do Palmeiras" — o nome do pacote no idioma da pessoa (o clube nunca traduz) */
 export function nomePacote(c: Card): string {
@@ -1383,14 +1396,16 @@ export function nomePacote(c: Card): string {
     return getLang() === 'en' ? `🏀 ${clube} ${pl.en}` : `🏀 ${pl.pt} dos ${clube}`
   }
   const t = SETOR_PACOTE[c.pos]
-  return `${t.ic} ${getLang() === 'en' ? t.en : t.pt} ${clube}`
+  const art = c.pacote?.selecao ? artigoPais(clube) : 'do'
+  const dec = c.pacote?.decada ? ` · ${decadaTxt(c.pacote.decada)}` : ''
+  return `${t.ic} ${getLang() === 'en' ? t.en : `${t.pt} ${art}`} ${clube}${dec}`
 }
 function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean; claro?: boolean }) {
   const cartas = c.pacote?.cartas ?? []
   return (
     <div className="text-left min-w-0">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="flex-none"><SeloClube clube={c.pacote?.clube ?? c.club} size={big ? 64 : 44} /></span>
+        <span className="flex-none"><SeloPacote c={c} size={big ? 64 : 44} /></span>
         <div className="min-w-0">
           <p className={`font-black leading-tight ${big ? 'text-2xl' : 'text-[15px]'}`} style={{ ...OSWALD, color: claro ? '#fff' : INK, textTransform: 'uppercase' }}>{nomePacote(c)}</p>
           <p className={`font-bold ${big ? 'text-sm' : 'text-[10.5px]'}`} style={{ color: claro ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.55)' }}>{cartas.length} {cartas.length === 1 ? L('jogador no pacote', 'player in the pack') : L('jogadores no pacote', 'players in the pack')}</p>
@@ -11466,6 +11481,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".
         clubes: state.leilaoClubes,
+        selecao: state.leilaoSelecao, decada: state.leilaoDecada, // 🏳️📅 Seleções / Por década continuam no novo leilão (31/10)
         // 🏀 E O ESPORTE TAMBÉM. Ninguém tinha reclamado porque o basquete só
         // abre pra conta dele — mas o buraco era o mesmo e pior: uma sala de
         // BidLegends virava futebol no "novo leilão".
@@ -12075,6 +12091,7 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
+  const [euroNaLiga, setEuroNaLiga] = useState<24 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (24 seleções)
   // 🏟️ COPA REGIONAL (10/10): mesma porta da Copa do Mundo — a marca `regionalNaLiga` é da SALA
   const [regionalNaLiga, setRegionalNaLiga] = useState<CopaRegionalId | null>(null)
   const [mundoChecado, setMundoChecado] = useState(false)
@@ -12089,16 +12106,17 @@ export function EscEnd() {
   const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga) && !copaPending && !libPending && mundoPendente
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
-  const proxNomeFim = mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : LE('Copa do Mundo', 'World Cup')) : null
+  const proxNomeFim = mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
   useEffect(() => {
     if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
     let vivo = true
-    void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga, reg:game_state->>regionalNaLiga').eq('id', state.roomId).maybeSingle()
+    void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga, reg:game_state->>regionalNaLiga, euro:game_state->>euroNaLiga').eq('id', state.roomId).maybeSingle()
       .then(({ data }) => {
         if (!vivo) return
-        const d = data as { flag?: string; reg?: string } | null
+        const d = data as { flag?: string; reg?: string; euro?: string } | null
+        setEuroNaLiga(d?.euro === '24' || d?.euro === 'true' ? 24 : undefined)
         // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
         // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
         // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.
@@ -12512,7 +12530,7 @@ export function EscEnd() {
           a ser uma liga comum, e nada mais muda. */}
       {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
-          <CopaDaLigaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
+          <CopaDaLigaLazy euro={euroNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}

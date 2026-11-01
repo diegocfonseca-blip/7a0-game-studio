@@ -241,6 +241,8 @@ const CPU_DIV_BOOST_V5: Record<Div, number> = { A: 2, B: 4, C: 4, D: 3, V: 2 }
 const CPU_DIV_BOOST_V6: Record<Div, number> = { A: 2, B: 4, C: 4, D: 2, V: 2 }
 // 🪜 v7 (29/10, Diego: "série C coloque 3 e série B coloque 3 também"). Trava simV 7: temporada em andamento termina na tabela em que começou.
 const CPU_DIV_BOOST_V7: Record<Div, number> = { A: 2, B: 3, C: 3, D: 2, V: 2 }
+// 🪜 v8 (31/10, Diego: "a várzea ainda está muito difícil… diminua mais um ponto"): a Várzea desce de +2 pra +1. Resto igual. Trava simV 8.
+const CPU_DIV_BOOST_V8: Record<Div, number> = { A: 2, B: 3, C: 3, D: 2, V: 1 }
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
@@ -857,7 +859,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -967,7 +969,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
     // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
     // elenco real que montaram).
-    const BM = fairBoost === 7 ? CPU_DIV_BOOST_V7 : fairBoost === 6 ? CPU_DIV_BOOST_V6 : fairBoost === 5 ? CPU_DIV_BOOST_V5 : fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
+    const BM = fairBoost === 8 ? CPU_DIV_BOOST_V8 : fairBoost === 7 ? CPU_DIV_BOOST_V7 : fairBoost === 6 ? CPU_DIV_BOOST_V6 : fairBoost === 5 ? CPU_DIV_BOOST_V5 : fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
     const bh = (!H.human && !H.rival) ? BM[div] : 0, ba = (!A.human && !A.rival) ? BM[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     // 🎭 evento "escalar assim mesmo": queda pequena SÓ na rodada do causo (humano)
@@ -1086,7 +1088,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -3278,23 +3280,28 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // 📺 Campo 2D (20/10): ligado, o campinho aparece EM CIMA deste placar em qualquer competição (liga, copas, Liberta,
   // Champions, Mundial, Copa do Mundo, regionais, online e offline) e o mascote grande do gol sai de lá — por isso o
   // carimbo daqui some. Basquete fica de fora (é outro esporte).
-  const c2d = useCampo2DLigado() && !basket
+  // A sala mantém seu relógio compartilhado, mas a apresentação experimental
+  // do campo continua exclusiva da conta verificada do Diego.
+  const presidentFieldAccount = usePresidentPreview()
+  const c2d = useCampo2DLigado() && presidentFieldAccount && !basket
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
   // 🧑‍💼 o presidente na beira do campo (21/10): o boneco da CONTA, do lado do meu time — só quem tem boneco
   const presConta = usePresidenteConta()
   const presImg = useImagemBusto(c2d ? presConta.value : null)
-  const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
   // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
   // esperando essa cena invisível, e o campinho ia freando até o relógio voltar: a "câmera lenta do nada" (Diego 20/10). Com
   // o 2D, o relógio é o de todo mundo.
   const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d&&!elencos?.m2
+  const officialField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!!elencos?.m2&&!basket
   const watchingField=useAssistindoCampo()
   const watchedField=useRef({id:stadiumMatch?.id,watched:false})
   if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}
-  if(privateField&&watchingField)watchedField.current.watched=true
-  const fieldDuration=duracaoPartidaCampo(roundMs,fieldSpeed,privateField&&watchedField.current.watched)
+  if((privateField||officialField)&&watchingField)watchedField.current.watched=true
+  const officialFieldWatching=officialField&&watchedField.current.watched
+  const fieldDuration=duracaoPartidaCampo(roundMs,fieldSpeed,(privateField||officialField)&&watchedField.current.watched)
+  const officialMinuteMs=(officialFieldWatching?fieldDuration:Math.max(400,roundMs*.82))/93
   // Speed controls playback, never which chances exist. Freeze the base
   // duration per fixture; rounding roundMs at another speed must not reseed it.
   const incidentKey=`${privateField}:${stadiumMatch?.id??''}:${roundKey}`
@@ -3373,7 +3380,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     // cada velocidade é REALMENTE diferente — o passo fixo batia num piso (30ms) e
     // 2× e 4× ficavam iguais. E termina EXATO no fim do jogo (nada de liberar o
     // "próxima" antes do apito). Piso de 400ms pra nunca ficar instantâneo.
-    const dur = Math.max(400, roundMs * 0.82)
+    const dur = officialFieldWatching?fieldDuration:Math.max(400, roundMs * 0.82)
     // 🔁 INTERVALO (carreira offline com toggle): se vai pausar aos 45' e AINDA não
     // resolveu, o relógio roda 0→45 e trava; depois de resolver (resumeHalf) retoma
     // 45→93. Sem pausa, é 0→93 como sempre. `span` mantém o ritmo proporcional.
@@ -3394,11 +3401,11 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration, pausado])
+  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration,officialFieldWatching, pausado])
   const idiomaOficial=getLang()==='en'
   const apresentarMotorOficial=presidentFieldAccount&&!!elencos?.m2
   const provaOficial=useMemo(()=>!basket&&presidentFieldAccount&&elencos?.m2?prepararReplayOficial(elencos.m2,goals,idiomaOficial):null,[basket,presidentFieldAccount,elencos?.m2,goals,idiomaOficial])
-  const relatoOficial=useRelatoPartidaOficial(provaOficial?.valid?provaOficial.relato:null,{id:stadiumMatch?.id??`${roundKey}:${homeName}:${awayName}`,minute:min,minuteMs:Math.max(400,roundMs*.82)/93,paused:atHalf||!!pausado,finished:!!finished||min>=93})
+  const relatoOficial=useRelatoPartidaOficial(provaOficial?.valid?provaOficial.relato:null,{id:stadiumMatch?.id??`${roundKey}:${homeName}:${awayName}`,minute:min,minuteMs:officialMinuteMs,paused:atHalf||!!pausado,finished:!!finished||min>=93})
   const done = min >= 93
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
@@ -3717,7 +3724,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // selo da TV do campinho, e o telão de propaganda segue embaixo, no lugar de sempre.
   const replayOficialBloqueado=!!provaOficial&&!provaOficial.valid
   const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible field replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução de campo compatível.'}</p>:null
-  const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs:Math.max(400,roundMs*.82)/93,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
+  const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
   const campo2dEl = c2d && !replayOficialBloqueado ? (
     <Campo2D pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
@@ -8397,7 +8404,7 @@ export function PyramidSeasonScreen() {
   const capElite = realGoals ? 1.12 : (state.simV ?? 1) >= 2 ? 1.28 : 1.2
   // ⚖️ escada justa (bônus dos bots reduzido) só a partir do simV 4 — temporada
   // em andamento (simV<4) termina na escada antiga; a próxima já entra na nova.
-  const fairBoost: boolean | 5 | 6 | 7 = (state.simV ?? 1) >= 7 ? 7 : (state.simV ?? 1) >= 6 ? 6 : (state.simV ?? 1) >= 5 ? 5 : (state.simV ?? 1) >= 4 // 🪜 v5 (28/10): bônus da casa novo
+  const fairBoost: boolean | 5 | 6 | 7 | 8 = (state.simV ?? 1) >= 8 ? 8 : (state.simV ?? 1) >= 7 ? 7 : (state.simV ?? 1) >= 6 ? 6 : (state.simV ?? 1) >= 5 ? 5 : (state.simV ?? 1) >= 4 // 🪜 v5 (28/10): bônus da casa novo
   // 🎲 seed da simulação MUDA a cada temporada (mistura seed + seasonNo). Sem isto,
   // no online "mesmo time" a seed ficava fixa e TODA temporada refazia os MESMOS
   // sorteios — a mesma goleada, o mesmo placar, temporada após temporada. É

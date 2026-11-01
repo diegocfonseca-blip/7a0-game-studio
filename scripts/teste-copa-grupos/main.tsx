@@ -14,7 +14,7 @@ import { createRoot } from 'react-dom/client'
 import '../../src/escalacao/screens' // ordem do app (o ciclo screens↔pyramidseason↔copa-mundo quebra sem isto)
 import '../../src/escalacao/pyramidseason'
 import { CupScreen, countryPool, bestXI, type CopaSave } from '../../src/escalacao/copa-mundo'
-import { montaFicha, entrantesDaFicha } from '../../src/escalacao/copa-mundo-online'
+import { montaFicha, entrantesDaFicha, paisesDaEuro } from '../../src/escalacao/copa-mundo-online'
 import type { CopaClockController } from '../../src/escalacao/copa-clock-preview'
 import '../../src/index.css'
 
@@ -22,12 +22,16 @@ const q = new URLSearchParams(location.search)
 const PASSO = Number(q.get('passo') ?? 3)
 const ONLINE = q.get('online') !== '0'
 const TODOS = q.get('todos') === '1'
+const EURO = q.get('euro') === '1' // 🇪🇺 31/10: ?euro=1 monta a Eurocopa de 24
+const ROLANDO = q.get('rolando') === '1' // bola rolando no passo (como o dono vê)
+const HOST = q.get('host') === '1'
 
-const gente = ['Brasil', 'Argentina', 'França'].map((pais, i) => {
+const gente = (EURO ? ['Espanha', 'Inglaterra', 'França'] : ['Brasil', 'Argentina', 'França']).map((pais, i) => {
   const xi = bestXI(countryPool(pais), '4-3-3')
   return { uid: 'uid-' + i, nome: ['Diego', 'Dérick', 'Arruda'][i], pick: { pais, form: '4-3-3' as const, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`) } }
 })
-const ficha = montaFicha(gente, 424242, 1)
+const base = montaFicha(gente, 424242, 1)
+const ficha = EURO ? { ...base, euro: 24 as const, times: [...base.times.filter(t => t.uid), ...paisesDaEuro().filter(p => !gente.some(g => g.pick.pais === p)).map(p => ({ pais: p, nome: p }))].slice(0, 24) } : base
 const entrants = entrantesDaFicha(ficha, 'uid-0')
 const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: null }
 
@@ -35,13 +39,13 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 // passo daqui e não anda sozinho — é o que deixa o print determinístico.
 const agora = new Date().toISOString()
 const clock: CopaClockController = {
-  row: { revision: 1, step: PASSO, running: false, manual: true, speed: 1, started_at: agora, updated_at: agora, duration_ms: 14000, extra_ms: 0 },
-  now: Date.now(), isHost: false, busy: false, error: '', command: async () => {},
+  row: { revision: 1, step: PASSO, running: ROLANDO, manual: !ROLANDO, speed: 1, started_at: agora, updated_at: agora, duration_ms: 14000, extra_ms: 0 },
+  now: Date.now(), isHost: HOST, busy: false, error: '', command: async () => {},
 }
 
 createRoot(document.getElementById('root')!).render(
   <div className="max-w-xl mx-auto" style={{ padding: '14px 14px 24px', background: '#F4ECD6' }}>
-    <CupScreen entrants={entrants} seasonNo={1} seed={ficha.seed} save={SAVE_VAZIO} myForm="4-3-3"
+    <CupScreen entrants={entrants} seasonNo={1} seed={ficha.seed} save={SAVE_VAZIO} myForm="4-3-3" euro={ficha.euro}
       online={ONLINE ? { seasonKey: 'bancada', clock } : undefined} onClose={() => {}} />
     {TODOS && <p style={{ fontSize: 10, color: '#0c0c0c88' }}>(todos os grupos: toque em "TODOS OS GRUPOS")</p>}
   </div>

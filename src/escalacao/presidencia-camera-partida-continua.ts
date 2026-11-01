@@ -6,6 +6,7 @@ export type CameraPartidaContinua='free'|CameraFutebolPreset
 export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:OrbitControls,onMode:(mode:CameraPartidaContinua)=>void){
  let mode:CameraPartidaContinua='free',returning=false,last:number|undefined,moving=false
  let distance:number|undefined,zoomInSince:number|undefined,zoomPending=false
+ let lens:number|undefined,lensMode:CameraPartidaContinua|undefined,lensCloseSince:number|undefined
  let saved:{position:Vector3;target:Vector3;fov:number}|undefined,framing:{x:number;y:number;visible:boolean}|undefined
  let forcado:CameraPartidaContinua|undefined,distGuardada:number|undefined,corte=false
  const enterFree=(restore=true)=>{mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
@@ -33,7 +34,19 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
     else if(fit.distance<distance*.86){zoomInSince??=now;if(now-zoomInSince>550)distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/1.1));zoomPending=fit.distance<distance*.86}
     else zoomInSince=undefined
    }
-   const target=fit?.target??saved!.target,position=fit?target.clone().addScaledVector(fit.direction,distance!):saved!.position,fov=fit?.fov??saved!.fov
+   let fov=fit?.fov??saved!.fov
+   if(fit&&(modo==='broadcast'||modo==='tele')){
+    if(lens===undefined||lensMode!==modo||corte){lens=fov;lensCloseSince=undefined}
+    else if(fov>lens+.01){lens=fov;lensCloseSince=undefined}
+    else if(fov<lens-1.5){
+     lensCloseSince??=now
+     if(now-lensCloseSince>=550){lens=fov;lensCloseSince=undefined}
+     else zoomPending=true
+    }else lensCloseSince=undefined
+    fov=lens
+   }else{lens=undefined;lensCloseSince=undefined}
+   lensMode=modo
+   const target=fit?.target??saved!.target,position=fit?target.clone().addScaledVector(fit.direction,distance!):saved!.position
    camera.updateMatrixWorld(true)
    const before=new Vector3(ball.x,ball.y,ball.z).project(camera)
    const edge=fit&&!fit.tactical?MathUtils.smoothstep(Math.max(Math.abs(before.x),Math.abs(before.y)),.45,.9):0
@@ -44,7 +57,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    // 🎥 'Acompanhar o lance' virou de lado (a bola trocou de dono e o ataque é pro outro gol): CORTE seco pra trás da jogada nova
    if(fit?.preset==='follow'&&Math.abs(camera.position.x-target.x)>4&&Math.sign(position.x-target.x)!==Math.sign(camera.position.x-target.x)){camera.position.copy(position);controls.target.copy(target)}
    if(corte&&fit){camera.position.copy(position);controls.target.copy(target);camera.fov=fov;camera.updateProjectionMatrix();corte=false}
-   const amount=1-Math.exp(-dt/MathUtils.lerp(.24,.1,edge));camera.position.lerp(position,amount);controls.target.lerp(target,amount)
+   const amount=1-Math.exp(-dt/MathUtils.lerp(.24,.03,edge));camera.position.lerp(position,amount);controls.target.lerp(target,amount)
    const nextFov=MathUtils.lerp(camera.fov,fov,1-Math.exp(-dt/.22))
    if(Math.abs(nextFov-camera.fov)>1e-7){camera.fov=nextFov;camera.updateProjectionMatrix()}
    // A resize can request a new fit in the same millisecond. Keep rendering

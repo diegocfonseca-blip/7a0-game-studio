@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {boundVerifiedRecovery} from '../../../src/escalacao/futebol3d/chibi/verified-root-recovery.mjs';
+const path={sample:t=>({x:t*7+1.8*Math.sin(Math.PI*t/1.3)**2,z:0})},events=[{t:0,kind:'carry',verifiedGroundTouch:true},{t:1.3,kind:'toque'}];
+const plan=boundVerifiedRecovery(path,events);
+assert(plan.diagnostics.verifiedRecoveries.length===1);
+assert.deepEqual(plan.sample(0),path.sample(0));assert.deepEqual(plan.sample(1.3),path.sample(1.3));
+const peak=p=>Math.max(...Array.from({length:1299},(_,i)=>{const t=(i+1)/1000,a=p.sample(t-.0001),b=p.sample(t+.0001);return Math.hypot(b.x-a.x,b.z-a.z)/.0002}));
+assert(peak(plan)<peak(path)*.98,'Remove a fitted recovery sprint');
+assert.deepEqual(plan.sample(-1),path.sample(-1));assert.deepEqual(plan.sample(2),path.sample(2));
+assert(!boundVerifiedRecovery(path,events,{breaks:[{before:.5,after:.52}]}).diagnostics.verifiedRecoveries.length);
+assert(!boundVerifiedRecovery(path,[{...events[0],verifiedGroundTouch:false},events[1]]).diagnostics.verifiedRecoveries.length);
+console.log('PASS: bounded recovery path preserves fixed contacts, off-interval motion and source placements');
+const ballFollowing=boundVerifiedRecovery(path,events,{ballAt:t=>path.sample(t),ownedAt:()=>true});
+assert.equal(ballFollowing.diagnostics.verifiedRecoveries.length,0,'Never shortcut a dribble curve when that would leave the ball behind');

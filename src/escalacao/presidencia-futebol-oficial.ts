@@ -7,6 +7,7 @@ import {GolApresentacao3D} from './presidencia-gol-apresentacao'
 import {identidadeAtleta3D} from './presidencia-futebol-identidade'
 import {descreverEntregaOficial3D,type EntregaOficial3D} from './presidencia-entrega-oficial'
 import {ContextoOficial3D} from './presidencia-contexto-oficial'
+import {sourceGroundTouch} from './futebol3d/motion/source-ground-touch.mjs'
 
 /** Adapter only: the career's exact input owns decisions, ball, goals and roles.
  * No result is persisted here, and cameras never write into the match engine. */
@@ -29,6 +30,13 @@ export class FutebolOficial3D {
  private delivery:EntregaOficial3D|undefined
  private observedKeeperEvents=0
  private keeperContacts:{t:number;name:string;side:number;ball:{x:number;y:number;z:number;vx:number;vy:number;vz:number}}[]=[]
+ private traceGroundTouches=false
+ private groundContacts:NonNullable<ReturnType<typeof sourceGroundTouch>>[]=[]
+ private touchOwner:string|undefined
+ private touchOwnerSince=0
+ /** Optional read-only source evidence; the result engine is never modified. */
+ groundTouches(){return this.groundContacts.map(c=>({...c,ball:{...c.ball},velocity:{...c.velocity},incoming:{...c.incoming}}))}
+ private groundStep(){const g=this.game,p=g.bola.dono;return{t:g.t,owner:p?identidadeAtleta3D(p.lado===0?'home':'away',p.nome,p.carta?.club,p.carta?.year):undefined,keeper:p?.grupo==='GOL'||!!g.gkMao,restart:!!g.parada||!!g.festa,ownedFor:g.t-this.touchOwnerSince,speed:p?Math.hypot(p.vx,p.vy):0,ball:{x:g.bola.x,y:g.bola.y,h:g.bola.h,vx:g.bola.vx,vy:g.bola.vy,vh:g.bola.vh}}}
  /** Read-only physical impact samples for the visual rig. Smoothed ball
   * positions lag a discontinuity and must not define a keeper's impact point. */
  keeperImpacts(){return this.keeperContacts.map(c=>({...c,ball:{...c.ball}}))}
@@ -39,10 +47,12 @@ export class FutebolOficial3D {
  private anteBola:{x:number;y:number}|undefined
  private avanca(minuto:number){
   const g=this.game,t=g.t,ax=g.atl.map(a=>({x:a.ax??a.x,y:a.ay??a.y})),bx={x:g.bolaAnt.x??g.bola.x,y:g.bolaAnt.y??g.bola.y}
+  const before=this.traceGroundTouches?this.groundStep():null
   g.avancaAte(minuto)
+  if(this.traceGroundTouches&&g.t!==t){const after=this.groundStep();if(after.owner!==this.touchOwner){this.touchOwner=after.owner;this.touchOwnerSince=after.t;after.ownedFor=0}const touch=sourceGroundTouch(before,after);if(touch)this.groundContacts.push(touch)}
   if(g.t!==t){g.atl.forEach((a,i)=>this.ante.set(a.id,ax[i]));this.anteBola=bx}
  }
- constructor(input:EntradaM2){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
+ constructor(input:EntradaM2,{traceGroundTouches=false}={}){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.traceGroundTouches=traceGroundTouches;this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
  private observeDelivery(){
   this.context.observe(this.game)
   const b=this.game.bola,l=b.lance
@@ -78,7 +88,7 @@ export class FutebolOficial3D {
  sample(state:EstadoPartidaEstadio,minute:number,options:{replay?:boolean;postMatchWalk?:boolean}={}):QuadroFutebol{
   const target=Number.isFinite(minute)?Math.max(0,minute):this.minute
   // Seeking backwards reconstructs the same deterministic game; no new seed.
-  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.observedKeeperEvents=0;this.keeperContacts=[];this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null;this.ante.clear();this.anteBola=undefined}
+  if(target<this.minute){this.game=novoMotor2(this.input);this.spinTick=0;this.fimQuadros=0;this.historico=[];this.goalFinish=new GolApresentacao3D();this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint());this.travel.clear();this.context=new ContextoOficial3D();this.deliveryKey=null;this.delivery=undefined;this.observedKeeperEvents=0;this.keeperContacts=[];this.groundContacts=[];this.touchOwner=undefined;this.touchOwnerSince=0;this.referee={x:0,z:10,heading:0,distance:0,speed:0};this.visualTime=target*90/93;this.dive=null;this.ante.clear();this.anteBola=undefined}
   this.minute=target
   // Canonical presentation samples on this SAME engine. Camera/FPS/seek order
   // cannot change panel orientation, event times or the number of matches.
@@ -103,7 +113,7 @@ export class FutebolOficial3D {
    this.travel.set(p.id,{x:mx,y:mz,distance})
    return {id:card?.id??String(p.id),name:p.nome,pos:card?.pos??p.carta?.pos??(p.grupo==='GOL'?'GOL':'MEI'),key:key(p),side,keeper:p.grupo==='GOL',x:mx/105+.5,y:mz/68+.5,mx,mz,sourceAnchor:{x:mx,z:mz},
     heading:speed>.05&&!(p.grupo==='GOL'&&speed<3.4)?Math.atan2(p.vy,p.vx):Math.atan2(g.bola.y-p.y,g.bola.x-p.x),speed,distance, // (🧤 goleiro em passinho lateral encara a bola, não o passinho)
-    kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,temporaryStopUntil:p.atordoado,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
+    kick:0,throwing:0,visible:!p.expulso,tacticalRole:p.papel,markingTarget:p.marca?key(p.marca):undefined,temporaryStopUntil:p.atordoado,presentation:placementReset?{x:p.y-52.5,z:p.x-34}:undefined}
   })
   this.keeperDive(time,key)
   if(this.dive){const d=this.dive,k=d.crossed?Math.max(0,time<d.tc+.45?1:1-(time-d.tc-.45)/.6):Math.min(1,Math.max(0,1-(d.tc-time)/.42)),p=players.find(q=>q.key===d.key);if(p&&k>0){const e=k*k*(3-2*k);d.ax??=p.mx;d.az??=p.mz;Object.assign(p,{mx:p.mx+(d.ax-p.mx)*e,mz:p.mz+(d.az-p.mz)*e,mergulho:{x:d.x,z:d.z,y:d.y,k:e,vertical:d.vertical,ax:d.ax,az:d.az}})};if(d.crossed&&k<=0)this.dive=null}

@@ -1106,6 +1106,7 @@ import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
+import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
 import { ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
@@ -2030,7 +2031,10 @@ export function puxaClubesRecentes() {
 // 💸 06/10 (conta do Supabase): antes puxava a cada 2 min pra TODO jogador, até quem nunca joga
 // Leilão de Clubes. Agora: no boot e logo depois de cada sala de clubes montada (pra próxima).
 if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500) }
-export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
+/** 🏳️📅 31/10 (em teste): o leilão de Clubes ganhou dois jeitos de montar o pacote — por SELEÇÃO e por DÉCADA. */
+export type PacoteOpts = { selecao?: boolean; decada?: boolean }
+export const pacoteOptsDe = (s: { leilaoSelecao?: boolean; leilaoDecada?: boolean }): PacoteOpts => ({ selecao: !!s.leilaoSelecao, decada: !!s.leilaoDecada })
+export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>, opts: PacoteOpts = {}): Record<Sector, Card[]> {
   const nba = ACTIVE_SPORT === 'basquete' // 🏀 pacotes = POSIÇÃO de uma franquia da NBA ("Armadores dos Lakers")
   const RECENTES = nba ? RECENT_CLUBES_NBA : RECENT_CLUBES
   if (typeof window !== 'undefined' && !nba) setTimeout(puxaClubesRecentes, 3000) // atualiza a memória pra PRÓXIMA sala
@@ -2040,6 +2044,8 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
   // 📦 MESMA REGRA DO LEILÃO DE JOGADOR (17/10, Diego: *"vai ser mais justo"*): um pacote por pessoa em cada setor + 1 de
   // sobra — envelope, Tocaia e pregão aberto. Antes era pessoas + metade (8 pessoas = 12 pacotes por setor; agora 9).
   const alvo = n + 1
+  const selecao = !nba && !!opts.selecao, decada = !nba && !!opts.decada
+  const novoJeito = selecao || decada // a memória de "clube que já saiu" é só do Clubes de sempre
   const need = {} as Record<Sector, number>
   for (const pos of SECTORS) need[pos] = Math.max(1, ...managers.map(m => baseSlots(m.formation, pos)))
   // clube → cartas, por setor
@@ -2048,7 +2054,15 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
   for (const pos of SECTORS) {
     const mp = new Map<string, Cat[]>()
     // 🚩 seleção (Cabo Verde…) não é clube: fica fora do Leilão de Clubes
-    for (const c of ACTIVE_CATALOG[pos]) { if (used.has(ident(c)) || NAO_E_CLUBE.has(c.club)) continue; const k = clubCanon(c.club); (mp.get(k) ?? mp.set(k, []).get(k)!).push(c) }
+    for (const c of ACTIVE_CATALOG[pos]) {
+      if (used.has(ident(c))) continue
+      // 🏳️ seleção: a chave é o PAÍS do jogador (Cabo Verde/Equador contam — lá eles SÃO seleção)
+      let k: string
+      if (selecao) { const p = paisDaCarta(c); if (!p || p === '??') continue; k = p }
+      else { if (NAO_E_CLUBE.has(c.club)) continue; k = clubCanon(c.club) }
+      if (decada) k = `${k}|${Math.floor(c.year / 10) * 10}` // 📅 "Milan|1990"
+      ;(mp.get(k) ?? mp.set(k, []).get(k)!).push(c)
+    }
     porClube[pos] = mp
   }
   // 🔁 nota de "já saiu NESTE setor" nas últimas partidas (a mais recente pesa mais; a de
@@ -2068,7 +2082,9 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
   // 🎲 05/10: um clube pode sair em ATÉ 2 setores na mesma partida (Goleiros E Ataque do
   // Flamengo). Antes era 1: a defesa escolhia primeiro e levava os grandes, o ataque ficava
   // com a sobra e o goleiro com quem SÓ tem goleiro (Colo-Colo em toda sala).
-  const CLUBE_MAX_SETORES = 2
+  // 🏳️ 31/10: na Seleção de todas as épocas o país pode sair em QUALQUER setor (são só ~55 países pra até 185 pacotes;
+  // o Diego: *"pode aparecer atacante do Brasil e zagueiro do Brasil… é variado"*).
+  const CLUBE_MAX_SETORES = selecao && !decada ? SECTORS.length : 2
   const setoresDoClube = new Map<string, number>()
   const jaNaPartida = { has: (k: string) => (setoresDoClube.get(k) ?? 0) >= CLUBE_MAX_SETORES, add: (k: string) => { setoresDoClube.set(k, (setoresDoClube.get(k) ?? 0) + 1) } }
   const escolhidos = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, string[]>
@@ -2112,10 +2128,14 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
       // senão a revelação pintava de dourado com selo 👑 LENDA o pacote cheio de
       // craque. O valor de verdade vai no lo/hi, que é o que o bot usa pra dar lance.
       const fame = 3 as Fame
-      deck[pos].push({ id: `pac-${pos}-${deck[pos].length}-${bt}`, name: clube, club: clube, year: 0, pos, fame, lo, hi, pacote: { clube, cartas: cartas.map((c, i) => ({ ...c, id: `pc-${pos}-${deck[pos].length}-${i}-${bt}`, pos } as Card)) } })
+      // 📅 a chave "Milan|1990" vira o pacote do Milan + década 1990. O NOME leva a década ("Milan · anos 90") porque a identidade
+      // da carta é nome|clube: sem isso Palmeiras anos 2000 e anos 2010 eram "o mesmo" e a peneira anti-repetido apagava um.
+      const [nomeK, decK] = decada ? [clube.slice(0, clube.lastIndexOf('|')), Number(clube.slice(clube.lastIndexOf('|') + 1))] : [clube, undefined]
+      deck[pos].push({ id: `pac-${pos}-${deck[pos].length}-${bt}`, name: decK ? `${nomeK} · anos ${decK >= 2000 ? decK : String(decK).slice(2)}` : nomeK, club: nomeK, year: decK ?? 0, pos, fame, lo, hi, pacote: { clube: nomeK, ...(selecao ? { selecao: true } : {}), ...(decK ? { decada: decK } : {}), cartas: cartas.map((c, i) => ({ ...c, id: `pc-${pos}-${deck[pos].length}-${i}-${bt}`, pos } as Card)) } })
     }
     deck[pos] = shuffle(deck[pos], rng)
   }
+  if (novoJeito) return deck
   const mem = new Map<string, Sector>()
   for (const pos of SECTORS) for (const k of escolhidos[pos]) mem.set(`${k}·${pos}`, pos)
   RECENTES.push(mem); while (RECENTES.length > CLUBES_MEM_MAX) RECENTES.shift()
@@ -5576,7 +5596,7 @@ type Action =
   | { type: 'DRAFT_PRONTO'; mgrId: number; by?: string } // 📋🏆 Minha Liga Draft: quem está na vez aperta ✋ pronto e o relógio de 45 s começa
   | { type: 'DRAFT_PULAR' } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -7260,7 +7280,7 @@ function redraftSeason(s: EscState): EscState {
   // 🧱 leilão de clubes: a próxima leva continua sendo de clubes (com clubes novos)
   s.leilaoClubesConvocado = false
   if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-  s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+  s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used, pacoteOptsDe(s)) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
   sorteiaEspeciais(s, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -7422,7 +7442,7 @@ function proximoDoDraft(s: EscState): void {
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
-export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoClubesConvocado', 'auctionSecs',
+export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
@@ -8070,6 +8090,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
       s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
+      s.leilaoSelecao = false; s.leilaoDecada = false // 🏳️📅 Seleções/Por década: só nas salas online (31/10)
       s.leilaoClubesConvocado = false
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams, action.teamName) : []
@@ -8096,7 +8117,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, soloUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, soloUsed, pacoteOptsDe(s)) : buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -8142,7 +8163,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'START_NBA': {
       // 🧱 Clubes no basquete (19/10): o pacote é a POSIÇÃO de uma franquia da NBA. Na tela offline ainda não tem o
       // botão (é da sala online); o campo existe pro motor e pra trava `npm run clubes-nba`.
-      s.leilaoClubes = !!action.clubes; s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
+      s.leilaoClubes = !!action.clubes; s.leilaoSelecao = false; s.leilaoDecada = false; s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
@@ -8167,7 +8188,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used, pacoteOptsDe(s)) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -8572,7 +8593,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
       if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
       s.careerPresidency = undefined
-      s.simV = 7 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
+      s.simV = 8 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
       // 1º clube (o da fundação). Save antigo segue no empresário clássico.
@@ -8725,7 +8746,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.isHost = true
       s.careerOnline = true
       limpaMarcasDeModo(s) // 🧼 o jogo rápido vira carreira: as escolhas do rápido ficam pra trás (21/10)
-      s.simV = 7
+      s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
@@ -8829,8 +8850,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira.
       // 🏀 19/10: no basquete também — o pacote é a POSIÇÃO de uma franquia da NBA (o baralho ativo é o da NBA).
       s.leilaoClubes = !!action.clubes && !action.career
+      s.leilaoSelecao = s.leilaoClubes && action.sport !== 'basquete' && !!action.selecao // 🏳️ 31/10
+      s.leilaoDecada = s.leilaoClubes && action.sport !== 'basquete' && !!action.decada // 📅 31/10
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
-      s.simV = 7 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
@@ -9037,7 +9060,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, fracoInicial)
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed, pacoteOptsDe(s)) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, fracoInicial)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, fracoInicial)
       if (fracoInicial) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
@@ -11601,7 +11624,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'REAUCTION_ONLINE': {
       if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
-      s.simV = 7 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
@@ -11742,7 +11765,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CONFIRM_MESMO_TIME': {
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção
-      s.simV = 7 // 🪜 28/10: quem segue com o mesmo time também entra no bônus da casa novo (v5) na temporada que começa
+      s.simV = 8 // 🪜 28/10: quem segue com o mesmo time também entra no bônus da casa novo (v5) na temporada que começa
       // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
       // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
       // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
@@ -11877,7 +11900,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'RESERVE_AUCTION_ONLINE': {
-      s.simV = 7 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
       // consome a lista (tira os listados dos times e joga no baralho — o dono
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a
@@ -15392,7 +15415,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         ? st.deckLeague : undefined
       // 🔁 17/10 (trocar o modo da liga): a escolha 🧱 Clubes vem do estado da PARTIDA quando ele sabe dizer — a guarda é lida
       // uma vez por sala, e sem isto um "Clubes → Jogador" feito na sala de espera voltava a ser Clubes no 1º save.
-      const clubesSala = typeof st.leilaoClubes === 'boolean' ? { clubes: st.leilaoClubes } : {}
+      const clubesSala = typeof st.leilaoClubes === 'boolean' ? { clubes: st.leilaoClubes, pacSelecao: st.leilaoClubes && st.leilaoSelecao ? true : undefined, pacDecada: st.leilaoClubes && st.leilaoDecada ? true : undefined } : {}
       const payload = { ...sanitize(st), ...salaFixaRef.current, ...clubesSala, ...(deckSala ? { deckSala } : {}), __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
@@ -15431,9 +15454,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // estado do jogo guarda isso com OUTRO nome (`leilaoClubes`) — sem a guarda, o 1º
         // save apagava a escolha: o selo 🧱 da lista sumia e a próxima rodada de uma Minha
         // Liga de Clubes voltava como leilão de Jogador.
+        // 🇪🇺 `euroNaLiga` entra na lista (31/10): a marca da Liga + Eurocopa. Sem ela o 1º save apagava a marca e a sala
+        // abria a COPA DO MUNDO no fim da liga (o `mundoNaLiga` ficava, o `euroNaLiga` sumia) — bug do 1º dia da Euro.
         // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
         // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl', 'tema']) { // 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'euroNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'pacSelecao', 'pacDecada', 'liveUrl', 'tema']) { // 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda
