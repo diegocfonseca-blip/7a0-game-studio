@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import{createBustActionTrack}from'../../../src/escalacao/futebol3d/chibi/bust-action-track.mjs';
+const key='p',timeline={keys:[key],duration:3,sample:()=>({player:{heading:0}}),agenda:[{id:'receive',key,kind:'recebe',t:1.1,start:.9,dir:0},{id:'kick',key,kind:'toque',tipo:'inversao',t:2,start:1.35,dir:.5}]};
+const track=createBustActionTrack(timeline,{captureTiming:true}),legacy=createBustActionTrack(timeline);
+assert.equal(track.sample(key,1.4).phase,'preparation');assert.equal(track.sample(key,1.4).contactAt,2);
+assert.notEqual(legacy.sample(key,1.4).contactAt,2,'Regression must detect a capture starting before its separate orientation heuristic');
+assert.equal(track.sample(key,2).heading,.5);assert.equal(track.sample(key,2).phase,'contact-follow-through');
+const a=track.sample(key,1.35-1e-6).heading,b=track.sample(key,1.35+1e-6).heading;
+assert(Math.abs(a-b)<1e-4,'Start from the prior pose instead of snapping when preparation takes over');
+console.log('PASS: captured kick and orientation share preparation time, continuous pose and unchanged impact');

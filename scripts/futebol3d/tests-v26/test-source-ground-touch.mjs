@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {sourceGroundTouch} from '../../../src/escalacao/futebol3d/motion/source-ground-touch.mjs';
+const before={t:1,owner:'runner',keeper:false,restart:false,speed:6,ownedFor:1,ball:{x:20,y:30,h:0,vh:0,vx:0,vy:6}};
+const decayed=6-(2.3+.07*6)*.05;
+const after={...before,t:1.05,ball:{...before.ball,y:30+decayed*.05,vy:8}};
+const snapshot=JSON.stringify([before,after]);
+const hit=sourceGroundTouch(before,after);assert(hit&&hit.impulse>2);assert(hit.integrationError<1e-6);
+assert.deepEqual(hit.ball,{x:after.ball.y-52.5,y:.11,z:-14});
+assert.equal(sourceGroundTouch(before,{...after,ball:{...after.ball,vy:decayed}}),null,'Friction is not a kick');
+assert.equal(sourceGroundTouch(before,{...after,ball:{...after.ball,y:30.9}}),null,'Settling attraction is not a verified impulse');
+for(const patch of [{owner:'opponent'},{owner:undefined},{keeper:true},{restart:true},{ownedFor:.30},{speed:2}])assert.equal(sourceGroundTouch(before,{...after,...patch}),null);
+assert.equal(sourceGroundTouch(before,{...after,t:1.1}),null,'Do not infer hidden contacts across multiple source steps');
+assert.equal(sourceGroundTouch(before,{...after,ball:{...after.ball,h:.5}}),null);
+assert.equal(JSON.stringify([before,after]),snapshot,'Observer must not alter source state');
+console.log('PASS: distinguish real dribbling impulse from settling, friction, aerial/restart/keeper/ownership changes; immutable source');

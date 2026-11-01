@@ -34,7 +34,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const chegada=career?.journeyPhase==='arrival'&&!!career.agenda&&!match
  const adapted=career&&account?adaptarCarreiraAoComplexo({...career,enabled:true,match:chegada?undefined:retained,
   agenda:chegada?career.agenda:retained?.context.agenda??career.agenda}):null
- if(career&&!account)return null
+ if(!account)return null
  if(adapted)return <section ref={watching} data-presidencia-complexo-carreira>
   {/* 📺 25/10: o ritmo e o placar moram DENTRO do mapa (MapaHud); os créditos foram pro pé */}
   {career?.replayMatch&&<div data-private-match-review style={{margin:'10px 0'}}>

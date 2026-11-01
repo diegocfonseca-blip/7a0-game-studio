@@ -1,5 +1,5 @@
 import {MathUtils,PerspectiveCamera,Vector3} from 'three'
-export type AlvoCameraFutebol={mx:number;mz:number;visible?:boolean;presentation?:{x:number;z:number}}
+export type AlvoCameraFutebol={mx:number;mz:number;priority?:boolean;visible?:boolean;presentation?:{x:number;z:number}}
 export type BolaCameraFutebol={x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}}
 export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'
 const PRESETS={
@@ -18,7 +18,7 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
  const fov=typeof preset==='boolean'?camera.fov:settings.fov
  ball=ball.presentation??ball;subjects=subjects.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)
  const portrait=camera.aspect<1,radius=settings.radius*(portrait?.68:1)
- const near=subjects.filter(p=>p.visible!==false&&Number.isFinite(p.mx)&&Number.isFinite(p.mz)&&Math.hypot(p.mx-ball.x,p.mz-ball.z)<radius).sort((a,b)=>Math.hypot(a.mx-ball.x,a.mz-ball.z)-Math.hypot(b.mx-ball.x,b.mz-ball.z)).slice(0,portrait?Math.ceil(settings.count/2):settings.count)
+ const near=subjects.filter(p=>p.visible!==false&&Number.isFinite(p.mx)&&Number.isFinite(p.mz)&&Math.hypot(p.mx-ball.x,p.mz-ball.z)<(p.priority?25:radius)).sort((a,b)=>Number(!!b.priority)-Number(!!a.priority)||Math.hypot(a.mx-ball.x,a.mz-ball.z)-Math.hypot(b.mx-ball.x,b.mz-ball.z)).slice(0,portrait?Math.ceil(settings.count/2):settings.count)
  const focusHeight=.6+MathUtils.clamp((ball.y-2)*.3,0,5)
  const target=tactical?new Vector3(0,.6,0):new Vector3(MathUtils.clamp(ball.x,-44,44),focusHeight,MathUtils.clamp(ball.z,-25,25))
  const halfWidth=settings.halfWidth*(portrait?.68:1),halfDepth=settings.halfDepth*(portrait?.82:1)

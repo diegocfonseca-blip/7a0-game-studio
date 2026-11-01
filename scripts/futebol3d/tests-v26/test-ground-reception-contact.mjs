@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {groundReceptionContact,groundArrivalTail} from '../../../src/escalacao/futebol3d/chibi/ground-reception-contact.mjs';
+const key='runner',ball=t=>({x:0,y:.11,z:t<1?(t-1)*10:10*(t-1)-25*(t-1)**2});
+const sample=t=>({phase:t<1?'passe':'dominio',owner:t<1?undefined:key,ball:ball(t),player:{x:0,z:3-8*(t-1),heading:Math.PI,speed:8}});
+const cue={key,t:1,kind:'recebe',bola:ball(1),rec:sample(1).player},before=JSON.stringify(cue);
+const p=groundReceptionContact(cue,sample);assert(p&&p.delay>.15&&p.delay<.26);assert(p.nativeGap<=1.1);
+assert.equal(groundReceptionContact({...cue,firstTime:'release'},sample),null);
+assert.equal(groundReceptionContact({...cue,assignedAt:.7},sample),null,'Preserve an already adapted aerial reception');
+assert.equal(groundReceptionContact(cue,sample,{nextRelease:{t:2}}),null);
+assert.equal(groundReceptionContact(cue,sample,{nextDribble:{t:1.7}}),null);
+assert.equal(groundReceptionContact(cue,t=>({...sample(t),owner:t>1.25?'opponent':sample(t).owner})),null);
+assert.equal(groundReceptionContact(cue,t=>({...sample(t),phase:t>1.25?'falta':'dominio'})),null);
+assert.equal(groundReceptionContact(cue,t=>({...sample(t),player:{...sample(t).player,x:10}})),null);
+assert.equal(JSON.stringify(cue),before,'Do not move the source ownership or mutate the received event');
+console.log('PASS: schedule the unplanned ground contact only when reachable and slowing; preserve quick passes, verified pushes, losses and restarts');
+
+const adapted={...cue,t:p.t,assignedAt:1,receptionDelay:p.delay,bola:p.ball};
+const tail=groundArrivalTail(adapted,sample,{startLimit:.8});assert(tail&&tail.start>=.8&&tail.end===p.t);
+assert.equal(groundArrivalTail(adapted,t=>({...sample(t),ball:{...ball(t),y:.5}})),null);
+assert.equal(groundArrivalTail({...cue,receptionDelay:undefined},sample),null);

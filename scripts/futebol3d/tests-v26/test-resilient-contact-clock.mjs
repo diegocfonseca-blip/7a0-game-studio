@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {resilientContactSteps,actionStillVisible,activeCapturedAction} from '../../../src/escalacao/futebol3d/chibi/resilient-contact-clock.mjs';
+const a={id:'pass',key:'p',t:1,start:.6,clipStart:0,clipEnd:1,kind:'toque'},b={id:'next',key:'p',t:1.6,start:1.1,clipStart:0,clipEnd:.8,kind:'toque'};
+assert.deepEqual(resilientContactSteps([a,b],.7,2),[1,1.6],'Dropped/fast frames must not skip impacts');
+assert.deepEqual(resilientContactSteps([a,b],2,.7),[],'A rewind is not catch-up');
+assert.deepEqual(resilientContactSteps([a,b],0,30),[],'Long seeks must not replay unbounded history');
+assert(resilientContactSteps(Array.from({length:30},(_,i)=>({t:(i+1)/10})),0,3).length<=8);
+assert(actionStillVisible(a,1.3),'Restore follow-through after an unseen impact');
+assert.equal(activeCapturedAction([a,b],'p',1),a,'Exact contact cannot be replaced by another preparation');
+assert.equal(activeCapturedAction([a,b],'p',1.3),b,'Old follow-through must not restart over a new preparation');
+assert.equal(activeCapturedAction([a,b],'p',2),undefined);
+const timed={...a,timing:{duration:1.6}};assert(actionStillVisible(timed,2.1),'Use retimed duration, not raw clip duration');
+console.log('PASS: bounded catch-up, no rewind replay, restored follow-through, stable action priority and retimed duration');
