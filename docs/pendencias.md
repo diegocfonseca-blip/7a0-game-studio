@@ -42,6 +42,11 @@
   · ⏱️ **Vez no draft (01/11):** mesma régua da Liga Draft — campeão escolhe primeiro, 60 s por vez. Na vez: 📋 escolher OU
     🕵️ sondar. **Acabou o tempo ou a pessoa não está = PERDE A VEZ** (fica sem jogador do draft naquela temporada; o jogo
     NÃO escolhe por ela — *"o sistema passa a vez dele. Melhor"*). Ordem da noite: draft → leilão dos sondados → escalação 45 s → temporada.
+  · 🗓️ **Ordem da noite (01/11, confirmada):** draft → leilão (sondados + quem pôs à venda) → escalação 45 s → liga.
+  · 🚪 **Sair sem acabar a liga (proposta 01/11):** quem aperta SAIR deixa o time na liga (joga com a última escalação, perde
+    a vez no draft enquanto fora) e volta quando quiser. Largar de vez = o dono exclui: o time termina a temporada com o
+    elenco dele e na próxima sai da tabela. 👑 O dono é SEMPRE quem criou (regra da coroa): sem ele a liga PAUSA e fica
+    guardada; volta quando ele entrar. Nunca acaba sozinha.
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
