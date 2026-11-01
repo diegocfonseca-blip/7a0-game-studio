@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import { reducer } from '../src/escalacao/store'
 import { montaCarry, chaveCarta, chaveNome, todasAsCartas, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS } from '../src/escalacao/liga-draft'
 import type { EscState, Card } from '../src/escalacao/types'
-import { SECTORS } from '../src/escalacao/types'
+import { SECTORS, FORMATIONS } from '../src/escalacao/types'
 
 const nowRef = { t: 1_800_000_000_000 }
 Date.now = () => nowRef.t
@@ -152,6 +152,13 @@ if (ata.length > 3) {
 }
 const gol = s.managers[0].squad.find(c => c.pos === 'GOL')!
 assert.equal(reducer(s, { type: 'MLD_TROCA', mgrId: 0, a: gol.id, b: ata[0].id } as never), s, 'posições diferentes não trocam')
+// formação: só aceita o que o elenco preenche; o XI se refaz sozinho
+const f0 = s.managers[0].formation
+const outra = (['4-4-2', '4-3-3', '3-5-2', '4-5-1', '5-3-2'] as const).find(f => f !== f0)!
+const t1 = reducer(s, { type: 'MLD_FORMACAO', mgrId: 0, formation: outra } as never)
+const need2 = FORMATIONS[outra]
+const cabe = SECTORS.every(p => s.managers[0].squad.filter(c => c.pos === p).length >= need2[p])
+assert.equal(t1.managers[0].formation, cabe ? outra : f0, cabe ? 'formação trocada' : 'formação que não fecha é recusada')
 s = reducer(s, { type: 'DRAFT_SEGUIR' } as never)
 assert.equal(s.screen, 'season'); assert.equal(s.seasonNo, 2); assert.equal(s.draft, null); assert.equal(s.draftFeito, 1)
 console.log('✅ escalação → temporada 2')

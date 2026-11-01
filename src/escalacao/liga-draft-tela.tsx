@@ -3,18 +3,18 @@
 // se tica o relógio. As regras moram em `liga-draft.ts` e a tela lê as MESMAS funções (sem regra própria = sem botão mudo).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEsc } from './store'
-import { Shell, CollectibleCard } from './screens'
+import { Shell, CollectibleCard, Box, Btn, CardFace, HoldButton } from './screens'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
 import { playTick } from './sound'
 import { flagOf } from './copa-mundo'
 import { seloDoClube } from './selo-clube'
-import type { Card, Sector, WonCard, Manager } from './types'
-import { FORMATIONS } from './types'
+import type { Card, Sector, Manager } from './types'
+import { EscalacaoMinha } from './minha-escalacao'
 import {
   cartasLivres, nomesOcupados, podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
-  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, xiPorOrdem,
+  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao,
 } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#C2452F'
@@ -48,6 +48,8 @@ export function EscLigaDraft() {
   const restante = Math.max(0, Math.ceil((d.prazo - agora) / 1000))
   const ultimo = d.fase === 'revela' ? d.picks[d.picks.length - 1] : undefined
   const nome = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? '?'
+  // 🔨 o leilão dos sondados tem a CARA do envelope de sempre (barra com o tempo, linhas com − / +, LACRAR TUDO)
+  if (minha && d.fase === 'leilao') return <LeilaoMinha d={d} you={you} restante={restante} nome={nome} />
 
   return (
     <Shell>
@@ -396,7 +398,6 @@ function EtapaMinha({ d, you, souDono, restante, nome }: { d: DraftEstado; you: 
       </div>
     )
   }
-  if (d.fase === 'leilao') return <LeilaoMinha d={d} you={you} restante={restante} nome={nome} />
   if (d.fase === 'igualar') return <IgualarMinha d={d} you={you} restante={restante} nome={nome} />
   if (d.fase === 'escala') return <EscalaMinha d={d} you={you} souDono={souDono} restante={restante} />
   return null
@@ -479,52 +480,80 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
   )
 }
 
-// 🔨 leilão dos sondados + à venda (envelope de 60 s)
+// 🔨 leilão dos sondados + à venda (envelope de 60 s) — MESMA cara do envelope de sempre (Diego 01/11: *"leilão normal de
+// sempre também, padrão"*): barra com o TEMPO, uma linha branca por jogador com − / valor / +, e o rodapé ✉️ ENVELOPE + LACRAR TUDO.
 function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager; restante: number; nome: (id: number) => string }) {
   const { state, dispatch } = useEsc()
   const t = useT()
-  const [rasc, setRasc] = useState<Record<number, number>>({})
+  const lotes = d.lotes ?? []
   const caixa = caixaDe(you)
-  return (
-    <div className="space-y-3">
-      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
-        <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>🔨 {t('Leilão dos sondados', 'Scouted players auction')}</p>
-        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t(`seu caixa: ${caixa} 🪙 · ninguém vê o seu lance`, `your bank: ${caixa} 🪙 · nobody sees your bid`)}</p>
+  const enviado = (i: number) => d.lances?.[i]?.[you.id] ?? 0
+  const [bids, setBids] = useState<Record<number, number>>(() => Object.fromEntries(lotes.map((_, i) => [i, enviado(i)]).filter(([, v]) => v > 0)))
+  const total = Object.values(bids).reduce((a, b) => a + b, 0)
+  const lacrado = lotes.every((_, i) => (bids[i] ?? 0) === enviado(i)) && lotes.some((_, i) => enviado(i) > 0)
+  const bump = (i: number, dir: 1 | -1) => {
+    const l = lotes[i]
+    setBids(prev => {
+      const cur = prev[i] ?? 0
+      if (dir < 0) { const v = cur - 1 < l.piso ? 0 : cur - 1; const n = { ...prev }; if (v === 0) delete n[i]; else n[i] = v; return n }
+      const outros = Object.entries(prev).reduce((a, [k, v]) => (+k === i ? a : a + v), 0)
+      const v = cur === 0 ? l.piso : cur + 1
+      if (v + outros > caixa) return prev
+      return { ...prev, [i]: v }
+    })
+  }
+  const lacrar = () => lotes.forEach((_, i) => { const v = bids[i] ?? 0; if (v !== enviado(i)) dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: v, by: state.youUid }) })
+  const barra = (
+    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
+      <p className="uppercase" style={{ ...OSW, fontSize: 15 }}>🔨 {t('Leilão dos sondados', 'Scouted auction')}</p>
+      <div className="text-center border-[3px] border-black rounded-xl px-2 py-0.5" style={{ background: restante <= 15 ? RED : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}` }}>
+        <p className="text-[8px] font-black leading-none" style={OSW}>{t('TEMPO', 'TIME')}</p>
+        <p className="font-black text-xl leading-none" style={OSW}>{restante}s</p>
       </div>
-      {(d.lotes ?? []).map((l, i) => {
-        const meu = d.lances?.[i]?.[you.id] ?? 0
-        const v = rasc[i] ?? (meu || l.piso)
-        const ok = v >= l.piso && v <= caixa
-        return (
-          <div key={i} className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: 'linear-gradient(160deg,#1a1508,#0C0C0C)', boxShadow: `3px 3px 0 ${INK}` }}>
-            <div className="flex gap-1.5 flex-wrap">
-              <span className="text-[10.5px] rounded px-1.5" style={{ ...OSW, background: l.sondador != null ? RED : '#333', color: '#fff' }}>{l.sondador != null ? `🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : t('🏷️ à venda', '🏷️ for sale')}</span>
-              <span className="text-[10.5px] rounded px-1.5" style={{ ...OSW, background: '#333', color: GOLD }}>{t('dono', 'owner')}: {nome(l.dono)}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="shrink-0" style={{ width: 92 }}><CollectibleCard name={l.carta.name} club={l.carta.club} year={l.carta.year} pos={l.carta.pos} fame={l.carta.fame} bio={l.carta.bio} folk={l.carta.folk} promessa={l.carta.promessa} /></div>
-              <div className="flex-1 min-w-0 text-white">
-                <p className="uppercase leading-tight" style={{ ...OSW, fontSize: 20 }}>{l.carta.name}</p>
-                <p className="text-[11.5px] font-bold text-white/70">{l.carta.club} · {l.carta.year}</p>
-                <p className="text-[12px] font-bold mt-1" style={{ color: GOLD }}>{t('lance mínimo', 'min bid')}: {l.piso} 🪙</p>
-                {meu > 0 && <p className="text-[12px] font-bold text-white/85">✉️ {t('seu lance', 'your bid')}: {meu} 🪙</p>}
+    </div>
+  )
+  return (
+    <Shell bar={barra}>
+      <div className="space-y-3" style={{ paddingBottom: 170 }}>
+        <Box bg="#FFF3D6" className="p-3">
+          <p className="font-black text-[15px] text-black" style={OSW}>✉️ {t('ENVELOPE · SONDADOS E À VENDA', 'ENVELOPE · SCOUTED & FOR SALE')}</p>
+          <p className="text-[12px] font-bold text-black/70 leading-snug mt-0.5">{t('Ninguém vê o lance do outro. Lance mínimo = o que o dono pagou. O dono também pode dar lance (e paga se segurar). Quem sondou pode IGUALAR o maior lance. Empate: dono → quem sondou.', 'Nobody sees the others\' bids. Minimum bid = what the owner paid. The owner can bid too (and pays if he keeps him). The scout can MATCH the top bid. Tie: owner → scout.')}</p>
+        </Box>
+        {lotes.map((l, i) => {
+          const bid = bids[i] ?? 0
+          return (
+            <Box key={i} className="p-3 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0"><CardFace c={l.carta} /></div>
+                <div className="flex items-center gap-1.5">
+                  <HoldButton onStep={() => bump(i, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
+                  <span className="w-12 h-8 grid place-items-center text-base font-black border-2 border-black rounded-lg bg-white" style={{ ...OSW, color: bid > 0 ? INK : 'rgba(0,0,0,.35)' }}>{bid}</span>
+                  <HoldButton onStep={() => bump(i, 1)} disabled={total >= caixa} className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${total >= caixa ? 'opacity-40' : ''}`} style={{ backgroundColor: GOLD }}>+</HoldButton>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {[-5, -1].map(x => <button key={x} onClick={() => setRasc(r => ({ ...r, [i]: Math.max(l.piso, v + x) }))} className="border-2 border-black rounded-lg px-2 py-1 bg-white text-[13px]" style={OSW}>{x}</button>)}
-              <span className="flex-1 text-center text-white" style={{ ...OSW, fontSize: 20 }}>{v} 🪙</span>
-              {[1, 5, 10].map(x => <button key={x} onClick={() => setRasc(r => ({ ...r, [i]: v + x }))} className="border-2 border-black rounded-lg px-2 py-1 text-[13px]" style={{ ...OSW, background: GOLD }}>+{x}</button>)}
-            </div>
-            <div className="flex gap-1.5">
-              <button disabled={!ok} onClick={() => dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: v, by: state.youUid })} className="flex-1 border-[3px] border-black rounded-xl py-2 uppercase"
-                style={{ ...OSW, fontSize: 15, background: ok ? GREEN : '#555', color: '#fff' }}>{ok ? (meu ? t('✉️ Trocar o lance', '✉️ Change bid') : t('✉️ Dar lance', '✉️ Place bid')) : t('sem caixa', 'not enough coins')}</button>
-              {meu > 0 && <button onClick={() => dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: 0, by: state.youUid })} className="border-[3px] border-black rounded-xl px-3 bg-white text-[12px]" style={OSW}>{t('tirar', 'remove')}</button>}
+              <div className="flex gap-1.5 flex-wrap">
+                <span className="text-[10.5px] rounded px-1.5 border-2 border-black" style={{ ...OSW, background: l.sondador != null ? RED : '#fff', color: l.sondador != null ? '#fff' : INK }}>{l.sondador != null ? `🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : t('🏷️ à venda', '🏷️ for sale')}</span>
+                <span className="text-[10.5px] rounded px-1.5 border-2 border-black" style={{ ...OSW, background: '#F4ECD6' }}>{t('dono', 'owner')}: {nome(l.dono)}</span>
+                <span className="text-[10.5px] rounded px-1.5 border-2 border-black" style={{ ...OSW, background: GOLD }}>{t('mín.', 'min.')} {l.piso} 🪙</span>
+              </div>
+            </Box>
+          )
+        })}
+      </div>
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, padding: '8px 12px 66px', background: 'linear-gradient(transparent, rgba(244,236,214,.96) 22%)' }}>
+        <div className="max-w-xl mx-auto">
+          <div className="border-[3px] border-black rounded-2xl p-2.5" style={{ background: INK, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[13px] font-black text-white" style={OSW}>✉️ {t('ENVELOPE', 'ENVELOPE')}: <span style={{ color: GOLD }}>{total} / {caixa}</span></p>
+                <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{lacrado ? t('✅ Lacrado — dá pra mudar até o tempo acabar', '✅ Sealed — you can change it until time runs out') : t('Sem lance = você não disputa aquele jogador', 'No bid = you skip that player')}</p>
+              </div>
+              <Btn onClick={lacrar} bg={lacrado ? GREEN : RED}><span className="text-white whitespace-nowrap">{lacrado ? t('LACRADO ✅', 'SEALED ✅') : t('LACRAR TUDO 🔒', 'SEAL ALL 🔒')}</span></Btn>
             </div>
           </div>
-        )
-      })}
-      <p className="text-center text-[11px] font-bold text-black/55">{t('O dono também pode dar lance (e paga se segurar). Empate: dono → quem sondou.', 'The owner can bid too (and pays if he keeps him). Tie: owner → scout.')}</p>
-    </div>
+        </div>
+      </div>
+    </Shell>
   )
 }
 
@@ -555,16 +584,6 @@ function IgualarMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager
 function EscalaMinha({ d, you, souDono, restante }: { d: DraftEstado; you: Manager; souDono: boolean; restante: number }) {
   const { state, dispatch } = useEsc()
   const t = useT()
-  const [sel, setSel] = useState<string | null>(null)
-  const xi = new Set(xiPorOrdem(you.squad, you.formation).map(c => c.id))
-  const need = FORMATIONS[you.formation]
-  const toca = (c: WonCard) => {
-    if (!sel || sel === c.id) { setSel(sel === c.id ? null : c.id); return }
-    const a = you.squad.find(x => x.id === sel)
-    if (!a || a.pos !== c.pos) { setSel(c.id); return }
-    dispatch({ type: 'MLD_TROCA', mgrId: you.id, a: a.id, b: c.id, by: state.youUid })
-    setSel(null)
-  }
   const resultados = (d.lotes ?? []).filter(l => l.vencedor != null)
   return (
     <div className="space-y-3">
@@ -575,25 +594,9 @@ function EscalaMinha({ d, you, souDono, restante }: { d: DraftEstado; you: Manag
       )}
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>👕 {t('Escalação', 'Line-up')} · {you.squad.length}/{MLD_ELENCO_MAX}</p>
-        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('toque num titular e depois num reserva da mesma posição pra trocar', 'tap a starter and then a sub of the same position to swap')}</p>
+        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('igual ao Elenco da carreira: toque num jogador e depois em outro da mesma posição pra trocar; a formação fica na pílula', 'same as the career Squad tab: tap a player and then another of the same position to swap; formation is in the pill')}</p>
       </div>
-      {(['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as Sector[]).map(pos => {
-        const doPos = you.squad.filter(c => c.pos === pos)
-        return (
-          <div key={pos} className="rounded-2xl border-[3px] border-black bg-white overflow-hidden">
-            <p className="px-3 py-1 text-[11px] uppercase tracking-widest" style={{ ...OSW, background: INK, color: GOLD }}>{pos} · {t(`${need[pos]} titular(es)`, `${need[pos]} starter(s)`)}</p>
-            <div className="grid grid-cols-2 gap-1.5 p-2">
-              {doPos.map(c => (
-                <button key={c.id} onClick={() => toca(c)} className="border-2 border-black rounded-lg px-2 py-1 text-left"
-                  style={{ background: sel === c.id ? GOLD : xi.has(c.id) ? '#DCFCE7' : '#F4ECD6', boxShadow: sel === c.id ? `2px 2px 0 ${INK}` : 'none' }}>
-                  <b className="block truncate text-[12.5px]" style={OSW}>{xi.has(c.id) ? '⭐ ' : ''}{c.name}</b>
-                  <small className="text-[10px] font-bold text-black/55">{categoriaDa(c).emoji} {xi.has(c.id) ? t('titular', 'starter') : t('reserva', 'sub')}</small>
-                </button>
-              ))}
-            </div>
-          </div>
-        )
-      })}
+      <EscalacaoMinha />
       <ListaProntos d={d} you={you} souDono={souDono} rotulo={t('⚽ Começar a temporada', '⚽ Start the season')} onSeguir={() => dispatch({ type: 'DRAFT_SEGUIR', by: state.youUid })} />
     </div>
   )

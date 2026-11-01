@@ -71,6 +71,7 @@ import { ChipsTipo, ArtePoke, TimePokemon } from './pokemon-arte'
 import { LigaHub, gravaTemporadaSala, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
+import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft (01/11)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { anotaTrava } from './caixa-preta'
@@ -925,7 +926,7 @@ export function Box({ children, bg = '#fff', className = '', shadow = 4, style }
   )
 }
 
-function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }: { children: React.ReactNode; onClick: () => void; bg?: string; disabled?: boolean; className?: string }) {
+export function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }: { children: React.ReactNode; onClick: () => void; bg?: string; disabled?: boolean; className?: string }) {
   return (
     <motion.button
       whileTap={disabled ? undefined : { x: 2, y: 2 }}
@@ -942,7 +943,7 @@ function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }:
 // botão do stepper de lance: toque = 1; segurar = repete e ACELERA (pra subir/
 // baixar rápido). O primeiro disparo sai no toque (igual clique), então tocar
 // e soltar rápido conta 1 só — não atrapalha quem só dá toquinhos.
-function HoldButton({ onStep, disabled = false, className = '', style, children }: { onStep: () => void; disabled?: boolean; className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
+export function HoldButton({ onStep, disabled = false, className = '', style, children }: { onStep: () => void; disabled?: boolean; className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
   const stepRef = useRef(onStep); stepRef.current = onStep
   const t = useRef<number | undefined>(undefined)
   const stop = () => { if (t.current) { clearTimeout(t.current); t.current = undefined } }
@@ -1414,7 +1415,7 @@ function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean;
     </div>
   )
 }
-function CardFace({ c, big = false, surprise = false, mudo = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; /** 🕵️ ENIGMA: esconde nome, clube E ano — sobra a posição e a dica */ mudo?: boolean; highlight?: boolean; claro?: boolean }) {
+export function CardFace({ c, big = false, surprise = false, mudo = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; /** 🕵️ ENIGMA: esconde nome, clube E ano — sobra a posição e a dica */ mudo?: boolean; highlight?: boolean; claro?: boolean }) {
   // 🧢 carta de TÉCNICO no pregão (id 'tec:...'): às cegas — só TEC + nome +
   // clube atual. Categoria/nível/formações se revelam quando ele for SEU.
   // 🧱 LEILÃO DE CLUBES: o lote é um PACOTE — "Goleiros do Palmeiras" + QUANTOS jogadores tem.
@@ -8014,7 +8015,8 @@ export function EscSeason() {
       </div>
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
-      <YourPitch small />
+      {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
+      {state.minhaLigaDraft ? <EscalacaoMinha /> : <YourPitch small />}
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
           já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).

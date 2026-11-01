@@ -66,8 +66,11 @@
     ⚠️ **Decisões que EU tomei (confirmar com o Diego):** (1) o dono que segura o próprio jogador PAGA o lance (o dinheiro some —
     senão ele chutava 999 de graça); (2) quem ganha no leilão com elenco cheio perde sozinho o reserva mais barato (sem janela de
     30 s); (3) o dono que perde um jogador e fica faltando gente na posição ganha um livre (profissional/bom) de graça; (4) o dono
-    saindo no meio do LEILÃO/ESCALAÇÃO: na volta pula direto pra temporada (os lotes caem; o draft já feito fica); (5) trocar
-    titular durante a temporada ainda não tem tela — só na escalação de 45 s.
+    saindo no meio do LEILÃO/ESCALAÇÃO: na volta pula direto pra temporada (os lotes caem; o draft já feito fica); (5) [resolvido 01/11]
+    👕 **Escalação = a MESMA aba Elenco da carreira** (`SquadTab`, em `minha-escalacao.tsx`: campinho, banco, troca tocando,
+    pílula de Formação — `MLD_FORMACAO` só aceita formação que o elenco preenche). Vale na escalação de 45 s E na aba Elenco
+    durante a temporada. 🔨 O leilão dos sondados tem a cara do ENVELOPE de sempre (barra com TEMPO, − / +, LACRAR TUDO).
+    Print: `scripts/mockups/minha-liga-draft-escalacao-leilao.png`.
   · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)

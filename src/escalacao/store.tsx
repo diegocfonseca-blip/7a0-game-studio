@@ -5603,6 +5603,7 @@ type Action =
   | { type: 'DRAFT_SONDAR'; mgrId: number; dono: number; cardId: string; by?: string } // 🕵️ na sua vez: sonda o jogador de um amigo (perde a vez)
   | { type: 'DRAFT_LANCE'; mgrId: number; lote: number; valor: number; by?: string } // 🔨 envelope do leilão dos sondados (0 = tira o lance)
   | { type: 'DRAFT_IGUALAR'; mgrId: number; sim: boolean; by?: string } // ⚡ quem sondou iguala (ou não) o maior lance
+  | { type: 'MLD_FORMACAO'; mgrId: number; formation: FormationKey; by?: string } // 👕 Minha Liga Draft: troca a formação (só se o elenco preencher)
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
@@ -12748,6 +12749,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (action.sim && sond && sond.money >= (lote.valor ?? 0)) { lote.vencedor = lote.sondador; lote.igualou = true }
       lote.igualar = false
       mldProximoIgualar(s)
+      return s
+    }
+    case 'MLD_FORMACAO': {
+      // 👕 qualquer formação que o elenco consiga PREENCHER com jogador de verdade (mesma régua da carreira); o XI se refaz sozinho
+      if (!s.minhaLigaDraft) return state
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      const need = FORMATIONS[action.formation]
+      if (!m || !need || m.formation === action.formation) return state
+      if (SECTORS.some(p => m.squad.filter(c => c.pos === p && !c.fake && !c.emprestado).length < need[p])) return state
+      m.formation = action.formation
+      m.formationView = undefined
       return s
     }
     case 'MLD_TROCA': {
