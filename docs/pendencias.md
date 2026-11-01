@@ -1,3 +1,14 @@
+## 📋 Minhas Ligas + Draft (01/11, regras FECHADAS com o Diego na conversa) — só MOCKUP (`scripts/mockup-ligas-draft-noite.mjs`), nada no código
+- T1 = a liga de sempre (leilão normal de 11). Fim de cada temporada: 💰 moedas pela colocação (vão pro próximo leilão, por cima
+  do dinheiro igual de todos) + 📋 DRAFT em SEGREDO, cada um no seu horário, 24 h; ordem = tabela (campeão primeiro); 1 carta de
+  TODO o jogo, única na liga.
+- Noite da T2: 🎬 SHOW DO DRAFT ao vivo (revelação na ordem da tabela, o mesmo suspense da Liga Draft) → 🔨 leilão de sempre
+  (o jogador do draft já ocupa uma vaga) → ⚽ temporada.
+- Faltou: no draft (24 h sem escolher) = fica com o PIOR jogador livre; no leilão = não dá lance e completa só com as SOBRAS que
+  ninguém quis. Ninguém é tirado da liga por faltar; o dono tem "⏭ pular" (draft só depois de 12 h; leilão "começar sem ele").
+- Ficou pra depois (talvez): pirâmide de séries, rodada assíncrona por bloco com OK de todos, elenco de 22. Ele pode trocar a Liga
+  Draft por esta (*"talvez eu nem faça mais e siga com essa aqui"*).
+
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
   MESMO `planosBots` que o motor usa: titulares cansados, lesionados, quantos vai poupar) e os 3 melhores do XI da rodada.
