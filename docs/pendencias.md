@@ -27,7 +27,11 @@
   · Elenco até 22: na T2+ o leilão deixa comprar até mais 11 (fecha 22); cheio = manda um pras sobras.
   · O dono escolhe a cada temporada o que abre a temporada: 📋 só draft · 📋+🔨 draft e leilão · 🔨 só leilão. NINGUÉM zera o time (correção do Diego: "só leilão" = leilão de reforço sem draft).
   · Com bots ou sem bots (sem bots só com 4+ usuários — mesma régua de hoje).
-  · Fica pra depois: sondar, pirâmide de séries.
+  · 🔁 **VIRADA FINAL (01/11, ideia dele):** da T2 em diante é SEMPRE DRAFT; o leilão só existe pros SONDADOS. Quem sonda o
+    jogador de um amigo perde a vez no draft e o sondado vai pra um leilão curto com todo mundo (lance inicial = o que o dono
+    pagou; o dono também lança; vendeu → dinheiro pro dono; ninguém lançou → volta pro dono). Ninguém sondou = não tem leilão.
+    T1 continua com o leilão normal de 11. (Substitui a escolha "só draft / draft+leilão / só leilão".)
+  · Fica pra depois: pirâmide de séries.
 
 ## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
