@@ -1997,7 +1997,7 @@ export function EscLobby() {
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
     // temporada. O campo fica no quadro da liga, lá na criação.
-    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehMinha ? 'My Draft League' : ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehMinha ? 'Minha Liga Draft' : ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
+    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
@@ -2101,7 +2101,7 @@ export function EscLobby() {
     { const auto = meusTemas.find(id => !id.startsWith('c:')); if (auto && temaValido(auto)) (gs as Record<string, unknown>).tema = auto }
     await registraAparelho() // 📱 30/10: o banco precisa saber o aparelho ANTES do gatilho da sala decidir
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS, game_state: gs })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : (liga && ehMinha && ligaComBots && ligaTamanho === 10) ? 10 : MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
@@ -3475,8 +3475,10 @@ export function EscLobby() {
         const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, estrela: true },
-          { v: 'liga' as const, draft: true, ic: '📋', nome: 'Liga Draft', frase: tr('Todo mundo começa fraco. A cada temporada, 1 jogador no draft.', 'Everyone starts weak. Every season, 1 player in the draft.'), on: ligaOn && draftOn, emTeste: true, estrela: true, meta: 5 },
-          ...(minhaOn ? [{ v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: tr('Minha Liga Draft', 'My Draft League'), frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn, estrela: true, selo: tr('SÓ VOCÊS', 'PRIVATE') }] : []),
+          // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
+          // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
+          // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
+          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, meta: 2 },
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -3555,17 +3557,28 @@ export function EscLobby() {
                       bots (padrão) e só ao lado direito o sem bots"*. Com bots
                       passa a ser o PADRÃO — é o jeito que o pessoal já conhece do
                       rápido; sem bots vira a escolha de quem quer só a turma. */}
-                  <Seg options={[[true, tr('Com bots até 20', 'With bots up to 20')], [false, tr('Sem bots — só vocês', 'No bots — just you')]] as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
-                  <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
+                  <Seg options={(ehMinha ? [[true, tr('🤖 Com bots', '🤖 With bots')], [false, tr('🚫 Sem bots (mín. 4 pessoas)', '🚫 No bots (min. 4 people)')]] : [[true, tr('Com bots até 20', 'With bots up to 20')], [false, tr('Sem bots — só vocês', 'No bots — just you')]]) as [boolean, string][]} value={ligaComBots} onSet={v => setLigaComBots(v)} />
+                  {!ehMinha && <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {ligaComBots
                       ? tr('🤖 Padrão. Tabela de 20 times — os que faltam entram como CPU, como no rápido de sempre.', '🤖 Default. 20-team table — the missing ones join as CPU, like the usual quick match.')
                       : tr('🏆 Só a galera na tabela. A liga tem o tamanho de vocês (ida e volta). Copa destrava com 8+ jogadores. ⚠️ Sem bots só vale com 4 ou mais pessoas: se começarem com menos, a liga completa com bots.', '🏆 Only your crew in the table. The league is as big as you are (home and away). Cup unlocks with 8+ players. ⚠️ No bots only applies with 4 or more people: start with fewer and the league fills up with bots.')}
-                  </p>
+                  </p>}
+                  {ehMinha && !ligaComBots && (
+                    <div className="mt-2 rounded-xl border-2 border-black px-2.5 py-2" style={{ background: '#FFE7A3' }}>
+                      <p className="font-black text-[12.5px] text-black" style={OSWALD}>{tr('⚠️ Sem bots só vale com 4 pessoas ou mais', '⚠️ No bots only works with 4+ people')}</p>
+                      <p className="text-black/70 text-[10.5px] font-bold leading-snug mt-0.5">{tr('A tabela fica só com vocês. Se começarem com menos de 4, a liga entra com bots sozinha (até 20 times).', 'The table is just you. If you start with fewer than 4, the league adds bots by itself (up to 20 teams).')}</p>
+                    </div>
+                  )}
                   {ehMinha && ligaComBots && (<>
                     {/* 📋🏆 Minha Liga Draft (01/11, Diego: "padrão 20 totais ou 10 totais contando usuários… o que sobra com bots") */}
                     <p className="font-black text-[11px] uppercase tracking-wider text-white/55 mt-3 mb-1.5" style={OSWALD}>{tr('📏 Tamanho da liga', '📏 League size')}</p>
                     <Seg options={[[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]] as [20 | 10, string][]} value={ligaTamanho} onSet={v => setLigaTamanho(v)} />
-                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{ligaTamanho === 10 ? tr('10 times contando vocês; os bots completam. Temporada de 18 rodadas. Se vierem mais de 10 pessoas, a liga cresce até caber todo mundo.', '10 teams counting you; bots fill the rest. 18-round season. If more than 10 people join, the league grows to fit everyone.') : tr('20 times contando vocês; os bots completam. Temporada de 38 rodadas.', '20 teams counting you; bots fill the rest. 38-round season.')}</p>
+                    <div className="mt-2 rounded-xl border-2 border-black px-2.5 py-2" style={{ background: 'rgba(255,255,255,.08)' }}>
+                      <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr(`👤 Usuários + 🤖 bots = ${ligaTamanho} times`, `👤 Users + 🤖 bots = ${ligaTamanho} teams`)}</p>
+                      <p className="text-white/60 text-[10.5px] font-bold leading-snug mt-0.5">{ligaTamanho === 10
+                        ? tr('Ex.: 3 de vocês + 7 bots. Cabem até 10 pessoas. Temporada de 18 rodadas.', 'E.g. 3 of you + 7 bots. Up to 10 people. 18-round season.')
+                        : tr('Ex.: 3 de vocês + 17 bots. Cabem até 20 pessoas. Temporada de 38 rodadas.', 'E.g. 3 of you + 17 bots. Up to 20 people. 38-round season.')}</p>
+                    </div>
                   </>)}
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
                       com senha, mas deixe avisado que essa sala é somente com senha.
@@ -3618,8 +3631,8 @@ export function EscLobby() {
         const rDeck = rapidoClubes ? tr('🌎 Todos', '🌎 All') : rapidoDeck === 'eu' ? tr('🌍 Europa', '🌍 Europe') : rapidoDeck === 'world' ? tr('🌎 Mundo', '🌎 World') : rapidoDeck === 'both' ? tr('♾️ Todos', '♾️ All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
         const rLeilao = rapidoEnvUnico && envUnicoOk && !roomDuplas ? tr('⚡ Envelope único', '⚡ Single envelope') : rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
         const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), relampago: tr('Mata-mata Relâmpago', 'Lightning Knockout'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
-        const resumoTime = [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
-        const resumoPartida = [rLeilao, rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
+        const resumoTime = (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), tr('🃏 Jogador', '🃏 Player'), tr('🌎 Todos', '🌎 All'), formation].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
+        const resumoPartida = [rLeilao, (ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
         const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
         const nomeModo = MODOS.find(m => chaveModo(m) === chaveSel)?.nome ?? ''
         const EXPLICA: Record<string, string> = {
@@ -3894,8 +3907,15 @@ export function EscLobby() {
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('📋 Já vem pronto', '📋 Already set')}</p>
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">🃏 {tr('Leilão de jogador (sem Clubes)', 'Player auction (no Clubs)')}</p>
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">🌎 {tr('Baralho Todos (Brasil + Europa + Mundo)', 'All decks (Brazil + Europe + World)')}</p>
+                {ehMinha ? (<>
+                  <p className="text-white/70 text-[10.5px] font-bold leading-snug">🔨 {tr('1ª temporada: o leilão de sempre, com todas as categorias', 'Season 1: the usual auction, every category')}</p>
+                  <p className="text-white/70 text-[10.5px] font-bold leading-snug">📋 {tr('Entre as temporadas: draft na ordem da tabela · 45s · pegar 1 jogador livre OU sondar o de um amigo', 'Between seasons: draft in table order · 45s · take 1 free player OR scout a friend\'s')}</p>
+                  <p className="text-white/70 text-[10.5px] font-bold leading-snug">🕵️ {tr('Sondados e jogadores à venda vão pra um leilão (quem sondou pode igualar)', 'Scouted and for-sale players go to an auction (the scout can match)')}</p>
+                  <p className="text-white/70 text-[10.5px] font-bold leading-snug">👕 {tr('Elenco de até 22 · 💰 moedas pela colocação', 'Squad of up to 22 · 💰 coins for your finish')}</p>
+                </>) : (<>
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">🪵 {tr('1ª temporada só com profissional e bom — ninguém começa com craque', 'Season 1 only with ex-pros and good players — nobody starts with a star')}</p>
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">📋 {tr('Entre as temporadas: draft, 1 jogador por técnico, de todo o jogo · 60s pra escolher · ordem da tabela', 'Between seasons: draft, 1 player per manager, from the whole game · 60s to pick · table order')}</p>
+                </>)}
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">☝️ {tr('Cada jogador é único na liga', 'Each player is unique in the league')}</p>
               </div>
             ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes && !nbaSala) ? (
@@ -4255,7 +4275,7 @@ export function EscLobby() {
             <div className="rounded-2xl p-3" style={{ background: INK }}>
               <p className="uppercase mb-2" style={{ fontSize: 12, letterSpacing: '.08em', color: GOLD, ...OSWALD }}>📋 {tr('Sua sala', 'Your room')}</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {[nomeModo, ...(roomMode === 'rapido' || roomMode === 'liga' ? [rLeilao] : []), ...(roomMode !== 'elenco' && !isCareer ? [rDeck, formation] : []), ...(!isCareer ? [rCopa[rapidoCopaMode] ?? ''] : []), ...(!isCareer ? [roomManual && hasManual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto')] : []), roomStream ? tr('🔴 Stream', '🔴 Stream') : '', roomMode === 'liga' || roomLocked ? tr('🔒 Com senha', '🔒 Password') : tr('🔓 Aberta', '🔓 Open')].filter(Boolean).map((t, i) => (
+                {[nomeModo, ...(roomMode === 'rapido' || roomMode === 'liga' ? [rLeilao] : []), ...(roomMode !== 'elenco' && !isCareer ? [(ehDraft && roomMode === 'liga') ? tr('🌎 Todos', '🌎 All') : rDeck, formation] : []), ...(!isCareer ? [(ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? ''] : []), ...(!isCareer ? [roomManual && hasManual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto')] : []), roomStream ? tr('🔴 Stream', '🔴 Stream') : '', roomMode === 'liga' || roomLocked ? tr('🔒 Com senha', '🔒 Password') : tr('🔓 Aberta', '🔓 Open')].filter(Boolean).map((t, i) => (
                   <span key={i} className="uppercase" style={{ fontSize: 11, background: '#2b241a', color: CREAM, borderRadius: 7, padding: '3px 7px', ...OSWALD }}>{t}</span>
                 ))}
               </div>
@@ -4817,7 +4837,7 @@ export function EscLobby() {
 
       {/* 🔁 MODO DA PRÓXIMA TEMPORADA (17/10, mockup `scripts/mockups/liga-trocar-modo.png` aprovado).
           Todo mundo vê o modo; só o DONO troca. Troféus e ranking não mudam (moram em game_champions). */}
-      {ehLigaSala && !ehMundoSala && !elencoOn && (() => {
+      {ehLigaSala && !ehMundoSala && !elencoOn && !(room.game_state as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (() => {
         const gs = room.game_state as GS
         const champ = gs?.copaMode === 'champions'
         const [antesTxt, depoisTxt] = (modoAviso ?? '').split('|')
@@ -4911,9 +4931,9 @@ export function EscLobby() {
           <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr('📋 Liga Draft · próximo jogo', '📋 Draft League · next game') : tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
                 <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
-                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? (players.length < 4 ? tr(`🚫 sem bots (vale com 4+ pessoas) — agora são ${players.length}, então começa com bots`, `🚫 no bots (needs 4+ people) — there are ${players.length} now, so it starts with bots`) : tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table')) : tr('🤖 com bots até 20 times', '🤖 with bots up to 20 teams')}</p>
+                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? (players.length < 4 ? tr(`🚫 sem bots (vale com 4+ pessoas) — agora são ${players.length}, então começa com bots`, `🚫 no bots (needs 4+ people) — there are ${players.length} now, so it starts with bots`) : tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table')) : (() => { const tam = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20; return (gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr(`👤 usuários + 🤖 bots = ${tam} times`, `👤 users + 🤖 bots = ${tam} teams`) : tr(`🤖 com bots até ${tam} times`, `🤖 with bots up to ${tam} teams`) })()}</p>
               </div>
             </div>
             {mandaNaLiga && (
@@ -4957,10 +4977,10 @@ export function EscLobby() {
                 da bola rolar — depois do pregão não tem volta. E a regra que está
                 valendo aparece pra TODO MUNDO numa linha: o convidado não entra no
                 escuro sem saber por que fulano lidera. */}
-            <p className="text-white/60 text-[10px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '1.5px solid rgba(255,255,255,.2)' }}>
+            {!(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && <p className="text-white/60 text-[10px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '1.5px solid rgba(255,255,255,.2)' }}>
               ⚖️ {resumoRegra(lerRegras(gs?.ligaRegras))} <span className="text-white/40">{tr('— todo mundo vê', '— everyone sees it')}</span>
-            </p>
-            {mandaNaLiga && !ligaEdit && (
+            </p>}
+            {mandaNaLiga && !ligaEdit && !(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (
               <button onClick={() => setLigaRegrasAberto(v => !v)}
                 className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
                 style={{ ...OSWALD, background: ligaRegrasAberto ? '#fff' : GOLD, color: INK }}>

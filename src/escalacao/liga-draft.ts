@@ -21,10 +21,11 @@ import { SECTORS, FORMATIONS } from './types'
 export const DRAFT_ESCOLHA_MS = 60_000
 // 📋🏆 MINHA LIGA DRAFT (01/11, Diego): 45 s por vez, e o relógio só corre depois que a pessoa aperta ✋ PRONTO
 export const DRAFT_ESCOLHA_MINHA_MS = 45_000
-export const DRAFT_PISTA_MS = 2_000
-// ⏱️ o anúncio: 4 tempos de pista (0 · 2 · 4 · 6 s), a carta vira aos 8 s e fica na tela até os 12 s
+// 🐢 02/11 (Diego: *"tô achando o suspense muito rápido… um pouco mais devagar, com mais suspense"*): 2 s → 3 s por pista
+export const DRAFT_PISTA_MS = 3_000
+// ⏱️ o anúncio: 4 tempos de pista (0 · 3 · 6 · 9 s), a carta vira aos 12 s e fica na tela até os 18 s
 export const DRAFT_VIRA_MS = 4 * DRAFT_PISTA_MS
-export const DRAFT_REVELA_MS = DRAFT_VIRA_MS + 4_000
+export const DRAFT_REVELA_MS = DRAFT_VIRA_MS + 6_000
 
 export interface DraftPick {
   mgrId: number
@@ -100,6 +101,20 @@ export function reservaMaisBarata(squad: WonCard[], nova: Card, formation: Forma
   const ok = podemSairMinha(squad, nova, formation)
   const ord = (a: WonCard, b: WonCard) => (a.paid ?? 0) - (b.paid ?? 0) || forca(a) - forca(b)
   return ok.filter(c => !xi.has(c.id)).sort(ord)[0] ?? ok.sort(ord)[0]
+}
+// 🔒 "CONTRATO" DA LIGA DRAFT (02/11, Diego: *"opção B e bote cadeado avisando tipo contrato"*): um jogador só pode ser SONDADO
+// depois de 3 temporadas completas no time do amigo. Quem chegou na temporada S fica travado até o draft do fim da temporada S+2.
+export const MLD_SONDAR_TEMPORADAS = 3
+/** quantas temporadas a carta já jogou neste time, contando a que acabou de terminar */
+export function temporadasNoTime(c: { mldDesde?: number }, temporadaQueAcabou: number): number {
+  return Math.max(0, temporadaQueAcabou - (c.mldDesde ?? 1) + 1)
+}
+/** o draft (fim de qual temporada) em que ela fica livre pra sondar */
+export function sondavelNoDraftDa(c: { mldDesde?: number }): number {
+  return (c.mldDesde ?? 1) + MLD_SONDAR_TEMPORADAS - 1
+}
+export function podeSondarCarta(c: { mldDesde?: number }, temporadaQueAcabou: number): boolean {
+  return temporadasNoTime(c, temporadaQueAcabou) >= MLD_SONDAR_TEMPORADAS
 }
 /** dá pra sondar/pôr à venda esta carta? (carta de verdade, do elenco, sem ser empréstimo) */
 export function podeIrProLeilao(m: Manager | undefined, cardId: string): WonCard | undefined {

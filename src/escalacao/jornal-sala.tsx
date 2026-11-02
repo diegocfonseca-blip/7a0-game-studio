@@ -138,11 +138,11 @@ function notaDe(
     nota: pick(en ? [
       '🏮 BOTTOM OF THE TABLE. Spent everything on one position and forgot the rest of the team.',
       '🏮 BOTTOM OF THE TABLE. The auction promised, the table did not forgive.',
-      '🏮 BOTTOM OF THE TABLE. Got the maths wrong at the auction and paid for it over 38 rounds.',
+      '🏮 BOTTOM OF THE TABLE. Got the maths wrong at the auction and paid for it all season.',
     ] : [
       '🏮 LANTERNA. Gastou tudo em uma posição e esqueceu do resto do time.',
       '🏮 LANTERNA. O leilão prometia, a tabela não perdoou.',
-      '🏮 LANTERNA. Fez as contas erradas no pregão e pagou nas 38 rodadas.',
+      '🏮 LANTERNA. Fez as contas erradas no pregão e pagou a temporada inteira.',
     ], s), destaque: 'cinza',
   }
 
@@ -358,6 +358,7 @@ export interface EdicaoSala {
   linhaFina: string
   copaNome: string
   nTecnicos: number
+  draftTemp?: number // 📋 Liga Draft (02/11): a edição é da temporada N da Liga Draft (cada temporada é uma temporada nova)
   bb?: boolean // 🏀 edição do BidLegends: nome do jornal, CESTINHA/pontos (default → futebol idêntico)
   // 🖥️ OFFLINE (jogo rápido contra a CPU, Diego 04/09: "no modo rápido offline
   // tem q ter jornal tb"). Muda DUAS coisas, e só: quem ganha linha na redação
@@ -457,6 +458,12 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
     linhaFina = en
       ? `League champion and ${copaNome} champion in the same ${offline ? 'season' : 'night'}. The other ${Math.max(0, n - 1)} have some explaining to do.`
       : `Campeão da liga e campeão da ${copaNome} na mesma ${offline ? 'temporada' : 'noite'}. Os outros ${Math.max(0, n - 1)} que se expliquem.`
+  } else if (campeaoLiga && state.minhaLigaDraft) {
+    // 📋 LIGA DRAFT (02/11, Diego: *"o jornal… tem que condizer com a liga draft… cada temporada vai ser uma temporada nova"*)
+    manchete = en ? `${campeaoLiga.nome.toUpperCase()} WINS SEASON ${state.seasonNo} OF THE DRAFT LEAGUE!` : `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO DA TEMPORADA ${state.seasonNo} DA LIGA DRAFT!`
+    linhaFina = en
+      ? `${campeaoLiga.pts} points in ${Math.max(2, (n - 1) * 2)} rounds. Now comes draft night — the champion picks first.`
+      : `${campeaoLiga.pts} pontos em ${Math.max(2, (n - 1) * 2)} rodadas. Agora vem a noite do draft — o campeão escolhe primeiro.`
   } else if (campeaoLiga) {
     manchete = en ? `${campeaoLiga.nome.toUpperCase()} IS THE ${offline ? 'TOURNAMENT' : 'ROOM'} CHAMPION!` : `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO ${offline ? 'DO TORNEIO' : 'DA SALA'}!`
     linhaFina = en
@@ -467,7 +474,7 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
     linhaFina = en ? 'The table is closed.' : 'A tabela fechou.'
   }
 
-  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline, ...(bb ? { bb } : {}) }
+  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline, ...(bb ? { bb } : {}), ...(state.minhaLigaDraft ? { draftTemp: state.seasonNo } : {}) }
 }
 
 // ── a capa na tela ──────────────────────────────────────────────────────────

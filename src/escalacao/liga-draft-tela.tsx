@@ -14,7 +14,7 @@ import { EscalacaoMinha } from './minha-escalacao'
 import {
   cartasLivres, nomesOcupados, podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
-  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao,
+  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
 } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#C2452F'
@@ -466,24 +466,33 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
   if (!you || !d) return null
   const mDono = amigos.find(m => m.id === dono)
   const jaSondados = new Set((d.sondagens ?? []).map(x => x.cardId))
-  const cartas = (mDono?.squad ?? []).filter(c => podeIrProLeilao(mDono, c.id) && !jaSondados.has(c.id)).sort((a, b) => b.fame - a.fame || (b.hi ?? 0) - (a.hi ?? 0))
-  const c = cartas.find(x => x.id === cardId)
+  // 🔒 todo mundo aparece, mas quem tem menos de 3 temporadas no time do amigo vem com CADEADO (o "contrato" da Liga Draft)
+  const cartas = (mDono?.squad ?? []).filter(c => podeIrProLeilao(mDono, c.id) && !jaSondados.has(c.id))
+    .sort((a, b) => Number(podeSondarCarta(b, d.temporada)) - Number(podeSondarCarta(a, d.temporada)) || b.fame - a.fame || (b.hi ?? 0) - (a.hi ?? 0))
+  const c = cartas.find(x => x.id === cardId && podeSondarCarta(x, d.temporada))
   return (
     <div className="space-y-2.5">
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>🕵️ {t('Sondar um amigo', 'Scout a friend')}</p>
         <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('você perde a vez no draft e o jogador vai pro leilão', 'you lose your draft turn and the player goes to auction')}</p>
       </div>
+      <p className="text-[11px] font-bold text-black/60">{t(`🔒 Só dá pra sondar quem já está há ${MLD_SONDAR_TEMPORADAS} temporadas no time do amigo (é o "contrato"). Quem chegou depois aparece com cadeado.`, `🔒 You can only scout players who have been on your friend's team for ${MLD_SONDAR_TEMPORADAS} seasons (the "contract"). Newer arrivals show a padlock.`)}</p>
       <div className="flex gap-1.5 flex-wrap">
         {amigos.map(m => <button key={m.id} onClick={() => { setDono(m.id); setCardId(null) }} className="border-2 border-black rounded-lg px-2 py-1 text-[13px]" style={{ ...OSW, background: dono === m.id ? GOLD : '#fff' }}>{m.teamName}</button>)}
       </div>
       <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white max-h-80 overflow-y-auto">
         {cartas.map(x => {
           const cat = categoriaDa(x)
+          const livre = podeSondarCarta(x, d.temporada)
+          const faltam = MLD_SONDAR_TEMPORADAS - temporadasNoTime(x, d.temporada)
           return (
-            <button key={x.id} onClick={() => setCardId(x.id)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left" style={{ background: cardId === x.id ? '#FFF1B8' : undefined }}>
+            <button key={x.id} disabled={!livre} onClick={() => setCardId(x.id)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left"
+              style={{ background: cardId === x.id ? '#FFF1B8' : !livre ? '#EFEAD9' : undefined, opacity: livre ? 1 : 0.7 }}>
               <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#F4ECD6' }}>{x.pos}</span>
-              <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{x.name}</b><small className="text-[10.5px] font-bold text-black/55">{x.club} · {x.year}</small></span>
+              <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{livre ? '' : '🔒 '}{x.name}</b>
+                <small className="text-[10.5px] font-bold text-black/55">{x.club} · {x.year}</small>
+                {!livre && <small className="block text-[10.5px] font-black" style={{ color: RED }}>{t(`📝 Contrato: falta${faltam === 1 ? '' : 'm'} ${faltam} temporada${faltam === 1 ? '' : 's'} · libera no draft do fim da temporada ${sondavelNoDraftDa(x)}`, `📝 Contract: ${faltam} more season${faltam === 1 ? '' : 's'} · unlocks at the draft after season ${sondavelNoDraftDa(x)}`)}</small>}
+              </span>
               <span className="shrink-0 text-[11px]" style={OSW}>{cat.emoji} {Math.max(1, Math.round(x.paid ?? 1))} 🪙</span>
             </button>
           )

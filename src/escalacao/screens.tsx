@@ -11249,7 +11249,7 @@ function CareerEndPanel() {
 // próximo jogo, não de ler oferta; e quem NÃO tem com quem jogar está justamente
 // na lista de salas abertas, procurando. Agora ele mora em `lobby.tsx`, embaixo do
 // 🔄 Atualizar lista, e bem mais discreto.
-function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
+export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   const V = useT() // 🌐 BR/EN
   const enV = getLang() === 'en'
@@ -11548,6 +11548,50 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         <div className="rounded-xl border-[3px] border-black px-3 py-3 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#92600A' }}>{V('🎁 Pega tua carta de campeão primeiro!', '🎁 Grab your champion card first!')}</p>
           <p className="text-[11px] font-bold text-black/65 mt-0.5">{enV ? `Tap the pack up top to open it. After that ${isHost ? 'starting the next one' : 'your vote'} unlocks — so nobody loses a card.` : `Toque no pacote lá em cima pra abrir. Depois disso libera ${isHost ? 'o começar a próxima' : 'o seu voto'} — assim ninguém perde carta.`}</p>
+        </div>
+      ) : state.minhaLigaDraft ? (
+        // 📋 LIGA DRAFT (02/11, Diego: *"deixe grande o banner… que tá pronto… pro host e pro outro usuário também"*): um banner só,
+        // igual pra todo mundo — ✋ Estou pronto (o voto de sempre, CAST_SEASON_VOTE) e a lista de quem está pronto; o dono abre o draft.
+        <div className="rounded-3xl border-4 border-black p-4 space-y-3" style={{ background: 'radial-gradient(circle at 50% 0%,#3b2a6b,#14101f 75%)', boxShadow: `5px 5px 0 ${INK}` }}>
+          <div className="text-center">
+            <p className="uppercase tracking-widest text-[12px]" style={{ ...OSWALD, color: GOLD }}>{V(`Fim da temporada ${state.seasonNo}`, `End of season ${state.seasonNo}`)}</p>
+            <p className="text-white uppercase leading-none mt-1" style={{ ...OSWALD, fontSize: 34 }}>📋 {V('Noite do draft', 'Draft night')}</p>
+            <p className="text-white/75 text-[12.5px] font-bold mt-1.5">{V(`A temporada ${state.seasonNo + 1} começa no draft`, `Season ${state.seasonNo + 1} starts with the draft`)}</p>
+          </div>
+          <div className="rounded-2xl border-[3px] border-black bg-white overflow-hidden">
+            {[
+              ['🏆', V('Quem terminou mais na frente da tabela escolhe primeiro: pega 1 jogador do jogo INTEIRO (ou sonda o de um amigo)', 'Whoever finished higher in the table picks first: take 1 player from the WHOLE game (or scout a friend\'s)')],
+              ['☝️', V('Cada jogador é único na liga: só existe UM Pelé do Santos', 'Every player is unique in the league: there is only ONE Pelé from Santos')],
+              ['🔒', V('Sondar o jogador de um amigo só depois de 3 temporadas dele no time (o "contrato")', 'You can only scout a friend\'s player after 3 seasons on his team (the "contract")')],
+              ['👕', V('Cada time tem elenco de até 22 jogadores', 'Each team has a squad of up to 22 players')],
+              ['💰', V('Moedas pela colocação caem no caixa', 'Coins for your finish go to your bank')],
+              ['🔨', V('Sondados e jogadores à venda vão pra leilão', 'Scouted and for-sale players go to auction')],
+              ['♾️', V('A liga não acaba: vocês continuam na MESMA liga, temporada após temporada', 'The league never ends: you keep playing the SAME league, season after season')],
+            ].map(([e, t]) => (
+              <p key={e} className="px-3 py-1.5 border-b border-black/10 text-[12.5px] font-bold text-black/80 flex gap-2"><span>{e}</span><span>{t}</span></p>
+            ))}
+          </div>
+          <div className="rounded-2xl border-[3px] border-black bg-white overflow-hidden">
+            <p className="px-3 py-1.5 text-[11px] uppercase tracking-widest" style={{ ...OSWALD, background: INK, color: GOLD }}>{V(`✋ Prontos · ${humans.filter(m => votes[m.id]).length} de ${humans.length}`, `✋ Ready · ${humans.filter(m => votes[m.id]).length} of ${humans.length}`)}</p>
+            {humans.map(m => (
+              <div key={m.id} className="flex items-center justify-between gap-2 px-3 py-2 border-t border-black/10" style={{ background: m.id === youId ? '#FFF1B8' : undefined }}>
+                <span className="font-black text-[15px] text-black truncate" style={OSWALD}>{m.teamName}{m.id === youId ? V(' (você)', ' (you)') : ''}</span>
+                <span className="font-black text-[13px] shrink-0" style={{ ...OSWALD, color: votes[m.id] ? GREEN : '#B45309' }}>{votes[m.id] ? V('✅ pronto', '✅ ready') : connected.has(m.id) ? V('⏳ ainda não', '⏳ not yet') : V('💤 fora', '💤 away')}</span>
+              </div>
+            ))}
+          </div>
+          {sozinho && isHost ? <>
+            <p className="text-center text-[12px] font-black" style={{ color: '#FFE08A', ...OSWALD }}>{V('🚫 Você ficou sozinho na sala. Pra jogar de novo no online precisa de pelo menos 2 pessoas.', '🚫 You are alone in the room. Playing again online needs at least 2 people.')}</p>
+            <Btn onClick={() => void vaiPraEsperaSozinho()} bg={GOLD} className="w-full text-lg"><span>{V('📣 Ir pra sala de espera chamar gente', '📣 Go to the waiting room and invite people')}</span></Btn>
+          </> : <>
+            {myVote
+              ? <div className="rounded-2xl border-[3px] border-black py-3 text-center" style={{ background: '#DCFCE7' }}><p className="font-black text-lg" style={{ ...OSWALD, color: '#166534' }}>{V('✅ VOCÊ ESTÁ PRONTO!', '✅ YOU ARE READY!')}</p></div>
+              : <Btn onClick={() => vote('mesmo')} bg={GREEN} className="w-full text-xl"><span className="text-white">{V('✋ ESTOU PRONTO', '✋ I\'M READY')}</span></Btn>}
+            {isHost ? <>
+              <Btn onClick={() => void abrirDraft()} bg={GOLD} className="w-full text-xl"><span>{V('📋 ABRIR A NOITE DO DRAFT', '📋 OPEN DRAFT NIGHT')}</span></Btn>
+              <p className="text-center text-[11px] font-bold text-white/70">{V('Só você (dono) vê. Pode abrir mesmo com gente faltando — quem não estiver perde a vez no draft.', 'Only you (owner) see this. You can open it with people missing — whoever is away loses their draft turn.')}</p>
+            </> : <p className="text-center text-[12.5px] font-black" style={{ color: '#FFDD70', ...OSWALD }}>{V('⏳ O dono abre a noite do draft quando a galera estiver pronta', '⏳ The owner opens draft night when the crew is ready')}</p>}
+          </>}
         </div>
       ) : isHost ? (
         <>

@@ -33,7 +33,7 @@ function monta(): EscState {
       const c = fracas.find(x => x.pos === pos && !usados.has(chaveNome(x.name)))!
       usados.add(chaveNome(c.name)); sq.push({ ...c, id: `b${k++}` })
     }
-    m.squad = sq.map(c => ({ ...c, paid: 1, via: 'leilao' as const }))
+    m.squad = sq.map((c, i) => ({ ...c, paid: 1, via: 'leilao' as const, ...(MINHA ? { mldDesde: i % 3 === 0 ? -1 : 1 } : {}) })) // 🔒 alguns veteranos (libera) e o resto no contrato
   }
   s.league = s.managers.map((m, i) => ({ id: m.id, name: m.teamName, isManager: true, baseAtk: 0, baseDef: 0, pts: [80, 74, 90, 61][i] ?? 40 - i, w: 20, d: 0, l: 0, gf: 50, ga: 20 }))
   s.fixtures = Array.from({ length: 38 }, () => [])

@@ -11,7 +11,7 @@ export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed:
   return <article className="jornal-v22" aria-label="O Martelo — edição da sala">
     <header className="jv-masthead">
       <h1>O MARTELO</h1>
-      <p>{ed.soChampions ? tr('EDIÇÃO DA SALA · CHAMPIONS', 'ROOM EDITION · CHAMPIONS') : tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}{ed.campeaoCopa ? ` + ${ed.copaNome.toUpperCase()}` : ''}</p>
+      <p>{ed.draftTemp ? tr(`EDIÇÃO LIGA DRAFT · TEMPORADA ${ed.draftTemp}`, `DRAFT LEAGUE EDITION · SEASON ${ed.draftTemp}`) : ed.soChampions ? tr('EDIÇÃO DA SALA · CHAMPIONS', 'ROOM EDITION · CHAMPIONS') : tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}{ed.campeaoCopa ? ` + ${ed.copaNome.toUpperCase()}` : ''}</p>
       <div><span>{tr('O DIÁRIO DO LEILÃO LEGENDS', 'THE LEILÃO LEGENDS DAILY')}</span><span>{ed.nTecnicos} {tr('TÉCNICOS · FIM DE JOGO', 'MANAGERS · FULL TIME')}</span></div>
     </header>
     <h2 className="jv-headline">{ed.manchete}</h2>
@@ -94,7 +94,7 @@ export async function buildOnlineSalaBlob(ed: EdicaoSala): Promise<Blob | null> 
     if (img) { const scale = Math.max(w / img.width, h / img.height), sw = w / scale, sh = h / scale; x.drawImage(img, (img.width-sw)/2, (img.height-sh)/2, sw, sh, px, py, w, h) }
   }
   x.textAlign = 'center'; text('O MARTELO', W/2, 114, `700 94px ${ser}`, CW)
-  text(`${ed.soChampions ? tr('EDIÇÃO DA SALA · CHAMPIONS', 'ROOM EDITION · CHAMPIONS') : tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}${ed.campeaoCopa ? ' + '+ed.copaNome.toUpperCase() : ''}`, W/2, 158, `700 24px ${osw}`, CW)
+  text(`${ed.draftTemp ? tr(`EDIÇÃO LIGA DRAFT · TEMPORADA ${ed.draftTemp}`, `DRAFT LEAGUE EDITION · SEASON ${ed.draftTemp}`) : ed.soChampions ? tr('EDIÇÃO DA SALA · CHAMPIONS', 'ROOM EDITION · CHAMPIONS') : tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}${ed.campeaoCopa ? ' + '+ed.copaNome.toUpperCase() : ''}`, W/2, 158, `700 24px ${osw}`, CW)
   text(`${ed.nTecnicos} ${tr('TÉCNICOS · FIM DE JOGO', 'MANAGERS · FULL TIME')}`, W/2, 190, `700 18px ${osw}`); line(208); line(214)
   x.textAlign = 'left'; let y = 286
   for (const h of head) { text(h, M, y, `700 62px ${osw}`); y += 70 }

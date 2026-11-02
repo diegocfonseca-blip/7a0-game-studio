@@ -72,6 +72,18 @@
     durante a temporada. 🔨 O leilão dos sondados tem a cara do ENVELOPE de sempre (barra com TEMPO, − / +, LACRAR TUDO).
     Print: `scripts/mockups/minha-liga-draft-escalacao-leilao.png`.
     🕵️📋 **Na sua vez: os DOIS botões juntos** (Pegar do draft · Sondar um amigo), qualquer um começa os 45 s (01/11).
+    🛠️ **02/11, 1º teste do Diego (sala 8W1BYJ, com VBrei):** (1) o "10 times" não ficava guardado no save (faltava `tamanhoLiga` na
+    guarda das marcas da sala) — consertado + a sala dele corrigida no banco (tamanhoLiga 10, max_players 10); (2) a espera mostrava
+    "até 20" e as caixas das Minhas Ligas (modo da próxima temporada, regras do ranking) — agora é "📋 Minha Liga Draft · próximo jogo",
+    "usuários + bots = N times" e sem essas caixas; (3) "Já vem pronto" e o resumo "Sua sala" tinham regras da Liga Draft antiga /
+    "Liga + Copa"; (4) criar: "Sem bots (mín. 4 pessoas)" com aviso amarelo e "👤 usuários + 🤖 bots = N times". Mockup:
+    `scripts/mockups/minha-liga-draft-tamanho.png`. Sala de 10 = máx. 10 pessoas.
+    📋 **02/11 — vira A Liga Draft oficial** (a antiga não se cria mais; aparece pra todos travada, meta 2K; criar = MINHA_LIGA_DRAFT_TESTERS),
+    banner grande do fim com ✋ pronto pra todos (dono abre), jornal "Edição Liga Draft · Temporada N", suspense 3 s por pista. PUBLICADO.
+    🔒 **Contrato de 3 temporadas (02/11, "opção B e bote cadeado avisando tipo contrato"):** só dá pra SONDAR quem está há 3 temporadas
+    no time do amigo (`mldDesde` na carta; sem o campo = veio no leilão da T1). Quem chega por draft/leilão recomeça o contador. Trava no
+    motor (DRAFT_SONDAR) + cadeado na lista ("Contrato: faltam N temporadas · libera no draft do fim da temporada X"). Print:
+    `scripts/mockups/liga-draft-sondar-contrato.png`.
     🤖 **Bots se reforçam CALADOS (01/11):** depois do draft/leilão, cada bot troca o pior de 1 posição por um livre bom/craque
     (nunca lenda/promessa); quem sai volta a ser livre. Sem anúncio. Com/sem bots continua escolha de quem cria (sem bots = 4+).
     📏 **Tamanho da liga: 20 (padrão) ou 10 times**, bots completam; com mais de 10 pessoas cresce até caber (01/11, `tamanhoLiga`).
