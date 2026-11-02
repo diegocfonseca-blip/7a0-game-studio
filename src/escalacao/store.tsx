@@ -1102,6 +1102,7 @@ import { formacaoNoCardapio } from './cardapio-formacoes'
 import { salvaEscalacao } from './escalacao-salva' // 💾 escalação A/B (23/10)
 import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
 import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
+import { BATISMOS } from './batismos' // 🖋 bots de batismo/fundador se revezando nas salas online (02/11)
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
@@ -5458,6 +5459,25 @@ function tiraClones(defs: { team: string; name: string }[], humanNames: string[]
 }
 
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
+// 🖋🎲 BATISMOS SE REVEZANDO NAS SALAS ONLINE (02/11, pedido do Diego: *"todo time de batismo ou fundador se
+// revezem nas salas online… aleatório random"*). Os bots da sala rápida/Minhas Ligas saem primeiro dos clubes de
+// BATISMO e FUNDADOR (todas as divisões, sorteados a cada partida); só depois vêm os bots comuns de antes, se
+// faltar vaga. O robô com o mesmo nome de alguém da sala continua saindo pelo `tiraClones` do makeManagers (o
+// dono nunca joga contra o próprio clube). Desligar = `BATISMOS_NAS_SALAS = false` (volta exatamente ao sorteio
+// antigo). Só o NOME do bot muda — força, caixa e lance seguem a régua de sempre.
+export const BATISMOS_NAS_SALAS = true
+function poolSalaComBatismos(rng: () => number): { team: string; name: string }[] {
+  const antigo = [...shuffle([...TIMES_ELITE], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
+  if (!BATISMOS_NAS_SALAS) return antigo
+  const todos = [...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.D, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS]
+  const nomes = new Set(BATISMOS.filter(b => b.tipo === 'batismo').map(b => b.clube))
+  const vistos = new Set<string>()
+  const batismos = todos.filter(t => nomes.has(t.team) && !vistos.has(t.team) && (vistos.add(t.team), true))
+  const sorteados = shuffle(batismos, rng)
+  const ja = new Set(sorteados.map(t => t.team))
+  return [...sorteados, ...antigo.filter(t => !ja.has(t.team) && (ja.add(t.team), true))]
+}
+
 function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus: number, leagueSize: number, rng: () => number, cpuNameOrder?: { team: string; name: string }[]): { managers: Manager[]; botPlans: BotPlan[] } {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const humans: Manager[] = humanNames.map((name, i) => ({
@@ -9168,7 +9188,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         ? shuffle([...(nbaCareerRoom ? NBA_STREET_TEAMS : NBA_PRO_TEAMS)], rng)
         : action.career
         ? [...careerChosen, ...careerRest]
-        : [...shuffle([...TIMES_ELITE], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
+        : poolSalaComBatismos(rng)
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
       // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
