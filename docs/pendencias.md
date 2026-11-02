@@ -11882,4 +11882,4 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - 82 cartas famosas (BR 37 · EU 44 · Mundo 1), da `docs/lista-cartas-decadas.md` reconferida contra o baralho de hoje
   (`npx tsx scripts/confere-lista-decadas.mts`). 11 da lista já tinham entrado nos Lotes 45–47 e saíram.
 - Pacotes de clube por década que fecham as 5 posições: **3 → 19**. Seleção por década: 18 → 24.
-- Stories: `mockups/cartas-l48-{a,b,c}.png`. ⏳ FALTA: OK do Diego na lista → `npm run novidades` (UMA vez) → commit → publicar.
+- Stories: `mockups/cartas-l48-{a,b,c}.png`. ✅ Diego aprovou ("pode publicar todas") e foi publicado em 02/11 (De Gea ficou no Atlético 2010, promessa).

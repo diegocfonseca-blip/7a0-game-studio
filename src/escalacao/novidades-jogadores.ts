@@ -6,422 +6,422 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
-    "nome": "Karel Poborský",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Grzegorz Krychowiak",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Gökhan Inler",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Valeri Karpin",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Leonardo",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jordan Henderson",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "İlkay Gündoğan",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Thiago Motta",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Sandro Tonali",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Thomas Partey",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Henrikh Mkhitaryan",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Lucas Barreto",
+    "nome": "Paulo Victor",
     "baralho": "BR",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Erik Thorstvedt",
-    "baralho": "EU",
+    "nome": "Jailson",
+    "baralho": "BR",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Helmuth Duckadam",
+    "nome": "Zé Carlos",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Benítez",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Kléber",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Alessandro",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Vitinho (Botafogo)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Mateo Ponte",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Douglas Santos",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Patric",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Júnior César",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Edílson (Grêmio)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Serginho (São Paulo)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Dalmo",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Betão",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Paulo André",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "David Braz",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Adryelson",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Marinho (Flamengo)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Edinho (Flamengo)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Mauro Ramos",
+    "baralho": "BR",
+    "nivel": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Marinho Peres",
+    "baralho": "BR",
+    "nivel": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Adílson",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rivarola",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Thiago Maia",
+    "baralho": "BR",
+    "nivel": "promessa",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ramiro",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Pintado",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Mengálvio",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Dinho",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Arílson",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Carlos Miguel (Grêmio)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Michael",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Luiz Araújo",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Palhinha (São Paulo)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lico",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Joãozinho",
+    "baralho": "BR",
+    "nivel": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lula",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "David de Gea",
+    "baralho": "EU",
+    "nivel": "promessa",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Samir Handanović",
     "baralho": "EU",
     "nivel": "craque",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Alexander Manninger",
+    "nome": "Christian Abbiati",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Antonios Nikopolidis",
+    "nome": "Hans-Jörg Butt",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Stig Inge Bjørnebye",
+    "nome": "Andriy Lunin",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Marek Jankulovski",
+    "nome": "Manuel Almunia",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Vladimír Coufal",
+    "nome": "Yann Sommer",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Stephan Lichtsteiner",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ricardo Rodríguez",
+    "nome": "Sergio Romero",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Oleksandr Zinchenko",
+    "nome": "Carlos Roa",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Vitaliy Mykolenko",
+    "nome": "Ricardo",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Yuri Zhirkov",
+    "nome": "Kakha Kaladze",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Mário Fernandes",
+    "nome": "Massimo Oddo",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Emanuel Pogatetz",
+    "nome": "Rafinha",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Giourkas Seitaridis",
+    "nome": "Juan Bernat",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Takis Fyssas",
+    "nome": "Ferland Mendy",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Ronny Johnsen",
+    "nome": "Lucas Vázquez",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Henning Berg",
+    "nome": "Gaël Clichy",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Jakub Kiwior",
+    "nome": "Pablo Zabaleta",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Tomáš Ujfaluši",
+    "nome": "Glen Johnson",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Miroslav Kadlec",
+    "nome": "Alberto Moreno",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Cristian Chivu",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Radu Drăgușin",
+    "nome": "Steve Finnan",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Manuel Akanji",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Fabian Schär",
+    "nome": "Phil Neville",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   },
   {
     "tipo": "entrou",
-    "nome": "Sergei Ignashevich",
+    "nome": "Paul Parker",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Vasili Berezutski",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Martin Hinteregger",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Traianos Dellas",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Morten Gamst Pedersen",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jakub Błaszczykowski",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Piotr Zieliński",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Tomáš Souček",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Nicolae Stanciu",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Xherdan Shaqiri",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Anatoliy Tymoshchuk",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Andriy Yarmolenko",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ruslan Malinovskyi",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Aleksandr Mostovoi",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Denis Cheryshev",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Aleksandr Golovin",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Andreas Herzog",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Marcel Sabitzer",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Konrad Laimer",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Theodoros Zagorakis",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Giorgos Karagounis",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Kostas Katsouranis",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-31"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Milan Baroš",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-31"
+    "data": "2026-11-02"
   }
 ]
