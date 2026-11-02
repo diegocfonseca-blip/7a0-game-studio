@@ -11894,3 +11894,9 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - Conserto: zera nos dois começos + cura ao abrir save que ainda está na T1 (o carry só nasce na virada T1→T2). Trava: `npm run carreira-limpa`.
 - ⚠️ Quem já passou da T1 com o número sujo fica com ele (não dá pra separar o que é de qual carreira).
 - (À parte: `npm run artilharia` já falhava antes, no item 8 — medalha 🥇 da aba OURO do Rank. Não é deste conserto.)
+
+## ⚽ Gol de Copa aparecia ANTES de jogar (02/11, Fabulous EC, T158)
+- Causa: com o calendário (liberado 25/10) a Copa nasce calculada inteira na rodada 0 (`copaMid`), e a tabela do Elenco
+  somava `copa.goalsByCard` de TODAS as fases — gol/assistência de jogo que ainda não aconteceu (e spoiler).
+- Conserto: `copaPorCarta` (pyramidseason.tsx) soma fase por fase, só as que já foram jogadas (`copaRound`); Copa acabada = a
+  mesma conta de antes (o número que vai pro "no seu clube" na virada não mudou).

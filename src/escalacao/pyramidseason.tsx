@@ -8928,8 +8928,6 @@ export function PyramidSeasonScreen() {
     }
     return { sc, asl }
   }, [cmLinhas, tables])
-  const golsTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(goalsByCard, copa?.goalsByCard), cmPorCarta.gl), intlPorCarta.gl), [goalsByCard, copa, cmPorCarta, intlPorCarta])
-  const assTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(assistsByCard, copa?.assistsByCard), cmPorCarta.as), intlPorCarta.ass), [assistsByCard, copa, cmPorCarta, intlPorCarta])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
@@ -8978,6 +8976,25 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaRoundMid.current !== copaRound) { copaRoundMid.current = copaRound; setCopaMidOn(false) } }, [copaRound])
   const copaPlaying = done ? !!copa && nCopaRounds > 0 && copaRound < nCopaRounds : copaMid && copaMidOn && !!copa && copaRound < nCopaBase
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // ⚽🅰️ GOL DE COPA SÓ CONTA DEPOIS DE JOGADO (02/11, print do Fabulous: começo de temporada e o elenco já com gol e
+  // assistência). Com o calendário a Copa inteira já nasce calculada na rodada 0 (`copaMid`), e o `copa.goalsByCard` somava
+  // TODAS as fases de uma vez — gol de jogo que ainda não aconteceu (e spoiler). Agora soma fase por fase, a mesma régua do
+  // `copaJogos`: Copa acabada = tudo; no meio = só as fases antes do `copaRound`.
+  const copaPorCarta = useMemo(() => {
+    const gl: Record<string, number> = {}, as: Record<string, number> = {}
+    if (!copa) return { gl, as }
+    if (copaFinished) return { gl: copa.goalsByCard ?? {}, as: copa.assistsByCard ?? {} } // Copa acabada: a MESMA conta de sempre
+    copa.rounds.forEach((r, ri) => {
+      if (ri >= copaRound) return
+      for (const t of r.ties) for (const g of t.goals) {
+        if (g.id) gl[g.id] = (gl[g.id] ?? 0) + 1
+        if (g.assistId) as[g.assistId] = (as[g.assistId] ?? 0) + 1
+      }
+    })
+    return { gl, as }
+  }, [copa, copaFinished, copaRound])
+  const golsTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(goalsByCard, copaPorCarta.gl), cmPorCarta.gl), intlPorCarta.gl), [goalsByCard, copaPorCarta, cmPorCarta, intlPorCarta])
+  const assTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(assistsByCard, copaPorCarta.as), cmPorCarta.as), intlPorCarta.ass), [assistsByCard, copaPorCarta, cmPorCarta, intlPorCarta])
   // 🏃 JOGOS DE COPA NA CONTA DO JOGADOR (Diego 26/09: *"jogos totais… todas as
   // ligas, Copas"*). Os jogos do elenco sempre foram só os 38 da liga. A Copa joga
   // com o XI congelado da rodada 38, então cada titular soma as partidas (ida e
