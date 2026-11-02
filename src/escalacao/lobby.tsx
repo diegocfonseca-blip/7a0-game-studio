@@ -21,7 +21,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, NomeComFake, useHasManual, useDireitos, logApoio } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio } from './apoio'
 import { ehPagante } from './saf2'
 import { assinarMensal } from './vendria-checkout'
 import { isMuted } from './sound'
@@ -793,7 +793,7 @@ export function EscLobby() {
   const [user, setUser] = useState<User | null>(null)
   // 🥇 medalha da semana (13/10): busca a MINHA posição no ranking quando a conta aparece, pra ela ir
   // grudada no nome (apoioSelo) ao criar/entrar numa sala. Sem banco = sem medalha, nunca trava.
-  useEffect(() => { if (user) { void carregaMedalhaDaSemana(); void carregaNomeFake() } }, [user?.id, user?.user_metadata?.display_name]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void carregaNomesSemEscudo(); if (user) { void carregaMedalhaDaSemana(); void carregaNomeFake() } }, [user?.id, user?.user_metadata?.display_name]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!user) { setSouEspectador(false); return }
     let vivo = true
