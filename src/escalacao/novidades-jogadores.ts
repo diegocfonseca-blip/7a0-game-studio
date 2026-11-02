@@ -6,6 +6,38 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
+    "nome": "Deschamps",
+    "baralho": "EU",
+    "de": "bom jogador",
+    "para": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Marcelo Brozović",
+    "baralho": "EU",
+    "de": "bom jogador",
+    "para": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Xherdan Shaqiri",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Marcelo Brozović",
+    "baralho": "MUNDO",
+    "de": "craque",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
     "nome": "Alessandro Costacurta",
     "baralho": "EU",
     "de": "bom jogador",
