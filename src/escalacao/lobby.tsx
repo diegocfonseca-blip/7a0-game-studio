@@ -2773,6 +2773,14 @@ export function EscLobby() {
       lastErr = insErr.message
       if (!/duplicate|unique|23505/i.test(insErr.message)) break // erro real (não é corrida): desiste
     }
+    // 🔒 02/11 (Diego): quem não tem plano fica em no máximo 1 Minhas Ligas + 1 Liga Draft ao mesmo tempo. A trava é do BANCO
+    // (gatilho `esc_liga_limite_gratis` em room_players) — aqui só traduz o recado: qual liga já ocupa a vaga e o caminho.
+    const lim = /LIGA_LIMITE\|(draft|liga)\|([^\n]*)/.exec(lastErr)
+    if (!insOk && lim) {
+      const tipo = lim[1] === 'draft' ? tr('Liga Draft', 'Draft League') : tr('Minhas Ligas', 'My Leagues')
+      setRoomError(tr(`🔒 Sem plano, dá pra estar em 1 ${tipo} por vez — você já está na "${lim[2].trim()}". Saia dela (botão Sair da sala, dentro da liga) ou vire ⭐ Craque pra jogar em quantas quiser.`, `🔒 Without a plan you can be in 1 ${tipo} at a time — you are already in "${lim[2].trim()}". Leave it (Leave room, inside the league) or go ⭐ Craque to play in as many as you want.`))
+      setLoading(false); return
+    }
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
