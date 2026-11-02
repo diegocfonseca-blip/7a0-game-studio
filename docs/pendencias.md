@@ -8,7 +8,7 @@
 - Linha em `esc_assinatura_mensal` (craque_salas, até 02/11/2027, sem `vendria_sub`). Conta de 24/07 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo). Tinha tier verde antigo (continua como `tier_legado`).
 
 ## 🥇⚔️ Medalha do clã da semana (02/11) — ✅ PUBLICADO ("ok pode fazer e publica")
-- 🔁 **02/11 à noite (Diego): SÓ O 1º CLÃ** (*"não tem sentido os três ganhar medalha… o que tá em primeiro, e todos os membros"*): `esc_cla_medalha` só olha `pos = 1` (migration 20261102180000). 2º e 3º seguem só com as moedas (20/10).
+- 🔁 02/11 à noite: por uns minutos ficou só o 1º clã; o Diego voltou atrás: **top 3 = 🥇 ouro · 🥈 prata · 🥉 bronze, todo membro carrega**, e quem ganha clã + individual fica com AS DUAS (nome × pílula). Não trocar a do clã por 🏆.
 - Mockup `scripts/mockups/cla-semana-medalha.png`. Top 3 de clãs de cada semana fechada → 🥇🥈🥉 na pílula do clã de TODO membro por 30 dias (`esc_podio_cla_semana`, preenchida pelo fecho `esc_fecha_semanas_clas` → `esc_podio_clas_preenche`; leitura `esc_cla_medalha` dentro do `esc_clas_de`). Pódio é POR CLÃ: o `esc_premio_cla_semana` (moeda) só tem quem está desde segunda e por isso não servia (o Lulubaba, 1º da semana 26/10, não aparecia lá). Presidente: coroa 👑 dourada acesa na pílula enquanto tem medalha. Perfil: selo "🥇 CLÃ CAMPEÃO DA SEMANA · até dd/mm". Ganhou individual + clã = as duas (nome × pílula). Batismo/fundador nada a mais. Nunca no chat/telão/tabela/jogo. Moedas 30/20/10 iguais.
 
 ## 🖋🎲 Batismos e fundadores como bots nas salas online (02/11) — ✅ PUBLICADO ("faz e publica tudo")
