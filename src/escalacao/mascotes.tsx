@@ -419,9 +419,9 @@ export const MASCOTES: Record<string, ReactNode> = {
     <img src={paizaoMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Paizão — Paizão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 👑 O PRÍNCIPE (mascote do Príncipe Rubro Negro — pedroglima50, 02/11): o príncipe de cabelo vermelho de uniforme rubro-negro,
-  // apontando, numa explosão de raios vermelhos. Arte do próprio dono. 📏 344×440, 44 KB — altura 176. mascote_key = "principe_rubronegro".
+  // apontando, numa explosão de raios vermelhos. Arte do próprio dono. 📏 351×440, 44 KB — altura 176 (arte nova 02/11: o cabelo vinha cortado em cima). mascote_key = "principe_rubronegro".
   principe_rubronegro: (
-    <img src={principeMascoteImg} height={176} width={Math.round(176 * 344 / 440)} alt="O Príncipe — Príncipe Rubro Negro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={principeMascoteImg} height={176} width={Math.round(176 * 351 / 440)} alt="O Príncipe — Príncipe Rubro Negro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   lulubaba_goleiro: (
     <img src={lulubabaMascoteImg} height={176} width={Math.round(176 * 440 / 342)} alt="O Goleiro — Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
