@@ -9,9 +9,12 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  let lens:number|undefined,lensMode:CameraPartidaContinua|undefined,lensCloseSince:number|undefined
  let saved:{position:Vector3;target:Vector3;fov:number}|undefined,framing:{x:number;y:number;visible:boolean}|undefined
  let forcado:CameraPartidaContinua|undefined,distGuardada:number|undefined,corte=false
- const enterFree=(restore=true)=>{mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
+ let fixedZoom=1,controlsBeforeFixed:boolean|undefined
+ const restoreControls=()=>{if(controlsBeforeFixed!==undefined){controls.enabled=controlsBeforeFixed;controlsBeforeFixed=undefined}}
+ const enterFree=(restore=true)=>{restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
  return {
-  setMode(next:CameraPartidaContinua){if(next===mode)return;if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
+  setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if(next==='fixed'){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
+  zoomFixed(factor:number){if(mode!=='fixed'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,.7,1.6);moving=true;return true},
   explore(){enterFree(false)},
   update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua,ataque:1|-1=1){
    ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
@@ -20,16 +23,20 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    const dt=last===undefined?1/60:MathUtils.clamp((now-last)/1000,0,.5);last=now
    zoomPending=false
    if(mode==='free'&&!returning){moving=false;return}
+   // The fixed view must remain fixed even while a goal replay is playing.
+   // This affects only its camera; replay events and timing stay untouched.
+   if(mode==='fixed')forcar=undefined
    // 🔁 replay do gol: o preset forçado ('Atrás do gol') entra e sai em CORTE seco; a distância do preset do usuário fica guardada
    if(forcar!==forcado){if(forcar){distGuardada=distance;distance=undefined}else distance=distGuardada;forcado=forcar;corte=true}
    const modo=forcado??mode
    const fit=modo!=='free'?enquadramentoFutebol(camera,ball,subjects,modo,ataque):null
    if(fit){
-    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='follow')distance=fit.distance // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
+    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='follow'||fit.preset==='fixed')distance=fit.distance*(fit.preset==='fixed'?fixedZoom:1) // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
     // Expand promptly for a receiver/high ball; close in only after a sustained
     // smaller play area. Crossing a neighbour-selection boundary cannot make
     // the lens pump in and out on every stride.
-    if(fit.distance>distance+.02){distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/.15));zoomInSince=undefined;zoomPending=fit.distance-distance>.02;if(!zoomPending)distance=fit.distance}
+    if(fit.preset==='fixed')zoomInSince=undefined
+    else if(fit.distance>distance+.02){distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/.15));zoomInSince=undefined;zoomPending=fit.distance-distance>.02;if(!zoomPending)distance=fit.distance}
     else if(fit.distance>distance){distance=fit.distance;zoomInSince=undefined}
     else if(fit.distance<distance*.86){zoomInSince??=now;if(now-zoomInSince>550)distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/1.1));zoomPending=fit.distance<distance*.86}
     else zoomInSince=undefined
@@ -69,6 +76,6 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    const point=new Vector3(ball.x,ball.y,ball.z).project(camera);framing={x:point.x,y:point.y,visible:point.z>-1&&point.z<1&&Math.abs(point.x)<.96&&Math.abs(point.y)<.94}
   },
   get transitioning(){return returning||moving},
-  inspect:()=>({mode,returning,moving,zoomPending,framing,distance,fov:camera.fov,savedFreePosition:saved?.position.toArray(),savedFreeFov:saved?.fov,sameCamera:true,worldScaleUnchanged:true}),
+  inspect:()=>({mode,returning,moving,zoomPending,framing,distance,fixedZoom,fov:camera.fov,savedFreePosition:saved?.position.toArray(),savedFreeFov:saved?.fov,sameCamera:true,worldScaleUnchanged:true}),
  }
 }

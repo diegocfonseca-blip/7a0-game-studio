@@ -1,7 +1,7 @@
 import {MathUtils,PerspectiveCamera,Vector3} from 'three'
 export type AlvoCameraFutebol={mx:number;mz:number;priority?:boolean;visible?:boolean;presentation?:{x:number;z:number}}
 export type BolaCameraFutebol={x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}}
-export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'
+export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'|'fixed'
 const PRESETS={
  follow:{fov:50,elevation:.5,depth:.86,halfWidth:10,halfDepth:7,radius:18,count:6,minimum:24},
  broadcast:{fov:46,elevation:.64,depth:.77,halfWidth:12,halfDepth:7,radius:19,count:6,minimum:28},
@@ -14,7 +14,20 @@ const PRESETS={
 export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFutebol,subjects:readonly AlvoCameraFutebol[]=[],preset:CameraFutebolPreset|boolean=false,ataque:1|-1=1){
  // Boolean callers retain their existing lens; the named spectator presets
  // carry a lens of their own and cannot inherit an office/map zoom.
- const mode=typeof preset==='boolean'?(preset?'tactical':'broadcast'):preset,settings=PRESETS[mode],tactical=mode==='tactical'
+ const mode=typeof preset==='boolean'?(preset?'tactical':'broadcast'):preset
+ // A lateral tracking rig: only translate the camera and focus together.
+ // Neither high balls, possession changes nor nearby athletes tilt its angle
+ // or pump the lens. A narrow viewport gets more room, never larger players.
+ if(mode==='fixed'){
+  ball=ball.presentation??ball
+  // Follow the length of the pitch, with a restrained lateral pan. Tracking
+  // every metre across its width filled the lower phone view with near stands.
+  // A lofted ball raises both camera and focus together, preserving the angle.
+  const target=new Vector3(MathUtils.clamp(ball.x,-48,48),.6+MathUtils.clamp((ball.y-2)*.5,0,9),MathUtils.clamp(ball.z*.45,-16,16))
+  const direction=new Vector3(0,.76,.65).normalize(),distance=82*Math.max(1,.7/Math.max(.25,camera.aspect))
+  return{position:target.clone().addScaledVector(direction,distance),target,distance,direction,fov:46,subjects:0,tactical:false,preset:mode}
+ }
+ const settings=PRESETS[mode],tactical=mode==='tactical'
  const fov=typeof preset==='boolean'?camera.fov:settings.fov
  ball=ball.presentation??ball;subjects=subjects.map(p=>p.presentation?{...p,mx:p.presentation.x,mz:p.presentation.z}:p)
  const portrait=camera.aspect<1,closePortrait=portrait&&typeof preset!=='boolean'&&(mode==='broadcast'||mode==='tele')

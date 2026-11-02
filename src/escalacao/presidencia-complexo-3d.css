@@ -66,6 +66,8 @@
 .pc3-review[data-watching-match=true] .pc3-camera-title{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .pc3-review[data-watching-match=true] .pc3-camera-choice select{width:100%;min-height:40px;background:#f4ecd6}
 .pc3-review[data-watching-match=true] .pc3-navigation,.pc3-review[data-watching-match=true] .pc3-help{display:none}
+.pc3-review[data-watching-match=true][data-camera-mode=fixed] .pc3-navigation{display:flex}
+.pc3-review[data-watching-match=true][data-camera-mode=fixed] .pc3-navigation button:not(.pc3-zoom){display:none}
 .pc3-match-score{position:absolute;top:max(72px,calc(env(safe-area-inset-top) + 64px));left:12px;right:12px;z-index:2;pointer-events:none;color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .pc3-match-score button{pointer-events:auto}
 .pc3-match-narration{max-width:100%;box-sizing:border-box;padding:4px 7px;border-radius:5px;background:#0c0c0cbb;color:#fff7dd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 11px/1.25 system-ui,sans-serif}
