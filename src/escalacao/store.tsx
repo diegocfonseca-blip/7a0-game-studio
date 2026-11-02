@@ -7406,7 +7406,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
   // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
   s.seed = Math.floor(Math.random() * 1e9)
-  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
   s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
   s.round = 0
   s.scorers = []; s.assists = []
@@ -7569,7 +7569,7 @@ const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isH
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
-  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
 function limpaMarcasDeModo(s: EscState): void {
@@ -8546,7 +8546,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
         s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
         s.screen = 'season'
@@ -8665,7 +8665,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
         s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
         s.screen = 'season'
@@ -8927,7 +8927,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
@@ -9020,6 +9020,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
+      s.tamanhoLiga = s.ligaDraft && action.minhaLigaDraft && action.tamanhoLiga === 10 ? 10 : undefined // 📏 Liga Draft de 10: a TABELA também fica com 10 (sem completar com clubes até 20)
       s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       s.draft = null; s.draftFeito = undefined
       const fracoInicial = onlineVarzea || (s.ligaDraft && !s.minhaLigaDraft)
@@ -10346,7 +10347,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []; s.assists = []
@@ -12501,7 +12502,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
         s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.seasonNo++
         s.screen = 'season'
@@ -12625,7 +12626,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
@@ -12655,7 +12656,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
