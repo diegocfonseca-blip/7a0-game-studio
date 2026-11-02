@@ -12682,7 +12682,8 @@ function reducerBase(state: EscState, action: Action): EscState {
           const m = s.managers.find(x => x.id === t.id && x.isHuman)
           if (m) { premios[m.id] = premioColocacao(pos); m.money += premios[m.id] }
         })
-        s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: [], premios, sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
+        const jaProntos = Object.keys(s.seasonVotes ?? {}).map(Number).filter(id => humanos.includes(id)) // ✋ quem já disse pronto no banner do fim
+        s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
       } else s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: true }
       s.seasonVotes = {}
       s.screen = 'draft'

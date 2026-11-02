@@ -21,10 +21,11 @@ import { SECTORS, FORMATIONS } from './types'
 export const DRAFT_ESCOLHA_MS = 60_000
 // 📋🏆 MINHA LIGA DRAFT (01/11, Diego): 45 s por vez, e o relógio só corre depois que a pessoa aperta ✋ PRONTO
 export const DRAFT_ESCOLHA_MINHA_MS = 45_000
-export const DRAFT_PISTA_MS = 2_000
-// ⏱️ o anúncio: 4 tempos de pista (0 · 2 · 4 · 6 s), a carta vira aos 8 s e fica na tela até os 12 s
+// 🐢 02/11 (Diego: *"tô achando o suspense muito rápido… um pouco mais devagar, com mais suspense"*): 2 s → 3 s por pista
+export const DRAFT_PISTA_MS = 3_000
+// ⏱️ o anúncio: 4 tempos de pista (0 · 3 · 6 · 9 s), a carta vira aos 12 s e fica na tela até os 18 s
 export const DRAFT_VIRA_MS = 4 * DRAFT_PISTA_MS
-export const DRAFT_REVELA_MS = DRAFT_VIRA_MS + 4_000
+export const DRAFT_REVELA_MS = DRAFT_VIRA_MS + 6_000
 
 export interface DraftPick {
   mgrId: number

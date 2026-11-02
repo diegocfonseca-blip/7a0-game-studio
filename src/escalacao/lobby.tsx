@@ -1997,7 +1997,7 @@ export function EscLobby() {
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
     // temporada. O campo fica no quadro da liga, lá na criação.
-    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehMinha ? 'My Draft League' : ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehMinha ? 'Minha Liga Draft' : ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
+    const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
@@ -3475,8 +3475,10 @@ export function EscLobby() {
         const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, estrela: true },
-          { v: 'liga' as const, draft: true, ic: '📋', nome: 'Liga Draft', frase: tr('Todo mundo começa fraco. A cada temporada, 1 jogador no draft.', 'Everyone starts weak. Every season, 1 player in the draft.'), on: ligaOn && draftOn, emTeste: true, estrela: true, meta: 5 },
-          ...(minhaOn ? [{ v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: tr('Minha Liga Draft', 'My Draft League'), frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn, estrela: true, selo: tr('SÓ VOCÊS', 'PRIVATE') }] : []),
+          // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
+          // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
+          // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
+          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, meta: 2 },
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -4929,7 +4931,7 @@ export function EscLobby() {
           <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr('📋 Minha Liga Draft · próximo jogo', '📋 My Draft League · next game') : tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
+                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr('📋 Liga Draft · próximo jogo', '📋 Draft League · next game') : tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
                 <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
                 <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? (players.length < 4 ? tr(`🚫 sem bots (vale com 4+ pessoas) — agora são ${players.length}, então começa com bots`, `🚫 no bots (needs 4+ people) — there are ${players.length} now, so it starts with bots`) : tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table')) : (() => { const tam = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20; return (gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr(`👤 usuários + 🤖 bots = ${tam} times`, `👤 users + 🤖 bots = ${tam} teams`) : tr(`🤖 com bots até ${tam} times`, `🤖 with bots up to ${tam} teams`) })()}</p>
               </div>
