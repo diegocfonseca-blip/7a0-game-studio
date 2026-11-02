@@ -1,0 +1,20 @@
+{
+  "data": "2 de novembro de 2026",
+  "titulo": "Clãs: mais vagas e medalha da semana ⚔️",
+  "destaque": {
+    "passos": [
+      { "emoji": "⚔️", "titulo": "22 vagas", "sub": "todo clã começa assim" },
+      { "emoji": "⭐", "titulo": "+1 vaga", "sub": "por membro com plano" },
+      { "emoji": "🥇", "titulo": "Medalha", "sub": "top 3 da semana" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Todo clã tem **22 vagas**. Depois disso, **cada membro com plano abre +1 vaga** — e a vaga nova é de **qualquer um**, grátis também." },
+    { "tag": "regra", "texto": "Alguém deixou de ter o plano? **Ninguém é tirado do clã.** O clã só não aceita gente nova até sobrar vaga de novo." },
+    { "tag": "novidade", "texto": "O **top 3 de clãs da semana** ganha 🥇🥈🥉 na pílula do clã por **30 dias** — todo membro carrega. O presidente fica com a **coroa dourada** acesa." },
+    { "tag": "regra", "texto": "As moedas do clã da semana (**30 · 20 · 10**) continuam iguais. Ganhou o ranking individual e o do clã? Leva os **dois**." }
+  ],
+  "rodape": "Já tá valendo!",
+  "rodapeSub": "Pra entrar ou criar: 👥 Amigos → ⚔️ Clã.",
+  "saida": "scripts/posts/aviso-2026-11-02-clas-vagas-medalha.png"
+}
