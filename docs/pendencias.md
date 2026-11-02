@@ -78,6 +78,9 @@
     "usuários + bots = N times" e sem essas caixas; (3) "Já vem pronto" e o resumo "Sua sala" tinham regras da Liga Draft antiga /
     "Liga + Copa"; (4) criar: "Sem bots (mín. 4 pessoas)" com aviso amarelo e "👤 usuários + 🤖 bots = N times". Mockup:
     `scripts/mockups/minha-liga-draft-tamanho.png`. Sala de 10 = máx. 10 pessoas.
+    📋 **02/11 — vira A Liga Draft oficial** (a antiga não se cria mais; aparece pra todos travada, meta 2K; criar = MINHA_LIGA_DRAFT_TESTERS),
+    banner grande do fim com ✋ pronto pra todos (dono abre), jornal "Edição Liga Draft · Temporada N", suspense 3 s por pista. PUBLICADO.
+    ❓ Pendente: o Diego pediu pra dizer "só consegue sondar do amigo após 3 rodadas" — a regra NÃO existe; perguntar o que é.
     🤖 **Bots se reforçam CALADOS (01/11):** depois do draft/leilão, cada bot troca o pior de 1 posição por um livre bom/craque
     (nunca lenda/promessa); quem sai volta a ser livre. Sem anúncio. Com/sem bots continua escolha de quem cria (sem bots = 4+).
     📏 **Tamanho da liga: 20 (padrão) ou 10 times**, bots completam; com mais de 10 pessoas cresce até caber (01/11, `tamanhoLiga`).
