@@ -1,3 +1,4 @@
+import {publicGateDestination,spectatorVisibleAt} from './cidade3d/spectator-access.mjs'
 import { acelerarRaios } from './presidencia-raio-rapido'
 import * as THREE from 'three'
 import { criarRelogioJornadaComplexo, type JornadaMovimentoComplexo } from './presidencia-complexo-jornada-relogio'
@@ -201,7 +202,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   // Two separate lanes: arrivals and departures do not pass through each other.
   const fans = (['home', 'away'] as const).flatMap(side => {
     if (!fanCounts[side]) return []
-    const points = paths[side], inbound = deslocarCaminhoComplexo(points, .72), outbound = deslocarCaminhoComplexo(points, -.72).reverse()
+    const points = [...paths[side].slice(0,-1),publicGateDestination(PLANTA_COMPLEXO.gates[side])], inbound = deslocarCaminhoComplexo(points, .72), outbound = deslocarCaminhoComplexo(points, -.72).reverse()
     const gateIndex = points.length - 3
     // Only the contracted gate corridor can cross the old conservative arena mask.
     const inboundLegs = prepare('torcida-' + side, inbound, PEDESTRIAN_RADIUS, PEDESTRIAN_HEIGHT, gateIndex + 1, 'arena', true)
@@ -271,7 +272,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
     const pedestrianFrames = pedestrians.map(entry => ({ id: entry.id, destination: entry.destination, source: attendance ? 'career' as const : 'qa-sample' as const,
       pose: entry.timeline.at(time), period: entry.timeline.period, route: entry.route, stages: entry.timeline.stages }))
     const pedestrian = pedestrianFrames[shopIndex]?.pose, cars = carLegs.map((entry, i) => carAt(entry.legs, time, i))
-    const fanFrames = fans.map(fan => ({ id: fan.id, side: fan.side, source: fan.source, pose: fan.timeline.at(fan.journeyClock.update(time)), period: fan.timeline.period, route: fan.route }))
+    const fanFrames = fans.map(fan => ({ id: fan.id, side: fan.side, source: fan.source, pose: (()=>{const pose=fan.timeline.at(fan.journeyClock.update(time));return pose?{...pose,visible:pose.visible&&spectatorVisibleAt(pose,fan.side,PLANTA_COMPLEXO.gates[fan.side])}:pose})(), period: fan.timeline.period, route: fan.route }))
     last = { seconds: time, pedestrian, pedestrians: pedestrianFrames, cars, fans: fanFrames }
     hasFrame = true
     rigs.forEach((rig, i) => {

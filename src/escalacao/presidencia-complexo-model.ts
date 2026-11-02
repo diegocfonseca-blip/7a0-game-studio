@@ -1,3 +1,4 @@
+import {STADIUM_ENTRANCES,STADIUM_HOME_GATE,STADIUM_AWAY_GATE} from './cidade3d/stadium-entrances.mjs'
 import { STADIUM_SECTORS, STADIUM_EXTRAS, type StadiumSave } from './estadiodata'
 import { progressoVisualSetor } from './presidencia-estadio-camadas'
 import { estadioVisualValido } from './presidencia-estadio-validacao'
@@ -157,14 +158,7 @@ const mapCorners = [{ x: 0, y: 0 }, { x: MAPA_ESTADIO.width, y: 0 },
   { x: MAPA_ESTADIO.width, y: MAPA_ESTADIO.height }, { x: 0, y: MAPA_ESTADIO.height }].map(mapaParaMundo)
 
 /** Portais térreos compartilhados pela estrutura, piso, câmera e torcedores. */
-const gates = {
-  // (🏟️ 26/10, caldeirão: a fachada veio pra perto do campo; a portaria fica onde a praça e o transporte já chegam e o corredor
-  // coberto agora vai até a fachada nova — `inside` 12 m / 15,5 m mais pra dentro)
-  home: { id: 'mandantes', approach: { x: 0, z: 116 }, threshold: { x: 0, z: 82 }, inside: { x: 0, z: 62 },
-    width: 10, height: 4.2, floor: .16, heading: 0 },
-  away: { id: 'visitantes', approach: { x: 120, z: 6 }, threshold: { x: 105, z: 6 }, inside: { x: 82.5, z: 6 },
-    width: 8, height: 4.2, floor: .16, heading: Math.PI / 2 },
-} as const
+const gates = {home:STADIUM_HOME_GATE,away:STADIUM_AWAY_GATE} as const
 
 /** Planta registrada; medidas da estrutura da arena ficam separadas de seu bloqueio conservador. */
 export const PLANTA_COMPLEXO = {
@@ -182,6 +176,7 @@ export const PLANTA_COMPLEXO = {
     dimensionSource: 'inferred-reference' as const,
   },
   gates,
+  entrances:STADIUM_ENTRANCES,
   presidentBox: { minX: -21, maxX: 21, minZ: 65, maxZ: 79, floor: 9.1, ceiling: 16.5,
     camera: [0, 12.8, 74.5] as const, target: [0, 1, 0] as const },
   lots, doors, routes, footprints,

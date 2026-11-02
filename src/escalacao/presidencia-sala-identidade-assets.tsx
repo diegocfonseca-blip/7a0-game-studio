@@ -13,6 +13,10 @@ function imagem(node:ReactNode):string|undefined{
  svg.setAttribute('xmlns','http://www.w3.org/2000/svg')
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.outerHTML)
 }
+/** Same public crest shown beside the official club name in existing screens. */
+export function arteEscudoClube(name:string):string|undefined{
+ return imagem(<Escudo nome={name} size={256}/> )
+}
 /** Reuse the same approved crest/mascot/shirt as the account UI. No artwork is
  * inferred from the club's typed name when ownership has not been confirmed. */
 export function artesIdentidadeSala(identity?:IdentidadePresidencia):ArtesIdentidadeSala|undefined{

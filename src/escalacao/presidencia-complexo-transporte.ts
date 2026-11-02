@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
+import {criarVeiculoTransporte} from './presidencia-veiculo-transporte'
 import type { EstadoComplexo } from './presidencia-complexo-model'
 import type { JornadaComplexo } from './presidencia-complexo-jornada'
 import type { AcessoAssentoComplexo } from './presidencia-complexo-arquitetura'
@@ -8,6 +8,8 @@ import { criarCorpoVisitaComplexo, roteiroPasseioComplexo, roteiroVisitaComplexo
 
 export type OpcoesTransporteComplexo = {
   transit?: boolean
+  /** Existing bay reserved for fixture coaches before kickoff. */
+  coachPriority?:boolean
   metroPassengers?: number
   busPassengers?: number
   parkingPassengers?: number
@@ -223,7 +225,7 @@ export function roteiroTransporteComplexo(state: EstadoComplexo, options: Opcoes
   const accepting = welcomesPassenger(options)
   const budgets = { metro: accepting ? requested(options.metroPassengers) : 0, bus: accepting ? requested(options.busPassengers) : 0, car: accepting ? requested(options.parkingPassengers) : 0 }
   const cars = requested(options.cars), source = options.source ?? 'career'
-  const services = state.valid ? plant.services.filter(service => service.kind === 'car' ? cars > 0 : options.transit === true || budgets[service.kind] > 0)
+  const services = state.valid ? plant.services.filter(service => !(options.coachPriority&&service.kind==='bus')&&(service.kind === 'car' ? cars > 0 : options.transit === true || budgets[service.kind] > 0))
     .map(service => prepareService(service, budgets[service.kind] > 0, originDelayFor(service, options), seatForService(service, options, plant.services))) : []
   function at(seconds: number) {
     const safe = cleanSeconds(seconds)
@@ -271,155 +273,17 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
   }
   timeline.services.forEach(entry => entryCache.set(entryKey(entry.service, entry.passenger, originDelayFor(entry.service, options), entry.seatAccess), entry))
   root.name = 'complexo-transporte'; scene.add(root)
-  const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>()
-  const mat = (color: string, metalness = 0, roughness = .8) => { const m = new THREE.MeshStandardMaterial({ color, metalness, roughness }); materials.add(m); return m }
-  const metal = mat('#5a605e', .55, .45), rubber = mat('#202523'), glass = mat('#728d91', .15, .2), warm = mat('#ede2c8'), dark = mat('#33433e'), light = mat('#f8e8b4')
-  light.userData.complexoNightEmission = {color:'#fff0cf',intensity:2.2}
-  glass.userData.complexoNightEmission = {color:'#e0c895',intensity:.14}
-  glass.transparent = true; glass.opacity = .66; glass.depthWrite = false
   // There are at most three vehicle rigs. Keep their bounded resources and the
   // passenger body for the world lifetime, including while a service is empty.
   const vehicles = timeline.plant.services.map(service => {
     const desired = timeline.services.find(entry => entry.service.id === service.id)
     return { entry: desired ?? cachedEntry(service, false), active: !!desired && !desired.problems.length }
   }).map(({ entry, active }) => {
-    const service = entry.service, group = new THREE.Group(); group.name = `transporte-${service.id}`; root.add(group)
-    const shell = mat(service.kind === 'metro' ? '#235b83' : service.kind === 'bus' ? '#d5b24c' : '#d8d6cb', .25, .52)
-    const floor = service.floorHeight, height = service.kind === 'car' ? 1.95 : 2.52, width = service.width, length = service.length
-    group.userData.complexoLights = (service.kind==='metro'?[-1,1]:[1]).flatMap(direction=>[-1,1].map(side=>({id:`${service.id}-farol-${direction}-${side}`,kind:'headlight',direction,enabled:direction===1,
-      position:[side*(width/2-.3),floor+.38,direction*(length/2+.075)],target:[side*(width/2-.3),.05,direction*(length/2+20)],
-      color:'#fff0cf',intensity:service.kind==='metro'?130:85,distance:service.kind==='metro'?40:30,angle:.3})))
-    const cabLamps=[mat('#c0382d'),mat('#f8e8b4')]
-    cabLamps[0].userData.complexoNightEmission={color:'#ef3325',intensity:1.2}
-    cabLamps[1].userData.complexoNightEmission={color:'#fff0cf',intensity:2.2}
-    group.userData.complexoCabLamps=cabLamps
-    const parts = new Map<THREE.Material, THREE.BufferGeometry[]>(), doors: { mesh: THREE.Mesh; z: number; direction: number }[] = []
-    const box = (material: THREE.Material, w: number, h: number, d: number, x: number, y: number, z: number) => {
-      if (w <= 0 || h <= 0 || d <= 0) return
-      const geometry = new THREE.BoxGeometry(w, h, d); geometry.translate(x, y, z)
-      if (!parts.has(material)) parts.set(material, []); parts.get(material)!.push(geometry)
-    }
-    const metro = service.kind === 'metro', gap = .6, carLength = metro ? (length - 4 * gap) / 5 : length
-    const carriageCenters = metro ? Array.from({ length: 5 }, (_, i) => (i - 2) * (carLength + gap)) : [0]
-    group.userData.carriages = carriageCenters.length
-    const trainRoof = metro ? mat('#2f84b7', .3, .42) : warm
-    const trim = metro ? mat('#d7e0df', .2, .58) : shell
-    const glazing = metro ? mat('#b6a175', .12, .25) : glass
-    if (metro) {
-      glazing.transparent = true; glazing.opacity = .66; glazing.depthWrite = false
-      glazing.emissive.set('#d89c41'); glazing.emissiveIntensity = .18
-      glazing.userData.complexoNightEmission = { color: '#e9bb65', intensity: .14 }
-    }
-    const cabinLamp = mat('#eee4cf', .1, .35)
-    cabinLamp.userData.complexoNightEmission = { color: '#ffe9bc', intensity: 1.8 }
-    for (const [carriage, center] of carriageCenters.entries()) {
-      box(dark, width - .08, .1, carLength - .08, 0, floor - .05, center)
-      // The full-resolution reference has blue roofs, a pale window band and
-      // amber interiors. Roof and cabin keep the measured vertical envelope.
-      box(trainRoof, width + .04, .13, carLength + .02, 0, floor + height, center)
-      const doorCenter = center + service.door.longitudinal
-      if (service.kind !== 'car') {
-        // Both fixtures attach to the actual underside of this carriage roof.
-        // The portal beam is enabled only while the physical door is open.
-        const ceiling = floor + height - .12, side = service.door.side
-        box(cabinLamp, .45, .035, 1.4, 0, ceiling, center)
-        box(cabinLamp, .42, .035, .7, side * (width / 2 - .22), ceiling, doorCenter)
-        group.userData.complexoLights.push({
-          id: `${service.id}-cabine-${carriage}`, kind: 'cabin', enabled: true,
-          position: [0, ceiling - .025, center], target: [0, floor, center],
-          color: '#ffe9bc', intensity: 38, distance: 6, angle: .95,
-        }, {
-          id: `${service.id}-porta-${carriage}`, kind: 'cabin', doorOnly: true, enabled: false,
-          position: [side * (width / 2 - .22), ceiling - .025, doorCenter],
-          target: [side * (width / 2 + .25), floor, doorCenter],
-          color: '#ffe9bc', intensity: 42, distance: 6, angle: 1.02,
-        })
-      }
-      const doorStart = doorCenter - service.door.width / 2, doorEnd = doorCenter + service.door.width / 2
-      for (const side of [-1, 1]) {
-        const runs = side === service.door.side ? [[center - carLength / 2, doorStart], [doorEnd, center + carLength / 2]] : [[center - carLength / 2, center + carLength / 2]]
-        for (const [a, b] of runs) {
-          const z = (a + b) / 2, run = b - a
-          box(shell, .09, .68, run, side * width / 2, floor + .34, z)
-          box(glazing, .07, height - 1.02, run, side * width / 2, floor + (height - 1.02) / 2 + .72, z)
-          box(trim, .09, .30, run, side * width / 2, floor + height - .15, z)
-          if (metro) box(trim, .105, .075, run, side * width / 2, floor + .70, z)
-          for (let p = a + .06; p < b; p += 1.8) box(shell, .10, height - .45, .08, side * width / 2, floor + height / 2, p)
-        }
-      }
-      for (const side of [-1, 1]) {
-        const end = center + side * carLength / 2
-        const cab = !metro || (carriage === 0 && side < 0) || (carriage === carriageCenters.length - 1 && side > 0)
-        if (cab) {
-          box(shell, width, .65, .11, 0, floor + .325, end)
-          box(glass, width - .16, height - 1, .08, 0, floor + (height - 1) / 2 + .69, end)
-          box(shell, width, .27, .11, 0, floor + height - .135, end)
-          for (const x of [-1, 1]) box(cabLamps[side<0?0:1], .22, .12, .03, x * (width / 2 - .3), floor + .38, end + side * .065)
-        } else {
-          // A genuine central gangway joins adjacent cabins; neither a solid
-          // end wall nor a full-length floor hides the gap between carriages.
-          for (const x of [-1, 1]) box(shell, (width - 1.1) / 2, height, .11, x * (width + 1.1) / 4, floor + height / 2, end)
-          box(shell, 1.1, height - 1.95, .11, 0, floor + (height + 1.95) / 2, end)
-        }
-      }
-      box(shell, .10, Math.max(.12, height - 1.9), service.door.width, service.door.side * width / 2, floor + 1.9 + Math.max(.12, height - 1.9) / 2, doorCenter)
-      // Each measured portal is a real opening. Only the platform side opens;
-      // the central carriage retains the passenger's unchanged local z=0 door.
-      for (const direction of [-1, 1]) {
-        const geometry = new THREE.BoxGeometry(.075, 1.85, service.door.width / 2); geometries.add(geometry)
-        const door = new THREE.Mesh(geometry, glazing), z = doorCenter + direction * service.door.width / 4
-        door.position.set(service.door.side * (width / 2 + .075), floor + .925, z)
-        door.castShadow = door.receiveShadow = true; door.name = `porta-${service.id}-${direction}${metro && carriage !== 2 ? `-vagao-${carriage}` : ''}`
-        group.add(door); doors.push({ mesh: door, z, direction })
-        const frameParts = [[.09, 1.85, .045, 0, 0, -service.door.width / 4], [.09, 1.85, .045, 0, 0, service.door.width / 4],
-          [.09, .055, service.door.width / 2, 0, -.8975, 0], [.09, .055, service.door.width / 2, 0, .8975, 0]].map(([w, h, d, x, y, p]) => {
-          const part = new THREE.BoxGeometry(w, h, d); part.translate(x, y, p); return part
-        })
-        const frameGeometry = mergeGeometries(frameParts, false); frameParts.forEach(part => part.dispose())
-        if (frameGeometry) { geometries.add(frameGeometry); const frame = new THREE.Mesh(frameGeometry, metal); frame.castShadow = true; door.add(frame) }
-      }
-      if (metro) {
-        for (const side of [-1, 1]) {
-          const bogie = center + side * carLength * .33
-          box(metal, 1.52, .17, 2.15, 0, floor - .205, bogie)
-          for (const lateral of [-1, 1]) {
-            box(warm, .42, .12, carLength * .35, lateral * (width / 2 - .3), floor + .42, center + side * carLength * .28)
-            box(warm, .08, .43, carLength * .35, lateral * (width / 2 - .14), floor + .705, center + side * carLength * .28)
-          }
-        }
-      }
-    }
-    if (metro) for (let carriage = 1; carriage < carriageCenters.length; carriage++) {
-      const joint = (carriageCenters[carriage - 1] + carriageCenters[carriage]) / 2
-      box(metal, .24, .18, gap + .4, 0, floor - .23, joint)
-      box(dark, 1.3, .1, gap + .16, 0, floor - .05, joint)
-      for (const side of [-1, 1]) box(dark, .1, 1.95, gap + .08, side * .6, floor + .975, joint)
-      box(dark, 1.3, .08, gap + .08, 0, floor + 1.99, joint)
-    }
-    for (const [material, pieces] of parts) {
-      const merged = mergeGeometries(pieces, false); pieces.forEach(piece => piece.dispose())
-      if (!merged) continue
-      geometries.add(merged); const mesh = new THREE.Mesh(merged, material); mesh.castShadow = mesh.receiveShadow = true; group.add(mesh)
-    }
-    const wheels: THREE.Mesh[] = [], radius = service.wheelRadius
-    const axles = metro ? carriageCenters.flatMap(center => [-1, 1].flatMap(side => [-.65, .65].map(offset => center + side * carLength * .33 + offset))) : [-length * .32, length * .32]
-    const wheelGeometry = new THREE.CylinderGeometry(radius, radius, .17, 16); wheelGeometry.rotateZ(Math.PI / 2)
-    const hubGeometry = new THREE.CylinderGeometry(radius * .48, radius * .48, .185, 12); hubGeometry.rotateZ(Math.PI / 2)
-    // Steel railway wheels include the raised hub in one mesh/material. The
-    // longer consist adds axles without adding a second draw for every wheel.
-    const rollingGeometry = metro ? mergeGeometries([wheelGeometry, hubGeometry], false)! : wheelGeometry
-    if (metro) { wheelGeometry.dispose(); hubGeometry.dispose(); geometries.add(rollingGeometry) }
-    else { geometries.add(wheelGeometry); geometries.add(hubGeometry) }
-    for (const x of [-1, 1]) for (const z of axles) {
-      const offset = metro ? .7 : width * .46
-      const wheel = new THREE.Mesh(rollingGeometry, metro ? metal : rubber); wheel.position.set(x * offset, radius, z); wheel.castShadow = wheel.receiveShadow = true
-      wheel.name = `roda-${service.id}`; group.add(wheel); wheels.push(wheel)
-      if (!metro) { const hub = new THREE.Mesh(hubGeometry, metal); wheel.add(hub) }
-    }
+    const service=entry.service, rig=criarVeiculoTransporte(root,service),{root:group,doors,wheels}=rig
     const color = colorFor(service.side, options)
     const body = criarCorpoVisitaComplexo(root, { id: `${service.id}-passageiro`, side: service.side, color })
     body.root.userData.seatId = entry.seatAccess?.seatId
-    return { entry, active, journeyKey: options.journey?.key, heldAtGate: false, heldAtAccess: false, offset: 0, wheelOffset: 0, wheelDistance: 0, source: timeline.source, color, pending: undefined as Pending | undefined, root: group, doors, wheels, body }
+    return { entry, active, journeyKey: options.journey?.key, heldAtGate: false, heldAtAccess: false, offset: 0, wheelOffset: 0, wheelDistance: 0, source: timeline.source, color, pending: undefined as Pending | undefined, root: group, doors, wheels, body, rig }
   })
   let seconds = 0, disposed = false
   let requestedOptions = { ...options }
@@ -442,6 +306,7 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
   const emptyCounts = (): ContagensTransporteComplexo => ({ metroPassengers: 0, busPassengers: 0, parkingPassengers: 0, cars: 0 })
   const passengerKey = (service: ServicoTransporteComplexo): keyof ContagensTransporteComplexo => service.kind === 'metro' ? 'metroPassengers' : service.kind === 'bus' ? 'busPassengers' : 'parkingPassengers'
   function desiredEntry(service: ServicoTransporteComplexo, value: OpcoesTransporteComplexo) {
+    if(service.kind==='bus'&&value.coachPriority)return undefined
     if (!state.valid) return undefined
     const selectedService = plantFor(value).services.find(candidate => candidate.kind === service.kind)
     if (!selectedService) return undefined
@@ -572,7 +437,7 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
       for (const door of actor.doors) door.mesh.position.z = door.z + door.direction * actor.entry.service.door.width / 2 * vehicle.doorsOpen
       actor.wheelDistance = vehicle.distance + actor.wheelOffset
       for (const wheel of actor.wheels) wheel.rotation.x = actor.wheelDistance / actor.entry.service.wheelRadius
-      actor.body.updatePose(frame.passenger?.pose,seconds)
+      actor.body.updatePose(frame.passenger?.pose,seconds,actor.entry.service.side)
     }
     if (changed || requestedOptions.journey) refreshAllocation()
     root.updateMatrixWorld(true)
@@ -594,7 +459,7 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
         period: entry.period, offset: actor.offset, route: { inbound: entry.service.inbound, outbound: entry.service.outbound }, stages: entry.stages,
         stop: entry.service.stop, door: entry.service.door, markers: markersFor(actor) } }),
       passengers: frames.flatMap(({ actor, frame }) => { const entry = actor.entry; return frame.passenger ? [{ id: `${entry.service.id}-passageiro`, rigId: actor.body.root.uuid,
-        vehicleId: entry.service.id, transport: entry.service.kind, side: entry.service.side, seatId: entry.seatAccess?.seatId, ownsSeat: !!entry.seatAccess && seatOwners.get(entry.seatAccess.seatId) === actor, color: actor.color, source: actor.source, ...frame.passenger,
+        vehicleId: entry.service.id, transport: entry.service.kind, side: entry.service.side, seatId: entry.seatAccess?.seatId, rendered:actor.body.root.visible, ownsSeat: !!entry.seatAccess && seatOwners.get(entry.seatAccess.seatId) === actor, color: actor.color, source: actor.source, ...frame.passenger,
         period: entry.period, offset: actor.offset, route: entry.inbound, returnRoute: entry.outbound,
         stages: entry.walkingStages, markers: markersFor(actor) }] : [] }),
       problems: vehicles.flatMap(actor => actor.entry.problems.map(reason => ({ id: actor.entry.service.id, reason }))),
@@ -603,12 +468,13 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
   refreshAllocation()
   update(0)
   return { root, at: snapshotAt, update, configure, allocation: () => allocation,
+    hasActiveBus:()=>vehicles.some(actor=>actor.active&&actor.entry.service.kind==='bus'),
     setAccessBlocked: (value: Partial<Record<'home' | 'away', boolean>>) => { accessBlocked = { ...value } },
     actor: (side: 'home' | 'away') => vehicles.find(actor => actor.active && actor.entry.passenger && actor.entry.service.side === side && actor.entry.seatAccess)?.body,
     reservedSeatIds: () => [...new Set(vehicles.flatMap(actor => [actor.active && actor.entry.passenger ? actor.entry.seatAccess?.seatId : undefined, actor.pending?.entry?.seatAccess?.seatId]).filter((id): id is string => !!id))],
     get passengerFeet() { return vehicles.filter(actor => actor.active && actor.entry.passenger).map(actor => ({ id: `${actor.entry.service.id}-passageiro`, feet: actor.body.feet })) },
     get wheels() { return vehicles.filter(actor => actor.active).map(actor => ({ vehicleId: actor.entry.service.id, meshes: actor.wheels })) },
     inspect: () => snapshotAt(seconds),
-    dispose() { if (disposed) return; disposed = true; vehicles.forEach(actor => actor.body.dispose()); root.removeFromParent(); root.clear(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()) },
+    dispose() { if (disposed) return; disposed = true; vehicles.forEach(actor => actor.body.dispose()); root.removeFromParent(); root.clear(); vehicles.forEach(actor=>actor.rig.dispose()) },
   }
 }

@@ -1,3 +1,4 @@
+import type {ElencoChegadaCidade} from './presidencia-cidade-equipes'
 import { STADIUM_SECTORS, type StadiumSave } from './estadiodata'
 import { carteiraDaCarreira, podeAlterarPresidencia, type PresidenteBaseSave } from './presidencia-carreira'
 import type { CarreiraComEstadio } from './presidencia-estadio-integrado'
@@ -26,6 +27,7 @@ export type EntradaCarreiraComplexo = {
    * from a save's season/round, device date or opaque match id. */
   agenda?: AgendaJogoComplexo
   /** Explicit local pregame/postgame phase when no match snapshot exists. */
+  arrivalTeams?: ElencoChegadaCidade
   journeyPhase?: FaseJornadaComplexo
   /** Supplied by identidadeDaConta in the existing account caller, not a save. */
   identity?: IdentidadePresidencia
@@ -41,6 +43,7 @@ export type PropsComplexoCarreira = {
   day?: DiaEstadio
   awayStadium?: StadiumSave
   awayDay?: DiaEstadio
+  arrivalTeams?: ElencoChegadaCidade
   journey?: JornadaComplexo
   /** 🚌 jogo FORA de casa: o estádio é o do adversário e a cidade fica mais vazia */
   fora?: boolean
@@ -100,6 +103,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     ...(stadium === undefined ? {} : { stadium: structuredClone(stadium) }),
     presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),
+    ...(input.arrivalTeams?{arrivalTeams:input.arrivalTeams}:{}),
     circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false,
   }
   const away = input.away

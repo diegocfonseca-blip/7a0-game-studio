@@ -90,7 +90,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   const seatIds: string[][] = [[], [], []]
   const seatPositions: AssentoComplexo[] = []
   const accessSpecs = [
-    { side: 'home' as const, portal: .5, aisle: .53125, sector: 'cadeiras' as const, enabled: state.valid && state.lowerComplete },
+    { side: 'home' as const, portal: .5, aisle: .53125, sector: 'cadeiras' as const, enabled: state.valid && (state.lowerComplete||state.progress.cadeiras>=.67) },
     { side: 'away' as const, portal: .25, aisle: .21875, sector: 'visitante' as const, enabled: state.valid && state.progress.visitante > .34 },
   ]
   const upperProgress = state.valid && state.lowerComplete ? clamp(state.progress.camarote ?? 0) : 0
@@ -107,9 +107,13 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   const lightAnchors: AncoraLuzComplexo[] = []
   const lowerWalkSurfaces: PisoAcessoComplexo[] = []
   const angularWidth = (t: number, shape: Outline, metres: number) => metres / Math.max(1e-3, outline(t + 1e-4, shape).distanceTo(outline(t - 1e-4, shape)) / 2e-4)
-  const portalCuts = accessSpecs.filter(a => a.enabled).map(a => ({
+  // The player access must remain open during partial stand construction too.
+  // Spectator stairs/seats still depend on their existing purchase stage.
+  const playerEntry=state.valid&&Object.values(state.progress).some(p=>p>0)
+  const portalCuts = [...accessSpecs.filter(a => a.enabled),...(playerEntry&&!accessSpecs[0].enabled?[{portal:.5}]:[]),...(state.valid&&state.progress.visitante>0&&!accessSpecs[1].enabled?[{portal:.25}]:[])].map(a => ({
     from: a.portal - angularWidth(a.portal, INNER, 2.2), to: a.portal + angularWidth(a.portal, INNER, 2.2),
   }))
+  if(playerEntry){const half=angularWidth(.75,INNER,.9);portalCuts.push({from:.75-half,to:.75+half})}
   function openRanges(range: Range) {
     let ranges = [range]
     for (const cut of portalCuts) for (const shift of [-1, 0, 1]) {
@@ -211,6 +215,8 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
 
   let carveOpenings = true, carveFacadeRoom = false
   type Opening = Pick<(typeof upperAccessSpecs)[number], 'origin' | 'along' | 'outward' | 'minX' | 'maxX' | 'minZ' | 'maxZ' | 'minY' | 'maxY'>
+  const serviceEnvelope:Opening={origin:new THREE.Vector3(),along:new THREE.Vector3(1,0,0),outward:new THREE.Vector3(0,0,1),minX:-93,maxX:-55.8,minZ:-.95,maxZ:.95,minY:.12,maxY:2.85}
+  const serviceBounds=new THREE.Box3(new THREE.Vector3(-93,.12,-.95),new THREE.Vector3(-55.8,2.85,.95))
   const room = PLANTA_COMPLEXO.presidentBox
   const officeEnvelope: Opening = {
     origin: new THREE.Vector3(), along: new THREE.Vector3(1, 0, 0), outward: new THREE.Vector3(0, 0, 1),
@@ -293,6 +299,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   function add(g: THREE.BufferGeometry, material: THREE.Material) {
     if (carveOpenings && upperAccessSpecs.length) g = carve(g)
     if (carveFacadeRoom) g = carve(g, [officeEnvelope])
+    if(playerEntry){g.computeBoundingBox();if(g.boundingBox?.intersectsBox(serviceBounds))g=carve(g,[serviceEnvelope])}
     if (!g.getAttribute('position').count) { g.dispose(); return }
 
     const uv = g.getAttribute('uv'), p = g.getAttribute('position'), n = g.getAttribute('normal')
@@ -718,6 +725,16 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
     for (const x of [-32, 32]) garden(x, 100, .16, 20, 3)
   }
   function entranceGates() {
+    if(playerEntry){const floor=new THREE.BoxGeometry(35.4,.16,1.8);floor.translate(-73.5,.08,0);const bucket=geometryBatches.get(paving)??[];bucket.push(floor.toNonIndexed());geometryBatches.set(paving,bucket);floor.dispose()}
+    if(playerEntry){
+      const ramp=(x0:number,x1:number,z0:number,z1:number,y00:number,y10:number,y11:number,y01:number)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x0,y00,z0,x1,y10,z0,x1,y11,z1,x0,y01,z1,x0,-.25,z0,x1,-.25,z0,x1,-.25,z1,x0,-.25,z1],3));g.setIndex([0,2,1,0,3,2,4,5,6,4,6,7,0,1,5,0,5,4,3,7,6,3,6,2,0,4,7,0,7,3,1,2,6,1,6,5]);const flat=g.toNonIndexed();g.dispose();flat.computeVertexNormals();flat.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(flat.attributes.position.count*2),2));concreteUV(flat);const bucket=geometryBatches.get(paving)??[];bucket.push(flat);geometryBatches.set(paving,bucket)}
+      ramp(-93,-91.2,-.9,.9,-.19,.16,.16,-.19)
+      ramp(-58.4,-56.6,.9,3.9,.16,.16,-.19,-.19)
+      ramp(-58.4,-56.6,-3.9,-.9,-.19,-.19,.16,.16)
+    }
+    if(playerEntry){box(paving,0,.08,89,3.8,.16,54);box(paving,-3.3,.08,78,2.3,.16,10)}
+    if(state.valid&&state.progress.visitante>0){box(paving,90,.08,0,32,.16,3.8);box(paving,100.5,.08,6.8,13,.16,6.3);box(paving,96,.08,3,3.8,.16,9.8)}
+
     for (const [side, gate] of Object.entries(PLANTA_COMPLEXO.gates)) {
       const built = side === 'home' ? state.lowerComplete : state.progress.visitante > .34
       if (!built) continue
@@ -727,7 +744,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
       box(paving, cx, floor / 2, cz, width, floor, depth, heading)
       for (const sign of [-1, 1]) {
         const dx = Math.cos(heading) * sign * (width / 2 + .3), dz = -Math.sin(heading) * sign * (width / 2 + .3)
-        bevel(concrete, cx + dx, floor + height / 2, cz + dz, .6, height, depth, heading)
+        bevel(concrete,cx+dx,floor+height/2,cz+dz,.6,height,depth,heading)
         box(frame, p.x + dx, floor + height / 2, p.z + dz, .12, height, .14, heading)
         box(limestone, p.x + dx, floor + height / 2, p.z + dz, .34, height, .2, heading)
       }
@@ -928,7 +945,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
     root.add(mesh); distantSeats.push({ mesh, ids: seatIds[i] })
   })
   const chairDetail = criarDetalheCadeirasComplexo(root, seatPositions, distantSeats)
-  root.userData = { ...counts, complexoLights: lightAnchors, plant: 'reference-inferred-oval', structure: PLANTA_COMPLEXO.arena.structure, portals: PLANTA_COMPLEXO.gates, box: counts.presidentBox ? PLANTA_COMPLEXO.presidentBox : null, presidentialDriveway: false, accessibleSeats: seatAccess.map(a => ({ side: a.side, seatId: a.seatId, tier: a.seat.tier, row: a.seat.row })) }
+  root.userData = { ...counts, complexoLights: lightAnchors, plant: 'reference-inferred-oval', structure: PLANTA_COMPLEXO.arena.structure, portals: PLANTA_COMPLEXO.gates, playerEntry:playerEntry?{x:-90.4,z:0,width:1.8,insideX:-57.5,independent:true}:null, box: counts.presidentBox ? PLANTA_COMPLEXO.presidentBox : null, presidentialDriveway: false, accessibleSeats: seatAccess.map(a => ({ side: a.side, seatId: a.seatId, tier: a.seat.tier, row: a.seat.row })) }
   return {
     root, counts, bounds: PLANTA_COMPLEXO.arena.structure, seats: seatPositions as readonly AssentoComplexo[], seatAccess: seatAccess as readonly AcessoAssentoComplexo[],
     updateSeats: chairDetail.update, inspectSeatDetail: chairDetail.inspect,

@@ -1,0 +1,36 @@
+{
+  "release": "estadio-dia-de-jogo-20261102",
+  "base": "5907b5b093126902e4971d023d8490b565fc5046",
+  "scope": "Apresentacao do mapa 3D da conta de previa existente",
+  "accessGate": "presidente-acesso.ts; mesma conta confirmada por getUser; lista inalterada",
+  "features": [
+    "tres entradas fisicamente separadas",
+    "operacao pre-jogo e delegacoes",
+    "ambulantes, peruas e carga",
+    "bares do bairro e rotina por fase",
+    "Vadico realocada para via oeste",
+    "menu Locais com bares e Vadico"
+  ],
+  "preserved": [
+    "autorizacao da conta",
+    "data.ts",
+    "store.tsx",
+    "motor2"
+  ],
+  "tests": [
+    "build de producao",
+    "acesso dono/outra conta/logout desktop e celular",
+    "pipeline entregas e carroceria",
+    "acessos separados e relogio local",
+    "realocacao e rodas",
+    "transporte lifecycle",
+    "checagens visuais e BVH atual/com melhorias"
+  ],
+  "limitations": [
+    "gestos de beber/servir/manusear carga ainda usam poses existentes",
+    "clientes dos bares decorativos; trajeto completo ate portoes pendente",
+    "cronologia detalhada de dias anteriores pendente"
+  ],
+  "databaseChanges": false,
+  "publicationApprovedAfterRepositoryClarification": true
+}

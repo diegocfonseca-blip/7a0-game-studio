@@ -1,3 +1,4 @@
+import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
 import * as THREE from 'three'
 import {gerarPlantaTransporte, LOTES_ESTACIONAMENTO_COMPLEXO, faixaTransporteComplexo} from './presidencia-complexo-transporte-model'
 import {criarConcessionariaComplexo, PLANTA_VADICO} from './presidencia-complexo-concessionaria'
@@ -5,6 +6,7 @@ import {planejarRedeViaria, poligonoRuaComplexo, AJUSTES_RUAS_COMPLEXO, type Rua
 import {plantaPedestreComplexo} from './presidencia-complexo-pedestres'
 import {planejarTravessiasComplexo} from './presidencia-complexo-travessias'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
+import {teamCoachAccess} from './cidade3d/coach-access.mjs'
 import type {AncoraLuzComplexo} from './presidencia-complexo-iluminacao'
 import {PLANTA_COMPLEXO, mapaParaMundo, caminhosTorcidaComplexo, deslocarCaminhoComplexo, type EstadoComplexo, type PontoComplexo, type PortaComplexo} from './presidencia-complexo-model'
 
@@ -870,11 +872,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   // clusters. Local streets connect the blocks and join the peripheral avenues.
   blocks.sort((a,b)=>Math.hypot(a.x,a.z-20)-Math.hypot(b.x,b.z-20))
   const occupied=blocks.slice(0,118)
+  const botecos:BotecoBairro[]=[],pubBlocks=occupied.filter(p=>p.z>120).sort((a,b)=>Math.hypot(a.x,a.z-140)-Math.hypot(b.x,b.z-140)).slice(0,2)
   for(const p of occupied){
     box('bairro-quarteirao',paving,23,.16,23,p.x,.08,p.z)
     for(const side of [-1,1]){
       const x=p.x+side*5.6,z=p.z-2,choice=hash(x,z)
-      residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0)
+      const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0)
     }
     plant({x:p.x,z:p.z+8.6},4.6,false,true,.08)
   }
@@ -1163,12 +1166,16 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   // The full-size arena, all eventual buildings and the pedestrian entrances
   // keep their construction envelope even in the first stage.
   const structure=PLANTA_COMPLEXO.arena.structure
+  // Keep naturally generated trees off the dedicated coach manoeuvres. This
+  // reserves empty ground only: no road paint, paving or paid garden removal.
+  const coachAccess=teamCoachAccess(),coachPaths=[coachAccess.inbound,coachAccess.outbound]
+  const nearCoach=indiceTrechos(coachPaths.flatMap((points,k)=>points.slice(1).map((p,i)=>[points[i],p,k] as Trecho)))
   const clubCandidates:PontoComplexo[]=[]
   for(let z=-140;z<=200;z+=13)for(let x=-180;x<=180;x+=13){
     const p={x:x+(hash(x,z)-.5)*3,z:z+(hash(z,x)-.5)*3}
     const outsideOval=(p.x/117)**2+((p.z-structure.centerZ)/88)**2>1
     if(!inside(p,rawTerrain)||!outsideOval||Math.abs(p.x)<54&&p.z>70&&p.z<121)continue
-    if(!clearOfConstruction(p,5)||protectedPath(p,6)||nearStreet(p,5)||nearParcel(p,6))continue
+    if(!clearOfConstruction(p,5)||protectedPath(p,6)||nearStreet(p,5)||nearParcel(p,6)||nearCoach(p,7,d=>d<7))continue
     // Natural existing trees, not the paid gardens/fountain or free asphalt.
     clubCandidates.push(p)
   }
@@ -1262,7 +1269,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,establishments:entered,dispose(){
+  return {root,solids,doors,transport,botecos,establishments:entered,dispose(){
+    botecos.forEach(pub=>pub.dispose())
     if(disposed)return;disposed=true;dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
   }}

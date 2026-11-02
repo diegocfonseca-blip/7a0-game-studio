@@ -207,7 +207,8 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   const transform = new THREE.Matrix4(), rotation = new THREE.Quaternion(), position = new THREE.Vector3(), unit = new THREE.Vector3(1, 1, 1)
   const skinTones = ['#754b35', '#a56f4c', '#c58d65', '#dda57e'].map(value => new THREE.Color(value))
   const neutral = new THREE.Color('#d5ceba'), lower = new THREE.Color('#29312f'), tint = new THREE.Color()
-  let disposed = false, updates = 0, matrixUpdates = 0
+  let disposed = false, updates = 0, matrixUpdates = 0,dayProgress=1
+  const applyDayMask=()=>{for(const batch of batches){const n=Math.floor(batch.count*dayProgress);for(const m of batch.meshes){m.count=n;m.visible=n>0}if(batch.sombra){batch.sombra.count=n;batch.sombra.visible=n>0}}}
   let mode: PublicoTorcidaComplexo['mode'] = 'off', selected: Place[] = []
   let attendance: ReturnType<typeof publicoDoEstadio> | undefined, awayAttendance: ReturnType<typeof publicoDoEstadio> | undefined
   let occupancy = { home: 0, away: 0 }
@@ -292,10 +293,13 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       if (moved) matrixUpdates++
     }
     if (changed) updates++
+    applyDayMask()
   }
   update(population)
   return {
     root, update,
+    /** Rendering only. Never changes attendance, tickets, selected seats or reservations. */
+    presentDay(value:number){const next=Math.round(fraction(value)*32)/32;if(next!==dayProgress){dayProgress=next;applyDayMask()}},
     /** 🎉 a festa do gol: `side` pula (0→1 em ~0,3 s), o outro lado fica parado; `null` desliga. `t` em segundos anda o balanço */
     festa(side: Side | null, t: number) {
       for (const s of ['home', 'away'] as const) { const u = festaUniforms[s]; u.uTime.value = t; const alvo = side === s ? 1 : 0; u.uFesta.value += (alvo - u.uFesta.value) * (alvo > u.uFesta.value ? 0.25 : 0.06) }
@@ -317,7 +321,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     inspect() {
       return { mode, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, longe: { home: countsLonge.home, away: countsLonge.away, limit: LIMITE_TORCIDA_LONGE }, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
         attendance: attendance ? { ...attendance } : undefined, awayAttendance: awayAttendance ? { ...awayAttendance } : undefined,
-        occupancy: { ...occupancy }, quota: { ...quota }, reservations: [...reservations], reserved: { ...reservedCounts }, invalidSeats, updates, matrixUpdates, instanceRebuilds: 0,
+        occupancy: { ...occupancy }, presentation:{fraction:dayProgress,drawn:batches.reduce((n,b)=>n+b.meshes[0].count,0)},quota: { ...quota }, reservations: [...reservations], reserved: { ...reservedCounts }, invalidSeats, updates, matrixUpdates, instanceRebuilds: 0,
         batches: batches.reduce((total, batch) => total + batch.meshes.length, 0),
         triangles: batches.reduce((total, batch) => total + batch.meshes.reduce((sum, mesh) => sum + (mesh.geometry.index?.count ?? mesh.geometry.getAttribute('position').count) / 3 * mesh.count, 0), 0),
         seats: selected.map(({ rank: _rank, ...seat }) => ({ ...seat, position: { ...seat.position } })),

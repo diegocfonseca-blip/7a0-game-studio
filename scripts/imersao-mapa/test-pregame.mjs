@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {pregameFrame,PREGAME} from '../../src/escalacao/cidade3d/pregame-plan.mjs';
+import {stadiumDayClock} from '../../src/escalacao/cidade3d/stadium-day.mjs';
+const clock=stadiumDayClock(),journey={key:'local-preview',phase:'arrival',hosting:true};
+const frame=t=>pregameFrame(clock.update(journey,t));
+assert(frame(0).operations);assert(!frame(0).streets);assert(!frame(17).streets);
+assert(frame(18).streets);assert.equal(frame(18).setup,0);assert.equal(frame(36).setup,1);
+assert(!frame(PREGAME.operationsEnd).operations);assert(!frame(74).delegations);assert(frame(75).delegations);
+assert(!pregameFrame(clock.update({...journey,phase:'playing'},76)).active);
+assert(!pregameFrame(clock.update({...journey,phase:'interval'},77)).active);
+assert(!pregameFrame(clock.update({...journey,phase:'departure'},78)).active);
+assert(!pregameFrame(stadiumDayClock().update({...journey,phase:'playing'},0)).active);
+assert(!pregameFrame().active);console.log('PASS: ordered pregame; late join skips preparation; official match excludes workers.');
