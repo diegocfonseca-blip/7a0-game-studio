@@ -11883,3 +11883,10 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   (`npx tsx scripts/confere-lista-decadas.mts`). 11 da lista já tinham entrado nos Lotes 45–47 e saíram.
 - Pacotes de clube por década que fecham as 5 posições: **3 → 19**. Seleção por década: 18 → 24.
 - Stories: `mockups/cartas-l48-{a,b,c}.png`. ✅ Diego aprovou ("pode publicar todas") e foi publicado em 02/11 (De Gea ficou no Atlético 2010, promessa).
+
+## 🧾 Carreira nova herdava jogos/gols/assist. da anterior (02/11, print de usuário)
+- Causa: `condicaoCarry` (o "NO SEU CLUBE") e `botCarry` não eram zerados no START_CAREER_SOLO / CAREER_FROM_QUICK — o elenco
+  novo com as mesmas lendas aparecia com 3.502 jogos (Yashin) já na rodada 1.
+- Conserto: zera nos dois começos + cura ao abrir save que ainda está na T1 (o carry só nasce na virada T1→T2). Trava: `npm run carreira-limpa`.
+- ⚠️ Quem já passou da T1 com o número sujo fica com ele (não dá pra separar o que é de qual carreira).
+- (À parte: `npm run artilharia` já falhava antes, no item 8 — medalha 🥇 da aba OURO do Rank. Não é deste conserto.)

@@ -13,7 +13,7 @@ const bloco = (nome, linhas) => { const i = src.indexOf(`    case '${nome}': {`)
 const campos = txt => new Set([...txt.matchAll(/\bs\.([a-zA-Z0-9_]+)\s*=(?!=)/g)].map(m => m[1]))
 const marcas = new Set([...src.match(/export const MARCAS_DE_MODO = \[([\s\S]*?)\]/)[1].matchAll(/'([^']+)'/g)].map(m => m[1]))
 
-const carreira = bloco('START_CAREER_SOLO', 12000)
+const carreira = bloco('START_CAREER_SOLO', 16000)
 assert.ok(/limpaMarcasDeModo\(s\)/.test(carreira.slice(0, 600)), 'START_CAREER_SOLO tem que começar chamando limpaMarcasDeModo(s)')
 const fimDaCarreira = campos(carreira.slice(0, carreira.indexOf("\n    case '", 10)))
 
@@ -30,3 +30,11 @@ assert.deepEqual(faltam, [], `escolha de modo que a carreira não zera — entra
 assert.ok(marcas.has('pregaoAberto') && marcas.has('holandes') && marcas.has('auctionSecs'), 'pregão aberto, Tocaia e tempo do leilão têm que estar na lista')
 assert.ok(/!state\.careerOnline\) \{ abrePregaoAberto/.test(src), 'trava do leilão: carreira nunca abre pregão aberto')
 console.log(`✅ carreira nasce limpa: ${marcas.size} marcas de modo zeradas · leilão da carreira nunca abre pregão aberto/Tocaia`)
+// 🧾 02/11 ("mal começou a carreira e o jogador já tinha gol e assistência"): o histórico NO SEU CLUBE (jogos/gols/assist./gás)
+// mora em `condicaoCarry` (e o dos bots em `botCarry`) — carreira nova tem que nascer sem os dois, e save da T1 que veio sujo é curado.
+for (const nome of ['START_CAREER_SOLO', 'CAREER_FROM_QUICK']) {
+  const b = bloco(nome, 12000); const corpo = b.slice(0, b.indexOf("\n    case '", 10))
+  assert.ok(/s\.condicaoCarry = undefined/.test(corpo) && /s\.botCarry = undefined/.test(corpo), `${nome} tem que zerar condicaoCarry e botCarry`)
+}
+assert.ok(/seasonNo \?\? 1\) <= 1\) \{ restored\.condicaoCarry = undefined/.test(bloco('RESUME_CAREER_SOLO', 6000)), 'RESUME_CAREER_SOLO tem que curar carry herdado em save da T1')
+console.log('✅ carreira nova nasce sem jogos/gols/assistências da carreira anterior')
