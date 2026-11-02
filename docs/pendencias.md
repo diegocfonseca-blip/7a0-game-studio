@@ -1,4 +1,4 @@
-## ⭐⚔️ Clã: +1 vaga por membro com plano, SEM LIMITE (02/11) — banco valendo, tela no branch
+## ⭐⚔️ Clã: +1 vaga por membro com plano, SEM LIMITE (02/11) — ✅ PUBLICADO
 - Mockup `scripts/mockups/cla-vagas-por-plano.png`; Diego: *"sem limite"*. Limite = 22 + membros (com o presidente) com plano pago (`esc_direitos_de->pago`). Entrada confere AO VIVO (`esc_cla_cabe` → `esc_cla_limite_vivo`); lista/caixas leem `esc_cla_limite_cache` (pg_cron `esc-cla-limites` a cada 5 min — `esc_direitos_de` custa ~5 ms por membro). Leituras continuam STABLE (o painel do clã é stable: nada de gravar dentro). Ninguém é tirado quando o limite baixa. Hoje: Lulubaba 28 · Futpoint 25 · Leite de Verdade 23. Tela: `limiteDo(c)` (cla.tsx) no lugar do 22 fixo. ⏳ O aviso "+1 vaga" pro clã quando entra alguém com plano (do mockup) ainda não foi feito.
 
 ## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — ✅ PUBLICADO
