@@ -3773,6 +3773,11 @@ export function EscLobby() {
                       <p className="text-[11px] uppercase mb-1.5" style={{ color: '#6b6250', letterSpacing: '.08em', ...OSWALD }}>{tr('Época', 'Era')}</p>
                       <Seg options={[[false, tr('🌍 Todas as épocas', '🌍 All eras')], [true, tr('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]} value={pacDecada} onSet={v => setPacDecada(v)}
                         selos={{ true: tr('em teste', 'testing') }} />
+                      {/* ℹ️ 02/11 (Diego): cada jogador é UMA carta (um clube, um ano) — o pacote só tem quem existe no baralho */}
+                      <p className="text-[11px] font-semibold mt-1.5 leading-snug" style={{ color: '#6b6250' }}>
+                        {tr('ℹ️ Os pacotes usam as cartas que existem no jogo, e cada jogador é UMA carta (um clube e um ano). Ex.: o Zidane do jogo é Juventus 1998 — ele sai no Meio da Juventus · anos 90, nunca no Real Madrid dos anos 2000.',
+                          "ℹ️ Packs use the cards in the game, and each player is ONE card (one club, one year). E.g. the game's Zidane is Juventus 1998 — he shows up in Midfield of Juventus · the '90s, never in Real Madrid of the 2000s.")}
+                      </p>
                     </div>
                   )}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
