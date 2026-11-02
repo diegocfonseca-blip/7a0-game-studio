@@ -701,6 +701,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 
+- **📊 RÉGUA DE FORÇA DAS CARTAS (02/11, regra permanente, *"adorei as mudanças"*).** Over MÉDIO por categoria: **Lenda 90–97 ·
+  Craque 80–89 · Promessa 70–85 · Bom jogador 68–79 · Foi profissional 55–66** (máx 99 só pra ~9 cartas). Categoria de baixo NUNCA passa
+  a de cima. **A força é o auge DAQUELA carta (clube + ano)**, nunca a carreira: Cédric no São Paulo 2025 foi mal → foi profissional;
+  carta de fim de carreira (Miami, Arábia, Cosmos, Galaxy) fica ABAIXO da carta do auge do mesmo jogador. **Carta NOVA já nasce nessa
+  régua** — comparar com quem já está no baralho na mesma posição e categoria (o Lote 48 nasceu na régua velha e teve de ser descido).
+  Lucas Barreto (Botafogo 2024) é 74–83 fixo, amigo do Diego: não mexer. Histórico em `docs/pendencias.md` (02/11).
 - **🏷️ NOME DE CARTA NÃO LEVA CLUBE ENTRE PARÊNTESES (30/10).** *"Danilo do Botafogo não precisa chamar Danilo (Botafogo)… embaixo
   dele já vai aparecer o time. O time já é a diferenciação"*. Carta nova com nome igual a outra do mesmo baralho fica com o nome
   limpo; quem separa é o clube (a chave é `nome|clube|ano`). Os antigos com parênteses ficam como estão (é identidade de save).
