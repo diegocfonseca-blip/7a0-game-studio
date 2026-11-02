@@ -36,7 +36,11 @@ export function EmblemaCla({ emblema, size = 24 }: { emblema: string; size?: num
 }
 
 // ── selos por conta (lote) ──────────────────────────────────────────────────────────────────────────────────────
-type SeloInfo = { id: number; nome: string; emblema: string; campeao: boolean }
+type SeloInfo = { id: number; nome: string; emblema: string; campeao: boolean; medalha?: 1 | 2 | 3 | null; medalhaAte?: string | null; presidente?: boolean }
+// 🥇⚔️ MEDALHA DO CLÃ DA SEMANA (02/11, mockup scripts/mockups/cla-semana-medalha.png): top 3 de clãs da semana fechada → 🥇🥈🥉 na
+// pílula de TODO membro por 30 dias (banco: esc_podio_cla_semana + esc_cla_medalha). Presidente: coroa dourada acesa na pílula.
+// Batismo/fundador não ganha nada a mais. Nunca no chat/telão/tabela/jogo.
+const MEDALHA = { 1: '🥇', 2: '🥈', 3: '🥉' } as const
 const selos = new Map<string, SeloInfo | null>()
 const fila = new Set<string>()
 const ouvintes = new Set<() => void>()
@@ -49,7 +53,7 @@ async function buscaLote() {
   try {
     const { data, error } = await supabase.rpc('esc_clas_de', { p_uids: uids })
     if (error) throw error
-    const achou = new Map(((data ?? []) as (SeloInfo & { uid: string })[]).map(r => [r.uid, { id: r.id, nome: r.nome, emblema: r.emblema, campeao: !!r.campeao }]))
+    const achou = new Map(((data ?? []) as (SeloInfo & { uid: string; medalha_ate?: string | null })[]).map(r => [r.uid, { id: r.id, nome: r.nome, emblema: r.emblema, campeao: !!r.campeao, medalha: (r.medalha === 1 || r.medalha === 2 || r.medalha === 3) ? r.medalha : null, medalhaAte: r.medalha_ate ?? null, presidente: !!r.presidente }]))
     for (const u of uids) selos.set(u, achou.get(u) ?? null)
   } catch { for (const u of uids) selos.set(u, null) }
   uids.forEach(u => fila.delete(u))
@@ -75,10 +79,12 @@ export function SeloCla({ uid, grande = false, mini = false }: { uid: string | n
   const s = useClaDe(uid)
   if (!s) return null
   const h = grande ? 22 : mini ? 12 : 16 // mini = o do chat (21/10: "selo no chat pode ter mas ainda menor")
+  const med = s.medalha ? MEDALHA[s.medalha] : null
   return (
-    <span title={tr(`Clã ${s.nome}`, `Clan ${s.nome}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: mini ? 2 : 4, background: '#181818', color: CLA_OURO, border: `${mini ? 1 : 1.5}px solid ${INK}`, borderRadius: 999, padding: mini ? '0 5px 0 2px' : '0 7px 0 3px', height: h, ...OSW, fontWeight: 900, fontSize: grande ? 11 : mini ? 7.5 : 9, marginBottom: mini ? 3 : undefined, letterSpacing: '.04em', whiteSpace: 'nowrap', verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden', flex: 'none', alignSelf: 'flex-start', justifySelf: 'start', width: 'fit-content' }}>
+    <span title={tr(`Clã ${s.nome}`, `Clan ${s.nome}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: mini ? 2 : 4, background: med && s.presidente ? 'linear-gradient(90deg,#181818,#3a2b00)' : '#181818', color: CLA_OURO, border: `${mini ? 1 : 1.5}px solid ${med ? '#FFC400' : INK}`, boxShadow: med ? (s.presidente ? '0 0 0 1px #0C0C0C, 0 0 8px rgba(255,196,0,.65)' : '0 0 0 1px #0C0C0C') : undefined, borderRadius: 999, padding: mini ? '0 5px 0 2px' : '0 7px 0 3px', height: h, ...OSW, fontWeight: 900, fontSize: grande ? 11 : mini ? 7.5 : 9, marginBottom: mini ? 3 : undefined, letterSpacing: '.04em', whiteSpace: 'nowrap', verticalAlign: 'middle', maxWidth: '100%', overflow: 'hidden', flex: 'none', alignSelf: 'flex-start', justifySelf: 'start', width: 'fit-content' }}>
       <EmblemaCla emblema={s.emblema} size={h - (mini ? 2 : 3)} />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>⚔️ {s.nome}</span>{s.campeao && <span>🏆</span>}
+      {med && s.presidente && <span title={tr('Presidente do clã', 'Clan president')} style={{ filter: 'drop-shadow(0 0 3px #FFC400)' }}>👑</span>}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>⚔️ {s.nome}</span>{med ? <span title={tr(`${s.medalha}º clã da semana`, `#${s.medalha} clan of the week`)}>{med}</span> : s.campeao && <span>🏆</span>}
     </span>
   )
 }
@@ -91,8 +97,11 @@ export function CaixaClaPerfil({ uid }: { uid: string }) {
     <div style={{ marginTop: 10, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
       <EmblemaCla emblema={s.emblema} size={44} />
       <div style={{ minWidth: 0 }}>
-        <p style={{ ...OSW, margin: 0, fontSize: 11, color: CLA_OURO }}>⚔️ {tr('Clã', 'Clan')}{s.campeao ? ` · 🏆 ${tr('campeão da semana', 'champion of the week')}` : ''}</p>
+        <p style={{ ...OSW, margin: 0, fontSize: 11, color: CLA_OURO }}>⚔️ {tr('Clã', 'Clan')}{!s.medalha && s.campeao ? ` · 🏆 ${tr('campeão da semana', 'champion of the week')}` : ''}</p>
         <b style={{ ...OSW, fontSize: 17, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.nome}</b>
+        {s.medalha && <span style={{ ...OSW, display: 'inline-block', marginTop: 5, background: '#FFC400', color: INK, border: '2px solid #FFC400', borderRadius: 8, padding: '1px 8px', fontSize: 11, letterSpacing: '.04em' }}>
+          {MEDALHA[s.medalha]} {s.medalha === 1 ? tr('CLÃ CAMPEÃO DA SEMANA', 'CLAN OF THE WEEK') : tr(`${s.medalha}º CLÃ DA SEMANA`, `#${s.medalha} CLAN OF THE WEEK`)}{s.medalhaAte ? ` · ${tr('até', 'until')} ${dataCurta(s.medalhaAte.slice(0, 10) + 'T12:00:00')}` : ''}
+        </span>}
       </div>
     </div>
   )
