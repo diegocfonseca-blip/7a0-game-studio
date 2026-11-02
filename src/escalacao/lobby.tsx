@@ -4312,7 +4312,7 @@ export function EscLobby() {
               <div className="mt-3">{botaoCriar || (
                 <p className="text-[12px] font-bold leading-snug" style={{ color: '#5a5647' }}>{tr('🔜 Este modo ainda não abriu pra criar sala.', '🔜 This mode is not open for new rooms yet.')}</p>
               )}</div>
-              {roomError && <p className="text-[12px] font-bold mt-2" style={{ color: '#B23B2E' }}>{roomError}</p>}
+              {roomError && <><p className="text-[12px] font-bold mt-2" style={{ color: '#B23B2E' }}>{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
               <p className="text-[11px] font-bold text-center mt-2" style={{ color: 'rgba(0,0,0,.5)' }}>{tr('o resumo acompanha o que você marca à esquerda', 'the summary follows what you pick on the left')}</p>
             </div>
           </aside>
@@ -4515,7 +4515,7 @@ export function EscLobby() {
         <Big onClick={joinRoom} color="#fff">{loading ? tr('Entrando...', 'Joining...') : tr('🔑 Entrar com Código', '🔑 Join with Code')}</Big>
       </div>}
 
-      {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      {!pwModal && roomError && <><p className="text-red-400 text-sm font-bold">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
       {confirmaEmail && <ConfirmaEmail onLiberado={() => { setConfirmaEmail(false); void createRoom() }} onVerSalas={() => { setConfirmaEmail(false); setTab('open') }} />}
       {limiteDia && <div style={{ background: '#FFF3C4', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '10px 12px', margin: '8px 0' }}>
         <p style={{ margin: 0, fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif' }}>{tr('🏟️ HOJE VOCÊ JÁ CRIOU A SUA SALA', '🏟️ YOU ALREADY CREATED YOUR ROOM TODAY')}</p>
@@ -4571,7 +4571,7 @@ export function EscLobby() {
                 ))}
                 {humans.length === 0 && <p className="text-black/40 text-xs italic">{tr('Sem técnicos humanos salvos.', 'No human managers saved.')}</p>}
               </div>
-              {roomError && <p className="text-red-500 text-xs font-bold mb-2">{roomError}</p>}
+              {roomError && <><p className="text-red-500 text-xs font-bold mb-2">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
               {salasPresas.length > 0 && (
                 <button onClick={() => encerrarSalasPresas()} disabled={encerrando}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
@@ -4636,7 +4636,7 @@ export function EscLobby() {
             <input autoFocus type="text" value={pwEntry} onChange={e => setPwEntry(e.target.value)} maxLength={20}
               placeholder={tr('Senha', 'Password')} onKeyDown={e => e.key === 'Enter' && enterRoom(pwModal, pwEntry)}
               className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
-            {roomError && <p className="text-red-500 text-xs font-bold mt-1">{roomError}</p>}
+            {roomError && <><p className="text-red-500 text-xs font-bold mt-1">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
             {salasPresas.length > 0 && (
                 <button onClick={() => encerrarSalasPresas()} disabled={encerrando}
                   className="w-full border-[3px] border-black rounded-xl py-2.5 font-black text-xs uppercase mt-2"
