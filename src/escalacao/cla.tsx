@@ -516,14 +516,14 @@ function CriarCla({ painel, saindoDe, segundo, ocupado, onCriar }: { painel: Pai
     {/* 🖋 21/10 (Diego): "deixar claro… se ele escolher um, o outro passa a ser pago" */}
     {segundo && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#E9F7EE', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px' }}>⚔️⚔️ {tr('Este vai pra sua 2ª vaga (já paga): você continua no outro clã.', 'This one goes to your 2nd slot (already paid): you stay in your other clan.')}</p>}
     {painel.escudo && !segundo && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#E9F7EE', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', lineHeight: 1.35 }}>🎁 {tr(
-      `Seu 1º clã é DE GRAÇA — escolha UM: o clã do ${semFc(painel.escudo)} (nome e escudo do seu batismo) OU um clã com outro nome. O que você não escolher agora, se quiser depois, vira o 2º clã: R$ 4,90 na 🛒 Loja.`,
-      `Your 1st clan is FREE — pick ONE: the ${semFc(painel.escudo)} clan (your named club's name and crest) OR a clan with another name. Whichever you don't pick now can be your 2nd clan later: R$ 4.90 in the 🛒 Shop.`)}</p>}
+      `Seu 1º clã é DE GRAÇA — escolha UM: o clã do ${semFc(painel.escudo)} (nome e escudo do seu batismo) OU um clã com outro nome. Você fica em UM clã só: pra trocar depois, é sair deste (ou fechar o seu) e entrar no outro.`,
+      `Your 1st clan is FREE — pick ONE: the ${semFc(painel.escudo)} clan (your named club's name and crest) OR a clan with another name. You stay in ONE clan only: to switch later, leave this one (or close yours) and join the other.`)}</p>}
     {painel.escudo && <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
       {([[true, <><EmblemaCla emblema={`escudo:${painel.escudo}`} size={30} /><span>🖋 {tr(`Clã do ${semFc(painel.escudo)}`, `${semFc(painel.escudo)} clan`)}</span></>], [false, <span>⚔️ {tr('Clã com outro nome', 'Clan with another name')}</span>]] as const).map(([v, rot]) => (
         <button key={String(v)} onClick={() => setBatismo(v)} style={{ ...bt(batismo === v ? INK : '#fff', batismo === v ? GOLD : INK), flex: 1, whiteSpace: 'normal', fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>{rot}</button>
       ))}
     </div>}
-    {batismo && painel.escudo ? <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🖋 {tr(`O clã nasce com o NOME e o ESCUDO do seu batismo: ${semFc(painel.escudo)}.`, `The clan is born with your named club's NAME and CREST: ${semFc(painel.escudo)}.`)}{saindoDe ? tr(` Quer ele como 2º clã (sem sair do ${saindoDe})? É na 🛒 Loja.`, ` Want it as a 2nd clan (without leaving ${saindoDe})? It's in the 🛒 Shop.`) : ''}</p> : <>
+    {batismo && painel.escudo ? <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', background: '#FFF3C4', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 8px' }}>🖋 {tr(`O clã nasce com o NOME e o ESCUDO do seu batismo: ${semFc(painel.escudo)}.`, `The clan is born with your named club's NAME and CREST: ${semFc(painel.escudo)}.`)}</p> : <>
     <p style={{ ...OSW, fontSize: 11, margin: '0 0 4px' }}>{tr('Nome do clã', 'Clan name')}</p>
     <input value={nome} onChange={e => setNome(e.target.value)} maxLength={20} placeholder={tr('ex.: Martelo de Ouro', 'e.g. Golden Hammer')}
       style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 14, fontWeight: 700, color: INK, background: '#fff' }} />
@@ -646,13 +646,8 @@ export function EscudoClaLoja() {
   // 💸 21/10 (Diego): 2º clã = R$ 4,90 (26/10; era 9,90) SÓ pra criar (emblema pronto; quem tem batismo ativa o time) · escudo personalizado = R$ 9,90 (26/10; era 14,90) à parte
   const PRECO: Record<ProdutoCla, number> = { escudo_cla: 9.9, cla_extra: 4.9 } // 26/10: 2º clã 4,90 · escudo 9,90
   const ofertas: { prod: ProdutoCla; titulo: [string, string]; texto: [string, string]; pode: boolean; porque: [string, string] }[] = [
-    // ⚔️⚔️ 21/10 (Diego): a compra é a 2ª VAGA — "só se ele já pagou… aí ele pode estar em dois lugares": criar o 2º OU entrar em outro
-    { prod: 'cla_extra', titulo: ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
-      texto: info?.batismo
-        ? [`Fique em 2 clãs ao mesmo tempo: ative o ${semFc(info.batismo)} (nome e escudo do seu batismo), crie outro ou entre no clã de um amigo. Membro dos 2, presidente dos 2 ou um de cada — seus títulos somam nos dois.`, `Be in 2 clans at once: activate ${semFc(info.batismo)} (your named club's name and crest), create another or join a friend's clan. Member of both, president of both or one of each — your titles count for both.`]
-        : ['Fique em 2 clãs ao mesmo tempo: crie o seu 2º clã ou entre no clã de um amigo. Membro dos 2, presidente dos 2 ou um de cada — seus títulos somam nos dois.', 'Be in 2 clans at once: create your 2nd clan or join a friend’s clan. Member of both, president of both or one of each — your titles count for both.'],
-      pode: !!info && info.vagas < 2,
-      porque: info && info.vagas >= 2 ? ['✅ Você já tem a 2ª vaga (pra sempre).', '✅ You already have the 2nd slot (forever).'] : ['Primeiro entre ou crie um clã (👥 Amigos → ⚔️ Clã).', 'First join or create a clan (👥 Friends → ⚔️ Clan).'] },
+    // 🚫⚔️⚔️ 02/11 (Diego): o 2º clã SAIU — *"quero somente q o usuário fique em um apenas. Ou ele cria o dele ou desativa o dele p entrar
+    // em outro clã"*. Ninguém tinha comprado nem estava em dois. O banco também fechou (esc_cla_vagas = 1, esc_cla_pode_extra = false).
     { prod: 'escudo_cla', titulo: ['🛡️ Escudo de clã personalizado', '🛡️ Custom clan crest'],
       texto: ['Desenho exclusivo, feito à mão pro SEU clã. Aparece no selo de todos os membros e no ranking. Fica pronto em até 24 h.', 'An exclusive crest, hand-made for YOUR clan. Shows on every member’s badge, and in the ranking. Ready within 24 h.'],
       pode: presidente, porque: info ? [`Só o presidente do ${info.nome} pode encomendar o escudo.`, `Only the ${info.nome} president can order the crest.`] : ['Pra encomendar, você precisa ser presidente de um clã (👥 Amigos → ⚔️ Clã).', 'To order, you need to be a clan president (👥 Friends → ⚔️ Clan).'] },
