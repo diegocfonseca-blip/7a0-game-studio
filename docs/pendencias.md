@@ -11924,3 +11924,8 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - 2ª rodada (02/11): cada um só vê a cor do PRÓPRIO plano em "Suas cores" + as compradas; compra quantas quiser e escolhe qual usar.
 - A fazer depois do OK: produto Pix novo, tabela da cor por conta, ler a cor junto do tier em todo lugar (cuidado: o selo
   invisível/emoji do nome é como os OUTROS sabem a cor — precisa de um sinal novo ou leitura em lote no banco).
+- ✅ 02/11 CONSTRUÍDO (no branch, esperando publicar): banco `esc_cores_conta` + produto Pix `cor_extra` (14,90, só com plano,
+  entrega sozinha e já deixa EM USO) + `esc_minhas_cores`/`esc_cor_usar` + perfil manda `cor`. A cor viaja como MARCA INVISÍVEL
+  no nome (uma por cor, `CORES_EXTRA` em apoio.tsx) e só vale junto do ⭐/👑; os 4 leitores de cor do nome passam por `comCorDoNome`.
+  Loja: `cores-loja.tsx`. Edge `mp-criar-pix` v15 já aceita o produto. Trava `npm run cor-adicional`. Foto: `scripts/mockups/cor-adicional-real.png`.
+  ⏳ Na publicação: linha em novidades.ts. Lugares que pegam a cor do BANCO por tier (sem nome) ainda não mostram a cor comprada.

@@ -21,7 +21,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2'
 import { assinarMensal } from './vendria-checkout'
 import { isMuted } from './sound'
@@ -105,7 +105,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // propósito, pedido do Diego 17/08: cor sem símbolo nenhum aparecendo) —
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
-  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
+  comCorDoNome(n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null, n) // 🎨 02/11: + cor adicional
 type GS = EscState & { __game?: string; pregaoAberto?: boolean; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean; liveUrl?: string }
 
 /** 🧱🏳️📅 o nome do tipo de pacote da sala (31/10): Clubes · Seleções, e "por década" quando for */

@@ -21,7 +21,7 @@ import { ANUNCIO_MAX, releAnuncios } from './patrocinio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar' | 'manual_24h'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar' | 'manual_24h' | 'cor_extra'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
@@ -35,6 +35,7 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   cla_extra: ['⚔️⚔️ 2º clã', '⚔️⚔️ 2nd clan'],
   cla_criar: ['🔓 Liberar o seu clã', '🔓 Unlock your clan'],
   manual_24h: ['🎮 Modo Manual por 24 h', '🎮 Manual Mode for 24 h'],
+  cor_extra: ['🎨 Cor brilhante', '🎨 Shiny colour'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -63,6 +64,7 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   escudo_cla: ['Pagamento confirmado! Agora conta pra gente o nome do clã e a ideia do escudo.', 'Payment confirmed! Now tell us the clan name and your crest idea.'],
   peca_presidente: ['A peça já é sua, pra sempre, na sua conta. Vista e salve o seu presidente.', 'The item is yours forever, on your account. Put it on and save your president.'],
   manual_24h: ['🎮 Seu Modo Manual já está valendo: são 24 horas a partir de agora. Bom jogo!', '🎮 Your Manual Mode is live: 24 hours from now. Enjoy!'],
+  cor_extra: ['🎨 Sua cor já é sua, pra sempre, e já está EM USO. Ela aparece na próxima sala que você entrar.', '🎨 Your colour is yours forever and already IN USE. It shows in the next room you join.'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)
 export const WHATSAPP_CONTATO = '5521998886982' // 16/10: número que o Diego passou (batismo, Fundador e Dia da marca)

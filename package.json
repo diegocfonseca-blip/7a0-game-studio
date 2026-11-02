@@ -119,7 +119,8 @@
     "copa-tatica": "node scripts/testa-copa-tatica.mjs",
     "escalacao-ab": "npx tsx scripts/testa-escalacao-ab.mts && node scripts/testa-escalacao-ab-motor.mjs",
     "email-novo": "npx tsx scripts/testa-email-novo.mts",
-    "batismos-salas": "npx tsx scripts/testa-batismos-salas.mts"
+    "batismos-salas": "npx tsx scripts/testa-batismos-salas.mts",
+    "cor-adicional": "npx tsx scripts/testa-cor-adicional.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
-import { APOIO_PERKS, ApoioSheen, type ApoioTier } from './apoio'
+import { APOIO_PERKS, ApoioSheen, vesteCor, CORES_EXTRA, type ApoioTier, type CorExtra } from './apoio'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
 import { Trofeu, type CompId } from './competicoes-visual' // 🏆 28/10: as taças do jogo no perfil
@@ -28,7 +28,7 @@ export const contaValida = (uid: string | null | undefined): uid is string => !!
 
 type Titulos = { ligas: number; serie_a: number; copas: number; supercopas: number; libertadores: number; champions: number; mundial: number; copa_mundo: number; salas: number; temporadas: number }
 type Perfil = {
-  uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null
+  uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null; cor?: string | null // 🎨 02/11: cor adicional em uso
   titulos: Titulos; rank: { pos: number; total: number; temporada: number } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
   // 👥 v2 (19/10): ranking do online da semana/mês, medalhas do pódio semanal e o rival
@@ -124,7 +124,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
   const abrir = (u: string) => { if (onAbrirOutro) onAbrirOutro(u); else setAtual(u) }
   const acao = async (fn: () => PromiseLike<unknown>) => { setOcupado(true); try { await fn() } finally { setOcupado(false); carrega(atual) } }
 
-  const perk = APOIO_PERKS[(p && p !== 'erro' && p.tier && APOIO_PERKS[p.tier]) ? p.tier : 'bege']
+  const perk = vesteCor(APOIO_PERKS[(p && p !== 'erro' && p.tier && APOIO_PERKS[p.tier]) ? p.tier : 'bege'], p && p !== 'erro' && p.cor && p.cor in CORES_EXTRA ? p.cor as CorExtra : null) // 🎨 02/11
   return (
     <Janela titulo={tr('👤 Perfil', '👤 Profile')} onClose={onClose}>
       {p === null && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}

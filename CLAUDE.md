@@ -1059,7 +1059,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca
   voltar a coletiva pra baixo do placar.**
 
-- **🎨 COR ADICIONAL À VENDA (02/11, proposta; mockup `scripts/mockups/cor-adicional.png`, esperando OK).** Revê o "não vender
+- **🎨 COR ADICIONAL À VENDA (02/11, APROVADA e construída; mockup `scripts/mockups/cor-adicional.png`).** Revê o "não vender
   cor" de 14/10. Regras dele: **dourado = SÓ Lenda/Batismo/Fundador · prata = SÓ Craque · bege = quem não tem plano · PRETO
   reservado (futuro, do Fundador)**; as outras (roxo, verde, rosa, azul, vermelho, laranja, turquesa) **sempre brilhantes**;
   **só compra quem JÁ TEM PLANO** (Fundador também). Preço proposto R$ 14,90, pra sempre (ele pediu acima de 9,90).

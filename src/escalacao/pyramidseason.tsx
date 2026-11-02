@@ -112,7 +112,7 @@ import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewar
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
-import { loggedEmail, useDireitos, meusDireitos, logApoio } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
+import { loggedEmail, useDireitos, meusDireitos, logApoio, comCorDoNome } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
@@ -3109,7 +3109,8 @@ export const RIVAL_COL: FCol = { solid: '#9B4D2E', light: '#EBD5C6' }
 // entre os aparelhos, sem depender de lookup extra. Sem selo → sem tier (bege).
 export function perkFromSelo(name: string): ApoioPerk | null {
   // ⁣ (verde) é INVISÍVEL de propósito — pedido do Diego 17/08 (cor sem símbolo).
-  return name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : name.includes('⁣') ? APOIO_PERKS.verde : null
+  // 🎨 02/11: + a cor adicional comprada (marca invisível no mesmo nome; só vale junto do ⭐/👑)
+  return comCorDoNome(name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : name.includes('⁣') ? APOIO_PERKS.verde : null, name)
 }
 // perkById: tier de CADA humano (por id), pra colorir amigos com a cor do login
 // deles — não só você. Sem entrada = bege (sem fallback: dois sem tier ficam bege).
