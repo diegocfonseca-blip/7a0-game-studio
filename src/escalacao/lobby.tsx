@@ -4835,6 +4835,99 @@ export function EscLobby() {
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima); no visual novo, em toda sala */}
       {(ehLigaSala || salasEspera) && caixaConvite}
 
+      {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
+          ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
+      {room.game_state?.mode === 'liga' && (() => {
+        const gs = room.game_state as GS
+        const q = quandoLiga(gs?.ligaAt)
+        return (
+          <div className="rounded-2xl border-[3px] border-black bg-white overflow-hidden" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+            {/* 🏆 02/11 (mockup `scripts/mockups/minhas-ligas-espera.png`): 1º cartão — PRÓXIMO JOGO */}
+            <p className="px-3 py-1.5 text-[11px] uppercase tracking-widest text-white" style={{ ...OSWALD, background: GREEN }}>{(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr('📋 Liga Draft · próximo jogo', '📋 Draft League · next game') : tr('📅 Próximo jogo', '📅 Next game')}</p>
+            <div className="p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-black font-black text-[24px] leading-tight uppercase" style={OSWALD}>{q.txt}</p>
+                {(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && <p className="text-[11.5px] font-bold mt-0.5" style={{ color: GREEN }}>{gs?.ligaFechada ? (players.length < 4 ? tr(`🚫 sem bots (vale com 4+ pessoas) — agora são ${players.length}, então começa com bots`, `🚫 no bots (needs 4+ people) — there are ${players.length} now, so it starts with bots`) : tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table')) : (() => { const tam = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20; return (gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr(`👤 usuários + 🤖 bots = ${tam} times`, `👤 users + 🤖 bots = ${tam} teams`) : tr(`🤖 com bots até ${tam} times`, `🤖 with bots up to ${tam} teams`) })()}</p>}
+              </div>
+            </div>
+            {mandaNaLiga && (
+              <div className={`grid ${(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mt-3`}>
+                <button onClick={() => {
+                  const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
+                  const pad = (n: number) => String(n).padStart(2, '0')
+                  setLigaEditData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
+                  setLigaEditHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
+                  setLigaEdit(true)
+                }} className="border-2 border-black rounded-xl py-2 font-black text-[12px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
+                  {tr('📅 Remarcar dia e hora', '📅 Change day and time')}
+                </button>
+                {(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && <button onClick={() => patchLiga({ ligaFechada: !gs?.ligaFechada })}
+                  className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                  🤖 {gs?.ligaFechada ? tr('Pôr bots', 'Add bots') : tr('Tirar bots', 'Remove bots')}
+                </button>}
+              </div>
+            )}
+            {/* 📅 REMARCAR EM UM TOQUE. O Diego: *"deve poder remarcar fácil pra
+                qualquer dia e hora, seja dia seguinte, uma semana, tanto faz"*.
+                Os atalhos empurram a MESMA hora pra frente; pra trocar a hora é
+                o "mudar dia e hora" logo acima. E se ninguém remarcar, a data
+                velha FICA — o jogo não inventa data por conta própria. */}
+            {mandaNaLiga && !ligaEdit && (
+              <div className="flex gap-2 mt-2">
+                {([[tr('+1 dia', '+1 day'), 1], [tr('+1 semana', '+1 week'), 7], [tr('+15 dias', '+15 days'), 15]] as [string, number][]).map(([rot, dias]) => (
+                  <button key={rot} onClick={() => {
+                    const base = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
+                    const d = new Date(base.getTime() + dias * 864e5)
+                    void patchLiga({ ligaAt: d.toISOString() })
+                  }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
+                    📅 {rot}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* ⚖️ A regra do ranking mudou de lugar (02/11): selinho + botão ⚖️ Regras no cartão "Como é a liga" (abre por cima). */}
+            {/* 👑 NÃO EXISTE ADM NA LIGA (Diego 23/08, decisão permanente).
+                Palavras dele: *"não tem negócio de quem manda junto.. só quem manda
+                é o host mesmo. Não tem adm não"*. Tinha aqui um botão "⭐ Quem mais
+                pode mexer" que dava a outro jogador o poder de remarcar, arrumar
+                troféu e mexer nas regras — SAIU. É a mesma régua da coroa
+                (`ELEICAO_AUTOMATICA = false`): quem criou a sala manda do começo ao
+                fim, e ninguém divide o comando. NÃO REPROPOR.
+                O campo `ligaAdmins` continua existindo no banco só pra não quebrar
+                liga antiga que já tenha alguém na lista — mas ele não dá poder
+                nenhum e não tem mais tela pra mexer nele. */}
+            {mandaNaLiga && ligaEdit && (
+              <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
+                <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>{tr('📅 Quando vocês jogam', '📅 When you play')}</p>
+                <div className="flex gap-2">
+                  <input type="date" value={ligaEditData} onChange={e => setLigaEditData(e.target.value)}
+                    className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                  <input type="time" value={ligaEditHora} onChange={e => setLigaEditHora(e.target.value)}
+                    className="w-[96px] border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button onClick={async () => {
+                    const d = new Date(`${ligaEditData}T${ligaEditHora}`)
+                    // 🤐 antes isto era um `return` MUDO: com o campo vazio, apertar
+                    // Salvar não fazia nada e não explicava nada. Botão que não
+                    // responde é o pior tipo de trava — agora diz o que falta.
+                    if (isNaN(d.getTime())) { setRoomError(tr('Confira o dia e a hora — os dois precisam estar preenchidos.', 'Check the day and time — both need to be filled in.')); return }
+                    await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
+                  }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>{tr('Salvar', 'Save')}</button>
+                  <button onClick={() => setLigaEdit(false)}
+                    className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
+                </div>
+                <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
+                  {getLang() === 'en' ? <>Changing the date <b>loses no trophy</b> — the league is the same room as always.</> : <>Mudar a data <b>não perde troféu nenhum</b> — a liga é a mesma sala de sempre.</>}
+                </p>
+              </div>
+            )}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* 🔁 MODO DA PRÓXIMA TEMPORADA (17/10, mockup `scripts/mockups/liga-trocar-modo.png` aprovado).
           Todo mundo vê o modo; só o DONO troca. Troféus e ranking não mudam (moram em game_champions). */}
       {ehLigaSala && !ehMundoSala && !elencoOn && !(room.game_state as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (() => {
@@ -4842,7 +4935,10 @@ export function EscLobby() {
         const champ = gs?.copaMode === 'champions'
         const [antesTxt, depoisTxt] = (modoAviso ?? '').split('|')
         return (
-          <div className="rounded-2xl border-[3px] border-black p-3 bg-white" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+          <div className="rounded-2xl border-[3px] border-black bg-white overflow-hidden" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+            {/* 🏆 02/11 (mockup `scripts/mockups/minhas-ligas-espera.png`, Diego: "beleza"): 2º cartão — COMO É A LIGA */}
+            <p className="px-3 py-1.5 text-[11px] uppercase tracking-widest" style={{ ...OSWALD, background: INK, color: GOLD }}>{tr('🎮 Como é a liga', '🎮 How the league works')}</p>
+            <div className="p-3">
             {modoAviso && !mandaNaLiga && (
               <div className="rounded-xl border-2 border-black px-2.5 py-2 mb-2 text-[12px] font-bold leading-snug" style={{ background: '#EDE4FF' }}>
                 <b>{tr('🔁 O dono trocou o modo da liga!', '🔁 The owner changed the league mode!')}</b><br />
@@ -4851,19 +4947,41 @@ export function EscLobby() {
                 {tr('Troféus e ranking continuam.', 'Trophies and ranking stay.')}
               </div>
             )}
-            <p className="font-black text-[13px] uppercase" style={OSWALD}>{tr('🎮 Modo da próxima temporada', '🎮 Next season mode')}</p>
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {rotuloModoLiga(gs).map(t => (
                 <span key={t} className="text-[11px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5" style={OSWALD}>{t}</span>
               ))}
+              <span className="text-[11px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5" style={OSWALD}>{gs?.ligaFechada ? (players.length < 4 ? tr('🚫 sem bots (4+ pessoas)', '🚫 no bots (4+ people)') : tr('🚫 sem bots', '🚫 no bots')) : tr('🤖 com bots · 20 times', '🤖 with bots · 20 teams')}</span>
+              <span className="text-[11px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: '#FFF1B8' }}>⚖️ {resumoRegra(lerRegras(gs?.ligaRegras)).split('·')[0].trim()}</span>
             </div>
             {mandaNaLiga && !modoEdit && (
-              <button onClick={() => {
-                const d = typeof gs?.deckSala === 'string' ? gs.deckSala : 'br'
-                setModoEdit({ lance: gs?.pregaoAberto && !champ ? 'pregao' : gs?.holandes ? 'tocaia' : 'envelope', clubes: !!gs?.clubes, deck: d === 'eu' ? 'eu' : d === 'br' ? 'br' : d === 'world' ? 'world' : 'both', copa: copaDaLiga(gs) })
-              }} className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[12.5px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
-                {tr('🔁 Trocar o modo', '🔁 Change the mode')}
-              </button>
+              <div className="grid grid-cols-3 gap-1.5 mt-2.5">
+                <button onClick={() => {
+                  const d = typeof gs?.deckSala === 'string' ? gs.deckSala : 'br'
+                  setModoEdit({ lance: gs?.pregaoAberto && !champ ? 'pregao' : gs?.holandes ? 'tocaia' : 'envelope', clubes: !!gs?.clubes, deck: d === 'eu' ? 'eu' : d === 'br' ? 'br' : d === 'world' ? 'world' : 'both', copa: copaDaLiga(gs) })
+                }} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
+                  {tr('🔁 Trocar o modo', '🔁 Change mode')}
+                </button>
+                <button onClick={() => patchLiga({ ligaFechada: !gs?.ligaFechada })} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
+                  🤖 {gs?.ligaFechada ? tr('Pôr bots', 'Add bots') : tr('Tirar bots', 'Remove bots')}
+                </button>
+                <button onClick={() => setLigaRegrasAberto(true)} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
+                  {tr('⚖️ Regras', '⚖️ Rules')}
+                </button>
+              </div>
+            )}
+            {mandaNaLiga && !modoEdit && <p className="text-black/50 text-[10.5px] font-bold mt-2">{tr('Só você (dono) vê os botões. Troféus e ranking continuam ao trocar.', 'Only you (owner) see the buttons. Trophies and ranking stay when you change.')}</p>}
+            {/* ⚖️ as regras do ranking abrem POR CIMA, só no toque (antes ocupavam a tela inteira da espera) */}
+            {mandaNaLiga && ligaRegrasAberto && (
+              <div className="fixed inset-0 z-50 grid place-items-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setLigaRegrasAberto(false)}>
+                <div className="w-full max-w-md rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: '#fff', boxShadow: `4px 4px 0 ${INK}`, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                  <p className="px-3 py-1.5 text-[11px] uppercase tracking-widest" style={{ ...OSWALD, background: INK, color: GOLD }}>{tr('⚖️ O que conta nesta liga', '⚖️ What counts in this league')}</p>
+                  <div className="p-3 space-y-2">
+                    <RegrasDaLiga regras={lerRegras(gs?.ligaRegras)} salvar={(r: LigaRegras) => { void patchLiga({ ligaRegras: r }) }} />
+                    <button onClick={() => setLigaRegrasAberto(false)} className="w-full border-2 border-black rounded-xl py-2.5 font-black text-[13px] uppercase text-white" style={{ ...OSWALD, background: GREEN, boxShadow: `2px 2px 0 ${INK}` }}>{tr('✅ Pronto', '✅ Done')}</button>
+                  </div>
+                </div>
+              </div>
             )}
             {mandaNaLiga && modoEdit && (
               <div className="mt-2 space-y-2">
@@ -4918,116 +5036,7 @@ export function EscLobby() {
               </div>
             )}
             {!mandaNaLiga && <p className="text-black/55 text-[10.5px] font-bold mt-1.5">{tr('Quem escolhe o modo é o dono da liga.', 'The league owner picks the mode.')}</p>}
-          </div>
-        )
-      })()}
-
-      {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
-          ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
-      {room.game_state?.mode === 'liga' && (() => {
-        const gs = room.game_state as GS
-        const q = quandoLiga(gs?.ligaAt)
-        return (
-          <div className="rounded-2xl border-[3px] border-black p-3" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-white/70 text-[10px] font-black uppercase tracking-widest" style={OSWALD}>{(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr('📋 Liga Draft · próximo jogo', '📋 Draft League · next game') : tr('🏆 Minhas ligas · próximo jogo', '🏆 My leagues · next game')}</p>
-                <p className="text-white font-black text-lg leading-tight" style={OSWALD}>{q.txt}</p>
-                <p className="text-white/70 text-[11px] font-bold mt-0.5">{gs?.ligaFechada ? (players.length < 4 ? tr(`🚫 sem bots (vale com 4+ pessoas) — agora são ${players.length}, então começa com bots`, `🚫 no bots (needs 4+ people) — there are ${players.length} now, so it starts with bots`) : tr('🚫 sem bots — só a galera na tabela', '🚫 no bots — only the crew in the table')) : (() => { const tam = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20; return (gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft ? tr(`👤 usuários + 🤖 bots = ${tam} times`, `👤 users + 🤖 bots = ${tam} teams`) : tr(`🤖 com bots até ${tam} times`, `🤖 with bots up to ${tam} teams`) })()}</p>
-              </div>
             </div>
-            {mandaNaLiga && (
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <button onClick={() => {
-                  const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
-                  const pad = (n: number) => String(n).padStart(2, '0')
-                  setLigaEditData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
-                  setLigaEditHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
-                  setLigaEdit(true)
-                }} className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  {tr('📅 Mudar dia e hora', '📅 Change day and time')}
-                </button>
-                <button onClick={() => patchLiga({ ligaFechada: !gs?.ligaFechada })}
-                  className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                  🤖 {gs?.ligaFechada ? tr('Pôr bots', 'Add bots') : tr('Tirar bots', 'Remove bots')}
-                </button>
-              </div>
-            )}
-            {/* 📅 REMARCAR EM UM TOQUE. O Diego: *"deve poder remarcar fácil pra
-                qualquer dia e hora, seja dia seguinte, uma semana, tanto faz"*.
-                Os atalhos empurram a MESMA hora pra frente; pra trocar a hora é
-                o "mudar dia e hora" logo acima. E se ninguém remarcar, a data
-                velha FICA — o jogo não inventa data por conta própria. */}
-            {mandaNaLiga && !ligaEdit && (
-              <div className="flex gap-2 mt-2">
-                {([[tr('+1 dia', '+1 day'), 1], [tr('+1 semana', '+1 week'), 7], [tr('+15 dias', '+15 days'), 15]] as [string, number][]).map(([rot, dias]) => (
-                  <button key={rot} onClick={() => {
-                    const base = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
-                    const d = new Date(base.getTime() + dias * 864e5)
-                    void patchLiga({ ligaAt: d.toISOString() })
-                  }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
-                    📅 {rot}
-                  </button>
-                ))}
-              </div>
-            )}
-            {/* ⚖️ A REGRA DO RANKING FICA AQUI, NA ESPERA (Diego 23/08): *"tem q
-                ter algo pro criador da sala tipo os ajustes ter p ele na sala de
-                espera... pq o jogo já começa no pregão"*. Ele precisa decidir ANTES
-                da bola rolar — depois do pregão não tem volta. E a regra que está
-                valendo aparece pra TODO MUNDO numa linha: o convidado não entra no
-                escuro sem saber por que fulano lidera. */}
-            {!(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && <p className="text-white/60 text-[10px] font-bold leading-snug mt-2 pt-2" style={{ borderTop: '1.5px solid rgba(255,255,255,.2)' }}>
-              ⚖️ {resumoRegra(lerRegras(gs?.ligaRegras))} <span className="text-white/40">{tr('— todo mundo vê', '— everyone sees it')}</span>
-            </p>}
-            {mandaNaLiga && !ligaEdit && !(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (
-              <button onClick={() => setLigaRegrasAberto(v => !v)}
-                className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
-                style={{ ...OSWALD, background: ligaRegrasAberto ? '#fff' : GOLD, color: INK }}>
-                ⚖️ {ligaRegrasAberto ? tr('Fechar as regras', 'Close the rules') : tr('Regras do ranking', 'Ranking rules')}
-              </button>
-            )}
-            {mandaNaLiga && ligaRegrasAberto && (
-              <div className="mt-2">
-                <RegrasDaLiga regras={lerRegras(gs?.ligaRegras)} salvar={(r: LigaRegras) => { void patchLiga({ ligaRegras: r }) }} />
-              </div>
-            )}
-            {/* 👑 NÃO EXISTE ADM NA LIGA (Diego 23/08, decisão permanente).
-                Palavras dele: *"não tem negócio de quem manda junto.. só quem manda
-                é o host mesmo. Não tem adm não"*. Tinha aqui um botão "⭐ Quem mais
-                pode mexer" que dava a outro jogador o poder de remarcar, arrumar
-                troféu e mexer nas regras — SAIU. É a mesma régua da coroa
-                (`ELEICAO_AUTOMATICA = false`): quem criou a sala manda do começo ao
-                fim, e ninguém divide o comando. NÃO REPROPOR.
-                O campo `ligaAdmins` continua existindo no banco só pra não quebrar
-                liga antiga que já tenha alguém na lista — mas ele não dá poder
-                nenhum e não tem mais tela pra mexer nele. */}
-            {mandaNaLiga && ligaEdit && (
-              <div className="mt-3 rounded-xl border-2 border-black bg-white p-3">
-                <p className="font-black text-[11px] uppercase tracking-wider text-black/50 mb-1.5" style={OSWALD}>{tr('📅 Quando vocês jogam', '📅 When you play')}</p>
-                <div className="flex gap-2">
-                  <input type="date" value={ligaEditData} onChange={e => setLigaEditData(e.target.value)}
-                    className="flex-1 min-w-0 border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
-                  <input type="time" value={ligaEditHora} onChange={e => setLigaEditHora(e.target.value)}
-                    className="w-[96px] border-2 border-black rounded-lg px-2 py-1.5 font-black text-black text-[13px] bg-white" style={OSWALD} />
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button onClick={async () => {
-                    const d = new Date(`${ligaEditData}T${ligaEditHora}`)
-                    // 🤐 antes isto era um `return` MUDO: com o campo vazio, apertar
-                    // Salvar não fazia nada e não explicava nada. Botão que não
-                    // responde é o pior tipo de trava — agora diz o que falta.
-                    if (isNaN(d.getTime())) { setRoomError(tr('Confira o dia e a hora — os dois precisam estar preenchidos.', 'Check the day and time — both need to be filled in.')); return }
-                    await patchLiga({ ligaAt: d.toISOString() }); setLigaEdit(false)
-                  }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs text-white" style={{ background: GREEN, ...OSWALD }}>{tr('Salvar', 'Save')}</button>
-                  <button onClick={() => setLigaEdit(false)}
-                    className="flex-1 border-2 border-black rounded-lg py-2 font-black text-xs bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
-                </div>
-                <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-2">
-                  {getLang() === 'en' ? <>Changing the date <b>loses no trophy</b> — the league is the same room as always.</> : <>Mudar a data <b>não perde troféu nenhum</b> — a liga é a mesma sala de sempre.</>}
-                </p>
-              </div>
-            )}
           </div>
         )
       })()}
