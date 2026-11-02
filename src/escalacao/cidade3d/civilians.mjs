@@ -26,7 +26,7 @@ const modelURLs=Object.freeze({
  Fuller_Woman:new URL('./assets/Fuller_Woman.glb',import.meta.url).href,
 });
 const load=file=>{const url=modelURLs[file];if(!url)return Promise.reject(Error('Modelo civil indisponível: '+file));if(!cache.has(file))cache.set(file,loader.loadAsync(url).catch(e=>{cache.delete(file);throw e}));return cache.get(file)};
-export function createCivilian(parent,{id='civilian',variant,onReady}={}){
+export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor}={}){
  const spec=CIVILIAN_VARIANTS.find(v=>v.id===variant)??CIVILIAN_VARIANTS[hash(id)%CIVILIAN_VARIANTS.length];
  const root=new T.Group();root.name='civilian-'+id;parent.add(root);const physical=new T.Group();physical.name='civilian-metres';root.add(physical);
  let disposed=false,model,mixer,actions,footMeshes=[],height=0,last=null,poseUpdates=0,errors=[],lastPose=-Infinity;
@@ -35,7 +35,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady}={}){
  const ready=load(spec.file).then(gltf=>{
   if(disposed)return false;
   model=clone(gltf.scene);physical.add(model);
-  const palette=clothes[hash(id+'clothes')%clothes.length],materialCopies=new Map();
+  const palette=/^#[0-9a-f]{6}$/i.test(outfitColor??'')?outfitColor:clothes[hash(id+'clothes')%clothes.length],materialCopies=new Map();
   model.traverse(n=>{if(!n.isMesh)return;n.castShadow=n.receiveShadow=true;n.frustumCulled=true;
    const convert=source=>{if(!materialCopies.has(source)){const m=source.clone();if(['Shirt','Clothes'].includes(m.name))m.color.set(palette);if(m.name==='Skin')m.color.set(['#b87952','#d4ad83','#895738','#bd926b'][hash(id+'skin')%4]);if(m.name==='Hair'&&spec.age==='older')m.color.set('#9b9a90');m.roughness=.86;m.metalness=0;materialCopies.set(source,m);materials.add(m)}return materialCopies.get(source)};
    n.material=Array.isArray(n.material)?n.material.map(convert):convert(n.material);

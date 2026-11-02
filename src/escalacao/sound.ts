@@ -252,7 +252,16 @@ const AMBIENTE_VOL = 0.5    // fica ao FUNDO; o master geral já corta tudo pra 
 const GOL_VOL = 0.95
 const DUCK = 0.35           // o ambiente cai pra 35% enquanto o gol toca
 
-let crowd: { gain: GainNode; stop: () => void } | null = null
+let crowd: { gain: GainNode; spatial:GainNode;stop: () => void } | null = null
+const mapListeners=new Map<symbol,number>()
+const listenerLevel=()=>mapListeners.size&&crowdWanted<=mapListeners.size?Math.max(...mapListeners.values()):1
+/** Optional map listener uses the SAME cached crowd source. A downstream gain
+ * preserves goal ducking and releases only its own request when leaving. */
+export function criarOuvinteEstadio(){
+ const id=Symbol('stadium-map');let requested=false,level=-1
+ const apply=()=>{try{if(crowd&&ctx)crowd.spatial.gain.setTargetAtTime(Math.max(.0001,listenerLevel()),ctx.currentTime,.3)}catch{/* audio never stops a match */}}
+ return{update(enabled:boolean,value:number){const next=Math.round(Math.max(0,Math.min(1,value))*100)/100;if(enabled){mapListeners.set(id,next);if(!requested){requested=true;startCrowd({carreira:true})}if(next!==level){level=next;apply()}}else if(requested){requested=false;mapListeners.delete(id);stopCrowd();apply()}},dispose(){if(requested){requested=false;mapListeners.delete(id);stopCrowd();apply()}}}
+}
 // 🔢 CONTADOR, não booleano: a Copa do Mundo abre DENTRO da carreira e as duas telas
 // pedem o ambiente. Quando a Copa fechava, o `stopCrowd` dela matava a torcida da
 // carreira, que continuava aberta — outro jeito de "só ouço o gol". Agora cada tela
@@ -265,9 +274,10 @@ export function startCrowd(opts?: { carreira?: boolean }) {
   crowdWanted++
   if (opts?.carreira && !crowdCarreira) { crowdCarreira = true; if (crowd && crowdArquivo !== arquivoAmbiente()) apagaCrowd() }
   acendeCrowd()
+  if(crowd&&ctx)crowd.spatial.gain.setTargetAtTime(Math.max(.0001,listenerLevel()),ctx.currentTime,.3)
 }
 /** a tela de jogo fechou: não quer mais (a torcida só apaga quando NENHUMA tela quer) */
-export function stopCrowd() { crowdWanted = Math.max(0, crowdWanted - 1); if (!crowdWanted) { crowdCarreira = false; apagaCrowd() } }
+export function stopCrowd() { crowdWanted = Math.max(0, crowdWanted - 1); if (!crowdWanted) { crowdCarreira = false; apagaCrowd() } else if(crowd&&ctx)crowd.spatial.gain.setTargetAtTime(Math.max(.0001,listenerLevel()),ctx.currentTime,.3) }
 function apagaCrowd() { if (crowd) { crowd.stop(); crowd = null; crowdArquivo = null } }
 function acendeCrowd() {
   if (crowd) return
@@ -275,11 +285,11 @@ function acendeCrowd() {
   // marca o lugar JÁ (síncrono), senão dois renders seguidos abrem duas torcidas
   const g = c.createGain()
   g.gain.value = 0.0001
-  g.connect(master)
+  const spatial=c.createGain();spatial.gain.value=Math.max(.0001,listenerLevel());g.connect(spatial);spatial.connect(master)
   let src: AudioBufferSourceNode | null = null
   let morto = false
   crowd = {
-    gain: g,
+    gain: g,spatial,
     stop: () => {
       morto = true
       try {

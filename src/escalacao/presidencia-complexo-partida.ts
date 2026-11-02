@@ -97,7 +97,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
 }
 
 export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type PartidaComplexo={setPresentationVisible:(visible:boolean)=>void;update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -211,6 +211,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {
   update,
+  setPresentationVisible:visible=>{if(match)match.root.visible=visible},
   subjects:()=>cameraSubjects,
   inspect:()=>({...inspection,ball:{...inspection.ball}}),
   dispose:()=>{if(disposed)return;disposed=true;clearMatch();descartarObjetos(field,[grass])},

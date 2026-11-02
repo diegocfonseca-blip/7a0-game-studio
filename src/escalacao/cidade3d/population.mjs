@@ -7,3 +7,9 @@ export function cityPopulation({enabled=false,supporters=0,built=0,mobile=false}
  const growth=Math.floor(Math.log2(1+supporters/3000)*6)+2*Math.max(0,Math.floor(built));
  return Math.min(mobile?20:48,10+growth);
 }
+
+/** City cars do not consume a spectator seat/transport reservation. */
+export function cityTrafficBudget({enabled=false,supporters=0,mobile=false}={}){
+ if(!enabled||!Number.isFinite(supporters)||supporters<=0)return 0;
+ return Math.min(mobile?5:8,2+Math.floor(Math.log2(1+supporters/6000)));
+}

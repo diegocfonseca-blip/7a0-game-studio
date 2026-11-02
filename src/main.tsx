@@ -15,6 +15,9 @@ try {
   if (localStorage.getItem('esc-tema') === 'noturno') document.documentElement.classList.add('noturno')
 } catch { /* segue no claro */ }
 
+// 🛡️📧 02/11: escudo de batismo só pelo e-mail — a lista de nomes que copiaram um batismo vem do banco logo no início
+void import('./escalacao/apoio').then(m => m.carregaNomesSemEscudo()).catch(() => { /* sem banco: fica como antes */ })
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

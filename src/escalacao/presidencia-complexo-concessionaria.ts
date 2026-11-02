@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
-import {PLANTA_COMPLEXO,deslocarCaminhoComplexo,type PontoComplexo} from './presidencia-complexo-model'
+import {mapaParaMundo,deslocarCaminhoComplexo,type PontoComplexo} from './presidencia-complexo-model'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
 
 type Point = PontoComplexo & {y:number}
@@ -12,31 +12,18 @@ const rectangle=({minX,maxX,minZ,maxZ}:Bounds)=>[
 const ribbon=(points:readonly PontoComplexo[],width:number)=>[
  ...deslocarCaminhoComplexo(points,width/2),...deslocarCaminhoComplexo(points,-width/2).reverse(),
 ]
-// Connect to the public street, present even when the club has no asphalt.
-const out=PLANTA_COMPLEXO.routes.roadOut.points,back=[...PLANTA_COMPLEXO.routes.roadBack.points].reverse()
-const streetA={x:(out[2].x+back[2].x)/2,z:(out[2].z+back[2].z)/2}
-const streetB={x:(out[3].x+back[3].x)/2,z:(out[3].z+back[3].z)/2}
-const streetLength=Math.hypot(streetB.x-streetA.x,streetB.z-streetA.z)
-const driveway:Point[]=[
- {x:streetA.x+(streetB.x-streetA.x)*.42+(streetB.z-streetA.z)/streetLength*5,
-  z:streetA.z+(streetB.z-streetA.z)*.42-(streetB.x-streetA.x)/streetLength*5,y:0},
- {x:-181,z:45,y:GROUND},{x:-173.5,z:44,y:GROUND},
-]
-// Begin on the asphalt with a level metre before the slope. The beginning
-// must not coincide with the existing raised curb's edge after Float32 upload.
-const drivewayStart=driveway[0],drivewayNext=driveway[1]
-const drivewayLength=Math.hypot(drivewayNext.x-drivewayStart.x,drivewayNext.z-drivewayStart.z)
-driveway.unshift({x:drivewayStart.x-(drivewayNext.x-drivewayStart.x)/drivewayLength,
- z:drivewayStart.z-(drivewayNext.z-drivewayStart.z)/drivewayLength,y:0})
-const cutPath=driveway.map(p=>({...p}))
-for(const [index,neighbor] of [[0,1],[cutPath.length-1,cutPath.length-2]]){
- const p=cutPath[index],q=cutPath[neighbor],length=Math.hypot(p.x-q.x,p.z-q.z)
- p.x+=(p.x-q.x)/length*.08;p.z+=(p.z-q.z)/length*.08
-}
-const pedestrian:Point[]=[
- {...PLANTA_COMPLEXO.routes.sidewalk.points[0],y:GROUND},
- {x:-174,z:55,y:GROUND},{x:-154.5,z:48,y:GROUND},{x:-154.5,z:29,y:GROUND},{x:-154.5,z:26,y:GROUND},
-]
+// Same shop, now in the western city district, outside the stadium frontage.
+export const VADICO_RELOCATION={x:-135.5,z:-169.5}
+export const pontoVadico=<T extends PontoComplexo>(p:T):T=>({...p,x:p.x+VADICO_RELOCATION.x,z:p.z+VADICO_RELOCATION.z})
+const localVadico=<T extends PontoComplexo>(p:T):T=>({...p,x:p.x-VADICO_RELOCATION.x,z:p.z-VADICO_RELOCATION.z})
+const movedBounds=(b:Bounds)=>({minX:b.minX+VADICO_RELOCATION.x,maxX:b.maxX+VADICO_RELOCATION.x,minZ:b.minZ+VADICO_RELOCATION.z,maxZ:b.maxZ+VADICO_RELOCATION.z})
+const avenue=[[-65,269],[150,119],[295,48],[354,-65]].map(([x,y])=>mapaParaMundo({x,y}))
+const a=avenue[0],b=avenue[1],length=Math.hypot(b.x-a.x,b.z-a.z),u={x:(b.x-a.x)/length,z:(b.z-a.z)/length},at=(t:number,offset:number)=>({x:a.x+(b.x-a.x)*t-u.z*offset,z:a.z+(b.z-a.z)*t+u.x*offset})
+// Start inside the actual existing avenue. Only the business driveway is sloped.
+const lane=at(.50,-1),curb=at(.50,-5.7)
+const driveway:Point[]=[{...lane,y:0},{...curb,y:0},{x:-263,z:-119.5,y:GROUND},{x:-273,z:-119.5,y:GROUND}]
+const pedestrian:Point[]=[{...at(.61,-6.9),y:GROUND},{x:-263,z:-119,y:GROUND},{x:-290,z:-119,y:GROUND},{x:-290,z:-140.5,y:GROUND},{x:-290,z:-143.5,y:GROUND}]
+const cutPath=driveway.map(p=>({...p}));for(const [i,j]of [[0,1],[cutPath.length-1,cutPath.length-2]]){const p=cutPath[i],q=cutPath[j],l=Math.hypot(p.x-q.x,p.z-q.z);p.x+=(p.x-q.x)/l*.12;p.z+=(p.z-q.z)/l*.12}
 const bounds={minX:-176,maxX:-133,minZ:8,maxZ:51}
 const building={minX:-173,maxX:-136,minZ:10,maxZ:29}
 const door={id:'vadico',outside:{x:-154.5,y:GROUND,z:31},threshold:{x:-154.5,y:GROUND,z:29},inside:{x:-154.5,y:GROUND,z:26},width:3.2,height:3.4,heading:0}
@@ -45,15 +32,15 @@ const carPositions=[-169,-164.3,-159.6,-149.4,-144.7,-140].map((x,index)=>({id:`
 /** Permanent sponsor scenery; independent of purchases, contracts or savings.
  * Reservations include the entire public access, not just the building. */
 export const PLANTA_VADICO={
- label:'Vadico Veículos',bounds,footprint:rectangle(bounds),center:{x:-154.5,z:29.5},
- front:{x:-154.5,z:29,heading:0},building,door,floor:GROUND,
+ label:'Vadico Veículos',bounds:movedBounds(bounds),footprint:rectangle(movedBounds(bounds)),center:pontoVadico({x:-154.5,z:29.5}),
+ front:pontoVadico({x:-154.5,z:29,heading:0}),building:movedBounds(building),door:{...door,outside:pontoVadico(door.outside),threshold:pontoVadico(door.threshold),inside:pontoVadico(door.inside)},floor:GROUND,publicStreet:{id:'via-oeste',points:avenue,width:11,walk:2.8},releasedSite:rectangle(bounds),
  access:{pedestrian,driveway,pedestrianWidth:2.8,drivewayWidth:5.6},
  drivewayPolygon:ribbon(driveway,5.6),
  // Cut existing elevated pavements slightly beyond the rendered ramp so a
  // numerical boundary cannot leave a thin, impassable curb across the entry.
  drivewayCutPolygon:ribbon(cutPath,5.76),
- reservationPolygons:[rectangle(bounds),ribbon(driveway,7.6),ribbon(pedestrian,4.8)],
- cars:carPositions,
+ reservationPolygons:[rectangle(movedBounds(bounds)),rectangle(bounds),ribbon(driveway,7.6),ribbon(pedestrian,4.8)],
+ cars:carPositions.map(pontoVadico),
 } as const
 
 export type RodaConcessionaria={id:string;carId:string;position:Point;radius:number;contact:Point}
@@ -83,7 +70,7 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
  const ceilingLights=mat('vadico-luminarias','#f2edcf',.25)
  ceilingLights.userData.complexoNightEmission={color:'#ffe9b9',intensity:2}
  glass.userData.complexoNightEmission={color:'#dfc795',intensity:.15}
- root.userData.complexoLights=[-169,-140].map(x=>({id:`vadico-teto-${x}`,kind:'entrance',position:[x,GROUND+6.44,20],target:[x,GROUND,20],color:'#ffe9b9',intensity:180,distance:12,angle:.85}))
+ root.userData.complexoLights=[-169,-140].map(x=>({id:`vadico-teto-${x}`,kind:'entrance',position:[x+VADICO_RELOCATION.x,GROUND+6.44,20+VADICO_RELOCATION.z],target:[x+VADICO_RELOCATION.x,GROUND,20+VADICO_RELOCATION.z],color:'#ffe9b9',intensity:180,distance:12,angle:.85}))
  const red=mat('vadico-lanternas','#c2232b',.35)
  const white=new THREE.Color('#ffffff')
  const add=(geometry:THREE.BufferGeometry,material:THREE.Material,color?:THREE.Color)=>{
@@ -95,9 +82,11 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
    for(let i=0;i<values.length;i+=3){values[i]=c.r;values[i+1]=c.g;values[i+2]=c.b}
    source.setAttribute('color',new THREE.BufferAttribute(values,3))
   }
+  source.translate(VADICO_RELOCATION.x,0,VADICO_RELOCATION.z)
   const batch=batches.get(material)??[];batch.push(source);batches.set(material,batch)
  }
- const solid=(id:string,footprint:readonly PontoComplexo[],base:number,top:number)=>{
+ const solid=(id:string,localFootprint:readonly PontoComplexo[],base:number,top:number)=>{
+  const footprint=localFootprint.map(pontoVadico)
   solids.push({id,footprint,minX:Math.min(...footprint.map(p=>p.x)),maxX:Math.max(...footprint.map(p=>p.x)),minZ:Math.min(...footprint.map(p=>p.z)),maxZ:Math.max(...footprint.map(p=>p.z)),base,top})
  }
  const box=(id:string,material:THREE.Material,w:number,h:number,d:number,x:number,y:number,z:number,collider=false,color?:THREE.Color)=>{
@@ -119,9 +108,9 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
  }
  // The property is already developed city scenery at every stadium stage.
  box('vadico-fundacao',concrete,43,.35,43,-154.5,GROUND-.185,29.5)
- polygon(PLANTA_VADICO.footprint,GROUND,paving)
- walk(pedestrian,PLANTA_VADICO.access.pedestrianWidth,paving)
- walk(driveway,PLANTA_VADICO.access.drivewayWidth,paving)
+ polygon(rectangle(bounds),GROUND,paving)
+ walk(pedestrian.map(localVadico),PLANTA_VADICO.access.pedestrianWidth,paving)
+ walk(driveway.map(localVadico),PLANTA_VADICO.access.drivewayWidth,paving)
  // Individual walls leave a genuine opening, also in the physical collider list.
  box('vadico-parede-fundo',cream,37,6.6,.3,-154.5,GROUND+3.3,10.15,true)
  for(const x of [-172.85,-136.15])box('vadico-parede-lateral',cream,.3,6.6,19,x,GROUND+3.3,19.5,true)
@@ -178,7 +167,7 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
     const tyre=new THREE.CylinderGeometry(radius,radius,.22,16);tyre.rotateZ(Math.PI/2);tyre.translate(wx,cy,wz);add(tyre,tyres)
     const rim=new THREE.CylinderGeometry(.205,.205,.235,10);rim.rotateZ(Math.PI/2);rim.translate(wx,cy,wz);add(rim,chrome)
     const wheelId=`${id}-roda-${side}-${end}`
-    wheels.push({id:wheelId,carId:id,position:{x:wx,y:cy,z:wz},radius,contact:{x:wx,y,z:wz}})
+    wheels.push({id:wheelId,carId:id,position:pontoVadico({x:wx,y:cy,z:wz}),radius,contact:pontoVadico({x:wx,y,z:wz})})
    }
   }
   box('vadico-carro-grade',frame,.76,.16,.06,x,y+.49,z+2.145)
@@ -214,9 +203,9 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
  }
  root.updateMatrixWorld(true)
  const metadata={label:PLANTA_VADICO.label,stockCount:carPositions.length,permanent:true,purchasable:false,
-  floor:GROUND,bounds:{...bounds},door,cars:carPositions.map(car=>({...car,length:4.4,width:2.16,height:1.55})),
+  floor:GROUND,bounds:{...PLANTA_VADICO.bounds},door:PLANTA_VADICO.door,cars:PLANTA_VADICO.cars.map(car=>({...car,length:4.4,width:2.16,height:1.55})),
   wheels:wheels.map(w=>({...w,position:{...w.position},contact:{...w.contact}})),
-  sign:{text:PLANTA_VADICO.label,color:'#c31e2b',source:signSource,resolution:[4096,300],position:{x:-154.5,y:GROUND+5.25,z:29.274}},
+  sign:{text:PLANTA_VADICO.label,color:'#c31e2b',source:signSource,resolution:[4096,300],position:pontoVadico({x:-154.5,y:GROUND+5.25,z:29.274})},
   meshes:root.children.length,triangles:geometries.reduce((sum,g)=>sum+(g.index?.count??g.getAttribute('position').count)/3,0),
  }
  root.userData.dealership=metadata

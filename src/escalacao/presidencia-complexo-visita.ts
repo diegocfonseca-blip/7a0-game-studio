@@ -1,8 +1,9 @@
+import {spectatorVisibleAt} from './cidade3d/spectator-access.mjs'
 import * as THREE from 'three'
 import {createCivilian} from './cidade3d/civilians.mjs'
 import { criarRelogioJornadaComplexo, type JornadaMovimentoComplexo } from './presidencia-complexo-jornada-relogio'
 import type { AcessoAssentoComplexo, AssentoComplexo } from './presidencia-complexo-arquitetura'
-import { caminhosTorcidaComplexo, deslocarCaminhoComplexo, type EstadoComplexo } from './presidencia-complexo-model'
+import { PLANTA_COMPLEXO,caminhosTorcidaComplexo, deslocarCaminhoComplexo, type EstadoComplexo } from './presidencia-complexo-model'
 import { geometriaHumana, materialHumano } from './presidencia-humano-acabamento.ts'
 
 export type PontoVisitaComplexo = { x: number; y: number; z: number }
@@ -291,10 +292,14 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
   const civilian=createCivilian(root,{id:options.id})
   let civilTime=0,civilDistance=0,civilSpeed=0,previousHip:THREE.Vector3|undefined
   let disposed = false
-  function updatePose(last: QuadroVisitaComplexo | undefined, seconds=0) {
+  function updatePose(last: QuadroVisitaComplexo | undefined, seconds=0,spectatorSide:'home'|'away'=options.side) {
     if (disposed) return
-    root.visible = !!last && last.visible && finite(last.hip) && [last.heading, last.seated].every(Number.isFinite) && Array.isArray(last.feet) && last.feet.length === 2 && last.feet.every(foot => finite(foot?.position) && Number.isFinite(foot?.heading))
-    if (!last || !root.visible) return
+    const valid=!!last && last.visible && finite(last.hip) && [last.heading,last.seated].every(Number.isFinite) && Array.isArray(last.feet) && last.feet.length===2 && last.feet.every(foot=>finite(foot?.position)&&Number.isFinite(foot?.heading))
+    root.userData.side=spectatorSide
+    root.visible=valid&&spectatorVisibleAt(last!.hip,spectatorSide,PLANTA_COMPLEXO.gates[spectatorSide])
+    // Preserve the measured foot/seat transforms while the public body is in
+    // the backstage transfer. Visibility never changes its ticket timeline.
+    if (!last || !valid) return
     root.position.set(last.hip.x, last.hip.y - HIP, last.hip.z); root.rotation.y = last.heading; inverse.copy(root.quaternion).invert()
     for (let i = 0; i < legs.length; i++) {
       const leg = legs[i], target = last.feet[i]
@@ -323,7 +328,7 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
     if(['seated','waiting','standing','sitting','turning'].includes(last.phase))civilSpeed=0
     previousHip=position;civilTime=seconds
     civilian.root.position.y=Math.min(...last.feet.map(f=>f.position.y))-root.position.y
-    civilian.update({seconds,distance:civilDistance,speed:civilSpeed,seated:last.seated,transition:last.phase})
+    civilian.update({seconds,distance:civilDistance,speed:civilSpeed,seated:last.seated,transition:last.phase,visible:root.visible})
     root.updateMatrixWorld(true)
   }
   return { root, inspectCivilian:()=>civilian.inspect(), feet: legs.map(leg => leg.sole), updatePose,
@@ -369,7 +374,7 @@ export function criarVisitaComplexo(scene: THREE.Scene, options: OpcoesVisitaCom
     setAccessBlocked(value:boolean){accessBlocked=value},
     finishAtOrigin(){retiring=true;const current=journeyClock.inspect();journeyClock.configure({key:current.key??'retiring-'+options.id,variantSeed:0,phase:'departure'})},
     configureJourney(journey: JornadaMovimentoComplexo | undefined) { if (disposed) return; journeyClock.configure(journey); update(seconds) },
-    inspect: () => ({ id: options.id, rigId: body.root.uuid, civilian:body.inspectCivilian(), side: options.side, seatId: options.seat.id, seconds, color, pendingColor: pendingColor ? { ...pendingColor } : undefined, ...timeline.inspect(), journey: journeyClock.inspect(), pose: last ? structuredClone(last) : undefined }),
+    inspect: () => ({ id: options.id, rigId: body.root.uuid, civilian:body.inspectCivilian(), rendered:body.root.visible, side: options.side, seatId: options.seat.id, seconds, color, pendingColor: pendingColor ? { ...pendingColor } : undefined, ...timeline.inspect(), journey: journeyClock.inspect(), pose: last ? structuredClone(last) : undefined }),
     dispose() { if (disposed) return; disposed = true; body.dispose() },
   }
 }

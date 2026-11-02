@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {stadiumDayClock,coachReturnSchedule,warmupLane,STADIUM_DAY} from '../../src/escalacao/cidade3d/stadium-day.mjs';
+const j={key:'fixture-a',hosting:true,phase:'arrival'},clock=stadiumDayClock();
+assert.equal(clock.update(j,10).setup,0);
+assert.equal(clock.update(j,20).gatesOpen,false);
+assert.equal(clock.update(j,29).gatesOpen,true);
+assert.equal(clock.update(j,85).stage,'teams-arrival');
+assert.equal(clock.update({...j,phase:'playing'},200).phaseElapsed,0);
+assert.equal(clock.update({...j,phase:'playing'},300).phaseElapsed,100);
+assert.equal(clock.update({...j,phase:'interval'},301).phaseElapsed,0);
+assert.equal(clock.update({...j,phase:'playing'},360).standFill,1);
+assert.equal(clock.update({...j,phase:'departure'},1000).standFill,1);
+assert.equal(clock.update({...j,phase:'departure'},1100).standFill,0);
+assert.equal(clock.update({...j,phase:'departure'},1150).pack,0);
+assert.equal(clock.update({...j,phase:'departure'},1180).pack,1);
+assert.equal(clock.update({...j,phase:'departure'},1000+STADIUM_DAY.close).active,false);
+assert.equal(stadiumDayClock().update({...j,phase:'playing'},0).joinedLate,true);
+assert.equal(stadiumDayClock().update({...j,phase:'playing'},0).setup,1);
+const timing=coachReturnSchedule({inbound:60,outbound:50,boarding:42});
+assert(timing.close>timing.open+10*1.45+42,'door closed on final athlete');
+assert(timing.depart>timing.close&&timing.slot>timing.end,'two coaches share the bay');
+for(const x of [-26,-8,8,26]){const lane=warmupLane({x,y:.16,z:37.2});let prev=lane.at(0);for(let t=1/60;t<lane.period*3;t+=1/60){const p=lane.at(t);assert(Math.hypot(p.x-prev.x,p.z-prev.z)<=1.8/60+1e-6,'warmup teleport');assert(Math.abs(Math.atan2(Math.sin(p.heading-prev.heading),Math.cos(p.heading-prev.heading)))<.08,'warmup turn snapped');assert(p.distance>=prev.distance-1e-6);prev=p}}
+console.log(JSON.stringify({status:'PASS',phaseClockStable:true,lateJoinSkipsPregame:true,warmupContinuous:true,boardingBeforeDoorClosure:true,coachesSequential:true}));

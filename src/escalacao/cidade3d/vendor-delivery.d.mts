@@ -1,0 +1,5 @@
+import type {CityPoint,CityPose,activityRoute} from './activity-route.mjs'
+import type {StadiumDayFrame} from './stadium-day.mjs'
+export const VENDOR_VAN:{width:number;length:number;height:number;wheelRadius:number}
+export type VendorFrame={phase:string;visible:boolean;vehicle:CityPose;person:CityPose & {seated:number};hatch:number;driverDoor:number;setup:number;stallVisible:boolean;cartVisible:boolean;cartPose:CityPose;load:number;packed:boolean;done:boolean}
+export function vendorDelivery(spec:{id:string;kind:string;x:number;z:number},index?:number,floor?:(x:number,z:number)=>number):null|{id:string;parking:CityPoint & {heading:number};incoming:ReturnType<typeof activityRoute>;outgoing:ReturnType<typeof activityRoute>;backing:ReturnType<typeof activityRoute>;cargo:ReturnType<typeof activityRoute>;returnCargo:ReturnType<typeof activityRoute>;exitDriver:ReturnType<typeof activityRoute>;enterDriver:ReturnType<typeof activityRoute>;timing:{start:number;park:number;unload:number;carry:number;assemble:number;ready:number;returnAt:number;loadAt:number;boardAt:number;departAt:number;end:number};at(day?:StadiumDayFrame):VendorFrame}
