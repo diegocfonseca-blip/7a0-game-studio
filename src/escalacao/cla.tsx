@@ -16,7 +16,10 @@ import { clasLiberado } from './cla-gate' // a trava (CLAS_GERAL) mora lá
 import { ApoieButton } from './screens' // ⭐ quem não tem plano vai direto pros planos
 import { PixMP, WHATSAPP_CONTATO, WHATSAPP_TXT } from './pix-mp' // 🛡️ escudo de clã personalizado (21/10)
 export { clasLiberado }
-export const CLA_MAX = 22 // 👥 máximo de membros (21/10: "coloque 22"); o banco tem o MESMO número em esc_cla_cabe
+export const CLA_MAX = 22 // 👥 BASE de membros (21/10: "coloque 22")
+// ⭐ 02/11 (Diego: "quem tem plano e tá no clã… o clã ganha direito a mais uma vaga… sem limite"): limite = 22 + 1 por membro com
+// plano. Quem decide é o banco (`esc_cla_limite_vivo` na entrada; a lista lê `limite` guardado de 5 em 5 min).
+export const limiteDo = (c: { limite?: number } | null | undefined): number => Math.max(CLA_MAX, c?.limite ?? CLA_MAX)
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED', CLA_OURO = '#E9C46A'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -137,7 +140,7 @@ export function ChamarProMeuCla({ uid }: { uid: string }) {
 }
 
 // ── a aba ⚔️ Clã dos Amigos ─────────────────────────────────────────────────────────────────────────────────────
-type ClaJson = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; campeao: boolean; pos?: number; descricao?: string | null }
+type ClaJson = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; campeao: boolean; pos?: number; descricao?: string | null; limite?: number; plano?: number }
 type Bloco = ClaJson & { pos: number | null; lista: { uid: string; nome: string; titulos: number }[]; pedidos: { id: number; uid: string; nome: string }[] }
 type Painel = {
   pode_criar: boolean; escudo: string | null; espera_ate: string | null
@@ -158,7 +161,7 @@ const ERRO: Record<string, [string, string]> = {
   mesmo: ['Você já está nesse clã.', 'You are already in this clan.'],
   presidente: ['Você é o presidente do clã: passe a presidência ou feche o clã antes.', 'You are the clan president: hand over the presidency or close the clan first.'],
   sem_plano: ['Só dá pra passar a presidência pra quem tem plano.', 'You can only hand over the presidency to someone with a plan.'],
-  lotado: [`Esse clã já tem ${CLA_MAX} membros.`, `That clan already has ${CLA_MAX} members.`],
+  lotado: ['Esse clã está cheio. Cada membro com plano abre +1 vaga.', 'That clan is full. Each member with a plan opens +1 slot.'],
   sem_escudo: ['Sua conta não tem escudo de clube (batismo).', 'Your account has no club crest (named club).'],
   sem_cla: ['Esse clã não existe mais.', 'That clan no longer exists.'],
   desc_tamanho: ['A descrição pode ter até 200 letras.', 'The description can have up to 200 letters.'],
@@ -264,7 +267,7 @@ export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string;
       <div key={v.pedido_id} style={{ ...caixa, background: '#EFE6FF' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <EmblemaCla emblema={v.emblema} size={40} />
-          <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{CLA_MAX})<Descricao t={v.descricao} /></div>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{v.de_nome}</b> {tr('te chamou pro clã', 'invited you to the clan')} <b>{v.nome}</b> ({v.membros}/{limiteDo(v)})<Descricao t={v.descricao} /></div>
         </div>
         <span style={{ display: 'flex', gap: 6, marginTop: 8 }}>
           <button disabled={ocupado} style={{ ...bt(GREEN, '#fff'), flex: 1 }} onClick={() => void faz('esc_cla_responder', { p_id: v.pedido_id, p_aceita: true, p_trocar: false }, tr(ENTROU_CLA[0], ENTROU_CLA[1]), { nome: v.nome, emblema: v.emblema, aberto: true })}>{tr('entrar', 'join')}</button>
@@ -277,7 +280,8 @@ export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string;
         <EmblemaCla emblema={c.emblema} size={58} />
         <div style={{ minWidth: 0 }}>
           <b style={{ ...OSW, fontSize: 20, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-          <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('presidente', 'president')}: {c.lider_nome} · {c.membros}/{CLA_MAX} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {tr('presidente', 'president')}: {c.lider_nome} · {c.membros}/{limiteDo(c)} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
+          {!!c.plano && <span style={{ display: 'block', fontSize: 11, fontWeight: 800, color: CLA_OURO }}>{tr(`⭐ +${c.plano} vaga${c.plano > 1 ? 's' : ''} de quem tem plano (base ${CLA_MAX})`, `⭐ +${c.plano} slot${c.plano > 1 ? 's' : ''} from members with a plan (base ${CLA_MAX})`)}</span>}
           <Descricao t={c.descricao} escuro />
         </div>
       </div>
@@ -346,7 +350,7 @@ export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string;
       <div style={{ ...caixa, textAlign: 'center' }}>
         <p style={{ fontSize: 34, margin: 0 }}>⚔️</p>
         <p style={{ ...OSW, fontSize: 16, margin: '2px 0 4px' }}>{tr('Você ainda não tem clã', 'You have no clan yet')}</p>
-        <p style={{ fontSize: 12, fontWeight: 700, margin: 0, color: '#555' }}>{tr(`Até ${CLA_MAX} técnicos juntos: todo título online de cada um soma pro clã, e tem ranking da semana.`, `Up to ${CLA_MAX} managers together: every online title adds to the clan, with a weekly ranking.`)}</p>
+        <p style={{ fontSize: 12, fontWeight: 700, margin: 0, color: '#555' }}>{tr(`${CLA_MAX} técnicos juntos (+1 vaga por membro com plano): todo título online de cada um soma pro clã, e tem ranking da semana.`, `${CLA_MAX} managers together (+1 slot per member with a plan): every online title adds to the clan, with a weekly ranking.`)}</p>
         {p.espera_ate && <p style={{ fontSize: 12, fontWeight: 800, color: '#7a4d00', margin: '6px 0 0' }}>⏳ {tr(`Você saiu de um clã: pode entrar em outro a partir de ${dataCurta(p.espera_ate)}.`, `You left a clan: you can join another from ${dataCurta(p.espera_ate)}.`)}</p>}
       </div>
       <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
@@ -369,8 +373,8 @@ function CriarSemPlano({ onProcurar, onLiberou }: { onProcurar: () => void; onLi
       <p style={{ fontSize: 30, margin: 0 }}>⚔️🔒</p>
       <p style={{ ...OSW, fontSize: 17, margin: '2px 0 6px', color: CLA_OURO }}>{tr('Libere o seu clã', 'Unlock your clan')}</p>
       <p style={{ fontSize: 12.5, fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, color: '#eee' }}>{tr(
-        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos. Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 4,90, uma vez só. Escudo desenhado à mão é à parte (R$ 9,90).`,
-        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends. With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 4.90, once. A hand-drawn crest is extra (R$ 9.90).`)}</p>
+        `Crie o seu clã, vire o presidente 👑 e chame até ${CLA_MAX - 1} amigos (cada membro com plano abre +1 vaga). Com plano (⭐ Craque pra cima) é de graça; sem plano, libera por R$ 4,90, uma vez só. Escudo desenhado à mão é à parte (R$ 9,90).`,
+        `Create your clan, become the president 👑 and invite up to ${CLA_MAX - 1} friends (each member with a plan opens +1 slot). With a plan (⭐ Star and up) it's free; without one, unlock it for R$ 4.90, once. A hand-drawn crest is extra (R$ 9.90).`)}</p>
       {!pagando
         ? <button onClick={() => setPagando(true)} style={{ ...bt(GOLD, INK), width: '100%', padding: 11, fontSize: 15 }}>🔓 {tr('Liberar por R$ 4,90', 'Unlock for R$ 4.90')}</button>
         : <div style={{ background: '#fff', color: INK, borderRadius: 12, padding: 8, textAlign: 'left' }}><PixMP produto="cla_criar" valor={4.9} aoPagar={() => { setPagando(false); onLiberou() }} /></div>}
@@ -562,12 +566,12 @@ function ProcurarCla({ pedi, meu, ocupado, onEntrar }: { pedi: number[]; meu: nu
     {lista === null ? <p style={{ fontSize: 12, fontWeight: 700 }}>{tr('carregando…', 'loading…')}</p>
       : lista.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666' }}>{tr('Nenhum clã por aqui ainda.', 'No clans here yet.')}</p>
       : lista.map(c => {
-        const lotado = c.membros >= CLA_MAX, jaPedi = pedi.includes(c.id)
+        const lotado = c.membros >= limiteDo(c), jaPedi = pedi.includes(c.id)
         return <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
           <EmblemaCla emblema={c.emblema} size={30} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{CLA_MAX} · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{limiteDo(c)} · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
             <Descricao t={c.descricao} />
           </div>
           {c.id === meu ? <span style={{ fontSize: 11, fontWeight: 800, color: GREEN }}>✅ {tr('seu clã', 'your clan')}</span>
@@ -589,7 +593,7 @@ function RankingClas({ meu }: { meu: number | null }) {
       : lista.map(c => <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 4px', borderTop: '1px dashed #d8ccaa', background: c.id === meu ? '#FFF3C4' : 'transparent', borderRadius: 6 }}>
         <span style={{ ...OSW, width: 26, textAlign: 'center' }}>{(c.pos ?? 99) <= 3 && c.titulos > 0 ? ['🥇', '🥈', '🥉'][(c.pos ?? 1) - 1] : `${c.pos}º`}</span>
         <EmblemaCla emblema={c.emblema} size={26} />
-        <div style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}</b><span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{CLA_MAX} {tr('membros', 'members')}</span></div>
+        <div style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}</b><span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{limiteDo(c)} {tr('membros', 'members')}</span></div>
         <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} 🏆</span>
       </div>)}
     <p style={{ fontSize: 10.5, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('O clã campeão da semana joga a semana seguinte com 🏆 no selo de cada membro.', 'The champion clan plays the following week with 🏆 on every member’s badge.')}</p>

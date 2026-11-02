@@ -6,7 +6,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
-import { CLA_MAX, ENTROU_CLA, EmblemaCla, esqueceClas, msgErro, msgTrava } from './cla'
+import { limiteDo, ENTROU_CLA, EmblemaCla, esqueceClas, msgErro, msgTrava } from './cla'
 import { abrePerfilSolto, contaValida } from './amigos'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
@@ -15,7 +15,7 @@ const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', CLA
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
 const bt = (bg: string, cor: string): CSSProperties => ({ ...OSW, fontSize: 14, background: bg, color: cor, border: `2px solid ${INK}`, borderRadius: 10, padding: '10px 12px', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', width: '100%' })
 
-type Ver = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; pos: number | null
+type Ver = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; limite?: number; plano?: number; pos: number | null
   descricao?: string | null; campeao: boolean; sou: boolean; pedi: boolean; lista: { uid: string; nome: string; titulos: number }[] }
 type Resp = { ok?: boolean; erro?: string; pedido?: boolean; atual?: string; preso?: boolean; ate?: string; cla?: string }
 
@@ -41,7 +41,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
       else { setMsg(r.pedido ? tr('📨 Pedido enviado — o presidente do clã decide.', '📨 Request sent — the clan president decides.') : tr(ENTROU_CLA[0], ENTROU_CLA[1])); esqueceClas() }
     } catch { setMsg(`⚠️ ${msgErro(null)}`) } finally { setOcupado(false); carrega() }
   }
-  const cheio = c && c !== 'erro' && c.membros >= CLA_MAX
+  const cheio = c && c !== 'erro' && c.membros >= limiteDo(c)
   return createPortal(
     <div role="dialog" aria-modal="true" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99970, background: 'rgba(12,12,12,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto', background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 ${INK}`, padding: 14 }}>
@@ -53,7 +53,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
             <EmblemaCla emblema={c.emblema} size={58} />
             <div style={{ minWidth: 0 }}>
               <b style={{ ...OSW, fontSize: 20, color: CLA_OURO, display: 'block', lineHeight: 1.05 }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-              <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {c.lider_nome} · {c.membros}/{CLA_MAX} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 700 }}>👑 {c.lider_nome} · {c.membros}/{limiteDo(c)} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 fechado', '🔒 closed')}</span>
             </div>
           </div>
           {c.descricao && <p style={{ fontSize: 12.5, fontWeight: 700, fontStyle: 'italic', margin: '8px 2px 0', lineHeight: 1.35, overflowWrap: 'anywhere' }}>“{c.descricao}”</p>}
@@ -79,7 +79,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
           <div style={{ marginTop: 10 }}>
             {c.sou ? <p style={{ ...OSW, textAlign: 'center', fontSize: 14, color: GREEN, margin: 0 }}>✅ {tr('Você está neste clã', 'You are in this clan')}</p>
               : !logado ? <p style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, margin: 0 }}>{tr('Entre na sua conta pra participar de um clã.', 'Log in to join a clan.')}</p>
-              : cheio ? <p style={{ ...OSW, textAlign: 'center', fontSize: 14, background: '#eee', border: `2px solid ${INK}`, borderRadius: 10, padding: 10, margin: 0, color: '#555' }}>🔒 {c.aberto ? tr(`Clã cheio: ${CLA_MAX}/${CLA_MAX}`, `Clan full: ${CLA_MAX}/${CLA_MAX}`) : tr(`Clã fechado com ${CLA_MAX}/${CLA_MAX}`, `Clan closed with ${CLA_MAX}/${CLA_MAX}`)}</p>
+              : cheio ? <p style={{ ...OSW, textAlign: 'center', fontSize: 14, background: '#eee', border: `2px solid ${INK}`, borderRadius: 10, padding: 10, margin: 0, color: '#555' }}>🔒 {c.aberto ? tr(`Clã cheio: ${c.membros}/${limiteDo(c)} · cada membro com plano abre +1 vaga`, `Clan full: ${c.membros}/${limiteDo(c)} · each member with a plan opens +1 slot`) : tr(`Clã fechado com ${c.membros}/${limiteDo(c)}`, `Clan closed with ${c.membros}/${limiteDo(c)}`)}</p>
               : c.pedi ? <p style={{ ...OSW, textAlign: 'center', fontSize: 14, color: '#7a6b4a', margin: 0 }}>⏳ {tr('Pedido enviado — o presidente decide', 'Request sent — the president decides')}</p>
               : troca !== null ? <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: 10 }}>
                   <p style={{ fontSize: 13, fontWeight: 800, margin: '0 0 8px' }}>{tr(`Você já participa do ${troca}. Se seguir, você sai dele e ${c.aberto ? `entra no ${c.nome}` : `o pedido vai pro presidente do ${c.nome}`}.`, `You are already in ${troca}. If you go on, you leave it and ${c.aberto ? `join ${c.nome}` : `the request goes to the ${c.nome} president`}.`)}</p>
