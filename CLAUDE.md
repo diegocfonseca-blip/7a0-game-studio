@@ -1063,6 +1063,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   cor" de 14/10. Regras dele: **dourado = SÓ Lenda/Batismo/Fundador · prata = SÓ Craque · bege = quem não tem plano · PRETO
   reservado (futuro, do Fundador)**; as outras (roxo, verde, rosa, azul, vermelho, laranja, turquesa) **sempre brilhantes**;
   **só compra quem JÁ TEM PLANO** (Fundador também). Preço proposto R$ 14,90, pra sempre (ele pediu acima de 9,90).
+  2ª rodada: em "SUAS CORES" cada um só vê a cor do PRÓPRIO plano (sem plano → bege · Craque → prata · Lenda/Batismo/Fundador →
+  dourado) + as que comprou; **compra QUANTAS quiser**, cada uma fica dela e ela escolhe qual usar. **Preto não aparece pra ninguém.**
 - **📊 RÉGUA DE FORÇA DAS CARTAS (02/11, regra permanente, *"adorei as mudanças"*).** Over MÉDIO por categoria: **Lenda 90–97 ·
   Craque 80–89 · Promessa 70–85 · Bom jogador 68–79 · Foi profissional 55–66** (máx 99 só pra ~9 cartas). Categoria de baixo NUNCA passa
   a de cima. **A força é o auge DAQUELA carta (clube + ano)**, nunca a carreira: Cédric no São Paulo 2025 foi mal → foi profissional;

@@ -11920,6 +11920,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 
 ## 🎨 Cor adicional à venda (02/11) — mockup enviado, esperando OK
 - `scripts/mockups/cor-adicional.png` (`scripts/mockup-cor-adicional.mjs`). R$ 14,90 pra sempre, só pra quem tem plano.
-- Reservadas: dourado (Lenda/Batismo/Fundador), prata (Craque), bege (sem plano), preto (futuro Fundador).
+- Reservadas: dourado (Lenda/Batismo/Fundador), prata (Craque), bege (sem plano), preto (futuro Fundador, não aparece).
+- 2ª rodada (02/11): cada um só vê a cor do PRÓPRIO plano em "Suas cores" + as compradas; compra quantas quiser e escolhe qual usar.
 - A fazer depois do OK: produto Pix novo, tabela da cor por conta, ler a cor junto do tier em todo lugar (cuidado: o selo
   invisível/emoji do nome é como os OUTROS sabem a cor — precisa de um sinal novo ou leitura em lote no banco).
