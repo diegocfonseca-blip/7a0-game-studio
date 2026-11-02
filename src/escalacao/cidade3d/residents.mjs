@@ -1,3 +1,4 @@
+import {isPlayerServiceArea} from './spectator-access.mjs';
 import * as T from 'three';
 import {createCivilian,CIVILIAN_VARIANTS} from './civilians.mjs';
 import {residentVisibility} from './resident-visibility.mjs';
@@ -16,7 +17,7 @@ export function createResidents(scene,environment,solids=[]){
  // Validate the swept walking lane, including shoulders and the small
  // U-turn arc, against existing pavement and building footprints.
  const valid=p=>{
-  if(Math.hypot(p.x,p.z)>280||solids.some(s=>s.base<1.8&&s.top>.15&&p.x>s.minX-.68&&p.x<s.maxX+.68&&p.z>s.minZ-.68&&p.z<s.maxZ+.68))return false;
+  if(isPlayerServiceArea(p)||Math.hypot(p.x,p.z)>280||solids.some(s=>s.base<1.8&&s.top>.15&&p.x>s.minX-.68&&p.x<s.maxX+.68&&p.z>s.minZ-.68&&p.z<s.maxZ+.68))return false;
   return [[0,0],[.48,0],[-.48,0],[0,.48],[0,-.48]].every(([x,z])=>ground({x:p.x+x,z:p.z+z})!==null);
  };
  for(const road of roads){
@@ -41,7 +42,7 @@ export function createResidents(scene,environment,solids=[]){
  const actors=[];let configuration={enabled:false},seconds=0;
  function configure(value){configuration={...value};const count=routes.length?cityPopulation(value):0;
   while(actors.length>count){actors.pop().body.dispose()}
-  while(actors.length<count){const i=actors.length,route=routes[i%routes.length],body=createCivilian(root,{id:'resident-'+i,variant:CIVILIAN_VARIANTS[i%CIVILIAN_VARIANTS.length].id});actors.push({body,route,height:CIVILIAN_VARIANTS[i%CIVILIAN_VARIANTS.length].height,offset:i*5.3,position:new T.Vector3(),heading:0,visible:false})}
+  while(actors.length<count){const i=actors.length,route=routes[i%routes.length],body=createCivilian(root,{id:'resident-'+i,variant:CIVILIAN_VARIANTS[i%CIVILIAN_VARIANTS.length].id});actors.push({body,route,height:CIVILIAN_VARIANTS[i%CIVILIAN_VARIANTS.length].height,offset:(.16+((i*0.38196601125)%0.68))*route.length/(i%8>=6?.85:i%8===2||i%8===3?.8:1.05),position:new T.Vector3(),heading:0,visible:false})}
  }
  function update(time,camera,viewportHeight=720){seconds=Number.isFinite(time)?Math.max(0,time):0;
   for(const [i,a]of actors.entries()){

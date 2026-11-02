@@ -107,7 +107,12 @@ for(const {name,save} of samples){
  }
  // Percurso completo sobre a geometria renderizada: volume de corpo, largura
  // útil e apoio das duas solas. O salto vertical explícito é somente degrau.
- if(!state.lowerComplete)assert(!architecture.seatAccess.some(a=>a.side==='home'))
+ if(!state.lowerComplete&&state.progress.cadeiras<.67)assert(!architecture.seatAccess.some(a=>a.side==='home'))
+ if(state.valid&&state.progress.cadeiras>=.67)assert(architecture.seatAccess.some(a=>a.side==='home'),'trecho já construído deve admitir visita real')
+ if(architecture.root.userData.playerEntry)for(const x of [-1.35,0,1.35])for(const height of [.25,1,1.9]){
+  ray.set(new THREE.Vector3(x,.16+height,115.9),new THREE.Vector3(0,0,-1));ray.far=76.9
+  assert.equal(ray.intersectObjects(renderables,false).length,0,`${name}: passagem de atletas bloqueada`)
+ }
  assert.equal(architecture.seatAccess.filter(a=>a.side==='away'&&a.seat.tier==='lower').length,state.valid&&state.progress.visitante>.34?3:0)
  if(state.lowerComplete)assert.equal(architecture.seatAccess.filter(a=>a.seat.tier==='lower').length,6)
  const upperProgress=state.lowerComplete?state.progress.camarote:0
