@@ -160,28 +160,33 @@ export function nomesOcupados(managers: { squad: Card[] }[]): Set<string> {
   return s
 }
 
-// 🌎 o baralho do draft é o jogo INTEIRO (Brasil + Europa + Mundo), sem repetir a mesma carta
-let TODAS: Card[] | null = null
-export function todasAsCartas(): Card[] {
-  if (TODAS) return TODAS
+// 🌎 o baralho do draft é o jogo INTEIRO (Brasil + Europa + Mundo), sem repetir a mesma carta.
+// 🇧🇷🌍 02/11 (Diego: "no liga draft não apareceu pra escolher só BR ou só Europa"): a Liga Draft pode ser de um baralho só —
+// aí o draft também só oferece aquele baralho. Sem baralho (ou 'both'/'todos') = o jogo inteiro, como sempre.
+export type BaralhoDraft = 'br' | 'eu' | 'both' | 'todos' | undefined
+const TODAS: Record<string, Card[]> = {}
+export function todasAsCartas(deck?: BaralhoDraft): Card[] {
+  const k = deck === 'br' || deck === 'eu' ? deck : 'todos'
+  if (TODAS[k]) return TODAS[k]
+  const fonte = k === 'br' ? CATALOG : k === 'eu' ? CATALOG_EU : CATALOG_BOTH
   const out: Card[] = []
   const vistas = new Set<string>()
   for (const pos of SECTORS) {
-    for (const c of CATALOG_BOTH[pos] ?? []) {
+    for (const c of fonte[pos] ?? []) {
       const k = chaveCarta(c)
       if (vistas.has(k)) continue
       vistas.add(k)
       out.push({ ...c, pos, id: `dr:${k}` } as Card)
     }
   }
-  TODAS = out
+  TODAS[k] = out
   return out
 }
-export function acharCarta(chave: string): Card | undefined {
-  return todasAsCartas().find(c => chaveCarta(c) === chave)
+export function acharCarta(chave: string, deck?: BaralhoDraft): Card | undefined {
+  return todasAsCartas(deck).find(c => chaveCarta(c) === chave)
 }
-export function cartasLivres(ocupados: Set<string>): Card[] {
-  return todasAsCartas().filter(c => !ocupados.has(chaveNome(c.name)))
+export function cartasLivres(ocupados: Set<string>, deck?: BaralhoDraft): Card[] {
+  return todasAsCartas(deck).filter(c => !ocupados.has(chaveNome(c.name)))
 }
 
 /** quem pode sair pra ele entrar: só alguém da MESMA posição (o time tem vaga fixa). */

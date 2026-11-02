@@ -31,7 +31,17 @@ assert.ok(noBaralho.some(c => c.fame >= 4), 'tem craque/lenda no 1º leilão (n�
 assert.equal(start({ minhaLigaDraft: false }).minhaLigaDraft, false, 'Liga Draft de antes continua igual')
 const dez = start({ tamanhoLiga: 10 })
 assert.equal(dez.managers.length, 10, 'liga de 10: 4 pessoas + 6 bots')
+assert.equal(dez.tamanhoLiga, 10)
+const dezT = reducer(dez, { type: 'REPLAY_SEASON' } as never)
+assert.equal(dezT.league.length, 10, 'a TABELA também tem 10 (não completa com clubes até 20)')
+assert.equal(dezT.fixtures.length, 18, '18 rodadas')
+assert.equal(reducer(start(), { type: 'REPLAY_SEASON' } as never).league.length, 20, 'padrão: tabela de 20')
 assert.equal(start().managers.length, 20, 'padrão continua 20')
+// 🇧🇷 Liga Draft só com o baralho Brasil: o draft também só oferece cartas do Brasil
+const br = start({ deck: 'br' })
+assert.equal(br.deckLeague, 'br')
+const tdc = todasAsCartas
+assert.ok(tdc('br').length < tdc().length && tdc('eu').length < tdc().length, 'baralho só BR/só EU é menor que o jogo inteiro')
 console.log('✅ 1ª temporada com leilão normal:', noBaralho.filter(c => c.fame >= 4).length, 'craques/lendas no pregão')
 
 // ② fim da temporada: elencos de 11 e tabela pronta
