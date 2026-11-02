@@ -6,6 +6,62 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
+    "nome": "Fernando Henrique",
+    "baralho": "BR",
+    "de": "foi profissional",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Pará",
+    "baralho": "BR",
+    "de": "foi profissional",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Hugo Lloris",
+    "baralho": "EU",
+    "de": "bom jogador",
+    "para": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Hans van Breukelen",
+    "baralho": "EU",
+    "de": "bom jogador",
+    "para": "craque",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Momo Sissoko",
+    "baralho": "EU",
+    "de": "foi profissional",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Djibril Cissé",
+    "baralho": "EU",
+    "de": "foi profissional",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Choi Jin-cheul",
+    "baralho": "MUNDO",
+    "de": "foi profissional",
+    "para": "bom jogador",
+    "data": "2026-11-02"
+  },
+  {
+    "tipo": "nivel",
     "nome": "Fabien Barthez",
     "baralho": "EU",
     "de": "bom jogador",
