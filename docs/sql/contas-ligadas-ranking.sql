@@ -39,3 +39,8 @@ on conflict (conta) do nothing;
 alter table public.esc_contas_ligadas add column if not exists desde timestamptz not null default now();
 -- esc_titulo_vale(hr jsonb, uid text, quando timestamptz): igual à de cima + `if g is null or quando < d then return true`.
 -- Nas 4 funções a chamada virou esc_titulo_vale(g.human_results, x->>'user_id', g.created_at).
+
+-- ✅ 02/11 (Diego: "não conte mais pro ranking qd ele jogar c/ esse usuário") — vigia de conta dupla: Mengão Malvadão
+-- (batismo, atilasoaresjr21) × "Pirocas" (alesoaresnutricionista, criada 30/10): 18 temporadas só os dois em 7 dias, 16 ligas a 0.
+-- Grupo 'atila', desde 02/11 21:05 UTC (não retroativo). Davi × Miguel ("camilo") ficou só anotado, sem ligar.
+-- insert into esc_contas_ligadas (conta, grupo, motivo) values ('01efa1d2-cae1-41d8-abb1-18c44dfb179e','atila',…), ('0d7d200d-b9e6-407e-a894-bce62289aa8c','atila',…);
