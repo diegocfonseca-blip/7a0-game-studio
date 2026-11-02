@@ -83,6 +83,10 @@
     🐛 **02/11 (sala 1HB53P, 2º teste): "botei 10 times e continuou 20".** Os técnicos/bots eram 10, mas a TABELA (`buildLeague`)
     completava com clubes CPU até 20. Agora `s.tamanhoLiga = 10` desliga o completar (8 chamadas de buildLeague). Trava no
     `npm run minha-liga-draft` (tabela 10 · 18 rodadas). Sala já começada com 20 continua com 20 — só sala nova pega.
+    🇧🇷🌍 **02/11: Liga Draft escolhe o baralho** (Brasil · Europa · Todos) no "Já vem pronto"; o DRAFT também só oferece o baralho da
+    liga (`todasAsCartas(deck)`, `deckDraft(s)`). Resumo "Sua sala" mostra o baralho escolhido ("🌎 Todos" com o mesmo nome do seletor).
+    🏆 **Minhas Ligas: sala de espera em cartões** (Próximo jogo · Como é a liga; regras do ranking abrem por cima) — mockup
+    `scripts/mockups/minhas-ligas-espera.png` aprovado ("beleza").
     🔒 **Contrato de 3 temporadas (02/11, "opção B e bote cadeado avisando tipo contrato"):** só dá pra SONDAR quem está há 3 temporadas
     no time do amigo (`mldDesde` na carta; sem o campo = veio no leilão da T1). Quem chega por draft/leilão recomeça o contador. Trava no
     motor (DRAFT_SONDAR) + cadeado na lista ("Contrato: faltam N temporadas · libera no draft do fim da temporada X"). Print:

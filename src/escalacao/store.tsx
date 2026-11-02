@@ -7506,7 +7506,7 @@ function mldReforcaBots(s: EscState): void {
     const pos = SECTORS[Math.floor(rng() * SECTORS.length)]
     const pior = [...m.squad.filter(c => c.pos === pos)].sort((a, b) => forcaC(a) - forcaC(b))[0]
     if (!pior) continue
-    const livres = cartasLivres(nomesOcupados(s.managers)).filter(c => c.pos === pos && c.fame >= 2 && c.fame <= 4 && !c.promessa && forcaC(c) > forcaC(pior))
+    const livres = cartasLivres(nomesOcupados(s.managers), deckDraft(s)).filter(c => c.pos === pos && c.fame >= 2 && c.fame <= 4 && !c.promessa && forcaC(c) > forcaC(pior))
     if (!livres.length) continue
     const nova = livres[Math.floor(rng() * livres.length)]
     m.squad = m.squad.map(c => c.id === pior.id ? { ...nova, id: `mlb${d.temporada}-${m.id}`, paid: pior.paid ?? 1, via: 'leilao' } as WonCard : c)
@@ -7555,13 +7555,14 @@ function mldAplicaLeilao(s: EscState): void {
     // 🆓 o dono ficou faltando gente na posição? ganha um jogador livre (profissional/bom) de graça — time nunca fica furado
     const need = FORMATIONS[dono.formation]?.[card.pos] ?? 1
     if (dono.squad.filter(c => c.pos === card.pos).length < need) {
-      const livres = cartasLivres(nomesOcupados(s.managers)).filter(c => c.pos === card.pos && c.fame <= 2 && !c.promessa)
+      const livres = cartasLivres(nomesOcupados(s.managers), deckDraft(s)).filter(c => c.pos === card.pos && c.fame <= 2 && !c.promessa)
       const rep = livres.length ? livres[(s.seed + i * 7919) % livres.length] : undefined
       if (rep) { dono.squad = [...dono.squad, { ...rep, id: `mlr${d.temporada}-${dono.id}-${i}`, paid: 1, via: 'leilao', mldDesde: d.temporada + 1 }]; log.push(`🆓 ${dono.teamName} ganhou ${rep.name} pra fechar a posição`) }
     }
   })
 }
 // 🔒 o convidado nunca roda o reducer da sala, mas o recado dele chega no do dono: ação "só do dono" confere o crachá
+const deckDraft = (s: EscState) => (s.minhaLigaDraft ? s.deckLeague : undefined) // 🇧🇷🌍 Liga Draft de um baralho só: o draft também
 const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isHost && (!by || by === s.youUid))
 
 /** 🧼 MARCAS DE MODO (21/10, Diego: *"partida rápida não tem relação com modo carreira, que também não tem relação com salas
@@ -12694,7 +12695,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const d = s.draft
       if (!d || s.screen !== 'draft' || d.fase !== 'escolha' || d.ordem[d.idx] !== action.mgrId) return state
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
-      const carta = acharCarta(action.carta)
+      const carta = acharCarta(action.carta, deckDraft(s))
       if (!m || !carta) return state
       // ☝️ único na liga: ninguém (humano ou bot) pode ter alguém com esse nome — e quem sai é da MESMA posição
       if (nomesOcupados(s.managers).has(chaveNome(carta.name))) return state

@@ -244,7 +244,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   const [carta, setCarta] = useState<Card | null>(null)
   const [sai, setSai] = useState<string | null>(null)
   const ocupados = useMemo(() => nomesOcupados(state.managers), [state.managers])
-  const livres = useMemo(() => cartasLivres(ocupados), [ocupados])
+  const livres = useMemo(() => cartasLivres(ocupados, state.minhaLigaDraft ? state.deckLeague : undefined), [ocupados, state.minhaLigaDraft, state.deckLeague])
   // quem já tem dono aparece apagado (só quando a busca bate num nome) — "já é do Fulano"
   const donoDe = useMemo(() => {
     const mp = new Map<string, string>()

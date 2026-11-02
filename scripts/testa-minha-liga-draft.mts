@@ -37,6 +37,11 @@ assert.equal(dezT.league.length, 10, 'a TABELA também tem 10 (não completa com
 assert.equal(dezT.fixtures.length, 18, '18 rodadas')
 assert.equal(reducer(start(), { type: 'REPLAY_SEASON' } as never).league.length, 20, 'padrão: tabela de 20')
 assert.equal(start().managers.length, 20, 'padrão continua 20')
+// 🇧🇷 Liga Draft só com o baralho Brasil: o draft também só oferece cartas do Brasil
+const br = start({ deck: 'br' })
+assert.equal(br.deckLeague, 'br')
+const tdc = todasAsCartas
+assert.ok(tdc('br').length < tdc().length && tdc('eu').length < tdc().length, 'baralho só BR/só EU é menor que o jogo inteiro')
 console.log('✅ 1ª temporada com leilão normal:', noBaralho.filter(c => c.fame >= 4).length, 'craques/lendas no pregão')
 
 // ② fim da temporada: elencos de 11 e tabela pronta
