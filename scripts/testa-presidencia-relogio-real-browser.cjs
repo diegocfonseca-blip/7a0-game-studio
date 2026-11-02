@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const{loadDependency,browserOptions}=require('./presidencia-runtime.cjs');
-const origin='http://127.0.0.1:4196',base=origin+'/7a0-game-studio/',out='test-results/auditoria-relogio';
+const origin=process.env.QA_ORIGIN||'http://127.0.0.1:4196',base=origin+(process.env.QA_BASE||'/7a0-game-studio/'),out='test-results/auditoria-relogio';
 // Real LiveScoreCard timers, production planner/motor, shared state and viewing
 // provider. Only account verification and expensive WebGL presentation are
 // substituted; the substituted renderer samples no clock and changes no state.
@@ -9,7 +9,7 @@ const origin='http://127.0.0.1:4196',base=origin+'/7a0-game-studio/',out='test-r
  try{
   const context=await browser.newContext({viewport:{width:390,height:844},locale:'pt-BR'});
   await context.route('**/*',r=>r.request().url().startsWith(origin+'/')?r.continue():r.abort());
-  await context.route('**/src/escalacao/presidente-acesso.ts*',r=>r.fulfill({contentType:'text/javascript',body:'export const usePresidentPreview=()=>window.qaAllow!==false;export const presidentPreviewEnabled=()=>window.qaAllow!==false;export const presidentWritesEnabled=()=>window.qaAllow!==false;export const presidentPreviewEmail=()=>window.qaAllow!==false;export const PRESIDENT_INTEGRATION_RELEASED=true;'}));
+  await context.route('**/src/escalacao/presidente-acesso.ts*',r=>r.fulfill({contentType:'text/javascript',body:'export const usePresidentPreviewPending=()=>false;export const usePresidentPreview=()=>window.qaAllow!==false;export const presidentPreviewEnabled=()=>window.qaAllow!==false;export const presidentWritesEnabled=()=>window.qaAllow!==false;export const presidentPreviewEmail=()=>window.qaAllow!==false;export const PRESIDENT_INTEGRATION_RELEASED=true;'}));
   await context.route('**/src/escalacao/presidencia-futebol-3d.tsx*',r=>r.fulfill({contentType:'text/javascript',body:'export default function ClockOnlyRenderer(){return null}'}));
   const open=async(props,{allowed=true}={})=>{
    if(page)await page.close();page=await context.newPage();await page.routeWebSocket('**',socket=>socket.onMessage(()=>{}));page.on('pageerror',e=>report.errors.push(e.message));
@@ -20,12 +20,12 @@ const origin='http://127.0.0.1:4196',base=origin+'/7a0-game-studio/',out='test-r
   };
   const read=()=>page.evaluate(()=>window.qaClockRead());
   const advance=async(ms=500)=>{await page.clock.runFor(ms);return read()};
-  const watch=async()=>{await page.evaluate(()=>document.querySelector('.pe-live summary').click());await page.clock.runFor(64);return read()};
+  const watch=async()=>{await page.evaluate(()=>{window.qaClockSetSpeed(.25);window.qaClockWatch(true)});await page.clock.runFor(64);return read()};
   const propsFor=(key,goals=[])=>({roundKey:key,goals,stadiumMatch:{id:'clock-real-'+key}});
   let current,iterations;
   if(!process.argv.includes('--halftime-only')){
-  // Open the actual stadium details at kickoff. This must choose the slowest
-  // supported rate, but physical play must last longer than the old9.02s.
+  // Explicitly select slow viewing at kickoff. Entering the stadium preserves
+  // the selected rate; physical play lasts longer than the old9.02s.
   await open(propsFor(18001));current=await watch();assert.equal(current.speed,.25);
   const phases=new Set(),firstHalf=new Set();iterations=0;let previous=current,accelerated=false;
   while(!current.finished&&iterations++<2400){

@@ -376,7 +376,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    if(crowd.perto(camera.position))renderer.shadowMap.needsUpdate=true // (⚡ os detalhados da torcida acompanham a câmera)
    const cutaway=matchCameraController.inspect().mode!=='free'
    if(cutaway!==cameraRoofCutaway){cameraRoofCutaway=cutaway;for(const entry of cameraRoofMaterials){entry.material.transparent=cutaway||entry.transparent;entry.material.opacity=cutaway?0:entry.opacity;entry.material.depthWrite=cutaway?false:entry.depthWrite;entry.material.needsUpdate=true}}
-   residents.update(seconds,camera)
+   residents.update(seconds,camera,el.clientHeight)
    circulationActors?.update(seconds)
    const departure=crowdDeparture?.inspect()
    const drainingSide=(side:'home'|'away')=>visits.some(visit=>visitorSides.get(visit)===side&&retiringVisits.has(visit)&&!visit.inspect().journey.completed)
@@ -598,7 +598,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
  const matchStarted=useRef<string|null>(null),builtKey=useRef(''),matchId=match&&!match.finished?match.context.id:null
  useEffect(()=>{const k=matchId+'|'+saveKey;if(!loaded||isWindow||isOffice||!matchId||builtKey.current!==saveKey||matchStarted.current===k)return;matchStarted.current=k;api.current?.view('field')},[loaded,matchId,isWindow,isOffice,saveKey])
  const go=(destination:VistaComplexo)=>{api.current?.view(destination);root.current?.querySelector('canvas')?.focus({preventScroll:true});setPlacesOpen(false)}
- return <section ref={section} className={`pc3-review${isOffice?' pc3-office':''}${isWindow?' pc3-window':''}${expanded?' pc3-expanded':''}`} data-expanded={expanded} data-presentation={presentation}
+ return <section ref={section} className={`pc3-review${isOffice?' pc3-office':''}${isWindow?' pc3-window':''}${expanded?' pc3-expanded':''}`} data-expanded={expanded} data-presentation={presentation} data-watching-match={!!match&&matchCamera!=='free'}
   role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label={isOffice?'Sala da Presidência':'Mapa do estádio'} onKeyDown={event=>{
    if(event.key==='Escape'){
     if(placesOpen){setPlacesOpen(false);placesButton.current?.focus();event.preventDefault();event.stopPropagation()}
@@ -624,9 +624,9 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     <div className="pc3-primary">
      {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>Minha sala</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>Janela</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>Presidente</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>Estante</button></>:<>
      <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>Mapa</button>
-     <button type="button" disabled={!loaded} aria-pressed={selectedView==='field'} onClick={()=>go('field')}>Ver campo</button>
-     <button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button>
-     {match&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}>Câmera
+     {matchCamera==='free'&&<button type="button" disabled={!loaded} aria-pressed={selectedView==='field'} onClick={()=>go('field')}>Ver campo</button>}
+     {matchCamera==='free'&&<button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button>}
+     {match&&matchCamera!=='free'&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}><span className="pc3-camera-title">Câmera</span>
       <select id={`${uiId}-camera`} aria-label="Câmera da partida" disabled={!loaded} value={matchCamera} onChange={event=>{api.current?.setMatchCamera(event.currentTarget.value as CameraPartidaContinua);setPlacesOpen(false)}}>
        {CAMERAS_PARTIDA.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
       </select>

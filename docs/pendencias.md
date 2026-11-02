@@ -1,4 +1,83 @@
-## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — no branch, SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
+## 📋 Minhas Ligas + Draft (01/11, regras FECHADAS com o Diego na conversa) — só MOCKUP (`scripts/mockup-ligas-draft-noite.mjs`), nada no código
+- T1 = a liga de sempre (leilão normal de 11). Fim de cada temporada: 💰 moedas pela colocação (vão pro próximo leilão, por cima
+  do dinheiro igual de todos) + 📋 DRAFT em SEGREDO, cada um no seu horário, 24 h; ordem = tabela (campeão primeiro); 1 carta de
+  TODO o jogo, única na liga.
+- Noite da T2: 🎬 SHOW DO DRAFT ao vivo (revelação na ordem da tabela, o mesmo suspense da Liga Draft) → 🔨 leilão de sempre
+  (o jogador do draft já ocupa uma vaga) → ⚽ temporada.
+- Faltou: no draft (24 h sem escolher) = fica com o PIOR jogador livre; no leilão = não dá lance e completa só com as SOBRAS que
+  ninguém quis. Ninguém é tirado da liga por faltar; o dono tem "⏭ pular" (draft só depois de 12 h; leilão "começar sem ele").
+- Ficou pra depois (talvez): pirâmide de séries, rodada assíncrona por bloco com OK de todos, elenco de 22. Ele pode trocar a Liga
+  Draft por esta (*"talvez eu nem faça mais e siga com essa aqui"*).
+- 🔁 Mesmo dia, mais regras: **elenco até 22** (cheio → manda um pras sobras pra trazer outro); **🕵️ SONDAR** no lugar de tirar
+  jogador no draft: no fim da temporada cada um faz UMA jogada — draft OU sondar 1 jogador de um amigo (quem sonda PERDE a vez
+  no draft). O sondado vai pro próximo leilão com lance inicial = o que o dono pagou (piso, igual à carreira); o dono também dá
+  lance; vendeu → o dinheiro vai pro dono; ninguém deu lance → volta pro dono de graça. Jogador do draft chega valendo 10 🪙.
+  Draft não acaba: ~2.200 jogadores diferentes no jogo. Mockup: `scripts/mockup-ligas-sondar.mjs`.
+  ❓ Em aberto: se o DONO ganha o próprio sondado, ele paga o lance (dinheiro some) ou fica de graça?
+- ✅ **VERSÃO FINAL (01/11, depois de muita volta — vale ESTA):** tudo AO VIVO, numa noite, sem prazo de 24 h.
+  · Começo de cada temporada nova: 📋 DRAFT na hora (ordem da tabela da anterior, suspense da Liga Draft, 30 s cada; quem não
+    está = o jogo escolhe) → 🔨 LEILÃO (T1 normal de 11; T2+ o time CONTINUA e o leilão é reforço) → ⚽ competição.
+  · Competição da temporada: LIGA (38 rodadas) ou ⚡ MATA-MATA RELÂMPAGO. Copa não. O dono escolhe a cada temporada o formato
+    (jogador/clubes/seleções · envelope/Tocaia/único/pregão · baralho), igual criar sala. Clubes/seleções: só dá lance quem tem
+    vaga pro pacote inteiro.
+  · Fim da temporada: 💰 moedas pela colocação (no Relâmpago: pela fase em que caiu).
+  · Faltou ou caiu: o time joga sozinho com a última escalação; volta e retoma da rodada atual; draft = o jogo escolhe; leilão =
+    não reforça (mas não perde ninguém).
+  · O dono pode excluir quem quiser (regra dele).
+  · Elenco até 22: na T2+ o leilão deixa comprar até mais 11 (fecha 22); cheio = manda um pras sobras.
+  · O dono escolhe a cada temporada o que abre a temporada: 📋 só draft · 📋+🔨 draft e leilão · 🔨 só leilão. NINGUÉM zera o time (correção do Diego: "só leilão" = leilão de reforço sem draft).
+  · Com bots ou sem bots (sem bots só com 4+ usuários — mesma régua de hoje).
+  · 🔁 **VIRADA FINAL (01/11, ideia dele):** da T2 em diante é SEMPRE DRAFT; o leilão só existe pros SONDADOS. Quem sonda o
+    jogador de um amigo perde a vez no draft e o sondado vai pra um leilão curto com todo mundo (lance inicial = o que o dono
+    pagou; o dono também lança; vendeu → dinheiro pro dono; ninguém lançou → volta pro dono). Ninguém sondou = não tem leilão.
+    T1 continua com o leilão normal de 11. (Substitui a escolha "só draft / draft+leilão / só leilão".)
+  · ✅ **Fechado 01/11 (*"fechamos assim"*):** quem SONDOU tem **direito de igualar** o maior lance no martelo (só perde se o
+    maior lance for do DONO, que defende o próprio jogador). Cada um também pode **pôr 1 jogador seu à venda** nesse leilão.
+  · 👕 **Escalação (01/11, 45 s):** tela de escalação de sempre, aberta logo depois do draft/leilão, com
+    tempo (45 s); durante a temporada mexe como hoje (intervalo/controle). Ausente = joga com a última escalação.
+  · 🔢 **Elenco cheio (01/11, 30 s):** com 22, quem recebe jogador novo (draft ou leilão) escolhe NA HORA
+    quem sai (30 s); quem sai vira LIVRE e entra no draft. Não escolheu = sai sozinho o reserva de menor valor (nunca titular).
+  · 🏆 **SÓ LIGA por enquanto (01/11, *"melhor deixar por enquanto só a liga mesmo"*):** nada de Mata-mata Relâmpago nesse
+    modo. Com bots = sempre 20 times / 38 rodadas (serve pra 2 a 20 pessoas); sem bots (4+) = só a turma, turno e returno.
+  · ⏱️ **Vez no draft (01/11):** campeão escolhe primeiro, **45 s por vez** (01/11). Lista = TODOS os jogadores livres do jogo, com 🔎 pesquisa + filtro de posição/categoria. Cada escolha vira na hora com o suspense da Liga Draft (~8 s). Dono saiu no meio = congela; quem estava na vez ganha os 45 s inteiros de novo. Na vez: 📋 escolher OU
+    🕵️ sondar. **Acabou o tempo ou a pessoa não está = PERDE A VEZ** (fica sem jogador do draft naquela temporada; o jogo
+    NÃO escolhe por ela — *"o sistema passa a vez dele. Melhor"*). Ordem da noite: draft → leilão dos sondados → escalação 45 s → temporada.
+  · 🗓️ **Ordem da noite (01/11, confirmada):** draft → leilão (sondados + quem pôs à venda) → escalação 45 s → liga.
+  · 🚪 **Sair sem acabar a liga (proposta 01/11):** quem aperta SAIR deixa o time na liga (joga com a última escalação, perde
+    a vez no draft enquanto fora) e volta quando quiser. Largar de vez = o dono exclui: o time termina a temporada com o
+    elenco dele e na próxima sai da tabela. 👑 O dono é SEMPRE quem criou (regra da coroa): sem ele a liga PAUSA e fica
+    guardada; volta quando ele entrar. Nunca acaba sozinha.
+  · ✋ **"ESTOU PRONTO" em toda etapa (01/11, ideia dele):** antes do draft, do leilão e da liga, cada um aperta ✋ Estou pronto
+    e o dono vê a lista (✅/⏳). **O dono SEMPRE decide** quando começa (pode começar com gente faltando). No draft, cada vez
+    também: quem está na vez dá "pronto" e aí corre o relógio de 45 s; não deu pronto → o dono pode ⏭ pular a vez dele. Nada
+    começa nem volta sozinho depois de pausa: sempre pelo botão do dono.
+  · 🟢 **FASE 1 NO AR (01/11, *"já libere pra mim e Futpoint"*): modo "📋 Minha Liga Draft" no criar sala**, só Diego e Futpoint
+    (gfpicolo13) veem/criam (`MINHA_LIGA_DRAFT_*` em sport.ts); quem eles chamarem com código + senha joga normal. Por baixo é a
+    Liga Draft (MESMA tela e MESMO anúncio com a carta real) + a marca `minhaLigaDraft`: T1 leilão NORMAL · vez começa parada
+    (✋ pronto) · 45 s · dono ⏭ pula · tempo acabou = perde a vez (sem automático) · dono saiu no meio = volta de onde parou.
+    Trava `npm run minha-liga-draft`. Prints: `scripts/mockups/minha-liga-draft-telas.png`.
+    🟢 **FASE 2 FEITA (01/11, *"não, já faça tudinho"*), ainda só Diego + Futpoint:** fim da temporada = 💰 moedas pela
+    colocação (40·32·26·20·16·14·12·10·8, depois 6) + ✋ prontos (o dono começa) → draft (✋ pronto · 45 s · 📋 escolher OU
+    🕵️ sondar · 🏷️ cada um pode pôr 1 jogador à venda) → ✋ prontos → 🔨 leilão de 60 s em envelope (lance mínimo = o que o dono
+    pagou; empate: dono → quem sondou) → ⚡ quem sondou pode IGUALAR (15 s) → 👕 escalação (45 s, troca titular↔reserva tocando) →
+    o dono começa a temporada. Elenco até 22 (jogador do draft entra no banco valendo 10 🪙; cheio = escolhe quem sai sem furar
+    posição). O jogo usa só o XI (os primeiros de cada posição = o que o campinho mostra); o banco aparece no campinho de baixo.
+    Trava `npm run minha-liga-draft`. Prints: `scripts/mockups/minha-liga-draft-fase2.png`.
+    ⚠️ **Decisões que EU tomei (confirmar com o Diego):** (1) o dono que segura o próprio jogador PAGA o lance (o dinheiro some —
+    senão ele chutava 999 de graça); (2) quem ganha no leilão com elenco cheio perde sozinho o reserva mais barato (sem janela de
+    30 s); (3) o dono que perde um jogador e fica faltando gente na posição ganha um livre (profissional/bom) de graça; (4) o dono
+    saindo no meio do LEILÃO/ESCALAÇÃO: na volta pula direto pra temporada (os lotes caem; o draft já feito fica); (5) [resolvido 01/11]
+    👕 **Escalação = a MESMA aba Elenco da carreira** (`SquadTab`, em `minha-escalacao.tsx`: campinho, banco, troca tocando,
+    pílula de Formação — `MLD_FORMACAO` só aceita formação que o elenco preenche). Vale na escalação de 45 s E na aba Elenco
+    durante a temporada. 🔨 O leilão dos sondados tem a cara do ENVELOPE de sempre (barra com TEMPO, − / +, LACRAR TUDO).
+    Print: `scripts/mockups/minha-liga-draft-escalacao-leilao.png`.
+    🕵️📋 **Na sua vez: os DOIS botões juntos** (Pegar do draft · Sondar um amigo), qualquer um começa os 45 s (01/11).
+    🤖 **Bots se reforçam CALADOS (01/11):** depois do draft/leilão, cada bot troca o pior de 1 posição por um livre bom/craque
+    (nunca lenda/promessa); quem sai volta a ser livre. Sem anúncio. Com/sem bots continua escolha de quem cria (sem bots = 4+).
+    📏 **Tamanho da liga: 20 (padrão) ou 10 times**, bots completam; com mais de 10 pessoas cresce até caber (01/11, `tamanhoLiga`).
+  · Fica pra depois: pirâmide de séries; Relâmpago dentro das Minhas Ligas + Draft.
+
+## 🔎 Raio-X do adversário na Central (31/10, pedido do Diego) — ✅ PUBLICADO SÓ NA CONTA DELE (`RAIOX_GERAL = false`, sport.ts)
 - Cartão logo abaixo do próximo jogo (só jogo de LIGA): formação + estilo, últimos 5, cansaço (só com o gás ligado — vem do
   MESMO `planosBots` que o motor usa: titulares cansados, lesionados, quantos vai poupar) e os 3 melhores do XI da rodada.
 - `CartaoRaioX` em central.tsx; conta em `renderCentral` (pyramidseason.tsx). Mockup: `scripts/mockup-raiox.mjs`.

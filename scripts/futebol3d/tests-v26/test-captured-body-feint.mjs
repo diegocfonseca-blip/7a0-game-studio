@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {AnimationClip,QuaternionKeyframeTrack,VectorKeyframeTrack,Quaternion,Vector3,AdditiveAnimationBlendMode,AnimationMixer,Bone,Group} from 'three';
+import {capturedBodyFeint} from '../../../src/escalacao/futebol3d/chibi/captured-body-feint.mjs';
+const q=t=>new Quaternion().setFromAxisAngle(new Vector3(0,0,1),t).toArray();
+const base=new AnimationClip('drible3',3,[new QuaternionKeyframeTrack('mixamorigSpine.quaternion',[0,1,2,3],[...q(.1),...q(.2),...q(.4),...q(.2)]),new QuaternionKeyframeTrack('mixamorigRightFoot.quaternion',[0,3],[...q(.3),...q(.3)]),new VectorKeyframeTrack('mixamorigHips.position',[0,3],[0,1,0,0,1,0])]);
+const saved=base.toJSON(),clip=capturedBodyFeint(base);assert.equal(clip.blendMode,AdditiveAnimationBlendMode);assert(clip.tracks.every(t=>/^mixamorigSpine/.test(t.name)));assert.deepEqual(base.toJSON(),saved);assert(new Quaternion().fromArray(clip.tracks[0].values).angleTo(new Quaternion())<1e-6,'Reference begins with zero additive rotation');
+const root=new Group(),hip=new Bone(),spine=new Bone(),foot=new Bone();hip.name='mixamorigHips';spine.name='mixamorigSpine';foot.name='mixamorigRightFoot';root.add(hip);hip.add(spine,foot);
+const mixer=new AnimationMixer(root),running=mixer.clipAction(base);running.play();running.timeScale=0;running.time=1.7;mixer.update(0);const originalFoot=foot.quaternion.clone(),originalHip=hip.position.clone(),originalSpine=spine.quaternion.clone();
+const additive=mixer.clipAction(clip);additive.play();additive.timeScale=0;additive.time=.6;additive.setEffectiveWeight(.65);mixer.update(0);
+assert(foot.quaternion.angleTo(originalFoot)<1e-7);assert(hip.position.distanceTo(originalHip)<1e-9);assert(spine.quaternion.angleTo(originalSpine)>.01,'Captured torso can vary while feet and root remain unchanged');
+assert.throws(()=>capturedBodyFeint(base,{begin:2,peak:1,end:3}));console.log('PASS: captured additive torso changes neither locomotion feet nor hips, leaves original capture immutable');

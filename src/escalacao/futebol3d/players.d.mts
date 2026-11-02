@@ -5,6 +5,7 @@ import type {QuadroFutebol} from '../presidencia-futebol-motor'
 export function loadPlayers(scene:Scene,state:EstadoPartidaEstadio,frame:QuadroFutebol,options?:{style?:'athlete'|'civil-cartoon';onPrepared?:()=>void;president?:PresidenteBaseSave}):Promise<{
  update(frame:QuadroFutebol,camera?:PerspectiveCamera,viewportHeight?:number):void;
  presentFrame(frame:QuadroFutebol):QuadroFutebol;
+ cameraSubjects?():Array<{key:string;mx:number;mz:number;visible:boolean;side:'home'|'away';keeper:boolean}>;
  prepared():Promise<unknown>;
  inspect():{sidelines?:unknown;full:number;intermediate:number;far:number;hidden:number;poseUpdates:number;minFootHeight:number;maxFootHeight:number;physicalPlayerHeight:number;locomotionCalibrated:boolean;captureCoverage?:{matched:boolean;available:number;rejected:number};activeCaptures?:Array<{key:string;type:string;time:number;contactGap:number;minFloor:number}>};
  inspectPose(key:string):{key:string;position:number[];bones:Array<{name:string;position:number[];quaternion:number[]}>}|null;

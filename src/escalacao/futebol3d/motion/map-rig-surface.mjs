@@ -3,7 +3,7 @@ import {nearest} from './nearest.mjs';
 import {solveLimbContact} from './contact-ik.mjs';
 
 const layouts=new WeakMap();
-const regions={right:/Right(Foot|Toe)/,left:/Left(Foot|Toe)/,head:/Head/,rightHand:/RightHand/,leftHand:/LeftHand/,rightArm:/Right(Arm|ForeArm|Hand)/,leftArm:/Left(Arm|ForeArm|Hand)/};
+const regions={right:/Right(Foot|Toe)/,left:/Left(Foot|Toe)/,head:/Head/,chest:/Spine/,rightHand:/RightHand/,leftHand:/LeftHand/,rightArm:/Right(Arm|ForeArm|Hand)/,leftArm:/Left(Arm|ForeArm|Hand)/};
 /** Surface probes use the supplied skinned mesh. No topology, weight, bind pose
  * or skeleton change. Indices are shared by the 22 clones. */
 export function createMapRigSurface(actor){

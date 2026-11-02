@@ -15,10 +15,12 @@
 // as MESMAS funções — regra de ouro contra botão mudo.
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, ehPromessa } from './data'
 import { paisDe, type Baralho } from './paises'
-import type { Card, Manager, Sector, WonCard } from './types'
-import { SECTORS } from './types'
+import type { Card, FormationKey, Manager, Sector, WonCard } from './types'
+import { SECTORS, FORMATIONS } from './types'
 
 export const DRAFT_ESCOLHA_MS = 60_000
+// 📋🏆 MINHA LIGA DRAFT (01/11, Diego): 45 s por vez, e o relógio só corre depois que a pessoa aperta ✋ PRONTO
+export const DRAFT_ESCOLHA_MINHA_MS = 45_000
 export const DRAFT_PISTA_MS = 2_000
 // ⏱️ o anúncio: 4 tempos de pista (0 · 2 · 4 · 6 s), a carta vira aos 8 s e fica na tela até os 12 s
 export const DRAFT_VIRA_MS = 4 * DRAFT_PISTA_MS
@@ -34,11 +36,84 @@ export interface DraftEstado {
   temporada: number // a temporada que ACABOU (o draft é a ponte pra próxima)
   ordem: number[] // ids dos técnicos humanos, campeão primeiro
   idx: number // de quem é a vez
-  fase: 'escolha' | 'revela'
+  // 'aguarda' = Minha Liga Draft: esperando o ✋ pronto de quem está na vez · 'prontos' = ✋ todo mundo antes de uma etapa (o dono
+  // decide quando segue) · 'leilao' = envelope dos sondados/à venda · 'igualar' = quem sondou decide se iguala · 'escala' = 45 s
+  fase: 'escolha' | 'revela' | 'aguarda' | 'prontos' | 'leilao' | 'igualar' | 'escala'
   prazo: number // relógio do dono (ms): fim da escolha ou fim do anúncio
   inicioRevela?: number // quando o anúncio começou (as pistas contam a partir daqui)
   picks: DraftPick[]
+  pulados?: number[] // 📋🏆 Minha Liga Draft: quem perdeu a vez (o dono pulou ou o tempo acabou) — fica sem jogador do draft
+  // ── 📋🏆 MINHA LIGA DRAFT (fase 2, 01/11) ──
+  proxima?: 'draft' | 'leilao' // na fase 'prontos': o que vem depois que o dono seguir
+  prontos?: number[] // ✋ quem já disse "estou pronto" nesta etapa
+  premios?: Record<number, number> // 💰 moedas pela colocação da temporada que acabou (já caíram no caixa)
+  sondagens?: { por: number; dono: number; cardId: string; nome: string }[] // 🕵️ quem sondou quem (a vez de quem sondou acabou)
+  aVenda?: Record<number, string> // 🏷️ técnico → a carta que ele pôs à venda (1 por técnico)
+  lotes?: LoteDraft[] // 🔨 o leilão dos sondados + à venda
+  lances?: Record<number, Record<number, number>> // lote → técnico → lance (envelope: ninguém vê o do outro)
+  igualarIdx?: number // o lote que está esperando quem sondou decidir se iguala
+  inicioEscala?: number // quando a escalação começou (o relógio de 45 s é só guia: quem começa a temporada é o dono)
   somaTemporada?: boolean // true = draft aberto no fim da temporada (a próxima soma +1); false = veio da sala de espera (o número já é o da próxima)
+}
+
+// 🔨 um lote do leilão da Minha Liga Draft: o jogador sondado (ou posto à venda) de um técnico
+export interface LoteDraft {
+  dono: number
+  sondador?: number // ausente = o próprio dono pôs à venda
+  carta: WonCard // retrato da carta (o id é o do elenco do dono)
+  piso: number // lance mínimo = o que o dono pagou (igual à carreira)
+  vencedor?: number // decidido no martelo (= dono quando ninguém deu lance ou quando ele segurou)
+  valor?: number
+  igualar?: boolean // esperando quem sondou decidir se iguala
+  igualou?: boolean
+}
+
+// ── 📋🏆 MINHA LIGA DRAFT — regras puras (01/11, fechadas com o Diego) ─────────
+export const MLD_ELENCO_MAX = 22
+export const MLD_DRAFT_VALOR = 10 // 🪙 jogador do draft chega valendo 10
+export const MLD_ESCALA_MS = 45_000
+export const MLD_LEILAO_MS = 60_000
+export const MLD_IGUALAR_MS = 15_000
+/** 💰 moedas pela colocação (só técnico de gente; o bot não tem caixa que importe) */
+export function premioColocacao(pos: number): number {
+  return [40, 32, 26, 20, 16, 14, 12, 10, 8][pos] ?? 6
+}
+/** 👕 os titulares são os PRIMEIROS de cada posição na ordem do elenco (o mesmo que o campinho desenha) */
+export function xiPorOrdem<T extends Card>(squad: T[], formation: FormationKey): T[] {
+  const need = FORMATIONS[formation] ?? FORMATIONS['4-3-3']
+  const out: T[] = []
+  for (const pos of SECTORS) out.push(...squad.filter(c => c.pos === pos).slice(0, need[pos]))
+  return out
+}
+/** o elenco fecha a formação? (nenhuma posição com menos gente que o esquema pede) */
+export function fechaFormacao(squad: Card[], formation: FormationKey): boolean {
+  const need = FORMATIONS[formation] ?? FORMATIONS['4-3-3']
+  return SECTORS.every(p => squad.filter(c => c.pos === p).length >= need[p])
+}
+/** elenco cheio (22): quem pode sair pra `nova` entrar sem o time ficar faltando gente em alguma posição */
+export function podemSairMinha(squad: WonCard[], nova: Card, formation: FormationKey): WonCard[] {
+  return squad.filter(c => !c.emprestado && fechaFormacao([...squad.filter(x => x.id !== c.id), nova], formation))
+}
+/** o jogo tira sozinho: o RESERVA de menor valor (titular nunca), sem deixar posição faltando */
+export function reservaMaisBarata(squad: WonCard[], nova: Card, formation: FormationKey): WonCard | undefined {
+  const xi = new Set(xiPorOrdem(squad, formation).map(c => c.id))
+  const ok = podemSairMinha(squad, nova, formation)
+  const ord = (a: WonCard, b: WonCard) => (a.paid ?? 0) - (b.paid ?? 0) || forca(a) - forca(b)
+  return ok.filter(c => !xi.has(c.id)).sort(ord)[0] ?? ok.sort(ord)[0]
+}
+/** dá pra sondar/pôr à venda esta carta? (carta de verdade, do elenco, sem ser empréstimo) */
+export function podeIrProLeilao(m: Manager | undefined, cardId: string): WonCard | undefined {
+  const c = m?.squad.find(x => x.id === cardId)
+  return c && !c.fake && !c.emprestado ? c : undefined
+}
+/** 🔨 o martelo de um lote: maior lance; empate → dono, depois quem sondou, depois o menor número de assento. */
+export function martelo(lote: LoteDraft, lances: Record<number, number> | undefined, caixa: (id: number) => number): { vencedor: number; valor: number } {
+  const validos = Object.entries(lances ?? {}).map(([k, v]) => ({ id: +k, v: Math.floor(v) }))
+    .filter(x => x.v >= lote.piso && x.v <= caixa(x.id))
+  if (!validos.length) return { vencedor: lote.dono, valor: 0 }
+  const peso = (id: number) => id === lote.dono ? 0 : id === lote.sondador ? 1 : 2
+  validos.sort((a, b) => b.v - a.v || peso(a.id) - peso(b.id) || a.id - b.id)
+  return { vencedor: validos[0].id, valor: validos[0].v }
 }
 
 // 🧳 A LIGA DRAFT ATRAVESSA O DIA (a turma joga hoje, volta amanhã): o lobby lê a partida anterior gravada na sala e
@@ -46,6 +121,7 @@ export interface DraftEstado {
 // com o leilão fraco, que é o caminho seguro.
 export interface DraftCarry {
   squads: Record<number, WonCard[]> // id do técnico NOVO → elenco que ele tinha
+  caixa?: Record<number, number> // 📋🏆 Minha Liga Draft: o dinheiro de cada técnico atravessa o dia junto
   bots: Manager[] // os bots da tabela, com os elencos deles (o jogador do bot também é único na liga)
   draftFeito?: number
   ordem?: number[] // draft pendente (a temporada acabou e o draft não rolou): ids novos, campeão primeiro
@@ -144,17 +220,18 @@ export function paisDaCarta(c: { name: string; club: string; year: number }): st
 // (a mesma lista que monta os técnicos no lobby). Assento antigo → conta pelo `seatUids` (índice = id do humano).
 type PartidaGravada = {
   managers?: Manager[]; seatUids?: string[]; league?: { id: number; name: string; pts: number; w: number; gf: number; ga: number }[]
-  fixtures?: unknown[]; round?: number; seasonNo?: number; draftFeito?: number
+  fixtures?: unknown[]; round?: number; seasonNo?: number; draftFeito?: number; draft?: DraftEstado | null
 }
 export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]): DraftCarry | undefined {
   const mgrs = prev?.managers, seat = prev?.seatUids
   if (!prev || !Array.isArray(mgrs) || !mgrs.length || !Array.isArray(seat)) return undefined
   const squads: Record<number, WonCard[]> = {}
+  const caixa: Record<number, number> = {}
   const novoDoVelho: Record<number, number> = {}
   uidsNovos.forEach((uid, i) => {
     const k = seat.indexOf(uid)
     const m = k >= 0 ? mgrs.find(x => x.id === k && x.isHuman) : undefined
-    if (m) { squads[i] = m.squad; novoDoVelho[m.id] = i }
+    if (m) { squads[i] = m.squad; novoDoVelho[m.id] = i; caixa[i] = m.money }
   })
   const bots = mgrs.filter(m => !m.isHuman).sort((a, b) => a.id - b.id)
   const nRodadas = Array.isArray(prev.fixtures) ? prev.fixtures.length : 0
@@ -164,6 +241,15 @@ export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]
     // mesma ordem da tabela do jogo (pontos → vitórias → saldo → gols pró → nome)
     const tab = [...prev.league].sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name))
     ordem = tab.map(t => novoDoVelho[t.id]).filter((x): x is number => x != null)
+    // 📋🏆 (01/11) o dono saiu NO MEIO do draft: a fila continua de onde parou — quem já escolheu (ou perdeu a vez) não
+    // escolhe de novo, e quem estava na vez ganha a vez inteira de novo (o elenco gravado já tem as escolhas feitas).
+    const d = prev.draft
+    if (d && d.temporada === prev.seasonNo && Array.isArray(d.ordem) && d.idx < d.ordem.length && ['escolha', 'revela', 'aguarda'].includes(d.fase)) {
+      const jaFoi = d.fase === 'revela' ? d.idx + 1 : d.idx
+      ordem = d.ordem.slice(jaFoi).map(id => novoDoVelho[id]).filter((x): x is number => x != null)
+    } else if (d && d.temporada === prev.seasonNo && (d.proxima === 'leilao' || ['leilao', 'igualar', 'escala'].includes(d.fase))) {
+      ordem = [] // a fila do draft já tinha acabado (estava no leilão/escalação): ninguém escolhe de novo — segue pra temporada
+    }
   }
-  return { squads, bots, draftFeito: prev.draftFeito, ordem, temporada: prev.seasonNo }
+  return { squads, caixa, bots, draftFeito: prev.draftFeito, ordem, temporada: prev.seasonNo }
 }

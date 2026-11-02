@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {selectDribblePresentation,prepareBodyFeints,sampleBodyFeint} from '../../../src/escalacao/futebol3d/chibi/contextual-dribble-presentation.mjs';
+const context={owned:true,distance:.6,footGap:.03,height:.11};
+assert.equal(selectDribblePresentation({golpe:'arrancada'},{...context,busy:true}).mode,'locomotion','A burst uses the existing running/dribbling gait');
+assert.equal(selectDribblePresentation({golpe:'giro'},{...context,busy:true}).reason,'protected-foot-action');
+assert.equal(selectDribblePresentation({golpe:'giro'},{...context,footGap:.5}).clip,null,'A spin cannot begin half a metre away from the boot');
+assert.equal(selectDribblePresentation({golpe:'giro'},context).clip,'giro');
+assert.equal(selectDribblePresentation({golpe:'giro'},{...context,owned:false}).clip,null);
+assert.equal(selectDribblePresentation({golpe:'caneta'},context).reason,'dedicated-technique-not-validated');
+const key=JSON.stringify(['home','Atleta','Clube',2000]),actors=[{key,side:'home'}],events=[{tipo:'drible',golpe:'corpo',a:'Atleta',lado:0,t:5}],saved=structuredClone(events);
+const clear=prepareBodyFeints(events,actors,[]);assert.equal(clear.plans.length,1);
+const busy=prepareBodyFeints(events,actors,[{key,id:'pass',start:4.9,t:5.15,clipStart:0,clipEnd:.5}]);assert.equal(busy.plans.length,0);assert.equal(busy.skipped[0].reason,'protected-foot-action');
+assert.equal(prepareBodyFeints(events,[{key,side:'away'}],[]).plans.length,0,'Names on the other team cannot trigger the motion');
+assert.deepEqual(events,saved,'Presentation does not alter official events');
+const at=sampleBodyFeint(clear.plans,key,5,{...context,blocked:false});assert(Math.abs(at.weight-.65)<1e-9);assert.equal(at.progress,1);
+assert.equal(sampleBodyFeint(clear.plans,key,5,{...context,distance:2}),null);assert.equal(sampleBodyFeint(clear.plans,key,5,{...context,blocked:true}),null);
+assert.equal(sampleBodyFeint(clear.plans,key,clear.plans[0].start,context),null);assert.equal(sampleBodyFeint(clear.plans,key,clear.plans[0].end,context),null);
+console.log('PASS: contextual burst/spin selection, exact team identity, protected contacts and bounded captured body feint');
