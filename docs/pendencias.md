@@ -11919,3 +11919,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 - 🌎🌍🌐 Libertadores/Champions/Mundial: a campanha também nasce inteira (`statistics` = total). O elenco agora conta só as noites
   já mostradas (`reveal`); campanha acabada = a mesma conta de antes. Copa do Mundo já estava certa (números só entram no fim).
   Copa do Brasil + Supercopa entram pelo `copaPorCarta`. Rank/artilharia por competição NÃO foram revisados nesse passo.
+
+## 🧑‍💼⚔️ Membros do clã com o presidente (02/11, mockup `scripts/mockups/cla-membros-presidente.png`, "Sim")
+- `cla-ver.tsx`: cada membro mostra o busto do presidente (`PresidenteDaConta`, lote de 40 por chamada) e, sem boneco, o
+  escudo do clube no mesmo círculo. Régua de 14/10: escudo = clube · presidente = pessoa.

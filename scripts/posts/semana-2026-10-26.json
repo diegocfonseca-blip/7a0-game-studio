@@ -1,0 +1,22 @@
+{
+  "periodo": "26/10 a 01/11",
+  "cla": {
+    "nome": "Lulubaba", "escudo": "src/escalacao/img/lulubaba-escudo.webp", "titulos": 243, "lider": "Lucas Barreto 30",
+    "membros": [
+      {"nome":"MENGÃO MALVADÃO","titulos":51},{"nome":"Piranhao FC","titulos":22},{"nome":"Cervejeiros FC","titulos":17},
+      {"nome":"Kauarodriguexx 30","titulos":17},{"nome":"Galo fc","titulos":16},{"nome":"Cativeiro FC","titulos":15},
+      {"nome":"Duarte FC","titulos":14},{"nome":"Bispo 30","titulos":12},{"nome":"Oliveira FC 30","titulos":12},
+      {"nome":"Torcida Jovem Bfr 30","titulos":12},{"nome":"EC Vitoria","titulos":11},{"nome":"Ceceloprime FC","titulos":9},
+      {"nome":"Furia Jovem FC","titulos":9},{"nome":"Lucas Barreto 30","titulos":8,"lider":true},{"nome":"Jackaré 30","titulos":5},
+      {"nome":"Al Takadão","titulos":4},{"nome":"Lahozz_Al","titulos":3},{"nome":"Grêmio Vila Unida","titulos":2},
+      {"nome":"São Paulo","titulos":2},{"nome":"Torcida Jovem Fla 30","titulos":2},{"nome":"Dez Graçados","titulos":0},
+      {"nome":"Lucas Araújo","titulos":0}
+    ]
+  },
+  "podio": [
+    {"nome":"Januzaj FC","titulos":56},
+    {"nome":"Mengão Malvadão","titulos":51,"escudo":"src/escalacao/img/mengao-escudo.webp"},
+    {"nome":"Lincoln fc","titulos":39}
+  ],
+  "saida": {"cla":"scripts/posts/semana-cla-stories.png","ranking":"scripts/posts/semana-ranking-stories.png","feed":"scripts/posts/semana-feed.png"}
+}
