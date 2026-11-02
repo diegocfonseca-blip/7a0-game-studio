@@ -8865,9 +8865,29 @@ export function PyramidSeasonScreen() {
   const intlPorCarta = useMemo(() => {
     const gl: Record<string, number> = {}, ass: Record<string, number> = {}, jogos: Record<string, number> = {}
     if (!intlCampaign || intlPendente) return { gl, ass, jogos }
-    const byKey = new Map(intlCampaign.statistics.filter(row => row.you).map(row => [row.key, row]))
+    // 🌎🌍🌐 02/11: a campanha (Liberta/Champions/Mundial) nasce calculada INTEIRA — o `statistics` é o total dela. Enquanto as
+    // noites ainda estão sendo mostradas, conta só as que já passaram (`reveal`), senão o elenco mostrava gol de jogo futuro.
+    const acabou = intlCampaign.reveal >= intlCampaign.steps.length
+    const porK = new Map<string, { goals: number; assists: number; games: number }>()
+    if (acabou) for (const row of intlCampaign.statistics) { if (row.you) porK.set(row.key, row) }
+    else {
+      const meu = intlCampaign.teams.find(t => t.you)
+      const linha = (k: string) => porK.get(k) ?? porK.set(k, { goals: 0, assists: 0, games: 0 }).get(k)!
+      for (const step of intlCampaign.steps.slice(0, intlCampaign.reveal)) for (const fase of [step.libertadores, step.champions, step.mundial]) {
+        for (const m of fase?.matches ?? []) {
+          if (!meu || (m.home !== meu.id && m.away !== meu.id)) continue
+          for (const c of meu.xi) linha(`${c.name}|${c.club}|${c.year}`).games++
+          const casa = m.home === meu.id
+          for (const g of m.goals) {
+            if (g.home !== casa) continue
+            linha(g.card).goals++
+            if (g.assistCard) linha(g.assistCard).assists++
+          }
+        }
+      }
+    }
     for (const card of (state.managers[state.youIdx]?.squad ?? []) as WonCard[]) {
-      const row = byKey.get(`${card.name}|${card.club}|${card.year}`)
+      const row = porK.get(`${card.name}|${card.club}|${card.year}`)
       if (row) { gl[card.id] = row.goals; ass[card.id] = row.assists; jogos[card.id] = row.games }
     }
     return { gl, ass, jogos }

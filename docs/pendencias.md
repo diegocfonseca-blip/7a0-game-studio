@@ -11902,3 +11902,6 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   mesma conta de antes (o número que vai pro "no seu clube" na virada não mudou).
 - 🏃 E a coluna de JOGOS da tabela do Elenco mostrava o TOTAL no clube (3.502 do Yashin) enquanto ⚽/🅰️ eram da temporada.
   Agora a tabela é toda da TEMPORADA (`jogosTemp`); o total "no seu clube" continua na ficha do jogador (regra do Diego, 02/11).
+- 🌎🌍🌐 Libertadores/Champions/Mundial: a campanha também nasce inteira (`statistics` = total). O elenco agora conta só as noites
+  já mostradas (`reveal`); campanha acabada = a mesma conta de antes. Copa do Mundo já estava certa (números só entram no fim).
+  Copa do Brasil + Supercopa entram pelo `copaPorCarta`. Rank/artilharia por competição NÃO foram revisados nesse passo.
