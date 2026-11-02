@@ -21,8 +21,10 @@ export function calcularQualidadeComplexo(input: CapacidadeVisualComplexo) {
   const width = Math.max(1, positive(input.width, 1))
   const height = Math.max(1, positive(input.height, 1))
   const constrained = positive(input.deviceMemory, Infinity) <= 2
-  const pixelBudget = constrained ? 1_800_000 : input.coarsePointer ? 2_500_000 : 4_000_000
-  const maxPixelRatio = constrained ? 1.75 : input.coarsePointer ? 2.5 : 2
+  // A touch screen at DPR 2.5 was drawing 6.25 pixels for each CSS pixel.
+  // Start within a mobile budget instead of waiting for several slow seconds.
+  const pixelBudget = constrained ? 600_000 : input.coarsePointer ? 900_000 : 4_000_000
+  const maxPixelRatio = constrained ? 1.25 : input.coarsePointer ? 1.5 : 2
   const textureLimit = Math.max(1, Math.floor(positive(input.maxTextureSize, 4096)))
   const pixelRatio = Math.min(
     positive(input.devicePixelRatio, 1), maxPixelRatio,
@@ -31,6 +33,7 @@ export function calcularQualidadeComplexo(input: CapacidadeVisualComplexo) {
   const anisotropy = Math.min(constrained ? 2 : 8, Math.max(1, Math.floor(positive(input.maxAnisotropy, 1))))
   return {
     pixelRatio, pixelBudget, maxPixelRatio, anisotropy, constrained,
+    maxFPS: input.coarsePointer || constrained ? 30 : 60,
     drawingWidth: Math.max(1, Math.floor(width * pixelRatio)),
     drawingHeight: Math.max(1, Math.floor(height * pixelRatio)),
   }
