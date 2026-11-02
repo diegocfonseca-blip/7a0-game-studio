@@ -56,7 +56,7 @@ export function RankingClasCaixa() {
     <Caixa cincoMin titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
       {/* ⭐ 02/11 (Diego: "no ranking da semana coloque algum texto dourado sobre isso de usuário com plano dobra as vagas") */}
       <p style={{ ...OSW, margin: '0 0 8px', fontSize: 12.5, letterSpacing: '.03em', color: GOLD, background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 9px', lineHeight: 1.25 }}>
-        ⭐ {tr('Cada membro com plano abre +1 vaga no clã — sem limite!', 'Each member with a plan opens +1 clan slot — no cap!')}
+        ⭐ {tr('Todo clã tem 22 vagas. Depois disso, cada membro com plano abre +1 vaga!', 'Every clan has 22 slots. After that, each member with a plan opens +1 slot!')}
       </p>
       {l.length === 0 && <div style={{ textAlign: 'center', padding: '8px 4px', border: `2px dashed ${INK}`, borderRadius: 10, background: '#fff' }}>
         <p style={{ ...OSW, margin: 0, fontSize: 15 }}>⚔️ {tr('Nenhum clã ainda', 'No clans yet')}</p>
