@@ -11917,3 +11917,9 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 ## 🧑‍💼⚔️ Membros do clã com o presidente (02/11, mockup `scripts/mockups/cla-membros-presidente.png`, "Sim")
 - `cla-ver.tsx`: cada membro mostra o busto do presidente (`PresidenteDaConta`, lote de 40 por chamada) e, sem boneco, o
   escudo do clube no mesmo círculo. Régua de 14/10: escudo = clube · presidente = pessoa.
+
+## 🎨 Cor adicional à venda (02/11) — mockup enviado, esperando OK
+- `scripts/mockups/cor-adicional.png` (`scripts/mockup-cor-adicional.mjs`). R$ 14,90 pra sempre, só pra quem tem plano.
+- Reservadas: dourado (Lenda/Batismo/Fundador), prata (Craque), bege (sem plano), preto (futuro Fundador).
+- A fazer depois do OK: produto Pix novo, tabela da cor por conta, ler a cor junto do tier em todo lugar (cuidado: o selo
+  invisível/emoji do nome é como os OUTROS sabem a cor — precisa de um sinal novo ou leitura em lote no banco).
