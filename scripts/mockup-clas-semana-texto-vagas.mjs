@@ -10,7 +10,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${F}body{m
 <p style="${O};margin:0;font-size:17px;text-transform:uppercase">⚔️ Clãs da semana</p>
 <p style="margin:2px 0 1px;font-size:11px;font-weight:700;color:#5a5240">Todo título online de cada membro soma pro clã. Zera segunda.</p>
 <p style="margin:0 0 8px;font-size:10px;font-weight:700;font-style:italic;color:#8a8270">🔄 atualiza a cada 5 min</p>
-<p style="${O};margin:0 0 8px;font-size:12.5px;letter-spacing:.03em;color:#FFC400;background:linear-gradient(150deg,#262626,#0c0c0c);border:2px solid #0C0C0C;border-radius:10px;padding:5px 9px;line-height:1.25">⭐ Cada membro com plano abre +1 vaga no clã — sem limite!</p>
+<p style="${O};margin:0 0 8px;font-size:12.5px;letter-spacing:.03em;color:#FFC400;background:linear-gradient(150deg,#262626,#0c0c0c);border:2px solid #0C0C0C;border-radius:10px;padding:5px 9px;line-height:1.25">⭐ Todo clã tem 22 vagas. Depois disso, cada membro com plano abre +1 vaga!</p>
 ${row('🥇', 'Lulubaba', 41, true)}${row('🥈', 'Futpoint', 30)}${row('🥉', 'Leite de Verdade', 22)}${row('4º', 'ACIMA DA MEDIA', 9)}
 </div></body></html>`
 const br = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
