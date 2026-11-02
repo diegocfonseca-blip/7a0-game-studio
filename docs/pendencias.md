@@ -11892,3 +11892,21 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   (`npx tsx scripts/confere-lista-decadas.mts`). 11 da lista já tinham entrado nos Lotes 45–47 e saíram.
 - Pacotes de clube por década que fecham as 5 posições: **3 → 19**. Seleção por década: 18 → 24.
 - Stories: `mockups/cartas-l48-{a,b,c}.png`. ✅ Diego aprovou ("pode publicar todas") e foi publicado em 02/11 (De Gea ficou no Atlético 2010, promessa).
+
+## 🧾 Carreira nova herdava jogos/gols/assist. da anterior (02/11, print de usuário)
+- Causa: `condicaoCarry` (o "NO SEU CLUBE") e `botCarry` não eram zerados no START_CAREER_SOLO / CAREER_FROM_QUICK — o elenco
+  novo com as mesmas lendas aparecia com 3.502 jogos (Yashin) já na rodada 1.
+- Conserto: zera nos dois começos + cura ao abrir save que ainda está na T1 (o carry só nasce na virada T1→T2). Trava: `npm run carreira-limpa`.
+- ⚠️ Quem já passou da T1 com o número sujo fica com ele (não dá pra separar o que é de qual carreira).
+- (À parte: `npm run artilharia` já falhava antes, no item 8 — medalha 🥇 da aba OURO do Rank. Não é deste conserto.)
+
+## ⚽ Gol de Copa aparecia ANTES de jogar (02/11, Fabulous EC, T158)
+- Causa: com o calendário (liberado 25/10) a Copa nasce calculada inteira na rodada 0 (`copaMid`), e a tabela do Elenco
+  somava `copa.goalsByCard` de TODAS as fases — gol/assistência de jogo que ainda não aconteceu (e spoiler).
+- Conserto: `copaPorCarta` (pyramidseason.tsx) soma fase por fase, só as que já foram jogadas (`copaRound`); Copa acabada = a
+  mesma conta de antes (o número que vai pro "no seu clube" na virada não mudou).
+- 🏃 E a coluna de JOGOS da tabela do Elenco mostrava o TOTAL no clube (3.502 do Yashin) enquanto ⚽/🅰️ eram da temporada.
+  Agora a tabela é toda da TEMPORADA (`jogosTemp`); o total "no seu clube" continua na ficha do jogador (regra do Diego, 02/11).
+- 🌎🌍🌐 Libertadores/Champions/Mundial: a campanha também nasce inteira (`statistics` = total). O elenco agora conta só as noites
+  já mostradas (`reveal`); campanha acabada = a mesma conta de antes. Copa do Mundo já estava certa (números só entram no fim).
+  Copa do Brasil + Supercopa entram pelo `copaPorCarta`. Rank/artilharia por competição NÃO foram revisados nesse passo.

@@ -4601,6 +4601,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
   // 🅰️ assistências da temporada (irmã do gol; some quando é zero, igual o gol)
   const assistsOf = (c: WonCard) => assists?.[c.id] ?? 0
+  const jogosTemp = (c: WonCard) => { const f = estat ?? condicao; if (!f) return 0; return Math.max(0, (f.jogos[c.id] ?? 0) - (f.antes?.j[c.id] ?? 0)) } // 🏃 só ESTA temporada
   // 🎽 manto do coração (aprovado 09/08): faixinha listrada no topo das fichinhas
   // do campinho — só pra conta com manto (o elenco aqui é sempre o do próprio usuário)
   const manto = meuManto()
@@ -4714,7 +4715,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 900, fontSize: 9.5, ...OSWALD, whiteSpace: 'nowrap' }}>
             {goalsOf(c) > 0 && <span style={{ color: GREEN }}>⚽ {goalsOf(c)}</span>}
             {assistsOf(c) > 0 && <span style={{ color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
-            {(estat ?? condicao) && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{(estat ?? condicao)!.jogos[c.id] ?? 0} {tr('j', 'g')}</span>}
+            {(estat ?? condicao) && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{jogosTemp(c)} {tr('j', 'g')}</span>}
           </span>
         )}
         {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
@@ -4747,7 +4748,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     // único lugar da tabela onde a cor do clube aparece, e some se tirar.
     { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: COR_POS[c.pos] ?? col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> }, // 🎨 22/10: cor por posição (mockup do Elenco arrumado)
     ...(mostraOverall ? [{ k: 'ovr', w: larga ? 46 : 34, head: 'OVERALL', cell: (c: WonCard) => overallChip(c) }] : []),
-    ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell((estat ?? condicao)!.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
+    // 🏃 02/11 (Fabulous, T158: "3.502 jogos" no começo da temporada): a TABELA é da temporada, igual ao ⚽ e ao 🅰️ — o total
+    // "no seu clube" fica só na ficha do jogador (toque nele). `jogos` vem somado com o que ele tinha antes; tira o `antes`.
+    ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell(jogosTemp(c), 'rgba(12,12,12,.7)') }] : []),
     { k: 'gol', w: wNum, head: larga ? tr('GOLS', 'GOALS') : '⚽', cell: c => numCell(goalsOf(c), goalsOf(c) > 0 ? GREEN : 'rgba(12,12,12,.25)') },
     { k: 'ass', w: wNum, head: larga ? 'ASS' : '🅰️', cell: c => numCell(assistsOf(c), assistsOf(c) > 0 ? '#2F6BAE' : 'rgba(12,12,12,.25)') },
     ...(condicao ? [{ k: 'gas', w: larga ? 58 : 26, head: larga ? tr('GÁS', 'ENERGY') : '😓', cell: (c: WonCard) => gasChip(c, !larga) }] : []),
@@ -8863,9 +8866,29 @@ export function PyramidSeasonScreen() {
   const intlPorCarta = useMemo(() => {
     const gl: Record<string, number> = {}, ass: Record<string, number> = {}, jogos: Record<string, number> = {}
     if (!intlCampaign || intlPendente) return { gl, ass, jogos }
-    const byKey = new Map(intlCampaign.statistics.filter(row => row.you).map(row => [row.key, row]))
+    // 🌎🌍🌐 02/11: a campanha (Liberta/Champions/Mundial) nasce calculada INTEIRA — o `statistics` é o total dela. Enquanto as
+    // noites ainda estão sendo mostradas, conta só as que já passaram (`reveal`), senão o elenco mostrava gol de jogo futuro.
+    const acabou = intlCampaign.reveal >= intlCampaign.steps.length
+    const porK = new Map<string, { goals: number; assists: number; games: number }>()
+    if (acabou) for (const row of intlCampaign.statistics) { if (row.you) porK.set(row.key, row) }
+    else {
+      const meu = intlCampaign.teams.find(t => t.you)
+      const linha = (k: string) => porK.get(k) ?? porK.set(k, { goals: 0, assists: 0, games: 0 }).get(k)!
+      for (const step of intlCampaign.steps.slice(0, intlCampaign.reveal)) for (const fase of [step.libertadores, step.champions, step.mundial]) {
+        for (const m of fase?.matches ?? []) {
+          if (!meu || (m.home !== meu.id && m.away !== meu.id)) continue
+          for (const c of meu.xi) linha(`${c.name}|${c.club}|${c.year}`).games++
+          const casa = m.home === meu.id
+          for (const g of m.goals) {
+            if (g.home !== casa) continue
+            linha(g.card).goals++
+            if (g.assistCard) linha(g.assistCard).assists++
+          }
+        }
+      }
+    }
     for (const card of (state.managers[state.youIdx]?.squad ?? []) as WonCard[]) {
-      const row = byKey.get(`${card.name}|${card.club}|${card.year}`)
+      const row = porK.get(`${card.name}|${card.club}|${card.year}`)
       if (row) { gl[card.id] = row.goals; ass[card.id] = row.assists; jogos[card.id] = row.games }
     }
     return { gl, ass, jogos }
@@ -8929,8 +8952,6 @@ export function PyramidSeasonScreen() {
     }
     return { sc, asl }
   }, [cmLinhas, tables])
-  const golsTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(goalsByCard, copa?.goalsByCard), cmPorCarta.gl), intlPorCarta.gl), [goalsByCard, copa, cmPorCarta, intlPorCarta])
-  const assTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(assistsByCard, copa?.assistsByCard), cmPorCarta.as), intlPorCarta.ass), [assistsByCard, copa, cmPorCarta, intlPorCarta])
   // a Copa TOCA fase por fase (oitavas → quartas → semi → final), como a liga.
   // copaRound = fase ao vivo agora (0=oitavas). Zera a cada temporada nova.
   // se o save já assistiu a Copa desta temporada, começa JÁ finalizada (999 >= nº de
@@ -8979,6 +9000,25 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaRoundMid.current !== copaRound) { copaRoundMid.current = copaRound; setCopaMidOn(false) } }, [copaRound])
   const copaPlaying = done ? !!copa && nCopaRounds > 0 && copaRound < nCopaRounds : copaMid && copaMidOn && !!copa && copaRound < nCopaBase
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // ⚽🅰️ GOL DE COPA SÓ CONTA DEPOIS DE JOGADO (02/11, print do Fabulous: começo de temporada e o elenco já com gol e
+  // assistência). Com o calendário a Copa inteira já nasce calculada na rodada 0 (`copaMid`), e o `copa.goalsByCard` somava
+  // TODAS as fases de uma vez — gol de jogo que ainda não aconteceu (e spoiler). Agora soma fase por fase, a mesma régua do
+  // `copaJogos`: Copa acabada = tudo; no meio = só as fases antes do `copaRound`.
+  const copaPorCarta = useMemo(() => {
+    const gl: Record<string, number> = {}, as: Record<string, number> = {}
+    if (!copa) return { gl, as }
+    if (copaFinished) return { gl: copa.goalsByCard ?? {}, as: copa.assistsByCard ?? {} } // Copa acabada: a MESMA conta de sempre
+    copa.rounds.forEach((r, ri) => {
+      if (ri >= copaRound) return
+      for (const t of r.ties) for (const g of t.goals) {
+        if (g.id) gl[g.id] = (gl[g.id] ?? 0) + 1
+        if (g.assistId) as[g.assistId] = (as[g.assistId] ?? 0) + 1
+      }
+    })
+    return { gl, as }
+  }, [copa, copaFinished, copaRound])
+  const golsTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(goalsByCard, copaPorCarta.gl), cmPorCarta.gl), intlPorCarta.gl), [goalsByCard, copaPorCarta, cmPorCarta, intlPorCarta])
+  const assTemporada = useMemo(() => somaCartas(somaCartas(somaCartas(assistsByCard, copaPorCarta.as), cmPorCarta.as), intlPorCarta.ass), [assistsByCard, copaPorCarta, cmPorCarta, intlPorCarta])
   // 🏃 JOGOS DE COPA NA CONTA DO JOGADOR (Diego 26/09: *"jogos totais… todas as
   // ligas, Copas"*). Os jogos do elenco sempre foram só os 38 da liga. A Copa joga
   // com o XI congelado da rodada 38, então cada titular soma as partidas (ida e

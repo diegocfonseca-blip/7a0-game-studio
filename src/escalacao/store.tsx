@@ -8816,6 +8816,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.criaDeEvento = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
+      s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: carreira nova NÃO herda jogos/gols/assistências/gás da anterior ("mal começou e já tinha gol")
       s.careerBico = undefined // 🕴️ Bico de Folga: carreira nova não herda o patrocinador da carreira anterior
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
@@ -8930,6 +8931,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
+      s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: idem — nada da carreira anterior
       s.agenciaDividir = false
       s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
@@ -8975,6 +8977,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
       try { ligaCondicaoSeCabe(restored); curaContratosVencidos(restored); curaContratoComissao(restored) } catch { /* save torto: abre mesmo assim */ }
+      // 🧾 CURA (02/11): o carry só nasce na virada da T1→T2 (guardaCansaco roda antes do seasonNo++), então carreira
+      // ainda na 1ª temporada com carry = sujeira herdada de carreira anterior (o START não limpava). Some aqui.
+      if ((restored.seasonNo ?? 1) <= 1) { restored.condicaoCarry = undefined; restored.botCarry = undefined }
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
