@@ -115,7 +115,16 @@ console.log('✅ pulado pelo dono e tempo esgotado = perdeu a vez, sem jogador')
 s = reducer(s, { type: 'DRAFT_PRONTO', mgrId: 3 } as never)
 const alvo = s.managers[0].squad.find(c => c.name === lenda.name)!
 assert.equal(reducer(s, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 3, cardId: vendaTocaia.id } as never).draft!.sondagens!.length, 0, 'não sonda a si mesmo')
+// 🔒 contrato: a lenda chegou agora (temporada 2) e um jogador do leilão da T1 tem 1 temporada no time → nenhum dá pra sondar
+assert.equal(alvo.mldDesde, 2, 'jogador do draft chega com a temporada em que entra no time')
+const daT1 = s.managers[0].squad.find(c => c.mldDesde == null && !c.fake)!
+assert.equal(reducer(s, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 0, cardId: alvo.id } as never).draft!.sondagens!.length, 0, 'recém-chegado está no contrato')
+assert.equal(reducer(s, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 0, cardId: daT1.id } as never).draft!.sondagens!.length, 0, 'só 1 temporada no time: ainda no contrato')
+const t3 = JSON.parse(JSON.stringify(s)) as EscState; t3.draft!.temporada = 3
+assert.equal(reducer(t3, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 0, cardId: daT1.id } as never).draft!.sondagens!.length, 1, 'no draft do fim da 3ª temporada libera')
+s.managers[0].squad = s.managers[0].squad.map(c => c.id === alvo.id ? { ...c, mldDesde: -5 } : c) // (simula um veterano pra seguir o teste do leilão)
 s = reducer(s, { type: 'DRAFT_SONDAR', mgrId: 3, dono: 0, cardId: alvo.id } as never)
+console.log('✅ contrato: só sonda quem tem 3 temporadas no time')
 assert.equal(s.draft!.fase, 'prontos'); assert.equal(s.draft!.proxima, 'leilao')
 assert.equal(s.draft!.lotes!.length, 2, 'lotes: o sondado + o que o Tocaia pôs à venda')
 const iS = s.draft!.lotes!.findIndex(l => l.sondador === 3), iV = s.draft!.lotes!.findIndex(l => l.sondador == null)

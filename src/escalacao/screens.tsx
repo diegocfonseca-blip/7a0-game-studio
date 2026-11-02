@@ -11562,6 +11562,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             {[
               ['🏆', V('Quem terminou mais na frente da tabela escolhe primeiro: pega 1 jogador do jogo INTEIRO (ou sonda o de um amigo)', 'Whoever finished higher in the table picks first: take 1 player from the WHOLE game (or scout a friend\'s)')],
               ['☝️', V('Cada jogador é único na liga: só existe UM Pelé do Santos', 'Every player is unique in the league: there is only ONE Pelé from Santos')],
+              ['🔒', V('Sondar o jogador de um amigo só depois de 3 temporadas dele no time (o "contrato")', 'You can only scout a friend\'s player after 3 seasons on his team (the "contract")')],
               ['👕', V('Cada time tem elenco de até 22 jogadores', 'Each team has a squad of up to 22 players')],
               ['💰', V('Moedas pela colocação caem no caixa', 'Coins for your finish go to your bank')],
               ['🔨', V('Sondados e jogadores à venda vão pra leilão', 'Scouted and for-sale players go to auction')],

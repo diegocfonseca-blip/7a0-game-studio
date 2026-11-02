@@ -80,7 +80,10 @@
     `scripts/mockups/minha-liga-draft-tamanho.png`. Sala de 10 = máx. 10 pessoas.
     📋 **02/11 — vira A Liga Draft oficial** (a antiga não se cria mais; aparece pra todos travada, meta 2K; criar = MINHA_LIGA_DRAFT_TESTERS),
     banner grande do fim com ✋ pronto pra todos (dono abre), jornal "Edição Liga Draft · Temporada N", suspense 3 s por pista. PUBLICADO.
-    ❓ Pendente: o Diego pediu pra dizer "só consegue sondar do amigo após 3 rodadas" — a regra NÃO existe; perguntar o que é.
+    🔒 **Contrato de 3 temporadas (02/11, "opção B e bote cadeado avisando tipo contrato"):** só dá pra SONDAR quem está há 3 temporadas
+    no time do amigo (`mldDesde` na carta; sem o campo = veio no leilão da T1). Quem chega por draft/leilão recomeça o contador. Trava no
+    motor (DRAFT_SONDAR) + cadeado na lista ("Contrato: faltam N temporadas · libera no draft do fim da temporada X"). Print:
+    `scripts/mockups/liga-draft-sondar-contrato.png`.
     🤖 **Bots se reforçam CALADOS (01/11):** depois do draft/leilão, cada bot troca o pior de 1 posição por um livre bom/craque
     (nunca lenda/promessa); quem sai volta a ser livre. Sem anúncio. Com/sem bots continua escolha de quem cria (sem bots = 4+).
     📏 **Tamanho da liga: 20 (padrão) ou 10 times**, bots completam; com mais de 10 pessoas cresce até caber (01/11, `tamanhoLiga`).

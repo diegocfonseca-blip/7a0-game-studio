@@ -1107,7 +1107,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, premioColocacao, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, premioColocacao, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -7428,7 +7428,7 @@ function aplicaPickDraft(s: EscState, m: Manager, carta: Card, sai: Card | null,
   const d = s.draft
   if (!d) return
   // 📋🏆 Minha Liga Draft: o jogador do draft chega valendo 10 🪙 e, com vaga (menos de 22), entra no BANCO sem ninguém sair
-  const nova: WonCard = { ...carta, id: `dr${d.temporada}-${m.id}-${d.idx}`, paid: s.minhaLigaDraft ? MLD_DRAFT_VALOR : 0, via: 'leilao' }
+  const nova: WonCard = { ...carta, id: `dr${d.temporada}-${m.id}-${d.idx}`, paid: s.minhaLigaDraft ? MLD_DRAFT_VALOR : 0, via: 'leilao', ...(s.minhaLigaDraft ? { mldDesde: d.temporada + 1 } : {}) }
   m.squad = sai ? m.squad.map(c => c.id === sai.id ? nova : c) : [...m.squad, nova]
   d.picks.push({ mgrId: m.id, carta: nova, ...(sai ? { saiu: { id: sai.id, name: sai.name, club: sai.club, year: sai.year } } : {}), ...(auto ? { auto: true } : {}) })
   ;(s.marketLog = s.marketLog ?? []).push(`📋 ${m.teamName} escolheu ${carta.name} no draft${sai ? ` (saiu ${sai.name})` : ''}`)
@@ -7540,7 +7540,7 @@ function mldAplicaLeilao(s: EscState): void {
     const ganhador = s.managers.find(m => m.id === l.vencedor && m.isHuman)
     const card = dono.squad.find(c => c.id === l.carta.id)
     if (!ganhador || !card || ganhador.money < valor) return
-    const nova: WonCard = { ...card, id: `ml${d.temporada}-${ganhador.id}-${i}`, paid: valor, via: 'leilao' }
+    const nova: WonCard = { ...card, id: `ml${d.temporada}-${ganhador.id}-${i}`, paid: valor, via: 'leilao', mldDesde: d.temporada + 1 } // 🔒 o contrato recomeça no time novo
     let saiu: WonCard | undefined
     if (ganhador.squad.length >= MLD_ELENCO_MAX) {
       saiu = reservaMaisBarata(ganhador.squad, nova, ganhador.formation)
@@ -7557,7 +7557,7 @@ function mldAplicaLeilao(s: EscState): void {
     if (dono.squad.filter(c => c.pos === card.pos).length < need) {
       const livres = cartasLivres(nomesOcupados(s.managers)).filter(c => c.pos === card.pos && c.fame <= 2 && !c.promessa)
       const rep = livres.length ? livres[(s.seed + i * 7919) % livres.length] : undefined
-      if (rep) { dono.squad = [...dono.squad, { ...rep, id: `mlr${d.temporada}-${dono.id}-${i}`, paid: 1, via: 'leilao' }]; log.push(`🆓 ${dono.teamName} ganhou ${rep.name} pra fechar a posição`) }
+      if (rep) { dono.squad = [...dono.squad, { ...rep, id: `mlr${d.temporada}-${dono.id}-${i}`, paid: 1, via: 'leilao', mldDesde: d.temporada + 1 }]; log.push(`🆓 ${dono.teamName} ganhou ${rep.name} pra fechar a posição`) }
     }
   })
 }
@@ -12746,6 +12746,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const dono = s.managers.find(x => x.id === action.dono && x.isHuman)
       const c = podeIrProLeilao(dono, action.cardId)
       if (!por || !dono || !c || (d.sondagens ?? []).some(x => x.cardId === c.id)) return state
+      if (!podeSondarCarta(c, d.temporada)) return state // 🔒 ainda no "contrato" (menos de 3 temporadas no time do amigo)
       d.sondagens = [...(d.sondagens ?? []), { por: por.id, dono: dono.id, cardId: c.id, nome: c.name }]
       ;(s.marketLog = s.marketLog ?? []).push(`🕵️ ${por.teamName} sondou ${c.name} do ${dono.teamName}`)
       proximoDoDraft(s)

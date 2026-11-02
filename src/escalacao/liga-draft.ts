@@ -102,6 +102,20 @@ export function reservaMaisBarata(squad: WonCard[], nova: Card, formation: Forma
   const ord = (a: WonCard, b: WonCard) => (a.paid ?? 0) - (b.paid ?? 0) || forca(a) - forca(b)
   return ok.filter(c => !xi.has(c.id)).sort(ord)[0] ?? ok.sort(ord)[0]
 }
+// 🔒 "CONTRATO" DA LIGA DRAFT (02/11, Diego: *"opção B e bote cadeado avisando tipo contrato"*): um jogador só pode ser SONDADO
+// depois de 3 temporadas completas no time do amigo. Quem chegou na temporada S fica travado até o draft do fim da temporada S+2.
+export const MLD_SONDAR_TEMPORADAS = 3
+/** quantas temporadas a carta já jogou neste time, contando a que acabou de terminar */
+export function temporadasNoTime(c: { mldDesde?: number }, temporadaQueAcabou: number): number {
+  return Math.max(0, temporadaQueAcabou - (c.mldDesde ?? 1) + 1)
+}
+/** o draft (fim de qual temporada) em que ela fica livre pra sondar */
+export function sondavelNoDraftDa(c: { mldDesde?: number }): number {
+  return (c.mldDesde ?? 1) + MLD_SONDAR_TEMPORADAS - 1
+}
+export function podeSondarCarta(c: { mldDesde?: number }, temporadaQueAcabou: number): boolean {
+  return temporadasNoTime(c, temporadaQueAcabou) >= MLD_SONDAR_TEMPORADAS
+}
 /** dá pra sondar/pôr à venda esta carta? (carta de verdade, do elenco, sem ser empréstimo) */
 export function podeIrProLeilao(m: Manager | undefined, cardId: string): WonCard | undefined {
   const c = m?.squad.find(x => x.id === cardId)
