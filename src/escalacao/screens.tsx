@@ -8414,6 +8414,8 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
   // `seedQuickCopa`, senão a tela mentiria sobre quem está classificado). Na Street
   // não tem playoffs, então continua tabela única.
   const confTier = bb && state.copaMode === 'liga_copa'
+  // 📊 SÓ A LIGA (Liga Draft e salas "só liga"): não tem Copa depois — nada de G8/Copa dos 8 nem zona na tabela (02/11, Diego)
+  const soLiga = !bb && !ehKings(state) && state.copaMode === 'liga' && !state.quickCopa
   const kg = ehKings(state) // 👑 Kings: 1º = SEMI, 2º–7º = QUARTAS, sem rebaixamento; a coluna do empate vira SH (jogos no shootout)
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
@@ -8523,9 +8525,11 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
             </>
           ) : (
             <>
+              {soLiga ? <span className="flex items-center gap-1">{L('📊 Só a liga', '📊 League only')}</span> : <>
               <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{copaN(table.length)}</span>
               <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
               <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3', border: '1px solid rgba(0,0,0,.3)' }} />Z{zoneN(table.length)}</span>
+              </>}
             </>
           )}
         </div>
@@ -8542,13 +8546,13 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
             {cabeca()}
             <tbody>
               {table.map((t, i) => linha(t, i + 1, table.length,
-                bb ? (confTier ? Math.min(8, table.length) : 0) : copaN(table.length), !bb))}
+                bb ? (confTier ? Math.min(8, table.length) : 0) : soLiga ? 0 : copaN(table.length), !bb && !soLiga))}
             </tbody>
           </table>
         </>
       )}
       {kg && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L('👑 Pontos: vitória 3 · vitória no shootout 2 · derrota no shootout 1 · derrota 0. SH = jogos que foram pro shootout. 1º direto na semi · 2º ao 7º nas quartas.', '👑 Points: win 3 · shootout win 2 · shootout loss 1 · loss 0. SH = games that went to a shootout. 1st straight to the semi · 2nd–7th in the quarters.')}</p>}
-      {!bb && !kg && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{tr(`🏆 G${copaN(table.length)} = os ${copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.`, `🏆 G${copaN(table.length)} = the top ${copaN(table.length)} — when the league ends, they play the Cup of 8.`)}</p>}
+      {!bb && !kg && !soLiga && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{tr(`🏆 G${copaN(table.length)} = os ${copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.`, `🏆 G${copaN(table.length)} = the top ${copaN(table.length)} — when the league ends, they play the Cup of 8.`)}</p>}
       {duasConf && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(
         `🏆 PO = os ${vagasPO} primeiros de CADA conferência vão aos playoffs${vagasPO === 8 ? ' (1×8 · 4×5 · 3×6 · 2×7)' : ''}. Leste e Oeste só se cruzam nas Finals.`,
         `🏆 PO = the top ${vagasPO} of EACH conference make the playoffs${vagasPO === 8 ? ' (1×8 · 4×5 · 3×6 · 2×7)' : ''}. East and West only meet in the Finals.`)}</p>}
