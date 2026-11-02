@@ -1674,7 +1674,57 @@ const L45_BR_ATA: C[] = [
   { name: "Mazzola", club: "Palmeiras", year: 1958, fame: 4, lo: 81, hi: 89 },
   { name: "Éder", club: "Atlético-MG", year: 1982, fame: 4, lo: 81, hi: 90 },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL, ...L45_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT, ...L45_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG, ...L45_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI, ...L45_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA, ...L43_BR_ATA, ...L45_BR_ATA] }
+// 📅 Lote 48 (02/11, Diego: *"mais jogadores pro baralho por causa desse negócio de décadas… famosos apenas"*): fecha pacotes de
+//    clube por DÉCADA (goleiro e lateral são o gargalo) + os times históricos (Flamengo 81, Santos do Pelé, Inter 76, Grêmio 95).
+//    Lista: docs/lista-cartas-decadas.md, reconferida contra o baralho de 02/11 (`npx tsx scripts/confere-lista-decadas.mts`).
+const L48_BR_GOL: C[] = [
+  { name: "Paulo Victor", club: "Grêmio", year: 2019, fame: 2, lo: 70, hi: 80 },
+  { name: "Jailson", club: "Palmeiras", year: 2020, fame: 3, lo: 74, hi: 83 },
+  { name: "Zé Carlos", club: "Flamengo", year: 1987, fame: 3, lo: 75, hi: 84 },
+  { name: "Benítez", club: "Internacional", year: 1979, fame: 3, lo: 77, hi: 86 },
+]
+const L48_BR_LAT: C[] = [
+  { name: "Kléber", club: "Corinthians", year: 2002, fame: 3, lo: 76, hi: 85 },
+  { name: "Alessandro", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 84 },
+  { name: "Vitinho (Botafogo)", club: "Botafogo", year: 2024, fame: 3, lo: 75, hi: 84 },
+  { name: "Mateo Ponte", club: "Botafogo", year: 2024, fame: 2, lo: 72, hi: 82 },
+  { name: "Douglas Santos", club: "Atlético-MG", year: 2015, fame: 3, lo: 75, hi: 84 },
+  { name: "Patric", club: "Atlético-MG", year: 2018, fame: 2, lo: 70, hi: 80 },
+  { name: "Júnior César", club: "Atlético-MG", year: 2013, fame: 2, lo: 72, hi: 81 },
+  { name: "Edílson (Grêmio)", club: "Grêmio", year: 2017, fame: 3, lo: 75, hi: 83 },
+  { name: "Serginho (São Paulo)", club: "São Paulo", year: 1997, fame: 3, lo: 77, hi: 85 },
+  { name: "Dalmo", club: "Santos", year: 1962, fame: 3, lo: 76, hi: 84 },
+]
+const L48_BR_ZAG: C[] = [
+  { name: "Betão", club: "Corinthians", year: 2005, fame: 2, lo: 72, hi: 81 },
+  { name: "Paulo André", club: "Corinthians", year: 2012, fame: 3, lo: 76, hi: 84 },
+  { name: "David Braz", club: "Santos", year: 2015, fame: 2, lo: 72, hi: 81 },
+  { name: "Adryelson", club: "Botafogo", year: 2023, fame: 3, lo: 76, hi: 84 },
+  { name: "Marinho (Flamengo)", club: "Flamengo", year: 1981, fame: 3, lo: 77, hi: 85 },
+  { name: "Edinho (Flamengo)", club: "Flamengo", year: 1987, fame: 3, lo: 77, hi: 86 },
+  { name: "Mauro Ramos", club: "Santos", year: 1962, fame: 4, lo: 83, hi: 90 },
+  { name: "Marinho Peres", club: "Internacional", year: 1976, fame: 4, lo: 82, hi: 89 },
+  { name: "Adílson", club: "Grêmio", year: 1995, fame: 3, lo: 76, hi: 84 },
+  { name: "Rivarola", club: "Grêmio", year: 1995, fame: 3, lo: 76, hi: 85 },
+]
+const L48_BR_MEI: C[] = [
+  { name: "Thiago Maia", club: "Santos", year: 2016, fame: 3, lo: 74, hi: 84, promessa: true },
+  { name: "Ramiro", club: "Grêmio", year: 2017, fame: 3, lo: 75, hi: 83 },
+  { name: "Pintado", club: "São Paulo", year: 1993, fame: 3, lo: 77, hi: 85 },
+  { name: "Mengálvio", club: "Santos", year: 1962, fame: 3, lo: 78, hi: 86 },
+  { name: "Dinho", club: "Grêmio", year: 1995, fame: 3, lo: 77, hi: 85 },
+  { name: "Arílson", club: "Grêmio", year: 1995, fame: 3, lo: 76, hi: 85 },
+  { name: "Carlos Miguel (Grêmio)", club: "Grêmio", year: 1996, fame: 3, lo: 76, hi: 85 },
+]
+const L48_BR_ATA: C[] = [
+  { name: "Michael", club: "Flamengo", year: 2021, fame: 3, lo: 75, hi: 85 },
+  { name: "Luiz Araújo", club: "Flamengo", year: 2023, fame: 3, lo: 74, hi: 83 },
+  { name: "Palhinha (São Paulo)", club: "São Paulo", year: 1992, fame: 3, lo: 78, hi: 87 },
+  { name: "Lico", club: "Flamengo", year: 1981, fame: 3, lo: 77, hi: 86 },
+  { name: "Joãozinho", club: "Cruzeiro", year: 1976, fame: 4, lo: 83, hi: 90 },
+  { name: "Lula", club: "Internacional", year: 1976, fame: 3, lo: 77, hi: 85 },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL, ...L45_BR_GOL, ...L48_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT, ...L45_BR_LAT, ...L48_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG, ...L45_BR_ZAG, ...L48_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI, ...L45_BR_MEI, ...L48_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA, ...L43_BR_ATA, ...L45_BR_ATA, ...L48_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -3093,7 +3143,64 @@ const L46_EU_ATA: C[] = [
   { name: "Giorgos Samaras", club: "Celtic", year: 2010, fame: 3, lo: 74, hi: 84 }, // Grécia
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL, ...L45_EU_GOL, ...L46_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT, ...L45_EU_LAT, ...L46_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG, ...L45_EU_ZAG, ...L46_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI, ...L45_EU_MEI, ...L46_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA, ...L45_EU_ATA, ...L46_EU_ATA] }
+// 📅 Lote 48 (02/11, Diego: *"mais jogadores pro baralho por causa desse negócio de décadas… famosos apenas"*): fecha pacotes de
+//    clube por DÉCADA (goleiro e lateral são o gargalo) + os times históricos (Flamengo 81, Santos do Pelé, Inter 76, Grêmio 95).
+//    Lista: docs/lista-cartas-decadas.md, reconferida contra o baralho de 02/11 (`npx tsx scripts/confere-lista-decadas.mts`).
+const L48_EU_GOL: C[] = [
+  { name: "David de Gea", club: "Atlético de Madrid", year: 2010, fame: 3, lo: 75, hi: 85, promessa: true },
+  { name: "Samir Handanović", club: "Inter", year: 2018, fame: 4, lo: 82, hi: 89 },
+  { name: "Christian Abbiati", club: "Milan", year: 2004, fame: 3, lo: 75, hi: 84 },
+  { name: "Hans-Jörg Butt", club: "Bayern", year: 2010, fame: 3, lo: 74, hi: 83 },
+  { name: "Andriy Lunin", club: "Real Madrid", year: 2024, fame: 3, lo: 75, hi: 84 },
+  { name: "Manuel Almunia", club: "Arsenal", year: 2008, fame: 3, lo: 74, hi: 83 },
+  { name: "Yann Sommer", club: "Bayern", year: 2023, fame: 3, lo: 77, hi: 85 },
+  { name: "Sergio Romero", club: "Man United", year: 2017, fame: 3, lo: 74, hi: 83 },
+  { name: "Carlos Roa", club: "Mallorca", year: 1998, fame: 3, lo: 76, hi: 84 },
+  { name: "Ricardo", club: "Sporting", year: 2004, fame: 3, lo: 76, hi: 84 },
+]
+const L48_EU_LAT: C[] = [
+  { name: "Kakha Kaladze", club: "Milan", year: 2004, fame: 3, lo: 77, hi: 85 },
+  { name: "Massimo Oddo", club: "Milan", year: 2007, fame: 3, lo: 76, hi: 84 },
+  { name: "Rafinha", club: "Bayern", year: 2014, fame: 3, lo: 77, hi: 85 },
+  { name: "Juan Bernat", club: "Bayern", year: 2015, fame: 3, lo: 75, hi: 83 },
+  { name: "Ferland Mendy", club: "Real Madrid", year: 2022, fame: 3, lo: 77, hi: 85 },
+  { name: "Lucas Vázquez", club: "Real Madrid", year: 2022, fame: 3, lo: 75, hi: 83 },
+  { name: "Gaël Clichy", club: "Arsenal", year: 2008, fame: 3, lo: 76, hi: 84 },
+  { name: "Pablo Zabaleta", club: "Man City", year: 2012, fame: 3, lo: 77, hi: 85 },
+  { name: "Glen Johnson", club: "Liverpool", year: 2012, fame: 3, lo: 75, hi: 84 },
+  { name: "Alberto Moreno", club: "Liverpool", year: 2015, fame: 2, lo: 71, hi: 81 },
+  { name: "Steve Finnan", club: "Liverpool", year: 2005, fame: 3, lo: 75, hi: 83 },
+  { name: "Phil Neville", club: "Man United", year: 1999, fame: 3, lo: 74, hi: 83 },
+  { name: "Paul Parker", club: "Man United", year: 1994, fame: 3, lo: 74, hi: 83 },
+  { name: "Thilo Kehrer", club: "PSG", year: 2020, fame: 2, lo: 72, hi: 81 },
+  { name: "Marcos Alonso", club: "Chelsea", year: 2017, fame: 3, lo: 77, hi: 85 },
+  { name: "Gregory van der Wiel", club: "Ajax", year: 2012, fame: 3, lo: 75, hi: 83 },
+]
+const L48_EU_ZAG: C[] = [
+  { name: "Samuel Umtiti", club: "Barcelona", year: 2017, fame: 4, lo: 82, hi: 88 },
+  { name: "Holger Badstuber", club: "Bayern", year: 2012, fame: 3, lo: 76, hi: 85 },
+  { name: "Martin Keown", club: "Arsenal", year: 2002, fame: 3, lo: 77, hi: 85 },
+  { name: "Joleon Lescott", club: "Man City", year: 2012, fame: 3, lo: 75, hi: 84 },
+  { name: "Sami Hyypiä", club: "Liverpool", year: 2005, fame: 4, lo: 83, hi: 89 },
+  { name: "Martin Škrtel", club: "Liverpool", year: 2009, fame: 3, lo: 76, hi: 84 },
+  { name: "Gary Cahill", club: "Chelsea", year: 2015, fame: 3, lo: 77, hi: 85 },
+  { name: "Laurent Koscielny", club: "Arsenal", year: 2015, fame: 3, lo: 78, hi: 86 },
+  { name: "Stefan de Vrij", club: "Inter", year: 2019, fame: 3, lo: 78, hi: 86 },
+]
+const L48_EU_MEI: C[] = [
+  { name: "Saúl Ñíguez", club: "Atlético de Madrid", year: 2016, fame: 4, lo: 82, hi: 89 },
+  { name: "Samir Nasri", club: "Man City", year: 2012, fame: 3, lo: 78, hi: 86 },
+  { name: "Leon Goretzka", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 89 },
+]
+const L48_EU_ATA: C[] = [
+  { name: "Emmanuel Adebayor", club: "Real Madrid", year: 2011, fame: 3, lo: 76, hi: 85 },
+  { name: "Jesé Rodríguez", club: "Real Madrid", year: 2014, fame: 2, lo: 70, hi: 82, promessa: true },
+  { name: "Diego Milito", club: "Inter", year: 2010, fame: 4, lo: 85, hi: 91 },
+  { name: "Mario Gómez", club: "Bayern", year: 2011, fame: 4, lo: 82, hi: 89 },
+  { name: "Daniel Sturridge", club: "Liverpool", year: 2014, fame: 4, lo: 82, hi: 89 },
+  { name: "Tevez", club: "Man City", year: 2012, fame: 4, lo: 84, hi: 90 },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL, ...L45_EU_GOL, ...L46_EU_GOL, ...L48_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT, ...L45_EU_LAT, ...L46_EU_LAT, ...L48_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG, ...L45_EU_ZAG, ...L46_EU_ZAG, ...L48_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI, ...L45_EU_MEI, ...L46_EU_MEI, ...L48_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA, ...L45_EU_ATA, ...L46_EU_ATA, ...L48_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -3830,7 +3937,13 @@ const L45_WORLD_ATA: C[] = [
   { name: "Alcides Ghiggia", club: "Peñarol", year: 1950, fame: 4, lo: 84, hi: 89 },
   { name: "Héctor Scarone", club: "Nacional-URU", year: 1930, fame: 4, lo: 83, hi: 91 },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL, ...L45_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT, ...L45_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG, ...L45_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI, ...L44_WORLD_MEI, ...L45_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA, ...L45_WORLD_ATA] }
+// 📅 Lote 48 (02/11, Diego: *"mais jogadores pro baralho por causa desse negócio de décadas… famosos apenas"*): fecha pacotes de
+//    clube por DÉCADA (goleiro e lateral são o gargalo) + os times históricos (Flamengo 81, Santos do Pelé, Inter 76, Grêmio 95).
+//    Lista: docs/lista-cartas-decadas.md, reconferida contra o baralho de 02/11 (`npx tsx scripts/confere-lista-decadas.mts`).
+const L48_WORLD_GOL: C[] = [
+  { name: "Justo Villar", club: "Estudiantes", year: 2010, fame: 3, lo: 75, hi: 84 },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL, ...L45_WORLD_GOL, ...L48_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT, ...L45_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG, ...L45_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI, ...L44_WORLD_MEI, ...L45_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA, ...L45_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).

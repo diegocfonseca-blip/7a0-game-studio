@@ -1,4 +1,4 @@
-# 📅 Lista de cartas novas pro leilão POR DÉCADA (30/10, proposta pro Diego — NADA entrou no jogo ainda)
+# 📅 Lista de cartas novas pro leilão POR DÉCADA (30/10; virou o LOTE 48 em 02/11 — no branch, esperando OK do Diego)
 
 Critério: jogador **famoso ou conhecido** (bom ou ruim), **1 por baralho** (conferido nome por nome contra o baralho
 de 30/10), e foco onde destrava pacote: **goleiro e lateral** (o gargalo) + times históricos (anos 60–90, hoje zero).
