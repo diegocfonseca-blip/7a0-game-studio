@@ -1102,7 +1102,7 @@ import { formacaoNoCardapio } from './cardapio-formacoes'
 import { salvaEscalacao } from './escalacao-salva' // 💾 escalação A/B (23/10)
 import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
 import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
-import { BATISMOS } from './batismos' // 🖋 bots de batismo/fundador se revezando nas salas online (02/11)
+import { BATISMOS, chaveClube } from './batismos' // 🖋 bots de batismo/fundador se revezando nas salas online (02/11)
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
@@ -4379,7 +4379,7 @@ function finishSeason(s: EscState) {
   // escrito no giro. Melhor não ter do que ter torto.
   else if (s.copaMode === 'liga_champions' && !s.champions) {
     if (s.league.length >= CHAMPIONS_DIRETO) {
-      s.champions = seedChampions(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0))
+      s.champions = seedChampions(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0), (BATISMOS_NAS_SALAS && s.onlineMode === 'online' ? mulberry((s.seed ^ 0x5A1A5) >>> 0) : undefined))
       s.news = [tr('⭐ A liga acabou — os 8 primeiros estão na CHAMPIONS! 36 clubes numa tabela só.', '⭐ The league is over — the top 8 are in the CHAMPIONS! 36 clubs, one single table.')]
       // ⚠️ a tela NÃO troca aqui: igual à Liberta, a temporada fecha no 'end' e
       // quem entra na competição é o START_CHAMPIONS (botão do host / bannerzão).
@@ -4525,9 +4525,9 @@ function playLibertaRodada(s: EscState) {
 //
 // 📏 FORÇA: mesma régua da Liberta — o convidado joga no padrão da liga, com o
 // mesmo ajuste de sala (`cpuAtkAdj`/`cpuDefAdj`). Nada inventado.
-function seedChampions(league: LeagueTeam[], rng: () => number): ChampionsState {
+function seedChampions(league: LeagueTeam[], rng: () => number, sorteio?: () => number): ChampionsState {
   const oito = sortedTable(league).slice(0, CHAMPIONS_DIRETO)
-  const convidados = championsConvidados(oito.map(t => t.name))
+  const convidados = championsConvidados(oito.map(t => t.name), undefined, sorteio)
   const times: ChampionsTeam[] = []
   const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
   oito.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, isManager: t.isManager, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
@@ -4546,9 +4546,9 @@ function seedChampions(league: LeagueTeam[], rng: () => number): ChampionsState 
 // na MESMA ordem de preferência da Champions de sempre (`championsConvidados`: série A
 // pra baixo, gente na frente). Os bots de enchimento da liga ficam de fora: a vaga
 // deles é palco pra quem batizou clube.
-function seedChampionsDireto(league: LeagueTeam[], rng: () => number): ChampionsState {
+function seedChampionsDireto(league: LeagueTeam[], rng: () => number, sorteio?: () => number): ChampionsState {
   const comTecnico = league.filter(t => t.isManager).slice(0, CHAMPIONS_CLUBES)
-  const convidados = championsConvidados(comTecnico.map(t => t.name), CHAMPIONS_CLUBES - comTecnico.length)
+  const convidados = championsConvidados(comTecnico.map(t => t.name), CHAMPIONS_CLUBES - comTecnico.length, sorteio)
   const times: ChampionsTeam[] = []
   const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
   comTecnico.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, isManager: true, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
@@ -4576,7 +4576,7 @@ function abreChampionsDiretoSePrecisa(s: EscState) {
   // pegou no 1º teste (25/09): o `START` não limpava a Champions velha, esta função
   // achava que já tinha semeado e a partida caía na liga de 20.
   s.champions = null; s.quickCopa = null; s.liberta = null
-  s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0))
+  s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0), (BATISMOS_NAS_SALAS && s.onlineMode === 'online' ? mulberry((s.seed ^ 0x5A1A5) >>> 0) : undefined))
   s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
   s.news = [s.onlineMode === 'online'
     ? tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — os times da sala e, completando, os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — the room\'s teams and, to complete it, the named clubs.')
@@ -5470,9 +5470,9 @@ function poolSalaComBatismos(rng: () => number): { team: string; name: string }[
   const antigo = [...shuffle([...TIMES_ELITE], rng), ...shuffle([...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C], rng)]
   if (!BATISMOS_NAS_SALAS) return antigo
   const todos = [...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.D, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS]
-  const nomes = new Set(BATISMOS.filter(b => b.tipo === 'batismo').map(b => b.clube))
+  const nomes = new Set(BATISMOS.filter(b => b.tipo === 'batismo').map(b => chaveClube(b.clube))) // chave ignora FC/EC/caixa/acento
   const vistos = new Set<string>()
-  const batismos = todos.filter(t => nomes.has(t.team) && !vistos.has(t.team) && (vistos.add(t.team), true))
+  const batismos = todos.filter(t => nomes.has(chaveClube(t.team)) && !vistos.has(chaveClube(t.team)) && (vistos.add(chaveClube(t.team)), true))
   const sorteados = shuffle(batismos, rng)
   const ja = new Set(sorteados.map(t => t.team))
   return [...sorteados, ...antigo.filter(t => !ja.has(t.team) && (ja.add(t.team), true))]

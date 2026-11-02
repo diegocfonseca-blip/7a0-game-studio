@@ -58,8 +58,9 @@ export type ClubeConvidado = { name: string; atk: number; def: number; divisao: 
  * Por que a preferência importa: o sentido da Champions é dar PALCO pra quem
  * batizou. Clube genérico só entra pra fechar a conta.
  */
-export function championsConvidados(jaNaLiga: string[], quantos = CHAMPIONS_CLUBES - CHAMPIONS_DIRETO): ClubeConvidado[] {
+export function championsConvidados(jaNaLiga: string[], quantos = CHAMPIONS_CLUBES - CHAMPIONS_DIRETO, sorteio?: () => number): ClubeConvidado[] {
   const usado = new Set(jaNaLiga.map(chaveClube))
+  if (sorteio) return convidadosSorteados(usado, quantos, sorteio)
   const divs: [string, { team: string }[]][] = [
     ['A', DIVISION_TEAMS.A], ['B', DIVISION_TEAMS.B], ['C', DIVISION_TEAMS.C],
     ['D', DIVISION_TEAMS.D], ['V', VARZEA_TEAMS],
@@ -80,6 +81,38 @@ export function championsConvidados(jaNaLiga: string[], quantos = CHAMPIONS_CLUB
     })
   }
   return out.slice(0, quantos)
+}
+
+// 🎲 SALAS ONLINE (02/11, Diego: *"faz o sorteio na Champions também… salas online em qualquer competição"*): os
+// convidados saem SORTEADOS entre TODOS os clubes de batismo/fundador da pirâmide (A → Várzea), não mais sempre os
+// da Série A. A FORÇA continua sendo a da divisão de cada um (mesma FAIXA, descendo de 1 em 1 entre os sorteados da
+// mesma divisão), então o da Série A segue mais forte que o da Várzea — muda só QUEM aparece. Clube genérico só entra
+// se faltar batismo. Carreira e partida rápida não passam o sorteio e ficam na ordem de sempre.
+function convidadosSorteados(usado: Set<string>, quantos: number, rng: () => number): ClubeConvidado[] {
+  const divs: [string, { team: string }[]][] = [
+    ['A', DIVISION_TEAMS.A], ['B', DIVISION_TEAMS.B], ['C', DIVISION_TEAMS.C],
+    ['D', DIVISION_TEAMS.D], ['V', VARZEA_TEAMS],
+  ]
+  const gente: { clube: string; d: string }[] = []
+  const comum: { clube: string; d: string }[] = []
+  const visto = new Set(usado)
+  for (const [d, lista] of divs) for (const t of lista) {
+    const k = chaveClube(t.team)
+    if (visto.has(k)) continue
+    visto.add(k)
+    ;(ehDeGente(t.team) ? gente : comum).push({ clube: t.team, d })
+  }
+  const embaralha = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [b[i], b[j]] = [b[j], b[i]] } return b }
+  const escolhidos = [...embaralha(gente), ...comum].slice(0, quantos)
+  const ordemDiv = ['A', 'B', 'C', 'D', 'V']
+  escolhidos.sort((x, y) => ordemDiv.indexOf(x.d) - ordemDiv.indexOf(y.d))
+  const naDiv: Record<string, number> = {}
+  return escolhidos.map(({ clube, d }) => {
+    const i = naDiv[d] = (naDiv[d] ?? -1) + 1
+    const [alto, baixo] = FAIXA[d]
+    const forca = Math.max(baixo, alto - i)
+    return { name: clube, atk: forca, def: Math.max(baixo, forca - 1), divisao: d }
+  })
 }
 
 // ── 🎱 POTES ────────────────────────────────────────────────────────────────
