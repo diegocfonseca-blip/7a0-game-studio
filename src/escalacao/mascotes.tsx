@@ -75,6 +75,7 @@ import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import paizaoMascoteImg from './img/paizao-mascote.webp' // 🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoMascoteImg from './img/piranhao-mascote.webp' // 🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
+import principeMascoteImg from './img/principe-mascote.webp' // 👑 Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
@@ -416,6 +417,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // da coroa e a taça-cartola do Cartola na mão. Arte do próprio dono. 📏 258×440, 19 KB — altura 176. mascote_key = "paizao_cartola".
   paizao_cartola: (
     <img src={paizaoMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Paizão — Paizão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 👑 O PRÍNCIPE (mascote do Príncipe Rubro Negro — pedroglima50, 02/11): o príncipe de cabelo vermelho de uniforme rubro-negro,
+  // apontando, numa explosão de raios vermelhos. Arte do próprio dono. 📏 344×440, 44 KB — altura 176. mascote_key = "principe_rubronegro".
+  principe_rubronegro: (
+    <img src={principeMascoteImg} height={176} width={Math.round(176 * 344 / 440)} alt="O Príncipe — Príncipe Rubro Negro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   lulubaba_goleiro: (
     <img src={lulubabaMascoteImg} height={176} width={Math.round(176 * 440 / 342)} alt="O Goleiro — Lulubaba FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -1295,6 +1301,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Lulubaba EC': 'lulubaba_goleiro',
   'Lulubaba SC': 'lulubaba_goleiro',
   'Fênix Dourada': 'lulubaba_goleiro',
+  // 👑 o Príncipe carimba o gol do Príncipe Rubro Negro (pedroglima50, 02/11).
+  'Príncipe Rubro Negro': 'principe_rubronegro',
+  'Príncipe Rubro Negro FC': 'principe_rubronegro',
+  'Príncipe Rubro Negro EC': 'principe_rubronegro',
+  'Príncipe Rubro Negro SC': 'principe_rubronegro',
+  'Aurora Suprema': 'principe_rubronegro',
   // 🐶 o Pitbull carimba o gol do dSouza FC (alexandre12cdm, 28/10).
   'dSouza FC': 'dsouza_pitbull',
   'dSouza': 'dsouza_pitbull',
@@ -1454,6 +1466,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   piranhao_presidente: 'O Presidente', // 🏛️ Piranhão FC (bruno.cunha2007, 29/10)
   paizao_cartola: 'O Paizão', // 🎩 Paizão FC (enzocromero9, 30/10)
+  principe_rubronegro: 'O Príncipe', // 👑 Príncipe Rubro Negro (pedroglima50, 02/11)
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
