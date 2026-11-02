@@ -11900,3 +11900,5 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   somava `copa.goalsByCard` de TODAS as fases — gol/assistência de jogo que ainda não aconteceu (e spoiler).
 - Conserto: `copaPorCarta` (pyramidseason.tsx) soma fase por fase, só as que já foram jogadas (`copaRound`); Copa acabada = a
   mesma conta de antes (o número que vai pro "no seu clube" na virada não mudou).
+- 🏃 E a coluna de JOGOS da tabela do Elenco mostrava o TOTAL no clube (3.502 do Yashin) enquanto ⚽/🅰️ eram da temporada.
+  Agora a tabela é toda da TEMPORADA (`jogosTemp`); o total "no seu clube" continua na ficha do jogador (regra do Diego, 02/11).

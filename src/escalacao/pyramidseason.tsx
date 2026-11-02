@@ -4600,6 +4600,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const goalsOf = (c: WonCard) => goals?.[c.id] ?? 0
   // 🅰️ assistências da temporada (irmã do gol; some quando é zero, igual o gol)
   const assistsOf = (c: WonCard) => assists?.[c.id] ?? 0
+  const jogosTemp = (c: WonCard) => { const f = estat ?? condicao; if (!f) return 0; return Math.max(0, (f.jogos[c.id] ?? 0) - (f.antes?.j[c.id] ?? 0)) } // 🏃 só ESTA temporada
   // 🎽 manto do coração (aprovado 09/08): faixinha listrada no topo das fichinhas
   // do campinho — só pra conta com manto (o elenco aqui é sempre o do próprio usuário)
   const manto = meuManto()
@@ -4713,7 +4714,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 900, fontSize: 9.5, ...OSWALD, whiteSpace: 'nowrap' }}>
             {goalsOf(c) > 0 && <span style={{ color: GREEN }}>⚽ {goalsOf(c)}</span>}
             {assistsOf(c) > 0 && <span style={{ color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
-            {(estat ?? condicao) && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{(estat ?? condicao)!.jogos[c.id] ?? 0} {tr('j', 'g')}</span>}
+            {(estat ?? condicao) && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{jogosTemp(c)} {tr('j', 'g')}</span>}
           </span>
         )}
         {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
@@ -4746,7 +4747,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     // único lugar da tabela onde a cor do clube aparece, e some se tirar.
     { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: COR_POS[c.pos] ?? col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> }, // 🎨 22/10: cor por posição (mockup do Elenco arrumado)
     ...(mostraOverall ? [{ k: 'ovr', w: larga ? 46 : 34, head: 'OVERALL', cell: (c: WonCard) => overallChip(c) }] : []),
-    ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell((estat ?? condicao)!.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
+    // 🏃 02/11 (Fabulous, T158: "3.502 jogos" no começo da temporada): a TABELA é da temporada, igual ao ⚽ e ao 🅰️ — o total
+    // "no seu clube" fica só na ficha do jogador (toque nele). `jogos` vem somado com o que ele tinha antes; tira o `antes`.
+    ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell(jogosTemp(c), 'rgba(12,12,12,.7)') }] : []),
     { k: 'gol', w: wNum, head: larga ? tr('GOLS', 'GOALS') : '⚽', cell: c => numCell(goalsOf(c), goalsOf(c) > 0 ? GREEN : 'rgba(12,12,12,.25)') },
     { k: 'ass', w: wNum, head: larga ? 'ASS' : '🅰️', cell: c => numCell(assistsOf(c), assistsOf(c) > 0 ? '#2F6BAE' : 'rgba(12,12,12,.25)') },
     ...(condicao ? [{ k: 'gas', w: larga ? 58 : 26, head: larga ? tr('GÁS', 'ENERGY') : '😓', cell: (c: WonCard) => gasChip(c, !larga) }] : []),
