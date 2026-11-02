@@ -80,6 +80,9 @@
     `scripts/mockups/minha-liga-draft-tamanho.png`. Sala de 10 = máx. 10 pessoas.
     📋 **02/11 — vira A Liga Draft oficial** (a antiga não se cria mais; aparece pra todos travada, meta 2K; criar = MINHA_LIGA_DRAFT_TESTERS),
     banner grande do fim com ✋ pronto pra todos (dono abre), jornal "Edição Liga Draft · Temporada N", suspense 3 s por pista. PUBLICADO.
+    🐛 **02/11 (sala 1HB53P, 2º teste): "botei 10 times e continuou 20".** Os técnicos/bots eram 10, mas a TABELA (`buildLeague`)
+    completava com clubes CPU até 20. Agora `s.tamanhoLiga = 10` desliga o completar (8 chamadas de buildLeague). Trava no
+    `npm run minha-liga-draft` (tabela 10 · 18 rodadas). Sala já começada com 20 continua com 20 — só sala nova pega.
     🔒 **Contrato de 3 temporadas (02/11, "opção B e bote cadeado avisando tipo contrato"):** só dá pra SONDAR quem está há 3 temporadas
     no time do amigo (`mldDesde` na carta; sem o campo = veio no leilão da T1). Quem chega por draft/leilão recomeça o contador. Trava no
     motor (DRAFT_SONDAR) + cadeado na lista ("Contrato: faltam N temporadas · libera no draft do fim da temporada X"). Print:
