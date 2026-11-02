@@ -11559,7 +11559,14 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             <p className="text-white/75 text-[12.5px] font-bold mt-1.5">{V(`A temporada ${state.seasonNo + 1} começa no draft`, `Season ${state.seasonNo + 1} starts with the draft`)}</p>
           </div>
           <div className="rounded-2xl border-[3px] border-black bg-white overflow-hidden">
-            {[['💰', V('Moedas pela colocação caem no caixa', 'Coins for your finish go to your bank')], ['📋', V('Na ordem da tabela: pega 1 jogador livre OU sonda o de um amigo', 'In table order: take 1 free player OR scout a friend\'s')], ['🔨', V('Sondados e jogadores à venda vão pra leilão', 'Scouted and for-sale players go to auction')], ['👕', V('Escalação e começa a próxima temporada', 'Line-up, then the next season starts')]].map(([e, t]) => (
+            {[
+              ['🏆', V('Quem terminou mais na frente da tabela escolhe primeiro: pega 1 jogador do jogo INTEIRO (ou sonda o de um amigo)', 'Whoever finished higher in the table picks first: take 1 player from the WHOLE game (or scout a friend\'s)')],
+              ['☝️', V('Cada jogador é único na liga: só existe UM Pelé do Santos', 'Every player is unique in the league: there is only ONE Pelé from Santos')],
+              ['👕', V('Cada time tem elenco de até 22 jogadores', 'Each team has a squad of up to 22 players')],
+              ['💰', V('Moedas pela colocação caem no caixa', 'Coins for your finish go to your bank')],
+              ['🔨', V('Sondados e jogadores à venda vão pra leilão', 'Scouted and for-sale players go to auction')],
+              ['♾️', V('A liga não acaba: vocês continuam na MESMA liga, temporada após temporada', 'The league never ends: you keep playing the SAME league, season after season')],
+            ].map(([e, t]) => (
               <p key={e} className="px-3 py-1.5 border-b border-black/10 text-[12.5px] font-bold text-black/80 flex gap-2"><span>{e}</span><span>{t}</span></p>
             ))}
           </div>
