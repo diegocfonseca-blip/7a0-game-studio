@@ -1,3 +1,6 @@
+## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — no branch, esperando "publica"
+- Diego: *"não deveria seguir pelo nome… somente pelo e-mail da conta do usuário"* (caso Mengão Malvadao do João Victor aparecendo com o escudo do batismo do Átila na lista do clã). Banco: `esc_nomes_sem_escudo()` lista os nomes EXATOS (minúsculo, com acento) de contas que usam nome de batismo sem ser donas (pelo e-mail em `esc_nomes_batismo`), tirando o nome exato que o próprio dono usa. Aparelho: `mimos.ts` (`nomeSemEscudo`) + `escudos.tsx` (`logoPronta` não dá a arte fixa pra esses nomes; nome de ASSENTO dos bots segue com escudo). Carrega no início (`main.tsx`) e no lobby. Limite: cópia letra por letra igual ao nome do dono continua indistinguível pelo nome (no jogo ela já sai com "🎭FAKE" grudado, que também tira o escudo). Etapa 3 completa (escudo por conta em todo lugar) continua pendente.
+
 ## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 02/11/2027, sem `vendria_sub`). Conta de 24/07 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo). Tinha tier verde antigo (continua como `tier_legado`).
 

@@ -98,8 +98,8 @@ import panteraEscudoImg from './img/pantera-escudo.webp' // 🐆👑 Pantera Neg
 import gremioEscudoImg from './img/gremio-escudo.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
-import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
-import { chaveEscudo, ehMeuClube, meuEscudoBatismo, escudoDaSala } from './mimos' // 🎁 escudo do dono segue o e-mail (e a sala inteira enxerga)
+import { newestTeamName, DIVISION_TEAMS, EXTRA_D_TEAMS, VARZEA_TEAMS } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
+import { chaveEscudo, ehMeuClube, meuEscudoBatismo, escudoDaSala, nomeSemEscudo, mesmoNomeExato } from './mimos' // 🎁 escudo do dono segue o e-mail (e a sala inteira enxerga)
 
 const INK = '#0C0C0C'
 
@@ -1837,9 +1837,14 @@ const LOGOS_POR_CHAVE: Map<string, (size: number) => ReactNode> =
 // 🎁 08/09: se o nome não está na lista fixa MAS é o do MEU clube e eu sou dono
 // de batismo, entra o escudo do meu batismo — o dono renomeia à vontade e não
 // perde o escudo (regra do Diego: mimo segue o E-MAIL). Ver mimos.ts.
+// 🛡️📧 02/11 (Diego: "não deveria seguir pelo nome… somente pelo e-mail"): nome que o BANCO diz ser de conta que copiou um
+// batismo (`nomeSemEscudo`, ex.: "Mengão Malvadao" do João Victor) NUNCA ganha o escudo do batismo. O nome do clube como os
+// BOTS usam (o do assento na pirâmide) segue com o escudo — bot não tem conta, e o batismo nas salas é vitrine do dono.
+const NOMES_DE_ASSENTO = [...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.D, ...EXTRA_D_TEAMS, ...VARZEA_TEAMS].map(t => t.team)
+const copiaDeBatismo = (n: string) => nomeSemEscudo(n) && !NOMES_DE_ASSENTO.some(t => mesmoNomeExato(t, n))
 const logoPronta = (n: string) => {
-  const fixa = LOGOS_POR_CHAVE.get(chaveEscudo(n))
-  if (fixa) return fixa // 1º a lista FIXA: nome de clube batizado sempre ganha
+  const fixa = copiaDeBatismo(n) ? undefined : LOGOS_POR_CHAVE.get(chaveEscudo(n))
+  if (fixa) return fixa // 1º a lista FIXA: nome de clube batizado sempre ganha (menos cópia de conta que não é a dona)
   // 2º o que o SERVIDOR disse sobre os assentos DESTA sala (18/09) — é isto que faz
   // o batismo do amigo aparecer pra todo mundo, mesmo com ele jogando com outro nome
   const daSala = escudoDaSala(n)

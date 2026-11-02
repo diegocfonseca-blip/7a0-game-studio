@@ -47,6 +47,20 @@ export const chaveEscudo = (n: string): string => n
   .replace(/\s+/g, ' ')
   .replace(/\s+(f\.?\s?c\.?|e\.?\s?c\.?|s\.?\s?c\.?)$/, '') // FC/EC/SC no fim não mudam o dono
 
+// 🛡️📧 ESCUDO DE BATISMO SÓ PELO E-MAIL (02/11, Diego: "não deveria seguir pelo nome… somente pelo e-mail da conta").
+// O banco (`esc_nomes_sem_escudo`) lista os nomes EXATOS (minúsculo, COM acento) de contas que usam nome de batismo sem
+// ser donas (ex.: "mengão malvadao" do João Victor × "Mengão Malvadão" do dono). Pra esses nomes o escudo do batismo
+// nunca é desenhado — a chave do escudo ignora acento, por isso a comparação aqui é a EXATA.
+const exatoNome = (n: string): string => n
+  .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{200D}\u{FE0F}\u{FE0E}\u{20E3}]/gu, '')
+  .replace(/\s*\((você|voce)\)\s*$/i, '').replace(/\bFAKE\b/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
+let nomesSemEscudo = new Set<string>()
+export function registraNomesSemEscudo(lista: string[]): void { nomesSemEscudo = new Set(lista.map(exatoNome)) }
+/** esse nome é de conta que copiou um batismo (não é a dona)? */
+export const nomeSemEscudo = (n: string): boolean => nomesSemEscudo.size > 0 && nomesSemEscudo.has(exatoNome(n))
+/** compara dois nomes de clube no jeito EXATO (com acento) — pro nome canônico do batismo continuar valendo */
+export const mesmoNomeExato = (a: string, b: string): boolean => exatoNome(a) === exatoNome(b)
+
 let meusNomes = new Set<string>()
 let meuEscudoTime: string | null = null
 let meuMascoteKey: string | null = null

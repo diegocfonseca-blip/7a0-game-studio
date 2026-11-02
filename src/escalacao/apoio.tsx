@@ -4,6 +4,7 @@
 // Por enquanto a lista vive aqui no código (contas fundadoras); depois migra
 // pra tabela user_colors no Supabase, aí outros jogadores também enxergam.
 import { useEffect, useState } from 'react'
+import { registraNomesSemEscudo } from './mimos' // 🛡️📧 escudo de batismo só pelo e-mail (02/11)
 import { supabase } from '../lib/supabase'
 import { tr } from './lang' // 🌐 BR/EN (12/09)
 import { lerDireitos, tierEfetivo, temManual, type Direitos } from './planos-regras'
@@ -507,6 +508,15 @@ let nomeFake = false
 export function meuNomeFake(): boolean { return nomeFake }
 export async function carregaNomeFake(): Promise<void> {
   try { const { data, error } = await supabase.rpc('esc_meu_nome_fake'); if (!error) nomeFake = data === true } catch { /* sem banco: sem selo */ }
+}
+/** 🛡️📧 02/11: nomes de conta que copiaram um batismo (o banco decide pelo e-mail) — o escudo do batismo não é desenhado pra eles */
+let nomesSemEscudoCarregado = false
+export async function carregaNomesSemEscudo(): Promise<void> {
+  if (nomesSemEscudoCarregado) return
+  try {
+    const { data, error } = await supabase.rpc('esc_nomes_sem_escudo')
+    if (!error && Array.isArray(data)) { registraNomesSemEscudo(data as string[]); nomesSemEscudoCarregado = true }
+  } catch { /* sem banco: fica como antes */ }
 }
 /** separa o selo 🎭 FAKE do nome (pra desenhar ele como etiqueta vermelha) */
 export function separaFake(name: string): { nome: string; fake: boolean } {
