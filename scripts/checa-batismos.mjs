@@ -78,6 +78,7 @@ const BATISMOS = [
   ['ccaonta@gmail.com', 'Chelsão da Massa FC'], // 🦁🔵 Série C (16/10) — assento do bot CRBebê
   ['enzocromero9@gmail.com', 'Paizão FC'], // 👑🎩 Série D (30/10, Fundador) — no assento do bot Monarca EC
   ['bruno.cunha2007@gmail.com', 'Piranhão FC'], // 🐟🏛️ Série D (29/10, Fundador) — no assento do bot Continental Real
+  ['pedroglima50@gmail.com', 'Príncipe Rubro Negro'], // 👑🔴⚫ Série D (02/11) — no assento do bot Aurora Suprema
   ['lucasfonseca363@gmail.com', 'Lulubaba FC'], // 🧤🖤 Série D (29/10, virou Fundador) — no assento do bot Fênix Dourada
   ['alexandre12cdm@gmail.com', 'dSouza FC'], // 🐶💚 Série C (28/10, Fundador) — no assento do bot Kombi United
   ['oluisantonio.contato@gmail.com', 'Vila Esporte Clube'], // ⭐🦁 Série D (27/10) — assento do bot Imperador SAF
@@ -138,7 +139,7 @@ const SOCIOS = [
 
 // 🖋 REGRA NOVA (14/10, Diego): *"melhor deixar fundador só qm faz o fundador… mas qm já tem número de fundador deixe como
 // está"*. Batismo de 79,90 feito daqui pra frente NÃO ganha número — entra aqui. (Quem compra o plano Fundador ganha.)
-const SEM_FUNDADOR = new Set(['ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com'])
+const SEM_FUNDADOR = new Set(['pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com'])
 const olha = ([email, clube], ehSocio) => {
   const k = chave(clube); const falta = []
   if (!LOGOS.has(k)) falta.push('escudo próprio')
