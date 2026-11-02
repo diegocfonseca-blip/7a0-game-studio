@@ -25,7 +25,7 @@ export function criarEquipeApoioEstadio(scene:THREE.Scene,onReady:()=>void){
  meshBox(.65,.35,.42,39,floor+.175,36.8,white);meshBox(.20,.22,.015,39,floor+.2,37.02,green);meshBox(.31,.08,.017,39,floor+.2,37.025,green)
  const bin=meshBox(.55,.8,.55,-10,.25,109,grey);bin.name='stadium-cleanup-bin'
  type Person={id:string;role:string;body:ReturnType<typeof createCivilian>;anchor:CityPoint;heading:number;exit?:ReturnType<typeof activityRoute>;arrival?:ReturnType<typeof activityRoute>;arrivalDelay?:number}
- const people:Person[]=[],add=(id:string,role:string,x:number,z:number,color:string,variant='adult-man',heading=0)=>{const body=createCivilian(root,{id:'stadium-'+id,outfitColor:color,variant,onReady});const p={id,role,body,anchor:{x,y:ground(x,z),z},heading};people.push(p);return p}
+ const people:Person[]=[],add=(id:string,role:string,x:number,z:number,color:string,variant='adult-man',heading=0)=>{const body=createCivilian(root,{deferUntilVisible:true,id:'stadium-'+id,outfitColor:color,variant,onReady});const p={id,role,body,anchor:{x,y:ground(x,z),z},heading};people.push(p);return p}
  add('delegation-marshal','marshal',-98,24,'#b4a331','adult-woman',-Math.PI/2)
  add('home-coach','coach',-18,TECNICO_Z,'#28343b');add('away-coach','coach',18,TECNICO_Z,'#414137','older-man')
  add('home-assistant','assistant',-22,BANCO_Z,'#28343b','older-man');add('away-assistant','assistant',14,BANCO_Z,'#414137','adult-woman')
