@@ -807,7 +807,7 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
   )
 }
 
-export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classificacaoToda, matchSeed, aoStatus, seasonNo = 1, aoRemover, assentos, duplas, euro }: {
+export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classificacaoToda, matchSeed, aoStatus, seasonNo = 1, aoRemover, assentos, duplas, euro: euroProp }: {
   /** 🇪🇺 31/10: a sala é Liga + EUROCOPA (24 seleções da Europa) */
   euro?: 24
   /** 🪑 quem senta em cada assento e as duplas — do ESTADO da partida (20/10, sala ZESM9K): manda mais que o número do banco */
@@ -834,6 +834,18 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   /** ⚙️ o dono remove quem está demorando (o id é o do técnico na tabela) */
   aoRemover?: (id: number, nome: string) => void
 }) {
+  // 🇪🇺 02/11 (bug "escolhi o Brasil e virou a Áustria"): a marca da Euro vinha de UMA leitura feita quando a pessoa entrou
+  // na partida. O portão confere de novo na hora em que abre — se qualquer uma das duas disser Euro, é Euro. Assim a lista
+  // de seleções (que vai pelo NOME, e o dono troca nome fora da lista pela pior que sobrou) nunca sai da Copa do Mundo
+  // numa sala de Eurocopa.
+  const [euroSala, setEuroSala] = useState<24 | undefined>(undefined)
+  useEffect(() => {
+    let vivo = true
+    void supabase.from('game_rooms').select('euro:game_state->>euroNaLiga').eq('id', roomId).maybeSingle()
+      .then(({ data }) => { const e = (data as { euro?: string } | null)?.euro; if (vivo && (e === '24' || e === 'true')) setEuroSala(24) }, () => {})
+    return () => { vivo = false }
+  }, [roomId])
+  const euro: 24 | undefined = euroProp ?? euroSala
   // 🇪🇺 Euro: só os 24 primeiros da tabela entram na fila (sala de até 20 = todo mundo joga)
   const classificacao = useMemo(() => euro ? classificacaoToda.slice(0, euro) : classificacaoToda, [classificacaoToda, euro])
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
