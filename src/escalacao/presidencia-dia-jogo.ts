@@ -1,4 +1,5 @@
 import {vendorDelivery} from './cidade3d/vendor-delivery.mjs'
+import {acelerarRaios} from './presidencia-raio-rapido'
 import {criarPeruasAmbulantes} from './presidencia-perua-ambulante'
 import {pregameFrame,PREGAME} from './cidade3d/pregame-plan.mjs'
 import * as THREE from 'three'
@@ -22,7 +23,7 @@ export type DadosDiaJogo={journey?:JornadaComplexo;teams:IdentidadeDiaJogo[];sup
 export function criarDiaDeJogo(scene:THREE.Scene,state:EstadoComplexo,seats:readonly AssentoComplexo[],onReady:()=>void=()=>{}){
  const root=new THREE.Group();root.name='stadium-matchday';root.visible=false;scene.add(root)
  const meshes:THREE.Mesh[]=[];for(const name of ['complexo-entorno','estadio-arquitetura-volumetrica'])scene.getObjectByName(name)?.traverse(n=>{if(n instanceof THREE.Mesh&&!(n instanceof THREE.SkinnedMesh)&&!(n instanceof THREE.InstancedMesh))meshes.push(n)})
- scene.updateMatrixWorld(true);const ray=new THREE.Raycaster(),normal=new THREE.Vector3(),down=new THREE.Vector3(0,-1,0),cache=new Map<string,number>()
+ scene.updateMatrixWorld(true);acelerarRaios(meshes);const ray=new THREE.Raycaster(),normal=new THREE.Vector3(),down=new THREE.Vector3(0,-1,0),cache=new Map<string,number>()
  const ground=(x:number,z:number)=>{const key=x.toFixed(3)+':'+z.toFixed(3);if(cache.has(key))return cache.get(key)!;ray.set(new THREE.Vector3(x,.6,z),down);ray.far=1;const hit=ray.intersectObjects(meshes,false).find(h=>h.point.y<.27&&h.face&&normal.copy(h.face.normal).transformDirection(h.object.matrixWorld).y>.5);const y=hit?.point.y??0;cache.set(key,y);return y}
  const measured=(points:readonly CityPoint[])=>{const out:CityPoint[]=[];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.7));for(let j=i===1?0:1;j<=n;j++){const u=j/n,x=a.x+(b.x-a.x)*u,z=a.z+(b.z-a.z)*u;out.push({x,z,y:ground(x,z)})}}return out}
  const props=criarPropsDiaJogo(root,ground),flags=criarBandeirasDiaJogo(root,seats,onReady)

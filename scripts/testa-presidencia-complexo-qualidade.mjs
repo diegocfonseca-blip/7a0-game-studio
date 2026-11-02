@@ -23,12 +23,13 @@ for(let i=0;i<cases.length;i++){
   if(input.maxTextureSize>0){assert(output.drawingWidth<=input.maxTextureSize);assert(output.drawingHeight<=input.maxTextureSize)}
   if(input.maxAnisotropy>0)assert(output.anisotropy<=input.maxAnisotropy)
 }
-assert.equal(results[0].pixelRatio,2.5,'phone should spend its available retina resolution')
+assert.equal(results[0].pixelRatio,1.5,'mobile starts within an interactive GPU budget')
+assert.equal(results[0].maxFPS,30);assert.equal(results[3].maxFPS,60)
 assert.equal(results[1].pixelRatio,results[0].pixelRatio,'rotation preserves density for equal area')
-assert.equal(results[2].pixelRatio,1.75);assert.equal(results[2].anisotropy,2)
+assert.equal(results[2].pixelRatio,1.25);assert.equal(results[2].anisotropy,2)
 assert(results[3].pixelRatio>1,'full HD must not be downsampled below CSS resolution')
 assert.equal(results[5].pixelRatio,1,'do not supersample native-DPR displays unnecessarily')
-assert.equal(results[8].pixelRatio,2.5,'missing memory hint should not penalize the phone')
+assert.equal(results[8].pixelRatio,1.5,'unknown memory uses the same balanced mobile profile')
 assert.equal(results[8].anisotropy,1,'missing GPU capability must be conservative')
 
 const scene=new THREE.Scene(),ground=new THREE.Texture(),concrete=new THREE.Texture(),nearest=new THREE.DataTexture(new Uint8Array(16),2,2)

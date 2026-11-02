@@ -1,4 +1,5 @@
 import {criarZoomCameraFixa} from './presidencia-camera-zoom-fixo'
+import {framePacer} from './cidade3d/frame-pacer.mjs'
 import {renderBudget} from './cidade3d/render-budget.mjs'
 import {criarVidaBotecos} from './presidencia-vida-botecos'
 import {criarPreparacaoEstadio} from './presidencia-preparacao-estadio'
@@ -153,7 +154,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    coarsePointer:window.matchMedia('(pointer: coarse)').matches,deviceMemory:(navigator as Navigator&{deviceMemory?:number}).deviceMemory,
    maxTextureSize:renderer.capabilities.maxTextureSize,maxAnisotropy:renderer.capabilities.getMaxAnisotropy()});if(softwareGPU){profile.pixelRatio=Math.min(profile.pixelRatio,.75);profile.drawingWidth=Math.max(1,Math.floor(width*profile.pixelRatio));profile.drawingHeight=Math.max(1,Math.floor(height*profile.pixelRatio))}return profile}
   let quality=visualProfile(el.clientWidth,el.clientHeight)
-  const graphicsBudget=renderBudget();let adaptiveScale=1
+  const graphicsBudget=renderBudget(),presentationPacer=framePacer();let adaptiveScale=1
   const sharpenTextures=()=>aplicarQualidadeTexturasComplexo(scene,quality.anisotropy)
   const camera=new THREE.PerspectiveCamera(38,1,.12,4000),controls=new OrbitControls(camera,renderer.domElement)
   const matchCameraController=criarCameraPartidaContinua(camera,controls,setMatchCamera)
@@ -392,7 +393,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera('broadcast')}
    if(game.subjects().length&&matchRef.current){lastFieldFixture=matchRef.current.context.id;lastFieldSubjects=game.subjects().map(p=>({...p}))}
    game.update(matchRef.current,performance.now(),camera,el.clientHeight)
-   {const insp=game.inspect() as {ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}};phase?:string;replay?:boolean;owner?:string};const subj=game.subjects();let foco:{x:number;y:number;z:number}|undefined
+   {const insp=game.frame() as {ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}};phase?:string;replay?:boolean;owner?:string};const subj=game.subjects();let foco:{x:number;y:number;z:number}|undefined
     if(!!insp.replay!==replayRef.current){replayRef.current=!!insp.replay;setReplayOn(replayRef.current)}
     if(insp.phase==='fim'&&subj.length){let sx=0,sz=0,n=0;for(const q of subj){if(q.visible===false)continue;sx+=q.mx;sz+=q.mz;n++}if(n)foco={x:sx/n,y:.2,z:sz/n}}
     // 🎥 pra que lado o time com a bola ataca (o goleiro dele defende o outro lado). Só troca depois de ~0,9 s com a posse firme:
@@ -401,7 +402,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
      if(want!==undefined&&want!==ataque){ataqueDesde??=agora;if(agora-ataqueDesde>900){ataque=want;ataqueDesde=null}}else ataqueDesde=null}
     matchCameraController.update(insp.ball,performance.now(),subj,foco,insp.replay?'goal':undefined,ataque)}
    // 🎉 torcida: a arquibancada do time que fez o gol pula durante a festa (lado 0 do motor = quem manda no estádio)
-   {const fr=game.inspect() as {phase?:string;replay?:boolean;official?:{events?:{tipo:string;lado:number}[]}};let lado:'home'|'away'|null=null;if(fr?.phase==='gol'||fr?.replay){const evs=fr.official?.events;for(let i=(evs?.length??0)-1;i>=0;i--)if(evs![i].tipo==='gol'){lado=evs![i].lado===0?'home':'away';break}}crowd.festa(lado,seconds)}
+   {const fr=game.frame() as {phase?:string;replay?:boolean;official?:{events?:{tipo:string;lado:number}[]}};let lado:'home'|'away'|null=null;if(fr?.phase==='gol'||fr?.replay){const evs=fr.official?.events;for(let i=(evs?.length??0)-1;i>=0;i--)if(evs![i].tipo==='gol'){lado=evs![i].lado===0?'home':'away';break}}crowd.festa(lado,seconds)}
    if(crowd.perto(camera.position))renderer.shadowMap.needsUpdate=true // (⚡ os detalhados da torcida acompanham a câmera)
    const cutaway=matchCameraController.inspect().mode!=='free'
    if(cutaway!==cameraRoofCutaway){cameraRoofCutaway=cutaway;for(const entry of cameraRoofMaterials){entry.material.transparent=cutaway||entry.transparent;entry.material.opacity=cutaway?0:entry.opacity;entry.material.depthWrite=cutaway?false:entry.depthWrite;entry.material.needsUpdate=true}}
@@ -423,7 +424,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    game.setPresentationVisible(!teamArrival.overrideField())
    crowd.presentDay(matchday.day()?.standFill??1)
    stadiumStaff.configure({day:matchday.day(),match:sourceMatch,mobile:softwareGPU||el.clientWidth<600,presidentName:presidentRef.current?.name})
-   const observedBall=(game.inspect() as {ball?:{x:number;z:number}}).ball
+   const observedBall=(game.frame() as {ball?:{x:number;z:number}}).ball
    stadiumStaff.update(seconds,camera,el.clientHeight,observedBall)
    stadiumPreparation.configure({day:matchday.day(),mobile:softwareGPU||el.clientWidth<600,supporters:populationRef.current.attendance?.supporters??0,coaches:teamArrival.inspect().coaches})
    stadiumPreparation.update(seconds,camera,el.clientHeight)
@@ -479,7 +480,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     frame([...points,...landmarks])
    }
   }
-  const navigation=criarNavegacaoComplexo({camera,controls,onChange:()=>render(),onExplore:()=>{userExploring.current=true;fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
+  const navigation=criarNavegacaoComplexo({camera,controls,onChange:()=>wake.current(),onExplore:()=>{userExploring.current=true;fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
   const fixedCameraZoom=criarZoomCameraFixa(renderer.domElement,()=>matchCameraController.inspect().mode==='fixed',factor=>{if(matchCameraController.zoomFixed(factor))resume()})
   navigation.setMode(navigationModeRef.current)
   if(isWindow)controls.enabled=false
@@ -593,7 +594,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     }
    }
    else{const lot=PLANTA_COMPLEXO.lots[next];const door=lot.door;controls.target.set(door?.threshold.x??lot.x,2.4,door?.threshold.z??lot.z);const heading=door?.heading??lot.heading;camera.position.set(controls.target.x+Math.sin(heading)*24,12,controls.target.z+Math.cos(heading)*24)}
-   if(draw){navigation.constrain();if(!controls.update())render()}
+   if(draw){navigation.constrain();if(!controls.update())wake.current()}
   }
   const resize=()=>{const width=el.clientWidth,height=el.clientHeight;if(!width||!height)return
    quality=visualProfile(width,height);renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)
@@ -609,7 +610,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   let fimDesde:number|null=null,fimDe:string|null=null
   const cumprimentos=()=>{const m=matchRef.current;if(!m||!m.finished){fimDesde=null;fimDe=null;return false}const id=m.context?.id??'';if(fimDe!==id){fimDe=id;fimDesde=performance.now()}return performance.now()-(fimDesde??0)<45000}
   const running=()=>visible&&!document.hidden&&(matchCameraController.transitioning||walking()||cumprimentos()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
-  const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;return}if(walking()&&last)seconds+=(now-last)/1000;last=now;if(!softwareGPU){const scale=graphicsBudget.observe(now,quality.pixelRatio);if(scale!==null){adaptiveScale=scale;renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)}}render();if(running())raf=requestAnimationFrame(tick)}
+  const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;presentationPacer.reset();return}if(!presentationPacer.take(now,matchRef.current?.finished?60:quality.maxFPS)){raf=requestAnimationFrame(tick);return}if(walking()&&last)seconds+=(now-last)/1000;last=now;if(!softwareGPU){const scale=graphicsBudget.observe(now,quality.pixelRatio);if(scale!==null){adaptiveScale=scale;renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)}}render();if(running())raf=requestAnimationFrame(tick)}
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.
   const resume=()=>{if(disposed||compilando)return;if(!visible||document.hidden){stadiumListener.update(false,0);cancelAnimationFrame(raf);raf=0;last=0;return}if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
@@ -649,7 +650,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     return{id:target.id,visible:!hit,occluder:hit?.object.name}
    })
   }
-  api.current={checkCivilian:(index=0)=>{const info=residents.inspect() as {actors:{position:number[]}[]};const p=info.actors[index]?.position;if(!p)return;navigation.beginView({fitOnResize:false,terrainGuard:true});controls.target.set(p[0],p[1]+.85,p[2]);camera.position.set(p[0]-3,p[1]+2.2,p[2]+4.5);camera.lookAt(controls.target);controls.update();render()},setMatchCamera:setFootballCamera,view,zoom:direction=>{if(matchCameraController.zoomFixed(direction===1?.8:1.25)){resume()}else if(isOffice&&mode==='office'){camera.fov=THREE.MathUtils.clamp(camera.fov*(direction===1?.82:1.22),16,65);camera.updateProjectionMatrix();render()}else navigation.zoom(direction)},setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({softwareGPU,shadowResolution:sun.shadow.mapSize.x,matchCamera:matchCameraController.inspect(),cameraRoofCutaway,state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),residents:residents.inspect(),commerce:commerce.inspect(),botecos:pubLife.inspect(),teamArrival:teamArrival.inspect(),stadiumStaff:stadiumStaff.inspect(),preparation:stadiumPreparation.inspect(),entrances:stadiumAccess.inspect(),matchday:matchday.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),president:presidentBody.inspect(),collection:collection.inspect(),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality:{...quality,adaptiveScale,effectivePixelRatio:renderer.getPixelRatio()},drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,memory:{...renderer.info.memory},canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,establishments:[...surround.establishments]})}
+  api.current={checkCivilian:(index=0)=>{const info=residents.inspect() as {actors:{position:number[]}[]};const p=info.actors[index]?.position;if(!p)return;navigation.beginView({fitOnResize:false,terrainGuard:true});controls.target.set(p[0],p[1]+.85,p[2]);camera.position.set(p[0]-3,p[1]+2.2,p[2]+4.5);camera.lookAt(controls.target);controls.update();render()},setMatchCamera:setFootballCamera,view,zoom:direction=>{if(matchCameraController.zoomFixed(direction===1?.8:1.25)){resume()}else if(isOffice&&mode==='office'){camera.fov=THREE.MathUtils.clamp(camera.fov*(direction===1?.82:1.22),16,65);camera.updateProjectionMatrix();wake.current()}else navigation.zoom(direction)},setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({softwareGPU,shadowResolution:sun.shadow.mapSize.x,matchCamera:matchCameraController.inspect(),cameraRoofCutaway,state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),residents:residents.inspect(),commerce:commerce.inspect(),botecos:pubLife.inspect(),teamArrival:teamArrival.inspect(),stadiumStaff:stadiumStaff.inspect(),preparation:stadiumPreparation.inspect(),entrances:stadiumAccess.inspect(),matchday:matchday.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),president:presidentBody.inspect(),collection:collection.inspect(),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality:{...quality,adaptiveScale,effectivePixelRatio:renderer.getPixelRatio()},drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,memory:{...renderer.info.memory},canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,establishments:[...surround.establishments]})}
   const observer=new ResizeObserver(resize);observer.observe(el)
   const visibility=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting===true;resume()});visibility.observe(el)
   document.addEventListener('visibilitychange',resume)
