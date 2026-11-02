@@ -1072,6 +1072,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   visualmente, tá muito feio"*. Tela cheia no toque de avançar, o próximo jogo só depois; embaixo do jogo, só o aviso. **Nunca
   voltar a coletiva pra baixo do placar.**
 
+- **📊 RÉGUA DE FORÇA DAS CARTAS (02/11, regra permanente, *"adorei as mudanças"*).** Over MÉDIO por categoria: **Lenda 90–97 ·
+  Craque 80–89 · Promessa 70–85 · Bom jogador 68–79 · Foi profissional 55–66** (máx 99 só pra ~9 cartas). Categoria de baixo NUNCA passa
+  a de cima. **A força é o auge DAQUELA carta (clube + ano)**, nunca a carreira: Cédric no São Paulo 2025 foi mal → foi profissional;
+  carta de fim de carreira (Miami, Arábia, Cosmos, Galaxy) fica ABAIXO da carta do auge do mesmo jogador. **Carta NOVA já nasce nessa
+  régua** — comparar com quem já está no baralho na mesma posição e categoria (o Lote 48 nasceu na régua velha e teve de ser descido).
+  Lucas Barreto (Botafogo 2024) é 74–83 fixo, amigo do Diego: não mexer. Histórico em `docs/pendencias.md` (02/11).
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
