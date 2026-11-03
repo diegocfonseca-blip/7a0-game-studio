@@ -1,6 +1,7 @@
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import {FonteReplayCampo2D} from './presidencia-fonte-replay-2d'
-import {lazy,Suspense,useMemo,useRef} from 'react'
+import {lazy,Suspense,useEffect,useMemo,useRef} from 'react'
+import {definirMasterDoMapa} from './presidencia-complexo-master'
 import {useReplay3D,type FonteReplay3D} from './presidencia-replay-3d'
 import {useT} from './lang'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
@@ -37,6 +38,10 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const chegada=career?.journeyPhase==='arrival'&&!!career.agenda&&!match
  const adapted=career&&account?adaptarCarreiraAoComplexo({...career,enabled:true,match:chegada?undefined:retained,
   agenda:chegada?career.agenda:retained?.context.agenda??career.agenda}):null
+ // 🏆🪧 03/11: a placa do Patrocinador Master no mapa segue o contrato ATIVO do save (acabou o contrato, a placa sai)
+ const masterMapa=adapted?.master??null
+ useEffect(()=>{definirMasterDoMapa(masterMapa)},[masterMapa])
+ useEffect(()=>()=>definirMasterDoMapa(null),[])
  if(!account)return null
  const displayMatch=replayFrame??(chegada?undefined:adapted?.complexo.match??retained)
  // 🎟️ o público do placar sai da MESMA lotação que enche a arquibancada do mapa (presidencia-lotacao-jogo)

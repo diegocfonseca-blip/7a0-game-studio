@@ -20,6 +20,7 @@ import {criarArquiteturaComplexo} from './presidencia-complexo-arquitetura'
 import {criarEntornoComplexo} from './presidencia-complexo-entorno'
 import {PLANTA_VADICO} from './presidencia-complexo-concessionaria'
 import {criarPartidaComplexo} from './presidencia-complexo-partida'
+import {criarPlacasComplexo} from './presidencia-complexo-placas'
 import {criarCameraPartidaContinua,type CameraPartidaContinua} from './presidencia-camera-partida-continua'
 import {createResidents} from './cidade3d/residents.mjs'
 import {criarEquipeApoioEstadio} from './presidencia-estadio-equipe-apoio'
@@ -218,6 +219,9 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   retryPresident.current=()=>{presidentBody.retry()}
   const collection=criarColecaoSala(scene,state,()=>render(),isOffice);collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage)
   const game=criarPartidaComplexo(scene,save,matchRef.current,()=>{renderer.shadowMap.needsUpdate=true;wake.current()},()=>presidentRef.current,matchPresentation)
+  // 🪧 03/11: placa do Patrocinador Master (fachada + telão, só com contrato ativo) e as placas de patrocínio em volta do gramado.
+  // Ela sai junto com o campo (mesmo ciclo de vida), sem mexer na lista de limpeza do mapa.
+  const placasEstadio=criarPlacasComplexo(scene,state,()=>wake.current()),soltaCampo=game.dispose;game.dispose=()=>{placasEstadio.dispose();soltaCampo()}
   const stadiumAccess=criarAcessosEstadio(scene,state)
   const stadiumStaff=criarEquipeApoioEstadio(scene,()=>wake.current(),matchPresentation==='3d')
   const stadiumPreparation=criarPreparacaoEstadio(scene,state,architecture.seatAccess,()=>wake.current())
