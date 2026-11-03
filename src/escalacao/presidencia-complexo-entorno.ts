@@ -1320,7 +1320,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,botecos,establishments:entered,dispose(){
+  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,dispose(){
     botecos.forEach(pub=>pub.dispose())
     if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())

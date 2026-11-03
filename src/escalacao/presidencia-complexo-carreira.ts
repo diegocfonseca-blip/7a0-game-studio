@@ -49,6 +49,8 @@ export type PropsComplexoCarreira = {
   cityStadium?: StadiumSave
   clubName?: string
   presidency: PresidenciaCarteira | null
+  /** 🚗 03/11: a dupla de veículos escolhida em "Sua garagem" (vai pra garagem da casa no mapa) */
+  garage?: unknown
   match?: EstadoPartidaEstadio
   day?: DiaEstadio
   awayStadium?: StadiumSave
@@ -125,7 +127,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     cityStadium: structuredClone(stadium??{inv:{},ext:[]}),
     clubName:state.managers.find(m=>m.id===mgrId)?.teamName,
     ...(stadium === undefined ? {} : { stadium: structuredClone(stadium) }),
-    presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
+    presidency: wallet, garage: (state.careerPresidency as Record<number, { display?: unknown }> | undefined)?.[mgrId]?.display, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),
     ...(input.arrivalTeams?{arrivalTeams:input.arrivalTeams}:{}),
     circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false, cidadeViva,
