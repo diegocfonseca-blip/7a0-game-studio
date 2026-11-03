@@ -11960,3 +11960,6 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   no nome (uma por cor, `CORES_EXTRA` em apoio.tsx) e só vale junto do ⭐/👑; os 4 leitores de cor do nome passam por `comCorDoNome`.
   Loja: `cores-loja.tsx`. Edge `mp-criar-pix` v15 já aceita o produto. Trava `npm run cor-adicional`. Foto: `scripts/mockups/cor-adicional-real.png`.
   ⏳ Na publicação: linha em novidades.ts. Lugares que pegam a cor do BANCO por tier (sem nome) ainda não mostram a cor comprada.
+
+## 🗺️ 03/11 — Análise a fundo do mapa da aba Clube (só leitura)
+Relatório completo em `docs/analise-mapa-clube-20261103.md`. Graves: intervalo/pênalti invisíveis no mapa (jogo trava), fim de semana sem botão de jogo no mapa, HUD dizendo "começa sozinho", mapa desenhando sem parar (celular esquenta), Sala do presidente montando 2º mapa por cima. Esperando o Diego escolher por onde começar.
