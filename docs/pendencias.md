@@ -24,6 +24,15 @@
 
 ## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 02/11/2027, sem `vendria_sub`). Conta de 24/07 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo). Tinha tier verde antigo (continua como `tier_legado`).
+## 🏆 Dia de FINAL no mapa 3D (03/11, aprovado: "ok") — no BRANCH, esperando OK visual (só a conta de teste vê o mapa)
+- Tudo em `presidencia-complexo-final.ts` (+ regras puras em `presidencia-complexo-final-regras.ts`, trava `scripts/imersao-mapa/test-final-day.mjs`).
+  Antes: avião com a faixa "FINAL · A × B", barracas de bandeira da final (perua de ambulante de sempre), o dobro de gente na rua (no teto
+  20 celular / 48 PC) e fumaça colorida na porta; faixa gigante "FINAL" na fachada. Durante: bandeirões e sinalizador no gol DO USUÁRIO.
+  Depois do apito: campeão = fogos + pódio com taça, papel picado e fumaça; perdeu = sem fogos, pódio do rival, os seus saem cabisbaixos.
+- Final = o que o id da Copa já diz (`:copa:N:Final|Supercopa:`). ⚠️ Pendente: Libertadores/Champions/Mundial (o id da carreira
+  internacional não diz que é final) e Copa do Mundo. ⚠️ Final decidida nos PÊNALTIS (empate no apito) não tem festa — o mapa não sabe
+  quem ganhou sem adiantar o pênalti; resolver passando o vencedor só DEPOIS da animação dos pênaltis.
+- Mockups: `scripts/mockups/mapa-final-antes.png` e `scripts/mockups/mapa-final-podio.png`.
 
 ## 🥇⚔️ Medalha do clã da semana (02/11) — ✅ PUBLICADO ("ok pode fazer e publica")
 - 🔁 02/11 à noite: por uns minutos ficou só o 1º clã; o Diego voltou atrás: **top 3 = 🥇 ouro · 🥈 prata · 🥉 bronze, todo membro carrega**, e quem ganha clã + individual fica com AS DUAS (nome × pílula). Não trocar a do clã por 🏆.
