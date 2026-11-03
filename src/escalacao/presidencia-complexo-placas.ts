@@ -162,18 +162,8 @@ function criarPlacaMaster(root: T.Group, state: EstadoComplexo, brandId: string,
     recursos.push(map, mat)
     return mat
   }
-  // 🏟️ FACHADA: em cima da portaria principal (frente do estádio, z ≈ 70), abaixo do piso do camarote — com pilares próprios,
-  // então fica de pé em qualquer fase da obra.
-  // (na frente da laje da fachada, que vai até z ≈ 71,05, e abaixo do piso do camarote, em y ≈ 8,95)
-  const largura = 18.1, altura = largura * 288 / 1024, cy = 3.3 + altura / 2, z = 71.65
-  const frente = new T.PlaneGeometry(largura, altura), fachada = new T.Mesh(frente, arte(1024, 288, 62, 10))
-  fachada.name = 'placa-master-fachada'; fachada.position.set(0, cy, z)
-  const estruturaMat = new T.MeshStandardMaterial({ color: TINTA, roughness: .6 })
-  const fundo = new T.BoxGeometry(largura + .3, altura + .2, .35), pilar = new T.BoxGeometry(.4, cy - altura / 2, .4)
-  const moldura = new T.Mesh(fundo, estruturaMat); moldura.position.set(0, cy, z - .21)
-  grupo.add(fachada, moldura)
-  for (const x of [-largura / 2 + .4, largura / 2 - .4]) { const pe = new T.Mesh(pilar, estruturaMat); pe.position.set(x, (cy - altura / 2) / 2, z - .21); grupo.add(pe) }
-  recursos.push(frente, fundo, pilar, estruturaMat)
+  // 🚫 03/11 (Diego, print da placa em cima da portaria: *"isso aqui pode tirar"*): a placa grande da FACHADA saiu — o Master fica
+  // só no telão (e nas placas da beira do gramado).
   // 📺 TELÃO: a marca por cima da tela (só existe telão quando ele foi comprado e as cadeiras estão prontas)
   if (state.screenVisible) {
     const tela = new T.PlaneGeometry(14.4, 6.8), telao = new T.Mesh(tela, arte(512, 242, 44, 6))
