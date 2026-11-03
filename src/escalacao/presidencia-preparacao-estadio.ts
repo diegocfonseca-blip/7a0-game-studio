@@ -24,7 +24,7 @@ export function criarPreparacaoEstadio(scene:THREE.Scene,state:EstadoComplexo,ac
  type Person={id:string;role:string;body:ReturnType<typeof createCivilian>;path:ReturnType<typeof customerJourney>;start:number;end:number;heading?:number;prop?:THREE.Group;flash?:THREE.Mesh;ready:boolean;visible:boolean;task:string}
  const people:Person[]=[]
  function person(id:string,role:string,points:CityPoint[],start:number,end:number,color:string,variant='adult-man',task=role,wait=2,stay=8){
-  const body=createCivilian(root,{id:'pregame-'+id,variant,outfitColor:color,onReady}),p:Person={id,role,body,path:customerJourney(points,{speed:.8,wait,stay,turnAtExit:true}),start,end,ready:false,visible:false,task};body.ready.then(ok=>{p.ready=ok});people.push(p);return p
+  const body=createCivilian(root,{deferUntilVisible:true,id:'pregame-'+id,variant,outfitColor:color,onReady}),p:Person={id,role,body,path:customerJourney(points,{speed:.8,wait,stay,turnAtExit:true}),start,end,ready:false,visible:false,task};body.ready.then(ok=>{p.ready=ok});people.push(p);return p
  }
  // Staff work on existing horizontal landings, never seat tops or invented stairs.
  for(const [i,side]of (['home','away'] as const).entries()){

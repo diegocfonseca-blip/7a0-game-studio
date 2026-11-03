@@ -371,13 +371,13 @@ export async function nomeLivre(nome: string, email?: string): Promise<{ livre: 
 // mensagens prontas (aviso claro: o PORQUÊ e o CAMINHO)
 const NOME_MSG_PT: Record<string, string> = {
   // 🔒 27/10: só quem tem plano trava o nome — então "em uso" agora é sempre o nome de outro clube COM plano
-  em_uso: '🔒 Esse nome já é de outro clube com plano e fica reservado pra ele. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
+  em_uso: '🔒 Esse nome é de quem tem plano: é nome único, só dele. Tenta uma variação: acrescenta FC, um número ou teu apelido.',
   fake: '✅ Pode usar — mas esse nome é de quem tem plano, então você aparece como 🎭 fake. Quer o seu nome só seu? Qualquer plano trava ele.',
   batismo: '🔒 Esse nome é de um clube de BATISMO e fica reservado pro dono dele. Se o clube é teu, entra com a conta do batismo; senão, escolhe outro nome.',
   ofensivo: '🚫 Esse nome não é permitido: nada que ofenda alguém no Leilão Legends (nazismo, racismo, estupro, abuso). Zoeira tudo bem — escolhe outro nome.',
 }
 const NOME_MSG_EN: Record<string, string> = {
-  em_uso: '🔒 That name belongs to another club with a plan and is reserved for it. Try a variation: add FC, a number or your nickname.',
+  em_uso: '🔒 That name belongs to a plan holder: it’s a unique name, only theirs. Try a variation: add FC, a number or your nickname.',
   fake: '✅ You can use it — but that name belongs to a plan holder, so you show up as 🎭 fake. Want a name that is only yours? Any plan locks it.',
   batismo: '🔒 That name belongs to a NAMED club and is reserved for its owner. If the club is yours, sign in with the club account; otherwise, pick another name.',
   ofensivo: '🚫 That name is not allowed: nothing offensive in Leilão Legends (nazism, racism, rape). Banter is fine — pick another name.',

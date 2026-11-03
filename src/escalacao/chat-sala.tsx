@@ -9,7 +9,7 @@
 //      Aparelho com versão velha ignora o campo e mostra só o texto — não quebra nada.
 //   4) a gaveta não escurece nem bloqueia o jogo: dá pra continuar vendo e tocando no pregão.
 // ⚠️ Nada aqui manda mensagem a mais pelo canal (sem "digitando") — ver a conta do realtime.
-import { APOIO_PERKS, type ApoioPerk, stripEmoji, separaFake, SeloFake } from './apoio'
+import { APOIO_PERKS, type ApoioPerk, stripEmoji, separaFake, SeloFake, comCorDoNome } from './apoio'
 import { tr } from './lang'
 import { podioDeUid } from './vitrine-dados'
 import { PodioChatSelo, PODIO_BORDA } from './podio-semana'
@@ -20,8 +20,8 @@ const GOLD = '#FFC400'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
 
 export function perkDoNome(n: string): ApoioPerk {
-  return n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo
-    : n.includes('⁣') ? APOIO_PERKS.verde : APOIO_PERKS.bege
+  return comCorDoNome(n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo
+    : n.includes('⁣') ? APOIO_PERKS.verde : APOIO_PERKS.bege, n) ?? APOIO_PERKS.bege // 🎨 02/11: + cor adicional
 }
 const nomeSemSelo = (n: string) => stripEmoji(n).replace(/⁣/g, '').trim() || n
 

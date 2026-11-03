@@ -1,3 +1,7 @@
+import {criarLugaresClube} from './presidencia-clube-lugares'
+import {LOTE_AGENCIA_CLUBE} from './clube-mapa-destinos'
+import {criarPatrocinadoresCidade} from './presidencia-patrocinadores-cidade'
+import {RESERVAS_PATROCINADORES_CIDADE,LOTES_PATROCINADORES_CIDADE,RUAS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
 import * as THREE from 'three'
 import {gerarPlantaTransporte, LOTES_ESTACIONAMENTO_COMPLEXO, faixaTransporteComplexo} from './presidencia-complexo-transporte-model'
@@ -76,7 +80,7 @@ function camposRuido(size:number){
   for(let z=0;z<size;z++)for(let x=0;x<size;x++){const i=z*size+x;fino[i]=(hash(x,z)-.5)*.45+smooth(x,z,16)*.35;mancha[i]=smooth(x,z,128)}
   return CAMPOS_RUIDO={size,fino,mancha}
 }
-export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
+export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string}) {
   const root=new THREE.Group()
   root.name='complexo-entorno'
   scene.add(root)
@@ -247,7 +251,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
   const serviceReservations=[...['east','west','branch'].map(key=>poligonoRuaComplexo({points:AJUSTES_RUAS_COMPLEXO[key as 'east'|'west'|'branch'],width:5.8},1.6)),circle(AJUSTES_RUAS_COMPLEXO.turning.center,7)]
-  const landscapeReservations=[...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_VADICO.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
+  const landscapeReservations=[...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_VADICO.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
     ...(transport.station.enabled?[faixaTransporteComplexo([transport.station.point(-transport.station.railExtent,0),transport.station.point(transport.station.railExtent,0)],14)]:[]),
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
@@ -409,6 +413,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   street('via-leste',east,11)
   const west=path([[-65,269],[150,119],[295,48],[354,-65]])
   street('via-oeste',west,11)
+  for(const road of RUAS_PATROCINADORES_CIDADE)street(road.id,road.points,road.width,road.walk)
   ribbon('calcada-registrada',PLANTA_COMPLEXO.routes.sidewalk.points,3.9,GROUND,paving)
   const markings=(points:readonly PontoComplexo[])=>{
     for(let i=1;i<points.length;i++){
@@ -991,6 +996,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
       ...registeredLots.map((lot,i)=>({id:`lote-${i}`,polygon:lot.footprint})),
       ...parkingLots.map((polygon,i)=>({id:`estacionamento-${i}`,polygon})),
       {id:'arena',polygon:arena},
+      ...(club?.name?[{id:'agencia-clube',polygon:LOTE_AGENCIA_CLUBE.footprint}]:[]),
+      ...Object.values(LOTES_PATROCINADORES_CIDADE).map(lot=>({id:'patrocinador-'+lot.id,polygon:lot.footprint})),
       ...PLANTA_VADICO.reservationPolygons.map((polygon,i)=>({id:`vadico-${i}`,polygon})),
       ...parcels.map((p,i)=>({id:`quadra-${i}`,polygon:parcelPolygon(p)})),
       ...solids.filter(s=>s.base<.3&&s.top>.5).map(s=>({id:s.id,polygon:s.footprint})),
@@ -1265,13 +1272,18 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo) {
   for(const geo of geometries)if(!rendered.has(geo)){geo.dispose();geometries.delete(geo)}
   // Sponsor scenery has its own lot and resources; it never consumes a club
   // purchase or replaces an eventual building in the stadium's progression.
-  const dealership=criarConcessionariaComplexo(root)
+  const dealership=criarConcessionariaComplexo(root,onReady)
+  const sponsors=criarPatrocinadoresCidade(root,onReady)
+  solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
+  const clubPlaces=criarLugaresClube(root,state,club?.name);solids.push(...clubPlaces.solids)
+  root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
+  root.userData.sponsors=sponsors.metadata
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false
   return {root,solids,doors,transport,botecos,establishments:entered,dispose(){
     botecos.forEach(pub=>pub.dispose())
-    if(disposed)return;disposed=true;dealership.dispose();scene.remove(root);root.clear()
+    if(disposed)return;disposed=true;clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
   }}
 }

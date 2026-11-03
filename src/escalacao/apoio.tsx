@@ -44,6 +44,67 @@ export const APOIO_PERKS: Record<ApoioTier, ApoioPerk> = {
            grad: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', svgFull: ['#ffd85a', '#e09e00'], svgPart: ['#e6c766', '#a67c00'] },
 }
 
+// 🎨 COR ADICIONAL (02/11, Diego — mockup scripts/mockups/cor-adicional.png): R$ 14,90 cada, pra sempre, só pra quem TEM
+// PLANO (⭐ Craque / 👑 Lenda pra cima). Dourado, prata e bege são do PLANO e o preto é reservado: nenhum deles está aqui.
+// A cor é SÓ visual: o `tier` do perk continua o do plano (Manual, salas, tudo igual) — só troca degradê/cor/brilho.
+// 🔒 Como os OUTROS sabem: uma MARCA INVISÍVEL por cor viaja no nome (igual ao selo invisível do verde), e só vale junto do
+// ⭐/👑 (sem plano, a marca é ignorada). O stripEmoji arranca essas marcas de nome digitado — ninguém se pinta sozinho.
+export type CorExtra = 'roxo' | 'verde' | 'rosa' | 'azul' | 'vermelho' | 'laranja' | 'turquesa'
+export interface CorExtraInfo { nome: string; en: string; emoji: string; marca: string; solid: string; light: string; grad: string; svgFull: [string, string]; svgPart: [string, string] }
+export const CORES_EXTRA: Record<CorExtra, CorExtraInfo> = {
+  roxo:     { nome: 'Roxo', en: 'Purple', emoji: '💜', marca: '\u2061', solid: '#7C3AED', light: '#E4D6FB', grad: 'linear-gradient(160deg,#D9C2FF,#8B5CF6 45%,#5B2FB0 75%,#C9A9FF)', svgFull: ['#C9A9FF', '#5B2FB0'], svgPart: ['#a98be0', '#4a2590'] },
+  verde:    { nome: 'Verde', en: 'Green', emoji: '💚', marca: '\u2062', solid: '#16A34A', light: '#D6F5DE', grad: 'linear-gradient(160deg,#8FF0AE,#22C55E 40%,#0E9B45 70%,#6FE39A)', svgFull: ['#5FE08A', '#12833B'], svgPart: ['#4bc873', '#0e6630'] },
+  rosa:     { nome: 'Rosa', en: 'Pink', emoji: '🩷', marca: '\u2064', solid: '#DB2777', light: '#FCE0EE', grad: 'linear-gradient(160deg,#FFC2E2,#EC4899 45%,#B0246E 75%,#FF9ECF)', svgFull: ['#FF9ECF', '#B0246E'], svgPart: ['#e98bbb', '#8c1c58'] },
+  azul:     { nome: 'Azul', en: 'Blue', emoji: '💙', marca: '\u206A', solid: '#2563EB', light: '#DCE9FF', grad: 'linear-gradient(160deg,#B9DBFF,#3B82F6 45%,#1D4FB8 75%,#8EC2FF)', svgFull: ['#8EC2FF', '#1D4FB8'], svgPart: ['#7aa9e0', '#173f93'] },
+  vermelho: { nome: 'Vermelho', en: 'Red', emoji: '❤️', marca: '\u206B', solid: '#DC2626', light: '#FDE0DC', grad: 'linear-gradient(160deg,#FFB3A8,#E8503A 45%,#A8261A 75%,#FF8C7A)', svgFull: ['#FF8C7A', '#A8261A'], svgPart: ['#e07a6a', '#861e14'] },
+  laranja:  { nome: 'Laranja', en: 'Orange', emoji: '🧡', marca: '\u206C', solid: '#EA580C', light: '#FFE6CC', grad: 'linear-gradient(160deg,#FFD6A0,#F97316 45%,#B9500B 75%,#FFB46B)', svgFull: ['#FFB46B', '#B9500B'], svgPart: ['#e09a55', '#934009'] },
+  turquesa: { nome: 'Turquesa', en: 'Turquoise', emoji: '🩵', marca: '\u206D', solid: '#0D9488', light: '#D2F7F2', grad: 'linear-gradient(160deg,#B5FFF4,#14B8A6 45%,#0B7C70 75%,#7DEEDD)', svgFull: ['#7DEEDD', '#0B7C70'], svgPart: ['#69d3c3', '#085f56'] },
+}
+export const COR_EXTRA_PRECO = 14.9
+const COR_POR_MARCA = new Map(Object.entries(CORES_EXTRA).map(([k, v]) => [v.marca, k as CorExtra]))
+/** a cor comprada que viaja no nome (null = nenhuma) */
+export function corExtraDoNome(n: string): CorExtra | null {
+  for (const ch of n) { const c = COR_POR_MARCA.get(ch); if (c) return c }
+  return null
+}
+/** o perk do PLANO vestido com a cor comprada (o tier e o selo não mudam). Só vale em quem tem plano (prata/ouro). */
+export function vesteCor(p: ApoioPerk, c: CorExtra | null): ApoioPerk {
+  if (!c || (p.tier !== 'prata' && p.tier !== 'ouro')) return p
+  const k = CORES_EXTRA[c]
+  return { ...p, solid: k.solid, light: k.light, grad: k.grad, svgFull: k.svgFull, svgPart: k.svgPart, holo: Math.max(p.holo, 0.75) }
+}
+/** atalho pros leitores de selo: perk do plano (lido do nome) + a cor comprada que vem no mesmo nome */
+export function comCorDoNome(p: ApoioPerk | null, n: string): ApoioPerk | null { return p ? vesteCor(p, corExtraDoNome(n)) : p }
+// as MINHAS cores (do banco; nunca do aparelho — trocar de celular não perde nada)
+let minhasCores: CorExtra[] = []
+let corAtiva: CorExtra | null = null
+async function fetchCores(email: string) {
+  try {
+    const { data, error } = await supabase.rpc('esc_minhas_cores')
+    if (myEmail !== email || error) return
+    const d = (data ?? {}) as { cores?: string[]; ativa?: string | null }
+    minhasCores = (d.cores ?? []).filter((c): c is CorExtra => c in CORES_EXTRA)
+    corAtiva = d.ativa && d.ativa in CORES_EXTRA ? d.ativa as CorExtra : null
+    avisaDireitos()
+  } catch { /* sem banco: fica a cor do plano */ }
+}
+export function minhasCoresExtra(): { cores: CorExtra[]; ativa: CorExtra | null } { return { cores: minhasCores, ativa: corAtiva } }
+export function recarregaCores(): void { if (myEmail) void fetchCores(myEmail) }
+/** 🧪 SÓ a bancada (scripts/teste-cor) — o app NUNCA chama */
+export function _bancadaCores(cores: CorExtra[], ativa: CorExtra | null): void { minhasCores = cores; corAtiva = ativa }
+/** escolhe qual usar (null = a cor do plano). Vale na PRÓXIMA sala/tela que montar o nome. */
+export async function usarCorExtra(c: CorExtra | null): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('esc_cor_usar', { p_cor: c })
+    if (error || data !== true) return false
+    corAtiva = c; avisaDireitos(); return true
+  } catch { return false }
+}
+/** a marca invisível da MINHA cor (só se eu tenho plano e escolhi uma) */
+function minhaMarcaCor(tier: ApoioTier | null | undefined): string {
+  return corAtiva && (tier === 'prata' || tier === 'ouro') ? CORES_EXTRA[corAtiva].marca : ''
+}
+
 // 🟢 VERDE BRILHANTE DE LENDA — pele especial (só cosmética): tudo do tier OURO
 // (selo 👑, brilho holo 0.75, Modo Manual…), mas com o degradê/cor VERDE no MESMO
 // capricho do dourado. Usada SÓ na carreira offline pra contas do CAREER_GREEN
@@ -312,8 +373,10 @@ async function fetchDbTier(email: string | null) {
   dbTier = null
   direitos = null
   avisaDireitos()
+  minhasCores = []; corAtiva = null
   if (!email) return
   fetchDireitos(email)
+  void fetchCores(email) // 🎨 02/11
   try {
     const { data } = await supabase.from('user_colors').select('tier').eq('email', email).maybeSingle()
     const t = (data?.tier ?? '') as ApoioTier
@@ -354,6 +417,7 @@ function relePlano() {
   const em = myEmail
   if (!em) return
   fetchDireitos(em)
+  void fetchCores(em) // 🎨 02/11: voltou de pagar a cor → ela já aparece
   supabase.from('user_colors').select('tier').eq('email', em).maybeSingle().then(({ data }) => {
     const t = (data?.tier ?? '') as ApoioTier
     if (myEmail === em && t && t in APOIO_PERKS && t !== dbTier) { dbTier = t; avisaDireitos() }
@@ -420,7 +484,7 @@ export function myApoioPerk(): ApoioPerk | null {
   // 🟢 pele verde de Lenda SÓ na carreira offline (pra quem está no CAREER_GREEN);
   // em qualquer outro contexto, a cor é a do tier normal (ouro etc.).
   if (careerColorCtx === 'offline' && CAREER_GREEN.has(myEmail)) return VERDE_LENDA
-  return APOIO_PERKS[tier]
+  return vesteCor(APOIO_PERKS[tier], corAtiva) // 🎨 02/11: a cor comprada por cima (o tier continua o do plano)
 }
 
 // 🎮 ACESSO AO MODO MANUAL (na carreira): liberado pra quem tem o tier Craque
@@ -535,7 +599,7 @@ export function NomeComFake({ nome }: { nome: string }) {
 
 export function apoioSelo(): string {
   const p = myApoioPerk()
-  const selo = p && p.selo ? ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}` : ''
+  const selo = p && p.selo ? ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${minhaMarcaCor(p.tier)}` : ''
   const base = medalhaSemana ? `${selo || ' '}${medalhaSemana}` : selo
   return nomeFake ? base + MARCA_FAKE : base
 }
@@ -544,8 +608,9 @@ export function apoioSelo(): string {
 export function apoioName(name: string): string {
   const fake = nomeFake && !name.includes(MARCA_FAKE.trim()) ? MARCA_FAKE : ''
   const p = myApoioPerk()
-  if (!p || !p.selo || name.includes(p.selo)) return (medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name) + fake
-  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${medalhaSemana}${fake}`
+  const marca = p && !corExtraDoNome(name) ? minhaMarcaCor(p.tier) : '' // 🎨 02/11
+  if (!p || !p.selo || name.includes(p.selo)) return (medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name) + marca + fake
+  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${marca}${medalhaSemana}${fake}`
 }
 
 // tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos
@@ -554,7 +619,7 @@ export function stripEmoji(s: string): string {
   // \u2063 = selo INVIS\u00CDVEL do tier verde (ver APOIO_PERKS) \u2014 tem que sair
   // daqui tamb\u00E9m, sen\u00E3o dava pra "forjar" a cor verde digitando esse caractere
   // escondido no pr\u00F3prio nome (mesma trava que j\u00E1 existe pros selos vis\u00EDveis).
-  return s.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F\uFE0E\u20E3\u2063]/gu, '')
+  return s.replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F\uFE0E\u20E3\u2063\u2061\u2062\u2064\u206A-\u206D]/gu, '') // 🎨 02/11: + as marcas da cor adicional
 }
 
 // ── BRILHO ────────────────────────────────────────────────────────────────

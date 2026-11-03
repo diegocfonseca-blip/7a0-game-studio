@@ -13,6 +13,7 @@ export const CIVILIAN_VARIANTS=Object.freeze([
  {id:'child-boy',file:'Casual_Male',height:1.18,sex:'male',age:'child',provisional:true},
  {id:'child-girl',file:'Casual_Female',height:1.2,sex:'female',age:'child',provisional:true},
 ]);
+const heights=new Map();
 const cache=new Map(),loader=new GLTFLoader(),hash=s=>{let h=2166136261;for(const c of String(s))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
 const clothes=['#6b7898','#b76c43','#4c7771','#b9aa86','#734d6e','#d1c4ac'];
 // Literal URLs let Vite emit/hash every model in production. Building a URL
@@ -26,14 +27,17 @@ const modelURLs=Object.freeze({
  Fuller_Woman:new URL('./assets/Fuller_Woman.glb',import.meta.url).href,
 });
 const load=file=>{const url=modelURLs[file];if(!url)return Promise.reject(Error('Modelo civil indisponível: '+file));if(!cache.has(file))cache.set(file,loader.loadAsync(url).catch(e=>{cache.delete(file);throw e}));return cache.get(file)};
-export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor}={}){
+export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor,deferUntilVisible=false}={}){
  const spec=CIVILIAN_VARIANTS.find(v=>v.id===variant)??CIVILIAN_VARIANTS[hash(id)%CIVILIAN_VARIANTS.length];
  const root=new T.Group();root.name='civilian-'+id;parent.add(root);const physical=new T.Group();physical.name='civilian-metres';root.add(physical);
- let disposed=false,model,mixer,actions,footMeshes=[],height=0,last=null,poseUpdates=0,errors=[],lastPose=-Infinity;
+ let disposed=false,source,failed=false,resolveReady,model,mixer,actions,footMeshes=[],height=0,last=null,poseUpdates=0,errors=[],lastPose=-Infinity;
  const point=new T.Vector3(),origin=new T.Vector3(),materials=new Set();
  function updateWorld(){root.parent?.updateWorldMatrix(true,false);root.updateMatrixWorld(true)}
- const ready=load(spec.file).then(gltf=>{
-  if(disposed)return false;
+ // Deferred actors keep their source asset cached, but allocate no skeleton or
+ // materials until an actual visible frame. Dispose also settles readiness.
+ const ready=new Promise(resolve=>{resolveReady=resolve});
+ function instantiate(gltf){
+  if(disposed||model||failed)return;
   model=clone(gltf.scene);physical.add(model);
   const palette=/^#[0-9a-f]{6}$/i.test(outfitColor??'')?outfitColor:clothes[hash(id+'clothes')%clothes.length],materialCopies=new Map();
   model.traverse(n=>{if(!n.isMesh)return;n.castShadow=n.receiveShadow=true;n.frustumCulled=true;
@@ -46,12 +50,19 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
   });
   mixer=new T.AnimationMixer(model);actions={};for(const name of ['Idle','Walk','SitDown','StandUp']){const clip=gltf.animations.find(c=>c.name===name);if(!clip)throw Error('Animação civil ausente: '+name);const a=mixer.clipAction(clip);a.play();a.timeScale=0;if(name==='SitDown'||name==='StandUp'){a.setLoop(T.LoopOnce,1);a.clampWhenFinished=true}actions[name]=a}
   actions.Idle.setEffectiveWeight(1);actions.Walk.setEffectiveWeight(0);actions.SitDown.setEffectiveWeight(0);actions.StandUp.setEffectiveWeight(0);mixer.update(0);updateWorld();model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update()});
-  const box=new T.Box3().setFromObject(model,true);height=box.max.y-box.min.y;
+  // Identical source rig and Idle(0) pose. Cache the costly skinned-vertex
+  // bounds by source AND parent scale; keep the original metre calibration.
+  const heightKey=spec.file+':'+root.getWorldScale(point).y;
+  if(heights.has(heightKey))height=heights.get(heightKey);
+  else{const box=new T.Box3().setFromObject(model,true);height=box.max.y-box.min.y;if(height>.2&&height<10)heights.set(heightKey,height)}
   if(!(height>.2&&height<10))throw Error('Escala civil inválida');
   physical.scale.setScalar(spec.height/height);
-  if(last)apply(last,true);onReady?.();return true;
- }).catch(error=>{errors.push(String(error));return false});
+  if(last)apply(last,true);onReady?.();resolveReady(true);
+ }
+ const fail=error=>{failed=true;errors.push(String(error));resolveReady(false)};
+ load(spec.file).then(gltf=>{if(disposed){resolveReady(false);return}source=gltf;if(!deferUntilVisible||(last&&last.visible!==false))try{instantiate(gltf)}catch(error){fail(error)}}).catch(fail);
  function apply(frame,force=false){last={...frame};root.visible=frame.visible!==false;
+  if(!model&&source&&root.visible&&!disposed&&!failed)try{instantiate(source)}catch(error){fail(error)}
   if(!model||!root.visible||disposed)return;
   const seconds=Number.isFinite(frame.seconds)?frame.seconds:0;
   // The scene owns time and distance. Pause never advances a private mixer.
@@ -71,5 +82,5 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
  }
  function inspect(){let low=Infinity;if(model){updateWorld();root.getWorldPosition(origin);for(const {mesh,indices}of footMeshes){mesh.skeleton.update();for(const index of indices)low=Math.min(low,mesh.getVertexPosition(index,point).applyMatrix4(mesh.matrixWorld).y-origin.y)}}return {id,variant:spec.id,source:spec.file,height:spec.height,ready:!!model,provisional:!!spec.provisional,animations:'authored Quaternius clips through Three.js AnimationMixer',poseUpdates,measuredHeight:model?new T.Box3().setFromObject(model,true).getSize(new T.Vector3()).y:null,footFloor:low===Infinity?null:low,errors:[...errors]}}
  return {root,ready,update:apply,inspect,
- dispose(){if(disposed)return;disposed=true;root.removeFromParent();if(mixer){mixer.stopAllAction();mixer.uncacheRoot(model)}model?.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.dispose()});materials.forEach(m=>m.dispose());root.clear()}};
+ dispose(){if(disposed)return;disposed=true;resolveReady(false);root.removeFromParent();if(mixer){mixer.stopAllAction();mixer.uncacheRoot(model)}model?.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.dispose()});materials.forEach(m=>m.dispose());root.clear()}};
 }

@@ -6,10 +6,12 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
-import { tr } from './lang'
+import { tr, getLang } from './lang'
 import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 type Aviso = { id: number; titulo: string; texto: string }
+// 🌐 03/11: aviso automático vem nos dois idiomas, separados por " ||| " (PT ||| EN) — mostra o do botão BR/EN
+const lado = (t: string) => { const [pt, en] = t.split(' ||| '); return getLang() === 'en' && en ? en : pt }
 
 export function AvisoConta() {
   const [avisos, setAvisos] = useState<Aviso[]>([])
@@ -21,6 +23,8 @@ export function AvisoConta() {
         if (!u.user) { if (vivo) setAvisos([]); return }
         const { data } = await supabase.from('esc_avisos_conta').select('id, titulo, texto').is('visto_em', null).order('id').limit(5)
         if (vivo) setAvisos(Array.isArray(data) ? data as Aviso[] : [])
+        // 🔤 03/11: se o banco trocou o nome (reserva de quem tem plano), relê a conta pra tela já mostrar o nome novo
+        if (Array.isArray(data) && data.some((x: Aviso) => x.titulo.startsWith('🔤'))) void supabase.auth.refreshSession().then(() => {}, () => {})
       } catch { /* sem rede: tenta no próximo login */ }
     }
     void le()
@@ -37,10 +41,10 @@ export function AvisoConta() {
     <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div role="alertdialog" style={{ width: '100%', maxWidth: 420, background: '#F4ECD6', color: '#0C0C0C', border: '4px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #000', overflow: 'hidden' }}>
         <div style={{ background: '#C2452F', color: '#fff', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '3px solid #0C0C0C' }}>
-          <b style={{ flex: 1, fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: 18, textTransform: 'uppercase', lineHeight: 1.1 }}>{a.titulo}</b>
+          <b style={{ flex: 1, fontFamily: 'Oswald, sans-serif', fontWeight: 800, fontSize: 18, textTransform: 'uppercase', lineHeight: 1.1 }}>{lado(a.titulo)}</b>
           <button onClick={fecha} aria-label={tr('fechar', 'close')} style={{ background: '#fff', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 10, width: 34, height: 34, fontWeight: 900, fontSize: 16, cursor: 'pointer', flex: 'none' }}>✕</button>
         </div>
-        <p style={{ margin: 0, padding: '14px 14px 16px', fontSize: 14.5, fontWeight: 600, lineHeight: 1.45 }}>{a.texto}</p>
+        <p style={{ margin: 0, padding: '14px 14px 16px', fontSize: 14.5, fontWeight: 600, lineHeight: 1.45 }}>{lado(a.texto)}</p>
       </div>
     </div>,
     document.body,

@@ -1,3 +1,4 @@
+import {criarCampo2DNoMapa} from './presidencia-campo2d-no-mapa'
 import {playWhistle} from './sound'
 import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import * as THREE from 'three'
@@ -19,7 +20,7 @@ import type {loadPlayers} from './futebol3d/players.mjs'
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
 function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
-export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void){
+export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void,readable2D=false){
  if(!registered){
   // (🏟️ 26/10, caldeirão: a arquibancada encostou no campo — o chão que sobra atrás dos gols e das laterais é gramado quando o
   // campo já é de grama; na várzea continua terra)
@@ -36,11 +37,15 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  }else{const contact=new THREE.Mesh(new THREE.PlaneGeometry(120,84),new THREE.ShadowMaterial({opacity:.22}));contact.rotation.x=-Math.PI/2;contact.position.y=-.01;contact.receiveShadow=true;scene.add(contact)}
  const grass=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'estadio-partida/grass-base.webp',texture=>{if(!texture.userData.disposed)onTextureReady?.()},undefined,()=>{
   if(grass.userData.disposed)return
-  for(const mat of greens){mat.map=null;mat.needsUpdate=true}
+  // Keep the valid green placeholder if this download fails.
+  grass.userData.loadFailed=true
   onTextureReady?.()
  });grass.wrapS=grass.wrapT=THREE.RepeatWrapping;grass.repeat.set(26,17);grass.colorSpace=THREE.SRGBColorSpace;grass.anisotropy=8
+ // An uninitialised WebGL texture samples black while its image downloads.
+ // TextureLoader replaces this valid pixel with the real image on success.
+ if(!grass.image){grass.image=new ImageData(new Uint8ClampedArray([85,120,42,255]),1,1);grass.needsUpdate=true}
  const progress=stadium?progressoVisualSetor(stadium,'grama'):0
- const greens=['#c1d89c','#d5e4b4'].map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
+ const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
  for(const band of faixasGramado3D(progress)){
   const geometry=new THREE.PlaneGeometry(band.width,68),uv=geometry.getAttribute('uv')
   // One continuous grass texture across the 105 m field, including partial strips.
@@ -65,7 +70,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  const white=material('#f4f0df')
  const line=(points:[number,number][])=>{for(let i=1;i<points.length;i++){
   const [x,z]=points[i-1],[bx,bz]=points[i],dx=bx-x,dz=bz-z
-  const geometry=new THREE.PlaneGeometry(Math.hypot(dx,dz),.12);geometry.rotateX(-Math.PI/2)
+  const geometry=new THREE.PlaneGeometry(Math.hypot(dx,dz),readable2D?.20:.12);geometry.rotateX(-Math.PI/2)
   const paint=new THREE.Mesh(geometry,white);paint.rotation.y=-Math.atan2(dz,dx);paint.position.set((x+bx)/2,.006,(z+bz)/2);paint.receiveShadow=true;scene.add(paint)
  }}
  line([[-52.5,-34],[52.5,-34],[52.5,34],[-52.5,34],[-52.5,-34]]);line([[0,-34],[0,34]])
@@ -97,7 +102,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
 }
 
 export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={setPresentationVisible:(visible:boolean)=>void;update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type PartidaComplexo={setViewportVisible?:(visible:boolean)=>void;setPresentationVisible:(visible:boolean)=>void;update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];frame:()=>InspecaoPartidaComplexo;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -131,12 +136,13 @@ function reservasReais(bench:readonly AtletaEstadio[]|undefined,activeIds:Set<st
 // 🧍 27/10: boneco novo dos 22 (Tripo + movimentos Mixamo + uniformes por região — APROVADO pelo Diego). O 3D inteiro já é só
 // da conta dele. `localStorage['esc3d-boneco']='antigo'` volta pro boneco de antes; se o novo falhar, volta sozinho
 function bonecoNovo(){try{return localStorage.getItem('esc3d-boneco')!=='antigo'}catch{return true}}
-export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined):PartidaComplexo{
+export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined,presentation:'3d'|'2d'='3d'):PartidaComplexo{
  const field=new THREE.Scene();field.name='complexo-campo'
  let disposed=false
  // Build before attaching: the original static batching only sees this field.
- const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()})
+ const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()},presentation==='2d')
  scene.add(field)
+ if(presentation==='2d'){const flat=criarCampo2DNoMapa(scene,()=>{if(!disposed)onReady?.()},field);return{...flat,dispose(){if(disposed)return;disposed=true;flat.dispose();descartarObjetos(field,[grass])}}}
  type Body=ReturnType<typeof person>
  type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'|'cameraSubjects'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
  let match:Match|undefined
@@ -206,14 +212,17 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   pose(referee,{mx:snapshot.referee.x,mz:snapshot.referee.z,heading:snapshot.referee.heading,distance:snapshot.referee.distance,speed:snapshot.referee.speed,kick:0,throwing:0})
   posicionarBolaFutebol3D(ball,presentation);atualizarRedesGol3D(field,presentation)
   people.update()
-  inspection={replay:snapshot.replay,owner:snapshot.owner,players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,detail:match.humanoids?.inspect(),official:snapshot.official}
+  // The camera needs this small presentation frame, not all action plans and
+  // contact reports. Build those only for an explicit diagnostic inspection.
+  inspection={replay:snapshot.replay,owner:snapshot.owner,players:snapshot.players.length,ball:{...presentation.ball},time:snapshot.time,phase:snapshot.phase,matchId:current.context.id,official:snapshot.official}
  }
  if(state)update(state,state.visualClock?.sampledAt??performance.now())
  return {
   update,
   setPresentationVisible:visible=>{if(match)match.root.visible=visible},
   subjects:()=>cameraSubjects,
-  inspect:()=>({...inspection,ball:{...inspection.ball}}),
+  frame:()=>inspection,
+  inspect:()=>({...inspection,ball:{...inspection.ball},detail:match?.humanoids?.inspect()}),
   dispose:()=>{if(disposed)return;disposed=true;clearMatch();descartarObjetos(field,[grass])},
  }
 }

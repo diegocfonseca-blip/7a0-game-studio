@@ -34,7 +34,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos, loggedEmail } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
 import { travaCarreiraGratis, limiteGratis } from './carreira-gratis'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
@@ -3457,7 +3457,7 @@ export function EscStreamIntro() {
   const you = state.managers[state.youIdx]
   const humans = state.managers.filter(m => m.isHuman)
   // cor do apoiador pelo selo no nome (igual ao lobby): 👑 ouro · ⭐ prata · 💎 roxo
-  const perkColor = (name: string) => name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null
+  const perkColor = (name: string) => comCorDoNome(name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null, name) // 🎨 02/11
   return (
     <Shell>
       {isCareer && (

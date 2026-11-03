@@ -21,7 +21,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2'
 import { assinarMensal } from './vendria-checkout'
 import { isMuted } from './sound'
@@ -105,7 +105,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // propósito, pedido do Diego 17/08: cor sem símbolo nenhum aparecendo) —
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
-  n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
+  comCorDoNome(n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null, n) // 🎨 02/11: + cor adicional
 type GS = EscState & { __game?: string; pregaoAberto?: boolean; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean; liveUrl?: string }
 
 /** 🧱🏳️📅 o nome do tipo de pacote da sala (31/10): Clubes · Seleções, e "por década" quando for */
@@ -3291,6 +3291,11 @@ export function EscLobby() {
               <span style={{ fontSize: 11 }}>✏️</span>
             </button>
           )}
+          {/* 🔤 03/11 (Diego): aviso sutil pra quem NÃO tem plano — o nome dele não é reservado; se alguém com plano pegar, vira as iniciais */}
+          {!visitante && hasName && !editingName && !canLiga && <p className="w-full m-0 text-[10.5px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.55)', flexBasis: '100%' }}>
+            {tr('🔓 Seu nome ainda não é reservado: se alguém com plano usar ele, o seu vira as iniciais. ', '🔓 Your name isn’t reserved yet: if someone with a plan takes it, yours becomes the initials. ')}
+            <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🔤 nome → ver os planos'); open() }} className="underline font-black" style={{ color: GOLD, background: 'none', border: 'none', padding: 0, minHeight: 0 }}>{tr('Travar meu nome ⭐', 'Lock my name ⭐')}</button>} />
+          </p>}
         </div>
       </div>
 

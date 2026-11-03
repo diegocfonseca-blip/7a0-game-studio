@@ -1,0 +1,33 @@
+{
+  "release": "mapa-camera-fixa-20261102",
+  "base": "3cf7eee41089cbafd6454912d0405ccfd894f942",
+  "scope": "Apresentação privada existente do mapa 3D; sem ampliar contas autorizadas",
+  "accessGate": "presidente-acesso.ts inalterado; mesma conta verificada por getUser",
+  "features": [
+    "lateral fixa com acompanhamento longitudinal suave",
+    "zoom por botões, pinça, roda e teclado; sem rotação nesse preset",
+    "resolução adaptativa do canvas sob carga sustentada",
+    "cache das medidas civis e montagem sob primeira visibilidade"
+  ],
+  "preserved": [
+    "mudanças recentes de clãs existentes na main",
+    "motor oficial e fingerprint",
+    "identidades, overalls e economia",
+    "cenário, modelos e animações",
+    "restrição de campo 2D e mapa 3D por conta"
+  ],
+  "engineFingerprint": "23599bdba04b0c7c2639389e2509f4d81a34796083f78b6a5d81e97c0d22bbbd",
+  "checks": [
+    "build de produção",
+    "acesso dono, outra conta e logout em desktop e celular",
+    "câmeras anteriores e lateral fixa",
+    "zoom nativo por pinça, botões, roda e teclado",
+    "qualidade adaptativa e ciclo de vida dos civis"
+  ],
+  "limitations": [
+    "FPS ainda não medido em aparelho físico",
+    "imagem pode suavizar durante redução adaptativa da resolução"
+  ],
+  "databaseChanges": false,
+  "publicationApproved": true
+}

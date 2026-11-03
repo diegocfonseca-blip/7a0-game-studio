@@ -10,17 +10,19 @@ import { limiteDo, ENTROU_CLA, EmblemaCla, esqueceClas, msgErro, msgTrava } from
 import { abrePerfilSolto, contaValida } from './amigos'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
+import { SeloFake } from './apoio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', CLA_OURO = '#E9C46A'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
 const bt = (bg: string, cor: string): CSSProperties => ({ ...OSW, fontSize: 14, background: bg, color: cor, border: `2px solid ${INK}`, borderRadius: 10, padding: '10px 12px', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', width: '100%' })
 
 type Ver = { id: number; nome: string; emblema: string; aberto: boolean; lider: string; lider_nome: string; membros: number; titulos: number; limite?: number; plano?: number; pos: number | null
-  descricao?: string | null; campeao: boolean; sou: boolean; pedi: boolean; lista: { uid: string; nome: string; titulos: number }[] }
+  descricao?: string | null; campeao: boolean; sou: boolean; pedi: boolean; lista: { uid: string; nome: string; titulos: number }[]; fakes?: string[] }
 type Resp = { ok?: boolean; erro?: string; pedido?: boolean; atual?: string; preso?: boolean; ate?: string; cla?: string }
 
 export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
   const [c, setC] = useState<Ver | null | 'erro'>(null)
+  const fakes = new Set(c && c !== 'erro' ? c.fakes ?? [] : []) // 🎭 02/11: quem o banco marcou como nome fake
   const [logado, setLogado] = useState(false)
   const [msg, setMsg] = useState('')
   const [troca, setTroca] = useState<string | null>(null) // já está em outro clã: pergunta antes de trocar
@@ -64,13 +66,14 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
           </div>
           <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', marginTop: 8 }}>
             <p style={{ ...OSW, fontSize: 12, margin: '2px 0 4px' }}>👥 {tr('Membros', 'Members')} <span style={{ fontWeight: 600, textTransform: 'none', fontSize: 10.5, color: '#777' }}>· {tr('toque pra ver o perfil', 'tap to see the profile')}</span></p>
+            {/* 🎭 02/11 (Diego: "somente o q tem email q deve ter os escudos"): conta grátis com nome de batismo/plano alheio = escudo genérico + 🎭 FAKE */}
             {c.lista.map((m, i) => (
               <button key={m.uid} onClick={() => { if (contaValida(m.uid)) abrePerfilSolto(m.uid) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 0', border: 'none', borderTop: i ? '1px dashed #d8ccaa' : 'none', background: 'transparent', color: INK, cursor: 'pointer', textAlign: 'left' }}>
                 <span style={{ ...OSW, width: 24, textAlign: 'center', fontSize: 13 }}>{i < 3 && m.titulos > 0 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}º`}</span>
                 {/* 🧑‍💼 02/11 (mockup scripts/mockups/cla-membros-presidente.png, Diego: "Sim"): clã é lista de GENTE → o presidente;
                     quem não tem boneco leva o ESCUDO do clube no MESMO círculo (régua de 14/10: escudo = clube · presidente = pessoa) */}
-                <PresidenteDaConta uid={m.uid} size={34} reserva={<span style={{ width: 34, height: 34, flex: 'none', borderRadius: '50%', border: `2px solid ${INK}`, background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Escudo nome={m.nome} size={24} /></span>} />
-                <b style={{ flex: 1, minWidth: 0, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}{m.uid === c.lider ? ' 👑' : ''}</b>
+                <PresidenteDaConta uid={m.uid} size={34} reserva={<span style={{ width: 34, height: 34, flex: 'none', borderRadius: '50%', border: `2px solid ${INK}`, background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Escudo nome={m.nome} size={24} automatic={fakes.has(m.uid)} /></span>} />
+                <b style={{ flex: 1, minWidth: 0, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}{fakes.has(m.uid) && <SeloFake />}{m.uid === c.lider ? ' 👑' : ''}</b>
                 <span style={{ ...OSW, fontSize: 13 }}>{m.titulos} 🏆</span>
                 <span style={{ fontSize: 13, color: '#999' }}>›</span>
               </button>

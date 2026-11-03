@@ -136,7 +136,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false, atual =
       <Ok><b>{tr('👑 Entrada de gala', '👑 Grand entrance')}</b>{tr(' com o seu escudo: a sala inteira para pra te ver chegar', ' with your crest: the whole room stops to watch you arrive')}</Ok>
       <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você escolher', ' however you choose')}</Ok>
       <Ok><b>{tr('🪙 30 moedas a cada 30 dias', '🪙 30 coins every 30 days')}</b>{tr(', pra sempre', ', forever')}</Ok>
-      <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
+      <Ok><b>{tr('🔒 Nome único', '🔒 Unique name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
       <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('👑 e tudo do Lenda, pra sempre e sem mensalidade:', '👑 and everything in Legend, forever with no monthly fee:')}</p>
       <ItensSocio batismo />
       <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego faz escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego makes the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
@@ -169,7 +169,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false, atual =
       <Ok><b>{tr('🌐 Seu clube nas SALAS ONLINE dos outros', '🌐 Your club in OTHER people’s ONLINE rooms')}</b>{tr(' — Série A e Jogo Rápido, em rodízio com os outros clubes batizados, MESMO QUANDO VOCÊ NÃO ESTÁ JOGANDO', ' — Division A and Quick Play, rotating with the other named clubs, EVEN WHEN YOU ARE NOT PLAYING')}</Ok>
       <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(' — seu número no mural do jogo, pra sempre. Só quem é Fundador tem.', ' — your number on the game’s wall, forever. Only Founders get one.')}</Ok>
       <Ok><b>{tr('🏟️ Estádio com nome', '🏟️ Named stadium')}</b>{tr(' e 30 🪙 a cada 30 dias, pra sempre', ' and 30 🪙 every 30 days, forever')}</Ok>
-      <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
+      <Ok><b>{tr('🔒 Nome único', '🔒 Unique name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
       <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('👑 e tudo do Lenda, pra sempre e sem mensalidade:', '👑 and everything in Legend, forever with no monthly fee:')}</p>
       <ItensSocio batismo />
       <p className="ll-support-note">{tr('A gala e o canto são feitos sob medida: entram no jogo assim que ficam prontos (o Diego combina com você).', 'The entrance and the chant are made to order: they go into the game as soon as they are ready (Diego sorts it out with you).')}</p>

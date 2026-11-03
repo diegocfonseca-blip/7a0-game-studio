@@ -1,3 +1,5 @@
+import {texturaLogoPatrocinador} from './presidencia-patrocinador-logo'
+import {LOGOS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import {mapaParaMundo,deslocarCaminhoComplexo,type PontoComplexo} from './presidencia-complexo-model'
@@ -46,8 +48,8 @@ export const PLANTA_VADICO={
 export type RodaConcessionaria={id:string;carId:string;position:Point;radius:number;contact:Point}
 
 /** Real shop, open doorway and six stationary stock cars. Static geometry is
- * merged by material. The sign is text rendered at 4096px, not an enlarged photo. */
-export function criarConcessionariaComplexo(parent:THREE.Object3D){
+ * merged by material. The sign and roof reuse the registered official brand artwork. */
+export function criarConcessionariaComplexo(parent:THREE.Object3D,onReady?:()=>void){
  const root=new THREE.Group();root.name='complexo-concessionaria-vadico';parent.add(root)
  const solids:SolidoEntorno[]=[],wheels:RodaConcessionaria[]=[]
  const materials:THREE.Material[]=[],textures:THREE.Texture[]=[],geometries:THREE.BufferGeometry[]=[]
@@ -177,24 +179,11 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
  for(const x of [-154.5-1.45,-154.5+1.45])box('vadico-faixa-pedestre',cream,.08,.006,18,x,GROUND+.006,39)
  for(const car of carPositions)for(const side of [-1,1])box('vadico-vaga-estoque',cream,.075,.006,5.4,car.x+side*1.55,GROUND+.006,car.z)
 
- let signSource:'canvas-text'|'node-placeholder'='node-placeholder'
- let signTexture:THREE.Texture
- if(typeof document!=='undefined'){
-  const canvas=document.createElement('canvas');canvas.width=4096;canvas.height=300
-  const context=canvas.getContext('2d')
-  if(context){
-   context.fillStyle='#eee6d3';context.fillRect(0,0,canvas.width,canvas.height)
-   context.fillStyle='#c31e2b';context.textAlign='center';context.textBaseline='middle'
-   let fontSize=canvas.height*.82;context.font=`700 ${fontSize}px Arial, sans-serif`
-   fontSize=Math.min(fontSize,fontSize*(canvas.width-240)/context.measureText(PLANTA_VADICO.label).width)
-   context.font=`700 ${fontSize}px Arial, sans-serif`;context.fillText(PLANTA_VADICO.label,canvas.width/2,canvas.height*.52)
-   signTexture=new THREE.CanvasTexture(canvas);signSource='canvas-text'
-  }else signTexture=new THREE.DataTexture(new Uint8Array([238,230,211,255]),1,1)
- }else signTexture=new THREE.DataTexture(new Uint8Array([238,230,211,255]),1,1)
- signTexture.colorSpace=THREE.SRGBColorSpace;signTexture.minFilter=THREE.LinearMipmapLinearFilter;signTexture.magFilter=THREE.LinearFilter
- signTexture.generateMipmaps=true;signTexture.anisotropy=8;signTexture.needsUpdate=true;textures.push(signTexture)
- const signMaterial=new THREE.MeshBasicMaterial({name:'vadico-letreiro-vermelho',map:signTexture,toneMapped:false});materials.push(signMaterial)
- const signGeometry=new THREE.PlaneGeometry(35,35*300/4096);signGeometry.translate(-154.5,GROUND+5.25,29.274);add(signGeometry,signMaterial)
+ const art=LOGOS_PATROCINADORES_CIDADE.vadico,signTexture=texturaLogoPatrocinador('vadico',onReady);textures.push(signTexture)
+ const signMaterial=new THREE.MeshBasicMaterial({name:'vadico-logo-oficial',map:signTexture,transparent:true,toneMapped:false,depthWrite:false});materials.push(signMaterial)
+ const signGeometry=new THREE.PlaneGeometry(2.55*art.width/art.height,2.55);signGeometry.translate(-154.5,GROUND+5.25,29.274);add(signGeometry,signMaterial)
+ const roofLogo=new THREE.PlaneGeometry(17,17*art.height/art.width);roofLogo.rotateX(-Math.PI/2);roofLogo.translate(-154.5,GROUND+6.94,19.5);add(roofLogo,signMaterial)
+
  for(const [material,parts] of batches){
   const geometry=mergeGeometries(parts,false)!
   parts.forEach(part=>part.dispose());geometries.push(geometry)
@@ -205,7 +194,7 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D){
  const metadata={label:PLANTA_VADICO.label,stockCount:carPositions.length,permanent:true,purchasable:false,
   floor:GROUND,bounds:{...PLANTA_VADICO.bounds},door:PLANTA_VADICO.door,cars:PLANTA_VADICO.cars.map(car=>({...car,length:4.4,width:2.16,height:1.55})),
   wheels:wheels.map(w=>({...w,position:{...w.position},contact:{...w.contact}})),
-  sign:{text:PLANTA_VADICO.label,color:'#c31e2b',source:signSource,resolution:[4096,300],position:pontoVadico({x:-154.5,y:GROUND+5.25,z:29.274})},
+  sign:{text:PLANTA_VADICO.label,color:'#c31e2b',source:'official-logo',asset:art.src,resolution:[art.width,art.height],position:pontoVadico({x:-154.5,y:GROUND+5.25,z:29.274})},
   meshes:root.children.length,triangles:geometries.reduce((sum,g)=>sum+(g.index?.count??g.getAttribute('position').count)/3,0),
  }
  root.userData.dealership=metadata

@@ -13,7 +13,7 @@ import {capturedStandingPose,type FootballPresentationActor} from './presidencia
 
 /** Off-pitch roles never kick, save or move the official ball. Reserve names
  * must come from existing benches; no filler athlete/card is manufactured. */
-export function criarEquipeApoioEstadio(scene:THREE.Scene,onReady:()=>void){
+export function criarEquipeApoioEstadio(scene:THREE.Scene,onReady:()=>void,footballBodies=true){
  const root=new THREE.Group();root.name='stadium-operations';root.visible=false;scene.add(root)
  const floors:THREE.Mesh[]=[];for(const name of ['complexo-entorno','estadio-arquitetura-volumetrica','complexo-campo'])scene.getObjectByName(name)?.traverse(n=>{if(n instanceof THREE.Mesh&&!(n instanceof THREE.SkinnedMesh)&&!(n instanceof THREE.InstancedMesh))floors.push(n)});scene.updateMatrixWorld(true);acelerarRaios(floors);const ray=new THREE.Raycaster(),down=new THREE.Vector3(0,-1,0),normal=new THREE.Vector3(),heights=new Map<string,number>();const ground=(x:number,z:number)=>{const k=x.toFixed(2)+':'+z.toFixed(2);if(heights.has(k))return heights.get(k)!;ray.set(new THREE.Vector3(x,.6,z),down);ray.far=1;const hit=ray.intersectObjects(floors,false).find(h=>h.point.y<.27&&h.face&&normal.copy(h.face.normal).transformDirection(h.object.matrixWorld).y>.5);const y=hit?.point.y??-.02;heights.set(k,y);return y};const route=(points:CityPoint[])=>{const dense:CityPoint[]=[];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.6));for(let j=i===1?0:1;j<=n;j++){const u=j/n,x=a.x+(b.x-a.x)*u,z=a.z+(b.z-a.z)*u;dense.push({x,y:ground(x,z),z})}}return activityRoute(dense,1.05)}
  const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>()
@@ -25,7 +25,7 @@ export function criarEquipeApoioEstadio(scene:THREE.Scene,onReady:()=>void){
  meshBox(.65,.35,.42,39,floor+.175,36.8,white);meshBox(.20,.22,.015,39,floor+.2,37.02,green);meshBox(.31,.08,.017,39,floor+.2,37.025,green)
  const bin=meshBox(.55,.8,.55,-10,.25,109,grey);bin.name='stadium-cleanup-bin'
  type Person={id:string;role:string;body:ReturnType<typeof createCivilian>;anchor:CityPoint;heading:number;exit?:ReturnType<typeof activityRoute>;arrival?:ReturnType<typeof activityRoute>;arrivalDelay?:number}
- const people:Person[]=[],add=(id:string,role:string,x:number,z:number,color:string,variant='adult-man',heading=0)=>{const body=createCivilian(root,{id:'stadium-'+id,outfitColor:color,variant,onReady});const p={id,role,body,anchor:{x,y:ground(x,z),z},heading};people.push(p);return p}
+ const people:Person[]=[],add=(id:string,role:string,x:number,z:number,color:string,variant='adult-man',heading=0)=>{const body=createCivilian(root,{deferUntilVisible:true,id:'stadium-'+id,outfitColor:color,variant,onReady});const p={id,role,body,anchor:{x,y:ground(x,z),z},heading};people.push(p);return p}
  add('delegation-marshal','marshal',-98,24,'#b4a331','adult-woman',-Math.PI/2)
  add('home-coach','coach',-18,TECNICO_Z,'#28343b');add('away-coach','coach',18,TECNICO_Z,'#414137','older-man')
  add('home-assistant','assistant',-22,BANCO_Z,'#28343b','older-man');add('away-assistant','assistant',14,BANCO_Z,'#414137','adult-woman')
@@ -52,7 +52,7 @@ export function criarEquipeApoioEstadio(scene:THREE.Scene,onReady:()=>void){
    }onReady()
   }catch{benchKey='';onReady()}
  }
- function configure(input:{day?:StadiumDayFrame;match?:EstadoPartidaEstadio;mobile:boolean;presidentName?:string}){day=input.day;mobile=input.mobile;retainedName=input.presidentName;if(day&&key!==day.key){litter.forEach(l=>l.collected=false);generation++;clearReserves();benchKey='';lastMatch=input.match;key=day.key}if(input.match){lastMatch=input.match;if(input.match.officialInput)void setBenches(input.match)}}
+ function configure(input:{day?:StadiumDayFrame;match?:EstadoPartidaEstadio;mobile:boolean;presidentName?:string}){day=input.day;mobile=input.mobile;retainedName=input.presidentName;if(day&&key!==day.key){litter.forEach(l=>l.collected=false);generation++;clearReserves();benchKey='';lastMatch=input.match;key=day.key}if(input.match){lastMatch=input.match;if(footballBodies&&input.match.officialInput)void setBenches(input.match)}}
  const point=new THREE.Vector3()
  function update(time:number,camera?:THREE.Camera,height=720,ball?:{x:number;z:number}){
   const active=!!day&&(day.active||day.phase==='departure'&&day.phaseElapsed<600),legacy=!!lastMatch&&!lastMatch.officialInput;root.visible=active;if(!day)return;technicalMeshes.forEach(m=>m.visible=!legacy)

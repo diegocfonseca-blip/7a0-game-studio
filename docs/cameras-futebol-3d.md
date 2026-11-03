@@ -29,3 +29,34 @@ O campo de terra do save Neymarzetti permanece de terra: não se inventam obras 
 - Capturas do navegador e viewport de celular não equivalem a FPS medido em aparelho físico. Não declarar câmera perfeita para todas as partidas apenas por um enquadramento estático.
 
 Validação concluída: build de produção passou; 300 enquadramentos, 4.496 quadros em movimento e 20 redimensionamentos pausados passaram. Componentes reais abriram os 22 atletas e as cinco câmeras em desktop e retrato; preservaram identificador, tempo e eventos. Giro retrato → paisagem → retrato conferido também por projeção independente da bola. Retorno ao mapa e teto fechado inspecionados; sem erros JS/HTTP ou alteração da fonte. A fixture de teto completo é local, separada do campo de terra real do save. Publicação segue a mesma prévia privada autorizada; o workflow de implantação precisa concluir com sucesso para confirmar o envio.
+## Lateral fixa — revisão local em 02/11/2026
+
+Nova opção `Lateral fixa` no seletor de câmeras da partida. Usa o mesmo mundo,
+os mesmos 22 atletas, eventos e relógio. Não substitui a transmissão nem o mapa
+livre. O ângulo lateral elevado é constante: câmera e alvo se deslocam juntos,
+com suavização pelo tempo de apresentação. A bola pode ir do ataque ao meio e
+à outra metade sem inverter a câmera ou alterar automaticamente sua lente.
+
+O usuário controla somente a aproximação: botões +/−, pinça de dois dedos,
+roda do mouse e teclado +/−. Arrasto e rotação ficam bloqueados nesse preset.
+O zoom persiste ao trocar de câmera e ao girar a tela, dentro da mesma sessão
+do mapa. O enquadramento se adapta à proporção da tela; nunca muda a escala
+dos jogadores. Replays de gol preservam esse ângulo quando a opção está ativa.
+
+A navegação livre é restaurada ao escolher `Mapa` ou outro preset. Durante a
+partida, os botões de aproximação reaparecem somente na lateral fixa; os demais
+controles de navegação do mapa continuam ocultos. Não há persistência no banco.
+
+Teste: `node --import ./scripts/cartoon-football/node-ts-resolve.mjs scripts/cartoon-football/test-fixed-camera.mjs`.
+Verifica acompanhamento em 3.212 quadros, ângulo/distância constantes, limites
+de zoom, cantos, bola alta, resize, replay e retorno ao mapa. Bancada visual
+somente de leitura usa uma cópia local do save Neymarzetti, com câmera real e
+modelos atuais; não representa FPS medido em aparelho físico.
+
+Validação local concluída: build de produção e regressão das câmeras anteriores
+passaram. No navegador real, 22 atletas carregados, zoom por botões/roda/teclado
+e pinça nativa via eventos de toque, arrasto bloqueado, retrato/paisagem e volta
+ao mapa passaram sem erros JS. Trocas de câmera e zoom preservaram id, tempo e
+eventos; a entrada oficial permaneceu intacta. Capturas em
+`test-results/camera-fixa/`: `padrao.png`, `celular-390.png`, `meio.png`,
+`ataque.png`, `area.png` e `paisagem.png`. Revisão visual e publicação aprovadas por Diego em 02/11/2026; status da implantação registrado na entrega.
