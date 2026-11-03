@@ -66,23 +66,26 @@ function texturaCanvas(canvas: HTMLCanvasElement) {
   return map
 }
 
-type Lado = { x0: number; z0: number; x1: number; z1: number; n: number; nx: number; nz: number }
+type Lado = { x0: number; z0: number; x1: number; z1: number; n: number; nx: number; nz: number; virada?: boolean }
 /** As faixas de placas, de frente pro gramado (campo de 105 × 68 no centro do mapa). Os vãos são de propósito: o túnel dos
  *  jogadores fica no meio da linha de fundo oeste e a equipe de apoio passa pelos cantos — placa nenhuma fecha caminho. */
 const LADOS: Lado[] = [
-  { x0: -50.4, z0: 37.6, x1: 50.4, z1: 37.6, n: 12, nx: 0, nz: -1 },  // sul: do outro lado dos bancos
+  { x0: 50.4, z0: 37.6, x1: -50.4, z1: 37.6, n: 12, nx: 0, nz: -1, virada: true },  // sul: do outro lado dos bancos (virada pra câmera do mapa, que olha do sul)
   { x0: 42, z0: -39.6, x1: -42, z1: -39.6, n: 10, nx: 0, nz: 1 },     // norte: atrás dos bancos e dos técnicos
   { x0: 56.3, z0: -18.6, x1: 56.3, z1: -3.4, n: 2, nx: -1, nz: 0 },   // fundo leste, dos dois lados do gol
   { x0: 56.3, z0: 3.4, x1: 56.3, z1: 18.6, n: 2, nx: -1, nz: 0 },
   { x0: -56.3, z0: 18.6, x1: -56.3, z1: 3.4, n: 2, nx: 1, nz: 0 },    // fundo oeste (o túnel fica no vão do meio)
   { x0: -56.3, z0: -3.4, x1: -56.3, z1: -18.6, n: 2, nx: 1, nz: 0 },
 ]
-const ALTURA = .9, BASE = .04
+// 👀 03/11 (Diego: *"as placas não estão sendo bem visíveis no mapa… no campo 2D da aba Jogos é bem visto"*): a câmera do jogo no
+// mapa olha o campo DE CIMA, e a placa em pé aparecia de lado (fina) ou de costas. Agora ela é maior e DEITADA pra trás (como o
+// "tapete 3D" das transmissões): a frente vira pro céu e pro gramado, e dá pra ler a marca de cima e da arquibancada.
+const ALTURA = 2.8, BASE = .04, INCLINA = 1.15 // ~66° deitada pra trás (topo longe do campo)
 
 function criarPlacasDoGramado(root: T.Group, onChange: () => void) {
   const marcas = placasDoCampo()
   if (!marcas.length) return { redesenha() {}, dispose() {} }
-  const n = marcas.length, W = 768, RH = 82
+  const n = marcas.length, W = 768, RH = 256 // faixa de 3:1, a mesma proporção da placa (antes era 9:1 e a marca saía espichada)
   const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = RH * n
   const g = canvas.getContext('2d')!
   const map = texturaCanvas(canvas); map.wrapT = T.RepeatWrapping
@@ -97,16 +100,18 @@ function criarPlacasDoGramado(root: T.Group, onChange: () => void) {
   let k = 0
   for (const lado of LADOS) {
     const dx = (lado.x1 - lado.x0) / lado.n, dz = (lado.z1 - lado.z0) / lado.n, largura = Math.hypot(dx, dz) - .12
-    const giro = Math.atan2(lado.nx, lado.nz)
+    // ↩️ o lado sul fica de costas pro gramado e deitado PRO gramado: a câmera do mapa olha do sul, então assim a marca sai em pé
+    // (deitada pra trás, ela aparecia de cabeça pra baixo)
+    const giro = Math.atan2(lado.nx, lado.nz) + (lado.virada ? Math.PI : 0)
     for (let i = 0; i < lado.n; i++, k++) {
       const cx = lado.x0 + dx * (i + .5), cz = lado.z0 + dz * (i + .5), linha = k % n
       const frente = new T.PlaneGeometry(largura, ALTURA), uv = frente.getAttribute('uv')
       // cada placa lê a sua faixa da textura (com uma folguinha pra a marca do lado não vazar na borda)
       const topo = 1 - linha / n - .06 / n, pe = 1 - (linha + 1) / n + .06 / n
       for (let j = 0; j < uv.count; j++) uv.setY(j, uv.getY(j) > .5 ? topo : pe)
-      frente.rotateY(giro); frente.translate(cx, BASE + ALTURA / 2, cz); frentes.push(frente)
+      frente.translate(0, ALTURA / 2, 0); frente.rotateX(-INCLINA); frente.rotateY(giro); frente.translate(cx, BASE, cz); frentes.push(frente)
       const caixa = new T.BoxGeometry(largura + .08, ALTURA + .1, .16)
-      caixa.rotateY(giro); caixa.translate(cx - lado.nx * .09, BASE + ALTURA / 2, cz - lado.nz * .09); costas.push(caixa.toNonIndexed()); caixa.dispose()
+      caixa.translate(0, ALTURA / 2, -.09); caixa.rotateX(-INCLINA); caixa.rotateY(giro); caixa.translate(cx, BASE, cz); costas.push(caixa.toNonIndexed()); caixa.dispose()
     }
   }
   const geoFrente = mergeGeometries(frentes)!, geoCostas = mergeGeometries(costas)!
