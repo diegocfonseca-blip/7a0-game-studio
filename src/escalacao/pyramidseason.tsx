@@ -2764,7 +2764,6 @@ function ZoneLegend() {
 const UP_OF: Partial<Record<Div, Div>> = { B: 'A', C: 'B', D: 'C' }
 const DOWN_OF: Partial<Record<Div, Div>> = { A: 'B', B: 'C', C: 'D' }
 function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: Div; teams: SimTeam[]; colors: Record<number, FCol>; mine?: boolean; final?: boolean; safTeam?: string; safCol?: FCol }) {
-  const humans = teams.filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
   // temporada FECHADA: setinhas animadas de acesso (▲ verde) e queda (▼ vermelha)
   // pra TODOS os times, e um banner quando é VOCÊ que sobe/cai/é campeão.
   const youPos = final && mine ? teams.findIndex(t => t.you) + 1 : 0
@@ -2789,7 +2788,6 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
       {banner && (
         <div style={{ background: banner.bg, color: banner.fg, border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', margin: '2px 0 8px', fontWeight: 900, fontSize: 13, textAlign: 'center', ...OSWALD }}>{banner.txt}</div>
       )}
-      <DivChips humans={humans} colors={colors} />
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse', marginTop: 6 }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('P', 'Pts')}</th><th className="ll-dk-col" style={{ ...th, textAlign: 'center' }}>{tr('J', 'P')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('V', 'W')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('E', 'D')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('D', 'L')}</th><th className="ll-dk-col" style={{ ...th, textAlign: 'center' }}>{tr('GP', 'GF')}</th><th className="ll-dk-col" style={{ ...th, textAlign: 'center' }}>{tr('GC', 'GA')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('SG', 'GD')}</th></tr></thead>
         <tbody>
