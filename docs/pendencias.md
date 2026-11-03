@@ -1,4 +1,48 @@
+## 🏙️ 03/11 — Mapa da aba Clube: a cidade reage à carreira (LOCAL, branch do agente, só a conta de teste do Diego)
+- 🏗️ **Obra da cidade** (loja, estacionamento por etapa, praça, choperia, metrô, hotel): na rodada da compra o lote mostra **tapume + guindaste**; jogou a rodada, aparece o prédio. Carimbo NOVO e opcional no save: `StadiumSave.obrasRodada[obra] = "temporada:rodada"`, gravado em `STADIUM_BUILD` e `STADIUM_PARKING_INVEST` (`marcaObraNaRodada`). Save antigo sem carimbo = tudo pronto. Não mexe em preço, renda nem requisito.
+- 🍻 **Boteco do Oswaldo**: vitória = mesas cheias, torcedores pulando e bandeirinhas na cor do clube, placa "VITÓRIA!"; derrota = 2 sentados e a placa "FICA PRA PRÓXIMA"; empate = normal. O resultado só chega depois do apito na tela (`roundReady`), sem spoiler. Só no dia comum (dia de jogo segue o roteiro dele).
+- 🚌 **Carreata**: título de liga/Copa/Supercopa (`careerCronica`, gravado na virada) enquanto a rodada nova é 0; Liberta/Champions/Mundial do fim da liga (rodada 38) até o 1º jogo da próxima. O ônibus que já existe, pintado do clube, com a turma e a taça no teto, roda a via pública; torcida no ponto de ônibus e festa no boteco. Anda só no relógio do mapa (VIVO_MS).
+- Código: `presidencia-cidade-viva.ts` (regras puras) · `presidencia-cidade-viva-3d.ts` (desenho, 3 InstancedMesh, sem sombra nova) · trava `scripts/imersao-mapa/test-cidade-viva.mjs` · fotos `scripts/mockups/mapa-obras-*.png` (`shots-cidade-viva.mjs`).
+- ⏳ Pendente: mostrar as fotos pro Diego e esperar o OK visual antes de fundir.
+
+## 🕐 03/11 — Conta nova REPETIDA no mesmo aparelho só cria sala depois de 24 h (Diego: "faz assim e publica")
+- Mockup `scripts/mockups/conta-nova-24h.png`. Medido: em 12 dias, 337 contas criaram sala no 1º dia; 299 eram a 1ª conta do aparelho (gente nova/streamer) e só 38 repetidas → a espera vale SÓ pra conta que não é a 1ª do aparelho. Banco: `esc_conta_nova_espera` + gatilho `esc_sala_por_dia` (erro `CONTA_NOVA_24H`, hint = segundos); sala extra comprada antecipa (gasta 1); plano pago nunca espera; só conta criada a partir de 03/11 (`esc_conta_nova_cfg.desde`). Desligar: `update esc_conta_nova_cfg set ligado = false`. Tela: `ContaNova24h` + `ContaNovaLegenda` (lobby.tsx). Aparelho = id guardado no navegador (mesmo do e-mail): aba anônima, outro navegador ou limpar dados escapam.
+
+## ⚡ 03/11 — Abrir clã demorava 15–23 s (consertado no banco)
+- `esc_cla_ver` (tocar num clã) era SQL inlinável e o banco recalculava o ranking da semana várias vezes → plpgsql, **0,5 s**. `esc_cla_lista` (Entrar num clã) 4 s → **0,5 s** (ranking e campeão uma vez). Migration `20261103020000_cla_ver_lista_rapidos.sql`. ⚠️ Lição: função de leitura que junta ranking + JSON por clã NÃO pode ser `language sql` (o banco funde e repete); usar plpgsql e calcular o ranking uma vez.
+
+## 📧 03/11 — Cota do Resend: 70 código · 30 campanha, confirmação já na 2ª conta (Diego)
+- `esc_conf_cfg`: `teto_dia` 40 → **70**, `min_outros` 2 → **1** (a 2ª conta do mesmo aparelho, criada depois de 30/10, já confirma o e-mail pra criar sala). `esc_email_config.por_dia` 55 → **30**.
+- 🤖 Ordem dele: *"se vê que está batendo nos 70, já vai diminuindo a campanha até zerar"* → `esc_email_ajusta_campanha()` (pg_cron `esc-email-ajusta`, 23h50 Brasília): e-mails de código do dia ≥ 60 → campanha −10 (até 0, nunca sobe sozinha). Histórico em `esc_conf_uso`. Migration `20261103010000_email_cota_70_30.sql`.
+- Medido (31/10–02/11): ~45 contas/dia cairiam na regra da 2ª conta (eram ~15 na da 3ª). Limite: quem tem 2 e-mails de VERDADE confirma e passa.
+
+## ⭐⚔️ Clã: +1 vaga por membro com plano, SEM LIMITE (02/11) — ✅ PUBLICADO
+- Mockup `scripts/mockups/cla-vagas-por-plano.png`; Diego: *"sem limite"*. Limite = 22 + membros (com o presidente) com plano pago (`esc_direitos_de->pago`). Entrada confere AO VIVO (`esc_cla_cabe` → `esc_cla_limite_vivo`); lista/caixas leem `esc_cla_limite_cache` (pg_cron `esc-cla-limites` a cada 5 min — `esc_direitos_de` custa ~5 ms por membro). Leituras continuam STABLE (o painel do clã é stable: nada de gravar dentro). Ninguém é tirado quando o limite baixa. Hoje: Lulubaba 28 · Futpoint 25 · Leite de Verdade 23. Tela: `limiteDo(c)` (cla.tsx) no lugar do 22 fixo. ⏳ O aviso "+1 vaga" pro clã quando entra alguém com plano (do mockup) ainda não foi feito.
+
+## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — ✅ PUBLICADO
+- Diego: *"não deveria seguir pelo nome… somente pelo e-mail da conta do usuário"* (caso Mengão Malvadao do João Victor aparecendo com o escudo do batismo do Átila na lista do clã). Banco: `esc_nomes_sem_escudo()` lista os nomes EXATOS (minúsculo, com acento) de contas que usam nome de batismo sem ser donas (pelo e-mail em `esc_nomes_batismo`), tirando o nome exato que o próprio dono usa. Aparelho: `mimos.ts` (`nomeSemEscudo`) + `escudos.tsx` (`logoPronta` não dá a arte fixa pra esses nomes; nome de ASSENTO dos bots segue com escudo). Carrega no início (`main.tsx`) e no lobby. Limite: cópia letra por letra igual ao nome do dono continua indistinguível pelo nome (no jogo ela já sai com "🎭FAKE" grudado, que também tira o escudo). Etapa 3 completa (escudo por conta em todo lugar) continua pendente.
+
+## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
+- Linha em `esc_assinatura_mensal` (craque_salas, até 02/11/2027, sem `vendria_sub`). Conta de 24/07 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo). Tinha tier verde antigo (continua como `tier_legado`).
+## 🏆 Dia de FINAL no mapa 3D (03/11, aprovado: "ok") — no BRANCH, esperando OK visual (só a conta de teste vê o mapa)
+- Tudo em `presidencia-complexo-final.ts` (+ regras puras em `presidencia-complexo-final-regras.ts`, trava `scripts/imersao-mapa/test-final-day.mjs`).
+  Antes: avião com a faixa "FINAL · A × B", barracas de bandeira da final (perua de ambulante de sempre), o dobro de gente na rua (no teto
+  20 celular / 48 PC) e fumaça colorida na porta; faixa gigante "FINAL" na fachada. Durante: bandeirões e sinalizador no gol DO USUÁRIO.
+  Depois do apito: campeão = fogos + pódio com taça, papel picado e fumaça; perdeu = sem fogos, pódio do rival, os seus saem cabisbaixos.
+- Final = o que o id da Copa já diz (`:copa:N:Final|Supercopa:`). ⚠️ Pendente: Libertadores/Champions/Mundial (o id da carreira
+  internacional não diz que é final) e Copa do Mundo. ⚠️ Final decidida nos PÊNALTIS (empate no apito) não tem festa — o mapa não sabe
+  quem ganhou sem adiantar o pênalti; resolver passando o vencedor só DEPOIS da animação dos pênaltis.
+- Mockups: `scripts/mockups/mapa-final-antes.png` e `scripts/mockups/mapa-final-podio.png`.
+## 🏳️🌙 Mapa 3D: dia de jogo com a cara do clube (03/11) — no BRANCH, esperando OK visual (só conta de teste)
+- ✅ Torcedor da rua (circulação) agora veste a camisa: casa = cor do clube do usuário, visitante = cor do rival (antes era bege/aleatório). Arquibancada, metrô/ônibus, visita e saída já usavam as cores.
+- ✅ Dia de jogo EM CASA: bandeira do clube (escudo + nome, cores do clube) nos postes de rua perto do portão dos mandantes + varais de bandeirolas (cor 1 · cor 2 · creme) entre postes vizinhos. 4 desenhos no total, sem sombra, sem luz nova (`presidencia-dia-jogo-ruas.ts`, planta pura `cidade3d/street-dressing.mjs`, trava `scripts/imersao-mapa/test-street-dressing.mjs`). Celular: 8 bandeiras / 4 varais.
+- ✅ Noite de Copa (quarta 21h): já existia (refletores + janelas + postes). Janelas da cidade ficaram mais fortes à noite (só emissivo). A página de QA trocou "Jogo 1/3 · quarta · noite" pra Copa de verdade (antes caía em liga = dia).
+- ✅ Ônibus das delegações: já vinha pintado nas cores e com escudo/nome na lateral e no teto (`presidencia-cidade-equipes.ts`); portão de visitantes separado já tinha trava (`test-separated-access`). Vista nova de QA: `matchday-streets`. Sem foto do ônibus nesta entrega (as vistas prontas não enquadram a baia, ver abaixo).
+- ⚠️ Visto na conferência: as vistas prontas `coach-arrival`/`coach-door` não enquadram mais o ônibus (câmera aponta pro lugar velho da baia). Não mexi.
+- 📸 `scripts/mockups/mapa-diadejogo-*.png`.
+
 ## 🥇⚔️ Medalha do clã da semana (02/11) — ✅ PUBLICADO ("ok pode fazer e publica")
+- 🔁 02/11 à noite: por uns minutos ficou só o 1º clã; o Diego voltou atrás: **top 3 = 🥇 ouro · 🥈 prata · 🥉 bronze, todo membro carrega**, e quem ganha clã + individual fica com AS DUAS (nome × pílula). Não trocar a do clã por 🏆.
 - Mockup `scripts/mockups/cla-semana-medalha.png`. Top 3 de clãs de cada semana fechada → 🥇🥈🥉 na pílula do clã de TODO membro por 30 dias (`esc_podio_cla_semana`, preenchida pelo fecho `esc_fecha_semanas_clas` → `esc_podio_clas_preenche`; leitura `esc_cla_medalha` dentro do `esc_clas_de`). Pódio é POR CLÃ: o `esc_premio_cla_semana` (moeda) só tem quem está desde segunda e por isso não servia (o Lulubaba, 1º da semana 26/10, não aparecia lá). Presidente: coroa 👑 dourada acesa na pílula enquanto tem medalha. Perfil: selo "🥇 CLÃ CAMPEÃO DA SEMANA · até dd/mm". Ganhou individual + clã = as duas (nome × pílula). Batismo/fundador nada a mais. Nunca no chat/telão/tabela/jogo. Moedas 30/20/10 iguais.
 
 
@@ -11905,7 +11949,7 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   (Inter 79), Pita, Kléber (Santos 04), Mayke, Fabiano Eller, Mondragón, Hugo Ibarra, Tshabalala, Al-Dawsari, Tomaszewski, Grosics,
   Kennet Andersson e Henri Camara. Lote 45 = **237 cartas**. Tirados de data.ts, foto, novidades geradas (à mão, sem rodar o
   gerador), paises.ts e lista mestre; stories refeitos (parte 1 = GOL/LAT/ATA, parte 2 = ZAG/MEI — GOL→MEI juntos estourava).
-  ⏳ Ainda NÃO publicado: aguarda "publica".
+  ✅ Publicado em 30/10 noite junto com as 6 lendas (main 061b75d).
 - 🔁 30/10 noite, Diego: *"só os caras que devem ser lendas mesmo"*. Voltaram pra LENDA (fame 5, faixa +3/+2): **Sepp Maier**
   (Bayern 1974), **Facchetti** (Inter 1965), **Gento** (Real Madrid 1960), **Meazza** (Inter 1934) e **Kopa** (Real Madrid 1958).
   Com o **Salah** (Liverpool 2019) o Lote 45 tem 6 lendas. Nenhum deles tem outra carta no jogo.
@@ -11949,3 +11993,21 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
   no nome (uma por cor, `CORES_EXTRA` em apoio.tsx) e só vale junto do ⭐/👑; os 4 leitores de cor do nome passam por `comCorDoNome`.
   Loja: `cores-loja.tsx`. Edge `mp-criar-pix` v15 já aceita o produto. Trava `npm run cor-adicional`. Foto: `scripts/mockups/cor-adicional-real.png`.
   ⏳ Na publicação: linha em novidades.ts. Lugares que pegam a cor do BANCO por tier (sem nome) ainda não mostram a cor comprada.
+
+## 🗺️ 03/11 — Análise a fundo do mapa da aba Clube (só leitura)
+Relatório completo em `docs/analise-mapa-clube-20261103.md`. Graves: intervalo/pênalti invisíveis no mapa (jogo trava), fim de semana sem botão de jogo no mapa, HUD dizendo "começa sozinho", mapa desenhando sem parar (celular esquenta), Sala do presidente montando 2º mapa por cima. Esperando o Diego escolher por onde começar.
+
+### 🗺️ 03/11 — Consertos do mapa da aba Clube (pedido do Diego: "faça tudo isso aqui" + "o que está estranho, resolva")
+Feito no branch (só conta dele), esperando OK pra publicar:
+- Intervalo/pênalti com a pessoa no mapa → a aba Jogos aparece com a janela aberta (antes travava sem botão).
+- 🛑 REGRA DELE (03/11): *"quando acaba o jogo não aparece botão… não aparece nada. Simplesmente acaba o jogo. Ele que vai ter que trocar de aba manualmente"*. No mapa NÃO tem botão de seguir semana nem de ir pro jogo, e os dias NÃO passam no mapa (só na Central e na aba Jogos). Saiu também a faixa do calendário de cima do mapa e o texto falso "o próximo jogo começa sozinho". Não repropor botão de avançar no mapa.
+- Lentidão: a cidade só anda nos 12 s depois de um toque/arrasto/zoom (`VIVO_MS`); parado, o mapa não desenha. Jogo no estádio segue normal.
+- Sala do presidente REMOVIDA (montava um 2º mapa 3D por cima). Saíram o "ENTRAR NA SALA" e o botão "Sala da Presidência" da lista.
+- Patrocinadores clicáveis: tocar no prédio (ou escolher na lista) abre cartão com logo, texto e link (`presidencia-patrocinadores-info.ts`, textos/links = os do telão). Vadico: cartão + "🚗 Comprar carros e motos" (abre a garagem de compra que já existia: 25 carros + 15 motos).
+- Câmera livre não entra mais em prédio (sobe pro telhado).
+- Loja sem obra aparece na lista como "🔨 ainda não construída" e abre a explicação.
+- Textos do mapa, do painel, da Casa e da Arena em PT/EN. Lista de lugares: botecos/transporte em "Comércio e transporte".
+- Painel não reabre sozinho ao voltar pra aba Clube.
+- Botão "Ver o jogo no Campo 3D" virou "Ver o jogo no estádio do mapa" (o campo do mapa é o 2D aprovado em 03/11).
+- No mapa, "🔁 Substituir / tática" leva pra aba Jogos.
+Pendente: câmeras de TV (só voltam se trocar o campo 2D do mapa de novo pelo 3D — perguntar), conferir a Copa no mapa na conta dele (o caminho já existe: o mapa segue qualquer jogo do clube), patrocinadores do mapa ainda não mudam com o Master, carros NOVOS na Vadico precisam de arte.

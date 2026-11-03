@@ -15,6 +15,7 @@ import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-mod
 import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
 import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto} from './presidencia-estadio-projeto'
 import {investirEstacionamento,type EtapaEstacionamento} from './presidencia-estacionamento'
+import {marcaObraNaRodada} from './presidencia-cidade-viva' // 🏗️ carimbo da rodada da obra (só desenho do mapa)
 import {roupaLegada} from './presidente-vestuario-modular'
 import type {PresidenciaOrcamento} from './presidencia-economia'
 import type {DuplaGaragem} from './presidencia-garagem'
@@ -7956,7 +7957,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const result = investirEstacionamento({ stadium: s.stadiums?.[action.mgrId],
         cash: s.careerCoins?.[action.mgrId] ?? 0, expectedStage: action.expectedStage })
       if (!result.ok) return state
-      s.stadiums = { ...s.stadiums, [action.mgrId]: result.value.stadium }
+      s.stadiums = { ...s.stadiums, [action.mgrId]: marcaObraNaRodada(result.value.stadium, 'estac', s.seasonNo, s.round) } // 🏗️ etapa nova = tapume no mapa até a próxima rodada
       s.careerCoins = { ...s.careerCoins, [action.mgrId]: result.value.cash }
       logFin(s, 'stadium', `🅿️ Estacionamento: etapa ${result.value.parking.stage}/4`, -result.charged, undefined, action.mgrId)
       return s
@@ -7988,7 +7989,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         (privateProject && PRESIDENCY_PARKING_STAGES_RELEASED))) return s
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       if (st.ext.includes(action.ext) || !(privateProject ? extraLiberadoNoProjeto(st, action.ext) : extraUnlocked(st, action.ext)) || !Number.isFinite(wallet) || wallet < ext.cost) return s
-      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: st.inv, ext: [...st.ext, action.ext] } }
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: marcaObraNaRodada({ ...st, inv: st.inv, ext: [...st.ext, action.ext] }, action.ext, s.seasonNo, s.round) } // 🏗️ obra da cidade: tapume e guindaste no mapa até a próxima rodada
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
       logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost, undefined, action.mgrId) // 🧾 melhoria do estádio entra no extrato
       return s

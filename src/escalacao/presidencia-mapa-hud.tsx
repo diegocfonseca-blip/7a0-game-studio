@@ -6,13 +6,13 @@ import { useControleMapa } from './controle-partida-mapa'
 import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
 import { useT } from './lang'
 
-const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
+const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
 /** (os botões do mapa têm 44 px de altura e sombra — aqui dentro eles são pílulas pequenas) */
 const RESET: CSSProperties = { minHeight: 0, minWidth: 0, height: 'auto', margin: 0, boxShadow: 'none', lineHeight: 1.15 }
 const sigla = (n: string) => (n.replace(/[^A-Za-zÀ-ú0-9 ]/g, '').trim().split(/\s+/).find(w => w.length > 2) ?? n).slice(0, 3).toUpperCase()
 
-export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefined }) {
+export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio | null | undefined; /** 🎟️ público do jogo (lotação × lugares construídos) */ torcedores?: number }) {
   const t = useT(), ctl = useControleMapa(), ritmo = useRitmoCampo(),[controlsOpen,setControlsOpen]=useState(false)
   const vivo = !!match && !match.finished
   if (!match && !ctl) return null
@@ -28,12 +28,11 @@ export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefi
   return <><div className="pc3-match-score">
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
       {placar}
-      {ctl && ctl.manual && ctl.podeAvancar && <button type="button" disabled={!ctl.podeAvancar} onClick={ctl.avanca} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}`, background: ctl.podeAvancar ? GREEN : '#555', color: '#fff', cursor: ctl.podeAvancar ? 'pointer' : 'default', flex: 'none' }}>{ctl.rotuloAvancar}</button>}
+      {vivo && ctl?.tatica && <button type="button" onClick={ctl.tatica} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '2px solid #fff', background: INK, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('🔁 Substituir / tática', '🔁 Subs / tactics')}</button>}
       {!vivo && ctl?.dia && <span style={{ ...OSW, fontSize: 11.5, color: GOLD, flex: 'none' }}>{ctl.dia}</span>}
       {!vivo && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}
-      {!vivo && ctl?.irProJogo && <button type="button" onClick={ctl.irProJogo} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}`, background: GREEN, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('⏩ Ir pro jogo', '⏩ Go to the match')}</button>}
-      {!vivo && !ctl?.manual && !ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#ddd' }}>{match?.finished ? t('⏱️ Fim de jogo — o próximo vem sozinho', '⏱️ Full time — the next one comes by itself') : t('⏳ O próximo jogo começa sozinho — e passa aqui no campo', '⏳ The next match starts by itself — right here on the pitch')}</span>}
     </div>
+    {vivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3 }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
     {vivo && match?.officialNarration && <div className="pc3-match-narration">🎙️ {match.officialNarration}</div>}
    </div>
    {(ctl||ritmo)&&<div className="pc3-match-controls">

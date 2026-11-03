@@ -18,7 +18,7 @@ const UP = new THREE.Vector3(0, 1, 0)
 const clamp = THREE.MathUtils.clamp
 const smooth = (x:number) => x * x * x * (x * (x * 6 - 15) + 10)
 
-export function criarAtoresBairro(scene:THREE.Scene, options:{id?:string;variant?:string}={}) {
+export function criarAtoresBairro(scene:THREE.Scene, options:{id?:string;variant?:string;outfitColor?:string}={}) {
   const geometries = new Set<THREE.BufferGeometry>()
   const materials = new Set<THREE.Material>()
   const geometry = <T extends THREE.BufferGeometry>(value:T):T => { geometries.add(value); return value }
@@ -118,7 +118,11 @@ export function criarAtoresBairro(scene:THREE.Scene, options:{id?:string;variant
   const feet = legs.map(leg => leg.sole)
   // Preserve route/foot probes, replace only the visible procedural body.
   const legacyParts=[...pedestre.children];legacyParts.forEach(p=>p.visible=false)
-  const civilian=createCivilian(pedestre,{id:options.id??'bairro-civil',variant:options.variant})
+  const civilian=createCivilian(pedestre,{id:options.id??'bairro-civil',variant:options.variant,outfitColor:options.outfitColor})
+  // 👕 Torcedor veste a camisa do clube: troca só a cor da roupa (o material já é cópia própria deste corpo).
+  let outfit=options.outfitColor
+  const paintOutfit=()=>{if(outfit)civilian.root.traverse(n=>{if(n instanceof THREE.Mesh)for(const m of Array.isArray(n.material)?n.material:[n.material])if(m instanceof THREE.MeshStandardMaterial&&['Shirt','Clothes'].includes(m.name))m.color.set(outfit!)})}
+  const setOutfitColor=(color:string|undefined)=>{if(!color||!/^#[0-9a-f]{6}$/i.test(color)||color===outfit)return;outfit=color;paintOutfit();void civilian.ready.then(paintOutfit)}
 
 
   const carro = new THREE.Group()
@@ -372,7 +376,7 @@ export function criarAtoresBairro(scene:THREE.Scene, options:{id?:string;variant
   }
 
   return {
-    update, pedestre, carro, feet, wheels, inspectCivilian:()=>civilian.inspect(),
+    update, pedestre, carro, feet, wheels, setOutfitColor, outfitColor:()=>outfit, inspectCivilian:()=>civilian.inspect(),
     dispose() {
       if (disposed) return
       disposed = true

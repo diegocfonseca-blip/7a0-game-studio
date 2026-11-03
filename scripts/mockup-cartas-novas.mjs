@@ -60,6 +60,11 @@ for (const a of AVULSOS) {
 
 // 🏷️ no POST o nome sai limpo: "Maicon (Grêmio)" vira "Maicon", porque o clube já
 //    aparece do lado. O parêntese existe no código só pra separar de um xará.
+// 📋 `--lista arquivo.json` (30/10, 255 cartas pedidas ANTES de entrarem no baralho): lê [{nome,clube,ano,pos}] em vez do data.ts
+const LISTA = arg('lista', '')
+if (LISTA) { for (const p of SETORES) porSetor[p] = []; for (const c of JSON.parse(fs.readFileSync(LISTA, 'utf8'))) porSetor[c.pos]?.push({ nome: c.nome, clube: c.clube, ano: String(c.ano) }) }
+// 🗜️ `--compacto` (30/10): 3 colunas e letra menor, pra caber ~130 num story
+const COMPACTO = process.argv.includes('--compacto')
 if (SO_SETORES.length) for (const p of SETORES) if (!SO_SETORES.includes(p)) porSetor[p] = []
 // 📑 `--parte 1/2` (01/10, Lote 40 com 322 cartas): um setor sozinho ainda estourou o rodapé
 //    (MEI do Mundo = 61). Parte a lista de CADA setor em n fatias iguais e fica só com a i-ésima.
@@ -139,7 +144,7 @@ const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
   .marca { font-weight: 700; font-size: 42px; text-transform: uppercase }
   .marca em { font-style: normal; color: #C2452F }
   .site { font-weight: 600; font-size: 28px; opacity: .55 }
-</style></head><body>
+${COMPACTO ? '.cols{column-count:3;column-gap:14px} .j{padding:2px 7px 3px;border-width:2px;box-shadow:2px 2px 0 #0C0C0C;gap:5px} .gr{gap:3px} .n{font-size:18px;line-height:1.15} .c{font-size:12.5px} .cab{font-size:19px;padding:4px 9px 5px;margin-bottom:6px;letter-spacing:1.5px} .bl{margin-bottom:8px} h1{font-size:64px;margin:12px 0 4px} .sub{font-size:24px;margin-bottom:10px} .pill{font-size:24px;padding:7px 22px 9px}' : ''}</style></head><body>
   <div class="pill">⚽ Baralho novo</div>
   <h1>${TITULO.replace(/^(\S+)/, '<em>$1</em>')}</h1>
   <div class="sub">${SUB.replace('47 jogadores novos', total === 1 ? '1 jogador novo' : `${total} jogadores novos`).replace('47', String(total))}</div>

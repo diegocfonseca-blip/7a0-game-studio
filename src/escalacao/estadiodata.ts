@@ -10,6 +10,9 @@ export interface StadiumSave {
  inv: Record<string, number>; ext: string[]; roofClosed?:boolean
  /** Etapas novas do estacionamento; ausente + ext.estac preserva a compra antiga completa. */
  estacionamentoInvestido?:number
+ /** 🏗️ (03/11) quando cada obra da CIDADE foi comprada: `temporada:rodadas jogadas`. Só desenho — na rodada da compra o mapa
+  * mostra tapume e guindaste; save antigo sem o campo = tudo pronto. Não entra em preço, renda nem requisito. */
+ obrasRodada?:Record<string,string>
 }
 
 export const STADIUM_STEP = 20 // moedas por clique de "investir" num setor

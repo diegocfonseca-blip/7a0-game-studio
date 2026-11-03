@@ -1,5 +1,6 @@
 import type {ElencoChegadaCidade} from './presidencia-cidade-equipes'
-import { STADIUM_SECTORS, type StadiumSave } from './estadiodata'
+import { STADIUM_SECTORS, type MasterContrato, type StadiumSave } from './estadiodata'
+import { marcaMasterAtiva } from './presidencia-complexo-master'
 import { carteiraDaCarreira, podeAlterarPresidencia, type PresidenteBaseSave } from './presidencia-carreira'
 import type { CarreiraComEstadio } from './presidencia-estadio-integrado'
 import { conquistasDaCarreira, type ConquistasCarreira } from './presidencia-conquistas'
@@ -7,19 +8,23 @@ import type { PresidenciaCarteira } from './presidencia-economia'
 import type { IdentidadePresidencia } from './presidencia-identidade-conta'
 import type { EstadoPartidaEstadio } from './presidencia-partida-model'
 import type { DiaEstadio } from './presidencia-estadio-publico'
+import type { DecisaoJogo } from './presidencia-lotacao-jogo'
 import { estadioVisualValido } from './presidencia-estadio-validacao'
 import { presidenteCadastrado } from './presidencia-entrada-model'
 import { camadasDoPresidente, copiarAparencia } from './presidente-aparencia'
 import { podeSentarPresidente, type PresidentePose } from './presidente-pose'
+import { cidadeVivaDaCarreira, estadioSemCanteiros, type CidadeViva, type FonteTitulos } from './presidencia-cidade-viva'
 import { jornadaDoComplexo, type AgendaJogoComplexo, type FaseJornadaComplexo, type JornadaComplexo } from './presidencia-complexo-jornada'
 
 /** Actual career values supplied by the existing screen. An absent day does
  * not become a sample fanbase. Match phase comes from the shared match only. */
-export type DiaCarreiraComplexo = { division: string; support: number; rain?: boolean }
+export type DiaCarreiraComplexo = { division: string; support: number; rain?: boolean
+  /** 🎟️ lotação do jogo (presidencia-lotacao-jogo.ts) */
+  pos?: number; classico?: boolean; decisao?: DecisaoJogo }
 export type EntradaCarreiraComplexo = {
   /** The existing caller's gate. This boolean never authenticates an account. */
   enabled: boolean
-  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[]}
+  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & FonteTitulos & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[];careerMaster?:Record<number,MasterContrato>;seasonNo?:number}
   mgrId: number
   day?: DiaCarreiraComplexo
   match?: EstadoPartidaEstadio | null
@@ -35,6 +40,8 @@ export type EntradaCarreiraComplexo = {
    * match context has no awayClubId; names and colours cannot establish one. */
   away?: { matchId: string; mgrId: number; day: DiaCarreiraComplexo }
   english?: boolean
+  /** 🏙️ cidade viva: o último jogo JÁ APITADO do seu clube (sem spoiler) e a cor do clube. Rodada da obra e títulos saem do save. */
+  cidade?: { ultimoJogo?: { gf: number; ga: number } | null; cor?: string; cor2?: string }
 }
 export type PropsComplexoCarreira = {
   stadium?: StadiumSave
@@ -52,6 +59,8 @@ export type PropsComplexoCarreira = {
   fora?: boolean
   circulation: boolean
   qaPopulation: false
+  /** 🏙️ obra em canteiro, humor do boteco e carreata (presidencia-cidade-viva.ts) */
+  cidadeViva?: CidadeViva
 }
 export type SalaComplexoCarreira = {
   status: 'missing' | 'invalid' | 'ready'
@@ -67,12 +76,19 @@ export type SalaComplexoCarreira = {
   physicalPresident: false
 }
 
+// 🎟️ only well-formed table position / derby / decider flags reach the attendance rule
+function lotacaoConferida(day: DiaCarreiraComplexo): Pick<DiaEstadio, 'pos' | 'classico' | 'decisao'> {
+  return { ...(Number.isSafeInteger(day.pos) && day.pos! >= 1 && day.pos! <= 40 ? { pos: day.pos } : {}),
+    ...(day.classico === true ? { classico: true } : {}),
+    ...(day.decisao === 'reta' || day.decisao === 'semi' || day.decisao === 'final' ? { decisao: day.decisao } : {}) }
+}
 function diaConferido(day: DiaCarreiraComplexo | undefined, match?: EstadoPartidaEstadio): DiaEstadio | undefined {
   if (!day || !['V', 'D', 'C', 'B', 'A'].includes(day.division)
     || !Number.isFinite(day.support) || day.support < 0 || day.support > 100
     || (day.rain !== undefined && typeof day.rain !== 'boolean')) return undefined
   return { division: day.division, support: day.support,
     ...(day.rain === undefined ? {} : { rain: day.rain }),
+    ...lotacaoConferida(day),
     // Same classification as DiaDoEstadio; camera and furniture never start a clock.
     match: match ? match.paused && match.minute >= 45 ? 'interval' : 'playing' : 'idle' }
 }
@@ -80,11 +96,14 @@ function diaConferido(day: DiaCarreiraComplexo | undefined, match?: EstadoPartid
 /** Read-only bridge, exercised by a local fixture before any career UI switch.
  * It preserves the existing gate, economy, layered president and shared match.
  * It neither imports Auth nor fetches, dispatches, persists or grants anything. */
-export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { complexo: PropsComplexoCarreira; sala: SalaComplexoCarreira } | null {
+export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { complexo: PropsComplexoCarreira; sala: SalaComplexoCarreira; master: string | null } | null {
   if (!input || input.enabled !== true || !input.state || !Array.isArray(input.state.managers)
     || !Number.isSafeInteger(input.mgrId) || input.mgrId < 0 || !podeAlterarPresidencia(input.state, input.mgrId)) return null
   const { state, mgrId } = input
-  const stadium = state.stadiums?.[mgrId]
+  // 🏗️ obra comprada nesta rodada: a cidade (e o estádio, que divide transporte e prédios com ela) desenha o canteiro no lugar
+  const ownStadium = state.stadiums?.[mgrId]
+  const cidadeViva = cidadeVivaDaCarreira(state, mgrId, ownStadium, input.cidade)
+  const stadium = ownStadium && cidadeViva.canteiros.length ? estadioSemCanteiros(ownStadium, cidadeViva.canteiros) : ownStadium
   const wallet = carteiraDaCarreira(state, mgrId), owned = new Set(wallet?.owned.map(item => item.id) ?? [])
   // Do not copy a new clock or infer a match from the club's name/colour.
   const incoming = input.match
@@ -109,7 +128,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),
     ...(input.arrivalTeams?{arrivalTeams:input.arrivalTeams}:{}),
-    circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false,
+    circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false, cidadeViva,
   }
   const away = input.away
   // A confirmed final whistle stops the field presentation, but does not erase
@@ -135,7 +154,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     const hostSave = state.stadiums?.[hostId]
     const fase = match.paused && match.minute >= 45 ? 'interval' as const : 'playing' as const
     complexo.stadium = structuredClone(estadioVisualValido(hostSave) ? hostSave : estadioPadraoDaDivisao(input.day.division))
-    complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
+    complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), ...(day?.classico ? { classico: true } : {}), ...(day?.decisao ? { decisao: day.decisao } : {}), match: fase }
     complexo.awayStadium = structuredClone(own)
     complexo.awayDay = { division: input.day.division, support: Math.round(input.day.support * 0.45), ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
     complexo.journey = jornadaDoComplexo({ agenda: match.context.agenda, match, stadiumClubId: hostId })
@@ -154,7 +173,10 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     hasShelf: owned.has('estante-simples') || owned.has('estante-madeira'),
     hasDesk: owned.has('mesa-simples') || owned.has('mesa-madeira'), hasFrame: owned.has('quadro'), physicalPresident: false,
   }
-  return { complexo, sala }
+  // 🏆🪧 03/11: a marca do Master com contrato ATIVO ganha a placa da fachada e do telão. No jogo FORA o estádio é o do
+  // adversário, então a sua placa não vai pra lá.
+  const master = complexo.fora ? null : marcaMasterAtiva(state.careerMaster, mgrId, state.seasonNo)
+  return { complexo, sala, master }
 }
 
 /** 🏟️ Estádio do clube SEM save (bot): o padrão da divisão — Várzea com meia geral, e cada série sobe um degrau até a A

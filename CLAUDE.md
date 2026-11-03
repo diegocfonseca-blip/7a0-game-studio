@@ -701,6 +701,15 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 
+- **📊 RÉGUA DE FORÇA DAS CARTAS (02/11, regra permanente, *"adorei as mudanças"*).** Over MÉDIO por categoria: **Lenda 90–97 ·
+  Craque 80–89 · Promessa 70–85 · Bom jogador 68–79 · Foi profissional 55–66** (máx 99 só pra ~9 cartas). Categoria de baixo NUNCA passa
+  a de cima. **A força é o auge DAQUELA carta (clube + ano)**, nunca a carreira: Cédric no São Paulo 2025 foi mal → foi profissional;
+  carta de fim de carreira (Miami, Arábia, Cosmos, Galaxy) fica ABAIXO da carta do auge do mesmo jogador. **Carta NOVA já nasce nessa
+  régua** — comparar com quem já está no baralho na mesma posição e categoria (o Lote 48 nasceu na régua velha e teve de ser descido).
+  Lucas Barreto (Botafogo 2024) é 74–83 fixo, amigo do Diego: não mexer. Histórico em `docs/pendencias.md` (02/11).
+- **🏷️ NOME DE CARTA NÃO LEVA CLUBE ENTRE PARÊNTESES (30/10).** *"Danilo do Botafogo não precisa chamar Danilo (Botafogo)… embaixo
+  dele já vai aparecer o time. O time já é a diferenciação"*. Carta nova com nome igual a outra do mesmo baralho fica com o nome
+  limpo; quem separa é o clube (a chave é `nome|clube|ano`). Os antigos com parênteses ficam como estão (é identidade de save).
 - **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09) — MAS SÓ QUANDO ELE MANDA PROMOVER.** ⚠️ Não vale pra carta NOVA: carta nova tem a categoria do jogador NAQUELE clube e NAQUELE ano, mesmo que ele já seja lenda em outra carta (o Messi é lenda no Barça e no Inter Miami; Maradona é lenda no Napoli E no Boca de 81). Eu errei isso no Lote 35 e ele corrigiu: *"você que tem que dizer se era lenda ou não no ano e time que jogou"*. Quando ele manda
   "fulano vira lenda" e o jogador tem mais de uma carta, sobe SÓ a do melhor clube (Seedorf =
   Milan, não Botafogo; Lúcio = Inter 2010, não Internacional 2000). Palavras dele: *"óbvio que
@@ -948,6 +957,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   sempre → sorteio. ⚠️ **O pênalti que a pessoa BATE só existe na carreira offline** — nas salas é sempre a disputa automática; não
   prometer pênalti manual online sem conferir (eu errei no mockup). 🟢 Liberado pra todos em 28/10 com o selo verde "EM TESTES"
   (`RELAMPAGO_GERAL = true`). Cara própria em `competicoes-visual.tsx` (`relampago`: taça com raio, túnel, festa) + `SorteioRelampago`.
+- **✕ AVISO FECHADO NÃO VOLTA NUNCA (29/10, regra permanente, ele cobrou várias vezes).** *"se aparecer mensagem, é fechar — não quero
+  que volte a mensagem mais"*. Todo aviso que aparece SOZINHO e tem ✕/"agora não"/"deixa assim" guarda o fechamento pra sempre:
+  `avisoFechado`/`fechaAviso` (`avisos-fechados.ts`, no aparelho) ou o banco quando é aviso de conta (`esc_avisos_conta`). Nunca só
+  `useState`, nunca `sessionStorage`. Aviso novo nasce com isso.
 - **🧭 UMA COISA SÓ EM CADA ABA (27/10).** *"não gostei de você fazer várias coisas num lugar só. A central é só coisa da central,
   jogos ali é só coisa dos jogos… jogo e tabela é na mesma página"*. Nunca juntar pedaços de abas diferentes numa tela (nada de
   "3 colunas com clube + tabela + calendário" na Central, estilo Brasileirinho). Jogos + Tabela = uma aba só.
