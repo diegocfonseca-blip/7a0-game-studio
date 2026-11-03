@@ -6,7 +6,7 @@ import { useControleMapa } from './controle-partida-mapa'
 import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
 import { useT } from './lang'
 
-const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
+const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
 /** (os botões do mapa têm 44 px de altura e sombra — aqui dentro eles são pílulas pequenas) */
 const RESET: CSSProperties = { minHeight: 0, minWidth: 0, height: 'auto', margin: 0, boxShadow: 'none', lineHeight: 1.15 }
@@ -28,11 +28,9 @@ export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefi
   return <><div className="pc3-match-score">
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
       {placar}
-      {ctl && ctl.manual && ctl.podeAvancar && !ctl.irProJogo && <button type="button" onClick={ctl.avanca} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}`, background: GREEN, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('⚽ Ir pro jogo', '⚽ Go to the match')}</button>}
       {vivo && ctl?.tatica && <button type="button" onClick={ctl.tatica} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '2px solid #fff', background: INK, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('🔁 Substituir / tática', '🔁 Subs / tactics')}</button>}
       {!vivo && ctl?.dia && <span style={{ ...OSW, fontSize: 11.5, color: GOLD, flex: 'none' }}>{ctl.dia}</span>}
       {!vivo && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}
-      {!vivo && ctl?.irProJogo && <button type="button" onClick={ctl.irProJogo} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}`, background: GREEN, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('⚽ Ir pro jogo', '⚽ Go to the match')}</button>}
     </div>
     {vivo && match?.officialNarration && <div className="pc3-match-narration">🎙️ {match.officialNarration}</div>}
    </div>

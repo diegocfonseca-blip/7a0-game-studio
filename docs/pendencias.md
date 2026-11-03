@@ -11967,7 +11967,7 @@ Relatório completo em `docs/analise-mapa-clube-20261103.md`. Graves: intervalo/
 ### 🗺️ 03/11 — Consertos do mapa da aba Clube (pedido do Diego: "faça tudo isso aqui" + "o que está estranho, resolva")
 Feito no branch (só conta dele), esperando OK pra publicar:
 - Intervalo/pênalti com a pessoa no mapa → a aba Jogos aparece com a janela aberta (antes travava sem botão).
-- Do mapa nenhum jogo começa: "⚽ Ir pro jogo" (dias, fim da semana e Manual) leva pra aba Jogos, onde fica o "▶ Começar o jogo". Saiu o texto falso "o próximo jogo começa sozinho".
+- 🛑 REGRA DELE (03/11): *"quando acaba o jogo não aparece botão… não aparece nada. Simplesmente acaba o jogo. Ele que vai ter que trocar de aba manualmente"*. No mapa NÃO tem botão de seguir semana nem de ir pro jogo, e os dias NÃO passam no mapa (só na Central e na aba Jogos). Saiu também a faixa do calendário de cima do mapa e o texto falso "o próximo jogo começa sozinho". Não repropor botão de avançar no mapa.
 - Lentidão: a cidade só anda nos 12 s depois de um toque/arrasto/zoom (`VIVO_MS`); parado, o mapa não desenha. Jogo no estádio segue normal.
 - Sala do presidente REMOVIDA (montava um 2º mapa 3D por cima). Saíram o "ENTRAR NA SALA" e o botão "Sala da Presidência" da lista.
 - Patrocinadores clicáveis: tocar no prédio (ou escolher na lista) abre cartão com logo, texto e link (`presidencia-patrocinadores-info.ts`, textos/links = os do telão). Vadico: cartão + "🚗 Comprar carros e motos" (abre a garagem de compra que já existia: 25 carros + 15 motos).

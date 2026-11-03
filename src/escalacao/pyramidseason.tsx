@@ -10021,7 +10021,10 @@ export function PyramidSeasonScreen() {
   // 🏟️ 25/10 (Diego: "não consigo ver o jogo pelo mapa… deveria ter forma de passar o dia lá"): com o mapa 3D na aba Clube, a semana
   // anda ali também — senão o "o próximo jogo começa sozinho" do mapa nunca chegava (botão mudo)
   const mapaNoClube = tab === 'estadio' && presidentAvailable && PRESIDENCY_STADIUM_RELEASED
-  const calNaTela = tab === 'central' || tab === 'jogos' || mapaNoClube
+  // 🗺️ 03/11 (Diego: *"quando acaba o jogo não aparece botão pra ele avançar pra próxima semana e nem ir pro próximo jogo… não aparece
+  // nada. Simplesmente acaba o jogo. Ele que vai ter que trocar de aba manualmente e ir pra aba Central ou Jogos"*): no mapa a semana
+  // NÃO anda e não tem botão de seguir — os dias só passam na Central e na aba Jogos.
+  const calNaTela = tab === 'central' || tab === 'jogos'
   // 🏆 a temporada que começa com o calendário ligado joga a Copa nas quartas (marca uma vez, na rodada 0)
   useEffect(() => { if (calOn && round === 0 && !done && state.calCopaSeason !== calSn) dispatch({ type: 'CAL_COPA_LIGA', season: calSn }) }, [calOn, round, done, state.calCopaSeason, calSn, dispatch])
   // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
@@ -10559,7 +10562,7 @@ export function PyramidSeasonScreen() {
     podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
     alternaManual: toggleManualCareer, mudaVelocidade: v => dispatch({ type: 'SET_SIM_SPEED', speed: v }),
-    avanca: () => escolheAba('jogos'), // 🛑 03/11: do mapa, o próximo jogo sempre começa na aba Jogos (nunca dentro do mapa)
+    avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
     tatica: () => escolheAba('jogos'),
   } : null
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
@@ -10640,9 +10643,9 @@ export function PyramidSeasonScreen() {
       onPular={vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba(jogoTabela ? 'central' : 'jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
-    return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && round < 38 ? vaiProJogo : undefined }
+    return { barra: mapaNoClube ? null : barra, proxCard, selo }
   })()
-  useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn && !chegando ? calBarra?.irProJogoNoMapa : undefined, chegando }) })
+  useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
   // 📅 25/10 — A CENTRAL É A CASA (ideia do Diego, mockup `calendario-fluxo.png`): os dias passam na Central; chegou o dia do
   // jogo (a semana acabou no automático, ou a Copa da quarta entrou), aparece "Dia de jogo!" e PARA: a pessoa toca em "Ir pro jogo"
