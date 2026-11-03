@@ -35,6 +35,8 @@ console.log(`✅ carreira nasce limpa: ${marcas.size} marcas de modo zeradas · 
 for (const nome of ['START_CAREER_SOLO', 'CAREER_FROM_QUICK']) {
   const b = bloco(nome, 12000); const corpo = b.slice(0, b.indexOf("\n    case '", 10))
   assert.ok(/s\.condicaoCarry = undefined/.test(corpo) && /s\.botCarry = undefined/.test(corpo), `${nome} tem que zerar condicaoCarry e botCarry`)
+  // 🏋️🧢 03/11: a comissão da carreira anterior (preparador, técnico e contratos) também não vem junto
+  assert.ok(/s\.careerPreparador = undefined; s\.careerPreparadorContrato = undefined/.test(corpo) && /s\.careerTecnicos = undefined/.test(corpo) && /s\.careerTecnicoContrato = undefined/.test(corpo), `${nome} tem que zerar preparador e técnico (com contratos)`)
 }
 assert.ok(/seasonNo \?\? 1\) <= 1\) \{ restored\.condicaoCarry = undefined/.test(bloco('RESUME_CAREER_SOLO', 6000)), 'RESUME_CAREER_SOLO tem que curar carry herdado em save da T1')
 console.log('✅ carreira nova nasce sem jogos/gols/assistências da carreira anterior')

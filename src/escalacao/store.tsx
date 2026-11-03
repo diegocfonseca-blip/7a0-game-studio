@@ -8817,6 +8817,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.criaDeEvento = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: carreira nova NÃO herda jogos/gols/assistências/gás da anterior ("mal começou e já tinha gol")
+      // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
+      // a comissão (preparador, técnico e os CONTRATOS deles) também é da carreira anterior — a nova nasce sem, igual ao RESTORE_CAREER.
+      s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
+      s.careerTecnicos = undefined; s.careerTecnicosDesde = undefined; s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
+      s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
       s.careerBico = undefined // 🕴️ Bico de Folga: carreira nova não herda o patrocinador da carreira anterior
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
@@ -8932,6 +8937,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: idem — nada da carreira anterior
+      // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
+      // a comissão (preparador, técnico e os CONTRATOS deles) também é da carreira anterior — a nova nasce sem, igual ao RESTORE_CAREER.
+      s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
+      s.careerTecnicos = undefined; s.careerTecnicosDesde = undefined; s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
+      s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
       s.agenciaDividir = false
       s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
@@ -8980,6 +8990,21 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🧾 CURA (02/11): o carry só nasce na virada da T1→T2 (guardaCansaco roda antes do seasonNo++), então carreira
       // ainda na 1ª temporada com carry = sujeira herdada de carreira anterior (o START não limpava). Some aqui.
       if ((restored.seasonNo ?? 1) <= 1) { restored.condicaoCarry = undefined; restored.botCarry = undefined }
+      // 🏋️🧢 03/11: cura quem JÁ começou carreira com a comissão da anterior. Contrato de verdade termina no máximo
+      // CONTRATO_MAX−1 temporadas à frente; mais longe que isso só pode ter vindo de outra carreira → sai, sem multa.
+      {
+        const lim = (restored.seasonNo ?? 1) + CONTRATO_MAX - 1
+        const prepC = restored.careerPreparadorContrato
+        if (prepC) for (const [time, fim] of Object.entries(prepC)) if (fim > lim) {
+          restored.careerPreparador = { ...(restored.careerPreparador ?? {}), [time]: null }
+          const c = { ...prepC }; delete c[time]; restored.careerPreparadorContrato = c
+        }
+        const tecC = restored.careerTecnicoContrato
+        if (tecC) for (const [time, fim] of Object.entries(tecC)) if (fim > lim) {
+          restored.careerTecnicos = { ...(restored.careerTecnicos ?? {}), [time]: null }
+          const c = { ...(restored.careerTecnicoContrato ?? {}) }; delete c[time]; restored.careerTecnicoContrato = c
+        }
+      }
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
