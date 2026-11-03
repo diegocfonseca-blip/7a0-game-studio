@@ -24,6 +24,8 @@ import { PresidenteDaConta } from './presidente-avatar'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2'
 import { LimiteSalaVenda } from './limite-sala-venda'
+import { assinarMensal } from './vendria-checkout'
+import { LojaButton } from './loja-clube'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -1008,6 +1010,14 @@ export function EscLobby() {
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
   const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
+  // 🕐 03/11: conta nova REPETIDA no mesmo aparelho espera 24 h pra criar sala (o banco decide: `esc_conta_nova_espera`).
+  // contaNovaFim = quando libera (ms); null = sem espera. A 1ª conta do aparelho nunca vê isso.
+  const [contaNovaFim, setContaNovaFim] = useState<number | null>(null)
+  const [contaNovaBox, setContaNovaBox] = useState(false)
+  useEffect(() => {
+    if (!user) { setContaNovaFim(null); return }
+    supabase.rpc('esc_conta_nova_minha_espera').then(({ data }) => { const seg = Number(data) || 0; setContaNovaFim(seg > 0 ? Date.now() + seg * 1000 : null) }, () => {})
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [confirmaEmail, setConfirmaEmail] = useState(false) // 📱✉️ 3ª conta do aparelho: confirmar e-mail pra criar sala (30/10)
   // 🚪 códigos das salas que estão travando a criação (ver a trava mais abaixo)
   const [salasPresas, setSalasPresas] = useState<string[]>([])
@@ -2111,6 +2121,7 @@ export function EscLobby() {
       // 🏟️ 1 SALA POR DIA NO GRÁTIS (Diego 14/10). Quem decide é o BANCO (gatilho `esc_sala_por_dia`, docs/sql/sala-por-dia.sql);
       // a tela só explica o porquê e o caminho: entrar em sala aberta é sempre de graça, e quem apoia cria à vontade.
       // 📱✉️ 30/10: 3ª+ conta no mesmo aparelho — o banco pede o e-mail confirmado ANTES da regra da sala do dia (as duas telas nunca juntas)
+      if (re?.message?.includes('CONTA_NOVA_24H')) { const seg = Number(re?.hint) || 86400; logApoio('🕐 conta nova repetida tentou criar sala'); setRoomError(''); setLimiteDia(false); setContaNovaFim(Date.now() + seg * 1000); setContaNovaBox(true); setLoading(false); return }
       if (re?.message?.includes('CONFIRMA_EMAIL')) { setRoomError(''); setLimiteDia(false); setConfirmaEmail(true); setLoading(false); return }
       if (re?.message?.includes('LIMITE_SALA_DIA')) { logApoio('🏟️ bateu no limite de sala do dia'); setRoomError(''); setLimiteDia(true); setLoading(false); return }
       // 🚫 21/10 (Diego): nome com preconceito (nazismo, "crioulo", suástica) não cria sala — quem barra é o BANCO
@@ -3466,6 +3477,7 @@ export function EscLobby() {
       </div>
 
 
+      {tab === 'create' && contaNovaFim && contaNovaFim > Date.now() && <ContaNovaLegenda fim={contaNovaFim} />}
       {tab === 'create' && (() => {
         const isCareer = canCareer && roomMode === 'carreira'
         const isElenco = salaElenco && roomMode === 'elenco'
@@ -4529,6 +4541,7 @@ export function EscLobby() {
 
       {!pwModal && roomError && <><p className="text-red-400 text-sm font-bold">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
       {confirmaEmail && <ConfirmaEmail onLiberado={() => { setConfirmaEmail(false); void createRoom() }} onVerSalas={() => { setConfirmaEmail(false); setTab('open') }} />}
+      {contaNovaBox && contaNovaFim && <ContaNova24h fim={contaNovaFim} onVerSalas={() => { setContaNovaBox(false); setTab('open') }} />}
       {/* 🏟️💳 03/11 (mockup scripts/mockups/limite-sala-venda.png, Diego: "Sim pode fazer e publicar"): o limite da sala virou tela de
           venda. Topo = o MESMO texto de antes; embaixo os dois lado a lado (🎟️ 3 salas extras no Pix do jogo · ⭐ Craque Salas no Vendria,
           Pix automático todo mês) e a pessoa compara sozinha — sem frase de comparação, sem "cancela quando quiser" (ordens dele). */}
@@ -5626,4 +5639,41 @@ export function EscLobby() {
       <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="text-white/40 text-sm underline w-full">{tr('Sair pro início', 'Back to start')}</button>
     </div>
   </>)
+}
+
+
+// 🕐 03/11 (mockup scripts/mockups/conta-nova-24h.png; Diego: "só pra quem joga no mesmo celular e faz nova conta"). Conta nova
+// REPETIDA no mesmo aparelho espera 24 h pra criar sala grátis; entrar em sala é sempre livre; dá pra antecipar com 3 salas extras
+// (R$ 4,90) ou ⭐ Craque Salas (R$ 9,90/mês). Quem decide é o banco (gatilho `esc_sala_por_dia` → erro CONTA_NOVA_24H).
+function faltaTexto(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
+}
+function useAgora(): number { const [t, setT] = useState(Date.now()); useEffect(() => { const i = window.setInterval(() => setT(Date.now()), 1000); return () => window.clearInterval(i) }, []); return t }
+function ContaNovaLegenda({ fim }: { fim: number }) {
+  const agora = useAgora()
+  if (fim <= agora) return null
+  const ms = fim - agora, h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000)
+  return <p style={{ margin: '0 0 8px', textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: '#5a5240' }}>{tr(`🕐 Conta nova neste aparelho: criar sala libera em ${h}h${String(m).padStart(2, '0')} · entrar em sala é grátis`, `🕐 New account on this device: creating rooms unlocks in ${h}h${String(m).padStart(2, '0')} · joining rooms is free`)}</p>
+}
+function ContaNova24h({ fim, onVerSalas }: { fim: number; onVerSalas: () => void }) {
+  const agora = useAgora()
+  const bt = { width: '100%', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' } as const
+  return (
+    <div style={{ background: '#F4ECD6', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '12px', margin: '8px 0' }}>
+      <p style={{ margin: 0, fontWeight: 900, fontSize: 17, fontFamily: 'Oswald, sans-serif' }}>{tr('🕐 CONTA NOVA', '🕐 NEW ACCOUNT')}</p>
+      <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>{tr('Este aparelho já tem outra conta. Pra criar sala de graça, a conta nova precisa ter 24 horas. A sua libera em:', 'This device already has another account. To create rooms for free, a new account needs to be 24 hours old. Yours unlocks in:')}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(150deg,#262626,#0c0c0c)', color: '#fff', borderRadius: 12, padding: '8px 12px', margin: '8px 0' }}>
+        <span style={{ fontSize: 24 }}>⏳</span><b style={{ fontFamily: 'Oswald, sans-serif', fontSize: 26, color: '#FFC400', letterSpacing: 1 }}>{faltaTexto(fim - agora)}</b>
+        <small style={{ fontWeight: 800, opacity: .85, fontSize: 11.5 }}>{tr('depois disso: 1 sala grátis por dia', 'after that: 1 free room per day')}</small>
+      </div>
+      <p style={{ margin: '0 0 8px', background: '#DDF2E3', border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 9px', fontSize: 13, fontWeight: 700 }}>✅ {tr('Enquanto isso, entrar em qualquer sala é grátis e à vontade.', 'Meanwhile, joining any room is free, as much as you like.')}</p>
+      <p style={{ margin: '0 0 6px', fontWeight: 900, fontSize: 14, fontFamily: 'Oswald, sans-serif' }}>{tr('QUER CRIAR AGORA?', 'WANT TO CREATE NOW?')}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <LojaButton ancora="loja-salas" style={{ ...bt, background: '#fff', color: '#0C0C0C' }}>{tr('🎟️ 3 SALAS · R$ 4,90', '🎟️ 3 ROOMS · R$ 4.90')}</LojaButton>
+        <button onClick={() => { logApoio('🕐 conta nova → Craque Salas (Vendria)'); void assinarMensal('craque_salas', tr) }} style={{ ...bt, background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C' }}>{tr('⭐ SALAS À VONTADE · R$ 9,90/MÊS', '⭐ UNLIMITED ROOMS · R$ 9.90/MONTH')}</button>
+        <button onClick={onVerSalas} style={{ ...bt, background: '#1B7A3D', color: '#fff' }}>{tr('🔎 ENTRAR NUMA SALA DE GRAÇA', '🔎 JOIN A ROOM FOR FREE')}</button>
+      </div>
+    </div>
+  )
 }

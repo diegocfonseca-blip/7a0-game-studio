@@ -13,8 +13,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  const restoreControls=()=>{if(controlsBeforeFixed!==undefined){controls.enabled=controlsBeforeFixed;controlsBeforeFixed=undefined}}
  const enterFree=(restore=true)=>{restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
  return {
-  setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if(next==='fixed'){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
-  zoomFixed(factor:number){if(mode!=='fixed'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,.7,1.6);moving=true;return true},
+  setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if((next==='fixed'||next==='field2d')){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
+  zoomFixed(factor:number){if(mode!=='fixed'&&mode!=='field2d'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,mode==='field2d'?.48:.7,1.6);moving=true;return true},
   explore(){enterFree(false)},
   update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua,ataque:1|-1=1){
    ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
@@ -25,17 +25,17 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    if(mode==='free'&&!returning){moving=false;return}
    // The fixed view must remain fixed even while a goal replay is playing.
    // This affects only its camera; replay events and timing stay untouched.
-   if(mode==='fixed')forcar=undefined
+   if((mode==='fixed'||mode==='field2d'))forcar=undefined
    // 🔁 replay do gol: o preset forçado ('Atrás do gol') entra e sai em CORTE seco; a distância do preset do usuário fica guardada
    if(forcar!==forcado){if(forcar){distGuardada=distance;distance=undefined}else distance=distGuardada;forcado=forcar;corte=true}
    const modo=forcado??mode
    const fit=modo!=='free'?enquadramentoFutebol(camera,ball,subjects,modo,ataque):null
    if(fit){
-    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='follow'||fit.preset==='fixed')distance=fit.distance*(fit.preset==='fixed'?fixedZoom:1) // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
+    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='follow'||(fit.preset==='fixed'||fit.preset==='field2d'))distance=fit.distance*((fit.preset==='fixed'||fit.preset==='field2d')?fixedZoom:1) // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
     // Expand promptly for a receiver/high ball; close in only after a sustained
     // smaller play area. Crossing a neighbour-selection boundary cannot make
     // the lens pump in and out on every stride.
-    if(fit.preset==='fixed')zoomInSince=undefined
+    if((fit.preset==='fixed'||fit.preset==='field2d'))zoomInSince=undefined
     else if(fit.distance>distance+.02){distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/.15));zoomInSince=undefined;zoomPending=fit.distance-distance>.02;if(!zoomPending)distance=fit.distance}
     else if(fit.distance>distance){distance=fit.distance;zoomInSince=undefined}
     else if(fit.distance<distance*.86){zoomInSince??=now;if(now-zoomInSince>550)distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/1.1));zoomPending=fit.distance<distance*.86}
@@ -53,7 +53,15 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
     fov=lens
    }else{lens=undefined;lensCloseSince=undefined}
    lensMode=modo
-   const target=fit?.target??saved!.target,position=fit?target.clone().addScaledVector(fit.direction,distance!):saved!.position
+   const target=fit?.target.clone()??saved!.target
+   if(fit?.preset==='field2d'&&fixedZoom<1){
+    // Whole-pitch view stays centred. Manual zoom progressively follows play
+    // by translation, retaining the approved angle, lens and chosen zoom.
+    const follow=MathUtils.clamp((1-fixedZoom)/.5,0,1)
+    const maxX=Math.max(0,52.5-56*fixedZoom),maxZ=Math.max(0,34-37*fixedZoom)
+    target.x=MathUtils.clamp(ball.x*follow,-maxX,maxX);target.z=MathUtils.clamp(ball.z*follow,-maxZ,maxZ)
+   }
+   const position=fit?target.clone().addScaledVector(fit.direction,distance!):saved!.position
    camera.updateMatrixWorld(true)
    const before=new Vector3(ball.x,ball.y,ball.z).project(camera)
    const edge=fit&&!fit.tactical?MathUtils.smoothstep(Math.max(Math.abs(before.x),Math.abs(before.y)),.45,.9):0

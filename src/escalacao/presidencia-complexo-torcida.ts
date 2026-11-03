@@ -119,7 +119,7 @@ export const PERTO_DA_CAMERA = 260
 
 /** Visual sample only. Seats come from the actual architecture; attendance
  * never buys a stand, creates a visitor, changes income or runs another clock. */
-export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly AssentoComplexo[], population: PublicoTorcidaComplexo = { mode: 'off' }) {
+export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly AssentoComplexo[], population: PublicoTorcidaComplexo = { mode: 'off' },options:{detailedDistance?:number}={}) {
   const root = new THREE.Group(); root.name = 'complexo-torcida-sentada'; scene.add(root)
   // (os corpos que só fazem sombra moram num grupo À PARTE: dentro de `root` só existe gente de verdade)
   const rootSombra = new THREE.Group(); rootSombra.name = 'complexo-torcida-sombra'; scene.add(rootSombra)
@@ -255,7 +255,8 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       // ⚡ com a câmera: OS MESMOS assentos ocupados (mesma gente, mesmas cores), só que o boneco detalhado vai pros mais perto dela
       if (olho) {
         const o = olho, todos = [...selected, ...selectedLonge], d2 = (p: Place) => (p.position.x - o.x) ** 2 + (p.position.y - o.y) ** 2 + (p.position.z - o.z) ** 2
-        const perto = new Set(todos.slice().sort((a, b) => d2(a) - d2(b) || a.rank - b.rank).slice(0, Math.min(selected.length, PERTO_DA_CAMERA)).map(p => p.id))
+        const limit=options.detailedDistance??Infinity
+        const perto = new Set(todos.filter(p=>d2(p)<=limit*limit).sort((a, b) => d2(a) - d2(b) || a.rank - b.rank).slice(0, Math.min(selected.length, PERTO_DA_CAMERA)).map(p => p.id))
         selected = todos.filter(p => perto.has(p.id)); selectedLonge = todos.filter(p => !perto.has(p.id))
       }
     }

@@ -1,1 +1,1 @@
-export function renderBudget():{observe(now:number,baseRatio?:number):number|null;scale():number;reset(now?:number):void}
+export function renderBudget(options?:{minPixelRatio?:number}):{observe(now:number,baseRatio?:number,expectedFPS?:number):number|null;scale():number;reset(now?:number):void}

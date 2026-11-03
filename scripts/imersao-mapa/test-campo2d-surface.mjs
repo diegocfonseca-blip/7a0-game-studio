@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {pedirSuperficieCampo2D,demandaSuperficieCampo2D,publicarSuperficieCampo2D,soltarSuperficieCampo2D,superficieCampo2D,motorCompartilhadoCampo2D} from '../../src/escalacao/campo2d-superficie.ts';
+const one={},two={},owner={},otherOwner={},canvas={width:320,height:430},fake=(id,owner)=>({id,owner,canvas,rect:{x:0,y:0,width:320,height:430},landscape:false,minute:12,players:[],ball:{x:0,y:.11,z:0},referee:{x:0,z:10},score:[0,0],narration:''});
+pedirSuperficieCampo2D('live',one,6);pedirSuperficieCampo2D('live',two,30);assert.equal(demandaSuperficieCampo2D('live'),30);
+publicarSuperficieCampo2D(fake('live',owner));publicarSuperficieCampo2D(fake('replay',otherOwner));assert.equal(superficieCampo2D('live').canvas,canvas);assert.equal(superficieCampo2D('replay').id,'replay');
+soltarSuperficieCampo2D('live',{});assert(superficieCampo2D('live').active,'Old ownership cannot clear a replacement source');soltarSuperficieCampo2D('live',owner);assert(!superficieCampo2D('live').active,'Keep final frame while a map still consumes it');
+pedirSuperficieCampo2D('live',two,0);assert.equal(demandaSuperficieCampo2D('live'),6);pedirSuperficieCampo2D('live',one,0);assert.equal(superficieCampo2D('live'),undefined);soltarSuperficieCampo2D('replay',otherOwner);assert.equal(superficieCampo2D('replay'),undefined);
+let created=0;const engine=motorCompartilhadoCampo2D('fixture',()=>({serial:++created}));assert.equal(motorCompartilhadoCampo2D('fixture',()=>({serial:++created})),engine);assert.equal(created,1,'Changing view reuses the same engine');assert.notEqual(motorCompartilhadoCampo2D('another',()=>({serial:++created})),engine);
+console.log('PASS: shared canvas, fixture isolation, replay coexistence, final frame retention, ownership, demand and one engine across views.');

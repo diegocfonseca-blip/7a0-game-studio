@@ -1,3 +1,5 @@
+import {ClubeMapaPainel} from './clube-mapa-painel'
+import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import { podeAtivarRecepcaoM2, recepcaoM2Desde, versaoRecepcaoNaRodada, versaoRecepcaoNaCopa } from './motor2-recepcao-conta'
 import {publicarTempoCampo2D} from './campo2d-relogio'
 import {prepararReplayOficial} from './presidencia-replay-oficial'
@@ -3727,8 +3729,9 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible field replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução de campo compatível.'}</p>:null
   const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
-  const campo2dEl = c2d && !replayOficialBloqueado ? (
-    <Campo2D pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+  const fonteMapa2D=!!estadoEstadio&&presidentFieldAccount
+  const campo2dEl = (c2d||fonteMapa2D) && !replayOficialBloqueado ? (
+    <Campo2D mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -3737,7 +3740,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   // ⚽ 25/10 (Diego: *"embaixo do comentarista… vem gols que não tô vendo no 2D"*): os gols do jogo embaixo do campinho, igual ao
   // placar cinema — só os que o relógio já mostrou (`vencidos`, a mesma trava anti-spoiler)
-  const golsDo2D = campo2dEl ? (
+  const golsDo2D = c2d&&campo2dEl ? (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', margin: '6px 0 0', background: '#1d1d1d', color: '#f4ecd6', border: '2.5px solid #0C0C0C', borderRadius: 12, fontSize: 12 }}>
       {[true, false].map(home => <div key={String(home)} style={{ textAlign: home ? 'left' : 'right' }}>
         {vencidos.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`} style={{ margin: '0 0 2px' }}>⚽ {g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
@@ -3745,9 +3748,10 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
       </div>)}
     </div>
   ) : null
-  const campo2dComTelao = campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
+  const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
   if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
-  if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  if (cinematic) return <>{fonteMapaEscondida}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
@@ -3805,6 +3809,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     {abaixoDosGols}
    </>
   return (<>
+    {fonteMapaEscondida}
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}
@@ -8367,6 +8372,8 @@ export function PyramidSeasonScreen() {
   const pausaCentral = tab === 'central' && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
+  const mapaComoClube = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && state.onlineMode!=='online' && !state.co2
+
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube (liberada geral em 15/09; a porta de verdade é a OBRA da loja no estádio)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
@@ -10926,6 +10933,219 @@ export function PyramidSeasonScreen() {
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
       semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} raioX={compProximo || compPalco ? null : raioX} />
   }
+  const abrirDestinoNoMapa=(target:DestinoClubeMapa)=>setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)
+  const temPainelClube = clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
+  // Preserve the one map instance while the existing club screens open above it.
+  // Every purchase/reducer below is unchanged; navigating does not run a match.
+  const renderEstruturaDoClube=()=> (
+          <>
+            {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
+                de temporada (antes de "Começar a temporada") — aqui é só status/leitura.
+                🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
+                estádio continua a primeira coisa visível (sagrado) → patrocínio →
+                agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
+            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+              onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
+              onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
+              filial={myFilial}
+              filialOptions={(() => {
+                // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4
+                // primeiros (zona de acesso — estão subindo pra Série C). Sem isso,
+                // dava pra comprar um time prestes a subir e ganhar divisão de graça.
+                // No online, tira também os clubes que OUTRO humano já tem de SAF.
+                const fica = sortDiv(tables.D).slice(4)
+                const taken = state.onlineMode === 'online' ? new Set(Object.values(state.careerFilials ?? {}).map(f => f?.team)) : new Set<string | undefined>()
+                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name).filter(t => !state.careerRivals.some(r => r.team === t) && !taken.has(t))
+              })()}
+              filialInfo={(() => {
+                const fn = myFilial?.team
+                if (!fn) return null
+                for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
+                return null
+              })()}
+              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
+              onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
+              filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
+              saf2={saf2Ui ? {
+                // 🏢➡️⚽ empréstimo da SAF só na janela (virada); fora dela a tela explica o porquê e o caminho
+                buyLock: segundoClube(state) ? tr('Você já tem um 2º clube: a escada é uma só (SAF → 2º clube). Pra comprar uma SAF nova, venda o 2º clube antes.', 'You already have a 2nd club: there is a single ladder (SAF → 2nd club). To buy a new SAF, sell the 2nd club first.') : null,
+                loanLock: saf2Jan ? null : tr('Empréstimo com a SAF só na virada da temporada (antes da 1ª rodada). Os de agora voltam sozinhos no fim desta temporada.', 'Loans with the SAF only at the season turn (before round 1). Current ones come back by themselves at the end of this season.'),
+                painel: myFilial && !segundoClube(state) ? (
+                  <Saf2SafPainel team={myFilial.team} div={saf2DivDaSaf(state)} desde={myFilial.since} seasonNo={state.seasonNo ?? 1} semEspera={state.saf2?.semEspera}
+                    caixaPrincipal={Math.round(state.careerCoins?.[clubePrincipal(state)?.id ?? youId] ?? 0)} pagante={saf2Pagante} janela={saf2Jan}
+                    ativoEhPrincipal={!state.managers[state.youIdx]?.mine}
+                    planosBtn={<ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} />}
+                    onAssumir={() => dispatch({ type: 'SAF2_ASSUMIR', pagante: saf2Pagante })}
+                    onVender={() => dispatch({ type: 'SAF2_VENDER_SAF' })} />
+                ) : null,
+              } : undefined}
+              mySquad={state.managers[state.youIdx]?.squad}
+              filialSquad={myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined}
+              loanableOutIds={(() => {
+                const sq = state.managers[state.youIdx]?.squad ?? []
+                const fm = FORMATIONS[state.managers[state.youIdx]?.formation ?? '4-3-3']
+                return new Set(sq.filter(c => !c.emprestado && sq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
+              })()}
+              loanableInIds={(() => {
+                const safSq = (myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined) ?? []
+                const fm = FORMATIONS['4-3-3']
+                return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
+              })()}
+              onLoanTo={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
+              loanContratoAviso={cardId => {
+                // ⏳ contrato acabando? a tela abre a caixa em vez de emprestar. A trava
+                // de VERDADE está no reducer (travaContratoSaf) — aqui é só o aviso,
+                // com os preços/prazos reais daquele jogador.
+                if (!state.contratosOn) return null
+                const c = (mgrMe?.squad as WonCard[] | undefined)?.find(x => x.id === cardId)
+                if (!c || c.contratoAte == null || c.contratoAte > state.seasonNo) return null
+                const oficial = valorOficial(state, c)
+                const opcoes = renewOptions(oficial).map(anos => ({ anos, custo: renewCost(oficial, anos) }))
+                if (!opcoes.length) return null // sem prazo possível: deixa emprestar como antes
+                return { nome: c.name, pos: c.pos, clube: c.club, ano: c.year, jaVenceu: c.contratoAte < state.seasonNo, opcoes }
+              }}
+              onLoanToRenovando={(cardId, anos) => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId, renovarAnos: anos as RenewAnos })}
+              onLoanFrom={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
+              onReturnLoan={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
+              trimNotice={state.filialTrimNotice}
+              onDismissTrimNotice={() => dispatch({ type: 'CLEAR_FILIAL_TRIM_NOTICE' })}
+              loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
+                como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
+                filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')}
+              torcidaPct={torcidaPct} chuvaHoje={chuvaHoje} />
+            {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio depois do estádio. A escada de
+                desbloqueios da Agência morava aqui — mudou pra Elenco › Agenciados
+                (14/08, pedido do Diego: tudo de Agência num lugar só, junto da
+                escalação de verdade, em vez de espalhado em duas abas). */}
+            {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
+                fora do leilão (outra tela) e de jogo/Copa rolando.
+                ⚠️ O comentário aqui dizia "só testers" e estava VELHO (achado 15/09, o
+                Diego perguntou se a venda já valia pra todos). NÃO existe trava de tester
+                em lugar nenhum do multiclube: quem tem 2º clube vê esta área, e ter 2º
+                clube é regalia de Lenda 👑 + 4.000 moedas. Só não vale no ONLINE (o motor
+                é solo-only: o reducer ignora BUY/SWITCH e o estado guarda 1 clube só). */}
+            {state.onlineMode !== 'online' && state.multiClube && (() => {
+              const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+              const dormindo = state.multiClube.team
+              return (
+                <div style={{ ...box('#0C0C0C'), padding: 12, color: '#fff', marginBottom: 10 }}>
+                  <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: '0 0 7px' }}>{tr('🏛️ MULTICLUBES — quem você comanda?', '🏛️ MULTI-CLUB — who do you manage?')}</p>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('no comando ✓', 'in charge ✓')}</div></div>
+                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
+                  </div>
+                  {multiTravada
+                    ? <div style={{ marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, background: '#4a4740', color: 'rgba(255,255,255,.9)', textAlign: 'center', ...OSWALD }}>
+                        {multiPending ? tr('🔄 Vou parar no fim desta rodada pra você trocar…', '🔄 I\'ll stop at the end of this round so you can switch…') : getLang() === 'en' ? `🔒 ${copaPlaying ? 'Let the Cup finish' : 'Let the round finish'} to switch clubs` : `🔒 ${copaPlaying ? 'Deixe a Copa acabar' : 'Deixe a rodada acabar'} pra trocar de clube`}
+                        {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('🔄 Trocar no fim desta rodada', '🔄 Switch at the end of this round')}</button>}
+                      </div>
+                    : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>}
+                  {/* 💸 VENDER O 2º CLUBE (Diego 14/09). ⚠️ SÓ o 2º clube se vende — o clube
+                      oficial, o que aparece no rank global, NUNCA. Palavras dele: *"quero
+                      deixar claro q somente o segundo clube que pode ser vendido... o
+                      primeiro oficial q aparece no rank global e etc não pode ser vendido
+                      nunca"*. O 2º é o único com `mine` (só a compra liga essa flag).
+                      A PEGADINHA: `multiClube.id` é sempre o que DORME — e quando o 2º está
+                      no comando quem dorme é o PRINCIPAL. Por isso o botão só aparece quando
+                      o que dorme é o `mine`; no outro caso a caixa manda passar o comando. */}
+                  {(() => {
+                    const dorm = state.managers.find(m => m.id === state.multiClube!.id)
+                    const podeVender = !!dorm?.mine
+                    if (multiTravada) return null // rodada/Copa rolando: a mesma trava da troca
+                    if (saf2Ui) return <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{tr('💸 A venda do 2º clube agora é pela coleção de taças — logo abaixo, na virada da temporada.', '💸 Selling the 2nd club now goes by the trophy collection — just below, at the season turn.')}</p>
+                    return podeVender
+                      ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
+                      : <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
+                  })()}
+                  <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Each club has <b>its own</b> till, squad, titles and stadium — nothing mixes. The sleeping one plays the season on auto, with the team as it is.</> : <>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</>}</p>
+                </div>
+              )
+            })()}
+            {/* modal de CONFIRMAR a troca (explicação completa) */}
+            {multiAsk && state.multiClube && (() => {
+              const dormindo = state.multiClube.team
+              const ativo = state.managers[state.youIdx]?.teamName ?? '—'
+              return (
+                <div onClick={() => setMultiAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                  <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 340, width: '100%', padding: 16, textAlign: 'center' }}>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>{tr('🔄 Trocar de clube', '🔄 Switch club')}</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3a3222', margin: '8px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>You will manage <b>{dormindo}</b> now. <b>{ativo}</b> goes to <b>sleep</b>: it plays the season on auto, with the team as it is.</> : <>Você vai comandar o <b>{dormindo}</b> agora. O <b>{ativo}</b> passa a <b>dormir</b>: segue a temporada no automático, com o time como está.</>}</p>
+                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>💤 At the <b>turn of the season</b>, an expiring loan goes back to its owner and the club\'s own starter steps in — it never plays with 10. You can take command back whenever you like.</> : <>💤 Na <b>virada da temporada</b>, empréstimo que acaba volta pro dono e o titular do próprio clube entra no lugar — nunca joga com 10. Dá pra voltar pro comando dele quando quiser.</>}</p>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                      <button onClick={() => setMultiAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
+                      <button onClick={() => { setMultiAsk(false); dispatch({ type: 'SWITCH_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#1B7A3D', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('🔄 Trocar', '🔄 Switch')}</button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · só solo. ⚠️ dizia "em construção, só
+                testers veem" e estava VELHO: a compra está no ar pra todo mundo desde
+                que apareça o tier — quem não é Lenda vê a área com o botão APOIE. */}
+            {/* 🏢➡️⚽ SAF NOVA (13/10): "O jogo mudou" (quem tem os dois separados) + o 2º clube no dia a dia */}
+            {saf2Ui && saf2Migrar && (() => {
+              const seg = segundoClube(state)
+              return <div style={{ marginTop: 10 }}><Saf2Migracao saf={{ nome: state.careerFilial!.team, div: saf2DivDaSaf(state) }} clube={{ nome: seg?.teamName ?? '—', div: (state.careerPlacements?.[`m${seg?.id}`] ?? 'D') as string }} janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} /></div>
+            })()}
+            {saf2Ui && segundoClube(state) && (() => {
+              const seg = segundoClube(state)!, prin = clubePrincipal(state)
+              const venda = saf2Valor2o(state)
+              if (!prin || !venda) return null
+              const emps = state.saf2?.emprestimos ?? []
+              const caixaDe = (id: number) => Math.round(state.careerCoins?.[id] ?? 0)
+              // a MESMA conta do reducer (SAF2_EMPRESTAR / SAF2_TRANSFERIR) — só pra apagar quem não pode
+              const jogs = (de: typeof prin, para: typeof prin) => (de.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado).map(c => {
+                const sobra = de.squad.filter(x => x.pos === c.pos && !x.fake && !x.emprestado).length - 1 >= FORMATIONS[de.formation][c.pos]
+                const valor = Math.max(1, valorOficial(state, c))
+                const contratoOk = !(state.contratosOn && c.contratoAte != null && c.contratoAte <= (state.seasonNo ?? 1))
+                const tr1 = podeTransferir({ janela: saf2Jan, ultimaTransf: state.saf2?.transfSeason, seasonNo: state.seasonNo ?? 1, caixaComprador: caixaDe(para.id), valor })
+                const livreEmp = sobra && contratoOk && emps.filter(e => e.de === de.id).length < EMPRESTIMOS_ENTRE_CLUBES
+                return { id: c.id, name: c.name, pos: c.pos, valor, livre: livreEmp, livreT: sobra && tr1 === 'ok',
+                  motivo: !sobra ? tr('abriria buraco no titular', 'would leave a hole in the XI') : !contratoOk ? tr('contrato acabando: renove antes', 'contract ending: renew first') : tr1 === 'caixa' ? tr('o outro clube não tem esse caixa', 'the other club lacks that cash') : undefined }
+              })
+              const jp = jogs(prin, seg), js = jogs(seg, prin)
+              const nomeCarta = (id: string) => { for (const m of [prin, seg]) { const c = m.squad.find(x => x.id === id); if (c) return { nome: c.name, pos: c.pos } } return { nome: '—', pos: '' } }
+              return <Saf2Clube2Painel principal={{ id: prin.id, nome: prin.teamName, caixa: caixaDe(prin.id) }} seg={{ id: seg.id, nome: seg.teamName, caixa: caixaDe(seg.id), div: (state.careerPlacements?.[`m${seg.id}`] ?? 'D') as string }}
+                ativoId={state.managers[state.youIdx]?.id ?? youId} janela={saf2Jan} tacas={saf2Tacas(state)} venda={venda}
+                emprestimos={emps.map(e => ({ ...nomeCarta(e.cardId), de: e.de, para: e.para }))}
+                jogPrincipal={jp} jogSeg={js} transfFeita={state.saf2?.transfSeason === (state.seasonNo ?? 1)}
+                onAporte={valor => dispatch({ type: 'SAF2_APORTE', valor })}
+                onEmprestar={cardId => dispatch({ type: 'SAF2_EMPRESTAR', cardId })}
+                onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
+                onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
+            })()}
+            {state.onlineMode !== 'online' && !saf2Ui && !state.co2 /* 🌐 v2: sem 2º clube */ && (() => {
+              const opcoes = (() => {
+                const safName = myFilial?.team
+                // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista
+                // você na divisão que existir) — por isso dá pra comprar de qualquer
+                // divisão, não só quando você está na D. Tira os 4 que estão subindo
+                // (pega quem FICA/joga a Série D), você/humanos/rivais, a SAF e o que já
+                // é seu 2º clube. O motor da compra aceita exatamente esses.
+                const fica = sortDiv(tables.D).slice(4)
+                return fica
+                  .filter(t => !t.you && !t.human && !t.rival)
+                  .map(t => t.name)
+                  .filter(t => t !== safName && t !== state.multiClube?.team && !state.careerRivals.some(r => r.team === t))
+              })()
+              return <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={opcoes}
+                coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}
+                onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
+            })()}
+            <GoldTeaser label={tr('Ver o estádio DOURADO completo (prévia)', 'See the full GOLD stadium (preview)')}>
+              <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
+                <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
+              </div>
+            </GoldTeaser>
+            {/* 🏦 BANCO LEGENDS fechando a Estrutura (ideia do Diego 04/08): é AQUI
+                que o técnico acabou de ver o preço das obras/SAF e pensa "queria
+                moedas" — o banco aparece na hora certa. Também segue em Finanças.
+                (O componente já se esconde sozinho no online.) */}
+            <BancoLegends />
+          </>
+  )
+
   return (
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
@@ -12011,6 +12231,7 @@ export function PyramidSeasonScreen() {
             {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             {(() => {
+              if(mapaComoClube)return <nav aria-label={tr('Área do clube','Club area')} style={{marginBottom:10}}><button type="button" aria-label={tr('Mapa do clube','Club map')} aria-current="page" onClick={()=>setClubeSub('estadio')} style={{border:`2.5px solid ${INK}`,borderRadius:11,padding:'7px 14px',background:GOLD,color:INK,boxShadow:`2px 2px 0 ${INK}`,fontWeight:900,textTransform:'uppercase',cursor:'pointer',...OSWALD}}>🗺️ {tr('Mapa','Map')}</button></nav>
               const subs = (([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(presidentAvailable || (privateCareer && PRESIDENT_ROOM_RELEASED) ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ SAIU DO ELENCO, VEIO PRO CLUBE (Diego 19/09): *"tem que tirar do
                 // elenco e pôr lá no clube também"*. Agência não é escalação — o lugar
@@ -12064,8 +12285,10 @@ export function PyramidSeasonScreen() {
                 </SubAbasGrudadas>
               )
             })()}
+            {(mapaComoClube || !temPainelClube) && renderEstruturaDoClube()}
+            <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={setClubeSub} onClose={()=>setClubeSub('estadio')}>
             {clubeSub === 'presidencia' && presidentAvailable ? (
-              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PresidenciaClube key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
+              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PresidenciaClube insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
                 dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
               }} onDisplay={display=>{
@@ -12239,214 +12462,8 @@ export function PyramidSeasonScreen() {
                   )
                 })()}
               </>
-            ) : (
-          <>
-            {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
-                de temporada (antes de "Começar a temporada") — aqui é só status/leitura.
-                🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
-                estádio continua a primeira coisa visível (sagrado) → patrocínio →
-                agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
-              onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
-              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
-              onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
-              filial={myFilial}
-              filialOptions={(() => {
-                // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4
-                // primeiros (zona de acesso — estão subindo pra Série C). Sem isso,
-                // dava pra comprar um time prestes a subir e ganhar divisão de graça.
-                // No online, tira também os clubes que OUTRO humano já tem de SAF.
-                const fica = sortDiv(tables.D).slice(4)
-                const taken = state.onlineMode === 'online' ? new Set(Object.values(state.careerFilials ?? {}).map(f => f?.team)) : new Set<string | undefined>()
-                return fica.filter(t => !t.you && !t.human && !t.rival).map(t => t.name).filter(t => !state.careerRivals.some(r => r.team === t) && !taken.has(t))
-              })()}
-              filialInfo={(() => {
-                const fn = myFilial?.team
-                if (!fn) return null
-                for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
-                return null
-              })()}
-              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
-              onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
-              filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
-              saf2={saf2Ui ? {
-                // 🏢➡️⚽ empréstimo da SAF só na janela (virada); fora dela a tela explica o porquê e o caminho
-                buyLock: segundoClube(state) ? tr('Você já tem um 2º clube: a escada é uma só (SAF → 2º clube). Pra comprar uma SAF nova, venda o 2º clube antes.', 'You already have a 2nd club: there is a single ladder (SAF → 2nd club). To buy a new SAF, sell the 2nd club first.') : null,
-                loanLock: saf2Jan ? null : tr('Empréstimo com a SAF só na virada da temporada (antes da 1ª rodada). Os de agora voltam sozinhos no fim desta temporada.', 'Loans with the SAF only at the season turn (before round 1). Current ones come back by themselves at the end of this season.'),
-                painel: myFilial && !segundoClube(state) ? (
-                  <Saf2SafPainel team={myFilial.team} div={saf2DivDaSaf(state)} desde={myFilial.since} seasonNo={state.seasonNo ?? 1} semEspera={state.saf2?.semEspera}
-                    caixaPrincipal={Math.round(state.careerCoins?.[clubePrincipal(state)?.id ?? youId] ?? 0)} pagante={saf2Pagante} janela={saf2Jan}
-                    ativoEhPrincipal={!state.managers[state.youIdx]?.mine}
-                    planosBtn={<ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} />}
-                    onAssumir={() => dispatch({ type: 'SAF2_ASSUMIR', pagante: saf2Pagante })}
-                    onVender={() => dispatch({ type: 'SAF2_VENDER_SAF' })} />
-                ) : null,
-              } : undefined}
-              mySquad={state.managers[state.youIdx]?.squad}
-              filialSquad={myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined}
-              loanableOutIds={(() => {
-                const sq = state.managers[state.youIdx]?.squad ?? []
-                const fm = FORMATIONS[state.managers[state.youIdx]?.formation ?? '4-3-3']
-                return new Set(sq.filter(c => !c.emprestado && sq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
-              })()}
-              loanableInIds={(() => {
-                const safSq = (myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined) ?? []
-                const fm = FORMATIONS['4-3-3']
-                return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
-              })()}
-              onLoanTo={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
-              loanContratoAviso={cardId => {
-                // ⏳ contrato acabando? a tela abre a caixa em vez de emprestar. A trava
-                // de VERDADE está no reducer (travaContratoSaf) — aqui é só o aviso,
-                // com os preços/prazos reais daquele jogador.
-                if (!state.contratosOn) return null
-                const c = (mgrMe?.squad as WonCard[] | undefined)?.find(x => x.id === cardId)
-                if (!c || c.contratoAte == null || c.contratoAte > state.seasonNo) return null
-                const oficial = valorOficial(state, c)
-                const opcoes = renewOptions(oficial).map(anos => ({ anos, custo: renewCost(oficial, anos) }))
-                if (!opcoes.length) return null // sem prazo possível: deixa emprestar como antes
-                return { nome: c.name, pos: c.pos, clube: c.club, ano: c.year, jaVenceu: c.contratoAte < state.seasonNo, opcoes }
-              }}
-              onLoanToRenovando={(cardId, anos) => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId, renovarAnos: anos as RenewAnos })}
-              onLoanFrom={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
-              onReturnLoan={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
-              trimNotice={state.filialTrimNotice}
-              onDismissTrimNotice={() => dispatch({ type: 'CLEAR_FILIAL_TRIM_NOTICE' })}
-              loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
-                como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
-                filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')}
-              torcidaPct={torcidaPct} chuvaHoje={chuvaHoje} />
-            {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio depois do estádio. A escada de
-                desbloqueios da Agência morava aqui — mudou pra Elenco › Agenciados
-                (14/08, pedido do Diego: tudo de Agência num lugar só, junto da
-                escalação de verdade, em vez de espalhado em duas abas). */}
-            {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
-                fora do leilão (outra tela) e de jogo/Copa rolando.
-                ⚠️ O comentário aqui dizia "só testers" e estava VELHO (achado 15/09, o
-                Diego perguntou se a venda já valia pra todos). NÃO existe trava de tester
-                em lugar nenhum do multiclube: quem tem 2º clube vê esta área, e ter 2º
-                clube é regalia de Lenda 👑 + 4.000 moedas. Só não vale no ONLINE (o motor
-                é solo-only: o reducer ignora BUY/SWITCH e o estado guarda 1 clube só). */}
-            {state.onlineMode !== 'online' && state.multiClube && (() => {
-              const ativo = state.managers[state.youIdx]?.teamName ?? '—'
-              const dormindo = state.multiClube.team
-              return (
-                <div style={{ ...box('#0C0C0C'), padding: 12, color: '#fff', marginBottom: 10 }}>
-                  <p style={{ fontWeight: 900, fontSize: 12.5, color: GOLD, ...OSWALD, margin: '0 0 7px' }}>{tr('🏛️ MULTICLUBES — quem você comanda?', '🏛️ MULTI-CLUB — who do you manage?')}</p>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: GOLD, color: '#000', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>🟡 {ativo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('no comando ✓', 'in charge ✓')}</div></div>
-                    <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
-                  </div>
-                  {multiTravada
-                    ? <div style={{ marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 11, background: '#4a4740', color: 'rgba(255,255,255,.9)', textAlign: 'center', ...OSWALD }}>
-                        {multiPending ? tr('🔄 Vou parar no fim desta rodada pra você trocar…', '🔄 I\'ll stop at the end of this round so you can switch…') : getLang() === 'en' ? `🔒 ${copaPlaying ? 'Let the Cup finish' : 'Let the round finish'} to switch clubs` : `🔒 ${copaPlaying ? 'Deixe a Copa acabar' : 'Deixe a rodada acabar'} pra trocar de clube`}
-                        {!multiPending && !manual && !copaPlaying && <button onClick={() => setMultiPending(true)} style={{ display: 'block', width: '100%', marginTop: 6, border: '2px solid #000', borderRadius: 8, padding: 6, fontWeight: 900, fontSize: 10.5, background: GOLD, color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('🔄 Trocar no fim desta rodada', '🔄 Switch at the end of this round')}</button>}
-                      </div>
-                    : <button onClick={() => setMultiAsk(true)} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 10, fontWeight: 900, fontSize: 12.5, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>}
-                  {/* 💸 VENDER O 2º CLUBE (Diego 14/09). ⚠️ SÓ o 2º clube se vende — o clube
-                      oficial, o que aparece no rank global, NUNCA. Palavras dele: *"quero
-                      deixar claro q somente o segundo clube que pode ser vendido... o
-                      primeiro oficial q aparece no rank global e etc não pode ser vendido
-                      nunca"*. O 2º é o único com `mine` (só a compra liga essa flag).
-                      A PEGADINHA: `multiClube.id` é sempre o que DORME — e quando o 2º está
-                      no comando quem dorme é o PRINCIPAL. Por isso o botão só aparece quando
-                      o que dorme é o `mine`; no outro caso a caixa manda passar o comando. */}
-                  {(() => {
-                    const dorm = state.managers.find(m => m.id === state.multiClube!.id)
-                    const podeVender = !!dorm?.mine
-                    if (multiTravada) return null // rodada/Copa rolando: a mesma trava da troca
-                    if (saf2Ui) return <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{tr('💸 A venda do 2º clube agora é pela coleção de taças — logo abaixo, na virada da temporada.', '💸 Selling the 2nd club now goes by the trophy collection — just below, at the season turn.')}</p>
-                    return podeVender
-                      ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
-                      : <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
-                  })()}
-                  <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Each club has <b>its own</b> till, squad, titles and stadium — nothing mixes. The sleeping one plays the season on auto, with the team as it is.</> : <>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</>}</p>
-                </div>
-              )
-            })()}
-            {/* modal de CONFIRMAR a troca (explicação completa) */}
-            {multiAsk && state.multiClube && (() => {
-              const dormindo = state.multiClube.team
-              const ativo = state.managers[state.youIdx]?.teamName ?? '—'
-              return (
-                <div onClick={() => setMultiAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                  <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 340, width: '100%', padding: 16, textAlign: 'center' }}>
-                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0 }}>{tr('🔄 Trocar de clube', '🔄 Switch club')}</p>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3a3222', margin: '8px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>You will manage <b>{dormindo}</b> now. <b>{ativo}</b> goes to <b>sleep</b>: it plays the season on auto, with the team as it is.</> : <>Você vai comandar o <b>{dormindo}</b> agora. O <b>{ativo}</b> passa a <b>dormir</b>: segue a temporada no automático, com o time como está.</>}</p>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '8px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>💤 At the <b>turn of the season</b>, an expiring loan goes back to its owner and the club\'s own starter steps in — it never plays with 10. You can take command back whenever you like.</> : <>💤 Na <b>virada da temporada</b>, empréstimo que acaba volta pro dono e o titular do próprio clube entra no lugar — nunca joga com 10. Dá pra voltar pro comando dele quando quiser.</>}</p>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                      <button onClick={() => setMultiAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
-                      <button onClick={() => { setMultiAsk(false); dispatch({ type: 'SWITCH_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#1B7A3D', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('🔄 Trocar', '🔄 Switch')}</button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · só solo. ⚠️ dizia "em construção, só
-                testers veem" e estava VELHO: a compra está no ar pra todo mundo desde
-                que apareça o tier — quem não é Lenda vê a área com o botão APOIE. */}
-            {/* 🏢➡️⚽ SAF NOVA (13/10): "O jogo mudou" (quem tem os dois separados) + o 2º clube no dia a dia */}
-            {saf2Ui && saf2Migrar && (() => {
-              const seg = segundoClube(state)
-              return <div style={{ marginTop: 10 }}><Saf2Migracao saf={{ nome: state.careerFilial!.team, div: saf2DivDaSaf(state) }} clube={{ nome: seg?.teamName ?? '—', div: (state.careerPlacements?.[`m${seg?.id}`] ?? 'D') as string }} janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} /></div>
-            })()}
-            {saf2Ui && segundoClube(state) && (() => {
-              const seg = segundoClube(state)!, prin = clubePrincipal(state)
-              const venda = saf2Valor2o(state)
-              if (!prin || !venda) return null
-              const emps = state.saf2?.emprestimos ?? []
-              const caixaDe = (id: number) => Math.round(state.careerCoins?.[id] ?? 0)
-              // a MESMA conta do reducer (SAF2_EMPRESTAR / SAF2_TRANSFERIR) — só pra apagar quem não pode
-              const jogs = (de: typeof prin, para: typeof prin) => (de.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado).map(c => {
-                const sobra = de.squad.filter(x => x.pos === c.pos && !x.fake && !x.emprestado).length - 1 >= FORMATIONS[de.formation][c.pos]
-                const valor = Math.max(1, valorOficial(state, c))
-                const contratoOk = !(state.contratosOn && c.contratoAte != null && c.contratoAte <= (state.seasonNo ?? 1))
-                const tr1 = podeTransferir({ janela: saf2Jan, ultimaTransf: state.saf2?.transfSeason, seasonNo: state.seasonNo ?? 1, caixaComprador: caixaDe(para.id), valor })
-                const livreEmp = sobra && contratoOk && emps.filter(e => e.de === de.id).length < EMPRESTIMOS_ENTRE_CLUBES
-                return { id: c.id, name: c.name, pos: c.pos, valor, livre: livreEmp, livreT: sobra && tr1 === 'ok',
-                  motivo: !sobra ? tr('abriria buraco no titular', 'would leave a hole in the XI') : !contratoOk ? tr('contrato acabando: renove antes', 'contract ending: renew first') : tr1 === 'caixa' ? tr('o outro clube não tem esse caixa', 'the other club lacks that cash') : undefined }
-              })
-              const jp = jogs(prin, seg), js = jogs(seg, prin)
-              const nomeCarta = (id: string) => { for (const m of [prin, seg]) { const c = m.squad.find(x => x.id === id); if (c) return { nome: c.name, pos: c.pos } } return { nome: '—', pos: '' } }
-              return <Saf2Clube2Painel principal={{ id: prin.id, nome: prin.teamName, caixa: caixaDe(prin.id) }} seg={{ id: seg.id, nome: seg.teamName, caixa: caixaDe(seg.id), div: (state.careerPlacements?.[`m${seg.id}`] ?? 'D') as string }}
-                ativoId={state.managers[state.youIdx]?.id ?? youId} janela={saf2Jan} tacas={saf2Tacas(state)} venda={venda}
-                emprestimos={emps.map(e => ({ ...nomeCarta(e.cardId), de: e.de, para: e.para }))}
-                jogPrincipal={jp} jogSeg={js} transfFeita={state.saf2?.transfSeason === (state.seasonNo ?? 1)}
-                onAporte={valor => dispatch({ type: 'SAF2_APORTE', valor })}
-                onEmprestar={cardId => dispatch({ type: 'SAF2_EMPRESTAR', cardId })}
-                onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
-                onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
-            })()}
-            {state.onlineMode !== 'online' && !saf2Ui && !state.co2 /* 🌐 v2: sem 2º clube */ && (() => {
-              const opcoes = (() => {
-                const safName = myFilial?.team
-                // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista
-                // você na divisão que existir) — por isso dá pra comprar de qualquer
-                // divisão, não só quando você está na D. Tira os 4 que estão subindo
-                // (pega quem FICA/joga a Série D), você/humanos/rivais, a SAF e o que já
-                // é seu 2º clube. O motor da compra aceita exatamente esses.
-                const fica = sortDiv(tables.D).slice(4)
-                return fica
-                  .filter(t => !t.you && !t.human && !t.rival)
-                  .map(t => t.name)
-                  .filter(t => t !== safName && t !== state.multiClube?.team && !state.careerRivals.some(r => r.team === t))
-              })()
-              return <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={opcoes}
-                coins={state.careerCoins?.[youId] ?? 0} preco={4000} isLenda={myApoioPerk()?.tier === 'ouro'}
-                onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} />
-            })()}
-            <GoldTeaser label={tr('Ver o estádio DOURADO completo (prévia)', 'See the full GOLD stadium (preview)')}>
-              <div style={{ ...box('#FBF6E9'), padding: 12, position: 'relative' }}>
-                <StadiumSvg st={{ inv: { geral: 60, cadeiras: 90, visitante: 120, camarote: 150 }, ext: ['refl', 'telao', 'loja', 'estac', 'grama', 'cober'] }} perkOverride={APOIO_PERKS.ouro} />
-              </div>
-            </GoldTeaser>
-            {/* 🏦 BANCO LEGENDS fechando a Estrutura (ideia do Diego 04/08): é AQUI
-                que o técnico acabou de ver o preço das obras/SAF e pensa "queria
-                moedas" — o banco aparece na hora certa. Também segue em Finanças.
-                (O componente já se esconde sozinho no online.) */}
-            <BancoLegends />
-          </>
-            )}
+            ) : null}
+            </ClubeMapaPainel>
           </>
         ) : tab === 'ranking' ? (
           <>
