@@ -19,7 +19,13 @@ for(const aspect of [320/740,390/844,1,4/3,16/9,21/9]){
  for(let i=200;i<400;i++)controller.update({...ball,x:-48},i*16,[],undefined,'goal')
  assert(Math.abs(camera.position.distanceTo(control.target)/before-.8)<.001)
  assert.equal(controller.inspect().mode,'field2d','Goal replays must not force a different map view')
- assert(control.target.distanceTo(fit.target)<.001,'Zoom preserves the pitch centre')
+ assert(control.target.x<0,'Zoom follows the play by translation')
+ assert(camera.position.clone().sub(control.target).normalize().distanceTo(fit.direction)<.001,'Manual zoom keeps the stadium angle')
+ for(const [x,z] of [[-52,-33],[52,33],[-52,33],[52,-33]]){
+  controller.zoomFixed(.5)
+  for(let i=0;i<180;i++)controller.update({x,y:4,z},(500+i)*16,[],undefined,'goal')
+  const p=new Vector3(x,4,z).project(camera);assert(Math.abs(p.x)<.95&&Math.abs(p.y)<.9,'Ball visible at maximum manual zoom '+aspect)
+ }
  controller.setMode('free');assert.equal(control.enabled,true)
 }
 console.log('PASS full pitch in six viewports, manual zoom, replay and free-map controls')

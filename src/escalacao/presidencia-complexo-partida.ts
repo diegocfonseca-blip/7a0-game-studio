@@ -20,7 +20,7 @@ import type {loadPlayers} from './futebol3d/players.mjs'
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
 function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
-export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void){
+export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void,readable2D=false){
  if(!registered){
   // (🏟️ 26/10, caldeirão: a arquibancada encostou no campo — o chão que sobra atrás dos gols e das laterais é gramado quando o
   // campo já é de grama; na várzea continua terra)
@@ -41,7 +41,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
   onTextureReady?.()
  });grass.wrapS=grass.wrapT=THREE.RepeatWrapping;grass.repeat.set(26,17);grass.colorSpace=THREE.SRGBColorSpace;grass.anisotropy=8
  const progress=stadium?progressoVisualSetor(stadium,'grama'):0
- const greens=['#c1d89c','#d5e4b4'].map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
+ const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
  for(const band of faixasGramado3D(progress)){
   const geometry=new THREE.PlaneGeometry(band.width,68),uv=geometry.getAttribute('uv')
   // One continuous grass texture across the 105 m field, including partial strips.
@@ -66,7 +66,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  const white=material('#f4f0df')
  const line=(points:[number,number][])=>{for(let i=1;i<points.length;i++){
   const [x,z]=points[i-1],[bx,bz]=points[i],dx=bx-x,dz=bz-z
-  const geometry=new THREE.PlaneGeometry(Math.hypot(dx,dz),.12);geometry.rotateX(-Math.PI/2)
+  const geometry=new THREE.PlaneGeometry(Math.hypot(dx,dz),readable2D?.20:.12);geometry.rotateX(-Math.PI/2)
   const paint=new THREE.Mesh(geometry,white);paint.rotation.y=-Math.atan2(dz,dx);paint.position.set((x+bx)/2,.006,(z+bz)/2);paint.receiveShadow=true;scene.add(paint)
  }}
  line([[-52.5,-34],[52.5,-34],[52.5,34],[-52.5,34],[-52.5,-34]]);line([[0,-34],[0,34]])
@@ -136,9 +136,9 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
  const field=new THREE.Scene();field.name='complexo-campo'
  let disposed=false
  // Build before attaching: the original static batching only sees this field.
- const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()})
+ const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()},presentation==='2d')
  scene.add(field)
- if(presentation==='2d'){const flat=criarCampo2DNoMapa(scene,()=>{if(!disposed)onReady?.()});return{...flat,dispose(){if(disposed)return;disposed=true;flat.dispose();descartarObjetos(field,[grass])}}}
+ if(presentation==='2d'){const flat=criarCampo2DNoMapa(scene,()=>{if(!disposed)onReady?.()},field);return{...flat,dispose(){if(disposed)return;disposed=true;flat.dispose();descartarObjetos(field,[grass])}}}
  type Body=ReturnType<typeof person>
  type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'|'cameraSubjects'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
  let match:Match|undefined

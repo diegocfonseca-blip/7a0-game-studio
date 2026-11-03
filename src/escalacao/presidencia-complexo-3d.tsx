@@ -705,11 +705,11 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     <div className="pc3-primary">
      {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>Minha sala</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>Janela</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>Presidente</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>Estante</button></>:<>
      <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>Mapa</button>
-     {matchCamera==='free'&&<button type="button" disabled={!loaded} aria-pressed={selectedView==='field'} onClick={()=>go('field')}>{matchPresentation==='2d'?'Ver partida':'Ver campo'}</button>}
+     {(matchCamera==='free'||matchPresentation==='2d')&&<button type="button" disabled={!loaded} aria-pressed={matchPresentation==='2d'?matchCamera==='field2d':selectedView==='field'} onClick={()=>go('field')}>{matchPresentation==='2d'?'Ver partida':'Ver campo'}</button>}
      {matchCamera==='free'&&<button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button>}
-     {match&&matchCamera!=='free'&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}><span className="pc3-camera-title">Câmera</span>
+     {match&&matchCamera!=='free'&&matchPresentation!=='2d'&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}><span className="pc3-camera-title">Câmera</span>
       <select id={`${uiId}-camera`} aria-label="Câmera da partida" disabled={!loaded} value={matchCamera} onChange={event=>{api.current?.setMatchCamera(event.currentTarget.value as CameraPartidaContinua);setPlacesOpen(false)}}>
-       {(matchPresentation==='2d'?[{value:'field2d',label:'Campo 2D'},{value:'free',label:'Mapa livre'}]:CAMERAS_PARTIDA).map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
+       {CAMERAS_PARTIDA.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
      </label>}</>}
     </div>

@@ -87,3 +87,8 @@
 
 .pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation{display:flex}
 .pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation button:not(.pc3-zoom){display:none}
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-primary{flex:0 1 auto}
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-primary button{font-family:Oswald,system-ui,sans-serif;font-weight:800;font-size:16px}
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation{flex-direction:row;bottom:max(16px,env(safe-area-inset-bottom))}
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation button{width:48px;min-height:44px}
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-match-narration{font-size:12px;max-width:min(520px,100%)}

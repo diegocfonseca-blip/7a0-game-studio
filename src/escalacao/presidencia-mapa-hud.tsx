@@ -19,11 +19,11 @@ export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefi
   const [nh, na] = match?.officialTeams ?? [t('Casa', 'Home'), t('Fora', 'Away')]
   const chip = (on: boolean): CSSProperties => ({ ...RESET, font: 'inherit', fontSize: 10.5, fontWeight: 800, padding: '4px 7px', border: 0, background: on ? GOLD : 'transparent', color: on ? INK : '#fff', cursor: 'pointer', pointerEvents: 'auto' })
   const grupo: CSSProperties = { display: 'inline-flex', border: '2px solid #fff', borderRadius: 9, overflow: 'hidden', flex: 'none' }
-  const placar = match && <span style={{ display: 'inline-flex', alignItems: 'stretch', border: `2px solid ${INK}`, borderRadius: 7, overflow: 'hidden', ...OSW, flex: 'none' }}>
-      <span style={{ background: '#fff', color: INK, padding: '2px 6px', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 8, height: 8, borderRadius: 2, background: match.homeColor, border: `1.5px solid ${INK}` }} />{sigla(nh)}</span>
-      <span style={{ background: INK, color: '#fff', padding: '2px 8px', fontSize: 14 }}>{match.homeScore} – {match.awayScore}</span>
-      <span style={{ background: '#fff', color: INK, padding: '2px 6px', fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 4 }}>{sigla(na)}<i style={{ width: 8, height: 8, borderRadius: 2, background: match.awayColor, border: `1.5px solid ${INK}` }} /></span>
-      <span style={{ background: match.finished ? '#ddd' : GOLD, color: INK, padding: '2px 6px', fontSize: 12, display: 'flex', alignItems: 'center' }}>{match.finished ? t('FIM', 'FT') : <>{!match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{Math.min(93, Math.max(0, Math.floor(match.minute)))}'</>}</span>
+  const placar = match && <span className="pc3-scoreboard" style={{ display: 'inline-flex', alignItems: 'stretch', border: '2px solid #fffaf0', borderRadius: 9, overflow: 'hidden', background:INK, boxShadow:'2px 3px 0 #0c0c0c', ...OSW, flex: 'none' }}>
+      <span style={{ background: INK, color: '#fffaf0', padding: '5px 8px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 10, height: 10, borderRadius: '50%', background: match.homeColor, border: '1.5px solid #fffaf0' }} />{sigla(nh)}</span>
+      <span style={{ background: INK, color: '#fff', padding: '4px 10px', fontSize: 20 }}>{match.homeScore} – {match.awayScore}</span>
+      <span style={{ background: INK, color: '#fffaf0', padding: '5px 8px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}>{sigla(na)}<i style={{ width: 10, height: 10, borderRadius: '50%', background: match.awayColor, border: '1.5px solid #fffaf0' }} /></span>
+      <span style={{ background: match.finished ? '#ddd' : GOLD, color: INK, padding: '4px 8px', fontSize: 14, display: 'flex', alignItems: 'center' }}>{match.finished ? t('FIM', 'FT') : <>{!match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{Math.min(93, Math.max(0, Math.floor(match.minute)))}'</>}</span>
     </span>
   return <><div className="pc3-match-score">
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>

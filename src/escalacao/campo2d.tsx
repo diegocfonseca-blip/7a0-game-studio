@@ -314,7 +314,6 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
     }
     // 🟩 o fundo parado (gramado, linhas, arquibancada, bandeirão) desenhado UMA vez — o celular agradece
-    const pitchLayer=document.createElement('canvas');pitchLayer.width=CW*dpr;pitchLayer.height=CH*dpr;const pitchContext=pitchLayer.getContext('2d')!
     const fundo = document.createElement('canvas'); fundo.width = CW * dpr; fundo.height = CH * dpr
     {
       const g = fundo.getContext('2d')!; g.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -485,7 +484,6 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.strokeStyle = 'rgba(255,255,255,.4)'; cx.lineWidth = 1
         for (let i = 1; i < 4; i++) { cx.beginPath(); if (deitado) { cx.moveTo(x + (w * i) / 4, y); cx.lineTo(x + (w * i) / 4, y + h) } else { cx.moveTo(x, y + (h * i) / 4); cx.lineTo(x + w, y + (h * i) / 4) } cx.stroke() }
       }
-      if(mapMatchId&&mapFPS)pitchContext.drawImage(c,0,0)
       // 🧢 os técnicos na beira do campo, com o balão
       const fala = (lado: 0 | 1): string => {
         if (jogo.festa) return jogo.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
@@ -552,9 +550,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       cx.beginPath(); cx.arc(bx, by - bh, 4.2 + jogo.bola.h * 0.25, 0, 7); cx.fillStyle = '#fff'; cx.fill(); cx.lineWidth = 1.5; cx.strokeStyle = '#111'; cx.stroke()
       if(mapMatchId&&mapFPS){
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
-        publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:pitchLayer,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
+        publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
           players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-mis(p.ay,p.y),z:mis(p.ax,p.x)-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
-          score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,referee:{x:L/2-juiz.y,z:juiz.x-W/2},
+          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-mis(bA.y,jogo.bola.y),y:.11+mis(bA.h,jogo.bola.h),z:mis(bA.x,jogo.bola.x)-W/2}})
       }
       raf = requestAnimationFrame(quadro)

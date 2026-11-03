@@ -1,7 +1,7 @@
 import type {MarcadorCampo2D} from './campo2d-marcador'
 /** One existing Campo2D canvas, shared read-only with the city. No engine,
  * clock, result, network or persistence lives here. */
-export type SuperficieCampo2D={id:string;owner:object;canvas:HTMLCanvasElement;rect:{x:number;y:number;width:number;height:number};landscape:boolean;minute:number;players:readonly {key:string;name:string;side:'home'|'away';keeper:boolean;x:number;z:number;radius:number;marker:MarcadorCampo2D}[];ball:{x:number;y:number;z:number};referee:{x:number;z:number};score:readonly [number,number];narration:string;revision:number;active:boolean}
+export type SuperficieCampo2D={id:string;owner:object;canvas:HTMLCanvasElement;rect:{x:number;y:number;width:number;height:number};landscape:boolean;minute:number;players:readonly {key:string;name:string;side:'home'|'away';keeper:boolean;x:number;z:number;radius:number;marker:MarcadorCampo2D}[];ball:{x:number;y:number;z:number};referee:{x:number;z:number};net?:{sign:number;time:number;age:number};score:readonly [number,number];narration:string;revision:number;active:boolean}
 const surfaces=new Map<string,SuperficieCampo2D>()
 let revision=0
 const demands=new Map<string,Map<object,number>>(),listeners=new Set<(id:string)=>void>()

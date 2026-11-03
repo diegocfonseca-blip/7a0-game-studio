@@ -19,7 +19,9 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
  // Neither high balls, possession changes nor nearby athletes tilt its angle
  // or pump the lens. A narrow viewport gets more room, never larger players.
  if(mode==='field2d'){
-  const target=new Vector3(0,.5,0),direction=(camera.aspect<1?new Vector3(-.22,.976,0):new Vector3(0,.976,.22)).normalize(),fov=46
+  // Keep the stands and the depth of the existing stadium in view, like the
+  // approved mockup. Portrait uses the pitch length without flattening it.
+  const target=new Vector3(0,.5,0),direction=(camera.aspect<1?new Vector3(-.46,.888,0):new Vector3(0,.84,.542)).normalize(),fov=46
   const right=new Vector3(direction.z,0,-direction.x).normalize(),up=new Vector3().crossVectors(direction,right),tv=Math.tan(MathUtils.degToRad(fov)/2),th=tv*Math.max(.15,camera.aspect)
   let distance=65
   for(const x of [-56,56])for(const z of [-37,37]){const p=new Vector3(x,0,z).sub(target);distance=Math.max(distance,p.dot(direction)+Math.abs(p.dot(right))/(th*.86),p.dot(direction)+Math.abs(p.dot(up))/(tv*.80))}

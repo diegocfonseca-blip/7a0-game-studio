@@ -14,7 +14,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  const enterFree=(restore=true)=>{restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if((next==='fixed'||next==='field2d')){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
-  zoomFixed(factor:number){if(mode!=='fixed'&&mode!=='field2d'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,.7,1.6);moving=true;return true},
+  zoomFixed(factor:number){if(mode!=='fixed'&&mode!=='field2d'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,mode==='field2d'?.48:.7,1.6);moving=true;return true},
   explore(){enterFree(false)},
   update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua,ataque:1|-1=1){
    ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
@@ -53,7 +53,15 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
     fov=lens
    }else{lens=undefined;lensCloseSince=undefined}
    lensMode=modo
-   const target=fit?.target??saved!.target,position=fit?target.clone().addScaledVector(fit.direction,distance!):saved!.position
+   const target=fit?.target.clone()??saved!.target
+   if(fit?.preset==='field2d'&&fixedZoom<1){
+    // Whole-pitch view stays centred. Manual zoom progressively follows play
+    // by translation, retaining the approved angle, lens and chosen zoom.
+    const follow=MathUtils.clamp((1-fixedZoom)/.5,0,1)
+    const maxX=Math.max(0,52.5-56*fixedZoom),maxZ=Math.max(0,34-37*fixedZoom)
+    target.x=MathUtils.clamp(ball.x*follow,-maxX,maxX);target.z=MathUtils.clamp(ball.z*follow,-maxZ,maxZ)
+   }
+   const position=fit?target.clone().addScaledVector(fit.direction,distance!):saved!.position
    camera.updateMatrixWorld(true)
    const before=new Vector3(ball.x,ball.y,ball.z).project(camera)
    const edge=fit&&!fit.tactical?MathUtils.smoothstep(Math.max(Math.abs(before.x),Math.abs(before.y)),.45,.9):0
