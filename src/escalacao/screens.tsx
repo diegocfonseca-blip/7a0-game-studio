@@ -1752,6 +1752,9 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
   const { dispatch } = useEsc()
   const [list, setList] = useState<{ slot: CareerSlot; active: boolean }[]>(() => listAllCareers())
+  // ☁️ 03/11: abriu a lista → confere a nuvem (só o carimbo, uns bytes) e redesenha se outro aparelho salvou depois.
+  // Antes a lista era só a foto do aparelho na hora: quem abria logo depois de atualizar via a carreira velha.
+  useEffect(() => { let vivo = true; syncCareersWithCloud().then(ok => { if (vivo && ok) setList(listAllCareers()) }, () => {}); return () => { vivo = false } }, [])
   // 💾 17/10: a ficha extra comprada na Loja vem do banco; quando chega, a tela redesenha com o limite novo
   const [, setExtras] = useState(0)
   useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])

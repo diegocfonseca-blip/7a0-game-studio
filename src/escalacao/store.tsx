@@ -13683,7 +13683,12 @@ function archiveActiveCareer(): boolean {
 }
 // TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
 export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
-  const act = readActiveCareer()
+  let act = readActiveCareer()
+  // 📱☁️ 03/11 (Diego, PC mostrando a Série V na T8 com a nuvem na T10): aparelho CHEIO não grava a carreira que desceu
+  // da nuvem — ela fica na MEMÓRIA (`carreiraEmMemoria`). A lista e o "Continuar" têm que mostrar/abrir ESSA, nunca a
+  // cópia velha do aparelho (antes só o botão da home olhava a memória).
+  const mem = carreiraEmMemoria
+  if (mem && isCareerSave(mem) && (!act || (act.save.seed === mem.seed && (mem.seasonNo ?? 0) >= (act.save.seasonNo ?? 0)))) act = { save: mem, at: Date.now() }
   const arch = readCareerArchive().filter(s => !act || s.save.seed !== act.save.seed)
   const out: { slot: CareerSlot; active: boolean }[] = []
   if (act) out.push({ slot: act, active: true })
