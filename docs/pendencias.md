@@ -1,3 +1,11 @@
+## 🏳️🌙 Mapa 3D: dia de jogo com a cara do clube (03/11) — no BRANCH, esperando OK visual (só conta de teste)
+- ✅ Torcedor da rua (circulação) agora veste a camisa: casa = cor do clube do usuário, visitante = cor do rival (antes era bege/aleatório). Arquibancada, metrô/ônibus, visita e saída já usavam as cores.
+- ✅ Dia de jogo EM CASA: bandeira do clube (escudo + nome, cores do clube) nos postes de rua perto do portão dos mandantes + varais de bandeirolas (cor 1 · cor 2 · creme) entre postes vizinhos. 4 desenhos no total, sem sombra, sem luz nova (`presidencia-dia-jogo-ruas.ts`, planta pura `cidade3d/street-dressing.mjs`, trava `scripts/imersao-mapa/test-street-dressing.mjs`). Celular: 8 bandeiras / 4 varais.
+- ✅ Noite de Copa (quarta 21h): já existia (refletores + janelas + postes). Janelas da cidade ficaram mais fortes à noite (só emissivo). A página de QA trocou "Jogo 1/3 · quarta · noite" pra Copa de verdade (antes caía em liga = dia).
+- ✅ Ônibus das delegações: já vinha pintado nas cores e com escudo/nome na lateral e no teto (`presidencia-cidade-equipes.ts`); portão de visitantes separado já tinha trava (`test-separated-access`). Vistas novas de QA: `matchday-streets` e `coach-live`.
+- ⚠️ Visto na conferência: as vistas prontas `coach-arrival`/`coach-door` não enquadram mais o ônibus (câmera aponta pro lugar velho da baia). Não mexi.
+- 📸 `scripts/mockups/mapa-diadejogo-*.png`.
+
 ## 🥇⚔️ Medalha do clã da semana (02/11) — ✅ PUBLICADO ("ok pode fazer e publica")
 - Mockup `scripts/mockups/cla-semana-medalha.png`. Top 3 de clãs de cada semana fechada → 🥇🥈🥉 na pílula do clã de TODO membro por 30 dias (`esc_podio_cla_semana`, preenchida pelo fecho `esc_fecha_semanas_clas` → `esc_podio_clas_preenche`; leitura `esc_cla_medalha` dentro do `esc_clas_de`). Pódio é POR CLÃ: o `esc_premio_cla_semana` (moeda) só tem quem está desde segunda e por isso não servia (o Lulubaba, 1º da semana 26/10, não aparecia lá). Presidente: coroa 👑 dourada acesa na pílula enquanto tem medalha. Perfil: selo "🥇 CLÃ CAMPEÃO DA SEMANA · até dd/mm". Ganhou individual + clã = as duas (nome × pílula). Batismo/fundador nada a mais. Nunca no chat/telão/tabela/jogo. Moedas 30/20/10 iguais.
 

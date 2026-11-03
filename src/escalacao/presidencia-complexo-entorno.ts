@@ -142,8 +142,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   warmGlass.emissive.set('#b16d24');warmGlass.emissiveIntensity=.10
   warmGlass.userData.complexoNightEmission={color:'#efc886',intensity:.65,dayIntensity:.04}
   const cityWarm=material('#53666a',.21,.32),cityCool=material('#53666a',.21,.32)
-  cityWarm.userData.complexoNightEmission={color:'#efc886',intensity:.7}
-  cityCool.userData.complexoNightEmission={color:'#c1dded',intensity:.38}
+  // 🌙 noite de jogo (Copa na quarta): janela acesa precisa aparecer de longe, até no celular (emissivo; nenhuma luz nova)
+  cityWarm.userData.complexoNightEmission={color:'#efc886',intensity:1.25}
+  cityCool.userData.complexoNightEmission={color:'#c1dded',intensity:.7}
   const lampGlass=material('#e1ddd0',.26,.1)
   lampGlass.userData.complexoNightEmission={color:'#ffe4ae',intensity:2.1}
   const water=material('#3c8d96',.16,.21)
