@@ -1313,7 +1313,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const dealership=criarConcessionariaComplexo(root,onReady)
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
-  const ownerHome=club?.residence?criarResidenciaUsuario(root):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
+  const ownerHome=club?.residence?criarResidenciaUsuario(root,onReady):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
   const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena);solids.push(...clubPlaces.solids)
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
