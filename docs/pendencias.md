@@ -1,3 +1,6 @@
+## ⚡ 03/11 — Abrir clã demorava 15–23 s (consertado no banco)
+- `esc_cla_ver` (tocar num clã) era SQL inlinável e o banco recalculava o ranking da semana várias vezes → plpgsql, **0,5 s**. `esc_cla_lista` (Entrar num clã) 4 s → **0,5 s** (ranking e campeão uma vez). Migration `20261103020000_cla_ver_lista_rapidos.sql`. ⚠️ Lição: função de leitura que junta ranking + JSON por clã NÃO pode ser `language sql` (o banco funde e repete); usar plpgsql e calcular o ranking uma vez.
+
 ## 📧 03/11 — Cota do Resend: 70 código · 30 campanha, confirmação já na 2ª conta (Diego)
 - `esc_conf_cfg`: `teto_dia` 40 → **70**, `min_outros` 2 → **1** (a 2ª conta do mesmo aparelho, criada depois de 30/10, já confirma o e-mail pra criar sala). `esc_email_config.por_dia` 55 → **30**.
 - 🤖 Ordem dele: *"se vê que está batendo nos 70, já vai diminuindo a campanha até zerar"* → `esc_email_ajusta_campanha()` (pg_cron `esc-email-ajusta`, 23h50 Brasília): e-mails de código do dia ≥ 60 → campanha −10 (até 0, nunca sobe sozinha). Histórico em `esc_conf_uso`. Migration `20261103010000_email_cota_70_30.sql`.
