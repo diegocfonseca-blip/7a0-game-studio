@@ -1,3 +1,13 @@
+## 🏆 Dia de FINAL no mapa 3D (03/11, aprovado: "ok") — no BRANCH, esperando OK visual (só a conta de teste vê o mapa)
+- Tudo em `presidencia-complexo-final.ts` (+ regras puras em `presidencia-complexo-final-regras.ts`, trava `scripts/imersao-mapa/test-final-day.mjs`).
+  Antes: avião com a faixa "FINAL · A × B", barracas de bandeira da final (perua de ambulante de sempre), o dobro de gente na rua (no teto
+  20 celular / 48 PC) e fumaça colorida na porta; faixa gigante "FINAL" na fachada. Durante: bandeirões e sinalizador no gol DO USUÁRIO.
+  Depois do apito: campeão = fogos + pódio com taça, papel picado e fumaça; perdeu = sem fogos, pódio do rival, os seus saem cabisbaixos.
+- Final = o que o id da Copa já diz (`:copa:N:Final|Supercopa:`). ⚠️ Pendente: Libertadores/Champions/Mundial (o id da carreira
+  internacional não diz que é final) e Copa do Mundo. ⚠️ Final decidida nos PÊNALTIS (empate no apito) não tem festa — o mapa não sabe
+  quem ganhou sem adiantar o pênalti; resolver passando o vencedor só DEPOIS da animação dos pênaltis.
+- Mockups: `scripts/mockups/mapa-final-antes.png` e `scripts/mockups/mapa-final-podio.png`.
+
 ## 🥇⚔️ Medalha do clã da semana (02/11) — ✅ PUBLICADO ("ok pode fazer e publica")
 - Mockup `scripts/mockups/cla-semana-medalha.png`. Top 3 de clãs de cada semana fechada → 🥇🥈🥉 na pílula do clã de TODO membro por 30 dias (`esc_podio_cla_semana`, preenchida pelo fecho `esc_fecha_semanas_clas` → `esc_podio_clas_preenche`; leitura `esc_cla_medalha` dentro do `esc_clas_de`). Pódio é POR CLÃ: o `esc_premio_cla_semana` (moeda) só tem quem está desde segunda e por isso não servia (o Lulubaba, 1º da semana 26/10, não aparecia lá). Presidente: coroa 👑 dourada acesa na pílula enquanto tem medalha. Perfil: selo "🥇 CLÃ CAMPEÃO DA SEMANA · até dd/mm". Ganhou individual + clã = as duas (nome × pílula). Batismo/fundador nada a mais. Nunca no chat/telão/tabela/jogo. Moedas 30/20/10 iguais.
 

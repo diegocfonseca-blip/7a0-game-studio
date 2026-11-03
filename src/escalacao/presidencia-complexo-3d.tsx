@@ -25,6 +25,7 @@ import {createResidents} from './cidade3d/residents.mjs'
 import {criarEquipeApoioEstadio} from './presidencia-estadio-equipe-apoio'
 import {criarOuvinteEstadio,setMuted,isMuted,onSoundChange} from './sound'
 import {criarDiaDeJogo} from './presidencia-dia-jogo'
+import {criarDiaDeFinal} from './presidencia-complexo-final'
 import {criarChegadaEquipes,type ElencoChegadaCidade} from './presidencia-cidade-equipes'
 import {observarCidade} from './presidencia-cidade-camera'
 import {criarComercioCidade} from './presidencia-cidade-comercio'
@@ -192,6 +193,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   let lastFieldSubjects:ReturnType<typeof game.subjects>=[],lastFieldFixture:string|undefined
   const teamArrival=criarChegadaEquipes(scene,state,()=>wake.current(),matchPresentation==='2d')
   const matchday=criarDiaDeJogo(scene,state,architecture.seats,()=>wake.current())
+  const finalDay=criarDiaDeFinal(scene,state,architecture.seats,()=>wake.current()) // 🏆 dia de FINAL (só existe em final; tudo no arquivo dele)
   setHasSeatView(architecture.seats.length>0)
   const furniture=criarMobiliaComplexo(scene,state,walletRef.current,{interior:isOffice})
   let render=()=>{},disposed=false,compilando=false
@@ -437,12 +439,13 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
    stadiumAccess.configure(currentTeams,sourceMatch?.viewerClubId!==undefined?sourceMatch.viewerClubId===sourceMatch.context.awayClubId?'away':'home':fora?'away':'home')
    matchday.configure({journey:dayJourney,teams:currentTeams,supporters:populationRef.current.attendance?.supporters??0,mobile:softwareGPU||el.clientWidth<600},seconds)
    matchday.update(seconds,camera,el.clientHeight)
+   finalDay.update({match:sourceMatch,journey:dayJourney,teams:currentTeams,frame:game.frame(),subjects:game.subjects().length?game.subjects():lastFieldSubjects,residents:residents.count(),mobile:softwareGPU||el.clientWidth<600,seconds},camera,el.clientHeight)
    pubLife.configure({day:matchday.day(),journey:dayJourney,mobile:softwareGPU||el.clientWidth<600,supporters:populationRef.current.attendance?.supporters??0,enabled:populationRef.current.enabled})
    pubLife.update(seconds,camera,el.clientHeight)
    void teamArrival.configure(dayJourney,tripRosters,seconds,!!matchRef.current,lastFieldFixture===dayJourney?.fixtureId?lastFieldSubjects:[])
    // Public bus terminal and private coach route have independently tested swept volumes.
    teamArrival.update(seconds,camera,el.clientHeight,true,matchday.key()===journeyRef.current?.key&&matchday.coachesAllowed(),matchday.coachStart())
-   game.setPresentationVisible(!teamArrival.overrideField())
+   game.setPresentationVisible(!teamArrival.overrideField()&&!finalDay.overrideField())
    crowd.presentDay(matchday.day()?.standFill??1)
    stadiumStaff.configure({day:matchday.day(),match:sourceMatch,mobile:softwareGPU||el.clientWidth<600,presidentName:presidentRef.current?.name})
    const observedBall=(game.frame() as {ball?:{x:number;z:number}}).ball
@@ -644,7 +647,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   // `fimQuadros` no adaptador). Sem isto o último quadro congelava com todo mundo plantado onde o jogo acabou (filmado 25/10)
   let fimDesde:number|null=null,fimDe:string|null=null
   const cumprimentos=()=>{const m=matchRef.current;if(!m||!m.finished){fimDesde=null;fimDe=null;return false}const id=m.context?.id??'';if(fimDe!==id){fimDe=id;fimDesde=performance.now()}return performance.now()-(fimDesde??0)<45000}
-  const running=()=>visible&&!document.hidden&&(matchCameraController.transitioning||walking()||cumprimentos()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
+  const running=()=>visible&&!document.hidden&&(matchCameraController.transitioning||walking()||cumprimentos()||finalDay.animating()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
   const targetFPS=()=>mobileGraphics&&!isOffice&&camera.position.distanceTo(controls.target)>400&&performance.now()>interactionUntil?20:quality.maxFPS
   const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;presentationPacer.reset();return}const fps=matchPresentation==='3d'&&matchRef.current?.finished?60:targetFPS();if(!presentationPacer.take(now,fps)){raf=requestAnimationFrame(tick);return}if(walking()&&last)seconds+=(now-last)/1000;last=now;if(!softwareGPU){const scale=graphicsBudget.observe(now,quality.pixelRatio,fps);if(scale!==null){adaptiveScale=scale;renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)}}render();if(running())raf=requestAnimationFrame(tick)}
   // Clock publications and texture callbacks share the pending visual frame.
@@ -722,7 +725,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   // Otherwise its loading timeout can expire while the initial 3D render is
   // still blocking the main thread on a slow device.
   if(!managementEnabled||isOffice)presidentBody.update(presidentRef.current,walletRef.current)
-  return()=>{disposed=true;cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();pubLife.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+  return()=>{disposed=true;cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();pubLife.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();finalDay.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
  },[saveKey,citySaveKey,clubName,managementEnabled,isWindow,isOffice,matchPresentation])
  useEffect(()=>{refreshPopulation.current()},[populationKey])
  useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey])
