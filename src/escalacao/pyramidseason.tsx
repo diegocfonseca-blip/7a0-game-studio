@@ -3288,10 +3288,13 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // 📺 Campo 2D (20/10): ligado, o campinho aparece EM CIMA deste placar em qualquer competição (liga, copas, Liberta,
   // Champions, Mundial, Copa do Mundo, regionais, online e offline) e o mascote grande do gol sai de lá — por isso o
   // carimbo daqui some. Basquete fica de fora (é outro esporte).
-  // A sala mantém seu relógio compartilhado, mas a apresentação experimental
-  // do campo continua exclusiva da conta verificada do Diego.
+  // A sala mantém seu relógio compartilhado; a apresentação EXPERIMENTAL (3D/mapa/motor oficial) continua exclusiva da conta
+  // verificada do Diego (`presidentFieldAccount` nos campos abaixo).
+  // 🐛 03/11 (Diego: "criei a Liga Draft com campo 2D e o Futpoint e o Lucas Barreto 30 estão vendo placar"): desde 01/11 o
+  // campinho 2D em si também tinha ficado só na conta dele. O 2D volta à régua de sempre (`useCampo2DLigado`): na sala online
+  // quem manda é a sala (todo mundo vê igual, convidado nunca paga); fora dela, quem está liberado e pagou.
   const presidentFieldAccount = usePresidentPreview()
-  const c2d = useCampo2DLigado() && presidentFieldAccount && !basket
+  const c2d = useCampo2DLigado() && !basket
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
   // 🧑‍💼 o presidente na beira do campo (21/10): o boneco da CONTA, do lado do meu time — só quem tem boneco
