@@ -45,6 +45,8 @@ import {criarIluminacaoComplexo} from './presidencia-complexo-iluminacao'
 import type {PresidenciaCarteira} from './presidencia-economia'
 import type {PresidenteBaseSave} from './presidencia-carreira'
 import {criarPresidenteComplexo,type EstadoArtePresidente} from './presidencia-presidente-3d'
+import {useT,getLang} from './lang'
+import {INFO_PATROCINADORES,ehPatrocinadorCidade} from './presidencia-patrocinadores-info'
 import {criarColecaoSala} from './presidencia-sala-colecao-3d'
 import type {TrofeuPresidencia} from './presidencia-trofeus'
 import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
@@ -52,6 +54,8 @@ import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 
 export type VistaComplexo='arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'boteco-oswaldo'|'bar-esquina'
+/** 🔋 quanto tempo a cidade continua andando depois do último toque no mapa */
+const VIVO_MS=12000
 const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
  {value:'broadcast',label:'Transmissão'},
  {value:'fixed',label:'Lateral fixa'},
@@ -67,6 +71,7 @@ export type ControleComplexo={checkCivilian:(index?:number)=>void;setMatchCamera
 /** Physical reconstruction for local visual review. It only reads the existing save and match clock. */
 export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOpenClub,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,arrivalTeams,fora=false,visitRow=5,visitTier='lower',presentation='map',matchPresentation='3d',onUnavailable,onReady,hud}:{stadium?:StadiumSave;cityStadium?:StadiumSave;clubName?:string;onOpenClub?:(target:DestinoClubeMapa)=>void;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;arrivalTeams?:ElencoChegadaCidade;fora?:boolean;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';matchPresentation?:'2d'|'3d';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void;/** 📺 25/10: placar e controle da partida desenhados POR CIMA do 3D (vale na tela cheia) */hud?:ReactNode}){
  const root=useRef<HTMLDivElement>(null),api=useRef<ControleComplexo|null>(null),ready=useRef(onReady),matchRef=useRef(match),wake=useRef(()=>{}),refreshPopulation=useRef(()=>{}),refreshFurniture=useRef(()=>{}),refreshJourney=useRef(()=>{}),walletRef=useRef(presidency),journeyRef=useRef(journey)
+ const t=useT()
  const clubActionRef=useRef(onOpenClub);clubActionRef.current=onOpenClub
  const managementEnabled=!!onOpenClub
  const arrivalRef=useRef(arrivalTeams);arrivalRef.current=arrivalTeams
@@ -168,7 +173,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   // Retain lighting and cheap contact shadows; omit extra city shadow passes
   // on mobile (up to five heavy passes with the stadium floodlights).
   renderer.shadowMap.enabled=!mobileGraphics
-  const graphicsBudget=renderBudget({minPixelRatio:mobileGraphics?.8:1.25}),presentationPacer=framePacer();let adaptiveScale=1,interactionUntil=0
+  const graphicsBudget=renderBudget({minPixelRatio:mobileGraphics?.8:1.25}),presentationPacer=framePacer();let adaptiveScale=1,interactionUntil=0,vivoAte=0
   const sharpenTextures=()=>aplicarQualidadeTexturasComplexo(scene,quality.anisotropy)
   const camera=new THREE.PerspectiveCamera(38,1,.12,4000),controls=new OrbitControls(camera,renderer.domElement)
   const matchCameraController=criarCameraPartidaContinua(camera,controls,setMatchCamera)
@@ -502,7 +507,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
     frame([...points,...landmarks])
    }
   }
-  const navigation=criarNavegacaoComplexo({camera,controls,onChange:()=>{interactionUntil=performance.now()+250;wake.current()},onExplore:()=>{userExploring.current=true;fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
+  const navigation=criarNavegacaoComplexo({camera,controls,solidos:()=>surround.solids,onChange:()=>{interactionUntil=performance.now()+250;vivoAte=performance.now()+VIVO_MS;wake.current()},onExplore:()=>{userExploring.current=true;fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
   const fixedCameraZoom=criarZoomCameraFixa(renderer.domElement,()=>['fixed','field2d'].includes(matchCameraController.inspect().mode),factor=>{if(matchCameraController.zoomFixed(factor))resume()})
   navigation.setMode(navigationModeRef.current)
   if(isWindow)controls.enabled=false
@@ -640,7 +645,10 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
    else navigation.resize(width,height,()=>view(mode,false))
    if(isWindow){view('office',false);camera.lookAt(controls.target);render()}
   }
-  const walking=()=>!!(residents.count()||circulationActors||transportActors||visits.length||crowdDeparture)&&!pausedRef.current
+  // 🔋 03/11 (Diego: *"só deve começar a movimentar e ter coisas quando apertar realmente no mapa"*): a cidade (moradores, ônibus,
+  // visitas) só anda nos segundos depois de um toque/arrasto/zoom. Parado, o mapa fica congelado e NÃO desenha — o celular para de
+  // esquentar. O jogo no estádio continua com o relógio dele (o `running` abaixo).
+  const walking=()=>!!(residents.count()||circulationActors||transportActors||visits.length||crowdDeparture)&&!pausedRef.current&&performance.now()<vivoAte
   // 🤝 depois do apito o laço segue por 45 s: é o tempo de os 22 andarem até o meio-campo (o motor avança 1/60 s por quadro desenhado,
   // `fimQuadros` no adaptador). Sem isto o último quadro congelava com todo mundo plantado onde o jogo acabou (filmado 25/10)
   let fimDesde:number|null=null,fimDe:string|null=null
@@ -690,7 +698,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   }
   api.current={checkCivilian:(index=0)=>{const info=residents.inspect() as {actors:{position:number[]}[]};const p=info.actors[index]?.position;if(!p)return;navigation.beginView({fitOnResize:false,terrainGuard:true});controls.target.set(p[0],p[1]+.85,p[2]);camera.position.set(p[0]-3,p[1]+2.2,p[2]+4.5);camera.lookAt(controls.target);controls.update();render()},setMatchCamera:setFootballCamera,view,zoom:direction=>{interactionUntil=performance.now()+300;if(matchCameraController.zoomFixed(direction===1?.8:1.25)){resume()}else if(isOffice&&mode==='office'){camera.fov=THREE.MathUtils.clamp(camera.fov*(direction===1?.82:1.22),16,65);camera.updateProjectionMatrix();wake.current()}else navigation.zoom(direction)},setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({softwareGPU,shadowResolution:sun.shadow.mapSize.x,matchCamera:matchCameraController.inspect(),cameraRoofCutaway,state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),residents:residents.inspect(),commerce:commerce.inspect(),botecos:pubLife.inspect(),teamArrival:teamArrival.inspect(),stadiumStaff:stadiumStaff.inspect(),preparation:stadiumPreparation.inspect(),entrances:stadiumAccess.inspect(),matchday:matchday.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),president:presidentBody.inspect(),collection:collection.inspect(),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality:{...quality,mobileGraphics,targetFPS:targetFPS(),adaptiveScale,effectivePixelRatio:renderer.getPixelRatio()},seatLod:seatLod.inspect(),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,memory:{...renderer.info.memory},canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,sponsors:surround.root.userData.sponsors,clubPlaces:surround.root.userData.clubPlaces,residence:surround.root.userData.residence,cityState,establishments:[...surround.establishments]})}
   let tap:{x:number;y:number;id:number;at:number}|null=null
-  const clubPointerDown=(e:PointerEvent)=>{if(clubActionRef.current&&e.isPrimary&&e.button===0)tap={x:e.clientX,y:e.clientY,id:e.pointerId,at:performance.now()}}
+  const clubPointerDown=(e:PointerEvent)=>{vivoAte=performance.now()+VIVO_MS;resume();if(clubActionRef.current&&e.isPrimary&&e.button===0)tap={x:e.clientX,y:e.clientY,id:e.pointerId,at:performance.now()}}
   const clubPointerUp=(e:PointerEvent)=>{
    const start=tap;tap=null;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>6||performance.now()-start.at>700||!clubActionRef.current)return
    const rect=renderer.domElement.getBoundingClientRect(),ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,1-(e.clientY-rect.top)/rect.height*2),camera)
@@ -700,13 +708,16 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
    if(cityState.extras.loja)targets.push({id:'loja',view:'loja',box:new THREE.Box3(new THREE.Vector3(Math.min(...shop.footprint.map(p=>p.x)),.16,Math.min(...shop.footprint.map(p=>p.z))),new THREE.Vector3(Math.max(...shop.footprint.map(p=>p.x)),8,Math.max(...shop.footprint.map(p=>p.z))))})
    if(clubName)targets.push({id:'agencia',view:'agencia-clube',box:new THREE.Box3(new THREE.Vector3(a.x-13,.16,a.z-10),new THREE.Vector3(a.x+13,7.5,a.z+10))})
    targets.push({id:'arena',view:'arena-online',box:new THREE.Box3(new THREE.Vector3(ARENA.x-9,0,ARENA.z-9),new THREE.Vector3(ARENA.x+9,9,ARENA.z+9))})
+   // 🏢 03/11: tocar no prédio de um patrocinador abre o cartão dele (logo, texto, link)
+   const sponsorTargets=(['dsouza','tidex','oittolabs','gecg'] as const).map(id=>{const l=LOTES_PATROCINADORES_CIDADE[id];return{id,view:id as VistaComplexo,box:new THREE.Box3(new THREE.Vector3(l.x-l.width/2,0,l.z-l.depth/2),new THREE.Vector3(l.x+l.width/2,l.height+2,l.z+l.depth/2))}})
+   const sponsorHit=sponsorTargets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[{...t,d:ray.ray.origin.distanceTo(p)}]:[]}).sort((a,b)=>a.d-b.d)[0]
    const hits=targets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[{...t,d:ray.ray.origin.distanceTo(p)}]:[]}).sort((a,b)=>a.d-b.d),hit=hits[0]
-   if(!hit)return
+   if(!hit||sponsorHit&&sponsorHit.d<hit.d){if(sponsorHit){userExploring.current=true;view(sponsorHit.view)}return}
    const blocker=ray.intersectObjects([surround.root,architecture.root],true).find(i=>i.object.visible&&(!('material'in i.object)||(Array.isArray(i.object.material)?i.object.material:[i.object.material]).some(m=>m.visible&&m.opacity>0)))
    if(blocker&&blocker.distance<hit.d-.75)return
-   userExploring.current=true;view(hit.view);clubActionRef.current(hit.id)
+   userExploring.current=true;view(hit.view);if(hit.id!=='veiculos')clubActionRef.current(hit.id) // 🚗 a Vadico abre primeiro o cartão (site + comprar carros)
   }
-  renderer.domElement.addEventListener('pointerdown',clubPointerDown);renderer.domElement.addEventListener('pointerup',clubPointerUp)
+  const acordaRoda=()=>{vivoAte=performance.now()+VIVO_MS;resume()};renderer.domElement.addEventListener('wheel',acordaRoda,{passive:true});renderer.domElement.addEventListener('pointerdown',clubPointerDown);renderer.domElement.addEventListener('pointerup',clubPointerUp)
   const observer=new ResizeObserver(resize);observer.observe(el)
   const visibility=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting===true;resume()});visibility.observe(el)
   document.addEventListener('visibilitychange',resume)
@@ -723,7 +734,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   // Otherwise its loading timeout can expire while the initial 3D render is
   // still blocking the main thread on a slow device.
   if(!managementEnabled||isOffice)presidentBody.update(presidentRef.current,walletRef.current)
-  return()=>{disposed=true;cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();pubLife.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+  return()=>{disposed=true;cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('wheel',acordaRoda);renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();pubLife.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
  },[saveKey,citySaveKey,clubName,managementEnabled,isWindow,isOffice,matchPresentation])
  useEffect(()=>{refreshPopulation.current()},[populationKey])
  useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey])
@@ -735,7 +746,7 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
  useEffect(()=>{const k=matchId+'|'+saveKey;if(!loaded||isWindow||isOffice||!matchId||builtKey.current!==saveKey||matchStarted.current===k)return;matchStarted.current=k;if(!userExploring.current)api.current?.view('field')},[loaded,matchId,isWindow,isOffice,saveKey])
  const go=(destination:VistaComplexo)=>{userExploring.current=true;api.current?.view(destination);root.current?.querySelector('canvas')?.focus({preventScroll:true});setPlacesOpen(false)}
  return <section ref={section} className={`pc3-review${isOffice?' pc3-office':''}${isWindow?' pc3-window':''}${expanded?' pc3-expanded':''}`} data-expanded={expanded} data-presentation={presentation} data-watching-match={!!match&&matchCamera!=='free'} data-camera-mode={matchCamera}
-  role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label={isOffice?'Sala da Presidência':'Mapa do estádio'} onKeyDown={event=>{
+  role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label={isOffice?'Sala da Presidência':t('Mapa do estádio','Stadium map')} onKeyDown={event=>{
    if(event.key==='Escape'){
     if(placesOpen){setPlacesOpen(false);placesButton.current?.focus();event.preventDefault();event.stopPropagation()}
     else if(expanded){setExpanded(false);event.preventDefault();event.stopPropagation()}
@@ -750,70 +761,79 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
   <div className="pc3-stage">
    {replayOn&&<div className="pc3-replay" aria-live="polite">🔁 REPLAY</div>}
    <div ref={root} className="pc3-viewport" data-complexo-3d="true" aria-busy={!loaded} onPointerDown={()=>setPlacesOpen(false)}>
-    {!loaded&&!error&&<p className="pc3-loading" role="status">Preparando o mapa…</p>}
+    {!loaded&&!error&&<p className="pc3-loading" role="status">{t('Preparando o mapa…','Preparing the map…')}</p>}
     {error&&<p className="pc3-error" role="alert">{error}</p>}
    </div>
    {!isWindow&&loaded&&(presidentStatus==='loading'||presidentStatus==='error')&&<div className="pc3-avatar-status" role={presidentStatus==='error'?'alert':'status'}>
-    {presidentStatus==='loading'?'Carregando seu personagem…':<>O visual não carregou. Suas escolhas foram mantidas.<button type="button" onClick={()=>retryPresident.current()}>Tentar novamente</button></>}
+    {presidentStatus==='loading'?t('Carregando seu personagem…','Loading your character…'):<>{t('O visual não carregou. Suas escolhas foram mantidas.','The look did not load. Your choices were kept.')}<button type="button" onClick={()=>retryPresident.current()}>{t('Tentar novamente','Try again')}</button></>}
    </div>}
    {!isWindow&&<><div className="pc3-hud pc3-topbar">
     <div className="pc3-primary">
-     {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>Minha sala</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>Janela</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>Presidente</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>Estante</button></>:<>
-     <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>Mapa</button>
-     {(matchCamera==='free'||matchPresentation==='2d')&&<button type="button" disabled={!loaded} aria-pressed={matchPresentation==='2d'?matchCamera==='field2d':selectedView==='field'} onClick={()=>go('field')}>{matchPresentation==='2d'?'Ver partida':'Ver campo'}</button>}
-     {matchCamera==='free'&&<button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button>}
-     {match&&matchCamera!=='free'&&matchPresentation!=='2d'&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}><span className="pc3-camera-title">Câmera</span>
+     {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>{t('Minha sala','My office')}</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>{t('Janela','Window')}</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>{t('Presidente','President')}</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>{t('Estante','Shelf')}</button></>:<>
+     <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>{t('Mapa','Map')}</button>
+     {(matchCamera==='free'||matchPresentation==='2d')&&<button type="button" disabled={!loaded} aria-pressed={matchPresentation==='2d'?matchCamera==='field2d':selectedView==='field'} onClick={()=>go('field')}>{matchPresentation==='2d'?t('Ver partida','Watch match'):t('Ver campo','See pitch')}</button>}
+     {matchCamera==='free'&&<button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>{t('Locais ','Places ')}<span aria-hidden="true">⌄</span></button>}
+     {match&&matchCamera!=='free'&&matchPresentation!=='2d'&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}><span className="pc3-camera-title">{t('Câmera','Camera')}</span>
       <select id={`${uiId}-camera`} aria-label="Câmera da partida" disabled={!loaded} value={matchCamera} onChange={event=>{api.current?.setMatchCamera(event.currentTarget.value as CameraPartidaContinua);setPlacesOpen(false)}}>
        {CAMERAS_PARTIDA.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
      </label>}</>}
     </div>
-    <button ref={expandButton} className="pc3-expand" type="button" aria-label={isOffice?(expanded?'Fechar sala ampliada':'Ampliar sala'):(expanded?'Fechar mapa ampliado':'Ampliar mapa')} title={isOffice?(expanded?'Fechar sala ampliada':'Ampliar sala'):(expanded?'Fechar mapa ampliado':'Ampliar mapa')} onClick={toggleExpanded}>
+    <button ref={expandButton} className="pc3-expand" type="button" aria-label={isOffice?(expanded?t('Fechar sala ampliada','Close enlarged office'):t('Ampliar sala','Enlarge office')):(expanded?t('Fechar mapa ampliado','Close enlarged map'):t('Ampliar mapa','Enlarge map'))} title={isOffice?(expanded?t('Fechar sala ampliada','Close enlarged office'):t('Ampliar sala','Enlarge office')):(expanded?t('Fechar mapa ampliado','Close enlarged map'):t('Ampliar mapa','Enlarge map'))} onClick={toggleExpanded}>
      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{expanded?<path d="m6 6 12 12M18 6 6 18"/>:<path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/>}</svg>
     </button>
    </div>
    {placesOpen&&!isOffice&&<div className="pc3-places" id={`${uiId}-places`} aria-label="Locais do mapa">
-    {managementEnabled&&<><p>Seu espaço pessoal</p><button type="button" onClick={()=>go('casa-usuario')}>Minha casa · Garagem</button><p>Seu clube</p><button type="button" onClick={()=>go('agencia-clube')}>{nomeAgenciaClube(clubName??'do Clube')}</button>{currentCityState.extras.loja&&<button type="button" onClick={()=>go('loja')}>Loja do Clube</button>}</>}
-    {managementEnabled&&<><p>Comunidade online</p><button type="button" onClick={()=>go('arena-online')}>Arena Legends · Salas abertas</button></>}<p>Explore o estádio</p>
-    {hasSeatView&&<button type="button" onClick={()=>go('stands')}>Arquibancada</button>}
-    <button type="button" onClick={()=>go(fora?'away-entrance':'entrance')}>Torcida do meu clube</button>
-    <button type="button" onClick={()=>go(fora?'entrance':'away-entrance')}>Torcida visitante</button>
-    {visitable.home&&<button type="button" aria-pressed={following==='home'} onClick={()=>go('follow-home')}>Acompanhar torcida da casa</button>}
-    {visitable.away&&<button type="button" aria-pressed={following==='away'} onClick={()=>go('follow-away')}>Acompanhar visitantes</button>}
-    {hasBox&&<><button type="button" onClick={()=>go('office')}>Vista do camarote</button>{!managementEnabled&&<button type="button" onClick={()=>go('room')}>Sala da Presidência</button>}</>}
-    {journey?.hosting&&journey.phase!=='idle'&&<button type="button" onClick={()=>go('matchday')}>Dia de jogo · torcida e barracas</button>}
-    <button type="button" onClick={()=>go('technical-area')}>Banco e área técnica</button>
-    <button type="button" aria-pressed={stadiumSound} onClick={()=>{if(!stadiumSound)setMuted(false);setStadiumSound(v=>!v)}}>{stadiumSound?'Desligar som do estádio':'Som do estádio'}</button>
-    <p>Na região</p>
-    {circulation&&<button type="button" onClick={()=>go('city-street')}>Pessoas e trânsito</button>}
-    {journey?.hosting&&journey.phase!=='idle'&&<><button type="button" onClick={()=>go('coach-arrival')}>Ônibus e desembarque</button><button type="button" onClick={()=>go('coach-door')}>Porta do ônibus · atletas</button><button type="button" onClick={()=>go('team-entrance')}>Serviço e delegações</button><button type="button" onClick={()=>go('team-field')}>Entrada das equipes no campo</button></>}
-    <p>Patrocinadores</p>
-    <button type="button" onClick={()=>go('patrocinadores')}>Todos os patrocinadores</button>
+    {managementEnabled&&<><p>{t('Seu espaço pessoal','Your personal space')}</p><button type="button" onClick={()=>go('casa-usuario')}>{t('Minha casa · Garagem','My house · Garage')}</button><p>{t('Seu clube','Your club')}</p><button type="button" onClick={()=>go('agencia-clube')}>{nomeAgenciaClube(clubName??'do Clube')}</button>{currentCityState.extras.loja?<button type="button" onClick={()=>go('loja')}>{t('Loja do Clube','Club Store')}</button>:<button type="button" onClick={()=>clubActionRef.current?.('loja')}>{t('🔨 Loja do Clube · ainda não construída','🔨 Club Store · not built yet')}</button>}</>}
+    {managementEnabled&&<><p>{t('Comunidade online','Online community')}</p><button type="button" onClick={()=>go('arena-online')}>{t('Arena Legends · Salas abertas','Arena Legends · Open rooms')}</button></>}<p>{t('Explore o estádio','Explore the stadium')}</p>
+    {hasSeatView&&<button type="button" onClick={()=>go('stands')}>{t('Arquibancada','Stands')}</button>}
+    <button type="button" onClick={()=>go(fora?'away-entrance':'entrance')}>{t('Torcida do meu clube','My club\'s fans')}</button>
+    <button type="button" onClick={()=>go(fora?'entrance':'away-entrance')}>{t('Torcida visitante','Away fans')}</button>
+    {visitable.home&&<button type="button" aria-pressed={following==='home'} onClick={()=>go('follow-home')}>{t('Acompanhar torcida da casa','Follow home fans')}</button>}
+    {visitable.away&&<button type="button" aria-pressed={following==='away'} onClick={()=>go('follow-away')}>{t('Acompanhar visitantes','Follow away fans')}</button>}
+    {hasBox&&<><button type="button" onClick={()=>go('office')}>{t('Vista do camarote','Box view')}</button></>}
+    {journey?.hosting&&journey.phase!=='idle'&&<button type="button" onClick={()=>go('matchday')}>{t('Dia de jogo · torcida e barracas','Match day · fans and stalls')}</button>}
+    <button type="button" onClick={()=>go('technical-area')}>{t('Banco e área técnica','Bench and technical area')}</button>
+    <button type="button" aria-pressed={stadiumSound} onClick={()=>{if(!stadiumSound)setMuted(false);setStadiumSound(v=>!v)}}>{stadiumSound?t('Desligar som do estádio','Turn off stadium sound'):t('Som do estádio','Stadium sound')}</button>
+    <p>{t('Na região','Around')}</p>
+    {circulation&&<button type="button" onClick={()=>go('city-street')}>{t('Pessoas e trânsito','People and traffic')}</button>}
+    {journey?.hosting&&journey.phase!=='idle'&&<><button type="button" onClick={()=>go('coach-arrival')}>{t('Ônibus e desembarque','Bus and drop-off')}</button><button type="button" onClick={()=>go('coach-door')}>{t('Porta do ônibus · atletas','Bus door · players')}</button><button type="button" onClick={()=>go('team-entrance')}>{t('Serviço e delegações','Service and squads')}</button><button type="button" onClick={()=>go('team-field')}>{t('Entrada das equipes no campo','Teams walking out')}</button></>}
+    <p>{t('Patrocinadores','Sponsors')}</p>
+    <button type="button" onClick={()=>go('patrocinadores')}>{t('Todos os patrocinadores','All sponsors')}</button>
     <button type="button" onClick={()=>go('vadico')}>Vadico Veículos</button>
     {(['dsouza','tidex','oittolabs','gecg'] as const).map(id=><button type="button" key={id} onClick={()=>go(id)}>{LOTES_PATROCINADORES_CIDADE[id].label}</button>)}
+    <p>{t('Comércio e transporte','Shops and transport')}</p>
     <button type="button" onClick={()=>go('boteco-oswaldo')}>Boteco do Oswaldo</button>
     <button type="button" onClick={()=>go('bar-esquina')}>Bar da Esquina</button>
-    {(['loja','hotel','chopp','praca'] as const).filter(id=>currentCityState.extras[id]&&(id!=='loja'||!managementEnabled)).map(id=><button key={id} type="button" onClick={()=>go(id)}>{{loja:'Loja do clube',hotel:'Hotel',chopp:'Choperia',praca:'Praça'}[id]}</button>)}
-    {circulation&&<button type="button" onClick={()=>go('onibus')}>Ponto de ônibus</button>}
-    {currentCityState.extras.estacao&&<><button type="button" onClick={()=>go('estacao')}>Estação e passarelas</button><button type="button" onClick={()=>go('metro')}>Metrô</button></>}
-    {currentCityState.extras.estac&&<button type="button" onClick={()=>go('estacionamento')}>Estacionamento</button>}
-    {circulation&&<button className="pc3-pause" type="button" aria-pressed={paused} onClick={()=>setPaused(value=>!value)}>{paused?'Retomar passeio':'Pausar passeio'}</button>}
+    {(['loja','hotel','chopp','praca'] as const).filter(id=>currentCityState.extras[id]&&(id!=='loja'||!managementEnabled)).map(id=><button key={id} type="button" onClick={()=>go(id)}>{{loja:t('Loja do clube','Club store'),hotel:t('Hotel','Hotel'),chopp:t('Choperia','Beer house'),praca:t('Praça','Square')}[id]}</button>)}
+    {circulation&&<button type="button" onClick={()=>go('onibus')}>{t('Ponto de ônibus','Bus stop')}</button>}
+    {currentCityState.extras.estacao&&<><button type="button" onClick={()=>go('estacao')}>{t('Estação e passarelas','Station and walkways')}</button><button type="button" onClick={()=>go('metro')}>{t('Metrô','Subway')}</button></>}
+    {currentCityState.extras.estac&&<button type="button" onClick={()=>go('estacionamento')}>{t('Estacionamento','Parking')}</button>}
+    {circulation&&<button className="pc3-pause" type="button" aria-pressed={paused} onClick={()=>setPaused(value=>!value)}>{paused?t('Retomar passeio','Resume walk'):t('Pausar passeio','Pause walk')}</button>}
    </div>}
-   {managementEnabled&&(!loaded||!!error)&&<div className="pc3-club-place"><strong>Seu clube</strong><button type="button" onClick={()=>clubActionRef.current?.('presidencia')}>Minha casa</button><button type="button" onClick={()=>clubActionRef.current?.('financas')}>Finanças</button><button type="button" onClick={()=>clubActionRef.current?.('loja')}>Loja do Clube</button><button type="button" onClick={()=>clubActionRef.current?.('agencia')}>Agência e patrocínios</button><button type="button" onClick={()=>clubActionRef.current?.('arena')}>Consultar salas abertas</button></div>}
-   {managementEnabled&&loaded&&['arena-online','casa-usuario','vadico','loja','agencia-clube'].includes(selectedView)&&<div className="pc3-club-place">
-    <strong>{selectedView==='arena-online'?'Arena Legends':selectedView==='loja'?'Loja do Clube':selectedView==='agencia-clube'?nomeAgenciaClube(clubName??'do Clube'):selectedView==='vadico'?'Vadico Veículos':'Minha casa'}</strong>
-    <button type="button" onClick={()=>clubActionRef.current?.(selectedView==='arena-online'?'arena':selectedView==='loja'?'loja':selectedView==='agencia-clube'?'agencia':selectedView==='vadico'?'veiculos':'presidencia')}>{selectedView==='arena-online'?'Consultar salas':'Entrar'}</button>
-    {selectedView==='casa-usuario'&&<button type="button" onClick={()=>clubActionRef.current?.('financas')}>Finanças</button>}
-    {selectedView==='agencia-clube'&&<button type="button" onClick={()=>clubActionRef.current?.('patrocinio')}>Patrocínios</button>}
+   {managementEnabled&&(!loaded||!!error)&&<div className="pc3-club-place"><strong>{t('Seu clube','Your club')}</strong><button type="button" onClick={()=>clubActionRef.current?.('presidencia')}>{t('Minha casa','My house')}</button><button type="button" onClick={()=>clubActionRef.current?.('financas')}>{t('Finanças','Finances')}</button><button type="button" onClick={()=>clubActionRef.current?.('loja')}>{t('Loja do Clube','Club Store')}</button><button type="button" onClick={()=>clubActionRef.current?.('agencia')}>{t('Agência e patrocínios','Agency and sponsorships')}</button><button type="button" onClick={()=>clubActionRef.current?.('arena')}>{t('Consultar salas abertas','See open rooms')}</button></div>}
+   {loaded&&ehPatrocinadorCidade(selectedView)&&(()=>{const info=INFO_PATROCINADORES[selectedView],en=getLang()==='en';return <div className="pc3-club-place pc3-sponsor-card">
+    <span className="pc3-sponsor-logo" style={{background:info.logo.background}}><img src={info.logo.src} width={info.logo.width} height={info.logo.height} alt={info.nome}/></span>
+    <strong>{info.nome}</strong>
+    <p>{en?info.en:info.pt}</p>
+    <a className="pc3-sponsor-link" href={info.link} target="_blank" rel="noopener noreferrer">{en?info.linkEn:info.linkPt}</a>
+    {selectedView==='vadico'&&managementEnabled&&<button type="button" onClick={()=>clubActionRef.current?.('veiculos')}>{t('🚗 Comprar carros e motos','🚗 Buy cars and bikes')}</button>}
+    <small>{t('Patrocinador do Leilão Legends','Leilão Legends sponsor')}</small>
+   </div>})()}
+   {managementEnabled&&loaded&&['arena-online','casa-usuario','loja','agencia-clube'].includes(selectedView)&&<div className="pc3-club-place">
+    <strong>{selectedView==='arena-online'?'Arena Legends':selectedView==='loja'?t('Loja do Clube','Club Store'):selectedView==='agencia-clube'?nomeAgenciaClube(clubName??'do Clube'):selectedView==='vadico'?'Vadico Veículos':t('Minha casa','My house')}</strong>
+    <button type="button" onClick={()=>clubActionRef.current?.(selectedView==='arena-online'?'arena':selectedView==='loja'?'loja':selectedView==='agencia-clube'?'agencia':selectedView==='vadico'?'veiculos':'presidencia')}>{selectedView==='arena-online'?t('Consultar salas','See rooms'):t('Entrar','Enter')}</button>
+    {selectedView==='casa-usuario'&&<button type="button" onClick={()=>clubActionRef.current?.('financas')}>{t('Finanças','Finances')}</button>}
+    {selectedView==='agencia-clube'&&<button type="button" onClick={()=>clubActionRef.current?.('patrocinio')}>{t('Patrocínios','Sponsorships')}</button>}
    </div>}
    <div className="pc3-hud pc3-navigation" aria-label="Controles do mapa">
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label="Aproximar" title="Aproximar" onClick={()=>api.current?.zoom(1)}>+</button>
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label="Afastar" title="Afastar" onClick={()=>api.current?.zoom(-1)}>−</button>
-    <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?'Ver sala':'Ver tudo'}</button>
-    <button type="button" disabled={!loaded||(matchCamera==='fixed'||matchCamera==='field2d')} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>Girar</button>
+    <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?t('Ver sala','See office'):t('Ver tudo','See all')}</button>
+    <button type="button" disabled={!loaded||(matchCamera==='fixed'||matchCamera==='field2d')} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>{t('Girar','Rotate')}</button>
    </div>
    {hud&&!isWindow&&!isOffice&&loaded&&<div hidden={managementEnabled&&['arena-online','casa-usuario','vadico','loja','agencia-clube'].includes(selectedView)}>{hud}</div>}
-   <p className="pc3-help" id={`${uiId}-help`}>{(matchCamera==='fixed'||matchCamera==='field2d')?<>{matchPresentation==='2d'?'Campo 2D no estádio.':'Lateral fixa · acompanha a jogada.'} Use +, − ou dois dedos para ajustar o zoom.</>:matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></>}</p></>}
+   <p className="pc3-help" id={`${uiId}-help`}>{(matchCamera==='fixed'||matchCamera==='field2d')?<>{matchPresentation==='2d'?t('Campo 2D no estádio.','2D pitch in the stadium.'):t('Lateral fixa · acompanha a jogada.','Fixed side · follows the play.')} Use +, − ou dois dedos para ajustar o zoom.</>:matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?t('Arraste para girar.','Drag to rotate.'):t('Arraste para explorar.','Drag to explore.')} <span className="pc3-help-touch">{t('Use dois dedos para aproximar.','Use two fingers to zoom.')}</span><span className="pc3-help-mouse">{t('Use a roda para aproximar. Setas para mover.','Use the wheel to zoom. Arrows to move.')}</span></>}</p></>}
   </div>
  </section>
 }

@@ -27,6 +27,8 @@ export function coberturaTerrenoComplexo(camera:PerspectiveCamera):LimitesMapaCo
 }
 
 type OpcoesNavegacaoComplexo={
+ /** 🧱 03/11: prédios da cidade — a câmera livre não entra neles (antes atravessava parede) */
+ solidos?:()=>readonly {minX:number;maxX:number;minZ:number;maxZ:number;top:number}[]
  camera:PerspectiveCamera
  controls:OrbitControls
  onChange:()=>void
@@ -37,7 +39,7 @@ type OpcoesNavegacaoComplexo={
 /** Owns only camera interaction; no scene, actor, match clock or save changes.
  * beginView is called before applying an explicit preset. resize then refits
  * that preset until the first gesture, and preserves an explored pose. */
-export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bounds=LIMITES_TERRENO_COMPLEXO}:OpcoesNavegacaoComplexo){
+export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bounds=LIMITES_TERRENO_COMPLEXO,solidos}:OpcoesNavegacaoComplexo){
  let mode:ModoNavegacaoComplexo='pan',explored=false,fitOnResize=true,terrainGuard=true,aerialExploration=false,disposed=false
  let lastPosition:Vector3|undefined,lastTarget:Vector3|undefined
  const element=controls.domElement
@@ -156,6 +158,8 @@ export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bound
   }else{
    translate(MathUtils.clamp(target.x,bounds.minX,bounds.maxX)-target.x,0,MathUtils.clamp(target.z,bounds.minZ,bounds.maxZ)-target.z)
   }
+  // 🧱 03/11 (Diego: *"a câmera livre atravessa prédio e parede"*): se a câmera caiu dentro de um prédio, ela sobe pro telhado dele
+  if(solidos){const c=camera.position,M=1.5;for(const b of solidos())if(c.x>b.minX-M&&c.x<b.maxX+M&&c.z>b.minZ-M&&c.z<b.maxZ+M&&c.y<b.top+2)c.y=b.top+2}
   camera.lookAt(target);camera.updateMatrixWorld()
   lastPosition=camera.position.clone();lastTarget=target.clone()
  }

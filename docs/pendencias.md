@@ -11963,3 +11963,18 @@ os 👥 Amigos; deslogado (sem Amigos) ele continua, senão a pessoa perderia o 
 
 ## 🗺️ 03/11 — Análise a fundo do mapa da aba Clube (só leitura)
 Relatório completo em `docs/analise-mapa-clube-20261103.md`. Graves: intervalo/pênalti invisíveis no mapa (jogo trava), fim de semana sem botão de jogo no mapa, HUD dizendo "começa sozinho", mapa desenhando sem parar (celular esquenta), Sala do presidente montando 2º mapa por cima. Esperando o Diego escolher por onde começar.
+
+### 🗺️ 03/11 — Consertos do mapa da aba Clube (pedido do Diego: "faça tudo isso aqui" + "o que está estranho, resolva")
+Feito no branch (só conta dele), esperando OK pra publicar:
+- Intervalo/pênalti com a pessoa no mapa → a aba Jogos aparece com a janela aberta (antes travava sem botão).
+- Do mapa nenhum jogo começa: "⚽ Ir pro jogo" (dias, fim da semana e Manual) leva pra aba Jogos, onde fica o "▶ Começar o jogo". Saiu o texto falso "o próximo jogo começa sozinho".
+- Lentidão: a cidade só anda nos 12 s depois de um toque/arrasto/zoom (`VIVO_MS`); parado, o mapa não desenha. Jogo no estádio segue normal.
+- Sala do presidente REMOVIDA (montava um 2º mapa 3D por cima). Saíram o "ENTRAR NA SALA" e o botão "Sala da Presidência" da lista.
+- Patrocinadores clicáveis: tocar no prédio (ou escolher na lista) abre cartão com logo, texto e link (`presidencia-patrocinadores-info.ts`, textos/links = os do telão). Vadico: cartão + "🚗 Comprar carros e motos" (abre a garagem de compra que já existia: 25 carros + 15 motos).
+- Câmera livre não entra mais em prédio (sobe pro telhado).
+- Loja sem obra aparece na lista como "🔨 ainda não construída" e abre a explicação.
+- Textos do mapa, do painel, da Casa e da Arena em PT/EN. Lista de lugares: botecos/transporte em "Comércio e transporte".
+- Painel não reabre sozinho ao voltar pra aba Clube.
+- Botão "Ver o jogo no Campo 3D" virou "Ver o jogo no estádio do mapa" (o campo do mapa é o 2D aprovado em 03/11).
+- No mapa, "🔁 Substituir / tática" leva pra aba Jogos.
+Pendente: câmeras de TV (só voltam se trocar o campo 2D do mapa de novo pelo 3D — perguntar), conferir a Copa no mapa na conta dele (o caminho já existe: o mapa segue qualquer jogo do clube), patrocinadores do mapa ainda não mudam com o Master, carros NOVOS na Vadico precisam de arte.

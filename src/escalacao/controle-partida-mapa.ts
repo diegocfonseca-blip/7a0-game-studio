@@ -14,6 +14,8 @@ export interface ControleMapa {
   alternaManual: () => void
   mudaVelocidade: (v: number) => void
   avanca: () => void
+  /** 🔁 substituição e tática: abre a aba Jogos (onde moram) */
+  tatica?: () => void
   /** 📅 o dia do calendário da carreira ("📅 Qua 23 abr") */
   dia?: string
   /** ⏩ pula os dias que faltam até o jogo, sem sair do mapa (só com a semana passando) */

@@ -10375,6 +10375,8 @@ export function PyramidSeasonScreen() {
   // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
   useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
   const escolheAba = (t: AbaCarr) => { tabTocada.current = true; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
+  // 🗺️ 03/11 (Diego): saiu da aba Clube com um lugar do mapa aberto → o painel fecha (antes reabria sozinho ao voltar)
+  useEffect(() => { if (tab !== 'estadio' && mapaComoClube) setClubeSub('estadio') }, [tab, mapaComoClube])
   // 📊 com Jogos + Tabela juntos, qualquer caminho antigo que abria "Tabelas" (link, aba lembrada) cai na aba Jogos
   useEffect(() => { if (jogoTabela && tab === 'tabelas') setTab('jogos') }, [jogoTabela, tab])
   // 🔴 tem recibo esperando no Clube? (patrocínio pago na virada · fechamento do
@@ -10402,6 +10404,9 @@ export function PyramidSeasonScreen() {
   // O momento sagrado de verdade é quando o BANNER está ABERTO na cara da pessoa
   // (aí sim nada pode competir), mais a festa do campeão.
   const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
+  // 🛑 03/11 (Diego: *"o jogo trava no mapa no intervalo e no pênalti"*): as janelas do intervalo e do pênalti moram na aba Jogos.
+  // Chegou a hora delas com a pessoa no mapa → a aba Jogos aparece (com a janela já aberta), senão o jogo ficava parado sem botão.
+  useEffect(() => { if (tab === 'estadio' && mapaNoClube && ((halftimeOpen && halfMode && !halftimeDone) || (penaltyOpen && penMode && !penaltyDone))) escolheAba('jogos') }, [tab, mapaNoClube, halftimeOpen, halfMode, halftimeDone, penaltyOpen, penMode, penaltyDone]) // eslint-disable-line react-hooks/exhaustive-deps
   const barraOn = barraCarr && !sagrado
   const cabRef = useRef<HTMLDivElement | null>(null)
   const [cabFora, setCabFora] = useState(false)
@@ -10554,7 +10559,8 @@ export function PyramidSeasonScreen() {
     podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
     alternaManual: toggleManualCareer, mudaVelocidade: v => dispatch({ type: 'SET_SIM_SPEED', speed: v }),
-    avanca: copaPlaying ? () => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) } : avancarRodada,
+    avanca: () => escolheAba('jogos'), // 🛑 03/11: do mapa, o próximo jogo sempre começa na aba Jogos (nunca dentro do mapa)
+    tatica: () => escolheAba('jogos'),
   } : null
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {
@@ -10613,8 +10619,9 @@ export function PyramidSeasonScreen() {
       jogos.sort((a, b) => a.dia - b.dia)
     }
     // ⏩ Pular: se a semana tem Copa ainda não jogada, pula só ATÉ A QUARTA (a Copa nunca é pulada); senão, até o domingo
-    const irProJogoNoMapa = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); if (!copaPendente) setJogoOk(`${calSn}:${round}:l`) } // (no mapa, o "ir pro jogo" já é a pessoa mandando começar)
     const verJogoNoMapa = () => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // 🛑 03/11 (Diego: *"não quero que jogo nenhum comece sozinho, tem que aparecer com a área de jogos"*): no mapa o "Ir pro jogo"
+    // é o MESMO de toda aba — pula os dias e leva pra aba Jogos, onde fica o "▶ Começar o jogo". O mapa nunca dá o apito.
     const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
     const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
@@ -10630,10 +10637,10 @@ export function PyramidSeasonScreen() {
     const barra = tab === 'jogos' || naCentral || (jogoTabela && (tab === 'elenco' || tab === 'ranking') && calFase !== 'dias') ? null : <CalendarioBarra fase={calFase} hoje={hoje} prox={prox} passo={calI} total={calTotal} auto pausado={pausado} grande={naCentral} naCentral={naCentral}
       recado={naCentral ? recado : null} jogos={null} copaNome={copaPlaying ? copaFaseName : undefined} diasDeJogo={diasDeJogo} rodada={round}
       assistir={tab === 'estadio' && !presidentAvailable && calFase === 'jogo' ? { on: clubeAssistir, troca: () => setClubeAssistir(v => !v) } : null}
-      onPular={mapaNoClube ? irProJogoNoMapa : vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba(jogoTabela ? 'central' : 'jogos')} onProximo={proximoAdv} />
+      onPular={vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba(jogoTabela ? 'central' : 'jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
-    return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && calI < calTotal ? irProJogoNoMapa : undefined }
+    return { barra, proxCard, selo, irProJogoNoMapa: calFase === 'dias' && calLivre && round < 38 ? vaiProJogo : undefined }
   })()
   useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, irProJogo: calOn && !chegando ? calBarra?.irProJogoNoMapa : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
@@ -10648,7 +10655,7 @@ export function PyramidSeasonScreen() {
   // semana para e o próprio cartão da semana troca o ⏩ por "⚽ Ir pro jogo"; na aba Jogos fica o "▶ Começar o jogo".
   // 🏟️ Campo 3D (só onde o mapa existe — conta do Diego): vai pra aba Clube, dentro do mapa, na câmera de transmissão
   const verNo3D = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && calOn ? () => {
-    pedeCameraDoMapa('broadcast'); setClubeSub('estadio'); escolheAba('estadio')
+    pedeCameraDoMapa('field2d'); setClubeSub('estadio'); escolheAba('estadio')
     setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
   } : null
   // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
@@ -11807,7 +11814,7 @@ export function PyramidSeasonScreen() {
           // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
-            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no Campo 3D', '🏟️ Watch the match in 3D')}</button>}
+            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={avancarRodada}
@@ -11839,7 +11846,7 @@ export function PyramidSeasonScreen() {
           manualAllowed ? (
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
-            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no Campo 3D', '🏟️ Watch the match in 3D')}</button>}
+            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
               onNext={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
