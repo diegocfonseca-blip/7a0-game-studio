@@ -1,3 +1,8 @@
+## 📧 03/11 — Cota do Resend: 70 código · 30 campanha, confirmação já na 2ª conta (Diego)
+- `esc_conf_cfg`: `teto_dia` 40 → **70**, `min_outros` 2 → **1** (a 2ª conta do mesmo aparelho, criada depois de 30/10, já confirma o e-mail pra criar sala). `esc_email_config.por_dia` 55 → **30**.
+- 🤖 Ordem dele: *"se vê que está batendo nos 70, já vai diminuindo a campanha até zerar"* → `esc_email_ajusta_campanha()` (pg_cron `esc-email-ajusta`, 23h50 Brasília): e-mails de código do dia ≥ 60 → campanha −10 (até 0, nunca sobe sozinha). Histórico em `esc_conf_uso`. Migration `20261103010000_email_cota_70_30.sql`.
+- Medido (31/10–02/11): ~45 contas/dia cairiam na regra da 2ª conta (eram ~15 na da 3ª). Limite: quem tem 2 e-mails de VERDADE confirma e passa.
+
 ## ⭐⚔️ Clã: +1 vaga por membro com plano, SEM LIMITE (02/11) — ✅ PUBLICADO
 - Mockup `scripts/mockups/cla-vagas-por-plano.png`; Diego: *"sem limite"*. Limite = 22 + membros (com o presidente) com plano pago (`esc_direitos_de->pago`). Entrada confere AO VIVO (`esc_cla_cabe` → `esc_cla_limite_vivo`); lista/caixas leem `esc_cla_limite_cache` (pg_cron `esc-cla-limites` a cada 5 min — `esc_direitos_de` custa ~5 ms por membro). Leituras continuam STABLE (o painel do clã é stable: nada de gravar dentro). Ninguém é tirado quando o limite baixa. Hoje: Lulubaba 28 · Futpoint 25 · Leite de Verdade 23. Tela: `limiteDo(c)` (cla.tsx) no lugar do 22 fixo. ⏳ O aviso "+1 vaga" pro clã quando entra alguém com plano (do mockup) ainda não foi feito.
 
