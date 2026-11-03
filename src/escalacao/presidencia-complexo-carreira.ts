@@ -7,6 +7,7 @@ import type { PresidenciaCarteira } from './presidencia-economia'
 import type { IdentidadePresidencia } from './presidencia-identidade-conta'
 import type { EstadoPartidaEstadio } from './presidencia-partida-model'
 import type { DiaEstadio } from './presidencia-estadio-publico'
+import type { DecisaoJogo } from './presidencia-lotacao-jogo'
 import { estadioVisualValido } from './presidencia-estadio-validacao'
 import { presidenteCadastrado } from './presidencia-entrada-model'
 import { camadasDoPresidente, copiarAparencia } from './presidente-aparencia'
@@ -15,7 +16,9 @@ import { jornadaDoComplexo, type AgendaJogoComplexo, type FaseJornadaComplexo, t
 
 /** Actual career values supplied by the existing screen. An absent day does
  * not become a sample fanbase. Match phase comes from the shared match only. */
-export type DiaCarreiraComplexo = { division: string; support: number; rain?: boolean }
+export type DiaCarreiraComplexo = { division: string; support: number; rain?: boolean
+  /** 🎟️ lotação do jogo (presidencia-lotacao-jogo.ts) */
+  pos?: number; classico?: boolean; decisao?: DecisaoJogo }
 export type EntradaCarreiraComplexo = {
   /** The existing caller's gate. This boolean never authenticates an account. */
   enabled: boolean
@@ -67,12 +70,19 @@ export type SalaComplexoCarreira = {
   physicalPresident: false
 }
 
+// 🎟️ only well-formed table position / derby / decider flags reach the attendance rule
+function lotacaoConferida(day: DiaCarreiraComplexo): Pick<DiaEstadio, 'pos' | 'classico' | 'decisao'> {
+  return { ...(Number.isSafeInteger(day.pos) && day.pos! >= 1 && day.pos! <= 40 ? { pos: day.pos } : {}),
+    ...(day.classico === true ? { classico: true } : {}),
+    ...(day.decisao === 'reta' || day.decisao === 'semi' || day.decisao === 'final' ? { decisao: day.decisao } : {}) }
+}
 function diaConferido(day: DiaCarreiraComplexo | undefined, match?: EstadoPartidaEstadio): DiaEstadio | undefined {
   if (!day || !['V', 'D', 'C', 'B', 'A'].includes(day.division)
     || !Number.isFinite(day.support) || day.support < 0 || day.support > 100
     || (day.rain !== undefined && typeof day.rain !== 'boolean')) return undefined
   return { division: day.division, support: day.support,
     ...(day.rain === undefined ? {} : { rain: day.rain }),
+    ...lotacaoConferida(day),
     // Same classification as DiaDoEstadio; camera and furniture never start a clock.
     match: match ? match.paused && match.minute >= 45 ? 'interval' : 'playing' : 'idle' }
 }
@@ -135,7 +145,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     const hostSave = state.stadiums?.[hostId]
     const fase = match.paused && match.minute >= 45 ? 'interval' as const : 'playing' as const
     complexo.stadium = structuredClone(estadioVisualValido(hostSave) ? hostSave : estadioPadraoDaDivisao(input.day.division))
-    complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
+    complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), ...(day?.classico ? { classico: true } : {}), ...(day?.decisao ? { decisao: day.decisao } : {}), match: fase }
     complexo.awayStadium = structuredClone(own)
     complexo.awayDay = { division: input.day.division, support: Math.round(input.day.support * 0.45), ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
     complexo.journey = jornadaDoComplexo({ agenda: match.context.agenda, match, stadiumClubId: hostId })
