@@ -35,6 +35,40 @@ console.log(`✅ carreira nasce limpa: ${marcas.size} marcas de modo zeradas · 
 for (const nome of ['START_CAREER_SOLO', 'CAREER_FROM_QUICK']) {
   const b = bloco(nome, 12000); const corpo = b.slice(0, b.indexOf("\n    case '", 10))
   assert.ok(/s\.condicaoCarry = undefined/.test(corpo) && /s\.botCarry = undefined/.test(corpo), `${nome} tem que zerar condicaoCarry e botCarry`)
+  // 🏋️🧢 03/11: a comissão da carreira anterior (preparador, técnico e contratos) também não vem junto
+  assert.ok(/s\.careerPreparador = undefined; s\.careerPreparadorContrato = undefined/.test(corpo) && /s\.careerTecnicos = undefined/.test(corpo) && /s\.careerTecnicoContrato = undefined/.test(corpo), `${nome} tem que zerar preparador e técnico (com contratos)`)
 }
 assert.ok(/seasonNo \?\? 1\) <= 1\) \{ restored\.condicaoCarry = undefined/.test(bloco('RESUME_CAREER_SOLO', 6000)), 'RESUME_CAREER_SOLO tem que curar carry herdado em save da T1')
 console.log('✅ carreira nova nasce sem jogos/gols/assistências da carreira anterior')
+// 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova"): TODO campo do EscState tem que estar em um destes lugares —
+// zerado/montado no começo da carreira (START_CAREER_SOLO), nas MARCAS_DE_MODO, no ZERA_NA_CARREIRA_NOVA, ou na lista abaixo do
+// que é da CONTA, do APARELHO, da SALA ou passageiro do pregão (esses podem passar de uma carreira pra outra sem dano).
+// Campo novo que não esteja em lugar nenhum = reprova: quem criou decide se ele é da carreira (vai pro ZERA) ou não (vai pra cá).
+{
+  const { readFileSync } = await import('node:fs')
+  const tipos = readFileSync('src/escalacao/types.ts', 'utf8')
+  const corpoTipo = tipos.match(/export interface EscState \{([\s\S]*?)\n\}/)[1]
+  const campos = [...corpoTipo.matchAll(/^ {2}([a-zA-Z0-9_]+)\??:/gm)].map(m => m[1])
+  const ini = src.indexOf("case 'START_CAREER_SOLO'"), fim = src.indexOf("\n    case '", ini + 10)
+  const start = src.slice(ini, fim)
+  const zera = new Set([...src.match(/export const ZERA_NA_CARREIRA_NOVA = \[([\s\S]*?)\] as const/)[1].matchAll(/'(\w+)'/g)].map(m => m[1]))
+  const FICA_NA_CARREIRA_NOVA = new Set([
+    'sport', 'nbaCareer', 'nbaCareerId', 'nbaTier', // esporte/NBA: escolha do aparelho
+    'submitted', 'pendingEnvelopes', 'presence', 'restartReadyUids', 'presenceUids', 'seatUids', 'youUid', 'espectador', 'espHostUid', // sala/presença
+    'surpriseId', 'mudoId', 'phase', 'currentCards', 'revealQueue', 'resenha', 'revealIdx', 'stock', 'convocacaoDeadline', 'convocacaoFeitos',
+    'convocacaoDuplaFeitos', 'convocacaoEscolhas', 'hol', 'holFechando', 'monteOrder', 'monteIdx', 'phaseDeadline', 'monteDeadline',
+    'cerimoniaDeadline', 'restartPending', 'restartReady', // passageiros do pregão (o leilão da carreira remonta)
+    'league', 'fixtures', // remontados pela temporada da carreira
+    'careerSubMode', 'careerIntent', 'careerRivalCount', 'careerRivals', // escolhidos NA TELA de criar, antes do START
+    'tvBannerSeen', 'tvExtraVisto', 'simSpeed', 'condicaoAuto', // preferência/aviso visto do aparelho
+    'bafoOn', 'colecoesRecebidas', 'bafoTrocasFeitas', // da CONTA (o servidor é quem marca)
+    'bicoZeradoV2', 'medicoDevolvidoV1', 'medicoDevolvido', 'preparadorDevolvidoV1', 'preparadorDevolvido', // migrações já feitas
+    'dinastiaPaused', 'dinastiaMidUsed', 'cpuAtkAdj', 'cpuDefAdj', // do jogo rápido
+  ])
+  const soltos = campos.filter(c => !new RegExp(`\\bs\\.${c}\\s*=(?!=)`).test(start) && !marcas.has(c) && !zera.has(c)
+    && !['rivalries', 'tiebreaks', 'tiebreakIdx', 'tiebreakPending'].includes(c) && !FICA_NA_CARREIRA_NOVA.has(c))
+  assert.deepEqual(soltos, [], `campo(s) do EscState sem decisão pra carreira nova (zera ou fica?): ${soltos.join(', ')}`)
+  assert.ok(/zeraCarreiraAnterior\(s\)/.test(start), 'START_CAREER_SOLO tem que chamar zeraCarreiraAnterior')
+  assert.ok(/zeraCarreiraAnterior\(s\)/.test(bloco('CAREER_FROM_QUICK', 12000)), 'CAREER_FROM_QUICK tem que chamar zeraCarreiraAnterior')
+  console.log(`✅ carreira nova: ${campos.length} campos do estado, todos com decisão (${zera.size} zerados de propósito)`)
+}

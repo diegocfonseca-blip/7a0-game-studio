@@ -7594,6 +7594,21 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
+/** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
+ *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
+ *  crônica, motor novo (`motor2Desde` velho travava o botão até a temporada antiga!), resultados do motor (`m2Res`), prêmios já
+ *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
+ *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
+ *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
+export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+  'motor2Desde', 'motor2RecepcaoDesde', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
+  'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
+  'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev'] as const satisfies readonly (keyof EscState)[]
+function zeraCarreiraAnterior(s: EscState): void {
+  for (const k of ZERA_NA_CARREIRA_NOVA) (s as unknown as Record<string, unknown>)[k] = undefined
+  s.rivalries = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {} // (campos obrigatórios: zeram pro vazio, não pra undefined)
+}
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -8724,7 +8739,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'START_CAREER_SOLO': {
-      limpaMarcasDeModo(s) // 🧼 nada do rápido nem da sala online entra na carreira (21/10)
+      limpaMarcasDeModo(s)
+      zeraCarreiraAnterior(s) // 🧹 03/11: o que é da CARREIRA anterior não vem junto
+      // (acima: 🧼 nada do rápido nem da sala online entra na carreira, 21/10)
       // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão
       // de reservas/transferências, economia, votação-solo), mas sozinho contra a
       // CPU. Os rivais escolhidos entram na Série D como CPUs que DÃO LANCE.
@@ -8818,6 +8835,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.criaDeEvento = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: carreira nova NÃO herda jogos/gols/assistências/gás da anterior ("mal começou e já tinha gol")
+      // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
+      // a comissão (preparador, técnico e os CONTRATOS deles) também é da carreira anterior — a nova nasce sem, igual ao RESTORE_CAREER.
+      s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
+      s.careerTecnicos = undefined; s.careerTecnicosDesde = undefined; s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
+      s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
       s.careerBico = undefined // 🕴️ Bico de Folga: carreira nova não herda o patrocinador da carreira anterior
       s.agenciaDividir = false // toggle da agência volta ao padrão (1º clube)
       // 🧹 carreira NOVA começa do ZERO: nada de estádio, SAF, títulos ou divisão
@@ -8895,6 +8917,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.isHost = true
       s.careerOnline = true
       limpaMarcasDeModo(s) // 🧼 o jogo rápido vira carreira: as escolhas do rápido ficam pra trás (21/10)
+      { const riv = s.rivalries; zeraCarreiraAnterior(s); s.rivalries = riv ?? {} } // 🧹 03/11: nada da carreira anterior (o retrospecto é o desta liga rápida, fica)
       s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
@@ -8933,6 +8956,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: idem — nada da carreira anterior
+      // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
+      // a comissão (preparador, técnico e os CONTRATOS deles) também é da carreira anterior — a nova nasce sem, igual ao RESTORE_CAREER.
+      s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
+      s.careerTecnicos = undefined; s.careerTecnicosDesde = undefined; s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
+      s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
       s.agenciaDividir = false
       s.stadiums = {}; s.careerFilial = undefined; s.safJaTeve = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
@@ -8981,6 +9009,21 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🧾 CURA (02/11): o carry só nasce na virada da T1→T2 (guardaCansaco roda antes do seasonNo++), então carreira
       // ainda na 1ª temporada com carry = sujeira herdada de carreira anterior (o START não limpava). Some aqui.
       if ((restored.seasonNo ?? 1) <= 1) { restored.condicaoCarry = undefined; restored.botCarry = undefined }
+      // 🏋️🧢 03/11: cura quem JÁ começou carreira com a comissão da anterior. Contrato de verdade termina no máximo
+      // CONTRATO_MAX−1 temporadas à frente; mais longe que isso só pode ter vindo de outra carreira → sai, sem multa.
+      {
+        const lim = (restored.seasonNo ?? 1) + CONTRATO_MAX - 1
+        const prepC = restored.careerPreparadorContrato
+        if (prepC) for (const [time, fim] of Object.entries(prepC)) if (fim > lim) {
+          restored.careerPreparador = { ...(restored.careerPreparador ?? {}), [time]: null }
+          const c = { ...prepC }; delete c[time]; restored.careerPreparadorContrato = c
+        }
+        const tecC = restored.careerTecnicoContrato
+        if (tecC) for (const [time, fim] of Object.entries(tecC)) if (fim > lim) {
+          restored.careerTecnicos = { ...(restored.careerTecnicos ?? {}), [time]: null }
+          const c = { ...(restored.careerTecnicoContrato ?? {}) }; delete c[time]; restored.careerTecnicoContrato = c
+        }
+      }
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
