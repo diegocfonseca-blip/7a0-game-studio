@@ -20,7 +20,7 @@ const hoje = `<div class="tel"><span class="tag" style="background:#e6dcbf">HOJE
 
 const nova = `<div class="tel"><span class="tag" style="background:#FFC400">PROPOSTA</span>
   <div class="mod">
-    <div class="top"><span style="font-size:34px">🏟️</span><div><b>SUA SALA DE HOJE JÁ FOI</b><small>a próxima grátis libera em <u>7h12</u></small></div></div>
+    <div class="top"><span style="font-size:30px">🏟️</span><div><b>HOJE VOCÊ JÁ CRIOU A SUA SALA</b><small>Dá pra criar 1 sala por dia — amanhã libera outra. Mas <u>entrar em qualquer sala aberta é sempre de graça</u>: é só escolher uma em "Salas abertas".</small></div></div>
     <p class="cmp">QUAL É A SUA?</p>
     <div class="duo">
       <div class="c4"><span style="font-size:28px">🎟️</span><b class="ct">3 SALAS EXTRAS</b><div class="p4"><span>R$</span><b>4,90</b></div><span class="b4">PIX AQUI</span></div>
@@ -28,7 +28,6 @@ const nova = `<div class="tel"><span class="tag" style="background:#FFC400">PROP
     </div>
     <ul style="margin-top:12px"><li>✅ <b>Salas à vontade</b> todo dia</li><li>✅ <b>Minhas Ligas</b> com os amigos</li><li>✅ <b>Nome único</b> + nome <b>prata</b> ⭐ · presidente e clã</li></ul>
     <p class="pix">⚡ Craque Salas: Pix automático todo mês · <b>cancela quando quiser</b> · já cai na sua conta</p>
-    <p class="free">🆓 Entrar numa sala aberta é sempre grátis → <u>ver salas abertas</u></p>
     <p class="todos">ver todos os planos ›</p>
   </div>
   <p class="nota">O 4,90 do lado do 9,90: a pessoa compara sozinha. O 9,90 é maior e brilha.</p></div>`
@@ -43,7 +42,7 @@ h1{font:700 30px Oswald;text-transform:uppercase;margin:0 0 4px;color:#FFC400}.s
 .ot{font:700 15px Oswald}.old p{font-size:13px;font-weight:700;margin:4px 0 8px;line-height:1.4}.old small{display:block;font-size:11px;font-weight:700;color:#5a5040;margin:-2px 2px 8px}
 .ob{display:block;text-align:center;border:3px solid ${INK};border-radius:12px;padding:9px;font:700 15px Oswald;box-shadow:3px 3px 0 #000;margin-bottom:8px}
 .mod{background:#F4ECD6;border:4px solid ${INK};border-radius:20px;box-shadow:5px 5px 0 #000;padding:14px}
-.top{display:flex;align-items:center;gap:10px;background:${INK};color:#fff;border-radius:14px;padding:10px 12px}.top b{font:700 19px Oswald;display:block}.top small{font-size:12px;font-weight:700;color:#ddd}.top u{color:#FFC400;text-decoration:none;font-weight:900}
+.top{display:flex;align-items:center;gap:10px;background:${INK};color:#fff;border-radius:14px;padding:10px 12px}.top b{font:700 18px Oswald;display:block}.top small{display:block;font-size:12.5px;font-weight:700;color:#ddd;line-height:1.4;margin-top:3px}.top u{color:#FFC400;text-decoration:none;font-weight:900}
 .hero{position:relative;margin-top:14px;background:${PRATA};border:4px solid ${INK};border-radius:18px;box-shadow:4px 4px 0 #000;padding:16px 14px 12px;text-align:center}
 .selo{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#1B7A3D;color:#fff;font:700 11px Oswald;letter-spacing:1px;border:2px solid ${INK};border-radius:8px;padding:2px 8px;white-space:nowrap}
 .ht{font:700 24px Oswald;display:block}.pr{display:flex;justify-content:center;align-items:baseline;gap:3px;margin:2px 0}.pr b{font:700 50px Oswald;line-height:1}.pr span{font:700 16px Oswald}
