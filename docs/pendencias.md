@@ -1,3 +1,6 @@
+## 🕐 03/11 — Conta nova REPETIDA no mesmo aparelho só cria sala depois de 24 h (Diego: "faz assim e publica")
+- Mockup `scripts/mockups/conta-nova-24h.png`. Medido: em 12 dias, 337 contas criaram sala no 1º dia; 299 eram a 1ª conta do aparelho (gente nova/streamer) e só 38 repetidas → a espera vale SÓ pra conta que não é a 1ª do aparelho. Banco: `esc_conta_nova_espera` + gatilho `esc_sala_por_dia` (erro `CONTA_NOVA_24H`, hint = segundos); sala extra comprada antecipa (gasta 1); plano pago nunca espera; só conta criada a partir de 03/11 (`esc_conta_nova_cfg.desde`). Desligar: `update esc_conta_nova_cfg set ligado = false`. Tela: `ContaNova24h` + `ContaNovaLegenda` (lobby.tsx). Aparelho = id guardado no navegador (mesmo do e-mail): aba anônima, outro navegador ou limpar dados escapam.
+
 ## ⚡ 03/11 — Abrir clã demorava 15–23 s (consertado no banco)
 - `esc_cla_ver` (tocar num clã) era SQL inlinável e o banco recalculava o ranking da semana várias vezes → plpgsql, **0,5 s**. `esc_cla_lista` (Entrar num clã) 4 s → **0,5 s** (ranking e campeão uma vez). Migration `20261103020000_cla_ver_lista_rapidos.sql`. ⚠️ Lição: função de leitura que junta ranking + JSON por clã NÃO pode ser `language sql` (o banco funde e repete); usar plpgsql e calcular o ranking uma vez.
 
