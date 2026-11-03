@@ -33,6 +33,13 @@
   internacional não diz que é final) e Copa do Mundo. ⚠️ Final decidida nos PÊNALTIS (empate no apito) não tem festa — o mapa não sabe
   quem ganhou sem adiantar o pênalti; resolver passando o vencedor só DEPOIS da animação dos pênaltis.
 - Mockups: `scripts/mockups/mapa-final-antes.png` e `scripts/mockups/mapa-final-podio.png`.
+## 🏳️🌙 Mapa 3D: dia de jogo com a cara do clube (03/11) — no BRANCH, esperando OK visual (só conta de teste)
+- ✅ Torcedor da rua (circulação) agora veste a camisa: casa = cor do clube do usuário, visitante = cor do rival (antes era bege/aleatório). Arquibancada, metrô/ônibus, visita e saída já usavam as cores.
+- ✅ Dia de jogo EM CASA: bandeira do clube (escudo + nome, cores do clube) nos postes de rua perto do portão dos mandantes + varais de bandeirolas (cor 1 · cor 2 · creme) entre postes vizinhos. 4 desenhos no total, sem sombra, sem luz nova (`presidencia-dia-jogo-ruas.ts`, planta pura `cidade3d/street-dressing.mjs`, trava `scripts/imersao-mapa/test-street-dressing.mjs`). Celular: 8 bandeiras / 4 varais.
+- ✅ Noite de Copa (quarta 21h): já existia (refletores + janelas + postes). Janelas da cidade ficaram mais fortes à noite (só emissivo). A página de QA trocou "Jogo 1/3 · quarta · noite" pra Copa de verdade (antes caía em liga = dia).
+- ✅ Ônibus das delegações: já vinha pintado nas cores e com escudo/nome na lateral e no teto (`presidencia-cidade-equipes.ts`); portão de visitantes separado já tinha trava (`test-separated-access`). Vista nova de QA: `matchday-streets`. Sem foto do ônibus nesta entrega (as vistas prontas não enquadram a baia, ver abaixo).
+- ⚠️ Visto na conferência: as vistas prontas `coach-arrival`/`coach-door` não enquadram mais o ônibus (câmera aponta pro lugar velho da baia). Não mexi.
+- 📸 `scripts/mockups/mapa-diadejogo-*.png`.
 
 ## 🥇⚔️ Medalha do clã da semana (02/11) — ✅ PUBLICADO ("ok pode fazer e publica")
 - 🔁 02/11 à noite: por uns minutos ficou só o 1º clã; o Diego voltou atrás: **top 3 = 🥇 ouro · 🥈 prata · 🥉 bronze, todo membro carrega**, e quem ganha clã + individual fica com AS DUAS (nome × pílula). Não trocar a do clã por 🏆.

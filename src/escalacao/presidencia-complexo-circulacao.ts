@@ -14,6 +14,8 @@ export type PopulacaoTesteComplexo = {
   pedestrians?: number; cars?: number; homeFans?: number; awayFans?: number
   journey?: JornadaMovimentoComplexo
   stadium?: StadiumSave; day?: DiaEstadio; awayStadium?: StadiumSave; awayDay?: DiaEstadio
+  /** 👕 camisa da torcida: casa = cores do clube do usuário · visitante = cores do rival */
+  homeColor?: string; awayColor?: string
 }
 type Pose = { x: number; y: number; z: number; heading: number; distance: number; speed: number; phase: QuadroBairro['pedestre']['phase']; visible: boolean }
 type Destination = 'loja' | 'hotel' | 'chopp'
@@ -245,8 +247,10 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   scene.add(root)
   const ordinaryRigCount = Math.max(pedestrians.length, carLegs.length)
   const rigCount = ordinaryRigCount + fans.length
+  const fanColor = (side: 'home' | 'away', home = population.homeColor, away = population.awayColor) => side === 'home' ? home ?? '#1B7A3D' : away ?? '#C2452F'
   const rigs = Array.from({ length: rigCount }, (_, i) => {
-    const rig = criarAtoresBairro(scene,{id:`circulacao-${i}`})
+    const fanSpec = fans[i - ordinaryRigCount]
+    const rig = criarAtoresBairro(scene,{id:`circulacao-${i}`,outfitColor:fanSpec?fanColor(fanSpec.side):undefined})
     rig.pedestre.name = `complexo-pedestre-${i}`; rig.carro.name = `complexo-carro-${i}`
     root.add(rig.pedestre, rig.carro)
     const pedestrian = pedestrians[i]
@@ -255,7 +259,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
     if (fan) {
       rig.pedestre.name = `complexo-torcedor-${fan.id}`
       rig.pedestre.userData = { side: fan.side, gate: PLANTA_COMPLEXO.gates[fan.side].id }
-      rig.pedestre.traverse(object => { if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshStandardMaterial && object.material.color.getHexString() === '1b7a3d') object.material.color.set(fan.side === 'home' ? '#1B7A3D' : '#C2452F') })
+      rig.pedestre.traverse(object => { if (object instanceof THREE.Mesh && object.material instanceof THREE.MeshStandardMaterial && object.material.color.getHexString() === '1b7a3d') object.material.color.set(fanColor(fan.side)) })
     }
     rig.pedestre.visible = rig.carro.visible = false
     return rig
@@ -285,13 +289,18 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   return {
     root, update, configureJourney(value: JornadaMovimentoComplexo | undefined) {
       journey = value; fans.forEach(fan => fan.journeyClock.configure(value)); hasFrame = false; update(last.seconds)
+    },
+    /** Troca a camisa dos torcedores que já estão na rua (cores chegam depois do calendário). */
+    configureColors(homeColor?: string, awayColor?: string) {
+      if (disposed) return
+      fans.forEach((fan, index) => rigs[ordinaryRigCount + index]?.setOutfitColor(fanColor(fan.side, homeColor, awayColor)))
     }, feet: rigs[shopIndex]?.feet ?? [],
     pedestrianFeet: pedestrians.map((entry, i) => ({ id: entry.id, destination: entry.destination, feet: rigs[i].feet })),
     wheels: rigs.slice(0, carLegs.length).flatMap(rig => rig.wheels),
     fanFeet: rigs.slice(ordinaryRigCount).map(rig => rig.feet),
     inspect() {
       return { ...last, mode: attendance ? 'career' as const : 'qa-sample' as const, attendance, awayAttendance, civilians:rigs.map(rig=>rig.inspectCivilian()), problems: problems.map(p => ({ ...p })),
-        journey: journey ? { ...journey } : undefined, fanJourneys: fans.map(fan => ({ id: fan.id, ...fan.journeyClock.inspect() })),
+        journey: journey ? { ...journey } : undefined, fanJourneys: fans.map(fan => ({ id: fan.id, ...fan.journeyClock.inspect() })), fanColors: fans.map((fan, index) => ({ id: fan.id, side: fan.side, color: rigs[ordinaryRigCount + index]?.outfitColor() })),
         period: pedestrians[shopIndex]?.timeline.period ?? 0, destinationBudget, pedestrianRadius: PEDESTRIAN_RADIUS, carRadius: CAR_RADIUS }
     },
     dispose() {
