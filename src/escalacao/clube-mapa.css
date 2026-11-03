@@ -1,0 +1,10 @@
+.clube-mapa-painel{box-sizing:border-box;width:min(760px,calc(100vw - 20px));max-height:90dvh;padding:0;border:3px solid #0c0c0c;border-radius:18px;background:#f4ecd6;color:#0c0c0c;box-shadow:5px 5px 0 #0c0c0c;overflow:auto;overscroll-behavior:contain}
+.clube-mapa-backdrop{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:10px;background:rgba(12,12,12,.48)}
+.clube-mapa-painel>header{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;background:#f4ecd6;border-bottom:3px solid #0c0c0c}
+.clube-mapa-painel>header h2{font:900 23px Oswald,sans-serif;margin:0}.clube-mapa-painel>header small{font-weight:800}
+.clube-mapa-painel>header button,.clube-mapa-painel>nav button{border:2.5px solid #0c0c0c;border-radius:10px;background:#fff;padding:9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #0c0c0c}
+.clube-mapa-painel>nav{display:flex;gap:8px;padding:10px}.clube-mapa-painel>nav button{flex:1}.clube-mapa-painel>nav button[aria-pressed=true]{background:#ffc400}
+.clube-mapa-conteudo{padding:12px}.pc3-club-place{position:absolute;z-index:6;left:10px;bottom:65px;max-width:calc(100% - 90px);padding:9px;border:3px solid #0c0c0c;border-radius:12px;background:#f4ecd6;box-shadow:3px 3px 0 #0c0c0c;font-size:12px;font-weight:800}.pc3-club-place strong{display:block}.pc3-club-place button{padding:8px;border:2px solid #0c0c0c;border-radius:8px;background:#ffc400;margin:6px 5px 0 0;font-weight:900;cursor:pointer}
+
+/* Keep fullscreen city open behind management and existing purchase portals. */
+body.clube-mapa-gestao-aberta .pc3-expanded{z-index:99989}

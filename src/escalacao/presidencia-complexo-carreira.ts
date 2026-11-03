@@ -19,7 +19,7 @@ export type DiaCarreiraComplexo = { division: string; support: number; rain?: bo
 export type EntradaCarreiraComplexo = {
   /** The existing caller's gate. This boolean never authenticates an account. */
   enabled: boolean
-  state: CarreiraComEstadio & ConquistasCarreira
+  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[]}
   mgrId: number
   day?: DiaCarreiraComplexo
   match?: EstadoPartidaEstadio | null
@@ -38,6 +38,9 @@ export type EntradaCarreiraComplexo = {
 }
 export type PropsComplexoCarreira = {
   stadium?: StadiumSave
+  /** Own city improvements survive the host stadium switch in an away game. */
+  cityStadium?: StadiumSave
+  clubName?: string
   presidency: PresidenciaCarteira | null
   match?: EstadoPartidaEstadio
   day?: DiaEstadio
@@ -100,6 +103,8 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
   // calendar can distinguish a true interval from pausing later in the match.
   if (day && journey) day.match = journey.phase === 'playing' || journey.phase === 'interval' ? journey.phase : 'idle'
   const complexo: PropsComplexoCarreira = {
+    cityStadium: structuredClone(stadium??{inv:{},ext:[]}),
+    clubName:state.managers.find(m=>m.id===mgrId)?.teamName,
     ...(stadium === undefined ? {} : { stadium: structuredClone(stadium) }),
     presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),

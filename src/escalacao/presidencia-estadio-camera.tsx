@@ -1,3 +1,4 @@
+import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import {FonteReplayCampo2D} from './presidencia-fonte-replay-2d'
 import {lazy,Suspense,useMemo,useRef} from 'react'
 import {useReplay3D,type FonteReplay3D} from './presidencia-replay-3d'
@@ -17,7 +18,7 @@ import {MapaHud} from './presidencia-mapa-hud'
 const Complexo=lazy(()=>import('./presidencia-complexo-3d'))
 export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string;replayMatch?:FonteReplay3D}
 /** Slot privado da aba existente: obras/compras permanecem no motor atual. */
-export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,career,onReady}:{stadium?:StadiumSave;matchId?:string;homeClubId?:number;onRoof?:(closed:boolean)=>void;career?:CarreiraCameraEstadio;onReady?:(api:ControleComplexo|null)=>void}){
+export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,career,onReady,onOpenClub}:{stadium?:StadiumSave;matchId?:string;homeClubId?:number;onRoof?:(closed:boolean)=>void;career?:CarreiraCameraEstadio;onReady?:(api:ControleComplexo|null)=>void;onOpenClub?:(target:DestinoClubeMapa)=>void}){
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),t=useT()
  const account=usePresidentPreview(),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
  const replay=useReplay3D(career?.replayMatch,account)
@@ -47,7 +48,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
    {replay.error&&<p role="status">{t('Este jogo salvo não possui replay compatível. Seu resultado foi preservado.','This saved match has no compatible replay. Its result was preserved.')}</p>}
   </div>}
   <Suspense fallback={<p role="status">{t('Carregando seu estádio e a região…','Loading your stadium and its surroundings…')}</p>}>
-   <Complexo matchPresentation="2d" {...adapted.complexo} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady} hud={<MapaHud match={replayFrame??retained}/>}/>
+   <Complexo matchPresentation="2d" {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady} hud={<MapaHud match={replayFrame??retained}/>}/>
   </Suspense>
   {onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
   <p style={{margin:'8px 0 0',fontSize:11}}><a href="./creditos-3d.txt" target="_blank" rel="noreferrer">{t('Créditos dos modelos e animações 3D','3D models and animation credits')}</a></p>
