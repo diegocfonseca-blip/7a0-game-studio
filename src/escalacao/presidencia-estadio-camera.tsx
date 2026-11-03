@@ -15,6 +15,7 @@ import {usePresidenteConta,presidenteContaLiberado} from './presidente-conta'
 import {artesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {useVistaCampo} from './presidencia-campo-observacao'
 import {MapaHud} from './presidencia-mapa-hud'
+import {publicoDoEstadio} from './presidencia-estadio-publico'
 const Complexo=lazy(()=>import('./presidencia-complexo-3d'))
 export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string;replayMatch?:FonteReplay3D}
 /** Slot privado da aba existente: obras/compras permanecem no motor atual. */
@@ -38,6 +39,8 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
   agenda:chegada?career.agenda:retained?.context.agenda??career.agenda}):null
  if(!account)return null
  const displayMatch=replayFrame??(chegada?undefined:adapted?.complexo.match??retained)
+ // 🎟️ o público do placar sai da MESMA lotação que enche a arquibancada do mapa (presidencia-lotacao-jogo)
+ const torcedores=adapted?.complexo.day?publicoDoEstadio(adapted.complexo.stadium??{inv:{},ext:[]},adapted.complexo.day).torcedores:0
  if(adapted)return <section ref={watching} data-presidencia-complexo-carreira>
   {replayFrame&&career?.replayMatch&&<FonteReplayCampo2D frame={replayFrame} source={career.replayMatch}/>}
   {/* 📺 25/10: o ritmo e o placar moram DENTRO do mapa (MapaHud); os créditos foram pro pé */}
@@ -48,7 +51,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
    {replay.error&&<p role="status">{t('Este jogo salvo não possui replay compatível. Seu resultado foi preservado.','This saved match has no compatible replay. Its result was preserved.')}</p>}
   </div>}
   <Suspense fallback={<p role="status">{t('Carregando seu estádio e a região…','Loading your stadium and its surroundings…')}</p>}>
-   <Complexo matchPresentation="2d" {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady} hud={<MapaHud match={replayFrame??retained}/>}/>
+   <Complexo matchPresentation="2d" {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady} hud={<MapaHud match={replayFrame??retained} torcedores={replayFrame?0:torcedores}/>}/>
   </Suspense>
   {onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
   <p style={{margin:'8px 0 0',fontSize:11}}><a href="./creditos-3d.txt" target="_blank" rel="noreferrer">{t('Créditos dos modelos e animações 3D','3D models and animation credits')}</a></p>

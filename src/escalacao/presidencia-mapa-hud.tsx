@@ -12,7 +12,7 @@ const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, 
 const RESET: CSSProperties = { minHeight: 0, minWidth: 0, height: 'auto', margin: 0, boxShadow: 'none', lineHeight: 1.15 }
 const sigla = (n: string) => (n.replace(/[^A-Za-zÀ-ú0-9 ]/g, '').trim().split(/\s+/).find(w => w.length > 2) ?? n).slice(0, 3).toUpperCase()
 
-export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefined }) {
+export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio | null | undefined; /** 🎟️ público do jogo (lotação × lugares construídos) */ torcedores?: number }) {
   const t = useT(), ctl = useControleMapa(), ritmo = useRitmoCampo(),[controlsOpen,setControlsOpen]=useState(false)
   const vivo = !!match && !match.finished
   if (!match && !ctl) return null
@@ -34,6 +34,7 @@ export function MapaHud({ match }: { match: EstadoPartidaEstadio | null | undefi
       {!vivo && ctl?.irProJogo && <button type="button" onClick={ctl.irProJogo} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}`, background: GREEN, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('⏩ Ir pro jogo', '⏩ Go to the match')}</button>}
       {!vivo && !ctl?.manual && !ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#ddd' }}>{match?.finished ? t('⏱️ Fim de jogo — o próximo vem sozinho', '⏱️ Full time — the next one comes by itself') : t('⏳ O próximo jogo começa sozinho — e passa aqui no campo', '⏳ The next match starts by itself — right here on the pitch')}</span>}
     </div>
+    {vivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3 }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
     {vivo && match?.officialNarration && <div className="pc3-match-narration">🎙️ {match.officialNarration}</div>}
    </div>
    {(ctl||ritmo)&&<div className="pc3-match-controls">
