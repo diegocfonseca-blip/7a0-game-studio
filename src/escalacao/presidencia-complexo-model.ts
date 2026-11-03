@@ -1,3 +1,4 @@
+import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {STADIUM_ENTRANCES,STADIUM_HOME_GATE,STADIUM_AWAY_GATE} from './cidade3d/stadium-entrances.mjs'
 import { STADIUM_SECTORS, STADIUM_EXTRAS, type StadiumSave } from './estadiodata'
 import { progressoVisualSetor } from './presidencia-estadio-camadas'
@@ -33,7 +34,7 @@ export type LoteComplexo = {
   rotation: number
   heading: number
   footprint: readonly PontoComplexo[]
-  footprintSource: 'registered-navigation'
+  footprintSource: 'registered-navigation' | 'club-store-layout'
   door?: PortaComplexo
   elevated: boolean
 }
@@ -133,6 +134,10 @@ const full: StadiumSave = {
 }
 /** Registro de chão já usado pelos NPCs. Recortes visuais AREAS_MUNDO não são pegadas. */
 const footprints = Object.fromEntries(obstaculosDoEstadio(full).map(o => [o.id, o.polygon.map(mapaParaMundo)]))
+// Shared 3D address: geometry, pedestrians, doors and camera.
+footprints.loja=LOJA_CLUBE_3D.footprint
+doors.loja=LOJA_CLUBE_3D.door
+routes.shop={id:'shop',points:LOJA_CLUBE_3D.approach,loop:false}
 
 function caixaOrientada(footprint: readonly PontoComplexo[], heading: number) {
   const cos = Math.cos(heading), sin = Math.sin(heading)
@@ -151,7 +156,7 @@ function lote(id: string): LoteComplexo {
   }
   const { x, z, width, depth, heading } = oriented
   return { id, x, z, center: { x, z }, width, depth, heading, rotation: heading, footprint,
-    footprintSource: 'registered-navigation', door, elevated: id === 'estacao' }
+    footprintSource: id==='loja'?'club-store-layout':'registered-navigation', door, elevated: id === 'estacao' }
 }
 const lots = Object.fromEntries(['hotel', 'loja', 'chopp', 'praca', 'estacao'].map(id => [id, lote(id)]))
 const mapCorners = [{ x: 0, y: 0 }, { x: MAPA_ESTADIO.width, y: 0 },
@@ -185,7 +190,7 @@ export const PLANTA_COMPLEXO = {
 /** Estado ativo sem mutação: a compra controla quais colisores existem. */
 export function obstaculosComplexo(st?: StadiumSave) {
   if (!estadioVisualValido(st)) return []
-  return obstaculosDoEstadio(st).map(o => ({ id: o.id, footprint: o.polygon.map(mapaParaMundo) }))
+  return obstaculosDoEstadio(st).map(o => ({ id: o.id, footprint: o.id==='loja'?PLANTA_COMPLEXO.lots.loja.footprint:o.polygon.map(mapaParaMundo) }))
 }
 
 /** A praça contorna fonte/canteiros; visitantes chegam pelo passeio leste. */

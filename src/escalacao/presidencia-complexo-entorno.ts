@@ -1,3 +1,7 @@
+import {ARENA_ONLINE} from './arena-planta'
+import {TERRENO_USUARIO} from './residencia-planta'
+import {criarResidenciaUsuario} from './residencia-3d'
+import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {criarLugaresClube} from './presidencia-clube-lugares'
 import {LOTE_AGENCIA_CLUBE} from './clube-mapa-destinos'
 import {criarPatrocinadoresCidade} from './presidencia-patrocinadores-cidade'
@@ -80,7 +84,7 @@ function camposRuido(size:number){
   for(let z=0;z<size;z++)for(let x=0;x<size;x++){const i=z*size+x;fino[i]=(hash(x,z)-.5)*.45+smooth(x,z,16)*.35;mancha[i]=smooth(x,z,128)}
   return CAMPOS_RUIDO={size,fino,mancha}
 }
-export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string}) {
+export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string;residence?:boolean;arena?:boolean}) {
   const root=new THREE.Group()
   root.name='complexo-entorno'
   scene.add(root)
@@ -251,7 +255,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
   const serviceReservations=[...['east','west','branch'].map(key=>poligonoRuaComplexo({points:AJUSTES_RUAS_COMPLEXO[key as 'east'|'west'|'branch'],width:5.8},1.6)),circle(AJUSTES_RUAS_COMPLEXO.turning.center,7)]
-  const landscapeReservations=[...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_VADICO.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
+  const landscapeReservations=[...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_VADICO.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
     ...(transport.station.enabled?[faixaTransporteComplexo([transport.station.point(-transport.station.railExtent,0),transport.station.point(transport.station.railExtent,0)],14)]:[]),
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
@@ -558,11 +562,42 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
 
   if(state.extras.loja){
     const lot=PLANTA_COMPLEXO.lots.loja;entered.add('loja')
-    building('loja',lot.footprint,7.3,lot.door,2)
-    const p=lot.center
-    for(let i=-1;i<=1;i++)box('loja-expositor',wood,1.2,1.45,4,p.x+i*4,.16+.725,p.z-2,lot.heading,true)
-    box('loja-balcao',wood,5.5,1.1,.9,p.x-1,.71,p.z-8,lot.heading,true)
-    for(let i=0;i<3;i++)box('loja-climatizacao',white,2.2,.65,1.45,p.x-2,7.82,p.z-5+i*5,lot.heading)
+    const {x,z,width:w,depth:d,height:h,heading:yaw}=LOJA_CLUBE_3D
+    const at=(u:number,v:number)=>localPoint(x,z,u,v,yaw)
+    const part=(id:string,mat:THREE.Material,bw:number,bh:number,bd:number,u:number,y:number,v:number,solid=false)=>{
+      const p=at(u,v);return box('loja-'+id,mat,bw,bh,bd,p.x,y,p.z,yaw,solid)
+    }
+    polygon('loja-piso',lot.footprint,GROUND,paving)
+    for(const side of[-1,1])part('lateral',concrete,.26,h,d,side*w/2,GROUND+h/2,0,true)
+    part('fundo',concrete,w,h,.26,0,GROUND+h/2,-d/2,true)
+    part('cobertura',white,w+.5,.22,d+.5,0,GROUND+h,0)
+    const clearGlass=material('#c5e2e9',.22,.05)
+    clearGlass.transparent=true;clearGlass.opacity=.16;clearGlass.depthWrite=false
+    const accent=material('#17483c',.85)
+    for(const side of[-1,1]){
+      const u=side*5.05
+      part('vitrine-base',accent,5.6,.52,.28,u,GROUND+.26,d/2,true)
+      part('vitrine-vidro',clearGlass,5.5,2.65,.045,u,GROUND+1.85,d/2+.025,true).castShadow=false
+      for(const end of[-1,1])part('esquadria',dark,.12,3.35,.18,u+end*2.8,GROUND+1.675,d/2+.06)
+      part('expositor',white,5.25,.2,1.5,u,.85,d/2-.85,true)
+      part('arara',metal,5,.055,.055,u,2.9,d/2-1)
+    }
+    part('faixa-fachada',accent,w,1.05,.32,0,4.36,d/2+.05)
+    part('marquise',dark,w+.8,.16,1.5,0,3.6,d/2+.45)
+    part('soleira',paving,4.1,.03,5.2,0,.145,d/2+2)
+    part('balcao',wood,4.2,1.1,1.1,0,.71,-3.5,true)
+    part('porta-fundo',glass,2,3.1,.08,0,1.71,-d/2+.16)
+    const shirt=new THREE.Shape()
+    const outline=[[-.33,.63],[-.63,.45],[-.48,.13],[-.32,.21],[-.32,-.52],[.32,-.52],[.32,.21],[.48,.13],[.63,.45],[.33,.63],[.15,.51],[-.15,.51]]
+    outline.forEach(([u,v],i)=>i?shirt.lineTo(u,v):shirt.moveTo(u,v));shirt.closePath()
+    const shirtGeometry=own(new THREE.ExtrudeGeometry(shirt,{depth:.075,bevelEnabled:false}))
+    for(const side of[-1,1])for(let i=0;i<3;i++){
+      const p=at(side*5.05+(i-1)*1.5,d/2-1)
+      const garment=add(shirtGeometry,i%2?dark:white);garment.name='loja-camisa';garment.position.set(p.x,2.05,p.z);garment.rotation.y=yaw
+      part('gola',dark,.32,.09,.1,side*5.05+(i-1)*1.5,2.61,d/2-.97)
+      part('cachecol',i%2?white:accent,.38,.09,.7,side*5.05+(i-1)*1.4,.99,d/2-.85)
+    }
+    fixture('loja-luz-vitrine',lot.door!.threshold.x,3.35,lot.door!.threshold.z,'entrance',GROUND,yaw)
   }
   if(state.extras.chopp){
     const portal=PLANTA_COMPLEXO.doors.chopp;entered.add('chopp')
@@ -997,6 +1032,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       ...parkingLots.map((polygon,i)=>({id:`estacionamento-${i}`,polygon})),
       {id:'arena',polygon:arena},
       ...(club?.name?[{id:'agencia-clube',polygon:LOTE_AGENCIA_CLUBE.footprint}]:[]),
+      ...(club?.residence?[{id:TERRENO_USUARIO.id,polygon:TERRENO_USUARIO.footprint}]:[]),
+      ...(club?.arena?[{id:ARENA_ONLINE.id,polygon:ARENA_ONLINE.footprint}]:[]),
       ...Object.values(LOTES_PATROCINADORES_CIDADE).map(lot=>({id:'patrocinador-'+lot.id,polygon:lot.footprint})),
       ...PLANTA_VADICO.reservationPolygons.map((polygon,i)=>({id:`vadico-${i}`,polygon})),
       ...parcels.map((p,i)=>({id:`quadra-${i}`,polygon:parcelPolygon(p)})),
@@ -1275,7 +1312,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const dealership=criarConcessionariaComplexo(root,onReady)
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
-  const clubPlaces=criarLugaresClube(root,state,club?.name);solids.push(...clubPlaces.solids)
+  const ownerHome=club?.residence?criarResidenciaUsuario(root):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
+  const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena);solids.push(...clubPlaces.solids)
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
   solids.push(...dealership.solids)
@@ -1283,7 +1321,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   let disposed=false
   return {root,solids,doors,transport,botecos,establishments:entered,dispose(){
     botecos.forEach(pub=>pub.dispose())
-    if(disposed)return;disposed=true;clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
+    if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
   }}
 }

@@ -23,7 +23,9 @@ import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2'
+import { LimiteSalaVenda } from './limite-sala-venda'
 import { assinarMensal } from './vendria-checkout'
+import { LojaButton } from './loja-clube'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -46,7 +48,6 @@ import { POS_LABELS } from './sportcfg'
 const DUPLA_BB_ICON: Record<string, string> = { GOL: '🧠', LAT: '🎯', ZAG: '🦅', MEI: '💪', ATA: '🗼', MONTE: '📦' }
 import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
-import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
@@ -4541,24 +4542,10 @@ export function EscLobby() {
       {!pwModal && roomError && <><p className="text-red-400 text-sm font-bold">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
       {confirmaEmail && <ConfirmaEmail onLiberado={() => { setConfirmaEmail(false); void createRoom() }} onVerSalas={() => { setConfirmaEmail(false); setTab('open') }} />}
       {contaNovaBox && contaNovaFim && <ContaNova24h fim={contaNovaFim} onVerSalas={() => { setContaNovaBox(false); setTab('open') }} />}
-      {limiteDia && <div style={{ background: '#FFF3C4', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '10px 12px', margin: '8px 0' }}>
-        <p style={{ margin: 0, fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif' }}>{tr('🏟️ HOJE VOCÊ JÁ CRIOU A SUA SALA', '🏟️ YOU ALREADY CREATED YOUR ROOM TODAY')}</p>
-        <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>
-          {tr('Dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'You can create 1 room per day — another one unlocks tomorrow. But ')}
-          <b>{tr('entrar em qualquer sala aberta é sempre de graça', 'joining any open room is always free')}</b>
-          {tr(': é só escolher uma em "Salas abertas".', ': just pick one in "Open rooms".')}
-        </p>
-        {/* 14/10 (Diego): os dois caminhos um EMBAIXO do outro. O Lenda abre a tela padrão do Apoie, do começo
-            (Pra onde vai o dinheiro → todos os planos); as salas extras abrem a Loja. */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
-          {/* ⭐ 26/10 (oferta na hora aprovada: *"quando o cara for criar sala extra que não pode aparece avulso 4,90 ou mensal 9,90 ou ver
-              todos os planos"*): o 🎟️ 4,90 vem na frente (Diego: *"começa com 4,90 na frente"*), depois o ⭐ Craque Salas 9,90/mês (Vendria) — o clique cai no painel #admin "Quem apertou nos planos" */}
-          <LojaButton ancora="loja-salas" style={{ width: '100%', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('🎟️ OU 3 SALAS EXTRAS · R$ 4,90', '🎟️ OR 3 EXTRA ROOMS · R$ 4.90')}</LojaButton>
-          <button onClick={() => { logApoio('🏟️ limite de sala → Craque Salas (Vendria)'); void assinarMensal('craque_salas', tr) }} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('⭐ SALAS À VONTADE · R$ 9,90/MÊS', '⭐ UNLIMITED ROOMS · R$ 9.90/MONTH')}</button>
-          <p style={{ margin: '-2px 2px 0', fontSize: 11, fontWeight: 700, color: '#5a5040', lineHeight: 1.3 }}>{tr('Craque Salas: crie quantas salas e ligas quiser. Assine com o MESMO e-mail da sua conta do jogo.', 'Star Rooms: create as many rooms and leagues as you like. Subscribe with the SAME e-mail as your game account.')}</p>
-          <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🏟️ limite de sala → ver os planos'); open() }} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('💛 VER TODOS OS PLANOS', '💛 SEE ALL THE PLANS')}</button>} />
-        </div>
-      </div>}
+      {/* 🏟️💳 03/11 (mockup scripts/mockups/limite-sala-venda.png, Diego: "Sim pode fazer e publicar"): o limite da sala virou tela de
+          venda. Topo = o MESMO texto de antes; embaixo os dois lado a lado (🎟️ 3 salas extras no Pix do jogo · ⭐ Craque Salas no Vendria,
+          Pix automático todo mês) e a pessoa compara sozinha — sem frase de comparação, sem "cancela quando quiser" (ordens dele). */}
+      {limiteDia && <LimiteSalaVenda onPagou={() => setLimiteDia(false)} />}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a
           mensagem dizia "é só encerrar aqui embaixo", mas o botão só existia
           dentro de dois pop-ups (senha e continuar carreira). Quem batia na trava

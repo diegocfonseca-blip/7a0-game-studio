@@ -1,3 +1,8 @@
+import {ArenaConsulta} from './arena-consulta'
+import type {ControleComplexo} from './presidencia-complexo-3d'
+import {ResidenciaClube} from './residencia-clube'
+import {GaragemCarreira} from './garagem-carreira'
+import {carteiraDaCarreira} from './presidencia-carreira'
 import {ClubeMapaPainel} from './clube-mapa-painel'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import { podeAtivarRecepcaoM2, recepcaoM2Desde, versaoRecepcaoNaRodada, versaoRecepcaoNaCopa } from './motor2-recepcao-conta'
@@ -8372,7 +8377,8 @@ export function PyramidSeasonScreen() {
   // quem manda no tempo é o dono da sala, então lá não pausa.
   const pausaCentral = tab === 'central' && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
+  const clubeMapaApi=useRef<ControleComplexo|null>(null)
   const mapaComoClube = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && state.onlineMode!=='online' && !state.co2
 
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
@@ -10935,7 +10941,8 @@ export function PyramidSeasonScreen() {
       semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} raioX={compProximo || compPalco ? null : raioX} />
   }
   const abrirDestinoNoMapa=(target:DestinoClubeMapa)=>setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)
-  const temPainelClube = clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
+  const PainelResidencia=mapaComoClube?ResidenciaClube:PresidenciaClube
+  const temPainelClube = clubeSub==='arena'&&mapaComoClube||clubeSub==='veiculos'&&mapaComoClube|| clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
   // Preserve the one map instance while the existing club screens open above it.
   // Every purchase/reducer below is unchanged; navigating does not run a match.
   const renderEstruturaDoClube=()=> (
@@ -10945,7 +10952,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
@@ -12288,8 +12295,8 @@ export function PyramidSeasonScreen() {
             })()}
             {(mapaComoClube || !temPainelClube) && renderEstruturaDoClube()}
             <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={setClubeSub} onClose={()=>setClubeSub('estadio')}>
-            {clubeSub === 'presidencia' && presidentAvailable ? (
-              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PresidenciaClube insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
+            {clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
+              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PainelResidencia onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
                 dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
               }} onDisplay={display=>{
