@@ -102,6 +102,7 @@ import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º club
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
+import {DesktopRankSummary} from './desktop-layout'
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
 import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
@@ -2603,8 +2604,11 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
 }) {
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
   // extrato: do mais novo pro mais antigo, agrupado por temporada
+  const [filterSeason,setFilterSeason]=useState('all')
+  const [filterKind,setFilterKind]=useState('all')
   const rev = [...ledger].reverse()
   const seasons = [...new Set(rev.map(e => e.season))]
+  const filteredRev=rev.filter(e=>(filterSeason==='all'||String(e.season)===filterSeason)&&(filterKind==='all'||(filterKind==='in'?e.amount>=0:e.amount<0)))
   // 💰 RESUMO = temporada da movimentação MAIS RECENTE (a que encabeça o extrato).
   // Bilheteria/folha/prêmios de uma temporada só são lançados na VIRADA do ano (já
   // com o número da temporada que fechou), e aí o seasonNo já pulou pra próxima —
@@ -2628,7 +2632,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
   const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? (bb ? tr('🏟️ Obra na arena', '🏟️ Arena works') : tr('🏟️ Obra no estádio', '🏟️ Stadium works')) : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
-    <>
+    <div className="ll-financial-layout">
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
       <div style={{ ...box(), background: caixa < 0 ? `linear-gradient(160deg, ${FIN_RED}, #7a1b10)` : `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -2670,6 +2674,8 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
         )
       })()}
 
+      <div className="ll-financial-filters" data-active={filterSeason!=='all'||filterKind!=='all'}><label>{tr('Temporada','Season')}<select value={filterSeason} onChange={e=>setFilterSeason(e.target.value)}><option value="all">{tr('Todas','All')}</option>{seasons.map(sn=><option key={sn} value={sn}>{sn}</option>)}</select></label><label>{tr('Movimentação','Transaction')}<select value={filterKind} onChange={e=>setFilterKind(e.target.value)}><option value="all">{tr('Todas','All')}</option><option value="in">{tr('Entradas','Income')}</option><option value="out">{tr('Saídas','Expenses')}</option></select></label></div>
+      <div className="ll-financial-detail">
       {/* sub-abas: 🧾 Extrato | 🔁 Transferências */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
         {([['extrato', '🧾', tr('Extrato', 'Statement')], ['transf', '🔁', tr('Transferências', 'Transfers')]] as [typeof sub, string, string][]).map(([s, ic, label]) => (
@@ -2680,11 +2686,12 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
       {sub === 'extrato' ? (
         ledger.length === 0
           ? <div style={{ ...box('#FBF6E9'), padding: 20, textAlign: 'center', fontWeight: 700, color: '#8a7d59' }}>{tr('Ainda não há lançamentos. Prêmios, bilheteria, salários, compras e vendas aparecem aqui conforme a carreira anda.', 'No entries yet. Prizes, gate money, salaries, purchases and sales show up here as the career goes on.')}</div>
+          : filteredRev.length===0 ? <div role="status" style={{...box('#FBF6E9'),padding:20,fontWeight:700,color:'#625a4a'}}>{tr('Nenhum lançamento para estes filtros.','No entries match these filters.')}</div>
           : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {seasons.map(sn => (
+              {seasons.filter(sn=>filteredRev.some(e=>e.season===sn)).map(sn => (
                 <div key={sn} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>{tr('Temporada', 'Season')} {sn}</div>
-                  {rev.filter(e => e.season === sn).map(e => (
+                  {filteredRev.filter(e => e.season === sn).map(e => (
                     <FinLine key={e.id} label={ledgerLabel(e.label) || lbl(e.kind)} amount={e.amount} />
                   ))}
                 </div>
@@ -2741,7 +2748,8 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
               })}
         </div>
       )}
-    </>
+      </div>
+    </div>
   )
 }
 // 🎨 mesma cara da tabela do Jogo Rápido (Diego 14/08): verde pra quem tá bem
@@ -6318,9 +6326,9 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
       {/* 🔓 Substituições acabaram de liberar (T2, onSwap só existe com canSub true):
           avisa ANTES do seletor de modo, senão o botão só "aparece" sem explicar nada. */}
       {elenco && onSetSubMode && onSwap && (
-        <UnlockBanner k="sub" tag={tr('🔁 novo controle', '🔁 new control')} title={tr('Substituições liberadas', 'Substitutions unlocked')}>
+        <div className="ll-elenco-help"><UnlockBanner k="sub" tag={tr('🔁 novo controle', '🔁 new control')} title={tr('Substituições liberadas', 'Substitutions unlocked')}>
           {getLang() === 'en' ? <>Now you can swap <b>a starter for a sub MID-season</b> — not just in the starting line-up. Choose below how you prefer to make the swap.</> : <>Agora dá pra trocar <b>titular por reserva NO MEIO da temporada</b> — não só na escalação inicial. Escolha embaixo como prefere fazer a troca.</>}
-        </UnlockBanner>
+        </UnlockBanner></div>
       )}
       {elenco && criaDeEvento && (
         <UnlockBanner k="criabase" tag={tr('🌱 cria da base', '🌱 academy kid')} title={tr('Sem reserva? Sobe um cria', 'No sub? An academy kid steps up')} ctaBg={GREEN} ctaColor="#fff">
@@ -12533,6 +12541,7 @@ export function PyramidSeasonScreen() {
                 </div>
               )
             })()}
+            <div className="ll-rank-layout"><div className="ll-rank-results">
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} />
             ) : rankSub === 'garcons' ? (
@@ -12566,6 +12575,7 @@ export function PyramidSeasonScreen() {
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
               </>
             )}
+            </div><DesktopRankSummary scope={rankSub} onClub={()=>setTab('estadio')}/></div>
           </>
         ) : tab === 'elenco' ? (
           <>
