@@ -69,14 +69,13 @@ function texturaCanvas(canvas: HTMLCanvasElement) {
 type Lado = { x0: number; z0: number; x1: number; z1: number; n: number; nx: number; nz: number; virada?: boolean }
 /** As faixas de placas, de frente pro gramado (campo de 105 × 68 no centro do mapa). Os vãos são de propósito: o túnel dos
  *  jogadores fica no meio da linha de fundo oeste e a equipe de apoio passa pelos cantos — placa nenhuma fecha caminho. */
+// 🪧 03/11 (Diego: *"tá muito colado… bastam 5 placas em cada lado, igual no campo 2D da aba Jogos"*): só as duas laterais,
+// 5 placas em cada uma, com respiro entre elas (`VAO`). Os fundos ficam sem placa, como no campinho.
 const LADOS: Lado[] = [
-  { x0: 50.4, z0: 37.6, x1: -50.4, z1: 37.6, n: 12, nx: 0, nz: -1, virada: true },  // sul: do outro lado dos bancos (virada pra câmera do mapa, que olha do sul)
-  { x0: 42, z0: -39.6, x1: -42, z1: -39.6, n: 10, nx: 0, nz: 1 },     // norte: atrás dos bancos e dos técnicos
-  { x0: 56.3, z0: -18.6, x1: 56.3, z1: -3.4, n: 2, nx: -1, nz: 0 },   // fundo leste, dos dois lados do gol
-  { x0: 56.3, z0: 3.4, x1: 56.3, z1: 18.6, n: 2, nx: -1, nz: 0 },
-  { x0: -56.3, z0: 18.6, x1: -56.3, z1: 3.4, n: 2, nx: 1, nz: 0 },    // fundo oeste (o túnel fica no vão do meio)
-  { x0: -56.3, z0: -3.4, x1: -56.3, z1: -18.6, n: 2, nx: 1, nz: 0 },
+  { x0: 50.4, z0: 37.6, x1: -50.4, z1: 37.6, n: 5, nx: 0, nz: -1, virada: true },  // sul: do outro lado dos bancos (virada pra câmera do mapa, que olha do sul)
+  { x0: 42, z0: -39.6, x1: -42, z1: -39.6, n: 5, nx: 0, nz: 1 },     // norte: atrás dos bancos e dos técnicos
 ]
+const VAO = 6 // metros livres entre uma placa e a outra
 // 👀 03/11 (Diego: *"as placas não estão sendo bem visíveis no mapa… no campo 2D da aba Jogos é bem visto"*): a câmera do jogo no
 // mapa olha o campo DE CIMA, e a placa em pé aparecia de lado (fina) ou de costas. Agora ela é maior e DEITADA pra trás (como o
 // "tapete 3D" das transmissões): a frente vira pro céu e pro gramado, e dá pra ler a marca de cima e da arquibancada.
@@ -85,7 +84,7 @@ const ALTURA = 2.8, BASE = .04, INCLINA = 1.15 // ~66° deitada pra trás (topo 
 function criarPlacasDoGramado(root: T.Group, onChange: () => void) {
   const marcas = placasDoCampo()
   if (!marcas.length) return { redesenha() {}, dispose() {} }
-  const n = marcas.length, W = 768, RH = 256 // faixa de 3:1, a mesma proporção da placa (antes era 9:1 e a marca saía espichada)
+  const n = marcas.length, W = 768, RH = 170 // faixa de ~4,5:1, a mesma proporção da placa (antes era 9:1 e a marca saía espichada)
   const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = RH * n
   const g = canvas.getContext('2d')!
   const map = texturaCanvas(canvas); map.wrapT = T.RepeatWrapping
@@ -99,7 +98,7 @@ function criarPlacasDoGramado(root: T.Group, onChange: () => void) {
   const frentes: T.BufferGeometry[] = [], costas: T.BufferGeometry[] = []
   let k = 0
   for (const lado of LADOS) {
-    const dx = (lado.x1 - lado.x0) / lado.n, dz = (lado.z1 - lado.z0) / lado.n, largura = Math.hypot(dx, dz) - .12
+    const dx = (lado.x1 - lado.x0) / lado.n, dz = (lado.z1 - lado.z0) / lado.n, largura = Math.hypot(dx, dz) - VAO
     // ↩️ o lado sul fica de costas pro gramado e deitado PRO gramado: a câmera do mapa olha do sul, então assim a marca sai em pé
     // (deitada pra trás, ela aparecia de cabeça pra baixo)
     const giro = Math.atan2(lado.nx, lado.nz) + (lado.virada ? Math.PI : 0)
