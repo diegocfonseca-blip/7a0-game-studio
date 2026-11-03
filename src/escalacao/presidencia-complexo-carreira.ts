@@ -13,6 +13,7 @@ import { estadioVisualValido } from './presidencia-estadio-validacao'
 import { presidenteCadastrado } from './presidencia-entrada-model'
 import { camadasDoPresidente, copiarAparencia } from './presidente-aparencia'
 import { podeSentarPresidente, type PresidentePose } from './presidente-pose'
+import { cidadeVivaDaCarreira, estadioSemCanteiros, type CidadeViva, type FonteTitulos } from './presidencia-cidade-viva'
 import { jornadaDoComplexo, type AgendaJogoComplexo, type FaseJornadaComplexo, type JornadaComplexo } from './presidencia-complexo-jornada'
 
 /** Actual career values supplied by the existing screen. An absent day does
@@ -23,7 +24,7 @@ export type DiaCarreiraComplexo = { division: string; support: number; rain?: bo
 export type EntradaCarreiraComplexo = {
   /** The existing caller's gate. This boolean never authenticates an account. */
   enabled: boolean
-  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[];careerMaster?:Record<number,MasterContrato>;seasonNo?:number}
+  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & FonteTitulos & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[];careerMaster?:Record<number,MasterContrato>;seasonNo?:number}
   mgrId: number
   day?: DiaCarreiraComplexo
   match?: EstadoPartidaEstadio | null
@@ -39,6 +40,8 @@ export type EntradaCarreiraComplexo = {
    * match context has no awayClubId; names and colours cannot establish one. */
   away?: { matchId: string; mgrId: number; day: DiaCarreiraComplexo }
   english?: boolean
+  /** 🏙️ cidade viva: o último jogo JÁ APITADO do seu clube (sem spoiler) e a cor do clube. Rodada da obra e títulos saem do save. */
+  cidade?: { ultimoJogo?: { gf: number; ga: number } | null; cor?: string; cor2?: string }
 }
 export type PropsComplexoCarreira = {
   stadium?: StadiumSave
@@ -56,6 +59,8 @@ export type PropsComplexoCarreira = {
   fora?: boolean
   circulation: boolean
   qaPopulation: false
+  /** 🏙️ obra em canteiro, humor do boteco e carreata (presidencia-cidade-viva.ts) */
+  cidadeViva?: CidadeViva
 }
 export type SalaComplexoCarreira = {
   status: 'missing' | 'invalid' | 'ready'
@@ -95,7 +100,10 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
   if (!input || input.enabled !== true || !input.state || !Array.isArray(input.state.managers)
     || !Number.isSafeInteger(input.mgrId) || input.mgrId < 0 || !podeAlterarPresidencia(input.state, input.mgrId)) return null
   const { state, mgrId } = input
-  const stadium = state.stadiums?.[mgrId]
+  // 🏗️ obra comprada nesta rodada: a cidade (e o estádio, que divide transporte e prédios com ela) desenha o canteiro no lugar
+  const ownStadium = state.stadiums?.[mgrId]
+  const cidadeViva = cidadeVivaDaCarreira(state, mgrId, ownStadium, input.cidade)
+  const stadium = ownStadium && cidadeViva.canteiros.length ? estadioSemCanteiros(ownStadium, cidadeViva.canteiros) : ownStadium
   const wallet = carteiraDaCarreira(state, mgrId), owned = new Set(wallet?.owned.map(item => item.id) ?? [])
   // Do not copy a new clock or infer a match from the club's name/colour.
   const incoming = input.match
@@ -120,7 +128,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),
     ...(input.arrivalTeams?{arrivalTeams:input.arrivalTeams}:{}),
-    circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false,
+    circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false, cidadeViva,
   }
   const away = input.away
   // A confirmed final whistle stops the field presentation, but does not erase
