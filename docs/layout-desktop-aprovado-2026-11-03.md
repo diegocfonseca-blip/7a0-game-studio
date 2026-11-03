@@ -41,3 +41,9 @@ Capturas e relatório: `/workspace/shared/desktop-aprovado-implementacao/`. As c
 ## Reversão
 
 A implementação fica em commit local isolado. Reverter esse commit recupera os componentes anteriores sem tocar no motor ou no banco. O ponto inicial também está registrado em `base.txt` e no arquivo `recuperacao-antes-alinhamento.tar.gz` da pasta de entrega.
+
+## Publicação visual autorizada
+
+Diego autorizou publicar as apresentações aprovadas para todos em 03/11, reiterando que Campo 2D, Campo 3D e mapa são exclusivos da conta dele. A liberação de apresentação usa `SALAS_VISUAL_GERAL=true`. `CAMPO2D_GERAL` permanece falso; a lista de testes foi reduzida à conta do Diego conforme essa orientação mais recente. A verificação de conta do mapa/3D (`presidente-acesso.ts`) permanece intacta. Nenhuma conta ou plano foi alterado.
+
+As alterações foram integradas sobre a versão atual de produção, preservando traduções da casa, melhorias da cidade e alterações de outros fluxos feitas em paralelo. Nenhuma migração ou alteração de banco faz parte desta publicação. Testes locais com proprietário, contas comuns e sessão sem login verificam separadamente apresentação pública e acesso aos campos/mapa.

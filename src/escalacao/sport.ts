@@ -510,7 +510,7 @@ export function useTelaPC(): boolean {
 // mas já começa a fazer"*). Regra dele pra quando liberar: é PAGO, do ⭐ Craque pra cima (na carreira, botão junto do Manual;
 // nas salas, escolha na hora de criar: "⚡ Padrão rápido" ou "📺 2D"). Liberar = CAMPO2D_GERAL = true + a trava de plano.
 const CAMPO2D_GERAL = false
-const CAMPO2D_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com', 'lucasfonseca363@gmail.com']) // + Futpoint FC e Lucas Barreto 30 (03/11, pedidos do Diego)
+const CAMPO2D_TESTERS = new Set(['diego.c.fonseca@gmail.com']) // 🔒 03/11: instrução mais recente do Diego: Campo 2D somente na conta dele.
 let campo2dOk = CAMPO2D_GERAL
 /** 🧪 só bancada */
 export function applyCampo2DBancada(): void { campo2dOk = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
