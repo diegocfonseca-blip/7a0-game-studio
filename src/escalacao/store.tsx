@@ -7593,6 +7593,21 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
+/** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
+ *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
+ *  crônica, motor novo (`motor2Desde` velho travava o botão até a temporada antiga!), resultados do motor (`m2Res`), prêmios já
+ *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
+ *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
+ *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
+export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+  'motor2Desde', 'motor2RecepcaoDesde', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
+  'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
+  'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev'] as const satisfies readonly (keyof EscState)[]
+function zeraCarreiraAnterior(s: EscState): void {
+  for (const k of ZERA_NA_CARREIRA_NOVA) (s as unknown as Record<string, unknown>)[k] = undefined
+  s.rivalries = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {} // (campos obrigatórios: zeram pro vazio, não pra undefined)
+}
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
 }
@@ -8723,7 +8738,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'START_CAREER_SOLO': {
-      limpaMarcasDeModo(s) // 🧼 nada do rápido nem da sala online entra na carreira (21/10)
+      limpaMarcasDeModo(s)
+      zeraCarreiraAnterior(s) // 🧹 03/11: o que é da CARREIRA anterior não vem junto
+      // (acima: 🧼 nada do rápido nem da sala online entra na carreira, 21/10)
       // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão
       // de reservas/transferências, economia, votação-solo), mas sozinho contra a
       // CPU. Os rivais escolhidos entram na Série D como CPUs que DÃO LANCE.
@@ -8899,6 +8916,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.isHost = true
       s.careerOnline = true
       limpaMarcasDeModo(s) // 🧼 o jogo rápido vira carreira: as escolhas do rápido ficam pra trás (21/10)
+      { const riv = s.rivalries; zeraCarreiraAnterior(s); s.rivalries = riv ?? {} } // 🧹 03/11: nada da carreira anterior (o retrospecto é o desta liga rápida, fica)
       s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
