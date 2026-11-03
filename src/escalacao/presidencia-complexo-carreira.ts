@@ -1,5 +1,6 @@
 import type {ElencoChegadaCidade} from './presidencia-cidade-equipes'
-import { STADIUM_SECTORS, type StadiumSave } from './estadiodata'
+import { STADIUM_SECTORS, type MasterContrato, type StadiumSave } from './estadiodata'
+import { marcaMasterAtiva } from './presidencia-complexo-master'
 import { carteiraDaCarreira, podeAlterarPresidencia, type PresidenteBaseSave } from './presidencia-carreira'
 import type { CarreiraComEstadio } from './presidencia-estadio-integrado'
 import { conquistasDaCarreira, type ConquistasCarreira } from './presidencia-conquistas'
@@ -19,7 +20,7 @@ export type DiaCarreiraComplexo = { division: string; support: number; rain?: bo
 export type EntradaCarreiraComplexo = {
   /** The existing caller's gate. This boolean never authenticates an account. */
   enabled: boolean
-  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[]}
+  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[];careerMaster?:Record<number,MasterContrato>;seasonNo?:number}
   mgrId: number
   day?: DiaCarreiraComplexo
   match?: EstadoPartidaEstadio | null
@@ -80,7 +81,7 @@ function diaConferido(day: DiaCarreiraComplexo | undefined, match?: EstadoPartid
 /** Read-only bridge, exercised by a local fixture before any career UI switch.
  * It preserves the existing gate, economy, layered president and shared match.
  * It neither imports Auth nor fetches, dispatches, persists or grants anything. */
-export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { complexo: PropsComplexoCarreira; sala: SalaComplexoCarreira } | null {
+export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { complexo: PropsComplexoCarreira; sala: SalaComplexoCarreira; master: string | null } | null {
   if (!input || input.enabled !== true || !input.state || !Array.isArray(input.state.managers)
     || !Number.isSafeInteger(input.mgrId) || input.mgrId < 0 || !podeAlterarPresidencia(input.state, input.mgrId)) return null
   const { state, mgrId } = input
@@ -154,7 +155,10 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     hasShelf: owned.has('estante-simples') || owned.has('estante-madeira'),
     hasDesk: owned.has('mesa-simples') || owned.has('mesa-madeira'), hasFrame: owned.has('quadro'), physicalPresident: false,
   }
-  return { complexo, sala }
+  // 🏆🪧 03/11: a marca do Master com contrato ATIVO ganha a placa da fachada e do telão. No jogo FORA o estádio é o do
+  // adversário, então a sua placa não vai pra lá.
+  const master = complexo.fora ? null : marcaMasterAtiva(state.careerMaster, mgrId, state.seasonNo)
+  return { complexo, sala, master }
 }
 
 /** 🏟️ Estádio do clube SEM save (bot): o padrão da divisão — Várzea com meia geral, e cada série sobe um degrau até a A

@@ -5,6 +5,8 @@ import React from 'react';import {createRoot} from 'react-dom/client';
 import Complexo from './src/escalacao/presidencia-complexo-3d.tsx';
 import {estacionamentoDoSave,investirEstacionamento} from './src/escalacao/presidencia-estacionamento.ts';
 import {jornadaDoComplexo} from './src/escalacao/presidencia-complexo-jornada.ts';
+import {definirMasterDoMapa} from './src/escalacao/presidencia-complexo-master.ts';
+definirMasterDoMapa(new URLSearchParams(location.search).get('master'));window.setComplexoMaster=definirMasterDoMapa;
 import {PRESIDENCIA_CATALOGO} from './src/escalacao/presidencia-economia.ts';
 import {STADIUM_SECTORS,STADIUM_EXTRAS,STADIUM_STEP} from './src/escalacao/estadiodata.ts';
 import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto} from './src/escalacao/presidencia-estadio-projeto.ts';
