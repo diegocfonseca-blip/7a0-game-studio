@@ -26,15 +26,15 @@ import {usePresidentPreview} from './presidente-acesso'
  * 🔁 15/10 (Diego: "sempre com base no e-mail"): com a conta ligada (`presidenteContaLiberado`), o presidente
  * que aparece e se edita aqui é o DA CONTA — a mesma pessoa em toda carreira. A posse (`sinceSeason`) continua
  * vindo do save da carreira, porque mandato é do clube, não da pessoa. Salvar grava nos DOIS: conta e carreira. */
-export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tradeHandler,onDisplay:displayHandler,member,tierColor,insideMap=false,onFinances}:{
+export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tradeHandler,onDisplay:displayHandler,member,tierColor,insideMap=false,onFinances,profileOnly=false}:{
  state:CarreiraPresidencia & CarreiraComEstadio & ConquistasCarreira & CronicaPresidencia & DivisaoPresidencia & {careerPresident?:{name:string;outfit:string};seasonNo?:number;managers:readonly {id:number;isHuman?:boolean;teamName?:string;squad?:readonly {paid?:number}[]}[]};
  mgrId:number;onSave:(value:PresidenteBaseSave)=>boolean;onBack:()=>void;
  onTrade?:(quote:PresidenciaOrcamento)=>boolean;onDisplay?:(pair:DuplaGaragem)=>boolean;
  onStadium?:()=>void;onRoof?:(closed:boolean)=>void;
- member?:MeuSocio|null;tierColor?:string;insideMap?:boolean;onFinances?:()=>void;
+ member?:MeuSocio|null;tierColor?:string;insideMap?:boolean;onFinances?:()=>void;profileOnly?:boolean;
 }){
  const privateRoom=usePresidentPreview()
- const [destination,G]=useState<'entry'|'garage'|'furniture'|'room'|null>('entry')
+ const [destination,G]=useState<'entry'|'garage'|'furniture'|'room'|null>(profileOnly?null:'entry')
  const garage=destination==='entry'?(privateRoom?'room':null):destination
  const onTrade=PRESIDENCY_ECONOMY_RELEASED?tradeHandler:undefined
  const onDisplay=PRESIDENCY_ECONOMY_RELEASED?displayHandler:undefined
@@ -62,6 +62,6 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
    cash:state.careerCoins?.[mgrId],owned:wallet?.owned,
    trophies:conquistasDaCarreira(state,mgrId,getLang()==='en'),
    timeline:historiaDaPresidencia(state,mgrId,getLang()==='en'),
-  }}/><div style={{marginTop:16}}><Btn bg="#fff" onClick={()=>G('room')}>{t('ENTRAR NA SALA','ENTER OFFICE')}</Btn></div>{onTrade&&onDisplay&&<div style={{marginTop:16,display:'flex',flexWrap:'wrap',gap:12}}><Btn onClick={()=>G('garage')}>{t('GARAGEM','GARAGE')}</Btn><Btn bg="#fff" onClick={()=>G('furniture')}>{t('MOBÍLIAS','FURNITURE')}</Btn></div>}</div>}
+  }}/>{!profileOnly&&<div style={{marginTop:16}}><Btn bg="#fff" onClick={()=>G('room')}>{t('ENTRAR NA SALA','ENTER OFFICE')}</Btn></div>}{!profileOnly&&onTrade&&onDisplay&&<div style={{marginTop:16,display:'flex',flexWrap:'wrap',gap:12}}><Btn onClick={()=>G('garage')}>{t('GARAGEM','GARAGE')}</Btn><Btn bg="#fff" onClick={()=>G('furniture')}>{t('MOBÍLIAS','FURNITURE')}</Btn></div>}</div>}
  </PresidenciaEntrada>
 }
