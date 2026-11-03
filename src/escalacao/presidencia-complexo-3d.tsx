@@ -51,7 +51,7 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 
-export type VistaComplexo='arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'coach-live'|'boteco-oswaldo'|'bar-esquina'
+export type VistaComplexo='arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'
 const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
  {value:'broadcast',label:'Transmissão'},
  {value:'fixed',label:'Lateral fixa'},
@@ -576,11 +576,6 @@ export default function PresidenciaComplexo3D({stadium,cityStadium,clubName,onOp
     // De lado do braço do poste: a bandeira aparece de frente, com o varal atrás
     const p=posts[0],side=(p.x*-p.dirZ+(p.z-110)*p.dirX)>0?-1:1
     controls.target.set(p.x+p.dirX*.5,4.6,p.z+p.dirZ*.5);camera.position.set(p.x-p.dirZ*side*13+p.dirX*3,camera.aspect<.85?6.5:5.5,p.z+p.dirX*side*13+p.dirZ*3)
-   }
-   else if(next==='coach-live'){ // 🚌 o ônibus de delegação que está na rua agora, de lado (pintura + escudo/nome na lateral)
-    const bus=(teamArrival.inspect().coaches as {visible:boolean;position:number[];heading:number}[]).filter(c=>c.visible).pop();if(!bus){view('coach-arrival');return}
-    const [x,y,z]=bus.position,h=bus.heading
-    controls.target.set(x,y+1.8,z);camera.position.set(x+Math.cos(h)*14+Math.sin(h)*4,y+4.5,z-Math.sin(h)*14+Math.cos(h)*4)
    }
    else if(next==='coach-arrival'){
     controls.target.set(-94,1.8,-14);camera.position.fromArray(camera.aspect<.85?[-114,11,-34]:[-114,8,-34])
