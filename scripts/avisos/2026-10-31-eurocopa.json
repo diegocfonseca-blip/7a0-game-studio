@@ -1,0 +1,21 @@
+{
+  "data": "31 de outubro de 2026",
+  "titulo": "Chegou a Liga + Eurocopa 🇪🇺",
+  "destaque": {
+    "passos": [
+      { "emoji": "🔨", "titulo": "Liga", "sub": "o leilão de sempre" },
+      { "emoji": "🇪🇺", "titulo": "Escolhe", "sub": "uma seleção da Europa" },
+      { "emoji": "🏆", "titulo": "Eurocopa", "sub": "24 seleções" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Competição nova nas salas: acabou a liga, cada um escolhe uma **seleção da Europa**, convoca os 11 e joga a **Eurocopa**." },
+    { "tag": "regra", "texto": "Formato de verdade: **24 seleções**, 6 grupos de 4. Passam os **2 primeiros + os 4 melhores 3ºs**. Oitavas, quartas, semi e final em **jogo único** — empatou, pênaltis." },
+    { "tag": "regra", "texto": "Quem terminou a liga **em 1º escolhe primeiro**. As seleções que sobram ficam com a máquina." },
+    { "tag": "novidade", "texto": "Entraram **59 cartas novas** pra fechar as seleções: Polônia, Rússia, Romênia, Noruega, Ucrânia, Rep. Tcheca, Suíça, Áustria e Grécia (a campeã de 2004 tá lá 😅)." },
+    { "tag": "melhoria", "texto": "Cara própria: **azul com estrelas**, a taça de prata, **túnel da final** e festa do campeão da Europa." }
+  ],
+  "rodape": "Já tá valendo nas salas online!",
+  "rodapeSub": "Na hora de criar a sala: Depois da liga → 🇪🇺 Liga + Eurocopa.",
+  "saida": "scripts/posts/aviso-2026-10-31-eurocopa.png"
+}

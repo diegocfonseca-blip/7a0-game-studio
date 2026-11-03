@@ -23,7 +23,7 @@ const CLIPS={idle:'Offensive Soccer Idle',idle_bola:'Playing With Ball Idle',tro
  gk_bloqueio_e:'Goalkeeper Left Body Block',gk_bloqueio_d:'Goalkeeper Right Body Block',gk_erra:'Goalkeeper Jump And Miss',gk_lanca_longe:'Goalkeeper Far Overhand Throw',
  // ⚽ mocap de jogador de verdade (pacote grátis de futebol do Anderson Rohr, esqueleto do Unreal — 'rohr:' = tmp-rohr/ue5/<nome>_ue5.fbx)
  // (só os que o jogo usa — dribles 1/2, pênaltis, desarmes, lateral e goleiro ficam de fora até ganharem lugar: cada um pesa no arquivo)
- drible3:'rohr:03_Dribble_03',passe_chapa:'rohr:08_Side_Foot_Kick',chute_forte:'rohr:09_Power_Kick',
+ drible3:'rohr:03_Dribble_03',passe_chapa:'rohr:08_Side_Foot_Kick',chute_forte:'rohr:09_Power_Kick',marca:'rohr:18_Defending_01',
  comemora1:'rohr:12_Goal_Celebration_01',comemora2:'rohr:13_Goal_Celebration_02',comemora3:'rohr:14_Goal_Celebration_03'}
 // esqueleto do Unreal (Manny) → nomes do Mixamo (o resto do caminho é o mesmo dos movimentos do Mixamo)
 const UE5={pelvis:'Hips',spine_01:'Spine',spine_03:'Spine1',spine_05:'Spine2',neck_01:'Neck',head:'Head',
