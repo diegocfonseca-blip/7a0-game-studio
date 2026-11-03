@@ -942,6 +942,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (o mensal só vale em dia: **cancelou, perde a reserva** — *"se cancelar… não continua reservado"*). Nome de grátis não trava ninguém;
   grátis com nome de quem paga (ou de batismo alheio) leva o selo **🎭 FAKE** grudado no nome, decidido pelo BANCO (`esc_meu_nome_fake`)
   e lido no login, igual à medalha da semana. Batismo continua reservado pro dono como antes. É benefício de TODO plano (do Craque Salas).
+- **🔤 NOME ÚNICO + INICIAIS (03/11, substitui o "grátis pode usar como 🎭 FAKE" de 27/10 pra contas NOVAS).** *"quem não tem plano pode ter nome repetido… quando alguém fizer um plano com o nome daquela pessoa, aquele cara perdeu o nome… abreviação que ninguém tem ainda, JPF"*. Nome de quem tem plano/batismo: ninguém cria nem troca pra ele (comparação sem acento/espaço/"_"). Quem vira pago depois: as contas grátis com o mesmo nome viram as iniciais únicas + aviso (cron `esc_nomes_reserva_tick`). Fakes de antes de 03/11 continuam fakes. Escudo/mascote de batismo só pro dono do e-mail (no clã já; salas/tabela ainda pelo nome — pendente).
 - **⚡ MATA-MATA RELÂMPAGO (28/10): chave de 16 ou 32 (quem cria escolhe), IDA E VOLTA e só a FINAL em jogo único, pênaltis
   AUTOMÁTICOS** (*"tem q ter ida e volta, somente final que não"* · *"pênalti padrão igual as outras normais"*). Sem liga: leilão de
   sempre → sorteio. ⚠️ **O pênalti que a pessoa BATE só existe na carreira offline** — nas salas é sempre a disputa automática; não

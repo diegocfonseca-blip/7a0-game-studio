@@ -3282,6 +3282,11 @@ export function EscLobby() {
               <span style={{ fontSize: 11 }}>✏️</span>
             </button>
           )}
+          {/* 🔤 03/11 (Diego): aviso sutil pra quem NÃO tem plano — o nome dele não é reservado; se alguém com plano pegar, vira as iniciais */}
+          {!visitante && hasName && !editingName && !canLiga && <p className="w-full m-0 text-[10.5px] font-bold leading-snug" style={{ color: 'rgba(255,255,255,.55)', flexBasis: '100%' }}>
+            {tr('🔓 Seu nome ainda não é reservado: se alguém com plano usar ele, o seu vira as iniciais. ', '🔓 Your name isn’t reserved yet: if someone with a plan takes it, yours becomes the initials. ')}
+            <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🔤 nome → ver os planos'); open() }} className="underline font-black" style={{ color: GOLD, background: 'none', border: 'none', padding: 0, minHeight: 0 }}>{tr('Travar meu nome ⭐', 'Lock my name ⭐')}</button>} />
+          </p>}
         </div>
       </div>
 
