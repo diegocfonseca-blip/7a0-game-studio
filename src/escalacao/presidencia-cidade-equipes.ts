@@ -1,3 +1,4 @@
+import {createCivilian} from './cidade3d/civilians.mjs'
 import * as THREE from 'three'
 import {STADIUM_SERVICE_GATE} from './cidade3d/stadium-entrances.mjs'
 import {capturedStandingPose} from './presidencia-equipe-pose'
@@ -17,7 +18,7 @@ export type ElencoChegadaCidade={fixtureId:string;teams:(IdentidadeDiaJogo&{play
 /** Separate visual pregame. Uses known fixture rosters, never computes a match.
  * One team at a time uses the dedicated bay next to the stadium wall. Starting an official
  * game immediately hands the field over to its existing 22 actors. */
-export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onReady:()=>void){
+export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onReady:()=>void,flatFootball=false){
  const root=new THREE.Group();root.name='city-team-arrivals';scene.add(root)
  const access=teamCoachAccess(),bus={...TEAM_COACH,inbound:access.inbound,outbound:access.outbound,passengerRoute:access.passenger}
  let inbound=activityRoute(bus.inbound,4.2,2),outbound=activityRoute(bus.outbound,4.2,2)
@@ -30,8 +31,9 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
  const belt=new THREE.Mesh(beltGeometry,cordonMaterial);belt.position.set(-98.5,1.02,13);temporary.add(belt)
  const signCanvas=document.createElement('canvas');signCanvas.width=512;signCanvas.height=192;const sc=signCanvas.getContext('2d')!;sc.fillStyle='#172720';sc.fillRect(0,0,512,192);sc.fillStyle='#f4ecd6';sc.font='bold 58px sans-serif';sc.textAlign='center';sc.fillText('DELEGAÇÕES',256,80);sc.font='30px sans-serif';sc.fillText('ACESSO DOS ATLETAS',256,142)
  const signTexture=new THREE.CanvasTexture(signCanvas);signTexture.colorSpace=THREE.SRGBColorSpace;const signGeometry=new THREE.PlaneGeometry(2.4,.9),signMaterial=new THREE.MeshStandardMaterial({map:signTexture,roughness:.85,side:THREE.DoubleSide}),sign=new THREE.Mesh(signGeometry,signMaterial);sign.position.set(-98.5,1.55,22);sign.rotation.y=-Math.PI/2;temporary.add(sign)
- type Actor={holder:THREE.Group;root:THREE.Object3D;mesh:THREE.SkinnedMesh;mixer:THREE.AnimationMixer;acao:(name:string)=>THREE.AnimationAction|null;dispose:()=>void;updateFrustumBounds:()=>void}
- type Member={actor:Actor;standing:THREE.AnimationAction;name:string;side:number;index:number;walk:ReturnType<typeof activityRoute>;lastPose:number;phase:string;pose:ReturnType<ReturnType<typeof activityRoute>['at']>|null;footIndices:number[];baseY:number;warmup:ReturnType<typeof warmupLane>;warmingUp?:boolean;exit?:ReturnType<typeof activityRoute>;boarding?:ReturnType<typeof activityRoute>;wasOnField?:boolean}
+ type FootballActor={holder:THREE.Group;root:THREE.Object3D;mesh:THREE.SkinnedMesh;mixer:THREE.AnimationMixer;acao:(name:string)=>THREE.AnimationAction|null;dispose:()=>void;updateFrustumBounds:()=>void}
+ type Actor=FootballActor|{holder:THREE.Group;civil:ReturnType<typeof createCivilian>;dispose:()=>void}
+ type Member={actor:Actor;standing?:THREE.AnimationAction;name:string;side:number;index:number;walk:ReturnType<typeof activityRoute>;lastPose:number;phase:string;pose:ReturnType<ReturnType<typeof activityRoute>['at']>|null;footIndices:number[];baseY:number;warmup:ReturnType<typeof warmupLane>;warmingUp?:boolean;exit?:ReturnType<typeof activityRoute>;boarding?:ReturnType<typeof activityRoute>;wasOnField?:boolean}
 
  let groundMeshes:THREE.Mesh[]=[]
  const groundCache=new Map<string,number>()
@@ -54,7 +56,7 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
  let returnReleased=false,returnDelay=0
  let mode='arrival',modeAt=0,modeKey='',builtMode='',knownRosters:ElencoChegadaCidade|undefined,fieldSnapshot:CampoEquipe[]=[]
  let phase='idle',teams:string[]=[],vehiclePhases:string[]=[],standingClip:THREE.AnimationClip|undefined
- function clear(){actors.forEach(a=>{a.actor.mesh.skeleton.dispose();a.actor.dispose()});actors=[];ready=false;error=undefined}
+ function clear(){actors.forEach(a=>{if('mesh' in a.actor)a.actor.mesh.skeleton.dispose();a.actor.dispose()});actors=[];ready=false;error=undefined}
  const playerRoute=(side:number,index:number):CityPoint[]=>{
   const endX=side?26-index*1.8:-8-index*1.8
   const points=[...bus.passengerRoute.map((p,i)=>({...p,y:i<4?p.y+ground(access.bay):ground(p)})),
@@ -67,7 +69,7 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
   if(!ready||builtMode===modeKey||!['interval','departure'].includes(mode))return
   builtMode=modeKey
   for(const m of actors){const side=m.side?'away':'home',group=fieldSnapshot.filter(p=>p.side===side),p=group.find(p=>p.name===m.name)??group[m.index];
-   m.wasOnField=!!p&&p.visible!==false
+   m.wasOnField=!flatFootball&&!!p&&p.visible!==false
    const points=p?[{x:p.mx,y:ground({x:p.mx,z:p.mz}),z:p.mz},{x:Math.max(-48,Math.min(48,p.mx)),y:0,z:38.8},{x:-48,y:.16,z:38.8},{x:-54.5,y:.16,z:30},{x:-57.5,y:.16,z:9},{...STADIUM_SERVICE_GATE.inside,y:.16}]:null
    m.exit=points?activityRoute(measureWalk(points),1.25):undefined
    // Return from the internal access, through the actual wall-side doorway,
@@ -94,6 +96,22 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
   if(key===journey!.key&&!error)return
   key=journey!.key;const own=++generation;clear();clearLabels();startedAt=time;completed=false;released=false;vehiclePhases=[];teams=roster!.teams.map(t=>t.name)
   try{
+   if(flatFootball){
+    refreshGround();temporary.position.y=ground({x:-98.5,y:0,z:13})
+    const floorPath=(points:CityPoint[])=>points.map(p=>({...p,y:ground(p)}));inbound=activityRoute(floorPath(bus.inbound),4.2,2);outbound=activityRoute(floorPath(bus.outbound),4.2,2)
+    unloadAt=inbound.duration+1.4;lastExit=unloadAt+10*spacing+4.5;departAt=lastExit+1.4;slot=departAt+outbound.duration+6
+    for(const [side,team]of roster!.teams.entries()){
+     labelTeam(side,team)
+     for(const [index,player]of team.players.entries()){
+      const civil=createCivilian(root,{id:`delegation-civil:${side}:${player.name}`,variant:'adult-man',outfitColor:team.color}),actor:Actor={holder:civil.root,civil,dispose:()=>civil.dispose()};civil.root.visible=false
+      const points=[...bus.passengerRoute.map((p,i)=>({...p,y:i<4?p.y+ground(access.bay):ground(p)})),{...STADIUM_SERVICE_GATE.inside,y:.16}],walk=activityRoute(measureWalk(points,true),1.35)
+      actors.push({actor,warmup:warmupLane(walk.points.at(-1)!),name:player.name,side,index,walk,lastPose:-Infinity,phase:'riding',pose:null,footIndices:[],baseY:0})
+     }
+    }
+    const loaded=await Promise.all(actors.map(a=>'civil' in a.actor?a.actor.civil.ready:Promise.resolve(true)))
+    if(own!==generation)return;if(!loaded.every(Boolean))throw Error('Delegação civil indisponível')
+    ready=true;setupTransition();onReady();return
+   }
    const [{carregaJogadorNovo,criarJogadorNovo},{uniformeDoTime,GOLEIRO},{clubKitFor}]=await Promise.all([import('./futebol3d/chibi/chibi-player-asset.mjs'),import('./futebol3d/uniformes.mjs'),import('./futebol3d/club-kit.mjs')])
    const asset=await carregaJogadorNovo();if(own!==generation)return;refreshGround();temporary.position.y=ground({x:-98.5,y:0,z:13})
    const measured=(points:CityPoint[])=>{const raw=points.map(p=>({...p,y:ground(p)}));return raw.map((p,i)=>({...p,y:raw.slice(Math.max(0,i-3),Math.min(raw.length,i+4)).reduce((a,b)=>a+b.y,0)/Math.min(7,i+4,raw.length-i+3)}))}
@@ -101,7 +119,7 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
    unloadAt=inbound.duration+1.4;lastExit=unloadAt+10*spacing+4.5;departAt=lastExit+1.4;slot=departAt+outbound.duration+6
    roster!.teams.forEach((team,side)=>{const cfg=clubKitFor(team.name);labelTeam(side,{...team,color:cfg?.colors.primary??team.color,secondaryColor:cfg?.colors.secondary??team.secondaryColor});const kit=uniformeDoTime(team.name,cfg?.colors?.primary??team.color,cfg?.colors?.secondary)
     team.players.forEach((player,index)=>{
-     const actor=criarJogadorNovo(asset,player.pos==='GOL'?GOLEIRO:kit) as Actor;actor.holder.name=`team-arrival:${side}:${player.name}`;actor.holder.visible=false;root.add(actor.holder)
+     const actor=criarJogadorNovo(asset,player.pos==='GOL'?GOLEIRO:kit) as FootballActor;actor.holder.name=`team-arrival:${side}:${player.name}`;actor.holder.visible=false;root.add(actor.holder)
      standingClip??=capturedStandingPose(actor);const standing=actor.mixer.clipAction(standingClip);standing.play();standing.timeScale=0;standing.setEffectiveWeight(1)
      for(const name of ['caminhada','trote']){const a=actor.acao(name);a?.play();if(a){a.timeScale=0;a.setEffectiveWeight(0)}}
      const joints=actor.mesh.geometry.getAttribute('skinIndex'),weights=actor.mesh.geometry.getAttribute('skinWeight'),footBones=new Set(actor.mesh.skeleton.bones.map((b,i)=>/Foot|Toe/.test(b.name)?i:-1)),indices:number[]=[]
@@ -156,8 +174,8 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
    const hazard=t>=inbound.duration&&t<departAt&&Math.floor(t*2.5)%2===0;indicators[side].on=hazard;indicators[side].material.emissiveIntensity=hazard?2.5:0;indicators[side].material.color.set(hazard?'#ffc057':'#6b4a14')
   }
   for(const m of actors){const t=local-m.side*slot-unloadAt-m.index*spacing;
-   let pose=m.walk.at(t);m.warmingUp=t>m.walk.duration+3;if(m.warmingUp)pose=m.warmup.at(t-m.walk.duration-3);m.pose=pose;m.phase=t<0?'riding':t>=m.walk.duration?'at-field':'walking';
-   renderMember(m,pose,time,camera,height,t>=0)
+   let pose=m.walk.at(t);m.warmingUp=!flatFootball&&t>m.walk.duration+3;if(m.warmingUp)pose=m.warmup.at(t-m.walk.duration-3);m.pose=pose;m.phase=t<0?'riding':t>=m.walk.duration?'at-field':'walking';
+   renderMember(m,pose,time,camera,height,t>=0&&(!flatFootball||!pose.done))
 
   }
   completed=actors.length===22&&actors.every(a=>a.phase==='at-field');if(completed)phase='ready-at-field'
@@ -165,19 +183,21 @@ export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onRea
  function renderMember(m:Member,pose:ReturnType<ReturnType<typeof activityRoute>['at']>,time:number,camera:THREE.Camera|undefined,height:number,visible:boolean){
    const lod=residentVisibility(new THREE.Vector3(pose.x,pose.y,pose.z),1.78,camera,height)
    m.actor.holder.visible=visible&&lod.visible;m.actor.holder.position.set(pose.x,pose.y,pose.z);m.actor.holder.rotation.y=pose.heading+(mode==='arrival'&&pose.done?Math.atan2(Math.sin(Math.PI-pose.heading),Math.cos(Math.PI-pose.heading))*Math.min(1,Math.max(0,(time-startedAt-m.side*slot-unloadAt-m.index*spacing-m.walk.duration)/1.2)):0)
-   if(!m.actor.holder.visible||(time>=m.lastPose&&time-m.lastPose<(lod.detail==='far'?1/6:lod.detail==='intermediate'?1/12:1/30)))return
-   m.lastPose=time;const walk=m.actor.acao('caminhada'),run=m.actor.acao('trote'),runBlend=m.warmingUp?Math.max(0,Math.min(1,(pose.speed-1.2)/.6)):0,weight=Math.min(1,pose.speed/.6)
+   if('civil' in m.actor){m.actor.civil.update({seconds:time,distance:pose.distance,speed:pose.speed,visible:m.actor.holder.visible,detail:lod.detail});return}
+   const actor=m.actor
+   if(!actor.holder.visible||(time>=m.lastPose&&time-m.lastPose<(lod.detail==='far'?1/6:lod.detail==='intermediate'?1/12:1/30)))return
+   m.lastPose=time;const walk=actor.acao('caminhada'),run=actor.acao('trote'),runBlend=m.warmingUp?Math.max(0,Math.min(1,(pose.speed-1.2)/.6)):0,weight=Math.min(1,pose.speed/.6)
    if(walk){walk.time=pose.distance/1.25*(walk.getClip().duration);walk.time%=walk.getClip().duration;walk.setEffectiveWeight(weight*(1-runBlend))}
    if(run){run.time=(pose.distance/2.8*run.getClip().duration)%run.getClip().duration;run.setEffectiveWeight(weight*runBlend)}
-   m.standing.time=0;m.standing.setEffectiveWeight(1-weight)
+   m.standing!.time=0;m.standing!.setEffectiveWeight(1-weight)
    // SkinnedMesh overrides updateMatrixWorld to refresh bindMatrixInverse;
    // updateWorldMatrix bypasses that override and measures a stale skin pose,
    // making the vertical correction itself lift the feet above the ground.
-   m.actor.root.position.y=m.baseY;m.actor.mixer.update(0);m.actor.holder.updateMatrixWorld(true);m.actor.mesh.skeleton.update()
-   let low=Infinity;for(const index of m.footIndices)low=Math.min(low,m.actor.mesh.getVertexPosition(index,v).applyMatrix4(m.actor.mesh.matrixWorld).y)
-   if(Number.isFinite(low))m.actor.root.position.y+=pose.y-low+.003
-   m.actor.holder.updateMatrixWorld(true);m.actor.mesh.skeleton.update()
-   m.actor.updateFrustumBounds()
+   actor.root.position.y=m.baseY;actor.mixer.update(0);actor.holder.updateMatrixWorld(true);actor.mesh.skeleton.update()
+   let low=Infinity;for(const index of m.footIndices)low=Math.min(low,actor.mesh.getVertexPosition(index,v).applyMatrix4(actor.mesh.matrixWorld).y)
+   if(Number.isFinite(low))actor.root.position.y+=pose.y-low+.003
+   actor.holder.updateMatrixWorld(true);actor.mesh.skeleton.update()
+   actor.updateFrustumBounds()
  }
- return{configure,update,overrideField:()=>active&&ready&&['interval','departure'].includes(mode),busy:()=>active&&!completed,inspect:()=>({key,active,ready,error,phase,mode,modeAt,seconds,returnReleased,returnDelay,retainedActors:actors.length,returnSchedule:coachReturnSchedule({inbound:inbound.duration,outbound:outbound.duration,boarding:Math.max(0,...actors.map(m=>m.boarding?.duration??0))}),standingPose:'native-walk double-support frame (static pregame fallback)',localSeconds:Math.max(0,seconds-startedAt),slot,arrivalAt:inbound.duration,unloadAt,access:{...access,bayGround:ground({...access.bay,y:0})},vehicleModel:'high-deck-team-coach',teams,liveries,artwork:artwork.map(a=>a.inspect()),vehicles:vehiclePhases,coaches:rigs.map((r,i)=>({visible:r.root.visible,position:r.root.position.toArray(),heading:r.root.rotation.y,hazard:indicators[i].on,doorOpening:r.doors[0]?Math.abs(r.doors[0].mesh.position.z-r.doors[0].z)/(bus.door.width/2):0})),players:(active?actors:[]).map(m=>({name:m.name,side:m.side,index:m.index,warmingUp:m.warmingUp,phase:m.phase,visible:m.actor.holder.visible,pose:m.pose})),routes:{vehicleIn:bus.inbound,vehicleOut:bus.outbound,player:actors[0]?.walk.points??[]},officialClockChanged:false}),dispose(){generation++;clear();clearLabels();cordonGeometry.dispose();beltGeometry.dispose();cordonMaterial.dispose();signTexture.dispose();signGeometry.dispose();signMaterial.dispose();indicators.forEach(i=>{i.geometry.dispose();i.material.dispose()});rigs.forEach(r=>r.dispose());root.removeFromParent()}}
+ return{configure,update,overrideField:()=>!flatFootball&&active&&ready&&['interval','departure'].includes(mode),busy:()=>active&&!completed,inspect:()=>({key,active,ready,error,phase,mode,modeAt,seconds,returnReleased,returnDelay,retainedActors:actors.length,returnSchedule:coachReturnSchedule({inbound:inbound.duration,outbound:outbound.duration,boarding:Math.max(0,...actors.map(m=>m.boarding?.duration??0))}),standingPose:flatFootball?'authored civil walk/idle; hidden after service entrance':'native-walk double-support frame (static pregame fallback)',localSeconds:Math.max(0,seconds-startedAt),slot,arrivalAt:inbound.duration,unloadAt,access:{...access,bayGround:ground({...access.bay,y:0})},vehicleModel:'high-deck-team-coach',teams,liveries,artwork:artwork.map(a=>a.inspect()),vehicles:vehiclePhases,coaches:rigs.map((r,i)=>({visible:r.root.visible,position:r.root.position.toArray(),heading:r.root.rotation.y,hazard:indicators[i].on,doorOpening:r.doors[0]?Math.abs(r.doors[0].mesh.position.z-r.doors[0].z)/(bus.door.width/2):0})),players:(active?actors:[]).map(m=>({name:m.name,side:m.side,index:m.index,warmingUp:m.warmingUp,phase:m.phase,visible:m.actor.holder.visible,pose:m.pose})),routes:{vehicleIn:bus.inbound,vehicleOut:bus.outbound,player:actors[0]?.walk.points??[]},officialClockChanged:false}),dispose(){generation++;clear();clearLabels();cordonGeometry.dispose();beltGeometry.dispose();cordonMaterial.dispose();signTexture.dispose();signGeometry.dispose();signMaterial.dispose();indicators.forEach(i=>{i.geometry.dispose();i.material.dispose()});rigs.forEach(r=>r.dispose());root.removeFromParent()}}
 }

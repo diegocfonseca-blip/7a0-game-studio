@@ -3727,8 +3727,9 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible field replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução de campo compatível.'}</p>:null
   const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
-  const campo2dEl = c2d && !replayOficialBloqueado ? (
-    <Campo2D pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+  const fonteMapa2D=!!estadoEstadio&&presidentFieldAccount
+  const campo2dEl = (c2d||fonteMapa2D) && !replayOficialBloqueado ? (
+    <Campo2D mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -3737,7 +3738,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   // ⚽ 25/10 (Diego: *"embaixo do comentarista… vem gols que não tô vendo no 2D"*): os gols do jogo embaixo do campinho, igual ao
   // placar cinema — só os que o relógio já mostrou (`vencidos`, a mesma trava anti-spoiler)
-  const golsDo2D = campo2dEl ? (
+  const golsDo2D = c2d&&campo2dEl ? (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', margin: '6px 0 0', background: '#1d1d1d', color: '#f4ecd6', border: '2.5px solid #0C0C0C', borderRadius: 12, fontSize: 12 }}>
       {[true, false].map(home => <div key={String(home)} style={{ textAlign: home ? 'left' : 'right' }}>
         {vencidos.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`} style={{ margin: '0 0 2px' }}>⚽ {g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
@@ -3745,9 +3746,10 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
       </div>)}
     </div>
   ) : null
-  const campo2dComTelao = campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
+  const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
   if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
-  if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  if (cinematic) return <>{fonteMapaEscondida}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
@@ -3805,6 +3807,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     {abaixoDosGols}
    </>
   return (<>
+    {fonteMapaEscondida}
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}

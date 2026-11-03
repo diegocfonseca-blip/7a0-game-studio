@@ -22,6 +22,6 @@ export function PresidenciaJanelaViva({stadium,mgrId}:{stadium?:StadiumSave;mgrI
  const agenda=match?.context.agenda
  const journey=agenda?jornadaDoComplexo({agenda,match,stadiumClubId:mgrId}):undefined
  return <JanelaProtegida fallback={fallback}><Suspense fallback={fallback}>
-  <Complexo stadium={stadium} match={match??undefined} journey={journey} presentation="window" onUnavailable={()=>setFailed(true)}/>
+  <Complexo matchPresentation="2d" stadium={stadium} match={match??undefined} journey={journey} presentation="window" onUnavailable={()=>setFailed(true)}/>
  </Suspense></JanelaProtegida>
 }

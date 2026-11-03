@@ -1,3 +1,5 @@
+import {desenharMarcadorCampo2D} from './campo2d-marcador'
+import {demandaSuperficieCampo2D,publicarSuperficieCampo2D,soltarSuperficieCampo2D,motorCompartilhadoCampo2D} from './campo2d-superficie'
 import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './campo2d-relogio'
 // 📺 CAMPO 2D — a tela (20/10). O protótipo que o Diego aprovou (`scripts/prototipo-jogo-ao-vivo/`) virou componente do jogo.
 // Quem decide o jogo continua sendo o motor de sempre: aqui entram os gols e as chances já calculados e o MINUTO do placar; o
@@ -48,6 +50,9 @@ export interface Campo2DProps {
   motorExperimental?: (seed: number, casa: CartaCampo[], fora: CartaCampo[], en: boolean, formacoes: [string?, string?], clima: Clima) => unknown
   /** Publish the sampled time to the map without changing the 2D playback. */
   onSimulationMinute?: (minute:number|null)=>void
+  /** Same canvas on the private map; never starts another simulation. */
+  mapMatchId?:string
+  mapOnly?:boolean
   /** 🧪 só a bancada: força o clima (pras fotos) */
   climaForcado?: Clima
   /** 🧪 só a bancada: força o jogo de noite (pras fotos) */
@@ -67,7 +72,7 @@ const sigla = (nome: string) => nomeLimpo(nome).replace(/[^A-Za-zÀ-ú ]/g, '').
 const IMGS = new Map<string, HTMLImageElement>()
 function img(src: string): HTMLImageElement {
   let im = IMGS.get(src)
-  if (!im) { im = new Image(); im.src = src; IMGS.set(src, im) }
+  if (!im) { im = new Image(); im.crossOrigin = 'anonymous'; im.src = src; IMGS.set(src, im) }
   return im
 }
 function rosto(c?: CartaCampo): HTMLImageElement | null {
@@ -94,9 +99,9 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute, mapMatchId, mapOnly }: Campo2DProps) {
   const t = useT()
-  useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, []) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
+  useEffect(() => { if(mapOnly)return;campoNaTela(1); return () => campoNaTela(-1) }, [mapOnly]) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
   const caixa = useRef<HTMLDivElement | null>(null)
   const [larg, setLarg] = useState(360)
@@ -120,13 +125,16 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const corFora = perto(corCasa, fora.cor || '#2B6CFF') ? (claro(corCasa) ? '#1B1B1B' : '#F4F4F4') : (fora.cor || '#2B6CFF')
   // o jogo do campinho: um por rodada (mesma semente das chances → o que a rádio narra é o que o campinho mostra)
   const jogo = useMemo(() => {
+    const create=()=>{
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
     if (motorExperimental) return motorExperimental(seed, casa.cartas ?? [], fora.cartas ?? [], t('pt', 'en') === 'en', [casa.formacao, fora.formacao], climaForcado ?? climaDoJogo(seed)) as Jogo2D
     const chances = chancesDoJogo(seed, gols, roundMs)
     const evs = eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
     return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en', [casa.formacao, fora.formacao])
+    }
+    return mapMatchId?motorCompartilhadoCampo2D(mapMatchId,create):create()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundKey, casa.nome, fora.nome, roundMs])
+  }, [roundKey, casa.nome, fora.nome, roundMs, mapMatchId])
   // 🔁 INTERVALO (carreira): o técnico mexeu no time → o 2º tempo re-simula. O campinho troca o futuro (gols novos) e, do 45'
   // em diante, joga com os 11 novos na formação nova. Sem mudança, nada acontece (assinatura igual).
   const golsSig = gols.map(g => `${g.min}${g.home ? 'h' : 'a'}${g.name}`).join('|')
@@ -184,7 +192,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   }, [])
 
   useEffect(() => {
-    let raf = 0
+    let raf = 0,lastMapPaint=-Infinity
+    const surfaceOwner={}
     const c = cv.current; if (!c) return
     // 🛟 24/10: campinho ESCONDIDO (aba Clube/Central com o jogo rolando por trás) mede 0 de largura — desenhar ali quebrava o
     // site inteiro ("drawImage… canvas com largura 0" na capa da noite). E NÃO pode parar: é este laço que anda o relógio do
@@ -305,6 +314,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
     }
     // 🟩 o fundo parado (gramado, linhas, arquibancada, bandeirão) desenhado UMA vez — o celular agradece
+    const pitchLayer=document.createElement('canvas');pitchLayer.width=CW*dpr;pitchLayer.height=CH*dpr;const pitchContext=pitchLayer.getContext('2d')!
     const fundo = document.createElement('canvas'); fundo.width = CW * dpr; fundo.height = CH * dpr
     {
       const g = fundo.getContext('2d')!; g.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -400,7 +410,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
     }
     // ⏱️ relógio LISO: o campinho anda no tempo de verdade e só vai corrigindo, aos pouquinhos, pro minuto do placar
-    let simMin = Math.max(0, jogo.t / SEG_POR_MIN), antes = performance.now()
+    let simMin = Math.max(0, jogo.t / SEG_POR_MIN, mapMatchId?Math.min(93.5,minuto):0), antes = performance.now()
     // 🟨 o juiz (só desenho): corre atrás do lance, uns metros atrás da bola, nunca em cima dela
     const juiz = { x: 34, y: L / 2 }
     // 🌠 rastro da bola nos passes longos e chutes
@@ -450,7 +460,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       // 🙈 25/10 (Diego: *"gostei da ideia, 2D escondido tá errado"*): campinho ESCONDIDO (aba Clube/Central com o jogo por trás)
       // continua andando o relógio e o motor (acima) — mas não DESENHA nada: ninguém está vendo, e o desenho disputava o celular
       // com o mapa 3D. Ao aparecer, o próximo quadro já desenha no tamanho real (o efeito reinicia quando a largura muda).
-      if (escondido) { raf = requestAnimationFrame(quadro); return }
+      const mapFPS=mapMatchId?demandaSuperficieCampo2D(mapMatchId):0
+      if (escondido&&(!mapFPS||agora-lastMapPaint<1000/mapFPS-.5)) { raf = requestAnimationFrame(quadro); return }
+      lastMapPaint=agora
       const e = jogo.entre, mis = (a: number | undefined, b: number) => a == null ? b : a + (b - a) * e
       // 🟩 o fundo parado vem pronto do cache; por cima, só o que mexe
       cx.drawImage(fundo, 0, 0, CW, CH)
@@ -473,6 +485,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.strokeStyle = 'rgba(255,255,255,.4)'; cx.lineWidth = 1
         for (let i = 1; i < 4; i++) { cx.beginPath(); if (deitado) { cx.moveTo(x + (w * i) / 4, y); cx.lineTo(x + (w * i) / 4, y + h) } else { cx.moveTo(x, y + (h * i) / 4); cx.lineTo(x + w, y + (h * i) / 4) } cx.stroke() }
       }
+      if(mapMatchId&&mapFPS)pitchContext.drawImage(c,0,0)
       // 🧢 os técnicos na beira do campo, com o balão
       const fala = (lado: 0 | 1): string => {
         if (jogo.festa) return jogo.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
@@ -529,46 +542,26 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const ordem = [...jogo.atl].sort((a, b) => tr(a.x, a.y)[1] - tr(b.x, b.y)[1])
       for (const p of ordem) {
         const [X, Y] = tr(mis(p.ax, p.x), mis(p.ay, p.y))
-        const camisa = p.lado === 0 ? corCasa : corFora, tinta = claro(camisa) ? INK : '#fff'
-        const correndo = p.ax != null && Math.hypot(p.x - p.ax, p.y - p.ay!) > 0.02
-        const passo = correndo ? Math.sin(jogo.t * 14 + p.bx) : 0
-        cx.beginPath(); cx.ellipse(X, Y + R - 2, R * 0.9, 3.5, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
-        // 👟 pezinhos (alternam quando corre)
-        cx.fillStyle = INK
-        cx.beginPath(); cx.ellipse(X - R * 0.4, Y + R - 1 + passo * 1.5, R * 0.3, R * 0.18, 0, 0, 7); cx.fill()
-        cx.beginPath(); cx.ellipse(X + R * 0.4, Y + R - 1 - passo * 1.5, R * 0.3, R * 0.18, 0, 0, 7); cx.fill()
-        let im = rostoDe.get(p.nome)
-        if (im === undefined) { im = rosto(cartaDe.get(p.nome) ?? p.carta); rostoDe.set(p.nome, im) } // procura o rosto 1 vez por jogador, não a cada quadro
-        const temRosto = !!(im && im.complete && im.naturalWidth)
-        cx.save(); cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.closePath(); cx.fillStyle = camisa; cx.fill(); cx.clip()
-        if (temRosto) { cx.fillStyle = '#fff'; cx.fillRect(X - R, Y - R, R * 2, R * 2); cx.drawImage(im!, im!.naturalWidth * 0.29, im!.naturalHeight * 0.02, im!.naturalWidth * 0.42, im!.naturalWidth * 0.42, X - R, Y - R, R * 2, R * 2) }
-        else {
-          // 👕 a camisa: ombros/gola mais escuros e o número
-          cx.fillStyle = 'rgba(0,0,0,.22)'; cx.fillRect(X - R, Y - R, R * 2, R * 0.48)
-          cx.fillStyle = tinta; cx.font = fonte(R * 1.05, 800); cx.textAlign = 'center'; cx.fillText(String(numero.get(p) ?? ''), X, Y + R * 0.42)
-        }
-        cx.restore()
-        cx.beginPath(); cx.arc(X, Y, R, 0, 7); cx.lineWidth = temRosto ? 3.5 : 2; cx.strokeStyle = temRosto ? camisa : INK; cx.stroke()
-        if (temRosto) { cx.beginPath(); cx.arc(X, Y, R + 2.2, 0, 7); cx.lineWidth = 1.5; cx.strokeStyle = '#fff'; cx.stroke() }
-        if (p === jogo.bola.dono) {
-          cx.beginPath(); cx.arc(X, Y, R + 3.5, 0, 7); cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.95)'; cx.setLineDash([4, 3]); cx.stroke(); cx.setLineDash([])
-          cx.fillStyle = '#fff'; cx.beginPath(); cx.moveTo(X, Y - R - 7); cx.lineTo(X - 5, Y - R - 14); cx.lineTo(X + 5, Y - R - 14); cx.closePath(); cx.fill()
-        }
-        if (p.nome) {
-          const nm = p.nome.length > 13 ? p.nome.split(' ').slice(-1)[0] : p.nome
-          cx.font = fonte(Math.max(8, R * 0.72)); const w = cx.measureText(nm).width + 6
-          cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(X - w / 2, Y + R + 1, w, R * 0.95); cx.fillStyle = '#fff'; cx.textAlign = 'center'; cx.fillText(nm, X, Y + R + R * 0.78)
-        }
+        const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
+        let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
+        desenharMarcadorCampo2D(cx,X,Y,R,{name:p.nome,color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
       }
       // ⚽ a bola (com sombra; sobe quando é cruzamento/chute alto)
       const bA = jogo.bolaAnt, [bx, by] = tr(mis(bA.x, jogo.bola.x), mis(bA.y, jogo.bola.y)), bh = mis(bA.h, jogo.bola.h) * S
       cx.beginPath(); cx.ellipse(bx, by + 2, 4, 2, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fill()
       cx.beginPath(); cx.arc(bx, by - bh, 4.2 + jogo.bola.h * 0.25, 0, 7); cx.fillStyle = '#fff'; cx.fill(); cx.lineWidth = 1.5; cx.strokeStyle = '#111'; cx.stroke()
+      if(mapMatchId&&mapFPS){
+        const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
+        publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:pitchLayer,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
+          players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-mis(p.ay,p.y),z:mis(p.ax,p.x)-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
+          score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,referee:{x:L/2-juiz.y,z:juiz.x-W/2},
+          ball:{x:L/2-mis(bA.y,jogo.bola.y),y:.11+mis(bA.h,jogo.bola.h),z:mis(bA.x,jogo.bola.x)-W/2}})
+      }
       raf = requestAnimationFrame(quadro)
     }
     raf = requestAnimationFrame(quadro)
-    return () => cancelAnimationFrame(raf)
-  }, [jogo, larg, deitado, corCasa, corFora, msPorMin, noite, gramaPct, lotacao])
+    return () => {cancelAnimationFrame(raf);if(mapMatchId)soltarSuperficieCampo2D(mapMatchId,surfaceOwner)}
+  }, [jogo, larg, deitado, corCasa, corFora, msPorMin, noite, gramaPct, lotacao, mapMatchId])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   const altPlaca = Math.max(22, Math.round(larg / 16))

@@ -84,3 +84,6 @@
  [data-presidencia-complexo-carreira]{scroll-margin-top:100px}
  .pc3-review[data-presentation=map]:not(.pc3-expanded) .pc3-stage{height:calc(100svh - 190px)}
 }
+
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation{display:flex}
+.pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation button:not(.pc3-zoom){display:none}

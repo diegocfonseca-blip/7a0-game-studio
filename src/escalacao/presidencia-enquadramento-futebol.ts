@@ -1,7 +1,7 @@
 import {MathUtils,PerspectiveCamera,Vector3} from 'three'
 export type AlvoCameraFutebol={mx:number;mz:number;priority?:boolean;visible?:boolean;presentation?:{x:number;z:number}}
 export type BolaCameraFutebol={x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}}
-export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'|'fixed'
+export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'|'fixed'|'field2d'
 const PRESETS={
  follow:{fov:50,elevation:.5,depth:.86,halfWidth:10,halfDepth:7,radius:18,count:6,minimum:24},
  broadcast:{fov:46,elevation:.64,depth:.77,halfWidth:12,halfDepth:7,radius:19,count:6,minimum:28},
@@ -18,6 +18,13 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
  // A lateral tracking rig: only translate the camera and focus together.
  // Neither high balls, possession changes nor nearby athletes tilt its angle
  // or pump the lens. A narrow viewport gets more room, never larger players.
+ if(mode==='field2d'){
+  const target=new Vector3(0,.5,0),direction=(camera.aspect<1?new Vector3(-.22,.976,0):new Vector3(0,.976,.22)).normalize(),fov=46
+  const right=new Vector3(direction.z,0,-direction.x).normalize(),up=new Vector3().crossVectors(direction,right),tv=Math.tan(MathUtils.degToRad(fov)/2),th=tv*Math.max(.15,camera.aspect)
+  let distance=65
+  for(const x of [-56,56])for(const z of [-37,37]){const p=new Vector3(x,0,z).sub(target);distance=Math.max(distance,p.dot(direction)+Math.abs(p.dot(right))/(th*.86),p.dot(direction)+Math.abs(p.dot(up))/(tv*.80))}
+  return{position:target.clone().addScaledVector(direction,distance),target,distance,direction,fov,subjects:0,tactical:false,preset:mode}
+ }
  if(mode==='fixed'){
   ball=ball.presentation??ball
   // Follow the length of the pitch, with a restrained lateral pan. Tracking

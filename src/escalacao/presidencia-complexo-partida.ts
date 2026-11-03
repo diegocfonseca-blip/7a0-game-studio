@@ -1,3 +1,4 @@
+import {criarCampo2DNoMapa} from './presidencia-campo2d-no-mapa'
 import {playWhistle} from './sound'
 import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import * as THREE from 'three'
@@ -97,7 +98,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
 }
 
 export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
-export type PartidaComplexo={setPresentationVisible:(visible:boolean)=>void;update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];frame:()=>InspecaoPartidaComplexo;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
+export type PartidaComplexo={setViewportVisible?:(visible:boolean)=>void;setPresentationVisible:(visible:boolean)=>void;update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];frame:()=>InspecaoPartidaComplexo;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
  * released once; other parts of the complex never enter this traversal. */
@@ -131,12 +132,13 @@ function reservasReais(bench:readonly AtletaEstadio[]|undefined,activeIds:Set<st
 // 🧍 27/10: boneco novo dos 22 (Tripo + movimentos Mixamo + uniformes por região — APROVADO pelo Diego). O 3D inteiro já é só
 // da conta dele. `localStorage['esc3d-boneco']='antigo'` volta pro boneco de antes; se o novo falhar, volta sozinho
 function bonecoNovo(){try{return localStorage.getItem('esc3d-boneco')!=='antigo'}catch{return true}}
-export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined):PartidaComplexo{
+export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined,presentation:'3d'|'2d'='3d'):PartidaComplexo{
  const field=new THREE.Scene();field.name='complexo-campo'
  let disposed=false
  // Build before attaching: the original static batching only sees this field.
  const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()})
  scene.add(field)
+ if(presentation==='2d'){const flat=criarCampo2DNoMapa(scene,()=>{if(!disposed)onReady?.()});return{...flat,dispose(){if(disposed)return;disposed=true;flat.dispose();descartarObjetos(field,[grass])}}}
  type Body=ReturnType<typeof person>
  type Match={humanoids?:Pick<Awaited<ReturnType<typeof loadPlayers>>,'update'|'presentFrame'|'inspect'|'dispose'|'cameraSubjects'>;root:THREE.Scene;signature:string;bodies:Map<string,Body>;referee:Body;coaches:{body:Body;x:number}[];reserves:{body:Body;side:'home'|'away';keeper:boolean}[];ball:THREE.Mesh;people:ReturnType<typeof instanciarPersonagens>}
  let match:Match|undefined
