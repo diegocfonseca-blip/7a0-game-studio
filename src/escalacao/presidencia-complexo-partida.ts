@@ -37,9 +37,13 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  }else{const contact=new THREE.Mesh(new THREE.PlaneGeometry(120,84),new THREE.ShadowMaterial({opacity:.22}));contact.rotation.x=-Math.PI/2;contact.position.y=-.01;contact.receiveShadow=true;scene.add(contact)}
  const grass=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'estadio-partida/grass-base.webp',texture=>{if(!texture.userData.disposed)onTextureReady?.()},undefined,()=>{
   if(grass.userData.disposed)return
-  for(const mat of greens){mat.map=null;mat.needsUpdate=true}
+  // Keep the valid green placeholder if this download fails.
+  grass.userData.loadFailed=true
   onTextureReady?.()
  });grass.wrapS=grass.wrapT=THREE.RepeatWrapping;grass.repeat.set(26,17);grass.colorSpace=THREE.SRGBColorSpace;grass.anisotropy=8
+ // An uninitialised WebGL texture samples black while its image downloads.
+ // TextureLoader replaces this valid pixel with the real image on success.
+ if(!grass.image){grass.image=new ImageData(new Uint8ClampedArray([85,120,42,255]),1,1);grass.needsUpdate=true}
  const progress=stadium?progressoVisualSetor(stadium,'grama'):0
  const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
  for(const band of faixasGramado3D(progress)){

@@ -7,3 +7,8 @@ const recovery=feed(b,slow.t+20000+16,16,18000,2.5);assert(recovery.changes.leng
 b=renderBudget();feed(b,0,16,7000,2.5);const current=b.scale();b.observe(7600,2.5);assert.equal(b.scale(),current,'One stall cannot change quality');
 b=renderBudget();feed(b,0,90,20000,1);assert.equal(b.scale(),1,'Never reduce a native 1x buffer');
 assert.equal(b.observe(NaN,2),null);console.log('PASS: sustained-load response, 30Hz stability, hidden-tab reset, slow recovery and native-resolution floor.');
+// Mobile can trade resolution for responsiveness instead of remaining stuck
+// at 1.25x. Intentional wide-map cadence is not an overloaded 60Hz renderer.
+b=renderBudget({minPixelRatio:.8});for(let t=0;t<20000;t+=90)b.observe(t,1.5,20);assert(Math.abs(b.scale()*1.5-.8)<1e-8);
+b=renderBudget({minPixelRatio:.8});for(let t=0;t<25000;t+=50)b.observe(t,1.5,20);assert.equal(b.scale(),1,'An intentional 20Hz map must keep its quality');
+console.log('PASS mobile floor and cadence-aware graphics budget');
