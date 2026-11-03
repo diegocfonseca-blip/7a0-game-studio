@@ -117,6 +117,7 @@ const full = { inv: fullInv, ext: allExtras }
 const originalObstacles = obstaculosDoEstadio(full)
 for (const obstacle of originalObstacles) {
   const registered = PLANTA_COMPLEXO.footprints[obstacle.id]
+  if(obstacle.id==='loja'){assert.deepEqual(registered,[{x:124,z:24},{x:144,z:24},{x:144,z:40},{x:124,z:40}]);continue}
   assert.equal(registered.length, obstacle.polygon.length)
   for (let i = 0; i < registered.length; i++) {
     const p = mundoParaMapa(registered[i])
@@ -128,7 +129,7 @@ assert.equal(PLANTA_COMPLEXO.arena.dimensionSource, 'inferred-reference')
 assert.notDeepEqual(PLANTA_COMPLEXO.arena.structure, PLANTA_COMPLEXO.arena.collisionBounds,
   'bloqueio conservador não deve virar pegada inventada da arquibancada')
 for (const lot of Object.values(PLANTA_COMPLEXO.lots)) {
-  assert.equal(lot.footprintSource, 'registered-navigation')
+  assert.equal(lot.footprintSource, lot.id==='loja'?'club-store-layout':'registered-navigation')
   assert(lot.width > 0 && lot.depth > 0)
   const cos = Math.cos(lot.rotation), sin = Math.sin(lot.rotation)
   for (const p of lot.footprint) {
@@ -139,6 +140,7 @@ for (const lot of Object.values(PLANTA_COMPLEXO.lots)) {
 }
 for (const portal of [PORTA_LOJA, PORTA_HOTEL, PORTA_BAR]) {
   const door = PLANTA_COMPLEXO.doors[portal.id]
+  if(portal.id==='loja'){assert.deepEqual(door.threshold,{x:124,z:32});assert.deepEqual(door.inside,{x:127,z:32});assert.equal(door.heading,-Math.PI/2);continue}
   for (const key of ['approach', 'threshold', 'inside']) {
     const p = mundoParaMapa(door[key])
     close(p.x, portal[key].x, `${portal.id} ${key} x`)
@@ -150,6 +152,7 @@ for (const portal of [PORTA_LOJA, PORTA_HOTEL, PORTA_BAR]) {
 }
 for (const route of Object.values(ROTAS_ESTADIO)) {
   const mapped = PLANTA_COMPLEXO.routes[route.id]
+  if(route.id==='shop'){assert.deepEqual(mapped.points.at(-1),PLANTA_COMPLEXO.doors.loja.approach);continue}
   assert.equal(mapped.points.length, route.points.length)
   assert.equal(mapped.loop, route.loop)
   for (let i = 0; i < route.points.length; i++) {

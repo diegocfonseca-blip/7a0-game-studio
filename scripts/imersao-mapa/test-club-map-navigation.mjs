@@ -19,7 +19,7 @@ result.complexo.cityStadium.ext.push('chopp');assert.equal(JSON.stringify(state)
 const noOwn=adapt({...input,state:{...state,stadiums:{42:host}}})
 assert.deepEqual(noOwn.complexo.cityStadium,{inv:{},ext:[]},'An absent own stadium cannot inherit host purchases')
 assert.equal(adapt({...input,enabled:false}),null)
-assert.equal(lugarDoPainelClube('financas'),'room');assert.equal(lugarDoPainelClube('patrocinio'),'agencia-clube')
+assert.equal(lugarDoPainelClube('financas'),'casa-usuario');assert.equal(lugarDoPainelClube('patrocinio'),'agencia-clube')
 assert.equal(lugarDoPainelClube('loja'),'loja');assert.equal(nomeAgenciaClube('Neymarzetti'),'Agência Neymarzetti')
 for(const built of[false,true]){
  const scene=new T.Scene(),places=criarLugaresClube(scene,complexoDoEstadio({inv:{},ext:built?['loja']:[]}),'Neymarzetti')
