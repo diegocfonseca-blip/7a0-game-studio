@@ -1,3 +1,19 @@
+## 🏟️ 04/11 — Salas com liga de 10 OU 20 times + ranking por PONTOS (LOCAL, branch do agente, esperando OK)
+Diego: *"a pessoa agora escolhe 10 times ou 20 times… campeão da liga e da copa nesse modo [10] ganhará apenas 1 ponto… com 20
+ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários entram 8 bots, o que muda é isso"*.
+- Seletor "🏟️ Times na liga: 20 · 10" na criação (rápido e Minhas Ligas com bots; a Minha Liga Draft já tinha o dela). Liga de 10 =
+  bots até 10, 18 rodadas, sala de até 10 (20 pessoas em duplas). Selo "🏟️ 10 times" na lista e na sala de espera. Novo leilão mantém.
+- Fecha com 10 (conferido no código + trava `npm run liga-10`): Copa dos 8 (8 primeiros de 10) · Liberta (8 cabeças) · Copa do Mundo /
+  Eurocopa / regionais (a máquina completa as vagas). Travado com aviso: Relâmpago e Só Champions (não têm liga). Fora: carreira,
+  basquete, liga sem bots, partida rápida OFFLINE (sempre 20).
+- Ranking: migration `supabase/migrations/20261104120000_ranking_pontos.sql` (**ainda não aplicada**): `game_champions.peso` (default 2
+  = todos os antigos), gatilho que decide o peso pela sala, e semana/medalhas/clãs/perfil/amigos/rival somam pontos. Telas dizem "pts".
+- [ ] Aplicar a migration ANTES de publicar o código (sem ela a tela diz "pts" mas o banco ainda soma títulos — não quebra, só fica torto).
+- [ ] OK visual do Diego no mockup `scripts/mockups/sala-10-20-times.png`.
+- [ ] Novidade em `novidades.ts` quando for publicado (PT+EN).
+- ⚠️ Semanas já fechadas em `esc_premio_semana` ficaram em títulos; avisos de semana antiga dizem "N pts" com o número velho.
+- Reverter: voltar os 2 commits; no banco, recriar as 4 funções sem o `* coalesce(g.peso, 2)` (coluna/gatilho podem ficar).
+
 ## 🚗 04/11 — Carros 3D da Vadico mais parecidos com os reais (LOCAL, branch do agente, esperando OK visual do Diego)
 Diego: *"não parecem com os veículos reais… não quero foto… só precisa ser mais parecido"*. Fusca, Brasília, Gol GTI, Kombi,
 Opala SS e Ferrari F40 ganharam modelagem própria em `src/escalacao/veiculos-famosos-3d.ts` (casco por seções medidas na
