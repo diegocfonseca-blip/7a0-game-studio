@@ -11,7 +11,6 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, 
 import { createPortal } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
-import { ptsTxt } from './pontos-ranking'
 import { tr } from './lang'
 import { APOIO_PERKS, ApoioSheen, vesteCor, CORES_EXTRA, type ApoioTier, type CorExtra } from './apoio'
 import { PresidenteDaConta } from './presidente-avatar'
@@ -198,7 +197,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           {([
             [p.rank ? `${p.rank.pos}º` : '—', tr('📊 Ranking da carreira', '📊 Career ranking'), p.rank ? tr(`temporada ${p.rank.temporada}`, `season ${p.rank.temporada}`) : tr('sem carreira na nuvem', 'no cloud career')],
-            [p.sempre ? `${p.sempre.pos}º` : '—', tr('🔨 Ranking do online', '🔨 Online ranking'), p.sempre ? tr(`geral · ${ptsTxt(p.sempre.titulos)}`, `all-time · ${ptsTxt(p.sempre.titulos)}`) : tr('sem título ainda', 'no title yet')],
+            [p.sempre ? `${p.sempre.pos}º` : '—', tr('🔨 Ranking do online', '🔨 Online ranking'), p.sempre ? tr(`geral · ${p.sempre.titulos} ${p.sempre.titulos === 1 ? 'título' : 'títulos'}`, `all-time · ${p.sempre.titulos} ${p.sempre.titulos === 1 ? 'title' : 'titles'}`) : tr('sem título ainda', 'no title yet')],
           ] as const).map(([num, rot, sub]) => (
             <div key={rot} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 7, background: '#FFF7DA', border: `2px solid ${INK}`, borderRadius: 12, padding: '6px 8px', color: INK }}>
               <span style={{ ...OSW, fontSize: 21, lineHeight: 1 }}>{num}</span>
@@ -243,7 +242,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             <Rosto uid={p.rival.uid} nome={p.rival.nome} size={40} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <b style={{ display: 'block', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.rival.nome}</b>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#7a2a12' }}>{tr('pontos no online desde que marcou', 'online points since marked')}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#7a2a12' }}>{tr('títulos no online desde que marcou', 'online titles since marked')}</span>
             </span>
             <span style={{ ...OSW, fontSize: 22, whiteSpace: 'nowrap' }}>{p.rival.eu} <span style={{ fontSize: 14 }}>×</span> {p.rival.ele}</span>
           </button>
@@ -382,7 +381,7 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
         ].sort((a, b) => b.t - a.t || a.nome.localeCompare(b.nome))
         let pos = 0, ant = -1
         return <div style={caixa}>
-          <p style={h3}>🏆 {tr('Pontos no online · esta semana', 'Online points · this week')}</p>
+          <p style={h3}>🏆 {tr('Títulos no online · esta semana', 'Online titles · this week')}</p>
           {amigos.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '0 0 6px' }}>{tr('Adicione amigos pra disputar o ranking entre vocês.', 'Add friends to compete in your own ranking.')}</p>}
           {linhas.map((l, i) => {
             if (l.t !== ant) { pos = i + 1; ant = l.t }
@@ -390,7 +389,7 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
               <span style={{ ...OSW, fontSize: 16, width: 30, textAlign: 'center' }}>{pos <= 3 && l.t > 0 ? ['🥇', '🥈', '🥉'][pos - 1] : `${pos}º`}</span>
               <Rosto uid={l.uid} nome={l.nome} size={32} />
               <b style={{ flex: 1, minWidth: 0, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.rival ? '🔥 ' : ''}{l.nome}{l.souEu ? ` (${tr('você', 'you')})` : ''}</b>
-              <span style={{ ...OSW, fontSize: 16 }}>{ptsTxt(l.t)}</span>
+              <span style={{ ...OSW, fontSize: 16 }}>{l.t} 🏆</span>
             </button>
           })}
           <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('Zera toda segunda-feira, igual ao ranking semanal.', 'Resets every Monday, like the weekly ranking.')}</p>

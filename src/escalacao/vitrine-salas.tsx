@@ -11,7 +11,6 @@ import { EmblemaCla, clasLiberado } from './cla' // ⚔️ 21/10: ranking dos cl
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { buscaVitrine, type Vitrine } from './vitrine-dados'
-import { ptsTxt } from './pontos-ranking'
 import { tr, getLang } from './lang'
 import { PodioMoldura } from './podio-semana'
 import { stripEmoji } from './apoio'
@@ -54,7 +53,7 @@ export function RankingClasCaixa() {
   useEffect(() => { let vivo = true; supabase.rpc('esc_cla_ranking').then(({ data }) => { if (vivo) setL(((data ?? []) as ClaRank[]).slice(0, 20)) }, () => {}); return () => { vivo = false } }, [])
   if (!l) return null // 🔁 21/10 (Diego): a caixa aparece SEMPRE, mesmo sem clã nenhum — vazia, ela chama a galera pra criar o primeiro
   return (
-    <Caixa cincoMin titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Os pontos online de cada membro somam pro clã (título em liga de 20 = 2 · liga de 10/Relâmpago = 1). Zera segunda.', 'Every member’s online points add to the clan (title in a 20-team league = 2 · 10-team league/Lightning = 1). Resets Monday.')}>
+    <Caixa cincoMin titulo={tr('⚔️ Clãs da semana', '⚔️ Clans of the week')} sub={tr('Todo título online de cada membro soma pro clã. Zera segunda.', 'Every member’s online title adds to the clan. Resets Monday.')}>
       {/* ⭐ 02/11 (Diego: "no ranking da semana coloque algum texto dourado sobre isso de usuário com plano dobra as vagas") */}
       <p style={{ ...OSW, margin: '0 0 8px', fontSize: 12.5, letterSpacing: '.03em', color: GOLD, background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 9px', lineHeight: 1.25 }}>
         ⭐ {tr('Todo clã tem 22 vagas. Depois disso, cada membro com plano abre +1 vaga!', 'Every clan has 22 slots. After that, each member with a plan opens +1 slot!')}
@@ -68,7 +67,7 @@ export function RankingClasCaixa() {
           <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{c.titulos > 0 ? medalha(c.pos) : `${c.pos}º`}</span>
           <EmblemaCla emblema={c.emblema} size={24} />
           <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.nome}</b>
-          <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{c.titulos === 1 ? 'pt' : 'pts'}</span></span>
+          <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{c.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
           <span style={{ ...OSW, fontSize: 16, color: '#0006' }}>›</span>
         </div>
       ))}
@@ -143,7 +142,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
       </Caixa>
 
       {(v.semana.length > 0 || (v.passada?.length ?? 0) > 0) && (
-        <Caixa cincoMin titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais pontos online nesta semana (título em liga de 20 = 2 · liga de 10/Relâmpago = 1).', 'The managers with the most online points this week (title in a 20-team league = 2 · 10-team league/Lightning = 1).')}>
+        <Caixa cincoMin titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais títulos online nesta semana.', 'The managers with the most online titles this week.')}>
           {v.semana.length === 0 && <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 800 }}>{tr('Semana nova, ranking zerado. O primeiro título é seu? ⚽', 'New week, fresh ranking. Will the first title be yours? ⚽')}</p>}
           {/* 🏆 16/10 (Diego: "no ranking coloque a moldura que falamos"): o top 3 aparece aqui com a MESMA moldura de
               metal + fita que ele já leva na lista de técnicos da sala (`podio-semana.tsx`). A posição vem do ranking. */}
@@ -152,7 +151,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
               <div role={contaValida(s.uid) ? 'button' : undefined} onClick={() => { if (contaValida(s.uid)) abrePerfilSolto(s.uid) }} style={{ cursor: contaValida(s.uid) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : s.pos > 3 ? { borderTop: '1.5px solid #0001' } : {}) }}>
                 <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{medalha(s.pos)}</span>
                 <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.nome}</b>
-                <span style={{ ...OSW, fontSize: 15 }}>{s.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{s.titulos === 1 ? 'pt' : 'pts'}</span></span>
+                <span style={{ ...OSW, fontSize: 15 }}>{s.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{s.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
                 {contaValida(s.uid) && <span style={{ ...OSW, fontSize: 16, color: '#0006' }}>›</span>}
               </div>
             </PodioMoldura>
@@ -161,7 +160,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           {logado && !euNoTop && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 6px', marginTop: 6, border: `2px dashed ${INK}`, borderRadius: 9, background: '#fff' }}>
               {v.eu
-                ? <><span style={{ ...OSW, fontSize: 13, width: 26, textAlign: 'center' }}>{v.eu.pos}º</span><b style={{ ...OSW, flex: 1, fontSize: 13 }}>{tr('Você', 'You')} · {v.eu.nome}</b><span style={{ ...OSW, fontSize: 13 }}>{ptsTxt(v.eu.titulos)}</span></>
+                ? <><span style={{ ...OSW, fontSize: 13, width: 26, textAlign: 'center' }}>{v.eu.pos}º</span><b style={{ ...OSW, flex: 1, fontSize: 13 }}>{tr('Você', 'You')} · {v.eu.nome}</b><span style={{ ...OSW, fontSize: 13 }}>{v.eu.titulos} {v.eu.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></>
                 : <b style={{ ...OSW, flex: 1, fontSize: 12.5 }}>{tr('Você ainda não tem título nesta semana — bora pra uma sala! ⚽', 'No title for you this week yet — jump into a room! ⚽')}</b>}
             </div>
           )}
@@ -174,7 +173,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
                 <div key={i} onClick={() => { if (contaValida(p.uid)) abrePerfilSolto(p.uid) }} style={{ cursor: contaValida(p.uid) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 6, lineHeight: 1.45 }}>
                   <span style={{ fontSize: 13 }}>{medalha(p.pos)}</span>
                   <b style={{ ...OSW, flex: 1, fontSize: 13.5, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stripEmoji(p.nome).trim()}</b>
-                  <span style={{ ...OSW, fontSize: 12 }}>{ptsTxt(p.titulos)}</span>
+                  <span style={{ ...OSW, fontSize: 12 }}>{p.titulos} {p.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span>
                 </div>
               ))}
             </div>
