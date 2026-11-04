@@ -7,6 +7,8 @@ export type ServicoTransporteComplexo = {
   stop:{position:PontoTransporteComplexo;heading:number}
   inbound:PontoTransporteComplexo[];outbound:PontoTransporteComplexo[];passengerRoute:PontoTransporteComplexo[];passengerReturnRoute?:PontoTransporteComplexo[]
   door:{side:-1|1;longitudinal:number;width:number}
+  /** 🚌 04/11: some ao chegar no fim da linha (o ponto de origem fica fora da vista, igual aos carros da avenida) */
+  someNaOrigem?:boolean
 }
 export type EscadaEstacaoComplexo={count:number;rise:number;tread:number;width:number;landing:number;points:PontoTransporteComplexo[];surfaces:SuperficieTransporteComplexo[]}
 export type AcessoEstacaoComplexo={id:'oeste'|'leste';points:PontoTransporteComplexo[];surfaces:SuperficieTransporteComplexo[];bridge:{points:PontoTransporteComplexo[];width:number;floor:number};stair:EscadaEstacaoComplexo;walk:PontoTransporteComplexo[];platformX:number}
@@ -58,7 +60,7 @@ const circularLoop=(vertices:PontoTransporteComplexo[],radius:number)=>{
     const cross=u.x*v.z-u.z*v.x,dot=Math.max(-1,Math.min(1,u.x*v.x+u.z*v.z)),turn=Math.atan2(cross,dot)
     return{p,u,turn,cut:radius*Math.tan(Math.abs(turn)/2),outLength}
   })
-  for(let i=0;i<corners.length;i++)if(corners[i].cut+corners[(i+1)%corners.length].cut>corners[i].outLength+.000001)throw new RangeError('Curva do veículo não comporta o raio físico')
+  for(let i=0;i<corners.length;i++)if(corners[i].cut+corners[(i+1)%corners.length].cut>corners[i].outLength+.000001)throw new RangeError(`Curva do veículo não comporta o raio físico (${corners[i].p.x.toFixed(1)},${corners[i].p.z.toFixed(1)}) cut ${corners[i].cut.toFixed(1)}+${corners[(i+1)%corners.length].cut.toFixed(1)} > ${corners[i].outLength.toFixed(1)} prox ${corners[(i+1)%corners.length].p.x.toFixed(1)},${corners[(i+1)%corners.length].p.z.toFixed(1)} ant ${corners[(i+corners.length-1)%corners.length].p.x.toFixed(1)},${corners[(i+corners.length-1)%corners.length].p.z.toFixed(1)}`)
   const path=corners.flatMap(({p,u,turn,cut})=>{
     if(Math.abs(turn)<.00001)return[p]
     const direction=Math.sign(turn),from={x:p.x-u.x*cut,z:p.z-u.z*cut}
@@ -147,21 +149,68 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
     // Keeping it stable lets a new match change side only at the real origin.
     services.push({id:'metro-visitantes',kind:'metro',side:metroSide,width:2.65,length:114.9,wheelRadius:.23,floorHeight:.48,stop:{position:stop,heading:station.heading},inbound:[origin,stop],outbound:[stop,origin],passengerRoute:metroSide==='home'?homePath:passengerPath(west),passengerReturnRoute:metroSide==='home'?[...homePath].reverse():passengerPath(station.accesses[1]).reverse(),door:{side:-1,longitudinal:0,width:1.5}})
   }
-  // A dedicated public bus turning court sits inside the frontage. Its loop
-  // stays clear of both public traffic lanes and the existing fan walkways.
-  const busCenter={x:-25,z:188},busRadiusX=13,busRadiusZ=9
-  const busStop={x:-25,y:0,z:179},stopHeading=Math.PI/2
-  // The public service approaches from the second stop beside the hotel and
-  // returns along a separate curved frontage lane, clear of the parking lots.
-  const loop=circularLoop([{x:-74,z:130},{x:-64,z:130},{x:-55,z:150},{x:-43,z:168},{x:-35,z:179},{x:-25,z:179},{x:-15,z:179},{x:-10,z:190},{x:-18,z:198},{x:-29,z:198},{x:-39,z:189},{x:-46,z:176},{x:-58,z:153},{x:-70,z:142},{x:-80,z:143},{x:-89,z:140},{x:-82,z:130}].map(p=>point(p,0)),6)
+  // 🚌 PISTA PARALELA DE DESEMBARQUE (04/11, Diego: *"ponto de ônibus não deveria tá na rua… rua duplicada… tipo a Av. das
+  // Américas"* → mockup aprovado *"PERFEITO"*). A avenida segue reta; colada no terreno corre uma pista de serviço que abre antes
+  // do estádio e volta pra avenida depois. Nela param, na ordem do trânsito (oeste → leste, o sentido da faixa do lado do
+  // estádio): 🚌 ônibus · 🚕 táxi/app · 📦 carga · e a entrada própria do estacionamento, com cancela. O laço do ônibus
+  // DENTRO do terreno saiu. O ônibus agora é uma linha da avenida: vem pela faixa do estádio, encosta no ponto, devolve pra
+  // avenida, dá a volta lá no fim e some no começo da avenida (fora da vista), como os carros.
+  const roadOut=PLANTA_COMPLEXO.routes.roadOut.points.map(p=>({x:p.x,z:p.z})),roadBack=[...PLANTA_COMPLEXO.routes.roadBack.points].reverse().map(p=>({x:p.x,z:p.z}))
+  const periph=roadOut.map((p,i)=>({x:(p.x+roadBack[i].x)/2,z:(p.z+roadBack[i].z)/2}))
+  /** ponto da avenida (linha do meio) em x, e a direção dela ali */
+  const naAvenida=(x:number)=>{const i=Math.max(1,periph.findIndex(p=>p.x>=x)),a=periph[i-1],b=periph[i],u=(x-a.x)/(b.x-a.x),l=Math.hypot(b.x-a.x,b.z-a.z);return{x,z:a.z+(b.z-a.z)*u,dx:(b.x-a.x)/l,dz:(b.z-a.z)/l}}
+  /** ponto na pista paralela: `lado` = metros a partir do meio da pista (+ = lado da avenida, − = lado do meio-fio do terreno) */
+  const PISTA_DESLOC=10.6,PISTA_LARG=5.6
+  const naPista=(x:number,lado=0)=>{const a=naAvenida(x),d=PISTA_DESLOC-lado;return{x:a.x+a.dz*d,z:a.z-a.dx*d}}
+  const PISTA_X0=-50,PISTA_X1=52,RAMPA=26
+  const pistaMeio=Array.from({length:Math.round((PISTA_X1-PISTA_X0)/4)+1},(_,i)=>naPista(PISTA_X0+i*4))
+  // as rampas saem da faixa do estádio da avenida (2,6 m do meio dela) e chegam na pista
+  const rampaOeste=[naPista(PISTA_X0-RAMPA,PISTA_DESLOC-2.6),naPista(PISTA_X0-RAMPA*.42,-.6)]
+  const rampaLeste=[naPista(PISTA_X1+RAMPA*.42,-.6),naPista(PISTA_X1+RAMPA,PISTA_DESLOC-2.6)]
+  ribbon('terminal-onibus-pista',[rampaOeste[0],rampaOeste[1],...pistaMeio,...rampaLeste],PISTA_LARG,0,'road')
+  // calçada do lado do terreno, aberta onde os carros entram: portão de serviço (x≈30) e estacionamento (entrada 37 · saída 44)
+  const meioFio=(lado:number,x0:number,x1:number)=>{const n=Math.max(1,Math.round((x1-x0)/4));return Array.from({length:n+1},(_,i)=>naPista(x0+(x1-x0)*i/n,lado))}
+  ribbon('terminal-onibus-calcada-oeste',meioFio(-PISTA_LARG/2-1.3,PISTA_X0,27),2.6,GROUND,'pavement')
+  // acesso de serviço asfaltado: do portão (x≈30) até o pátio — por ele entram a Kombi dos ambulantes e o ônibus dos times
+  ribbon('terminal-onibus-servico',[naPista(30,-PISTA_LARG/2+.2),{x:30,z:150}],3.8,0,'road')
+  ribbon('terminal-onibus-calcada-leste',meioFio(-PISTA_LARG/2-1.3,48.5,PISTA_X1),2.6,GROUND,'pavement')
+  // Vagas junto ao meio-fio (o carro parado ocupa só a metade de dentro; quem passa vai pela metade da avenida)
+  const CURB=-PISTA_LARG/2+1.15,PASSA=.95
+  const vaga=(x:number)=>{const a=naAvenida(x),p=naPista(x,CURB);return{x:p.x,z:p.z,heading:Math.atan2(a.dx,a.dz)}}
+  // a faixa de pedestre da torcida cruza a pista em x≈-4,4: as vagas começam depois dela
+  const taxis=[0,6,12].map(vaga),carga=vaga(18.5)
+  const STOP_X=-25,busCurb=-PISTA_LARG/2+1.42
+  const sp=naPista(STOP_X,busCurb),busStop={x:sp.x,y:0,z:sp.z},stopHeading=Math.atan2(naAvenida(STOP_X).dx,naAvenida(STOP_X).dz)
+  const busCenter={x:busStop.x,z:busStop.z-6},busRadiusX=13,busRadiusZ=9
+  // o ônibus anda pela metade de fora e encosta no meio-fio só no ponto (reto 6 m antes e depois, pra parar alinhado)
+  const naLinha=(x:number,lado:number)=>point(naPista(x,lado),0)
+  const em=(x:number)=>{const a=naAvenida(STOP_X);return point({x:busStop.x+a.dx*(x-STOP_X),z:busStop.z+a.dz*(x-STOP_X)},0)}
+  const pistaOnibus=[...[PISTA_X0,PISTA_X0+4,PISTA_X0+8].map(x=>naLinha(x,PASSA)),em(STOP_X-7),em(STOP_X),em(STOP_X+7),...Array.from({length:Math.round((PISTA_X1-(STOP_X+17))/5)+1},(_,i)=>naLinha(STOP_X+17+i*5,PASSA))]
+  const fora=(p:PontoComplexo)=>point(p,0)
+  // volta lá no fim da avenida: um "bolsão" fora do asfalto, longe da vista (a faixa da avenida é estreita demais pra virar)
+  const bolsao=(a:PontoComplexo,b:PontoComplexo,dirX:number,dirZ:number)=>{
+    // perpendicular à avenida, apontando do lado de 'a' pro lado de 'b' (as pontas das faixas não são retas)
+    let px=-dirZ,pz=dirX;if((b.x-a.x)*px+(b.z-a.z)*pz<0){px=-px;pz=-pz}
+    const m={x:(a.x+b.x)/2+dirX*18,z:(a.z+b.z)/2+dirZ*18}
+    return[{x:m.x-px*9,z:m.z-pz*9},{x:m.x+px*9,z:m.z+pz*9}]}
+  const ini=roadOut[0],dIni={x:roadOut[0].x-roadOut[1].x,z:roadOut[0].z-roadOut[1].z},lIni=Math.hypot(dIni.x,dIni.z)
+  const fim=roadOut.at(-1)!,dFim={x:fim.x-roadOut.at(-2)!.x,z:fim.z-roadOut.at(-2)!.z},lFim=Math.hypot(dFim.x,dFim.z)
+  const origem={x:(roadOut[0].x+roadOut[1].x)/2,z:(roadOut[0].z+roadOut[1].z)/2}
+  const antes=roadOut.filter(p=>p.x>roadOut[0].x&&p.x<PISTA_X0-RAMPA-4),depois=roadOut.filter(p=>p.x>PISTA_X1+RAMPA+4)
+  const voltaLeste=bolsao(fim,roadBack.at(-1)!,dFim.x/lFim,dFim.z/lFim),voltaOeste=bolsao(roadBack[0],ini,dIni.x/lIni,dIni.z/lIni)
+  const linha=[origem,...antes,naAvenida(PISTA_X0-RAMPA-2),...pistaOnibus,naAvenida(PISTA_X1+RAMPA+2),...depois,...voltaLeste,...[...roadBack].reverse(),...voltaOeste,ini].map(fora)
+  const loop=circularLoop(linha.filter((p,i,a)=>!i||Math.hypot(p.x-a[i-1].x,p.z-a[i-1].z)>.5),6)
   const stopIndex=loop.findIndex(p=>Math.hypot(p.x-busStop.x,p.z-busStop.z)<1e-6)
+  if(stopIndex<0)throw new RangeError('Ponto de ônibus fora da linha')
   const busInbound=loop.slice(0,stopIndex+1),busOutbound=[...loop.slice(stopIndex),loop[0]]
-  const busWalk=[{x:busStop.x,z:busStop.z-.65,y:.32},{x:busStop.x,z:busStop.z-1.25,y:.32},{x:busStop.x,z:busStop.z-1.25,y:GROUND},{x:busStop.x,z:busStop.z-1.9,y:GROUND},{x:-23,z:174,y:GROUND},{x:-14,z:166,y:GROUND},{x:-28,z:148,y:GROUND},{x:-28,z:124,y:GROUND},{x:-7,z:122,y:GROUND},{x:-3.6,z:116,y:GROUND},{x:-3.6,z:74,y:GROUND}]
-  ribbon('terminal-onibus-circulacao',[...loop,loop[0]],5.4,0,'road')
-  ribbon('terminal-onibus-conexao',[{x:-25,z:197},{x:-25,z:208}],5.4,0,'road')
+  const busWalk=[{x:busStop.x,z:busStop.z-.65,y:.32},{x:busStop.x,z:busStop.z-1.25,y:.32},{x:busStop.x,z:busStop.z-1.25,y:GROUND},{x:busStop.x,z:busStop.z-1.9,y:GROUND},{x:busStop.x,z:busStop.z-6,y:GROUND},{x:-23,z:174,y:GROUND},{x:-14,z:166,y:GROUND},{x:-28,z:148,y:GROUND},{x:-28,z:124,y:GROUND},{x:-7,z:122,y:GROUND},{x:-3.6,z:116,y:GROUND},{x:-3.6,z:74,y:GROUND}]
   ribbon('terminal-onibus-passeio',busWalk.slice(2),2.4,GROUND,'pavement')
-  const bus={center:busCenter,radiusX:busRadiusX,radiusZ:busRadiusZ,stop:busStop,heading:stopHeading,turningRadius:6,walk:busWalk,origin:busInbound[0]}
-  services.push({id:'onibus-mandantes',kind:'bus',side:'home',width:2.5,length:10,wheelRadius:.43,floorHeight:.32,stop:{position:busStop,heading:stopHeading},inbound:busInbound,outbound:busOutbound,passengerRoute:busWalk,door:{side:1,longitudinal:0,width:1.5}})
+  const pista={x0:PISTA_X0,x1:PISTA_X1,largura:PISTA_LARG,meio:pistaMeio,taxis,carga,naPista,naAvenida,
+    // 🚧 portão de serviço (Kombi dos ambulantes) e 🅿️ cancela do estacionamento, os dois no meio-fio do terreno
+    portaoServico:naPista(27,-PISTA_LARG/2-1.3),cancela:{x:37,z:192.4}}
+  const bus={center:busCenter,radiusX:busRadiusX,radiusZ:busRadiusZ,stop:busStop,heading:stopHeading,turningRadius:6,walk:busWalk,origin:loop[0],
+    /** o ponto do bairro (ao lado do hotel) continua lá, só como abrigo da outra linha */ paradaBairro:point({x:-74,z:130},0)}
+  services.push({id:'onibus-mandantes',kind:'bus',side:'home',width:2.5,length:10,wheelRadius:.43,floorHeight:.32,stop:{position:busStop,heading:stopHeading},inbound:busInbound,outbound:busOutbound,passengerRoute:busWalk,door:{side:1,longitudinal:0,width:1.5},someNaOrigem:true})
   const parking={enabled:state.parking.stage>0,stage:state.parking.stage,capacity:state.parking.capacity,paved:!!state.extras.asfalto,floor:.035,turningRadius:3.5,entry:{x:38.38621511294916,z:203.56924931856256},slot:{x:54,z:163},width:2.9,length:5.9}
   for(const lot of PLANTAS_ESTACIONAMENTO_COMPLEXO)if(lot.stage<=parking.stage)ribbon(`estacionamento-ligacao-${lot.id}`,lot.access,5.4,parking.floor,'road')
   if(parking.enabled){
@@ -178,6 +227,6 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
     ribbon('estacionamento-passeio-estadio',pedestrian.slice(2),2.4,GROUND,'pavement')
     services.push({id:'estacionamento-mandantes',kind:'car',side:'home',width:1.9,length:4.6,wheelRadius:.3,floorHeight:.285,stop:{position:point(parking.slot,y),heading:Math.PI},inbound:route,outbound,passengerRoute:pedestrian,door:{side:1,longitudinal:0,width:1.4}})
   }
-  return{services,station,bus,parking,parkingLots:LOTES_ESTACIONAMENTO_COMPLEXO,parkingPlants:PLANTAS_ESTACIONAMENTO_COMPLEXO,surfaces,pedestrianSurfaces,vehicleSurfaces}
+  return{services,station,bus,pista,parking,parkingLots:LOTES_ESTACIONAMENTO_COMPLEXO,parkingPlants:PLANTAS_ESTACIONAMENTO_COMPLEXO,surfaces,pedestrianSurfaces,vehicleSurfaces}
 }
 export type PlantaTransporteComplexo=ReturnType<typeof gerarPlantaTransporte>

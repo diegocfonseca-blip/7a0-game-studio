@@ -1,3 +1,4 @@
+import type { EstadoPenaltisCampo } from './campo2d-penaltis'
 import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
@@ -245,16 +246,17 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}
 
-export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCrest,official,final=false,aTeam,bTeam,passo=.85,shootout=false}:{shootout?:boolean;rows:{ok:boolean;at:number}[][];totalDelay:number;nSlots:number;aName:string;bName:string;aCrest?:ReactNode;bCrest?:ReactNode;official:[number,number];final?:boolean;aTeam?:Batedores;bTeam?:Batedores;passo?:number}){
+export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCrest,official,final=false,aTeam,bTeam,passo=.85,shootout=false,campo}:{campo?:EstadoPenaltisCampo;shootout?:boolean;rows:{ok:boolean;at:number}[][];totalDelay:number;nSlots:number;aName:string;bName:string;aCrest?:ReactNode;bCrest?:ReactNode;official:[number,number];final?:boolean;aTeam?:Batedores;bTeam?:Batedores;passo?:number}){
  const [elapsed,setElapsed]=useState(0)
  const signature=JSON.stringify(rows)
- useEffect(()=>{const start=Date.now();setElapsed(0);const id=setInterval(()=>{const t=(Date.now()-start)/1000;setElapsed(t);if(t>=totalDelay)clearInterval(id)},80);return()=>clearInterval(id)},[signature,aName,bName,totalDelay])
- const done=elapsed>=totalDelay
+ useEffect(()=>{if(campo)return;const start=Date.now();setElapsed(0);const id=setInterval(()=>{const t=(Date.now()-start)/1000;setElapsed(t);if(t>=totalDelay)clearInterval(id)},80);return()=>clearInterval(id)},[signature,aName,bName,totalDelay,!!campo])
+ const done=campo?.encerrado ?? elapsed>=totalDelay
+ const mostrado=(at:number)=>campo?at<campo.reveladas:elapsed>=.7+at*passo
  const valid=rows.every((r,i)=>r.filter(k=>k.ok).length===official[i])
  if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>{shootout?'SHOOTOUT':tr('PÊNALTIS', 'PENALTIES')}</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Decisão em andamento…', 'Shoot-out in progress…')}</p></section>
- const visible=rows.map(r=>r.filter(k=>elapsed>=.7+k.at*passo))
+ const visible=rows.map(r=>r.filter(k=>mostrado(k.at)))
  const scores=visible.map(r=>r.filter(k=>k.ok).length)
- const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed<.7+k.at*passo).sort((a,b)=>a.at-b.at)[0]
+ const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>!mostrado(k.at)).sort((a,b)=>a.at-b.at)[0]
  // 🎯 COBRANÇA QUE NÃO PRECISOU ACONTECER NÃO GANHA BOLINHA (Diego 09/09, final
  // da Copa do Mundo da sala do Futpoint: *"os pênaltis não terminou todos e já deu
  // campeão"*). A disputa PARA quando está decidida — regra real, e é o que o motor
@@ -285,12 +287,12 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  // 📏 Nome longo encolhe e quebra em até 2 linhas (nunca corta no meio da pessoa).
  // Sem elenco (tela que não mandou os times) → fica a linha de sempre.
  const times=[aTeam,bTeam]
- const temPalco=!!(aTeam||bTeam)
+ const temPalco=!campo&&!!(aTeam||bTeam)
  const semente=sementePalco(aName,bName,official)
  const siglas=times.map(t=>t?siglasDoTime(t.goleiro?[...t.batem,t.goleiro]:t.batem):{} as Record<string,string>)
  const quem=(side:number,i:number)=>batedorDaVez(times[side],i)
  const sigla=(side:number,i:number)=>{const n=quem(side,i);return n?siglas[side][n]:undefined}
- const saiu=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed>=.7+k.at*passo).sort((a,b)=>b.at-a.at)[0]
+ const saiu=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>mostrado(k.at)).sort((a,b)=>b.at-a.at)[0]
  // ⚽ A BOLA VIAJA (25/09, mockup aprovado: *"pode fazer, já pode funcionar já"*).
  // Antes a bolinha só PISCAVA no meio do palco e o veredito caía do nada. Agora ela
  // nasce no pé de quem bate, atravessa a pista e SÓ quando chega no gol sai o final:
@@ -353,8 +355,8 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  // Morte súbita comprida quebra linha em vez de estourar o cartão.
  return <section className="ll28-pens" aria-label="Disputa de pênaltis">
   <header><b>{naMorteSubita?tr('MORTE SÚBITA', 'SUDDEN DEATH'):shootout?'SHOOTOUT':tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):shootout?tr('TENTATIVAS', 'ATTEMPTS'):tr('COBRANÇAS', 'KICKS')}</span></header>
-  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*passo;const daVez=!done&&next?.side===side&&next.i===i;if(!shown&&!daVez)return null;const sg=sigla(side,i);return <span key={i} className={`${shown?(k.ok?'made':'missed'):'current'}${sg?' sigla':''}`} title={quem(side,i)} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{sg??(shown?(k.ok?'✓':'×'):'')}</span>})}</div></div>)}
-  {palcoAgora??<p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>}
+  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=mostrado(k.at);const daVez=!done&&(campo ? campo.fase!=='organizar'&&campo.cobranca===k.at&&!shown : next?.side===side&&next.i===i);if(!shown&&!daVez)return null;const sg=sigla(side,i);return <span key={i} className={`${shown?(k.ok?'made':'missed'):'current'}${sg?' sigla':''}`} title={quem(side,i)} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{sg??(shown?(k.ok?'✓':'×'):'')}</span>})}</div></div>)}
+  {palcoAgora??<p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:campo?tr(campo.mensagem,campo.mensagemEn):tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>}
  </section>
 }
 

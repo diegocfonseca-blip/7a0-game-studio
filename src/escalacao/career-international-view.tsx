@@ -1,3 +1,4 @@
+import { usePenaltisCampo } from './campo2d-penaltis-react'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {usePresidentPreview} from './presidente-acesso'
 // ─── 🌎 CARREIRA INTERNACIONAL — a tela, PASSO A PASSO (01/10, pedido do Diego) ────
@@ -40,7 +41,7 @@ import { useCampo2DLigado } from './campo2d-modo'
 import { useCampo2DLiberado } from './sport'
 import { useCo2 } from './co2'
 import { DUR_2D_MS } from './campo2d-motor'
-import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
+import { LiveScoreCard, PensShootout, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
 import { loggedEmail, useHasManual } from './apoio'
@@ -493,7 +494,7 @@ function frasesDoApito(fase: 'liga' | 'ida' | 'volta' | 'final', comp: Comp, voc
   }
 }
 
-export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga' }: { match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
+export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga', penalties }: { penalties?: InternationalTie; match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
   const c2d = useCampo2DLigado() // 📺 no Campo 2D o jogo dura 1:30
   const {state}=useEsc(),presidentAvailable=usePresidentPreview()
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
@@ -503,8 +504,14 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
   const [fim, setFim] = useState(false)
   useEffect(() => { setFim(false) }, [roundKey])
   useApitoDeLargada('intl-carreira', roundKey, true)
+  const aPen = penalties ? teams.get(penalties.home) : undefined, bPen = penalties ? teams.get(penalties.away) : undefined
+  const disputa = usePenaltisCampo(stadiumMatch && presidentAvailable && penalties?.penalties && aPen && bPen ? {
+    id: stadiumMatch.id, pens: penalties.penalties, aName: aPen.institution, bName: bPen.institution,
+    aSquad: aPen.xi, bSquad: bPen.xi, invertido: penalties.home !== match.home,
+  } : undefined, fim, speed, false, onFim)
+  const temDisputaCampo = !!stadiumMatch && presidentAvailable && !!penalties?.penalties
   const tecnico = `${tr('TÉCNICO', 'COACH')}: ${campaign.userTeam.toUpperCase()}`
-  return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
+  return <><LiveScoreCard estadoPenaltis={disputa.estado} disputaPenaltis={disputa.sessao} enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
     homeColor={copaSideColor(home.institution)} awayColor={copaSideColor(away.institution)}
     homeEmblem={<SeloClube clube={home.institution} size={58} />} awayEmblem={<SeloClube clube={away.institution} size={58} />}
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
@@ -512,7 +519,11 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     apitoFrases={frasesDoApito(fase, comp, home.you ? home.institution : away.institution)}
     elencos={{ casa: home.xi, fora: away.xi, m2: entradaInternacionalM2(campaign.teams, match) }} // 📺 sem o elenco o Campo 2D montava o time sem nomes nem rostos das lendas (Diego 20/10)
     youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
-    onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); onFim() } }} />
+    onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); if (!temDisputaCampo) onFim() } }} />
+    {disputa.estado && penalties?.penalties && aPen && bPen && <PensShootout compactCareer lento={home.you||away.you} campo={disputa.estado}
+      pens={penalties.penalties} aName={aPen.institution} bName={bPen.institution} aSquad={aPen.xi} bSquad={bPen.xi}
+      aCrest={<SeloClube clube={aPen.institution} size={20}/>} bCrest={<SeloClube clube={bPen.institution} size={20}/>} final={fase==='final'} />}
+  </>
 }
 
 export function CareerInternationalView(p: Props) {
@@ -815,7 +826,7 @@ export function CareerInternationalView(p: Props) {
       {tunelIntlOn && minhaTie && <div style={{ display: 'none' }}><TunelFinal comp={compDaFase === 'mundial' ? 'mundial' : compDaFase === 'libertadores' ? 'liberta' : 'champions'}
         seg={tunelIntl} total={4} onFechar={fechaTunelIntl}
         casa={{ nome: nomeDe(minhaTie.home), crest: crestOf(current, minhaTie.home, 92) }} fora={{ nome: nomeDe(minhaTie.away), crest: crestOf(current, minhaTie.away, 92) }} /></div>}
-      {tunelIntlOn ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>🏟️</p> : jogoGrande && <JogoGrande match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} fase={!minhaTie ? 'liga' : minhaTie.matches.length === 1 ? 'final' : jogo === 0 ? 'ida' : 'volta'} />}
+      {tunelIntlOn ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>🏟️</p> : jogoGrande && <JogoGrande penalties={ultimoJogo?minhaTie:undefined} match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} fase={!minhaTie ? 'liga' : minhaTie.matches.length === 1 ? 'final' : jogo === 0 ? 'ida' : 'volta'} />}
       {finalNeutra && <FinalCard phase={finalNeutra} campaign={current} titulo={compDaFase === 'mundial' ? tr('A final do Mundial de Clubes', 'The Club World Cup final') : `${tr('A final da', 'The final of the')} ${nomeComp(compDaFase!)}`} startedAt={startedAt} legMs={legMs} finished={fimJogo} roundKey={reveal * 10 + jogo} />}
       {!meusJogos.length && rep && !ehFinal && <div style={{ ...card, textAlign: 'center' }}><p style={{ margin: 0, fontWeight: 800, fontSize: 12, color: INK }}>{tr('Você já está fora desta fase. Os jogos da noite:', 'You are out of this stage. Tonight\'s matches:')}</p></div>}
       {fimDaTie && minhaTie && <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', marginTop: -4, marginBottom: 10, textAlign: 'center' }}>

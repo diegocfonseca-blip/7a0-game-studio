@@ -34,6 +34,22 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - ⚠️ Semanas já fechadas em `esc_premio_semana` ficaram em títulos; avisos de semana antiga dizem "N pts" com o número velho.
 - Reverter: voltar os 2 commits; no banco, recriar as 4 funções sem o `* coalesce(g.peso, 2)` (coluna/gatilho podem ficar).
 
+## 🚌 PISTA PARALELA NA FRENTE DO ESTÁDIO (04/11, mockup `scripts/mockups/frente-estadio-pista-paralela.png` aprovado: "PERFEITO" / "OK PUBLICA TUDO")
+- FEITO no código (branch), foto do mapa mandada pro Diego antes de subir pra main.
+- `presidencia-complexo-transporte-model.ts`: pista de serviço colada no terreno (abre em x≈-76, volta em x≈78), calçada do lado do terreno
+  aberta no portão de serviço e na entrada/saída do estacionamento, acesso de serviço asfaltado em x=30. O laço do ônibus DENTRO do terreno saiu.
+- O ônibus virou linha da avenida: entra pela faixa do estádio, encosta no ponto (x≈-24), volta pra avenida, faz a volta nos "bolsões" do fim
+  da avenida e some no começo dela (`someNaOrigem`, igual aos carros). O abrigo do ponto do bairro (ao lado do hotel) ficou como enfeite.
+- Entorno: 2 táxis + 1 carro de app, caminhãozinho na vaga de carga, letreiros ÔNIBUS / TÁXI · APP / CARGA no asfalto, faixa de pedestre
+  (x≈-4,4, onde a torcida atravessa), cancela + guarita do estacionamento e portão de serviço da Kombi.
+- Kombi dos ambulantes (`cidade3d/vendor-delivery.mjs`): chega parada na vaga de carga, entra pelo portão de serviço e sai pela pista.
+- Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
+  ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 04/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO: **Serventes FC** (wallacethiago424) × **Safiel** (gustavodelimafrias2): Safiel criada hoje 04/11 10:54, jogou as 6 temporadas SÓ com o Serventes, 0 ligas × 3, nunca jogou sala cheia, logins com 44 min de diferença.
+- Continuam esperando resposta: Roseira FC × Cholismo · Victor FC × Davi FC.
+
 ## 🎽 FORMAÇÃO NA CONVOCAÇÃO (04/11, *"OK PUBLIQUE"*) — FEITO
 - Leilão de Clubes (convocação) e Copas com seleções (Mundo/Euro/regionais): as 7 formações da carreira (`FORMACOES_JOGO`), acesas só se o elenco completa (🔒 diz o que falta). Modo jogador (rápido/Minhas Ligas) segue com 4-3-3/4-4-2 escolhida ao criar a sala.
 - Liga Draft: a escalação dela (`SquadTab` com `minhaLigaDraft`) também oferece as 7; o reducer `MLD_FORMACAO` já aceitava qualquer uma que o elenco preencha.

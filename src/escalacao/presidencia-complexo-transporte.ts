@@ -422,7 +422,7 @@ export function criarTransporteComplexo(scene: THREE.Scene, state: EstadoComplex
           }
         }
       }
-      const frame = actor.active ? actor.entry.at(seconds - actor.offset) : undefined; actor.root.visible = !!frame
+      const frame = actor.active ? actor.entry.at(seconds - actor.offset) : undefined; actor.root.visible = !!frame && !(actor.entry.service.someNaOrigem && ['origin', 'terminal'].includes(frame.vehicle.phase))
       if (!frame) { actor.body.updatePose(undefined); continue }
       const vehicle = frame.vehicle; actor.root.position.set(vehicle.position.x, vehicle.position.y, vehicle.position.z); actor.root.rotation.y = vehicle.heading
       if(actor.entry.service.kind==='metro'){
