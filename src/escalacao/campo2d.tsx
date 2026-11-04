@@ -26,6 +26,8 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado } from './sport'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
+import { criaColetorCampo2D, fraseQuase, QUASE_FAIXA_MS, QUASE_ANEL_MS, type QuaseCampo2D, type ResumoCampo2D } from './campo2d-resumo'
+import { ResumoApitoCampo2D, BotaoReplayCampo2D, publicarApitoCampo2D, publicarQuaseCampo2D, QUASE_CSS, estiloQuase, type ReplayCampo2D } from './campo2d-resumo-ui'
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
 const INK = '#0C0C0C', GOLD = '#FFC400'
@@ -184,12 +186,17 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const vendo = useRef<{ i: number; ini: number } | null>(null)
   const [temReplay, setTemReplay] = useState(false)
   const [replayNa, setReplayNa] = useState<{ autor: string; min: number } | null>(null)
+  // 📊😱 04/11: o resumo do apito e o QUASE (regra em campo2d-resumo.ts; desenho em campo2d-resumo-ui.tsx — o MESMO no mapa)
+  const coletor = useRef<{ de: unknown; c: ReturnType<typeof criaColetorCampo2D> }>({ de: null, c: criaColetorCampo2D() })
+  const quaseVivo = useRef<{ q: QuaseCampo2D; desde: number } | null>(null)
+  const [quase, setQuase] = useState<QuaseCampo2D | null>(null)
+  const [resumo, setResumo] = useState<ResumoCampo2D | null>(null)
   useEffect(()=>()=>onSimulationMinute?.(null),[onSimulationMinute])
   // 🔒 04/11: o que foi IGUALADO com o campo do mapa (rastro do mapa, nome que segura) só aparece na conta liberada do 2D —
   // em sala 2D de outra pessoa o campinho segue exatamente como era (Diego: *"ninguém pode ver ainda"*).
   const igualMapa = useCampo2DLiberado()
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis }
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length }
 
   useEffect(() => {
     const el = caixa.current
@@ -442,6 +449,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       else simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,msPorMin)
       const fi = fita.current
       if (fi.de !== jogo) { fi.de = jogo; fi.atual = []; fi.gols = []; vendo.current = null }
+      const col = coletor.current
+      if (col.de !== jogo) { col.de = jogo; col.c = criaColetorCampo2D(); quaseVivo.current = null; setQuase(null); setResumo(null) }
       const rv = vendo.current
       if (rv) {
         // 🎬 tocando a fita: os jogadores e a bola vão pra onde estavam (o jogo já acabou — o placar não muda)
@@ -458,6 +467,15 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       } else {
         jogo.avancaAte(simMin)
         vivo.current.onSimulationMinute?.(simMin)
+        // 📊😱 só CONTA o que a tela mostrou (não sorteia nada, não mexe no jogo)
+        col.c.passo(jogo as never)
+        const nq = col.c.novoQuase()
+        if (nq && igualMapa && !jogo.festa) { quaseVivo.current = { q: nq, desde: jogo.t }; setQuase(nq) }
+        // 🏁 o resumo só depois do apito E de tudo que estava pendente (o gol dos acréscimos já entrou): nada de spoiler
+        const m2 = (jogo as unknown as { fim?: boolean; stats?: unknown })
+        if (igualMapa && fechado && !jogo.festa && simMin >= 93 && (m2.stats ? !!m2.fim : jogo.placar[0] + jogo.placar[1] >= vivo.current.nGols) && !col.c.feito) {
+          col.c.feito = true; setResumo(col.c.resumo(jogo as never, [casa.cartas2 ?? casa.cartas, fora.cartas2 ?? fora.cartas]))
+        }
         if (replay) {
           const ult2 = fi.atual[fi.atual.length - 1]
           if (!ult2 || jogo.t - ult2.t >= 0.08) {
@@ -477,6 +495,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         ult.narra = cena.narra; setNarra(cena.narra)
         setPlacarPenV(estadoPenalti ? (disputaPenaltis!.config.invertido ? [estadoPenalti.placar[1], estadoPenalti.placar[0]] : estadoPenalti.placar) : null)
       }
+      // 😱 o QUASE fica ~2,6 s DE JOGO na faixa (ou até sair um gol: a festa manda) — no tempo do jogo: pausou, ele espera; no 4×, passa rápido
+      if (quaseVivo.current && ((jogo.t - quaseVivo.current.desde) * 1000 > QUASE_FAIXA_MS || jogo.festa || penalti)) { quaseVivo.current = null; setQuase(null) }
       if (cena.placar[0] !== ult.placar[0] || cena.placar[1] !== ult.placar[1]) { ult.placar = [cena.placar[0], cena.placar[1]]; setPlacarV(ult.placar) }
       const fk = cena.festa ? `${cena.festa.lado}|${cena.festa.autor}|${cena.festa.min}` : ''
       if (fk !== ult.festa) {
@@ -638,12 +658,23 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           cx.beginPath(); for (let v = 0; v < 5; v++) { const aa = a + v * 1.2566; v ? cx.lineTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) : cx.moveTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) } cx.closePath(); cx.fill() }
         cx.restore(); cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.lineWidth = 1.6; cx.strokeStyle = '#111'; cx.stroke()
       }
+      // 😱 QUASE: um anel dourado curto onde a bola beijou a trave / o goleiro voou (o mesmo anel aparece no gramado do mapa)
+      const qv = quaseVivo.current, qIdade = qv ? (jogo.t - qv.desde) * 1000 / QUASE_ANEL_MS : 2
+      if (qv && qIdade < 1) {
+        const [qx, qy] = tr(qv.q.x, qv.q.y), a0 = cx.globalAlpha
+        cx.globalAlpha = 1 - qIdade
+        cx.beginPath(); cx.arc(qx, qy, R * (0.8 + qIdade * 2.4), 0, 7); cx.lineWidth = Math.max(3, R * 0.42); cx.strokeStyle = GOLD; cx.stroke()
+        cx.beginPath(); cx.arc(qx, qy, R * (0.5 + qIdade * 1.5), 0, 7); cx.lineWidth = Math.max(1.5, R * 0.18); cx.strokeStyle = '#fff'; cx.stroke()
+        if (qv.q.tipo === 'trave') { cx.beginPath(); cx.arc(qx, qy, Math.max(3, R * 0.45), 0, 7); cx.fillStyle = '#fff'; cx.fill() } // (o poste "acende")
+        cx.globalAlpha = a0
+      }
       if(mapMatchId&&mapFPS){
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
           players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
           net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
-          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2}})
+          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
+          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
       }
       raf = requestAnimationFrame(quadro)
     }
@@ -659,6 +690,22 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     publicarFestaCampo2D(mapMatchId, festa && dono ? { ...festa, mascote: dono.mascote, escudo: dono.escudo } : null)
   }, [mapMatchId, festa])
   useEffect(() => () => { if (mapMatchId) publicarFestaCampo2D(mapMatchId, null) }, [mapMatchId])
+  // 📊🎬😱 04/11: o resumo do apito, os melhores momentos e o QUASE — o MESMO desenho aqui e no HUD do mapa
+  const en = t('pt', 'en') === 'en'
+  const quaseTxt = quase ? fraseQuase(quase, en) : ''
+  const ladoResumo = (l: typeof casa, cor: string) => ({ nome: l.nome, sigla: sigla(l.nome), cor })
+  const replayCtl: ReplayCampo2D | null = replay && temReplay && fechado && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) ? {
+    na: replayNa,
+    play: () => { const g = fita.current.gols[0]; if (!g || vendo.current) return; vendo.current = { i: 0, ini: performance.now() }; setReplayNa({ autor: g.autor, min: g.min }) },
+  } : null
+  const replaySig = replayCtl ? `${replayNa?.autor ?? ''}|${replayNa?.min ?? ''}` : ''
+  useEffect(() => {
+    if (!mapMatchId) return
+    publicarApitoCampo2D(mapMatchId, (resumo && (!disputaPenaltis || disputaPenaltis.estado.encerrado)) || replayCtl ? { resumo, casa: ladoResumo(vivo.current.casa, corCasa), fora: ladoResumo(vivo.current.fora, corFora), replay: replayCtl } : null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapMatchId, resumo, replaySig, corCasa, corFora])
+  useEffect(() => { if (mapMatchId) publicarQuaseCampo2D(mapMatchId, quase ? { ...quase, txt: quaseTxt } : null) }, [mapMatchId, quase, quaseTxt])
+  useEffect(() => () => { if (mapMatchId) { publicarApitoCampo2D(mapMatchId, null); publicarQuaseCampo2D(mapMatchId, null) } }, [mapMatchId])
   const altPlaca = Math.max(22, Math.round(larg / 16))
   return (
     <div ref={caixa} style={{ marginBottom: 10 }}>
@@ -678,21 +725,18 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           <FestaGolCampo2D festa={{ ...festa, mascote: time.mascote, escudo: time.escudo }} larg={larg} />
         )}
       </div>
-      {replay && temReplay && fechado && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) && (
+      {replayCtl && (
         <div style={{ maxWidth: larg, margin: '8px auto 0', display: 'flex', justifyContent: 'center' }}>
-          {replayNa
-            ? <div style={{ ...OSW, background: INK, color: GOLD, border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 14px' }}>🎬 {t('REPLAY', 'REPLAY')} · ⚽ {replayNa.autor} {replayNa.min > 90 ? `90+${replayNa.min - 90}` : replayNa.min}'</div>
-            : <button onClick={() => { const g = fita.current.gols[0]; if (!g) return; vendo.current = { i: 0, ini: performance.now() }; setReplayNa({ autor: g.autor, min: g.min }) }}
-                style={{ ...OSW, background: '#1B7A3D', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 16px', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', fontSize: 15 }}>
-                🎬 {t('VER OS GOLS DE NOVO', 'WATCH THE GOALS AGAIN')}
-              </button>}
+          <BotaoReplayCampo2D replay={replayCtl} />
         </div>
       )}
       {narra && !semNarra && (
-        <div key={piscaGol ? `g${piscaGol.k}` : 'n'} className={piscaGol ? 'll44-gol-pisca' : undefined}
-          style={{ maxWidth: larg, margin: '8px auto 0', background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3, ...(piscaGol ? estiloPisca() : {}) }}
-          dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en', festa?.autor, festa?.min).replace(/[<>&"]/g, '')}</span>` : '🎙️ ' + narra }} />
+        <div key={piscaGol ? `g${piscaGol.k}` : quase ? `q${quase.k}` : 'n'} className={piscaGol ? 'll44-gol-pisca' : undefined} data-quase-campo2d={quase && !piscaGol ? quase.tipo : undefined}
+          style={{ maxWidth: larg, margin: '8px auto 0', background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3, ...(piscaGol ? estiloPisca() : quase ? estiloQuase() : {}) }}
+          dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en', festa?.autor, festa?.min).replace(/[<>&"]/g, '')}</span>` : quase ? '😱 ' + quaseTxt.replace(/[<>&"]/g, '') : '🎙️ ' + narra }} />
       )}
+      {quase && <style>{QUASE_CSS}</style>}
+      {resumo && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) && <ResumoApitoCampo2D resumo={resumo} casa={ladoResumo(casa, corCasa)} fora={ladoResumo(fora, corFora)} larg={larg} />}
     </div>
   )
 }

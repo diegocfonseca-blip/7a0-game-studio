@@ -26,6 +26,8 @@ applyCampo2DBancada(); setInterval(() => applyCampo2DBancada(), 400) // (a confe
   if (parar) window.requestAnimationFrame = (cb => { if (W.__rastro >= parar && performance.now() - W.__rastroT < 20) { (W as unknown as { __congelado: boolean }).__congelado = true; return 0 } return raf(cb) }) as typeof window.requestAnimationFrame
   // ?pararFesta=1 congela tudo 0,7 s depois que a festa do gol aparece no mapa (a foto sai com ela na tela)
   if (new URLSearchParams(location.search).has('pararFesta')) { let viu = 0; window.requestAnimationFrame = (cb => { if (document.querySelector('.pc3-match-festa')) { viu ||= performance.now(); if (performance.now() - viu > 700) { (W as unknown as { __congelado: boolean }).__congelado = true; return 0 } } return raf(cb) }) as typeof window.requestAnimationFrame } }
+// ?pararQuase=1 congela tudo 0,35 s depois que o QUASE aparece na faixa (a foto sai com o anel e o grito) — 04/11
+if (new URLSearchParams(location.search).has('pararQuase')) { const raf0 = window.requestAnimationFrame.bind(window); let viu = 0; window.requestAnimationFrame = (cb => { if (document.querySelector(new URLSearchParams(location.search).get('modo') === 'mapa' ? '.pc3-match-score [data-quase-campo2d]' : '[data-quase-campo2d]')) { viu ||= performance.now(); if (performance.now() - viu > Number(new URLSearchParams(location.search).get('pararQuase') || 350)) { (window as unknown as { __congelado: boolean }).__congelado = true; return 0 } } return raf0(cb) }) as typeof window.requestAnimationFrame }
 const q = new URLSearchParams(location.search)
 const VEL = Number(q.get('vel') ?? 1), MAPA = q.get('modo') === 'mapa'
 const casa = [
@@ -45,13 +47,16 @@ const ID = 'qa-igualar-1'
 const full = { inv: Object.fromEntries(STADIUM_SECTORS.map(s => [s.k, s.cost])), ext: STADIUM_EXTRAS.map(e => e.k) }
 function Bancada() {
   const [min, setMin] = useState(Number(q.get('de') ?? 0))
-  useEffect(() => { const iv = setInterval(() => setMin(m => Math.min(93, m + 1)), (DUR_2D_MS * 0.82) / 93 / VEL); return () => clearInterval(iv) }, [])
+  // ?pausarQuase=1 PAUSA o jogo (relógio do campinho parado, mapa seguindo) assim que o QUASE aparece na faixa — pra foto (04/11)
+  const [pausa, setPausa] = useState(false)
+  useEffect(() => { if (!q.has('pausarQuase')) return; const iv = setInterval(() => { if (document.querySelector(MAPA ? '.pc3-match-score [data-quase-campo2d]' : '[data-quase-campo2d]')) setPausa(true) }, 30); return () => clearInterval(iv) }, [])
+  useEffect(() => { if (pausa) return; const iv = setInterval(() => setMin(m => Math.min(93, m + 1)), (DUR_2D_MS * 0.82) / 93 / VEL); return () => clearInterval(iv) }, [pausa])
   const placar: [number, number] = [gols.filter(g => g.home && g.min <= min).length, gols.filter(g => !g.home && g.min <= min).length]
-  const campo = <Campo2D mapOnly={MAPA} mapMatchId={MAPA ? ID : undefined} climaForcado={(q.get('clima') as 'sol' | null) ?? 'sol'} noiteForcada={false} roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={gols} fechado={min >= 93}
+  const campo = <Campo2D mapOnly={MAPA} mapMatchId={MAPA ? ID : undefined} climaForcado={(q.get('clima') as 'sol' | null) ?? 'sol'} noiteForcada={false} roundKey={Number(q.get('rk') ?? 14)} minuto={min} roundMs={DUR_2D_MS / VEL} gols={gols} fechado={min >= 93} replay pausado={pausa}
     casa={{ nome: 'Fabulous EC', cor: '#FFC400', cartas: casa as never, mascote: carimboDoTime('Fabulous EC'), escudo: <Escudo nome="Fabulous EC" size={110} />, tecnico: 'Telê Santana' }}
     fora={{ nome: 'Chelsão', cor: '#2B6CFF', cartas: fora as never, mascote: carimboDoTime('Chelsão'), escudo: <Escudo nome="Chelsão" size={110} />, tecnico: 'Mourinho' }} />
   if (!MAPA) return <div style={{ maxWidth: 1140, margin: '0 auto', padding: 10 }}>{campo}</div>
-  const match = { context: { id: ID, homeClubId: 0, awayClubId: 1, home: [], away: [] }, viewerClubId: 0, officialTeams: ['Fabulous EC', 'Chelsão'], minute: min, homeScore: placar[0], awayScore: placar[1], paused: false, finished: min >= 93, homeColor: '#FFC400', awayColor: '#2B6CFF', officialNarration: 'Kaká lança, Romário domina na entrada da área…' } as unknown as EstadoPartidaEstadio
+  const match = { context: { id: ID, homeClubId: 0, awayClubId: 1, home: [], away: [] }, viewerClubId: 0, officialTeams: ['Fabulous EC', 'Chelsão'], minute: min, homeScore: placar[0], awayScore: placar[1], paused: pausa, finished: min >= 93, homeColor: '#FFC400', awayColor: '#2B6CFF', officialNarration: 'Kaká lança, Romário domina na entrada da área…' } as unknown as EstadoPartidaEstadio
   return <>
     <div hidden aria-hidden="true">{campo}</div>
     <Suspense fallback={<p>carregando…</p>}><Complexo matchPresentation="2d" stadium={full as never} match={match} hud={<MapaHud match={match} torcedores={42000} />} /></Suspense>
