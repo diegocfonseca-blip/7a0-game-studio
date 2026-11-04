@@ -195,13 +195,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 🔒 04/11: o que foi IGUALADO com o campo do mapa (rastro do mapa, nome que segura) só aparece na conta liberada do 2D —
   // em sala 2D de outra pessoa o campinho segue exatamente como era (Diego: *"ninguém pode ver ainda"*).
   const igualMapa = useCampo2DLiberado()
-<<<<<<< HEAD
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, nGols: gols.length })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, nGols: gols.length }
-=======
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis }
->>>>>>> origin/main
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length }
 
   useEffect(() => {
     const el = caixa.current
@@ -489,13 +484,6 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           }
         }
       }
-<<<<<<< HEAD
-      if (jogo.narra !== ult.narra) { ult.narra = jogo.narra; setNarra(jogo.narra) }
-      // 😱 o QUASE fica ~2,6 s DE JOGO na faixa (ou até sair um gol: a festa manda) — no tempo do jogo: pausou, ele espera; no 4×, passa rápido
-      if (quaseVivo.current && ((jogo.t - quaseVivo.current.desde) * 1000 > QUASE_FAIXA_MS || jogo.festa)) { quaseVivo.current = null; setQuase(null) }
-      if (jogo.placar[0] !== ult.placar[0] || jogo.placar[1] !== ult.placar[1]) { ult.placar = [jogo.placar[0], jogo.placar[1]]; setPlacarV(ult.placar) }
-      const fk = jogo.festa ? `${jogo.festa.lado}|${jogo.festa.autor}|${jogo.festa.min}` : ''
-=======
       // A disputa é só uma camada de apresentação após o apito. O motor e seu placar ficam intactos.
       disputaPenaltis?.preparar(jogo.atl, jogo.bola)
       const penalti = !rv ? disputaPenaltis?.quadro() : undefined
@@ -507,9 +495,10 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         ult.narra = cena.narra; setNarra(cena.narra)
         setPlacarPenV(estadoPenalti ? (disputaPenaltis!.config.invertido ? [estadoPenalti.placar[1], estadoPenalti.placar[0]] : estadoPenalti.placar) : null)
       }
+      // 😱 o QUASE fica ~2,6 s DE JOGO na faixa (ou até sair um gol: a festa manda) — no tempo do jogo: pausou, ele espera; no 4×, passa rápido
+      if (quaseVivo.current && ((jogo.t - quaseVivo.current.desde) * 1000 > QUASE_FAIXA_MS || jogo.festa || penalti)) { quaseVivo.current = null; setQuase(null) }
       if (cena.placar[0] !== ult.placar[0] || cena.placar[1] !== ult.placar[1]) { ult.placar = [cena.placar[0], cena.placar[1]]; setPlacarV(ult.placar) }
       const fk = cena.festa ? `${cena.festa.lado}|${cena.festa.autor}|${cena.festa.min}` : ''
->>>>>>> origin/main
       if (fk !== ult.festa) {
         ult.festa = fk; setFesta(cena.festa ? { lado: cena.festa.lado, autor: cena.festa.autor, assist: cena.festa.assist, min: cena.festa.min } : null)
         if (replay && cena.festa && !vendo.current && fi.atual.length > 5) { fi.gols.push({ autor: cena.festa.autor, min: cena.festa.min, quadros: fi.atual.slice() }); setTemReplay(true) }
@@ -682,16 +671,10 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       if(mapMatchId&&mapFPS){
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
-<<<<<<< HEAD
-          players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
-          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,clima,falas:[fala(0),fala(1)],autorGol:jogo.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
-          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,jogo.bola.h),z:bolaVis.x-W/2},
-          quase:qv?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
-=======
           players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
           net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
-          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2}})
->>>>>>> origin/main
+          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
+          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
       }
       raf = requestAnimationFrame(quadro)
     }
@@ -711,14 +694,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const en = t('pt', 'en') === 'en'
   const quaseTxt = quase ? fraseQuase(quase, en) : ''
   const ladoResumo = (l: typeof casa, cor: string) => ({ nome: l.nome, sigla: sigla(l.nome), cor })
-  const replayCtl: ReplayCampo2D | null = replay && temReplay && fechado && !festa ? {
+  const replayCtl: ReplayCampo2D | null = replay && temReplay && fechado && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) ? {
     na: replayNa,
     play: () => { const g = fita.current.gols[0]; if (!g || vendo.current) return; vendo.current = { i: 0, ini: performance.now() }; setReplayNa({ autor: g.autor, min: g.min }) },
   } : null
   const replaySig = replayCtl ? `${replayNa?.autor ?? ''}|${replayNa?.min ?? ''}` : ''
   useEffect(() => {
     if (!mapMatchId) return
-    publicarApitoCampo2D(mapMatchId, resumo || replayCtl ? { resumo, casa: ladoResumo(vivo.current.casa, corCasa), fora: ladoResumo(vivo.current.fora, corFora), replay: replayCtl } : null)
+    publicarApitoCampo2D(mapMatchId, (resumo && (!disputaPenaltis || disputaPenaltis.estado.encerrado)) || replayCtl ? { resumo, casa: ladoResumo(vivo.current.casa, corCasa), fora: ladoResumo(vivo.current.fora, corFora), replay: replayCtl } : null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapMatchId, resumo, replaySig, corCasa, corFora])
   useEffect(() => { if (mapMatchId) publicarQuaseCampo2D(mapMatchId, quase ? { ...quase, txt: quaseTxt } : null) }, [mapMatchId, quase, quaseTxt])
@@ -742,11 +725,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           <FestaGolCampo2D festa={{ ...festa, mascote: time.mascote, escudo: time.escudo }} larg={larg} />
         )}
       </div>
-<<<<<<< HEAD
       {replayCtl && (
-=======
-      {replay && temReplay && fechado && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) && (
->>>>>>> origin/main
         <div style={{ maxWidth: larg, margin: '8px auto 0', display: 'flex', justifyContent: 'center' }}>
           <BotaoReplayCampo2D replay={replayCtl} />
         </div>
@@ -757,7 +736,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en', festa?.autor, festa?.min).replace(/[<>&"]/g, '')}</span>` : quase ? '😱 ' + quaseTxt.replace(/[<>&"]/g, '') : '🎙️ ' + narra }} />
       )}
       {quase && <style>{QUASE_CSS}</style>}
-      {resumo && !festa && <ResumoApitoCampo2D resumo={resumo} casa={ladoResumo(casa, corCasa)} fora={ladoResumo(fora, corFora)} larg={larg} />}
+      {resumo && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) && <ResumoApitoCampo2D resumo={resumo} casa={ladoResumo(casa, corCasa)} fora={ladoResumo(fora, corFora)} larg={larg} />}
     </div>
   )
 }
