@@ -18,6 +18,13 @@ em sala 2D de outra pessoa nada disso aparece. Aba Jogos e mapa usam o MESMO có
 - ⏳ Falta: OK visual do Diego; o 🎬 do REPLAY SALVO do mapa ("REVER JOGO SALVO") não ganhou o botão (a fonte do replay salvo não
   grava a fita) — ver se ele quer.
 
+## 🖥️ CONVOCAÇÃO NO PC EM 3 COLUNAS (04/11, mockup `scripts/mockups/convocacao-desktop.png`, *"Perfeito, adorei… olha todas as competições"*) — FEITO
+- ≥1100px (`useTelaPC`): topo (nome, relógio, contador) · esquerda (formação + posições/pacotes) · meio (jogadores em cartões) ·
+  direita (campinho maior + fechar). Celular byte a byte igual (só ganhou divs de agrupamento). CSS em `convocacao-pc.css`.
+- As 3 telas: Leilão de Clubes (clubes/seleções/por década, online + rápido) · `ConvocacaoScreen` (Copa do Mundo, Euro, regionais
+  online, Copa do Mundo da carreira) · `InscricaoClube` (Liberta/Champions da carreira). Bancada: `scripts/teste-convocacao/`.
+- ⚠️ A da carreira internacional não foi vista rodando (só compilou) — conferir no 1º convite.
+
 ## 💳 VENDRIA COBRA A TAXA JUNTO (04/11) — CORRIGIDO
 - O Craque Completo 14,90 chega da Vendria como total **16,89** (14,90 + 1,99 de taxa). `esc_vendria_aplica` só reconhecia 1490 no
   total → "produto_desconhecido" e o plano não ligava. Caso: seneorlucas@gmail.com (Neymar FC), pagou 04/11 17:32.

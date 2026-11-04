@@ -18,6 +18,8 @@ import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DON
 import { logTravaSalva } from './analytics'
 import { SECTORS, FORMACOES_JOGO, FORMATIONS, duplaPodeAgir, type Card, type FormationKey, type Sector, type WonCard } from './types'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
+import { useTelaPC } from './sport'
+import './convocacao-pc.css' // 🖥️ 04/11: no PC, 3 colunas (só desenho)
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -31,6 +33,7 @@ const secNome = (s: Sector, n: number, bb = false) => {
 export function EscConvocacaoClubes() {
   const { state, dispatch } = useEsc()
   const t = useT()
+  const pc = useTelaPC() // 🖥️ 04/11 (mockup convocacao-desktop.png): ≥1100px = 3 colunas; celular igual
   const me = state.managers[state.youIdx]
   // 🏀 19/10: as vagas vêm da MESMA régua do motor (`aplicaConvocacao` usa `baseSlots`): formação no futebol,
   // 1 por posição no quinteto do basquete. Antes a tela lia a formação e no basquete pediria 2 laterais.
@@ -149,7 +152,8 @@ export function EscConvocacaoClubes() {
 
   return (
     <Shell>
-      <div className="space-y-3">
+      <div className={pc ? 'cv-pc' : 'space-y-3'}>
+        <div className="cv-top space-y-3">
         <div style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 13, padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: `4px 4px 0 0 ${INK}` }}>
           <span style={{ fontSize: 26 }}>🧱</span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -173,10 +177,12 @@ export function EscConvocacaoClubes() {
           </div>
         )}
 
+        </div>
+        <div className="cv-left space-y-3">
         {!bb && !emDupla && (
           <div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px', textTransform: 'uppercase' }}>{t('⚽ Formação', '⚽ Formation')}</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            <div className="cv-forms" style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {FORMACOES_JOGO.map(f => {
                 const ok = formacaoCabeNosPacotes((me.squad ?? []) as WonCard[], f)
                 const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
@@ -193,17 +199,19 @@ export function EscConvocacaoClubes() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div className="cv-tabs" style={{ display: 'flex', gap: 4 }}>
           {SECTORS.map(s => {
             const ok = meuSetor(s) && doSetor(s).length >= precisa(s)
             return (
               <button key={s} onClick={() => { setTab(s); setAviso(null) }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 11, ...OSWALD, cursor: 'pointer', background: ok ? GREEN : tab === s ? GOLD : '#fff', color: ok ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
-                {tagDe(s)}<span style={{ display: 'block', fontSize: 8, fontWeight: 800, opacity: 0.85 }}>{meuSetor(s) ? `${doSetor(s).length}/${vagas(s)}${ok ? ' ✓' : ''}` : `🔒 ${quemNoSetor(s).split(' ')[0] || '—'}`}</span>
+                {tagDe(s)}{pc && <span className="cv-tab-nome">{lotes[s] ? nomePacote(lotes[s]!) : t('sem pacote', 'no pack')}</span>}<span style={{ display: 'block', fontSize: 8, fontWeight: 800, opacity: 0.85 }}>{meuSetor(s) ? `${doSetor(s).length}/${vagas(s)}${ok ? ' ✓' : ''}` : `🔒 ${quemNoSetor(s).split(' ')[0] || '—'}`}</span>
               </button>
             )
           })}
         </div>
 
+        </div>
+        <div className="cv-mid space-y-3">
         {emDupla && !meuSetor(tab) && (
           <CaixaDuplaTrava quem={quemNoSetor(tab)} parceiroSumiu={parceiroSumiu}
             assumir={() => dispatch({ type: 'DUPLA_SOLO', mgrId: me.id, ficouUid: state.youUid ?? '' })}
@@ -215,8 +223,8 @@ export function EscConvocacaoClubes() {
         )}
         <Box className="p-0 overflow-hidden" shadow={3}>
           {lote ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: `3px solid ${INK}`, background: '#FFF4CF' }}>
-              <SeloPacote c={lote} size={44} />
+            <div className="cv-pack" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: `3px solid ${INK}`, background: '#FFF4CF' }}>
+              <SeloPacote c={lote} size={pc ? 60 : 44} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', lineHeight: 1.1 }}>{nomePacote(lote)}</p>
                 <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{meuSetor(tab) ? t(`Convoque ${precisa(tab)} de ${lista.length}`, `Call up ${precisa(tab)} of ${lista.length}`) : t(`${lista.length} no pacote · 🔒 ${quemNoSetor(tab)} escolhe`, `${lista.length} in the pack · 🔒 ${quemNoSetor(tab)} picks`)}</p>
@@ -230,6 +238,7 @@ export function EscConvocacaoClubes() {
           {aviso && (
             <div style={{ borderBottom: `2px solid ${INK}`, padding: '7px 10px', background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>
           )}
+          <div className="cv-lista">
           {lista.map(c => {
             const on = !!sel[c.id]
             const cheio = !on && doSetor(tab).length >= vagas(tab)
@@ -239,11 +248,14 @@ export function EscConvocacaoClubes() {
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : cheio ? '#EFE7D2' : '#fff', cursor: travado ? 'default' : 'pointer', opacity: cheio || travado ? 0.62 : 1, textAlign: 'left' }}>
                 <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : cheio || travado ? '🔒' : ''}</span>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: INK }}>{c.name}</span>
-                <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.year}</span>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{pc ? `${c.club} · ${c.year}` : c.year}</span>
               </button>
             )
           })}
+          </div>
         </Box>
+        </div>
+        <div className="cv-right space-y-3">
 
         {/* 🏀 basquete: a QUADRA com o quinteto numa linha (PG · SG · SF · PF · C), madeira como a quadra da arena */}
         {bb ? (
@@ -274,8 +286,8 @@ export function EscConvocacaoClubes() {
                   {/* 🧍 igual ao campinho da carreira (Diego 27/09: "da mesma forma que do carreira, sem
                       fundo"): boneco solto na grama; a lenda que tem rosto no jogo aparece com o rosto */}
                   {slots.map((sl, i) => sl.c
-                    ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.s} alt={52} fonteNome={10} rosto={rostosOn} />
-                    : <VagaNoCampo key={i} tag={sl.s} alt={52} />)}
+                    ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.s} alt={pc ? 64 : 52} fonteNome={pc ? 11.5 : 10} rosto={rostosOn} />
+                    : <VagaNoCampo key={i} tag={sl.s} alt={pc ? 64 : 52} />)}
                 </div>
               )
             })}
@@ -293,9 +305,10 @@ export function EscConvocacaoClubes() {
         ) : (
           <div style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 13, ...OSWALD, background: '#CBBF9E', color: 'rgba(0,0,0,.55)', textAlign: 'center', textTransform: 'uppercase' }}>
             {t('🔒 Fechar convocação', '🔒 Close call-up')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, fontFamily: 'system-ui', textTransform: 'none', marginTop: 2 }}>{t('faltam', 'missing')} {faltando.join(' · ')} — {t('escolha nas abas ⬆️', 'pick in the tabs ⬆️')}</span>
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, fontFamily: 'system-ui', textTransform: 'none', marginTop: 2 }}>{t('faltam', 'missing')} {faltando.join(' · ')} — {pc ? t('escolha nos pacotes ⬅️', 'pick in the packs ⬅️') : t('escolha nas abas ⬆️', 'pick in the tabs ⬆️')}</span>
           </div>
         )}
+        </div>
       </div>
     </Shell>
   )
