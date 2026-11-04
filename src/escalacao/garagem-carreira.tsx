@@ -15,20 +15,20 @@ import {filtrarCatalogoPresidencia,ordemCatalogoValida,type OrdemCatalogo} from 
 import {getLang} from './lang'
 import './garagem-preview.css'
 
-export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium,stadiumSave,furniture=false}:{wallet:PresidenciaCarteira|null;display?:DuplaGaragem;onTrade:(quote:PresidenciaOrcamento)=>boolean;onDisplay:(pair:DuplaGaragem)=>boolean;onBack:()=>void;stadium?:ReactNode;stadiumSave?:StadiumSave;furniture?:boolean}){
+export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium,stadiumSave,furniture=false,soLoja=false}:{wallet:PresidenciaCarteira|null;display?:DuplaGaragem;onTrade:(quote:PresidenciaOrcamento)=>boolean;onDisplay:(pair:DuplaGaragem)=>boolean;onBack:()=>void;stadium?:ReactNode;stadiumSave?:StadiumSave;furniture?:boolean;/** 🏪 04/11: na Vadico do mapa é só a LOJA — sem a vista da garagem (era da Sala do presidente, que saiu) nem os seletores de lado */soLoja?:boolean}){
  const [preview,setPreview]=useState<PresidenciaItemId|null>(null)
  const t=useT(),dialog=useRef<HTMLDialogElement>(null),[quote,Q]=useState<PresidenciaOrcamento|null>(null),[notice,N]=useState(''),[tab,T]=useState<'carro'|'duas-rodas'|'owned'>('carro'),[search,S]=useState(''),[order,O]=useState<OrdemCatalogo>('price-asc'),[replacements,R]=useState<Partial<Record<PresidenciaItemId,PresidenciaItemId>>>({})
  if(!wallet)return <p role="alert">{t('Não foi possível conferir seus bens. Compras bloqueadas.','Could not verify your assets. Purchases blocked.')}</p>
  const request=(kind:'buy'|'sell',id:PresidenciaItemId,replaceId?:PresidenciaItemId)=>{const r=orcarPresidencia(wallet,{kind,id,...(replaceId?{replaceId}:{})});if(!r.ok){N(t(...PRESIDENCIA_ERROS[r.error]));return}Q(r.value);N('');dialog.current?.showModal()}
  const products=filtrarCatalogoPresidencia({furniture,tab,owned:wallet.owned,search,order,english:getLang()==='en'}).filter(p=>compraPresidenciaDisponivel(p.id)||wallet.owned.some(b=>b.id===p.id))
  return <section className="gp-root">
-  <header className="gp-header"><h1>{furniture?t('MOBÍLIAS','FURNITURE'):t('GARAGEM','GARAGE')}</h1><span className="gp-coins">{wallet.cash} {t('moedas','coins')}</span></header>
+  <header className="gp-header"><h1>{furniture?t('MOBÍLIAS','FURNITURE'):soLoja?t('À VENDA NA VADICO','FOR SALE AT VADICO'):t('GARAGEM','GARAGE')}</h1><span className="gp-coins">{wallet.cash} {t('moedas','coins')}</span></header>
   {stadium}
   {!furniture&&<>
-  <GaragemVista owned={wallet.owned} display={display} stadium={stadiumSave} onDisplay={onDisplay}/>
+  {!soLoja&&<GaragemVista owned={wallet.owned} display={display} stadium={stadiumSave} onDisplay={onDisplay}/>}
   <p className="gp-rule">{t('Até 2 carros + 2 motos ou bicicletas. Revenda por 70% do valor pago.','Up to 2 cars + 2 motorcycles or bicycles. Resale at 70% of the price paid.')}</p>
-  <GaragemDuplaSeletores owned={wallet.owned} display={display} onDisplay={onDisplay} onError={N}/>
-  <p className="gp-rule">{t('Troque os lados pelos seletores. Obras avançadas e recortes de outros veículos ainda estão em preparação.','Swap sides using the selectors. Advanced construction and other vehicle cutouts are still in preparation.')}</p>
+  {!soLoja&&<><GaragemDuplaSeletores owned={wallet.owned} display={display} onDisplay={onDisplay} onError={N}/>
+  <p className="gp-rule">{t('Troque os lados pelos seletores. Obras avançadas e recortes de outros veículos ainda estão em preparação.','Swap sides using the selectors. Advanced construction and other vehicle cutouts are still in preparation.')}</p></>}
   <div className="gp-tabs">{(['carro','duas-rodas','owned'] as const).map((id,i)=><button key={id} aria-pressed={tab===id} onClick={()=>T(id)}>{[t('CARROS','CARS'),t('MOTOS E BIKES','MOTORCYCLES & BIKES'),t('MEUS BENS','MY ASSETS')][i]}</button>)}</div>
   </>}
   {furniture&&<p className="gp-rule">{t('Uma peça por categoria. O móvel comprado aparece na sua sala. Você pode dar a peça atual na troca por 70% do valor pago, após conferir e confirmar.','One item per category. Purchased furniture appears in your office. You can trade in the current item for 70% of its purchase price after reviewing and confirming.')}</p>}
