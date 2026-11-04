@@ -1,3 +1,17 @@
+## 🏆📋 04/11 — Mapa 3D: festa de CAMPEÃO DA DIVISÃO (LOCAL, branch do agente, só a conta do Diego)
+- A festa do elenco inteiro (pódio, 11 jogadores, fotógrafos, painel temático) agora também aparece quando o clube é **campeão da
+  divisão** na carreira: Série A "O BRASIL É SEU", B "A ELITE TE ESPERA", C "DEGRAU POR DEGRAU", D "A SUBIDA COMEÇA AQUI", Várzea
+  "REI DO TERRÃO" (com uma mancha de terrão embaixo do pódio). Placa: "CAMPEÃO" + o nome da série.
+- **Quando**: só depois que a 38ª rodada animou e o fim da temporada JÁ apareceu na tela (`done` no pyramidseason) e só se ele é o
+  1º da tabela final (`myStanding(live.tables).champ`). Vice/acesso não tem pódio. A tela manda a rodada encerrada com
+  `context.tituloDivisao` pro mapa (`career.festaTitulo` → `PresidenciaEstadioCamera`); o mapa confere de novo (`tituloDaDivisao`:
+  rodada 38 no id, partida encerrada com relógio ≥ 90, clube do usuário na partida). Campeão mesmo perdendo o último jogo.
+- **Não muda nada do jogo**: nenhum passo, botão, ação ou jogo novo; o roteiro de fim de temporada é o mesmo. Na divisão não há
+  avião, faixa "FINAL", barraca, perua, gente a mais, fumaça na porta, bandeirão nem sinalizador — só a festa.
+- Trava: `node scripts/imersao-mapa/test-final-day.mjs` (seção 14). Fotos: `scripts/mockups/mapa-festa-serie-a.png` e
+  `mapa-festa-varzea.png` (`SO=serie-a,varzea` no `shots-final-onibus.mjs`; QA `simularFinalQA('campeao',{divisao:'carA'})`).
+- Pendente: mostrar pro Diego as duas fotos antes de subir. Reverter = tirar o `festaTitulo` do `mapaDoClube` (pyramidseason).
+
 ## 🏆🚌 04/11 — Mapa 3D: festa da Liberta/Champions/Mundial, final nos pênaltis e câmera dos ônibus (LOCAL, branch do agente, só a conta do Diego)
 Tudo só desenho (não muda resultado nem motor) e tudo atrás da trava do mapa (`usePresidentPreview`).
 - **Festa de campeão no mapa também na final da Libertadores, Champions e Mundial** (carreira internacional): o id da partida da final

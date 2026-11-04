@@ -18,7 +18,9 @@ import {useVistaCampo} from './presidencia-campo-observacao'
 import {MapaHud} from './presidencia-mapa-hud'
 import {publicoDoEstadio} from './presidencia-estadio-publico'
 const Complexo=lazy(()=>import('./presidencia-complexo-3d'))
-export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string;replayMatch?:FonteReplay3D}
+export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string;replayMatch?:FonteReplay3D;
+ /** 🏆📋 04/11: a última rodada JÁ ENCERRADA, com `tituloDivisao` — só vem quando o fim da temporada já foi mostrado e o clube é o campeão */
+ festaTitulo?:EstadoPartidaEstadio}
 /** Slot privado da aba existente: obras/compras permanecem no motor atual. */
 export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,career,onReady,onOpenClub}:{stadium?:StadiumSave;matchId?:string;homeClubId?:number;onRoof?:(closed:boolean)=>void;career?:CarreiraCameraEstadio;onReady?:(api:ControleComplexo|null)=>void;onOpenClub?:(target:DestinoClubeMapa)=>void}){
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),t=useT()
@@ -33,7 +35,9 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  if(!account)last.current=null
  // Preserve people finishing their route after the score presentation unmounts.
  // The retained snapshot is local presentation only; it never writes a result.
- const retained=match??(last.current?{...last.current.match,finished:true,paused:true}:undefined)
+ // 🏆📋 campeão da divisão: depois que o placar da 38ª saiu da tela, o mapa fica com a rodada encerrada + a prova do título
+ const festa=career?.festaTitulo&&last.current?.match.context.id===career.festaTitulo.context.id?{...last.current.match,...career.festaTitulo,context:{...last.current.match.context,tituloDivisao:career.festaTitulo.context.tituloDivisao}}:career?.festaTitulo
+ const retained=match??festa??(last.current?{...last.current.match,finished:true,paused:true}:undefined)
  // 🏟️ dia de jogo em casa antes do apito: a torcida chegando é do jogo QUE VEM — o último jogo (já guardado) não entra na conta
  const chegada=career?.journeyPhase==='arrival'&&!!career.agenda&&!match
  const adapted=career&&account?adaptarCarreiraAoComplexo({...career,enabled:true,match:chegada?undefined:retained,

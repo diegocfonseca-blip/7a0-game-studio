@@ -12,7 +12,7 @@ import type {AssentoComplexo} from './presidencia-complexo-arquitetura'
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import {getLang} from './lang'
-import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,temaDaFesta,placaDoPodio,coreografiaDaFesta,quemLevantaATaca,fotografosDaFesta,flashAceso,type VagaFesta,type DesfechoFinal,type TipoFinal,type LadoFinal} from './presidencia-complexo-final-regras'
+import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,temaDaFesta,placaDoPodio,coreografiaDaFesta,quemLevantaATaca,fotografosDaFesta,flashAceso,tituloDaDivisao,type VagaFesta,type DesfechoFinal,type TemaId,type LadoFinal} from './presidencia-complexo-final-regras'
 
 /** 🏆 DIA DE FINAL no mapa 3D (03/11, aprovado pelo Diego: "ok"). Tudo num arquivo só, pra não brigar com quem mexe no mapa:
  *  · ANTES: avião puxando a faixa "FINAL · A × B", barracas de bandeira/faixa da final (as peruas de ambulante de sempre),
@@ -67,7 +67,9 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
  }
  const medir=(points:readonly {x:number;z:number}[]):CityPoint[]=>{const out:CityPoint[]=[];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.8));for(let j=i===1?0:1;j<=n;j++){const u=j/n,x=a.x+(b.x-a.x)*u,z=a.z+(b.z-a.z)*u;out.push({x,z,y:ground(x,z)})}}return out}
 
- function montarDia(tipo:TipoFinal,teams:readonly TimeDiaFinal[],mobile:boolean,residents:number,seed:number){
+ function montarDia(tipo:TemaId,teams:readonly TimeDiaFinal[],mobile:boolean,residents:number,seed:number,soFesta=false){
+  // 📋 soFesta = título de DIVISÃO (04/11): só a festa depois do apito da última rodada. Nada de avião, faixa "FINAL",
+  // barraca, gente a mais, fumaça na porta, bandeirão ou sinalizador — a liga não tem "dia de final" pra anunciar.
   const g=new THREE.Group();g.name='final-'+tipo;root.add(g)
   const geos=new Set<THREE.BufferGeometry>(),mats=new Set<THREE.Material>(),texs=new Set<THREE.Texture>(),civis:Civil[]=[]
   const geo=<T extends THREE.BufferGeometry>(x:T)=>{geos.add(x);return x}
@@ -118,18 +120,19 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   const gate=PLANTA_COMPLEXO.gates.home
   const fachada=new THREE.Group();fachada.name='final-faixa-fachada';g.add(fachada)
   {
-   const f=faixaDaFachada(tipo,english()),W=1024,H=320
+   const f=faixaDaFachada(tipo==='carA'||tipo==='carB'||tipo==='carC'||tipo==='carD'||tipo==='carV'?'final':tipo,english()),W=1024,H=320
    const tx=tela(W,H,c=>{c.fillStyle=CREME;c.fillRect(0,0,W,H);c.fillStyle=corA;c.fillRect(0,0,W/2,26);c.fillStyle=corB;c.fillRect(W/2,0,W/2,26);c.fillStyle=corA;c.fillRect(0,H-26,W/2,26);c.fillStyle=corB;c.fillRect(W/2,H-26,W/2,26);c.lineWidth=14;c.strokeStyle=TINTA;c.strokeRect(7,7,W-14,H-14);texto(c,f.topo,W/2,72,54,W-120,TINTA);texto(c,f.grande,W/2,190,190,W-120,OURO,TINTA)})
    const larg=21,alt=larg*H/W
    const pano=new THREE.Mesh(geo(new THREE.PlaneGeometry(larg,alt)),mat(new THREE.MeshStandardMaterial({map:tx,roughness:.85})))
    pano.position.set(gate.threshold.x,gate.height+alt/2+1.2,gate.threshold.z+.35);pano.rotation.y=gate.heading;fachada.add(pano)
    fachada.userData.pano=pano
   }
+  fachada.visible=!soFesta
 
   // 🛒 BARRACAS de faixa/bandeira da final: duas, entre as do dia de jogo, com a perua de ambulante de sempre
   const bandeirinha=(a:string,b:string)=>tela(256,160,c=>{c.fillStyle=a;c.fillRect(0,0,256,80);c.fillStyle=b;c.fillRect(0,80,256,80);c.lineWidth=8;c.strokeStyle=TINTA;c.strokeRect(4,4,248,152);texto(c,'FINAL',128,82,74,236,'#FFFFFF',TINTA)})
   const flagA=bandeirinha(corA,corB),flagB=bandeirinha(corB,corA)
-  const barracas=[{id:'final-bandeiras-a',kind:'flags',x:-26,z:106,cor:corA},{id:'final-bandeiras-b',kind:'flags',x:26,z:106,cor:corB}].map((spec,i)=>{
+  const barracas=(soFesta?[]:[{id:'final-bandeiras-a',kind:'flags',x:-26,z:106,cor:corA},{id:'final-bandeiras-b',kind:'flags',x:26,z:106,cor:corB}]).map((spec,i)=>{
    const grp=new THREE.Group();grp.name='final-barraca-'+i;grp.position.set(spec.x,ground(spec.x,spec.z),spec.z);g.add(grp)
    const tinta=mat(new THREE.MeshStandardMaterial({color:spec.cor,roughness:.85,side:THREE.DoubleSide})),madeira=mat(new THREE.MeshStandardMaterial({color:'#90613c',roughness:.9})),aco=mat(new THREE.MeshStandardMaterial({color:'#6c7370',roughness:.5,metalness:.6}))
    const caixa=(m:THREE.Material,x:number,y:number,z:number,w:number,h:number,d:number)=>{const o=new THREE.Mesh(geo(new THREE.BoxGeometry(w,h,d)),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;grp.add(o);return o}
@@ -151,11 +154,11 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
    const vendedor=createCivilian(g,{id:'final-vendedor-'+i,outfitColor:spec.cor,variant:i?'adult-woman':'adult-man',deferUntilVisible:true});civis.push(vendedor)
    return{grp,entrega,vendedor}
   })
-  const peruas=criarPeruasAmbulantes(g,['#e9e1c9'])
+  const peruas=criarPeruasAmbulantes(g,soFesta?[]:['#e9e1c9']) // (sem barraca não há perua: senão ela fica parada no meio do campo)
   const relogioDia=stadiumDayClock()
 
   // 🚶 O DOBRO DE GENTE chegando (no teto de celular/PC da cidade), metade de cada torcida, pelos portões de verdade
-  const extra=publicoExtraDaFinal({base:residents,mobile})
+  const extra=soFesta?0:publicoExtraDaFinal({base:residents,mobile})
   const rotas=caminhosTorcidaComplexo(state)
   const chegando=Array.from({length:extra},(_,i)=>{
    const lado:LadoFinal=i%2&&state.progress.visitante>0?'away':'home'
@@ -219,6 +222,13 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   const podio=new THREE.Group();podio.name='final-podio';podio.visible=false;g.add(podio)
   // 🎨 o pódio, o fundo, as luzes e as faixas com a cara da competição (temaDaFesta ← COMPS de competicoes-visual)
   const tema=temaDaFesta(tipo)
+  // 🟫 VÁRZEA = festa no TERRÃO: uma mancha de chão batido com pedrinhas embaixo do pódio (uma textura só, no chão)
+  if(tipo==='carV'){
+   const W=512,tx=tela(W,W,c=>{const r=rnd(77);const gr=c.createRadialGradient(W/2,W/2,W*.08,W/2,W/2,W/2);gr.addColorStop(0,'rgba(150,98,52,1)');gr.addColorStop(.72,'rgba(132,86,44,.96)');gr.addColorStop(1,'rgba(132,86,44,0)');c.fillStyle=gr;c.fillRect(0,0,W,W)
+    for(let k=0;k<900;k++){const a=r()*Math.PI*2,d=Math.sqrt(r())*W*.44;c.fillStyle=k%3?'rgba(90,56,26,.55)':'rgba(214,170,112,.6)';c.fillRect(W/2+Math.cos(a)*d,W/2+Math.sin(a)*d,2+r()*4,2+r()*3)}})
+   const terrao=new THREE.Mesh(geo(new THREE.PlaneGeometry(19,15)),mat(new THREE.MeshStandardMaterial({map:tx,transparent:true,depthWrite:false,roughness:1,polygonOffset:true,polygonOffsetFactor:-2})))
+   terrao.rotation.x=-Math.PI/2;terrao.position.set(0,.03,.6);terrao.name='final-terrao';terrao.renderOrder=-1;podio.add(terrao)
+  }
   const podioMat=mat(new THREE.MeshStandardMaterial({color:tema.podio,roughness:.6})),topoMat=mat(new THREE.MeshStandardMaterial({color:tema.tampo,roughness:.5,metalness:.3}))
   const degraus=[{x:0,h:1.25},{x:-3.1,h:.85},{x:3.1,h:.55}]
   for(const d of degraus){const b=new THREE.Mesh(geo(new THREE.BoxGeometry(3,d.h,2.4)),podioMat);b.position.set(d.x,d.h/2,0);b.castShadow=false;b.receiveShadow=true;podio.add(b);const t=new THREE.Mesh(geo(new THREE.BoxGeometry(3.06,.08,2.46)),topoMat);t.position.set(d.x,d.h+.04,0);podio.add(t)}
@@ -316,7 +326,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   for(const variant of ['adult-man','fuller-man','adult-woman'])civis.push(createCivilian(g,{id:'final-aquece-'+variant,variant,deferUntilVisible:true}))
 
   return{g,geos,mats,texs,civis,aviao,voo,vooDir,vooYaw,fachada,barracas,peruas,relogioDia,chegando,fumaca,N_FUMACA,sinal,sinalAssentos,band,ondaU,fogos,fPos,fCor,fDir,RAJ,POR,centros,podio,podioMat,tacaGrupo,papel,papelSem,corA,corB,
-   get jogadores(){return jogadores},set jogadores(v){jogadores=v},get placaPodio(){return placaPodio},set placaPodio(v){placaPodio=v},tela,texto,geo,mat,mobile,tipo,teams,cara,tema,fundo,fachos,acc,get fotografos(){return fotografos},set fotografos(v){fotografos=v}}
+   get jogadores(){return jogadores},set jogadores(v){jogadores=v},get placaPodio(){return placaPodio},set placaPodio(v){placaPodio=v},tela,texto,geo,mat,mobile,tipo,teams,cara,tema,fundo,fachos,acc,get fotografos(){return fotografos},set fotografos(v){fotografos=v},soFesta}
  }
 
  // estado do dia
@@ -401,12 +411,14 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   const now=performance.now()/1000,dt=ultimo&&!congelado?Math.min(1,Math.max(0,now-ultimo)):0;ultimo=now;relogio+=dt
   const m=input.match,j=input.journey
   const fixture=m?.context.id??j?.fixtureId
-  const tipo=tipoFinalDaPartida(fixture)
-  const ativo=!!tipo&&(!!m||!!j?.hosting&&j.phase!=='idle')
+  // 📋 campeão da DIVISÃO: só existe com a prova inteira (última rodada encerrada + a tela da carreira dizendo que ele é o 1º)
+  const titulo=tipoFinalDaPartida(fixture)?null:tituloDaDivisao(m)
+  const tipo:TemaId|null=tipoFinalDaPartida(fixture)??titulo?.tipo??null
+  const ativo=!!tipo&&(!!titulo||!!m||!!j?.hosting&&j.phase!=='idle')
   if(!ativo||!tipo){if(dia)encerrar();return}
-  const key=(j?.key??'')+'|'+fixture
+  const key=(j?.key??'')+'|'+fixture+(titulo?'|'+titulo.tipo:'')
   if(dia&&diaKey!==key)encerrar()
-  if(!dia){dia=montarDia(tipo,input.teams.length===2?input.teams:[{name:m?.officialTeams?.[0],color:m?.homeColor},{name:m?.officialTeams?.[1],color:m?.awayColor}],input.mobile,input.residents,hash(key));diaKey=key;inicioDia=relogio;root.visible=true;onChange()}
+  if(!dia){dia=montarDia(tipo,input.teams.length===2?input.teams:[{name:m?.officialTeams?.[0],color:m?.homeColor},{name:m?.officialTeams?.[1],color:m?.awayColor}],input.mobile,input.residents,hash(key),!!titulo);diaKey=key;inicioDia=relogio;root.visible=true;onChange()}
   const d=dia
   if(seekDia!==null){inicioDia=relogio-seekDia;seekDia=null}
   const tDia=relogio-inicioDia
@@ -416,7 +428,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
 
   // ✈️ passa no começo do dia e de novo a cada 70 s enquanto a torcida chega (no jogo da Copa, que já abre rolando, passa logo no início)
   {
-   const ciclo=fase==='arrival'?70:1e9,t=(tDia-2)%ciclo,voando=!m?.finished&&tDia>=2&&t<d.voo.dur&&(fase==='arrival'||tDia<2+d.voo.dur)
+   const ciclo=fase==='arrival'?70:1e9,t=(tDia-2)%ciclo,voando=!d.soFesta&&!m?.finished&&tDia>=2&&t<d.voo.dur&&(fase==='arrival'||tDia<2+d.voo.dur)
    d.aviao.visible=voando
    if(voando){const u=t/d.voo.dur,p=d.voo.de.clone().lerp(d.voo.para,u);d.aviao.position.copy(p);d.aviao.position.y+=Math.sin(u*Math.PI*2)*1.2;d.aviao.rotation.set(Math.sin(relogio*1.3)*.05,d.vooYaw,0,'YXZ');const h=d.aviao.getObjectByName('final-helice');if(h)h.rotation.x=relogio*40;const b=d.aviao.userData.banner as THREE.Group;b.rotation.x=Math.sin(relogio*2.4)*.08;mexendo=true}
   }
@@ -448,18 +460,18 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
    mtx.makeScale(s,s,s);mtx.setPosition(x+Math.sin(idade*1.7+nf)*.6*u,y+idade*1.25,z+Math.cos(idade*1.3+nf)*.6*u);d.fumaca.setMatrixAt(nf,mtx);d.fumaca.setColorAt(nf,cor.set(c));nf++
   }
   const emissor=(x:number,y:number,z:number,c:string,t:number,n:number,vida=4.2,escala=1)=>{for(let k=0;k<n;k++){const idade=(t+k*vida/n)%vida;puff(x,y,z,idade,vida,c,escala)}}
-  if(antes||tDia<40){
+  if(!d.soFesta&&(antes||tDia<40)){
    const gt=PLANTA_COMPLEXO.gates.home,porta=antes?1:clamp01((40-tDia)/6)
    if(porta>0){const n=d.mobile?6:9;emissor(gt.threshold.x-7,ground(gt.threshold.x-7,gt.threshold.z+6)+.3,gt.threshold.z+6,d.corA,relogio,n,4.2,porta);emissor(gt.threshold.x+7,ground(gt.threshold.x+7,gt.threshold.z+6)+.3,gt.threshold.z+6,d.corB,relogio+1.1,n,4.2,porta);mexendo=true}
   }
   // 🚩 bandeirões durante o jogo (e na festa)
-  d.band.visible=!!m&&fase!=='arrival';if(d.band.visible){d.ondaU.value=relogio;mexendo=true}
+  d.band.visible=!d.soFesta&&!!m&&fase!=='arrival';if(d.band.visible){d.ondaU.value=relogio;mexendo=true}
   // 🔥 sinalizador: gol do USUÁRIO (o mesmo "gol!" que já faz a torcida pular)
   const usuario=ladoDoUsuario(m)
   {
    const fr=(input.frame??{}) as Frame,evs=fr.official?.events??[],gols=evs.filter(e=>e.tipo==='gol')
    if(golsVistos<0)golsVistos=gols.length
-   if((fr.phase==='gol'||fr.replay)&&gols.length>golsVistos){const ult=gols[gols.length-1];golsVistos=gols.length;const lado:LadoFinal=ult.lado===0?'home':'away';if(usuario&&lado===usuario){sinalDesde=relogio;ladoSinal=lado}}
+   if((fr.phase==='gol'||fr.replay)&&gols.length>golsVistos){const ult=gols[gols.length-1];golsVistos=gols.length;const lado:LadoFinal=ult.lado===0?'home':'away';if(usuario&&lado===usuario&&!d.soFesta){sinalDesde=relogio;ladoSinal=lado}}
    if(gols.length<golsVistos)golsVistos=gols.length
    const ts=relogio-sinalDesde,assentos=ladoSinal?d.sinalAssentos[ladoSinal]:[]
    d.sinal.count=0
@@ -470,7 +482,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
    }
   }
   // 🏆 depois do apito
-  const res=desfechoDaFinal(m)
+  const res=d.soFesta?tituloDaDivisao(m):desfechoDaFinal(m)
   if(res&&desfecho&&(res.vencedor!==desfecho.vencedor||res.usuario!==desfecho.usuario||!!res.penaltis!==!!desfecho.penaltis)){encerrar();onChange();return} // (outro desfecho = outra festa, do zero)
   if(res&&!desfecho){desfecho=res;festaDesde=relogio}
   if(!res&&desfecho&&!m?.finished){desfecho=null;festaDesde=null}

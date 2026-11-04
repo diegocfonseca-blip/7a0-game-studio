@@ -40,7 +40,7 @@ export function ladoDoUsuario(match:Pick<PartidaFinal,'context'|'viewerClubId'>|
  return null
 }
 
-export type DesfechoFinal={vencedor:LadoFinal;usuario:LadoFinal;campeao:boolean;tipo:TipoFinal;penaltis?:boolean}
+export type DesfechoFinal={vencedor:LadoFinal;usuario:LadoFinal;campeao:boolean;tipo:TipoFinal|DivisaoFesta;penaltis?:boolean}
 /** Só depois do APITO FINAL (partida encerrada e relógio no fim). Empate = decidiu nos pênaltis: a festa só existe quando
  * o contexto já traz o vencedor dos pênaltis (`context.penaltis`, posto pela tela DEPOIS de mostrar a disputa). Sem isso,
  * nada — melhor não festejar do que festejar o time errado ou adiantar o pênalti. */
@@ -90,9 +90,9 @@ export function caraDaTaca(tipo:TipoFinal):CaraDaTaca{
  if(tipo==='mundial')return {forma:'mundial',metal:'#FFC400',base:'#111111',papel:['#FFC400','#8C6A00','#F4ECD6'],fogo:'#FFC400'}
  return {forma:'copa',metal:'#FFC400',base:'#2b2b2b',papel:['#FFC400','#FFFFFF'],fogo:'#E8503A'}
 }
-/** A placa do pódio: "CAMPEÃO" e, embaixo, a competição internacional e/ou "NOS PÊNALTIS!". */
+/** A placa do pódio: "CAMPEÃO" e, embaixo, a competição internacional/a série e/ou "NOS PÊNALTIS!". */
 export function placaDoPodio(d:Pick<DesfechoFinal,'tipo'|'penaltis'>,english=false){
- const comp=d.tipo==='supercopa'?(english?'SUPER CUP':'SUPERCOPA'):d.tipo==='libertadores'?'LIBERTADORES':d.tipo==='champions'?'CHAMPIONS LEAGUE':d.tipo==='mundial'?(english?'CLUB WORLD CUP':'MUNDIAL'):''
+ const comp=ehDivisaoFesta(d.tipo)?temaDaFesta(d.tipo).nome[english?1:0]:d.tipo==='supercopa'?(english?'SUPER CUP':'SUPERCOPA'):d.tipo==='libertadores'?'LIBERTADORES':d.tipo==='champions'?'CHAMPIONS LEAGUE':d.tipo==='mundial'?(english?'CLUB WORLD CUP':'MUNDIAL'):''
  const pen=d.penaltis?(english?'ON PENALTIES!':'NOS PÊNALTIS!'):''
  return {grande:english?'CHAMPIONS':'CAMPEÃO',linha:[comp,pen].filter(Boolean).join(' · ')}
 }
@@ -135,9 +135,12 @@ export function elencoDaFesta(campeao:boolean,mobile:boolean){
 
 /** 🎉 TEMA DE CADA COMPETIÇÃO NA FESTA (04/11, Diego: *"cada nome de competição deve ter sua temática e cores também"*).
  * As cores saem de `COMPS` (competicoes-visual.tsx) — a mesma paleta da festa da aba Jogos. Vale pro pódio, a placa, as faixas
- * de campeão, o painel de fundo, o confete, os fogos e os canhões de luz. As divisões já ficam prontas aqui (`carA`…`carV`):
- * hoje o mapa só tem pódio em FINAL (Copa, Supercopa, Liberta, Champions, Mundial). */
-export type TemaId=TipoFinal|'carA'|'carB'|'carC'|'carD'|'carV'
+ * de campeão, o painel de fundo, o confete, os fogos e os canhões de luz. As divisões (`carA`…`carV`) entram pela festa de
+ * CAMPEÃO DA DIVISÃO (`tituloDaDivisao`, logo abaixo). */
+export type DivisaoFesta='carA'|'carB'|'carC'|'carD'|'carV'
+export type TemaId=TipoFinal|DivisaoFesta
+const DIVISOES_FESTA:readonly DivisaoFesta[]=['carA','carB','carC','carD','carV']
+export const ehDivisaoFesta=(x:unknown):x is DivisaoFesta=>typeof x==='string'&&(DIVISOES_FESTA as readonly string[]).includes(x)
 export type TemaFesta={id:TemaId;nome:readonly [string,string];frase:readonly [string,string];cara:CaraDaTaca
  /** degrau do pódio · tampo · placa (fundo/letra) · faixa de campeão no peito */
  podio:string;tampo:string;placaBg:string;placaInk:string;faixa:string
@@ -151,9 +154,9 @@ export function temaDaFesta(id:TemaId):TemaFesta{
   case 'champions':return T({id,nome:['CHAMPIONS LEAGUE','CHAMPIONS LEAGUE'],frase:['A ORELHUDA É SUA','BIG EARS ARE YOURS'],podio:'#0A1640',tampo:'#D5DCE4',placaBg:'#0A1640',placaInk:'#FFFFFF',faixa:'#1F3A93',fundo:['#2c4fb5','#0A1640'],titulo:'#FFFFFF',enfeite:'estrelas',confete:['#D5DCE4','#FFFFFF','#1F3A93','#8E9AA8'],fogos:['#FFFFFF','#6F8FFF','#D5DCE4'],luz:['#6F8FFF','#FFFFFF']})
   case 'mundial':return T({id,nome:['MUNDIAL DE CLUBES','CLUB WORLD CUP'],frase:['DONO DO PLANETA','OWNER OF THE PLANET'],podio:'#111111',tampo:'#FFC400',placaBg:'#111111',placaInk:'#FFC400',faixa:'#FFC400',fundo:['#4a3a08','#111111'],titulo:'#FFC400',enfeite:'globo',confete:['#FFC400','#8C6A00','#F4ECD6','#FFFFFF'],fogos:['#FFC400','#F4ECD6','#8C6A00'],luz:['#FFC400','#F4ECD6']})
   case 'supercopa':return T({id,nome:['SUPERCOPA','SUPER CUP'],frase:['CAMPEÃO CONTRA CAMPEÃO','CHAMPION VS CHAMPION'],cara:caraDaTaca('final'),podio:'#C2452F',tampo:'#FFC400',placaBg:'#2a0805',placaInk:'#FFC400',faixa:'#E8503A',fundo:['#c2452f','#2a0805'],titulo:'#FFFFFF',enfeite:'fumaca',confete:['#E8503A','#FFC400','#FFFFFF','#FFD9D2'],fogos:['#E8503A','#FFC400','#FFFFFF'],luz:['#E8503A','#FFC400']})
-  case 'carA':return T({id,nome:['SÉRIE A','SÉRIE A'],frase:['O TOPO DO BRASIL','THE TOP OF BRAZIL'],cara:caraDaTaca('final'),podio:'#0C0C0C',tampo:'#FFC400',placaBg:'#0C0C0C',placaInk:'#FFC400',faixa:'#FFC400',fundo:['#5a4510','#0C0C0C'],titulo:'#FFC400',enfeite:'faixas',confete:['#FFC400','#FFE79A','#1B7A3D','#FFFFFF'],fogos:['#FFC400','#FFE79A','#1B7A3D'],luz:['#FFC400','#FFE79A']})
-  case 'carB':return T({id,nome:['SÉRIE B','SÉRIE B'],frase:['A PORTA DA ELITE','THE DOOR TO THE ELITE'],cara:caraDaTaca('final'),podio:'#1c0a3a',tampo:'#D5DCE4',placaBg:'#1c0a3a',placaInk:'#E3D4FF',faixa:'#7C3AED',fundo:['#7c3aed','#1c0a3a'],titulo:'#FFFFFF',enfeite:'estrelas',confete:['#B794FF','#D5DCE4','#FFC400','#FFFFFF'],fogos:['#B794FF','#FFFFFF','#FFC400'],luz:['#B794FF','#D5DCE4']})
-  case 'carC':return T({id,nome:['SÉRIE C','SÉRIE C'],frase:['O MEIO DO CAMINHO','HALFWAY UP'],cara:caraDaTaca('final'),podio:'#0b1d38',tampo:'#CFE2F7',placaBg:'#0b1d38',placaInk:'#FFFFFF',faixa:'#2f6bae',fundo:['#2f6bae','#0b1d38'],titulo:'#FFFFFF',enfeite:'raios',confete:['#5AA0E8','#FFFFFF','#FFC400','#CFE2F7'],fogos:['#5AA0E8','#FFFFFF','#FFC400'],luz:['#5AA0E8','#FFFFFF']})
+  case 'carA':return T({id,nome:['SÉRIE A','SÉRIE A'],frase:['O BRASIL É SEU','BRAZIL IS YOURS'],cara:caraDaTaca('final'),podio:'#0C0C0C',tampo:'#FFC400',placaBg:'#0C0C0C',placaInk:'#FFC400',faixa:'#FFC400',fundo:['#5a4510','#0C0C0C'],titulo:'#FFC400',enfeite:'faixas',confete:['#FFC400','#FFE79A','#1B7A3D','#FFFFFF'],fogos:['#FFC400','#FFE79A','#1B7A3D'],luz:['#FFC400','#FFE79A']})
+  case 'carB':return T({id,nome:['SÉRIE B','SÉRIE B'],frase:['A ELITE TE ESPERA','THE ELITE AWAITS'],cara:caraDaTaca('final'),podio:'#1c0a3a',tampo:'#D5DCE4',placaBg:'#1c0a3a',placaInk:'#E3D4FF',faixa:'#7C3AED',fundo:['#7c3aed','#1c0a3a'],titulo:'#FFFFFF',enfeite:'estrelas',confete:['#B794FF','#D5DCE4','#FFC400','#FFFFFF'],fogos:['#B794FF','#FFFFFF','#FFC400'],luz:['#B794FF','#D5DCE4']})
+  case 'carC':return T({id,nome:['SÉRIE C','SÉRIE C'],frase:['DEGRAU POR DEGRAU','STEP BY STEP'],cara:caraDaTaca('final'),podio:'#0b1d38',tampo:'#CFE2F7',placaBg:'#0b1d38',placaInk:'#FFFFFF',faixa:'#2f6bae',fundo:['#2f6bae','#0b1d38'],titulo:'#FFFFFF',enfeite:'raios',confete:['#5AA0E8','#FFFFFF','#FFC400','#CFE2F7'],fogos:['#5AA0E8','#FFFFFF','#FFC400'],luz:['#5AA0E8','#FFFFFF']})
   case 'carD':return T({id,nome:['SÉRIE D','SÉRIE D'],frase:['A SUBIDA COMEÇA AQUI','THE CLIMB STARTS HERE'],cara:caraDaTaca('final'),podio:'#06240f',tampo:'#F4ECD6',placaBg:'#06240f',placaInk:'#F4ECD6',faixa:'#2a8a4c',fundo:['#2a8a4c','#06240f'],titulo:'#FFFFFF',enfeite:'raios',confete:['#2FBF5A','#F4ECD6','#FFC400','#FFFFFF'],fogos:['#2FBF5A','#F4ECD6','#FFC400'],luz:['#2FBF5A','#F4ECD6']})
   case 'carV':return T({id,nome:['VÁRZEA','VÁRZEA'],frase:['REI DO TERRÃO','KING OF THE DIRT PITCH'],cara:caraDaTaca('final'),podio:'#2b1608',tampo:'#FFE79A',placaBg:'#2b1608',placaInk:'#FFE79A',faixa:'#C98A3A',fundo:['#9a6631','#2b1608'],titulo:'#FFE79A',enfeite:'sol',confete:['#FFE79A','#C98A3A','#F4ECD6','#FFFFFF'],fogos:['#FFE79A','#C98A3A','#FFFFFF'],luz:['#FFE79A','#C98A3A']})
   default:return T({id:'final',nome:['COPA','CUP'],frase:['MATA-MATA DO PAÍS INTEIRO','THE WHOLE COUNTRY\u2019S KNOCKOUT'],podio:'#0a3d1d',tampo:'#FFC400',placaBg:'#0a3d1d',placaInk:'#FFE79A',faixa:'#1B7A3D',fundo:['#1B7A3D','#0a3d1d'],titulo:'#FFE79A',enfeite:'faixas',confete:['#FFC400','#1B7A3D','#2F6BAE','#FFFFFF'],fogos:['#FFC400','#2FBF5A','#FFFFFF'],luz:['#FFC400','#2FBF5A']})
@@ -195,3 +198,31 @@ export function fotografosDaFesta(mobile:boolean){
 }
 /** aceso por ~0,14 s a cada disparo (curto como flash de verdade, mas sem sumir em celular com pouco quadro) */
 export const flashAceso=(t:number,ritmo:number,fase:number)=>((t*ritmo+fase)%1+1)%1<.14*ritmo
+
+/** 🏆📋 CAMPEÃO DA DIVISÃO NA CARREIRA (04/11, aprovado pelo Diego): a mesma festa, com o tema da série, depois da ÚLTIMA rodada.
+ * A liga não tem partida-final, então quem prova o título é a TELA da carreira: ela só põe `context.tituloDivisao` quando a
+ * temporada já ACABOU NA TELA (a 38ª animou e o fim já foi mostrado — `done` no pyramidseason) e o clube do usuário é o 1º da
+ * tabela final. O mapa ainda confere, por conta própria: é a rodada 38 da liga (id `<semente>:38:<casa>:<fora>`), a partida
+ * está ENCERRADA com o relógio no fim e o clube do usuário está nela. Faltou qualquer prova = nada de festa (vice/acesso não
+ * tem pódio, e nunca antes do apito). O campeão é o usuário mesmo se ele perdeu esse último jogo. */
+export const ULTIMA_RODADA_LIGA=38
+const RODADA_LIGA_NO_ID=/^-?\d+:(\d+):\d+:\d+$/
+export function rodadaDaLiga(id:string|undefined|null):number|null{
+ if(typeof id!=='string')return null
+ const m=RODADA_LIGA_NO_ID.exec(id)
+ return m?Number(m[1]):null
+}
+export function divisaoDaFesta(div:unknown):DivisaoFesta|null{
+ return div==='A'||div==='B'||div==='C'||div==='D'||div==='V'?`car${div}` as DivisaoFesta:null
+}
+type PartidaTitulo=PartidaFinal&{context:PartidaFinal['context']&{tituloDivisao?:unknown}}
+export function tituloDaDivisao(match:PartidaTitulo|undefined|null):DesfechoFinal|null{
+ if(!match||match.finished!==true)return null
+ const tipo=match.context?.tituloDivisao
+ if(!ehDivisaoFesta(tipo))return null
+ if(rodadaDaLiga(match.context.id)!==ULTIMA_RODADA_LIGA)return null
+ if(!Number.isFinite(match.minute)||match.minute<90)return null
+ const usuario=ladoDoUsuario(match)
+ if(!usuario)return null
+ return {vencedor:usuario,usuario,campeao:true,tipo}
+}

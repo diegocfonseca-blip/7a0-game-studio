@@ -1,5 +1,5 @@
 // 📸 Fotos (04/11), celular 390×844 ×2: festa de campeão da Libertadores · final nos pênaltis · câmera seguindo os ônibus.
-// Uso (com o vite de pé): PORT=4237 node scripts/imersao-mapa/shots-final-onibus.mjs   (SO=liberta,champions,mundial,supercopa,penaltis,onibus)
+// Uso (com o vite de pé): PORT=4237 node scripts/imersao-mapa/shots-final-onibus.mjs   (SO=liberta,champions,mundial,supercopa,serie-a,varzea,penaltis,onibus)
 import {createRequire} from 'node:module'
 const {chromium}=createRequire(import.meta.url)('playwright')
 const PORT=process.env.PORT??'4201'
@@ -48,6 +48,9 @@ if(!SO||SO.includes('liberta'))await festa('mapa-festa-liberta',{intl:'libertado
 if(!SO||SO.includes('champions'))await festa('mapa-festa-champions',{intl:'champions'},geral)
 if(!SO||SO.includes('mundial'))await festa('mapa-festa-mundial',{intl:'mundial'},geral)
 if(!SO||SO.includes('supercopa'))await festa('mapa-festa-supercopa',{super:true},geral)
+// 🏆📋 campeão da divisão (04/11): Série A e Várzea (terrão)
+if(!SO||SO.includes('serie-a'))await festa('mapa-festa-serie-a',{divisao:'carA'},geral)
+if(!SO||SO.includes('varzea'))await festa('mapa-festa-varzea',{divisao:'carV'},geral)
 if(!SO||SO.includes('penaltis'))await festa('mapa-festa-penaltis',{penaltis:'home'},[[0,7,17],[0,2.1,0]],9) // (mais perto: o "NOS PÊNALTIS!" da placa tem que ler; os 2 das pontas ficam fora deste corte — a geral mostra os 11)
 if(!SO||SO.includes('onibus')){
  // dia de jogo em casa, sem jogo publicado: os ônibus chegam e a câmera vai junto (ninguém tocou no mapa)

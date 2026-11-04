@@ -1,6 +1,6 @@
 // 🏆 Dia de FINAL no mapa 3D: é final? quem é campeão? de quem é o pódio? nada antes do apito?
 import assert from 'node:assert/strict';
-import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,idPartidaInternacional,caraDaTaca,placaDoPodio,temaDaFesta,coreografiaDaFesta,quemLevantaATaca,fotografosDaFesta,flashAceso,ELENCO_FESTA} from '../../src/escalacao/presidencia-complexo-final-regras.ts';
+import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,idPartidaInternacional,caraDaTaca,placaDoPodio,temaDaFesta,coreografiaDaFesta,quemLevantaATaca,fotografosDaFesta,flashAceso,ELENCO_FESTA,tituloDaDivisao,divisaoDaFesta,rodadaDaLiga,ULTIMA_RODADA_LIGA,ehDivisaoFesta} from '../../src/escalacao/presidencia-complexo-final-regras.ts';
 import {cityPopulation} from '../../src/escalacao/cidade3d/population.mjs';
 
 // 1) A final é a que a competição já identifica no id (pyramidseason → MyCopaMatch).
@@ -104,4 +104,22 @@ assert.equal(new Set(temas.map(t=>t.podio+t.fundo.join()+t.luz.join())).size,tem
 assert.equal(temaDaFesta('champions').enfeite,'estrelas');assert.equal(temaDaFesta('libertadores').enfeite,'fumaca');assert.equal(temaDaFesta('mundial').enfeite,'globo');
 for(const t of temas){for(const c of [t.podio,t.tampo,t.placaBg,t.placaInk,t.faixa,...t.fundo,...t.confete,...t.fogos,...t.luz])assert.match(c,/^#[0-9a-f]{6}$/i,t.id);assert(t.nome[0]&&t.nome[1]&&t.frase[0]&&t.frase[1])}
 assert.equal(placaDoPodio({tipo:'supercopa'},true).linha,'SUPER CUP');
-console.log(JSON.stringify({status:'PASS',wholeSquadParty:true,photographers:true,themes:true,internationalFinals:true,penaltyFinals:true,finalFromCompetitionId:true,noSpoilerBeforeWhistle:true,drawNoParty:true,podiumOwner:true,populationCaps:true,partyFitsWindow:true}));
+// 14) 🏆📋 CAMPEÃO DA DIVISÃO (04/11): só na última rodada, encerrada, com a prova do título que a tela da carreira põe
+const div={context:{id:'555:38:3:8',homeClubId:3,awayClubId:8,tituloDivisao:'carA'},viewerClubId:3,minute:93,homeScore:0,awayScore:2,finished:true};
+assert.equal(ULTIMA_RODADA_LIGA,38);
+assert.equal(rodadaDaLiga('555:38:3:8'),38);assert.equal(rodadaDaLiga('-12:5:3:8'),5);assert.equal(rodadaDaLiga('9:copa:5:Final:leg:0:3:8'),null);
+assert.equal(tipoFinalDaPartida(div.context.id),null,'rodada de liga não vira final');
+assert.deepEqual(tituloDaDivisao(div),{vencedor:'home',usuario:'home',campeao:true,tipo:'carA'},'campeão mesmo perdendo o último jogo');
+assert.deepEqual(tituloDaDivisao({...div,viewerClubId:8,context:{...div.context,tituloDivisao:'carV'}}),{vencedor:'away',usuario:'away',campeao:true,tipo:'carV'},'campeão jogando fora');
+assert.equal(tituloDaDivisao({...div,finished:false}),null,'nunca antes do apito da última rodada');
+assert.equal(tituloDaDivisao({...div,minute:70}),null,'placar guardado no meio do jogo não é apito');
+assert.equal(tituloDaDivisao({...div,context:{...div.context,id:'555:37:3:8'}}),null,'só a última rodada');
+assert.equal(tituloDaDivisao({...div,context:{...div.context,tituloDivisao:undefined}}),null,'sem a prova do título (vice/acesso): nada');
+assert.equal(tituloDaDivisao({...div,context:{...div.context,tituloDivisao:'final'}}),null,'só tema de divisão');
+assert.equal(tituloDaDivisao({...div,viewerClubId:44}),null,'jogo de outro clube: nada');
+assert.equal(desfechoDaFinal(div),null,'a festa de FINAL não liga em rodada de liga');
+for(const [d,t] of [['A','carA'],['B','carB'],['C','carC'],['D','carD'],['V','carV']])assert.equal(divisaoDaFesta(d),t);
+assert.equal(divisaoDaFesta('X'),null);assert(ehDivisaoFesta('carB'));assert(!ehDivisaoFesta('champions'));
+assert.equal(temaDaFesta('carA').frase[0],'O BRASIL É SEU');assert.equal(temaDaFesta('carV').frase[0],'REI DO TERRÃO');
+assert.equal(placaDoPodio({tipo:'carA'}).linha,'SÉRIE A');assert.equal(placaDoPodio({tipo:'carV'},true).linha,'VÁRZEA');
+console.log(JSON.stringify({status:'PASS',divisionTitle:true,wholeSquadParty:true,photographers:true,themes:true,internationalFinals:true,penaltyFinals:true,finalFromCompetitionId:true,noSpoilerBeforeWhistle:true,drawNoParty:true,podiumOwner:true,populationCaps:true,partyFitsWindow:true}));
