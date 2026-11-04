@@ -152,16 +152,16 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
   const marcas = [vadicoArt, tidexArt, null, tidexArt, null, vadicoArt, null, vadicoArt, tidexArt]
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 99955, background: '#0b0f14', display: 'flex', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderLeft: pc ? 'none' : `3px solid ${INK}`, borderRight: pc ? 'none' : `3px solid ${INK}` }}>
+      <div style={{ width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingTop: pc ? 78 : 0, boxSizing: 'border-box', borderLeft: pc ? 'none' : `3px solid ${INK}`, borderRight: pc ? 'none' : `3px solid ${INK}` }}>
         {topo}
         {!escolha ? (
           <div style={{ flex: 1, overflowY: 'auto', position: 'relative', background: `#0e1319 url(${salaArt}) center / cover` }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(8,10,14,.55),rgba(8,10,14,.85) 60%,#0b0f14)' }} />
-            <div style={pc ? { position: 'relative', display: 'grid', gridTemplateColumns: '560px minmax(0, 1fr)', gap: 34, maxWidth: 1240, margin: '0 auto', padding: '26px 24px 30px', alignItems: 'start' } : { position: 'relative', paddingBottom: 14 }}>
+            <div style={pc ? { position: 'relative', display: 'grid', gridTemplateColumns: '640px minmax(0, 1fr)', gap: 40, maxWidth: 1360, minHeight: '100%', margin: '0 auto', padding: '26px 28px 34px', alignItems: 'center', alignContent: 'center' } /* 🖥️ 04/11 (Diego: *"essa tela não tá pequena pro desktop?"*): maior, centrada e começando ABAIXO da barra do jogo (antes a barra cobria o topo) */ : { position: 'relative', paddingBottom: 14 }}>
               <div>
               {/* o backdrop dos patrocinadores, atrás da mesa */}
               <div style={{ position: 'relative' }}>
-              <div style={{ margin: pc ? 0 : '12px 12px 0', height: pc ? 300 : boneco || temLendas ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
+              <div style={{ margin: pc ? 0 : '12px 12px 0', height: pc ? 360 : boneco || temLendas ? 210 : 132, border: `3px solid ${INK}`, borderRadius: 12, background: '#f7f2e4', overflow: 'hidden', boxShadow: '3px 3px 0 #000', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: 'repeat(3,1fr)' }}>
                 {marcas.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: m === tidexArt ? '#0B1220' : 'transparent', borderRight: '1px dashed rgba(0,0,0,.08)', borderBottom: '1px dashed rgba(0,0,0,.08)' }}>
                     {m ? <img src={m} alt="" style={{ height: pc ? 30 : 22, maxWidth: '86%', objectFit: 'contain' }} /> : <span style={{ ...OSW, fontSize: pc ? 13 : 11, letterSpacing: .5, color: INK }}>Leilão Legends</span>}
@@ -173,7 +173,7 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
                   {temBoneco(posse) ? tr('🧑‍💼 Seu plano já tem presidente · monte o seu ›', '🧑‍💼 Your plan includes a president · make yours ›') : tr('🧑‍💼 Crie seu presidente e apareça aqui ›', '🧑‍💼 Create your president and show up here ›')}
                 </LojaButton>
               </div>}
-              {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={pc ? 270 : 196} /></div>}
+              {boneco && <div style={{ position: 'absolute', left: 0, right: 0, bottom: -26, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PresidenteNaMesa visual={boneco} altura={pc ? 320 : 196} /></div>}
               {temLendas && <div style={{ position: 'absolute', left: 12, right: 12, bottom: -24, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', pointerEvents: 'none', zIndex: 1 }}><LendasNaMesa lendas={lendas!} larga={pc} /></div>}
               </div>
               {/* a mesa com os microfones e a plaquinha do presidente */}
@@ -213,8 +213,8 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
                     style={{ textAlign: 'left', background: ESTILO_IC[o.estilo].card, border: `3px solid ${INK}`, borderRadius: pc ? 16 : 14, padding: pc ? '14px 16px' : '8px 10px', boxShadow: pc ? '4px 4px 0 #000' : '3px 3px 0 #000', display: 'grid', gridTemplateColumns: pc ? '52px 1fr' : '34px 1fr', gap: pc ? 14 : 8, alignItems: 'center', cursor: 'pointer', color: INK }}>
                     <span style={{ width: pc ? 52 : 34, height: pc ? 52 : 34, borderRadius: pc ? 12 : 10, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: pc ? 26 : 18, background: ESTILO_IC[o.estilo].bg }}>{ESTILO_IC[o.estilo].ic}</span>
                     <span>
-                      <span style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: pc ? 19 : 13.5, lineHeight: 1.2 }}>“{preenche(o.frase, pronta.vars)}”</span>
-                      <span style={{ display: 'block', fontSize: pc ? 13 : 11, fontWeight: 600, opacity: .75, marginTop: pc ? 3 : 2 }}>{par(o.efeito.txt)}{o.promessa ? ` · ${tr('⚠️ é uma PROMESSA: o jornal cobra no fim', '⚠️ it is a PROMISE: the paper will hold you to it')}` : ''}</span>
+                      <span style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 700, fontSize: pc ? 22 : 13.5, lineHeight: 1.2 }}>“{preenche(o.frase, pronta.vars)}”</span>
+                      <span style={{ display: 'block', fontSize: pc ? 14.5 : 11, fontWeight: 600, opacity: .75, marginTop: pc ? 3 : 2 }}>{par(o.efeito.txt)}{o.promessa ? ` · ${tr('⚠️ é uma PROMESSA: o jornal cobra no fim', '⚠️ it is a PROMISE: the paper will hold you to it')}` : ''}</span>
                     </span>
                   </button>
                 ))}
