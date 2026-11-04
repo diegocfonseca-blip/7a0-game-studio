@@ -2741,6 +2741,25 @@ export function EscLobby() {
       // Agora o próprio convidado destranca (a função do banco só destranca liga
       // PARADA, nunca partida viva nem temporada no meio) e segue pro fluxo
       // normal — onde ainda vai precisar da SENHA pra entrar de verdade.
+      // 🪑 QUEM TEM TIME GUARDADO VOLTA PRO PRÓPRIO TIME (04/11, Liga Draft 1VMFFJ do Diego: temporada 5, rodada 7, e a lista de
+      // vagas da sala ficou VAZIA — até a do dono. Aí o "voltar" tratava o técnico da liga como convidado NOVO e barrava com
+      // "a liga está no MEIO de uma temporada"). Prova exigida: o MEU uid está no crachá (`seatUids`) do save da liga, num
+      // assento de técnico humano. Com prova, recria a minha vaga NAQUELE assento e segue pra partida guardada. Sem prova,
+      // nada muda (o convidado novo continua passando pela regra de reabrir).
+      if (!mySlot && rd.game_state?.mode === 'liga') {
+        const { data: salva } = await supabase.from('game_rooms').select('game_state').eq('id', rd.id).maybeSingle()
+        const gsSalvo = salva?.game_state as { seatUids?: (string | null)[]; managers?: { id: number; isHuman?: boolean; name?: string }[] } | undefined
+        const assento = gsSalvo?.seatUids?.indexOf(user.id) ?? -1
+        const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento && m.isHuman) : undefined
+        if (meuTime) {
+          const { error: volta } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: assento, manager_name: meuTime.name ?? nameOf(), is_ready: true })
+          if (!volta) {
+            const ok = await triggerStart(rd, false)
+            if (ok) { setLoading(false); return }
+            setRoomError(tr('Não consegui abrir a partida agora. Tenta de novo em instantes.', 'Couldn\'t open the match right now. Try again in a moment.')); setLoading(false); return
+          }
+        }
+      }
       if (!mySlot && rd.game_state?.mode === 'liga') {
         const res = await reabreLiga(rd.id)
         if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }

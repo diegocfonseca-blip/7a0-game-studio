@@ -16,7 +16,7 @@ await (await page.$('[data-complexo-3d]')).scrollIntoViewIfNeeded() // (fora da 
 const foto=async name=>{const el=await page.$('[data-complexo-3d]');await el.scrollIntoViewIfNeeded();const b=await el.boundingBox();await page.screenshot({path:`${OUT}${name}.png`,clip:{x:b.x,y:Math.max(0,b.y),width:b.width,height:Math.min(b.height,844)},timeout:120000});console.log('ok',name)}
 // festa: pula pra ~27 s depois do apito (taça erguida, todo mundo comemorando), espera os 11 + fotógrafos aparecerem e
 // tira a foto num quadro com flash aceso (o relógio da festa congela só pro clique)
-const festa=async(name,op,olhar)=>{
+const festa=async(name,op,olhar,minimo=11)=>{
  await page.evaluate(o=>window.simularFinalQA('campeao',o),op)
  await page.waitForFunction(()=>window.complexo3D?.inspect().matchday!==undefined,null,{timeout:60000})
  await page.waitForTimeout(4000)
@@ -29,7 +29,7 @@ const festa=async(name,op,olhar)=>{
  for(let k=0;k<200;k++){
   await page.evaluate(()=>window.__complexoFinal.congelar(true));await page.waitForTimeout(160)
   info=await page.evaluate(()=>window.__complexoFinal.inspect())
-  if(info.squadVisible===11&&info.flashes>0)break
+  if(info.squadVisible>=minimo&&info.flashes>0)break
   if(k%40===0)console.log('  aguardando',name,info.squadVisible,info.flashes)
   await page.evaluate(()=>window.__complexoFinal.congelar(false));await page.waitForTimeout(40+(k*37)%90)
  }
@@ -48,7 +48,7 @@ if(!SO||SO.includes('liberta'))await festa('mapa-festa-liberta',{intl:'libertado
 if(!SO||SO.includes('champions'))await festa('mapa-festa-champions',{intl:'champions'},geral)
 if(!SO||SO.includes('mundial'))await festa('mapa-festa-mundial',{intl:'mundial'},geral)
 if(!SO||SO.includes('supercopa'))await festa('mapa-festa-supercopa',{super:true},geral)
-if(!SO||SO.includes('penaltis'))await festa('mapa-festa-penaltis',{penaltis:'home'},[[0,7,17],[0,2.1,0]]) // (mais perto: o "NOS PÊNALTIS!" da placa tem que ler)
+if(!SO||SO.includes('penaltis'))await festa('mapa-festa-penaltis',{penaltis:'home'},[[0,7,17],[0,2.1,0]],9) // (mais perto: o "NOS PÊNALTIS!" da placa tem que ler; os 2 das pontas ficam fora deste corte — a geral mostra os 11)
 if(!SO||SO.includes('onibus')){
  // dia de jogo em casa, sem jogo publicado: os ônibus chegam e a câmera vai junto (ninguém tocou no mapa)
  await page.evaluate(()=>window.setComplexoMatch(undefined))

@@ -1,3 +1,4 @@
+import type { DisputaPenaltisCampo } from './campo2d-penaltis'
 import {desenharMarcadorCampo2D,desenharNomeCampo2D} from './campo2d-marcador'
 import {demandaSuperficieCampo2D,publicarSuperficieCampo2D,soltarSuperficieCampo2D,motorCompartilhadoCampo2D} from './campo2d-superficie'
 import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './campo2d-relogio'
@@ -25,6 +26,8 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado } from './sport'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
+import { criaColetorCampo2D, fraseQuase, QUASE_FAIXA_MS, QUASE_ANEL_MS, type QuaseCampo2D, type ResumoCampo2D } from './campo2d-resumo'
+import { ResumoApitoCampo2D, BotaoReplayCampo2D, publicarApitoCampo2D, publicarQuaseCampo2D, QUASE_CSS, estiloQuase, type ReplayCampo2D } from './campo2d-resumo-ui'
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
 const INK = '#0C0C0C', GOLD = '#FFC400'
@@ -39,6 +42,7 @@ const PLACA_MS = 7000 // as placas laterais trocam no mesmo ritmo das placas atr
 type Gol = { name: string; min: number; home: boolean; assist?: string }
 export interface Campo2DProps {
   roundKey: number
+  disputaPenaltis?: DisputaPenaltisCampo
   casa: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 🧑‍💼 o busto do presidente (imagem) — na beira do campo, ao lado do técnico */ presidente?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
   fora: { nome: string; cor: string; cartas?: CartaCampo[]; mascote?: ReactNode | null; escudo?: ReactNode; tecnico?: string | null; /** 🧑‍💼 o busto do presidente (imagem) — na beira do campo, ao lado do técnico */ presidente?: string | null; /** 📐 a formação que o técnico escolheu (escala os 11 quando o elenco tem mais) */ formacao?: string; /** 🔁 o time do 2º TEMPO (carreira: troca no intervalo) */ cartas2?: CartaCampo[] }
   gols: Gol[]
@@ -102,13 +106,14 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute, mapMatchId, mapOnly }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis }: Campo2DProps) {
   const t = useT()
   useEffect(() => { if(mapOnly)return;campoNaTela(1); return () => campoNaTela(-1) }, [mapOnly]) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
   const caixa = useRef<HTMLDivElement | null>(null)
   const [larg, setLarg] = useState(360)
   const [narra, setNarra] = useState('')
+  const [placarPenV, setPlacarPenV] = useState<[number,number]|null>(null)
   const [festa, setFesta] = useState<{ lado: 0 | 1; autor: string; assist?: string; min: number } | null>(null)
   const [placarV, setPlacarV] = useState<[number, number]>([0, 0])
   // 📻 26/10: no gol a faixa do locutor pisca (igual à rádio do placar cinema), na cor de quem marcou ⇄ creme —
@@ -181,12 +186,17 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const vendo = useRef<{ i: number; ini: number } | null>(null)
   const [temReplay, setTemReplay] = useState(false)
   const [replayNa, setReplayNa] = useState<{ autor: string; min: number } | null>(null)
+  // 📊😱 04/11: o resumo do apito e o QUASE (regra em campo2d-resumo.ts; desenho em campo2d-resumo-ui.tsx — o MESMO no mapa)
+  const coletor = useRef<{ de: unknown; c: ReturnType<typeof criaColetorCampo2D> }>({ de: null, c: criaColetorCampo2D() })
+  const quaseVivo = useRef<{ q: QuaseCampo2D; desde: number } | null>(null)
+  const [quase, setQuase] = useState<QuaseCampo2D | null>(null)
+  const [resumo, setResumo] = useState<ResumoCampo2D | null>(null)
   useEffect(()=>()=>onSimulationMinute?.(null),[onSimulationMinute])
   // 🔒 04/11: o que foi IGUALADO com o campo do mapa (rastro do mapa, nome que segura) só aparece na conta liberada do 2D —
   // em sala 2D de outra pessoa o campinho segue exatamente como era (Diego: *"ninguém pode ver ainda"*).
   const igualMapa = useCampo2DLiberado()
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa }
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length }
 
   useEffect(() => {
     const el = caixa.current
@@ -220,7 +230,6 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const [x0, y0] = tr(x, y), [x1, y1] = tr(x + w, y + h)
       return [Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0)]
     }
-    const R = Math.max(8, S * 1.95)
     const fonte = (px: number, peso = 700) => `${peso} ${Math.round(px)}px Oswald, "Arial Narrow", Arial, sans-serif`
     let cartaDe = new Map<string, CartaCampo>(), cartasDe: unknown[] = []
     const rostoDe = new Map<string, HTMLImageElement | null>()
@@ -430,7 +439,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const bolaVis = { x: NaN, y: NaN }
     let tAnt = jogo.t
     const quadro = () => {
-      const { casa, fora, fechado, pausado, t, igualMapa } = vivo.current
+      const { casa, fora, fechado, pausado, t, igualMapa, disputaPenaltis } = vivo.current
       if (cartasDe[0] !== casa.cartas || cartasDe[1] !== fora.cartas) {
         cartasDe = [casa.cartas, fora.cartas]; cartaDe = new Map(); rostoDe.clear()
         for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
@@ -440,6 +449,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       else simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,msPorMin)
       const fi = fita.current
       if (fi.de !== jogo) { fi.de = jogo; fi.atual = []; fi.gols = []; vendo.current = null }
+      const col = coletor.current
+      if (col.de !== jogo) { col.de = jogo; col.c = criaColetorCampo2D(); quaseVivo.current = null; setQuase(null); setResumo(null) }
       const rv = vendo.current
       if (rv) {
         // 🎬 tocando a fita: os jogadores e a bola vão pra onde estavam (o jogo já acabou — o placar não muda)
@@ -456,6 +467,15 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       } else {
         jogo.avancaAte(simMin)
         vivo.current.onSimulationMinute?.(simMin)
+        // 📊😱 só CONTA o que a tela mostrou (não sorteia nada, não mexe no jogo)
+        col.c.passo(jogo as never)
+        const nq = col.c.novoQuase()
+        if (nq && igualMapa && !jogo.festa) { quaseVivo.current = { q: nq, desde: jogo.t }; setQuase(nq) }
+        // 🏁 o resumo só depois do apito E de tudo que estava pendente (o gol dos acréscimos já entrou): nada de spoiler
+        const m2 = (jogo as unknown as { fim?: boolean; stats?: unknown })
+        if (igualMapa && fechado && !jogo.festa && simMin >= 93 && (m2.stats ? !!m2.fim : jogo.placar[0] + jogo.placar[1] >= vivo.current.nGols) && !col.c.feito) {
+          col.c.feito = true; setResumo(col.c.resumo(jogo as never, [casa.cartas2 ?? casa.cartas, fora.cartas2 ?? fora.cartas]))
+        }
         if (replay) {
           const ult2 = fi.atual[fi.atual.length - 1]
           if (!ult2 || jogo.t - ult2.t >= 0.08) {
@@ -464,12 +484,24 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           }
         }
       }
-      if (jogo.narra !== ult.narra) { ult.narra = jogo.narra; setNarra(jogo.narra) }
-      if (jogo.placar[0] !== ult.placar[0] || jogo.placar[1] !== ult.placar[1]) { ult.placar = [jogo.placar[0], jogo.placar[1]]; setPlacarV(ult.placar) }
-      const fk = jogo.festa ? `${jogo.festa.lado}|${jogo.festa.autor}|${jogo.festa.min}` : ''
+      // A disputa é só uma camada de apresentação após o apito. O motor e seu placar ficam intactos.
+      disputaPenaltis?.preparar(jogo.atl, jogo.bola)
+      const penalti = !rv ? disputaPenaltis?.quadro() : undefined
+      const estadoPenalti = penalti ? disputaPenaltis!.estado : undefined
+      const cena = penalti ? { ...jogo, t: disputaPenaltis!.elapsed, entre: 1,
+        bola: { ...penalti.bola, dono: null, voo: null }, bolaAnt: penalti.bola, festa: null,
+        rede: penalti.rede, narra: t(estadoPenalti!.mensagem, estadoPenalti!.mensagemEn) } : jogo
+      if (cena.narra !== ult.narra) {
+        ult.narra = cena.narra; setNarra(cena.narra)
+        setPlacarPenV(estadoPenalti ? (disputaPenaltis!.config.invertido ? [estadoPenalti.placar[1], estadoPenalti.placar[0]] : estadoPenalti.placar) : null)
+      }
+      // 😱 o QUASE fica ~2,6 s DE JOGO na faixa (ou até sair um gol: a festa manda) — no tempo do jogo: pausou, ele espera; no 4×, passa rápido
+      if (quaseVivo.current && ((jogo.t - quaseVivo.current.desde) * 1000 > QUASE_FAIXA_MS || jogo.festa || penalti)) { quaseVivo.current = null; setQuase(null) }
+      if (cena.placar[0] !== ult.placar[0] || cena.placar[1] !== ult.placar[1]) { ult.placar = [cena.placar[0], cena.placar[1]]; setPlacarV(ult.placar) }
+      const fk = cena.festa ? `${cena.festa.lado}|${cena.festa.autor}|${cena.festa.min}` : ''
       if (fk !== ult.festa) {
-        ult.festa = fk; setFesta(jogo.festa ? { lado: jogo.festa.lado, autor: jogo.festa.autor, assist: jogo.festa.assist, min: jogo.festa.min } : null)
-        if (replay && jogo.festa && !vendo.current && fi.atual.length > 5) { fi.gols.push({ autor: jogo.festa.autor, min: jogo.festa.min, quadros: fi.atual.slice() }); setTemReplay(true) }
+        ult.festa = fk; setFesta(cena.festa ? { lado: cena.festa.lado, autor: cena.festa.autor, assist: cena.festa.assist, min: cena.festa.min } : null)
+        if (replay && cena.festa && !vendo.current && fi.atual.length > 5) { fi.gols.push({ autor: cena.festa.autor, min: cena.festa.min, quadros: fi.atual.slice() }); setTemReplay(true) }
       }
       // 🙈 25/10 (Diego: *"gostei da ideia, 2D escondido tá errado"*): campinho ESCONDIDO (aba Clube/Central com o jogo por trás)
       // continua andando o relógio e o motor (acima) — mas não DESENHA nada: ninguém está vendo, e o desenho disputava o celular
@@ -477,22 +509,23 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const mapFPS=mapMatchId?demandaSuperficieCampo2D(mapMatchId):0
       if (escondido&&(!mapFPS||agora-lastMapPaint<1000/mapFPS-.5)) { raf = requestAnimationFrame(quadro); return }
       lastMapPaint=agora
-      const e = jogo.entre, mis = (a: number | undefined, b: number) => a == null ? b : a + (b - a) * e
+      const R = penalti ? Math.max(6, S * 1.25) : Math.max(8, S * 1.95)
+      const e = cena.entre, mis = (a: number | undefined, b: number) => a == null ? b : a + (b - a) * e
       // 🟩 o fundo parado vem pronto do cache; por cima, só o que mexe
       cx.drawImage(fundo, 0, 0, CW, CH)
-      if (jogo.festa) torcida(cx, jogo.festa.lado, jogo.t) // 🎉 no gol a torcida de quem fez pula
+      if (cena.festa) torcida(cx, cena.festa.lado, cena.t) // 🎉 no gol a torcida de quem fez pula
       placasLaterais(cx, Math.floor(Date.now() / PLACA_MS))
       // 🌧️ a chuva caindo (riscos finos descendo, baratos: ~70 linhas por quadro)
       if (clima === 'chuva') {
         cx.strokeStyle = 'rgba(210,225,255,.35)'; cx.lineWidth = 1
-        const tt = jogo.t * 1000, nR = 70
+        const tt = cena.t * 1000, nR = 70
         cx.beginPath()
         for (let i = 0; i < nR; i++) { const px = ((i * 97 + tt * 0.03) % CW), py = ((i * 61 + tt * 0.55 + i * i) % (CH + 20)) - 10; cx.moveTo(px, py); cx.lineTo(px - 2, py + 9) }
         cx.stroke()
       }
       // 🥅 os gols, com a rede que balança quando a bola entra
       for (const [y0, s] of [[0, 1], [L, -1]] as const) {
-        const g = jogo.rede && jogo.rede.y0 === y0 ? Math.sin((jogo.t - jogo.rede.t0) * 30) * 0.9 * Math.max(0, 1 - (jogo.t - jogo.rede.t0)) : 0
+        const g = cena.rede && cena.rede.y0 === y0 ? Math.sin((cena.t - cena.rede.t0) * 30) * 0.9 * Math.max(0, 1 - (cena.t - cena.rede.t0)) : 0
         const [x, y, w, h] = rect(30.34, s > 0 ? -2.2 - g : L, 7.32, 2.2 + g)
         cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x, y, w, h)
         cx.lineWidth = Math.max(2, S * 0.5); cx.strokeStyle = '#fff'; cx.strokeRect(x, y, w, h)
@@ -501,8 +534,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
       // 🧢 os técnicos na beira do campo, com o balão
       const fala = (lado: 0 | 1): string => {
-        if (jogo.festa) return jogo.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
-        if (jogo.t < 4.5) { const tac = jogo.tatica[lado]; return tac > 0 ? t('🔥 Pra cima!', '🔥 Attack!') : tac < 0 ? t('🧱 Fecha a casinha!', '🧱 Shut up shop!') : t('⚖️ Toca a bola!', '⚖️ Keep the ball!') }
+        if (cena.festa) return cena.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
+        if (cena.t < 4.5) { const tac = cena.tatica[lado]; return tac > 0 ? t('🔥 Pra cima!', '🔥 Attack!') : tac < 0 ? t('🧱 Fecha a casinha!', '🧱 Shut up shop!') : t('⚖️ Toca a bola!', '⚖️ Keep the ball!') }
         return ''
       }
       // 🧑‍💼 O PRESIDENTE NA BEIRA DO CAMPO (21/10, Diego: *"para quem tem um personagem"*): o boneco da conta, um pouco mais
@@ -510,7 +543,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       for (const [lado, pres, yy] of [[0, vivo.current.casa.presidente, L * 0.6], [1, vivo.current.fora.presidente, L * 0.4]] as const) {
         const foto = pres ? img(pres) : null
         if (!foto || !foto.complete || !foto.naturalWidth) continue
-        const RP = Math.max(9, S * 1.9), pula = jogo.festa && jogo.festa.lado === lado ? Math.abs(Math.sin(jogo.t * 9)) * RP * 0.6 : 0
+        const RP = Math.max(9, S * 1.9), pula = cena.festa && cena.festa.lado === lado ? Math.abs(Math.sin(cena.t * 9)) * RP * 0.6 : 0
         const [X, Y0] = deitado ? tr(W + PADT * 0.55, yy) : tr(-PADX * 0.42, yy), Y = Y0 - pula
         cx.save(); cx.beginPath(); cx.arc(X, Y, RP, 0, 7); cx.fillStyle = GOLD; cx.fill(); cx.clip(); cx.drawImage(foto, X - RP, Y - RP, RP * 2, RP * 2); cx.restore()
         cx.beginPath(); cx.arc(X, Y, RP, 0, 7); cx.lineWidth = 2.5; cx.strokeStyle = INK; cx.stroke()
@@ -537,8 +570,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
       // 🟨 o juiz segue o lance (uns 9 m atrás da bola, pro lado do meio), com inércia
       {
-        const bx0 = mis(jogo.bolaAnt.x, jogo.bola.x), by0 = mis(jogo.bolaAnt.y, jogo.bola.y)
-        const ax = bx0 + (34 - bx0) * 0.45, ay = by0 + (L / 2 - by0) * 0.22
+        const bx0 = mis(cena.bolaAnt.x, cena.bola.x), by0 = mis(cena.bolaAnt.y, cena.bola.y)
+        const ax = penalti?.juiz.x ?? bx0 + (34 - bx0) * 0.45, ay = penalti?.juiz.y ?? by0 + (L / 2 - by0) * 0.22
         const k = Math.min(1, dt / 900); juiz.x += (ax - juiz.x) * k; juiz.y += (ay - juiz.y) * k
         const [X, Y] = tr(juiz.x, juiz.y), RJ = R * 0.8
         cx.beginPath(); cx.ellipse(X, Y + RJ - 1, RJ * 0.8, 3, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
@@ -547,22 +580,22 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
       // 🌠 rastro: só quando a bola está viajando (passe/chute); some sozinho
       if (igualMapa) rastro.length = 0
-      else if (jogo.bola.voo) { rastro.push([jogo.bola.x, jogo.bola.y]); if (rastro.length > 9) rastro.shift() } else if (rastro.length) rastro.shift()
+      else if (cena.bola.voo) { rastro.push([cena.bola.x, cena.bola.y]); if (rastro.length > 9) rastro.shift() } else if (rastro.length) rastro.shift()
       if (rastro.length > 1) {
         cx.lineCap = 'round'
         for (let i = 1; i < rastro.length; i++) { const [ax, ay] = tr(...rastro[i - 1]), [bx1, by1] = tr(...rastro[i]); cx.strokeStyle = `rgba(255,255,255,${(0.08 + (0.5 * i) / rastro.length).toFixed(2)})`; cx.lineWidth = 1 + (3.5 * i) / rastro.length; cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx1, by1); cx.stroke() }
       }
       // 👁️ onde cada um APARECE (afastados uns dos outros) e com que velocidade está correndo
-      const dtJ = Math.max(0, jogo.t - tAnt); tAnt = jogo.t
-      const vis = jogo.atl.map(p => ({ p, x: mis(p.ax, p.x), y: mis(p.ay, p.y), ox: 0, oy: 0 }))
+      const dtJ = Math.max(0, cena.t - tAnt); tAnt = cena.t
+      const vis = cena.atl.map((p, i) => ({ p, x: penalti?.jogadores[i]?.x ?? mis(p.ax, p.x), y: penalti?.jogadores[i]?.y ?? mis(p.ay, p.y), ox: 0, oy: 0 }))
       const minD = (R / S) * 2.0
-      for (let it = 0; it < 4; it++) for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) {
+      for (let it = 0; it < (penalti ? 0 : 4); it++) for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) {
         const A = vis[i], B = vis[j], dx = B.x + B.ox - A.x - A.ox, dy = B.y + B.oy - A.y - A.oy, d = Math.hypot(dx, dy)
         if (d >= minD) continue
         const ux = d > 1e-3 ? dx / d : (i % 2 ? 1 : -1), uy = d > 1e-3 ? dy / d : 0, k = (minD - d) / 2
         A.ox -= ux * k; A.oy -= uy * k; B.ox += ux * k; B.oy += uy * k
       }
-      const suave = Math.min(1, dt / 140)
+      const suave = penalti ? 1 : Math.min(1, dt / 140)
       const pos = new Map<Atleta, { x: number; y: number; v: number; dx: number; dy: number }>()
       for (const q of vis) {
         let o = afasta.get(q.p); if (!o) { o = { x: q.ox, y: q.oy, px: q.x, py: q.y, v: 0 }; afasta.set(q.p, o) }
@@ -573,39 +606,40 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         o.px = q.x; o.py = q.y
       }
       // ⚽ a bola que APARECE: no pé de quem conduz, um passo à frente, com toquinhos; no passe, a bola de verdade
-      const bA = jogo.bolaAnt, dono = jogo.bola.dono
-      let alvoX = mis(bA.x, jogo.bola.x), alvoY = mis(bA.y, jogo.bola.y)
-      const dp = dono && !jogo.bola.voo && !rv ? pos.get(dono) : undefined
+      const bA = cena.bolaAnt, dono = cena.bola.dono
+      let alvoX = mis(bA.x, cena.bola.x), alvoY = mis(bA.y, cena.bola.y)
+      const dp = dono && !cena.bola.voo && !rv ? pos.get(dono) : undefined
       if (dono && dp) {
         const corre = Math.min(1, dp.v / 3.2), dx = corre > 0.15 && (dp.dx || dp.dy) ? dp.dx : 0, dy = corre > 0.15 && (dp.dx || dp.dy) ? dp.dy : (dono.lado === 0 ? -1 : 1)
-        const fase = (jogo.t * 1.7 + (numero.get(dono) ?? 0) * 0.37) % 1, perto = R / S * 0.75
+        const fase = (cena.t * 1.7 + (numero.get(dono) ?? 0) * 0.37) % 1, perto = R / S * 0.75
         const dist = perto + corre * (0.35 + 1.1 * fase * fase)
         alvoX = dp.x + dx * dist; alvoY = dp.y + dy * dist
       }
-      if (!Number.isFinite(bolaVis.x) || Math.hypot(alvoX - bolaVis.x, alvoY - bolaVis.y) > 9 || rv) { bolaVis.x = alvoX; bolaVis.y = alvoY }
-      else { const kb = Math.min(1, dt / (jogo.bola.voo ? 35 : 75)); bolaVis.x += (alvoX - bolaVis.x) * kb; bolaVis.y += (alvoY - bolaVis.y) * kb }
+      if (penalti || !Number.isFinite(bolaVis.x) || Math.hypot(alvoX - bolaVis.x, alvoY - bolaVis.y) > 9 || rv) { bolaVis.x = alvoX; bolaVis.y = alvoY }
+      else { const kb = Math.min(1, dt / (cena.bola.voo ? 35 : 75)); bolaVis.x += (alvoX - bolaVis.x) * kb; bolaVis.y += (alvoY - bolaVis.y) * kb }
       // 🏷️ no celular (campo em pé) só aparece o NOME de quem está no lance: quem tem a bola, quem chega pra tomar e quem fez o gol
       // (antes eram 22 etiquetas e, num bolo de 3, ninguém lia nada). No PC, deitado, cabe todo mundo como sempre.
       // 🏷️ NOME SÓ DE QUEM ENCOSTA NA BOLA (04/11, Diego: *"deixar o nome do jogador aparecer apenas quando encosta na bola"*), no
       // celular e no PC, igual ao campo do mapa — mais quem fez o gol, durante a festa. O resto fica só com o número/rosto.
       const comNome = new Set<Atleta>()
-      if (igualMapa) { const quem = nomeNaBola(jogo.bola.dono?.nome, agora); if (quem) for (const p of jogo.atl) if (p.nome === quem) comNome.add(p) }
-      else if (jogo.bola.dono) comNome.add(jogo.bola.dono)
-      if (jogo.festa) for (const p of jogo.atl) if (p.nome === jogo.festa.autor) comNome.add(p)
+      if (penalti && penalti.batedor >= 0) comNome.add(cena.atl[penalti.batedor])
+      if (igualMapa) { const quem = nomeNaBola(cena.bola.dono?.nome, agora); if (quem) for (const p of cena.atl) if (p.nome === quem) comNome.add(p) }
+      else if (cena.bola.dono) comNome.add(cena.bola.dono)
+      if (cena.festa) for (const p of cena.atl) if (p.nome === cena.festa.autor) comNome.add(p)
       // 🧍 os 22 (de trás pra frente na tela)
-      const ordem = [...jogo.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
+      const ordem = [...cena.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
       const nomesPorCima: [number, number, string][] = []
       for (const p of ordem) {
         const q = pos.get(p)!, [X, Y] = tr(q.x, q.y)
         const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
         let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
         if (igualMapa && comNome.has(p)) nomesPorCima.push([X, Y, p.nome]) // 🏷️ 04/11: o nome vai por cima de todo mundo (no mapa ninguém tampa o nome)
-        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
+        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
       }
       for (const [X, Y, nome] of nomesPorCima) desenharNomeCampo2D(cx, X, Y, R, nome)
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
       {
-        const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = mis(bA.h, jogo.bola.h) * S, rb = Math.max(4.6, R * 0.36) + jogo.bola.h * 0.25
+        const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = mis(bA.h, cena.bola.h) * S, rb = Math.max(4.6, R * 0.36) + cena.bola.h * 0.25
         // 🌠 o rastro do mapa, por baixo da bola e por cima dos bonecos (no mapa é igual)
         if (igualMapa) {
           const rp = rastroMapa.passo(bolaVis.x, bh, bolaVis.y, dt / 1000)
@@ -624,12 +658,23 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           cx.beginPath(); for (let v = 0; v < 5; v++) { const aa = a + v * 1.2566; v ? cx.lineTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) : cx.moveTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) } cx.closePath(); cx.fill() }
         cx.restore(); cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.lineWidth = 1.6; cx.strokeStyle = '#111'; cx.stroke()
       }
+      // 😱 QUASE: um anel dourado curto onde a bola beijou a trave / o goleiro voou (o mesmo anel aparece no gramado do mapa)
+      const qv = quaseVivo.current, qIdade = qv ? (jogo.t - qv.desde) * 1000 / QUASE_ANEL_MS : 2
+      if (qv && qIdade < 1) {
+        const [qx, qy] = tr(qv.q.x, qv.q.y), a0 = cx.globalAlpha
+        cx.globalAlpha = 1 - qIdade
+        cx.beginPath(); cx.arc(qx, qy, R * (0.8 + qIdade * 2.4), 0, 7); cx.lineWidth = Math.max(3, R * 0.42); cx.strokeStyle = GOLD; cx.stroke()
+        cx.beginPath(); cx.arc(qx, qy, R * (0.5 + qIdade * 1.5), 0, 7); cx.lineWidth = Math.max(1.5, R * 0.18); cx.strokeStyle = '#fff'; cx.stroke()
+        if (qv.q.tipo === 'trave') { cx.beginPath(); cx.arc(qx, qy, Math.max(3, R * 0.45), 0, 7); cx.fillStyle = '#fff'; cx.fill() } // (o poste "acende")
+        cx.globalAlpha = a0
+      }
       if(mapMatchId&&mapFPS){
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
-          players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
-          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,clima,falas:[fala(0),fala(1)],autorGol:jogo.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
-          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,jogo.bola.h),z:bolaVis.x-W/2}})
+          players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
+          net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
+          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
+          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
       }
       raf = requestAnimationFrame(quadro)
     }
@@ -645,6 +690,22 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     publicarFestaCampo2D(mapMatchId, festa && dono ? { ...festa, mascote: dono.mascote, escudo: dono.escudo } : null)
   }, [mapMatchId, festa])
   useEffect(() => () => { if (mapMatchId) publicarFestaCampo2D(mapMatchId, null) }, [mapMatchId])
+  // 📊🎬😱 04/11: o resumo do apito, os melhores momentos e o QUASE — o MESMO desenho aqui e no HUD do mapa
+  const en = t('pt', 'en') === 'en'
+  const quaseTxt = quase ? fraseQuase(quase, en) : ''
+  const ladoResumo = (l: typeof casa, cor: string) => ({ nome: l.nome, sigla: sigla(l.nome), cor })
+  const replayCtl: ReplayCampo2D | null = replay && temReplay && fechado && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) ? {
+    na: replayNa,
+    play: () => { const g = fita.current.gols[0]; if (!g || vendo.current) return; vendo.current = { i: 0, ini: performance.now() }; setReplayNa({ autor: g.autor, min: g.min }) },
+  } : null
+  const replaySig = replayCtl ? `${replayNa?.autor ?? ''}|${replayNa?.min ?? ''}` : ''
+  useEffect(() => {
+    if (!mapMatchId) return
+    publicarApitoCampo2D(mapMatchId, (resumo && (!disputaPenaltis || disputaPenaltis.estado.encerrado)) || replayCtl ? { resumo, casa: ladoResumo(vivo.current.casa, corCasa), fora: ladoResumo(vivo.current.fora, corFora), replay: replayCtl } : null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapMatchId, resumo, replaySig, corCasa, corFora])
+  useEffect(() => { if (mapMatchId) publicarQuaseCampo2D(mapMatchId, quase ? { ...quase, txt: quaseTxt } : null) }, [mapMatchId, quase, quaseTxt])
+  useEffect(() => () => { if (mapMatchId) { publicarApitoCampo2D(mapMatchId, null); publicarQuaseCampo2D(mapMatchId, null) } }, [mapMatchId])
   const altPlaca = Math.max(22, Math.round(larg / 16))
   return (
     <div ref={caixa} style={{ marginBottom: 10 }}>
@@ -654,7 +715,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           <canvas ref={cv} style={{ display: 'block' }} />
           {/* 📺 o "selo da TV": placar e minuto do que o campinho JÁ mostrou (o placar só muda quando a bola entra) */}
           <div style={{ position: 'absolute', left: 8, top: 8, ...OSW, fontSize: deitado ? 15 : 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: deitado ? '3px 10px' : '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{placarPenV ? `${t('PÊN', 'PENS')} ${placarPenV[0]}–${placarPenV[1]}` : fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
           </div>
         </div>
         {!deitado && <PlacaGol lado="baixo" alt={altPlaca} />}
@@ -664,21 +725,18 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           <FestaGolCampo2D festa={{ ...festa, mascote: time.mascote, escudo: time.escudo }} larg={larg} />
         )}
       </div>
-      {replay && temReplay && fechado && !festa && (
+      {replayCtl && (
         <div style={{ maxWidth: larg, margin: '8px auto 0', display: 'flex', justifyContent: 'center' }}>
-          {replayNa
-            ? <div style={{ ...OSW, background: INK, color: GOLD, border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 14px' }}>🎬 {t('REPLAY', 'REPLAY')} · ⚽ {replayNa.autor} {replayNa.min > 90 ? `90+${replayNa.min - 90}` : replayNa.min}'</div>
-            : <button onClick={() => { const g = fita.current.gols[0]; if (!g) return; vendo.current = { i: 0, ini: performance.now() }; setReplayNa({ autor: g.autor, min: g.min }) }}
-                style={{ ...OSW, background: '#1B7A3D', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 16px', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', fontSize: 15 }}>
-                🎬 {t('VER OS GOLS DE NOVO', 'WATCH THE GOALS AGAIN')}
-              </button>}
+          <BotaoReplayCampo2D replay={replayCtl} />
         </div>
       )}
       {narra && !semNarra && (
-        <div key={piscaGol ? `g${piscaGol.k}` : 'n'} className={piscaGol ? 'll44-gol-pisca' : undefined}
-          style={{ maxWidth: larg, margin: '8px auto 0', background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3, ...(piscaGol ? estiloPisca() : {}) }}
-          dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en', festa?.autor, festa?.min).replace(/[<>&"]/g, '')}</span>` : '🎙️ ' + narra }} />
+        <div key={piscaGol ? `g${piscaGol.k}` : quase ? `q${quase.k}` : 'n'} className={piscaGol ? 'll44-gol-pisca' : undefined} data-quase-campo2d={quase && !piscaGol ? quase.tipo : undefined}
+          style={{ maxWidth: larg, margin: '8px auto 0', background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '7px 10px', fontSize: 13, fontWeight: 700, lineHeight: 1.3, ...(piscaGol ? estiloPisca() : quase ? estiloQuase() : {}) }}
+          dangerouslySetInnerHTML={{ __html: piscaGol ? `<span class="ll44-grito">${gritoGol(piscaGol.lado === 0 ? casa.nome : fora.nome, t('pt', 'en') === 'en', festa?.autor, festa?.min).replace(/[<>&"]/g, '')}</span>` : quase ? '😱 ' + quaseTxt.replace(/[<>&"]/g, '') : '🎙️ ' + narra }} />
       )}
+      {quase && <style>{QUASE_CSS}</style>}
+      {resumo && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) && <ResumoApitoCampo2D resumo={resumo} casa={ladoResumo(casa, corCasa)} fora={ladoResumo(fora, corFora)} larg={larg} />}
     </div>
   )
 }
