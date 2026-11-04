@@ -1,0 +1,46 @@
+LEILÃO LEGENDS — VEÍCULOS E ROTINAS DOS PATROCINADORES
+04/11/2026 — prévia local, sem commit ou publicação
+
+IMPLEMENTADO
+- 42 interpretações 3D originais do catálogo já existente: 25 carros e 17 motos/bicicletas. Nenhum preço ou ID de compra foi inventado. Os cinco IDs antigos continuam reconhecidos.
+- Carro e moto adquiridos por uma negociação já confirmada no sistema existente saem da Vadico e seguem pelas ruas do mapa até as vagas da casa. Rodas acompanham distância e direção. Carros e motos carregados de um save aparecem estacionados; não repetem entrega. Venda e troca removem apenas os bens correspondentes.
+- Na moto, o condutor usa os clipes existentes de sentar/levantar, desembarca e caminha até a porta da casa. A postura de pilotagem reutiliza a animação sentada; ainda não é uma animação específica de motociclista.
+- Prévia 3D no catálogo e 42 miniaturas WebP, carregadas conforme a visualização. Modelos estilizados, sem logotipos de montadoras; não são reproduções detalhadas das fotografias.
+- Tidex e OittoLabs: personagens de roupa social caminham pelas entradas existentes, ficam dentro do edifício e saem. Animações Quaternius já existentes.
+- Grêmio Campo Grande: pessoas chegam pelo portão, usam o campo e saem. Prática visual com os clipes de futebol existentes; não é outro motor de resultados nem um jogo oficial.
+- D’Souza: caminhão identificado com a logo oficial, portas traseiras de carga, funcionário transportando quadro, percurso até três casas existentes, parada para entrega na porta e retorno com manobra. A antiga van imóvel duplicada foi retirada.
+- Nenhum contrato, aluguel, pedido de produto, cobrança ou renda é criado por essas rotinas visuais.
+
+VERIFICAÇÃO
+- Build de produção (TypeScript + Vite).
+- Teste de economia existente: preços, limites de vagas, revenda e confirmação preservados.
+- Teste no Chromium: bens salvos não repetem chegada; leitura inválida não apaga bens; quatro veículos chegam à garagem; sincronizar de novo não duplica; venda remove o veículo certo.
+- Percurso contínuo da D’Souza: carga, ida, descarga, retorno e espera. Maior deslocamento em amostra de 0,05 s: 0,30 m (6 m/s), sem salto no encerramento da primeira rota.
+- Campo de aluguel com quatro personagens no desktop e dois no perfil móvel.
+- Perfil móvel: dois funcionários de escritório no total, dois praticantes e um caminhão. Detalhes do futebol só são carregados perto do campo; pausa e aba oculta preservam o relógio visual.
+- Teste com viewport de celular, não benchmark em aparelho físico. FPS e consumo em celulares reais ainda precisam ser medidos.
+- Capturas e vídeo vêm do Three.js com a cidade e construções existentes. A bancada usa carteira de teste em memória; não comprou nada nem acessou o save do usuário.
+- Vídeo de 33 s: primeira parte em tempo normal, trajeto Vadico–casa acelerado aproximadamente 16 vezes (126 s em 8 s; a legenda da gravação indica 18×). Amostragem da gravação em 12 quadros/s, arquivo H.264 de 24 quadros/s com quadros duplicados; não representa o FPS do jogo.
+
+PESO
+- Miniaturas: 133.472 bytes somadas; maior arquivo 4.404 bytes.
+- Veículos: entre 1.666 e 3.542 triângulos no modelo, incluindo sua sombra plana (a medição da bancada acrescenta dois triângulos do chão).
+- Carro: corpo, quatro rodas e sombra = seis chamadas de desenho. Moto/bicicleta: corpo, duas rodas e sombra = quatro. Caminhão tem portas e logos extras.
+- Geometrias criadas sob demanda, compartilhadas por modelo na mesma cena. Não há novos GLBs de veículos.
+- O campo de aluguel reaproveita o modelo/animações de futebol já disponíveis, carregados somente quando observado de perto.
+
+LIMITES E PRÓXIMOS PASSOS
+- Rotinas decorativas iniciais; não simulam economia ou agenda real das empresas.
+- Não são tráfego urbano completo: a circulação ambiente existente continua; as novas entregas validam obstáculos estáticos e os veículos do usuário aguardam tráfego à frente, mas ainda falta coordenação geral de cruzamentos entre todos os sistemas da cidade.
+- As ilustrações antigas da garagem 2D não foram substituídas; a novidade é a geometria real no mapa e a prévia 3D do catálogo.
+- Uma entrega em andamento não é persistida como novo dado no save. Ao reabrir o mapa com o bem já comprado, ele aparece estacionado, sem uma segunda compra ou nova entrega.
+- O motor de futebol, overalls, descanso, resultados, banco de dados e restrição do mapa à conta de teste não foram alterados.
+
+REPRODUÇÃO NO REPOSITÓRIO
+npm run dev -- --host 127.0.0.1 --port 5340
+Abrir /7a0-game-studio/scripts/teste-veiculos-cidade/index.html
+node scripts/teste-veiculos-cidade/verify.cjs
+node scripts/testa-presidencia-economia.cjs
+npm run build
+
+A regra local em CLAUDE.md exige mostrar o visual e esperar aprovação antes do commit visual. Por isso esta entrega permanece na branch feat/veiculos-vadico-entrega-20261104, com as alterações locais reversíveis.

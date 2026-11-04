@@ -63,9 +63,7 @@ export function criarPatrocinadoresCidade(parent:T.Object3D,onReady?:()=>void){
  text('QUADROS DECORATIVOS DE FUTEBOL',ds.x,7.65,ds.front+.22,43,1.05,'#102d19')
  text('Mercado Livre  ·  TikTok Shop  ·  Shopee',ds.x-2,6.35,ds.front+.22,27,.75,'#102d19')
  for(let i=0;i<7;i++){const x=ds.x+6+(i%3)*1.3,z=ds.front+4+Math.floor(i/3)*1.2;box(wood,1.05,.6,1,x,.46,z);box(cream,.08,.61,1.03,x,.46,z)}
- // A static, neutral delivery van is one small prop, not another traffic actor.
- box(cream,2,1.9,4.8,ds.x-17,1.26,ds.front+9);box(glass,1.75,.65,.04,ds.x-17,1.65,ds.front+11.42)
- for(const dx of[-1,1])for(const dz of[-1.5,1.5]){const g=new T.CylinderGeometry(.34,.34,.2,10);g.rotateZ(Math.PI/2);g.translate(ds.x-17+dx, .5,ds.front+9+dz);add(g,black)}
+ // The delivery vehicle now belongs to the animated sponsor routine.
  for(const[id,h,color]of[['tidex',32,navy],['oittolabs',25,cream]] as const){
   const p=building(id,h,LOTS[id].buildingWidth,20,color)
   for(let level=0;level<Math.floor(h/3.5);level++){

@@ -841,6 +841,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // terracotta-roofed townhouses, small flat-roof flats, and occasional taller
   // residential buildings. They are city context, never purchasable club lots.
   let detailedHomes=0
+  const deliveryHomes:{id:string;x:number;z:number;door:PontoComplexo;curb:PontoComplexo;inside:PontoComplexo}[]=[]
   const residence=(x:number,z:number,variant:number,angle=0,distant=false)=>{
     const floors=variant===0?1:variant===1?2:variant===2?4:6
     const h=3.0*floors+.7,w=variant===3?9.0:variant===2?10.8:9.0+hash(x,z)*2.0,d=variant>1?12.1:10.1
@@ -889,6 +890,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       }
     }
     const entrance=center(0,d/2+.025)
+    if(!distant&&deliveryHomes.length<60)deliveryHomes.push({id:`casa-${x}-${z}`,x,z,door:center(0,d/2+.5),curb:center(0,d/2+6.5),inside:center(0,d/2-.5)})
     box('bairro-porta',wood,1.2,2.1,.045,entrance.x,1.05,entrance.z,angle)
     if(!distant&&detailedHomes<40){
       detailedHomes++
@@ -1317,6 +1319,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena);solids.push(...clubPlaces.solids)
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
+  root.userData.residentialDoors=deliveryHomes
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false

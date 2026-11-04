@@ -1,5 +1,6 @@
 import {GaragemVista} from './garagem-vista'
 import {GaragemExperimentar} from './garagem-experimentar'
+import {modeloVeiculo} from './veiculos-modelos'
 import {ARTES_VEICULOS} from './presidencia-veiculos-artes'
 import {arteCatalogoPresidencia,compraPresidenciaDisponivel} from './presidencia-artes-disponiveis'
 import type {StadiumSave} from './estadiodata'
@@ -35,18 +36,18 @@ export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium
   <p role="status" className="gp-notice">{notice}</p>
   {products.length===0&&<p role="status">{t('Nenhum item encontrado. Tente outro nome ou categoria.','No items found. Try another name or category.')}</p>}
   <div className="gp-grid">{products.map(p=>{const owned=wallet.owned.find(b=>b.id===p.id),options=wallet.owned.filter(b=>itemPresidencia(b.id)?.slot===p.slot),replacement=options.some(b=>b.id===replacements[p.id])?replacements[p.id]:undefined;return <Box key={p.id} className="gp-product">
-   {arteCatalogoPresidencia(p.id)?<img className="gp-product-art" src={import.meta.env.BASE_URL+arteCatalogoPresidencia(p.id)} alt={t(p.pt,p.en)}/>:<p>{t('Arte em preparação','Artwork in preparation')}</p>}
+   {arteCatalogoPresidencia(p.id)?<img loading="lazy" decoding="async" className="gp-product-art" src={import.meta.env.BASE_URL+arteCatalogoPresidencia(p.id)} alt={t(p.pt,p.en)}/>:<p>{t('Arte em preparação','Artwork in preparation')}</p>}
    <h2>{t(p.pt,p.en)}</h2><strong>{p.price} {t('moedas','coins')}</strong>
-   {!owned&&ARTES_VEICULOS[p.id]?.scene&&<a className="gp-preview-link" href={'#preview-'+p.id} onClick={e=>{e.preventDefault();setPreview(p.id)}}>{t('VER NA GARAGEM','VIEW IN GARAGE')}</a>}
+   {!owned&&(modeloVeiculo(p.id)||ARTES_VEICULOS[p.id]?.scene)&&<a className="gp-preview-link" href={'#preview-'+p.id} onClick={e=>{e.preventDefault();setPreview(p.id)}}>{t('VER MODELO 3D','VIEW 3D MODEL')}</a>}
    {!owned&&options.length>0&&<div className="gp-filters gp-trade-filter"><label>{t('DAR NA TROCA','TRADE IN')}<select aria-label={t('Dar na troca: ','Trade in: ')+t(p.pt,p.en)} value={replacement??''} onChange={e=>{const id=options.find(b=>b.id===e.target.value)?.id;R(prev=>({...prev,[p.id]:id}))}}><option value="">{t('Sem troca','No trade-in')}</option>{options.map(b=><option key={b.id} value={b.id}>{t(itemPresidencia(b.id)!.pt,itemPresidencia(b.id)!.en)} (+{valorRevenda(b.paid)})</option>)}</select></label></div>}
    <Btn bg="#fff" onClick={()=>request(owned?'sell':'buy',p.id,owned?undefined:replacement)}>{owned?`${t('VENDER POR','SELL FOR')} ${valorRevenda(owned.paid)}`:replacement?t('CONFERIR TROCA','REVIEW TRADE'):t('COMPRAR','BUY')}</Btn>
   </Box>})}</div>
   <div className="gp-confirm-actions" style={{marginTop:18}}><Btn bg="#fff" onClick={onBack}>{t('VOLTAR','BACK')}</Btn></div>
   {preview&&<GaragemExperimentar key={preview} id={preview} stadium={stadiumSave} onClose={()=>setPreview(null)} onReview={()=>{const id=preview;setPreview(null);request('buy',id,replacements[id])}}/>}
   <dialog ref={dialog} className="gp-dialog" aria-label={t('Confirmar negociação','Confirm transaction')} onClose={()=>Q(null)}>{quote&&<>
-   <h2>{t('CONFIRMAR NEGOCIAÇÃO','CONFIRM TRANSACTION')}</h2><p>{t('Usa as moedas da sua carreira.','Uses your career coins.')}</p>
+   <h2>{t('CONFIRMAR NEGOCIAÇÃO','CONFIRM TRANSACTION')}</h2><p>{t('Usa as moedas da sua carreira.','Uses your career coins.')}</p>{quote.pedido.kind==='buy'&&modeloVeiculo(quote.pedido.id)&&<p>{t('Após confirmar, o veículo sai da Vadico e segue até a garagem da sua casa no mapa.','After confirmation, the vehicle leaves Vadico and drives to your home garage on the map.')}</p>}
    <p>{t(itemPresidencia(quote.pedido.id)!.pt,itemPresidencia(quote.pedido.id)!.en)}</p>
-   {quote.pedido.kind==='buy'&&['carro','duas-rodas'].includes(itemPresidencia(quote.pedido.id)!.slot)&&!ARTES_VEICULOS[quote.pedido.id]?.scene&&<p className="gp-rule" data-purchase-art-pending>{t('Este modelo ainda não tem arte para a vista externa. A compra entra nos seus bens e no patrimônio, mas o veículo não aparece na garagem até o recorte ficar pronto.','This model does not yet have exterior artwork. The purchase counts toward your inventory and assets, but the vehicle will not appear in the garage until its cutout is ready.')}</p>}
+   {quote.pedido.kind==='buy'&&['carro','duas-rodas'].includes(itemPresidencia(quote.pedido.id)!.slot)&&!modeloVeiculo(quote.pedido.id)&&!ARTES_VEICULOS[quote.pedido.id]?.scene&&<p className="gp-rule" data-purchase-art-pending>{t('Este modelo ainda não tem arte para a vista externa. A compra entra nos seus bens e no patrimônio, mas o veículo não aparece na garagem até o recorte ficar pronto.','This model does not yet have exterior artwork. The purchase counts toward your inventory and assets, but the vehicle will not appear in the garage until its cutout is ready.')}</p>}
    {quote.sale&&<p>{t('Você vende: ','You sell: ')}<strong>{t(itemPresidencia(quote.sale.id)!.pt,itemPresidencia(quote.sale.id)!.en)}</strong>{t(' por ',' for ')}{quote.credit} {t('moedas.','coins.')}</p>}
    {quote.sale&&duplaDaGaragem(wallet.owned,display).includes(quote.sale.id)&&<p className="gp-rule" data-sale-impact="vehicle">{t('Este veículo está exposto na garagem. Ao confirmar, ele sai dessa vista. Confira a dupla nos seletores depois da negociação.','This vehicle is on display in the garage. Confirming removes it from that view. Review your pair using the selectors after the transaction.')}</p>}
    {quote.sale&&!['carro','duas-rodas'].includes(itemPresidencia(quote.sale.id)!.slot)&&<p className="gp-rule" data-sale-impact="furniture">{t('Ao confirmar, esta mobília sai da sala e do patrimônio. Se for uma troca, a nova peça ocupa seu lugar. Vender a estante não apaga seus títulos.','Confirming removes this furniture from the office and assets. For a trade-in, the new piece replaces it. Selling a trophy cabinet does not erase your titles.')}</p>}

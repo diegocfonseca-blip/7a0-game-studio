@@ -1,4 +1,5 @@
 import type {PresidenciaItemId} from './presidencia-economia'
+import {modeloVeiculo} from './veiculos-modelos'
 import {ARTES_VEICULOS} from './presidencia-veiculos-artes'
 
 // Mesmas peças já aprovadas e usadas na sala. Não vender uma arte inexistente.
@@ -10,8 +11,9 @@ export const ARTES_MOBILIAS:Partial<Record<PresidenciaItemId,string>>={
 }
 export function arteCatalogoPresidencia(id:PresidenciaItemId){
  const furniture=ARTES_MOBILIAS[id]
+ if(modeloVeiculo(id))return 'veiculos-originais/'+modeloVeiculo(id)!.id+'.webp'
  return furniture?'presidencia-moveis/'+furniture+'.webp':ARTES_VEICULOS[id]?.card
 }
 export function compraPresidenciaDisponivel(id:PresidenciaItemId){
- return !!ARTES_MOBILIAS[id]||!!(ARTES_VEICULOS[id]?.card&&ARTES_VEICULOS[id]?.scene)
+ return !!modeloVeiculo(id)||!!ARTES_MOBILIAS[id]||!!(ARTES_VEICULOS[id]?.card&&ARTES_VEICULOS[id]?.scene)
 }

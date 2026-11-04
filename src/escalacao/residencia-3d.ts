@@ -23,6 +23,11 @@ export function criarResidenciaUsuario(parent:T.Object3D){
  for(let i=0;i<18;i++)box(roof,.49,.075,8.1,h.x-4.165+i*.49,3.62,h.z,-.1)
  const g=P.garage
  box(base,g.width,.12,g.depth,g.x,.06,g.z)
+ // Private garage aprons meet the existing dirt; no asphalt upgrade is granted.
+ for(const v of [
+  [g.x-g.width/2,.12,g.z+g.depth/2,g.x+g.width/2,.12,g.z+g.depth/2,g.x+g.width/2,-.12,g.z+g.depth/2+2.5,g.x-g.width/2,-.12,g.z+g.depth/2+2.5],
+  [g.x+g.width/2,.12,g.z-g.depth/2,g.x+g.width/2+2.5,-.12,g.z-g.depth/2,g.x+g.width/2+2.5,-.12,g.z+g.depth/2,g.x+g.width/2,.12,g.z+g.depth/2],
+ ]){const ramp=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(v,3)).setAttribute('uv',new T.Float32BufferAttribute([0,0,1,0,1,1,0,1],2)).setIndex([0,2,1,0,3,2]);ramp.computeVertexNormals();const a=batches.get(base)??[];a.push(ramp);batches.set(base,a)}
  for(const x of[-1,1])for(const z of[-1,1])box(wood,.18,2.7,.18,g.x+x*(g.width/2-.15),1.47,g.z+z*(g.depth/2-.15))
  box(roof,g.width+.3,.1,g.depth+.4,g.x,2.9,g.z,-.035)
  for(const z of[P.z-P.depth/2,P.z+P.depth/2]){
