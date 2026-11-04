@@ -213,7 +213,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   const respira=()=>new Promise<void>(r=>window.setTimeout(r,0))
   void (async()=>{
   await respira();if(cancelado)return
-  const surround=criarEntornoComplexo(scene,cityState,()=>wake.current(),{name:clubName,residence:managementEnabled,arena:managementEnabled}),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice})
+  const surround=criarEntornoComplexo(scene,cityState,()=>wake.current(),{name:clubName,residence:managementEnabled,arena:managementEnabled}),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice,semSala:managementEnabled&&!isOffice&&!isWindow})
   const seatLod=criarLodCadeirasMobile(architecture.root,true)
   // Automatic football cameras may sit above the roof. Cut away only its
   // colour pass; the opaque shadow/depth material still casts the real shade.

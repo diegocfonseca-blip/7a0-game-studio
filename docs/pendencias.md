@@ -12104,3 +12104,6 @@ desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha p
 
 ### 🏟️ 04/11 — Liga de 10 ou 20 times nas salas
 Feito (escolha na criação; 10 = 18 rodadas, bots até 10). 🚫 **Ranking por PONTOS foi DESFEITO a pedido dele** (*"não faça nada de pts ainda… deixe como estava com títulos normal"*): título de sala de 10 conta como título normal por enquanto. A ideia (20 = 2 pts · 10/Relâmpago = 1 pt, + pódio/conquistas) fica guardada no commit revertido 606a0e0 pra quando ele quiser.
+- 04/11 (print dele: *"essa sala aqui é a do presidente? tá exposta aí feiona, se for pode remover já"*): era o CAIXOTE da sala do
+  presidente pendurado na fachada (`presidentialBox`). No mapa da carreira ele não é mais montado e a arquibancada de cima fica inteira
+  no lugar (opção `semSala` em `criarArquiteturaComplexo`). Foto antes/depois: `scripts/mockups/estadio-sem-sala-presidente.png`.
