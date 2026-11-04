@@ -12085,3 +12085,7 @@ comércio, rotina dos patrocinadores andando a cada quadro). Agora o **Leve deix
 andando); torcida, dia de jogo e o jogo continuam. E entrou o **🩺 diagnóstico** embaixo dos botões de qualidade: nome da placa de vídeo +
 quadros por segundo (verde ≥25 · amarelo 15–24 · vermelho <15) e, se o navegador estiver SEM placa de vídeo (aceleração de hardware
 desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha pro Diego pra saber o que o PC dele é.
+- 04/11 (print do celular dele): o caminho de TERRA da torcida brigava com a calçada de cimento na mesma altura (listras) → a terra
+  sobe 2 cm (`routeY`, presidencia-complexo-entorno.ts; com asfalto comprado nada muda). E os botões de qualidade + diagnóstico saíram de
+  cima do mapa (ficavam embaixo do "Controles" no celular) e foram pro topo do menu "Locais"; o aviso de queda pro Leve é um toast no alto.
+  O celular dele: Adreno 830, 30 quadros/s (o máximo do celular, de propósito) — ótimo. Falta o print do PC.

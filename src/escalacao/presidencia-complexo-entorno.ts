@@ -430,17 +430,21 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   markings(peripheral);markings(north);markings(east);markings(west)
 
   const routeSurface=state.extras.asfalto?paving:dirt
+  // 🧱 04/11 (Diego: *"esse caminho marrom misturado com cimento tá estranho"*): o caminho de TERRA ficava na MESMA altura da calçada de
+  // cimento que cruza ele, e a placa de vídeo pintava os dois em listras ("briga de piso"). A terra agora fica 2 cm ACIMA: o caminho
+  // aparece inteiro e limpo, sem listra. (Com o asfalto comprado os dois são cimento e a altura é a de sempre.)
+  const routeY=state.extras.asfalto?GROUND:GROUND+.02
   // These public paths remain at street level at every stadium stage.
   // They share the physical gate contract, not the old office driveway.
-  for(const [side,points] of Object.entries(fanPaths))ribbon(`acesso-torcida-${side}`,points,4.4,GROUND,routeSurface)
+  for(const [side,points] of Object.entries(fanPaths))ribbon(`acesso-torcida-${side}`,points,4.4,routeY,routeSurface)
   for(const id of ['entrance','entranceBare','shop','food','beer','hotel','station']){
     if(id==='entrance'&&!state.extras.asfalto||id==='entranceBare'&&state.extras.asfalto)continue
     const key=({shop:'loja',food:'praca',beer:'chopp',hotel:'hotel',station:'estacao'} as Record<string,string>)[id]
     if(key&&!state.extras[key])continue
-    ribbon(`acesso-${id}`,PLANTA_COMPLEXO.routes[id].points,id.startsWith('entrance')?5.5:3.4,GROUND,routeSurface)
+    ribbon(`acesso-${id}`,PLANTA_COMPLEXO.routes[id].points,id.startsWith('entrance')?5.5:3.4,routeY,routeSurface)
   }
   for(const [id,door] of Object.entries(PLANTA_COMPLEXO.doors))if(state.extras[id]){
-    ribbon(`chegada-porta-${id}`,[door.approach,door.threshold],2.6,GROUND,routeSurface)
+    ribbon(`chegada-porta-${id}`,[door.approach,door.threshold],2.6,routeY,routeSurface)
     ribbon(`soleira-${id}`,[door.threshold,door.inside],2.6,GROUND,paving)
   }
   if(state.extras.asfalto){
