@@ -18,6 +18,13 @@ em sala 2D de outra pessoa nada disso aparece. Aba Jogos e mapa usam o MESMO có
 - ⏳ Falta: OK visual do Diego; o 🎬 do REPLAY SALVO do mapa ("REVER JOGO SALVO") não ganhou o botão (a fonte do replay salvo não
   grava a fita) — ver se ele quer.
 
+## 💳 VENDRIA COBRA A TAXA JUNTO (04/11) — CORRIGIDO
+- O Craque Completo 14,90 chega da Vendria como total **16,89** (14,90 + 1,99 de taxa). `esc_vendria_aplica` só reconhecia 1490 no
+  total → "produto_desconhecido" e o plano não ligava. Caso: seneorlucas@gmail.com (Neymar FC), pagou 04/11 17:32.
+- Corrigido (`supabase/migrations/20261104210000_vendria_preco_com_taxa.sql`): lê o SUBTOTAL (preço sem taxa) e aceita 1189/1689 com taxa.
+  Evento dele reaplicado: craque_completo até 04/12/2026, prata + Manual. Os outros 1689 de 28/10 já tinham linha.
+- ⚠️ Se mudar preço na Vendria, mudar também os valores do `case` dessa função.
+
 ## 🏟️ 04/11 — Salas com liga de 10 OU 20 times + ranking por PONTOS (LOCAL, branch do agente, esperando OK)
 Diego: *"a pessoa agora escolhe 10 times ou 20 times… campeão da liga e da copa nesse modo [10] ganhará apenas 1 ponto… com 20
 ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários entram 8 bots, o que muda é isso"*.
