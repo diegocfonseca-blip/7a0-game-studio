@@ -171,7 +171,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   {const p=at(0,D/2+.53),s=new THREE.Mesh(plano,mat({map:letreiro,roughness:.9}));s.name='banca-letreiro';s.position.set(p.x,y0+H+.15,p.z);s.rotation.y=b.yaw;s.scale.set(W+.4,.38,1);banca.add(s)}
   desenhaLetreiro();letreiroLang=getLang();desenhaCapa(null)
   // a fonte Oswald pode chegar depois do primeiro desenho: redesenha quando ela estiver pronta
-  try{document.fonts?.ready.then(()=>{if(!capa)return;capaKey='';desenhaCapa(ultimoCapa);desenhaLetreiro();input.onReady()}).catch(()=>{})}catch{/* sem FontFaceSet */}
+  try{Promise.all([document.fonts.load(`900 58px ${FONTE}`),document.fonts.load(`700 19px ${FONTE}`)]).then(()=>{if(!capa)return;capaKey='';desenhaCapa(ultimoCapa);desenhaLetreiro();input.onReady()}).catch(()=>{})}catch{/* sem FontFaceSet */}
   {const p=at(0,-.1);pessoa('jornaleiro','banca','older-man','#e8e0c9',parado(p.x,p.z,b.yaw))}
  }
 
@@ -247,7 +247,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  /** câmera de cada lugar (alvo e posição); `aspect` < .85 = celular em pé, afasta um pouco */
  function vista(kind:VistaTradicao,aspect:number):{target:[number,number,number];camera:[number,number,number]}|undefined{
   const k=aspect<.85?1.45:1
-  if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.45,1.2),o=q.at(-3-3.2*k,-2.4);return{target:[m.x,.9,m.z],camera:[o.x,3.2+2.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
+  if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.38,1.3),o=q.at(-1.5-2.4*k,-4.2);return{target:[m.x,1,m.z],camera:[o.x,2.3+1.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
   if(kind==='banca'&&lugares.banca){const b=lugares.banca,fx=Math.sin(b.yaw),fz=Math.cos(b.yaw),sx=Math.cos(b.yaw),sz=-Math.sin(b.yaw),tx=b.x+fx*1.3+sx*.8,tz=b.z+fz*1.3+sz*.8;return{target:[tx,1.3,tz],camera:[tx+fx*6.6*k+sx*3*k,2.4+1.1*k,tz+fz*6.6*k+sz*3*k]}}
   if(kind==='campinho'&&lugares.campinho){const c=lugares.campinho;return{target:[c.x-1.5,.3,c.z],camera:[c.x+LX+9*k,4+5*k,c.z+5*k]}} // de trás do gol de chinelo, olhando o campinho todo
   return undefined
