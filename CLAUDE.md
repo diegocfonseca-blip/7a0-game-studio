@@ -805,6 +805,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
   só volta com arte de verdade, quando ele pedir.
 
+- **🔒 SEM PLANO NÃO SALVA CARREIRA (04/11, regra permanente — REVOGA o "nunca bloquear o save no APARELHO" de 07/10 e o prazo de 7 dias de 26/10).**
+  Palavras dele: *"a partir de agora quem não tem plano não pode salvar de jeito nenhum… nada, nem no celular… só lá onde seria sair e salvar
+  vai ter um botão de salvar com cadeado… aparece os planos… deve poder salvar desde o primeiro plano, que é o Craque Salas, até todos"* e
+  *"eles podem salvar até onde tá agora, mas depois só com botão de salvar com cadeado"*. Sem aviso antes de começar (ordem dele). Régua =
+  `salvarBloqueado()` (store.tsx; `esc_nuvem_regra.pago` + pagantes pelo código; sem conta = bloqueado; não sabe ainda = salva).
+  Nada é apagado: o que já estava salvo abre normal. Desligar = `SALVAR_SO_COM_PLANO = false`.
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
   se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em

@@ -129,7 +129,7 @@ export type CentralProps = {
   /** 🕵️ JANELA CHEGANDO (22/10, mockup do Sondar aprovado): nas últimas rodadas avisa que a janela vai abrir no Sondar */
   janela?: boolean
 }
-export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
+export type FaixaSalvarProps = { estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
@@ -145,6 +145,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   const AMBAR = '#FFB020', VERDE = '#4ADE80', CINZA = '#9A9A9A'
   const [texto, cor] = ((): [string, string] => {
     switch (s.estado) {
+      case 'bloqueado': return [t('🔒 Sem plano, a carreira não fica salva · assine e não perca nada', '🔒 Without a plan your career is not saved · subscribe and lose nothing'), '#FFB020']
       case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
       case 'salvo_7d': return [t('✅ Salvo na nuvem · sem plano fica guardada 7 dias sem salvar', '✅ Saved to the cloud · without a plan it stays 7 days without saving'), VERDE]
@@ -167,18 +168,18 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
     if (s.estado === 'salvo_aparelho' && !avisoFechado('nuvem-aparelho')) { fechaAviso('nuvem-aparelho'); setPlanos(true) }
     if (s.estado === 'salvo_7d' && !avisoFechado('nuvem-7d')) { fechaAviso('nuvem-7d'); setAviso7(true); setPlanos(true) }
   }, [s.estado])
-  const salvar = () => { const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
+  const salvar = () => { if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
   return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
       <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
       <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
       {s.onCraque && <button onClick={s.onCraque} style={{ ...OSW, fontSize: 11, letterSpacing: '.04em', color: '#fff', background: '#7C3AED', border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 9px', boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>{t('⭐ Craque', '⭐ Star')}</button>}
       <button onClick={salvar} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
-        {t('💾 Salvar', '💾 Save')}
+        {s.estado === 'bloqueado' ? t('🔒 Salvar', '🔒 Save') : t('💾 Salvar', '💾 Save')}
       </button>
       </span>
     </div>
-    {planos && <JanelaNuvemPlanos aviso7={aviso7} onClose={() => { setPlanos(false); setAviso7(false) }} />}
+    {planos && <JanelaNuvemPlanos travado={s.estado === 'bloqueado'} aviso7={aviso7} onClose={() => { setPlanos(false); setAviso7(false) }} />}
   </>)
 }
 

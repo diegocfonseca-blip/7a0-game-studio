@@ -13970,6 +13970,33 @@ export async function nuvemRegra(uid: string, fresca = false): Promise<NuvemRegr
 }
 /** pagante pelo código também vale (lista de reserva do apoio.tsx / batismo do manto.ts) */
 const pagoPeloCodigo = () => souBarao() || myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
+// 🔒 04/11 (Diego: *"a partir de agora quem não tem plano não pode salvar de jeito nenhum"* · *"nada, nem no celular… só lá onde
+// seria sair e salvar vai ter um botão de salvar com cadeado… aparece os planos… deve poder salvar desde o primeiro plano, que é o
+// Craque Salas, até todos"* · *"eles podem salvar até onde tá agora, mas depois só com botão de salvar com cadeado"*).
+// Régua = a MESMA da nuvem (`esc_nuvem_regra.pago` = esc_direitos_de, Craque Salas em dia pra cima) + os pagantes pelo código.
+// Sem conta = sem plano = não salva. Ainda não sabe (login/banco carregando ou falhou) = SALVA (nunca tira de quem paga por erro).
+// O que já estava salvo continua lá e abre; só o progresso novo não é gravado. Pra voltar à regra antiga: `false`.
+export const SALVAR_SO_COM_PLANO = true
+let authUidSalvar: string | null | undefined = undefined
+try {
+  supabase.auth.onAuthStateChange((_e, sessao) => {
+    authUidSalvar = sessao?.user?.id ?? null
+    if (authUidSalvar) void nuvemRegra(authUidSalvar)
+    regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
+  })
+} catch { /* sem cliente (bancada): segue salvando */ }
+export function salvarBloqueado(): boolean {
+  if (!SALVAR_SO_COM_PLANO) return false
+  if (pagoPeloCodigo()) return false
+  if (authUidSalvar === null) return true // sem conta
+  if (authUidSalvar && regraCache?.uid === authUidSalvar) return !regraCache.r.pago
+  return false // ainda não sabe: não arrisca tirar o save de quem paga
+}
+export function useSalvarBloqueado(): boolean {
+  const [, setT] = useState(0)
+  useEffect(() => { const f = () => setT(x => x + 1); regraOuvintes.add(f); return () => { regraOuvintes.delete(f) } }, [])
+  return salvarBloqueado()
+}
 /** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo)
  *  ☁️ 26/10 (Diego): a conta GRÁTIS também salva na nuvem — mas, sem plano, 7 dias sem apertar Salvar e a carreira sai da
  *  nuvem (o banco faz isso: `esc_nuvem_gratis_limpa`, todo dia; a do aparelho fica). Por isso agora toda carreira é aceita. */
@@ -13991,12 +14018,13 @@ export function useNuvemSoAparelho(seed: number | undefined): boolean | null {
   return !nuvemAceita(regraCache.r, seed)
 }
 /** devolve 'nuvem' (subiu), 'aparelho' (conta grátis + carreira nova: fica só no aparelho) ou undefined */
-export async function savePyramidCloud(state: EscState, force = false): Promise<'nuvem' | 'nuvem7' | 'aparelho' | undefined> {
+export async function savePyramidCloud(state: EscState, force = false): Promise<'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | undefined> {
   try {
     if (!force) return
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     const uid = data.user.id
+    if (isCareerSave(state)) { await nuvemRegra(uid, true); if (salvarBloqueado()) return 'bloqueado' } // 🔒 04/11: sem plano não salva
     ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     // ☁️⭐ conta grátis: só as carreiras que JÁ estavam na nuvem continuam subindo (ver `nuvemRegra`)
     const regra = isCareerSave(state) ? await nuvemRegra(uid, true) : null
@@ -14233,7 +14261,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     try {
       // 🌐 carreira online v2 NUNCA vira "partida solo em andamento" (senão abriria como solo, sem os amigos)
       if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
-      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
+      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado())) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
@@ -15179,6 +15207,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
     // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
+    // 🔒 04/11: sem plano a carreira não grava no aparelho — fica só na memória desta aba (o "Continuar" da mesma visita funciona)
+    if (salvarBloqueado()) { carreiraEmMemoria = { ...state }; return }
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
     // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])
