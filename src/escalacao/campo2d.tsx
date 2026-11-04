@@ -606,7 +606,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
           players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
-          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,referee:{x:L/2-juiz.y,z:juiz.x-W/2},
+          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,clima,falas:[fala(0),fala(1)],autorGol:jogo.festa?.autor??'',referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,jogo.bola.h),z:bolaVis.x-W/2}})
       }
       raf = requestAnimationFrame(quadro)

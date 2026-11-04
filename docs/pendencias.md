@@ -12097,3 +12097,8 @@ desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha p
   câmera, mesmo desenho do campinho; antes era esferinha que virava ponto branco), jogadores e bola DESLIZAM entre as atualizações (antes
   andavam em degrau = "bola travando"), e nos DOIS campos o nome só aparece em quem ENCOSTA na bola (+ autor do gol na festa).
   As placas de patrocinador já existiam nos dois.
+- 04/11 (*"tudo que faz pra um normalmente deveria funcionar no outro"* → *"pode sim e publica logo depois"*): o campo do MAPA ganhou o
+  que o campinho da aba Jogos já tinha — 🌠 rastro da bola · 🧢 balão do técnico (mesmas falas) · 🌧️ chuva quando o clima do jogo é
+  chuva (mesmo `climaDoJogo`) · 👟 passinho de quem corre · nome de quem fez o gol na festa (a comemoração/abraço já vinha pelas
+  posições). A superfície (`campo2d-superficie.ts`) agora leva `clima`, `falas` e `autorGol`. **Regra daqui pra frente: mexeu num
+  campo, leva pro outro na mesma entrega.** Foto do teste: `scripts/mockups/campo-mapa-igual-jogos.png`.

@@ -50,20 +50,35 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   g.restore();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.lineWidth=7;g.strokeStyle='#111';g.stroke()}
  const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=15;ball.scale.set(1.45,1.45,1)
  ball.name='bola2d-no-mapa';root.add(ball);ball.visible=false
+ // 🔁 04/11 (Diego: *"tudo que faz pra um normalmente deveria funcionar no outro"*): o que o campinho da aba Jogos já tinha e o mapa não —
+ // 🌠 rastro da bola no passe longo/chute · 🧢 balão do técnico · 🌧️ chuva quando o jogo é de chuva · 👟 passinho de quem corre.
+ const dotCanvas=document.createElement('canvas');dotCanvas.width=dotCanvas.height=32
+ {const g=dotCanvas.getContext('2d')!,gr=g.createRadialGradient(16,16,2,16,16,15);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32)}
+ const dotTexture=texture(dotCanvas),trail:T.Sprite[]=[],trailPts:{x:number;y:number;z:number}[]=[]
+ for(let i=0;i<9;i++){const m=new T.SpriteMaterial({map:dotTexture,transparent:true,depthWrite:false,toneMapped:false});const sp=new T.Sprite(m);sp.renderOrder=14;sp.visible=false;root.add(sp);trail.push(sp)}
+ const bubbles=[0,1].map(lado=>{const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const map=texture(canvas),mat=new T.SpriteMaterial({map,transparent:true,depthWrite:false,depthTest:false,toneMapped:false}),sp=new T.Sprite(mat);sp.renderOrder=16;sp.visible=false;sp.center.set(.5,0);root.add(sp);return{lado,canvas,map,mat,sp,texto:''}})
+ const desenhaBalao=(b:typeof bubbles[number],texto:string)=>{if(b.texto===texto)return;b.texto=texto;const g=b.canvas.getContext('2d')!;g.clearRect(0,0,512,96);if(!texto)return
+  g.font='700 44px Oswald, Arial, sans-serif';const w=Math.min(500,g.measureText(texto).width+40),x=(512-w)/2;g.fillStyle='#ffffff';g.strokeStyle='#0c0c0c';g.lineWidth=6;g.beginPath();g.roundRect(x,6,w,72,16);g.fill();g.stroke()
+  g.fillStyle='#0c0c0c';g.textAlign='center';g.textBaseline='middle';g.fillText(texto,256,44,w-24);b.map.needsUpdate=true}
+ const RAIN=500,rainGeometry=new T.BufferGeometry(),rainPos=new Float32Array(RAIN*6)
+ for(let i=0;i<RAIN;i++){const x=(Math.random()-.5)*112,y=Math.random()*24,z=(Math.random()-.5)*76;rainPos.set([x,y,z,x-.15,y-1.1,z],i*6)}
+ rainGeometry.setAttribute('position',new T.BufferAttribute(rainPos,3))
+ const rainMaterial=new T.LineBasicMaterial({color:'#cfe3ff',transparent:true,opacity:.45,depthWrite:false,toneMapped:false}),rain=new T.LineSegments(rainGeometry,rainMaterial);rain.name='chuva-campo2d';rain.visible=false;rain.frustumCulled=false;root.add(rain)
+ const passo=new Map<string,{x:number;z:number;fase:number}>();let relogio=0
  const ballShadow=new T.Mesh(circle,shadowMaterial);ballShadow.name='sombra-bola2d';ballShadow.rotation.x=-Math.PI/2;ballShadow.position.y=.03;root.add(ballShadow);ballShadow.visible=false
  let id='',revision=-1,viewportVisible=true,disposed=false,lastBall:{x:number;z:number}|undefined,lastMinute=0,labels=new Set<string>(),fontRevision=0
  let net:{key:string;y:number;z:number}|undefined
  let frame:InspecaoPartidaComplexo={players:0,ball:{x:0,y:.11,z:0}},subjects:ReturnType<PartidaComplexo['subjects']>=[]
  const consumer={},off=observarSuperficieCampo2D(changed=>{if(changed===id&&viewportVisible&&!disposed)onReady()})
  void document.fonts?.ready.then(()=>{if(!disposed){fontRevision++;for(const token of tokens.values())token.key='';onReady()}})
- const hide=()=>{ball.visible=ballShadow.visible=false;shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
+ const hide=()=>{ball.visible=ballShadow.visible=false;rain.visible=false;trail.forEach(sp=>{sp.visible=false});bubbles.forEach(b=>{b.sp.visible=false});trailPts.length=0;shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
  // 🧈 04/11 (Diego: *"bola travando"*): o campinho manda as posições ~30 vezes por segundo e o mapa desenha a 60 — sem nada no meio,
  // jogador e bola andavam em degrauzinho. Agora cada um DESLIZA até a posição nova (fração por quadro presa no tempo real);
  // pulo grande (gol, reposição, começo) vai direto.
  let suave=1,ultimoQuadro=0
  const desliza=(o:T.Object3D,x:number,y:number,z:number)=>{const dx=x-o.position.x,dz=z-o.position.z;if(suave>=1||dx*dx+dz*dz>64)o.position.set(x,y,z);else o.position.set(o.position.x+dx*suave,o.position.y+(y-o.position.y)*suave,o.position.z+dz*suave)}
  const update=(state:EstadoPartidaEstadio|undefined,_now:number,camera?:T.PerspectiveCamera)=>{
-  {const agora=performance.now(),dt=ultimoQuadro?Math.min(.25,(agora-ultimoQuadro)/1000):1;ultimoQuadro=agora;suave=dt>=.25?1:1-Math.exp(-dt*22)}
+  {const agora=performance.now(),dt=ultimoQuadro?Math.min(.25,(agora-ultimoQuadro)/1000):1;ultimoQuadro=agora;suave=dt>=.25?1:1-Math.exp(-dt*22);relogio+=Math.min(dt,.1)}
   if(disposed)return
   const next=state?.context.id??''
   if(id!==next){if(id)pedirSuperficieCampo2D(id,consumer,0);id=next;revision=-1;lastBall=undefined;labels.clear();hide();frame={players:0,ball:{x:0,y:.11,z:0}};subjects=[]}
@@ -77,12 +92,14 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   camera?.getWorldDirection(direction)
   const tan=camera?Math.tan(T.MathUtils.degToRad(camera.fov)*.5):1,anchor=camera?Math.hypot(direction.x,direction.z):.5
   for(const p of source.players){
-   const token=marker(p.key,p.marker,p.x,p.z,p.radius);token.root.visible=true;seen.add(p.key);token.icon.position.y=p.radius*anchor+.10;shadowAt(p.x,p.z,p.radius)
+   const token=marker(p.key,p.marker,p.x,p.z,p.radius);token.root.visible=true;seen.add(p.key)
+   {const r=token.root.position,ant=passo.get(p.key)??{x:r.x,z:r.z,fase:Math.random()*6},anda=Math.hypot(r.x-ant.x,r.z-ant.z)>.004;ant.x=r.x;ant.z=r.z;passo.set(p.key,ant);token.icon.position.y=p.radius*anchor+.10+(anda?Math.abs(Math.sin(relogio*14+ant.fase))*p.radius*.14:0)}
+   shadowAt(token.root.position.x,token.root.position.z,p.radius)
    if(camera){projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position);const depth=relative.dot(direction);if(depth>0)obstacles.push({key:p.key,x:projected.x,y:projected.y,halfWidth:p.radius/(depth*tan*camera.aspect),halfHeight:p.radius/(depth*tan),priority:0})}
    if(token.label){
     token.label.position.copy(token.icon.position)
     const distance=Math.hypot(p.x-source.ball.x,p.z-source.ball.z)
-    if(camera&&!distant&&token.owned){ // 🏷️ 04/11: nome só de quem ENCOSTA na bola (igual no campinho da aba Jogos)
+    if(camera&&!distant&&(token.owned||!!source.autorGol&&p.name===source.autorGol)){ // 🏷️ 04/11: nome só de quem ENCOSTA na bola (igual no campinho da aba Jogos)
      projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position)
      const depth=relative.dot(direction),hh=token.label.scale.y/(2*depth*tan),hw=token.label.scale.x/(2*depth*tan*camera.aspect)
      if(depth>0&&projected.z>-1&&projected.z<1)candidates.push({key:p.key,x:projected.x,y:projected.y-3.1*hh,halfWidth:hw,halfHeight:hh,priority:(token.owned?-100:token.portrait?-25:0)+distance})
@@ -101,12 +118,16 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    if(impact){const key=id+':'+impact.sign+':'+impact.time;if(net?.key!==key)net={key,y:T.MathUtils.clamp(.65+height,.3,2.2),z:T.MathUtils.clamp(source.ball.z,-3.5,3.5)}}else net=undefined
    atualizarRedesGol3D(nativeField,{time:impact?.age??0,ball:{netImpact:impact&&net?{sign:impact.sign,time:0,y:net.y,z:net.z,strength:.7}:undefined}})
   }
-  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);ballShadow.scale.setScalar(1.8+Math.min(2,height*.15))
+  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);
+  {const u=trailPts[trailPts.length-1],b=ball.position,voa=!!u&&Math.hypot(b.x-u.x,b.z-u.z)>.55;if(voa||!u)trailPts.push({x:b.x,y:b.y,z:b.z});else if(trailPts.length)trailPts.shift();if(trailPts.length>trail.length)trailPts.shift()
+   trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&trailPts.length>2;if(!q)return;const k=(i+1)/trailPts.length;sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(.5+.9*k);(sp.material as T.SpriteMaterial).opacity=.12+.5*k})}
+  {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
+  {const chove=source.clima==='chuva';rain.visible=chove;if(chove){const a=rainGeometry.getAttribute('position') as T.BufferAttribute,arr=a.array as Float32Array,queda=Math.min(1.5,Math.max(.2,suave*6));for(let i=0;i<RAIN;i++){let y=arr[i*6+1]-queda;if(y<0)y+=24;arr[i*6+1]=y;arr[i*6+4]=y-1.1}a.needsUpdate=true}}ballShadow.scale.setScalar(1.8+Math.min(2,height*.15))
   if(lastBall&&source.minute>=lastMinute){const dx=source.ball.x-lastBall.x,dz=source.ball.z-lastBall.z,distance=Math.hypot(dx,dz);if(distance>.0001&&distance<8){ballMaterial.rotation+=distance/.7*(dx+dz>=0?1:-1)}}
   lastBall={x:source.ball.x,z:source.ball.z};lastMinute=source.minute
   subjects=source.players.map(p=>({key:p.key,name:p.name,side:p.side,keeper:p.keeper,mx:p.x,mz:p.z,visible:true}))
   frame={matchId:id,players:source.players.length,ball:{...source.ball},time:source.minute,phase:state.finished?'fim':'dominio',replay:false,official:undefined}
  }
  return{update,subjects:()=>subjects,frame:()=>frame,inspect:()=>({...frame,ball:{...frame.ball},detail:{design:'campo2d-marcadores-no-gramado-original',sourceId:id,surfaceRevision:revision,ready:revision>=0,actors:frame.players,skinnedPlayers:0,sameSource:true,nativePitch:true,pitchUploads:0,labels:[...labels],portraitMarkers:[...tokens.values()].filter(t=>t.portrait).length,fontRevision,score:superficieCampo2D(id)?.score,narration:superficieCampo2D(id)?.narration} as unknown as InspecaoPartidaComplexo['detail']}),setPresentationVisible:value=>{root.visible=value},setViewportVisible:value=>{viewportVisible=value;if(id&&!value)pedirSuperficieCampo2D(id,consumer,0)},
-  dispose(){if(disposed)return;disposed=true;off();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
+  dispose(){if(disposed)return;disposed=true;off();dotTexture.dispose();trail.forEach(sp=>(sp.material as T.SpriteMaterial).dispose());bubbles.forEach(b=>{b.map.dispose();b.mat.dispose()});rainGeometry.dispose();rainMaterial.dispose();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
 }
