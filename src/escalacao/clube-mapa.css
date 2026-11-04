@@ -18,3 +18,7 @@ body.clube-mapa-gestao-aberta .pc3-expanded{z-index:99989}
 .pc3-sponsor-card p{margin:4px 0 2px;line-height:1.3;font-size:12px}
 .pc3-sponsor-card .pc3-sponsor-link{display:inline-block;margin:6px 5px 0 0;padding:8px;border:2px solid #0c0c0c;border-radius:8px;background:#1b7a3d;color:#fff;font-weight:900;text-decoration:none;box-shadow:2px 2px 0 #0c0c0c}
 .pc3-sponsor-card small{display:block;margin-top:6px;font-size:10px;opacity:.7}
+/* ✕ 04/11: o cartão do lugar no mapa fecha no ✕ (ou tocando fora) */
+.pc3-club-place .pc3-card-x{position:absolute;top:6px;right:6px;width:28px!important;height:28px!important;min-width:0!important;min-height:0!important;padding:0;margin:0;border:2px solid #0c0c0c;border-radius:8px;background:#f4ecd6;font:900 14px Oswald,sans-serif;line-height:1;box-shadow:2px 2px 0 #0c0c0c;cursor:pointer}
+.pc3-sponsor-card strong,.pc3-club-place>strong{padding-right:34px}
+.pc3-sponsor-card .pc3-sponsor-logo{margin-right:34px}

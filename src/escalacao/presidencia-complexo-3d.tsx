@@ -99,6 +99,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
  const [matchCamera,setMatchCamera]=useState<CameraPartidaContinua>('free')
  const [replayOn,setReplayOn]=useState(false),replayRef=useRef(false)
  useEffect(()=>{if(!loaded)return;const atende=()=>{if(!api.current)return;const c=tiraCameraPedida();if(c)api.current.setMatchCamera(c as CameraPartidaContinua)};atende();return assinaCameraPedida(atende)},[loaded]) // 🏟️ a câmera que a carreira pediu (botão 🏟️ Campo 3D)
+ const [cartaoFechado,setCartaoFechado]=useState<string|null>(null) // ✕ 04/11: o cartão do lugar fecha no ✕ ou tocando fora (Diego: "não dá pra fechar")
  const [expanded,setExpanded]=useState(false),[placesOpen,setPlacesOpen]=useState(false),[navigationMode,setNavigationMode]=useState<ModoNavegacaoComplexo>('pan'),[selectedView,setSelectedView]=useState<VistaComplexo>('original')
  const section=useRef<HTMLElement>(null),expandButton=useRef<HTMLButtonElement>(null),placesButton=useRef<HTMLButtonElement>(null),navigationModeRef=useRef(navigationMode)
  const expansionOrigin=useRef<{x:number;y:number;focus:HTMLElement|null}|null>(null),uiId=useId()
@@ -550,7 +551,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    if(isOffice){controls.enabled=next!=='office';camera.fov=next==='president'?32:48;camera.updateProjectionMatrix()}
    else{camera.fov=38;camera.updateProjectionMatrix()}
    navigation.beginView({fitOnResize:['arena-online','casa-usuario','original','region','field','estacao','loja','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['arena-online','casa-usuario','original','region','estacao','loja','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
-   setSelectedView(next)
+   setSelectedView(next);setCartaoFechado(null)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
    if(next==='original')fit(-190,managementEnabled?214:190,-140,175,32,stationFrame)
    else if(next==='region')fit(-300,300,-235,270,35)
@@ -796,7 +797,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   }}>
   <div className="pc3-stage">
    {replayOn&&<div className="pc3-replay" aria-live="polite">🔁 REPLAY</div>}
-   <div ref={root} className="pc3-viewport" data-complexo-3d="true" aria-busy={!loaded} onPointerDown={()=>setPlacesOpen(false)}>
+   <div ref={root} className="pc3-viewport" data-complexo-3d="true" aria-busy={!loaded} onPointerDown={()=>{setPlacesOpen(false);setCartaoFechado(selectedView)}}>
     {!loaded&&!error&&<p className="pc3-loading" role="status">{t('Preparando o mapa…','Preparing the map…')}</p>}
     {error&&<p className="pc3-error" role="alert">{error}</p>}
    </div>
@@ -850,7 +851,8 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     {circulation&&<button className="pc3-pause" type="button" aria-pressed={paused} onClick={()=>setPaused(value=>!value)}>{paused?t('Retomar passeio','Resume walk'):t('Pausar passeio','Pause walk')}</button>}
    </div>}
    {managementEnabled&&(!loaded||!!error)&&<div className="pc3-club-place"><strong>{t('Seu clube','Your club')}</strong><button type="button" onClick={()=>clubActionRef.current?.('presidencia')}>{t('Minha casa','My house')}</button><button type="button" onClick={()=>clubActionRef.current?.('financas')}>{t('Finanças','Finances')}</button><button type="button" onClick={()=>clubActionRef.current?.('loja')}>{t('Loja do Clube','Club Store')}</button><button type="button" onClick={()=>clubActionRef.current?.('agencia')}>{t('Agência e patrocínios','Agency and sponsorships')}</button><button type="button" onClick={()=>clubActionRef.current?.('arena')}>{t('Consultar salas abertas','See open rooms')}</button></div>}
-   {loaded&&ehPatrocinadorCidade(selectedView)&&(()=>{const info=INFO_PATROCINADORES[selectedView],en=getLang()==='en';return <div className="pc3-club-place pc3-sponsor-card">
+   {loaded&&ehPatrocinadorCidade(selectedView)&&cartaoFechado!==selectedView&&(()=>{const info=INFO_PATROCINADORES[selectedView],en=getLang()==='en';return <div className="pc3-club-place pc3-sponsor-card">
+    <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado(selectedView)}>✕</button>
     <span className="pc3-sponsor-logo" style={{background:info.logo.background}}><img src={info.logo.src} width={info.logo.width} height={info.logo.height} alt={info.nome}/></span>
     <strong>{info.nome}</strong>
     <p>{en?info.en:info.pt}</p>
@@ -858,7 +860,8 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     {selectedView==='vadico'&&managementEnabled&&<button type="button" onClick={()=>clubActionRef.current?.('veiculos')}>{t('🚗 Comprar carros e motos','🚗 Buy cars and bikes')}</button>}
     <small>{t('Patrocinador do Leilão Legends','Leilão Legends sponsor')}</small>
    </div>})()}
-   {managementEnabled&&loaded&&['arena-online','casa-usuario','loja','agencia-clube'].includes(selectedView)&&<div className="pc3-club-place">
+   {managementEnabled&&loaded&&['arena-online','casa-usuario','loja','agencia-clube'].includes(selectedView)&&cartaoFechado!==selectedView&&<div className="pc3-club-place">
+    <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado(selectedView)}>✕</button>
     <strong>{selectedView==='arena-online'?'Arena Legends':selectedView==='loja'?t('Loja do Clube','Club Store'):selectedView==='agencia-clube'?nomeAgenciaClube(clubName??'do Clube'):selectedView==='vadico'?'Vadico Veículos':t('Minha casa','My house')}</strong>
     <button type="button" onClick={()=>clubActionRef.current?.(selectedView==='arena-online'?'arena':selectedView==='loja'?'loja':selectedView==='agencia-clube'?'agencia':selectedView==='vadico'?'veiculos':'presidencia')}>{selectedView==='arena-online'?t('Consultar salas','See rooms'):t('Entrar','Enter')}</button>
     {selectedView==='casa-usuario'&&<button type="button" onClick={()=>clubActionRef.current?.('financas')}>{t('Finanças','Finances')}</button>}
