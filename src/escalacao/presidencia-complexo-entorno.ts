@@ -1148,7 +1148,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       // Same 16 cm surface as the pavement. Closed sides remain landscaped;
       // the connected arms share the centre and give the park real entrances.
       const end={x:p.x+dx*11.5,z:p.z+dz*11.5}
-      polygon('parque-publico-passeio',faixaTransporteComplexo([p,end],2.1),GROUND,paving)
+      // ⚽ 04/11: o campinho de terra não ganha a cruz de calçada por cima (a molecada joga no terrão inteiro)
+      if(p!==campinho)polygon('parque-publico-passeio',faixaTransporteComplexo([p,end],2.1),GROUND,paving)
       points.push(end)
     }
     parkEntrances.push({park:p,points})

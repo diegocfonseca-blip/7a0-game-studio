@@ -104,7 +104,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   const listra=(c:string)=>{const tex=canvasTex(64,8,g=>{for(let i=0;i<8;i++){g.fillStyle=i%2?'#ffffff':c;g.fillRect(i*8,0,8,8)}});tex.wrapS=THREE.RepeatWrapping;textures.add(tex);return tex}
   LONAS.forEach((c,k)=>{if(!lonas[k].length)return;const m=mat({map:listra(c),roughness:.9,side:THREE.DoubleSide});feira.add(lote('feira-lona-'+k,lonas[k],unit,m))})
   // letreiro do pastel, pendurado na frente da lona
-  pastelSign=canvasTex(256,64,g=>{g.fillStyle=OURO;g.fillRect(0,0,256,64);g.strokeStyle=TINTA;g.lineWidth=6;g.strokeRect(3,3,250,58);g.fillStyle=VERMELHO;g.font=`900 30px ${FONTE}`;g.textAlign='center';g.textBaseline='middle';g.fillText(getLang()==='en'?'PASTEL · SUGARCANE':'PASTEL · CALDO DE CANA',128,34)});textures.add(pastelSign)
+  pastelSign=canvasTex(256,64,g=>{g.fillStyle=OURO;g.fillRect(0,0,256,64);g.strokeStyle=TINTA;g.lineWidth=6;g.strokeRect(3,3,250,58);g.fillStyle=VERMELHO;g.font=`900 30px ${FONTE}`;g.textAlign='center';g.textBaseline='middle';g.fillText(getLang()==='en'?'PASTEL · SUGARCANE':'PASTEL · CALDO DE CANA',128,34,236)});textures.add(pastelSign)
   {const p=em(u0,.45),s=new THREE.Mesh(plano,mat({map:pastelSign,roughness:.9,side:THREE.DoubleSide}));s.name='feira-letreiro-pastel';s.position.set(p.x,ESTRADA_Y+1.68,p.z);s.rotation.y=q.yawV+Math.PI;s.scale.set(1.9,.48,1);feira.add(s)}
   // gente: feirante atrás de cada banca, fregueses andando no meio da rua e uns parados escolhendo
   for(let i=0;i<N;i++){const u=u0+i*passo,p=em(u+(i%2?.4:-.4),2.6);pessoa('feirante-'+i,'feira',['adult-man','fuller-man','adult-woman','older-man','fuller-woman','adult-man'][i],['#ffffff','#2F6FB5','#C2452F','#ffffff','#1B7A3D','#f39a1e'][i],parado(p.x,p.z,q.yawV+Math.PI))}
@@ -129,11 +129,11 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   const W=c.width,H=c.height
   g.fillStyle=CREME;g.fillRect(0,0,W,H);g.strokeStyle=TINTA;g.lineWidth=10;g.strokeRect(5,5,W-10,H-10)
   g.fillStyle=TINTA;g.textAlign='center';g.textBaseline='alphabetic'
-  g.font=`900 64px ${FONTE}`;g.fillText('O MARTELO',W/2,80)
-  g.fillRect(22,94,W-44,5);g.font=`700 17px ${FONTE}`;g.fillText(m.chapeu,W/2,120);g.fillRect(22,130,W-44,2)
-  g.font=`900 50px ${FONTE}`;const linhas=quebra(g,m.titulo,W-40);linhas.forEach((l,i)=>g.fillText(l,W/2,192+i*54))
+  g.font=`900 58px ${FONTE}`;g.fillText('O MARTELO',W/2,80,W-34)
+  g.fillRect(22,94,W-44,5);g.font=`700 17px ${FONTE}`;g.fillText(m.chapeu,W/2,120,W-40);g.fillRect(22,130,W-44,2)
+  g.font=`900 50px ${FONTE}`;const linhas=quebra(g,m.titulo,W-40);linhas.forEach((l,i)=>g.fillText(l,W/2,192+i*54,W-36))
   const y=192+linhas.length*54-14
-  g.fillStyle=OURO;g.fillRect(22,y,W-44,40);g.fillStyle=TINTA;g.font=`700 19px ${FONTE}`;g.fillText(m.linha.toUpperCase().slice(0,30),W/2,y+27)
+  g.fillStyle=OURO;g.fillRect(22,y,W-44,40);g.fillStyle=TINTA;g.font=`700 19px ${FONTE}`;g.fillText(m.linha.toUpperCase().slice(0,30),W/2,y+27,W-56)
   // "fotinho" da matéria: gramado e uma bola, sem rosto de ninguém
   g.fillStyle=VERDE;g.fillRect(22,y+54,W-44,H-y-80);g.fillStyle='#ffffff';g.beginPath();g.arc(W/2,y+54+(H-y-80)/2,14,0,Math.PI*2);g.fill()
   capa.needsUpdate=true
@@ -142,7 +142,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   if(!letreiro)return
   const c=letreiro.image as HTMLCanvasElement,g=c.getContext('2d');if(!g)return
   g.fillStyle='#173b29';g.fillRect(0,0,c.width,c.height);g.fillStyle=OURO;g.font=`900 34px ${FONTE}`;g.textAlign='center';g.textBaseline='middle'
-  g.fillText(getLang()==='en'?'NEWSPAPERS · MAGAZINES':'JORNAIS · REVISTAS',c.width/2,c.height/2+2);letreiro.needsUpdate=true
+  g.fillText(getLang()==='en'?'NEWSPAPERS · MAGAZINES':'JORNAIS · REVISTAS',c.width/2,c.height/2+2,c.width-24);letreiro.needsUpdate=true
  }
  let letreiroLang=''
  if(lugares.banca){
@@ -182,11 +182,14 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  const bolaEm=(s:number,c:P)=>({x:c.x+Math.sin(s*.47)*Math.cos(s*.13)*(LX-1.6)+Math.sin(s*1.9)*.6,z:c.z+Math.sin(s*.71+1)*(LZ-1.3)})
  if(lugares.campinho){
   const c=lugares.campinho
-  const terra=canvasTex(128,80,g=>{
-   g.fillStyle='#a3713f';g.fillRect(0,0,128,80)
-   for(let i=0;i<420;i++){const r=hash('t'+i);g.fillStyle=['#8f5f33','#b57f49','#9a6838','#c08b55'][r%4];g.fillRect(r%128,(r>>>8)%80,1+(r>>>16)%3,1+(r>>>20)%2)}
-   g.fillStyle='rgba(120,150,70,.55)';for(let i=0;i<60;i++){const r=hash('g'+i),x=r%128,edge=(r>>>9)%2;g.fillRect(x,edge?(r>>>12)%6:74+(r>>>12)%6,2,2)} // tufo de mato na beira
-   g.fillStyle='rgba(120,78,40,.45)';g.beginPath();g.ellipse(14,40,10,14,0,0,Math.PI*2);g.fill();g.beginPath();g.ellipse(114,40,10,14,0,0,Math.PI*2);g.fill() // pequena área gasta
+  const terra=canvasTex(256,160,g=>{
+   g.fillStyle='#b07a45';g.fillRect(0,0,256,160)
+   for(let i=0;i<1400;i++){const r=hash('t'+i);g.fillStyle=['rgba(140,92,50,.55)','rgba(196,146,92,.5)','rgba(150,100,56,.45)','rgba(205,160,104,.45)'][r%4];g.fillRect(r%256,(r>>>8)%160,1+(r>>>16)%2,1)}
+   // tufos de mato na beira e no meio do terrão, onde ninguém pisa
+   g.fillStyle='rgba(104,140,62,.7)';for(let i=0;i<140;i++){const r=hash('g'+i),x=r%256,borda=(r>>>9)%4;const y=borda===0?(r>>>12)%10:borda===1?150+(r>>>12)%10:(r>>>12)%160;const xx=borda>1?((r>>>20)%2?(r>>>11)%14:242+(r>>>11)%14):x;g.fillRect(xx,y,2,2)}
+   // as duas "pequenas áreas" gastas na frente dos gols e o círculo do meio marcado no pé
+   g.fillStyle='rgba(118,74,38,.5)';for(const x of [20,236]){g.beginPath();g.ellipse(x,80,20,28,0,0,Math.PI*2);g.fill()}
+   g.strokeStyle='rgba(236,214,170,.55)';g.lineWidth=2;g.beginPath();g.arc(128,80,18,0,Math.PI*2);g.stroke();g.beginPath();g.moveTo(128,8);g.lineTo(128,152);g.stroke()
   });textures.add(terra)
   const chao=new THREE.Mesh(plano,mat({map:terra,roughness:1}));chao.name='campinho-terra';chao.rotation.x=-Math.PI/2;chao.position.set(c.x,CAMPO_Y,c.z);chao.scale.set(LX*2+2,LZ*2+2,1);chao.receiveShadow=true;campinho.add(chao)
   const caixas:Caixa[]=[]
@@ -244,13 +247,13 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  /** câmera de cada lugar (alvo e posição); `aspect` < .85 = celular em pé, afasta um pouco */
  function vista(kind:VistaTradicao,aspect:number):{target:[number,number,number];camera:[number,number,number]}|undefined{
   const k=aspect<.85?1.45:1
-  if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.5,1.4),o=q.at(-1.5-1.5*k,-2.3);return{target:[m.x,1.05,m.z],camera:[o.x,1.2+1.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
-  if(kind==='banca'&&lugares.banca){const b=lugares.banca,fx=Math.sin(b.yaw),fz=Math.cos(b.yaw),sx=Math.cos(b.yaw),sz=-Math.sin(b.yaw),tx=b.x+fx*1.2+sx*.9,tz=b.z+fz*1.2+sz*.9;return{target:[tx,1.35,tz],camera:[tx+fx*5.2*k+sx*2.6*k,2.6+.8*k,tz+fz*5.2*k+sz*2.6*k]}}
-  if(kind==='campinho'&&lugares.campinho){const c=lugares.campinho;return{target:[c.x,.5,c.z],camera:[c.x+5*k,10*k,c.z+15*k]}}
+  if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.45,1.2),o=q.at(-3-3.2*k,-2.4);return{target:[m.x,.9,m.z],camera:[o.x,3.2+2.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
+  if(kind==='banca'&&lugares.banca){const b=lugares.banca,fx=Math.sin(b.yaw),fz=Math.cos(b.yaw),sx=Math.cos(b.yaw),sz=-Math.sin(b.yaw),tx=b.x+fx*1.3+sx*.8,tz=b.z+fz*1.3+sz*.8;return{target:[tx,1.3,tz],camera:[tx+fx*6.6*k+sx*3*k,2.4+1.1*k,tz+fz*6.6*k+sz*3*k]}}
+  if(kind==='campinho'&&lugares.campinho){const c=lugares.campinho;return{target:[c.x-1.5,.3,c.z],camera:[c.x+LX+9*k,4+5*k,c.z+5*k]}} // de trás do gol de chinelo, olhando o campinho todo
   return undefined
  }
  return{root,configure,update,vista,
-  inspect:()=>({dbg:{boteco:oswaldo?.toArray(),bairro:input.bairro,solids:input.solids.map(s=>[s.id,s.minX,s.maxX,s.minZ,s.maxZ,s.base,s.top])},vida,lugares,feira:feira.visible,pelada:!!bolaMesh?.visible,capa:capaKey?JSON.parse(capaKey)[0]:null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.grupo)}),
+  inspect:()=>({vida,lugares,feira:feira.visible,pelada:!!bolaMesh?.visible,capa:capaKey?JSON.parse(capaKey)[0]:null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.grupo)}),
   dispose(){pessoas.forEach(p=>p.body.dispose());root.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(x=>x.dispose())}}
 }
 
