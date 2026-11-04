@@ -19,5 +19,13 @@
 @media(min-width:760px){.ll29-match-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ll29-board .ll29-table table{font-size:14px}}
 @media(max-width:480px){.ll29-stage .ll26-competition-copy{max-width:100%}.ll29-stage .ll26-competition{min-height:205px}.ll29-games{padding:9px}.ll29-summary{padding:9px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.ll29-career *{scroll-behavior:auto!important}}
+/* A wide viewport can still contain a 380px match sidebar. Each division
+   needs its own row there; two columns are reserved for wider containers.
+   The 50% minimum also caps the wide layout at two columns. */
+@media(min-width:768px){
+ .ll-pyramid-tables.desk-grid2{grid-template-columns:repeat(auto-fit,minmax(min(100%,max(360px,calc(50% - 7px))),1fr))}
+ .ll-pyramid-tables>.ll-division-table{min-width:0}
+ .ll-pyramid-tables .ll-division-table-heading{flex-wrap:wrap;gap:4px 8px}
+}
 /* On desktop the navigation occupies its own row; it cannot cover tables/cards. */
 @media(min-width:1024px){.ll29-career .ll-career-navigation{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;width:100%;max-width:1040px;margin:0 auto 12px;border-radius:0 0 12px 12px}}
