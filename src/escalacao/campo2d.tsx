@@ -111,6 +111,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const caixa = useRef<HTMLDivElement | null>(null)
   const [larg, setLarg] = useState(360)
   const [narra, setNarra] = useState('')
+  const [placarPenV, setPlacarPenV] = useState<[number,number]|null>(null)
   const [festa, setFesta] = useState<{ lado: 0 | 1; autor: string; assist?: string; min: number } | null>(null)
   const [placarV, setPlacarV] = useState<[number, number]>([0, 0])
   // 📻 26/10: no gol a faixa do locutor pisca (igual à rádio do placar cinema), na cor de quem marcou ⇄ creme —
@@ -472,7 +473,10 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const cena = penalti ? { ...jogo, t: disputaPenaltis!.elapsed, entre: 1,
         bola: { ...penalti.bola, dono: null, voo: null }, bolaAnt: penalti.bola, festa: null,
         rede: penalti.rede, narra: t(estadoPenalti!.mensagem, estadoPenalti!.mensagemEn) } : jogo
-      if (cena.narra !== ult.narra) { ult.narra = cena.narra; setNarra(cena.narra) }
+      if (cena.narra !== ult.narra) {
+        ult.narra = cena.narra; setNarra(cena.narra)
+        setPlacarPenV(estadoPenalti ? (disputaPenaltis!.config.invertido ? [estadoPenalti.placar[1], estadoPenalti.placar[0]] : estadoPenalti.placar) : null)
+      }
       if (cena.placar[0] !== ult.placar[0] || cena.placar[1] !== ult.placar[1]) { ult.placar = [cena.placar[0], cena.placar[1]]; setPlacarV(ult.placar) }
       const fk = cena.festa ? `${cena.festa.lado}|${cena.festa.autor}|${cena.festa.min}` : ''
       if (fk !== ult.festa) {
@@ -664,7 +668,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           <canvas ref={cv} style={{ display: 'block' }} />
           {/* 📺 o "selo da TV": placar e minuto do que o campinho JÁ mostrou (o placar só muda quando a bola entra) */}
           <div style={{ position: 'absolute', left: 8, top: 8, ...OSW, fontSize: deitado ? 15 : 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: deitado ? '3px 10px' : '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{disputaPenaltis ? `${t('PÊN', 'PENS')} ${disputaPenaltis.estado.placar[disputaPenaltis.config.invertido?1:0]}–${disputaPenaltis.estado.placar[disputaPenaltis.config.invertido?0:1]}` : fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{placarPenV ? `${t('PÊN', 'PENS')} ${placarPenV[0]}–${placarPenV[1]}` : fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
           </div>
         </div>
         {!deitado && <PlacaGol lado="baixo" alt={altPlaca} />}

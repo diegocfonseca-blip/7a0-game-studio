@@ -23,12 +23,11 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
   const festa = useFestaCampo2D(match?.context.id)
   const matchId = match?.context.id
   // Só muda o React quando muda o placar ou a frase — não a cada quadro de desenho.
-  useSyncExternalStore(f => observarSuperficieCampo2D(id => { if (id === matchId) f() }), () => {
+  const resumoPenaltis = useSyncExternalStore(f => observarSuperficieCampo2D(id => { if (id === matchId) f() }), () => {
     const s = matchId ? superficieCampo2D(matchId) : undefined
-    return s?.penalties ? `${s.penalties.score.join(':')}|${s.penalties.finished}|${s.narration}` : ''
+    return s?.penalties ? JSON.stringify({...s.penalties,narration:s.narration}) : ''
   }, () => '')
-  const superficie = matchId ? superficieCampo2D(matchId) : undefined
-  const penaltis = superficie?.penalties
+  const penaltis = resumoPenaltis ? JSON.parse(resumoPenaltis) as {score:[number,number];finished:boolean;narration:string} : undefined
   const vivo = !!match && (!match.finished || !!penaltis && !penaltis.finished)
   if (!match && !ctl) return null
   const [nh, na] = match?.officialTeams ?? [t('Casa', 'Home'), t('Fora', 'Away')]
@@ -49,7 +48,7 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
       {!vivo && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}
     </div>
     {vivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3 }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
-    {penaltis ? <div className="pc3-match-narration">🥅 {superficie?.narration}</div> : vivo && festa ? <div key={`g${festa.lado}|${festa.autor}|${festa.min}`} className="pc3-match-narration ll44-gol-pisca" style={estiloPisca()}><span className="ll44-grito">{gritoGol((match?.officialTeams ?? [nh, na])[festa.lado], t('pt', 'en') === 'en', festa.autor, festa.min)}</span></div>
+    {penaltis ? <div className="pc3-match-narration">🥅 {penaltis.narration}</div> : vivo && festa ? <div key={`g${festa.lado}|${festa.autor}|${festa.min}`} className="pc3-match-narration ll44-gol-pisca" style={estiloPisca()}><span className="ll44-grito">{gritoGol((match?.officialTeams ?? [nh, na])[festa.lado], t('pt', 'en') === 'en', festa.autor, festa.min)}</span></div>
       : vivo && match?.officialNarration && <div className="pc3-match-narration">🎙️ {match.officialNarration}</div>}
    </div>
    {(ctl||ritmo)&&<div className="pc3-match-controls">

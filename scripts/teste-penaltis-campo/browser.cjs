@@ -29,6 +29,8 @@ const backend=`const result={data:[],error:null};const chain=new Proxy(function(
    const primeira=await sample();assert.equal(await page.locator('.ll28-kicks .made,.ll28-kicks .missed').count(),1,'uma cobrança revelada no campo e no cartão');
    assert.deepEqual(primeira.score,initial.score,'placar regulamentar não muda');
    assert((await page.locator('.ll28-pens').innerText()).includes(primeira.narration),'resultado e frase do campo sincronizados');
+   assert((await page.locator('.pc3-scoreboard').innerText()).includes('PÊN '+primeira.penalties.score.join('–')),'placar do mapa acompanha a primeira cobrança');
+   assert((await page.locator('canvas').first().locator('..').innerText()).includes('PÊN '+primeira.penalties.score.join('–')),'selo do campo acompanha a primeira cobrança');
    assert.equal(primeira.done,false,'não libera a fase na primeira cobrança');
    await page.evaluate(()=>window.penaltisQA.speed(4));
    for(let i=0;i<8;i++){await page.clock.runFor(10000);if((await sample()).done)break}
