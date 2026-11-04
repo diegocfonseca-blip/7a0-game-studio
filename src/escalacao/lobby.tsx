@@ -4118,8 +4118,8 @@ export function EscLobby() {
                           ? tr('🔒 10 times não vale aqui: o ⚡ Relâmpago não tem liga — o tamanho é o da chave (16 ou 32).', '🔒 10 teams doesn\'t apply here: ⚡ Lightning has no league — the size is the draw (16 or 32).')
                           : tr('🔒 10 times não vale aqui: a ⭐ Só Champions não tem liga — é a tabela de 36.', '🔒 10 teams doesn\'t apply here: ⭐ Champions only has no league — it is the table of 36.'))
                         : ligaTamanho === 10
-                          ? tr('⚡ Liga de 10 = mais rápida (18 rodadas). Cabem até 10 times; os bots completam. Título vale 1 ponto no ranking.', '⚡ 10-team league = quicker (18 rounds). Up to 10 teams; bots fill the rest. A title is worth 1 ranking point.')
-                          : tr('🏟️ Liga de 20 = a de sempre (38 rodadas). Título vale 2 pontos no ranking.', '🏟️ 20-team league = the usual one (38 rounds). A title is worth 2 ranking points.')}
+                          ? tr('⚡ Liga de 10 = mais rápida (18 rodadas). Cabem até 10 times; os bots completam.', '⚡ 10-team league = quicker (18 rounds). Up to 10 teams; bots fill the rest.')
+                          : tr('🏟️ Liga de 20 = a de sempre (38 rodadas).', '🏟️ 20-team league = the usual one (38 rounds).')}
                     </p>
                   </SegField>
                 )}

@@ -3,16 +3,36 @@
   "titulo": "Liga de 10 ou 20 times 🏟️",
   "destaque": {
     "passos": [
-      { "emoji": "🏟️", "titulo": "20 times", "sub": "38 rodadas · título = 2 pts" },
-      { "emoji": "⚡", "titulo": "10 times", "sub": "18 rodadas · título = 1 pt" },
-      { "emoji": "🏆", "titulo": "Ranking", "sub": "agora em pontos" }
+      {
+        "emoji": "🏟️",
+        "titulo": "20 times",
+        "sub": "38 rodadas · a de sempre"
+      },
+      {
+        "emoji": "⚡",
+        "titulo": "10 times",
+        "sub": "18 rodadas · mais rápida"
+      },
+      {
+        "emoji": "🤖",
+        "titulo": "Bots",
+        "sub": "completam até 10"
+      }
     ]
   },
   "itens": [
-    { "tag": "novidade", "texto": "Na hora de criar a sala, você escolhe **10 ou 20 times** na liga. Com 10, a liga é mais rápida: **18 rodadas** e os bots completam só até 10 (2 pessoas = 8 bots)." },
-    { "tag": "regra", "texto": "Dá pra jogar com 10 em **Liga + Copa, Liga + Liberta, Liga + Mundo, Liga + Eurocopa, regionais e Só Liga**. No ⚡ Relâmpago e na ⭐ Só Champions o tamanho é o da chave/tabela, então lá não muda." },
-    { "tag": "regra", "texto": "O ranking agora é em **PONTOS**: título em sala de **20 times = 2 pts**, em sala de **10 times = 1 pt**, e o ⚡ **Relâmpago = 1 pt**." },
-    { "tag": "melhoria", "texto": "**Ninguém perde nada:** todo título que você já tem passa a valer **2 pts**. Ranking da semana, clã da semana e medalhas seguem a mesma conta." }
+    {
+      "tag": "novidade",
+      "texto": "Na hora de criar a sala, você escolhe **10 ou 20 times** na liga. Com 10, a liga é mais rápida: **18 rodadas** e os bots completam só até 10 (2 pessoas = 8 bots)."
+    },
+    {
+      "tag": "regra",
+      "texto": "Dá pra jogar com 10 em **Liga + Copa, Liga + Liberta, Liga + Mundo, Liga + Eurocopa, regionais e Só Liga**. No ⚡ Relâmpago e na ⭐ Só Champions o tamanho é o da chave/tabela, então lá não muda."
+    },
+    {
+      "tag": "melhoria",
+      "texto": "No **novo leilão com o mesmo time**, a sala continua com o tamanho que você escolheu."
+    }
   ],
   "rodape": "Já tá valendo nas salas online!",
   "rodapeSub": "Criar sala → O campeonato → 🏟️ Times na liga: 10 ou 20.",

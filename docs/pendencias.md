@@ -12101,3 +12101,6 @@ comércio, rotina dos patrocinadores andando a cada quadro). Agora o **Leve deix
 andando); torcida, dia de jogo e o jogo continuam. E entrou o **🩺 diagnóstico** embaixo dos botões de qualidade: nome da placa de vídeo +
 quadros por segundo (verde ≥25 · amarelo 15–24 · vermelho <15) e, se o navegador estiver SEM placa de vídeo (aceleração de hardware
 desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha pro Diego pra saber o que o PC dele é.
+
+### 🏟️ 04/11 — Liga de 10 ou 20 times nas salas
+Feito (escolha na criação; 10 = 18 rodadas, bots até 10). 🚫 **Ranking por PONTOS foi DESFEITO a pedido dele** (*"não faça nada de pts ainda… deixe como estava com títulos normal"*): título de sala de 10 conta como título normal por enquanto. A ideia (20 = 2 pts · 10/Relâmpago = 1 pt, + pódio/conquistas) fica guardada no commit revertido 606a0e0 pra quando ele quiser.
