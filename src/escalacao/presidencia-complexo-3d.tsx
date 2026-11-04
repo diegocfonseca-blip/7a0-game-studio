@@ -49,6 +49,7 @@ import {gerarPlantaTransporte} from './presidencia-complexo-transporte-model'
 import {distribuirFluxoComplexo} from './presidencia-complexo-fluxo'
 import {criarNavegacaoComplexo,type ModoNavegacaoComplexo} from './presidencia-complexo-camera'
 import {calcularQualidadeComplexo,aplicarQualidadeTexturasComplexo} from './presidencia-complexo-qualidade'
+import {nivelMapaInicial,guardaNivelMapa,ajustesNivelMapa,NIVEIS_MAPA,ABRIR_LENTO_MS,ENGASGO_MS,ENGASGO_QUADROS,proximoEngasgo,type NivelMapa} from './presidencia-mapa-qualidade'
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import {criarIluminacaoComplexo} from './presidencia-complexo-iluminacao'
 import type {PresidenciaCarteira} from './presidencia-economia'
@@ -95,6 +96,9 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
  const presidentKey=JSON.stringify([president??null,trophies,identityArt,trophyPage])
  const [error,setError]=useState(''),[loaded,setLoaded]=useState(false),[hasSeatView,setHasSeatView]=useState(false),[visitable,setVisitable]=useState({home:false,away:false}),[following,setFollowing]=useState<'home'|'away'|null>(null),[paused,setPaused]=useState(false),pausedRef=useRef(paused)
  const userExploring=useRef(false)
+ const [nivel,setNivel]=useState<NivelMapa>(nivelMapaInicial),[caiuProLeve,setCaiuProLeve]=useState(false),nivelRef=useRef(nivel);nivelRef.current=nivel
+ // ⚙️ travou de verdade (abriu devagar demais ou ficou engasgando): cai pro Leve, guarda e avisa — só pra BAIXO e uma vez
+ const caiPraLeve=useRef(()=>{});caiPraLeve.current=()=>{if(nivelRef.current==='leve')return;guardaNivelMapa('leve');setCaiuProLeve(true);setNivel('leve')}
  const [stadiumSound,setStadiumSound]=useState(false),stadiumSoundRef=useRef(false);stadiumSoundRef.current=stadiumSound
  const [matchCamera,setMatchCamera]=useState<CameraPartidaContinua>('free')
  const [replayOn,setReplayOn]=useState(false),replayRef=useRef(false)
@@ -167,6 +171,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
  useEffect(()=>{
   const el=root.current;if(!el)return
   setLoaded(false);setHasSeatView(false);setFollowing(null);setVisitable({home:false,away:false});setError('')
+  const ajuste=ajustesNivelMapa(nivel),abriuEm=performance.now()
   const save:StadiumSave=JSON.parse(saveKey),state=complexoDoEstadio(save),cityState=complexoDoEstadio(JSON.parse(citySaveKey))
   let renderer:THREE.WebGLRenderer
   try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',logarithmicDepthBuffer:true})}
@@ -179,18 +184,18 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   const scene=new THREE.Scene();scene.background=new THREE.Color('#cbd2cd');scene.fog=new THREE.Fog('#cbd2cd',1100,2200)
   const visualProfile=(width:number,height:number)=>{const profile=calcularQualidadeComplexo({width,height,devicePixelRatio:window.devicePixelRatio||1,
    coarsePointer:window.matchMedia('(pointer: coarse)').matches,deviceMemory:(navigator as Navigator&{deviceMemory?:number}).deviceMemory,
-   maxTextureSize:renderer.capabilities.maxTextureSize,maxAnisotropy:renderer.capabilities.getMaxAnisotropy()});if(softwareGPU){profile.pixelRatio=Math.min(profile.pixelRatio,.75);profile.drawingWidth=Math.max(1,Math.floor(width*profile.pixelRatio));profile.drawingHeight=Math.max(1,Math.floor(height*profile.pixelRatio))}return profile}
+   maxTextureSize:renderer.capabilities.maxTextureSize,maxAnisotropy:renderer.capabilities.getMaxAnisotropy()});{const pr=Math.min(profile.pixelRatio,ajuste.tetoPixel);if(pr!==profile.pixelRatio){profile.pixelRatio=pr;profile.drawingWidth=Math.max(1,Math.floor(width*pr));profile.drawingHeight=Math.max(1,Math.floor(height*pr))}profile.maxFPS=Math.min(profile.maxFPS,ajuste.maxFPS)}if(softwareGPU){profile.pixelRatio=Math.min(profile.pixelRatio,.75);profile.drawingWidth=Math.max(1,Math.floor(width*profile.pixelRatio));profile.drawingHeight=Math.max(1,Math.floor(height*profile.pixelRatio))}return profile}
   let quality=visualProfile(el.clientWidth,el.clientHeight)
-  const mobileGraphics=window.matchMedia('(pointer: coarse)').matches||quality.constrained
+  const mobileGraphics=window.matchMedia('(pointer: coarse)').matches||quality.constrained||ajuste.leve
   // Retain lighting and cheap contact shadows; omit extra city shadow passes
   // on mobile (up to five heavy passes with the stadium floodlights).
   renderer.shadowMap.enabled=!mobileGraphics
-  const graphicsBudget=renderBudget({minPixelRatio:mobileGraphics?.8:1.25}),presentationPacer=framePacer();let adaptiveScale=1,interactionUntil=0,vivoAte=0
+  const graphicsBudget=renderBudget({minPixelRatio:mobileGraphics?.8:nivel==='padrao'?1:1.25}),presentationPacer=framePacer();let ultimoQuadro=0,engasgo=0,quadrosVistos=0;let adaptiveScale=1,interactionUntil=0,vivoAte=0
   const sharpenTextures=()=>aplicarQualidadeTexturasComplexo(scene,quality.anisotropy)
   const camera=new THREE.PerspectiveCamera(38,1,.12,4000),controls=new OrbitControls(camera,renderer.domElement)
   const matchCameraController=criarCameraPartidaContinua(camera,controls,setMatchCamera)
   const hemisphere=new THREE.HemisphereLight('#c9dcf0','#8c7d61',.85);scene.add(hemisphere)
-  const sun=new THREE.DirectionalLight('#fff0d9',2.8);sun.position.set(-340,450,270);sun.castShadow=true;sun.shadow.mapSize.set(softwareGPU||el.clientWidth<600?1024:2048,softwareGPU||el.clientWidth<600?1024:2048)
+  const sun=new THREE.DirectionalLight('#fff0d9',2.8);sun.position.set(-340,450,270);sun.castShadow=true;sun.shadow.mapSize.set(softwareGPU||el.clientWidth<600?1024:ajuste.sombra,softwareGPU||el.clientWidth<600?1024:ajuste.sombra)
   sun.shadow.normalBias=.055;sun.shadow.bias=-.00012;sun.shadow.radius=2.5
   sun.shadow.intensity=.55 // 🌤️ 28/10 (Diego no mapa de verdade: a sombra do estádio cobria metade do campo em PRETO e quem estava nela virava vulto): sombra só escurece, nunca apaga
   sun.shadow.camera.near=1;sun.shadow.camera.far=1300;scene.add(sun,sun.target)
@@ -295,9 +300,9 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   const rebuildPopulation=()=>{
    const population=populationRef.current,publico=crowd.inspect()
    const residentBefore=residents.count()
-   residents.configure({enabled:population.enabled,supporters:population.attendance?.supporters??(population.crowdPopulation.mode==='qa-sample'?120000:0),built:Object.values(state.extras).filter(Boolean).length,mobile:softwareGPU||el.clientWidth<600||quality.constrained})
+   residents.configure({enabled:population.enabled,supporters:population.attendance?.supporters??(population.crowdPopulation.mode==='qa-sample'?120000:0),built:Object.values(state.extras).filter(Boolean).length,mobile:softwareGPU||el.clientWidth<600||quality.constrained||ajuste.populacaoReduzida})
    commerce.configure({enabled:population.enabled})
-   const ambientCars=cityTrafficBudget({enabled:population.enabled,supporters:population.attendance?.supporters??(qaPopulation?120000:0),mobile:softwareGPU||el.clientWidth<600||quality.constrained})
+   const ambientCars=cityTrafficBudget({enabled:population.enabled,supporters:population.attendance?.supporters??(qaPopulation?120000:0),mobile:softwareGPU||el.clientWidth<600||quality.constrained||ajuste.populacaoReduzida})
    const residentChanged=residentBefore!==residents.count()
    // A reserved place consumes the same bounded crowd budget as its occupant.
    // One complete visit per side avoids piling up bodies in the shared stairway.
@@ -676,7 +681,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   }
   const resize=()=>{const width=el.clientWidth,height=el.clientHeight;if(!width||!height)return
    quality=visualProfile(width,height);renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)
-   renderer.setSize(width,height,false);const shadowSize=softwareGPU||width<600?1024:2048;if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.map?.dispose();sun.shadow.map=null;sun.shadow.mapSize.set(shadowSize,shadowSize);renderer.shadowMap.needsUpdate=true}sharpenTextures()
+   renderer.setSize(width,height,false);const shadowSize=softwareGPU||width<600?1024:ajuste.sombra;if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.map?.dispose();sun.shadow.map=null;sun.shadow.mapSize.set(shadowSize,shadowSize);renderer.shadowMap.needsUpdate=true}sharpenTextures()
    const footballCamera=matchCameraController.inspect()
    if(footballCamera.mode!=='free'||footballCamera.returning){camera.aspect=width/height;camera.updateProjectionMatrix();render();resume()}
    else navigation.resize(width,height,()=>view(mode,false))
@@ -691,7 +696,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   const cumprimentos=()=>{const m=matchRef.current;if(!m||!m.finished){fimDesde=null;fimDe=null;return false}const id=m.context?.id??'';if(fimDe!==id){fimDe=id;fimDesde=performance.now()}return performance.now()-(fimDesde??0)<45000}
   const running=()=>visible&&!document.hidden&&(matchCameraController.transitioning||walking()||cumprimentos()||finalDay.animating()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
   const targetFPS=()=>{if(matchRef.current&&!matchRef.current.finished)return quality.maxFPS;const interacting=performance.now()<vivoAte||performance.now()<interactionUntil;if(interacting)return quality.maxFPS;const distance=camera.position.distanceTo(controls.target);return distance>350?12:mobileGraphics?24:30}
-  const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;presentationPacer.reset();return}const fps=matchPresentation==='3d'&&matchRef.current?.finished?60:targetFPS();if(!presentationPacer.take(now,fps)){raf=requestAnimationFrame(tick);return}if(walking()&&last)seconds+=(now-last)/1000;last=now;if(!softwareGPU){const scale=graphicsBudget.observe(now,quality.pixelRatio,fps);if(scale!==null){adaptiveScale=scale;renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)}}render();if(running())raf=requestAnimationFrame(tick)}
+  const tick=(now:number)=>{raf=0;if(disposed)return;if(!visible||document.hidden){last=0;presentationPacer.reset();return}const fps=matchPresentation==='3d'&&matchRef.current?.finished?60:targetFPS();if(!presentationPacer.take(now,fps)){raf=requestAnimationFrame(tick);return}if(walking()&&last)seconds+=(now-last)/1000;last=now;if(!softwareGPU){const scale=graphicsBudget.observe(now,quality.pixelRatio,fps);if(scale!==null){adaptiveScale=scale;renderer.setPixelRatio(quality.pixelRatio*adaptiveScale)}}render();{const gap=now-ultimoQuadro;ultimoQuadro=now;if(gap>0&&gap<2000){engasgo=proximoEngasgo(engasgo,gap);if(++quadrosVistos>=ENGASGO_QUADROS&&engasgo>ENGASGO_MS)caiPraLeve.current()}else{engasgo=0;quadrosVistos=0}}if(running())raf=requestAnimationFrame(tick)}
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.
   const resume=()=>{if(disposed||compilando)return;if(!visible||document.hidden){game.setViewportVisible?.(false);stadiumListener.update(false,0);cancelAnimationFrame(raf);raf=0;last=0;return}game.setViewportVisible?.(true);if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
@@ -763,15 +768,17 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   // tela uns segundos (medido: 2,5 s no PC, 4× isso no celular). Agora a compilação corre em paralelo na placa (`compileAsync`,
   // quando o aparelho suporta) e o mapa aparece quando ela termina — mesmos materiais, mesma qualidade, só sem congelar a página.
   // Até lá, o laço não desenha (o "carregando seu estádio…" continua na tela).
-  const primeiroDesenho=()=>{if(disposed)return;compilando=false;resize();builtKey.current=saveKey;setLoaded(true);ready.current?.(api.current);resume()}
+  // ⚙️ demorou demais pra abrir (mundo + placa de vídeo)? da próxima vez — e já agora — vai no Leve
+  const vigiaAbrir=window.setTimeout(()=>{if(!disposed&&compilando)caiPraLeve.current()},ABRIR_LENTO_MS)
+  const primeiroDesenho=()=>{if(disposed)return;window.clearTimeout(vigiaAbrir);if(performance.now()-abriuEm>ABRIR_LENTO_MS)caiPraLeve.current();compilando=false;resize();builtKey.current=saveKey;setLoaded(true);ready.current?.(api.current);resume()}
   if(gl.getExtension('KHR_parallel_shader_compile')){compilando=true;renderer.compileAsync(scene,camera).then(primeiroDesenho,primeiroDesenho)}
   else primeiroDesenho()
   // Start artwork downloads after the synchronous world/probe construction.
   // Otherwise its loading timeout can expire while the initial 3D render is
   // still blocking the main thread on a slow device.
   if(!managementEnabled||isOffice)presidentBody.update(presidentRef.current,walletRef.current)
-  return()=>{disposed=true;cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('wheel',acordaRoda);renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();deliveries.dispose();sponsorLife.dispose();localLife.dispose();pubLife.dispose();cidade.dispose();tradicoes.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();finalDay.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
- },[saveKey,citySaveKey,clubName,managementEnabled,isWindow,isOffice,matchPresentation])
+  return()=>{disposed=true;window.clearTimeout(vigiaAbrir);cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('wheel',acordaRoda);renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();deliveries.dispose();sponsorLife.dispose();localLife.dispose();pubLife.dispose();cidade.dispose();tradicoes.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();finalDay.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+ },[saveKey,citySaveKey,clubName,managementEnabled,isWindow,isOffice,matchPresentation,nivel])
  useEffect(()=>{refreshPopulation.current()},[populationKey])
  useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey,JSON.stringify(garage??null)])
  useEffect(()=>{refreshJourney.current()},[journeyKey])
@@ -870,6 +877,12 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?t('Ver sala','See office'):t('Ver tudo','See all')}</button>
     <button type="button" disabled={!loaded||(matchCamera==='fixed'||matchCamera==='field2d')} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>{t('Girar','Rotate')}</button>
    </div>
+   {!isWindow&&<div className="pc3-hud" style={{position:'absolute',left:8,bottom:30,display:'flex',flexDirection:'column',gap:4,alignItems:'flex-start',zIndex:3,pointerEvents:'auto'}}>
+    {caiuProLeve&&<div role="status" style={{background:'#0C0C0C',color:'#fff',border:'2px solid #FFC400',borderRadius:10,padding:'5px 8px',fontSize:11.5,fontWeight:800,maxWidth:260,display:'flex',gap:6,alignItems:'flex-start'}}><span>{t('⚡ O mapa estava travando neste aparelho — passamos pro Leve. Dá pra trocar aqui embaixo.','⚡ The map was lagging on this device — switched to Light. You can change it below.')}</span><button type="button" aria-label={t('Fechar','Close')} onClick={()=>setCaiuProLeve(false)} style={{all:'unset',cursor:'pointer',color:'#FFC400',fontWeight:900}}>✕</button></div>}
+    <span role="group" aria-label={t('Qualidade do mapa','Map quality')} style={{display:'inline-flex',border:'2px solid #0C0C0C',borderRadius:9,overflow:'hidden',background:'#fffaf0',boxShadow:'2px 2px 0 #0C0C0C'}}>
+     {NIVEIS_MAPA.map(n=><button key={n} type="button" aria-pressed={nivel===n} onClick={()=>{if(n===nivel)return;guardaNivelMapa(n);setCaiuProLeve(false);setNivel(n)}} style={{all:'unset',cursor:'pointer',padding:'4px 8px',fontFamily:'Oswald, "Arial Narrow", Arial, sans-serif',fontWeight:700,fontSize:12,textTransform:'uppercase',background:nivel===n?'#FFC400':'transparent',color:'#0C0C0C'}}>{n==='leve'?t('⚡ Leve','⚡ Light'):n==='padrao'?t('⚖️ Padrão','⚖️ Standard'):t('✨ Alta','✨ High')}</button>)}
+    </span>
+   </div>}
    {hud&&!isWindow&&!isOffice&&loaded&&<div hidden={managementEnabled&&['arena-online','casa-usuario','vadico','loja','agencia-clube'].includes(selectedView)}>{hud}</div>}
    <p className="pc3-help" id={`${uiId}-help`}>{(matchCamera==='fixed'||matchCamera==='field2d')?<>{matchPresentation==='2d'?t('Campo 2D no estádio.','2D pitch in the stadium.'):t('Lateral fixa · acompanha a jogada.','Fixed side · follows the play.')} Use +, − ou dois dedos para ajustar o zoom.</>:matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?t('Arraste para girar.','Drag to rotate.'):t('Arraste para explorar.','Drag to explore.')} <span className="pc3-help-touch">{t('Use dois dedos para aproximar.','Use two fingers to zoom.')}</span><span className="pc3-help-mouse">{t('Use a roda para aproximar. Setas para mover.','Use the wheel to zoom. Arrows to move.')}</span></>}</p></>}
   </div>
