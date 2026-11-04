@@ -681,7 +681,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   box('onibus-ponto-poste',metal,.07,2.7,.07,bus.stop.x+3,1.51,bus.stop.z-3.2,0,true)
   box('onibus-ponto-placa',white,.55,.55,.09,bus.stop.x+3,2.7,bus.stop.z-3.2)
   polygon('onibus-plataforma', [{x:bus.stop.x-11,z:bus.stop.z-7},{x:bus.stop.x+5,z:bus.stop.z-7},{x:bus.stop.x+5,z:bus.stop.z-1.25},{x:bus.stop.x-4,z:bus.stop.z-1.25},{x:bus.stop.x-4,z:bus.stop.z-3.5},{x:bus.stop.x-11,z:bus.stop.z-3.5}],GROUND,paving)
-  const origin=bus.origin
+  const origin=bus.paradaBairro
   polygon('onibus-plataforma-bairro',[{x:origin.x-4,z:origin.z-8},{x:origin.x+4,z:origin.z-8},{x:origin.x+4,z:origin.z-1.25},{x:origin.x-4,z:origin.z-1.25}],GROUND,paving)
   box('onibus-abrigo-bairro',metal,6,.16,2.4,origin.x,3.05,origin.z-5.5)
   for(const side of [-1,1])box('onibus-abrigo-bairro-poste',metal,.14,2.9,.14,origin.x+side*2.7,1.61,origin.z-6.4,0,true)
@@ -690,6 +690,56 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   box('onibus-ponto-bairro',white,.55,.55,.09,origin.x+3,2.7,origin.z-3.2)
   fixture('onibus-luminaria-estadio',bus.stop.x-6,2.94,bus.stop.z-5,'bus-stop')
   fixture('onibus-luminaria-bairro',origin.x,2.94,origin.z-5.5,'bus-stop')
+  // 🚕📦🅿️ PISTA PARALELA (04/11, mockup aprovado): táxi/app e carga encostados no meio-fio, letreiro pintado no asfalto,
+  // a cancela da entrada do estacionamento e o portão de serviço por onde a Kombi dos ambulantes entra.
+  {
+    const pista=transport.pista,PISTA_FAIXA=pista.largura/2-.4
+    const ang=(x:number)=>{const a=pista.naAvenida(x);return Math.atan2(a.dx,a.dz)}
+    const yellow=material('#f2c230',.55,.1),black=material('#1e2220',.7),glassCar=material('#41575b',.25,.3),cargoBox=material('#ede6d3',.7)
+    const brown=material('#7d4a2c',.7),red=material('#c2452f',.6),stripeW=material('#f3efe3',.6),paint=material('#f2c230',.7)
+    const carro=(id:string,x:number,z:number,h:number,corpo:THREE.Material,taxi:boolean)=>{
+      const fx=Math.sin(h),fz=Math.cos(h),at=(f:number,s=0)=>({x:x+fx*f+fz*s,z:z+fz*f-fx*s})
+      box(id+'-corpo',corpo,1.82,.62,4.4,x,.62,z,h)
+      const cab=at(-.25);box(id+'-cabine',glassCar,1.6,.5,2.2,cab.x,1.18,cab.z,h);box(id+'-teto',corpo,1.62,.08,2.0,cab.x,1.46,cab.z,h)
+      for(const f of [-1.35,1.35])for(const sd of [-.86,.86]){const w=at(f,sd);box(id+'-roda',black,.24,.6,.6,w.x,.3,w.z,h)}
+      if(taxi){const t=at(-.25);box(id+'-placa-taxi',black,.7,.22,.3,t.x,1.62,t.z,h)}
+    }
+    pista.taxis.forEach((t,i)=>carro('taxi-app-'+i,t.x,t.z,t.heading,i===1?white:yellow,i!==1))
+    {
+      // 📦 caminhãozinho de entrega parado na vaga de carga
+      const c=pista.carga,h=c.heading,fx=Math.sin(h),fz=Math.cos(h),at=(f:number)=>({x:c.x+fx*f,z:c.z+fz*f})
+      const cab=at(2.1),bau=at(-.9)
+      box('carga-cabine',brown,2.0,1.7,1.7,cab.x,1.25,cab.z,h);box('carga-parabrisa',glassCar,1.8,.6,.06,at(2.96).x,1.6,at(2.96).z,h)
+      box('carga-bau',cargoBox,2.2,2.3,4.0,bau.x,1.55,bau.z,h)
+      for(const f of [2.1,-.2,-2.2])for(const sd of [-.95,.95]){const w={x:c.x+fx*f+fz*sd,z:c.z+fz*f-fx*sd};box('carga-roda',black,.28,.7,.7,w.x,.35,w.z,h)}
+    }
+    // letreiro pintado no chão de cada trecho + o contorno amarelo tracejado das vagas
+    const pintura=(id:string,texto:string,x:number,lado:number,largura:number)=>{
+      if(typeof document==='undefined')return
+      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128
+      const g=canvas.getContext('2d');if(!g)return
+      g.fillStyle='#f4ecd6';g.font='900 92px Oswald, Impact, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(texto,256,68)
+      const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;textures.add(tex)
+      const m=new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:.9,depthWrite:false});materials.add(m)
+      const geo=new THREE.PlaneGeometry(largura,largura/4);geo.rotateX(-Math.PI/2)
+      const mesh=add(geo,m),p=pista.naPista(x,lado);mesh.name=id;mesh.position.set(p.x,.035,p.z);mesh.rotation.y=ang(x)-Math.PI/2;mesh.renderOrder=2
+    }
+    pintura('pista-letreiro-onibus','ÔNIBUS',-36,-1.2,5.2);pintura('pista-letreiro-taxi','TÁXI · APP',-12.5,-1.2,5.6);pintura('pista-letreiro-carga','CARGA',27.5,-1.2,4.4)
+    for(const [x0,x1] of [[-2.4,14.6],[15.4,26.6]] as const)for(let x=x0;x<x1;x+=1.6){const p=pista.naPista(x,-.2);box('pista-vaga-tracejado',paint,.12,.02,.8,p.x,.03,p.z,ang(x)+Math.PI/2)}
+    // 🦓 faixa de pedestre: a torcida que desce na calçada da avenida atravessa a pista aqui (x≈-4,4) pra subir pro portão
+    for(let x=-6.2;x<=-2.6;x+=.9){const p=pista.naPista(x,0);box('pista-faixa-pedestre',white,.45,.02,PISTA_FAIXA*2,p.x,.03,p.z,ang(x)+Math.PI/2)}
+    // 🅿️ cancela: cabine do porteiro + braço listrado (levantado: o carro do torcedor passa)
+    const cc=pista.cancela
+    box('cancela-cabine',white,1.6,2.3,1.6,cc.x+4.3,1.3,cc.z,0,true);box('cancela-cabine-teto',red,1.9,.14,1.9,cc.x+4.3,2.52,cc.z)
+    box('cancela-pe',metal,.35,1.0,.35,cc.x-3.1,.65,cc.z,0,true)
+    for(let i=0;i<6;i++){const r=.4+i*.42;box('cancela-braco',i%2?stripeW:red,.12,.42,.12,cc.x-3.1+Math.cos(1.2)*r,1.15+Math.sin(1.2)*r,cc.z)}
+    box('cancela-placa-p',material('#1f5fa8',.6),.9,.9,.08,cc.x+4.3,3.2,cc.z+.82);box('cancela-placa-poste',metal,.08,.8,.08,cc.x+4.3,2.75,cc.z+.82)
+    // 🚧 portão de serviço da Kombi: dois pilares e a folha de grade corrida pro lado (aberto no dia de jogo)
+    const ps=pista.portaoServico,hs=ang(30)
+    const lat=(s:number)=>({x:ps.x+Math.sin(hs)*s,z:ps.z+Math.cos(hs)*s})
+    for(const s of [-2.6,2.6]){const q=lat(s);box('portao-servico-pilar',concrete,.5,2.2,.5,q.x,1.26,q.z,hs,true)}
+    {const q=lat(4.9);box('portao-servico-grade',metal,.1,1.8,4.2,q.x,1.06,q.z,hs)}
+  }
 
   if(state.extras.estacao){
     entered.add('estacao')

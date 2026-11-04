@@ -172,8 +172,12 @@ try {
         assert(gap > .35 + peer.radius, `${service.id}/${route.id}: passageiro cruza ${peer.id}; folga ${gap}`)
         envelopeProbes++
       }
+      // 🚌 04/11: o ônibus virou linha da AVENIDA (pista paralela de desembarque) — andar na roadOut/roadBack é o caminho dele
+      if (service.kind === 'bus' && /^road(Out|Back)$/.test(peer.id)) continue
+      // …e cruza a calçada da torcida na FAIXA DE PEDESTRE da pista paralela (x≈-4,4): conta só o caminho dela depois da pista
+      const peerPoints = service.kind === 'bus' && /^home-/.test(peer.id) ? peer.points.filter(p => p.z < 194) : peer.points
       for (const route of [service.inbound, service.outbound]) {
-        const vehicleGap = routeDistance(route, peer.points), radius = Math.hypot(service.width, service.length) / 2
+        const vehicleGap = routeDistance(route, peerPoints), radius = Math.hypot(service.width, service.length) / 2
         assert(vehicleGap > radius + peer.radius, `${service.id}: carroceria cruza ${peer.id}; folga ${vehicleGap}`)
         envelopeProbes++
       }
