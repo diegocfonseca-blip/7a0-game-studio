@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
+import { ptsTxt } from './pontos-ranking'
 import { tr } from './lang'
 import { loggedEmail } from './apoio'
 import { EmblemaCla } from './cla'
@@ -23,12 +24,12 @@ const MEDALHA = { 1: '🥇', 2: '🥈', 3: '🥉' } as const
 const GRAD_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 45%,#E8A200)'
 const GRAD_POS = { 1: GRAD_OURO, 2: 'linear-gradient(160deg,#F4F7FB,#CBD4DE 52%,#9BA7B5)', 3: 'linear-gradient(160deg,#ffe0c2,#F0A35E 50%,#D9822B)' } as const
 
-// 😜 a zoeira do campeão com o 2º colocado — {r} rival · {n} títulos dele · {m} os nossos · {d} a diferença. PT e EN na MESMA posição.
+// 😜 a zoeira do campeão com o 2º colocado — {r} rival · {n} pontos dele (04/11: ranking por pontos) · {m} os nossos · {d} a diferença. PT e EN na MESMA posição.
 const ZOEIRA: [string, string][] = [
-  ['O {r} ficou com {n}… vai precisar de mais {d} títulos e um milagre 🙏', '{r} finished on {n}… they need {d} more titles and a miracle 🙏'],
+  ['O {r} ficou com {n}… vai precisar de mais {d} pontos e um milagre 🙏', '{r} finished on {n}… they need {d} more points and a miracle 🙏'],
   ['Alguém avisa o {r} que a semana acabou? Ainda estão procurando o caminho do pódio 🧭', 'Someone tell {r} the week is over? They are still looking for the podium 🧭'],
   ['O {r} lutou bravamente… pelo 2º lugar 🥈😂', '{r} fought bravely… for 2nd place 🥈😂'],
-  ['{d} títulos de vantagem. O {r} vai ter que treinar dobrado essa semana 🏋️', '{d} titles ahead. {r} will have to train twice as hard this week 🏋️'],
+  ['{d} pontos de vantagem. O {r} vai ter que treinar dobrado essa semana 🏋️', '{d} points ahead. {r} will have to train twice as hard this week 🏋️'],
   ['Manda um abraço pro {r}: prata também brilha… um pouquinho ✨', 'Send {r} a hug: silver shines too… a little ✨'],
   ['O {r} pediu revanche. A gente aceita — e ganha de novo 😎', '{r} asked for a rematch. Accepted — and we win again 😎'],
   ['Placar da semana: nós {m} × {n} {r}. Sem VAR pra salvar 📺', 'Weekly score: us {m} × {n} {r}. No VAR to save them 📺'],
@@ -99,7 +100,7 @@ export function AvisoSemanaCard({ a, onClose: fecha }: { a: Aviso; onClose: () =
   const txtZap = cla
     ? (a.pos === 1 ? tr(`⚔️ O ${a.nome} é o CAMPEÃO dos Clãs da Semana no Leilão Legends! ${zoeira}`, `⚔️ ${a.nome} are the Clans of the Week CHAMPIONS on Leilão Legends! ${zoeira}`)
       : tr(`⚔️ O ${a.nome} ficou em ${a.pos}º nos Clãs da Semana do Leilão Legends!`, `⚔️ ${a.nome} finished ${a.pos === 2 ? '2nd' : '3rd'} in the Clans of the Week on Leilão Legends!`))
-    : tr(`${MEDALHA[a.pos]} Fui o ${a.pos}º da semana no Leilão Legends com ${a.titulos} títulos online!`, `${MEDALHA[a.pos]} I was ${a.pos === 1 ? '1st' : a.pos === 2 ? '2nd' : '3rd'} of the week on Leilão Legends with ${a.titulos} online titles!`)
+    : tr(`${MEDALHA[a.pos]} Fui o ${a.pos}º da semana no Leilão Legends com ${ptsTxt(a.titulos)} no online!`, `${MEDALHA[a.pos]} I was ${a.pos === 1 ? '1st' : a.pos === 2 ? '2nd' : '3rd'} of the week on Leilão Legends with ${ptsTxt(a.titulos)} online!`)
   const caixa = { border: `2px solid ${INK}`, borderRadius: 12, background: '#fff', padding: '8px 12px', fontWeight: 700, fontSize: 13.5, textAlign: 'left' as const, lineHeight: 1.45 }
   const btn = (bg: string) => ({ flex: 1, ...OSW, fontSize: 15, textTransform: 'uppercase' as const, background: bg, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 6px', cursor: 'pointer' })
   return (
@@ -114,7 +115,7 @@ export function AvisoSemanaCard({ a, onClose: fecha }: { a: Aviso; onClose: () =
         </div>
         <div style={{ ...OSW, fontSize: 30, lineHeight: 1.04, textTransform: 'uppercase', margin: '8px 0' }}>{titulo}</div>
         <span style={{ display: 'inline-block', ...OSW, fontSize: 21, background: GRAD_POS[a.pos], border: `3px solid ${INK}`, borderRadius: 12, padding: '3px 14px', boxShadow: `3px 3px 0 ${INK}` }}>{cla ? `${MEDALHA[a.pos]} ` : ''}{a.nome}</span>
-        <div style={{ fontWeight: 700, fontSize: 13.5, opacity: .7, margin: '8px 0 10px' }}>{tr(`${a.titulos} títulos online na semana`, `${a.titulos} online titles this week`)}</div>
+        <div style={{ fontWeight: 700, fontSize: 13.5, opacity: .7, margin: '8px 0 10px' }}>{tr(`${ptsTxt(a.titulos)} no online na semana`, `${ptsTxt(a.titulos)} online this week`)}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: '9px 13px', boxShadow: `3px 3px 0 ${INK}`, marginBottom: 10 }}>
           <b style={{ ...OSW, fontSize: 30, whiteSpace: 'nowrap' }}>+{moedas} 🪙</b>
           <span style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.25 }}>{cla ? tr('pra CADA membro jogar no modo carreira', 'for EVERY member to use in career mode') : tr('pra jogar no modo carreira', 'to use in career mode')}<br />

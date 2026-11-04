@@ -10,6 +10,7 @@
 // · Os selos vêm em LOTE (uma ida ao banco pra sala inteira) e ficam guardados na memória — nada de canal (regra do tráfego).
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
+import { ptsTxt } from './pontos-ranking'
 import { tr } from './lang'
 import { Escudo } from './escudos'
 import { clasLiberado } from './cla-gate' // a trava (CLAS_GERAL) mora lá
@@ -286,7 +287,7 @@ export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string;
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginTop: 8 }}>
-        {[[c.pos ? `${c.pos}º` : '—', tr('na semana', 'this week')], [`${c.titulos} 🏆`, tr('do clã', 'clan')], [`${c.lista.find(m => m.uid === meuUid(c))?.titulos ?? 0} 🏆`, tr('seus', 'yours')]].map(([a, b]) => (
+        {[[c.pos ? `${c.pos}º` : '—', tr('na semana', 'this week')], [ptsTxt(c.titulos), tr('do clã', 'clan')], [ptsTxt(c.lista.find(m => m.uid === meuUid(c))?.titulos ?? 0), tr('seus', 'yours')]].map(([a, b]) => (
           <div key={b} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: 5 }}><b style={{ ...OSW, fontSize: 17 }}>{a}</b><br /><span style={{ fontSize: 10.5, fontWeight: 700 }}>{b}</span></div>
         ))}
       </div>
@@ -303,7 +304,7 @@ export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string;
         {c.lista.map((m, i) => <div key={m.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: i ? '1px dashed #d8ccaa' : 'none' }}>
           <span style={{ ...OSW, width: 26, textAlign: 'center' }}>{i < 3 && m.titulos > 0 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}º`}</span>
           <button onClick={() => onPerfil(m.uid)} style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', fontWeight: 800, fontSize: 13, color: INK, cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}{m.uid === c.lider ? ' 👑' : ''}</button>
-          <span style={{ ...OSW, fontSize: 14 }}>{m.titulos} 🏆</span>
+          <span style={{ ...OSW, fontSize: 14 }}>{ptsTxt(m.titulos)}</span>
           {souLider(c) && m.uid !== c.lider && <button disabled={ocupado} style={{ ...bt('#fff', RED), padding: '3px 7px', fontSize: 10 }} onClick={() => { if (window.confirm(tr(`Tirar ${m.nome} do clã?`, `Remove ${m.nome} from the clan?`))) void faz('esc_cla_tirar', { p_uid: m.uid, ...alvo }) }}>{tr('tirar', 'remove')}</button>}
         </div>)}
       </div>
@@ -559,7 +560,7 @@ function ProcurarCla({ pedi, meu, ocupado, onEntrar }: { pedi: number[]; meu: nu
     <input value={q} onChange={e => setQ(e.target.value)} maxLength={20} placeholder={tr('buscar pelo nome do clã…', 'search by clan name…')}
       style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 13.5, fontWeight: 700, color: INK, background: '#fff' }} />
     <div style={{ display: 'flex', gap: 5, margin: '8px 0' }}>
-      {([['vaga', tr('com vaga', 'with room')], ['titulos', tr('mais títulos', 'most titles')], ['batismo', tr('🖋 batismo', '🖋 named club')]] as const).map(([k, rot]) => (
+      {([['vaga', tr('com vaga', 'with room')], ['titulos', tr('mais pontos', 'most points')], ['batismo', tr('🖋 batismo', '🖋 named club')]] as const).map(([k, rot]) => (
         <button key={k} onClick={() => setFiltro(k)} style={{ ...bt(filtro === k ? INK : '#fff', filtro === k ? GOLD : INK), padding: '4px 8px', fontSize: 11 }}>{rot}</button>
       ))}
     </div>
@@ -571,7 +572,7 @@ function ProcurarCla({ pedi, meu, ocupado, onEntrar }: { pedi: number[]; meu: nu
           <EmblemaCla emblema={c.emblema} size={30} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}{c.campeao ? ' 🏆' : ''}</b>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{limiteDo(c)} · {c.titulos} 🏆 {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{limiteDo(c)} · {ptsTxt(c.titulos)} {tr('na semana', 'this week')} · {c.aberto ? tr('🔓 aberto', '🔓 open') : tr('🔒 pede pra entrar', '🔒 request to join')}</span>
             <Descricao t={c.descricao} />
           </div>
           {c.id === meu ? <span style={{ fontSize: 11, fontWeight: 800, color: GREEN }}>✅ {tr('seu clã', 'your clan')}</span>
@@ -594,7 +595,7 @@ function RankingClas({ meu }: { meu: number | null }) {
         <span style={{ ...OSW, width: 26, textAlign: 'center' }}>{(c.pos ?? 99) <= 3 && c.titulos > 0 ? ['🥇', '🥈', '🥉'][(c.pos ?? 1) - 1] : `${c.pos}º`}</span>
         <EmblemaCla emblema={c.emblema} size={26} />
         <div style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nome}</b><span style={{ fontSize: 10.5, fontWeight: 700, color: '#555' }}>{c.membros}/{limiteDo(c)} {tr('membros', 'members')}</span></div>
-        <span style={{ ...OSW, fontSize: 15 }}>{c.titulos} 🏆</span>
+        <span style={{ ...OSW, fontSize: 15 }}>{ptsTxt(c.titulos)}</span>
       </div>)}
     <p style={{ fontSize: 10.5, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('O clã campeão da semana joga a semana seguinte com 🏆 no selo de cada membro.', 'The champion clan plays the following week with 🏆 on every member’s badge.')}</p>
   </div>

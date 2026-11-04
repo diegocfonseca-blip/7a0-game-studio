@@ -5,6 +5,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
+import { ptsTxt } from './pontos-ranking'
 import { tr } from './lang'
 import { limiteDo, ENTROU_CLA, EmblemaCla, esqueceClas, msgErro, msgTrava } from './cla'
 import { abrePerfilSolto, contaValida } from './amigos'
@@ -60,7 +61,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
           </div>
           {c.descricao && <p style={{ fontSize: 12.5, fontWeight: 700, fontStyle: 'italic', margin: '8px 2px 0', lineHeight: 1.35, overflowWrap: 'anywhere' }}>“{c.descricao}”</p>}
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-            {[[c.pos ? `${c.pos}º` : '—', tr('na semana', 'this week')], [`${c.titulos} 🏆`, tr('títulos do clã', 'clan titles')]].map(([a, b]) => (
+            {[[c.pos ? `${c.pos}º` : '—', tr('na semana', 'this week')], [ptsTxt(c.titulos), tr('pontos do clã', 'clan points')]].map(([a, b]) => (
               <div key={b} style={{ flex: 1, background: '#fff', border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: 5 }}><b style={{ ...OSW, fontSize: 17 }}>{a}</b><br /><span style={{ fontSize: 10.5, fontWeight: 700 }}>{b}</span></div>
             ))}
           </div>
@@ -74,7 +75,7 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
                     quem não tem boneco leva o ESCUDO do clube no MESMO círculo (régua de 14/10: escudo = clube · presidente = pessoa) */}
                 <PresidenteDaConta uid={m.uid} size={34} reserva={<span style={{ width: 34, height: 34, flex: 'none', borderRadius: '50%', border: `2px solid ${INK}`, background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}><Escudo nome={m.nome} size={24} automatic={fakes.has(m.uid)} /></span>} />
                 <b style={{ flex: 1, minWidth: 0, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nome}{fakes.has(m.uid) && <SeloFake />}{m.uid === c.lider ? ' 👑' : ''}</b>
-                <span style={{ ...OSW, fontSize: 13 }}>{m.titulos} 🏆</span>
+                <span style={{ ...OSW, fontSize: 13 }}>{ptsTxt(m.titulos)}</span>
                 <span style={{ fontSize: 13, color: '#999' }}>›</span>
               </button>
             ))}
