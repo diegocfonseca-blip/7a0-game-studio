@@ -14,6 +14,10 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - ⚠️ Semanas já fechadas em `esc_premio_semana` ficaram em títulos; avisos de semana antiga dizem "N pts" com o número velho.
 - Reverter: voltar os 2 commits; no banco, recriar as 4 funções sem o `* coalesce(g.peso, 2)` (coluna/gatilho podem ficar).
 
+## 🕵️ VIGIA DE CONTA DUPLA — 04/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO: **Serventes FC** (wallacethiago424) × **Safiel** (gustavodelimafrias2): Safiel criada hoje 04/11 10:54, jogou as 6 temporadas SÓ com o Serventes, 0 ligas × 3, nunca jogou sala cheia, logins com 44 min de diferença.
+- Continuam esperando resposta: Roseira FC × Cholismo · Victor FC × Davi FC.
+
 ## 🎽 FORMAÇÃO NA CONVOCAÇÃO (04/11, *"OK PUBLIQUE"*) — FEITO
 - Leilão de Clubes (convocação) e Copas com seleções (Mundo/Euro/regionais): as 7 formações da carreira (`FORMACOES_JOGO`), acesas só se o elenco completa (🔒 diz o que falta). Modo jogador (rápido/Minhas Ligas) segue com 4-3-3/4-4-2 escolhida ao criar a sala.
 - Liga Draft: a escalação dela (`SquadTab` com `minhaLigaDraft`) também oferece as 7; o reducer `MLD_FORMACAO` já aceitava qualquer uma que o elenco preencha.
