@@ -98,6 +98,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
  const userExploring=useRef(false)
  const [nivel,setNivel]=useState<NivelMapa>(nivelMapaInicial),[caiuProLeve,setCaiuProLeve]=useState(false),nivelRef=useRef(nivel);nivelRef.current=nivel
  // ⚙️ travou de verdade (abriu devagar demais ou ficou engasgando): cai pro Leve, guarda e avisa — só pra BAIXO e uma vez
+ const popAplicado=useRef(''),jornadaAplicada=useRef('')
  const caiPraLeve=useRef(()=>{});caiPraLeve.current=()=>{if(nivelRef.current==='leve')return;guardaNivelMapa('leve');setCaiuProLeve(true);setNivel('leve')}
  const [stadiumSound,setStadiumSound]=useState(false),stadiumSoundRef=useRef(false);stadiumSoundRef.current=stadiumSound
  const [matchCamera,setMatchCamera]=useState<CameraPartidaContinua>('free')
@@ -199,6 +200,13 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   sun.shadow.normalBias=.055;sun.shadow.bias=-.00012;sun.shadow.radius=2.5
   sun.shadow.intensity=.55 // 🌤️ 28/10 (Diego no mapa de verdade: a sombra do estádio cobria metade do campo em PRETO e quem estava nela virava vulto): sombra só escurece, nunca apaga
   sun.shadow.camera.near=1;sun.shadow.camera.far=1300;scene.add(sun,sun.target)
+  // ⏳ 04/11 (Diego: *"no PC mais pesado travou"*; medido: a abertura era UM bloco só, a página congelava inteira): a montagem
+  // agora RESPIRA entre as etapas (cidade → gente/estádio vivo → população), deixando a tela responder no meio. Mesmo mundo, mesma
+  // ordem, mesmo resultado final; se a pessoa sair no meio, para onde estiver e solta a placa de vídeo.
+  let cancelado=false,limpar=()=>{renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+  const respira=()=>new Promise<void>(r=>window.setTimeout(r,0))
+  void (async()=>{
+  await respira();if(cancelado)return
   const surround=criarEntornoComplexo(scene,cityState,()=>wake.current(),{name:clubName,residence:managementEnabled,arena:managementEnabled}),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice})
   const seatLod=criarLodCadeirasMobile(architecture.root,true)
   // Automatic football cameras may sit above the roof. Cut away only its
@@ -209,6 +217,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    if(material instanceof THREE.MeshStandardMaterial&&['cobertura-cinza-curva','juntas-cobertura'].includes(material.name)&&!cameraRoofMaterials.some(entry=>entry.material===material))cameraRoofMaterials.push({material,transparent:material.transparent,opacity:material.opacity,depthWrite:material.depthWrite})
   }})
   let cameraRoofCutaway=false
+  await respira();if(cancelado)return
   const residents=createResidents(scene,surround.root,surround.solids)
   const commerce=criarComercioCidade(scene)
   const pubLife=criarVidaBotecos(scene,surround.botecos,()=>wake.current())
@@ -395,7 +404,8 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    sharpenTextures()
    return true
   }
-  rebuildPopulation()
+  await respira();if(cancelado)return
+  rebuildPopulation();popAplicado.current=populationKey;jornadaAplicada.current=journeyKey // ⚡ 04/11: a abertura já montou a gente andando com o estado de agora
   // Open the district while its train is at the platform. This is only the
   // decorative timetable; the official football clock still comes from match.
   const firstMetro=transportActors?.inspect().vehicles.find(vehicle=>vehicle.kind==='metro')
@@ -777,11 +787,14 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   // Otherwise its loading timeout can expire while the initial 3D render is
   // still blocking the main thread on a slow device.
   if(!managementEnabled||isOffice)presidentBody.update(presidentRef.current,walletRef.current)
-  return()=>{disposed=true;window.clearTimeout(vigiaAbrir);cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('wheel',acordaRoda);renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();deliveries.dispose();sponsorLife.dispose();localLife.dispose();pubLife.dispose();cidade.dispose();tradicoes.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();finalDay.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+  limpar=()=>{disposed=true;window.clearTimeout(vigiaAbrir);cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);fixedCameraZoom.dispose();navigation.dispose();renderer.domElement.removeEventListener('wheel',acordaRoda);renderer.domElement.removeEventListener('pointerdown',clubPointerDown);renderer.domElement.removeEventListener('pointerup',clubPointerUp);renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();residents.dispose();commerce.dispose();deliveries.dispose();sponsorLife.dispose();localLife.dispose();pubLife.dispose();cidade.dispose();tradicoes.dispose();stadiumAccess.dispose();stadiumStaff.dispose();stadiumPreparation.dispose();stadiumListener.dispose();offSound();teamArrival.dispose();matchday.dispose();finalDay.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();seatLod.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+  })()
+  return()=>{cancelado=true;limpar()}
  },[saveKey,citySaveKey,clubName,managementEnabled,isWindow,isOffice,matchPresentation,nivel])
- useEffect(()=>{refreshPopulation.current()},[populationKey])
+ // ⚡ 04/11 (medido: a gente andando era montada 3× ao abrir): só remonta quando o estado MUDOU de verdade depois da abertura
+ useEffect(()=>{if(popAplicado.current===populationKey)return;popAplicado.current=populationKey;refreshPopulation.current()},[populationKey])
  useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey,JSON.stringify(garage??null)])
- useEffect(()=>{refreshJourney.current()},[journeyKey])
+ useEffect(()=>{if(jornadaAplicada.current===journeyKey)return;jornadaAplicada.current=journeyKey;refreshJourney.current()},[journeyKey])
  // Initial match presentation can focus the field, but a user already exploring
  // the neighbourhood keeps that camera while the same match starts underneath.
  // (jogo fora troca o estádio e o mundo se refaz: espera o mundo NOVO ficar pronto pra levar a câmera)

@@ -12053,3 +12053,13 @@ cidade cheia); celular ganhava o leve. Agora (`presidencia-mapa-qualidade.ts`): 
 sem escolha, celular começa no Leve e PC no Padrão. Regra dele: *"clicou uma vez fica… só caso o mapa comece a travar"* → a única troca
 automática é pra BAIXO (Leve), quando o mapa leva +8 s pra abrir ou engasga (média > 120 ms por quadro em 40 quadros), com aviso ✕.
 Botões no canto de baixo à esquerda do mapa. Foto: `scripts/mockups/mapa-qualidade.png` (a máquina de teste é lenta e já caiu sozinha pro Leve).
+
+### 🗺️💾 04/11 — Mapa mais leve sem mudar o visual (Diego: *"tem coisas pesando sem necessidade… ok pode fazer"*)
+No branch, esperando "publica" (junto com o botão de qualidade). Medido na máquina de teste (fraca, de propósito): abrir o mapa
+**34 s → ~10 s**, maior congelada da página **17,7 s → 2,7 s**.
+- **Cofre** (`mapa-guardado.tsx`): sair da aba Clube não desmonta mais a cidade. Fora da aba ele fica escondido e PARADO (nem recebe
+  atualização); na volta recebe o estado de agora — hora do dia, pré-jogo/jogo/pós-jogo, placar — e só troca o que mudou (o mapa já fazia
+  isso sem remontar). Mais de 5 min fora: solta a memória e a próxima visita monta de novo.
+- A gente andando era montada **3×** na abertura (montagem + 2 efeitos de "atualizar" que rodavam logo em seguida); agora 1×.
+- A montagem RESPIRA entre etapas (cidade → estádio vivo → população): a tela responde no meio; sair no meio para e solta a placa.
+- Ainda não feito (combinado como passo seguinte): montar enfeites/equipe de dia de jogo só no pré-jogo; juntar as "tintas" iguais.
