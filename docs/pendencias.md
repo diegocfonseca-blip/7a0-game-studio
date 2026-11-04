@@ -12039,3 +12039,9 @@ Feito no branch: `SALVAR_SO_COM_PLANO`/`salvarBloqueado()` (store.tsx) corta o a
 nuvem de quem não tem plano (Craque Salas pra cima salva). Na carreira: "🔒 Salvar carreira" abre os planos (com Craque Salas R$ 9,90/mês
 no topo) + "🚪 Sair da carreira"; na Central a faixa vira "🔒 Salvar". Saves antigos ficam como estão. Falha antiga não relacionada:
 `npm run carreira-gratis` já reprovava (MARCAS_DE_MODO) antes desta mudança.
+
+### 💸 04/11 — Estorno do Adriel (adrielguilhermep@gmail.com), Diego devolveu o Pix na mão
+Comprou smoking branco (R$ 2,99) e tema de coração Vasco (R$ 6,90) e se arrependeu. Benefícios tirados SEM apagar (o "delete" pede
+confirmação do Supabase que não chegava): `esc_presidente_pecas` e `esc_temas_conta` com email trocado pra `estornado:…`; `esc_presidente`
+com email `estornado:…` e `visual` = `{removido, antes}` (fica inválido = sem boneco); os 2 `esc_mp_pedidos` = `cancelado`.
+Se um dia quiser apagar as linhas de vez: `where email like 'estornado:adriel%'` (e a do esc_presidente pelo user_id 50ad23ed-…).
