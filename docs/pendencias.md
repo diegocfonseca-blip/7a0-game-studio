@@ -12033,3 +12033,9 @@ No branch, esperando "publica". SÓ DESENHO (`campo2d.tsx`, camada "👁️"): n
 - Mapa: "Ver partida" abre PERTO seguindo a bola (zoom .52; o − mostra o campo todo); controles já abertos (sem o botão "Controles").
 Fotos: `scripts/mockups/campo2d-visual-0411-a.png` / `-b.png`. Trava `npm run campo2d` passou.
 Ainda pendente: barra de botões IDÊNTICA entre aba Jogos e mapa (hoje só ficou à vista) e substituir sem sair do mapa.
+
+### 🔒 04/11 — Sem plano não salva carreira (pedido do Diego)
+Feito no branch: `SALVAR_SO_COM_PLANO`/`salvarBloqueado()` (store.tsx) corta o autosave do aparelho, o "em andamento" da carreira e a
+nuvem de quem não tem plano (Craque Salas pra cima salva). Na carreira: "🔒 Salvar carreira" abre os planos (com Craque Salas R$ 9,90/mês
+no topo) + "🚪 Sair da carreira"; na Central a faixa vira "🔒 Salvar". Saves antigos ficam como estão. Falha antiga não relacionada:
+`npm run carreira-gratis` já reprovava (MARCAS_DE_MODO) antes desta mudança.
