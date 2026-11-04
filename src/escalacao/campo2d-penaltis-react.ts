@@ -18,8 +18,8 @@ export function usePenaltisCampo(config: ConfigPenaltisCampo | undefined, ativo:
     // O ID identifica o confronto e sua ordem de mandante; rerenders não remontam o relógio.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chave])
-  // O estado exibido precisa estar no React. Um contador ignorado deixava o
-  // compilador reutilizar a leitura de sessao.estado e atrasava a frase/placar.
+  // A cena usa o relógio mutável; a interface recebe um snapshot explícito
+  // somente quando muda a fase ou o resultado, sem renderizações a cada quadro.
   const [visao, setVisao] = useState<{ sessao?: DisputaPenaltisCampo; estado?: EstadoPenaltisCampo }>({})
   const callback = useRef(onFim); callback.current = onFim
   useEffect(() => {

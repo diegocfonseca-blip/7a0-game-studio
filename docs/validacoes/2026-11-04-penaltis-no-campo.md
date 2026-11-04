@@ -19,9 +19,11 @@ Pedido: bolinhas cobram uma por vez, caminham do meio-campo à marca e retornam;
 
 ## Validação
 
-- `scripts/teste-penaltis-campo/verifica.ts`: 10 disputas completas (4–2, 2–4, 6–5, 5–6 e 15–14, com mando normal e invertido), avaliadas a 60 quadros/s. Confere continuidade, atletas corretos, contato, revelação, pausa, resultados, imutabilidade e 50 sequências salvas.
+- `node scripts/teste-penaltis-campo/verifica.mjs` (executa `verifica.ts` com o bundler instalado): 10 disputas completas (4–2, 2–4, 6–5, 5–6 e 15–14, com mando normal e invertido), avaliadas a 60 quadros/s. Confere continuidade, atletas corretos, contato, revelação, pausa, resultados, imutabilidade e 50 sequências salvas.
 - `scripts/teste-penaltis-campo/browser.cjs`: componente real `MyCopaMatch`, desktop e celular; cobrança a cobrança, pausa, remount, velocidade 4×, liberação após a última cobrança, placar regulamentar intacto e sincronização da narração.
 - Bancada: `scripts/teste-penaltis-campo/index.html?modo=carreira&speed=2`. Elencos e confronto de demonstração, sem operar a conta real. O teste substitui o backend por um stub local e bloqueia conexões externas.
+- O mapa continua acompanhando a disputa até a última cobrança, sem antecipar a saída das delegações.
+- A bancada usa uma única raiz React; reinicialização do módulo não cria duas telas disputando o mesmo relógio.
 - Build TypeScript/Vite e suíte oficial `scripts/checa-penaltis.mjs`.
 
 Não se trata de reprodução gravada do save do Diego. É captura do componente real da carreira com dados locais de teste. A animação dos marcadores é intencionalmente simbólica, seguindo o estilo de bolinhas aprovado.

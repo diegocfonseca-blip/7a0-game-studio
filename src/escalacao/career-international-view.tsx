@@ -511,7 +511,7 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
   } : undefined, fim, speed, false, onFim)
   const temDisputaCampo = !!stadiumMatch && presidentAvailable && !!penalties?.penalties
   const tecnico = `${tr('TÉCNICO', 'COACH')}: ${campaign.userTeam.toUpperCase()}`
-  return <><LiveScoreCard disputaPenaltis={disputa.sessao} enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
+  return <><LiveScoreCard estadoPenaltis={disputa.estado} disputaPenaltis={disputa.sessao} enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
     homeColor={copaSideColor(home.institution)} awayColor={copaSideColor(away.institution)}
     homeEmblem={<SeloClube clube={home.institution} size={58} />} awayEmblem={<SeloClube clube={away.institution} size={58} />}
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}

@@ -40,4 +40,5 @@ function Bancada(){
   {query.has('hud')&&<aside style={{position:'relative',minHeight:100}}><MapaHud match={match}/></aside>}
  </main>
 }
-createRoot(document.getElementById('root')!).render(<Bancada/> )
+const container=document.getElementById('root') as HTMLElement & {__raiz?:ReturnType<typeof createRoot>}
+;(container.__raiz??=createRoot(container)).render(<Bancada/>)

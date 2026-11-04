@@ -4,10 +4,10 @@ const backend=`const result={data:[],error:null};const chain=new Proxy(function(
 (async()=>{
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--enable-unsafe-swiftshader']});
  const errors=[],report=[];try{
-  const page=await browser.newPage({locale:'pt-BR',viewport:{width:1200,height:1000}});page.on('pageerror',e=>errors.push(e.message));
+  const page=await browser.newPage({locale:'pt-BR',viewport:{width:1200,height:1000}});page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&/createRoot|React|Zona segura|hooks/i.test(m.text()))errors.push(m.text())});
   await page.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());
   await page.route('**/src/lib/supabase.ts*',r=>r.fulfill({contentType:'text/javascript',body:backend}));
-  for(const [modo,width,volta]of[['direto',1200,false],['carreira',1200,true],['carreira',393,false]]){
+  for(const [modo,width,volta]of[['direto',1200,false],['carreira',1200,true],['carreira',393,false]].filter(c=>!process.env.QA_MOBILE_ONLY||c[1]===393)){
    await page.setViewportSize({width,height:width<700?1100:1000});
    await page.goto(base+'/7a0-game-studio/scripts/teste-penaltis-campo/index.html?modo='+modo+(volta?'&volta':'')+'&hud');
    await page.waitForFunction(()=>window.penaltisQA?.surface()?.penalties,undefined,{timeout:120000});
@@ -42,5 +42,5 @@ const backend=`const result={data:[],error:null};const chain=new Proxy(function(
    await page.clock.resume();
   }
   assert.deepEqual(errors,[]);
- }finally{fs.writeFileSync(out+'/report.json',JSON.stringify({errors,report},null,2));await browser.close()}
+ }finally{fs.writeFileSync(out+(process.env.QA_MOBILE_ONLY?'/report-mobile.json':'/report.json'),JSON.stringify({errors,report},null,2));await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
