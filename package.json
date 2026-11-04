@@ -121,7 +121,8 @@
     "escalacao-ab": "npx tsx scripts/testa-escalacao-ab.mts && node scripts/testa-escalacao-ab-motor.mjs",
     "email-novo": "npx tsx scripts/testa-email-novo.mts",
     "batismos-salas": "npx tsx scripts/testa-batismos-salas.mts",
-    "cor-adicional": "npx tsx scripts/testa-cor-adicional.mts"
+    "cor-adicional": "npx tsx scripts/testa-cor-adicional.mts",
+    "liga-10": "npx tsx scripts/testa-liga-10-times.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -1,3 +1,19 @@
+## 🏟️ 04/11 — Salas com liga de 10 OU 20 times + ranking por PONTOS (LOCAL, branch do agente, esperando OK)
+Diego: *"a pessoa agora escolhe 10 times ou 20 times… campeão da liga e da copa nesse modo [10] ganhará apenas 1 ponto… com 20
+ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários entram 8 bots, o que muda é isso"*.
+- Seletor "🏟️ Times na liga: 20 · 10" na criação (rápido e Minhas Ligas com bots; a Minha Liga Draft já tinha o dela). Liga de 10 =
+  bots até 10, 18 rodadas, sala de até 10 (20 pessoas em duplas). Selo "🏟️ 10 times" na lista e na sala de espera. Novo leilão mantém.
+- Fecha com 10 (conferido no código + trava `npm run liga-10`): Copa dos 8 (8 primeiros de 10) · Liberta (8 cabeças) · Copa do Mundo /
+  Eurocopa / regionais (a máquina completa as vagas). Travado com aviso: Relâmpago e Só Champions (não têm liga). Fora: carreira,
+  basquete, liga sem bots, partida rápida OFFLINE (sempre 20).
+- Ranking: migration `supabase/migrations/20261104120000_ranking_pontos.sql` (**ainda não aplicada**): `game_champions.peso` (default 2
+  = todos os antigos), gatilho que decide o peso pela sala, e semana/medalhas/clãs/perfil/amigos/rival somam pontos. Telas dizem "pts".
+- [ ] Aplicar a migration ANTES de publicar o código (sem ela a tela diz "pts" mas o banco ainda soma títulos — não quebra, só fica torto).
+- [ ] OK visual do Diego no mockup `scripts/mockups/sala-10-20-times.png`.
+- [ ] Novidade em `novidades.ts` quando for publicado (PT+EN).
+- ⚠️ Semanas já fechadas em `esc_premio_semana` ficaram em títulos; avisos de semana antiga dizem "N pts" com o número velho.
+- Reverter: voltar os 2 commits; no banco, recriar as 4 funções sem o `* coalesce(g.peso, 2)` (coluna/gatilho podem ficar).
+
 ## 🚗 04/11 — Carros 3D da Vadico mais parecidos com os reais (LOCAL, branch do agente, esperando OK visual do Diego)
 Diego: *"não parecem com os veículos reais… não quero foto… só precisa ser mais parecido"*. Fusca, Brasília, Gol GTI, Kombi,
 Opala SS e Ferrari F40 ganharam modelagem própria em `src/escalacao/veiculos-famosos-3d.ts` (casco por seções medidas na
@@ -12085,20 +12101,6 @@ comércio, rotina dos patrocinadores andando a cada quadro). Agora o **Leve deix
 andando); torcida, dia de jogo e o jogo continuam. E entrou o **🩺 diagnóstico** embaixo dos botões de qualidade: nome da placa de vídeo +
 quadros por segundo (verde ≥25 · amarelo 15–24 · vermelho <15) e, se o navegador estiver SEM placa de vídeo (aceleração de hardware
 desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha pro Diego pra saber o que o PC dele é.
-- 04/11 (print do celular dele): o caminho de TERRA da torcida brigava com a calçada de cimento na mesma altura (listras) → a terra
-  desce 2,5 cm e o CIMENTO passa por cima onde a obra já chegou (*"se tem cimento agora que evoluiu, não deveria tá o cimento em cima?"*) (`routeY`, presidencia-complexo-entorno.ts; com asfalto comprado nada muda). E os botões de qualidade + diagnóstico saíram de
-  cima do mapa (ficavam embaixo do "Controles" no celular) e foram pro topo do menu "Locais"; o aviso de queda pro Leve é um toast no alto.
-  O celular dele: Adreno 830, 30 quadros/s (o máximo do celular, de propósito) — ótimo. Falta o print do PC.
-- 04/11 PRINT DO PC DELE: "Microsoft Basic Render Driver" · 2 quadros/s → o PC está SEM placa de vídeo pro navegador (aceleração de
-  hardware desligada no Chrome, ou Windows sem o driver de vídeo instalado, ou acesso por área de trabalho remota). Não é o jogo:
-  qualquer 3D roda a ~2 q/s assim. Caminho passado pra ele: chrome://settings/system → ligar aceleração → reabrir; conferir em chrome://gpu;
-  se continuar "Basic Render", instalar/atualizar o driver de vídeo (Windows Update / Gerenciador de Dispositivos › Adaptadores de vídeo).
-- 04/11 (prints do PC com placa ligada, *"melhorou muito!"*): campo do MAPA igualado ao da aba Jogos — bola com GOMOS (sprite virado pra
-  câmera, mesmo desenho do campinho; antes era esferinha que virava ponto branco), jogadores e bola DESLIZAM entre as atualizações (antes
-  andavam em degrau = "bola travando"), e nos DOIS campos o nome só aparece em quem ENCOSTA na bola (+ autor do gol na festa).
-  As placas de patrocinador já existiam nos dois.
-- 04/11 (*"tudo que faz pra um normalmente deveria funcionar no outro"* → *"pode sim e publica logo depois"*): o campo do MAPA ganhou o
-  que o campinho da aba Jogos já tinha — 🌠 rastro da bola · 🧢 balão do técnico (mesmas falas) · 🌧️ chuva quando o clima do jogo é
-  chuva (mesmo `climaDoJogo`) · 👟 passinho de quem corre · nome de quem fez o gol na festa (a comemoração/abraço já vinha pelas
-  posições). A superfície (`campo2d-superficie.ts`) agora leva `clima`, `falas` e `autorGol`. **Regra daqui pra frente: mexeu num
-  campo, leva pro outro na mesma entrega.** Foto do teste: `scripts/mockups/campo-mapa-igual-jogos.png`.
+
+### 🏟️ 04/11 — Liga de 10 ou 20 times nas salas
+Feito (escolha na criação; 10 = 18 rodadas, bots até 10). 🚫 **Ranking por PONTOS foi DESFEITO a pedido dele** (*"não faça nada de pts ainda… deixe como estava com títulos normal"*): título de sala de 10 conta como título normal por enquanto. A ideia (20 = 2 pts · 10/Relâmpago = 1 pt, + pódio/conquistas) fica guardada no commit revertido 606a0e0 pra quando ele quiser.

@@ -7296,7 +7296,9 @@ function redraftSeason(s: EscState): EscState {
   // liga de 20 times sempre. online: nenhum CPU no leilão (só humanos). solo/
   // carreira: mantém a mesma quantidade de rivais de leilão que a sala tinha.
   const auctionCpus = s.onlineMode === 'online' ? 0 : s.managers.filter(m => !m.isHuman && m.auctionRival).length
-  const { managers, botPlans } = makeManagers(humanNames, formation, auctionCpus, LEAGUE_SIZE, rng)
+  // 🏟️ 04/11: a sala de 10 times continua de 10 no novo leilão (o resto completa com bots até 10, nunca até 20)
+  const tamRedraft = s.onlineMode === 'online' && s.tamanhoLiga === 10 ? Math.max(10, humanNames.length) : LEAGUE_SIZE
+  const { managers, botPlans } = makeManagers(humanNames, formation, auctionCpus, tamRedraft, rng)
   s.managers = managers
   // 🤝 DUPLAS sobrevivem ao novo pregão — quem jogou junto continua junto, com a
   // mesma divisão de posições e o mesmo nome de time.
@@ -7427,7 +7429,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
   // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
   s.seed = Math.floor(Math.random() * 1e9)
-  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
   s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
   s.round = 0
   s.scorers = []; s.assists = []
@@ -8213,6 +8215,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
+      s.tamanhoLiga = undefined // 🏟️ 04/11: liga de 10 é escolha de SALA online — a partida rápida offline é sempre de 20
       // 🧹 RÁPIDO/DINASTIA/CLÁSSICO NÃO é carreira-pirâmide: zera o careerOnline
       // (e o livro-caixa). O reducer clona o estado ANTERIOR, então sem isto uma
       // partida rápida iniciada logo depois de uma CARREIRA herdava careerOnline=true
@@ -8583,7 +8586,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
         s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
         s.screen = 'season'
@@ -8702,7 +8705,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
         s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
         s.screen = 'season'
@@ -8979,7 +8982,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
@@ -9090,7 +9093,6 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
-      s.tamanhoLiga = s.ligaDraft && action.minhaLigaDraft && action.tamanhoLiga === 10 ? 10 : undefined // 📏 Liga Draft de 10: a TABELA também fica com 10 (sem completar com clubes até 20)
       s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       s.draft = null; s.draftFeito = undefined
       const fracoInicial = onlineVarzea || (s.ligaDraft && !s.minhaLigaDraft)
@@ -9124,6 +9126,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ⚡ RELÂMPAGO: a chave que o dono escolheu (16 ou 32). Se a sala tiver mais gente que a chave (não devia — a tela trava),
       // a chave cresce pra caber todo mundo: ninguém fica de fora do sorteio.
       s.relampagoChave = s.copaMode === 'relampago' ? chaveRelampago(action.relampagoChave, action.playerNames.length) : undefined
+      // 🏟️ LIGA DE 10 TIMES (04/11, Diego: *"com 10 agora, se tiver 2 usuários entram 8 bots, o que muda é isso"*): nasceu na
+      // Minha Liga Draft (01/11) e agora vale pra toda sala com LIGA (rápido e Minhas Ligas). A ÚNICA mudança é completar com bots
+      // até 10 em vez de 20 (18 rodadas). Fora: carreira, basquete, liga sem bots (o tamanho já é a galera), Relâmpago e Só
+      // Champions (não têm liga). O que vem depois da liga já sabe lidar com tabela menor (é o mesmo caminho da liga sem bots).
+      s.tamanhoLiga = action.tamanhoLiga === 10 && !action.career && !onlineNba && !s.ligaFechada && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
       // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
@@ -9223,8 +9230,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏆 LIGA FECHADA: a tabela é só a galera (leagueSize = nº de humanos) → sem
       // bots. Nos outros modos, completa até 20 como sempre.
       // ⚡ Relâmpago: a sala tem EXATAMENTE o tamanho da chave (16 ou 32) — os bots que completam ganham elenco pronto, igual sempre.
-      // 📏 Minha Liga Draft (01/11): o dono pode escolher 10 times (bots completam); com mais de 10 pessoas a liga cresce até caber todo mundo
-      const onlineLeagueSize = s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : (s.minhaLigaDraft && action.tamanhoLiga === 10) ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
+      // 📏 Liga de 10 (Minha Liga Draft 01/11; toda sala com liga 04/11): bots completam até 10; com mais de 10 pessoas a liga cresce até caber todo mundo
+      const onlineLeagueSize = s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
@@ -10417,7 +10424,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []; s.assists = []
@@ -12572,7 +12579,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
         s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.seasonNo++
         s.screen = 'season'
@@ -12696,7 +12703,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
@@ -12726,7 +12733,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && !(s.minhaLigaDraft && s.tamanhoLiga === 10))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
       s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
