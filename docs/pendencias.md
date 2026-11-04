@@ -12046,3 +12046,10 @@ Comprou smoking branco (R$ 2,99) e tema de coração Vasco (R$ 6,90) e se arrepe
 confirmação do Supabase que não chegava): `esc_presidente_pecas` e `esc_temas_conta` com email trocado pra `estornado:…`; `esc_presidente`
 com email `estornado:…` e `visual` = `{removido, antes}` (fica inválido = sem boneco); os 2 `esc_mp_pedidos` = `cancelado`.
 Se um dia quiser apagar as linhas de vez: `where email like 'estornado:adriel%'` (e a do esc_presidente pelo user_id 50ad23ed-…).
+
+### ⚙️ 04/11 — Qualidade do mapa: ⚡ Leve · ⚖️ Padrão · ✨ Alta (Diego: *"no celular entra, no PC mais pesado travou"*)
+Causa: o jogo escolhia pelo TIPO de aparelho — todo PC ganhava o pacote mais pesado (sombras 2048, imagem até 4 M pixels, 60 quadros,
+cidade cheia); celular ganhava o leve. Agora (`presidencia-mapa-qualidade.ts`): 3 níveis guardados NO APARELHO (`pc3-qualidade-v1`);
+sem escolha, celular começa no Leve e PC no Padrão. Regra dele: *"clicou uma vez fica… só caso o mapa comece a travar"* → a única troca
+automática é pra BAIXO (Leve), quando o mapa leva +8 s pra abrir ou engasga (média > 120 ms por quadro em 40 quadros), com aviso ✕.
+Botões no canto de baixo à esquerda do mapa. Foto: `scripts/mockups/mapa-qualidade.png` (a máquina de teste é lenta e já caiu sozinha pro Leve).
