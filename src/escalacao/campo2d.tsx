@@ -1,4 +1,4 @@
-import {desenharMarcadorCampo2D} from './campo2d-marcador'
+import {desenharMarcadorCampo2D,desenharNomeCampo2D} from './campo2d-marcador'
 import {demandaSuperficieCampo2D,publicarSuperficieCampo2D,soltarSuperficieCampo2D,motorCompartilhadoCampo2D} from './campo2d-superficie'
 import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './campo2d-relogio'
 // 📺 CAMPO 2D — a tela (20/10). O protótipo que o Diego aprovou (`scripts/prototipo-jogo-ao-vivo/`) virou componente do jogo.
@@ -23,7 +23,7 @@ import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocini
 import { estiloPisca, gritoGol } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
 import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado } from './sport'
-import { avancaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola, type PontoRastro } from './campo2d-apresentacao'
+import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
@@ -421,7 +421,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     // 🌠 rastro da bola nos passes longos e chutes
     const rastro: [number, number][] = []
     // 🔁 04/11: o rastro do MAPA (o que o Diego gostou) — mesma regra e mesma bolinha de luz (campo2d-apresentacao.ts)
-    const rastroMapa: PontoRastro[] = [], bolinha = arteBolinhaRastro(), nomeNaBola = criaNomeNaBola()
+    const rastroMapa = criaRastro(), bolinha = arteBolinhaRastro(), nomeNaBola = criaNomeNaBola()
     // 👁️ CAMADA SÓ DE DESENHO (04/11, Diego: *"os jogadores… a bola… o gramado"*). Nada aqui muda placar, motor ou o que o
     // mapa conta como resultado: é só ONDE o boneco e a bola aparecem na tela. (1) dois jogadores nunca ficam um em cima do
     // outro — quem encosta é afastado devagar; (2) quem conduz leva a bola À FRENTE, com toquinhos (antes ela ficava colada
@@ -594,24 +594,27 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       if (jogo.festa) for (const p of jogo.atl) if (p.nome === jogo.festa.autor) comNome.add(p)
       // 🧍 os 22 (de trás pra frente na tela)
       const ordem = [...jogo.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
+      const nomesPorCima: [number, number, string][] = []
       for (const p of ordem) {
         const q = pos.get(p)!, [X, Y] = tr(q.x, q.y)
         const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
         let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
-        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
+        if (igualMapa && comNome.has(p)) nomesPorCima.push([X, Y, p.nome]) // 🏷️ 04/11: o nome vai por cima de todo mundo (no mapa ninguém tampa o nome)
+        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
       }
+      for (const [X, Y, nome] of nomesPorCima) desenharNomeCampo2D(cx, X, Y, R, nome)
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
       {
         const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = mis(bA.h, jogo.bola.h) * S, rb = Math.max(4.6, R * 0.36) + jogo.bola.h * 0.25
         // 🌠 o rastro do mapa, por baixo da bola e por cima dos bonecos (no mapa é igual)
         if (igualMapa) {
-          avancaRastro(rastroMapa, bolaVis.x, bh, bolaVis.y)
-          if (rastroVisivel(rastroMapa.length)) {
+          const rp = rastroMapa.passo(bolaVis.x, bh, bolaVis.y, dt / 1000)
+          if (rastroVisivel(rp.length)) {
             const a0 = cx.globalAlpha
-            rastroMapa.forEach((q, i) => { const [qx, qy] = tr(q.x, q.z), { tamanho, alfa } = pontoRastro(i, rastroMapa.length), d = tamanho * S; cx.globalAlpha = alfa; cx.drawImage(bolinha, qx - d / 2, qy - q.y - d / 2, d, d) })
+            rp.forEach((q, i) => { const [qx, qy] = tr(q.x, q.z), { tamanho, alfa } = pontoRastro(i, rp.length), d = tamanho * rb * 2; cx.globalAlpha = alfa; cx.drawImage(bolinha, qx - d / 2, qy - q.y - d / 2, d, d) })
             cx.globalAlpha = a0
           }
-        } else rastroMapa.length = 0
+        } else rastroMapa.limpa()
         cx.beginPath(); cx.ellipse(bx + bh * 0.25, by + rb * 0.55, rb * (1 - Math.min(0.4, bh / 120)), rb * 0.45, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.38)'; cx.fill()
         const cy = by - bh
         cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = '#fff'; cx.fill()

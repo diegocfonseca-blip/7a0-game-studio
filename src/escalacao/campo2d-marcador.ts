@@ -11,5 +11,9 @@ export function desenharMarcadorCampo2D(cx:CanvasRenderingContext2D,X:number,Y:n
  cx.restore();cx.beginPath();cx.arc(X,Y,R,0,7);cx.lineWidth=temRosto?3.5:2;cx.strokeStyle=m.referee?'#FFE600':temRosto?camisa:INK;cx.stroke()
  if(temRosto){cx.beginPath();cx.arc(X,Y,R+2.2,0,7);cx.lineWidth=1.5;cx.strokeStyle='#fff';cx.stroke()}
  if(m.owned){cx.beginPath();cx.arc(X,Y,R+3.5,0,7);cx.lineWidth=2;cx.strokeStyle='rgba(255,255,255,.95)';cx.setLineDash([4,3]);cx.stroke();cx.setLineDash([]);cx.fillStyle='#fff';cx.beginPath();cx.moveTo(X,Y-R-7);cx.lineTo(X-5,Y-R-14);cx.lineTo(X+5,Y-R-14);cx.closePath();cx.fill()}
- if(m.name){const nm=m.name.length>13?m.name.split(' ').slice(-1)[0]:m.name;cx.font=font(Math.max(8,R*.72));const w=cx.measureText(nm).width+6;cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(X-w/2,Y+R+1,w,R*.95);cx.fillStyle='#fff';cx.textAlign='center';cx.fillText(nm,X,Y+R+R*.78)}
+ if(m.name)desenharNomeCampo2D(cx,X,Y,R,m.name)
+}
+/** A faixinha do nome embaixo do boneco. Separada pra poder ser desenhada DEPOIS de todos os bonecos (aí ninguém tampa o nome). */
+export function desenharNomeCampo2D(cx:CanvasRenderingContext2D,X:number,Y:number,R:number,name:string){
+ const nm=name.length>13?name.split(' ').slice(-1)[0]:name;cx.font=font(Math.max(8,R*.72));const w=cx.measureText(nm).width+6;cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(X-w/2,Y+R+1,w,R*.95);cx.fillStyle='#fff';cx.textAlign='center';cx.fillText(nm,X,Y+R+R*.78)
 }

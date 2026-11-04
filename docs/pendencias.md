@@ -12104,3 +12104,16 @@ desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha p
 
 ### 🏟️ 04/11 — Liga de 10 ou 20 times nas salas
 Feito (escolha na criação; 10 = 18 rodadas, bots até 10). 🚫 **Ranking por PONTOS foi DESFEITO a pedido dele** (*"não faça nada de pts ainda… deixe como estava com títulos normal"*): título de sala de 10 conta como título normal por enquanto. A ideia (20 = 2 pts · 10/Relâmpago = 1 pt, + pódio/conquistas) fica guardada no commit revertido 606a0e0 pra quando ele quiser.
+
+### 📺 04/11 — Campo 2D da aba Jogos × campo do MAPA: igualados (só na conta do Diego)
+*"ainda tô vendo coisas que tem em um e não tem no outro… o rastro… o nome… o gol na aba do mapa sem mascote, nome do jogador"*.
+Feito, com código COMPARTILHADO (nada de duas versões): 🌠 rastro (`campo2d-apresentacao.ts`, preso no TEMPO — a regra antiga por
+quadro quase nunca acendia no campinho, que desenha a 60/s) · 🏷️ nome de quem pega na bola segura 0,9 s depois do toque; no mapa com
+tamanho de tela fixo (26 px celular / 30 PC), em cima da cabeça e sem sumir atrás de boneco; no campinho desenhado por cima de todos ·
+⚽ festa do gol = UM componente (`campo2d-festa.tsx`): GOOOOL + mascote/escudo + autor, minuto e 🅰️ assistência, agora também por cima
+do mapa, e a faixa do locutor do mapa grita o gol (pisca) · 🧢 técnico com sobrenome na beira do campo do mapa (antes só o balão) ·
+replay salvo no mapa com mascote/escudo. O que mudou no campinho só aparece pra quem tem `useCampo2DLiberado` (conta do Diego).
+Bancada: `scripts/teste-campo2d/igualar.html?modo=jogos|mapa`. Fotos: `scripts/mockups/campo2d-igual-*.png`.
+⚠️ Achado (não mexido): sala online com 2D criada pelo Diego mostra o 2D pra TODOS da sala (`useCampo2DLigado` em `campo2d-modo.ts`
+devolve `s.campo2d` no online sem olhar a trava da conta).
+Ainda diferente (não pedido): 🧑‍💼 presidente na beira do campo e 🎬 "ver os gols de novo" só no campinho; torcida/estádio do mapa é 3D.
