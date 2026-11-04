@@ -31,11 +31,24 @@ export function arredondarCaminho(points:readonly P[],radius=3):P[]{
  for(let i=1;i<points.length-1;i++){const a=points[i-1],b=points[i],c=points[i+1],ab=dist(a,b),bc=dist(b,c);if(ab<.1||bc<.1)continue;const d=Math.min(radius,ab*.32,bc*.32),p={x:b.x+(a.x-b.x)*d/ab,z:b.z+(a.z-b.z)*d/ab},q={x:b.x+(c.x-b.x)*d/bc,z:b.z+(c.z-b.z)*d/bc};out.push(p);for(let k=1;k<=8;k++){const t=k/8,s=1-t;out.push({x:s*s*p.x+2*s*t*b.x+t*t*q.x,z:s*s*p.z+2*s*t*b.z+t*t*q.z})}}
  out.push(points.at(-1)!);return out
 }
-/** Metric motion, acceleration and braking; no loops or return-to-shop teleport. */
-export function viagemVeiculo(points:readonly PontoEntrega[],maxSpeed=7){
+/** Metric profile with bounded acceleration and lower speed through curves.
+ * Geometry and timing share one arc-length parameter; wheel travel matches it. */
+export function viagemVeiculo(points:readonly PontoEntrega[],maxSpeed=7,options:{loop?:boolean}={}){
  if(points.length<2||!(maxSpeed>0)||points.some(p=>![p.x,p.y,p.z].every(Number.isFinite)))throw Error('Trajeto de veículo inválido')
- const nodes=[{...points[0],d:0}];let length=0;for(const p of points.slice(1)){const step=dist(nodes.at(-1)!,p);if(step<1e-5)continue;length+=step;nodes.push({...p,d:length})}if(length<1e-5)throw Error('Trajeto de veículo vazio');const ramp=Math.min(2,Math.sqrt(length/maxSpeed)),duration=length/maxSpeed+ramp
- function sample(d:number){let low=1,high=nodes.length-1;while(low<high){const mid=(low+high)>>1;if(nodes[mid].d<d)low=mid+1;else high=mid}const a=nodes[low-1],b=nodes[low],u=Math.max(0,Math.min(1,(d-a.d)/(b.d-a.d)));return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u,z:a.z+(b.z-a.z)*u}}
- function at(t:number){t=Math.max(0,Math.min(duration,t));const left=duration-t,speed=t<ramp?maxSpeed*t/ramp:left<ramp?maxSpeed*left/ramp:maxSpeed,d=t<ramp?maxSpeed*t*t/(2*ramp):left<ramp?length-maxSpeed*left*left/(2*ramp):maxSpeed*(t-ramp/2),a=sample(Math.max(0,d-.35)),b=sample(Math.min(length,d+.35));return{...sample(d),heading:Math.atan2(b.x-a.x,b.z-a.z),speed,distance:d,done:t>=duration}}
+ const nodes=[{...points[0],d:0}];let length=0;
+ for(const p of points.slice(1)){const a=nodes.at(-1)!,step=dist(a,p);if(step<1e-5)continue;const count=Math.max(2,Math.ceil(step/2));for(let j=1;j<=count;j++){const u=j/count;nodes.push({x:a.x+(p.x-a.x)*u,y:a.y+(p.y-a.y)*u,z:a.z+(p.z-a.z)*u,d:length+step*u})}length+=step}
+ if(length<1e-5)throw Error('Trajeto de veículo vazio');const last=nodes.length-1,acceleration=2.2,braking=3.2;
+ const speeds=nodes.map((p,i)=>{const a=nodes[i?i-1:options.loop?last-1:0],b=nodes[i<last?i+1:options.loop?1:last],inward=Math.atan2(p.x-a.x,p.z-a.z),outward=Math.atan2(b.x-p.x,b.z-p.z),turn=Math.abs(Math.atan2(Math.sin(outward-inward),Math.cos(outward-inward))),radius=(dist(a,p)+dist(p,b))/2/Math.max(.0001,turn);return Math.min(maxSpeed,Math.sqrt(1.8*radius))});
+ if(!options.loop)speeds[0]=speeds[last]=0;
+ // Several passes propagate braking around the seam of a closed circuit.
+ for(let pass=0;pass<(options.loop?3:1);pass++){
+  if(options.loop)speeds[0]=speeds[last]=Math.min(speeds[0],speeds[last]);
+  for(let i=1;i<=last;i++)speeds[i]=Math.min(speeds[i],Math.sqrt(speeds[i-1]**2+2*acceleration*(nodes[i].d-nodes[i-1].d)));
+  for(let i=last-1;i>=0;i--)speeds[i]=Math.min(speeds[i],Math.sqrt(speeds[i+1]**2+2*braking*(nodes[i+1].d-nodes[i].d)));
+ }
+ const times=[0];for(let i=1;i<=last;i++)times.push(times[i-1]+2*(nodes[i].d-nodes[i-1].d)/Math.max(.01,speeds[i]+speeds[i-1]));const duration=times[last];
+ const index=(values:readonly number[],value:number)=>{let low=1,high=last;while(low<high){const mid=(low+high)>>1;if(values[mid]<value)low=mid+1;else high=mid}return low},distances=nodes.map(n=>n.d);
+ function sample(d:number){const i=index(distances,d),a=nodes[i-1],b=nodes[i],u=Math.max(0,Math.min(1,(d-a.d)/(b.d-a.d)));return{x:a.x+(b.x-a.x)*u,y:a.y+(b.y-a.y)*u,z:a.z+(b.z-a.z)*u}}
+ function at(value:number){const t=Math.max(0,Math.min(duration,value)),i=index(times,t),local=t-times[i-1],dt=times[i]-times[i-1],acc=(speeds[i]-speeds[i-1])/dt,d=Math.min(length,nodes[i-1].d+speeds[i-1]*local+.5*acc*local*local),a=sample(Math.max(0,d-.3)),b=sample(Math.min(length,d+.3));return{...sample(d),heading:Math.atan2(b.x-a.x,b.z-a.z),speed:Math.max(0,speeds[i-1]+acc*local),distance:d,done:value>=duration}}
  return{length,duration,points,at}
 }

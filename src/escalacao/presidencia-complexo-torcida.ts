@@ -112,6 +112,12 @@ function farGeometry(seatHeight: number): Record<Part, THREE.BufferGeometry> {
     return [part, geometry]
   })) as Record<Part, THREE.BufferGeometry>
 }
+/** Subpixel spectators keep their seats, colours and width. Two crossed
+ * planes per part replace hidden limbs only in the distant city view. */
+function pixelGeometry(seatHeight:number):Record<Part,THREE.BufferGeometry>{
+ const part=(w:number,h:number,y:number)=>{const upright=new THREE.PlaneGeometry(w,h),top=new THREE.PlaneGeometry(w,w*.65);upright.translate(0,y,-.055);top.rotateX(-Math.PI/2);top.translate(0,y+h*.3,-.055);const g=mergeGeometries([upright,top],false)!;upright.dispose();top.dispose();g.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(g.getAttribute('position').count*3).fill(1),3));return g};
+ return{skin:part(.26,.26,seatHeight+.78),shirt:part(.48,.46,seatHeight+.36),lower:part(.34,.16,seatHeight+.08)}
+}
 /** teto da torcida DISTANTE (baixo-polígono), além dos `LIMITE_TORCIDA_COMPLEXO` detalhados */
 export const LIMITE_TORCIDA_LONGE = 7000
 /** ⚡ 25/10: com a câmera conhecida, só os N torcedores MAIS PERTO dela usam o boneco detalhado (os outros, o simples — de longe é igual) */
@@ -119,7 +125,7 @@ export const PERTO_DA_CAMERA = 260
 
 /** Visual sample only. Seats come from the actual architecture; attendance
  * never buys a stand, creates a visitor, changes income or runs another clock. */
-export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly AssentoComplexo[], population: PublicoTorcidaComplexo = { mode: 'off' },options:{detailedDistance?:number}={}) {
+export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly AssentoComplexo[], population: PublicoTorcidaComplexo = { mode: 'off' },options:{detailedDistance?:number;pixelDistance?:number;detailLimit?:number}={}) {
   const root = new THREE.Group(); root.name = 'complexo-torcida-sentada'; scene.add(root)
   // (os corpos que só fazem sombra moram num grupo À PARTE: dentro de `root` só existe gente de verdade)
   const rootSombra = new THREE.Group(); rootSombra.name = 'complexo-torcida-sombra'; scene.add(rootSombra)
@@ -174,7 +180,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     const key = `${place.side}:${place.sector}:${place.tier}:${place.seatHeight}`
     const group = groups.get(key) ?? []; group.push(place); groups.set(key, group)
   }
-  const prototypesLonge = new Map<number, Record<Part, THREE.BufferGeometry>>()
+  const prototypesLonge = new Map<number, Record<Part, THREE.BufferGeometry>>(),pixels=new Map<number,Record<Part,THREE.BufferGeometry>>();let pixelActive=false
   // (o corpo que só existe pra fazer sombra: não pinta cor nem profundidade na tela — o passe de sombra usa o material de profundidade dele)
   const materialSombra = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }); materialSombra.name = 'torcida-so-sombra'
   const batches = [...groups.entries()].flatMap(([key, group]) => [true, false].map(detalhe => {
@@ -256,7 +262,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       if (olho) {
         const o = olho, todos = [...selected, ...selectedLonge], d2 = (p: Place) => (p.position.x - o.x) ** 2 + (p.position.y - o.y) ** 2 + (p.position.z - o.z) ** 2
         const limit=options.detailedDistance??Infinity
-        const perto = new Set(todos.filter(p=>d2(p)<=limit*limit).sort((a, b) => d2(a) - d2(b) || a.rank - b.rank).slice(0, Math.min(selected.length, PERTO_DA_CAMERA)).map(p => p.id))
+        const perto = new Set(todos.filter(p=>d2(p)<=limit*limit).sort((a, b) => d2(a) - d2(b) || a.rank - b.rank).slice(0, Math.min(selected.length,options.detailLimit??PERTO_DA_CAMERA)).map(p => p.id))
         selected = todos.filter(p => perto.has(p.id)); selectedLonge = todos.filter(p => !perto.has(p.id))
       }
     }
@@ -309,6 +315,8 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     perto(camera: { x: number; y: number; z: number }) {
       if (disposed) return false
       if (olho && (camera.x - olho.x) ** 2 + (camera.y - olho.y) ** 2 + (camera.z - olho.z) ** 2 < 144) return false
+      const d=Math.hypot(camera.x,camera.y,camera.z),threshold=options.pixelDistance??Infinity,next=d>(pixelActive?threshold-25:threshold);
+      if(next!==pixelActive){pixelActive=next;for(const batch of batches)if(!batch.detalhe){const h=batch.places[0].seatHeight;if(next&&!pixels.has(h))pixels.set(h,pixelGeometry(h));const g=(next?pixels:prototypesLonge).get(h)!;(['skin','shirt','lower'] as const).forEach((part,i)=>batch.meshes[i].geometry=g[part])}}
       olho = { x: camera.x, y: camera.y, z: camera.z }; olhoKey = `${Math.round(olho.x)},${Math.round(olho.y)},${Math.round(olho.z)}`
       update(lastPopulation); return true
     },
@@ -320,7 +328,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       update(lastPopulation)
     },
     inspect() {
-      return { mode, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, longe: { home: countsLonge.home, away: countsLonge.away, limit: LIMITE_TORCIDA_LONGE }, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
+      return { mode, pixelActive, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, longe: { home: countsLonge.home, away: countsLonge.away, limit: LIMITE_TORCIDA_LONGE }, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
         attendance: attendance ? { ...attendance } : undefined, awayAttendance: awayAttendance ? { ...awayAttendance } : undefined,
         occupancy: { ...occupancy }, presentation:{fraction:dayProgress,drawn:batches.reduce((n,b)=>n+b.meshes[0].count,0)},quota: { ...quota }, reservations: [...reservations], reserved: { ...reservedCounts }, invalidSeats, updates, matrixUpdates, instanceRebuilds: 0,
         batches: batches.reduce((total, batch) => total + batch.meshes.length, 0),
@@ -335,7 +343,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       for (const batch of batches) for (const mesh of batch.meshes) { mesh.count = 0; mesh.visible = false; mesh.userData.seatIds = []; mesh.dispose() }
       for (const batch of batches) if (batch.sombra) { batch.sombra.geometry.dispose(); batch.sombra.dispose() }
       materialSombra.dispose()
-      for (const geometry of [...prototypes.values(), ...prototypesLonge.values()]) for (const part of Object.values(geometry)) part.dispose()
+      for (const geometry of [...prototypes.values(), ...prototypesLonge.values(),...pixels.values()]) for (const part of Object.values(geometry)) part.dispose()
       const maps = new Set<THREE.Texture>()
       Object.values(materialsPorLado).flat().forEach(material => {
         for (const value of Object.values(material)) if (value instanceof THREE.Texture) maps.add(value)

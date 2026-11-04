@@ -44,3 +44,6 @@ node scripts/testa-presidencia-economia.cjs
 npm run build
 
 A regra local em CLAUDE.md exige mostrar o visual e esperar aprovação antes do commit visual. Por isso esta entrega permanece na branch feat/veiculos-vadico-entrega-20261104, com as alterações locais reversíveis.
+
+Atualização 04/11: lote integrado à cidade, com publicação autorizada por Diego.
+Registro final e limitações em docs/mapa-cidade-2026-11-04.txt.

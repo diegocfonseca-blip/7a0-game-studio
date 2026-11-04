@@ -7,8 +7,8 @@
       "license": "CC0-1.0",
       "commercial": true,
       "sourceSHA256": "21a99128d13f130ffabf4177468cb8d79855f8fd936ea32365a4f26296e1df21",
-      "sha256": "39be2b2a943effd0a82d7432dba60e0918258a2373ce9199e38cd85e8c3e4087",
-      "bytes": 496864,
+      "sha256": "147c8f2b6a420aaab199d185904795b77701af0a24df9d2397a6bc7b7c842cd3",
+      "bytes": 547564,
       "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/casual_male.glb",
       "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
       "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
@@ -16,8 +16,21 @@
         "Idle",
         "SitDown",
         "StandUp",
-        "Walk"
-      ]
+        "Walk",
+        "PickUp",
+        "Walk_Carry",
+        "Victory"
+      ],
+      "activityClips": {
+        "source": "Casual_Male.glb",
+        "license": "CC0-1.0",
+        "clips": [
+          "PickUp",
+          "Walk_Carry",
+          "Victory"
+        ],
+        "geometryAndSkinningUnchanged": true
+      }
     },
     {
       "file": "Casual_Female.glb",
@@ -25,8 +38,8 @@
       "license": "CC0-1.0",
       "commercial": true,
       "sourceSHA256": "3b4f39d27dc8a5f3b42d023f88a928679e7b1b0ea49ddb4857a07399bc4d8332",
-      "sha256": "0f8fbf76b6316c8b56a256599737eca846886bb17c9f14436fb1a85dfc6a8ecc",
-      "bytes": 505752,
+      "sha256": "7a9314a31099ba5afc91efad6a9593fac6a259123b0de7cf62ace69ded94b03f",
+      "bytes": 556424,
       "origin": "https://github.com/wmehobbs/Abbott-game/blob/0796b0a859aded9629cd802a0c132993b0c6e091/content/meshes/raw/quaternius_casual_female/Casual_Female.glb",
       "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
       "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
@@ -34,8 +47,21 @@
         "Idle",
         "SitDown",
         "StandUp",
-        "Walk"
-      ]
+        "Walk",
+        "PickUp",
+        "Walk_Carry",
+        "Victory"
+      ],
+      "activityClips": {
+        "source": "Casual_Female.glb",
+        "license": "CC0-1.0",
+        "clips": [
+          "PickUp",
+          "Walk_Carry",
+          "Victory"
+        ],
+        "geometryAndSkinningUnchanged": true
+      }
     },
     {
       "file": "oldclassy_male.glb",
@@ -43,8 +69,8 @@
       "license": "CC0-1.0",
       "commercial": true,
       "sourceSHA256": "441caf36c0b0d517a5d7caf84dc06f4c999c2ebb63d562c1b290ba11ca1c12a0",
-      "sha256": "2e57391c1cb8944820eb8dd9d19340c707bfd895dfe0c9dbe91f712294c1421c",
-      "bytes": 452736,
+      "sha256": "fb4be25f7ba9a8140b69e83cbb337824fa24d13c506e73dd21709c146b906cc3",
+      "bytes": 503324,
       "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/oldclassy_male.glb",
       "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
       "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
@@ -52,8 +78,21 @@
         "Idle",
         "SitDown",
         "StandUp",
-        "Walk"
-      ]
+        "Walk",
+        "PickUp",
+        "Walk_Carry",
+        "Victory"
+      ],
+      "activityClips": {
+        "source": "oldclassy_male.glb",
+        "license": "CC0-1.0",
+        "clips": [
+          "PickUp",
+          "Walk_Carry",
+          "Victory"
+        ],
+        "geometryAndSkinningUnchanged": true
+      }
     },
     {
       "file": "oldclassy_female.glb",
@@ -61,8 +100,8 @@
       "license": "CC0-1.0",
       "commercial": true,
       "sourceSHA256": "5aa75df120a7de61236080db5aab6b6d336204441d827ab939a7751e97dd12ec",
-      "sha256": "7b0379849b59f4f8ddde0c2ef87c32f46300f82811bff7c49a7c1b8c555d229d",
-      "bytes": 536596,
+      "sha256": "a8d57bcb29319eeebb2e86cdb12213fde0dca6885719aad7d30874e9698cef6d",
+      "bytes": 587188,
       "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/oldclassy_female.glb",
       "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
       "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data",
@@ -70,8 +109,21 @@
         "Idle",
         "SitDown",
         "StandUp",
-        "Walk"
-      ]
+        "Walk",
+        "PickUp",
+        "Walk_Carry",
+        "Victory"
+      ],
+      "activityClips": {
+        "source": "oldclassy_female.glb",
+        "license": "CC0-1.0",
+        "clips": [
+          "PickUp",
+          "Walk_Carry",
+          "Victory"
+        ],
+        "geometryAndSkinningUnchanged": true
+      }
     },
     {
       "file": "Fuller_Man.glb",
@@ -79,8 +131,8 @@
       "license": "CC0-1.0",
       "commercial": true,
       "sourceSHA256": "21a99128d13f130ffabf4177468cb8d79855f8fd936ea32365a4f26296e1df21",
-      "sha256": "277e9a0da7445ad770633b2a9729f3f6eaf63ed1f4d6e358594fc7cbeef2e9fd",
-      "bytes": 906508,
+      "sha256": "adde2268a451a3b7f8ff9401ac9246fe52212e6671b2a814346398feaeee978c",
+      "bytes": 957168,
       "origin": "https://github.com/davide97g/claude-art-online/blob/8bcb684ff0b62731c20d17bb111e45a12376cdac/public/assets/models/npc/casual_male.glb",
       "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
       "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data; separate bounded torso-volume target on civilian mesh and clothing, same rig/weights; recomputed normals",
@@ -88,10 +140,23 @@
         "Idle",
         "SitDown",
         "StandUp",
-        "Walk"
+        "Walk",
+        "PickUp",
+        "Walk_Carry",
+        "Victory"
       ],
       "derivedFrom": "Casual_Male.glb",
-      "provisional": true
+      "provisional": true,
+      "activityClips": {
+        "source": "Casual_Male.glb",
+        "license": "CC0-1.0",
+        "clips": [
+          "PickUp",
+          "Walk_Carry",
+          "Victory"
+        ],
+        "geometryAndSkinningUnchanged": true
+      }
     },
     {
       "file": "Fuller_Woman.glb",
@@ -99,8 +164,8 @@
       "license": "CC0-1.0",
       "commercial": true,
       "sourceSHA256": "3b4f39d27dc8a5f3b42d023f88a928679e7b1b0ea49ddb4857a07399bc4d8332",
-      "sha256": "cc457d23fb7de8eec69ee6532d0e081bc30cd3f244b6214bb2a03e628a4146e7",
-      "bytes": 925252,
+      "sha256": "87723c1cbf262cc1d56662936650a20f67ef96a4ff4aa5f74fd24b4ea2a6dba4",
+      "bytes": 975888,
       "origin": "https://github.com/wmehobbs/Abbott-game/blob/0796b0a859aded9629cd802a0c132993b0c6e091/content/meshes/raw/quaternius_casual_female/Casual_Female.glb",
       "officialSource": "https://quaternius.com/packs/ultimateanimatedcharacters.html",
       "changes": "Keep authored geometry, skinning, rig and civilian clothes; keep Idle/Walk/SitDown/StandUp; remove separate facial mark primitives; normalize Skin material without vertex-color blackening; prune unused data; separate bounded torso-volume target on civilian mesh and clothing, same rig/weights; recomputed normals",
@@ -108,10 +173,23 @@
         "Idle",
         "SitDown",
         "StandUp",
-        "Walk"
+        "Walk",
+        "PickUp",
+        "Walk_Carry",
+        "Victory"
       ],
       "derivedFrom": "Casual_Female.glb",
-      "provisional": true
+      "provisional": true,
+      "activityClips": {
+        "source": "Casual_Female.glb",
+        "license": "CC0-1.0",
+        "clips": [
+          "PickUp",
+          "Walk_Carry",
+          "Victory"
+        ],
+        "geometryAndSkinningUnchanged": true
+      }
     }
   ]
 }

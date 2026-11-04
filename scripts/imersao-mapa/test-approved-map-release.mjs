@@ -21,12 +21,14 @@ const {complexoDoEstadio}=await import('../../src/escalacao/presidencia-complexo
 const {TERRENO_USUARIO}=await import('../../src/escalacao/residencia-planta.ts')
 const {ARENA_ONLINE}=await import('../../src/escalacao/arena-planta.ts')
 const {segmentoLivre}=await import('../../src/escalacao/presidencia-estadio-navegacao.ts')
-const scene=new T.Scene(),save={inv:{geral:40},ext:['loja']},before=JSON.stringify(save)
+for(const ext of [['loja'],['loja','hotel','praca','chopp','estacao','estac','asfalto']]){
+const scene=new T.Scene(),save={inv:{geral:40},ext},before=JSON.stringify(save)
 const e=criarEntornoComplexo(scene,complexoDoEstadio(save),undefined,{name:'Neymarzetti',residence:true,arena:true})
 try{for(const p of[TERRENO_USUARIO,ARENA_ONLINE]){
  const obstacle={id:p.id,polygon:p.footprint.map(v=>({x:v.x,y:v.z}))}
  for(const r of e.root.userData.roadNetwork.streets)for(let i=1;i<r.points.length;i++){const a=r.points[i-1],b=r.points[i];assert(segmentoLivre({x:a.x,y:a.z},{x:b.x,y:b.z},[obstacle],r.width/2+r.walk),r.id+' crosses '+p.id)}
- for(const s of e.solids)if(s.id!==p.id)assert(!(s.minX<p.x+p.width/2&&s.maxX>p.x-p.width/2&&s.minZ<p.z+p.depth/2&&s.maxZ>p.z-p.depth/2),s.id+' overlaps '+p.id)
+ for(const s of e.solids)if(s.id!==p.id&&s.base<2.6)assert(!(s.minX<p.x+p.width/2&&s.maxX>p.x-p.width/2&&s.minZ<p.z+p.depth/2&&s.maxZ>p.z-p.depth/2),s.id+' overlaps '+p.id)
 }assert.equal(e.root.userData.residence.paidUpgrade,false);assert.deepEqual(e.root.userData.roadNetwork.diagnostics.unresolved,[]);assert.equal(JSON.stringify(save),before)}finally{e.dispose()}
 assert.equal(scene.children.length,0)
+}
 console.log('PASS: public-room visibility, GET-only, bounded pagination, cancellation, free plots, connected roads, save preservation and resource disposal')

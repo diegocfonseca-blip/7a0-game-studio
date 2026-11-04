@@ -1,0 +1,14 @@
+const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+/** A graph of physical pavements and explicitly registered crossings. No link
+ * may cross a road/building merely because two destinations are nearby. */
+export function walkNetwork(paths,valid,clear){
+ const nodes=[],edges=[],keys=new Map(),buckets=new Map();
+ const node=p=>{const key=Math.round(p.x*10)+':'+Math.round(p.z*10);let id=keys.get(key);if(id!==undefined)return id;id=nodes.length;nodes.push({...p});edges.push([]);keys.set(key,id);const cell=Math.floor(p.x/6)+':'+Math.floor(p.z/6),list=buckets.get(cell)??[];list.push(id);buckets.set(cell,list);return id};
+ const join=(a,b)=>{if(a===b||edges[a].some(e=>e.id===b))return;const d=distance(nodes[a],nodes[b]);edges[a].push({id:b,d});edges[b].push({id:a,d})};
+ for(const path of paths){let previous;for(let i=1;i<path.points.length;i++){const a=path.points[i-1],b=path.points[i],n=Math.max(1,Math.ceil(distance(a,b)/4));for(let k=i===1?0:1;k<=n;k++){const t=k/n,p={x:a.x+(b.x-a.x)*t,y:.16,z:a.z+(b.z-a.z)*t};if(!valid(p,!!path.crossing)){previous=undefined;continue}const id=node(p);if(previous!==undefined&&clear(nodes[previous],p,!!path.crossing))join(previous,id);previous=id}}}
+ for(let i=0;i<nodes.length;i++){const p=nodes[i],x=Math.floor(p.x/6),z=Math.floor(p.z/6);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(const j of buckets.get((x+dx)+':'+(z+dz))??[]){if(j<=i||distance(p,nodes[j])>4.5||!clear(p,nodes[j],false))continue;join(i,j)}}
+ const component=new Int32Array(nodes.length).fill(-1);let components=0;for(let i=0;i<nodes.length;i++)if(component[i]<0){const queue=[i];component[i]=components;for(let k=0;k<queue.length;k++)for(const e of edges[queue[k]])if(component[e.id]<0){component[e.id]=components;queue.push(e.id)}components++}
+ const nearest=(p,max=20)=>{let id=-1,best=max;for(let i=0;i<nodes.length;i++){const d=distance(p,nodes[i]);if(d<best){best=d;id=i}}return id};
+ function path(from,to){if(from<0||to<0||component[from]!==component[to])return null;const costs=new Map([[from,0]]),previous=new Map(),pending=new Set([from]),closed=new Set();while(pending.size){let at=-1,best=Infinity;for(const id of pending){const value=costs.get(id)+distance(nodes[id],nodes[to]);if(value<best){best=value;at=id}}if(at===to)break;pending.delete(at);closed.add(at);for(const edge of edges[at]){if(closed.has(edge.id))continue;const cost=costs.get(at)+edge.d;if(cost<(costs.get(edge.id)??Infinity)){costs.set(edge.id,cost);previous.set(edge.id,at);pending.add(edge.id)}}}if(from!==to&&!previous.has(to))return null;const result=[to];while(result[0]!==from)result.unshift(previous.get(result[0]));return result.map(id=>({...nodes[id]}))}
+ return{nodes,edges,component,nearest,path,inspect:()=>({nodes:nodes.length,edges:edges.reduce((s,a)=>s+a.length,0)/2,components})};
+}

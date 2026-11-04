@@ -27,7 +27,7 @@ const modelURLs=Object.freeze({
  Fuller_Woman:new URL('./assets/Fuller_Woman.glb',import.meta.url).href,
 });
 const load=file=>{const url=modelURLs[file];if(!url)return Promise.reject(Error('Modelo civil indisponível: '+file));if(!cache.has(file))cache.set(file,loader.loadAsync(url).catch(e=>{cache.delete(file);throw e}));return cache.get(file)};
-export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor,deferUntilVisible=false}={}){
+export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor,deferUntilVisible=false,occupation}={}){
  const spec=CIVILIAN_VARIANTS.find(v=>v.id===variant)??CIVILIAN_VARIANTS[hash(id)%CIVILIAN_VARIANTS.length];
  const root=new T.Group();root.name='civilian-'+id;parent.add(root);const physical=new T.Group();physical.name='civilian-metres';root.add(physical);
  let disposed=false,source,failed=false,resolveReady,model,mixer,actions,footMeshes=[],height=0,last=null,poseUpdates=0,errors=[],lastPose=-Infinity;
@@ -41,7 +41,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
   model=clone(gltf.scene);physical.add(model);
   const palette=/^#[0-9a-f]{6}$/i.test(outfitColor??'')?outfitColor:clothes[hash(id+'clothes')%clothes.length],materialCopies=new Map();
   model.traverse(n=>{if(!n.isMesh)return;n.castShadow=n.receiveShadow=true;n.frustumCulled=true;
-   const convert=source=>{if(!materialCopies.has(source)){const m=source.clone();if(['Shirt','Clothes'].includes(m.name))m.color.set(palette);if(m.name==='Skin')m.color.set(['#b87952','#d4ad83','#895738','#bd926b'][hash(id+'skin')%4]);if(m.name==='Hair'&&spec.age==='older')m.color.set('#9b9a90');m.roughness=.86;m.metalness=0;materialCopies.set(source,m);materials.add(m)}return materialCopies.get(source)};
+   const convert=source=>{if(!materialCopies.has(source)){const m=source.clone();if(['Shirt','Clothes'].includes(m.name))m.color.set(palette);if(occupation==='office'&&m.name==='Pants')m.color.set('#303640');if(occupation==='office'&&m.name==='Hat')m.visible=false;if(m.name==='Skin')m.color.set(['#b87952','#d4ad83','#895738','#bd926b'][hash(id+'skin')%4]);if(m.name==='Hair'&&spec.age==='older')m.color.set('#9b9a90');m.roughness=.86;m.metalness=0;materialCopies.set(source,m);materials.add(m)}return materialCopies.get(source)};
    n.material=Array.isArray(n.material)?n.material.map(convert):convert(n.material);
    if(n.isSkinnedMesh){const feet=new Set(n.skeleton.bones.map((b,i)=>/^Foot[.LR]/.test(b.name)?i:-1).filter(i=>i>=0)),indices=[],weights=n.geometry.getAttribute('skinWeight'),joints=n.geometry.getAttribute('skinIndex');
     for(let i=0;i<weights.count;i++)for(let k=0;k<4;k++)if(feet.has(joints[['getX','getY','getZ','getW'][k]](i))&&weights[['getX','getY','getZ','getW'][k]](i)>.5){indices.push(i);break}
@@ -49,6 +49,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
    }
   });
   mixer=new T.AnimationMixer(model);actions={};for(const name of ['Idle','Walk','SitDown','StandUp']){const clip=gltf.animations.find(c=>c.name===name);if(!clip)throw Error('Animação civil ausente: '+name);const a=mixer.clipAction(clip);a.play();a.timeScale=0;if(name==='SitDown'||name==='StandUp'){a.setLoop(T.LoopOnce,1);a.clampWhenFinished=true}actions[name]=a}
+  for(const name of ['Walk_Carry','PickUp','Victory']){const clip=gltf.animations.find(c=>c.name===name);if(clip){const a=mixer.clipAction(clip);a.play();a.timeScale=0;a.weight=0;actions[name]=a}}
   actions.Idle.setEffectiveWeight(1);actions.Walk.setEffectiveWeight(0);actions.SitDown.setEffectiveWeight(0);actions.StandUp.setEffectiveWeight(0);mixer.update(0);updateWorld();model.traverse(n=>{if(n.isSkinnedMesh)n.skeleton.update()});
   // Identical source rig and Idle(0) pose. Cache the costly skinned-vertex
   // bounds by source AND parent scale; keep the original metre calibration.
@@ -69,6 +70,11 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
   const moving=T.MathUtils.clamp((frame.speed??0)/.7,0,1),seated=T.MathUtils.clamp(frame.seated??0,0,1);
   const seatedBlend=T.MathUtils.smoothstep(seated,0,.15),rising=frame.transition==='standing';
   actions.Idle.setEffectiveWeight((1-moving)*(1-seatedBlend));actions.Walk.setEffectiveWeight(moving*(1-seatedBlend));actions.SitDown.setEffectiveWeight(rising?0:seatedBlend);actions.StandUp.setEffectiveWeight(rising?seatedBlend:0);
+  const gesture=frame.activity==='carrying'?'Walk_Carry':frame.activity==='pickup'?'PickUp':frame.activity==='celebrating'?'Victory':null;
+  const gestureTime=Math.max(0,frame.activityTime??seconds),chosen=gesture&&actions[gesture],duration=chosen?.getClip().duration??1;
+  const weight=chosen&&!seatedBlend?(gesture==='Walk_Carry'?1:Math.min(T.MathUtils.smoothstep(gestureTime,0,.22),1-T.MathUtils.smoothstep(gestureTime,duration-.22,duration))):0;
+  actions.Idle.weight*=1-weight;actions.Walk.weight*=1-weight;
+  for(const name of ['Walk_Carry','PickUp','Victory'])if(actions[name]){actions[name].weight=name===gesture?weight:0;actions[name].time=name==='Walk_Carry'?moving?(((frame.distance??0)/(spec.height*.66))%1+1)%1*duration:0:Math.min(gestureTime,duration)}
   if(force||seconds<lastPose||seconds-lastPose>=1/(frame.detail==='far'?6:frame.detail==='intermediate'?12:30)){
    actions.Idle.time=seconds%actions.Idle.getClip().duration;
    actions.Walk.time=(((frame.distance??0)/(spec.height*.66))%1+1)%1*actions.Walk.getClip().duration;

@@ -126,15 +126,16 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   }
   // A large repeated octave across open land forms visible bands at map scale.
   // Retain fine surface detail there without repeating broad stains every 4 m.
-  const dirt=material('#968763',1,0,noise('#968763',.09,false,0))
-  const grass=material('#647450',1,0,noise('#647450',.075,false,0))
+  const dirt=material('#96815f',1,0,noise('#96815f',.065,false,0))
+  const grass=material('#63844e',1,0,noise('#63844e',.045,false,0))
   const asphalt=material('#555a56',.96,0,noise('#555a56',.06))
-  const paving=material('#c6bd9e',.91,0,noise('#c6bd9e',.04,true))
+  const paving=material('#cec9b9',.91,0,noise('#cec9b9',.025,true))
   paving.userData.civilianPavement=true
   asphalt.userData.complexoLightFloor = true
   paving.userData.complexoLightFloor = true
   const concrete=material('#c7c1ac',.8,0,noise('#c7c1ac',.03))
   const white=material('#e2dece',.78)
+  const facade=material('#ffffff',.9);facade.vertexColors=true
   const dark=material('#39443e',.78,.13)
   const metal=material('#6c7168',.48,.52)
   const glass=material('#53666a',.21,.32)
@@ -846,7 +847,10 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     const floors=variant===0?1:variant===1?2:variant===2?4:6
     const h=3.0*floors+.7,w=variant===3?9.0:variant===2?10.8:9.0+hash(x,z)*2.0,d=variant>1?12.1:10.1
     const center=(lx:number,lz:number)=>localPoint(x,z,lx,lz,angle)
-    box('bairro-residencia',variant%2?white:concrete,w,h,d,x,h/2,z,angle)
+    const district=z< -210?'norte':x< -180?'oeste':z>180?'sul':'estadio'
+    const palettes:Record<string,string[]>={norte:['#c8d2c6','#d1d6d2','#b6c6ca'],oeste:['#cfb49a','#c8b09e','#c6beb0'],sul:['#c5ccb3','#d5c5a4','#bfcaba'],estadio:['#d7c9b6','#c4cec6','#d4c2b3']}
+    const tint=new THREE.Color(palettes[district][Math.floor(hash(x+7,z)*3)]),wall=box('bairro-residencia',facade,w,h,d,x,h/2,z,angle)
+    const colors=new Float32Array(wall.geometry.getAttribute('position').count*3);for(let i=0;i<colors.length;i+=3)tint.toArray(colors,i);wall.geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3))
     if(variant<2){
       if(hash(x+4,z)>.45){
         const rw=(w+.8)/2,rd=(d+.8)/2
@@ -890,7 +894,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       }
     }
     const entrance=center(0,d/2+.025)
-    if(!distant&&deliveryHomes.length<60)deliveryHomes.push({id:`casa-${x}-${z}`,x,z,door:center(0,d/2+.5),curb:center(0,d/2+6.5),inside:center(0,d/2-.5)})
+    deliveryHomes.push({id:`casa-${x}-${z}`,x,z,door:center(0,d/2+.5),curb:center(0,d/2+6.5),inside:center(0,d/2-.5)})
     box('bairro-porta',wood,1.2,2.1,.045,entrance.x,1.05,entrance.z,angle)
     if(!distant&&detailedHomes<40){
       detailedHomes++
@@ -904,6 +908,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       const lintel=center(0,d/2+.06),sill=center(0,d/2+.3)
       box('bairro-porta-verga',white,1.52,.13,.13,lintel.x,2.2,lintel.z,angle)
       box('bairro-soleira',concrete,1.6,.15,.64,sill.x,.10,sill.z,angle)
+      if(variant<2&&hash(x-2,z)>.45){const awning=center(0,d/2+.9);box('bairro-marquesa',roof,3.4,.12,1.8,awning.x,2.65,awning.z,angle)}
+      const mailbox=center(w*.38,d/2+.12);box('bairro-caixa-correio',metal,.35,.25,.15,mailbox.x,1.15,mailbox.z,angle)
     }
   }
   const blocks:PontoComplexo[]=[]
@@ -1326,6 +1332,11 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
   root.userData.residentialDoors=deliveryHomes
+  root.userData.residentDestinations=[
+    ...(['loja','hotel','chopp'] as const).filter(id=>state.extras[id]).map(id=>({id,purpose:id==='hotel'?'hospedagem':'compras',point:doors[id].approach,access:[doors[id].approach,doors[id].threshold,doors[id].inside]})),
+    ...botecos.map(pub=>({id:pub.id,purpose:'encontro',point:{x:pub.root.position.x,z:pub.root.position.z+9}})),
+    ...(['tidex','oittolabs'] as const).map(id=>({id,purpose:'trabalho',point:doors[id].approach,access:[doors[id].approach,doors[id].threshold,doors[id].inside]})),
+  ]
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false

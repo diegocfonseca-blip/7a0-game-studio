@@ -3,9 +3,9 @@
 //  ⚽ pelada no campinho de terra (de tarde; fora disso só as traves).
 // Custo: peças em InstancedMesh (um cubo e uma bolinha compartilhados, cor por instância), QUATRO texturas de canvas pequenas
 // (lona listrada, terra, letreiros e a capa do jornal), nenhuma luz e nenhuma sombra nova. As pessoas são os mesmos civis da
-// cidade (carregados só quando aparecem, com LOD) e tudo anda pelo `update` que o mapa já chama no quadro dele — sem toque
-// (VIVO_MS) o mapa para e a feira para junto. Qualquer erro aqui fica aqui: o mapa segue de pé.
+// cidade (carregados só quando aparecem, com LOD) e tudo anda pelo `update` que o mapa já chama no quadro dele — fora da tela o mapa pausa junto com a feira. Qualquer erro aqui fica aqui: o mapa segue de pé.
 import * as THREE from 'three'
+import {customerJourney} from './cidade3d/activity-route.mjs'
 import {createCivilian} from './cidade3d/civilians.mjs'
 import {residentVisibility} from './cidade3d/resident-visibility.mjs'
 import type {BotecoBairro} from './presidencia-boteco-bairro'
@@ -109,11 +109,8 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   // gente: feirante atrás de cada banca, fregueses andando no meio da rua e uns parados escolhendo
   for(let i=0;i<N;i++){const u=u0+i*passo,p=em(u+(i%2?.4:-.4),2.6);pessoa('feirante-'+i,'feira',['adult-man','fuller-man','adult-woman','older-man','fuller-woman','adult-man'][i],['#ffffff','#2F6FB5','#C2452F','#ffffff','#1B7A3D','#f39a1e'][i],parado(p.x,p.z,q.yawV+Math.PI))}
   for(let k=0;k<5;k++){
-   const v=-.35-(k%2)*.85,vel=.55+(k%3)*.12,ida=q.L-6,fase=k*7.3
-   pessoa('freguesa-'+k,'feira',['adult-woman','older-woman','adult-man','fuller-woman','older-man'][k],undefined,s=>{
-    // vai e volta pela rua devagar, com uma paradinha na frente de cada barraca
-    const d=(s*vel+fase)%(ida*2),volta=d>ida,uu=3+(volta?ida*2-d:d),para=Math.sin(s*.9+k)>.55
-    const p=em(uu,v);return{...p,heading:para?q.yawV:volta?q.yawU+Math.PI:q.yawU,speed:para?0:vel,distance:s*vel}})
+   const v=-.35-(k%2)*.85,vel=.55+(k%3)*.12,from=em(3,v),to=em(u0+passo*k,v),journey=customerJourney([{...from,y:ESTRADA_Y},{...to,y:ESTRADA_Y}],{speed:vel,wait:2+k*3,stay:4+k,turnAtExit:true})
+   pessoa('freguesa-'+k,'feira',['adult-woman','older-woman','adult-man','fuller-woman','older-man'][k],undefined,s=>journey.at(s))
   }
   for(let k=0;k<3;k++){const p=em(u0+passo*(1+k*1.6),.3);pessoa('escolhendo-'+k,'feira',['older-woman','adult-woman','fuller-man'][k],undefined,parado(p.x,p.z,q.yawV))}
  }

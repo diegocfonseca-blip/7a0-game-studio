@@ -11,16 +11,17 @@ import {segmentoLivre} from './presidencia-estadio-navegacao'
 import {texturaLogoPatrocinador} from './presidencia-patrocinador-logo'
 import {acelerarRaios} from './presidencia-raio-rapido'
 
+const THREE_SMOOTH=(n:number)=>{const t=Math.max(0,Math.min(1,n));return t*t*(3-2*t)}
 type Door={approach:{x:number;z:number};threshold:{x:number;z:number};inside:{x:number;z:number}}
 type Home={id:string;door:{x:number;z:number};curb:{x:number;z:number};inside:{x:number;z:number}}
 /** Decorative business activity only. No sales/orders/bookings, career money,
  * supporters, official fixtures or sponsor contracts are created here. */
 export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,doors:Record<string,Door>,solids:readonly SolidoEntorno[],options:{enabled:boolean;mobile:boolean;onReady:()=>void}){
  const root=new T.Group();root.name='rotinas-patrocinadores';scene.add(root);root.visible=options.enabled
- if(!options.enabled)return{root,update(_time:number,_camera:T.Camera,_height?:number){},active:()=>false,inspect:()=>({enabled:false}),dispose(){root.removeFromParent()}}
+ if(!options.enabled)return{root,update(_time:number,_camera:T.Camera,_height?:number,_period?:string){},active:()=>false,inspect:()=>({enabled:false}),dispose(){root.removeFromParent()}}
  const floor=.19,point=(p:{x:number;z:number})=>({...p,y:floor}),staff:ReturnType<typeof createCivilian>[]=[]
  const offices=(['tidex','oittolabs'] as const).flatMap((id,k)=>Array.from({length:options.mobile?1:2},(_,i)=>{
-  const d=doors[id],p=LOTS[id],body=createCivilian(root,{id:id+'-funcionario-'+i,variant:i?'older-woman':'older-man',outfitColor:k?'#383c45':'#203447',deferUntilVisible:true,onReady:options.onReady});staff.push(body)
+  const d=doors[id],p=LOTS[id],body=createCivilian(root,{id:id+'-funcionario-'+i,variant:i?'older-woman':'older-man',outfitColor:k?'#383c45':'#203447',occupation:'office',deferUntilVisible:true,onReady:options.onReady});staff.push(body)
   const path=[point({x:p.x+(i?8:-8),z:-235}),point({x:p.x,z:-240}),point(d.approach),point(d.threshold),point(d.inside)]
   return{id,body,journey:customerJourney(path,{speed:1.25,wait:3+k*9+i*18,stay:42+i*23})}
  }))
@@ -44,7 +45,11 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
  const loadingBay={x:LOTS.dsouza.x-17,z:LOTS.dsouza.z+32},roads=(environment.userData.roadNetwork?.streets??[])as RuaComplexo[],homes=(environment.userData.residentialDoors??[])as Home[]
  const driver=createCivilian(root,{id:'dsouza-entregador',variant:'adult-man',outfitColor:'#3e6a49',deferUntilVisible:true,onReady:options.onReady});staff.push(driver)
  const parcel=new T.Group(),frameMat=new T.MeshStandardMaterial({color:'#976e46'}),printMat=new T.MeshStandardMaterial({color:'#e5dfc8'}),frameGeo=new T.BoxGeometry(.42,.58,.065),paperGeo=new T.BoxGeometry(.35,.5,.07);parcel.add(new T.Mesh(frameGeo,frameMat),new T.Mesh(paperGeo,printMat));parcel.visible=false
- let carryingHand:T.Object3D|undefined;root.add(parcel)
+ let carryingHand:T.Object3D|undefined,receivingHand:T.Object3D|undefined;root.add(parcel)
+ const receiver=createCivilian(root,{id:'dsouza-cliente',variant:'adult-woman',deferUntilVisible:true,onReady:options.onReady});staff.push(receiver)
+ receiver.ready.then(ok=>{if(ok&&!disposed){receivingHand=receiver.root.getObjectByName('Fist.R')??receiver.root.getObjectByName('Hand.R');options.onReady()}})
+ const cargo=[-1,1].map(side=>{const mesh=new T.Mesh(frameGeo,frameMat);mesh.position.set(side*.28,1.05,-.7);truck.root.add(mesh);return mesh})
+ const receiverPoint=new T.Vector3();let handoff=0,receiving=false,officeOpen=true
  driver.ready.then(ok=>{if(!ok||disposed)return;carryingHand=driver.root.getObjectByName('Fist.R')??driver.root.getObjectByName('Hand.R');options.onReady()})
  const loadWalk=customerJourney([point(doors.dsouza.inside),point(doors.dsouza.threshold),point({x:loadingBay.x,z:loadingBay.z-truck.profile.length/2-.6})],{wait:1,stay:1.2,speed:1.15})
  const loadDuration=loadWalk.period*2+2
@@ -61,17 +66,17 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
    const h=candidates[index++];if(!h||routes!.length>=3){routePending=false;if(!routes!.length)routeError='Nenhuma casa com acesso e manobra de retorno livres foi encontrada.';options.onReady();return}
    const dx=h.curb.x-h.door.x,dz=h.curb.z-h.door.z,n=Math.hypot(dx,dz),stop={x:h.door.x+dx/n*16,z:h.door.z+dz/n*16},path=n>0?caminhoPelasRuas(roads,start,stop,18):null;
    if(path){const smooth=arredondarCaminho([loadingBay,...path],3);if(clear(smooth)){const a=smooth[0],b=smooth[1],z=smooth.at(-1)!,y=smooth.at(-2)!,head=Math.atan2(b.x-a.x,b.z-a.z),tail=Math.atan2(z.x-y.x,z.z-y.z),back=[...turn(z,tail),...[...smooth].reverse().slice(1),...turn(a,head+Math.PI).slice(1)];if(clear(back)){
-     const trip=viagemVeiculo(smooth.map(ground),6),end=trip.at(trip.duration),rear=point({x:end.x-Math.sin(end.heading)*(truck.profile.length/2+.6),z:end.z-Math.cos(end.heading)*(truck.profile.length/2+.6)}),walk=activityRoute([rear,point(h.door),point(h.inside)],1.15);
-     if(segmentoLivre({x:rear.x,y:rear.z},{x:h.door.x,y:h.door.z},obstacles.filter(o=>!o.id.startsWith(h.id)),.28))routes!.push({home:h,trip,back:viagemVeiculo(back.map(ground),5),walk,stopDuration:walk.duration*2+5})
+     const trip=viagemVeiculo(smooth.map(ground),6),end=trip.at(trip.duration),rear=point({x:end.x-Math.sin(end.heading)*(truck.profile.length/2+.6),z:end.z-Math.cos(end.heading)*(truck.profile.length/2+.6)}),walk=activityRoute([rear,point({x:h.door.x+dx/n*1.25,z:h.door.z+dz/n*1.25})],1.15);
+     if(segmentoLivre({x:rear.x,y:rear.z},{x:h.door.x,y:h.door.z},obstacles.filter(o=>!o.id.startsWith(h.id)),.28))routes!.push({home:h,trip,back:viagemVeiculo(back.map(ground),5),walk,stopDuration:walk.duration*2+6})
    }}}
    routeTimer=setTimeout(step,16)
   };routeTimer=setTimeout(step,0)
  }
  const focusPoints=Object.values(LOTS).map(p=>new T.Vector3(p.x,1,p.z)),frustum=new T.Frustum(),matrix=new T.Matrix4();let near=false
- function update(time:number,camera:T.Camera,height=720){
-  seconds=time;if(!options.enabled)return;camera.updateMatrixWorld();matrix.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);frustum.setFromProjectionMatrix(matrix);near=focusPoints.some(p=>p.distanceTo(camera.position)<180&&frustum.containsPoint(p))||(truck.root.visible&&truck.root.position.distanceTo(camera.position)<110&&frustum.containsPoint(truck.root.position))
-  for(const o of offices){const p=o.journey.at(seconds);o.body.root.position.set(p.x,p.y,p.z);o.body.root.rotation.y=p.heading;const lod=residentVisibility(o.body.root.position,1.76,camera,height);o.body.update({seconds,distance:p.distance,speed:p.speed,visible:lod.visible&&p.phase!=='visiting',detail:lod.detail})}
-  const fieldNear=focusPoints[3].distanceTo(camera.position)<160&&frustum.containsPoint(focusPoints[3]);if(fieldNear)void loadFootball()
+ function update(time:number,camera:T.Camera,height=720,dayPeriod='day'){
+  seconds=time;officeOpen=dayPeriod!=='night';if(!options.enabled)return;camera.updateMatrixWorld();matrix.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);frustum.setFromProjectionMatrix(matrix);near=focusPoints.some(p=>p.distanceTo(camera.position)<350&&frustum.containsPoint(p))||(truck.root.visible&&truck.root.position.distanceTo(camera.position)<110&&frustum.containsPoint(truck.root.position))
+  for(const o of offices){const p=o.journey.at(seconds);o.body.root.position.set(p.x,p.y,p.z);o.body.root.rotation.y=p.heading;const lod=residentVisibility(o.body.root.position,1.76,camera,height);o.body.update({seconds,distance:p.distance,speed:p.speed,visible:officeOpen&&lod.visible&&p.phase!=='visiting',detail:lod.detail})}
+  const fieldNear=focusPoints[3].distanceTo(camera.position)<260&&frustum.containsPoint(focusPoints[3]);if(fieldNear)void loadFootball()
   const arrivalEnd=Math.max(...arrival.map(a=>a.duration))+sportsCount+2,period=200+arrivalEnd,t=seconds%period,playing=t>=arrivalEnd&&t<200;trainingPhase=t<arrivalEnd?'arriving':playing?'playing':'leaving';ball.visible=fieldNear&&playing&&football.length>0
   for(let i=0;i<football.length;i++){const f=football[i];f.actor.holder.visible=fieldNear;if(!fieldNear)continue;const p=t<arrivalEnd?arrival[i].at(Math.max(0,t-i)):t>=200?arrival[i].at(Math.max(0,arrival[i].duration-(t-200))):null;f.actor.holder.visible=fieldNear;
    if(p){f.actor.holder.position.set(p.x,p.y,p.z);f.actor.holder.rotation.y=p.heading+(t>=200?Math.PI:0);f.pass.weight=0;f.idle.weight=0;f.walk.weight=1;f.walk.time=p.distance/3%f.walk.getClip().duration}
@@ -81,14 +86,17 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
   if(ball.visible){const local=t-arrivalEnd,index=Math.floor(local/8)%football.length,a=football[index],b=football[(index+1)%football.length],q=local%8,u=T.MathUtils.clamp((q-a.contact)/1.8,0,1);ball.position.copy(a.touch).lerp(b.touch,u);ball.rotation.x=local*8}
   // Periodic merchandise run. These are visual deliveries, never game purchases.
   if(near)prepareRoutes();const periods=routes?.map(r=>loadDuration+r.trip.duration+r.stopDuration+r.back.duration+8)??[];let local=seconds%(periods.reduce((a,b)=>a+b,0)||360),route=routes?.[0];for(let i=0;i<periods.length;i++){if(local<periods[i]){route=routes![i];break}local-=periods[i]}
-  truck.root.visible=!!route;driver.root.visible=!!route;parcel.visible=!!route;
+  truck.root.visible=!!route;driver.root.visible=!!route;parcel.visible=!!route;receiving=false;handoff=0;receiver.update({seconds,visible:false});
   if(route){const outward=route.trip.duration,stop=loadDuration+outward,returnAt=stop+route.stopDuration,returning=local>=returnAt,p=returning?route.back.at(local-returnAt):route.trip.at(local<loadDuration?0:Math.min(outward,local-loadDuration));truckPhase=local<loadDuration?'loading':local<stop?'delivering':local<returnAt?'unloading':!p.done?'returning':'waiting';framesLoaded=local<loadDuration?Math.min(2,Math.floor(local/loadWalk.period)):truckPhase==='unloading'?1:2;truck.root.position.set(p.x,p.y,p.z);truck.root.rotation.y=p.heading;truck.update((returning?route.trip.length:0)+p.distance);truck.setCargoOpening?.(truckPhase==='loading'||truckPhase==='unloading'?1:0)
    let walk;if(truckPhase==='loading'){walk=loadWalk.at(local);parcel.visible=walk.phase==='entering';driver.root.rotation.y=walk.heading}
-   else if(truckPhase==='unloading'){const walkOut=route.walk,elapsed=local-stop;walk=elapsed<walkOut.duration?walkOut.at(elapsed):elapsed<walkOut.duration+3?{...walkOut.at(walkOut.duration),speed:0}:activityRoute([...walkOut.points].reverse(),1.15).at(elapsed-walkOut.duration-3);parcel.visible=elapsed<walkOut.duration;driver.root.rotation.y=walk.heading}
-   if(walk){driver.root.position.set(walk.x,walk.y,walk.z);const lod=residentVisibility(driver.root.position,1.76,camera,height);driver.update({seconds,distance:walk.distance,speed:walk.speed,visible:lod.visible&&!(truckPhase==='unloading'&&local-stop>=route.walk.duration&&local-stop<route.walk.duration+3),detail:lod.detail})}else{parcel.visible=false;driver.update({seconds,visible:false})}
+   else if(truckPhase==='unloading'){const walkOut=route.walk,elapsed=local-stop,pause=4;walk=elapsed<walkOut.duration?walkOut.at(elapsed):elapsed<walkOut.duration+pause?{...walkOut.at(walkOut.duration),speed:0}:activityRoute([...walkOut.points].reverse(),1.15).at(elapsed-walkOut.duration-pause);parcel.visible=elapsed<walkOut.duration+pause;driver.root.rotation.y=walk.heading;
+    const end=walkOut.at(walkOut.duration),inward={x:Math.sin(end.heading),z:Math.cos(end.heading)},appear=elapsed-walkOut.duration+1.6;
+    if(appear>=0&&appear<pause+3.2){receiving=true;const exit=THREE_SMOOTH(Math.min(1,appear/1.6)),retreat=THREE_SMOOTH(Math.max(0,(appear-5.6)/1.6));const depth=1.9-1.2*exit+retreat*1.2;receiver.root.position.set(end.x+inward.x*depth,floor,end.z+inward.z*depth);receiver.root.rotation.y=end.heading+Math.PI;const lod=residentVisibility(receiver.root.position,1.67,camera,height);receiver.update({seconds,distance:exit*1.2,speed:appear<1.6?.75:0,activity:appear>=1.6?'carrying':undefined,visible:lod.visible,detail:lod.detail});handoff=T.MathUtils.smoothstep(elapsed-walkOut.duration,1.1,1.55);if(elapsed>=walkOut.duration+pause)parcel.visible=true}
+    }
+   if(walk){driver.root.position.set(walk.x,walk.y,walk.z);const lod=residentVisibility(driver.root.position,1.76,camera,height);driver.update({seconds,distance:walk.distance,speed:walk.speed,activity:parcel.visible&&handoff<1?'carrying':undefined,visible:lod.visible,detail:lod.detail})}else{parcel.visible=false;driver.update({seconds,visible:false})}
   }else driver.update({seconds,visible:false})
-  parcel.visible=parcel.visible&&driver.root.visible&&!!carryingHand
-  if(parcel.visible&&carryingHand){carryingHand.getWorldPosition(parcel.position);root.worldToLocal(parcel.position);parcel.position.y-=.22;parcel.rotation.y=driver.root.rotation.y}
+  cargo.forEach((mesh,i)=>mesh.visible=i<framesLoaded);parcel.visible=parcel.visible&&(driver.root.visible||receiver.root.visible)&&!!carryingHand
+  if(parcel.visible&&carryingHand){carryingHand.getWorldPosition(parcel.position);root.worldToLocal(parcel.position);parcel.position.y-=.15;if(receiving&&receivingHand&&handoff>0){receivingHand.getWorldPosition(receiverPoint);root.worldToLocal(receiverPoint);receiverPoint.y-=.15;parcel.position.lerp(receiverPoint,handoff)}parcel.rotation.y=driver.root.rotation.y}
  }
- return{root,update,active:()=>near&&options.enabled,inspect:()=>({seconds,officeVisitors:offices.map(o=>({company:o.id,phase:o.journey.at(seconds).phase,position:o.body.root.position.toArray(),visible:o.body.root.visible,...o.body.inspect()})),training:{phase:trainingPhase,players:football.length,positions:football.map(f=>f.actor.holder.position.toArray()),source:'existing authored football clips; decorative rental practice, no match result',error:footballError},delivery:{phase:truckPhase,framesLoaded,preparingRoutes:routePending,loadDuration,routes:routes?.map(r=>({house:r.home.id,door:r.home.door,duration:r.trip.duration,returnDuration:r.back.duration,stopDuration:r.stopDuration})),error:routeError,position:truck.root.position.toArray()},budget:{officePeople:offices.length,footballPeople:sportsCount,trucks:1}}),dispose(){disposed=true;if(routeTimer!==undefined)clearTimeout(routeTimer);staff.forEach(b=>b.dispose());football.forEach(f=>f.actor.dispose());truck.dispose();library.dispose();logoMap.dispose();logoGeo.dispose();logoMat.dispose();ballGeometry.dispose();ballMaterial.dispose();frameGeo.dispose();paperGeo.dispose();frameMat.dispose();printMat.dispose();root.removeFromParent()}}
+ return{root,update,active:()=>near&&options.enabled,inspect:()=>({seconds,officeOpen,officeVisitors:offices.map(o=>({company:o.id,phase:o.journey.at(seconds).phase,position:o.body.root.position.toArray(),visible:o.body.root.visible,...o.body.inspect()})),training:{phase:trainingPhase,players:football.length,positions:football.map(f=>f.actor.holder.position.toArray()),source:'existing authored football clips; decorative rental practice, no match result',error:footballError},delivery:{phase:truckPhase,framesLoaded,recipientVisible:receiver.root.visible,handoff,preparingRoutes:routePending,loadDuration,routes:routes?.map(r=>({house:r.home.id,door:r.home.door,duration:r.trip.duration,returnDuration:r.back.duration,stopDuration:r.stopDuration})),error:routeError,position:truck.root.position.toArray()},budget:{officePeople:offices.length,footballPeople:sportsCount,trucks:1}}),dispose(){disposed=true;if(routeTimer!==undefined)clearTimeout(routeTimer);staff.forEach(b=>b.dispose());football.forEach(f=>f.actor.dispose());truck.dispose();library.dispose();logoMap.dispose();logoGeo.dispose();logoMat.dispose();ballGeometry.dispose();ballMaterial.dispose();frameGeo.dispose();paperGeo.dispose();frameMat.dispose();printMat.dispose();root.removeFromParent()}}
 }

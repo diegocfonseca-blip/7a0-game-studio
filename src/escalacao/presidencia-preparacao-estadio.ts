@@ -37,7 +37,7 @@ export function criarPreparacaoEstadio(scene:THREE.Scene,state:EstadoComplexo,ac
   box(root,.24,.35,.24,c.x-dx/len*.55,y+.175,c.z-dz/len*.55,green)
   rod(root,new THREE.Vector3(c.x-dx/len*.5,y+.05,c.z-dz/len*.5),new THREE.Vector3(c.x-dx/len*.5,y+1.15,c.z-dz/len*.5),.018,yellow)
   box(root,.22,.06,.10,c.x-dx/len*.5,y+.03,c.z-dz/len*.5,dark)
-  const paper=box(root,.14,.012,.10,b.x,y+.012,b.z,white);paper.userData.pregameCollectedAt=cleaner.path.inbound.duration+.5
+  const paper=box(root,.14,.012,.10,b.x,y+.012,b.z,white);paper.userData.pregameCollectedAt=cleaner.path.inbound.duration+1.5
  }
  person('surface','groundskeeper',[point(-18,-36),point(-18,-31)],0,60,'#658d47','adult-man',state.progress.grama>0?'Inspeção do gramado':'Inspeção do campo de terra',.5,3)
  person('equipment','equipment-check',[point(42,38.2),point(40.2,38.2)],1,60,'#3c708b','adult-woman','Conferência de equipamentos',1,9)
@@ -74,7 +74,7 @@ export function criarPreparacaoEstadio(scene:THREE.Scene,state:EstadoComplexo,ac
    if(watch&&t>p.path.inbound.duration+.5&&pose.speed===0)pose.heading=Math.atan2(focus.x-pose.x,focus.z-pose.z)
    else if(p.heading!==undefined&&pose.speed===0)pose.heading=p.heading
    p.body.root.position.set(pose.x,pose.y,pose.z);p.body.root.rotation.y=pose.heading
-   const lod=residentVisibility(p.body.root.position,1.76,camera,height);p.body.update({seconds,distance:pose.distance,speed:pose.speed,visible:p.visible&&lod.visible,detail:lod.detail})
+   const lod=residentVisibility(p.body.root.position,1.76,camera,height);p.body.update({seconds,distance:pose.distance,speed:pose.speed,activity:pose.phase==='visiting'&&p.role==='stands-cleaner'?'pickup':undefined,activityTime:Math.max(0,t-(p.path.inbound.duration+.5)),visible:p.visible&&lod.visible,detail:lod.detail})
    if(p.prop){p.prop.visible=p.visible&&lod.visible;p.prop.position.set(pose.x+.45,pose.y,pose.z+.55);p.prop.rotation.y=Math.atan2(focus.x-p.prop.position.x,focus.z-p.prop.position.z);if(p.flash){const tick=Math.floor(frame.elapsed*8),flashing=coachVisible&&coachDoor&&(tick+index*7)%29===0;p.flash.visible=flashing;if(flashing&&tick!==lastFlash){flashCount++;lastFlash=tick}}}
   }
   watering.visible=frame.operations&&state.progress.grama>0&&frame.elapsed>2&&frame.elapsed<18
@@ -83,5 +83,5 @@ export function criarPreparacaoEstadio(scene:THREE.Scene,state:EstadoComplexo,ac
   for(const o of root.children)if(o instanceof THREE.Mesh)o.visible=(frame.operations||o.geometry instanceof THREE.ConeGeometry&&frame.streets)&&(o.userData.pregameCollectedAt===undefined||frame.elapsed<o.userData.pregameCollectedAt)
   const supplies=root.getObjectByName('pregame-bar-supplies');if(supplies)supplies.visible=frame.operations
  }
- return{root,configure,update,inspect:()=>({stage:pregameFrame(day),paidBar:state.extras.chopp,lightingPurchased:state.floodlit,field:state.progress.grama>0?'grass':'dirt',watering:watering.visible,flashes:flashCount,people:people.map(p=>({id:p.id,role:p.role,task:p.task,ready:p.ready,visible:p.visible,rendered:p.body.root.visible,position:p.body.root.position.toArray(),entrance:p.role==='idol-onlooker'?'outside-cordon':'staff',clips:['Walk','Idle']})),provisional:['No sweeping, supply-handling or handheld-camera capture available; authored walking/idle and stationary equipment only.'],officialStateWrites:0}),dispose(){people.forEach(p=>p.body.dispose());geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());root.removeFromParent()}}
+ return{root,configure,update,inspect:()=>({stage:pregameFrame(day),paidBar:state.extras.chopp,lightingPurchased:state.floodlit,field:state.progress.grama>0?'grass':'dirt',watering:watering.visible,flashes:flashCount,people:people.map(p=>({id:p.id,role:p.role,task:p.task,ready:p.ready,visible:p.visible,rendered:p.body.root.visible,position:p.body.root.position.toArray(),entrance:p.role==='idol-onlooker'?'outside-cordon':'staff',clips:p.role==='stands-cleaner'?['Walk','Idle','PickUp']:['Walk','Idle']})),provisional:['No sweeping or handheld-camera capture available; picking up litter uses the authored PickUp clip.'],officialStateWrites:0}),dispose(){people.forEach(p=>p.body.dispose());geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());root.removeFromParent()}}
 }

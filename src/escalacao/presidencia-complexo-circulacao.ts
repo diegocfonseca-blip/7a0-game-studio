@@ -1,3 +1,4 @@
+import {arredondarCaminho,viagemVeiculo} from './veiculos-entrega-rota'
 import {publicGateDestination,spectatorVisibleAt} from './cidade3d/spectator-access.mjs'
 import { acelerarRaios } from './presidencia-raio-rapido'
 import * as THREE from 'three'
@@ -221,27 +222,17 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
         holdAt: timeline.stages.find(stage => stage.phase === 'inside')?.at ?? 0, journey: population.journey }),
       source: (side === 'home' ? attendance : awayAttendance) ? 'career' as const : 'qa-sample' as const }))
   })
-  function carAt(legs: Leg[], seconds: number, index: number): Pose | undefined {
-    const length = legs.reduce((sum, leg) => sum + leg.length, 0)
-    if (!length) return undefined
-    // (vários carros na mesma pista: cada um num ponto da volta, espaçados)
-    const speed = 6, progress = ((seconds * speed + length * (((index % 2 ? .65 : .15) + Math.floor(index / 2) * .27) % 1)) % length + length) % length
-    let distance = progress
-    const leg = legs.find(candidate => { if (distance <= candidate.length) return true; distance -= candidate.length; return false }) ?? legs.at(-1)!
-    const legIndex = legs.indexOf(leg), blend = Math.min(2, leg.length / 3)
-    let heading = angleBetween(leg.a, leg.b)
-    if (distance < blend && legIndex > 0) {
-      const previous = legs[legIndex - 1], oldHeading = angleBetween(previous.a, previous.b)
-      heading = oldHeading + angleDelta(oldHeading, heading) * (.5 + .5 * smooth(distance / blend))
-    } else if (distance > leg.length - blend && legIndex + 1 < legs.length) {
-      const next = legs[legIndex + 1]
-      heading += angleDelta(heading, angleBetween(next.a, next.b)) * .5 * smooth((distance - leg.length + blend) / blend)
-    }
-    const fraction = clamp(distance / leg.length, 0, 1)
-    const position = { x: leg.a.x + (leg.b.x - leg.a.x) * fraction, z: leg.a.z + (leg.b.z - leg.a.z) * fraction }
-    const pixel = mundoParaMapa(position)
-    return { ...position, y: leg.a.y + (leg.b.y - leg.a.y) * fraction, heading,
-      distance: seconds * speed, speed, phase: 'walking', visible: pixel.x >= 0 && pixel.x <= 1536 && pixel.y >= 0 && pixel.y <= 1024 }
+  const carTrips=carLegs.map(entry=>{
+    if(!entry.legs.length)return undefined
+    const raw=[entry.legs[0].a,...entry.legs.map(l=>l.b)],curve=arredondarCaminho(raw,2.8),measured=curve.map(p=>ground(p));
+    // Only use a rounded corner if its entire body still clears the plot.
+    const valid=measured.every(Boolean)&&measured.every((p,i)=>!i||!clear(measured[i-1]!,p!,CAR_RADIUS,1.5));
+    return viagemVeiculo(valid?measured as SurfacePoint[]:raw,6,{loop:true})
+  });
+  function carAt(_legs:Leg[],seconds:number,index:number):Pose|undefined{
+    const trip=carTrips[index];if(!trip)return undefined;
+    const offset=trip.duration*(((index%2?.65:.15)+Math.floor(index/2)*.27)%1),elapsed=Math.max(0,seconds)+offset,lap=Math.floor(elapsed/trip.duration),p=trip.at(elapsed%trip.duration),pixel=mundoParaMapa(p);
+    return{...p,distance:lap*trip.length+p.distance,phase:'walking',visible:pixel.x>=0&&pixel.x<=1536&&pixel.y>=0&&pixel.y<=1024}
   }
 
   scene.add(root)
@@ -266,6 +257,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   })
   let disposed = false
   let journey = population.journey
+  const trafficClocks=carTrips.map(()=>({time:0,rate:1}));
   let hasFrame = false
   let last = { seconds: 0, pedestrian: undefined as Pose | undefined, pedestrians: [] as PedestrianFrame[], cars: [] as (Pose | undefined)[], fans: [] as { id: string; side: 'home' | 'away'; source: string; pose: Pose | undefined; period: number; route: readonly PontoComplexo[] }[] }
   const empty = { x: 0, y: 0, z: 0, heading: 0, distance: 0, speed: 0, phase: 'waiting' as const, visible: false }
@@ -275,7 +267,17 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
     if (hasFrame && time === last.seconds) return
     const pedestrianFrames = pedestrians.map(entry => ({ id: entry.id, destination: entry.destination, source: attendance ? 'career' as const : 'qa-sample' as const,
       pose: entry.timeline.at(time), period: entry.timeline.period, route: entry.route, stages: entry.timeline.stages }))
-    const pedestrian = pedestrianFrames[shopIndex]?.pose, cars = carLegs.map((entry, i) => carAt(entry.legs, time, i))
+    const pedestrian = pedestrianFrames[shopIndex]?.pose,delta=time-last.seconds
+    const walkers=[...(scene.getObjectByName('city-residents')?.children??[]),...(scene.getObjectByName('city-dealership-customers')?.children.filter(n=>n.name.startsWith('civilian-'))??[])].map(n=>n.position)
+    const otherVehicles=scene.getObjectByName('veiculos-do-usuario')?.children.filter(n=>n.visible)??[]
+    const cars=carLegs.map((entry,i)=>{const clock=trafficClocks[i];
+      if(!hasFrame||delta<0||delta>.5){clock.time=time;clock.rate=1}
+      else{const p=carAt(entry.legs,clock.time,i);let wanted=1;
+        if(p){const obstacles=[...walkers.map(p=>({x:p.x,z:p.z,gap:3})),...last.cars.flatMap((c,j)=>c&&i!==j?[{x:c.x,z:c.z,gap:5.5}]:[]),...otherVehicles.map(c=>({x:c.position.x,z:c.position.z,gap:5.5}))];for(const o of obstacles){const dx=o.x-p.x,dz=o.z-p.z,front=dx*Math.sin(p.heading)+dz*Math.cos(p.heading),side=Math.abs(dx*Math.cos(p.heading)-dz*Math.sin(p.heading));if(front>0&&front<15&&side<1.25)wanted=Math.min(wanted,Math.sqrt(6*Math.max(0,front-o.gap))/Math.max(.1,p.speed))}}
+        clock.rate+=clamp(wanted-clock.rate,-delta*.5,delta*.4);clock.rate=clamp(clock.rate,0,1);clock.time+=delta*clock.rate
+      }
+      const p=carAt(entry.legs,clock.time,i);return p?{...p,speed:p.speed*clock.rate}:p
+    })
     const fanFrames = fans.map(fan => ({ id: fan.id, side: fan.side, source: fan.source, pose: (()=>{const pose=fan.timeline.at(fan.journeyClock.update(time));return pose?{...pose,visible:pose.visible&&spectatorVisibleAt(pose,fan.side,PLANTA_COMPLEXO.gates[fan.side])}:pose})(), period: fan.timeline.period, route: fan.route }))
     last = { seconds: time, pedestrian, pedestrians: pedestrianFrames, cars, fans: fanFrames }
     hasFrame = true

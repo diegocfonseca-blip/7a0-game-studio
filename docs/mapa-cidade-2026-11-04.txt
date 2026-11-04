@@ -1,0 +1,79 @@
+LEILÃO LEGENDS — CIDADE, VEÍCULOS E PATROCINADORES
+Lote autorizado por Diego em 04/11/2026. Publicação pelo fluxo existente.
+
+ACESSO E PRESERVAÇÃO
+O mapa continua dentro da liberação já existente da conta verificada de Diego.
+Nenhuma ampliação da lista de contas, migração, escrita de banco, alteração de
+preços, resultado, regra online, overalls ou save foi incluída neste lote.
+Integra a casa e as tradições do bairro que chegaram pela main durante o trabalho.
+Pontos de recuperação: 892bd439 (trabalho anterior) e 695eee79 (integração da main).
+
+ENTREGUE
+1. 42 interpretações 3D do catálogo existente: 25 carros e 17 motos/bicicletas.
+   Prévia sob demanda, rodas articuladas, geometria compartilhada e miniaturas WebP.
+   Não são réplicas fotográficas nem incluem novos logotipos de montadoras.
+2. Entrega Vadico–casa após confirmação de propriedade pelo sistema existente.
+   Restaurar um save estaciona o veículo; não cobra nem repete a entrega.
+   Respeita a dupla escolhida para a garagem e o endereço atual da casa.
+3. DSouza: carga, viagem pelas ruas, cliente recebendo o quadro e retorno.
+   Tidex/OittoLabs: entradas e saídas de funcionários com roupas sociais;
+   movimento dos escritórios reduzido à abertura diurna.
+   Grêmio Campo Grande: chegada, prática visual no campo e saída.
+   Esses movimentos NÃO criam contratos, vendas, renda ou partidas oficiais.
+4. Rede de calçadas validada contra as fachadas reais, incluindo casas giradas.
+   80 percursos disponíveis entre casas, visitas e destinos alcançáveis.
+   População simultânea continua limitada a 20 no perfil móvel e 48 no desktop.
+   Crianças acompanham um adulto. Os modelos infantis existentes ainda são
+   variações de escala; não foi criada uma nova anatomia nesta entrega.
+5. Visitas exteriores à casa, à agência e à arena, sem entrar em salas online.
+   Fachadas variam por bairro, com materiais compartilhados e detalhes próximos.
+6. Animações Quaternius PickUp, Walk_Carry e Victory adicionadas aos seis GLBs
+   civis existentes. Origem e licença CC0 registradas em provenance.json.
+   O importador confere que posições, índices de ossos e pesos não mudaram.
+   Carregar encomendas e recolher objetos usam clipes; varrer ainda não possui
+   captura adequada. Victory fica disponível, sem inventar um evento esportivo.
+7. Veículos reduzem velocidade nas curvas. A circulação básica cede espaço
+   localmente a pessoas/veículos, com desaceleração. A feira deixa de mover
+   personagens enquanto a pose indicava que estavam parados.
+8. Três acessos distintos do estádio preservados e testados; preparação,
+   botecos, fornecedores, ônibus e calendário existentes continuam integrados.
+9. Solo e fachadas com variações suaves de cor; iluminação diurna mais neutra.
+   Nada de conceder asfalto, bares, casas maiores ou melhorias não compradas.
+10. LOD de cadeiras e torcida também no desktop; silhuetas mínimas à distância,
+    corpos detalhados próximos com orçamento limitado. Assentos e cores mantidos.
+    A cidade segue em cadência reduzida quando observada de longe; fora da tela,
+    aba oculta, pausa explícita ou preferência de movimento reduzido a suspendem.
+
+TESTES
+TypeScript e build de produção com DEPLOY_BASE=/ e VITE_ONLY_GAME=escalacao.
+Economia de veículos existente: preços, revenda, limites e confirmações.
+Entrega de quatro veículos, restauração, venda, sincronização repetida e rotas.
+Rotinas dos patrocinadores em Chromium, incluindo limites do perfil móvel.
+Contas simuladas: dono permitido, outra conta negada, resposta antiga ignorada,
+renovação da mesma conta preservada e saída da conta revogando a visualização.
+Terrenos com loja apenas e com todas as melhorias; ruas conectadas, sem
+interseção no solo com casa/arena e sem modificação do save.
+Percursos, desaceleração, travessias registradas, três entradas, calendário,
+preparação e LOD com preservação de lugares e restauração de detalhes.
+Capturas reais do mapa em desktop e viewport móvel, de dia e à noite.
+A vista geral caiu de aproximadamente 1,63 milhão para 646 mil triângulos
+no desktop da bancada. No perfil móvel, cerca de 520 mil. Isso mede geometria,
+não garante FPS. Chromium/SwiftShader apresentou 0,8 FPS, com atualização
+JavaScript de 20–26 ms após aquecimento. O renderizador por software limita
+esta bancada; desempenho em celular físico NÃO está aprovado por essa medição.
+A verificação de continuidade do relógio não é uma aprovação de fluidez.
+
+LIMITES CONHECIDOS
+As rotinas são representações visuais locais. Não há uma economia autônoma de
+entregas, agenda individual persistida, congestionamento urbano completo ou
+simulação de todos os moradores da cidade. Modelos de pilotagem ainda reutilizam
+sentar/levantar; não foi prometida uma captura específica de motociclista.
+Não há garantia de FPS em todos os aparelhos; a validação física no celular
+permanece necessária. Os testes não compraram bens na conta real do usuário.
+
+COMO REVER
+scripts/imersao-mapa/verify-city-refinement.cjs — mapa completo no navegador.
+scripts/teste-veiculos-cidade/verify.cjs — veículos e atividades das empresas.
+scripts/imersao-mapa/test-map-private-gate.cjs — isolamento da visualização.
+scripts/imersao-mapa/test-city-routes-refinement.mjs — movimento métrico e rotas.
+scripts/imersao-mapa/test-approved-map-release.mjs — terrenos e preservação.
