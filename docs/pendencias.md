@@ -12069,3 +12069,10 @@ No branch, esperando "publica" (junto com o botão de qualidade). Medido na máq
 - Aba Clube: saiu a sub-aba "🏛️ Presidência". A CASA continua no mapa ("Minha casa" → Entrar).
 - Começo da carreira: o aviso agora manda editar o visual na Loja do Clube (🧑‍💼 Meu presidente).
 - `PresidenciaPrivate` (sala antiga) já estava desligada (`PRESIDENT_ROOM_RELEASED = false`). **Não repropor sala do presidente.**
+
+### ⚡🩺 04/11 — "Botei Leve e não mudou nada" (Diego)
+Motivo: o Leve só tirava sombra/nitidez/quadros — o que pesa no PC dele é provavelmente a cidade VIVA (centenas de moradores, carros,
+comércio, rotina dos patrocinadores andando a cada quadro). Agora o **Leve deixa a cidade parada** (sem moradores/carros/comércio/rotinas
+andando); torcida, dia de jogo e o jogo continuam. E entrou o **🩺 diagnóstico** embaixo dos botões de qualidade: nome da placa de vídeo +
+quadros por segundo (verde ≥25 · amarelo 15–24 · vermelho <15) e, se o navegador estiver SEM placa de vídeo (aceleração de hardware
+desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha pro Diego pra saber o que o PC dele é.
