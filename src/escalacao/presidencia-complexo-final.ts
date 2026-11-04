@@ -12,7 +12,7 @@ import type {AssentoComplexo} from './presidencia-complexo-arquitetura'
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import {getLang} from './lang'
-import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,caraDaTaca,placaDoPodio,type DesfechoFinal,type TipoFinal,type LadoFinal} from './presidencia-complexo-final-regras'
+import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,temaDaFesta,placaDoPodio,coreografiaDaFesta,quemLevantaATaca,fotografosDaFesta,flashAceso,type VagaFesta,type DesfechoFinal,type TipoFinal,type LadoFinal} from './presidencia-complexo-final-regras'
 
 /** 🏆 DIA DE FINAL no mapa 3D (03/11, aprovado pelo Diego: "ok"). Tudo num arquivo só, pra não brigar com quem mexe no mapa:
  *  · ANTES: avião puxando a faixa "FINAL · A × B", barracas de bandeira/faixa da final (as peruas de ambulante de sempre),
@@ -47,8 +47,6 @@ const clamp01=(x:number)=>Math.max(0,Math.min(1,x))
 const suave=(x:number)=>{x=clamp01(x);return x*x*(3-2*x)}
 const hash=(s:string)=>{let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0}
 const rnd=(seed:number)=>()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=t+Math.imul(t^(t>>>7),61|t)^t;return((t^(t>>>14))>>>0)/4294967296}
-/** cor legível em cima de uma cor de fundo */
-const tintaSobre=(c:string)=>{const v=new THREE.Color(c);return v.r*.299+v.g*.587+v.b*.114>.6?TINTA:'#FFFFFF'}
 
 export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:readonly AssentoComplexo[],onChange:()=>void=()=>{}){
  const root=new THREE.Group();root.name='complexo-dia-final';root.visible=false;scene.add(root)
@@ -219,13 +217,15 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
 
   // 🏆 PÓDIO + TAÇA + papel picado (montados só depois do apito, no meio do campo)
   const podio=new THREE.Group();podio.name='final-podio';podio.visible=false;g.add(podio)
-  const podioMat=mat(new THREE.MeshStandardMaterial({color:OURO,roughness:.7})),topoMat=mat(new THREE.MeshStandardMaterial({color:CREME,roughness:.8}))
+  // 🎨 o pódio, o fundo, as luzes e as faixas com a cara da competição (temaDaFesta ← COMPS de competicoes-visual)
+  const tema=temaDaFesta(tipo)
+  const podioMat=mat(new THREE.MeshStandardMaterial({color:tema.podio,roughness:.6})),topoMat=mat(new THREE.MeshStandardMaterial({color:tema.tampo,roughness:.5,metalness:.3}))
   const degraus=[{x:0,h:1.25},{x:-3.1,h:.85},{x:3.1,h:.55}]
   for(const d of degraus){const b=new THREE.Mesh(geo(new THREE.BoxGeometry(3,d.h,2.4)),podioMat);b.position.set(d.x,d.h/2,0);b.castShadow=false;b.receiveShadow=true;podio.add(b);const t=new THREE.Mesh(geo(new THREE.BoxGeometry(3.06,.08,2.46)),topoMat);t.position.set(d.x,d.h+.04,0);podio.add(t)}
   let placaPodio:THREE.Mesh|undefined
   const tacaGrupo=new THREE.Group();tacaGrupo.name='final-taca';podio.add(tacaGrupo);tacaGrupo.visible=false
   // 🏆 cada competição com a SUA taça (04/11): a copa de sempre · Libertadores (o jogadorzinho em cima) · a orelhuda prateada · o anel do Mundial
-  const cara=caraDaTaca(tipo)
+  const cara=tema.cara
   {
    const prata=cara.forma==='orelhuda'
    const ouro=mat(new THREE.MeshStandardMaterial({color:cara.metal,metalness:.85,roughness:prata?.22:.28,emissive:new THREE.Color(prata?'#2a3140':'#3a2b00'),emissiveIntensity:.6}))
@@ -267,10 +267,56 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   const papel=new THREE.InstancedMesh(geo(new THREE.PlaneGeometry(.16,.1)),mat(new THREE.MeshBasicMaterial({side:THREE.DoubleSide,fog:true})),N_PAPEL)
   papel.name='final-papel-picado';papel.frustumCulled=false;papel.instanceMatrix.setUsage(THREE.DynamicDrawUsage);papel.visible=false;g.add(papel)
   const papelSem=Array.from({length:N_PAPEL},()=>({x:(r0()*2-1)*11,z:(r0()*2-1)*8,h:r0(),vel:.9+r0()*.6,fase:r0()*6.28,giro:2+r0()*4}))
-  let jogadores:{corpo:Civil;rota?:ReturnType<typeof activityRoute>;alvo:{x:number;y:number;z:number};frente:{x:number;z:number};saindo:boolean;taca:boolean}[]=[]
+  let jogadores:{corpo:Civil;rota?:ReturnType<typeof activityRoute>;alvo:{x:number;y:number;z:number};frente:{x:number;z:number};saindo:boolean;taca:boolean;vaga?:VagaFesta;i:number}[]=[]
+  let fotografos:{corpo:Civil;rota:ReturnType<typeof activityRoute>;flash:THREE.Sprite;ritmo:number;fase:number}[]=[]
+
+  // 🖼️ PAINEL DE FUNDO + pórtico (atrás do pódio), com o nome e o enfeite da competição — uma textura só
+  const fundo=new THREE.Group();fundo.name='final-painel';fundo.visible=false;g.add(fundo)
+  {
+   const W=1024,H=400,en=english()
+   const tx=tela(W,H,c=>{
+    const gr=c.createRadialGradient(W/2,H*.42,20,W/2,H*.42,W*.62);gr.addColorStop(0,tema.fundo[0]);gr.addColorStop(1,tema.fundo[1]);c.fillStyle=gr;c.fillRect(0,0,W,H)
+    const r=rnd(hash(tema.id)),cf=tema.confete
+    if(tema.enfeite==='estrelas'){for(let k=0;k<70;k++){const x=r()*W,y=r()*H,a=1.5+r()*3.5;c.fillStyle=k%3?'rgba(255,255,255,.75)':cf[0];c.beginPath();for(let q=0;q<10;q++){const ang=q*Math.PI/5-Math.PI/2,rr=q%2?a*.45:a*1.6;c.lineTo(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr)}c.fill()}
+     c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=3;for(let k=0;k<12;k++){const ang=k/12*Math.PI*2;const x=W/2+Math.cos(ang)*330,y=H*.42+Math.sin(ang)*150;c.beginPath();c.arc(x,y,9,0,Math.PI*2);c.stroke()}}
+    if(tema.enfeite==='fumaca'){for(let k=0;k<26;k++){const x=r()*W,y=H*.55+r()*H*.5,rr=50+r()*90,gg=c.createRadialGradient(x,y,0,x,y,rr);gg.addColorStop(0,k%2?cf[1]+'88':cf[2]+'66');gg.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=gg;c.fillRect(x-rr,y-rr,rr*2,rr*2)}}
+    if(tema.enfeite==='faixas'){c.globalAlpha=.28;for(let k=-8;k<20;k++){c.fillStyle=cf[((k%cf.length)+cf.length)%cf.length];c.beginPath();c.moveTo(k*70,0);c.lineTo(k*70+40,0);c.lineTo(k*70-160,H);c.lineTo(k*70-200,H);c.fill()}c.globalAlpha=1}
+    if(tema.enfeite==='sol'){c.globalAlpha=.3;c.fillStyle=cf[0];for(let k=0;k<24;k++){const a0=k/24*Math.PI*2;c.beginPath();c.moveTo(W/2,H*.45);c.lineTo(W/2+Math.cos(a0)*900,H*.45+Math.sin(a0)*900);c.lineTo(W/2+Math.cos(a0+.12)*900,H*.45+Math.sin(a0+.12)*900);c.fill()}c.globalAlpha=1}
+    if(tema.enfeite==='raios'){c.strokeStyle=cf[2]??'#FFC400';c.lineWidth=7;c.lineJoin='round';for(const x0 of [90,W-90,240,W-240]){c.beginPath();let x=x0,y=0;c.moveTo(x,y);while(y<H){x+=(r()-.5)*70;y+=40+r()*30;c.lineTo(x,y)}c.stroke()}}
+    if(tema.enfeite==='globo'){c.strokeStyle='rgba(255,196,0,.4)';c.lineWidth=5;const cx=W/2,cy=H*.44;c.beginPath();c.arc(cx,cy,175,0,Math.PI*2);c.stroke();for(const e of [.35,.7]){c.beginPath();c.ellipse(cx,cy,175*e,175,0,0,Math.PI*2);c.stroke();c.beginPath();c.ellipse(cx,cy,175,175*e,0,0,Math.PI*2);c.stroke()}}
+    // faixa de baixo e de cima nas cores dela
+    c.fillStyle=tema.faixa;c.fillRect(0,H-46,W,46);c.fillStyle=tema.tampo;c.fillRect(0,H-52,W,8);c.fillRect(0,0,W,10)
+    for(let k=0;k<8;k++)texto(c,'★',64+k*128,H-23,34,60,tema.tampo)
+    texto(c,tema.nome[en?1:0],W/2,108,112,W-90,tema.titulo,TINTA)
+    texto(c,tema.frase[en?1:0],W/2,196,48,W-160,tema.tampo,TINTA)
+    c.lineWidth=12;c.strokeStyle=TINTA;c.strokeRect(6,6,W-12,H-12)
+   })
+   const larg=11,alt=larg*400/1024
+   const pano=new THREE.Mesh(geo(new THREE.PlaneGeometry(larg,alt)),mat(new THREE.MeshBasicMaterial({map:tx,fog:true})));// (o painel fica ALTO, com o nome em cima: a taça erguida nunca tampa o texto, de nenhum ângulo do mapa)
+   const base=2.1
+   pano.position.set(0,alt/2+base,-4.6);fundo.add(pano)
+   const pilar=mat(new THREE.MeshStandardMaterial({color:tema.podio,roughness:.5})),trave=mat(new THREE.MeshStandardMaterial({color:tema.tampo,roughness:.35,metalness:.5}))
+   for(const sx of [-1,1]){const p=new THREE.Mesh(geo(new THREE.BoxGeometry(.4,alt+base+.5,.4)),pilar);p.position.set(sx*(larg/2+.2),(alt+base+.5)/2,-4.6);fundo.add(p)}
+   const tr=new THREE.Mesh(geo(new THREE.BoxGeometry(larg+1.2,.42,.5)),trave);tr.position.set(0,alt+base+.5,-4.6);fundo.add(tr)
+  }
+  // 💡 canhões de luz do pórtico (cones aditivos, sem luz de verdade: não pesa)
+  const fachos:THREE.Mesh[]=[]
+  {
+   const cone=geo(new THREE.ConeGeometry(1.5,16,14,1,true));cone.rotateX(Math.PI);cone.translate(0,8,0)
+   ;[-4.6,-1.6,1.6,4.6].forEach((x,k)=>{const m=new THREE.Mesh(cone,mat(new THREE.MeshBasicMaterial({color:tema.luz[k%2],transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false})));m.position.set(x,6.9,-4.4);m.visible=false;g.add(m);fachos.push(m)})
+  }
+  // 🕶️🎗️🚩 acessórios da festa (peças pequenas, geometria e material repartidos por todos)
+  const acc={
+   lente:geo(new THREE.BoxGeometry(.13,.075,.03)),ponte:geo(new THREE.BoxGeometry(.06,.02,.02)),preto:mat(new THREE.MeshStandardMaterial({color:'#0b0b0b',roughness:.15,metalness:.6})),
+   faixa:geo(new THREE.BoxGeometry(.11,.62,.02)),faixaMat:mat(new THREE.MeshStandardMaterial({color:tema.faixa,roughness:.6,emissive:new THREE.Color(tema.faixa),emissiveIntensity:.15})),borda:geo(new THREE.BoxGeometry(.13,.62,.012)),bordaMat:mat(new THREE.MeshStandardMaterial({color:tema.tampo,roughness:.4,metalness:.4})),
+   mastro:geo(new THREE.CylinderGeometry(.018,.018,1.5,6)),madeira:mat(new THREE.MeshStandardMaterial({color:'#e8e2d4',roughness:.6})),pano:geo(new THREE.PlaneGeometry(.8,.52,6,1)),
+   corpoCam:geo(new THREE.BoxGeometry(.2,.14,.12)),lenteCam:geo(new THREE.CylinderGeometry(.045,.05,.14,10)),
+  }
+  // 🔥 aquecimento: deixa os modelos dos bonecos da festa já baixados desde o começo do dia (ninguém aparece; só a arte fica no cache)
+  for(const variant of ['adult-man','fuller-man','adult-woman'])civis.push(createCivilian(g,{id:'final-aquece-'+variant,variant,deferUntilVisible:true}))
 
   return{g,geos,mats,texs,civis,aviao,voo,vooDir,vooYaw,fachada,barracas,peruas,relogioDia,chegando,fumaca,N_FUMACA,sinal,sinalAssentos,band,ondaU,fogos,fPos,fCor,fDir,RAJ,POR,centros,podio,podioMat,tacaGrupo,papel,papelSem,corA,corB,
-   get jogadores(){return jogadores},set jogadores(v){jogadores=v},get placaPodio(){return placaPodio},set placaPodio(v){placaPodio=v},tela,texto,geo,mat,mobile,tipo,teams,cara}
+   get jogadores(){return jogadores},set jogadores(v){jogadores=v},get placaPodio(){return placaPodio},set placaPodio(v){placaPodio=v},tela,texto,geo,mat,mobile,tipo,teams,cara,tema,fundo,fachos,acc,get fotografos(){return fotografos},set fotografos(v){fotografos=v}}
  }
 
  // estado do dia
@@ -279,50 +325,76 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
 
  function encerrar(){
   if(!dia)return
-  dia.g.removeFromParent();dia.civis.forEach(c=>c.dispose());dia.jogadores.forEach(j=>j.corpo.dispose());dia.peruas.dispose();dia.geos.forEach(x=>x.dispose());dia.mats.forEach(x=>x.dispose());dia.texs.forEach(x=>x.dispose())
-  dia=null;diaKey='';festaDesde=null;desfecho=null;golsVistos=-1;sinalDesde=-Infinity;montouPodio=false;root.visible=false;override=false;animando=false
+  dia.g.removeFromParent();dia.civis.forEach(c=>c.dispose());dia.jogadores.forEach(j=>j.corpo.dispose());dia.fotografos.forEach(f=>f.corpo.dispose());dia.peruas.dispose();dia.geos.forEach(x=>x.dispose());dia.mats.forEach(x=>x.dispose());dia.texs.forEach(x=>x.dispose())
+  dia=null;flashTx=undefined;diaKey='';festaDesde=null;desfecho=null;golsVistos=-1;sinalDesde=-Infinity;montouPodio=false;root.visible=false;override=false;animando=false
  }
 
- function pose(c:Civil,p:{x:number;y:number;z:number;heading:number;speed?:number;distance?:number},time:number,visivel=true,inclina=0){
+ function pose(c:Civil,p:{x:number;y:number;z:number;heading:number;speed?:number;distance?:number},time:number,visivel=true,inclina=0,comemora?:number){
   c.root.position.set(p.x,p.y,p.z);c.root.rotation.set(inclina,p.heading,0,'YXZ')
   const lod=residentVisibility(c.root.position,1.76,lastCamera,lastHeight)
-  c.update({seconds:time,distance:p.distance??0,speed:p.speed??0,visible:visivel&&lod.visible,detail:lod.detail})
+  // (🙌 `comemora` = o segundo do gesto de vitória — braços pra cima — em laço; o clipe Victory tem 1,875 s)
+  c.update({seconds:time,distance:p.distance??0,speed:p.speed??0,visible:visivel&&lod.visible,detail:lod.detail,...(comemora!==undefined?{activity:'celebrating',activityTime:((comemora%1.875)+1.875)%1.875}:{})})
+ }
+
+ /** veste o boneco da festa: óculos escuros, faixa de campeão no peito e/ou bandeira na mão (presos no corpo, sem osso:
+  * o gesto mexe os braços, os acessórios acompanham o corpo — leve e sem conta por quadro) */
+ function vestir(d:NonNullable<typeof dia>,c:Civil,v:VagaFesta,cor:string){
+  const A=d.acc
+  if(v.oculos){const o=new THREE.Group();o.name='final-oculos';for(const sx of [-1,1]){const l=new THREE.Mesh(A.lente,A.preto);l.position.x=sx*.075;o.add(l)}o.add(new THREE.Mesh(A.ponte,A.preto));o.position.set(0,1.43,.3);c.root.add(o)}
+  if(v.faixa){const f=new THREE.Group();f.name='final-faixa-campeao';const m=new THREE.Mesh(A.faixa,A.faixaMat);const b=new THREE.Mesh(A.borda,A.bordaMat);b.position.z=-.006;f.add(b,m);f.position.set(0,.86,.17);f.rotation.z=.72;c.root.add(f)}
+  if(v.bandeira){
+   const f=new THREE.Group();f.name='final-bandeira-mao'
+   const mastro=new THREE.Mesh(A.mastro,A.madeira);mastro.position.y=.75;f.add(mastro)
+   const W=128,H=84,tx=d.tela(W,H,cx=>{cx.fillStyle=cor;cx.fillRect(0,0,W,H);cx.fillStyle=d.tema.tampo;cx.fillRect(0,H*.4,W,H*.2);cx.fillStyle=d.tema.faixa;cx.fillRect(0,0,W,10);cx.fillRect(0,H-10,W,10)})
+   const pano=new THREE.Mesh(A.pano,d.mat(new THREE.MeshStandardMaterial({map:tx,roughness:.85,side:THREE.DoubleSide})));pano.position.set(.41,1.26,0);pano.name='final-bandeira-pano';f.add(pano)
+   f.position.set(.36,.55,.08);c.root.add(f);f.userData.pano=pano
+  }
  }
 
  function montarPodio(d:NonNullable<typeof dia>,res:DesfechoFinal,subjects:DadosDiaFinal['subjects']){
   montouPodio=true
-  const cor=corDoPodio(res,{home:d.corA,away:d.corB})
-  d.podioMat.color.set(cor)
-  // placa na frente do pódio: CAMPEÃO (só existe depois do apito)
-  // (🥅 decidida nos pênaltis: a placa ganha a linha "NOS PÊNALTIS!"; nas internacionais, o nome da taça — nunca a cobrança)
+  const cor=corDoPodio(res,{home:d.corA,away:d.corB}),tm=d.tema
+  // placa na frente do pódio: CAMPEÃO (só existe depois do apito), nas cores da competição
+  // (🥅 decidida nos pênaltis: a placa ganha a linha "NOS PÊNALTIS!"; nas internacionais/Supercopa, o nome da taça — nunca a cobrança)
   const txt=placaDoPodio(res,english()),duas=!!txt.linha
-  const W=512,H=duas?176:128,tx=d.tela(W,H,c=>{c.fillStyle=TINTA;c.fillRect(0,0,W,H);d.texto(c,txt.grande,W/2,duas?60:H/2+4,92,W-40,OURO);if(duas){c.fillStyle=OURO;c.fillRect(24,112,W-48,52);d.texto(c,txt.linha,W/2,139,40,W-64,TINTA)}})
+  const W=512,H=duas?176:128,tx=d.tela(W,H,c=>{c.fillStyle=tm.placaBg;c.fillRect(0,0,W,H);c.fillStyle=cor;c.fillRect(0,0,W,10);c.fillRect(0,H-10,W,10);d.texto(c,txt.grande,W/2,duas?62:H/2+4,92,W-40,tm.placaInk,TINTA);if(duas){c.fillStyle=tm.placaInk;c.fillRect(24,110,W-48,50);d.texto(c,txt.linha,W/2,136,40,W-64,tm.placaBg)}c.lineWidth=8;c.strokeStyle=TINTA;c.strokeRect(4,4,W-8,H-8)})
   const placa=new THREE.Mesh(d.geo(new THREE.PlaneGeometry(2.6,2.6*H/W)),d.mat(new THREE.MeshBasicMaterial({map:tx,fog:true})));placa.position.set(0,duas?.66:.62,1.215);d.podio.add(placa);d.placaPodio=placa
-  // papel picado nas cores de quem ganhou (+ dourado e branco)
-  const cores=[cor,cor,...d.cara.papel,'#FFFFFF',tintaSobre(cor)==='#FFFFFF'?cor:'#FFFFFF']
+  // papel picado: a cor de quem ganhou + as cores da competição
+  const cores=[cor,cor,...tm.confete]
   for(let i=0;i<d.papel.count;i++)d.papel.setColorAt(i,new THREE.Color(cores[i%cores.length]))
   if(d.papel.instanceColor)d.papel.instanceColor.needsUpdate=true
   const el=elencoDaFesta(res.campeao,d.mobile)
   // os bonecos saem de onde os marcadores do 2D estavam (os mesmos jogadores)
-  const de=(lado:LadoFinal,i:number)=>{const s=(subjects??[]).filter(q=>q.side===lado&&q.visible!==false);const q=s[i%Math.max(1,s.length)];if(q)return{x:q.mx,z:q.mz};const a=(i/7)*Math.PI*2;return{x:Math.cos(a)*14,z:Math.sin(a)*9}}
-  // vagas no pódio: 3 no degrau do meio, o resto nos de lado
-  const vagas=[{x:0,h:1.25},{x:-.95,h:1.25},{x:.95,h:1.25},{x:-3.6,h:.85},{x:3.6,h:.55},{x:-2.6,h:.85},{x:2.6,h:.55}].slice(0,el.podio)
-  const corVenc=cor
+  const de=(lado:LadoFinal,i:number)=>{const s=(subjects??[]).filter(q=>q.side===lado&&q.visible!==false);const q=s[i%Math.max(1,s.length)];if(q)return{x:q.mx,z:q.mz};const a=(i/11)*Math.PI*2;return{x:Math.cos(a)*14,z:Math.sin(a)*9}}
+  // 🎉 o ELENCO INTEIRO (11): 7 no pódio, 4 em volta — cada um com seu jeito de comemorar
   const lista:typeof d.jogadores=[]
-  vagas.forEach((v,i)=>{
-   const s=de(res.vencedor,i),frente={x:v.x,z:1.9},corpo=createCivilian(d.g,{id:'final-campeao-'+i,outfitColor:corVenc,variant:i%3===2?'fuller-man':'adult-man'})
-   lista.push({corpo,rota:activityRoute([{x:s.x,y:0,z:s.z},{x:frente.x,y:0,z:frente.z}],Math.max(1.4,Math.hypot(s.x-frente.x,s.z-frente.z)/(FESTA_FINAL.caminhada[1]-FESTA_FINAL.caminhada[0]))),alvo:{x:v.x,y:v.h,z:0},frente,saindo:false,taca:i===0})
+  coreografiaDaFesta().forEach((v,i)=>{
+   const s=de(res.vencedor,i),frente=v.podio?{x:v.x,z:1.9}:{x:v.x,z:v.z},corpo=createCivilian(d.g,{id:'final-campeao-'+i,outfitColor:cor,variant:i%4===3?'fuller-man':'adult-man'})
+   vestir(d,corpo,v,cor)
+   lista.push({corpo,rota:activityRoute([{x:s.x,y:0,z:s.z},{x:frente.x,y:0,z:frente.z}],Math.max(1.4,Math.hypot(s.x-frente.x,s.z-frente.z)/(FESTA_FINAL.caminhada[1]-FESTA_FINAL.caminhada[0]))),alvo:{x:v.x,y:v.h,z:v.podio?0:v.z},frente,saindo:false,taca:i===0,vaga:v,i})
   })
   if(!res.campeao){
    const corUs=res.usuario==='home'?d.corA:d.corB
    for(let i=0;i<el.saindo;i++){
     const s=de(res.usuario,i+1),fim={x:-10-i*1.6,z:38.6}
     const corpo=createCivilian(d.g,{id:'final-vice-'+i,outfitColor:corUs,variant:'adult-man'})
-    lista.push({corpo,rota:activityRoute([{x:s.x,y:0,z:s.z},{x:(s.x+fim.x)/2,y:0,z:30},{x:fim.x,y:0,z:fim.z}],1.25),alvo:{x:fim.x,y:0,z:fim.z},frente:fim,saindo:true,taca:false})
+    lista.push({corpo,rota:activityRoute([{x:s.x,y:0,z:s.z},{x:(s.x+fim.x)/2,y:0,z:30},{x:fim.x,y:0,z:fim.z}],1.25),alvo:{x:fim.x,y:0,z:fim.z},frente:fim,saindo:true,taca:false,i:100+i})
    }
   }
   d.jogadores=lista
+  // 📸 FOTÓGRAFOS: entram pela lateral e ficam na frente do pódio, câmera na cara e flash piscando
+  d.fotografos=fotografosDaFesta(d.mobile).map((f,i)=>{
+   const corpo=createCivilian(d.g,{id:'final-fotografo-'+i,outfitColor:i%2?'#3a3f46':'#23262b',variant:i%2?'adult-woman':'adult-man'})
+   const cam=new THREE.Group();cam.name='final-camera-foto';const A=d.acc
+   const caixa=new THREE.Mesh(A.corpoCam,A.preto);cam.add(caixa);const lente=new THREE.Mesh(A.lenteCam,A.preto);lente.rotation.x=Math.PI/2;lente.position.z=.12;cam.add(lente)
+   cam.position.set(0,1.42,.38);corpo.root.add(cam)
+   const flash=new THREE.Sprite(d.mat(new THREE.SpriteMaterial({color:'#ffffff',map:pontoFlash(d),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,toneMapped:false})));flash.scale.setScalar(1.3);flash.position.set(0,1.5,.55);flash.visible=false;corpo.root.add(flash)
+   const lado=f.x<0?-1:1,ini={x:lado*15,z:8.5}
+   return{corpo,rota:activityRoute([{x:ini.x,y:0,z:ini.z},{x:f.x,y:0,z:f.z+1.2},{x:f.x,y:0,z:f.z}],2.2),flash,ritmo:f.ritmo,fase:f.fase}
+  })
  }
+ let flashTx:THREE.Texture|undefined
+ function pontoFlash(d:NonNullable<typeof dia>){if(!flashTx){flashTx=d.tela(64,64,c=>{const gr=c.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gr;c.fillRect(0,0,64,64)})}return flashTx}
 
  function atualizar(input:DadosDiaFinal,camera?:THREE.Camera,height=720){
   lastCamera=camera;lastHeight=height
@@ -409,15 +481,50 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
    if(q.trocaBonecos&&!montouPodio)montarPodio(d,desfecho,input.subjects)
    override=q.trocaBonecos
    d.podio.visible=q.podio>0;d.podio.scale.set(1,Math.max(.02,suave(q.podio)),1)
+   // 🏆 a taça roda de mão em mão no degrau de cima depois de erguida (capitão → esquerda → direita…)
+   const roda=q.taca>=1?quemLevantaATaca(tf,FESTA_FINAL.taca[1]):null
+   const posTopo:{x:number;y:number;z:number}[]=[]
    for(const p of d.jogadores){
     if(p.saindo){const r=p.rota!.at(Math.max(0,tf-FESTA_FINAL.caminhada[0]));pose(p.corpo,{...r,y:ground(r.x,r.z)},relogio,q.trocaBonecos&&!r.done,.2);continue}
-    if(q.sobem<=0){const r=p.rota!.at(Math.max(0,tf-FESTA_FINAL.caminhada[0]));pose(p.corpo,{...r,y:0},relogio,q.trocaBonecos,0);continue}
-    const u=suave(q.sobem),x=p.frente.x+(p.alvo.x-p.frente.x)*u,z=p.frente.z+(p.alvo.z-p.frente.z)*u,y=p.alvo.y*Math.min(1,u*1.6)+Math.sin(u*Math.PI)*.35
-    // campeão pula de alegria depois de subir
-    const pulo=q.sobem>=1?Math.max(0,Math.sin((tf+p.alvo.x)*5))*(q.taca>=1?.25:.12):0
-    pose(p.corpo,{x,y:y+pulo,z,heading:0,speed:q.sobem<1?.6:0,distance:tf},relogio,true,0)
-    if(p.taca){d.tacaGrupo.visible=true;const lev=suave(q.taca);d.tacaGrupo.position.set(x,y+pulo+1.0+lev*.9,z+.18+(1-lev)*.22);d.tacaGrupo.rotation.set(0,relogio*.8*lev,Math.sin(relogio*3)*.12*lev)}
+    const v=p.vaga!,t=tf+p.i*.37
+    let x:number,y:number,z:number,heading=0,inclina=0,comemora:number|undefined
+    if(!v.podio){
+     // no chão: anda até a vaga dele e já começa a festa
+     const r=p.rota!.at(Math.max(0,tf-FESTA_FINAL.caminhada[0]))
+     if(!r.done){pose(p.corpo,{...r,y:0},relogio,q.trocaBonecos,0);continue}
+     x=p.alvo.x;y=0;z=p.alvo.z;heading=Math.atan2(-x*.25,6-z)
+    }else{
+     if(q.sobem<=0){const r=p.rota!.at(Math.max(0,tf-FESTA_FINAL.caminhada[0]));pose(p.corpo,{...r,y:0},relogio,q.trocaBonecos,0);continue}
+     const u=suave(q.sobem);x=p.frente.x+(p.alvo.x-p.frente.x)*u;z=p.frente.z+(p.alvo.z-p.frente.z)*u;y=p.alvo.y*Math.min(1,u*1.6)+Math.sin(u*Math.PI)*.35
+     if(q.sobem<1){pose(p.corpo,{x,y,z,heading:0,speed:.6,distance:tf},relogio,true,0);continue}
+    }
+    // 🎉 cada um com o seu jeito
+    const segura=roda?(p.i===roda.de&&roda.passando<.5)||(p.i===roda.para&&roda.passando>=.5):p.taca
+    const anim=segura?'taca':v.anim
+    if(anim==='pula')y+=Math.abs(Math.sin(t*4.6))*.34
+    else if(anim==='bracos')comemora=t
+    else if(anim==='danca'){heading+=Math.sin(t*2.7)*.65;x+=Math.sin(t*2.7)*.14;y+=Math.abs(Math.sin(t*5.4))*.07;inclina=Math.sin(t*5.4)*.06}
+    else if(anim==='abraco'&&v.parceiro!==undefined){const o=d.jogadores.find(j=>j.i===v.parceiro);if(o){heading=Math.atan2(o.alvo.x-x,o.alvo.z-z);x+=(o.alvo.x-x)*.18;inclina=.2+Math.sin(t*3)*.04}}
+    else if(anim==='taca'){comemora=t;y+=Math.max(0,Math.sin(t*5))*.18}
+    pose(p.corpo,{x,y,z,heading,distance:tf},relogio,true,inclina,comemora)
+    const band=p.corpo.root.getObjectByName('final-bandeira-mao');if(band){band.rotation.z=Math.sin(t*3.1)*.25;const pano=band.userData.pano as THREE.Mesh|undefined;if(pano)pano.rotation.y=Math.sin(t*4.3)*.35}
+    if(p.i<=2)posTopo[p.i]={x,y,z}
+    if(!roda&&p.taca){d.tacaGrupo.visible=true;const lev=suave(q.taca);d.tacaGrupo.position.set(x,y+1.0+lev*.9,z+.18+(1-lev)*.22);d.tacaGrupo.rotation.set(0,relogio*.8*lev,Math.sin(relogio*3)*.12*lev)}
    }
+   if(roda&&posTopo[roda.de]&&posTopo[roda.para]){
+    const a=posTopo[roda.de],b=posTopo[roda.para],u=suave(roda.passando)
+    d.tacaGrupo.visible=true;d.tacaGrupo.position.set(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u+1.9+Math.sin(u*Math.PI)*.35,a.z+(b.z-a.z)*u+.18);d.tacaGrupo.rotation.set(0,relogio*.8,Math.sin(relogio*3)*.12)
+   }
+   // 📸 fotógrafos: chegam pela lateral junto com o elenco e disparam o flash sem parar
+   for(const f of d.fotografos){
+    const r=f.rota.at(Math.max(0,tf-FESTA_FINAL.caminhada[0]))
+    if(!r.done){pose(f.corpo,{...r,y:0},relogio,q.trocaBonecos,0);f.flash.visible=false;continue}
+    pose(f.corpo,{x:r.x,y:0,z:r.z,heading:Math.PI+Math.sin(tf*.7+f.fase*6)*.25},relogio,true,0)
+    f.flash.visible=flashAceso(tf,f.ritmo,f.fase)
+   }
+   // 🖼️ painel e 💡 canhões de luz da competição sobem junto com o pódio
+   d.fundo.visible=q.podio>0;d.fundo.scale.set(1,Math.max(.02,suave(q.podio)),1)
+   d.fachos.forEach((m,k)=>{m.visible=q.podio>=1;if(m.visible){m.rotation.z=Math.sin(tf*.9+k*1.7)*.38;m.rotation.x=-.32+Math.sin(tf*.6+k)*.12}})
    // papel picado caindo em volta do pódio
    d.papel.visible=q.papel>0
    if(d.papel.visible){
@@ -426,12 +533,12 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
     d.papel.instanceMatrix.needsUpdate=true
    }
    // fumaça na festa (cores de quem ganhou)
-   if(q.fumaca>0){const c1=corDoPodio(desfecho,{home:d.corA,away:d.corB});for(const [x,z,c] of [[-6.5,2.5,c1],[6.5,2.5,'#f4ecd6'],[-6.5,-2.5,'#f4ecd6'],[6.5,-2.5,c1]] as const)emissor(x,0,z,c,relogio+x,d.mobile?4:6,4.6,q.fumaca*1.2)}
+   if(q.fumaca>0){const c1=corDoPodio(desfecho,{home:d.corA,away:d.corB});for(const [x,z,c] of [[-8.5,1.5,c1],[8.5,1.5,d.tema.luz[0]],[-8.5,-3,d.tema.luz[0]],[8.5,-3,c1]] as const)emissor(x,0,z,c,relogio+x,d.mobile?4:6,4.6,q.fumaca*1.2)}
    // 🎆 fogos (só se o seu clube é campeão)
    d.fogos.visible=q.fogos
    if(q.fogos){
     const vida=2.6,passo=1.15
-    const corF=[new THREE.Color(corDoPodio(desfecho,{home:d.corA,away:d.corB})).lerp(new THREE.Color('#ffffff'),.25).multiplyScalar(1.6),new THREE.Color(OURO).multiplyScalar(1.4),new THREE.Color(d.cara.fogo).multiplyScalar(1.5),new THREE.Color(d.cara.metal).multiplyScalar(1.4),new THREE.Color(d.cara.forma==='copa'?'#9F6BFF':d.cara.papel[1]).multiplyScalar(1.5)]
+    const corF=[new THREE.Color(corDoPodio(desfecho,{home:d.corA,away:d.corB})).lerp(new THREE.Color('#ffffff'),.25).multiplyScalar(1.6),...d.tema.fogos.map(c=>new THREE.Color(c).multiplyScalar(1.5))]
     const tl=tf-FESTA_FINAL.fogos[0]
     for(let b=0;b<d.RAJ;b++){
      const ciclo=d.RAJ*passo,idade=((tl-b*passo)%ciclo+ciclo)%ciclo,rodada=Math.floor((tl-b*passo)/ciclo),viva=tl>=b*passo&&idade<vida
@@ -459,7 +566,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   overrideField:()=>override,
   /** pede quadro enquanto há avião, fumaça, sinalizador ou festa em andamento */
   animating:()=>animando,
-  inspect:()=>({active:!!dia,key:diaKey,tipo:dia?.tipo,trophy:dia?.cara.forma,desfecho,override,animando,extraWalkers:dia?.chegando.length??0,podium:!!dia?.podio.visible,fireworks:!!dia?.fogos.visible,plane:!!dia?.aviao.visible,flares:dia?.sinal.count??0,banners:dia?.band.visible?dia.band.count:0}),
+  inspect:()=>({active:!!dia,key:diaKey,tipo:dia?.tipo,trophy:dia?.cara.forma,theme:dia?.tema.id,squad:dia?.jogadores.filter(j=>!j.saindo).length??0,squadVisible:dia?.jogadores.filter(j=>!j.saindo&&j.corpo.root.visible).length??0,photographers:dia?.fotografos.length??0,flashes:dia?.fotografos.filter(f=>f.flash.visible).length??0,desfecho,override,animando,extraWalkers:dia?.chegando.length??0,podium:!!dia?.podio.visible,fireworks:!!dia?.fogos.visible,plane:!!dia?.aviao.visible,flares:dia?.sinal.count??0,banners:dia?.band.visible?dia.band.count:0}),
   dispose(){encerrar();root.removeFromParent()},
  }
  // 🧪 revisão local (só no `vite` de desenvolvimento): pular no tempo e mirar a câmera pra tirar as fotos

@@ -19,6 +19,16 @@ Tudo só desenho (não muda resultado nem motor) e tudo atrás da trava do mapa 
   `mapa-festa-mundial.png`); gerador `scripts/imersao-mapa/shots-final-onibus.mjs` (QA: `simularFinalQA(modo,{intl,penaltis})`).
 - [ ] OK visual do Diego nas fotos → publicar. Reverter = voltar o commit.
 - [ ] Copa do Mundo (seleções) não entrou: não usa o mapa do clube.
+- 🎉 **FESTA DO ELENCO INTEIRO + TEMA POR COMPETIÇÃO** (04/11, Diego: *"quero mais festa, com todos jogadores, fotógrafos…
+  cada nome de competição deve ter sua temática e cores"*): os 11 do campeão (7 no pódio, 4 em volta), cada um comemorando do seu
+  jeito (pula, braços pra cima com o gesto Victory, dança, abraço em dupla, taça passando de mão em mão no degrau de cima); alguns de
+  óculos escuros, faixa de campeão no peito ou bandeira na mão. 3 fotógrafos no celular / 4 no PC, com câmera e flash (sprite branco,
+  sem luz de verdade). Tema (`temaDaFesta`, cores de `COMPS`): pódio, tampo, placa, faixas, confete, fogos, canhões de luz e PAINEL
+  de fundo com o nome + frase + enfeite (estrelas da Champions, fumaça da Liberta/Supercopa, globo do Mundial, faixas da Copa).
+  Os modelos dos bonecos são baixados no começo do dia de final (aquecimento), pra ninguém aparecer atrasado. Fotos:
+  `scripts/mockups/mapa-festa-{liberta,champions,mundial,supercopa,penaltis}.png`.
+- [ ] Divisões (Série A…Várzea): o tema já existe (`carA`…`carV`), mas o mapa ainda NÃO tem pódio de título de liga (a liga não
+  acaba numa partida-final que o mapa reconheça). Ligar depende de decidir com o Diego quando a festa da liga entra no mapa.
 
 ## 🏟️ 04/11 — Salas com liga de 10 OU 20 times + ranking por PONTOS (LOCAL, branch do agente, esperando OK)
 Diego: *"a pessoa agora escolhe 10 times ou 20 times… campeão da liga e da copa nesse modo [10] ganhará apenas 1 ponto… com 20

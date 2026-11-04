@@ -20,8 +20,8 @@ function App(){const [save,setSave]=React.useState(presets.complete),[selected,s
  const journey=calendar?jornadaDoComplexo({agenda:{fixtureId:calendar.fixtureId??`qa-jornada-${calendar.ordinal}`,seasonKey:'qa-local',competition:calendar.competition??'league',ordinal:calendar.ordinal},match,phase:calendar.phase}):undefined;
  window.setComplexoJourney=value=>setCalendar(value);
  // 🏆 dia de FINAL (amostra local): 'antes' = torcida chegando · 'jogo' = rolando · 'campeao' / 'vice' = depois do apito
- // (04/11) opções: {intl:'libertadores'|'champions'|'mundial'} = final internacional · {penaltis:'home'|'away'} = 1×1 decidido nos pênaltis (já mostrados)
- window.simularFinalQA=(modo='antes',op={})=>{const F=op.intl?`qa:intl:41:${op.intl}:Final:3:0:1`:'qa:copa:5:Final:leg:0:0:1',teams=[{name:'Leão da Serra',color:'#1B7A3D',players:[]},{name:'Tubarão EC',color:'#C2452F',players:[]}];setArrival({fixtureId:F,teams});
+ // (04/11) opções: {intl:'libertadores'|'champions'|'mundial'} = final internacional · {super:true} = Supercopa · {penaltis:'home'|'away'} = 1×1 decidido nos pênaltis (já mostrados)
+ window.simularFinalQA=(modo='antes',op={})=>{const F=op.intl?`qa:intl:41:${op.intl}:Final:3:0:1`:op.super?'qa:copa:7:Supercopa:leg:0:0:1':'qa:copa:5:Final:leg:0:0:1',teams=[{name:'Leão da Serra',color:'#1B7A3D',players:[]},{name:'Tubarão EC',color:'#C2452F',players:[]}];setArrival({fixtureId:F,teams});
   setCalendar({ordinal:2,competition:'cup',phase:modo==='antes'?'arrival':modo==='jogo'?'playing':'departure',fixtureId:F});
   setMatch(modo==='antes'?undefined:{context:{id:F,homeClubId:0,awayClubId:1,home:[],away:[],...(op.penaltis&&modo!=='jogo'?{penaltis:{vencedor:op.penaltis}}:{})},viewerClubId:0,officialTeams:[teams[0].name,teams[1].name],minute:modo==='jogo'?30:93,homeScore:op.penaltis?1:modo==='vice'?1:2,awayScore:op.penaltis?1:modo==='vice'?2:1,paused:modo!=='jogo',finished:modo!=='jogo',homeColor:teams[0].color,awayColor:teams[1].color})};
 

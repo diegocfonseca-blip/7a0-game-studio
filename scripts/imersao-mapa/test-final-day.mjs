@@ -1,6 +1,6 @@
 // 🏆 Dia de FINAL no mapa 3D: é final? quem é campeão? de quem é o pódio? nada antes do apito?
 import assert from 'node:assert/strict';
-import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,idPartidaInternacional,caraDaTaca,placaDoPodio} from '../../src/escalacao/presidencia-complexo-final-regras.ts';
+import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,idPartidaInternacional,caraDaTaca,placaDoPodio,temaDaFesta,coreografiaDaFesta,quemLevantaATaca,fotografosDaFesta,flashAceso,ELENCO_FESTA} from '../../src/escalacao/presidencia-complexo-final-regras.ts';
 import {cityPopulation} from '../../src/escalacao/cidade3d/population.mjs';
 
 // 1) A final é a que a competição já identifica no id (pyramidseason → MyCopaMatch).
@@ -84,4 +84,24 @@ assert.equal(placaDoPodio({tipo:'final',penaltis:true}).linha,'NOS PÊNALTIS!');
 assert.equal(placaDoPodio({tipo:'final',penaltis:true},true).linha,'ON PENALTIES!');
 assert.equal(placaDoPodio({tipo:'libertadores',penaltis:true}).linha,'LIBERTADORES · NOS PÊNALTIS!');
 assert.equal(placaDoPodio({tipo:'final'}).linha,'');
-console.log(JSON.stringify({status:'PASS',internationalFinals:true,penaltyFinals:true,finalFromCompetitionId:true,noSpoilerBeforeWhistle:true,drawNoParty:true,podiumOwner:true,populationCaps:true,partyFitsWindow:true}));
+// 12) 🎉 Festa do elenco inteiro (04/11): 11 jogadores, 7 no pódio, cada um comemorando; óculos, faixas e bandeiras; fotógrafos.
+const vagas=coreografiaDaFesta();
+assert.equal(vagas.length,ELENCO_FESTA);assert.equal(ELENCO_FESTA,11);
+assert.equal(vagas.filter(v=>v.podio).length,7);
+for(const k of ['oculos','faixa','bandeira'])assert(vagas.filter(v=>v[k]).length>=2,'acessório '+k);
+assert.deepEqual(new Set(vagas.map(v=>v.anim)),new Set(['taca','bracos','pula','abraco','danca']));
+for(const v of vagas)if(v.parceiro!==undefined)assert.equal(vagas[v.parceiro].parceiro,vagas.indexOf(v),'abraço é de dois');
+assert.equal(new Set(vagas.map(v=>v.x+':'+v.z+':'+v.h)).size,11,'ninguém em cima do outro');
+assert.deepEqual(quemLevantaATaca(0,0),{de:0,para:1,passando:0});
+assert.equal(quemLevantaATaca(3.2*4+.1,0).de,1,'a taça passa de mão em mão');
+assert(quemLevantaATaca(3.1,0).passando>0);
+assert.equal(fotografosDaFesta(true).length,3);assert.equal(fotografosDaFesta(false).length,4);
+for(const f of fotografosDaFesta(false))assert(f.z>3,'fotógrafo na frente do pódio');
+{let acesos=0;for(let t=0;t<20;t+=.01)acesos+=flashAceso(t,.8,.2)?1:0;assert(acesos>0&&acesos<400,'flash rápido: pisca e apaga')}
+// 13) 🎨 Cada competição com tema próprio (cores do pódio/fundo/luz, enfeite) — nunca a mesma cara
+const temas=['final','supercopa','libertadores','champions','mundial','carA','carB','carC','carD','carV'].map(temaDaFesta);
+assert.equal(new Set(temas.map(t=>t.podio+t.fundo.join()+t.luz.join())).size,temas.length,'cada uma com sua cara');
+assert.equal(temaDaFesta('champions').enfeite,'estrelas');assert.equal(temaDaFesta('libertadores').enfeite,'fumaca');assert.equal(temaDaFesta('mundial').enfeite,'globo');
+for(const t of temas){for(const c of [t.podio,t.tampo,t.placaBg,t.placaInk,t.faixa,...t.fundo,...t.confete,...t.fogos,...t.luz])assert.match(c,/^#[0-9a-f]{6}$/i,t.id);assert(t.nome[0]&&t.nome[1]&&t.frase[0]&&t.frase[1])}
+assert.equal(placaDoPodio({tipo:'supercopa'},true).linha,'SUPER CUP');
+console.log(JSON.stringify({status:'PASS',wholeSquadParty:true,photographers:true,themes:true,internationalFinals:true,penaltyFinals:true,finalFromCompetitionId:true,noSpoilerBeforeWhistle:true,drawNoParty:true,podiumOwner:true,populationCaps:true,partyFitsWindow:true}));

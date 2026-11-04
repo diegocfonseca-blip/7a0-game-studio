@@ -92,7 +92,7 @@ export function caraDaTaca(tipo:TipoFinal):CaraDaTaca{
 }
 /** A placa do pódio: "CAMPEÃO" e, embaixo, a competição internacional e/ou "NOS PÊNALTIS!". */
 export function placaDoPodio(d:Pick<DesfechoFinal,'tipo'|'penaltis'>,english=false){
- const comp=d.tipo==='libertadores'?'LIBERTADORES':d.tipo==='champions'?'CHAMPIONS LEAGUE':d.tipo==='mundial'?(english?'CLUB WORLD CUP':'MUNDIAL'):''
+ const comp=d.tipo==='supercopa'?(english?'SUPER CUP':'SUPERCOPA'):d.tipo==='libertadores'?'LIBERTADORES':d.tipo==='champions'?'CHAMPIONS LEAGUE':d.tipo==='mundial'?(english?'CLUB WORLD CUP':'MUNDIAL'):''
  const pen=d.penaltis?(english?'ON PENALTIES!':'NOS PÊNALTIS!'):''
  return {grande:english?'CHAMPIONS':'CAMPEÃO',linha:[comp,pen].filter(Boolean).join(' · ')}
 }
@@ -132,3 +132,66 @@ export function quadroDaFesta(t:number,campeao:boolean):QuadroFesta{
 export function elencoDaFesta(campeao:boolean,mobile:boolean){
  return {podio:mobile?5:7,saindo:campeao?0:mobile?3:5}
 }
+
+/** 🎉 TEMA DE CADA COMPETIÇÃO NA FESTA (04/11, Diego: *"cada nome de competição deve ter sua temática e cores também"*).
+ * As cores saem de `COMPS` (competicoes-visual.tsx) — a mesma paleta da festa da aba Jogos. Vale pro pódio, a placa, as faixas
+ * de campeão, o painel de fundo, o confete, os fogos e os canhões de luz. As divisões já ficam prontas aqui (`carA`…`carV`):
+ * hoje o mapa só tem pódio em FINAL (Copa, Supercopa, Liberta, Champions, Mundial). */
+export type TemaId=TipoFinal|'carA'|'carB'|'carC'|'carD'|'carV'
+export type TemaFesta={id:TemaId;nome:readonly [string,string];frase:readonly [string,string];cara:CaraDaTaca
+ /** degrau do pódio · tampo · placa (fundo/letra) · faixa de campeão no peito */
+ podio:string;tampo:string;placaBg:string;placaInk:string;faixa:string
+ /** painel de fundo: degradê, cor do nome, enfeite */
+ fundo:readonly [string,string];titulo:string;enfeite:'estrelas'|'fumaca'|'faixas'|'sol'|'raios'|'globo'|null
+ confete:readonly string[];fogos:readonly string[];luz:readonly [string,string]}
+const T=(t:Omit<TemaFesta,'cara'>&{cara?:CaraDaTaca}):TemaFesta=>({...t,cara:t.cara??caraDaTaca(t.id as TipoFinal)})
+export function temaDaFesta(id:TemaId):TemaFesta{
+ switch(id){
+  case 'libertadores':return T({id,nome:['LIBERTADORES','LIBERTADORES'],frase:['GLÓRIA ETERNA','ETERNAL GLORY'],podio:'#1a140a',tampo:'#C9A227',placaBg:'#0B0B0B',placaInk:'#C9A227',faixa:'#C9A227',fundo:['#3a2c08','#0B0B0B'],titulo:'#F2E6C8',enfeite:'fumaca',confete:['#C9A227','#B5121B','#F2E6C8','#FFFFFF'],fogos:['#C9A227','#B5121B','#F2E6C8'],luz:['#C9A227','#B5121B']})
+  case 'champions':return T({id,nome:['CHAMPIONS LEAGUE','CHAMPIONS LEAGUE'],frase:['A ORELHUDA É SUA','BIG EARS ARE YOURS'],podio:'#0A1640',tampo:'#D5DCE4',placaBg:'#0A1640',placaInk:'#FFFFFF',faixa:'#1F3A93',fundo:['#2c4fb5','#0A1640'],titulo:'#FFFFFF',enfeite:'estrelas',confete:['#D5DCE4','#FFFFFF','#1F3A93','#8E9AA8'],fogos:['#FFFFFF','#6F8FFF','#D5DCE4'],luz:['#6F8FFF','#FFFFFF']})
+  case 'mundial':return T({id,nome:['MUNDIAL DE CLUBES','CLUB WORLD CUP'],frase:['DONO DO PLANETA','OWNER OF THE PLANET'],podio:'#111111',tampo:'#FFC400',placaBg:'#111111',placaInk:'#FFC400',faixa:'#FFC400',fundo:['#4a3a08','#111111'],titulo:'#FFC400',enfeite:'globo',confete:['#FFC400','#8C6A00','#F4ECD6','#FFFFFF'],fogos:['#FFC400','#F4ECD6','#8C6A00'],luz:['#FFC400','#F4ECD6']})
+  case 'supercopa':return T({id,nome:['SUPERCOPA','SUPER CUP'],frase:['CAMPEÃO CONTRA CAMPEÃO','CHAMPION VS CHAMPION'],cara:caraDaTaca('final'),podio:'#C2452F',tampo:'#FFC400',placaBg:'#2a0805',placaInk:'#FFC400',faixa:'#E8503A',fundo:['#c2452f','#2a0805'],titulo:'#FFFFFF',enfeite:'fumaca',confete:['#E8503A','#FFC400','#FFFFFF','#FFD9D2'],fogos:['#E8503A','#FFC400','#FFFFFF'],luz:['#E8503A','#FFC400']})
+  case 'carA':return T({id,nome:['SÉRIE A','SÉRIE A'],frase:['O TOPO DO BRASIL','THE TOP OF BRAZIL'],cara:caraDaTaca('final'),podio:'#0C0C0C',tampo:'#FFC400',placaBg:'#0C0C0C',placaInk:'#FFC400',faixa:'#FFC400',fundo:['#5a4510','#0C0C0C'],titulo:'#FFC400',enfeite:'faixas',confete:['#FFC400','#FFE79A','#1B7A3D','#FFFFFF'],fogos:['#FFC400','#FFE79A','#1B7A3D'],luz:['#FFC400','#FFE79A']})
+  case 'carB':return T({id,nome:['SÉRIE B','SÉRIE B'],frase:['A PORTA DA ELITE','THE DOOR TO THE ELITE'],cara:caraDaTaca('final'),podio:'#1c0a3a',tampo:'#D5DCE4',placaBg:'#1c0a3a',placaInk:'#E3D4FF',faixa:'#7C3AED',fundo:['#7c3aed','#1c0a3a'],titulo:'#FFFFFF',enfeite:'estrelas',confete:['#B794FF','#D5DCE4','#FFC400','#FFFFFF'],fogos:['#B794FF','#FFFFFF','#FFC400'],luz:['#B794FF','#D5DCE4']})
+  case 'carC':return T({id,nome:['SÉRIE C','SÉRIE C'],frase:['O MEIO DO CAMINHO','HALFWAY UP'],cara:caraDaTaca('final'),podio:'#0b1d38',tampo:'#CFE2F7',placaBg:'#0b1d38',placaInk:'#FFFFFF',faixa:'#2f6bae',fundo:['#2f6bae','#0b1d38'],titulo:'#FFFFFF',enfeite:'raios',confete:['#5AA0E8','#FFFFFF','#FFC400','#CFE2F7'],fogos:['#5AA0E8','#FFFFFF','#FFC400'],luz:['#5AA0E8','#FFFFFF']})
+  case 'carD':return T({id,nome:['SÉRIE D','SÉRIE D'],frase:['A SUBIDA COMEÇA AQUI','THE CLIMB STARTS HERE'],cara:caraDaTaca('final'),podio:'#06240f',tampo:'#F4ECD6',placaBg:'#06240f',placaInk:'#F4ECD6',faixa:'#2a8a4c',fundo:['#2a8a4c','#06240f'],titulo:'#FFFFFF',enfeite:'raios',confete:['#2FBF5A','#F4ECD6','#FFC400','#FFFFFF'],fogos:['#2FBF5A','#F4ECD6','#FFC400'],luz:['#2FBF5A','#F4ECD6']})
+  case 'carV':return T({id,nome:['VÁRZEA','VÁRZEA'],frase:['REI DO TERRÃO','KING OF THE DIRT PITCH'],cara:caraDaTaca('final'),podio:'#2b1608',tampo:'#FFE79A',placaBg:'#2b1608',placaInk:'#FFE79A',faixa:'#C98A3A',fundo:['#9a6631','#2b1608'],titulo:'#FFE79A',enfeite:'sol',confete:['#FFE79A','#C98A3A','#F4ECD6','#FFFFFF'],fogos:['#FFE79A','#C98A3A','#FFFFFF'],luz:['#FFE79A','#C98A3A']})
+  default:return T({id:'final',nome:['COPA','CUP'],frase:['MATA-MATA DO PAÍS INTEIRO','THE WHOLE COUNTRY\u2019S KNOCKOUT'],podio:'#0a3d1d',tampo:'#FFC400',placaBg:'#0a3d1d',placaInk:'#FFE79A',faixa:'#1B7A3D',fundo:['#1B7A3D','#0a3d1d'],titulo:'#FFE79A',enfeite:'faixas',confete:['#FFC400','#1B7A3D','#2F6BAE','#FFFFFF'],fogos:['#FFC400','#2FBF5A','#FFFFFF'],luz:['#FFC400','#2FBF5A']})
+ }
+}
+
+/** 🎉 A FESTA DO ELENCO INTEIRO (04/11, Diego: *"não só os 3 no pódio, quero uma festa deles todos"*): os 11 do campeão,
+ * 7 no pódio e 4 no chão em volta, cada um com o seu jeito de comemorar e alguns com óculos de festa, faixa de campeão no
+ * peito ou bandeira na mão. Fotógrafos na frente, com flash. Tudo determinístico (a mesma festa em qualquer aparelho). */
+export type ComemoracaoFesta='pula'|'bracos'|'danca'|'abraco'|'taca'
+export type VagaFesta={x:number;z:number;h:number;podio:boolean;anim:ComemoracaoFesta;oculos:boolean;faixa:boolean;bandeira:boolean;parceiro?:number}
+export const ELENCO_FESTA=11
+export function coreografiaDaFesta():VagaFesta[]{
+ const v=(x:number,z:number,h:number,anim:ComemoracaoFesta,o:Partial<VagaFesta>={}):VagaFesta=>({x,z,h,podio:h>0,anim,oculos:false,faixa:false,bandeira:false,...o})
+ return [
+  v(0,0,1.25,'taca',{faixa:true}),          // o capitão levanta primeiro
+  v(-.95,0,1.25,'bracos',{oculos:true}),
+  v(.95,0,1.25,'pula',{faixa:true,oculos:true}),
+  v(-3.6,0,.85,'abraco',{parceiro:4}),
+  v(-2.6,0,.85,'abraco',{parceiro:3,faixa:true}),
+  v(2.6,0,.55,'danca',{oculos:true}),
+  v(3.6,0,.55,'pula',{bandeira:true}),
+  v(-3.4,3.0,0,'danca',{bandeira:true,oculos:true}),
+  v(3.4,3.0,0,'bracos',{faixa:true}),
+  v(-5.4,.5,0,'pula',{oculos:true}),
+  v(5.4,.5,0,'danca',{bandeira:true}),
+ ]
+}
+/** a taça passa de mão em mão no degrau de cima (capitão → esquerda → direita → capitão…), uma vez a cada `TACA_RODA_S` */
+export const TACA_RODA_S=3.2
+export function quemLevantaATaca(tf:number,inicio:number){
+ const ordem=[0,1,2],t=Math.max(0,tf-inicio),i=Math.floor(t/TACA_RODA_S),u=(t-i*TACA_RODA_S)/TACA_RODA_S
+ return {de:ordem[i%3],para:ordem[(i+1)%3],passando:u>.82?(u-.82)/.18:0}
+}
+/** fotógrafos: 3 no celular, 4 no computador; cada um dispara no seu ritmo (≈ 1 foto a cada 1–2 s) */
+export function fotografosDaFesta(mobile:boolean){
+ const n=mobile?3:4
+ return Array.from({length:n},(_,i)=>({x:(i/(n-1)-.5)*(mobile?6.4:8.4),z:5.6+(i%2)*.7,ritmo:.55+((i*37)%10)/22,fase:(i*.37)%1}))
+}
+/** aceso por ~0,14 s a cada disparo (curto como flash de verdade, mas sem sumir em celular com pouco quadro) */
+export const flashAceso=(t:number,ritmo:number,fase:number)=>((t*ritmo+fase)%1+1)%1<.14*ritmo
