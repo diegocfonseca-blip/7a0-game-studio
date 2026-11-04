@@ -14,6 +14,11 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - ⚠️ Semanas já fechadas em `esc_premio_semana` ficaram em títulos; avisos de semana antiga dizem "N pts" com o número velho.
 - Reverter: voltar os 2 commits; no banco, recriar as 4 funções sem o `* coalesce(g.peso, 2)` (coluna/gatilho podem ficar).
 
+## 🎽 FORMAÇÃO NA CONVOCAÇÃO (04/11, *"OK PUBLIQUE"*) — FEITO
+- Leilão de Clubes (convocação) e Copas com seleções (Mundo/Euro/regionais): as 7 formações da carreira (`FORMACOES_JOGO`), acesas só se o elenco completa (🔒 diz o que falta). Modo jogador (rápido/Minhas Ligas) segue com 4-3-3/4-4-2 escolhida ao criar a sala.
+- Liga Draft: a escalação dela (`SquadTab` com `minhaLigaDraft`) também oferece as 7; o reducer `MLD_FORMACAO` já aceitava qualquer uma que o elenco preencha.
+- Aviso do zap: `scripts/avisos/2026-11-04-formacoes.json` — SEM falar da Liga Draft (ainda não é de todos).
+
 ## 🚗 04/11 — Carros 3D da Vadico mais parecidos com os reais (LOCAL, branch do agente, esperando OK visual do Diego)
 Diego: *"não parecem com os veículos reais… não quero foto… só precisa ser mais parecido"*. Fusca, Brasília, Gol GTI, Kombi,
 Opala SS e Ferrari F40 ganharam modelagem própria em `src/escalacao/veiculos-famosos-3d.ts` (casco por seções medidas na

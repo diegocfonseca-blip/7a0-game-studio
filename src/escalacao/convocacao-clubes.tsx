@@ -8,7 +8,7 @@
 // VERDADE — nunca jogador de mentira.
 import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useEsc, vagasBase } from './store'
+import { useEsc, vagasBase, formacaoCabeNosPacotes } from './store'
 import { POS_LABELS } from './sportcfg'
 import { Shell, Box, nomePacote, CaixaDuplaTrava } from './screens'
 import { useT, getLang } from './lang'
@@ -16,7 +16,7 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo' // 🧍 a MESMA pe�
 import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { logTravaSalva } from './analytics'
-import { SECTORS, duplaPodeAgir, type Card, type Sector, type WonCard } from './types'
+import { SECTORS, FORMACOES_JOGO, FORMATIONS, duplaPodeAgir, type Card, type FormationKey, type Sector, type WonCard } from './types'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
@@ -35,7 +35,10 @@ export function EscConvocacaoClubes() {
   // 🏀 19/10: as vagas vêm da MESMA régua do motor (`aplicaConvocacao` usa `baseSlots`): formação no futebol,
   // 1 por posição no quinteto do basquete. Antes a tela lia a formação e no basquete pediria 2 laterais.
   const bb = state.sport === 'basquete'
-  const vagas = (s: Sector) => vagasBase(me?.formation ?? '4-3-3', s)
+  // ⚽ 04/11 (Diego): na convocação dá pra trocar de formação — acende só a que os pacotes fecham (não vale em dupla nem no basquete)
+  const [form, setForm] = useState<FormationKey>(me?.formation ?? '4-3-3')
+  const formRef = useRef(form); formRef.current = form
+  const vagas = (s: Sector) => vagasBase(form, s)
   const tagDe = (s: Sector) => bb ? POS_LABELS.basquete[s].tag : s
   const nomeSec = (s: Sector, n: number) => secNome(s, n, bb)
   // o pacote de cada setor (a carta-pacote que você arrematou)
@@ -88,7 +91,7 @@ export function EscConvocacaoClubes() {
   const enviar = () => {
     if (!me) return
     mandou.current = true; setEnviando(true)
-    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid })
+    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid, formacao: formRef.current })
   }
   useEffect(() => {
     if (!me || seg === null || seg > 0 || fechei || mandou.current) return
@@ -100,7 +103,7 @@ export function EscConvocacaoClubes() {
     const iv = setInterval(() => {
       n++
       if (n === 1 && state.onlineMode === 'online') logTravaSalva('convocacao', 2, state.roomId, state.isHost) // 🧊 1º reenvio = notícia: o 1º tiro se perdeu
-      dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid })
+      dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid, formacao: formRef.current })
     }, 3_000)
     return () => clearInterval(iv)
   }, [enviando, fechei]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -134,8 +137,8 @@ export function EscConvocacaoClubes() {
       const naPos = poolDe(s).filter(x => prev[x.id])
       if (naPos.length >= vagas(s)) {
         setAviso(getLang() === 'en'
-          ? `Your ${bb ? 'five' : me.formation} has room for ${vagas(s)} ${nomeSec(s, vagas(s))}. To call up ${c.name}, first tap ${naPos.map(x => x.name).join(' or ')} to remove.`
-          : `Seu ${bb ? 'quinteto' : me.formation} tem vaga pra ${vagas(s)} ${nomeSec(s, vagas(s))}. Pra convocar ${c.name}, toque primeiro em ${naPos.map(x => x.name).join(' ou ')} pra tirar.`)
+          ? `Your ${bb ? 'five' : form} has room for ${vagas(s)} ${nomeSec(s, vagas(s))}. To call up ${c.name}, first tap ${naPos.map(x => x.name).join(' or ')} to remove.`
+          : `Seu ${bb ? 'quinteto' : form} tem vaga pra ${vagas(s)} ${nomeSec(s, vagas(s))}. Pra convocar ${c.name}, toque primeiro em ${naPos.map(x => x.name).join(' ou ')} pra tirar.`)
         return prev
       }
       nx[c.id] = s; setAviso(null); return nx
@@ -151,7 +154,7 @@ export function EscConvocacaoClubes() {
           <span style={{ fontSize: 26 }}>🧱</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, color: '#fff', textTransform: 'uppercase' }}>{t('Convocação', 'Call-up')} · {me.teamName}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', margin: '2px 0 0' }}>{bb ? t('Escolha quem joga dentro dos pacotes que você levou: 1 por posição, o seu quinteto. Quem ficar de fora vai pros outros times.', 'Pick who plays from the packs you won: 1 per position, your starting five. Whoever is left out goes to the other teams.') : t(`Escolha quem joga dentro dos pacotes que você levou. Formação travada: ${me.formation}. Quem ficar de fora vai pros outros times.`, `Pick who plays from the packs you won. Formation locked: ${me.formation}. Whoever is left out goes to the other teams.`)}</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', margin: '2px 0 0' }}>{bb ? t('Escolha quem joga dentro dos pacotes que você levou: 1 por posição, o seu quinteto. Quem ficar de fora vai pros outros times.', 'Pick who plays from the packs you won: 1 per position, your starting five. Whoever is left out goes to the other teams.') : t(`Escolha quem joga dentro dos pacotes que você levou. Formação: ${emDupla ? form : form + ' (dá pra trocar logo abaixo)'}. Quem ficar de fora vai pros outros times.`, `Pick who plays from the packs you won. Formation: ${emDupla ? form : form + ' (you can switch below)'}. Whoever is left out goes to the other teams.`)}</p>
           </div>
           <div style={{ background: GOLD, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
             <b style={{ display: 'block', fontSize: 15, lineHeight: 1, ...OSWALD }}>{total}/{alvo}</b>
@@ -167,6 +170,26 @@ export function EscConvocacaoClubes() {
             <p style={{ fontSize: 11.5, fontWeight: 800, margin: 0, lineHeight: 1.3 }}>
               {t('Não escolheu a tempo? O sistema escolhe o PIOR do pacote pra você.', "Didn't pick in time? The system picks the WORST of the pack for you.")}
             </p>
+          </div>
+        )}
+
+        {!bb && !emDupla && (
+          <div>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px', textTransform: 'uppercase' }}>{t('⚽ Formação', '⚽ Formation')}</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+              {FORMACOES_JOGO.map(f => {
+                const ok = formacaoCabeNosPacotes((me.squad ?? []) as WonCard[], f)
+                const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
+                return (
+                  <button key={f} disabled={!ok} onClick={() => { if (f === form) return; setForm(f); setSel({}); setAviso(null) }}
+                    title={falta ? t(`Seu pacote de ${nomeSec(falta, 2)} não tem gente pra ${f}`, `Your ${nomeSec(falta, 2)} pack is too small for ${f}`) : undefined}
+                    style={{ border: `2.5px solid ${INK}`, borderRadius: 9, padding: '4px 9px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : form === f ? GOLD : '#fff', boxShadow: form === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .6 }}>
+                    {ok ? f : `🔒 ${f}`}
+                  </button>
+                )
+              })}
+            </div>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 0' }}>{t('Acende só a formação que os seus pacotes fecham. Trocar limpa a convocação.', 'Only formations your packs can fill light up. Switching clears the call-up.')}</p>
           </div>
         )}
 
@@ -237,7 +260,7 @@ export function EscConvocacaoClubes() {
         ) : (
         <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {me.formation}</span>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {form}</span>
           </div>
           <PlacaGol lado="cima" alt={24} />
           <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>

@@ -1,0 +1,28 @@
+{
+  "data": "4 de novembro de 2026",
+  "titulo": "Escolha a sua formação 🎽",
+  "destaque": {
+    "passos": [
+      { "emoji": "🧱", "titulo": "Leilão de Clubes", "sub": "na convocação" },
+      { "emoji": "🌍", "titulo": "Copas de seleção", "sub": "Mundo, Euro e regionais" },
+      { "emoji": "🎽", "titulo": "7 formações", "sub": "as da carreira" }
+    ]
+  },
+  "itens": [
+    {
+      "tag": "novidade",
+      "texto": "Na **convocação do Leilão de Clubes** agora dá pra escolher a formação: **4-3-3, 4-4-2, 4-5-1, 3-4-3, 5-3-2, 4-2-4 ou 5-4-1** — as mesmas da carreira."
+    },
+    {
+      "tag": "novidade",
+      "texto": "Nas **Copas com seleções** (Copa do Mundo, Eurocopa e regionais) a convocação também abre as **7 formações**."
+    },
+    {
+      "tag": "regra",
+      "texto": "Só acende a formação que o seu elenco **consegue completar**. A que não dá fica com 🔒 e mostra o que falta (ex.: faltam 2 zagueiros)."
+    }
+  ],
+  "rodape": "Já tá valendo!",
+  "rodapeSub": "Convocação → ⚽ Formação → escolha e convoque.",
+  "saida": "scripts/posts/aviso-2026-11-04-formacoes.png"
+}

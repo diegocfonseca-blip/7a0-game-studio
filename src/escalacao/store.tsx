@@ -33,7 +33,7 @@ import type {
   QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, ChampionsState, ChampionsTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame, HolandesState,
 } from './types'
-import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
+import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
@@ -5703,7 +5703,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[]; by?: string } // by = 🤝 crachá (dupla: cada um convoca as posições dele)
+  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[]; by?: string; formacao?: FormationKey } // by = 🤝 crachá (dupla: cada um convoca as posições dele)
   | { type: 'CONVOCACAO_TIMEOUT' } // 🧱 acabaram os 80s da convocação // 🧱 leilão de clubes: os 11 escolhidos dentro dos pacotes
   // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
   // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
@@ -5866,7 +5866,14 @@ export function melhoresDoPacote(cartas: Card[], n: number): Card[] {
 function pioresDoPacote(cartas: Card[], n: number): Card[] {
   return [...cartas].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi) || a.name.localeCompare(b.name)).slice(0, n)
 }
-function aplicaConvocacao(m: Manager, escolhidos: string[] | null, sobras: Card[], castigo = false) {
+/** ⚽ 04/11: a formação cabe nos pacotes que o técnico ganhou? (cada setor tem gente suficiente no pacote) */
+export function formacaoCabeNosPacotes(squad: readonly WonCard[], f: FormationKey): boolean {
+  if (!FORMACOES_JOGO.includes(f)) return false
+  return SECTORS.every(pos => { const lote = squad.find(c => c.pacote && c.pos === pos); return (lote?.pacote?.cartas.length ?? 0) >= FORMATIONS[f][pos] })
+}
+function aplicaConvocacao(m: Manager, escolhidos: string[] | null, sobras: Card[], castigo = false, formacao?: FormationKey) {
+  // ⚽ 04/11 (Diego): na convocação dá pra trocar de formação — só vale se os pacotes fecharem a nova (senão fica a de antes)
+  if (formacao && formacao !== m.formation && formacaoCabeNosPacotes(m.squad as WonCard[], formacao)) m.formation = formacao
   const lotes = (m.squad as WonCard[]).filter(c => c.pacote)
   const resto = (m.squad as WonCard[]).filter(c => !c.pacote)
   const novos: WonCard[] = []
@@ -5931,11 +5938,11 @@ function fechaConvocacao(st: EscState, escolhas: Record<number, string[]>) {
   // o que ninguém quis nem no monte também vira sobra (em cartas, não em pacote)
   for (const lote of st.monte) for (const c of lote.pacote?.cartas ?? []) sobras.push({ ...c })
   st.monte = []
-  for (const m of st.managers) if (m.modoClubes) aplicaConvocacao(m, m.isHuman ? (escolhas[m.id] ?? []) : null, sobras, m.isHuman)
+  for (const m of st.managers) if (m.modoClubes) aplicaConvocacao(m, m.isHuman ? (escolhas[m.id] ?? []) : null, sobras, m.isHuman, m.isHuman ? st.convocacaoFormacao?.[m.id] : undefined)
   for (const m of st.managers) if (auctioningManagers([m]).length) completaComSobras(st, m, sobras)
   sobrasProsBots(st, sobras)
   st.leilaoClubesConvocado = true
-  st.convocacaoDeadline = null; st.convocacaoFeitos = []; st.convocacaoEscolhas = {}; st.convocacaoDuplaFeitos = []
+  st.convocacaoDeadline = null; st.convocacaoFeitos = []; st.convocacaoEscolhas = {}; st.convocacaoDuplaFeitos = []; st.convocacaoFormacao = {}
   enterCerimonia(st)
 }
 
@@ -10211,8 +10218,10 @@ function reducerBase(state: EscState, action: Action): EscState {
         // fecha uma vez); chegar repetido pelas duas estradas com a MESMA lista não muda nada.
         if (donos || !Array.isArray(action.cartas)) return s
         const atual = (s.convocacaoEscolhas ?? {})[action.mgrId] ?? []
+        if (action.formacao && action.formacao !== s.convocacaoFormacao?.[action.mgrId]) s.convocacaoFormacao = { ...(s.convocacaoFormacao ?? {}), [action.mgrId]: action.formacao }
         if (atual.length === action.cartas.length && atual.every((id, i) => id === action.cartas[i])) return s
         s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: action.cartas }
+        if (action.formacao) s.convocacaoFormacao = { ...(s.convocacaoFormacao ?? {}), [action.mgrId]: action.formacao }
         return s
       }
       if (donos) {
@@ -10232,6 +10241,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (!donos.every(u => s.convocacaoDuplaFeitos!.includes(`${action.mgrId}:${u}`))) return s
       } else {
         s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: action.cartas }
+        if (action.formacao) s.convocacaoFormacao = { ...(s.convocacaoFormacao ?? {}), [action.mgrId]: action.formacao }
       }
       s.convocacaoFeitos = [...(s.convocacaoFeitos ?? []), action.mgrId]
       if (convocacaoCompleta(s)) fechaConvocacao(s, s.convocacaoEscolhas)
