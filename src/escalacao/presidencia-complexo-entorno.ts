@@ -431,9 +431,10 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
 
   const routeSurface=state.extras.asfalto?paving:dirt
   // 🧱 04/11 (Diego: *"esse caminho marrom misturado com cimento tá estranho"*): o caminho de TERRA ficava na MESMA altura da calçada de
-  // cimento que cruza ele, e a placa de vídeo pintava os dois em listras ("briga de piso"). A terra agora fica 2 cm ACIMA: o caminho
-  // aparece inteiro e limpo, sem listra. (Com o asfalto comprado os dois são cimento e a altura é a de sempre.)
-  const routeY=state.extras.asfalto?GROUND:GROUND+.02
+  // cimento que cruza ele, e a placa de vídeo pintava os dois em listras ("briga de piso"). A terra fica 2,5 cm ABAIXO: onde já tem
+  // cimento (o estádio evoluiu), o cimento passa por cima, limpo — a terra só aparece onde ainda não chegou obra (Diego: *"se tem
+  // cimento agora que evoluiu, não deveria tá o cimento em cima?"*). (Com o asfalto comprado os dois são cimento e a altura é a de sempre.)
+  const routeY=state.extras.asfalto?GROUND:GROUND-.025
   // These public paths remain at street level at every stadium stage.
   // They share the physical gate contract, not the old office driveway.
   for(const [side,points] of Object.entries(fanPaths))ribbon(`acesso-torcida-${side}`,points,4.4,routeY,routeSurface)
