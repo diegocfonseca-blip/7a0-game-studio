@@ -18,6 +18,7 @@ import { revealOffers, revealIdentityVisible } from './reveal-presentation'
 import './online-visual.css'
 import {requestOnlineDestination,type OnlineDestination} from './desktop-online-navigation'
 import {DesktopHeader,AuctionDesktopLayout,AuctionSlot} from './desktop-layout'
+import {MobileAuctionHeader} from './mobile-auction-header'
 import {useTelaPC} from './sport'
 import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
@@ -973,6 +974,8 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
   )
 }
 
+const MobileAuctionHeaderContext = createContext(false)
+
 export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
@@ -1017,19 +1020,22 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const desktopWidth = useTelaPC()
   const shellManager=state.managers[state.youIdx]
   const auctionDesktop = !!shellManager && desktopWidth && state.sport !== 'basquete' && ['auction','monte','cerimonia'].includes(state.screen)
+  const auctionMobile = !!shellManager && !!bar && !desktopWidth && state.sport !== 'basquete' && state.screen === 'auction'
   const onlineNavigation=(destination:OnlineDestination)=>{requestOnlineDestination(destination);backToMenu()}
   const auctionTitle=state.phase==='holandes'?tr('Tocaia','Ambush'):state.phase==='pregao'?tr('Pregão aberto','Open auction'):state.euAberto?tr('Envelope único','Single envelope'):tr('Envelope cego','Sealed bid')
   const auctionDescription=state.phase==='holandes'?tr('Um preço para todos. Quem pega primeiro leva.','One price for all. First to take wins.'):state.phase==='pregao'?tr('Uma carta por vez. Lance e martelo à vista.','One card at a time. Open bids and hammer.'):tr('Lances em segredo até a revelação.','Bids remain secret until the reveal.')
   const matchDesktop = desktopWidth && state.sport !== 'basquete' && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
+    <MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
-        <div className="ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
+        <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
           {isReserveAuction && (
             <p className="text-center text-[10px] font-black uppercase tracking-wide mb-1.5" style={{ ...OSWALD, color: PURPLE }}>{reserveLabel}</p>
           )}
+          {auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={<CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
           {bar}
         </div>
       )}
@@ -1079,6 +1085,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         </div>
       )}
     </div>
+    </MobileAuctionHeaderContext.Provider>
   )
 }
 
@@ -3664,7 +3671,7 @@ export function EscStreamIntro() {
 // contador de moedas que REAGE quando o caixa muda: pulsa (verde ao entrar grana
 // de uma venda, vermelho ao gastar) e solta um "+X / −X" flutuando. Só anima na
 // mudança — no primeiro render fica quieto.
-function CoinCounter({ value }: { value: number }) {
+function CoinCounter({ value, compact = false }: { value: number; compact?: boolean }) {
   const prev = useRef(value)
   const [delta, setDelta] = useState<{ n: number; key: number } | null>(null)
   const [pulse, setPulse] = useState(false)
@@ -3681,9 +3688,9 @@ function CoinCounter({ value }: { value: number }) {
   const up = (delta?.n ?? 0) > 0
   return (
     <span className="relative inline-flex items-center">
-      <motion.span className="font-black text-lg" style={OSWALD}
+      <motion.span className={`font-black text-lg${compact ? ' ll-coin-value' : ''}`} style={OSWALD}
         animate={pulse ? { scale: [1, 1.4, 1] } : { scale: 1 }} transition={{ duration: 0.65 }}>
-        💰 <motion.span animate={pulse ? { color: [INK, up ? GREEN : RED, INK] } : { color: INK }} transition={{ duration: 0.65 }} style={{ display: 'inline' }}>{value}</motion.span>
+        {!compact && '💰 '}<motion.span animate={pulse ? { color: [INK, up ? GREEN : RED, INK] } : { color: INK }} transition={{ duration: 0.65 }} style={{ display: 'inline' }}>{value}</motion.span>
       </motion.span>
       {delta && delta.n !== 0 && (
         <motion.span key={delta.key} initial={{ opacity: 0, y: 2, scale: 0.7 }} animate={{ opacity: 1, y: -20, scale: 1 }}
@@ -3760,6 +3767,7 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
 
 export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
   const { state, dispatch } = useEsc()
+  const mobileHeader = useContext(MobileAuctionHeaderContext)
   // ⚡ revelação ÚNICA: a barra acende a posição da carta que está sendo revelada (o motor deixa o setor no último)
   const secBarra = state.euRevelando ? Math.max(0, SECTORS.indexOf(state.revealQueue[state.revealIdx]?.card.pos as typeof SECTORS[number])) : state.sectorIdx
   const you = state.managers[state.youIdx]
@@ -3778,26 +3786,26 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
           {V('📣 Chamar mais gente · volta pra sala de espera (desfaz este pregão)', '📣 Invite more people · back to the waiting room (discards this auction)')}
         </button>
       )}
-      <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
-        <div className="flex gap-1.5">
+      <div className="ll-auction-bar-row flex items-center justify-between max-w-xl mx-auto gap-2">
+        <div className="ll-auction-bar-positions flex gap-1.5">
           {SECTORS.map((p, i) => (
-            <span key={p} className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
+            <span key={p} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
               style={{ backgroundColor: i < secBarra ? INK : i === secBarra ? GOLD : '#fff', color: i < secBarra ? '#fff' : INK }}>
               {posTag(p)}
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="ll-auction-bar-extras flex items-center gap-1.5">
           {vagas != null && vagas > 0 && (
-            <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"
+            <span className="ll-auction-bar-slots border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"
               style={{ background: '#E7F7EC', color: '#146c33', ...OSWALD }}>{vagas} {getLang() === 'en' ? (vagas === 1 ? 'slot' : 'slots') : (vagas === 1 ? 'vaga' : 'vagas')}</span>
           )}
           {ajuda && (
             <button onClick={() => setRegras(true)} aria-label="Regras do pregão"
-              className="border-2 border-black rounded-full w-6 h-6 flex items-center justify-center text-[11px] font-black bg-white"
+              className="ll-auction-bar-help border-2 border-black rounded-full w-6 h-6 flex items-center justify-center text-[11px] font-black bg-white"
               style={{ cursor: 'pointer' }}>❓</button>
           )}
-          <span className="ll-auction-bar-balance"><CoinCounter value={you.money + pendingSpend(state, you)} /></span>
+          {!mobileHeader && <span className="ll-auction-bar-balance"><CoinCounter value={you.money + pendingSpend(state, you)} /></span>}
         </div>
       </div>
       {regras && <RegrasDoPregao onFechar={() => setRegras(false)} />}
@@ -4607,10 +4615,10 @@ function EnvelopeUnico() {
   const esperando = state.managers.filter(m => m.isHuman && !m.dormindo && m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0) && !state.submitted.includes(m.id))
   const vaiPara = (p: string) => { try { document.getElementById(`eu-${p}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch { /* ignora */ } }
   const barra = (
-    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
-      <div className="flex gap-1 flex-wrap">
+    <div className="ll-auction-bar-row ll-auction-bar-unico flex items-center justify-between gap-2 px-3 py-2" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
+      <div className="ll-auction-bar-positions flex gap-1 flex-wrap">
         {setores.map(x => (
-          <button key={x.p} onClick={() => vaiPara(x.p)} className="border-2 border-black rounded-full px-2 py-0.5 text-[11px] font-black"
+          <button key={x.p} onClick={() => vaiPara(x.p)} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[11px] font-black"
             style={{ ...OSWALD, background: x.vagas === 0 ? '#ddd' : lancesNa(x.p) > 0 ? GOLD : '#fff', color: INK }}>
             {x.p}{x.vagas > 0 && lancesNa(x.p) > 0 ? ' ✓' : ''}
           </button>
