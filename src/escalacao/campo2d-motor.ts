@@ -24,6 +24,8 @@ const ANTECEDE = 8.5 // segundos de jogada antes de um evento (gol/chance)
 const FESTA = 4.2 // segundos de comemoração do gol
 
 export type Lado = 0 | 1 // 0 = mandante (ataca pra CIMA, y → 0)
+/** 👁️ um lance que a tela mostrou (só apresentação: resumo do apito e "QUASE!"). `lado` = quem ATACOU. */
+export type LanceApres = { tipo: 'chute' | 'gol' | 'trave' | 'defesa'; lado: 0 | 1; nome: string; t: number; noAlvo?: boolean; assist?: string; goleiro?: string; x?: number; y?: number; dificil?: boolean }
 export type Fim = 'gol' | 'defendeu' | 'trave' | 'fora' | 'isolou'
 /** 🎯 COMO a bola foi batida (20/10, Diego: *"chute colocado, de trivela, gol de cabeça, de bicicleta, de barriga, de canhota…"*).
  *  Muda a trajetória (altura, força, curva) e a narração — nunca o resultado, que é o do jogo. */
@@ -108,6 +110,11 @@ export class Jogo2D {
   festa: { de?: number; abraco?: Atleta[]; curta?: boolean; ate: number; lado: Lado; autor: string; assist?: string; min: number } | null = null
   rede: { y0: number; t0: number } | null = null
   placar: [number, number] = [0, 0]
+  /** 👁️ SÓ APRESENTAÇÃO (04/11): o diário dos chutes/defesas/traves/gols que a TELA mostrou — o resumo do apito e o "QUASE!"
+   *  leem daqui (campo2d-resumo.ts). Só anota: não sorteia nada, não mexe em bola, placar nem relógio. */
+  lances: LanceApres[] = []
+  /** 👁️ SÓ APRESENTAÇÃO: segundos de jogo com a bola em cada time (festa do gol e depois do apito não contam) */
+  posseT: [number, number] = [0, 0]
   /** 🔎 conferência das REGRAS (o teste lê): bola colocada parada (saída, lateral, escanteio, tiro de meta, falta) ·
    *  bola que "voou" sozinha pro pé de alguém longe · quantos atacantes estavam na área em cada escanteio cobrado */
   diag = { colocadas: 0, magicas: 0, escanteios: [] as number[], saidas: 0, laterais: 0, tirosDeMeta: 0, moldes: {} as Record<string, number>, reinicioErrado: 0, paradaSemCobranca: 0, cobrancasForcadas: 0, erros: [] as string[], acabs: {} as Record<string, number>, chutesLonge: 0, chancesPuladas: 0, reinicioSemSair: 0, travadas: 0, chutesBandeirinha: 0, bolaParadaIrregular: 0, cobrancasConferidas: 0 }
@@ -250,6 +257,7 @@ export class Jogo2D {
       const pendente = this.iev < this.evs.length || (this.cur && !this.cur.pre) || this.acoes.some(a => !a.pre)
       if (!pendente) return
     }
+    if (!this.festa && this.t <= 93 * SEG_POR_MIN) this.posseT[this.bola.dono ? this.bola.dono.lado : this.posse] += dt
     if (this.festa) {
       // 🎉 comemoração: o time que marcou corre pro autor; o outro volta pro meio
       const autor = this.porNome(this.festa.lado, this.festa.autor) ?? this.gk(this.festa.lado)
@@ -892,6 +900,7 @@ export class Jogo2D {
         const curva = A.curva * lado * (ataca0 ? 1 : -1)
         const como = this.en ? COMO[acab][1] : COMO[acab][0]
         this.diag.acabs[acab] = (this.diag.acabs[acab] ?? 0) + 1
+        this.lances.push({ tipo: 'chute', lado: p.lado, nome: p.nome, t: this.t, noAlvo: fim === 'gol' || fim === 'defendeu' })
         if (fim === 'gol') {
           // na cobertura/cavadinha o goleiro SAI e a bola passa por cima; no resto ele cai pro canto errado
           if (acab === 'cobertura' || acab === 'cavadinha') gk.ov = { x: gk.x + (this.bola.x - gk.x) * 0.5, y: gk.y + (this.bola.y - gk.y) * 0.45, v: 7 }
@@ -903,6 +912,7 @@ export class Jogo2D {
             // a festa encurta se o próximo lance do motor já está chegando (gols colados)
             const prox = this.evs[this.iev], folga = prox ? prox.min * SEG_POR_MIN - this.t - 6 : FESTA
             this.festa = { de: this.t, curta: folga < 3.4, ate: this.t + clamp(folga, 1.6, FESTA), lado: p.lado, autor: ev?.autor ?? p.nome, assist: ev?.assist, min: ev?.min ?? 0 }
+            this.lances.push({ tipo: 'gol', lado: p.lado, nome: this.festa.autor, assist: ev?.assist, t: this.t })
             this.narra = this.tt(`GOOOOL! ${this.n(p)}, ${como}!`, `GOOOAL! ${this.n(p)}, ${como}!`)
             feito = true
           }, curva)
@@ -911,11 +921,13 @@ export class Jogo2D {
         if (fim === 'defendeu') {
           const bx = 34 + lado * (gk.estilo === 'paredao' ? 3.2 : 2.3), by = ataca0 ? 1.3 : L - 1.3
           gk.ov = { x: bx, y: by, v: 12 }
-          this.viaja(bx, by, vel, Math.min(A.alt, 1.4), true, () => { gk.ov = null; this.pega(gk); feito = true }, curva * 0.6)
+          // (👁️ defesa DIFÍCIL = chute caprichado — bomba, colocado, de cabeça… —; o rasteiro no meio é defesa normal)
+          this.viaja(bx, by, vel, Math.min(A.alt, 1.4), true, () => { gk.ov = null; this.pega(gk); feito = true; this.lances.push({ tipo: 'defesa', lado: p.lado, nome: p.nome, goleiro: gk.nome, t: this.t, x: bx, y: by, dificil: acab !== 'rasteiro' && acab !== 'de_bico' && acab !== 'barriga' && acab !== 'calcanhar' }) }, curva * 0.6)
           return
         }
         if (fim === 'trave') {
           this.viaja(34 + lado * 3.66, linha, vel, Math.min(A.alt, 1.6), true, () => {
+            this.lances.push({ tipo: 'trave', lado: p.lado, nome: p.nome, t: this.t, x: 34 + lado * 3.66, y: ataca0 ? 0 : L })
             const cai = { x: 34 + lado * 10, y: ataca0 ? 10 : L - 10 }, z = this.maisPerto((1 - p.lado) as Lado, cai)
             z.ov = { ...cai, v: 9 }
             this.viaja(cai.x, cai.y, 13, 1.5, false, () => { solta = this.t; quemPega = z })
@@ -1411,7 +1423,8 @@ export class Jogo2D {
             cai = { x: 34 + lado * (6 + this.rng() * 3), y: ataca0 ? 7 + this.rng() * 3 : L - 7 - this.rng() * 3 }
             gk.ov = { x: bx, y: by, v: 12 }
             const f = fin(); f.ov = { ...cai, v: 9 }
-            this.viaja(bx, by, 23, 0.6, true, () => { gk.ov = null; this.narra = this.v('espalma', { a: n(gk) }); this.viaja(cai.x, cai.y, 11, 1.2, false) })
+            this.lances.push({ tipo: 'chute', lado: l, nome: c.nome, t: this.t, noAlvo: true })
+            this.viaja(bx, by, 23, 0.6, true, () => { gk.ov = null; this.narra = this.v('espalma', { a: n(gk) }); this.lances.push({ tipo: 'defesa', lado: l, nome: c.nome, goleiro: gk.nome, t: this.t, x: bx, y: by, dificil: true }); this.viaja(cai.x, cai.y, 11, 1.2, false) })
           },
           upd: () => { const f = fin(); if (this.bola.voo) return false; if (dist(f, this.bola) < 1.6 || this.t > tEv - 1) { this.pega(f); f.ov = null; return true } f.ov = { ...cai, v: 9 }; return false },
         })

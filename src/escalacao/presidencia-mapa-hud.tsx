@@ -7,6 +7,7 @@ import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './pre
 import { useT } from './lang'
 import { FestaGolCampo2D, useFestaCampo2D } from './campo2d-festa'
 import { estiloPisca, gritoGol } from './radio-pisca'
+import { ResumoApitoCampo2D, BotaoReplayCampo2D, useApitoCampo2D, useQuaseCampo2D, QUASE_CSS, estiloQuase } from './campo2d-resumo-ui'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase' }
@@ -20,6 +21,9 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
   // festa do campinho da aba Jogos (GOOOOL + mascote/escudo + autor, minuto e 🅰️ assistência), por cima do 3D, e a faixa do
   // locutor grita o gol do mesmo jeito. O campinho escondido é quem avisa (campo2d-festa.tsx) — aqui só desenha.
   const festa = useFestaCampo2D(match?.context.id)
+  // 📊🎬😱 04/11: o resumo do apito, os melhores momentos e o QUASE — os MESMOS componentes do campinho da aba Jogos
+  // (campo2d-resumo-ui.tsx), avisados pelo campinho que é a fonte deste campo. Nada disso existe antes do apito / do lance.
+  const apito = useApitoCampo2D(match?.context.id), quase = useQuaseCampo2D(match?.context.id)
   const vivo = !!match && !match.finished
   if (!match && !ctl) return null
   const [nh, na] = match?.officialTeams ?? [t('Casa', 'Home'), t('Fora', 'Away')]
@@ -41,7 +45,12 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
     </div>
     {vivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3 }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
     {vivo && festa ? <div key={`g${festa.lado}|${festa.autor}|${festa.min}`} className="pc3-match-narration ll44-gol-pisca" style={estiloPisca()}><span className="ll44-grito">{gritoGol((match?.officialTeams ?? [nh, na])[festa.lado], t('pt', 'en') === 'en', festa.autor, festa.min)}</span></div>
+      : vivo && quase ? <><style>{QUASE_CSS}</style><div key={'q' + quase.k} className="pc3-match-narration" data-quase-campo2d={quase.tipo} style={estiloQuase()}>😱 {quase.txt}</div></>
       : vivo && match?.officialNarration && <div className="pc3-match-narration">🎙️ {match.officialNarration}</div>}
+    {match?.finished && apito && !festa && <div className="pc3-match-apito" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, marginTop: 4, width: 'min(330px, 100%)' }}>
+      {apito.replay && <BotaoReplayCampo2D replay={apito.replay} />}
+      {apito.resumo && !apito.replay?.na && <ResumoApitoCampo2D resumo={apito.resumo} casa={apito.casa} fora={apito.fora} compacto />}
+    </div>}
    </div>
    {(ctl||ritmo)&&<div className="pc3-match-controls">
     <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>

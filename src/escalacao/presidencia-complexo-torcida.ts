@@ -158,21 +158,23 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   const prototypes = new Map<number, Record<Part, THREE.BufferGeometry>>()
   // 🎉 25/10 (Diego: "torcida reagindo"): cada LADO tem os próprios materiais, com um balanço leve o tempo todo e o PULO no gol do time
   // (feito no vertex shader por uniform — nenhuma matriz de instância muda, custo zero de CPU). `uFesta` 0–1 é a festa daquele lado.
-  const festaUniforms = { home: { uFesta: { value: 0 }, uTime: { value: 0 } }, away: { uFesta: { value: 0 }, uTime: { value: 0 } } }
+  // 😱 04/11: o "UHHH" do QUASE (trave/defesa difícil) — a torcida de quem atacou LEVANTA de uma vez e vai sentando devagar (`uUhh`)
+  const festaUniforms = { home: { uFesta: { value: 0 }, uTime: { value: 0 }, uUhh: { value: 0 } }, away: { uFesta: { value: 0 }, uTime: { value: 0 }, uUhh: { value: 0 } } }
   const materialsPorLado = Object.fromEntries((['home', 'away'] as const).map(side => [side, (['skin', 'shirt', 'lower'] as const).map(part => {
     const material = materialHumano('#ffffff', part === 'skin' ? 'skin' : 'fabric')
     material.name = `torcida-${side}-${part}`
     material.onBeforeCompile = shader => {
-      shader.uniforms.uFesta = festaUniforms[side].uFesta; shader.uniforms.uTime = festaUniforms[side].uTime
+      shader.uniforms.uFesta = festaUniforms[side].uFesta; shader.uniforms.uTime = festaUniforms[side].uTime; shader.uniforms.uUhh = festaUniforms[side].uUhh
       shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nuniform float uFesta;uniform float uTime;')
+        .replace('#include <common>', '#include <common>\nuniform float uFesta;uniform float uTime;uniform float uUhh;')
         .replace('#include <begin_vertex>', `#include <begin_vertex>
         { float id = float(gl_InstanceID); float fase = fract(sin(id * 12.9898) * 43758.5453) * 6.2832;
           float balanco = sin(uTime * 1.7 + fase) * 0.012;
           float pulo = max(0.0, sin(uTime * 8.0 + fase)) * 0.22 * uFesta;
-          transformed.y += (balanco + pulo) * step(0.3, position.y); }`)
+          float uhh = uUhh * (0.16 + 0.04 * sin(fase * 3.0));
+          transformed.y += (balanco + pulo + uhh) * step(0.3, position.y); }`)
     }
-    material.customProgramCacheKey = () => 'torcida-festa-' + side
+    material.customProgramCacheKey = () => 'torcida-festa-uhh-' + side
     return material
   })])) as Record<Side, THREE.MeshStandardMaterial[]>
   const groups = new Map<string, Place[]>()
@@ -308,8 +310,9 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     /** Rendering only. Never changes attendance, tickets, selected seats or reservations. */
     presentDay(value:number){const next=Math.round(fraction(value)*32)/32;if(next!==dayProgress){dayProgress=next;applyDayMask()}},
     /** 🎉 a festa do gol: `side` pula (0→1 em ~0,3 s), o outro lado fica parado; `null` desliga. `t` em segundos anda o balanço */
-    festa(side: Side | null, t: number) {
-      for (const s of ['home', 'away'] as const) { const u = festaUniforms[s]; u.uTime.value = t; const alvo = side === s ? 1 : 0; u.uFesta.value += (alvo - u.uFesta.value) * (alvo > u.uFesta.value ? 0.25 : 0.06) }
+    festa(side: Side | null, t: number, uhh: Side | null = null) {
+      for (const s of ['home', 'away'] as const) { const u = festaUniforms[s]; u.uTime.value = t; const alvo = side === s ? 1 : 0; u.uFesta.value += (alvo - u.uFesta.value) * (alvo > u.uFesta.value ? 0.25 : 0.06)
+        const a2 = uhh === s && side == null ? 1 : 0; u.uUhh.value += (a2 - u.uUhh.value) * (a2 > u.uUhh.value ? 0.35 : 0.04) }
     },
     /** ⚡ a câmera andou: os detalhados vão pros mais perto (só refaz quando ela anda 12 m+ — nada por quadro) */
     perto(camera: { x: number; y: number; z: number }) {

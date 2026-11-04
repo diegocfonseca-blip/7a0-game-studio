@@ -101,7 +101,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  return grass
 }
 
-export type InspecaoPartidaComplexo={replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
+export type InspecaoPartidaComplexo={/** 😱 04/11: o QUASE do Campo 2D (a torcida de quem atacou faz "uhhh") */quase?:{side:'home'|'away';age:number};replay?:boolean;owner?:string;players:number;ball:QuadroFutebol['ball'];time?:number;phase?:QuadroFutebol['phase'];matchId?:string;detail?:ReturnType<Awaited<ReturnType<typeof loadPlayers>>['inspect']>;official?:QuadroFutebol['official']}
 export type PartidaComplexo={setViewportVisible?:(visible:boolean)=>void;setPresentationVisible:(visible:boolean)=>void;update:(state:EstadoPartidaEstadio|undefined,now:number,camera?:THREE.PerspectiveCamera,viewportHeight?:number)=>void;subjects:()=>readonly {mx:number;mz:number;visible?:boolean;key?:string;priority?:boolean;side?:'home'|'away';keeper?:boolean}[];frame:()=>InspecaoPartidaComplexo;inspect:()=>InspecaoPartidaComplexo;dispose:()=>void}
 
 /** Every resource belongs to this subtree. Shared geometries/materials are
