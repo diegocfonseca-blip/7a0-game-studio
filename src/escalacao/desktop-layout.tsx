@@ -1,7 +1,7 @@
 import {createContext,useContext,useMemo,useState,type ReactNode,type MouseEventHandler} from 'react'
 import {createPortal} from 'react-dom'
 import logo from './img/logo-ll.webp'
-import {tr} from './lang'
+import {tr,getLang} from './lang'
 import './desktop-layout.css'
 
 type DesktopLink={label:string;active?:boolean;free?:boolean;onClick:()=>void}
@@ -50,7 +50,11 @@ export function AuctionDesktopLayout({enabled,children,bar,title,description,bud
   <section className="ll-desktop-panel ll-auction-players"><h2>{playersTitle||tr('Jogadores disponíveis','Available players')}</h2><div className="ll-auction-main">{children}</div></section>
   <aside className="ll-auction-sidebar" aria-label={tr('Seu leilão','Your auction')}>
    <section className="ll-desktop-panel"><h2>{tr('Meu envelope','My envelope')}</h2>
-    {budget&&<div className="ll-auction-budget">{[[tr('Saldo','Balance'),budget.balance],[tr('Em lances','In bids'),budget.masked?'🔒':budget.committed??0],[tr('Disponível','Available'),budget.masked?'🔒':Math.max(0,budget.balance-(budget.committed??0))]].map(([label,amount])=><div key={label}><small>{label}</small><strong>{amount}</strong></div>)}</div>}
+    {/* 💰 04/11 (Diego: *"saldo, em lances e disponível está confuso, repetindo"*, mockup `scripts/mockups/envelope-desktop.png`):
+        um número só, grande — quanto ainda dá pra gastar. A conta (o que tem e o que já foi pros lances) só quando já tem lance. */}
+    {budget&&(()=>{const pos=budget.committed??0,livre=Math.max(0,budget.balance-pos),conta=!budget.masked&&pos>0
+     return <div className="ll-auction-budget"><div className="ll-budget-big"><strong>{budget.masked?budget.balance:livre}</strong><span>{budget.masked?tr('🪙 no caixa','🪙 in the bank'):tr('🪙 pra gastar','🪙 to spend')}</span></div>
+      {conta&&<p className="ll-budget-sub">{getLang()==='en'?<>You have <b>{budget.balance}</b> and already put <b>{pos}</b> in bids.</>:<>Você tem <b>{budget.balance}</b> e já pôs <b>{pos}</b> nos lances.</>}</p>}</div>})()}
     <div className="ll-auction-summary" ref={setSummary}/>
    </section>
    <section className="ll-desktop-panel ll-auction-team"><h2>{tr('Seu time','Your team')}</h2>
