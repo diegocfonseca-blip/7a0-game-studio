@@ -37,7 +37,7 @@ const depois = `<svg viewBox="0 0 900 470" width="100%">${terreno}${estadio}
  <path d="M720 336 L720 330" stroke="#fff" stroke-width="3"/><path d="M713 333 l7 -9 l7 9" stroke="#fff" stroke-width="3" fill="none"/>
  <path d="M622 342 C 622 300, 560 250, 470 232" fill="none" stroke="#5a5d62" stroke-width="9" stroke-dasharray="2 0"/><path d="M622 342 C 622 300, 560 250, 470 232" fill="none" stroke="#FFC400" stroke-width="2" stroke-dasharray="8 6"/>
  <rect x="460" y="222" width="70" height="24" fill="#e8e1cf" stroke="${INK}" stroke-width="2"/><text x="495" y="238" text-anchor="middle" style="font:700 10px system-ui" fill="${INK}">BARRACAS</text>
- <g style="font:700 12px system-ui" fill="${INK}"><text x="736" y="300">🅿️ entrada do</text><text x="736" y="314">estacionamento</text><text x="440" y="292">🚐 portão de serviço</text><text x="440" y="306">(Kombi dos ambulantes)</text></g>
+ <g style="font:700 12px system-ui" fill="${INK}"><text x="736" y="300">🅿️ entrada do</text><text x="736" y="314">estacionamento</text><text x="452" y="266">🚐 portão de serviço</text><text x="452" y="280">(Kombi dos ambulantes)</text></g>
  <g style="font:700 13px system-ui" fill="${INK}"><text x="282" y="312">🚌 PONTO DE ÔNIBUS</text><text x="462" y="312">🚕 TÁXI / APP</text><text x="596" y="312">📦 CARGA</text></g>
  <text x="70" y="465" style="font:700 14px system-ui" fill="#1B7A3D">a pista paralela abre antes do estádio e volta pra avenida depois — a avenida segue sem parar</text></svg>`
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
