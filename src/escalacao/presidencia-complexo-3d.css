@@ -70,6 +70,8 @@
 .pc3-review[data-watching-match=true][data-camera-mode=fixed] .pc3-navigation button:not(.pc3-zoom){display:none}
 .pc3-match-score{position:absolute;top:max(72px,calc(env(safe-area-inset-top) + 64px));left:12px;right:12px;z-index:2;pointer-events:none;color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .pc3-match-score button{pointer-events:auto}
+/* ⚽ 04/11: a festa do gol do Campo 2D por cima do campo do mapa (mesmo componente da aba Jogos) */
+.pc3-match-festa{position:absolute;inset:0;z-index:4;pointer-events:none}
 .pc3-match-narration{max-width:100%;box-sizing:border-box;padding:4px 7px;border-radius:5px;background:#0c0c0cbb;color:#fff7dd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 11px/1.25 system-ui,sans-serif}
 .pc3-match-controls{position:absolute;left:12px;bottom:max(16px,env(safe-area-inset-bottom));z-index:3;color:#fff;pointer-events:none}
 .pc3-match-controls>button,.pc3-match-controls-panel{pointer-events:auto}

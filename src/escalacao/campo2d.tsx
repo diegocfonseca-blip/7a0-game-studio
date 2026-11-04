@@ -22,6 +22,9 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrá
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
 import { estiloPisca, gritoGol } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
 import { nomeLimpo } from './escudos'
+import { useCampo2DLiberado } from './sport'
+import { avancaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola, type PontoRastro } from './campo2d-apresentacao'
+import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
 const INK = '#0C0C0C', GOLD = '#FFC400'
@@ -179,8 +182,11 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   const [temReplay, setTemReplay] = useState(false)
   const [replayNa, setReplayNa] = useState<{ autor: string; min: number } | null>(null)
   useEffect(()=>()=>onSimulationMinute?.(null),[onSimulationMinute])
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute }
+  // 🔒 04/11: o que foi IGUALADO com o campo do mapa (rastro do mapa, nome que segura) só aparece na conta liberada do 2D —
+  // em sala 2D de outra pessoa o campinho segue exatamente como era (Diego: *"ninguém pode ver ainda"*).
+  const igualMapa = useCampo2DLiberado()
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa }
 
   useEffect(() => {
     const el = caixa.current
@@ -414,6 +420,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const juiz = { x: 34, y: L / 2 }
     // 🌠 rastro da bola nos passes longos e chutes
     const rastro: [number, number][] = []
+    // 🔁 04/11: o rastro do MAPA (o que o Diego gostou) — mesma regra e mesma bolinha de luz (campo2d-apresentacao.ts)
+    const rastroMapa: PontoRastro[] = [], bolinha = arteBolinhaRastro(), nomeNaBola = criaNomeNaBola()
     // 👁️ CAMADA SÓ DE DESENHO (04/11, Diego: *"os jogadores… a bola… o gramado"*). Nada aqui muda placar, motor ou o que o
     // mapa conta como resultado: é só ONDE o boneco e a bola aparecem na tela. (1) dois jogadores nunca ficam um em cima do
     // outro — quem encosta é afastado devagar; (2) quem conduz leva a bola À FRENTE, com toquinhos (antes ela ficava colada
@@ -422,7 +430,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const bolaVis = { x: NaN, y: NaN }
     let tAnt = jogo.t
     const quadro = () => {
-      const { casa, fora, fechado, pausado, t } = vivo.current
+      const { casa, fora, fechado, pausado, t, igualMapa } = vivo.current
       if (cartasDe[0] !== casa.cartas || cartasDe[1] !== fora.cartas) {
         cartasDe = [casa.cartas, fora.cartas]; cartaDe = new Map(); rostoDe.clear()
         for (const k of [...(casa.cartas ?? []), ...(fora.cartas ?? [])]) cartaDe.set(k.name, k)
@@ -538,7 +546,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.fillStyle = '#FFE600'; cx.font = fonte(RJ * 0.9, 800); cx.textAlign = 'center'; cx.fillText('J', X, Y + RJ * 0.35)
       }
       // 🌠 rastro: só quando a bola está viajando (passe/chute); some sozinho
-      if (jogo.bola.voo) { rastro.push([jogo.bola.x, jogo.bola.y]); if (rastro.length > 9) rastro.shift() } else if (rastro.length) rastro.shift()
+      if (igualMapa) rastro.length = 0
+      else if (jogo.bola.voo) { rastro.push([jogo.bola.x, jogo.bola.y]); if (rastro.length > 9) rastro.shift() } else if (rastro.length) rastro.shift()
       if (rastro.length > 1) {
         cx.lineCap = 'round'
         for (let i = 1; i < rastro.length; i++) { const [ax, ay] = tr(...rastro[i - 1]), [bx1, by1] = tr(...rastro[i]); cx.strokeStyle = `rgba(255,255,255,${(0.08 + (0.5 * i) / rastro.length).toFixed(2)})`; cx.lineWidth = 1 + (3.5 * i) / rastro.length; cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx1, by1); cx.stroke() }
@@ -580,7 +589,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       // 🏷️ NOME SÓ DE QUEM ENCOSTA NA BOLA (04/11, Diego: *"deixar o nome do jogador aparecer apenas quando encosta na bola"*), no
       // celular e no PC, igual ao campo do mapa — mais quem fez o gol, durante a festa. O resto fica só com o número/rosto.
       const comNome = new Set<Atleta>()
-      if (jogo.bola.dono) comNome.add(jogo.bola.dono)
+      if (igualMapa) { const quem = nomeNaBola(jogo.bola.dono?.nome, agora); if (quem) for (const p of jogo.atl) if (p.nome === quem) comNome.add(p) }
+      else if (jogo.bola.dono) comNome.add(jogo.bola.dono)
       if (jogo.festa) for (const p of jogo.atl) if (p.nome === jogo.festa.autor) comNome.add(p)
       // 🧍 os 22 (de trás pra frente na tela)
       const ordem = [...jogo.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
@@ -593,6 +603,15 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
       {
         const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = mis(bA.h, jogo.bola.h) * S, rb = Math.max(4.6, R * 0.36) + jogo.bola.h * 0.25
+        // 🌠 o rastro do mapa, por baixo da bola e por cima dos bonecos (no mapa é igual)
+        if (igualMapa) {
+          avancaRastro(rastroMapa, bolaVis.x, bh, bolaVis.y)
+          if (rastroVisivel(rastroMapa.length)) {
+            const a0 = cx.globalAlpha
+            rastroMapa.forEach((q, i) => { const [qx, qy] = tr(q.x, q.z), { tamanho, alfa } = pontoRastro(i, rastroMapa.length), d = tamanho * S; cx.globalAlpha = alfa; cx.drawImage(bolinha, qx - d / 2, qy - q.y - d / 2, d, d) })
+            cx.globalAlpha = a0
+          }
+        } else rastroMapa.length = 0
         cx.beginPath(); cx.ellipse(bx + bh * 0.25, by + rb * 0.55, rb * (1 - Math.min(0.4, bh / 120)), rb * 0.45, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.38)'; cx.fill()
         const cy = by - bh
         cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = '#fff'; cx.fill()
@@ -606,7 +625,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
           players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
-          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,clima,falas:[fala(0),fala(1)],autorGol:jogo.festa?.autor??'',referee:{x:L/2-juiz.y,z:juiz.x-W/2},
+          net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,clima,falas:[fala(0),fala(1)],autorGol:jogo.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,jogo.bola.h),z:bolaVis.x-W/2}})
       }
       raf = requestAnimationFrame(quadro)
@@ -616,6 +635,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   }, [jogo, larg, deitado, corCasa, corFora, msPorMin, noite, gramaPct, lotacao, mapMatchId])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
+  // 🗺️ 04/11: a mesma festa do gol vai pro HUD do mapa (quando este campinho é a fonte do campo do estádio)
+  useEffect(() => {
+    if (!mapMatchId) return
+    const dono = festa ? (festa.lado === 0 ? vivo.current.casa : vivo.current.fora) : null
+    publicarFestaCampo2D(mapMatchId, festa && dono ? { ...festa, mascote: dono.mascote, escudo: dono.escudo } : null)
+  }, [mapMatchId, festa])
+  useEffect(() => () => { if (mapMatchId) publicarFestaCampo2D(mapMatchId, null) }, [mapMatchId])
   const altPlaca = Math.max(22, Math.round(larg / 16))
   return (
     <div ref={caixa} style={{ marginBottom: 10 }}>
@@ -631,14 +657,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         {!deitado && <PlacaGol lado="baixo" alt={altPlaca} />}
         {festa && time && (
           // ⚽ o GOL: mascote grande (quem tem) ou GOOOL + escudo; embaixo a faixinha do autor — o mesmo teatro uma vez só
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, animation: 'c2dEntra .3s ease' }}>
-            <style>{'@keyframes c2dEntra{from{opacity:0}to{opacity:1}}@keyframes c2dQuica{0%{transform:translateX(220px) rotate(10deg)}55%{transform:translateX(0) rotate(0)}70%{transform:translateY(-14px)}85%{transform:translateY(0)}100%{transform:translateY(-6px)}}'}</style>
-            <div style={{ ...OSW, fontSize: Math.round(Math.min(larg, 520) / 6.5), color: GOLD, textShadow: `4px 4px 0 ${INK}`, lineHeight: 1 }}>{t('GOOOOL!', 'GOOOAL!')}</div>
-            <div style={{ animation: 'c2dQuica .9s cubic-bezier(.3,1.4,.5,1)', transform: 'scale(1.15)' }}>{time.mascote ?? time.escudo ?? null}</div>
-            <div style={{ ...OSW, fontSize: 18, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '2px 12px', boxShadow: `3px 3px 0 ${INK}`, whiteSpace: 'nowrap', maxWidth: '92%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              ⚽ {festa.autor.toUpperCase()} {festa.min > 90 ? `90+${festa.min - 90}` : festa.min}'{festa.assist ? `  ·  🅰️ ${festa.assist}` : ''}
-            </div>
-          </div>
+          // (o MESMO componente aparece por cima do campo do mapa — campo2d-festa.tsx)
+          <FestaGolCampo2D festa={{ ...festa, mascote: time.mascote, escudo: time.escudo }} larg={larg} />
         )}
       </div>
       {replay && temReplay && fechado && !festa && (

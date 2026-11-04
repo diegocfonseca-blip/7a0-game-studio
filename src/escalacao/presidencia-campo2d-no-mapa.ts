@@ -5,6 +5,7 @@ import {observarSuperficieCampo2D,pedirSuperficieCampo2D,superficieCampo2D} from
 import type {PartidaComplexo,InspecaoPartidaComplexo} from './presidencia-complexo-partida'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import {atualizarRedesGol3D} from './presidencia-rede-gol-3d'
+import {avancaRastro,pontoRastro,rastroVisivel,arteBolinhaRastro,criaNomeNaBola,RASTRO_PONTOS,type PontoRastro} from './campo2d-apresentacao'
 
 /** Same Campo2D positions, on the native stadium grass, markings and goals.
  * No opaque pitch overlay, football rig, match engine or independent clock. */
@@ -52,10 +53,9 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  ball.name='bola2d-no-mapa';root.add(ball);ball.visible=false
  // 🔁 04/11 (Diego: *"tudo que faz pra um normalmente deveria funcionar no outro"*): o que o campinho da aba Jogos já tinha e o mapa não —
  // 🌠 rastro da bola no passe longo/chute · 🧢 balão do técnico · 🌧️ chuva quando o jogo é de chuva · 👟 passinho de quem corre.
- const dotCanvas=document.createElement('canvas');dotCanvas.width=dotCanvas.height=32
- {const g=dotCanvas.getContext('2d')!,gr=g.createRadialGradient(16,16,2,16,16,15);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32)}
- const dotTexture=texture(dotCanvas),trail:T.Sprite[]=[],trailPts:{x:number;y:number;z:number}[]=[]
- for(let i=0;i<9;i++){const m=new T.SpriteMaterial({map:dotTexture,transparent:true,depthWrite:false,toneMapped:false});const sp=new T.Sprite(m);sp.renderOrder=14;sp.visible=false;root.add(sp);trail.push(sp)}
+ // (o rastro mora em campo2d-apresentacao.ts e é o MESMO do campinho da aba Jogos)
+ const dotTexture=texture(arteBolinhaRastro()),trail:T.Sprite[]=[],trailPts:PontoRastro[]=[]
+ for(let i=0;i<RASTRO_PONTOS;i++){const m=new T.SpriteMaterial({map:dotTexture,transparent:true,depthWrite:false,toneMapped:false});const sp=new T.Sprite(m);sp.renderOrder=14;sp.visible=false;root.add(sp);trail.push(sp)}
  const bubbles=[0,1].map(lado=>{const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const map=texture(canvas),mat=new T.SpriteMaterial({map,transparent:true,depthWrite:false,depthTest:false,toneMapped:false}),sp=new T.Sprite(mat);sp.renderOrder=16;sp.visible=false;sp.center.set(.5,0);root.add(sp);return{lado,canvas,map,mat,sp,texto:''}})
  const desenhaBalao=(b:typeof bubbles[number],texto:string)=>{if(b.texto===texto)return;b.texto=texto;const g=b.canvas.getContext('2d')!;g.clearRect(0,0,512,96);if(!texto)return
   g.font='700 44px Oswald, Arial, sans-serif';const w=Math.min(500,g.measureText(texto).width+40),x=(512-w)/2;g.fillStyle='#ffffff';g.strokeStyle='#0c0c0c';g.lineWidth=6;g.beginPath();g.roundRect(x,6,w,72,16);g.fill();g.stroke()
@@ -65,6 +65,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  rainGeometry.setAttribute('position',new T.BufferAttribute(rainPos,3))
  const rainMaterial=new T.LineBasicMaterial({color:'#cfe3ff',transparent:true,opacity:.45,depthWrite:false,toneMapped:false}),rain=new T.LineSegments(rainGeometry,rainMaterial);rain.name='chuva-campo2d';rain.visible=false;rain.frustumCulled=false;root.add(rain)
  const passo=new Map<string,{x:number;z:number;fase:number}>();let relogio=0
+ const nomeNaBola=criaNomeNaBola() // 🏷️ o nome segura um pouquinho depois do toque (o mesmo do campinho da aba Jogos)
  const ballShadow=new T.Mesh(circle,shadowMaterial);ballShadow.name='sombra-bola2d';ballShadow.rotation.x=-Math.PI/2;ballShadow.position.y=.03;root.add(ballShadow);ballShadow.visible=false
  let id='',revision=-1,viewportVisible=true,disposed=false,lastBall:{x:number;z:number}|undefined,lastMinute=0,labels=new Set<string>(),fontRevision=0
  let net:{key:string;y:number;z:number}|undefined
@@ -77,7 +78,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  // pulo grande (gol, reposição, começo) vai direto.
  let suave=1,ultimoQuadro=0
  const desliza=(o:T.Object3D,x:number,y:number,z:number)=>{const dx=x-o.position.x,dz=z-o.position.z;if(suave>=1||dx*dx+dz*dz>64)o.position.set(x,y,z);else o.position.set(o.position.x+dx*suave,o.position.y+(y-o.position.y)*suave,o.position.z+dz*suave)}
- const update=(state:EstadoPartidaEstadio|undefined,_now:number,camera?:T.PerspectiveCamera)=>{
+ const update=(state:EstadoPartidaEstadio|undefined,_now:number,camera?:T.PerspectiveCamera,viewportHeight?:number)=>{
   {const agora=performance.now(),dt=ultimoQuadro?Math.min(.25,(agora-ultimoQuadro)/1000):1;ultimoQuadro=agora;suave=dt>=.25?1:1-Math.exp(-dt*22);relogio+=Math.min(dt,.1)}
   if(disposed)return
   const next=state?.context.id??''
@@ -91,27 +92,40 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   const shadowAt=(x:number,z:number,radius:number)=>{if(shadowIndex>=23)return;shadowPose.position.set(x,.028,z);shadowPose.rotation.set(-Math.PI/2,0,0);shadowPose.scale.setScalar(2.6*radius);shadowPose.updateMatrix();shadows.setMatrixAt(shadowIndex++,shadowPose.matrix)}
   camera?.getWorldDirection(direction)
   const tan=camera?Math.tan(T.MathUtils.degToRad(camera.fov)*.5):1,anchor=camera?Math.hypot(direction.x,direction.z):.5
+  // 🏷️ 04/11 (Diego: *"o nome… na aba do mapa não dá pra ler ou some rápido"*): o nome tem TAMANHO DE TELA fixo (26 px no celular,
+  // 30 no PC — a letra fica ~15/17 px, maior que a do campinho), fica EM CIMA da cabeça (longe da bola) e não some atrás de outro
+  // boneco. Quem mostra o nome é a MESMA regra do campinho: quem encosta na bola (segurando um pouquinho) + o autor do gol.
+  const alturaTela=viewportHeight&&viewportHeight>80?viewportHeight:(typeof window!=='undefined'?window.innerHeight:700)||700,pxNome=alturaTela<700?26:30
+  const nomeVez=nomeNaBola(source.players.find(q=>q.marker.owned)?.key,performance.now())
   for(const p of source.players){
    const token=marker(p.key,p.marker,p.x,p.z,p.radius);token.root.visible=true;seen.add(p.key)
    {const r=token.root.position,ant=passo.get(p.key)??{x:r.x,z:r.z,fase:Math.random()*6},anda=Math.hypot(r.x-ant.x,r.z-ant.z)>.004;ant.x=r.x;ant.z=r.z;passo.set(p.key,ant);token.icon.position.y=p.radius*anchor+.10+(anda?Math.abs(Math.sin(relogio*14+ant.fase))*p.radius*.14:0)}
    shadowAt(token.root.position.x,token.root.position.z,p.radius)
-   if(camera){projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position);const depth=relative.dot(direction);if(depth>0)obstacles.push({key:p.key,x:projected.x,y:projected.y,halfWidth:p.radius/(depth*tan*camera.aspect),halfHeight:p.radius/(depth*tan),priority:0})}
    if(token.label){
     token.label.position.copy(token.icon.position)
     const distance=Math.hypot(p.x-source.ball.x,p.z-source.ball.z)
-    if(camera&&!distant&&(token.owned||!!source.autorGol&&p.name===source.autorGol)){ // 🏷️ 04/11: nome só de quem ENCOSTA na bola (igual no campinho da aba Jogos)
+    if(camera&&!distant&&(p.key===nomeVez||!!source.autorGol&&p.name===source.autorGol)){ // 🏷️ 04/11: nome só de quem ENCOSTA na bola (igual no campinho da aba Jogos)
      projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position)
-     const depth=relative.dot(direction),hh=token.label.scale.y/(2*depth*tan),hw=token.label.scale.x/(2*depth*tan*camera.aspect)
-     if(depth>0&&projected.z>-1&&projected.z<1)candidates.push({key:p.key,x:projected.x,y:projected.y-3.1*hh,halfWidth:hw,halfHeight:hh,priority:(token.owned?-100:token.portrait?-25:0)+distance})
+     const depth=relative.dot(direction)
+     if(depth>0){
+      const image=token.labelTexture!.image as HTMLCanvasElement,alto=Math.max(p.radius*.94,pxNome/alturaTela*2*depth*tan),folga=p.radius*1.15
+      token.label.scale.set(alto*image.width/image.height,alto,1);token.label.center.set(.5,-folga/alto)
+      const hh=alto/(2*depth*tan),hw=token.label.scale.x/(2*depth*tan*camera.aspect)
+      if(projected.z>-1&&projected.z<1)candidates.push({key:p.key,x:projected.x,y:projected.y+folga/(depth*tan)+hh,halfWidth:hw,halfHeight:hh,priority:(p.key===nomeVez?-100:token.portrait?-25:0)+distance})
+     }
     }
    }
   }
+  // 🧢 04/11: o TÉCNICO na beira do campo, igual ao campinho (antes só o balão aparecia, sem ninguém embaixo), com o sobrenome sempre
+  ;[0,1].forEach(lado=>{const nome=source.tecnicos?.[lado]??'';if(!nome)return;const key='coach'+lado,cor=source.players.find(q=>q.side===(lado?'away':'home'))?.marker.color??'#1b1b1b'
+   const tk=marker(key,{name:nome,color:cor,number:'🧢',portrait:null,owned:false},105/2-105*(lado?.28:.72),-68/2-3.5,1.05);tk.root.visible=true;seen.add(key);tk.icon.position.y=1.05*anchor+.10;shadowAt(tk.root.position.x,tk.root.position.z,1.05)
+   if(tk.label){tk.label.position.copy(tk.icon.position);const show=!!camera&&!distant;tk.label.visible=show;if(show&&camera){relative.copy(tk.root.position).sub(camera.position);const depth=Math.max(1,relative.dot(direction)),image=tk.labelTexture!.image as HTMLCanvasElement,alto=Math.max(1.05*.94,pxNome*.85/alturaTela*2*depth*tan);tk.label.scale.set(alto*image.width/image.height,alto,1);tk.label.center.set(.5,1+1.05*1.1/alto)}}})
   const ref=marker('referee',{name:'',color:'#FFC400',number:'J',portrait:null,owned:false,referee:true},source.referee.x,source.referee.z,1.05);ref.icon.position.y=1.05*anchor+.10;ref.root.visible=true;seen.add('referee')
   shadowAt(source.referee.x,source.referee.z,1.05);shadows.count=shadowIndex;shadows.instanceMatrix.needsUpdate=true
   for(const[key,t]of tokens)if(!seen.has(key)){drop(t);tokens.delete(key)}
   if(camera){projected.set(source.ball.x,.65+Math.max(0,source.ball.y-.11),source.ball.z).project(camera);relative.set(source.ball.x,.65+Math.max(0,source.ball.y-.11),source.ball.z).sub(camera.position);const depth=relative.dot(direction);if(depth>0)obstacles.push({key:'ball',x:projected.x,y:projected.y,halfWidth:.8/(depth*tan*camera.aspect),halfHeight:.8/(depth*tan),priority:0})}
   labels=escolherRotulosCampo2D(candidates,labels,4,obstacles)
-  for(const[key,token]of tokens)if(token.label)token.label.visible=labels.has(key)
+  for(const[key,token]of tokens)if(token.label&&!key.startsWith('coach'))token.label.visible=labels.has(key)
   const height=Math.max(0,source.ball.y-.11)
   if(nativeField){
    const impact=source.net
@@ -119,8 +133,8 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    atualizarRedesGol3D(nativeField,{time:impact?.age??0,ball:{netImpact:impact&&net?{sign:impact.sign,time:0,y:net.y,z:net.z,strength:.7}:undefined}})
   }
   ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);
-  {const u=trailPts[trailPts.length-1],b=ball.position,voa=!!u&&Math.hypot(b.x-u.x,b.z-u.z)>.55;if(voa||!u)trailPts.push({x:b.x,y:b.y,z:b.z});else if(trailPts.length)trailPts.shift();if(trailPts.length>trail.length)trailPts.shift()
-   trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&trailPts.length>2;if(!q)return;const k=(i+1)/trailPts.length;sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(.5+.9*k);(sp.material as T.SpriteMaterial).opacity=.12+.5*k})}
+  {const b=ball.position;avancaRastro(trailPts,b.x,b.y,b.z)
+   trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&rastroVisivel(trailPts.length);if(!q)return;const {tamanho,alfa}=pontoRastro(i,trailPts.length);sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(tamanho);(sp.material as T.SpriteMaterial).opacity=alfa})}
   {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
   {const chove=source.clima==='chuva';rain.visible=chove;if(chove){const a=rainGeometry.getAttribute('position') as T.BufferAttribute,arr=a.array as Float32Array,queda=Math.min(1.5,Math.max(.2,suave*6));for(let i=0;i<RAIN;i++){let y=arr[i*6+1]-queda;if(y<0)y+=24;arr[i*6+1]=y;arr[i*6+4]=y-1.1}a.needsUpdate=true}}ballShadow.scale.setScalar(1.8+Math.min(2,height*.15))
   if(lastBall&&source.minute>=lastMinute){const dx=source.ball.x-lastBall.x,dz=source.ball.z-lastBall.z,distance=Math.hypot(dx,dz);if(distance>.0001&&distance<8){ballMaterial.rotation+=distance/.7*(dx+dz>=0?1:-1)}}
