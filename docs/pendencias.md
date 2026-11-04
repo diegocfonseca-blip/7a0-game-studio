@@ -14,6 +14,8 @@ Pedido aprovado: *"coisas bem tradicionais do Brasil, espalhadas pelo mapa, muda
 - Código: `presidencia-cidade-viva.ts` (regras puras) · `presidencia-cidade-viva-3d.ts` (desenho, 3 InstancedMesh, sem sombra nova) · trava `scripts/imersao-mapa/test-cidade-viva.mjs` · fotos `scripts/mockups/mapa-obras-*.png` (`shots-cidade-viva.mjs`).
 - ⏳ Pendente: mostrar as fotos pro Diego e esperar o OK visual antes de fundir.
 
+
+- 🏠🚗 **03/11 — casa do presidente no bairro + carro na garagem** (Diego: *"comprei um Fusca e não aparece na garagem… a casa tá muito próxima do estádio"*). `residencia-planta.ts`: terreno saiu de x 180·z 20 (dentro do terreno do complexo) pro bairro SE, fora do anel (x 200·z 232, 36×30); tudo (cerca com portão na frente da garagem, entrada de carro, placa, câmera "casa-usuario", alvo de toque) sai do centro+tamanho. `residencia-3d.ts` ganhou `garagem(ids)`: a MESMA dupla da tela "Sua garagem" (`duplaDaGaragem` + `careerPresidency[mgr].display`, via `garage` do `adaptarCarreiraAoComplexo`) aparece dentro da garagem, desenho em blocos (Fusca com teto arredondado), 0 KB de arte. Trava `scripts/imersao-mapa/test-approved-map-release.mjs` passou. Fotos: `scripts/mockups/casa-presidente-*.png`. (branch; mapa é só da conta do Diego)
 ## 🕐 03/11 — Conta nova REPETIDA no mesmo aparelho só cria sala depois de 24 h (Diego: "faz assim e publica")
 - Mockup `scripts/mockups/conta-nova-24h.png`. Medido: em 12 dias, 337 contas criaram sala no 1º dia; 299 eram a 1ª conta do aparelho (gente nova/streamer) e só 38 repetidas → a espera vale SÓ pra conta que não é a 1ª do aparelho. Banco: `esc_conta_nova_espera` + gatilho `esc_sala_por_dia` (erro `CONTA_NOVA_24H`, hint = segundos); sala extra comprada antecipa (gasta 1); plano pago nunca espera; só conta criada a partir de 03/11 (`esc_conta_nova_cfg.desde`). Desligar: `update esc_conta_nova_cfg set ligado = false`. Tela: `ContaNova24h` + `ContaNovaLegenda` (lobby.tsx). Aparelho = id guardado no navegador (mesmo do e-mail): aba anônima, outro navegador ou limpar dados escapam.
 
@@ -12020,3 +12022,14 @@ Feito no branch (só conta dele), esperando OK pra publicar:
 - Botão "Ver o jogo no Campo 3D" virou "Ver o jogo no estádio do mapa" (o campo do mapa é o 2D aprovado em 03/11).
 - No mapa, "🔁 Substituir / tática" leva pra aba Jogos.
 Pendente: câmeras de TV (só voltam se trocar o campo 2D do mapa de novo pelo 3D — perguntar), conferir a Copa no mapa na conta dele (o caminho já existe: o mapa segue qualquer jogo do clube), patrocinadores do mapa ainda não mudam com o Master, carros NOVOS na Vadico precisam de arte.
+
+### 👁️⚽ 04/11 — Visual do campinho 2D + mapa (Diego: *"os jogadores… a bola… o gramado… pode fazer qualquer coisa, eu retiro de volta"*)
+No branch, esperando "publica". SÓ DESENHO (`campo2d.tsx`, camada "👁️"): não muda placar, motor nem o resultado do mapa.
+- Bola menor que o juiz (`R*0.36`, ele achou a 1ª versão grande demais) e com GOMOS pretos (*"gostei da bola com gomos"*); sombra se afasta quando ela sobe.
+- Quem conduz leva a bola À FRENTE, com toquinhos (antes colada no corpo = robô); a bola anda lisa entre o pé e o passe.
+- Jogadores não ficam um em cima do outro (afastados devagar na tela); o mapa recebe as MESMAS posições.
+- Celular (campo em pé): nome só de quem tem a bola, de quem chega pra tomar e de quem fez o gol. PC deitado: todos, como antes.
+- Sombra diagonal do sol mais fraca (.22 → .09).
+- Mapa: "Ver partida" abre PERTO seguindo a bola (zoom .52; o − mostra o campo todo); controles já abertos (sem o botão "Controles").
+Fotos: `scripts/mockups/campo2d-visual-0411-a.png` / `-b.png`. Trava `npm run campo2d` passou.
+Ainda pendente: barra de botões IDÊNTICA entre aba Jogos e mapa (hoje só ficou à vista) e substituir sem sair do mapa.

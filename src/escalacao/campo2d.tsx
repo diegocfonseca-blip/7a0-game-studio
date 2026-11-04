@@ -345,7 +345,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       if (clima === 'sol' && !noite) {
         // ☀️ SOL: a sombra da arquibancada atravessa o gramado em diagonal (a borda dela é reta, como sombra de prédio)
         const kx = deitado ? 0.5 : 0.95, ky = deitado ? 0.9 : 0.55
-        g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(sx0 + (sx1 - sx0) * kx, sy0); g.lineTo(sx0, sy0 + (sy1 - sy0) * ky); g.closePath(); g.fill()
+        g.fillStyle = 'rgba(0,0,0,.09)'; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(sx0 + (sx1 - sx0) * kx, sy0); g.lineTo(sx0, sy0 + (sy1 - sy0) * ky); g.closePath(); g.fill()
         // e a parte iluminada ganha um brilho leve de sol
         const luz = g.createLinearGradient(sx1, sy1, sx0, sy0); luz.addColorStop(0, 'rgba(255,245,180,.10)'); luz.addColorStop(0.6, 'rgba(255,245,180,0)')
         g.fillStyle = luz; g.fillRect(fx, fy, fw, fh)
@@ -414,6 +414,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const juiz = { x: 34, y: L / 2 }
     // 🌠 rastro da bola nos passes longos e chutes
     const rastro: [number, number][] = []
+    // 👁️ CAMADA SÓ DE DESENHO (04/11, Diego: *"os jogadores… a bola… o gramado"*). Nada aqui muda placar, motor ou o que o
+    // mapa conta como resultado: é só ONDE o boneco e a bola aparecem na tela. (1) dois jogadores nunca ficam um em cima do
+    // outro — quem encosta é afastado devagar; (2) quem conduz leva a bola À FRENTE, com toquinhos (antes ela ficava colada
+    // no mesmo ponto do corpo, cara de robô); (3) a bola anda lisa entre o pé e o passe.
+    const afasta = new Map<Atleta, { x: number; y: number; px: number; py: number; v: number }>()
+    const bolaVis = { x: NaN, y: NaN }
+    let tAnt = jogo.t
     const quadro = () => {
       const { casa, fora, fechado, pausado, t } = vivo.current
       if (cartasDe[0] !== casa.cartas || cartasDe[1] !== fora.cartas) {
@@ -536,24 +543,74 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.lineCap = 'round'
         for (let i = 1; i < rastro.length; i++) { const [ax, ay] = tr(...rastro[i - 1]), [bx1, by1] = tr(...rastro[i]); cx.strokeStyle = `rgba(255,255,255,${(0.08 + (0.5 * i) / rastro.length).toFixed(2)})`; cx.lineWidth = 1 + (3.5 * i) / rastro.length; cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx1, by1); cx.stroke() }
       }
+      // 👁️ onde cada um APARECE (afastados uns dos outros) e com que velocidade está correndo
+      const dtJ = Math.max(0, jogo.t - tAnt); tAnt = jogo.t
+      const vis = jogo.atl.map(p => ({ p, x: mis(p.ax, p.x), y: mis(p.ay, p.y), ox: 0, oy: 0 }))
+      const minD = (R / S) * 2.0
+      for (let it = 0; it < 4; it++) for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) {
+        const A = vis[i], B = vis[j], dx = B.x + B.ox - A.x - A.ox, dy = B.y + B.oy - A.y - A.oy, d = Math.hypot(dx, dy)
+        if (d >= minD) continue
+        const ux = d > 1e-3 ? dx / d : (i % 2 ? 1 : -1), uy = d > 1e-3 ? dy / d : 0, k = (minD - d) / 2
+        A.ox -= ux * k; A.oy -= uy * k; B.ox += ux * k; B.oy += uy * k
+      }
+      const suave = Math.min(1, dt / 140)
+      const pos = new Map<Atleta, { x: number; y: number; v: number; dx: number; dy: number }>()
+      for (const q of vis) {
+        let o = afasta.get(q.p); if (!o) { o = { x: q.ox, y: q.oy, px: q.x, py: q.y, v: 0 }; afasta.set(q.p, o) }
+        o.x += (q.ox - o.x) * suave; o.y += (q.oy - o.y) * suave
+        const mx = q.x - o.px, my = q.y - o.py, m = Math.hypot(mx, my)
+        if (dtJ > 0) { o.v += (Math.min(12, m / dtJ) - o.v) * Math.min(1, dtJ * 6) }
+        pos.set(q.p, { x: q.x + o.x, y: q.y + o.y, v: o.v, dx: m > 1e-4 ? mx / m : 0, dy: m > 1e-4 ? my / m : 0 })
+        o.px = q.x; o.py = q.y
+      }
+      // ⚽ a bola que APARECE: no pé de quem conduz, um passo à frente, com toquinhos; no passe, a bola de verdade
+      const bA = jogo.bolaAnt, dono = jogo.bola.dono
+      let alvoX = mis(bA.x, jogo.bola.x), alvoY = mis(bA.y, jogo.bola.y)
+      const dp = dono && !jogo.bola.voo && !rv ? pos.get(dono) : undefined
+      if (dono && dp) {
+        const corre = Math.min(1, dp.v / 3.2), dx = corre > 0.15 && (dp.dx || dp.dy) ? dp.dx : 0, dy = corre > 0.15 && (dp.dx || dp.dy) ? dp.dy : (dono.lado === 0 ? -1 : 1)
+        const fase = (jogo.t * 1.7 + (numero.get(dono) ?? 0) * 0.37) % 1, perto = R / S * 0.75
+        const dist = perto + corre * (0.35 + 1.1 * fase * fase)
+        alvoX = dp.x + dx * dist; alvoY = dp.y + dy * dist
+      }
+      if (!Number.isFinite(bolaVis.x) || Math.hypot(alvoX - bolaVis.x, alvoY - bolaVis.y) > 9 || rv) { bolaVis.x = alvoX; bolaVis.y = alvoY }
+      else { const kb = Math.min(1, dt / (jogo.bola.voo ? 35 : 75)); bolaVis.x += (alvoX - bolaVis.x) * kb; bolaVis.y += (alvoY - bolaVis.y) * kb }
+      // 🏷️ no celular (campo em pé) só aparece o NOME de quem está no lance: quem tem a bola, quem chega pra tomar e quem fez o gol
+      // (antes eram 22 etiquetas e, num bolo de 3, ninguém lia nada). No PC, deitado, cabe todo mundo como sempre.
+      let comNome: Set<Atleta> | null = null
+      if (!deitado) {
+        comNome = new Set()
+        const perto = (lado: number | null, max: number) => { let m: Atleta | null = null, md = max; for (const p of jogo.atl) { if (lado != null && p.lado !== lado) continue; const q = pos.get(p)!, d = Math.hypot(q.x - bolaVis.x, q.y - bolaVis.y); if (d < md) { md = d; m = p } } return m }
+        if (dono) { comNome.add(dono); const r = perto(1 - dono.lado, 7); if (r) comNome.add(r) }
+        else { const r = perto(null, 6); if (r) comNome.add(r) }
+        if (jogo.festa) for (const p of jogo.atl) if (p.nome === jogo.festa.autor) comNome.add(p)
+      }
       // 🧍 os 22 (de trás pra frente na tela)
-      const ordem = [...jogo.atl].sort((a, b) => tr(a.x, a.y)[1] - tr(b.x, b.y)[1])
+      const ordem = [...jogo.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
       for (const p of ordem) {
-        const [X, Y] = tr(mis(p.ax, p.x), mis(p.ay, p.y))
+        const q = pos.get(p)!, [X, Y] = tr(q.x, q.y)
         const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
         let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
-        desenharMarcadorCampo2D(cx,X,Y,R,{name:p.nome,color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
+        desenharMarcadorCampo2D(cx,X,Y,R,{name:!comNome||comNome.has(p)?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
       }
-      // ⚽ a bola (com sombra; sobe quando é cruzamento/chute alto)
-      const bA = jogo.bolaAnt, [bx, by] = tr(mis(bA.x, jogo.bola.x), mis(bA.y, jogo.bola.y)), bh = mis(bA.h, jogo.bola.h) * S
-      cx.beginPath(); cx.ellipse(bx, by + 2, 4, 2, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fill()
-      cx.beginPath(); cx.arc(bx, by - bh, 4.2 + jogo.bola.h * 0.25, 0, 7); cx.fillStyle = '#fff'; cx.fill(); cx.lineWidth = 1.5; cx.strokeStyle = '#111'; cx.stroke()
+      // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
+      {
+        const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = mis(bA.h, jogo.bola.h) * S, rb = Math.max(4.6, R * 0.36) + jogo.bola.h * 0.25
+        cx.beginPath(); cx.ellipse(bx + bh * 0.25, by + rb * 0.55, rb * (1 - Math.min(0.4, bh / 120)), rb * 0.45, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.38)'; cx.fill()
+        const cy = by - bh
+        cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = '#fff'; cx.fill()
+        const giro = (bolaVis.x + bolaVis.y) * 0.9
+        cx.save(); cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.clip(); cx.fillStyle = '#151515'
+        for (let k = 0; k < 4; k++) { const a = giro + k * 1.75, rr = k ? rb * 0.95 : 0, gx = bx + Math.cos(a) * rr, gy = cy + Math.sin(a) * rr, g5 = rb * (k ? 0.36 : 0.42)
+          cx.beginPath(); for (let v = 0; v < 5; v++) { const aa = a + v * 1.2566; v ? cx.lineTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) : cx.moveTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) } cx.closePath(); cx.fill() }
+        cx.restore(); cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.lineWidth = 1.6; cx.strokeStyle = '#111'; cx.stroke()
+      }
       if(mapMatchId&&mapFPS){
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
-          players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-mis(p.ay,p.y),z:mis(p.ax,p.x)-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
+          players:jogo.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:p===jogo.bola.dono}})),
           net:jogo.rede?{sign:jogo.rede.y0===0?1:-1,time:jogo.rede.t0,age:jogo.t-jogo.rede.t0}:undefined,score:[jogo.placar[0],jogo.placar[1]],narration:jogo.narra,referee:{x:L/2-juiz.y,z:juiz.x-W/2},
-          ball:{x:L/2-mis(bA.y,jogo.bola.y),y:.11+mis(bA.h,jogo.bola.h),z:mis(bA.x,jogo.bola.x)-W/2}})
+          ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,jogo.bola.h),z:bolaVis.x-W/2}})
       }
       raf = requestAnimationFrame(quadro)
     }
