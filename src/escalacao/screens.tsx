@@ -3078,7 +3078,7 @@ export function EscSetup() {
                     </button>
                   ))}
                 </div>
-                <p className="ll-career-note">{tr('Você poderá editar o visual novamente pela Sala da Presidência.', 'You can edit the look again from the President\'s Office.')}</p>
+                <p className="ll-career-note">{tr('Você poderá editar o visual depois, na Loja do Clube (🧑‍💼 Meu presidente).', 'You can edit the look later in the Club Store (🧑‍💼 My president).')}</p>
               </div>
               <div className="ll-career-actions">
                 <button className="ll-secondary" onClick={() => setPrivateStep(1)}>{tr('VOLTAR', 'BACK')}</button>

@@ -249,7 +249,10 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    })
   }})
   retryPresident.current=()=>{presidentBody.retry()}
-  const collection=criarColecaoSala(scene,state,()=>render(),isOffice);collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage)
+  // 🚫🏛️ 04/11 (Diego: *"não quero mais no jogo sala do presidente… no mapa também tem a sala aparecendo pro lado de fora"*): no mapa da
+  // carreira o camarote fica VAZIO — sem móveis, sem troféus e sem o boneco do presidente lá dentro (e nada disso é montado, fica mais leve)
+  const semSala=managementEnabled&&!isOffice&&!isWindow
+  const collection=criarColecaoSala(scene,state,()=>render(),isOffice);furniture.root.visible=collection.root.visible=!semSala;if(!semSala)collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage)
   const game=criarPartidaComplexo(scene,save,matchRef.current,()=>{renderer.shadowMap.needsUpdate=true;wake.current()},()=>presidentRef.current,matchPresentation)
   // 🪧 03/11: placa do Patrocinador Master (fachada + telão, só com contrato ativo) e as placas de patrocínio em volta do gramado.
   // Ela sai junto com o campo (mesmo ciclo de vida), sem mexer na lista de limpeza do mapa.
@@ -724,7 +727,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    matchCameraController.setMode(value);resume()
   }
   refreshPopulation.current=()=>{if(disposed)return;crowd.update(populationRef.current.crowdPopulation);if(rebuildPopulation())resume();else render()}
-  refreshFurniture.current=()=>{if(disposed)return;const deliveryChanged=deliveries.sync(walletRef.current,duplaDaGaragem(walletRef.current?.owned??[],garageRef.current)),changed=furniture.update(walletRef.current),bodyChanged=(!managementEnabled||isOffice||['room','office','president','shelf'].includes(mode))&&presidentBody.update(presidentRef.current,walletRef.current),collectionChanged=collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage);if(changed||bodyChanged||collectionChanged||deliveryChanged){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures();render();resume()}}
+  refreshFurniture.current=()=>{if(disposed)return;const deliveryChanged=deliveries.sync(walletRef.current,duplaDaGaragem(walletRef.current?.owned??[],garageRef.current)),changed=!semSala&&furniture.update(walletRef.current),bodyChanged=!semSala&&(!managementEnabled||isOffice||['room','office','president','shelf'].includes(mode))&&presidentBody.update(presidentRef.current,walletRef.current),collectionChanged=!semSala&&collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage);if(changed||bodyChanged||collectionChanged||deliveryChanged){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures();render();resume()}}
   refreshJourney.current=()=>{if(disposed)return;lighting.setPeriod(journeyRef.current?.period??'day');rebuildPopulation();resume()}
   const homeKey=(event:KeyboardEvent)=>{if(event.key==='Home'&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&event.target===renderer.domElement){event.preventDefault();view(isOffice?'room':'original')}}
   renderer.domElement.addEventListener('keydown',homeKey)
@@ -848,7 +851,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     <button type="button" onClick={()=>go(fora?'entrance':'away-entrance')}>{t('Torcida visitante','Away fans')}</button>
     {visitable.home&&<button type="button" aria-pressed={following==='home'} onClick={()=>go('follow-home')}>{t('Acompanhar torcida da casa','Follow home fans')}</button>}
     {visitable.away&&<button type="button" aria-pressed={following==='away'} onClick={()=>go('follow-away')}>{t('Acompanhar visitantes','Follow away fans')}</button>}
-    {hasBox&&<><button type="button" onClick={()=>go('office')}>{t('Vista do camarote','Box view')}</button></>}
+    {hasBox&&!managementEnabled&&<><button type="button" onClick={()=>go('office')}>{t('Vista do camarote','Box view')}</button></>}
     {journey?.hosting&&journey.phase!=='idle'&&<button type="button" onClick={()=>go('matchday')}>{t('Dia de jogo · torcida e barracas','Match day · fans and stalls')}</button>}
     <button type="button" onClick={()=>go('technical-area')}>{t('Banco e área técnica','Bench and technical area')}</button>
     <button type="button" aria-pressed={stadiumSound} onClick={()=>{if(!stadiumSound)setMuted(false);setStadiumSound(v=>!v)}}>{stadiumSound?t('Desligar som do estádio','Turn off stadium sound'):t('Som do estádio','Stadium sound')}</button>

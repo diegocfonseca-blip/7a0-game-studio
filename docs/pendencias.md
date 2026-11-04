@@ -12063,3 +12063,9 @@ No branch, esperando "publica" (junto com o botão de qualidade). Medido na máq
 - A gente andando era montada **3×** na abertura (montagem + 2 efeitos de "atualizar" que rodavam logo em seguida); agora 1×.
 - A montagem RESPIRA entre etapas (cidade → estádio vivo → população): a tela responde no meio; sair no meio para e solta a placa.
 - Ainda não feito (combinado como passo seguinte): montar enfeites/equipe de dia de jogo só no pré-jogo; juntar as "tintas" iguais.
+
+### 🚫🏛️ 04/11 — SALA DO PRESIDENTE SAIU DO JOGO (Diego: *"não quero mais no jogo sala do presidente… 1, 2 e 3 pode remover"*)
+- Mapa da carreira: o camarote fica VAZIO (sem móveis, troféus e boneco; nada disso é montado → mais leve) e saiu o "Vista do camarote".
+- Aba Clube: saiu a sub-aba "🏛️ Presidência". A CASA continua no mapa ("Minha casa" → Entrar).
+- Começo da carreira: o aviso agora manda editar o visual na Loja do Clube (🧑‍💼 Meu presidente).
+- `PresidenciaPrivate` (sala antiga) já estava desligada (`PRESIDENT_ROOM_RELEASED = false`). **Não repropor sala do presidente.**
