@@ -3,7 +3,8 @@
 // aqui só se desenha e se roteia o lance. No solo o relógio é deste aparelho; no online (quando for ligado) só o dono tica.
 import { useEffect, useRef, useState } from 'react'
 import { useEsc, paPodeLancar, paMinimo, paMesa, paMesasAtivas, PA_TICK_MS, PA_MARTELO_MS } from './store'
-import { Shell, AuctionBar, CollectibleCard, YourPitch, nomePacote } from './screens'
+import { Shell, AuctionBar, CollectibleCard, YourPitch, RivalsStrip, nomePacote } from './screens'
+import {AuctionSlot} from './desktop-layout'
 import { SeloPacote } from './selo-clube'
 import { useT } from './lang'
 import { playTick, playHammer } from './sound'
@@ -61,8 +62,10 @@ export function PregaoAberto() {
   return (
     <Shell bar={<AuctionBar vagas={posVagas > 0 ? posVagas : undefined} />}>
       <style>{CSS_VIRA}</style>
+      <AuctionSlot name="summary" desktopOnly><p style={{fontSize:12}}>{t('Os controles de lance estão na carta da vez.','Bid controls are on the current card.')}</p></AuctionSlot>
       <div className="space-y-3">
         {/* 🏷️ o nome do modo em cima: quem entrou na sala descobre AQUI em que pregão está */}
+        <AuctionSlot name="intro">
         <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 13, padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: `4px 4px 0 0 ${INK}` }}>
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -85,6 +88,7 @@ export function PregaoAberto() {
             <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>{t('SEU CAIXA', 'YOUR CASH')}</span>
           </div>
         </div>
+        </AuctionSlot>
 
         {/* 🔨🔨 uma mesa (até 10 clubes) ou duas lado a lado (11+, Diego 17/10) — a MESMA mesa desenhada 1 ou 2 vezes */}
         {mesas.length === 1
@@ -117,6 +121,7 @@ export function PregaoAberto() {
             aparece uma lenda aparece o avatar da lenda") — o MESMO `YourPitch` do envelope e da Tocaia, com rosto e manto */}
         <p style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{bbPA() ? t('Seu quinteto', 'Your five') : t('Sua escalação', 'Your lineup')}</p>
         <YourPitch small />
+        <RivalsStrip desktopOnly />
         <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{state.leilaoClubes
           ? t('Um pacote por setor: quem já tem o do setor não dá lance. Depois do pregão vem a convocação.', 'One pack per sector: if you have that sector’s pack, no more bids there. The call-up comes after the auction.')
           : t('Quem já fechou a posição não dá lance. Vaga vazia no fim ganha jogador de graça.', 'Position full? No more bids there. Empty spots at the end get a free player.')}</p>
@@ -175,8 +180,9 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
   const virada = M.viraAte && agora < M.viraAte && M.viraId ? pa.fila.find(x => x.id === M.viraId) ?? null : null
   const posNome = !card ? '' : bbPA() ? t(POS_LABELS.basquete[card.pos].singular.pt.toLowerCase(), POS_LABELS.basquete[card.pos].singular.en.toLowerCase()) : t(POS_PT[card.pos][0], POS_PT[card.pos][1])
   const contagem = seg <= 1 ? t('TRÊS… VENDIDO!', 'THREE… SOLD!') : seg <= 2 ? t('DUAS…', 'TWICE…') : seg <= 3 ? t('UMA…', 'ONCE…') : ''
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: compacto ? 7 : 12, minWidth: 0 }}>{card ? (
+  return <div className={compacto?'ll-pregao-table':'ll-pregao-table ll-pregao-single'} style={{ display: 'flex', flexDirection: 'column', gap: compacto ? 7 : 12, minWidth: 0 }}>{card ? (
           <>
+            <div className="ll-pregao-identity" style={{display:'flex',flexDirection:'column',gap:compacto?7:12}}>
             {/* 🃏 a carta da mesa — a MESMA carta do jogo */}
             {/* tamanho de VITRINE (não `big`): no celular a carta grande empurrava o preço e os botões pra fora da tela,
                 e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
@@ -195,6 +201,8 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
               {card.pacote ? t('próximo clube', 'next club') : t('próxima carta', 'next card')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
             </p>}
 
+            </div>
+            <div className="ll-pregao-controls" style={{display:'flex',flexDirection:'column',gap:compacto?7:12,minWidth:0}}>
             {/* 💰 o lance atual + o relógio do martelo (GRUDADO: a lista cresce e o preço não pode sumir) */}
             <div style={{ position: 'sticky', top: 6, zIndex: 5, display: 'flex', alignItems: 'center', gap: compacto ? 6 : 12, flexWrap: compacto ? 'wrap' : undefined, border: `3px solid ${INK}`, borderRadius: 14, padding: compacto ? '6px 8px' : '8px 12px', boxShadow: `4px 4px 0 0 ${INK}`, background: seg <= 2 && M.lider !== null ? '#E8503A' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: seg <= 2 && M.lider !== null ? '#fff' : INK }}>
               <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 22 : 34, lineHeight: 1 }}>{M.lider !== null ? `${M.preco} 🪙` : '—'}</b>
@@ -262,6 +270,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                 {!compacto && <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}</p>}
               </>
             )}
+            </div>
           </>
         ) : (
           <div className="pt-6 text-center text-4xl">🔨</div>

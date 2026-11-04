@@ -16,6 +16,10 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
 import './online-visual.css'
+import {requestOnlineDestination,type OnlineDestination} from './desktop-online-navigation'
+import {DesktopHeader,AuctionDesktopLayout,AuctionSlot} from './desktop-layout'
+import {MobileAuctionHeader} from './mobile-auction-header'
+import {useTelaPC} from './sport'
 import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
@@ -88,6 +92,7 @@ import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-reg
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
+import { BannerInstagram } from './banner-instagram'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
@@ -970,7 +975,9 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
   )
 }
 
-export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
+const MobileAuctionHeaderContext = createContext(false)
+
+export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
@@ -1011,20 +1018,31 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const isReserveAuction = !!bar && state.reserveAuction
   const reserveLabel = state.seasonNo === 1 ? tr('🔁 Leilão de Reservas', '🔁 Reserves Auction') : tr('🔁 Leilão de Transferências', '🔁 Transfer Auction')
   const privateCareerShell = (previewAccount || publicCareerVisual(state)) && state.sport !== 'basquete' && state.careerOnline
+  const desktopWidth = useTelaPC()
+  const shellManager=state.managers[state.youIdx]
+  const auctionDesktop = !!shellManager && desktopWidth && state.sport !== 'basquete' && ['auction','monte','cerimonia'].includes(state.screen)
+  const auctionMobile = !!shellManager && !!bar && !desktopWidth && state.sport !== 'basquete' && state.screen === 'auction'
+  const onlineNavigation=(destination:OnlineDestination)=>{requestOnlineDestination(destination);backToMenu()}
+  const auctionTitle=state.phase==='holandes'?tr('Tocaia','Ambush'):state.phase==='pregao'?tr('Pregão aberto','Open auction'):state.euAberto?tr('Envelope único','Single envelope'):tr('Envelope cego','Sealed bid')
+  const auctionDescription=state.phase==='holandes'?tr('Um preço para todos. Quem pega primeiro leva.','One price for all. First to take wins.'):state.phase==='pregao'?tr('Uma carta por vez. Lance e martelo à vista.','One card at a time. Open bids and hammer.'):tr('Lances em segredo até a revelação.','Bids remain secret until the reveal.')
+  const matchDesktop = desktopWidth && state.sport !== 'basquete' && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
-    <div className={`min-h-screen pb-16 palco ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
-      {bar && (
-        <div className="sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5" style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : '#fff', color: INK }}>
+    <MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <div className={`min-h-screen pb-16 palco ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+      {(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
+      {bar && !auctionDesktop && (
+        <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
           {isReserveAuction && (
             <p className="text-center text-[10px] font-black uppercase tracking-wide mb-1.5" style={{ ...OSWALD, color: PURPLE }}>{reserveLabel}</p>
           )}
+          {auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={state.phase === 'pregao' ? undefined : <CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
           {bar}
         </div>
       )}
-      <div className={`max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}>{children}</div>
+      <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?SECTORS.map(position=>({position,open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
       {inGame && !hideExit && (
-        <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
+        <div className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
             <div className="flex items-center justify-center gap-5">
               <button onClick={backToMenu} className="text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but you stay in the room — you can come back')}>{tr('🏠 voltar pro menu', '🏠 back to menu')}</button>
@@ -1068,6 +1086,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         </div>
       )}
     </div>
+    </MobileAuctionHeaderContext.Provider>
   )
 }
 
@@ -1274,7 +1293,9 @@ function NbaCourt({ m }: { m: Manager }) {
   )
 }
 
-export function YourPitch({ small = false }: { small?: boolean }) {
+export function YourPitch(props:{small?:boolean}){return <AuctionSlot name="team"><YourPitchBody {...props}/></AuctionSlot>}
+
+function YourPitchBody({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
   // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
@@ -2330,6 +2351,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
+        <BannerInstagram />{/* 📸 04/11: faltam 200 seguidores pro Campo 2D (fechou = não volta) */}
         {amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}{/* 🤝⚔️ 27/10: pedidos em cima dos modos, com aceitar ali mesmo */}
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
@@ -3651,7 +3673,7 @@ export function EscStreamIntro() {
 // contador de moedas que REAGE quando o caixa muda: pulsa (verde ao entrar grana
 // de uma venda, vermelho ao gastar) e solta um "+X / −X" flutuando. Só anima na
 // mudança — no primeiro render fica quieto.
-function CoinCounter({ value }: { value: number }) {
+function CoinCounter({ value, compact = false }: { value: number; compact?: boolean }) {
   const prev = useRef(value)
   const [delta, setDelta] = useState<{ n: number; key: number } | null>(null)
   const [pulse, setPulse] = useState(false)
@@ -3668,9 +3690,9 @@ function CoinCounter({ value }: { value: number }) {
   const up = (delta?.n ?? 0) > 0
   return (
     <span className="relative inline-flex items-center">
-      <motion.span className="font-black text-lg" style={OSWALD}
+      <motion.span className={`font-black text-lg${compact ? ' ll-coin-value' : ''}`} style={OSWALD}
         animate={pulse ? { scale: [1, 1.4, 1] } : { scale: 1 }} transition={{ duration: 0.65 }}>
-        💰 <motion.span animate={pulse ? { color: [INK, up ? GREEN : RED, INK] } : { color: INK }} transition={{ duration: 0.65 }} style={{ display: 'inline' }}>{value}</motion.span>
+        {!compact && '💰 '}<motion.span animate={pulse ? { color: [INK, up ? GREEN : RED, INK] } : { color: INK }} transition={{ duration: 0.65 }} style={{ display: 'inline' }}>{value}</motion.span>
       </motion.span>
       {delta && delta.n !== 0 && (
         <motion.span key={delta.key} initial={{ opacity: 0, y: 2, scale: 0.7 }} animate={{ opacity: 1, y: -20, scale: 1 }}
@@ -3747,6 +3769,7 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
 
 export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
   const { state, dispatch } = useEsc()
+  const mobileHeader = useContext(MobileAuctionHeaderContext)
   // ⚡ revelação ÚNICA: a barra acende a posição da carta que está sendo revelada (o motor deixa o setor no último)
   const secBarra = state.euRevelando ? Math.max(0, SECTORS.indexOf(state.revealQueue[state.revealIdx]?.card.pos as typeof SECTORS[number])) : state.sectorIdx
   const you = state.managers[state.youIdx]
@@ -3765,26 +3788,26 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
           {V('📣 Chamar mais gente · volta pra sala de espera (desfaz este pregão)', '📣 Invite more people · back to the waiting room (discards this auction)')}
         </button>
       )}
-      <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
-        <div className="flex gap-1.5">
+      <div className="ll-auction-bar-row flex items-center justify-between max-w-xl mx-auto gap-2">
+        <div className="ll-auction-bar-positions flex gap-1.5">
           {SECTORS.map((p, i) => (
-            <span key={p} className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
+            <span key={p} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
               style={{ backgroundColor: i < secBarra ? INK : i === secBarra ? GOLD : '#fff', color: i < secBarra ? '#fff' : INK }}>
               {posTag(p)}
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="ll-auction-bar-extras flex items-center gap-1.5">
           {vagas != null && vagas > 0 && (
-            <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"
+            <span className="ll-auction-bar-slots border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"
               style={{ background: '#E7F7EC', color: '#146c33', ...OSWALD }}>{vagas} {getLang() === 'en' ? (vagas === 1 ? 'slot' : 'slots') : (vagas === 1 ? 'vaga' : 'vagas')}</span>
           )}
           {ajuda && (
             <button onClick={() => setRegras(true)} aria-label="Regras do pregão"
-              className="border-2 border-black rounded-full w-6 h-6 flex items-center justify-center text-[11px] font-black bg-white"
+              className="ll-auction-bar-help border-2 border-black rounded-full w-6 h-6 flex items-center justify-center text-[11px] font-black bg-white"
               style={{ cursor: 'pointer' }}>❓</button>
           )}
-          <CoinCounter value={you.money + pendingSpend(state, you)} />
+          {!mobileHeader && <span className="ll-auction-bar-balance"><CoinCounter value={you.money + pendingSpend(state, you)} /></span>}
         </div>
       </div>
       {regras && <RegrasDoPregao onFechar={() => setRegras(false)} />}
@@ -4317,9 +4340,9 @@ function Holandes() {
   const naMesa = state.currentCards.filter(c => !hol.levados.some(l => l.cardId === c.id))
 
   return (
-    <Shell bar={<AuctionBar vagas={minhasVagas > 0 ? minhasVagas : undefined} />}>
+    <Shell auctionBudget={{committed:gastei}} bar={<AuctionBar vagas={minhasVagas > 0 ? minhasVagas : undefined} />}>
       <HolandesDupla pos={pos} posName={posName} />
-      <div className="pt-1">
+      <AuctionSlot name="intro"><div className="ll-auction-intro pt-1">
         {/* 🏷️ O NOME DO MODO em cima do setor: quem entrou numa sala que outra
             pessoa criou descobre AQUI em que pregão está jogando, sem precisar
             ter visto a tela de montar a sala. */}
@@ -4332,8 +4355,10 @@ function Holandes() {
         </p>
       </div>
 
+      </AuctionSlot>
       {/* 💰 O PREÇO — um só pra leva inteira. GRUDADO no topo: a lista tem até 13
           cartas e, sem isto, o preço sumia da tela justo na hora de decidir. */}
+      <AuctionSlot name="price">
       <div className="border-[4px] border-black rounded-2xl px-4 py-2.5 text-center mt-2 sticky z-20"
         style={{ top: 4, background: corPreco, boxShadow: `4px 4px 0 0 ${INK}`, transition: 'background 300ms linear' }}>
         <p className="text-[10px] font-black uppercase tracking-widest text-black/55" style={OSWALD}>{L('Preço agora · vale pra todos', 'Price now · same for all')}</p>
@@ -4345,6 +4370,8 @@ function Holandes() {
           {naMesa.length} {L('na mesa', 'on the table')} · {L('já saíram', 'gone')} {hol.levados.length}
         </p>
       </div>
+
+      </AuctionSlot>
 
       {/* 😤 VOCÊ PEDIU E NÃO LEVOU — a carta não some em silêncio. Medo dele:
           *"será q vai os dois pôr o jogador no campinho?"*. Não vai: a carta tem
@@ -4386,7 +4413,7 @@ function Holandes() {
 
       {/* 📋 A LISTA — a MESMA cara do pregão de hoje. Só que no lugar do campo de
           lance, cada carta tem um botão PEGAR pelo preço da tela. */}
-      <div className="space-y-2 mt-2">
+      <div className="ll-auction-list space-y-2 mt-2">
         {state.currentCards.map(c => {
           const dono = holDono(state, c.id)
           const pode = holPodeAgora(state, you.id, c.id, state.youUid)
@@ -4472,11 +4499,13 @@ function Holandes() {
       ) : null}
 
       {/* 🧾 o resumo de sempre */}
+      <AuctionSlot name="summary">
       <div className="flex items-center justify-between gap-2 mt-2 text-[12px] font-bold text-black/70">
         <span>💰 {L('Sua caixa', 'Your coins')}: <b style={{ color: INK }}>{caixa} 🪙</b></span>
         <span>🎽 {L('Vagas de', 'Open')} {posName.toLowerCase()}: <b style={{ color: INK }}>{minhasVagas}</b></span>
       </div>
 
+      </AuctionSlot>
       {/* 😏 a zoeira de sempre */}
       <div className="flex flex-wrap gap-1.5 justify-center mt-2">
         {[
@@ -4499,6 +4528,7 @@ function Holandes() {
           desenho no mesmo instante em que sai da lista. */}
       <div className="mt-3">
         <YourPitch small />
+        <RivalsStrip desktopOnly />
       </div>
 
       {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar
@@ -4587,32 +4617,32 @@ function EnvelopeUnico() {
   const esperando = state.managers.filter(m => m.isHuman && !m.dormindo && m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0) && !state.submitted.includes(m.id))
   const vaiPara = (p: string) => { try { document.getElementById(`eu-${p}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch { /* ignora */ } }
   const barra = (
-    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
-      <div className="flex gap-1 flex-wrap">
+    <div className="ll-auction-bar-row ll-auction-bar-unico flex items-center justify-between gap-2 px-3 py-2" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
+      <div className="ll-auction-bar-positions flex gap-1 flex-wrap">
         {setores.map(x => (
-          <button key={x.p} onClick={() => vaiPara(x.p)} className="border-2 border-black rounded-full px-2 py-0.5 text-[11px] font-black"
+          <button key={x.p} onClick={() => vaiPara(x.p)} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[11px] font-black"
             style={{ ...OSWALD, background: x.vagas === 0 ? '#ddd' : lancesNa(x.p) > 0 ? GOLD : '#fff', color: INK }}>
             {x.p}{x.vagas > 0 && lancesNa(x.p) > 0 ? ' ✓' : ''}
           </button>
         ))}
       </div>
-      <div className="text-center border-[3px] border-black rounded-xl px-2 py-0.5" style={{ background: remaining <= 15 ? RED : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}` }}>
+      <AuctionSlot name="timer"><div className="text-center border-[3px] border-black rounded-xl px-2 py-0.5" style={{ background: remaining <= 15 ? RED : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}` }}>
         <p className="text-[8px] font-black leading-none" style={OSWALD}>{lang === 'en' ? 'TIME' : 'TEMPO'}</p>
         <p className="font-black text-xl leading-none" style={OSWALD}>{remaining}s</p>
-      </div>
+      </div></AuctionSlot>
     </div>
   )
   return (
-    <Shell bar={barra}>
-      <div className="space-y-3" style={{ paddingBottom: 170 }}>
-        <Box bg="#FFF3D6" className="p-3">
+    <Shell auctionBudget={{committed:total,masked}} bar={barra}>
+      <div className="ll-eu-list space-y-3" style={{ paddingBottom: 170 }}>
+        <AuctionSlot name="intro"><Box bg="#FFF3D6" className="p-3">
           <p className="font-black text-[15px] text-black" style={OSWALD}>⚡ {state.euRodada === 2 ? tr('ENVELOPE ÚNICO · 2ª LISTA', 'SINGLE ENVELOPE · 2ND LIST') : tr('ENVELOPE ÚNICO', 'SINGLE ENVELOPE')}</p>
           <p className="text-[12px] font-bold text-black/70 leading-snug mt-0.5">
             {state.euRodada === 2
               ? tr('As cartas que sobraram da 1ª lista, só nas posições em que ainda tem vaga. Última chance antes do Monte. Empate = sorteio.', 'The cards left over from the 1st list, only in positions that still have open slots. Last chance before the Pile. Tie = draw.')
               : tr('As 5 posições numa tela só. Dê seus lances em todas e aperte LACRAR TUDO. Depois da revelação, o que sobrar volta numa 2ª lista antes do Monte. Empate = sorteio.', 'All 5 positions on one screen. Bid on all of them and hit SEAL ALL. After the reveal, whatever is left comes back in a 2nd list before the Pile. Tie = draw.')}
           </p>
-        </Box>
+        </Box></AuctionSlot>
         {state.espectador && <Box bg="#E7E1F7" className="p-3"><p className="text-sm font-black text-black" style={OSWALD}>{tr('👁️ Você está só assistindo — lance é só pra quem joga.', '👁️ You are just watching — bids are for players only.')}</p></Box>}
         {setores.map(x => x.cards.length === 0 ? null : (
           <div key={x.p} id={`eu-${x.p}`} style={{ scrollMarginTop: 70 }}>
@@ -4622,7 +4652,7 @@ function EnvelopeUnico() {
                 {x.vagas === 0 ? tr('posição completa', 'position full') : tr(`${x.vagas} ${x.vagas === 1 ? 'vaga' : 'vagas'} · ${lancesNa(x.p)} lance(s)`, `${x.vagas} ${x.vagas === 1 ? 'slot' : 'slots'} · ${lancesNa(x.p)} bid(s)`)}
               </p>
             </div>
-            <div className="space-y-2">
+            <div className="ll-auction-list space-y-2">
               {x.cards.map(c => {
                 const bid = bids[c.id] ?? 0
                 const chosen = bid > 0
@@ -4646,7 +4676,8 @@ function EnvelopeUnico() {
         ))}
       </div>
       {/* rodapé fixo: quanto já foi, onde falta e o botão único */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, padding: '8px 12px 66px', background: 'linear-gradient(transparent, rgba(244,236,214,.96) 22%)' }}>{/* 66px: acima dos botões redondos do canto (som/chat) */}
+      <AuctionSlot name="summary">
+      <div className="ll-eu-footer" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, padding: '8px 12px 66px', background: 'linear-gradient(transparent, rgba(244,236,214,.96) 22%)' }}>{/* 66px: acima dos botões redondos do canto (som/chat) */}
         <div className="max-w-xl mx-auto">
           {iSubmitted || !precisaLacrar ? (
             <Box bg="#E9F6EC" className="p-3 text-center">
@@ -4667,6 +4698,9 @@ function EnvelopeUnico() {
           )}
         </div>
       </div>
+      </AuctionSlot>
+      <YourPitch small />
+      <RivalsStrip desktopOnly />
     </Shell>
   )
 }
@@ -4980,7 +5014,7 @@ function Envelope() {
       ? <>💡 The card level is the <b>player's peak at that club and year</b>: Kaká · São Paulo 2003 is a prospect, Kaká · Milan 2007 is a legend. Mind the club and the year!</>
       : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>)
   return (
-    <Shell bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
+    <Shell auctionBudget={{committed:total,masked:!!state.streamMode&&!peek}} bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
       {sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
       {/* 🎓 O ENSINO. Com o pregão limpo as regras saem da frente das cartas — mas
           QUEM ESTÁ COMEÇANDO vê tudo aqui, uma vez, no começo da partida/carreira,
@@ -5008,7 +5042,7 @@ function Envelope() {
             className="absolute top-1 right-2 text-lg font-black" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
         </div>
       ))}
-      <div className="pt-1 flex items-start justify-between gap-3">
+      <AuctionSlot name="intro"><div className="ll-auction-intro pt-1 flex items-start justify-between gap-3">
         <div className="flex-1">
           <h2 className="font-black text-3xl" style={OSWALD}>
             {rescue ? L('⚡ REPESCAGEM · ', '⚡ LEFTOVERS · ') : '🔨 '}{posName.toUpperCase()}
@@ -5041,6 +5075,7 @@ function Envelope() {
             </div>
           )}
         </div>
+        <AuctionSlot name="timer">
         {noTimer ? (
           <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[64px]"
             style={{ backgroundColor: '#2E6FB0', boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -5054,7 +5089,9 @@ function Envelope() {
             <p className="font-black text-2xl leading-none" style={{ ...OSWALD, color: timerTextColor }}>{remaining}s</p>
           </div>
         )}
+        </AuctionSlot>
       </div>
+      </AuctionSlot>
 
       {!canBid && (
         <Box bg={state.espectador ? '#E7E1F7' : !minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
@@ -5125,7 +5162,7 @@ function Envelope() {
           <p className="text-[11px] font-bold text-black/75">🔒 O número esmaecido é o <b>piso</b> do jogador — <b>não é lance</b>. Só vira lance quando você aperta <b>+</b> (aí fica preto). Abaixo do piso fica vermelho e é anulado.</p>
         </div>
       )}
-      <div className="space-y-2">
+      <div className="ll-auction-list space-y-2">
         {cards.map(c => {
           const bid = bids[c.id] ?? 0
           const floor = (c as { paid?: number }).paid ?? 0 // piso (carreira): mínimo aceito neste leilão
@@ -5204,6 +5241,7 @@ function Envelope() {
         })}
       </div>
 
+      <AuctionSlot name="summary">
       {state.streamMode && canBid && (
         <Box bg="#111" className="p-2.5 text-center space-y-2">
           <p className="font-black text-white text-xs" style={OSWALD}>{L('🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒', '🎥 STREAM MODE — amounts stay hidden until the hammer. Go for it! 🔒')}</p>
@@ -5214,7 +5252,7 @@ function Envelope() {
         </Box>
       )}
       {minhaVez && !state.espectador && (
-      <Box bg="#fff" className="p-3 flex items-center justify-between">
+      <Box bg="#fff" className="ll-auction-seal p-3 flex items-center justify-between">
         <p className="font-black text-black" style={OSWALD}>{L('ENVELOPE', 'ENVELOPE')}: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
           <span className="text-white">{L('LACRAR', 'SEAL')} 🔒</span>
@@ -5234,6 +5272,7 @@ function Envelope() {
         </button>
       )}
 
+      </AuctionSlot>
       <YourPitch />
       <RivalsStrip />
 
@@ -6059,7 +6098,8 @@ function Reveal() {
   )
 }
 
-function RivalsStrip() {
+export function RivalsStrip({desktopOnly=false}:{desktopOnly?:boolean}={}){return <AuctionSlot name="room" desktopOnly={desktopOnly}><RivalsStripBody/></AuctionSlot>}
+function RivalsStripBody() {
   const { state } = useEsc()
   const [blLang] = useLang()
   // 🌐 11/09: o idioma agora vale pro jogo INTEIRO (pedido do Diego), não só pro
@@ -8889,7 +8929,10 @@ export function EscLiberta() {
   const enL = getLang() === 'en'
   const previewAccount = useOnlinePreview()
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
-  const [groupView, setGroupView] = useState<'meu' | 'todos'>('todos')
+  const [groupView, setGroupView] = useState<'meu' | 'todos'>(()=>typeof window!=='undefined'&&window.innerWidth>=1100?'meu':'todos')
+  const continentalDesk=useDesktopNovo()
+  const [continentalTarget,setContinentalTarget]=useState<HTMLDivElement|null>(null)
+  const continentalRight=(node:ReactNode)=>continentalDesk&&continentalTarget?createPortal(node,continentalTarget):node
   const groupStartedAt = useRoundPresentationStart(state.liberta?.rodada ?? 0)
   const you = state.managers[state.youIdx]
   const lb = state.liberta
@@ -8984,7 +9027,7 @@ export function EscLiberta() {
 
   return (
     <TemaCompCtx.Provider value="liberta">
-    <Shell className={cinemaOnline ? 'll31-cinema' : ''} bar={
+    <Shell wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
           🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
@@ -8996,6 +9039,7 @@ export function EscLiberta() {
         )}
       </div>
     }>
+      {continentalDesk&&<div className="ll-dir"><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
 {privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
         <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE')}</p>
@@ -9040,6 +9084,7 @@ export function EscLiberta() {
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
+      {continentalRight(<>
       {/* ⚔️ 23/10 (Diego: "a tática não está aparecendo em várias coisas"): o MESMO card de próximo jogo + tática da
           liga e da Champions. O motor da fase de grupos (simMatch) já lia `state.tactics` — faltava só o botão. */}
       {(() => {
@@ -9107,6 +9152,7 @@ export function EscLiberta() {
           .sort((a, b) => (a === meuGrupo ? -1 : b === meuGrupo ? 1 : a - b))
           .map(g => tabelaGrupo(g, g === meuGrupo))}
       </div>
+      </>)}
       <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>{enL ? <>🟢 the <b>top 2</b> of each group reach the round of 16 — 16 clubs.</> : <>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</>}</p>
       {privateVisual && <details className="ll26-bracket-history"><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
 
@@ -9183,6 +9229,9 @@ export function EscChampions() {
   // que é da Champions (banner, faixas de corte da tabela de 36, repescão) é dela.
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
+  const continentalDesk=useDesktopNovo()
+  const [continentalTarget,setContinentalTarget]=useState<HTMLDivElement|null>(null)
+  const continentalRight=(node:ReactNode)=>continentalDesk&&continentalTarget?createPortal(node,continentalTarget):node
   const you = state.managers[state.youIdx]
   const ch = state.champions
   const online = state.onlineMode === 'online'
@@ -9352,7 +9401,7 @@ export function EscChampions() {
 
   return (
     <TemaCompCtx.Provider value="champions">
-    <Shell wide className={cinemaOnline ? 'll31-cinema' : ''} bar={
+    <Shell wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="flex flex-col leading-tight min-w-0">
           <span className="font-black text-sm" style={OSWALD}>
@@ -9368,6 +9417,7 @@ export function EscChampions() {
         {minhaPos > 0 && <span className="font-black text-sm" style={OSWALD}>{ordinal(minhaPos, getLang() === 'en' ? 'en' : 'pt')} · {tabela[minhaPos - 1]?.pts ?? 0} pts</span>}
       </div>
     }>
+      {continentalDesk&&<div className="ll-dir"><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
       {/* ⭐ o MESMO palco cinematográfico da Copa do Mundo e da Liberta */}
       <CompetitionStage kind="champions" title="CHAMPIONS LEAGUE" phase={ch.rodada === 0 && ch.fase === 'tabela' ? T('A tabela de 36', 'The table of 36') : fase}
         // 🚪 nos PORTÕES o próprio banner é o que separa as fases (um teatro só na tela):
@@ -9438,6 +9488,7 @@ export function EscChampions() {
       )}
 
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
+        {continentalRight(<>
         {/* ⚔️ PRÓXIMO JOGO + os três botões de tática — o MESMO card da liga */}
         {proximo && (() => {
           const oppId = proximo[0] === you.id ? proximo[1] : proximo[0]
@@ -9514,6 +9565,7 @@ export function EscChampions() {
           </Box>
         )}
 
+        </>)}
         {/* 📢 18/10 (Diego: "na Champions não está aparecendo o telão… que hoje tem propaganda"): o MESMO Anúncio do dia da liga */}
         <GiroDaRodada cinema={cinemaOnline} />
 

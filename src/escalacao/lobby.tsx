@@ -4,6 +4,8 @@ import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
+import {DesktopHeader} from './desktop-layout'
+import {peekOnlineDestination,clearOnlineDestination} from './desktop-online-navigation'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -449,7 +451,7 @@ function Section({ num, title, icon, children, resumo, abertaInicio, sub }: { nu
   const [aberta, setAberta] = useState(!!abertaInicio)
   const claro = useContext(ClaroCtx)
   if (claro && resumo === undefined) return (
-    <div className="rounded-2xl" style={{ background: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 11px 12px', color: INK }}>
+    <div className="ll-create-section rounded-2xl" data-section={title} style={{ background: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 11px 12px', color: INK }}>
       <div className="flex items-center gap-2.5 mb-2.5">
         <span className="grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: INK, color: GOLD, fontSize: 15, ...OSWALD }}>{num}</span>
         <span className="min-w-0">
@@ -1041,7 +1043,14 @@ export function EscLobby() {
   const [myCareers, setMyCareers] = useState<OpenRoom[]>([]) // saves de carreira online do host (só do criador)
   const [resumingCareer, setResumingCareer] = useState<OpenRoom | null>(null) // painel "continuar carreira" com as 3 opções do amigo faltando
   // salas abertas (lista pública)
-  const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
+  const [desktopDestination] = useState(peekOnlineDestination)
+  const [tab, setTab] = useState<'create' | 'open' | 'join'>(()=>desktopDestination==='create'||desktopDestination==='join'?desktopDestination:'open')
+  const [showLeagues,setShowLeagues] = useState(desktopDestination==='leagues')
+  useEffect(()=>{clearOnlineDestination()},[])
+  useEffect(()=>{
+    if(!showLeagues||phase!=='menu'||tab!=='open')return
+    document.getElementById('ll-minhas-ligas')?.scrollIntoView({behavior:'smooth',block:'start'})
+  },[showLeagues,phase,tab,myLigas.length])
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
   // 🚫🔴 só o Diego vê o botão de tirar o destaque de uma live falsa (13/10); o banco confere de novo
   const souCriador = useIsAdmin()
@@ -3125,8 +3134,14 @@ export function EscLobby() {
     e.preventDefault(); e.stopPropagation(); pedeConta()
   }
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
       {temaSala && <TemaFundo tema={temaSala} />}
+      {!nbaSala&&!estreito&&!recovering&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
+        {label:tr('Salas abertas','Open rooms'),active:tab==='open'&&!showLeagues,onClick:()=>{setRoomError('');setShowLeagues(false);setTab('open')}},
+        {label:tr('Criar sala','Create room'),free:false,active:tab==='create',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('create')}},
+        ...(ligaOn?[{label:tr('Minhas ligas','My leagues'),active:tab==='open'&&showLeagues,onClick:()=>{setTab('open');setShowLeagues(true)}}]:[]),
+        {label:tr('Entrar por código','Join by code'),active:tab==='join',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('join')}},
+      ]:[]}/>}
       {onBack && (
         <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
@@ -3249,7 +3264,7 @@ export function EscLobby() {
         </a>
       )}
       {/* Arte de fundo; identidade e ações continuam sendo controles reais. */}
-      <div className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+      <div data-editing-name={editingName} className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
         {!salasNovo && <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
           <div className="absolute top-2 right-3 flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -3319,9 +3334,10 @@ export function EscLobby() {
 
       {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
-      {ligaOn && myLigas.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+      {ligaOn && (myLigas.length > 0 || showLeagues) && (
+        <div id="ll-minhas-ligas" className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>{tr('🏆 Minhas ligas', '🏆 My leagues')}</p>
+          {myLigas.length===0&&<p className="text-sm font-semibold text-black/70">{tr('Suas ligas aparecem aqui quando você criar uma ou entrar por convite. Liga Draft também fica nesta lista.','Your leagues appear here after you create one or join by invitation. Draft leagues also appear here.')}</p>}
           {myLigas.map(r => {
             const gs = r.game_state as GS
             const nm = gs?.roomName ?? r.code
@@ -3696,7 +3712,7 @@ export function EscLobby() {
               </div>
               {/* 🗂️ os modos ficam TODOS à vista pra todo mundo (23/10, Diego: "quero o novo que você fez pra todos no meu também") — acabou o recolher */}
               {/* 🖥️ no computador os modos ficam TODOS à vista, lado a lado (Diego: "ficam tudo abertas, sem recolher") */}
-              <div style={{ display: 'grid', gridTemplateColumns: desk ? 'repeat(auto-fill, minmax(200px, 1fr))' : '1fr 1fr', gap: 8 }}>
+              <div className="ll-mode-grid" style={{ display: 'grid', gridTemplateColumns: desk ? (nbaSala?'repeat(auto-fill, minmax(200px, 1fr))':'repeat(2, minmax(0, 1fr))') : '1fr 1fr', gap: 8 }}>
               {MODOS.map(m => {
                 const sel = chaveModo(m) === chaveSel // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
@@ -3711,7 +3727,7 @@ export function EscLobby() {
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
                   <button key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha) }}
-                    className="relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
+                    data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
                     style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
                     <span className="min-w-0">
@@ -4204,7 +4220,7 @@ export function EscLobby() {
               {getSport() !== 'basquete' && ( /* 📺 em TODO tipo de sala, carreira também (Diego 20/10) */
                 <SegField label={tr('Jogo', 'Match view')}>
                   <Seg options={[[false, tr('📊 Placar padrão', '📊 Standard scoreboard')], [true, tr('⭐ 📺 Campo 2D', '⭐ 📺 2D pitch')]] as [boolean, string][]} value={room2d && pode2d} onSet={v => { if (!v || pode2d) setRoom2d(v); else setAviso2d(true) }}
-                    selos={campo2dOn ? undefined : { true: tr('LANÇA COM 3K 👤 NO INSTA', 'LAUNCHES AT 3K 👤 ON INSTA') }} />
+                    selos={{ true: tr('LANÇA COM 2K 👤 NO INSTA', 'LAUNCHES AT 2K 👤 ON INSTA') }} />
                   {aviso2d && !pode2d ? (
                     <p className="text-[11px] font-bold mt-1.5 leading-snug rounded-lg border-2 px-2.5 py-2" style={{ background: '#F3EDFF', borderColor: '#7C3AED', color: INK }}>
                       {!campo2dOn
@@ -4346,7 +4362,15 @@ export function EscLobby() {
         )
       })()}
 
-      {tab === 'open' && <div className="space-y-3">
+      {tab === 'open' && <div className="ll-room-browser space-y-3">
+        <aside className="ll-room-shortcuts ll-desktop-panel" aria-label={tr('Atalhos do Online','Online shortcuts')}>
+          <h2>{tr('Jogue com a galera','Play with friends')}</h2><div>
+          <button type="button" data-livre="1" onClick={()=>setTab('join')}>{tr('Entrar com código','Join with a code')}</button>
+          <button type="button" onClick={()=>setTab('create')}>{tr('Criar sala','Create room')}</button>
+          <p>{tr('Minhas ligas reúne suas ligas salvas, inclusive as de Draft.','My leagues includes your saved leagues, including Draft leagues.')}</p>
+          <p>🟢 {tr('Esperando gente: pode entrar.','Waiting: you can join.')}<br/>🔒 {tr('Com senha: pede o convite.','Password: invitation required.')}<br/>🔴 {tr('Em jogo: partida em andamento.','Playing: match in progress.')}</p>
+          </div>
+        </aside>
         <Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('Buscar sala…', 'Search room…')} />
         {salasLista && (
           <div className="flex flex-wrap gap-1.5">
@@ -4533,10 +4557,19 @@ export function EscLobby() {
         {/* 📲 13/10: o quadro da comunidade subiu pro TOPO da página (pedido do Diego, print da lista de salas) */}
       </div>}
 
-      {tab === 'join' && <div className="space-y-2">
+      {tab === 'join' && <div className={!nbaSala?'ll-join-layout':undefined}><div className={`${!nbaSala?'ll-join-code ':''}space-y-2`}>{!nbaSala&&<h2 className="ll-join-title">{tr('Entrar com código da sala','Join with a room code')}</h2>}
         <Field label={tr('Código da sala', 'Room code')} value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder={tr('EX: ABCD12', 'E.G.: ABCD12')} maxLength={6}
           onKeyDown={e => e.key === 'Enter' && joinRoom()} />
         <Big onClick={joinRoom} color="#fff">{loading ? tr('Entrando...', 'Joining...') : tr('🔑 Entrar com Código', '🔑 Join with Code')}</Big>
+      </div>
+        {!nbaSala&&<aside className="ll-join-shortcuts ll-desktop-panel">
+          <h2>{tr('Outros caminhos','Other options')}</h2><div>
+          <button type="button" data-livre="1" onClick={()=>{setRoomError('');setShowLeagues(false);setTab('open')}}>{tr('Ver salas abertas','View open rooms')}</button>
+          <button type="button" onClick={()=>{setRoomError('');setShowLeagues(false);setTab('create')}}>{tr('Criar uma sala','Create a room')}</button>
+          {ligaOn&&<button type="button" onClick={()=>{setRoomError('');setTab('open');setShowLeagues(true)}}>{tr('Minhas ligas','My leagues')}</button>}
+          <p>{tr('Use o código da sala no campo ao lado. Convites da Carreira Online têm uma entrada própria abaixo.','Use the room code in the field beside this panel. Online Career invitations have a separate entry below.')}</p>
+          </div>
+        </aside>}
       </div>}
 
       {!pwModal && roomError && <><p className="text-red-400 text-sm font-bold">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
@@ -4789,7 +4822,7 @@ export function EscLobby() {
       : tr('✉️ Às cegas: cada um lacra o lance no envelope e o maior leva no martelo.', '✉️ Sealed bid: everyone seals their bid and the highest wins at the hammer.')
     return wrap(<>
       {salasEspera && (<>
-        <div className="flex items-center gap-2.5 pt-1">
+        <div className="ll-wait-heading flex items-center gap-2.5 pt-1">
           <div className="flex-1 min-w-0">
             <p className="text-white font-black text-[19px] leading-tight truncate" style={OSWALD}>{room.game_state?.roomName ?? tr('Sala', 'Room')}</p>
             <p className="text-white/60 text-[12px] font-bold">{isHost ? tr('você é o dono 👑', 'you are the owner 👑') : tr('você é convidado', 'you are a guest')}</p>
@@ -4801,7 +4834,7 @@ export function EscLobby() {
           </button>
         </div>
         {selosSala.length > 0 && (
-          <div className="rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
+          <div className="ll-wait-rules rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
             <div className="flex flex-wrap items-center gap-1.5">
               {selosSala.map(x => <span key={x} className="text-[11px] font-black uppercase border-2 border-black rounded-md px-1.5 py-0.5 leading-none" style={{ ...OSWALD, background: '#fff', color: INK }}>{x}</span>)}
               <button onClick={() => setRegrasAbertas(v => !v)} className="ml-auto text-[11.5px] font-black" style={{ color: GOLD, minHeight: 0 }}>{regrasAbertas ? tr('regras ▴', 'rules ▴') : tr('regras ▾', 'rules ▾')}</button>
@@ -4847,7 +4880,7 @@ export function EscLobby() {
           🖼️ 29/10 (mockup `tema-sala-achar.png`): em DOURADO, com a miniatura de cada tema e o "✓ NA SALA" — o dono não percebia que
           tinha tema. Até 3 temas cabem numa linha; com mais, quebra (o "Sem tema" vai por último). */}
       {isHost && meusTemas.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
+        <div className="ll-room-themes rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
           <p className="font-black text-[14px] uppercase leading-tight" style={OSWALD}>{meusTemas.length === 1 ? tr('🎨 Você tem 1 tema · vista a sala', '🎨 You have 1 theme · dress the room') : tr(`🎨 Você tem ${meusTemas.length} temas · vista a sala`, `🎨 You have ${meusTemas.length} themes · dress the room`)}</p>
           <p className="text-[11px] font-bold mb-2" style={{ color: 'rgba(12,12,12,.75)' }}>{tr('Toque num tema. Todo mundo que entrar vê a sala com ele.', 'Tap a theme. Everyone who joins sees the room with it.')}</p>
           <div className="flex flex-wrap gap-1.5">
@@ -5433,7 +5466,7 @@ export function EscLobby() {
                 30 s com os áudios (regra do Diego, 25/09). O bicho é o mesmo do leilão. */}
             {mascKey && (
               <button onClick={sendMasc} disabled={mascCoolLeft > 0}
-                className="mt-2 w-full border-2 rounded-xl pl-1.5 pr-3 py-1 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-2"
+                className="ll-mascot-inline mt-2 w-full border-2 rounded-xl pl-1.5 pr-3 py-1 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-2"
                 style={{ ...OSWALD, borderColor: mascCoolLeft > 0 ? '#000' : PURPLE, background: mascCoolLeft > 0 ? '#e4ddc9' : '#fff', color: mascCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000', boxShadow: mascCoolLeft > 0 ? 'none' : `2px 2px 0 0 ${INK}` }}>
                 <span style={{ opacity: mascCoolLeft > 0 ? .45 : 1 }}><MascoteMini art={MASCOTES[mascKey]} alt={40} /></span>
                 {mascCoolLeft > 0 ? `🐾 ${mascCoolLeft}s…` : tr('SOLTA A SUA MASCOTE NA SALA', 'LET YOUR MASCOT LOOSE')}
@@ -5484,6 +5517,7 @@ export function EscLobby() {
           da bola rolar. */}
       {/* 🗂️ visual novo: o botão do dono (e o aviso de quem espera) fica FIXO no pé da tela, sempre à vista */}
       <div className={salasEspera ? 'salas-rodape-fixo' : undefined} style={salasEspera ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
+      {mascKey&&<button type="button" className="ll-mascot-start" onClick={sendMasc} disabled={mascCoolLeft>0}><MascoteMini art={MASCOTES[mascKey]} alt={38}/>{mascCoolLeft>0?`🐾 ${mascCoolLeft}s…`:tr('Soltar o mascote','Release mascot')}</button>}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
         const startLabel = carreira ? tr('🌐 Começar Carreira!', '🌐 Start Career!') : elencoOn ? tr('🃏 Começar o Bafo!', '🃏 Start Bafo!') : tr('🔨 Abrir o Pregão!', '🔨 Open the Auction!')

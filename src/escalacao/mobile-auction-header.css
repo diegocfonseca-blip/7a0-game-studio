@@ -1,0 +1,25 @@
+/* Mobile mockup approved 04/11: brand, positions and coins only. */
+.ll-shell-bar.ll-auction-mobile-bar{padding:9px 14px 8px;box-shadow:none}
+.ll-mobile-auction-brand{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;max-width:576px;margin-inline:auto}
+.ll-mobile-auction-title{display:flex;align-items:center;gap:8px;min-width:0}
+.ll-mobile-auction-title>img{width:28px;height:32px;object-fit:contain;flex:none}
+.ll-mobile-auction-title>div{min-width:0}
+.ll-mobile-auction-title strong{display:block;font:900 21px/1.05 Oswald,sans-serif;white-space:nowrap;text-transform:uppercase;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis}
+.ll-mobile-auction-title small{display:block;font:700 9px/1.1 Oswald,sans-serif;color:#6b604b;margin-top:4px;letter-spacing:.6px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ll-mobile-auction-wallet{display:flex;align-items:center;gap:7px;background:#ffc400;color:#0c0c0c;border:2px solid #0c0c0c;border-radius:10px;padding:5px 9px;flex:none;min-width:87px;box-shadow:2px 2px 0 #0c0c0c}
+.ll-mobile-auction-wallet>span{font-size:19px;line-height:1}
+.ll-mobile-auction-wallet small{display:block;font:700 8px/1 Oswald,sans-serif;letter-spacing:.6px;text-transform:uppercase}
+.ll-mobile-auction-wallet .ll-coin-value{font-size:23px;line-height:1.05}
+.ll-auction-mobile-bar .ll-auction-bar-row{gap:8px;min-height:40px}
+.ll-auction-mobile-bar .ll-auction-bar-positions{display:flex;gap:5px;flex:1;min-width:0;flex-wrap:nowrap}
+.ll-auction-mobile-bar .ll-auction-bar-position{flex:1;min-width:0;height:34px;display:flex;align-items:center;justify-content:center;padding:0 4px;border-radius:18px;font:900 12px/1 Oswald,sans-serif;white-space:nowrap}
+.ll-auction-mobile-bar .ll-auction-bar-extras{gap:5px;flex:none}
+.ll-auction-mobile-bar .ll-auction-bar-slots{font-size:10px;line-height:1;border-radius:7px;padding:6px;white-space:nowrap}
+.ll-auction-mobile-bar .ll-auction-bar-help{width:29px;height:29px;flex:none}
+.ll-auction-mobile-bar .ll-auction-bar-unico{padding:0;border-bottom:0!important;background:transparent!important}
+.ll-auction-mobile-bar~.ll-shell-content .ll-eu-list>[id^="eu-"]{scroll-margin-top:calc(var(--ll-mobile-auction-height,114px) + 12px)!important}
+@media(max-width:359px){
+ .ll-mobile-auction-title strong{font-size:19px}
+ .ll-mobile-auction-wallet{min-width:78px;padding-inline:7px}
+ .ll-auction-mobile-bar .ll-auction-bar-position{font-size:11px;padding-inline:2px}
+}

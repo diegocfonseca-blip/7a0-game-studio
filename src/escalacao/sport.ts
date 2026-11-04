@@ -433,7 +433,8 @@ export function applyCalendarioBancada(): void { calendarioOk = true; listeners.
 // 🗂️ SALAS COM VISUAL NOVO (23/10, mockup `salas-hoje-x-proposta` — *"só pra mim essas formas de visualização, quero testar
 // antes"*): lista de salas com filtros, criar sala em linhas que abrem, sala de espera com o botão do dono fixo no rodapé e o
 // cartão de Minhas Ligas. Só muda o DESENHO — regras, lances e envio da sala são os mesmos. Liberar = SALAS_VISUAL_GERAL = true.
-const SALAS_VISUAL_GERAL = false
+// 🟢 03/11: apresentação aprovada para todos. Campo 2D e mapa/3D mantêm suas travas próprias.
+const SALAS_VISUAL_GERAL = true
 const SALAS_VISUAL_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let salasVisualOk = SALAS_VISUAL_GERAL
 function applySalasVisual(email?: string | null): void {
@@ -509,7 +510,7 @@ export function useTelaPC(): boolean {
 // mas já começa a fazer"*). Regra dele pra quando liberar: é PAGO, do ⭐ Craque pra cima (na carreira, botão junto do Manual;
 // nas salas, escolha na hora de criar: "⚡ Padrão rápido" ou "📺 2D"). Liberar = CAMPO2D_GERAL = true + a trava de plano.
 const CAMPO2D_GERAL = false
-const CAMPO2D_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com', 'lucasfonseca363@gmail.com']) // + Futpoint FC e Lucas Barreto 30 (03/11, pedidos do Diego)
+const CAMPO2D_TESTERS = new Set(['diego.c.fonseca@gmail.com']) // 🔒 03/11: instrução mais recente do Diego: Campo 2D somente na conta dele.
 let campo2dOk = CAMPO2D_GERAL
 /** 🧪 só bancada */
 export function applyCampo2DBancada(): void { campo2dOk = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
