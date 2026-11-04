@@ -9,3 +9,5 @@ O envelope único mantém seus botões de posição e o cronômetro original. Um
 Validação local: quatro modalidades em 360, 393 e 430 px; comparação do conteúdo e das dimensões/estados dos controles com o cabeçalho anterior; botões de lance e ajuda; contagem de tempo; atalhos do envelope único; alternância com desktop; aviso de transferência; nome longo e saldo grande; saldo sem spoiler na revelação; exclusão do basquete. Build de produção concluído. Evidências locais em `test-results/mobile-header-implementation`.
 
 Não houve alteração de banco, motor, acesso a campos/mapa ou publicação. Alterações ficam em commit isolado para revisão e futura publicação autorizada.
+
+Ajuste aprovado em seguida: no pregão aberto mobile, o saldo sai do cabeçalho da marca e permanece somente no quadro preto “Seu caixa”. As outras modalidades mantêm o saldo no topo.

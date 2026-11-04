@@ -1035,7 +1035,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
           {isReserveAuction && (
             <p className="text-center text-[10px] font-black uppercase tracking-wide mb-1.5" style={{ ...OSWALD, color: PURPLE }}>{reserveLabel}</p>
           )}
-          {auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={<CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
+          {auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={state.phase === 'pregao' ? undefined : <CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
           {bar}
         </div>
       )}

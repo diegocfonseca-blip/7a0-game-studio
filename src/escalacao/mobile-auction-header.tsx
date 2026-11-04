@@ -4,7 +4,7 @@ import {tr} from './lang'
 import './mobile-auction-header.css'
 
 /** Approved mobile header only; the caller supplies the existing visible balance. */
-export function MobileAuctionHeader({name, title, balance}: {name: string; title: string; balance: ReactNode}) {
+export function MobileAuctionHeader({name, title, balance}: {name: string; title: string; balance?: ReactNode}) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const bar = ref.current?.closest<HTMLElement>('.ll-shell-bar')
@@ -22,8 +22,8 @@ export function MobileAuctionHeader({name, title, balance}: {name: string; title
       <img src={logo} alt="" width={28} height={32}/>
       <div><strong>Leilão Legends</strong><small title={`${name} · ${title}`}>{name} · {title}</small></div>
     </div>
-    <div className="ll-mobile-auction-wallet" aria-label={tr('Moedas do leilão', 'Auction coins')}>
+    {balance != null && <div className="ll-mobile-auction-wallet" aria-label={tr('Moedas do leilão', 'Auction coins')}>
       <span aria-hidden="true">🪙</span><div><small>{tr('Moedas', 'Coins')}</small>{balance}</div>
-    </div>
+    </div>}
   </div>
 }
