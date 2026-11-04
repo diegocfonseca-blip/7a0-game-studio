@@ -1,3 +1,12 @@
+## 🚗 04/11 — Carros 3D da Vadico mais parecidos com os reais (LOCAL, branch do agente, esperando OK visual do Diego)
+Diego: *"não parecem com os veículos reais… não quero foto… só precisa ser mais parecido"*. Fusca, Brasília, Gol GTI, Kombi,
+Opala SS e Ferrari F40 ganharam modelagem própria em `src/escalacao/veiculos-famosos-3d.ts` (casco por seções medidas na
+silhueta real + peças típicas; rodas continuam soltas, girando e esterçando). Modelos 3D gratuitos da internet: a rede da
+sessão bloqueou (poly.pizza 403), então foi tudo procedural, 0 KB de arquivo. Os outros carros/motos não mudaram.
+Fotos: `scripts/mockups/carros-3d-*.png` · folha local: `qa-veiculos-famosos.html` (`?view=side|front|rear|34r`, `?patio=1`).
+- [ ] OK visual do Diego → publicar. Reverter = voltar o commit (só mexe nesses 6 desenhos + rodas/bitola deles).
+- [ ] Peso: ~3–7 mil triângulos por carro (antes ~1,4 mil). Se o mapa pesar no celular, baixar o passo dos cascos.
+
 ## 🇧🇷 04/11 — Mapa da aba Clube: tradições do bairro (LOCAL, branch do agente, só a conta de teste do Diego)
 Pedido aprovado: *"coisas bem tradicionais do Brasil, espalhadas pelo mapa, mudando com a hora e o calendário"*.
 - 🍅 **Feira livre**: sábado e domingo de MANHÃ (dia da semana do calendário da carreira; sem calendário, regra estável pela rodada). 6 barracas de lona listrada (amarelo/azul/vermelho/verde), caixotes de fruta, feirantes, fregueses andando e a barraca de pastel com caldo de cana, numa rua do bairro perto do Boteco do Oswaldo (longe do estádio, portões, ônibus e patrocinadores). Fora do horário, rua normal.
