@@ -1,3 +1,4 @@
+import { FORMACOES_JOGO, FORMATIONS } from './types'
 // ─── 🏟️ COPAS REGIONAIS CONVOCADAS (Diego 10/10) — o motor ────────────────────
 //
 // O que ele fechou, em ordem (mockup aprovado: *"perfeito, adorei"*):
@@ -58,10 +59,7 @@ export const MAX_POR_LADO = 8
 
 // ─── o ELENCO de um clube: o baralho inteiro + o baralho regional ──────────────
 const SECS: Sec[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
-const NEED: Record<Formation, Record<Sec, number>> = {
-  '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
-  '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
-}
+const NEED = Object.fromEntries(FORMACOES_JOGO.map(f => [f, FORMATIONS[f]])) as Record<Formation, Record<Sec, number>> // ⚽ 04/11: as 7 formações da carreira
 type CartaCat = { name: string; club: string; year: number; fame: number; lo: number; hi: number }
 const chave = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 const normClube = (s: string) => clubCanon(s).trim().toLowerCase()

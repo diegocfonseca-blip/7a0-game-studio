@@ -65,7 +65,7 @@ import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:0
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
-import { SECTORS, FORMATIONS } from './types'
+import { SECTORS, FORMATIONS, FORMACOES_JOGO } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
@@ -6300,12 +6300,14 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
           )
         }
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
-        const blocked = (['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).filter(f => f !== mgr.formation && missFor(f).length > 0)
+        // 📋 Liga Draft (04/11): as 7 formações do jogo, acesas pelo que o elenco tem; o resto segue com as 5 de sempre
+        const listaForm: readonly FormationKey[] = escSt.minhaLigaDraft ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2']
+        const blocked = listaForm.filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {(['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]).map(f => {
+              {listaForm.map(f => {
                 const cur = mgr.formation === f
                 const can = cur || missFor(f).length === 0
                 return (

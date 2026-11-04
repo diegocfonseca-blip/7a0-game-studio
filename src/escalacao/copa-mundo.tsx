@@ -11,6 +11,7 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
+import { FORMACOES_JOGO, FORMATIONS } from './types'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -95,11 +96,9 @@ const paisColor = (pais: string): string => PAIS_COLORS[pais] ?? copaSideColor(p
 export type Sec = 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'
 const SECS: Sec[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 export type PoolCard = { name: string; club: string; year: number; fame: number; lo: number; hi: number; sec: Sec }
-export type Formation = '4-3-3' | '4-4-2'
-const NEED: Record<Formation, Record<Sec, number>> = {
-  '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
-  '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
-}
+// ⚽ 04/11 (Diego): na convocação das seleções abrem as 7 formações da carreira — acende só a que o país fecha
+export type Formation = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1'
+const NEED = Object.fromEntries(FORMACOES_JOGO.map(f => [f, FORMATIONS[f]])) as Record<Formation, Record<Sec, number>>
 const SEC_LABEL_PT: Record<Sec, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
 const SEC_LABEL_EN: Record<Sec, string> = { GOL: 'Goalkeepers', LAT: 'Full-backs', ZAG: 'Centre-backs', MEI: 'Midfielders', ATA: 'Forwards' }
 const SEC_LABEL: Record<Sec, string> = new Proxy(SEC_LABEL_PT, { get: (_t, k: string) => (getLang() === 'en' ? SEC_LABEL_EN : SEC_LABEL_PT)[k as Sec] })
@@ -739,7 +738,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
 }) {
   const pool = useMemo(() => poolPronto ?? countryPool(pais), [pais, poolPronto])
   const rostosOn = useLegendPresentation() // 🧑 rosto das lendas no campinho (30/09)
-  const fits433 = formationFits(pool, '4-3-3'), fits442 = formationFits(pool, '4-4-2')
+  const fits433 = formationFits(pool, '4-3-3')
   const [form, setForm] = useState<Formation>(fits433 ? '4-3-3' : '4-4-2')
   const [tab, setTab] = useState<Sec>('GOL')
   const [q, setQ] = useState('')
@@ -806,14 +805,14 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
       </div>
 
       {/* formação: só esquemas que o país fecha (trava com aviso) */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-        {(['4-3-3', '4-4-2'] as Formation[]).map(f => {
-          const ok = f === '4-3-3' ? fits433 : fits442
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+        {(FORMACOES_JOGO as Formation[]).map(f => {
+          const ok = formationFits(pool, f)
           return (
             <button key={f} disabled={!ok} onClick={() => switchForm(f)}
-              style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : form === f ? GOLD : '#fff', boxShadow: form === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : 0.7 }}>
+              title={ok ? undefined : `${pais} ${tr('não tem elenco pra esse esquema', 'has no squad for this system')}`}
+              style={{ flex: '1 0 21%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : form === f ? GOLD : '#fff', boxShadow: form === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : 0.7 }}>
               {ok ? f : `🔒 ${f}`}
-              {!ok && <span style={{ display: 'block', fontSize: 7.5, fontWeight: 800, fontFamily: 'system-ui', textTransform: 'none' }}>{pais} {tr('não tem elenco pra esse esquema', 'has no squad for this system')}</span>}
             </button>
           )
         })}

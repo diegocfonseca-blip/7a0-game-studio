@@ -228,6 +228,10 @@ export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   pokemon: { GOL: 1, LAT: 1, ZAG: 1, MEI: 1, ATA: 2 },
 }
 
+/** ⚽ 04/11 (Diego): as formações "de verdade" que a carreira oferece — as mesmas abrem na convocação do Leilão de Clubes
+ *  e das Copas de seleções (acende só a que o elenco fecha). Kings e Pokémon nunca entram aqui. */
+export const FORMACOES_JOGO: readonly FormationKey[] = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2', '4-2-4', '5-4-1']
+
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 
 export interface Manager {
@@ -758,6 +762,8 @@ export interface EscState {
   convocacaoDuplaFeitos?: string[]
   /** 🧱 o que cada um escolheu (só o host guarda; não viaja pros convidados) */
   convocacaoEscolhas?: Record<number, string[]>
+  /** ⚽ 04/11: a formação que cada técnico escolheu NA convocação do Leilão de Clubes (vale se o pacote fechar) */
+  convocacaoFormacao?: Record<number, FormationKey>
   /** 🔨 modo PREGÃO ABERTO ligado nesta partida (16/10, em teste) */
   pregaoAberto?: boolean
   /** ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png): as 5 posições num envelope só, 180s, uma revelação */
