@@ -28,7 +28,7 @@ export function coberturaTerrenoComplexo(camera:PerspectiveCamera):LimitesMapaCo
 
 type OpcoesNavegacaoComplexo={
  /** 🧱 03/11: prédios da cidade — a câmera livre não entra neles (antes atravessava parede) */
- solidos?:()=>readonly {minX:number;maxX:number;minZ:number;maxZ:number;top:number}[]
+ solidos?:()=>readonly {minX:number;maxX:number;minZ:number;maxZ:number;top:number;base?:number}[]
  camera:PerspectiveCamera
  controls:OrbitControls
  onChange:()=>void
@@ -159,7 +159,9 @@ export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bound
    translate(MathUtils.clamp(target.x,bounds.minX,bounds.maxX)-target.x,0,MathUtils.clamp(target.z,bounds.minZ,bounds.maxZ)-target.z)
   }
   // 🧱 03/11 (Diego: *"a câmera livre atravessa prédio e parede"*): se a câmera caiu dentro de um prédio, ela sobe pro telhado dele
-  if(solidos){const c=camera.position,M=1.5;for(const b of solidos())if(c.x>b.minX-M&&c.x<b.maxX+M&&c.z>b.minZ-M&&c.z<b.maxZ+M&&c.y<b.top+2)c.y=b.top+2}
+  // (04/11: sólido no ALTO — viaduto do metrô, passarela — não empurra quem está embaixo dele; o caixote do viaduto cobre o mapa
+  //  inteiro e jogava toda vista baixa pra 9,7 m de altura)
+  if(solidos){const c=camera.position,M=1.5;for(const b of solidos())if(c.x>b.minX-M&&c.x<b.maxX+M&&c.z>b.minZ-M&&c.z<b.maxZ+M&&c.y<b.top+2&&!((b.base??0)>c.y+.5))c.y=b.top+2}
   camera.lookAt(target);camera.updateMatrixWorld()
   lastPosition=camera.position.clone();lastTarget=target.clone()
  }

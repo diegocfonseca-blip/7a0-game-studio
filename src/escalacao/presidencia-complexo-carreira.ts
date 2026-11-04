@@ -41,7 +41,9 @@ export type EntradaCarreiraComplexo = {
   away?: { matchId: string; mgrId: number; day: DiaCarreiraComplexo }
   english?: boolean
   /** 🏙️ cidade viva: o último jogo JÁ APITADO do seu clube (sem spoiler) e a cor do clube. Rodada da obra e títulos saem do save. */
-  cidade?: { ultimoJogo?: { gf: number; ga: number } | null; cor?: string; cor2?: string }
+  cidade?: { ultimoJogo?: { gf: number; ga: number } | null; cor?: string; cor2?: string
+    /** 🇧🇷 tradições do bairro: o dia do calendário da carreira (ms UTC) e a hora do compromisso dele (16 liga · 21 Copa) */
+    dia?: number; hora?: number }
 }
 export type PropsComplexoCarreira = {
   stadium?: StadiumSave
