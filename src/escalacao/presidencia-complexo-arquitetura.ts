@@ -79,7 +79,7 @@ function expanded(o: Outline, amount: number, centerZ = o.centerZ): Outline {
  * A imagem única não fornece medidas de projeto; o registro dessa inferência
  * está separado das pegadas conservadoras que os NPCs já usam.
  */
-export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComplexo, options:{interior?:boolean}={}) {
+export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComplexo, options:{interior?:boolean;/** 🚫🏛️ 04/11: sem a sala do presidente — a arquibancada de cima fica inteira no lugar dela */semSala?:boolean}={}) {
   const root = new THREE.Group()
   root.name = 'estadio-arquitetura-volumetrica'
   scene.add(root)
@@ -362,7 +362,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
       const points = [range.from, ...cuts, range.to]
       for (let i = 1; i < points.length; i++) {
         const middle = ((points[i] + points[i - 1]) / 2) % 1
-        if (middle > .458 && middle < .542) continue
+        if (middle > .458 && middle < .542 && !options.semSala) continue
         tierBlock({ from: points[i - 1], to: points[i] }, true, sector)
       }
     } else tierBlock(range, false, sector)
@@ -624,7 +624,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
     // crossing the bought cabinet and its trophies. The room supplies its own
     // floor, ceiling and walls later; this cut never moves or hides furniture.
     const previousCarve = carveFacadeRoom
-    carveFacadeRoom = upper
+    carveFacadeRoom = upper && !options.semSala
     const start = upper ? 8.3 : .2, height = upper ? 8.4 : 7.8
     const moduleCount = 64
     for (let module = Math.floor(range.from * moduleCount); module / moduleCount < range.to; module++) {
@@ -891,7 +891,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
     entranceGates()
     // The office screen has always been available before buying the upper tier.
     // Its interior uses the same room mesh, without granting an exterior tier.
-    if (upperProgress > 0 || options.interior===true) presidentialBox()
+    if ((upperProgress > 0 && !options.semSala) || options.interior===true) presidentialBox()
     if (state.roofBuilt && state.upperComplete && (state.progress.grama ?? 0) > 0) roofShell()
     // A obra física acompanha a compra válida; acender continua seguindo o
     // estado de iluminação do jogo, que também considera o avanço do gramado.

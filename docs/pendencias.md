@@ -12117,3 +12117,6 @@ Bancada: `scripts/teste-campo2d/igualar.html?modo=jogos|mapa`. Fotos: `scripts/m
 ⚠️ Achado (não mexido): sala online com 2D criada pelo Diego mostra o 2D pra TODOS da sala (`useCampo2DLigado` em `campo2d-modo.ts`
 devolve `s.campo2d` no online sem olhar a trava da conta).
 Ainda diferente (não pedido): 🧑‍💼 presidente na beira do campo e 🎬 "ver os gols de novo" só no campinho; torcida/estádio do mapa é 3D.
+- 04/11 (print dele: *"essa sala aqui é a do presidente? tá exposta aí feiona, se for pode remover já"*): era o CAIXOTE da sala do
+  presidente pendurado na fachada (`presidentialBox`). No mapa da carreira ele não é mais montado e a arquibancada de cima fica inteira
+  no lugar (opção `semSala` em `criarArquiteturaComplexo`). Foto antes/depois: `scripts/mockups/estadio-sem-sala-presidente.png`.

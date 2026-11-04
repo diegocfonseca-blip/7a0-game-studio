@@ -669,7 +669,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       const a=points[0],b=points[1],d=points[3],base=surface.base??y-.18
       const center={x:(a.x+points[2].x)/2,z:(a.z+points[2].z)/2}
       box(id,kind==='platform'?paving:concrete,Math.hypot(b.x-a.x,b.z-a.z),Math.max(.02,y-base),Math.hypot(d.x-a.x,d.z-a.z),center.x,(base+y)/2,center.z,-Math.atan2(b.z-a.z,b.x-a.x),true)
-    }else polygon(id,points,y,kind==='road'?(id.startsWith('estacionamento')&&!transport.parking.paved?dirt:asphalt):routeSurface)
+    }else polygon(id,points,kind==='road'||state.extras.asfalto?y:y-.025,kind==='road'?(id.startsWith('estacionamento')&&!transport.parking.paved?dirt:asphalt):routeSurface) // 🧱 04/11: calçada de terra do ônibus/estacionamento também fica embaixo do cimento
   }
   // The waiting shelter sits behind the bus pavement, with no post or bench
   // in the opened door or in the route to the front gate.
