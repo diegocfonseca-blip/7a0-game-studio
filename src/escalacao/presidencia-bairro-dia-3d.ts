@@ -15,7 +15,7 @@ import {LUGARES_DIA_DE_JOGO,poseNaVolta,type LugaresBairro,type VidaBairro} from
 import {getLang} from './lang'
 
 type P={x:number;z:number}
-export type VistaDiaBairro='padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'
+export type VistaDiaBairro='padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
 type Cena='manha'|'tarde'|'noite'|'jogo'
 type Pose={x:number;y:number;z:number;heading:number;speed:number;distance:number;seated:number}
 type Pessoa={body:ReturnType<typeof createCivilian>;cena:Cena;semSombra:boolean;pose:(s:number)=>Pose}
@@ -258,8 +258,9 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
  // 📺 a TV ligada no fundo do Boteco do Oswaldo, vista pela porta (a tela brilha pelo material, sem luz nova)
  if(input.boteco){
   const b=input.boteco
-  lote(cenas.noite,'boteco-tv-moldura',[{x:b.x+1.6,y:QUADRA_Y+2.25,z:b.z-4.66,w:1.5,h:.9,d:.06,c:'#111111'},{x:b.x+1.6,y:QUADRA_Y+1.72,z:b.z-4.6,w:.08,h:.2,d:.12,c:'#222222'}])
-  placa(cenas.noite,'boteco-tv',F.tv,b.x+1.6,QUADRA_Y+2.25,b.z-4.62,1.36,.76,0,0,tvMat,117/512)
+    // no meio da parede do fundo, bem na linha da porta: quem passa na calçada vê o jogo lá dentro
+  lote(cenas.noite,'boteco-tv-moldura',[{x:b.x,y:QUADRA_Y+2.05,z:b.z-4.66,w:1.9,h:1.1,d:.06,c:'#111111'},{x:b.x,y:QUADRA_Y+1.45,z:b.z-4.6,w:.08,h:.14,d:.12,c:'#222222'}])
+  placa(cenas.noite,'boteco-tv',F.tv,b.x,QUADRA_Y+2.05,b.z-4.62,1.76,.98,0,0,tvMat,117/512)
  }
 
  // 🏟️ DIA DE JOGO EM CASA: 👕 camisa pirata · 🐈 churrasquinho de gato · 🧽 flanelinha ──────────────────────────────────
@@ -307,10 +308,10 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   if(bike){bike.visible=ligadas.manha;if(ligadas.manha){const v=poseNaVolta(L.bicicleta!,seconds*BIKE_V+40);bike.position.set(v.x,ESTRADA_Y,v.z);bike.rotation.y=v.yaw}}
   for(const f of fumacas){if(!f.mesh.parent?.visible)continue;for(let i=0;i<f.n;i++){const u=((seconds*.35+i/f.n)%1),r=.12+u*.32;t.position.set(f.base.x+Math.sin(seconds*.7+i)*.15*u,f.y+u*1.6,f.base.z+Math.cos(seconds*.5+i*2)*.12*u);t.rotation.set(0,0,0);t.scale.setScalar(r);t.updateMatrix();f.mesh.setMatrixAt(i,t.matrix)}f.mesh.instanceMatrix.needsUpdate=true}
   if(ligadas.jogo)flanelaPose(seconds)
-  // celular: no máximo 7 pessoas desta leva por vez (a pelada e a feira têm o teto delas)
+  // celular: no máximo 9 pessoas desta leva por vez (a pelada e a feira têm o teto delas)
   let n=0
   for(const p of pessoas){
-   let on=ligadas[p.cena];if(on){n++;if(mobile&&n>7)on=false}
+   let on=ligadas[p.cena];if(on){n++;if(mobile&&n>9)on=false}
    const pose=on?p.pose(seconds):undefined
    if(pose){p.body.root.position.set(pose.x,pose.y,pose.z);p.body.root.rotation.y=pose.heading}
    const lod=pose?residentVisibility(p.body.root.position,1.7,camera,height):{visible:false,detail:'far'}
@@ -324,9 +325,10 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   if(kind==='praca-bairro'&&L.praca){const c=L.praca.centro;return{target:[c.x+1.8,.6,c.z-4.4],camera:[c.x+4+2*k,6+3*k,c.z-17-6*k]}} // do canto sem árvore
   if(kind==='varal'&&L.varais?.length){const v=L.varais[0];return{target:[v.x,1.3,v.z],camera:[v.x+2.5,2.6+1.2*k,v.z+6+3*k]}}
   if(kind==='espetinho'&&L.espetinho&&L.podrao){const m={x:(L.espetinho.x+L.podrao.x)/2,z:(L.espetinho.z+L.podrao.z)/2};return{target:[m.x,.8,m.z-.5],camera:[m.x,6+3*k,m.z+13+8*k]}} // de dentro da travessa
-  if(kind==='jogo-bairro'){const J=LUGARES_DIA_DE_JOGO,m={x:(J.pirata.x+J.gato.x)/2,z:(J.pirata.z+J.gato.z)/2};return{target:[m.x,1,m.z],camera:[m.x-(10+3*k)*.96,3.2+1.6*k,m.z+(10+3*k)*.27]}} // da fila da torcida, de frente pra fileira camelô → gato
+  if(kind==='jogo-bairro'){const J=LUGARES_DIA_DE_JOGO,m={x:J.pirata.x*.4+J.gato.x*.6,z:J.pirata.z*.4+J.gato.z*.6};return{target:[m.x,1,m.z],camera:[m.x-(10+3*k)*.96,3.2+1.6*k,m.z+(10+3*k)*.27]}} // da fila da torcida, de frente pra fileira camelô → gato
   if(kind==='cadeiras'&&L.cadeiras?.length){const c=L.cadeiras[0];return{target:[c.x,.9,c.z+1.2],camera:[c.x+2.2,2.6+1.2*k,c.z+7+3*k]}}
-  if(kind==='flanelinha'){const f=LUGARES_DIA_DE_JOGO.flanelinha;return{target:[f.x,1,f.z],camera:[f.x-4,3+1.5*k,f.z+7+3*k]}}
+  if(kind==='tv-boteco'&&input.boteco){const b=input.boteco;return{target:[b.x,1.9,b.z-4.6],camera:[b.x,2.3+.4*k,b.z+8.5+2*k]}} // da calçada, olhando pela porta
+  if(kind==='flanelinha'){const f=LUGARES_DIA_DE_JOGO.flanelinha;return{target:[f.x,1,f.z],camera:[f.x-3,3.4+1.8*k,f.z+9+4*k]}}
   return undefined
  }
  return{configure,update,vista,

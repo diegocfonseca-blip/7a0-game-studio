@@ -38,9 +38,9 @@ const empilha=async(name,quadros,titulos)=>{
  const out=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1})
  const png=await out.evaluate(async([qs,ts])=>{
   const imgs=await Promise.all(qs.map(b=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src='data:image/png;base64,'+b})))
-  const corte=150,W=imgs[0].width,hs=imgs.map(i=>i.height-corte-230),faixa=64
+  const corte=150,W=imgs[0].width,hs=imgs.map(i=>Math.min(i.height-corte,640)),faixa=64
   const c=document.createElement('canvas');c.width=W;c.height=hs.reduce((a,h)=>a+h+faixa,0);const g=c.getContext('2d')
-  let y=0;imgs.forEach((im,k)=>{g.fillStyle='#0C0C0C';g.fillRect(0,y,W,faixa);g.fillStyle='#FFC400';g.font='900 34px Oswald, Impact, sans-serif';g.textBaseline='middle';g.fillText(ts[k],22,y+faixa/2+2);y+=faixa
+  let y=0;imgs.forEach((im,k)=>{g.fillStyle='#0C0C0C';g.fillRect(0,y,W,faixa);g.fillStyle='#FFC400';g.font='900 27px Oswald, Impact, sans-serif';g.textBaseline='middle';g.fillText(ts[k],22,y+faixa/2+2);y+=faixa
    g.drawImage(im,0,corte,W,hs[k],0,y,W,hs[k]);y+=hs[k]})
   return c.toDataURL('image/png').split(',')[1]},[quadros,titulos])
  writeFileSync(`${OUT}mapa-bairro-${name}.png`,Buffer.from(png,'base64'));await out.close()
@@ -55,7 +55,7 @@ if(!SO||SO.includes('tarde')){
 if(!SO||SO.includes('noite')){
  await prepara('quarta-noite','espetinho',12);const a=await quadro();await relata('noite')
  await prepara('quarta-noite','cadeiras',12);const b=await quadro()
- await prepara('quarta-noite','boteco-oswaldo',12);const c=await quadro()
+ await prepara('quarta-noite','tv-boteco',12);const c=await quadro()
  await empilha('noite',[a,b,c],['NOITE · ESPETINHO NA BRASA E PODRÃO','NOITE · CADEIRA NA CALÇADA','NOITE · TV LIGADA NO OSWALDO'])
 }
 if(!SO||SO.includes('diadejogo')){

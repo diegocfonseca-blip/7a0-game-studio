@@ -59,7 +59,7 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 
-export type VistaComplexo='arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'|'feira'|'banca'|'campinho'|'padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'
+export type VistaComplexo='arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'|'feira'|'banca'|'campinho'|'padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
 /** 🔋 quanto tempo a cidade continua andando depois do último toque no mapa */
 const VIVO_MS=12000
 const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:string}[]=[
@@ -538,7 +538,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    if(isOffice&&!['room','office','president','shelf'].includes(next))next='room'
    if(isOffice){controls.enabled=next!=='office';camera.fov=next==='president'?32:48;camera.updateProjectionMatrix()}
    else{camera.fov=38;camera.updateProjectionMatrix()}
-   navigation.beginView({fitOnResize:['arena-online','casa-usuario','original','region','field','estacao','loja','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras'].includes(next),terrainGuard:['arena-online','casa-usuario','original','region','estacao','loja','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
+   navigation.beginView({fitOnResize:['arena-online','casa-usuario','original','region','field','estacao','loja','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['arena-online','casa-usuario','original','region','estacao','loja','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
    setSelectedView(next)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
    if(next==='original')fit(-190,managementEnabled?214:190,-140,175,32,stationFrame)
@@ -620,7 +620,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    else if(next==='boteco-oswaldo'||next==='bar-esquina'){
     const pub=surround.botecos.find(p=>p.id===(next==='boteco-oswaldo'?'oswaldo':'bar-da-esquina'));if(!pub){view('original');return}const p=pub.root.position,k=camera.aspect<.85?1.4:1;controls.target.set(p.x,p.y+1.4,p.z+7);camera.position.set(p.x+9*k,p.y+6*k,p.z+20*k)
    }
-   else if(next==='feira'||next==='banca'||next==='campinho'||next==='padaria'||next==='praca-bairro'||next==='espetinho'||next==='jogo-bairro'||next==='varal'||next==='flanelinha'||next==='cadeiras'){const v=tradicoes.vista(next,camera.aspect);if(!v){view('original');return}controls.target.set(...v.target);camera.position.set(...v.camera)}
+   else if(next==='feira'||next==='banca'||next==='campinho'||next==='padaria'||next==='praca-bairro'||next==='espetinho'||next==='jogo-bairro'||next==='varal'||next==='flanelinha'||next==='cadeiras'||next==='tv-boteco'){const v=tradicoes.vista(next,camera.aspect);if(!v){view('original');return}controls.target.set(...v.target);camera.position.set(...v.camera)}
    else if(next==='arena-online')fit(ARENA.x-13,ARENA.x+13,ARENA.z-13,ARENA.z+17,10,[],new THREE.Vector3(.3,1,1.3))
    else if(next==='casa-usuario')fit(HOME.x-HOME.width/2-6,HOME.x+HOME.width/2+6,HOME.z-HOME.depth/2-6,HOME.z+HOME.depth/2+6,5,[],new THREE.Vector3(.25,1.05,1.3))
    else if(next==='loja'){

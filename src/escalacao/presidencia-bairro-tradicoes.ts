@@ -197,7 +197,7 @@ function extrasDoBairro(input:Parameters<typeof lugaresDoBairro>[0],out:LugaresB
  if(cadeiras.length)out.cadeiras=cadeiras
  // 🍦🍿👴 praça: a mesa no canto sem árvore (+x, −z) e os carrinhos no passeio de baixo, longe do banco (+4, +2,5)
  if(input.praca){
-  const c=input.praca,domino={x:c.x+6.2,z:c.z-6.2},sorvete={x:c.x-2.4,z:c.z-3.6},pipoca={x:c.x+1.9,z:c.z-4.4}
+  const c=input.praca,domino={x:c.x+5.2,z:c.z-5.8},sorvete={x:c.x-2.4,z:c.z-3.6},pipoca={x:c.x+1.9,z:c.z-4.4}
   if(todosLivres([domino,sorvete,pipoca],1.4))out.praca={centro:{x:c.x,z:c.z},domino,sorvete,pipoca}
  }
  // 🛻🚲 voltas: quadra com as 4 ruas em volta (nenhuma é a da feira); a quadra da FRENTE da padaria primeiro (a rua da porta dela
