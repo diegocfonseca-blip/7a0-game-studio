@@ -7472,7 +7472,7 @@ export function EventoBanner({ ev, reservas, onDecide }: {
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
   const trait = traitDe(ev.nome)
   return (
-    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+    <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
@@ -7517,7 +7517,7 @@ export function EventoBanner({ ev, reservas, onDecide }: {
 // 🌱 EVENTO SEM RESERVA (Diego 13/08): mesmo visual do EventoBanner, mas em vez
 // de escolher um titular do banco, o técnico escolhe 1 de 3 nomes gerados da
 // base (nenhum deles existe no elenco ainda — só o escolhido sobe de verdade).
-function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
+export function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   ev: EventoAtivo
   onEscolher: (nome: string) => void
   onCampo?: () => void // só noitada — "escalar assim mesmo", sem chamar ninguém da base
@@ -7527,7 +7527,7 @@ function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
   const trait = traitDe(ev.nome)
   return (
-    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+    <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
