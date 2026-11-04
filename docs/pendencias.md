@@ -12013,3 +12013,14 @@ Feito no branch (só conta dele), esperando OK pra publicar:
 - Botão "Ver o jogo no Campo 3D" virou "Ver o jogo no estádio do mapa" (o campo do mapa é o 2D aprovado em 03/11).
 - No mapa, "🔁 Substituir / tática" leva pra aba Jogos.
 Pendente: câmeras de TV (só voltam se trocar o campo 2D do mapa de novo pelo 3D — perguntar), conferir a Copa no mapa na conta dele (o caminho já existe: o mapa segue qualquer jogo do clube), patrocinadores do mapa ainda não mudam com o Master, carros NOVOS na Vadico precisam de arte.
+
+### 👁️⚽ 04/11 — Visual do campinho 2D + mapa (Diego: *"os jogadores… a bola… o gramado… pode fazer qualquer coisa, eu retiro de volta"*)
+No branch, esperando "publica". SÓ DESENHO (`campo2d.tsx`, camada "👁️"): não muda placar, motor nem o resultado do mapa.
+- Bola menor que o juiz (`R*0.36`, ele achou a 1ª versão grande demais) e com GOMOS pretos (*"gostei da bola com gomos"*); sombra se afasta quando ela sobe.
+- Quem conduz leva a bola À FRENTE, com toquinhos (antes colada no corpo = robô); a bola anda lisa entre o pé e o passe.
+- Jogadores não ficam um em cima do outro (afastados devagar na tela); o mapa recebe as MESMAS posições.
+- Celular (campo em pé): nome só de quem tem a bola, de quem chega pra tomar e de quem fez o gol. PC deitado: todos, como antes.
+- Sombra diagonal do sol mais fraca (.22 → .09).
+- Mapa: "Ver partida" abre PERTO seguindo a bola (zoom .52; o − mostra o campo todo); controles já abertos (sem o botão "Controles").
+Fotos: `scripts/mockups/campo2d-visual-0411-a.png` / `-b.png`. Trava `npm run campo2d` passou.
+Ainda pendente: barra de botões IDÊNTICA entre aba Jogos e mapa (hoje só ficou à vista) e substituir sem sair do mapa.
