@@ -8,6 +8,8 @@ export type ChaveNarra =
   | 'tenta_drible' | 'parte_pra_cima' | 'drible_passou' | 'tabela' | 'contra' | 'dispara' | 'enfia' | 'linha_fundo' | 'cruzou' | 'arrisca' | 'espalma'
   | 'lanc_olha' | 'lanc_bola' | 'domina' | 'avanca_lado' | 'rola_na_frente' | 'individual' | 'ensaiada_1' | 'ensaiada_2' | 'zaga_roda' | 'pressiona' | 'erro_zaga' | 'gol_vazio' | 'dribla_goleiro'
   | 'defendeu' | 'trave' | 'fora' | 'isolou' | 'avanca' | 'toca_na_frente'
+  /** 😱 04/11: o grito do QUASE (bola na trave · defesa difícil) — quem escolhe é o resumo/apresentação (campo2d-resumo.ts), nunca o dado do jogo */
+  | 'quase_trave' | 'quase_defesa'
 
 const B: Record<ChaveNarra, [string[], string[]]> = {
   saida: [['Bola no meio.', 'Recomeça o jogo.', 'Volta pro centro do campo.'], ['Back to the centre spot.', 'Play restarts.', 'Ball back on the centre circle.']],
@@ -62,6 +64,11 @@ const B: Record<ChaveNarra, [string[], string[]]> = {
   avanca: [['{a} avança com a bola dominada…', '{a} carrega a bola pro ataque…', '{a} sobe com a bola, o time vai junto…', '{a} conduz, olhando o passe…'], ['{a} drives forward with the ball…', '{a} carries it into the attack…', '{a} pushes up, the team follows…', '{a} on the ball, looking for the pass…']],
   toca_na_frente: [['{a} toca na frente pro {b}…', '{a} lança o {b} no ataque…', 'Bola de {a} pro {b}, que aparece na frente…'], ['{a} plays it forward to {b}…', '{a} sends {b} into the attack…', 'Ball from {a} to {b}, showing up front…']],
   isolou: [['Isolou! A bola foi pra arquibancada.', 'Mandou pra torcida!', 'Por cima, muito por cima!', 'Chutou pra lua!'], ['Blazed over the bar!', 'Into the stands!', 'Over, well over!', 'Into orbit!']],
+  // 😱 QUASE! (04/11) — {a} na trave = quem chutou · {a} na defesa = o goleiro. Humor de arquibancada, sem exagero.
+  quase_trave: [['QUASE! Na trave! A bola de {a} beijou o poste e voltou!', 'QUASEEE! {a} carimbou a trave — o poste tá tremendo até agora!', 'UUUH, QUASE! Tirou tinta da trave, {a}! O roupeiro já foi buscar o pincel.', 'QUASE! O travessão… digo, a TRAVE salvou! {a} põe a mão na cabeça!', 'NA TRAAAVE! QUASE! {a} acertou o único lugar que não podia!'],
+    ['SO CLOSE! Off the post! {a}’s shot kisses the woodwork and bounces out!', 'SO CLOOOSE! {a} rattles the post — it is still shaking!', 'OOOH, SO CLOSE! {a} takes the paint off the post! Someone fetch a brush.', 'SO CLOSE! The woodwork saves them! {a} has his hands on his head!', 'OFF THE POOOST! SO CLOSE! {a} found the only spot he could not!']],
+  quase_defesa: [['QUASE! Que defesa de {a}! Foi buscar onde a coruja dorme!', 'QUASEEE! {a} voa e tira com a ponta dos dedos!', 'UUUH, QUASE! {a} fechou o gol com cadeado!', 'QUASE! Milagre de {a}! A torcida já tava gritando gol!', 'QUASE! {a} se esticou todo e mandou embora! Que paredão!'],
+    ['SO CLOSE! What a save by {a}! Right into the top corner and he gets there!', 'SO CLOOOSE! {a} flies and tips it away with his fingertips!', 'OOOH, SO CLOSE! {a} has padlocked the goal!', 'SO CLOSE! A miracle from {a}! The crowd was already screaming goal!', 'SO CLOSE! {a} stretches every inch and keeps it out! What a wall!']],
 }
 
 /** sorteia uma versão e troca {a} {b} {c} */

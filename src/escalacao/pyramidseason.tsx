@@ -1,3 +1,5 @@
+import { usePenaltisCampo } from './campo2d-penaltis-react'
+import { sequenciaVisualPenaltis, type DisputaPenaltisCampo, type EstadoPenaltisCampo } from './campo2d-penaltis'
 import {ArenaConsulta} from './arena-consulta'
 import type {ControleComplexo} from './presidencia-complexo-3d'
 import {ResidenciaClube} from './residencia-clube'
@@ -3277,8 +3279,8 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
 // ⚔️ 25/10 (Diego, carreira organizada): o que vai LOGO EMBAIXO DOS GOLS no placar (a tática, na aba Jogos + Tabela). Quem
 // monta o placar não precisa saber de nada — quem quer pôr algo ali só embrulha o placar neste contexto.
 export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
-export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo }:
-  { /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis }:
+  { disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3744,11 +3746,11 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // selo da TV do campinho, e o telão de propaganda segue embaixo, no lugar de sempre.
   const replayOficialBloqueado=!!provaOficial&&!provaOficial.valid
   const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible field replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução de campo compatível.'}</p>:null
-  const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
+  const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:estadoPenaltis?tr(estadoPenaltis.mensagem,estadoPenaltis.mensagemEn):relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado&&(!estadoPenaltis||estadoPenaltis.encerrado),chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
   const fonteMapa2D=!!estadoEstadio&&presidentFieldAccount
   const campo2dEl = (c2d||fonteMapa2D) && !replayOficialBloqueado ? (
-    <Campo2D mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
+    <Campo2D disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={roundMs} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -7008,7 +7010,7 @@ export function pensRevealDelay(pens: [number, number], lento = false, seqReal?:
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
   return 0.7 + Math.max(a, b, 10) * pensPasso(lento) + 0.6
 }
-export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false, shootout=false }: { /** 👑 Kings: é SHOOTOUT (1×1 do meio-campo), não pênalti — muda só o nome na tela */ shootout?: boolean; pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
+export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false, shootout=false, campo }: { campo?: EstadoPenaltisCampo; /** 👑 Kings: é SHOOTOUT (1×1 do meio-campo), não pênalti — muda só o nome na tela */ shootout?: boolean; pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -7017,10 +7019,8 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
   // soma das bolinhas fecha com o placar. Antes ela era remontada aqui com os
   // gols espalhados a esmo e podia contradizer o placar — era o "contagem
   // errada das bolinhas / cobrança acabando antes da hora" que o Diego pegou.
-  let salt = 0; for (const ch of aName + '|' + bName) salt = (salt * 31 + ch.charCodeAt(0)) >>> 0
-  const rng = mulberry(((pens[0] * 31 + pens[1] * 7) ^ salt ^ 0xA1B2) >>> 0)
   const win = pens[0] > pens[1] ? 0 : 1
-  const seq = sequenciaGuardada(pens, seqReal) ?? sequenciaPenaltis(pens, rng)
+  const seq = sequenciaVisualPenaltis(pens, aName, bName, seqReal)
   const nSlots = Math.max(5, pens[0], pens[1], Math.ceil(seq.length / 2))
   const suddenDeath = nSlots > 5 // morte súbita de qualquer tamanho (6×5, 7×6…)
   const step = pensPasso(lento), lead = 0.7
@@ -7077,7 +7077,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
   // (antes só pras contas de teste). Mesma chave que liberou o visual da carreira.
   if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && (privatePenalty || CAREER_VISUAL_RELEASED))) {
     const exact=exactPenaltyRows(pens,rows)
-    return <CompactPenalties shootout={shootout} official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
+    return <CompactPenalties campo={campo} shootout={shootout} official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
   }
   return (
     <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
@@ -7144,10 +7144,10 @@ export function posicaoCopaNoCampo(legIndex:number,minute:number,nLegs:number){
   return Math.min(legs*90,leg*90+min*90/93)
 }
 type MinutoCopaCampo=(legIndex:number,minute:number)=>void
-export function MyCopaMatch(props: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+export function MyCopaMatch(props: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
-function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatchInner({ stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
   const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
   const presidentFieldAccount=usePresidentPreview()
@@ -7186,6 +7186,11 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colo
   useApitoDeLargada('copa-carreira', phase * 10 + legIdx, true)
   const aWin = tie.win === 'a'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
+  const penaltisCampo = usePenaltisCampo(
+    presidentFieldAccount && stadiumMatch && tie.pens ? {
+      id: stadiumMatch.id, pens: tie.pens, aName: tie.a.name, bName: tie.b.name,
+      aSquad: tie.a.xi, bSquad: tie.b.xi, invertido: swap,
+    } : undefined, showDone, sf, !!pausado, onPenaltiesComplete)
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens, copaTemGente(tie)) : 0
   return (
     <div style={{ marginBottom: 12 }}>
@@ -7196,7 +7201,7 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colo
           via escudo genérico e gol sem mascote NA COPA, enquanto na liga (que
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
-      <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+      <LiveScoreCard estadoPenaltis={penaltisCampo.estado} disputaPenaltis={penaltisCampo.sessao} enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
         youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} elencos={{ casa: homeT.xi, fora: awayT.xi, fCasa: homeT.formation, fFora: awayT.formation, m2: tie.legM2?.[legIdx] }} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
       {showDone && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
@@ -7209,8 +7214,8 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colo
             <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, color: 'rgba(0,0,0,.45)', margin: '0 0 1px', textTransform: 'uppercase' }}>{copaName(tie.a)} × {copaName(tie.b)}</p>
             <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>{tr('ida', '1st leg')} {tie.legs[0][0]}×{tie.legs[0][1]} · {tr('volta', '2nd leg')} {tie.legs[1][0]}×{tie.legs[1][1]} · <b>{tr('agregado', 'aggregate')} {tie.aggA}×{tie.aggB}</b></p>
           </>}
-          {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} aSquad={tie.a.xi} bSquad={tie.b.xi} lento={copaTemGente(tie)} />}
-          <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
+          {tie.pens && <PensShootout campo={penaltisCampo.estado} compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} aSquad={tie.a.xi} bSquad={tie.b.xi} lento={copaTemGente(tie)} />}
+          <p style={{ margin: '3px 0 0', ...(penaltisCampo.estado ? { display: penaltisCampo.estado.encerrado ? undefined : 'none' } : pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
             <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} {final ? tr('é campeão', 'is champion') : tr('avança', 'advances')}</span>
           </p>
         </div>
@@ -9304,6 +9309,9 @@ export function PyramidSeasonScreen() {
     if(copaRoundRef.current!==copaRound)return
     setCopaPos(previous=>Math.max(previous,posicaoCopaNoCampo(legIndex,minute,copaNLegs)))
   },[copaRound,copaNLegs])
+  const [pensCampoFinalizado, setPensCampoFinalizado] = useState('')
+  const chavePensCampo = `${seasonSeed}:${copaRound}:${myCopaTie?.a.teamId}:${myCopaTie?.b.teamId}`
+  const concluiuPensCampo = useCallback(() => setPensCampoFinalizado(chavePensCampo), [chavePensCampo])
   const copaCampoEncerrado=copaPos>=copaFaseTotal
   // ⏱️ quanto o relógio da fase espera pelos SEUS pênaltis (número, pra entrar como
   // dependência estável do efeito do relógio logo abaixo)
@@ -9357,12 +9365,12 @@ export function PyramidSeasonScreen() {
   }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral, pausaFesta])
   useEffect(()=>{
     if(!copaPlaying||!copaCampo||!copaCampoEncerrado)return
-    // Pênaltis só entram depois do fim físico da última perna. Os mesmos
-    // tempos de revelação continuam valendo antes de liberar/avançar a fase.
-    const rdy=setTimeout(()=>setCopaReady(true),250+copaPenMs)
-    const adv=manual?null:setTimeout(avancaCopaAuto,2200+copaPenMs)
+    if (myCopaTie?.pens && pensCampoFinalizado !== chavePensCampo) return
+    // O campo concluiu a última cobrança; agora pode liberar/avançar a fase.
+    const rdy=setTimeout(()=>setCopaReady(true),250)
+    const adv=manual?null:setTimeout(avancaCopaAuto,2200)
     return()=>{clearTimeout(rdy);if(adv)clearTimeout(adv)}
-  },[copaPlaying,copaCampo,copaCampoEncerrado,copaRound,manual,copaPenMs])
+  },[copaPlaying,copaCampo,copaCampoEncerrado,copaRound,manual,!!myCopaTie?.pens,pensCampoFinalizado,chavePensCampo])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -11873,7 +11881,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
+        {copaPlaying && myCopaTie && <MyCopaMatch onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue

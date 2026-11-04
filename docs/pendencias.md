@@ -1,3 +1,23 @@
+## 📊😱🎬 04/11 — Campo 2D: resumo no apito, QUASE! e melhores momentos no mapa (LOCAL, branch do agente, esperando OK visual do Diego)
+Só apresentação — placar, relógio, resultado e o sorteio do motor NÃO mudam (trava `scripts/testa-campo2d-resumo.mts`, dentro do
+`npm run campo2d`, roda os dois motores com e sem o coletor e exige o MESMO jogo). Só a conta liberada do 2D (`useCampo2DLiberado`);
+em sala 2D de outra pessoa nada disso aparece. Aba Jogos e mapa usam o MESMO código (`campo2d-resumo.ts` = regra,
+`campo2d-resumo-ui.tsx` = desenho + ponte pro mapa, igual à festa do gol):
+- **📊 Resumo do apito** — posse, finalizações, chutes no gol e ⭐ melhor em campo (dos dois times; jogador de mentira nunca).
+  Só depois do apito E do gol dos acréscimos pendente (nada de spoiler). Jogos: cartão embaixo do campinho · mapa: cartão no HUD
+  (some enquanto o replay toca). Sem botão novo, sem passo extra. v1 conta pelo diário `lances`/`posseT` do `Jogo2D` (só anota);
+  v2 usa `stats`/`eventos` do motor.
+- **😱 QUASE!** — bola na TRAVE e defesa DIFÍCIL (v1: chute caprichado defendido; v2: o voo `espalma`): a faixa do locutor troca a
+  frase do motor pelo grito (banco `quase_trave`/`quase_defesa`, 5 PT + 5 EN cada, escolhido por número fixo do lance — nunca pelo
+  dado do jogo) por ~2,6 s, com fundo dourado e tremidinho; um anel dourado abre e some em 0,9 s onde a bola bateu (canvas na aba
+  Jogos, anel no gramado no mapa). ~1 por jogo. Gol logo depois (rebote) corta o QUASE: a festa manda. **Só no mapa:** a torcida de
+  quem atacou faz "uhhh" (levanta e senta devagar, uniform `uUhh` na `presidencia-complexo-torcida.ts`).
+- **🎬 Melhores momentos no mapa** — o mesmo botão "VER OS GOLS DE NOVO" da aba Jogos agora aparece no HUD do mapa depois do apito,
+  e o campo do estádio toca a fita dos gols (a mesma fita do campinho escondido). Só fora do online, como na aba Jogos.
+- Fotos: `scripts/mockups/campo2d-resumo-apito.png`, `campo2d-quase.png`, `mapa-melhores-momentos.png`.
+- ⏳ Falta: OK visual do Diego; o 🎬 do REPLAY SALVO do mapa ("REVER JOGO SALVO") não ganhou o botão (a fonte do replay salvo não
+  grava a fita) — ver se ele quer.
+
 ## 🏟️ 04/11 — Salas com liga de 10 OU 20 times + ranking por PONTOS (LOCAL, branch do agente, esperando OK)
 Diego: *"a pessoa agora escolhe 10 times ou 20 times… campeão da liga e da copa nesse modo [10] ganhará apenas 1 ponto… com 20
 ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários entram 8 bots, o que muda é isso"*.
