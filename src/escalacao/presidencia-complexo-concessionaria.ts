@@ -1,6 +1,7 @@
 import {texturaLogoPatrocinador} from './presidencia-patrocinador-logo'
 import {LOGOS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import * as THREE from 'three'
+import {criarBibliotecaVeiculos,type Veiculo3D} from './veiculos-modelos-3d'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import {mapaParaMundo,deslocarCaminhoComplexo,type PontoComplexo} from './presidencia-complexo-model'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
@@ -75,7 +76,9 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D,onReady?:()=>v
  root.userData.complexoLights=[-169,-140].map(x=>({id:`vadico-teto-${x}`,kind:'entrance',position:[x+VADICO_RELOCATION.x,GROUND+6.44,20+VADICO_RELOCATION.z],target:[x+VADICO_RELOCATION.x,GROUND,20+VADICO_RELOCATION.z],color:'#ffe9b9',intensity:180,distance:12,angle:.85}))
  const red=mat('vadico-lanternas','#c2232b',.35)
  const white=new THREE.Color('#ffffff')
+ let descartar=false // 🚗 04/11: o carro genérico do pátio não é mais desenhado (só ficam o chão, a colisão e as rodas pros testes)
  const add=(geometry:THREE.BufferGeometry,material:THREE.Material,color?:THREE.Color)=>{
+  if(descartar){geometry.dispose();return}
   const source=geometry.index?geometry.toNonIndexed():geometry
   if(source!==geometry)geometry.dispose()
   if(!source.getAttribute('uv'))source.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(source.getAttribute('position').count*2),2))
@@ -148,6 +151,7 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D,onReady?:()=>v
   const first=rings[0],last=rings.at(-1)!;triangle(first[0],first[1],first[2]);triangle(first[0],first[2],first[3]);triangle(last[0],last[2],last[1]);triangle(last[0],last[3],last[2])
   const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.computeVertexNormals();add(geometry,paint,color)
  }
+ descartar=true
  for(const [index,car] of carPositions.entries()){
   const {x,y,z,id}=car,color=carColors[index]
   hull([{z:-2.18,bottom:.43,top:.64,width:.70},{z:-1.88,bottom:.40,top:.84,width:.90},{z:-1.15,bottom:.40,top:.91,width:.91},{z:1.25,bottom:.40,top:.88,width:.91},{z:1.94,bottom:.43,top:.73,width:.83},{z:2.18,bottom:.46,top:.56,width:.66}],x,y,z,color)
@@ -175,6 +179,15 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D,onReady?:()=>v
   box('vadico-carro-grade',frame,.76,.16,.06,x,y+.49,z+2.145)
   solid(id,rectangle({minX:x-1.08,maxX:x+1.08,minZ:z-2.2,maxZ:z+2.2}),y,y+1.55)
  }
+ descartar=false
+ // 🚗 04/11 (Diego: *"carros famosos, tipo Fusca, Brasília, Gol antigo… e também uma Ferrari"*): o pátio mostra os MESMOS carros que a
+ // loja vende (os modelos 3D de `veiculos-modelos`), um em cada vaga. Só enfeite: comprar continua sendo pela loja da Vadico.
+ const biblioteca=criarBibliotecaVeiculos(),famosos:Veiculo3D[]=[]
+ ;(['fusca','brasilia','gol-gti','kombi','opala-ss','f40'] as const).forEach((modelo,i)=>{
+  const car=carPositions[i],v=car&&biblioteca.create(modelo);if(!v)return
+  v.root.position.set(car.x+VADICO_RELOCATION.x,car.y,car.z+VADICO_RELOCATION.z);v.root.name=`vadico-patio-${modelo}`
+  v.root.traverse(o=>{o.castShadow=true;o.receiveShadow=true});root.add(v.root);famosos.push(v)
+ })
  // Pedestrian strip stays free between the two rows of three stock cars.
  for(const x of [-154.5-1.45,-154.5+1.45])box('vadico-faixa-pedestre',cream,.08,.006,18,x,GROUND+.006,39)
  for(const car of carPositions)for(const side of [-1,1])box('vadico-vaga-estoque',cream,.075,.006,5.4,car.x+side*1.55,GROUND+.006,car.z)
@@ -200,7 +213,7 @@ export function criarConcessionariaComplexo(parent:THREE.Object3D,onReady?:()=>v
  root.userData.dealership=metadata
  let disposed=false
  return{root,solids,metadata,wheels,dispose(){
-  if(disposed)return;disposed=true;root.removeFromParent();root.clear()
+  if(disposed)return;disposed=true;famosos.forEach(v=>v.dispose());biblioteca.dispose();root.removeFromParent();root.clear()
   geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
  }}
 }
