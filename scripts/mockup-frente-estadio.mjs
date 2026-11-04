@@ -21,7 +21,7 @@ const antes = `<svg viewBox="0 0 900 470" width="100%">${terreno}${estadio}
  ${rua(370)}${seta(700, 388)}${seta(200, 423, -1)}
  <text x="160" y="345" style="font:700 14px system-ui" fill="#C2452F">ônibus entra no terreno e dá a volta</text></svg>`
 const depois = `<svg viewBox="0 0 900 470" width="100%">${terreno}${estadio}
- <rect x="600" y="210" width="210" height="110" fill="#a38a59" stroke="${INK}" stroke-width="2" stroke-dasharray="6 4"/><text x="705" y="270" text-anchor="middle" style="font:700 15px Oswald" fill="${INK}">ESTACIONAMENTO</text>
+ <rect x="600" y="175" width="210" height="100" fill="#a38a59" stroke="${INK}" stroke-width="2" stroke-dasharray="6 4"/><text x="705" y="230" text-anchor="middle" style="font:700 15px Oswald" fill="${INK}">ESTACIONAMENTO</text>
  <path d="M450 215 L450 330" stroke="#96815f" stroke-width="14"/>
  <rect x="60" y="328" width="780" height="14" fill="#e8e1cf" stroke="${INK}" stroke-width="2"/>
  <path d="M70 370 C 150 370, 160 342, 230 342 L 690 342 C 760 342, 770 370, 850 370 L 850 380 L 70 380 Z" fill="#5a5d62"/>
@@ -33,6 +33,11 @@ const depois = `<svg viewBox="0 0 900 470" width="100%">${terreno}${estadio}
  ${carro(470, 346, '#FFC400')}${carro(505, 346, '#FFC400')}${carro(560, 346, '#e8e1cf')}
  <rect x="600" y="343" width="44" height="17" rx="3" fill="#8a5a3a" stroke="${INK}" stroke-width="2"/>
  ${seta(100, 360)}${seta(780, 360)}
+ <path d="M720 342 L720 275" stroke="#5a5d62" stroke-width="20"/><rect x="706" y="300" width="28" height="5" fill="#C2452F"/>
+ <path d="M720 336 L720 330" stroke="#fff" stroke-width="3"/><path d="M713 333 l7 -9 l7 9" stroke="#fff" stroke-width="3" fill="none"/>
+ <path d="M622 342 C 622 300, 560 250, 470 232" fill="none" stroke="#5a5d62" stroke-width="9" stroke-dasharray="2 0"/><path d="M622 342 C 622 300, 560 250, 470 232" fill="none" stroke="#FFC400" stroke-width="2" stroke-dasharray="8 6"/>
+ <rect x="460" y="222" width="70" height="24" fill="#e8e1cf" stroke="${INK}" stroke-width="2"/><text x="495" y="238" text-anchor="middle" style="font:700 10px system-ui" fill="${INK}">BARRACAS</text>
+ <g style="font:700 12px system-ui" fill="${INK}"><text x="736" y="300">🅿️ entrada do</text><text x="736" y="314">estacionamento</text><text x="440" y="292">🚐 portão de serviço</text><text x="440" y="306">(Kombi dos ambulantes)</text></g>
  <g style="font:700 13px system-ui" fill="${INK}"><text x="282" y="312">🚌 PONTO DE ÔNIBUS</text><text x="462" y="312">🚕 TÁXI / APP</text><text x="596" y="312">📦 CARGA</text></g>
  <text x="70" y="465" style="font:700 14px system-ui" fill="#1B7A3D">a pista paralela abre antes do estádio e volta pra avenida depois — a avenida segue sem parar</text></svg>`
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
@@ -47,7 +52,7 @@ ul{margin:8px 0 0;padding-left:20px;font-weight:700;font-size:13.5px;line-height
 <div class="box"><span class="tag" style="background:#FFC400">PROPOSTA</span>${depois}
 <ul><li>A avenida não muda: o trânsito passa direto, sem parar.</li><li>A pista paralela abre um pouco antes, corre colada na calçada do estádio e volta pra avenida depois.</li>
 <li>Nela param: 🚌 ônibus (com abrigo na calçada) · 🚕 táxi e carro de aplicativo desembarcando · 📦 carga e descarga.</li>
-<li>O caminho em curva do ônibus dentro do terreno SAI; a torcida desce na calçada e vai a pé direto pro portão.</li></ul></div>
+<li>O caminho em curva do ônibus dentro do terreno SAI; a torcida desce na calçada e vai a pé direto pro portão.</li><li>🅿️ <b>Carro de torcedor</b>: segue a pista paralela até o fim e entra no estacionamento por uma entrada própria, com cancela; na saída volta pela mesma pista pra avenida.</li><li>🚐 <b>Kombi dos ambulantes</b>: para na vaga de carga, entra por um portão de serviço estreito até a praça das barracas, monta e sai pelo mesmo portão (que fecha na hora do jogo).</li></ul></div>
 </body></html>`
 const br = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }).catch(() => chromium.launch())
 const pg = await br.newPage({ deviceScaleFactor: 2, viewport: { width: 1000, height: 900 } })
