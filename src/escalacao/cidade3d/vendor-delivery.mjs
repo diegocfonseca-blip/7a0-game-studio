@@ -8,9 +8,11 @@ export function vendorDelivery(spec,index=0,floor=()=>0){
  if(spec.kind==='cooler')return null;
  const side=spec.x<0?-1:1,x=spec.x+side*5,z=108.5,point=(x,z,y=floor(x,z))=>({x,y,z}),measure=points=>points.map(p=>({...p,y:floor(p.x,p.z)}));
  const measuredWalk=points=>{const dense=[];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.3));for(let j=i===1?0:1;j<=n;j++){const u=j/n;dense.push(point(a.x+(b.x-a.x)*u,a.z+(b.z-a.z)*u))}}return dense};
- const incoming=activityRoute(measure(roundCoachRoute([point(30,165),point(30,120),point(x,120),point(x,z)],3.2)),3.2,1.2);
+ // 🚐 04/11: a Kombi chega pela PISTA PARALELA — parada na vaga de carga, entra pelo portão de serviço (x≈30) e desce até a barraca.
+ // Os números são os da pista (presidencia-complexo-transporte-model.ts, naPista): meio-fio em z≈199,6 · pista em z≈199,3.
+ const incoming=activityRoute(measure(roundCoachRoute([point(23.4,199.5),point(30.2,199.1),point(30,165),point(30,120),point(x,120),point(x,z)],3.2)),3.2,1.2);
  const circle=Array.from({length:49},(_,i)=>{const a=side>0?Math.PI+i*Math.PI/48:-i*Math.PI/48;return point(x+side*4+Math.cos(a)*4,109+Math.sin(a)*4)});
- const exitX=x+side*8,leaving=roundCoachRoute(exitX===30?[point(30,109),point(30,165)]:[point(exitX,109),point(exitX,120),point(30,120),point(30,165)],4.4);
+ const exitX=x+side*8,saida=[point(30,199.3),point(43.2,199.5),point(49.8,198.7),point(61.8,196.2),point(77.2,200.4),point(86,198),point(103,190),point(123,179)],leaving=roundCoachRoute(exitX===30?[point(30,109),point(30,165),...saida]:[point(exitX,109),point(exitX,120),point(30,120),point(30,165),...saida],4.4);
  const backing=activityRoute([point(x,z),point(x,109)],.8,.5),outgoing=activityRoute(measure([...circle,...leaving.slice(1)]),2.6,1.2);
  const rear=point(x,z+3.2),destination=point(spec.x,spec.z-1.1);
  const cargo=activityRoute(measuredWalk([rear,point(x-side*2.5,z+3.2),point(x-side*2.5,destination.z),destination]),1.05,.5),returnCargo=activityRoute([...cargo.points].reverse(),1.05,.5);
