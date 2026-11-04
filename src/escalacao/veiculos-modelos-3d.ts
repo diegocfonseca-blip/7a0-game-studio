@@ -1,6 +1,7 @@
 import * as T from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import {modeloVeiculo,MODELO_ENTREGA_QUADROS,type PerfilVeiculo} from './veiculos-modelos'
+import {construirFamoso} from './veiculos-famosos-3d'
 
 export type Veiculo3D={root:T.Group;profile:PerfilVeiculo;update:(distance:number,steering?:number)=>void;setCargoOpening?:(open:number)=>void;dispose:()=>void}
 /** Original low-poly meshes: shaped body panels, glass, details and articulated wheels.
@@ -19,6 +20,8 @@ export function criarBibliotecaVeiculos(){
   const rod=(c:string,a:number[],b:number[],r=.025)=>{const va=new T.Vector3(...a),vb=new T.Vector3(...b),v=vb.clone().sub(va),g=new T.CylinderGeometry(r,r,v.length(),8);g.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),v.normalize()));add(g,c,...va.add(vb).multiplyScalar(.5).toArray() as [number,number,number])}
   const loft=(rows:number[][],c:string,roof=c)=>{const pos:number[]=[],cols:number[]=[];const ring=(r:number[])=>{const[z,w,lo,hi]=r;return[[-w*.8,lo,z],[-w,lo+.04,z],[-w,lo+(hi-lo)*.72,z],[-w*.83,hi,z],[w*.83,hi,z],[w,lo+(hi-lo)*.72,z],[w,lo+.04,z],[w*.8,lo,z]]};const faces=(a:number[],b:number[],d:number[],co:string)=>{pos.push(...a,...b,...d);const v=new T.Color(co);for(let i=0;i<3;i++)cols.push(v.r,v.g,v.b)};for(let k=1;k<rows.length;k++){const a=ring(rows[k-1]),b=ring(rows[k]);for(let i=0;i<8;i++){const j=(i+1)%8,co=i===3?roof:c;faces(a[i],b[i],b[j],co);faces(a[i],b[j],a[j],co)}}for(const[k,reverse]of[[0,false],[rows.length-1,true]]as const){const a=ring(rows[k]);for(let i=1;i<7;i++)reverse?faces(a[0],a[i+1],a[i],c):faces(a[0],a[i],a[i+1],c)}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(cols,3));g.setAttribute('uv',new T.Float32BufferAttribute(new Float32Array(pos.length/3*2),2));g.computeVertexNormals();parts.push(g)}
   const paint=p.color,chrome='#a8b2b2',black='#242a2b',glass='#45616b',light='#e9e1ba',red='#a93029',L=p.length,W=p.width,H=p.height,r=p.radius;
+  // 🚗 Os 6 carros do pátio da Vadico têm modelagem própria (veiculos-famosos-3d); o resto segue a forma genérica.
+  if(p.kind==='car'&&construirFamoso(p,parts,add)){}else{
   // The common wheel is also a coloured mesh: tread, sidewall and inset rim.
   add(new T.CylinderGeometry(r,r,p.kind==='car'?.21:p.shape==='cruiser'?.18:.09,18), '#242627',0,0,0,0,0,Math.PI/2,true)
   for(const side of[-1,1]){add(new T.CylinderGeometry(r*.63,r*.63,.014,16),chrome,side*(p.kind==='car'?.112:p.shape==='cruiser'?.098:.052),0,0,0,0,Math.PI/2,true);add(new T.CylinderGeometry(r*.37,r*.37,.018,10),'#40494a',side*(p.kind==='car'?.124:p.shape==='cruiser'?.109:.062),0,0,0,0,Math.PI/2,true)}
@@ -77,13 +80,14 @@ export function criarBibliotecaVeiculos(){
    }else{rod(chrome,[-.24,.36,-.02],[.24,.36,-.02],.025);for(const side of[-1,1])box(black,.13,.025,.1,side*.24,.36,side*.10)}
    for(const z of[rear,front]){const g=new T.TorusGeometry(r+.045,.035,5,14,Math.PI);g.rotateY(Math.PI/2);add(g,paint,0,r,z)}
   }
+  }
   const body=mergeGeometries(parts)!;parts.forEach(g=>g.dispose());const wheel=mergeGeometries(tires)!;tires.forEach(g=>g.dispose());body.computeBoundingSphere();wheel.computeBoundingSphere();return{body,wheel,cargoDoor:p.shape==='delivery'?color(new T.BoxGeometry(W/2-.035,H-.53,.07),paint):undefined,profile:p}
  }
  function create(id:string):Veiculo3D|undefined{
   const p=id==='servico-dsouza'?MODELO_ENTREGA_QUADROS:modeloVeiculo(id);if(!p)return;let template=cache.get(p.id);if(!template){template=build(p);cache.set(p.id,template)}
   const root=new T.Group();root.name='veiculo-'+id;root.userData.vehicleId=id;const body=new T.Mesh(template.body,material);body.castShadow=true;body.receiveShadow=true;root.add(body)
   const wheels:{pivot:T.Group;mesh:T.Mesh;front:boolean}[]=[];
-  for(const z of[-p.wheelbase/2,p.wheelbase/2])for(const side of p.kind==='car'?[-1,1]:[0]){const pivot=new T.Group();pivot.position.set(side*(p.width/2-.015),p.radius,z);const mesh=new T.Mesh(template.wheel,material);mesh.castShadow=true;pivot.add(mesh);root.add(pivot);wheels.push({pivot,mesh,front:z>0})}
+  for(const z of[-p.wheelbase/2,p.wheelbase/2])for(const side of p.kind==='car'?[-1,1]:[0]){const pivot=new T.Group();pivot.position.set(side*(p.track?p.track/2:p.width/2-.015),p.radius,z);const mesh=new T.Mesh(template.wheel,material);mesh.castShadow=true;pivot.add(mesh);root.add(pivot);wheels.push({pivot,mesh,front:z>0})}
   const cargo:T.Group[]=[];if(template.cargoDoor)for(const side of[-1,1]){const pivot=new T.Group();pivot.position.set(side*p.width/2,p.height/2+.25,-p.length*.49);const door=new T.Mesh(template.cargoDoor,material);door.position.x=-side*p.width/4;door.castShadow=true;pivot.add(door);root.add(pivot);cargo.push(pivot)}
   const shadow=new T.Mesh(shadowGeometry,shadowMaterial);shadow.scale.set(p.width*1.1,1,p.length*.98);shadow.position.y=.004;root.add(shadow)
   return{root,profile:p,update(distance,steering=0){for(const w of wheels){w.mesh.rotation.x=distance/p.radius;w.pivot.rotation.y=w.front?T.MathUtils.clamp(steering,-.5,.5):0 }},setCargoOpening(open){cargo.forEach((hinge,i)=>{hinge.rotation.y=(i===0?1:-1)*T.MathUtils.clamp(open,0,1)*Math.PI*.85})},dispose(){root.removeFromParent();root.clear()}}
