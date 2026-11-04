@@ -1,3 +1,25 @@
+## 🏆🚌 04/11 — Mapa 3D: festa da Liberta/Champions/Mundial, final nos pênaltis e câmera dos ônibus (LOCAL, branch do agente, só a conta do Diego)
+Tudo só desenho (não muda resultado nem motor) e tudo atrás da trava do mapa (`usePresidentPreview`).
+- **Festa de campeão no mapa também na final da Libertadores, Champions e Mundial** (carreira internacional): o id da partida da final
+  ganhou `:Final` (`idPartidaInternacional`, só monta com a conta do Diego) e o dia de final (`presidencia-complexo-final*.ts`) monta
+  a taça de cada uma (`caraDaTaca`): Liberta dourada com o jogadorzinho e pé de madeira · orelhuda prateada com pé azul · Mundial
+  dourado com o globo de anéis e pé preto. Placa do pódio "CAMPEÃO" + nome da taça; papel picado e fogos nas cores da competição.
+  Faixa da fachada com LIBERTADORES / CHAMPIONS / MUNDIAL DE CLUBES (EN: CLUB WORLD CUP).
+- **Final decidida nos pênaltis = festa igual**, com "NOS PÊNALTIS!" (EN "ON PENALTIES!") na placa do pódio. O mapa só fica sabendo
+  quem ganhou DEPOIS que a tela mostrou a disputa (`context.penaltis`): Copa/Supercopa = depois do `pensDelay` do `PensShootout`;
+  internacional = no apito (é quando a linha "Pênaltis X × Y" aparece). Nunca desenha nem narra a cobrança.
+- **Aba Jogos**: a festa de Liberta/Champions/Mundial já existia (`FestaCampeao`, 24/10). Agora, só na conta do Diego, a festa de
+  título nos pênaltis (Copa, Supercopa, Liberta, Champions, Mundial) ganha o selo "🥅 NOS PÊNALTIS!" na faixa (`FestaCampeao penaltis`).
+- **Câmera seguindo os ônibus** (`presidencia-onibus-camera.ts`): no dia de jogo em casa, enquanto os ônibus chegam e sem jogo rolando,
+  a câmera desce atrás do ônibus do mandante, olha a porta no desembarque, depois o do visitante, e volta sozinha pra onde estava.
+  Só começa com o mapa quieto há 3 s; QUALQUER toque (dedo, roda, tecla, botão de lugar, câmera do jogo) devolve na hora e não
+  retoma naquela chegada. Não acorda a cidade (só mexe nos quadros que o mapa já desenha). Sem botão novo, sem espera.
+- Testes: `test-final-day.mjs` (finais internacionais + pênaltis) e `test-bus-camera.mjs` (novo). Fotos:
+  `scripts/mockups/mapa-festa-liberta.png`, `mapa-festa-penaltis.png`, `mapa-onibus-camera.png` (+ `mapa-festa-champions.png`,
+  `mapa-festa-mundial.png`); gerador `scripts/imersao-mapa/shots-final-onibus.mjs` (QA: `simularFinalQA(modo,{intl,penaltis})`).
+- [ ] OK visual do Diego nas fotos → publicar. Reverter = voltar o commit.
+- [ ] Copa do Mundo (seleções) não entrou: não usa o mapa do clube.
+
 ## 🏟️ 04/11 — Salas com liga de 10 OU 20 times + ranking por PONTOS (LOCAL, branch do agente, esperando OK)
 Diego: *"a pessoa agora escolhe 10 times ou 20 times… campeão da liga e da copa nesse modo [10] ganhará apenas 1 ponto… com 20
 ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários entram 8 bots, o que muda é isso"*.

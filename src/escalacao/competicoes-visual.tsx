@@ -166,7 +166,7 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera, nomeComp, onF
 /** 🏆 A FESTA DO CAMPEÃO: por cima da tela de fim, ~5,5 s, toque pula. */
 /** ⚽🅰️ quem fez mais gols / deu mais passes na competição (pra festa) */
 export type DestaqueFesta = { nome: string; time: string; n: number }
-export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp }: {
+export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp, penaltis = false }: {
   comp: CompId; nome: string; crest: ReactNode; mascote?: ReactNode
   /** 🏆 carreira: o nome que o save usa (Copa do Brasil × Copa Legends) */ nomeComp?: [string, string]
   /** ⚽ 23/10 (Diego: *"já poderia aparecer o artilheiro que ganhou a copa também"*) — e o 🅰️ garçom junto (regra dele: o que vale pro gol vale pra assistência) */
@@ -174,6 +174,9 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   lendas?: { nome: string; club: string; year: number }[]; linha?: string
   /** quem está vendo É o campeão? (aí toca o canto do clube dele, se tiver; senão o grito de gol) */
   souCampeao?: boolean; onDone: () => void
+  /** 🥅 04/11 (por enquanto só a conta do Diego, igual ao mapa 3D): título decidido nos pênaltis → selo "NOS PÊNALTIS!" na faixa.
+   * A festa já só abre depois da disputa aparecer; aqui é só o selo, nunca a cobrança. */
+  penaltis?: boolean
 }) {
   const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
   const DUR = 5600
@@ -210,6 +213,7 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
         {mascote && <div style={{ position: 'absolute', bottom: 100, right: -10, width: 200, animation: 'tfEntraD .7s 1.2s both', filter: 'drop-shadow(5px 5px 0 #000)' }}>{mascote}</div>}
         <div style={{ position: 'absolute', left: pc ? 'calc(50% - 320px)' : 16, right: pc ? 'calc(50% - 320px)' : 16, bottom: 22, background: INK, border: `4px solid ${c.faixaBg}`, borderRadius: 18, padding: '10px 12px', boxShadow: '5px 5px 0 #000', textAlign: 'center', animation: 'fcSobe .5s 1.5s both' }}>
           <b style={{ ...OSW, display: 'block', fontSize: 24, color: c.faixaBg === '#FFFFFF' ? '#fff' : c.faixaBg, lineHeight: 1 }}>🏆 {tr(c.campeao[0], c.campeao[1])}</b>
+          {penaltis && <span style={{ ...OSW, display: 'inline-block', margin: '5px 0 3px', background: c.faixaBg === '#FFFFFF' ? '#fff' : c.faixaBg, color: INK, border: `3px solid ${INK}`, borderRadius: 10, padding: '2px 10px', fontSize: 15, boxShadow: '3px 3px 0 #000', animation: 'tfZoom .4s 1.9s both' }}>🥅 {tr('NOS PÊNALTIS!', 'ON PENALTIES!')}</span>}
           {linha && <small style={{ fontSize: 12.5, fontWeight: 700, color: '#ddd' }}>{linha}</small>}
           {(artilheiro || garcom) && <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
             {artilheiro && <span style={{ background: '#fff', color: INK, border: `2px solid ${c.faixaBg === '#FFFFFF' ? '#999' : c.faixaBg}`, borderRadius: 9, padding: '3px 8px', fontSize: 11.5, fontWeight: 800, lineHeight: 1.25 }}>⚽ {tr('Artilheiro', 'Top scorer')}: <b>{artilheiro.nome}</b> <span style={{ opacity: .6 }}>({artilheiro.time})</span> · {artilheiro.n} {artilheiro.n === 1 ? tr('gol', 'goal') : tr('gols', 'goals')}</span>}

@@ -6,17 +6,29 @@ import {cityPopulation} from './cidade3d/population.mjs'
  * (`<semente>:copa:<fase>:Final|Supercopa:leg:…`, montado em pyramidseason → MyCopaMatch, o mesmo que liga `final` no placar).
  * E nada revela resultado antes do apito: o desfecho só existe com a partida ENCERRADA (Diego odeia spoiler). */
 
-export type TipoFinal='final'|'supercopa'
+/** 'final' = Copa do Brasil/Legends · 'supercopa' · e (04/11) as finais internacionais da carreira. */
+export type TipoFinal='final'|'supercopa'|'libertadores'|'champions'|'mundial'
 export type LadoFinal='home'|'away'
 export type TimeFinal={name?:string;color?:string}
-type PartidaFinal={context:{id:string;homeClubId?:number;awayClubId?:number};viewerClubId?:number;minute:number;homeScore:number;awayScore:number;finished:boolean}
+/** 🥅 a disputa de pênaltis que decidiu a final — quem monta o contexto SÓ põe isto depois que a tela já mostrou o resultado
+ * dos pênaltis (sem spoiler). O mapa nunca desenha nem narra a cobrança: só faz a festa de quem ganhou. */
+export type PenaltisFinal={vencedor:LadoFinal}
+type PartidaFinal={context:{id:string;homeClubId?:number;awayClubId?:number;penaltis?:PenaltisFinal};viewerClubId?:number;minute:number;homeScore:number;awayScore:number;finished:boolean}
 
 const FINAL_NO_ID=/:copa:\d+:(Final|Supercopa)(?::|$)/
+/** 🌎 final internacional: `<semente>:intl:<temporada>:<libertadores|champions|mundial>:Final:…` (career-international-view → JogoGrande, fase 'final') */
+const FINAL_INTL_NO_ID=/:intl:\d+:(libertadores|champions|mundial):Final(?::|$)/
 /** O mesmo nome de fase que o placar usa pra virar "é campeão" (`copaFase.name === 'Final' || 'Supercopa'`). */
 export function tipoFinalDaPartida(id:string|undefined|null):TipoFinal|null{
  if(typeof id!=='string')return null
  const m=FINAL_NO_ID.exec(id)
- return m?m[1]==='Supercopa'?'supercopa':'final':null
+ if(m)return m[1]==='Supercopa'?'supercopa':'final'
+ const i=FINAL_INTL_NO_ID.exec(id)
+ return i?i[1] as TipoFinal:null
+}
+/** O id da partida internacional (o mesmo de sempre; na final ganha o ":Final" que o mapa reconhece). */
+export function idPartidaInternacional(p:{seed:number;season:number;comp:string;roundKey:number;home:string;away:string;final:boolean}){
+ return `${p.seed}:intl:${p.season}:${p.comp}:${p.final?'Final:':''}${p.roundKey}:${p.home}:${p.away}`
 }
 
 /** Lado do clube do usuário no estádio do jogo (o mandante é sempre `home`). Sem prova, `null`. */
@@ -28,9 +40,10 @@ export function ladoDoUsuario(match:Pick<PartidaFinal,'context'|'viewerClubId'>|
  return null
 }
 
-export type DesfechoFinal={vencedor:LadoFinal;usuario:LadoFinal;campeao:boolean;tipo:TipoFinal}
-/** Só depois do APITO FINAL (partida encerrada e relógio no fim). Empate = decidiu nos pênaltis, que o mapa não mostra:
- * aí não tem festa nenhuma (nem pódio, nem fogos) — melhor não festejar do que festejar o time errado ou adiantar o pênalti. */
+export type DesfechoFinal={vencedor:LadoFinal;usuario:LadoFinal;campeao:boolean;tipo:TipoFinal;penaltis?:boolean}
+/** Só depois do APITO FINAL (partida encerrada e relógio no fim). Empate = decidiu nos pênaltis: a festa só existe quando
+ * o contexto já traz o vencedor dos pênaltis (`context.penaltis`, posto pela tela DEPOIS de mostrar a disputa). Sem isso,
+ * nada — melhor não festejar do que festejar o time errado ou adiantar o pênalti. */
 export function desfechoDaFinal(match:PartidaFinal|undefined|null):DesfechoFinal|null{
  if(!match||match.finished!==true)return null
  const tipo=tipoFinalDaPartida(match.context?.id)
@@ -40,7 +53,12 @@ export function desfechoDaFinal(match:PartidaFinal|undefined|null):DesfechoFinal
  const usuario=ladoDoUsuario(match)
  if(!usuario)return null
  const h=match.homeScore,a=match.awayScore
- if(!Number.isFinite(h)||!Number.isFinite(a)||h===a)return null
+ if(!Number.isFinite(h)||!Number.isFinite(a))return null
+ if(h===a){
+  const pen=match.context.penaltis?.vencedor
+  if(pen!=='home'&&pen!=='away')return null
+  return {vencedor:pen,usuario,campeao:pen===usuario,tipo,penaltis:true}
+ }
  const vencedor:LadoFinal=h>a?'home':'away'
  return {vencedor,usuario,campeao:vencedor===usuario,tipo}
 }
@@ -57,9 +75,26 @@ export function faixaDaFinal(times:readonly TimeFinal[]){
  const nomes=times.map(t=>(t?.name??'').trim()).filter(Boolean)
  return nomes.length===2?`FINAL · ${nomes[0]} × ${nomes[1]}`:'FINAL'
 }
-/** A faixa da fachada: só "FINAL" (+ "SUPERCOPA" em cima quando for). */
+/** A faixa da fachada: só "FINAL" (+ o nome da competição em cima quando for Supercopa ou internacional). */
 export function faixaDaFachada(tipo:TipoFinal,english=false){
- return tipo==='supercopa'?{topo:english?'SUPER CUP':'SUPERCOPA',grande:'FINAL'}:{topo:english?'MATCH DAY':'DIA DE',grande:'FINAL'}
+ const topo=tipo==='supercopa'?(english?'SUPER CUP':'SUPERCOPA'):tipo==='libertadores'?'LIBERTADORES':tipo==='champions'?'CHAMPIONS':tipo==='mundial'?(english?'CLUB WORLD CUP':'MUNDIAL DE CLUBES'):(english?'MATCH DAY':'DIA DE')
+ return {topo,grande:'FINAL'}
+}
+
+/** 🏆 A CARA DE CADA TAÇA no pódio (as mesmas cores de `competicoes-visual.tsx`: COMPS.liberta/champions/mundial).
+ * `forma` diz qual taça o 3D monta; `metal` é a cor dela; `base` a do pé; `papel` entra no papel picado junto da cor do campeão. */
+export type CaraDaTaca={forma:'copa'|'liberta'|'orelhuda'|'mundial';metal:string;base:string;papel:readonly string[];fogo:string}
+export function caraDaTaca(tipo:TipoFinal):CaraDaTaca{
+ if(tipo==='libertadores')return {forma:'liberta',metal:'#C9A227',base:'#5a3b1c',papel:['#C9A227','#B5121B','#F2E6C8'],fogo:'#B5121B'}
+ if(tipo==='champions')return {forma:'orelhuda',metal:'#D5DCE4',base:'#1a2a5c',papel:['#D5DCE4','#FFFFFF','#1F3A93'],fogo:'#6F8FFF'}
+ if(tipo==='mundial')return {forma:'mundial',metal:'#FFC400',base:'#111111',papel:['#FFC400','#8C6A00','#F4ECD6'],fogo:'#FFC400'}
+ return {forma:'copa',metal:'#FFC400',base:'#2b2b2b',papel:['#FFC400','#FFFFFF'],fogo:'#E8503A'}
+}
+/** A placa do pódio: "CAMPEÃO" e, embaixo, a competição internacional e/ou "NOS PÊNALTIS!". */
+export function placaDoPodio(d:Pick<DesfechoFinal,'tipo'|'penaltis'>,english=false){
+ const comp=d.tipo==='libertadores'?'LIBERTADORES':d.tipo==='champions'?'CHAMPIONS LEAGUE':d.tipo==='mundial'?(english?'CLUB WORLD CUP':'MUNDIAL'):''
+ const pen=d.penaltis?(english?'ON PENALTIES!':'NOS PÊNALTIS!'):''
+ return {grande:english?'CHAMPIONS':'CAMPEÃO',linha:[comp,pen].filter(Boolean).join(' · ')}
 }
 
 /** "O dobro" de gente na rua, sem furar o teto da cidade (`cityPopulation`: 20 no celular, 48 no computador). */

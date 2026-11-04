@@ -22,7 +22,7 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
  // a câmera e o HUD — que redesenhavam junto, à toa. Agora só vira "outro quadro" quando muda o que o jogo É (minuto, placar,
  // pausa, lance, gol, escalação, narração); entre um e outro o relógio continua contando sozinho a partir do mesmo instante
  // (tempoVisualPartida soma o tempo corrido), então o minuto mostrado é o mesmo de antes.
- const chave=[state.context.id,state.minute,state.period,state.homeScore,state.awayScore,state.paused,state.finished,running,rate,state.chance?.id,state.goal?.id,state.goal?.phase,state.homeColor,state.awayColor,state.officialMinuteMs].join('|')
+ const chave=[state.context.id,state.minute,state.period,state.homeScore,state.awayScore,state.paused,state.finished,running,rate,state.chance?.id,state.goal?.id,state.goal?.phase,state.homeColor,state.awayColor,state.officialMinuteMs,state.context.penaltis?.vencedor??''].join('|')
  const memo=useRef<{chave:string;input:unknown;narr:unknown;frame:EstadoPartidaEstadio}|null>(null)
  let frame:EstadoPartidaEstadio
  if(memo.current&&memo.current.chave===chave&&memo.current.input===state.officialInput&&memo.current.narr===state.officialNarration)frame=memo.current.frame

@@ -12,7 +12,7 @@ import type {AssentoComplexo} from './presidencia-complexo-arquitetura'
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import {getLang} from './lang'
-import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,type DesfechoFinal,type TipoFinal,type LadoFinal} from './presidencia-complexo-final-regras'
+import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,caraDaTaca,placaDoPodio,type DesfechoFinal,type TipoFinal,type LadoFinal} from './presidencia-complexo-final-regras'
 
 /** 🏆 DIA DE FINAL no mapa 3D (03/11, aprovado pelo Diego: "ok"). Tudo num arquivo só, pra não brigar com quem mexe no mapa:
  *  · ANTES: avião puxando a faixa "FINAL · A × B", barracas de bandeira/faixa da final (as peruas de ambulante de sempre),
@@ -224,12 +224,43 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   for(const d of degraus){const b=new THREE.Mesh(geo(new THREE.BoxGeometry(3,d.h,2.4)),podioMat);b.position.set(d.x,d.h/2,0);b.castShadow=false;b.receiveShadow=true;podio.add(b);const t=new THREE.Mesh(geo(new THREE.BoxGeometry(3.06,.08,2.46)),topoMat);t.position.set(d.x,d.h+.04,0);podio.add(t)}
   let placaPodio:THREE.Mesh|undefined
   const tacaGrupo=new THREE.Group();tacaGrupo.name='final-taca';podio.add(tacaGrupo);tacaGrupo.visible=false
+  // 🏆 cada competição com a SUA taça (04/11): a copa de sempre · Libertadores (o jogadorzinho em cima) · a orelhuda prateada · o anel do Mundial
+  const cara=caraDaTaca(tipo)
   {
-   const ouro=mat(new THREE.MeshStandardMaterial({color:OURO,metalness:.85,roughness:.28,emissive:new THREE.Color('#3a2b00'),emissiveIntensity:.6}))
-   const perfil=[[0,0],[.2,0],[.2,.06],[.08,.1],[.06,.28],[.1,.34],[.22,.42],[.27,.58],[.28,.72],[.25,.74],[0,.6]].map(([x,y])=>new THREE.Vector2(x,y))
-   const corpo=new THREE.Mesh(geo(new THREE.LatheGeometry(perfil,16)),ouro);tacaGrupo.add(corpo)
-   for(const s of [-1,1]){const alca=new THREE.Mesh(geo(new THREE.TorusGeometry(.12,.025,6,12,Math.PI)),ouro);alca.position.set(s*.28,.56,0);alca.rotation.z=s>0?-Math.PI/2:Math.PI/2;tacaGrupo.add(alca)}
-   const base=new THREE.Mesh(geo(new THREE.CylinderGeometry(.16,.2,.1,12)),mat(new THREE.MeshStandardMaterial({color:'#2b2b2b',roughness:.6})));base.position.y=.03;tacaGrupo.add(base)
+   const prata=cara.forma==='orelhuda'
+   const ouro=mat(new THREE.MeshStandardMaterial({color:cara.metal,metalness:.85,roughness:prata?.22:.28,emissive:new THREE.Color(prata?'#2a3140':'#3a2b00'),emissiveIntensity:.6}))
+   const baseMat=mat(new THREE.MeshStandardMaterial({color:cara.base,roughness:.6}))
+   const lathe=(pts:number[][])=>new THREE.Mesh(geo(new THREE.LatheGeometry(pts.map(([x,y])=>new THREE.Vector2(x,y)),16)),ouro)
+   if(cara.forma==='copa'){
+    tacaGrupo.add(lathe([[0,0],[.2,0],[.2,.06],[.08,.1],[.06,.28],[.1,.34],[.22,.42],[.27,.58],[.28,.72],[.25,.74],[0,.6]]))
+    for(const s of [-1,1]){const alca=new THREE.Mesh(geo(new THREE.TorusGeometry(.12,.025,6,12,Math.PI)),ouro);alca.position.set(s*.28,.56,0);alca.rotation.z=s>0?-Math.PI/2:Math.PI/2;tacaGrupo.add(alca)}
+    const base=new THREE.Mesh(geo(new THREE.CylinderGeometry(.16,.2,.1,12)),baseMat);base.position.y=.03;tacaGrupo.add(base)
+   }else if(cara.forma==='liberta'){
+    // pé de madeira com faixa dourada, taça e o jogadorzinho chutando em cima
+    const pe=new THREE.Mesh(geo(new THREE.CylinderGeometry(.2,.25,.2,12)),baseMat);pe.position.y=.1;tacaGrupo.add(pe)
+    const aro=new THREE.Mesh(geo(new THREE.CylinderGeometry(.205,.205,.05,12)),ouro);aro.position.y=.12;tacaGrupo.add(aro)
+    const corpo=lathe([[0,.2],[.08,.2],[.06,.32],[.1,.38],[.2,.46],[.22,.6],[.2,.66],[0,.62]]);tacaGrupo.add(corpo)
+    for(const s of [-1,1]){const alca=new THREE.Mesh(geo(new THREE.TorusGeometry(.09,.02,6,10,Math.PI)),ouro);alca.position.set(s*.22,.54,0);alca.rotation.z=s>0?-Math.PI/2:Math.PI/2;tacaGrupo.add(alca)}
+    // (o jogadorzinho é a marca da taça: grande o bastante pra ler de longe, no celular)
+    const cabeca=new THREE.Mesh(geo(new THREE.SphereGeometry(.075,10,8)),ouro);cabeca.position.set(0,1.06,0);tacaGrupo.add(cabeca)
+    const tronco=new THREE.Mesh(geo(new THREE.CylinderGeometry(.05,.06,.24,8)),ouro);tronco.position.set(0,.88,0);tacaGrupo.add(tronco)
+    for(const s of [-1,1]){const braco=new THREE.Mesh(geo(new THREE.CylinderGeometry(.022,.022,.18,6)),ouro);braco.position.set(s*.08,.9,0);braco.rotation.z=s*.9;tacaGrupo.add(braco)}
+    const perna=new THREE.Mesh(geo(new THREE.CylinderGeometry(.028,.028,.2,6)),ouro);perna.position.set(.07,.72,0);perna.rotation.z=.6;tacaGrupo.add(perna)
+    const perna2=new THREE.Mesh(geo(new THREE.CylinderGeometry(.028,.028,.18,6)),ouro);perna2.position.set(-.03,.71,0);tacaGrupo.add(perna2)
+    const bola=new THREE.Mesh(geo(new THREE.SphereGeometry(.055,10,8)),mat(new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.5})));bola.position.set(.17,.66,0);tacaGrupo.add(bola)
+   }else if(cara.forma==='orelhuda'){
+    // a orelhuda: corpo alto e as duas alças GRANDES dos lados, pé azul
+    const pe=new THREE.Mesh(geo(new THREE.CylinderGeometry(.16,.19,.16,12)),baseMat);pe.position.y=.08;tacaGrupo.add(pe)
+    tacaGrupo.add(lathe([[0,.16],[.07,.16],[.05,.3],[.09,.36],[.2,.5],[.24,.72],[.25,.84],[.23,.85],[0,.74]]))
+    for(const s of [-1,1]){const alca=new THREE.Mesh(geo(new THREE.TorusGeometry(.19,.03,6,14,Math.PI*1.25)),ouro);alca.position.set(s*.26,.6,0);alca.rotation.z=s>0?-Math.PI*.55:Math.PI*.55+Math.PI*.25;alca.scale.set(1,1.25,1);tacaGrupo.add(alca)}
+   }else{
+    // Mundial: pé preto, haste dourada e o ANEL (o globo) com a bola no meio
+    const pe=new THREE.Mesh(geo(new THREE.CylinderGeometry(.15,.18,.14,12)),baseMat);pe.position.y=.07;tacaGrupo.add(pe)
+    tacaGrupo.add(lathe([[0,.14],[.12,.14],[.07,.28],[.05,.42],[.09,.5],[0,.52]]))
+    // (dois anéis cruzados: o globo se lê de qualquer lado, até girando)
+    for(const r of [0,Math.PI/2]){const anel=new THREE.Mesh(geo(new THREE.TorusGeometry(.2,.035,8,24)),ouro);anel.position.y=.74;anel.rotation.y=r;tacaGrupo.add(anel)}
+    const globo=new THREE.Mesh(geo(new THREE.SphereGeometry(.11,12,8)),ouro);globo.position.y=.74;tacaGrupo.add(globo)
+   }
    tacaGrupo.scale.setScalar(1.25)
   }
   const N_PAPEL=mobile?90:170
@@ -239,7 +270,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   let jogadores:{corpo:Civil;rota?:ReturnType<typeof activityRoute>;alvo:{x:number;y:number;z:number};frente:{x:number;z:number};saindo:boolean;taca:boolean}[]=[]
 
   return{g,geos,mats,texs,civis,aviao,voo,vooDir,vooYaw,fachada,barracas,peruas,relogioDia,chegando,fumaca,N_FUMACA,sinal,sinalAssentos,band,ondaU,fogos,fPos,fCor,fDir,RAJ,POR,centros,podio,podioMat,tacaGrupo,papel,papelSem,corA,corB,
-   get jogadores(){return jogadores},set jogadores(v){jogadores=v},get placaPodio(){return placaPodio},set placaPodio(v){placaPodio=v},tela,texto,geo,mat,mobile,tipo,teams}
+   get jogadores(){return jogadores},set jogadores(v){jogadores=v},get placaPodio(){return placaPodio},set placaPodio(v){placaPodio=v},tela,texto,geo,mat,mobile,tipo,teams,cara}
  }
 
  // estado do dia
@@ -263,10 +294,12 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   const cor=corDoPodio(res,{home:d.corA,away:d.corB})
   d.podioMat.color.set(cor)
   // placa na frente do pódio: CAMPEÃO (só existe depois do apito)
-  const W=512,H=128,tx=d.tela(W,H,c=>{c.fillStyle=TINTA;c.fillRect(0,0,W,H);d.texto(c,english()?'CHAMPIONS':'CAMPEÃO',W/2,H/2+4,92,W-40,OURO)})
-  const placa=new THREE.Mesh(d.geo(new THREE.PlaneGeometry(2.6,.65)),d.mat(new THREE.MeshBasicMaterial({map:tx,fog:true})));placa.position.set(0,.62,1.215);d.podio.add(placa);d.placaPodio=placa
+  // (🥅 decidida nos pênaltis: a placa ganha a linha "NOS PÊNALTIS!"; nas internacionais, o nome da taça — nunca a cobrança)
+  const txt=placaDoPodio(res,english()),duas=!!txt.linha
+  const W=512,H=duas?176:128,tx=d.tela(W,H,c=>{c.fillStyle=TINTA;c.fillRect(0,0,W,H);d.texto(c,txt.grande,W/2,duas?60:H/2+4,92,W-40,OURO);if(duas){c.fillStyle=OURO;c.fillRect(24,112,W-48,52);d.texto(c,txt.linha,W/2,139,40,W-64,TINTA)}})
+  const placa=new THREE.Mesh(d.geo(new THREE.PlaneGeometry(2.6,2.6*H/W)),d.mat(new THREE.MeshBasicMaterial({map:tx,fog:true})));placa.position.set(0,duas?.66:.62,1.215);d.podio.add(placa);d.placaPodio=placa
   // papel picado nas cores de quem ganhou (+ dourado e branco)
-  const cores=[cor,cor,OURO,'#FFFFFF',tintaSobre(cor)==='#FFFFFF'?cor:'#FFFFFF']
+  const cores=[cor,cor,...d.cara.papel,'#FFFFFF',tintaSobre(cor)==='#FFFFFF'?cor:'#FFFFFF']
   for(let i=0;i<d.papel.count;i++)d.papel.setColorAt(i,new THREE.Color(cores[i%cores.length]))
   if(d.papel.instanceColor)d.papel.instanceColor.needsUpdate=true
   const el=elencoDaFesta(res.campeao,d.mobile)
@@ -366,7 +399,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   }
   // 🏆 depois do apito
   const res=desfechoDaFinal(m)
-  if(res&&desfecho&&(res.vencedor!==desfecho.vencedor||res.usuario!==desfecho.usuario)){encerrar();onChange();return} // (outro desfecho = outra festa, do zero)
+  if(res&&desfecho&&(res.vencedor!==desfecho.vencedor||res.usuario!==desfecho.usuario||!!res.penaltis!==!!desfecho.penaltis)){encerrar();onChange();return} // (outro desfecho = outra festa, do zero)
   if(res&&!desfecho){desfecho=res;festaDesde=relogio}
   if(!res&&desfecho&&!m?.finished){desfecho=null;festaDesde=null}
   override=false
@@ -398,7 +431,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
    d.fogos.visible=q.fogos
    if(q.fogos){
     const vida=2.6,passo=1.15
-    const corF=[new THREE.Color(corDoPodio(desfecho,{home:d.corA,away:d.corB})).lerp(new THREE.Color('#ffffff'),.25).multiplyScalar(1.6),new THREE.Color(OURO).multiplyScalar(1.4),new THREE.Color('#E8503A').multiplyScalar(1.5),new THREE.Color(OURO).multiplyScalar(1.4),new THREE.Color('#9F6BFF').multiplyScalar(1.5)]
+    const corF=[new THREE.Color(corDoPodio(desfecho,{home:d.corA,away:d.corB})).lerp(new THREE.Color('#ffffff'),.25).multiplyScalar(1.6),new THREE.Color(OURO).multiplyScalar(1.4),new THREE.Color(d.cara.fogo).multiplyScalar(1.5),new THREE.Color(d.cara.metal).multiplyScalar(1.4),new THREE.Color(d.cara.forma==='copa'?'#9F6BFF':d.cara.papel[1]).multiplyScalar(1.5)]
     const tl=tf-FESTA_FINAL.fogos[0]
     for(let b=0;b<d.RAJ;b++){
      const ciclo=d.RAJ*passo,idade=((tl-b*passo)%ciclo+ciclo)%ciclo,rodada=Math.floor((tl-b*passo)/ciclo),viva=tl>=b*passo&&idade<vida
@@ -426,7 +459,7 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
   overrideField:()=>override,
   /** pede quadro enquanto há avião, fumaça, sinalizador ou festa em andamento */
   animating:()=>animando,
-  inspect:()=>({active:!!dia,key:diaKey,tipo:dia?.tipo,desfecho,override,animando,extraWalkers:dia?.chegando.length??0,podium:!!dia?.podio.visible,fireworks:!!dia?.fogos.visible,plane:!!dia?.aviao.visible,flares:dia?.sinal.count??0,banners:dia?.band.visible?dia.band.count:0}),
+  inspect:()=>({active:!!dia,key:diaKey,tipo:dia?.tipo,trophy:dia?.cara.forma,desfecho,override,animando,extraWalkers:dia?.chegando.length??0,podium:!!dia?.podio.visible,fireworks:!!dia?.fogos.visible,plane:!!dia?.aviao.visible,flares:dia?.sinal.count??0,banners:dia?.band.visible?dia.band.count:0}),
   dispose(){encerrar();root.removeFromParent()},
  }
  // 🧪 revisão local (só no `vite` de desenvolvimento): pular no tempo e mirar a câmera pra tirar as fotos

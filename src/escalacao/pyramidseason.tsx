@@ -7187,6 +7187,16 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, tie, pos, phase, colo
   const aWin = tie.win === 'a'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens, copaTemGente(tie)) : 0
+  // 🥅 04/11 (mapa 3D, só a conta do Diego): final decidida nos pênaltis → o mapa só fica sabendo de quem ganhou DEPOIS que a
+  // disputa terminou de aparecer aqui (o mesmo `pensDelay` que solta o "✅ é campeão"). Nunca a cobrança, nunca antes.
+  const [pensVistos, setPensVistos] = useState<string | null>(null)
+  const pensId = final && showDone && tie.pens && stadiumMatch ? stadiumMatch.id : null
+  useEffect(() => {
+    if (!pensId) return
+    const t = setTimeout(() => setPensVistos(pensId), Math.round(pensDelay * 1000) + 350)
+    return () => clearTimeout(t)
+  }, [pensId]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (stadiumMatch && pensVistos === stadiumMatch.id && tie.pens) stadiumMatch.penaltis = { vencedor: (aWin ? tie.a : tie.b) === homeT ? 'home' : 'away' }
   return (
     <div style={{ marginBottom: 12 }}>
       {/* 🛡️ NOME CRU no card (conserto do São Luiz FC, 21/08). Aqui ia
@@ -9121,7 +9131,7 @@ export function PyramidSeasonScreen() {
   // mascote do dono vai DENTRO dela (o mesmo teatro não aparece duas vezes). Enquanto a festa está na tela a Copa espera.
   const mascKeyFesta = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? meuSocFesta.mascoteKey : null
   const festaBaseC = `esc-festa2-carreira-${state.seed}-${state.seasonNo}`
-  type FestaC = { key: string; comp: CompId; nomeComp?: [string, string]; linha: string; artilheiro: DestaqueFesta | null; garcom: DestaqueFesta | null }
+  type FestaC = { key: string; comp: CompId; nomeComp?: [string, string]; linha: string; artilheiro: DestaqueFesta | null; garcom: DestaqueFesta | null; pens?: boolean }
   const festasC = useMemo<FestaC[]>(() => {
     if (state.careerOnline && state.onlineMode === 'online') return [] // (carreira em sala tem a festa da sala)
     const out: FestaC[] = []
@@ -9141,6 +9151,7 @@ export function PyramidSeasonScreen() {
         const t = copa.rounds[iFinal].ties.find(x => x.a.you || x.b.you)
         out.push({ key: 'copa', comp: 'copabr', nomeComp: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
           linha: t ? `${tr('final', 'final')}: ${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}` : '',
+          pens: !!t?.pens,
           artilheiro: copa.topScorer && copa.topScorer.goals > 0 ? { nome: copa.topScorer.name, time: copa.topScorer.teamName, n: copa.topScorer.goals } : null,
           garcom: copa.topAssist && copa.topAssist.assists > 0 ? { nome: copa.topAssist.name, time: copa.topAssist.teamName, n: copa.topAssist.assists } : null })
       }
@@ -9155,7 +9166,7 @@ export function PyramidSeasonScreen() {
           if (g.assist) { const k = `${g.assistId ?? g.assist}|${time}`, r = pas.get(k); if (r) r.n++; else pas.set(k, { nome: g.assist, time, n: 1 }) }
         }
         const top = (m: Map<string, DestaqueFesta>) => [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome))[0] ?? null
-        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: top(gols), garcom: top(pas) })
+        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: top(gols), garcom: top(pas), pens: !!t.pens })
       }
     }
     return out
@@ -11266,7 +11277,7 @@ export function PyramidSeasonScreen() {
           const nomeT = state.managers[state.youIdx]?.teamName ?? tr('Seu time', 'Your team')
           return <FestaCampeao key={festaAgoraC.key} comp={festaAgoraC.comp} nomeComp={festaAgoraC.nomeComp} nome={nomeT} crest={<Escudo nome={nomeT} size={160} />}
             mascote={mascKeyFesta ? MASCOTES[mascKeyFesta] : undefined} linha={festaAgoraC.linha} souCampeao onDone={fecharFestaC}
-            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} />
+            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} penaltis={presidentAvailable && !!festaAgoraC.pens} />
         })()}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}

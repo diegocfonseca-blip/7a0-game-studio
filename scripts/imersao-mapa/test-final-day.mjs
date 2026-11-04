@@ -1,6 +1,6 @@
 // 🏆 Dia de FINAL no mapa 3D: é final? quem é campeão? de quem é o pódio? nada antes do apito?
 import assert from 'node:assert/strict';
-import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL} from '../../src/escalacao/presidencia-complexo-final-regras.ts';
+import {tipoFinalDaPartida,ladoDoUsuario,desfechoDaFinal,corDoPodio,faixaDaFinal,faixaDaFachada,publicoExtraDaFinal,quadroDaFesta,elencoDaFesta,FESTA_FINAL,idPartidaInternacional,caraDaTaca,placaDoPodio} from '../../src/escalacao/presidencia-complexo-final-regras.ts';
 import {cityPopulation} from '../../src/escalacao/cidade3d/population.mjs';
 
 // 1) A final é a que a competição já identifica no id (pyramidseason → MyCopaMatch).
@@ -58,4 +58,30 @@ assert.equal(quadroDaFesta(30,true).taca,1);
 assert.equal(quadroDaFesta(1,true).podio,0);
 assert.deepEqual(elencoDaFesta(true,true),{podio:5,saindo:0});
 assert.deepEqual(elencoDaFesta(false,false),{podio:7,saindo:5});
-console.log(JSON.stringify({status:'PASS',finalFromCompetitionId:true,noSpoilerBeforeWhistle:true,drawNoParty:true,podiumOwner:true,populationCaps:true,partyFitsWindow:true}));
+// 10) 🌎 Finais internacionais (04/11): Libertadores, Champions e Mundial — só a FINAL, pelo id que a tela monta.
+const idI=(comp,final)=>idPartidaInternacional({seed:77,season:41,comp,roundKey:120,home:'Flamengo',away:'River Plate',final});
+assert.equal(idI('libertadores',false),'77:intl:41:libertadores:120:Flamengo:River Plate','id de sempre fora da final');
+assert.equal(tipoFinalDaPartida(idI('libertadores',true)),'libertadores');
+assert.equal(tipoFinalDaPartida(idI('champions',true)),'champions');
+assert.equal(tipoFinalDaPartida(idI('mundial',true)),'mundial');
+assert.equal(tipoFinalDaPartida(idI('libertadores',false)),null,'semifinal/grupos da Liberta não é final');
+assert.equal(faixaDaFachada('libertadores').topo,'LIBERTADORES');
+assert.equal(faixaDaFachada('mundial',true).topo,'CLUB WORLD CUP');
+assert.equal(caraDaTaca('champions').forma,'orelhuda');
+assert.equal(caraDaTaca('libertadores').forma,'liberta');
+assert.equal(caraDaTaca('mundial').forma,'mundial');
+assert.equal(caraDaTaca('final').forma,'copa');
+const intl={...base,context:{id:idI('libertadores',true),homeClubId:3}};
+assert.deepEqual(desfechoDaFinal(intl),{vencedor:'home',usuario:'home',campeao:true,tipo:'libertadores'});
+// 11) 🥅 Final nos pênaltis: sem o vencedor no contexto, nada (a tela ainda está mostrando a disputa); com ele, festa igual.
+const emp={...base,homeScore:1,awayScore:1};
+assert.equal(desfechoDaFinal(emp),null,'pênaltis ainda não mostrados: sem festa');
+assert.deepEqual(desfechoDaFinal({...emp,context:{...emp.context,penaltis:{vencedor:'home'}}}),{vencedor:'home',usuario:'home',campeao:true,tipo:'final',penaltis:true});
+assert.deepEqual(desfechoDaFinal({...emp,context:{...emp.context,penaltis:{vencedor:'away'}}}),{vencedor:'away',usuario:'home',campeao:false,tipo:'final',penaltis:true});
+assert.equal(desfechoDaFinal({...emp,finished:false,context:{...emp.context,penaltis:{vencedor:'home'}}}),null,'nunca antes do apito');
+assert.equal(desfechoDaFinal({...emp,context:{...emp.context,penaltis:{vencedor:'x'}}}),null);
+assert.equal(placaDoPodio({tipo:'final',penaltis:true}).linha,'NOS PÊNALTIS!');
+assert.equal(placaDoPodio({tipo:'final',penaltis:true},true).linha,'ON PENALTIES!');
+assert.equal(placaDoPodio({tipo:'libertadores',penaltis:true}).linha,'LIBERTADORES · NOS PÊNALTIS!');
+assert.equal(placaDoPodio({tipo:'final'}).linha,'');
+console.log(JSON.stringify({status:'PASS',internationalFinals:true,penaltyFinals:true,finalFromCompetitionId:true,noSpoilerBeforeWhistle:true,drawNoParty:true,podiumOwner:true,populationCaps:true,partyFitsWindow:true}));
