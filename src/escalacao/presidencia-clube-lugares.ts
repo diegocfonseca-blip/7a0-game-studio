@@ -27,7 +27,7 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
   sign([`LOJA DO CLUBE · ${clubName??''}`],14,.8,x-10.23,4.36,z,false,heading)
 
  }
- if(residence)sign(['SUA CASA'],8,1.2,HOME.x-7,1.4,HOME.z+24.16)
+ if(residence)sign(['SUA CASA'],8,1.2,HOME.house.x,1.4,HOME.z+HOME.depth/2+.16)
  if(arena){
   const a=ARENA
   box(cream,20,.16,20,a.x,.08,a.z)

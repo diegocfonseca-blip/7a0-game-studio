@@ -12,7 +12,10 @@ export const OBRAS_DA_CIDADE=['loja','estac','praca','chopp','estacao','hotel'] 
 export type ObraCidade=typeof OBRAS_DA_CIDADE[number]
 export type CanteiroObra={obra:ObraCidade;/** 🅿️ estacionamento: as etapas (1–4) que estão em obra nesta rodada */lotes?:number[]}
 export type HumorBoteco='festa'|'triste'|'normal'
-export type CidadeViva={canteiros:readonly CanteiroObra[];humor:HumorBoteco;carreata:boolean;/** cor do clube (ônibus, bandeirinhas, torcida) */cor?:string;cor2?:string}
+export type CidadeViva={canteiros:readonly CanteiroObra[];humor:HumorBoteco;carreata:boolean;/** cor do clube (ônibus, bandeirinhas, torcida) */cor?:string;cor2?:string
+ /** 🇧🇷 tradições do bairro (presidencia-bairro-tradicoes.ts): o dia do calendário da carreira (ms UTC), a hora do compromisso,
+  *  temporada/rodada (regra estável sem calendário) e o placar do último jogo JÁ APITADO (capa d'O MARTELO na banca) */
+ dia?:number;hora?:number;temporada?:number;rodada?:number;placar?:{gf:number;ga:number}}
 export const CIDADE_VIVA_NEUTRA:CidadeViva=Object.freeze({canteiros:[],humor:'normal',carreata:false})
 
 /** Carimbo da rodada da compra: temporada + rodadas já jogadas naquela hora. */
@@ -81,8 +84,11 @@ export function carreataAtiva(s:FonteTitulos,mgrId:number):boolean{
 }
 
 /** Junta as três regras para o mapa. `ultimoJogo` vem da tela da temporada, só depois do apito. */
-export function cidadeVivaDaCarreira(s:FonteTitulos,mgrId:number,stadium:StadiumSave|undefined,extra?:{ultimoJogo?:{gf:number;ga:number}|null;cor?:string;cor2?:string}):CidadeViva{
- const carreata=carreataAtiva(s,mgrId)
- return {canteiros:obrasEmCanteiro(stadium,s.seasonNo,s.round),humor:carreata?'festa':humorDoBoteco(extra?.ultimoJogo),carreata,
-  ...(extra?.cor?{cor:extra.cor}:{}),...(extra?.cor2?{cor2:extra.cor2}:{})}
+export function cidadeVivaDaCarreira(s:FonteTitulos,mgrId:number,stadium:StadiumSave|undefined,extra?:{ultimoJogo?:{gf:number;ga:number}|null;cor?:string;cor2?:string;dia?:number;hora?:number}):CidadeViva{
+ const carreata=carreataAtiva(s,mgrId),u=extra?.ultimoJogo,fin=(n:unknown):n is number=>typeof n==='number'&&Number.isFinite(n)
+ return {canteiros:obrasEmCanteiro(stadium,s.seasonNo,s.round),humor:carreata?'festa':humorDoBoteco(u),carreata,
+  ...(extra?.cor?{cor:extra.cor}:{}),...(extra?.cor2?{cor2:extra.cor2}:{}),
+  ...(fin(extra?.dia)?{dia:extra.dia}:{}),...(fin(extra?.hora)?{hora:extra.hora}:{}),
+  ...(fin(s.seasonNo)?{temporada:s.seasonNo}:{}),...(fin(s.round)?{rodada:s.round}:{}),
+  ...(u&&fin(u.gf)&&fin(u.ga)?{placar:{gf:u.gf,ga:u.ga}}:{})}
 }

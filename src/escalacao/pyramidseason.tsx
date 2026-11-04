@@ -73,7 +73,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -8176,6 +8176,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const [logado, setLogado] = useState<boolean | null>(null)
   const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d'>('quieto')
   const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
+  const bloqueado = useSalvarBloqueado() // 🔒 04/11: sem plano, carreira não salva
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!ativo) return
@@ -8188,9 +8189,10 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const logadoDev = import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-central-dev-logado') === '1' } catch { return false } })()
   const onClick = useCallback(async () => {
     const st = stRef.current
+    if (salvarBloqueado()) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
     try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     setFase('salvando')
-    let res: 'nuvem' | 'nuvem7' | 'aparelho' | undefined
+    let res: 'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | undefined
     try { res = await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
     const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
     // ☁️ 26/10: conta sem plano, 1º salvamento na nuvem → avisa do prazo de 7 dias (uma vez por aparelho)
@@ -8199,6 +8201,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
   }, [])
   if (!ativo) return undefined
+  if (bloqueado) return { estado: 'bloqueado', onClick } // 🔒 04/11: sem plano não salva — o botão vira cadeado e abre os planos
   if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined }
   if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
   if (soAparelho) return { estado: 'so_aparelho', onClick, onCraque: abreCraqueNuvem }
@@ -8303,6 +8306,8 @@ export function PyramidSeasonScreen() {
   const [saf2MigrarDepois, setSaf2MigrarDepois] = useState(false)
   const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
   const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
+  const salvarTravado = useSalvarBloqueado() // 🔒 04/11: sem plano a carreira não salva
+  const [planosSalvar, setPlanosSalvar] = useState(false)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentPending = usePresidentPreviewPending() // ⏳ 24/10: conta liberada ainda sendo conferida → espera em vez de piscar a maquete
@@ -10664,7 +10669,8 @@ export function PyramidSeasonScreen() {
       onPular={vaiProJogo} onIrJogo={mapaNoClube ? verJogoNoMapa : () => escolheAba('jogos')} onVoltar={() => escolheAba(jogoTabela ? 'central' : 'jogos')} onProximo={proximoAdv} />
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
-    return { barra: mapaNoClube ? null : barra, proxCard, selo }
+    // 🇧🇷 04/11: o dia (e a hora do jogo, quando é dia de jogo) vai pro mapa — feira de sábado/domingo de manhã, pelada de tarde
+    return { barra: mapaNoClube ? null : barra, proxCard, selo, hoje, hora: calFase === 'jogo' ? HORA_LIGA : calFase === 'copa' ? 21 : undefined }
   })()
   useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
@@ -10983,7 +10989,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
@@ -12771,6 +12777,19 @@ export function PyramidSeasonScreen() {
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
         ) : (
+          salvarTravado ? (<>
+          {/* 🔒 04/11 (Diego): sem plano a carreira não salva — o botão de salvar vem com cadeado e abre os planos; sair não guarda nada */}
+          <button onClick={() => setPlanosSalvar(true)} className="ll-cx-sair"
+            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            {tr('🔒 Salvar carreira', '🔒 Save career')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#3a3626', marginTop: 2 }}>{tr('Salvar é dos planos (a partir do Craque Salas). Assine e não perca nada.', 'Saving comes with the plans (from Craque Salas up). Subscribe and lose nothing.')}</span>
+          </button>
+          <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="ll-cx-sair"
+            style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '9px 13px', fontWeight: 900, fontSize: 13, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            {tr('🚪 Sair da carreira', '🚪 Exit career')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Sem plano, o que você jogou não fica salvo.', 'Without a plan, what you played is not saved.')}</span>
+          </button>
+          </>) : (
           <button
             onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }}
             className="ll-cx-sair"
@@ -12780,9 +12799,11 @@ export function PyramidSeasonScreen() {
               ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
+          )
         )}
         {/* ☁️ 19/10: sem plano, o "Sair e salvar" mostra os planos antes de sair (fechar a janela = sai pro menu, como sempre) */}
         {planosSair && <JanelaNuvemPlanos onClose={() => { setPlanosSair(false); dispatch({ type: 'GO_LOBBY' }) }} />}
+        {planosSalvar && <JanelaNuvemPlanos travado onClose={() => setPlanosSalvar(false)} />}
       </div>
     </div>
     </RitmoCampoProvider>

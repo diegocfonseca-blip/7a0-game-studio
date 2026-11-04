@@ -924,7 +924,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
     plant({x:p.x,z:p.z+8.6},4.6,false,true,.08)
   }
-  const cityRoads=new Set<string>()
+  const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
   for(const p of occupied)for(const [dx,dz] of [[29,0],[-29,0],[0,29],[0,-29]]){
     const a={x:p.x+dx/2-(dz?14.5:0),z:p.z+dz/2-(dx?14.5:0)}
     const b={x:a.x+(dz?29:0),z:a.z+(dx?29:0)}
@@ -932,7 +932,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     if(cityRoads.has(key))continue
     cityRoads.add(key)
     // A free midpoint alone can leave the ends inside a future building.
-    if([0,.25,.5,.75,1].every(t=>cityFree({x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t},5)))street('bairro-rua', [a,b],5.8,1.5)
+    if([0,.25,.5,.75,1].every(t=>cityFree({x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t},5))){street('bairro-rua', [a,b],5.8,1.5);ruasBairro.push([a,b])}
   }
 
   // Continue the residential fabric beyond both edges used by a tall mobile
@@ -1004,8 +1004,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const priority=(p:PontoComplexo)=>Math.min(Math.hypot((p.x+185)*1.4,p.z+335),Math.hypot(p.x,p.z-296),Math.hypot(p.x,p.z)*1.2)
   parks.sort((a,b)=>priority(a)-priority(b))
   const publicParks=parks.slice(0,72)
+  // ⚽ 04/11 (tradições do bairro): a praça pública mais perto do Boteco do Oswaldo vira o CAMPINHO DE TERRA — sem as árvores
+  // e o banco no meio (presidencia-bairro-tradicoes-3d.ts desenha a terra, as traves e a pelada por cima do gramado).
+  const campinho=pubBlocks[0]?[...publicParks].sort((a,b)=>Math.hypot(a.x-pubBlocks[0].x,a.z-pubBlocks[0].z)-Math.hypot(b.x-pubBlocks[0].x,b.z-pubBlocks[0].z))[0]:undefined
   for(const p of publicParks){
     box('parque-publico-gramado',grass,23,.10,23,p.x,-.10,p.z)
+    if(p!==campinho){
     // Entrances are drawn after the road network is complete: a missing street
     // must not leave a path ending abruptly in the grass.
     const seed=hash(p.x,p.z)
@@ -1013,6 +1017,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     box('parque-publico-banco',wood,2.2,.14,.52,p.x+4,.54,p.z+2.5)
     box('parque-publico-encosto',wood,2.2,.55,.10,p.x+4,.94,p.z+2.74)
     for(const dx of [-.8,.8])box('parque-publico-pe-banco',metal,.12,.49,.43,p.x+4+dx,.245,p.z+2.5)
+    }
     for(const [dx,dz] of [[29,0],[-29,0],[0,29],[0,-29]]){
       const a={x:p.x+dx/2-(dz?14.5:0),z:p.z+dz/2-(dx?14.5:0)}
       const b={x:a.x+(dz?29:0),z:a.z+(dx?29:0)},key=[a.x,a.z,b.x,b.z].join(':')
@@ -1145,7 +1150,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       // Same 16 cm surface as the pavement. Closed sides remain landscaped;
       // the connected arms share the centre and give the park real entrances.
       const end={x:p.x+dx*11.5,z:p.z+dz*11.5}
-      polygon('parque-publico-passeio',faixaTransporteComplexo([p,end],2.1),GROUND,paving)
+      // ⚽ 04/11: o campinho de terra não ganha a cruz de calçada por cima (a molecada joga no terrão inteiro)
+      if(p!==campinho)polygon('parque-publico-passeio',faixaTransporteComplexo([p,end],2.1),GROUND,paving)
       points.push(end)
     }
     parkEntrances.push({park:p,points})
@@ -1315,7 +1321,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const dealership=criarConcessionariaComplexo(root,onReady)
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
-  const ownerHome=club?.residence?criarResidenciaUsuario(root):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
+  const ownerHome=club?.residence?criarResidenciaUsuario(root,onReady):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
   const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena);solids.push(...clubPlaces.solids)
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
@@ -1323,7 +1329,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,botecos,establishments:entered,dispose(){
+  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,bairro:{quadras:occupied as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho},dispose(){
     botecos.forEach(pub=>pub.dispose())
     if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())

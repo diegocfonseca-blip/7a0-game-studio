@@ -41,7 +41,9 @@ export type EntradaCarreiraComplexo = {
   away?: { matchId: string; mgrId: number; day: DiaCarreiraComplexo }
   english?: boolean
   /** 🏙️ cidade viva: o último jogo JÁ APITADO do seu clube (sem spoiler) e a cor do clube. Rodada da obra e títulos saem do save. */
-  cidade?: { ultimoJogo?: { gf: number; ga: number } | null; cor?: string; cor2?: string }
+  cidade?: { ultimoJogo?: { gf: number; ga: number } | null; cor?: string; cor2?: string
+    /** 🇧🇷 tradições do bairro: o dia do calendário da carreira (ms UTC) e a hora do compromisso dele (16 liga · 21 Copa) */
+    dia?: number; hora?: number }
 }
 export type PropsComplexoCarreira = {
   stadium?: StadiumSave
@@ -49,6 +51,8 @@ export type PropsComplexoCarreira = {
   cityStadium?: StadiumSave
   clubName?: string
   presidency: PresidenciaCarteira | null
+  /** 🚗 03/11: a dupla de veículos escolhida em "Sua garagem" (vai pra garagem da casa no mapa) */
+  garage?: unknown
   match?: EstadoPartidaEstadio
   day?: DiaEstadio
   awayStadium?: StadiumSave
@@ -125,7 +129,7 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     cityStadium: structuredClone(stadium??{inv:{},ext:[]}),
     clubName:state.managers.find(m=>m.id===mgrId)?.teamName,
     ...(stadium === undefined ? {} : { stadium: structuredClone(stadium) }),
-    presidency: wallet, ...(match ? { match } : {}), ...(day ? { day } : {}),
+    presidency: wallet, garage: (state.careerPresidency as Record<number, { display?: unknown }> | undefined)?.[mgrId]?.display, ...(match ? { match } : {}), ...(day ? { day } : {}),
     ...(journey ? {journey} : {}),
     ...(input.arrivalTeams?{arrivalTeams:input.arrivalTeams}:{}),
     circulation: !!day && (stadium === undefined || estadioVisualValido(stadium)), qaPopulation: false, cidadeViva,
