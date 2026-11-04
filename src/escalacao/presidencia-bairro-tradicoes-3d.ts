@@ -14,10 +14,11 @@ import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import type {CidadeViva} from './presidencia-cidade-viva'
 import {lugaresDoBairro,mancheteDaBanca,vidaDoBairro,type LugaresBairro,type VidaBairro} from './presidencia-bairro-tradicoes'
 import {getLang} from './lang'
+import {criarDiaDoBairro,type VistaDiaBairro} from './presidencia-bairro-dia-3d'
 
 type P={x:number;z:number}
-export type BairroEntorno={quadras:readonly P[];ruas:readonly (readonly [P,P])[];campinho?:P}
-export type VistaTradicao='feira'|'banca'|'campinho'
+export type BairroEntorno={quadras:readonly P[];ruas:readonly (readonly [P,P])[];campinho?:P;praca?:P;casas?:readonly {x:number;z:number;w:number;d:number;h?:number;andares?:number}[]}
+export type VistaTradicao='feira'|'banca'|'campinho'|VistaDiaBairro
 type Civil=ReturnType<typeof createCivilian>
 type Pessoa={body:Civil;grupo:'feira'|'banca'|'pelada';semSombra:boolean;pose:(s:number)=>{x:number;z:number;heading:number;speed:number;distance:number}}
 
@@ -52,7 +53,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  const t=new THREE.Object3D(),cor=new THREE.Color()
  const oswaldo=input.botecos.find(p=>p.id==='oswaldo')?.root.position
  let lugares:LugaresBairro={}
- try{lugares=input.bairro?lugaresDoBairro({quadras:input.bairro.quadras,ruas:input.bairro.ruas,campinho:input.bairro.campinho,boteco:oswaldo?{x:oswaldo.x,z:oswaldo.z}:undefined,solidos:input.solids}):{}}catch{lugares={}}
+ try{lugares=input.bairro?lugaresDoBairro({quadras:input.bairro.quadras,ruas:input.bairro.ruas,campinho:input.bairro.campinho,praca:input.bairro.praca,casas:input.bairro.casas,boteco:oswaldo?{x:oswaldo.x,z:oswaldo.z}:undefined,solidos:input.solids}):{}}catch{lugares={}}
 
  // Peças paradas: cada grupo (feira, banca, campinho) junta suas caixas num InstancedMesh só, com a cor por instância.
  type Caixa={x:number;y:number;z:number;w:number;h:number;d:number;yaw:number;c:string;pitch?:number}
@@ -215,19 +216,31 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   }
  }
 
+ // 🌅☀️🌙🏟️ o dia inteiro do bairro (padaria, varal, praça, espetinho, dia de jogo…) — se quebrar, só ele some
+ let dia:ReturnType<typeof criarDiaDoBairro>|undefined
+ try{dia=criarDiaDoBairro(root,{lugares,boteco:oswaldo,onReady:input.onReady})}catch(e){console.warn('dia do bairro desligado',e)}
+ const diaSeguro=<A extends unknown[],R>(f:(d:NonNullable<typeof dia>,...a:A)=>R,fallback:R)=>(...a:A):R=>{if(!dia)return fallback;try{return f(dia,...a)}catch(e){console.warn('dia do bairro desligado',e);try{dia.dispose()}catch{/* nada */}dia=undefined;return fallback}}
+ const diaConfigure=diaSeguro((d,v:VidaBairro,o:Parameters<NonNullable<typeof dia>['configure']>[1])=>d.configure(v,o),undefined)
+ const diaUpdate=diaSeguro((d,s:number,c:THREE.Camera|undefined,h:number)=>d.update(s,c,h),undefined)
+ const diaVista=diaSeguro((d,k:VistaDiaBairro,a:number)=>d.vista(k,a),undefined)
+ const diaInspect=diaSeguro(d=>d.inspect(),null)
+
  // pessoas: posição, LOD e o mesmo "sem sombra nova" da cidade viva
  let vida:VidaBairro=vidaDoBairro(),enabled=false,mobile=false,cfgKey=''
  function configure(cidade:CidadeViva|undefined,journey:JornadaComplexo|undefined,opts:{mobile:boolean;enabled:boolean}){
   enabled=opts.enabled;mobile=opts.mobile
   const jogo=journey?.hosting&&journey.phase!=='idle'&&journey.kickoffTime?Number(journey.kickoffTime.slice(0,2)):undefined
-  const key=JSON.stringify([cidade?.dia,cidade?.hora,jogo,journey?.period,cidade?.temporada,cidade?.rodada,cidade?.placar,getLang()])
+  const emCasa=!!journey?.hosting&&journey.phase!=='idle'
+  const key=JSON.stringify([cidade?.dia,cidade?.hora,jogo,journey?.period,cidade?.temporada,cidade?.rodada,cidade?.placar,getLang(),emCasa,enabled,mobile,cidade?.cor,cidade?.cor2])
   if(key===cfgKey)return;cfgKey=key
-  vida=vidaDoBairro({dia:cidade?.dia,hora:jogo??cidade?.hora,luz:journey?.period,temporada:cidade?.temporada,rodada:cidade?.rodada})
+  vida=vidaDoBairro({dia:cidade?.dia,hora:jogo??cidade?.hora,luz:journey?.period,temporada:cidade?.temporada,rodada:cidade?.rodada,jogoEmCasa:emCasa})
+  diaConfigure(vida,{enabled,mobile,cor:cidade?.cor,cor2:cidade?.cor2})
   feira.visible=vida.feira
   ultimoCapa=cidade?.placar??null;desenhaCapa(ultimoCapa)
   if(letreiroLang!==getLang()){letreiroLang=getLang();desenhaLetreiro()}
  }
  function update(seconds:number,camera?:THREE.Camera,height=720){
+  diaUpdate(seconds,camera,height)
   const ativo={feira:enabled&&vida.feira,banca:true,pelada:enabled&&vida.pelada}
   if(bolaMesh&&lugares.campinho){bolaMesh.visible=ativo.pelada;if(ativo.pelada){const b=bolaEm(seconds,lugares.campinho);bolaMesh.position.set(b.x,CAMPO_Y+.13+Math.abs(Math.sin(seconds*3.1))*.32,b.z);bolaMesh.rotation.set(seconds*4,seconds*2.3,0)}}
   let moleques=0
@@ -244,14 +257,15 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  /** câmera de cada lugar (alvo e posição); `aspect` < .85 = celular em pé, afasta um pouco */
  function vista(kind:VistaTradicao,aspect:number):{target:[number,number,number];camera:[number,number,number]}|undefined{
   const k=aspect<.85?1.45:1
+  if(kind!=='feira'&&kind!=='banca'&&kind!=='campinho')return diaVista(kind,aspect)
   if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.38,1.3),o=q.at(-1.5-2.4*k,-4.2);return{target:[m.x,1,m.z],camera:[o.x,2.3+1.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
   if(kind==='banca'&&lugares.banca){const b=lugares.banca,fx=Math.sin(b.yaw),fz=Math.cos(b.yaw),sx=Math.cos(b.yaw),sz=-Math.sin(b.yaw),tx=b.x+fx*1.3+sx*.8,tz=b.z+fz*1.3+sz*.8;return{target:[tx,1.3,tz],camera:[tx+fx*6.6*k+sx*3*k,2.4+1.1*k,tz+fz*6.6*k+sz*3*k]}}
   if(kind==='campinho'&&lugares.campinho){const c=lugares.campinho;return{target:[c.x-1.5,.3,c.z],camera:[c.x+LX+9*k,4+5*k,c.z+5*k]}} // de trás do gol de chinelo, olhando o campinho todo
   return undefined
  }
  return{root,configure,update,vista,
-  inspect:()=>({vida,lugares,feira:feira.visible,pelada:!!bolaMesh?.visible,capa:capaKey?JSON.parse(capaKey)[0]:null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.grupo)}),
-  dispose(){pessoas.forEach(p=>p.body.dispose());root.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(x=>x.dispose())}}
+  inspect:()=>({vida,lugares,feira:feira.visible,pelada:!!bolaMesh?.visible,capa:capaKey?JSON.parse(capaKey)[0]:null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.grupo),dia:diaInspect()}),
+  dispose(){try{dia?.dispose()}catch{/* nada */}pessoas.forEach(p=>p.body.dispose());root.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(x=>x.dispose())}}
 }
 
 /** Casca à prova de erro: se alguma coisa aqui quebrar, o mapa segue sem a feira/banca/campinho. */

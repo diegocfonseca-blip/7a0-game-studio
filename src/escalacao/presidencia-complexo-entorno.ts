@@ -911,7 +911,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       if(variant<2&&hash(x-2,z)>.45){const awning=center(0,d/2+.9);box('bairro-marquesa',roof,3.4,.12,1.8,awning.x,2.65,awning.z,angle)}
       const mailbox=center(w*.38,d/2+.12);box('bairro-caixa-correio',metal,.35,.25,.15,mailbox.x,1.15,mailbox.z,angle)
     }
+    return {w,d,h,floors}
   }
+  const casasBairro:{x:number;z:number;w:number;d:number;h:number;andares:number}[]=[] // 🧺 04/11: as casas (varal, cadeira na calçada, padaria)
   const blocks:PontoComplexo[]=[]
   for(let z=-300;z<=290;z+=29)for(let x=-345;x<=345;x+=29){
     const p={x,z}
@@ -926,7 +928,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     box('bairro-quarteirao',paving,23,.16,23,p.x,.08,p.z)
     for(const side of [-1,1]){
       const x=p.x+side*5.6,z=p.z-2,choice=hash(x,z)
-      const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0)
+      const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else{const r=residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0);casasBairro.push({x,z,w:r.w,d:r.d,h:r.h,andares:r.floors})}
     }
     plant({x:p.x,z:p.z+8.6},4.6,false,true,.08)
   }
@@ -1012,7 +1014,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const publicParks=parks.slice(0,72)
   // ⚽ 04/11 (tradições do bairro): a praça pública mais perto do Boteco do Oswaldo vira o CAMPINHO DE TERRA — sem as árvores
   // e o banco no meio (presidencia-bairro-tradicoes-3d.ts desenha a terra, as traves e a pelada por cima do gramado).
-  const campinho=pubBlocks[0]?[...publicParks].sort((a,b)=>Math.hypot(a.x-pubBlocks[0].x,a.z-pubBlocks[0].z)-Math.hypot(b.x-pubBlocks[0].x,b.z-pubBlocks[0].z))[0]:undefined
+  const parquesPerto=pubBlocks[0]?[...publicParks].sort((a,b)=>Math.hypot(a.x-pubBlocks[0].x,a.z-pubBlocks[0].z)-Math.hypot(b.x-pubBlocks[0].x,b.z-pubBlocks[0].z)):[]
+  const campinho=parquesPerto[0],pracaBairro=parquesPerto[1] // 👴 04/11: a 2ª praça mais perto do boteco é a do dominó e dos carrinhos
   for(const p of publicParks){
     box('parque-publico-gramado',grass,23,.10,23,p.x,-.10,p.z)
     if(p!==campinho){
@@ -1340,7 +1343,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,bairro:{quadras:occupied as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho},dispose(){
+  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,bairro:{quadras:occupied as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
     botecos.forEach(pub=>pub.dispose())
     if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
