@@ -2781,8 +2781,8 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
     : youPos >= teams.length - 3 && DOWN_OF[div] ? { bg: '#B23B2E', fg: '#fff', txt: tr(`📉 Queda pra Série ${DOWN_OF[div]}… ano que vem tem volta.`, `📉 Down to Série ${DOWN_OF[div]}… next year you come back.`) }
     : null
   return (
-    <div style={{ ...box(mine ? '#FFFBEB' : '#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+    <div className="ll-division-table" style={{ ...box(mine ? '#FFFBEB' : '#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <div className="ll-division-table-heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>{DIV_LABEL[div]}{mine ? tr(' · você', ' · you') : ''}</p><ZoneLegend />
       </div>
       {final && <style>{'@keyframes divUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes divDown{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}'}</style>}
@@ -2835,9 +2835,9 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
 export function PyramidTables({ tables, order, colors, myDiv, final, safTeam, safCol }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null; final?: boolean; safTeam?: string; safCol?: FCol }) {
   const cols = colors ?? {}
   // a artilharia saiu daqui (foi pra aba Rank) — a aba Tabelas fica só com as 4 tabelas.
-  // 🖥️ no PC as 4 tabelas ficam 2×2 em vez de empilhadas (a classe só tem CSS
-  // acima de 1024px — no celular ela é uma div sem estilo nenhum, nada muda)
-  return <div className="desk-grid2">{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</div>
+  // The match sidebar is narrower than the desktop viewport. Fit one or two
+  // tables to the space actually available, keeping the original division order.
+  return <div className="desk-grid2 ll-pyramid-tables">{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</div>
 }
 // caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
 function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
