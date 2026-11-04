@@ -12093,3 +12093,7 @@ desligada), um aviso vermelho com o caminho no Chrome. Pedir print dessa linha p
   hardware desligada no Chrome, ou Windows sem o driver de vídeo instalado, ou acesso por área de trabalho remota). Não é o jogo:
   qualquer 3D roda a ~2 q/s assim. Caminho passado pra ele: chrome://settings/system → ligar aceleração → reabrir; conferir em chrome://gpu;
   se continuar "Basic Render", instalar/atualizar o driver de vídeo (Windows Update / Gerenciador de Dispositivos › Adaptadores de vídeo).
+- 04/11 (prints do PC com placa ligada, *"melhorou muito!"*): campo do MAPA igualado ao da aba Jogos — bola com GOMOS (sprite virado pra
+  câmera, mesmo desenho do campinho; antes era esferinha que virava ponto branco), jogadores e bola DESLIZAM entre as atualizações (antes
+  andavam em degrau = "bola travando"), e nos DOIS campos o nome só aparece em quem ENCOSTA na bola (+ autor do gol na festa).
+  As placas de patrocinador já existiam nos dois.

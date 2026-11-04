@@ -17,7 +17,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const shadowTexture=new T.CanvasTexture(shadowCanvas),shadowMaterial=new T.MeshBasicMaterial({map:shadowTexture,transparent:true,depthWrite:false,toneMapped:false})
  const shadows=new T.InstancedMesh(circle,shadowMaterial,23),shadowPose=new T.Object3D();shadows.name='sombras-marcadores2d';shadows.frustumCulled=false;shadows.count=0;shadows.instanceMatrix.setUsage(T.DynamicDrawUsage);root.add(shadows)
  type Token={root:T.Group;icon:T.Sprite;label?:T.Sprite;ring:T.Mesh;texture:T.CanvasTexture;labelTexture?:T.CanvasTexture;key:string;portrait:boolean;owned:boolean}
- const tokens=new Map<string,Token>(),direction=new T.Vector3(),relative=new T.Vector3(),projected=new T.Vector3(),rollAxis=new T.Vector3()
+ const tokens=new Map<string,Token>(),direction=new T.Vector3(),relative=new T.Vector3(),projected=new T.Vector3()
  const texture=(canvas:HTMLCanvasElement)=>{const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.minFilter=T.LinearMipmapLinearFilter;return map}
  const drop=(token:Token)=>{token.icon.material.dispose();token.label?.material.dispose();token.texture.dispose();token.labelTexture?.dispose();token.root.removeFromParent()}
  function marker(key:string,art:MarcadorCampo2D,x:number,z:number,radius:number){
@@ -36,17 +36,19 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    }
    tokens.set(key,token)
   }
-  token.root.position.set(x,0,z);token.owned=art.owned;token.ring.visible=art.owned
+  if(token.key===signature&&token.root.parent)desliza(token.root,x,0,z);else token.root.position.set(x,0,z);token.owned=art.owned;token.ring.visible=art.owned
   token.icon.scale.set(2*radius,2*radius,1);token.ring.scale.setScalar(radius)
   if(token.label&&token.labelTexture){const image=token.labelTexture.image as HTMLCanvasElement;token.label.scale.set(radius*.94*image.width/image.height,radius*.94,1)}
   return token
  }
- const ballCanvas=document.createElement('canvas');ballCanvas.width=256;ballCanvas.height=128
- const bg=ballCanvas.getContext('2d')!;bg.fillStyle='#fffaf0';bg.fillRect(0,0,256,128)
- for(const row of [0,1,2])for(let col=0;col<4;col++){
-  const x=col*64+(row%2?32:0),y=8+row*55;bg.beginPath();for(let i=0;i<5;i++){const a=-Math.PI/2+i*Math.PI*2/5,px=x+Math.cos(a)*11,py=y+Math.sin(a)*11;i?bg.lineTo(px,py):bg.moveTo(px,py)}bg.closePath();bg.fillStyle='#151515';bg.fill();bg.strokeStyle='#b0b0a8';bg.lineWidth=.7;bg.stroke()
- }
- const ballTexture=texture(ballCanvas),ballGeometry=new T.SphereGeometry(.65,20,14),ballMaterial=new T.MeshBasicMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false}),ball=new T.Mesh(ballGeometry,ballMaterial);ball.renderOrder=15
+ // ⚽ 04/11 (Diego: *"bola com gomos também não tá aparecendo no campo da aba mapa"*): era uma esferinha com textura miúda que de
+ // longe virava um ponto branco. Agora é a MESMA bola do campinho da aba Jogos (branca, gomos pretos, contorno), desenhada de frente
+ // pra câmera e no mesmo tamanho em relação aos bonecos; os gomos giram conforme ela rola.
+ const ballCanvas=document.createElement('canvas');ballCanvas.width=ballCanvas.height=128
+ {const g=ballCanvas.getContext('2d')!,c=64,r=56;g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.fillStyle='#ffffff';g.fill();g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();g.fillStyle='#151515'
+  for(let k=0;k<4;k++){const a=k*1.75,rr=k?r*.95:0,gx=c+Math.cos(a)*rr,gy=c+Math.sin(a)*rr,g5=r*(k?.36:.42);g.beginPath();for(let v=0;v<5;v++){const aa=a+v*1.2566;v?g.lineTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5):g.moveTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5)}g.closePath();g.fill()}
+  g.restore();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.lineWidth=7;g.strokeStyle='#111';g.stroke()}
+ const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=15;ball.scale.set(1.45,1.45,1)
  ball.name='bola2d-no-mapa';root.add(ball);ball.visible=false
  const ballShadow=new T.Mesh(circle,shadowMaterial);ballShadow.name='sombra-bola2d';ballShadow.rotation.x=-Math.PI/2;ballShadow.position.y=.03;root.add(ballShadow);ballShadow.visible=false
  let id='',revision=-1,viewportVisible=true,disposed=false,lastBall:{x:number;z:number}|undefined,lastMinute=0,labels=new Set<string>(),fontRevision=0
@@ -55,7 +57,13 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const consumer={},off=observarSuperficieCampo2D(changed=>{if(changed===id&&viewportVisible&&!disposed)onReady()})
  void document.fonts?.ready.then(()=>{if(!disposed){fontRevision++;for(const token of tokens.values())token.key='';onReady()}})
  const hide=()=>{ball.visible=ballShadow.visible=false;shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
+ // 🧈 04/11 (Diego: *"bola travando"*): o campinho manda as posições ~30 vezes por segundo e o mapa desenha a 60 — sem nada no meio,
+ // jogador e bola andavam em degrauzinho. Agora cada um DESLIZA até a posição nova (fração por quadro presa no tempo real);
+ // pulo grande (gol, reposição, começo) vai direto.
+ let suave=1,ultimoQuadro=0
+ const desliza=(o:T.Object3D,x:number,y:number,z:number)=>{const dx=x-o.position.x,dz=z-o.position.z;if(suave>=1||dx*dx+dz*dz>64)o.position.set(x,y,z);else o.position.set(o.position.x+dx*suave,o.position.y+(y-o.position.y)*suave,o.position.z+dz*suave)}
  const update=(state:EstadoPartidaEstadio|undefined,_now:number,camera?:T.PerspectiveCamera)=>{
+  {const agora=performance.now(),dt=ultimoQuadro?Math.min(.25,(agora-ultimoQuadro)/1000):1;ultimoQuadro=agora;suave=dt>=.25?1:1-Math.exp(-dt*22)}
   if(disposed)return
   const next=state?.context.id??''
   if(id!==next){if(id)pedirSuperficieCampo2D(id,consumer,0);id=next;revision=-1;lastBall=undefined;labels.clear();hide();frame={players:0,ball:{x:0,y:.11,z:0}};subjects=[]}
@@ -74,7 +82,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    if(token.label){
     token.label.position.copy(token.icon.position)
     const distance=Math.hypot(p.x-source.ball.x,p.z-source.ball.z)
-    if(camera&&!distant&&(token.owned||token.portrait||distance<18)){
+    if(camera&&!distant&&token.owned){ // 🏷️ 04/11: nome só de quem ENCOSTA na bola (igual no campinho da aba Jogos)
      projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position)
      const depth=relative.dot(direction),hh=token.label.scale.y/(2*depth*tan),hw=token.label.scale.x/(2*depth*tan*camera.aspect)
      if(depth>0&&projected.z>-1&&projected.z<1)candidates.push({key:p.key,x:projected.x,y:projected.y-3.1*hh,halfWidth:hw,halfHeight:hh,priority:(token.owned?-100:token.portrait?-25:0)+distance})
@@ -93,8 +101,8 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    if(impact){const key=id+':'+impact.sign+':'+impact.time;if(net?.key!==key)net={key,y:T.MathUtils.clamp(.65+height,.3,2.2),z:T.MathUtils.clamp(source.ball.z,-3.5,3.5)}}else net=undefined
    atualizarRedesGol3D(nativeField,{time:impact?.age??0,ball:{netImpact:impact&&net?{sign:impact.sign,time:0,y:net.y,z:net.z,strength:.7}:undefined}})
   }
-  ball.visible=ballShadow.visible=true;ball.position.set(source.ball.x,.65+height,source.ball.z);ballShadow.position.set(source.ball.x,.03,source.ball.z);ballShadow.scale.setScalar(1.8+Math.min(2,height*.15))
-  if(lastBall&&source.minute>=lastMinute){const dx=source.ball.x-lastBall.x,dz=source.ball.z-lastBall.z,distance=Math.hypot(dx,dz);if(distance>.0001&&distance<8){rollAxis.set(dz,0,-dx).normalize();ball.rotateOnWorldAxis(rollAxis,distance/.65)}}
+  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);ballShadow.scale.setScalar(1.8+Math.min(2,height*.15))
+  if(lastBall&&source.minute>=lastMinute){const dx=source.ball.x-lastBall.x,dz=source.ball.z-lastBall.z,distance=Math.hypot(dx,dz);if(distance>.0001&&distance<8){ballMaterial.rotation+=distance/.7*(dx+dz>=0?1:-1)}}
   lastBall={x:source.ball.x,z:source.ball.z};lastMinute=source.minute
   subjects=source.players.map(p=>({key:p.key,name:p.name,side:p.side,keeper:p.keeper,mx:p.x,mz:p.z,visible:true}))
   frame={matchId:id,players:source.players.length,ball:{...source.ball},time:source.minute,phase:state.finished?'fim':'dominio',replay:false,official:undefined}

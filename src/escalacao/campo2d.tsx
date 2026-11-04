@@ -577,21 +577,18 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       else { const kb = Math.min(1, dt / (jogo.bola.voo ? 35 : 75)); bolaVis.x += (alvoX - bolaVis.x) * kb; bolaVis.y += (alvoY - bolaVis.y) * kb }
       // 🏷️ no celular (campo em pé) só aparece o NOME de quem está no lance: quem tem a bola, quem chega pra tomar e quem fez o gol
       // (antes eram 22 etiquetas e, num bolo de 3, ninguém lia nada). No PC, deitado, cabe todo mundo como sempre.
-      let comNome: Set<Atleta> | null = null
-      if (!deitado) {
-        comNome = new Set()
-        const perto = (lado: number | null, max: number) => { let m: Atleta | null = null, md = max; for (const p of jogo.atl) { if (lado != null && p.lado !== lado) continue; const q = pos.get(p)!, d = Math.hypot(q.x - bolaVis.x, q.y - bolaVis.y); if (d < md) { md = d; m = p } } return m }
-        if (dono) { comNome.add(dono); const r = perto(1 - dono.lado, 7); if (r) comNome.add(r) }
-        else { const r = perto(null, 6); if (r) comNome.add(r) }
-        if (jogo.festa) for (const p of jogo.atl) if (p.nome === jogo.festa.autor) comNome.add(p)
-      }
+      // 🏷️ NOME SÓ DE QUEM ENCOSTA NA BOLA (04/11, Diego: *"deixar o nome do jogador aparecer apenas quando encosta na bola"*), no
+      // celular e no PC, igual ao campo do mapa — mais quem fez o gol, durante a festa. O resto fica só com o número/rosto.
+      const comNome = new Set<Atleta>()
+      if (jogo.bola.dono) comNome.add(jogo.bola.dono)
+      if (jogo.festa) for (const p of jogo.atl) if (p.nome === jogo.festa.autor) comNome.add(p)
       // 🧍 os 22 (de trás pra frente na tela)
       const ordem = [...jogo.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
       for (const p of ordem) {
         const q = pos.get(p)!, [X, Y] = tr(q.x, q.y)
         const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
         let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
-        desenharMarcadorCampo2D(cx,X,Y,R,{name:!comNome||comNome.has(p)?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
+        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:p===jogo.bola.dono,step:correndo?Math.sin(jogo.t*14+p.bx):0})
       }
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
       {
