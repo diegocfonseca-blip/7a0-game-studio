@@ -1,3 +1,9 @@
+## 🏆📋 06/11 — Lobby: faixa verde duplicada sai na liga + Liga Draft rolando aparece na lista (branch; esperando "publique")
+- Faixa "⏳ Você tem uma partida em andamento" some quando a sala é uma liga que já está em "🏆 Suas ligas" (o VOLTAR mora lá).
+  Sala rápida continua com a faixa de sempre.
+- Liga Draft ROLANDO aparece em Salas abertas com selo roxo "📋 LIGA DRAFT" (antes ficava escondida da lista; mesma regra da liga:
+  só rolando, ninguém de fora entra).
+
 ## ⏩ 05/11 — Velocidade do Campo 2D (publicado à noite, a pedido do Diego)
 - Salas online (todas) = 3× · carreira e Partida Rápida offline = começa 2× e LEMBRA a última marcha do Manual (vale no auto) ·
   carreira online = 2× × marcha do dono · ⚡ 3× virou opção do Manual em todo modo.

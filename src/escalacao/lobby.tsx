@@ -2258,10 +2258,12 @@ export function EscLobby() {
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null; gdraft?: string | null }
     // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
-    const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).filter(r => r.gdraft !== 'true').map(r => ({
+    // 📋 06/11 (Diego): a Liga Draft ROLANDO aparece na lista, com selo próprio (*"quando já estiver rolando, deveria aparecer… com selo Liga Draft"*).
+    // Só rolando: o filtro de baixo trata ela igual liga (`ligaRolando`); fora de liga, some como antes.
+    const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
       game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos', 'world'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: ['true', 'selecao', 'decada', 'selecao_decada'].includes(r.gclubes ?? '') || undefined, pacSelecao: (r.gclubes ?? '').startsWith('selecao') || undefined, pacDecada: (r.gclubes ?? '').endsWith('decada') || undefined, // 🏳️🕰️ 01/11: o ls_clubes diz o tipo do pacote
-       pregaoAberto: r.gpregao === 'true' || undefined, envUnico: r.gpregao === 'unico' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'euro' ? { mundoNaLiga: true, euroNaLiga: 24 } : r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as unknown as GS,
+       ligaDraft: r.gdraft === 'true' || undefined, pregaoAberto: r.gpregao === 'true' || undefined, envUnico: r.gpregao === 'unico' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'euro' ? { mundoNaLiga: true, euroNaLiga: 24 } : r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as unknown as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -2362,6 +2364,7 @@ export function EscLobby() {
         if (isCareer(r) || isBafo(r) || isMundo(r)) return false
         // 🏆 liga: SÓ com a partida rolando. ⚡ rápida: a regra de sempre.
         if (ehLigaRow(r)) return ligaRolando(r)
+        if ((r.game_state as GS & { ligaDraft?: boolean })?.ligaDraft) return false // 📋 draft que não é liga: nunca na lista
         return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
       })
       // 🔴 ORDEM (05/10, Diego): sala ABERTA (esperando gente) sempre em cima — quem acabou de abrir
@@ -3413,7 +3416,8 @@ export function EscLobby() {
       </div>
 
       {/* partida em andamento: pergunta se quer voltar ou sair */}
-      {resumeRoom && (
+      {/* 🏆 06/11 (Diego): se a partida é de uma LIGA que já está em "🏆 Suas ligas", a faixa verde some — o VOLTAR mora no card da liga */}
+      {resumeRoom && !(ligaOn && myLigas.some(l => l.id === resumeRoom.id)) && (
         <div className="rounded-2xl border-[3px] border-black p-3 space-y-2.5" style={{ background: GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
           <p className="font-black text-white text-sm leading-tight" style={OSWALD}>{tr('⏳ Você tem uma partida em andamento', '⏳ You have a match in progress')}<br /><span className="opacity-80 text-xs">{tr('Sala', 'Room')} {resumeRoom.code}</span></p>
           <div className="flex gap-2">
@@ -4592,7 +4596,9 @@ export function EscLobby() {
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
                     )}
-                    {ligaRoom && (
+                    {ligaRoom && (r.game_state as GS & { ligaDraft?: boolean })?.ligaDraft ? (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Liga Draft rolando: entra só quem é da liga', 'Draft League in progress: only its members can join')}>{tr('📋 LIGA DRAFT', '📋 DRAFT LEAGUE')}</span>
+                    ) : ligaRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Liga: a sala fica de pé, com dia marcado e sala de troféus', 'League: the room stays up, with a set day and a trophy room')}>{tr('🏆 LIGA', '🏆 LEAGUE')}</span>
                     )}
                     {/* 🌍 a sala de Copa é OUTRA COISA (seleções, sem leilão): quem
