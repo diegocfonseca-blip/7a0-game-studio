@@ -1,6 +1,7 @@
 ## 🎬 05/11 — Vídeos de LANÇAMENTO prontos (NÃO postar antes de liberar)
 - 📋 Liga Draft: `node scripts/video-liga-draft-reels.mjs` → `scripts/posts/liga-draft-reels.mp4` (1080×1920, ~38 s). Postar só quando `MINHA_LIGA_DRAFT_GERAL = true`.
 - 📺 Campo 2D: `node scripts/video-campo2d-reels.mjs` → `scripts/posts/campo2d-reels.mp4` (~37 s). Postar só quando o 2D for liberado (hoje `CAMPO2D_TESTERS`). Diz: na sala quem cria escolhe 📊/📺 e quem entra assiste de graça; carreira/partida rápida do ⭐ Craque Salas pra cima.
+- 🖼️ Artes (05/11): `node scripts/post-lancamento-draft-2d.mjs` → `scripts/posts/{liga-draft,campo2d}-{feed,stories}.png` · zap: `scripts/avisos/2026-11-05-liga-draft.json` e `2026-11-05-campo2d.json` (aviso-comunidade.mjs). Mesma regra: só no dia de liberar.
 - Imagens reais usadas: `scripts/posts/img/` (draft-*.png da bancada/mockup aprovado · campo2d-*.png quadros do campinho).
 - 🔒 05/11: jogador que chega num bot fica lá 3 temporadas (`botPodeSoltar`, trava `testa-liga-draft-bots.mts`).
 

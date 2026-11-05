@@ -1,0 +1,20 @@
+{
+  "data": "Chegou finalmente",
+  "titulo": "📺 Campo 2D",
+  "destaque": {
+    "passos": [
+      { "emoji": "⚽", "titulo": "Jogo inteiro", "sub": "no campinho" },
+      { "emoji": "🎙️", "titulo": "Narração", "sub": "lance a lance" },
+      { "emoji": "🎽", "titulo": "Sua formação", "sub": "manda em campo" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "O **jogo inteiro rolando no campinho**: passe, drible, chute, defesa e o **GOOOL**, com a **narração** de cada lance." },
+    { "tag": "novidade", "texto": "A **sua formação manda**: cada jogador na vaga que você escalou, e as lendas com as **jogadas de verdade** delas." },
+    { "tag": "novidade", "texto": "Serve pra **tudo**: liga, copas, Libertadores, Champions, **Copa do Mundo** e regionais." },
+    { "tag": "regra", "texto": "Na **sala online**, quem cria escolhe 📊 Placar ou 📺 Campo 2D — **quem entra assiste de graça**. Na carreira e na partida rápida, é do **⭐ Craque Salas pra cima**." }
+  ],
+  "rodape": "Já tá valendo!",
+  "rodapeSub": "Crie a sala → Jogo → 📺 Campo 2D.",
+  "saida": "scripts/posts/aviso-2026-11-05-campo2d.png"
+}
