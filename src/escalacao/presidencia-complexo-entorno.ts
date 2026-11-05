@@ -1429,7 +1429,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // Sponsor scenery has its own lot and resources; it never consumes a club
   // purchase or replaces an eventual building in the stadium's progression.
   const dealership=criarConcessionariaComplexo(root,onReady)
-  const shopping=criarShoppingClube(root) // 🛍️ 05/11: colado na Vadico
+  const shopping=criarShoppingClube(root,onReady) // 🛍️ 05/11: de frente pro estádio, depois da avenida
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
   const ownerHome=club?.residence?criarResidenciaUsuario(root,onReady):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
