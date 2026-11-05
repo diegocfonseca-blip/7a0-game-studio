@@ -12353,3 +12353,14 @@ Não retomar sem ele pedir.
   chafariz. A **Vadico virou prédio SEPARADO** do lado (x 216–258), com letreiro branco aceso e pátio de carros. A Vadico velha saiu
   do mapa (fica escondida só pelos dados da entrega de carro); vista/toque/compra de carros apontam pra nova. Sem rua de acesso
   (*"2 não"*). Clientes decorativos da Vadico velha desligados. ⏳ Gente com sacolinha no Shopping/Vadico nova, se ele pedir.
+
+## 05/11 — 📋 Liga Draft: estratégia pra quem NÃO tem plano (aprovada: *"Perfeito, pode fazer assim"*)
+- Grátis NÃO cria (já era: criar Minhas Ligas = qualquer plano, `canLiga`/`ehPagante`). Grátis entra por convite e joga TUDO
+  dentro da liga (nada trava no meio — a liga é de quem pagou).
+- FEITO (no branch, esperando publicar): **1 Liga Draft por vez pro grátis**. Tentou entrar numa 2ª → aviso "📋 Uma Liga Draft por
+  vez" com ✅ Sim, sair e entrar (apaga só a vaga dele na outra, o mesmo "sair" de sempre) · ✋ Não, ficar · ⭐ planos. Trava no funil
+  `enterRoom` (lobby.tsx, `trocaDraft`); só com os direitos já lidos (na dúvida entra) e só pra liga nova. Foto:
+  `scripts/mockups/liga-draft-uma-por-vez.png`.
+- ⏳ Diego pediu o texto "pode criar ILIMITADO" no botão dos planos, mas hoje existe teto de 5 ligas por pessoa (`MAX_LIGAS = 5`).
+  O texto ficou "joga nas duas e cria as suas ligas" até ele decidir se tira o teto pra quem paga.
+- ⏳ Lançar pra todos = `MINHA_LIGA_DRAFT_GERAL = true` (sport.ts) — só quando ele mandar.

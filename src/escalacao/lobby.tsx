@@ -970,6 +970,9 @@ export function EscLobby() {
   const regionalId = (m: string): CopaRegionalId | null => { const id = m.startsWith('liga_') ? m.slice(5) : ''; return ehCopaRegional(id) ? id : null }
   const regionalTravadas = (['riosp', 'sulminas', 'nordeste'] as const).filter(id => clubesDaCopa(id).n < 2).map(id => `liga_${id}` as const)
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
+  // 📋 05/11 (Diego): quem NÃO tem plano joga em UMA Liga Draft por vez. Tentou entrar numa 2ª → aviso pedindo pra SAIR da
+  // primeira (sim/não). Quem tem plano joga em quantas quiser. `trocaDraft` guarda pra onde ele queria ir e de qual liga sairia.
+  const [trocaDraft, setTrocaDraft] = useState<{ alvo: RoomInfo; pw?: string; sair: { id: string; nome: string } } | null>(null)
   // 🏆 SELETOR "Aberta × Liga Fechada" — DESENHO RECUSADO, NÃO RELIGAR.
   // ⚠️ Recado pras próximas sessões (e pra mim mesmo, que errei nisso em 22/08):
   // isto NÃO é uma feature esquecida esperando ser ligada. É o RESTO do desenho
@@ -2703,6 +2706,19 @@ export function EscLobby() {
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
   async function enterRoom(rd: RoomInfo, pw?: string) {
     if (!user) return
+    // 📋 1 LIGA DRAFT POR VEZ PRA QUEM NÃO TEM PLANO (05/11). Só vale com os direitos JÁ lidos do banco (na dúvida, deixa entrar)
+    // e só pra liga NOVA: quem já tem vaga nesta liga volta normal. A liga da qual ele sairia é uma em que ele é CONVIDADO
+    // (grátis não cria liga), e sair é o mesmo "sair" de sempre do convidado: apaga só a vaga dele em `room_players`.
+    if (rd.game_state?.mode === 'liga' && (rd.game_state as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && direitosLiga != null && !canLiga) {
+      const { data: minhas } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
+      const ids = [...new Set(((minhas ?? []) as { room_id: string }[]).map(r => r.room_id))]
+      if (!ids.includes(rd.id) && ids.length) {
+        const { data: outras } = await supabase.from('game_rooms').select('id, code, host_id, liga_dono, nome:game_state->>roomName, draft:game_state->>minhaLigaDraft, modo:game_state->>mode').in('id', ids)
+        const outra = ((outras ?? []) as { id: string; code: string; host_id: string; liga_dono?: string | null; nome: string | null; draft: string | null; modo: string | null }[])
+          .find(o => o.id !== rd.id && o.modo === 'liga' && o.draft === 'true' && (o.liga_dono ?? o.host_id) !== user.id)
+        if (outra) { setLoading(false); setTrocaDraft({ alvo: rd, pw, sair: { id: outra.id, nome: outra.nome || outra.code } }); return }
+      }
+    }
     if (rd.game_state?.__game !== tagAtual()) { setRoomError(tr('Essa sala é de outro jogo.', 'That room belongs to another game.')); setLoading(false); return }
     // carreira online em teste: só os e-mails liberados entram
     if ((rd.game_state?.mode === 'carreira' || (rd.game_state as GS & { careerOnline?: boolean })?.careerOnline) && !canCareer) {
@@ -3355,6 +3371,36 @@ export function EscLobby() {
               className="flex-1 rounded-xl border-2 border-black font-black text-sm py-2.5 active:translate-y-0.5" style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
               {tr('🚪 Sair da sala', '🚪 Leave the room')}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 📋 05/11: grátis já está numa Liga Draft e tentou entrar em outra → sai da 1ª (sim) ou fica (não) */}
+      {trocaDraft && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.55)' }} onClick={() => setTrocaDraft(null)}>
+          <div className="w-full max-w-[420px] rounded-2xl border-[3px] border-black p-4 space-y-3" style={{ background: '#F4ECD6', boxShadow: `4px 4px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
+            <p className="font-black text-[19px] uppercase leading-tight" style={{ ...OSWALD, color: INK }}>{tr('📋 Uma Liga Draft por vez', '📋 One Draft League at a time')}</p>
+            <p className="text-[13.5px] font-bold leading-snug text-black/80">{tr(
+              `No plano grátis você joga em 1 Liga Draft por vez. Você já joga em “${trocaDraft.sair.nome}”. Pra entrar nesta, precisa sair dela.`,
+              `On the free plan you play in 1 Draft League at a time. You already play in “${trocaDraft.sair.nome}”. To join this one, you need to leave it.`)}</p>
+            <p className="text-[12.5px] font-black" style={{ color: '#C2452F' }}>{tr(`Quer sair de “${trocaDraft.sair.nome}” e entrar nesta?`, `Leave “${trocaDraft.sair.nome}” and join this one?`)}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button disabled={loading} onClick={() => { void (async () => {
+                const t = trocaDraft; if (!t || !user) return
+                setLoading(true); setRoomError('')
+                const { error } = await supabase.from('room_players').delete().eq('room_id', t.sair.id).eq('user_id', user.id)
+                if (error) { setLoading(false); setTrocaDraft(null); setRoomError(tr('Não consegui te tirar da outra liga agora. Tenta de novo.', 'Couldn\'t remove you from the other league right now. Try again.')); return }
+                logApoio(`📋 saiu da Liga Draft ${t.sair.nome} pra entrar em outra (grátis)`)
+                setTrocaDraft(null); fetchMyLigas()
+                await enterRoom(t.alvo, t.pw)
+              })() }} className="border-2 border-black rounded-xl px-3 py-2.5 font-black text-sm uppercase" style={{ ...OSWALD, background: GREEN, color: '#fff', boxShadow: `2px 2px 0 ${INK}` }}>
+                {tr('✅ Sim, sair e entrar', '✅ Yes, leave and join')}
+              </button>
+              <button onClick={() => setTrocaDraft(null)} className="border-2 border-black rounded-xl px-3 py-2.5 font-black text-sm uppercase bg-white" style={{ ...OSWALD, color: INK, boxShadow: `2px 2px 0 ${INK}` }}>
+                {tr('✋ Não, ficar', '✋ No, stay')}
+              </button>
+            </div>
+            <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('📋 liga draft (2ª liga) → ver os planos'); open() }} className="w-full border-2 border-black rounded-xl px-3 py-2 font-black text-[13px] uppercase" style={{ ...OSWALD, background: GOLD, color: INK }}>{tr('⭐ Com qualquer plano: joga nas duas e cria as suas ligas', '⭐ Any plan: play in both and create your own leagues')}</button>} />
           </div>
         </div>
       )}
