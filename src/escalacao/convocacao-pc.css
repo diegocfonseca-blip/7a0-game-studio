@@ -20,10 +20,15 @@
 .cv-pc .cv-tabs>button{display:flex!important;align-items:center;gap:10px;padding:11px 12px!important;font-size:16px!important;text-align:left;min-height:52px}
 .cv-pc .cv-tabs>button>span:not(.cv-tab-nome){display:inline-block!important;margin-left:auto;font-size:13px!important;border:2px solid currentColor;border-radius:8px;padding:2px 8px}
 .cv-pc .cv-tab-nome{display:block;flex:1;min-width:0;font-size:13px;line-height:1.15;font-weight:900;text-transform:uppercase}
-.cv-pc .cv-lista{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px;max-height:64vh!important;overflow-y:auto;background:#F4ECD6}
+.cv-pc .cv-lista{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:12px;max-height:64vh!important;overflow-y:auto;background:#F4ECD6}
 .cv-pc .cv-lista>button{border:3px solid #0C0C0C!important;border-radius:12px;box-shadow:3px 3px 0 #0C0C0C;padding:10px!important;flex-wrap:wrap;align-items:center;min-height:64px;opacity:1}
 .cv-pc .cv-lista>button>span:nth-child(2){font-size:15.5px!important;white-space:normal!important;line-height:1.1}
 .cv-pc .cv-lista>button>span:last-child{flex-basis:100%;padding-left:30px;font-size:11.5px!important;white-space:normal!important}
 .cv-pc .cv-lista>p{grid-column:1/-1}
 .cv-pc .cv-mid input{font-size:14px!important;padding:10px 12px!important}
 .cv-pc .cv-pack{padding:14px 16px!important;gap:12px!important}.cv-pc .cv-pack p:first-child{font-size:22px!important}.cv-pc .cv-pack p+p{font-size:13px!important}
+
+/* 🐛 05/11 (Julia Barranquila, notebook): a tela de PC começa em 1100px, mas com 280 + 420 fixos dos lados a lista do meio
+   ficava com ~300px e as 3 colunas de cartão viravam tirinhas (nome em cima do clube). Mesmo desenho aprovado, as 3 colunas
+   no lugar: em tela de notebook os lados afinam e a lista põe só as colunas que cabem (cartão de pelo menos 170px). */
+@media (max-width:1399px){.cv-pc{grid-template-columns:230px minmax(0,1fr) 330px;gap:12px}}

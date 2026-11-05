@@ -64,6 +64,12 @@ function monta(): EscState {
   if (cena === 'revela') { d.inicioRevela = Date.now() - T; d.prazo = Date.now() + 3_600_000 }
   else if (cena.startsWith('aguarda')) { d.idx = 1; d.fase = 'aguarda'; d.inicioRevela = undefined; d.prazo = 0; d.pulados = [] }
   else { d.idx = 1; d.fase = 'escolha'; d.inicioRevela = undefined; d.prazo = Date.now() + (MINHA ? 38_000 : 47_000) }
+  if (q.get('cheio') === '1') { // ⏭🤖 05/11: elenco cheio (22, aparece o "passar a vez") e um bot já com jogador do draft (aparece marcado)
+    const livres = todasAsCartas().filter(c => c.fame <= 2 && !c.promessa && !s.managers.some(m => m.squad.some(x => chaveNome(x.name) === chaveNome(c.name))))
+    for (let i = 0; s.managers[0].squad.length < 22; i++) s.managers[0].squad.push({ ...livres[i], id: `f${i}`, paid: 1, via: 'leilao' } as never)
+    const bot = s.managers.find(m => !m.isHuman)!
+    for (const nome of ['Rivaldo', 'Raí']) { const c = todasAsCartas().find(x => x.name === nome)!; bot.squad.push({ ...c, id: `bt${nome}`, paid: 0, via: 'leilao' } as never) }
+  }
   s.onlineMode = 'cpu'; s.isHost = true
   s.youIdx = cena === 'espera' || cena === 'aguarda-dono' ? 1 : 0 // espera: sou o Fabulous olhando o Butinas escolher
   return s

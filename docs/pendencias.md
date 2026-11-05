@@ -23,6 +23,21 @@
   (`doisDDoPasso`). Liga Draft/Turma: o dono escolhe "⚡ Placar rápido / 📺 Campo 2D" na sala de espera (`salva2DLiga`, game_state).
   Manual: levantamento feito — já estava em todas (ver relatório 05/11); a Copa do Mundo/regionais da sala começam sempre no AUTO do banco.
   Liberar pra todos = `TROCA_2D_SALA_GERAL = true`.
+## 🎬 05/11 — Vídeos de LANÇAMENTO prontos (NÃO postar antes de liberar)
+- 📋 Liga Draft: `node scripts/video-liga-draft-reels.mjs` → `scripts/posts/liga-draft-reels.mp4` (1080×1920, ~38 s). Postar só quando `MINHA_LIGA_DRAFT_GERAL = true`.
+- 📺 Campo 2D: `node scripts/video-campo2d-reels.mjs` → `scripts/posts/campo2d-reels.mp4` (~37 s). Postar só quando o 2D for liberado (hoje `CAMPO2D_TESTERS`). Diz: na sala quem cria escolhe 📊/📺 e quem entra assiste de graça; carreira/partida rápida do ⭐ Craque Salas pra cima.
+- Imagens reais usadas: `scripts/posts/img/` (draft-*.png da bancada/mockup aprovado · campo2d-*.png quadros do campinho).
+- 🔒 05/11: jogador que chega num bot fica lá 3 temporadas (`botPodeSoltar`, trava `testa-liga-draft-bots.mts`).
+
+## 🤖 05/11 — Liga Draft: a SOBRA vai de graça pro bot (feito, só testadores)
+Diego: *"cada bot poderia pegar um jogador do leilão que ninguém quis de graça… o que o usuário remove pra entrar o do draft… cada hora é a vez de um bot em sequência… bot também 22… sempre o melhor 11… o usuário não ganha dinheiro"*. Fechado: (1) só o jogador POSTO À VENDA sem lance vai pro bot — o sondado sem lance volta pro dono; (2) todos os bots com 22 = o da vez troca pelo pior da MESMA posição se o novo for melhor (*"pode melhorar os reservas"*), senão o jogador fica livre pro draft.
+- Sobra = quem o usuário tira com 22 no draft · quem sai pra caber o comprado no leilão · o "à venda" sem lance. Vai pro bot da vez (fila 1→7→1, `mldBotVez`), `paid: 0`, ninguém recebe moeda. Bot cheio passa a vez.
+- O bot escala sempre os melhores (`ordenaBotPelaForca`; o motor corta o XI de bot com banco também). O reforço calado de 01/11 continua.
+- Regra pura `botDaSobra` (liga-draft.ts) · `mandaProBot` (store) · telas: "Ninguém quis: vai de graça pra um bot". Travas: `npx tsx scripts/testa-liga-draft-bots.mts` + `testa-minha-liga-draft.mts`.
+- ⚠️ A vez da fila (`mldBotVez`) volta pro 1º bot se a liga atravessar o dia (o carry não leva a vez) — inofensivo.
+
+## 🐛 05/11 — Convocação no PC espremida (Julia Barranquila, carreira internacional)
+- Em tela de notebook (1100–1400px) os lados fixos (280 + 420) espremiam a lista do meio e os cartões viravam tirinhas ("CILL…", "VAN BRE…"). Conserto só de desenho em `convocacao-pc.css`, **mantendo o visual aprovado** (3 colunas, campinho à direita): abaixo de 1400px os lados afinam (230 + 330) e a lista põe as colunas que cabem. ⚠️ A 1ª versão do conserto descia o campinho e eu mostrei uma foto de MENTIRA (HTML improvisado) — o Diego cortou: *"q visual é esse… não tem nada a ver com o aprovado"*. Foto de conserto visual = SEMPRE a bancada de verdade (`scripts/teste-convocacao/`). Fotos: `scripts/mockups/convocacao-antes-1180.png` × `convocacao-depois-1180.png`.
 
 ## ⏩ 05/11 — Campo 2D: TESTE DE RITMO na Partida Rápida (publicado, só a conta do Diego)
 Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão manual e sem botão manual"*.
@@ -31,6 +46,8 @@ Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão 
 - Tela de criar a Partida Rápida: bloco "📺 Teste do Campo 2D" com 2D liga/desliga + **🎮 Com Manual / 🚫 Sem Manual** (guardado no aparelho).
 - Vale na liga, Copa dos 8, Relâmpago, Liberta e Champions da Partida Rápida. Código: `src/escalacao/ritmo2d.ts`.
 - Desligar: `RITMO2D_TESTE = false`.
+- 05/11: **⭐ Craque Salas (9,90) também cria sala online com o 2D** (o Manual continua só do Completo pra cima) — `pode2d` no lobby.tsx. Hoje o 2D ainda só existe na conta do Diego, então só vale quando o 2D lançar.
+- 05/11 (*"1 sim"*): **e também fora das salas** — carreira e Partida Rápida: o Craque Salas tem o botão do 2D (no automático) e o cadeado vira só do Manual (`useTem2D` em apoio.tsx). O 2D segue **só na conta do Diego** (*"ainda não, só pra mim"*) até ele mandar lançar.
 - ⏳ FALTA (decisão dele): levar o 2× pras salas online e carreira — no online o relógio da Copa do Mundo/regionais mora no BANCO e teria que mudar junto.
 
 ## 💙 05/11 — Casa Luca no mapa: cartão COMPLETO (valores do Pix, Plano Coração e mural sempre) + doação por cima do mapa em tela cheia
@@ -243,6 +260,12 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Kombi dos ambulantes (`cidade3d/vendor-delivery.mjs`): chega parada na vaga de carga, entra pelo portão de serviço e sai pela pista.
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 05/11 (avisado ao Diego, esperando OK pra ligar)
+- PIOROU: **Serventes FC** (wallacethiago424) ganhou uma 2ª conta de apoio: **Gustavo** (gusta.ghost.lindo, criada 03/11) — 6 temporadas só os dois, 3 ligas × 0, nunca jogou sala cheia. Junto com a Safiel (gustavodelimafrias2), as duas "gusta…", o Serventes já soma 8 ligas em 14 temporadas.
+- NOVO (médio): **Davi** (davicamilobeicker) × **Miguel** (rodriguincamilobezerra) — mesmo sobrenome "Camilo", logins com 2 min de diferença, 4 ligas × 0 em 5 temporadas; o Miguel jogou 2 salas cheias (pode ser irmão de verdade).
+- NOVO (médio): **Ferdca** (feehenrique67) × **Real** (es7394585, e-mail de números, criada 04/11) — 4 ligas × 0 em 6 temporadas; o Real jogou 2 salas cheias.
+- Continuam esperando resposta: Roseira FC × Cholismo (7 temp., 5×0) · Victor FC × Davi FC.
 
 ## 🕵️ VIGIA DE CONTA DUPLA — 04/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO: **Serventes FC** (wallacethiago424) × **Safiel** (gustavodelimafrias2): Safiel criada hoje 04/11 10:54, jogou as 6 temporadas SÓ com o Serventes, 0 ligas × 3, nunca jogou sala cheia, logins com 44 min de diferença.

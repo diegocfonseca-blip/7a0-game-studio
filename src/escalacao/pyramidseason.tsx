@@ -126,7 +126,7 @@ import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
 import { loggedEmail, useDireitos, meusDireitos, logApoio, comCorDoNome } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
-import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
+import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, useTem2D, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
 import { tr, ordinal, getLang } from './lang'
@@ -197,7 +197,8 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // Modo Manual: um convite que abre o Apoie direto na explicação do manual. A
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
 function ManualLockButton() {
-  const com2d = useCampo2DLiberado() // 📺 com o 2D liberado, o cadeado destrava OS DOIS: Manual e Campo 2D (Diego 20/10)
+  const tem2d = useTem2D() // 05/11: quem tem o 2D (⭐ Craque Salas) vê o botão do 2D em cima e o cadeado só do Manual
+  const com2d = useCampo2DLiberado() && !tem2d // 📺 com o 2D liberado, o cadeado destrava OS DOIS: Manual e Campo 2D (Diego 20/10)
   // 💳 26/10 (oferta na hora aprovada: *"Manual trancado = 24 h 9,90 · 14,90/mês · ver planos"*): o toque no cadeado abre AS OFERTAS ali
   // mesmo — ⭐ Craque Completo 14,90/mês (Vendria) e ver todos os planos. Cada toque cai no painel #admin "Quem apertou nos planos".
   // ⏱️ 26/10 (Diego: *"9,90 avulso por 24 horas ou 14,90 no Craque Completo… e por último ver todos os planos"*): o avulso é o Pix
@@ -11889,7 +11890,7 @@ export function PyramidSeasonScreen() {
               onSkip={avancarRodada}
               nextLabel={criseTrava ? tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him') : halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
           </div>
-          ) : <ManualLockButton />
+          ) : <><Botao2D soComDireito /><ManualLockButton /></>
         )}
         {/* 🧹 RECIBOS DA VIRADA: o que já aconteceu e não depende de você — uma
             linha cada, DEPOIS da decisão e do botão verde. Nada some: cada linha
@@ -11921,7 +11922,7 @@ export function PyramidSeasonScreen() {
               onSkip={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
               nextLabel={!copaReady ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…') : copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')} />
           </div>
-          ) : <ManualLockButton />
+          ) : <><Botao2D soComDireito /><ManualLockButton /></>
         )}
         {/* 🎮 CONVIDADO (online) na Copa: vê o ritmo do host (read-only), reflete a troca */}
         {state.onlineMode === 'online' && !state.isHost && copaPlaying && (

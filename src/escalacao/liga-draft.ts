@@ -129,6 +129,38 @@ export function reservaMaisBarata(squad: WonCard[], nova: Card, formation: Forma
   const ord = (a: WonCard, b: WonCard) => (a.paid ?? 0) - (b.paid ?? 0) || forca(a) - forca(b)
   return ok.filter(c => !xi.has(c.id)).sort(ord)[0] ?? ok.sort(ord)[0]
 }
+// 🤖 SOBRA VAI PRO BOT (05/11, Diego): *"cada bot poderia pegar um jogador do leilão que ninguém quis de graça… o que o usuário
+// remove pra entrar o do draft poderia ir pro bot… cada hora é a vez de um bot em sequência… bot também teria 22… sempre o
+// melhor 11… o usuário não ganha dinheiro"*. Regra pura: QUEM recebe e o que sai do bot. Com vaga (menos de 22) o bot da vez
+// recebe; todos cheios → o bot da vez troca pelo PIOR da MESMA posição se o novo for melhor (*"pode melhorar os reservas"*) e o
+// pior volta a ficar livre; se não for melhor, o jogador fica livre (pode ser escolhido no draft). Ninguém passa de 22.
+// 🔒 05/11 (Diego: *"o que o bot pega também fica 3 temporadas no time dele pelo menos"*): jogador que CHEGOU num bot fica lá pelo
+// menos 3 temporadas — nem a troca de bot cheio nem o reforço calado tiram ele antes. (`mldDesde` = temporada em que chegou)
+export function botPodeSoltar(c: { mldDesde?: number }, temporadaQueAcabou: number): boolean {
+  return c.mldDesde == null || temporadasNoTime(c, temporadaQueAcabou) >= MLD_SONDAR_TEMPORADAS
+}
+export function botDaSobra(bots: Manager[], vez: number, nova: Card, temporadaQueAcabou = 0): { bot: Manager; aceita: boolean; sai?: WonCard; proxVez: number } | null {
+  const n = bots.length
+  if (!n) return null
+  const v0 = ((vez % n) + n) % n
+  for (let k = 0; k < n; k++) {
+    const i = (v0 + k) % n
+    if (bots[i].squad.length < MLD_ELENCO_MAX) return { bot: bots[i], aceita: true, proxVez: (i + 1) % n }
+  }
+  const b = bots[v0]
+  const pior = b.squad.filter(c => c.pos === nova.pos && !c.emprestado && botPodeSoltar(c, temporadaQueAcabou)).sort((a, c) => forca(a) - forca(c))[0]
+  const aceita = !!pior && forca(nova) > forca(pior)
+  return { bot: b, aceita, ...(aceita ? { sai: pior } : {}), proxVez: (v0 + 1) % n }
+}
+/** ⏭ 05/11 (Diego): com o elenco CHEIO (22) o técnico pode PASSAR a vez no draft — senão era obrigado a pegar alguém e tirar um */
+export function podePassarDraft(m: { squad: Card[] } | undefined): boolean {
+  return !!m && m.squad.length >= MLD_ELENCO_MAX
+}
+/** o bot sempre escala os melhores: em cada posição, do mais forte pro mais fraco (o XI é o começo de cada posição) */
+export function ordenaBotPelaForca<T extends Card>(squad: T[]): T[] {
+  return [...squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || forca(b) - forca(a))
+}
+
 // 🔒 "CONTRATO" DA LIGA DRAFT (02/11, Diego: *"opção B e bote cadeado avisando tipo contrato"*): um jogador só pode ser SONDADO
 // depois de 3 temporadas completas no time do amigo. Quem chegou na temporada S fica travado até o draft do fim da temporada S+2.
 export const MLD_SONDAR_TEMPORADAS = 3

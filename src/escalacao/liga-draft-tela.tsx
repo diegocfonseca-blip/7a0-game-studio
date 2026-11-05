@@ -13,15 +13,14 @@ import { seloDoClube } from './selo-clube'
 import type { Card, Sector, Manager } from './types'
 import { EscalacaoMinha } from './minha-escalacao'
 import {
-  cartasLivres, nomesOcupados, podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
+  podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
-  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
+  MLD_ELENCO_MAX, podePassarDraft, todasAsCartas, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
 } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 const POS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
-const forca = (c: Card) => c.fame * 1000 + (c.hi ?? 0) * 2 + (c.lo ?? 0)
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 export function EscLigaDraft() {
@@ -78,6 +77,7 @@ export function EscLigaDraft() {
           <AguardaPronto n={d.idx + 1} quem={daVez?.teamName ?? '?'} minhaVez={vezId === you.id}
             onPronto={(sondar) => { setSondarNaVez(sondar ? d.idx : null); dispatch({ type: 'DRAFT_PRONTO', mgrId: you.id, by: state.youUid }) }}
             duasEscolhas={minha}
+            onPassar={minha && vezId === you.id && podePassarDraft(you) ? () => dispatch({ type: 'DRAFT_PASSAR', mgrId: you.id, by: state.youUid }) : undefined}
             onPular={souDono && vezId !== you.id ? () => dispatch({ type: 'DRAFT_PULAR', by: state.youUid }) : undefined} />
         ) : minhaVez ? (
           <EscolhaDraft key={`vez-${d.idx}`} restante={restante} n={d.idx + 1} minha={minha} comecaSondando={minha && sondarNaVez === d.idx} />
@@ -106,7 +106,7 @@ export function EscLigaDraft() {
 }
 
 // ✋ Minha Liga Draft: a vez começa PARADA. Quem está na vez aperta PRONTO (aí correm os 45 s); o dono pode pular quem não deu.
-function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, duasEscolhas }: { n: number; quem: string; minhaVez: boolean; onPronto: (sondar: boolean) => void; onPular?: () => void; duasEscolhas?: boolean }) {
+function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEscolhas }: { n: number; quem: string; minhaVez: boolean; onPronto: (sondar: boolean) => void; onPular?: () => void; onPassar?: () => void; duasEscolhas?: boolean }) {
   const t = useT()
   return (
     <div className="space-y-2.5">
@@ -137,6 +137,7 @@ function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, duasEscolhas }: {
       </>) : (
         <p className="text-center text-[12.5px] font-bold text-black/65">{t(`⏳ Esperando o ${quem} dizer que está pronto…`, `⏳ Waiting for ${quem} to say they're ready…`)}</p>
       )}
+      {minhaVez && onPassar && <BotaoPassar onPassar={onPassar} />}
       {onPular && (<>
         <button onClick={onPular} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
           style={{ ...OSW, fontSize: 16, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
@@ -239,6 +240,17 @@ function AnuncioDraft({ pick, n, quem, decorrido }: { pick: DraftPick; n: number
   )
 }
 
+// ⏭ 05/11 (Diego: *"quando bater 22 jogadores o usuário pode ter o direito de pular o draft… se ele for pro draft vai ter que pegar
+// alguém e pode ser que ele não queira mais"*): só aparece com o elenco cheio; a régua é a mesma do motor (`podePassarDraft`)
+function BotaoPassar({ onPassar }: { onPassar: () => void }) {
+  const t = useT()
+  return (<>
+    <button onClick={onPassar} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
+      style={{ ...OSW, fontSize: 16, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Passar a vez', '⏭ Pass my turn')}</button>
+    <p className="text-center text-[11px] font-bold text-black/55">{t(`Seu elenco está cheio (${MLD_ELENCO_MAX}). Não quer ninguém? Passe a vez: ninguém sai do seu time.`, `Your squad is full (${MLD_ELENCO_MAX}). Don't want anyone? Pass: nobody leaves your team.`)}</p>
+  </>)
+}
+
 function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number; n: number; minha?: boolean; comecaSondando?: boolean }) {
   const { state, dispatch } = useEsc()
   const t = useT()
@@ -247,28 +259,22 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   const [pos, setPos] = useState<Sector | null>(null)
   const [carta, setCarta] = useState<Card | null>(null)
   const [sai, setSai] = useState<string | null>(null)
-  const ocupados = useMemo(() => nomesOcupados(state.managers), [state.managers])
-  const livres = useMemo(() => cartasLivres(ocupados, state.minhaLigaDraft ? state.deckLeague : undefined), [ocupados, state.minhaLigaDraft, state.deckLeague])
-  // quem já tem dono aparece apagado (só quando a busca bate num nome) — "já é do Fulano"
+  // 🔤 05/11 (Diego): a lista é o jogo inteiro em ORDEM ALFABÉTICA, só nome + clube + ano — sem mostrar quem é lenda (a categoria e
+  // o over só aparecem depois, no elenco de quem pegou). Quem já tem dono aparece marcado com o time (👤 técnico · 🤖 bot) e não dá pra pegar.
   const donoDe = useMemo(() => {
-    const mp = new Map<string, string>()
-    for (const m of state.managers) for (const c of m.squad) if (!c.fake) mp.set(chaveNome(c.name), m.teamName)
+    const mp = new Map<string, { time: string; bot: boolean }>()
+    for (const m of state.managers) for (const c of m.squad) if (!c.fake) mp.set(chaveNome(c.name), { time: m.teamName, bot: !m.isHuman })
     return mp
   }, [state.managers])
+  const baralho = useMemo(() => todasAsCartas(state.minhaLigaDraft ? state.deckLeague : undefined), [state.minhaLigaDraft, state.deckLeague])
   const q = norm(busca.trim())
-  const lista = useMemo(() => {
+  const filtradas = useMemo(() => {
     // 📜 05/11: a regra da turma esconde quem não pode (a MESMA função que o motor confere em DRAFT_ESCOLHER)
-    let l = livres.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)) && (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)))
-    l = [...l].sort((a, b) => forca(b) - forca(a))
-    return l.slice(0, 60)
-  }, [livres, pos, q, state.minhaLigaDraft, state.draftRegras])
-  const tomados = useMemo(() => {
-    if (q.length < 3) return []
-    const vistos = new Set<string>()
-    const out: { name: string; dono: string }[] = []
-    for (const [k, dono] of donoDe) if (k.includes(q) && !vistos.has(k)) { vistos.add(k); out.push({ name: k, dono }) }
-    return out.slice(0, 4)
-  }, [donoDe, q])
+    const l = baralho.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)) && (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)))
+    return [...l].sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }) || a.year - b.year)
+  }, [baralho, pos, q, state.minhaLigaDraft, state.draftRegras])
+  const LIMITE_LISTA = 250
+  const lista = filtradas.slice(0, LIMITE_LISTA)
   const [sondando, setSondando] = useState(!!comecaSondando)
   if (!you) return null
   // 📋🏆 Minha Liga Draft: com vaga (menos de 22) ninguém sai; cheio = sai quem ele escolher, sem furar posição
@@ -295,32 +301,38 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
           ))}
         </div>
         <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white">
-          {tomados.map(x => (
-            <div key={x.name} className="flex items-center gap-2 px-3 py-1.5 border-b border-black/10" style={{ background: '#eee', opacity: .6 }}>
-              <span className="flex-1 truncate text-[13px] uppercase" style={OSW}>{x.name}</span>
-              <span className="text-[11px] font-black" style={{ color: RED }}>{t(`já é do ${x.dono}`, `already ${x.dono}'s`)}</span>
-            </div>
-          ))}
           {lista.map(c => {
-            const cat = categoriaDa(c)
+            const dono = donoDe.get(chaveNome(c.name))
+            if (dono) return (
+              <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10" style={{ background: '#EFEBE0', opacity: .62 }}>
+                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#fff' }}>{c.pos}</span>
+                <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
+                <span className="shrink-0 max-w-[45%] truncate text-[10.5px] font-black border-2 border-black rounded-lg px-1.5" style={{ ...OSW, background: dono.bot ? '#E6E1D3' : '#FFE6A8' }}>{dono.bot ? '🤖' : '👤'} {dono.time}</span>
+              </div>
+            )
             return (
               <button key={chaveCarta(c)} onClick={() => { setCarta(c); setSai(null) }} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left active:bg-yellow-100">
                 <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#F4ECD6' }}>{c.pos}</span>
                 <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
-                <span className="shrink-0 text-[11px] border-2 border-black rounded-lg px-1.5" style={{ ...OSW, color: '#3d2a00', background: `${cat.brilho}55` }}>{cat.emoji} {t(cat.pt, cat.en)}</span>
+                <span className="shrink-0 text-[10.5px] font-black text-black/40" style={OSW}>{t('livre', 'free')}</span>
               </button>
             )
           })}
+          {filtradas.length > LIMITE_LISTA && <p className="px-3 py-2 text-[11px] font-bold text-black/50">{t(`Mostrando ${LIMITE_LISTA} de ${filtradas.length}. Use a busca ou a posição pra achar o resto.`, `Showing ${LIMITE_LISTA} of ${filtradas.length}. Use search or position to find the rest.`)}</p>}
           {lista.length === 0 && <p className="px-3 py-3 text-[12px] font-bold text-black/50">{t('Ninguém livre com esse nome.', 'Nobody free with that name.')}</p>}
         </div>
+        {minha && podePassarDraft(you) && <BotaoPassar onPassar={() => dispatch({ type: 'DRAFT_PASSAR', mgrId: you.id, by: state.youUid })} />}
         {minha && (
           <button onClick={() => setSondando(true)} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
             style={{ ...OSW, fontSize: 16, background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>{t('🕵️ Prefiro sondar um amigo', '🕵️ I\'d rather scout a friend')}</button>
         )}
       </>) : (
         <div className="space-y-2.5">
-          <div className="mx-auto" style={{ width: 200 }}>
-            <CollectibleCard name={carta.name} club={carta.club} year={carta.year} pos={carta.pos} fame={carta.fame} bio={carta.bio} folk={carta.folk} promessa={carta.promessa} />
+          {/* 🤫 sem categoria e sem over antes de pegar: só posição, nome, clube e ano (a carta de verdade vira no anúncio) */}
+          <div className="mx-auto rounded-2xl border-[3px] border-black bg-white px-4 py-3 text-center" style={{ width: 220, boxShadow: `3px 3px 0 ${INK}` }}>
+            <span className="inline-block text-[12px] border-2 border-black rounded-md px-2" style={{ ...OSW, background: '#F4ECD6' }}>{POS_NOME[carta.pos][0]}</span>
+            <p className="uppercase leading-tight mt-1.5" style={{ ...OSW, fontSize: 22 }}>{carta.name}</p>
+            <p className="text-[12px] font-bold text-black/60">{carta.club} · {carta.year}</p>
           </div>
           {temVaga ? (
             <p className="text-center text-[12px] font-bold text-black/60">{t(`Você tem vaga (${you.squad.length}/${MLD_ELENCO_MAX}): ele entra no banco e ninguém sai. Chega valendo 10 🪙.`, `You have room (${you.squad.length}/${MLD_ELENCO_MAX}): he joins the bench and nobody leaves. Worth 10 🪙.`)}</p>
@@ -454,7 +466,7 @@ function VenderMeu({ d, you }: { d: DraftEstado; you: Manager }) {
           ))}
         </div>
       )}
-      <p className="text-[10.5px] font-bold text-black/50">{t('Vendeu: o dinheiro vem pra você. Ninguém quis: ele fica.', 'Sold: the money comes to you. Nobody wanted him: he stays.')}</p>
+      <p className="text-[10.5px] font-bold text-black/50">{t('Vendeu: o dinheiro vem pra você. Ninguém quis: ele vai de graça pra um bot (você não recebe nada).', 'Sold: the money comes to you. Nobody wanted him: he goes to a bot for free (you get nothing).')}</p>
     </div>
   )
 }
@@ -627,7 +639,7 @@ function RevelaLeilao({ d, you, nome }: { d: DraftEstado; you: Manager; nome: (i
               <CardFace c={l.carta} big />
               <p className="text-[11.5px] font-bold text-black/60 mt-2">{t('dono', 'owner')}: {nome(l.dono)}{l.sondador != null ? ` · 🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : ''}</p>
               <div className="mt-3 space-y-1.5">
-                {lances.length === 0 && <p className="font-bold text-black/70">{t('Nenhum lance. Fica com o dono. ↩️', 'No bids. Stays with the owner. ↩️')}</p>}
+                {lances.length === 0 && <p className="font-bold text-black/70">{l.sondador != null ? t('Nenhum lance. Fica com o dono. ↩️', 'No bids. Stays with the owner. ↩️') : t('Ninguém quis. Vai de graça pra um bot. 🤖', 'Nobody wanted him. He goes to a bot for free. 🤖')}</p>}
                 {lances.map((b, k) => {
                   const venceu = martelou && l.vencedor === b.mgr
                   return (
@@ -691,7 +703,7 @@ function EscalaMinha({ d, you, souDono, restante }: { d: DraftEstado; you: Manag
     <div className="space-y-3">
       {resultados.length > 0 && (
         <Caixa titulo={t('🔨 Como ficou o leilão', '🔨 Auction results')}>
-          {resultados.map((l, i) => <Linha key={i} a={l.carta.name} b={l.vencedor === l.dono ? (l.valor ? t(`🛡️ ficou (${l.valor})`, `🛡️ kept (${l.valor})`) : t('↩️ ficou com o dono', '↩️ stays')) : `${state.managers.find(m => m.id === l.vencedor)?.teamName ?? '?'} · ${l.valor} 🪙${l.igualou ? ' ⚡' : ''}`} />)}
+          {resultados.map((l, i) => <Linha key={i} a={l.carta.name} b={l.vencedor === l.dono ? (l.valor ? t(`🛡️ ficou (${l.valor})`, `🛡️ kept (${l.valor})`) : l.sondador == null ? t('🤖 foi pra um bot', '🤖 went to a bot') : t('↩️ ficou com o dono', '↩️ stays')) : `${state.managers.find(m => m.id === l.vencedor)?.teamName ?? '?'} · ${l.valor} 🪙${l.igualou ? ' ⚡' : ''}`} />)}
         </Caixa>
       )}
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>

@@ -951,6 +951,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   draft: **1 jogador por técnico, de TODOS do jogo, campeão escolhe primeiro, 60s**, cada jogador **único na liga** (pelo nome).
   O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
   carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
+  🤖 **05/11: a SOBRA vai de GRAÇA pro bot da vez** (fila 1→7→1, até 22, escala os 11 melhores): quem o usuário tira pra caber o do draft/leilão
+  e o "à venda" sem lance (o SONDADO sem lance volta pro dono). Ninguém ganha moeda. Bots cheios: troca pelo pior da posição se for melhor.
 - **🔒 CARREIRA GRÁTIS VAI ATÉ A TEMPORADA 50 (27/10, regra dele).** *"chegando na temporada 50 só avança quem tem plano pago… ela pagando descongela… quem já passou sem problemas"*. Trava na decisão do fim da T50 (tela + motor, `travaCarreiraGratis`); save congelado, nunca apagado. 🔁 Mesmo dia: *"quem já passou da temporada 50… limite de mais dez temporadas"* → quem estava acima da 50 sem plano ganha +10 (marca `careerGratisAte` na 1ª virada). **Com plano não aparece NADA** (nem "conferindo"); pagou, avança. Trava: `npm run carreira-gratis`.
 - **🔒🎭 NOME RESERVADO É DE QUEM TEM PLANO (27/10, mockup `scripts/mockups/nome-reservado.png` aprovado).** *"quem tem plano reserva
   o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*. Régua = `esc_direitos_de(...)->>'pago'`
@@ -1032,10 +1034,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (nunca 13); passe chega andando (não freia até zero); quem tem a bola ginga a ~4,6 m/s e, esperando o lance, faz TABELINHA.
   A trava da tela reprova câmera lenta e bola no pé em passo de caminhada.
   (13) **2D EM TODO LUGAR, NO TEMPO DO CAMPINHO (1:30), E PAGO SÓ FORA DA SALA** (20/10): *"esse tempo… tem que ser esse tempo
-  aí também nas salas online"*. SALA ONLINE: qualquer um que CRIA escolhe "⚡ Padrão rápido" ou "📺 2D" (convidado nunca paga) e vale
+  aí também nas salas online"*. SALA ONLINE: qualquer um que CRIA com plano (desde 05/11 o ⭐ Craque Salas também — ele só não tem o Manual) escolhe "⚡ Padrão rápido" ou "📺 2D" (convidado nunca paga) e vale
   pra TODA competição da sala — liga, Minhas Ligas, Copa dos 8, Liberta, Champions, Copa do Mundo e regionais (estas duas pelo
   relógio do banco: `docs/sql/copa-regional-clock-campo2d.sql`), carreira em sala e revanche. CARREIRA (offline e a online nova) e
-  partida rápida offline: botão do 2D junto do Manual, e o 2D é o MESMO direito do Manual (Craque pra cima — `temManual`): quem não
+  partida rápida offline: botão do 2D junto do Manual, e o 2D é do ⭐ Craque SALAS pra cima (`useTem2D`, 05/11: *"1 sim"* — quem tem só o Craque Salas vê o 2D no automático e o cadeado só do Manual; o Manual segue `temManual`, do Completo pra cima): quem não
   paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.

@@ -1022,7 +1022,9 @@ export function EscLobby() {
   const hasManual = useHasManual() // ⭐ 26/10: criar sala no Manual (e com o 2D) é do plano — a mesma régua do Modo Manual
   const [manualAviso, setManualAviso] = useState(false), [aviso2d, setAviso2d] = useState(false)
   const troca2dConta = useTroca2DSala() // 📺⚡ 05/11: o dono troca 2D ↔ rápido DEPOIS de criar (por enquanto só a conta do Diego)
-  const pode2d = campo2dOn && hasManual // 📺 o 2D já lançou pra esta conta E ela tem plano
+  // 📺 o 2D já lançou pra esta conta E ela tem plano. 05/11 (Diego): o ⭐ Craque SALAS (9,90) também cria sala 2D — só o Manual
+  // continua sendo do Completo pra cima (*"o botão manual tudo bem não permitir, mas o 2D teria que ter"*)
+  const pode2d = campo2dOn && (hasManual || direitosLiga?.mensalPlano === 'craque_salas')
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
