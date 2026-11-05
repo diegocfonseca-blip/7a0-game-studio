@@ -208,3 +208,14 @@ export function whatsappValido(txt: string): string | null {
   const n = txt.replace(/\D/g, '')
   return n.length >= 10 && n.length <= 15 ? n : null
 }
+
+/** 🏆📋 05/11 (Diego): quantas ligas a pessoa pode CRIAR, de CADA tipo (Liga da Turma e Liga Draft contam separado).
+ *  Sem plano = 0 (só entra, 1 de cada por vez) · ⭐ Craque Salas mensal = 2 · qualquer plano acima (Craque Completo, Craque
+ *  antigo, Lenda, Batismo, Fundador, sócio) = 3. ENTRAR é ilimitado pra quem paga. Quem já criou mais fica com todas — o teto
+ *  só barra a liga NOVA. `legado` = tier COMPRADO (banco/lista), nunca o da tela. */
+export function limiteCriarLigas(legado: TierCor | null | undefined, d: Direitos | null): number {
+  const acimaDoSalas = legado === 'prata' || legado === 'ouro' || !!d && (d.craqueAtivo || d.batismo || d.fundador || d.socioAtivo || d.mensalPlano === 'craque_completo')
+  if (acimaDoSalas) return 3
+  if (d?.mensalPlano === 'craque_salas') return 2
+  return 0
+}

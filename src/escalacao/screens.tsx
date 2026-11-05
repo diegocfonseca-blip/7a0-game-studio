@@ -995,7 +995,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const backToMenu = () => dispatch({ type: 'GO_LOBBY_ONLINE' })
   const leaveRoom = () => {
     const msg = state.isHost && state.ligaMode
-      ? tr('Sair da sala? Você é o DONO desta liga: ninguém assume o comando e nada se apaga. Você vai pro menu e a liga continua guardada em "🏆 Minhas ligas" pra voltar quando quiser. (Pra encerrar a liga de vez, use "🗑️ Excluir a liga" lá.)', 'Leave the room? You are this league\'s OWNER: nobody takes command and nothing is deleted. You go to the menu and the league stays saved in "🏆 My leagues" to come back whenever you want. (To end the league for good, use "🗑️ Delete the league" there.)')
+      ? tr('Sair da sala? Você é o DONO desta liga: ninguém assume o comando e nada se apaga. Você vai pro menu e a liga continua guardada em "🏆 Suas ligas" pra voltar quando quiser. (Pra encerrar a liga de vez, use "🗑️ Excluir a liga" lá.)', 'Leave the room? You are this league\'s OWNER: nobody takes command and nothing is deleted. You go to the menu and the league stays saved in "🏆 My leagues" to come back whenever you want. (To end the league for good, use "🗑️ Delete the league" there.)')
       : state.isHost
       ? tr('Sair da sala? Você será removido e o comando (host) passa pra outra pessoa da sala. Se você estiver sozinho, a sala é apagada.', 'Leave the room? You will be removed and command (host) passes to someone else in the room. If you are alone, the room is deleted.')
       : tr('Sair da sala? Você será removido desta partida (não dá pra voltar).', 'Leave the room? You will be removed from this match (no way back).')
@@ -11623,7 +11623,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   )
   const exitLeave = () => {
     const msg = isHost && state.ligaMode
-      ? V('Sair da sala? Você é o DONO desta liga: ninguém assume o comando e nada se apaga. Você vai pro menu e a liga continua guardada em "🏆 Minhas ligas". (Pra encerrar a liga de vez, use "🗑️ Excluir a liga" lá.)', 'Leave the room? You are this league\'s OWNER: nobody takes command and nothing is deleted. You go to the menu and the league stays saved in "🏆 My leagues". (To end the league for good, use "🗑️ Delete the league" there.)')
+      ? V('Sair da sala? Você é o DONO desta liga: ninguém assume o comando e nada se apaga. Você vai pro menu e a liga continua guardada em "🏆 Suas ligas". (Pra encerrar a liga de vez, use "🗑️ Excluir a liga" lá.)', 'Leave the room? You are this league\'s OWNER: nobody takes command and nothing is deleted. You go to the menu and the league stays saved in "🏆 My leagues". (To end the league for good, use "🗑️ Delete the league" there.)')
       : isHost
       ? V('Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.', 'Leave the room? Command (host) passes to someone else. If you are alone, the room is deleted.')
       : V('Sair da sala? Você será removido desta partida.', 'Leave the room? You will be removed from this match.')

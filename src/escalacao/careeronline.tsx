@@ -279,14 +279,14 @@ export function LigaFechadaButton() {
   if (!liberada) {
     return (
       <div style={{ width: '100%', boxSizing: 'border-box', background: '#e7e3d7', color: '#8a8577', border: '2px solid #bdb7a6', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'default' }}>
-        {tr('🏆 Minhas Ligas · só com amigos', '🏆 My Leagues · friends only')} <span style={{ opacity: 0.85 }}>{tr('(em breve)', '(coming soon)')}</span>
+        {tr('🏆 Liga da Turma · só com amigos', '🏆 Crew League · friends only')} <span style={{ opacity: 0.85 }}>{tr('(em breve)', '(coming soon)')}</span>
       </div>
     )
   }
   return (
     <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
       style={{ width: '100%', boxSizing: 'border-box', background: '#FFF4CF', color: '#7a4d00', border: '2px solid #0C0C0C', borderRadius: 99, padding: '9px 16px', fontWeight: 800, fontSize: 14, textAlign: 'center', marginTop: 2, ...OSWALD, cursor: 'pointer' }}>
-      {tr('🏆 Minhas Ligas · a sala da sua turma que não acaba', '🏆 My Leagues · your crew\'s room that never ends')}
+      {tr('🏆 Liga da Turma · a liga dos seus amigos que não acaba', '🏆 Crew League · your friends\' league that never ends')}
     </button>
   )
 }

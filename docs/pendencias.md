@@ -12366,3 +12366,9 @@ Não retomar sem ele pedir.
 - ⏳ Diego pediu o texto "pode criar ILIMITADO" no botão dos planos, mas hoje existe teto de 5 ligas por pessoa (`MAX_LIGAS = 5`).
   O texto ficou "joga nas duas e cria as suas ligas" até ele decidir se tira o teto pra quem paga.
 - ⏳ Lançar pra todos = `MINHA_LIGA_DRAFT_GERAL = true` (sport.ts) — só quando ele mandar.
+- 🏆 05/11 (mesma conversa, aprovado): **"Minhas Ligas" passou a se chamar "🏆 Liga da Turma"** na tela (código e salas
+  continuam iguais). Ao tocar: "O mesmo leilão das salas rápidas, mas numa liga só com os seus amigos, que não acaba". A lista
+  das ligas da pessoa virou "🏆 Suas ligas". **Criar por plano e por tipo** (`limiteCriarLigas`, planos-regras.ts): sem plano 0 ·
+  ⭐ Craque Salas 2 Ligas da Turma + 2 Ligas Draft · do ⭐ Craque Completo pra cima 3 + 3. Entrar é ILIMITADO pra quem paga, e
+  todo texto de plano diz isso. Quem já criou mais fica com todas. Saiu o teto antigo de 5 no total (`MAX_LIGAS`). O aviso de
+  limite só aparece quando a pessoa tenta criar além do dela (*"nem precisa avisar pra ninguém"*).

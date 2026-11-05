@@ -23,7 +23,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { PodioMoldura, posPodio } from './podio-semana'
 import { PresidenteDaConta } from './presidente-avatar'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaSeloCoracao, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio, comCorDoNome } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana, carregaNomeFake, carregaSeloCoracao, carregaNomesSemEscudo, NomeComFake, useHasManual, useDireitos, logApoio, comCorDoNome, meuTierLegado } from './apoio'
 import { ehPagante } from './saf2'
 import { LimiteSalaVenda } from './limite-sala-venda'
 import { assinarMensal } from './vendria-checkout'
@@ -51,6 +51,7 @@ const DUPLA_BB_ICON: Record<string, string> = { GOL: '🧠', LAT: '🎯', ZAG: '
 import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { ApoieButton } from './screens'
+import { limiteCriarLigas } from './planos-regras'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
@@ -92,7 +93,6 @@ const MAX_PLAYERS_CHAMPIONS = 36
 // sem ele, uma pessoa sozinha encheria o banco de liga abandonada. Conta só as
 // que a pessoa CRIOU; ENTRAR em liga dos outros não tem limite nenhum.
 // ⚠️ Este teto é SÓ do Minhas Ligas. Sala rápida tem a conta dela, mais abaixo.
-const MAX_LIGAS = 5
 
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
@@ -2113,12 +2113,20 @@ export function EscLobby() {
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
     // abandonadas. O aviso diz o número e o caminho pra destravar.
+    // 🏆📋 05/11 (Diego): o teto agora é POR PLANO e POR TIPO — ⭐ Craque Salas cria até 2 Ligas da Turma + 2 Ligas Draft; do
+    // ⭐ Craque Completo pra cima, até 3 + 3 (`limiteCriarLigas`). Entrar continua ilimitado pra quem paga. Quem já tem mais fica
+    // com todas; só não cria outra. (Antes: 5 ligas no total pra qualquer plano, `MAX_LIGAS`.)
     if (liga) {
-      const { count } = await supabase.from('game_rooms')
-        .select('id', { count: 'exact', head: true })
-        .eq('host_id', user.id).eq('game_state->>mode', 'liga')
-      if ((count ?? 0) >= MAX_LIGAS) {
-        setRoomError(getLang() === 'en' ? `You already have ${MAX_LIGAS} leagues — that's the max per person. To create another, open one of them in "🏆 My leagues" and use "🗑️ Delete the league". (To PLAY there is no limit: you can be in as many leagues as you like.)` : `Você já tem ${MAX_LIGAS} ligas — é o máximo por pessoa. Pra criar outra, entre numa delas em "🏆 Minhas ligas" e use "🗑️ Excluir a liga". (Pra JOGAR não tem limite: dá pra estar em quantas ligas quiser.)`)
+      const ehDraftNova = !!ehDraft
+      const teto = Math.max(1, limiteCriarLigas(meuTierLegado(), direitosLiga))
+      let q = supabase.from('game_rooms').select('id', { count: 'exact', head: true }).eq('host_id', user.id).eq('game_state->>mode', 'liga')
+      q = ehDraftNova ? q.eq('game_state->>ligaDraft', 'true') : q.or('game_state->>ligaDraft.is.null,game_state->>ligaDraft.neq.true')
+      const { count } = await q
+      if ((count ?? 0) >= teto) {
+        const tipo = ehDraftNova ? tr('Ligas Draft', 'Draft Leagues') : tr('Ligas da Turma', 'Crew Leagues')
+        const sobe = teto < 3 ? tr(' Com o ⭐ Craque Completo você cria até 3.', ' With ⭐ Star Complete you can create up to 3.') : ''
+        setRoomError(tr(`Seu plano cria até ${teto} ${tipo} e você já tem ${count}. Pra criar outra, exclua uma em "🏆 Suas ligas" (🗑️ Excluir).${sobe} Entrar na liga dos amigos é ilimitado.`,
+          `Your plan creates up to ${teto} ${tipo} and you already have ${count}. To create another, delete one in "🏆 Your leagues" (🗑️ Delete).${sobe} Joining friends' leagues is unlimited.`))
         setLoading(false); return
       }
     }
@@ -2738,7 +2746,7 @@ export function EscLobby() {
     // (Todo batismo já nasce tier ouro pela regra de 17/08, então a conta é uma
     // só. E CRIAR liga continua preso à conta do Diego, em `sport.ts`.)
     if (LIGA_SO_LENDA_ENTRA && rd.game_state?.mode === 'liga' && myApoioPerk()?.tier !== 'ouro') {
-      setRoomError(tr('Essa é uma liga do 🏆 Minhas Ligas — só entra quem é 👑 Lenda ou dono de clube batizado.', 'That is a 🏆 My Leagues league — only 👑 Legends or owners of a named club get in.')); setLoading(false); return
+      setRoomError(tr('Essa é uma 🏆 Liga da Turma — só entra quem é 👑 Lenda ou dono de clube batizado.', 'That is a 🏆 Crew League — only 👑 Legends or owners of a named club get in.')); setLoading(false); return
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError(tr('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.', 'That is a 🃏 Bafo room, a new mode still under construction — it opens to everyone soon.')); setLoading(false); return
@@ -2843,8 +2851,8 @@ export function EscLobby() {
     // (gatilho `esc_liga_limite_gratis` em room_players) — aqui só traduz o recado: qual liga já ocupa a vaga e o caminho.
     const lim = /LIGA_LIMITE\|(draft|liga)\|([^\n]*)/.exec(lastErr)
     if (!insOk && lim) {
-      const tipo = lim[1] === 'draft' ? tr('Liga Draft', 'Draft League') : tr('Minhas Ligas', 'My Leagues')
-      setRoomError(tr(`🔒 Sem plano, dá pra estar em 1 ${tipo} por vez — você já está na "${lim[2].trim()}". Saia dela (botão Sair da sala, dentro da liga) ou vire ⭐ Craque pra jogar em quantas quiser.`, `🔒 Without a plan you can be in 1 ${tipo} at a time — you are already in "${lim[2].trim()}". Leave it (Leave room, inside the league) or go ⭐ Craque to play in as many as you want.`))
+      const tipo = lim[1] === 'draft' ? tr('Liga Draft', 'Draft League') : tr('Liga da Turma', 'Crew League')
+      setRoomError(tr(`🔒 Sem plano, dá pra estar em 1 ${tipo} por vez — você já está na "${lim[2].trim()}". Saia dela (botão Sair da sala, dentro da liga) ou tenha qualquer plano ⭐ pra jogar em quantas quiser.`, `🔒 Without a plan you can be in 1 ${tipo} at a time — you are already in "${lim[2].trim()}". Leave it (Leave room, inside the league) or go ⭐ Craque to play in as many as you want.`))
       setLoading(false); return
     }
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
@@ -3186,7 +3194,7 @@ export function EscLobby() {
       {!nbaSala&&!estreito&&!recovering&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
         {label:tr('Salas abertas','Open rooms'),active:tab==='open'&&!showLeagues,onClick:()=>{setRoomError('');setShowLeagues(false);setTab('open')}},
         {label:tr('Criar sala','Create room'),free:false,active:tab==='create',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('create')}},
-        ...(ligaOn?[{label:tr('Minhas ligas','My leagues'),active:tab==='open'&&showLeagues,onClick:()=>{setTab('open');setShowLeagues(true)}}]:[]),
+        ...(ligaOn?[{label:tr('Suas ligas','Your leagues'),active:tab==='open'&&showLeagues,onClick:()=>{setTab('open');setShowLeagues(true)}}]:[]),
         {label:tr('Entrar por código','Join by code'),active:tab==='join',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('join')}},
       ]:[]}/>}
       {onBack && (
@@ -3383,10 +3391,10 @@ export function EscLobby() {
       {trocaDraft && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.55)' }} onClick={() => setTrocaDraft(null)}>
           <div className="w-full max-w-[420px] rounded-2xl border-[3px] border-black p-4 space-y-3" style={{ background: '#F4ECD6', boxShadow: `4px 4px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
-            <p className="font-black text-[19px] uppercase leading-tight" style={{ ...OSWALD, color: INK }}>{trocaDraft.draft ? tr('📋 Uma Liga Draft por vez', '📋 One Draft League at a time') : tr('🏆 Uma liga por vez', '🏆 One league at a time')}</p>
+            <p className="font-black text-[19px] uppercase leading-tight" style={{ ...OSWALD, color: INK }}>{trocaDraft.draft ? tr('📋 Uma Liga Draft por vez', '📋 One Draft League at a time') : tr('🏆 Uma Liga da Turma por vez', '🏆 One Crew League at a time')}</p>
             <p className="text-[13.5px] font-bold leading-snug text-black/80">{tr(
-              `No plano grátis você joga em ${trocaDraft.draft ? '1 Liga Draft' : '1 liga do Minhas Ligas'} por vez. Você já joga em “${trocaDraft.sair.nome}”. Pra entrar nesta, precisa sair dela.`,
-              `On the free plan you play in ${trocaDraft.draft ? '1 Draft League' : '1 My Leagues league'} at a time. You already play in “${trocaDraft.sair.nome}”. To join this one, you need to leave it.`)}</p>
+              `No plano grátis você joga em ${trocaDraft.draft ? '1 Liga Draft' : '1 Liga da Turma'} por vez. Você já joga em “${trocaDraft.sair.nome}”. Pra entrar nesta, precisa sair dela.`,
+              `On the free plan you play in ${trocaDraft.draft ? '1 Draft League' : '1 Crew League'} at a time. You already play in “${trocaDraft.sair.nome}”. To join this one, you need to leave it.`)}</p>
             <p className="text-[12.5px] font-black" style={{ color: '#C2452F' }}>{tr(`Quer sair de “${trocaDraft.sair.nome}” e entrar nesta?`, `Leave “${trocaDraft.sair.nome}” and join this one?`)}</p>
             <div className="grid grid-cols-2 gap-2">
               <button disabled={loading} onClick={() => { void (async () => {
@@ -3413,7 +3421,7 @@ export function EscLobby() {
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
       {ligaOn && (myLigas.length > 0 || showLeagues) && (
         <div id="ll-minhas-ligas" className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>{tr('🏆 Minhas ligas', '🏆 My leagues')}</p>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>{tr('🏆 Suas ligas', '🏆 Your leagues')}</p>
           {myLigas.length===0&&<p className="text-sm font-semibold text-black/70">{tr('Suas ligas aparecem aqui quando você criar uma ou entrar por convite. Liga Draft também fica nesta lista.','Your leagues appear here after you create one or join by invitation. Draft leagues also appear here.')}</p>}
           {myLigas.map(r => {
             const gs = r.game_state as GS
@@ -3591,7 +3599,7 @@ export function EscLobby() {
         // normal; jogar é sempre grátis) · `meta` = ainda não lançado: abre quando o Instagram bater N mil seguidores (faixa roxa)
         const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
-          { v: 'liga', ic: '🏆', nome: tr('Minhas ligas', 'My leagues'), frase: tr('A sala da turma que não acaba.', 'The crew\'s room that never ends.'), on: ligaOn, estrela: true },
+          { v: 'liga', ic: '🏆', nome: tr('Liga da Turma', 'Crew League'), frase: tr('O mesmo leilão das salas rápidas, mas numa liga só com os seus amigos, que não acaba.', 'The same auction as the quick rooms, but in a league just with your friends that never ends.'), on: ligaOn, estrela: true },
           // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
           // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
           // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
@@ -3970,7 +3978,7 @@ export function EscLobby() {
                   // feito. `v: null` = aba de vitrine, não vira modo nem por acidente.
                   const abasTodas: { v: typeof roomMode | null; label: string; liberado: boolean }[] = [
                     { v: 'rapido', label: tr('⚡ Rápido', '⚡ Quick'), liberado: true },
-                    { v: 'liga', label: tr('🏆 Minhas ligas', '🏆 My leagues'), liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
+                    { v: 'liga', label: tr('🏆 Liga da Turma', '🏆 Crew League'), liberado: ligaOn }, // 🏷️ o modo se chama MINHAS LIGAS desde 23/08; a aba tinha ficado 'Liga' (Diego cobrou 29/08)
                     { v: 'carreira', label: tr('🌐 Carreira', '🌐 Career'), liberado: canCareer },
                     { v: 'elenco', label: '🃏 Bafo', liberado: salaElenco },
                   ]
@@ -4463,7 +4471,7 @@ export function EscLobby() {
           <h2>{tr('Jogue com a galera','Play with friends')}</h2><div>
           <button type="button" data-livre="1" onClick={()=>setTab('join')}>{tr('Entrar com código','Join with a code')}</button>
           <button type="button" onClick={()=>setTab('create')}>{tr('Criar sala','Create room')}</button>
-          <p>{tr('Minhas ligas reúne suas ligas salvas, inclusive as de Draft.','My leagues includes your saved leagues, including Draft leagues.')}</p>
+          <p>{tr('Suas ligas reúne as suas Ligas da Turma e Ligas Draft.','Your leagues lists your Crew Leagues and Draft Leagues.')}</p>
           <p>🟢 {tr('Esperando gente: pode entrar.','Waiting: you can join.')}<br/>🔒 {tr('Com senha: pede o convite.','Password: invitation required.')}<br/>🔴 {tr('Em jogo: partida em andamento.','Playing: match in progress.')}</p>
           </div>
         </aside>
@@ -4662,7 +4670,7 @@ export function EscLobby() {
           <h2>{tr('Outros caminhos','Other options')}</h2><div>
           <button type="button" data-livre="1" onClick={()=>{setRoomError('');setShowLeagues(false);setTab('open')}}>{tr('Ver salas abertas','View open rooms')}</button>
           <button type="button" onClick={()=>{setRoomError('');setShowLeagues(false);setTab('create')}}>{tr('Criar uma sala','Create a room')}</button>
-          {ligaOn&&<button type="button" onClick={()=>{setRoomError('');setTab('open');setShowLeagues(true)}}>{tr('Minhas ligas','My leagues')}</button>}
+          {ligaOn&&<button type="button" onClick={()=>{setRoomError('');setTab('open');setShowLeagues(true)}}>{tr('Suas ligas','Your leagues')}</button>}
           <p>{tr('Use o código da sala no campo ao lado. Convites da Carreira Online têm uma entrada própria abaixo.','Use the room code in the field beside this panel. Online Career invitations have a separate entry below.')}</p>
           </div>
         </aside>}

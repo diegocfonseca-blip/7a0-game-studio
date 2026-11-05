@@ -979,6 +979,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **⚡ ENVELOPE ÚNICO = o 4º jeito de dar lance (28/10, mockup `scripts/mockups/envelope-unico.png`; 🟢 LIBERADO PRA TODOS no mesmo dia com selo NOVO, e o Relâmpago trocou "em testes" por NOVO).**
   As 5 posições num envelope só, **180s** (*"tempo de 90s troque para 180s"*), uma revelação só, empate = sorteio. Partida Rápida + salas
   (Rápido/Minhas Ligas); nunca carreira, nunca duplas. Usa o MESMO motor da leva (`leilaoResolveLeva`). 🔁 **2ª LISTA** (28/10, *"muita carta no monte"*): o que sobra volta num 2º envelope (90s, só posições com vaga de gente) e só depois vai pro Monte. Selo na lista de salas = `ls_pregao = 'unico'`. Trava `npm run envelope-unico`.
+- **🏆 LIGA DA TURMA × LIGA DRAFT (05/11, regra dele).** "Minhas Ligas" agora se chama **🏆 Liga da Turma** (*"é uma liga
+  apenas com seus amigos, que não acaba"*). Ela e a 📋 Liga Draft contam SEPARADO. **Grátis** não cria e joga em 1 de cada por vez
+  (2ª do mesmo tipo = aviso pra sair da 1ª, sim/não; trava também no banco, `esc_liga_limite_gratis`). **Criar**: ⭐ Craque Salas 2
+  de cada · ⭐ Craque Completo pra cima 3 de cada (`limiteCriarLigas`) — *"não dá pra ficar criando uma porrada de liga"*. **Entrar
+  é ilimitado pra quem paga, e o texto sempre diz isso.** Aviso de teto só quando bate nele. Quem já tem mais fica com todas.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).

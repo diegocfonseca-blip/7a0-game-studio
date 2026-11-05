@@ -56,7 +56,7 @@ export function LimiteSalaVenda({ onPagou }: { onPagou: () => void }) {
 
       <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: '8px 10px', background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, fontSize: 13, fontWeight: 600, lineHeight: 1.7 }}>
         <li>✅ <b>{tr('Salas à vontade', 'Unlimited rooms')}</b> {tr('todo dia', 'every day')}</li>
-        <li>✅ <b>{tr('Minhas Ligas', 'My Leagues')}</b> {tr('com os amigos', 'with your friends')}</li>
+        <li>✅ <b>{tr('Liga da Turma e Liga Draft', 'Crew League and Draft League')}</b> {tr('com os amigos', 'with your friends')}</li>
         <li>✅ <b>{tr('Nome único', 'Unique name')}</b> + {tr('nome', 'name in')} <b>{tr('prata', 'silver')}</b> ⭐ · {tr('presidente e clã', 'president and clan')}</li>
       </ul>
       <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🏟️ limite de sala → ver os planos'); open() }}
