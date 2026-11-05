@@ -12259,3 +12259,10 @@ Mockups prontos (`scripts/mockups/base-ct-mapa-local.png`, `base-ct-niveis.png`,
 `scripts/mockups/base-ct-prototipo.ts`): campinho atrás do telão (x 0 · z −111, 55×35) e CT ao lado (x −65 · z −111), 3 níveis
 cada. Proposta de regra (NÃO aprovada): base melhora o Cria (50–60 → 54–63) + escolinha; CT N1 aluguel, N2/N3 menos "dia ruim".
 Não retomar sem ele pedir.
+
+## 05/11 — 🌍 Copa do Mundo da sala sem campeão quando o dono sai (sala 8NEAV6)
+- Só o aparelho do DONO grava o campeão da Copa (`gravaNaEstante`, copa-mundo-online.tsx). O Sapo Loko saiu logo depois da
+  final e a Copa ficou em branco. **Gravado à mão pro Guarabu FC (Itália)**: `esc_copa_salas.campeao`,
+  `game_champions.copa_champion_name` e `'mundial'` no `cup_titles` dele (id 72a0c5ac…). Pra desfazer: voltar os três pra null/[].
+- ⏳ PROPOSTO, esperando OK do Diego: se o dono sumiu, qualquer aparelho da sala grava o campeão quando a final acaba
+  (a Copa é a mesma em todo aparelho), só se ainda estiver em branco. Não encosta em coroa nem lance.
