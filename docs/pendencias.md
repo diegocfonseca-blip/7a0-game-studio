@@ -1,3 +1,9 @@
+## 🎬 05/11 — Vídeos de LANÇAMENTO prontos (NÃO postar antes de liberar)
+- 📋 Liga Draft: `node scripts/video-liga-draft-reels.mjs` → `scripts/posts/liga-draft-reels.mp4` (1080×1920, ~38 s). Postar só quando `MINHA_LIGA_DRAFT_GERAL = true`.
+- 📺 Campo 2D: `node scripts/video-campo2d-reels.mjs` → `scripts/posts/campo2d-reels.mp4` (~37 s). Postar só quando o 2D for liberado (hoje `CAMPO2D_TESTERS`). Diz: na sala quem cria escolhe 📊/📺 e quem entra assiste de graça; carreira/partida rápida do ⭐ Craque Salas pra cima.
+- Imagens reais usadas: `scripts/posts/img/` (draft-*.png da bancada/mockup aprovado · campo2d-*.png quadros do campinho).
+- 🔒 05/11: jogador que chega num bot fica lá 3 temporadas (`botPodeSoltar`, trava `testa-liga-draft-bots.mts`).
+
 ## 🤖 05/11 — Liga Draft: a SOBRA vai de graça pro bot (feito, só testadores)
 Diego: *"cada bot poderia pegar um jogador do leilão que ninguém quis de graça… o que o usuário remove pra entrar o do draft… cada hora é a vez de um bot em sequência… bot também 22… sempre o melhor 11… o usuário não ganha dinheiro"*. Fechado: (1) só o jogador POSTO À VENDA sem lance vai pro bot — o sondado sem lance volta pro dono; (2) todos os bots com 22 = o da vez troca pelo pior da MESMA posição se o novo for melhor (*"pode melhorar os reservas"*), senão o jogador fica livre pro draft.
 - Sobra = quem o usuário tira com 22 no draft · quem sai pra caber o comprado no leilão · o "à venda" sem lance. Vai pro bot da vez (fila 1→7→1, `mldBotVez`), `paid: 0`, ninguém recebe moeda. Bot cheio passa a vez.
