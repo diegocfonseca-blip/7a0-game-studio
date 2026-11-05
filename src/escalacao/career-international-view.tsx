@@ -42,7 +42,8 @@ import { useCampo2DLigado } from './campo2d-modo'
 import { useMotor2Carreira, useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
-import { dur2D } from './campo2d-motor'
+import { DUR_2D_MS } from './campo2d-motor'
+import { useRitmo2D, useVel2D } from './ritmo2d'
 import { LiveScoreCard, PensShootout, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
@@ -507,7 +508,7 @@ function frasesDoApito(fase: 'liga' | 'ida' | 'volta' | 'final', comp: Comp, voc
   }
 }
 
-export function JogoGrande({ match, campaign, comp, roundKey, speed, manual, onFim, fase = 'liga', penalties }: { manual?: boolean; penalties?: InternationalTie; match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
+export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga', penalties }: { penalties?: InternationalTie; match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
   const c2d = useCampo2DLigado() // 📺 no Campo 2D o jogo dura 1:30
   const {state}=useEsc(),presidentAvailable=usePresidentPreview()
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
@@ -536,7 +537,7 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, manual, onF
     mascotHome={home.you ? campaign.userTeam : undefined} mascotAway={away.you ? campaign.userTeam : undefined}
     apitoFrases={frasesDoApito(fase, comp, home.you ? home.institution : away.institution)}
     elencos={{ casa: home.xi, fora: away.xi, m2: entradaInternacionalM2(campaign.teams, match) }} // 📺 sem o elenco o Campo 2D montava o time sem nomes nem rostos das lendas (Diego 20/10)
-    youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? dur2D(!!manual) : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
+    youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
     onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); if (!temDisputaCampo) onFim() } }} />
     {disputa.estado && penalties?.penalties && aPen && bPen && <PensShootout compactCareer lento={home.you||away.you} campo={disputa.estado}
       pens={penalties.penalties} aName={aPen.institution} bName={bPen.institution} aSquad={aPen.xi} bSquad={bPen.xi}
@@ -552,8 +553,10 @@ export function CareerInternationalView(p: Props) {
   const hasManual = useHasManual()
   const manualAllowed = !state.careerEra || hasManual
   const manual = manualPref && manualAllowed
-  const speed = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  const r2dIntl = useRitmo2D(), vel2dIntl = useVel2D()
   const c2d = useCampo2DLigado()
+  // ⏩📺 2D offline: a marcha guardada (começa 2×) · 2D na carreira online: 2× × a marcha do dono
+  const speed = r2dIntl.teste ? vel2dIntl : (c2d ? 2 : 1) * (state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1)
   const toggleManual = () => { const goingManual = !manual; toggleSim(); if (!goingManual && speed !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 }) }
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
   const champsOk = championsLiberada(p.history)
@@ -632,7 +635,7 @@ export function CareerInternationalView(p: Props) {
   const ultimoJogo = jogo >= pernas - 1
   const pronto = fimJogo && ultimoJogo // a NOITE inteira acabou (tabela e a outra final só depois disso)
   // ⏱️ o relógio da perna: o MESMO do placar grande, pra todo jogo da noite andar junto
-  const legMs = Math.round((c2d ? dur2D(manual) : COPA_LEG_MS / 0.82) / speed) // 📺 no Campo 2D: 2× no auto, 1:30 no Manual
+  const legMs = Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed) // 📺 no Campo 2D: 1:30 ÷ a marcha guardada (começa 2×)
   // 🎬 TÚNEL DA FINAL (24/10, Diego: *"túnel da final e festa são todas as copas"*): na final da Libertadores/Champions e no
   // Mundial em que o SEU clube joga, o túnel em tela cheia faz 4s de contagem ANTES da bola rolar — o placar grande só monta
   // (e o relógio da noite só começa) quando ele fecha. No Campo 2D não entra (o campinho tem relógio próprio). 1x por noite.
@@ -849,7 +852,7 @@ export function CareerInternationalView(p: Props) {
       {tunelIntlOn && minhaTie && <div style={{ display: 'none' }}><TunelFinal comp={compDaFase === 'mundial' ? 'mundial' : compDaFase === 'libertadores' ? 'liberta' : 'champions'}
         seg={tunelIntl} total={4} onFechar={fechaTunelIntl}
         casa={{ nome: nomeDe(minhaTie.home), crest: crestOf(current, minhaTie.home, 92) }} fora={{ nome: nomeDe(minhaTie.away), crest: crestOf(current, minhaTie.away, 92) }} /></div>}
-      {tunelIntlOn ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>🏟️</p> : jogoGrande && <JogoGrande penalties={ultimoJogo?minhaTie:undefined} match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} manual={manual} onFim={() => setFimJogo(true)} fase={!minhaTie ? 'liga' : minhaTie.matches.length === 1 ? 'final' : jogo === 0 ? 'ida' : 'volta'} />}
+      {tunelIntlOn ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>🏟️</p> : jogoGrande && <JogoGrande penalties={ultimoJogo?minhaTie:undefined} match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} fase={!minhaTie ? 'liga' : minhaTie.matches.length === 1 ? 'final' : jogo === 0 ? 'ida' : 'volta'} />}
       {finalNeutra && <FinalCard phase={finalNeutra} campaign={current} titulo={compDaFase === 'mundial' ? tr('A final do Mundial de Clubes', 'The Club World Cup final') : `${tr('A final da', 'The final of the')} ${nomeComp(compDaFase!)}`} startedAt={startedAt} legMs={legMs} finished={fimJogo} roundKey={reveal * 10 + jogo} />}
       {!meusJogos.length && rep && !ehFinal && <div style={{ ...card, textAlign: 'center' }}><p style={{ margin: 0, fontWeight: 800, fontSize: 12, color: INK }}>{tr('Você já está fora desta fase. Os jogos da noite:', 'You are out of this stage. Tonight\'s matches:')}</p></div>}
       {fimDaTie && minhaTie && <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', marginTop: -4, marginBottom: 10, textAlign: 'center' }}>

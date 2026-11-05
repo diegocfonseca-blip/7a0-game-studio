@@ -16,7 +16,8 @@ import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { FORMACOES_JOGO, FORMATIONS } from './types'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
-import { DUR_2D_AUTO_MS, dur2D } from './campo2d-motor'
+import { DUR_2D_MS, DUR_2D_SALA_MS } from './campo2d-motor'
+import { useVel2D } from './ritmo2d'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -1245,7 +1246,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // ⏱️ 13/10 (Diego: *"aumente mais 1s em cada jogo da copa"*): sala 16s (o banco manda — `docs/sql/online-copa-clock-16s.sql`;
   // o número daqui só vale sem relógio sincronizado). Carreira segue em 10s.
   const c2d = useCampo2DLigado() // 📺 Campo 2D: o jogo dura 1:30 (sala sincronizada: quem manda ainda é o relógio do banco)
-  const roundMs = synced?.row?.duration_ms ?? Math.round((c2d ? (online ? DUR_2D_AUTO_MS : dur2D(manual)) : (online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
+  const vel2dCopa = useVel2D() // ⏩📺 05/11: 2D offline = a marcha guardada (começa 2×) · sala online = 3× (o banco manda quando tem relógio)
+  const roundMs = synced?.row?.duration_ms ?? (c2d ? (online ? DUR_2D_SALA_MS : Math.round(DUR_2D_MS / vel2dCopa)) : Math.round(((online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed))
   // 🥅 BUG DA FINAL (Diego 13/10: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças"*).
   // A disputa só entrava na tela em `liveDone` — que é DEPOIS de `duration + extra`, e o `extra` era justamente o tempo
   // reservado pra disputa. Ou seja: a reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s
@@ -1429,7 +1431,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
             <button className={manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('manual')}>MANUAL</button>
             <button className={!manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('auto')}>AUTO</button>
             <select aria-label={tr('Velocidade da Copa', 'Cup speed')} value={synced.row.speed} disabled={synced.busy || synced.row.running} onChange={e=>void synced.command('speed',Number(e.target.value))}>
-              <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={4}>4×</option>
+              <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={3}>3×</option><option value={4}>4×</option>
             </select>
           </div>
           <p>{tr('A velocidade pode mudar entre os jogos. Todos acompanham o ritmo do host.', 'Speed can change between games. Everyone follows the host\'s pace.')}</p>

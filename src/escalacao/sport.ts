@@ -533,7 +533,7 @@ function applyCampo2D(email?: string | null): void {
 // 📺⚡ TROCA 2D ↔ PLACAR RÁPIDO NO MEIO DA SALA (05/11): por enquanto SÓ a conta do Diego (*"E por enquanto só na minha conta"*).
 // Vale a conta do DONO da sala: o botão só aparece pra ele, e o reducer (que só roda no aparelho do dono) também confere.
 // Liberar = TROCA_2D_SALA_GERAL = true (aí a régua volta a ser a da criação: 2D liberado + plano).
-const TROCA_2D_SALA_GERAL = false
+const TROCA_2D_SALA_GERAL = true // 🟢 05/11: liberado (Diego viu o Futpoint na Liga Draft sem poder trocar pro placar)
 const TROCA_2D_SALA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let troca2dSalaOk = TROCA_2D_SALA_GERAL
 /** a conta logada NESTE aparelho pode trocar 2D ↔ rápido na sala dela? (o reducer do dono lê isto) */

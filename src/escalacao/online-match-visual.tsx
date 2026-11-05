@@ -158,7 +158,7 @@ export function OnlineRhythm(p: { manual: boolean; onToggle: () => void; speed: 
     <button className="ll25-button" aria-pressed={p.manual} onClick={() => { if (!p.manual) p.onToggle() }}>MANUAL</button>
     <button className="ll25-button" aria-pressed={!p.manual} onClick={() => { if (p.manual) p.onToggle() }}>AUTO</button>
     <label><span className="ll25-sr">{tr('Velocidade da partida', 'Match speed')}</span><select className="ll25-button" disabled={!p.manual} value={p.speed > 0 ? p.speed : 1} onChange={e => p.onSpeed(Number(e.target.value))}>
-      <option value={0.25}>{tr('4× mais lento', '4× slower')}</option><option value={0.5}>{tr('2× mais lento', '2× slower')}</option><option value={1}>Normal</option><option value={2}>{tr('2× mais rápido', '2× faster')}</option><option value={4}>{tr('4× mais rápido', '4× faster')}</option>
+      <option value={0.25}>{tr('4× mais lento', '4× slower')}</option><option value={0.5}>{tr('2× mais lento', '2× slower')}</option><option value={1}>Normal</option><option value={2}>{tr('2× mais rápido', '2× faster')}</option><option value={3}>{tr('3× mais rápido', '3× faster')}</option><option value={4}>{tr('4× mais rápido', '4× faster')}</option>
     </select></label>
   </div>
 }

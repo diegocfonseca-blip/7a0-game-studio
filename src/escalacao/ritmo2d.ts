@@ -41,12 +41,32 @@ export function useRitmo2D(): { teste: boolean; semManual: boolean } {
   const tester = useCampo2DTester() // 🧪 05/11: o 2D foi liberado pra todos; o teste de ritmo segue só na conta do Diego
   const s = useEscTalvez()?.state
   const sem = useRitmo2dSemManual()
-  const teste = RITMO2D_TESTE && tester && c2d && !!s && s.onlineMode !== 'online' && !s.careerDivision && !s.careerOnline && s.sport !== 'basquete'
-  return { teste, semManual: teste && sem }
+  // ⏩ 05/11 (Diego): virou REGRA pra todos — todo 2D OFFLINE (Partida Rápida e carreira) usa a marcha guardada no aparelho.
+  // Sala online (e a carreira online, que sincroniza pelo dono) fica fora: lá o tempo é da sala.
+  const teste = RITMO2D_TESTE && c2d && !!s && s.onlineMode !== 'online' && !s.careerOnline && s.sport !== 'basquete'
+  const semManualOk = tester && !s?.careerDivision // o "sem botão Manual" segue só como teste na Partida Rápida do Diego
+  return { teste, semManual: teste && semManualOk && sem }
 }
 
-/** o divisor do tempo do jogo no 2D: automático = 2×; no Manual, a marcha escolhida (sem marcha ainda = 2×) */
-export function fatorRitmo2D(manual: boolean, simSpeed: number | undefined): number {
-  if (!manual) return RITMO2D_PADRAO
-  return simSpeed && simSpeed > 0 ? simSpeed : RITMO2D_PADRAO
+// ⏩ A MARCHA DO 2D FICA GUARDADA (05/11, Diego: *"se ele deixou por último no 4x e apertou em auto deveria valer o que ele apertou
+// por último… auto 4x"*). Começa no 2× (*"no carreira deixa 2x a velocidade do auto"*); a escolha no Manual vale pro automático também.
+const KV = 'esc-vel2d'
+const ouvVel = new Set<() => void>()
+export function vel2D(): number {
+  try { const v = Number(localStorage.getItem(KV)); return RITMO2D_OPTS.some(o => o.v === v) ? v : RITMO2D_PADRAO } catch { return RITMO2D_PADRAO }
+}
+export function setVel2D(v: number): void {
+  if (!RITMO2D_OPTS.some(o => o.v === v)) return
+  try { localStorage.setItem(KV, String(v)) } catch { /* sem armazenamento: vale só agora */ }
+  ouvVel.forEach(f => { try { f() } catch { /* ignora */ } })
+}
+export function useVel2D(): number {
+  const [, bump] = useState(0)
+  useEffect(() => { const f = () => bump(n => n + 1); ouvVel.add(f); return () => { ouvVel.delete(f) } }, [])
+  return vel2D()
+}
+
+/** o divisor do tempo do jogo no 2D offline: a última marcha escolhida (auto e Manual iguais; começa no 2×) */
+export function fatorRitmo2D(_manual?: boolean, _simSpeed?: number): number {
+  return vel2D()
 }

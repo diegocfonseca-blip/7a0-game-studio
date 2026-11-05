@@ -92,7 +92,8 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos'
 import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
-import { dur2D } from './campo2d-motor'
+import { DUR_2D_MS, DUR_2D_AUTO_MS } from './campo2d-motor'
+import { useRitmo2D, useVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
@@ -8364,7 +8365,9 @@ export function PyramidSeasonScreen() {
   setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)
   useEffect(() => () => setCareerColorCtx(null), [])
   const round = state.round
-  const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  // ⏩📺 05/11: com o 2D na carreira OFFLINE a velocidade é a marcha guardada (começa 2×; a do Manual vale no auto também)
+  const r2dCarr = useRitmo2D(), vel2dCarr = useVel2D()
+  const speedFactor = r2dCarr.teste ? vel2dCarr : state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   // ⏸️ passo é seu (SOLO + manual): usado na liga e na Copa. Declarado aqui em cima
   // porque o TEMPO DA PARTIDA (logo abaixo) e o efeito da Copa precisam saber se é manual.
   const [manualPref, toggleSim] = useSimMode()
@@ -8388,7 +8391,7 @@ export function PyramidSeasonScreen() {
   // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
   // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
   const campo2d = useCampo2DLigado() // (na sala online quem manda é a sala — `useCampo2DLigado` já olha isso; todo mundo no mesmo tempo)
-  const baseRoundMs = campo2d ? (state.onlineMode === 'online' && !state.careerOnline ? dur2D(false) : dur2D(manual)) : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
+  const baseRoundMs = campo2d ? (r2dCarr.teste ? DUR_2D_MS : DUR_2D_AUTO_MS) : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -9338,7 +9341,7 @@ export function PyramidSeasonScreen() {
   // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
   // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
   // 📺 no Campo 2D cada jogo da Copa também dura o mesmo da liga: 2× no auto, 1:30 no Manual (05/11)
-  const copaLegMs = campo2d ? Math.round(dur2D(manual) * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  const copaLegMs = campo2d ? Math.round((r2dCarr.teste ? DUR_2D_MS : DUR_2D_AUTO_MS) * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
   const copaClock=useRef({key:'',elapsed:0})
   // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
@@ -9350,7 +9353,7 @@ export function PyramidSeasonScreen() {
     // LiveScoreCard publica cada minuto e só libera a próxima perna no apito.
     // Um segundo timer aqui faria a volta começar com a bola da ida no ar.
     if(copaCampo)return
-    const sf = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1 // ⏩ marcha escolhida
+    const sf = speedFactor // ⏩ marcha escolhida (no 2D offline, a guardada)
     const dur = Math.round((copaNLegs * copaLegMs) / sf)
     // Se a autorização da prévia mudar, continua de onde a Copa estava.
     copaClock.current.elapsed=Math.max(copaClock.current.elapsed,copaPos/copaFaseTotal*copaNLegs*copaLegMs)
@@ -11906,7 +11909,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
+        {copaPlaying && myCopaTie && <MyCopaMatch onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue

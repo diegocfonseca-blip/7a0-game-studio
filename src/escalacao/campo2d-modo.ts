@@ -41,12 +41,12 @@ export function usePago2D(): boolean {
  *  relógio (a duração que o banco carimbou no `next`), não o estado da sala — assim, se o dono trocou, todo aparelho muda
  *  junto no passo seguinte, e nunca no meio de um jogo. `undefined` = sem relógio: vale a sala. */
 export const Campo2DDoPassoCtx = createContext<boolean | undefined>(undefined)
-/** o banco carimba 54878 ms (÷ velocidade) no passo 2D — 2× desde 05/11 (`docs/sql/campo2d-2x.sql`; antes 109756, que
+/** o banco carimba 36585 ms (÷ velocidade) no passo 2D — 3× desde 05/11 (`docs/sql/campo2d-sala-3x.sql`; antes 109756, que
  *  continua valendo pra passo carimbado antes da troca) — e 16000 no normal */
 export function doisDDoPasso(row: { step: number; duration_ms: number; speed: number } | null | undefined): boolean | undefined {
   if (!row || row.step <= 0) return undefined // nenhum passo começou ainda: vale a sala
   const d = row.duration_ms * (row.speed || 1)
-  return Math.abs(d - 54878) < 1500 || Math.abs(d - 109756) < 1500
+  return Math.abs(d - 36585) < 1500 || Math.abs(d - 54878) < 1500 || Math.abs(d - 109756) < 1500 // 3× (05/11) · 2× · 1:30 (passos carimbados antes)
 }
 
 /** o 2D está ligado AQUI? (a sala online manda; fora dela, a escolha do aparelho de quem está liberado E pagou) */
