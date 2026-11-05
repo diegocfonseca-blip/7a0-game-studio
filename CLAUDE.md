@@ -1042,7 +1042,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
   ⏩ **05/11: NO AUTOMÁTICO O 2D ANDA A 2× EM TODO LUGAR** (~45 s por jogo; *"coloque 2x… quando tá no auto, seja carreira ou
   online e qualquer competição"*). Ele pediu 2,5 nas salas e logo trocou por 2× geral. Mora em `dur2D(manual)` / `DUR_2D_AUTO_MS`
-  (campo2d-motor.ts); no Manual a base segue 1:30 e a marcha divide por cima; nas salas online é sempre 2×. Relógio do banco da Copa do
+  (campo2d-motor.ts); no Manual TAMBÉM começa em 2× (*"no manual também começa com 2x"*) e a marcha divide por cima (🐢 = o 1:30 de antes); nas salas online é sempre 2×. Relógio do banco da Copa do
   Mundo/regionais = `docs/sql/campo2d-2x.sql` (54878). ⚠️ O banco só muda DEPOIS do deploy fechar (aparelho velho não reconhece 54878
   como passo 2D; o novo aceita 54878 e 109756).
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.

@@ -1,7 +1,7 @@
 ## ⏩ 05/11 — Campo 2D a 2× no AUTOMÁTICO em todo lugar (branch; esperando "publique")
 Diego: *"coloque 2x então em todos locais qd tá no auto seja carreira ou online e qualquer competição"* (antes pediu 2,5 só nas salas).
 - Carreira offline/online, Partida Rápida, salas online (liga, Liga da Turma/Draft, copas, Liberta, Champions, Copa do Mundo, regionais):
-  ~45 s por jogo no auto. No Manual segue 1:30 + a marcha. `dur2D` / `DUR_2D_AUTO_MS` em campo2d-motor.ts.
+  ~45 s por jogo, no auto E no Manual (*"no manual também começa com 2x"*); a marcha do Manual divide por cima (🐢 = 1:30). `dur2D` / `DUR_2D_AUTO_MS` em campo2d-motor.ts.
 - [ ] Ao publicar: esperar o deploy fechar verde e SÓ ENTÃO rodar `docs/sql/campo2d-2x.sql` no banco (Copa do Mundo/regionais).
 - Reverter: `RITMO2D_AUTO = 1` + rodar o SQL trocando 54878 por 109756.
 

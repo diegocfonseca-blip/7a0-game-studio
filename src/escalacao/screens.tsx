@@ -6,7 +6,7 @@ import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
-import { DUR_2D_AUTO_MS, dur2D } from './campo2d-motor'
+import { DUR_2D_MS, DUR_2D_AUTO_MS, dur2D } from './campo2d-motor'
 import { useRitmo2D, fatorRitmo2D, RITMO2D_PADRAO, RITMO2D_OPTS, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
@@ -7215,7 +7215,7 @@ export function EscSeason() {
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
   // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
   const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
-  const baseRoundMs = c2d ? (online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? dur2D(true) : dur2D(manual)) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
+  const baseRoundMs = c2d ? (online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? DUR_2D_MS : dur2D(manual)) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor))
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7436,7 +7436,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? Math.round((online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? dur2D(true) : dur2D(manual)) / (r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : 1)) : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
+  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? Math.round((online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? DUR_2D_MS : dur2D(manual)) / (r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : 1)) : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
@@ -9093,7 +9093,7 @@ export function EscLiberta() {
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const c2d = useCampo2DLigado()
-  const roundMs = Math.round((c2d ? (online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? dur2D(true) : dur2D(manual)) : online ? ROUND_MS_ONLINE : ROUND_MS) / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor)) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
+  const roundMs = Math.round((c2d ? (online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? DUR_2D_MS : dur2D(manual)) : online ? ROUND_MS_ONLINE : ROUND_MS) / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor)) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
   // 🙈 ANTI-SPOILER (regra do Diego): a classificação do grupo só atualiza DEPOIS
   // que o jogo terminou de animar na tela — igual a tabela da liga faz.
   const [revealed, setRevealed] = useState(false)
@@ -9398,7 +9398,7 @@ export function EscChampions() {
   // régua é o JOGO que está na tela, não o nome da fase.
   const jogoDeCopa = !!ch && ((ch.fase === 'repescao' && !ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
   const c2d = useCampo2DLigado() // 📺 2D = 1:30 por jogo
-  const roundMs = Math.round((c2d ? (online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? dur2D(true) : dur2D(manual)) : jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor))
+  const roundMs = Math.round((c2d ? (online && !state.careerOnline ? DUR_2D_AUTO_MS : r2d.teste ? DUR_2D_MS : dur2D(manual)) : jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor))
   const passo = (ch?.fase === 'repescao' ? 100 : 0) + (ch?.rodada ?? 0) * 2 + (ch?.repescaoLeg ?? 0)
   const startedAt = useRoundPresentationStart(passo)
 
