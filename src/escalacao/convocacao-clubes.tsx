@@ -40,6 +40,8 @@ export function EscConvocacaoClubes() {
   const bb = state.sport === 'basquete'
   // ⚽ 04/11 (Diego): na convocação dá pra trocar de formação — acende só a que os pacotes fecham (não vale em dupla nem no basquete)
   const [form, setForm] = useState<FormationKey>(me?.formation ?? '4-3-3')
+  // 🪽 05/11: 3-5-2 = as MESMAS vagas do 5-3-2, com os laterais desenhados como alas (pro motor segue '5-3-2')
+  const [alas, setAlas] = useState(false)
   const formRef = useRef(form); formRef.current = form
   const vagas = (s: Sector) => vagasBase(form, s)
   const tagDe = (s: Sector) => bb ? POS_LABELS.basquete[s].tag : s
@@ -158,7 +160,7 @@ export function EscConvocacaoClubes() {
           <span style={{ fontSize: 26 }}>🧱</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, color: '#fff', textTransform: 'uppercase' }}>{t('Convocação', 'Call-up')} · {me.teamName}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', margin: '2px 0 0' }}>{bb ? t('Escolha quem joga dentro dos pacotes que você levou: 1 por posição, o seu quinteto. Quem ficar de fora vai pros outros times.', 'Pick who plays from the packs you won: 1 per position, your starting five. Whoever is left out goes to the other teams.') : t(`Escolha quem joga dentro dos pacotes que você levou. Formação: ${emDupla ? form : form + ' (dá pra trocar logo abaixo)'}. Quem ficar de fora vai pros outros times.`, `Pick who plays from the packs you won. Formation: ${emDupla ? form : form + ' (you can switch below)'}. Whoever is left out goes to the other teams.`)}</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', margin: '2px 0 0' }}>{bb ? t('Escolha quem joga dentro dos pacotes que você levou: 1 por posição, o seu quinteto. Quem ficar de fora vai pros outros times.', 'Pick who plays from the packs you won: 1 per position, your starting five. Whoever is left out goes to the other teams.') : t(`Escolha quem joga dentro dos pacotes que você levou. Formação: ${emDupla ? form : (alas ? '3-5-2' : form) + ' (dá pra trocar logo abaixo)'}. Quem ficar de fora vai pros outros times.`, `Pick who plays from the packs you won. Formation: ${emDupla ? form : (alas ? '3-5-2' : form) + ' (you can switch below)'}. Whoever is left out goes to the other teams.`)}</p>
           </div>
           <div style={{ background: GOLD, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
             <b style={{ display: 'block', fontSize: 15, lineHeight: 1, ...OSWALD }}>{total}/{alvo}</b>
@@ -183,14 +185,15 @@ export function EscConvocacaoClubes() {
           <div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px', textTransform: 'uppercase' }}>{t('⚽ Formação', '⚽ Formation')}</p>
             <div className="cv-forms" style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {FORMACOES_JOGO.map(f => {
+              {FORMACOES_JOGO.flatMap((f): [FormationKey, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
                 const ok = formacaoCabeNosPacotes((me.squad ?? []) as WonCard[], f)
                 const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
+                const on = form === f && alas === ala, nome = ala ? '3-5-2' : f
                 return (
-                  <button key={f} disabled={!ok} onClick={() => { if (f === form) return; setForm(f); setSel({}); setAviso(null) }}
-                    title={falta ? t(`Seu pacote de ${nomeSec(falta, 2)} não tem gente pra ${f}`, `Your ${nomeSec(falta, 2)} pack is too small for ${f}`) : undefined}
-                    style={{ border: `2.5px solid ${INK}`, borderRadius: 9, padding: '4px 9px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : form === f ? GOLD : '#fff', boxShadow: form === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .6 }}>
-                    {ok ? f : `🔒 ${f}`}
+                  <button key={nome} disabled={!ok} onClick={() => { if (f === form) { setAlas(ala); return } setForm(f); setAlas(ala); setSel({}); setAviso(null) }}
+                    title={falta ? t(`Seu pacote de ${nomeSec(falta, 2)} não tem gente pra ${nome}`, `Your ${nomeSec(falta, 2)} pack is too small for ${nome}`) : (ala ? t('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined)}
+                    style={{ flex: '1 0 21%', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : on ? GOLD : '#fff', boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .6 }}>
+                    {ok ? nome : `🔒 ${nome}`}
                   </button>
                 )
               })}
@@ -272,15 +275,16 @@ export function EscConvocacaoClubes() {
         ) : (
         <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {form}</span>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {alas ? '3-5-2' : form}</span>
           </div>
           <PlacaGol lado="cima" alt={24} />
           <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(['ATA', 'MEI', 'DEF', 'GOL'] as const).map(row => {
-              const secs: Sector[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
+              // 🪽 3-5-2: laterais nas pontas da linha do meio (alas); atrás só os 3 zagueiros
+              const secs: Sector[] = row === 'DEF' ? (alas ? ['ZAG'] : ['LAT', 'ZAG']) : row === 'MEI' && alas ? ['LAT', 'MEI'] : [row]
               let slots: { s: Sector; c: Card | null }[] = []
               for (const s of secs) { const p = doSetor(s); for (let i = 0; i < vagas(s); i++) slots.push({ s, c: p[i] ?? null }) }
-              if (row === 'DEF' && vagas('LAT') === 2) { const lat = slots.filter(x => x.s === 'LAT'), zag = slots.filter(x => x.s === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
+              if (((row === 'DEF' && !alas) || (row === 'MEI' && alas)) && vagas('LAT') === 2) { const lat = slots.filter(x => x.s === 'LAT'), resto = slots.filter(x => x.s !== 'LAT'); slots = [lat[0], ...resto, lat[1]] }
               return (
                 <div key={row} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
                   {/* 🧍 igual ao campinho da carreira (Diego 27/09: "da mesma forma que do carreira, sem
@@ -308,6 +312,11 @@ export function EscConvocacaoClubes() {
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, fontFamily: 'system-ui', textTransform: 'none', marginTop: 2 }}>{t('faltam', 'missing')} {faltando.join(' · ')} — {pc ? t('escolha nos pacotes ⬅️', 'pick in the packs ⬅️') : t('escolha nas abas ⬆️', 'pick in the tabs ⬆️')}</span>
           </div>
         )}
+        {state.onlineMode === 'online' && humanos.length > 1 && (() => {
+          // ✅ 05/11 (Diego): quem da sala já fechou — só o nome, nunca quem convocou (sem spoiler)
+          const ja = humanos.filter(m => (state.convocacaoFeitos ?? []).includes(m.id))
+          return <p style={{ fontSize: 11, fontWeight: 800, margin: 0, textAlign: 'center', color: 'rgba(0,0,0,.7)', lineHeight: 1.4 }}>✅ {t('Já fecharam', 'Already done')}: <b>{ja.length} {t('de', 'of')} {humanos.length}</b>{ja.length ? ` · ${ja.map(m => m.teamName).join(', ')}` : ''}</p>
+        })()}
         </div>
       </div>
     </Shell>

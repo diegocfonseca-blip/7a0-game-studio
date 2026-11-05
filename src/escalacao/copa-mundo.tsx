@@ -723,7 +723,7 @@ function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose }: { paises16:
 }
 
 // ── tela 2: CONVOCAÇÃO (mockup aprovado: listão A-Z sem categoria, 11 na veia) ──
-export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, poolPronto, emblema, rotuloTime }: {
+export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, poolPronto, emblema, rotuloTime, fecharam }: {
   pais: string; onBack: () => void; onDone: (xi: PoolCard[], f: Formation) => void
   /** 🏟️ COPA REGIONAL (10/10): o elenco de um CLUBE em vez do de um país. Sem isto, tudo
       como sempre (a Copa do Mundo continua lendo `countryPool(pais)`). */
@@ -737,12 +737,17 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
   /** ⏱️ o tempo acabou: leva o que a pessoa JÁ tinha marcado (pode ser 0, 3, 7…).
       O resto das posições a máquina completa com os PIORES — castigo do Diego. */
   aoEstourar?: (parcial: PoolCard[], f: Formation) => void
+  /** ✅ 05/11 (Diego): na SALA, quem da sala já fechou a convocação — só o nome, nunca quem convocou (sem spoiler) */
+  fecharam?: { nomes: string[]; total: number }
 }) {
   const pool = useMemo(() => poolPronto ?? countryPool(pais), [pais, poolPronto])
   const pc = useTelaPC() // 🖥️ 04/11: no PC, 3 colunas (convocacao-pc.css) — celular igual
   const rostosOn = useLegendPresentation() // 🧑 rosto das lendas no campinho (30/09)
   const fits433 = formationFits(pool, '4-3-3')
   const [form, setForm] = useState<Formation>(fits433 ? '4-3-3' : '4-4-2')
+  // 🪽 05/11 (Diego: "faltou a formação 352"): o 3-5-2 convoca as MESMAS posições do 5-3-2 (2 LAT · 3 ZAG · 3 MEI · 2 ATA) —
+  // é o 5-3-2 com os laterais subindo de ALAS, igual ao rótulo da carreira (formacoes.ts). Pro motor segue '5-3-2'.
+  const [alas, setAlas] = useState(false)
   const [tab, setTab] = useState<Sec>('GOL')
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<Record<string, PoolCard>>({}) // cardKey → carta
@@ -788,9 +793,9 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
   const ready = total === 11 && missing.length === 0
   const list = pool[tab].filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()))
 
-  const switchForm = (f: Formation) => {
-    if (f === form) return
-    setForm(f); setSel({}) // troca de esquema zera a convocação (regras de vaga mudam)
+  const switchForm = (f: Formation, ala = false) => {
+    if (f === form) { setAlas(ala); return } // 5-3-2 ↔ 3-5-2: mesmas vagas, a convocação fica
+    setForm(f); setAlas(ala); setSel({}) // troca de esquema zera a convocação (regras de vaga mudam)
   }
 
   return (
@@ -812,13 +817,15 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
       <div className="cv-left">
       {/* formação: só esquemas que o país fecha (trava com aviso) */}
       <div className="cv-forms" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-        {(FORMACOES_JOGO as Formation[]).map(f => {
+        {(FORMACOES_JOGO as Formation[]).flatMap((f): [Formation, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
           const ok = formationFits(pool, f)
+          const on = form === f && alas === ala
+          const nome = ala ? '3-5-2' : f
           return (
-            <button key={f} disabled={!ok} onClick={() => switchForm(f)}
-              title={ok ? undefined : `${pais} ${tr('não tem elenco pra esse esquema', 'has no squad for this system')}`}
-              style={{ flex: '1 0 21%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : form === f ? GOLD : '#fff', boxShadow: form === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : 0.7 }}>
-              {ok ? f : `🔒 ${f}`}
+            <button key={nome} disabled={!ok} onClick={() => switchForm(f, ala)}
+              title={ok ? (ala ? tr('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined) : `${pais} ${tr('não tem elenco pra esse esquema', 'has no squad for this system')}`}
+              style={{ flex: '1 0 21%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : on ? GOLD : '#fff', boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : 0.7 }}>
+              {ok ? nome : `🔒 ${nome}`}
             </button>
           )
         })}
@@ -879,15 +886,16 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
       {/* campinho compacto: convocados por linha (ATA/MEI/DEF/GOL, padrão do pregão) */}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 10 }}>
         <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{emblema ? '' : `${flagOf(pais)} `}{rotuloTime ?? tr('sua seleção', 'your team')} · {total}/11 · {form}</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{emblema ? '' : `${flagOf(pais)} `}{rotuloTime ?? tr('sua seleção', 'your team')} · {total}/11 · {alas ? '3-5-2' : form}</span>
         </div>
         <PlacaGol lado="cima" alt={24} />
         <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(['ATA', 'MEI', 'DEF', 'GOL'] as (Sec | 'DEF')[]).map(row => {
-            const secs: Sec[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
+            // 🪽 3-5-2: os laterais desenhados na linha do MEIO, nas pontas (alas); atrás ficam só os 3 zagueiros
+            const secs: Sec[] = row === 'DEF' ? (alas ? ['ZAG'] : ['LAT', 'ZAG']) : row === 'MEI' && alas ? ['LAT', 'MEI'] : [row]
             let slots: { sec: Sec; c: PoolCard | null }[] = []
             for (const s of secs) { const picked = bySec(s); for (let i = 0; i < need[s]; i++) slots.push({ sec: s, c: picked[i] ?? null }) }
-            if (row === 'DEF') { const lat = slots.filter(x => x.sec === 'LAT'), zag = slots.filter(x => x.sec === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
+            if ((row === 'DEF' && !alas) || (row === 'MEI' && alas)) { const lat = slots.filter(x => x.sec === 'LAT'), resto = slots.filter(x => x.sec !== 'LAT'); slots = [lat[0], ...resto, lat[1]] }
             return (
               <div key={String(row)} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
                 {/* 🧍 30/09 (Diego, na live: "nessa tela do campinho onde seleciona jogadores da
@@ -926,6 +934,11 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
           {tr('🔒 Fechar convocação', '🔒 Close call-up')}
           <span style={{ display: 'block', fontSize: 9, fontWeight: 800, fontFamily: 'system-ui', textTransform: 'none', marginTop: 2 }}>{tr('faltam', 'missing')} {missing.join(' · ')} — {pc ? tr('convoque nos cartões ⬅️', 'pick from the cards ⬅️') : tr('convoque na lista ⬆️', 'pick from the list ⬆️')}</span>
         </div>
+      )}
+      {fecharam && fecharam.total > 1 && (
+        <p style={{ fontSize: 11, fontWeight: 800, margin: '9px 0 0', textAlign: 'center', color: 'rgba(0,0,0,.7)', lineHeight: 1.4 }}>
+          ✅ {tr('Já fecharam', 'Already done')}: <b>{fecharam.nomes.length} {tr('de', 'of')} {fecharam.total}</b>{fecharam.nomes.length ? ` · ${fecharam.nomes.join(', ')}` : ''}
+        </p>
       )}
       <p style={{ textAlign: 'center', marginTop: 8 }}><button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 11, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.5)', cursor: 'pointer' }}>{tr('← trocar de seleção', '← change national team')}</button></p>
       </div>

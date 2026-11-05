@@ -505,6 +505,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       {fase?.fase === 'convocacao' && convocaAberta && minha && !temTime(minha) && !soAssisto && (
         <CMModal>
           <ConvocacaoScreen pais={minha.pais} poolPronto={poolDoClube(minha.pais)} emblema={<SeloClube clube={minha.pais} size={30} />} rotuloTime={tr('seu clube', 'your club')} prazoSeg={seg}
+            fecharam={{ total: picks.size, nomes: [...picks].filter(([, p]) => temTime(p)).map(([u]) => nomeDe.get(u) ?? '').filter(Boolean) }}
             onBack={() => setConvocaAberta(false)}
             aoEstourar={(parcial, f) => { setConvocaAberta(false); void gravaTime(parcial.map(chaveCarta), f, true) }}
             onDone={(xi, f) => { setConvocaAberta(false); void gravaTime(xi.map(chaveCarta), f) }} />
