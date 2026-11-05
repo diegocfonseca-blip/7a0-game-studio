@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{background:#F4ECD6;font-family:Oswald,Arial Narrow,sans-serif;color:#0C0C0C;width:1400px;padding:28px}
+h1{font-size:46px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.sub{font-size:19px;font-weight:500;margin:4px 0 18px;opacity:.8}
+.mapa{border:4px solid #000;border-radius:22px;box-shadow:4px 4px 0 #000;overflow:hidden;background:#8FBF6A}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.card{background:#fff;border:3px solid #000;border-radius:18px;box-shadow:3px 3px 0 #000;padding:14px 16px}
+.card h3{font-size:24px;font-weight:800;text-transform:uppercase;display:flex;gap:8px;align-items:center}
+.card .q{font-size:15px;opacity:.7;margin:2px 0 8px;font-weight:500}
+.it{display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:2px dashed #0002;padding:6px 0;font-size:17px;font-weight:500}
+.tag{font-size:13px;font-weight:700;border:2px solid #000;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.on{background:#7C3AED;color:#fff}.car{background:#1B7A3D;color:#fff}.dois{background:#FFC400}.tudo{background:#F4ECD6}
+.novo{background:#E8503A;color:#fff;font-size:12px;border:2px solid #000;border-radius:6px;padding:0 6px;margin-left:6px}
+.ancora{background:#FFC400}
+.leg{display:flex;gap:12px;margin-top:18px;font-size:16px;font-weight:500;align-items:center;flex-wrap:wrap}
+.nota{margin-top:14px;background:#fff;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:10px 14px;font-size:17px;font-weight:500}
+</style></head><body>
+<h1>🛍️ Shopping do Clube</h1>
+<div class="sub">Do outro lado da avenida nova (ônibus · táxi), com a Vadico Veículos colada. Cada lojinha abre a MESMA Loja da home, já na parte dela.</div>
+
+<div class="mapa">
+<svg viewBox="0 0 1340 640" width="100%" font-family="Oswald,Arial Narrow,sans-serif">
+ <defs>
+  <pattern id="vid" width="26" height="22" patternUnits="userSpaceOnUse"><rect width="26" height="22" fill="#9FD3E8"/><path d="M0 0H26M0 0V22" stroke="#4D8FA8" stroke-width="2"/><path d="M4 18 L14 4" stroke="#fff" stroke-opacity=".5" stroke-width="3"/></pattern>
+  <pattern id="vaga" width="34" height="60" patternUnits="userSpaceOnUse"><rect width="34" height="60" fill="#6B6B6B"/><path d="M0 0V60" stroke="#fff" stroke-width="3"/></pattern>
+ </defs>
+ <!-- avenida -->
+ <rect x="0" y="520" width="1340" height="120" fill="#4A4A4A"/>
+ <path d="M0 580H1340" stroke="#FFC400" stroke-width="5" stroke-dasharray="40 30"/>
+ <rect x="0" y="505" width="1340" height="16" fill="#CFC6AE"/>
+ <text x="1320" y="626" text-anchor="end" font-size="20" font-weight="700" fill="#fff">AV. DO ESTÁDIO · ônibus · táxi · app</text>
+ <!-- ponto de onibus -->
+ <!-- estacionamento -->
+ <rect x="40" y="300" width="300" height="190" rx="12" fill="url(#vaga)" stroke="#000" stroke-width="4"/>
+ <text x="190" y="290" text-anchor="middle" font-size="20" font-weight="800">🅿️ ESTACIONAMENTO</text>
+ <g stroke="#000" stroke-width="2"><rect x="52" y="320" width="22" height="38" rx="5" fill="#E8503A"/><rect x="120" y="320" width="22" height="38" rx="5" fill="#fff"/><rect x="222" y="320" width="22" height="38" rx="5" fill="#1B7A3D"/><rect x="86" y="430" width="22" height="38" rx="5" fill="#FFC400"/><rect x="256" y="430" width="22" height="38" rx="5" fill="#7C3AED"/></g>
+ <!-- vadico -->
+ <g>
+  <rect x="40" y="40" width="300" height="220" rx="14" fill="#fff" stroke="#000" stroke-width="4"/>
+  <rect x="40" y="40" width="300" height="56" rx="14" fill="#0C0C0C"/>
+  <text x="190" y="78" text-anchor="middle" font-size="28" font-weight="800" fill="#FFC400">VADICO VEÍCULOS</text>
+  <rect x="60" y="112" width="260" height="128" rx="8" fill="url(#vid)" stroke="#000" stroke-width="3"/>
+  <g stroke="#000" stroke-width="3"><rect x="85" y="175" width="70" height="36" rx="10" fill="#C2452F"/><rect x="200" y="175" width="70" height="36" rx="10" fill="#FFC400"/></g>
+ </g>
+ <!-- shopping -->
+ <g>
+  <rect x="380" y="30" width="920" height="460" rx="20" fill="#E9E1C9" stroke="#000" stroke-width="5"/>
+  <!-- letreiro -->
+  <rect x="610" y="12" width="460" height="64" rx="14" fill="#0C0C0C" stroke="#000" stroke-width="4"/>
+  <circle cx="650" cy="44" r="22" fill="#FFC400" stroke="#fff" stroke-width="3"/><text x="650" y="52" text-anchor="middle" font-size="22">🛡️</text>
+  <text x="860" y="58" text-anchor="middle" font-size="36" font-weight="800" fill="#FFC400" letter-spacing="1">SHOPPING DO CLUBE</text>
+  <!-- ancora -->
+  <rect x="400" y="96" width="420" height="250" rx="14" fill="#FFC400" stroke="#000" stroke-width="4"/>
+  <rect x="420" y="160" width="380" height="160" rx="8" fill="url(#vid)" stroke="#000" stroke-width="3"/>
+  <text x="610" y="140" text-anchor="middle" font-size="30" font-weight="800">🛒 LOJA DO CLUBE</text>
+  <text x="610" y="250" text-anchor="middle" font-size="18" font-weight="700" fill="#0C0C0C">âncora · a maior</text>
+  <!-- lojinhas -->
+  <g font-weight="800" text-anchor="middle">
+   <rect x="840" y="96" width="210" height="120" rx="12" fill="#fff" stroke="#000" stroke-width="4"/><rect x="852" y="140" width="186" height="64" rx="6" fill="url(#vid)" stroke="#000" stroke-width="2"/><text x="945" y="128" font-size="21">👔 ALFAIATARIA</text>
+   <rect x="1070" y="96" width="210" height="120" rx="12" fill="#7C3AED" stroke="#000" stroke-width="4"/><rect x="1082" y="140" width="186" height="64" rx="6" fill="url(#vid)" stroke="#000" stroke-width="2"/><text x="1175" y="128" font-size="21" fill="#fff">🎨 TINTAS &amp; CORES</text>
+   <rect x="840" y="226" width="210" height="120" rx="12" fill="#1B7A3D" stroke="#000" stroke-width="4"/><rect x="852" y="270" width="186" height="64" rx="6" fill="url(#vid)" stroke="#000" stroke-width="2"/><text x="945" y="258" font-size="21" fill="#fff">🏦 BANCO LEGENDS</text>
+   <rect x="1070" y="226" width="210" height="120" rx="12" fill="#C2452F" stroke="#000" stroke-width="4"/><rect x="1082" y="270" width="186" height="64" rx="6" fill="url(#vid)" stroke="#000" stroke-width="2"/><text x="1175" y="258" font-size="21" fill="#fff">🎉 LOJA DA TORCIDA</text>
+   <rect x="840" y="356" width="440" height="70" rx="12" fill="#0C0C0C" stroke="#000" stroke-width="4"/><text x="1060" y="400" font-size="22" fill="#FFC400">📣 RÁDIO DA TORCIDA · SUPER CHAT</text>
+  </g>
+  <!-- praça de alimentação -->
+  <rect x="400" y="360" width="420" height="66" rx="12" fill="#fff" stroke="#000" stroke-width="4"/>
+  <text x="610" y="402" text-anchor="middle" font-size="21" font-weight="800">🍔 PRAÇA DE ALIMENTAÇÃO</text>
+  <!-- entrada -->
+  <rect x="760" y="440" width="160" height="50" rx="8" fill="url(#vid)" stroke="#000" stroke-width="4"/>
+  <text x="840" y="472" text-anchor="middle" font-size="18" font-weight="800">ENTRADA</text>
+ </g>
+ <!-- gente com sacola -->
+ <g stroke="#000" stroke-width="2">
+  <circle cx="720" cy="470" r="9" fill="#E8503A"/><rect x="728" y="472" width="10" height="12" fill="#FFC400"/>
+  <circle cx="960" cy="472" r="9" fill="#1B7A3D"/><rect x="946" y="474" width="10" height="12" fill="#fff"/>
+  <circle cx="1010" cy="466" r="9" fill="#7C3AED"/>
+  <circle cx="640" cy="492" r="9" fill="#FFC400"/><rect x="648" y="494" width="10" height="12" fill="#C2452F"/>
+ </g>
+</svg>
+</div>
+
+<div class="leg"><b>ONDE VALE:</b><span class="tag on">🌐 Sala online</span><span class="tag car">🏆 Carreira</span><span class="tag dois">⚡ Os dois</span><span class="tag tudo">🌍 Jogo todo</span></div>
+
+<div class="grid">
+ <div class="card ancora"><h3>🛒 Loja do Clube</h3><div class="q">a âncora · planos e o básico</div>
+  <div class="it">Planos (Craque, Lenda, Batismo…)<span class="tag tudo">🌍 Jogo todo</span></div>
+  <div class="it">🎟️ Salas extras<span class="tag on">🌐 Sala online</span></div>
+  <div class="it">💾 Ficha de carreira<span class="tag car">🏆 Carreira</span></div>
+  <div class="it">🎁 Dar de presente<span class="tag tudo">🌍 Jogo todo</span></div></div>
+ <div class="card"><h3>👔 Alfaiataria</h3><div class="q">o seu presidente</div>
+  <div class="it">Roupas, cabelos, barbas<span class="tag tudo">🌍 Jogo todo</span></div>
+  <div class="it">Peças de gala (Fundador)<span class="tag tudo">🌍 Jogo todo</span></div></div>
+ <div class="card"><h3>🎨 Tintas &amp; Cores</h3><div class="q">a cor do seu nome</div>
+  <div class="it">Cor adicional<span class="tag tudo">🌍 Jogo todo</span></div></div>
+ <div class="card"><h3>🏦 Banco Legends</h3><div class="q">dinheiro pro clube</div>
+  <div class="it">Moedas pro clube<span class="tag car">🏆 Carreira</span></div></div>
+ <div class="card"><h3>🎉 Loja da Torcida</h3><div class="q">a festa nas arquibancadas</div>
+  <div class="it">Tema do clube / time de coração<span class="tag on">🌐 Sala online</span></div>
+  <div class="it">📣 Canto da torcida<span class="tag dois">⚡ Os dois</span></div>
+  <div class="it">🚩 Bandeirão <span class="novo">IDEIA NOVA</span><span class="tag car">🏆 Carreira</span></div></div>
+ <div class="card"><h3>📣 Rádio da Torcida</h3><div class="q">aparecer pra todo mundo</div>
+  <div class="it">💬 Super Chat no telão<span class="tag tudo">🌍 Jogo todo</span></div>
+  <div class="it">💼 Anúncio de marca<span class="tag tudo">🌍 Jogo todo</span></div></div>
+</div>
+<div class="nota">👆 Tocar numa lojinha abre a Loja de sempre, já na parte dela. A Loja da home NÃO muda. O 🚩 Bandeirão ainda não existe: é ideia pra conversar (preço e como aparece no estádio).</div>
+</body></html>

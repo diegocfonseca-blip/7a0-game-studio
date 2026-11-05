@@ -165,7 +165,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         <button onClick={onClose} aria-label={tr('fechar', 'close')} style={{ marginLeft: 'auto', background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,.35)', borderRadius: 10, padding: '4px 10px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
       </div>
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '14px 15px 40px', fontFamily: 'Arial, sans-serif' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', ...OSW, fontSize: 12, background: perk.grad, border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 10px', boxShadow: `2px 2px 0 ${INK}` }}>
+        <div id="loja-planos" style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', ...OSW, fontSize: 12, background: perk.grad, border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 10px', boxShadow: `2px 2px 0 ${INK}` }}>
           <ApoioSheen holo={perk.holo} />
           <span style={{ position: 'relative' }}>{atual ? tr(`VOCÊ É ${NOME[atual][0].toUpperCase()}`, `YOU ARE ${NOME[atual][1].toUpperCase()}`) : tr('PLANO GRÁTIS', 'FREE PLAN')}</span>
         </div>
@@ -175,7 +175,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🛒 loja → ver todos os planos'); open() }} style={{ marginTop: 10, width: '100%', ...OSW, fontSize: 14, background: '#FFF3C4', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', cursor: 'pointer' }}>{tr('💛 VER TODOS OS PLANOS E PRA ONDE VAI O DINHEIRO ›', '💛 SEE ALL PLANS AND WHERE THE MONEY GOES ›')}</button>} />
 
         {/* 🧑‍💼 MEU PRESIDENTE (15/10) — o boneco mora na conta; só pra conta liberada enquanto está em teste */}
-        <MeuPresidenteLoja />
+        <div id="loja-presidente"><MeuPresidenteLoja /></div>
 
         {/* ⭐📅 CRAQUE POR MÊS (26/10, loja aprovada): os dois mensais da Vendria, no MESMO cartão das linhas de plano */}
         {!(fixo && fixo !== 'craque') && <>
@@ -252,7 +252,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
 
         {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
             Fica só o 📣 canto avulso, o pedacinho barato; a gala única vem no 🖋 Fundador. */}
-        <h2 style={h2}>{tr('📣 Canto da torcida', '📣 Crowd chant')} <span style={sub}>{tr('pro seu clube batizado', 'for your named club')}</span></h2>
+        <h2 id="loja-canto" style={h2}>{tr('📣 Canto da torcida', '📣 Crowd chant')} <span style={sub}>{tr('pro seu clube batizado', 'for your named club')}</span></h2>
         <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', opacity: temBatismo ? 1 : .6 }}>
           <span style={{ fontSize: 30 }}>📣</span>
           <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{temBatismo
@@ -264,7 +264,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         {atual === 'batismo' && <p style={{ fontSize: 11.5, fontWeight: 700, margin: '8px 2px 0', color: GREEN, lineHeight: 1.4 }}>{tr(`🚁 Quer a gala única? Ela vem no 🖋 Fundador: + ${reais(precoSubida('fundador', 'batismo'))} e você leva gala + canto + número de fundador + o clube nas salas online dos outros.`, `🚁 Want the unique entrance? It comes with 🖋 Founder: + ${reais(precoSubida('fundador', 'batismo'))} for entrance + chant + founder number + your club in other people’s online rooms.`)}</p>}
 
         {/* 🪙 MOEDAS */}
-        <h2 style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{pixMp ? (naCarr ? tr('caem direto neste clube', 'straight into this club') : tr('carreira solo', 'solo career')) : tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
+        <h2 id="loja-moedas" style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{pixMp ? (naCarr ? tr('caem direto neste clube', 'straight into this club') : tr('carreira solo', 'solo career')) : tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
         <p style={{ fontSize: 12, fontWeight: 700, margin: '0 2px 8px', lineHeight: 1.4 }}>{tr('🏟️ Pra CARREIRA SOLO: cada R$ 1 vira 3 🪙 no caixa do seu clube. Use pra dar lance no leilão, pagar salário e fazer obra no estádio.', '🏟️ For the SOLO CAREER: every R$ 1 becomes 3 🪙 in your club’s till. Use them to bid at the auction, pay wages and build at the stadium.')}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {MOEDAS.map(([r, pt, en], i) => <div key={r} style={{ ...card, textAlign: 'center', background: i === 1 ? '#FFF3C4' : '#fff', padding: 8 }}>
@@ -285,13 +285,13 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         {naCarr && <ResgateFicha />}
 
         {/* 🎨 COR BRILHANTE (02/11, mockup cor-adicional.png): só no Pix novo (entrega sozinha) e só logado — a cor é da CONTA */}
-        {pixMp && email && <CoresNaLoja h2={h2} sub={sub} card={card} reais={reais} />}
+        {pixMp && email && <div id="loja-cores"><CoresNaLoja h2={h2} sub={sub} card={card} reais={reais} /></div>}
 
         {/* 💙 CASA LUCA (05/11): doação pro Luca + Plano Coração — só com a trava (`useCasaLucaLiberada`) aberta */}
         <CasaLucaNaLoja h2={h2} sub={sub} />
 
         {/* 🎨 TEMA DA SALA (18/10, Diego): ❤️ time de coração pra qualquer um · 🛡️ do clube só Batismo/Fundador · Fundador ganha 1 */}
-        {pixMp && <TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} />}
+        {pixMp && <div id="loja-temas"><TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} /></div>}
 
         {/* 💬 SEU RECADO NO JOGO (18/10, Diego: "tipo um super chat… com cor diferente"; mockup `recado-destaque.png`): o jogador
             escreve um recado que gira no letreiro, em rosa, com o nome do time — 1 hora R$ 2,99 ou o dia todo R$ 9,90 */}

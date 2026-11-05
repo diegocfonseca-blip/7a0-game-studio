@@ -37,3 +37,6 @@ body.clube-mapa-gestao-aberta .pc3-expanded{z-index:99989}
 .pc3-luca-card .pc3-luca-coracao button{display:block;width:100%;margin:9px 0 0;min-height:48px;padding:8px;border:3px solid #0c0c0c;border-radius:12px;background:#ffc400;color:#0c0c0c;font:900 16px/1.1 Oswald,sans-serif;text-transform:uppercase;box-shadow:3px 3px 0 #0c0c0c}
 .pc3-luca-card button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #0c0c0c}
 .pc3-luca-card .pc3-luca-breve{margin:10px 0 0;padding:7px 9px;border:2px solid #0c0c0c;border-radius:9px;background:#fff;font-weight:800}
+
+/* 🛍️ 05/11: cartão do Shopping do Clube — 6 lojinhas em grade, cada uma com a cor dela */
+.pc3-shopping-card{max-width:min(440px,calc(100% - 90px))}.pc3-shopping-lojas{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.pc3-club-place .pc3-shopping-loja{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:7px 8px;border:2px solid #0c0c0c;border-radius:9px;box-shadow:2px 2px 0 #0c0c0c}.pc3-shopping-loja b{font:800 13px Oswald,sans-serif;text-transform:uppercase;line-height:1.1}.pc3-shopping-loja small{font-size:10px;font-weight:700;line-height:1.25;opacity:.9}
