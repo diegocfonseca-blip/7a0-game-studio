@@ -331,7 +331,8 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    const population=populationRef.current,publico=crowd.inspect()
    const residentBefore=residents.count()
    residents.configure({enabled:population.enabled&&!ajuste.leve,supporters:population.attendance?.supporters??(population.crowdPopulation.mode==='qa-sample'?120000:0),built:Object.values(state.extras).filter(Boolean).length,mobile:softwareGPU||el.clientWidth<600||quality.constrained||ajuste.populacaoReduzida})
-   commerce.configure({enabled:population.enabled&&!ajuste.leve}) // ⚡ 04/11: no Leve a cidade fica PARADA (sem moradores/comércio/carros andando); torcida e dia de jogo continuam
+   commerce.configure({enabled:false}) // 🚗 05/11: os clientes andavam até a Vadico VELHA, que saiu do mapa (a nova fica no Shopping do Clube). Antes: population.enabled&&!ajuste.leve
+   void ajuste // ⚡ 04/11: no Leve a cidade fica PARADA (sem moradores/comércio/carros andando); torcida e dia de jogo continuam
    const ambientCars=cityTrafficBudget({enabled:population.enabled&&!ajuste.leve,supporters:population.attendance?.supporters??(qaPopulation?120000:0),mobile:softwareGPU||el.clientWidth<600||quality.constrained||ajuste.populacaoReduzida})
    const residentChanged=residentBefore!==residents.count()
    // A reserved place consumes the same bounded crowd budget as its occupant.
@@ -683,9 +684,9 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     fit(Math.min(...p.footprint.map(p=>p.x))-3,Math.max(...p.footprint.map(p=>p.x))+3,Math.min(...p.footprint.map(p=>p.z))-3,Math.max(...p.footprint.map(p=>p.z))+3,6,[],new THREE.Vector3(Math.sin(h)*1.1+Math.cos(h)*.9,.75,Math.cos(h)*1.1-Math.sin(h)*.9))
    }
    else if(next==='vadico'){
-    const b=PLANTA_VADICO.bounds
-    // Keep the facade readable in portrait too, with all display cars in view.
-    fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,8,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
+    // 🚗 05/11: a Vadico mudou pro lado do Shopping do Clube (prédio próprio + pátio); a velha saiu do mapa
+    const v=PLANTA_SHOPPING.vadico,b={minX:v.minX,maxX:v.maxX,minZ:v.minZ,maxZ:v.patio.maxZ}
+    fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,12,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
    }
    else if(next==='shopping'){const b=PLANTA_SHOPPING.building,pk=PLANTA_SHOPPING.parking;fit(b.minX-2,b.maxX+2,b.minZ-1,pk.maxZ+2,PLANTA_SHOPPING.height+4,[],camera.aspect<.85?new THREE.Vector3(-.2,1.05,1.3):new THREE.Vector3(.15,.62,1.3))}
    else if(next==='casa-luca'){const c=CASA_LUCA;fit(c.x-c.half-1,c.x+c.half+1,c.z-c.half-1,c.z+c.half+2,c.height,[],new THREE.Vector3(-.35,.75,1.3))}
@@ -786,7 +787,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    const rect=renderer.domElement.getBoundingClientRect(),ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,1-(e.clientY-rect.top)/rect.height*2),camera)
    const shop=PLANTA_COMPLEXO.lots.loja,a=LOTE_AGENCIA_CLUBE
    const targets:{id:DestinoClubeMapa;view:VistaComplexo;box:THREE.Box3}[]=[{id:'presidencia',view:'casa-usuario',box:new THREE.Box3(new THREE.Vector3(HOME.x-HOME.width/2,0,HOME.z-HOME.depth/2),new THREE.Vector3(HOME.x+HOME.width/2,5,HOME.z+HOME.depth/2))}]
-   targets.push({id:'veiculos',view:'vadico',box:new THREE.Box3(new THREE.Vector3(PLANTA_VADICO.bounds.minX,0,PLANTA_VADICO.bounds.minZ),new THREE.Vector3(PLANTA_VADICO.bounds.maxX,7,PLANTA_VADICO.bounds.maxZ))})
+   targets.push({id:'veiculos',view:'vadico',box:new THREE.Box3(new THREE.Vector3(PLANTA_SHOPPING.vadico.minX,0,PLANTA_SHOPPING.vadico.minZ),new THREE.Vector3(PLANTA_SHOPPING.vadico.maxX,18,PLANTA_SHOPPING.vadico.patio.maxZ))})
    if(cityState.extras.loja)targets.push({id:'loja',view:'loja',box:new THREE.Box3(new THREE.Vector3(Math.min(...shop.footprint.map(p=>p.x)),.16,Math.min(...shop.footprint.map(p=>p.z))),new THREE.Vector3(Math.max(...shop.footprint.map(p=>p.x)),8,Math.max(...shop.footprint.map(p=>p.z))))})
    if(clubName)targets.push({id:'agencia',view:'agencia-clube',box:new THREE.Box3(new THREE.Vector3(a.building.minX,.16,a.building.minZ),new THREE.Vector3(a.building.maxX,a.height+3,a.building.maxZ))})
    targets.push({id:'arena',view:'arena-online',box:new THREE.Box3(new THREE.Vector3(ARENA.x-9,0,ARENA.z-9),new THREE.Vector3(ARENA.x+9,9,ARENA.z+9))})
