@@ -4,6 +4,7 @@ import {createCivilian} from './cidade3d/civilians.mjs'
 import {residentVisibility} from './cidade3d/resident-visibility.mjs'
 import {CASA_LUCA as L} from './presidencia-casa-luca-planta'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
+import {criarAreasCasaLuca} from './presidencia-casa-luca-areas-3d'
 
 /** 💙 05/11 — CASA LUCA: prédio amarelo de 2 andares, telhado azul com o coração, letreiro, rampa com corrimão e piso tátil,
  * e um pátio com parquinho INCLUSIVO (balanço com cadeirinha, carrossel no nível do chão — com cadeira de rodas em cima —,
@@ -12,7 +13,7 @@ import type {SolidoEntorno} from './presidencia-complexo-entorno'
  * balanço) e crianças brincando. Leve pro celular: o fixo vira 1 malha com cor por vértice + vidro + placas; o que mexe é só
  * balanço, carrossel, gangorra e cata-ventos (giro/ângulo de um grupo) e os bonecos (os mesmos civis GLB da cidade, que só
  * nascem quando aparecem na tela). Tudo anda pelo relógio da cena (`seconds`) — parado até o primeiro toque, como a cidade. */
-export function criarCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?:boolean;onReady?:()=>void}={}){
+export function criarCasaLuca(parent:T.Object3D,{leve=false,onReady,areas=false}:{leve?:boolean;onReady?:()=>void;areas?:boolean}={}){
  const root=new T.Group();root.name='casa-luca';root.position.set(L.x,0,L.z);root.rotation.y=L.heading;parent.add(root)
  const materials:T.Material[]=[],textures:T.Texture[]=[],geometries:T.BufferGeometry[]=[]
  const G0=.16 // topo da calçada do quarteirão
@@ -88,7 +89,9 @@ export function criarCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?:bool
   for(const h of[.45,.9])fixo.box(WHITE,L2,.08,.06,(x0+x1)/2,G0+h,(z0+z1)/2,0,-a)
   for(let i=0;i<=n;i++){const t=i/n;fixo.box(i%2?SKY:WHITE,.1,1.05,.1,x0+(x1-x0)*t,G0+.52,z0+(z1-z0)*t)}}
  const E=11.25
- fence(-E,BZ0+1,-E,E);fence(E,BZ0+1,E,E);fence(-E,E,-1.2,E);fence(1.2,E,E,E)
+ fence(-E,BZ0+1,-E,E);fence(-E,E,-1.2,E);fence(1.2,E,E,E)
+ // 💙 06/11: portão no lado leste, pra rampa que desce pro JARDIM SENSORIAL (presidencia-casa-luca-areas-3d.ts)
+ fence(E,BZ0+1,E,.75);fence(E,2.65,E,E);for(const z of[.75,2.65]){fixo.box(BLUE,.22,1.5,.22,E,G0+.75,z);fixo.ball(TACT,.14,E,G0+1.58,z)}
  for(const s of[-1,1]){fixo.box(BLUE,.22,1.5,.22,s*1.25,G0+.75,E);fixo.ball(TACT,.14,s*1.25,G0+1.58,E)}
  // árvore de sombra no canto e banco pros pais
  fixo.cyl('#6b4b2e',.18,.24,2.6,-10,G0+1.3,-1.4,7);fixo.ball('#4f8a3e',1.7,-10,G0+3.3,-1.4,.85);fixo.ball('#5f9c48',1.2,-9.2,G0+3.9,-.8,.85)
@@ -292,14 +295,17 @@ export function criarCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?:bool
   const day=period==='day'
   for(const p of people){p.body.root.getWorldPosition(tmp);const lod=residentVisibility(tmp,p.h,camera,viewportHeight);p.body.update({seconds,...p.frame(seconds),visible:lod.visible&&day,detail:lod.detail})}
   for(const o of props)o.visible=day
+  extra?.update(seconds,camera,viewportHeight,period)
  }
  const B={minX:L.x-BX-.3,maxX:L.x+BX+.3,minZ:L.z+BZ0-.3,maxZ:L.z+BZ1+.3}
  const box=(id:string,minX:number,maxX:number,minZ:number,maxZ:number,top:number):SolidoEntorno=>({id,minX,maxX,minZ,maxZ,base:G0,top,footprint:[{x:minX,z:minZ},{x:maxX,z:minZ},{x:maxX,z:maxZ},{x:minX,z:maxZ}]})
  // o lote inteiro é uma peça só pra quem anda na calçada (cerca + prédio): ninguém de fora atravessa o pátio
  const solids:SolidoEntorno[]=[box(L.id,B.minX,B.maxX,B.minZ,B.maxZ,G0+WH+.5+RIDGE),box(L.id+'-patio',L.x-E-.1,L.x+E+.1,L.z+BZ1,L.z+E+.1,G0+1.05)]
- root.userData.casaLuca={people:()=>people.length}
+ // 💙 06/11: jardim sensorial, piquenique e quadra adaptada (só quando o mapa abriu os quarteirões do sul)
+ const extra=areas?criarAreasCasaLuca(parent,{leve,onReady}):undefined;if(extra)solids.push(...extra.solids)
+ root.userData.casaLuca={people:()=>people.length+(extra?.people()??0)}
  let disposed=false
  return{root,solids,update,
-  inspect:()=>({id:L.id,center:[L.x,L.z],people:people.map(p=>({id:p.id,ready:p.body.inspect().ready,visible:p.body.root.visible})),wheelchairs:2,walker:1,seconds:lastSeconds,officialStateWrites:0}),
-  dispose(){if(disposed)return;disposed=true;people.forEach(p=>p.body.dispose());root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());root.clear()}}
+  inspect:()=>({id:L.id,center:[L.x,L.z],people:people.map(p=>({id:p.id,ready:p.body.inspect().ready,visible:p.body.root.visible})),wheelchairs:2,walker:1,areas:extra?.inspect()??null,seconds:lastSeconds,officialStateWrites:0}),
+  dispose(){if(disposed)return;disposed=true;extra?.dispose();people.forEach(p=>p.body.dispose());root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());root.clear()}}
 }

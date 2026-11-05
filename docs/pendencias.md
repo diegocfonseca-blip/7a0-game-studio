@@ -7,6 +7,21 @@
   continua sumindo quando vazio. Fotos: `scripts/mockups/casa-luca-cartao-{novo,vazio}.png`, `casa-luca-{doacao,coracao}-por-cima.png`.
 - Pendente: OK visual do Diego.
 
+## 💙 06/11 — Mapa 3D: CASA LUCA MAIOR — complexo de 3 áreas (LOCAL, branch do agente, só a conta do Diego)
+- Pedido (print circulado): *"tinha que ser um pouco maior… cobrindo mais o jardim — pode até manter o jardim"*. Agora são 3 áreas ligadas por
+  faixas de pedestre pintadas em cima das ruas que JÁ existiam (rua z 178,5 e rua x −127,5 ficam no lugar):
+  · **jardim sensorial** no gramado da diagonal (a nordeste, a ≥ 10 m do eixo da avenida): caminho largo com piso tátil e rampas (desce do portão
+    leste do pátio e sobe até a calçada), canteiros de flores, horta elevada, 2 bancos, cerca baixa, cata-ventos e placa. As 3 árvores ficaram.
+  · **piquenique** na praça das árvores (−142, 193): árvores, banco e caminhos ficaram; 3 mesas com ponta livre pra cadeira de rodas, cerca baixa
+    com as 4 entradas abertas, placa.
+  · **quadra adaptada + estacionamento** no quarteirão das 2 casas (−113, 193; as casas saíram): quadra azul com tabela baixa e faixas táteis, 4
+    vagas de cadeirante, Kombi azul com rampa lateral e um carro.
+  · Gente nova (leve): andador + mãe no jardim, cadeira de rodas na horta, cadeira empurrada pelo pai no piquenique e outra na mesa, cadeira na
+    quadra, criança descendo a rampa da Kombi (+4 fora do modo Leve).
+- Toque em qualquer área abre o mesmo cartão; "Locais › 💙 Casa Luca" enquadra o complexo inteiro. Código: `presidencia-casa-luca-areas-3d.ts`
+  + `presidencia-casa-luca-planta.ts` (`AREAS_CASA_LUCA`). Trava: `test-club-map-navigation.mjs`. Fotos `scripts/mockups/casa-luca-maior-*.png`.
+- Pendente: OK visual do Diego.
+
 ## 💙 05/11 — Mapa 3D: CASA LUCA (o projeto do Luca, filho do Diego) num quarteirão do bairro (LOCAL, branch do agente, só a conta do Diego)
 - Pedido: a casinha do projeto do Luca dentro do mapa do clube. Ajuste dele no meio: **fora do complexo do estádio**, num bairro, **bem visível**
   e **grande** (quarteirão inteiro, prédio de 2 andares que se destaca das casas).

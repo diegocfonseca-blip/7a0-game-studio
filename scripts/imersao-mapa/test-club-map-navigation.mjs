@@ -61,6 +61,23 @@ try{
   const {teamCoachAccess}=await import('../../src/escalacao/cidade3d/coach-access.mjs'),coach=teamCoachAccess()
   for(const p of[...coach.inbound,...coach.outbound])assert(!(p.x>b.minX-3&&p.x<b.maxX+3&&p.z>b.minZ-3&&p.z<b.maxZ+3),'rota do ônibus dos times passa na Casa Luca')
   assert.equal(w.root.userData.roadNetwork.diagnostics.afterComponents,1)
+  // 💙 06/11: o complexo cresceu — jardim (diagonal), piquenique (praça) e quadra (quarteirão das 2 casas), ruas no lugar
+  assert.equal(w.casaLucaSul,true,'o quarteirão das 2 casas ao sul virou parte da Casa Luca')
+  const {AREAS_CASA_LUCA:areas,QUADRA_CASA_LUCA_SUL:q,PRACA_CASA_LUCA:pr,JARDIM_CASA_LUCA:jd}=await import('../../src/escalacao/presidencia-casa-luca-planta.ts')
+  assert(!w.bairro.quadras.some(k=>k.x===q.x&&k.z===q.z),'tradições do bairro não usam o quarteirão da quadra')
+  assert(w.bairro.praca&&!(w.bairro.praca.x===pr.x&&w.bairro.praca.z===pr.z)&&!(w.bairro.campinho?.x===pr.x&&w.bairro.campinho?.z===pr.z),'a praça do piquenique não é a do dominó nem o campinho')
+  for(const a of areas){
+   assert(!w.bairro.casas.some(h=>h.x>a.minX&&h.x<a.maxX&&h.z>a.minZ&&h.z<a.maxZ),`casa sobrou na área ${a.id}`)
+   for(const s of w.solids)if(!s.id.startsWith('poste-'))assert(!(s.minX<a.maxX&&s.maxX>a.minX&&s.minZ<a.maxZ&&s.maxZ>a.minZ),`${s.id} invade a área ${a.id}`)
+   for(const p of[...coach.inbound,...coach.outbound])assert(!(p.x>a.minX-3&&p.x<a.maxX+3&&p.z>a.minZ-3&&p.z<a.maxZ+3),`rota do ônibus dos times passa na área ${a.id}`)
+  }
+  // as ruas entre as áreas continuam: rua do bairro em z 178,5 e em x −127,5
+  const ruas=w.root.userData.roadNetwork.streets
+  assert(ruas.some(r=>r.points.some(p=>Math.abs(p.z-178.5)<.01)&&r.points.some(p=>p.x<-142)&&r.points.some(p=>p.x>-113)),'a rua entre o prédio e o piquenique/quadra continua')
+  assert(ruas.some(r=>r.points.every(p=>Math.abs(p.x+127.5)<.01)),'a rua entre o piquenique e a quadra continua')
+  // o jardim fica fora da avenida (≥ 9,5 m do eixo) e das calçadas
+  const av=ruas.find(r=>r.id==='via-publica'),dSeg=(p,a,b)=>{const dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz)));return Math.hypot(p.x-a.x-t*dx,p.z-a.z-t*dz)}
+  for(const p of jd.poligono)assert(av.points.slice(1).every((b,i)=>dSeg(p,av.points[i],b)>9.4),'o jardim encosta na avenida')
  }finally{w.dispose()}
  const noClub=criarEntornoComplexo(new T.Scene(),complexoDoEstadio(own),undefined,{name:'Neymarzetti'});assert.equal(noClub.casaLuca,false,'fora do mapa do clube o bairro fica como era');noClub.dispose()
 }

@@ -64,7 +64,7 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
-import {CASA_LUCA} from './presidencia-casa-luca-planta'
+import {AREAS_CASA_LUCA,LIMITES_COMPLEXO_CASA_LUCA} from './presidencia-casa-luca-planta'
 import {abrirDoacaoLuca,abrirPlanoCoracao,MuralLuca} from './casa-luca'
 
 export type VistaComplexo='casa-luca'|'arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'|'feira'|'banca'|'campinho'|'padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
@@ -221,7 +221,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   const surround=criarEntornoComplexo(scene,cityState,()=>wake.current(),{name:clubName,residence:managementEnabled,arena:managementEnabled}),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice,semSala:managementEnabled&&!isOffice&&!isWindow})
   const seatLod=criarLodCadeirasMobile(architecture.root,true)
   // 💙 05/11: Casa Luca (o projeto do Luca) — só existe no mapa do clube, num quarteirão do bairro (presidencia-casa-luca-3d.ts)
-  const casaLuca=surround.casaLuca?criarCasaLuca(scene,{leve:ajuste.leve,onReady:()=>wake.current()}):undefined;if(casaLuca)surround.solids.push(...casaLuca.solids)
+  const casaLuca=surround.casaLuca?criarCasaLuca(scene,{leve:ajuste.leve,onReady:()=>wake.current(),areas:surround.casaLucaSul}):undefined;if(casaLuca)surround.solids.push(...casaLuca.solids)
   // Automatic football cameras may sit above the roof. Cut away only its
   // colour pass; the opaque shadow/depth material still casts the real shade.
   // Free exploration restores the purchased roof without changing the save.
@@ -685,7 +685,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     // Keep the facade readable in portrait too, with all display cars in view.
     fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,8,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
    }
-   else if(next==='casa-luca'){const c=CASA_LUCA;fit(c.x-c.half-1,c.x+c.half+1,c.z-c.half-1,c.z+c.half+2,c.height,[],new THREE.Vector3(-.35,.75,1.3))}
+   else if(next==='casa-luca'){const c=LIMITES_COMPLEXO_CASA_LUCA;fit(c.minX-1,c.maxX+1,c.minZ-1,c.maxZ+2,6,[],new THREE.Vector3(-.25,1.05,1.3))} // 💙 06/11: o complexo inteiro (prédio, jardim, piquenique e quadra)
    else if(next==='agencia-clube'){const b=LOTE_AGENCIA_CLUBE.building;fit(b.minX-1.5,b.maxX+1.5,b.minZ-8,b.maxZ,LOTE_AGENCIA_CLUBE.height+3,[],new THREE.Vector3(.5,.62,-1.3))}
    else if(next==='patrocinadores')fit(-482,-144,-314,-69,36,[],new THREE.Vector3(.12,2.1,1.25))
    else if(next==='dsouza'||next==='tidex'||next==='oittolabs'||next==='gecg'){
@@ -791,7 +791,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    const sponsorTargets=(['dsouza','tidex','oittolabs','gecg'] as const).map(id=>{const l=LOTES_PATROCINADORES_CIDADE[id];return{id,view:id as VistaComplexo,box:new THREE.Box3(new THREE.Vector3(l.x-l.width/2,0,l.z-l.depth/2),new THREE.Vector3(l.x+l.width/2,l.height+2,l.z+l.depth/2))}})
    const sponsorHit=sponsorTargets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[{...t,d:ray.ray.origin.distanceTo(p)}]:[]}).sort((a,b)=>a.d-b.d)[0]
    // 💙 05/11: tocar na Casa Luca (prédio ou pátio) abre o cartão dela
-   const lucaHit=casaLuca?(()=>{const c=CASA_LUCA,p=ray.ray.intersectBox(new THREE.Box3(new THREE.Vector3(c.x-c.half,0,c.z-c.half),new THREE.Vector3(c.x+c.half,c.height,c.z+c.half)),new THREE.Vector3());return p?ray.ray.origin.distanceTo(p):undefined})():undefined
+   const lucaHit=casaLuca?(()=>{const ds=AREAS_CASA_LUCA.flatMap(a=>{const p=ray.ray.intersectBox(new THREE.Box3(new THREE.Vector3(a.minX,-.3,a.minZ),new THREE.Vector3(a.maxX,a.top,a.maxZ)),new THREE.Vector3());return p?[ray.ray.origin.distanceTo(p)]:[]});return ds.length?Math.min(...ds):undefined})():undefined // 💙 06/11: qualquer parte do complexo
    if(lucaHit!==undefined&&(!sponsorHit||lucaHit<sponsorHit.d)){const near=targets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[ray.ray.origin.distanceTo(p)]:[]});if(near.every(d=>lucaHit<d)){userExploring.current=true;view('casa-luca');return}}
    const hits=targets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[{...t,d:ray.ray.origin.distanceTo(p)}]:[]}).sort((a,b)=>a.d-b.d),hit=hits[0]
    if(!hit||sponsorHit&&sponsorHit.d<hit.d){if(sponsorHit){userExploring.current=true;view(sponsorHit.view)}return}
