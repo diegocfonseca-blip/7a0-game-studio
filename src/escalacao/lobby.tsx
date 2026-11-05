@@ -52,6 +52,10 @@ import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { ApoieButton } from './screens'
 import { limiteCriarLigas } from './planos-regras'
+/** 📋 05/11: o aviso de sim/não ("sair da 1ª liga e entrar nesta?") pro grátis. DESLIGADO a pedido do Diego (*"não faz o aviso ainda
+ * não"*). A trava do banco (`esc_liga_limite_gratis`) continua: o grátis segue sem entrar numa 2ª liga do mesmo tipo e lê o recado de
+ * antes (`LIGA_LIMITE`). Religar = true. */
+const AVISO_TROCA_LIGA = false
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
@@ -2719,7 +2723,7 @@ export function EscLobby() {
     // pedindo pra sair da primeira (sim/não). Só vale com os direitos JÁ lidos do banco (na dúvida, deixa entrar), só pra liga
     // NOVA (quem já tem vaga, ou é o dono, volta normal). A liga da qual ele sairia é uma em que ele é CONVIDADO, e sair é o mesmo
     // "sair" de sempre do convidado: apaga só a vaga dele em `room_players`.
-    if (rd.game_state?.mode === 'liga' && direitosLiga != null && !canLiga && (rd.liga_dono ?? rd.host_id) !== user.id) {
+    if (AVISO_TROCA_LIGA && rd.game_state?.mode === 'liga' && direitosLiga != null && !canLiga && (rd.liga_dono ?? rd.host_id) !== user.id) {
       const gsA = rd.game_state as GS & { minhaLigaDraft?: boolean; ligaDraft?: boolean }
       const ehDraftAlvo = !!(gsA?.minhaLigaDraft || gsA?.ligaDraft)
       const { data: minhas } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)

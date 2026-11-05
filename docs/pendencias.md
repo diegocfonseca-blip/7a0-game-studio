@@ -12375,3 +12375,5 @@ Não retomar sem ele pedir.
 - ⏳ QUANDO LANÇAR A LIGA DRAFT: os textos públicos (planos `support-plans.tsx`, Loja `loja-clube.tsx`, `limite-sala-venda.tsx`,
   `support-plans-v2.tsx`) falam só de "Liga da Turma" pra não anunciar o Draft antes da hora — pôr de volta "+ N Ligas Draft"
   (Craque Salas 2 · Completo pra cima 3) junto com `MINHA_LIGA_DRAFT_GERAL = true`.
+- 🔕 05/11: o AVISO de sim/não pro grátis (2ª liga do mesmo tipo) foi DESLIGADO a pedido do Diego (*"não faz o aviso ainda não"*) —
+  `AVISO_TROCA_LIGA = false` em lobby.tsx. A trava do banco continua (o grátis não entra numa 2ª e lê o recado antigo). Religar = true.
