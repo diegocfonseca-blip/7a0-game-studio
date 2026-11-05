@@ -134,7 +134,12 @@ export function reservaMaisBarata(squad: WonCard[], nova: Card, formation: Forma
 // melhor 11… o usuário não ganha dinheiro"*. Regra pura: QUEM recebe e o que sai do bot. Com vaga (menos de 22) o bot da vez
 // recebe; todos cheios → o bot da vez troca pelo PIOR da MESMA posição se o novo for melhor (*"pode melhorar os reservas"*) e o
 // pior volta a ficar livre; se não for melhor, o jogador fica livre (pode ser escolhido no draft). Ninguém passa de 22.
-export function botDaSobra(bots: Manager[], vez: number, nova: Card): { bot: Manager; aceita: boolean; sai?: WonCard; proxVez: number } | null {
+// 🔒 05/11 (Diego: *"o que o bot pega também fica 3 temporadas no time dele pelo menos"*): jogador que CHEGOU num bot fica lá pelo
+// menos 3 temporadas — nem a troca de bot cheio nem o reforço calado tiram ele antes. (`mldDesde` = temporada em que chegou)
+export function botPodeSoltar(c: { mldDesde?: number }, temporadaQueAcabou: number): boolean {
+  return c.mldDesde == null || temporadasNoTime(c, temporadaQueAcabou) >= MLD_SONDAR_TEMPORADAS
+}
+export function botDaSobra(bots: Manager[], vez: number, nova: Card, temporadaQueAcabou = 0): { bot: Manager; aceita: boolean; sai?: WonCard; proxVez: number } | null {
   const n = bots.length
   if (!n) return null
   const v0 = ((vez % n) + n) % n
@@ -143,7 +148,7 @@ export function botDaSobra(bots: Manager[], vez: number, nova: Card): { bot: Man
     if (bots[i].squad.length < MLD_ELENCO_MAX) return { bot: bots[i], aceita: true, proxVez: (i + 1) % n }
   }
   const b = bots[v0]
-  const pior = b.squad.filter(c => c.pos === nova.pos && !c.emprestado).sort((a, c) => forca(a) - forca(c))[0]
+  const pior = b.squad.filter(c => c.pos === nova.pos && !c.emprestado && botPodeSoltar(c, temporadaQueAcabou)).sort((a, c) => forca(a) - forca(c))[0]
   const aceita = !!pior && forca(nova) > forca(pior)
   return { bot: b, aceita, ...(aceita ? { sai: pior } : {}), proxVez: (v0 + 1) % n }
 }

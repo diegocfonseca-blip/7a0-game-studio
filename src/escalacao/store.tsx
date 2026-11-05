@@ -1109,7 +1109,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -7538,7 +7538,7 @@ function mldReforcaBots(s: EscState): void {
   for (const m of s.managers) {
     if (m.isHuman || !m.squad.length) continue
     const pos = SECTORS[Math.floor(rng() * SECTORS.length)]
-    const pior = [...m.squad.filter(c => c.pos === pos)].sort((a, b) => forcaC(a) - forcaC(b))[0]
+    const pior = [...m.squad.filter(c => c.pos === pos && botPodeSoltar(c as WonCard, d.temporada))].sort((a, b) => forcaC(a) - forcaC(b))[0] // 🔒 quem chegou há menos de 3 temporadas fica
     if (!pior) continue
     const livres = cartasLivres(nomesOcupados(s.managers), deckDraft(s)).filter(c => c.pos === pos && c.fame >= 2 && c.fame <= 4 && !c.promessa && forcaC(c) > forcaC(pior) && cartaPermitidaDraft(c, s.draftRegras)) // 📜 bot segue a regra da turma
     if (!livres.length) continue
@@ -7565,7 +7565,7 @@ function mldProximoIgualar(s: EscState): void {
 function mandaProBot(s: EscState, carta: WonCard): void {
   if (!s.minhaLigaDraft) return
   const bots = s.managers.filter(m => !m.isHuman).sort((a, b) => a.id - b.id)
-  const r = botDaSobra(bots, s.mldBotVez ?? 0, carta)
+  const r = botDaSobra(bots, s.mldBotVez ?? 0, carta, s.draft?.temporada ?? s.seasonNo ?? 1)
   if (!r) return
   s.mldBotVez = r.proxVez
   const log = (s.marketLog = s.marketLog ?? [])

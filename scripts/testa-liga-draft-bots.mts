@@ -30,4 +30,13 @@ ok(botDaSobra([], 0, carta('ATA', 3)) === null, 'sem bot na liga: nada acontece'
 const sq = ordenaBotPelaForca([carta('ATA', 1), carta('ATA', 5), carta('ATA', 3), carta('ATA', 2), carta('GOL', 1), carta('GOL', 4)])
 const xi = xiPorOrdem(sq, '4-3-3')
 ok(xi.filter(c => c.pos === 'ATA').map(c => c.fame).join(',') === '5,3,2' && xi.find(c => c.pos === 'GOL')!.fame === 4, 'XI do bot = os melhores de cada posição')
+// 🔒 o que o bot pega fica 3 temporadas: com todos cheios, o recém-chegado não sai na troca
+{
+  const b = bot(3, MLD_ELENCO_MAX)
+  for (const c of b.squad) if (c.pos === 'ZAG') (c as { mldDesde?: number }).mldDesde = 5 // chegaram na temporada 5
+  const r1 = botDaSobra([b], 0, carta('ZAG', 4), 5)! // acabou a 5ª: só 1 temporada no time
+  ok(!r1.aceita && !r1.sai, 'jogador recém-chegado no bot não sai (menos de 3 temporadas)')
+  const r2 = botDaSobra([b], 0, carta('ZAG', 4), 7)! // acabou a 7ª: 3 temporadas
+  ok(r2.aceita && r2.sai?.pos === 'ZAG', 'depois de 3 temporadas o bot já pode trocar ele')
+}
 if (falhas) { console.log(`\n${falhas} falha(s)`); process.exit(1) } else console.log('\n🤖 sobra pro bot: tudo certo')
