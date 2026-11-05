@@ -1087,6 +1087,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
       {fase?.fase === 'convocacao' && (convocando.current || !convocouRef.current) && minha && !temTime(minha) && !soAssisto && (
         <CMModal>
           <ConvocacaoScreen pais={minha.pais} prazoSeg={seg}
+            fecharam={{ total: picks.size, nomes: [...picks].filter(([, p]) => temTime(p)).map(([u]) => nomeDe.get(u) ?? '').filter(Boolean) }}
             onBack={() => { convocando.current = false; convocouRef.current = true; setAgora(Date.now()) }}
             aoEstourar={(parcial, f) => { convocando.current = false; void gravaTime(parcial.map(c => `${c.name}|${c.club}|${c.year}`), f, true) }}
             onDone={(xi, f) => { convocando.current = false; void gravaTime(xi.map(c => `${c.name}|${c.club}|${c.year}`), f) }} />

@@ -39,7 +39,8 @@ import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
 import { useCampo2DLigado } from './campo2d-modo'
-import { useCampo2DLiberado } from './sport'
+import { useCampo2DLiberado, useTelaPC } from './sport'
+import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
 import { DUR_2D_MS } from './campo2d-motor'
 import { LiveScoreCard, PensShootout, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
@@ -394,6 +395,7 @@ function AvisoRecusa({ motivo }: { motivo: string }) {
 function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; onConfirm: (xi: Card[]) => void }) {
   const faces = useLegendPresentation()
   const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => c as unknown as Card), [clube])
+  const pc = useTelaPC() // 🖥️ 04/11: no PC, 3 colunas (convocacao-pc.css) — celular igual
   const real = doClube
   const shapeAvailable = (form: Shape) => fechaForm(real, form)
   const [shape, setShape] = useState<Shape>(shapeAvailable('4-3-3') ? '4-3-3' : '4-4-2')
@@ -413,12 +415,14 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
   }
   const list = real.filter(c => c.pos === tab && c.name.toLowerCase().includes(q.toLowerCase()))
   const linha = (slots: { sec: Section; c: PoolCard | null }[]) => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
-    {slots.map((sl, i) => sl.c ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.sec} alt={52} fonteNome={10} rosto={faces} /> : <VagaNoCampo key={i} tag={sl.sec} alt={52} />)}
+    {slots.map((sl, i) => sl.c ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.sec} alt={pc ? 64 : 52} fonteNome={pc ? 11.5 : 10} rosto={faces} /> : <VagaNoCampo key={i} tag={sl.sec} alt={pc ? 64 : 52} />)}
   </div>
   const slotsDe = (s: Section) => { const picked = bySec(s); return Array.from({ length: need[s] }, (_, i) => ({ sec: s, c: picked[i] ?? null })) }
   const lat = slotsDe('LAT'), zag = slotsDe('ZAG')
   return <>
     <RecadoDaLenda clube={clube} userTeam={userTeam} pool={doClube} />
+    <div className={pc ? 'cv-pc' : undefined}>
+    <div className="cv-top">
     <div style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 13, padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, color: '#fff' }}>
       <SeloClube clube={clube} size={34} />
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -430,19 +434,23 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
         <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>{tr('CONVOCADOS', 'CALLED UP')}</span>
       </div>
     </div>
-    <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+    </div>
+    <div className="cv-left">
+    <div className="cv-forms" style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
       {(['4-3-3', '4-4-2'] as Shape[]).map(f => { const ok = shapeAvailable(f); return <button key={f} type="button" disabled={!ok} onClick={() => { setShape(f); setXi([]); setAviso(null) }}
         style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', color: INK, background: !ok ? '#CBBF9E' : shape === f ? GOLD : '#fff', boxShadow: shape === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .7 }}>{ok ? f : `🔒 ${f}`}</button> })}
     </div>
-    <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+    <div className="cv-tabs" style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
       {sections.map(s => { const done = bySec(s).length >= need[s]; return <button key={s} type="button" onClick={() => setTab(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer', background: done ? GREEN : tab === s ? GOLD : '#fff', color: done ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
-        {s}<span style={{ display: 'block', fontSize: 7.5, fontWeight: 800, opacity: .8, fontFamily: 'Inter, system-ui, sans-serif' }}>{bySec(s).length}/{need[s]}{done ? ' ✓' : ''}</span></button> })}
+        {s}{pc && <span className="cv-tab-nome">{tr(...SEC_LABEL[s])}</span>}<span style={{ display: 'block', fontSize: 7.5, fontWeight: 800, opacity: .8, fontFamily: 'Inter, system-ui, sans-serif' }}>{bySec(s).length}/{need[s]}{done ? ' ✓' : ''}</span></button> })}
     </div>
+    </div>
+    <div className="cv-mid">
     {aviso &&<div role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>}
     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${real.filter(c => c.pos === tab).length} ${tr(...SEC_LABEL[tab])}…`}
       style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      <div style={{ maxHeight: 250, overflowY: 'auto' }}>
+      <div className="cv-lista" style={{ maxHeight: 250, overflowY: 'auto' }}>
         {list.map(c => { const on = xi.includes(c.id); const full = !on && bySec(c.pos as Section).length >= need[c.pos as Section]; return <button key={c.id} type="button" onClick={() => toggle(c)}
           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : full ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: full ? .62 : 1, textAlign: 'left' }}>
           <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : full ? '🔒' : ''}</span>
@@ -453,6 +461,8 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
         {list.length === 0 && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>{tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}</p>}
       </div>
     </div>
+    </div>
+    <div className="cv-right">
     <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 10 }}>
       <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .5 }}>{clube} · {selected.length}/11 · {shape}</span>
@@ -468,6 +478,8 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
     </button>
     {/* 🔒 02/10 (Diego): *"depois de escolher o clube não quero opção de trocar clube. Escolheu, já era"*. */}
     <p style={hint}>{tr('Igual à Copa do Mundo: os jogadores do', 'Like the World Cup: the players of')} {clube} {tr('jogam pelo clube deles. A convocação fica congelada durante a campanha. ', 'play for their club. The call-up is frozen for the whole campaign. ')}{userTeam} {tr('mantém escudo e mascote.', 'keeps its crest and mascot.')}</p>
+    </div>
+    </div>
   </>
 }
 
