@@ -8,7 +8,7 @@ import { avisoFechado, fechaAviso } from './avisos-fechados'
 import { useT } from './lang'
 
 export const BANNER_INSTAGRAM_LIGADO = true
-const FALTAM = 200
+const FALTAM = 95 // 05/11: Diego atualizou a meta (era 200). A chave de fechar NÃO muda: quem fechou não vê de novo (regra 29/10)
 const CHAVE = 'banner-insta-campo2d-200'
 const LINK = 'https://instagram.com/leilaolegendscom'
 const INK = '#0C0C0C', ROSA = '#D62976', ROXO = '#962FBF'
@@ -32,10 +32,10 @@ export function BannerInstagram() {
         </span>
         <div style={{ minWidth: 0 }}>
           <h2 style={{ margin: '0 34px 4px 0', ...OSW, fontWeight: 900, fontSize: 21, lineHeight: 1.05 }}>
-            {t('Faltam ', 'Only ')}<b style={{ color: ROSA }}>{FALTAM} {t('seguidores', 'followers')}</b>{t(' pro Campo 2D!', ' to go for the 2D Pitch!')}
+            {t('Faltam ', 'Only ')}<b style={{ color: ROSA }}>{FALTAM} {t('seguidores', 'followers')}</b>{t(' pro Campo 2D e a Liga Draft!', ' to go for the 2D Pitch and Draft League!')}
           </h2>
           <p style={{ margin: '0 0 10px', fontSize: 13.5, lineHeight: 1.35, fontWeight: 600 }}>
-            {t('Siga o ', 'Follow ')}<b style={{ color: ROXO }}>@leilaolegendscom</b>{t(' no Instagram. Bateu a meta, a gente libera o ', ' on Instagram. Once we hit the goal, we release the ')}<b>{t('campinho 2D', '2D pitch')}</b>{t(' pra todo mundo. ⚽', ' for everyone. ⚽')}
+            {t('Siga o ', 'Follow ')}<b style={{ color: ROXO }}>@leilaolegendscom</b>{t(' no Instagram. Bateu a meta, a gente libera o ', ' on Instagram. Once we hit the goal, we release the ')}<b>{t('campinho 2D', '2D pitch')}</b>{t(' e a ', ' and the ')}<b>{t('Liga Draft', 'Draft League')}</b>{t(' pra todo mundo. ⚽', ' for everyone. ⚽')}
           </p>
           <a href={LINK} target="_blank" rel="noopener noreferrer"
             style={{ display: 'inline-block', background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 14px', ...OSW, fontWeight: 800, fontSize: 15, boxShadow: `3px 3px 0 ${ROSA}`, textDecoration: 'none' }}>
