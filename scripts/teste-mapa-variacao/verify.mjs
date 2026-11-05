@@ -9,8 +9,7 @@ for(let i=0;i<500;i++){
  assert.ok(design.w>7&&design.w<11.2&&design.d<=12.1,'Preservar o espaço dos lotes existentes');
  assert.equal(design.floors,[1,2,4,6][v]);
  types.add(design.tipo);roofs.add(design.roof);colors.add(design.color);
- const distant=arquiteturaDoEndereco(x,z,v,true);assert.ok(!distant.comercial,'Preservar os comércios nos endereços existentes');
- if(!design.comercial){assert.equal(distant.frontWall,design.frontWall);assert.equal(distant.balcony,design.balcony,'Aproximar-se de um bairro afastado também precisa revelar sua fachada');}
+ const distant=arquiteturaDoEndereco(x,z,v,true);assert.ok(!distant.comercial&&!distant.frontWall&&!distant.balcony,'Detalhes adicionais não se estendem à cidade distante');
 }
 assert.equal(types.size,5);assert.equal(roofs.size,3);assert.equal(colors.size,8);
 const hubs=[0,30,60,90].map((z,i)=>({id:'local-'+i,purpose:i<2?'encontro':'transporte',frontage:[{x:0,z},{x:20,z}]}));
