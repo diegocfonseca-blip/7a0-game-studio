@@ -1,3 +1,10 @@
+## 🤖 05/11 — Liga Draft: a SOBRA vai de graça pro bot (feito, só testadores)
+Diego: *"cada bot poderia pegar um jogador do leilão que ninguém quis de graça… o que o usuário remove pra entrar o do draft… cada hora é a vez de um bot em sequência… bot também 22… sempre o melhor 11… o usuário não ganha dinheiro"*. Fechado: (1) só o jogador POSTO À VENDA sem lance vai pro bot — o sondado sem lance volta pro dono; (2) todos os bots com 22 = o da vez troca pelo pior da MESMA posição se o novo for melhor (*"pode melhorar os reservas"*), senão o jogador fica livre pro draft.
+- Sobra = quem o usuário tira com 22 no draft · quem sai pra caber o comprado no leilão · o "à venda" sem lance. Vai pro bot da vez (fila 1→7→1, `mldBotVez`), `paid: 0`, ninguém recebe moeda. Bot cheio passa a vez.
+- O bot escala sempre os melhores (`ordenaBotPelaForca`; o motor corta o XI de bot com banco também). O reforço calado de 01/11 continua.
+- Regra pura `botDaSobra` (liga-draft.ts) · `mandaProBot` (store) · telas: "Ninguém quis: vai de graça pra um bot". Travas: `npx tsx scripts/testa-liga-draft-bots.mts` + `testa-minha-liga-draft.mts`.
+- ⚠️ A vez da fila (`mldBotVez`) volta pro 1º bot se a liga atravessar o dia (o carry não leva a vez) — inofensivo.
+
 ## 🐛 05/11 — Convocação no PC espremida (Julia Barranquila, carreira internacional)
 - Em tela de notebook (1100–1400px) os lados fixos (280 + 420) espremiam a lista do meio e os cartões viravam tirinhas ("CILL…", "VAN BRE…"). Conserto só de desenho em `convocacao-pc.css`, **mantendo o visual aprovado** (3 colunas, campinho à direita): abaixo de 1400px os lados afinam (230 + 330) e a lista põe as colunas que cabem. ⚠️ A 1ª versão do conserto descia o campinho e eu mostrei uma foto de MENTIRA (HTML improvisado) — o Diego cortou: *"q visual é esse… não tem nada a ver com o aprovado"*. Foto de conserto visual = SEMPRE a bancada de verdade (`scripts/teste-convocacao/`). Fotos: `scripts/mockups/convocacao-antes-1180.png` × `convocacao-depois-1180.png`.
 

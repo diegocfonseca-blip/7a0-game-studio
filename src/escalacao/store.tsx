@@ -1109,7 +1109,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, ordenaBotPelaForca, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -4086,7 +4086,7 @@ export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scor
 function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[], lancesSempre = false): MatchResult {
   // 📋🏆 MINHA LIGA DRAFT: elenco de até 22 — quem joga é o XI (os primeiros de cada posição, o mesmo que o campinho mostra).
   // O banco não entra na força nem faz gol. Fora deste modo nada muda (o elenco É o time de 11).
-  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.isHuman && m.squad.length > 11 ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) }
+  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.squad.length > 11 ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const comLances = involveHuman || lancesSempre
@@ -7460,6 +7460,7 @@ function aplicaPickDraft(s: EscState, m: Manager, carta: Card, sai: Card | null,
   // 📋🏆 Minha Liga Draft: o jogador do draft chega valendo 10 🪙 e, com vaga (menos de 22), entra no BANCO sem ninguém sair
   const nova: WonCard = { ...carta, id: `dr${d.temporada}-${m.id}-${d.idx}`, paid: s.minhaLigaDraft ? MLD_DRAFT_VALOR : 0, via: 'leilao', ...(s.minhaLigaDraft ? { mldDesde: d.temporada + 1 } : {}) }
   m.squad = sai ? m.squad.map(c => c.id === sai.id ? nova : c) : [...m.squad, nova]
+  if (s.minhaLigaDraft && sai) mandaProBot(s, sai as WonCard) // 🤖 05/11: quem saiu pra caber o do draft vai de graça pro bot da vez
   d.picks.push({ mgrId: m.id, carta: nova, ...(sai ? { saiu: { id: sai.id, name: sai.name, club: sai.club, year: sai.year } } : {}), ...(auto ? { auto: true } : {}) })
   ;(s.marketLog = s.marketLog ?? []).push(`📋 ${m.teamName} escolheu ${carta.name} no draft${sai ? ` (saiu ${sai.name})` : ''}`)
   d.fase = 'revela'
@@ -7541,7 +7542,7 @@ function mldReforcaBots(s: EscState): void {
     const livres = cartasLivres(nomesOcupados(s.managers), deckDraft(s)).filter(c => c.pos === pos && c.fame >= 2 && c.fame <= 4 && !c.promessa && forcaC(c) > forcaC(pior) && cartaPermitidaDraft(c, s.draftRegras)) // 📜 bot segue a regra da turma
     if (!livres.length) continue
     const nova = livres[Math.floor(rng() * livres.length)]
-    m.squad = m.squad.map(c => c.id === pior.id ? { ...nova, id: `mlb${d.temporada}-${m.id}`, paid: pior.paid ?? 1, via: 'leilao' } as WonCard : c)
+    m.squad = ordenaBotPelaForca(m.squad.map(c => c.id === pior.id ? { ...nova, id: `mlb${d.temporada}-${m.id}`, paid: pior.paid ?? 1, via: 'leilao' } as WonCard : c)) // 🤖 o melhor joga
   }
 }
 // o próximo lote esperando "igualar" — ou, se não tem mais, aplica o leilão e vai pra escalação
@@ -7556,6 +7557,25 @@ function mldProximoIgualar(s: EscState): void {
 }
 // 🔨 o dinheiro e os jogadores mudam de mão. Cada passo confere de novo (caixa, carta, formação) — se algo não fecha, o
 // jogador FICA com o dono (nunca fica estado quebrado).
+// 🤖 05/11 (Diego): a SOBRA da Liga Draft vai de GRAÇA pro bot da vez (fila 1→7→1). Sobra = quem o usuário tirou pra caber o
+// do draft (ou o do leilão) e o jogador que o dono pôs à venda e ninguém quis. Ninguém recebe moeda nenhuma por isso.
+// Bot cheio (22) passa a vez pro próximo; todos cheios = o da vez troca pelo pior da mesma posição se o novo for melhor; senão
+// o jogador fica livre (volta pro draft). Regra pura em `botDaSobra` (liga-draft.ts).
+function mandaProBot(s: EscState, carta: WonCard): void {
+  if (!s.minhaLigaDraft) return
+  const bots = s.managers.filter(m => !m.isHuman).sort((a, b) => a.id - b.id)
+  const r = botDaSobra(bots, s.mldBotVez ?? 0, carta)
+  if (!r) return
+  s.mldBotVez = r.proxVez
+  const log = (s.marketLog = s.marketLog ?? [])
+  if (!r.aceita) { log.push(`🆓 ${carta.name} ficou livre (nenhum bot tinha vaga)`); return }
+  const temporada = s.draft?.temporada ?? s.seasonNo ?? 1
+  const nova: WonCard = { ...carta, id: `mb${temporada}-${r.bot.id}-${r.bot.squad.length}-${(s.marketLog?.length ?? 0)}`, paid: 0, via: 'leilao', mldDesde: temporada + 1 }
+  delete (nova as { emprestado?: unknown }).emprestado
+  const resto = r.sai ? r.bot.squad.filter(c => c.id !== r.sai!.id) : r.bot.squad
+  r.bot.squad = ordenaBotPelaForca([...resto, nova])
+  log.push(`🤖 ${r.bot.teamName} ficou com ${carta.name} de graça${r.sai ? ` · saiu ${r.sai.name}` : ''}`)
+}
 function mldAplicaLeilao(s: EscState): void {
   const d = s.draft
   if (!d) return
@@ -7564,6 +7584,21 @@ function mldAplicaLeilao(s: EscState): void {
     const dono = s.managers.find(m => m.id === l.dono)
     const valor = Math.max(0, Math.floor(l.valor ?? 0))
     if (!dono || l.vencedor == null) return
+    if (l.vencedor === dono.id && l.sondador == null && !(valor > 0)) {
+      // 🤖 05/11: pôs à venda e ninguém quis → vai de graça pro bot da vez (o dono não recebe nada); o sondado continua com o dono
+      const card = dono.squad.find(c => c.id === l.carta.id)
+      if (!card) return
+      dono.squad = dono.squad.filter(c => c.id !== card.id)
+      log.push(`🏷️ ninguém quis ${card.name} do ${dono.teamName}`)
+      mandaProBot(s, card)
+      const need = FORMATIONS[dono.formation]?.[card.pos] ?? 1
+      if (dono.squad.filter(c => c.pos === card.pos).length < need) {
+        const livres = cartasLivres(nomesOcupados(s.managers), deckDraft(s)).filter(c => c.pos === card.pos && c.fame <= 2 && !c.promessa)
+        const rep = livres.length ? livres[(s.seed + i * 7919) % livres.length] : undefined
+        if (rep) { dono.squad = [...dono.squad, { ...rep, id: `mlr${d.temporada}-${dono.id}-${i}`, paid: 1, via: 'leilao', mldDesde: d.temporada + 1 }]; log.push(`🆓 ${dono.teamName} ganhou ${rep.name} pra fechar a posição`) }
+      }
+      return
+    }
     if (l.vencedor === dono.id) {
       // 🛡️ o dono segurou: ele PAGA o lance dele (senão bastava chutar 999 de graça) — o dinheiro sai do jogo
       if (valor > 0 && dono.money >= valor) { dono.money -= valor; log.push(`🛡️ ${dono.teamName} segurou ${l.carta.name} por ${valor}`) }
@@ -7580,6 +7615,7 @@ function mldAplicaLeilao(s: EscState): void {
     }
     dono.squad = dono.squad.filter(c => c.id !== card.id)
     if (saiu) ganhador.squad = ganhador.squad.filter(c => c.id !== saiu!.id)
+    if (saiu) mandaProBot(s, saiu) // 🤖 quem saiu pra caber o novo vai de graça pro bot da vez
     ganhador.squad = [...ganhador.squad, nova]
     ganhador.money -= valor
     dono.money += valor
@@ -7602,7 +7638,7 @@ const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isH
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
-  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA

@@ -951,6 +951,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   draft: **1 jogador por técnico, de TODOS do jogo, campeão escolhe primeiro, 60s**, cada jogador **único na liga** (pelo nome).
   O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
   carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
+  🤖 **05/11: a SOBRA vai de GRAÇA pro bot da vez** (fila 1→7→1, até 22, escala os 11 melhores): quem o usuário tira pra caber o do draft/leilão
+  e o "à venda" sem lance (o SONDADO sem lance volta pro dono). Ninguém ganha moeda. Bots cheios: troca pelo pior da posição se for melhor.
 - **🔒 CARREIRA GRÁTIS VAI ATÉ A TEMPORADA 50 (27/10, regra dele).** *"chegando na temporada 50 só avança quem tem plano pago… ela pagando descongela… quem já passou sem problemas"*. Trava na decisão do fim da T50 (tela + motor, `travaCarreiraGratis`); save congelado, nunca apagado. 🔁 Mesmo dia: *"quem já passou da temporada 50… limite de mais dez temporadas"* → quem estava acima da 50 sem plano ganha +10 (marca `careerGratisAte` na 1ª virada). **Com plano não aparece NADA** (nem "conferindo"); pagou, avança. Trava: `npm run carreira-gratis`.
 - **🔒🎭 NOME RESERVADO É DE QUEM TEM PLANO (27/10, mockup `scripts/mockups/nome-reservado.png` aprovado).** *"quem tem plano reserva
   o nome p sempre… quem não tem alguém pode fazer igual… o grátis irá aparecer joaquim fc fake"*. Régua = `esc_direitos_de(...)->>'pago'`

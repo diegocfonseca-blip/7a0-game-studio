@@ -454,7 +454,7 @@ function VenderMeu({ d, you }: { d: DraftEstado; you: Manager }) {
           ))}
         </div>
       )}
-      <p className="text-[10.5px] font-bold text-black/50">{t('Vendeu: o dinheiro vem pra você. Ninguém quis: ele fica.', 'Sold: the money comes to you. Nobody wanted him: he stays.')}</p>
+      <p className="text-[10.5px] font-bold text-black/50">{t('Vendeu: o dinheiro vem pra você. Ninguém quis: ele vai de graça pra um bot (você não recebe nada).', 'Sold: the money comes to you. Nobody wanted him: he goes to a bot for free (you get nothing).')}</p>
     </div>
   )
 }
@@ -627,7 +627,7 @@ function RevelaLeilao({ d, you, nome }: { d: DraftEstado; you: Manager; nome: (i
               <CardFace c={l.carta} big />
               <p className="text-[11.5px] font-bold text-black/60 mt-2">{t('dono', 'owner')}: {nome(l.dono)}{l.sondador != null ? ` · 🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : ''}</p>
               <div className="mt-3 space-y-1.5">
-                {lances.length === 0 && <p className="font-bold text-black/70">{t('Nenhum lance. Fica com o dono. ↩️', 'No bids. Stays with the owner. ↩️')}</p>}
+                {lances.length === 0 && <p className="font-bold text-black/70">{l.sondador != null ? t('Nenhum lance. Fica com o dono. ↩️', 'No bids. Stays with the owner. ↩️') : t('Ninguém quis. Vai de graça pra um bot. 🤖', 'Nobody wanted him. He goes to a bot for free. 🤖')}</p>}
                 {lances.map((b, k) => {
                   const venceu = martelou && l.vencedor === b.mgr
                   return (
@@ -691,7 +691,7 @@ function EscalaMinha({ d, you, souDono, restante }: { d: DraftEstado; you: Manag
     <div className="space-y-3">
       {resultados.length > 0 && (
         <Caixa titulo={t('🔨 Como ficou o leilão', '🔨 Auction results')}>
-          {resultados.map((l, i) => <Linha key={i} a={l.carta.name} b={l.vencedor === l.dono ? (l.valor ? t(`🛡️ ficou (${l.valor})`, `🛡️ kept (${l.valor})`) : t('↩️ ficou com o dono', '↩️ stays')) : `${state.managers.find(m => m.id === l.vencedor)?.teamName ?? '?'} · ${l.valor} 🪙${l.igualou ? ' ⚡' : ''}`} />)}
+          {resultados.map((l, i) => <Linha key={i} a={l.carta.name} b={l.vencedor === l.dono ? (l.valor ? t(`🛡️ ficou (${l.valor})`, `🛡️ kept (${l.valor})`) : l.sondador == null ? t('🤖 foi pra um bot', '🤖 went to a bot') : t('↩️ ficou com o dono', '↩️ stays')) : `${state.managers.find(m => m.id === l.vencedor)?.teamName ?? '?'} · ${l.valor} 🪙${l.igualou ? ' ⚡' : ''}`} />)}
         </Caixa>
       )}
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
