@@ -215,7 +215,7 @@ export function whatsappValido(txt: string): string | null {
  *  só barra a liga NOVA. `legado` = tier COMPRADO (banco/lista), nunca o da tela. */
 export function limiteCriarLigas(legado: TierCor | null | undefined, d: Direitos | null): number {
   const acimaDoSalas = legado === 'prata' || legado === 'ouro' || !!d && (d.craqueAtivo || d.batismo || d.fundador || d.socioAtivo || d.mensalPlano === 'craque_completo')
-  if (acimaDoSalas) return 3
-  if (d?.mensalPlano === 'craque_salas') return 2
+  if (acimaDoSalas) return 4 // 06/11 (Diego: "aumente pra cria 3 e cria 4"): era 3
+  if (d?.mensalPlano === 'craque_salas') return 3 // era 2
   return 0
 }

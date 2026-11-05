@@ -2128,8 +2128,8 @@ export function EscLobby() {
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
     // abandonadas. O aviso diz o número e o caminho pra destravar.
-    // 🏆📋 05/11 (Diego): o teto agora é POR PLANO e POR TIPO — ⭐ Craque Salas cria até 2 Ligas da Turma + 2 Ligas Draft; do
-    // ⭐ Craque Completo pra cima, até 3 + 3 (`limiteCriarLigas`). Entrar continua ilimitado pra quem paga. Quem já tem mais fica
+    // 🏆📋 05/11 (Diego): o teto agora é POR PLANO e POR TIPO — ⭐ Craque Salas cria até 3 Ligas da Turma + 3 Ligas Draft; do
+    // ⭐ Craque Completo pra cima, até 4 + 4 (06/11; antes 2+2 e 3+3) (`limiteCriarLigas`). Entrar continua ilimitado pra quem paga. Quem já tem mais fica
     // com todas; só não cria outra. (Antes: 5 ligas no total pra qualquer plano, `MAX_LIGAS`.)
     if (liga) {
       const ehDraftNova = !!ehDraft
@@ -2139,7 +2139,7 @@ export function EscLobby() {
       const { count } = await q
       if ((count ?? 0) >= teto) {
         const tipo = ehDraftNova ? tr('Ligas Draft', 'Draft Leagues') : tr('Ligas da Turma', 'Crew Leagues')
-        const sobe = teto < 3 ? tr(' Com o ⭐ Craque Completo você cria até 3.', ' With ⭐ Star Complete you can create up to 3.') : ''
+        const sobe = teto < 4 ? tr(' Com o ⭐ Craque Completo você cria até 4.', ' With ⭐ Star Complete you can create up to 4.') : ''
         setRoomError(tr(`Seu plano cria até ${teto} ${tipo} e você já tem ${count}. Pra criar outra, exclua uma em "🏆 Suas ligas" (🗑️ Excluir).${sobe} Entrar na liga dos amigos é ilimitado.`,
           `Your plan creates up to ${teto} ${tipo} and you already have ${count}. To create another, delete one in "🏆 Your leagues" (🗑️ Delete).${sobe} Joining friends' leagues is unlimited.`))
         setLoading(false); return
