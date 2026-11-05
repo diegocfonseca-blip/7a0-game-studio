@@ -37,7 +37,7 @@ export function criarDiaDeJogo(scene:THREE.Scene,state:EstadoComplexo,seats:read
  const customers=props.stalls.map((s,i)=>{
   const side=s.side==='away',end=s.service,points=side?[{x:end.x+4,y:end.y,z:end.z+2},{x:end.x+2.4,y:end.y,z:end.z},end]:[{x:end.x-2,y:end.y,z:end.z+5},{x:end.x,y:end.y,z:end.z+3},end]
   const path=measured(points)
-  return{id:s.id,person:person('matchday-customer-'+s.id,undefined,i%2?'adult-man':'adult-woman'),journey:customerJourney(path,{stay:11+i*3,wait:2+i*3,speed:1.05,turnAtExit:true}),pose:null as ReturnType<ReturnType<typeof customerJourney>['at']>|null,exit:undefined as ReturnType<typeof activityRoute>|undefined}
+  return{id:s.id,person:person('matchday-customer-'+s.id,undefined,i%2?'adult-man':'adult-woman'),journey:customerJourney(path,{stay:22+i*4,wait:2+i*3,speed:1.05,turnAtExit:true}),pose:null as ReturnType<ReturnType<typeof customerJourney>['at']>|null,exit:undefined as ReturnType<typeof activityRoute>|undefined}
  })
  const guards=([{x:-6.5,z:94,heading:0},{x:108,z:10,heading:Math.PI/2}]).map((p,i)=>({person:person('matchday-steward-'+i,'#b4a331',i%2?'adult-woman':'adult-man'),position:{...p,y:ground(p.x,p.z)}}))
  const fans=(['home','away'] as const).flatMap(side=>Array.from({length:4},(_,index)=>{

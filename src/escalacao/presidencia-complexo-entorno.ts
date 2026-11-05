@@ -7,6 +7,7 @@ import {LOTE_AGENCIA_CLUBE} from './clube-mapa-destinos'
 import {criarPatrocinadoresCidade} from './presidencia-patrocinadores-cidade'
 import {RESERVAS_PATROCINADORES_CIDADE,LOTES_PATROCINADORES_CIDADE,RUAS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
+import {arquiteturaDoEndereco} from './presidencia-bairro-arquitetura'
 import * as THREE from 'three'
 import {gerarPlantaTransporte, LOTES_ESTACIONAMENTO_COMPLEXO, faixaTransporteComplexo} from './presidencia-complexo-transporte-model'
 import {criarConcessionariaComplexo, PLANTA_VADICO} from './presidencia-complexo-concessionaria'
@@ -869,17 +870,20 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       }
     }
     const forecourt=path([[532,640],[598,691],[605,752],[929,741],[988,665],[1043,598]])
+    // 🏢🛍️ 05/11: loja e agência agora moram aqui no sul — palmeira/cipreste do jardim não nasce dentro (nem colado) delas
+    const lotesDoClube=[PLANTA_COMPLEXO.lots.loja.footprint,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[])]
+    const noLoteDoClube=(q:PontoComplexo)=>lotesDoClube.some(points=>inside(q,points)||points.some((b,j)=>distanceToSegment(q,points[(j+points.length-1)%points.length],b)<1.6))
     for(let i=0;i<forecourt.length;i++){
       const p=forecourt[i]
       // This is the purchased forecourt's own planting. Its plaza reservation
       // excludes city infill, not the palms that belong to the finished garden.
       const forecourtReserved=Math.abs(p.x)<118&&p.z>-105&&p.z<119||registeredLots.some(lot=>inside(p,lot.footprint))||inside(p,arena)||protectedPath(p)
       const trunkClear=parkingLots.every(points=>!inside(p,points)&&points.every((b,j)=>distanceToSegment(p,points[(j+points.length-1)%points.length],b)>.5))
-      if(!forecourtReserved&&trunkClear)plant(p,7.2,true)
+      if(!forecourtReserved&&trunkClear&&!noLoteDoClube(p))plant(p,7.2,true)
       for(const side of [-1,1]){
         const q={x:p.x+side*3.8,z:p.z}
         const clearParking=parkingLots.every(points=>!inside(q,points)&&points.every((b,j)=>distanceToSegment(q,points[(j+points.length-1)%points.length],b)>.95))
-        if(!protectedPath(q,3)&&clearParking){const cypress=add(new THREE.ConeGeometry(.85,4.7,7),leaf);cypress.position.set(q.x,2.6,q.z)}
+        if(!protectedPath(q,3)&&clearParking&&!noLoteDoClube(q)){const cypress=add(new THREE.ConeGeometry(.85,4.7,7),leaf);cypress.position.set(q.x,2.6,q.z)}
       }
     }
   }
@@ -897,17 +901,19 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // terracotta-roofed townhouses, small flat-roof flats, and occasional taller
   // residential buildings. They are city context, never purchasable club lots.
   let detailedHomes=0
+  const architectureCounts:Record<string,number>={},architectureExamples:{x:number;z:number;tipo:string;roof:string}[]=[]
+  const neighbourhoodShops:{id:string;purpose:string;point:PontoComplexo}[]=[]
   const deliveryHomes:{id:string;x:number;z:number;door:PontoComplexo;curb:PontoComplexo;inside:PontoComplexo}[]=[]
   const residence=(x:number,z:number,variant:number,angle=0,distant=false)=>{
-    const floors=variant===0?1:variant===1?2:variant===2?4:6
-    const h=3.0*floors+.7,w=variant===3?9.0:variant===2?10.8:9.0+hash(x,z)*2.0,d=variant>1?12.1:10.1
+    const design=arquiteturaDoEndereco(x,z,variant,distant),{floors,h,w,d}=design
+    architectureCounts[design.tipo]=(architectureCounts[design.tipo]??0)+1
+    if(!distant)architectureExamples.push({x,z,tipo:design.tipo,roof:design.roof})
     const center=(lx:number,lz:number)=>localPoint(x,z,lx,lz,angle)
-    const district=z< -210?'norte':x< -180?'oeste':z>180?'sul':'estadio'
-    const palettes:Record<string,string[]>={norte:['#c8d2c6','#d1d6d2','#b6c6ca'],oeste:['#cfb49a','#c8b09e','#c6beb0'],sul:['#c5ccb3','#d5c5a4','#bfcaba'],estadio:['#d7c9b6','#c4cec6','#d4c2b3']}
-    const tint=new THREE.Color(palettes[district][Math.floor(hash(x+7,z)*3)]),wall=box('bairro-residencia',facade,w,h,d,x,h/2,z,angle)
-    const colors=new Float32Array(wall.geometry.getAttribute('position').count*3);for(let i=0;i<colors.length;i+=3)tint.toArray(colors,i);wall.geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3))
-    if(variant<2){
-      if(hash(x+4,z)>.45){
+    const tintGeometry=(mesh:THREE.Mesh,color:string)=>{const tint=new THREE.Color(color),colors=new Float32Array(mesh.geometry.getAttribute('position').count*3);for(let i=0;i<colors.length;i+=3)tint.toArray(colors,i);mesh.geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return mesh}
+    const piece=(id:string,mat:THREE.Material,ww:number,hh:number,dd:number,lx:number,y:number,lz:number,collision=false)=>{const p=center(lx,lz);return box(id,mat,ww,hh,dd,p.x,y,p.z,angle,collision)}
+    tintGeometry(box('bairro-residencia',facade,w,h,d,x,h/2,z,angle),design.color)
+    if(design.roof!=='laje'){
+      if(design.roof==='duas-aguas'){
         const rw=(w+.8)/2,rd=(d+.8)/2
         const geometry=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute([
           -rw,0,-rd,rw,0,-rd,rw,0,rd,-rw,0,rd,0,1.8,-rd,0,1.8,rd,
@@ -934,6 +940,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     const columns=variant>1?3:2
     for(let floor=0;floor<floors;floor++){
       for(let column=0;column<columns;column++){
+        if(floor===0&&design.comercial)continue
         const p=center((column-(columns-1)/2)*2.6,d/2+.015)
         windowPanel(variant>1?1.55:1.27,1.5,p.x,1.75+floor*3,p.z,angle)
       }
@@ -951,6 +958,14 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     const entrance=center(0,d/2+.025)
     deliveryHomes.push({id:`casa-${x}-${z}`,x,z,door:center(0,d/2+.5),curb:center(0,d/2+6.5),inside:center(0,d/2-.5)})
     box('bairro-porta',wood,1.2,2.1,.045,entrance.x,1.05,entrance.z,angle)
+    // A fachada muda de uso sem ocupar outro terreno ou virar uma compra do clube.
+    if(design.comercial){
+      for(const side of [-1,1])piece('bairro-vitrine',glass,w*.29,2.2,.06,side*w*.3,1.3,d/2+.05)
+      tintGeometry(piece('bairro-faixa-comercio',facade,w+.1,.48,.1,0,2.72,d/2+.08),design.accent)
+      tintGeometry(piece('bairro-toldo-comercio',facade,w*.94,.13,1.5,0,2.98,d/2+.7),design.accent)
+      piece('bairro-rodape-comercio',concrete,w,.28,.1,0,.18,d/2+.08)
+      neighbourhoodShops.push({id:`comercio-${x}-${z}`,purpose:'compras',point:center(0,d/2+2.6)})
+    }
     if(!distant&&detailedHomes<40){
       detailedHomes++
       // Real relief near the stadium, where the user can inspect the street.
@@ -965,6 +980,30 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       box('bairro-soleira',concrete,1.6,.15,.64,sill.x,.10,sill.z,angle)
       if(variant<2&&hash(x-2,z)>.45){const awning=center(0,d/2+.9);box('bairro-marquesa',roof,3.4,.12,1.8,awning.x,2.65,awning.z,angle)}
       const mailbox=center(w*.38,d/2+.12);box('bairro-caixa-correio',metal,.35,.25,.15,mailbox.x,1.15,mailbox.z,angle)
+      if(design.balcony){
+        piece('bairro-sacada-sobrado',concrete,w*.68,.15,1.15,0,3.08,d/2+.48)
+        piece('bairro-sacada-corrimao',metal,w*.68,.07,.07,0,4.08,d/2+1)
+        for(let i=0;i<6;i++)piece('bairro-sacada-grade',metal,.045,.9,.045,(i/5-.5)*w*.66,3.6,d/2+1)
+      }
+      if(design.antigo){
+        piece('bairro-cornija-antiga',white,w+.3,.23,d+.25,0,h-.2,0)
+        for(let floor=1;floor<floors;floor++)piece('bairro-friso-antigo',concrete,w+.08,.12,.12,0,floor*3-.15,d/2+.08)
+      }
+      if(design.frontWall){
+        const span=(w-2.6)/2,front=d/2+2.05
+        for(const side of [-1,1]){
+          tintGeometry(piece('bairro-muro',facade,span,1.05,.18,side*(1.3+span/2),.6,front,true),design.color)
+          piece('bairro-muro-capa',concrete,span+.06,.09,.24,side*(1.3+span/2),1.17,front)
+          // Folhas abertas junto às laterais: passagem central de 2,6 m permanece livre.
+          piece('bairro-portao-aberto',metal,.08,.95,1.1,side*1.33,.59,front-.52,true)
+        }
+      }
+      if(design.antigo||design.frontWall){
+        // Reboco gasto em poucos polígonos; material/lotação compartilhados, sem textura nova.
+        const shape=new THREE.Shape([new THREE.Vector2(-.6,-.22),new THREE.Vector2(.1,-.3),new THREE.Vector2(.67,-.08),new THREE.Vector2(.5,.24),new THREE.Vector2(-.15,.33),new THREE.Vector2(-.55,.12)])
+        const patch=tintGeometry(add(new THREE.ShapeGeometry(shape),facade),'#a99f8d'),p=center(-w*.3,design.frontWall?d/2+2.145:d/2+.021)
+        patch.position.set(p.x,design.frontWall ? .62 : .7,p.z);patch.rotation.y=angle;patch.castShadow=false
+      }
     }
     return {w,d,h,floors}
   }
@@ -1344,7 +1383,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     trunk.userData.batchZone=zone;crown.userData.batchZone=zone
     regionalTrees++
   }
-  root.userData.landscape={publicParks:publicParks.length,beltTrees,clubTrees,regionalTrees,roads:streetNetwork.length}
+  root.userData.landscape={publicParks:publicParks.length,beltTrees,clubTrees,regionalTrees,roads:streetNetwork.length,architecture:{types:architectureCounts,detailedHomes,examples:architectureExamples}}
   root.userData.transport={station:transport.station.enabled,stationFloor:transport.station.floor,railY:transport.station.railY,stairs:transport.station.enabled?transport.station.accesses.reduce((count,access)=>count+access.stair.count,0):0,stationAccesses:transport.station.accesses.map(access=>access.id),railExtent:transport.station.railExtent,railWidth:transport.station.railWidth,busStops:2,parkingStage:transport.parking.stage,parkingCapacity:transport.parking.capacity,parkingLots:transport.parkingPlants.filter(lot=>lot.stage<=transport.parking.stage).map(lot=>({id:lot.id,capacity:lot.slots.length,access:lot.access}))}
 
   // Batch by material and by the four distant forest regions after transforms,
@@ -1390,7 +1429,19 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
   root.userData.residentialDoors=deliveryHomes
+  root.userData.residentHotspots=[
+    ...botecos.map(pub=>({id:pub.id,purpose:'encontro',frontage:[{x:pub.root.position.x-5.3,z:pub.root.position.z+6},{x:pub.root.position.x-5.3,z:pub.root.position.z+13.3}]})),
+    {id:'ponto-onibus-estadio',purpose:'transporte',frontage:[{x:bus.stop.x-3,z:bus.stop.z-4.6},{x:bus.stop.x+4,z:bus.stop.z-4.6}]},
+    {id:'ponto-onibus-bairro',purpose:'transporte',frontage:[{x:origin.x-3,z:origin.z-4},{x:origin.x+3,z:origin.z-4}]},
+  ]
+  // Mesas e cadeiras não faziam parte dos volumes das fachadas. A circulação
+  // pública precisa respeitá-las também; clientes sentados mantêm a rotina própria.
+  root.userData.residentObstacles=botecos.flatMap(pub=>[7.2,9.8,12.4].flatMap(z=>[-2.4,2.4].map(x=>({
+    minX:pub.root.position.x+x-1.3,maxX:pub.root.position.x+x+1.3,
+    minZ:pub.root.position.z+z-.5,maxZ:pub.root.position.z+z+.5,base:0,top:1.2,
+  }))))
   root.userData.residentDestinations=[
+    ...neighbourhoodShops,
     ...(['loja','hotel','chopp'] as const).filter(id=>state.extras[id]).map(id=>({id,purpose:id==='hotel'?'hospedagem':'compras',point:doors[id].approach,access:[doors[id].approach,doors[id].threshold,doors[id].inside]})),
     ...botecos.map(pub=>({id:pub.id,purpose:'encontro',point:{x:pub.root.position.x,z:pub.root.position.z+9}})),
     ...(['tidex','oittolabs'] as const).map(id=>({id,purpose:'trabalho',point:doors[id].approach,access:[doors[id].approach,doors[id].threshold,doors[id].inside]})),

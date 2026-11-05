@@ -31,7 +31,20 @@ const scene=new T.Scene(),world=criarEntornoComplexo(scene,complexoDoEstadio(own
 try{
  assert.equal(world.root.userData.roadNetwork.diagnostics.afterComponents,1)
  assert.deepEqual(world.root.userData.roadNetwork.diagnostics.unresolved,[])
- for(const s of world.solids){if(s.id===a.id)continue;assert(!(s.minX<a.x+13&&s.maxX>a.x-13&&s.minZ<a.z+10&&s.maxZ>a.z-10),`${s.id} crosses the club agency`)}
+ const lot={minX:Math.min(...a.footprint.map(p=>p.x)),maxX:Math.max(...a.footprint.map(p=>p.x)),minZ:Math.min(...a.footprint.map(p=>p.z)),maxZ:Math.max(...a.footprint.map(p=>p.z))}
+ for(const s of world.solids){if(s.id.startsWith(a.id)||s.id==='estacao-viaduto')continue;assert(!(s.minX<lot.maxX&&s.maxX>lot.minX&&s.minZ<lot.maxZ&&s.maxZ>lot.minZ),`${s.id} crosses the club agency`)}
+ // 🏢🛍️ 05/11: loja e agência no lado da torcida da casa (sul), longe do portão do visitante (x 105, z 6)
+ const {LOJA_CLUBE_3D:shop}=await import('../../src/escalacao/presidencia-loja-planta.ts')
+ const {STADIUM_AWAY_GATE:away,STADIUM_HOME_GATE:home}=await import('../../src/escalacao/cidade3d/stadium-entrances.mjs')
+ for(const p of[{x:a.x,z:a.z},{x:shop.x,z:shop.z}]){
+  assert(p.z>home.threshold.z&&p.x<0,'loja/agência ficam ao sul e a oeste do eixo, do lado da casa')
+  assert(Math.hypot(p.x-away.threshold.x,p.z-away.threshold.z)>Math.hypot(p.x-home.approach.x,p.z-home.approach.z)*2.5,'mais perto do visitante que da casa')
+ }
+ const shopBox={minX:Math.min(...shop.footprint.map(p=>p.x)),maxX:Math.max(...shop.footprint.map(p=>p.x)),minZ:Math.min(...shop.footprint.map(p=>p.z)),maxZ:Math.max(...shop.footprint.map(p=>p.z))}
+ assert(shopBox.minX>lot.maxX||shopBox.maxX<lot.minX||shopBox.minZ>lot.maxZ||shopBox.maxZ<lot.minZ,'loja e agência não se encostam')
+ const {teamCoachAccess}=await import('../../src/escalacao/cidade3d/coach-access.mjs'),coach=teamCoachAccess()
+ for(const box of[lot,shopBox])for(const p of[...coach.inbound,...coach.outbound])assert(!(p.x>box.minX-3&&p.x<box.maxX+3&&p.z>box.minZ-3&&p.z<box.maxZ+3),'rota do ônibus dos times passa pela loja/agência')
+ for(const s of world.solids)if(s.id.startsWith('loja-')||s.id.startsWith(a.id))assert(s.top>.5)
  assert.deepEqual(world.root.userData.clubPlaces,{clubName:'Neymarzetti',store:true,agency:true})
 }finally{world.dispose();assert.equal(scene.children.length,0)}
 console.log(JSON.stringify({status:'PASS',ownCityPreservedAway:true,noFreeStore:true,agencyClearOfExistingBuildings:true,roadsConnected:true,noStateOrMatchMutation:true}))
