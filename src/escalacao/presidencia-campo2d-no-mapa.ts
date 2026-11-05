@@ -137,14 +137,10 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    if(impact){const key=id+':'+impact.sign+':'+impact.time;if(net?.key!==key)net={key,y:T.MathUtils.clamp(.65+height,.3,2.2),z:T.MathUtils.clamp(source.ball.z,-3.5,3.5)}}else net=undefined
    atualizarRedesGol3D(nativeField,{time:impact?.age??0,ball:{netImpact:impact&&net?{sign:impact.sign,time:0,y:net.y,z:net.z,strength:.7}:undefined}})
   }
-  // ⚽ 05/11 (Diego: *"toda vez que aparece o nome do jogador, a bola tá ficando escondida no jogador"*): no mapa a bolinha do jogador
-  // é maior que no campinho, então a bola "no pé" caía DENTRO dela. Agora a bola vai sempre por cima de tudo (depthTest off) e, se
-  // estiver dentro do disco de quem conduz, é empurrada pra BEIRA dele (do lado em que ela já estava; sem lado, pra frente da câmera).
-  let bx=source.ball.x,bz=source.ball.z
-  {const dono=source.players.find(q=>q.marker.owned)
-   if(dono&&height<.3){const dx=bx-dono.x,dz=bz-dono.z,d=Math.hypot(dx,dz),beira=dono.radius*1.08
-    if(d<beira){const ux=d>.05?dx/d:0,uz=d>.05?dz/d:1;bx=dono.x+ux*beira;bz=dono.z+uz*beira}}}
-  ball.visible=ballShadow.visible=true;desliza(ball,bx,.65+height,bz);ballShadow.position.set(ball.position.x,.03,ball.position.z);
+  // ⚽ 05/11 (Diego: *"a bola tá ficando escondida no jogador… deve deixar igual já funciona na aba de jogos"*): a posição é a MESMA
+  // da aba Jogos (no pé de quem conduz, um passo à frente — vem pronta da superfície); a diferença era só o desenho: aqui o jogador
+  // fica de pé e tampava a bola. Agora a bola é desenhada por cima de todo mundo, como no campinho (depthTest off, renderOrder 30).
+  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);
   {const b=ball.position,trailPts=rastro.passo(b.x,b.y,b.z,dtQuadro)
    trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&rastroVisivel(trailPts.length);if(!q)return;const {tamanho,alfa}=pontoRastro(i,trailPts.length);sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(tamanho*ball.scale.x);(sp.material as T.SpriteMaterial).opacity=alfa})}
   {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
