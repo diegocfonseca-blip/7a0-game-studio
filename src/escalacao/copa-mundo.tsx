@@ -42,7 +42,7 @@ import { fatoresTatica, temTatica, dadoDaTatica, type QualTatica } from './copa-
 import { RODADAS_GRUPO, PASSO_COPA, passoRodaBola, respiroAntes, passoComResumo } from './copa-passos'
 // controles de ritmo OFICIAIS (mesmos da liga/copa): auto por padrão, Manual
 // (🐢/⚡ + pular + próxima fase) pra quem tem o tier — cadeado do APOIE pro resto.
-import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt, GiroDaRodada } from './screens'
+import { SimControls, SpeedControls, useSimMode, QuickManualLock, CardCollectPrompt, GiroDaRodada, TrocaCampo2DSala } from './screens'
 import { useHasManual, stripEmoji } from './apoio'
 import { resilientWrite } from './pending'
 import { supabase } from '../lib/supabase'
@@ -1439,6 +1439,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
           </div>
         </> : <p>{tr('Ritmo da sala', 'Room pace')}: {manual ? 'manual' : tr('automático', 'auto')} · {synced.row.speed}× · {tr('controlado pelo host', 'controlled by the host')}</p>}
       </>}
+      {synced?.row && <TrocaCampo2DSala />}{/* 📺⚡ o dono troca 2D ↔ rápido: vale do próximo passo da Copa (só aparece pro dono) */}
       <button className="ll31-back-room" onClick={onClose}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>
     </section>
   ) : null
@@ -1801,7 +1802,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       ) : !privateOnline && hasManual ? (
         <>
           {manual && <SpeedControls speed={speed} onSet={setSpeed} />}
-          <SimControls manual={manual} onToggle={toggleManual} canNext={liveDone} onNext={next} onSkip={skip} nextLabel={nextLabel} />
+          <SimControls manual={manual} onToggle={toggleManual} canNext={liveDone} onNext={next} onSkip={skip} nextLabel={nextLabel} sem2d={!!online} />
         </>
       ) : !privateOnline ? (
         <>

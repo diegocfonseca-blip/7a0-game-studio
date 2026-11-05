@@ -516,9 +516,26 @@ let campo2dOk = CAMPO2D_GERAL
 export function applyCampo2DBancada(): void { campo2dOk = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 function applyCampo2D(email?: string | null): void {
   const u = CAMPO2D_GERAL || (!!email && CAMPO2D_TESTERS.has(email.toLowerCase()))
-  if (u === campo2dOk) return
+  const tr2 = TROCA_2D_SALA_GERAL || (!!email && TROCA_2D_SALA_TESTERS.has(email.toLowerCase())) // 📺⚡ troca na sala (mesma batida do login)
+  if (u === campo2dOk && tr2 === troca2dSalaOk) return
   campo2dOk = u
+  troca2dSalaOk = tr2
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+// 📺⚡ TROCA 2D ↔ PLACAR RÁPIDO NO MEIO DA SALA (05/11): por enquanto SÓ a conta do Diego (*"E por enquanto só na minha conta"*).
+// Vale a conta do DONO da sala: o botão só aparece pra ele, e o reducer (que só roda no aparelho do dono) também confere.
+// Liberar = TROCA_2D_SALA_GERAL = true (aí a régua volta a ser a da criação: 2D liberado + plano).
+const TROCA_2D_SALA_GERAL = false
+const TROCA_2D_SALA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let troca2dSalaOk = TROCA_2D_SALA_GERAL
+/** a conta logada NESTE aparelho pode trocar 2D ↔ rápido na sala dela? (o reducer do dono lê isto) */
+export function troca2DSalaLiberada(): boolean { return troca2dSalaOk }
+/** 🧪 só bancada/trava */
+export function applyTroca2DSalaBancada(v: boolean): void { troca2dSalaOk = v; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
+export function useTroca2DSala(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return troca2dSalaOk
 }
 export function useCampo2DLiberado(): boolean {
   const [, force] = useState(0)

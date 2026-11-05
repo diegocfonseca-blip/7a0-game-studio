@@ -5,7 +5,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
-import { useCampo2DLiberado, useDesktopNovo } from './sport'
+import { useCampo2DLiberado, useDesktopNovo, useTroca2DSala } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, fatorRitmo2D, RITMO2D_PADRAO, RITMO2D_OPTS, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
@@ -6720,7 +6720,8 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
     const tm = setTimeout(() => marcaPago2D(false), 6000) // (a resposta do banco demora: só tira depois de ter certeza)
     return () => clearTimeout(tm)
   }, [temDireito])
-  if (!liberado || state.onlineMode === 'online' || state.sport === 'basquete') return null
+  if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
+  if (!liberado || state.sport === 'basquete') return null
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
@@ -6737,8 +6738,48 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   )
 }
 
-export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
-  return <><Botao2D soComDireito={!!props.lock} /><SimControlsBase {...props} /></> // (com o cadeado do Manual: o 2D só aparece pra quem já tem ele — Craque Salas; senão o cadeado cobre os dois)
+// 📺⚡ TROCA 2D ↔ PLACAR RÁPIDO NO MEIO DA SALA (05/11, Diego: o DONO troca quando quiser, tenha a sala começado num ou noutro).
+// Só o dono vê. Pra LIGAR o 2D vale a mesma régua da criação (`pode2d` do lobby: 2D liberado + plano); pra DESLIGAR qualquer
+// dono de sala 2D pode. A troca é só MARCADA (`SET_CAMPO2D` → `campo2dProximo`) e entra no próximo jogo (`viraCampo2D`), pra
+// ninguém da sala ver a partida mudar de relógio no meio. Apertar de novo desmarca.
+export function TrocaCampo2DSala() {
+  const { state, dispatch } = useEsc()
+  const liberado = useCampo2DLiberado()
+  const temDireito = useHasManual()
+  const contaOk = useTroca2DSala() // 🔒 por enquanto só a conta do Diego (como DONO da sala)
+  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || ehKings(state)) return null
+  const agora = !!state.campo2d
+  const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
+  return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && temDireito}
+    onTroca={on => dispatch({ type: 'SET_CAMPO2D', on, by: state.youUid })} />
+}
+/** o desenho do botão (separado pra bancada `scripts/teste-troca-2d` mostrar os 3 estados sem conta logada) */
+export function TrocaCampo2DVisual({ agora, pendente, podeLigar, onTroca }: { agora: boolean; pendente: boolean; podeLigar: boolean; onTroca: (on: boolean) => void }) {
+  const t = useT()
+  const alvo = pendente ? !agora : agora // o que vai valer no próximo jogo
+  if (!agora && !alvo && !podeLigar) return null // sala rápida e dono sem o 2D: nada a oferecer
+  const quer = !alvo // apertar leva pro outro lado do que vai valer
+  const podeApertar = !quer || podeLigar || pendente // ligar exige o 2D liberado; desmarcar/voltar pro rápido, sempre
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <button onClick={() => podeApertar && onTroca(quer)} disabled={!podeApertar}
+        style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 11, padding: '7px 10px', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', background: pendente ? '#FFF4CC' : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: podeApertar ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        <span style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: .6, background: agora ? GREEN : '#5a5647', color: '#fff', borderRadius: 999, padding: '2px 7px' }}>{agora ? t('AGORA: 📺 2D', 'NOW: 📺 2D') : t('AGORA: ⚡ RÁPIDO', 'NOW: ⚡ QUICK')}</span>
+        <span>{pendente ? t('↩️ Desfazer a troca', '↩️ Undo the switch') : quer ? t('📺 Trocar pro Campo 2D', '📺 Switch to the 2D pitch') : t('⚡ Trocar pro placar rápido', '⚡ Switch to the quick scoreboard')}</span>
+      </button>
+      <p style={{ margin: '4px 2px 0', fontSize: 10, fontWeight: 700, color: pendente ? '#7a5b00' : 'rgba(0,0,0,.5)', textAlign: 'center' }}>
+        {pendente
+          ? (alvo ? t('⏳ Campo 2D marcado: vale a partir do próximo jogo (1:30 cada), pra sala toda.', '⏳ 2D pitch set: starts from the next match (1:30 each), for the whole room.')
+                  : t('⏳ Placar rápido marcado: vale a partir do próximo jogo, pra sala toda.', '⏳ Quick scoreboard set: starts from the next match, for the whole room.'))
+          : t('Só você (dono) troca. Vale a partir do próximo jogo, nunca no meio.', 'Only you (host) can switch. Starts from the next match, never mid-game.')}
+      </p>
+    </div>
+  )
+}
+
+export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode; sem2d?: boolean }) {
+  // sem2d: a Copa do Mundo da SALA anda no relógio do BANCO (a troca do dono entra pelo próprio controle de lá)
+  return <>{!props.sem2d && <Botao2D soComDireito={!!props.lock} />}<SimControlsBase {...props} /></> // (com o cadeado do Manual: o 2D só aparece pra quem já tem ele — Craque Salas; senão o cadeado cobre os dois)
 }
 function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
@@ -7687,6 +7728,7 @@ export function EscSeason() {
             {manual && !state.dinastiaPaused && (
               <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
             )}
+            {online && <TrocaCampo2DSala />}
             {(!online || streamHost) && (
               <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
                 lock={manualLocked ? <QuickManualLock /> : undefined}
@@ -7953,6 +7995,7 @@ export function EscSeason() {
         // (Na COPA esta mesma marcha é desenhada LÁ EM CIMA, junto do manual/auto.)
         <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
       )}
+      {online && state.round < totalRounds && <TrocaCampo2DSala />}
       {(!online || streamHost) && !state.dinastiaPaused && state.round < totalRounds && (
         // 🎮 MANUAL: "Próxima rodada" só LIBERA depois que a partida terminou de
         // simular (respeita o tempo da rodada). Sem isto, dava pra clicar sem parar
@@ -9170,6 +9213,7 @@ export function EscLiberta() {
 
       {/* 🎮 O ritmo da fase fica junto do placar, antes de giro e tabelas. */}
       {cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {online && !acabou && <TrocaCampo2DSala />}
       {cinemaOnline && streamHost && !acabou && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
           lock={manualLocked ? <QuickManualLock /> : undefined}
@@ -9565,6 +9609,7 @@ export function EscChampions() {
 
       {/* 🎮 O RITMO — os MESMOS botões da liga, no mesmo lugar (logo abaixo do placar) */}
       {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {online && (ch.fase !== 'mata' || !!state.quickCopa) && <TrocaCampo2DSala />}
       {(!online || streamHost) && (ch.fase !== 'mata' || !!state.quickCopa) && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={canNext}
           lock={manualLocked ? <QuickManualLock /> : undefined}
@@ -11624,7 +11669,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // começou com valores escondidos e, na revanche, os lances apareciam. O
         // START_ONLINE zera o que não vier na ação, então TODAS as escolhas da sala
         // precisam ir junto de novo (stream, manual, chat, tempo, liga fechada, senha).
-        stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff, campo2d: state.campo2d, // 📺 a sala 2D continua 2D na revanche
+        stream: state.streamMode, manual: state.manualRoom, chatOff: state.chatOff, campo2d: state.campo2dProximo ?? state.campo2d, // 📺 a sala 2D continua 2D na revanche (e a troca que o dono marcou e ainda não tinha entrado vale aqui)
         auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechadaEscolha ?? state.ligaFechada, // 🚫🤖 a ESCOLHA do dono: com 4+ volta a valer
         liga: state.ligaMode, // 🏆 continua sendo Minhas Ligas no novo leilão (13/09)
         locked: state.locked, pwHash: state.pwHash,

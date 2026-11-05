@@ -81,7 +81,7 @@ import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, salvar
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
-import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, Botao2D, SpeedControls, CollectibleCard, GiroDaRodada } from './screens'
+import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, Botao2D, SpeedControls, CollectibleCard, GiroDaRodada, TrocaCampo2DSala } from './screens'
 import { congelaNoApito, type Congelado } from './congela-temporada' // 🧊 o passado não muda depois do apito
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
@@ -11868,6 +11868,8 @@ export function PyramidSeasonScreen() {
         )}
         {/* ▶ 26/10: dia de jogo com o calendário — o jogo só começa no toque (vale pra todo plano, com ou sem Manual) */}
         {esperandoInicio && tab === 'jogos' && <button className="ll-cx-controle" onClick={liberaJogo} style={{ width: '100%', marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{copaNaQuarta ? tr('▶ Começar o jogo da Copa', '▶ Start the Cup match') : tr('▶ Começar o jogo', '▶ Start the match')}</button>}
+        {/* 📺⚡ carreira em sala: o DONO troca 2D ↔ rápido (vale do próximo jogo/fase) — só aparece pra ele */}
+        {!state.co2 && state.onlineMode === 'online' && !(seasonOver && !copaPlaying) && <TrocaCampo2DSala />}
         {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
             <button className="ll-cx-controle" onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}

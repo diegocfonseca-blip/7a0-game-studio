@@ -32,7 +32,7 @@
 // não grava título em `esc_results`. Subir no ranking mundial continua sendo
 // coisa da CARREIRA — foi bug em 17/08 a Copa vazar pra lá, e não vai voltar.
 
-import { useCampo2DLigado } from './campo2d-modo'
+import { useCampo2DLigado, doisDDoPasso, Campo2DDoPassoCtx } from './campo2d-modo'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CompetitionStage } from './online-match-visual'
@@ -288,8 +288,11 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic} onlineBroadcast>
+      {/* 📺⚡ todo placar da Copa desenha o 2D do PASSO que o banco carimbou (todo aparelho igual; a troca do dono entra no passo seguinte) */}
+      <Campo2DDoPassoCtx.Provider value={doisDDoPasso(clockMostrado?.row)}>
       <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} euro={ficha.euro} potes={ficha.potes} forte={ficha.forte}
         myForm="4-3-3" online={online} onClose={aoFechar} />
+      </Campo2DDoPassoCtx.Provider>
     </CMModal>
   )
 }

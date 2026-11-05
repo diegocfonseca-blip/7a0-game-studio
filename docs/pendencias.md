@@ -6,6 +6,50 @@
 - Banco: esc_socios nº85 · esc_fundadores nº99 · esc_nomes_batismo (Monarca Tricolor + FC/EC pelo gatilho) · user_colors ouro manual · esc_compras_batismo plano `plus` (Fundador). `esc_direitos_de` = pago/fundador/plus/ouro.
 - Canto: o do São Paulo do Wen Milan B (`sfx/torcida-spfc-wen-v1.mp3`). Gala única "A Coroação" (`gala-monarca.tsx`): tricolor no céu, tapete vermelho, o goleiro-rei bate a falta no ângulo (GOL DO GOLEIRO!), a coroa pousa no escudo, SALVE O MONARCA. Nenhum nome de pessoa real na tela. Vídeo `scripts/posts/gala-monarca.webm` · quadros `gala-monarca-quadros.png` · post `batismo-monarca-tricolor.png`.
 
+## ⚖️ 05/11 — Motor novo da carreira: JUSTIÇA no lugar da média de gols (só a trava; o motor NÃO mudou)
+- Diego: *"não ligo pra média de gols. Quero só que os jogos sejam JUSTOS, nada forçado/injetado"*. A régua de MÉDIA (1,5–2,7 gols,
+  0×0 ≤ 15%) saiu do `npm run motor2`; entrou a régua de JUSTIÇA por diferença de força (média do lo–hi dos 11): parelho (< 4) ·
+  melhor (4–12) · muito melhor (12+). Medido (300 jogos): parelho 32/33/35% e 0×0 24% · melhor ganha 65%, perde 18%, golea 10% ·
+  muito melhor ganha 81%, perde 3%, golea 28%, o fraco golear 0%.
+- Procurei travamento (teto/chão fixo de finalização ou goleiro): o único candidato era o teto ±0,3 do duelo finalização × reflexo;
+  tirar ele não mudou NADA (mesmos números em 800 jogos) — então ficou como está. O 0×0 do parelho vem do tempo de 1:30 (≈3 chutes
+  por jogo), não de regra. 😵 O "time abalado" (2+ gols atrás piora, pedido dele em 22/10) é a única coisa que olha o placar — ficou.
+## 📏 05/11 — Força dos BOTS das salas na régua nova das cartas (consertado no branch, NÃO publicado)
+Decisão do Diego: *"consertar agora no online, pra todo mundo, em todas as competições da sala; a carreira fica pra depois (só medir)"*.
+- Causa: a revisão dos overs (02/11) deixou as cartas da galera ~2,5 mais fracas e as dos bots de fundo ~4,7 (eles têm mais carta de
+  categoria baixa), mas os bots eram nivelados a números FIXOS da régua velha (`ONLINE_BASE` 74, `VARZEA_BASE` 69) e os convidados da
+  Liberta (`LIBERTA_CLUBS`) e da Champions (`FAIXA`) são fixos. O ajuste dos bots foi de −1,5 pra +3,1.
+- Conserto (`ESCALA_BOTS` no store, nada nas cartas): alvo dos bots **−2,5** (Várzea/começo da Liga Draft **−5**) e convidados fixos da
+  Liberta/Champions **−5** a mais. Gravado na sala no START_ONLINE (`escalaBots = 2`); sala que já estava rodando segue com os números
+  velhos até acabar (o próximo leilão/temporada já nasce na régua nova). Carreira online e basquete ficam de fora. Não gasta dado.
+- Medido (500 salas por competição, 2–6 pessoas, lance simples; % de salas com a taça com gente, BR/Todos):
+  liga 68/84 → bug 49/55 → conserto 74/79 · Copa dos 8 62/68 → 39/46 → 58/65 · Liberta 58/61 → 19/27 → 54/62 ·
+  Champions 53/66 → 23/29 → 56/62 · Só Champions 51/57 → 22/24 → 47/56 · Relâmpago 55/59 → 40/38 → 54/56 ·
+  Várzea 53 → 7 → 54 · Liga Draft (começo) 73 → 14 → 70.
+- Copa do Mundo/Euro/regionais da sala: força só das cartas dos dois lados, sem número fixo — não precisou mexer.
+- Partida Rápida OFFLINE: usa o número da carreira (`DIVISION_BASE.D`), ficou de fora; medido quase igual (liga BR 25% → 18%, Todos 23% → 23%).
+- Trava: `npm run forca-bots` (simulação curta e sempre igual + sala antiga com número velho + não gasta dado).
+- ⏳ CARREIRA (só medido, decisão dele): o alvo dos bots é fixo por divisão (`DIVISION_BASE` V58·D64·C70·B75·A82) e o time do jogador
+  caiu ~3 no número → ficou MAIS DIFÍCIL a partir da Série C. 1ª temporada com elenco do leilão, 5 rivais (subir = G4):
+  Série D 98% → 93% sobe (quase igual) · C 67–70% → 50–57% · B 43–54% → 23–34% (título 14–18% → 6–8%) · A top-4 7–8% → 1–2%,
+  posição média 12–13º → 14–15º. Conserto possível: o mesmo degrau (−2,5/−3) no `DIVISION_BASE` — esperando ele mandar.
+
+## 📺⚡ 05/11 — Sala online: o DONO troca 2D ↔ placar rápido no meio da sala (branch, NÃO publicado — esperando OK visual)
+- Pedido aprovado: o dono troca quando quiser, tenha a sala começado num ou noutro. Mockup: `scripts/mockups/sala-troca-2d.png` (bancada `scripts/teste-troca-2d/`).
+- `SET_CAMPO2D` (só dono, crachá `by` = dono) só MARCA `campo2dProximo`; `viraCampo2D` aplica no passo que COMEÇA um jogo: `PLAY_ROUND`,
+  `PLAY_COPA_LEG`, `PLAY_LIBERTA_RODADA`, `PLAY_CHAMPIONS_RODADA/REPESCAO` e `SET_COPA_ROUND` (fase nova da Copa da carreira em sala).
+  Revanche e próxima largada da sala levam a marca. Ligar exige a régua da criação (`pode2d`); voltar pro rápido, qualquer dono.
+- Copa do Mundo/Eurocopa/regionais da sala (relógio no BANCO, lê `game_state.campo2d`): o botão NÃO aparece lá e a troca não entra
+  no meio (nenhum PLAY_* roda durante elas) — vale da próxima largada/rodada. Sem mexer no banco.
+- Trava: `npm run sala-troca-2d`.
+- 🔁 05/11 (2ª rodada, Diego: *"todas as competições são TODAS… e por enquanto só na minha conta"*): **só a conta dele como DONO**
+  (`TROCA_2D_SALA_GERAL = false` + testers em `sport.ts`; tela E reducer). Botão em TODA competição da sala (liga, Copa dos 8, Liberta,
+  Champions tabela/repescão/mata, Relâmpago, Liga Draft/Turma, carreira em sala, revanche, **Copa do Mundo/Euro/regionais**). Nas copas do
+  BANCO, sem SQL: o relógio do dono, com a bola parada, aplica a troca (`VIRA_CAMPO2D`), espera o `game_state` do banco confirmar o 2D novo
+  (`troca2d-copa.ts`, até 12 s) e só então chama o `next`; todo aparelho desenha o 2D pela duração que o banco carimbou no passo
+  (`doisDDoPasso`). Liga Draft/Turma: o dono escolhe "⚡ Placar rápido / 📺 Campo 2D" na sala de espera (`salva2DLiga`, game_state).
+  Manual: levantamento feito — já estava em todas (ver relatório 05/11); a Copa do Mundo/regionais da sala começam sempre no AUTO do banco.
+  Liberar pra todos = `TROCA_2D_SALA_GERAL = true`.
 ## 🎬 05/11 — Vídeos de LANÇAMENTO prontos (NÃO postar antes de liberar)
 - 📋 Liga Draft: `node scripts/video-liga-draft-reels.mjs` → `scripts/posts/liga-draft-reels.mp4` (1080×1920, ~38 s). Postar só quando `MINHA_LIGA_DRAFT_GERAL = true`.
 - 📺 Campo 2D: `node scripts/video-campo2d-reels.mjs` → `scripts/posts/campo2d-reels.mp4` (~37 s). Postar só quando o 2D for liberado (hoje `CAMPO2D_TESTERS`). Diz: na sala quem cria escolhe 📊/📺 e quem entra assiste de graça; carreira/partida rápida do ⭐ Craque Salas pra cima.
