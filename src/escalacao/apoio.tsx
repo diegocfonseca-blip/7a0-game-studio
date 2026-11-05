@@ -184,6 +184,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
   'enzocromero9@gmail.com': 'ouro', // 👑 batismo FUNDADOR Paizão FC (Série D, no assento do bot Monarca EC) + fundador nº98 + sócio nº82 (30/10).
   'bruno.cunha2007@gmail.com': 'ouro', // 👑 batismo FUNDADOR Piranhão FC (Série D, no assento do bot Continental Real) + fundador nº96 + sócio nº81 (29/10).
+  'danicorreafilho@gmail.com': 'ouro', // 🐆💜 batismo Milan Recifense (Série D, no assento do bot Dragão Imperial) + sócio (05/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'pedroglima50@gmail.com': 'ouro', // 👑 batismo Príncipe Rubro Negro (Série D, no assento do bot Aurora Suprema) + sócio (02/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).

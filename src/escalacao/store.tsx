@@ -5591,7 +5591,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -7602,7 +7602,7 @@ const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isH
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
  *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
  *  crônica, motor novo (`motor2Desde` velho travava o botão até a temporada antiga!), resultados do motor (`m2Res`), prêmios já
@@ -8222,7 +8222,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.onlineMode = 'cpu'
       s.isHost = true
       s.humanCount = 1
-      s.tamanhoLiga = undefined // 🏟️ 04/11: liga de 10 é escolha de SALA online — a partida rápida offline é sempre de 20
+      // 🏟️ 05/11 (Diego: *"tem modos faltando lá no partida rápida… igual das salas rápidas online"*): liga de 10 e Relâmpago também
+      // no rápido offline — mesma régua das salas (decidida logo abaixo, depois do copaMode)
+      s.tamanhoLiga = undefined
       // 🧹 RÁPIDO/DINASTIA/CLÁSSICO NÃO é carreira-pirâmide: zera o careerOnline
       // (e o livro-caixa). O reducer clona o estado ANTERIOR, então sem isto uma
       // partida rápida iniciada logo depois de uma CARREIRA herdava careerOnline=true
@@ -8239,7 +8241,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.deckLeague = action.dinastia ? 'br' : (action.league ?? 'br')
       // 🧱 leilão de clubes só fecha com os TRÊS baralhos juntos (um clube por partida)
       if (action.clubes && !action.career && !action.dinastia) s.deckLeague = 'todos'
-      setActiveCatalog(s.deckLeague)
+      // 🥅 05/11: "Sem craques" (Várzea) no rápido offline — a mesma régua da sala: só baralho Brasil, só leilão de jogador
+      s.varzea = !action.career && !action.dinastia && !action.clubes && !action.kings && !action.pokemon && s.deckLeague === 'br' && !!action.varzea
+      s.regionalSala = undefined // a Copa regional é só de sala: não atravessa de uma sala pro rápido
+      setActiveCatalog(s.deckLeague, s.varzea)
       // ⚡ MODO POKÉMON (25/10, só a conta do Diego): o leilão de sempre, com o baralho dos pokémon nos 5 lotes
       const poke = !!action.pokemon && !action.career && !action.dinastia
       if (poke) ACTIVE_CATALOG = baralhoPokemon(rng) as unknown as typeof CATALOG
@@ -8250,6 +8255,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerTitles = 0
       s.careerTitlesA = 0
       s.copaMode = action.copaMode ?? 'liga_copa' // 🏆 padrão: liga + copa dos 8 (rápido)
+      const rapidoLivre = !action.career && !action.dinastia && !action.kings && !action.pokemon
+      if (s.copaMode === 'relampago' && !rapidoLivre) s.copaMode = 'liga_copa'
+      // ⚡ Relâmpago (05/11 no rápido offline): você + os bots, chave de 16 ou 32 — o mesmo motor da sala
+      s.relampagoChave = s.copaMode === 'relampago' ? chaveRelampago(action.relampagoChave, 1) : undefined
+      // 📏 liga de 10 (05/11 no rápido offline): bots completam só até 10 — fora do Relâmpago e da Só Champions, igual na sala
+      s.tamanhoLiga = rapidoLivre && action.tamanhoLiga === 10 && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
       // 🔻 modo do pregão: holandês (preço caindo) ou o cego de sempre. Escolha
       // por partida — o padrão é SEMPRE o leilão de hoje.
       s.holandes = !!action.holandes
@@ -8263,7 +8274,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
       s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
-      s.leilaoSelecao = false; s.leilaoDecada = false // 🏳️📅 Seleções/Por década: só nas salas online (31/10)
+      s.leilaoSelecao = s.leilaoClubes && !!action.selecao; s.leilaoDecada = s.leilaoClubes && !!action.decada // 🏳️📅 05/11: também no rápido offline
       s.leilaoClubesConvocado = false
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams, action.teamName) : []
@@ -8278,9 +8289,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       // lance) e a formação 'kings' (goleiro + 6). Sem time de preenchimento: a liga da Kings tem 10. Depois da
       // cerimônia a temporada é a de SEMPRE (EscSeason), com a regra da Kings por cima (`kings-liga.ts`): 9 rodadas + mata-mata.
       // ⚡ o Pokémon segue a MESMA receita: 10 treinadores (você + 9 que dão lance), sem time de preenchimento
-      const soloManagers = action.kings || poke ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
+      // ⚡📏 05/11: Relâmpago (16/32) e liga de 10 montam a tabela do MESMO jeito da sala (`makeManagers`, com os clubes de batismo
+      // no meio dos bots): você + os rivais que dão lance + bots com elenco pronto até o tamanho. A partida de 20 de sempre não muda.
+      const tamanhoRapido = s.relampagoChave ?? s.tamanhoLiga
+      const rapidoMontado = tamanhoRapido ? makeManagers([action.teamName || 'Meu Time'], action.formation, Math.max(0, Math.min(action.rivals, tamanhoRapido - 1)), tamanhoRapido, rng, poolSalaComBatismos(rng)) : null
+      const soloManagers = rapidoMontado ? rapidoMontado.managers : action.kings || poke ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
       if (action.kings || poke) for (const m of soloManagers) m.formation = poke ? 'pokemon' : 'kings'
-      const soloPlans = action.kings || poke ? [] : soloPlans0
+      const soloPlans = rapidoMontado ? rapidoMontado.botPlans : action.kings || poke ? [] : soloPlans0
       s.managers = soloManagers
       s.youIdx = 0
       // modo Dinastia: mesmo leilão real da carreira, só que o orçamento é o do

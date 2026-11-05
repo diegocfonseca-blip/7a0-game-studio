@@ -4145,6 +4145,7 @@ export const OLD_NAME: Record<string, string> = {
   'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Paizão FC': 'Monarca EC', // 👑🎩 batismo FUNDADOR do enzocromero9 (30/10): assumiu o assento da Série D que era do bot Monarca EC — save antigo com Monarca EC vira Paizão FC ao abrir.
   'Piranhão FC': 'Continental Real', // 🐟🏛️ batismo FUNDADOR do bruno.cunha2007 (29/10): assumiu o assento da Série D que era do bot Continental Real — save antigo com Continental Real vira Piranhão FC ao abrir.
+  'Milan Recifense': 'Dragão Imperial', // 🐆💜 batismo do danicorreafilho (05/11): assumiu o assento da Série D que era do bot Dragão Imperial — save antigo com Dragão Imperial vira Milan Recifense ao abrir.
   'Príncipe Rubro Negro': 'Aurora Suprema', // 👑🔴⚫ batismo do pedroglima50 (02/11): assumiu o assento da Série D que era do bot Aurora Suprema — save antigo com Aurora Suprema vira Príncipe Rubro Negro ao abrir.
   'Lulubaba FC': 'Fênix Dourada', // 🧤💛 batismo do lucasfonseca363 (29/10): assumiu o assento da Série D que era do bot Fênix Dourada — save antigo com Fênix Dourada vira Lulubaba FC ao abrir.
   'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
@@ -4536,7 +4537,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Paizão', team: 'Paizão FC' }, // 👑🎩 clube BATIZADO por apoiador (enzocromero9 — Paizão FC, ex-Monarca EC, Série D; escudo do Paizão coroado com Kick/Insta/TikTok, mascote O Paizão; preto #100F0F + dourado #D99C32 MEDIDOS na camisa; plano FUNDADOR nº98 + ouro + sócio nº82, 30/10). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Coringa', team: 'Coringas do Diniz' }, // ⚽ clube BATIZADO por apoiador (lucas_calefi — Coringas do Diniz, ex-Vanguarda Nacional; Lenda + fundador nº44 + sócio nº24, coração Corinthians, 16/08)
     { name: 'Pedro', team: 'Príncipe Rubro Negro' }, // 👑🔴⚫ clube BATIZADO por apoiador (pedroglima50 — Príncipe Rubro Negro, ex-Aurora Suprema, Série D; coração VITÓRIA; escudo do príncipe de cabelo vermelho com coroa e garras, mascote O Príncipe; vermelho #C3030C + preto #0D0707 MEDIDOS na camisa; ouro + sócio, 02/11). `OLD_NAME` leva save antigo pro nome novo.
-    { name: 'Dragão', team: 'Dragão Imperial' },
+    { name: 'Dani', team: 'Milan Recifense' }, // 🐆💜 clube BATIZADO por apoiador (danicorreafilho — Milan Recifense, ex-Dragão Imperial, Série D; coração FLAMENGO; escudo do puma rugindo com tochas roxas e faixa 2005, mascote O Puma; roxo #C402F5 + preto #0C060A MEDIDOS na camisa; ouro + sócio, sem fundador — 05/11)
     // 🦅 Skyy FC (matheusncruz1) DESCEU da Série A pra cá em 09/09, por decisão do
     // Diego (*"troque pelo Skyy FC, mas não remova o Skyy FC"*), pra abrir o
     // assento do Fala D10. Ocupa a vaga que era do bot "Cosmopolita FC" (escolhido

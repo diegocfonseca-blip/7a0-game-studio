@@ -75,6 +75,7 @@ import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import paizaoMascoteImg from './img/paizao-mascote.webp' // 🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoMascoteImg from './img/piranhao-mascote.webp' // 🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
+import milanRecifenseMascoteImg from './img/milan-recifense-mascote.webp' // 🐆 Milan Recifense (danicorreafilho): arte própria do dono, 05/11
 import principeMascoteImg from './img/principe-mascote.webp' // 👑 Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
@@ -417,6 +418,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // da coroa e a taça-cartola do Cartola na mão. Arte do próprio dono. 📏 258×440, 19 KB — altura 176. mascote_key = "paizao_cartola".
   paizao_cartola: (
     <img src={paizaoMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Paizão — Paizão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐆 O PUMA (mascote do Milan Recifense — danicorreafilho, 05/11): o puma preto de manchas roxas (palavras do dono no pedido)
+  // agachado, garras de fora, rachando o chão. Arte do próprio dono. 📏 400×399, 44 KB — altura 176. mascote_key = "puma_milan".
+  puma_milan: (
+    <img src={milanRecifenseMascoteImg} height={176} width={Math.round(176 * 400 / 399)} alt="O Puma — Milan Recifense" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 👑 O PRÍNCIPE (mascote do Príncipe Rubro Negro — pedroglima50, 02/11): o príncipe de cabelo vermelho de uniforme rubro-negro,
   // apontando, numa explosão de raios vermelhos. Arte do próprio dono. 📏 351×440, 44 KB — altura 176 (arte nova 02/11: o cabelo vinha cortado em cima). mascote_key = "principe_rubronegro".
@@ -1307,6 +1313,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Príncipe Rubro Negro EC': 'principe_rubronegro',
   'Príncipe Rubro Negro SC': 'principe_rubronegro',
   'Aurora Suprema': 'principe_rubronegro',
+  // 🐆 o Puma carimba o gol do Milan Recifense (danicorreafilho, 05/11).
+  'Milan Recifense': 'puma_milan',
+  'Milan Recifense FC': 'puma_milan',
+  'Milan Recifense EC': 'puma_milan',
+  'Milan Recifense SC': 'puma_milan',
+  'Dragão Imperial': 'puma_milan',
   // 🐶 o Pitbull carimba o gol do dSouza FC (alexandre12cdm, 28/10).
   'dSouza FC': 'dsouza_pitbull',
   'dSouza': 'dsouza_pitbull',
@@ -1467,6 +1479,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   piranhao_presidente: 'O Presidente', // 🏛️ Piranhão FC (bruno.cunha2007, 29/10)
   paizao_cartola: 'O Paizão', // 🎩 Paizão FC (enzocromero9, 30/10)
   principe_rubronegro: 'O Príncipe', // 👑 Príncipe Rubro Negro (pedroglima50, 02/11)
+  puma_milan: 'O Puma', // 🐆 Milan Recifense (danicorreafilho, 05/11)
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)

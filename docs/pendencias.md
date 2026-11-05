@@ -46,6 +46,22 @@
   Fotos: `scripts/mockups/loja-agencia-antes.png`, `loja-agencia-depois.png`, `agencia-nova.png` (`scripts/imersao-mapa/shots-loja-agencia.mjs`).
 - Pendente: OK visual do Diego antes de publicar. A arte 2D antiga do estádio (`presidencia-estadio-mapa`) ainda desenha a loja no lugar velho.
 
+## ⚡ PARTIDA RÁPIDA IGUAL ÀS SALAS (05/11, Diego: *"veja se tem competições ou modos faltando lá no partida rápida"*)
+- ✅ ETAPA 1 FEITA: Relâmpago (16/32) · liga de 10 · leilão de Seleções · por década · Sem craques (Várzea). `START` aceita
+  `relampagoChave/tamanhoLiga/selecao/decada/varzea`; Relâmpago e liga de 10 montam a tabela com `makeManagers` (igual à sala), a
+  partida de 20 de sempre não muda. Bancada da tela: `scripts/teste-setup-rapido/`.
+- ✅ A formação (7 + 3-5-2, 3 colunas no PC) já valia no rápido: é a MESMA tela de convocação.
+- ⏳ ETAPA 2 (falta): 🌐 Copa do Mundo · 🇪🇺 Eurocopa · regionais (Rio-SP, Sul-Minas, Nordeste) no rápido offline. Nas salas elas rodam
+  com escolha de país e relógio no BANCO (`copa-mundo-online.tsx`/`copa-regional-online.tsx`) — offline precisa de um caminho próprio.
+- 🧹 `carreira-limpa` acusou `convocacaoFormacao` (da formação de 04/11) sem decisão: entrou em `MARCAS_DE_MODO` (com `varzea`).
+
+## 🐆💜 BATISMO MILAN RECIFENSE (05/11) — danicorreafilho@gmail.com
+- Batismo de 79,90 (sem fundador). Série D no assento do bot Dragão Imperial (`OLD_NAME`). Escudo do puma com tochas (297×360, 29 KB),
+  mascote O Puma (`puma_milan`, 400×399, 44 KB — a arte é muito detalhada, foi preciso 400px pra caber nos 45 KB), manto roxo #C402F5 +
+  preto #0C060A medidos na camisa, camisa da Loja (`milan-recifense-camisa-v1.webp`), coração Flamengo.
+- Banco: `esc_socios` nº 84 · `esc_nomes_batismo` (puro + FC/EC pelo gatilho) · `user_colors` ouro manual (já estava, do Pix de 04/11).
+- Post: `scripts/posts/batismo-milan-recifense.png`.
+
 ## 🏆📋 04/11 — Mapa 3D: festa de CAMPEÃO DA DIVISÃO (LOCAL, branch do agente, só a conta do Diego)
 - A festa do elenco inteiro (pódio, 11 jogadores, fotógrafos, painel temático) agora também aparece quando o clube é **campeão da
   divisão** na carreira: Série A "O BRASIL É SEU", B "A ELITE TE ESPERA", C "DEGRAU POR DEGRAU", D "A SUBIDA COMEÇA AQUI", Várzea
