@@ -6,7 +6,7 @@
    da carreira (career-international-view.tsx `InscricaoClube`). No celular a classe `cv-pc` não existe e nada aqui vale. */
 .cv-tab-nome{display:none}
 *:has(>.cv-pc){max-width:min(1400px,96vw)!important;width:100%!important}
-.cv-pc{display:grid;grid-template-columns:minmax(200px,280px) minmax(360px,1fr) minmax(300px,420px);grid-template-areas:'top top top' 'left mid right';gap:16px;align-items:start;text-align:left}
+.cv-pc{display:grid;grid-template-columns:280px minmax(0,1fr) 420px;grid-template-areas:'top top top' 'left mid right';gap:16px;align-items:start;text-align:left}
 .cv-pc>*{margin:0!important}
 .cv-pc>.cv-top{grid-area:top;display:flex;gap:14px;align-items:stretch}
 .cv-pc>.cv-top>*{margin:0!important;position:static!important}
@@ -28,7 +28,7 @@
 .cv-pc .cv-mid input{font-size:14px!important;padding:10px 12px!important}
 .cv-pc .cv-pack{padding:14px 16px!important;gap:12px!important}.cv-pc .cv-pack p:first-child{font-size:22px!important}.cv-pc .cv-pack p+p{font-size:13px!important}
 
-/* 🐛 05/11 (Julia Barranquila, PC): com a janela estreita (ou zoom), a lista do meio encolhia pra ~200px e as 3 colunas fixas
-   viravam tirinhas com o nome em cima do clube. Agora o meio nunca fica abaixo de 360px e a lista põe quantas colunas couberem
-   (cada cartão com pelo menos 170px). Abaixo de 1240px o campinho desce pra baixo, pra não espremer a lista. */
-@media (max-width:1240px){.cv-pc{grid-template-columns:minmax(200px,260px) minmax(0,1fr);grid-template-areas:'top top' 'left mid' 'right right'}.cv-pc>.cv-right{position:static}}
+/* 🐛 05/11 (Julia Barranquila, notebook): a tela de PC começa em 1100px, mas com 280 + 420 fixos dos lados a lista do meio
+   ficava com ~300px e as 3 colunas de cartão viravam tirinhas (nome em cima do clube). Mesmo desenho aprovado, as 3 colunas
+   no lugar: em tela de notebook os lados afinam e a lista põe só as colunas que cabem (cartão de pelo menos 170px). */
+@media (max-width:1399px){.cv-pc{grid-template-columns:230px minmax(0,1fr) 330px;gap:12px}}
