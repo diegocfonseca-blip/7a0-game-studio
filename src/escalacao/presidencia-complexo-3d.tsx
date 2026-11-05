@@ -66,8 +66,8 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
-import {CASA_LUCA} from './presidencia-casa-luca-planta'
-import {abrirDoacaoLuca,MuralLuca} from './casa-luca'
+import {AREAS_CASA_LUCA,LIMITES_COMPLEXO_CASA_LUCA} from './presidencia-casa-luca-planta'
+import {abrirDoacaoLuca,abrirPlanoCoracao,MuralLuca} from './casa-luca'
 
 export type VistaComplexo='casa-luca'|'arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'shopping'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'|'feira'|'banca'|'campinho'|'padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
 /** 🔋 quanto tempo a cidade continua andando depois do último toque no mapa */
@@ -223,7 +223,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   const surround=criarEntornoComplexo(scene,cityState,()=>wake.current(),{name:clubName,residence:managementEnabled,arena:managementEnabled}),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice,semSala:managementEnabled&&!isOffice&&!isWindow})
   const seatLod=criarLodCadeirasMobile(architecture.root,true)
   // 💙 05/11: Casa Luca (o projeto do Luca) — só existe no mapa do clube, num quarteirão do bairro (presidencia-casa-luca-3d.ts)
-  const casaLuca=surround.casaLuca?criarCasaLuca(scene,{leve:ajuste.leve,onReady:()=>wake.current()}):undefined;if(casaLuca)surround.solids.push(...casaLuca.solids)
+  const casaLuca=surround.casaLuca?criarCasaLuca(scene,{leve:ajuste.leve,onReady:()=>wake.current(),areas:surround.casaLucaSul}):undefined;if(casaLuca)surround.solids.push(...casaLuca.solids)
   // Automatic football cameras may sit above the roof. Cut away only its
   // colour pass; the opaque shadow/depth material still casts the real shade.
   // Free exploration restores the purchased roof without changing the save.
@@ -689,7 +689,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,12,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
    }
    else if(next==='shopping'){const b=PLANTA_SHOPPING.building,pk=PLANTA_SHOPPING.parking;fit(b.minX-2,b.maxX+2,b.minZ-1,pk.maxZ+2,PLANTA_SHOPPING.height+4,[],camera.aspect<.85?new THREE.Vector3(-.2,1.05,1.3):new THREE.Vector3(.15,.62,1.3))}
-   else if(next==='casa-luca'){const c=CASA_LUCA;fit(c.x-c.half-1,c.x+c.half+1,c.z-c.half-1,c.z+c.half+2,c.height,[],new THREE.Vector3(-.35,.75,1.3))}
+   else if(next==='casa-luca'){const c=LIMITES_COMPLEXO_CASA_LUCA;fit(c.minX-1,c.maxX+1,c.minZ-1,c.maxZ+2,6,[],new THREE.Vector3(-.25,1.05,1.3))} // 💙 06/11: o complexo inteiro (prédio, jardim, piquenique e quadra)
    else if(next==='agencia-clube'){const b=LOTE_AGENCIA_CLUBE.building;fit(b.minX-1.5,b.maxX+1.5,b.minZ-8,b.maxZ,LOTE_AGENCIA_CLUBE.height+3,[],new THREE.Vector3(.5,.62,-1.3))}
    else if(next==='patrocinadores')fit(-482,-144,-314,-69,36,[],new THREE.Vector3(.12,2.1,1.25))
    else if(next==='dsouza'||next==='tidex'||next==='oittolabs'||next==='gecg'){
@@ -797,7 +797,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     {id:'shopping',view:'shopping' as VistaComplexo,box:new THREE.Box3(new THREE.Vector3(PLANTA_SHOPPING.building.minX,0,PLANTA_SHOPPING.building.minZ),new THREE.Vector3(PLANTA_SHOPPING.building.maxX,PLANTA_SHOPPING.height+4,PLANTA_SHOPPING.building.maxZ))}]
    const sponsorHit=sponsorTargets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[{...t,d:ray.ray.origin.distanceTo(p)}]:[]}).sort((a,b)=>a.d-b.d)[0]
    // 💙 05/11: tocar na Casa Luca (prédio ou pátio) abre o cartão dela
-   const lucaHit=casaLuca?(()=>{const c=CASA_LUCA,p=ray.ray.intersectBox(new THREE.Box3(new THREE.Vector3(c.x-c.half,0,c.z-c.half),new THREE.Vector3(c.x+c.half,c.height,c.z+c.half)),new THREE.Vector3());return p?ray.ray.origin.distanceTo(p):undefined})():undefined
+   const lucaHit=casaLuca?(()=>{const ds=AREAS_CASA_LUCA.flatMap(a=>{const p=ray.ray.intersectBox(new THREE.Box3(new THREE.Vector3(a.minX,-.3,a.minZ),new THREE.Vector3(a.maxX,a.top,a.maxZ)),new THREE.Vector3());return p?[ray.ray.origin.distanceTo(p)]:[]});return ds.length?Math.min(...ds):undefined})():undefined // 💙 06/11: qualquer parte do complexo
    if(lucaHit!==undefined&&(!sponsorHit||lucaHit<sponsorHit.d)){const near=targets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[ray.ray.origin.distanceTo(p)]:[]});if(near.every(d=>lucaHit<d)){userExploring.current=true;view('casa-luca');return}}
    const hits=targets.flatMap(t=>{const p=ray.ray.intersectBox(t.box,new THREE.Vector3());return p?[{...t,d:ray.ray.origin.distanceTo(p)}]:[]}).sort((a,b)=>a.d-b.d),hit=hits[0]
    if(!hit||sponsorHit&&sponsorHit.d<hit.d){if(sponsorHit){userExploring.current=true;view(sponsorHit.view)}return}
@@ -934,15 +934,26 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     <div className="pc3-shopping-lojas">{LOJINHAS_SHOPPING.map(l=><LojaButton key={l.id} ancora={l.ancora} naCarreira={managementEnabled} className="pc3-shopping-loja" style={{background:l.cor,color:l.tinta}}><b>{t(l.pt,l.en)}</b><small>{t(l.itensPt,l.itensEn)}</small></LojaButton>)}</div>
    </div>}
    {/* 💙 05/11: cartão da Casa Luca — mesmo jeito do cartão de patrocinador (✕ ou toque fora fecha). NUNCA mostrar valor, total ou contagem de doações. */}
-   {managementEnabled&&loaded&&selectedView==='casa-luca'&&cartaoFechado!=='casa-luca'&&<div className="pc3-club-place pc3-sponsor-card pc3-luca-card">
+   {managementEnabled&&loaded&&selectedView==='casa-luca'&&cartaoFechado!=='casa-luca'&&<div className="pc3-club-place pc3-luca-card" role="dialog" aria-label="Casa Luca">
     <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado('casa-luca')}>✕</button>
     <strong>💙 CASA LUCA</strong>
     {/* ✍️ TEXTO PROVISÓRIO — o Diego vai revisar (05/11) */}
     <p>{t('O jogo nasceu por causa do meu filho, o Luca. Se quiser ajudar no tratamento dele, ajude aqui.','This game was born because of my son, Luca. If you would like to help with his treatment, you can help here.')}</p>
-    {/* 💙 abre a doação de verdade (casa-luca.tsx); se a trava ainda estiver fechada, avisa "em breve" */}
-    <button type="button" className="pc3-luca-ajudar" style={{background:'#2f6fd6',color:'#fff'}} onClick={()=>{ if(!abrirDoacaoLuca()) setLucaEmBreve(true) }}>{t('💙 AJUDAR O LUCA','💙 HELP LUCA')}</button>
+    {/* 💙 05/11: os valores do Pix já à vista — cada um abre a doação com o valor escolhido (casa-luca.tsx). Trava fechada = "em breve". */}
+    <section className="pc3-luca-bloco" aria-label={t('Ajudar o Luca','Help Luca')}>
+     <b className="pc3-luca-titulo">{t('💙 AJUDAR O LUCA','💙 HELP LUCA')}</b>
+     <div className="pc3-luca-valores">
+      {([5,10,20,'outro'] as const).map(v=><button key={v} type="button" className={v==='outro'?'pc3-luca-outro':undefined} onClick={()=>{ if(!abrirDoacaoLuca(v)) setLucaEmBreve(true) }}>{v==='outro'?t('Outro valor','Other amount'):`R$ ${v}`}</button>)}
+     </div>
+     <small>{t('100% vai pro tratamento do Luca · não dá nada no jogo','100% goes to Luca\'s treatment · gives nothing in the game')}</small>
+    </section>
+    <section className="pc3-luca-bloco pc3-luca-coracao" aria-label={t('Plano Coração','Heart Plan')}>
+     <b className="pc3-luca-titulo">{t('💙 PLANO CORAÇÃO','💙 HEART PLAN')}</b>
+     <p>{t('Metade do preço nos planos mensais pra quem é PcD ou pai/mãe de criança especial.','Half price on monthly plans for people with disabilities or parents of children with special needs.')}</p>
+     <button type="button" onClick={()=>{ if(!abrirPlanoCoracao()) setLucaEmBreve(true) }}>{t('💙 QUERO O PLANO CORAÇÃO','💙 GET THE HEART PLAN')}</button>
+    </section>
     {lucaEmBreve&&<p role="status" className="pc3-luca-breve">{t('Em breve! A forma de ajudar ainda está sendo preparada.','Coming soon! The way to help is still being set up.')}</p>}
-    <div className="pc3-luca-mural"><MuralLuca /></div>
+    <MuralLuca noCartao />
    </div>}
    {managementEnabled&&loaded&&['arena-online','casa-usuario','loja','agencia-clube'].includes(selectedView)&&cartaoFechado!==selectedView&&<div className="pc3-club-place">
     <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado(selectedView)}>✕</button>

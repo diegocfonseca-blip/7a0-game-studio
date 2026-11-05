@@ -4,7 +4,7 @@ import {criarResidenciaUsuario} from './residencia-3d'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {criarLugaresClube} from './presidencia-clube-lugares'
 import {LOTE_AGENCIA_CLUBE} from './clube-mapa-destinos'
-import {CASA_LUCA} from './presidencia-casa-luca-planta'
+import {CASA_LUCA,QUADRA_CASA_LUCA_SUL,PRACA_CASA_LUCA,RUAS_CORTADAS_CASA_LUCA} from './presidencia-casa-luca-planta'
 import {criarPatrocinadoresCidade} from './presidencia-patrocinadores-cidade'
 import {RESERVAS_PATROCINADORES_CIDADE,LOTES_PATROCINADORES_CIDADE,RUAS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
@@ -1023,20 +1023,25 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // 💙 05/11: o quarteirão da CASA LUCA (só no mapa do clube) fica sem as duas casas e sem a árvore: o prédio e o pátio
   // (presidencia-casa-luca-3d.ts) ocupam o quarteirão inteiro. Calçada do quarteirão, ruas e travessias continuam iguais.
   const quadraCasaLuca=club?.residence?occupied.find(p=>p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z&&!pubBlocks.includes(p)):undefined
+  // 💙 06/11: o complexo cresceu — o quarteirão das 2 casas ao sul (−113, 193) vira a quadra adaptada + estacionamento da Casa Luca
+  const quadraCasaLucaSul=quadraCasaLuca?occupied.find(p=>p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z&&!pubBlocks.includes(p)):undefined
   for(const p of occupied){
     box('bairro-quarteirao',paving,23,.16,23,p.x,.08,p.z)
-    if(p===quadraCasaLuca)continue
+    if(p===quadraCasaLuca||p===quadraCasaLucaSul)continue
     for(const side of [-1,1]){
       const x=p.x+side*5.6,z=p.z-2,choice=hash(x,z)
       const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else{const r=residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0);casasBairro.push({x,z,w:r.w,d:r.d,h:r.h,andares:r.floors})}
     }
     plant({x:p.x,z:p.z+8.6},4.6,false,true,.08)
   }
+  const ruasCortadas=new Set(quadraCasaLuca&&quadraCasaLucaSul?RUAS_CORTADAS_CASA_LUCA:[])
   const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
   for(const p of occupied)for(const [dx,dz] of [[29,0],[-29,0],[0,29],[0,-29]]){
     const a={x:p.x+dx/2-(dz?14.5:0),z:p.z+dz/2-(dx?14.5:0)}
     const b={x:a.x+(dz?29:0),z:a.z+(dx?29:0)}
     const key=[a.x,a.z,b.x,b.z].join(':')
+    // 🔁 07/11: os trechos que passavam por dentro do terreno da Casa Luca não viram rua (a chave entra pra a praça também não desenhar)
+    if(ruasCortadas.has(key)){cityRoads.add(key);continue}
     if(cityRoads.has(key))continue
     cityRoads.add(key)
     // A free midpoint alone can leave the ends inside a future building.
@@ -1247,6 +1252,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
 
   const parkEntrances:{park:PontoComplexo;points:PontoComplexo[]}[]=[]
   for(const p of publicParks){
+    if(ruasCortadas.size&&p.x===PRACA_CASA_LUCA.x&&p.z===PRACA_CASA_LUCA.z)continue // 💙 a praça agora é o piquenique da Casa Luca (sem caminhos públicos)
     const points:PontoComplexo[]=[]
     for(const [dx,dz] of [[-1,0],[1,0],[0,-1],[0,1]]){
       const edge={x:p.x+dx*11.5,z:p.z+dz*11.5}
@@ -1459,7 +1465,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
+  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,casaLucaSul:!!quadraCasaLucaSul,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca&&p!==quadraCasaLucaSul) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
     botecos.forEach(pub=>pub.dispose())
     if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();shopping.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())

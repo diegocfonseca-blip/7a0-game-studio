@@ -35,19 +35,22 @@ const reais = (v: number) => precoTxt(v, getLang() === 'en')
 // ─── abrir por cima de tudo (sem depender de quem chama montar nada) ────────────────────────────────────────────────
 let raiz: Root | null = null, host: HTMLDivElement | null = null
 function fechaTela() { const r = raiz, h = host; raiz = null; host = null; setTimeout(() => { r?.unmount(); h?.remove() }, 0) }
-function abreTela(qual: 'doar' | 'coracao'): boolean {
+type ValorInicial = number | 'outro'
+function abreTela(qual: 'doar' | 'coracao', valor?: ValorInicial): boolean {
   if (!casaLucaLiberada()) return false
   if (!host) { host = document.createElement('div'); document.body.appendChild(host); raiz = createRoot(host) }
-  raiz!.render(<TelaCasaLuca inicial={qual} onClose={fechaTela} />)
+  // a chave nova faz a tela nascer de novo com o valor escolhido (mesmo se já estava aberta)
+  raiz!.render(<TelaCasaLuca key={`${qual}-${valor ?? ''}-${Date.now()}`} inicial={qual} valor={valor} onClose={fechaTela} />)
   logApoio(qual === 'doar' ? '💙 abriu a doação pro Luca' : '💙 abriu o Plano Coração')
   return true
 }
-/** 💙 abre a tela de doar pro Luca. false = ainda travada pra esta conta (o botão segue "em breve"). */
-export function abrirDoacaoLuca(): boolean { return abreTela('doar') }
+/** 💙 abre a tela de doar pro Luca, opcionalmente já com o valor escolhido (5 · 10 · 20 · 'outro').
+ *  false = ainda travada pra esta conta (o botão segue "em breve"). */
+export function abrirDoacaoLuca(valor?: ValorInicial): boolean { return abreTela('doar', valor) }
 /** 💙 abre a tela do Plano Coração. false = ainda travada pra esta conta. */
 export function abrirPlanoCoracao(): boolean { return abreTela('coracao') }
 
-function TelaCasaLuca({ inicial, onClose }: { inicial: 'doar' | 'coracao'; onClose: () => void }) {
+function TelaCasaLuca({ inicial, valor, onClose }: { inicial: 'doar' | 'coracao'; valor?: ValorInicial; onClose: () => void }) {
   useLang() // re-renderiza no BR/EN
   const [aba, setAba] = useState(inicial)
   useEffect(() => {
@@ -55,7 +58,7 @@ function TelaCasaLuca({ inicial, onClose }: { inicial: 'doar' | 'coracao'; onClo
     window.addEventListener('keydown', esc); return () => window.removeEventListener('keydown', esc)
   }, [onClose])
   return (
-    <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 99998, background: CREAM, color: INK, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+    <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 100001, background: CREAM, color: INK, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <div style={{ position: 'sticky', top: 0, zIndex: 3, background: INK, padding: '11px 15px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', color: '#8DB8FF' }}>💙 Casa Luca</span>
         <button onClick={onClose} aria-label={tr('fechar', 'close')} style={{ marginLeft: 'auto', background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,.35)', borderRadius: 10, padding: '4px 10px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
@@ -66,7 +69,7 @@ function TelaCasaLuca({ inicial, onClose }: { inicial: 'doar' | 'coracao'; onClo
             {a === 'doar' ? tr('💙 Ajudar o Luca', '💙 Help Luca') : tr('💙 Plano Coração', '💙 Heart Plan')}
           </button>)}
         </div>
-        {aba === 'doar' ? <DoacaoLuca /> : <PlanoCoracao />}
+        {aba === 'doar' ? <DoacaoLuca inicial={valor} /> : <PlanoCoracao />}
         <p style={{ textAlign: 'center', marginTop: 20 }}><button onClick={onClose} style={{ background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 900, fontSize: 12, color: 'rgba(12,12,12,.5)', cursor: 'pointer' }}>{tr('fechar', 'close')}</button></p>
       </div>
     </div>
@@ -74,8 +77,8 @@ function TelaCasaLuca({ inicial, onClose }: { inicial: 'doar' | 'coracao'; onClo
 }
 
 // ─── B) DOAÇÃO ──────────────────────────────────────────────────────────────────────────────────────────────────────
-export function DoacaoLuca() {
-  const [escolha, setEscolha] = useState<number | 'outro'>(10)
+export function DoacaoLuca({ inicial }: { inicial?: ValorInicial } = {}) {
+  const [escolha, setEscolha] = useState<number | 'outro'>(inicial === 'outro' || (typeof inicial === 'number' && inicial > 0) ? inicial : 10)
   const [outro, setOutro] = useState('')
   const [pago, setPago] = useState<string | null>(null)
   const valor = escolha === 'outro' ? valorDoacao(outro) : escolha
@@ -163,7 +166,7 @@ const quando = (iso: string) => {
 }
 /** 💙 "Obrigado a quem ajudou o Luca": só nome + data, por ordem de chegada, sem posição, sem valor, sem contagem.
  *  Não aparece NADA enquanto não tiver pelo menos 1 nome. `linhas` = só pra foto/teste (pula o banco). */
-export function MuralLuca({ linhas }: { linhas?: LinhaMural[] } = {}) {
+export function MuralLuca({ linhas, noCartao }: { linhas?: LinhaMural[]; noCartao?: boolean } = {}) {
   useLang()
   const liberada = useCasaLucaLiberada()
   const [lista, setLista] = useState<LinhaMural[]>(linhas ?? [])
@@ -173,6 +176,8 @@ export function MuralLuca({ linhas }: { linhas?: LinhaMural[] } = {}) {
     supabase.rpc('esc_luca_mural').then(({ data, error }) => { if (!error) setLista(muralParaTela(data)) }, () => {})
   }, [linhas])
   useEffect(() => { if (!liberada) return; carrega(); ouvintesMural.add(carrega); return () => { ouvintesMural.delete(carrega) } }, [carrega, liberada])
+  // 🧱 05/11 (Diego): no cartão da Casa Luca o mural aparece SEMPRE — vazio, convida a ser o primeiro (sem número, sem contagem)
+  if (noCartao) return <MuralNoCartao lista={muralAparece(lista) ? lista : []} />
   if ((!liberada && !linhas) || !muralAparece(lista)) return null
   const vis = todos ? lista : lista.slice(0, 12)
   return <div style={{ marginTop: 22 }}>
@@ -186,6 +191,23 @@ export function MuralLuca({ linhas }: { linhas?: LinhaMural[] } = {}) {
       {lista.length > vis.length && <button onClick={() => setTodos(true)} style={{ width: '100%', border: 'none', borderTop: '2px solid #EEE7D3', background: '#fff', padding: '10px', fontWeight: 900, fontSize: 13, color: 'rgba(12,12,12,.6)', cursor: 'pointer' }}>{tr('ver todos ↓', 'see all ↓')}</button>}
     </div>
     <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.55)', margin: '6px 2px 0' }}>{tr('Sem valor e sem posição: todo mundo igual. Quem chegou por último aparece primeiro.', 'No amounts and no ranking: everyone is equal. Newest first.')}</p>
+  </div>
+}
+
+/** 🧱 o mural dentro do cartão do mapa: caixa compacta; sem nomes = "seja o primeiro". Só nome + data (nada de dinheiro nem contagem). */
+function MuralNoCartao({ lista }: { lista: LinhaMural[] }) {
+  const [todos, setTodos] = useState(false)
+  const vis = todos ? lista : lista.slice(0, 6)
+  return <div style={{ marginTop: 12, background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, overflow: 'hidden' }}>
+    <div style={{ ...OSW, fontSize: 15, textTransform: 'uppercase', padding: '8px 10px', background: AZUL_CLARO, borderBottom: `2px solid ${INK}`, color: '#1e3f86' }}>🧱 {tr('Mural de apoiadores', 'Supporters wall')}</div>
+    {vis.length === 0
+      ? <p style={{ margin: 0, padding: '12px 10px', fontSize: 14, fontWeight: 800, lineHeight: 1.35 }}>{tr('Seja o primeiro a ajudar o Luca 💙', 'Be the first to help Luca 💙')}</p>
+      : vis.map((l, i) => <div key={`${l.nome}-${l.criado_em}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderTop: i ? '2px solid #EEE7D3' : 'none' }}>
+        <span style={{ fontSize: 14, flex: 'none' }}>💙</span>
+        <b style={{ flex: 1, minWidth: 0, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.nome}</b>
+        <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(12,12,12,.5)', flex: 'none' }}>{quando(l.criado_em)}</span>
+      </div>)}
+    {lista.length > vis.length && <button type="button" onClick={() => setTodos(true)} style={{ width: '100%', border: 'none', borderTop: '2px solid #EEE7D3', background: '#fff', padding: 10, fontWeight: 900, fontSize: 13, color: 'rgba(12,12,12,.6)', cursor: 'pointer', margin: 0, boxShadow: 'none', borderRadius: 0 }}>{tr('ver todos ↓', 'see all ↓')}</button>}
   </div>
 }
 
@@ -385,12 +407,12 @@ async function reduzFoto(f: File): Promise<Blob> {
 }
 
 /** 🛒 a seção da Loja do Clube (só com a trava aberta) */
-export function CasaLucaNaLoja({ h2, sub }: { h2: React.CSSProperties; sub: React.CSSProperties }) {
+export function CasaLucaNaLoja({ h2, sub, titulo }: { h2: React.CSSProperties; sub: React.CSSProperties; titulo?: string }) {
   const ok = useCasaLucaLiberada()
   if (!ok) return null
   const cartao: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', background: AZUL_CLARO, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer', marginBottom: 10 }
   return <>
-    <h2 id="loja-casa-luca" style={h2}>💙 Casa Luca <span style={sub}>{tr('ajudar e ser ajudado', 'help and be helped')}</span></h2>
+    <h2 id="loja-casa-luca" style={h2}>{titulo ?? '💙 Casa Luca'} <span style={sub}>{tr('ajudar e ser ajudado', 'help and be helped')}</span></h2>
     <button onClick={() => abrirDoacaoLuca()} style={cartao}>
       <span style={{ fontSize: 30 }}>💙</span>
       <span style={{ flex: 1 }}><b style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', display: 'block' }}>{tr('Ajudar o Luca', 'Help Luca')}</b><span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(12,12,12,.65)' }}>{tr('Pix de qualquer valor. Não dá nada no jogo: é só carinho.', 'A Pix of any amount. Gives nothing in the game: just kindness.')}</span></span>

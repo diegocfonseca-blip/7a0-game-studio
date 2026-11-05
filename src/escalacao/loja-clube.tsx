@@ -43,7 +43,6 @@ const EX_RECADO: AnuncioGiro[] = [
 import { usePixMp } from './sport'
 import { useEsc, fichasExtras, carregaFichasExtras, fichasExtrasCompraveis, FICHA_EXTRA_PRECO } from './store'
 import { MeuPresidenteLoja } from './presidente-loja'
-import { CasaLucaNaLoja } from './casa-luca' // 💙 05/11
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -288,7 +287,6 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         {pixMp && email && <div id="loja-cores"><CoresNaLoja h2={h2} sub={sub} card={card} reais={reais} /></div>}
 
         {/* 💙 CASA LUCA (05/11): doação pro Luca + Plano Coração — só com a trava (`useCasaLucaLiberada`) aberta */}
-        <CasaLucaNaLoja h2={h2} sub={sub} />
 
         {/* 🎨 TEMA DA SALA (18/10, Diego): ❤️ time de coração pra qualquer um · 🛡️ do clube só Batismo/Fundador · Fundador ganha 1 */}
         {pixMp && <div id="loja-temas"><TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} /></div>}

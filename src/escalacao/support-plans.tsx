@@ -10,6 +10,7 @@ import { assinarMensal } from './vendria-checkout'
 import { DuploLinha } from './presente'
 import './support-plans.css'
 import { CartoesBatismo, UmaVezSo } from './support-plans-v2'
+import { CasaLucaNaLoja } from './casa-luca' // 💙 06/11: Apoie o Luca + Plano Coração nos planos (saiu da Loja do Clube, pedido do Diego)
 
 // ─── 🍯 "ÁGUA NA BOCA" (Diego 29/09): a tela de planos MOSTRA em vez de listar ──
 // Mockup aprovado: `scripts/mockup-planos-agua-na-boca.mjs`. Cada plano ganha uma
@@ -227,6 +228,8 @@ export function SupportPlans(p: Props) {
 
     {/* ⭐📅 26/10 (Diego, loja aprovada `loja-craque-mensal-lenda-vez.png`): o Craque de 29,90 SAIU da venda; no lugar, os DOIS Craques
         MENSAIS na Vendria. Mesmo cartão, mesmo visual de sempre — só o conteúdo é novo. Quem já tem o Craque de uma vez continua com ele. */}
+    {/* 💙 06/11 (Diego: "coloque o plano na área de planos e o apoie em cima, antes do plano de Craque Salas"). Só aparece com a trava da Casa Luca aberta. */}
+    <div style={{ margin: '18px 0 6px', textAlign: 'left' }}><CasaLucaNaLoja titulo={tr('💙 Apoie', '💙 Support')} h2={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, textTransform: 'uppercase', fontSize: 20, margin: '0 0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }} sub={{ fontFamily: 'inherit', textTransform: 'none', fontSize: 12, fontWeight: 700, opacity: .6 }} /></div>
     <h3 className="ll-support-section">{tr('📅 POR MÊS · NO PIX AUTOMÁTICO', '📅 MONTHLY · AUTOMATIC PIX')}</h3>
       <SupportPlanCard id="support-prata" title={tr('⭐ Craque Salas', '⭐ Star Rooms')} price={reais(MENSAIS.craque_salas.preco)} cadence={tr('por mês', 'per month')} tone="prata">
         <h3>{tr('Cria quantas salas quiser, monta o seu presidente e o seu clã, e brilha em prata na sala.', 'Create as many rooms as you like, build your president and your clan, and shine in silver in the room.')}</h3>
