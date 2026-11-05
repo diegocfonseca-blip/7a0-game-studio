@@ -76,6 +76,7 @@ const BATISMOS = [
   ['matheussoaresg2018@gmail.com', 'Cuiudos FC'], // 🤠🔵 Série A (17/10) — plano Fundador, assento do Papão United Madrid, que desceu pra C
   ['vittor@tidex.com.br', 'Wen Milan B'], // 😈🔴⚫ Série A (17/10) — plano Fundador, assento do Al Takhadao FC, que desceu pra C
   ['ccaonta@gmail.com', 'Chelsão da Massa FC'], // 🦁🔵 Série C (16/10) — assento do bot CRBebê
+  ['danieltorresreus@gmail.com', 'Monarca Tricolor'], // 👑⚪🔴⚫ Série D (05/11, Fundador) — assento do bot Excelsior SAF
   ['enzocromero9@gmail.com', 'Paizão FC'], // 👑🎩 Série D (30/10, Fundador) — no assento do bot Monarca EC
   ['bruno.cunha2007@gmail.com', 'Piranhão FC'], // 🐟🏛️ Série D (29/10, Fundador) — no assento do bot Continental Real
   ['danicorreafilho@gmail.com', 'Milan Recifense'], // 🐆💜 Série D (05/11) — no assento do bot Dragão Imperial

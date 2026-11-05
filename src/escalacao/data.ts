@@ -4143,6 +4143,7 @@ export const OLD_NAME: Record<string, string> = {
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Pesadelo Verde FC': 'Zé Colmeia', // 🌑🐺 batismo do portaltech.ep (18/09): assumiu o assento da Série C que era do Zé Colmeia — save antigo com Zé Colmeia vira Pesadelo Verde FC ao abrir. (O Zé Colmeia continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
+  'Monarca Tricolor': 'Excelsior SAF', // 👑⚪🔴⚫ batismo FUNDADOR do danieltorresreus (05/11): assumiu o assento da Série D que era do bot Excelsior SAF (o último bot sem dono da D) — save antigo com Excelsior SAF vira Monarca Tricolor ao abrir.
   'Paizão FC': 'Monarca EC', // 👑🎩 batismo FUNDADOR do enzocromero9 (30/10): assumiu o assento da Série D que era do bot Monarca EC — save antigo com Monarca EC vira Paizão FC ao abrir.
   'Piranhão FC': 'Continental Real', // 🐟🏛️ batismo FUNDADOR do bruno.cunha2007 (29/10): assumiu o assento da Série D que era do bot Continental Real — save antigo com Continental Real vira Piranhão FC ao abrir.
   'Milan Recifense': 'Dragão Imperial', // 🐆💜 batismo do danicorreafilho (05/11): assumiu o assento da Série D que era do bot Dragão Imperial — save antigo com Dragão Imperial vira Milan Recifense ao abrir.
@@ -4553,7 +4554,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'` faz save antigo chegar no nome novo.
     // (O Vasco da Grana tinha descido da A pra cá em 08/09, no lugar do bot Zênite United.)
     { name: 'Brunno', team: 'Vasco SAF' }, // ⚽🏴‍☠️ clube BATIZADO por apoiador (brunnodeluca90 — Vasco SAF, ex-Vasco da Grana; escudo da caravela com o Rio ao fundo, mascote O Pirata com o saco de dinheiro; coração VASCO; Lenda + fundador nº78 + sócio nº59, 24/09)
-    { name: 'Excélsior', team: 'Excelsior SAF' },
+    { name: 'Monarca', team: 'Monarca Tricolor' }, // 👑⚪🔴⚫ clube BATIZADO por apoiador (danieltorresreus — Monarca Tricolor, ex-Excelsior SAF, Série D; escudo do goleiro-rei coroado, mascote O Monarca; branco #F2F1F3 + vermelho #D40101 MEDIDOS na camisa, preto na 3ª cor; coração São Paulo; plano FUNDADOR nº99 + ouro + sócio nº85, 05/11). `OLD_NAME` leva save antigo pro nome novo.
     // 😈 VIEIRA FC (felipe.vrod10, batismo de 03/10) no assento do bot Prestígio FC (bot sem dono da
     // Série D, que só existia aqui). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Diabo', team: 'Vieira FC' }, // 😈🔴⚫ clube BATIZADO por apoiador (felipe.vrod10 — Vieira FC, ex-Prestígio FC, Série D; escudo preto e vermelho com o diabo e o tridente, mascote O Diabo; preto #171212 + vermelho #DE1B19 MEDIDOS na camisa do dono; Lenda + fundador nº84, 03/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).

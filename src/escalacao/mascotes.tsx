@@ -73,6 +73,7 @@ import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 Com
 import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import monarcaMascoteImg from './img/monarca-tricolor-mascote.webp' // 👑 Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoMascoteImg from './img/paizao-mascote.webp' // 🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoMascoteImg from './img/piranhao-mascote.webp' // 🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
 import milanRecifenseMascoteImg from './img/milan-recifense-mascote.webp' // 🐆 Milan Recifense (danicorreafilho): arte própria do dono, 05/11
@@ -416,6 +417,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 🎩 O PAIZÃO (mascote do Paizão FC — enzocromero9, 30/10): o Paizão de uniforme preto e dourado apontando, com o pé na bola
   // da coroa e a taça-cartola do Cartola na mão. Arte do próprio dono. 📏 258×440, 19 KB — altura 176. mascote_key = "paizao_cartola".
+  // 👑 O MONARCA (mascote do Monarca Tricolor — danieltorresreus, 05/11): o goleiro-rei de preto, vermelho e branco, camisa 01 e
+  // braçadeira de capitão, com a capa vermelha de arminho e a bola debaixo do braço. Arte do próprio dono. 📏 391×440, 39 KB — altura
+  // 176. mascote_key = "monarca_rei".
+  monarca_rei: (
+    <img src={monarcaMascoteImg} height={176} width={Math.round(176 * 391 / 440)} alt="O Monarca — Monarca Tricolor" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   paizao_cartola: (
     <img src={paizaoMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Paizão — Paizão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1294,6 +1301,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Piranhao FC': 'piranhao_presidente',
   'Piranhao': 'piranhao_presidente',
   'Continental Real': 'piranhao_presidente',
+  // 👑 o Monarca carimba o gol do Monarca Tricolor (danieltorresreus, 05/11).
+  'Monarca Tricolor': 'monarca_rei',
+  'Monarca Tricolor FC': 'monarca_rei',
+  'Monarca Tricolor EC': 'monarca_rei',
+  'Monarca Tricolor SC': 'monarca_rei',
+  'Excelsior SAF': 'monarca_rei',
   // 🎩 o Paizão carimba o gol do Paizão FC (enzocromero9, 30/10).
   'Paizão FC': 'paizao_cartola',
   'Paizão': 'paizao_cartola',
@@ -1477,6 +1490,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   wenmilan_diaba: 'A Diabinha', // 😈 Wen Milan B (vittor@tidex, 17/10)
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   piranhao_presidente: 'O Presidente', // 🏛️ Piranhão FC (bruno.cunha2007, 29/10)
+  monarca_rei: 'O Monarca', // 👑 Monarca Tricolor (danieltorresreus, 05/11)
   paizao_cartola: 'O Paizão', // 🎩 Paizão FC (enzocromero9, 30/10)
   principe_rubronegro: 'O Príncipe', // 👑 Príncipe Rubro Negro (pedroglima50, 02/11)
   puma_milan: 'O Puma', // 🐆 Milan Recifense (danicorreafilho, 05/11)

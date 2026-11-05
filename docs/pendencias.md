@@ -1,3 +1,11 @@
+## 👑⚪🔴⚫ 05/11 — Batismo FUNDADOR Monarca Tricolor (danieltorresreus, pago por fora no Pix)
+- Conta conferida (criada 27/10). Nome no jogo era "FC Tricas" → `display_name` trocado pra **Monarca Tricolor** no banco (pedido do Diego).
+- Série D no assento do bot **Excelsior SAF** (o último bot sem dono da D) — `OLD_NAME` leva save antigo. ⚠️ A Série D não tem mais bot livre: o próximo batismo de D vai precisar de alguém descer/subir.
+- Arte: escudo 278×360 29 KB · mascote O Monarca 391×440 39 KB (`monarca_rei`) · camisa 364×440 em scripts/kits + public/mantos-salao. Fundo verde chroma tirado, conferido sobre vermelho.
+- Manto: branco #F2F1F3 + vermelho #D40101 medidos na camisa; PRETO #060604 na 3ª cor (MANTO_TRI). Coração: São Paulo.
+- Banco: esc_socios nº85 · esc_fundadores nº99 · esc_nomes_batismo (Monarca Tricolor + FC/EC pelo gatilho) · user_colors ouro manual · esc_compras_batismo plano `plus` (Fundador). `esc_direitos_de` = pago/fundador/plus/ouro.
+- Canto: o do São Paulo do Wen Milan B (`sfx/torcida-spfc-wen-v1.mp3`). Gala única "A Coroação" (`gala-monarca.tsx`): tricolor no céu, tapete vermelho, o goleiro-rei bate a falta no ângulo (GOL DO GOLEIRO!), a coroa pousa no escudo, SALVE O MONARCA. Nenhum nome de pessoa real na tela. Vídeo `scripts/posts/gala-monarca.webm` · quadros `gala-monarca-quadros.png` · post `batismo-monarca-tricolor.png`.
+
 ## 🎬 05/11 — Vídeos de LANÇAMENTO prontos (NÃO postar antes de liberar)
 - 📋 Liga Draft: `node scripts/video-liga-draft-reels.mjs` → `scripts/posts/liga-draft-reels.mp4` (1080×1920, ~38 s). Postar só quando `MINHA_LIGA_DRAFT_GERAL = true`.
 - 📺 Campo 2D: `node scripts/video-campo2d-reels.mjs` → `scripts/posts/campo2d-reels.mp4` (~37 s). Postar só quando o 2D for liberado (hoje `CAMPO2D_TESTERS`). Diz: na sala quem cria escolhe 📊/📺 e quem entra assiste de graça; carreira/partida rápida do ⭐ Craque Salas pra cima.
