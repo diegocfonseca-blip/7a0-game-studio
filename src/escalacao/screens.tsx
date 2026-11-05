@@ -5,7 +5,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
-import { useCampo2DLiberado, useDesktopNovo } from './sport'
+import { useCampo2DLiberado, useDesktopNovo, useTroca2DSala } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, fatorRitmo2D, RITMO2D_PADRAO, RITMO2D_OPTS, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
@@ -6719,7 +6719,7 @@ export function Botao2D() {
     const tm = setTimeout(() => marcaPago2D(false), 6000) // (a resposta do banco demora: só tira depois de ter certeza)
     return () => clearTimeout(tm)
   }, [temDireito])
-  if (state.onlineMode === 'online') return <TrocaCampo2DSala /> // 📺⚡ na sala o 2D é da SALA: só o dono troca, e vale do próximo jogo
+  if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
   if (!liberado || state.sport === 'basquete') return null
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
@@ -6744,7 +6744,8 @@ export function TrocaCampo2DSala() {
   const { state, dispatch } = useEsc()
   const liberado = useCampo2DLiberado()
   const temDireito = useHasManual()
-  if (state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || ehKings(state)) return null
+  const contaOk = useTroca2DSala() // 🔒 por enquanto só a conta do Diego (como DONO da sala)
+  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || ehKings(state)) return null
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
   return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && temDireito}
@@ -7725,7 +7726,7 @@ export function EscSeason() {
             {manual && !state.dinastiaPaused && (
               <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
             )}
-            {online && !streamHost && <TrocaCampo2DSala />}
+            {online && <TrocaCampo2DSala />}
             {(!online || streamHost) && (
               <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
                 lock={manualLocked ? <QuickManualLock /> : undefined}
@@ -7992,7 +7993,7 @@ export function EscSeason() {
         // (Na COPA esta mesma marcha é desenhada LÁ EM CIMA, junto do manual/auto.)
         <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
       )}
-      {online && !streamHost && state.round < totalRounds && <TrocaCampo2DSala />}
+      {online && state.round < totalRounds && <TrocaCampo2DSala />}
       {(!online || streamHost) && !state.dinastiaPaused && state.round < totalRounds && (
         // 🎮 MANUAL: "Próxima rodada" só LIBERA depois que a partida terminou de
         // simular (respeita o tempo da rodada). Sem isto, dava pra clicar sem parar
@@ -9210,7 +9211,7 @@ export function EscLiberta() {
 
       {/* 🎮 O ritmo da fase fica junto do placar, antes de giro e tabelas. */}
       {cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-      {online && !streamHost && !acabou && <TrocaCampo2DSala />}
+      {online && !acabou && <TrocaCampo2DSala />}
       {cinemaOnline && streamHost && !acabou && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
           lock={manualLocked ? <QuickManualLock /> : undefined}
@@ -9606,7 +9607,7 @@ export function EscChampions() {
 
       {/* 🎮 O RITMO — os MESMOS botões da liga, no mesmo lugar (logo abaixo do placar) */}
       {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-      {online && !streamHost && (ch.fase !== 'mata' || !!state.quickCopa) && <TrocaCampo2DSala />}
+      {online && (ch.fase !== 'mata' || !!state.quickCopa) && <TrocaCampo2DSala />}
       {(!online || streamHost) && (ch.fase !== 'mata' || !!state.quickCopa) && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={canNext}
           lock={manualLocked ? <QuickManualLock /> : undefined}

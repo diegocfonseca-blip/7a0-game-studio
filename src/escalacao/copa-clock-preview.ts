@@ -1,6 +1,8 @@
 import {useCallback,useEffect,useRef,useState} from 'react'
 import {supabase} from '../lib/supabase'
 import {PASSO_COPA,passoRodaBola,respiroAntes,RESUMO_MS,passoComResumo} from './copa-passos'
+import {doisDDoPasso} from './campo2d-modo'
+import {usePreparaTroca2D} from './troca2d-copa'
 
 export type CopaClockRow={revision:number;step:number;running:boolean;manual:boolean;speed:number;started_at:string;updated_at:string;duration_ms:number;extra_ms:number}
 export type CopaClockCommand='next'|'skip'|'finish'|'manual'|'auto'|'speed'
@@ -32,6 +34,7 @@ export function dueClockCommand(row:CopaClockRow,now:number,doisD=false):'finish
 
 export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,seed:number,isHost:boolean,extraForStep:(step:number)=>number,doisD=false):CopaClockController|undefined{
  const [row,setRow]=useState<CopaClockRow|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[now,setNow]=useState(Date.now())
+ const prepara2D=usePreparaTroca2D(roomId,isHost) // 📺⚡ troca 2D ↔ rápido marcada pelo dono: entra entre um passo e outro
  const current=useRef<CopaClockRow|null>(null),offset=useRef(0),inFlight=useRef(false),generation=useRef(0),extra=useRef(extraForStep)
  extra.current=extraForStep
  const rpc=useCallback(async(cmd:'read'|'init'|CopaClockCommand,speed=1)=>{
@@ -67,12 +70,14 @@ export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,
    const stamp=Date.now()+offset.current;setNow(stamp)
    const r=current.current
    if(!isHost||!r)return
-   const cmd=dueClockCommand(r,stamp,doisD)
+   const pronto2D=r.running?true:prepara2D() // 📺⚡ bola parada: a troca marcada pelo dono já vai sendo aplicada (auto E manual)
+   const cmd=dueClockCommand(r,stamp,doisDDoPasso(r)??doisD) // 📺 o 2D do passo é o que o banco carimbou nele
+   if(cmd==='next'&&!pronto2D)return // 📺⚡ espera o banco ter o 2D novo antes de começar o próximo passo
    if(cmd)void rpc(cmd)
   },250)
   return()=>clearInterval(timer)
- },[enabled,isHost,rpc,doisD])
+ },[enabled,isHost,rpc,doisD,prepara2D])
  // Convidado de host público conserva o comportamento público (não há linha privada).
  if(!enabled||(!isHost&&!loading&&!row))return undefined
- return{row,now,isHost,busy,error,command:rpc}
+ return{row,now,isHost,busy,error,command:(c,sp)=>c==='next'&&!prepara2D()?Promise.resolve():rpc(c,sp)} // 📺⚡ o 'next' do manual também espera a troca entrar
 }

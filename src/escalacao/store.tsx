@@ -1097,6 +1097,7 @@ import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { troca2DSalaLiberada } from './sport' // 📺⚡ troca 2D ↔ rápido na sala: por enquanto só a conta do Diego (vale a conta do DONO — o reducer só roda no aparelho dele)
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { formacoes15On } from './sport' // 🎽 as 15 formações (a mesma régua do seletor) — A/B, 23/10
 import { formacaoNoCardapio } from './cardapio-formacoes'
@@ -5698,6 +5699,7 @@ type Action =
   | { type: 'PREGAO_ABERTO_TICK' }
   | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string; mesa?: number; cardId?: string } // 🔨🔨 mesa 0 ou 1 (duas mesas a partir de 11 clubes)
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
+  | { type: 'VIRA_CAMPO2D'; by?: string } // 📺⚡ o relógio da Copa do BANCO (Copa do Mundo/Euro/regionais) aplica a troca marcada ANTES de pedir o próximo passo
   | { type: 'SET_CAMPO2D'; on: boolean; by?: string } // 📺⚡ 05/11: o DONO da sala troca 2D ↔ placar rápido — vale a partir do PRÓXIMO jogo (by = crachá: convidado é recusado)
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
@@ -9612,10 +9614,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       maybeResolveTiebreak(s)
       return s
     }
+    case 'VIRA_CAMPO2D': {
+      // 📺⚡ Copas com relógio no BANCO: não existe PLAY_* lá dentro, então o próprio relógio do dono, ENTRE um passo e outro
+      // (bola parada), pede a troca marcada e só chama o próximo passo depois que o `game_state` do banco já tem o 2D novo.
+      if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid) return s
+      viraCampo2D(s)
+      return s
+    }
     case 'SET_CAMPO2D': {
       // 📺⚡ só o DONO, só na sala online, nunca no basquete nem na Kings (relógio próprio). O convidado não roda este reducer,
       // mas o recado dele chega no do dono — por isso o crachá (`by`) TEM que ser o do dono. Só MARCA: quem troca é `viraCampo2D`.
       if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid || s.sport === 'basquete' || ehKings(s)) return s
+      if (!troca2DSalaLiberada()) return s // 🔒 por enquanto só a conta do Diego (a conta do DONO: é no aparelho dele que isto roda)
       const alvo = !!action.on
       s.campo2dProximo = alvo === !!s.campo2d ? undefined : alvo // apertou de novo = desmarca (fica como está)
       return s

@@ -6,6 +6,14 @@
 - Copa do Mundo/Eurocopa/regionais da sala (relógio no BANCO, lê `game_state.campo2d`): o botão NÃO aparece lá e a troca não entra
   no meio (nenhum PLAY_* roda durante elas) — vale da próxima largada/rodada. Sem mexer no banco.
 - Trava: `npm run sala-troca-2d`.
+- 🔁 05/11 (2ª rodada, Diego: *"todas as competições são TODAS… e por enquanto só na minha conta"*): **só a conta dele como DONO**
+  (`TROCA_2D_SALA_GERAL = false` + testers em `sport.ts`; tela E reducer). Botão em TODA competição da sala (liga, Copa dos 8, Liberta,
+  Champions tabela/repescão/mata, Relâmpago, Liga Draft/Turma, carreira em sala, revanche, **Copa do Mundo/Euro/regionais**). Nas copas do
+  BANCO, sem SQL: o relógio do dono, com a bola parada, aplica a troca (`VIRA_CAMPO2D`), espera o `game_state` do banco confirmar o 2D novo
+  (`troca2d-copa.ts`, até 12 s) e só então chama o `next`; todo aparelho desenha o 2D pela duração que o banco carimbou no passo
+  (`doisDDoPasso`). Liga Draft/Turma: o dono escolhe "⚡ Placar rápido / 📺 Campo 2D" na sala de espera (`salva2DLiga`, game_state).
+  Manual: levantamento feito — já estava em todas (ver relatório 05/11); a Copa do Mundo/regionais da sala começam sempre no AUTO do banco.
+  Liberar pra todos = `TROCA_2D_SALA_GERAL = true`.
 
 ## ⏩ 05/11 — Campo 2D: TESTE DE RITMO na Partida Rápida (publicado, só a conta do Diego)
 Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão manual e sem botão manual"*.

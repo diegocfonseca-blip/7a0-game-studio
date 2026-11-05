@@ -18,7 +18,8 @@
 //     banco ainda não tiver essa função, cada aparelho conta o próprio relógio — o
 //     resultado é o mesmo pra todo mundo, só o ritmo deixa de andar junto.
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
-import { useCampo2DLigado } from './campo2d-modo'
+import { useCampo2DLigado, doisDDoPasso, Campo2DDoPassoCtx } from './campo2d-modo'
+import { usePreparaTroca2D } from './troca2d-copa'
 import { fimDoJogoMs } from './copa-clock-preview'
 import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática no regional da sala (23/10)
 import { montaQualTatica, copaComTatica } from './copa-taticas'
@@ -31,7 +32,7 @@ import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, Artilheir
 import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { ChatWidget, GiroDaRodada } from './screens'
+import { ChatWidget, GiroDaRodada, TrocaCampo2DSala } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
@@ -122,6 +123,7 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
   const [semBanco, setSemBanco] = useState(false)
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(Date.now())
+  const prepara2D = usePreparaTroca2D(roomId, isHost) // 📺⚡ troca 2D ↔ rápido marcada pelo dono: entra entre um passo e outro
   const atual = useRef<Row | null>(null), offset = useRef(0), voando = useRef(false), extra = useRef(extraDoPasso)
   extra.current = extraDoPasso
   const rpc = useCallback(async (cmd: 'read' | 'init' | Cmd, speed = 1) => {
@@ -154,13 +156,14 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
       setNow(agora)
       const r = atual.current
       if (!isHost || !r) return
-      if (r.running) { if (agora >= Date.parse(r.started_at) + fimDoJogoMs(r.duration_ms, doisD) + r.extra_ms + 150) void rpc('finish') } // 📺 sala 2D fecha no apito do campinho (mesma conta do banco)
-      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step, r.step + 1 >= passosRegional(rodadas).PRIMEIRO_KO)) void rpc('next') // 🎬 5s de abertura antes de rodar bola (+5s de resumo em fase do mata-mata)
+      const pronto2D = r.running ? true : prepara2D() // 📺⚡ bola parada: a troca marcada pelo dono já vai sendo aplicada (auto E manual)
+      if (r.running) { if (agora >= Date.parse(r.started_at) + fimDoJogoMs(r.duration_ms, doisDDoPasso(r) ?? doisD) + r.extra_ms + 150) void rpc('finish') } // 📺 sala 2D fecha no apito do campinho (mesma conta do banco)
+      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step, r.step + 1 >= passosRegional(rodadas).PRIMEIRO_KO) && pronto2D) void rpc('next') // 🎬 5s de abertura antes de rodar bola (+5s de resumo em fase do mata-mata)
     }, 250)
     return () => clearInterval(t)
-  }, [isHost, rpc, fim, rodadas, doisD])
+  }, [isHost, rpc, fim, rodadas, doisD, prepara2D])
   if (semBanco) return undefined
-  return { row, now, isHost, busy, command: rpc }
+  return { row, now, isHost, busy, command: (c: Cmd, sp?: number) => (c === 'next' && !prepara2D() ? Promise.resolve() : rpc(c, sp)) } // 📺⚡ o 'next' do manual também espera a troca entrar
 }
 
 // ─── 🛡️ a grade dos clubes, dividida pelos dois lados ─────────────────────────
@@ -578,7 +581,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const [inicioLocal, setInicioLocal] = useState(Date.now())
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
-  const c2d = useCampo2DLigado()
+  const c2d = doisDDoPasso(relogio?.row) ?? c2dSala // 📺⚡ o passo da vez manda (o banco carimbou), senão a sala
   const ROUND_MS = c2d ? DUR_2D_MS : 16000 // 📺 2D = 1:30 · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
@@ -679,6 +682,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
           <button disabled={relogio.busy} onClick={() => void relogio.command(relogio.row?.running ? 'skip' : 'next')}>{tr('PULAR', 'SKIP')}</button>
         </div>
       </> : <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>{tr('Ritmo da sala', 'Room pace')}: {relogio.row.manual ? 'manual' : tr('automático', 'auto')} · {relogio.row.speed}× · {tr('controlado pelo host', 'controlled by the host')}</p>}
+      {!done && <TrocaCampo2DSala />}{/* 📺⚡ o dono troca 2D ↔ rápido: vale do próximo passo (só aparece pro dono) */}
     </section>
   )
   const etapa = done ? tr('Campeão definido', 'Champion decided') : step === 0 ? tr('Começando', 'Starting') : step <= P.RODADAS ? `${tr('Rodada', 'Round')} ${step} ${tr('de', 'of')} ${P.RODADAS}` : step === P.CHAVE ? tr('Mata-mata definido', 'Knockouts set') : nomeFase(faseAtual?.tipo ?? 'final')
@@ -723,6 +727,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#E8503A" espera={espera} />
   })() : null
   return (
+    <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}>{/* 📺⚡ todo placar desta copa desenha o 2D do PASSO (todo aparelho igual) */}
     <TemaCompCtx.Provider value={copa}>
       <CompetitionStage kind="copa8" patroKind="regional" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
@@ -808,5 +813,6 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       <FraseCopa />
       <button className="ll31-back-room" onClick={aoFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 14, background: done ? GREEN : '#fff', color: done ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>
     </TemaCompCtx.Provider>
+    </Campo2DDoPassoCtx.Provider>
   )
 }

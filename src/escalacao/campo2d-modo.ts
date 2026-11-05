@@ -4,7 +4,7 @@
 //  · OFFLINE (carreira, partida rápida, copas): a escolha é do aparelho (`esc-campo2d`), e só pra quem o 2D está liberado.
 //  · SALA ONLINE: quem decide é a SALA (`state.campo2d`, escolhido pelo dono ao criar) — vale igual pra todo mundo dela,
 //    porque o tempo do jogo muda junto e os relógios da sala têm que bater.
-import { useSyncExternalStore } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 import { useCampo2DLiberado } from './sport'
 import { useEscTalvez } from './store'
 import { estadioNoCampinho } from './estadiodata' // 🌱🏟️ o estádio do mandante no campinho (21/10)
@@ -37,13 +37,24 @@ export function usePago2D(): boolean {
   return useSyncExternalStore(f => { ouvintes.add(f); return () => { ouvintes.delete(f) } }, () => pago)
 }
 
+/** 📺⚡ 05/11: nas copas com relógio no BANCO (Copa do Mundo/Euro/regionais) quem diz se o PASSO da vez é 2D é a linha do
+ *  relógio (a duração que o banco carimbou no `next`), não o estado da sala — assim, se o dono trocou, todo aparelho muda
+ *  junto no passo seguinte, e nunca no meio de um jogo. `undefined` = sem relógio: vale a sala. */
+export const Campo2DDoPassoCtx = createContext<boolean | undefined>(undefined)
+/** o banco carimba 109756 ms (÷ velocidade) no passo 2D e 16000 no normal (`docs/sql/copa-regional-clock-campo2d.sql`) */
+export function doisDDoPasso(row: { step: number; duration_ms: number; speed: number } | null | undefined): boolean | undefined {
+  if (!row || row.step <= 0) return undefined // nenhum passo começou ainda: vale a sala
+  return Math.abs(row.duration_ms * (row.speed || 1) - 109756) < 1500
+}
+
 /** o 2D está ligado AQUI? (a sala online manda; fora dela, a escolha do aparelho de quem está liberado E pagou) */
 export function useCampo2DLigado(): boolean {
   const liberado = useCampo2DLiberado()
   const p = usePref()
   const pg = usePago2D()
   const s = useEscTalvez()?.state
-  if (s && s.onlineMode === 'online') return !!s.campo2d
+  const doPasso = useContext(Campo2DDoPassoCtx)
+  if (s && s.onlineMode === 'online') return doPasso ?? !!s.campo2d
   return liberado && p && pg
 }
 

@@ -60,7 +60,7 @@ import type { RegrasDraft } from './liga-draft'
 const AVISO_TROCA_LIGA = false
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
+import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -1021,6 +1021,7 @@ export function EscLobby() {
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const hasManual = useHasManual() // ⭐ 26/10: criar sala no Manual (e com o 2D) é do plano — a mesma régua do Modo Manual
   const [manualAviso, setManualAviso] = useState(false), [aviso2d, setAviso2d] = useState(false)
+  const troca2dConta = useTroca2DSala() // 📺⚡ 05/11: o dono troca 2D ↔ rápido DEPOIS de criar (por enquanto só a conta do Diego)
   const pode2d = campo2dOn && hasManual // 📺 o 2D já lançou pra esta conta E ela tem plano
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
@@ -2504,6 +2505,22 @@ export function EscLobby() {
     const d: string = typeof gs?.deckSala === 'string' ? gs.deckSala : typeof gs?.deck === 'string' ? gs.deck : 'br'
     const deck = d === 'eu' ? tr('🌍 Europa', '🌍 Europe') : d === 'world' ? tr('🌎 Mundo', '🌎 World') : d === 'both' || d === 'todos' ? tr('♾️ Todos', '♾️ All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
     return [lance, tipo, deck, nomeCopaLiga(copaDaLiga(gs))]
+  }
+  // 📺⚡ 05/11 (Diego: *"Liga Draft e Minhas Ligas — o cara também poderá escolher Campo 2D ou trocar pelo placar cinema DEPOIS de
+  // criar a sala"*). Na sala de espera da liga o DONO grava o `campo2d` no MESMO lugar da criação (game_state da sala, lido de novo na
+  // hora, igual ao tema) — vale na próxima largada. Com a temporada rolando, a troca é pelo botão do jogo (vale do próximo jogo).
+  async function salva2DLiga(on: boolean) {
+    if (!room || !mandaNaLiga || !troca2dConta) return
+    if (on && !pode2d) return
+    try {
+      const { data } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+      const gs = { ...((data?.game_state ?? {}) as Record<string, unknown>) }
+      if (on) gs.campo2d = true; else delete gs.campo2d
+      delete gs.campo2dProximo // (a escolha da espera é a que vale; marca de troca velha sai)
+      const { error } = await supabase.from('game_rooms').update({ game_state: gs }).eq('id', room.id)
+      if (error) { setRoomError(tr('Não deu pra trocar agora — tente de novo.', 'Couldn\'t switch right now — try again.')); return }
+      setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), campo2d: on || undefined, campo2dProximo: undefined } as GS } : r))
+    } catch { setRoomError(tr('Não deu pra trocar agora — tente de novo.', 'Couldn\'t switch right now — try again.')) }
   }
   // 🎨 o dono escolhe o tema da sala (só os da conta dele). Lê o game_state na hora pra não pisar em nada da sala.
   async function salvaTema(id: TemaSalaId | null) {
@@ -5175,6 +5192,19 @@ export function EscLobby() {
                 </button>
               </div>
             )}
+            {mandaNaLiga && !modoEdit && troca2dConta && getSport() !== 'basquete' && (() => {
+              // 📺⚡ placar rápido × Campo 2D da liga (só o dono; ligar o 2D exige o 2D liberado, como na criação)
+              const g2 = gs as GS & { campo2d?: boolean; campo2dProximo?: boolean }
+              const agora2d = !!(g2?.campo2dProximo ?? g2?.campo2d)
+              return (
+                <div className="mt-2">
+                  <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Como os jogos aparecem', 'How matches are shown')}</p>
+                  <Seg small options={[['rapido', tr('⚡ Placar rápido', '⚡ Quick scoreboard')], ['2d', tr('📺 Campo 2D', '📺 2D pitch')]] as ['rapido' | '2d', string][]}
+                    value={agora2d ? '2d' : 'rapido'} onSet={v => { if ((v === '2d') !== agora2d) void salva2DLiga(v === '2d') }} travados={pode2d || agora2d ? undefined : ['2d']} />
+                  <p className="text-black/50 text-[10.5px] font-bold mt-1">{tr('Vale na próxima largada da liga. Com a temporada rolando, troque pelo botão do jogo (vale do próximo jogo).', 'Applies from the league\'s next kick-off. While a season is running, switch with the in-game button (applies from the next match).')}</p>
+                </div>
+              )
+            })()}
             {mandaNaLiga && !modoEdit && <p className="text-black/50 text-[10.5px] font-bold mt-2">{tr('Só você (dono) vê os botões. Troféus e ranking continuam ao trocar.', 'Only you (owner) see the buttons. Trophies and ranking stay when you change.')}</p>}
             {/* ⚖️ as regras do ranking abrem POR CIMA, só no toque (antes ocupavam a tela inteira da espera) */}
             {mandaNaLiga && ligaRegrasAberto && (
