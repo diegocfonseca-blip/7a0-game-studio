@@ -145,7 +145,15 @@ export function OnlineScorePresentation(p: {
   </section>
 }
 
-export function OnlineRhythm(p: { manual: boolean; onToggle: () => void; speed: number; onSpeed: (v: number) => void }) {
+export function OnlineRhythm(p: { manual: boolean; onToggle: () => void; speed: number; onSpeed: (v: number) => void; opts?: { v: number; pt: string; en: string }[] }) {
+  // ⏩📺 05/11: com `opts` (teste do ritmo do 2D na Partida Rápida) as marchas são outras — Lento · Normal · 2× · 3× · 4×
+  if (p.opts) return <div className="ll25-rhythm" aria-label="Ritmo da sala">
+    <button className="ll25-button" aria-pressed={p.manual} onClick={() => { if (!p.manual) p.onToggle() }}>MANUAL</button>
+    <button className="ll25-button" aria-pressed={!p.manual} onClick={() => { if (p.manual) p.onToggle() }}>{tr('AUTO 2×', 'AUTO 2×')}</button>
+    <label><span className="ll25-sr">{tr('Velocidade da partida', 'Match speed')}</span><select className="ll25-button" disabled={!p.manual} value={p.manual ? (p.speed > 0 ? p.speed : 2) : 2} onChange={e => p.onSpeed(Number(e.target.value))}>
+      {p.opts.map(o => <option key={o.v} value={o.v}>{tr(o.pt, o.en)}</option>)}
+    </select></label>
+  </div>
   return <div className="ll25-rhythm" aria-label="Ritmo da sala">
     <button className="ll25-button" aria-pressed={p.manual} onClick={() => { if (!p.manual) p.onToggle() }}>MANUAL</button>
     <button className="ll25-button" aria-pressed={!p.manual} onClick={() => { if (p.manual) p.onToggle() }}>AUTO</button>

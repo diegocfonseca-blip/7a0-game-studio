@@ -7,6 +7,7 @@ import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado, useDesktopNovo } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
+import { useRitmo2D, fatorRitmo2D, RITMO2D_PADRAO, RITMO2D_OPTS, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
 import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
@@ -2909,6 +2910,9 @@ export function EscSetup() {
   const [tamLiga, setTamLiga] = useState<20 | 10>(20)
   const [pacSel, setPacSel] = useState(false) // 🏳️ pacote de Seleções
   const [pacDec, setPacDec] = useState(false) // 🕰️ pacote por década
+  const c2dLigadoSetup = useCampo2DLigado()
+  const c2dSetup = useCampo2DLiberado() && RITMO2D_TESTE // ⏩📺 05/11: teste do ritmo do 2D (só aparece com o 2D ligado — conta do Diego)
+  const semManual2d = useRitmo2dSemManual()
   const [varzeaR, setVarzeaR] = useState(false) // 🥅 Sem craques (só baralho Brasil) // rápido offline: liga só, liga + copa dos 8 ou liga + Libertadores
   const [holandes, setHolandes] = useState(false) // 🔻 pregão holandês (modo à parte); padrão = o leilão cego de hoje
   // 🔨 PREGÃO ABERTO (16/10): o 3º jeito de dar lance — uma carta por vez, lance à vista, ordem embaralhada,
@@ -3265,6 +3269,23 @@ export function EscSetup() {
           {league === 'br' && varzeaR && <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pickup game.')}</p>}
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
+        )}
+        {/* ⏩📺 05/11 (teste do Diego): como fica o 2D numa partida COM ou SEM o botão Manual (o automático é sempre 2×) */}
+        {c2dSetup && !bbSetup && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">{t('📺 Teste do Campo 2D (só na sua conta)', '📺 2D pitch test (your account only)')}</p>
+            <button onClick={trocaCampo2D} className="w-full border-[3px] border-black rounded-xl py-2 mb-2 font-black text-[13px]"
+              style={{ backgroundColor: c2dLigadoSetup ? GREEN : '#fff', color: c2dLigadoSetup ? '#fff' : INK, ...OSWALD }}>{c2dLigadoSetup ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Campo 2D: desligado (toque pra ligar)', '📺 2D pitch: off (tap to turn on)')}</button>
+            <div className="grid grid-cols-2 gap-2">
+              {([[false, t('🎮 Com Manual', '🎮 With Manual')], [true, t('🚫 Sem Manual', '🚫 No Manual')]] as [boolean, string][]).map(([m, label]) => (
+                <button key={String(m)} onClick={() => setRitmo2dSemManual(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                  style={{ backgroundColor: semManual2d === m ? GOLD : '#fff', boxShadow: semManual2d === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+              ))}
+            </div>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">{semManual2d
+              ? t('Como numa sala sem o Manual: o jogo roda sozinho no 2× (45 s por jogo).', 'Like a room without Manual: the match runs on its own at 2× (45 s per match).')
+              : t('Automático = 2× (45 s). No Manual: 🐢 Lento (3 min) · Normal (1:30) · 2× · 3× (30 s) · 4× (22 s).', 'Auto = 2× (45 s). With Manual: 🐢 Slow (3 min) · Normal (1:30) · 2× · 3× (30 s) · 4× (22 s).')}</p>
+          </div>
         )}
         {bbSetup && (
           <div>
@@ -6722,10 +6743,13 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
+  const r2d = useRitmo2D()
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
+  // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
+  if (r2d.semManual) return <p style={{ margin: '0 0 8px', textAlign: 'center', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>{t('⚡ Automático 2× · sem botão Manual', '⚡ Auto 2× · no Manual button')}</p>
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return <>
-    <OnlineRhythm manual={manual} onToggle={onToggle} speed={state.simSpeed ?? 1} onSpeed={speed => dispatch({ type: 'SET_SIM_SPEED', speed })} />
+    <OnlineRhythm manual={manual} onToggle={onToggle} speed={state.simSpeed ?? 1} onSpeed={speed => dispatch({ type: 'SET_SIM_SPEED', speed })} opts={r2d.teste ? RITMO2D_OPTS : undefined} />
     {manual && <div className="ll25-actions">
       <button className="ll25-button" onClick={onNext} disabled={!canNext}>{label}</button>
       {onSkip && <button className="ll25-button" onClick={onSkip}>{t('PULAR', 'SKIP')}</button>}
@@ -6777,13 +6801,16 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
   const previewAccount = useOnlinePreview()
   const { state } = useEsc()
   const t = useT() // 🌐 BR/EN
+  const r2d = useRitmo2D()
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
-  const cur = speed > 0 ? speed : 1
+  if (r2d.semManual) return null
+  const opcoes = r2d.teste ? RITMO2D_OPTS.map(o => ({ v: o.v, label: t(o.pt, o.en) })) : SPEED_OPTS
+  const cur = speed > 0 ? speed : r2d.teste ? 2 : 1
   return (
     <div style={{ marginBottom: 10 }}>
       <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 5px 2px' }}>{t('⏩ Velocidade da partida', '⏩ Match speed')}</p>
       <div style={{ display: 'flex', gap: 5 }}>
-        {SPEED_OPTS.map(o => {
+        {opcoes.map(o => {
           const on = cur === o.v
           const bg = !on ? '#fff' : o.v === 1 ? GOLD : o.v < 1 ? '#5C8FD6' : GREEN
           const fg = !on ? INK : o.v === 1 ? INK : '#fff'
@@ -7121,7 +7148,8 @@ export function EscSeason() {
   // 🔒 no rápido OFFLINE o Modo Manual agora é apoiado (pago pra todos, sem
   // grandfather). Online host-paced (stream/sala manual) segue livre.
   const hasManual = useHasManual()
-  const manual = streamHost ? streamManual : (manualPref && !online && hasManual)
+  const r2d = useRitmo2D() // ⏩📺 05/11: teste do ritmo do 2D na Partida Rápida (só com o 2D ligado — conta do Diego)
+  const manual = streamHost ? streamManual : (manualPref && !online && hasManual && !r2d.semManual)
   const manualLocked = !online && !hasManual // rápido offline sem apoio: mostra o cadeado
   // ⏩ AUTO é SEMPRE o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
   // Assim a marcha escolhida vale só dentro do manual, e o manual sempre COMEÇA no
@@ -7130,6 +7158,7 @@ export function EscSeason() {
   const toggleManual = () => {
     const goingManual = !manual
     rawToggle()
+    if (goingManual && r2d.teste) { dispatch({ type: 'SET_SIM_SPEED', speed: RITMO2D_PADRAO }); return } // ⏩📺 o Manual começa no 2× (o mesmo do automático)
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   // ⏩ velocidade escolhida (sincroniza via estado): divide o tempo da rodada —
@@ -7144,7 +7173,7 @@ export function EscSeason() {
   // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
   const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
   const baseRoundMs = c2d ? DUR_2D_MS : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
-  const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / speedFactor)
+  const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor))
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   // 🏆 total de rodadas real: 20 times = 38 (como sempre); Liga Fechada = calendário
@@ -7364,7 +7393,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? DUR_2D_MS : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
+  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? Math.round(DUR_2D_MS / (r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : 1)) : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
@@ -9007,17 +9036,19 @@ export function EscLiberta() {
   const [manualPref, toggleSim] = useSimMode()
   const [streamManual, toggleStream] = useStreamSimMode()
   const hasManual = useHasManual()
-  const manual = streamHost ? streamManual : (manualPref && !online && hasManual)
+  const r2d = useRitmo2D() // ⏩📺 05/11: teste do ritmo do 2D na Partida Rápida
+  const manual = streamHost ? streamManual : (manualPref && !online && hasManual && !r2d.semManual)
   const manualLocked = !online && !hasManual
   const rawToggle = streamHost ? toggleStream : toggleSim
   const toggleManual = () => {
     const goingManual = !manual
     rawToggle()
+    if (goingManual && r2d.teste) { dispatch({ type: 'SET_SIM_SPEED', speed: RITMO2D_PADRAO }); return }
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const c2d = useCampo2DLigado()
-  const roundMs = Math.round((c2d ? DUR_2D_MS : online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
+  const roundMs = Math.round((c2d ? DUR_2D_MS : online ? ROUND_MS_ONLINE : ROUND_MS) / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor)) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
   // 🙈 ANTI-SPOILER (regra do Diego): a classificação do grupo só atualiza DEPOIS
   // que o jogo terminou de animar na tela — igual a tabela da liga faz.
   const [revealed, setRevealed] = useState(false)
@@ -9305,11 +9336,13 @@ export function EscChampions() {
   const [manualPref, toggleSim] = useSimMode()
   const [streamManual, toggleStream] = useStreamSimMode()
   const hasManual = useHasManual()
-  const manual = streamHost ? streamManual : (manualPref && !online && hasManual)
+  const r2d = useRitmo2D() // ⏩📺 05/11: teste do ritmo do 2D na Partida Rápida
+  const manual = streamHost ? streamManual : (manualPref && !online && hasManual && !r2d.semManual)
   const manualLocked = !online && !hasManual
   const toggleManual = () => {
     const goingManual = !manual
     ;(streamHost ? toggleStream : toggleSim)()
+    if (goingManual && r2d.teste) { dispatch({ type: 'SET_SIM_SPEED', speed: RITMO2D_PADRAO }); return }
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
@@ -9319,7 +9352,7 @@ export function EscChampions() {
   // régua é o JOGO que está na tela, não o nome da fase.
   const jogoDeCopa = !!ch && ((ch.fase === 'repescao' && !ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
   const c2d = useCampo2DLigado() // 📺 2D = 1:30 por jogo
-  const roundMs = Math.round((c2d ? DUR_2D_MS : jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
+  const roundMs = Math.round((c2d ? DUR_2D_MS : jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / (c2d && r2d.teste ? fatorRitmo2D(manual, state.simSpeed) : speedFactor))
   const passo = (ch?.fase === 'repescao' ? 100 : 0) + (ch?.rodada ?? 0) * 2 + (ch?.repescaoLeg ?? 0)
   const startedAt = useRoundPresentationStart(passo)
 

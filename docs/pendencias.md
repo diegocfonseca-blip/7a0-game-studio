@@ -1,3 +1,12 @@
+## ⏩ 05/11 — Campo 2D: TESTE DE RITMO na Partida Rápida (publicado, só a conta do Diego)
+Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão manual e sem botão manual"*.
+- Só vale com o Campo 2D ligado (só a conta dele) e só na Partida Rápida offline (nunca sala online, nunca carreira).
+- Automático = **2×** (jogo de 45 s). Com o Manual: 🐢 Lento (3 min) · Normal (1:30) · ⚡ 2× (onde começa) · ⚡ 3× (30 s) · ⚡ 4× (22 s).
+- Tela de criar a Partida Rápida: bloco "📺 Teste do Campo 2D" com 2D liga/desliga + **🎮 Com Manual / 🚫 Sem Manual** (guardado no aparelho).
+- Vale na liga, Copa dos 8, Relâmpago, Liberta e Champions da Partida Rápida. Código: `src/escalacao/ritmo2d.ts`.
+- Desligar: `RITMO2D_TESTE = false`.
+- ⏳ FALTA (decisão dele): levar o 2× pras salas online e carreira — no online o relógio da Copa do Mundo/regionais mora no BANCO e teria que mudar junto.
+
 ## 💙 05/11 — Casa Luca no mapa: cartão COMPLETO (valores do Pix, Plano Coração e mural sempre) + doação por cima do mapa em tela cheia
 - Bug do Diego ("aperto na Casa Luca e não tem nada pra apertar"): o mural sem nomes virava uma barra branca vazia, e com o mapa em TELA
   CHEIA a doação abria ATRÁS dele (`.pc3-expanded` z 100000 × tela da doação 99998). Agora a tela da Casa Luca abre em z 100001.
