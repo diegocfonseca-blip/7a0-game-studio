@@ -17,6 +17,8 @@ const PLANOS: Record<string, { centavos: number; nome: string }> = {
   craque_salas: { centavos: 990, nome: '⭐ Craque Salas · Leilão Legends' },
   craque_completo: { centavos: 1490, nome: '⭐ Craque Completo · Leilão Legends' },
 }
+/** 💙 metade do preço, em centavos (990 → 495 · 1490 → 745). A MESMA conta de `precoCoracaoCentavos` em casa-luca-regras.ts. */
+const precoCoracaoCentavos = (c: number) => Math.round(c / 2)
 const resp = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
 
 Deno.serve(async (req) => {
@@ -42,14 +44,21 @@ Deno.serve(async (req) => {
   const { count } = await adm.from('esc_vendria_pedidos').select('order_id', { count: 'exact', head: true }).eq('email', email).gte('criado_em', new Date(Date.now() - 10 * 60_000).toISOString())
   if ((count ?? 0) >= 6) return resp(429, { erro: 'muitos' })
 
+  // 💙 PLANO CORAÇÃO (05/11): quem o Diego aprovou paga METADE em qualquer plano mensal, enquanto pagar. Quem decide é o BANCO
+  // (`esc_coracao_tem_desconto`, só service role) — o cliente não manda preço nem "tenho desconto". A assinatura nasce com o valor
+  // já pela metade, então as renovações da Vendria seguem com ele. Banco sem resposta = preço cheio (nunca dá desconto no escuro).
+  const { data: temDesc } = await adm.rpc('esc_coracao_tem_desconto', { p_email: email })
+  const coracao = temDesc === true
+  const centavos = coracao ? precoCoracaoCentavos(p.centavos) : p.centavos
+
   const r = await fetch(API + '/orders', {
     method: 'POST',
     headers: { Authorization: `Bearer ${chave}`, 'Content-Type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
       buyer: { email },
       reference: `ll-${plano}-${crypto.randomUUID()}`,
-      description: p.nome,
-      totalInCents: p.centavos,
+      description: p.nome, // (discreto: o recibo não diz nada do Plano Coração)
+      totalInCents: centavos,
       billing: { type: 'SUBSCRIPTION', interval: 'MONTHLY' },
       allowedPaymentMethods: ['PIX_AUTOMATIC'],
       passPlatformFeeToBuyer: true,
@@ -63,7 +72,7 @@ Deno.serve(async (req) => {
     console.error('vendria-checkout: pedido recusado', r.status, j.error?.code, j.error?.requestId)
     return resp(502, { erro: 'vendria', codigo: j.error?.code ?? null })
   }
-  const { error } = await adm.from('esc_vendria_pedidos').insert({ order_id: j.data.id, email, plano, checkout_url: j.data.checkoutUrl })
+  const { error } = await adm.from('esc_vendria_pedidos').insert({ order_id: j.data.id, email, plano, checkout_url: j.data.checkoutUrl, ...(coracao ? { coracao: true } : {}) }) // (só manda a coluna quando é Coração: a função publicada antes da migration não quebra o mensal de ninguém)
   if (error) return resp(500, { erro: 'guardar' }) // sem a anotação o pagamento não teria dono: não entrega o link
   return resp(200, { url: j.data.checkoutUrl })
 })
