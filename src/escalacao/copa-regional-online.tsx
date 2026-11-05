@@ -23,7 +23,7 @@ import { usePreparaTroca2D } from './troca2d-copa'
 import { fimDoJogoMs } from './copa-clock-preview'
 import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática no regional da sala (23/10)
 import { montaQualTatica, copaComTatica } from './copa-taticas'
-import { DUR_2D_MS } from './campo2d-motor'
+import { DUR_2D_AUTO_MS } from './campo2d-motor'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
@@ -582,7 +582,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
   const c2d = doisDDoPasso(relogio?.row) ?? c2dSala // 📺⚡ o passo da vez manda (o banco carimbou), senão a sala
-  const ROUND_MS = c2d ? DUR_2D_MS : 16000 // 📺 2D = 1:30 · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
+  const ROUND_MS = c2d ? DUR_2D_AUTO_MS : 16000 // 📺 2D = 2× (05/11) · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS

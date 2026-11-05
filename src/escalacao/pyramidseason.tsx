@@ -92,7 +92,7 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos'
 import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
-import { DUR_2D_MS } from './campo2d-motor'
+import { dur2D } from './campo2d-motor'
 import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
@@ -8388,7 +8388,7 @@ export function PyramidSeasonScreen() {
   // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
   // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
   const campo2d = useCampo2DLigado() // (na sala online quem manda é a sala — `useCampo2DLigado` já olha isso; todo mundo no mesmo tempo)
-  const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
+  const baseRoundMs = campo2d ? (state.onlineMode === 'online' && !state.careerOnline ? dur2D(false) : dur2D(manual)) : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -9337,8 +9337,8 @@ export function PyramidSeasonScreen() {
   // a MESMA regra que a partida da liga já segue desde 13/09 (`baseRoundMs`).
   // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
   // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
-  // 📺 no Campo 2D cada jogo da Copa também dura 1:30 (o placar anda 93' em legMs ÷ 0,82 = DUR_2D_MS)
-  const copaLegMs = campo2d ? Math.round(DUR_2D_MS * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  // 📺 no Campo 2D cada jogo da Copa também dura o mesmo da liga: 2× no auto, 1:30 no Manual (05/11)
+  const copaLegMs = campo2d ? Math.round(dur2D(manual) * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
   const copaClock=useRef({key:'',elapsed:0})
   // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.

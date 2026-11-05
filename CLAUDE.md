@@ -1040,6 +1040,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   partida rápida offline: botão do 2D junto do Manual, e o 2D é do ⭐ Craque SALAS pra cima (`useTem2D`, 05/11: *"1 sim"* — quem tem só o Craque Salas vê o 2D no automático e o cadeado só do Manual; o Manual segue `temManual`, do Completo pra cima): quem não
   paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
+  ⏩ **05/11: NO AUTOMÁTICO O 2D ANDA A 2× EM TODO LUGAR** (~45 s por jogo; *"coloque 2x… quando tá no auto, seja carreira ou
+  online e qualquer competição"*). Ele pediu 2,5 nas salas e logo trocou por 2× geral. Mora em `dur2D(manual)` / `DUR_2D_AUTO_MS`
+  (campo2d-motor.ts); no Manual a base segue 1:30 e a marcha divide por cima; nas salas online é sempre 2×. Relógio do banco da Copa do
+  Mundo/regionais = `docs/sql/campo2d-2x.sql` (54878). ⚠️ O banco só muda DEPOIS do deploy fechar (aparelho velho não reconhece 54878
+  como passo 2D; o novo aceita 54878 e 109756).
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.

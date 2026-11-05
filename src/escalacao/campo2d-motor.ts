@@ -19,6 +19,14 @@ export const W = 68, L = 105
 /** 93' em 90 s no automático do 2D (decisão do Diego: 1:30 por jogo) */
 export const SEG_POR_MIN = 90 / 93
 export const DUR_2D_MS = Math.round(90_000 / 0.82) // o `roundMs` que faz o placar andar 93' em 90 s (o placar anima em roundMs × 0,82)
+/** ⏩ 05/11 (Diego: *"coloque 2x então em todos locais quando tá no auto, seja carreira ou online e qualquer competição"*):
+ *  no AUTOMÁTICO o 2D anda a 2× (~45 s por jogo) em todo lugar — carreira (offline e online), Partida Rápida e salas online.
+ *  No Manual o técnico manda: base de 1:30 e a marcha dele. Nas SALAS online é sempre 2×.
+ *  ⚠️ O relógio do banco (Copa do Mundo/regionais) tem a MESMA conta: `docs/sql/campo2d-2x.sql` (54878). */
+export const RITMO2D_AUTO = 2
+export const DUR_2D_AUTO_MS = Math.round(DUR_2D_MS / RITMO2D_AUTO)
+/** duração-base do jogo 2D: automático = 2×, Manual = 1:30 (a marcha divide por cima) */
+export const dur2D = (manual: boolean) => manual ? DUR_2D_MS : DUR_2D_AUTO_MS
 const DT = 1 / 50
 const ANTECEDE = 8.5 // segundos de jogada antes de um evento (gol/chance)
 const FESTA = 4.2 // segundos de comemoração do gol

@@ -1,3 +1,10 @@
+## ⏩ 05/11 — Campo 2D a 2× no AUTOMÁTICO em todo lugar (branch; esperando "publique")
+Diego: *"coloque 2x então em todos locais qd tá no auto seja carreira ou online e qualquer competição"* (antes pediu 2,5 só nas salas).
+- Carreira offline/online, Partida Rápida, salas online (liga, Liga da Turma/Draft, copas, Liberta, Champions, Copa do Mundo, regionais):
+  ~45 s por jogo no auto. No Manual segue 1:30 + a marcha. `dur2D` / `DUR_2D_AUTO_MS` em campo2d-motor.ts.
+- [ ] Ao publicar: esperar o deploy fechar verde e SÓ ENTÃO rodar `docs/sql/campo2d-2x.sql` no banco (Copa do Mundo/regionais).
+- Reverter: `RITMO2D_AUTO = 1` + rodar o SQL trocando 54878 por 109756.
+
 ## 🟢 05/11 — LIBERADOS PRA TODOS: 📺 Campo 2D e 📋 Liga Draft (pedido do Diego: *"libere já… igual aparece na minha conta"*)
 - `CAMPO2D_GERAL = true` (sport.ts): 2D em todos os modos, offline e online. Fora da sala é do ⭐ Craque Salas pra cima (`useTem2D`); na sala
   quem CRIA precisa de plano e quem entra assiste de graça. Selo **NOVO verde** no "Jogo" do criar sala (sai a faixa "LANÇA COM 2K").

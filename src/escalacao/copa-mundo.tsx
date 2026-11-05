@@ -16,7 +16,7 @@ import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { FORMACOES_JOGO, FORMATIONS } from './types'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado } from './campo2d-modo'
-import { DUR_2D_MS } from './campo2d-motor'
+import { DUR_2D_AUTO_MS, dur2D } from './campo2d-motor'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -1245,7 +1245,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // ⏱️ 13/10 (Diego: *"aumente mais 1s em cada jogo da copa"*): sala 16s (o banco manda — `docs/sql/online-copa-clock-16s.sql`;
   // o número daqui só vale sem relógio sincronizado). Carreira segue em 10s.
   const c2d = useCampo2DLigado() // 📺 Campo 2D: o jogo dura 1:30 (sala sincronizada: quem manda ainda é o relógio do banco)
-  const roundMs = synced?.row?.duration_ms ?? Math.round((c2d ? DUR_2D_MS : (online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
+  const roundMs = synced?.row?.duration_ms ?? Math.round((c2d ? (online ? DUR_2D_AUTO_MS : dur2D(manual)) : (online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
   // 🥅 BUG DA FINAL (Diego 13/10: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças"*).
   // A disputa só entrava na tela em `liveDone` — que é DEPOIS de `duration + extra`, e o `extra` era justamente o tempo
   // reservado pra disputa. Ou seja: a reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s
