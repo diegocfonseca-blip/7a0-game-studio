@@ -121,6 +121,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👑🎩 Paizão FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (30/10): preto do corpo (66%, #100F0F) e o dourado das
   // pinceladas, gola e punhos (#D99C32).
   'enzocromero9@gmail.com': ['#100F0F', '#D99C32'],
+  // 🐆💜 Milan Recifense — ROXO e PRETO, MEDIDOS na camisa que o dono mandou (05/11): roxo das listras (mediana, #C402F5) e o
+  // preto do corpo (#0C060A).
+  'danicorreafilho@gmail.com': ['#C402F5', '#0C060A'],
   // 👑🔴⚫ Príncipe Rubro Negro — VERMELHO e PRETO, MEDIDOS na camisa que o dono mandou (02/11): vermelho das listras (mediana,
   // #C3030C) e o preto do corpo (#0D0707).
   'pedroglima50@gmail.com': ['#C3030C', '#0D0707'],

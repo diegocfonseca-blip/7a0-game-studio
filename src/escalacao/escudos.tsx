@@ -71,6 +71,7 @@ import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Mi
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import paizaoEscudoImg from './img/paizao-escudo.webp' // 👑🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
+import milanRecifenseEscudoImg from './img/milan-recifense-escudo.webp' // 🐆💜 Milan Recifense (danicorreafilho): arte própria do dono, 05/11
 import principeEscudoImg from './img/principe-escudo.webp' // 👑🔴⚫ Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
@@ -928,6 +929,12 @@ const paizaoEscudoRender = (size: number) => (
 const piranhaoEscudoRender = (size: number) => (
   <img src={piranhaoEscudoImg} height={size} width={Math.round(size * 269 / 290)} alt="Piranhão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐆💜 MILAN RECIFENSE (danicorreafilho, batismo de 05/11) — Série D, no assento do bot Dragão Imperial. 📏 297×360, 29 KB.
+// O puma preto de manchas roxas rugindo dentro do escudo, tochas roxas dos lados, faixa "2005" e o monograma MR (o Liverpool 2005
+// que o dono pediu, de roxo e preto). Coração: Flamengo. Fundo verde chroma tirado; conferido sobre vermelho e sobre creme.
+const milanRecifenseEscudoRender = (size: number) => (
+  <img src={milanRecifenseEscudoImg} height={size} width={Math.round(size * 297 / 360)} alt="Milan Recifense" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 👑🔴⚫ PRÍNCIPE RUBRO NEGRO (pedroglima50, batismo de 02/11) — Série D, no assento do bot Aurora Suprema. 📏 297×360, 29 KB.
 // O príncipe de cabelo vermelho com coroa e garras, escudo prata e o "PRÍNCIPE RUBRO NEGRO". Coração: Vitória. Fundo verde chroma
 // tirado; conferido sobre vermelho e sobre creme.
@@ -1637,6 +1644,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Príncipe Rubro Negro EC': principeEscudoRender,
   'Príncipe Rubro Negro SC': principeEscudoRender,
   'Aurora Suprema': principeEscudoRender,
+  // 🐆💜 Milan Recifense (danicorreafilho) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
+  'Milan Recifense': milanRecifenseEscudoRender,
+  'Milan Recifense FC': milanRecifenseEscudoRender,
+  'Milan Recifense EC': milanRecifenseEscudoRender,
+  'Milan Recifense SC': milanRecifenseEscudoRender,
+  'Dragão Imperial': milanRecifenseEscudoRender,
   // 🐶💚 dSouza FC (alexandre12cdm) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Kombi United (bot que cedeu o
   // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'dSouza FC': dsouzaEscudoRender,
