@@ -185,7 +185,7 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  panoVidro(VX0+.4,VX1-.4,GROUND,GROUND+VH-.4,VZ1,3.5,4.3)
  caixa(pedra,VX1-VX0,.2,VZ1-VZ0,vx,GROUND+.1,(VZ0+VZ1)/2,false)
  const art=LOGOS_PATROCINADORES_CIDADE.vadico,logo=texturaLogoPatrocinador('vadico',onReady);textures.push(logo)
- const lm=new THREE.MeshBasicMaterial({name:'shopping-vadico-logo',map:logo,toneMapped:false});materials.push(lm)
+ const lm=new THREE.MeshBasicMaterial({name:'shopping-vadico-logo',map:logo,toneMapped:false,transparent:true,depthWrite:false});materials.push(lm)
  caixa(creme,30,8.6,.5,vx,GROUND+VH+4.6,VZ1-.8)
  { const g=new THREE.PlaneGeometry(28,28*art.height/art.width);geometries.push(g);const m=new THREE.Mesh(g,lm);m.position.set(vx,GROUND+VH+4.6,VZ1-.52);root.add(m) }
  // um carro no salão (no tablado) e os outros no pátio, de frente pra rua
