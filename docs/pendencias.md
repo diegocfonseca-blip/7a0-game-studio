@@ -12474,3 +12474,7 @@ Não retomar sem ele pedir.
 - 🔁 05/11 (Diego: *"tire as opções de apertar… só coloque ideias pros usuários combinarem entre eles… qualquer sugestão, falar comigo"*):
   as REGRAS viraram só um quadro "💡 Ideias de regras pra turma" (texto, o jogo não trava nada) + "fala comigo no Instagram". O motor
   (`cartaPermitidaDraft`, `draftRegras`, `liga_patch_draft` p_regras) ficou DORMENTE: ninguém liga, nada muda no jogo. Prêmio editável continua.
+
+### 05/11 — Carreira: ajuste de força (bônus v9) DESFEITO por ordem do Diego ("deixa como tá")
+A régua nova das cartas deixou a carreira MAIS FÁCIL na C (sobe 42%→80%) e na B (24%→33%); o ajuste v9 (cd8d6a3) que voltava a 01/11
+foi revertido no branch. A carreira fica como está. As salas online seguem com a correção publicada (escalaBots).
