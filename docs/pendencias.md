@@ -1,3 +1,35 @@
+## 💙 05/11 — Mapa 3D: CASA LUCA (o projeto do Luca, filho do Diego) num quarteirão do bairro (LOCAL, branch do agente, só a conta do Diego)
+- Pedido: a casinha do projeto do Luca dentro do mapa do clube. Ajuste dele no meio: **fora do complexo do estádio**, num bairro, **bem visível**
+  e **grande** (quarteirão inteiro, prédio de 2 andares que se destaca das casas).
+- Onde: o quarteirão x −153,5…−130,5 · z 152,5…175,5 (centro −142, 164), colado na avenida diagonal do oeste e de frente pra praça verde do
+  hotel; aparece no "Ver tudo". As 2 casas e a árvore do quarteirão saíram (só quando o mapa é o do clube); ruas, calçadas, travessias e o
+  poste da esquina ficaram iguais. As tradições do bairro (banca, feira, varal…) não usam mais esse quarteirão.
+- O que tem (`presidencia-casa-luca-3d.ts`, lote em `presidencia-casa-luca-planta.ts`): prédio amarelo de 2 andares, telhado azul com coração +
+  CASA LUCA (lê de cima), letreiro e coração azul na fachada (e nos fundos, pro lado da avenida), porta larga, marquise, varanda com RAMPA de 6 m e
+  corrimão duplo, piso tátil (guia + alerta) do portão até a rampa, cerca baixa. Parquinho inclusivo: balanço com cadeirinha adaptada, carrossel
+  rente ao chão (com uma cadeira de rodas em cima), gangorra, painel sensorial + tubo de som, caixa de areia elevada, trilha de texturas,
+  cata-ventos girando e bolas grandes. Gente: 2 crianças em cadeira de rodas (uma empurrada pela mãe, outra no carrossel com o pai), 1 com andador
+  e o pai do lado, 1 no balanço com a mãe empurrando (+4 crianças fora do modo Leve). Tudo anda pelo relógio da cidade (parado até o 1º toque).
+- Cartão (Locais › "💙 Casa Luca" ou toque no lote): texto PROVISÓRIO (o Diego vai revisar), botão "💙 AJUDAR O LUCA" que por enquanto só diz
+  "em breve" (Pix ainda não ligado) e o mural "Obrigado a quem ajudou o Luca 💙", escondido enquanto `AGRADECIMENTOS_CASA_LUCA` estiver vazio.
+  NUNCA mostrar valor, total ou contagem de doação.
+- Trava: `node scripts/imersao-mapa/test-club-map-navigation.mjs` (quarteirão existe, sem casas/sólidos dentro, fora da rota dos ônibus, no "Ver
+  tudo"). Fotos: `scripts/mockups/casa-luca-mapa-cima.png`, `casa-luca-mapa-perto.png` + `casa-luca-mapa-perto-2.png`, `casa-luca-mapa-cartao.png`.
+- Pendente: OK visual do Diego; texto final do cartão; ligar o Pix e os nomes do mural quando ele mandar.
+## 💙 05/11 — CASA LUCA: Plano Coração (50% nos mensais) + doação pro Luca + mural (LOCAL, branch do agente, só a conta do Diego)
+- Mockup em direção: `scripts/mockups/casa-luca/*` (telas 1·2·3·5·6·8) com as mudanças dele: Plano Coração = **50% em TODOS os mensais**
+  (não é mais grátis), enquanto pagar; doação **não dá nada no jogo** (sem selo, moeda ou vantagem); mural sem valor/total/contagem.
+- Código: `casa-luca.tsx` (`abrirDoacaoLuca()`, `abrirPlanoCoracao()`, `MuralLuca`, `CasaLucaNaLoja`), `casa-luca-regras.ts` (puro),
+  `CoracaoAdmin` no #admin, produto `doacao_luca` no Pix do MP, selo 💙 opcional (desligado por padrão) no `apoioName`.
+- Servidor: migration `supabase/migrations/20261105120000_casa_luca.sql` + Edge Functions `coracao-decidir` (nova), `vendria-checkout`
+  (metade quando `esc_coracao_tem_desconto`) e `mp-criar-pix` (nome do produto). **NADA aplicado no banco nem publicado.**
+- Trava: `npm run casa-luca`. Fotos reais: `scripts/mockups/casa-luca/real-*.png` (`node scripts/foto-casa-luca.mjs`).
+- Pendente: (1) OK visual do Diego; (2) aplicar a migration e publicar as 3 funções; (3) ligar o botão "💙 AJUDAR O LUCA" da Casa Luca
+  do mapa em `abrirDoacaoLuca()`; (4) textos da história do Luca são PROVISÓRIOS; (5) decidir se a taxa da Vendria (R$ 1,99) também cai
+  pela metade pro Plano Coração (hoje: metade do plano + taxa cheia); (6) quem já assina pelo preço cheio e é aprovado precisa cancelar e
+  assinar de novo (o checkout recusa assinatura dupla); (7) o selo 💙 só vai no nome das salas online (mesmo caminho da medalha), não na carreira.
+- Liberar geral = `CASA_LUCA_GERAL = true` (sport.ts) **e** `update esc_casa_luca_config set aberto = true` no banco.
+
 ## 🛍️🏢 05/11 — Mapa 3D: LOJA DO CLUBE e AGÊNCIA mudaram pro lado da TORCIDA DA CASA + agência nova (LOCAL, branch do agente, só a conta do Diego)
 - Reclamação dele (print): *"a loja do clube e a agência estão próximos da área do visitante… colocar num local melhor. Além disso a
   agência tá muito feia"*. Antes: loja em x 134 (colada no portão do VISITANTE, x 105) e agência em x 229 (leste, perto da saída dele).

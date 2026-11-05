@@ -727,6 +727,92 @@ function QuaseComprouAdmin() {
   )
 }
 
+// 💙 PLANO CORAÇÃO (05/11): a fila dos pedidos. A foto é vista por link assinado de 5 min (bucket PRIVADO) e, ao APROVAR ou
+// RECUSAR, a Edge Function `coracao-decidir` grava a decisão e APAGA a foto na hora. Fica só: conta · quem · tipo · decisão · data.
+// Embaixo, o mural da doação pro Luca (só nome; dá pra esconder um nome). Valor de doação NUNCA aparece aqui — só no Pix do MP.
+type PedidoCoracao = { id: number; email: string; clube: string | null; quem: string; prova: string; foto_path: string | null; status: string; criado_em: string; decidido_em: string | null; foto_apagada_em: string | null }
+type LinhaMuralAdmin = { email: string; nome: string; escondido: boolean; criado_em: string }
+export function CoracaoAdmin({ previa }: { previa?: { lista: PedidoCoracao[]; fotos?: Record<number, string>; mural?: LinhaMuralAdmin[] } } = {}) {
+  const [lista, setLista] = useState<PedidoCoracao[]>(previa?.lista ?? [])
+  const [fotos, setFotos] = useState<Record<number, string>>(previa?.fotos ?? {})
+  const [grande, setGrande] = useState<string | null>(null)
+  const [msg, setMsg] = useState('')
+  const [ocupado, setOcupado] = useState<number | null>(null)
+  const [mural, setMural] = useState<LinhaMuralAdmin[]>(previa?.mural ?? [])
+  const carregar = useCallback(async () => {
+    if (previa) return
+    const { data } = await supabase.rpc('esc_admin_coracao_lista')
+    const l = (data ?? []) as PedidoCoracao[]
+    setLista(l)
+    const f: Record<number, string> = {}
+    for (const r of l.filter(r => r.status === 'pedido' && r.foto_path)) {
+      const { data: u } = await supabase.storage.from('coracao-provas').createSignedUrl(r.foto_path!, 300)
+      if (u?.signedUrl) f[r.id] = u.signedUrl
+    }
+    setFotos(f)
+    const { data: m } = await supabase.rpc('esc_admin_luca_mural')
+    setMural((m ?? []) as LinhaMuralAdmin[])
+  }, [previa])
+  useEffect(() => { void carregar() }, [carregar])
+  const decidir = async (r: PedidoCoracao, acao: 'aprovar' | 'recusar' | 'apagar') => {
+    if (acao !== 'apagar' && !window.confirm(`${acao === 'aprovar' ? 'APROVAR' : 'RECUSAR'} o pedido nº${r.id} (${r.email})? A foto é apagada na hora.`)) return
+    setOcupado(r.id); setMsg('')
+    const { data, error } = await supabase.functions.invoke('coracao-decidir', { body: { id: r.id, acao } })
+    setOcupado(null)
+    const d = data as { ok?: boolean; foto_apagada?: boolean } | null
+    setMsg(error || !d?.ok ? `❌ nº${r.id}: não deu (${error?.message ?? 'erro'})` : d.foto_apagada ? `✅ nº${r.id} ${acao === 'apagar' ? '' : acao === 'aprovar' ? 'aprovado' : 'recusado'} · 🗑️ foto apagada` : `⚠️ nº${r.id} decidido, mas a foto NÃO foi apagada — aperte "apagar foto" de novo`)
+    void carregar()
+  }
+  const esconder = async (email: string, esc: boolean) => { await supabase.rpc('esc_admin_luca_mural_esconder', { p_email: email, p_esconder: esc }); void carregar() }
+  const esperando = lista.filter(r => r.status === 'pedido'), decididos = lista.filter(r => r.status !== 'pedido')
+  const aprovados = decididos.filter(r => r.status === 'aprovado').length
+  const dataBr = (iso: string | null) => iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : ''
+  const ha = (iso: string) => { const h = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 36e5)); return h < 24 ? `há ${h} h` : `há ${Math.round(h / 24)} d` }
+  const chip: React.CSSProperties = { display: 'inline-block', border: '2px solid #F2E8CF', borderRadius: 999, padding: '0 8px', fontWeight: 800, fontSize: 11, marginTop: 4 }
+  const btn = (bg: string): React.CSSProperties => ({ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', border: '3px solid #000', borderRadius: 10, padding: '8px 6px', background: bg, color: '#fff', boxShadow: '3px 3px 0 #000', cursor: 'pointer' })
+  return (
+    <div style={{ border: '2px solid #8DB8FF', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#8DB8FF', textTransform: 'uppercase', margin: '0 0 6px' }}>💙 Pedidos do Plano Coração</p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        <span style={{ ...chip, background: '#FFC400', color: '#000', borderColor: '#000', fontSize: 12.5 }}>⏳ {esperando.length} esperando</span>
+        <span style={{ ...chip, color: '#F2E8CF', fontSize: 12.5 }}>✅ {aprovados} {aprovados === 1 ? 'aprovado' : 'aprovados'}</span>
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 800, color: '#ffb3a3', margin: '0 0 10px' }}>🗑️ Ao apertar Aprovar ou Recusar, a <u>foto é APAGADA na hora</u>. Fica só: conta · aprovado/recusado · data.</p>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '0 0 8px' }}>{msg}</p>}
+      {esperando.map(r => <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 10, background: 'rgba(242,232,207,.06)', border: '2px solid rgba(242,232,207,.25)', borderRadius: 12, padding: 10, marginBottom: 10 }}>
+        <button onClick={() => fotos[r.id] && setGrande(fotos[r.id])} style={{ position: 'relative', height: 80, borderRadius: 8, border: '2px solid #F2E8CF', background: fotos[r.id] ? `center/cover url(${fotos[r.id]})` : 'repeating-linear-gradient(45deg,#3a3528,#3a3528 6px,#2c281f 6px,#2c281f 12px)', cursor: 'zoom-in', padding: 0 }}>
+          <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,.75)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 0' }}>{fotos[r.id] ? '🔍 tocar = ampliar' : 'sem foto'}</span>
+        </button>
+        <div style={{ minWidth: 0, color: '#F2E8CF', fontSize: 12 }}>
+          <b style={{ ...OSWALD, fontSize: 16 }}>PEDIDO #{r.id}</b><br />
+          <span style={{ wordBreak: 'break-all' }}>{r.email}</span>{r.clube ? ` · ${r.clube}` : ''}<br />
+          <span style={chip}>{r.quem === 'pcd' ? '♿ PcD' : '👨‍👧 pai/mãe/responsável'}</span><br />
+          <span style={{ opacity: .7 }}>{r.prova === 'laudo' ? '📄 laudo' : '🪪 carteirinha'} · {ha(r.criado_em)}</span>
+        </div>
+        <button disabled={ocupado === r.id} onClick={() => decidir(r, 'aprovar')} style={btn('#1B7A3D')}>✅ Aprovar</button>
+        <button disabled={ocupado === r.id} onClick={() => decidir(r, 'recusar')} style={btn('#C2452F')}>❌ Recusar</button>
+      </div>)}
+      {esperando.length === 0 && <p style={{ fontSize: 11.5, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>nenhum pedido esperando</p>}
+      {decididos.length > 0 && <div style={{ marginTop: 6 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, color: 'rgba(242,232,207,.6)', textTransform: 'uppercase', margin: '0 0 4px' }}>Já decididos</p>
+        {decididos.slice(0, 40).map(r => <div key={r.id} style={{ display: 'flex', gap: 6, fontSize: 11.5, color: '#F2E8CF', padding: '3px 0', borderTop: '1px solid rgba(242,232,207,.12)' }}>
+          <span>{r.status === 'aprovado' ? '✅' : '❌'}</span>
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.email}</span>
+          <span style={{ opacity: .7 }}>{dataBr(r.decidido_em)} · </span>
+          {r.foto_path ? <button onClick={() => decidir(r, 'apagar')} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 900, cursor: 'pointer', padding: 0 }}>⚠️ apagar foto</button> : <span style={{ opacity: .7 }}>🗑️ foto apagada</span>}
+        </div>)}
+      </div>}
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#8DB8FF', textTransform: 'uppercase', margin: '14px 0 4px' }}>🧱 Mural do Luca (só nome, nunca valor)</p>
+      {mural.length === 0 ? <p style={{ fontSize: 11.5, color: 'rgba(242,232,207,.6)', margin: 0 }}>ninguém no mural ainda (o mural fica escondido no jogo até ter 1 nome)</p>
+        : mural.map(m => <div key={m.email} style={{ display: 'flex', gap: 6, fontSize: 11.5, color: '#F2E8CF', padding: '3px 0', borderTop: '1px solid rgba(242,232,207,.12)', opacity: m.escondido ? .45 : 1 }}>
+          <b style={{ flex: 1 }}>{m.nome}</b><span style={{ opacity: .6 }}>{dataBr(m.criado_em)}</span>
+          <button onClick={() => esconder(m.email, !m.escondido)} style={{ background: 'none', border: 'none', color: m.escondido ? '#6fdb8f' : '#ff8a75', fontWeight: 900, cursor: 'pointer', padding: 0 }}>{m.escondido ? 'mostrar' : 'esconder'}</button>
+        </div>)}
+      {grande && <div onClick={() => setGrande(null)} style={{ position: 'fixed', inset: 0, zIndex: 100000, background: 'rgba(0,0,0,.9)', display: 'grid', placeItems: 'center', padding: 16, cursor: 'zoom-out' }}><img src={grande} alt="documento" style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 8 }} /></div>}
+    </div>
+  )
+}
+
 type Presente = { id: number; de_email: string; para_email: string; plano: string; recado: string | null; status: string; criado_em: string }
 function PresentesAdmin() {
   const [lista, setLista] = useState<Presente[]>([])
@@ -1477,7 +1563,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><FunilPlanosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><EspectadoresAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnunciosFixosAdmin /><AnuncioAdmin tipo="giro" /><AnuncioAdmin tipo="recado" /><CliquesAnunciosAdmin /><TemasAdmin /><FunilPlanosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><CoracaoAdmin /><SalasExtrasAdmin /><EspectadoresAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

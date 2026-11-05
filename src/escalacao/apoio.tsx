@@ -574,6 +574,19 @@ export function meuNomeFake(): boolean { return nomeFake }
 export async function carregaNomeFake(): Promise<void> {
   try { const { data, error } = await supabase.rpc('esc_meu_nome_fake'); if (!error) nomeFake = data === true } catch { /* sem banco: sem selo */ }
 }
+// 💙 SELO DO PLANO CORAÇÃO (05/11, Diego): opcional, DESLIGADO até a pessoa ligar ("Mostrar meu selo"). É só um 💙 do lado do nome
+// — não diz "Plano Coração" em lugar nenhum. Quem decide é o BANCO (`esc_coracao_meu`: aprovado + escolheu mostrar); ninguém se dá
+// o selo digitando (o stripEmoji arranca o 💙 de nome digitado). Enquanto a Casa Luca está em teste, só vale na conta liberada
+// (quem chama passa a trava `casaLucaLiberada()` — o apoio não importa o sport.ts, pra não puxar o login nas travas de node).
+export const SELO_CORACAO = ' 💙'
+let seloCoracao = false
+export function meuSeloCoracao(): boolean { return seloCoracao }
+/** a tela do Plano Coração chama ao ligar/desligar (o nome com o selo é montado de novo ao entrar na próxima sala) */
+export function defineSeloCoracao(on: boolean): void { seloCoracao = on }
+export async function carregaSeloCoracao(liberada: boolean): Promise<void> {
+  if (!liberada) { seloCoracao = false; return }
+  try { const { data, error } = await supabase.rpc('esc_coracao_meu'); if (!error) seloCoracao = (data as { selo?: boolean } | null)?.selo === true } catch { /* sem banco: sem selo */ }
+}
 /** 🛡️📧 02/11: nomes de conta que copiaram um batismo (o banco decide pelo e-mail) — o escudo do batismo não é desenhado pra eles */
 let nomesSemEscudoCarregado = false
 export async function carregaNomesSemEscudo(): Promise<void> {
@@ -602,12 +615,13 @@ export function apoioSelo(): string {
   const p = myApoioPerk()
   const selo = p && p.selo ? ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${minhaMarcaCor(p.tier)}` : ''
   const base = medalhaSemana ? `${selo || ' '}${medalhaSemana}` : selo
-  return nomeFake ? base + MARCA_FAKE : base
+  const coracao = seloCoracao ? SELO_CORACAO : ''
+  return nomeFake ? base + coracao + MARCA_FAKE : base + coracao
 }
 
 // nome com o selo garantido (sem duplicar — saves antigos já podem ter o emoji)
 export function apoioName(name: string): string {
-  const fake = nomeFake && !name.includes(MARCA_FAKE.trim()) ? MARCA_FAKE : ''
+  const fake = (seloCoracao && !name.includes(SELO_CORACAO.trim()) ? SELO_CORACAO : '') + (nomeFake && !name.includes(MARCA_FAKE.trim()) ? MARCA_FAKE : '') // 💙 05/11: o selo do coração vai junto, antes do 🎭
   const p = myApoioPerk()
   const marca = p && !corExtraDoNome(name) ? minhaMarcaCor(p.tier) : '' // 🎨 02/11
   if (!p || !p.selo || name.includes(p.selo)) return (medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name) + marca + fake
