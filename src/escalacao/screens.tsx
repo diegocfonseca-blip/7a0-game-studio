@@ -5,7 +5,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
-import { useCampo2DLiberado, useDesktopNovo, useTroca2DSala } from './sport'
+import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, fatorRitmo2D, RITMO2D_PADRAO, RITMO2D_OPTS, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
@@ -2080,8 +2080,8 @@ function Duvidas() {
       Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       </> : <>
       All the details are in the <b>💛 Support</b> button:<br /><br />
-      ⭐ <b>Craque Salas (Star Rooms) — R$ 9.90 a month.</b> Unlimited rooms, My Leagues, your president, your clan and a silver name.<br />
-      ⭐ <b>Craque Completo (Star Complete) — R$ 14.90 a month.</b> Everything in Star Rooms + Manual Mode, 2D Pitch (soon) and levels up to Star.<br />
+      ⭐ <b>Craque Salas (Star Rooms) — R$ 9.90 a month.</b> Unlimited rooms, 2D Pitch, Crew League and Draft League, your president, your clan and a silver name.<br />
+      ⭐ <b>Craque Completo (Star Complete) — R$ 14.90 a month.</b> Everything in Star Rooms + Manual Mode and levels up to Star.<br />
       👑 <b>Lenda (Legend) — R$ 59.90, one time.</b> Gets <b>everything from both Stars, forever</b>, and more.<br />
       🖋️ <b>Batismo (Club Naming) — R$ 79.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
       🖋️ <b>Fundador (Founder) — R$ 99.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career + a Founder number.<br /><br />
@@ -2148,8 +2148,8 @@ function Duvidas() {
       Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       </> : <>
       Os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
-      ⭐ <b>Craque Salas — R$ 9,90 por mês.</b> Salas à vontade, Minhas Ligas, seu presidente, seu clã e nome prata.<br />
-      ⭐ <b>Craque Completo — R$ 14,90 por mês.</b> Tudo do Craque Salas + Modo Manual, Campo 2D (em breve) e nível até Craque.<br />
+      ⭐ <b>Craque Salas — R$ 9,90 por mês.</b> Salas à vontade, Campo 2D, Liga da Turma e Liga Draft, seu presidente, seu clã e nome prata.<br />
+      ⭐ <b>Craque Completo — R$ 14,90 por mês.</b> Tudo do Craque Salas + Modo Manual e nível até Craque.<br />
       👑 <b>Lenda — R$ 59,90, uma vez só.</b> Ganha <b>tudo dos dois Craques, pra sempre</b>, e mais.<br />
       🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
       🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida (na Carreira, nos jogos, e no online, junto com a gala) + número de Fundador.<br /><br />
@@ -2911,7 +2911,7 @@ export function EscSetup() {
   const [pacSel, setPacSel] = useState(false) // 🏳️ pacote de Seleções
   const [pacDec, setPacDec] = useState(false) // 🕰️ pacote por década
   const c2dLigadoSetup = useCampo2DLigado()
-  const c2dSetup = useCampo2DLiberado() && RITMO2D_TESTE // ⏩📺 05/11: teste do ritmo do 2D (só aparece com o 2D ligado — conta do Diego)
+  const c2dSetup = useCampo2DTester() && RITMO2D_TESTE // ⏩📺 05/11: teste do ritmo do 2D (só aparece com o 2D ligado — conta do Diego)
   const semManual2d = useRitmo2dSemManual()
   const [varzeaR, setVarzeaR] = useState(false) // 🥅 Sem craques (só baralho Brasil) // rápido offline: liga só, liga + copa dos 8 ou liga + Libertadores
   const [holandes, setHolandes] = useState(false) // 🔻 pregão holandês (modo à parte); padrão = o leilão cego de hoje

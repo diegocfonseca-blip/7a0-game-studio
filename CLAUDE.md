@@ -950,7 +950,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Começa todo mundo fraco (leilão só profissional e bom, no baralho Todos, SEM campo de terra); entre as temporadas, a noite do
   draft: **1 jogador por técnico, de TODOS do jogo, campeão escolhe primeiro, 60s**, cada jogador **único na liga** (pelo nome).
   O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
-  carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
+  carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. 🟢 LIBERADA PRA TODOS em 05/11 (`MINHA_LIGA_DRAFT_GERAL = true`).
   🤖 **05/11: a SOBRA vai de GRAÇA pro bot da vez** (fila 1→7→1, até 22, escala os 11 melhores): quem o usuário tira pra caber o do draft/leilão
   e o "à venda" sem lance (o SONDADO sem lance volta pro dono). Ninguém ganha moeda. Bots cheios: troca pelo pior da posição se for melhor.
 - **🔒 CARREIRA GRÁTIS VAI ATÉ A TEMPORADA 50 (27/10, regra dele).** *"chegando na temporada 50 só avança quem tem plano pago… ela pagando descongela… quem já passou sem problemas"*. Trava na decisão do fim da T50 (tela + motor, `travaCarreiraGratis`); save congelado, nunca apagado. 🔁 Mesmo dia: *"quem já passou da temporada 50… limite de mais dez temporadas"* → quem estava acima da 50 sem plano ganha +10 (marca `careerGratisAte` na 1ª virada). **Com plano não aparece NADA** (nem "conferindo"); pagou, avança. Trava: `npm run carreira-gratis`.
@@ -1015,8 +1015,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   encolhe**. (3) As REGRAS do futebol valem (lateral, tiro de meta, escanteio com o time subindo, saída no meio depois do gol). (4)
   *"Mais lances, mais jogadas"* e **golpes das lendas só com FATO conhecido** (`GOLPES` em `campo2d-estilos.ts`; na dúvida, neutro)
   — e o pé só de quem a gente sabe. (5) **A narração acompanha TUDO e tem variedade**: frase nova entra em `campo2d-narracao.ts`,
-  PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) Só
-  a conta dele enquanto constrói; ao liberar é PAGO, do ⭐ Craque pra cima. Trava: `npm run campo2d` (300 jogos: placar bate, regras,
+  PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) 🟢 LIBERADO PRA TODOS em 05/11
+  (`CAMPO2D_GERAL = true`); PAGO fora da sala, do ⭐ Craque Salas pra cima. O motor novo na carreira e o teste de ritmo seguem só na conta dele (`useCampo2DTester`). Trava: `npm run campo2d` (300 jogos: placar bate, regras,
   erros de motor).
   (8) **ORGANIZAÇÃO e SINCRONIA** (20/10, *"analise a fundo"*): bola parada respeita a distância da regra (tiro de meta = rival fora
   da área · falta/escanteio = 9,15 m · lateral = 2 m · saída = cada um no seu campo), ninguém "pula" nem anda dentro de outro, e chute

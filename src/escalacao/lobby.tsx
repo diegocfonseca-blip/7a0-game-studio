@@ -3639,13 +3639,13 @@ export function EscLobby() {
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
         // 🗂️ 26/10 (mockup v5 aprovado: *"agora pode publicar pra todos"*): ⭐ = precisa de plano pra CRIAR (quem tem plano usa
         // normal; jogar é sempre grátis) · `meta` = ainda não lançado: abre quando o Instagram bater N mil seguidores (faixa roxa)
-        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
+        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; seloVerde?: boolean; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Liga da Turma', 'Crew League'), frase: tr('O mesmo leilão das salas rápidas, mas numa liga só com os seus amigos, que não acaba.', 'The same auction as the quick rooms, but in a league just with your friends that never ends.'), on: ligaOn, estrela: true },
           // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
           // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
           // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
-          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, meta: 2 },
+          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : { meta: 2 }) }, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -3866,7 +3866,7 @@ export function EscLobby() {
                     <span className="min-w-0">
                       <span className="flex items-center justify-center gap-1.5 flex-wrap">
                         <span className="text-black text-[14px] uppercase" style={OSWALD}>{m.estrela ? '⭐ ' : ''}{m.ic} {m.nome}</span>
-                        {m.selo && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: sel ? '#fff' : GOLD, color: '#000', ...OSWALD }}>{m.selo}</span>}
+                        {m.selo && <span className={`text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5${m.seloVerde ? ' seg-selo-brilho' : ''}`} style={{ ...(m.seloVerde ? { background: GREEN, color: '#fff' } : { background: sel ? '#fff' : GOLD, color: '#000' }), ...OSWALD }}>{m.selo}</span>}
                         {emBreve && !meta && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>{tr('EM BREVE', 'COMING SOON')}</span>}
                       </span>
                       <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: sel ? '#3b3000' : '#6b6250' }}>{m.frase}</span>
@@ -3940,13 +3940,12 @@ export function EscLobby() {
                       : [['jogador', tr('🃏 Jogador', '🃏 Player')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['selecoes', tr('🏳️ Seleções', '🏳️ Nations')]]) as ['jogador' | 'clubes' | 'selecoes', string][]}
                     value={!rapidoClubes ? 'jogador' : pacSelecao && !nbaSala ? 'selecoes' : 'clubes'}
                     onSet={v => { if (v === 'jogador') { setRapidoClubes(false); setPacSelecao(false) } else if (clubesOn) { setRapidoClubes(true); setPacSelecao(v === 'selecoes') } }}
-                    travados={clubesOn ? [] : ['clubes', 'selecoes']} selos={{ selecoes: tr('em teste', 'testing') }} /> {/* 🏷️ 12/10: selo NOVO tirado do Clubes (ordem do Diego) */}
+                    travados={clubesOn ? [] : ['clubes', 'selecoes']} /> {/* 🏷️ 05/11: sai o selo "em teste" das Seleções (Diego) */} {/* 🏷️ 12/10: selo NOVO tirado do Clubes (ordem do Diego) */}
                   {/* 📅 ÉPOCA (31/10, em teste): todas as épocas misturadas ou o pacote preso numa década ("Meio do Milan · anos 90") */}
                   {rapidoClubes && clubesOn && !nbaSala && (
                     <div className="mt-2">
                       <p className="text-[11px] uppercase mb-1.5" style={{ color: '#6b6250', letterSpacing: '.08em', ...OSWALD }}>{tr('Época', 'Era')}</p>
-                      <Seg options={[[false, tr('🌍 Todas as épocas', '🌍 All eras')], [true, tr('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]} value={pacDecada} onSet={v => setPacDecada(v)}
-                        selos={{ true: tr('em teste', 'testing') }} />
+                      <Seg options={[[false, tr('🌍 Todas as épocas', '🌍 All eras')], [true, tr('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]} value={pacDecada} onSet={v => setPacDecada(v)} /> {/* 🏷️ 05/11: sai o selo "em teste" da Década (Diego) */}
                       {/* ℹ️ 02/11 (Diego): cada jogador é UMA carta (um clube, um ano) — o pacote só tem quem existe no baralho */}
                       <p className="text-[11px] font-semibold mt-1.5 leading-snug" style={{ color: '#6b6250' }}>
                         {pacSelecao
@@ -4372,7 +4371,7 @@ export function EscLobby() {
               {getSport() !== 'basquete' && ( /* 📺 em TODO tipo de sala, carreira também (Diego 20/10) */
                 <SegField label={tr('Jogo', 'Match view')}>
                   <Seg options={[[false, tr('📊 Placar padrão', '📊 Standard scoreboard')], [true, tr('⭐ 📺 Campo 2D', '⭐ 📺 2D pitch')]] as [boolean, string][]} value={room2d && pode2d} onSet={v => { if (!v || pode2d) setRoom2d(v); else setAviso2d(true) }}
-                    selos={{ true: tr('LANÇA COM 2K 👤 NO INSTA', 'LAUNCHES AT 2K 👤 ON INSTA') }} />
+                    selos={{ true: tr('NOVO', 'NEW') }} selosBrilho={['true']} /> {/* 🟢 05/11: liberado — sai a faixa da meta do Insta, entra o NOVO verde (Diego) */}
                   {aviso2d && !pode2d ? (
                     <p className="text-[11px] font-bold mt-1.5 leading-snug rounded-lg border-2 px-2.5 py-2" style={{ background: '#F3EDFF', borderColor: '#7C3AED', color: INK }}>
                       {!campo2dOn
@@ -4519,7 +4518,7 @@ export function EscLobby() {
           <h2>{tr('Jogue com a galera','Play with friends')}</h2><div>
           <button type="button" data-livre="1" onClick={()=>setTab('join')}>{tr('Entrar com código','Join with a code')}</button>
           <button type="button" onClick={()=>setTab('create')}>{tr('Criar sala','Create room')}</button>
-          <p>{tr('Suas ligas reúne todas as ligas em que você joga.','Your leagues lists every league you play in.')}</p>
+          <p>{tr('Suas ligas reúne as suas Ligas da Turma e Ligas Draft.','Your leagues lists your Crew Leagues and Draft Leagues.')}</p>
           <p>🟢 {tr('Esperando gente: pode entrar.','Waiting: you can join.')}<br/>🔒 {tr('Com senha: pede o convite.','Password: invitation required.')}<br/>🔴 {tr('Em jogo: partida em andamento.','Playing: match in progress.')}</p>
           </div>
         </aside>

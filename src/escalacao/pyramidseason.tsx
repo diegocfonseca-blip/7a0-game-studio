@@ -101,7 +101,7 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useCampo2DTester } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -8611,7 +8611,7 @@ export function PyramidSeasonScreen() {
   }, [entradasLocais, co2Gavetas, co2MeuId, co2Minha, co2Ate])
   // ⚽🧠 MOTOR NOVO (20/10, decisão do Diego: carreira = motor novo; salas online = teatro). Liga UMA vez por carreira, a partir do
   // próximo jogo, e só na conta liberada do 2D enquanto testa. Carreira online v2 (co2) fica pra quando o envio for conferido.
-  const m2Liberado = useCampo2DLiberado()
+  const m2Liberado = useCampo2DTester() // 🧪 05/11: o 2D foi liberado pra todos, o MOTOR NOVO da carreira NÃO (segue só na conta de teste)
   const m2Ok = m2Liberado && state.careerOnline && state.onlineMode !== 'online' && !state.co2
   useEffect(() => { if (m2Ok && !state.motor2Desde) dispatch({ type: 'LIGA_MOTOR2' }) }, [m2Ok, state.motor2Desde, dispatch])
   const recepcaoConta=podeAtivarRecepcaoM2(state,loggedEmail())

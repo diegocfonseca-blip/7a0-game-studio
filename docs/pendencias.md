@@ -1,3 +1,16 @@
+## 🟢 05/11 — LIBERADOS PRA TODOS: 📺 Campo 2D e 📋 Liga Draft (pedido do Diego: *"libere já… igual aparece na minha conta"*)
+- `CAMPO2D_GERAL = true` (sport.ts): 2D em todos os modos, offline e online. Fora da sala é do ⭐ Craque Salas pra cima (`useTem2D`); na sala
+  quem CRIA precisa de plano e quem entra assiste de graça. Selo **NOVO verde** no "Jogo" do criar sala (sai a faixa "LANÇA COM 2K").
+- 🧪 Continua SÓ na conta do Diego (`useCampo2DTester`, nova trava): o **MOTOR NOVO decidindo o jogo da carreira** (offline, internacional e
+  carreira online) e o **teste de ritmo** da Partida Rápida (2× e com/sem Manual). Liberar o 2D NÃO trocou o motor de ninguém.
+  ⏳ Pergunta em aberto pro Diego: ligar o motor novo na carreira de todo mundo? (muda resultado de jogo — não liguei sem ele mandar).
+- 🗺️ Mapa 3D da carreira e o botão "Ver o jogo no estádio do mapa": trava própria (`presidentAvailable`/`PRESIDENCY_STADIUM_RELEASED`), NÃO mexi.
+- `MINHA_LIGA_DRAFT_GERAL = true`: Liga Draft no criar sala pra todos, selo **NOVO verde** (sai a faixa da meta). Regras de sempre: criar
+  = plano (Craque Salas 2 · Completo+ 3, por tipo), grátis joga em 1 de cada (`esc_liga_limite_gratis`). Textos dos planos voltaram a
+  falar "+ N Ligas Draft"; o 2D aparece no ⭐ Craque Salas (saiu o "(em breve)" do Completo).
+- Selo "em teste" saiu das 🏳️ Seleções e da 🕰️ Década (leilão de Clubes).
+- Novidades na home (PT+EN): "Chegou o Campo 2D" e "Chegou a Liga Draft". Vídeos e artes de lançamento: ver bloco 🎬 abaixo.
+
 ## 👑⚪🔴⚫ 05/11 — Batismo FUNDADOR Monarca Tricolor (danieltorresreus, pago por fora no Pix)
 - Conta conferida (criada 27/10). Nome no jogo era "FC Tricas" → `display_name` trocado pra **Monarca Tricolor** no banco (pedido do Diego).
 - Série D no assento do bot **Excelsior SAF** (o último bot sem dono da D) — `OLD_NAME` leva save antigo. ⚠️ A Série D não tem mais bot livre: o próximo batismo de D vai precisar de alguém descer/subir.

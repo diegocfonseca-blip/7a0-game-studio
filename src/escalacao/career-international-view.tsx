@@ -39,7 +39,7 @@ import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
 import { useCampo2DLigado } from './campo2d-modo'
-import { useCampo2DLiberado, useTelaPC } from './sport'
+import { useCampo2DTester, useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
 import { DUR_2D_MS } from './campo2d-motor'
@@ -582,7 +582,7 @@ export function CareerInternationalView(p: Props) {
   // 👀 a competição EM FOCO: a minha, ou a que escolhi acompanhar (sem vaga)
   const foco: InternationalCompetition | null = myComp ?? (modo && modo !== 'pular' ? modo : null)
   // ⚽🧠 motor novo decide o jogo do presidente (mesma régua da liga: conta liberada, carreira solo, já ligado na carreira)
-  const m2Liberado = useCampo2DLiberado(), co2M2 = useCo2().mundo?.m2
+  const m2Liberado = useCampo2DTester(), co2M2 = useCo2().mundo?.m2
   const m2Intl = state.co2 ? co2M2 != null && (state.seasonNo ?? 1) >= co2M2 : m2Liberado && !!state.motor2Desde
   const begin = (representedClub: string | null, xi: Card[]) => {
     let c: InternationalCampaign
