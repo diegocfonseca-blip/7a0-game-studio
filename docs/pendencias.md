@@ -12266,3 +12266,13 @@ Não retomar sem ele pedir.
   `game_champions.copa_champion_name` e `'mundial'` no `cup_titles` dele (id 72a0c5ac…). Pra desfazer: voltar os três pra null/[].
 - ⏳ PROPOSTO, esperando OK do Diego: se o dono sumiu, qualquer aparelho da sala grava o campeão quando a final acaba
   (a Copa é a mesma em todo aparelho), só se ainda estiver em branco. Não encosta em coroa nem lance.
+
+## 05/11 — 🛍️ Shopping do Clube no mapa 3D (só na conta do Diego, onde o mapa existe)
+- FEITO (mockup `scripts/mockups/shopping-clube.png` aprovado: *"Ok pode fazer"*): prédio de 2 andares do lado OESTE da Vadico
+  (`presidencia-shopping-clube.ts`), frente pro mesmo pátio dela, estacionamento ligado no pátio da Vadico. Térreo: 🛒 Loja do Clube
+  (âncora) · 👔 Alfaiataria · 🎨 Tintas & Cores · 🏦 Banco Legends · 🎉 Loja da Torcida. 2º andar: 📣 Rádio da Torcida (Super Chat) e
+  🍔 Praça de alimentação. Tocar no prédio (ou Locais › Shopping) abre o cartão com as 6 lojinhas; cada uma abre a MESMA Loja da home
+  já rolada na parte dela (âncoras novas em `loja-clube.tsx`: loja-planos/presidente/canto/moedas/cores/temas). A Loja da home não mudou.
+- ⏳ IDEIA, sem preço: 🚩 BANDEIRÃO na Loja da Torcida (só carreira, aparece no estádio). Diego ainda decide preço e como aparece.
+- ⏳ Gente entrando e saindo com sacolinha (os moradores do mapa ainda não têm o Shopping como destino).
+- ⚠️ As travas `testa-presidencia-complexo-entorno/concessionaria/paisagismo` já falhavam ANTES do Shopping (mesmo erro).

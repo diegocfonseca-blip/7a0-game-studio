@@ -22,3 +22,6 @@ body.clube-mapa-gestao-aberta .pc3-expanded{z-index:99989}
 .pc3-club-place .pc3-card-x{position:absolute;top:6px;right:6px;width:28px!important;height:28px!important;min-width:0!important;min-height:0!important;padding:0;margin:0;border:2px solid #0c0c0c;border-radius:8px;background:#f4ecd6;font:900 14px Oswald,sans-serif;line-height:1;box-shadow:2px 2px 0 #0c0c0c;cursor:pointer}
 .pc3-sponsor-card strong,.pc3-club-place>strong{padding-right:34px}
 .pc3-sponsor-card .pc3-sponsor-logo{margin-right:34px}
+
+/* 🛍️ 05/11: cartão do Shopping do Clube — 6 lojinhas em grade, cada uma com a cor dela */
+.pc3-shopping-card{max-width:min(440px,calc(100% - 90px))}.pc3-shopping-lojas{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.pc3-club-place .pc3-shopping-loja{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:7px 8px;border:2px solid #0c0c0c;border-radius:9px;box-shadow:2px 2px 0 #0c0c0c}.pc3-shopping-loja b{font:800 13px Oswald,sans-serif;text-transform:uppercase;line-height:1.1}.pc3-shopping-loja small{font-size:10px;font-weight:700;line-height:1.25;opacity:.9}
