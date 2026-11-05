@@ -258,6 +258,21 @@ const CPU_DIV_BOOST_V6: Record<Div, number> = { A: 2, B: 4, C: 4, D: 2, V: 2 }
 const CPU_DIV_BOOST_V7: Record<Div, number> = { A: 2, B: 3, C: 3, D: 2, V: 2 }
 // 🪜 v8 (31/10, Diego: "a várzea ainda está muito difícil… diminua mais um ponto"): a Várzea desce de +2 pra +1. Resto igual. Trava simV 8.
 const CPU_DIV_BOOST_V8: Record<Div, number> = { A: 2, B: 3, C: 3, D: 2, V: 1 }
+// 📏 v9 (05/11, régua nova das cartas): em 02/11 os overs do baralho foram refeitos e os clubes de FUNDO (montados com as
+// cartas do catálogo, fatiadas por força) desceram mais que o time que o jogador monta no leilão da divisão — mais ainda na
+// Série C (a fatia do meio do baralho caiu ~5) e na B (~3). Medido na pirâmide de verdade (150 carreiras por divisão, 1ª
+// temporada com o elenco do leilão daquela divisão, `npm run forca-carreira`): a C tinha virado passeio (top-4 42% → 80%) e a
+// B ficou mais mole (24% → 33%); V, D e A quase não mudaram. Decisão do Diego: voltar ao equilíbrio de 01/11 → a C sobe de +3
+// pra +6 e a B de +3 pra +4. Trava simV 9: temporada em andamento termina na tabela em que começou; a próxima já entra nesta.
+export const CPU_DIV_BOOST_V9: Record<Div, number> = { A: 2, B: 4, C: 6, D: 2, V: 1 }
+// qual tabela de bônus da casa vale nesta temporada. `simV` é o carimbo do SAVE (gravado na virada, nunca no meio da
+// temporada); na carreira online v2 (`co2`) quem decide o v9 é o carimbo da SALA (`fc` = temporada em que entrou), o mesmo
+// em todo aparelho — sem ele, a sala fica no v8.
+export function bonusDaCasa(simV: number | undefined, co2: boolean, co2Fc: number | undefined, seasonNo: number): boolean | 5 | 6 | 7 | 8 | 9 {
+  const v = simV ?? 1
+  if (co2) return co2Fc != null && seasonNo >= co2Fc ? 9 : v >= 8 ? 8 : v >= 7 ? 7 : v >= 6 ? 6 : v >= 5 ? 5 : v >= 4
+  return v >= 9 ? 9 : v >= 8 ? 8 : v >= 7 ? 7 : v >= 6 ? 6 : v >= 5 ? 5 : v >= 4 // 🪜 v5 (28/10): bônus da casa novo
+}
 // ⚽ REALISMO DE GOL (v3, travado por simV): menos gol e menos goleada — a Série A
 // sai de ~4,2 pra ~3,0 gols/jogo e a lanterna deixa de ser freguês (goleada
 // comprimida, sem mudar QUEM ganha — o melhor time segue na frente). v2 = fórmula
@@ -874,7 +889,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 | 9 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -984,7 +999,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // times de CPU NATIVOS ganham a força-base da divisão (pra as séries serem
     // disputadas de verdade). Humano e rivais escolhidos NÃO ganham (jogam com o
     // elenco real que montaram).
-    const BM = fairBoost === 8 ? CPU_DIV_BOOST_V8 : fairBoost === 7 ? CPU_DIV_BOOST_V7 : fairBoost === 6 ? CPU_DIV_BOOST_V6 : fairBoost === 5 ? CPU_DIV_BOOST_V5 : fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
+    const BM = fairBoost === 9 ? CPU_DIV_BOOST_V9 : fairBoost === 8 ? CPU_DIV_BOOST_V8 : fairBoost === 7 ? CPU_DIV_BOOST_V7 : fairBoost === 6 ? CPU_DIV_BOOST_V6 : fairBoost === 5 ? CPU_DIV_BOOST_V5 : fairBoost ? CPU_DIV_BOOST_FAIR : CPU_DIV_BOOST
     const bh = (!H.human && !H.rival) ? BM[div] : 0, ba = (!A.human && !A.rival) ? BM[div] : 0
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     // 🎭 evento "escalar assim mesmo": queda pequena SÓ na rodada do causo (humano)
@@ -1103,7 +1118,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 | 9 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -8459,7 +8474,10 @@ export function PyramidSeasonScreen() {
   const capElite = realGoals ? 1.12 : (state.simV ?? 1) >= 2 ? 1.28 : 1.2
   // ⚖️ escada justa (bônus dos bots reduzido) só a partir do simV 4 — temporada
   // em andamento (simV<4) termina na escada antiga; a próxima já entra na nova.
-  const fairBoost: boolean | 5 | 6 | 7 | 8 = (state.simV ?? 1) >= 8 ? 8 : (state.simV ?? 1) >= 7 ? 7 : (state.simV ?? 1) >= 6 ? 6 : (state.simV ?? 1) >= 5 ? 5 : (state.simV ?? 1) >= 4 // 🪜 v5 (28/10): bônus da casa novo
+  // 📏 v9 (05/11): régua nova das cartas. Na carreira online v2 (co2) quem manda é o carimbo da SALA (`mundo.fc`, a temporada
+  // em que entrou) — o mesmo em todo aparelho; sem carimbo, a sala segue no v8.
+  const co2Fc = useCo2().mundo?.fc
+  const fairBoost = bonusDaCasa(state.simV, !!state.co2, co2Fc, state.seasonNo ?? 1)
   // 🎲 seed da simulação MUDA a cada temporada (mistura seed + seasonNo). Sem isto,
   // no online "mesmo time" a seed ficava fixa e TODA temporada refazia os MESMOS
   // sorteios — a mesma goleada, o mesmo placar, temporada após temporada. É

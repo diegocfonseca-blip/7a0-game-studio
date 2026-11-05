@@ -48,6 +48,7 @@
     "storage": "npx tsx scripts/testa-storage.mts",
     "champions": "npx tsx scripts/testa-champions.mts",
     "forca-bots": "npx tsx scripts/testa-forca-bots.mts",
+    "forca-carreira": "npx tsx scripts/testa-forca-carreira.mts",
     "agencia": "npx tsx scripts/testa-agencia.mts",
     "perfis": "npx tsx scripts/testa-perfis-bot.mts",
     "tecnicos": "npx tsx scripts/testa-tecnicos-mercado.mts",
