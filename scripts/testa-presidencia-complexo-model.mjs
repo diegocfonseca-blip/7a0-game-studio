@@ -29,6 +29,7 @@ const { CAMPO_MAPA } = await import('../src/escalacao/presidencia-partida-geomet
 const { ROTAS_ESTADIO } = await import('../src/escalacao/presidencia-estadio-mapa-model.ts')
 const { PORTA_LOJA, PORTA_HOTEL, PORTA_BAR } = await import('../src/escalacao/presidencia-estadio-portas.ts')
 const { obstaculosDoEstadio } = await import('../src/escalacao/presidencia-estadio-navegacao.ts')
+const { LOJA_CLUBE_3D } = await import('../src/escalacao/presidencia-loja-planta.ts')
 const extras = [...STADIUM_EXTRAS, PAVIMENTACAO_ESTADIO]
 const close = (a, b, message, epsilon = 1e-8) => assert(Math.abs(a - b) < epsilon, `${message}: ${a} / ${b}`)
 const fullInv = Object.fromEntries(STADIUM_SECTORS.map(s => [s.k, s.cost]))
@@ -117,7 +118,7 @@ const full = { inv: fullInv, ext: allExtras }
 const originalObstacles = obstaculosDoEstadio(full)
 for (const obstacle of originalObstacles) {
   const registered = PLANTA_COMPLEXO.footprints[obstacle.id]
-  if(obstacle.id==='loja'){assert.deepEqual(registered,[{x:124,z:24},{x:144,z:24},{x:144,z:40},{x:124,z:40}]);continue}
+  if(obstacle.id==='loja'){assert.deepEqual(registered,LOJA_CLUBE_3D.footprint);continue}
   assert.equal(registered.length, obstacle.polygon.length)
   for (let i = 0; i < registered.length; i++) {
     const p = mundoParaMapa(registered[i])
@@ -140,7 +141,7 @@ for (const lot of Object.values(PLANTA_COMPLEXO.lots)) {
 }
 for (const portal of [PORTA_LOJA, PORTA_HOTEL, PORTA_BAR]) {
   const door = PLANTA_COMPLEXO.doors[portal.id]
-  if(portal.id==='loja'){assert.deepEqual(door.threshold,{x:124,z:32});assert.deepEqual(door.inside,{x:127,z:32});assert.equal(door.heading,-Math.PI/2);continue}
+  if(portal.id==='loja'){assert.deepEqual(door.threshold,LOJA_CLUBE_3D.door.threshold);assert.deepEqual(door.inside,LOJA_CLUBE_3D.door.inside);assert.equal(door.heading,LOJA_CLUBE_3D.heading);continue}
   for (const key of ['approach', 'threshold', 'inside']) {
     const p = mundoParaMapa(door[key])
     close(p.x, portal[key].x, `${portal.id} ${key} x`)
