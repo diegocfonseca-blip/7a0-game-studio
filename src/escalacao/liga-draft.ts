@@ -76,10 +76,36 @@ export const MLD_DRAFT_VALOR = 10 // 🪙 jogador do draft chega valendo 10
 export const MLD_ESCALA_MS = 45_000
 export const MLD_LEILAO_MS = 60_000
 export const MLD_IGUALAR_MS = 15_000
-/** 💰 moedas pela colocação (só técnico de gente; o bot não tem caixa que importe) */
+/** 💰 moedas pela colocação (só técnico de gente; o bot não tem caixa que importe). Tabela antiga — fica de reserva. */
 export function premioColocacao(pos: number): number {
   return [40, 32, 26, 20, 16, 14, 12, 10, 8][pos] ?? 6
 }
+/** 💰 05/11 (Diego, *"pode fazer"*): o PADRÃO pelo tamanho da liga — 10 times ou 20. O 1º continua 40 (não mexe na economia) e o
+ *  último nunca sai zerado. O criador da liga pode EDITAR (`draftPremios`); sem edição vale esta. `pos` começa em 0. */
+export const PREMIOS_DRAFT_10 = [40, 32, 26, 22, 18, 16, 14, 12, 10, 8] as const
+export const PREMIOS_DRAFT_20 = [40, 34, 30, 26, 23, 20, 18, 16, 14, 12, 10, 10, 10, 10, 10, 8, 8, 8, 8, 8] as const
+export function premiosPadraoDraft(nTimes: number): number[] { return [...(nTimes <= 10 ? PREMIOS_DRAFT_10 : PREMIOS_DRAFT_20)] }
+/** o prêmio que vale: o editado pelo dono (se tiver número válido nessa posição) ou o padrão do tamanho da liga */
+export function premioDaLiga(pos: number, nTimes: number, editado?: number[] | null): number {
+  const v = editado?.[pos]
+  if (typeof v === 'number' && Number.isFinite(v) && v >= 0) return Math.min(999, Math.floor(v))
+  const pad = premiosPadraoDraft(nTimes)
+  return pad[pos] ?? pad[pad.length - 1]
+}
+
+/** 📜 REGRAS DA TURMA no draft (05/11, Diego: *"não pode contratar no draft jogador de categoria craque pra cima, ou só pode
+ *  contratar jogador de times brasileiros, ou somente jogadores que não são lendas"*). O criador marca na hora de criar (e pode
+ *  mudar na sala de espera). Vale pra escolha do draft de TODO MUNDO — gente e bot. A tela e o motor leem ESTA função. */
+export type RegrasDraft = { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean }
+let chavesBR: Set<string> | null = null
+export function cartaPermitidaDraft(c: { name: string; club: string; year: number; fame: number }, r?: RegrasDraft | null): boolean {
+  if (!r) return true
+  if (r.semCraques && c.fame >= 4) return false // craque pra cima (craque e lenda)
+  if (r.semLendas && c.fame >= 5) return false
+  if (r.soBrasil) { chavesBR ??= new Set(todasAsCartas('br').map(chaveCarta)); if (!chavesBR.has(chaveCarta(c))) return false }
+  return true
+}
+export function temRegraDraft(r?: RegrasDraft | null): boolean { return !!r && !!(r.semLendas || r.semCraques || r.soBrasil) }
 /** 👕 os titulares são os PRIMEIROS de cada posição na ordem do elenco (o mesmo que o campinho desenha) */
 export function xiPorOrdem<T extends Card>(squad: T[], formation: FormationKey): T[] {
   const need = FORMATIONS[formation] ?? FORMATIONS['4-3-3']

@@ -52,6 +52,8 @@ import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { ApoieButton } from './screens'
 import { limiteCriarLigas } from './planos-regras'
+import { ConfigLigaDraft } from './liga-draft-config'
+import type { RegrasDraft } from './liga-draft'
 /** 📋 05/11: o aviso de sim/não ("sair da 1ª liga e entrar nesta?") pro grátis. DESLIGADO a pedido do Diego (*"não faz o aviso ainda
  * não"*). A trava do banco (`esc_liga_limite_gratis`) continua: o grátis segue sem entrar numa 2ª liga do mesmo tipo e lê o recado de
  * antes (`LIGA_LIMITE`). Religar = true. */
@@ -872,7 +874,12 @@ export function EscLobby() {
   const [ligaData, setLigaData] = useState(proxMeiaHora.dia)
   const [ligaHora, setLigaHora] = useState(proxMeiaHora.hora)
   const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
-  const [ligaTamanho, setLigaTamanho] = useState<20 | 10>(20) // 📋🏆 Minha Liga Draft (01/11): 20 times (padrão) ou 10, bots completam
+  // 📜💰 05/11: regras da turma no draft + prêmio por colocação (null = padrão do tamanho) — escolhidos ao CRIAR a Liga Draft
+  const [draftRegrasSel, setDraftRegrasSel] = useState<RegrasDraft>({})
+  const [draftPremiosSel, setDraftPremiosSel] = useState<number[] | null>(null)
+  const premiosTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [ligaTamanho, setLigaTamanho] = useState<20 | 10>(20)
+  useEffect(() => { setDraftPremiosSel(null) }, [ligaTamanho]) // 💰 mudou o tamanho = volta pro padrão daquele tamanho // 📋🏆 Minha Liga Draft (01/11): 20 times (padrão) ou 10, bots completam
   const [ligaPw, setLigaPw] = useState('') // 🔒 senha OBRIGATÓRIA da liga (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
@@ -1828,6 +1835,8 @@ export function EscLobby() {
       // 📋 LIGA DRAFT: os elencos da partida anterior voltam (o reducer só usa se TODO MUNDO já tinha time)
       ligaDraft: !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft,
       minhaLigaDraft: !!(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft, // 📋🏆 Minha Liga Draft (01/11)
+      draftRegras: (gs as GS & { draftRegras?: RegrasDraft })?.draftRegras, // 📜 05/11
+      draftPremios: (gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? undefined, // 💰 05/11
       tamanhoLiga: (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : undefined, // 📏 20 (padrão) ou 10 times
       campo2d: !!(gs as GS & { campo2d?: boolean })?.campo2d, // 📺 sala 2D (escolha do dono na criação)
       draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
@@ -2108,7 +2117,7 @@ export function EscLobby() {
     const tam10Sala = !carreira && !elenco && !mundo && tam10Vale
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(Object.values(draftRegrasSel).some(Boolean) ? { draftRegras: draftRegrasSel } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -2540,6 +2549,17 @@ export function EscLobby() {
     // um aviso só, na hora da troca (nada periódico no canal)
     if (antes !== depois) lobbyChanRef.current?.send({ type: 'broadcast', event: 'liga_modo', payload: { ...campos, antes, depois } })
     setModoEdit(null)
+  }
+  // 📜💰 05/11: regras/prêmio da Liga Draft (função própria no banco, `liga_patch_draft`; só o dono)
+  async function patchDraftLiga(c: { regras?: RegrasDraft; premios?: number[] | null }) {
+    if (!room) return
+    const args: Record<string, unknown> = { p_room: room.id }
+    if (c.regras) args.p_regras = c.regras
+    if (c.premios === null) args.p_premios_padrao = true
+    else if (c.premios) args.p_premios = c.premios
+    const { data, error } = await supabase.rpc('liga_patch_draft', args)
+    if (error || data !== true) { setRoomError(tr('Não consegui salvar as regras da liga agora. Tenta de novo.', 'Couldn\'t save the league rules right now. Try again.')); return }
+    setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), ...(c.regras ? { draftRegras: c.regras } : {}), ...(c.premios !== undefined ? { draftPremios: c.premios } : {}) } as GS } : r))
   }
   async function patchLiga(campos: LigaCampos) {
     if (!room) return
@@ -3709,6 +3729,13 @@ export function EscLobby() {
                         : tr('Ex.: 3 de vocês + 17 bots. Cabem até 20 pessoas. Temporada de 38 rodadas.', 'E.g. 3 of you + 17 bots. Up to 20 people. 38-round season.')}</p>
                     </div>
                   </>)}
+                  {/* 📜💰 05/11 (Diego): regras da turma pro draft + prêmio por colocação (padrão pelo tamanho; o criador edita) */}
+                  {ehMinha && (
+                    <div className="mt-3">
+                      <ConfigLigaDraft regras={draftRegrasSel} premios={draftPremiosSel} nTimes={ligaComBots ? ligaTamanho : 20}
+                        onRegras={setDraftRegrasSel} onPremios={setDraftPremiosSel} />
+                    </div>
+                  )}
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
                       com senha, mas deixe avisado que essa sala é somente com senha.
                       Também avise as regras da sala, deixe claro: pode ter agendamento,
@@ -5033,6 +5060,21 @@ export function EscLobby() {
                   className="border-2 border-black rounded-xl py-2 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
                   🤖 {gs?.ligaFechada ? tr('Pôr bots', 'Add bots') : tr('Tirar bots', 'Remove bots')}
                 </button>}
+              </div>
+            )}
+            {/* 📜💰 05/11: regras da turma + prêmio da Liga Draft — o dono edita aqui; os outros só veem */}
+            {(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (
+              <div className="mt-3">
+                <ConfigLigaDraft soLeitura={!mandaNaLiga}
+                  regras={(gs as GS & { draftRegras?: RegrasDraft })?.draftRegras ?? {}}
+                  premios={(gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? null}
+                  nTimes={(gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20}
+                  onRegras={r => { void patchDraftLiga({ regras: r }) }}
+                  onPremios={pm => {
+                    setRoom(rr => (rr ? { ...rr, game_state: { ...(rr.game_state as GS), draftPremios: pm } as GS } : rr))
+                    if (premiosTimer.current) clearTimeout(premiosTimer.current)
+                    premiosTimer.current = setTimeout(() => { void patchDraftLiga({ premios: pm }) }, 700)
+                  }} />
               </div>
             )}
             {/* 📅 REMARCAR EM UM TOQUE. O Diego: *"deve poder remarcar fácil pra

@@ -12386,3 +12386,11 @@ Não retomar sem ele pedir.
 - ⚠️ `scripts/testa-liga-draft.mts` (a Liga Draft ANTIGA) já falhava antes (TypeError 'name') — não é destes ajustes.
 - ⏳ Prêmio por colocação (`premioColocacao`, liga-draft.ts): hoje 40·32·26·20·16·14·12·10·8 e 6 do 10º em diante, igual pra liga de
   10 e de 20. Proposta pro Diego decidir (ver conversa de 05/11).
+- ✅ 05/11 (Diego: *"pode fazer"*): **prêmio por colocação pelo TAMANHO** — liga de 10: 40·32·26·22·18·16·14·12·10·8; liga de 20:
+  40·34·30·26·23·20·18·16·14·12·10×5·8×5 (`premioDaLiga`). O CRIADOR EDITA (na criação e na sala de espera — função do banco
+  `liga_patch_draft`, só o dono, só Liga Draft). Mudou o tamanho na criação = volta pro padrão daquele tamanho.
+- ✅ 05/11: **📜 regras da turma no draft** (opcionais, o criador marca e muda na sala de espera): 🚫 Sem Lendas · 🚫 Sem Craque nem
+  Lenda · 🇧🇷 Só clubes brasileiros (= cartas do baralho Brasil). Vale pra escolha do draft de gente E bot (`cartaPermitidaDraft`:
+  tela esconde, motor recusa). Texto: "Quer outra regra? Combinem entre vocês ou peçam pro Diego, criador do jogo, no Instagram".
+  As regras/prêmio editados na sala de espera valem a partir da próxima abertura da liga. Trava: `scripts/testa-liga-draft-regras.mts`.
+  Fotos: `scripts/mockups/liga-draft-regras-premio*.png`.

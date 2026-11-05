@@ -65,7 +65,7 @@ assert.equal(s.screen, 'draft')
 assert.deepEqual(s.draft!.ordem, [0, 1, 2, 3])
 assert.equal(s.draft!.fase, 'prontos', 'antes do draft: ✋ prontos (o dono decide quando começa)')
 const caixaAntes = 0
-assert.ok(s.draft!.premios && s.draft!.premios[0] === 40 && s.draft!.premios[3] === 20, 'moedas pela colocação: 1º 40 · 4º 20')
+assert.ok(s.draft!.premios && s.draft!.premios[0] === 40 && s.draft!.premios[3] === 26, 'moedas pela colocação (tabela de 20, 05/11): 1º 40 · 4º 26')
 assert.equal(reducer({ ...s, isHost: false, onlineMode: 'online' } as EscState, { type: 'DRAFT_SEGUIR', by: 'u1' } as never).draft!.fase, 'prontos', 'convidado não começa o draft')
 s = reducer(s, { type: 'DRAFT_ESTOU_PRONTO', mgrId: 1 } as never)
 assert.deepEqual(s.draft!.prontos, [1])

@@ -15,7 +15,7 @@ import { EscalacaoMinha } from './minha-escalacao'
 import {
   cartasLivres, nomesOcupados, podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
-  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
+  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
 } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#C2452F'
@@ -63,6 +63,7 @@ export function EscLigaDraft() {
           <div className="min-w-0">
             <p className="text-white uppercase leading-none" style={{ ...OSW, fontSize: 17 }}>{t('Noite do draft', 'Draft night')} · {t('temporada', 'season')} {d.temporada + 1}</p>
             <p className="text-white/65 text-[11px] font-bold mt-1">{t('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro.', 'Each manager picks 1 player from the whole game. The champion picks first.')}</p>
+            {minha && temRegraDraft(state.draftRegras) && <p className="text-[11px] font-black mt-1" style={{ color: GOLD }}>📜 {t('Regras da turma', 'Crew rules')}: {textoRegrasDraft(state.draftRegras, t)}</p>}
           </div>
         </div>
 
@@ -256,10 +257,11 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   }, [state.managers])
   const q = norm(busca.trim())
   const lista = useMemo(() => {
-    let l = livres.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)))
+    // 📜 05/11: a regra da turma esconde quem não pode (a MESMA função que o motor confere em DRAFT_ESCOLHER)
+    let l = livres.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)) && (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)))
     l = [...l].sort((a, b) => forca(b) - forca(a))
     return l.slice(0, 60)
-  }, [livres, pos, q])
+  }, [livres, pos, q, state.minhaLigaDraft, state.draftRegras])
   const tomados = useMemo(() => {
     if (q.length < 3) return []
     const vistos = new Set<string>()
@@ -649,6 +651,12 @@ function RevelaLeilao({ d, you, nome }: { d: DraftEstado; you: Manager; nome: (i
       </div>
     </Shell>
   )
+}
+
+/** 📜 as regras da turma em uma linha (05/11) */
+export function textoRegrasDraft(r: RegrasDraft | undefined, t: (pt: string, en: string) => string): string {
+  if (!r) return ''
+  return [r.semCraques ? t('nada de Craque nem Lenda', 'no Stars or Legends') : r.semLendas ? t('sem Lendas', 'no Legends') : '', r.soBrasil ? t('só clubes brasileiros', 'Brazilian clubs only') : ''].filter(Boolean).join(' · ')
 }
 
 // ⚡ quem sondou decide se iguala o maior lance
