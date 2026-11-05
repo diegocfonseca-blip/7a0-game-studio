@@ -1109,7 +1109,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, ordenaBotPelaForca, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -5617,6 +5617,7 @@ type Action =
   | { type: 'RESUME_DINASTIA' }
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
+  | { type: 'DRAFT_PASSAR'; mgrId: number; by?: string } // ⏭ 05/11: elenco cheio (22) = pode passar a vez sem pegar ninguém
   | { type: 'DRAFT_PRONTO'; mgrId: number; by?: string } // 📋🏆 Minha Liga Draft: quem está na vez aperta ✋ pronto e o relógio de 45 s começa
   | { type: 'DRAFT_ESTOU_PRONTO'; mgrId: number; by?: string } // 📋🏆 ✋ antes do draft/leilão/temporada (a lista que o dono vê)
   | { type: 'DRAFT_SEGUIR'; by?: string } // 📋🏆 o DONO segue pra próxima etapa (draft → leilão → temporada)
@@ -12950,6 +12951,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS
       return s
     }
+    case 'DRAFT_PASSAR': {
+      // ⏭ quem está NA VEZ, com o elenco cheio (22), passa sem pegar ninguém — ninguém sai do time dele (a MESMA régua da tela)
+      const d = s.draft
+      if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || (d.fase !== 'aguarda' && d.fase !== 'escolha') || d.ordem[d.idx] !== action.mgrId) return state
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      if (!podePassarDraft(m)) return state
+      d.pulados = [...(d.pulados ?? []), action.mgrId]
+      ;(s.marketLog = s.marketLog ?? []).push(`⏭ ${m!.teamName} passou a vez no draft (elenco cheio)`)
+      proximoDoDraft(s)
+      return s
+    }
     case 'DRAFT_PULAR': {
       // ⏭ só o DONO (o convidado nunca roda o reducer da sala) e nunca no meio do anúncio
       const d = s.draft
@@ -14742,7 +14754,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       // 📋 a escolha do draft é recado ÚNICO (se sumir, o tempo acaba e o jogo escolhe por ele): vai pelas duas estradas
-      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO' || action.type === 'DRAFT_SONDAR' || action.type === 'DRAFT_LANCE' || action.type === 'DRAFT_IGUALAR') && stateRef.current.roomId) {
+      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO' || action.type === 'DRAFT_PASSAR' || action.type === 'DRAFT_SONDAR' || action.type === 'DRAFT_LANCE' || action.type === 'DRAFT_IGUALAR') && stateRef.current.roomId) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
@@ -15226,7 +15238,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'DRAFT_SONDAR' || a.type === 'DRAFT_LANCE' || a.type === 'DRAFT_IGUALAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'DRAFT_PASSAR' || a.type === 'DRAFT_SONDAR' || a.type === 'DRAFT_LANCE' || a.type === 'DRAFT_IGUALAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }

@@ -147,6 +147,10 @@ export function botDaSobra(bots: Manager[], vez: number, nova: Card): { bot: Man
   const aceita = !!pior && forca(nova) > forca(pior)
   return { bot: b, aceita, ...(aceita ? { sai: pior } : {}), proxVez: (v0 + 1) % n }
 }
+/** ⏭ 05/11 (Diego): com o elenco CHEIO (22) o técnico pode PASSAR a vez no draft — senão era obrigado a pegar alguém e tirar um */
+export function podePassarDraft(m: { squad: Card[] } | undefined): boolean {
+  return !!m && m.squad.length >= MLD_ELENCO_MAX
+}
 /** o bot sempre escala os melhores: em cada posição, do mais forte pro mais fraco (o XI é o começo de cada posição) */
 export function ordenaBotPelaForca<T extends Card>(squad: T[]): T[] {
   return [...squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || forca(b) - forca(a))
