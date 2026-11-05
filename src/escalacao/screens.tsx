@@ -19,7 +19,7 @@ import './online-visual.css'
 import {requestOnlineDestination,type OnlineDestination} from './desktop-online-navigation'
 import {DesktopHeader,AuctionDesktopLayout,AuctionSlot} from './desktop-layout'
 import {MobileAuctionHeader} from './mobile-auction-header'
-import {useTelaPC} from './sport'
+import {useTelaPC, useRelampagoLiberado} from './sport'
 import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
@@ -2902,7 +2902,14 @@ export function EscSetup() {
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
   const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
-  const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'>('liga_copa') // rápido offline: liga só, liga + copa dos 8 ou liga + Libertadores
+  const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'>('liga_copa')
+  // 🆕 05/11 (Diego: *"modos faltando lá no partida rápida… igual das salas rápidas online"*): as MESMAS escolhas da sala
+  const relampagoOn = useRelampagoLiberado()
+  const [relChave, setRelChave] = useState<16 | 32>(16)
+  const [tamLiga, setTamLiga] = useState<20 | 10>(20)
+  const [pacSel, setPacSel] = useState(false) // 🏳️ pacote de Seleções
+  const [pacDec, setPacDec] = useState(false) // 🕰️ pacote por década
+  const [varzeaR, setVarzeaR] = useState(false) // 🥅 Sem craques (só baralho Brasil) // rápido offline: liga só, liga + copa dos 8 ou liga + Libertadores
   const [holandes, setHolandes] = useState(false) // 🔻 pregão holandês (modo à parte); padrão = o leilão cego de hoje
   // 🔨 PREGÃO ABERTO (16/10): o 3º jeito de dar lance — uma carta por vez, lance à vista, ordem embaralhada,
   // martelo em 6s. Só pra conta de teste (`PREGAO_ABERTO_TESTERS`); pra todo o resto o jogo segue idêntico.
@@ -3007,7 +3014,9 @@ export function EscSetup() {
       })
     }
     else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, intro: true })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !kingsLigado && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado, kings: kingsLigado || undefined, pokemon: pokeLigado || undefined, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !kingsLigado && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado, kings: kingsLigado || undefined, pokemon: pokeLigado || undefined, intro: true,
+      relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
+      selecao: clubesOn && clubes && pacSel || undefined, decada: clubesOn && clubes && pacDec || undefined, varzea: league === 'br' && !(clubesOn && clubes) && varzeaR || undefined })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -3165,11 +3174,14 @@ export function EscSetup() {
         {!career && clubesOn && !pokeLigado && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]).map(([m, label]) => (
-                <button key={String(m)} onClick={() => setClubes(m)}
+            <div className={`grid ${bbSetup ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+              {/* 🏳️ 05/11: o 3º tipo, Seleções (o MESMO motor do Clubes, pacote = setor de uma seleção) — igual na sala; no basquete não existe */}
+              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')], ...(bbSetup ? [] : [['sel', t('🏳️ Seleções', '🏳️ Nations')]])] as [boolean | 'sel', string][]).map(([m, label]) => {
+                const on = m === 'sel' ? clubes && pacSel : m === true ? clubes && !pacSel : !clubes
+                return (
+                <button key={String(m)} onClick={() => { setClubes(m !== false); setPacSel(m === 'sel') }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
-                  style={{ backgroundColor: clubes === m ? GOLD : '#fff', boxShadow: clubes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {m === true && seloNovoClubes() && (
                     <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                       letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
@@ -3179,10 +3191,22 @@ export function EscSetup() {
                   )}
                   {label}
                 </button>
-              ))}
+                )
+              })}
             </div>
+            {/* 🕰️ 05/11: ÉPOCA — todas as épocas misturadas ou o pacote preso numa década (igual na sala) */}
+            {clubes && !bbSetup && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {([[false, t('🌍 Todas as épocas', '🌍 All eras')], [true, t('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]).map(([m, label]) => (
+                  <button key={String(m)} onClick={() => setPacDec(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                    style={{ backgroundColor: pacDec === m ? GOLD : '#fff', boxShadow: pacDec === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+                ))}
+              </div>
+            )}
             <p className="text-[11px] font-semibold text-black/55 mt-1">
-              {clubes && bbSetup
+              {clubes && pacSel && !bbSetup
+                ? t('🏳️ Cada lote é um SETOR de uma seleção (ex.: Meio da Argentina). Você leva o pacote inteiro e, no fim, CONVOCA quem joga. Quem sobrar vai pros bots.', '🏳️ Each lot is a SECTOR of a national team (e.g. Argentina Midfield). You take the whole pack and, at the end, CALL UP who plays. The rest goes to the bots.')
+                : clubes && bbSetup
                 ? t('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Você leva o pacote inteiro e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto. Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). You take the whole pack and, at the end, CALL UP who plays — 1 per position, your starting five. Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
                 : clubes
                 ? t('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Você leva o pacote inteiro e, no fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Dá pra jogar com envelope cego ou com Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). You take the whole pack and, at the end, CALL UP who plays in your formation. Leftovers go to the bots. Uses all 3 decks together. Works with sealed bid or Ambush.')
@@ -3228,6 +3252,17 @@ export function EscSetup() {
             {t('🌎 Todos juntos (BR + Europa + Mundo)', '🌎 All together (Brazil + Europe + World)')}
           </button>
           <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? t('Auges do futebol brasileiro — de Pelé a Obina.', 'Peak years of Brazilian football — from Pelé to Obina.') : league === 'eu' ? t('Auges nos clubes europeus — de Yashin a Mbappé.', 'Peak years at European clubs — from Yashin to Mbappé.') : t('Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.', 'Brazil + Europe together (~700 names) — stars and cult heroes from both sides under the same hammer.')}</p>
+          {/* 🥅 05/11: categoria SÓ do baralho Brasil — Todos (padrão) ou Várzea (sem craques), igual na sala */}
+          {league === 'br' && <p className="text-[11px] font-black uppercase mt-2 mb-1">{t('Categoria', 'Category')}</p>}
+          {league === 'br' && (
+            <div className="grid grid-cols-2 gap-2">
+              {([[false, t('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]).map(([m, label]) => (
+                <button key={String(m)} onClick={() => setVarzeaR(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                  style={{ backgroundColor: varzeaR === m ? GOLD : '#fff', boxShadow: varzeaR === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+              ))}
+            </div>
+          )}
+          {league === 'br' && varzeaR && <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pickup game.')}</p>}
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
@@ -3251,7 +3286,7 @@ export function EscSetup() {
                 segue a trava dela. O motor das duas roda sem sala: é o mesmo código do online
                 e o "iniciar" já aceita `!online` (`canDriveCopa`). 4 opções → grade 2×2. */}
             <div className="grid grid-cols-2 gap-2">
-              {(([['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ...(libertaOn ? [['liga_liberta', t('🌎 Liga + Liberta', '🌎 League + Copa Lib')]] : []), ['champions', t('⭐ Só Champions', '⭐ Champions only')], ['liga', t('📊 Só Liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga', string][]).map(([m, label]) => {
+              {(([['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ...(libertaOn ? [['liga_liberta', t('🌎 Liga + Liberta', '🌎 League + Copa Lib')]] : []), ['champions', t('⭐ Só Champions', '⭐ Champions only')], ...(relampagoOn ? [['relampago', t('⚡ Mata-mata Relâmpago', '⚡ Lightning Knockout')]] : []), ['liga', t('📊 Só Liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'relampago' | 'liga', string][]).map(([m, label]) => {
                 const travado = m === 'champions' && !championsOn
                 return (
                   <button key={m} onClick={() => { if (!travado) setCopaMode(m) }} disabled={travado} aria-disabled={travado}
@@ -3263,7 +3298,36 @@ export function EscSetup() {
                 )
               })}
             </div>
-            <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'champions' ? t('⭐ Sem liga: acabou o leilão, você e os rivais caem direto numa tabela ÚNICA de 36 com clubes de batismo — cada um joga 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora. Depois, mata-mata até a final.', '⭐ No league: once the auction ends, you and your rivals go straight into ONE table of 36 with named clubs — each plays 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out. Then knockouts to the final.') : copaMode === 'liga_liberta' ? t('🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.', '🌎 When the league ends, the top 8 join the continental cup with 24 clubs: 8 groups of 4, top 2 advance, knockouts to a single final. This match has NO Cup of 8.') : copaMode === 'liga_copa' ? t('🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.', '🏆 When the league ends, the top 8 play the Cup (two legs, single final) before the game is over.') : t('📊 Termina a liga e já mostra o resultado — jogo mais curto.', '📊 League ends and the result comes straight away — a shorter game.')}</p>
+            {copaMode !== 'relampago' && <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'champions' ? t('⭐ Sem liga: acabou o leilão, você e os rivais caem direto numa tabela ÚNICA de 36 com clubes de batismo — cada um joga 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora. Depois, mata-mata até a final.', '⭐ No league: once the auction ends, you and your rivals go straight into ONE table of 36 with named clubs — each plays 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out. Then knockouts to the final.') : copaMode === 'liga_liberta' ? t('🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.', '🌎 When the league ends, the top 8 join the continental cup with 24 clubs: 8 groups of 4, top 2 advance, knockouts to a single final. This match has NO Cup of 8.') : copaMode === 'liga_copa' ? t('🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.', '🏆 When the league ends, the top 8 play the Cup (two legs, single final) before the game is over.') : t('📊 Termina a liga e já mostra o resultado — jogo mais curto.', '📊 League ends and the result comes straight away — a shorter game.')}</p>}
+            {/* ⚡ 05/11 (Diego: o rápido igual às salas): Relâmpago com chave de 16 ou 32 — a MESMA régua e o mesmo texto da sala */}
+            {copaMode === 'relampago' && (
+              <div className="mt-2">
+                <p className="text-[11px] font-black uppercase mb-1" style={OSWALD}>{t('Tamanho da chave', 'Bracket size')}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([16, 32] as const).map(n => (
+                    <button key={n} onClick={() => setRelChave(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                      style={{ backgroundColor: relChave === n ? GOLD : '#fff', boxShadow: relChave === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                      {n === 16 ? t('16 times (oitavas)', '16 teams (round of 16)') : t('32 times (Rodada de 32)', '32 teams (round of 32)')}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] font-semibold text-black/55 mt-1">{t('⚡ Sem liga: acabou o leilão, vai direto pro sorteio. Ida e volta em toda fase e a final em jogo único; empate no agregado vai pros pênaltis.', '⚡ No league: after the auction it goes straight to the draw. Two legs in every round and a single-match final; level on aggregate goes to penalties.')}</p>
+              </div>
+            )}
+            {/* 📏 05/11: liga de 10 ou 20 times (fora do Relâmpago e da Só Champions, igual na sala) */}
+            {copaMode !== 'relampago' && copaMode !== 'champions' && (
+              <div className="mt-2">
+                <p className="text-[11px] font-black uppercase mb-1" style={OSWALD}>{t('Times na liga', 'Teams in the league')}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([20, 10] as const).map(n => (
+                    <button key={n} onClick={() => setTamLiga(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                      style={{ backgroundColor: tamLiga === n ? GOLD : '#fff', boxShadow: tamLiga === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                      {n === 20 ? t('🏟️ 20 times · 38 rodadas', '🏟️ 20 teams · 38 rounds') : t('⚡ 10 times · 18 rodadas', '⚡ 10 teams · 18 rounds')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {/* 🔻 COMO É O PREGÃO — só no jogo rápido, e o padrão é SEMPRE o leilão
