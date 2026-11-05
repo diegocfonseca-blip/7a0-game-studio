@@ -21,7 +21,7 @@ import { ANUNCIO_MAX, releAnuncios } from './patrocinio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar' | 'manual_24h' | 'cor_extra'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar' | 'manual_24h' | 'cor_extra' | 'doacao_luca'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
@@ -36,6 +36,7 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   cla_criar: ['🔓 Liberar o seu clã', '🔓 Unlock your clan'],
   manual_24h: ['🎮 Modo Manual por 24 h', '🎮 Manual Mode for 24 h'],
   cor_extra: ['🎨 Cor brilhante', '🎨 Shiny colour'],
+  doacao_luca: ['💙 Doação pro Luca', '💙 Donation for Luca'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -65,6 +66,7 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   peca_presidente: ['A peça já é sua, pra sempre, na sua conta. Vista e salve o seu presidente.', 'The item is yours forever, on your account. Put it on and save your president.'],
   manual_24h: ['🎮 Seu Modo Manual já está valendo: são 24 horas a partir de agora. Bom jogo!', '🎮 Your Manual Mode is live: 24 hours from now. Enjoy!'],
   cor_extra: ['🎨 Sua cor já é sua, pra sempre, e já está EM USO. Ela aparece na próxima sala que você entrar.', '🎨 Your colour is yours forever and already IN USE. It shows in the next room you join.'],
+  doacao_luca: ['💙 Obrigado de coração! Sua ajuda chegou.', '💙 Thank you from the heart! Your help arrived.'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)
 export const WHATSAPP_CONTATO = '5521998886982' // 16/10: número que o Diego passou (batismo, Fundador e Dia da marca)
@@ -84,7 +86,7 @@ const resta = (iso: string) => {
 /** a caixa do Pix novo. `valor` é só pra MOSTRAR antes de gerar (o valor de verdade vem do servidor). */
 /** `aoReceberFicha`: comprou DENTRO da carreira (🏦 Banco Legends) → a ficha é resgatada sozinha ali e devolve as moedas creditadas */
 /** `aoPagar`: chamado quando o servidor diz que caiu (a peça do presidente usa pra reler as peças e voltar pro editor) */
-export function PixMP({ produto, valor, refId = '', aoReceberFicha, aoPagar }: { produto: ProdutoMp; valor?: number; refId?: string; aoReceberFicha?: (ficha: string) => Promise<number | null>; aoPagar?: () => void }) {
+export function PixMP({ produto, valor, refId = '', aoReceberFicha, aoPagar }: { produto: ProdutoMp; valor?: number; refId?: string; aoReceberFicha?: (ficha: string) => Promise<number | null>; aoPagar?: (pedido: string) => void }) {
   const en = getLang() === 'en'
   const [fase, setFase] = useState<Fase>('inicio')
   const [pix, setPix] = useState<Pix | null>(null)
@@ -114,7 +116,7 @@ export function PixMP({ produto, valor, refId = '', aoReceberFicha, aoPagar }: {
       const row = Array.isArray(data) ? (data[0] as { status: string; ficha: string | null } | undefined) : undefined
       const st = row?.status
       if (st === 'pago' || st === 'liberado') {
-        setLiberado(st === 'liberado'); setFicha(row?.ficha ?? null); setFase('pago'); recarregaDireitos(); aoPagar?.()
+        setLiberado(st === 'liberado'); setFicha(row?.ficha ?? null); setFase('pago'); recarregaDireitos(); aoPagar?.(pix.pedido_id) /* 💙 05/11: o id vai junto (o mural da doação assina por ele) */
         logApoio(`💳 PIX MP caiu · ${produto} · ${st}`)
       }
     } finally { conferindo.current = false }
@@ -202,13 +204,13 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
     <div>
       <div className="text-[56px] leading-none mt-1">✅</div>
       <p className="font-black uppercase text-[24px] mt-1" style={{ ...OSW, color: GREEN }}>{tr('Pagamento confirmado!', 'Payment confirmed!')}</p>
-      <p className="text-[13px] font-bold mt-1 leading-snug">{liberado ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
+      <p className="text-[13px] font-bold mt-1 leading-snug">{liberado || produto === 'doacao_luca' ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
       {creditou != null && creditou > 0 && <p className="font-black text-[26px] mt-2" style={{ ...OSW, color: GREEN }}>+{creditou} 🪙 {tr('no caixa do clube!', 'in the club’s till!')}</p>}
       {ficha && !aoReceberFicha && <EscolheSave pedido={pedido} />}
       {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
         {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
       </p>}
-      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : produto === 'peca_presidente' ? null : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
+      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : produto === 'peca_presidente' || produto === 'doacao_luca' ? null : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>

@@ -122,6 +122,7 @@
     "email-novo": "npx tsx scripts/testa-email-novo.mts",
     "batismos-salas": "npx tsx scripts/testa-batismos-salas.mts",
     "cor-adicional": "npx tsx scripts/testa-cor-adicional.mts",
+    "casa-luca": "npx tsx scripts/testa-casa-luca.mts",
     "liga-10": "npx tsx scripts/testa-liga-10-times.mts"
   },
   "dependencies": {
