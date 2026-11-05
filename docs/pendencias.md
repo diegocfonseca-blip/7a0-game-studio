@@ -1,3 +1,12 @@
+## ⚖️ 05/11 — Motor novo da carreira: JUSTIÇA no lugar da média de gols (só a trava; o motor NÃO mudou)
+- Diego: *"não ligo pra média de gols. Quero só que os jogos sejam JUSTOS, nada forçado/injetado"*. A régua de MÉDIA (1,5–2,7 gols,
+  0×0 ≤ 15%) saiu do `npm run motor2`; entrou a régua de JUSTIÇA por diferença de força (média do lo–hi dos 11): parelho (< 4) ·
+  melhor (4–12) · muito melhor (12+). Medido (300 jogos): parelho 32/33/35% e 0×0 24% · melhor ganha 65%, perde 18%, golea 10% ·
+  muito melhor ganha 81%, perde 3%, golea 28%, o fraco golear 0%.
+- Procurei travamento (teto/chão fixo de finalização ou goleiro): o único candidato era o teto ±0,3 do duelo finalização × reflexo;
+  tirar ele não mudou NADA (mesmos números em 800 jogos) — então ficou como está. O 0×0 do parelho vem do tempo de 1:30 (≈3 chutes
+  por jogo), não de regra. 😵 O "time abalado" (2+ gols atrás piora, pedido dele em 22/10) é a única coisa que olha o placar — ficou.
+
 ## 📺⚡ 05/11 — Sala online: o DONO troca 2D ↔ placar rápido no meio da sala (branch, NÃO publicado — esperando OK visual)
 - Pedido aprovado: o dono troca quando quiser, tenha a sala começado num ou noutro. Mockup: `scripts/mockups/sala-troca-2d.png` (bancada `scripts/teste-troca-2d/`).
 - `SET_CAMPO2D` (só dono, crachá `by` = dono) só MARCA `campo2dProximo`; `viraCampo2D` aplica no passo que COMEÇA um jogo: `PLAY_ROUND`,
