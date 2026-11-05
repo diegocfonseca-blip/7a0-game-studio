@@ -49,7 +49,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  {const g=ballCanvas.getContext('2d')!,c=64,r=56;g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.fillStyle='#ffffff';g.fill();g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();g.fillStyle='#151515'
   for(let k=0;k<4;k++){const a=k*1.75,rr=k?r*.95:0,gx=c+Math.cos(a)*rr,gy=c+Math.sin(a)*rr,g5=r*(k?.36:.42);g.beginPath();for(let v=0;v<5;v++){const aa=a+v*1.2566;v?g.lineTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5):g.moveTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5)}g.closePath();g.fill()}
   g.restore();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.lineWidth=7;g.strokeStyle='#111';g.stroke()}
- const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=15;ball.scale.set(1.45,1.45,1)
+ const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false,depthTest:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=30;ball.scale.set(1.45,1.45,1)
  ball.name='bola2d-no-mapa';root.add(ball);ball.visible=false
  // 🔁 04/11 (Diego: *"tudo que faz pra um normalmente deveria funcionar no outro"*): o que o campinho da aba Jogos já tinha e o mapa não —
  // 🌠 rastro da bola no passe longo/chute · 🧢 balão do técnico · 🌧️ chuva quando o jogo é de chuva · 👟 passinho de quem corre.
@@ -137,7 +137,14 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    if(impact){const key=id+':'+impact.sign+':'+impact.time;if(net?.key!==key)net={key,y:T.MathUtils.clamp(.65+height,.3,2.2),z:T.MathUtils.clamp(source.ball.z,-3.5,3.5)}}else net=undefined
    atualizarRedesGol3D(nativeField,{time:impact?.age??0,ball:{netImpact:impact&&net?{sign:impact.sign,time:0,y:net.y,z:net.z,strength:.7}:undefined}})
   }
-  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);
+  // ⚽ 05/11 (Diego: *"toda vez que aparece o nome do jogador, a bola tá ficando escondida no jogador"*): no mapa a bolinha do jogador
+  // é maior que no campinho, então a bola "no pé" caía DENTRO dela. Agora a bola vai sempre por cima de tudo (depthTest off) e, se
+  // estiver dentro do disco de quem conduz, é empurrada pra BEIRA dele (do lado em que ela já estava; sem lado, pra frente da câmera).
+  let bx=source.ball.x,bz=source.ball.z
+  {const dono=source.players.find(q=>q.marker.owned)
+   if(dono&&height<.3){const dx=bx-dono.x,dz=bz-dono.z,d=Math.hypot(dx,dz),beira=dono.radius*1.08
+    if(d<beira){const ux=d>.05?dx/d:0,uz=d>.05?dz/d:1;bx=dono.x+ux*beira;bz=dono.z+uz*beira}}}
+  ball.visible=ballShadow.visible=true;desliza(ball,bx,.65+height,bz);ballShadow.position.set(ball.position.x,.03,ball.position.z);
   {const b=ball.position,trailPts=rastro.passo(b.x,b.y,b.z,dtQuadro)
    trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&rastroVisivel(trailPts.length);if(!q)return;const {tamanho,alfa}=pontoRastro(i,trailPts.length);sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(tamanho*ball.scale.x);(sp.material as T.SpriteMaterial).opacity=alfa})}
   {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
