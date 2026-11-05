@@ -49,7 +49,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  {const g=ballCanvas.getContext('2d')!,c=64,r=56;g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.fillStyle='#ffffff';g.fill();g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();g.fillStyle='#151515'
   for(let k=0;k<4;k++){const a=k*1.75,rr=k?r*.95:0,gx=c+Math.cos(a)*rr,gy=c+Math.sin(a)*rr,g5=r*(k?.36:.42);g.beginPath();for(let v=0;v<5;v++){const aa=a+v*1.2566;v?g.lineTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5):g.moveTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5)}g.closePath();g.fill()}
   g.restore();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.lineWidth=7;g.strokeStyle='#111';g.stroke()}
- const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=15;ball.scale.set(1.45,1.45,1)
+ const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false,depthTest:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=30;ball.scale.set(1.45,1.45,1)
  ball.name='bola2d-no-mapa';root.add(ball);ball.visible=false
  // 🔁 04/11 (Diego: *"tudo que faz pra um normalmente deveria funcionar no outro"*): o que o campinho da aba Jogos já tinha e o mapa não —
  // 🌠 rastro da bola no passe longo/chute · 🧢 balão do técnico · 🌧️ chuva quando o jogo é de chuva · 👟 passinho de quem corre.
@@ -137,6 +137,9 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
    if(impact){const key=id+':'+impact.sign+':'+impact.time;if(net?.key!==key)net={key,y:T.MathUtils.clamp(.65+height,.3,2.2),z:T.MathUtils.clamp(source.ball.z,-3.5,3.5)}}else net=undefined
    atualizarRedesGol3D(nativeField,{time:impact?.age??0,ball:{netImpact:impact&&net?{sign:impact.sign,time:0,y:net.y,z:net.z,strength:.7}:undefined}})
   }
+  // ⚽ 05/11 (Diego: *"a bola tá ficando escondida no jogador… deve deixar igual já funciona na aba de jogos"*): a posição é a MESMA
+  // da aba Jogos (no pé de quem conduz, um passo à frente — vem pronta da superfície); a diferença era só o desenho: aqui o jogador
+  // fica de pé e tampava a bola. Agora a bola é desenhada por cima de todo mundo, como no campinho (depthTest off, renderOrder 30).
   ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);
   {const b=ball.position,trailPts=rastro.passo(b.x,b.y,b.z,dtQuadro)
    trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&rastroVisivel(trailPts.length);if(!q)return;const {tamanho,alfa}=pontoRastro(i,trailPts.length);sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(tamanho*ball.scale.x);(sp.material as T.SpriteMaterial).opacity=alfa})}
