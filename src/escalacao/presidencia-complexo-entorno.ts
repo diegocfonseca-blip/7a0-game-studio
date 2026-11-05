@@ -4,6 +4,7 @@ import {criarResidenciaUsuario} from './residencia-3d'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {criarLugaresClube} from './presidencia-clube-lugares'
 import {LOTE_AGENCIA_CLUBE} from './clube-mapa-destinos'
+import {CASA_LUCA} from './presidencia-casa-luca-planta'
 import {criarPatrocinadoresCidade} from './presidencia-patrocinadores-cidade'
 import {RESERVAS_PATROCINADORES_CIDADE,LOTES_PATROCINADORES_CIDADE,RUAS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
@@ -1018,8 +1019,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   blocks.sort((a,b)=>Math.hypot(a.x,a.z-20)-Math.hypot(b.x,b.z-20))
   const occupied=blocks.slice(0,118)
   const botecos:BotecoBairro[]=[],pubBlocks=occupied.filter(p=>p.z>120).sort((a,b)=>Math.hypot(a.x,a.z-140)-Math.hypot(b.x,b.z-140)).slice(0,2)
+  // 💙 05/11: o quarteirão da CASA LUCA (só no mapa do clube) fica sem as duas casas e sem a árvore: o prédio e o pátio
+  // (presidencia-casa-luca-3d.ts) ocupam o quarteirão inteiro. Calçada do quarteirão, ruas e travessias continuam iguais.
+  const quadraCasaLuca=club?.residence?occupied.find(p=>p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z&&!pubBlocks.includes(p)):undefined
   for(const p of occupied){
     box('bairro-quarteirao',paving,23,.16,23,p.x,.08,p.z)
+    if(p===quadraCasaLuca)continue
     for(const side of [-1,1]){
       const x=p.x+side*5.6,z=p.z-2,choice=hash(x,z)
       const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else{const r=residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0);casasBairro.push({x,z,w:r.w,d:r.d,h:r.h,andares:r.floors})}
@@ -1449,7 +1454,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   solids.push(...dealership.solids)
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,bairro:{quadras:occupied as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
+  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
     botecos.forEach(pub=>pub.dispose())
     if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())

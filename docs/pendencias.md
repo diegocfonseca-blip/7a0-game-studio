@@ -1,3 +1,22 @@
+## 💙 05/11 — Mapa 3D: CASA LUCA (o projeto do Luca, filho do Diego) num quarteirão do bairro (LOCAL, branch do agente, só a conta do Diego)
+- Pedido: a casinha do projeto do Luca dentro do mapa do clube. Ajuste dele no meio: **fora do complexo do estádio**, num bairro, **bem visível**
+  e **grande** (quarteirão inteiro, prédio de 2 andares que se destaca das casas).
+- Onde: o quarteirão x −153,5…−130,5 · z 152,5…175,5 (centro −142, 164), colado na avenida diagonal do oeste e de frente pra praça verde do
+  hotel; aparece no "Ver tudo". As 2 casas e a árvore do quarteirão saíram (só quando o mapa é o do clube); ruas, calçadas, travessias e o
+  poste da esquina ficaram iguais. As tradições do bairro (banca, feira, varal…) não usam mais esse quarteirão.
+- O que tem (`presidencia-casa-luca-3d.ts`, lote em `presidencia-casa-luca-planta.ts`): prédio amarelo de 2 andares, telhado azul com coração +
+  CASA LUCA (lê de cima), letreiro e coração azul na fachada (e nos fundos, pro lado da avenida), porta larga, marquise, varanda com RAMPA de 6 m e
+  corrimão duplo, piso tátil (guia + alerta) do portão até a rampa, cerca baixa. Parquinho inclusivo: balanço com cadeirinha adaptada, carrossel
+  rente ao chão (com uma cadeira de rodas em cima), gangorra, painel sensorial + tubo de som, caixa de areia elevada, trilha de texturas,
+  cata-ventos girando e bolas grandes. Gente: 2 crianças em cadeira de rodas (uma empurrada pela mãe, outra no carrossel com o pai), 1 com andador
+  e o pai do lado, 1 no balanço com a mãe empurrando (+4 crianças fora do modo Leve). Tudo anda pelo relógio da cidade (parado até o 1º toque).
+- Cartão (Locais › "💙 Casa Luca" ou toque no lote): texto PROVISÓRIO (o Diego vai revisar), botão "💙 AJUDAR O LUCA" que por enquanto só diz
+  "em breve" (Pix ainda não ligado) e o mural "Obrigado a quem ajudou o Luca 💙", escondido enquanto `AGRADECIMENTOS_CASA_LUCA` estiver vazio.
+  NUNCA mostrar valor, total ou contagem de doação.
+- Trava: `node scripts/imersao-mapa/test-club-map-navigation.mjs` (quarteirão existe, sem casas/sólidos dentro, fora da rota dos ônibus, no "Ver
+  tudo"). Fotos: `scripts/mockups/casa-luca-mapa-cima.png`, `casa-luca-mapa-perto.png` + `casa-luca-mapa-perto-2.png`, `casa-luca-mapa-cartao.png`.
+- Pendente: OK visual do Diego; texto final do cartão; ligar o Pix e os nomes do mural quando ele mandar.
+
 ## 🛍️🏢 05/11 — Mapa 3D: LOJA DO CLUBE e AGÊNCIA mudaram pro lado da TORCIDA DA CASA + agência nova (LOCAL, branch do agente, só a conta do Diego)
 - Reclamação dele (print): *"a loja do clube e a agência estão próximos da área do visitante… colocar num local melhor. Além disso a
   agência tá muito feia"*. Antes: loja em x 134 (colada no portão do VISITANTE, x 105) e agência em x 229 (leste, perto da saída dele).

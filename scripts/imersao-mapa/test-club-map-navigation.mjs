@@ -47,4 +47,21 @@ try{
  for(const s of world.solids)if(s.id.startsWith('loja-')||s.id.startsWith(a.id))assert(s.top>.5)
  assert.deepEqual(world.root.userData.clubPlaces,{clubName:'Neymarzetti',store:true,agency:true})
 }finally{world.dispose();assert.equal(scene.children.length,0)}
-console.log(JSON.stringify({status:'PASS',ownCityPreservedAway:true,noFreeStore:true,agencyClearOfExistingBuildings:true,roadsConnected:true,noStateOrMatchMutation:true}))
+// 💙 05/11: Casa Luca — quarteirão inteiro do bairro (sem as duas casas), fora do complexo do estádio, longe da rota dos ônibus
+{const {CASA_LUCA:c,LIMITES_CASA_LUCA:b,AGRADECIMENTOS_CASA_LUCA:mural}=await import('../../src/escalacao/presidencia-casa-luca-planta.ts')
+ assert.deepEqual(mural,[],'mural começa vazio (escondido)')
+ assert(Math.hypot(c.x,c.z)>150,'Casa Luca fica no bairro, fora do complexo do estádio')
+ assert(c.x>-190&&c.x<214&&c.z>-140&&c.z<175,'Casa Luca aparece no Ver tudo')
+ const sc=new T.Scene(),w=criarEntornoComplexo(sc,complexoDoEstadio(own),undefined,{name:'Neymarzetti',residence:true})
+ try{
+  assert.equal(w.casaLuca,true,'o quarteirão da Casa Luca existe na grade do bairro')
+  assert(!w.bairro.quadras.some(q=>q.x===c.x&&q.z===c.z),'tradições do bairro não usam o quarteirão')
+  assert(!w.bairro.casas.some(h=>h.x>b.minX&&h.x<b.maxX&&h.z>b.minZ&&h.z<b.maxZ),'as casas do quarteirão saíram')
+  for(const s of w.solids)if(!s.id.startsWith("poste-"))assert(!(s.minX<b.maxX&&s.maxX>b.minX&&s.minZ<b.maxZ&&s.maxZ>b.minZ),`${s.id} invade a Casa Luca`) // o poste da esquina fica no canto, entre a cerca e o prédio
+  const {teamCoachAccess}=await import('../../src/escalacao/cidade3d/coach-access.mjs'),coach=teamCoachAccess()
+  for(const p of[...coach.inbound,...coach.outbound])assert(!(p.x>b.minX-3&&p.x<b.maxX+3&&p.z>b.minZ-3&&p.z<b.maxZ+3),'rota do ônibus dos times passa na Casa Luca')
+  assert.equal(w.root.userData.roadNetwork.diagnostics.afterComponents,1)
+ }finally{w.dispose()}
+ const noClub=criarEntornoComplexo(new T.Scene(),complexoDoEstadio(own),undefined,{name:'Neymarzetti'});assert.equal(noClub.casaLuca,false,'fora do mapa do clube o bairro fica como era');noClub.dispose()
+}
+console.log(JSON.stringify({status:'PASS',casaLuca:true,ownCityPreservedAway:true,noFreeStore:true,agencyClearOfExistingBuildings:true,roadsConnected:true,noStateOrMatchMutation:true}))
