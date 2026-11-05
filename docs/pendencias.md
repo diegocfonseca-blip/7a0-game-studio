@@ -12347,3 +12347,9 @@ Não retomar sem ele pedir.
 - ⏳ IDEIA, sem preço: 🚩 BANDEIRÃO na Loja da Torcida (só carreira, aparece no estádio). Diego ainda decide preço e como aparece.
 - ⏳ Gente entrando e saindo com sacolinha (os moradores do mapa ainda não têm o Shopping como destino).
 - ⚠️ As travas `testa-presidencia-complexo-entorno/concessionaria/paisagismo` já falhavam ANTES do Shopping (mesmo erro).
+- 🔁 05/11, 2ª versão (Diego: *"não achei imponente… tem que ser bem visível… trazer a Vadico pra cá"* e depois *"não gostei
+  da Vadico ser colada"*): o Shopping foi pros quarteirões logo depois da avenida, de frente pro estádio (x 60–204, z −272…−199):
+  átrio de vidro alto com coroa dourada e escudo, ala oeste das lojinhas, ala leste da praça de alimentação, totem alto, praça com
+  chafariz. A **Vadico virou prédio SEPARADO** do lado (x 216–258), com letreiro branco aceso e pátio de carros. A Vadico velha saiu
+  do mapa (fica escondida só pelos dados da entrega de carro); vista/toque/compra de carros apontam pra nova. Sem rua de acesso
+  (*"2 não"*). Clientes decorativos da Vadico velha desligados. ⏳ Gente com sacolinha no Shopping/Vadico nova, se ele pedir.
