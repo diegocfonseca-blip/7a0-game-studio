@@ -6,7 +6,7 @@
    da carreira (career-international-view.tsx `InscricaoClube`). No celular a classe `cv-pc` não existe e nada aqui vale. */
 .cv-tab-nome{display:none}
 *:has(>.cv-pc){max-width:min(1400px,96vw)!important;width:100%!important}
-.cv-pc{display:grid;grid-template-columns:280px minmax(0,1fr) 420px;grid-template-areas:'top top top' 'left mid right';gap:16px;align-items:start;text-align:left}
+.cv-pc{display:grid;grid-template-columns:minmax(200px,280px) minmax(360px,1fr) minmax(300px,420px);grid-template-areas:'top top top' 'left mid right';gap:16px;align-items:start;text-align:left}
 .cv-pc>*{margin:0!important}
 .cv-pc>.cv-top{grid-area:top;display:flex;gap:14px;align-items:stretch}
 .cv-pc>.cv-top>*{margin:0!important;position:static!important}
@@ -20,10 +20,15 @@
 .cv-pc .cv-tabs>button{display:flex!important;align-items:center;gap:10px;padding:11px 12px!important;font-size:16px!important;text-align:left;min-height:52px}
 .cv-pc .cv-tabs>button>span:not(.cv-tab-nome){display:inline-block!important;margin-left:auto;font-size:13px!important;border:2px solid currentColor;border-radius:8px;padding:2px 8px}
 .cv-pc .cv-tab-nome{display:block;flex:1;min-width:0;font-size:13px;line-height:1.15;font-weight:900;text-transform:uppercase}
-.cv-pc .cv-lista{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px;max-height:64vh!important;overflow-y:auto;background:#F4ECD6}
+.cv-pc .cv-lista{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:12px;max-height:64vh!important;overflow-y:auto;background:#F4ECD6}
 .cv-pc .cv-lista>button{border:3px solid #0C0C0C!important;border-radius:12px;box-shadow:3px 3px 0 #0C0C0C;padding:10px!important;flex-wrap:wrap;align-items:center;min-height:64px;opacity:1}
 .cv-pc .cv-lista>button>span:nth-child(2){font-size:15.5px!important;white-space:normal!important;line-height:1.1}
 .cv-pc .cv-lista>button>span:last-child{flex-basis:100%;padding-left:30px;font-size:11.5px!important;white-space:normal!important}
 .cv-pc .cv-lista>p{grid-column:1/-1}
 .cv-pc .cv-mid input{font-size:14px!important;padding:10px 12px!important}
 .cv-pc .cv-pack{padding:14px 16px!important;gap:12px!important}.cv-pc .cv-pack p:first-child{font-size:22px!important}.cv-pc .cv-pack p+p{font-size:13px!important}
+
+/* 🐛 05/11 (Julia Barranquila, PC): com a janela estreita (ou zoom), a lista do meio encolhia pra ~200px e as 3 colunas fixas
+   viravam tirinhas com o nome em cima do clube. Agora o meio nunca fica abaixo de 360px e a lista põe quantas colunas couberem
+   (cada cartão com pelo menos 170px). Abaixo de 1240px o campinho desce pra baixo, pra não espremer a lista. */
+@media (max-width:1240px){.cv-pc{grid-template-columns:minmax(200px,260px) minmax(0,1fr);grid-template-areas:'top top' 'left mid' 'right right'}.cv-pc>.cv-right{position:static}}

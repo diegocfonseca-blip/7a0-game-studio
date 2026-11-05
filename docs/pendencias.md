@@ -1,3 +1,6 @@
+## 🐛 05/11 — Convocação no PC espremida (Julia Barranquila, carreira internacional)
+- Com a janela do PC mais estreita (ou com zoom), a lista do meio da convocação encolhia e as 3 colunas fixas viravam tirinhas (nome em cima do clube). Conserto só de desenho em `convocacao-pc.css`: o meio nunca fica abaixo de 360px, a lista põe quantas colunas couberem, e abaixo de 1240px o campinho desce pra baixo. Vale pras 3 convocações (Clubes, Copa do Mundo/regionais, Liberta/Champions). Foto: `scripts/mockups/convocacao-pc-estreito.png`.
+
 ## ⏩ 05/11 — Campo 2D: TESTE DE RITMO na Partida Rápida (publicado, só a conta do Diego)
 Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão manual e sem botão manual"*.
 - Só vale com o Campo 2D ligado (só a conta dele) e só na Partida Rápida offline (nunca sala online, nunca carreira).
