@@ -9,7 +9,6 @@
 import * as THREE from 'three'
 import type {PontoComplexo} from './presidencia-complexo-model'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
-import {texturaLogoPatrocinador} from './presidencia-patrocinador-logo'
 import {LOGOS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBibliotecaVeiculos} from './veiculos-modelos-3d'
 
@@ -184,10 +183,23 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  caixa(vidro,.14,VH,VZ1-VZ0-8,VX0,GROUND+VH/2,(VZ0+VZ1)/2+4,false);caixa(vidro,.14,VH,VZ1-VZ0-8,VX1,GROUND+VH/2,(VZ0+VZ1)/2+4,false)
  panoVidro(VX0+.4,VX1-.4,GROUND,GROUND+VH-.4,VZ1,3.5,4.3)
  caixa(pedra,VX1-VX0,.2,VZ1-VZ0,vx,GROUND+.1,(VZ0+VZ1)/2,false)
- const art=LOGOS_PATROCINADORES_CIDADE.vadico,logo=texturaLogoPatrocinador('vadico',onReady);textures.push(logo)
- const lm=new THREE.MeshBasicMaterial({name:'shopping-vadico-logo',map:logo,toneMapped:false,transparent:true,depthWrite:false});materials.push(lm)
- caixa(creme,30,8.6,.5,vx,GROUND+VH+4.6,VZ1-.8)
- { const g=new THREE.PlaneGeometry(28,28*art.height/art.width);geometries.push(g);const m=new THREE.Mesh(g,lm);m.position.set(vx,GROUND+VH+4.6,VZ1-.52);root.add(m) }
+ // 🪧 LETREIRO da fachada (Diego 05/11: "a logo ficou estranha, letra vazada… deveria ter uma imagem atrás, branca"):
+ // placa BRANCA acesa com moldura preta, e o logo oficial pintado EM CIMA dela (nada de logo vazado direto no prédio).
+ const art=LOGOS_PATROCINADORES_CIDADE.vadico
+ const PW=30,PH=9.4
+ caixa(preto,PW+1,PH+1,.7,vx,GROUND+VH+4.9,VZ1-1)
+ for(const x of [vx-PW/3,vx+PW/3])caixa(grafite,.5,3,.5,x,GROUND+VH+.9,VZ1-1.6)
+ if(typeof document!=='undefined'){
+  const c=document.createElement('canvas');c.width=1536;c.height=Math.round(1536*PH/PW)
+  const g=c.getContext('2d')!;g.fillStyle='#FFFFFF';g.fillRect(0,0,c.width,c.height)
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;textures.push(t)
+  new THREE.ImageLoader().load(art.src,img=>{
+   const w=c.width*.86,h=w*art.height/art.width
+   g.imageSmoothingQuality='high';g.drawImage(img,(c.width-w)/2,(c.height-h)/2,w,h);t.needsUpdate=true;onReady?.()
+  })
+  const m=new THREE.MeshBasicMaterial({name:'shopping-vadico-letreiro',map:t,toneMapped:false});materials.push(m)
+  const pg=new THREE.PlaneGeometry(PW,PH);geometries.push(pg);const pl=new THREE.Mesh(pg,m);pl.position.set(vx,GROUND+VH+4.9,VZ1-.62);root.add(pl)
+ }else caixa(branco,PW,PH,.1,vx,GROUND+VH+4.9,VZ1-.62,false)
  // um carro no salão (no tablado) e os outros no pátio, de frente pra rua
  const carro=(modelo:'f40'|'opala-ss'|'fusca'|'gol-gti'|'brasilia'|'kombi',x:number,z:number,giro:number,y=0)=>{const v=biblioteca.create(modelo);if(!v)return;v.root.position.set(x,GROUND+y,z);v.root.rotation.y=giro;v.root.traverse(o=>{o.castShadow=true;o.receiveShadow=true});root.add(v.root)}
  cil(ouro,3.2,.3,vx-8,GROUND+.35,VZ1-7,24);carro('f40',vx-8,VZ1-7,.7,.5)
