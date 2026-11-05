@@ -114,3 +114,6 @@
 .ll-home .ll-seletor-esporte button+button{border-left:2px solid #0c0c0c}
 .ll-home .ll-seletor-esporte button:active{transform:none}
 @media(max-width:650px){.ll-home .ll-seletor-esporte{top:76px;left:17px}.ll-home .ll-seletor-esporte button{font-size:10.5px;padding:5px 9px}}
+
+/* 📏 06/11: o "CONTINUAR SALA" e o sino sempre por cima da lista de modos (nunca ficam tampados) */
+.ll-home .ll-resume{z-index:3}.ll-home .ll-sino{z-index:3}
