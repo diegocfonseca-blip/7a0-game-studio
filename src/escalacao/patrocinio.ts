@@ -128,7 +128,7 @@ const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Haval H6 0 km blin
 // 🔗 17/10 (Diego): tocar na Vadico abre a oferta do carro do anúncio no site dela. Só anúncio MANUAL leva link (o pago de 24 h é
 // texto escrito pelo comprador e vai pro ar sem ninguém olhar — link ali seria porta pra golpe).
 // 📢 MAIS ANÚNCIOS MANUAIS (17/10, Diego), passando depois da Vadico, cada um com o próprio link:
-// · canal do K9 no YouTube (link limpo, sem o rastreio do Facebook que veio colado)
+// · canal do K9 no YouTube — SAIU em 05/11 (Diego: *"remova o texto que fala do telão do Kelvin canal no YouTube"*; desligado no banco, id 2)
 // · Tidex (19/10, no lugar da Max Joias) → WhatsApp deles, com a mensagem já escrita
 // 🤖 Tidex (19/10): o mesmo texto/link está na linha do banco (`esc_anuncios_fixos`), que é quem manda; isto é a reserva
 const TIDEX_GIRO = '🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui'
@@ -144,7 +144,6 @@ const GECG_LINK = 'https://www.instagram.com/gremiocampo' // 23/10: o Diego mand
 const DSOUZA_GIRO = '🐶 dSouza · Quadros do seu time pra decorar a parede · Frete grátis · Clique aqui'
 const DSOUZA_LINK = 'https://www.mercadolivre.com.br/pagina/dsouzaempreendimentos/futebol'
 const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
-  { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
   { texto: TIDEX_GIRO, cor: '#FFC400', link: TIDEX_ZAP }, // 🤖 19/10: no lugar da Max Joias
   { texto: OITTO_GIRO, cor: '#FFC400', link: 'https://oittolabs.com.br' }, // 🧪 21/10
   { texto: GECG_GIRO, cor: '#FFC400', link: GECG_LINK }, // ⚽ 23/10
