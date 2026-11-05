@@ -223,6 +223,12 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 05/11 (avisado ao Diego, esperando OK pra ligar)
+- PIOROU: **Serventes FC** (wallacethiago424) ganhou uma 2ª conta de apoio: **Gustavo** (gusta.ghost.lindo, criada 03/11) — 6 temporadas só os dois, 3 ligas × 0, nunca jogou sala cheia. Junto com a Safiel (gustavodelimafrias2), as duas "gusta…", o Serventes já soma 8 ligas em 14 temporadas.
+- NOVO (médio): **Davi** (davicamilobeicker) × **Miguel** (rodriguincamilobezerra) — mesmo sobrenome "Camilo", logins com 2 min de diferença, 4 ligas × 0 em 5 temporadas; o Miguel jogou 2 salas cheias (pode ser irmão de verdade).
+- NOVO (médio): **Ferdca** (feehenrique67) × **Real** (es7394585, e-mail de números, criada 04/11) — 4 ligas × 0 em 6 temporadas; o Real jogou 2 salas cheias.
+- Continuam esperando resposta: Roseira FC × Cholismo (7 temp., 5×0) · Victor FC × Davi FC.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 04/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO: **Serventes FC** (wallacethiago424) × **Safiel** (gustavodelimafrias2): Safiel criada hoje 04/11 10:54, jogou as 6 temporadas SÓ com o Serventes, 0 ligas × 3, nunca jogou sala cheia, logins com 44 min de diferença.
 - Continuam esperando resposta: Roseira FC × Cholismo · Victor FC × Davi FC.
