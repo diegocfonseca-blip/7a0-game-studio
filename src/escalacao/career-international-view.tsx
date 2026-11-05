@@ -1,5 +1,6 @@
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
+import {idPartidaInternacional} from './presidencia-complexo-final-regras'
 import {usePresidentPreview} from './presidente-acesso'
 // ─── 🌎 CARREIRA INTERNACIONAL — a tela, PASSO A PASSO (01/10, pedido do Diego) ────
 //
@@ -511,7 +512,8 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
   const {state}=useEsc(),presidentAvailable=usePresidentPreview()
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
   const home = teams.get(match.home)!, away = teams.get(match.away)!
-  const stadiumMatch=contextoPartidaCompeticao({enabled:presidentAvailable,id:`${campaign.seed}:intl:${campaign.season}:${comp}:${roundKey}:${match.home}:${match.away}`,speed,home,away,stadiums:state.stadiums})
+  // 🏆 04/11: na FINAL o id ganha o ":Final" — é por ele que o mapa 3D reconhece o dia de final (festa com a taça da competição)
+  const stadiumMatch=contextoPartidaCompeticao({enabled:presidentAvailable,id:idPartidaInternacional({seed:campaign.seed,season:campaign.season,comp,roundKey,home:match.home,away:match.away,final:fase==='final'}),speed,home,away,stadiums:state.stadiums})
   const goals: ScoreGoal[] = match.goals.map(g => ({ name: g.name, min: g.min, home: g.home, assist: g.assist }))
   const [fim, setFim] = useState(false)
   useEffect(() => { setFim(false) }, [roundKey])
@@ -522,6 +524,10 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     aSquad: aPen.xi, bSquad: bPen.xi, invertido: penalties.home !== match.home,
   } : undefined, fim, speed, false, onFim)
   const temDisputaCampo = !!stadiumMatch && presidentAvailable && !!penalties?.penalties
+  // 🥅 (mapa 3D) final nos pênaltis: o mapa só fica sabendo de quem ganhou DEPOIS que a tela mostrou a disputa — no fim da
+  // cobrança no campinho quando ela existe, senão no apito (é quando a linha "Pênaltis X × Y" aparece embaixo do placar)
+  const pensVistos = temDisputaCampo ? !!disputa.estado?.encerrado : fim
+  if (stadiumMatch && pensVistos && fase === 'final' && penalties?.penalties && match.hg === match.ag) stadiumMatch.penaltis = { vencedor: penalties.winner === match.home ? 'home' : 'away' }
   const tecnico = `${tr('TÉCNICO', 'COACH')}: ${campaign.userTeam.toUpperCase()}`
   return <><LiveScoreCard estadoPenaltis={disputa.estado} disputaPenaltis={disputa.sessao} enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
     homeColor={copaSideColor(home.institution)} awayColor={copaSideColor(away.institution)}
@@ -561,6 +567,9 @@ export function CareerInternationalView(p: Props) {
   const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season, p.seed))
   // 🏆 24/10: a festa do campeão (a mesma das salas) — guarda QUAL título: Libertadores, Champions ou Mundial
   const [celebrate, setCelebrate] = useState<CompId | null>(null)
+  // 🥅 04/11 (só a conta do Diego, igual ao mapa 3D): a final foi nos pênaltis? a festa ganha o selo "NOS PÊNALTIS!"
+  const [celebratePens, setCelebratePens] = useState(false)
+  const presidentMapa = usePresidentPreview()
   // 🔇 CONTRA BOTÃO MUDO: confirmou e a campanha não começou? Avisa e devolve os convites.
   const [esperando, setEsperando] = useState(0)
   const [recusado, setRecusado] = useState<string | null>(null)
@@ -647,6 +656,7 @@ export function CareerInternationalView(p: Props) {
   const startedAt = useRoundPresentationStart(tunelIntlOn ? -1 - reveal : reveal * 10 + jogo)
   const avancar = () => {
     if (!current) return
+    setCelebratePens(!!minhaTie?.penalties && minhaTie.matches.length === 1)
     if (rep && faseFoco?.competition === 'mundial' && current.mundialChampion === rep) setCelebrate('mundial')
     else if (rep && faseFoco?.title === 'Final' && current.libertadoresChampion === rep) setCelebrate('liberta')
     else if (rep && faseFoco?.title === 'Final' && current.championsChampion === rep) setCelebrate('champions')
@@ -815,6 +825,7 @@ export function CareerInternationalView(p: Props) {
   return <section style={frame} aria-label="Futebol internacional de clubes">
     {celebrate && rep && (() => { const mk = mascoteKeyDoTime(p.userTeam); return <FestaCampeao comp={celebrate} nome={nomeDe(rep)} crest={crestOf(current, rep, 150)}
       mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} linha={`${tr('técnico', 'coach')}: ${p.userTeam}`} souCampeao onDone={() => setCelebrate(null)}
+      penaltis={presidentMapa && !!celebratePens}
       {...destaquesDaComp(current, celebrate === 'mundial' ? 'mundial' : celebrate === 'liberta' ? 'libertadores' : 'champions')} /> })()}
     {acabou ? <>
       {/* ── FIM: campeões + encerrar ── */}

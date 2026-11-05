@@ -25,6 +25,7 @@ import {DiaDoEstadio} from './presidencia-estadio-dia'
 import type {DecisaoJogo} from './presidencia-lotacao-jogo'
 import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
+import {divisaoDaFesta,ULTIMA_RODADA_LIGA} from './presidencia-complexo-final-regras'
 import { placarParaK } from './kings-liga'
 import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio,EstadoPartidaEstadio} from './presidencia-partida-model'
@@ -7192,6 +7193,18 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, onPenaltiesComplete, 
       aSquad: tie.a.xi, bSquad: tie.b.xi, invertido: swap,
     } : undefined, showDone, sf, !!pausado, onPenaltiesComplete)
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens, copaTemGente(tie)) : 0
+  // 🥅 04/11 (mapa 3D, só a conta do Diego): final decidida nos pênaltis → o mapa só fica sabendo de quem ganhou DEPOIS que a
+  // disputa terminou de aparecer aqui (o mesmo `pensDelay` que solta o "✅ é campeão"). Nunca a cobrança, nunca antes.
+  const [pensVistos, setPensVistos] = useState<string | null>(null)
+  const pensId = final && showDone && tie.pens && stadiumMatch ? stadiumMatch.id : null
+  useEffect(() => {
+    if (!pensId) return
+    const t = setTimeout(() => setPensVistos(pensId), Math.round(pensDelay * 1000) + 350)
+    return () => clearTimeout(t)
+  }, [pensId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // (com a disputa no campinho, o "é campeão" só aparece quando ela ENCERRA — o mapa espera o mesmo instante)
+  const pensMostrados = penaltisCampo.estado ? penaltisCampo.estado.encerrado : pensVistos === stadiumMatch?.id
+  if (stadiumMatch && final && pensMostrados && tie.pens) stadiumMatch.penaltis = { vencedor: (aWin ? tie.a : tie.b) === homeT ? 'home' : 'away' }
   return (
     <div style={{ marginBottom: 12 }}>
       {/* 🛡️ NOME CRU no card (conserto do São Luiz FC, 21/08). Aqui ia
@@ -7472,7 +7485,7 @@ export function EventoBanner({ ev, reservas, onDecide }: {
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
   const trait = traitDe(ev.nome)
   return (
-    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+    <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
@@ -7517,7 +7530,7 @@ export function EventoBanner({ ev, reservas, onDecide }: {
 // 🌱 EVENTO SEM RESERVA (Diego 13/08): mesmo visual do EventoBanner, mas em vez
 // de escolher um titular do banco, o técnico escolhe 1 de 3 nomes gerados da
 // base (nenhum deles existe no elenco ainda — só o escolhido sobe de verdade).
-function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
+export function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   ev: EventoAtivo
   onEscolher: (nome: string) => void
   onCampo?: () => void // só noitada — "escalar assim mesmo", sem chamar ninguém da base
@@ -7527,7 +7540,7 @@ function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
   const trait = traitDe(ev.nome)
   return (
-    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+    <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
@@ -9126,7 +9139,7 @@ export function PyramidSeasonScreen() {
   // mascote do dono vai DENTRO dela (o mesmo teatro não aparece duas vezes). Enquanto a festa está na tela a Copa espera.
   const mascKeyFesta = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? meuSocFesta.mascoteKey : null
   const festaBaseC = `esc-festa2-carreira-${state.seed}-${state.seasonNo}`
-  type FestaC = { key: string; comp: CompId; nomeComp?: [string, string]; linha: string; artilheiro: DestaqueFesta | null; garcom: DestaqueFesta | null }
+  type FestaC = { key: string; comp: CompId; nomeComp?: [string, string]; linha: string; artilheiro: DestaqueFesta | null; garcom: DestaqueFesta | null; pens?: boolean }
   const festasC = useMemo<FestaC[]>(() => {
     if (state.careerOnline && state.onlineMode === 'online') return [] // (carreira em sala tem a festa da sala)
     const out: FestaC[] = []
@@ -9146,6 +9159,7 @@ export function PyramidSeasonScreen() {
         const t = copa.rounds[iFinal].ties.find(x => x.a.you || x.b.you)
         out.push({ key: 'copa', comp: 'copabr', nomeComp: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
           linha: t ? `${tr('final', 'final')}: ${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}` : '',
+          pens: !!t?.pens,
           artilheiro: copa.topScorer && copa.topScorer.goals > 0 ? { nome: copa.topScorer.name, time: copa.topScorer.teamName, n: copa.topScorer.goals } : null,
           garcom: copa.topAssist && copa.topAssist.assists > 0 ? { nome: copa.topAssist.name, time: copa.topAssist.teamName, n: copa.topAssist.assists } : null })
       }
@@ -9160,7 +9174,7 @@ export function PyramidSeasonScreen() {
           if (g.assist) { const k = `${g.assistId ?? g.assist}|${time}`, r = pas.get(k); if (r) r.n++; else pas.set(k, { nome: g.assist, time, n: 1 }) }
         }
         const top = (m: Map<string, DestaqueFesta>) => [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome))[0] ?? null
-        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: top(gols), garcom: top(pas) })
+        out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: top(gols), garcom: top(pas), pens: !!t.pens })
       }
     }
     return out
@@ -10994,7 +11008,15 @@ export function PyramidSeasonScreen() {
   // Preserve the one map instance while the existing club screens open above it.
   // Every purchase/reducer below is unchanged; navigating does not run a match.
   // 🗺️💾 04/11: o mapa mora no cofre (`mapa-guardado.tsx`) — sair da aba Clube não desmonta mais a cidade (solta em 5 min)
-  const mapaDoClube = !presidentPending && presidentAvailable && PRESIDENCY_STADIUM_RELEASED ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
+  // 🏆📋 CAMPEÃO DA DIVISÃO no mapa 3D (04/11, Diego aprovou): a mesma festa das finais, com o tema da série, mas SÓ depois que
+  // a última rodada animou e o fim da temporada já apareceu na tela (`done`), e SÓ pro 1º da tabela final. É desenho no mapa:
+  // nenhuma ação, nenhum passo, nenhum jogo começa. A prova vai junto da rodada encerrada (o mapa ainda confere tudo de novo).
+  const fimDiv = done && round >= ULTIMA_RODADA_LIGA ? myStanding(live.tables) : null
+  const divFesta = fimDiv?.champ ? divisaoDaFesta(fimDiv.div) : null
+  const festaTitulo: EstadoPartidaEstadio | undefined = presidentAvailable && divFesta && stadiumMatch && myMatch && (myMatch.hId === youId || myMatch.aId === youId) ? {
+    context: { ...stadiumMatch, tituloDivisao: divFesta }, officialTeams: [myMatch.h, myMatch.a], minute: 93, period: 2, homeScore: myMatch.hg, awayScore: myMatch.ag, paused: true, finished: true,
+    homeColor: myMatch.hId === youId ? myCol.solid : colors?.[myMatch.hId]?.solid ?? '#3A7CA5', awayColor: myMatch.aId === youId ? myCol.solid : colors?.[myMatch.aId]?.solid ?? '#C2452F' } : undefined
+  const mapaDoClube = !presidentPending && presidentAvailable && PRESIDENCY_STADIUM_RELEASED ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
   const renderEstruturaDoClube=()=> (
           <>
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
@@ -11274,7 +11296,7 @@ export function PyramidSeasonScreen() {
           const nomeT = state.managers[state.youIdx]?.teamName ?? tr('Seu time', 'Your team')
           return <FestaCampeao key={festaAgoraC.key} comp={festaAgoraC.comp} nomeComp={festaAgoraC.nomeComp} nome={nomeT} crest={<Escudo nome={nomeT} size={160} />}
             mascote={mascKeyFesta ? MASCOTES[mascKeyFesta] : undefined} linha={festaAgoraC.linha} souCampeao onDone={fecharFestaC}
-            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} />
+            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} penaltis={presidentAvailable && !!festaAgoraC.pens} />
         })()}
         {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
           onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}

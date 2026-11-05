@@ -1,3 +1,49 @@
+## 🏆📋 04/11 — Mapa 3D: festa de CAMPEÃO DA DIVISÃO (LOCAL, branch do agente, só a conta do Diego)
+- A festa do elenco inteiro (pódio, 11 jogadores, fotógrafos, painel temático) agora também aparece quando o clube é **campeão da
+  divisão** na carreira: Série A "O BRASIL É SEU", B "A ELITE TE ESPERA", C "DEGRAU POR DEGRAU", D "A SUBIDA COMEÇA AQUI", Várzea
+  "REI DO TERRÃO" (com uma mancha de terrão embaixo do pódio). Placa: "CAMPEÃO" + o nome da série.
+- **Quando**: só depois que a 38ª rodada animou e o fim da temporada JÁ apareceu na tela (`done` no pyramidseason) e só se ele é o
+  1º da tabela final (`myStanding(live.tables).champ`). Vice/acesso não tem pódio. A tela manda a rodada encerrada com
+  `context.tituloDivisao` pro mapa (`career.festaTitulo` → `PresidenciaEstadioCamera`); o mapa confere de novo (`tituloDaDivisao`:
+  rodada 38 no id, partida encerrada com relógio ≥ 90, clube do usuário na partida). Campeão mesmo perdendo o último jogo.
+- **Não muda nada do jogo**: nenhum passo, botão, ação ou jogo novo; o roteiro de fim de temporada é o mesmo. Na divisão não há
+  avião, faixa "FINAL", barraca, perua, gente a mais, fumaça na porta, bandeirão nem sinalizador — só a festa.
+- Trava: `node scripts/imersao-mapa/test-final-day.mjs` (seção 14). Fotos: `scripts/mockups/mapa-festa-serie-a.png` e
+  `mapa-festa-varzea.png` (`SO=serie-a,varzea` no `shots-final-onibus.mjs`; QA `simularFinalQA('campeao',{divisao:'carA'})`).
+- Pendente: mostrar pro Diego as duas fotos antes de subir. Reverter = tirar o `festaTitulo` do `mapaDoClube` (pyramidseason).
+
+## 🏆🚌 04/11 — Mapa 3D: festa da Liberta/Champions/Mundial, final nos pênaltis e câmera dos ônibus (LOCAL, branch do agente, só a conta do Diego)
+Tudo só desenho (não muda resultado nem motor) e tudo atrás da trava do mapa (`usePresidentPreview`).
+- **Festa de campeão no mapa também na final da Libertadores, Champions e Mundial** (carreira internacional): o id da partida da final
+  ganhou `:Final` (`idPartidaInternacional`, só monta com a conta do Diego) e o dia de final (`presidencia-complexo-final*.ts`) monta
+  a taça de cada uma (`caraDaTaca`): Liberta dourada com o jogadorzinho e pé de madeira · orelhuda prateada com pé azul · Mundial
+  dourado com o globo de anéis e pé preto. Placa do pódio "CAMPEÃO" + nome da taça; papel picado e fogos nas cores da competição.
+  Faixa da fachada com LIBERTADORES / CHAMPIONS / MUNDIAL DE CLUBES (EN: CLUB WORLD CUP).
+- **Final decidida nos pênaltis = festa igual**, com "NOS PÊNALTIS!" (EN "ON PENALTIES!") na placa do pódio. O mapa só fica sabendo
+  quem ganhou DEPOIS que a tela mostrou a disputa (`context.penaltis`): Copa/Supercopa = depois do `pensDelay` do `PensShootout`;
+  internacional = no apito (é quando a linha "Pênaltis X × Y" aparece). Nunca desenha nem narra a cobrança.
+- **Aba Jogos**: a festa de Liberta/Champions/Mundial já existia (`FestaCampeao`, 24/10). Agora, só na conta do Diego, a festa de
+  título nos pênaltis (Copa, Supercopa, Liberta, Champions, Mundial) ganha o selo "🥅 NOS PÊNALTIS!" na faixa (`FestaCampeao penaltis`).
+- **Câmera seguindo os ônibus** (`presidencia-onibus-camera.ts`): no dia de jogo em casa, enquanto os ônibus chegam e sem jogo rolando,
+  a câmera desce atrás do ônibus do mandante, olha a porta no desembarque, depois o do visitante, e volta sozinha pra onde estava.
+  Só começa com o mapa quieto há 3 s; QUALQUER toque (dedo, roda, tecla, botão de lugar, câmera do jogo) devolve na hora e não
+  retoma naquela chegada. Não acorda a cidade (só mexe nos quadros que o mapa já desenha). Sem botão novo, sem espera.
+- Testes: `test-final-day.mjs` (finais internacionais + pênaltis) e `test-bus-camera.mjs` (novo). Fotos:
+  `scripts/mockups/mapa-festa-liberta.png`, `mapa-festa-penaltis.png`, `mapa-onibus-camera.png` (+ `mapa-festa-champions.png`,
+  `mapa-festa-mundial.png`); gerador `scripts/imersao-mapa/shots-final-onibus.mjs` (QA: `simularFinalQA(modo,{intl,penaltis})`).
+- [ ] OK visual do Diego nas fotos → publicar. Reverter = voltar o commit.
+- [ ] Copa do Mundo (seleções) não entrou: não usa o mapa do clube.
+- 🎉 **FESTA DO ELENCO INTEIRO + TEMA POR COMPETIÇÃO** (04/11, Diego: *"quero mais festa, com todos jogadores, fotógrafos…
+  cada nome de competição deve ter sua temática e cores"*): os 11 do campeão (7 no pódio, 4 em volta), cada um comemorando do seu
+  jeito (pula, braços pra cima com o gesto Victory, dança, abraço em dupla, taça passando de mão em mão no degrau de cima); alguns de
+  óculos escuros, faixa de campeão no peito ou bandeira na mão. 3 fotógrafos no celular / 4 no PC, com câmera e flash (sprite branco,
+  sem luz de verdade). Tema (`temaDaFesta`, cores de `COMPS`): pódio, tampo, placa, faixas, confete, fogos, canhões de luz e PAINEL
+  de fundo com o nome + frase + enfeite (estrelas da Champions, fumaça da Liberta/Supercopa, globo do Mundial, faixas da Copa).
+  Os modelos dos bonecos são baixados no começo do dia de final (aquecimento), pra ninguém aparecer atrasado. Fotos:
+  `scripts/mockups/mapa-festa-{liberta,champions,mundial,supercopa,penaltis}.png`.
+- [ ] Divisões (Série A…Várzea): o tema já existe (`carA`…`carV`), mas o mapa ainda NÃO tem pódio de título de liga (a liga não
+  acaba numa partida-final que o mapa reconheça). Ligar depende de decidir com o Diego quando a festa da liga entra no mapa.
+
 ## 📊😱🎬 04/11 — Campo 2D: resumo no apito, QUASE! e melhores momentos no mapa (LOCAL, branch do agente, esperando OK visual do Diego)
 Só apresentação — placar, relógio, resultado e o sorteio do motor NÃO mudam (trava `scripts/testa-campo2d-resumo.mts`, dentro do
 `npm run campo2d`, roda os dois motores com e sem o coletor e exige o MESMO jogo). Só a conta liberada do 2D (`useCampo2DLiberado`);
