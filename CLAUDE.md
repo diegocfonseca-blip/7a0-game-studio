@@ -1032,7 +1032,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (nunca 13); passe chega andando (não freia até zero); quem tem a bola ginga a ~4,6 m/s e, esperando o lance, faz TABELINHA.
   A trava da tela reprova câmera lenta e bola no pé em passo de caminhada.
   (13) **2D EM TODO LUGAR, NO TEMPO DO CAMPINHO (1:30), E PAGO SÓ FORA DA SALA** (20/10): *"esse tempo… tem que ser esse tempo
-  aí também nas salas online"*. SALA ONLINE: qualquer um que CRIA escolhe "⚡ Padrão rápido" ou "📺 2D" (convidado nunca paga) e vale
+  aí também nas salas online"*. SALA ONLINE: qualquer um que CRIA com plano (desde 05/11 o ⭐ Craque Salas também — ele só não tem o Manual) escolhe "⚡ Padrão rápido" ou "📺 2D" (convidado nunca paga) e vale
   pra TODA competição da sala — liga, Minhas Ligas, Copa dos 8, Liberta, Champions, Copa do Mundo e regionais (estas duas pelo
   relógio do banco: `docs/sql/copa-regional-clock-campo2d.sql`), carreira em sala e revanche. CARREIRA (offline e a online nova) e
   partida rápida offline: botão do 2D junto do Manual, e o 2D é o MESMO direito do Manual (Craque pra cima — `temManual`): quem não

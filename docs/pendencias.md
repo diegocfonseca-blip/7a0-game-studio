@@ -5,6 +5,7 @@ Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão 
 - Tela de criar a Partida Rápida: bloco "📺 Teste do Campo 2D" com 2D liga/desliga + **🎮 Com Manual / 🚫 Sem Manual** (guardado no aparelho).
 - Vale na liga, Copa dos 8, Relâmpago, Liberta e Champions da Partida Rápida. Código: `src/escalacao/ritmo2d.ts`.
 - Desligar: `RITMO2D_TESTE = false`.
+- 05/11: **⭐ Craque Salas (9,90) também cria sala online com o 2D** (o Manual continua só do Completo pra cima) — `pode2d` no lobby.tsx. Hoje o 2D ainda só existe na conta do Diego, então só vale quando o 2D lançar.
 - ⏳ FALTA (decisão dele): levar o 2× pras salas online e carreira — no online o relógio da Copa do Mundo/regionais mora no BANCO e teria que mudar junto.
 
 ## 💙 05/11 — Casa Luca no mapa: cartão COMPLETO (valores do Pix, Plano Coração e mural sempre) + doação por cima do mapa em tela cheia
