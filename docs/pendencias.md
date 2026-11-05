@@ -4,6 +4,23 @@
 - 📺⚡ troca 2D ↔ placar na sala LIBERADA pra todos (`TROCA_2D_SALA_GERAL = true`) — o Diego viu o Futpoint na Liga Draft sem o botão.
 - [ ] Depois do deploy: rodar `docs/sql/campo2d-sala-3x.sql` no banco (Copa do Mundo/regionais + marcha 3× no relógio).
 - Reverter: `RITMO2D_SALA` / `RITMO2D_PADRAO` em campo2d-motor.ts / ritmo2d.ts; SQL com 109756.
+## ⏱️ 05/11 — Sala 2D demorava ~55 s pra mostrar o 1º jogo (branch; esperando OK do Diego pra publicar)
+Diego: *"está demorando pra aparecer o campinho 2D nas salas online quando inicia a simulação"*.
+- Causa (medida): na LARGADA (rodada 0) o dono esperava `roundMs` antes do 1º `PLAY_ROUND` — e no 2D isso é o tempo de um jogo inteiro
+  (`DUR_2D_AUTO_MS` = 54,9 s; era 1:50 antes do 2×) contra 9 s na sala sem 2D. Esse tempo todo a sala via "🏁 Aguardando o pontapé inicial".
+  O campinho em si é rápido: já vem no pacote principal (não é carregado à parte) e desenha o 1º quadro em ~0,05–0,1 s no PC e ~0,4 s num
+  celular simulado (CPU 4× mais lenta + 3G).
+- Conserto (screens.tsx, efeito do autoplay da liga): na rodada 0 com 2D a espera é a MESMA da sala sem 2D (9 s online · 7 s offline ÷ velocidade).
+  Da rodada 1 em diante nada muda. Liberta/Champions já esperavam 2,2 s na rodada 0 (não mexi).
+- [ ] Ao publicar: conferir numa sala 2D que o 1º jogo aparece ~9 s depois de começar a temporada.
+- Reverter: voltar `espera` pra `roundMs` no efeito (ou `git revert` do commit).
+
+## ⏩ 05/11 — Campo 2D a 2× no AUTOMÁTICO em todo lugar (branch; esperando "publique")
+Diego: *"coloque 2x então em todos locais qd tá no auto seja carreira ou online e qualquer competição"* (antes pediu 2,5 só nas salas).
+- Carreira offline/online, Partida Rápida, salas online (liga, Liga da Turma/Draft, copas, Liberta, Champions, Copa do Mundo, regionais):
+  ~45 s por jogo, no auto E no Manual (*"no manual também começa com 2x"*); a marcha do Manual divide por cima (🐢 = 1:30). `dur2D` / `DUR_2D_AUTO_MS` em campo2d-motor.ts.
+- [ ] Ao publicar: esperar o deploy fechar verde e SÓ ENTÃO rodar `docs/sql/campo2d-2x.sql` no banco (Copa do Mundo/regionais).
+- Reverter: `RITMO2D_AUTO = 1` + rodar o SQL trocando 54878 por 109756.
 
 ## 🟢 05/11 — LIBERADOS PRA TODOS: 📺 Campo 2D e 📋 Liga Draft (pedido do Diego: *"libere já… igual aparece na minha conta"*)
 - `CAMPO2D_GERAL = true` (sport.ts): 2D em todos os modos, offline e online. Fora da sala é do ⭐ Craque Salas pra cima (`useTem2D`); na sala
