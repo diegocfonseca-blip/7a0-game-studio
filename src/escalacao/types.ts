@@ -980,6 +980,7 @@ export interface EscState {
   regionalSala?: string // 🏟️ sala de COPA REGIONAL (10/10): o baralho do leilão ganha as cartas regionais DAQUELA copa (`cartas-regionais.ts`) — e só aqui
   varzea?: boolean // 🥅 rápido online + baralho BR, categoria "Sem craques": leilão só com bom jogador + foi profissional
   campo2d?: boolean // 📺 sala online escolhida "📺 2D" pelo dono (20/10): todo jogo da sala aparece no Campo 2D e dura 1:30
+  campo2dProximo?: boolean // 📺⚡ 05/11: o DONO trocou 2D ↔ placar rápido no meio da sala — fica guardado aqui e só vira `campo2d` no PRÓXIMO jogo (`viraCampo2D`), nunca no meio de uma partida
   contratosOn?: boolean // 📝 CONTRATOS de jogador ligados NESTA carreira. Só carreira NOVA nasce com true (decisão do Diego) — save antigo fica sem contratos pra sempre (nada muda no meio da carreira de ninguém)
   // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): o técnico convoca até 22 cartas do
   // ÁLBUM dele pra "ativa" — só elas rendem (mensalidade por categoria + bônus

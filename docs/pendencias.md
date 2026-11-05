@@ -1,3 +1,12 @@
+## 📺⚡ 05/11 — Sala online: o DONO troca 2D ↔ placar rápido no meio da sala (branch, NÃO publicado — esperando OK visual)
+- Pedido aprovado: o dono troca quando quiser, tenha a sala começado num ou noutro. Mockup: `scripts/mockups/sala-troca-2d.png` (bancada `scripts/teste-troca-2d/`).
+- `SET_CAMPO2D` (só dono, crachá `by` = dono) só MARCA `campo2dProximo`; `viraCampo2D` aplica no passo que COMEÇA um jogo: `PLAY_ROUND`,
+  `PLAY_COPA_LEG`, `PLAY_LIBERTA_RODADA`, `PLAY_CHAMPIONS_RODADA/REPESCAO` e `SET_COPA_ROUND` (fase nova da Copa da carreira em sala).
+  Revanche e próxima largada da sala levam a marca. Ligar exige a régua da criação (`pode2d`); voltar pro rápido, qualquer dono.
+- Copa do Mundo/Eurocopa/regionais da sala (relógio no BANCO, lê `game_state.campo2d`): o botão NÃO aparece lá e a troca não entra
+  no meio (nenhum PLAY_* roda durante elas) — vale da próxima largada/rodada. Sem mexer no banco.
+- Trava: `npm run sala-troca-2d`.
+
 ## ⏩ 05/11 — Campo 2D: TESTE DE RITMO na Partida Rápida (publicado, só a conta do Diego)
 Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão manual e sem botão manual"*.
 - Só vale com o Campo 2D ligado (só a conta dele) e só na Partida Rápida offline (nunca sala online, nunca carreira).

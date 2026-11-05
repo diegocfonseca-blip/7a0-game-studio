@@ -5698,6 +5698,7 @@ type Action =
   | { type: 'PREGAO_ABERTO_TICK' }
   | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string; mesa?: number; cardId?: string } // 🔨🔨 mesa 0 ou 1 (duas mesas a partir de 11 clubes)
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
+  | { type: 'SET_CAMPO2D'; on: boolean; by?: string } // 📺⚡ 05/11: o DONO da sala troca 2D ↔ placar rápido — vale a partir do PRÓXIMO jogo (by = crachá: convidado é recusado)
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
   | { type: 'FORCE_TIEBREAK' }
@@ -7596,13 +7597,22 @@ function mldAplicaLeilao(s: EscState): void {
 // 🔒 o convidado nunca roda o reducer da sala, mas o recado dele chega no do dono: ação "só do dono" confere o crachá
 const deckDraft = (s: EscState) => (s.minhaLigaDraft ? s.deckLeague : undefined) // 🇧🇷🌍 Liga Draft de um baralho só: o draft também
 const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isHost && (!by || by === s.youUid))
+/** 📺⚡ TROCA 2D ↔ PLACAR RÁPIDO NO MEIO DA SALA (05/11, pedido do Diego). O dono marca (`SET_CAMPO2D` → `campo2dProximo`) e a
+ *  troca só acontece AQUI, no passo do reducer que COMEÇA um jogo novo (rodada da liga, perna da Copa, rodada da Liberta/
+ *  Champions, fase da Copa da carreira em sala). Como a troca vem no MESMO estado que traz o jogo novo, o relógio do dono e o de
+ *  todo convidado mudam juntos — nunca no meio de uma partida. Não mexe em rng, coroa nem lance. */
+export function viraCampo2D(s: EscState): void {
+  if (s.campo2dProximo === undefined) return
+  s.campo2d = s.campo2dProximo
+  s.campo2dProximo = undefined
+}
 
 /** 🧼 MARCAS DE MODO (21/10, Diego: *"partida rápida não tem relação com modo carreira, que também não tem relação com salas
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
-  'campo2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'campo2d', 'campo2dProximo', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
@@ -7917,7 +7927,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // 🌐 ONLINE: fase da Copa Legends ao vivo — SÓ o host dispara isto (gate na
     // tela), pra não ter cada convidado avançando sozinho e vendo fase diferente.
-    case 'SET_COPA_ROUND': { s.copaRound = action.round; return s }
+    case 'SET_COPA_ROUND': { if (action.round > (s.copaRound ?? 0)) viraCampo2D(s); s.copaRound = action.round; return s } // 📺⚡ fase nova da Copa = jogo novo: a troca marcada pelo dono entra aqui
     // 💰 FECHAMENTO DA TEMPORADA (solo): acabou a liga E as copas → contabiliza
     // TUDO de uma vez (prêmios, bilheteria, patrocínio, renda do empresário,
     // menos a folha salarial). Antes isso só caía quando você abria o leilão —
@@ -9235,6 +9245,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.humanCount = action.playerNames.length
       s.streamMode = !!action.stream
       s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
+      s.campo2dProximo = undefined // (a troca marcada já veio dentro do `campo2d` da largada)
       s.campo2d = !!action.campo2d // 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto) — carreira em sala também (20/10)
       s.auctionSecs = action.auctionSecs // ⏱️ tempo do leilão: undefined=45s · N=N segundos · 0=host avança no botão
       s.chatOff = !!action.chatOff // 💬 chat da sala ligado/desligado (escolha do host na criação)
@@ -9599,6 +9610,14 @@ function reducerBase(state: EscState, action: Action): EscState {
         }
       }
       maybeResolveTiebreak(s)
+      return s
+    }
+    case 'SET_CAMPO2D': {
+      // 📺⚡ só o DONO, só na sala online, nunca no basquete nem na Kings (relógio próprio). O convidado não roda este reducer,
+      // mas o recado dele chega no do dono — por isso o crachá (`by`) TEM que ser o do dono. Só MARCA: quem troca é `viraCampo2D`.
+      if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid || s.sport === 'basquete' || ehKings(s)) return s
+      const alvo = !!action.on
+      s.campo2dProximo = alvo === !!s.campo2d ? undefined : alvo // apertou de novo = desmarca (fica como está)
       return s
     }
     case 'SET_MANUAL_ROOM': {
@@ -10873,6 +10892,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'PLAY_ROUND':
     case 'SIM_MANY': {
+      if (action.type === 'PLAY_ROUND') viraCampo2D(s) // 📺⚡ troca 2D ↔ placar rápido marcada pelo dono vale a partir DESTA rodada
       // CARREIRA ONLINE: a temporada é SIMULADA e determinística (a pirâmide das
       // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
       // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
@@ -11085,14 +11105,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'PLAY_LIBERTA_RODADA': {
+      viraCampo2D(s) // 📺⚡ troca marcada pelo dono vale a partir deste jogo
       playLibertaRodada(s)
       return s
     }
     case 'PLAY_CHAMPIONS_RODADA': {
+      viraCampo2D(s) // 📺⚡ troca marcada pelo dono vale a partir deste jogo
       playChampionsRodada(s)
       return s
     }
     case 'PLAY_CHAMPIONS_REPESCAO': {
+      viraCampo2D(s) // 📺⚡ troca marcada pelo dono vale a partir deste jogo
       playChampionsRepescao(s)
       return s
     }
@@ -11107,6 +11130,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'PLAY_COPA_LEG': {
       const qc = s.quickCopa
       if (!qc || qc.phase === 'done') return s
+      viraCampo2D(s) // 📺⚡ troca marcada pelo dono vale a partir desta perna
       if (!qc.scorers) qc.scorers = [] // saves antigos sem o campo
       const isFinal = qc.phase === 'final'
       // 🏀 PLAYOFFS DA NBA = SÉRIE MELHOR DE 3 (14/09). Somar os pontos de dois jogos

@@ -1837,7 +1837,7 @@ export function EscLobby() {
       draftRegras: (gs as GS & { draftRegras?: RegrasDraft })?.draftRegras, // 📜 05/11
       draftPremios: (gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? undefined, // 💰 05/11
       tamanhoLiga: (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : undefined, // 📏 20 (padrão) ou 10 times
-      campo2d: !!(gs as GS & { campo2d?: boolean })?.campo2d, // 📺 sala 2D (escolha do dono na criação)
+      campo2d: !!((gs as GS & { campo2d?: boolean; campo2dProximo?: boolean })?.campo2dProximo ?? (gs as GS & { campo2d?: boolean })?.campo2d), // 📺 sala 2D (escolha do dono na criação; ⚡ a troca marcada no meio da sala vale na próxima largada)
       draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
     })
     return true
