@@ -64,7 +64,8 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
-import {CASA_LUCA,AGRADECIMENTOS_CASA_LUCA} from './presidencia-casa-luca-planta'
+import {CASA_LUCA} from './presidencia-casa-luca-planta'
+import {abrirDoacaoLuca,MuralLuca} from './casa-luca'
 
 export type VistaComplexo='casa-luca'|'arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'|'feira'|'banca'|'campinho'|'padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
 /** 🔋 quanto tempo a cidade continua andando depois do último toque no mapa */
@@ -925,10 +926,10 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     <strong>💙 CASA LUCA</strong>
     {/* ✍️ TEXTO PROVISÓRIO — o Diego vai revisar (05/11) */}
     <p>{t('O jogo nasceu por causa do meu filho, o Luca. Se quiser ajudar no tratamento dele, ajude aqui.','This game was born because of my son, Luca. If you would like to help with his treatment, you can help here.')}</p>
-    {/* 🔌 o Pix da Casa Luca ainda não está ligado: por enquanto o botão só avisa "em breve" */}
-    <button type="button" className="pc3-luca-ajudar" style={{background:'#2f6fd6',color:'#fff'}} onClick={()=>setLucaEmBreve(true)}>{t('💙 AJUDAR O LUCA','💙 HELP LUCA')}</button>
+    {/* 💙 abre a doação de verdade (casa-luca.tsx); se a trava ainda estiver fechada, avisa "em breve" */}
+    <button type="button" className="pc3-luca-ajudar" style={{background:'#2f6fd6',color:'#fff'}} onClick={()=>{ if(!abrirDoacaoLuca()) setLucaEmBreve(true) }}>{t('💙 AJUDAR O LUCA','💙 HELP LUCA')}</button>
     {lucaEmBreve&&<p role="status" className="pc3-luca-breve">{t('Em breve! A forma de ajudar ainda está sendo preparada.','Coming soon! The way to help is still being set up.')}</p>}
-    {AGRADECIMENTOS_CASA_LUCA.length>0&&<div className="pc3-luca-mural"><b>{t('Obrigado a quem ajudou o Luca 💙','Thank you to everyone who helped Luca 💙')}</b><ul>{AGRADECIMENTOS_CASA_LUCA.map(nome=><li key={nome}>{nome}</li>)}</ul></div>}
+    <div className="pc3-luca-mural"><MuralLuca /></div>
    </div>}
    {managementEnabled&&loaded&&['arena-online','casa-usuario','loja','agencia-clube'].includes(selectedView)&&cartaoFechado!==selectedView&&<div className="pc3-club-place">
     <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado(selectedView)}>✕</button>
