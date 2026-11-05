@@ -6745,8 +6745,8 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
 export function TrocaCampo2DSala() {
   const { state, dispatch } = useEsc()
   const liberado = useCampo2DLiberado()
-  const temDireito = useHasManual()
-  const contaOk = useTroca2DSala() // 🔒 por enquanto só a conta do Diego (como DONO da sala)
+  const temDireito = useTem2D() // 05/11: Craque Salas também liga (mesma régua de criar a sala com 2D)
+  const contaOk = useTroca2DSala() // 🟢 05/11: liberado pra todo dono de sala
   if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || ehKings(state)) return null
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
@@ -6769,7 +6769,7 @@ export function TrocaCampo2DVisual({ agora, pendente, podeLigar, onTroca }: { ag
       </button>
       <p style={{ margin: '4px 2px 0', fontSize: 10, fontWeight: 700, color: pendente ? '#7a5b00' : 'rgba(0,0,0,.5)', textAlign: 'center' }}>
         {pendente
-          ? (alvo ? t('⏳ Campo 2D marcado: vale a partir do próximo jogo (1:30 cada), pra sala toda.', '⏳ 2D pitch set: starts from the next match (1:30 each), for the whole room.')
+          ? (alvo ? t('⏳ Campo 2D marcado: vale a partir do próximo jogo, pra sala toda.', '⏳ 2D pitch set: starts from the next match, for the whole room.')
                   : t('⏳ Placar rápido marcado: vale a partir do próximo jogo, pra sala toda.', '⏳ Quick scoreboard set: starts from the next match, for the whole room.'))
           : t('Só você (dono) troca. Vale a partir do próximo jogo, nunca no meio.', 'Only you (host) can switch. Starts from the next match, never mid-game.')}
       </p>
