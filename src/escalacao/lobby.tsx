@@ -875,7 +875,6 @@ export function EscLobby() {
   const [ligaHora, setLigaHora] = useState(proxMeiaHora.hora)
   const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
   // 📜💰 05/11: regras da turma no draft + prêmio por colocação (null = padrão do tamanho) — escolhidos ao CRIAR a Liga Draft
-  const [draftRegrasSel, setDraftRegrasSel] = useState<RegrasDraft>({})
   const [draftPremiosSel, setDraftPremiosSel] = useState<number[] | null>(null)
   const premiosTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [ligaTamanho, setLigaTamanho] = useState<20 | 10>(20)
@@ -2117,7 +2116,7 @@ export function EscLobby() {
     const tam10Sala = !carreira && !elenco && !mundo && tam10Vale
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(Object.values(draftRegrasSel).some(Boolean) ? { draftRegras: draftRegrasSel } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -3729,11 +3728,10 @@ export function EscLobby() {
                         : tr('Ex.: 3 de vocês + 17 bots. Cabem até 20 pessoas. Temporada de 38 rodadas.', 'E.g. 3 of you + 17 bots. Up to 20 people. 38-round season.')}</p>
                     </div>
                   </>)}
-                  {/* 📜💰 05/11 (Diego): regras da turma pro draft + prêmio por colocação (padrão pelo tamanho; o criador edita) */}
+                  {/* 💡💰 05/11 (Diego): ideias de regras (só texto) + prêmio por colocação (padrão pelo tamanho; o criador edita) */}
                   {ehMinha && (
                     <div className="mt-3">
-                      <ConfigLigaDraft regras={draftRegrasSel} premios={draftPremiosSel} nTimes={ligaComBots ? ligaTamanho : 20}
-                        onRegras={setDraftRegrasSel} onPremios={setDraftPremiosSel} />
+                      <ConfigLigaDraft premios={draftPremiosSel} nTimes={ligaComBots ? ligaTamanho : 20} onPremios={setDraftPremiosSel} />
                     </div>
                   )}
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
@@ -5066,10 +5064,8 @@ export function EscLobby() {
             {(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (
               <div className="mt-3">
                 <ConfigLigaDraft soLeitura={!mandaNaLiga}
-                  regras={(gs as GS & { draftRegras?: RegrasDraft })?.draftRegras ?? {}}
                   premios={(gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? null}
                   nTimes={(gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20}
-                  onRegras={r => { void patchDraftLiga({ regras: r }) }}
                   onPremios={pm => {
                     setRoom(rr => (rr ? { ...rr, game_state: { ...(rr.game_state as GS), draftPremios: pm } as GS } : rr))
                     if (premiosTimer.current) clearTimeout(premiosTimer.current)

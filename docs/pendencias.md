@@ -12394,3 +12394,6 @@ Não retomar sem ele pedir.
   tela esconde, motor recusa). Texto: "Quer outra regra? Combinem entre vocês ou peçam pro Diego, criador do jogo, no Instagram".
   As regras/prêmio editados na sala de espera valem a partir da próxima abertura da liga. Trava: `scripts/testa-liga-draft-regras.mts`.
   Fotos: `scripts/mockups/liga-draft-regras-premio*.png`.
+- 🔁 05/11 (Diego: *"tire as opções de apertar… só coloque ideias pros usuários combinarem entre eles… qualquer sugestão, falar comigo"*):
+  as REGRAS viraram só um quadro "💡 Ideias de regras pra turma" (texto, o jogo não trava nada) + "fala comigo no Instagram". O motor
+  (`cartaPermitidaDraft`, `draftRegras`, `liga_patch_draft` p_regras) ficou DORMENTE: ninguém liga, nada muda no jogo. Prêmio editável continua.

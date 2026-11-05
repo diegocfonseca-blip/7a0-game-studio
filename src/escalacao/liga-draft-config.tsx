@@ -1,50 +1,39 @@
-// 📜💰 CONFIGURAÇÃO DA LIGA DRAFT (05/11, Diego): regras da turma pro draft + prêmio por colocação editável.
-// Aparece na hora de CRIAR a Liga Draft e na sala de espera (só o dono mexe). O padrão do prêmio sai do tamanho da liga (10 ou
-// 20 times); o dono pode trocar qualquer valor. As regras valem pra escolha do draft de todo mundo (a mesma função no motor e na
-// tela: `cartaPermitidaDraft`).
+// 💡💰 CONFIGURAÇÃO DA LIGA DRAFT (05/11, Diego): ideias de regras pra turma combinar (só texto) + prêmio por colocação editável.
+// Aparece na hora de CRIAR a Liga Draft e na sala de espera (só o dono edita o prêmio). O padrão do prêmio sai do tamanho da liga
+// (10 ou 20 times); o dono pode trocar qualquer valor.
 import { useState } from 'react'
 import { useT } from './lang'
-import { premiosPadraoDraft, type RegrasDraft } from './liga-draft'
+import { premiosPadraoDraft } from './liga-draft'
 
-const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
+const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 800 } as const
 const INSTA = 'https://instagram.com/leilaolegendscom'
 
-export function ConfigLigaDraft({ regras, premios, nTimes, onRegras, onPremios, soLeitura = false }: {
-  regras: RegrasDraft; premios: number[] | null; nTimes: number
-  onRegras: (r: RegrasDraft) => void; onPremios: (p: number[] | null) => void; soLeitura?: boolean
+export function ConfigLigaDraft({ premios, nTimes, onPremios, soLeitura = false }: {
+  premios: number[] | null; nTimes: number; onPremios: (p: number[] | null) => void; soLeitura?: boolean
 }) {
   const t = useT()
   const [editando, setEditando] = useState(false)
   const padrao = premiosPadraoDraft(nTimes)
   const valores = padrao.map((v, i) => premios?.[i] ?? v)
-  const opc: [keyof RegrasDraft, string][] = [
-    ['semLendas', t('🚫 Sem Lendas', '🚫 No Legends')],
-    ['semCraques', t('🚫 Sem Craque nem Lenda', '🚫 No Stars or Legends')],
-    ['soBrasil', t('🇧🇷 Só clubes brasileiros', '🇧🇷 Brazilian clubs only')],
+  // 💡 05/11 (Diego: *"tire as opções de apertar… só coloque ideias pros usuários combinarem entre eles… ou qualquer sugestão
+  // continue falando pra falar comigo"*): são SÓ ideias — o jogo não trava nada; a turma combina e cumpre.
+  const ideias = [
+    t('Ninguém pega Lenda no draft', 'Nobody drafts a Legend'),
+    t('Só vale jogador de Craque pra baixo', 'Only players below Star level'),
+    t('Só jogador de clube brasileiro', 'Only players from Brazilian clubs'),
+    t('Só jogador de um país ou de uma década', 'Only players from one country or one decade'),
+    t('Quem foi campeão não pega o melhor da posição', 'The champion can’t take the best at a position'),
   ]
-  const toggle = (k: keyof RegrasDraft) => {
-    if (soLeitura) return
-    const n = { ...regras, [k]: !regras[k] }
-    if (k === 'semCraques' && n.semCraques) n.semLendas = false // "sem craque" já tira a lenda junto
-    if (k === 'semLendas' && n.semLendas) n.semCraques = false
-    onRegras(n)
-  }
   return (
     <div className="space-y-2">
       <div className="rounded-xl border-2 border-black p-2.5 bg-white">
-        <p className="text-[13px] uppercase" style={{ ...OSW, color: INK }}>📜 {t('Regras da turma no draft', 'Crew rules for the draft')}</p>
-        <p className="text-[11px] font-bold text-black/60 leading-snug">{t('Opcional. Vale pra escolha do draft de todo mundo.', 'Optional. Applies to everyone’s draft pick.')}</p>
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {opc.map(([k, label]) => (
-            <button key={k} type="button" disabled={soLeitura} onClick={() => toggle(k)}
-              className="border-2 border-black rounded-lg px-2 py-1 text-[11.5px] font-black"
-              style={{ ...OSW, background: regras[k] ? GREEN : '#fff', color: regras[k] ? '#fff' : INK, opacity: soLeitura && !regras[k] ? .45 : 1 }}>
-              {regras[k] ? '✓ ' : ''}{label}
-            </button>
-          ))}
-        </div>
-        <p className="text-[10.5px] font-bold text-black/60 leading-snug mt-2">{t('Quer outra regra? Combinem entre vocês ou peçam pro Diego, criador do jogo, no ', 'Want another rule? Agree on it among yourselves or ask Diego, the game’s creator, on ')}<a href={INSTA} target="_blank" rel="noopener noreferrer" className="underline font-black" style={{ color: INK }}>Instagram</a>.</p>
+        <p className="text-[13px] uppercase" style={{ ...OSW, color: INK }}>💡 {t('Ideias de regras pra turma', 'Rule ideas for your crew')}</p>
+        <p className="text-[11px] font-bold text-black/60 leading-snug">{t('O jogo não trava nada: vocês combinam entre vocês e cumprem. Algumas ideias:', 'The game doesn’t enforce these: you agree among yourselves. A few ideas:')}</p>
+        <ul className="mt-1.5 space-y-0.5">
+          {ideias.map(x => <li key={x} className="text-[12px] font-bold text-black leading-snug">• {x}</li>)}
+        </ul>
+        <p className="text-[10.5px] font-bold text-black/60 leading-snug mt-2">{t('Tem outra ideia ou sugestão? Fala comigo, o Diego, criador do jogo, no ', 'Got another idea or suggestion? Talk to me, Diego, the game’s creator, on ')}<a href={INSTA} target="_blank" rel="noopener noreferrer" className="underline font-black" style={{ color: INK }}>Instagram</a>.</p>
       </div>
       <div className="rounded-xl border-2 border-black p-2.5 bg-white">
         <div className="flex items-center justify-between gap-2">
