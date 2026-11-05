@@ -1801,7 +1801,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       ) : !privateOnline && hasManual ? (
         <>
           {manual && <SpeedControls speed={speed} onSet={setSpeed} />}
-          <SimControls manual={manual} onToggle={toggleManual} canNext={liveDone} onNext={next} onSkip={skip} nextLabel={nextLabel} />
+          <SimControls manual={manual} onToggle={toggleManual} canNext={liveDone} onNext={next} onSkip={skip} nextLabel={nextLabel} sem2d={!!online} />
         </>
       ) : !privateOnline ? (
         <>

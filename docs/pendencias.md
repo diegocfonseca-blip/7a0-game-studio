@@ -1,3 +1,21 @@
+## 📺⚡ 05/11 — Sala online: o DONO troca 2D ↔ placar rápido no meio da sala (branch, NÃO publicado — esperando OK visual)
+- Pedido aprovado: o dono troca quando quiser, tenha a sala começado num ou noutro. Mockup: `scripts/mockups/sala-troca-2d.png` (bancada `scripts/teste-troca-2d/`).
+- `SET_CAMPO2D` (só dono, crachá `by` = dono) só MARCA `campo2dProximo`; `viraCampo2D` aplica no passo que COMEÇA um jogo: `PLAY_ROUND`,
+  `PLAY_COPA_LEG`, `PLAY_LIBERTA_RODADA`, `PLAY_CHAMPIONS_RODADA/REPESCAO` e `SET_COPA_ROUND` (fase nova da Copa da carreira em sala).
+  Revanche e próxima largada da sala levam a marca. Ligar exige a régua da criação (`pode2d`); voltar pro rápido, qualquer dono.
+- Copa do Mundo/Eurocopa/regionais da sala (relógio no BANCO, lê `game_state.campo2d`): o botão NÃO aparece lá e a troca não entra
+  no meio (nenhum PLAY_* roda durante elas) — vale da próxima largada/rodada. Sem mexer no banco.
+- Trava: `npm run sala-troca-2d`.
+
+## ⏩ 05/11 — Campo 2D: TESTE DE RITMO na Partida Rápida (publicado, só a conta do Diego)
+Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão manual e sem botão manual"*.
+- Só vale com o Campo 2D ligado (só a conta dele) e só na Partida Rápida offline (nunca sala online, nunca carreira).
+- Automático = **2×** (jogo de 45 s). Com o Manual: 🐢 Lento (3 min) · Normal (1:30) · ⚡ 2× (onde começa) · ⚡ 3× (30 s) · ⚡ 4× (22 s).
+- Tela de criar a Partida Rápida: bloco "📺 Teste do Campo 2D" com 2D liga/desliga + **🎮 Com Manual / 🚫 Sem Manual** (guardado no aparelho).
+- Vale na liga, Copa dos 8, Relâmpago, Liberta e Champions da Partida Rápida. Código: `src/escalacao/ritmo2d.ts`.
+- Desligar: `RITMO2D_TESTE = false`.
+- ⏳ FALTA (decisão dele): levar o 2× pras salas online e carreira — no online o relógio da Copa do Mundo/regionais mora no BANCO e teria que mudar junto.
+
 ## 💙 05/11 — Casa Luca no mapa: cartão COMPLETO (valores do Pix, Plano Coração e mural sempre) + doação por cima do mapa em tela cheia
 - Bug do Diego ("aperto na Casa Luca e não tem nada pra apertar"): o mural sem nomes virava uma barra branca vazia, e com o mapa em TELA
   CHEIA a doação abria ATRÁS dele (`.pc3-expanded` z 100000 × tela da doação 99998). Agora a tela da Casa Luca abre em z 100001.
