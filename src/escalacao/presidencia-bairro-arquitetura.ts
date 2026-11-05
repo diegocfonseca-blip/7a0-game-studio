@@ -11,8 +11,10 @@ export function arquiteturaDoEndereco(x:number,z:number,variant:number,distant=f
   d:(variant>1?12.1:10.1)*(.88+noise(11)*.1),h:3*floors+.7,
   color:cores[Math.floor(noise(23)*cores.length)],
   roof:variant>1||noise(13)<.28?'laje':noise(19)<.52?'duas-aguas':'quatro-aguas',
-  frontWall:!distant&&variant<2&&!comercial&&noise(29)>.23,
-  balcony:!distant&&variant===1&&!comercial&&noise(37)>.35,
+  // O endereço distante também pode ser visitado com zoom. Sua fachada não
+  // perde os elementos principais; só os pequenos acabamentos têm orçamento.
+  frontWall:variant<2&&!comercial&&noise(29)>.23,
+  balcony:variant===1&&!comercial&&noise(37)>.35,
   accent:['#5b726b','#6d6660','#697580','#8d684f'][Math.floor(noise(41)*4)],
  }
 }

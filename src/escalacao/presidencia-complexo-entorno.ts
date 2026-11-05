@@ -892,21 +892,27 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const cityFree=(p:PontoComplexo,margin=9)=>!inside(p,rawTerrain)&&!reserved(p)&&!protectedPath(p,margin)&&clearOfConstruction(p,margin)&&!(ruasIdx??=indiceTrechos(publicStreets.flatMap((points,k)=>points.slice(1).map((b,i)=>[points[i],b,k] as Trecho))))(p,margin,d=>d<margin)
   const windowPanel=(w:number,h:number,x:number,y:number,z:number,angle=0)=>{
     const choice=hash(x+y*.7,z),value=add(new THREE.PlaneGeometry(w,h),choice<.32?glass:choice<.82?cityWarm:cityCool)
-    value.position.set(x,y,z);value.rotation.y=angle;value.castShadow=false
+    value.position.set(x,y,z);value.rotation.y=angle;value.castShadow=false;return value
   }
   // Typologies visible in the reference's northern blocks: low houses,
   // terracotta-roofed townhouses, small flat-roof flats, and occasional taller
   // residential buildings. They are city context, never purchasable club lots.
   let detailedHomes=0
-  const architectureCounts:Record<string,number>={},architectureExamples:{x:number;z:number;tipo:string;roof:string}[]=[]
+  const architectureCounts:Record<string,number>={},architectureExamples:{x:number;z:number;tipo:string;roof:string;distant:boolean;wall:boolean;balcony:boolean}[]=[]
+  const architectureFeatures={walledHomes:0,distantWalledHomes:0,balconies:0,cornices:0}
   const neighbourhoodShops:{id:string;purpose:string;point:PontoComplexo}[]=[]
   const deliveryHomes:{id:string;x:number;z:number;door:PontoComplexo;curb:PontoComplexo;inside:PontoComplexo}[]=[]
   const residence=(x:number,z:number,variant:number,angle=0,distant=false)=>{
     const design=arquiteturaDoEndereco(x,z,variant,distant),{floors,h,w,d}=design
     architectureCounts[design.tipo]=(architectureCounts[design.tipo]??0)+1
-    if(!distant)architectureExamples.push({x,z,tipo:design.tipo,roof:design.roof})
+    architectureExamples.push({x,z,tipo:design.tipo,roof:design.roof,distant,wall:design.frontWall,balcony:design.balcony})
+    const fineDetail=!distant&&detailedHomes<40
     const center=(lx:number,lz:number)=>localPoint(x,z,lx,lz,angle)
-    const tintGeometry=(mesh:THREE.Mesh,color:string)=>{const tint=new THREE.Color(color),colors=new Float32Array(mesh.geometry.getAttribute('position').count*3);for(let i=0;i<colors.length;i+=3)tint.toArray(colors,i);mesh.geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return mesh}
+    const tintGeometry=(mesh:THREE.Mesh,color:string,topColor?:string)=>{
+      const tint=new THREE.Color(color),top=topColor?new THREE.Color(topColor):tint,normals=mesh.geometry.getAttribute('normal'),colors=new Float32Array(mesh.geometry.getAttribute('position').count*3)
+      for(let i=0;i<colors.length;i+=3)(topColor&&normals.getY(i/3)>.5?top:tint).toArray(colors,i)
+      mesh.geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return mesh
+    }
     const piece=(id:string,mat:THREE.Material,ww:number,hh:number,dd:number,lx:number,y:number,lz:number,collision=false)=>{const p=center(lx,lz);return box(id,mat,ww,hh,dd,p.x,y,p.z,angle,collision)}
     tintGeometry(box('bairro-residencia',facade,w,h,d,x,h/2,z,angle),design.color)
     if(design.roof!=='laje'){
@@ -963,7 +969,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       piece('bairro-rodape-comercio',concrete,w,.28,.1,0,.18,d/2+.08)
       neighbourhoodShops.push({id:`comercio-${x}-${z}`,purpose:'compras',point:center(0,d/2+2.6)})
     }
-    if(!distant&&detailedHomes<40){
+    if(fineDetail){
       detailedHomes++
       // Real relief near the stadium, where the user can inspect the street.
       // Keep distant houses light and reuse the same material batches.
@@ -977,30 +983,42 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       box('bairro-soleira',concrete,1.6,.15,.64,sill.x,.10,sill.z,angle)
       if(variant<2&&hash(x-2,z)>.45){const awning=center(0,d/2+.9);box('bairro-marquesa',roof,3.4,.12,1.8,awning.x,2.65,awning.z,angle)}
       const mailbox=center(w*.38,d/2+.12);box('bairro-caixa-correio',metal,.35,.25,.15,mailbox.x,1.15,mailbox.z,angle)
-      if(design.balcony){
-        piece('bairro-sacada-sobrado',concrete,w*.68,.15,1.15,0,3.08,d/2+.48)
-        piece('bairro-sacada-corrimao',metal,w*.68,.07,.07,0,4.08,d/2+1)
-        for(let i=0;i<6;i++)piece('bairro-sacada-grade',metal,.045,.9,.045,(i/5-.5)*w*.66,3.6,d/2+1)
+    }
+    // Muros, portões, sacadas e cornijas são a identidade da construção,
+    // não microdetalhes: não desaparecem após as primeiras 40 casas.
+    // Continuam nos mesmos terrenos e agrupamentos por material.
+    if(design.balcony){
+      architectureFeatures.balconies++
+      const balconyDoor=center(0,d/2+.03)
+      windowPanel(1.05,2.05,balconyDoor.x,4.18,balconyDoor.z,angle).name='bairro-porta-sacada'
+      piece('bairro-sacada-sobrado',concrete,w*.68,.15,1.15,0,3.08,d/2+.48)
+      piece('bairro-sacada-corrimao',metal,w*.68,.07,.07,0,4.08,d/2+1)
+      for(let i=0;i<6;i++)piece('bairro-sacada-grade',metal,.045,.9,.045,(i/5-.5)*w*.66,3.6,d/2+1)
+    }
+    if(design.antigo){
+      architectureFeatures.cornices++
+      piece('bairro-cornija-antiga',white,w+.3,.23,d+.25,0,h-.2,0)
+      for(let floor=1;floor<floors;floor++)piece('bairro-friso-antigo',concrete,w+.08,.12,.12,0,floor*3-.15,d/2+.08)
+    }
+    if(design.frontWall){
+      architectureFeatures.walledHomes++;if(distant)architectureFeatures.distantWalledHomes++
+      const span=(w-2.6)/2,front=d/2+2.05
+      for(const side of [-1,1]){
+        // O acabamento claro é a face superior da própria peça: dispensa
+        // quatro caixas extras por casa e continua no mesmo material.
+        tintGeometry(piece('bairro-muro',facade,span,1.14,.18,side*(1.3+span/2),.645,front,true),design.color,'#c7c1ac')
+        // Fechar as laterais torna o pequeno pátio legível de cima. O muro
+        // fica dentro da largura da casa e deixa livre a calçada já existente.
+        tintGeometry(piece('bairro-muro-lateral',facade,.18,1.14,2.05,side*(w/2-.09),.645,d/2+1.025,true),design.color,'#c7c1ac')
+        // Folhas abertas junto às laterais: passagem central de 2,6 m permanece livre.
+        piece('bairro-portao-aberto',metal,.08,.95,1.1,side*1.33,.59,front-.52,true)
       }
-      if(design.antigo){
-        piece('bairro-cornija-antiga',white,w+.3,.23,d+.25,0,h-.2,0)
-        for(let floor=1;floor<floors;floor++)piece('bairro-friso-antigo',concrete,w+.08,.12,.12,0,floor*3-.15,d/2+.08)
-      }
-      if(design.frontWall){
-        const span=(w-2.6)/2,front=d/2+2.05
-        for(const side of [-1,1]){
-          tintGeometry(piece('bairro-muro',facade,span,1.05,.18,side*(1.3+span/2),.6,front,true),design.color)
-          piece('bairro-muro-capa',concrete,span+.06,.09,.24,side*(1.3+span/2),1.17,front)
-          // Folhas abertas junto às laterais: passagem central de 2,6 m permanece livre.
-          piece('bairro-portao-aberto',metal,.08,.95,1.1,side*1.33,.59,front-.52,true)
-        }
-      }
-      if(design.antigo||design.frontWall){
-        // Reboco gasto em poucos polígonos; material/lotação compartilhados, sem textura nova.
-        const shape=new THREE.Shape([new THREE.Vector2(-.6,-.22),new THREE.Vector2(.1,-.3),new THREE.Vector2(.67,-.08),new THREE.Vector2(.5,.24),new THREE.Vector2(-.15,.33),new THREE.Vector2(-.55,.12)])
-        const patch=tintGeometry(add(new THREE.ShapeGeometry(shape),facade),'#a99f8d'),p=center(-w*.3,design.frontWall?d/2+2.145:d/2+.021)
-        patch.position.set(p.x,design.frontWall ? .62 : .7,p.z);patch.rotation.y=angle;patch.castShadow=false
-      }
+    }
+    if(fineDetail&&(design.antigo||design.frontWall)){
+      // Reboco gasto em poucos polígonos; material/lotação compartilhados, sem textura nova.
+      const shape=new THREE.Shape([new THREE.Vector2(-.6,-.22),new THREE.Vector2(.1,-.3),new THREE.Vector2(.67,-.08),new THREE.Vector2(.5,.24),new THREE.Vector2(-.15,.33),new THREE.Vector2(-.55,.12)])
+      const patch=tintGeometry(add(new THREE.ShapeGeometry(shape),facade),'#a99f8d'),p=center(-w*.3,design.frontWall?d/2+2.145:d/2+.021)
+      patch.position.set(p.x,design.frontWall ? .62 : .7,p.z);patch.rotation.y=angle;patch.castShadow=false
     }
     return {w,d,h,floors}
   }
@@ -1380,7 +1398,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     trunk.userData.batchZone=zone;crown.userData.batchZone=zone
     regionalTrees++
   }
-  root.userData.landscape={publicParks:publicParks.length,beltTrees,clubTrees,regionalTrees,roads:streetNetwork.length,architecture:{types:architectureCounts,detailedHomes,examples:architectureExamples}}
+  root.userData.landscape={publicParks:publicParks.length,beltTrees,clubTrees,regionalTrees,roads:streetNetwork.length,architecture:{types:architectureCounts,detailedHomes,features:architectureFeatures,examples:architectureExamples}}
   root.userData.transport={station:transport.station.enabled,stationFloor:transport.station.floor,railY:transport.station.railY,stairs:transport.station.enabled?transport.station.accesses.reduce((count,access)=>count+access.stair.count,0):0,stationAccesses:transport.station.accesses.map(access=>access.id),railExtent:transport.station.railExtent,railWidth:transport.station.railWidth,busStops:2,parkingStage:transport.parking.stage,parkingCapacity:transport.parking.capacity,parkingLots:transport.parkingPlants.filter(lot=>lot.stage<=transport.parking.stage).map(lot=>({id:lot.id,capacity:lot.slots.length,access:lot.access}))}
 
   // Batch by material and by the four distant forest regions after transforms,
