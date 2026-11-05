@@ -12207,3 +12207,9 @@ Ainda diferente (não pedido): 🧑‍💼 presidente na beira do campo e 🎬 "
 - 04/11 (print dele: *"essa sala aqui é a do presidente? tá exposta aí feiona, se for pode remover já"*): era o CAIXOTE da sala do
   presidente pendurado na fachada (`presidentialBox`). No mapa da carreira ele não é mais montado e a arquibancada de cima fica inteira
   no lugar (opção `semSala` em `criarArquiteturaComplexo`). Foto antes/depois: `scripts/mockups/estadio-sem-sala-presidente.png`.
+
+### ⏸️ 05/11 — Campinho da Base + CT de Treinamento: PARADO a pedido do Diego ("não faz isso agora não")
+Mockups prontos (`scripts/mockups/base-ct-mapa-local.png`, `base-ct-niveis.png`, `base-ct-obras.png`; protótipo 3D em
+`scripts/mockups/base-ct-prototipo.ts`): campinho atrás do telão (x 0 · z −111, 55×35) e CT ao lado (x −65 · z −111), 3 níveis
+cada. Proposta de regra (NÃO aprovada): base melhora o Cria (50–60 → 54–63) + escolinha; CT N1 aluguel, N2/N3 menos "dia ruim".
+Não retomar sem ele pedir.
