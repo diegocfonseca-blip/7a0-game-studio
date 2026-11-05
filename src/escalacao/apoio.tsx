@@ -523,6 +523,14 @@ export function useHasManual(): boolean {
   return temManual(myEmail ? (dbTier ?? FOUNDERS[myEmail] ?? null) : null, manualCol, direitos)
 }
 
+/** 📺 05/11 (Diego): o CAMPO 2D vem do ⭐ Craque SALAS pra cima — o Manual continua só do Completo pra cima
+ *  (*"o botão manual tudo bem não permitir, mas o 2D teria que ter"*). Sem o Manual, o 2D roda no automático. */
+export function useTem2D(): boolean {
+  const manual = useHasManual()
+  const d = useDireitos()
+  return manual || d?.mensalPlano === 'craque_salas'
+}
+
 // ✉️ TRAVA DE E-MAIL (04/08): o Supabase avisou de bounce alto — e-mail digitado
 // errado no cadastro (gmail.con, gmai.com…) faz o "esqueci a senha" voltar e
 // arrisca o envio de e-mail do jogo inteiro. Corrige os erros clássicos com

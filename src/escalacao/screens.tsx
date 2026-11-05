@@ -39,7 +39,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
 import { travaCarreiraGratis, limiteGratis } from './carreira-gratis'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
@@ -6692,7 +6692,8 @@ export function useStreamSimMode(): [boolean, () => void] {
 // 🔒 cadeado do Modo Manual no jogo rápido offline: quem não apoia vê isto no
 // lugar do toggle Auto/Manual — leva pra tela de Apoie (igual à carreira).
 export function QuickManualLock() {
-  const com2d = useCampo2DLiberado() // 📺 com o 2D liberado, o cadeado diz que destrava OS DOIS (Diego 20/10)
+  const tem2d = useTem2D()
+  const com2d = useCampo2DLiberado() && !tem2d // 📺 com o 2D liberado, o cadeado diz que destrava OS DOIS (Diego 20/10) — menos pra quem já tem o 2D (Craque Salas)
   return (
     <div style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
@@ -6707,19 +6708,20 @@ export function QuickManualLock() {
 // 📺 o botão do CAMPO 2D mora junto do Manual em TODO controle de partida (Diego 20/10: *"botão manual e campo 2D"* e
 // *"serve para tudo"*). Fora da sala online a escolha é do aparelho e vale pra toda competição; na sala online quem decide
 // é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
-export function Botao2D() {
+export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {}) {
   const liberado = useCampo2DLiberado()
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
   // 💳 o 2D vem junto do Manual (o mesmo direito): conferido aqui, lembrado no aparelho (`marcaPago2D`)
-  const temDireito = useHasManual()
+  const temDireito = useTem2D() // 05/11: do ⭐ Craque Salas pra cima (o Manual é só do Completo pra cima)
   useEffect(() => {
     if (temDireito) { marcaPago2D(true); return }
     const tm = setTimeout(() => marcaPago2D(false), 6000) // (a resposta do banco demora: só tira depois de ter certeza)
     return () => clearTimeout(tm)
   }, [temDireito])
   if (!liberado || state.onlineMode === 'online' || state.sport === 'basquete') return null
+  if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
       <button onClick={open} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
@@ -6736,7 +6738,7 @@ export function Botao2D() {
 }
 
 export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
-  return <>{!props.lock && <Botao2D />}<SimControlsBase {...props} /></> // (com o cadeado do Manual, o cadeado já cobre os dois)
+  return <><Botao2D soComDireito={!!props.lock} /><SimControlsBase {...props} /></> // (com o cadeado do Manual: o 2D só aparece pra quem já tem ele — Craque Salas; senão o cadeado cobre os dois)
 }
 function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()

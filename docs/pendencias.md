@@ -6,6 +6,7 @@ Pedido: *"bota no Partida Rápida pra eu ver… tempo… Liga… Copa… botão 
 - Vale na liga, Copa dos 8, Relâmpago, Liberta e Champions da Partida Rápida. Código: `src/escalacao/ritmo2d.ts`.
 - Desligar: `RITMO2D_TESTE = false`.
 - 05/11: **⭐ Craque Salas (9,90) também cria sala online com o 2D** (o Manual continua só do Completo pra cima) — `pode2d` no lobby.tsx. Hoje o 2D ainda só existe na conta do Diego, então só vale quando o 2D lançar.
+- 05/11 (*"1 sim"*): **e também fora das salas** — carreira e Partida Rápida: o Craque Salas tem o botão do 2D (no automático) e o cadeado vira só do Manual (`useTem2D` em apoio.tsx). O 2D segue **só na conta do Diego** (*"ainda não, só pra mim"*) até ele mandar lançar.
 - ⏳ FALTA (decisão dele): levar o 2× pras salas online e carreira — no online o relógio da Copa do Mundo/regionais mora no BANCO e teria que mudar junto.
 
 ## 💙 05/11 — Casa Luca no mapa: cartão COMPLETO (valores do Pix, Plano Coração e mural sempre) + doação por cima do mapa em tela cheia

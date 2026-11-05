@@ -1035,7 +1035,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   aí também nas salas online"*. SALA ONLINE: qualquer um que CRIA com plano (desde 05/11 o ⭐ Craque Salas também — ele só não tem o Manual) escolhe "⚡ Padrão rápido" ou "📺 2D" (convidado nunca paga) e vale
   pra TODA competição da sala — liga, Minhas Ligas, Copa dos 8, Liberta, Champions, Copa do Mundo e regionais (estas duas pelo
   relógio do banco: `docs/sql/copa-regional-clock-campo2d.sql`), carreira em sala e revanche. CARREIRA (offline e a online nova) e
-  partida rápida offline: botão do 2D junto do Manual, e o 2D é o MESMO direito do Manual (Craque pra cima — `temManual`): quem não
+  partida rápida offline: botão do 2D junto do Manual, e o 2D é do ⭐ Craque SALAS pra cima (`useTem2D`, 05/11: *"1 sim"* — quem tem só o Craque Salas vê o 2D no automático e o cadeado só do Manual; o Manual segue `temManual`, do Completo pra cima): quem não
   paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
