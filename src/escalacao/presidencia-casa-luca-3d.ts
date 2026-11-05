@@ -89,12 +89,13 @@ export function criarCasaLuca(parent:T.Object3D,{leve=false,onReady,areas=false}
   for(const h of[.45,.9])fixo.box(WHITE,L2,.08,.06,(x0+x1)/2,G0+h,(z0+z1)/2,0,-a)
   for(let i=0;i<=n;i++){const t=i/n;fixo.box(i%2?SKY:WHITE,.1,1.05,.1,x0+(x1-x0)*t,G0+.52,z0+(z1-z0)*t)}}
  const E=11.25
- fence(-E,BZ0+1,-E,E);fence(-E,E,-1.2,E);fence(1.2,E,E,E)
- // 💙 06/11: portão no lado leste, pra rampa que desce pro JARDIM SENSORIAL (presidencia-casa-luca-areas-3d.ts)
- fence(E,BZ0+1,E,.75);fence(E,2.65,E,E);for(const z of[.75,2.65]){fixo.box(BLUE,.22,1.5,.22,E,G0+.75,z);fixo.ball(TACT,.14,E,G0+1.58,z)}
- for(const s of[-1,1]){fixo.box(BLUE,.22,1.5,.22,s*1.25,G0+.75,E);fixo.ball(TACT,.14,s*1.25,G0+1.58,E)}
+ // 🔁 07/11: com o terreno único (areas), a cerca é UMA só em volta do conjunto inteiro (presidencia-casa-luca-areas-3d.ts)
+ if(!areas){
+  fence(-E,BZ0+1,-E,E);fence(-E,E,-1.2,E);fence(1.2,E,E,E);fence(E,BZ0+1,E,E)
+  for(const s of[-1,1]){fixo.box(BLUE,.22,1.5,.22,s*1.25,G0+.75,E);fixo.ball(TACT,.14,s*1.25,G0+1.58,E)}
+ }
  // árvore de sombra no canto e banco pros pais
- fixo.cyl('#6b4b2e',.18,.24,2.6,-10,G0+1.3,-1.4,7);fixo.ball('#4f8a3e',1.7,-10,G0+3.3,-1.4,.85);fixo.ball('#5f9c48',1.2,-9.2,G0+3.9,-.8,.85)
+ fixo.cyl('#6b4b2e',.18,.24,2.6,-9.3,G0+1.3,-1.4,7);fixo.ball('#4f8a3e',1.7,-9.3,G0+3.3,-1.4,.85);fixo.ball('#5f9c48',1.2,-8.5,G0+3.9,-.8,.85)
  fixo.box(WOOD,1.8,.08,.5,9.8,G0+.48,-1.4);fixo.box(WOOD,1.8,.4,.07,9.8,G0+.72,-1.62);for(const dx of[-.7,.7])fixo.box(GREY,.08,.44,.42,9.8+dx,G0+.22,-1.4)
 
  // ── BALANÇO (oeste): pórtico + 1 balanço ADAPTADO (cadeirinha com encosto e cinto) + 1 comum ──
@@ -300,7 +301,7 @@ export function criarCasaLuca(parent:T.Object3D,{leve=false,onReady,areas=false}
  const B={minX:L.x-BX-.3,maxX:L.x+BX+.3,minZ:L.z+BZ0-.3,maxZ:L.z+BZ1+.3}
  const box=(id:string,minX:number,maxX:number,minZ:number,maxZ:number,top:number):SolidoEntorno=>({id,minX,maxX,minZ,maxZ,base:G0,top,footprint:[{x:minX,z:minZ},{x:maxX,z:minZ},{x:maxX,z:maxZ},{x:minX,z:maxZ}]})
  // o lote inteiro é uma peça só pra quem anda na calçada (cerca + prédio): ninguém de fora atravessa o pátio
- const solids:SolidoEntorno[]=[box(L.id,B.minX,B.maxX,B.minZ,B.maxZ,G0+WH+.5+RIDGE),box(L.id+'-patio',L.x-E-.1,L.x+E+.1,L.z+BZ1,L.z+E+.1,G0+1.05)]
+ const solids:SolidoEntorno[]=[box(L.id,B.minX,B.maxX,B.minZ,B.maxZ,G0+WH+.5+RIDGE),...(areas?[]:[box(L.id+'-patio',L.x-E-.1,L.x+E+.1,L.z+BZ1,L.z+E+.1,G0+1.05)])]
  // 💙 06/11: jardim sensorial, piquenique e quadra adaptada (só quando o mapa abriu os quarteirões do sul)
  const extra=areas?criarAreasCasaLuca(parent,{leve,onReady}):undefined;if(extra)solids.push(...extra.solids)
  root.userData.casaLuca={people:()=>people.length+(extra?.people()??0)}

@@ -4,7 +4,7 @@ import {createCivilian} from './cidade3d/civilians.mjs'
 import {residentVisibility} from './cidade3d/resident-visibility.mjs'
 import {criarBibliotecaVeiculos} from './veiculos-modelos-3d'
 import {getLang} from './lang'
-import {JARDIM_CASA_LUCA as J,PRACA_CASA_LUCA as P,QUADRA_CASA_LUCA_SUL as Q} from './presidencia-casa-luca-planta'
+import {JARDIM_CASA_LUCA as J,PRACA_CASA_LUCA as P,QUADRA_CASA_LUCA_SUL as Q,TERRENO_CASA_LUCA as TER} from './presidencia-casa-luca-planta'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
 
 /** 💙 06/11 — as áreas novas do complexo da Casa Luca (Diego: *"um pouco maior… cobrindo mais o jardim"*):
@@ -30,7 +30,7 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
   const L=Math.hypot(bx-ax,bz-az),pitch=Math.atan2(by-ay,L),g=new T.BoxGeometry(w,th,Math.hypot(L,by-ay))
   g.rotateX(-pitch);g.rotateY(Math.atan2(bx-ax,bz-az));g.translate((ax+bx)/2,(ay+by)/2-th/2,(az+bz)/2);parts.push(tint(g,color))
  }
- const WHITE='#FBF7EC',BLUE='#2F6FD6',NAVY='#1E3F86',SKY='#4FB6E8',TACT='#FFD21F',WOOD='#B98654',GREY='#8b8f93'
+ const WHITE='#FBF7EC',BLUE='#2F6FD6',SKY='#4FB6E8',TACT='#FFD21F',WOOD='#B98654',GREY='#8b8f93'
  const FLOWERS=['#E8503A','#FFC400','#7C3AED','#F2A8B6','#F59A2E','#4FB6E8','#ffffff']
  /** cerca baixa da Casa Luca (branca com tábuas azuis), a mesma do pátio */
  const fence=(x0:number,z0:number,x1:number,z1:number,y0:number)=>{const L=Math.hypot(x1-x0,z1-z0),a=Math.atan2(z1-z0,x1-x0),n=Math.max(1,Math.round(L/1.4))
@@ -62,20 +62,41 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
   const g=mergeGeometries(list)!;list.forEach(p=>p.dispose());geometries.push(g);return g})()
  const pinwheel=(x:number,z:number,y0:number,ry:number)=>{cyl(WHITE,.03,.03,1.6,x,y0+.8,z,6);const p=new T.Mesh(blades,colored);p.name='casa-luca-cata-vento';p.position.set(x,y0+1.65,z);p.rotation.y=ry;p.userData.speed=2.2+pinwheels.length%3*.6;root.add(p);pinwheels.push(p)}
 
- // ═══ 1) JARDIM SENSORIAL (gramado da diagonal, chão y −0,24) ═══
- const g0=J.chao,top=g0+.12,[c0,c1,c2,c3]=J.poligono
- // caminho acessível largo (1,8 m) com piso tátil no meio: entra pelo portão leste do pátio (rampa descendo do pátio),
- // contorna as árvores e sai por outra rampa até a calçada da rua de baixo
- const CAM='#e8dfca'
- slab(CAM,-130.4,.17,165.7,-126.5,top,165.7,1.8)
- slab(CAM,-126.5,top,164.8,-126.5,top,172.4,1.8)
- slab(CAM,-127.4,top,171.5,-110.4,top,171.5,1.8)
- slab(CAM,-118,top,172.4,-118,.17,174.1,1.8)
- for(const [ax,az,bx,bz] of [[-126.5,165.2,-126.5,171.5],[-126.5,171.5,-111,171.5]] as const)slab(TACT,ax,top+.015,az,bx,top+.015,bz,.32,.03)
- // corrimão baixo nas duas rampas
- for(const s of[-1,1]){slab(NAVY,-130.2,.17+.85,165.7+s*1,-126.6,top+.85,165.7+s*1,.06,.06);slab(NAVY,-118+s*1,top+.85,172.5,-118+s*1,.17+.85,174,.06,.06)
-  for(const t of[0,.5,1]){const x=-130.2+3.6*t,y=.17+(top-.17)*t;cyl(NAVY,.035,.035,.85,x,y+.42,165.7+s*1,6)}
-  for(const t of[0,1]){const z=172.5+1.5*t,y=top+(.17-top)*t;cyl(NAVY,.035,.035,.85,-118+s*1,y+.42,z,6)}}
+ // ═══ 0) TERRENO ÚNICO (07/11, Diego: *"quero tudo junto nesse espaço todo deles"*): um gramado só, no nível das calçadas,
+ // por cima de onde eram as ruas de dentro, a praça e o gramado da diagonal; uma cerca só em volta; caminhos largos com piso tátil ═══
+ const LAWN=.14
+ {const shape=new T.Shape(TER.map(p=>new T.Vector2(p.x,-p.z)));const g=new T.ExtrudeGeometry(shape,{depth:.42,bevelEnabled:false});g.rotateX(-Math.PI/2);g.translate(0,LAWN-.42,0)
+  // malha própria (a extrusão não tem índice e não entra no merge das outras peças)
+  geometries.push(g);const m=new T.MeshStandardMaterial({color:'#6f9a52',roughness:.95});materials.push(m);const lawn=new T.Mesh(g,m);lawn.name='casa-luca-gramado';lawn.receiveShadow=true;root.add(lawn)}
+ const CAM='#e8dfca',PY=.19
+ /** caminho acessível (2 m, claro) com a faixa tátil amarela no meio */
+ const caminho=(ax:number,az:number,bx:number,bz:number,w=2)=>{slab(CAM,ax,PY,az,bx,PY,bz,w,.06);slab(TACT,ax,PY+.012,az,bx,PY+.012,bz,.32,.03)}
+ // a avenida do terreno: do portão oeste (onde a rua do bairro termina) até o leste, no lugar da rua antiga
+ caminho(-152,178.5,-104,178.5,2.6)
+ caminho(-142,175.2,-142,203)          // portão do pátio → piquenique → portão sul
+ caminho(-142,193,-124,193)            // piquenique → quadra
+ caminho(-118,171.5,-118,181.6)        // jardim → avenida do terreno → quadra
+ // cerca ÚNICA (branca com tábuas azuis) em volta do conjunto, com 3 portões: oeste (pedestres, de frente pra rua que termina ali),
+ // sul (pedestres, no caminho do piquenique) e a entrada dos carros do estacionamento (sul, vinda da rua que continua)
+ {const GW=[{e:5,a:176.6,b:180.4},{e:4,a:-143.6,b:-140.4},{e:4,a:-123.4,b:-97.9}]
+  for(let i=0;i<TER.length;i++){const a=TER[i],b=TER[(i+1)%TER.length],gates=GW.filter(g=>g.e===i)
+   if(!gates.length){fence(a.x,a.z,b.x,b.z,LAWN);continue}
+   const along=Math.abs(b.x-a.x)>Math.abs(b.z-a.z),v=(p:{x:number;z:number})=>along?p.x:p.z,lo=Math.min(v(a),v(b)),hi=Math.max(v(a),v(b)),pt=(t:number)=>along?{x:t,z:a.z}:{x:a.x,z:t}
+   let cur=lo;for(const g of [...gates].sort((m,n)=>m.a-n.a)){if(g.a>cur){const p0=pt(cur),p1=pt(g.a);fence(p0.x,p0.z,p1.x,p1.z,LAWN)};const q0=pt(g.a),q1=pt(g.b);gatePosts(q0.x,q0.z,LAWN);gatePosts(q1.x,q1.z,LAWN);cur=g.b}
+   if(cur<hi){const p0=pt(cur),p1=pt(hi);fence(p0.x,p0.z,p1.x,p1.z,LAWN)}}
+  // placa grande na entrada oeste
+  placa(en?'WELCOME':'BEM-VINDOS',-151.2,182.4,LAWN,-Math.PI/2)}
+ {const at=(a:{x:number;z:number},b:{x:number;z:number},t:number)=>[a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t] as const
+  const face=Math.atan2(TER[3].x-TER[2].x,TER[3].z-TER[2].z)-Math.PI/2
+  for(const [x,z] of [at(TER[1],TER[2],.5),at(TER[2],TER[3],.3),at(TER[2],TER[3],.65)])pinwheel(x,z,LAWN,face)
+  for(const z of[190,197])pinwheel(TER[3].x,z,LAWN,Math.PI/2)
+  for(const z of[160,170,195])pinwheel(TER[0].x,z,LAWN,-Math.PI/2)}
+
+ // ═══ 1) JARDIM SENSORIAL (agora no nível do terreno) ═══
+ const g0=J.chao,top=PY,[c0,c1,c2]=J.poligono
+ // caminho largo com piso tátil: sai do portão leste do pátio, contorna as árvores e desce pra avenida do terreno
+ caminho(-130.4,165.7,-126.5,165.7,1.8);caminho(-126.5,164.8,-126.5,172.4,1.8);caminho(-127.4,171.5,-110.4,171.5,1.8)
+ void c0;void c1;void c2
  // canteiros redondos (borda de madeira, terra e flores coloridas) — longe das árvores e do caminho
  ;([[-124,163.2,1],[-117,169.1,.9],[-128.5,169.4,.7],[-120.5,173.2,.55],[-110,173.25,.5],[-118.6,166,.75]] as const).forEach(([x,z,r],k)=>{
   cyl(WOOD,r+.1,r+.12,.32,x,g0+.16,z,14);cyl('#6b4b2e',r,r,.04,x,g0+.32,z,14)
@@ -88,15 +109,10 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
  for(let i=0;i<3;i++)cyl('#F59A2E',.04,.0,.18,-127.55,g0+.92,158.7+i*.85,6)
  // bancos de frente pro caminho
  bench(-118.6,170.15,g0,0);bench(-123.6,170.15,g0,0)
- // cerca baixa: do lado da avenida (com folga) e embaixo, com o portão da rampa
- fence(c0.x,c0.z,c1.x,c1.z,g0);fence(c1.x,c1.z,c2.x,c2.z,g0);fence(c3.x+.3,c3.z-.15,-119.2,c3.z-.15,g0);fence(-116.8,c3.z-.15,c2.x-1.2,c3.z-.15,g0)
- gatePosts(-119.15,c3.z-.15,g0);gatePosts(-116.85,c3.z-.15,g0)
- {const at=(a:{x:number;z:number},b:{x:number;z:number},t:number)=>[a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t] as const,face=Math.atan2(c2.x-c1.x,c2.z-c1.z)-Math.PI/2
-  for(const [x,z] of [at(c0,c1,.3),at(c1,c2,.38),at(c1,c2,.78)])pinwheel(x,z,g0,face)}
  placa(en?'SENSORY GARDEN':'JARDIM SENSORIAL',-113.4,173.55,g0)
 
  // ═══ 2) PIQUENIQUE (a praça das árvores: árvores, banco e caminhos continuam) ═══
- const pg=-.05,PH=P.half-.25
+ const pg=LAWN,PH=P.half-.25
  // mesas acessíveis: uma ponta SEM banco e com o tampo comprido, pra cadeira de rodas encaixar
  const mesa=(x:number,z:number,ry:number)=>{const c=Math.cos(ry),s=Math.sin(ry),at=(lx:number,lz:number)=>[x+lx*c+lz*s,z-lx*s+lz*c] as const
   box(WOOD,2.4,.08,.9,x,pg+.76,z,ry);for(const lx of[-.85,.6]){const [px,pz]=at(lx,0);box(BLUE,.1,.72,.7,px,pg+.36,pz,ry)}
@@ -106,14 +122,7 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
  mesa(-136.4,187.4,0);mesa(-145.8,189.2,0);mesa(-146.2,196.8,Math.PI)
  // toalha xadrez e lanche na primeira mesa
  box('#E8503A',1.2,.012,.7,-136.6,pg+.81,187.4);ball('#F59A2E',.09,-136.8,pg+.86,187.3);ball('#3FAE5A',.08,-136.3,pg+.86,187.5);cyl(WHITE,.06,.05,.16,-137.1,pg+.89,187.6,8)
- // cerca baixa em volta da praça com as 4 entradas abertas (onde já chegavam os caminhos)
- for(const s of[-1,1]){
-  fence(P.x-PH,P.z+s*PH,P.x-1.6,P.z+s*PH,pg);fence(P.x+1.6,P.z+s*PH,P.x+PH,P.z+s*PH,pg)
-  fence(P.x+s*PH,P.z-PH,P.x+s*PH,P.z-1.6,pg);fence(P.x+s*PH,P.z+1.6,P.x+s*PH,P.z+PH,pg)
-  for(const d of[-1.6,1.6]){gatePosts(P.x+d,P.z+s*PH,pg);gatePosts(P.x+s*PH,P.z+d,pg)}
- }
- placa(en?'PICNIC':'PIQUENIQUE',P.x-5.6,P.z-PH+.55,pg,0)
- pinwheel(P.x+PH,P.z-6,pg,Math.PI/2);pinwheel(P.x-PH,P.z+6,pg,-Math.PI/2)
+ placa(en?'PICNIC':'PIQUENIQUE',P.x-5.6,P.z-PH+2.2,pg,0)
 
  // ═══ 3) QUADRA ADAPTADA + ESTACIONAMENTO (o quarteirão das 2 casas; chão do quarteirão y 0,16) ═══
  const qg=.16,QX=Q.x,CZ=Q.z-5.5,CW=18,CD=9.4
@@ -131,25 +140,31 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
   box(WHITE,.06,1.05,1.6,px-s*.15,qg+2.65,CZ);box(BLUE,.07,.42,.55,px-s*.19,qg+2.55,CZ)
   ring('#F07A21',.24,.025,px-s*.48,qg+2.3,CZ)}
  ;[['#F07A21',.12,QX-4.5,CZ+1.2],['#2F6FD6',.12,QX+2,CZ-2.6],['#F07A21',.12,QX+6,CZ+2.4]].forEach(([c,r,x,z])=>ball(c as string,r as number,x as number,qg+.16,z as number))
- // estacionamento: 4 vagas de cadeirante (azuis, 2,6 m) com faixa zebrada entre elas, de bico pra quadra
- const VZ0=Q.z+1.8,vagas=[-120.2,-115,-109.8,-104.6]
- box('#55595e',Q.half*2-.6,.02,Q.z+Q.half-VZ0-.3,QX,qg+.01,(VZ0+Q.z+Q.half-.3)/2)
+ // estacionamento: 4 vagas de cadeirante (azuis, 2,6 m, com faixa zebrada entre elas) + 2 vagas TEA (autismo), de bico pra quadra;
+ // a entrada dos carros é pelo sul, da rua que continua (rebaixo por cima da calçada)
+ const VZ0=Q.z+1.8,vagas=[-121.6,-116.4,-111.2,-106],tea=[-103.2,-100.6]
+ box('#55595e',25.6,.02,204.6-VZ0+.3,-110.6,qg+.012,(VZ0-.3+204.6)/2)
  const isa=canvasTexture(1,1,(g,cw,ch)=>{g.fillStyle='#2F6FD6';g.fillRect(0,0,cw,ch);g.strokeStyle='#fff';g.fillStyle='#fff';g.lineWidth=cw*.07;g.lineCap='round'
   g.beginPath();g.arc(cw*.47,ch*.22,cw*.07,0,Math.PI*2);g.fill();g.beginPath();g.moveTo(cw*.45,ch*.32);g.lineTo(cw*.45,ch*.55);g.lineTo(cw*.68,ch*.55);g.lineTo(cw*.76,ch*.76);g.stroke()
   g.beginPath();g.arc(cw*.45,ch*.62,cw*.2,Math.PI*.65,Math.PI*2.1);g.stroke()})
  for(const vx of vagas){box(BLUE,2.6,.012,5,vx,qg+.025,VZ0+2.5);const s=plane(isa,1.4,1.4,'casa-luca-vaga');s.rotation.x=-Math.PI/2;s.position.set(vx,qg+.035,VZ0+3.2)
   if(vx<vagas[3])for(let k=0;k<5;k++)box(WHITE,1.1,.01,.12,vx+1.9,qg+.03,VZ0+.5+k*1,Math.PI/4)}
- // cerca baixa em volta do quarteirão com 3 portões: norte (faixa pro jardim), oeste (faixa pro piquenique) e a entrada dos carros no sul
- const QH=Q.half-.2,qx0=QX-QH,qx1=QX+QH,qz0=Q.z-QH,qz1=Q.z+QH
- fence(qx0,qz0,-118.7,qz0,qg);fence(-116.3,qz0,qx1,qz0,qg);gatePosts(-118.65,qz0,qg);gatePosts(-116.35,qz0,qg)
- fence(qx0,qz0,qx0,Q.z-1.2,qg);fence(qx0,Q.z+1.2,qx0,qz1,qg);gatePosts(qx0,Q.z-1.15,qg);gatePosts(qx0,Q.z+1.15,qg)
- fence(qx1,qz0,qx1,qz1,qg);fence(qx0,qz1,-122,qz1,qg);fence(-101.5,qz1,qx1,qz1,qg)
+ // 🧩 07/11 (Diego): VAGA TEA — o símbolo do autismo (o infinito colorido nas cores da fita de quebra-cabeça) pintado no piso
+ // e a placa "VAGA TEA" na cabeceira. Textura de canvas leve, legível de cima.
+ const infinito=(g:CanvasRenderingContext2D,cx:number,cy:number,r:number,lw:number)=>{const cols=['#2F6FD6','#FFC400','#E8503A','#3FAE5A'],N=96
+  g.lineWidth=lw;g.lineCap='round';for(let i=0;i<N;i++){const t0=i/N*Math.PI*2,t1=(i+1.25)/N*Math.PI*2,pt=(t:number)=>{const d=1+Math.sin(t)**2;return[cx+r*Math.cos(t)/d*1.35,cy+r*Math.sin(t)*Math.cos(t)/d*1.35]}
+   const [x0,y0]=pt(t0),[x1,y1]=pt(t1);g.strokeStyle=cols[Math.floor(i/N*4)];g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke()}}
+ const teaChao=canvasTexture(1,1.3,(g,cw,ch)=>{g.fillStyle='#ffffff';g.beginPath();g.roundRect(cw*.04,ch*.04,cw*.92,ch*.92,cw*.1);g.fill();infinito(g,cw/2,ch*.42,cw*.3,cw*.09)
+  g.fillStyle='#1E3F86';g.textAlign='center';g.textBaseline='middle';g.font=font(ch*.2);g.fillText('TEA',cw/2,ch*.8)})
+ const teaPlaca=canvasTexture(.7,.9,(g,cw,ch)=>{g.fillStyle='#ffffff';g.fillRect(0,0,cw,ch);g.lineWidth=cw*.04;g.strokeStyle='#1E3F86';g.strokeRect(cw*.03,ch*.03,cw*.94,ch*.94)
+  g.fillStyle='#1E3F86';g.textAlign='center';g.textBaseline='middle';g.font=font(ch*.15);g.fillText(en?'ASD SPOT':'VAGA TEA',cw/2,ch*.16,cw*.9);infinito(g,cw/2,ch*.5,cw*.26,cw*.07)
+  g.font=font(ch*.08);g.fillStyle='#2F6FD6';g.fillText(en?'AUTISM':'AUTISMO',cw/2,ch*.84,cw*.9)})
+ for(const vx of tea){for(const dx of[-1.25,1.25])box(WHITE,.1,.01,5,vx+dx,qg+.03,VZ0+2.5);box(WHITE,2.6,.01,.1,vx,qg+.03,VZ0+.05)
+  const c=plane(teaChao,1.6,2.08,'casa-luca-vaga-tea');c.rotation.x=-Math.PI/2;c.position.set(vx,qg+.035,VZ0+2.7)
+  cyl(GREY,.04,.04,1.9,vx,qg+.95,VZ0-.35,6);const pl=plane(teaPlaca,.7,.9,'casa-luca-placa-tea');pl.position.set(vx,qg+1.6,VZ0-.32)
+  const bk=plane(teaPlaca,.7,.9,'casa-luca-placa-tea');bk.position.set(vx,qg+1.6,VZ0-.38);bk.rotation.y=Math.PI}
+ const QH=Q.half-.2,qz0=Q.z-QH
  placa(en?'ADAPTED COURT':'QUADRA ADAPTADA',-108,qz0+.3,qg,0)
- pinwheel(qx1,Q.z-3,qg,Math.PI/2);pinwheel(qx1,Q.z+5,qg,Math.PI/2)
-
- // ═══ 4) FAIXAS DE PEDESTRE entre as áreas (só pintura em cima das ruas que já existiam; asfalto em y 0) ═══
- const zebra=(ax:number,az:number,bx:number,bz:number,w=2.6)=>{const L=Math.hypot(bx-ax,bz-az),ang=Math.atan2(bx-ax,bz-az);for(let d=.45;d<L-.2;d+=.85){const t=d/L;box(WHITE,w,.008,.4,ax+(bx-ax)*t,.006,az+(bz-az)*t,ang)}}
- zebra(-142,175.6,-142,181.4);zebra(-117.5,175.6,-117.5,181.4);zebra(-130.4,193,-124.6,193)
 
  const fixed=mergeGeometries(parts)!;parts.forEach(p=>p.dispose());parts.length=0;geometries.push(fixed)
  const mesh=new T.Mesh(fixed,colored);mesh.name='casa-luca-areas-fixo';mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh)
@@ -165,7 +180,7 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
   const g=mergeGeometries(b)!;b.forEach(p=>p.dispose());geometries.push(g);const ramp=new T.Mesh(g,colored);ramp.name='casa-luca-kombi-rampa';ramp.castShadow=true;root.add(ramp)
   const sym=plane(isa,.62,.62,'casa-luca-kombi-simbolo');sym.position.set(vx+hw+.02,qg+1.25,vz-.9);sym.rotation.y=Math.PI/2
   solids.push(solid('casa-luca-kombi',vx-hw-.1,vx+hw+.1,vz-kombi.profile.length/2-.1,vz+kombi.profile.length/2+.1,qg,qg+kombi.profile.height))}
- const car=library.create('civic');if(car){car.root.position.set(vagas[3],qg,VZ0+2.6);car.root.rotation.y=Math.PI;car.root.name='casa-luca-carro';root.add(car.root);vans.push(car)}
+ const car=library.create('civic');if(car){car.root.position.set(tea[1],qg,VZ0+2.6);car.root.rotation.y=Math.PI;car.root.name='casa-luca-carro';root.add(car.root);vans.push(car)}
 
  // ═══ GENTE (as mesmas peças do prédio: cadeira de rodas e andador simples, civis GLB da cidade) ═══
  const chairGeo=(()=>{const b:T.BufferGeometry[]=[],add=(g:T.BufferGeometry,c:string,x:number,y:number,z:number,ry=0,rx=0)=>{if(rx)g.rotateX(rx);if(ry)g.rotateY(ry);g.translate(x,y,z);b.push(tint(g,c))}
@@ -218,6 +233,8 @@ export function criarAreasCasaLuca(parent:T.Object3D,{leve=false,onReady}:{leve?
   for(const p of people){p.body.root.getWorldPosition(tmp);const lod=residentVisibility(tmp,p.h,camera,viewportHeight);p.body.update({seconds,...p.frame(seconds),visible:lod.visible&&day,detail:lod.detail})}
   for(const o of props)o.visible=day
  }
+ // o terreno inteiro é cercado: ninguém da calçada atravessa por dentro (a cerca é a borda do polígono)
+ solids.push({id:'casa-luca-terreno',minX:Math.min(...TER.map(p=>p.x)),maxX:Math.max(...TER.map(p=>p.x)),minZ:Math.min(...TER.map(p=>p.z)),maxZ:Math.max(...TER.map(p=>p.z)),base:.16,top:1.1,footprint:TER.map(p=>({...p}))})
  // sólidos baixos: as tabelas e a Kombi (o resto é chão, cerca baixa e canteiro)
  for(const s of[-1,1])solids.push(solid('casa-luca-tabela'+s,QX+s*(CW/2+.35)-.2,QX+s*(CW/2+.35)+.2,CZ-.8,CZ+.8,qg,qg+3.2))
  let disposed=false

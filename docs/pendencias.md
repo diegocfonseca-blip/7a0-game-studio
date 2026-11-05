@@ -7,6 +7,21 @@
   continua sumindo quando vazio. Fotos: `scripts/mockups/casa-luca-cartao-{novo,vazio}.png`, `casa-luca-{doacao,coracao}-por-cima.png`.
 - Pendente: OK visual do Diego.
 
+## 💙 07/11 — Mapa 3D: CASA LUCA num TERRENO ÚNICO, sem ruas por dentro + VAGAS TEA (LOCAL, branch do agente, só a conta do Diego)
+- Diego: *"não gostei das ruas… quero tudo junto nesse espaço todo deles"*. Saíram os 4 trechos de rua do bairro que cortavam o complexo
+  (`RUAS_CORTADAS_CASA_LUCA`: z 178,5 de x −156,5 a −98,5; x −127,5 e x −98,5 de z 178,5 a 207,5) — o gerador de ruas não cria esses
+  trechos, então calçada, poste, travessia, moradores, entregas e trânsito (tudo lê a mesma rede) não passam mais por ali. O que sobrou termina
+  em esquina: a z 178,5 no cruzamento com a x −156,5 e as x −127,5/−98,5 no cruzamento com a z 207,5. A praça das árvores saiu das praças
+  públicas (sem caminho público por dentro).
+- Terreno único (`TERRENO_CASA_LUCA`): um gramado só no nível da calçada, UMA cerca em volta com 3 portões (oeste, de frente pra rua que termina
+  ali; sul, no caminho do piquenique; e a entrada dos carros do estacionamento, vinda da rua z 207,5 que continua), e caminhos largos com piso
+  tátil ligando prédio → jardim → piquenique → quadra/estacionamento. O jardim subiu pro nível do terreno (sem rampas).
+- 🧩 Vagas TEA (pedido dele): 2 vagas ao lado das 4 de cadeirante, com o infinito colorido (azul/amarelo/vermelho/verde) pintado no piso e a
+  placa "VAGA TEA" (EN: "ASD SPOT").
+- Trava (`test-club-map-navigation`): nenhuma rua nem rota dos ônibus dos times cruza o terreno, nenhuma rua perto dele termina em ponta solta,
+  nada sólido do bairro sobrou dentro. Fotos: `scripts/mockups/casa-luca-junto-cima.png`, `casa-luca-junto-perto.png`, `casa-luca-vaga-tea.png`.
+- Pendente: OK visual do Diego.
+
 ## 💙 06/11 — Mapa 3D: CASA LUCA MAIOR — complexo de 3 áreas (LOCAL, branch do agente, só a conta do Diego)
 - Pedido (print circulado): *"tinha que ser um pouco maior… cobrindo mais o jardim — pode até manter o jardim"*. Agora são 3 áreas ligadas por
   faixas de pedestre pintadas em cima das ruas que JÁ existiam (rua z 178,5 e rua x −127,5 ficam no lugar):

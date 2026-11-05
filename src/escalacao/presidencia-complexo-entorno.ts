@@ -4,7 +4,7 @@ import {criarResidenciaUsuario} from './residencia-3d'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {criarLugaresClube} from './presidencia-clube-lugares'
 import {LOTE_AGENCIA_CLUBE} from './clube-mapa-destinos'
-import {CASA_LUCA,QUADRA_CASA_LUCA_SUL} from './presidencia-casa-luca-planta'
+import {CASA_LUCA,QUADRA_CASA_LUCA_SUL,PRACA_CASA_LUCA,RUAS_CORTADAS_CASA_LUCA} from './presidencia-casa-luca-planta'
 import {criarPatrocinadoresCidade} from './presidencia-patrocinadores-cidade'
 import {RESERVAS_PATROCINADORES_CIDADE,LOTES_PATROCINADORES_CIDADE,RUAS_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
@@ -1033,11 +1033,14 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
     plant({x:p.x,z:p.z+8.6},4.6,false,true,.08)
   }
+  const ruasCortadas=new Set(quadraCasaLuca&&quadraCasaLucaSul?RUAS_CORTADAS_CASA_LUCA:[])
   const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
   for(const p of occupied)for(const [dx,dz] of [[29,0],[-29,0],[0,29],[0,-29]]){
     const a={x:p.x+dx/2-(dz?14.5:0),z:p.z+dz/2-(dx?14.5:0)}
     const b={x:a.x+(dz?29:0),z:a.z+(dx?29:0)}
     const key=[a.x,a.z,b.x,b.z].join(':')
+    // 🔁 07/11: os trechos que passavam por dentro do terreno da Casa Luca não viram rua (a chave entra pra a praça também não desenhar)
+    if(ruasCortadas.has(key)){cityRoads.add(key);continue}
     if(cityRoads.has(key))continue
     cityRoads.add(key)
     // A free midpoint alone can leave the ends inside a future building.
@@ -1248,6 +1251,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
 
   const parkEntrances:{park:PontoComplexo;points:PontoComplexo[]}[]=[]
   for(const p of publicParks){
+    if(ruasCortadas.size&&p.x===PRACA_CASA_LUCA.x&&p.z===PRACA_CASA_LUCA.z)continue // 💙 a praça agora é o piquenique da Casa Luca (sem caminhos públicos)
     const points:PontoComplexo[]=[]
     for(const [dx,dz] of [[-1,0],[1,0],[0,-1],[0,1]]){
       const edge={x:p.x+dx*11.5,z:p.z+dz*11.5}
