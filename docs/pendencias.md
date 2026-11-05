@@ -12357,7 +12357,9 @@ Não retomar sem ele pedir.
 ## 05/11 — 📋 Liga Draft: estratégia pra quem NÃO tem plano (aprovada: *"Perfeito, pode fazer assim"*)
 - Grátis NÃO cria (já era: criar Minhas Ligas = qualquer plano, `canLiga`/`ehPagante`). Grátis entra por convite e joga TUDO
   dentro da liga (nada trava no meio — a liga é de quem pagou).
-- FEITO (no branch, esperando publicar): **1 Liga Draft por vez pro grátis**. Tentou entrar numa 2ª → aviso "📋 Uma Liga Draft por
+- FEITO (no branch, esperando publicar): **1 Liga Draft + 1 liga do Minhas Ligas por vez pro grátis** (05/11, Diego: *"o Liga
+  Draft é diferente do Minhas Ligas… ele pode estar no Minhas Ligas de alguém e no Liga Draft de alguém, de graça"*) — duas contas
+  separadas; o aviso só vem na 2ª do MESMO tipo. Quem JÁ estava em várias continua nelas (só trava entrada nova). Tentou entrar numa 2ª → aviso "📋 Uma Liga Draft por
   vez" com ✅ Sim, sair e entrar (apaga só a vaga dele na outra, o mesmo "sair" de sempre) · ✋ Não, ficar · ⭐ planos. Trava no funil
   `enterRoom` (lobby.tsx, `trocaDraft`); só com os direitos já lidos (na dúvida entra) e só pra liga nova. Foto:
   `scripts/mockups/liga-draft-uma-por-vez.png`.
