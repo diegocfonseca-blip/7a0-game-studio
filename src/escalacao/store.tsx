@@ -8857,7 +8857,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
       if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
       s.careerPresidency = undefined
-      s.simV = 9 // carreira nova já nasce na fórmula nova (gol realista + menos goleada) · 📏 v9 (05/11) = força dos bots na régua nova das cartas (CPU_DIV_BOOST_V9); nas viradas abaixo o carimbo só muda na temporada NOVA
+      s.simV = 8 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
       // 1º clube (o da fundação). Save antigo segue no empresário clássico.
@@ -9017,7 +9017,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerOnline = true
       limpaMarcasDeModo(s) // 🧼 o jogo rápido vira carreira: as escolhas do rápido ficam pra trás (21/10)
       { const riv = s.rivalries; zeraCarreiraAnterior(s); s.rivalries = riv ?? {} } // 🧹 03/11: nada da carreira anterior (o retrospecto é o desta liga rápida, fica)
-      s.simV = 9
+      s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
@@ -9148,7 +9148,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.leilaoSelecao = s.leilaoClubes && action.sport !== 'basquete' && !!action.selecao // 🏳️ 31/10
       s.leilaoDecada = s.leilaoClubes && action.sport !== 'basquete' && !!action.decada // 📅 31/10
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
-      s.simV = 9 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // 📏 sala nova nasce na régua de 02/11 (ver ESCALA_BOTS); sala antiga segue sem o campo. Carreira online fica de fora
       // (a carreira é outra régua, a da divisão — só medida por enquanto) e o basquete também (as cartas da NBA não mudaram).
@@ -11957,7 +11957,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'REAUCTION_ONLINE': {
       if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
-      s.simV = 9 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
@@ -12098,7 +12098,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CONFIRM_MESMO_TIME': {
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção
-      s.simV = 9 // 🪜 28/10: quem segue com o mesmo time também entra no bônus da casa novo (v5) na temporada que começa
+      s.simV = 8 // 🪜 28/10: quem segue com o mesmo time também entra no bônus da casa novo (v5) na temporada que começa
       // 🔒 fecha a janela de contratos votada como "mesmo time" (sem leilão pra
       // soltar jogador pra dentro): quem marcou "Deixar ir" sai de graça (sem venda,
       // já que não tem comprador) — se quebrar o XI, um Cria da Base assume. Quem
@@ -12233,7 +12233,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'RESERVE_AUCTION_ONLINE': {
-      s.simV = 9 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
+      s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // fecha a VENDA e abre a COMPRA (leilão de reservas). MANTÉM os elencos,
       // consome a lista (tira os listados dos times e joga no baralho — o dono
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a

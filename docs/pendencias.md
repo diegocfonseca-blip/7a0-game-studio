@@ -6,31 +6,6 @@
 - Procurei travamento (teto/chão fixo de finalização ou goleiro): o único candidato era o teto ±0,3 do duelo finalização × reflexo;
   tirar ele não mudou NADA (mesmos números em 800 jogos) — então ficou como está. O 0×0 do parelho vem do tempo de 1:30 (≈3 chutes
   por jogo), não de regra. 😵 O "time abalado" (2+ gols atrás piora, pedido dele em 22/10) é a única coisa que olha o placar — ficou.
-## 📏 05/11 — Força dos bots da CARREIRA na régua nova das cartas (feito no branch, NÃO publicado)
-Decisão do Diego: *"ajustar a carreira pra todos, voltando ao equilíbrio de 01/11"*.
-- ⚠️ **A medição anterior (abaixo, "⏳ CARREIRA") olhou o caminho ERRADO**: `DIVISION_BASE`/`cpuAdjFor` só servem à carreira LEGADA
-  (`START` com `career: true` = 🏰 Modo Manager/Dinastia, só admin) e ao alvo da Partida Rápida offline. A carreira de verdade (solo e
-  online v2) é a PIRÂMIDE (`START_CAREER_SOLO` → `simulatePyramid`): lá os clubes de fundo são feitos de CARTAS do catálogo fatiadas por
-  força + o bônus da casa por divisão (`CPU_DIV_BOOST_V8`). Como as cartas dos bots caíram junto (e a fatia do meio, que vira a Série C,
-  caiu ~5), a carreira ficou MAIS FÁCIL na C e na B — não mais difícil.
-- Medido na pirâmide (150 carreiras por divisão, 1ª temporada com o elenco do leilão daquela divisão, 5 rivais, top-4 = sobe):
-  | div | 01/11 (5e35ee8) | hoje | com o conserto |
-  |---|---|---|---|
-  | Várzea | top-4 35% · camp 14% | 34% · 10% | igual a hoje (bônus não mudou) |
-  | D | 87% · 60% | 84% · 45% | igual a hoje |
-  | C | 42% · 19% (pos 7,3) | **80% · 41% (pos 3,2)** | 43% · 18% (pos 6,7) |
-  | B | 24% · 7% | 33% · 10% | 25% · 7% |
-  | A | 11% · 1% | 18% · 5% | igual a hoje (diferença dentro do ruído; folga −1,65 → −1,51) |
-  Copa da carreira: 1–5% em todos (sem mudança medível). Copas usam só cartas + prestígio por divisão (relativo) — não mexidas.
-  Internacionais e Copa do Mundo: força só das cartas dos dois lados, sem número fixo — não mexidas.
-- Conserto: bônus da casa **v9** (`CPU_DIV_BOOST_V9`, pyramidseason): **C +3 → +6 · B +3 → +4**, resto igual. Carimbo = `simV 9`, o mesmo
-  mecanismo das escadas v4–v8: carreira nova nasce no 9 e a VIRADA (novo leilão, mesmo time, leilão de reservas) grava 9 pra temporada que
-  começa; temporada em andamento (save com 8) termina no v8, byte a byte. Não gasta dado (V/D/A saem idênticas com v8 e v9).
-  Carreira online v2: carimbo da SALA (`mundo.fc`, gravado por quem comanda na virada; sala nova nasce com `fc: 1`) — `bonusDaCasa()`.
-- ⚠️ Motor novo (jogo do usuário, `motor2`) NÃO usa o bônus da casa (nunca usou): ali o bot joga só com as cartas. Não mexido.
-- ⏳ Carreira legada (Modo Manager, admin) e Partida Rápida offline seguem com `DIVISION_BASE` como estão.
-- Trava: `npm run forca-carreira`.
-
 ## 📏 05/11 — Força dos BOTS das salas na régua nova das cartas (consertado no branch, NÃO publicado)
 Decisão do Diego: *"consertar agora no online, pra todo mundo, em todas as competições da sala; a carreira fica pra depois (só medir)"*.
 - Causa: a revisão dos overs (02/11) deixou as cartas da galera ~2,5 mais fracas e as dos bots de fundo ~4,7 (eles têm mais carta de

@@ -120,7 +120,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
         const ordem = clubes.map(c => c.user_id)
         const eu = ordem.indexOf(sn.uid ?? '')
         dispatch({ type: 'START_CAREER_SOLO', teamName: clubes[eu]?.nome ?? 'Meu Time', formation: '4-3-3', rivals: 5, co2: { sala: sala.id, nomes: clubes.map(c => c.nome), assento: eu } })
-        await co2Mundo('virada', 1, 0, { ordem, v: 1, fc: 1 }) // 📏 sala nova já nasce na força v9 dos bots
+        await co2Mundo('virada', 1, 0, { ordem, v: 1 })
         return
       }
       const sv = local ?? await lePrivado()
@@ -329,11 +329,7 @@ export function useCo2FimDaVirada() {
   useEffect(() => {
     if (!state.co2?.comanda || state.screen !== 'season' || sn.sala?.fase !== 'virada') return
     const mm = co2Agora().mundo
-    // 📏 05/11: a força dos bots da régua nova das cartas (v9) também é carimbada aqui, na virada (antes da rodada 1):
-    // sala que já estava rolando termina a temporada atual no número velho e entra no novo na próxima.
-    const sn0 = state.seasonNo ?? 1
-    const precisa = mm && ((m2Liberado && mm.m2 == null) || mm.fc == null)
-    const carimbo = precisa ? { ...mm, ...(m2Liberado && mm.m2 == null ? { m2: sn0 } : {}), ...(mm.fc == null ? { fc: sn0 } : {}) } : null
+    const carimbo = m2Liberado && mm && mm.m2 == null ? { ...mm, m2: state.seasonNo ?? 1 } : null
     void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, 90)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado])
 }
