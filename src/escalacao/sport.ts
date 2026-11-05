@@ -545,6 +545,14 @@ export function useTroca2DSala(): boolean {
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
   return troca2dSalaOk
 }
+// ⚽🧠 05/11 (Diego: *"Sim"*): o MOTOR NOVO decide o jogo da carreira de TODO MUNDO — liga uma vez por carreira, a partir do próximo
+// jogo (`LIGA_MOTOR2`), nada que já foi jogado muda. Desligar = MOTOR2_CARREIRA_GERAL = false (volta só pra conta de teste).
+const MOTOR2_CARREIRA_GERAL = true
+export function useMotor2Carreira(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return MOTOR2_CARREIRA_GERAL || campo2dTesterOk
+}
 /** 🧪 a conta de TESTE do 2D (só o Diego): o que ainda não foi liberado junto com o 2D — motor novo na carreira e teste de ritmo */
 export function useCampo2DTester(): boolean {
   const [, force] = useState(0)

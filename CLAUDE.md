@@ -1016,7 +1016,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   *"Mais lances, mais jogadas"* e **golpes das lendas só com FATO conhecido** (`GOLPES` em `campo2d-estilos.ts`; na dúvida, neutro)
   — e o pé só de quem a gente sabe. (5) **A narração acompanha TUDO e tem variedade**: frase nova entra em `campo2d-narracao.ts`,
   PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) 🟢 LIBERADO PRA TODOS em 05/11
-  (`CAMPO2D_GERAL = true`); PAGO fora da sala, do ⭐ Craque Salas pra cima. O motor novo na carreira e o teste de ritmo seguem só na conta dele (`useCampo2DTester`). Trava: `npm run campo2d` (300 jogos: placar bate, regras,
+  (`CAMPO2D_GERAL = true`); PAGO fora da sala, do ⭐ Craque Salas pra cima. O teste de ritmo segue só na conta dele (`useCampo2DTester`); o MOTOR NOVO na carreira foi pra TODOS no mesmo dia (*"Sim"*, `MOTOR2_CARREIRA_GERAL`). Trava: `npm run campo2d` (300 jogos: placar bate, regras,
   erros de motor).
   (8) **ORGANIZAÇÃO e SINCRONIA** (20/10, *"analise a fundo"*): bola parada respeita a distância da regra (tiro de meta = rival fora
   da área · falta/escanteio = 9,15 m · lateral = 2 m · saída = cada um no seu campo), ninguém "pula" nem anda dentro de outro, e chute

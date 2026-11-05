@@ -3,7 +3,8 @@
   quem CRIA precisa de plano e quem entra assiste de graça. Selo **NOVO verde** no "Jogo" do criar sala (sai a faixa "LANÇA COM 2K").
 - 🧪 Continua SÓ na conta do Diego (`useCampo2DTester`, nova trava): o **MOTOR NOVO decidindo o jogo da carreira** (offline, internacional e
   carreira online) e o **teste de ritmo** da Partida Rápida (2× e com/sem Manual). Liberar o 2D NÃO trocou o motor de ninguém.
-  ⏳ Pergunta em aberto pro Diego: ligar o motor novo na carreira de todo mundo? (muda resultado de jogo — não liguei sem ele mandar).
+  ✅ 05/11 (*"Sim"*): **motor novo ligado na carreira de TODO MUNDO** (`MOTOR2_CARREIRA_GERAL = true`, `useMotor2Carreira`): liga uma vez
+  por carreira a partir do próximo jogo (nada jogado muda). Desligar = `false`. O teste de ritmo segue só na conta dele.
 - 🗺️ Mapa 3D da carreira e o botão "Ver o jogo no estádio do mapa": trava própria (`presidentAvailable`/`PRESIDENCY_STADIUM_RELEASED`), NÃO mexi.
 - `MINHA_LIGA_DRAFT_GERAL = true`: Liga Draft no criar sala pra todos, selo **NOVO verde** (sai a faixa da meta). Regras de sempre: criar
   = plano (Craque Salas 2 · Completo+ 3, por tipo), grátis joga em 1 de cada (`esc_liga_limite_gratis`). Textos dos planos voltaram a
