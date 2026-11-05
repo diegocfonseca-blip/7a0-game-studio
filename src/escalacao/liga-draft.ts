@@ -39,7 +39,8 @@ export interface DraftEstado {
   idx: number // de quem é a vez
   // 'aguarda' = Minha Liga Draft: esperando o ✋ pronto de quem está na vez · 'prontos' = ✋ todo mundo antes de uma etapa (o dono
   // decide quando segue) · 'leilao' = envelope dos sondados/à venda · 'igualar' = quem sondou decide se iguala · 'escala' = 45 s
-  fase: 'escolha' | 'revela' | 'aguarda' | 'prontos' | 'leilao' | 'igualar' | 'escala'
+  fase: 'escolha' | 'revela' | 'aguarda' | 'prontos' | 'leilao' | 'revelaLeilao' | 'igualar' | 'escala'
+  revelaIdx?: number // 🔨🎬 05/11: o lote sendo revelado (a revelação do envelope, com suspense, igual à das salas)
   prazo: number // relógio do dono (ms): fim da escolha ou fim do anúncio
   inicioRevela?: number // quando o anúncio começou (as pistas contam a partir daqui)
   picks: DraftPick[]
@@ -267,7 +268,7 @@ export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]
     if (d && d.temporada === prev.seasonNo && Array.isArray(d.ordem) && d.idx < d.ordem.length && ['escolha', 'revela', 'aguarda'].includes(d.fase)) {
       const jaFoi = d.fase === 'revela' ? d.idx + 1 : d.idx
       ordem = d.ordem.slice(jaFoi).map(id => novoDoVelho[id]).filter((x): x is number => x != null)
-    } else if (d && d.temporada === prev.seasonNo && (d.proxima === 'leilao' || ['leilao', 'igualar', 'escala'].includes(d.fase))) {
+    } else if (d && d.temporada === prev.seasonNo && (d.proxima === 'leilao' || ['leilao', 'revelaLeilao', 'igualar', 'escala'].includes(d.fase))) {
       ordem = [] // a fila do draft já tinha acabado (estava no leilão/escalação): ninguém escolhe de novo — segue pra temporada
     }
   }

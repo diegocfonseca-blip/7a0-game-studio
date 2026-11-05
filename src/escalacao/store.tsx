@@ -7507,6 +7507,8 @@ function mldDepoisDaFila(s: EscState): void {
   if (lotes.length) { d.fase = 'prontos'; d.proxima = 'leilao'; d.prontos = []; d.prazo = 0; return }
   mldEscala(s)
 }
+/** 🔨🎬 tempo de cada carta na revelação do leilão do Draft: lances entrando (0,25 s cada) + martelo + o vencedor na tela */
+const MLD_REVELA_LOTE_MS = 5200
 function mldEscala(s: EscState): void {
   const d = s.draft
   if (!d) return
@@ -12851,7 +12853,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!por || !dono || !c || (d.sondagens ?? []).some(x => x.cardId === c.id)) return state
       if (!podeSondarCarta(c, d.temporada)) return state // 🔒 ainda no "contrato" (menos de 3 temporadas no time do amigo)
       d.sondagens = [...(d.sondagens ?? []), { por: por.id, dono: dono.id, cardId: c.id, nome: c.name }]
-      ;(s.marketLog = s.marketLog ?? []).push(`🕵️ ${por.teamName} sondou ${c.name} do ${dono.teamName}`)
+      ;(s.marketLog = s.marketLog ?? []).push(`🕵️ ${por.teamName} sondou um jogador do ${dono.teamName}`) // 🤫 05/11 (Diego): diz QUE sondou e de QUEM, nunca QUAL jogador
       proximoDoDraft(s)
       return s
     }
@@ -12931,6 +12933,16 @@ function reducerBase(state: EscState, action: Action): EscState {
           // ⚡ direito de igualar: quem sondou (e não ganhou, e o dono não segurou) e tem caixa
           l.igualar = l.sondador != null && r.vencedor !== l.dono && r.vencedor !== l.sondador && (caixa[l.sondador] ?? 0) >= r.valor
         }
+        // 🔨🎬 05/11 (Diego: *"tá faltando o suspense de sempre da carta… quem ganhou o leilão"*): antes de seguir, REVELA lote por lote
+        // (todo mundo vê junto, o relógio é do dono) — só depois vêm o "igualar" e a escalação. Nada muda de mão aqui.
+        if ((d.lotes ?? []).length) { d.fase = 'revelaLeilao'; d.revelaIdx = 0; d.prazo = Date.now() + MLD_REVELA_LOTE_MS; return s }
+        mldProximoIgualar(s)
+        return s
+      }
+      if (d.fase === 'revelaLeilao') {
+        const prox = (d.revelaIdx ?? 0) + 1
+        if (prox < (d.lotes ?? []).length) { d.revelaIdx = prox; d.prazo = Date.now() + MLD_REVELA_LOTE_MS; return s }
+        d.revelaIdx = undefined
         mldProximoIgualar(s)
         return s
       }

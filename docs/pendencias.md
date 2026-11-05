@@ -12377,3 +12377,12 @@ Não retomar sem ele pedir.
   (Craque Salas 2 · Completo pra cima 3) junto com `MINHA_LIGA_DRAFT_GERAL = true`.
 - 🔕 05/11: o AVISO de sim/não pro grátis (2ª liga do mesmo tipo) foi DESLIGADO a pedido do Diego (*"não faz o aviso ainda não"*) —
   `AVISO_TROCA_LIGA = false` em lobby.tsx. A trava do banco continua (o grátis não entra numa 2ª e lê o recado antigo). Religar = true.
+
+## 05/11 — 📋 Liga Draft: 3 ajustes pedidos pelo Diego
+- ✅ Sondagem não diz QUAL jogador: "🕵️ sondou Neymarzetti" (lista da vez) e "🕵️ X sondou um jogador do Y" (giro de mercado).
+- ✅ Leilão dos sondados ganhou a REVELAÇÃO com suspense (fase `revelaLeilao`, ~5,2 s por lote, relógio do dono): carta grande,
+  lances entrando (maior em cima), martelo, vencedor verde só depois do martelo, som só pra quem ganhou/vendeu. Depois segue
+  igualar → escalação como antes. Trava `testa-minha-liga-draft.mts` cobre (e confere que a revelação não mexe no caixa).
+- ⚠️ `scripts/testa-liga-draft.mts` (a Liga Draft ANTIGA) já falhava antes (TypeError 'name') — não é destes ajustes.
+- ⏳ Prêmio por colocação (`premioColocacao`, liga-draft.ts): hoje 40·32·26·20·16·14·12·10·8 e 6 do 10º em diante, igual pra liga de
+  10 e de 20. Proposta pro Diego decidir (ver conversa de 05/11).

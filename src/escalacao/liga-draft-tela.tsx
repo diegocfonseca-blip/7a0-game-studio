@@ -6,7 +6,8 @@ import { useEsc } from './store'
 import { Shell, CollectibleCard, Box, Btn, CardFace, HoldButton } from './screens'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
-import { playTick } from './sound'
+import { playTick, playHammer } from './sound'
+import { motion } from 'framer-motion'
 import { flagOf } from './copa-mundo'
 import { seloDoClube } from './selo-clube'
 import type { Card, Sector, Manager } from './types'
@@ -51,6 +52,8 @@ export function EscLigaDraft() {
   const nome = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? '?'
   // 🔨 o leilão dos sondados tem a CARA do envelope de sempre (barra com o tempo, linhas com − / +, LACRAR TUDO)
   if (minha && d.fase === 'leilao') return <LeilaoMinha d={d} you={you} restante={restante} nome={nome} />
+  // 🔨🎬 a revelação do envelope, lote por lote, com o suspense de sempre (05/11)
+  if (minha && d.fase === 'revelaLeilao') return <RevelaLeilao d={d} you={you} nome={nome} />
 
   return (
     <Shell>
@@ -66,7 +69,7 @@ export function EscLigaDraft() {
         {minha && (d.fase === 'prontos' || d.fase === 'leilao' || d.fase === 'igualar' || d.fase === 'escala') ? (
           <EtapaMinha d={d} you={you} souDono={souDono} restante={restante} nome={nome} />
         ) : <>
-        <OrdemDraft ordem={d.ordem} idx={d.idx} fase={d.fase} picks={d.picks} pulados={d.pulados ?? []} sondou={Object.fromEntries((d.sondagens ?? []).map(x => [x.por, x.nome]))} nome={nome} youId={you.id} />
+        <OrdemDraft ordem={d.ordem} idx={d.idx} fase={d.fase} picks={d.picks} pulados={d.pulados ?? []} sondou={Object.fromEntries((d.sondagens ?? []).map(x => [x.por, nome(x.dono)]))} /* 🤫 05/11: mostra o TIME sondado, nunca o jogador */ nome={nome} youId={you.id} />
 
         {ultimo ? (
           <AnuncioDraft key={`${ultimo.mgrId}-${d.idx}`} pick={ultimo} n={d.idx + 1} quem={nome(ultimo.mgrId)} decorrido={agora - (d.inicioRevela ?? agora)} />
@@ -578,6 +581,71 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
             </div>
           </div>
         </div>
+      </div>
+    </Shell>
+  )
+}
+
+// 🔨🎬 REVELAÇÃO DO LEILÃO (05/11, Diego: *"tá faltando o suspense de sempre da carta… igual o motor que já tem nas salas
+// rápidas… e aí tem aquele suspense de quem ganhou"*). A MESMA cara da revelação das salas: a carta grande, os envelopes abrindo
+// um a um (maior em cima), o martelo batendo e a linha de quem levou ficando VERDE — nunca antes do martelo. Som de martelo só pra
+// quem ganhou ou vendeu. Quem manda no tempo é o dono (`DRAFT_TICK`), então a sala inteira vê a mesma carta.
+function RevelaLeilao({ d, you, nome }: { d: DraftEstado; you: Manager; nome: (id: number) => string }) {
+  const t = useT()
+  const i = d.revelaIdx ?? 0
+  const l = d.lotes?.[i]
+  const lances = Object.entries(d.lances?.[i] ?? {}).map(([k, v]) => ({ mgr: Number(k), valor: v })).filter(b => b.valor > 0).sort((a, b) => b.valor - a.valor)
+  const hammerDelay = lances.length * 0.25 + 1.4
+  const [martelou, setMartelou] = useState(false)
+  useEffect(() => {
+    setMartelou(false)
+    if (!l) return
+    const tm = setTimeout(() => {
+      setMartelou(true)
+      const vendeu = l.vencedor != null && l.vencedor !== l.dono && lances.length > 0
+      if (vendeu && (l.vencedor === you.id || l.dono === you.id)) playHammer()
+    }, hammerDelay * 1000)
+    return () => clearTimeout(tm)
+  }, [i]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!l) return <Shell><div className="pt-10 text-center text-5xl">🔨</div></Shell>
+  const ficou = l.vencedor == null || l.vencedor === l.dono
+  const barra = (
+    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
+      <p className="uppercase" style={{ ...OSW, fontSize: 15 }}>🔨 {t('Abrindo os envelopes', 'Opening the envelopes')}</p>
+      <p className="font-black text-sm" style={OSW}>{i + 1}/{d.lotes?.length ?? 0}</p>
+    </div>
+  )
+  return (
+    <Shell bar={barra}>
+      <div className="space-y-3 pb-6">
+        <motion.div key={i} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <motion.div animate={martelou && !ficou ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined} transition={{ duration: 0.5 }}>
+            <Box bg={l.carta.fame >= 5 ? GOLD : '#fff'} className="p-5 relative" shadow={6}>
+              {l.carta.fame >= 5 && <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSW}>👑 LENDA</span>}
+              <CardFace c={l.carta} big />
+              <p className="text-[11.5px] font-bold text-black/60 mt-2">{t('dono', 'owner')}: {nome(l.dono)}{l.sondador != null ? ` · 🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : ''}</p>
+              <div className="mt-3 space-y-1.5">
+                {lances.length === 0 && <p className="font-bold text-black/70">{t('Nenhum lance. Fica com o dono. ↩️', 'No bids. Stays with the owner. ↩️')}</p>}
+                {lances.map((b, k) => {
+                  const venceu = martelou && l.vencedor === b.mgr
+                  return (
+                    <motion.div key={b.mgr} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: k * 0.25 }}
+                      className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5" style={{ backgroundColor: venceu ? GREEN : '#fff' }}>
+                      <p className="font-bold text-sm" style={{ color: venceu ? '#fff' : INK }}>{b.mgr === you.id ? t('🫵 Você', '🫵 You') : nome(b.mgr)}{b.mgr === l.dono ? t(' (dono)', ' (owner)') : ''}</p>
+                      <p className="font-black" style={{ ...OSW, color: venceu ? '#fff' : INK }}>{b.valor}</p>
+                    </motion.div>
+                  )
+                })}
+              </div>
+              {martelou && lances.length > 0 && (
+                <motion.p initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-3 text-center font-black uppercase" style={{ ...OSW, fontSize: 18, color: ficou ? INK : GREEN }}>
+                  {ficou ? t(`🛡️ ${nome(l.dono)} segurou por ${l.valor ?? 0}!`, `🛡️ ${nome(l.dono)} kept him for ${l.valor ?? 0}!`) : t(`🔨 VENDIDO pro ${nome(l.vencedor ?? -1)} por ${l.valor ?? 0}!`, `🔨 SOLD to ${nome(l.vencedor ?? -1)} for ${l.valor ?? 0}!`)}
+                </motion.p>
+              )}
+              {martelou && l.igualar && <p className="mt-1 text-center text-[12px] font-black" style={{ color: ROXO }}>{t(`⚡ ${nome(l.sondador ?? -1)} sondou e ainda pode igualar`, `⚡ ${nome(l.sondador ?? -1)} scouted him and can still match`)}</p>}
+            </Box>
+          </motion.div>
+        </motion.div>
       </div>
     </Shell>
   )

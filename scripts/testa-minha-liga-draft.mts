@@ -151,6 +151,10 @@ s = reducer(s, { type: 'DRAFT_LANCE', mgrId: 2, lote: iS, valor: 50 } as never)
 s = reducer(s, { type: 'DRAFT_LANCE', mgrId: 3, lote: iS, valor: 30 } as never)
 s = reducer(s, { type: 'DRAFT_LANCE', mgrId: 1, lote: iV, valor: 20 } as never)
 avanca(60_000); s = reducer(s, { type: 'DRAFT_TICK' } as never)
+// 🔨🎬 05/11: o envelope fecha numa REVELAÇÃO lote por lote (todo mundo vê junto) — nada muda de mão nela
+assert.equal(s.draft!.fase, 'revelaLeilao', 'depois do envelope vem a revelação'); assert.equal(s.draft!.revelaIdx, 0)
+{ const caixas = s.managers.map(m => m.money); for (let k = 0; k < (s.draft!.lotes ?? []).length; k++) { assert.equal(s.draft!.fase, 'revelaLeilao'); avanca(6_000); s = reducer(s, { type: 'DRAFT_TICK' } as never) }
+  assert.deepEqual(s.managers.map(m => m.money), caixas, 'a revelação não mexe no caixa') }
 assert.equal(s.draft!.fase, 'igualar'); assert.equal(s.draft!.igualarIdx, iS)
 assert.equal(reducer(s, { type: 'DRAFT_IGUALAR', mgrId: 2, sim: true } as never).draft!.lotes![iS].igualou, undefined, 'só quem sondou iguala')
 s = reducer(s, { type: 'DRAFT_IGUALAR', mgrId: 3, sim: true } as never)
