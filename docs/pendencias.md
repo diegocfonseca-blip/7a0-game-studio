@@ -12347,3 +12347,53 @@ Não retomar sem ele pedir.
 - ⏳ IDEIA, sem preço: 🚩 BANDEIRÃO na Loja da Torcida (só carreira, aparece no estádio). Diego ainda decide preço e como aparece.
 - ⏳ Gente entrando e saindo com sacolinha (os moradores do mapa ainda não têm o Shopping como destino).
 - ⚠️ As travas `testa-presidencia-complexo-entorno/concessionaria/paisagismo` já falhavam ANTES do Shopping (mesmo erro).
+- 🔁 05/11, 2ª versão (Diego: *"não achei imponente… tem que ser bem visível… trazer a Vadico pra cá"* e depois *"não gostei
+  da Vadico ser colada"*): o Shopping foi pros quarteirões logo depois da avenida, de frente pro estádio (x 60–204, z −272…−199):
+  átrio de vidro alto com coroa dourada e escudo, ala oeste das lojinhas, ala leste da praça de alimentação, totem alto, praça com
+  chafariz. A **Vadico virou prédio SEPARADO** do lado (x 216–258), com letreiro branco aceso e pátio de carros. A Vadico velha saiu
+  do mapa (fica escondida só pelos dados da entrega de carro); vista/toque/compra de carros apontam pra nova. Sem rua de acesso
+  (*"2 não"*). Clientes decorativos da Vadico velha desligados. ⏳ Gente com sacolinha no Shopping/Vadico nova, se ele pedir.
+
+## 05/11 — 📋 Liga Draft: estratégia pra quem NÃO tem plano (aprovada: *"Perfeito, pode fazer assim"*)
+- Grátis NÃO cria (já era: criar Minhas Ligas = qualquer plano, `canLiga`/`ehPagante`). Grátis entra por convite e joga TUDO
+  dentro da liga (nada trava no meio — a liga é de quem pagou).
+- FEITO (no branch, esperando publicar): **1 Liga Draft + 1 liga do Minhas Ligas por vez pro grátis** (05/11, Diego: *"o Liga
+  Draft é diferente do Minhas Ligas… ele pode estar no Minhas Ligas de alguém e no Liga Draft de alguém, de graça"*) — duas contas
+  separadas; o aviso só vem na 2ª do MESMO tipo. Quem JÁ estava em várias continua nelas (só trava entrada nova). Tentou entrar numa 2ª → aviso "📋 Uma Liga Draft por
+  vez" com ✅ Sim, sair e entrar (apaga só a vaga dele na outra, o mesmo "sair" de sempre) · ✋ Não, ficar · ⭐ planos. Trava no funil
+  `enterRoom` (lobby.tsx, `trocaDraft`); só com os direitos já lidos (na dúvida entra) e só pra liga nova. Foto:
+  `scripts/mockups/liga-draft-uma-por-vez.png`.
+- ⏳ Diego pediu o texto "pode criar ILIMITADO" no botão dos planos, mas hoje existe teto de 5 ligas por pessoa (`MAX_LIGAS = 5`).
+  O texto ficou "joga nas duas e cria as suas ligas" até ele decidir se tira o teto pra quem paga.
+- ⏳ Lançar pra todos = `MINHA_LIGA_DRAFT_GERAL = true` (sport.ts) — só quando ele mandar.
+- 🏆 05/11 (mesma conversa, aprovado): **"Minhas Ligas" passou a se chamar "🏆 Liga da Turma"** na tela (código e salas
+  continuam iguais). Ao tocar: "O mesmo leilão das salas rápidas, mas numa liga só com os seus amigos, que não acaba". A lista
+  das ligas da pessoa virou "🏆 Suas ligas". **Criar por plano e por tipo** (`limiteCriarLigas`, planos-regras.ts): sem plano 0 ·
+  ⭐ Craque Salas 2 Ligas da Turma + 2 Ligas Draft · do ⭐ Craque Completo pra cima 3 + 3. Entrar é ILIMITADO pra quem paga, e
+  todo texto de plano diz isso. Quem já criou mais fica com todas. Saiu o teto antigo de 5 no total (`MAX_LIGAS`). O aviso de
+  limite só aparece quando a pessoa tenta criar além do dela (*"nem precisa avisar pra ninguém"*).
+- ⏳ QUANDO LANÇAR A LIGA DRAFT: os textos públicos (planos `support-plans.tsx`, Loja `loja-clube.tsx`, `limite-sala-venda.tsx`,
+  `support-plans-v2.tsx`) falam só de "Liga da Turma" pra não anunciar o Draft antes da hora — pôr de volta "+ N Ligas Draft"
+  (Craque Salas 2 · Completo pra cima 3) junto com `MINHA_LIGA_DRAFT_GERAL = true`.
+- 🔕 05/11: o AVISO de sim/não pro grátis (2ª liga do mesmo tipo) foi DESLIGADO a pedido do Diego (*"não faz o aviso ainda não"*) —
+  `AVISO_TROCA_LIGA = false` em lobby.tsx. A trava do banco continua (o grátis não entra numa 2ª e lê o recado antigo). Religar = true.
+
+## 05/11 — 📋 Liga Draft: 3 ajustes pedidos pelo Diego
+- ✅ Sondagem não diz QUAL jogador: "🕵️ sondou Neymarzetti" (lista da vez) e "🕵️ X sondou um jogador do Y" (giro de mercado).
+- ✅ Leilão dos sondados ganhou a REVELAÇÃO com suspense (fase `revelaLeilao`, ~5,2 s por lote, relógio do dono): carta grande,
+  lances entrando (maior em cima), martelo, vencedor verde só depois do martelo, som só pra quem ganhou/vendeu. Depois segue
+  igualar → escalação como antes. Trava `testa-minha-liga-draft.mts` cobre (e confere que a revelação não mexe no caixa).
+- ⚠️ `scripts/testa-liga-draft.mts` (a Liga Draft ANTIGA) já falhava antes (TypeError 'name') — não é destes ajustes.
+- ⏳ Prêmio por colocação (`premioColocacao`, liga-draft.ts): hoje 40·32·26·20·16·14·12·10·8 e 6 do 10º em diante, igual pra liga de
+  10 e de 20. Proposta pro Diego decidir (ver conversa de 05/11).
+- ✅ 05/11 (Diego: *"pode fazer"*): **prêmio por colocação pelo TAMANHO** — liga de 10: 40·32·26·22·18·16·14·12·10·8; liga de 20:
+  40·34·30·26·23·20·18·16·14·12·10×5·8×5 (`premioDaLiga`). O CRIADOR EDITA (na criação e na sala de espera — função do banco
+  `liga_patch_draft`, só o dono, só Liga Draft). Mudou o tamanho na criação = volta pro padrão daquele tamanho.
+- ✅ 05/11: **📜 regras da turma no draft** (opcionais, o criador marca e muda na sala de espera): 🚫 Sem Lendas · 🚫 Sem Craque nem
+  Lenda · 🇧🇷 Só clubes brasileiros (= cartas do baralho Brasil). Vale pra escolha do draft de gente E bot (`cartaPermitidaDraft`:
+  tela esconde, motor recusa). Texto: "Quer outra regra? Combinem entre vocês ou peçam pro Diego, criador do jogo, no Instagram".
+  As regras/prêmio editados na sala de espera valem a partir da próxima abertura da liga. Trava: `scripts/testa-liga-draft-regras.mts`.
+  Fotos: `scripts/mockups/liga-draft-regras-premio*.png`.
+- 🔁 05/11 (Diego: *"tire as opções de apertar… só coloque ideias pros usuários combinarem entre eles… qualquer sugestão, falar comigo"*):
+  as REGRAS viraram só um quadro "💡 Ideias de regras pra turma" (texto, o jogo não trava nada) + "fala comigo no Instagram". O motor
+  (`cartaPermitidaDraft`, `draftRegras`, `liga_patch_draft` p_regras) ficou DORMENTE: ninguém liga, nada muda no jogo. Prêmio editável continua.

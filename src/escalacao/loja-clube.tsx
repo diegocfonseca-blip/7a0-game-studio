@@ -58,7 +58,7 @@ const ORDEM: PlanoUnico[] = ['craque', 'lenda', 'batismo', 'fundador']
 const NOME: Record<PlanoUnico, [string, string]> = { craque: ['⭐ Craque', '⭐ Star'], lenda: ['👑 Lenda', '👑 Legend'], batismo: ['🖋 Batismo', '🖋 Club Naming'], fundador: ['🖋 Fundador', '🖋 Founder'] }
 const GANHO: Record<PlanoUnico, [string, string]> = {
   craque: ['Modo Manual, nível e olheiro até Craque, nome prata', 'Manual Mode, levels and scout up to Star, silver name'],
-  lenda: ['nível e olheiro até Lenda, nome dourado, salas à vontade, Minhas Ligas', 'levels and scout up to Legend, gold name, unlimited rooms, My Leagues'],
+  lenda: ['nível e olheiro até Lenda, nome dourado, salas à vontade, cria até 3 Ligas da Turma', 'levels and scout up to Legend, gold name, unlimited rooms, up to 3 Crew Leagues'],
   batismo: ['escudo, mascote e manto feitos só pro seu clube + entrada de gala', 'crest, mascot and kit made just for your club + grand entrance'],
   fundador: ['gala ÚNICA + canto da torcida + número de fundador + seu clube nas salas online dos outros, mesmo sem você jogar', 'UNIQUE entrance + crowd chant + founder number + your club in other people’s online rooms, even when you’re not playing'],
 }
@@ -184,8 +184,8 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
               <div style={{ flex: 1 }}>
                 <b style={{ ...OSW, fontSize: 18, display: 'block' }}>{m === 'craque_salas' ? tr('⭐ Craque Salas', '⭐ Star Rooms') : tr('⭐ Craque Completo', '⭐ Star Complete')}</b>
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{m === 'craque_salas'
-                  ? tr('salas à vontade, Minhas Ligas, seu presidente, seu clã e nome prata', 'unlimited rooms, My Leagues, your president, your clan and silver name')
-                  : tr('tudo do Craque Salas + 🎮 Modo Manual, 📺 Campo 2D (em breve) e nível até Craque', 'everything in Star Rooms + 🎮 Manual Mode, 📺 2D Pitch (soon) and levels up to Star')}</small>
+                  ? tr('salas à vontade, cria até 2 Ligas da Turma, seu presidente, seu clã e nome prata', 'unlimited rooms, up to 2 Crew Leagues, your president, your clan and silver name')
+                  : tr('tudo do Craque Salas + cria até 3 Ligas da Turma, 🎮 Modo Manual, 📺 Campo 2D (em breve) e nível até Craque', 'everything in Star Rooms + up to 3 Crew Leagues, 🎮 Manual Mode, 📺 2D Pitch (soon) and levels up to Star')}</small>
               </div>
               <span style={{ ...preco, background: '#fff', color: INK }}>{direitos?.mensalPlano === m ? tr('✅ assinando', '✅ subscribed') : `${reais(MENSAIS[m].preco)}${tr('/mês', '/mo')} ›`}</span>
             </div>)}

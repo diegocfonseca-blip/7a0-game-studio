@@ -67,7 +67,7 @@ function ItensSocio({ batismo = false }: { batismo?: boolean }) {
     {!batismo && <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você quiser', ' however you like')}</Ok>}
     <Ok><b>{tr('🔎 Vê o nível', '🔎 See the level')}</b>{tr(' de todo jogador, até 👑 Lenda', ' of every player, up to 👑 Legend')}</Ok>
     <Ok><b>{tr('🕵️ Olheiro', '🕵️ Scout')}</b>{tr(': acha jogador ', ': finds players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
-    <Ok><b>{tr('🏆 Cria salas online e Minhas Ligas', '🏆 Create online rooms and My Leagues')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
+    <Ok><b>{tr('🏆 Cria salas online e Liga da Turma', '🏆 Create online rooms and Crew League')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
     <Ok><b>{tr('💾 4 carreiras salvas, guardadas PRA SEMPRE', '💾 4 saved careers, kept FOREVER')}</b>{tr(' na nuvem — todos os seus saves, mesmo parados', ' in the cloud — all your saves, even idle ones')}</Ok>
     <Ok><b>{tr('🌐 Carreira Online e Bafo', '🌐 Online Career and Bafo')}</b>{tr(' inclusos assim que forem lançados', ' included as soon as they launch')}</Ok>
     <Ok><b>{tr('📲 Grupo VIP', '📲 VIP group')}</b>{tr(' no WhatsApp com o Diego', ' on WhatsApp with Diego')}</Ok>
@@ -255,7 +255,7 @@ export function SupportPlansV2(p: Props) {
         <div className="ll-vit-grid">
           <Mini rot={tr('🎮 Modo Manual: pausa, acelera 2×/4×, pula rodada', '🎮 Manual Mode: pause, speed up 2×/4×, skip the round')}><Controles /></Mini>
           <Mini rot={tr('🔎 vê o NÍVEL do jogador: até 👑 Lenda', '🔎 see the player’s LEVEL: up to 👑 Legend')}><CartaNivel tier="ouro" nome="Pelé" nivel={96} /></Mini>
-          <Mini rot={tr('🏆 Minhas Ligas: a liga da sua turma', '🏆 My Leagues: your crew’s league')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
+          <Mini rot={tr('🏆 Liga da Turma: a liga dos seus amigos', '🏆 Crew League: your friends’ league')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
         </div>
         {/* 👑 exemplo do nome dourado (13/10, Diego: "faltou só o exemplo do nome dourado") — antes × depois */}
         <p className="ll-vit-rot" style={{ marginTop: 8 }}>{tr('👑 seu nome nas salas, na tabela e no chat', '👑 your name in rooms, tables and chat')}</p>

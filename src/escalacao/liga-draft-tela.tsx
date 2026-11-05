@@ -6,7 +6,8 @@ import { useEsc } from './store'
 import { Shell, CollectibleCard, Box, Btn, CardFace, HoldButton } from './screens'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
-import { playTick } from './sound'
+import { playTick, playHammer } from './sound'
+import { motion } from 'framer-motion'
 import { flagOf } from './copa-mundo'
 import { seloDoClube } from './selo-clube'
 import type { Card, Sector, Manager } from './types'
@@ -14,7 +15,7 @@ import { EscalacaoMinha } from './minha-escalacao'
 import {
   cartasLivres, nomesOcupados, podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
-  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
+  MLD_ELENCO_MAX, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
 } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#C2452F'
@@ -51,6 +52,8 @@ export function EscLigaDraft() {
   const nome = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? '?'
   // 🔨 o leilão dos sondados tem a CARA do envelope de sempre (barra com o tempo, linhas com − / +, LACRAR TUDO)
   if (minha && d.fase === 'leilao') return <LeilaoMinha d={d} you={you} restante={restante} nome={nome} />
+  // 🔨🎬 a revelação do envelope, lote por lote, com o suspense de sempre (05/11)
+  if (minha && d.fase === 'revelaLeilao') return <RevelaLeilao d={d} you={you} nome={nome} />
 
   return (
     <Shell>
@@ -60,13 +63,14 @@ export function EscLigaDraft() {
           <div className="min-w-0">
             <p className="text-white uppercase leading-none" style={{ ...OSW, fontSize: 17 }}>{t('Noite do draft', 'Draft night')} · {t('temporada', 'season')} {d.temporada + 1}</p>
             <p className="text-white/65 text-[11px] font-bold mt-1">{t('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro.', 'Each manager picks 1 player from the whole game. The champion picks first.')}</p>
+            {minha && temRegraDraft(state.draftRegras) && <p className="text-[11px] font-black mt-1" style={{ color: GOLD }}>📜 {t('Regras da turma', 'Crew rules')}: {textoRegrasDraft(state.draftRegras, t)}</p>}
           </div>
         </div>
 
         {minha && (d.fase === 'prontos' || d.fase === 'leilao' || d.fase === 'igualar' || d.fase === 'escala') ? (
           <EtapaMinha d={d} you={you} souDono={souDono} restante={restante} nome={nome} />
         ) : <>
-        <OrdemDraft ordem={d.ordem} idx={d.idx} fase={d.fase} picks={d.picks} pulados={d.pulados ?? []} sondou={Object.fromEntries((d.sondagens ?? []).map(x => [x.por, x.nome]))} nome={nome} youId={you.id} />
+        <OrdemDraft ordem={d.ordem} idx={d.idx} fase={d.fase} picks={d.picks} pulados={d.pulados ?? []} sondou={Object.fromEntries((d.sondagens ?? []).map(x => [x.por, nome(x.dono)]))} /* 🤫 05/11: mostra o TIME sondado, nunca o jogador */ nome={nome} youId={you.id} />
 
         {ultimo ? (
           <AnuncioDraft key={`${ultimo.mgrId}-${d.idx}`} pick={ultimo} n={d.idx + 1} quem={nome(ultimo.mgrId)} decorrido={agora - (d.inicioRevela ?? agora)} />
@@ -253,10 +257,11 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   }, [state.managers])
   const q = norm(busca.trim())
   const lista = useMemo(() => {
-    let l = livres.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)))
+    // 📜 05/11: a regra da turma esconde quem não pode (a MESMA função que o motor confere em DRAFT_ESCOLHER)
+    let l = livres.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)) && (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)))
     l = [...l].sort((a, b) => forca(b) - forca(a))
     return l.slice(0, 60)
-  }, [livres, pos, q])
+  }, [livres, pos, q, state.minhaLigaDraft, state.draftRegras])
   const tomados = useMemo(() => {
     if (q.length < 3) return []
     const vistos = new Set<string>()
@@ -581,6 +586,77 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
       </div>
     </Shell>
   )
+}
+
+// 🔨🎬 REVELAÇÃO DO LEILÃO (05/11, Diego: *"tá faltando o suspense de sempre da carta… igual o motor que já tem nas salas
+// rápidas… e aí tem aquele suspense de quem ganhou"*). A MESMA cara da revelação das salas: a carta grande, os envelopes abrindo
+// um a um (maior em cima), o martelo batendo e a linha de quem levou ficando VERDE — nunca antes do martelo. Som de martelo só pra
+// quem ganhou ou vendeu. Quem manda no tempo é o dono (`DRAFT_TICK`), então a sala inteira vê a mesma carta.
+function RevelaLeilao({ d, you, nome }: { d: DraftEstado; you: Manager; nome: (id: number) => string }) {
+  const t = useT()
+  const i = d.revelaIdx ?? 0
+  const l = d.lotes?.[i]
+  const lances = Object.entries(d.lances?.[i] ?? {}).map(([k, v]) => ({ mgr: Number(k), valor: v })).filter(b => b.valor > 0).sort((a, b) => b.valor - a.valor)
+  const hammerDelay = lances.length * 0.25 + 1.4
+  const [martelou, setMartelou] = useState(false)
+  useEffect(() => {
+    setMartelou(false)
+    if (!l) return
+    const tm = setTimeout(() => {
+      setMartelou(true)
+      const vendeu = l.vencedor != null && l.vencedor !== l.dono && lances.length > 0
+      if (vendeu && (l.vencedor === you.id || l.dono === you.id)) playHammer()
+    }, hammerDelay * 1000)
+    return () => clearTimeout(tm)
+  }, [i]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!l) return <Shell><div className="pt-10 text-center text-5xl">🔨</div></Shell>
+  const ficou = l.vencedor == null || l.vencedor === l.dono
+  const barra = (
+    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
+      <p className="uppercase" style={{ ...OSW, fontSize: 15 }}>🔨 {t('Abrindo os envelopes', 'Opening the envelopes')}</p>
+      <p className="font-black text-sm" style={OSW}>{i + 1}/{d.lotes?.length ?? 0}</p>
+    </div>
+  )
+  return (
+    <Shell bar={barra}>
+      <div className="space-y-3 pb-6">
+        <motion.div key={i} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <motion.div animate={martelou && !ficou ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined} transition={{ duration: 0.5 }}>
+            <Box bg={l.carta.fame >= 5 ? GOLD : '#fff'} className="p-5 relative" shadow={6}>
+              {l.carta.fame >= 5 && <span className="absolute top-2 right-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black bg-white" style={OSW}>👑 LENDA</span>}
+              <CardFace c={l.carta} big />
+              <p className="text-[11.5px] font-bold text-black/60 mt-2">{t('dono', 'owner')}: {nome(l.dono)}{l.sondador != null ? ` · 🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : ''}</p>
+              <div className="mt-3 space-y-1.5">
+                {lances.length === 0 && <p className="font-bold text-black/70">{t('Nenhum lance. Fica com o dono. ↩️', 'No bids. Stays with the owner. ↩️')}</p>}
+                {lances.map((b, k) => {
+                  const venceu = martelou && l.vencedor === b.mgr
+                  return (
+                    <motion.div key={b.mgr} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: k * 0.25 }}
+                      className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5" style={{ backgroundColor: venceu ? GREEN : '#fff' }}>
+                      <p className="font-bold text-sm" style={{ color: venceu ? '#fff' : INK }}>{b.mgr === you.id ? t('🫵 Você', '🫵 You') : nome(b.mgr)}{b.mgr === l.dono ? t(' (dono)', ' (owner)') : ''}</p>
+                      <p className="font-black" style={{ ...OSW, color: venceu ? '#fff' : INK }}>{b.valor}</p>
+                    </motion.div>
+                  )
+                })}
+              </div>
+              {martelou && lances.length > 0 && (
+                <motion.p initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-3 text-center font-black uppercase" style={{ ...OSW, fontSize: 18, color: ficou ? INK : GREEN }}>
+                  {ficou ? t(`🛡️ ${nome(l.dono)} segurou por ${l.valor ?? 0}!`, `🛡️ ${nome(l.dono)} kept him for ${l.valor ?? 0}!`) : t(`🔨 VENDIDO pro ${nome(l.vencedor ?? -1)} por ${l.valor ?? 0}!`, `🔨 SOLD to ${nome(l.vencedor ?? -1)} for ${l.valor ?? 0}!`)}
+                </motion.p>
+              )}
+              {martelou && l.igualar && <p className="mt-1 text-center text-[12px] font-black" style={{ color: ROXO }}>{t(`⚡ ${nome(l.sondador ?? -1)} sondou e ainda pode igualar`, `⚡ ${nome(l.sondador ?? -1)} scouted him and can still match`)}</p>}
+            </Box>
+          </motion.div>
+        </motion.div>
+      </div>
+    </Shell>
+  )
+}
+
+/** 📜 as regras da turma em uma linha (05/11) */
+export function textoRegrasDraft(r: RegrasDraft | undefined, t: (pt: string, en: string) => string): string {
+  if (!r) return ''
+  return [r.semCraques ? t('nada de Craque nem Lenda', 'no Stars or Legends') : r.semLendas ? t('sem Lendas', 'no Legends') : '', r.soBrasil ? t('só clubes brasileiros', 'Brazilian clubs only') : ''].filter(Boolean).join(' · ')
 }
 
 // ⚡ quem sondou decide se iguala o maior lance

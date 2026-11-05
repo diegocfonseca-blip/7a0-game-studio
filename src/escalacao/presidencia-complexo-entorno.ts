@@ -11,7 +11,7 @@ import {criarBotecoBairro,type BotecoBairro} from './presidencia-boteco-bairro'
 import {arquiteturaDoEndereco} from './presidencia-bairro-arquitetura'
 import * as THREE from 'three'
 import {gerarPlantaTransporte, LOTES_ESTACIONAMENTO_COMPLEXO, faixaTransporteComplexo} from './presidencia-complexo-transporte-model'
-import {criarConcessionariaComplexo, PLANTA_VADICO} from './presidencia-complexo-concessionaria'
+import {criarConcessionariaComplexo} from './presidencia-complexo-concessionaria'
 import {criarShoppingClube, PLANTA_SHOPPING} from './presidencia-shopping-clube'
 import {planejarRedeViaria, poligonoRuaComplexo, AJUSTES_RUAS_COMPLEXO, type RuaComplexo} from './presidencia-complexo-ruas'
 import {plantaPedestreComplexo} from './presidencia-complexo-pedestres'
@@ -173,7 +173,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   }))
   // Purchased driveways are curved/concave, so subtract their actual triangles
   // from old raised pavements rather than treating the whole strip as convex.
-  const transportCorridors=[...transport.vehicleSurfaces,{polygon:PLANTA_VADICO.drivewayCutPolygon}].flatMap(surface=>{
+  const transportCorridors=[...transport.vehicleSurfaces].flatMap(surface=>{
     const source=surface.polygon
     return THREE.ShapeUtils.triangulateShape(source.map(p=>new THREE.Vector2(p.x,p.z)),[]).map(indices=>{
       const points=indices.map(i=>source[i]),area=points.reduce((sum,a,i)=>{const b=points[(i+1)%points.length];return sum+a.x*b.z-b.x*a.z},0)
@@ -260,7 +260,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
   const serviceReservations=[...['east','west','branch'].map(key=>poligonoRuaComplexo({points:AJUSTES_RUAS_COMPLEXO[key as 'east'|'west'|'branch'],width:5.8},1.6)),circle(AJUSTES_RUAS_COMPLEXO.turning.center,7)]
-  const landscapeReservations=[...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_VADICO.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
+  const landscapeReservations=[...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
     ...(transport.station.enabled?[faixaTransporteComplexo([transport.station.point(-transport.station.railExtent,0),transport.station.point(transport.station.railExtent,0)],14)]:[]),
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
@@ -1157,7 +1157,6 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       ...(club?.residence?[{id:TERRENO_USUARIO.id,polygon:TERRENO_USUARIO.footprint}]:[]),
       ...(club?.arena?[{id:ARENA_ONLINE.id,polygon:ARENA_ONLINE.footprint}]:[]),
       ...Object.values(LOTES_PATROCINADORES_CIDADE).map(lot=>({id:'patrocinador-'+lot.id,polygon:lot.footprint})),
-      ...PLANTA_VADICO.reservationPolygons.map((polygon,i)=>({id:`vadico-${i}`,polygon})),
       ...PLANTA_SHOPPING.reservationPolygons.map((polygon,i)=>({id:`shopping-${i}`,polygon})),
       ...parcels.map((p,i)=>({id:`quadra-${i}`,polygon:parcelPolygon(p)})),
       ...solids.filter(s=>s.base<.3&&s.top>.5).map(s=>({id:s.id,polygon:s.footprint})),
@@ -1299,7 +1298,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       const side=hash(a.x+along,a.z)>.5?1:-1,offset=side*(road.width/2+road.walk-.22)
       const p={x:a.x+dx*along-dz*offset,z:a.z+dz*along+dx*offset}
       if(streetLamps.some(q=>Math.hypot(q.x-p.x,q.z-p.z)<20)||protectedPath(p,1.1))continue
-      if(registeredLots.some(lot=>inside(p,lot.footprint))||parkingLots.some(poly=>inside(p,poly))||PLANTA_VADICO.reservationPolygons.some(poly=>inside(p,poly))||PLANTA_SHOPPING.reservationPolygons.some(poly=>inside(p,poly)))continue
+      if(registeredLots.some(lot=>inside(p,lot.footprint))||parkingLots.some(poly=>inside(p,poly))||PLANTA_SHOPPING.reservationPolygons.some(poly=>inside(p,poly)))continue
       if(solids.some(s=>s.base<.4&&s.top>1&&inside(p,s.footprint)))continue
       if(streetNetwork.some(other=>other!==road&&other.points.some((q,j)=>j>0&&distanceToSegment(p,other.points[j-1],q)<other.width/2+.4)))continue
       if(!supportedLamp(p))continue
@@ -1435,7 +1434,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // Sponsor scenery has its own lot and resources; it never consumes a club
   // purchase or replaces an eventual building in the stadium's progression.
   const dealership=criarConcessionariaComplexo(root,onReady)
-  const shopping=criarShoppingClube(root) // 🛍️ 05/11: colado na Vadico
+  const shopping=criarShoppingClube(root,onReady) // 🛍️ 05/11: de frente pro estádio, depois da avenida
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
   const ownerHome=club?.residence?criarResidenciaUsuario(root,onReady):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
@@ -1460,7 +1459,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     ...botecos.map(pub=>({id:pub.id,purpose:'encontro',point:{x:pub.root.position.x,z:pub.root.position.z+9}})),
     ...(['tidex','oittolabs'] as const).map(id=>({id,purpose:'trabalho',point:doors[id].approach,access:[doors[id].approach,doors[id].threshold,doors[id].inside]})),
   ]
-  solids.push(...dealership.solids)
+  // 🚗 05/11: a Vadico VELHA saiu do mapa (a loja nova é o prédio separado do lado do Shopping do Clube). Ela continua sendo
+  // montada só pelos dados que a entrega de carro e as conferências leem; não aparece e não bloqueia ninguém.
+  dealership.root.visible=false
   solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping
   root.userData.dealership=dealership.metadata
   let disposed=false
