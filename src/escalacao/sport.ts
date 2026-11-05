@@ -343,7 +343,9 @@ export function useLigaDraftLiberada(): boolean {
 // 📋🏆 MINHA LIGA DRAFT (01/11) — variante da Liga Draft com as regras fechadas com o Diego (docs/pendencias.md, "Minhas Ligas
 // + Draft"): 1ª temporada com o leilão NORMAL, draft de 45 s por vez com ✋ pronto, o dono pode pular, tempo acabou = perde a vez.
 // Só Diego e Futpoint FC VEEM e CRIAM; quem eles chamarem com código + senha entra e joga normal. Liberar geral = MINHA_LIGA_DRAFT_GERAL.
-const MINHA_LIGA_DRAFT_GERAL = false
+// 🟢 05/11: LIBERADA PRA TODOS (Diego: *"libere já… a Liga Draft com todas as regras de criação de sala, liga, plano"*). Criar continua
+// do plano (Craque Salas 2 · Completo+ 3, `limiteCriarLigas`); grátis joga em 1 de cada (`esc_liga_limite_gratis`).
+const MINHA_LIGA_DRAFT_GERAL = true
 const MINHA_LIGA_DRAFT_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com', 'vbtrabalhos22@gmail.com', 'lucasfonseca363@gmail.com']) // + vbtrabalhos22 (01/11) + Lucas Barreto 30 (02/11), pedidos do Diego
 let minhaLigaDraftOk = MINHA_LIGA_DRAFT_GERAL
 function applyMinhaLigaDraft(email?: string | null): void {
@@ -509,16 +511,22 @@ export function useTelaPC(): boolean {
 // 📺 CAMPO 2D (20/10) — o jogo ao vivo no campinho. Só a conta do Diego enquanto é construído (*"não coda pra todo mundo não,
 // mas já começa a fazer"*). Regra dele pra quando liberar: é PAGO, do ⭐ Craque pra cima (na carreira, botão junto do Manual;
 // nas salas, escolha na hora de criar: "⚡ Padrão rápido" ou "📺 2D"). Liberar = CAMPO2D_GERAL = true + a trava de plano.
-const CAMPO2D_GERAL = false
+// 🟢 05/11: LIBERADO PRA TODOS (Diego: *"libere já o campo 2D pra aparecer em todos os modos offline ou online pra todos igual aparece
+// na minha conta"*). Continua PAGO fora da sala (⭐ Craque Salas pra cima) e na sala quem CRIA precisa de plano. O que segue SÓ na conta
+// do Diego (`useCampo2DTester`): o MOTOR NOVO decidindo o jogo da carreira e o teste de ritmo da Partida Rápida. Mapa 3D: outra trava.
+const CAMPO2D_GERAL = true
 const CAMPO2D_TESTERS = new Set(['diego.c.fonseca@gmail.com']) // 🔒 03/11: instrução mais recente do Diego: Campo 2D somente na conta dele.
 let campo2dOk = CAMPO2D_GERAL
+let campo2dTesterOk = false // 🧪 só a conta do Diego: motor novo na carreira + teste de ritmo (não liberados)
 /** 🧪 só bancada */
-export function applyCampo2DBancada(): void { campo2dOk = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
+export function applyCampo2DBancada(): void { campo2dOk = true; campo2dTesterOk = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 function applyCampo2D(email?: string | null): void {
   const u = CAMPO2D_GERAL || (!!email && CAMPO2D_TESTERS.has(email.toLowerCase()))
   const tr2 = TROCA_2D_SALA_GERAL || (!!email && TROCA_2D_SALA_TESTERS.has(email.toLowerCase())) // 📺⚡ troca na sala (mesma batida do login)
-  if (u === campo2dOk && tr2 === troca2dSalaOk) return
+  const te = !!email && CAMPO2D_TESTERS.has(email.toLowerCase())
+  if (u === campo2dOk && tr2 === troca2dSalaOk && te === campo2dTesterOk) return
   campo2dOk = u
+  campo2dTesterOk = te
   troca2dSalaOk = tr2
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
@@ -536,6 +544,20 @@ export function useTroca2DSala(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
   return troca2dSalaOk
+}
+// ⚽🧠 05/11 (Diego: *"Sim"*): o MOTOR NOVO decide o jogo da carreira de TODO MUNDO — liga uma vez por carreira, a partir do próximo
+// jogo (`LIGA_MOTOR2`), nada que já foi jogado muda. Desligar = MOTOR2_CARREIRA_GERAL = false (volta só pra conta de teste).
+const MOTOR2_CARREIRA_GERAL = true
+export function useMotor2Carreira(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return MOTOR2_CARREIRA_GERAL || campo2dTesterOk
+}
+/** 🧪 a conta de TESTE do 2D (só o Diego): o que ainda não foi liberado junto com o 2D — motor novo na carreira e teste de ritmo */
+export function useCampo2DTester(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return campo2dTesterOk
 }
 export function useCampo2DLiberado(): boolean {
   const [, force] = useState(0)

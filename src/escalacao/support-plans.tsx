@@ -237,11 +237,12 @@ export function SupportPlans(p: Props) {
           <LinhaSala tier="prata" nome={meu} />
           <div className="ll-vit-grid">
             <Mini rot={tr('♾️ cria quantas salas online quiser por dia', '♾️ create as many online rooms as you want a day')}><div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>{['A9XHEV', 'K9FC22'].map(c => <span key={c} style={{ ...OSW, fontSize: 9, background: '#fff', border: `2px solid ${INK}`, borderRadius: 5, padding: '1px 5px' }}>{c}</span>)}</div></Mini>
-            <Mini rot={tr('🏆 cria até 3 Ligas da Turma · entra em quantas quiser', '🏆 create up to 3 Crew Leagues · join as many as you like')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div></Mini>
+            <Mini rot={tr('🏆 cria até 3 Ligas da Turma + 3 Ligas Draft · entra em quantas quiser', '🏆 create up to 3 Crew Leagues + 3 Draft Leagues · join as many as you like')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div></Mini>
           </div>
         </Vitrine>
         <Ok><b>{tr('🧑‍💼 Crie o seu presidente', '🧑‍💼 Create your president')}</b>{tr(' (o seu personagem)', ' (your character)')}</Ok>
         <Ok><b>{tr('⚔️ Crie o seu clã', '⚔️ Create your clan')}</b></Ok>
+        <Ok><b>{tr('📺 Campo 2D', '📺 2D Pitch')}</b>{tr(': o jogo rolando no campinho, na carreira, na partida rápida e nas salas que você cria', ': the match playing out on the pitch, in career, quick match and the rooms you create')}</Ok>
         <NomeReservado />
         <Ok><b>{tr('🥈 Nome prata brilhando', '🥈 Shining silver name')}</b>{tr(' nas salas, na tabela e no chat', ' in rooms, tables and chat')}</Ok>
         <p className="ll-support-note">{tr('O Modo Manual e o Campo 2D vêm no ⭐ Craque Completo.', 'Manual Mode and the 2D Pitch come with ⭐ Star Complete.')}</p>
@@ -258,8 +259,7 @@ export function SupportPlans(p: Props) {
             <Mini rot={tr('🔎 vê o NÍVEL do jogador: até Craque', '🔎 see the player’s LEVEL: up to Star')}><CartaNivel tier="prata" nome="Zé Craque" nivel={82} /></Mini>
           </div>
         </Vitrine>
-        <Ok><b>{tr('Tudo do ⭐ Craque Salas', 'Everything in ⭐ Star Rooms')}</b>{tr(': salas à vontade, cria até 3 Ligas da Turma (entrar é ilimitado), presidente, clã, nome reservado e nome prata', ': unlimited rooms, up to 3 Crew Leagues (joining is unlimited), president, clan, reserved name and silver name')}</Ok>
-        <Ok><b>{tr('📺 Campo 2D', '📺 2D Pitch')}</b>{tr(' (em breve)', ' (coming soon)')}</Ok>
+        <Ok><b>{tr('Tudo do ⭐ Craque Salas', 'Everything in ⭐ Star Rooms')}</b>{tr(': salas à vontade, cria até 3 Ligas da Turma + 3 Ligas Draft (entrar é ilimitado), presidente, clã, nome reservado e nome prata', ': unlimited rooms, up to 3 Crew Leagues + 3 Draft Leagues (joining is unlimited), president, clan, reserved name and silver name')}</Ok>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Craque', ', up to Star level')}</Ok>
         <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
@@ -277,7 +277,7 @@ export function SupportPlans(p: Props) {
           <LinhaSala tier="ouro" nome={meu} />
           <div className="ll-vit-grid">
             <Mini rot={tr('🔎 vê o NÍVEL do jogador: até 👑 Lenda', '🔎 see the player’s LEVEL: up to 👑 Legend')}><CartaNivel tier="ouro" nome="Pelé" nivel={96} /></Mini>
-            <Mini rot={tr('🏆 cria até 4 Ligas da Turma · entra em quantas quiser', '🏆 create up to 4 Crew Leagues · join as many as you like')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
+            <Mini rot={tr('🏆 cria até 4 Ligas da Turma + 4 Ligas Draft · entra em quantas quiser', '🏆 create up to 4 Crew Leagues + 4 Draft Leagues · join as many as you like')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
             {/* 14/10 (Diego): saiu a bolinha de "escolher a cor" — no lugar, as salas à vontade (o que o Lenda tem e o Craque não) */}
             <Mini rot={tr('♾️ cria quantas salas online quiser por dia', '♾️ create as many online rooms as you want a day')}><div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>{['A9XHEV', 'K9FC22', 'LIGA07'].map(c => <span key={c} style={{ ...OSW, fontSize: 9, background: '#fff', border: `2px solid ${INK}`, borderRadius: 6, padding: '1px 6px' }}>🌐 {tr('SALA', 'ROOM')} {c}</span>)}<span style={{ ...OSW, fontSize: 11, background: INK, color: GOLD, borderRadius: 6, padding: '1px 8px' }}>+ ♾️</span></div></Mini>
           </div>

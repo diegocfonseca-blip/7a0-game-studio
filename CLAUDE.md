@@ -950,7 +950,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Começa todo mundo fraco (leilão só profissional e bom, no baralho Todos, SEM campo de terra); entre as temporadas, a noite do
   draft: **1 jogador por técnico, de TODOS do jogo, campeão escolhe primeiro, 60s**, cada jogador **único na liga** (pelo nome).
   O anúncio é com **SUSPENSE** (pistas de 2 em 2s: posição → categoria → país/década com as cores do clube → a carta vira) e a
-  carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. Só a conta dele por enquanto.
+  carta é a **REAL do jogo** (*"igual lenda q tem avatar"*). Mockups: `scripts/mockups/draft*.png`. 🟢 LIBERADA PRA TODOS em 05/11 (`MINHA_LIGA_DRAFT_GERAL = true`).
   🤖 **05/11: a SOBRA vai de GRAÇA pro bot da vez** (fila 1→7→1, até 22, escala os 11 melhores): quem o usuário tira pra caber o do draft/leilão
   e o "à venda" sem lance (o SONDADO sem lance volta pro dono). Ninguém ganha moeda. Bots cheios: troca pelo pior da posição se for melhor.
 - **🔒 CARREIRA GRÁTIS VAI ATÉ A TEMPORADA 50 (27/10, regra dele).** *"chegando na temporada 50 só avança quem tem plano pago… ela pagando descongela… quem já passou sem problemas"*. Trava na decisão do fim da T50 (tela + motor, `travaCarreiraGratis`); save congelado, nunca apagado. 🔁 Mesmo dia: *"quem já passou da temporada 50… limite de mais dez temporadas"* → quem estava acima da 50 sem plano ganha +10 (marca `careerGratisAte` na 1ª virada). **Com plano não aparece NADA** (nem "conferindo"); pagou, avança. Trava: `npm run carreira-gratis`.
@@ -1015,8 +1015,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   encolhe**. (3) As REGRAS do futebol valem (lateral, tiro de meta, escanteio com o time subindo, saída no meio depois do gol). (4)
   *"Mais lances, mais jogadas"* e **golpes das lendas só com FATO conhecido** (`GOLPES` em `campo2d-estilos.ts`; na dúvida, neutro)
   — e o pé só de quem a gente sabe. (5) **A narração acompanha TUDO e tem variedade**: frase nova entra em `campo2d-narracao.ts`,
-  PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) Só
-  a conta dele enquanto constrói; ao liberar é PAGO, do ⭐ Craque pra cima. Trava: `npm run campo2d` (300 jogos: placar bate, regras,
+  PT e EN na mesma posição, 3+ versões por acontecimento (a trava cobra). (6) Nunca narrar/mostrar pênalti (tela própria). (7) 🟢 LIBERADO PRA TODOS em 05/11
+  (`CAMPO2D_GERAL = true`); PAGO fora da sala, do ⭐ Craque Salas pra cima. O teste de ritmo segue só na conta dele (`useCampo2DTester`); o MOTOR NOVO na carreira foi pra TODOS no mesmo dia (*"Sim"*, `MOTOR2_CARREIRA_GERAL`). Trava: `npm run campo2d` (300 jogos: placar bate, regras,
   erros de motor).
   (8) **ORGANIZAÇÃO e SINCRONIA** (20/10, *"analise a fundo"*): bola parada respeita a distância da regra (tiro de meta = rival fora
   da área · falta/escanteio = 9,15 m · lateral = 2 m · saída = cada um no seu campo), ninguém "pula" nem anda dentro de outro, e chute
@@ -1040,6 +1040,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   partida rápida offline: botão do 2D junto do Manual, e o 2D é do ⭐ Craque SALAS pra cima (`useTem2D`, 05/11: *"1 sim"* — quem tem só o Craque Salas vê o 2D no automático e o cadeado só do Manual; o Manual segue `temManual`, do Completo pra cima): quem não
   paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
+  ⏩ **05/11: NO AUTOMÁTICO O 2D ANDA A 2× EM TODO LUGAR** (~45 s por jogo; *"coloque 2x… quando tá no auto, seja carreira ou
+  online e qualquer competição"*). Ele pediu 2,5 nas salas e logo trocou por 2× geral. Mora em `dur2D(manual)` / `DUR_2D_AUTO_MS`
+  (campo2d-motor.ts); no Manual TAMBÉM começa em 2× (*"no manual também começa com 2x"*) e a marcha divide por cima (🐢 = o 1:30 de antes); nas salas online é sempre 2×. Relógio do banco da Copa do
+  Mundo/regionais = `docs/sql/campo2d-2x.sql` (54878). ⚠️ O banco só muda DEPOIS do deploy fechar (aparelho velho não reconhece 54878
+  como passo 2D; o novo aceita 54878 e 109756).
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.

@@ -12,7 +12,7 @@ import {
   type Co2Sala,
 } from './co2'
 import { minhaGaveta, type EntradasMundo, type GavetaPublica } from './carreira-online-v2'
-import { useCampo2DLiberado } from './sport'
+import { useMotor2Carreira } from './sport'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -325,7 +325,7 @@ export function useCo2FimDaVirada() {
   // ⚽🧠 motor novo (21/10, Diego: *"carreira offline e carreira online"*): quem comanda — e só se a conta dele já tem o motor novo —
   // carimba no mundo a temporada a partir da qual ele vale. Todo aparelho lê o MESMO carimbo, então todo mundo liga junto, na
   // rodada 1 (antes de qualquer jogo da temporada). Carimbado uma vez, não muda mais.
-  const m2Liberado = useCampo2DLiberado()
+  const m2Liberado = useMotor2Carreira() // ⚽🧠 motor novo em toda carreira (05/11)
   useEffect(() => {
     if (!state.co2?.comanda || state.screen !== 'season' || sn.sala?.fase !== 'virada') return
     const mm = co2Agora().mundo

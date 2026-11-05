@@ -9,6 +9,7 @@
 // Desligar o teste = `RITMO2D_TESTE = false` (volta tudo ao de antes: 1:30 e as marchas antigas).
 import { useEffect, useState } from 'react'
 import { useCampo2DLigado } from './campo2d-modo'
+import { useCampo2DTester } from './sport'
 import { useEscTalvez } from './store'
 
 export const RITMO2D_TESTE = true
@@ -37,9 +38,10 @@ export function useRitmo2dSemManual(): boolean {
 /** o teste está valendo AGORA? (2D ligado + Partida Rápida offline, fora da carreira) */
 export function useRitmo2D(): { teste: boolean; semManual: boolean } {
   const c2d = useCampo2DLigado()
+  const tester = useCampo2DTester() // 🧪 05/11: o 2D foi liberado pra todos; o teste de ritmo segue só na conta do Diego
   const s = useEscTalvez()?.state
   const sem = useRitmo2dSemManual()
-  const teste = RITMO2D_TESTE && c2d && !!s && s.onlineMode !== 'online' && !s.careerDivision && !s.careerOnline && s.sport !== 'basquete'
+  const teste = RITMO2D_TESTE && tester && c2d && !!s && s.onlineMode !== 'online' && !s.careerDivision && !s.careerOnline && s.sport !== 'basquete'
   return { teste, semManual: teste && sem }
 }
 

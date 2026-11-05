@@ -1,3 +1,32 @@
+## ⏩ 05/11 — Campo 2D a 2× no AUTOMÁTICO em todo lugar (branch; esperando "publique")
+Diego: *"coloque 2x então em todos locais qd tá no auto seja carreira ou online e qualquer competição"* (antes pediu 2,5 só nas salas).
+- Carreira offline/online, Partida Rápida, salas online (liga, Liga da Turma/Draft, copas, Liberta, Champions, Copa do Mundo, regionais):
+  ~45 s por jogo, no auto E no Manual (*"no manual também começa com 2x"*); a marcha do Manual divide por cima (🐢 = 1:30). `dur2D` / `DUR_2D_AUTO_MS` em campo2d-motor.ts.
+- [ ] Ao publicar: esperar o deploy fechar verde e SÓ ENTÃO rodar `docs/sql/campo2d-2x.sql` no banco (Copa do Mundo/regionais).
+- Reverter: `RITMO2D_AUTO = 1` + rodar o SQL trocando 54878 por 109756.
+
+## 🟢 05/11 — LIBERADOS PRA TODOS: 📺 Campo 2D e 📋 Liga Draft (pedido do Diego: *"libere já… igual aparece na minha conta"*)
+- `CAMPO2D_GERAL = true` (sport.ts): 2D em todos os modos, offline e online. Fora da sala é do ⭐ Craque Salas pra cima (`useTem2D`); na sala
+  quem CRIA precisa de plano e quem entra assiste de graça. Selo **NOVO verde** no "Jogo" do criar sala (sai a faixa "LANÇA COM 2K").
+- 🧪 Continua SÓ na conta do Diego (`useCampo2DTester`, nova trava): o **MOTOR NOVO decidindo o jogo da carreira** (offline, internacional e
+  carreira online) e o **teste de ritmo** da Partida Rápida (2× e com/sem Manual). Liberar o 2D NÃO trocou o motor de ninguém.
+  ✅ 05/11 (*"Sim"*): **motor novo ligado na carreira de TODO MUNDO** (`MOTOR2_CARREIRA_GERAL = true`, `useMotor2Carreira`): liga uma vez
+  por carreira a partir do próximo jogo (nada jogado muda). Desligar = `false`. O teste de ritmo segue só na conta dele.
+- 🗺️ Mapa 3D da carreira e o botão "Ver o jogo no estádio do mapa": trava própria (`presidentAvailable`/`PRESIDENCY_STADIUM_RELEASED`), NÃO mexi.
+- `MINHA_LIGA_DRAFT_GERAL = true`: Liga Draft no criar sala pra todos, selo **NOVO verde** (sai a faixa da meta). Regras de sempre: criar
+  = plano (Craque Salas 2 · Completo+ 3, por tipo), grátis joga em 1 de cada (`esc_liga_limite_gratis`). Textos dos planos voltaram a
+  falar "+ N Ligas Draft"; o 2D aparece no ⭐ Craque Salas (saiu o "(em breve)" do Completo).
+- Selo "em teste" saiu das 🏳️ Seleções e da 🕰️ Década (leilão de Clubes).
+- Novidades na home (PT+EN): "Chegou o Campo 2D" e "Chegou a Liga Draft". Vídeos e artes de lançamento: ver bloco 🎬 abaixo.
+
+## 👑⚪🔴⚫ 05/11 — Batismo FUNDADOR Monarca Tricolor (danieltorresreus, pago por fora no Pix)
+- Conta conferida (criada 27/10). Nome no jogo era "FC Tricas" → `display_name` trocado pra **Monarca Tricolor** no banco (pedido do Diego).
+- Série D no assento do bot **Excelsior SAF** (o último bot sem dono da D) — `OLD_NAME` leva save antigo. ⚠️ A Série D não tem mais bot livre: o próximo batismo de D vai precisar de alguém descer/subir.
+- Arte: escudo 278×360 29 KB · mascote O Monarca 391×440 39 KB (`monarca_rei`) · camisa 364×440 em scripts/kits + public/mantos-salao. Fundo verde chroma tirado, conferido sobre vermelho.
+- Manto: branco #F2F1F3 + vermelho #D40101 medidos na camisa; PRETO #060604 na 3ª cor (MANTO_TRI). Coração: São Paulo.
+- Banco: esc_socios nº85 · esc_fundadores nº99 · esc_nomes_batismo (Monarca Tricolor + FC/EC pelo gatilho) · user_colors ouro manual · esc_compras_batismo plano `plus` (Fundador). `esc_direitos_de` = pago/fundador/plus/ouro.
+- Canto: o do São Paulo do Wen Milan B (`sfx/torcida-spfc-wen-v1.mp3`). Gala única "A Coroação" (`gala-monarca.tsx`): tricolor no céu, tapete vermelho, o goleiro-rei bate a falta no ângulo (GOL DO GOLEIRO!), a coroa pousa no escudo, SALVE O MONARCA. Nenhum nome de pessoa real na tela. Vídeo `scripts/posts/gala-monarca.webm` · quadros `gala-monarca-quadros.png` · post `batismo-monarca-tricolor.png`.
+
 ## ⚖️ 05/11 — Motor novo da carreira: JUSTIÇA no lugar da média de gols (só a trava; o motor NÃO mudou)
 - Diego: *"não ligo pra média de gols. Quero só que os jogos sejam JUSTOS, nada forçado/injetado"*. A régua de MÉDIA (1,5–2,7 gols,
   0×0 ≤ 15%) saiu do `npm run motor2`; entrou a régua de JUSTIÇA por diferença de força (média do lo–hi dos 11): parelho (< 4) ·
@@ -45,6 +74,7 @@ Decisão do Diego: *"consertar agora no online, pra todo mundo, em todas as comp
 ## 🎬 05/11 — Vídeos de LANÇAMENTO prontos (NÃO postar antes de liberar)
 - 📋 Liga Draft: `node scripts/video-liga-draft-reels.mjs` → `scripts/posts/liga-draft-reels.mp4` (1080×1920, ~38 s). Postar só quando `MINHA_LIGA_DRAFT_GERAL = true`.
 - 📺 Campo 2D: `node scripts/video-campo2d-reels.mjs` → `scripts/posts/campo2d-reels.mp4` (~37 s). Postar só quando o 2D for liberado (hoje `CAMPO2D_TESTERS`). Diz: na sala quem cria escolhe 📊/📺 e quem entra assiste de graça; carreira/partida rápida do ⭐ Craque Salas pra cima.
+- 🖼️ Artes (05/11): `node scripts/post-lancamento-draft-2d.mjs` → `scripts/posts/{liga-draft,campo2d}-{feed,stories}.png` · zap: `scripts/avisos/2026-11-05-liga-draft.json` e `2026-11-05-campo2d.json` (aviso-comunidade.mjs). Mesma regra: só no dia de liberar.
 - Imagens reais usadas: `scripts/posts/img/` (draft-*.png da bancada/mockup aprovado · campo2d-*.png quadros do campinho).
 - 🔒 05/11: jogador que chega num bot fica lá 3 temporadas (`botPodeSoltar`, trava `testa-liga-draft-bots.mts`).
 

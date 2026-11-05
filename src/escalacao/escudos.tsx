@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import monarcaEscudoImg from './img/monarca-tricolor-escudo.webp' // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoEscudoImg from './img/paizao-escudo.webp' // 👑🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
 import milanRecifenseEscudoImg from './img/milan-recifense-escudo.webp' // 🐆💜 Milan Recifense (danicorreafilho): arte própria do dono, 05/11
@@ -923,6 +924,12 @@ const chelsaoEscudoRender = (size: number) => (
 // 👑🎩 PAIZÃO FC (enzocromero9, batismo FUNDADOR de 30/10) — Série D, no assento do bot Monarca EC. 📏 333×360, 28 KB.
 // O Paizão sorrindo com a coroa, Kick/Instagram/TikTok e a estrela, preto e dourado (2º escudo que o Diego mandou, 30/10). Fundo verde chroma tirado;
 // conferido sobre vermelho.
+// 👑⚪🔴⚫ MONARCA TRICOLOR (danieltorresreus, batismo FUNDADOR de 05/11) — Série D, no assento do bot Excelsior SAF. 📏 278×360, 29 KB.
+// O goleiro-rei de capa com a coroa por cima, louros dourados, faixa "MONARCA TRICOLOR" e as listras do São Paulo (o time de coração
+// dele). Fundo verde chroma tirado; conferido sobre vermelho.
+const monarcaEscudoRender = (size: number) => (
+  <img src={monarcaEscudoImg} height={size} width={Math.round(size * 278 / 360)} alt="Monarca Tricolor" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const paizaoEscudoRender = (size: number) => (
   <img src={paizaoEscudoImg} height={size} width={Math.round(size * 333 / 360)} alt="Paizão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1626,6 +1633,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Piranhao FC': piranhaoEscudoRender,
   'Piranhao': piranhaoEscudoRender,
   'Continental Real': piranhaoEscudoRender,
+  'Monarca Tricolor': monarcaEscudoRender, // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus) — BATISMO FUNDADOR. As 4 formas do nome + o bot que cedeu o assento.
+  'Monarca Tricolor FC': monarcaEscudoRender,
+  'Monarca Tricolor EC': monarcaEscudoRender,
+  'Monarca Tricolor SC': monarcaEscudoRender,
+  'Excelsior SAF': monarcaEscudoRender,
   'Paizão FC': paizaoEscudoRender, // 👑🎩 Paizão FC (enzocromero9) — BATISMO FUNDADOR. As formas do nome (com e sem til) + o bot que cedeu o assento.
   'Paizão': paizaoEscudoRender,
   'Paizão EC': paizaoEscudoRender,

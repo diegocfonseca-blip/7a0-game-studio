@@ -1,0 +1,20 @@
+{
+  "data": "Chegou finalmente",
+  "titulo": "📋 Liga Draft",
+  "destaque": {
+    "passos": [
+      { "emoji": "🔨", "titulo": "Temporada 1", "sub": "leilão de sempre" },
+      { "emoji": "📋", "titulo": "Noite do draft", "sub": "campeão escolhe 1º" },
+      { "emoji": "🔁", "titulo": "Não acaba", "sub": "o elenco segue" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "A **liga da sua turma que não acaba**: 10 ou 20 times, bots completam. A 1ª temporada é o **leilão de sempre**." },
+    { "tag": "novidade", "texto": "No fim de cada temporada vem a **noite do draft**: o **campeão escolhe primeiro**, 1 jogador de **todo o jogo** — e um **Neymar só** pra liga inteira. A carta vira com **suspense**." },
+    { "tag": "novidade", "texto": "Na sua vez, você pode **sondar um amigo**: o jogador dele vai pro **leilão** (só depois de **3 temporadas** no time dele)." },
+    { "tag": "regra", "texto": "**Moedas pela colocação**, elenco de até **22** e as **regras da turma**, que vocês combinam (ex.: ninguém pega lenda)." }
+  ],
+  "rodape": "Criar é do ⭐ plano · entrar é de graça",
+  "rodapeSub": "Salas online → 📋 Liga Draft → chama a turma.",
+  "saida": "scripts/posts/aviso-2026-11-05-liga-draft.png"
+}
