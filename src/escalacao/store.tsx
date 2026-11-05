@@ -2856,6 +2856,29 @@ function eliteNaSerieA(managers: { teamName: string }[], pl: Record<string, stri
   return out
 }
 const ONLINE_BASE = 74
+// 📏 RÉGUA NOVA DAS CARTAS × BOTS DA SALA (05/11, Diego: *"consertar agora no online, pra todo mundo"*).
+// Em 02/11 os overs do baralho foram refeitos (lenda 90–97 · craque 80–89 · promessa 70–85 · bom 68–79 · foi
+// profissional 55–66) e as cartas que a gente compra ficaram ~3 pontos mais fracas em número. Os alvos acima
+// (ONLINE_BASE 74, VARZEA_BASE 69) e os convidados da Liberta (`LIBERTA_CLUBS`) e da Champions (`FAIXA`) são números
+// FIXOS, medidos na régua velha — então os bots passaram a jogar ~4,5 acima do que jogavam (o ajuste foi de −1,5 pra
+// +3,1) e a taça fugiu da galera (medido: liga 68% → 49%, Liberta 58% → 19%, Champions 53% → 23%).
+// O conserto mora AQUI, num degrau só por sala, e NUNCA nas cartas:
+//  · `alvo`  = quanto o alvo dos bots de fundo desce (liga, Copa dos 8, Relâmpago, Só Champions — e, de carona,
+//    todo convidado, que leva o mesmo `cpuAtkAdj`);
+//  · `convidado` = quanto os clubes FIXOS (Liberta/Champions) descem ALÉM disso, porque eles não seguem as cartas.
+// A escala é GRAVADA no estado da sala no START_ONLINE (`escalaBots`): sala que já estava rodando quando isto subiu
+// não tem o campo e segue com os números velhos até acabar — o dono decide e o convidado só recebe, então todo
+// aparelho joga com o mesmo número. Trava: `npm run forca-bots`.
+export const ESCALA_BOTS_ATUAL = 2
+// Números MEDIDOS (simulação de 500 salas por competição, 2–6 pessoas, baralhos BR e Todos — `npm run forca-bots`):
+// as cartas da galera caíram ~2,5 e as dos bots de fundo ~4,7 (eles têm mais carta de categoria baixa, que foi a que
+// mais desceu). Na Várzea e no começo fraco da Liga Draft o leilão é só profissional/bom, que caiu ~5 — por isso o
+// degrau dela (`alvoFraco`) é maior.
+const ESCALA_BOTS: Record<number, { alvo: number; alvoFraco: number; convidado: number }> = {
+  2: { alvo: -2.5, alvoFraco: -5, convidado: -5 },
+}
+const escalaDe = (s: Pick<EscState, 'escalaBots' | 'onlineMode'>) =>
+  (s.onlineMode === 'online' && s.escalaBots != null ? ESCALA_BOTS[s.escalaBots] : undefined) ?? { alvo: 0, alvoFraco: 0, convidado: 0 }
 // 🥅 VÁRZEA: o leilão é 70% foi profissional, então o time do humano nasce mais
 // FRACO (~71) que no normal (~76). A balança (fillerAdj) puxa os bots pra um alvo
 // fixo — se ficasse em 74 (como o normal), os bots ficariam fortes demais e o humano
@@ -2879,7 +2902,7 @@ function cpuAdjFor(s: EscState): { atk: number; def: number } {
     const b = s.nbaTier === 'nba' ? 6 : s.nbaTier === 'gleague' ? 3 : 0
     return { atk: b, def: b }
   }
-  const target = s.onlineMode === 'online' ? ((s.varzea || (s.ligaDraft && !s.minhaLigaDraft)) ? VARZEA_BASE : ONLINE_BASE) : DIVISION_BASE[s.careerDivision ?? 'D'] // 📋 Liga Draft: os bots no nível do começo fraco
+  const target = s.onlineMode === 'online' ? ((s.varzea || (s.ligaDraft && !s.minhaLigaDraft)) ? VARZEA_BASE + escalaDe(s).alvoFraco : ONLINE_BASE + escalaDe(s).alvo) : DIVISION_BASE[s.careerDivision ?? 'D'] // 📋 Liga Draft: os bots no nível do começo fraco
   return fillerAdj(s.managers, target)
 }
 // sobe (top 3), cai (Z4: 17º+) ou fica — limitado por A (topo) e D (base).
@@ -4381,7 +4404,7 @@ function finishSeason(s: EscState) {
   // escrito no giro. Melhor não ter do que ter torto.
   else if (s.copaMode === 'liga_champions' && !s.champions) {
     if (s.league.length >= CHAMPIONS_DIRETO) {
-      s.champions = seedChampions(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0), (BATISMOS_NAS_SALAS && s.onlineMode === 'online' ? mulberry((s.seed ^ 0x5A1A5) >>> 0) : undefined))
+      s.champions = seedChampions(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0), (BATISMOS_NAS_SALAS && s.onlineMode === 'online' ? mulberry((s.seed ^ 0x5A1A5) >>> 0) : undefined), escalaDe(s).convidado)
       s.news = [tr('⭐ A liga acabou — os 8 primeiros estão na CHAMPIONS! 36 clubes numa tabela só.', '⭐ The league is over — the top 8 are in the CHAMPIONS! 36 clubs, one single table.')]
       // ⚠️ a tela NÃO troca aqui: igual à Liberta, a temporada fecha no 'end' e
       // quem entra na competição é o START_CHAMPIONS (botão do host / bannerzão).
@@ -4391,7 +4414,7 @@ function finishSeason(s: EscState) {
   }
   else if (s.copaMode === 'liga_liberta' && !s.liberta) {
     if (s.league.length >= 8) {
-      s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0))
+      s.liberta = seedLiberta(s.league, mulberry((s.seed ^ 0x11BE47A) >>> 0), escalaDe(s).convidado)
       s.news = [tr('🌎 A liga acabou — os 8 primeiros estão na LIBERTADORES! 32 clubes, 8 grupos de 4.', '🌎 The league is over — the top 8 are in the LIBERTADORES! 32 clubs, 8 groups of 4.')]
     } else {
       s.news = [getLang() === 'en' ? `⚠️ No Libertadores this time: it needs 8 qualifiers and this league has only ${s.league.length} clubs.` : `⚠️ Sem Libertadores desta vez: ela precisa de 8 classificados e esta liga tem só ${s.league.length} clubes.`]
@@ -4423,7 +4446,7 @@ const LIBERTA_ID0 = 900 // ⚠️ também lido por `elencoConvidado` (lá em cim
 // viu os números e escolheu o padrão da liga assim mesmo — se depois de jogar
 // quiser apertar, é só voltar um degrau aqui (era `+6`).
 
-function seedLiberta(league: LeagueTeam[], rng: () => number): LibertaState {
+function seedLiberta(league: LeagueTeam[], rng: () => number, degrau = 0): LibertaState { // degrau = `escalaDe(s).convidado` (0 em sala antiga)
   const oito = sortedTable(league).slice(0, 8)
   const times: LibertaTeam[] = []
   const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
@@ -4435,7 +4458,7 @@ function seedLiberta(league: LeagueTeam[], rng: () => number): LibertaState {
   // potes 2, 3 e 4: 8 clubes cada, um por grupo
   for (const pote of [2, 3, 4] as const) {
     shuffle(LIBERTA_CLUBS.filter(c => c.pote === pote), rng).forEach((c, g) => {
-      times.push({ id: LIBERTA_ID0 + times.length, name: c.name, pote, grupo: g, isManager: false, baseAtk: c.atk, baseDef: c.def, ...zero })
+      times.push({ id: LIBERTA_ID0 + times.length, name: c.name, pote, grupo: g, isManager: false, baseAtk: c.atk + degrau, baseDef: c.def + degrau, ...zero })
     })
   }
   // calendário: cada grupo faz turno e returno (6 rodadas × 2 jogos). As rodadas
@@ -4527,13 +4550,13 @@ function playLibertaRodada(s: EscState) {
 //
 // 📏 FORÇA: mesma régua da Liberta — o convidado joga no padrão da liga, com o
 // mesmo ajuste de sala (`cpuAtkAdj`/`cpuDefAdj`). Nada inventado.
-function seedChampions(league: LeagueTeam[], rng: () => number, sorteio?: () => number): ChampionsState {
+function seedChampions(league: LeagueTeam[], rng: () => number, sorteio?: () => number, degrau = 0): ChampionsState {
   const oito = sortedTable(league).slice(0, CHAMPIONS_DIRETO)
   const convidados = championsConvidados(oito.map(t => t.name), undefined, sorteio)
   const times: ChampionsTeam[] = []
   const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
   oito.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, isManager: t.isManager, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
-  convidados.forEach((c, i) => times.push({ id: CHAMPIONS_ID0 + i, name: c.name, pote: 1, isManager: false, divisao: c.divisao, baseAtk: c.atk, baseDef: c.def, ...zero }))
+  convidados.forEach((c, i) => times.push({ id: CHAMPIONS_ID0 + i, name: c.name, pote: 1, isManager: false, divisao: c.divisao, baseAtk: c.atk + degrau, baseDef: c.def + degrau, ...zero }))
   // 🎱 os potes saem da FORÇA de todos os 36 juntos (não é sorteio: é ranking, como
   // na Champions de verdade). Só depois disso o calendário pode nascer.
   const potes = potesChampions(times.map(t => t.baseAtk + t.baseDef))
@@ -4548,13 +4571,13 @@ function seedChampions(league: LeagueTeam[], rng: () => number, sorteio?: () => 
 // na MESMA ordem de preferência da Champions de sempre (`championsConvidados`: série A
 // pra baixo, gente na frente). Os bots de enchimento da liga ficam de fora: a vaga
 // deles é palco pra quem batizou clube.
-function seedChampionsDireto(league: LeagueTeam[], rng: () => number, sorteio?: () => number): ChampionsState {
+function seedChampionsDireto(league: LeagueTeam[], rng: () => number, sorteio?: () => number, degrau = 0): ChampionsState {
   const comTecnico = league.filter(t => t.isManager).slice(0, CHAMPIONS_CLUBES)
   const convidados = championsConvidados(comTecnico.map(t => t.name), CHAMPIONS_CLUBES - comTecnico.length, sorteio)
   const times: ChampionsTeam[] = []
   const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
   comTecnico.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, isManager: true, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
-  convidados.forEach((c, i) => times.push({ id: CHAMPIONS_ID0 + i, name: c.name, pote: 1, isManager: false, divisao: c.divisao, baseAtk: c.atk, baseDef: c.def, ...zero }))
+  convidados.forEach((c, i) => times.push({ id: CHAMPIONS_ID0 + i, name: c.name, pote: 1, isManager: false, divisao: c.divisao, baseAtk: c.atk + degrau, baseDef: c.def + degrau, ...zero }))
   const potes = potesChampions(times.map(t => t.baseAtk + t.baseDef))
   times.forEach((t, i) => { t.pote = potes[i] })
   const fixtures = calendarioChampions(times.map(t => t.id), potes, rng)
@@ -4578,7 +4601,7 @@ function abreChampionsDiretoSePrecisa(s: EscState) {
   // pegou no 1º teste (25/09): o `START` não limpava a Champions velha, esta função
   // achava que já tinha semeado e a partida caía na liga de 20.
   s.champions = null; s.quickCopa = null; s.liberta = null
-  s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0), (BATISMOS_NAS_SALAS && s.onlineMode === 'online' ? mulberry((s.seed ^ 0x5A1A5) >>> 0) : undefined))
+  s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0), (BATISMOS_NAS_SALAS && s.onlineMode === 'online' ? mulberry((s.seed ^ 0x5A1A5) >>> 0) : undefined), escalaDe(s).convidado)
   s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
   s.news = [s.onlineMode === 'online'
     ? tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — os times da sala e, completando, os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — the room\'s teams and, to complete it, the named clubs.')
@@ -9090,6 +9113,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
       s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
+      // 📏 sala nova nasce na régua de 02/11 (ver ESCALA_BOTS); sala antiga segue sem o campo. Carreira online fica de fora
+      // (a carreira é outra régua, a da divisão — só medida por enquanto) e o basquete também (as cartas da NBA não mudaram).
+      s.escalaBots = !action.career && action.sport !== 'basquete' ? ESCALA_BOTS_ATUAL : undefined
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.

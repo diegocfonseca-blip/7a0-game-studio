@@ -20,7 +20,9 @@ const fimDaCarreira = campos(carreira.slice(0, carreira.indexOf("\n    case '", 
 // o que o rápido e a sala gravam e NÃO é escolha de modo (é a própria carreira refazendo, ou sessão/aparelho)
 const NEUTROS = new Set(['careerEmpresario', 'careerEmpresarioClaims', 'careerFilials', 'careerIntent', 'careerLedgers', 'careerRivalCount',
   'careerRivals', 'convocacaoDeadline', 'convocacaoDuplaFeitos', 'convocacaoEscolhas', 'convocacaoFeitos', 'cpuAtkAdj', 'cpuDefAdj',
-  'nbaCareer', 'nbaTier', 'simSpeed', 'sport', 'screen'])
+  'nbaCareer', 'nbaTier', 'simSpeed', 'sport', 'screen',
+  'escalaBots', // 📏 05/11: régua dos bots da SALA — só é lida com onlineMode 'online' (escalaDe), a carreira solo nunca enxerga
+])
 const faltam = []
 for (const nome of ['START', 'START_ONLINE']) {
   const b = bloco(nome, 20000)
@@ -64,6 +66,7 @@ console.log('✅ carreira nova nasce sem jogos/gols/assistências da carreira an
     'bafoOn', 'colecoesRecebidas', 'bafoTrocasFeitas', // da CONTA (o servidor é quem marca)
     'bicoZeradoV2', 'medicoDevolvidoV1', 'medicoDevolvido', 'preparadorDevolvidoV1', 'preparadorDevolvido', // migrações já feitas
     'dinastiaPaused', 'dinastiaMidUsed', 'cpuAtkAdj', 'cpuDefAdj', // do jogo rápido
+    'escalaBots', // 📏 da SALA (05/11): só é lida com onlineMode 'online' — a carreira solo nunca enxerga
   ])
   const soltos = campos.filter(c => !new RegExp(`\\bs\\.${c}\\s*=(?!=)`).test(start) && !marcas.has(c) && !zera.has(c)
     && !['rivalries', 'tiebreaks', 'tiebreakIdx', 'tiebreakPending'].includes(c) && !FICA_NA_CARREIRA_NOVA.has(c))

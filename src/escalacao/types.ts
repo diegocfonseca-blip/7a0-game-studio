@@ -955,6 +955,9 @@ export interface EscState {
   cerimoniaDeadline: number | null // timestamp (ms) do fim da cerimônia (auto-começa o campeonato)
   cpuAtkAdj: number // ajuste de força dos CPUs (online): escala os bots à média dos humanos
   cpuDefAdj: number
+  // 📏 ESCALA DE FORÇA DOS BOTS DA SALA (05/11): gravada no START_ONLINE. undefined = sala que nasceu antes do conserto
+  // (segue com os números velhos até acabar); 2 = régua nova das cartas (02/11). Ver `ESCALA_BOTS` no store.
+  escalaBots?: number
   streamMode: boolean // sala de stream: esconde os VALORES dos lances na tela (pra live)
   // 🎮 sala em MODO MANUAL: o host ganha o botão manual/auto DENTRO do jogo (igual
   // stream), pra decidir avançar cada rodada/etapa ou deixar no automático. NÃO
