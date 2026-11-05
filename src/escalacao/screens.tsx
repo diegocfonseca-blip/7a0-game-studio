@@ -7337,9 +7337,14 @@ export function EscSeason() {
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
   useEffect(() => {
     if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive) return // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
-    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), roundMs)
+    // 📺⏱️ 05/11 (Diego: *"está demorando pra aparecer o campinho 2D nas salas online"*): na LARGADA (rodada 0) ainda não
+    // tem jogo nenhum na tela — a espera é só a tela "Aguardando o pontapé inicial". Ela usava o `roundMs` da rodada, que
+    // no 2D é o tempo de um JOGO INTEIRO (~55 s) em vez dos 9 s de sempre. Na largada, o 2D espera o MESMO que a sala sem
+    // 2D; da rodada 1 em diante nada muda (cada jogo continua com o tempo inteiro do 2D).
+    const espera = state.round === 0 && c2d ? Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) : roundMs
+    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)

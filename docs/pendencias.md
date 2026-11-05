@@ -1,3 +1,14 @@
+## ⏱️ 05/11 — Sala 2D demorava ~55 s pra mostrar o 1º jogo (branch; esperando OK do Diego pra publicar)
+Diego: *"está demorando pra aparecer o campinho 2D nas salas online quando inicia a simulação"*.
+- Causa (medida): na LARGADA (rodada 0) o dono esperava `roundMs` antes do 1º `PLAY_ROUND` — e no 2D isso é o tempo de um jogo inteiro
+  (`DUR_2D_AUTO_MS` = 54,9 s; era 1:50 antes do 2×) contra 9 s na sala sem 2D. Esse tempo todo a sala via "🏁 Aguardando o pontapé inicial".
+  O campinho em si é rápido: já vem no pacote principal (não é carregado à parte) e desenha o 1º quadro em ~0,05–0,1 s no PC e ~0,4 s num
+  celular simulado (CPU 4× mais lenta + 3G).
+- Conserto (screens.tsx, efeito do autoplay da liga): na rodada 0 com 2D a espera é a MESMA da sala sem 2D (9 s online · 7 s offline ÷ velocidade).
+  Da rodada 1 em diante nada muda. Liberta/Champions já esperavam 2,2 s na rodada 0 (não mexi).
+- [ ] Ao publicar: conferir numa sala 2D que o 1º jogo aparece ~9 s depois de começar a temporada.
+- Reverter: voltar `espera` pra `roundMs` no efeito (ou `git revert` do commit).
+
 ## ⏩ 05/11 — Campo 2D a 2× no AUTOMÁTICO em todo lugar (branch; esperando "publique")
 Diego: *"coloque 2x então em todos locais qd tá no auto seja carreira ou online e qualquer competição"* (antes pediu 2,5 só nas salas).
 - Carreira offline/online, Partida Rápida, salas online (liga, Liga da Turma/Draft, copas, Liberta, Champions, Copa do Mundo, regionais):
