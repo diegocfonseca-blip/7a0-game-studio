@@ -12372,3 +12372,6 @@ Não retomar sem ele pedir.
   ⭐ Craque Salas 2 Ligas da Turma + 2 Ligas Draft · do ⭐ Craque Completo pra cima 3 + 3. Entrar é ILIMITADO pra quem paga, e
   todo texto de plano diz isso. Quem já criou mais fica com todas. Saiu o teto antigo de 5 no total (`MAX_LIGAS`). O aviso de
   limite só aparece quando a pessoa tenta criar além do dela (*"nem precisa avisar pra ninguém"*).
+- ⏳ QUANDO LANÇAR A LIGA DRAFT: os textos públicos (planos `support-plans.tsx`, Loja `loja-clube.tsx`, `limite-sala-venda.tsx`,
+  `support-plans-v2.tsx`) falam só de "Liga da Turma" pra não anunciar o Draft antes da hora — pôr de volta "+ N Ligas Draft"
+  (Craque Salas 2 · Completo pra cima 3) junto com `MINHA_LIGA_DRAFT_GERAL = true`.

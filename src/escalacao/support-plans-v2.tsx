@@ -67,7 +67,7 @@ function ItensSocio({ batismo = false }: { batismo?: boolean }) {
     {!batismo && <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você quiser', ' however you like')}</Ok>}
     <Ok><b>{tr('🔎 Vê o nível', '🔎 See the level')}</b>{tr(' de todo jogador, até 👑 Lenda', ' of every player, up to 👑 Legend')}</Ok>
     <Ok><b>{tr('🕵️ Olheiro', '🕵️ Scout')}</b>{tr(': acha jogador ', ': finds players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
-    <Ok><b>{tr('🏆 Cria salas online, Liga da Turma e Liga Draft', '🏆 Create online rooms, Crew League and Draft League')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
+    <Ok><b>{tr('🏆 Cria salas online e Liga da Turma', '🏆 Create online rooms and Crew League')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
     <Ok><b>{tr('💾 4 carreiras salvas, guardadas PRA SEMPRE', '💾 4 saved careers, kept FOREVER')}</b>{tr(' na nuvem — todos os seus saves, mesmo parados', ' in the cloud — all your saves, even idle ones')}</Ok>
     <Ok><b>{tr('🌐 Carreira Online e Bafo', '🌐 Online Career and Bafo')}</b>{tr(' inclusos assim que forem lançados', ' included as soon as they launch')}</Ok>
     <Ok><b>{tr('📲 Grupo VIP', '📲 VIP group')}</b>{tr(' no WhatsApp com o Diego', ' on WhatsApp with Diego')}</Ok>

@@ -4471,7 +4471,7 @@ export function EscLobby() {
           <h2>{tr('Jogue com a galera','Play with friends')}</h2><div>
           <button type="button" data-livre="1" onClick={()=>setTab('join')}>{tr('Entrar com código','Join with a code')}</button>
           <button type="button" onClick={()=>setTab('create')}>{tr('Criar sala','Create room')}</button>
-          <p>{tr('Suas ligas reúne as suas Ligas da Turma e Ligas Draft.','Your leagues lists your Crew Leagues and Draft Leagues.')}</p>
+          <p>{tr('Suas ligas reúne todas as ligas em que você joga.','Your leagues lists every league you play in.')}</p>
           <p>🟢 {tr('Esperando gente: pode entrar.','Waiting: you can join.')}<br/>🔒 {tr('Com senha: pede o convite.','Password: invitation required.')}<br/>🔴 {tr('Em jogo: partida em andamento.','Playing: match in progress.')}</p>
           </div>
         </aside>
