@@ -2,7 +2,7 @@
 - Salas online (todas) = 3× · carreira e Partida Rápida offline = começa 2× e LEMBRA a última marcha do Manual (vale no auto) ·
   carreira online = 2× × marcha do dono · ⚡ 3× virou opção do Manual em todo modo.
 - 📺⚡ troca 2D ↔ placar na sala LIBERADA pra todos (`TROCA_2D_SALA_GERAL = true`) — o Diego viu o Futpoint na Liga Draft sem o botão.
-- [ ] Depois do deploy: rodar `docs/sql/campo2d-sala-3x.sql` no banco (Copa do Mundo/regionais + marcha 3× no relógio).
+- [x] Banco atualizado depois do deploy verde (05/11, 23h32 UTC): Copa do Mundo/regionais a 3× + marcha 3× no relógio.
 - Reverter: `RITMO2D_SALA` / `RITMO2D_PADRAO` em campo2d-motor.ts / ritmo2d.ts; SQL com 109756.
 ## ⏱️ 05/11 — Sala 2D demorava ~55 s pra mostrar o 1º jogo (branch; esperando OK do Diego pra publicar)
 Diego: *"está demorando pra aparecer o campinho 2D nas salas online quando inicia a simulação"*.
