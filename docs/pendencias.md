@@ -1,3 +1,19 @@
+## 🛍️🏢 05/11 — Mapa 3D: LOJA DO CLUBE e AGÊNCIA mudaram pro lado da TORCIDA DA CASA + agência nova (LOCAL, branch do agente, só a conta do Diego)
+- Reclamação dele (print): *"a loja do clube e a agência estão próximos da área do visitante… colocar num local melhor. Além disso a
+  agência tá muito feia"*. Antes: loja em x 134 (colada no portão do VISITANTE, x 105) e agência em x 229 (leste, perto da saída dele).
+- Agora as duas ficam ao SUL, no lado da casa, entre a esplanada da entrada principal e o estacionamento sudoeste: **loja** em x −51,6…−31,6 ·
+  z 128…144 com a vitrine pro leste, colada na calçada do terminal (x≈−28) por onde a torcida da casa sobe até a esplanada; **agência** em
+  x −67,5…−54,5 · z 134…149, fachada pro norte, de frente pra calçada da 2ª parada (z≈124). Fora da rota do ônibus dos times (z 120), das
+  barracas (z 106), do estacionamento, do abrigo da parada (x −77…−71) e da reserva do norte (CT/campinho).
+- **Agência redesenhada** (`presidencia-agencia-3d.ts`): vidro com caixilho preto, faixa dourada, toldo listrado preto/dourado na porta,
+  letreiro AGÊNCIA + logo (estrela) + nome do clube (EN: AGENCY), logo no telhado e 2 carros executivos no pátio (biblioteca de veículos).
+  Peças fixas fundidas por material (poucos desenhos no celular).
+- Câmera "Locais"/toque: loja e agência abrem no lugar novo (o painel "Entrar/Patrocínios" continua igual). A costura de pedestre da loja
+  agora liga na calçada da 2ª parada, não mais no acesso do visitante.
+- Trava: `node scripts/imersao-mapa/test-club-map-navigation.mjs` (lado da casa, longe do visitante, fora da rota do ônibus dos times).
+  Fotos: `scripts/mockups/loja-agencia-antes.png`, `loja-agencia-depois.png`, `agencia-nova.png` (`scripts/imersao-mapa/shots-loja-agencia.mjs`).
+- Pendente: OK visual do Diego antes de publicar. A arte 2D antiga do estádio (`presidencia-estadio-mapa`) ainda desenha a loja no lugar velho.
+
 ## 🏆📋 04/11 — Mapa 3D: festa de CAMPEÃO DA DIVISÃO (LOCAL, branch do agente, só a conta do Diego)
 - A festa do elenco inteiro (pódio, 11 jogadores, fotógrafos, painel temático) agora também aparece quando o clube é **campeão da
   divisão** na carreira: Série A "O BRASIL É SEU", B "A ELITE TE ESPERA", C "DEGRAU POR DEGRAU", D "A SUBIDA COMEÇA AQUI", Várzea

@@ -870,17 +870,20 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       }
     }
     const forecourt=path([[532,640],[598,691],[605,752],[929,741],[988,665],[1043,598]])
+    // 🏢🛍️ 05/11: loja e agência agora moram aqui no sul — palmeira/cipreste do jardim não nasce dentro (nem colado) delas
+    const lotesDoClube=[PLANTA_COMPLEXO.lots.loja.footprint,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[])]
+    const noLoteDoClube=(q:PontoComplexo)=>lotesDoClube.some(points=>inside(q,points)||points.some((b,j)=>distanceToSegment(q,points[(j+points.length-1)%points.length],b)<1.6))
     for(let i=0;i<forecourt.length;i++){
       const p=forecourt[i]
       // This is the purchased forecourt's own planting. Its plaza reservation
       // excludes city infill, not the palms that belong to the finished garden.
       const forecourtReserved=Math.abs(p.x)<118&&p.z>-105&&p.z<119||registeredLots.some(lot=>inside(p,lot.footprint))||inside(p,arena)||protectedPath(p)
       const trunkClear=parkingLots.every(points=>!inside(p,points)&&points.every((b,j)=>distanceToSegment(p,points[(j+points.length-1)%points.length],b)>.5))
-      if(!forecourtReserved&&trunkClear)plant(p,7.2,true)
+      if(!forecourtReserved&&trunkClear&&!noLoteDoClube(p))plant(p,7.2,true)
       for(const side of [-1,1]){
         const q={x:p.x+side*3.8,z:p.z}
         const clearParking=parkingLots.every(points=>!inside(q,points)&&points.every((b,j)=>distanceToSegment(q,points[(j+points.length-1)%points.length],b)>.95))
-        if(!protectedPath(q,3)&&clearParking){const cypress=add(new THREE.ConeGeometry(.85,4.7,7),leaf);cypress.position.set(q.x,2.6,q.z)}
+        if(!protectedPath(q,3)&&clearParking&&!noLoteDoClube(q)){const cypress=add(new THREE.ConeGeometry(.85,4.7,7),leaf);cypress.position.set(q.x,2.6,q.z)}
       }
     }
   }

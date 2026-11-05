@@ -3,7 +3,7 @@ import {TERRENO_USUARIO as HOME} from './residencia-planta'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import * as T from 'three'
 import {type EstadoComplexo} from './presidencia-complexo-model'
-import {LOTE_AGENCIA_CLUBE as A,nomeAgenciaClube} from './clube-mapa-destinos'
+import {criarAgenciaClube} from './presidencia-agencia-3d'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
 
 /** Visual addresses for existing club screens. No purchase, income or save. */
@@ -23,8 +23,9 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
  }
  if(state.extras.loja){
   const {x,z,height,heading}=LOJA_CLUBE_3D
-  sign(['LOJA DO CLUBE',clubName??''],14,9,x,height+.285,z,true,heading)
-  sign([`LOJA DO CLUBE · ${clubName??''}`],14,.8,x-10.23,4.36,z,false,heading)
+  sign(['LOJA DO CLUBE',clubName??''],14,9,x,height+.285,z,true,0)
+  // faixa da fachada: na frente da vitrine, seja qual for o lado pra onde a loja olha
+  sign([`LOJA DO CLUBE · ${clubName??''}`],14,.8,x+Math.sin(heading)*10.23,4.36,z+Math.cos(heading)*10.23,false,heading)
 
  }
  if(residence)sign(['SUA CASA'],8,1.2,HOME.house.x,1.4,HOME.z+HOME.depth/2+.16)
@@ -40,18 +41,12 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
   sign(['ARENA LEGENDS','SALAS ONLINE'],12,6,a.x,8.9,a.z,true)
   solids.push({id:a.id,minX:a.x-9,maxX:a.x+9,minZ:a.z-9,maxZ:a.z+9,base:.16,top:9,footprint:[{x:a.x-9,z:a.z-9},{x:a.x+9,z:a.z-9},{x:a.x+9,z:a.z+9},{x:a.x-9,z:a.z+9}]})
  }
+ let agency:ReturnType<typeof criarAgenciaClube>|undefined
  if(clubName){
-  box(cream,A.width,.16,A.depth,A.x,.08,A.z)
-  box(cream,26,7,20,A.x,3.66,A.z);box(ink,27,.25,21,A.x,7.29,A.z)
-  for(const s of[-1,1])box(glass,9,2,.08,A.x+s*7,2.5,A.z+10.08)
-  box(ink,2.6,3.5,.12,A.x,1.91,A.z+10.12);box(gold,27,.4,.5,A.x,5.1,A.z+10.1)
-  sign([nomeAgenciaClube(clubName),'PATROCÍNIOS · EMPRESÁRIOS'],25,2.3,A.x,6.15,A.z+10.16)
-  sign([nomeAgenciaClube(clubName),'PATROCÍNIOS · EMPRESÁRIOS'],24,13,A.x,7.44,A.z,true)
-  // Pedestrian link from the existing east service street, without a new road.
-  box(cream,25,.04,2.8,216.5,.18,106);box(cream,2.8,.04,26,205.4,.18,93)
-  solids.push({id:A.id,minX:A.x-13,maxX:A.x+13,minZ:A.z-10,maxZ:A.z+10,base:.16,top:7.16,footprint:[{x:A.x-13,z:A.z-10},{x:A.x+13,z:A.z-10},{x:A.x+13,z:A.z+10},{x:A.x-13,z:A.z+10}]})
+  // 🏢 05/11: prédio novo, no lado da torcida da casa (presidencia-agencia-3d.ts)
+  agency=criarAgenciaClube(root,clubName);solids.push(...agency.solids)
  }
  root.userData.clubPlaces={clubName:clubName??null,store:state.extras.loja,agency:!!clubName}
  let disposed=false
- return{root,solids,dispose(){if(disposed)return;disposed=true;root.removeFromParent();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();root.clear()}}
+ return{root,solids,dispose(){if(disposed)return;disposed=true;agency?.dispose();root.removeFromParent();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const t of textures)t.dispose();root.clear()}}
 }

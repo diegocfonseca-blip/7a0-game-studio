@@ -1,4 +1,4 @@
-import {PLANTA_COMPLEXO,caminhosTorcidaComplexo,deslocarCaminhoComplexo,mapaParaMundo,type EstadoComplexo,type PontoComplexo} from './presidencia-complexo-model'
+import {PLANTA_COMPLEXO,deslocarCaminhoComplexo,mapaParaMundo,type EstadoComplexo,type PontoComplexo} from './presidencia-complexo-model'
 
 export type PontoPasseioComplexo=PontoComplexo&{y:number}
 export type LigacaoPedestreComplexo={
@@ -41,8 +41,9 @@ export function plantaPedestreComplexo(state:EstadoComplexo){
   planned.push({id,points:copy,width,polygon,floor:FLOOR,material,reason,joins,...(parkingLot?{parkingLot}:{}),enabled})
  }
  const parkingPath=(values:readonly (readonly number[])[])=>points(values).map((p,i)=>i===0?{...p,y:PARKING_FLOOR}:p)
- const shop=PLANTA_COMPLEXO.routes.shop.points[0],away=caminhosTorcidaComplexo(state).away
- add('pedestre-loja-portao',[{...shop,y:FLOOR},{...nearest(shop,away),y:FLOOR}],2.6,!!state.extras.loja,'club','fecha o intervalo entre a loja e o acesso de visitantes',['shop','acesso-torcida-away'])
+ // 🛍️ 05/11: a loja mudou pro lado da torcida da casa — a costura liga a entrada dela à calçada da 2ª parada (z≈124), não mais ao acesso do visitante
+ const shop=PLANTA_COMPLEXO.routes.shop.points[0]
+ add('pedestre-loja-portao',[{...shop,y:FLOOR},{x:shop.x,z:124.4,y:FLOOR}],2.4,!!state.extras.loja,'club','liga a loja à calçada da segunda parada e ao passeio do terminal (lado da torcida da casa)',['shop','pedestre-segunda-parada','terminal-onibus-passeio'])
  add('pedestre-estacao-bairro',[{...stationRoute[0],y:FLOOR},{...eastArrival,y:FLOOR}],2.4,!!state.extras.estacao,'club','liga o acesso da estação à calçada pública leste',['station','via-leste-passeio'])
  const stationEnd=stationRoute.at(-1)!
  add('pedestre-estacao-metro',[{...stationEnd,y:FLOOR},{x:158,z:stationEnd.z,y:FLOOR}],2.4,!!state.extras.estacao,'club','fecha a costura com o passeio das passarelas',['station','metro-passeio-estadio'])

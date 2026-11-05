@@ -678,7 +678,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     // Keep the facade readable in portrait too, with all display cars in view.
     fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,8,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
    }
-   else if(next==='agencia-clube'){const a=LOTE_AGENCIA_CLUBE;fit(a.x-20,a.x+20,a.z-14,a.z+25,9,[],new THREE.Vector3(.12,1.2,1.4))}
+   else if(next==='agencia-clube'){const b=LOTE_AGENCIA_CLUBE.building;fit(b.minX-1.5,b.maxX+1.5,b.minZ-8,b.maxZ,LOTE_AGENCIA_CLUBE.height+3,[],new THREE.Vector3(.5,.62,-1.3))}
    else if(next==='patrocinadores')fit(-482,-144,-314,-69,36,[],new THREE.Vector3(.12,2.1,1.25))
    else if(next==='dsouza'||next==='tidex'||next==='oittolabs'||next==='gecg'){
     const p=LOTES_PATROCINADORES_CIDADE[next],sport=next==='gecg'
@@ -777,7 +777,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    const targets:{id:DestinoClubeMapa;view:VistaComplexo;box:THREE.Box3}[]=[{id:'presidencia',view:'casa-usuario',box:new THREE.Box3(new THREE.Vector3(HOME.x-HOME.width/2,0,HOME.z-HOME.depth/2),new THREE.Vector3(HOME.x+HOME.width/2,5,HOME.z+HOME.depth/2))}]
    targets.push({id:'veiculos',view:'vadico',box:new THREE.Box3(new THREE.Vector3(PLANTA_VADICO.bounds.minX,0,PLANTA_VADICO.bounds.minZ),new THREE.Vector3(PLANTA_VADICO.bounds.maxX,7,PLANTA_VADICO.bounds.maxZ))})
    if(cityState.extras.loja)targets.push({id:'loja',view:'loja',box:new THREE.Box3(new THREE.Vector3(Math.min(...shop.footprint.map(p=>p.x)),.16,Math.min(...shop.footprint.map(p=>p.z))),new THREE.Vector3(Math.max(...shop.footprint.map(p=>p.x)),8,Math.max(...shop.footprint.map(p=>p.z))))})
-   if(clubName)targets.push({id:'agencia',view:'agencia-clube',box:new THREE.Box3(new THREE.Vector3(a.x-13,.16,a.z-10),new THREE.Vector3(a.x+13,7.5,a.z+10))})
+   if(clubName)targets.push({id:'agencia',view:'agencia-clube',box:new THREE.Box3(new THREE.Vector3(a.building.minX,.16,a.building.minZ),new THREE.Vector3(a.building.maxX,a.height+3,a.building.maxZ))})
    targets.push({id:'arena',view:'arena-online',box:new THREE.Box3(new THREE.Vector3(ARENA.x-9,0,ARENA.z-9),new THREE.Vector3(ARENA.x+9,9,ARENA.z+9))})
    // 🏢 03/11: tocar no prédio de um patrocinador abre o cartão dele (logo, texto, link)
    const sponsorTargets=(['dsouza','tidex','oittolabs','gecg'] as const).map(id=>{const l=LOTES_PATROCINADORES_CIDADE[id];return{id,view:id as VistaComplexo,box:new THREE.Box3(new THREE.Vector3(l.x-l.width/2,0,l.z-l.depth/2),new THREE.Vector3(l.x+l.width/2,l.height+2,l.z+l.depth/2))}})
