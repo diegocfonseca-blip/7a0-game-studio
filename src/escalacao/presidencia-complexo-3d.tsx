@@ -65,7 +65,7 @@ import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
 import {CASA_LUCA} from './presidencia-casa-luca-planta'
-import {abrirDoacaoLuca,MuralLuca} from './casa-luca'
+import {abrirDoacaoLuca,abrirPlanoCoracao,MuralLuca} from './casa-luca'
 
 export type VistaComplexo='casa-luca'|'arena-online'|'casa-usuario'|'agencia-clube'|'patrocinadores'|'dsouza'|'tidex'|'oittolabs'|'gecg'|'original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'|'city-street'|'coach-arrival'|'coach-door'|'technical-area'|'team-entrance'|'team-field'|'matchday'|'matchday-streets'|'boteco-oswaldo'|'bar-esquina'|'feira'|'banca'|'campinho'|'padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
 /** 🔋 quanto tempo a cidade continua andando depois do último toque no mapa */
@@ -921,15 +921,26 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     <small>{t('Patrocinador do Leilão Legends','Leilão Legends sponsor')}</small>
    </div>})()}
    {/* 💙 05/11: cartão da Casa Luca — mesmo jeito do cartão de patrocinador (✕ ou toque fora fecha). NUNCA mostrar valor, total ou contagem de doações. */}
-   {managementEnabled&&loaded&&selectedView==='casa-luca'&&cartaoFechado!=='casa-luca'&&<div className="pc3-club-place pc3-sponsor-card pc3-luca-card">
+   {managementEnabled&&loaded&&selectedView==='casa-luca'&&cartaoFechado!=='casa-luca'&&<div className="pc3-club-place pc3-luca-card" role="dialog" aria-label="Casa Luca">
     <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado('casa-luca')}>✕</button>
     <strong>💙 CASA LUCA</strong>
     {/* ✍️ TEXTO PROVISÓRIO — o Diego vai revisar (05/11) */}
     <p>{t('O jogo nasceu por causa do meu filho, o Luca. Se quiser ajudar no tratamento dele, ajude aqui.','This game was born because of my son, Luca. If you would like to help with his treatment, you can help here.')}</p>
-    {/* 💙 abre a doação de verdade (casa-luca.tsx); se a trava ainda estiver fechada, avisa "em breve" */}
-    <button type="button" className="pc3-luca-ajudar" style={{background:'#2f6fd6',color:'#fff'}} onClick={()=>{ if(!abrirDoacaoLuca()) setLucaEmBreve(true) }}>{t('💙 AJUDAR O LUCA','💙 HELP LUCA')}</button>
+    {/* 💙 05/11: os valores do Pix já à vista — cada um abre a doação com o valor escolhido (casa-luca.tsx). Trava fechada = "em breve". */}
+    <section className="pc3-luca-bloco" aria-label={t('Ajudar o Luca','Help Luca')}>
+     <b className="pc3-luca-titulo">{t('💙 AJUDAR O LUCA','💙 HELP LUCA')}</b>
+     <div className="pc3-luca-valores">
+      {([5,10,20,'outro'] as const).map(v=><button key={v} type="button" className={v==='outro'?'pc3-luca-outro':undefined} onClick={()=>{ if(!abrirDoacaoLuca(v)) setLucaEmBreve(true) }}>{v==='outro'?t('Outro valor','Other amount'):`R$ ${v}`}</button>)}
+     </div>
+     <small>{t('100% vai pro tratamento do Luca · não dá nada no jogo','100% goes to Luca\'s treatment · gives nothing in the game')}</small>
+    </section>
+    <section className="pc3-luca-bloco pc3-luca-coracao" aria-label={t('Plano Coração','Heart Plan')}>
+     <b className="pc3-luca-titulo">{t('💙 PLANO CORAÇÃO','💙 HEART PLAN')}</b>
+     <p>{t('Metade do preço nos planos mensais pra quem é PcD ou pai/mãe de criança especial.','Half price on monthly plans for people with disabilities or parents of children with special needs.')}</p>
+     <button type="button" onClick={()=>{ if(!abrirPlanoCoracao()) setLucaEmBreve(true) }}>{t('💙 QUERO O PLANO CORAÇÃO','💙 GET THE HEART PLAN')}</button>
+    </section>
     {lucaEmBreve&&<p role="status" className="pc3-luca-breve">{t('Em breve! A forma de ajudar ainda está sendo preparada.','Coming soon! The way to help is still being set up.')}</p>}
-    <div className="pc3-luca-mural"><MuralLuca /></div>
+    <MuralLuca noCartao />
    </div>}
    {managementEnabled&&loaded&&['arena-online','casa-usuario','loja','agencia-clube'].includes(selectedView)&&cartaoFechado!==selectedView&&<div className="pc3-club-place">
     <button type="button" className="pc3-card-x" aria-label={t('Fechar','Close')} onClick={()=>setCartaoFechado(selectedView)}>✕</button>

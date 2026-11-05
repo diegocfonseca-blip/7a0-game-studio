@@ -1,3 +1,12 @@
+## 💙 05/11 — Casa Luca no mapa: cartão COMPLETO (valores do Pix, Plano Coração e mural sempre) + doação por cima do mapa em tela cheia
+- Bug do Diego ("aperto na Casa Luca e não tem nada pra apertar"): o mural sem nomes virava uma barra branca vazia, e com o mapa em TELA
+  CHEIA a doação abria ATRÁS dele (`.pc3-expanded` z 100000 × tela da doação 99998). Agora a tela da Casa Luca abre em z 100001.
+- Cartão novo (clube-mapa.css `.pc3-luca-*`, rola por dentro): 💙 AJUDAR O LUCA com R$ 5 · 10 · 20 · Outro valor (cada um abre a doação
+  com o valor — `abrirDoacaoLuca(valor)`), "100% vai pro tratamento do Luca · não dá nada no jogo", 💙 PLANO CORAÇÃO com botão, e o
+  🧱 Mural SEMPRE (`<MuralLuca noCartao />`): sem nomes = "Seja o primeiro a ajudar o Luca 💙" (sem número). Fora do cartão o mural
+  continua sumindo quando vazio. Fotos: `scripts/mockups/casa-luca-cartao-{novo,vazio}.png`, `casa-luca-{doacao,coracao}-por-cima.png`.
+- Pendente: OK visual do Diego.
+
 ## 💙 05/11 — Mapa 3D: CASA LUCA (o projeto do Luca, filho do Diego) num quarteirão do bairro (LOCAL, branch do agente, só a conta do Diego)
 - Pedido: a casinha do projeto do Luca dentro do mapa do clube. Ajuste dele no meio: **fora do complexo do estádio**, num bairro, **bem visível**
   e **grande** (quarteirão inteiro, prédio de 2 andares que se destaca das casas).
