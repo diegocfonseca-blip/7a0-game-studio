@@ -407,12 +407,12 @@ async function reduzFoto(f: File): Promise<Blob> {
 }
 
 /** 🛒 a seção da Loja do Clube (só com a trava aberta) */
-export function CasaLucaNaLoja({ h2, sub }: { h2: React.CSSProperties; sub: React.CSSProperties }) {
+export function CasaLucaNaLoja({ h2, sub, titulo }: { h2: React.CSSProperties; sub: React.CSSProperties; titulo?: string }) {
   const ok = useCasaLucaLiberada()
   if (!ok) return null
   const cartao: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', background: AZUL_CLARO, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer', marginBottom: 10 }
   return <>
-    <h2 id="loja-casa-luca" style={h2}>💙 Casa Luca <span style={sub}>{tr('ajudar e ser ajudado', 'help and be helped')}</span></h2>
+    <h2 id="loja-casa-luca" style={h2}>{titulo ?? '💙 Casa Luca'} <span style={sub}>{tr('ajudar e ser ajudado', 'help and be helped')}</span></h2>
     <button onClick={() => abrirDoacaoLuca()} style={cartao}>
       <span style={{ fontSize: 30 }}>💙</span>
       <span style={{ flex: 1 }}><b style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', display: 'block' }}>{tr('Ajudar o Luca', 'Help Luca')}</b><span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(12,12,12,.65)' }}>{tr('Pix de qualquer valor. Não dá nada no jogo: é só carinho.', 'A Pix of any amount. Gives nothing in the game: just kindness.')}</span></span>
