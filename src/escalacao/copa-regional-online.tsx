@@ -24,6 +24,7 @@ import { fimDoJogoMs } from './copa-clock-preview'
 import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática no regional da sala (23/10)
 import { montaQualTatica, copaComTatica } from './copa-taticas'
 import { DUR_2D_SALA_MS } from './campo2d-motor'
+import { vel2dBanco, VEL2D_SALA_OPTS } from './vel2d-regra'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
@@ -114,8 +115,8 @@ export function entrantesRegionais(f: FichaRegional, meuUid?: string): Entrant[]
 }
 
 // ─── ⏱️ o relógio da sala (banco) — mesmo contrato do da Copa do Mundo ─────────
-type Row = { revision: number; step: number; running: boolean; manual: boolean; speed: number; started_at: string; updated_at: string; duration_ms: number; extra_ms: number }
-type Cmd = 'next' | 'skip' | 'finish' | 'manual' | 'auto' | 'speed'
+type Row = { revision: number; step: number; running: boolean; manual: boolean; speed: number; vel2d?: number | null; started_at: string; updated_at: string; duration_ms: number; extra_ms: number }
+type Cmd = 'next' | 'skip' | 'finish' | 'manual' | 'auto' | 'speed' | 'vel2d' // ⏩📺 06/11: 'vel2d' = a marcha do 2D (coluna própria)
 interface Relogio { row: Row | null; now: number; isHost: boolean; busy: boolean; command: (c: Cmd, speed?: number) => Promise<void> }
 const minutoDo = (r: Row, now: number) => (r.running ? Math.max(0, Math.min(93, Math.round((now - Date.parse(r.started_at)) / (r.duration_ms * 0.82) * 93))) : 93)
 function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost: boolean, rodadas: number, ko: number, fim: number, extraDoPasso: (s: number) => number, doisD = false): Relogio | undefined {
@@ -582,7 +583,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
   const c2d = doisDDoPasso(relogio?.row) ?? c2dSala // 📺⚡ o passo da vez manda (o banco carimbou), senão a sala
-  const ROUND_MS = c2d ? DUR_2D_SALA_MS : 16000 // 📺 2D = 3× (05/11) · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
+  const ROUND_MS = c2d ? DUR_2D_SALA_MS : 16000 // 📺 2D = 2,5× (06/11) · ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS
@@ -673,15 +674,16 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         <div className="ll27-world-rhythm">
           <button className={relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('manual')}>MANUAL</button>
           <button className={!relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('auto')}>AUTO</button>
-          <select aria-label={tr('Velocidade', 'Speed')} value={relogio.row.speed} disabled={relogio.busy || relogio.row.running} onChange={e => void relogio.command('speed', Number(e.target.value))}>
-            <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={3}>3×</option><option value={4}>4×</option>
+          <select aria-label={tr('Velocidade', 'Speed')} value={c2d ? vel2dBanco(true, relogio.row.vel2d) : relogio.row.speed} disabled={relogio.busy || relogio.row.running} onChange={e => void relogio.command(c2d ? 'vel2d' : 'speed', Number(e.target.value))}>
+            {c2d ? VEL2D_SALA_OPTS.map(o => <option key={o.v} value={o.v}>{tr(o.pt, o.en)}</option>) /* ⏩📺 06/11: no 2D a marcha é absoluta (o banco: `docs/sql/campo2d-sala-2-5x.sql`) */
+              : <><option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={3}>3×</option><option value={4}>4×</option></>}
           </select>
         </div>
         <div className="ll27-world-rhythm ll31-tournament-actions">
           <button className="primary" disabled={relogio.busy || !liveDone || done} onClick={() => void relogio.command('next')}>{proximoRotulo}</button>
           <button disabled={relogio.busy} onClick={() => void relogio.command(relogio.row?.running ? 'skip' : 'next')}>{tr('PULAR', 'SKIP')}</button>
         </div>
-      </> : <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>{tr('Ritmo da sala', 'Room pace')}: {relogio.row.manual ? 'manual' : tr('automático', 'auto')} · {relogio.row.speed}× · {tr('controlado pelo host', 'controlled by the host')}</p>}
+      </> : <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>{tr('Ritmo da sala', 'Room pace')}: {relogio.row.manual ? 'manual' : tr('automático', 'auto')} · {c2d ? vel2dBanco(relogio.row.manual, relogio.row.vel2d) : relogio.row.speed}× · {tr('controlado pelo host', 'controlled by the host')}</p>}
       {!done && <TrocaCampo2DSala />}{/* 📺⚡ o dono troca 2D ↔ rápido: vale do próximo passo (só aparece pro dono) */}
     </section>
   )

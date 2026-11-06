@@ -1,3 +1,15 @@
+## ⏩ 06/11 — Velocidade do Campo 2D ABSOLUTA (branch, sem push; esperando "publique")
+- Causa: na sala o 2D já vinha em 3× e a tela ainda dividia pelo `simSpeed` (sala 4RVDD8: simSpeed 3 → 9×, ~12 s por jogo). Na
+  carreira offline o 2D era 2× × simSpeed (o `useRitmo2D` deixava a carreira de fora por causa do `careerOnline`, que é true offline).
+- Agora (`vel2d-regra.ts`): salas = 2,5× padrão (auto cravado; Manual do dono 1–4× no estado `vel2d`) · carreira/Partida Rápida = 2×
+  padrão, opções 1–4×, offline lembra no aparelho. `npm run vel-2d` trava tudo. O `esc-vel2d` velho JÁ era absoluto (só a Partida
+  Rápida gravava, e lá o jogo era 1:30 ÷ marcha) → a conversão mantém a velocidade (0,5 vira 1×).
+- ⏳ FALTA: rodar `docs/sql/campo2d-sala-2-5x.sql` no banco DEPOIS do deploy (Copa do Mundo/regionais: passo 2D 2,5× = 43902, coluna
+  `vel2d` própria). Até lá o banco segue em 36585 (3×) e o seletor do Manual dessas copas não faz nada no 2D. Conferir também a trava
+  velha `check(speed in …)` da `esc_copa_clock_preview` (nota no fim do SQL).
+- Decisão minha (dizer pro Diego): sala com Manual que o dono volta pro AUTO → a marcha volta pra 2,5× (o "auto cravado" dele); o
+  mapa 3D da carreira (só conta dele) segue com os botões 1×·2×·3×·4×.
+
 ## 🙋 06/11 (noite) — Liga já começada: SÓ ENTRA COM PEDIDO ACEITO (Diego: *"n gostei de o convidado entrar direto na sala sem ter sido aceito"*)
 - Caso: Liga Draft do Futpoint (4RVDD8). O Judas FC digitou o código na tela de FIM (antes do draft) → o banco reabriu a sala pra
   "esperando" com o dono no meio do draft → o Futpoint atualizou e caiu na espera ("Entrar" no lugar de VOLTAR). Devolvi o status

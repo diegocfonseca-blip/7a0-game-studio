@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
 import type { CtxKings } from './kings-liga'
@@ -5709,6 +5710,7 @@ type Action =
   | { type: 'CLOSE_SEASON_BOOKS'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
+  | { type: 'SET_VEL_2D'; vel: number } // ⏩📺 06/11: marcha ABSOLUTA do 2D escolhida pelo dono (sala/carreira online)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'PRESIDENCY_SAVE_BASE'; mgrId:number; value:PresidenteBaseSave }
   | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
@@ -7694,7 +7696,7 @@ export function viraCampo2D(s: EscState): void {
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
-  'campo2d', 'campo2dProximo', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
@@ -8023,6 +8025,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'SET_CHAT': { s.chatOff = action.off; return s } // 💬 host ligou/desligou o chat
     case 'SET_SIM_SPEED': { s.simSpeed = action.speed > 0 ? action.speed : 1; return s } // ⏩ ritmo da simulação
+    case 'SET_VEL_2D': { s.vel2d = VEL2D_SALA_VALORES.includes(action.vel) || VEL2D_SOLO_VALORES.includes(action.vel) ? action.vel : undefined; return s } // ⏩📺 marcha absoluta do 2D (`vel2d-regra.ts`)
     // 🎥 STREAM: o campeão abriu o pacote (ou o host abriu no lugar de quem saiu).
     // A carta fica no estado e o host retransmite pra sala TODA ver a mesma carta.
     // Não sobrescreve se já tiver uma daquele slot (evita corrida host×campeão).
@@ -9234,6 +9237,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => { const k = chaveNome(c.name); if (vistos.has(k)) return false; vistos.add(k); return true })
         ACTIVE_CATALOG = out
       }
+      s.vel2d = undefined // ⏩📺 06/11: e o 2D começa na marcha padrão (sala 3× · carreira online 2×)
       s.simSpeed = 1 // ⏩ todo jogo online COMEÇA no ritmo Normal — não herda a velocidade de um jogo anterior (era o "sim ultra rápida" numa sala auto, sem ninguém ter tocado no manual). Manual/stream re-escolhe a marcha dentro do jogo.
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido

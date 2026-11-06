@@ -33,6 +33,7 @@
     "elenco27": "tsx scripts/testa-elenco-27.mjs",
     "sala": "node scripts/testa-sala-online.mjs",
     "sala-troca-2d": "npx tsx scripts/testa-sala-troca-2d.mts",
+    "vel-2d": "npx tsx scripts/testa-vel-2d.mts",
     "mimos": "node scripts/testa-mimos.mjs",
     "preparador": "node scripts/testa-preparador.mjs",
     "carta": "node scripts/testa-carta-endereco.mjs",

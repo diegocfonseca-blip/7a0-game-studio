@@ -1045,12 +1045,16 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   partida rápida offline: botão do 2D junto do Manual, e o 2D é do ⭐ Craque SALAS pra cima (`useTem2D`, 05/11: *"1 sim"* — quem tem só o Craque Salas vê o 2D no automático e o cadeado só do Manual; o Manual segue `temManual`, do Completo pra cima): quem não
   paga vê "🎮 Manual + 📺 Campo 2D 🔒 Desbloquear". 📢 **O telão SEMPRE embaixo do jogo**: com o 2D, o campinho traz o telão dele
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
-  ⏩ **05/11 (versão final do dia): VELOCIDADE DO 2D.** SALAS ONLINE (rápida, Liga da Turma, Liga Draft, copas, Copa do Mundo,
-  regionais) = **3×** (~30 s; `DUR_2D_SALA_MS`, banco `docs/sql/campo2d-sala-3x.sql` = 36585). CARREIRA e Partida Rápida offline =
-  **começa 2× e LEMBRA A ÚLTIMA MARCHA** (*"se ele deixou por último no 4x e apertou em auto deveria valer… auto 4x"*): a marcha
-  escolhida no Manual fica no aparelho (`esc-vel2d`, `useVel2D` em ritmo2d.ts) e vale no automático também. Carreira online = 2× ×
-  a marcha do dono (sincroniza pela sala). **⚡ 3× é opção do Manual em todo modo** (`SPEED_OPTS`, selects das copas e a lista do
-  banco). ⚠️ O banco só muda DEPOIS do deploy fechar (o aparelho novo aceita 36585, 54878 e 109756 como passo 2D).
+  ⏩ **06/11: VELOCIDADE DO 2D É ABSOLUTA** (regra em `vel2d-regra.ts`, trava `npm run vel-2d`). A marcha É a velocidade do jogo
+  (1× = 90 s · 1,5× = 60 · 2× = 45 · 2,5× = 36 · 3× = 30 · 3,5× = 26 · 4× = 22,5), **nunca multiplica por cima da base** (a sala
+  4RVDD8 tinha simSpeed 3 gravado: 3× × 3 = 9×, ~12 s por jogo). SALAS ONLINE (todo modo) = **2,5× padrão**, cravado no automático;
+  com o Manual da sala o dono escolhe 1× · 1,5× · 2× · 2,5× · 3× · 3,5× · 4× (vai no estado da sala, `vel2d`/`SET_VEL_2D`, e o
+  simSpeed é ignorado). CARREIRA (offline e online) e Partida Rápida offline = **2× padrão**, mesmas 7 opções; offline a última
+  marcha fica no aparelho (`esc-vel2d`) e vale no automático também; carreira online = a marcha do DONO (estado da sala).
+  ⚠️ A carreira OFFLINE tem `careerOnline = true` (é a flag da pirâmide): offline × online se decide só pelo `onlineMode`.
+  Fora do 2D (placar normal) o `simSpeed` segue como sempre. Copa do Mundo/regionais: o banco guarda a marcha numa coluna
+  própria (`vel2d`) — SQL `docs/sql/campo2d-sala-2-5x.sql` (**ainda não aplicado**; rodar depois do deploy). O aparelho aceita como
+  passo 2D tanto os valores novos (109756 ÷ marcha) quanto o 36585 de hoje.
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.

@@ -11,16 +11,12 @@ import { useEffect, useState } from 'react'
 import { useCampo2DLigado } from './campo2d-modo'
 import { useCampo2DTester } from './sport'
 import { useEscTalvez } from './store'
+import { VEL2D_CHAVE, VEL2D_SOLO_OPTS, VEL2D_SOLO_PADRAO, VEL2D_SOLO_VALORES, VEL2D_SALA_OPTS, modoVel2D, vel2dDoContexto, vel2dSala, vel2dCarreiraOnline, vel2dSoloDoGuardado, type OpcaoVel2D } from './vel2d-regra'
 
 export const RITMO2D_TESTE = true
-export const RITMO2D_PADRAO = 2
-export const RITMO2D_OPTS: { v: number; pt: string; en: string }[] = [
-  { v: 0.5, pt: '🐢 Lento', en: '🐢 Slow' },
-  { v: 1, pt: 'Normal', en: 'Normal' },
-  { v: 2, pt: '⚡ 2×', en: '⚡ 2×' },
-  { v: 3, pt: '⚡ 3×', en: '⚡ 3×' },
-  { v: 4, pt: '⚡ 4×', en: '⚡ 4×' },
-]
+// ⏩ 06/11: as marchas viraram ABSOLUTAS (`vel2d-regra.ts`): carreira/Partida Rápida offline 1× · 1,5× · 2× (padrão) · 2,5× · 3× · 3,5× · 4×
+export const RITMO2D_PADRAO = VEL2D_SOLO_PADRAO
+export const RITMO2D_OPTS: OpcaoVel2D[] = VEL2D_SOLO_OPTS
 
 const K = 'esc-ritmo2d-sem-manual'
 const ouvintes = new Set<() => void>()
@@ -43,20 +39,22 @@ export function useRitmo2D(): { teste: boolean; semManual: boolean } {
   const sem = useRitmo2dSemManual()
   // ⏩ 05/11 (Diego): virou REGRA pra todos — todo 2D OFFLINE (Partida Rápida e carreira) usa a marcha guardada no aparelho.
   // Sala online (e a carreira online, que sincroniza pelo dono) fica fora: lá o tempo é da sala.
-  const teste = RITMO2D_TESTE && c2d && !!s && s.onlineMode !== 'online' && !s.careerOnline && s.sport !== 'basquete'
+  // ⚠️ 06/11: a carreira OFFLINE tem `careerOnline = true` (é a flag da pirâmide) — o `!careerOnline` daqui deixava ela de fora e o
+  // 2D da carreira multiplicava o simSpeed por cima do 2×. Quem decide offline × online é só o `onlineMode`.
+  const teste = RITMO2D_TESTE && c2d && !!s && s.onlineMode !== 'online' && s.sport !== 'basquete'
   const semManualOk = tester && !s?.careerDivision // o "sem botão Manual" segue só como teste na Partida Rápida do Diego
   return { teste, semManual: teste && semManualOk && sem }
 }
 
 // ⏩ A MARCHA DO 2D FICA GUARDADA (05/11, Diego: *"se ele deixou por último no 4x e apertou em auto deveria valer o que ele apertou
 // por último… auto 4x"*). Começa no 2× (*"no carreira deixa 2x a velocidade do auto"*); a escolha no Manual vale pro automático também.
-const KV = 'esc-vel2d'
+const KV = VEL2D_CHAVE
 const ouvVel = new Set<() => void>()
 export function vel2D(): number {
-  try { const v = Number(localStorage.getItem(KV)); return RITMO2D_OPTS.some(o => o.v === v) ? v : RITMO2D_PADRAO } catch { return RITMO2D_PADRAO }
+  try { return vel2dSoloDoGuardado(localStorage.getItem(KV)) } catch { return RITMO2D_PADRAO }
 }
 export function setVel2D(v: number): void {
-  if (!RITMO2D_OPTS.some(o => o.v === v)) return
+  if (!VEL2D_SOLO_VALORES.includes(v)) return
   try { localStorage.setItem(KV, String(v)) } catch { /* sem armazenamento: vale só agora */ }
   ouvVel.forEach(f => { try { f() } catch { /* ignora */ } })
 }
@@ -66,7 +64,26 @@ export function useVel2D(): number {
   return vel2D()
 }
 
-/** o divisor do tempo do jogo no 2D offline: a última marcha escolhida (auto e Manual iguais; começa no 2×) */
-export function fatorRitmo2D(_manual?: boolean, _simSpeed?: number): number {
-  return vel2D()
+/** ⏩ a velocidade ABSOLUTA do 2D aqui (06/11): sala online = 3× ou a do dono com Manual · carreira online = a do dono (2×) ·
+ *  offline = a marcha guardada no aparelho (2×). O teste "sem botão Manual" do Diego = o automático padrão (2×). */
+export function useVel2DAqui(): number {
+  const s = useEscTalvez()?.state
+  const local = useVel2D()
+  const r2d = useRitmo2D()
+  if (r2d.semManual) return VEL2D_SOLO_PADRAO
+  return s ? vel2dDoContexto(s, local) : local
+}
+
+/** 🎮 o seletor de marcha do 2D aqui (`null` = não é 2D: vale o seletor de sempre, com o simSpeed).
+ *  Offline grava no aparelho; online (sala e carreira online) vai no ESTADO da sala (`SET_VEL_2D`) — só o dono manda. */
+export function useControleVel2D(c2d: boolean): null | { opts: OpcaoVel2D[]; cur: number; set: (v: number) => void } {
+  const ctx = useEscTalvez()
+  const local = useVel2D()
+  const s = ctx?.state
+  if (!c2d || !s || s.sport === 'basquete') return null
+  const modo = modoVel2D(s)
+  if (modo === 'solo') return { opts: VEL2D_SOLO_OPTS, cur: local, set: setVel2D }
+  const opts = modo === 'sala' ? VEL2D_SALA_OPTS : VEL2D_SOLO_OPTS
+  const cur = modo === 'sala' ? vel2dSala(s) : vel2dCarreiraOnline(s)
+  return { opts, cur, set: v => { if (s.isHost && !s.espectador) ctx!.dispatch({ type: 'SET_VEL_2D', vel: v }) } }
 }

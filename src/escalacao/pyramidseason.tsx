@@ -92,8 +92,8 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos'
 import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
-import { DUR_2D_MS, DUR_2D_AUTO_MS } from './campo2d-motor'
-import { useRitmo2D, useVel2D, setVel2D } from './ritmo2d'
+import { DUR_2D_MS } from './campo2d-motor'
+import { useRitmo2D, useVel2DAqui, setVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
@@ -8366,8 +8366,10 @@ export function PyramidSeasonScreen() {
   useEffect(() => () => setCareerColorCtx(null), [])
   const round = state.round
   // ⏩📺 05/11: com o 2D na carreira OFFLINE a velocidade é a marcha guardada (começa 2×; a do Manual vale no auto também)
-  const r2dCarr = useRitmo2D(), vel2dCarr = useVel2D()
-  const speedFactor = r2dCarr.teste ? vel2dCarr : state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  // ⏩📺 06/11: velocidade ABSOLUTA do 2D (`vel2d-regra.ts`): carreira offline = a marcha do aparelho · carreira online = a do dono
+  const r2dCarr = useRitmo2D(), vel2dCarr = useVel2DAqui()
+  const campo2d = useCampo2DLigado() // (na sala online quem manda é a sala — `useCampo2DLigado` já olha isso; todo mundo no mesmo tempo)
+  const speedFactor = campo2d ? vel2dCarr : state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   // ⏸️ passo é seu (SOLO + manual): usado na liga e na Copa. Declarado aqui em cima
   // porque o TEMPO DA PARTIDA (logo abaixo) e o efeito da Copa precisam saber se é manual.
   const [manualPref, toggleSim] = useSimMode()
@@ -8390,8 +8392,7 @@ export function PyramidSeasonScreen() {
   // 📺 CAMPO 2D (20/10): com o campinho ligado, o jogo dura 1:30 no automático (decisão do Diego) — e no Manual o técnico
   // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
   // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
-  const campo2d = useCampo2DLigado() // (na sala online quem manda é a sala — `useCampo2DLigado` já olha isso; todo mundo no mesmo tempo)
-  const baseRoundMs = campo2d ? (r2dCarr.teste ? DUR_2D_MS : DUR_2D_AUTO_MS) : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
+  const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -9341,7 +9342,7 @@ export function PyramidSeasonScreen() {
   // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
   // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
   // 📺 no Campo 2D cada jogo da Copa também dura o mesmo da liga: 2× no auto, 1:30 no Manual (05/11)
-  const copaLegMs = campo2d ? Math.round((r2dCarr.teste ? DUR_2D_MS : DUR_2D_AUTO_MS) * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  const copaLegMs = campo2d ? Math.round(DUR_2D_MS * 0.82) : manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
   const copaClock=useRef({key:'',elapsed:0})
   // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
@@ -10615,10 +10616,10 @@ export function PyramidSeasonScreen() {
   // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
   const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
   const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
-    manualOk: manualAllowed, manual, velocidade: r2dCarr.teste ? vel2dCarr : state.simSpeed ?? 1, // 📺 06/11: com o 2D a marcha é a do campinho (a mesma da aba Jogos)
+    manualOk: manualAllowed, manual, velocidade: campo2d ? vel2dCarr : state.simSpeed ?? 1, // 📺 06/11: com o 2D a marcha é a do campinho (a mesma da aba Jogos)
     podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
-    alternaManual: toggleManualCareer, mudaVelocidade: v => { if (r2dCarr.teste) setVel2D(v); dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
+    alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
     tatica: () => escolheAba('jogos'),
   } : null

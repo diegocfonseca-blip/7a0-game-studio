@@ -4,8 +4,8 @@ import {PASSO_COPA,passoRodaBola,respiroAntes,RESUMO_MS,passoComResumo} from './
 import {doisDDoPasso} from './campo2d-modo'
 import {usePreparaTroca2D} from './troca2d-copa'
 
-export type CopaClockRow={revision:number;step:number;running:boolean;manual:boolean;speed:number;started_at:string;updated_at:string;duration_ms:number;extra_ms:number}
-export type CopaClockCommand='next'|'skip'|'finish'|'manual'|'auto'|'speed'
+export type CopaClockRow={revision:number;step:number;running:boolean;manual:boolean;speed:number;vel2d?:number|null;started_at:string;updated_at:string;duration_ms:number;extra_ms:number}
+export type CopaClockCommand='next'|'skip'|'finish'|'manual'|'auto'|'speed'|'vel2d' // ⏩📺 06/11: 'vel2d' = a marcha do 2D (coluna própria)
 export type CopaClockController={row:CopaClockRow|null;now:number;isHost:boolean;busy:boolean;error:string;command:(cmd:CopaClockCommand,speed?:number)=>Promise<void>}
 
 /** O banco carimba o início; leitura não avança a Copa nem recalcula resultados. */
