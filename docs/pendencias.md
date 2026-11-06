@@ -1,3 +1,9 @@
+## 💡 06/11 — IDEIA do Diego (esperando ele responder): entrar em Liga da Turma / Liga Draft já começada
+*"muita gente entra na liga depois que começa… daria pra entrar? o host excluísse a pessoa… ou entraria no lugar de bot… só pagante…
+não quero bugs com cadeira"*. Proposta minha (aguardando sim/não pro mockup): entra SÓ com a liga PARADA (sala de espera, antes do
+dono apertar começar), assume o time de um BOT (elenco, pontos, posição), dono aprova, só pagante. "Dono tira alguém e dá o time" = 2ª
+etapa (mexe em assento de gente).
+
 ## ⏩ 06/11 — Voltar pro AUTO mantém a velocidade escolhida no Manual (branch; esperando "publique")
 Diego (Futpoint jogando online: pôs 4× e, ao voltar pro auto, voltou pra Normal): *"deve ficar o auto com base no número que ele
 decidir antes"*. Saíram os `SET_SIM_SPEED 1` dos toggles (salas, Liberta, Champions, carreira, internacional); o seletor mostra a
