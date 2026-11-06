@@ -1053,7 +1053,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   marcha fica no aparelho (`esc-vel2d`) e vale no automático também; carreira online = a marcha do DONO (estado da sala).
   ⚠️ A carreira OFFLINE tem `careerOnline = true` (é a flag da pirâmide): offline × online se decide só pelo `onlineMode`.
   Fora do 2D (placar normal) o `simSpeed` segue como sempre. Copa do Mundo/regionais: o banco guarda a marcha numa coluna
-  própria (`vel2d`) — SQL `docs/sql/campo2d-sala-2-5x.sql` (**ainda não aplicado**; rodar depois do deploy). O aparelho aceita como
+  própria (`vel2d`) — SQL `docs/sql/campo2d-sala-2-5x.sql` (**APLICADO em 06/11 depois do deploy**, junto com a trava do 3× do placar normal da Copa). O aparelho aceita como
   passo 2D tanto os valores novos (109756 ÷ marcha) quanto o 36585 de hoje.
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
