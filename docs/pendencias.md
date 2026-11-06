@@ -8,12 +8,17 @@
 - Código: `camisas-2d.ts` (regras puras) · `camisas-2d-dados.ts` (de onde vem o kit) · `campo2d-marcador.ts` (listras). Trava:
   `npm run camisas-2d`. Fotos: `node scripts/foto-camisas-2d.mjs` → `scripts/mockups/camisas-2d-{1..5}.png`.
 - Pendente: OK do Diego nas fotos → publicar. O PLACAR de baixo (fora do 2D) continua com as cores de antes.
+## 🏆📋 06/11 — Lobby: faixa verde duplicada sai na liga + Liga Draft rolando aparece na lista (branch; esperando "publique")
+- Faixa "⏳ Você tem uma partida em andamento" some quando a sala é uma liga que já está em "🏆 Suas ligas" (o VOLTAR mora lá).
+  Sala rápida continua com a faixa de sempre.
+- Liga Draft ROLANDO aparece em Salas abertas com selo roxo "📋 LIGA DRAFT" (antes ficava escondida da lista; mesma regra da liga:
+  só rolando, ninguém de fora entra).
 
 ## ⏩ 05/11 — Velocidade do Campo 2D (publicado à noite, a pedido do Diego)
 - Salas online (todas) = 3× · carreira e Partida Rápida offline = começa 2× e LEMBRA a última marcha do Manual (vale no auto) ·
   carreira online = 2× × marcha do dono · ⚡ 3× virou opção do Manual em todo modo.
 - 📺⚡ troca 2D ↔ placar na sala LIBERADA pra todos (`TROCA_2D_SALA_GERAL = true`) — o Diego viu o Futpoint na Liga Draft sem o botão.
-- [ ] Depois do deploy: rodar `docs/sql/campo2d-sala-3x.sql` no banco (Copa do Mundo/regionais + marcha 3× no relógio).
+- [x] Banco atualizado depois do deploy verde (05/11, 23h32 UTC): Copa do Mundo/regionais a 3× + marcha 3× no relógio.
 - Reverter: `RITMO2D_SALA` / `RITMO2D_PADRAO` em campo2d-motor.ts / ritmo2d.ts; SQL com 109756.
 ## ⏱️ 05/11 — Sala 2D demorava ~55 s pra mostrar o 1º jogo (branch; esperando OK do Diego pra publicar)
 Diego: *"está demorando pra aparecer o campinho 2D nas salas online quando inicia a simulação"*.
