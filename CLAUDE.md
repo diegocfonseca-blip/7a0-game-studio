@@ -1105,6 +1105,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   régua** — comparar com quem já está no baralho na mesma posição e categoria (o Lote 48 nasceu na régua velha e teve de ser descido).
   Lucas Barreto (Botafogo 2024) é 74–83 fixo, amigo do Diego: não mexer. Histórico em `docs/pendencias.md` (02/11).
 
+- **⚖️ TIME EQUILIBRADO GANHA DE TIME CHEIO DE LENDA COM BURACO (06/11, *"ok deixa assim msm… perfeito"*).** Reclamação na Liga
+  Draft do Futpoint: o Príncipe Rubro Negro (3 lendas + 8 craques, nenhum titular fraco) ganhava de times com 6 lendas e um perna-de-pau
+  escalado (Digão 48–64 na zaga do Duarte). A simulação é por SETOR com os 11 titulares — lenda no ataque não tapa zagueiro ruim. Ele
+  achou justo e mandou deixar. **Não aumentar o peso da lenda** sem ele pedir. (E "ficou em 16º três vezes" do Duarte = coincidência: 15º na T3.)
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
