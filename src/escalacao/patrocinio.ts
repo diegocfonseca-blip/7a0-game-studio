@@ -131,8 +131,8 @@ const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Haval H6 0 km blin
 // · canal do K9 no YouTube — SAIU em 05/11 (Diego: *"remova o texto que fala do telão do Kelvin canal no YouTube"*; desligado no banco, id 2)
 // · Tidex (19/10, no lugar da Max Joias) → WhatsApp deles, com a mensagem já escrita
 // 🤖 Tidex (19/10): o mesmo texto/link está na linha do banco (`esc_anuncios_fixos`), que é quem manda; isto é a reserva
-const TIDEX_GIRO = '🤖 Tidex · Sua empresa aparece no ChatGPT? Clique aqui'
-const TIDEX_ZAP = 'https://wa.me/5511981181888?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e queria saber como ter minha empresa no ChatGPT.')
+const TIDEX_GIRO = '🤖 Tidex · Fazemos seu site por R$ 299,90 · Clique aqui' // 06/11 (Diego): oferta de site
+const TIDEX_ZAP = 'https://wa.me/5511981181888?text=' + encodeURIComponent('Olá! Vim pelo Leilão Legends e quero fazer meu site por R$ 299,90.')
 // 🧪 OittoLabs (21/10): contabilidade e BPO pra PJ e PF — a linha de verdade mora em `esc_anuncios_fixos`; isto é a reserva
 const OITTO_GIRO = '🧪 OittoLabs · Contabilidade e BPO financeiro pra sua empresa ou PF · Clique aqui'
 // ⚽ Grêmio Esportivo Campo Grande (23/10): clube de várzea com estádio próprio (~10 mil lugares) em Jurubatuba, Zona Sul de SP;
