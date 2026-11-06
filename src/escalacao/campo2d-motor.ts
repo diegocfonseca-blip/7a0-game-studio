@@ -23,6 +23,8 @@ export const DUR_2D_MS = Math.round(90_000 / 0.82) // o `roundMs` que faz o plac
  *  no AUTOMÁTICO o 2D anda a 2× (~45 s por jogo) em todo lugar — carreira (offline e online), Partida Rápida e salas online.
  *  No Manual também começa em 2× e a marcha divide por cima (🐢 volta pro 1:30). Nas SALAS online é sempre 2×.
  *  ⚠️ O relógio do banco (Copa do Mundo/regionais) tem a MESMA conta: `docs/sql/campo2d-2x.sql` (54878). */
+// 🔁 06/11: as marchas viraram ABSOLUTAS — quem calcula o tempo do jogo 2D agora é `vel2d-regra.ts` (`dur2DDaVel`). Ficam aqui só
+// as constantes antigas (o 3× da sala sem relógio continua sendo `DUR_2D_SALA_MS`).
 export const RITMO2D_AUTO = 2
 export const DUR_2D_AUTO_MS = Math.round(DUR_2D_MS / RITMO2D_AUTO)
 /** duração-base do jogo 2D: 2× no automático E no Manual (05/11, *"no manual também começa com 2x"*) — a marcha do Manual
@@ -30,7 +32,7 @@ export const DUR_2D_AUTO_MS = Math.round(DUR_2D_MS / RITMO2D_AUTO)
 export const dur2D = (_manual?: boolean) => DUR_2D_AUTO_MS
 /** ⏩ 05/11 (Diego: *"deixa na velocidade 3x o modo auto das salas online, draft, minhas ligas e sala rápida"*): SALA online = 3× (~30 s).
  *  Relógio do banco (Copa do Mundo/regionais) = a mesma conta: `docs/sql/campo2d-sala-3x.sql` (36585). */
-export const RITMO2D_SALA = 3
+export const RITMO2D_SALA = 2.5 // 🔁 06/11: o Diego baixou a sala pra 2,5× (~36 s) — o banco: `docs/sql/campo2d-sala-2-5x.sql`
 export const DUR_2D_SALA_MS = Math.round(DUR_2D_MS / RITMO2D_SALA)
 const DT = 1 / 50
 const ANTECEDE = 8.5 // segundos de jogada antes de um evento (gol/chance)

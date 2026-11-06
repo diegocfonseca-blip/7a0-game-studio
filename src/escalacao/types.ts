@@ -977,6 +977,9 @@ export interface EscState {
   // devagar, 0.25=4×), >1 = mais rápido (2=2×, 4=4×). Sincroniza via estado pra os
   // relógios das partidas baterem igual pra todo mundo na sala.
   simSpeed?: number
+  /** ⏩📺 06/11: marcha ABSOLUTA do Campo 2D escolhida pelo DONO no Manual (sala online / carreira online) — viaja no estado, vale pra sala toda.
+   *  Sem ela: sala 3×, carreira online 2× (`vel2d-regra.ts`). Nada a ver com o `simSpeed` (placar normal). */
+  vel2d?: number
   // 🎥 modo stream: a carta que o campeão tirou (liga/copa) fica AQUI e vai pra
   // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.

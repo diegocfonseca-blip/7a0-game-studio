@@ -4,6 +4,7 @@
 //  · OFFLINE (carreira, partida rápida, copas): a escolha é do aparelho (`esc-campo2d`), e só pra quem o 2D está liberado.
 //  · SALA ONLINE: quem decide é a SALA (`state.campo2d`, escolhido pelo dono ao criar) — vale igual pra todo mundo dela,
 //    porque o tempo do jogo muda junto e os relógios da sala têm que bater.
+import { PASSOS_2D_BANCO_MS } from './vel2d-regra'
 import { createContext, useContext, useSyncExternalStore } from 'react'
 import { useCampo2DLiberado } from './sport'
 import { useEscTalvez } from './store'
@@ -45,6 +46,10 @@ export const Campo2DDoPassoCtx = createContext<boolean | undefined>(undefined)
  *  continua valendo pra passo carimbado antes da troca) — e 16000 no normal */
 export function doisDDoPasso(row: { step: number; duration_ms: number; speed: number } | null | undefined): boolean | undefined {
   if (!row || row.step <= 0) return undefined // nenhum passo começou ainda: vale a sala
+  // ⏩📺 06/11: com a régua ABSOLUTA (`docs/sql/campo2d-sala-2-5x.sql`) o banco carimba 109756 ÷ a marcha (1×–4×, padrão 2,5× =
+  // 43902), sem dividir pela `speed` — esses valores batem EXATOS (±2 ms). O placar normal é 16000 ÷ speed e nunca cai neles (o
+  // mais perto: 32000 × 31359). E o 36585 (3×, carimbado até o banco trocar) segue pela régua de baixo.
+  if (PASSOS_2D_BANCO_MS.some(p => Math.abs(row.duration_ms - p) <= 2)) return true
   const d = row.duration_ms * (row.speed || 1)
   return Math.abs(d - 36585) < 1500 || Math.abs(d - 54878) < 1500 || Math.abs(d - 109756) < 1500 // 3× (05/11) · 2× · 1:30 (passos carimbados antes)
 }

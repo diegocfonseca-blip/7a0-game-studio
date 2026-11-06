@@ -43,7 +43,7 @@ import { useMotor2Carreira, useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
 import { DUR_2D_MS } from './campo2d-motor'
-import { useRitmo2D, useVel2D } from './ritmo2d'
+import { useVel2DAqui } from './ritmo2d'
 import { LiveScoreCard, PensShootout, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
@@ -553,10 +553,10 @@ export function CareerInternationalView(p: Props) {
   const hasManual = useHasManual()
   const manualAllowed = !state.careerEra || hasManual
   const manual = manualPref && manualAllowed
-  const r2dIntl = useRitmo2D(), vel2dIntl = useVel2D()
+  const vel2dIntl = useVel2DAqui()
   const c2d = useCampo2DLigado()
-  // ⏩📺 2D offline: a marcha guardada (começa 2×) · 2D na carreira online: 2× × a marcha do dono
-  const speed = r2dIntl.teste ? vel2dIntl : (c2d ? 2 : 1) * (state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1)
+  // ⏩📺 06/11: no 2D a velocidade é ABSOLUTA (offline = a marcha do aparelho · carreira online = a do dono) — nunca × simSpeed
+  const speed = c2d ? vel2dIntl : (state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1)
   const toggleManual = () => { toggleSim() } /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
   const champsOk = championsLiberada(p.history)
