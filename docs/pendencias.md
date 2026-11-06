@@ -1,3 +1,14 @@
+## ⚡ 06/11 — Liga de 19 rodadas (turno único) nas salas online (branch; Diego: *"pode publicar já"* — LIBERADO PRA TODOS no código)
+Ao CRIAR a sala com liga de 20 (Rápido, 🏆 Liga da Turma, 📋 Liga Draft), "📅 Rodadas da liga": 🏟️ 38 · ida e volta (padrão) ou
+⚡ 19 · só ida. No 19 TODO jogo é em campo neutro (`simMatch(..., neutral=true)`), o calendário é o 1º turno do de sempre.
+- Marca da SALA `turnoUnico` (game_state → START_ONLINE → estado), em `MARCAS_DE_MODO`. Sem o campo = 38. Só vale com tabela de 20
+  (`turnoUnicoVale`): liga de 10, liga sem bots com menos de 20, carreira, basquete, Kings, Relâmpago e Só Champions seguem o de sempre.
+- Campo neutro olha o calendário que está valendo (`ligaJogoNeutro`): temporada começada nunca muda de régua. "Próximo jogo · campo neutro".
+- Liga da Turma/Draft: o DONO troca 38 × 19 na sala de espera (`salvaTurnoLiga`), vale da próxima temporada.
+- Gate `TURNO_UNICO_GERAL = true` (sport.ts); `false` volta a ser só a conta do Diego. Trava `npm run turno-unico`.
+- Fotos reais: `scripts/mockups/turno-unico-1..4.png` (`node scripts/foto-turno-unico.mjs`).
+- ⚠️ Achado à parte: `npm run liga-draft` já falha na `main` (TypeError em `scripts/testa-liga-draft.mts:47`, `c` undefined) — não é desta entrega.
+
 ## ⏩ 06/11 — Voltar pro AUTO mantém a velocidade escolhida no Manual (branch; esperando "publique")
 Diego (Futpoint jogando online: pôs 4× e, ao voltar pro auto, voltou pra Normal): *"deve ficar o auto com base no número que ele
 decidir antes"*. Saíram os `SET_SIM_SPEED 1` dos toggles (salas, Liberta, Champions, carreira, internacional); o seletor mostra a

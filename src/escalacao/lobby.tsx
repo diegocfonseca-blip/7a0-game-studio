@@ -60,7 +60,7 @@ import type { RegrasDraft } from './liga-draft'
 const AVISO_TROCA_LIGA = false
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
+import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useTurnoUnicoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
 import { Co2Painel } from './co2-telas'
 import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -1018,6 +1018,15 @@ export function EscLobby() {
   const [filtroSala, setFiltroSala] = useState<'todas' | 'envelope' | 'tocaia' | 'pregao' | 'unico' | 'clubes' | 'duplas'>('todas')
   const [regrasAbertas, setRegrasAbertas] = useState(false)
   const [room2d, setRoom2d] = useState(false)
+  // ⚡ TURNO ÚNICO (06/11, pedido aprovado pelo Diego; só a conta dele até liberar): com LIGA DE 20, quem cria escolhe 38 rodadas
+  // (ida e volta, padrão) ou 19 (só ida, todo jogo em campo neutro). Rápido, 🏆 Liga da Turma e 📋 Liga Draft. Fora: liga de 10
+  // (já tem as 18 dela), Relâmpago e Só Champions (não têm liga), Kings, Bafo, Copa do Mundo, carreira e basquete.
+  const turnoOn = useTurnoUnicoLiberado()
+  const [turnoUnicoSel, setTurnoUnicoSel] = useState(false)
+  const turnoMostra = turnoOn && !nbaSala && formation !== 'kings' && !tam10Vale
+    && (roomMode === 'rapido' || roomMode === 'liga')
+    && ((roomMode === 'liga' && ehDraft) || (rapidoCopaMode !== 'relampago' && rapidoCopaMode !== 'champions'))
+  const turnoVale = turnoMostra && turnoUnicoSel
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const hasManual = useHasManual() // ⭐ 26/10: criar sala no Manual (e com o 2D) é do plano — a mesma régua do Modo Manual
   const [manualAviso, setManualAviso] = useState(false), [aviso2d, setAviso2d] = useState(false)
@@ -1840,6 +1849,7 @@ export function EscLobby() {
       draftRegras: (gs as GS & { draftRegras?: RegrasDraft })?.draftRegras, // 📜 05/11
       draftPremios: (gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? undefined, // 💰 05/11
       tamanhoLiga: (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : undefined, // 📏 20 (padrão) ou 10 times
+      turnoUnico: (gs as GS & { turnoUnico?: boolean })?.turnoUnico === true, // ⚡ 06/11: 19 rodadas só ida (o reducer só aplica com a tabela de 20)
       campo2d: !!((gs as GS & { campo2d?: boolean; campo2dProximo?: boolean })?.campo2dProximo ?? (gs as GS & { campo2d?: boolean })?.campo2d), // 📺 sala 2D (escolha do dono na criação; ⚡ a troca marcada no meio da sala vale na próxima largada)
       draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
     })
@@ -2117,9 +2127,11 @@ export function EscLobby() {
     const relampagoSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'relampago'
     // 🏟️ 04/11: liga de 10 times (rápido/Minhas Ligas com bots, ou a Minha Liga Draft de 10) — 10 técnicos (20 pessoas em duplas)
     const tam10Sala = !carreira && !elenco && !mundo && tam10Vale
+    const turnoSala = !carreira && !elenco && !mundo && turnoVale // ⚡ 06/11: liga de 20 em turno único (19 rodadas, campo neutro)
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}) }
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}),
+      ...(turnoSala ? { turnoUnico: true } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -2525,6 +2537,19 @@ export function EscLobby() {
       const { error } = await supabase.from('game_rooms').update({ game_state: gs }).eq('id', room.id)
       if (error) { setRoomError(tr('Não deu pra trocar agora — tente de novo.', 'Couldn\'t switch right now — try again.')); return }
       setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), campo2d: on || undefined, campo2dProximo: undefined } as GS } : r))
+    } catch { setRoomError(tr('Não deu pra trocar agora — tente de novo.', 'Couldn\'t switch right now — try again.')) }
+  }
+  // ⚡ TURNO ÚNICO (06/11): o DONO troca 38 × 19 rodadas na sala de espera da liga — grava no game_state (lido de novo na hora, igual
+  // ao 2D) e vale na PRÓXIMA largada. Temporada já começada nunca muda de tamanho (o calendário dela já está montado).
+  async function salvaTurnoLiga(on: boolean) {
+    if (!room || !mandaNaLiga || !turnoOn) return
+    try {
+      const { data } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+      const gs = { ...((data?.game_state ?? {}) as Record<string, unknown>) }
+      if (on) gs.turnoUnico = true; else delete gs.turnoUnico
+      const { error } = await supabase.from('game_rooms').update({ game_state: gs }).eq('id', room.id)
+      if (error) { setRoomError(tr('Não deu pra trocar agora — tente de novo.', 'Couldn\'t switch right now — try again.')); return }
+      setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), turnoUnico: on || undefined } as GS } : r))
     } catch { setRoomError(tr('Não deu pra trocar agora — tente de novo.', 'Couldn\'t switch right now — try again.')) }
   }
   // 🎨 o dono escolhe o tema da sala (só os da conta dele). Lê o game_state na hora pra não pisar em nada da sala.
@@ -3748,7 +3773,7 @@ export function EscLobby() {
                       <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr(`👤 Usuários + 🤖 bots = ${ligaTamanho} times`, `👤 Users + 🤖 bots = ${ligaTamanho} teams`)}</p>
                       <p className="text-white/60 text-[10.5px] font-bold leading-snug mt-0.5">{ligaTamanho === 10
                         ? tr('Ex.: 3 de vocês + 7 bots. Cabem até 10 pessoas. Temporada de 18 rodadas.', 'E.g. 3 of you + 7 bots. Up to 10 people. 18-round season.')
-                        : tr('Ex.: 3 de vocês + 17 bots. Cabem até 20 pessoas. Temporada de 38 rodadas.', 'E.g. 3 of you + 17 bots. Up to 20 people. 38-round season.')}</p>
+                        : tr(`Ex.: 3 de vocês + 17 bots. Cabem até 20 pessoas. Temporada de ${turnoVale ? 19 : 38} rodadas.`, `E.g. 3 of you + 17 bots. Up to 20 people. ${turnoVale ? 19 : 38}-round season.`)}</p>
                     </div>
                   </>)}
                   {/* 💡💰 05/11 (Diego): ideias de regras (só texto) + prêmio por colocação (padrão pelo tamanho; o criador edita) */}
@@ -4180,7 +4205,7 @@ export function EscLobby() {
 
           {/* 🏆 O CAMPEONATO (26/10): o que vem depois da liga — só no rápido/ligas/bafo (a carreira tem regras próprias) */}
           {!isCareer && (
-            <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆" sub={tam10Vale ? tr('O que vem depois das 18 rodadas', 'What comes after the 18 rounds') : tr('O que vem depois das 38 rodadas', 'What comes after the 38 rounds')}>
+            <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆" sub={tam10Vale ? tr('O que vem depois das 18 rodadas', 'What comes after the 18 rounds') : turnoVale ? tr('O que vem depois das 19 rodadas', 'What comes after the 19 rounds') : tr('O que vem depois das 38 rodadas', 'What comes after the 38 rounds')}>
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
                   fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
@@ -4196,6 +4221,19 @@ export function EscLobby() {
                   seletor ligado e ignorar a escolha depois — que é o tipo de estado
                   torto que a casa não aceita — o seletor SAI da tela e o motivo fica
                   escrito. A sala já nasce com copaMode:'liga' travado. */}
+              {/* ⚡ TURNO ÚNICO (06/11): só aparece com liga de 20 — liga de 10 já tem as 18 rodadas dela */}
+              {turnoMostra && !isElenco && ehDraft && roomMode === 'liga' && (
+                <SegField label={tr('📅 Rodadas da liga', '📅 League rounds')}>
+                  <Seg options={[[false, tr('🏟️ 38 rodadas · ida e volta (padrão)', '🏟️ 38 rounds · home and away (default)')], [true, tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')]] as [boolean, string][]}
+                    value={turnoUnicoSel} onSet={v => setTurnoUnicoSel(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {turnoUnicoSel
+                      ? tr('⚡ Só ida: 19 jogos, todos em campo neutro — ninguém joga mais em casa que o outro.', '⚡ One leg: 19 games, all on neutral ground — nobody plays more at home than anyone else.')
+                      : tr('🏟️ Ida e volta: 38 jogos, metade em casa e metade fora (o de sempre).', '🏟️ Home and away: 38 games, half at home and half away (the usual).')}
+                    {roomMode === 'liga' && !ligaComBots ? tr(' Sem bots, só vale se a tabela fechar 20 times.', ' With no bots, it only applies if the table reaches 20 teams.') : ''}
+                  </p>
+                </SegField>
+              )}
               {isElenco ? (
                 <>
                 <SegField label={tr('Depois da liga', 'After the league')}>
@@ -4248,7 +4286,20 @@ export function EscLobby() {
                           : tr('🔒 10 times não vale aqui: a ⭐ Só Champions não tem liga — é a tabela de 36.', '🔒 10 teams doesn\'t apply here: ⭐ Champions only has no league — it is the table of 36.'))
                         : ligaTamanho === 10
                           ? tr('⚡ Liga de 10 = mais rápida (18 rodadas). Cabem até 10 times; os bots completam.', '⚡ 10-team league = quicker (18 rounds). Up to 10 teams; bots fill the rest.')
-                          : tr('🏟️ Liga de 20 = a de sempre (38 rodadas).', '🏟️ 20-team league = the usual one (38 rounds).')}
+                          : (turnoVale ? tr('🏟️ Liga de 20 em turno único (19 rodadas).', '🏟️ 20-team league in a single round-robin (19 rounds).') : tr('🏟️ Liga de 20 = a de sempre (38 rodadas).', '🏟️ 20-team league = the usual one (38 rounds).'))}
+                    </p>
+                  </SegField>
+                )}
+                {/* ⚡ TURNO ÚNICO (06/11): logo abaixo dos times na liga — só com 20 (a de 10 já tem as 18 dela) */}
+                {turnoMostra && !(ehDraft && roomMode === 'liga') && (
+                  <SegField label={tr('📅 Rodadas da liga', '📅 League rounds')}>
+                    <Seg options={[[false, tr('🏟️ 38 rodadas · ida e volta (padrão)', '🏟️ 38 rounds · home and away (default)')], [true, tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')]] as [boolean, string][]}
+                      value={turnoUnicoSel} onSet={v => setTurnoUnicoSel(v)} />
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                      {turnoUnicoSel
+                        ? tr('⚡ Só ida: 19 jogos, todos em campo neutro — ninguém joga mais em casa que o outro.', '⚡ One leg: 19 games, all on neutral ground — nobody plays more at home than anyone else.')
+                        : tr('🏟️ Ida e volta: 38 jogos, metade em casa e metade fora (o de sempre).', '🏟️ Home and away: 38 games, half at home and half away (the usual).')}
+                      {roomMode === 'liga' && !ligaComBots ? tr(' Sem bots, só vale se a tabela fechar 20 times.', ' With no bots, it only applies if the table reaches 20 teams.') : ''}
                     </p>
                   </SegField>
                 )}
@@ -4551,7 +4602,7 @@ export function EscLobby() {
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
             const regLbl = (r.game_state as GS & { regionalNaLiga?: string })?.regionalNaLiga
-            const copaLbl = (ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}` : (r.game_state as GS & { mundoNaLiga?: boolean; euroNaLiga?: number })?.euroNaLiga ? tr('🇪🇺 liga+euro', '🇪🇺 league+euro') : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'relampago' ? tr(`⚡ mata-mata relâmpago · ${(r.game_state as GS & { relampagoChave?: number })?.relampagoChave ?? 16}`, `⚡ lightning knockout · ${(r.game_state as GS & { relampagoChave?: number })?.relampagoChave ?? 16}`) : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup')) + ((r.game_state as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? tr(' · 🏟️ 10 times', ' · 🏟️ 10 teams') : '') // padrão = liga+copa · 🏟️ 04/11: selo da liga de 10
+            const copaLbl = (ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}` : (r.game_state as GS & { mundoNaLiga?: boolean; euroNaLiga?: number })?.euroNaLiga ? tr('🇪🇺 liga+euro', '🇪🇺 league+euro') : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'relampago' ? tr(`⚡ mata-mata relâmpago · ${(r.game_state as GS & { relampagoChave?: number })?.relampagoChave ?? 16}`, `⚡ lightning knockout · ${(r.game_state as GS & { relampagoChave?: number })?.relampagoChave ?? 16}`) : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup')) + ((r.game_state as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? tr(' · 🏟️ 10 times', ' · 🏟️ 10 teams') : '') + ((r.game_state as GS & { turnoUnico?: boolean; tamanhoLiga?: number })?.turnoUnico && (r.game_state as GS & { tamanhoLiga?: number })?.tamanhoLiga !== 10 ? tr(' · ⚡ 19 rodadas', ' · ⚡ 19 rounds') : '') // padrão = liga+copa · 🏟️ 04/11: selo da liga de 10
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
@@ -4973,6 +5024,7 @@ export function EscLobby() {
       gsSala?.clubes ? tipoPacote(gsSala as GS & { pacSelecao?: boolean; pacDecada?: boolean }) : String(gsSala?.deck) === 'eu' ? 'EU' : String(gsSala?.deck) === 'world' ? tr('🌎 Mundo', '🌎 World') : String(gsSala?.deck) === 'both' || String(gsSala?.deck) === 'todos' ? 'B/E/M' : '🇧🇷 BR',
       ...(gsSala?.duplasMode ? [tr('🤝 Duplas', '🤝 Duos')] : []),
       ...((gsSala as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? [tr('🏟️ 10 times', '🏟️ 10 teams')] : []), // 🏟️ 04/11
+      ...((gsSala as GS & { turnoUnico?: boolean; tamanhoLiga?: number })?.turnoUnico && (gsSala as GS & { tamanhoLiga?: number })?.tamanhoLiga !== 10 ? [tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')] : []), // ⚡ 06/11
     ] : []
     const regraLonga = (gsSala as GS & { envUnico?: boolean })?.envUnico ? tr('⚡ Envelope único: as 5 posições num envelope só (180s); o que sobra volta numa 2ª lista antes do Monte.', '⚡ Single envelope: all 5 positions in one envelope (180s); leftovers come back in a 2nd list before the Pile.')
       : gsSala?.pregaoAberto ? tr('🔨 Pregão aberto: lance à vista, martelo em 5s sem lance novo.', '🔨 Open auction: bids in the open, hammer after 5s without a new bid.')
@@ -5209,6 +5261,22 @@ export function EscLobby() {
                   <Seg small options={[['rapido', tr('⚡ Placar rápido', '⚡ Quick scoreboard')], ['2d', tr('📺 Campo 2D', '📺 2D pitch')]] as ['rapido' | '2d', string][]}
                     value={agora2d ? '2d' : 'rapido'} onSet={v => { if ((v === '2d') !== agora2d) void salva2DLiga(v === '2d') }} travados={pode2d || agora2d ? undefined : ['2d']} />
                   <p className="text-black/50 text-[10.5px] font-bold mt-1">{tr('Vale na próxima largada da liga. Com a temporada rolando, troque pelo botão do jogo (vale do próximo jogo).', 'Applies from the league\'s next kick-off. While a season is running, switch with the in-game button (applies from the next match).')}</p>
+                </div>
+              )
+            })()}
+            {mandaNaLiga && !modoEdit && turnoOn && getSport() !== 'basquete' && (() => {
+              // ⚡ 38 × 19 rodadas (06/11): só com liga de 20 (liga de 10 já tem as 18 dela; Relâmpago/Só Champions não têm liga)
+              const gt = gs as GS & { turnoUnico?: boolean; tamanhoLiga?: number }
+              if (gt?.tamanhoLiga === 10 || gt?.copaMode === 'champions' || gt?.copaMode === 'relampago' || gt?.formation === 'kings') return null
+              const agora = gt?.turnoUnico === true
+              return (
+                <div className="mt-2">
+                  <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('📅 Rodadas da liga', '📅 League rounds')}</p>
+                  <Seg small options={[[false, tr('🏟️ 38 · ida e volta', '🏟️ 38 · home and away')], [true, tr('⚡ 19 · só ida', '⚡ 19 · one leg')]] as [boolean, string][]}
+                    value={agora} onSet={v => { if (v !== agora) void salvaTurnoLiga(v) }} />
+                  <p className="text-black/50 text-[10.5px] font-bold mt-1">{agora
+                    ? tr('Só ida: 19 jogos, todos em campo neutro. Vale a partir da próxima temporada.', 'One leg: 19 games, all on neutral ground. Applies from the next season.')
+                    : tr('Ida e volta: 38 jogos (o de sempre). Vale a partir da próxima temporada.', 'Home and away: 38 games (the usual). Applies from the next season.')}</p>
                 </div>
               )
             })()}
