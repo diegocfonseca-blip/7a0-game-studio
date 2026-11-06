@@ -1691,7 +1691,18 @@ export function EscLobby() {
       // parceiro que recarregava caía no próprio player_index cru (um bot) e era TIRADO da sala com "a partida começou sem você".
       // Agora o assento dele é o do dono da dupla — o mesmo que o SYNC_STATE já usava durante a partida.
       const seatMeu = assentoDoCracha(gs as EscState, user.id)
-      const mineMgr = (gs as EscState).managers.find(m => m.id === (seatMeu >= 0 ? seatMeu : myPl.player_index))
+      // 🪑 06/11 (Diego: "o Judas acabou entrando na vaga do Príncipe"): com o mapa de crachás (`seatUids`), quem NÃO está nele não
+      // tem time nesta partida — o player_index cru do banco apontava pro assento de OUTRA pessoa. Só sem o mapa (sala antiga)
+      // ainda vale o número do banco.
+      const temMapa = Array.isArray((gs as EscState).seatUids) && ((gs as EscState).seatUids?.length ?? 0) > 0
+      const mineMgr = (gs as EscState).managers.find(m => m.id === (seatMeu >= 0 ? seatMeu : temMapa ? -999 : myPl.player_index))
+      if (!amHost && temMapa && seatMeu < 0 && gs?.mode === 'liga') {
+        // liga rodando e eu não sou dela (ainda): não visto time de ninguém e NÃO saio da fila — entro na próxima virada
+        clearSavedRoom()
+        setRoom(null); setPlayers([]); setPhase('menu')
+        setRoomError(tr('⏳ Essa liga está no meio da temporada. Você entra na próxima virada, no time que o dono escolher (no lugar de um bot).', '⏳ This league is mid-season. You join at the next season change, on the team the owner picks (in place of a bot).'))
+        return true
+      }
       // 🚨 O DONO NUNCA É EXPULSO DA PRÓPRIA SALA (achado 05/09 no banco: a sala
       // H29VAB ficou PARADA na tela de abertura do stream e a vaga do próprio
       // dono tinha sumido do room_players — sala sem dono não anda, e é o que o
