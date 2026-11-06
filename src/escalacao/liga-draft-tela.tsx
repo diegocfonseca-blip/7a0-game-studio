@@ -127,6 +127,7 @@ function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEsc
             style={{ background: '#F4ECD6', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="block uppercase" style={{ ...OSW, fontSize: 18 }}>🕵️ {t('Sondar um amigo', 'Scout a friend')}</span>
             <span className="block text-[10.5px] font-bold text-black/60 mt-0.5">{t('o jogador dele vai pro leilão', 'his player goes to auction')}</span>
+            <span className="block text-[10px] font-black mt-1" style={{ color: '#1B7A3D' }}>{t('⚡ empatou? o desempate é seu', '⚡ tied? the tiebreak is yours')}</span>
           </button>
         </div>
         <p className="text-center text-[11.5px] font-bold text-black/60">{t('Escolha UMA. Ao apertar, você tem 45 s. Acabou o tempo, perde a vez.', 'Pick ONE. Once you tap, you have 45 s. If time runs out, you lose the turn.')}</p>
@@ -517,6 +518,9 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
         {cartas.length === 0 && <p className="px-3 py-3 text-[12px] font-bold text-black/50">{t('Nenhum jogador pra sondar aqui.', 'No player to scout here.')}</p>}
       </div>
       {c && mDono && <p className="text-center text-[12px] font-bold text-black/65">{t(`${c.name} vai pro leilão com lance mínimo de ${Math.max(1, Math.round(c.paid ?? 1))} 🪙 (o que o ${mDono.teamName} pagou). Você pode igualar o maior lance.`, `${c.name} goes to auction with a minimum bid of ${Math.max(1, Math.round(c.paid ?? 1))} 🪙 (what ${mDono.teamName} paid). You can match the top bid.`)}</p>}
+      {/* ⚡ 06/11 (Diego: "alguma coisa sutil… se empatar, você ganha"): o `martelo` dá o empate a quem sondou (só o dono segura
+          empatando) e, se outro técnico der mais, quem sondou ainda pode IGUALAR e levar. */}
+      <p className="text-center text-[11px] font-black" style={{ color: '#1B7A3D' }}>{t('⚡ Vantagem de quem sonda: empate com outro técnico é seu — e se alguém der mais, você pode igualar e levar.', '⚡ Scout\'s edge: a tie with another manager is yours — and if someone bids more, you can match it and take him.')}</p>
       <BotaoGrande disabled={!c || !mDono} onClick={() => { if (c && mDono) dispatch({ type: 'DRAFT_SONDAR', mgrId: you.id, dono: mDono.id, cardId: c.id, by: state.youUid }) }}>{t('🕵️ Confirmar a sondagem', '🕵️ Confirm scouting')}</BotaoGrande>
       <button onClick={onVoltar} className="w-full text-[12px] font-bold underline text-black/60">{t('← voltar pro draft', '← back to the draft')}</button>
     </div>
