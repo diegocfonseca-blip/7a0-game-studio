@@ -62,7 +62,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
 import { Co2Painel } from './co2-telas'
-import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
+import { montaCarry, type EntradaLiga } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, MiniTemaSala, temaValido, useTemasDaConta, releMeusTemas, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
@@ -1742,9 +1742,22 @@ export function EscLobby() {
         }
       })
     }
+    // 🙋 06/11: quem o dono ACEITOU entra no time que ele escolheu (bot, ou no lugar de alguém). Só o dono lê os pedidos; o
+    // convidado copia a largada do dono (SYNC_STATE), então não precisa da lista. Falhou a leitura: quem chegou pega o pior bot.
+    let entradas: Record<string, EntradaLiga> = {}
+    const ehLigaSala = gs?.mode === 'liga'
+    if (amHost && ehLigaSala && (gs as GS & { ligaDraft?: boolean })?.ligaDraft) {
+      try {
+        const { data: peds } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: roomData.id })
+        for (const p of (peds ?? []) as { user_id: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[])
+          if (p.status === 'aceito') entradas[p.user_id] = { ...(p.alvo_bot != null ? { bot: p.alvo_bot } : {}), ...(p.alvo_uid ? { uid: p.alvo_uid } : {}) }
+      } catch { entradas = {} }
+    }
     jaIniciouRef.current = roomData.id
+    if (amHost && ehLigaSala) void supabase.rpc('esc_liga_marca_entrou', { p_room: roomData.id, p_uids: uniq.map(p => p.user_id) }).then(() => {}, () => {}) // ✅ pedido aceito → "entrou"
     dispatch({
       type: 'START_ONLINE',
+      turnoUnico: !!(gs as GS & { ligaTurnoUnico?: boolean })?.ligaTurnoUnico, // 📅 06/11: liga só de ida (o dono escolhe entre temporadas)
       regional: (gs as { regionalNaLiga?: string } | undefined)?.regionalNaLiga, // 🏟️ copa regional: o leilão ganha as cartas regionais
       roomId: roomData.id, roomCode: roomData.code,
       roomName: gs?.roomName,
@@ -1841,7 +1854,7 @@ export function EscLobby() {
       draftPremios: (gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? undefined, // 💰 05/11
       tamanhoLiga: (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : undefined, // 📏 20 (padrão) ou 10 times
       campo2d: !!((gs as GS & { campo2d?: boolean; campo2dProximo?: boolean })?.campo2dProximo ?? (gs as GS & { campo2d?: boolean })?.campo2d), // 📺 sala 2D (escolha do dono na criação; ⚡ a troca marcada no meio da sala vale na próxima largada)
-      draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
+      draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id), entradas) : undefined,
     })
     return true
   }

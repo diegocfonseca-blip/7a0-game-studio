@@ -1,0 +1,13 @@
+-- 🙋 06/11 — Entrar em Liga da Turma / Liga Draft JÁ COMEÇADA. Aplicado no banco em 06/11 (migrations esc_liga_pedidos + esc_liga_times).
+-- Regras do Diego: só quem tem QUALQUER plano entra numa liga que já jogou; entrar em quantas quiser (pago); o dono aceita e escolhe
+-- o time (bot, ou no lugar de alguém); a pessoa entra na virada da temporada (sala de espera da liga).
+-- Peças:
+--   esc_liga_pedidos (tabela, RLS ligada, sem política: só pelas funções abaixo)
+--   esc_pago_uid(uid) · esc_liga_ja_jogou(gs)
+--   esc_liga_pedir(room, nome) → ok | plano | ja | dono | login | erro
+--   esc_liga_pedidos_dono(room) · esc_liga_responder(id, aceitar, bot, uid) · esc_liga_meus_pedidos() · esc_liga_marca_entrou(room, uids)
+--   esc_liga_times(room) — os times da partida gravada (id, nome, humano, uid, pts), só pro dono
+--   esc_liga_formato(room, tamanho 10|20, turno_unico) — só o dono, só com a liga parada; 20→10 = 'encolhe'
+--   gatilho esc_liga_comecada_so_plano_trg (room_players, before insert): liga que já jogou só recebe conta NOVA com plano
+--     (o dono e quem já está gravado na partida passam sempre). Erro: LIGA_SO_PLANO.
+-- O texto completo das funções está nas migrations do projeto (list_migrations: esc_liga_pedidos, esc_liga_times).

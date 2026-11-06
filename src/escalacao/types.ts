@@ -926,6 +926,7 @@ export interface EscState {
   // 📋 LIGA DRAFT (19/10, só a conta do Diego): liga do "Minhas Ligas" que começa com time fraco e, entre as temporadas,
   // abre a noite do draft (1 jogador por técnico, de todo o jogo, campeão primeiro). Regras em `liga-draft.ts`.
   ligaDraft?: boolean
+  ligaTurnoUnico?: boolean // 📅 06/11 (Diego): liga de turno ÚNICO (19 rodadas com 20 times · 9 com 10) — o dono escolhe entre temporadas
   tamanhoLiga?: 10 // 📏 Liga Draft (02/11): liga de 10 times (usuários + bots) — sem isto a tabela completa até 20
   draftRegras?: { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean } // 📜 regras da turma no draft (05/11)
   draftPremios?: number[] // 💰 prêmio por colocação editado pelo criador (05/11); vazio = padrão do tamanho da liga
