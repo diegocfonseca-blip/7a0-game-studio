@@ -1,4 +1,6 @@
-## 🙋 06/11 — Gente nova em liga já começada (FEITO no branch; esperando "publique")
+## 🙋 06/11 — Gente nova em liga já começada (PUBLICADO pra todos em 06/11)
+- 📊 Tabela da Liga Draft: 20 times = G8/Z4 · 10 times = G4/Z2 (Diego: *"pode deixar então g4"*). Só cor pra diferenciar: ninguém cai e não tem Copa.
+- ⚡ Só ida (19 rodadas) só na liga de 20, a mesma chave da sala (`turnoUnico`); liga de 10 segue 18.
 Mockup aprovado (*"perfeito pode fazer… apenas quem tem qualquer plano… entrar em quantas quiser"*). O que foi feito:
 - 🔒 Banco: liga que JÁ JOGOU só recebe conta nova com plano (gatilho `esc_liga_comecada_so_plano_trg`; o dono e quem já está gravado
   na partida passam sempre). Testado numa transação desfeita: grátis barrado, pago passa. A tela confere antes (não reabre a espera à toa).
