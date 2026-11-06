@@ -13,6 +13,9 @@ import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './camp
 //     (3 fileiras de torcida, placas nas laterais, bandeirão atrás do gol); no CELULAR fica em pé e o campo NÃO encolhe: a faixa
 //     da torcida tem a largura de sempre e as placas ficam só atrás dos gols (*"no móvel não vai diminuir o espaço do campo?"*).
 import { campoNaTela } from './campo2d-modo'
+import { camisasDoJogo } from './camisas-2d'
+import { kitDoTime } from './camisas-2d-dados'
+import { CARIMBO_GOL } from './mascotes'
 import { climaDoJogo, noiteDoJogo, type Clima } from './campo2d-clima'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Jogo2D, eventosDoJogo, W, L, SEG_POR_MIN, type Atleta, type CartaCampo } from './campo2d-motor'
@@ -74,7 +77,7 @@ export interface Campo2DProps {
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
 const rgb = (hex: string) => { const n = parseInt((hex || '#888888').replace('#', '').slice(0, 6).padEnd(6, '8'), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
 const claro = (hex: string) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.587 * g + 0.114 * b > 160 }
-const perto = (a: string, b: string) => { const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b); return Math.hypot(r1 - r2, g1 - g2, b1 - b2) < 110 }
+const chaveMascoteFixa = (n: string): string | undefined => CARIMBO_GOL[n]
 const sigla = (nome: string) => nomeLimpo(nome).replace(/[^A-Za-zÀ-ú ]/g, '').trim().slice(0, 3).toUpperCase()
 const IMGS = new Map<string, HTMLImageElement>()
 function img(src: string): HTMLImageElement {
@@ -128,9 +131,12 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 🌱🏟️ o estádio de quem joga em casa: o gramado melhora com as obras (terra → perfeito) e a torcida enche com as ampliações
   const gramaPct = clamp(estadio?.grama ?? 100, 0, 100) / 100
   const lotacao = clamp(estadio?.lotacao ?? 1, 0.04, 1)
-  // 👕 camisas: o visitante troca pra 2ª cor quando bate com a do mandante
-  const corCasa = casa.cor || '#C2452F'
-  const corFora = perto(corCasa, fora.cor || '#2B6CFF') ? (claro(corCasa) ? '#1B1B1B' : '#F4F4F4') : (fora.cor || '#2B6CFF')
+  // 👕 camisas (06/11, Diego): batismo veste o MANTO · gente sem plano bege · Craque prata · Lenda dourado (a cor que já chega)
+  // · bot a de hoje — e no choque o visitante troca pra 2ª cor do manto ou pra reserva branca/preta (regras em camisas-2d.ts)
+  const kitCasaK = kitDoTime(casa.nome, casa.cor || '#C2452F', chaveMascoteFixa).join(','), kitForaK = kitDoTime(fora.nome, fora.cor || '#2B6CFF', chaveMascoteFixa).join(',')
+  const [camCasa, camFora] = useMemo(() => camisasDoJogo(kitCasaK.split(','), kitForaK.split(',')), [kitCasaK, kitForaK])
+  const corCasa = camCasa.cor, corFora = camFora.cor
+  const listrasK = `${camCasa.listras.join(',')}|${camFora.listras.join(',')}`
   // o jogo do campinho: um por rodada (mesma semente das chances → o que a rádio narra é o que o campinho mostra)
   const jogo = useMemo(() => {
     const create=()=>{
@@ -634,7 +640,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
         let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
         if (igualMapa && comNome.has(p)) nomesPorCima.push([X, Y, p.nome]) // 🏷️ 04/11: o nome vai por cima de todo mundo (no mapa ninguém tampa o nome)
-        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
+        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
       }
       for (const [X, Y, nome] of nomesPorCima) desenharNomeCampo2D(cx, X, Y, R, nome)
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
@@ -671,7 +677,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       if(mapMatchId&&mapFPS){
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
-          players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
+          players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
           net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
           quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
@@ -680,7 +686,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     }
     raf = requestAnimationFrame(quadro)
     return () => {cancelAnimationFrame(raf);if(mapMatchId)soltarSuperficieCampo2D(mapMatchId,surfaceOwner)}
-  }, [jogo, larg, deitado, corCasa, corFora, msPorMin, noite, gramaPct, lotacao, mapMatchId])
+  }, [jogo, larg, deitado, corCasa, corFora, listrasK, msPorMin, noite, gramaPct, lotacao, mapMatchId])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   // 🗺️ 04/11: a mesma festa do gol vai pro HUD do mapa (quando este campinho é a fonte do campo do estádio)

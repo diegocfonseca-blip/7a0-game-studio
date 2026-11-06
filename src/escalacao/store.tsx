@@ -52,7 +52,7 @@ import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHAN
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
-import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala } from './mimos'
+import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala, marcaSalaDosMimos } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -15495,6 +15495,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const salaDosMimos = state.onlineMode === 'online' ? state.roomId : ''
   const assentosDaSala = state.managers.map(m => `${m.id}:${m.teamName}`).join('|')
   useEffect(() => {
+    marcaSalaDosMimos(!!salaDosMimos) // 👕 camisas do 2D: em sala, só dado da sala (06/11)
     if (!salaDosMimos) { limpaMimosDaSala(); return }
     let vivo = true
     const nomePorAssento = new Map(stateRef.current.managers.map(m => [m.id, m.teamName]))
@@ -15508,16 +15509,24 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const pedeContas = crachas?.length
       ? supabase.from('room_players').select('user_id, player_index, dupla_partner_of').eq('room_id', salaDosMimos)
       : Promise.resolve({ data: null })
-    Promise.all([supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }), pedeContas]).then(([{ data }, { data: contas }]) => {
+    // 👕 06/11: as cores do manto de cada assento (a MESMA RPC que já veste os campinhos da sala desde 10/08) — pras camisas do
+    // Campo 2D saírem iguais em todos os aparelhos. Falhou? Fica sem manto; os mimos seguem como sempre.
+    const pedeMantos = Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })).then(r => r, () => ({ data: null }))
+    Promise.all([supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }), pedeContas, pedeMantos]).then(([{ data }, { data: contas }, { data: mantos }]) => {
       if (!vivo || !Array.isArray(data)) return
       type Conta = { user_id: string; player_index: number; dupla_partner_of?: string | null }
       const contaDoAssento = Array.isArray(contas) ? new Map((contas as Conta[]).map(c => [c.player_index, c])) : null
       // 🤝 DUPLA (12/10): o time veste o mimo do DONO do assento; se o dono não tem
       // batismo e o PARCEIRO tem, veste o do parceiro. Nenhum dos dois = escudo pelo nome.
-      const doDono = new Map<number, { mascote?: string | null; escudo?: string | null }>()
-      const doParceiro = new Map<number, { mascote?: string | null; escudo?: string | null }>()
-      for (const r of data as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]) {
-        const mimo = { mascote: r.mascote_key, escudo: r.escudo_time }
+      type Mimo = { mascote?: string | null; escudo?: string | null; manto?: string[] | null }
+      const doDono = new Map<number, Mimo>()
+      const doParceiro = new Map<number, Mimo>()
+      const mantoDoAssento = new Map<number, string[]>()
+      if (Array.isArray(mantos)) for (const r of mantos as { player_index: number; manto_c1: string | null; manto_c2: string | null }[]) if (r.manto_c1 && r.manto_c2) mantoDoAssento.set(r.player_index, [r.manto_c1, r.manto_c2])
+      const linhasCruas = (data as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]).map(r => ({ ...r }))
+      for (const i of mantoDoAssento.keys()) if (!linhasCruas.some(r => r.player_index === i)) linhasCruas.push({ player_index: i, mascote_key: null, escudo_time: null })
+      for (const r of linhasCruas) {
+        const mimo: Mimo = { mascote: r.mascote_key, escudo: r.escudo_time, manto: mantoDoAssento.get(r.player_index) ?? null }
         if (!crachas?.length) { doDono.set(r.player_index, mimo); continue }
         const c = contaDoAssento?.get(r.player_index)
         if (!c) continue
@@ -15526,7 +15535,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         const doTime = c.dupla_partner_of ? crachas.indexOf(c.dupla_partner_of) : -1
         if (doTime >= 0) doParceiro.set(doTime, mimo)
       }
-      const linhas: { clube: string; mascote?: string | null; escudo?: string | null }[] = []
+      const linhas: ({ clube: string } & Mimo)[] = []
       for (const [time, mimo] of [...doParceiro, ...doDono]) { // dono por último = ganha do parceiro
         const clube = nomePorAssento.get(time)
         if (clube) linhas.push({ clube, ...mimo })

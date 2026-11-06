@@ -338,6 +338,8 @@ const MANTO_TRI: Record<string, string> = {
   monarca_rei: '#060604', // 👑 Monarca Tricolor (danieltorresreus) — 3ª cor PRETA: a listra larga do peito e das mangas (medida na camisa dele, 05/11)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08
 }
+/** 👕 06/11 (camisas do Campo 2D): a 3ª cor do manto de um clube pela CHAVE da mascote (pública: vem da lista fixa ou da sala) */
+export const mantoTriDaChave = (k: string | null | undefined): string | null => (k && MANTO_TRI[k]) ? MANTO_TRI[k] : null
 export function meuMantoC3(): string | null {
   const k = meu?.ativo ? meu.mascoteKey : null
   return (k && MANTO_TRI[k]) ? MANTO_TRI[k] : null

@@ -9,6 +9,9 @@ import { carimboDoTime } from '../../src/escalacao/mascotes'
 import { Escudo } from '../../src/escalacao/escudos'
 const q = new URLSearchParams(location.search)
 const VEL = Number(q.get('vel') ?? 1)
+// 👕 06/11 (mockup das camisas): ?casa=Nome&corCasa=%23hex&fora=Nome&corFora=%23hex&titulo=… troca os times da bancada
+const NCASA = q.get('casa') ?? 'Fabulous EC', NFORA = q.get('fora') ?? 'Chelsão'
+const CCASA = q.get('corCasa') ?? '#FFC400', CFORA = q.get('corFora') ?? '#2B6CFF'
 try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ }
 const casa = [
   { name: 'Taffarel', club: 'Internacional', year: 1989, pos: 'GOL', fame: 5 }, { name: 'Cafu', club: 'Milan', year: 2004, pos: 'LAT', fame: 5 }, { name: 'Thiago Silva', club: 'Fluminense', year: 2008, pos: 'ZAG', fame: 4 },
@@ -27,11 +30,12 @@ function Bancada() {
   const [min, setMin] = useState(Number(q.get('de') ?? 0))
   useEffect(() => { const iv = setInterval(() => setMin(m => Math.min(93, m + 1)), (DUR_2D_MS * 0.82) / 93 / VEL); return () => clearInterval(iv) }, [])
   return <>
-    <p style={{ textAlign: 'center', fontFamily: 'Oswald', fontWeight: 700, margin: '0 0 6px' }}>Fabulous EC × Chelsão · {min}'</p>
+    <p style={{ textAlign: 'center', fontFamily: 'Oswald', fontWeight: 700, margin: '0 0 6px' }}>{q.get('titulo') ?? `${NCASA} × ${NFORA}`} · {min}'</p>
+    {q.get('legenda') && <p style={{ textAlign: 'center', fontFamily: 'Arial', fontSize: 13, margin: '0 0 8px', whiteSpace: 'pre-line' }}>{q.get('legenda')}</p>}
     <Campo2D climaForcado={(q.get('clima') as 'sol' | 'nublado' | 'chuva' | null) ?? undefined} noiteForcada={q.has('noite') ? q.get('noite') === '1' : undefined}
       estadio={q.has('grama') ? { grama: Number(q.get('grama')), lotacao: Number(q.get('lot') ?? 1) } : undefined} replay={q.get('replay') === '1'} roundKey={14} minuto={min} roundMs={DUR_2D_MS / VEL} gols={gols} fechado={min >= 93}
-      casa={{ nome: 'Fabulous EC', cor: '#FFC400', cartas: casa, mascote: carimboDoTime('Fabulous EC'), escudo: <Escudo nome="Fabulous EC" size={110} />, tecnico: 'Telê Santana' }}
-      fora={{ nome: 'Chelsão', cor: '#2B6CFF', cartas: fora, mascote: carimboDoTime('Chelsão'), escudo: <Escudo nome="Chelsão" size={110} />, tecnico: 'Mourinho' }} />
+      casa={{ nome: NCASA, cor: CCASA, cartas: casa, mascote: carimboDoTime(NCASA), escudo: <Escudo nome={NCASA} size={110} />, tecnico: 'Telê Santana' }}
+      fora={{ nome: NFORA, cor: CFORA, cartas: fora, mascote: carimboDoTime(NFORA), escudo: <Escudo nome={NFORA} size={110} />, tecnico: 'Mourinho' }} />
   </>
 }
 createRoot(document.getElementById('root')!).render(<Bancada />)

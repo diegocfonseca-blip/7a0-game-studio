@@ -1,3 +1,14 @@
+## 👕 06/11 — Cores das camisas no Campo 2D (branch, ESPERANDO OK VISUAL do Diego — nada publicado)
+- Feito no branch: batismo veste o MANTO (2 cores; 3 com `MANTO_TRI`) · gente sem plano bege · ⭐ prata · 👑 dourado · cor adicional
+  · bot a cor de hoje. Choque: casa fica; fora troca pra 2ª cor do manto (3 cores: a que menos choca; a cor que chocava vira só o
+  filete) e, sem saída, reserva BRANCA — PRETA quando a casa é clara (dourado×dourado, prata×prata, bege×bege). Régua: ΔE < 28.
+- Lendas: o rosto não muda; só o anel em volta vem na cor nova. Goleiro: igual a hoje (mesma camisa do time — não mexi).
+- Sala: o manto sai do nome (lista pública `batismos.ts`) ou do servidor por assento (`esc_mantos_sala`, registrado junto dos mimos
+  no store) — nunca do e-mail de quem olha. `meuManto()` só fora de sala (carreira offline do próprio dono).
+- Código: `camisas-2d.ts` (regras puras) · `camisas-2d-dados.ts` (de onde vem o kit) · `campo2d-marcador.ts` (listras). Trava:
+  `npm run camisas-2d`. Fotos: `node scripts/foto-camisas-2d.mjs` → `scripts/mockups/camisas-2d-{1..5}.png`.
+- Pendente: OK do Diego nas fotos → publicar. O PLACAR de baixo (fora do 2D) continua com as cores de antes.
+
 ## ⏩ 05/11 — Velocidade do Campo 2D (publicado à noite, a pedido do Diego)
 - Salas online (todas) = 3× · carreira e Partida Rápida offline = começa 2× e LEMBRA a última marcha do Manual (vale no auto) ·
   carreira online = 2× × marcha do dono · ⚡ 3× virou opção do Manual em todo modo.

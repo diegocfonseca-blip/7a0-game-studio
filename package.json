@@ -106,6 +106,7 @@
     "liga-draft": "npx tsx scripts/testa-liga-draft.mts",
     "minha-liga-draft": "npx tsx scripts/testa-minha-liga-draft.mts",
     "motor2": "npx tsx scripts/testa-motor2.mts",
+    "camisas-2d": "npx tsx scripts/testa-camisas-2d.mts",
     "campo2d": "npx tsx scripts/testa-campo2d.mts && npx tsx scripts/testa-campo2d-tela.mts && npx tsx scripts/testa-campo2d-resumo.mts",
     "master-historia": "npx tsx scripts/testa-master-historia.mts",
     "coletiva": "npx tsx scripts/testa-coletiva.mts",
