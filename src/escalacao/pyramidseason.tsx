@@ -93,7 +93,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos'
 import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS, DUR_2D_AUTO_MS } from './campo2d-motor'
-import { useRitmo2D, useVel2D } from './ritmo2d'
+import { useRitmo2D, useVel2D, setVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
@@ -10615,10 +10615,10 @@ export function PyramidSeasonScreen() {
   // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
   const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
   const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
-    manualOk: manualAllowed, manual, velocidade: state.simSpeed ?? 1,
+    manualOk: manualAllowed, manual, velocidade: r2dCarr.teste ? vel2dCarr : state.simSpeed ?? 1, // 📺 06/11: com o 2D a marcha é a do campinho (a mesma da aba Jogos)
     podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
-    alternaManual: toggleManualCareer, mudaVelocidade: v => dispatch({ type: 'SET_SIM_SPEED', speed: v }),
+    alternaManual: toggleManualCareer, mudaVelocidade: v => { if (r2dCarr.teste) setVel2D(v); dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
     tatica: () => escolheAba('jogos'),
   } : null
