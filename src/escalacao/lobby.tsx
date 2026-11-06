@@ -2290,6 +2290,18 @@ export function EscLobby() {
       else rooms = r1.data as unknown[]
     }
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
+    // 🏆📋 06/11 (Diego: *"salas que tão jogando liga draft… não tá aparecendo… igual liga da turma"*): a busca acima só pega sala
+    // CRIADA nas últimas 6h, e a liga é criada uma vez e jogada por dias — rolando, ela nunca entrava. Aqui vêm só as ligas EM JOGO
+    // que bateram o coração no último minuto e meio (o filtro de baixo ainda exige `isFresh`). Falhou = a lista segue como sempre.
+    try {
+      const desde = new Date(Date.now() - 90_000).toISOString()
+      const cols = !semColunaPregaoAb ? `${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live, gcopa2:ls_copa2, gpregao:ls_pregao, gdraft:ls_draft` : COLS
+      const { data: ligasVivas } = await supabase.from('game_rooms').select(cols)
+        .eq('status', 'started').eq('ls_mode', 'liga').eq('ls_tag', tagAtual()).gte('updated_at', desde)
+        .order('updated_at', { ascending: false }).limit(30)
+      const ja = new Set((rooms as { id: string }[]).map(x => x.id))
+      for (const lv of (ligasVivas ?? []) as unknown as { id: string }[]) if (!ja.has(lv.id)) (rooms as unknown[]).push(lv)
+    } catch { /* sem resposta: só as salas de sempre */ }
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null; gdraft?: string | null }
     // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
     // 📋 06/11 (Diego): a Liga Draft ROLANDO aparece na lista, com selo próprio (*"quando já estiver rolando, deveria aparecer… com selo Liga Draft"*).
