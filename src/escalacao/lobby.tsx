@@ -2959,6 +2959,9 @@ export function EscLobby() {
       }
       if (!mySlot && rd.game_state?.mode === 'liga') {
         const res = await reabreLiga(rd.id)
+        // 🙋 06/11 (Diego: *"remove esse pedido p entrar aqui… vai ser lá onde ele põe o código da sala, aí chega o convite pro
+        // host"*): liga RODANDO + gente nova que não é do time → o código vira o PEDIDO pro dono (o botão da lista saiu).
+        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { setLoading(false); await pedirLiga(rd); return }
         if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
         rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
       }
@@ -4897,12 +4900,12 @@ export function EscLobby() {
                   </button>
                 )}
               </div>
-              {/* 🙋 06/11: liga RODANDO que não é minha → pedir vaga (só quem tem plano; entra na virada da temporada) */}
+              {/* 🙋 06/11: o botão "Pedir pra entrar" da LISTA saiu (Diego: *"N quero aqui"*) — o pedido sai pelo CÓDIGO da sala
+                  (enterRoom). Aqui fica só o recado de quem JÁ pediu. */}
               {ligaRoom && live && user && (r.liga_dono ?? r.host_id) !== user.id && !myLigas.some(l => l.id === r.id) && (() => {
                 const meu = meusPedidos.find(p => p.room_id === r.id)
                 return meu ? <p className="mx-3 mb-3 text-center text-[11.5px] font-black" style={{ ...OSWALD, color: meu.status === 'aceito' ? GREEN : '#7a5b00' }}>{meu.status === 'aceito' ? tr('✅ Você foi aceito: entra na próxima temporada', '✅ Accepted: you join next season') : tr('⏳ Pedido enviado ao dono', '⏳ Request sent to the owner')}</p>
-                  : <button onClick={() => void pedirLiga(r)} className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[3px] border-black rounded-xl py-2 font-black text-sm uppercase"
-                    style={{ background: PURPLE, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{tr('🙋 Pedir pra entrar', '🙋 Ask to join')}</button>
+                  : null
               })()}
               {/* 👁️ ASSISTIR (28/10): só pra quem o Diego liberou; em sala esperando OU jogando, cheia ou não. Fora: Copa do
                   Mundo, Bafo e carreira (outro motor) e a própria sala de quem clica. */}
