@@ -18,6 +18,15 @@
   reabre pra quem não é da liga nem foi aceito ('meio' → pedido) e, na Liga Draft com o dono jogando, só o dono reabre.
 - Tela: LIGA_SO_ACEITO vira o pedido 🙋; o **📤 Convidar só manda o convite** (não mexe mais na sala — era o "aperta e não faz nada").
 
+## 🚫 06/11 (noite) — LIGA COMEÇADA NUNCA REABRE (Diego: *"a sala, depois que já foi criada, não se abre novamente… quando ele volta,
+aperta sempre o VOLTAR… não existe mais o entrar… nem abrir o pregão"*)
+- Saiu o 📣 "Chamar mais gente" (fim da temporada e pregão da rodada 0) — `podeChamar = false` em screens.tsx.
+- Banco: `esc_liga_reabre` nunca devolve pra sala de espera uma liga que já jogou (`esc_liga_ja_jogou`): 'rolando'/'meio'.
+- Gente nova: código → 🙋 pedido → dono aceita (escolhe o time) → entra na VIRADA de dentro do jogo (`LIGA_ENTRADAS`).
+- ⚠️ PENDENTE: o ✏️ Editar → "próxima temporada" (10→20 times, 38/19 rodadas) dependia da sala de espera — com a liga sem
+  reabrir ele não tem onde valer. Falta decidir com o Diego: aplicar na virada de dentro do jogo (rodadas é fácil; 10→20
+  precisa criar 10 bots no meio do jogo) ou tirar a opção de liga já começada.
+
 ## 🪑 06/11 (noite) — Novato vestia o time de OUTRO na volta (Judas × Príncipe Rubro Negro, 4RVDD8)
 - Causa: quem não está no `seatUids` caía no `player_index` cru do banco ao voltar pra partida (RESTORE_ONLINE e a trava do
   lobby) — o Judas entrou com índice 1 e passou a jogar com o time do Príncipe (que estava fora da sala).

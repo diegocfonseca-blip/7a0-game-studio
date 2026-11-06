@@ -3863,7 +3863,9 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
   // 📣 só o HOST, só online, só ANTES da 1ª rodada (round 0 = a temporada ainda não
   // aconteceu) e nunca em carreira online. É a saída pra "queria pôr mais um amigo e o
   // pregão já começou" — sem isso, só terminando a temporada inteira.
-  const podeChamar = state.onlineMode === 'online' && !!state.isHost && !!state.ligaMode && !state.careerOnline && state.round === 0
+  // 🚫 06/11 (Diego: "a sala, depois que já foi criada, não se abre novamente… o dono sempre aperta VOLTAR"): o "Chamar mais gente"
+  // (que devolvia a liga pra sala de espera) saiu. Gente nova entra pelo código → pedido → o dono aceita → entra na virada.
+  const podeChamar = false
   return (
     <>
       {podeChamar && (
@@ -11865,14 +11867,6 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
               antigo "Jogar de novo"): lá o dono convida, o amigo entra com código + senha,
               e "Abrir o Pregão" começa a próxima temporada com todo mundo. Troféus, estante
               e ranking ficam (moram em game_champions). Só o host vê. */}
-          {state.ligaMode && <>
-            <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V, false, state.deckLeague)}
-              className="w-full rounded-xl border-[3px] border-black py-2.5 font-black text-sm active:translate-y-0.5"
-              style={{ ...OSWALD, background: '#EFE3FF', color: '#4C1D95', boxShadow: `3px 3px 0 ${INK}` }}>
-              {V('📣 Chamar mais gente (sala de espera)', '📣 Invite more people (waiting room)')}
-            </button>
-            <p className="text-center text-[10px] font-bold text-white/70 -mt-1">{V('Todo mundo volta pra sala de espera; quem chegar joga a próxima temporada com vocês. Nenhum troféu se perde.', 'Everyone goes back to the waiting room; whoever arrives plays the next season with you. No trophy is lost.')}</p>
-          </>}
         </>
       ) : (
         <>

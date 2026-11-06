@@ -38,3 +38,6 @@ end $function$;
 -- senão o gatilho levanta LIGA_SO_ACEITO e o aparelho transforma em pedido. E `esc_liga_reabre` devolve 'meio' (= vira pedido)
 -- pra quem não é da liga nem foi aceito, e na Liga Draft com o dono jogando AGORA só o dono reabre (o "fim" vem antes do draft —
 -- foi assim que a sala do Futpoint virou "esperando" no meio do draft, com o Judas entrando pelo código).
+
+-- 🚫 06/11 (noite): migration `esc_liga_reabre_nunca_reabre_liga_comecada` — liga que já jogou NUNCA volta pra sala de
+-- espera (o dono sempre usa VOLTAR; gente nova vira pedido e entra na virada de dentro do jogo).
