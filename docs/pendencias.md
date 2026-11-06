@@ -1,3 +1,11 @@
+## 🙋 06/11 (noite) — Liga já começada: SÓ ENTRA COM PEDIDO ACEITO (Diego: *"n gostei de o convidado entrar direto na sala sem ter sido aceito"*)
+- Caso: Liga Draft do Futpoint (4RVDD8). O Judas FC digitou o código na tela de FIM (antes do draft) → o banco reabriu a sala pra
+  "esperando" com o dono no meio do draft → o Futpoint atualizou e caiu na espera ("Entrar" no lugar de VOLTAR). Devolvi o status
+  pra 'started' na mão. O Judas ficou na lista (Diego: *"não precisa tirar"*).
+- Banco (já valendo): gatilho `esc_liga_comecada_so_plano` exige plano **e** pedido aceito (LIGA_SO_ACEITO); `esc_liga_reabre` não
+  reabre pra quem não é da liga nem foi aceito ('meio' → pedido) e, na Liga Draft com o dono jogando, só o dono reabre.
+- Tela: LIGA_SO_ACEITO vira o pedido 🙋; o **📤 Convidar só manda o convite** (não mexe mais na sala — era o "aperta e não faz nada").
+
 ## 🔍 06/11 — Análise do Campo 2D (aba Jogos, salas online e mapa)
 - ✅ FEITO no branch (Diego: *"pode fazer"* nos itens 2 e 3), esperando "publica":
   - Motor novo (carreira): goleiro mais forte (`GK_BASE` 0,25 → 0,4) e mais chute de média distância (`ESCALA_CHUTE` 2 → 2,8,

@@ -32,3 +32,9 @@ begin
   update public.game_rooms set game_state = gs, updated_at = now() where id = p_room;
   return 'ok';
 end $function$;
+
+-- 🙋 06/11 (Diego: "não gostei do convidado entrar direto na sala sem ter sido aceito"): aplicado no banco como migration
+-- `esc_liga_comecada_so_aceito`. Liga que já jogou: gente nova só entra com plano E pedido ACEITO (status 'aceito'/'entrou');
+-- senão o gatilho levanta LIGA_SO_ACEITO e o aparelho transforma em pedido. E `esc_liga_reabre` devolve 'meio' (= vira pedido)
+-- pra quem não é da liga nem foi aceito, e na Liga Draft com o dono jogando AGORA só o dono reabre (o "fim" vem antes do draft —
+-- foi assim que a sala do Futpoint virou "esperando" no meio do draft, com o Judas entrando pelo código).

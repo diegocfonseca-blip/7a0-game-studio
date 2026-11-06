@@ -3030,6 +3030,7 @@ export function EscLobby() {
       setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))
       setLoading(false); return
     }
+    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
@@ -3664,12 +3665,8 @@ export function EscLobby() {
                         automático: é o dono apertando. Se a partida está viva ou
                         no meio de uma temporada, ele lê o porquê e nada muda. */}
                     <button onClick={() => { void (async () => {
-                      if (r.status === 'started') {
-                        const res = await reabreLiga(r.id)
-                        if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); return }
-                        setRoomError('')
-                        void fetchMyLigas()
-                      }
+                      // 📤 06/11 (Diego: "aperta e não acontece nada"): o Convidar só MANDA o convite (código + senha + link). Ele não
+                      // mexe mais na sala — quem chega numa liga já começada cai no 🙋 pedido e o dono aceita aqui no quadro.
                       await shareInvite(r.code, nm, { at: gs?.ligaAt })
                     })() }}
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] text-white active:translate-y-0.5" style={{ background: PURPLE, ...OSWALD }}>
