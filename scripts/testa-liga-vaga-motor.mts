@@ -26,11 +26,11 @@ console.log('✅ Liga Draft com Jogador / Clubes / Seleções')
 // ② turno único: 19 rodadas com 20 times, 9 com 10
 const t20 = reducer(start({ turnoUnico: true }), { type: 'REPLAY_SEASON' } as never)
 assert.equal(t20.fixtures.length, 19, '20 times só ida = 19 rodadas')
+// liga de 10 não tem turno único (mesma régua da sala: só a tabela de 20)
 const t10 = reducer(start({ turnoUnico: true, tamanhoLiga: 10 }), { type: 'REPLAY_SEASON' } as never)
-assert.equal(t10.fixtures.length, 9, '10 times só ida = 9 rodadas')
+assert.equal(t10.fixtures.length, 18, '10 times segue 18 rodadas')
 assert.equal(reducer(start(), { type: 'REPLAY_SEASON' } as never).fixtures.length, 38, 'padrão segue 38')
-assert.equal(reducer(start({ turnoUnico: true, liga: false }), { type: 'REPLAY_SEASON' } as never).fixtures.length, 38, 'fora da liga não existe turno único')
-console.log('✅ turno único: 19 / 9 rodadas')
+console.log('✅ turno único: 19 rodadas (só na de 20)')
 
 // ③ a liga de 10 volta com 20: os 6 bots antigos ficam com o elenco, entram 10 bots novos e ninguém repete jogador
 const dez = start({ tamanhoLiga: 10 })

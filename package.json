@@ -126,7 +126,8 @@
     "batismos-salas": "npx tsx scripts/testa-batismos-salas.mts",
     "cor-adicional": "npx tsx scripts/testa-cor-adicional.mts",
     "casa-luca": "npx tsx scripts/testa-casa-luca.mts",
-    "liga-10": "npx tsx scripts/testa-liga-10-times.mts"
+    "liga-10": "npx tsx scripts/testa-liga-10-times.mts",
+    "turno-unico": "npx tsx scripts/testa-turno-unico.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

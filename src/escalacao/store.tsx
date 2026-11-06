@@ -2763,7 +2763,7 @@ function oneDoubleRR(order: number[]): [number, number][][] {
 // ida e volta). Pra chegar aos 82 no basquete, concatena turnos-returno extras
 // (reembaralhando a ordem a cada ciclo) e corta em 82. Só o basquete faz isso.
 const NBA_SEASON_GAMES = 82
-function buildFixtures(teams: LeagueTeam[], rng?: () => number, turnoUnico?: boolean): [number, number][][] {
+function buildFixtures(teams: LeagueTeam[], rng?: () => number): [number, number][][] {
   // 🎲 com rng: EMBARALHA a ordem dos times antes do round-robin — sem isso o
   // calendário era IDÊNTICO toda temporada (mesma ordem de ids), e no "jogar de
   // novo (mesmo time)" você SEMPRE estreava contra o mesmo adversário da vez
@@ -2776,8 +2776,27 @@ function buildFixtures(teams: LeagueTeam[], rng?: () => number, turnoUnico?: boo
     }
     fixtures = fixtures.slice(0, NBA_SEASON_GAMES)
   }
-  if (turnoUnico && ACTIVE_SPORT !== 'basquete') fixtures = fixtures.slice(0, fixtures.length / 2) // 📅 só a ida (06/11)
   return fixtures
+}
+
+/** ⚡ TURNO ÚNICO (06/11, pedido aprovado pelo Diego): sala online com LIGA DE 20 em que o dono escolheu "19 rodadas · só ida".
+ *  A escolha é da SALA (`turnoUnico`, carimbada no START_ONLINE) e só vale com a tabela de 20 — liga de 10, liga sem bots com
+ *  menos gente, carreira, basquete, Kings, Relâmpago e Só Champions seguem o calendário de sempre. */
+export function turnoUnicoVale(s: Pick<EscState, 'turnoUnico' | 'onlineMode' | 'careerOnline' | 'sport' | 'managers' | 'league' | 'relampagoChave' | 'copaMode'>): boolean {
+  return s.turnoUnico === true && s.onlineMode === 'online' && !s.careerOnline && s.sport !== 'basquete' && !ehKings(s)
+    && !s.relampagoChave && s.copaMode !== 'champions' && s.league.length === LEAGUE_SIZE
+}
+/** 🏟️ o jogo da liga é em CAMPO NEUTRO? Só no turno único (Diego: *"todo jogo em campo neutro, assim ninguém fica com 10 jogos em
+ *  casa e outro com 9"*). Olha o calendário que está valendo — temporada já começada nunca muda de régua no meio. */
+export function ligaJogoNeutro(s: Pick<EscState, 'turnoUnico' | 'onlineMode' | 'careerOnline' | 'sport' | 'managers' | 'league' | 'relampagoChave' | 'copaMode' | 'fixtures'>): boolean {
+  return turnoUnicoVale(s) && s.fixtures.length === LEAGUE_SIZE - 1
+}
+/** 📅 o calendário da liga: Kings tem o dela; o resto é o turno-returno de sempre (embaralhado pela semente) e, no turno único,
+ *  só o 1º turno (19 rodadas, cada par se enfrenta 1 vez). */
+function calendarioDaLiga(s: EscState): [number, number][][] {
+  if (ehKings(s)) return calendarioKings(s.league.map(t => t.id))
+  const f = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+  return turnoUnicoVale(s) ? f.slice(0, f.length / 2) : f
 }
 
 interface TeamForm { atk: number; def: number; inspired: string | null }
@@ -7465,7 +7484,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
   s.seed = Math.floor(Math.random() * 1e9)
   s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-  s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+  s.fixtures = calendarioDaLiga(s)
   s.round = 0
   s.scorers = []; s.assists = []
   s.lastResults = []
@@ -7675,7 +7694,7 @@ export function viraCampo2D(s: EscState): void {
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
-  'campo2d', 'campo2dProximo', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
+  'campo2d', 'campo2dProximo', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
@@ -8684,7 +8703,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+        s.fixtures = calendarioDaLiga(s)
         s.tactics = {}
         s.screen = 'season'
       }
@@ -8803,7 +8822,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+        s.fixtures = calendarioDaLiga(s)
         s.tactics = {}
         s.screen = 'season'
       }
@@ -9080,7 +9099,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
       s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+      s.fixtures = calendarioDaLiga(s)
       s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
       return s
@@ -9235,8 +9254,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Minha Liga Draft (01/11) e agora vale pra toda sala com LIGA (rápido e Minhas Ligas). A ÚNICA mudança é completar com bots
       // até 10 em vez de 20 (18 rodadas). Fora: carreira, basquete, liga sem bots (o tamanho já é a galera), Relâmpago e Só
       // Champions (não têm liga). O que vem depois da liga já sabe lidar com tabela menor (é o mesmo caminho da liga sem bots).
-      s.ligaTurnoUnico = !!action.turnoUnico && !!action.liga && !action.career && !onlineNba || undefined // 📅 06/11: só ida (só Minhas Ligas)
       s.tamanhoLiga = action.tamanhoLiga === 10 && !action.career && !onlineNba && !s.ligaFechada && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
+      // ⚡ TURNO ÚNICO (06/11): escolha do DONO ao criar a sala, carimbada aqui pra todo aparelho jogar igual (igual `escalaBots`).
+      // Só vale com a tabela de 20 (`turnoUnicoVale` confere na hora de montar o calendário): liga de 10 segue as 18 rodadas de sempre.
+      s.turnoUnico = action.turnoUnico === true && !action.career && !onlineNba && !s.relampagoChave && s.copaMode !== 'champions' && s.tamanhoLiga !== 10 ? true : undefined
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
       // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
@@ -10561,7 +10582,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+      s.fixtures = calendarioDaLiga(s)
       s.round = 0
       s.scorers = []; s.assists = []
       if (s.careerOnline) {
@@ -11061,7 +11082,9 @@ function reducerBase(state: EscState, action: Action): EscState {
         // 👑 Kings: a partida de sempre + a regra da Kings por cima, e pontos 3/2/1/0
         const kingsLiga = ehKings(s)
         if (kingsLiga && !s.assists) s.assists = []
-        const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!, false, s.round) : simMatch(s, h, a, rng))
+        // ⚡ turno único: todo jogo em campo neutro (sem o +0.25 de gol e o +2.5 da casa) — mandante/visitante só pra desenhar
+        const neutro = !kingsLiga && ligaJogoNeutro(s)
+        const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!, false, s.round) : neutro ? simMatch(s, h, a, rng, s.scorers, true) : simMatch(s, h, a, rng))
         results.forEach(r => kingsLiga ? aplicaResultadoKings(s.league, r) : applyResult(s.league, r))
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
@@ -12721,7 +12744,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+        s.fixtures = calendarioDaLiga(s)
         s.seasonNo++
         s.screen = 'season'
         return s
@@ -12845,7 +12868,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
       s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+      s.fixtures = calendarioDaLiga(s)
       s.screen = 'season'
       return s
     }
@@ -12875,7 +12898,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
       s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
-      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0), s.ligaTurnoUnico)
+      s.fixtures = calendarioDaLiga(s)
       s.screen = 'season'
       return s
     }
