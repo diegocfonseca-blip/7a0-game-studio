@@ -7850,6 +7850,9 @@ function reducerBase(state: EscState, action: Action): EscState {
     // "novo leilão" antigo. Sem o mapa, segue pelo player_index como sempre.
     const meuUidR = action.youUid ?? state.youUid
     const seatR = meuUidR ? assentoDoCracha(action.state, meuUidR) : -1 // 🤝 parceiro de dupla = assento do dono (21/10)
+    // 🪑 06/11: com o mapa de crachás, quem não está nele NUNCA cai no player_index do banco (era assim que um novato vestia o time de outro)
+    const comMapaR = Array.isArray(action.state.seatUids) && action.state.seatUids.length > 0
+    if (comMapaR && seatR < 0 && !action.isHost) return state
     const idAlvo = seatR >= 0 ? seatR : action.playerIndex
     const byId = action.state.managers?.findIndex(m => m.id === idAlvo) ?? -1
     const myIdx = byId >= 0 ? byId : action.playerIndex

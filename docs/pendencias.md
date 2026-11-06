@@ -18,6 +18,17 @@
   reabre pra quem não é da liga nem foi aceito ('meio' → pedido) e, na Liga Draft com o dono jogando, só o dono reabre.
 - Tela: LIGA_SO_ACEITO vira o pedido 🙋; o **📤 Convidar só manda o convite** (não mexe mais na sala — era o "aperta e não faz nada").
 
+## 🪑 06/11 (noite) — Novato vestia o time de OUTRO na volta (Judas × Príncipe Rubro Negro, 4RVDD8)
+- Causa: quem não está no `seatUids` caía no `player_index` cru do banco ao voltar pra partida (RESTORE_ONLINE e a trava do
+  lobby) — o Judas entrou com índice 1 e passou a jogar com o time do Príncipe (que estava fora da sala).
+- Conserto (publicado): com o mapa de crachás, quem não está nele não veste time nenhum — na liga ele recebe "você entra na
+  próxima virada, no lugar de um bot" e continua na fila; o reducer também recusa.
+- Banco: Judas com pedido ACEITO pro bot 16 (Stocco FC/Relâmpago). Ele já não estava mais na lista da sala.
+- ⚠️ Pendente/limitação: na Liga Draft a temporada vira DENTRO do jogo (draft → próxima), sem passar pela sala de espera — o
+  pedido aceito só é aplicado quando a largada passa pela espera (`triggerStartRaw` + `montaCarry`). E nessa largada, quem não
+  está na lista da sala (ex.: Príncipe) vira bot. Falta decidir com o Diego: aplicar o aceito na virada de DENTRO do jogo e
+  manter como humano quem só está ausente.
+
 ## 🔍 06/11 — Análise do Campo 2D (aba Jogos, salas online e mapa)
 - ✅ FEITO no branch (Diego: *"pode fazer"* nos itens 2 e 3), esperando "publica":
   - Motor novo (carreira): goleiro mais forte (`GK_BASE` 0,25 → 0,4) e mais chute de média distância (`ESCALA_CHUTE` 2 → 2,8,
