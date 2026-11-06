@@ -1,3 +1,9 @@
+## 🔍 06/11 — Análise do Campo 2D (aba Jogos, salas online e mapa) — ESPERANDO o Diego escolher o que consertar
+- 🐞 Mapa: os botões de velocidade do mapa (1×·2×·4×) mudam o `simSpeed`, mas com o 2D a carreira anda pelo `vel2D` → no mapa o botão não faz nada e o chip aceso mente. E falta o 3×. (`controleMapa` em pyramidseason.tsx + `presidencia-mapa-hud.tsx`)
+- ⚽ Motor novo (carreira): 300 jogos de times parecidos = 1,5 gol, só 3,2 chutes por jogo e ~2 de cada 3 chutes no gol viram gol; 0,6 escanteio e quase zero impedimento. Futebol de verdade: muito mais chute, goleiro defendendo mais. Gols caíram de ~1,9 (20/10) pra 1,5.
+- 📺 Teatro das salas (motor antigo): só 24 escanteios em 300 jogos; ~4 chances por jogo são puladas por falta de tempo (3× deixou o jogo em ~30 s); gol pode aparecer até 6' depois do minuto do placar.
+- 🎨 Visual: lenda com rosto vira bolinha branca com rosto — o time só aparece no anelzinho; no celular os dois times se confundem quando muita lenda está em campo.
+
 ## 🙋 06/11 — Gente nova em liga já começada (PUBLICADO pra todos em 06/11)
 - 📊 Tabela da Liga Draft: 20 times = G8/Z4 · 10 times = G4/Z2 (Diego: *"pode deixar então g4"*). Só cor pra diferenciar: ninguém cai e não tem Copa.
 - ⚡ Só ida (19 rodadas) só na liga de 20, a mesma chave da sala (`turnoUnico`); liga de 10 segue 18.
