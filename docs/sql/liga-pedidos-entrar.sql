@@ -41,3 +41,8 @@ end $function$;
 
 -- 🚫 06/11 (noite): migration `esc_liga_reabre_nunca_reabre_liga_comecada` — liga que já jogou NUNCA volta pra sala de
 -- espera (o dono sempre usa VOLTAR; gente nova vira pedido e entra na virada de dentro do jogo).
+
+-- 📏📅 06/11 (noite): migration `esc_liga_formato_proxima_temporada` — tabela `esc_liga_formato_prox` (formato da PRÓXIMA
+-- temporada de liga começada, aplicado pelo dono na virada de dentro do jogo), `esc_liga_formato` grava nela quando a liga já
+-- jogou (20→10 = 'encolhe'), `esc_liga_formato_prox_ler(room)` e `esc_liga_fui_removido(room)` (aviso de removido pelo dono).
+-- E `esc_liga_pedir` devolve 'aceito' pra quem já foi aceito (migration `esc_liga_pedir_avisa_aceito`).
