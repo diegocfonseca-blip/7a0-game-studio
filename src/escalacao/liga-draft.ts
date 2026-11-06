@@ -301,18 +301,54 @@ type PartidaGravada = {
   managers?: Manager[]; seatUids?: string[]; league?: { id: number; name: string; pts: number; w: number; gf: number; ga: number }[]
   fixtures?: unknown[]; round?: number; seasonNo?: number; draftFeito?: number; draft?: DraftEstado | null
 }
-export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]): DraftCarry | undefined {
+// 🚪➕ 06/11 (Diego: *"o dono remove alguém… o time vira bot?"* / *"entra no lugar do bot… só quem tem plano"*). Quem pode chegar
+// na virada da temporada: o pedido ACEITO pelo dono diz em qual time a pessoa entra (`bot` = id do bot na partida gravada,
+// `uid` = no lugar de quem ele tirou). Sem pedido (entrou por código + senha), pega o PIOR bot da tabela.
+export type EntradaLiga = { bot?: number; uid?: string }
+export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[], entradas: Record<string, EntradaLiga> = {}): DraftCarry | undefined {
   const mgrs = prev?.managers, seat = prev?.seatUids
   if (!prev || !Array.isArray(mgrs) || !mgrs.length || !Array.isArray(seat)) return undefined
   const squads: Record<number, WonCard[]> = {}
   const caixa: Record<number, number> = {}
   const novoDoVelho: Record<number, number> = {}
+  const humanosUsados = new Set<number>(), botsTomados = new Set<number>()
+  const novatos: number[] = []
   uidsNovos.forEach((uid, i) => {
     const k = seat.indexOf(uid)
     const m = k >= 0 ? mgrs.find(x => x.id === k && x.isHuman) : undefined
-    if (m) { squads[i] = m.squad; novoDoVelho[m.id] = i; caixa[i] = m.money }
+    if (m) { squads[i] = m.squad; novoDoVelho[m.id] = i; caixa[i] = m.money; humanosUsados.add(m.id) }
+    else novatos.push(i)
   })
-  const bots = mgrs.filter(m => !m.isHuman).sort((a, b) => a.id - b.id)
+  // ➕ quem chegou: 1º os que o dono mandou pro lugar de alguém, depois os do bot escolhido, por fim o pior bot que sobrou
+  const tabela = Array.isArray(prev.league) ? [...prev.league].sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name)) : []
+  const posDe = (id: number) => { const p = tabela.findIndex(t => t.id === id); return p < 0 ? 999 : p }
+  const assume = (i: number, m: Manager, ehBot: boolean) => {
+    squads[i] = m.squad; novoDoVelho[m.id] = i; caixa[i] = m.money ?? 0
+    if (ehBot) botsTomados.add(m.id); else humanosUsados.add(m.id)
+  }
+  const pendentes: number[] = []
+  for (const i of novatos) {
+    const e = entradas[uidsNovos[i]]
+    const kUid = e?.uid ? seat.indexOf(e.uid) : -1
+    const alvoH = kUid >= 0 ? mgrs.find(x => x.id === kUid && x.isHuman && !humanosUsados.has(x.id)) : undefined
+    if (alvoH && !uidsNovos.includes(e!.uid!)) { assume(i, alvoH, false); continue }
+    const alvoB = e?.bot != null ? mgrs.find(x => x.id === e.bot && !x.isHuman && !botsTomados.has(x.id)) : undefined
+    if (alvoB) { assume(i, alvoB, true); continue }
+    pendentes.push(i)
+  }
+  for (const i of pendentes) {
+    const livres = mgrs.filter(x => !x.isHuman && !botsTomados.has(x.id)).sort((a, b) => posDe(b.id) - posDe(a.id) || b.id - a.id)
+    if (livres[0]) assume(i, livres[0], true)
+  }
+  // 🤖 quem saiu (ou foi removido) e ninguém assumiu: o time vira BOT com o mesmo elenco — a liga NÃO recomeça do zero
+  const viramBot = mgrs.filter(m => m.isHuman && !humanosUsados.has(m.id))
+    .map(m => ({ ...m, isHuman: false, name: m.teamName || m.name, auctionRival: false }) as Manager)
+  // os bots são renumerados logo depois dos humanos de agora (é o que a largada espera), na ordem dos ids antigos
+  const bots = [...mgrs.filter(m => !m.isHuman && !botsTomados.has(m.id)), ...viramBot].sort((a, b) => a.id - b.id)
+  const idNovoBot = new Map<number, number>()
+  bots.forEach((b, j) => idNovoBot.set(b.id, uidsNovos.length + j))
+  for (const [velho, novo] of idNovoBot) novoDoVelho[velho] = novoDoVelho[velho] ?? novo
+  const botsRenum = bots.map((b, j) => ({ ...b, id: uidsNovos.length + j }))
   const nRodadas = Array.isArray(prev.fixtures) ? prev.fixtures.length : 0
   const acabou = nRodadas > 0 && (prev.round ?? 0) >= nRodadas
   let ordem: number[] | undefined
@@ -330,5 +366,5 @@ export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]
       ordem = [] // a fila do draft já tinha acabado (estava no leilão/escalação): ninguém escolhe de novo — segue pra temporada
     }
   }
-  return { squads, caixa, bots, draftFeito: prev.draftFeito, ordem, temporada: prev.seasonNo }
+  return { squads, caixa, bots: botsRenum, draftFeito: prev.draftFeito, ordem, temporada: prev.seasonNo }
 }

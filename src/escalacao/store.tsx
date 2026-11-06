@@ -9211,7 +9211,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
-      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
+      // 🧱🏳️ 06/11 (Diego: *"na hora de criar a Liga Draft deveria ter opção de escolher jogador, clubes ou seleção, igual tem no rápido"*):
+      // a Liga Draft de hoje (Minha Liga Draft) aceita o leilão de Clubes/Seleções na 1ª temporada; a de antes (fraca) continua sem.
+      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && (!s.leilaoClubes || !!action.minhaLigaDraft)
       s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       // 📜💰 05/11: regras da turma no draft + prêmio editado pelo criador (vazio = padrão do tamanho da liga)
       s.draftRegras = s.minhaLigaDraft && action.draftRegras ? { ...action.draftRegras } : undefined
@@ -9489,13 +9491,23 @@ function reducerBase(state: EscState, action: Action): EscState {
         const dc = action.draftCarry
         const humanos = s.managers.filter(m => m.isHuman)
         const nBots = s.managers.length - humanos.length
+        // 📏 06/11: a liga pode CRESCER de 10 pra 20 (decisão do dono entre temporadas) — os bots que faltam são os novos desta
+        // largada (já com elenco pronto). Encolher não passa aqui (o banco nem deixa) e cai no recomeço seguro de sempre.
         const cabe = humanos.length >= 1 && humanos.every(m => (dc.squads[m.id]?.length ?? 0) >= 11)
-          && dc.bots.length === nBots && dc.bots.every((b, i) => b.id === humanos.length + i && !b.isHuman)
+          && dc.bots.length <= nBots && dc.bots.every((b, i) => b.id === humanos.length + i && !b.isHuman)
         if (cabe) {
           for (const m of humanos) m.squad = dc.squads[m.id].map(c => ({ ...c }))
           if (s.minhaLigaDraft) for (const m of humanos) if (typeof dc.caixa?.[m.id] === 'number') m.money = dc.caixa[m.id] // 📋🏆 o caixa volta junto
-          s.managers = [...humanos, ...dc.bots.map(b => ({ ...b, squad: b.squad.map(c => ({ ...c })) }))]
+          const novosBots = s.managers.filter(m => !m.isHuman).slice(dc.bots.length)
+          if (novosBots.length) {
+            // ☝️ cada jogador é único na liga: carta do bot novo que já está noutro time vira um reserva da várzea da mesma posição
+            const ja = new Set([...humanos.flatMap(m => m.squad), ...dc.bots.flatMap(b => b.squad)].map(c => chaveNome(c.name)))
+            const rngB = mulberry((s.seed ^ 0xB07A) >>> 0)
+            for (const b of novosBots) b.squad = b.squad.map(c => ja.has(chaveNome(c.name)) ? fillerCard(c.pos as Sector, rngB) : (ja.add(chaveNome(c.name)), c))
+          }
+          s.managers = [...humanos, ...dc.bots.map(b => ({ ...b, squad: b.squad.map(c => ({ ...c })) })), ...novosBots]
           s.draftFeito = dc.draftFeito
+          s.leilaoClubes = false; s.leilaoSelecao = false; s.leilaoDecada = false // 🧱 sem leilão hoje: a marca de clubes não fica valendo
           comecaTemporadaMesmoTime(s)
           const ordem = (dc.ordem ?? []).filter(id => humanos.some(h => h.id === id))
           if (ordem.length && dc.temporada != null && dc.draftFeito !== dc.temporada) {

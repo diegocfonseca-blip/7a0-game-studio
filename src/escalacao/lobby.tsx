@@ -62,7 +62,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useTurnoUnicoLiberado, useEuroLiberada, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
 import { Co2Painel } from './co2-telas'
-import { montaCarry } from './liga-draft' // 📋 Liga Draft (19/10)
+import { montaCarry, type EntradaLiga } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, MiniTemaSala, temaValido, useTemasDaConta, releMeusTemas, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
@@ -1723,6 +1723,26 @@ export function EscLobby() {
     // POSIÇÃO na lista como número do técnico — o time é montado pela posição, não
     // pelo índice cru do banco. Assim ninguém vira dois times nem "veste" o assento
     // errado. No caso normal (host já limpou) isto não muda nada.
+    // 🙋 06/11: quem o dono ACEITOU entra no time que ele escolheu (bot, ou no lugar de alguém). Só o dono lê os pedidos; o
+    // convidado copia a largada do dono (SYNC_STATE), então não precisa da lista. Falhou a leitura: quem chegou pega o pior bot.
+    // "No lugar de alguém": se quem foi aceito está na sala, a pessoa escolhida SAI da liga agora, na virada (nunca no meio).
+    let entradas: Record<string, EntradaLiga> = {}
+    const ehLigaSala = gs?.mode === 'liga'
+    let saem = new Set<string>()
+    if (amHost && ehLigaSala) {
+      try {
+        const { data: peds } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: roomData.id })
+        for (const p of (peds ?? []) as { user_id: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[])
+          if (p.status === 'aceito') entradas[p.user_id] = { ...(p.alvo_bot != null ? { bot: p.alvo_bot } : {}), ...(p.alvo_uid ? { uid: p.alvo_uid } : {}) }
+      } catch { entradas = {} }
+      const presentes = new Set(sorted.map(p => p.user_id))
+      const donoLiga = roomData.liga_dono ?? roomData.host_id
+      saem = new Set(Object.entries(entradas).filter(([novo, e]) => presentes.has(novo) && e.uid && e.uid !== donoLiga && e.uid !== user.id).map(([, e]) => e.uid!))
+      if (saem.size) {
+        for (const uid of saem) await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', uid).then(() => {}, () => {})
+        for (let i = sorted.length - 1; i >= 0; i--) if (saem.has(sorted[i].user_id)) sorted.splice(i, 1)
+      }
+    }
     const seenU = new Set<string>()
     // 🤝 DUPLA: só quem é DONO de assento vira time. A linha do parceiro é carona
     // (ela tem dupla_partner_of) e não pode entrar na contagem de técnicos, senão
@@ -1752,6 +1772,7 @@ export function EscLobby() {
       })
     }
     jaIniciouRef.current = roomData.id
+    if (amHost && ehLigaSala) void supabase.rpc('esc_liga_marca_entrou', { p_room: roomData.id, p_uids: uniq.map(p => p.user_id) }).then(() => {}, () => {}) // ✅ pedido aceito → "entrou"
     dispatch({
       type: 'START_ONLINE',
       regional: (gs as { regionalNaLiga?: string } | undefined)?.regionalNaLiga, // 🏟️ copa regional: o leilão ganha as cartas regionais
@@ -1851,7 +1872,7 @@ export function EscLobby() {
       tamanhoLiga: (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : undefined, // 📏 20 (padrão) ou 10 times
       turnoUnico: (gs as GS & { turnoUnico?: boolean })?.turnoUnico === true, // ⚡ 06/11: 19 rodadas só ida (o reducer só aplica com a tabela de 20)
       campo2d: !!((gs as GS & { campo2d?: boolean; campo2dProximo?: boolean })?.campo2dProximo ?? (gs as GS & { campo2d?: boolean })?.campo2d), // 📺 sala 2D (escolha do dono na criação; ⚡ a troca marcada no meio da sala vale na próxima largada)
-      draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id)) : undefined,
+      draftCarry: (gs as GS & { ligaDraft?: boolean })?.ligaDraft ? montaCarry(gs as Parameters<typeof montaCarry>[0], uniq.map(p => p.user_id), entradas) : undefined,
     })
     return true
   }
@@ -2130,7 +2151,8 @@ export function EscLobby() {
     const turnoSala = !carreira && !elenco && !mundo && turnoVale // ⚡ 06/11: liga de 20 em turno único (19 rodadas, campo neutro)
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha ? rapidoDeck : 'todos', deckSala: ehMinha ? rapidoDeck : 'todos', copaMode: 'liga', clubes: undefined, mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}),
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: 'liga', ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
+      mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}),
       ...(turnoSala ? { turnoUnico: true } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
@@ -2268,6 +2290,18 @@ export function EscLobby() {
       else rooms = r1.data as unknown[]
     }
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
+    // 🏆📋 06/11 (Diego: *"salas que tão jogando liga draft… não tá aparecendo… igual liga da turma"*): a busca acima só pega sala
+    // CRIADA nas últimas 6h, e a liga é criada uma vez e jogada por dias — rolando, ela nunca entrava. Aqui vêm só as ligas EM JOGO
+    // que bateram o coração no último minuto e meio (o filtro de baixo ainda exige `isFresh`). Falhou = a lista segue como sempre.
+    try {
+      const desde = new Date(Date.now() - 90_000).toISOString()
+      const cols = !semColunaPregaoAb ? `${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live, gcopa2:ls_copa2, gpregao:ls_pregao, gdraft:ls_draft` : COLS
+      const { data: ligasVivas } = await supabase.from('game_rooms').select(cols)
+        .eq('status', 'started').eq('ls_mode', 'liga').eq('ls_tag', tagAtual()).gte('updated_at', desde)
+        .order('updated_at', { ascending: false }).limit(30)
+      const ja = new Set((rooms as { id: string }[]).map(x => x.id))
+      for (const lv of (ligasVivas ?? []) as unknown as { id: string }[]) if (!ja.has(lv.id)) (rooms as unknown[]).push(lv)
+    } catch { /* sem resposta: só as salas de sempre */ }
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null; gdraft?: string | null }
     // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
     // 📋 06/11 (Diego): a Liga Draft ROLANDO aparece na lista, com selo próprio (*"quando já estiver rolando, deveria aparecer… com selo Liga Draft"*).
@@ -2481,6 +2515,16 @@ export function EscLobby() {
   // ✏️ editor do card de "Minhas ligas" (edição POR FORA): guarda o id da liga
   // aberta pra edição e os 4 campos que dá pra mudar sem entrar na sala.
   const [cardEdit, setCardEdit] = useState<string | null>(null)
+  // 🙋 06/11 — gente nova em liga já começada (mockup `scripts/mockups/liga-vaga.png`, *"perfeito pode fazer"*)
+  type PedLiga = { id: string; user_id: string; nome: string | null; status: string; alvo_bot: number | null; alvo_uid: string | null; pago: boolean }
+  type MeuPed = { id: string; room_id: string; code: string; nome_liga: string; status: string; room_status: string }
+  type TimeLiga = { id: number; nome: string; humano: boolean; uid: string | null; pts: number }
+  const [pedidosDono, setPedidosDono] = useState<Record<string, PedLiga[]>>({})
+  const [meusPedidos, setMeusPedidos] = useState<MeuPed[]>([])
+  const [pedOpen, setPedOpen] = useState<string | null>(null)
+  const [aceitando, setAceitando] = useState<{ room: string; ped: PedLiga; times: TimeLiga[] | null; alvo: { bot?: number; uid?: string } | null } | null>(null)
+  const [cardTam, setCardTam] = useState<10 | 20>(20)
+  const [cardTurno, setCardTurno] = useState(false)
   const [cardPw, setCardPw] = useState('')   // 🔒 senha nova da liga (vazio = mantém)
   const [cardNome, setCardNome] = useState('')
   const [cardData, setCardData] = useState('')
@@ -2654,20 +2698,20 @@ export function EscLobby() {
   // todo — que é justamente o ponto da liga.
   async function fetchMyLigas() {
     if (!user) { setMyLigas([]); return }
-    const sel = 'id, code, host_id, liga_dono, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada, gseason:game_state->>seasonNo'
+    const sel = 'id, code, host_id, liga_dono, max_players, status, updated_at, gname:game_state->>roomName, gmode:game_state->>mode, gtag:game_state->>__game, gat:game_state->>ligaAt, gliga:game_state->>ligaFechada, gseason:game_state->>seasonNo, gtam:game_state->>tamanhoLiga, gturno:game_state->>turnoUnico, gdraft:game_state->>ligaDraft'
     const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
     const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
     const [hosted, member] = await Promise.all([
       supabase.from('game_rooms').select(sel).or(`host_id.eq.${user.id},liga_dono.eq.${user.id}`).eq('game_state->>mode', 'liga').limit(30), // ⭐ com o vice no comando, o dono continua achando a liga dele
       memberIds.length ? supabase.from('game_rooms').select(sel).in('id', memberIds).eq('game_state->>mode', 'liga').limit(30) : Promise.resolve({ data: [] }),
     ])
-    type SlimLiga = { id: string; code: string; host_id: string; liga_dono?: string | null; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null; gseason?: string | null }
+    type SlimLiga = { id: string; code: string; host_id: string; liga_dono?: string | null; max_players: number; status: string; updated_at?: string; gname: string | null; gmode: string | null; gtag: string | null; gat: string | null; gliga: string | null; gseason?: string | null; gtam?: string | null; gturno?: string | null; gdraft?: string | null }
     const seen = new Set<string>(); const rooms: RoomInfo[] = []
     for (const r of [...((hosted.data ?? []) as unknown as SlimLiga[]), ...((member.data ?? []) as unknown as SlimLiga[])]) {
       if (seen.has(r.id) || r.gtag !== tagAtual()) continue
       seen.add(r.id)
       rooms.push({ id: r.id, code: r.code, host_id: r.host_id, liga_dono: r.liga_dono ?? null, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-        game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined, ...(r.gseason != null ? { seasonNo: Number(r.gseason) } : {}) } as GS })
+        game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, mode: 'liga', ligaAt: r.gat ?? undefined, ligaFechada: r.gliga === 'true' || undefined, ...(r.gseason != null ? { seasonNo: Number(r.gseason) } : {}), ...(r.gtam === '10' ? { tamanhoLiga: 10 } : {}), ...(r.gturno === 'true' ? { turnoUnico: true } : {}), ...(r.gdraft === 'true' ? { ligaDraft: true } : {}) } as GS })
     }
     // a próxima da agenda primeiro (liga sem horário vai pro fim)
     rooms.sort((a, b) => ((a.game_state as GS).ligaAt ?? '9') .localeCompare((b.game_state as GS).ligaAt ?? '9'))
@@ -2677,6 +2721,55 @@ export function EscLobby() {
       for (const pl of (pls ?? []) as { room_id: string }[]) contagem[pl.room_id] = (contagem[pl.room_id] ?? 0) + 1
     }
     setMyLigas(rooms.map(r => ({ ...r, count: contagem[r.id] ?? 0 })))
+    // 🙋 pedidos: os que chegaram nas MINHAS ligas (só o dono lê) e os que EU fiz
+    const minhasComoDono = rooms.filter(r => (r.liga_dono ?? r.host_id) === user.id)
+    const lidos = await Promise.all(minhasComoDono.map(async r => {
+      try { const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: r.id }); return [r.id, (data ?? []) as PedLiga[]] as const } catch { return [r.id, [] as PedLiga[]] as const }
+    }))
+    setPedidosDono(Object.fromEntries(lidos))
+    try { const { data } = await supabase.rpc('esc_liga_meus_pedidos'); setMeusPedidos(((data ?? []) as MeuPed[]).filter(p => p.status !== 'recusado' && !rooms.some(r => r.id === p.room_id))) } catch { /* sem pedidos */ }
+  }
+  // 🙋 pedir vaga numa liga já começada (só quem tem plano; o banco confere de novo)
+  async function pedirLiga(r: RoomInfo) {
+    if (!user) return
+    if (direitosLiga != null && !canLiga) { setRoomError(tr('🔒 Pra entrar numa liga que já começou precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas ligas quiser.', '🔒 To join a league that already started you need a plan (from ⭐ Craque Salas up). With a plan you can join as many leagues as you want.')); return }
+    const { data, error } = await supabase.rpc('esc_liga_pedir', { p_room: r.id, p_nome: nameOf() })
+    const res = error ? 'erro' : String(data ?? 'erro')
+    if (res === 'plano') { setRoomError(tr('🔒 Pra entrar numa liga que já começou precisa de um plano (a partir do ⭐ Craque Salas).', '🔒 To join a league that already started you need a plan (from ⭐ Craque Salas up).')); return }
+    if (res === 'ja') { setRoomError(tr('Você já é dessa liga — ela está em "🏆 Suas ligas".', 'You are already in that league — it is in "🏆 Your leagues".')); return }
+    if (res !== 'ok') { setRoomError(tr('Não consegui mandar o pedido agora. Tenta de novo.', 'Couldn\'t send the request right now. Try again.')); return }
+    setRoomError(tr('🙋 Pedido enviado! Quando o dono aceitar, a liga aparece em "🏆 Suas ligas" e você entra na próxima temporada.', '🙋 Request sent! Once the owner accepts, the league shows up in "🏆 Your leagues" and you join next season.'))
+    void fetchMyLigas()
+  }
+  async function abreAceite(room: string, ped: PedLiga) {
+    setAceitando({ room, ped, times: null, alvo: null })
+    try {
+      const { data } = await supabase.rpc('esc_liga_times', { p_room: room })
+      setAceitando(a => (a && a.ped.id === ped.id ? { ...a, times: (data ?? []) as TimeLiga[] } : a))
+    } catch { setAceitando(a => (a ? { ...a, times: [] } : a)) }
+  }
+  async function respondePedido(ped: PedLiga, aceitar: boolean, alvo?: { bot?: number; uid?: string }) {
+    const { data, error } = await supabase.rpc('esc_liga_responder', { p_id: ped.id, p_aceitar: aceitar, p_bot: alvo?.bot ?? null, p_uid: alvo?.uid ?? null })
+    const res = error ? 'erro' : String(data ?? 'erro')
+    if (res === 'plano') { setRoomError(tr('Essa pessoa não tem plano: ela não pode entrar numa liga que já começou.', 'This person has no plan: they cannot join a league that already started.')); return }
+    if (res !== 'ok') { setRoomError(tr('Não consegui salvar agora. Tenta de novo.', 'Couldn\'t save right now. Try again.')); return }
+    setAceitando(null); setRoomError('')
+    void fetchMyLigas()
+  }
+  // 📏📅 formato da PRÓXIMA temporada (o banco só aceita com a liga parada; se ela está na tela do fim, reabre a espera antes)
+  async function salvaFormato(r: RoomInfo, tam: 10 | 20, turno: boolean): Promise<boolean> {
+    const gsR = r.game_state as GS & { tamanhoLiga?: number; turnoUnico?: boolean }
+    if ((gsR?.tamanhoLiga === 10 ? 10 : 20) === tam && !!gsR?.turnoUnico === (turno && tam === 20)) return true
+    if (r.status === 'started') {
+      const ab = await reabreLiga(r.id)
+      if (ab !== 'ok') { setRoomError(tr('⏳ Times e rodadas só mudam entre uma temporada e outra. Quando a temporada acabar, edita de novo.', '⏳ Teams and rounds only change between seasons. When the season ends, edit again.')); return false }
+    }
+    const { data, error } = await supabase.rpc('esc_liga_formato', { p_room: r.id, p_tamanho: tam, p_turno_unico: turno })
+    const res = error ? 'erro' : String(data ?? 'erro')
+    if (res === 'encolhe') { setRoomError(tr('De 20 times não dá pra voltar pra 10 (teria que tirar times da liga).', 'A 20-team league cannot go back to 10 (teams would have to be removed).')); return false }
+    if (res === 'rolando') { setRoomError(tr('⏳ Times e rodadas só mudam entre uma temporada e outra.', '⏳ Teams and rounds only change between seasons.')); return false }
+    if (res !== 'ok') { setRoomError(tr('Não consegui salvar agora. Tenta de novo.', 'Couldn\'t save right now. Try again.')); return false }
+    return true
   }
 
   async function fetchMyCareers() {
@@ -2782,7 +2875,7 @@ export function EscLobby() {
   }
 
   // entra numa sala já carregada (por código ou pela lista de salas abertas)
-  async function enterRoom(rd: RoomInfo, pw?: string) {
+  async function enterRoom(rd: RoomInfo, pw?: string, aceito = false) {
     if (!user) return
     // 📋 1 LIGA POR VEZ PRA QUEM NÃO TEM PLANO (05/11, Diego). São DUAS contas separadas: 1 Liga Draft + 1 liga do Minhas Ligas
     // (*"ele pode estar no Minhas Ligas de alguém e no Liga Draft de alguém, de graça"*). Tentou entrar numa 2ª do MESMO tipo → aviso
@@ -2859,6 +2952,11 @@ export function EscLobby() {
           }
         }
       }
+      // 🔒 06/11 (Diego: *"só quem tem qualquer plano pode entrar"*): liga que já jogou só recebe gente nova com plano — confere
+      // ANTES de reabrir a sala de espera (senão um grátis abriria a espera da turma à toa). O banco confere de novo na entrada.
+      if (!mySlot && rd.game_state?.mode === 'liga' && (rd.liga_dono ?? rd.host_id) !== user.id && direitosLiga != null && !canLiga) {
+        setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.')); setLoading(false); return
+      }
       if (!mySlot && rd.game_state?.mode === 'liga') {
         const res = await reabreLiga(rd.id)
         if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
@@ -2887,7 +2985,7 @@ export function EscLobby() {
     // sala FECHADA: quem ainda não está dentro precisa da senha (o host entra direto)
     const locked = !!rd.game_state?.locked && !!rd.game_state?.pwHash
     const amHost = rd.host_id === user.id || rd.liga_dono === user.id // ⭐ o dono da liga entra sem senha mesmo com o vice no comando
-    if (locked && !amHost) {
+    if (locked && !amHost && !aceito) { // 🙋 06/11: quem o dono aceitou entra sem a senha
       const pwT = (pw ?? '').trim()
       if (!pwT) { setPwModal(rd); setPwEntry(''); setLoading(false); return } // abre o pedido de senha
       setLoading(true); setRoomError('') // feedback: o clique registrou
@@ -2923,6 +3021,10 @@ export function EscLobby() {
     if (!insOk && lim) {
       const tipo = lim[1] === 'draft' ? tr('Liga Draft', 'Draft League') : tr('Liga da Turma', 'Crew League')
       setRoomError(tr(`🔒 Sem plano, dá pra estar em 1 ${tipo} por vez — você já está na "${lim[2].trim()}". Saia dela (botão Sair da sala, dentro da liga) ou tenha qualquer plano ⭐ pra jogar em quantas quiser.`, `🔒 Without a plan you can be in 1 ${tipo} at a time — you are already in "${lim[2].trim()}". Leave it (Leave room, inside the league) or go ⭐ Craque to play in as many as you want.`))
+      setLoading(false); return
+    }
+    if (!insOk && /LIGA_SO_PLANO/.test(lastErr)) { // 🔒 06/11: o banco barrou — liga que já jogou só recebe gente nova com plano
+      setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))
       setLoading(false); return
     }
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
@@ -3490,9 +3592,25 @@ export function EscLobby() {
 
       {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
-      {ligaOn && (myLigas.length > 0 || showLeagues) && (
+      {ligaOn && (myLigas.length > 0 || showLeagues || meusPedidos.length > 0) && (
         <div id="ll-minhas-ligas" className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>{tr('🏆 Suas ligas', '🏆 Your leagues')}</p>
+          {/* 🙋 06/11: os MEUS pedidos de vaga (liga já começada). Aceito = entra na virada da temporada */}
+          {meusPedidos.map(p => (
+            <div key={p.id} className="border-2 border-black rounded-xl px-3 py-2 bg-white">
+              <p className="font-black text-black text-sm truncate" style={OSWALD}>{p.nome_liga}</p>
+              {p.status === 'aceito' ? <>
+                <p className="text-[12px] font-bold mt-1 rounded-lg border-2 border-dashed border-[#a87b00] px-2 py-1" style={{ background: '#FFF4CF' }}>{tr('✅ Você foi aceito! Entra na próxima temporada, no time que o dono escolheu. Quando a temporada acabar e a sala de espera abrir, toque em ENTRAR.', '✅ You were accepted! You join next season, in the team the owner picked. When the season ends and the waiting room opens, tap JOIN.')}</p>
+                <button onClick={() => { void (async () => {
+                  const { data: rd } = await supabase.from('game_rooms').select('*').eq('id', p.room_id).maybeSingle()
+                  if (!rd) { setRoomError(tr('Essa liga não existe mais.', 'That league no longer exists.')); return }
+                  setLoading(true); setRoomError('')
+                  await enterRoom(rd as RoomInfo, undefined, true)
+                  setLoading(false)
+                })() }} disabled={loading} className="w-full mt-1.5 border-2 border-black rounded-lg py-1.5 font-black text-[12px] text-white" style={{ background: GREEN, ...OSWALD }}>{tr('▶️ Entrar', '▶️ Join')}</button>
+              </> : <p className="text-[11.5px] font-bold text-black/60 mt-0.5">{tr('⏳ Pedido enviado — esperando o dono responder.', '⏳ Request sent — waiting for the owner.')}</p>}
+            </div>
+          ))}
           {myLigas.length===0&&<p className="text-sm font-semibold text-black/70">{tr('Suas ligas aparecem aqui quando você criar uma ou entrar por convite. Liga Draft também fica nesta lista.','Your leagues appear here after you create one or join by invitation. Draft leagues also appear here.')}</p>}
           {myLigas.map(r => {
             const gs = r.game_state as GS
@@ -3561,6 +3679,8 @@ export function EscLobby() {
                       setCardData(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
                       setCardHora(`${pad(d.getHours())}:${pad(d.getMinutes())}`)
                       setCardBots(!gs?.ligaFechada)
+                      setCardTam((gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20)
+                      setCardTurno(!!(gs as GS & { turnoUnico?: boolean })?.turnoUnico)
                       setCardPw('') // nunca herda o que foi digitado numa outra liga
                       setCardEdit(r.id)
                     }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
@@ -3573,6 +3693,58 @@ export function EscLobby() {
                     </button>
                   </div>
                 )}
+                {/* 🙋 06/11: PEDIDOS PRA ENTRAR (só o dono vê). Aceitar = escolher em qual time a pessoa entra (bot, ou no lugar de alguém);
+                    ela entra na VIRADA da temporada, nunca no meio. */}
+                {souDono && cardEdit !== r.id && (pedidosDono[r.id]?.length ?? 0) > 0 && (() => {
+                  const peds = pedidosDono[r.id] ?? []
+                  const novos = peds.filter(p => p.status === 'pendente').length
+                  return <div className="mt-2">
+                    <button onClick={() => setPedOpen(o => o === r.id ? null : r.id)} className="w-full border-2 border-black rounded-lg py-1.5 font-black text-[12px] active:translate-y-0.5"
+                      style={{ background: GOLD, color: INK, boxShadow: `2px 2px 0 ${INK}`, ...OSWALD }}>
+                      {tr('🙋 Pedidos pra entrar', '🙋 Join requests')} {novos > 0 && <span className="ml-1 rounded-full border-2 border-black px-1.5 text-white" style={{ background: '#E8503A' }}>{novos}</span>}
+                    </button>
+                    {pedOpen === r.id && <div className="mt-1.5 border-t-2 border-dashed border-black/20 pt-1">
+                      {peds.map(p => (
+                        <div key={p.id} className="py-1.5 border-b border-black/10">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`flex-1 min-w-0 truncate font-black text-[13px] ${p.pago ? 'text-black' : 'text-black/40'}`}>{p.nome || tr('Técnico', 'Manager')}</span>
+                            {!p.pago ? <span className="text-[10.5px] font-bold text-black/50">{tr('🔒 precisa de plano', '🔒 needs a plan')}</span>
+                              : p.status === 'aceito' ? <span className="text-[10.5px] font-black" style={{ color: GREEN }}>{tr('✅ entra na virada', '✅ joins next season')}</span>
+                              : <button onClick={() => void abreAceite(r.id, p)} className="${BTN} px-2 py-0.5 text-[11px] text-white" style={{ background: GREEN, ...OSWALD }}>{tr('✅ Aceitar', '✅ Accept')}</button>}
+                            <button onClick={() => void respondePedido(p, false)} aria-label={tr('Recusar', 'Decline')} className="${BTN} px-1.5 py-0.5 text-[11px] bg-white text-black" style={OSWALD}>✕</button>
+                          </div>
+                          {aceitando?.ped.id === p.id && (
+                            <div className="mt-1.5 rounded-xl border-2 border-black p-2" style={{ background: '#FFF4CF' }}>
+                              <p className="font-black text-[13px]" style={OSWALD}>{tr(`${p.nome || 'Ele'} entra no lugar de…`, `${p.nome || 'They'} take the place of…`)}</p>
+                              <p className="text-[10.5px] font-bold text-black/60">{tr('Ele assume o time como está: elenco, caixa e lugar no draft.', 'They take over the team as it is: squad, cash and draft spot.')}</p>
+                              {aceitando.times === null ? <p className="text-[11px] font-bold mt-1">⏳</p> : (() => {
+                                const ts = aceitando.times
+                                const bots = ts.filter(t => !t.humano).sort((a, b) => b.pts - a.pts)
+                                const gente = ts.filter(t => t.humano && t.uid && t.uid !== (r.liga_dono ?? r.host_id))
+                                const op = (k: string, sel: boolean, lb: string, sub: string, f: () => void) => (
+                                  <button key={k} onClick={f} className="w-full flex justify-between items-center mt-1 border-2 border-black rounded-lg px-2 py-1 text-[12px] font-black text-left"
+                                    style={{ background: sel ? GOLD : '#fff', boxShadow: sel ? `2px 2px 0 ${INK}` : 'none' }}><span className="truncate">{lb}</span><span className="text-[10.5px] text-black/55 shrink-0 ml-2">{sub}</span></button>)
+                                return <>
+                                  {bots.length > 0 && <p className="font-black text-[10px] uppercase tracking-wider text-black/50 mt-1.5" style={OSWALD}>{tr('🤖 Times de bot', '🤖 Bot teams')}</p>}
+                                  {bots.map(t => op(`b${t.id}`, aceitando.alvo?.bot === t.id, `🤖 ${t.nome}`, `${t.pts} pts`, () => setAceitando(a => (a ? { ...a, alvo: { bot: t.id } } : a))))}
+                                  {gente.length > 0 && <p className="font-black text-[10px] uppercase tracking-wider text-black/50 mt-1.5" style={OSWALD}>{tr('👤 Ou no lugar de alguém (ele sai da liga)', '👤 Or replacing someone (they leave the league)')}</p>}
+                                  {gente.map(t => op(`h${t.id}`, aceitando.alvo?.uid === t.uid, t.nome, `${t.pts} pts`, () => setAceitando(a => (a ? { ...a, alvo: { uid: t.uid! } } : a))))}
+                                  {!ts.length && <p className="text-[11px] font-bold mt-1">{tr('A liga ainda não jogou: aceita e ele entra como mais um time.', 'The league has not played yet: accept and they join as one more team.')}</p>}
+                                </>
+                              })()}
+                              <p className="text-[10.5px] font-bold mt-1.5 rounded-lg border-2 border-dashed border-[#a87b00] px-2 py-1">{tr('⏳ Ele entra na virada da temporada, nunca no meio. Se você escolheu alguém, ele sai da liga nessa hora.', '⏳ They join at the turn of the season, never mid-season. If you picked someone, that person leaves the league then.')}</p>
+                              <div className="flex gap-1.5 mt-1.5">
+                                <button disabled={!!aceitando.times?.length && !aceitando.alvo} onClick={() => void respondePedido(p, true, aceitando.alvo ?? { bot: -1 })}
+                                  className="flex-1 ${BTN} py-1.5 text-[12px] text-white disabled:opacity-40" style={{ background: GREEN, ...OSWALD }}>{tr('✅ Confirmar', '✅ Confirm')}</button>
+                                <button onClick={() => setAceitando(null)} className="flex-1 ${BTN} py-1.5 text-[12px] bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>}
+                  </div>
+                })()}
                 {souDono && cardEdit === r.id && (
                   <div className="mt-2 rounded-xl border-2 border-black p-2.5" style={{ background: '#FFF4CF' }}>
                     <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mb-1" style={OSWALD}>{tr('🖋️ Nome da liga', '🖋️ League name')}</p>
@@ -3606,6 +3778,31 @@ export function EscLobby() {
                         </button>
                       ))}
                     </div>
+                    {/* 📏📅 06/11: PRÓXIMA TEMPORADA — vale na virada (o banco só muda com a liga parada); 20 não volta pra 10 */}
+                    {(() => {
+                      const tamAtual = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20
+                      const jaJogou = ((gs as GS & { seasonNo?: number })?.seasonNo ?? 0) >= 1
+                      return <>
+                        <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>{tr('🏟️ Times na liga (próxima temporada)', '🏟️ Teams in the league (next season)')}</p>
+                        <div className="flex border-2 border-black rounded-lg overflow-hidden">
+                          {([10, 20] as const).map((v, i) => {
+                            const trava = v === 10 && tamAtual === 20 && jaJogou
+                            return <button key={v} disabled={trava} onClick={() => setCardTam(v)} className={`flex-1 font-black ${i ? 'border-l-2 border-black' : ''} disabled:opacity-40`}
+                              style={{ padding: '7px 2px', fontSize: 11, background: cardTam === v ? GOLD : '#fff', color: '#000', ...OSWALD }}>{v}{trava ? ' 🔒' : ''}</button>
+                          })}
+                        </div>
+                        {tamAtual === 20 && jaJogou && <p className="text-black/55 text-[10.5px] font-bold mt-1 leading-snug">{tr('De 20 não volta pra 10 (teria que tirar times). De 10 pra 20 pode: entram bots.', 'From 20 it cannot go back to 10 (teams would have to leave). From 10 to 20 is fine: bots join.')}</p>}
+                        {cardTam === 20 && <>{/* ⚡ só ida = 19 rodadas, só na liga de 20 (mesma régua da sala: turnoUnicoVale) */}
+                        <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>{tr('📅 Rodadas', '📅 Rounds')}</p>
+                        <div className="flex border-2 border-black rounded-lg overflow-hidden">
+                          {([[false, tr('38 · ida e volta', '38 · home and away')], [true, tr('19 · só ida', '19 · single round')]] as [boolean, string][]).map(([v, lb], i) => (
+                            <button key={String(v)} onClick={() => setCardTurno(v)} className={`flex-1 font-black ${i ? 'border-l-2 border-black' : ''}`}
+                              style={{ padding: '7px 2px', fontSize: 11, background: cardTurno === v ? GOLD : '#fff', color: '#000', ...OSWALD }}>{lb}</button>
+                          ))}
+                        </div></>}
+                        <p className="text-black/55 text-[10.5px] font-bold mt-1 leading-snug">{tr('Times e rodadas valem a partir da próxima temporada.', 'Teams and rounds apply from next season.')}</p>
+                      </>
+                    })()}
                     {!cardBots && <p className="text-black/55 text-[10.5px] font-bold mt-1 leading-snug">{tr('⚠️ Sem bots só vale com 4 ou mais pessoas. Com menos, a liga completa com bots.', '⚠️ No bots only applies with 4 or more people. With fewer, the league fills up with bots.')}</p>}
                     <div className="flex gap-2 mt-2.5">
                       <button onClick={async () => {
@@ -3615,6 +3812,7 @@ export function EscLobby() {
                         if (isNaN(quando.getTime())) { setRoomError(tr('Confira o dia e a hora.', 'Check the day and time.')); return }
                         const ok = await patchLigaId(r.id, { roomName: nome, ligaAt: quando.toISOString(), ligaFechada: !cardBots, ...(cardPw.trim() ? { senhaNova: cardPw.trim() } : {}) })
                         if (!ok) return
+                        if (!await salvaFormato(r, cardTam, cardTurno)) { fetchMyLigas(); return } // 📏📅 06/11
                         setCardPw(''); setCardEdit(null); fetchMyLigas()
                       }} className="flex-1 border-2 border-black rounded-lg py-2 font-black text-[11.5px]"
                         style={{ background: GREEN, color: '#fff', ...OSWALD }}>
@@ -3834,7 +4032,7 @@ export function EscLobby() {
         const rDeck = rapidoClubes && !ehMinha ? tr('🌎 Todos', '🌎 All') : rapidoDeck === 'eu' ? tr('🌍 Europa', '🌍 Europe') : rapidoDeck === 'world' ? tr('🌎 Mundo', '🌎 World') : rapidoDeck === 'both' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
         const rLeilao = rapidoEnvUnico && envUnicoOk && !roomDuplas ? tr('⚡ Envelope único', '⚡ Single envelope') : rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
         const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), relampago: tr('Mata-mata Relâmpago', 'Lightning Knockout'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
-        const resumoTime = (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), tr('🃏 Jogador', '🃏 Player'), ehMinha ? rDeck : tr('🌎 Todos', '🌎 All'), formation].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
+        const resumoTime = (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), ehMinha && rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), ehMinha && !rapidoClubes ? rDeck : tr('🌎 Todos', '🌎 All'), formation].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
         const resumoPartida = [rLeilao, (ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
         const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
         const nomeModo = MODOS.find(m => chaveModo(m) === chaveSel)?.nome ?? ''
@@ -3961,7 +4159,7 @@ export function EscLobby() {
                   interruptor: desligado, a opção aparece com NOVO mas travada.
                   Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido.
                   🏀 19/10 (Diego: "quero da NBA"): no basquete o pacote é a POSIÇÃO de uma franquia ("Armadores dos Lakers"). */}
-              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga') && (
+              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && ( /* 🧱 06/11: a Liga Draft também escolhe */
                 <SegField label={tr('O que vai a leilão', 'What goes to auction')}>
                   {/* 🏳️ 31/10: o 3º tipo, Seleções, é o MESMO motor do Clubes (pacote = setor de uma seleção). No basquete não existe. */}
                   <Seg options={(nbaSala
@@ -4699,6 +4897,13 @@ export function EscLobby() {
                   </button>
                 )}
               </div>
+              {/* 🙋 06/11: liga RODANDO que não é minha → pedir vaga (só quem tem plano; entra na virada da temporada) */}
+              {ligaRoom && live && user && (r.liga_dono ?? r.host_id) !== user.id && !myLigas.some(l => l.id === r.id) && (() => {
+                const meu = meusPedidos.find(p => p.room_id === r.id)
+                return meu ? <p className="mx-3 mb-3 text-center text-[11.5px] font-black" style={{ ...OSWALD, color: meu.status === 'aceito' ? GREEN : '#7a5b00' }}>{meu.status === 'aceito' ? tr('✅ Você foi aceito: entra na próxima temporada', '✅ Accepted: you join next season') : tr('⏳ Pedido enviado ao dono', '⏳ Request sent to the owner')}</p>
+                  : <button onClick={() => void pedirLiga(r)} className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[3px] border-black rounded-xl py-2 font-black text-sm uppercase"
+                    style={{ background: PURPLE, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{tr('🙋 Pedir pra entrar', '🙋 Ask to join')}</button>
+              })()}
               {/* 👁️ ASSISTIR (28/10): só pra quem o Diego liberou; em sala esperando OU jogando, cheia ou não. Fora: Copa do
                   Mundo, Bafo e carreira (outro motor) e a própria sala de quem clica. */}
               {souEspectador && user && r.host_id !== user.id && !mundoRoom && r.game_state?.mode !== 'elenco' && !isCareerRoom && (

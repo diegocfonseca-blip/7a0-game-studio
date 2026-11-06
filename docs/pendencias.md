@@ -1,3 +1,20 @@
+## 🙋 06/11 — Gente nova em liga já começada (PUBLICADO pra todos em 06/11)
+- 📊 Tabela da Liga Draft: 20 times = G8/Z4 · 10 times = G4/Z2 (Diego: *"pode deixar então g4"*). Só cor pra diferenciar: ninguém cai e não tem Copa.
+- ⚡ Só ida (19 rodadas) só na liga de 20, a mesma chave da sala (`turnoUnico`); liga de 10 segue 18.
+Mockup aprovado (*"perfeito pode fazer… apenas quem tem qualquer plano… entrar em quantas quiser"*). O que foi feito:
+- 🔒 Banco: liga que JÁ JOGOU só recebe conta nova com plano (gatilho `esc_liga_comecada_so_plano_trg`; o dono e quem já está gravado
+  na partida passam sempre). Testado numa transação desfeita: grátis barrado, pago passa. A tela confere antes (não reabre a espera à toa).
+- 🙋 Pedidos: botão "Pedir pra entrar" na linha da liga rolando (Salas abertas) → quadro do dono ganha "🙋 Pedidos pra entrar (N)" →
+  Aceitar escolhe o time (🤖 bot ou no lugar de alguém) → o pedido aparece em "🏆 Suas ligas" de quem pediu ("✅ aceito… ENTRAR"). Quem
+  foi aceito entra sem a senha. "No lugar de alguém": a pessoa sai da liga na largada da próxima temporada (o dono abre o pregão).
+- 🤖 Liga Draft: quem sai/é removido vira BOT com o elenco (antes a próxima noite recomeçava do zero e todo mundo perdia o time);
+  quem chega assume o time escolhido ou, sem escolha, o pior bot. Trava: `npx tsx scripts/testa-liga-vaga.mts` (13 checagens).
+- ✏️ Editar → próxima temporada: 10/20 times (20→10 bloqueado) e ida e volta / só ida (19 ou 9 rodadas). Só muda com a liga parada
+  (`esc_liga_formato`); vale da próxima largada.
+- 🧱🏳️ Criar Liga Draft agora escolhe Jogador / Clubes / Seleções (*"igual tem ao criar sala rápido"*) — vale pro leilão da 1ª temporada
+  (clubes = baralho Todos). A Liga Draft antiga (fraca) continua sem. Trava do motor: `npx tsx scripts/testa-liga-vaga-motor.mts`.
+- ⚠️ Não testado com sala de verdade (precisa de 2 contas e uma temporada acabando). O nome do time de quem assume um bot é o NOME DO
+  TIME DELE (não o do bot).
 ## ⚡ 06/11 — Liga de 19 rodadas (turno único) nas salas online (branch; Diego: *"pode publicar já"* — LIBERADO PRA TODOS no código)
 Ao CRIAR a sala com liga de 20 (Rápido, 🏆 Liga da Turma, 📋 Liga Draft), "📅 Rodadas da liga": 🏟️ 38 · ida e volta (padrão) ou
 ⚡ 19 · só ida. No 19 TODO jogo é em campo neutro (`simMatch(..., neutral=true)`), o calendário é o 1º turno do de sempre.
