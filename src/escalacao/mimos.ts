@@ -91,17 +91,23 @@ export function registraMeuBatismo(escudoTime: string | null, mascoteKey: string
 // ⚖️ E a lista FIXA (`CARIMBO_GOL`/`LOGOS_PRONTAS`) continua ganhando de tudo: se
 // alguém digitar o nome de um clube batizado alheio, é a arte DAQUELE clube que
 // aparece, não a do digitador.
-let mimosDaSala = new Map<string, { mascote: string | null; escudo: string | null }>()
+let mimosDaSala = new Map<string, { mascote: string | null; escudo: string | null; manto?: string[] | null }>()
+// 👕 06/11 (camisas do Campo 2D): estamos numa SALA online? Em sala, a camisa do batismo só sai de dado que a sala inteira
+// tem (lista fixa por nome + o que o servidor disse dos assentos) — nunca do e-mail logado neste aparelho.
+let naSala = false
+export const marcaSalaDosMimos = (v: boolean): void => { naSala = v }
+export const estouEmSala = (): boolean => naSala
 
 /** store.tsx: o que o SERVIDOR disse sobre os mimos de cada clube desta sala */
-export function registraMimosDaSala(linhas: { clube: string; mascote?: string | null; escudo?: string | null }[]): void {
-  const m = new Map<string, { mascote: string | null; escudo: string | null }>()
+export function registraMimosDaSala(linhas: { clube: string; mascote?: string | null; escudo?: string | null; manto?: string[] | null }[]): void {
+  const m = new Map<string, { mascote: string | null; escudo: string | null; manto?: string[] | null }>()
   for (const l of linhas) {
     if (!l.clube || !l.clube.trim()) continue
     const mascote = l.mascote && l.mascote.trim() ? l.mascote : null
     const escudo = l.escudo && l.escudo.trim() ? l.escudo : null
-    if (!mascote && !escudo) continue
-    m.set(chaveEscudo(l.clube), { mascote, escudo })
+    const manto = l.manto && l.manto.length >= 2 && l.manto.every(c => /^#[0-9a-f]{6}$/i.test(c)) ? l.manto : null
+    if (!mascote && !escudo && !manto) continue
+    m.set(chaveEscudo(l.clube), { mascote, escudo, manto })
   }
   mimosDaSala = m
 }
@@ -111,6 +117,8 @@ export const limpaMimosDaSala = (): void => { mimosDaSala = new Map() }
 export const mascoteDaSala = (nome: string): string | null => mimosDaSala.get(chaveEscudo(nome))?.mascote ?? null
 /** clube de batismo do dono DESTE clube da sala (pra achar o escudo na lista fixa) */
 export const escudoDaSala = (nome: string): string | null => mimosDaSala.get(chaveEscudo(nome))?.escudo ?? null
+/** 👕 as cores do manto do dono DESTE clube da sala (servidor: `esc_mantos_sala`) — null = não é de ninguém */
+export const mantoDaSala = (nome: string): string[] | null => mimosDaSala.get(chaveEscudo(nome))?.manto ?? null
 
 /** esse nome é o do MEU clube (o que eu comando agora)? */
 export const ehMeuClube = (nome: string): boolean => meusNomes.size > 0 && meusNomes.has(chaveEscudo(nome))

@@ -22,7 +22,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const texture=(canvas:HTMLCanvasElement)=>{const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.minFilter=T.LinearMipmapLinearFilter;return map}
  const drop=(token:Token)=>{token.icon.material.dispose();token.label?.material.dispose();token.texture.dispose();token.labelTexture?.dispose();token.root.removeFromParent()}
  function marker(key:string,art:MarcadorCampo2D,x:number,z:number,radius:number){
-  const portrait=!!(art.portrait?.complete&&art.portrait.naturalWidth),signature=[art.name,art.color,art.number,art.portrait?.src,portrait,art.referee].join('|')
+  const portrait=!!(art.portrait?.complete&&art.portrait.naturalWidth),signature=[art.name,art.color,(art.stripes??[]).join(','),art.number,art.portrait?.src,portrait,art.referee].join('|')
   let token=tokens.get(key)
   if(token?.key!==signature){
    if(token)drop(token)

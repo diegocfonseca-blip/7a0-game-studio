@@ -3,6 +3,16 @@ Diego (Futpoint jogando online: pôs 4× e, ao voltar pro auto, voltou pra Norma
 decidir antes"*. Saíram os `SET_SIM_SPEED 1` dos toggles (salas, Liberta, Champions, carreira, internacional); o seletor mostra a
 marcha no auto também. O ⚡ 3× já estava no ar desde 05/11 (precisa atualizar a página).
 
+## 👕 06/11 — Cores das camisas no Campo 2D (branch, ESPERANDO OK VISUAL do Diego — nada publicado)
+- Feito no branch: batismo veste o MANTO (2 cores; 3 com `MANTO_TRI`) · gente sem plano bege · ⭐ prata · 👑 dourado · cor adicional
+  · bot a cor de hoje. Choque: casa fica; fora troca pra 2ª cor do manto (3 cores: a que menos choca; a cor que chocava vira só o
+  filete) e, sem saída, reserva BRANCA — PRETA quando a casa é clara (dourado×dourado, prata×prata, bege×bege). Régua: ΔE < 28.
+- Lendas: o rosto não muda; só o anel em volta vem na cor nova. Goleiro: igual a hoje (mesma camisa do time — não mexi).
+- Sala: o manto sai do nome (lista pública `batismos.ts`) ou do servidor por assento (`esc_mantos_sala`, registrado junto dos mimos
+  no store) — nunca do e-mail de quem olha. `meuManto()` só fora de sala (carreira offline do próprio dono).
+- Código: `camisas-2d.ts` (regras puras) · `camisas-2d-dados.ts` (de onde vem o kit) · `campo2d-marcador.ts` (listras). Trava:
+  `npm run camisas-2d`. Fotos: `node scripts/foto-camisas-2d.mjs` → `scripts/mockups/camisas-2d-{1..5}.png`.
+- PUBLICADO pra todos em 06/11 (Diego: "Sim"). O PLACAR de baixo (fora do 2D) continua com as cores de antes.
 ## 🏆📅 06/11 — Carreira: dia de Copa era pulado e a Copa ficava pro fim da temporada (branch; esperando "publique")
 Relato de um jogador (via Diego, prints no MANUAL): *"toda temporada quando chega dia de copa pula direto pra liga… só vejo que fui
 eliminado no fim"*. Causa: na quarta de Copa, (1) o "⏩ Pular pro jogo" mandava a semana pro DOMINGO, (2) no Manual não existia o
