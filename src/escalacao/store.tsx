@@ -5661,6 +5661,7 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
+  | { type: 'LIGA_FORMATO'; tamanho: 10 | 20; turnoUnico: boolean } // 📏📅 06/11: o formato que o dono marcou pra PRÓXIMA temporada (vale na virada)
   | { type: 'LIGA_ENTRADAS'; entradas: { uid: string; nome: string; bot?: number | null; alvoUid?: string | null }[] } // 🙋 06/11: na virada, quem o dono aceitou assume o time escolhido (com o nome dele)
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
   | { type: 'DRAFT_PASSAR'; mgrId: number; by?: string } // ⏭ 05/11: elenco cheio (22) = pode passar a vez sem pegar ninguém
@@ -12920,6 +12921,33 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     // 📋 LIGA DRAFT (19/10) — regras em `liga-draft.ts`. O dono manda: o convidado só pede (DRAFT_ESCOLHER chega roteado).
+    case 'LIGA_FORMATO': {
+      // 📏📅 06/11 (Diego): na virada, o formato marcado no ✏️ Editar. Rodadas (38/19) sempre; de 10 pra 20 entram os bots que faltam
+      // (com elenco pronto, sem repetir jogador da liga); de 20 pra 10 nunca.
+      if (!s.ligaMode) return state
+      let mudou = false
+      if (action.tamanho === 20 && s.tamanhoLiga === 10) {
+        const faltam = LEAGUE_SIZE - s.managers.length
+        if (faltam > 0) {
+          const rng = mulberry((s.seed ^ 0x20B07) >>> 0)
+          const usados = new Set(s.managers.map(m => m.teamName))
+          const pool = [...DIVISION_TEAMS.A, ...DIVISION_TEAMS.B, ...DIVISION_TEAMS.C, ...DIVISION_TEAMS.D].filter(t => !usados.has(t.team))
+          const { managers: gen, botPlans } = makeManagers(['__ph__'], '4-3-3', 0, faltam + 1, rng, pool)
+          let prox = Math.max(...s.managers.map(m => m.id)) + 1
+          const novos: Manager[] = [], planos: BotPlan[] = []
+          for (const b of gen.filter(m => !m.isHuman)) { const id = prox++; const pl = botPlans.find(p => p.id === b.id); novos.push({ ...b, id }); if (pl) planos.push({ ...pl, id }) }
+          const usadosC = new Set(s.managers.flatMap(m => m.squad.map(c => ident(c))))
+          dealBotSquads(novos, planos, rng, usadosC)
+          const ja = new Set(s.managers.flatMap(m => m.squad.map(c => chaveNome(c.name)))) // ☝️ jogador único na liga
+          for (const b of novos) b.squad = b.squad.map(c => ja.has(chaveNome(c.name)) ? fillerCard(c.pos as Sector, rng) : (ja.add(chaveNome(c.name)), c))
+          s.managers.push(...novos)
+        }
+        s.tamanhoLiga = undefined; mudou = true
+      }
+      const tu = action.turnoUnico && s.tamanhoLiga !== 10 ? true : undefined
+      if (s.turnoUnico !== tu) { s.turnoUnico = tu; mudou = true }
+      return mudou ? s : state
+    }
     case 'LIGA_ENTRADAS': {
       // 🙋 06/11 (Diego: "ele entra com o nome dele, as cores dele… só mantém os jogadores que o bot tinha"): o novato aceito
       // assume o time escolhido pelo dono NA VIRADA — elenco e caixa ficam, o nome passa a ser o dele e o crachá vai pro
@@ -12934,6 +12962,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (!alvo) { // (o bot escolhido já virou gente: pega o pior bot da tabela)
           const ordem = sortedTable(s.league).map(x => x.id).reverse()
           alvo = ordem.map(id => s.managers.find(m => m.id === id && !m.isHuman)).find(Boolean)
+            ?? [...s.managers].reverse().find(m => !m.isHuman) // (bot novo, que ainda não tem linha na tabela)
         }
         if (!alvo) continue
         const nomeAntes = alvo.teamName
@@ -14854,11 +14883,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const rid = st0.roomId!
       void (async () => {
         try {
+          // 📏📅 1º o formato da próxima temporada (só quando a temporada nova vai começar — não no abrir do draft)
+          if (action.type !== 'DRAFT_ABRIR') {
+            const { data: fx } = await supabase.rpc('esc_liga_formato_prox_ler', { p_room: rid })
+            const f = fx as { tamanho?: number; turno_unico?: boolean } | null
+            if (f && (f.tamanho === 10 || f.tamanho === 20)) rawDispatch({ type: 'LIGA_FORMATO', tamanho: f.tamanho, turnoUnico: !!f.turno_unico })
+          }
+          // 🙋 depois quem o dono aceitou (no time escolhido; quem foi trocado sai da sala e vê o aviso "removido pelo dono")
           const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: rid })
           const ac = ((data ?? []) as { user_id: string; nome: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[]).filter(p => p.status === 'aceito')
           if (ac.length) {
             rawDispatch({ type: 'LIGA_ENTRADAS', entradas: ac.map(p => ({ uid: p.user_id, nome: p.nome, bot: p.alvo_bot, alvoUid: p.alvo_uid })) })
-            void supabase.rpc('esc_liga_marca_entrou', { p_room: rid, p_uids: ac.map(p => p.user_id) }).then(() => {}, () => {})
+            for (const p of ac) if (p.alvo_uid) void supabase.from('room_players').delete().eq('room_id', rid).eq('user_id', p.alvo_uid).then(() => {}, () => {})
           }
         } catch { /* sem pedidos: a virada segue normal */ }
         dispatchRef.current?.(action)

@@ -23,9 +23,13 @@ aperta sempre o VOLTAR… não existe mais o entrar… nem abrir o pregão"*)
 - Saiu o 📣 "Chamar mais gente" (fim da temporada e pregão da rodada 0) — `podeChamar = false` em screens.tsx.
 - Banco: `esc_liga_reabre` nunca devolve pra sala de espera uma liga que já jogou (`esc_liga_ja_jogou`): 'rolando'/'meio'.
 - Gente nova: código → 🙋 pedido → dono aceita (escolhe o time) → entra na VIRADA de dentro do jogo (`LIGA_ENTRADAS`).
-- ⚠️ PENDENTE: o ✏️ Editar → "próxima temporada" (10→20 times, 38/19 rodadas) dependia da sala de espera — com a liga sem
-  reabrir ele não tem onde valer. Falta decidir com o Diego: aplicar na virada de dentro do jogo (rodadas é fácil; 10→20
-  precisa criar 10 bots no meio do jogo) ou tirar a opção de liga já começada.
+- ✅ FEITO (Diego: *"vai sempre funcionar na próxima temporada… de 10 pra 20 entram 10 bots… de 20 pra 10 nunca… 38 e 19 sempre"*):
+  o ✏️ Editar de liga começada grava em `esc_liga_formato_prox` e o dono aplica na VIRADA de dentro do jogo (`LIGA_FORMATO`, antes
+  dos aceitos): 10→20 cria os bots que faltam com elenco pronto e sem repetir jogador; 20→10 o banco recusa ('encolhe').
+- ✅ Trocar alguém por um novato = a pessoa é REMOVIDA: o dono apaga a linha dela na virada e, se ela tentar voltar, vê
+  "🚫 Você foi removido desta liga pelo dono" (`esc_liga_fui_removido`).
+- ✅ Liga cheia de gente: o aceite mostra o aviso "✏️ Editar → 20 times" e a opção "🤖 Um dos bots novos (liga de 20)" (bot −1).
+- Trava: `scripts/testa-liga-entradas.mts`.
 
 ## 🪑 06/11 (noite) — Novato vestia o time de OUTRO na volta (Judas × Príncipe Rubro Negro, 4RVDD8)
 - Causa: quem não está no `seatUids` caía no `player_index` cru do banco ao voltar pra partida (RESTORE_ONLINE e a trava do

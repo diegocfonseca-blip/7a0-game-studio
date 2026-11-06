@@ -1700,6 +1700,13 @@ export function EscLobby() {
         // liga rodando e eu não sou dela (ainda): não visto time de ninguém e NÃO saio da fila — entro na próxima virada
         clearSavedRoom()
         setRoom(null); setPlayers([]); setPhase('menu')
+        // 🚫 06/11 (Diego): quem o dono TROCOU por outra pessoa vê que foi removido (e sai da lista da liga)
+        const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: roomData.id })
+        if (removido === true) {
+          await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
+          setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.'))
+          return true
+        }
         setRoomError(tr('⏳ Essa liga está no meio da temporada. Você entra na próxima virada, no time que o dono escolher (no lugar de um bot).', '⏳ This league is mid-season. You join at the next season change, on the team the owner picks (in place of a bot).'))
         return true
       }
@@ -2536,6 +2543,7 @@ export function EscLobby() {
   const [aceitando, setAceitando] = useState<{ room: string; ped: PedLiga; times: TimeLiga[] | null; alvo: { bot?: number; uid?: string } | null } | null>(null)
   const [cardTam, setCardTam] = useState<10 | 20>(20)
   const [cardTurno, setCardTurno] = useState(false)
+  const [cardProx20, setCardProx20] = useState(false) // 📏 já marcou 20 times pra próxima temporada
   const [cardPw, setCardPw] = useState('')   // 🔒 senha nova da liga (vazio = mantém)
   const [cardNome, setCardNome] = useState('')
   const [cardData, setCardData] = useState('')
@@ -2781,15 +2789,13 @@ export function EscLobby() {
   async function salvaFormato(r: RoomInfo, tam: 10 | 20, turno: boolean): Promise<boolean> {
     const gsR = r.game_state as GS & { tamanhoLiga?: number; turnoUnico?: boolean }
     if ((gsR?.tamanhoLiga === 10 ? 10 : 20) === tam && !!gsR?.turnoUnico === (turno && tam === 20)) return true
-    if (r.status === 'started') {
-      const ab = await reabreLiga(r.id)
-      if (ab !== 'ok') { setRoomError(tr('⏳ Times e rodadas só mudam entre uma temporada e outra. Quando a temporada acabar, edita de novo.', '⏳ Teams and rounds only change between seasons. When the season ends, edit again.')); return false }
-    }
+    // 📏📅 06/11: liga começada não reabre — o banco guarda o formato e o dono aplica na VIRADA de dentro do jogo
     const { data, error } = await supabase.rpc('esc_liga_formato', { p_room: r.id, p_tamanho: tam, p_turno_unico: turno })
     const res = error ? 'erro' : String(data ?? 'erro')
     if (res === 'encolhe') { setRoomError(tr('De 20 times não dá pra voltar pra 10 (teria que tirar times da liga).', 'A 20-team league cannot go back to 10 (teams would have to be removed).')); return false }
     if (res === 'rolando') { setRoomError(tr('⏳ Times e rodadas só mudam entre uma temporada e outra.', '⏳ Teams and rounds only change between seasons.')); return false }
     if (res !== 'ok') { setRoomError(tr('Não consegui salvar agora. Tenta de novo.', 'Couldn\'t save right now. Try again.')); return false }
+    if (r.status === 'started') setRoomError(tr(`✅ Salvo! Vale a partir da PRÓXIMA temporada: ${tam} times · ${turno && tam === 20 ? '19 rodadas (só ida)' : `${(tam - 1) * 2} rodadas`}.`, `✅ Saved! Applies from NEXT season: ${tam} teams · ${turno && tam === 20 ? '19 rounds (single)' : `${(tam - 1) * 2} rounds`}.`))
     return true
   }
 
@@ -2979,6 +2985,9 @@ export function EscLobby() {
         setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.')); setLoading(false); return
       }
       if (!mySlot && rd.game_state?.mode === 'liga') {
+        // 🚫 06/11: o dono me trocou por outra pessoa — fui removido, não vira pedido
+        const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: rd.id })
+        if (removido === true) { setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
         const res = await reabreLiga(rd.id)
         // 🙋 06/11 (Diego: *"remove esse pedido p entrar aqui… vai ser lá onde ele põe o código da sala, aí chega o convite pro
         // host"*): liga RODANDO + gente nova que não é do time → o código vira o PEDIDO pro dono (o botão da lista saiu).
@@ -3702,6 +3711,12 @@ export function EscLobby() {
                       setCardBots(!gs?.ligaFechada)
                       setCardTam((gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20)
                       setCardTurno(!!(gs as GS & { turnoUnico?: boolean })?.turnoUnico)
+                      setCardProx20(false)
+                      // 📏📅 o que já está marcado pra PRÓXIMA temporada (liga começada guarda à parte)
+                      void supabase.rpc('esc_liga_formato_prox_ler', { p_room: r.id }).then(({ data }) => {
+                        const f = data as { tamanho?: number; turno_unico?: boolean } | null
+                        if (f && (f.tamanho === 10 || f.tamanho === 20)) { setCardTam(f.tamanho); setCardTurno(!!f.turno_unico); setCardProx20(f.tamanho === 20) }
+                      }, () => {})
                       setCardPw('') // nunca herda o que foi digitado numa outra liga
                       setCardEdit(r.id)
                     }} className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] bg-white text-black active:translate-y-0.5" style={OSWALD}>
@@ -3750,6 +3765,11 @@ export function EscLobby() {
                                   {bots.map(t => op(`b${t.id}`, aceitando.alvo?.bot === t.id, `🤖 ${t.nome}`, `${t.pts} pts`, () => setAceitando(a => (a ? { ...a, alvo: { bot: t.id } } : a))))}
                                   {gente.length > 0 && <p className="font-black text-[10px] uppercase tracking-wider text-black/50 mt-1.5" style={OSWALD}>{tr('👤 Ou no lugar de alguém (ele sai da liga)', '👤 Or replacing someone (they leave the league)')}</p>}
                                   {gente.map(t => op(`h${t.id}`, aceitando.alvo?.uid === t.uid, t.nome, `${t.pts} pts`, () => setAceitando(a => (a ? { ...a, alvo: { uid: t.uid! } } : a))))}
+                                  {/* 🏟️ 06/11 (Diego): liga CHEIA de gente (nenhum bot) — o aviso ajuda o dono: ou alguém sai, ou ele marca 20 times */}
+                                  {ts.length > 0 && bots.length === 0 && <>
+                                    <p className="text-[10.5px] font-bold mt-1.5 rounded-lg border-2 border-black px-2 py-1" style={{ background: '#FFE3DC' }}>{tr('🏟️ Sua liga está cheia de gente (nenhum bot). Pra pôr mais alguém sem tirar ninguém: ✏️ Editar → 20 times. Na próxima temporada entram 10 bots e ele fica com um deles.', '🏟️ Your league is full of people (no bots). To add someone without removing anyone: ✏️ Edit → 20 teams. Next season 10 bots join and they take one of them.')}</p>
+                                    {op('bnovo', aceitando.alvo?.bot === -1, tr('🤖 Um dos bots novos (liga de 20)', '🤖 One of the new bots (20-team league)'), tr('próx. temporada', 'next season'), () => setAceitando(a => (a ? { ...a, alvo: { bot: -1 } } : a)))}
+                                  </>}
                                   {!ts.length && <p className="text-[11px] font-bold mt-1">{tr('A liga ainda não jogou: aceita e ele entra como mais um time.', 'The league has not played yet: accept and they join as one more team.')}</p>}
                                 </>
                               })()}
@@ -3801,7 +3821,7 @@ export function EscLobby() {
                     </div>
                     {/* 📏📅 06/11: PRÓXIMA TEMPORADA — vale na virada (o banco só muda com a liga parada); 20 não volta pra 10 */}
                     {(() => {
-                      const tamAtual = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20
+                      const tamAtual = (gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 && !cardProx20 ? 10 : 20 // (já marcou 20 pra próxima: não volta)
                       const jaJogou = ((gs as GS & { seasonNo?: number })?.seasonNo ?? 0) >= 1
                       return <>
                         <p className="font-black text-[10.5px] uppercase tracking-wider text-black/50 mt-2.5 mb-1" style={OSWALD}>{tr('🏟️ Times na liga (próxima temporada)', '🏟️ Teams in the league (next season)')}</p>
