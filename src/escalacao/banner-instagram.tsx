@@ -6,7 +6,7 @@
 import { type CSSProperties } from 'react'
 import { useT } from './lang'
 
-export const BANNER_INSTAGRAM_LIGADO = true
+export const BANNER_INSTAGRAM_LIGADO = false // 🎯 06/11: meta batida (Diego: "remova esse banner… já batemos a meta")
 const FALTAM = 95 // 05/11: Diego atualizou a meta (era 200)
 // 🔁 05/11: SEM ✕ — o Diego mandou: *"tem que aparecer pra todo mundo que entrar na home do site sempre"*. Ele mesmo abriu a
 // exceção à regra do aviso fechado (29/10) pra este banner. Quem tinha fechado volta a ver.
