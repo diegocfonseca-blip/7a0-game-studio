@@ -10608,7 +10608,9 @@ export function PyramidSeasonScreen() {
   // partida e o camarote da Central). Regra de ouro contra botão mudo (19/09): tela e
   // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
   // "próxima rodada" chama ISTO, nunca repete a lista de travas.
-  const avancarRodada = () => { if (criseTrava || state.co2) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) { abreColetiva(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */ if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  // 🏆 06/11: com a fase da Copa da SEMANA ainda por jogar (e o seu time nela), avançar NUNCA pula pro domingo — vai pra quarta e
+  // começa a Copa (o toque foi da pessoa). Era o furo do PULAR/Próxima no Manual: jogava a Liga e a Copa ficava pro fim da temporada.
+  const avancarRodada = () => { if (criseTrava || state.co2) return; if (calOn && copaPendente && meNaFaseCopa && !copaMidOn && calFase === 'dias') { setCalPasso({ r: round, s: calSn, i: Math.max(calI, CAL_QUARTA) }); setJogoOk(`${calSn}:${round}:c`); escolheAba('jogos'); return } if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (coletivaOpen) { abreColetiva(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */ if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
   // 📺 25/10 (Diego: *"botão manual, placar e etc. deveria ser lá dentro do mapa"*): o mapa 3D (conta de prévia) desenha o MESMO
   // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
   const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
@@ -10680,13 +10682,17 @@ export function PyramidSeasonScreen() {
     const verJogoNoMapa = () => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     // 🛑 03/11 (Diego: *"não quero que jogo nenhum comece sozinho, tem que aparecer com a área de jogos"*): no mapa o "Ir pro jogo"
     // é o MESMO de toda aba — pula os dias e leva pra aba Jogos, onde fica o "▶ Começar o jogo". O mapa nunca dá o apito.
-    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); escolheAba('jogos') }
+    // 🏆 06/11 (amigo do Diego: *"toda temporada quando chega dia de copa pula direto pra liga… só vejo que fui eliminado no fim"*):
+    // na quarta de Copa o "⏩ Pular pro jogo" mandava a semana pro DOMINGO e a fase da Copa ficava pra trás. Agora, com Copa sua na
+    // semana, ele para NA QUARTA (nunca passa dela) — e lá aparece o "▶ Começar o jogo" (no Manual também).
+    const copaMinhaNaSemana = copaPendente && meNaFaseCopa && !copaMidOn
+    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaMinhaNaSemana || (copaPendente && calI < CAL_QUARTA) ? Math.max(calI, CAL_QUARTA) : calTotal }); escolheAba('jogos') }
     const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
     // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
     const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
-      rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
+      rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (copaMinhaNaSemana && calI >= CAL_QUARTA) || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
       irJogo={naCentral && calFase === 'dias' && !coletivaOpen && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
@@ -10708,7 +10714,7 @@ export function PyramidSeasonScreen() {
   // (ou "agora não", e vai depois pelo ⏩ do cartão). Apitou (e nada pendente), 3s depois volta pra Central. Só com o calendário (conta do Diego).
   const copaNaQuarta = copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn
   const chaveJogo = `${calSn}:${round}:${copaNaQuarta ? 'c' : 'l'}`
-  const esperandoInicio = calOn && !state.co2 && !manual && calFase === 'dias' && !coletivaOpen && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
+  const esperandoInicio = calOn && !state.co2 && (!manual || copaNaQuarta) && calFase === 'dias' && !coletivaOpen && jogoOk !== chaveJogo && (copaNaQuarta || (calDiasOk && round >= 1 && round < 38 && !chegando))
   const liberaJogo = () => setJogoOk(chaveJogo)
   // 🛑 26/10 (3º print: *"continua aparecendo esse modal que eu disse que não quero"*): NADA de janela por cima. Chegou o dia, a
   // semana para e o próprio cartão da semana troca o ⏩ por "⚽ Ir pro jogo"; na aba Jogos fica o "▶ Começar o jogo".
