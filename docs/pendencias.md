@@ -7,7 +7,7 @@
   no store) — nunca do e-mail de quem olha. `meuManto()` só fora de sala (carreira offline do próprio dono).
 - Código: `camisas-2d.ts` (regras puras) · `camisas-2d-dados.ts` (de onde vem o kit) · `campo2d-marcador.ts` (listras). Trava:
   `npm run camisas-2d`. Fotos: `node scripts/foto-camisas-2d.mjs` → `scripts/mockups/camisas-2d-{1..5}.png`.
-- Pendente: OK do Diego nas fotos → publicar. O PLACAR de baixo (fora do 2D) continua com as cores de antes.
+- PUBLICADO pra todos em 06/11 (Diego: "Sim"). O PLACAR de baixo (fora do 2D) continua com as cores de antes.
 ## 🏆📋 06/11 — Lobby: faixa verde duplicada sai na liga + Liga Draft rolando aparece na lista (branch; esperando "publique")
 - Faixa "⏳ Você tem uma partida em andamento" some quando a sala é uma liga que já está em "🏆 Suas ligas" (o VOLTAR mora lá).
   Sala rápida continua com a faixa de sempre.
