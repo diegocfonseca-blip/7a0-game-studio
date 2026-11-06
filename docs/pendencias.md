@@ -8,6 +8,13 @@
 - Código: `camisas-2d.ts` (regras puras) · `camisas-2d-dados.ts` (de onde vem o kit) · `campo2d-marcador.ts` (listras). Trava:
   `npm run camisas-2d`. Fotos: `node scripts/foto-camisas-2d.mjs` → `scripts/mockups/camisas-2d-{1..5}.png`.
 - PUBLICADO pra todos em 06/11 (Diego: "Sim"). O PLACAR de baixo (fora do 2D) continua com as cores de antes.
+## 🏆📅 06/11 — Carreira: dia de Copa era pulado e a Copa ficava pro fim da temporada (branch; esperando "publique")
+Relato de um jogador (via Diego, prints no MANUAL): *"toda temporada quando chega dia de copa pula direto pra liga… só vejo que fui
+eliminado no fim"*. Causa: na quarta de Copa, (1) o "⏩ Pular pro jogo" mandava a semana pro DOMINGO, (2) no Manual não existia o
+"▶ Começar o jogo" da Copa (só no Auto) e (3) o PULAR/Próxima do Manual chamava a rodada da Liga direto. A fase ficava pra trás e só
+rodava no fim. Conserto: com fase da Copa sua na semana, Pular para NA QUARTA, o "▶ Começar o jogo" aparece no Manual também e
+avançar (`avancarRodada`) vai pra quarta e começa a Copa em vez de jogar a Liga.
+
 ## 🏆📋 06/11 — Lobby: faixa verde duplicada sai na liga + Liga Draft rolando aparece na lista (branch; esperando "publique")
 - Faixa "⏳ Você tem uma partida em andamento" some quando a sala é uma liga que já está em "🏆 Suas ligas" (o VOLTAR mora lá).
   Sala rápida continua com a faixa de sempre.
