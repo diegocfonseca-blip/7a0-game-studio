@@ -9978,14 +9978,14 @@ export function PyramidSeasonScreen() {
     if (state.onlineMode === 'online') {
       if (!state.isHost) return
       dispatch({ type: 'SET_MANUAL_ROOM', on: goingManual })
-      if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+      /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
       return
     }
     // 🔒 carreira NOVA sem o Modo Manual: não liga o manual — o botão vira convite
     // pro Apoie (tratado no render, este toggle nem é chamado quando travado).
     if (goingManual && !manualAllowed) return
     toggleSim()
-    if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+    /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
   // O Normal do manual é ROUND_MS; o auto ganhou +1s em 13/09 (ver baseRoundMs, lá em cima).

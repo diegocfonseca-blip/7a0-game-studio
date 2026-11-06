@@ -7204,10 +7204,9 @@ export function EscSeason() {
   // Normal (o do meio) — igual ao auto. (Sincroniza via estado, então bate pra sala.)
   const rawToggle = streamHost ? toggleStream : toggleSim
   const toggleManual = () => {
-    const goingManual = !manual
     rawToggle()
     if (r2d.teste) return // ⏩📺 2D offline: a marcha é a guardada (auto e Manual iguais) — trocar de modo não mexe nela
-    if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+    /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   // ⏩ velocidade escolhida (sincroniza via estado): divide o tempo da rodada —
   // 4× rápido = ¼ do tempo; 2× devagar = o dobro. Default 1 (normal). Todo mundo
@@ -9097,10 +9096,9 @@ export function EscLiberta() {
   const manualLocked = !online && !hasManual
   const rawToggle = streamHost ? toggleStream : toggleSim
   const toggleManual = () => {
-    const goingManual = !manual
     rawToggle()
     if (r2d.teste) return // ⏩📺 2D offline: a marcha guardada vale
-    if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+    /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const c2d = useCampo2DLigado()
@@ -9398,10 +9396,9 @@ export function EscChampions() {
   const manual = streamHost ? streamManual : (manualPref && !online && hasManual && !r2d.semManual)
   const manualLocked = !online && !hasManual
   const toggleManual = () => {
-    const goingManual = !manual
     ;(streamHost ? toggleStream : toggleSim)()
     if (r2d.teste) return // ⏩📺 2D offline: a marcha guardada vale
-    if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
+    /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   // ⏱️ fase de TABELA = rodada da liga + 2s · REPESCÃO = jogo de COPA (Diego 25/09:

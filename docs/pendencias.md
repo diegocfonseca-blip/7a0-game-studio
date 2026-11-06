@@ -1,3 +1,8 @@
+## ⏩ 06/11 — Voltar pro AUTO mantém a velocidade escolhida no Manual (branch; esperando "publique")
+Diego (Futpoint jogando online: pôs 4× e, ao voltar pro auto, voltou pra Normal): *"deve ficar o auto com base no número que ele
+decidir antes"*. Saíram os `SET_SIM_SPEED 1` dos toggles (salas, Liberta, Champions, carreira, internacional); o seletor mostra a
+marcha no auto também. O ⚡ 3× já estava no ar desde 05/11 (precisa atualizar a página).
+
 ## 🏆📅 06/11 — Carreira: dia de Copa era pulado e a Copa ficava pro fim da temporada (branch; esperando "publique")
 Relato de um jogador (via Diego, prints no MANUAL): *"toda temporada quando chega dia de copa pula direto pra liga… só vejo que fui
 eliminado no fim"*. Causa: na quarta de Copa, (1) o "⏩ Pular pro jogo" mandava a semana pro DOMINGO, (2) no Manual não existia o

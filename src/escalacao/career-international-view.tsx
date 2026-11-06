@@ -557,7 +557,7 @@ export function CareerInternationalView(p: Props) {
   const c2d = useCampo2DLigado()
   // ⏩📺 2D offline: a marcha guardada (começa 2×) · 2D na carreira online: 2× × a marcha do dono
   const speed = r2dIntl.teste ? vel2dIntl : (c2d ? 2 : 1) * (state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1)
-  const toggleManual = () => { const goingManual = !manual; toggleSim(); if (!goingManual && speed !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 }) }
+  const toggleManual = () => { toggleSim() } /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
   const champsOk = championsLiberada(p.history)
   const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, clubeDaRenovacao(p.history, p.season)), [p.seed, p.season, p.priority, p.choices, champsOk, p.history])
