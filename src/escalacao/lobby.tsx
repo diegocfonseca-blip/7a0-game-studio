@@ -2748,6 +2748,16 @@ export function EscLobby() {
     const res = error ? 'erro' : String(data ?? 'erro')
     if (res === 'plano') { setRoomError(tr('🔒 Pra entrar numa liga que já começou precisa de um plano (a partir do ⭐ Craque Salas).', '🔒 To join a league that already started you need a plan (from ⭐ Craque Salas up).')); return }
     if (res === 'ja') { setRoomError(tr('Você já é dessa liga — ela está em "🏆 Suas ligas".', 'You are already in that league — it is in "🏆 Your leagues".')); return }
+    if (res === 'aceito') {
+      // ✅ 06/11: o dono já aceitou — entra na FILA da sala (o banco deixa: pedido aceito) e o dono te põe no time escolhido na
+      // próxima virada da temporada (`LIGA_ENTRADAS`). Até lá, a partida não é sua: o VOLTAR avisa que falta a virada.
+      const ocup = new Set(((await supabase.from('room_players').select('player_index').eq('room_id', r.id)).data ?? []).map(x => (x as { player_index: number }).player_index))
+      let idx = 40; while (ocup.has(idx)) idx++
+      const { error: e2 } = await supabase.from('room_players').insert({ room_id: r.id, user_id: user.id, player_index: idx, manager_name: nameOf(), is_ready: true })
+      if (e2 && !/duplicate|unique/i.test(e2.message)) { setRoomError(tr('Não consegui entrar na fila agora. Tenta de novo.', 'Couldn\'t join the queue right now. Try again.')); return }
+      setRoomError(tr('✅ Você foi aceito! Entra na virada da temporada, com o seu nome, no time que o dono escolheu. A liga já está em "🏆 Suas ligas".', '✅ You were accepted! You join at the season change, with your name, on the team the owner picked. The league is in "🏆 Your leagues".'))
+      void fetchMyLigas(); return
+    }
     if (res !== 'ok') { setRoomError(tr('Não consegui mandar o pedido agora. Tenta de novo.', 'Couldn\'t send the request right now. Try again.')); return }
     setRoomError(tr('🙋 Pedido enviado! Quando o dono aceitar, a liga aparece em "🏆 Suas ligas" e você entra na próxima temporada.', '🙋 Request sent! Once the owner accepts, the league shows up in "🏆 Your leagues" and you join next season.'))
     void fetchMyLigas()

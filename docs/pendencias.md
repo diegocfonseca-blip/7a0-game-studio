@@ -12,7 +12,14 @@
 - Conserto (publicado): com o mapa de crachás, quem não está nele não veste time nenhum — na liga ele recebe "você entra na
   próxima virada, no lugar de um bot" e continua na fila; o reducer também recusa.
 - Banco: Judas com pedido ACEITO pro bot 16 (Stocco FC/Relâmpago). Ele já não estava mais na lista da sala.
-- ⚠️ Pendente/limitação: na Liga Draft a temporada vira DENTRO do jogo (draft → próxima), sem passar pela sala de espera — o
+- ✅ 06/11 (mesma noite, Diego: *"ele entra com o nome dele, as cores dele… com os jogadores que o bot tinha… o Futpoint decide quem
+  sai, inclusive o bot"*): a VIRADA DE DENTRO DO JOGO agora aplica os aceitos — o dono, ao abrir o draft / começar a temporada
+  (Liga Draft) ou na nova temporada (Liga da Turma), lê os pedidos aceitos e despacha `LIGA_ENTRADAS`: o time escolhido (bot, ou
+  o de alguém) passa a ter o NOME do novato e o crachá dele no `seatUids`; elenco e caixa ficam. Trava: `scripts/testa-liga-entradas.mts`.
+  Quem já foi aceito e volta pelo código entra na FILA da sala (`esc_liga_pedir` → 'aceito') e espera a virada.
+- ⚠️ Ainda vale (decidir com o Diego): na largada pela SALA DE ESPERA ("Chamar mais gente" → "Abrir o pregão") quem não está na
+  lista da sala vira bot — hoje 5 times da 4RVDD8 estão assim, incluindo o Príncipe.
+- (texto antigo) Pendente/limitação: na Liga Draft a temporada vira DENTRO do jogo (draft → próxima), sem passar pela sala de espera — o
   pedido aceito só é aplicado quando a largada passa pela espera (`triggerStartRaw` + `montaCarry`). E nessa largada, quem não
   está na lista da sala (ex.: Príncipe) vira bot. Falta decidir com o Diego: aplicar o aceito na virada de DENTRO do jogo e
   manter como humano quem só está ausente.

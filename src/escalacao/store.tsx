@@ -5660,6 +5660,7 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
+  | { type: 'LIGA_ENTRADAS'; entradas: { uid: string; nome: string; bot?: number | null; alvoUid?: string | null }[] } // 🙋 06/11: na virada, quem o dono aceitou assume o time escolhido (com o nome dele)
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
   | { type: 'DRAFT_PASSAR'; mgrId: number; by?: string } // ⏭ 05/11: elenco cheio (22) = pode passar a vez sem pegar ninguém
   | { type: 'DRAFT_PRONTO'; mgrId: number; by?: string } // 📋🏆 Minha Liga Draft: quem está na vez aperta ✋ pronto e o relógio de 45 s começa
@@ -12915,6 +12916,32 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     // 📋 LIGA DRAFT (19/10) — regras em `liga-draft.ts`. O dono manda: o convidado só pede (DRAFT_ESCOLHER chega roteado).
+    case 'LIGA_ENTRADAS': {
+      // 🙋 06/11 (Diego: "ele entra com o nome dele, as cores dele… só mantém os jogadores que o bot tinha"): o novato aceito
+      // assume o time escolhido pelo dono NA VIRADA — elenco e caixa ficam, o nome passa a ser o dele e o crachá vai pro
+      // `seatUids` (é isso que diz de quem é o time em todo aparelho). "No lugar de alguém" = o crachá daquela pessoa vira o dele.
+      if (!s.ligaMode || !Array.isArray(s.seatUids) || !action.entradas?.length) return state
+      let mudou = false
+      for (const e of action.entradas) {
+        if (!e.uid || s.seatUids.includes(e.uid)) continue
+        let alvo: Manager | undefined
+        if (e.alvoUid) { const seat = s.seatUids.indexOf(e.alvoUid); alvo = seat >= 0 ? s.managers.find(m => m.id === seat && m.isHuman) : undefined }
+        if (!alvo && e.bot != null) alvo = s.managers.find(m => m.id === e.bot && !m.isHuman)
+        if (!alvo) { // (o bot escolhido já virou gente: pega o pior bot da tabela)
+          const ordem = sortedTable(s.league).map(x => x.id).reverse()
+          alvo = ordem.map(id => s.managers.find(m => m.id === id && !m.isHuman)).find(Boolean)
+        }
+        if (!alvo) continue
+        const nomeAntes = alvo.teamName
+        alvo.isHuman = true; alvo.name = e.nome; alvo.teamName = e.nome
+        for (let i = s.seatUids.length; i < alvo.id; i++) s.seatUids[i] = ''
+        s.seatUids[alvo.id] = e.uid
+        const lt = s.league.find(x => x.id === alvo!.id); if (lt) lt.name = e.nome
+        ;(s.marketLog = s.marketLog ?? []).push(`🙋 ${e.nome} assumiu o ${nomeAntes}`)
+        mudou = true
+      }
+      return mudou ? s : state
+    }
     case 'DRAFT_ABRIR': {
       if (!s.ligaDraft || s.draft || s.screen !== 'end' || s.draftFeito === s.seasonNo) return state
       const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
@@ -14669,6 +14696,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const selaReservaTsRef = useRef(0)   // 📮 última escrita do "fecha o envelope" no caminho reserva
   const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
+  const entradasRef = useRef('') // 🙋 06/11: a virada que já aplicou os aceitos (uma vez por temporada)
+  const dispatchRef = useRef<((a: Action) => void) | null>(null) // 🙋 pra seguir com a ação depois de aplicar os aceitos
   const humildeAteRef = useRef(0)
   useEffect(() => {
     // virou host (criou, retomou, reassumiu): carimba a posse AGORA
@@ -14810,6 +14839,28 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
     // calado. START (criar sala) é gesto seu — posse plena. BECOME_HOST marca
     // forçado nos DOIS pontos que o disparam (botão RETOMAR / sumiço provado).
+    // 🙋 06/11: na VIRADA de dentro do jogo (Liga Draft: abrir o draft / começar a temporada; Liga da Turma: nova temporada), o dono
+    // primeiro põe quem ele ACEITOU no time escolhido — e só depois segue. Uma vez por temporada; falhou a leitura, segue sem ninguém.
+    const st0 = stateRef.current
+    const virada = st0.onlineMode === 'online' && isHostRef.current && st0.ligaMode && !!st0.roomId
+      && (action.type === 'DRAFT_ABRIR' || (action.type === 'DRAFT_SEGUIR' && st0.draft?.fase === 'escala') || action.type === 'REPLAY_SEASON')
+    const chaveVirada = `${st0.roomId}:${st0.seasonNo}:${action.type}`
+    if (virada && entradasRef.current !== chaveVirada) {
+      entradasRef.current = chaveVirada
+      const rid = st0.roomId!
+      void (async () => {
+        try {
+          const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: rid })
+          const ac = ((data ?? []) as { user_id: string; nome: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[]).filter(p => p.status === 'aceito')
+          if (ac.length) {
+            rawDispatch({ type: 'LIGA_ENTRADAS', entradas: ac.map(p => ({ uid: p.user_id, nome: p.nome, bot: p.alvo_bot, alvoUid: p.alvo_uid })) })
+            void supabase.rpc('esc_liga_marca_entrou', { p_room: rid, p_uids: ac.map(p => p.user_id) }).then(() => {}, () => {})
+          }
+        } catch { /* sem pedidos: a virada segue normal */ }
+        dispatchRef.current?.(action)
+      })()
+      return
+    }
     if (action.type === 'RESTORE_ONLINE' && action.isHost) claimForcadoRef.current = false
     if (action.type === 'START_ONLINE' && action.isHost) claimForcadoRef.current = true
     // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
@@ -14890,6 +14941,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       rawDispatch(action)
     }
   }, [])
+  dispatchRef.current = dispatch
 
   // 🪪 MEU CRACHÁ, SEMPRE PREENCHIDO (Diego 21/08 — sala do Braguinha).
   // O `ch.track` anunciava `uid: state.youUid` lido do CLOSURE do efeito, cujas
