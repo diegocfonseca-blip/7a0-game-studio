@@ -986,6 +986,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (trava no banco, `esc_liga_limite_gratis`; o aviso de sim/não pra sair da 1ª existe mas está DESLIGADO a pedido dele — `AVISO_TROCA_LIGA`). **Criar**: ⭐ Craque Salas 3
   de cada · ⭐ Craque Completo pra cima 4 de cada (`limiteCriarLigas`; 06/11 *"aumente pra cria 3 e cria 4"*, antes 2 e 3) — *"não dá pra ficar criando uma porrada de liga"*. **Entrar
   é ilimitado pra quem paga, e o texto sempre diz isso.** Aviso de teto só quando bate nele. Quem já tem mais fica com todas.
+- **🙋 LIGA JÁ COMEÇADA: SÓ ENTRA QUEM TEM PLANO (06/11, regra dele).** *"apenas quem tem qualquer plano pode entrar… entrar o usuário
+  pode em quantas quiser"*. Liga da Turma/Liga Draft que já jogou só recebe gente nova com plano (trava no banco, gatilho em room_players).
+  Pedido → o dono aceita e escolhe o time (bot ou no lugar de alguém) → entra na VIRADA da temporada, nunca no meio. Na Liga Draft, quem
+  sai vira bot com o elenco (a liga não recomeça). Formato da próxima temporada (10→20, só ida) só muda com a liga parada. NADA de botão
+  "pausar/encerrar a noite" (*"não precisa… já tem o sair da sala"*).
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).

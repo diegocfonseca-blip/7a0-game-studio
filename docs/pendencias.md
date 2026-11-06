@@ -1,12 +1,16 @@
-## 💡 06/11 — Gente nova em liga já começada (mockup v2 `scripts/mockups/liga-vaga.png`, esperando OK)
-Decidido com o Diego: NADA de "pausar/encerrar a noite" (o Sair da sala da liga já avisa que não exclui). Não existe sala de espera
-(o VOLTAR leva direto pro jogo), então tudo mora no QUADRO DA LIGA ("🏆 Suas ligas"):
-- 🙋 Pedidos pra entrar (só o dono vê; só quem tem plano pede — pela linha 📋 LIGA DRAFT "Em jogo" da lista de salas).
-- Aceitar = escolher o time: 🤖 de bot, ou no lugar de alguém (que sai e o time vira bot). A pessoa entra na VIRADA da temporada.
-- ✏️ Editar → próxima temporada: 20 times 38/19 rodadas · 10 times 18/9 · 10→20 pode (entram bots), 20→10 não · com/sem Copa.
-- Relâmpago dentro da Liga Draft: NÃO (o draft precisa da tabela).
-- ⚠️ Achado: hoje, se o dono remove alguém da Liga Draft, a próxima noite cai no "recomeço seguro" (leilão do zero, todo mundo perde o
-  time) — `cabe` em START_ONLINE (store.tsx) exige os mesmos humanos. O conserto (removido vira bot) vem junto desta entrega.
+## 🙋 06/11 — Gente nova em liga já começada (FEITO no branch; esperando "publique")
+Mockup aprovado (*"perfeito pode fazer… apenas quem tem qualquer plano… entrar em quantas quiser"*). O que foi feito:
+- 🔒 Banco: liga que JÁ JOGOU só recebe conta nova com plano (gatilho `esc_liga_comecada_so_plano_trg`; o dono e quem já está gravado
+  na partida passam sempre). Testado numa transação desfeita: grátis barrado, pago passa. A tela confere antes (não reabre a espera à toa).
+- 🙋 Pedidos: botão "Pedir pra entrar" na linha da liga rolando (Salas abertas) → quadro do dono ganha "🙋 Pedidos pra entrar (N)" →
+  Aceitar escolhe o time (🤖 bot ou no lugar de alguém) → o pedido aparece em "🏆 Suas ligas" de quem pediu ("✅ aceito… ENTRAR"). Quem
+  foi aceito entra sem a senha. "No lugar de alguém": a pessoa sai da liga na largada da próxima temporada (o dono abre o pregão).
+- 🤖 Liga Draft: quem sai/é removido vira BOT com o elenco (antes a próxima noite recomeçava do zero e todo mundo perdia o time);
+  quem chega assume o time escolhido ou, sem escolha, o pior bot. Trava: `npx tsx scripts/testa-liga-vaga.mts` (13 checagens).
+- ✏️ Editar → próxima temporada: 10/20 times (20→10 bloqueado) e ida e volta / só ida (19 ou 9 rodadas). Só muda com a liga parada
+  (`esc_liga_formato`); vale da próxima largada.
+- ⚠️ Não testado com sala de verdade (precisa de 2 contas e uma temporada acabando). O nome do time de quem assume um bot é o NOME DO
+  TIME DELE (não o do bot).
 
 ## ⏩ 06/11 — Voltar pro AUTO mantém a velocidade escolhida no Manual (branch; esperando "publique")
 Diego (Futpoint jogando online: pôs 4× e, ao voltar pro auto, voltou pra Normal): *"deve ficar o auto com base no número que ele
