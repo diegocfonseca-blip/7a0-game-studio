@@ -1,8 +1,12 @@
-## 💡 06/11 — IDEIA do Diego (esperando ele responder): entrar em Liga da Turma / Liga Draft já começada
-*"muita gente entra na liga depois que começa… daria pra entrar? o host excluísse a pessoa… ou entraria no lugar de bot… só pagante…
-não quero bugs com cadeira"*. Proposta minha (aguardando sim/não pro mockup): entra SÓ com a liga PARADA (sala de espera, antes do
-dono apertar começar), assume o time de um BOT (elenco, pontos, posição), dono aprova, só pagante. "Dono tira alguém e dá o time" = 2ª
-etapa (mexe em assento de gente).
+## 💡 06/11 — Gente nova em liga já começada (mockup v2 `scripts/mockups/liga-vaga.png`, esperando OK)
+Decidido com o Diego: NADA de "pausar/encerrar a noite" (o Sair da sala da liga já avisa que não exclui). Não existe sala de espera
+(o VOLTAR leva direto pro jogo), então tudo mora no QUADRO DA LIGA ("🏆 Suas ligas"):
+- 🙋 Pedidos pra entrar (só o dono vê; só quem tem plano pede — pela linha 📋 LIGA DRAFT "Em jogo" da lista de salas).
+- Aceitar = escolher o time: 🤖 de bot, ou no lugar de alguém (que sai e o time vira bot). A pessoa entra na VIRADA da temporada.
+- ✏️ Editar → próxima temporada: 20 times 38/19 rodadas · 10 times 18/9 · 10→20 pode (entram bots), 20→10 não · com/sem Copa.
+- Relâmpago dentro da Liga Draft: NÃO (o draft precisa da tabela).
+- ⚠️ Achado: hoje, se o dono remove alguém da Liga Draft, a próxima noite cai no "recomeço seguro" (leilão do zero, todo mundo perde o
+  time) — `cabe` em START_ONLINE (store.tsx) exige os mesmos humanos. O conserto (removido vira bot) vem junto desta entrega.
 
 ## ⏩ 06/11 — Voltar pro AUTO mantém a velocidade escolhida no Manual (branch; esperando "publique")
 Diego (Futpoint jogando online: pôs 4× e, ao voltar pro auto, voltou pra Normal): *"deve ficar o auto com base no número que ele
