@@ -9192,7 +9192,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
-      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && !s.leilaoClubes
+      // 🧱🏳️ 06/11 (Diego: *"na hora de criar a Liga Draft deveria ter opção de escolher jogador, clubes ou seleção, igual tem no rápido"*):
+      // a Liga Draft de hoje (Minha Liga Draft) aceita o leilão de Clubes/Seleções na 1ª temporada; a de antes (fraca) continua sem.
+      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && (!s.leilaoClubes || !!action.minhaLigaDraft)
       s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       // 📜💰 05/11: regras da turma no draft + prêmio editado pelo criador (vazio = padrão do tamanho da liga)
       s.draftRegras = s.minhaLigaDraft && action.draftRegras ? { ...action.draftRegras } : undefined
@@ -9484,6 +9486,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           }
           s.managers = [...humanos, ...dc.bots.map(b => ({ ...b, squad: b.squad.map(c => ({ ...c })) })), ...novosBots]
           s.draftFeito = dc.draftFeito
+          s.leilaoClubes = false; s.leilaoSelecao = false; s.leilaoDecada = false // 🧱 sem leilão hoje: a marca de clubes não fica valendo
           comecaTemporadaMesmoTime(s)
           const ordem = (dc.ordem ?? []).filter(id => humanos.some(h => h.id === id))
           if (ordem.length && dc.temporada != null && dc.draftFeito !== dc.temporada) {

@@ -9,6 +9,8 @@ Mockup aprovado (*"perfeito pode fazer… apenas quem tem qualquer plano… entr
   quem chega assume o time escolhido ou, sem escolha, o pior bot. Trava: `npx tsx scripts/testa-liga-vaga.mts` (13 checagens).
 - ✏️ Editar → próxima temporada: 10/20 times (20→10 bloqueado) e ida e volta / só ida (19 ou 9 rodadas). Só muda com a liga parada
   (`esc_liga_formato`); vale da próxima largada.
+- 🧱🏳️ Criar Liga Draft agora escolhe Jogador / Clubes / Seleções (*"igual tem ao criar sala rápido"*) — vale pro leilão da 1ª temporada
+  (clubes = baralho Todos). A Liga Draft antiga (fraca) continua sem. Trava do motor: `npx tsx scripts/testa-liga-vaga-motor.mts`.
 - ⚠️ Não testado com sala de verdade (precisa de 2 contas e uma temporada acabando). O nome do time de quem assume um bot é o NOME DO
   TIME DELE (não o do bot).
 
