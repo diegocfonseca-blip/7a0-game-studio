@@ -598,6 +598,15 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 07/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **Amaral FC** (pedro.smeirelesamaral, criada 04/11) com DUAS contas de apoio criadas no dia seguinte, que nunca jogaram sala cheia:
+  **Blue Lock** (danielriddick.dr) — 18 temporadas só os dois, 8 ligas × 0 · **FC Bbc** (matheusmiranda7dep) — 5 temporadas, 4 × 0. Soma 12 ligas.
+- NOVO (forte): **Goat** (ezequiassival870) × **Fcsccp** (lucasaparecidola9166) — as duas criadas 05/11, logins com 6 min, 14 temporadas, 5 × 0, a de apoio nunca jogou sala cheia.
+- NOVO (forte): **Adadada** (fflindao0101) × **Arthur FC** (mulequi530) — as duas criadas 06/11, logins com 1 min, 7 temporadas, 3 × 0, apoio nunca jogou sala cheia.
+- Médios (só anotado): Visca Barça × Hala Madrid (os dois "Danilson", logins 3 min, 3×0, mas o perdedor jogou 3 salas cheias) · Mini Messers ×
+  Marlimbos (8 temp., 0×3, logins 13 min) · Quebrador d cama box × Pipiuzudinho (6 temp., 5×0, perdedor nunca jogou sala cheia, contas de set/25) ·
+  Ferdca × Real (de 05/11) segue igual. Roseira FC × Cholismo continua (5 temp., 4×0) — já avisado.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 05/11 (avisado ao Diego, esperando OK pra ligar)
 - PIOROU: **Serventes FC** (wallacethiago424) ganhou uma 2ª conta de apoio: **Gustavo** (gusta.ghost.lindo, criada 03/11) — 6 temporadas só os dois, 3 ligas × 0, nunca jogou sala cheia. Junto com a Safiel (gustavodelimafrias2), as duas "gusta…", o Serventes já soma 8 ligas em 14 temporadas.
 - NOVO (médio): **Davi** (davicamilobeicker) × **Miguel** (rodriguincamilobezerra) — mesmo sobrenome "Camilo", logins com 2 min de diferença, 4 ligas × 0 em 5 temporadas; o Miguel jogou 2 salas cheias (pode ser irmão de verdade).
