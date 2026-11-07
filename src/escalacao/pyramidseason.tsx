@@ -9939,7 +9939,7 @@ export function PyramidSeasonScreen() {
     if(!home||!away)return undefined
     const xi=(t:SimTeam)=>t.human?lineupAt(entradasSim.lineups,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
     const second=(t:SimTeam)=>{const ids=entradasSim.halftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
-    return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,agenda:agendaLigaComplexo({fixtureId:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,seasonKey:`${state.seed}:${state.seasonNo??1}`,round,homeClubId:home.teamId}),awayClubId:away.teamId,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
+    return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,agenda:agendaLigaComplexo({fixtureId:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,seasonKey:`${state.seed}:${state.seasonNo??1}`,round,homeClubId:home.teamId}),awayClubId:away.teamId,speed:speedFactor,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
   })():undefined
 
   const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))

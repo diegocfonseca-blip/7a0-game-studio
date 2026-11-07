@@ -19,7 +19,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan, pronto }: { fase: F
   if (!fan) return null
   if (fase === 'fora') return (
     <div style={camada}>
-      <button type="button" disabled={!pronto} onClick={() => fan.ligar()} style={{ ...btn, position: 'absolute', left: 10, bottom: 12, background: GOLD }}>{t('🚶 Passear', '🚶 Walk around')}</button>
+      <button type="button" disabled={!pronto} onClick={() => fan.ligar()} style={{ ...btn, position: 'absolute', left: 10, bottom: 72, background: GOLD }}>{t('🚶 Passear', '🚶 Walk around')}</button>
     </div>
   )
   const topo = (titulo: string) => (
