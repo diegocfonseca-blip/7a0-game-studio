@@ -2,7 +2,10 @@ import type {EntradaM2} from './motor2/carreira'
 import {transcreverPartidaOficial,type GolRelato,type RelatoOficial} from './partida-relato-oficial'
 type ReplayConferido={valid:boolean;endMinute:number;goals:ReadonlyArray<{home:boolean;minute:number}>;relato:RelatoOficial}
 const cache=new Map<string,ReplayConferido>()
-const ordered=(goals:readonly GolRelato[])=>goals.map(g=>({home:g.home,name:g.name,min:g.min,assist:g.assist??''})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
+// 🅰️ 07/11 (Diego: "caiu numa quarta de copa… mostrou o placar cinema, não tá com campinho"): a assistência NÃO entra na conferência.
+// O save não guarda assistência de jogador de mentira (regra de 19/09) e o motor sim — na Várzea (cheia de filler) quase todo jogo
+// reprovava e o campinho sumia. Quem decide o placar é quem fez o gol e o minuto; isso continua tendo que bater exatamente.
+const ordered=(goals:readonly GolRelato[])=>goals.map(g=>({home:g.home,name:g.name,min:g.min})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))
 /** Historical results remain authoritative. Never rewrite a saved result or
  * force a newer replay to match it. All presentations consume this transcript. */
 export function prepararReplayOficial(input:EntradaM2,goals:readonly GolRelato[],en=false):ReplayConferido{

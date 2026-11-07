@@ -1,3 +1,8 @@
+## 🅰️ 07/11 — Copa da carreira caía no placar cinema em vez do campinho (Diego, quarta de copa na Várzea)
+- Causa: a conferência do replay oficial (`prepararReplayOficial`) exigia a ASSISTÊNCIA igual, mas o save não guarda assistência
+  de jogador de mentira (regra de 19/09) e o motor sim → reprovava → `replayOficialBloqueado` → sem 2D. Na Várzea (filler) quase sempre.
+  Vale pra liga também (mesma régua). Agora compara só lado + autor + minuto. Trava: `npm run replay-assist` (reprova sem o conserto).
+
 ## 🏟️ 07/11 — Mapa 3D: jogo FORA mostra o SEU estádio (Diego: *"pode deixar todos com meu estádio mesmo"*)
 - Revoga a troca de 25/10 (estádio do dono da casa no lugar do seu). Motivo: contra bot entrava o "estádio padrão da divisão",
   e o da Várzea tinha setor pela metade → pedaços de arquibancada soltos no ar (print dele, PAP × NEY, carreira na Várzea T12).
