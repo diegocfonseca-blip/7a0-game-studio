@@ -13,7 +13,7 @@ export type FaseFanZone = 'fora' | 'andando' | 'portao' | 'escolhendo' | 'sentad
 export type CadeiraFanZone = { id: string; rotulo: string }
 
 const CHAO = 0.16
-const ANDA = 2.6, CORRE = 6.2 // m/s
+const ANDA = 2.4, CORRE = 4.8 // m/s (07/11: correr mais baixo — a 6,2 o passo do boneco não acompanhava e parecia escorregar)
 const LIMITE = { minX: -290, maxX: 290, minZ: -230, maxZ: 260 }
 // o corpo do estádio (portões: serviço x −90 · visitante x 105 · casa z 82) — andando, ninguém atravessa a parede
 const ESTADIO = { minX: -91, maxX: 104, minZ: -84, maxZ: 81 }
@@ -37,13 +37,15 @@ export function passoFanZone(x: number, z: number, dx: number, dz: number): { x:
 /** cadeiras pra escolher: setor da CASA, anel de baixo, perto do meio-campo, nenhuma que a torcida já ocupa */
 export function cadeirasDaCasa(seats: readonly AssentoComplexo[], ocupadas: ReadonlySet<string>, n = 4): AssentoComplexo[] {
   const casa = seats.filter(s => s.tier === 'lower' && s.sector !== 'visitante' && s.supporterSide !== 'away' && !ocupadas.has(s.id))
-  return casa.sort((a, b) => Math.abs(a.row - 6) - Math.abs(b.row - 6) || Math.abs(a.position.x) - Math.abs(b.position.x)).slice(0, n)
+  // 07/11 (Diego: "me coloca muito próximo dos jogadores… visão muito ruim"): as de CIMA do anel, na altura do meio-campo
+  const topo = casa.reduce((m, s) => Math.max(m, s.row), 0)
+  return casa.sort((a, b) => Math.abs(a.row - (topo - 1)) - Math.abs(b.row - (topo - 1)) || Math.abs(a.position.x) - Math.abs(b.position.x)).slice(0, n)
 }
 
 export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: string; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
   let fase: FaseFanZone = 'fora'
   const pos = new THREE.Vector3(INICIO.x, CHAO, INICIO.z)
-  let heading = Math.PI, camYaw = Math.PI, dist = 0, vel = 0, seated = 0, seatedAlvo = 0, t = 0
+  let heading = Math.PI, camYaw = Math.PI, camPitch = 0.42, olhar = 0, olharPitch = 0, dist = 0, vel = 0, seated = 0, seatedAlvo = 0, t = 0
   let opcoes: AssentoComplexo[] = [], escolhida: AssentoComplexo | null = null
   const input = { x: 0, y: 0, correr: false }
   const teclas = new Set<string>()
@@ -63,7 +65,7 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     if (fase !== 'fora') return
     if (!ator) ator = createCivilian(scene, { id: 'fanzone-eu', variant: 'adult-man', outfitColor: /^#[0-9a-f]{6}$/i.test(opts.cor ?? '') ? opts.cor : '#FFC400' })
     ator.root.visible = true
-    pos.set(INICIO.x, CHAO, INICIO.z); heading = Math.PI; camYaw = Math.PI; seated = seatedAlvo = 0; vel = 0
+    pos.set(INICIO.x, CHAO, INICIO.z); heading = Math.PI; camYaw = Math.PI; camPitch = 0.42; olhar = olharPitch = 0; seated = seatedAlvo = 0; vel = 0
     window.addEventListener('keydown', down); window.addEventListener('keyup', up)
     muda('andando')
   }
@@ -82,11 +84,18 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     muda('escolhendo', { cadeiras: opcoes.map(rotular), escolhida: escolhida.id })
     return true
   }
+  /** arrastar o dedo na tela: gira a câmera (360° em volta do boneco · sentado, olha em volta da cadeira) */
+  function girar(dx: number, dy: number) {
+    if (fase === 'sentado' || fase === 'escolhendo') {
+      olhar = Math.max(-1.3, Math.min(1.3, olhar - dx * 0.006)); olharPitch = Math.max(-0.35, Math.min(0.5, olharPitch + dy * 0.004)); return
+    }
+    camYaw -= dx * 0.008; camPitch = Math.max(0.12, Math.min(1.1, camPitch + dy * 0.005))
+  }
   function rotular(s: AssentoComplexo): CadeiraFanZone { return { id: s.id, rotulo: `Fileira ${s.row + 1} · Cadeira ${s.column + 1}` } }
   function escolher(id: string) { const s = opcoes.find(o => o.id === id); if (s) { escolhida = s; opts.onFase('escolhendo', { cadeiras: opcoes.map(rotular), escolhida: s.id }) } }
   function sentar() {
     if (!escolhida) return
-    pos.set(escolhida.position.x, escolhida.position.y, escolhida.position.z); heading = escolhida.heading; seatedAlvo = 1; vel = 0
+    pos.set(escolhida.position.x, escolhida.position.y, escolhida.position.z); heading = escolhida.heading; seatedAlvo = 1; vel = 0; olhar = olharPitch = 0
     muda('sentado')
   }
   function levantar() {
@@ -110,13 +119,12 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
       if (m > 0.08) {
         // controle relativo à câmera: pra cima = pra frente na tela
         const fx = Math.sin(camYaw), fz = Math.cos(camYaw), rx = -fz, rz = fx
-        const dx = fx * iy - rx * ix, dz = fz * iy - rz * ix, l = Math.hypot(dx, dz) || 1
+        const dx = fx * iy + rx * ix, dz = fz * iy + rz * ix, l = Math.hypot(dx, dz) || 1 // 07/11: era "−" e a esquerda andava pra direita
         const alvo = Math.atan2(dx / l, dz / l)
         let d = alvo - heading; d = Math.atan2(Math.sin(d), Math.cos(d)); heading += d * Math.min(1, dt * 10)
         vel = (input.correr || teclas.has('shift') ? CORRE : ANDA) * m
         const p = passoFanZone(pos.x, pos.z, Math.sin(heading) * vel * dt, Math.cos(heading) * vel * dt)
         dist += Math.hypot(p.x - pos.x, p.z - pos.z); pos.x = p.x; pos.z = p.z
-        let c = heading - camYaw; c = Math.atan2(Math.sin(c), Math.cos(c)); camYaw += c * Math.min(1, dt * 2.2)
       } else vel = 0
       const g = STADIUM_HOME_GATE, perto = Math.hypot(pos.x - g.approach.x, pos.z - (g.threshold.z + 6)) < PERTO_PORTAO
       if (perto && fase === 'andando') muda('portao'); else if (!perto && fase === 'portao') muda('andando')
@@ -125,9 +133,10 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     ator.root.position.copy(pos); ator.root.rotation.set(0, heading, 0)
     ator.update({ seconds: t, distance: dist, speed: vel, seated, transition: seatedAlvo < seated ? 'standing' : undefined })
     if (fase === 'andando' || fase === 'portao') {
-      // atrás e um pouco acima: o boneco fica no terço de baixo e a rua aparece na frente
-      camAlvo.set(pos.x + Math.sin(camYaw) * 3, pos.y + 1.6, pos.z + Math.cos(camYaw) * 3)
-      camPos.set(pos.x - Math.sin(camYaw) * 7.5, pos.y + 4.2, pos.z - Math.cos(camYaw) * 7.5)
+      // atrás e acima, girando com o dedo (camYaw/camPitch): o boneco no terço de baixo e a rua na frente
+      const d = 9, hz = Math.cos(camPitch) * d, vy = Math.sin(camPitch) * d
+      camAlvo.set(pos.x + Math.sin(camYaw) * 2, pos.y + 1.5, pos.z + Math.cos(camYaw) * 2)
+      camPos.set(pos.x - Math.sin(camYaw) * hz, pos.y + 1.2 + vy, pos.z - Math.cos(camYaw) * hz)
     } else {
       const s = escolhida
       if (!s) return false
@@ -137,15 +146,19 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
       // sentado: por cima do ombro, alto o bastante pra cabeça não tapar o gramado
       camPos.set(base.x - hx * (fase === 'escolhendo' ? 4.5 : 1.9), base.y + (fase === 'escolhendo' ? 3.2 : 2.5), base.z - hz * (fase === 'escolhendo' ? 4.5 : 1.9))
       camAlvo.set(0, 0, 0).lerp(base, fase === 'escolhendo' ? 0.75 : 0.05)
+      if (fase === 'sentado' && (olhar || olharPitch)) { // olhando em volta da cadeira (gira o alvo em torno da cabeça)
+        const vx = camAlvo.x - camPos.x, vz = camAlvo.z - camPos.z, c = Math.cos(olhar), sn = Math.sin(olhar)
+        camAlvo.set(camPos.x + vx * c - vz * sn, camAlvo.y + olharPitch * 40, camPos.z + vx * sn + vz * c)
+      }
       if (fase === 'escolhendo') { pos.copy(base); ator.root.position.set(s.position.x, s.position.y, s.position.z); ator.root.rotation.set(0, s.heading, 0) }
     }
-    camera.position.lerp(camPos, Math.min(1, dt * 6)); target.lerp(camAlvo, Math.min(1, dt * 8))
+    camera.position.lerp(camPos, Math.min(1, dt * 12)); target.lerp(camAlvo, Math.min(1, dt * 14)) // 07/11: segue mais colado (correndo ficava pra trás)
     camera.lookAt(target); camera.updateMatrixWorld()
     return true
   }
 
   return {
-    input, ligar, desligar, entrar, escolher, sentar, levantar, update,
+    input, ligar, desligar, entrar, escolher, sentar, levantar, update, girar,
     ativo: () => fase !== 'fora',
     fase: () => fase,
     inspect: () => ({ fase, pos: pos.toArray(), heading, escolhida: escolhida?.id ?? null, opcoes: opcoes.map(o => o.id) }),

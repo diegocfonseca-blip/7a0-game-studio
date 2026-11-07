@@ -17,6 +17,11 @@
   → 4 cadeiras livres do setor da casa → "Sentar e assistir" (câmera por cima do ombro) → "Levantar" volta pra rua. Código:
   `presidencia-fanzone-3d.ts` (cena/regras) + `presidencia-fanzone-hud.tsx` (tela) + ganchos no `presidencia-complexo-3d.tsx`.
   Não mexe em save/jogo/torcida. Teste: `node scripts/teste-fanzone.cjs <pasta>` (com o vite em 127.0.0.1:4199). Fotos: `scripts/mockups/fanzone-real.png`.
+- 🔁 **1º teste do Diego (07/11)**: *"bolinha p esquerda anda p direita… correr não sincronizado… girar 360 arrastando não tá legal…
+  cadeira MT próxima dos jogadores… não consigo apertar pra sair… botão em cima de outro botão"*. Consertado: o controle anda pro lado
+  certo (sinal trocado), correr 4,8 m/s (andar 2,4), a câmera NÃO gira sozinha atrás do boneco — arrastar a tela gira (e sentado,
+  olha em volta), cadeiras lá EM CIMA no meio-campo (fila do topo − 1), e "🚶 Passear"/"✕ Sair do passeio" moram na BARRA DE CIMA do
+  mapa (os botões do mapa e a dica somem durante o passeio). Fotos: `scripts/mockups/fanzone-v2.png`.
 - ⏳ Falta: o boneco atravessa casa/prédio (só o estádio barra), o chão é plano (y fixo), a camisa é dourada fixa (não puxa as
   cores do presidente ainda), sem "comemorar gol" sentado. Etapa 2 (ver outros usuários) ainda não começou — combinar o jeito barato.
 

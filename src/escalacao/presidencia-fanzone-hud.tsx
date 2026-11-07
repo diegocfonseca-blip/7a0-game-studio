@@ -1,6 +1,8 @@
 // 🚶 FAN ZONE — o que aparece POR CIMA do mapa 3D (07/11, mockup `scripts/mockups/fanzone.png`). O 3D mora em
-// `presidencia-fanzone-3d.ts`; aqui só botão, controle (joystick) e os cartões de cada passo.
-import { useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+// `presidencia-fanzone-3d.ts`; aqui só o controle (joystick), arrastar pra girar a câmera e os cartões de cada passo.
+// 🔁 07/11 (1º teste do Diego): o botão de entrar/sair mora na BARRA DE CIMA do mapa (junto de Mapa/Locais — antes ficava em
+// cima de outro botão e o "sair" não pegava); durante o passeio os botões do mapa (+ − Ver tudo Girar, Controles) somem.
+import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import { useT } from './lang'
 import type { CadeiraFanZone, FaseFanZone } from './presidencia-fanzone-3d'
 
@@ -9,45 +11,36 @@ const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, 
 const btn: CSSProperties = { ...OSW, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 12px', boxShadow: `3px 3px 0 ${INK}`, fontSize: 13, cursor: 'pointer', pointerEvents: 'auto' }
 const verde: CSSProperties = { ...btn, background: GREEN, color: '#fff', width: '100%', fontSize: 15, padding: '10px 12px' }
 
-type Controle = { input: { x: number; y: number; correr: boolean }; ligar(): void; desligar(): void; entrar(): boolean; escolher(id: string): void; sentar(): void; levantar(): void }
+type Controle = { input: { x: number; y: number; correr: boolean }; ligar(): void; desligar(): void; entrar(): boolean; escolher(id: string): void; sentar(): void; levantar(): void; girar(dx: number, dy: number): void }
 
-export function FanZoneHud({ fase, cadeiras, escolhida, fan, pronto }: { fase: FaseFanZone; cadeiras: CadeiraFanZone[]; escolhida: string; fan: Controle | null; pronto: boolean }) {
+export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZone; cadeiras: CadeiraFanZone[]; escolhida: string; fan: Controle | null }) {
   const t = useT()
   const [correr, setCorrer] = useState(false)
   const [semCadeira, setSemCadeira] = useState(false)
-  const camada: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 }
-  if (!fan) return null
-  if (fase === 'fora') return (
-    <div style={camada}>
-      <button type="button" disabled={!pronto} onClick={() => fan.ligar()} style={{ ...btn, position: 'absolute', left: 10, bottom: 72, background: GOLD }}>{t('🚶 Passear', '🚶 Walk around')}</button>
-    </div>
-  )
-  const topo = (titulo: string) => (
-    <div style={{ position: 'absolute', left: 8, right: 8, top: 8, display: 'flex', alignItems: 'center', background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', boxShadow: `3px 3px 0 ${INK}`, pointerEvents: 'auto' }}>
-      <b style={{ ...OSW, fontSize: 14 }}>{titulo}</b>
-      <button type="button" onClick={() => { setCorrer(false); fan.desligar() }} style={{ marginLeft: 'auto', background: 'none', border: 'none', fontWeight: 800, fontSize: 13, cursor: 'pointer', color: INK }}>{t('✕ sair', '✕ exit')}</button>
-    </div>
-  )
+  if (!fan || fase === 'fora') return null
+  const camada: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 30 }
+  const chip = (txt: string) => <p style={{ position: 'absolute', left: 10, top: 60, margin: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 9px', ...OSW, fontSize: 12, boxShadow: `2px 2px 0 ${INK}`, zIndex: 2 }}>{txt}</p>
+  const arrasta = (filhos: ReactNode) => <Arrasto fan={fan}>{filhos}</Arrasto>
   if (fase === 'andando' || fase === 'portao') return (
     <div style={camada}>
-      {topo(t('🚶 Passeio pelo bairro', '🚶 Neighbourhood walk'))}
+      {arrasta(null)}
+      {chip(fase === 'portao' ? t('🎟️ Portão da torcida', '🎟️ Supporters gate') : t('🚶 Siga até o portão da torcida', '🚶 Head to the supporters gate'))}
       {fase === 'portao' && (
-        <div style={{ position: 'absolute', left: 12, right: 12, top: 62, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto' }}>
-          <b style={{ ...OSW, fontSize: 16, display: 'block' }}>{t('🎟️ Portão da torcida', '🎟️ Supporters gate')}</b>
-          <small style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '2px 0 8px', fontWeight: 600 }}>{semCadeira ? t('A arquibancada da casa está lotada agora. Tenta de novo daqui a pouco.', 'The home stand is full right now. Try again in a bit.') : t('Entra e escolhe a sua cadeira no setor da casa.', 'Go in and pick your seat in the home stand.')}</small>
+        <div style={{ position: 'absolute', left: 12, right: 12, top: 96, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto', zIndex: 2 }}>
+          <small style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 0 8px', fontWeight: 600 }}>{semCadeira ? t('A arquibancada da casa está lotada agora. Tenta de novo daqui a pouco.', 'The home stand is full right now. Try again in a bit.') : t('Entra e escolhe a sua cadeira no setor da casa.', 'Go in and pick your seat in the home stand.')}</small>
           <button type="button" style={verde} onClick={() => setSemCadeira(!fan.entrar())}>{t('Entrar no estádio', 'Enter the stadium')}</button>
         </div>
       )}
-      {fase === 'andando' && <p style={{ position: 'absolute', left: 12, top: 60, margin: 0, background: GREEN, color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 8px', ...OSW, fontSize: 12, boxShadow: `2px 2px 0 ${INK}` }}>{t('🏟️ Siga até o portão da torcida', '🏟️ Head to the supporters gate')}</p>}
       <Joystick fan={fan} />
-      <button type="button" aria-pressed={correr} onClick={() => { const v = !correr; setCorrer(v); fan.input.correr = v }} style={{ ...btn, position: 'absolute', left: 140, bottom: 26, background: correr ? GOLD : '#fff' }}>{t('🏃 Correr', '🏃 Run')}</button>
+      <button type="button" aria-pressed={correr} onClick={() => { const v = !correr; setCorrer(v); fan.input.correr = v }} style={{ ...btn, position: 'absolute', right: 14, bottom: 30, background: correr ? GOLD : '#fff', zIndex: 2 }}>{correr ? t('🏃 Correndo', '🏃 Running') : t('🚶 Andando', '🚶 Walking')}</button>
+      <p style={{ position: 'absolute', right: 14, bottom: 8, margin: 0, fontSize: 10.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px #000' }}>{t('arraste a tela pra girar', 'drag the screen to turn')}</p>
     </div>
   )
   if (fase === 'escolhendo') return (
     <div style={camada}>
-      {topo(t('🏟️ Escolha sua cadeira', '🏟️ Pick your seat'))}
+      {chip(t('🏟️ Escolha sua cadeira', '🏟️ Pick your seat'))}
       <div style={{ position: 'absolute', left: 12, right: 12, bottom: 12, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto' }}>
-        <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700 }}>{t('🟢 Setor da casa · cadeiras livres', '🟢 Home stand · free seats')}</p>
+        <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700 }}>{t('🟢 Setor da casa · lá em cima, no meio-campo', '🟢 Home stand · up top, at midfield')}</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
           {cadeiras.map(c => <button key={c.id} type="button" onClick={() => fan.escolher(c.id)} style={{ ...btn, fontSize: 11.5, padding: '6px 6px', background: c.id === escolhida ? GOLD : '#fff', boxShadow: c.id === escolhida ? `2px 2px 0 ${INK}` : 'none' }}>{c.id === escolhida ? '✔ ' : ''}{c.rotulo}</button>)}
         </div>
@@ -58,11 +51,23 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan, pronto }: { fase: F
   )
   return (
     <div style={camada}>
-      {topo(t('📺 Assistindo da arquibancada', '📺 Watching from the stands'))}
-      <div style={{ position: 'absolute', left: 10, right: 10, bottom: 14, display: 'flex', gap: 6, justifyContent: 'center' }}>
+      {arrasta(null)}
+      {chip(t('📺 Na arquibancada', '📺 In the stands'))}
+      <div style={{ position: 'absolute', left: 10, right: 10, bottom: 14, display: 'flex', gap: 6, justifyContent: 'center', zIndex: 2 }}>
         <button type="button" style={btn} onClick={() => fan.levantar()}>{t('🚶 Levantar', '🚶 Stand up')}</button>
       </div>
+      <p style={{ position: 'absolute', left: 0, right: 0, bottom: 62, margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px #000' }}>{t('arraste a tela pra olhar em volta', 'drag the screen to look around')}</p>
     </div>
+  )
+}
+
+/** a tela inteira (fora dos botões) gira a câmera ao arrastar — o mapa não se mexe mais por baixo durante o passeio */
+function Arrasto({ fan, children }: { fan: Controle; children: ReactNode }) {
+  const ult = useRef<{ x: number; y: number } | null>(null)
+  const move = (e: PointerEvent<HTMLDivElement>) => { const u = ult.current; if (!u) return; fan.girar(e.clientX - u.x, e.clientY - u.y); ult.current = { x: e.clientX, y: e.clientY } }
+  return (
+    <div onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); ult.current = { x: e.clientX, y: e.clientY } }} onPointerMove={move} onPointerUp={() => { ult.current = null }} onPointerCancel={() => { ult.current = null }}
+      style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: 58, pointerEvents: 'auto', touchAction: 'none', zIndex: 1 }}>{children}</div> // (a faixa de cima fica livre: é onde mora o ✕ Sair do passeio)
   )
 }
 
@@ -79,8 +84,8 @@ function Joystick({ fan }: { fan: Controle }) {
   const solta = () => { setP({ x: 0, y: 0 }); fan.input.x = 0; fan.input.y = 0 }
   return (
     <div ref={caixa} role="slider" aria-label="Controle de andar" aria-valuenow={0}
-      onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); move(e) }} onPointerMove={e => { if (e.buttons || e.pointerType === 'touch') move(e) }} onPointerUp={solta} onPointerCancel={solta}
-      style={{ position: 'absolute', left: 16, bottom: 18, width: 112, height: 112, borderRadius: '50%', background: 'rgba(255,255,255,.4)', border: `3px solid rgba(0,0,0,.65)`, touchAction: 'none', pointerEvents: 'auto' }}>
+      onPointerDown={e => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); move(e) }} onPointerMove={e => { if (e.buttons || e.pointerType === 'touch') move(e) }} onPointerUp={solta} onPointerCancel={solta}
+      style={{ position: 'absolute', left: 16, bottom: 18, width: 112, height: 112, borderRadius: '50%', background: 'rgba(255,255,255,.4)', border: `3px solid rgba(0,0,0,.65)`, touchAction: 'none', pointerEvents: 'auto', zIndex: 2 }}>
       <i style={{ position: 'absolute', left: 56 - 22 + p.x, top: 56 - 22 + p.y, width: 44, height: 44, borderRadius: '50%', background: GOLD, border: `3px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}`, boxSizing: 'border-box' }} />
     </div>
   )

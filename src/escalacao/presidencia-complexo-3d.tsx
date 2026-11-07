@@ -111,7 +111,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
  // 🩺 04/11 (Diego: *"botei Leve e não mudou nada"*): o que a placa de vídeo do aparelho é e quantos quadros por segundo o mapa faz AGORA
  const [diag,setDiag]=useState<{gpu:string;soft:boolean;fps:number|null}|null>(null)
  const fanZoneOk=useFanZoneLiberada(),fanRef=useRef<ReturnType<typeof criarFanZone>|null>(null),fzFaseRef=useRef<FaseFanZone>('fora')
- const [fzFase,setFzFase]=useState<FaseFanZone>('fora'),[fzCadeiras,setFzCadeiras]=useState<CadeiraFanZone[]>([]),[fzEscolhida,setFzEscolhida]=useState('')
+ const [fzFase,setFzFase]=useState<FaseFanZone>('fora'),passeando=fanZoneOk&&fzFase!=='fora',[fzCadeiras,setFzCadeiras]=useState<CadeiraFanZone[]>([]),[fzEscolhida,setFzEscolhida]=useState('')
  const caiPraLeve=useRef(()=>{});caiPraLeve.current=()=>{if(nivelRef.current==='leve')return;guardaNivelMapa('leve');setCaiuProLeve(true);setNivel('leve')}
  const [stadiumSound,setStadiumSound]=useState(false),stadiumSoundRef=useRef(false);stadiumSoundRef.current=stadiumSound
  const [matchCamera,setMatchCamera]=useState<CameraPartidaContinua>('free')
@@ -870,21 +870,23 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     {!loaded&&!error&&<p className="pc3-loading" role="status">{t('Preparando o mapa…','Preparing the map…')}</p>}
     {error&&<p className="pc3-error" role="alert">{error}</p>}
    </div>
-   {fanZoneOk&&!isWindow&&!isOffice&&<FanZoneHud fase={fzFase} cadeiras={fzCadeiras} escolhida={fzEscolhida} fan={fanRef.current} pronto={loaded}/>}
+   {fanZoneOk&&!isWindow&&!isOffice&&<FanZoneHud fase={fzFase} cadeiras={fzCadeiras} escolhida={fzEscolhida} fan={fanRef.current}/>}
    {!isWindow&&loaded&&(presidentStatus==='loading'||presidentStatus==='error')&&<div className="pc3-avatar-status" role={presidentStatus==='error'?'alert':'status'}>
     {presidentStatus==='loading'?t('Carregando seu personagem…','Loading your character…'):<>{t('O visual não carregou. Suas escolhas foram mantidas.','The look did not load. Your choices were kept.')}<button type="button" onClick={()=>retryPresident.current()}>{t('Tentar novamente','Try again')}</button></>}
    </div>}
    {!isWindow&&<><div className="pc3-hud pc3-topbar">
     <div className="pc3-primary">
+     {passeando?<button type="button" style={{background:'#FFC400'}} onClick={()=>fanRef.current?.desligar()}>{t('✕ Sair do passeio','✕ Exit walk')}</button>:<>
      {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>{t('Minha sala','My office')}</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>{t('Janela','Window')}</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>{t('Presidente','President')}</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>{t('Estante','Shelf')}</button></>:<>
      <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>{t('Mapa','Map')}</button>
      {(matchCamera==='free'||matchPresentation==='2d')&&<button type="button" disabled={!loaded} aria-pressed={matchPresentation==='2d'?matchCamera==='field2d':selectedView==='field'} onClick={()=>go('field')}>{matchPresentation==='2d'?t('Ver partida','Watch match'):t('Ver campo','See pitch')}</button>}
      {matchCamera==='free'&&<button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>{t('Locais ','Places ')}<span aria-hidden="true">⌄</span></button>}
+     {fanZoneOk&&!isOffice&&<button type="button" disabled={!loaded||!fanRef.current} onClick={()=>{setPlacesOpen(false);fanRef.current?.ligar()}}>{t('🚶 Passear','🚶 Walk')}</button>}
      {match&&matchCamera!=='free'&&matchPresentation!=='2d'&&<label className="pc3-camera-choice" htmlFor={`${uiId}-camera`}><span className="pc3-camera-title">{t('Câmera','Camera')}</span>
       <select id={`${uiId}-camera`} aria-label="Câmera da partida" disabled={!loaded} value={matchCamera} onChange={event=>{api.current?.setMatchCamera(event.currentTarget.value as CameraPartidaContinua);setPlacesOpen(false)}}>
        {CAMERAS_PARTIDA.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
-     </label>}</>}
+     </label>}</>}</>}
     </div>
     <button ref={expandButton} className="pc3-expand" type="button" aria-label={isOffice?(expanded?t('Fechar sala ampliada','Close enlarged office'):t('Ampliar sala','Enlarge office')):(expanded?t('Fechar mapa ampliado','Close enlarged map'):t('Ampliar mapa','Enlarge map'))} title={isOffice?(expanded?t('Fechar sala ampliada','Close enlarged office'):t('Ampliar sala','Enlarge office')):(expanded?t('Fechar mapa ampliado','Close enlarged map'):t('Ampliar mapa','Enlarge map'))} onClick={toggleExpanded}>
      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{expanded?<path d="m6 6 12 12M18 6 6 18"/>:<path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/>}</svg>
@@ -976,14 +978,14 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     {selectedView==='casa-usuario'&&<button type="button" onClick={()=>clubActionRef.current?.('financas')}>{t('Finanças','Finances')}</button>}
     {selectedView==='agencia-clube'&&<button type="button" onClick={()=>clubActionRef.current?.('patrocinio')}>{t('Patrocínios','Sponsorships')}</button>}
    </div>}
-   <div className="pc3-hud pc3-navigation" aria-label="Controles do mapa">
+   <div className="pc3-hud pc3-navigation" aria-label="Controles do mapa" style={passeando?{display:"none"}:undefined}>
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label="Aproximar" title="Aproximar" onClick={()=>api.current?.zoom(1)}>+</button>
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label="Afastar" title="Afastar" onClick={()=>api.current?.zoom(-1)}>−</button>
     <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?t('Ver sala','See office'):t('Ver tudo','See all')}</button>
     <button type="button" disabled={!loaded||(matchCamera==='fixed'||matchCamera==='field2d')} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>{t('Girar','Rotate')}</button>
    </div>
-      {hud&&!isWindow&&!isOffice&&loaded&&<div hidden={managementEnabled&&['casa-luca','arena-online','casa-usuario','vadico','loja','shopping','agencia-clube'].includes(selectedView)}>{hud}</div>}
-   <p className="pc3-help" id={`${uiId}-help`}>{(matchCamera==='fixed'||matchCamera==='field2d')?<>{matchPresentation==='2d'?t('Campo 2D no estádio.','2D pitch in the stadium.'):t('Lateral fixa · acompanha a jogada.','Fixed side · follows the play.')} Use +, − ou dois dedos para ajustar o zoom.</>:matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?t('Arraste para girar.','Drag to rotate.'):t('Arraste para explorar.','Drag to explore.')} <span className="pc3-help-touch">{t('Use dois dedos para aproximar.','Use two fingers to zoom.')}</span><span className="pc3-help-mouse">{t('Use a roda para aproximar. Setas para mover.','Use the wheel to zoom. Arrows to move.')}</span></>}</p></>}
+      {hud&&!isWindow&&!isOffice&&loaded&&<div hidden={(passeando&&fzFase!=='sentado')||managementEnabled&&['casa-luca','arena-online','casa-usuario','vadico','loja','shopping','agencia-clube'].includes(selectedView)}>{hud}</div>}
+   <p className="pc3-help" id={`${uiId}-help`} style={passeando?{display:"none"}:undefined}>{(matchCamera==='fixed'||matchCamera==='field2d')?<>{matchPresentation==='2d'?t('Campo 2D no estádio.','2D pitch in the stadium.'):t('Lateral fixa · acompanha a jogada.','Fixed side · follows the play.')} Use +, − ou dois dedos para ajustar o zoom.</>:matchCamera!=='free'?<>Câmera automática · {CAMERAS_PARTIDA.find(option=>option.value===matchCamera)?.label}. Arraste para explorar o mapa.</>:<>{navigationMode==='rotate'?t('Arraste para girar.','Drag to rotate.'):t('Arraste para explorar.','Drag to explore.')} <span className="pc3-help-touch">{t('Use dois dedos para aproximar.','Use two fingers to zoom.')}</span><span className="pc3-help-mouse">{t('Use a roda para aproximar. Setas para mover.','Use the wheel to zoom. Arrows to move.')}</span></>}</p></>}
      </div>
  </section>
 }
