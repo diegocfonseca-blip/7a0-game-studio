@@ -1,3 +1,10 @@
+## 🏟️ 07/11 — Mapa 3D: jogo FORA mostra o SEU estádio (Diego: *"pode deixar todos com meu estádio mesmo"*)
+- Revoga a troca de 25/10 (estádio do dono da casa no lugar do seu). Motivo: contra bot entrava o "estádio padrão da divisão",
+  e o da Várzea tinha setor pela metade → pedaços de arquibancada soltos no ar (print dele, PAP × NEY, carreira na Várzea T12).
+  `adaptarCarreiraAoComplexo` (presidencia-complexo-carreira.ts) agora usa o `own`; o resto do dia de fora (torcida, ruas) segue.
+  O estádio padrão de bot também ficou sem setor pela metade (`estadioPadraoDaDivisao`), caso volte a ser usado.
+- ⚠️ `scripts/testa-presidencia-complexo-carreira.mjs` já falhava ANTES (calendário: 'domingo' × 'quarta') — não é desta mudança.
+
 ## 🚶 07/11 — FAN ZONE no mapa 3D, etapa 1 (só na conta do Diego, `FANZONE_GERAL = false` em sport.ts)
 - Pedido: *"andar pelas ruas… entrar no estádio… escolher a cadeira… ver outros usuários"* → mockup `scripts/mockups/fanzone.png` →
   boneco 1 (Rapaz) dos 6 do mapa (`scripts/mockups/bonecos-3d-mapa.png`) → *"pode p eu testar"*.

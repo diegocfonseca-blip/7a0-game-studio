@@ -157,7 +157,10 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     const own = estadioVisualValido(stadium) ? stadium : estadioPadraoDaDivisao(input.day.division)
     const hostSave = state.stadiums?.[hostId]
     const fase = match.paused && match.minute >= 45 ? 'interval' as const : 'playing' as const
-    complexo.stadium = structuredClone(estadioVisualValido(hostSave) ? hostSave : estadioPadraoDaDivisao(input.day.division))
+    // 🏟️ 07/11 (Diego: *"pode deixar todos com meu estádio mesmo"*): REVOGA a troca de 25/10 — jogo fora também desenha o SEU
+    // estádio (o do bot era o padrão da divisão e parecia quebrado). O resto do dia de fora (torcida menor, ruas vazias) continua.
+    void hostSave
+    complexo.stadium = structuredClone(own)
     complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), ...(day?.classico ? { classico: true } : {}), ...(day?.decisao ? { decisao: day.decisao } : {}), match: fase }
     complexo.awayStadium = structuredClone(own)
     complexo.awayDay = { division: input.day.division, support: Math.round(input.day.support * 0.45), ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
