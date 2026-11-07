@@ -117,6 +117,14 @@ function noise(dur: number, gain: number, filter: number, q = 1, delay = 0) {
   } catch { /* ignora */ }
 }
 
+// 🥅 07/11 (Campo 2D): bola na TRAVE — o "TÓIN" metálico do poste e, logo depois, o "uhhh" da torcida (voz grave caindo)
+export function playTrave() {
+  tone(1480, 0.42, 'triangle', 0.32); tone(2210, 0.3, 'sine', 0.16, 0.005); tone(990, 0.55, 'sine', 0.18, 0.01, 940)
+  noise(0.05, 0.35, 3200, 2)
+  for (const [f, d] of [[205, 0], [182, 0.03], [231, 0.05], [168, 0.08]] as const) tone(f, 1.25, 'sawtooth', 0.035, 0.22 + d, f * 0.72)
+  noise(1.1, 0.12, 420, 0.7, 0.22)
+}
+
 // 🪙 moeda: dois blips agudos rapidinhos
 export function playCoin() { tone(1180, 0.09, 'triangle', 0.5, 0); tone(1560, 0.10, 'triangle', 0.4, 0.05) }
 // ⏱️ tique do cronômetro (últimos segundos)

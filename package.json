@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "fanzone": "npx tsx scripts/testa-fanzone-colisao.mts",
+    "efeitos-2d": "npx tsx scripts/testa-efeitos-2d.mts",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:dev": "vite build --mode development",

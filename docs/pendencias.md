@@ -3,6 +3,18 @@
   de jogador de mentira (regra de 19/09) e o motor sim → reprovava → `replayOficialBloqueado` → sem 2D. Na Várzea (filler) quase sempre.
   Vale pra liga também (mesma régua). Agora compara só lado + autor + minuto. Trava: `npm run replay-assist` (reprova sem o conserto).
 
+
+## ✨ 07/11 — Campo 2D: 4 efeitos de lance (só na conta do Diego, `useCampo2DTester`; esperando OK da foto)
+- Pedido: da lista de ideias ele escolheu *"chute forte · bola na trave · cavadinha e chapéu · bola longa: sombra onde vai cair — pode
+  fazer"*. Feito em `campo2d-efeitos.ts` (regras puras) + desenho no `campo2d.tsx`, SÓ DESENHO (não mexe em placar, motor nem rng —
+  `npm run campo2d` igual). 💥 **chute forte** = rastro de fogo atrás da bola (só em CHUTE ≥ 24 m/s; o motor de sempre ganhou o
+  getter `chutando`, o novo usa `bola.lance.tipo`) e, no gol de longe (> 18 m), a rede balança mais forte e por mais tempo · 🔔
+  **trave** = o gol treme 0,7 s, "TÓIN!" sobe do poste e toca o som (metal + "uhhh" da torcida, `playTrave`) · 🎩 **chapéu** = a bola
+  passa por cima de quem estava colado em quem tocou (ou do goleiro, na cavadinha): 😳 + "CHAPÉU!" em cima dele 1,4 s (some na festa
+  do gol) · 🎯 **onde a bola cai** = sombra + anel tracejado com X no gramado que aperta conforme a bola desce (lançamento alto).
+  Foto: `scripts/mockups/campo2d-efeitos.png`. Trava: `npm run efeitos-2d`. Bancada: `scripts/teste-campo2d/?efeitos=1&rk=3`.
+- ⏳ Liberar pra todos = trocar `useCampo2DTester()` por liberado geral no `campo2d.tsx` (linha do `efeitosLance`) quando ele mandar.
+
 ## 🏟️ 07/11 — Mapa 3D: jogo FORA mostra o SEU estádio (Diego: *"pode deixar todos com meu estádio mesmo"*)
 - Revoga a troca de 25/10 (estádio do dono da casa no lugar do seu). Motivo: contra bot entrava o "estádio padrão da divisão",
   e o da Várzea tinha setor pela metade → pedaços de arquibancada soltos no ar (print dele, PAP × NEY, carreira na Várzea T12).
