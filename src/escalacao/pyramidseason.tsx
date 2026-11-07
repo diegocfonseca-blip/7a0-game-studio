@@ -7314,12 +7314,12 @@ function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaT
                 </span>
               </div>
               {!done && lastG && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.55)', margin: '1px 0 0', textAlign: 'center' }}>⚽ {lastG.name} <span style={{ opacity: 0.7 }}>{lastG.min > 90 ? `90+${lastG.min - 90}'` : `${lastG.min}'`}</span></p>}
-              {done && tie.pens && <p style={{ fontSize: 9, fontWeight: 800, color: '#C2452F', margin: '1px 0 0', textAlign: 'center' }}>{tr('🎯 pênaltis', '🎯 penalties')} {tie.pens[0]}×{tie.pens[1]}</p>}
+              {done && tie.pens && <p style={{ fontSize: 9, fontWeight: 800, color: '#C2452F', margin: '1px 0 0', textAlign: 'center', opacity: 0, animation: `copaPensShow .35s ease ${pensDelay.toFixed(2)}s forwards` }}>{tr('🎯 pênaltis', '🎯 penalties')} {tie.pens[0]}×{tie.pens[1]}</p>}
             </div>
           )
         })}
       </div>
-      {ties.some(t => t.pens) && <style>{'@keyframes copaLoserFade{to{opacity:.55;text-decoration:line-through}}'}</style>}
+      {ties.some(t => t.pens) && <style>{'@keyframes copaLoserFade{to{opacity:.55;text-decoration:line-through}}@keyframes copaPensShow{to{opacity:1}}'}</style>}
     </div>
   )
 }
@@ -9401,7 +9401,7 @@ export function PyramidSeasonScreen() {
     // do campinho ainda está rolando nesta tela (aparelho lento), o botão e o avanço esperam a última cobrança (até 8 s a mais)
     let segura: ReturnType<typeof setTimeout> | null = null
     const semDisputa = (f: () => void) => () => { const ini = Date.now(); const tenta = () => { if (disputaRolandoNaTela() && Date.now() - ini < 8000) segura = setTimeout(tenta, 250); else f() }; tenta() }
-    const rdy = pensNoCampo ? null : setTimeout(semDisputa(() => setCopaReady(true)), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
+    const rdy = pensNoCampo ? null : setTimeout(semDisputa(() => setCopaReady(true)), Math.max(0,dur+250+penMs-already)) // 🎬 07/11: era 0,9 × dur — o botão (e a chave da Central, a coletiva) acendia com o fim da volta (ou a disputa) ainda rolando
     const adv = manual || pensNoCampo ? null : setTimeout(semDisputa(avancaCopaAuto), Math.max(0,dur+2200+penMs-already))
     return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); if (rdy) clearTimeout(rdy); if (adv) clearTimeout(adv); if (segura) clearTimeout(segura) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for

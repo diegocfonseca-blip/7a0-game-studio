@@ -31,8 +31,14 @@ export const fimDoJogoMs=(duracao:number,doisD:boolean)=>doisD?Math.round(duraca
  *  normal, fecha mesmo assim — a sala nunca trava por causa de um aparelho. Nada muda no banco nem no canal. */
 export const SEGURA_PENALTIS_MS=8000
 export const seguraPelaDisputa=(due:number,now:number)=>now<due+SEGURA_PENALTIS_MS&&!!naTela.disputaRolandoNaTela?.()
-export function dueClockCommand(row:CopaClockRow,now:number,doisD=false):'finish'|'next'|null{
- if(row.running){const due=Date.parse(row.started_at)+fimDoJogoMs(row.duration_ms,doisD)+row.extra_ms+150;return now>=due&&!seguraPelaDisputa(due,now)?'finish':null}
+/** 🥅 07/11: o banco guarda no máximo 60 s de `extra` (`least(60000,p_extra)`), e uma morte súbita longa com gente passa disso
+ *  (37+ cobranças × 1,6 s). O aparelho do DONO sabe quanto a disputa da fase precisa (`pensRevealDelay`, a MESMA conta que ele
+ *  manda no 'next') e espera por ela antes de apitar — o banco aceita o 'finish' atrasado (só recusa adiantado). Teto de 3 min.
+ *  Nada muda no banco, no canal nem na coroa: só o dono espera mais pra mandar o mesmo comando de sempre. */
+export const EXTRA_MAX_PENALTIS_MS=180000
+export const fimDoPassoMs=(row:CopaClockRow,doisD=false,extraPrecisa=0)=>Date.parse(row.started_at)+fimDoJogoMs(row.duration_ms,doisD)+Math.max(row.extra_ms,extraPrecisa>0?700+Math.min(EXTRA_MAX_PENALTIS_MS,extraPrecisa):0)+150
+export function dueClockCommand(row:CopaClockRow,now:number,doisD=false,extraPrecisa=0):'finish'|'next'|null{
+ if(row.running){const due=fimDoPassoMs(row,doisD,extraPrecisa);return now>=due&&!seguraPelaDisputa(due,now)?'finish':null}
  // o último passo é a cerimônia (`PASSO_COPA.FIM`); o banco tem a mesma trava
  // 🎬 antes de passo que roda bola, 5s de abertura (copa-passos.ts)
  return !row.manual&&row.step<PASSO_COPA.FIM&&now>=Date.parse(row.updated_at)+respiroAntes(passoRodaBola(row.step+1),row.step,passoComResumo(row.step+1))?'next':null
@@ -77,7 +83,7 @@ export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,
    const r=current.current
    if(!isHost||!r)return
    const pronto2D=r.running?true:prepara2D() // 📺⚡ bola parada: a troca marcada pelo dono já vai sendo aplicada (auto E manual)
-   const cmd=dueClockCommand(r,stamp,doisDDoPasso(r)??doisD) // 📺 o 2D do passo é o que o banco carimbou nele
+   const cmd=dueClockCommand(r,stamp,doisDDoPasso(r)??doisD,r.running?extra.current(r.step):0) // 📺 o 2D do passo é o que o banco carimbou nele · 🥅 a disputa inteira, mesmo acima do teto do banco
    if(cmd==='next'&&!pronto2D)return // 📺⚡ espera o banco ter o 2D novo antes de começar o próximo passo
    if(cmd)void rpc(cmd)
   },250)

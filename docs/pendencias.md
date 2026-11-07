@@ -1,3 +1,30 @@
+## 🥅🙈 07/11 (2ª parte) — Pênaltis: corte de câmera, selo do celular, SEM SPOILER e o jogo nunca acaba antes (branch, sem push)
+- **Ninguém atravessa ninguém no 1º segundo**: a disputa abre com um CORTE DE CÂMERA (a tela escurece e clareia em 0,7 s) e, quando
+  clareia, cada um já está num anel em volta do círculo, perto da sua vaga; os dez de cada lado entram juntos em linha reta (só se
+  aproximam). Organização caiu de 7 s pra 3 s. A trava `penaltis-2d` agora mede DESDE O 1º QUADRO, metade dos casos saindo do jogo
+  andado (gente espalhada, dois colados numa dividida) — menor distância na organização 2,61 m.
+- **Celular (390 px)**: durante a disputa o selo do placar desce pro canto de BAIXO (em cima cobria o auxiliar da esquerda).
+- **Sem spoiler / sem corte** (todas as telas, com 2D e com placar normal/cinema):
+  · quickCopa (`screens.tsx`): a disputa do SEU jogo no campinho segura "Próximo", avanço automático, giro, riscado e "avança";
+    e **a causa do placar cinema "cortar o jogo"**: o placar grande recebia `copaLegMs` sem dividir pela marcha — em 2× a Copa virava
+    com o placar no ~57'. Agora anda na mesma marcha da fase.
+  · Copa da carreira (`pyramidseason.tsx`): o "Próxima fase" (e a chave da Central e a coletiva, que leem o mesmo `copaReady`)
+    acendia a 90% da fase — antes do fim da volta/disputa. Agora no fim + a disputa. Na sala, segura até 8 s se a cena atrasou.
+  · Copa do Mundo (`copa-mundo.tsx`): os OUTROS confrontos com pênaltis viram linha aos 93' (a disputa deles roda dentro do tempo
+    reservado; antes começava no apito do passo e era cortada) e o "Pênaltis X × Y · fulano avança" só sai no fim da disputa.
+  · Regionais: idem pros outros jogos (a disputa entra aos 93').
+  · Internacional (`career-international-view.tsx`): SEM o 2D a disputa agora aparece (a mesma tela de bolinhas da Copa da
+    carreira) e a noite só apita depois da última cobrança — antes o resultado saía seco no apito.
+  · Relógio do banco (Copa do Mundo/regionais): o banco guarda no máximo 60 s de `extra` e uma morte súbita longa com gente passa
+    disso (37+ cobranças). O aparelho do DONO agora espera a disputa inteira antes de mandar o `finish` (`fimDoPassoMs`, teto 3 min);
+    o banco aceita finish atrasado. **Nenhum SQL precisou** (nada aplicado). Coroa, canal, rng e resultado: intocados.
+- Trava nova: **`npm run penaltis-sem-spoiler`** (bolinhas/número uma por vez, as 5 telas, botão/automático, relógio do banco com
+  morte súbita de até 80 cobranças, registro "disputa na tela").
+- Fotos: `scripts/mockups/penaltis-2d-fix-*.png` (390×844 ×2: corte de câmera, perfilando, cobrança com o selo embaixo, fim; sala e Mundo).
+- ⚠️ `npm run sala-troca-2d` tem 1 falha que JÁ existia antes deste trabalho (conferido no `e9f3301`): "rodada jogada com e sem troca:
+  estado idêntico". Não mexi.
+- Reverter: os commits deste branch são isolados (cena, telas e trava); `git revert` de cada um volta ao que era.
+
 ## 🥅 07/11 — Disputa de pênaltis NO CAMPINHO 2D em todo modo (branch, sem push; esperando OK visual do Diego)
 - Pedido: *"em qualquer modo e competição com disputa de pênaltis, com o 2D, a disputa é no campinho"* + a referência de disputa
   de verdade (times perfilados no círculo central, goleiro que espera fora da área, árbitro do lado da marca AUTORIZANDO, auxiliares

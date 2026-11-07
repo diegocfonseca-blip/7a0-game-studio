@@ -1675,7 +1675,10 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
               // 🏆 jogo único: durante a partida os outros rolam em MiniLive (o seu
               // está lá em cima, ao vivo); no apito todos viram linha resolvida —
               // o seu com o "avança" segurado até a última cobrança dos pênaltis.
-              if (step === passo) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? sobraPens(t.pen, koTemGente(entrants, t)) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
+              // 🥅 07/11 (Diego: *"nada de spoiler"*): quem foi pros pênaltis vira linha já aos 93' — a disputa dele roda DENTRO do
+              // tempo que o passo reserva pra ela (antes só começava no apito do passo, e era cortada pela fase seguinte) — e o
+              // "Pênaltis X × Y · fulano avança" só aparece quando a última cobrança dela pipocou.
+              if (step === passo) return <div key={i}>{liveDone || (liveMin >= 93 && t.pen) ? tieRow(t, true, t.pen && !liveDone ? pensRevealDelay(t.pen, koTemGente(entrants, t)) : sobraPens(t.pen ?? [0, 0], false)) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
               return <div key={i}>{tieRow(t)}</div>
             })}
           </div>

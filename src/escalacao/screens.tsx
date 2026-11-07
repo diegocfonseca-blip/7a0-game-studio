@@ -7467,6 +7467,9 @@ export function EscSeason() {
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
   const copaPensMs = Math.max(13000, ...(qc?.ties ?? []).filter(t => t.pens && !t.ot).map(t => Math.ceil(pensRevealDelay(t.pens!, copaTemGenteQ(t), t.pensSeq) * 1000) + 300))
+  // 🎬 07/11 (Diego: *"o jogo não pode acabar antes"*): o placar grande do SEU jogo tem que andar na MESMA marcha da fase. Ele
+  // recebia `copaLegMs` cru (sem dividir pela marcha) e a fase virava com `copaLegMs / copaSf`: em 2× o placar cinema estava no
+  // ~57' quando a Copa pulava pra próxima perna — era o "às vezes corta o jogo" (só fora do 2D e com a marcha acima de 1×).
   const copaAnimMs = Math.round(copaLegMs / copaSf) + (phaseFullyPlayed && anyPens ? copaPensMs : 0)
   // 👑 relógio da Kings: o SEU jogo da rodada (liga) ou o SEU jogo da fase (mata-mata)
   const kTie = kingsS && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id) && t.legs.length > 0) : undefined
@@ -7901,7 +7904,7 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'r32' ? 50 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={copaLegMs} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+                      roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad, fCasa: state.managers.find(m => m.id === legHomeId)?.formation, fFora: state.managers.find(m => m.id === legAwayId)?.formation }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
