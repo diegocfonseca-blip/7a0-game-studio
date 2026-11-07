@@ -37,8 +37,8 @@ const sala = (extra: Record<string, unknown> = {}) => {
   s = reducer(s, { type: 'SET_SIM_SPEED', speed: 3 } as never) // o caso da 4RVDD8
   ok(vel2dDoContexto(s, 2) === 2.5 && dur2DDaVel(vel2dDoContexto(s, 2)) === DUR_2D_SALA_MS, 'simSpeed=3 velho gravado: 2,5× (36 s), não multiplica (era 9×)')
   s = reducer(s, { type: 'SET_VEL_2D', vel: 4 } as never)
-  ok(vel2dSala(s) === 2.5, 'sala SEM Manual: nem a marcha do estado muda — 2,5× cravado')
-  ok(vel2dSala({ manualRoom: false, streamMode: false, vel2d: 1.5 }) === 2.5, '… em qualquer valor')
+  ok(vel2dSala(s) === 4, '07/11: escolheu 4× no Manual e voltou pro AUTO → o auto fica em 4×')
+  ok(vel2dSala(reducer(s, { type: 'SET_VEL_2D', vel: 2.5 } as never)) === 2.5, '… voltou pro 2,5× no Manual → o auto fica em 2,5×')
 }
 {
   let s = sala({ manual: true })
@@ -73,12 +73,12 @@ ok(vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, 3.5) === 3.5 && ve
 ok(vel2dDoContexto({ onlineMode: 'cpu' }, 2) === 2, 'Partida Rápida offline padrão 2×')
 
 console.log('🗄️ 5) relógio do banco (Copa do Mundo/regionais)')
-ok(vel2dBanco(false, 2) === 2.5 && vel2dBanco(false, 4) === 2.5 && vel2dBanco(true, null) === 2.5 && vel2dBanco(true, 0.5) === 2.5 && vel2dBanco(true, 1) === 1 && vel2dBanco(true, 3.5) === 3.5, 'AUTO = 2,5× cravado; Manual = a opção da coluna vel2d (sem escolha/inválida = 2,5×)')
+ok(vel2dBanco(false, 2) === 2 && vel2dBanco(false, 4) === 4 && vel2dBanco(true, null) === 2.5 && vel2dBanco(true, 0.5) === 2.5 && vel2dBanco(true, 1) === 1 && vel2dBanco(true, 3.5) === 3.5, '07/11: AUTO e Manual usam a última marcha escolhida (sem escolha/inválida = 2,5×)')
 ok(PASSOS_2D_BANCO_MS.every(d => doisDDoPasso({ step: 2, duration_ms: d, speed: 1 }) === true && doisDDoPasso({ step: 2, duration_ms: d, speed: 2.5 }) === true), 'o aparelho reconhece todo passo 2D da régua nova, com qualquer speed')
 ok([0.25, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4].every(v => doisDDoPasso({ step: 2, duration_ms: Math.round(16000 / v), speed: v }) === false), 'placar normal (16000 ÷ speed) nunca é confundido com 2D')
 ok(doisDDoPasso({ step: 2, duration_ms: 36585, speed: 1 }) === true && doisDDoPasso({ step: 2, duration_ms: Math.round(36585 / 2), speed: 2 }) === true, 'e o 36585 (3×, o que o banco carimba HOJE) e o 36585 ÷ speed continuam 2D — nada quebra entre o deploy e o SQL')
-const sql = readFileSync(new URL('../docs/sql/campo2d-sala-2-5x.sql', import.meta.url), 'utf8')
-ok((sql.match(/round\(109756\.0\/\(case when r\.manual and coalesce\(r\.vel2d,gv\) in \(1,1\.5,2,2\.5,3,3\.5,4\) then coalesce\(r\.vel2d,gv\) else 2\.5 end\)\)/g) ?? []).length === 2, 'SQL: as duas funções (Copa do Mundo e regionais) seguem a marcha do Manual (a da copa, senão a da sala), padrão 2,5× — sem valor fixo')
+const sql = readFileSync(new URL('../docs/sql/campo2d-vel-lembra-auto.sql', import.meta.url), 'utf8')
+ok((sql.match(/round\(109756\.0\/\(case when coalesce\(r\.vel2d,gv\) in \(1,1\.5,2,2\.5,3,3\.5,4\) then coalesce\(r\.vel2d,gv\) else 2\.5 end\)\)/g) ?? []).length === 2, 'SQL: as duas funções (Copa do Mundo e regionais) seguem a marcha do Manual (a da copa, senão a da sala), padrão 2,5× — sem valor fixo')
 ok((sql.match(/\(g\.game_state->>'vel2d'\)::numeric into d2, gv/g) ?? []).length === 2, 'SQL: a marcha da sala (game_state.vel2d) é lida a cada passo')
 ok((sql.match(/p_command='vel2d' and p_speed in \(1,1\.5,2,2\.5,3,3\.5,4\)/g) ?? []).length === 2 && (sql.match(/add column if not exists vel2d/g) ?? []).length === 2, 'SQL: coluna e comando próprios da marcha do 2D (a speed do placar normal fica como estava)')
 ok((sql.match(/p_command='speed' and p_speed in \(0\.25,0\.5,1,2,3,4\)/g) ?? []).length === 2 && (sql.match(/round\(16000\/r\.speed\)/g) ?? []).length === 2, 'SQL: placar normal sem mudança')

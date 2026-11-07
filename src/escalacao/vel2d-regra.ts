@@ -2,8 +2,8 @@
 //
 // Antes a marcha do Manual MULTIPLICAVA por cima da base (sala 3× × simSpeed 3 = 9×, ~12 s por jogo na sala 4RVDD8).
 // Agora cada opção É a velocidade do jogo, contada sobre o jogo inteiro de 1:30 (1× = 90 s · 2× = 45 s · 3× = 30 s · 4× = 22,5 s):
-//   • SALAS ONLINE (todo modo): padrão 2,5× (06/11, o Diego trocou de 3× pra 2,5×). Sala SEM Manual = 2,5× cravado (qualquer
-//     simSpeed velho é ignorado). Sala COM Manual: o dono escolhe 1× · 1,5× · 2× · 2,5× · 3× · 3,5× · 4× — vai no estado da sala
+//   • SALAS ONLINE (todo modo): padrão 2,5× (06/11, o Diego trocou de 3× pra 2,5×). Sem escolha = 2,5× (simSpeed velho é ignorado).
+//     🔁 07/11: a ÚLTIMA marcha escolhida no Manual vale no AUTO também. O dono escolhe 1× · 1,5× · 2× · 2,5× · 3× · 3,5× · 4× — vai no estado da sala
 //     (`vel2d`), vale pra todos.
 //   • CARREIRA (offline e a online) e PARTIDA RÁPIDA offline: padrão 2×; o Manual escolhe 1× · 1,5× · 2× · 2,5× · 3× · 3,5× · 4×.
 //     Offline a última marcha fica no aparelho (`esc-vel2d`) e vale no automático também; na carreira online vale a do DONO.
@@ -58,8 +58,10 @@ type EstadoVel = { onlineMode?: string; careerOnline?: boolean; manualRoom?: boo
 /** a sala tem o Manual (criada manual ou em stream) — só aí o dono escolhe a marcha */
 export const salaTemManual = (s: EstadoVel) => !!(s.manualRoom || s.streamMode)
 /** 🌐 SALA ONLINE: sem Manual = 2,5× cravado; com Manual = a escolha do dono (inválida/ausente = 2,5×). `simSpeed` NUNCA entra. */
+// 🔁 07/11 (Diego): *"clicar em 4x e depois apertar em auto, passa a ser o auto 4x… voltar no manual pra 2,5 e depois auto, vale o 2,5"*.
+// A ÚLTIMA marcha escolhida no Manual vale no AUTOMÁTICO também (igual à carreira/rápida offline). Sem escolha = 2,5×.
 export function vel2dSala(s: EstadoVel): number {
-  return salaTemManual(s) && valida(s.vel2d, VEL2D_SALA_VALORES) ? s.vel2d : VEL2D_SALA_PADRAO
+  return valida(s.vel2d, VEL2D_SALA_VALORES) ? s.vel2d : VEL2D_SALA_PADRAO
 }
 /** 🌐🏆 CARREIRA ONLINE: a marcha do dono (no estado da sala), padrão 2× */
 export function vel2dCarreiraOnline(s: EstadoVel): number {
@@ -83,8 +85,8 @@ export const seg2DDaVel = (v: number) => Math.round(DUR_2D_BASE_MS * 0.82 / v) /
 // A marcha do 2D mora numa coluna PRÓPRIA (`vel2d`), separada da `speed` do placar normal — a `speed` nasce 1 ("Normal"), e 1
 // agora é uma opção de verdade do 2D (1×); misturar as duas faria toda sala manual cair em 1:30 sem ninguém escolher.
 /** a marcha absoluta que o banco usa no passo 2D: Manual com `vel2d` válida = ela; senão 2,5× */
-export function vel2dBanco(manual: boolean, vel2d: number | null | undefined): number {
-  return manual && valida(vel2d, VEL2D_SALA_VALORES) ? vel2d : VEL2D_SALA_PADRAO
+export function vel2dBanco(_manual: boolean, vel2d: number | null | undefined): number {
+  return valida(vel2d, VEL2D_SALA_VALORES) ? vel2d : VEL2D_SALA_PADRAO // 🔁 07/11: a última marcha vale no AUTO também
 }
 /** as durações que o banco carimba no passo 2D com a régua nova (uma por opção) */
 export const PASSOS_2D_BANCO_MS = VEL2D_SALA_VALORES.map(dur2DDaVel)
