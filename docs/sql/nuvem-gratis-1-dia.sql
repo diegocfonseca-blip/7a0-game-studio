@@ -1,3 +1,4 @@
+-- ✅ APLICADO no banco em 07/11 às 22:50 UTC (migration nuvem_gratis_1_dia).
 -- ☁️ 07/11 (Diego: "ficou um dia sem jogar, quem não tem plano pode apagar o save… pra dar espaço… só tem direito a um save").
 -- Troca o prazo de 7 dias (de 26/10) por 1 DIA e passa a valer pra TODA conta sem plano (não só a marcada a partir de 26/10).
 -- O relógio começa na hora em que isto é aplicado: ninguém perde a carreira no mesmo dia da mudança (`inicio`).
@@ -8,7 +9,7 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare n integer := 0; inicio constant timestamptz := '__INICIO__';
+declare n integer := 0; inicio constant timestamptz := '2026-11-07T22:50:00Z';
 begin
   with alvo as (
     select p.user_id from public.esc_pyramid_saves p

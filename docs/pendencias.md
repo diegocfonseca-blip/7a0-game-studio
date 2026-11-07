@@ -15,7 +15,7 @@
   tá ótimo", 1 carreira só, 1 dia sem salvar = apagada da nuvem) + planos — foto `scripts/mockups/salvar-gratis-aviso.png`, fecha uma vez
   (`nuvem-1d`); 2D grátis na CARREIRA (`useCampo2DLigado`/`Botao2D` com `careerOnline`; o cadeado vira só do Manual; Partida Rápida segue
   paga); 2D da carreira padrão **1,5×** (`VEL2D_CARREIRA_PADRAO`), sem Manual cravado em 1,5× (`vel2dDoContexto`).
-- ⏳ BANCO (só depois do OK): `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
+- ✅ BANCO APLICADO 07/11 22:50 UTC: `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
   hora. Apaga só a NUVEM (o aparelho guarda e sobe de novo no próximo Salvar). Ficha grátis já era 1 (`careerSlotLimit`, quem tinha mais ficou).
 
 ## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (PUBLICADO 07/11)
