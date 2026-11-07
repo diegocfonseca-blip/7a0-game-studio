@@ -7,7 +7,7 @@
 - Ideias da lista que ele NÃO escolheu (não repropor sem ele pedir): ola, torcida indo embora, sinalizador, gestos do juiz, gandulas, banco/técnico reagindo, placas LED.
 
 
-## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (FEITO e publicado)
+## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (FEITO no branch, esperando "publica")
 - Diego: *"ele pode criar uma sala de graça pra ele, pra teste… já pode ter opção de 2D… só o Liga Draft que o cara já tem que ter plano"*.
   `pode2d` (lobby.tsx) libera quando `roomMode === 'rapido'` e o botão do dono na sala (`TrocaCampo2DSala`) liga o 2D em sala que não é
   liga nem carreira. Liga Draft/Liga da Turma/carreira em sala continuam do plano. O banco não confere plano pro 2D (nada a mudar lá).
