@@ -1,3 +1,13 @@
+## 🚶 07/11 — FAN ZONE no mapa 3D, etapa 1 (só na conta do Diego, `FANZONE_GERAL = false` em sport.ts)
+- Pedido: *"andar pelas ruas… entrar no estádio… escolher a cadeira… ver outros usuários"* → mockup `scripts/mockups/fanzone.png` →
+  boneco 1 (Rapaz) dos 6 do mapa (`scripts/mockups/bonecos-3d-mapa.png`) → *"pode p eu testar"*.
+- ✅ Botão 🚶 Passear (canto de baixo do mapa) → joystick (ou WASD/setas, Shift corre) → portão da torcida (cartão "Entrar no estádio")
+  → 4 cadeiras livres do setor da casa → "Sentar e assistir" (câmera por cima do ombro) → "Levantar" volta pra rua. Código:
+  `presidencia-fanzone-3d.ts` (cena/regras) + `presidencia-fanzone-hud.tsx` (tela) + ganchos no `presidencia-complexo-3d.tsx`.
+  Não mexe em save/jogo/torcida. Teste: `node scripts/teste-fanzone.cjs <pasta>` (com o vite em 127.0.0.1:4199). Fotos: `scripts/mockups/fanzone-real.png`.
+- ⏳ Falta: o boneco atravessa casa/prédio (só o estádio barra), o chão é plano (y fixo), a camisa é dourada fixa (não puxa as
+  cores do presidente ainda), sem "comemorar gol" sentado. Etapa 2 (ver outros usuários) ainda não começou — combinar o jeito barato.
+
 ## 🪽 07/11 — 3-5-2 na Liga Draft (Diego: "coloque formação 352 na liga draft" → opção A)
 - ✅ Botão **3-5-2** logo depois do 5-3-2 no seletor de formação da Liga Draft. É o 5-3-2 com os laterais subindo como alas
   (o mesmo `formationView: '3-5-2'` da carreira — conta do motor = 5-3-2, só muda o desenho do campinho). `MLD_FORMACAO` aceita
