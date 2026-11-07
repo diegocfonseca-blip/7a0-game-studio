@@ -22,8 +22,13 @@
   certo (sinal trocado), correr 4,8 m/s (andar 2,4), a câmera NÃO gira sozinha atrás do boneco — arrastar a tela gira (e sentado,
   olha em volta), cadeiras lá EM CIMA no meio-campo (fila do topo − 1), e "🚶 Passear"/"✕ Sair do passeio" moram na BARRA DE CIMA do
   mapa (os botões do mapa e a dica somem durante o passeio). Fotos: `scripts/mockups/fanzone-v2.png`.
-- ⏳ Falta: o boneco atravessa casa/prédio (só o estádio barra), o chão é plano (y fixo), a camisa é dourada fixa (não puxa as
-  cores do presidente ainda), sem "comemorar gol" sentado. Etapa 2 (ver outros usuários) ainda não começou — combinar o jeito barato.
+- ✅ **2ª leva (07/11, *"pode fazer e publica p minha conta"*)**: o boneco NÃO atravessa mais casa/prédio/loja (usa os ~600
+  sólidos do entorno, `criarColisaoFanZone`; toldo/placa no alto não barram; desliza pela parede) · camisa na cor do SEU time do jogo
+  do dia (`fora` → cor de fora; sem jogo, dourado) · 🎉 gol do seu time com você sentado = levanta, pula em pé na cadeira com os braços
+  pra cima e senta de novo (câmera de TV na frente dele por 3,4 s) · 🧭 seta + metros até o portão e botão "🎟️ Ir pro portão" ·
+  🔊 o som da torcida liga sozinho no passeio (se o som não estiver mudo e tiver jogo) e cresce conforme ele chega no estádio.
+  O chão do bairro é plano (0,16), então "subir terreno" não se aplica. Trava: `npm run fanzone`. Fotos: `scripts/mockups/fanzone-v3.png`.
+- ⏳ Falta (próximo): etapa 2 — ver outros usuários na arquibancada (frases prontas em balão), combinar o jeito barato no canal.
 
 ## 🥅🙈 07/11 (2ª parte) — Pênaltis: corte de câmera, selo do celular, SEM SPOILER e o jogo nunca acaba antes (branch, sem push)
 - **Ninguém atravessa ninguém no 1º segundo**: a disputa abre com um CORTE DE CÂMERA (a tela escurece e clareia em 0,7 s) e, quando

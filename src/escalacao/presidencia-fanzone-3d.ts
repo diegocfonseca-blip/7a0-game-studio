@@ -23,13 +23,39 @@ const INICIO = { x: STADIUM_HOME_GATE.approach.x + 4, z: STADIUM_HOME_GATE.appro
 export function dentroDoEstadio(x: number, z: number): boolean {
   return x > ESTADIO.minX && x < ESTADIO.maxX && z > ESTADIO.minZ && z < ESTADIO.maxZ
 }
-/** um passo do boneco: anda na direção pedida, mas nunca sai do mundo nem entra no estádio (desliza pela parede) */
-export function passoFanZone(x: number, z: number, dx: number, dz: number): { x: number; z: number } {
+type Ponto = { x: number; z: number }
+export type ObstaculoFanZone = { minX: number; maxX: number; minZ: number; maxZ: number; base: number; top: number; footprint?: readonly Ponto[] }
+const RAIO = 0.32 // o "corpo" do boneco: chega encostado na parede, mas não entra
+const dentroPoligono = (x: number, z: number, poly: readonly Ponto[]) => {
+  let r = false
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j]
+    if ((a.z > z) !== (b.z > z) && x < (b.x - a.x) * (z - a.z) / (b.z - a.z) + a.x) r = !r
+  }
+  return r
+}
+/** 07/11 (2º pedido do Diego): casa, prédio, loja, muro — o boneco não atravessa mais. Só conta o que está NO CHÃO e é alto
+ *  o bastante pra barrar uma pessoa (base < 0,4 m e topo > 0,5 m); toldo, placa e marquise lá em cima não barram ninguém. */
+export function criarColisaoFanZone(obstaculos: readonly ObstaculoFanZone[]) {
+  const solidos = obstaculos.filter(o => o.base < 0.4 && o.top > 0.5)
+  return (x: number, z: number) => {
+    for (const o of solidos) {
+      if (x < o.minX - RAIO || x > o.maxX + RAIO || z < o.minZ - RAIO || z > o.maxZ + RAIO) continue
+      const f = o.footprint
+      if (!f || f.length < 3) return true
+      if (dentroPoligono(x, z, f) || dentroPoligono(x + RAIO, z, f) || dentroPoligono(x - RAIO, z, f) || dentroPoligono(x, z + RAIO, f) || dentroPoligono(x, z - RAIO, f)) return true
+    }
+    return false
+  }
+}
+/** um passo do boneco: anda na direção pedida, mas nunca sai do mundo, nem entra no estádio, nem atravessa casa (desliza pela parede) */
+export function passoFanZone(x: number, z: number, dx: number, dz: number, bate: (x: number, z: number) => boolean = () => false): { x: number; z: number } {
   const cx = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
+  const barra = (a: number, b: number) => dentroDoEstadio(a, b) || bate(a, b)
   let nx = cx(x + dx, LIMITE.minX, LIMITE.maxX), nz = cx(z + dz, LIMITE.minZ, LIMITE.maxZ)
-  if (dentroDoEstadio(nx, nz)) {
-    if (!dentroDoEstadio(nx, z)) nz = z
-    else if (!dentroDoEstadio(x, nz)) nx = x
+  if (barra(nx, nz)) {
+    if (!barra(nx, z)) nz = z
+    else if (!barra(x, nz)) nx = x
     else { nx = x; nz = z }
   }
   return { x: nx, z: nz }
@@ -42,9 +68,10 @@ export function cadeirasDaCasa(seats: readonly AssentoComplexo[], ocupadas: Read
   return casa.sort((a, b) => Math.abs(a.row - (topo - 1)) - Math.abs(b.row - (topo - 1)) || Math.abs(a.position.x) - Math.abs(b.position.x)).slice(0, n)
 }
 
-export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: string; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
+export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: () => string | undefined; obstaculos?: () => readonly ObstaculoFanZone[]; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
   let fase: FaseFanZone = 'fora'
   const pos = new THREE.Vector3(INICIO.x, CHAO, INICIO.z)
+  let nObst = 0, comemoraIni = -1, corAtual = '', bate: (x: number, z: number) => boolean = () => false
   let heading = Math.PI, camYaw = Math.PI, camPitch = 0.42, olhar = 0, olharPitch = 0, dist = 0, vel = 0, seated = 0, seatedAlvo = 0, t = 0
   let opcoes: AssentoComplexo[] = [], escolhida: AssentoComplexo | null = null
   const input = { x: 0, y: 0, correr: false }
@@ -63,9 +90,14 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
 
   function ligar() {
     if (fase !== 'fora') return
-    if (!ator) ator = createCivilian(scene, { id: 'fanzone-eu', variant: 'adult-man', outfitColor: /^#[0-9a-f]{6}$/i.test(opts.cor ?? '') ? opts.cor : '#FFC400' })
+    // 07/11: a camisa sai na cor do SEU time (a do jogo do dia; sem jogo, dourado). Mudou a cor? Veste o boneco de novo.
+    const c = opts.cor?.() ?? '', cor = /^#[0-9a-f]{6}$/i.test(c) ? c : '#FFC400'
+    if (ator && cor !== corAtual) { ator.dispose(); ator = null }
+    if (!ator) { ator = createCivilian(scene, { id: 'fanzone-eu', variant: 'adult-man', outfitColor: cor }); corAtual = cor }
+    const obst = opts.obstaculos?.() ?? []; nObst = obst.filter(o => o.base < 0.4 && o.top > 0.5).length
+    bate = criarColisaoFanZone(obst)
     ator.root.visible = true
-    pos.set(INICIO.x, CHAO, INICIO.z); heading = Math.PI; camYaw = Math.PI; camPitch = 0.42; olhar = olharPitch = 0; seated = seatedAlvo = 0; vel = 0
+    pos.set(INICIO.x, CHAO, INICIO.z); heading = Math.PI; camYaw = Math.PI; camPitch = 0.42; olhar = olharPitch = 0; seated = seatedAlvo = 0; vel = 0; comemoraIni = -1
     window.addEventListener('keydown', down); window.addEventListener('keyup', up)
     muda('andando')
   }
@@ -99,11 +131,25 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     muda('sentado')
   }
   function levantar() {
-    seatedAlvo = 0; seated = 0
+    seatedAlvo = 0; seated = 0; comemoraIni = -1
     const g = STADIUM_HOME_GATE
     pos.set(g.approach.x, CHAO, g.approach.z - 2); heading = Math.PI; camYaw = Math.PI
     muda('andando')
   }
+
+  const PORTAO = { x: STADIUM_HOME_GATE.approach.x, z: STADIUM_HOME_GATE.threshold.z + 6 }
+  /** 07/11: atalho "ir pro portão" — leva o boneco pra frente do portão da torcida, de frente pra ele */
+  function irProPortao() {
+    if (fase !== 'andando' && fase !== 'portao') return
+    pos.set(PORTAO.x, CHAO, PORTAO.z + 5); heading = Math.PI; camYaw = Math.PI; vel = 0
+  }
+  /** a seta do canto: quantos metros até o portão e pra que lado da TELA ele fica (0 = pra frente, + = pra direita) */
+  function rumo() {
+    const vx = PORTAO.x - pos.x, vz = PORTAO.z - pos.z, c = Math.cos(camYaw), sn = Math.sin(camYaw)
+    return { metros: Math.round(Math.hypot(vx, vz)), angulo: Math.atan2(-vx * c + vz * sn, vx * sn + vz * c) }
+  }
+  /** gol do seu time com você sentado: levanta, comemora (Victory) com uns pulinhos e senta de novo */
+  function gol() { if (fase === 'sentado' && comemoraIni < 0) comemoraIni = t }
 
   /** a cada quadro (dentro do render do mapa): anda o boneco e põe a câmera. Devolve true se a câmera é dele. */
   function update(dt: number, camera: THREE.PerspectiveCamera, target: THREE.Vector3): boolean {
@@ -123,15 +169,20 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
         const alvo = Math.atan2(dx / l, dz / l)
         let d = alvo - heading; d = Math.atan2(Math.sin(d), Math.cos(d)); heading += d * Math.min(1, dt * 10)
         vel = (input.correr || teclas.has('shift') ? CORRE : ANDA) * m
-        const p = passoFanZone(pos.x, pos.z, Math.sin(heading) * vel * dt, Math.cos(heading) * vel * dt)
+        const p = passoFanZone(pos.x, pos.z, Math.sin(heading) * vel * dt, Math.cos(heading) * vel * dt, bate)
         dist += Math.hypot(p.x - pos.x, p.z - pos.z); pos.x = p.x; pos.z = p.z
       } else vel = 0
       const g = STADIUM_HOME_GATE, perto = Math.hypot(pos.x - g.approach.x, pos.z - (g.threshold.z + 6)) < PERTO_PORTAO
       if (perto && fase === 'andando') muda('portao'); else if (!perto && fase === 'portao') muda('andando')
     }
-    seated += (seatedAlvo - seated) * Math.min(1, dt * 3)
-    ator.root.position.copy(pos); ator.root.rotation.set(0, heading, 0)
-    ator.update({ seconds: t, distance: dist, speed: vel, seated, transition: seatedAlvo < seated ? 'standing' : undefined })
+    const COMEMORA = 3.4, ct = comemoraIni < 0 ? -1 : t - comemoraIni
+    if (ct > COMEMORA) comemoraIni = -1
+    const festa = ct >= 0 && ct <= COMEMORA, alvoSentado = festa && ct < COMEMORA - 0.6 ? 0 : seatedAlvo
+    seated += (alvoSentado - seated) * Math.min(1, dt * (festa ? 9 : 3))
+    if (festa && alvoSentado === 0 && seated < 0.02) seated = 0
+    const pulo = festa && seated === 0 ? Math.abs(Math.sin(ct * 7)) * 0.22 : 0
+    ator.root.position.set(pos.x, pos.y + pulo, pos.z); ator.root.rotation.set(0, heading, 0)
+    ator.update({ seconds: t, distance: dist, speed: vel, seated, transition: alvoSentado < seated ? 'standing' : undefined, ...(festa && seated === 0 ? { activity: 'celebrating', activityTime: Math.max(0, ct - 0.4) } : {}) })
     if (fase === 'andando' || fase === 'portao') {
       // atrás e acima, girando com o dedo (camYaw/camPitch): o boneco no terço de baixo e a rua na frente
       const d = 9, hz = Math.cos(camPitch) * d, vy = Math.sin(camPitch) * d
@@ -144,9 +195,12 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
       const hx = Math.sin(s.heading), hz = Math.cos(s.heading)
       const base = tmp.set(s.position.x, s.position.y + (s.seatHeight || 0.45), s.position.z)
       // sentado: por cima do ombro, alto o bastante pra cabeça não tapar o gramado
-      camPos.set(base.x - hx * (fase === 'escolhendo' ? 4.5 : 1.9), base.y + (fase === 'escolhendo' ? 3.2 : 2.5), base.z - hz * (fase === 'escolhendo' ? 4.5 : 1.9))
-      camAlvo.set(0, 0, 0).lerp(base, fase === 'escolhendo' ? 0.75 : 0.05)
-      if (fase === 'sentado' && (olhar || olharPitch)) { // olhando em volta da cadeira (gira o alvo em torno da cabeça)
+      // 🎉 no gol do seu time a câmera recua um pouco pra você VER o boneco levantar e pular (sentado ele fica embaixo da câmera)
+      // (câmera de TV: na frente dele, um pouco de lado e acima, olhando pra ele com a torcida atrás)
+      const recua = fase === 'escolhendo' ? 4.5 : 1.9, sobe = fase === 'escolhendo' ? 3.2 : 2.5
+      if (festa) { camPos.set(base.x + hx * 4.4 + hz * 1.6, base.y + 2.4, base.z + hz * 4.4 - hx * 1.6); camAlvo.set(base.x, base.y + 0.7, base.z) }
+      else { camPos.set(base.x - hx * recua, base.y + sobe, base.z - hz * recua); camAlvo.set(0, 0, 0).lerp(base, fase === 'escolhendo' ? 0.75 : 0.05) }
+      if (fase === 'sentado' && !festa && (olhar || olharPitch)) { // olhando em volta da cadeira (gira o alvo em torno da cabeça)
         const vx = camAlvo.x - camPos.x, vz = camAlvo.z - camPos.z, c = Math.cos(olhar), sn = Math.sin(olhar)
         camAlvo.set(camPos.x + vx * c - vz * sn, camAlvo.y + olharPitch * 40, camPos.z + vx * sn + vz * c)
       }
@@ -158,10 +212,12 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
   }
 
   return {
-    input, ligar, desligar, entrar, escolher, sentar, levantar, update, girar,
+    input, ligar, desligar, entrar, escolher, sentar, levantar, update, girar, irProPortao, rumo, gol,
     ativo: () => fase !== 'fora',
+    /** onde o boneco está (o som da torcida cresce conforme ele chega perto do estádio) */
+    posicao: () => pos,
     fase: () => fase,
-    inspect: () => ({ fase, pos: pos.toArray(), heading, escolhida: escolhida?.id ?? null, opcoes: opcoes.map(o => o.id) }),
+    inspect: () => ({ comemorando: comemoraIni >= 0, obstaculos: nObst, fase, pos: pos.toArray(), heading, escolhida: escolhida?.id ?? null, opcoes: opcoes.map(o => o.id) }),
     dispose() { desligar(); ator?.dispose(); ator = null },
   }
 }

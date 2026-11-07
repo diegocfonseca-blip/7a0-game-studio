@@ -2,7 +2,7 @@
 // `presidencia-fanzone-3d.ts`; aqui só o controle (joystick), arrastar pra girar a câmera e os cartões de cada passo.
 // 🔁 07/11 (1º teste do Diego): o botão de entrar/sair mora na BARRA DE CIMA do mapa (junto de Mapa/Locais — antes ficava em
 // cima de outro botão e o "sair" não pegava); durante o passeio os botões do mapa (+ − Ver tudo Girar, Controles) somem.
-import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import { useT } from './lang'
 import type { CadeiraFanZone, FaseFanZone } from './presidencia-fanzone-3d'
 
@@ -11,7 +11,7 @@ const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, 
 const btn: CSSProperties = { ...OSW, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 12px', boxShadow: `3px 3px 0 ${INK}`, fontSize: 13, cursor: 'pointer', pointerEvents: 'auto' }
 const verde: CSSProperties = { ...btn, background: GREEN, color: '#fff', width: '100%', fontSize: 15, padding: '10px 12px' }
 
-type Controle = { input: { x: number; y: number; correr: boolean }; ligar(): void; desligar(): void; entrar(): boolean; escolher(id: string): void; sentar(): void; levantar(): void; girar(dx: number, dy: number): void }
+type Controle = { input: { x: number; y: number; correr: boolean }; ligar(): void; desligar(): void; entrar(): boolean; escolher(id: string): void; sentar(): void; levantar(): void; girar(dx: number, dy: number): void; irProPortao(): void; rumo(): { metros: number; angulo: number } }
 
 export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZone; cadeiras: CadeiraFanZone[]; escolhida: string; fan: Controle | null }) {
   const t = useT()
@@ -25,6 +25,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZo
     <div style={camada}>
       {arrasta(null)}
       {chip(fase === 'portao' ? t('🎟️ Portão da torcida', '🎟️ Supporters gate') : t('🚶 Siga até o portão da torcida', '🚶 Head to the supporters gate'))}
+      {fase === 'andando' && <Bussola fan={fan} />}
       {fase === 'portao' && (
         <div style={{ position: 'absolute', left: 12, right: 12, top: 96, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto', zIndex: 2 }}>
           <small style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 0 8px', fontWeight: 600 }}>{semCadeira ? t('A arquibancada da casa está lotada agora. Tenta de novo daqui a pouco.', 'The home stand is full right now. Try again in a bit.') : t('Entra e escolhe a sua cadeira no setor da casa.', 'Go in and pick your seat in the home stand.')}</small>
@@ -87,6 +88,22 @@ function Joystick({ fan }: { fan: Controle }) {
       onPointerDown={e => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); move(e) }} onPointerMove={e => { if (e.buttons || e.pointerType === 'touch') move(e) }} onPointerUp={solta} onPointerCancel={solta}
       style={{ position: 'absolute', left: 16, bottom: 18, width: 112, height: 112, borderRadius: '50%', background: 'rgba(255,255,255,.4)', border: `3px solid rgba(0,0,0,.65)`, touchAction: 'none', pointerEvents: 'auto', zIndex: 2 }}>
       <i style={{ position: 'absolute', left: 56 - 22 + p.x, top: 56 - 22 + p.y, width: 44, height: 44, borderRadius: '50%', background: GOLD, border: `3px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}`, boxSizing: 'border-box' }} />
+    </div>
+  )
+}
+
+/** 🧭 07/11: a seta aponta pro portão da torcida (em relação à TELA, gira junto com a câmera) + os metros + o atalho */
+function Bussola({ fan }: { fan: Controle }) {
+  const t = useT()
+  const [r, setR] = useState(() => fan.rumo())
+  useEffect(() => { const id = window.setInterval(() => setR(fan.rumo()), 120); return () => window.clearInterval(id) }, [fan])
+  return (
+    <div style={{ position: 'absolute', right: 10, top: 60, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, zIndex: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '3px 8px 3px 4px', boxShadow: `2px 2px 0 ${INK}` }}>
+        <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: '50%', background: GREEN, color: '#fff', fontSize: 16, fontWeight: 900, transform: `rotate(${r.angulo}rad)` }}>↑</span>
+        <b style={{ ...OSW, fontSize: 12 }}>{t('Portão', 'Gate')} · {r.metros} m</b>
+      </div>
+      <button type="button" onClick={() => fan.irProPortao()} style={{ ...btn, fontSize: 11.5, padding: '5px 9px', boxShadow: `2px 2px 0 ${INK}` }}>{t('🎟️ Ir pro portão', '🎟️ Go to the gate')}</button>
     </div>
   )
 }
