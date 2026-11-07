@@ -6,6 +6,12 @@
 - Ficou pra depois, se ele pedir: no celular o selo do placar cobre os 2 fotógrafos de cima à esquerda; telão do celular é bem pequeno.
 - Ideias da lista que ele NÃO escolheu (não repropor sem ele pedir): ola, torcida indo embora, sinalizador, gestos do juiz, gandulas, banco/técnico reagindo, placas LED.
 
+
+## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (FEITO e publicado)
+- Diego: *"ele pode criar uma sala de graça pra ele, pra teste… já pode ter opção de 2D… só o Liga Draft que o cara já tem que ter plano"*.
+  `pode2d` (lobby.tsx) libera quando `roomMode === 'rapido'` e o botão do dono na sala (`TrocaCampo2DSala`) liga o 2D em sala que não é
+  liga nem carreira. Liga Draft/Liga da Turma/carreira em sala continuam do plano. O banco não confere plano pro 2D (nada a mudar lá).
+
 ## 🅰️ 07/11 — Copa da carreira caía no placar cinema em vez do campinho (Diego, quarta de copa na Várzea)
 - Causa: a conferência do replay oficial (`prepararReplayOficial`) exigia a ASSISTÊNCIA igual, mas o save não guarda assistência
   de jogador de mentira (regra de 19/09) e o motor sim → reprovava → `replayOficialBloqueado` → sem 2D. Na Várzea (filler) quase sempre.

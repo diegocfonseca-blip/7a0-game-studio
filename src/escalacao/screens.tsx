@@ -6759,7 +6759,8 @@ export function TrocaCampo2DSala() {
   if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || ehKings(state)) return null
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
-  return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && temDireito}
+  const salaRapida = !state.ligaMode && !state.careerOnline // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
+  return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && (temDireito || salaRapida)}
     onTroca={on => dispatch({ type: 'SET_CAMPO2D', on, by: state.youUid })} />
 }
 /** o desenho do botão (separado pra bancada `scripts/teste-troca-2d` mostrar os 3 estados sem conta logada) */
