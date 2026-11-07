@@ -94,6 +94,7 @@ import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRev
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { BannerInstagram } from './banner-instagram'
+import { PainelDonoLiga } from './painel-dono-liga'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
@@ -1051,6 +1052,11 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
             </div>
           ) : (
             <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">{tr('🚪 sair do jogo', '🚪 leave the game')}</button>
+          )}
+          {/* 👑 07/11: PAINEL DO DONO dentro da liga (pedidos · próxima temporada · convidar · técnicos) — só o dono vê */}
+          {canManage && state.ligaMode && !!state.roomId && !!state.roomCode && (
+            <PainelDonoLiga roomId={state.roomId} roomCode={state.roomCode} roomName={state.roomName} managers={state.managers} presence={state.presence ?? []}
+              youIdx={state.youIdx} donoUid={state.seatUids?.[state.youIdx]} tamanho={state.tamanhoLiga === 10 ? 10 : 20} turnoUnico={!!state.turnoUnico} />
           )}
           {canManage && others.length > 0 && (
             <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">

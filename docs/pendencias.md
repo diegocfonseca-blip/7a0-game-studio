@@ -1,3 +1,9 @@
+## 👑 07/11 — PAINEL DO DONO dentro da liga (Diego: *"pode fazer o painel do dono adorei mano"*)
+- ✅ `src/escalacao/painel-dono-liga.tsx`, no rodapé do jogo (Shell, junto do "gerenciar técnicos"), só pro dono em liga online
+  (`canManage && ligaMode`). Seções: 📨 pedidos (aceitar → escolher bot/técnico, mesmo `esc_liga_responder` do lobby) · ⚙️ próxima
+  temporada (`esc_liga_formato`, 20→10 travado) · 🔗 copiar código · 👥 técnicos agora (`presence`). Aviso de pedido novo no topo
+  por 6 s, lido a cada 60 s (sem canal). Mockup aprovado: `scripts/mockups/painel-dono-liga.png`; bancada: `scripts/teste-painel-dono/`.
+
 ## ⏱️ 07/11 — Campo 2D nas salas: velocidade no meio do jogo + quem volta atrasado (Diego: *"confira… lag, travamento"* → "Sim")
 - ✅ **Trocar a velocidade no meio do jogo** (Manual, ou desligar o Manual → 2,5×) recomeçava o jogo do 0′ na sala inteira
   (o `LiveScoreCard` reiniciava o relógio e o `Campo2D` recriava o jogo porque o `roundMs` estava nas dependências). Agora
