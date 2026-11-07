@@ -1,3 +1,23 @@
+## 🥅 07/11 — Disputa de pênaltis NO CAMPINHO 2D em todo modo (branch, sem push; esperando OK visual do Diego)
+- Pedido: *"em qualquer modo e competição com disputa de pênaltis, com o 2D, a disputa é no campinho"* + a referência de disputa
+  de verdade (times perfilados no círculo central, goleiro que espera fora da área, árbitro do lado da marca AUTORIZANDO, auxiliares
+  na linha do gol, gol = festinha curta, defesa = goleiro comemora, volta pra fila sem cruzar o próximo batedor).
+- Cena reescrita em `campo2d-penaltis.ts` (só apresentação: não sorteia, não mexe em motor/placar/relógio/canal/coroa). Ida POR
+  DENTRO do círculo, volta POR FORA entrando na vaga por trás; cada time só no seu lado do campo. Sala/banco com tempo fixo:
+  `orcamento = pensRevealDelay(...)` e a cena inteira acelera por igual pra caber (na sala, ~17 s pra 10 cobranças — é rápido).
+- Ligado em: Copa da carreira (Copa do Brasil/Legends/Supercopa: offline a fase ESPERA a última cobrança; carreira em sala cabe no
+  tempo) · carreira internacional · `EscSeason` quickCopa (Copa dos 8, Liberta, Champions/repescão, Relâmpago, copa da Liga da
+  Turma/Draft, Partida Rápida, revanche) · Copa do Mundo/Euro (sala e carreira) · copas regionais. Kings fica fora (shootout, sem 2D).
+  Antes só existia na carreira e só na conta do Diego (mapa). Fora do 2D nada muda. O pênalti manual da carreira não foi tocado.
+- Trava: `npm run penaltis-2d` (as 5 telas ligadas · 94 disputas · dois aparelhos = mesma cena · ninguém a menos de 2,5 m de
+  ninguém, árbitro e auxiliares incluídos). Bancada: `scripts/teste-penaltis-campo/quadros-2d.cjs` (modos sala/mundo/carreira).
+- Mockups: `scripts/mockups/penaltis-2d-*.png` (390×844 ×2) e o vídeo `scripts/mockups/penaltis-2d.mp4` (disputa inteira, ritmo da
+  carreira em 2×).
+- ⏳ Pendente/dizer pro Diego: (1) na sala a cena é acelerada pra caber nos ~17 s que a fase já dá — se ele quiser mais calma, o
+  caminho é aumentar o tempo da disputa NA SALA (mexe no relógio da fase e no SQL da Copa do Mundo) — não fiz sem ele pedir;
+  (2) a organização (todo mundo indo pro círculo, 1º segundo) é em linha reta e pode passar um por cima do outro — a trava só mede
+  depois disso; (3) o selo do placar no canto esconde o auxiliar da esquerda no celular.
+
 ## ⏩ 06/11 — Velocidade do Campo 2D ABSOLUTA (branch, sem push; esperando "publique")
 - Causa: na sala o 2D já vinha em 3× e a tela ainda dividia pelo `simSpeed` (sala 4RVDD8: simSpeed 3 → 9×, ~12 s por jogo). Na
   carreira offline o 2D era 2× × simSpeed (o `useRitmo2D` deixava a carreira de fora por causa do `careerOnline`, que é true offline).

@@ -5,6 +5,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
+import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
 import { dur2DDaVel } from './vel2d-regra'
 import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
@@ -7509,6 +7510,17 @@ export function EscSeason() {
   // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
   // o resultado pronto. Reinicia por copaTieKey (muda quando entra uma perna nova).
   const [copaMin, setCopaMin] = useState(93)
+  // 🥅 07/11 (Diego: "em qualquer modo… a disputa tem que ser no campinho"): com o 📺 2D, a disputa de pênaltis do SEU confronto
+  // (Copa dos 8, Liberta, Champions/repescão, Relâmpago, copa da Liga da Turma/Draft, Partida Rápida, revanche) acontece no
+  // campinho. Sai SÓ do que já está no estado (placar + `pensSeq` + nomes): todo aparelho da sala vê a mesma sequência. A cena cabe
+  // no tempo que a fase já segura pra disputa (`pensRevealDelay`) — relógio, motor e canal não mudam.
+  const meuTiePen = c2d && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
+  const penCampo = usePenaltisCampo(meuTiePen?.pens ? {
+    id: `copa:${qc?.phase}:${meuTiePen.aId}:${meuTiePen.bId}:${meuTiePen.legs.length}`, pens: meuTiePen.pens, seqReal: meuTiePen.pensSeq,
+    aName: meuTiePen.aName, bName: meuTiePen.bName, invertido: meuTiePen.legs.length === 2,
+    aSquad: state.managers.find(m => m.id === meuTiePen.aId)?.squad, bSquad: state.managers.find(m => m.id === meuTiePen.bId)?.squad,
+    orcamento: pensRevealDelay(meuTiePen.pens, copaTemGenteQ(meuTiePen), meuTiePen.pensSeq),
+  } : undefined, !!meuTiePen && copaMin >= 93)
   // 🚫 ANTI-SPOILER DO GIRO: as manchetes descrevem a rodada que AINDA está
   // animando na tela — mostrar na hora entrega zebra/líder/placar antes do apito
   // (a tabela é segurada com holdResults, mas o giro não era). Segura o giro do
@@ -7686,7 +7698,7 @@ export function EscSeason() {
               status={`${bbSerie ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : cupNow || (kingsS && qc.phase !== 'final') ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
               detail={<>{reverse && (bbSerie
                 ? <p><b>{LS('Série', 'Series')}: {tie.aName} {serieA} × {serieB} {tie.bName}</b> <span style={{ opacity: .7 }}>({LS('melhor de 3', 'best of 3')})</span></p>
-                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
+                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout campo={tie === meuTiePen ? penCampo.estado : undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
           }
           return (
             <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
@@ -7736,7 +7748,7 @@ export function EscSeason() {
                     : nLegs === 1 ? `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]}` : `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]} · ${LS('volta', '2nd leg')} ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
                 {/* 🔓 25/09 (Diego: *"online e offline"*): a Copa do jogo rápido OFFLINE também usa a tela nova dos pênaltis (palco + bola viajando); o resto do cartão segue como era. */}
-                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />}</>}
+                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout campo={tie === meuTiePen ? penCampo.estado : undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />}</>}
               </div>
             </Box>
           )
@@ -7865,7 +7877,7 @@ export function EscSeason() {
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
                   <>
-                    <LiveScoreCard enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`}
+                    <LiveScoreCard enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
                       homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}

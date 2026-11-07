@@ -24,7 +24,7 @@ const backend=`const result={data:[],error:null};const chain=new Proxy(function(
    await page.clock.runFor(2500);assert.deepEqual((await sample()).ball,freeze.ball,'pausa preserva bola');assert.deepEqual((await sample()).players,freeze.players,'pausa preserva atletas');
    await page.evaluate(()=>window.penaltisQA.montar(false));await page.clock.runFor(100);await page.evaluate(()=>window.penaltisQA.montar(true));await page.clock.runFor(300);
    assert.deepEqual((await sample()).penalties,freeze.penalties,'voltar à tela não reinicia disputa');
-   await page.evaluate(()=>window.penaltisQA.pausar(false));await page.clock.runFor(12500);
+   await page.evaluate(()=>window.penaltisQA.pausar(false));await page.clock.runFor(4000);
    await page.screenshot({path:out+'/'+modo+'-'+width+'-batida.png',fullPage:true});
    const primeira=await sample();assert.equal(await page.locator('.ll28-kicks .made,.ll28-kicks .missed').count(),1,'uma cobrança revelada no campo e no cartão');
    assert.deepEqual(primeira.score,initial.score,'placar regulamentar não muda');

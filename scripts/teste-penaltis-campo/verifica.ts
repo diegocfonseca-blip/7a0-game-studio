@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import {DisputaPenaltisCampo, sequenciaVisualPenaltis, TEMPO_PENALTIS_CAMPO as T, PASSO_PENALTIS_CAMPO as PASSO} from '../../src/escalacao/campo2d-penaltis'
+import {DisputaPenaltisCampo, sequenciaVisualPenaltis, TEMPO_PENALTIS_CAMPO as T} from '../../src/escalacao/campo2d-penaltis'
 import {Jogo2D} from '../../src/escalacao/campo2d-motor'
 import {disputaPenaltisComSequencia} from '../../src/escalacao/penaltis'
 const pos=['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA']
@@ -20,10 +20,8 @@ for(const pens of [[4,2],[2,4],[6,5],[5,6],[15,14]] as [number,number][]){
    assert(e.reveladas>=ultimo);ultimo=e.reveladas
    assert(q.jogadores.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)))
    q.jogadores.forEach((p,i)=>{const d=Math.hypot(p.x-anterior.jogadores[i].x,p.y-anterior.jogadores[i].y);maxPasso=Math.max(maxPasso,d);assert(d<.4,`teleporte ${pens} ${invertido} t=${t} atleta=${i} d=${d}`)})
-   if(e.fase==='preparar'||e.fase==='correr'){
-    assert.equal(q.bola.x,34);assert.equal(q.bola.y,11)
-    assert(Math.abs(q.jogadores[q.goleiro].y-.6)<.01,'goleiro deve esperar na linha')
-   }
+   if(e.fase==='preparar'||e.fase==='correr'){assert.equal(q.bola.x,34);assert.equal(q.bola.y,11)}
+   if(e.fase==='correr')assert(Math.abs(q.jogadores[q.goleiro].y-.6)<.01,'goleiro deve esperar na linha')
    if(t>T.organizar&&q.batedor>=0){
     const k=s.seq[e.cobranca]
     assert.equal(jogo.atl[q.batedor].lado,invertido?1-k.side:k.side,'cobrador do time correto na volta')
@@ -48,7 +46,7 @@ const s=new DisputaPenaltisCampo({id:'tempo',pens:[4,2],aName:'A',bName:'B',aSqu
 const j=new Jogo2D(1,a,b,[]);s.avancar(1);assert.equal(s.elapsed,0,'espera o campo existir')
 s.preparar(j.atl,j.bola);s.avancar(1,2);assert.equal(s.elapsed,2);s.avancar(4,4,true);assert.equal(s.elapsed,2)
 for(let i=0;i<s.seq.length;i++){
- const contato=T.organizar+i*PASSO+T.caminhar+T.preparar+T.correr
+ const contato=s.contato(i)
  s.elapsed=contato-.001;assert.deepEqual(s.quadro()!.bola,{x:34,y:11,h:0});assert.equal(s.estado.reveladas,i)
  s.elapsed=contato;const q=s.quadro()!;assert(Math.hypot(q.jogadores[q.batedor].x-q.bola.x,q.jogadores[q.batedor].y-q.bola.y)<=2.01)
  s.elapsed=contato+T.voo+.001;assert.equal(s.estado.reveladas,i+1,'placar só revela no resultado')

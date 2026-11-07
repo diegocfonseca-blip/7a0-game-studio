@@ -4,7 +4,8 @@ import {useEffect,useState} from 'react'
 import '../../src/index.css'
 import '../../src/escalacao/screens'
 import {Campo2D} from '../../src/escalacao/campo2d'
-import {MyCopaMatch, PensShootout, type CopaTie} from '../../src/escalacao/pyramidseason'
+import {MyCopaMatch, PensShootout, LiveScoreCard, pensRevealDelay, type CopaTie} from '../../src/escalacao/pyramidseason'
+import {NationalCrest} from '../../src/escalacao/national-crest'
 import {usePenaltisCampo} from '../../src/escalacao/campo2d-penaltis-react'
 import {pedirSuperficieCampo2D,superficieCampo2D} from '../../src/escalacao/campo2d-superficie'
 import {applyCampo2DBancada} from '../../src/escalacao/sport'
@@ -21,7 +22,31 @@ const gols=[{name:home[8].name,min:28,home:true},{name:away[8].name,min:87,home:
 const A={teamId:0,name:aName,you:false,human:false,xi:a,formation:'4-3-3',squad:a}
 const B={teamId:1,name:bName,you:true,human:true,xi:b,formation:'4-3-3',squad:b}
 const tie={a:A,b:B,aDiv:'D',bDiv:'D',aggA:1,aggB:1,pens,win:'a',goals:gols,legs:swap?[[0,0],[1,1]]:[[1,1]],legGoals:swap?[[],gols]:[gols]} as unknown as CopaTie
-function Bancada(){
+// 🥅 07/11: as telas da SALA ONLINE (Copa dos 8 / Liberta / Champions / Relâmpago…) e da COPA DO MUNDO, com os MESMOS
+// componentes e o MESMO tempo que a sala dá pra disputa (`pensRevealDelay`, o número que segura a fase). Dados de demonstração.
+function Online({mundo}:{mundo:boolean}){
+ const pensO:[number,number]=mundo?[4,3]:[5,4]
+ const seqO=mundo?undefined:'1111101110'
+ const nA=mundo?'Brasil':'Raiva Cajuri FC',nB=mundo?'Argentina':'Neymarzetti'
+ const orcamento=pensRevealDelay(pensO,true,seqO)
+ const cfg={id:`qa-${mundo?'mundo':'sala'}`,pens:pensO,seqReal:seqO,aName:nA,bName:nB,aSquad:a,bSquad:b,orcamento}
+ const [fim,setFim]=useState(false)
+ const {sessao,estado}=usePenaltisCampo(cfg,true,1,false,()=>setFim(true))
+ useEffect(()=>{applyCampo2DBancada();(window as any).penaltisQA={session:sessao,done:()=>fim,orcamento}},[sessao,fim])
+ const g=[{name:a[9].name,min:31,home:true},{name:b[10].name,min:78,home:false}]
+ return <main data-concluido={String(fim)} style={{margin:'-12px'}}>
+  <LiveScoreCard disputaPenaltis={sessao} estadoPenaltis={estado} enhancedOnline homeName={nA} awayName={nB} homeColor={mundo?'#F5D20A':'#C2452F'} awayColor={mundo?'#6CB4EE':'#2E62D9'} youIsHome
+   homeEmblem={mundo?<NationalCrest country={nA} size={58}/>:undefined} awayEmblem={mundo?<NationalCrest country={nB} size={58}/>:undefined}
+   goals={g} roundKey={1} roundMs={36000} finished elencos={{casa:a,fora:b,fCasa:'4-3-3',fFora:'4-3-3'}} />
+  <div style={{background:'#fff',color:'#0c0c0c',border:'3px solid #0c0c0c',borderRadius:12,padding:8,margin:'8px 0'}}>
+   <p style={{fontWeight:900,fontSize:11,textAlign:'center',margin:'0 0 4px'}}>🥅 1×1 {mundo?'NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS':'— DECISÃO NOS PÊNALTIS'}</p>
+   <PensShootout campo={estado} compactOnline final={mundo} pens={pensO} seqReal={seqO} aName={nA} bName={nB} aSquad={a} bSquad={b} lento
+    aCrest={mundo?<NationalCrest country={nA} size={20}/>:undefined} bCrest={mundo?<NationalCrest country={nB} size={20}/>:undefined}/>
+  </div>
+ </main>
+}
+function Bancada(){return query.get('modo')==='sala'||query.get('modo')==='mundo'?<Online mundo={query.get('modo')==='mundo'}/>:<Carreira/>}
+function Carreira(){
  const [speed,setSpeed]=useState(Number(query.get('speed')??1)),[paused,setPaused]=useState(false),[montado,setMontado]=useState(true),[done,setDone]=useState(false)
  const integrado=query.get('modo')==='carreira'
  const {sessao,estado}=usePenaltisCampo(integrado?undefined:config,true,speed,paused,()=>setDone(true))

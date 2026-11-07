@@ -578,11 +578,32 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       {
         const bx0 = mis(cena.bolaAnt.x, cena.bola.x), by0 = mis(cena.bolaAnt.y, cena.bola.y)
         const ax = penalti?.juiz.x ?? bx0 + (34 - bx0) * 0.45, ay = penalti?.juiz.y ?? by0 + (L / 2 - by0) * 0.22
-        const k = Math.min(1, dt / 900); juiz.x += (ax - juiz.x) * k; juiz.y += (ay - juiz.y) * k
-        const [X, Y] = tr(juiz.x, juiz.y), RJ = R * 0.8
-        cx.beginPath(); cx.ellipse(X, Y + RJ - 1, RJ * 0.8, 3, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
-        cx.beginPath(); cx.arc(X, Y, RJ, 0, 7); cx.fillStyle = '#111'; cx.fill(); cx.lineWidth = 2; cx.strokeStyle = '#FFE600'; cx.stroke()
-        cx.fillStyle = '#FFE600'; cx.font = fonte(RJ * 0.9, 800); cx.textAlign = 'center'; cx.fillText('J', X, Y + RJ * 0.35)
+        // 🥅 na disputa de pênaltis o árbitro fica EXATAMENTE onde a cena manda (perto da marca): com inércia ele cortava caminho
+        const k = penalti ? 1 : Math.min(1, dt / 900); juiz.x += (ax - juiz.x) * k; juiz.y += (ay - juiz.y) * k
+        const arbitro = (px: number, py: number, letra: string, escala: number) => {
+          const [X, Y] = tr(px, py), RJ = R * escala
+          cx.beginPath(); cx.ellipse(X, Y + RJ - 1, RJ * 0.8, 3, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.25)'; cx.fill()
+          cx.beginPath(); cx.arc(X, Y, RJ, 0, 7); cx.fillStyle = '#111'; cx.fill(); cx.lineWidth = 2; cx.strokeStyle = '#FFE600'; cx.stroke()
+          cx.fillStyle = '#FFE600'; cx.font = fonte(RJ * 0.9, 800); cx.textAlign = 'center'; cx.fillText(letra, X, Y + RJ * 0.35)
+          return [X, Y, RJ] as const
+        }
+        // 🚩 os auxiliares na linha do gol (só na disputa)
+        if (penalti) for (const a of penalti.auxiliares) {
+          const [X, Y, RJ] = arbitro(a.x, a.y, 'A', 0.62)
+          cx.fillStyle = '#FFE600'; cx.fillRect(X + RJ * 0.7, Y - RJ * 1.7, RJ * 0.9, RJ * 0.6); cx.fillStyle = '#C2452F'; cx.fillRect(X + RJ * 0.7, Y - RJ * 1.4, RJ * 0.9, RJ * 0.3)
+          cx.strokeStyle = '#111'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(X + RJ * 0.7, Y - RJ * 1.75); cx.lineTo(X + RJ * 0.7, Y - RJ * 0.2); cx.stroke()
+        }
+        const [X, Y, RJ] = arbitro(juiz.x, juiz.y, 'J', 0.8)
+        // 📣 o árbitro AUTORIZA a cobrança: braço apontando pra marca + o apito
+        if (penalti?.apito) {
+          const [mx, my] = tr(34, 11), ang = Math.atan2(my - Y, mx - X)
+          cx.strokeStyle = '#FFE600'; cx.lineWidth = Math.max(2.5, RJ * 0.35); cx.lineCap = 'round'
+          cx.beginPath(); cx.moveTo(X + Math.cos(ang) * RJ, Y + Math.sin(ang) * RJ); cx.lineTo(X + Math.cos(ang) * RJ * 2.1, Y + Math.sin(ang) * RJ * 2.1); cx.stroke()
+          const txt = t('PRIII! 📣', 'PHWEET! 📣')
+          cx.font = fonte(Math.max(9, S * 1.25)); const w = cx.measureText(txt).width + 10, bx = X - w / 2, by = Y - RJ - 22
+          cx.fillStyle = '#FFE600'; cx.strokeStyle = INK; cx.lineWidth = 2; cx.beginPath(); cx.roundRect?.(bx, by, w, 17, 6); cx.fill(); cx.stroke()
+          cx.fillStyle = INK; cx.textAlign = 'left'; cx.fillText(txt, bx + 5, by + 12.5)
+        }
       }
       // 🌠 rastro: só quando a bola está viajando (passe/chute); some sozinho
       if (igualMapa) rastro.length = 0
@@ -637,10 +658,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       const nomesPorCima: [number, number, string][] = []
       for (const p of ordem) {
         const q = pos.get(p)!, [X, Y] = tr(q.x, q.y)
-        const camisa=p.lado===0?corCasa:corFora,correndo=p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
+        const camisa=p.lado===0?corCasa:corFora,correndo=penalti?q.v>.6:p.ax!=null&&Math.hypot(p.x-p.ax,p.y-p.ay!)>.02
         let im=rostoDe.get(p.nome);if(im===undefined){im=rosto(cartaDe.get(p.nome)??p.carta);rostoDe.set(p.nome,im)}
         if (igualMapa && comNome.has(p)) nomesPorCima.push([X, Y, p.nome]) // 🏷️ 04/11: o nome vai por cima de todo mundo (no mapa ninguém tampa o nome)
-        desenharMarcadorCampo2D(cx,X,Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
+        // 🙌 a festa curta da disputa: o batedor no gol, o goleiro na defesa — pula no lugar, com o emoji em cima
+        const festaPen = penalti?.comemora && cena.atl.indexOf(p) === penalti.comemora.indice ? penalti.comemora : null
+        if (festaPen) { const pulo = Math.abs(Math.sin(cena.t * 11)) * R * 0.7; cx.font = `${Math.round(R * 1.5)}px sans-serif`; cx.textAlign = 'center'; cx.fillText(festaPen.tipo === 'gol' ? '🙌' : '🧤', X, Y - R - pulo - 3) }
+        desenharMarcadorCampo2D(cx,X,festaPen?Y-Math.abs(Math.sin(cena.t*11))*R*0.5:Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
       }
       for (const [X, Y, nome] of nomesPorCima) desenharNomeCampo2D(cx, X, Y, R, nome)
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe

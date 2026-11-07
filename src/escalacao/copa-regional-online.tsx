@@ -32,6 +32,8 @@ import { agoraSala } from './relogio'
 import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, ArtilheiroCopaCard, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
+import { Penaltis2D } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
+import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget, GiroDaRodada, TrocaCampo2DSala } from './screens'
 import { startCrowd, stopCrowd } from './sound'
@@ -620,9 +622,15 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const vagasLado = mundo.ko[0]?.tipo === 'quartas' ? 4 : mundo.ko[0]?.tipo === 'semi' ? 2 : 1
   const golsAte = (ev: GolRegional[]) => (liveDone ? ev : ev.filter(g => g.min <= liveMin))
 
-  const live = (h: number, a: number, ev: GolRegional[]) => (
+  // 🥅 07/11 (Diego: "em qualquer competição… a disputa tem que ser no campinho"): com o 📺 2D a disputa do jogo grande acontece no
+  // campinho, só com o resultado guardado (placar + nomes): todo aparelho da sala vê igual. Cabe no `extra` que o passo já segura.
+  const cfgPen2D = (t: ConfrontoRegional): ConfigPenaltisCampo | undefined => c2d && t.pen ? {
+    id: `regional:${step}:${t.h}:${t.a}:${t.g.join('x')}`, pens: t.pen, aName: entrants[t.h].pais, bName: entrants[t.a].pais,
+    aSquad: entrants[t.h].xi, bSquad: entrants[t.a].xi, orcamento: penMs(t) / 1000,
+  } : undefined
+  const live = (h: number, a: number, ev: GolRegional[], pen?: { sessao?: DisputaPenaltisCampo; estado?: EstadoPenaltisCampo }) => (
     <PlacarQueGruda min={Math.min(93, liveMin)} fim={liveDone} home={entrants[h].pais} away={entrants[a].pais} goals={golsAte(ev)} youIsHome={isYou(h)}>
-      <LiveScoreCard enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
+      <LiveScoreCard disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
         homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={<SeloClube clube={entrants[h].pais} size={58} />} awayEmblem={<SeloClube clube={entrants[a].pais} size={58} />}
         youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} elencos={{ casa: entrants[h].xi, fora: entrants[a].xi }} />
     </PlacarQueGruda>
@@ -771,14 +779,15 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const final = faseAtual.tipo === 'final' ? faseAtual.ties[0] : null
         const grande = meu ?? final
         return <>
-          {grande && live(grande.h, grande.a, grande.ev)}
+          {grande && <Penaltis2D config={cfgPen2D(grande)} ativo={liveMin >= 93 && !!grande.pen}>{pc => <>
+          {live(grande.h, grande.a, grande.ev, pc)}
           {/* 🥅 13/10: a disputa entra aos 93', dentro do `extra` reservado pra ela (antes esperava `liveDone` e era cortada) */}
-          {grande && liveMin >= 93 && grande.pen && (
+          {liveMin >= 93 && grande.pen && (
             <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, color: INK }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {grande.g[0]}×{grande.g[1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
-              <PensShootout compactOnline final={faseAtual.tipo === 'final'} pens={grande.pen} aName={entrants[grande.h].pais} bName={entrants[grande.a].pais} aCrest={<SeloClube clube={entrants[grande.h].pais} size={20} />} bCrest={<SeloClube clube={entrants[grande.a].pais} size={20} />} aSquad={entrants[grande.h].xi} bSquad={entrants[grande.a].xi} lento={!!(entrants[grande.h].humano || entrants[grande.a].humano)} />
+              <PensShootout campo={pc.estado} compactOnline final={faseAtual.tipo === 'final'} pens={grande.pen} aName={entrants[grande.h].pais} bName={entrants[grande.a].pais} aCrest={<SeloClube clube={entrants[grande.h].pais} size={20} />} bCrest={<SeloClube clube={entrants[grande.a].pais} size={20} />} aSquad={entrants[grande.h].xi} bSquad={entrants[grande.a].xi} lento={!!(entrants[grande.h].humano || entrants[grande.a].humano)} />
             </div>
-          )}
+          )}</>}</Penaltis2D>}
           {controles}
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, margin: '4px 0 6px' }}>{nomeFase(faseAtual.tipo)} · {tr('JOGO ÚNICO', 'ONE-OFF')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6, marginBottom: 10 }}>
