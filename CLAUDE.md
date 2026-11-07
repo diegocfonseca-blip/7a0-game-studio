@@ -1055,6 +1055,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Fora do 2D (placar normal) o `simSpeed` segue como sempre. Copa do Mundo/regionais: o banco guarda a marcha numa coluna
   própria (`vel2d`) — SQL `docs/sql/campo2d-sala-2-5x.sql` (**APLICADO em 06/11 depois do deploy**, junto com a trava do 3× do placar normal da Copa). O aparelho aceita como
   passo 2D tanto os valores novos (109756 ÷ marcha) quanto o 36585 de hoje.
+  (21) **O CAMPO 2D DO MAPA (aba Clube, só carreira) SEGUE SEMPRE O DA ABA JOGOS (07/11, regra permanente).** *"deve ser sempre
+  baseado no que tem no campo 2D da aba de jogos… não preciso repetir isso sempre"*. Toda novidade do campinho da aba Jogos entra
+  TAMBÉM no do mapa na mesma entrega (e vice-versa), sem ele pedir de novo.
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.
