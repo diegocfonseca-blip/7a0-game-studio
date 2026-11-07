@@ -14,7 +14,7 @@ const VEL = Number(q.get('vel') ?? 1)
 const NCASA = q.get('casa') ?? 'Fabulous EC', NFORA = q.get('fora') ?? 'Chelsão'
 const CCASA = q.get('corCasa') ?? '#FFC400', CFORA = q.get('corFora') ?? '#2B6CFF'
 try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ }
-if (q.get('efeitos') === '1') { applyCampo2DBancada(); for (const ms of [800, 2500, 5000]) setTimeout(applyCampo2DBancada, ms) /* (o login sem conta zera a trava: liga de novo) */; (window as unknown as { __qaEfeitos2D?: object }).__qaEfeitos2D = {} } // ✨ 07/11: efeitos de lance (conta do Diego)
+if (q.get('efeitos') === '1') { applyCampo2DBancada(); setInterval(applyCampo2DBancada, 1000) /* (o login sem conta zera a trava: liga de novo) */; (window as unknown as { __qaEfeitos2D?: object }).__qaEfeitos2D = {} } // ✨ 07/11: efeitos de lance (conta do Diego)
 const casa = [
   { name: 'Taffarel', club: 'Internacional', year: 1989, pos: 'GOL', fame: 5 }, { name: 'Cafu', club: 'Milan', year: 2004, pos: 'LAT', fame: 5 }, { name: 'Thiago Silva', club: 'Fluminense', year: 2008, pos: 'ZAG', fame: 4 },
   { name: 'Índio', club: 'Internacional', year: 2010, pos: 'ZAG', fame: 2 }, { name: 'Roberto Carlos', club: 'Real Madrid', year: 2002, pos: 'LAT', fame: 5 },

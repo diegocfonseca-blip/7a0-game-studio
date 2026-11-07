@@ -1,6 +1,6 @@
 // ✨ Trava dos efeitos de lance do Campo 2D (07/11): chute forte, gol de longe, trave tremendo, chapéu e onde a bola cai.
 // Só desenho — então o que se cobra aqui é que cada efeito acende NO lance certo e fica apagado no resto.
-import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu } from '../src/escalacao/campo2d-efeitos.ts'
+import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, esticaGoleiro, riscoCarrinho, casaAtacando } from '../src/escalacao/campo2d-efeitos.ts'
 let falhas = 0
 const ok = (c: boolean, m: string) => { if (c) console.log('✅', m); else { falhas++; console.log('❌', m) } }
 // 🎯 onde a bola cai
@@ -27,5 +27,14 @@ ok(vitimaDoChapeu({ x: 34, y: 20.5, h: 2 }, { x: 34, y: 44, lado: 0 }, [zag, lon
 ok(vitimaDoChapeu({ x: 34, y: 41.5, h: 0.3 }, { x: 34, y: 44, lado: 0 }, [zag]) === null, 'bola rasteira: não é chapéu')
 ok(vitimaDoChapeu({ x: 34, y: 3.5, h: 2.2 }, { x: 34, y: 14, lado: 0 }, [gk]) === gk, 'cavadinha por cima do goleiro = chapéu no goleiro')
 ok(vitimaDoChapeu({ x: 34, y: 41.5, h: 2 }, { x: 34, y: 44, lado: 1 }, [zag]) === null, 'companheiro não leva chapéu')
+// ⚽ quique
+ok(alturaQuique(0.18) > 0.6 && alturaQuique(0.36 + 0.11) > 0.2 && alturaQuique(0.36 + 0.11) < 0.3 && alturaQuique(0.7) === 0, 'dois quiques: um maior, um menor, depois chão')
+// 🧤 goleiro
+ok(esticaGoleiro(0.3) === 1 && esticaGoleiro(0.05) < 1 && esticaGoleiro(0.8) === 0, 'goleiro estica rápido, segura e volta')
+// 🟫 carrinho
+const r = riscoCarrinho({ x: 10, y: 10 }, { x: 20, y: 10 })
+ok(Math.abs(r.x1 - 13) < 1e-9 && r.y1 === 10, 'risco do carrinho: no máximo 3 m, na direção da bola')
+// 📣 torcida
+ok(casaAtacando({ lado: 0, y: 20 }) && !casaAtacando({ lado: 0, y: 60 }) && !casaAtacando({ lado: 1, y: 20 }) && !casaAtacando(null), 'torcida pula só com a casa atacando no terço final')
 if (falhas) { console.log(`\n${falhas} falha(s)`); process.exit(1) }
 console.log('\nEfeitos do 2D: ok')

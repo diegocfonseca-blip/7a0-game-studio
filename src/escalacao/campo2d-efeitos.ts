@@ -85,3 +85,35 @@ export function vitimaDoChapeu(b: BolaVista, saida: (P & { lado: 0 | 1 }) | null
   }
   return melhor
 }
+
+/** ⚽ 07/11 (2ª leva): BOLA QUICANDO — a bola alta que caiu dá 2 quiques pequenos (altura em metros, só no desenho).
+ *  1º quique 0,7 m em 0,36 s · 2º 0,25 m em 0,22 s · depois, chão. */
+export function alturaQuique(idade: number): number {
+  if (idade < 0) return 0
+  if (idade < 0.36) return 0.7 * Math.sin((idade / 0.36) * Math.PI)
+  const i2 = idade - 0.36
+  if (i2 < 0.22) return 0.25 * Math.sin((i2 / 0.22) * Math.PI)
+  return 0
+}
+export const QUIQUE_DUR = 0.58
+
+/** 🧤 GOLEIRO VOANDO: quanto o corpo se estica (0 → 1 → 0) nos 0,7 s da defesa difícil — sobe rápido, segura, volta */
+export function esticaGoleiro(idade: number): number {
+  if (idade < 0 || idade > 0.7) return 0
+  if (idade < 0.12) return idade / 0.12
+  if (idade < 0.45) return 1
+  return 1 - (idade - 0.45) / 0.25
+}
+
+/** 🟫 GRAMADO MARCADO: o risco do carrinho — de onde o jogador estava até a bola, no máximo 3 m (um carrinho não passa disso) */
+export function riscoCarrinho(de: P, bola: P): { x0: number; y0: number; x1: number; y1: number } {
+  const dx = bola.x - de.x, dy = bola.y - de.y, d = Math.hypot(dx, dy)
+  if (d < 0.3) return { x0: de.x - 1.2, y0: de.y, x1: de.x + 1.2, y1: de.y }
+  const c = Math.min(3, Math.max(1.6, d)), ux = dx / d, uy = dy / d
+  return { x0: de.x, y0: de.y, x1: de.x + ux * c, y1: de.y + uy * c }
+}
+
+/** 📣 TORCIDA NA BORDA: o time da casa (lado 0, ataca pra y → 0) está atacando? bola no pé dele e no terço final */
+export function casaAtacando(dono: { lado: 0 | 1; y: number } | null | undefined): boolean {
+  return !!dono && dono.lado === 0 && dono.y < L / 3
+}
