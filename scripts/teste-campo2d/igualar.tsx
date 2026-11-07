@@ -59,7 +59,7 @@ function Bancada() {
   const match = { context: { id: ID, homeClubId: 0, awayClubId: 1, home: [], away: [] }, viewerClubId: 0, officialTeams: ['Fabulous EC', 'Chelsão'], minute: min, homeScore: placar[0], awayScore: placar[1], paused: pausa, finished: min >= 93, homeColor: '#FFC400', awayColor: '#2B6CFF', officialNarration: 'Kaká lança, Romário domina na entrada da área…' } as unknown as EstadoPartidaEstadio
   return <>
     <div hidden aria-hidden="true">{campo}</div>
-    <Suspense fallback={<p>carregando…</p>}><Complexo matchPresentation="2d" stadium={full as never} match={match} hud={<MapaHud match={match} torcedores={42000} />} /></Suspense>
+    <Suspense fallback={<p>carregando…</p>}><Complexo onReady={api => { (window as unknown as { complexo3D?: unknown }).complexo3D = api }} matchPresentation="2d" stadium={full as never} match={match} hud={<MapaHud match={match} torcedores={42000} />} /></Suspense>
   </>
 }
 { const el = document.getElementById('bancada-igualar') as HTMLElement & { __raiz?: ReturnType<typeof createRoot> }; (el.__raiz ??= createRoot(el)).render(<Bancada />) }

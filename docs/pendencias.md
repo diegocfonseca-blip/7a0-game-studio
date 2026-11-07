@@ -14,6 +14,14 @@
   do gol) · 🎯 **onde a bola cai** = sombra + anel tracejado com X no gramado que aperta conforme a bola desce (lançamento alto).
   Foto: `scripts/mockups/campo2d-efeitos.png`. Trava: `npm run efeitos-2d`. Bancada: `scripts/teste-campo2d/?efeitos=1&rk=3`.
 - ⏳ Liberar pra todos = trocar `useCampo2DTester()` por liberado geral no `campo2d.tsx` (linha do `efeitosLance`) quando ele mandar.
+- 🔁 **2ª leva (07/11)**: *"N quero fogo no chute"* → o rastro de fogo SAIU (fica a rede balançando mais no gol de longe). Entraram no
+  campinho: 🧤 **goleiro voando** na defesa difícil (corpo esticado + luva amarela, o boneco vai junto) · ⚽ **bola quicando** (2 quiquinhos
+  quando a bola alta cai sem ninguém dominar) · 🟫 **risco no gramado** onde teve carrinho/desarme na dividida (até o fim do TEMPO; ⚠️ é
+  RARO: o motor de sempre narra ~0,2 por jogo e o novo ~1,3 — não mexi no motor pra criar mais) · 📣 **torcida da casa se agita** quando ela
+  ataca no terço final. No MAPA 3D (`presidencia-efeitos-mapa.ts`, lido da superfície do campinho — campo `efeitos`): 🔔 trave tremendo
+  (cópia da baliza vibrando + "TÓIN!") · 🎩 "😳 CHAPÉU!" em cima de quem levou · 🎯 sombra + anel onde a bola cai · 🎆🔥 fogos e
+  sinalizadores na arquibancada da SUA torcida no gol do seu time (~7 s) · 📺 replay do gol no TELÃO (os 5 s antes do gol, 2 vezes,
+  com o jogo seguindo) — **só em estádio que tem o telão comprado**. Foto: `scripts/mockups/campo2d-mapa-efeitos.png`.
 
 ## 🏟️ 07/11 — Mapa 3D: jogo FORA mostra o SEU estádio (Diego: *"pode deixar todos com meu estádio mesmo"*)
 - Revoga a troca de 25/10 (estádio do dono da casa no lugar do seu). Motivo: contra bot entrava o "estádio padrão da divisão",

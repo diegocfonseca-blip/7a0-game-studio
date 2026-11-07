@@ -821,7 +821,11 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
           net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
-          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
+          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined,
+          // ✨ 07/11: os efeitos de lance também no estádio do mapa (o mapa só desenha; quem decide é este mesmo quadro)
+          efeitos:fxOn?(()=>{const pz=pousoDaBola(cena.bola as unknown as BolaVista),ch=fx.chapeu,tv=fx.trave
+            return{pouso:pz?{x:L/2-pz.y,z:pz.x-W/2,falta:pz.falta}:undefined,chapeu:ch?{x:L/2-ch.a.y,z:ch.a.x-W/2,age:1-Math.max(0,(ch.ate-cena.t)/1.4)}:undefined,
+              trave:tv&&cena.t-tv.t0<1.1?{sign:tv.y0===0?1:-1,age:(cena.t-tv.t0)/1.1}:undefined,gol:cena.festa?{side:cena.festa.lado===0?'home' as const:'away' as const,key:fk}:undefined}})():undefined})
       }
       raf = requestAnimationFrame(quadro)
     }
