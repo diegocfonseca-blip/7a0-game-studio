@@ -1,5 +1,6 @@
 import { minutoAtrasado } from './relogio-sala'
 import { usePenaltisCampo } from './campo2d-penaltis-react'
+import { disputaRolandoNaTela } from './penaltis-na-tela'
 import { sequenciaVisualPenaltis, type DisputaPenaltisCampo, type EstadoPenaltisCampo } from './campo2d-penaltis'
 import {ArenaConsulta} from './arena-consulta'
 import type {ControleComplexo} from './presidencia-complexo-3d'
@@ -9396,9 +9397,13 @@ export function PyramidSeasonScreen() {
     // O botão também espera os pênaltis: senão ele aparecia no meio da disputa e o
     // toque pulava a própria coisa que o jogador quer ver.
     // 🥅 disputa no campinho (offline): quem libera é o fim da última cobrança (efeito logo abaixo), não um prazo
-    const rdy = pensNoCampo ? null : setTimeout(() => setCopaReady(true), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
-    const adv = manual || pensNoCampo ? null : setTimeout(avancaCopaAuto, Math.max(0,dur+2200+penMs-already))
-    return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); if (rdy) clearTimeout(rdy); if (adv) clearTimeout(adv) }
+    // 🥅 07/11 (Diego: *"o jogo não pode acabar antes dos pênaltis"*): na carreira em SALA a fase vira por prazo; se a disputa
+    // do campinho ainda está rolando nesta tela (aparelho lento), o botão e o avanço esperam a última cobrança (até 8 s a mais)
+    let segura: ReturnType<typeof setTimeout> | null = null
+    const semDisputa = (f: () => void) => () => { const ini = Date.now(); const tenta = () => { if (disputaRolandoNaTela() && Date.now() - ini < 8000) segura = setTimeout(tenta, 250); else f() }; tenta() }
+    const rdy = pensNoCampo ? null : setTimeout(semDisputa(() => setCopaReady(true)), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
+    const adv = manual || pensNoCampo ? null : setTimeout(semDisputa(avancaCopaAuto), Math.max(0,dur+2200+penMs-already))
+    return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); if (rdy) clearTimeout(rdy); if (adv) clearTimeout(adv); if (segura) clearTimeout(segura) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
   }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral, pausaFesta, pensNoCampo])

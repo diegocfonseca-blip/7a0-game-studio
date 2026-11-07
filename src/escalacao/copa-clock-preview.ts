@@ -3,6 +3,7 @@ import {supabase} from '../lib/supabase'
 import {PASSO_COPA,passoRodaBola,respiroAntes,RESUMO_MS,passoComResumo} from './copa-passos'
 import {doisDDoPasso} from './campo2d-modo'
 import {usePreparaTroca2D} from './troca2d-copa'
+import * as naTela from './penaltis-na-tela'
 
 export type CopaClockRow={revision:number;step:number;running:boolean;manual:boolean;speed:number;vel2d?:number|null;started_at:string;updated_at:string;duration_ms:number;extra_ms:number}
 export type CopaClockCommand='next'|'skip'|'finish'|'manual'|'auto'|'speed'|'vel2d' // ⏩📺 06/11: 'vel2d' = a marcha do 2D (coluna própria)
@@ -25,8 +26,13 @@ export function resumoAberto(row:CopaClockRow,now:number):boolean{
 /** 📺 quando o jogo FECHA: sala normal = a duração inteira; sala 2D = o apito (0,82 × duração) + 3 s — a MESMA conta do banco
  *  (`docs/sql/copa-regional-clock-campo2d.sql`), senão o jogo do campinho ficaria ~20 s parado no 93' esperando */
 export const fimDoJogoMs=(duracao:number,doisD:boolean)=>doisD?Math.round(duracao*0.82)+3000:duracao
+/** 🥅 07/11 (Diego: *"o jogo não pode acabar antes dos pênaltis"*): o aparelho do DONO segura o apito final do passo enquanto a
+ *  disputa de pênaltis ainda roda na tela DELE (aparelho lento, aba que voltou). Com teto: passou SEGURA_PENALTIS_MS do horário
+ *  normal, fecha mesmo assim — a sala nunca trava por causa de um aparelho. Nada muda no banco nem no canal. */
+export const SEGURA_PENALTIS_MS=8000
+export const seguraPelaDisputa=(due:number,now:number)=>now<due+SEGURA_PENALTIS_MS&&!!naTela.disputaRolandoNaTela?.()
 export function dueClockCommand(row:CopaClockRow,now:number,doisD=false):'finish'|'next'|null{
- if(row.running)return now>=Date.parse(row.started_at)+fimDoJogoMs(row.duration_ms,doisD)+row.extra_ms+150?'finish':null
+ if(row.running){const due=Date.parse(row.started_at)+fimDoJogoMs(row.duration_ms,doisD)+row.extra_ms+150;return now>=due&&!seguraPelaDisputa(due,now)?'finish':null}
  // o último passo é a cerimônia (`PASSO_COPA.FIM`); o banco tem a mesma trava
  // 🎬 antes de passo que roda bola, 5s de abertura (copa-passos.ts)
  return !row.manual&&row.step<PASSO_COPA.FIM&&now>=Date.parse(row.updated_at)+respiroAntes(passoRodaBola(row.step+1),row.step,passoComResumo(row.step+1))?'next':null
