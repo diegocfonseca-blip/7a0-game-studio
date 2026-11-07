@@ -980,6 +980,8 @@ export interface EscState {
   /** ⏩📺 06/11: marcha ABSOLUTA do Campo 2D escolhida pelo DONO no Manual (sala online / carreira online) — viaja no estado, vale pra sala toda.
    *  Sem ela: sala 3×, carreira online 2× (`vel2d-regra.ts`). Nada a ver com o `simSpeed` (placar normal). */
   vel2d?: number
+  /** ⏱️ 07/11: rodada da liga online + hora (relógio do dono) em que ela começou — quem volta no meio entra no minuto certo */
+  rodadaEm?: { r: number; at: number }
   // 🎥 modo stream: a carta que o campeão tirou (liga/copa) fica AQUI e vai pra
   // sala inteira via broadcast — todo mundo vê e pode abrir o pacote do campeão.
   // Quem não é campeão só assiste (não grava no álbum). null/vazio = ainda não abriu.

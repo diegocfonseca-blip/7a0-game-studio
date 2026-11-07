@@ -1,3 +1,4 @@
+import { minutoAtrasado } from './relogio-sala'
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import { sequenciaVisualPenaltis, type DisputaPenaltisCampo, type EstadoPenaltisCampo } from './campo2d-penaltis'
 import {ArenaConsulta} from './arena-consulta'
@@ -3282,12 +3283,14 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
 // ⚔️ 25/10 (Diego, carreira organizada): o que vai LOGO EMBAIXO DOS GOLS no placar (a tática, na aba Jogos + Tabela). Quem
 // monta o placar não precisa saber de nada — quem quer pôr algo ali só embrulha o placar neste contexto.
 export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
-export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis }:
+export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
   { disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void
+  /** ⏱️ 07/11 (sala online): hora (relógio do dono) em que ESTA rodada começou — quem abriu a tela no meio entra no minuto certo */
+  inicioEm?: number
   /** 🆚 retrospecto entre os DONOS dos dois clubes (sala online, gente × gente) — aparece antes da 1ª frase da rádio */
   retro?: { rival: string; r?: Retro } | null
   /** 📻🧑 escalação dos dois times, pra rádio citar o JOGADOR pelo nome (14/10). Sem isto, a rádio fala do clube. */
@@ -3377,6 +3380,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   },[privateField])
   const fieldMinute=useRef({round:roundKey,half:!!resumeHalf,minute:resumeHalf?45:0})
   const retomaRef = useRef(false) // ⏸️ voltou da pausa da Central: continua do minuto guardado
+  const ritmoAnt = useRef({ rk: roundKey, ms: roundMs }) // ⏩ 07/11: pra saber se só mudou a velocidade na mesma rodada
   const rkRef = useRef(roundKey)
   if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0); setConfirmados(0); setVoo(null) }
   useEffect(() => {
@@ -3409,9 +3413,16 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     // 🔁 INTERVALO (carreira offline com toggle): se vai pausar aos 45' e AINDA não
     // resolveu, o relógio roda 0→45 e trava; depois de resolver (resumeHalf) retoma
     // 45→93. Sem pausa, é 0→93 como sempre. `span` mantém o ritmo proporcional.
-    const sameField=(stadiumMatch&&presidentFieldAccount||retomaRef.current)&&fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
+    const mesmaParte=fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
+    // ⏩ 07/11 (Diego): o dono trocou a VELOCIDADE no meio do jogo → o jogo SEGUE do minuto em que estava (antes voltava pro 0'
+    // na tela da sala inteira e os gols já vistos passavam de novo).
+    const soVelocidade=mesmaParte&&ritmoAnt.current.rk===roundKey&&ritmoAnt.current.ms!==roundMs&&fieldMinute.current.minute>0
+    ritmoAnt.current={rk:roundKey,ms:roundMs}
+    const sameField=((stadiumMatch&&presidentFieldAccount||retomaRef.current)&&mesmaParte)||soVelocidade
     retomaRef.current = false
-    const startMin = sameField?fieldMinute.current.minute:resumeHalf ? 45 : 0
+    // ⏱️ 07/11: abriu a tela com a rodada JÁ rolando (atualizou a página, voltou do menu) → entra no minuto do dono, não do 0'
+    const atrasado=!sameField&&!resumeHalf&&!pauseAtHalf?minutoAtrasado(roundKey,inicioEm,dur):0
+    const startMin = sameField?fieldMinute.current.minute:resumeHalf ? 45 : atrasado
     fieldMinute.current={round:roundKey,half:!!resumeHalf,minute:startMin}
     const span = 93 - startMin
     const segDur = dur * (span / 93)
