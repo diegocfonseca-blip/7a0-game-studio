@@ -35,7 +35,9 @@ ok((ler('src/escalacao/screens.tsx').match(/<PensShootout campo=\{tie === meuTie
 ok(/if\(campo \|\| \(compactOnline/.test(ler('src/escalacao/pyramidseason.tsx')), 'PensShootout não segue o campinho quando recebe `campo`')
 // o campinho desenha a disputa (árbitro autorizando, auxiliares, festa)
 const campo = ler('src/escalacao/campo2d.tsx')
-for (const t of ['penalti?.apito', 'penalti.auxiliares', 'penalti?.comemora', 'disputaPenaltis?.preparar(jogo.atl, jogo.bola)']) ok(campo.includes(t), `campo2d.tsx: falta ${t}`)
+for (const t of ['penalti?.apito', 'penalti.auxiliares', 'penalti?.comemora', 'disputaPenaltis?.preparar(jogo.atl, jogo.bola)', 'penalti.corte > 0']) ok(campo.includes(t), `campo2d.tsx: falta ${t}`)
+// 📱 07/11: no celular (campinho em pé) o selo do placar desce pro canto de baixo durante a disputa (em cima ele cobria o auxiliar)
+ok(campo.includes('...(placarPenV && !deitado ? { bottom: 8 } : { top: 8 })'), 'campo2d.tsx: o selo do placar cobre o auxiliar da esquerda no celular durante a disputa')
 // nada de sorteio nem relógio do aparelho na cena (dois aparelhos têm que ver igual)
 const cena = ler('src/escalacao/campo2d-penaltis.ts')
 ok(!/Math\.random|Date\.now|performance\.now|localStorage/.test(cena), 'campo2d-penaltis.ts usa sorteio/relógio do aparelho')
@@ -48,7 +50,8 @@ const POS = ['GOL', 'LAT', 'LAT', 'ZAG', 'ZAG', 'MEI', 'MEI', 'MEI', 'ATA', 'ATA
 const time = (s: string) => POS.map((pos, i) => ({ name: `${s} ${i + 1}`, pos, lo: 50 + i, hi: 60 + i }))
 const A = time('Casa'), B = time('Visitante')
 const MIN_SEP = 2.5 // dois marcadores de ~1,25 m de raio: abaixo disso, um aparece em cima do outro
-let cenas = 0, piorSep = Infinity, piorCaso = '', maxVel = 0
+let piorMs = 0, somaMs = 0
+let cenas = 0, piorSep = Infinity, piorCaso = '', maxVel = 0, piorOrg = Infinity, piorOrgCaso = ''
 type Caso = { pens: [number, number]; seqReal?: string; invertido: boolean; orcamento?: number }
 const casos: Caso[] = []
 for (const pens of [[4, 2], [2, 4], [3, 2], [5, 4], [4, 5], [6, 5], [5, 6], [8, 7], [15, 14]] as [number, number][])
@@ -58,17 +61,24 @@ for (let seed = 1; seed <= 40; seed++) {
   const r = disputaPenaltisComSequencia(rng)
   casos.push({ pens: r.gols, seqReal: r.seq, invertido: seed % 2 === 0, orcamento: seed % 3 ? 0.7 + Math.max(r.seq.length, 10) * 1.6 + 0.6 : undefined })
 }
-for (const c of casos) {
+for (const [ci, c] of casos.entries()) {
   const cfg: ConfigPenaltisCampo = { id: 'trava', pens: c.pens, seqReal: c.seqReal, aName: 'Casa', bName: 'Visitante', aSquad: A, bSquad: B, invertido: c.invertido, orcamento: c.orcamento }
-  const jogo = new Jogo2D(123, c.invertido ? B : A, c.invertido ? A : B, [])
+  const jogo = new Jogo2D(100 + ci, c.invertido ? B : A, c.invertido ? A : B, [])
+  // 🧭 a disputa começa de onde o apito final pegou cada um: metade dos casos sai do jogo andado (gente espalhada pelo campo,
+  // goleiro lá no outro gol, dois colados numa dividida), a outra metade da saída de bola
+  if (ci % 2) jogo.avancaAte(5 + (ci * 17) % 88)
   const antes = JSON.stringify({ atl: jogo.atl, placar: jogo.placar })
   const s = new DisputaPenaltisCampo(cfg), s2 = new DisputaPenaltisCampo(cfg)
-  s.preparar(jogo.atl, jogo.bola); s2.preparar(jogo.atl, jogo.bola)
-  const nome = `${c.pens.join('x')}${c.seqReal ? ' seq' : ''}${c.invertido ? ' inv' : ''} orc=${c.orcamento ?? '-'}`
+  const tp = performance.now(); s.preparar(jogo.atl, jogo.bola); const msPrep = performance.now() - tp; s2.preparar(jogo.atl, jogo.bola)
+  if (cenas > 3) { piorMs = Math.max(piorMs, msPrep); somaMs += msPrep } // (as primeiras aquecem o motor do JS)
+  const nome = `#${ci} ${c.pens.join('x')}${c.seqReal ? ' seq' : ''}${c.invertido ? ' inv' : ''} orc=${c.orcamento ?? '-'}`
   if (c.orcamento) ok(s.duracao <= c.orcamento + 1e-6, `${nome}: a disputa (${s.duracao.toFixed(2)} s) não cabe no tempo da sala (${c.orcamento} s)`)
   // passo de 1/60 s em tempo NATURAL (a cena acelerada é a mesma forma, só mais rápida)
   const dt = s.escala / 60
   let ant = s.quadro()!, ult = 0
+  // pares que JÁ começaram a menos de 2,5 m (e a que distância)
+  const d0 = new Map<number, number>()
+  { const g = [...ant.jogadores, ant.juiz, ...ant.auxiliares]; for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) { const d = Math.hypot(g[i].x - g[j].x, g[i].y - g[j].y); if (d < MIN_SEP) d0.set(i * 100 + j, d) } }
   const apitosAntesDoContato = new Set<number>()
   for (let e = 0; e <= s.duracaoCena + dt; e += dt) {
     s.elapsed = Math.min(e, s.duracaoCena); s2.elapsed = s.elapsed
@@ -77,15 +87,25 @@ for (const c of casos) {
     ok(q.jogadores.length === 22 && q.jogadores.every(p => Number.isFinite(p.x) && Number.isFinite(p.y)), `${nome}: jogador sumiu`)
     ok(st.reveladas >= ult, `${nome}: placar andou pra trás`); ult = st.reveladas
     const tn = s.elapsed / s.escala
-    q.jogadores.forEach((p, i) => { const v = Math.hypot(p.x - ant.jogadores[i].x, p.y - ant.jogadores[i].y) * 60; maxVel = Math.max(maxVel, v); if (v > (tn > T.organizar ? 13 : 30)) ok(false, `${nome}: teleporte do atleta ${i} em t=${tn.toFixed(2)} (${v.toFixed(1)} m/s)`) })
+    q.jogadores.forEach((p, i) => { const v = Math.hypot(p.x - ant.jogadores[i].x, p.y - ant.jogadores[i].y) * 60; maxVel = Math.max(maxVel, v); if (v > 13) ok(false, `${nome}: teleporte do atleta ${i} em t=${tn.toFixed(2)} (${v.toFixed(1)} m/s)`) })
+    // 🎬 o corte de câmera do começo: a tela começa escura e clareia em menos de 1 s (e nunca escurece depois)
+    if (tn === 0) ok(q.corte === 1, `${nome}: a disputa não abre com o corte de câmera`)
+    if (tn >= 1) ok(q.corte === 0, `${nome}: a tela continua escura em t=${tn.toFixed(2)}`)
     if (q.apito) { apitosAntesDoContato.add(st.cobranca); ok(Math.hypot(q.juiz.x - 34, q.juiz.y - 11) < 6, `${nome}: o árbitro autoriza longe da marca`) }
-    if (tn > T.organizar) {
+    // 🧭 desde o 1º quadro (07/11): a ORGANIZAÇÃO também conta. Quem já começou colado em alguém (o apito final pegou os dois
+    // juntos) só pode se afastar dele; todo o resto, a régua de sempre
+    {
       const gente = [...q.jogadores, q.juiz, ...q.auxiliares]
       for (let i = 0; i < gente.length; i++) for (let j = i + 1; j < gente.length; j++) {
         if (i >= 22 && j >= 22 && i !== 22) continue // os dois auxiliares parados um longe do outro
         const d = Math.hypot(gente[i].x - gente[j].x, gente[i].y - gente[j].y)
-        if (d < piorSep) { piorSep = d; piorCaso = `${nome} t=${tn.toFixed(2)} ${i}×${j} (${st.fase} #${st.cobranca})` }
+        const regra = Math.min(MIN_SEP, (d0.get(i * 100 + j) ?? Infinity) - .05)
+        if (d < regra) ok(false, `${nome}: ${i}×${j} se cruzaram em t=${tn.toFixed(2)} (${d.toFixed(2)} m, ${st.fase} #${st.cobranca})`)
+        if (tn <= T.organizar) { if (d < piorOrg && d0.get(i * 100 + j) == null) { piorOrg = d; piorOrgCaso = `${nome} t=${tn.toFixed(2)} ${i}×${j}` } }
+        else if (d < piorSep) { piorSep = d; piorCaso = `${nome} t=${tn.toFixed(2)} ${i}×${j} (${st.fase} #${st.cobranca})` }
       }
+    }
+    if (tn > T.organizar) {
       if (q.batedor >= 0 && st.fase !== 'caminhar') {
         const k = s.seq[st.cobranca], ladoCerto = c.invertido ? 1 - k.side : k.side
         ok(jogo.atl[q.batedor].lado === ladoCerto, `${nome}: batedor do time errado`)
@@ -106,6 +126,8 @@ for (const c of casos) {
   cenas++
 }
 ok(piorSep >= MIN_SEP, `alguém se cruzou: ${piorSep.toFixed(2)} m em ${piorCaso}`)
+ok(piorMs < 20, `preparar a cena levou ${piorMs.toFixed(0)} ms (a disputa tem que abrir na hora, em celular fraco também)`)
+ok(piorOrg >= MIN_SEP, `alguém se cruzou na organização: ${piorOrg.toFixed(2)} m em ${piorOrgCaso}`)
 // sem campinho na tela, o relógio da disputa anda mesmo assim (nunca trava a fase)
 {
   const s = new DisputaPenaltisCampo({ id: 'sem', pens: [4, 2], aName: 'A', bName: 'B', orcamento: 12 })
@@ -113,5 +135,5 @@ ok(piorSep >= MIN_SEP, `alguém se cruzou: ${piorSep.toFixed(2)} m em ${piorCaso
   while (!s.estado.encerrado) s.avancar(.25, 1, false, true)
   assert.deepEqual(s.estado.placar, [4, 2])
 }
-if (falhas.length) { console.error(`❌ penaltis-2d: ${falhas.length} falha(s)\n` + [...new Set(falhas)].slice(0, 25).join('\n')); process.exit(1) }
-console.log(`✅ penaltis-2d: ${lugares.length} telas ligadas · ${cenas} disputas (ritmo natural e acelerado, saves com sequência real) · menor distância entre duas pessoas ${piorSep.toFixed(2)} m (${piorCaso}) · maior velocidade ${maxVel.toFixed(1)} m/s (natural) · dois aparelhos = mesma cena`)
+if (falhas.length) { console.error(`❌ penaltis-2d: ${falhas.length} falha(s)\n` + [...new Set(falhas)].slice(0, 400).join('\n')); process.exit(1) }
+console.log(`✅ penaltis-2d: ${lugares.length} telas ligadas · ${cenas} disputas (ritmo natural e acelerado, saves com sequência real) · organização (todo mundo indo pro círculo): menor distância ${piorOrg.toFixed(2)} m (${piorOrgCaso}) · depois: ${piorSep.toFixed(2)} m (${piorCaso}) · maior velocidade ${maxVel.toFixed(1)} m/s (natural) · dois aparelhos = mesma cena`)
