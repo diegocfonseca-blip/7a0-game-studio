@@ -30,8 +30,8 @@ import { useCampo2DLiberado, useCampo2DTester } from './sport'
 import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, QUIQUE_DUR, esticaGoleiro, riscoCarrinho, casaAtacando, type BolaVista } from './campo2d-efeitos'
 import { playTrave } from './sound'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
-import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
-import { alvoBandeirinhas, sinalDaBandeira, desenhaFotografos, desenhaBandeira, type CenaArredores } from './campo2d-arredores'
+import { FestaGolCampo2D, publicarFestaCampo2D, publicarTelaoCampo2D } from './campo2d-festa'
+import { alvoBandeirinhas, sinalDaBandeira, desenhaFotografos, desenhaBandeira, arredoresParaMapa, type CenaArredores } from './campo2d-arredores'
 import { criaColetorCampo2D, fraseQuase, QUASE_FAIXA_MS, QUASE_ANEL_MS, type QuaseCampo2D, type ResumoCampo2D } from './campo2d-resumo'
 import { ResumoApitoCampo2D, BotaoReplayCampo2D, publicarApitoCampo2D, publicarQuaseCampo2D, QUASE_CSS, estiloQuase, type ReplayCampo2D } from './campo2d-resumo-ui'
 
@@ -835,7 +835,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         const [sx,sy,sw,sh]=rect(-1.5,-2,W+3,L+4)
         publicarSuperficieCampo2D({id:mapMatchId,owner:surfaceOwner,canvas:c,rect:{x:sx*dpr,y:sy*dpr,width:sw*dpr,height:sh*dpr},landscape:deitado,minute:simMin,
           players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
-          net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
+          net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,arredores:penalti?undefined:arredoresParaMapa(cena as unknown as CenaArredores,auxs),penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
           quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined,
           // ✨ 07/11: os efeitos de lance também no estádio do mapa (o mapa só desenha; quem decide é este mesmo quadro)
@@ -860,6 +860,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     ultFesta.current = null; setTelao({ lado: f.lado, autor: f.autor, min: f.min })
     const id = setTimeout(() => setTelao(null), 10000); return () => clearTimeout(id)
   }, [festa])
+  // 🗺️ o mesmo telão no campo do MAPA (o HUD do mapa lê)
+  useEffect(() => {
+    if (!mapMatchId) return
+    const dono = telao ? (telao.lado === 0 ? vivo.current.casa : vivo.current.fora) : null
+    publicarTelaoCampo2D(mapMatchId, telao && dono ? { ...telao, escudo: dono.escudo } : null)
+  }, [mapMatchId, telao])
+  useEffect(() => () => { if (mapMatchId) publicarTelaoCampo2D(mapMatchId, null) }, [mapMatchId])
   // 🗺️ 04/11: a mesma festa do gol vai pro HUD do mapa (quando este campinho é a fonte do campo do estádio)
   useEffect(() => {
     if (!mapMatchId) return

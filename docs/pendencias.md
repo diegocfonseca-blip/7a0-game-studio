@@ -1,3 +1,11 @@
+## 🚩📸📺 07/11 — Campo 2D: bandeirinhas, fotógrafos e telão (FEITO, liberado pra TODOS)
+- Diego escolheu da lista de ideias (*"Ok faça p todos"*): bandeirinhas na lateral (linha do penúltimo defensor, cada um numa metade, bandeira
+  apontando no lateral/escanteio/tiro de meta), 4 fotógrafos atrás de cada gol com flash no gol e em chute perigoso, e o 📺 telão na
+  arquibancada (parado: escudos + AO VIVO; depois da festa do gol: escudo + GOL! + autor + minuto por 10 s). Regras em `campo2d-arredores.ts`.
+- Mapa (regra 21): o mesmo vai pro campo do mapa (marcadores A/📷, pano da bandeira, clarão do flash, telão no HUD).
+- Ficou pra depois, se ele pedir: no celular o selo do placar cobre os 2 fotógrafos de cima à esquerda; telão do celular é bem pequeno.
+- Ideias da lista que ele NÃO escolheu (não repropor sem ele pedir): ola, torcida indo embora, sinalizador, gestos do juiz, gandulas, banco/técnico reagindo, placas LED.
+
 ## 🅰️ 07/11 — Copa da carreira caía no placar cinema em vez do campinho (Diego, quarta de copa na Várzea)
 - Causa: a conferência do replay oficial (`prepararReplayOficial`) exigia a ASSISTÊNCIA igual, mas o save não guarda assistência
   de jogador de mentira (regra de 19/09) e o motor sim → reprovava → `replayOficialBloqueado` → sem 2D. Na Várzea (filler) quase sempre.

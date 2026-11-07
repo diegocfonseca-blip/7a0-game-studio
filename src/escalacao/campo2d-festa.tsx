@@ -35,3 +35,25 @@ const assina = (fn: () => void) => { ouvintes.add(fn); return () => { ouvintes.d
 export function useFestaCampo2D(id: string | undefined): FestaComArte | null {
   return useSyncExternalStore(assina, () => (id ? festas.get(id) ?? null : null), () => null)
 }
+
+// 📺 07/11: o TELÃO do gol (escudo + nome de quem fez, ~10 s depois da festa) — a mesma ponte, pro HUD do mapa
+export type TelaoCampo2D = { lado: 0 | 1; autor: string; min: number; escudo?: ReactNode }
+const telaos = new Map<string, TelaoCampo2D>()
+export function publicarTelaoCampo2D(id: string, telao: TelaoCampo2D | null) {
+  if (telao) telaos.set(id, telao); else if (telaos.has(id)) telaos.delete(id); else return
+  ouvintes.forEach(fn => fn())
+}
+export function useTelaoCampo2D(id: string | undefined): TelaoCampo2D | null {
+  return useSyncExternalStore(assina, () => (id ? telaos.get(id) ?? null : null), () => null)
+}
+/** o telão no HUD do mapa: o mesmo LED do campinho (escudo + GOL! + nome + minuto) */
+export function TelaoGolMapa({ telao }: { telao: TelaoCampo2D }) {
+  const t = useT()
+  return (
+    <div data-telao-mapa style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#05070a', border: `2px solid ${INK}`, outline: '1px solid #3a434d', borderRadius: 6, padding: '4px 10px', boxShadow: '0 0 10px rgba(80,170,255,.25)', backgroundImage: 'radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px)', backgroundSize: '3px 3px', pointerEvents: 'none' }}>
+      {telao.escudo && <div style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ transform: `scale(${34 / 110})` }}>{telao.escudo}</div></div>}
+      <span style={{ ...OSW, color: GOLD, fontSize: 16, fontWeight: 900 }}>{t('GOL!', 'GOAL!')}</span>
+      <span style={{ ...OSW, color: '#fff', fontSize: 16, whiteSpace: 'nowrap' }}>{telao.autor.toUpperCase()} {telao.min > 90 ? `90+${telao.min - 90}` : telao.min}'</span>
+    </div>
+  )
+}

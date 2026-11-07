@@ -6,7 +6,7 @@ import type { EstadoPartidaEstadio } from './presidencia-partida-model'
 import { useControleMapa } from './controle-partida-mapa'
 import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
 import { useT } from './lang'
-import { FestaGolCampo2D, useFestaCampo2D } from './campo2d-festa'
+import { FestaGolCampo2D, useFestaCampo2D, TelaoGolMapa, useTelaoCampo2D } from './campo2d-festa'
 import { estiloPisca, gritoGol } from './radio-pisca'
 import { ResumoApitoCampo2D, BotaoReplayCampo2D, useApitoCampo2D, useQuaseCampo2D, QUASE_CSS, estiloQuase } from './campo2d-resumo-ui'
 
@@ -22,6 +22,7 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
   // festa do campinho da aba Jogos (GOOOOL + mascote/escudo + autor, minuto e 🅰️ assistência), por cima do 3D, e a faixa do
   // locutor grita o gol do mesmo jeito. O campinho escondido é quem avisa (campo2d-festa.tsx) — aqui só desenha.
   const festa = useFestaCampo2D(match?.context.id)
+  const telao = useTelaoCampo2D(match?.context.id) // 📺 07/11: o telão do gol, igual ao do campinho da aba Jogos
   // 📊🎬😱 04/11: o resumo do apito, os melhores momentos e o QUASE — os MESMOS componentes do campinho da aba Jogos
   // (campo2d-resumo-ui.tsx), avisados pelo campinho que é a fonte deste campo. Nada disso existe antes do apito / do lance.
   const apito = useApitoCampo2D(match?.context.id), quase = useQuaseCampo2D(match?.context.id)
@@ -47,6 +48,7 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
    <div className="pc3-match-score">
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
       {placar}
+      {telao && !festa && <TelaoGolMapa telao={telao} />}
       {vivo && !penaltis && ctl?.tatica && <button type="button" onClick={ctl.tatica} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '2px solid #fff', background: INK, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('🔁 Substituir / tática', '🔁 Subs / tactics')}</button>}
       {!vivo && ctl?.dia && <span style={{ ...OSW, fontSize: 11.5, color: GOLD, flex: 'none' }}>{ctl.dia}</span>}
       {!vivo && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}

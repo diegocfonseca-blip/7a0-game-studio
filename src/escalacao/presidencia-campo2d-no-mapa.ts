@@ -16,7 +16,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=64
  const sg=shadowCanvas.getContext('2d')!,gradient=sg.createRadialGradient(32,32,4,32,32,31);gradient.addColorStop(0,'rgba(0,0,0,.32)');gradient.addColorStop(.65,'rgba(0,0,0,.13)');gradient.addColorStop(1,'rgba(0,0,0,0)');sg.fillStyle=gradient;sg.fillRect(0,0,64,64)
  const shadowTexture=new T.CanvasTexture(shadowCanvas),shadowMaterial=new T.MeshBasicMaterial({map:shadowTexture,transparent:true,depthWrite:false,toneMapped:false})
- const shadows=new T.InstancedMesh(circle,shadowMaterial,23),shadowPose=new T.Object3D();shadows.name='sombras-marcadores2d';shadows.frustumCulled=false;shadows.count=0;shadows.instanceMatrix.setUsage(T.DynamicDrawUsage);root.add(shadows)
+ const shadows=new T.InstancedMesh(circle,shadowMaterial,30),shadowPose=new T.Object3D();shadows.name='sombras-marcadores2d';shadows.frustumCulled=false;shadows.count=0;shadows.instanceMatrix.setUsage(T.DynamicDrawUsage);root.add(shadows)
  type Token={root:T.Group;icon:T.Sprite;label?:T.Sprite;ring:T.Mesh;texture:T.CanvasTexture;labelTexture?:T.CanvasTexture;key:string;portrait:boolean;owned:boolean}
  const tokens=new Map<string,Token>(),direction=new T.Vector3(),relative=new T.Vector3(),projected=new T.Vector3()
  const texture=(canvas:HTMLCanvasElement)=>{const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.minFilter=T.LinearMipmapLinearFilter;return map}
@@ -70,6 +70,14 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const quaseRing=new T.Mesh(quaseRingGeo,quaseGold),quaseInner=new T.Mesh(quaseRingGeo,quaseWhite),quaseDot=new T.Mesh(quaseDotGeo,quaseWhite)
  for(const m of [quaseRing,quaseInner,quaseDot]){m.rotation.x=-Math.PI/2;m.renderOrder=13;m.visible=false;root.add(m)};quaseRing.name='quase2d-no-mapa'
  const passo=new Map<string,{x:number;z:number;fase:number}>();let relogio=0
+ // 🚩📸 07/11: o pano da bandeira levantada e o clarão do flash (sprites simples, criados uma vez)
+ const flagCanvas=document.createElement('canvas');flagCanvas.width=flagCanvas.height=64
+ {const g=flagCanvas.getContext('2d')!;g.fillStyle='#FFE600';g.fillRect(8,8,48,48);g.fillStyle='#C2452F';g.fillRect(8,8,24,24);g.fillRect(32,32,24,24);g.lineWidth=4;g.strokeStyle='#111';g.strokeRect(8,8,48,48)}
+ const flashCanvas=document.createElement('canvas');flashCanvas.width=flashCanvas.height=128
+ {const g=flashCanvas.getContext('2d')!,gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,240,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128)}
+ const flagTexture=texture(flagCanvas),flashTexture=texture(flashCanvas)
+ const flags=[0,1].map(()=>{const sp=new T.Sprite(new T.SpriteMaterial({map:flagTexture,transparent:true,depthWrite:false,toneMapped:false}));sp.scale.set(.9,.9,1);sp.renderOrder=17;sp.visible=false;root.add(sp);return sp})
+ const flashes=Array.from({length:8},()=>{const sp=new T.Sprite(new T.SpriteMaterial({map:flashTexture,transparent:true,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending}));sp.scale.set(3.2,3.2,1);sp.renderOrder=18;sp.visible=false;root.add(sp);return sp})
  const nomeNaBola=criaNomeNaBola() // 🏷️ o nome segura um pouquinho depois do toque (o mesmo do campinho da aba Jogos)
  const ballShadow=new T.Mesh(circle,shadowMaterial);ballShadow.name='sombra-bola2d';ballShadow.rotation.x=-Math.PI/2;ballShadow.position.y=.03;root.add(ballShadow);ballShadow.visible=false
  let id='',revision=-1,viewportVisible=true,disposed=false,lastBall:{x:number;z:number}|undefined,lastMinute=0,labels=new Set<string>(),fontRevision=0
@@ -77,7 +85,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  let frame:InspecaoPartidaComplexo={players:0,ball:{x:0,y:.11,z:0}},subjects:ReturnType<PartidaComplexo['subjects']>=[]
  const consumer={},off=observarSuperficieCampo2D(changed=>{if(changed===id&&viewportVisible&&!disposed)onReady()})
  void document.fonts?.ready.then(()=>{if(!disposed){fontRevision++;for(const token of tokens.values())token.key='';onReady()}})
- const hide=()=>{quaseRing.visible=quaseInner.visible=quaseDot.visible=false;ball.visible=ballShadow.visible=false;rain.visible=false;trail.forEach(sp=>{sp.visible=false});bubbles.forEach(b=>{b.sp.visible=false});rastro.limpa();shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
+ const hide=()=>{flags.forEach(f=>{f.visible=false});flashes.forEach(f=>{f.visible=false});quaseRing.visible=quaseInner.visible=quaseDot.visible=false;ball.visible=ballShadow.visible=false;rain.visible=false;trail.forEach(sp=>{sp.visible=false});bubbles.forEach(b=>{b.sp.visible=false});rastro.limpa();shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
  // 🧈 04/11 (Diego: *"bola travando"*): o campinho manda as posições ~30 vezes por segundo e o mapa desenha a 60 — sem nada no meio,
  // jogador e bola andavam em degrauzinho. Agora cada um DESLIZA até a posição nova (fração por quadro presa no tempo real);
  // pulo grande (gol, reposição, começo) vai direto.
@@ -94,7 +102,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   const source=superficieCampo2D(id);if(!source){hide();return}
   revision=source.revision
   const seen=new Set<string>(),candidates:RotuloCampo2D[]=[],obstacles:RotuloCampo2D[]=[];let shadowIndex=0
-  const shadowAt=(x:number,z:number,radius:number)=>{if(shadowIndex>=23)return;shadowPose.position.set(x,.028,z);shadowPose.rotation.set(-Math.PI/2,0,0);shadowPose.scale.setScalar(2.6*radius);shadowPose.updateMatrix();shadows.setMatrixAt(shadowIndex++,shadowPose.matrix)}
+  const shadowAt=(x:number,z:number,radius:number)=>{if(shadowIndex>=30)return;shadowPose.position.set(x,.028,z);shadowPose.rotation.set(-Math.PI/2,0,0);shadowPose.scale.setScalar(2.6*radius);shadowPose.updateMatrix();shadows.setMatrixAt(shadowIndex++,shadowPose.matrix)}
   camera?.getWorldDirection(direction)
   const tan=camera?Math.tan(T.MathUtils.degToRad(camera.fov)*.5):1,anchor=camera?Math.hypot(direction.x,direction.z):.5
   // 🏷️ 04/11 (Diego: *"o nome… na aba do mapa não dá pra ler ou some rápido"*): o nome tem TAMANHO DE TELA fixo (26 px no celular,
@@ -125,6 +133,14 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   ;[0,1].forEach(lado=>{const nome=source.tecnicos?.[lado]??'';if(!nome)return;const key='coach'+lado,cor=source.players.find(q=>q.side===(lado?'away':'home'))?.marker.color??'#1b1b1b'
    const tk=marker(key,{name:nome,color:cor,number:'🧢',portrait:null,owned:false},105/2-105*(lado?.28:.72),-68/2-3.5,1.05);tk.root.visible=true;seen.add(key);tk.icon.position.y=1.05*anchor+.10;shadowAt(tk.root.position.x,tk.root.position.z,1.05)
    if(tk.label){tk.label.position.copy(tk.icon.position);const show=!!camera&&!distant;tk.label.visible=show;if(show&&camera){relative.copy(tk.root.position).sub(camera.position);const depth=Math.max(1,relative.dot(direction)),image=tk.labelTexture!.image as HTMLCanvasElement,alto=Math.max(1.05*.94,pxNome*.7/alturaTela*2*depth*tan);tk.label.scale.set(alto*image.width/image.height,alto,1);tk.label.center.set(.5,1+1.05*1.1/alto)}}})
+  // 🚩📸 07/11: bandeirinhas na lateral (bandeira levantada no lateral/escanteio/tiro de meta) e fotógrafos atrás dos gols com
+  // flash no gol — os MESMOS do campinho da aba Jogos (campo2d-arredores.ts). Campo (x,y) → mapa (105/2−y, x−68/2).
+  {const arr=source.arredores,emX=(y:number)=>105/2-y,emZ=(x:number)=>x-68/2
+   flags.forEach(f=>f.visible=false);flashes.forEach(f=>f.visible=false)
+   if(arr){arr.aux.forEach((a,i)=>{const key='aux'+i,tk=marker(key,{name:'',color:'#FFC400',number:'A',portrait:null,owned:false,referee:true},emX(a.y),emZ(a.x),.8);tk.icon.position.y=.8*anchor+.10;tk.root.visible=true;seen.add(key);shadowAt(tk.root.position.x,tk.root.position.z,.8)
+     if(a.levantada&&a.alvo){const dx=emX(a.alvo[1])-emX(a.y),dz=emZ(a.alvo[0])-emZ(a.x),d=Math.hypot(dx,dz)||1,f=flags[i];f.position.set(emX(a.y)+dx/d*1.3,2.0,emZ(a.x)+dz/d*1.3);f.visible=true}})
+    arr.fotos.forEach((p,i)=>{const key='foto'+i,tk=marker(key,{name:'',color:'#FF7A1A',number:'📷',portrait:null,owned:false},emX(p.y),emZ(p.x),.62);tk.icon.position.y=.62*anchor+.10;tk.root.visible=true;seen.add(key)
+     if(p.flash){const fl=flashes[i];fl.position.set(emX(p.y)+(p.y<0?-1:1)*-.6,1.2,emZ(p.x));fl.visible=true}})}}
   const ref=marker('referee',{name:'',color:'#FFC400',number:'J',portrait:null,owned:false,referee:true},source.referee.x,source.referee.z,1.05);ref.icon.position.y=1.05*anchor+.10;ref.root.visible=true;seen.add('referee')
   shadowAt(source.referee.x,source.referee.z,1.05);shadows.count=shadowIndex;shadows.instanceMatrix.needsUpdate=true
   for(const[key,t]of tokens)if(!seen.has(key)){drop(t);tokens.delete(key)}
@@ -153,5 +169,5 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   frame={quase:source.quase?{side:source.quase.side,age:source.quase.age}:undefined,matchId:id,players:source.players.length,ball:{...source.ball},time:source.minute,phase:state.finished?'fim':'dominio',replay:false,official:undefined}
  }
  return{update,subjects:()=>subjects,frame:()=>frame,inspect:()=>({...frame,ball:{...frame.ball},detail:{design:'campo2d-marcadores-no-gramado-original',sourceId:id,surfaceRevision:revision,ready:revision>=0,actors:frame.players,skinnedPlayers:0,sameSource:true,nativePitch:true,pitchUploads:0,labels:[...labels],portraitMarkers:[...tokens.values()].filter(t=>t.portrait).length,fontRevision,score:superficieCampo2D(id)?.score,narration:superficieCampo2D(id)?.narration} as unknown as InspecaoPartidaComplexo['detail']}),setPresentationVisible:value=>{root.visible=value},setViewportVisible:value=>{viewportVisible=value;if(id&&!value)pedirSuperficieCampo2D(id,consumer,0)},
-  dispose(){if(disposed)return;disposed=true;off();quaseRingGeo.dispose();quaseDotGeo.dispose();quaseGold.dispose();quaseWhite.dispose();dotTexture.dispose();trail.forEach(sp=>(sp.material as T.SpriteMaterial).dispose());bubbles.forEach(b=>{b.map.dispose();b.mat.dispose()});rainGeometry.dispose();rainMaterial.dispose();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
+  dispose(){if(disposed)return;disposed=true;off();flags.forEach(f=>(f.material as T.SpriteMaterial).dispose());flashes.forEach(f=>(f.material as T.SpriteMaterial).dispose());flagTexture.dispose();flashTexture.dispose();quaseRingGeo.dispose();quaseDotGeo.dispose();quaseGold.dispose();quaseWhite.dispose();dotTexture.dispose();trail.forEach(sp=>(sp.material as T.SpriteMaterial).dispose());bubbles.forEach(b=>{b.map.dispose();b.mat.dispose()});rainGeometry.dispose();rainMaterial.dispose();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
 }

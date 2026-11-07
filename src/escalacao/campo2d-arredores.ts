@@ -48,14 +48,20 @@ export const FOTOGRAFOS: Pt[] = [16, 21.5, 46.5, 52].flatMap(x => [[x, -1.7], [x
 
 const hash = (a: number, b: number) => ((Math.imul(a + 11, 0x9E3779B1) ^ Math.imul(b + 5, 0x85EBCA6B)) >>> 0) % 1000
 
-/** 📸 desenha os fotógrafos; no gol, os do gol onde a bola entrou disparam flash sem parar */
-export function desenhaFotografos(cx: CanvasRenderingContext2D, tr: Tr, R: number, c: CenaArredores) {
+/** 📸 quem está disparando o flash AGORA (o MESMO no campinho da aba Jogos e no do mapa): no gol, os do gol onde a bola
+ *  entrou disparam sem parar; num chute voando perto do gol, um flash ou outro */
+export function flashesFotografos(c: CenaArredores): boolean[] {
   const fimGol = c.festa ? (c.festa.lado === 0 ? 0 : L) : null
-  // um chute voando perto do gol também ganha um flash ou outro
   const chuteEm = c.bola.voo && (c.bola.y < 22 || c.bola.y > L - 22) ? (c.bola.y < L / 2 ? 0 : L) : null
   const quadro = Math.floor(c.t * 14)
+  return FOTOGRAFOS.map(([, fy], i) => { const fim = fy < 0 ? 0 : L; return (fimGol === fim && hash(quadro, i) < 170) || (chuteEm === fim && hash(quadro, i + 40) < 45) })
+}
+
+/** 📸 desenha os fotógrafos (com o flash de quem está disparando) */
+export function desenhaFotografos(cx: CanvasRenderingContext2D, tr: Tr, R: number, c: CenaArredores) {
+  const fl = flashesFotografos(c)
   FOTOGRAFOS.forEach(([fx, fy], i) => {
-    const [X, Y] = tr(fx, fy), r = R * 0.5, fim = fy < 0 ? 0 : L
+    const [X, Y] = tr(fx, fy), r = R * 0.5
     const [cxL, cyL] = tr(fx + (34 - fx) * 0.04, fy < 0 ? 0.6 : L - 0.6) // a câmera aponta pro campo
     const ang = Math.atan2(cyL - Y, cxL - X)
     cx.beginPath(); cx.ellipse(X, Y + r * 0.9, r * 0.9, r * 0.35, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.28)'; cx.fill()
@@ -65,8 +71,7 @@ export function desenhaFotografos(cx: CanvasRenderingContext2D, tr: Tr, R: numbe
     cx.fillStyle = '#111'; cx.fillRect(r * 0.6, -r * 0.45, r * 0.9, r * 0.9) // o corpo da câmera
     cx.fillRect(r * 1.4, -r * 0.28, r * 0.9, r * 0.56) // a lente
     cx.restore()
-    const dispara = (fimGol === fim && hash(quadro, i) < 170) || (chuteEm === fim && hash(quadro, i + 40) < 45)
-    if (dispara) {
+    if (fl[i]) {
       const [lx, ly] = [X + Math.cos(ang) * r * 2.2, Y + Math.sin(ang) * r * 2.2]
       const g = cx.createRadialGradient(lx, ly, 0, lx, ly, R * 2.6)
       g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(0.25, 'rgba(255,255,240,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)')
@@ -96,4 +101,14 @@ export function desenhaBandeira(cx: CanvasRenderingContext2D, tr: Tr, X: number,
   cx.fillStyle = '#C2452F'; cx.fillRect(0, 0, tam / 2, tam / 2); cx.fillRect(tam / 2, tam / 2, tam / 2, tam / 2)
   cx.strokeStyle = '#111'; cx.lineWidth = 1; cx.strokeRect(0, 0, tam, tam)
   cx.restore()
+}
+
+/** 🗺️ o que o campo do MAPA precisa pra desenhar o mesmo (coordenadas do campo; o mapa converte) */
+export type ArredoresMapa = { aux: { x: number; y: number; alvo: [number, number] | null; levantada: boolean }[]; fotos: { x: number; y: number; flash: boolean }[] }
+export function arredoresParaMapa(c: CenaArredores, auxs: [number, number][]): ArredoresMapa {
+  const sinal = sinalDaBandeira(c), fl = flashesFotografos(c)
+  return {
+    aux: auxs.map((a, i) => { const meu = sinal != null && (c.bola.y >= L / 2 ? i === 0 : i === 1); return { x: a[0], y: a[1], levantada: meu, alvo: meu ? (sinal!.alvo ?? [i === 0 ? W + 6 : -6, a[1]]) : null } }),
+    fotos: FOTOGRAFOS.map(([x, y], i) => ({ x, y, flash: fl[i] })),
+  }
 }
