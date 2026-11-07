@@ -29,6 +29,7 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado } from './sport'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
+import { alvoBandeirinhas, sinalDaBandeira, desenhaFotografos, desenhaBandeira, type CenaArredores } from './campo2d-arredores'
 import { criaColetorCampo2D, fraseQuase, QUASE_FAIXA_MS, QUASE_ANEL_MS, type QuaseCampo2D, type ResumoCampo2D } from './campo2d-resumo'
 import { ResumoApitoCampo2D, BotaoReplayCampo2D, publicarApitoCampo2D, publicarQuaseCampo2D, QUASE_CSS, estiloQuase, type ReplayCampo2D } from './campo2d-resumo-ui'
 
@@ -433,6 +434,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     let simMin = Math.max(0, jogo.t / SEG_POR_MIN, mapMatchId?Math.min(93.5,minuto):0), antes = performance.now()
     // 🟨 o juiz (só desenho): corre atrás do lance, uns metros atrás da bola, nunca em cima dela
     const juiz = { x: 34, y: L / 2 }
+    // 🚩 os dois bandeirinhas (só desenho): cada um numa lateral, na linha do penúltimo defensor da metade dele
+    const auxs: [number, number][] = [[W + 0.6, L * 0.75], [-0.6, L * 0.25]]
     // 🌠 rastro da bola nos passes longos e chutes
     const rastro: [number, number][] = []
     // 🔁 04/11: o rastro do MAPA (o que o Diego gostou) — mesma regra e mesma bolinha de luz (campo2d-apresentacao.ts)
@@ -538,6 +541,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.strokeStyle = 'rgba(255,255,255,.4)'; cx.lineWidth = 1
         for (let i = 1; i < 4; i++) { cx.beginPath(); if (deitado) { cx.moveTo(x + (w * i) / 4, y); cx.lineTo(x + (w * i) / 4, y + h) } else { cx.moveTo(x, y + (h * i) / 4); cx.lineTo(x + w, y + (h * i) / 4) } cx.stroke() }
       }
+      // 📸 os fotógrafos atrás dos gols (flash no gol)
+      if (!penalti) desenhaFotografos(cx, tr, R, cena as unknown as CenaArredores)
       // 🧢 os técnicos na beira do campo, com o balão
       const fala = (lado: 0 | 1): string => {
         if (cena.festa) return cena.festa.lado === lado ? t('🙌 É GOL!', '🙌 GOAL!') : t('🤦 Não acredito…', '🤦 Unbelievable…')
@@ -592,6 +597,17 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           const [X, Y, RJ] = arbitro(a.x, a.y, 'A', 0.62)
           cx.fillStyle = '#FFE600'; cx.fillRect(X + RJ * 0.7, Y - RJ * 1.7, RJ * 0.9, RJ * 0.6); cx.fillStyle = '#C2452F'; cx.fillRect(X + RJ * 0.7, Y - RJ * 1.4, RJ * 0.9, RJ * 0.3)
           cx.strokeStyle = '#111'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(X + RJ * 0.7, Y - RJ * 1.75); cx.lineTo(X + RJ * 0.7, Y - RJ * 0.2); cx.stroke()
+        }
+        // 🚩 07/11: no jogo corrido os bandeirinhas correm na lateral e levantam a bandeira (lateral · escanteio · tiro de meta)
+        if (!penalti) {
+          const alvos = alvoBandeirinhas(cena as unknown as CenaArredores), sinal = sinalDaBandeira(cena as unknown as CenaArredores)
+          const kA = Math.min(1, dt / 700)
+          auxs.forEach((ax, i) => {
+            ax[1] += (alvos[i][1] - ax[1]) * kA
+            const [AX, AY, RA] = arbitro(ax[0], ax[1], 'A', 0.62)
+            const meu = sinal != null && (cena.bola.y >= L / 2 ? i === 0 : i === 1)
+            desenhaBandeira(cx, tr, AX, AY, RA, [i === 0 ? W + 6 : -6, ax[1]], meu ? sinal!.alvo : null, meu)
+          })
         }
         const [X, Y, RJ] = arbitro(juiz.x, juiz.y, 'J', 0.8)
         // 📣 o árbitro AUTORIZA a cobrança: braço apontando pra marca + o apito
@@ -715,6 +731,16 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   }, [jogo, larg, deitado, corCasa, corFora, listrasK, msPorMin, noite, gramaPct, lotacao, mapMatchId])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
+  // 📺 07/11: o TELÃO do estádio — quando a festa do gol termina, ele fica ~10 s com o escudo e o nome de quem fez
+  // (durante a festa ele fica por baixo dela: o mesmo teatro não aparece duas vezes ao mesmo tempo)
+  const [telao, setTelao] = useState<{ lado: 0 | 1; autor: string; min: number } | null>(null)
+  const ultFesta = useRef<typeof festa>(null)
+  useEffect(() => {
+    if (festa) { ultFesta.current = festa; setTelao(null); return }
+    const f = ultFesta.current; if (!f) return
+    ultFesta.current = null; setTelao({ lado: f.lado, autor: f.autor, min: f.min })
+    const id = setTimeout(() => setTelao(null), 10000); return () => clearTimeout(id)
+  }, [festa])
   // 🗺️ 04/11: a mesma festa do gol vai pro HUD do mapa (quando este campinho é a fonte do campo do estádio)
   useEffect(() => {
     if (!mapMatchId) return
@@ -751,6 +777,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           <div style={{ position: 'absolute', left: 8, ...(placarPenV && !deitado ? { bottom: 8 } : { top: 8 }), ...OSW, fontSize: deitado ? 15 : 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: deitado ? '3px 10px' : '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
             <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{placarPenV ? `${t('PÊN', 'PENS')} ${placarPenV[0]}–${placarPenV[1]}` : fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
           </div>
+          <Telao2D deitado={deitado} larg={larg} gol={telao} casa={casa} fora={fora} />
         </div>
         {!deitado && <PlacaGol lado="baixo" alt={altPlaca} />}
         {festa && time && (
@@ -771,6 +798,44 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       )}
       {quase && <style>{QUASE_CSS}</style>}
       {resumo && !festa && (!disputaPenaltis || disputaPenaltis.estado.encerrado) && <ResumoApitoCampo2D resumo={resumo} casa={ladoResumo(casa, corCasa)} fora={ladoResumo(fora, corFora)} larg={larg} />}
+    </div>
+  )
+}
+
+// 📺 o TELÃO do estádio (07/11, mockup pro Diego): na arquibancada de cima (deitado) ou no canto atrás do gol de cima (em pé).
+// Parado = os dois escudos e "AO VIVO" (o placar já está no selo da TV); depois de um gol = escudo + GOL + nome + minuto.
+function Telao2D({ deitado, larg, gol, casa, fora }: { deitado: boolean; larg: number; gol: { lado: 0 | 1; autor: string; min: number } | null; casa: Campo2DProps['casa']; fora: Campo2DProps['fora'] }) {
+  const t = useT()
+  const S0 = deitado ? larg / (L + PADL * 2) : larg / (W + PADX * 2)
+  const box = deitado
+    ? { left: larg * 0.15, top: S0 * 0.7, width: larg * 0.22, height: (PADT - 3.2) * S0 - S0 * 1.4 }
+    : { left: (50 + PADX) * S0, top: 2, width: larg - (50 + PADX) * S0 - 3, height: PAD * S0 - 3 }
+  const h = box.height - 6
+  const esc = (n: ReactNode, k: number) => n ? (
+    <div style={{ width: k, height: k, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ transform: `scale(${k / 110})` }}>{n}</div>
+    </div>
+  ) : null
+  const dono = gol ? (gol.lado === 0 ? casa : fora) : null
+  const fs = Math.max(9, Math.round(h * (deitado ? 0.34 : 0.62)))
+  return (
+    <div data-telao-campo2d style={{ position: 'absolute', ...box, background: '#05070a', border: `2px solid ${INK}`, outline: '1px solid #3a434d', borderRadius: 4, boxShadow: '0 0 10px rgba(80,170,255,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, overflow: 'hidden', pointerEvents: 'none',
+      backgroundImage: 'radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px)', backgroundSize: '3px 3px' }}>
+      {gol && dono ? (
+        <>
+          {esc(dono.escudo, h)}
+          <div style={{ ...OSW, lineHeight: 1.02, display: 'flex', flexDirection: deitado ? 'column' : 'row', gap: deitado ? 0 : 5, alignItems: deitado ? 'flex-start' : 'center', minWidth: 0 }}>
+            <span style={{ color: GOLD, fontSize: fs, fontWeight: 900, textShadow: '0 0 6px rgba(255,196,0,.6)' }}>{t('GOL!', 'GOAL!')}</span>
+            <span style={{ color: '#fff', fontSize: fs, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nomeLimpo(gol.autor).toUpperCase()} {gol.min > 90 ? `90+${gol.min - 90}` : gol.min}'</span>
+          </div>
+        </>
+      ) : (
+        <>
+          {esc(casa.escudo, h * 0.8)}
+          <span style={{ ...OSW, color: '#E8503A', fontSize: Math.max(8, Math.round(fs * 0.8)), textShadow: '0 0 6px rgba(232,80,58,.7)' }}>● {t('AO VIVO', 'LIVE')}</span>
+          {esc(fora.escudo, h * 0.8)}
+        </>
+      )}
     </div>
   )
 }
