@@ -1,3 +1,19 @@
+## 📊 07/11 — ESTATÍSTICAS NO APITO DO PLACAR CINEMA (só na conta do Diego, `STATS_PLACAR_GERAL = false` em sport.ts; branch, sem push)
+- Pedido: no placar normal (sem o 2D), no fim do jogo, o MESMO resumo do 2D (posse · finalizações · chutes no gol · ⭐ melhor em campo).
+- ✅ Como conta: no apito roda, sem desenhar, o MESMO motor que encenaria aquele jogo no 2D — teatro v1 (salas, rápida, copas) preso na
+  semente do jogo e nos gols do placar; motor novo v2 na carreira com a MESMA entrada que deu o placar. Em fatias (~10' de jogo por vez,
+  ~150 ms no total) só pro jogo do placar grande, uma vez. Nada de sorteio local, relógio ou idioma na conta → todo aparelho vê igual.
+  Gol é sempre chute no gol. Código: `stats-placar.ts` (conta) + `stats-placar-ui.tsx` (cartão = o `ResumoApitoCampo2D` do 2D) +
+  1 bloco no `LiveScoreCard` (placar cinema). Aparece só com FIM e depois da última cobrança de pênalti; fora: basquete e Kings.
+- ⭐ Decisão minha (perguntar ao Diego): o placar cinema JÁ anuncia o "⭐ CRAQUE DO JOGO" na rádio no apito. Pra nunca ter dois
+  "melhores" diferentes na tela, o cartão usa o MESMO nome da rádio; quando a rádio não tem craque (0×0), vale o do motor.
+- ℹ️ Na sala, o número de chances do teatro depende da marcha do placar (o mesmo `roundMs` que o placar usa); o 2D da mesma sala
+  roda na marcha dele — então o cartão bate com o que o PLACAR mostrou, que é o que a pessoa viu.
+- Fotos: `scripts/mockups/stats-placar-sala.png`, `stats-placar-carreira.png` (390×844 ×2) e `stats-placar-sala-70min.png` (aos 70',
+  sem cartão). Bancada: `scripts/teste-stats-placar/` (`npx vite --port 5277` + `node scripts/teste-stats-placar/print.mjs 5277 scripts/mockups`).
+- Trava: **`npm run stats-placar`** (placar bate · 2º processo vê o mesmo · sem Math.random/Date · nada antes do apito · resultado intocado).
+- ⏳ Falta: OK visual do Diego → `STATS_PLACAR_GERAL = true`. Reverter: o commit é isolado; `git revert` volta ao que era.
+
 ## 🚶 07/11 — FAN ZONE no mapa 3D, etapa 1 (só na conta do Diego, `FANZONE_GERAL = false` em sport.ts)
 - Pedido: *"andar pelas ruas… entrar no estádio… escolher a cadeira… ver outros usuários"* → mockup `scripts/mockups/fanzone.png` →
   boneco 1 (Rapaz) dos 6 do mapa (`scripts/mockups/bonecos-3d-mapa.png`) → *"pode p eu testar"*.

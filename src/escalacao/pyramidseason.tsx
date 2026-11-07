@@ -93,6 +93,8 @@ import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos'
 import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { StatsDoPlacar } from './stats-placar-ui' // 📊 07/11: o resumo do apito do 2D também no placar cinema
+import { statsPlacarVisivel } from './stats-placar'
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, useVel2DAqui, setVel2D } from './ritmo2d'
@@ -104,7 +106,7 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -3313,6 +3315,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   // quem manda é a sala (todo mundo vê igual, convidado nunca paga); fora dela, quem está liberado e pagou.
   const presidentFieldAccount = usePresidentPreview()
   const c2d = useCampo2DLigado() && !basket
+  const statsPlacar = useStatsPlacar() // 📊 07/11: estatísticas no apito do placar cinema (só a conta do Diego até ele aprovar)
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
   // 🧑‍💼 o presidente na beira do campo (21/10): o boneco da CONTA, do lado do meu time — só quem tem boneco
@@ -3838,6 +3841,16 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={relatoOficial?.narration ?? fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
+    {/* 📊 07/11: o MESMO resumo do apito do 2D, no placar cinema — só depois do FIM (e da última cobrança de pênalti) */}
+    {statsPlacarVisivel({ liberado: statsPlacar, fechado, basket, kings: !!relogioKings, penaltis: estadoPenaltis ?? disputaPenaltis?.estado ?? null }) && (
+      // (⭐ o rádio já disse quem foi o CRAQUE DO JOGO: o cartão diz o MESMO nome — nunca dois "melhores" diferentes na tela)
+      <StatsDoPlacar corCasa={homeColor} corFora={awayColor} craqueRadio={!relatoOficial && radioLances.length > 0 ? craqueDoJogo(shown) : null} entrada={{
+        roundKey, roundMs, gols: goals,
+        casa: { nome: homeName, cartas: elencos?.casa as never, cartas2: elencos?.casa2 as never, formacao: elencos?.fCasa, formacao2: elencos?.fCasa2 },
+        fora: { nome: awayName, cartas: elencos?.fora as never, cartas2: elencos?.fora2 as never, formacao: elencos?.fFora, formacao2: elencos?.fFora2 },
+        tatica: elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)], m2: elencos?.m2,
+      }} />
+    )}
     {avisoReplay}
     {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
     {abaixoDosGols}
