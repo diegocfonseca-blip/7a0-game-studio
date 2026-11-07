@@ -37,6 +37,7 @@ import { ResumoApitoCampo2D, BotaoReplayCampo2D, publicarApitoCampo2D, publicarQ
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value))
 const INK = '#0C0C0C', GOLD = '#FFC400'
+const EFEITOS_LANCE_GERAL = true
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 // 📱 EM PÉ (celular): margens de sempre — 8 m de cada lado pra torcida/técnico, 4 m atrás dos gols
 const PAD = 4, PADX = 8
@@ -204,7 +205,10 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 🔒 04/11: o que foi IGUALADO com o campo do mapa (rastro do mapa, nome que segura) só aparece na conta liberada do 2D —
   // em sala 2D de outra pessoa o campinho segue exatamente como era (Diego: *"ninguém pode ver ainda"*).
   const igualMapa = useCampo2DLiberado()
-  const efeitosLance = useCampo2DTester() // ✨ 07/11: chute forte · trave · chapéu · onde a bola cai — por enquanto só na conta do Diego
+  const tester2d = useCampo2DTester()
+  // ✨ 07/11: efeitos de lance (trave · chapéu · onde a bola cai · goleiro voando · quique · risco do carrinho · torcida) — LIBERADOS PRA
+  // TODOS no mesmo dia (*"publique tudo que falamos sobre o campo 2D"*). Voltar a ser só da conta do Diego: `useCampo2DTester()`.
+  const efeitosLance = EFEITOS_LANCE_GERAL || tester2d
   const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance })
   vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance }
 

@@ -8,7 +8,7 @@
 
 
 
-## 💾 07/11 — Grátis volta a SALVAR + 2D grátis na carreira + carreira a 1,5× (branch, esperando "publica" e OK da foto)
+## 💾 07/11 — Grátis volta a SALVAR + 2D grátis na carreira + carreira a 1,5× (PUBLICADO 07/11 + banco aplicado)
 - Diego: *"acho que a gente tem que liberar novamente salvar… ficou um dia sem jogar, quem não tem plano pode apagar o save… só tem direito
   a um save… o campo 2D liberado… botão manual continuar com a travinha… no modo carreira deixa 1,5"*. REVOGA o "sem plano não salva" de 04/11.
 - Feito no código: `SALVAR_SO_COM_PLANO = false`; 1º salvamento sem plano abre o aviso CURTO (o filho, "mais gente = mais caro"; sem falar de "ficar rico", ordem dele) só com o ⭐ Craque Completo (14,90/mês, é o que tem o Manual) + "Ver todos os planos" (antes: "se o jogo se pagar já
@@ -18,7 +18,7 @@
 - ⏳ BANCO (só depois do OK): `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
   hora. Apaga só a NUVEM (o aparelho guarda e sobe de novo no próximo Salvar). Ficha grátis já era 1 (`careerSlotLimit`, quem tinha mais ficou).
 
-## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (FEITO no branch, esperando "publica")
+## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (PUBLICADO 07/11)
 - Diego: *"ele pode criar uma sala de graça pra ele, pra teste… já pode ter opção de 2D… só o Liga Draft que o cara já tem que ter plano"*.
   `pode2d` (lobby.tsx) libera quando `roomMode === 'rapido'` e o botão do dono na sala (`TrocaCampo2DSala`) liga o 2D em sala que não é
   liga nem carreira. Liga Draft/Liga da Turma/carreira em sala continuam do plano. O banco não confere plano pro 2D (nada a mudar lá).
@@ -38,7 +38,7 @@
   passa por cima de quem estava colado em quem tocou (ou do goleiro, na cavadinha): 😳 + "CHAPÉU!" em cima dele 1,4 s (some na festa
   do gol) · 🎯 **onde a bola cai** = sombra + anel tracejado com X no gramado que aperta conforme a bola desce (lançamento alto).
   Foto: `scripts/mockups/campo2d-efeitos.png`. Trava: `npm run efeitos-2d`. Bancada: `scripts/teste-campo2d/?efeitos=1&rk=3`.
-- ⏳ Liberar pra todos = trocar `useCampo2DTester()` por liberado geral no `campo2d.tsx` (linha do `efeitosLance`) quando ele mandar.
+- 🟢 LIBERADO PRA TODOS em 07/11 (*"publique tudo que falamos sobre o campo 2D"*): `EFEITOS_LANCE_GERAL = true` no `campo2d.tsx` (false = volta só pra conta dele). Os efeitos do MAPA seguem com o mapa (só a conta dele).
 - 🔁 **2ª leva (07/11)**: *"N quero fogo no chute"* → o rastro de fogo SAIU (fica a rede balançando mais no gol de longe). Entraram no
   campinho: 🧤 **goleiro voando** na defesa difícil (corpo esticado + luva amarela, o boneco vai junto) · ⚽ **bola quicando** (2 quiquinhos
   quando a bola alta cai sem ninguém dominar) · 🟫 **risco no gramado** onde teve carrinho/desarme na dividida (até o fim do TEMPO; ⚠️ é
