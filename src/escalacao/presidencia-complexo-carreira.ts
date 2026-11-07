@@ -188,7 +188,9 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
 export function estadioPadraoDaDivisao(division: string): StadiumSave {
   const nivel = ({ V: 0, D: 1, C: 2, B: 3, A: 4 } as Record<string, number>)[division] ?? 1
   const cheio = (k: string, pct = 1) => [k, Math.round((STADIUM_SECTORS.find(s => s.k === k)?.cost ?? 0) * pct)] as const
-  const inv = Object.fromEntries([cheio('grama'), cheio('geral', nivel ? 1 : .5), ...(nivel >= 2 ? [cheio('cadeiras')] : []), cheio('visitante', [.3, .6, 1, 1, 1][nivel]), ...(nivel >= 4 ? [cheio('camarote')] : [])])
+  // 🏟️ 07/11 (Diego: *"tá errado algo"*): setor pela METADE vira pedaço de arquibancada solto no ar — no estádio do bot
+  // cada setor entra INTEIRO ou não entra. Várzea: Geral · D: + Visitante · C: + Cadeiras · B: igual C · A: + Camarote.
+  const inv = Object.fromEntries([cheio('grama'), cheio('geral'), ...(nivel >= 1 ? [cheio('visitante')] : []), ...(nivel >= 2 ? [cheio('cadeiras')] : []), ...(nivel >= 4 ? [cheio('camarote')] : [])])
   const ext = [...(nivel >= 1 ? ['refl'] : []), ...(nivel >= 2 ? ['telao', 'loja'] : []), ...(nivel >= 3 ? ['estac', 'praca'] : []), ...(nivel >= 4 ? ['cober', 'estacao'] : [])]
   return { inv, ext }
 }
