@@ -140,7 +140,6 @@ export function OnlineScorePresentation(p: {
     {p.radio && !p.narracaoNoRadio && <div key={pisca ? `g${pisca.k}` : 'r'} className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}${piscaGol ? ' ll44-gol-pisca' : ''}`} style={piscaGol} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
       {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{p.big ? '⚽ ' : ''}{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
-      {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}
     </div>)}</div>
   </section>
 }
