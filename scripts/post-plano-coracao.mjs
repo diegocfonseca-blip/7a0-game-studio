@@ -97,13 +97,10 @@ const video = pagina(1080, 1920, `<div class="wrap" style="height:1920px;padding
   ${cena(3.2, 6.4, `${pop(0.05, `<div class="off" style="flex-direction:column;text-align:center;padding:36px 30px"><span class="n" style="font-size:260px">${PCT}%</span><p style="font-size:58px">em todos os<br>planos mensais</p></div>`)}
      ${pop(0.7, precosBox, 'larga')}
      ${pop(1.2, '<p class="chega" style="font-size:42px;text-align:center;opacity:.6">pela metade, enquanto você assinar</p>')}`)}
-  ${cena(6.4, 9.6, `${pop(0.05, '<p class="titulo">pra quem é</p>')}
-     ${pop(0.35, '<div class="grande"><span class="ic">♿</span><span><b style="text-transform:none">PcD</b><br><small>pessoa com deficiência</small></span></div>', 'larga')}
-     ${pop(0.8, '<div class="grande"><span class="ic">👨‍👧</span><span><b>Pais e responsáveis</b><br><small>de criança especial</small></span></div>', 'larga')}`)}
-  ${cena(9.6, 12.8, `${pop(0.05, '<p class="titulo">como pedir</p>')}
-     ${pop(0.3, '<div class="doc"><span class="ic">📷</span><b>manda a<br>comprovação</b><small>uma foto: carteirinha ou laudo</small></div>', 'larga')}
-     ${pop(1.1, '<div class="carimbo">🗑️ a foto é APAGADA depois</div>')}
-     ${pop(1.6, '<p class="chega" style="font-size:38px;text-align:center;opacity:.6">o Diego confere pessoalmente</p>')}`)}
+  ${/* 07/11 (Diego): a cena da comprovação saiu e o tempo dela veio pra cá — ~5,5 s parada e legível depois de aparecer */ ''}
+  ${cena(6.4, 12.8, `${pop(0.05, '<p class="titulo">pra quem é</p>')}
+     ${pop(0.3, '<div class="grande"><span class="ic">♿</span><span><b style="text-transform:none">PcD</b><br><small>pessoa com deficiência</small></span></div>', 'larga')}
+     ${pop(0.6, '<div class="grande"><span class="ic">👨‍👧</span><span><b>Pai, mãe ou<br>responsável</b><br><small>de criança especial</small></span></div>', 'larga')}`)}
   ${cena(12.8, 15.0, `${pop(0.05, '<p class="titulo">onde fica</p>')}
      ${pop(0.3, '<div class="caminho"><span class="bt">Planos</span><span class="seta">→</span><span class="bt az">💙 Apoie</span></div>', 'larga')}
      ${pop(0.9, `<div class="luca" style="font-size:34px;text-align:center">e na mesma área: 💙 <b>ajude o Luca</b>, filho do Diego, com um Pix · 🧱 <b>Mural de apoiadores</b></div>`, 'larga')}`)}
