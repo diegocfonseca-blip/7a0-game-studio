@@ -26,7 +26,9 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrá
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
 import { estiloPisca, gritoGol } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
 import { nomeLimpo } from './escudos'
-import { useCampo2DLiberado } from './sport'
+import { useCampo2DLiberado, useCampo2DTester } from './sport'
+import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, QUIQUE_DUR, esticaGoleiro, riscoCarrinho, casaAtacando, type BolaVista } from './campo2d-efeitos'
+import { playTrave } from './sound'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D } from './campo2d-festa'
 import { alvoBandeirinhas, sinalDaBandeira, desenhaFotografos, desenhaBandeira, type CenaArredores } from './campo2d-arredores'
@@ -202,8 +204,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 🔒 04/11: o que foi IGUALADO com o campo do mapa (rastro do mapa, nome que segura) só aparece na conta liberada do 2D —
   // em sala 2D de outra pessoa o campinho segue exatamente como era (Diego: *"ninguém pode ver ainda"*).
   const igualMapa = useCampo2DLiberado()
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length }
+  const efeitosLance = useCampo2DTester() // ✨ 07/11: chute forte · trave · chapéu · onde a bola cai — por enquanto só na conta do Diego
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance }
 
   useEffect(() => {
     const el = caixa.current
@@ -261,7 +264,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     // (em pé: a faixa da DIREITA, a rival em cima · deitado: a faixa de CIMA, a rival na direita)
     const faixaRival = deitado ? 0 : 1
     const ehRival = (fi: number, p: number) => fi === faixaRival && (deitado ? p > 1 - FRACAO_RIVAL : p < FRACAO_RIVAL)
-    const torcida = (g: CanvasRenderingContext2D, festa: 0 | 1 | null, tt: number) => {
+    const torcida = (g: CanvasRenderingContext2D, festa: 0 | 1 | null, tt: number, leve = false) => {
       faixaTorcida.forEach((f, fi) => {
         g.fillStyle = '#1b232c'; g.fillRect(f.x, f.y, f.w, f.h)
         const fileiras = 3, ao = deitado ? f.h : f.w, al = deitado ? f.w : f.h
@@ -283,7 +286,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
             }
             const rival = ehRival(fi, p)
             // 🎉 no gol pula a torcida DE QUEM FEZ (antes era um sorteio que misturava as duas)
-            const pula = festa != null && (rival ? festa === 1 : festa === 0) && (i + r) % 2 === 0 ? Math.abs(Math.sin(tt * 9 + i + r)) * 2.5 : 0
+            // (📣 07/11: `leve` = a casa atacando — pula 1 em cada 3, mais baixinho)
+            const pula = festa != null && (rival ? festa === 1 : festa === 0) && (i + r) % (leve ? 3 : 2) === 0 ? Math.abs(Math.sin(tt * (leve ? 7 : 9) + i + r)) * (leve ? 1.6 : 2.5) : 0
             const px0 = deitado ? f.x + ao2 : f.x + base, py0 = deitado ? f.y + base - pula : f.y + ao2 - pula
             g.beginPath(); g.arc(px0, py0, Math.max(1.6, S * 0.42), 0, 7); g.fillStyle = rival ? corFora : corCasa; g.globalAlpha = 0.9; g.fill(); g.globalAlpha = 1
           }
@@ -440,6 +444,12 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const rastro: [number, number][] = []
     // 🔁 04/11: o rastro do MAPA (o que o Diego gostou) — mesma regra e mesma bolinha de luz (campo2d-apresentacao.ts)
     const rastroMapa = criaRastro(), bolinha = arteBolinhaRastro(), nomeNaBola = criaNomeNaBola()
+    // ✨ 07/11: memória dos efeitos de lance (só desenho; tempos em segundos DE JOGO, então pausar/acelerar acompanha)
+    const fx = { ant: null as { x: number; y: number; t: number } | null, bomba: [] as [number, number][], saiu: null as { x: number; y: number; golY: number; t: number } | null,
+      redeLonge: false, redeK: '', trave: null as { y0: number; t0: number; x: number } | null, chapeu: null as { a: Atleta; ate: number } | null,
+      saida: null as { x: number; y: number; lado: 0 | 1 } | null, donoAnt: null as Atleta | null,
+      hAnt: 0, quique: -1, voo: null as { lado: 0 | 1; x: number; t0: number } | null, riscos: [] as { x0: number; y0: number; x1: number; y1: number }[],
+      narraAnt: '', iEv: 0, tempo: 0 as 0 | 1, nVoo: 0 }
     // 👁️ CAMADA SÓ DE DESENHO (04/11, Diego: *"os jogadores… a bola… o gramado"*). Nada aqui muda placar, motor ou o que o
     // mapa conta como resultado: é só ONDE o boneco e a bola aparecem na tela. (1) dois jogadores nunca ficam um em cima do
     // outro — quem encosta é afastado devagar; (2) quem conduz leva a bola À FRENTE, com toquinhos (antes ela ficava colada
@@ -480,6 +490,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         col.c.passo(jogo as never)
         const nq = col.c.novoQuase()
         if (nq && igualMapa && !jogo.festa) { quaseVivo.current = { q: nq, desde: jogo.t }; setQuase(nq) }
+        // 🔔 bola na TRAVE: o gol treme e toca o "TÓIN" + "uhhh" (só se o campinho está à vista)
+        if (nq?.tipo === 'defesa' && vivo.current.efeitosLance && !jogo.festa) { fx.voo = { lado: (1 - nq.lado) as 0 | 1, x: nq.x, t0: jogo.t }; fx.nVoo++ } // 🧤 o goleiro VOA
+        if (nq?.tipo === 'trave' && vivo.current.efeitosLance && !jogo.festa) { fx.trave = { y0: nq.y < L / 2 ? 0 : L, t0: jogo.t, x: nq.x }; if (!escondido) playTrave() }
         // 🏁 o resumo só depois do apito E de tudo que estava pendente (o gol dos acréscimos já entrou): nada de spoiler
         const m2 = (jogo as unknown as { fim?: boolean; stats?: unknown })
         if (igualMapa && fechado && !jogo.festa && simMin >= 93 && (m2.stats ? !!m2.fim : jogo.placar[0] + jogo.placar[1] >= vivo.current.nGols) && !col.c.feito) {
@@ -523,6 +536,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       // 🟩 o fundo parado vem pronto do cache; por cima, só o que mexe
       cx.drawImage(fundo, 0, 0, CW, CH)
       if (cena.festa) torcida(cx, cena.festa.lado, cena.t) // 🎉 no gol a torcida de quem fez pula
+      else if (vivo.current.efeitosLance && !penalti && !rv && casaAtacando(cena.bola.dono)) torcida(cx, 0, cena.t, true) // 📣 a casa atacando: a arquibancada dela se agita
       placasLaterais(cx, Math.floor(Date.now() / PLACA_MS))
       // 🌧️ a chuva caindo (riscos finos descendo, baratos: ~70 linhas por quadro)
       if (clima === 'chuva') {
@@ -532,10 +546,52 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         for (let i = 0; i < nR; i++) { const px = ((i * 97 + tt * 0.03) % CW), py = ((i * 61 + tt * 0.55 + i * i) % (CH + 20)) - 10; cx.moveTo(px, py); cx.lineTo(px - 2, py + 9) }
         cx.stroke()
       }
+      // ✨ 07/11: o que os efeitos de lance precisam saber deste quadro (só lê a cena; nada volta pro jogo)
+      const fxOn = vivo.current.efeitosLance && !penalti && !rv
+      if (fxOn) {
+        const b = cena.bola as unknown as BolaVista, ant = fx.ant
+        if (ant && cena.t > ant.t) {
+          const vel = velocidadeBola(ant, b, cena.t - ant.t)
+          const chutando = (cena as { chutando?: boolean }).chutando ?? ['chute', 'cabeceio_gol'].includes((cena.bola as { lance?: { tipo?: string } | null }).lance?.tipo ?? '')
+          if (!b.dono && ehBomba(ant, b, vel, chutando)) { if (!fx.bomba.length) fx.saiu = { x: ant.x, y: ant.y, golY: b.y < ant.y ? 0 : L, t: cena.t }; fx.bomba.push([b.x, b.y]); if (fx.bomba.length > 14) fx.bomba.shift() }
+          else if (fx.bomba.length) fx.bomba.shift()
+        }
+        if (!ant || cena.t !== ant.t) fx.ant = { x: b.x, y: b.y, t: cena.t }
+        // de onde saiu o último toque (pro chapéu): a bola acabou de deixar o pé de alguém
+        if (cena.bola.dono) { fx.saida = null; fx.donoAnt = cena.bola.dono } else if (fx.donoAnt) { fx.saida = { x: b.x, y: b.y, lado: fx.donoAnt.lado }; fx.donoAnt = null }
+        // 🥅 gol novo: foi bomba de longe? (o chute forte que saiu há menos de 3 s, em direção a este gol)
+        const rk = cena.rede ? `${cena.rede.y0}|${cena.rede.t0}` : ''
+        if (rk !== fx.redeK) { fx.redeK = rk; const sa = fx.saiu; fx.redeLonge = !!cena.rede && !!sa && sa.golY === cena.rede.y0 && cena.rede.t0 - sa.t < 3 && golDeLonge(sa, cena.rede.y0) }
+        // ⚽ bola quicando: a bola alta acabou de cair (sem ninguém dominar) → 2 quiquinhos no desenho
+        if (cena.bola.dono) fx.quique = -1
+        else if (fx.hAnt > 0.8 && cena.bola.h < 0.05) fx.quique = cena.t
+        fx.hAnt = cena.bola.h
+        // 🟫 gramado marcado: risco onde teve carrinho (motor novo: evento 'carrinho' · o de sempre: a narração do carrinho)
+        const tempoAgora = cena.t >= 45 * SEG_POR_MIN ? 1 : 0
+        if (tempoAgora !== fx.tempo) { fx.tempo = tempoAgora; fx.riscos.length = 0 } // (o risco fica até o fim do TEMPO)
+        const marca = (quem: Atleta | undefined) => { if (quem && fx.riscos.length < 40) fx.riscos.push(riscoCarrinho(quem, cena.bola)) }
+        // (só o motor NOVO tem evento de carrinho — o de sempre também tem `eventos`, mas são os gols do jogo)
+        const evs = 'vx' in cena.bola ? (cena as { eventos?: { tipo: string; a?: string; lado: number }[] }).eventos : undefined
+        if (evs) { if (fx.iEv > evs.length) fx.iEv = 0; for (; fx.iEv < evs.length; fx.iEv++) { const e = evs[fx.iEv]; if (e.tipo === 'carrinho' || e.tipo === 'desarme') marca(cena.atl.find(p => p.nome === e.a && p.lado === e.lado)) } }
+        if (!evs && cena.narra !== fx.narraAnt) {
+          if (/carrinho|sliding|slides in|goes to ground|se joga no ch|rouba a bola|d. o bote|no bote|Desarme de|goes in hard|Tackle by|crunching/i.test(cena.narra ?? '')) { // (carrinho e o desarme na dividida)
+            let perto: Atleta | undefined, md = 9
+            for (const p of cena.atl) { if (p === cena.bola.dono || p.grupo === 'GOL') continue; const d = Math.hypot(p.x - cena.bola.x, p.y - cena.bola.y); if (d < md) { md = d; perto = p } }
+            marca(perto)
+          }
+        }
+        fx.narraAnt = cena.narra ?? ''
+        // 🎩 chapéu: a bola passou por cima de quem estava colado em quem tocou (ou do goleiro, na cavadinha)
+        if (fx.chapeu && cena.t > fx.chapeu.ate) fx.chapeu = null
+        if (cena.festa) fx.chapeu = null // (no gol a festa manda: nada de legenda por cima — régua do teatro)
+        else if (!fx.chapeu) { const v = vitimaDoChapeu(b, fx.saida, cena.atl as never); if (v) { fx.chapeu = { a: v as unknown as Atleta, ate: cena.t + 1.4 }; fx.saida = null } }
+      } else { fx.bomba.length = 0; fx.ant = null; fx.chapeu = null; fx.quique = -1; fx.voo = null }
+      { const qa = (window as unknown as { __qaEfeitos2D?: Record<string, unknown> }).__qaEfeitos2D; if (qa) { qa.bomba = fx.bomba.length; qa.chapeu = !!fx.chapeu; qa.trave = !!fx.trave && cena.t - fx.trave.t0 < 0.5; qa.longe = fx.redeLonge && !!cena.rede && cena.t - cena.rede.t0 < 0.6; qa.pouso = fxOn && !!pousoDaBola(cena.bola as unknown as BolaVista); qa.goleiro = !!fx.voo && cena.t - fx.voo.t0 > 0.15 && cena.t - fx.voo.t0 < 0.4; qa.quique = fx.quique >= 0 && cena.t - fx.quique > 0.1 && cena.t - fx.quique < 0.3; qa.riscos = fx.riscos.length; qa.nVoo = fx.nVoo; qa.fxOn = fxOn; qa.t = cena.t; qa.riscosArr = fx.riscos.slice(0, 3); if (qa.forcaRisco) { fx.riscos.push(qa.forcaRisco as never); qa.forcaRisco = null } qa.torcida = fxOn && casaAtacando(cena.bola.dono) } } // 🔎 só a bancada liga isto
       // 🥅 os gols, com a rede que balança quando a bola entra
       for (const [y0, s] of [[0, 1], [L, -1]] as const) {
-        const g = cena.rede && cena.rede.y0 === y0 ? Math.sin((cena.t - cena.rede.t0) * 30) * 0.9 * Math.max(0, 1 - (cena.t - cena.rede.t0)) : 0
-        const [x, y, w, h] = rect(30.34, s > 0 ? -2.2 - g : L, 7.32, 2.2 + g)
+        const g = cena.rede && cena.rede.y0 === y0 ? (fxOn ? balancoRede(cena.t - cena.rede.t0, fx.redeLonge) : Math.sin((cena.t - cena.rede.t0) * 30) * 0.9 * Math.max(0, 1 - (cena.t - cena.rede.t0))) : 0
+        const tr0 = fxOn && fx.trave && fx.trave.y0 === y0 ? tremorTrave(cena.t - fx.trave.t0) : 0 // 🔔 a trave tremendo
+        const [x, y, w, h] = rect(30.34 + tr0, s > 0 ? -2.2 - g : L, 7.32, 2.2 + g)
         cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x, y, w, h)
         cx.lineWidth = Math.max(2, S * 0.5); cx.strokeStyle = '#fff'; cx.strokeRect(x, y, w, h)
         cx.strokeStyle = 'rgba(255,255,255,.4)'; cx.lineWidth = 1
@@ -628,6 +684,29 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         cx.lineCap = 'round'
         for (let i = 1; i < rastro.length; i++) { const [ax, ay] = tr(...rastro[i - 1]), [bx1, by1] = tr(...rastro[i]); cx.strokeStyle = `rgba(255,255,255,${(0.08 + (0.5 * i) / rastro.length).toFixed(2)})`; cx.lineWidth = 1 + (3.5 * i) / rastro.length; cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx1, by1); cx.stroke() }
       }
+      // 🟫 07/11: os riscos dos carrinhos no gramado (ficam até o fim do tempo)
+      if (fxOn && fx.riscos.length) {
+        cx.lineCap = 'round'
+        for (const k of fx.riscos) {
+          const [ax, ay] = tr(k.x0, k.y0), [b0x, b0y] = tr(k.x1, k.y1), cl = Math.hypot(b0x - ax, b0y - ay) || 1, cm = Math.max(cl, R * 2.6) // (no mínimo do tamanho de 2 bonecos, senão some embaixo deles)
+          const bx2 = ax + (b0x - ax) / cl * cm, by2 = ay + (b0y - ay) / cl * cm
+          cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx2, by2)
+          cx.strokeStyle = 'rgba(78,52,26,.62)'; cx.lineWidth = Math.max(4, S * 1.05); cx.stroke() // a terra que levantou
+          cx.strokeStyle = 'rgba(120,88,52,.55)'; cx.lineWidth = Math.max(2, S * 0.5); cx.stroke() // o meio do risco, mais claro
+        }
+      }
+      // 🎯 07/11: onde a bola ALTA vai cair — uma sombra no gramado que aperta conforme ela desce
+      if (fxOn) {
+        const pz = pousoDaBola(cena.bola as unknown as BolaVista)
+        if (pz) {
+          const [px, py] = tr(pz.x, pz.y), k = Math.min(1, pz.falta / 1.4), r = R * (0.6 + 1.1 * k), a0 = cx.globalAlpha
+          cx.globalAlpha = 0.55 - 0.2 * k; cx.fillStyle = '#000'; cx.beginPath(); cx.ellipse(px, py, r * 0.75, r * 0.5, 0, 0, 7); cx.fill()
+          cx.globalAlpha = 0.95 - 0.3 * k; cx.setLineDash([5, 4]); cx.strokeStyle = '#fff'; cx.lineWidth = 2.2
+          cx.beginPath(); cx.ellipse(px, py, r * 1.3, r * 0.85, 0, 0, 7); cx.stroke(); cx.setLineDash([])
+          const xr = Math.max(3, R * 0.32); cx.lineWidth = 2.4; cx.beginPath(); cx.moveTo(px - xr, py - xr); cx.lineTo(px + xr, py + xr); cx.moveTo(px + xr, py - xr); cx.lineTo(px - xr, py + xr); cx.stroke()
+          cx.globalAlpha = a0
+        }
+      }
       // 👁️ onde cada um APARECE (afastados uns dos outros) e com que velocidade está correndo
       const dtJ = Math.max(0, cena.t - tAnt); tAnt = cena.t
       const vis = cena.atl.map((p, i) => ({ p, x: penalti?.jogadores[i]?.x ?? mis(p.ax, p.x), y: penalti?.jogadores[i]?.y ?? mis(p.ay, p.y), ox: 0, oy: 0 }))
@@ -669,6 +748,20 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       if (igualMapa) { const quem = nomeNaBola(cena.bola.dono?.nome, agora); if (quem) for (const p of cena.atl) if (p.nome === quem) comNome.add(p) }
       else if (cena.bola.dono) comNome.add(cena.bola.dono)
       if (cena.festa) for (const p of cena.atl) if (p.nome === cena.festa.autor) comNome.add(p)
+      // 🧤 07/11: goleiro VOANDO na defesa difícil — o corpo se estica pro lado do chute (o boneco vai junto, até 1,8 m)
+      if (fxOn && fx.voo) {
+        const idade = cena.t - fx.voo.t0, k = esticaGoleiro(idade), gk = cena.atl.find(p => p.lado === fx.voo!.lado && p.grupo === 'GOL'), q = gk && pos.get(gk)
+        if (idade > 0.7) fx.voo = null
+        else if (gk && q && k > 0) {
+          // (o pulo é sempre pro lado do chute — se a bola veio no meio, pro lado do canto mais perto — e longo o bastante pra se ver fora do boneco)
+          const lado = Math.abs(fx.voo.x - q.x) > 0.4 ? Math.sign(fx.voo.x - q.x) : fx.voo.x >= W / 2 ? 1 : -1, alc = (R / S) * 3.2 * k // (medido no tamanho do BONECO: em metros ficava escondido embaixo dele)
+          const [ax, ay] = tr(q.x, q.y), [bx2, by2] = tr(q.x + lado * alc, q.y)
+          cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(ax, ay); cx.lineTo(bx2, by2)
+          cx.strokeStyle = INK; cx.lineWidth = R * 1.15; cx.stroke(); cx.strokeStyle = gk.lado === 0 ? corCasa : corFora; cx.lineWidth = R * 0.85; cx.stroke() // o corpo esticado
+          cx.beginPath(); cx.arc(bx2, by2, R * 0.55, 0, 7); cx.fillStyle = '#FFE600'; cx.fill(); cx.lineWidth = 2; cx.strokeStyle = INK; cx.stroke() // a luva
+          pos.set(gk, { ...q, x: q.x + lado * alc * 0.45 })
+        }
+      }
       // 🧍 os 22 (de trás pra frente na tela)
       const ordem = [...cena.atl].sort((a, b) => tr(pos.get(a)!.x, pos.get(a)!.y)[1] - tr(pos.get(b)!.x, pos.get(b)!.y)[1])
       const nomesPorCima: [number, number, string][] = []
@@ -683,9 +776,30 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         desenharMarcadorCampo2D(cx,X,festaPen?Y-Math.abs(Math.sin(cena.t*11))*R*0.5:Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
       }
       for (const [X, Y, nome] of nomesPorCima) desenharNomeCampo2D(cx, X, Y, R, nome)
+      // 🎩 quem levou o chapéu fica olhando a bola passar por cima
+      if (fxOn && fx.chapeu) {
+        const q = pos.get(fx.chapeu.a)
+        if (q) {
+          const [X, Y] = tr(q.x, q.y), k = Math.max(0, (fx.chapeu.ate - cena.t) / 1.4), a0 = cx.globalAlpha
+          cx.globalAlpha = Math.min(1, k * 2.5); cx.font = `${Math.round(R * 1.35)}px sans-serif`; cx.textAlign = 'center'
+          cx.fillText('😳', X, Y - R - 4 - (1 - k) * R * 0.5)
+          cx.font = fonte(Math.max(9, S * 1.15), 800); cx.lineWidth = 3; cx.strokeStyle = INK; cx.fillStyle = '#FFE600'
+          cx.strokeText(t('CHAPÉU!', 'LOBBED!'), X, Y - R * 2.6 - (1 - k) * R * 0.8); cx.fillText(t('CHAPÉU!', 'LOBBED!'), X, Y - R * 2.6 - (1 - k) * R * 0.8)
+          cx.globalAlpha = a0
+        }
+      }
+      // 🔔 "TÓIN!" subindo do poste
+      if (fxOn && fx.trave && cena.t - fx.trave.t0 < 1.1) {
+        const idade = cena.t - fx.trave.t0, [X, Y] = tr(fx.trave.x, fx.trave.y0), a0 = cx.globalAlpha
+        cx.globalAlpha = Math.min(1, (1.1 - idade) * 2.5); cx.font = fonte(Math.max(11, S * 1.6), 800); cx.textAlign = 'center'
+        cx.lineWidth = 3.5; cx.strokeStyle = INK; cx.fillStyle = '#fff'
+        const yy = Y + (fx.trave.y0 === 0 ? 1 : -1) * (R * 2.6) * (deitado ? 0 : 1) - idade * R * 1.4
+        cx.strokeText(t('TÓIN!', 'CLANG!'), X, yy); cx.fillText(t('TÓIN!', 'CLANG!'), X, yy); cx.globalAlpha = a0
+      }
       // ⚽ a bola: maior que antes (era um grão), gomos pretos, sombra que se afasta quando ela sobe
       {
-        const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = mis(bA.h, cena.bola.h) * S, rb = Math.max(4.6, R * 0.36) + cena.bola.h * 0.25
+        const qq = fxOn && fx.quique >= 0 && cena.t - fx.quique < QUIQUE_DUR ? alturaQuique(cena.t - fx.quique) : 0 // ⚽ os quiquinhos (só desenho)
+        const [bx, by] = tr(bolaVis.x, bolaVis.y), bh = (mis(bA.h, cena.bola.h) + qq) * S, rb = Math.max(4.6, R * 0.36) + (cena.bola.h + qq) * 0.25
         // 🌠 o rastro do mapa, por baixo da bola e por cima dos bonecos (no mapa é igual)
         if (igualMapa) {
           const rp = rastroMapa.passo(bolaVis.x, bh, bolaVis.y, dt / 1000)
@@ -695,6 +809,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
             cx.globalAlpha = a0
           }
         } else rastroMapa.limpa()
+        // (💥 o rastro de fogo do chute forte saiu em 07/11: *"não quero fogo no chute"* — fica só a rede balançando mais no gol de longe)
         cx.beginPath(); cx.ellipse(bx + bh * 0.25, by + rb * 0.55, rb * (1 - Math.min(0.4, bh / 120)), rb * 0.45, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.38)'; cx.fill()
         const cy = by - bh
         cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = '#fff'; cx.fill()
@@ -722,7 +837,11 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           players:cena.atl.map((p,i)=>({key:String(i),name:p.nome,side:p.lado===0?'home':'away',keeper:p.grupo==='GOL',x:L/2-pos.get(p)!.y,z:pos.get(p)!.x-W/2,radius:R/S,marker:{name:p.nome,color:p.lado===0?corCasa:corFora,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:rostoDe.get(p.nome)??null,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono}})),
           net:cena.rede?{sign:cena.rede.y0===0?1:-1,time:cena.rede.t0,age:cena.t-cena.rede.t0}:undefined,score:[cena.placar[0],cena.placar[1]],narration:cena.narra,penalties:estadoPenalti?{score:disputaPenaltis!.config.invertido?[estadoPenalti.placar[1],estadoPenalti.placar[0]]:estadoPenalti.placar,finished:estadoPenalti.encerrado}:undefined,clima,falas:[fala(0),fala(1)],autorGol:cena.festa?.autor??'',tecnicos:[casa.tecnico?nomeLimpo(casa.tecnico).split(' ').slice(-1)[0].toUpperCase():'',fora.tecnico?nomeLimpo(fora.tecnico).split(' ').slice(-1)[0].toUpperCase():''],referee:{x:L/2-juiz.y,z:juiz.x-W/2},
           ball:{x:L/2-bolaVis.y,y:.11+mis(bA.h,cena.bola.h),z:bolaVis.x-W/2},
-          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined})
+          quase:qv&&!penalti?{side:qv.q.lado===0?'home':'away',x:L/2-qv.q.y,z:qv.q.x-W/2,age:qIdade,trave:qv.q.tipo==='trave'}:undefined,
+          // ✨ 07/11: os efeitos de lance também no estádio do mapa (o mapa só desenha; quem decide é este mesmo quadro)
+          efeitos:fxOn?(()=>{const pz=pousoDaBola(cena.bola as unknown as BolaVista),ch=fx.chapeu,tv=fx.trave
+            return{pouso:pz?{x:L/2-pz.y,z:pz.x-W/2,falta:pz.falta}:undefined,chapeu:ch?{x:L/2-ch.a.y,z:ch.a.x-W/2,age:1-Math.max(0,(ch.ate-cena.t)/1.4)}:undefined,
+              trave:tv&&cena.t-tv.t0<1.1?{sign:tv.y0===0?1:-1,age:(cena.t-tv.t0)/1.1}:undefined,gol:cena.festa?{side:cena.festa.lado===0?'home' as const:'away' as const,key:fk}:undefined}})():undefined})
       }
       raf = requestAnimationFrame(quadro)
     }

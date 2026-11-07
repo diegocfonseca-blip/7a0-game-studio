@@ -144,6 +144,8 @@ export class Jogo2D {
   private iev = 0
   private acoes: Acao[] = []
   private cur: Acao | null = null
+  /** ✨ SÓ APRESENTAÇÃO (07/11): a bola que está andando agora é um CHUTE? (o desenho pinta o rastro de fogo no chute forte) */
+  get chutando(): boolean { return !!this.cur?.chute && !!this.bola.voo }
   /** 🐕 vigia: desde quando a bola está no MESMO lugar (com o jogo rolando) */
   /** 🎙️ até quando a frase do RESULTADO (isolou, na trave, defendeu) fica na tela sem a cobrança passar por cima */
   private narraForteAte = 0
