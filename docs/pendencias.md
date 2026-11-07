@@ -24,6 +24,14 @@
 - ⚠️ `npm run sala-troca-2d` tem 1 falha que JÁ existia antes deste trabalho (conferido no `e9f3301`): "rodada jogada com e sem troca:
   estado idêntico". Não mexi.
 - Reverter: os commits deste branch são isolados (cena, telas e trava); `git revert` de cada um volta ao que era.
+## 🪽 07/11 — 3-5-2 na Liga Draft (Diego: "coloque formação 352 na liga draft" → opção A)
+- ✅ Botão **3-5-2** logo depois do 5-3-2 no seletor de formação da Liga Draft. É o 5-3-2 com os laterais subindo como alas
+  (o mesmo `formationView: '3-5-2'` da carreira — conta do motor = 5-3-2, só muda o desenho do campinho). `MLD_FORMACAO` aceita
+  `view` (só '3-5-2' com '5-3-2'). Trava: `npm run 352`.
+- ℹ️ **Liga da Turma** não tem troca de formação na temporada (elenco de 11 comprado pra formação do leilão: 4-3-3 ou 4-4-2) — nada a
+  pôr lá sem criar um seletor novo. As Copas (seleções/Clubes) já tinham o 3-5-2 na convocação.
+- ⏳ Se um dia quiser o 3-5-2 "de verdade" (3 ZAG · 5 MEI · 2 ATA, sem lateral) = formação nova no motor (opção B, não feita).
+
 
 ## 🥅 07/11 — Disputa de pênaltis NO CAMPINHO 2D em todo modo (branch, sem push; esperando OK visual do Diego)
 - Pedido: *"em qualquer modo e competição com disputa de pênaltis, com o 2D, a disputa é no campinho"* + a referência de disputa

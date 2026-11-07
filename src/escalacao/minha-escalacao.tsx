@@ -33,6 +33,6 @@ export function EscalacaoMinha() {
   return (
     <SquadTab mgr={you} col={col} coins={Math.max(0, Math.floor(you.money))} xiIds={xiIds} xi={xi as WonCard[]}
       onSwap={onTap} selId={selId} seasonNo={state.seasonNo}
-      onSetFormation={f => dispatch({ type: 'MLD_FORMACAO', mgrId: you.id, formation: f, by: state.youUid })} />
+      onSetFormation={(f, view) => dispatch({ type: 'MLD_FORMACAO', mgrId: you.id, formation: f, view, by: state.youUid })} />
   )
 }

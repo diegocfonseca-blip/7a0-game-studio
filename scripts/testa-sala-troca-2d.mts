@@ -93,7 +93,7 @@ console.log('🎲 5) a troca não mexe no sorteio')
   const base = start()
   const a = reducer(base, { type: 'PLAY_ROUND' } as never)
   const b = reducer(troca(base, true, 'u0'), { type: 'PLAY_ROUND' } as never)
-  const limpa = (s: EscState) => JSON.stringify({ ...s, campo2d: undefined, campo2dProximo: undefined })
+  const limpa = (s: EscState) => JSON.stringify({ ...s, campo2d: undefined, campo2dProximo: undefined, rodadaEm: undefined }) // rodadaEm = carimbo de hora (Date.now), muda a cada chamada
   ok(limpa(a) === limpa(b), 'rodada jogada com e sem troca: estado idêntico (fora o 2D)')
 }
 

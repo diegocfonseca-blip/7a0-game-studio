@@ -4689,7 +4689,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
   const { state: stEl } = useEsc() // só leitura: ficha do técnico + folha com ele
   const quinze = useFormacoes15() && stEl.onlineMode !== 'online' // 🎽 online segue com as 5
-  const fView = quinze ? formacaoAtual(mgr) : null
+  // 🪽 07/11 (Diego: "coloque 352 na liga draft"): na Liga Draft o 3-5-2 é o 5-3-2 com os laterais subindo como alas — só o desenho
+  const fView = quinze || (stEl.minhaLigaDraft && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr) : null
   const meis = xiOf('MEI')
   const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
   let meioRows: WonCard[][] = [meis]
@@ -6214,7 +6215,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
       )}
       {/* 🎽🔁 as pílulas: o que está valendo, em uma linha. Toca e a caixa abre embaixo. */}
       {elencoNovoOk && elenco && (onSetFormation || onSetSubMode || ab) && (() => {
-        const rotuloForm = quinze15 ? formacaoAtual(mgr).rotulo : mgr.formation
+        const rotuloForm = quinze15 || (escSt.minhaLigaDraft && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : mgr.formation
         const modoAgora = (subMode ?? 'dinamico') === 'dinamico' ? tr('🔄 Dinâmico', '🔄 Dynamic') : tr('⏸️ Intervalo', '⏸️ Half-time')
         const pilula = (txt: string, aberta: boolean, onClick: () => void) => (
           <button onClick={onClick} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 8px', border: `2.5px solid ${INK}`, borderRadius: 9, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -6324,13 +6325,16 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {listaForm.map(f => {
-                const cur = mgr.formation === f
+              {/* 🪽 07/11: na Liga Draft entra o 3-5-2 logo depois do 5-3-2 — mesmos jogadores, os laterais sobem como alas */}
+              {listaForm.flatMap((f): [FormationKey, string | undefined][] => escSt.minhaLigaDraft && f === '5-3-2' ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).map(([f, vista]) => {
+                const alasAgora = mgr.formation === '5-3-2' && mgr.formationView === '3-5-2'
+                const cur = mgr.formation === f && (vista === '3-5-2' ? alasAgora : !(f === '5-3-2' && alasAgora))
                 const can = cur || missFor(f).length === 0
                 return (
-                  <button key={f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f) }}
+                  <button key={vista ?? f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f, vista) }}
+                    title={vista ? tr('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined}
                     style={btnStyle(cur, can)}>
-                    {f}{cur ? ' ✓' : ''}
+                    {vista ?? f}{cur ? ' ✓' : ''}
                   </button>
                 )
               })}

@@ -5672,7 +5672,7 @@ type Action =
   | { type: 'DRAFT_SONDAR'; mgrId: number; dono: number; cardId: string; by?: string } // 🕵️ na sua vez: sonda o jogador de um amigo (perde a vez)
   | { type: 'DRAFT_LANCE'; mgrId: number; lote: number; valor: number; by?: string } // 🔨 envelope do leilão dos sondados (0 = tira o lance)
   | { type: 'DRAFT_IGUALAR'; mgrId: number; sim: boolean; by?: string } // ⚡ quem sondou iguala (ou não) o maior lance
-  | { type: 'MLD_FORMACAO'; mgrId: number; formation: FormationKey; by?: string } // 👕 Minha Liga Draft: troca a formação (só se o elenco preencher)
+  | { type: 'MLD_FORMACAO'; mgrId: number; formation: FormationKey; view?: string; by?: string } // 👕 Minha Liga Draft: troca a formação (só se o elenco preencher)
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
@@ -13089,10 +13089,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!s.minhaLigaDraft) return state
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
       const need = FORMATIONS[action.formation]
-      if (!m || !need || m.formation === action.formation) return state
+      // 🪽 07/11: o 3-5-2 é só um DESENHO do 5-3-2 (os laterais sobem como alas) — única vista aceita aqui
+      const vista = action.view === '3-5-2' && action.formation === '5-3-2' ? '3-5-2' : undefined
+      if (!m || !need) return state
+      if (m.formation === action.formation) {
+        if ((m.formationView ?? undefined) === vista) return state
+        m.formationView = vista
+        return s
+      }
       if (SECTORS.some(p => m.squad.filter(c => c.pos === p && !c.fake && !c.emprestado).length < need[p])) return state
       m.formation = action.formation
-      m.formationView = undefined
+      m.formationView = vista
       return s
     }
     case 'MLD_TROCA': {
