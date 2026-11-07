@@ -1,3 +1,16 @@
+## ⏱️ 07/11 — Campo 2D nas salas: velocidade no meio do jogo + quem volta atrasado (Diego: *"confira… lag, travamento"* → "Sim")
+- ✅ **Trocar a velocidade no meio do jogo** (Manual, ou desligar o Manual → 2,5×) recomeçava o jogo do 0′ na sala inteira
+  (o `LiveScoreCard` reiniciava o relógio e o `Campo2D` recriava o jogo porque o `roundMs` estava nas dependências). Agora
+  segue do minuto em que estava (`ritmoAnt`/`soVelocidade` no LiveScoreCard; `roundMs` fora do `useMemo` do jogo).
+- ✅ **Quem atualiza/volta do menu no meio da rodada** via o jogo do 0′ e era cortado quando a próxima chegava. O dono carimba
+  `rodadaEm = {r, at}` no PLAY_ROUND (só sala online) e a tela que ABRE com a rodada rolando entra no minuto certo
+  (`relogio-sala.ts`). Quem já acompanhava segue o próprio relógio → celular com hora errada não faz ninguém pular. Os
+  "outros jogos" usam a mesma hora (`useRoundPresentationStart`). Trava: `npm run relogio-sala`. `rodadaEm` está nas MARCAS_DE_MODO.
+- 📏 Medição do desenho (bancada, celular emulado): PC/celular médio 60 qps liso; celular bem fraco ~30 qps. Nada urgente.
+- ⏳ Ficou de fora (não é do 2D): depois de trocar a velocidade, o dono espera o tempo inteiro da marcha nova antes da
+  próxima rodada (o jogo termina antes, sobra uma pausa um pouco maior). E aba do DONO em segundo plano segura a sala (navegador
+  freia o relógio) — vale pra toda sala.
+
 ## ⏩ 06/11 — Velocidade do Campo 2D ABSOLUTA (branch, sem push; esperando "publique")
 - Causa: na sala o 2D já vinha em 3× e a tela ainda dividia pelo `simSpeed` (sala 4RVDD8: simSpeed 3 → 9×, ~12 s por jogo). Na
   carreira offline o 2D era 2× × simSpeed (o `useRitmo2D` deixava a carreira de fora por causa do `careerOnline`, que é true offline).

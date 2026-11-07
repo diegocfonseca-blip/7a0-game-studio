@@ -7700,7 +7700,7 @@ export function viraCampo2D(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
  *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
  *  crônica, motor novo (`motor2Desde` velho travava o botão até a temporada antiga!), resultados do motor (`m2Res`), prêmios já
@@ -11103,6 +11103,9 @@ function reducerBase(state: EscState, action: Action): EscState {
         const heads = narrateRound(s, results, prevRank, prevGoals, s.round + 1)
         s.news = [...heads, ...s.news]
         s.round++
+        // ⏱️ 07/11: a HORA em que a rodada começou, carimbada pelo dono — quem atualiza a página no meio do jogo entra no
+        // minuto certo em vez de ver do 0' e ser cortado quando a próxima rodada chega. Só desenho: não mexe em placar nenhum.
+        if (s.onlineMode === 'online') s.rodadaEm = { r: s.round, at: Date.now() }
       }
       s.news = s.news.slice(0, 12)
       // Dinastia: pausa UMA vez na metade do calendário → janela do meio (economia).

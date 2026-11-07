@@ -6893,7 +6893,8 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm }: {
+  /** ⏱️ 07/11: hora em que o dono começou esta rodada (quem chega atrasado entra no minuto certo) */ inicioEm?: number
   /** 👑 Kings: o relógio vem de fora (para nos banners) e mostra os 40 min da Kings */ minutoFixo?: number; relogioKings?: boolean
   /** 👑 Kings: frases que a rádio É OBRIGADA a dar naquele minuto (cartão) */ radioExtra?: { min: number; txt: string }[]
   homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
@@ -6919,7 +6920,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} />
+          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} />
       </div>
       {fora && !basket && (
         <FaixaPlacarMini topo={0} min={relogioKings ? placarParaK(min) : min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
@@ -7156,7 +7157,7 @@ export function EscSeason() {
   const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete'
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
-  const leagueStartedAt = useRoundPresentationStart(state.round)
+  const leagueStartedAt = useRoundPresentationStart(state.round, state.onlineMode === 'online' && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined) // ⏱️ 07/11: os outros jogos também entram no minuto certo
   const [seasonLang] = useLang()
   const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
   // 🌎 sala de LIBERTADORES: o mata-mata roda no mesmo motor da Copa dos 8, mas
@@ -7955,6 +7956,7 @@ export function EscSeason() {
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
           minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+          inicioEm={online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined}
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
             : LS(`🟥 VERMELHO pra ${c.nome}, do ${t}! São 5 minutos fora: o ${t} se vira com um a menos até o ${c.ate}'.`, `🟥 RED for ${c.nome} of ${t}! 5 minutes off: ${t} hold on a man down until ${c.ate}'.`) } }) : undefined} />

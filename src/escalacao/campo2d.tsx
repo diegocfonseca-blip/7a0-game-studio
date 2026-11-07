@@ -148,7 +148,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     }
     return mapMatchId?motorCompartilhadoCampo2D(mapMatchId,create):create()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundKey, casa.nome, fora.nome, roundMs, mapMatchId])
+  }, [roundKey, casa.nome, fora.nome, mapMatchId]) // ⏩ 07/11: SEM o roundMs — trocar a velocidade no meio não recria o jogo (antes voltava do 0')
   // 🔁 INTERVALO (carreira): o técnico mexeu no time → o 2º tempo re-simula. O campinho troca o futuro (gols novos) e, do 45'
   // em diante, joga com os 11 novos na formação nova. Sem mudança, nada acontece (assinatura igual).
   const golsSig = gols.map(g => `${g.min}${g.home ? 'h' : 'a'}${g.name}`).join('|')

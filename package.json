@@ -128,7 +128,8 @@
     "cor-adicional": "npx tsx scripts/testa-cor-adicional.mts",
     "casa-luca": "npx tsx scripts/testa-casa-luca.mts",
     "liga-10": "npx tsx scripts/testa-liga-10-times.mts",
-    "turno-unico": "npx tsx scripts/testa-turno-unico.mts"
+    "turno-unico": "npx tsx scripts/testa-turno-unico.mts",
+    "relogio-sala": "npx tsx scripts/testa-relogio-sala.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

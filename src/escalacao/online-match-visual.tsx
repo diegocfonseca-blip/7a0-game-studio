@@ -217,8 +217,11 @@ export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, 
 }
 
 /** Relógio apenas de apresentação. Não avança a sala nem produz resultados. */
-export function useRoundPresentationStart(key: number) {
-  const ref = useRef({key,at:Date.now()})
+export function useRoundPresentationStart(key: number, inicioDoDono?: number) {
+  // ⏱️ 07/11: tela que ABRIU com a rodada já rolando usa a hora do dono (entre 3 s e 3 min atrás); quem já estava na tela
+  // segue o relógio de sempre (troca de rodada com a tela aberta = agora), então um celular com a hora errada não pula nada.
+  const ref = useRef<{key:number;at:number}>(null as never)
+  if(!ref.current){const passou=inicioDoDono==null?0:Date.now()-inicioDoDono;ref.current={key,at:passou>3000&&passou<180000?inicioDoDono!:Date.now()}}
   if(ref.current.key !== key) ref.current = {key,at:Date.now()}
   return ref.current.at
 }
