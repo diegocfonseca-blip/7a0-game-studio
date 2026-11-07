@@ -1047,7 +1047,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (`GiroDaRodada doCampo`) e o da página se esconde. Kings fica de fora (relógio próprio).
   ⏩ **06/11: VELOCIDADE DO 2D É ABSOLUTA** (regra em `vel2d-regra.ts`, trava `npm run vel-2d`). A marcha É a velocidade do jogo
   (1× = 90 s · 1,5× = 60 · 2× = 45 · 2,5× = 36 · 3× = 30 · 3,5× = 26 · 4× = 22,5), **nunca multiplica por cima da base** (a sala
-  4RVDD8 tinha simSpeed 3 gravado: 3× × 3 = 9×, ~12 s por jogo). SALAS ONLINE (todo modo) = **2,5× padrão**, cravado no automático;
+  4RVDD8 tinha simSpeed 3 gravado: 3× × 3 = 9×, ~12 s por jogo). SALAS ONLINE (todo modo) = **2,5× padrão**; 🔁 **07/11: a ÚLTIMA marcha escolhida no Manual vale no AUTOMÁTICO também** (*"clicar em 4x e depois apertar em auto, passa a ser o auto 4x"*), em todo modo e competição (sala, copas do banco, carreira, rápida);
   com o Manual da sala o dono escolhe 1× · 1,5× · 2× · 2,5× · 3× · 3,5× · 4× (vai no estado da sala, `vel2d`/`SET_VEL_2D`, e o
   simSpeed é ignorado). CARREIRA (offline e online) e Partida Rápida offline = **2× padrão**, mesmas 7 opções; offline a última
   marcha fica no aparelho (`esc-vel2d`) e vale no automático também; carreira online = a marcha do DONO (estado da sala).

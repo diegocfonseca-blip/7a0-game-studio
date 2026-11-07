@@ -6,7 +6,7 @@ import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
-import { dur2DDaVel, VEL2D_SALA_PADRAO } from './vel2d-regra'
+import { dur2DDaVel } from './vel2d-regra'
 import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
 import { PixMP } from './pix-mp'
@@ -7211,7 +7211,6 @@ export function EscSeason() {
   const toggleManual = () => {
     rawToggle()
     if (r2d.teste) return // ⏩📺 2D offline: a marcha é a guardada (auto e Manual iguais) — trocar de modo não mexe nela
-    if (online && !state.careerOnline && state.isHost && manual && c2d) dispatch({ type: 'SET_VEL_2D', vel: VEL2D_SALA_PADRAO }) // ⏩📺 06/11: sala no AUTO = 2,5× cravado
     /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   // ⏩ velocidade escolhida (sincroniza via estado): divide o tempo da rodada —
@@ -9112,7 +9111,6 @@ export function EscLiberta() {
   const toggleManual = () => {
     rawToggle()
     if (r2d.teste) return // ⏩📺 2D offline: a marcha guardada vale
-    if (online && !state.careerOnline && state.isHost && manual && c2d) dispatch({ type: 'SET_VEL_2D', vel: VEL2D_SALA_PADRAO }) // ⏩📺 06/11: sala no AUTO = 2,5× cravado
     /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
@@ -9414,7 +9412,6 @@ export function EscChampions() {
   const toggleManual = () => {
     ;(streamHost ? toggleStream : toggleSim)()
     if (r2d.teste) return // ⏩📺 2D offline: a marcha guardada vale
-    if (online && !state.careerOnline && state.isHost && manual && c2d) dispatch({ type: 'SET_VEL_2D', vel: VEL2D_SALA_PADRAO }) // ⏩📺 06/11: sala no AUTO = 2,5× cravado
     /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
