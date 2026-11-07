@@ -7467,6 +7467,9 @@ export function EscSeason() {
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
   const copaPensMs = Math.max(13000, ...(qc?.ties ?? []).filter(t => t.pens && !t.ot).map(t => Math.ceil(pensRevealDelay(t.pens!, copaTemGenteQ(t), t.pensSeq) * 1000) + 300))
+  // 🎬 07/11 (Diego: *"o jogo não pode acabar antes"*): o placar grande do SEU jogo tem que andar na MESMA marcha da fase. Ele
+  // recebia `copaLegMs` cru (sem dividir pela marcha) e a fase virava com `copaLegMs / copaSf`: em 2× o placar cinema estava no
+  // ~57' quando a Copa pulava pra próxima perna — era o "às vezes corta o jogo" (só fora do 2D e com a marcha acima de 1×).
   const copaAnimMs = Math.round(copaLegMs / copaSf) + (phaseFullyPlayed && anyPens ? copaPensMs : 0)
   // 👑 relógio da Kings: o SEU jogo da rodada (liga) ou o SEU jogo da fase (mata-mata)
   const kTie = kingsS && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id) && t.legs.length > 0) : undefined
@@ -7496,22 +7499,20 @@ export function EscSeason() {
   }, [aberturaOn, firstLegPending, speedFactor, copaTieKey, respiroFaseMs])
   const aberturaLeft = Math.ceil(faseLeftMs / 1000)
   const resumoOn = resumoCabe && faseLeftMs > ABERTURA_FASE_MS / speedFactor
-  useEffect(() => {
-    if (!canAdvance || !copaLive || manual || firstLegPending || cupNow) return // a Cup tem o motor dela
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round((aberturaOn ? respiroFaseMs : 3200) / speedFactor) : copaAnimMs)
-    return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow, aberturaOn, respiroFaseMs])
   // 🏷️ nome das fases do mata-mata (chave desenhada, resumo) — ⚽ só; o 🏀 tem nomes próprios e fica fora destas peças
   const faseNomeQ = (f: string, curto = false): string => f === 'repescao' ? LS('REPESCÃO', 'PLAYOFF') : f === 'r32' ? (curto ? LS('RODADA DE 32', 'R32') : LS('RODADA DE 32', 'ROUND OF 32')) : f === 'oitavas' ? (curto ? LS('OITAVAS', 'R16') : LS('OITAVAS', 'ROUND OF 16')) : f === 'quartas' ? (curto ? LS('QUARTAS', 'QF') : LS('QUARTAS', 'QUARTER-FINALS')) : f === 'semis' ? (curto ? 'SEMI' : LS('SEMIFINAIS', 'SEMI-FINALS')) : 'FINAL'
   // trava o "Próximo jogo da Copa" (manual) enquanto a perna — INCLUINDO a disputa
   // de pênaltis — ainda está animando, pra não cortar clicando cedo.
-  const [copaAdvReady, setCopaAdvReady] = useState(true)
+  const [copaAdvTimer, setCopaAdvTimer] = useState(true)
   useEffect(() => {
-    if (!copaLive || firstLegPending || copaJustAdvanced) { setCopaAdvReady(true); return }
-    setCopaAdvReady(false)
-    const t = setTimeout(() => setCopaAdvReady(true), copaAnimMs)
+    if (!copaLive || firstLegPending || copaJustAdvanced) { setCopaAdvTimer(true); return }
+    setCopaAdvTimer(false)
+    const t = setTimeout(() => setCopaAdvTimer(true), copaAnimMs)
     return () => clearTimeout(t)
   }, [copaTieKey, copaLive, firstLegPending, copaJustAdvanced, copaAnimMs])
+  // ⏱️ quando a perna começou NESTA tela (pra o avanço automático saber quanto ainda falta depois de esperar a disputa)
+  const copaLegIni = useRef({ key: copaTieKey, t: Date.now() })
+  if (copaLegIni.current.key !== copaTieKey) copaLegIni.current = { key: copaTieKey, t: Date.now() }
   // relógio compartilhado dos placares dos jogos da fase (lista de baixo): sobe
   // 0→93 no mesmo tempo do card grande (COPA_LEG_MS) e reinicia a cada nova perna
   // — assim TODOS os jogos progridem juntos, minuto a minuto, em vez de já mostrar
@@ -7528,6 +7529,17 @@ export function EscSeason() {
     aSquad: state.managers.find(m => m.id === meuTiePen.aId)?.squad, bSquad: state.managers.find(m => m.id === meuTiePen.bId)?.squad,
     orcamento: pensRevealDelay(meuTiePen.pens, copaTemGenteQ(meuTiePen), meuTiePen.pensSeq),
   } : undefined, !!meuTiePen && copaMin >= 93)
+  // 🥅 07/11 (Diego: *"o jogo não pode acabar antes dos pênaltis"* + *"nada de spoiler"*): enquanto a disputa do SEU confronto está
+  // rolando no campinho, NADA avança e nada revela o vencedor — nem o "Próximo", nem o avanço automático (no online, é o
+  // aparelho do DONO que segura o próximo passo), nem o giro, nem o riscado/"avança" da lista. A conta antiga (`copaAnimMs`)
+  // continua valendo: a disputa só ESTICA o passo quando a cena atrasou (aparelho lento, aba escondida), nunca encurta.
+  const penSegura = !!meuTiePen && !!penCampo.estado && !penCampo.estado.encerrado
+  const copaAdvReady = copaAdvTimer && !penSegura
+  useEffect(() => {
+    if (!canAdvance || !copaLive || manual || firstLegPending || cupNow || penSegura) return // a Cup tem o motor dela
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round((aberturaOn ? respiroFaseMs : 3200) / speedFactor) : Math.max(400, copaLegIni.current.t + copaAnimMs - Date.now()))
+    return () => clearTimeout(t)
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow, aberturaOn, respiroFaseMs, penSegura])
   // 🚫 ANTI-SPOILER DO GIRO: as manchetes descrevem a rodada que AINDA está
   // animando na tela — mostrar na hora entrega zebra/líder/placar antes do apito
   // (a tabela é segurada com holdResults, mas o giro não era). Segura o giro do
@@ -7678,8 +7690,11 @@ export function EscSeason() {
           const settled = clockDone && tie.winner != null // só risca/mostra pênaltis depois que o relógio fecha
           const aWin = tie.winner === tie.aId
           // 🚫 anti-spoiler: com PÊNALTIS, o riscado do perdedor espera a última cobrança animar
-          const pd = settled && tie.pens && !tie.ot ? pensRevealDelay(tie.pens, copaTemGenteQ(tie), tie.pensSeq) : 0
-          const loserStyle = (isLoser: boolean) => !settled || !isLoser ? {} : pd > 0 ? { animation: `qcLoserFade .4s ease ${pd.toFixed(2)}s forwards` } : { opacity: .6, textDecoration: 'line-through' as const }
+          // 🥅 o SEU confronto com a disputa no campinho: quem manda é a cena (só revela quando a última cobrança apareceu)
+          const campoPen = tie === meuTiePen ? penCampo.estado : undefined
+          const escondeVencedor = !!campoPen && !campoPen.encerrado
+          const pd = settled && tie.pens && !tie.ot && !campoPen ? pensRevealDelay(tie.pens, copaTemGenteQ(tie), tie.pensSeq) : 0
+          const loserStyle = (isLoser: boolean) => !settled || !isLoser || escondeVencedor ? {} : pd > 0 ? { animation: `qcLoserFade .4s ease ${pd.toFixed(2)}s forwards` } : { opacity: .6, textDecoration: 'line-through' as const }
           // ⏱️ 🏀 a lista dos playoffs marcava minuto de futebol (45' · 90+2') num
           // jogo de basquete. Agora usa o MESMO relógio de quartos do card grande
           // (a conta mora em `sportcfg.ts`, pra duas telas nunca marcarem quartos
@@ -7705,7 +7720,7 @@ export function EscSeason() {
               status={`${bbSerie ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : cupNow || (kingsS && qc.phase !== 'final') ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
               detail={<>{reverse && (bbSerie
                 ? <p><b>{LS('Série', 'Series')}: {tie.aName} {serieA} × {serieB} {tie.bName}</b> <span style={{ opacity: .7 }}>({LS('melhor de 3', 'best of 3')})</span></p>
-                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout campo={tie === meuTiePen ? penCampo.estado : undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
+                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout campo={tie === meuTiePen ? penCampo.estado : undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />)}{!tie.pens&&!escondeVencedor&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
           }
           return (
             <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
@@ -7747,7 +7762,7 @@ export function EscSeason() {
                 {privateVisual && nLegs>1 && (bbSerie
                   ? <p className="text-center text-xs font-bold text-black">{LS('SÉRIE', 'SERIES')}: {serieA} × {serieB} <span style={{ opacity: .6 }}>({LS('melhor de 3', 'best of 3')})</span></p>
                   : <p className="text-center text-xs font-bold text-black">{LS('AGREGADO', 'AGGREGATE')}: {showA} × {showB} · {LS('Ida', '1st leg')}: {tie.legs[0][0]} × {tie.legs[0][1]}</p>)}
-                {privateVisual && settled && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avança', 'advances')}</p>}
+                {privateVisual && settled && !escondeVencedor && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avança', 'advances')}</p>}
                 {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>{LS('⚽ GOOOL agora!', '⚽ GOAL just now!')}</span></p>}
                 {settled && nLegs > 0 && (
                   <p className="text-center mt-1" style={{ fontSize: 10, fontWeight: 800 }}><span style={copaCenterChip}>{bbSerie
@@ -7889,7 +7904,7 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'r32' ? 50 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={copaLegMs} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+                      roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad, fCasa: state.managers.find(m => m.id === legHomeId)?.formation, fFora: state.managers.find(m => m.id === legAwayId)?.formation }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>

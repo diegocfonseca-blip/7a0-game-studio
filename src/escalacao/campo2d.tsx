@@ -688,6 +688,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           cx.beginPath(); for (let v = 0; v < 5; v++) { const aa = a + v * 1.2566; v ? cx.lineTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) : cx.moveTo(gx + Math.cos(aa) * g5, gy + Math.sin(aa) * g5) } cx.closePath(); cx.fill() }
         cx.restore(); cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.lineWidth = 1.6; cx.strokeStyle = '#111'; cx.stroke()
       }
+      // 🎬 pênaltis: o corte de câmera do começo (a tela clareia e todo mundo já está perto do seu lugar — ninguém cruza ninguém)
+      if (penalti && penalti.corte > 0) { const a0 = cx.globalAlpha; cx.globalAlpha = penalti.corte; cx.fillStyle = '#0C0C0C'; cx.fillRect(0, 0, CW, CH); cx.globalAlpha = a0 }
       // 😱 QUASE: um anel dourado curto onde a bola beijou a trave / o goleiro voou (o mesmo anel aparece no gramado do mapa)
       const qv = quaseVivo.current, qIdade = qv ? (jogo.t - qv.desde) * 1000 / QUASE_ANEL_MS : 2
       if (qv && qIdade < 1) {
@@ -743,8 +745,10 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         {!deitado && <PlacaGol lado="cima" alt={altPlaca} />}
         <div style={{ position: 'relative' }}>
           <canvas ref={cv} style={{ display: 'block' }} />
-          {/* 📺 o "selo da TV": placar e minuto do que o campinho JÁ mostrou (o placar só muda quando a bola entra) */}
-          <div style={{ position: 'absolute', left: 8, top: 8, ...OSW, fontSize: deitado ? 15 : 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: deitado ? '3px 10px' : '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
+          {/* 📺 o "selo da TV": placar e minuto do que o campinho JÁ mostrou (o placar só muda quando a bola entra).
+              🥅 07/11: na disputa de pênaltis, com o campinho em pé (celular), o selo desce pro canto de BAIXO — em cima ele
+              cobria o auxiliar da esquerda, e lá embaixo (o outro gol) não acontece nada durante a disputa */}
+          <div style={{ position: 'absolute', left: 8, ...(placarPenV && !deitado ? { bottom: 8 } : { top: 8 }), ...OSW, fontSize: deitado ? 15 : 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: deitado ? '3px 10px' : '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
             <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{placarPenV ? `${t('PÊN', 'PENS')} ${placarPenV[0]}–${placarPenV[1]}` : fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
           </div>
         </div>

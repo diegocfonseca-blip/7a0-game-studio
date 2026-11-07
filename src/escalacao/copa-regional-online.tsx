@@ -20,7 +20,7 @@
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS } from './competicoes-visual' // 🎬 túnel da final e festa do campeão (23/10)
 import { useCampo2DLigado, doisDDoPasso, Campo2DDoPassoCtx } from './campo2d-modo'
 import { usePreparaTroca2D } from './troca2d-copa'
-import { fimDoJogoMs } from './copa-clock-preview'
+import { fimDoPassoMs, seguraPelaDisputa } from './copa-clock-preview'
 import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática no regional da sala (23/10)
 import { montaQualTatica, copaComTatica } from './copa-taticas'
 import { DUR_2D_SALA_MS } from './campo2d-motor'
@@ -160,7 +160,7 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
       const r = atual.current
       if (!isHost || !r) return
       const pronto2D = r.running ? true : prepara2D() // 📺⚡ bola parada: a troca marcada pelo dono já vai sendo aplicada (auto E manual)
-      if (r.running) { if (agora >= Date.parse(r.started_at) + fimDoJogoMs(r.duration_ms, doisDDoPasso(r) ?? doisD) + r.extra_ms + 150) void rpc('finish') } // 📺 sala 2D fecha no apito do campinho (mesma conta do banco)
+      if (r.running) { const due = fimDoPassoMs(r, doisDDoPasso(r) ?? doisD, extra.current(r.step)); if (agora >= due && !seguraPelaDisputa(due, agora)) void rpc('finish') } // 🥅 segura enquanto a disputa roda na tela do dono // 📺 sala 2D fecha no apito do campinho (mesma conta do banco)
       else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step, r.step + 1 >= passosRegional(rodadas).PRIMEIRO_KO) && pronto2D) void rpc('next') // 🎬 5s de abertura antes de rodar bola (+5s de resumo em fase do mata-mata)
     }, 250)
     return () => clearInterval(t)
@@ -640,7 +640,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     return <CompetitionMatch key={key} showOwners goals={g} home={entrants[h].pais} away={entrants[a].pais} homeOwner={dono(h)} awayOwner={dono(a)}
       homeCrest={<SeloClube clube={entrants[h].pais} size={26} />} awayCrest={<SeloClube clube={entrants[a].pais} size={26} />}
       homeScore={g.filter(x => x.home).length} awayScore={g.filter(x => !x.home).length} mine={isYou(h) || isYou(a)} status={status}
-      detail={pen && liveDone ? <PensShootout compactOnline pens={pen} aName={entrants[h].pais} bName={entrants[a].pais} aCrest={<SeloClube clube={entrants[h].pais} size={20} />} bCrest={<SeloClube clube={entrants[a].pais} size={20} />} aSquad={entrants[h].xi} bSquad={entrants[a].xi} lento={!!(entrants[h].humano || entrants[a].humano)} /> : undefined} />
+      detail={pen && (liveDone || liveMin >= 93) ? <PensShootout compactOnline pens={pen} aName={entrants[h].pais} bName={entrants[a].pais} aCrest={<SeloClube clube={entrants[h].pais} size={20} />} bCrest={<SeloClube clube={entrants[a].pais} size={20} />} aSquad={entrants[h].xi} bSquad={entrants[a].xi} lento={!!(entrants[h].humano || entrants[a].humano)} /> : undefined} />
   }
   const tabela = (lado: 0 | 1) => {
     const linhas = tabelaDoLado(mundo, lado, rodadasVistas)

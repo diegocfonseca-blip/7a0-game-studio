@@ -33,6 +33,7 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
 import { Penaltis2D } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
+import { disputaRolandoNaTela } from './penaltis-na-tela'
 import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill, useApitoDeLargada } from './pyramidseason'
 import { startCrowd, stopCrowd } from './sound' // 🏟️ a Copa do Mundo era MUDA (19/09)
@@ -1314,7 +1315,12 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
     if (step === QUARTAS) extra += Math.max(0, ...world.qf.map(penMs)) // quartas (jogo único)
     if (step === SEMI) extra += Math.max(0, ...world.sf.map(penMs)) // semis (jogo único)
     if (step === FINAL && world.final.pen) extra += pensRevealDelay(world.final.pen, koTemGente(entrants, world.final)) * 1000 // final
-    const t = setTimeout(() => setLiveDone(true), roundMs + extra)
+    // 🥅 07/11 (Diego: *"o jogo não pode acabar antes dos pênaltis"*): se a disputa do campinho ainda está rolando (aparelho
+    // lento, aba que voltou), o apito da fase espera a última cobrança aparecer — no máximo 30 s a mais, pra nunca prender a Copa
+    const due = Date.now() + roundMs + extra
+    let t: ReturnType<typeof setTimeout>
+    const tenta = () => { if (disputaRolandoNaTela() && Date.now() < due + 30000) t = setTimeout(tenta, 250); else setLiveDone(true) }
+    t = setTimeout(tenta, roundMs + extra)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundKey, !!synced])
@@ -1669,7 +1675,10 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
               // 🏆 jogo único: durante a partida os outros rolam em MiniLive (o seu
               // está lá em cima, ao vivo); no apito todos viram linha resolvida —
               // o seu com o "avança" segurado até a última cobrança dos pênaltis.
-              if (step === passo) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? sobraPens(t.pen, koTemGente(entrants, t)) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
+              // 🥅 07/11 (Diego: *"nada de spoiler"*): quem foi pros pênaltis vira linha já aos 93' — a disputa dele roda DENTRO do
+              // tempo que o passo reserva pra ela (antes só começava no apito do passo, e era cortada pela fase seguinte) — e o
+              // "Pênaltis X × Y · fulano avança" só aparece quando a última cobrança dela pipocou.
+              if (step === passo) return <div key={i}>{liveDone || (liveMin >= 93 && t.pen) ? tieRow(t, true, t.pen && !liveDone ? pensRevealDelay(t.pen, koTemGente(entrants, t)) : sobraPens(t.pen ?? [0, 0], false)) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
               return <div key={i}>{tieRow(t)}</div>
             })}
           </div>

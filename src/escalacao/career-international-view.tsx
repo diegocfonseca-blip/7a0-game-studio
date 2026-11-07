@@ -44,7 +44,7 @@ import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useVel2DAqui } from './ritmo2d'
-import { LiveScoreCard, PensShootout, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
 import { loggedEmail, useHasManual } from './apoio'
@@ -527,6 +527,16 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     aSquad: aPen.xi, bSquad: bPen.xi, invertido: penalties.home !== match.home,
   } : undefined, fim, speed, false, onFim)
   const temDisputaCampo = campoPen
+  // 🥅 07/11 (Diego: *"nada de spoiler… o jogo não pode acabar antes dos pênaltis"*): SEM o campinho, a disputa também aparece
+  // (a MESMA tela de bolinhas da Copa da carreira) e o apito da noite espera a última cobrança. Antes o resultado dos pênaltis
+  // saía seco no apito, junto com o "avança".
+  const pensCss = !campoPen && !!penalties?.penalties && !!aPen && !!bPen
+  const lentoPens = !!(home.you || away.you)
+  useEffect(() => {
+    if (!fim || !pensCss || !penalties?.penalties) return
+    const t = setTimeout(onFim, Math.round(pensRevealDelay(penalties.penalties, lentoPens) * 1000) + 300)
+    return () => clearTimeout(t)
+  }, [fim, pensCss]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🥅 (mapa 3D) final nos pênaltis: o mapa só fica sabendo de quem ganhou DEPOIS que a tela mostrou a disputa — no fim da
   // cobrança no campinho quando ela existe, senão no apito (é quando a linha "Pênaltis X × Y" aparece embaixo do placar)
   const pensVistos = temDisputaCampo ? !!disputa.estado?.encerrado : fim
@@ -540,8 +550,8 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
     apitoFrases={frasesDoApito(fase, comp, home.you ? home.institution : away.institution)}
     elencos={{ casa: home.xi, fora: away.xi, m2: entradaInternacionalM2(campaign.teams, match) }} // 📺 sem o elenco o Campo 2D montava o time sem nomes nem rostos das lendas (Diego 20/10)
     youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round((c2d ? DUR_2D_MS : COPA_LEG_MS / 0.82) / speed)} footTint={tintComp(comp)}
-    onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); if (!temDisputaCampo) onFim() } }} />
-    {disputa.estado && penalties?.penalties && aPen && bPen && <PensShootout compactCareer lento={home.you||away.you} campo={disputa.estado}
+    onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); if (!temDisputaCampo && !pensCss) onFim() } }} />
+    {(disputa.estado || (pensCss && fim)) && penalties?.penalties && aPen && bPen && <PensShootout compactCareer lento={lentoPens} campo={disputa.estado}
       pens={penalties.penalties} aName={aPen.institution} bName={bPen.institution} aSquad={aPen.xi} bSquad={bPen.xi}
       aCrest={<SeloClube clube={aPen.institution} size={20}/>} bCrest={<SeloClube clube={bPen.institution} size={20}/>} final={fase==='final'} />}
   </>

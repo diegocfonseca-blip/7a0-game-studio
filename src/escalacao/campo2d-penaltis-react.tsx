@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { DisputaPenaltisCampo, type ConfigPenaltisCampo, type EstadoPenaltisCampo } from './campo2d-penaltis'
+import { disputaRolandoNaTela, entrouNaTela, mudouNaTela, ouvirNaTela, saiuDaTela } from './penaltis-na-tela'
 
 // Memória local e limitada: mudar de aba/câmera não recomeça a disputa.
 // Nada é gravado no save, no banco ou enviado para outras contas.
@@ -11,6 +12,13 @@ const motores = new WeakMap<DisputaPenaltisCampo, Motor>()
 
 export function chavePenaltisCampo(config: ConfigPenaltisCampo) {
   return `${config.id}|${config.aName}|${config.bName}|${config.pens.join(':')}|${config.seqReal ?? ''}|${!!config.invertido}|${config.orcamento ?? ''}`
+}
+
+/** alguma disputa ainda rolando na tela, como gancho: a tela renderiza de novo quando ela começa/termina (registro em penaltis-na-tela.ts) */
+export function useDisputaRolandoNaTela(): boolean {
+  const [v, setV] = useState(disputaRolandoNaTela)
+  useEffect(() => ouvirNaTela(() => setV(disputaRolandoNaTela())), [])
+  return v
 }
 
 function motorDe(s: DisputaPenaltisCampo): Motor {
@@ -61,14 +69,16 @@ export function usePenaltisCampo(config: ConfigPenaltisCampo | undefined, ativo:
     const ouvir = () => {
       const estado = sessao.estado, sig = `${estado.fase}:${estado.cobranca}:${estado.reveladas}:${estado.encerrado}:${estado.mensagem}`
       if (sig !== ultima) { ultima = sig; setVisao({ sessao, estado }) }
-      if (estado.encerrado && !avisou) { avisou = true; callback.current?.() }
+      if (estado.encerrado && !avisou) { avisou = true; callback.current?.(); mudouNaTela() }
     }
     m.pedidos.push(pedido); m.ouvintes.add(ouvir)
+    entrouNaTela(sessao)
     ouvir(); liga(sessao, m)
     return () => {
       m.ouvintes.delete(ouvir)
       const k = m.pedidos.indexOf(pedido); if (k >= 0) m.pedidos.splice(k, 1)
       if (!m.pedidos.length && m.raf) { cancelAnimationFrame(m.raf); m.raf = 0 }
+      if (!m.pedidos.length) saiuDaTela(sessao)
     }
   }, [sessao, ativo, velocidade, pausado])
   return { sessao: ativo ? sessao : undefined, estado: ativo ? (visao.sessao === sessao ? visao.estado : sessao?.estado) : undefined }

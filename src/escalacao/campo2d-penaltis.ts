@@ -30,7 +30,7 @@ import type { Atleta } from './campo2d-motor'
 // ninguém). Sem `orcamento` (carreira offline, que espera a disputa acabar) vale o ritmo natural.
 
 export const TEMPO_PENALTIS_CAMPO = {
-  organizar: 7, caminhar: 10, ajeitar: .6, recuar: .8, apito: 1.3, correr: .7, voo: .6, festa: 1.2, passo: 9, encerrar: 2.5,
+  organizar: 3, caminhar: 10, ajeitar: .6, recuar: .8, apito: 1.3, correr: .7, voo: .6, festa: 1.2, passo: 9, encerrar: 2.5,
 } as const
 const T = TEMPO_PENALTIS_CAMPO
 /** tempo (natural) entre uma batida e a seguinte */
@@ -117,9 +117,20 @@ export type QuadroPenaltisCampo = {
   apito: boolean
   /** quem está comemorando agora: o batedor no gol, o goleiro na defesa */
   comemora: { indice: number; tipo: 'gol' | 'defesa' } | null
+  /** 🎬 o corte de câmera do começo: quanto da tela está escura (1 = preta, 0 = normal) */
+  corte: number
 }
 type Trecho = { t0: number; t1: number; pts: Ponto[]; liso?: boolean }
 
+// 🧭 07/11 (2º acerto): a ORGANIZAÇÃO não é mais "todo mundo andando em linha reta pro círculo ao mesmo tempo" — assim um
+// passava por cima do outro. Agora a disputa abre com um CORTE DE CÂMERA, igual à TV (entre o fim da prorrogação e a 1ª
+// cobrança a transmissão sempre corta): a tela escurece e clareia em CORTE_ORG segundos e, quando clareia, cada um já está
+// PERTO do seu lugar — o jogador de linha no seu ponto de espera, num anel por fora da roda (R_ESPERA, na direção da sua vaga,
+// 3,6 m entre vizinhos), o goleiro que defende no gol, o outro na lateral da área e o árbitro do lado da marca. Aí os dez de
+// cada lado entram JUNTOS na fila, cada um em linha reta do ponto de espera pra vaga: linhas que apontam pro centro e só se
+// aproximam até o espaçamento da fila (2,6 m) — ninguém cruza ninguém, por construção, em qualquer começo. Tentei antes um
+// planejador de caminhos (um por vez, desviando): fechava ~70% das vezes e custava até 0,2 s de conta no celular.
+const R_ESPERA = 14, CORTE_ORG = .7, ENTRA_DE = 1.1
 export class DisputaPenaltisCampo {
   readonly seq: Cobranca[]
   /** quando a disputa termina (segundos de tela) — é aqui que sai o vencedor */
@@ -132,7 +143,6 @@ export class DisputaPenaltisCampo {
   elapsed = 0
   preparado = false
   private bolaInicial: Ponto = MARCA
-  private juizInicial: Ponto = { x: 34, y: 40 }
   private agenda: Trecho[][] = []
   private inicio: Ponto[] = []
   private ladoDe: Lado[] = []
@@ -168,7 +178,10 @@ export class DisputaPenaltisCampo {
     let p = this.inicio[i]
     for (const s of this.agenda[i]) {
       if (t < s.t0) return p
-      if (t < s.t1) { const u = (t - s.t0) / (s.t1 - s.t0); return caminho(s.pts, s.liso ? suave(u) : u) }
+      if (t < s.t1) {
+        const u = (t - s.t0) / (s.t1 - s.t0)
+        return caminho(s.pts, s.liso ? suave(u) : u)
+      }
       p = s.pts[s.pts.length - 1]
     }
     return p
@@ -193,7 +206,6 @@ export class DisputaPenaltisCampo {
     this.nomes = atletas.map(p => p.nome)
     this.agenda = atletas.map(() => [])
     this.bolaInicial = { x: bola.x, y: bola.y }
-    this.juizInicial = misturar(this.bolaInicial, MARCA, .25)
     this.goleiros = [0, 1].map(l => atletas.findIndex(p => p.lado === l && p.grupo === 'GOL')) as [number, number]
     // quem bate cada cobrança (sem carta nominal, usa quem já está em campo; nunca cria jogador)
     const batidas = [0, 0]
@@ -217,11 +229,15 @@ export class DisputaPenaltisCampo {
     }
     // 1) organizar: todo mundo pro seu lugar; o goleiro que defende a 1ª no gol, o outro esperando
     const defende = (k: number) => this.goleiros[1 - this.ladoQueBate(k)]
+    // 🎬 o corte de câmera: quando a tela clareia, cada um já está perto do seu lugar (ver o comentário lá em cima)
     atletas.forEach((p, i) => {
-      const l = p.lado as Lado
-      const alvo = vaga.get(i)?.pt ?? (n && i === defende(0) ? GOL : espelho(ESPERA_GOLEIRO, l))
-      this.vai(i, 0, T.organizar, [alvo], true)
+      const l = p.lado as Lado, v = vaga.get(i)
+      if (!v) { this.inicio[i] = n && i === defende(0) ? { ...GOL } : espelho(ESPERA_GOLEIRO, l); return }
+      this.inicio[i] = arco(R_ESPERA, v.phi, l)
+      // os dez de cada lado entram juntos na fila, em linha reta (cada um no seu raio)
+      this.agenda[i].push({ t0: ENTRA_DE, t1: T.organizar, pts: [this.inicio[i], v.pt], liso: true })
     })
+    this.bolaInicial = { ...MARCA }
     // 2) cada cobrança
     for (let k = 0; k < n; k++) {
       const C = this.contato(k), l = this.ladoQueBate(k), quem = this.cobradores[k]
@@ -320,7 +336,7 @@ export class DisputaPenaltisCampo {
     if (t < T.organizar) {
       const u = suave(t / T.organizar)
       bola = { ...misturar(this.bolaInicial, MARCA, u), h: 0 }
-      juiz = misturar(this.juizInicial, lugarJuiz(0), u)
+      juiz = lugarJuiz(0)
     } else {
       const ant = t < C - PREPARO ? i - 1 : -1 // a cobrança anterior ainda "está na tela"?
       if (ant >= 0) {
@@ -354,6 +370,7 @@ export class DisputaPenaltisCampo {
       if (k.ok && batedor >= 0) comemora = { indice: batedor, tipo: 'gol' }
       else if (!k.ok && jeitoDoErro(this.seed, i) === 'defendeu' && goleiro >= 0) comemora = { indice: goleiro, tipo: 'defesa' }
     }
-    return { jogadores, bola, juiz, batedor, goleiro, rede, auxiliares: AUXILIARES_PENALTIS, apito, comemora }
+    const corte = t < CORTE_ORG ? 1 - t / CORTE_ORG : 0
+    return { jogadores, bola, juiz, batedor, goleiro, rede, auxiliares: AUXILIARES_PENALTIS, apito, comemora, corte }
   }
 }
