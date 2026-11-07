@@ -3781,7 +3781,6 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 12px', margin: '6px 0 0', background: '#1d1d1d', color: '#f4ecd6', border: '2.5px solid #0C0C0C', borderRadius: 12, fontSize: 12 }}>
       {[true, false].map(home => <div key={String(home)} style={{ textAlign: home ? 'left' : 'right' }}>
         {vencidos.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`} style={{ margin: '0 0 2px' }}>⚽ {g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
-        {!vencidos.some(g => g.home === home) && <p style={{ margin: 0, opacity: .6 }}>{tr('Sem gols', 'No goals')}</p>}
       </div>)}
     </div>
   ) : null
@@ -3869,7 +3868,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
         <p key={golSide ? 'g' + goalSeed : (ritualTxt ?? 'idle')} style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: golSide ? (lateGoal ? '#fff' : INK) : '#fff', animation: golSide ? 'coBanner .3s ease' : (ritualTxt ? 'coFade .4s ease' : undefined), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {golSide
             ? `${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}'` : ''}`
-            : (ritualTxt ?? (done ? (basket ? tr('sem cestas', 'no baskets') : tr('sem gols', 'no goals')) : (basket ? tr('🟢 bola quicando…', '🟢 ball bouncing…') : tr('🟢 bola rolando…', '🟢 ball rolling…'))))}
+            : (ritualTxt ?? (done ? '\u00a0' /* 07/11 Diego: 0×0 não escreve "sem gols" */ : (basket ? tr('🟢 bola quicando…', '🟢 ball bouncing…') : tr('🟢 bola rolando…', '🟢 ball rolling…'))))}
         </p>
       </div>
       {/* 🎨 relógio é a pilulazinha flutuando por cima do placar. */}
