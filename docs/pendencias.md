@@ -1,3 +1,11 @@
+## 🪽 07/11 — 3-5-2 na Liga Draft (Diego: "coloque formação 352 na liga draft" → opção A)
+- ✅ Botão **3-5-2** logo depois do 5-3-2 no seletor de formação da Liga Draft. É o 5-3-2 com os laterais subindo como alas
+  (o mesmo `formationView: '3-5-2'` da carreira — conta do motor = 5-3-2, só muda o desenho do campinho). `MLD_FORMACAO` aceita
+  `view` (só '3-5-2' com '5-3-2'). Trava: `npm run 352`.
+- ℹ️ **Liga da Turma** não tem troca de formação na temporada (elenco de 11 comprado pra formação do leilão: 4-3-3 ou 4-4-2) — nada a
+  pôr lá sem criar um seletor novo. As Copas (seleções/Clubes) já tinham o 3-5-2 na convocação.
+- ⏳ Se um dia quiser o 3-5-2 "de verdade" (3 ZAG · 5 MEI · 2 ATA, sem lateral) = formação nova no motor (opção B, não feita).
+
 ## 👑 07/11 — PAINEL DO DONO dentro da liga (Diego: *"pode fazer o painel do dono adorei mano"*)
 - ✅ `src/escalacao/painel-dono-liga.tsx`, no rodapé do jogo (Shell, junto do "gerenciar técnicos"), só pro dono em liga online
   (`canManage && ligaMode`). Seções: 📨 pedidos (aceitar → escolher bot/técnico, mesmo `esc_liga_responder` do lobby) · ⚙️ próxima
