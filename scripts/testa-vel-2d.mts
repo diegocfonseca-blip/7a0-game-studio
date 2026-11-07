@@ -60,7 +60,7 @@ const sala = (extra: Record<string, unknown> = {}) => {
 console.log('🏆 3) carreira online (marcha do dono, padrão 2×)')
 {
   const base = { onlineMode: 'online', careerOnline: true, manualRoom: true }
-  ok(vel2dDoContexto(base, 4) === 2, 'sem escolha: 2× (a marcha do aparelho do convidado não entra)')
+  ok(vel2dDoContexto(base, 4) === 1.5, 'sem escolha: 1,5× — padrão da carreira desde 07/11 (a marcha do aparelho do convidado não entra)')
   ok(vel2dDoContexto({ ...base, vel2d: 3.5 }, 1) === 3.5 && vel2dCarreiraOnline({ vel2d: 1 }) === 1, 'escolha do dono vale absoluta (inclusive 1×)')
 }
 
@@ -69,7 +69,7 @@ ok(vel2dSoloDoGuardado(null) === 2 && vel2dSoloDoGuardado('') === 2 && vel2dSolo
 // o valor velho JÁ era absoluto (Partida Rápida: 1:30 ÷ marcha) — a conversão mantém a velocidade e encaixa na lista nova
 const conv: [string, number][] = [['0.5', 1], ['1', 1], ['2', 2], ['3', 3], ['4', 4], ['1.5', 1.5], ['2.5', 2.5], ['3.5', 3.5], ['8', 4]]
 for (const [velho, novo] of conv) ok(vel2dSoloDoGuardado(velho) === novo, `esc-vel2d "${velho}" → ${novo}×`)
-ok(vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, 3.5) === 3.5 && vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, 0.5) === 2, 'carreira OFFLINE (careerOnline=true) usa a marcha do aparelho')
+ok(vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, 3.5) === 3.5 && vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, 0.5) === 1.5 && vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, null) === 1.5 && vel2dDoContexto({ onlineMode: 'cpu', careerOnline: true }, 3.5, false) === 1.5 && vel2dDoContexto({ onlineMode: 'cpu' }, null) === 2, 'carreira OFFLINE (careerOnline=true) usa a marcha do aparelho')
 ok(vel2dDoContexto({ onlineMode: 'cpu' }, 2) === 2, 'Partida Rápida offline padrão 2×')
 
 console.log('🗄️ 5) relógio do banco (Copa do Mundo/regionais)')

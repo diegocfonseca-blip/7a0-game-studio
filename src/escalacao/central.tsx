@@ -148,7 +148,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       case 'bloqueado': return [t('🔒 Sem plano, a carreira não fica salva · assine e não perca nada', '🔒 Without a plan your career is not saved · subscribe and lose nothing'), '#FFB020']
       case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
-      case 'salvo_7d': return [t('✅ Salvo na nuvem · sem plano fica guardada 7 dias sem salvar', '✅ Saved to the cloud · without a plan it stays 7 days without saving'), VERDE]
+      case 'salvo_7d': return [t('✅ Salvo na nuvem · sem plano, 1 dia sem salvar e ela é apagada', '✅ Saved to the cloud · without a plan, 1 day without saving and it is deleted'), VERDE]
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
       case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
       case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
@@ -166,7 +166,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   // de quem não tem plano continua abrindo (aí foi a pessoa que pediu)
   useEffect(() => {
     if (s.estado === 'salvo_aparelho' && !avisoFechado('nuvem-aparelho')) { fechaAviso('nuvem-aparelho'); setPlanos(true) }
-    if (s.estado === 'salvo_7d' && !avisoFechado('nuvem-7d')) { fechaAviso('nuvem-7d'); setAviso7(true); setPlanos(true) }
+    if (s.estado === 'salvo_7d' && !avisoFechado('nuvem-1d')) { fechaAviso('nuvem-1d'); setAviso7(true); setPlanos(true) }
   }, [s.estado])
   const salvar = () => { if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
   return (<>

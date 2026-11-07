@@ -11,7 +11,8 @@ import { useEffect, useState } from 'react'
 import { useCampo2DLigado } from './campo2d-modo'
 import { useCampo2DTester } from './sport'
 import { useEscTalvez } from './store'
-import { VEL2D_CHAVE, VEL2D_SOLO_OPTS, VEL2D_SOLO_PADRAO, VEL2D_SOLO_VALORES, VEL2D_SALA_OPTS, modoVel2D, vel2dDoContexto, vel2dSala, vel2dCarreiraOnline, vel2dSoloDoGuardado, type OpcaoVel2D } from './vel2d-regra'
+import { useHasManual } from './apoio'
+import { VEL2D_CARREIRA_PADRAO, VEL2D_CHAVE, VEL2D_SOLO_OPTS, VEL2D_SOLO_PADRAO, VEL2D_SOLO_VALORES, VEL2D_SALA_OPTS, modoVel2D, vel2dDoContexto, vel2dSala, vel2dCarreiraOnline, vel2dSoloDoGuardado, type OpcaoVel2D } from './vel2d-regra'
 
 export const RITMO2D_TESTE = true
 // ⏩ 06/11: as marchas viraram ABSOLUTAS (`vel2d-regra.ts`): carreira/Partida Rápida offline 1× · 1,5× · 2× (padrão) · 2,5× · 3× · 3,5× · 4×
@@ -70,8 +71,14 @@ export function useVel2DAqui(): number {
   const s = useEscTalvez()?.state
   const local = useVel2D()
   const r2d = useRitmo2D()
+  const temManual = useHasManual()
   if (r2d.semManual) return VEL2D_SOLO_PADRAO
-  return s ? vel2dDoContexto(s, local) : local
+  // 🏆 07/11: na carreira, quem nunca escolheu a marcha anda no 1,5× (não no 2× da Partida Rápida); sem o Manual, sempre 1,5×
+  return s ? vel2dDoContexto(s, vel2DEscolhida(), temManual) : local
+}
+/** a marcha que a pessoa ESCOLHEU no aparelho (`null` = nunca escolheu → vale o padrão de cada modo) */
+export function vel2DEscolhida(): number | null {
+  try { const raw = localStorage.getItem(KV); return raw == null || raw === '' ? null : vel2dSoloDoGuardado(raw) } catch { return null }
 }
 
 /** 🎮 o seletor de marcha do 2D aqui (`null` = não é 2D: vale o seletor de sempre, com o simSpeed).
@@ -82,7 +89,7 @@ export function useControleVel2D(c2d: boolean): null | { opts: OpcaoVel2D[]; cur
   const s = ctx?.state
   if (!c2d || !s || s.sport === 'basquete') return null
   const modo = modoVel2D(s)
-  if (modo === 'solo') return { opts: VEL2D_SOLO_OPTS, cur: local, set: setVel2D }
+  if (modo === 'solo') return { opts: VEL2D_SOLO_OPTS, cur: s.careerOnline ? (vel2DEscolhida() ?? VEL2D_CARREIRA_PADRAO) : local, set: setVel2D }
   const opts = modo === 'sala' ? VEL2D_SALA_OPTS : VEL2D_SOLO_OPTS
   const cur = modo === 'sala' ? vel2dSala(s) : vel2dCarreiraOnline(s)
   return { opts, cur, set: v => { if (s.isHost && !s.espectador) ctx!.dispatch({ type: 'SET_VEL_2D', vel: v }) } }

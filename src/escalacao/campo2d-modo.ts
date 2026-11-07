@@ -62,7 +62,9 @@ export function useCampo2DLigado(): boolean {
   const s = useEscTalvez()?.state
   const doPasso = useContext(Campo2DDoPassoCtx)
   if (s && s.onlineMode === 'online') return doPasso ?? !!s.campo2d
-  return liberado && p && pg
+  // 🏆 07/11 (Diego): na CARREIRA o 2D é de graça (*"o campo 2D liberado para ainda assim esse usuário decidir se ele quer o campo 2D ou o
+  // placar cinema"*) — o Manual continua com o cadeado. Partida Rápida offline segue do plano. (A carreira OFFLINE tem careerOnline = true.)
+  return liberado && p && (pg || !!s?.careerOnline)
 }
 
 /** o que a tela do jogo sabe e o campinho usa: nome do técnico (carreira) e a tática de cada clube (🧱 −1 · ⚖️ 0 · 🔥 +1) */

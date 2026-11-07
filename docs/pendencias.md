@@ -7,6 +7,17 @@
 - Ideias da lista que ele NÃO escolheu (não repropor sem ele pedir): ola, torcida indo embora, sinalizador, gestos do juiz, gandulas, banco/técnico reagindo, placas LED.
 
 
+
+## 💾 07/11 — Grátis volta a SALVAR + 2D grátis na carreira + carreira a 1,5× (branch, esperando "publica" e OK da foto)
+- Diego: *"acho que a gente tem que liberar novamente salvar… ficou um dia sem jogar, quem não tem plano pode apagar o save… só tem direito
+  a um save… o campo 2D liberado… botão manual continuar com a travinha… no modo carreira deixa 1,5"*. REVOGA o "sem plano não salva" de 04/11.
+- Feito no código: `SALVAR_SO_COM_PLANO = false`; 1º salvamento sem plano abre o aviso com a história do jogo (o filho, "se o jogo se pagar já
+  tá ótimo", 1 carreira só, 1 dia sem salvar = apagada da nuvem) + planos — foto `scripts/mockups/salvar-gratis-aviso.png`, fecha uma vez
+  (`nuvem-1d`); 2D grátis na CARREIRA (`useCampo2DLigado`/`Botao2D` com `careerOnline`; o cadeado vira só do Manual; Partida Rápida segue
+  paga); 2D da carreira padrão **1,5×** (`VEL2D_CARREIRA_PADRAO`), sem Manual cravado em 1,5× (`vel2dDoContexto`).
+- ⏳ BANCO (só depois do OK): `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
+  hora. Apaga só a NUVEM (o aparelho guarda e sobe de novo no próximo Salvar). Ficha grátis já era 1 (`careerSlotLimit`, quem tinha mais ficou).
+
 ## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (FEITO no branch, esperando "publica")
 - Diego: *"ele pode criar uma sala de graça pra ele, pra teste… já pode ter opção de 2D… só o Liga Draft que o cara já tem que ter plano"*.
   `pode2d` (lobby.tsx) libera quando `roomMode === 'rapido'` e o botão do dono na sala (`TrocaCampo2DSala`) liga o 2D em sala que não é

@@ -203,7 +203,7 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
 function ManualLockButton() {
   const tem2d = useTem2D() // 05/11: quem tem o 2D (⭐ Craque Salas) vê o botão do 2D em cima e o cadeado só do Manual
-  const com2d = useCampo2DLiberado() && !tem2d // 📺 com o 2D liberado, o cadeado destrava OS DOIS: Manual e Campo 2D (Diego 20/10)
+  const com2d = useCampo2DLiberado() && !tem2d && false // 🏆 07/11: na carreira o 2D é de graça — o cadeado é só do Manual
   // 💳 26/10 (oferta na hora aprovada: *"Manual trancado = 24 h 9,90 · 14,90/mês · ver planos"*): o toque no cadeado abre AS OFERTAS ali
   // mesmo — ⭐ Craque Completo 14,90/mês (Vendria) e ver todos os planos. Cada toque cai no painel #admin "Quem apertou nos planos".
   // ⏱️ 26/10 (Diego: *"9,90 avulso por 24 horas ou 14,90 no Craque Completo… e por último ver todos os planos"*): o avulso é o Pix
@@ -8252,7 +8252,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     try { res = await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
     const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
     // ☁️ 26/10: conta sem plano, 1º salvamento na nuvem → avisa do prazo de 7 dias (uma vez por aparelho)
-    const avisa7 = res === 'nuvem7' && (() => { try { if (localStorage.getItem('esc-nuvem7-visto')) return false; localStorage.setItem('esc-nuvem7-visto', '1'); return true } catch { return false } })()
+    const avisa7 = res === 'nuvem7' && (() => { try { if (localStorage.getItem('esc-nuvem1d-visto')) return false; localStorage.setItem('esc-nuvem1d-visto', '1'); return true } catch { return false } })()
     setFase(res === 'aparelho' ? 'salvo_aparelho' : avisa7 ? 'salvo_7d' : subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
     setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
   }, [])

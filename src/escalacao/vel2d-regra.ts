@@ -16,6 +16,9 @@ export const DUR_2D_BASE_MS = Math.round(90_000 / 0.82)
 export const VEL2D_SALA_PADRAO = 2.5
 export const VEL2D_SALA_VALORES: readonly number[] = [1, 1.5, 2, 2.5, 3, 3.5, 4]
 export const VEL2D_SOLO_PADRAO = 2
+/** 🏆 07/11 (Diego: *"como se fosse um padrão do modo carreira ser o modo 1,5x… se ele tiver o botão manual, aí ele consegue aumentar"*):
+ *  a CARREIRA (offline e online) anda a 1,5× por padrão; sem o Manual fica cravada nisso. A Partida Rápida offline segue 2×. */
+export const VEL2D_CARREIRA_PADRAO = 1.5
 export const VEL2D_SOLO_VALORES: readonly number[] = [1, 1.5, 2, 2.5, 3, 3.5, 4]
 /** a chave do aparelho (carreira/Partida Rápida offline) */
 export const VEL2D_CHAVE = 'esc-vel2d'
@@ -65,16 +68,21 @@ export function vel2dSala(s: EstadoVel): number {
 }
 /** 🌐🏆 CARREIRA ONLINE: a marcha do dono (no estado da sala), padrão 2× */
 export function vel2dCarreiraOnline(s: EstadoVel): number {
-  return valida(s.vel2d, VEL2D_SOLO_VALORES) ? s.vel2d : VEL2D_SOLO_PADRAO
+  return valida(s.vel2d, VEL2D_SOLO_VALORES) ? s.vel2d : VEL2D_CARREIRA_PADRAO
 }
 export type ModoVel2D = 'sala' | 'carreiraOnline' | 'solo'
 export function modoVel2D(s: EstadoVel): ModoVel2D {
   return s.onlineMode === 'online' ? (s.careerOnline ? 'carreiraOnline' : 'sala') : 'solo'
 }
-/** a velocidade ABSOLUTA do 2D aqui. `guardada` = a marcha do aparelho (offline). */
-export function vel2dDoContexto(s: EstadoVel, guardada: number): number {
+/** a velocidade ABSOLUTA do 2D aqui. `guardada` = a marcha do aparelho (offline; `null` = nunca escolheu).
+ *  `temManual` = false: na CARREIRA fica cravada em 1,5× (só o Manual muda a marcha). */
+export function vel2dDoContexto(s: EstadoVel, guardada: number | null, temManual = true): number {
   const m = modoVel2D(s)
-  return m === 'sala' ? vel2dSala(s) : m === 'carreiraOnline' ? vel2dCarreiraOnline(s) : valida(guardada, VEL2D_SOLO_VALORES) ? guardada : VEL2D_SOLO_PADRAO
+  if (m === 'sala') return vel2dSala(s)
+  if (m === 'carreiraOnline') return vel2dCarreiraOnline(s)
+  const pad = s.careerOnline ? VEL2D_CARREIRA_PADRAO : VEL2D_SOLO_PADRAO // (a carreira OFFLINE tem careerOnline = true)
+  if (s.careerOnline && !temManual) return VEL2D_CARREIRA_PADRAO
+  return guardada != null && valida(guardada, VEL2D_SOLO_VALORES) ? guardada : pad
 }
 /** o `roundMs` do jogo 2D nessa velocidade (o placar anima 0,82 disso = 90 s ÷ v) */
 export const dur2DDaVel = (v: number) => Math.round(DUR_2D_BASE_MS / v)

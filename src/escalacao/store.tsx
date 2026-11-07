@@ -14242,7 +14242,9 @@ const pagoPeloCodigo = () => souBarao() || myApoioPerk()?.tier === 'ouro' || myA
 // Régua = a MESMA da nuvem (`esc_nuvem_regra.pago` = esc_direitos_de, Craque Salas em dia pra cima) + os pagantes pelo código.
 // Sem conta = sem plano = não salva. Ainda não sabe (login/banco carregando ou falhou) = SALVA (nunca tira de quem paga por erro).
 // O que já estava salvo continua lá e abre; só o progresso novo não é gravado. Pra voltar à regra antiga: `false`.
-export const SALVAR_SO_COM_PLANO = true
+// 🔁 07/11 (Diego): REVOGADO — *"acho que a gente tem que liberar novamente salvar"*. O grátis voltou a salvar (aparelho e nuvem), com o
+// aviso no 1º salvamento e o prazo de 1 DIA sem salvar na nuvem (`esc_nuvem_gratis_limpa`). Uma carreira só (`careerSlotLimit`).
+export const SALVAR_SO_COM_PLANO = false
 let authUidSalvar: string | null | undefined = undefined
 try {
   supabase.auth.onAuthStateChange((_e, sessao) => {
