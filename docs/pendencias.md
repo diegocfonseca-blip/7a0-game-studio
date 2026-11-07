@@ -1,3 +1,14 @@
+## 🅰️ 07/11 — Copa da carreira caía no placar cinema em vez do campinho (Diego, quarta de copa na Várzea)
+- Causa: a conferência do replay oficial (`prepararReplayOficial`) exigia a ASSISTÊNCIA igual, mas o save não guarda assistência
+  de jogador de mentira (regra de 19/09) e o motor sim → reprovava → `replayOficialBloqueado` → sem 2D. Na Várzea (filler) quase sempre.
+  Vale pra liga também (mesma régua). Agora compara só lado + autor + minuto. Trava: `npm run replay-assist` (reprova sem o conserto).
+
+## 🏟️ 07/11 — Mapa 3D: jogo FORA mostra o SEU estádio (Diego: *"pode deixar todos com meu estádio mesmo"*)
+- Revoga a troca de 25/10 (estádio do dono da casa no lugar do seu). Motivo: contra bot entrava o "estádio padrão da divisão",
+  e o da Várzea tinha setor pela metade → pedaços de arquibancada soltos no ar (print dele, PAP × NEY, carreira na Várzea T12).
+  `adaptarCarreiraAoComplexo` (presidencia-complexo-carreira.ts) agora usa o `own`; o resto do dia de fora (torcida, ruas) segue.
+  O estádio padrão de bot também ficou sem setor pela metade (`estadioPadraoDaDivisao`), caso volte a ser usado.
+- ⚠️ `scripts/testa-presidencia-complexo-carreira.mjs` já falhava ANTES (calendário: 'domingo' × 'quarta') — não é desta mudança.
 ## 📊 07/11 — ESTATÍSTICAS NO APITO DO PLACAR CINEMA (só na conta do Diego, `STATS_PLACAR_GERAL = false` em sport.ts; branch, sem push)
 - Pedido: no placar normal (sem o 2D), no fim do jogo, o MESMO resumo do 2D (posse · finalizações · chutes no gol · ⭐ melhor em campo).
 - ✅ Como conta: no apito roda, sem desenhar, o MESMO motor que encenaria aquele jogo no 2D — teatro v1 (salas, rápida, copas) preso na
@@ -21,8 +32,18 @@
   → 4 cadeiras livres do setor da casa → "Sentar e assistir" (câmera por cima do ombro) → "Levantar" volta pra rua. Código:
   `presidencia-fanzone-3d.ts` (cena/regras) + `presidencia-fanzone-hud.tsx` (tela) + ganchos no `presidencia-complexo-3d.tsx`.
   Não mexe em save/jogo/torcida. Teste: `node scripts/teste-fanzone.cjs <pasta>` (com o vite em 127.0.0.1:4199). Fotos: `scripts/mockups/fanzone-real.png`.
-- ⏳ Falta: o boneco atravessa casa/prédio (só o estádio barra), o chão é plano (y fixo), a camisa é dourada fixa (não puxa as
-  cores do presidente ainda), sem "comemorar gol" sentado. Etapa 2 (ver outros usuários) ainda não começou — combinar o jeito barato.
+- 🔁 **1º teste do Diego (07/11)**: *"bolinha p esquerda anda p direita… correr não sincronizado… girar 360 arrastando não tá legal…
+  cadeira MT próxima dos jogadores… não consigo apertar pra sair… botão em cima de outro botão"*. Consertado: o controle anda pro lado
+  certo (sinal trocado), correr 4,8 m/s (andar 2,4), a câmera NÃO gira sozinha atrás do boneco — arrastar a tela gira (e sentado,
+  olha em volta), cadeiras lá EM CIMA no meio-campo (fila do topo − 1), e "🚶 Passear"/"✕ Sair do passeio" moram na BARRA DE CIMA do
+  mapa (os botões do mapa e a dica somem durante o passeio). Fotos: `scripts/mockups/fanzone-v2.png`.
+- ✅ **2ª leva (07/11, *"pode fazer e publica p minha conta"*)**: o boneco NÃO atravessa mais casa/prédio/loja (usa os ~600
+  sólidos do entorno, `criarColisaoFanZone`; toldo/placa no alto não barram; desliza pela parede) · camisa na cor do SEU time do jogo
+  do dia (`fora` → cor de fora; sem jogo, dourado) · 🎉 gol do seu time com você sentado = levanta, pula em pé na cadeira com os braços
+  pra cima e senta de novo (câmera de TV na frente dele por 3,4 s) · 🧭 seta + metros até o portão e botão "🎟️ Ir pro portão" ·
+  🔊 o som da torcida liga sozinho no passeio (se o som não estiver mudo e tiver jogo) e cresce conforme ele chega no estádio.
+  O chão do bairro é plano (0,16), então "subir terreno" não se aplica. Trava: `npm run fanzone`. Fotos: `scripts/mockups/fanzone-v3.png`.
+- ⏳ Falta (próximo): etapa 2 — ver outros usuários na arquibancada (frases prontas em balão), combinar o jeito barato no canal.
 
 ## 🥅🙈 07/11 (2ª parte) — Pênaltis: corte de câmera, selo do celular, SEM SPOILER e o jogo nunca acaba antes (branch, sem push)
 - **Ninguém atravessa ninguém no 1º segundo**: a disputa abre com um CORTE DE CÂMERA (a tela escurece e clareia em 0,7 s) e, quando

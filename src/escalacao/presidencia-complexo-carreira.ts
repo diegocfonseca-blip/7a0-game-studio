@@ -157,7 +157,10 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     const own = estadioVisualValido(stadium) ? stadium : estadioPadraoDaDivisao(input.day.division)
     const hostSave = state.stadiums?.[hostId]
     const fase = match.paused && match.minute >= 45 ? 'interval' as const : 'playing' as const
-    complexo.stadium = structuredClone(estadioVisualValido(hostSave) ? hostSave : estadioPadraoDaDivisao(input.day.division))
+    // 🏟️ 07/11 (Diego: *"pode deixar todos com meu estádio mesmo"*): REVOGA a troca de 25/10 — jogo fora também desenha o SEU
+    // estádio (o do bot era o padrão da divisão e parecia quebrado). O resto do dia de fora (torcida menor, ruas vazias) continua.
+    void hostSave
+    complexo.stadium = structuredClone(own)
     complexo.day = { division: input.day.division, support: 62, ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), ...(day?.classico ? { classico: true } : {}), ...(day?.decisao ? { decisao: day.decisao } : {}), match: fase }
     complexo.awayStadium = structuredClone(own)
     complexo.awayDay = { division: input.day.division, support: Math.round(input.day.support * 0.45), ...(input.day.rain === undefined ? {} : { rain: input.day.rain }), match: fase }
@@ -188,7 +191,9 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
 export function estadioPadraoDaDivisao(division: string): StadiumSave {
   const nivel = ({ V: 0, D: 1, C: 2, B: 3, A: 4 } as Record<string, number>)[division] ?? 1
   const cheio = (k: string, pct = 1) => [k, Math.round((STADIUM_SECTORS.find(s => s.k === k)?.cost ?? 0) * pct)] as const
-  const inv = Object.fromEntries([cheio('grama'), cheio('geral', nivel ? 1 : .5), ...(nivel >= 2 ? [cheio('cadeiras')] : []), cheio('visitante', [.3, .6, 1, 1, 1][nivel]), ...(nivel >= 4 ? [cheio('camarote')] : [])])
+  // 🏟️ 07/11 (Diego: *"tá errado algo"*): setor pela METADE vira pedaço de arquibancada solto no ar — no estádio do bot
+  // cada setor entra INTEIRO ou não entra. Várzea: Geral · D: + Visitante · C: + Cadeiras · B: igual C · A: + Camarote.
+  const inv = Object.fromEntries([cheio('grama'), cheio('geral'), ...(nivel >= 1 ? [cheio('visitante')] : []), ...(nivel >= 2 ? [cheio('cadeiras')] : []), ...(nivel >= 4 ? [cheio('camarote')] : [])])
   const ext = [...(nivel >= 1 ? ['refl'] : []), ...(nivel >= 2 ? ['telao', 'loja'] : []), ...(nivel >= 3 ? ['estac', 'praca'] : []), ...(nivel >= 4 ? ['cober', 'estacao'] : [])]
   return { inv, ext }
 }
