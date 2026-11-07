@@ -1457,7 +1457,7 @@ export function useBotBanco(): boolean {
 // criança especial, com foto que é APAGADA ao decidir) + 💙 doação pro Luca (Pix do MP, não dá nada no jogo) + o Mural. Só a conta do
 // Diego até ele aprovar o visual. Liberar geral = CASA_LUCA_GERAL = true AQUI e `esc_casa_luca_config.aberto = true` NO BANCO (o banco
 // também barra: pedido, foto e Pix de doação só abrem pra quem a config deixa).
-const CASA_LUCA_GERAL = false
+const CASA_LUCA_GERAL = true // 🟢 07/11 Diego: "ative o plano coração… coloque já o plano p valer no pacote de planos"
 const CASA_LUCA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let casaLucaOk = CASA_LUCA_GERAL
 function applyCasaLuca(email?: string | null): void {
