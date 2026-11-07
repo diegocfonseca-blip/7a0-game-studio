@@ -520,11 +520,13 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
   useEffect(() => { setFim(false) }, [roundKey])
   useApitoDeLargada('intl-carreira', roundKey, true)
   const aPen = penalties ? teams.get(penalties.home) : undefined, bPen = penalties ? teams.get(penalties.away) : undefined
-  const disputa = usePenaltisCampo(stadiumMatch && presidentAvailable && penalties?.penalties && aPen && bPen ? {
-    id: stadiumMatch.id, pens: penalties.penalties, aName: aPen.institution, bName: bPen.institution,
+  // 🥅 07/11: com o 📺 2D a disputa é no campinho pra todo mundo (antes só na conta do Diego com o mapa); a tela espera a última cobrança
+  const campoPen = (c2d || (!!stadiumMatch && presidentAvailable)) && !!penalties?.penalties && !!aPen && !!bPen
+  const disputa = usePenaltisCampo(campoPen && penalties?.penalties && aPen && bPen ? {
+    id: stadiumMatch?.id ?? `intl:${campaign.seed}:${campaign.season}:${comp}:${roundKey}:${match.home}:${match.away}`, pens: penalties.penalties, aName: aPen.institution, bName: bPen.institution,
     aSquad: aPen.xi, bSquad: bPen.xi, invertido: penalties.home !== match.home,
   } : undefined, fim, speed, false, onFim)
-  const temDisputaCampo = !!stadiumMatch && presidentAvailable && !!penalties?.penalties
+  const temDisputaCampo = campoPen
   // 🥅 (mapa 3D) final nos pênaltis: o mapa só fica sabendo de quem ganhou DEPOIS que a tela mostrou a disputa — no fim da
   // cobrança no campinho quando ela existe, senão no apito (é quando a linha "Pênaltis X × Y" aparece embaixo do placar)
   const pensVistos = temDisputaCampo ? !!disputa.estado?.encerrado : fim

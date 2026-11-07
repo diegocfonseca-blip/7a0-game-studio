@@ -32,6 +32,8 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
+import { Penaltis2D } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
+import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill, useApitoDeLargada } from './pyramidseason'
 import { startCrowd, stopCrowd } from './sound' // 🏟️ a Copa do Mundo era MUDA (19/09)
 import { disputaPenaltis } from './penaltis'
@@ -1447,10 +1449,17 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
     </section>
   ) : null
 
+  // 🥅 07/11 (Diego: "em qualquer competição… a disputa tem que ser no campinho"): com o 📺 2D, a disputa de pênaltis do jogo
+  // grande acontece no campinho. Sai SÓ do resultado guardado (placar + nomes → a mesma sequência das bolinhas): todo aparelho da
+  // sala vê igual. A cena cabe no tempo que o passo já segura pra disputa (`pensRevealDelay`, o mesmo número do relógio do banco).
+  const cfgPen2D = (t: { h: number; a: number; pen?: [number, number] | null; g1?: [number, number] }): ConfigPenaltisCampo | undefined => c2d && t.pen ? {
+    id: `mundo:${entrants.length}:${t.h}:${t.a}:${(t.g1 ?? []).join('x')}`, pens: t.pen, aName: entrants[t.h].pais, bName: entrants[t.a].pais,
+    aSquad: entrants[t.h].xi, bSquad: entrants[t.a].xi, orcamento: pensRevealDelay(t.pen, koTemGente(entrants, t)),
+  } : undefined
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
-  const live = (h: number, a: number, ev: ScoreGoal[], m2e?: EntradaM2) => (
+  const live = (h: number, a: number, ev: ScoreGoal[], m2e?: EntradaM2, pen?: { sessao?: DisputaPenaltisCampo; estado?: EstadoPenaltisCampo }) => (
     <div style={{ marginBottom: 8 }}>
-      <LiveScoreCard enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={c2d ? paisColor(entrants[h].pais) : GREEN} awayColor={c2d ? paisColor(entrants[a].pais) : RED} /* 🌍 no 2D cada seleção com a cor dela (Diego 21/10) */
+      <LiveScoreCard disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={c2d ? paisColor(entrants[h].pais) : GREEN} awayColor={c2d ? paisColor(entrants[a].pais) : RED} /* 🌍 no 2D cada seleção com a cor dela (Diego 21/10) */
         homeOwner={owner(h)} awayOwner={owner(a)}
         homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
         awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}
@@ -1470,7 +1479,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
     const fA = { bg: paisColor(entrants[t.a].pais), ink: _inkFor(paisColor(entrants[t.a].pais)), holo: 0, mark: '' } as CopaFill
     const g = t.g1 ?? [0, 0]
     if (privateVisual) {
-      return <CompetitionMatch showOwners goals={t.ev1} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={owner(t.h)} awayOwner={owner(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={g[0]} awayScore={g[1]} mine={mine} status={tr('ENCERRADO · JOGO ÚNICO', 'FULL TIME · ONE-OFF')} detail={<>{showPens&&t.pen?<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} lento={koTemGente(entrants, t)} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>:null}<span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?`${tr('Pênaltis', 'Penalties')} ${t.pen[0]} × ${t.pen[1]} · `:''}{t.winner!=null?<b>{nm(t.winner)} {tr('avança', 'advances')}</b>:''}</span></>} />
+      return <CompetitionMatch showOwners goals={t.ev1} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={owner(t.h)} awayOwner={owner(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={g[0]} awayScore={g[1]} mine={mine} status={tr('ENCERRADO · JOGO ÚNICO', 'FULL TIME · ONE-OFF')} detail={<>{showPens&&t.pen?(mine?<Penaltis2D config={cfgPen2D(t)} ativo>{pc=><PensShootout campo={pc.estado} compactOnline pens={t.pen!} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} lento={koTemGente(entrants, t)} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>}</Penaltis2D>:<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} lento={koTemGente(entrants, t)} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>):null}<span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?`${tr('Pênaltis', 'Penalties')} ${t.pen[0]} × ${t.pen[1]} · `:''}{t.winner!=null?<b>{nm(t.winner)} {tr('avança', 'advances')}</b>:''}</span></>} />
     }
     return (
       <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
@@ -1519,15 +1528,15 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   }
   // o MEU confronto: placar ao vivo + pênaltis com o suspense OFICIAL
   const meuConfronto = (t: KoTie) => (
-    <div key={`c${t.h}`}>
-      {live(t.h, t.a, t.ev1!, t.m2)}
+    <Penaltis2D key={`c${t.h}`} config={cfgPen2D(t)} ativo={liveMin >= 93 && !!t.pen}>{pc => <div>
+      {live(t.h, t.a, t.ev1!, t.m2, pc)}
       {liveMin >= 93 && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {t.g1![0]}×{t.g1![1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
-          <PensShootout compactOnline={privateVisual} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} lento={koTemGente(entrants, t)} colorOf={paisColor} />
+          <PensShootout campo={pc.estado} compactOnline={privateVisual} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} lento={koTemGente(entrants, t)} colorOf={paisColor} />
         </div>
       )}
-    </div>
+    </div>}</Penaltis2D>
   )
 
   // 🎬 ABERTURA DA RODADA (Diego 13/10, só na SALA): bola parada e o próximo passo roda bola → o palco mostra o
@@ -1670,13 +1679,14 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
             {step === OITAVAS && myR16 && meuConfronto(myR16)}
             {step === QUARTAS && myQf && meuConfronto(myQf)}
             {step === SEMI && mySf && meuConfronto(mySf)}
-            {step === FINAL && live(world.final.h, world.final.a, world.final.ev, world.final.m2)}
-            {step === FINAL && liveMin >= 93 && world.final.pen && (
+            {step === FINAL && <Penaltis2D config={cfgPen2D(world.final)} ativo={liveMin >= 93 && !!world.final.pen}>{pc => <>
+            {live(world.final.h, world.final.a, world.final.ev, world.final.m2, pc)}
+            {liveMin >= 93 && world.final.pen && (
               <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>{tr('🥅 FINAL DECIDIDA NOS PÊNALTIS', '🥅 FINAL DECIDED ON PENALTIES')}</p>
-                <PensShootout compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} aSquad={entrants[world.final.h].xi} bSquad={entrants[world.final.a].xi} lento={koTemGente(entrants, world.final)} colorOf={paisColor} />
+                <PensShootout campo={pc.estado} compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} aSquad={entrants[world.final.h].xi} bSquad={entrants[world.final.a].xi} lento={koTemGente(entrants, world.final)} colorOf={paisColor} />
               </div>
-            )}
+            )}</>}</Penaltis2D>}
             {onlineWorldControls}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>{tr('⚔️ MATA-MATA', '⚔️ KNOCKOUTS')} <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'none' }}>{tr('(sorteio livre — jogo único)', '(open draw — one-off ties)')}</span><span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>

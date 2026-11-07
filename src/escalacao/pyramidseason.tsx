@@ -7093,7 +7093,8 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
   // 🔓 25/09 (Diego: *"online e offline"*): a tela nova dos pênaltis — palco dos
   // batedores + a bola viajando — vale na Copa da CARREIRA também, pra todo mundo
   // (antes só pras contas de teste). Mesma chave que liberou o visual da carreira.
-  if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && (privatePenalty || CAREER_VISUAL_RELEASED))) {
+  // 🥅 07/11: com a disputa acontecendo no campinho 2D (`campo`), as bolinhas SEGUEM o campinho (a versão compacta sabe fazer isso)
+  if(campo || (compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && (privatePenalty || CAREER_VISUAL_RELEASED))) {
     const exact=exactPenaltyRows(pens,rows)
     return <CompactPenalties campo={campo} shootout={shootout} official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
   }
@@ -7162,10 +7163,10 @@ export function posicaoCopaNoCampo(legIndex:number,minute:number,nLegs:number){
   return Math.min(legs*90,leg*90+min*90/93)
 }
 type MinutoCopaCampo=(legIndex:number,minute:number)=>void
-export function MyCopaMatch(props: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+export function MyCopaMatch(props: { pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
-function MyCopaMatchInner({ stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatchInner({ pensOrcamento, stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
   const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
   const presidentFieldAccount=usePresidentPreview()
@@ -7204,11 +7205,15 @@ function MyCopaMatchInner({ stadiumContext, onFieldMinute, onPenaltiesComplete, 
   useApitoDeLargada('copa-carreira', phase * 10 + legIdx, true)
   const aWin = tie.win === 'a'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
+  // 🥅 07/11 (Diego: "em qualquer modo… a disputa tem que ser no campinho"): com o 📺 2D ligado a disputa é no campinho pra TODO
+  // mundo (antes só na conta do Diego com o mapa). Carreira offline: a fase ESPERA a última cobrança (`onPenaltiesComplete`);
+  // carreira em sala: cabe no tempo que o relógio já dá (`pensOrcamento`).
+  const c2dCopa = useCampo2DLigado()
   const penaltisCampo = usePenaltisCampo(
-    presidentFieldAccount && stadiumMatch && tie.pens ? {
-      id: stadiumMatch.id, pens: tie.pens, aName: tie.a.name, bName: tie.b.name,
-      aSquad: tie.a.xi, bSquad: tie.b.xi, invertido: swap,
-    } : undefined, showDone, sf, !!pausado, onPenaltiesComplete)
+    (c2dCopa || (presidentFieldAccount && stadiumMatch)) && tie.pens ? {
+      id: stadiumMatch?.id ?? `copa-carreira:${phase}:${tie.a.teamId}:${tie.b.teamId}`, pens: tie.pens, aName: tie.a.name, bName: tie.b.name,
+      aSquad: tie.a.xi, bSquad: tie.b.xi, invertido: swap, orcamento: pensOrcamento,
+    } : undefined, showDone, pensOrcamento ? 1 : sf, !!pausado, onPenaltiesComplete)
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens, copaTemGente(tie)) : 0
   // 🥅 04/11 (mapa 3D, só a conta do Diego): final decidida nos pênaltis → o mapa só fica sabendo de quem ganhou DEPOIS que a
   // disputa terminou de aparecer aqui (o mesmo `pensDelay` que solta o "✅ é campeão"). Nunca a cobrança, nunca antes.
@@ -9347,6 +9352,9 @@ export function PyramidSeasonScreen() {
   const chavePensCampo = `${seasonSeed}:${copaRound}:${myCopaTie?.a.teamId}:${myCopaTie?.b.teamId}`
   const concluiuPensCampo = useCallback(() => setPensCampoFinalizado(chavePensCampo), [chavePensCampo])
   const copaCampoEncerrado=copaPos>=copaFaseTotal
+  // 🥅 07/11: com o 📺 2D a disputa do SEU jogo acontece no campinho. Carreira offline: a fase espera a última cobrança
+  // (igual já fazia com o mapa); na sala (carreira online) o relógio continua o de sempre e a cena cabe nele.
+  const pensNoCampo = campo2d && !!myCopaTie?.pens && state.onlineMode !== 'online'
   // ⏱️ quanto o relógio da fase espera pelos SEUS pênaltis (número, pra entrar como
   // dependência estável do efeito do relógio logo abaixo)
   const copaPenMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens, copaTemGente(myCopaTie)) * 1000) : 0
@@ -9391,20 +9399,21 @@ export function PyramidSeasonScreen() {
     // animar e espera o toque. AUTO: avança sozinho depois da folga, como sempre.
     // O botão também espera os pênaltis: senão ele aparecia no meio da disputa e o
     // toque pulava a própria coisa que o jogador quer ver.
-    const rdy = setTimeout(() => setCopaReady(true), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
-    const adv = manual ? null : setTimeout(avancaCopaAuto, Math.max(0,dur+2200+penMs-already))
-    return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
+    // 🥅 disputa no campinho (offline): quem libera é o fim da última cobrança (efeito logo abaixo), não um prazo
+    const rdy = pensNoCampo ? null : setTimeout(() => setCopaReady(true), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
+    const adv = manual || pensNoCampo ? null : setTimeout(avancaCopaAuto, Math.max(0,dur+2200+penMs-already))
+    return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); if (rdy) clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral, pausaFesta])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs, copaCampo, pausaCentral, pausaFesta, pensNoCampo])
   useEffect(()=>{
-    if(!copaPlaying||!copaCampo||!copaCampoEncerrado)return
+    if(!copaPlaying||!(copaCampo||pensNoCampo)||!copaCampoEncerrado)return
     if (myCopaTie?.pens && pensCampoFinalizado !== chavePensCampo) return
     // O campo concluiu a última cobrança; agora pode liberar/avançar a fase.
     const rdy=setTimeout(()=>setCopaReady(true),250)
     const adv=manual?null:setTimeout(avancaCopaAuto,2200)
     return()=>{clearTimeout(rdy);if(adv)clearTimeout(adv)}
-  },[copaPlaying,copaCampo,copaCampoEncerrado,copaRound,manual,!!myCopaTie?.pens,pensCampoFinalizado,chavePensCampo])
+  },[copaPlaying,copaCampo,pensNoCampo,copaCampoEncerrado,copaRound,manual,!!myCopaTie?.pens,pensCampoFinalizado,chavePensCampo])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -11931,7 +11940,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
+        {copaPlaying && myCopaTie && <MyCopaMatch pensOrcamento={state.onlineMode === 'online' && copaPenMs ? copaPenMs / 1000 : undefined} onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
