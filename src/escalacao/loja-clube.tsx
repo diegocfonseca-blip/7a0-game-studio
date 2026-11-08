@@ -18,7 +18,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { createPortal } from 'react-dom'
-import { tr, getLang } from './lang'
+import { tr, getLang, useT } from './lang'
+import { LojaLayout, LojaIcone, categoriaDaAncora, type LojaCategoria } from './loja-layout'
+import { JanelaConta } from './conta'
+import { SupportMoney, SupportStory } from './support-plans'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
@@ -113,8 +116,13 @@ function ResgateFicha() {
 const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : id === 'giro-dia' ? 'giro_dia' : id === 'giro-hora' ? 'giro_hora' : id === 'recado-hora' ? 'recado_hora' : id === 'recado-dia' ? 'recado_dia' : id === 'ficha' ? 'ficha_carreira' : null
 function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; naCarreira?: boolean; ancora?: string }) {
   const pixMp = usePixMp()
+  const t = useT()
+  const [categoria, setCategoria] = useState<LojaCategoria>(() => categoriaDaAncora(ancora))
+  const [contaAberta, setContaAberta] = useState(false)
+  const [historiaAberta, setHistoriaAberta] = useState(false)
   useEffect(() => {
     if (!ancora) return
+    setCategoria(categoriaDaAncora(ancora))
     const t = setTimeout(() => document.getElementById(ancora)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
     return () => clearTimeout(t)
   }, [ancora])
@@ -152,104 +160,42 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
   const jaTem = { 'canto da torcida': atual === 'fundador' || temCantoProprio(email) }
   const perk = tier ? APOIO_PERKS[tier] : APOIO_PERKS.bege
 
-  const card: React.CSSProperties = { background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10 }
-  const h2: React.CSSProperties = { ...OSW, fontSize: 19, textTransform: 'uppercase', margin: '18px 0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }
-  const sub: React.CSSProperties = { fontFamily: 'Arial, sans-serif', fontSize: 11, fontWeight: 700, textTransform: 'none', color: 'rgba(12,12,12,.55)' }
-  const preco: React.CSSProperties = { ...OSW, fontSize: 15, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 10px', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap', cursor: 'pointer' }
-
-  return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 99997, background: CREAM, color: INK, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 3, background: INK, padding: '11px 15px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', color: GOLD }}>{tr('🛒 Loja do Clube', '🛒 Club Shop')}</span>
-        <button onClick={onClose} aria-label={tr('fechar', 'close')} style={{ marginLeft: 'auto', background: 'transparent', color: '#fff', border: '2px solid rgba(255,255,255,.35)', borderRadius: 10, padding: '4px 10px', fontWeight: 900, cursor: 'pointer' }}>✕</button>
-      </div>
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '14px 15px 40px', fontFamily: 'Arial, sans-serif' }}>
-        <div id="loja-planos" style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', ...OSW, fontSize: 12, background: perk.grad, border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 10px', boxShadow: `2px 2px 0 ${INK}` }}>
-          <ApoioSheen holo={perk.holo} />
-          <span style={{ position: 'relative' }}>{atual ? tr(`VOCÊ É ${NOME[atual][0].toUpperCase()}`, `YOU ARE ${NOME[atual][1].toUpperCase()}`) : tr('PLANO GRÁTIS', 'FREE PLAN')}</span>
-        </div>
-        <p style={{ fontSize: 13, fontWeight: 700, margin: '8px 0 0', color: 'rgba(12,12,12,.75)' }}>{tr('O ⭐ Craque é por mês; o resto é pagamento ÚNICO, seu pra sempre. Nas salas online ninguém compra vantagem: lá é todo mundo igual.', '⭐ Star is monthly; everything else is a ONE-OFF payment, yours forever. In online rooms nobody buys an edge: everyone is equal there.')}</p>
-
-        {/* 💛 14/10 (Diego): da Loja tem que dar pra ver TODOS os planos e "pra onde vai o dinheiro" */}
-        <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🛒 loja → ver todos os planos'); open() }} style={{ marginTop: 10, width: '100%', ...OSW, fontSize: 14, background: '#FFF3C4', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', cursor: 'pointer' }}>{tr('💛 VER TODOS OS PLANOS E PRA ONDE VAI O DINHEIRO ›', '💛 SEE ALL PLANS AND WHERE THE MONEY GOES ›')}</button>} />
-
-        {/* 🧑‍💼 MEU PRESIDENTE (15/10) — o boneco mora na conta; só pra conta liberada enquanto está em teste */}
-        <div id="loja-presidente"><MeuPresidenteLoja /></div>
-
-        {/* ⭐📅 CRAQUE POR MÊS (26/10, loja aprovada): os dois mensais da Vendria, no MESMO cartão das linhas de plano */}
-        {!(fixo && fixo !== 'craque') && <>
-          <h2 style={h2}>{tr('⭐ Craque por mês', '⭐ Monthly Star')} <span style={sub}>{tr('Pix automático todo mês', 'automatic Pix every month')}</span></h2>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {(['craque_salas', 'craque_completo'] as const).map(m => <div key={m} role="button" tabIndex={0} onClick={() => { if (direitos?.mensalPlano === m) return; logApoio(`🛒 loja → ${m} (Vendria)`); void assinarMensal(m, tr) }} style={{ ...card, cursor: direitos?.mensalPlano === m ? 'default' : 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: APOIO_PERKS.prata.grad }}>
-              <div style={{ flex: 1 }}>
-                <b style={{ ...OSW, fontSize: 18, display: 'block' }}>{m === 'craque_salas' ? tr('⭐ Craque Salas', '⭐ Star Rooms') : tr('⭐ Craque Completo', '⭐ Star Complete')}</b>
-                <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{m === 'craque_salas'
-                  ? tr('salas à vontade, 📺 Campo 2D, cria até 3 Ligas da Turma e 3 Ligas Draft, seu presidente, seu clã e nome prata', 'unlimited rooms, 📺 2D Pitch, up to 3 Crew Leagues and 3 Draft Leagues, your president, your clan and silver name')
-                  : tr('tudo do Craque Salas + cria até 4 ligas de cada, 🎮 Modo Manual e nível até Craque', 'everything in Star Rooms + up to 4 leagues of each, 🎮 Manual Mode and levels up to Star')}</small>
-              </div>
-              <span style={{ ...preco, background: '#fff', color: INK }}>{direitos?.mensalPlano === m ? tr('✅ assinando', '✅ subscribed') : `${reais(MENSAIS[m].preco)}${tr('/mês', '/mo')} ›`}</span>
-            </div>)}
-            <small style={{ fontSize: 11, fontWeight: 700, color: 'rgba(12,12,12,.6)', lineHeight: 1.35 }}>{tr('📧 Pague com o MESMO e-mail da sua conta do jogo: é por ele que o plano liga sozinho.', '📧 Pay with the SAME e-mail as your game account: that’s how the plan switches on by itself.')}</small>
-          </div>
-        </>}
-
-        {/* ⬆️ SUBIR DE PLANO */}
-        {acima.length > 0 && <>
-          <h2 style={h2}>{tr('⬆️ Sobe de plano', '⬆️ Move up a plan')} <span style={sub}>{fixo ? tr('paga só a diferença', 'pay only the difference') : tr('pagamento único', 'one-off payment')}</span></h2>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {acima.map(pl => <ApoieButton key={pl} startScreen="choice" trigger={open => <div role="button" tabIndex={0} onClick={() => { logApoio(`🛒 loja → ver plano ${pl}`); open() }} style={{ ...card, cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: pl === 'lenda' ? APOIO_PERKS.ouro.grad : pl === 'fundador' ? 'linear-gradient(135deg,#14251a,#1B7A3D)' : INK, color: pl === 'batismo' || pl === 'fundador' ? CREAM : INK }}>
-              <div style={{ flex: 1 }}>
-                <b style={{ ...OSW, fontSize: 18, display: 'block', color: pl === 'batismo' || pl === 'fundador' ? GOLD : INK }}>{tr(NOME[pl][0], NOME[pl][1])}</b>
-                <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr(GANHO[pl][0], GANHO[pl][1])}</small>
-              </div>
-              <span style={{ ...preco, background: '#fff', color: INK }}>{fixo ? '+ ' : ''}{reais(precoSubida(pl, fixo))} ›</span>
-            </div>} />)}
+  const card: React.CSSProperties = { background: CREAM, color: INK, border: `3px solid ${INK}`, borderRadius: 13, boxShadow: `3px 4px 0 ${INK}`, padding: 17 }
+  const h2: React.CSSProperties = { ...OSW, fontSize: 22, textTransform: 'uppercase', margin: '0 0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, color: INK }
+  const sub: React.CSSProperties = { fontFamily: 'Arial, sans-serif', fontSize: 11, fontWeight: 700, textTransform: 'none', color: '#55594c' }
+  const preco: React.CSSProperties = { ...OSW, fontSize: 14, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '9px 12px', minHeight: 44, boxShadow: `2px 3px 0 ${INK}`, whiteSpace: 'nowrap', cursor: 'pointer' }
+  const ir = (cat: LojaCategoria, id?: string) => {
+    setCategoria(cat)
+    setTimeout(() => document.getElementById(id ?? `loja-${cat}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 0)
+  }
+  const secoes = {
+    planos: <>
+      <div className="ls1-section-heading" id="loja-planos"><h2>{t('MAIS JEITO DE JOGAR.', 'MORE WAYS TO PLAY.')}</h2><p>{t('Mensalidade ou pagamento único. Você escolhe.', 'Monthly plan or one-off purchase. You choose.')}</p></div>
+      {!(fixo && fixo !== 'craque') && <><div className="ls1-monthly">{(['craque_salas', 'craque_completo'] as const).map(m => <article key={m} className={`ls1-plan ${m === 'craque_completo' ? 'ls1-green' : 'ls1-silver'}`}>
+        <div className="ls1-plan-top"><span className="ls1-tag">{t('ASSINATURA MENSAL', 'MONTHLY PLAN')}</span>{m === 'craque_completo' && <span className="ls1-tag ls1-tag-green">{t('COM MANUAL', 'WITH MANUAL')}</span>}</div>
+        <h3>{m === 'craque_salas' ? t('CRAQUE SALAS', 'STAR ROOMS') : t('CRAQUE COMPLETO', 'STAR COMPLETE')}</h3>
+        <div className="ls1-price"><strong>{reais(MENSAIS[m].preco)}</strong><small>{t('/mês', '/month')}</small></div>
+        <ul className="ls1-benefits">{(m === 'craque_salas' ? [t('Salas à vontade + Campo 2D', 'Unlimited rooms + 2D Pitch'), t('Até 3 Ligas da Turma e 3 Ligas Draft', 'Up to 3 Crew Leagues and 3 Draft Leagues'), t('Seu presidente, seu clã e nome prata', 'Your president, clan and silver name')] : [t('Tudo do Craque Salas', 'Everything in Star Rooms'), t('Modo Manual + nível até Craque', 'Manual Mode + levels up to Star'), t('Crie até 4 ligas de cada formato', 'Create up to 4 leagues of each format')]).map(x => <li key={x}>{x}</li>)}</ul>
+        <button type="button" className={`ls1-cta ${m === 'craque_completo' ? 'ls1-cta-green' : 'ls1-cta-purple'}`} disabled={direitos?.mensalPlano === m} onClick={() => { if (direitos?.mensalPlano === m) return; logApoio(`🛒 loja → ${m} (Vendria)`); void assinarMensal(m, tr) }}>{direitos?.mensalPlano === m ? t('✅ ASSINANDO', '✅ SUBSCRIBED') : t('CONTINUAR COM ESTE PLANO', 'CONTINUE WITH THIS PLAN')}<span aria-hidden="true">→</span></button>
+        <p className="ls1-fine">{t('Pix recorrente. Use o mesmo e-mail da sua conta do jogo.', 'Recurring Pix. Use the same email as your game account.')}</p>
+      </article>)}</div></>}
+      {acima.length > 0 ? <>
+        <div className="ls1-section-heading ls1-second"><h2>{fixo ? t('EVOLUA SEU PLANO.', 'UPGRADE YOUR PLAN.') : t('PREFERE PAGAR UMA VEZ?', 'PREFER A ONE-OFF PAYMENT?')}</h2><p>{fixo ? t('Valores de evolução conforme o seu plano atual.', 'Upgrade prices based on your current plan.') : t('Compras únicas · confira os benefícios de cada opção.', 'One-off purchases · check each option’s benefits.')}</p></div>
+        <div className="ls1-oneoffs">{acima.map(pl => <ApoieButton key={pl} startScreen="choice" foco={pl === 'lenda' ? 'ouro' : pl === 'batismo' ? 'batismo' : 'plus'} trigger={open => <article className={`ls1-plan ls1-oneoff ls1-fixed-${pl}`}>
+          <div className="ls1-plan-top"><span className="ls1-tag">{t('PAGAMENTO ÚNICO', 'ONE-OFF PAYMENT')}</span></div><h3>{tr(NOME[pl][0], NOME[pl][1])}</h3>
+          <div className="ls1-price"><strong>{fixo ? '+ ' : ''}{reais(precoSubida(pl, fixo))}</strong></div><p className="ls1-desc">{tr(GANHO[pl][0], GANHO[pl][1])}</p>
+          <button type="button" className="ls1-cta" onClick={() => { logApoio(`🛒 loja → ver plano ${pl}`); open() }}>{t('VER BENEFÍCIOS', 'SEE BENEFITS')}<span aria-hidden="true">→</span></button>
+        </article>} />)}</div>
             {/* 📲 16/10 (Diego: "coloque meu telefone também pra quem faz batismo e fundador caso queira tirar dúvidas") */}
             {acima.some(pl => pl === 'batismo' || pl === 'fundador') && <a href={`https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(tr('Oi Diego! Tenho uma dúvida sobre o batismo/Fundador do Leilão Legends.', 'Hi Diego! I have a question about the Leilão Legends Club Naming/Founder.'))}`} target="_blank" rel="noreferrer"
-              style={{ display: 'block', textAlign: 'center', fontSize: 11.5, fontWeight: 800, color: GREEN, textDecoration: 'underline' }}>{tr(`💬 Dúvida sobre Batismo ou Fundador? WhatsApp do Diego: ${WHATSAPP_TXT}`, `💬 Questions about Club Naming or Founder? Diego’s WhatsApp: ${WHATSAPP_TXT}`)}</a>}
-            {/* 💛 PLANO DUPLO (16/10, Diego: "plano duplo… 10%… sutilmente embaixo do plano" + "o valor tem que ser um só pagando"):
-                só no Pix novo, e só quando sai mais barato que subir + presentear separado */}
-            {pixMp && acima.filter(pl => PRECOS_DUPLO[pl] < precoSubida(pl, fixo) + PRECOS_UNICO[pl]).map(pl => duploAberto === pl
-              ? <PresenteBox key={`d-${pl}`} duplo={pl} onClose={() => setDuploAberto(null)} />
-              : <button key={`d-${pl}`} onClick={() => { logApoio(`💛 loja → plano duplo ${pl}`); setDuploAberto(pl) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: '#FFF8E1', border: `2px dashed ${INK}`, borderRadius: 11, padding: '6px 10px', cursor: 'pointer', textAlign: 'left', fontFamily: 'Arial, sans-serif' }}>
-                  <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800 }}>{tr(`💛 Leve 2 ${NOME[pl][0]}: um pra você, outro de presente`, `💛 Get 2 ${NOME[pl][1]}: one for you, one as a gift`)}</span>
-                  <span style={{ whiteSpace: 'nowrap', fontSize: 12 }}><s style={{ opacity: .5 }}>{reais(PRECOS_UNICO[pl] * 2)}</s> <b style={{ ...OSW, fontSize: 14 }}>{reais(PRECOS_DUPLO[pl])}</b> <i style={{ fontStyle: 'normal', background: GREEN, color: '#fff', borderRadius: 6, padding: '0 5px', fontSize: 10.5, fontWeight: 900 }}>-10%</i></span>
-                </button>)}
-          </div>
-        </>}
+              className="ls1-plan-contact">{tr(`💬 Dúvida sobre Batismo ou Fundador? WhatsApp do Diego: ${WHATSAPP_TXT}`, `💬 Questions about Club Naming or Founder? Diego’s WhatsApp: ${WHATSAPP_TXT}`)}</a>}
 
-        {!salasAVontade && <>
-        {/* 🎟️ SALAS EXTRAS DO DIA (14/10, Diego: "pode fazer sala extras do dia") */}
-        <h2 id="loja-salas" style={h2}>{tr('🎟️ Salas extras', '🎟️ Extra rooms')} <span style={sub}>{tr('pra criar mais de 1 sala no dia', 'to create more than 1 room a day')}</span></h2>
-        <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
-          <span style={{ fontSize: 30 }}>🎟️</span>
-          <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{salasAVontade
-            ? tr('✅ Você já cria quantas salas quiser — não precisa disso.', '✅ You already create as many rooms as you like — no need for this.')
-            : <>{tr(`${SALAS_EXTRAS_QTD} salas a mais pra usar quando a do dia acabar. Não vencem.`, `${SALAS_EXTRAS_QTD} more rooms to use once today’s is gone. They never expire.`)}{saldoSalas ? <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você tem ${saldoSalas} sala${saldoSalas > 1 ? 's' : ''} extra${saldoSalas > 1 ? 's' : ''}.`, `You have ${saldoSalas} extra room${saldoSalas > 1 ? 's' : ''}.`)}</b> : null}<span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Criar à vontade, pra sempre, é do 👑 Lenda.', 'Unlimited rooms, forever, come with 👑 Legend.')}</span></>}</small>
-          {!salasAVontade && <button onClick={() => setComprando({ id: 'salas', amount: LOJA_PRECOS.salasExtras, ctx: 'loja · 3 salas extras', msgPt: `Opa! Comprei na Loja do Clube: 🎟️ ${SALAS_EXTRAS_QTD} SALAS EXTRAS (${reais(LOJA_PRECOS.salasExtras)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🎟️ ${SALAS_EXTRAS_QTD} EXTRA ROOMS (${reais(LOJA_PRECOS.salasExtras)}). Account e-mail: ____ — receipt attached!` })} style={preco}>{reais(LOJA_PRECOS.salasExtras)}</button>}
-        </div>
-        </>}
-
-        {/* 💾 FICHA EXTRA DE CARREIRA (17/10, Diego: "add ficha de save na lojinha… pra pessoa ter save novo. 9,99").
-            Só no Pix novo (entrega sozinha) e só logado: a ficha é da CONTA. */}
-        {pixMp && email && (fichasPode > 0 || fichasTem > 0) && <>
-          <h2 style={h2}>{tr('💾 Ficha de carreira', '💾 Career slot')} <span style={sub}>{tr('mais uma carreira salva', 'one more saved career')}</span></h2>
-          <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ fontSize: 30 }}>💾</span>
-            <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>
-              {tr('+1 carreira salva, além das do seu plano. Começa um clube novo sem apagar nenhum. É sua pra sempre.', '+1 saved career on top of your plan’s. Start a new club without deleting any. Yours forever.')}
-              {fichasTem > 0 && <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você já tem ${fichasTem} ficha${fichasTem > 1 ? 's' : ''} extra${fichasTem > 1 ? 's' : ''}.`, `You already have ${fichasTem} extra slot${fichasTem > 1 ? 's' : ''}.`)}</b>}
-              {fichasPode <= 0 && <span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Você chegou no máximo de carreiras que o jogo guarda.', 'You’ve reached the most careers the game can keep.')}</span>}
-            </small>
-            {fichasPode > 0 && <button onClick={() => setComprando({ id: 'ficha', amount: FICHA_EXTRA_PRECO, ctx: 'loja · ficha extra de carreira', msgPt: `Opa! Comprei na Loja do Clube: 💾 FICHA EXTRA DE CARREIRA (${reais(FICHA_EXTRA_PRECO)}).`, msgEn: `Hey! I bought in the Club Shop: 💾 EXTRA CAREER SLOT (${reais(FICHA_EXTRA_PRECO)}).` })} style={preco}>{reais(FICHA_EXTRA_PRECO)}</button>}
-          </div>
-        </>}
-
-        {/* 🎁 DAR DE PRESENTE (14/10) — só planos */}
-        <h2 style={h2}>{tr('🎁 Dar de presente', '🎁 Send a gift')} <span style={sub}>{tr('um plano pra um amigo', 'a plan for a friend')}</span></h2>
-        <PresenteBox />
-
-        {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
+      </> : <div className="ls1-owned-note">{t('Seu plano já está no topo desta vitrine. Você pode conferir os benefícios e explorar os itens nas outras categorias.', 'Your plan is already at the top of this range. Review your benefits and explore the other categories.')}</div>}
+      <ApoieButton startScreen="choice" trigger={open => <button type="button" className="ls1-full-benefits" onClick={() => { logApoio('🛒 loja → ver todos os planos'); open() }}>{t('Comparar todos os benefícios e conferir meu plano →', 'Compare all benefits and review my plan →')}</button>} />
+      <div className="ls1-bottom-links"><button type="button" className="ls1-shortcut" onClick={() => ir('carreira', 'loja-moedas')}><LojaIcone tipo="carreira" /><span><strong>{t('MOEDAS E FICHAS DE CARREIRA', 'CAREER COINS AND SLOTS')}</strong><small>{t('Pacotes de moedas e mais espaços para salvar.', 'Coin packs and more save slots.')}</small></span>→</button><button type="button" className="ls1-shortcut" onClick={() => ir('salas', 'loja-presentes')}><LojaIcone tipo="gift" /><span><strong>{t('PRESENTEIE UM AMIGO', 'GIVE A FRIEND A GIFT')}</strong><small>{t('Planos de presente e combos para dois.', 'Plan gifts and bundles for two.')}</small></span>→</button></div>
+      <details className="ls1-story" onToggle={e => setHistoriaAberta(e.currentTarget.open)}><summary>{t('O jogo, a história do Luca e para onde vai o apoio →', 'The game, Luca’s story and where support goes →')}</summary>{historiaAberta && <><SupportStory /><SupportMoney /></>}</details>
+    </>,
+    clube: <><div className="ls1-section-heading"><h2>{t('SEU CLUBE COM A SUA CARA.', 'YOUR CLUB, YOUR STYLE.')}</h2><p>{t('Personalização e identidade, num lugar só.', 'Customization and identity, in one place.')}</p></div><div className="ls1-products-grid ls1-legacy"><div className="ls1-item ls1-wide" id="loja-presidente"><MeuPresidenteLoja /></div><div className="ls1-item">        {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
             Fica só o 📣 canto avulso, o pedacinho barato; a gala única vem no 🖋 Fundador. */}
         <h2 id="loja-canto" style={h2}>{tr('📣 Canto da torcida', '📣 Crowd chant')} <span style={sub}>{tr('pro seu clube batizado', 'for your named club')}</span></h2>
         <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', opacity: temBatismo ? 1 : .6 }}>
@@ -262,18 +208,22 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
         </div>
         {atual === 'batismo' && <p style={{ fontSize: 11.5, fontWeight: 700, margin: '8px 2px 0', color: GREEN, lineHeight: 1.4 }}>{tr(`🚁 Quer a gala única? Ela vem no 🖋 Fundador: + ${reais(precoSubida('fundador', 'batismo'))} e você leva gala + canto + número de fundador + o clube nas salas online dos outros.`, `🚁 Want the unique entrance? It comes with 🖋 Founder: + ${reais(precoSubida('fundador', 'batismo'))} for entrance + chant + founder number + your club in other people’s online rooms.`)}</p>}
 
-        {/* 🪙 MOEDAS */}
+</div><div className="ls1-item">        {/* 🎨 COR BRILHANTE (02/11, mockup cor-adicional.png): só no Pix novo (entrega sozinha) e só logado — a cor é da CONTA */}
+        {pixMp && email && <div id="loja-cores"><CoresNaLoja h2={h2} sub={sub} card={card} reais={reais} /></div>}
+
+</div><div className="ls1-item ls1-wide">        {/* 🎨 TEMA DA SALA (18/10, Diego): ❤️ time de coração pra qualquer um · 🛡️ do clube só Batismo/Fundador · Fundador ganha 1 */}
+        {pixMp && <div id="loja-temas"><TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} /></div>}
+
+</div></div></>,
+    carreira: <><div className="ls1-section-heading"><h2>{t('UM REFORÇO PRO SEU CLUBE.', 'A BOOST FOR YOUR CLUB.')}</h2><p>{t('Moedas e fichas, no lugar certo.', 'Coins and slots, in the right place.')}</p></div><div className="ls1-legacy"><div className="ls1-item">        {/* 🪙 MOEDAS */}
         <h2 id="loja-moedas" style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{pixMp ? (naCarr ? tr('caem direto neste clube', 'straight into this club') : tr('carreira solo', 'solo career')) : tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
         <p style={{ fontSize: 12, fontWeight: 700, margin: '0 2px 8px', lineHeight: 1.4 }}>{tr('🏟️ Pra CARREIRA SOLO: cada R$ 1 vira 3 🪙 no caixa do seu clube. Use pra dar lance no leilão, pagar salário e fazer obra no estádio.', '🏟️ For the SOLO CAREER: every R$ 1 becomes 3 🪙 in your club’s till. Use them to bid at the auction, pay wages and build at the stadium.')}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-          {MOEDAS.map(([r, pt, en], i) => <div key={r} style={{ ...card, textAlign: 'center', background: i === 1 ? '#FFF3C4' : '#fff', padding: 8 }}>
+        <div className="ls1-coins">
+          {MOEDAS.map(([r, pt, en], i) => <div key={r} className="ls1-coin" style={{ ...card, textAlign: 'center', background: i === 1 ? '#FFF3C4' : '#fff', padding: 8 }}>
             {/* 18/10, Diego: "pague 10 e ganhe 30… mais claro" — o card fala a conta inteira */}
-            <small style={{ ...OSW, fontSize: 11, fontWeight: 800, letterSpacing: '.04em', display: 'block' }}>{tr('PAGUE', 'PAY')}</small>
-            <b style={{ ...OSW, fontSize: 16, display: 'block', whiteSpace: 'nowrap' }}>{reais(r)}</b>
-            <div style={{ fontSize: 13, lineHeight: 1, margin: '2px 0', color: 'rgba(12,12,12,.45)' }}>▼</div>
-            <small style={{ ...OSW, fontSize: 11, fontWeight: 800, color: GREEN, display: 'block', letterSpacing: '.04em' }}>{tr('GANHE', 'GET')}</small>
-            <b style={{ ...OSW, fontSize: 24, display: 'block', color: GREEN, lineHeight: 1.25, whiteSpace: 'nowrap' }}>{r * 3} 🪙</b>
-            <small style={{ fontSize: 10, fontWeight: 700, color: 'rgba(12,12,12,.6)', display: 'block', minHeight: 26, marginTop: 2 }}>{tr(pt, en)}</small>
+            <div className="ls1-coin-value"><strong>{r * 3} <span aria-hidden="true">🪙</span></strong><span>{tr('MOEDAS PRO CLUBE', 'CLUB COINS')}</span></div>
+            <p className="ls1-coin-caption">{tr(pt, en)}</p>
+            <div className="ls1-coin-cost"><span>{tr('PAGUE', 'PAY')}</span><b>{reais(r)}</b></div>
             <button onClick={() => setComprando({ id: `moedas-${r}`, amount: r, ctx: `loja · banco legends ${r * 3} moedas`, msgPt: `Opa! Comprei na Loja do Clube: 🏦 ${r * 3} MOEDAS (${reais(r)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🏦 ${r * 3} COINS (${reais(r)}). Account e-mail: ____ — receipt attached!` })} style={{ ...preco, width: '100%', marginTop: 6 }}>{tr('COMPRAR', 'BUY')}</button>
           </div>)}
         </div>
@@ -283,15 +233,35 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           : <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{tr('Você recebe uma FICHA e resgata na carreira que quiser, quando quiser: Clube › Finanças › 🏦 Banco Legends. Moeda vale só na carreira solo (não entra em sala online nem em liga dos amigos).', 'You get a VOUCHER and redeem it in whichever career you like, whenever you like: Club › Finances › 🏦 Banco Legends. Coins only work in the solo career (not in online rooms or friends’ leagues).')}</p>}
         {naCarr && <ResgateFicha />}
 
-        {/* 🎨 COR BRILHANTE (02/11, mockup cor-adicional.png): só no Pix novo (entrega sozinha) e só logado — a cor é da CONTA */}
-        {pixMp && email && <div id="loja-cores"><CoresNaLoja h2={h2} sub={sub} card={card} reais={reais} /></div>}
+</div><div className="ls1-item ls1-slot">        {/* 💾 FICHA EXTRA DE CARREIRA (17/10, Diego: "add ficha de save na lojinha… pra pessoa ter save novo. 9,99").
+            Só no Pix novo (entrega sozinha) e só logado: a ficha é da CONTA. */}
+        {pixMp && email && (fichasPode > 0 || fichasTem > 0) && <>
+          <h2 id="loja-ficha" style={h2}>{tr('💾 Ficha de carreira', '💾 Career slot')} <span style={sub}>{tr('mais uma carreira salva', 'one more saved career')}</span></h2>
+          <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 30 }}>💾</span>
+            <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>
+              {tr('+1 carreira salva, além das do seu plano. Começa um clube novo sem apagar nenhum. É sua pra sempre.', '+1 saved career on top of your plan’s. Start a new club without deleting any. Yours forever.')}
+              {fichasTem > 0 && <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você já tem ${fichasTem} ficha${fichasTem > 1 ? 's' : ''} extra${fichasTem > 1 ? 's' : ''}.`, `You already have ${fichasTem} extra slot${fichasTem > 1 ? 's' : ''}.`)}</b>}
+              {fichasPode <= 0 && <span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Você chegou no máximo de carreiras que o jogo guarda.', 'You’ve reached the most careers the game can keep.')}</span>}
+            </small>
+            {fichasPode > 0 && <button onClick={() => setComprando({ id: 'ficha', amount: FICHA_EXTRA_PRECO, ctx: 'loja · ficha extra de carreira', msgPt: `Opa! Comprei na Loja do Clube: 💾 FICHA EXTRA DE CARREIRA (${reais(FICHA_EXTRA_PRECO)}).`, msgEn: `Hey! I bought in the Club Shop: 💾 EXTRA CAREER SLOT (${reais(FICHA_EXTRA_PRECO)}).` })} style={preco}>{reais(FICHA_EXTRA_PRECO)}</button>}
+          </div>
+        </>}
 
-        {/* 💙 CASA LUCA (05/11): doação pro Luca + Plano Coração — só com a trava (`useCasaLucaLiberada`) aberta */}
+</div></div></>,
+    salas: <><div className="ls1-section-heading"><h2>{t('A RESENHA TAMBÉM TEM ESTILO.', 'GIVE YOUR MATCH NIGHT SOME STYLE.')}</h2><p>{t('Salas, recados, presentes e identidade do clã.', 'Rooms, shout-outs, gifts and clan identity.')}</p></div><div className="ls1-products-grid ls1-legacy"><div className="ls1-item">        {!salasAVontade && <>
+        {/* 🎟️ SALAS EXTRAS DO DIA (14/10, Diego: "pode fazer sala extras do dia") */}
+        <h2 id="loja-salas" style={h2}>{tr('🎟️ Salas extras', '🎟️ Extra rooms')} <span style={sub}>{tr('pra criar mais de 1 sala no dia', 'to create more than 1 room a day')}</span></h2>
+        <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
+          <span style={{ fontSize: 30 }}>🎟️</span>
+          <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{salasAVontade
+            ? tr('✅ Você já cria quantas salas quiser — não precisa disso.', '✅ You already create as many rooms as you like — no need for this.')
+            : <>{tr(`${SALAS_EXTRAS_QTD} salas a mais pra usar quando a do dia acabar. Não vencem.`, `${SALAS_EXTRAS_QTD} more rooms to use once today’s is gone. They never expire.`)}{saldoSalas ? <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você tem ${saldoSalas} sala${saldoSalas > 1 ? 's' : ''} extra${saldoSalas > 1 ? 's' : ''}.`, `You have ${saldoSalas} extra room${saldoSalas > 1 ? 's' : ''}.`)}</b> : null}<span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Criar à vontade, pra sempre, é do 👑 Lenda.', 'Unlimited rooms, forever, come with 👑 Legend.')}</span></>}</small>
+          {!salasAVontade && <button onClick={() => setComprando({ id: 'salas', amount: LOJA_PRECOS.salasExtras, ctx: 'loja · 3 salas extras', msgPt: `Opa! Comprei na Loja do Clube: 🎟️ ${SALAS_EXTRAS_QTD} SALAS EXTRAS (${reais(LOJA_PRECOS.salasExtras)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🎟️ ${SALAS_EXTRAS_QTD} EXTRA ROOMS (${reais(LOJA_PRECOS.salasExtras)}). Account e-mail: ____ — receipt attached!` })} style={preco}>{reais(LOJA_PRECOS.salasExtras)}</button>}
+        </div>
+        </>}
 
-        {/* 🎨 TEMA DA SALA (18/10, Diego): ❤️ time de coração pra qualquer um · 🛡️ do clube só Batismo/Fundador · Fundador ganha 1 */}
-        {pixMp && <div id="loja-temas"><TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} /></div>}
-
-        {/* 💬 SEU RECADO NO JOGO (18/10, Diego: "tipo um super chat… com cor diferente"; mockup `recado-destaque.png`): o jogador
+</div><div className="ls1-item">        {/* 💬 SEU RECADO NO JOGO (18/10, Diego: "tipo um super chat… com cor diferente"; mockup `recado-destaque.png`): o jogador
             escreve um recado que gira no letreiro, em rosa, com o nome do time — 1 hora R$ 2,99 ou o dia todo R$ 9,90 */}
         {pixMp && <>
           <h2 id="loja-recado" style={h2}>{tr('💬 Seu recado no jogo', '💬 Your shout-out in the game')}</h2>
@@ -314,13 +284,24 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           <AnunciosPendentes />
         </>}
 
-        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 9,90 no Pix (26/10), só o presidente compra; nome + ideia + zap depois de pagar */}
+</div><div className="ls1-item">        {/* 🛡️ ESCUDO DE CLÃ PERSONALIZADO (21/10, Diego): R$ 9,90 no Pix (26/10), só o presidente compra; nome + ideia + zap depois de pagar */}
         {pixMp && <>
           <h2 id="loja-cla" style={h2}>{tr('⚔️ Seu clã', '⚔️ Your clan')}</h2>
           <EscudoClaLoja />
         </>}
 
-        {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que
+</div><div className="ls1-item ls1-wide" id="loja-presentes">        {/* 🎁 DAR DE PRESENTE (14/10) — só planos */}
+        <h2 style={h2}>{tr('🎁 Dar de presente', '🎁 Send a gift')} <span style={sub}>{tr('um plano pra um amigo', 'a plan for a friend')}</span></h2>
+        <PresenteBox />
+
+</div><div className="ls1-item ls1-wide" id="loja-combos">            {pixMp && acima.filter(pl => PRECOS_DUPLO[pl] < precoSubida(pl, fixo) + PRECOS_UNICO[pl]).map(pl => duploAberto === pl
+              ? <PresenteBox key={`d-${pl}`} duplo={pl} onClose={() => setDuploAberto(null)} />
+              : <button key={`d-${pl}`} onClick={() => { logApoio(`💛 loja → plano duplo ${pl}`); setDuploAberto(pl) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: '#FFF8E1', border: `2px dashed ${INK}`, borderRadius: 11, padding: '6px 10px', cursor: 'pointer', textAlign: 'left', fontFamily: 'Arial, sans-serif' }}>
+                  <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800 }}>{tr(`💛 Leve 2 ${NOME[pl][0]}: um pra você, outro de presente`, `💛 Get 2 ${NOME[pl][1]}: one for you, one as a gift`)}</span>
+                  <span style={{ whiteSpace: 'nowrap', fontSize: 12 }}><s style={{ opacity: .5 }}>{reais(PRECOS_UNICO[pl] * 2)}</s> <b style={{ ...OSW, fontSize: 14 }}>{reais(PRECOS_DUPLO[pl])}</b> <i style={{ fontStyle: 'normal', background: GREEN, color: '#fff', borderRadius: 6, padding: '0 5px', fontSize: 10.5, fontWeight: 900 }}>-10%</i></span>
+                </button>)}
+</div></div></>,
+    marca: <><div className="ls1-section-heading"><h2>{t('SUA MARCA ENTRA EM CAMPO.', 'YOUR BRAND TAKES THE FIELD.')}</h2><p>{t('Uma área própria para empresas.', 'A dedicated area for businesses.')}</p></div><div className="ls1-legacy">        {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que
             vem no pacote e o contato. Começa só nas contas do Diego (`patrocinioLojaOk`). */}
         {patrocinioLojaOk() && <>
           <h2 id="loja-marca" style={h2}>{tr('💼 Sua marca no jogo', '💼 Your brand in the game')} <span style={sub}>{tr('pra empresas', 'for businesses')}</span></h2>
@@ -351,10 +332,15 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
                 <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('DIA TODO · 24 H', 'ALL DAY · 24 H')}</small>{reais(25)}</button>
             </div>
           </div>
-          <MarcaMensal card={card} emailContato={EMAIL_CONTATO} />{/* 📅 18/10: números fortes + fotos de onde a marca aparece (marca-mensal.tsx) */}
+          <details className="ls1-brand-monthly"><summary>{tr('📅 CONHECER O PATROCÍNIO MENSAL', '📅 EXPLORE MONTHLY SPONSORSHIP')}</summary><MarcaMensal card={card} emailContato={EMAIL_CONTATO} /></details>{/* 📅 18/10: números fortes + fotos de onde a marca aparece (marca-mensal.tsx) */}
         </>}
 
-        {/* 💳 COMO PAGAR (o item escolhido) */}
+</div></>,
+  }
+  return createPortal(<LojaLayout categoria={categoria} onCategoria={setCategoria} onClose={onClose} onAccount={() => setContaAberta(true)} marca={patrocinioLojaOk()}
+    status={<span className="ls1-current-plan" style={{ background: perk.grad, color: INK }}><ApoioSheen holo={perk.holo} /><span className="ls1-current-plan-label" style={{ position: 'relative' }}>{atual ? tr(`VOCÊ É ${NOME[atual][0].toUpperCase()}`, `YOU ARE ${NOME[atual][1].toUpperCase()}`) : t('PLANO GRÁTIS', 'FREE PLAN')}</span></span>}
+    secoes={secoes}
+    pagamento={<div className="ls1-checkout">        {/* 💳 COMO PAGAR (o item escolhido) */}
         {comprando && <div id="loja-pagar" style={{ ...card, marginTop: 18, background: '#FFF8E1' }}>
           <p style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', margin: '0 0 8px' }}>{tr('💳 Pagar', '💳 Pay')} · {reais(comprando.amount)}</p>
           {/* 💳 15/10: as salas extras já vão pelo Pix do Mercado Pago (só na conta do Diego por enquanto); o resto segue no Pix antigo */}
@@ -366,9 +352,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           </>}
           <p style={{ textAlign: 'center', margin: '8px 0 0' }}><button onClick={() => setComprando(null)} style={{ background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 900, fontSize: 11, color: 'rgba(12,12,12,.5)', cursor: 'pointer' }}>{tr('cancelar', 'cancel')}</button></p>
         </div>}
-        <p style={{ textAlign: 'center', marginTop: 18 }}><button onClick={onClose} style={{ background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 900, fontSize: 12, color: 'rgba(12,12,12,.5)', cursor: 'pointer' }}>{tr('fechar', 'close')}</button></p>
-      </div>
-    </div>,
-    document.body,
-  )
+</div>}
+    overlays={contaAberta ? <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} /> : null}
+  />, document.body)
 }

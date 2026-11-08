@@ -111,6 +111,7 @@ import { MascoteAtravessa, MascoteMini, moneySeed } from './mascote-atravessa' /
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
 import './home-ilustrada.css'
+import { HomeV03 } from './home-v03'
 import './career-private.css'
 import careerSetupRoom from './img/career-setup-room-private.webp'
 import presidentCasual from './img/career-president-casual.webp'
@@ -2330,85 +2331,33 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
 }) {
   const [contaAberta, setContaAberta] = useState(false)
   const [verSalao, setVerSalao] = useState(false)
-  const amigosOn = useAmigos() // 👥 18/10: Amigos na HOME, do lado da Loja (Diego: "tem que estar na home") — só a conta dele por enquanto
   const [verAmigos, setVerAmigos] = useState(false)
-  const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
-  // 🏀 20/10 (Diego: "trocando a aba lá em cima do futebol pelo basquete"): o botão 🏀 pra ir pro BidLegends. SÓ a conta
-  // liberada no basquete (BASQUETE_TESTERS) vê — pra todo o resto `bbOn` é falso e a home fica byte-idêntica (sem botão, sem classe).
+  const amigosOn = useAmigos()
   const bbOn = useSportUnlocked()
+  const t = useT()
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
-  return (
-    <><div className="ll-home">
-      <div className="ll-art" />
-      <div className="ll-shade" />
-      {/* 📢 a faixa amarela "As lendas ganharam cara" (`aviso-versao.tsx`) SAIU em 11/10 a pedido do Diego
-          (*"aquele amarelo ali das lendas com cara não precisa mais"*). Pra voltar: `<AvisoVersaoNova />` aqui. */}
-      <header className="ll-header">
-        <div className="ll-brand"><small>{t('LEILÃO ÀS CEGAS', 'BLIND AUCTION')}</small>LEILÃO LEGENDS</div>
-        <div className="ll-lang"><LangToggle /></div>
-        <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
-      </header>
-      {/* 🏀 no cabeçalho do futebol não cabe mais um botão (o nome é mais largo que "BIDLEGENDS"): vira uma etiqueta
-          logo abaixo da marca, no canto livre da arte */}
-      {bbOn && <SeletorEsporte />}
-      {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}{/* 🔔 19/10: avisos dos amigos, logo abaixo de MINHA CONTA */}
-      {/* ✈️ 23/10 (Diego): só o título no meio da arte (a frase de baixo saiu). 10s depois de abrir a home o aviãozinho do
-          parceiro passa UMA vez, e enquanto ele passa o título some e volta depois. */}
-      <section className="ll-intro" style={{ position: 'relative' }}>
-        <AviaoDaHome><h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1></AviaoDaHome>
-      </section>
-      {(resumable || solo) && <div className="ll-resume">
-        {resumable && <><button onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
-        {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
-      </div>}
-      <section className="ll-choices" aria-label="Escolha como jogar">
-        <BannerIndicacao />{/* 🎥 08/11: indique um streamer (no lugar da faixa dos 3 mil seguidores) */}
-        {amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}{/* 🤝⚔️ 27/10: pedidos em cima dos modos, com aceitar ali mesmo */}
-        <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
-        <div className="ll-modes">
-          <button className="ll-mode" onClick={onQuick}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu time e enfrente a CPU.', 'Build your squad and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Construa a história do seu clube.', "Build your club's story.")}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-        </div>
-        {/* 🎨 14/10 (Diego, mockup aprovado: "ok publique assim, perfeito"): Carreira VERDE, a Loja logo abaixo dela
-            (único dourado da home) e Salão · Regras · Álbum lado a lado. O botão pequeno de Apoiar do rodapé saiu: o quadro
-            grande "Apoie o Leilão Legends" lá do fim já faz isso. */}
-        <div className={amigosOn ? 'll-loja-linha ll-com-amigos' : 'll-loja-linha'}>
-          <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, gala, canto da torcida e moedas', 'Move up a plan, grand entrance, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
-          {amigosOn && <button className="ll-salao-entry ll-amigos-entry" onClick={() => setVerAmigos(true)}><span aria-hidden="true">👥</span><span><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Quem está online', 'Who is online')}</small></span><span aria-hidden="true">›</span></button>}
-        </div>
-        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
-        <div className="ll-extras ll-extras-3">
-          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
-          <button className="ll-salao-entry ll-regras-entry" onClick={onManual}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
-          {/* 📖 28/10 (Diego): o MEU ÁLBUM saiu da home — o álbum já mora dentro dos 👥 Amigos. Sem Amigos (deslogado), fica. */}
-          {!amigosOn && <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>}
-        </div>
-      </section>
-      <footer className="ll-footer">
-        <div className="ll-web">
-          <span>leilaolegends.com</span> · {t('Seu clube. Sua história.', 'Your club. Your story.')}
-          {/* 📬 CONTATO SUTIL NA HOME (Diego 15/09: *"em baixo das telas da home ou
-              qualquer página, coloque o Instagram sutilmente e uma frase pra qualquer
-              bug ou ideias… e o e-mail também"*).
-              O rodapé geral do jogo (GameFooter) JÁ tem esses dois contatos e aparece
-              em todas as telas — menos nesta: `home-ilustrada.css` esconde ele quando
-              a home ilustrada está na tela (`.tela-cheia:has(.ll-home) > .game-contact-footer`),
-              porque a home tem rodapé próprio. Resultado: o Instagram e o e-mail
-              sumiam justamente na tela que todo mundo vê primeiro. Aqui eles voltam,
-              no tom apagado do rodapé — sem virar banner. */}
-          <small className="ll-contato">
-            {t('Achou um bug ou tem uma ideia? Fala comigo:', 'Found a bug or got an idea? Talk to me:')}{' '}
-            <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer"><InstaIcon /> @leilaolegendscom</a>
-            {' · '}
-            <a href="mailto:contato@leilaolegends.com">✉️ contato@leilaolegends.com</a>
-          </small>
-        </div>
-      </footer>
+  return <HomeV03
+    onCareer={onCareer} onCareers={onCareers} onQuick={onQuick}
+    onOnline={destination => { requestOnlineDestination(destination); onOnline() }}
+    onAccount={() => setContaAberta(true)} onAlbum={onAlbum} onManual={onManual}
+    onFriends={amigosOn ? () => setVerAmigos(true) : undefined}
+    onHall={() => { setVerSalao(true); window.scrollTo(0, 0) }}
+    language={<LangToggle />}
+    sportSwitcher={bbOn ? <SeletorEsporte /> : undefined}
+    notifications={amigosOn ? <SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /> : undefined}
+    title={<AviaoDaHome><h1>{t('O SEU TIME', 'YOUR TEAM')}<br /> {t('COMEÇA', 'STARTS')} <em>{t('NO LANCE.', 'WITH A BID.')}</em></h1></AviaoDaHome>}
+    resume={(resumable || solo) ? <>
+      {resumable && <><button type="button" onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button type="button" onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
+      {solo && <><button type="button" onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button type="button" onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
+    </> : undefined}
+    notices={<><BannerIndicacao />{amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}</>}
+    shop={<LojaButton className="hv3-extra hv3-shop"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg><span className="hv3-text"><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Planos, identidade do clube, moedas e muito mais.', 'Plans, club identity, coins and more.')}</small></span><span aria-hidden="true">→</span></LojaButton>}
+    overlays={<>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
+      {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
       {overlays}
-    </div><div className="ll-support-home-tail"><ApoieButton trigger={open => <SupportFooter onOpen={open} />} /></div></>
-  )
+    </>}
+  />
 }
 
 export function EscIntro() {

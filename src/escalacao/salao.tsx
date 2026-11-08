@@ -46,13 +46,15 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
   const [falha, setFalha] = useState(false)
   const [tentativa, setTentativa] = useState(0)
   const [ordem, setOrdem] = useState('chegada')
+  const [busca, setBusca] = useState('')
+  const normaliza = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim()
   const [detalhe, setDetalhe] = useState<Batismo | null>(null)
   const [peca, setPeca] = useState(0)
   const [ampliada, setAmpliada] = useState(false)
   const folhas = useRef<HTMLDivElement>(null)
   const closeZoom = useRef<HTMLButtonElement>(null)
   const ultimoFoco = useRef<HTMLElement | null>(null)
-  const clubes = useMemo(() => BATISMOS.filter(b => !SALAO_OCULTOS.has(b.clube)).sort(ordem === 'nome' ? (a,b) => a.clube.localeCompare(b.clube, 'pt-BR') : porChegada), [ordem])
+  const clubes = useMemo(() => BATISMOS.filter(b => !SALAO_OCULTOS.has(b.clube) && normaliza(b.clube).includes(normaliza(busca))).sort(ordem === 'nome' ? (a,b) => a.clube.localeCompare(b.clube, 'pt-BR') : porChegada), [ordem, busca])
   useEffect(() => {
     let vivo = true
     setFalha(false); setTorcidas(null)
@@ -89,8 +91,8 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
   }
   const apoio = <section className="sb-apoio"><small>{tr('O PRÓXIMO PODE SER O SEU', 'YOURS COULD BE NEXT')}</small><h2>{tr('Seu nome. Seu escudo. Sua história no jogo.', 'Your name. Your crest. Your story in the game.')}</h2><p>{tr('Uma identidade criada para o seu clube e vista por quem joga.', 'An identity created for your club and seen by fellow players.')}</p><ApoieButton startScreen="batismo" trigger={open => <button className="sb-primary" onClick={open}>{tr('QUERO CRIAR MEU CLUBE', 'I WANT TO CREATE MY CLUB')}</button>} /><p className="sb-note">{tr('Conheça o Batismo · sem vantagem em campo.', 'Explore club naming · no on-pitch advantage.')}</p></section>
   return <div className="sb-root">
+    <div className="sb-topbar"><div className="sb-brand"><span aria-hidden="true">LL</span><div><strong>LEILÃO LEGENDS</strong><small>{tr('SEU CLUBE. SUA HISTÓRIA.', 'YOUR CLUB. YOUR STORY.')}</small></div></div><button className="sb-back" onClick={() => detalhe ? setDetalhe(null) : voltar?.()}>{detalhe ? tr('← VOLTAR AO SALÃO', '← BACK TO THE HALL') : tr('← VOLTAR AO JOGO', '← BACK TO GAME')}</button></div>
     <header className="sb-header">
-      <button className="sb-back" onClick={() => detalhe ? setDetalhe(null) : voltar?.()}>{detalhe ? tr('← Voltar ao salão', '← Back to the hall') : tr('← Voltar', '← Back')}</button>
       <small>{detalhe ? tr('IDENTIDADE DO CLUBE', 'CLUB IDENTITY') : tr('A COMUNIDADE TEM ESCUDO', 'A COMMUNITY WITH ITS OWN CRESTS')}</small>
       <h1>{detalhe ? detalhe.clube : tr('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</h1>
       <p>{detalhe ? tr('Escudo, mascote e camisa. Uma história com a sua marca.', 'Crest, mascot and shirt. A story with your own mark.') : tr('Conheça os clubes de quem faz parte dessa história. Toque num escudo e entre.', 'Meet the clubs that are part of this story. Tap a crest to step inside.')}</p>
@@ -114,6 +116,8 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
             menores mesmo como já estão embaixo"*. O escudo ampliado ali denunciava toda
             borda e o pager não ajudava. Fica a grade de escudos, que já abre a identidade. */}
         <div className="sb-list-heading"><h2>{tr('EXPLORE OS CLUBES','EXPLORE THE CLUBS')}</h2><select aria-label={tr('Ordem dos clubes','Club order')} value={ordem} onChange={e => setOrdem(e.target.value)}><option value="chegada">{tr('Ordem de chegada','Arrival order')}</option><option value="nome">{tr('Nome · A–Z','Name · A–Z')}</option></select></div>
+        <label className="sb-search">{tr('BUSCAR CLUBE', 'FIND A CLUB')}<input type="search" value={busca} onChange={e => setBusca(e.target.value)} placeholder={tr('Digite o nome do clube', 'Type a club name')} maxLength={60} /></label>
+        {clubes.length === 0 && <p role="status">{tr('Nenhum clube com esse nome.', 'No clubs with that name.')}</p>}
         <div className="sb-grid">{clubes.map(c => <button key={c.clube} onClick={() => abrir(c)}><Escudo nome={c.clube} size={80} /><strong>{c.clube}</strong>{c.tipo==='socio' && <small>{tr('Sócio','Member')}</small>}</button>)}</div>
       </section> : <section className="sb-fans"><h2>{tr('Todas as torcidas. Cada uma com sua presença.', 'Every fanbase. Each with its own presence.')}</h2><p className="sb-note">{tr('Somente donos de Batismo que informaram o time de coração.', 'Only named-club owners who provided their favorite team.')}</p>
         {torcidas===null && <p role="status">{tr('Carregando torcidas…','Loading fanbases…')}</p>}

@@ -5,6 +5,8 @@ import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { motion } from 'framer-motion'
 import './online-visual.css'
 import {DesktopHeader} from './desktop-layout'
+import { OnlineCreateContext, OnlineCreateSection, OnlineCreateLayout } from './online-create-layout'
+import { OnlineLobbyBrand, OnlineLobbyReturn, OnlineLobbyTools, OnlineRoomMain, OnlineLeagueManage, OnlineLobbyFooter } from './online-lobby-layout'
 import {peekOnlineDestination,clearOnlineDestination} from './desktop-online-navigation'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
@@ -456,6 +458,8 @@ const CRIAR_CLARO_CSS = `
 function Section({ num, title, icon, children, resumo, abertaInicio, sub }: { num: number; title: string; icon: string; children: React.ReactNode; resumo?: string; abertaInicio?: boolean; sub?: string }) {
   const [aberta, setAberta] = useState(!!abertaInicio)
   const claro = useContext(ClaroCtx)
+  const createLayout = useContext(OnlineCreateContext)
+  if (createLayout.enabled) return <OnlineCreateSection num={num} title={title} icon={icon} sub={sub}>{children}</OnlineCreateSection>
   if (claro && resumo === undefined) return (
     <div className="ll-create-section rounded-2xl" data-section={title} style={{ background: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, padding: '11px 11px 12px', color: INK }}>
       <div className="flex items-center gap-2.5 mb-2.5">
@@ -703,7 +707,7 @@ function Seg<T extends string | number | boolean>({ options, value, onSet, small
         const travado = travados?.includes(String(v)) ?? false
         const ultimaSozinha = grade && options.length !== 6 && options.length % 2 === 1 && i === options.length - 1
         return (
-          <button key={String(v)} onClick={() => { if (!travado) onSet(v) }} disabled={travado}
+          <button key={String(v)} aria-pressed={escolhido} onClick={() => { if (!travado) onSet(v) }} disabled={travado}
             className={`${grade ? (ultimaSozinha ? 'col-span-2' : '') : 'flex-1 min-w-0'} uppercase`}
             style={{ padding: small ? '7px 4px' : '8px 6px', fontSize: small ? 11.5 : 13, background: escolhido ? GOLD : '#F4ECD6', color: INK, border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: escolhido ? `2px 2px 0 ${INK}` : 'none', lineHeight: 1.15, opacity: travado ? 0.5 : 1, cursor: travado ? 'not-allowed' : 'pointer', ...OSWALD }}>
             {selo && (
@@ -1011,6 +1015,7 @@ export function EscLobby() {
   const campo2dOn = useCampo2DLiberado()
   // 🗂️ visual novo das salas (23/10, só a conta do Diego): filtro da lista e os modos recolhidos no criar
   const salasNovo = useSalasVisualNovo()
+  const onlineHub = !nbaSala && salasNovo
   const salasLista = useSalasListaNova() // 🗂️ lista de salas abertas nova: liberada pra todos em 31/10
   // 🖥️ CRIAR SALA NO COMPUTADOR (23/10, liberado pra todos, só ≥1100px): todas as etapas abertas + "Sua sala" ao lado
   const desk = useTelaPC()
@@ -3396,19 +3401,21 @@ export function EscLobby() {
   const travaVisitante = (e: React.MouseEvent) => {
     if (!visitante) return
     const alvo = e.target as HTMLElement
+    // Portaled dialogs enforce their own account rules, as they do on Home.
+    if (!e.currentTarget.contains(alvo)) return
     if (!alvo.closest('button') || alvo.closest('[data-livre]')) return
     e.preventDefault(); e.stopPropagation(); pedeConta()
   }
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
       {temaSala && <TemaFundo tema={temaSala} />}
-      {!nbaSala&&!estreito&&!recovering&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
+      {!nbaSala&&!estreito&&!recovering&&!(onlineHub&&phase==='menu')&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
         {label:tr('Salas abertas','Open rooms'),active:tab==='open'&&!showLeagues,onClick:()=>{setRoomError('');setShowLeagues(false);setTab('open')}},
         {label:tr('Criar sala','Create room'),free:false,active:tab==='create',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('create')}},
         ...(ligaOn?[{label:tr('Suas ligas','Your leagues'),active:tab==='open'&&showLeagues,onClick:()=>{setTab('open');setShowLeagues(true)}}]:[]),
         {label:tr('Entrar por código','Join by code'),active:tab==='join',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('join')}},
       ]:[]}/>}
-      {onBack && (
+      {onBack && !(onlineHub && phase === 'menu' && !estreito && !recovering) && (
         <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
           <span className="text-xl leading-none">←</span> Home
@@ -3464,7 +3471,7 @@ export function EscLobby() {
     const hasName = !!user?.user_metadata?.display_name
     const filtered = openRooms.filter(r => {
       const nm = r.game_state?.roomName ?? r.code
-      if (!nm.toLowerCase().includes(search.trim().toLowerCase())) return false
+      if (!`${nm}${onlineHub ? ` ${r.code}` : ''}`.toLowerCase().includes(search.trim().toLowerCase())) return false
       if (!salasLista || filtroSala === 'todas') return true
       const g = r.game_state as GS & { holandes?: boolean; duplasMode?: boolean }
       if (filtroSala === 'pregao') return !!g?.pregaoAberto
@@ -3474,13 +3481,14 @@ export function EscLobby() {
       if (filtroSala === 'clubes') return !!g?.clubes
       return !!g?.duplasMode
     })
+    const painelCarreiraTeste = co2On ? <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} /> : null
     const blocoCarreiras = (<>
       {/* 🌐 CARREIRA ONLINE v2 (19/10) — só nas contas do Diego; caminho PRÓPRIO, nada das salas daqui */}
-      {co2On && <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />}
+      {!onlineHub && painelCarreiraTeste}
       {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
       {canCareer && myCareers.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
+        <div className="ll-hub-career-saves rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{onlineHub ? tr('🪜 Suas carreiras online', '🪜 Your online careers') : tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
           {myCareers.map(r => {
             const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
             const nm = gs?.roomName ?? r.code
@@ -3512,8 +3520,8 @@ export function EscLobby() {
     return wrap(<>
       {/* 📲 COMUNIDADE DO WHATSAPP no TOPO da página de salas (13/10, Diego: "ao invés de ter no final… coloque no topo") */}
       {/* 🗂️ visual novo: um aviso só, numa faixa fina — as salas sobem pra primeira tela */}
-      {COMUNIDADE_LINK && salasNovo && (() => { try { return localStorage.getItem('esc-comunidade-zap-jogo-vista') === '1' } catch { return true } })() && (
-        <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl px-3 py-2 active:translate-y-0.5"
+      {COMUNIDADE_LINK && salasNovo && (onlineHub || (() => { try { return localStorage.getItem('esc-comunidade-zap-jogo-vista') === '1' } catch { return true } })()) && (
+        <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="ll-hub-whatsapp flex items-center gap-2 rounded-xl px-3 py-2 active:translate-y-0.5"
           style={{ background: GREEN, border: `2px solid ${INK}`, color: '#fff', textDecoration: 'none' }}>
           <span className="font-bold text-[12.5px] leading-tight flex-1 min-w-0">{tr('📲 Comunidade no WhatsApp: ache gente pra jogar', '📲 WhatsApp community: find people to play')}</span>
           <span className="shrink-0 rounded-lg px-2.5 py-0.5 font-black uppercase text-[12px]" style={{ ...OSWALD, background: GOLD, color: INK, border: `2px solid ${INK}` }}>{tr('Entrar', 'Join')}</span>
@@ -3531,6 +3539,7 @@ export function EscLobby() {
       )}
       {/* Arte de fundo; identidade e ações continuam sendo controles reais. */}
       <div data-editing-name={editingName} className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
+        {onlineHub && <OnlineLobbyBrand onBack={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} />}
         {!salasNovo && <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
           <div className="absolute top-2 right-3 flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -3566,8 +3575,8 @@ export function EscLobby() {
           ) : (
             <button onClick={() => { setNameDraft(user?.user_metadata?.display_name ?? ''); setEditingName(true) }}
               className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border-2"
-              style={{ background: hasName ? 'rgba(255,255,255,.1)' : GOLD, borderColor: hasName ? 'rgba(255,255,255,.3)' : '#000' }}>
-              <span className="font-black text-xs" style={{ color: hasName ? '#fff' : '#000' }}>
+              style={{ background: onlineHub ? (myApoioPerk() ?? APOIO_PERKS.bege).grad : hasName ? 'rgba(255,255,255,.1)' : GOLD, borderColor: onlineHub ? '#b7ad8f' : hasName ? 'rgba(255,255,255,.3)' : '#000' }}>
+              <span className="font-black text-xs" style={{ color: onlineHub ? INK : hasName ? '#fff' : '#000' }}>
                 {hasName ? nameOf() : tr('Toque pra pôr o nome do time', 'Tap to set your team name')}
               </span>
               <span style={{ fontSize: 11 }}>✏️</span>
@@ -3581,6 +3590,8 @@ export function EscLobby() {
         </div>
       </div>
 
+      {onlineHub && <OnlineLobbyReturn onBack={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} />}
+      {onlineHub && <section className="ll-hub-hero"><div><p>{tr('LEILÃO AO VIVO COM A GALERA', 'LIVE AUCTIONS WITH YOUR CREW')}</p><h1>{tab === 'create' ? tr('CRIE ', 'CREATE ') : 'ONLINE. '}<em>{tab === 'create' ? tr('A SUA SALA.', 'YOUR ROOM.') : tr('O LANCE É SEU.', 'YOUR BID. YOUR GAME.')}</em></h1><span>{tr('Entre numa sala, monte seu time e dispute a taça.', 'Join a room, build your team and compete for the trophy.')}</span></div></section>}
       {/* partida em andamento: pergunta se quer voltar ou sair */}
       {/* 🏆 06/11 (Diego): se a partida é de uma LIGA que já está em "🏆 Suas ligas", a faixa verde some — o VOLTAR mora no card da liga */}
       {resumeRoom && !(ligaOn && myLigas.some(l => l.id === resumeRoom.id)) && (
@@ -3631,8 +3642,8 @@ export function EscLobby() {
 
       {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
-      {ligaOn && (myLigas.length > 0 || showLeagues || meusPedidos.length > 0) && (
-        <div id="ll-minhas-ligas" className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
+      {ligaOn && !(onlineHub && tab === 'create') && (myLigas.length > 0 || showLeagues || meusPedidos.length > 0) && (
+        <div id="ll-minhas-ligas" className="ll-hub-leagues rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#FFF4CF', boxShadow: `4px 4px 0 ${INK}` }}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#7a4d00' }}>{tr('🏆 Suas ligas', '🏆 Your leagues')}</p>
           {/* 🙋 06/11: os MEUS pedidos de vaga (liga já começada). Aceito = entra na virada da temporada */}
           {meusPedidos.map(p => (
@@ -3657,12 +3668,12 @@ export function EscLobby() {
             const q = quandoLiga(gs?.ligaAt)
             const souDono = (r.liga_dono ?? r.host_id) === user?.id
             return (
-              <div key={r.id} className="border-2 border-black rounded-xl px-3 py-2 bg-white">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
+              <div key={r.id} className="ll-hub-league border-2 border-black rounded-xl px-3 py-2 bg-white">
+                <div className="ll-hub-league-summary flex items-center gap-2">
+                  <div className="ll-hub-league-main flex-1 min-w-0">
                     <p className="font-black text-black text-sm truncate" style={OSWALD}>{nm}</p>
                     {/* 🗂️ visual novo: a liga como um clube — temporada, técnicos e o dia, em caixinhas */}
-                    {salasNovo && (
+                    {salasNovo && !onlineHub && (
                       <div className="grid grid-cols-3 gap-1.5 my-1.5">
                         {([[`T${(gs as GS & { seasonNo?: number })?.seasonNo ?? 1}`, tr('temp.', 'season')], [String(r.count), tr('técnicos', 'managers')], [gs?.ligaFechada ? tr('sem bots', 'no bots') : tr('com bots', 'with bots'), tr('tabela', 'table')]] as [string, string][]).map(([v, lb]) => (
                           <div key={lb} className="border-2 border-black rounded-lg px-1 py-1 text-center bg-[#FFF8E1]">
@@ -3672,7 +3683,7 @@ export function EscLobby() {
                         ))}
                       </div>
                     )}
-                    <p className="text-black/60 text-[11px] font-bold">👥 {r.count} · {r.code} · {gs?.ligaFechada ? tr('sem bots', 'no bots') : tr('com bots', 'with bots')}{souDono ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
+                    <p className="text-black/60 text-[11px] font-bold">{onlineHub && <b>{tr('TEMPORADA', 'SEASON')} {(gs as GS & { seasonNo?: number })?.seasonNo ?? 1} · </b>}👥 {r.count} · {r.code} · {gs?.ligaFechada ? tr('sem bots', 'no bots') : tr('com bots', 'with bots')}{souDono ? '' : tr(' · você é convidado', ' · you are a guest')}</p>
                     <p className="font-black text-[11.5px]" style={{ ...OSWALD, color: q.cor }}>📅 {q.txt}</p>
                   </div>
                   <button onClick={() => joinFromList(r)} disabled={loading}
@@ -3685,7 +3696,7 @@ export function EscLobby() {
                     convidado nem vê os botões, pra não dar a entender que ele pode
                     apagar a liga dos outros. */}
                 {souDono && cardEdit !== r.id && (
-                  <div className="flex gap-2 mt-2">
+                  <div className="ll-hub-league-actions flex gap-2 mt-2">
                     {/* 📤 CONVIDAR NA PORTA DA FRENTE (31/08). O convite existia só
                         DENTRO da sala, e lá no fim de tudo — depois do dia marcado,
                         do remarcar e da regra do ranking. Um amigo do Diego criou a
@@ -3707,6 +3718,7 @@ export function EscLobby() {
                       className="flex-1 border-2 border-black rounded-lg py-1.5 font-black text-[11.5px] text-white active:translate-y-0.5" style={{ background: PURPLE, ...OSWALD }}>
                       {tr('📤 Convidar', '📤 Invite')}
                     </button>
+                    <OnlineLeagueManage enabled={onlineHub}>
                     <button onClick={() => {
                       const d = gs?.ligaAt ? new Date(gs.ligaAt) : new Date()
                       const pad = (n: number) => String(n).padStart(2, '0')
@@ -3732,6 +3744,7 @@ export function EscLobby() {
                       style={{ background: '#E8503A', color: '#fff', ...OSWALD }}>
                       {tr('🗑️ Excluir', '🗑️ Delete')}
                     </button>
+                    </OnlineLeagueManage>
                   </div>
                 )}
                 {/* 🙋 06/11: PEDIDOS PRA ENTRAR (só o dono vê). Aceitar = escolher em qual time a pessoa entra (bot, ou no lugar de alguém);
@@ -3882,19 +3895,20 @@ export function EscLobby() {
 
       {/* 🗂️ visual novo: carreiras descem pro pé da página, pra as salas aparecerem primeiro */}
       {!salasNovo && blocoCarreiras}
-      {/* abas */}
-      <div className="online-tabs flex border-[3px] border-black rounded-xl overflow-hidden">
-        {TABS.map(t => (
-          <button key={t.id} data-livre={t.id !== 'create' ? '1' : undefined} onClick={() => { setTab(t.id); setRoomError('') }}
-            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id ? PURPLE : '#fff', color: tab === t.id ? '#fff' : '#000', ...OSWALD }}>
-            {t.label}{salasLista && t.id === 'open' && openRooms.length > 0 ? ` (${openRooms.length})` : ''}
+      {/* Navegação visual: usa os destinos e a trava de visitantes existentes. */}
+      <nav className="online-tabs flex border-[3px] border-black rounded-xl overflow-hidden" aria-label={tr('Navegação do Online', 'Online navigation')}>
+        {(onlineHub ? [{id:'open' as const,label:tr('Salas abertas','Open rooms')}, {id:'create' as const,label:tr('Criar sala','Create room')}, {id:'join' as const,label:tr('Entrar por código','Join by code')}] : TABS).map(t => (
+          <button key={t.id} data-livre={t.id !== 'create' ? '1' : undefined} aria-current={tab === t.id && !showLeagues ? 'page' : undefined} onClick={() => { setTab(t.id); setShowLeagues(false); setRoomError('') }}
+            className="flex-1 py-2.5 font-black text-xs uppercase" style={{ backgroundColor: tab === t.id && !showLeagues ? PURPLE : '#fff', color: tab === t.id && !showLeagues ? '#fff' : '#000', ...OSWALD }}>
+            {t.label}{salasLista && t.id === 'open' && openRooms.length > 0 ? (onlineHub ? <span className="ll-hub-nav-count"> {openRooms.length}</span> : ` (${openRooms.length})`) : ''}
           </button>
         ))}
-      </div>
-
+        {onlineHub && ligaOn && <button type="button" data-livre="1" aria-current={showLeagues ? 'page' : undefined} onClick={() => {setTab('open');setShowLeagues(true);setRoomError('')}} style={{background:showLeagues?PURPLE:'#fff',color:showLeagues?'#fff':INK,...OSWALD}}>{tr('Suas ligas','Your leagues')}<span className="ll-hub-nav-count"> {myLigas.length}</span></button>}
+      </nav>
 
       {tab === 'create' && contaNovaFim && contaNovaFim > Date.now() && <ContaNovaLegenda fim={contaNovaFim} />}
       {tab === 'create' && (() => {
+        const createV01 = onlineHub && criar2
         const isCareer = canCareer && roomMode === 'carreira'
         const isElenco = salaElenco && roomMode === 'elenco'
         // 🔨 CRIAR SALA v2 (29/08) — "1 decisão + o botão". Ver o comentário do
@@ -4095,18 +4109,27 @@ export function EscLobby() {
           ...(roomMode === 'rapido' || roomMode === 'liga' ? [[tr('Partida', 'Match'), resumoPartida] as [string, string]] : []),
           [tr('Sala', 'Room'), resumoSala],
         ]
-        const botaoCriar = (!criar2 || modoLiberado) && (
-          <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
-            <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? tr('Criando...', 'Creating...') : criar2 ? tr('🔨 Criar e chamar a galera', '🔨 Create and call the crew') : isCareer ? tr('🌐 Criar Carreira', '🌐 Create Career') : tr('🏠 Criar Sala', '🏠 Create Room')}</span>
-          </Big>
-        )
-        let secN = criar2 ? 1 : 0
-        const proxSec = () => ++secN // 🔢 os blocos numeram na ordem em que aparecem (cada modo mostra os seus)
-        return (
-        <ClaroCtx.Provider value>
-        <style>{CRIAR_CLARO_CSS}</style>
-        <div className={`cs-claro ${desk ? '' : 'space-y-3'}`} style={desk ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 330px', gap: 20, alignItems: 'start' } : undefined}>
-        <div className="space-y-3">
+        const createRows: [string, string][] = (roomMode === 'rapido' || roomMode === 'liga') ? [
+          [tr('Modo', 'Mode'), nomeModo],
+          [tr('Leilão', 'Auction'), `${rapidoClubes ? tipoPacote({ clubes: true, pacSelecao, pacDecada }) : tr('Jogador', 'Player')} · ${rLeilao}`],
+          [tr('Time', 'Team'), `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · ${rDeck}${!rapidoClubes && rapidoDeck === 'br' ? ` · ${rapidoVarzea ? tr('Várzea', 'Grassroots') : tr('Todos', 'All')}` : ''}`],
+          [tr('Formação', 'Formation'), formation],
+          [tr('Campeonato', 'Championship'), rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
+          [tr('Depois da liga', 'After the league'), ehDraft ? tr('Liga + draft', 'League + draft') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
+          [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`],
+          [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
+          [tr('Conversa', 'Chat'), roomChat ? tr('Chat ligado', 'Chat on') : tr('Sem chat', 'No chat')],
+          ...(roomStream ? [[tr('Transmissão', 'Stream'), tr('Modo Stream', 'Stream mode')] as [string, string]] : []),
+        ] : linhasSala
+        const createSummaries: Record<string, string> = {
+          [tr('O leilão', 'The auction')]: rLeilao,
+          [tr('O time', 'The team')]: resumoTime,
+          [tr('O campeonato', 'The championship')]: (createRows.find(([label]) => label === tr('Campeonato', 'Championship'))?.[1] ?? '') + ` · ${rCopa[rapidoCopaMode] ?? ''}`,
+          [tr('A partida', 'The match')]: `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`,
+          [tr('A sala', 'The room')]: resumoSala,
+          [tr('Os rivais', 'The rivals')]: tr('Ajuste quem joga com vocês', 'Choose who plays with you'),
+        }
+        const modeChooser = (<>
           {criar2 && (
             <div className="online-mode-section rounded-2xl p-3" style={{ background: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
               <div className="flex items-center gap-2.5 mb-2.5">
@@ -4132,7 +4155,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha) }}
+                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha) }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
                     style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
@@ -4195,6 +4218,25 @@ export function EscLobby() {
               {modoLiberado && quadroLiga}
             </div>
           )}
+        </>)
+        const botaoCriar = (!criar2 || modoLiberado) && (
+          <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+            <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? tr('Criando...', 'Creating...') : createV01 ? tr('Criar sala →', 'Create room →') : criar2 ? tr('🔨 Criar e chamar a galera', '🔨 Create and call the crew') : isCareer ? tr('🌐 Criar Carreira', '🌐 Create Career') : tr('🏠 Criar Sala', '🏠 Create Room')}</span>
+          </Big>
+        )
+        let secN = criar2 ? 1 : 0
+        const proxSec = () => ++secN // 🔢 os blocos numeram na ordem em que aparecem (cada modo mostra os seus)
+        return (
+        <ClaroCtx.Provider value>
+        <style>{CRIAR_CLARO_CSS}</style>
+        <OnlineCreateLayout enabled={createV01} modes={modeChooser} rows={createRows} summaries={createSummaries}
+          name={roomName.trim() || `${roomMode === 'liga' ? tr('Liga do', 'League of') : tr('Sala do', 'Room of')} ${nameOf()}`}
+          button={botaoCriar} responsibility={<DonoResponsavel aberta={roomMode !== 'liga' && !roomLocked} />} errorKey={roomError}
+          error={roomError && <><p>{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="underline font-black">{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
+          notice={tr('Este modo ainda não abriu para criar sala.', 'This mode is not open for new rooms yet.')}>
+        <div className={`cs-claro ${desk ? '' : 'space-y-3'}`} style={desk && !createV01 ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 330px', gap: 20, alignItems: 'start' } : undefined}>
+        <div className="ll-create-main space-y-3">
+          {!createV01 && modeChooser}
           {/* ① O BÁSICO — modo, nome, baralho, formação */}
           {(!criar2 || modoLiberado) && (<>
           {/* 🔨 O LEILÃO (26/10, criar sala em blocos): o jeito do lance e o que vai a leilão, juntos */}
@@ -4775,7 +4817,7 @@ export function EscLobby() {
           {/* 🔨 O botão de criar. Some junto com as configurações quando o modo
               escolhido ainda não abriu — o cartão em breve termina na explicação. */}
           {/* 📋 SUA SALA + o botão, no pé (mockup v5): o resumo em selinhos, igual ao do computador */}
-          {!desk && botaoCriar && (
+          {!desk && !createV01 && botaoCriar && (
             <div className="rounded-2xl p-3" style={{ background: INK }}>
               <p className="uppercase mb-2" style={{ fontSize: 12, letterSpacing: '.08em', color: GOLD, ...OSWALD }}>📋 {tr('Sua sala', 'Your room')}</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
@@ -4788,7 +4830,7 @@ export function EscLobby() {
             </div>
           )}
         </div>
-        {desk && (
+        {desk && !createV01 && (
           <aside className="space-y-3" style={{ position: 'sticky', top: 16 }}>
             <div className="rounded-2xl border-[3px] border-black p-4" style={{ background: CREAM, color: INK, boxShadow: `5px 5px 0 ${INK}` }}>
               <p className="font-black text-[12px] uppercase tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(0,0,0,.55)' }}>📋 {tr('Sua sala', 'Your room')}</p>
@@ -4808,11 +4850,14 @@ export function EscLobby() {
           </aside>
         )}
         </div>
+        </OnlineCreateLayout>
         </ClaroCtx.Provider>
         )
       })()}
 
       {tab === 'open' && <div className="ll-room-browser space-y-3">
+        <OnlineRoomMain enabled={onlineHub}>
+        {onlineHub && <header className="ll-hub-room-heading"><div><h2>{tr('SALAS ABERTAS', 'OPEN ROOMS')} <b>/ {openRooms.length}</b></h2><p>{tr('Escolha uma sala e veja o que está rolando.', 'Choose a room and see what is happening.')}</p></div><button type="button" data-livre="1" onClick={() => fetchOpenRooms()} disabled={listLoading}>{tr('↻ ATUALIZAR', '↻ REFRESH')}</button></header>}
         <aside className="ll-room-shortcuts ll-desktop-panel" aria-label={tr('Atalhos do Online','Online shortcuts')}>
           <h2>{tr('Jogue com a galera','Play with friends')}</h2><div>
           <button type="button" data-livre="1" onClick={()=>setTab('join')}>{tr('Entrar com código','Join with a code')}</button>
@@ -4821,11 +4866,11 @@ export function EscLobby() {
           <p>🟢 {tr('Esperando gente: pode entrar.','Waiting: you can join.')}<br/>🔒 {tr('Com senha: pede o convite.','Password: invitation required.')}<br/>🔴 {tr('Em jogo: partida em andamento.','Playing: match in progress.')}</p>
           </div>
         </aside>
-        <Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('Buscar sala…', 'Search room…')} />
+        <div className="ll-hub-room-search"><Field label={tr('Buscar sala', 'Search room')} value={search} onChange={e => setSearch(e.target.value)} placeholder={onlineHub ? tr('Buscar sala pelo nome ou código…', 'Search room by name or code…') : tr('Buscar sala…', 'Search room…')} /></div>
         {salasLista && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="ll-hub-room-filters flex flex-wrap gap-1.5">
             {([['todas', tr('Todas', 'All')], ['envelope', tr('✉️ Envelope', '✉️ Sealed')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão', '🔨 Open')], ['unico', tr('⚡ Único', '⚡ Single')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['duplas', tr('🤝 Duplas', '🤝 Duos')]] as [typeof filtroSala, string][]).map(([v, lb]) => (
-              <button key={v} data-livre="1" onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
+              <button key={v} data-livre="1" aria-pressed={filtroSala === v} onClick={() => setFiltroSala(v)} className="rounded-full px-2.5 py-1 text-[11.5px] font-black border-2 active:translate-y-0.5"
                 style={{ borderColor: filtroSala === v ? INK : 'rgba(255,255,255,.7)', background: filtroSala === v ? '#fff' : 'transparent', color: filtroSala === v ? INK : '#fff' }}>{lb}</button>
             ))}
           </div>
@@ -4882,11 +4927,12 @@ export function EscLobby() {
                   <span className="text-[12px] font-black tracking-wider" style={OSWALD}>{tr(`AO VIVO AGORA NO ${plataforma!.toUpperCase()} · ASSISTA E ENTRE`, `LIVE NOW ON ${plataforma!.toUpperCase()} · WATCH AND JOIN`)}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 p-3">
+              {onlineHub && <div className="ll-hub-room-top"><span data-status={live ? 'playing' : full ? 'full' : 'waiting'}>{live ? tr('● EM JOGO', '● IN GAME') : full ? tr('CHEIA', 'FULL') : tr('● ESPERANDO', '● WAITING')}</span><code>{r.code}</code></div>}
+              <div className="ll-hub-room-content flex items-center gap-2 p-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
+                  <p className="ll-hub-room-name font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
-                    <span className="truncate">{r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
+                    <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
                     <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
@@ -4916,7 +4962,7 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#fff', color: '#000', ...OSWALD }} title={tr('Às cegas: cada um escreve o lance no envelope e só abre no martelo. É o pregão de sempre.', 'Sealed bid: everyone writes their bid in an envelope and it only opens at the hammer. The usual auction.')}>{tr('✉️ ÀS CEGAS', '✉️ SEALED')}</span>
                     ))}
                   </p>
-                  <p className="text-black/60 text-xs font-bold mt-0.5">{salasLista && !duplasRoom ? '' : <>👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · </>}{r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
+                  <p className="ll-hub-room-info text-black/60 text-xs font-bold mt-0.5">{onlineHub ? <>{duplasRoom ? <>{r.count} {r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')} · </> : !salasLista ? <>{r.count}/{r.max_players} · </> : null}{ligaFechadaRoom && <>{tr('Sem bots', 'No bots')} · </>}{!isCareerRoom && !mundoRoom && <>{ritmoLbl} · {copaLbl}</>}{r.game_state?.stream ? ' · stream' : ''}</> : <>{salasLista && !duplasRoom ? '' : <>👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · </>}{r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</>}</p>
                   {/* 👑 31/10: quem pode entrar, sem precisar adivinhar pelo cadeado */}
                   <span className="inline-block mt-1 uppercase" style={{ fontSize: 10.5, fontWeight: 900, borderRadius: 7, padding: '2px 7px', ...OSWALD, ...(r.game_state?.locked ? { background: INK, color: GOLD } : { background: GREEN, color: '#fff' }) }}>{r.game_state?.locked ? tr('🔒 Só amigos · precisa da senha', '🔒 Friends only · password needed') : tr('🔓 Aberta · qualquer um entra', '🔓 Open · anyone can join')}</span>
                   {ligaRoom && (
@@ -4926,13 +4972,13 @@ export function EscLobby() {
                   )}
                 </div>
                 {salasLista && !duplasRoom && (
-                  <div className="shrink-0 text-center leading-none">
+                  <div className="ll-hub-room-members shrink-0 text-center leading-none">
                     <b className="block text-[22px] text-black" style={OSWALD}>{r.count}/{r.max_players}</b>
                     <span className="block text-[9.5px] font-black uppercase" style={{ color: '#5a5647' }}>{tr('técnicos', 'managers')}</span>
                   </div>
                 )}
                 {live ? (
-                  <span className="border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>
+                  <span className="ll-hub-legacy-status border-[2px] border-black rounded-lg px-3 py-2 font-black text-xs uppercase shrink-0" style={{ backgroundColor: '#ccc', color: '#000', ...OSWALD }}>
                     {tr('Em jogo', 'In game')}
                   </span>
                 ) : (
@@ -4954,7 +5000,7 @@ export function EscLobby() {
                   Mundo, Bafo e carreira (outro motor) e a própria sala de quem clica. */}
               {souEspectador && user && r.host_id !== user.id && !mundoRoom && r.game_state?.mode !== 'elenco' && !isCareerRoom && (
                 <button onClick={() => setAssistindo({ id: r.id, code: r.code, nome: nm })}
-                  className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[3px] border-black rounded-xl py-2 font-black text-sm uppercase"
+                  className="ll-hub-room-watch block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[3px] border-black rounded-xl py-2 font-black text-sm uppercase"
                   style={{ background: '#3b2a6b', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
                   {tr('👁️ Assistir', '👁️ Watch')}
                 </button>
@@ -4974,9 +5020,10 @@ export function EscLobby() {
             )
           })}
         </div>
-        <div data-livre="1"><Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big></div>
+        <div className="ll-hub-legacy-refresh" data-livre="1"><Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big></div>
         {/* 🏆📊🖋️ vitrine: campeões de hoje · ranking da semana · último batismo (13/10, mockup aprovado) */}
-        <VitrineSalas logado={!!user} />
+        </OnlineRoomMain>
+        <VitrineSalas logado={!!user} compact={onlineHub} />
         {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
             que nasceu. Palavras do Diego, olhando a tela: *"sobre o WhatsApp, é pra
             aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não
@@ -5031,7 +5078,7 @@ export function EscLobby() {
         </aside>}
       </div>}
 
-      {!pwModal && roomError && <><p className="text-red-400 text-sm font-bold">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
+      {!pwModal && roomError && !(onlineHub && criar2 && tab === 'create') && <><p className="text-red-400 text-sm font-bold">{roomError}</p>{(roomError.includes('⭐ Craque') || roomError.includes('go ⭐ Craque')) && <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=planos` }} className="mt-1.5 w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 active:translate-y-0.5" style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS', '⭐ SEE THE PLANS')}</button>}</>}
       {confirmaEmail && <ConfirmaEmail onLiberado={() => { setConfirmaEmail(false); void createRoom() }} onVerSalas={() => { setConfirmaEmail(false); setTab('open') }} />}
       {contaNovaBox && contaNovaFim && <ContaNova24h fim={contaNovaFim} onVerSalas={() => { setContaNovaBox(false); setTab('open') }} />}
       {/* 🏟️💳 03/11 (mockup scripts/mockups/limite-sala-venda.png, Diego: "Sim pode fazer e publicar"): o limite da sala virou tela de
@@ -5157,9 +5204,11 @@ export function EscLobby() {
         </div>
       )}
       {salasNovo && <div className="space-y-5">{blocoCarreiras}</div>}
-      <AdminButton />
+      {onlineHub ? (co2On || souCriador) && <OnlineLobbyTools>{painelCarreiraTeste}<AdminButton /></OnlineLobbyTools> : <AdminButton />}
+      <OnlineLobbyFooter enabled={onlineHub}>
       {!visitante && <button onClick={() => { if (!window.confirm(tr('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.', 'Sign out? You will need to sign in again (e-mail/password or Google) next time.'))) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">{tr('Sair da conta', 'Sign out')}</button>}
-      <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>
+      {!onlineHub && <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>}
+      </OnlineLobbyFooter>
     </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
 

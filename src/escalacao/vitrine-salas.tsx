@@ -8,7 +8,8 @@
 // a semana tem ~900 linhas de campeão e baixar isso no celular a cada lista seria tráfego à toa.
 // Banco sem resposta = a vitrine simplesmente não aparece (nunca trava a lista de salas).
 import { EmblemaCla, clasLiberado } from './cla' // ⚔️ 21/10: ranking dos clãs da semana
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { OnlineCommunity, OnlineCommunityPanel } from './online-lobby-layout'
 import { supabase } from '../lib/supabase'
 import { buscaVitrine, type Vitrine } from './vitrine-dados'
 import { tr, getLang } from './lang'
@@ -108,7 +109,11 @@ function Caixa({ titulo, sub, escura = false, cincoMin = false, children }: { ti
   )
 }
 
-export function VitrineSalas({ logado }: { logado: boolean }) {
+function RankingRules({ compact, children }: { compact: boolean; children: ReactNode }) {
+  return compact ? <details className="ll-hub-ranking-rules" open><summary>{tr('REGRAS E PÓDIO ANTERIOR', 'RULES AND PREVIOUS PODIUM')}</summary>{children}</details> : <>{children}</>
+}
+
+export function VitrineSalas({ logado, compact = false }: { logado: boolean; compact?: boolean }) {
   const [v, setV] = useState<Vitrine | null>(null)
   useEffect(() => {
     let vivo = true
@@ -119,7 +124,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
   const euNoTop = !!v.eu && v.semana.some(s => s.nome === v.eu!.nome && s.titulos === v.eu!.titulos)
   const mascote = mascoteInteiraDoTime(DESTAQUE.clube)
   return (
-    <div className="space-y-3.5" style={{ marginTop: 6 }}>
+    <OnlineCommunity enabled={compact} clans={clasLiberado()}>
       {/* 🔨 SELO DE NOVIDADE (Diego 13/10: "um selinho pra pessoa saber que tudo pra baixo é novo"). Some
           sozinho depois de 27/10, ninguém precisa apagar. Mesmo formato dos selos do aviso da comunidade. */}
       {Date.now() < Date.parse('2026-10-28T03:00:00Z') && (
@@ -128,7 +133,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           <span style={{ fontSize: 11.5, fontWeight: 800, color: '#F4ECD6', textShadow: '0 1px 2px rgba(0,0,0,.6)' }}>{tr('tudo aqui embaixo é novo ↓', 'everything below is new ↓')}</span>
         </div>
       )}
-      <Caixa cincoMin titulo={tr('🏆 Campeões de hoje', '🏆 Today’s champions')} sub={tr('Quem levantou taça nas salas online hoje — só gente, nunca bot.', 'Who lifted a trophy in the online rooms today — people only, never bots.')}>
+      <OnlineCommunityPanel name="campeoes"><Caixa cincoMin titulo={tr('🏆 Campeões de hoje', '🏆 Today’s champions')} sub={tr('Quem levantou taça nas salas online hoje — só gente, nunca bot.', 'Who lifted a trophy in the online rooms today — people only, never bots.')}>
         {v.hoje.length === 0
           ? <p style={{ margin: 0, fontSize: 12, fontWeight: 800 }}>{tr('Ninguém levantou taça hoje ainda. O primeiro pode ser você! 👀', 'Nobody has lifted a trophy today yet. The first one could be you! 👀')}</p>
           : v.hoje.slice(0, 3).map((c, i) => (
@@ -141,14 +146,15 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           ))}
       </Caixa>
 
-      {(v.semana.length > 0 || (v.passada?.length ?? 0) > 0) && (
+      </OnlineCommunityPanel>
+      <OnlineCommunityPanel name="ranking">{(compact || v.semana.length > 0 || (v.passada?.length ?? 0) > 0) && (
         <Caixa cincoMin titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais títulos online nesta semana.', 'The managers with the most online titles this week.')}>
           {v.semana.length === 0 && <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 800 }}>{tr('Semana nova, ranking zerado. O primeiro título é seu? ⚽', 'New week, fresh ranking. Will the first title be yours? ⚽')}</p>}
           {/* 🏆 16/10 (Diego: "no ranking coloque a moldura que falamos"): o top 3 aparece aqui com a MESMA moldura de
               metal + fita que ele já leva na lista de técnicos da sala (`podio-semana.tsx`). A posição vem do ranking. */}
           {v.semana.map((s, i) => (
             <PodioMoldura key={i} pos={(s.pos >= 1 && s.pos <= 3 ? s.pos : 0) as 0 | 1 | 2 | 3}>
-              <div role={contaValida(s.uid) ? 'button' : undefined} onClick={() => { if (contaValida(s.uid)) abrePerfilSolto(s.uid) }} style={{ cursor: contaValida(s.uid) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : s.pos > 3 ? { borderTop: '1.5px solid #0001' } : {}) }}>
+              <div role={contaValida(s.uid) ? 'button' : undefined} tabIndex={contaValida(s.uid) ? 0 : undefined} onKeyDown={e => { if (contaValida(s.uid) && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); abrePerfilSolto(s.uid) } }} onClick={() => { if (contaValida(s.uid)) abrePerfilSolto(s.uid) }} style={{ cursor: contaValida(s.uid) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : s.pos > 3 ? { borderTop: '1.5px solid #0001' } : {}) }}>
                 <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{medalha(s.pos)}</span>
                 <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.nome}</b>
                 <span style={{ ...OSW, fontSize: 15 }}>{s.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{s.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
@@ -166,6 +172,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           )}
           {/* 🏆 19/10 (Diego: "embaixo do ranking fica em uma linha listado os 3 primeiros da semana"): o pódio da última semana FECHADA,
               fixo a semana inteira; na outra segunda troca sozinho. Mockup `scripts/mockups/podio-30d.png`. */}
+          <RankingRules compact={compact}>
           {(v.passada?.length ?? 0) > 0 && (
             <div style={{ marginTop: 10, border: `3px solid ${INK}`, borderRadius: 12, background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}`, padding: '7px 10px' }}>
               <span style={{ ...OSW, display: 'block', fontSize: 10, letterSpacing: '.14em', color: '#7C3AED', marginBottom: 3 }}>{tr('🏆 PÓDIO DA SEMANA PASSADA', '🏆 LAST WEEK’S PODIUM')}</span>
@@ -179,11 +186,14 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
             </div>
           )}
           <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam a semana com a medalha 🥇🥈🥉 ao lado do nome, a moldura de metal e a fita "1º DA SEMANA" nas salas e no chat. Quem fecha a semana no pódio fica com a medalha no nome por 30 dias.', '⏳ Resets every Monday at midnight. The top 3 play the week with the 🥇🥈🥉 medal next to their name, the metal frame and the "#1 OF THE WEEK" ribbon in the rooms and the chat. Whoever closes the week on the podium keeps the medal on their name for 30 days.')}</p>
+          </RankingRules>
           {/* 🪙 17/10 (Diego: "encaixa sutilmente aí… 1º 20 · 2º 10 · 3º 5") — o mesmo número de RANKING_SEMANA_MOEDAS */}
           <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]}.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]}.`)}</p>
         </Caixa>
       )}
-      {clasLiberado() && <RankingClasCaixa />}
+      </OnlineCommunityPanel>
+      {clasLiberado() && <OnlineCommunityPanel name="clas"><RankingClasCaixa /></OnlineCommunityPanel>}
+      <OnlineCommunityPanel name="batismo">
 
       {(
         <Caixa escura titulo={tr('🖋️ Batismo em destaque', '🖋️ Featured named club')} sub={tr('Um clube de verdade, de um jogador do Leilão Legends.', 'A real club, from a Leilão Legends player.')}>
@@ -202,6 +212,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
           )} />
         </Caixa>
       )}
-    </div>
+      </OnlineCommunityPanel>
+    </OnlineCommunity>
   )
 }

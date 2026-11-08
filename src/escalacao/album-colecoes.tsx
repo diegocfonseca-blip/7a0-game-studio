@@ -492,7 +492,7 @@ export function AlbumNosAmigos({ propor }: { propor?: { uid: string; nome: strin
       </div>
       {copias === null && <p style={{ fontSize: 13 }}>{t('Carregando…', 'Loading…')}</p>}
       {copias && aba === 'cartas' && (unicas.length
-        ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 380, overflowY: 'auto', padding: 3 }}>{unicas.map(({ c, copias: n }) => <MiniCarta key={c.id} c={c} selo={n > 1 ? `x${n}` : undefined} />)}</div>
+        ? <div className="social-album-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 380, overflowY: 'auto', padding: 3 }}>{unicas.map(({ c, copias: n }) => <MiniCarta key={c.id} c={c} selo={n > 1 ? `x${n}` : undefined} />)}</div>
         : <p style={{ fontSize: 13, color: 'rgba(0,0,0,.6)' }}>{t('Seu álbum ainda está vazio. Campeão ganha uma carta por título — no online ou contra a máquina.', 'Your album is still empty. A champion earns one card per title — online or vs the CPU.')}</p>)}
       {copias && aba === 'colecoes' && <AbaColecoes minhas={copias} />}
       {copias && aba === 'trocas' && eu && <AbaTrocas meuId={eu.id} meuNome={eu.nome} minhas={copias} recarregar={recarregar} propor={propor} />}
@@ -532,7 +532,7 @@ export function CartasDele({ uid }: { uid: string }) {
     <div>
       <p style={{ ...OSW, fontSize: 13, margin: '0 0 6px' }}>{t(`📖 Cartas dele (${dele.length})`, `📖 Their cards (${dele.length})`)}</p>
       {ord.length
-        ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 300, overflowY: 'auto', padding: 3 }}>{ord.map(c => <MiniCarta key={c.id} c={c} selo={falta(c) ? '⭐' : undefined} />)}</div>
+        ? <div className="social-album-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 300, overflowY: 'auto', padding: 3 }}>{ord.map(c => <MiniCarta key={c.id} c={c} selo={falta(c) ? '⭐' : undefined} />)}</div>
         : <p style={{ fontSize: 12.5 }}>{t('Ele ainda não tem carta livre.', 'They have no free card yet.')}</p>}
       <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', marginTop: 6 }}>{t('⭐ = carta que falta nas SUAS coleções (aparece primeiro).', '⭐ = a card missing from YOUR collections (shown first).')}</p>
     </div>
