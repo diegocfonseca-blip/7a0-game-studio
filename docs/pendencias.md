@@ -12854,7 +12854,7 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   salvamento com o texto do Diego e só "Conhecer os planos". Foto `scripts/mockups/salvar-teste-5-dias.png`.
   ⚠️ NA HORA DE PUBLICAR: desligar o cron `esc-nuvem-gratis-1d` (senão, sem poder salvar, a carreira seria apagada 1 dia depois).
   ⚠️ Brecha conhecida: quem NUNCA aperta Salvar continua com o salvamento automático do aparelho (o teste só começa no toque).
-- 🕵️ 08/11: **Ice Nugets × Gabiru FC LIGADOS** (grupo `icenugets`, desde 08/11 06:58 UTC, não retroativo) — ordem do Diego. Gabiru criado 07/11,
+- 🕵️ 08/11: **Ice Nugets × Gabiru FC LIGADOS** (grupo `icenugets`; `desde` puxado pra 07/11 22:45 UTC a pedido do Diego, pra ele sair do top 3 da semana: ficou com 36) — ordem do Diego. Gabiru criado 07/11,
   100 temporadas só os dois na Liga Draft "Eu e eu" (94 × 5). Título deles jogando só os dois não conta mais pro ranking; os de antes ficam.
 - 🏷️ 08/11: sala JWKSLQ ("Eu e eu") aparece na lista como **"Eu"** (ordem do Diego). Feito no gatilho `esc_sala_nome_ofensivo`
   (`if new.code = 'JWKSLQ' then new.ls_name := 'Eu'`) — o dono regrava o estado a cada poucos segundos, então só o update não segurava.

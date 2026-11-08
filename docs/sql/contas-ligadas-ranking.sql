@@ -50,3 +50,7 @@ alter table public.esc_contas_ligadas add column if not exists desde timestamptz
 -- sala "Eu e eu" (JWKSLQ, Liga Draft, só os dois), 100 temporadas de 07/11 17:25 a 08/11 06:52, 94 a 5. Grupo 'icenugets', desde 08/11
 -- 06:58 UTC (não retroativo).
 -- insert into esc_contas_ligadas (conta, grupo, motivo) values ('076876f0-855f-45e7-b0aa-a46c7ceb2883','icenugets',…), ('b1eb10d0-31a1-44e8-b9a2-3c224ab48e76','icenugets',…);
+-- 🔁 08/11, mesmo dia (Diego: "ele está em primeiro no ranking… não precisa todos, só ao ponto dele não ficar entre os 3 primeiros"):
+-- `desde` do grupo 'icenugets' voltou pra 2026-11-07 22:45:01 UTC (o 25º título da fazenda). Ficam valendo os 12 títulos de sala
+-- de verdade + 24 da sala só dos dois = 36 na semana (o 3º lugar, Corinthians Pe, tem 38). Nenhum título foi apagado.
+-- update esc_contas_ligadas set desde = '2026-11-07 22:45:01.199276+00' where grupo = 'icenugets';
