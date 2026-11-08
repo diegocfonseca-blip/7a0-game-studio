@@ -1,3 +1,11 @@
+## 🛒 08/11 — Loja V01 na linha da home aprovada (PUBLICAÇÃO AUTORIZADA EM 08/11)
+- Diego aprovou a proposta desktop e celular: fundo cinematográfico curto, cartões creme, navegação lateral no desktop e categorias horizontais no celular. Categorias: Planos, Seu clube, Carreira, Salas e comunidade, Sua marca.
+- `loja-layout.tsx/css` recebe o catálogo de `loja-clube.tsx`. Mensais e pagamentos únicos ficam separados; moedas e fichas continuam na loja; presidente, canto, cores, temas, salas extras, recados, clã, presentes, combos e anúncios foram mantidos, conforme os mesmos requisitos da conta. A história do Luca e o destino do apoio ficam numa seção expansível.
+- Preços vêm das regras existentes. Produto, valor, resgate de ficha, crédito na carreira, Vendria e confirmação de Pix preservados. Trocar categoria mantém os formulários montados e o pagamento visível. Âncoras antigas preservadas.
+- Verificado em 320, 393, 768, 1440 e 1920 px: sem transbordamento horizontal; três pacotes abrem os valores corretos; presentes preservam campos; contas com Lenda não recebem ofertas de salas extras/mensais; modais de conta/benefícios e fechamento testados. Backend bloqueado na bancada: nenhuma cobrança real, conta real ou alteração no banco.
+- Build de produção passou. Asserções de `npm run planos` passaram; o processo Node 24/Vite abortou durante a limpeza nativa, depois do resultado positivo (log local `/tmp/loja-v01-planos.log`). Capturas reais da bancada e relatório em `/workspace/shared/loja-v01-implementada/`.
+- Publicação autorizada por Diego em 08/11: "Publique oras entwo". Base desta alteração: home V03 publicada em `895bf8b7`; nenhuma mudança pendente do mapa incluída. Conferir execução do deploy antes de declarar que entrou no ar.
+
 ## 🚩📸📺 07/11 — Campo 2D: bandeirinhas, fotógrafos e telão (FEITO, liberado pra TODOS)
 - Diego escolheu da lista de ideias (*"Ok faça p todos"*): bandeirinhas na lateral (linha do penúltimo defensor, cada um numa metade, bandeira
   apontando no lateral/escanteio/tiro de meta), 4 fotógrafos atrás de cada gol com flash no gol e em chute perigoso, e o 📺 telão na
