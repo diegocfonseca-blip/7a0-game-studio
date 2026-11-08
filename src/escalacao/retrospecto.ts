@@ -33,14 +33,18 @@ export function gravaRetrospecto(roomId: string, chave: string, jogos: JogoRetro
 }
 
 /** lê o MEU retrospecto contra cada conta da lista. `chave` muda a cada rodada → relê (poucas linhas minúsculas) */
-export function useRetrospecto(eu: string | null | undefined, rivais: string[], chave: string): Record<string, Retro> {
+/** `espectadorDaSala`: quem só ASSISTE lê pela função do banco (o RLS só deixa cada conta ler os próprios pares) */
+export function useRetrospecto(eu: string | null | undefined, rivais: string[], chave: string, espectadorDaSala?: string | null): Record<string, Retro> {
   const [mapa, setMapa] = useState<Record<string, Retro>>({})
   const lista = rivais.filter(r => r && r !== eu).sort().join(',')
   useEffect(() => {
     if (!eu || !lista) { setMapa({}); return }
     let vivo = true
     const ids = lista.split(',')
-    supabase.from('esc_retrospecto').select('a,b,vit_a,empates,vit_b,ultimos').or(`and(a.eq.${eu},b.in.(${ids.join(',')})),and(b.eq.${eu},a.in.(${ids.join(',')}))`)
+    const busca = espectadorDaSala
+      ? supabase.rpc('esc_retrospecto_espectador', { p_room: espectadorDaSala, p_eu: eu, p_rivais: ids })
+      : supabase.from('esc_retrospecto').select('a,b,vit_a,empates,vit_b,ultimos').or(`and(a.eq.${eu},b.in.(${ids.join(',')})),and(b.eq.${eu},a.in.(${ids.join(',')}))`)
+    Promise.resolve(busca)
       .then(({ data }) => {
         if (!vivo || !Array.isArray(data)) return
         const m: Record<string, Retro> = {}
@@ -53,7 +57,7 @@ export function useRetrospecto(eu: string | null | undefined, rivais: string[], 
         setMapa(m)
       }, () => { /* sem rede: fica o que tinha */ })
     return () => { vivo = false }
-  }, [eu, lista, chave])
+  }, [eu, lista, chave, espectadorDaSala])
   return mapa
 }
 
