@@ -78,6 +78,15 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const flagTexture=texture(flagCanvas),flashTexture=texture(flashCanvas)
  const flags=[0,1].map(()=>{const sp=new T.Sprite(new T.SpriteMaterial({map:flagTexture,transparent:true,depthWrite:false,toneMapped:false}));sp.scale.set(.9,.9,1);sp.renderOrder=17;sp.visible=false;root.add(sp);return sp})
  const flashes=Array.from({length:8},()=>{const sp=new T.Sprite(new T.SpriteMaterial({map:flashTexture,transparent:true,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending}));sp.scale.set(3.2,3.2,1);sp.renderOrder=18;sp.visible=false;root.add(sp);return sp})
+ // 🏷️ 08/11 (regra 21: o 2D do mapa segue o da aba Jogos): o NOME DOS TIMES atrás de cada gol, como o bandeirão do campinho —
+ // o mandante defende o gol de x negativo (campo y = L). Tamanho fixo de TELA, lido na horizontal no celular em pé e na vertical deitado.
+ const nomesTimes=[0,1].map(lado=>{const canvas=document.createElement('canvas');canvas.width=512;canvas.height=80;const map=texture(canvas),mat=new T.SpriteMaterial({map,transparent:true,depthWrite:false,depthTest:false,toneMapped:false}),sp=new T.Sprite(mat);sp.name='nome-time2d:'+lado;sp.renderOrder=11;sp.visible=false;root.add(sp);return{lado,canvas,map,mat,sp,chave:''}})
+ const limpaNome=(n:string)=>n.replace(/[^\p{L}\p{N} .'&-]/gu,'').replace(/\s+/g,' ').trim().toUpperCase().slice(0,18)
+ const desenhaNomeTime=(b:typeof nomesTimes[number],nome:string,cor:string)=>{const chave=nome+'|'+cor;if(b.chave===chave)return;b.chave=chave;const g=b.canvas.getContext('2d')!,txt=limpaNome(nome)
+  g.font='900 46px Oswald, Arial, sans-serif';const w=Math.min(504,Math.ceil(g.measureText(txt).width)+44);b.canvas.width=w;b.canvas.height=80
+  g.clearRect(0,0,w,80);g.fillStyle=cor;g.globalAlpha=.94;g.beginPath();g.roundRect(3,6,w-6,68,12);g.fill();g.globalAlpha=1;g.lineWidth=5;g.strokeStyle='#0c0c0c';g.stroke()
+  const c=document.createElement('canvas').getContext('2d')!;c.fillStyle=cor;c.fillRect(0,0,1,1);const rgb=c.getImageData(0,0,1,1).data
+  g.font='900 46px Oswald, Arial, sans-serif';g.fillStyle=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>160?'#0c0c0c':'#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,w/2,42,w-30);b.map.dispose();b.map=texture(b.canvas);b.mat.map=b.map;b.mat.needsUpdate=true}
  const nomeNaBola=criaNomeNaBola() // 🏷️ o nome segura um pouquinho depois do toque (o mesmo do campinho da aba Jogos)
  const ballShadow=new T.Mesh(circle,shadowMaterial);ballShadow.name='sombra-bola2d';ballShadow.rotation.x=-Math.PI/2;ballShadow.position.y=.03;root.add(ballShadow);ballShadow.visible=false
  let id='',revision=-1,viewportVisible=true,disposed=false,lastBall:{x:number;z:number}|undefined,lastMinute=0,labels=new Set<string>(),fontRevision=0
@@ -85,7 +94,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  let frame:InspecaoPartidaComplexo={players:0,ball:{x:0,y:.11,z:0}},subjects:ReturnType<PartidaComplexo['subjects']>=[]
  const consumer={},off=observarSuperficieCampo2D(changed=>{if(changed===id&&viewportVisible&&!disposed)onReady()})
  void document.fonts?.ready.then(()=>{if(!disposed){fontRevision++;for(const token of tokens.values())token.key='';onReady()}})
- const hide=()=>{flags.forEach(f=>{f.visible=false});flashes.forEach(f=>{f.visible=false});quaseRing.visible=quaseInner.visible=quaseDot.visible=false;ball.visible=ballShadow.visible=false;rain.visible=false;trail.forEach(sp=>{sp.visible=false});bubbles.forEach(b=>{b.sp.visible=false});rastro.limpa();shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
+ const hide=()=>{nomesTimes.forEach(b=>{b.sp.visible=false});flags.forEach(f=>{f.visible=false});flashes.forEach(f=>{f.visible=false});quaseRing.visible=quaseInner.visible=quaseDot.visible=false;ball.visible=ballShadow.visible=false;rain.visible=false;trail.forEach(sp=>{sp.visible=false});bubbles.forEach(b=>{b.sp.visible=false});rastro.limpa();shadows.count=0;net=undefined;if(nativeField)atualizarRedesGol3D(nativeField,{time:0,ball:{}});tokens.forEach(t=>{t.root.visible=false})}
  // 🧈 04/11 (Diego: *"bola travando"*): o campinho manda as posições ~30 vezes por segundo e o mapa desenha a 60 — sem nada no meio,
  // jogador e bola andavam em degrauzinho. Agora cada um DESLIZA até a posição nova (fração por quadro presa no tempo real);
  // pulo grande (gol, reposição, começo) vai direto.
@@ -110,10 +119,15 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   // boneco. Quem mostra o nome é a MESMA regra do campinho: quem encosta na bola (segurando um pouquinho) + o autor do gol.
   const alturaTela=viewportHeight&&viewportHeight>80?viewportHeight:(typeof window!=='undefined'?window.innerHeight:700)||700,pxNome=alturaTela<700?26:30
   const nomeVez=nomeNaBola(source.players.find(q=>q.marker.owned)?.key,performance.now())
+  // 🔎 08/11 (celular: os jogadores viravam bolinhas com número ilegível): perto do campo, cada marcador tem um tamanho MÍNIMO de
+  // tela (24 px no celular em pé, 18 deitado/PC) — só cresce o desenho; a posição é a mesma da aba Jogos.
+  const pxMarca=camera&&camera.aspect<.85?24:18
+  const raioTela=(x:number,z:number,r:number)=>{if(!camera||distant)return r;const d=relative.set(x,0,z).sub(camera.position).dot(direction);return d>0?Math.max(r,pxMarca/alturaTela*d*tan):r}
   for(const p of source.players){
-   const token=marker(p.key,p.marker,p.x,p.z,p.radius);token.root.visible=true;seen.add(p.key)
-   {const r=token.root.position,ant=passo.get(p.key)??{x:r.x,z:r.z,fase:Math.random()*6},anda=Math.hypot(r.x-ant.x,r.z-ant.z)>.004;ant.x=r.x;ant.z=r.z;passo.set(p.key,ant);token.icon.position.y=p.radius*anchor+.10+(anda?Math.abs(Math.sin(relogio*14+ant.fase))*p.radius*.14:0)}
-   shadowAt(token.root.position.x,token.root.position.z,p.radius)
+   const pr=raioTela(p.x,p.z,p.radius)
+   const token=marker(p.key,p.marker,p.x,p.z,pr);token.root.visible=true;seen.add(p.key)
+   {const r=token.root.position,ant=passo.get(p.key)??{x:r.x,z:r.z,fase:Math.random()*6},anda=Math.hypot(r.x-ant.x,r.z-ant.z)>.004;ant.x=r.x;ant.z=r.z;passo.set(p.key,ant);token.icon.position.y=pr*anchor+.10+(anda?Math.abs(Math.sin(relogio*14+ant.fase))*pr*.14:0)}
+   shadowAt(token.root.position.x,token.root.position.z,pr)
    if(token.label){
     token.label.position.copy(token.icon.position)
     const distance=Math.hypot(p.x-source.ball.x,p.z-source.ball.z)
@@ -121,7 +135,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
      projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position)
      const depth=relative.dot(direction)
      if(depth>0){
-      const image=token.labelTexture!.image as HTMLCanvasElement,alto=Math.max(p.radius*.94,pxNome/alturaTela*2*depth*tan),folga=p.radius*1.15
+      const image=token.labelTexture!.image as HTMLCanvasElement,alto=Math.max(p.radius*.94,pxNome/alturaTela*2*depth*tan),folga=pr*1.15
       token.label.scale.set(alto*image.width/image.height,alto,1);token.label.center.set(.5,-folga/alto)
       const hh=alto/(2*depth*tan),hw=token.label.scale.x/(2*depth*tan*camera.aspect)
       if(projected.z>-1&&projected.z<1)candidates.push({key:p.key,x:projected.x,y:projected.y+folga/(depth*tan)+hh,halfWidth:hw,halfHeight:hh,priority:(p.key===nomeVez?-100:token.portrait?-25:0)+distance})
@@ -141,8 +155,9 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
      if(a.levantada&&a.alvo){const dx=emX(a.alvo[1])-emX(a.y),dz=emZ(a.alvo[0])-emZ(a.x),d=Math.hypot(dx,dz)||1,f=flags[i];f.position.set(emX(a.y)+dx/d*1.3,2.0,emZ(a.x)+dz/d*1.3);f.visible=true}})
     arr.fotos.forEach((p,i)=>{const key='foto'+i,tk=marker(key,{name:'',color:'#FF7A1A',number:'📷',portrait:null,owned:false},emX(p.y),emZ(p.x),.62);tk.icon.position.y=.62*anchor+.10;tk.root.visible=true;seen.add(key)
      if(p.flash){const fl=flashes[i];fl.position.set(emX(p.y)+(p.y<0?-1:1)*-.6,1.2,emZ(p.x));fl.visible=true}})}}
-  const ref=marker('referee',{name:'',color:'#FFC400',number:'J',portrait:null,owned:false,referee:true},source.referee.x,source.referee.z,1.05);ref.icon.position.y=1.05*anchor+.10;ref.root.visible=true;seen.add('referee')
-  shadowAt(source.referee.x,source.referee.z,1.05);shadows.count=shadowIndex;shadows.instanceMatrix.needsUpdate=true
+  const rr=raioTela(source.referee.x,source.referee.z,1.05)
+  const ref=marker('referee',{name:'',color:'#FFC400',number:'J',portrait:null,owned:false,referee:true},source.referee.x,source.referee.z,rr);ref.icon.position.y=rr*anchor+.10;ref.root.visible=true;seen.add('referee')
+  shadowAt(source.referee.x,source.referee.z,rr);shadows.count=shadowIndex;shadows.instanceMatrix.needsUpdate=true
   for(const[key,t]of tokens)if(!seen.has(key)){drop(t);tokens.delete(key)}
   if(camera){projected.set(source.ball.x,.65+Math.max(0,source.ball.y-.11),source.ball.z).project(camera);relative.set(source.ball.x,.65+Math.max(0,source.ball.y-.11),source.ball.z).sub(camera.position);const depth=relative.dot(direction);if(depth>0)obstacles.push({key:'ball',x:projected.x,y:projected.y,halfWidth:.8/(depth*tan*camera.aspect),halfHeight:.8/(depth*tan),priority:0})}
   labels=escolherRotulosCampo2D(candidates,labels,4,obstacles)
@@ -156,7 +171,18 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   // ⚽ 05/11 (Diego: *"a bola tá ficando escondida no jogador… deve deixar igual já funciona na aba de jogos"*): a posição é a MESMA
   // da aba Jogos (no pé de quem conduz, um passo à frente — vem pronta da superfície); a diferença era só o desenho: aqui o jogador
   // fica de pé e tampava a bola. Agora a bola é desenhada por cima de todo mundo, como no campinho (depthTest off, renderOrder 30).
-  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);ballShadow.position.set(ball.position.x,.03,ball.position.z);
+  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);{const rb=raioTela(ball.position.x,ball.position.z,.725)*(pxMarca>20?.62:.75);const sb=Math.max(1.45,2*rb);ball.scale.set(sb,sb,1)}
+  // 🏷️ nomes dos times atrás dos gols (mesma ideia do campinho da aba Jogos)
+  {const times=state.officialTeams,cores=[state.homeColor,state.awayColor],L=105
+   nomesTimes.forEach(b=>{const nome=times?.[b.lado]??'';b.sp.visible=!!nome&&!!camera&&!distant;if(!b.sp.visible||!camera)return;desenhaNomeTime(b,nome,cores[b.lado]||'#1b1b1b')
+    const sinal=b.lado===0?-1:1,cx=sinal*(L/2+3)
+    // pra que lado a linha do gol corre NA TELA: em pé ela é horizontal (texto deitado); deitado ela fica em pé (texto em pé, de baixo pra cima)
+    projected.set(cx,0,-20).project(camera);const ax=projected.x,ay=projected.y;projected.set(cx,0,20).project(camera);const dx=(projected.x-ax)*camera.aspect,dy=projected.y-ay
+    const vertical=Math.abs(dy)>Math.abs(dx);b.mat.rotation=vertical?Math.PI/2:0
+    const d=Math.max(1,relative.set(cx,0,0).sub(camera.position).dot(direction)),px=camera.aspect<.85?17:20,h=px/alturaTela*2*d*tan,img=b.canvas,w=Math.min(60,h*img.width/img.height)
+    // em pé o placar fica em cima do gol de cima: o nome encosta no gol (fica à vista); deitado sobra espaço do lado
+    const grossura=w*img.height/img.width;b.sp.scale.set(w,grossura,1)
+    b.sp.position.set(sinal*(L/2+(vertical?2.4+grossura*.6:.8+grossura*.5)),.5,0)})}ballShadow.position.set(ball.position.x,.03,ball.position.z);
   {const b=ball.position,trailPts=rastro.passo(b.x,b.y,b.z,dtQuadro)
    trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&rastroVisivel(trailPts.length);if(!q)return;const {tamanho,alfa}=pontoRastro(i,trailPts.length);sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(tamanho*ball.scale.x);(sp.material as T.SpriteMaterial).opacity=alfa})}
   {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
@@ -169,5 +195,5 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   frame={quase:source.quase?{side:source.quase.side,age:source.quase.age}:undefined,matchId:id,players:source.players.length,ball:{...source.ball},time:source.minute,phase:state.finished?'fim':'dominio',replay:false,official:undefined}
  }
  return{update,subjects:()=>subjects,frame:()=>frame,inspect:()=>({...frame,ball:{...frame.ball},detail:{design:'campo2d-marcadores-no-gramado-original',sourceId:id,surfaceRevision:revision,ready:revision>=0,actors:frame.players,skinnedPlayers:0,sameSource:true,nativePitch:true,pitchUploads:0,labels:[...labels],portraitMarkers:[...tokens.values()].filter(t=>t.portrait).length,fontRevision,score:superficieCampo2D(id)?.score,narration:superficieCampo2D(id)?.narration} as unknown as InspecaoPartidaComplexo['detail']}),setPresentationVisible:value=>{root.visible=value},setViewportVisible:value=>{viewportVisible=value;if(id&&!value)pedirSuperficieCampo2D(id,consumer,0)},
-  dispose(){if(disposed)return;disposed=true;off();flags.forEach(f=>(f.material as T.SpriteMaterial).dispose());flashes.forEach(f=>(f.material as T.SpriteMaterial).dispose());flagTexture.dispose();flashTexture.dispose();quaseRingGeo.dispose();quaseDotGeo.dispose();quaseGold.dispose();quaseWhite.dispose();dotTexture.dispose();trail.forEach(sp=>(sp.material as T.SpriteMaterial).dispose());bubbles.forEach(b=>{b.map.dispose();b.mat.dispose()});rainGeometry.dispose();rainMaterial.dispose();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
+  dispose(){if(disposed)return;disposed=true;off();nomesTimes.forEach(b=>{b.map.dispose();b.mat.dispose()});flags.forEach(f=>(f.material as T.SpriteMaterial).dispose());flashes.forEach(f=>(f.material as T.SpriteMaterial).dispose());flagTexture.dispose();flashTexture.dispose();quaseRingGeo.dispose();quaseDotGeo.dispose();quaseGold.dispose();quaseWhite.dispose();dotTexture.dispose();trail.forEach(sp=>(sp.material as T.SpriteMaterial).dispose());bubbles.forEach(b=>{b.map.dispose();b.mat.dispose()});rainGeometry.dispose();rainMaterial.dispose();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
 }
