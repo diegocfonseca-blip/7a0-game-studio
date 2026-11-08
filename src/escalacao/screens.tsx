@@ -8210,7 +8210,7 @@ export function EscSeason() {
       )}
 
       {/* 🆚 08/11: PRATELEIRA DE RIVALIDADES (mockup aprovado) — próximo encontro com um AMIGO + retrospecto contra cada amigo da sala */}
-      {retroOn && !copaLive && !state.espectador && (() => {
+      {retroOn && !copaLive && (() => {
         const amigos: AmigoRival[] = state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => ({ m, uid: uidDo(m.id) })).filter((x): x is { m: typeof x.m; uid: string } => !!x.uid && x.uid !== meuUidRetro)
           .map(({ m, uid }) => ({ uid, nome: m.name, time: m.teamName || m.name, temporada: (() => { const r = rivalryOf(state.rivalries, you.id, m.id); return { w: r.w, d: r.d, l: r.l } })(), id: m.id }))
         if (amigos.length === 0) return null
