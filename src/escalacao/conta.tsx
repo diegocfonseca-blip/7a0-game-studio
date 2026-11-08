@@ -30,7 +30,6 @@ const CLUBES_PRINCIPAIS = ['Atlético-MG', 'Botafogo', 'Corinthians', 'Cruzeiro'
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
 const GREEN = '#1B7A3D'
-const PURPLE = '#7C3AED'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif' }
 
 // Online, Minha conta e Carreira compartilham este formulário e a mesma sessão.
@@ -215,10 +214,10 @@ export function JanelaConta({ contexto, titulo, onPronto, onFechar, comecarEmCri
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99991, background: 'rgba(12,12,12,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '18px 14px 30px', overflowY: 'auto' }}>
-      <div role="dialog" aria-modal="true" aria-label={titulo ?? tr('Sua conta', 'Your account')} style={{ flexShrink: 0, width: '100%', maxWidth: 420, background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, overflow: 'hidden' }}>
-        <div style={{ background: PURPLE, color: '#fff', padding: '11px 14px', borderBottom: `3px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+      <div role="dialog" aria-modal="true" aria-label={titulo ?? tr('Sua conta', 'Your account')} style={{ flexShrink: 0, width: '100%', maxWidth: 420, background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `6px 6px 0 ${INK}`, overflow: 'hidden' }}>
+        <div style={{ background: INK, color: GOLD, padding: '9px 14px', borderBottom: `3px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, textTransform: 'uppercase' }}>{titulo ?? tr('💾 Guardar sua carreira', '💾 Save your career')}</span>
-          <button onClick={onFechar} aria-label={tr('Fechar', 'Close')} style={{ background: 'rgba(255,255,255,.22)', border: 'none', color: '#fff', width: 26, height: 26, borderRadius: 999, fontWeight: 900, fontSize: 13, cursor: 'pointer', lineHeight: 1, flex: 'none' }}>✕</button>
+          <button onClick={onFechar} aria-label={tr('Fechar', 'Close')} style={{ background: 'rgba(255,255,255,.1)', border: '2px solid #F4ECD655', color: GOLD, width: 44, height: 44, borderRadius: 9, fontWeight: 900, fontSize: 16, cursor: 'pointer', lineHeight: 1, flex: 'none' }}>✕</button>
         </div>
 
         <div style={{ padding: '13px 15px 16px' }}>

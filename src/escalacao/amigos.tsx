@@ -12,16 +12,18 @@ import { createPortal } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
+import { SocialJanela as Janela } from './social-layout'
 import { APOIO_PERKS, ApoioSheen, vesteCor, CORES_EXTRA, type ApoioTier, type CorExtra } from './apoio'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
-import { Trofeu, type CompId } from './competicoes-visual' // 🏆 28/10: as taças do jogo no perfil
+import type { CompId } from './competicoes-visual'
+import { TrofeuPerfil } from './trofeus-perfil' // Coleção padronizada aprovada em 08/11.
 import { useAmigos } from './sport'
 import { COMUNIDADE_LINK } from './comunidade'
 import { AlbumNosAmigos, CartasDele } from './album-colecoes' // 📖 19/10: álbum e trocas dentro dos Amigos
 import { AbaCla, CaixaClaPerfil, ChamarProMeuCla, ENTROU_CLA, SeloCla, clasLiberado, esqueceClas, msgTrava } from './cla' // ⚔️ 21/10: clãs
 
-const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
+const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const contaValida = (uid: string | null | undefined): uid is string => !!uid && UUID.test(uid)
@@ -68,43 +70,16 @@ function ondeEsta(tela: string | null): string {
   return tr('numa partida rápida', 'in a quick match')
 }
 
-function Janela({ titulo, onClose, children }: { titulo: string; onClose: () => void; children: ReactNode }) {
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', esc); return () => window.removeEventListener('keydown', esc)
-  }, [onClose])
-  return createPortal(
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99980, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto', color: INK, background: CREME, border: `3px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 ${INK}`, padding: 12 }}>
-        <div style={{ background: INK, color: GOLD, borderRadius: 12, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...OSW, fontSize: 15 }}>
-          <span>{titulo}</span>
-          <button onClick={onClose} aria-label={tr('Fechar', 'Close')} style={{ background: 'none', border: 'none', color: GOLD, fontSize: 18, fontWeight: 900, cursor: 'pointer' }}>✕</button>
-        </div>
-        {children}
-      </div>
-    </div>,
-    document.body,
-  )
-}
 const caixa: CSSProperties = { color: INK, background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, marginTop: 10 }
 const h3: CSSProperties = { ...OSW, fontSize: 14, margin: '0 0 6px', color: INK }
 const bt = (bg: string, cor: string): CSSProperties => ({ ...OSW, fontSize: 12, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 10px', background: bg, color: cor, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' })
 
 // 🏆 a grade de taças do perfil (28/10): a arte é a do jogo (`Trofeu` — Sala de Troféus + competições do online), nunca a oficial
 function GradeTacas({ itens }: { itens: [CompId, number, string][] }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-      {itens.map(([comp, n, nome]) => (
-        <div key={nome} style={{ position: 'relative', border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px 4px', background: n > 0 ? '#FFF7DA' : '#f3eee0' }}>
-          <div style={{ height: 62, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', ...(n > 0 ? {} : { filter: 'grayscale(1)', opacity: .35 }) }}>
-            <Trofeu comp={comp} size={44} />
-          </div>
-          {n > 0 && <span style={{ position: 'absolute', top: 4, right: 4, background: INK, color: GOLD, ...OSW, fontSize: 11, borderRadius: 7, padding: '0 5px' }}>×{n}</span>}
-          <div style={{ fontSize: 9.5, fontWeight: 800, color: '#444', marginTop: 3, lineHeight: 1.1 }}>{nome}</div>
-        </div>
-      ))}
-    </div>
-  )
+  return <div className="social-trophies">{itens.map(([comp, n, nome]) => <div key={comp} className="social-trophy" data-competition={comp}>
+    <div className="social-trophy-art" data-owned={n > 0}><TrofeuPerfil comp={comp} nome={nome} /></div>
+    <b className="social-trophy-count">{n}</b><div className="social-trophy-name">{nome}</div>
+  </div>)}</div>
 }
 
 // ── 👤 PERFIL ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -126,11 +101,11 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
 
   const perk = vesteCor(APOIO_PERKS[(p && p !== 'erro' && p.tier && APOIO_PERKS[p.tier]) ? p.tier : 'bege'], p && p !== 'erro' && p.cor && p.cor in CORES_EXTRA ? p.cor as CorExtra : null) // 🎨 02/11
   return (
-    <Janela titulo={tr('👤 Perfil', '👤 Profile')} onClose={onClose}>
+    <Janela tipo="perfil" titulo={tr('👤 Perfil', '👤 Profile')} onClose={onClose}><div className="social-profile-body"><div className="social-profile-grid">
       {p === null && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
       {p === 'erro' && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Não consegui abrir esse perfil agora. Tenta de novo.', 'Couldn’t open this profile right now. Try again.')}</p>}
       {p && p !== 'erro' && <>
-        <div style={{ position: 'relative', overflow: 'hidden', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12, marginTop: 10, background: perk.grad, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div className="social-profile-identity" data-profile-tier={p.tier ?? 'bege'} style={{ position: 'relative', overflow: 'hidden', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12, marginTop: 10, background: perk.grad, display: 'flex', gap: 12, alignItems: 'center' }}>
           {perk.holo > 0 && <ApoioSheen holo={perk.holo} dur={3} />}
           <div style={{ position: 'relative', zIndex: 2 }}>
             <PresidenteDaConta uid={p.uid} size={86} reserva={p.clube ? <span style={{ width: 86, height: 86, borderRadius: '50%', border: `3px solid ${INK}`, background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Escudo nome={p.clube} size={60} /></span> : <Bolinha nome={p.nome} size={86} />} />
@@ -170,7 +145,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         {!p.sou_eu && p.relacao === 'aceito' && (
           <div style={{ marginTop: 8 }}>
             {p.meu_rival
-              ? <div style={{ display: 'flex', gap: 8 }}>
+              ? <div className="social-profile-actions" style={{ display: 'flex', gap: 8 }}>
                 <span style={{ ...bt('#E8503A', '#fff'), flex: 1, padding: 9, fontSize: 13, textAlign: 'center' }}>🔥 {tr('É o seu rival', 'Your rival')}</span>
                 <button disabled={ocupado} style={bt('#fff', INK)} onClick={() => acao(async () => { await supabase.rpc('esc_rival_tirar'); esqueceRival() })}>{tr('tirar', 'remove')}</button>
               </div>
@@ -183,7 +158,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         {/* 📖🤝 19/10 (mockup `amigos-album.png`): no perfil do AMIGO, ver as cartas dele e propor troca com ele já escolhido */}
         {!p.sou_eu && p.relacao === 'aceito' && (
           <div style={{ marginTop: 8 }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="social-profile-actions" style={{ display: 'flex', gap: 8 }}>
               <button style={{ ...bt(albumDele === 'cartas' ? INK : GOLD, albumDele === 'cartas' ? GOLD : INK), flex: 1, padding: 9, fontSize: 13 }} onClick={() => setAlbumDele(v => v === 'cartas' ? null : 'cartas')}>📖 {tr('Ver cartas dele', 'See their cards')}</button>
               <button style={{ ...bt(ROXO, '#fff'), flex: 1, padding: 9, fontSize: 13, outline: albumDele === 'troca' ? `3px solid ${GOLD}` : undefined }} onClick={() => setAlbumDele(v => v === 'troca' ? null : 'troca')}>🤝 {tr('Propor troca', 'Propose a trade')}</button>
             </div>
@@ -194,7 +169,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         )}
         {/* 📊 28/10 (mockup perfil-trofeus.png, Diego): os DOIS rankings lado a lado e discretos — carreira (o melhor save, na
             temporada dele) e o online de TODOS OS TEMPOS ("rank do online não deixa só global e não mensal") */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <div className="social-profile-ranks" style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           {([
             [p.rank ? `${p.rank.pos}º` : '—', tr('📊 Ranking da carreira', '📊 Career ranking'), p.rank ? tr(`temporada ${p.rank.temporada}`, `season ${p.rank.temporada}`) : tr('sem carreira na nuvem', 'no cloud career')],
             [p.sempre ? `${p.sempre.pos}º` : '—', tr('🔨 Ranking do online', '🔨 Online ranking'), p.sempre ? tr(`geral · ${p.sempre.titulos} ${p.sempre.titulos === 1 ? 'título' : 'títulos'}`, `all-time · ${p.sempre.titulos} ${p.sempre.titulos === 1 ? 'title' : 'titles'}`) : tr('sem título ainda', 'no title yet')],
@@ -207,7 +182,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         </div>
 
         {/* 🏆 títulos da carreira com as TAÇAS do jogo (as da Sala de Troféus): ganhou = colorida com ×N; falta = apagadinha */}
-        <div style={caixa}>
+        <div className="social-profile-career" style={caixa}>
           <p style={h3}>🏆 {tr('Títulos na carreira', 'Career titles')}</p>
           <GradeTacas itens={[
             ['carA', p.titulos?.serie_a ?? 0, tr('Série A', 'Serie A')], ['carC', p.titulos?.ligas ?? 0, tr('Ligas (todas)', 'Leagues (all)')],
@@ -219,7 +194,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         </div>
 
         {/* 🔨 títulos de sala online, por competição, com as taças + as medalhas do pódio da semana */}
-        <div style={caixa}>
+        <div className="social-profile-online" style={caixa}>
           <p style={h3}>🔨 {tr('Títulos no online', 'Online titles')} ({p.titulos?.salas ?? 0})</p>
           <GradeTacas itens={[
             ['liga', tacas?.liga ?? (tacas ? 0 : (p.titulos?.salas ?? 0)), tr('Liga', 'League')], ['copa8', tacas?.copa ?? 0, tr('Copa dos 8', 'Cup of 8')],
@@ -236,7 +211,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         </div>
 
         {/* 🔥 o rival que ESTA pessoa marcou, com o placar de títulos do online desde o dia em que marcou */}
-        {p.rival && <div style={{ ...caixa, background: '#FFE3D6' }}>
+        {p.rival && <div className="social-profile-rival" style={{ ...caixa, background: '#FFE3D6' }}>
           <p style={h3}>🔥 {tr('Rival', 'Rival')}</p>
           <button onClick={() => abrir(p.rival!.uid)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left' }}>
             <Rosto uid={p.rival.uid} nome={p.rival.nome} size={40} />
@@ -248,7 +223,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
           </button>
         </div>}
 
-        <div style={caixa}>
+        <div className="social-profile-friends" style={caixa}>
           <p style={h3}>👥 {tr('Amigos', 'Friends')} ({p.amigos_total})</p>
           {p.amigos.length === 0
             ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Ainda sem amigos por aqui.', 'No friends here yet.')}</p>
@@ -263,7 +238,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
         </div>
 
       </>}
-    </Janela>
+    </div></div></Janela>
   )
 }
 
@@ -277,6 +252,14 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
   const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
   const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
   const [aba, setAba] = useState<'amigos' | 'ranking' | 'album' | 'cla'>(abaInicial)
+  const main = useRef<HTMLElement>(null)
+  const mudarAba = (k: typeof aba) => {
+    setAba(k)
+    requestAnimationFrame(() => {
+      const el = main.current, root = el?.closest<HTMLElement>('.ll-social-window')
+      if (el && root) root.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - (root.clientWidth <= 760 ? 146 : 90)), behavior: 'auto' })
+    })
+  }
   const salaEspera = useSalaEspera() // estou numa sala de espera? então dá pra CHAMAR amigo online
   const [chamados, setChamados] = useState<Record<string, string>>({})
   const [semConta, setSemConta] = useState(false)
@@ -325,7 +308,7 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
   }
   const nomeComRival = (x: Linha) => x.rival ? `🔥 ${x.nome}` : x.nome
   const linha = (x: Linha, direita: ReactNode, sub: ReactNode) => (
-    <div key={x.amizade_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
+    <div key={x.amizade_id} className="social-row" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(x.outro)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: INK }}>
         <Rosto uid={x.outro} nome={x.nome} size={36} />
         <span style={{ minWidth: 0 }}><b style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomeComRival(x)}</b><span style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}><SeloCla uid={x.outro} /><span style={{ fontSize: 11, fontWeight: 700 }}>{sub}</span></span></span>
@@ -333,12 +316,8 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
       {direita}
     </div>
   )
-  return (
-    <Janela titulo={`${tr('👥 Meus amigos', '👥 My friends')}${amigos.length ? ` · ${amigos.length}` : ''}`} onClose={onClose}>
-      {lista === null && !semConta && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
-      {semConta ? <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Entre na sua conta (Jogar Online) pra adicionar amigos e ver quem está online.', 'Sign in (Play Online) to add friends and see who is online.')}</p>
-        : lista === 'erro' && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Não consegui carregar agora. Tenta de novo.', 'Couldn’t load right now. Try again.')}</p>}
-      {eu && <button onClick={() => setPerfil(eu.uid)} style={{ ...caixa, width: '100%', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', background: APOIO_PERKS[eu.p?.tier && APOIO_PERKS[eu.p.tier] ? eu.p.tier : 'bege'].grad }}>
+  const euPerk = vesteCor(APOIO_PERKS[eu?.p?.tier && APOIO_PERKS[eu.p.tier] ? eu.p.tier : 'bege'], eu?.p?.cor && eu.p.cor in CORES_EXTRA ? eu.p.cor as CorExtra : null)
+  const meuPerfil = (eu && <button className="social-my-profile" onClick={() => setPerfil(eu.uid)} style={{ ...caixa, width: '100%', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', background: euPerk.grad }}>
         <Rosto uid={eu.uid} nome={eu.p?.nome ?? '?'} size={54} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', ...OSW, fontSize: 11, color: '#4a3b10' }}>👤 {tr('Meu perfil', 'My profile')}</span>
@@ -348,12 +327,36 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
           </span>}
         </span>
         <span style={{ ...OSW, fontSize: 18, color: INK }}>›</span>
-      </button>}
-      {!semConta && <div style={caixa}>
+      </button>)
+  const pedidosRecebidos = (recebidos.length > 0 && <div className="social-panel social-requests" style={{ ...caixa, background: '#FFF3C4' }}>
+          <p style={h3}>📩 {recebidos.length === 1 ? tr('1 pedido de amizade', '1 friend request') : tr(`${recebidos.length} pedidos de amizade`, `${recebidos.length} friend requests`)}</p>
+          {recebidos.map(x => linha(x, <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.amizade_id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.amizade_id, false)}>{tr('recusar', 'decline')}</button></span>, <span style={{ color: '#7a4d00' }}>{tr('quer ser seu amigo', 'wants to be your friend')}</span>))}
+        </div>)
+  const pedidosEnviados = (enviados.length > 0 && <div className="social-panel" style={caixa}>
+          <p style={h3}>⏳ {tr('Pedidos que você mandou', 'Requests you sent')} ({enviados.length})</p>
+          {enviados.map(x => linha(x, <button style={bt('#fff', INK)} onClick={() => void cancelar(x.outro)}>{tr('cancelar', 'cancel')}</button>, <span style={{ color: '#888' }}>{tr('esperando aceitar', 'waiting')}</span>))}
+        </div>)
+  return <Janela tipo="amigos" titulo={tr('Meus amigos', 'My friends')} onClose={onClose} resumo={<>
+    <span>{tr(`${on.length} amigos online`, `${on.length} friends online`)}</span><span>{tr(`${amigos.length} amigos`, `${amigos.length} friends`)}</span>
+    {eu && <button type="button" className="social-mobile-profile" onClick={() => setPerfil(eu.uid)}>{tr('MEU PERFIL →', 'MY PROFILE →')}</button>}
+  </>}>
+    <div className="social-members-layout">
+      <aside className="social-sidebar">{meuPerfil}
+        {Array.isArray(lista) && <nav className="social-navigation" aria-label={tr('Áreas dos amigos', 'Friends areas')}>
+          {([['amigos', tr('👥 Amigos', '👥 Friends')], ['ranking', tr('🏆 Ranking', '🏆 Ranking')], ['album', tr('📖 Álbum', '📖 Album')], ...(clasLiberado() ? [['cla', tr('⚔️ Clã', '⚔️ Clan')]] as const : [])] as const).map(([k, rot]) => <button type="button" key={k} aria-pressed={aba === k} onClick={() => mudarAba(k)}>{rot}{k === 'amigos' && recebidos.length > 0 && <small>{tr(`${recebidos.length} pedidos`, `${recebidos.length} requests`)}</small>}</button>)}
+        </nav>}
+        {Array.isArray(lista) && <div className="social-sidebar-community"><BotaoComunidade /></div>}
+      </aside>
+      <main className="social-main" ref={main}>
+        <div className="social-section-heading"><h2>{aba === 'amigos' ? tr('QUEM VAI PARA O PREGÃO?', 'WHO IS JOINING THE AUCTION?') : aba === 'ranking' ? tr('RANKING ENTRE AMIGOS.', 'FRIENDS RANKING.') : aba === 'album' ? tr('MEU ÁLBUM.', 'MY ALBUM.') : tr('MEU CLÃ.', 'MY CLAN.')}</h2></div>
+      {lista === null && !semConta && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
+      {semConta ? <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Entre na sua conta (Jogar Online) pra adicionar amigos e ver quem está online.', 'Sign in (Play Online) to add friends and see who is online.')}</p>
+        : lista === 'erro' && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Não consegui carregar agora. Tenta de novo.', 'Couldn’t load right now. Try again.')}</p>}
+      {!semConta && aba === 'amigos' && <div className="social-search" style={caixa}>
         <p style={h3}>🔎 {tr('Procurar técnico', 'Find a manager')}</p>
-        <input value={busca} onChange={e => setBusca(e.target.value)} maxLength={30} placeholder={tr('digite o nome de técnico (3 letras ou mais)', 'type a manager name (3+ letters)')}
+        <input aria-label={tr('Procurar técnico', 'Find a manager')} value={busca} onChange={e => setBusca(e.target.value)} maxLength={30} placeholder={tr('digite o nome de técnico (3 letras ou mais)', 'type a manager name (3+ letters)')}
           style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 13.5, fontWeight: 700, color: INK, background: '#fff' }} />
-        {achados && achados.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '8px 0 0' }}>{tr('Ninguém com esse nome.', 'Nobody with that name.')}</p>}
+        <div className="social-search-results">{achados && achados.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '8px 0 0' }}>{tr('Ninguém com esse nome.', 'Nobody with that name.')}</p>}
         {achados && achados.map(a => (
           <div key={a.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa', marginTop: 4 }}>
             <button onClick={() => setPerfil(a.uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: INK }}>
@@ -365,14 +368,10 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
               : <button style={bt(GREEN, '#fff')} onClick={() => setPerfil(a.uid)}>{tr('ver perfil', 'view')}</button>}
           </div>
         ))}
-      </div>}
-      {Array.isArray(lista) && <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-        {([['amigos', `👥 ${tr('Amigos', 'Friends')}`], ['ranking', `🏆 ${tr('Ranking', 'Ranking')}`], ['album', `📖 ${tr('Álbum', 'Album')}`], ...(clasLiberado() ? [['cla', `⚔️ ${tr('Clã', 'Clan')}`]] as const : [])] as const).map(([k, rot]) => (
-          <button key={k} onClick={() => setAba(k)} style={{ ...bt(aba === k ? INK : '#fff', aba === k ? GOLD : INK), flex: 1, padding: 8, fontSize: 12.5 }}>{rot}</button>
-        ))}
-      </div>}
-      {Array.isArray(lista) && aba === 'cla' && <AbaCla amigos={amigos.map(x => ({ uid: x.outro, nome: x.nome }))} onPerfil={u => setPerfil(u)} querCriar={querCriar} />}
-      {Array.isArray(lista) && aba === 'album' && <div style={{ marginTop: 10, background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 10 }}><AlbumNosAmigos /></div>}
+      </div></div>}
+
+        {Array.isArray(lista) && aba === 'cla' && <div className="social-content-card"><AbaCla amigos={amigos.map(x => ({ uid: x.outro, nome: x.nome }))} onPerfil={u => setPerfil(u)} querCriar={querCriar} /></div>}
+        {Array.isArray(lista) && aba === 'album' && <div className="social-content-card social-album"><AlbumNosAmigos /></div>}
       {Array.isArray(lista) && aba === 'ranking' && (() => {
         // títulos de sala online NESTA semana (segunda a domingo), eu + amigos aceitos
         const linhas = [
@@ -380,12 +379,12 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
           ...amigos.map(x => ({ uid: x.outro, nome: x.nome, t: x.titulos_semana ?? 0, souEu: false, rival: !!x.rival })),
         ].sort((a, b) => b.t - a.t || a.nome.localeCompare(b.nome))
         let pos = 0, ant = -1
-        return <div style={caixa}>
+        return <div className="social-content-card" style={caixa}>
           <p style={h3}>🏆 {tr('Títulos no online · esta semana', 'Online titles · this week')}</p>
           {amigos.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '0 0 6px' }}>{tr('Adicione amigos pra disputar o ranking entre vocês.', 'Add friends to compete in your own ranking.')}</p>}
           {linhas.map((l, i) => {
             if (l.t !== ant) { pos = i + 1; ant = l.t }
-            return <button key={l.uid} onClick={() => setPerfil(l.uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 6px', borderTop: i ? '1px dashed #d8ccaa' : 'none', background: l.souEu ? '#FFF7DA' : 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: INK, textAlign: 'left' }}>
+            return <button className="social-ranking-row" key={l.uid} onClick={() => setPerfil(l.uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 6px', borderTop: i ? '1px dashed #d8ccaa' : 'none', background: l.souEu ? '#FFF7DA' : 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: INK, textAlign: 'left' }}>
               <span style={{ ...OSW, fontSize: 16, width: 30, textAlign: 'center' }}>{pos <= 3 && l.t > 0 ? ['🥇', '🥈', '🥉'][pos - 1] : `${pos}º`}</span>
               <Rosto uid={l.uid} nome={l.nome} size={32} />
               <b style={{ flex: 1, minWidth: 0, fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.rival ? '🔥 ' : ''}{l.nome}{l.souEu ? ` (${tr('você', 'you')})` : ''}</b>
@@ -395,32 +394,32 @@ export function MeusAmigos({ onClose, abaInicial = 'amigos', querCriar }: { onCl
           <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('Zera toda segunda-feira, igual ao ranking semanal.', 'Resets every Monday, like the weekly ranking.')}</p>
         </div>
       })()}
-      {Array.isArray(lista) && aba === 'amigos' && <>
-        {salaEspera && <p style={{ ...caixa, background: '#EFE6FF', fontSize: 12, fontWeight: 800, margin: '10px 0 0' }}>📣 {tr(`Você está na sala ${salaEspera}: toque em CHAMAR num amigo online e ele recebe o convite na hora.`, `You are in room ${salaEspera}: tap INVITE on an online friend and they get it right away.`)}</p>}
-        {recebidos.length > 0 && <div style={{ ...caixa, background: '#FFF3C4' }}>
-          <p style={h3}>📩 {recebidos.length === 1 ? tr('1 pedido de amizade', '1 friend request') : tr(`${recebidos.length} pedidos de amizade`, `${recebidos.length} friend requests`)}</p>
-          {recebidos.map(x => linha(x, <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.amizade_id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.amizade_id, false)}>{tr('recusar', 'decline')}</button></span>, <span style={{ color: '#7a4d00' }}>{tr('quer ser seu amigo', 'wants to be your friend')}</span>))}
-        </div>}
-        <div style={caixa}>
+
+        {Array.isArray(lista) && aba === 'amigos' && <>
+          {salaEspera && <p className="social-content-card">📣 {tr(`Você está na sala ${salaEspera}: toque em CHAMAR num amigo online e ele recebe o convite na hora.`, `You are in room ${salaEspera}: tap INVITE on an online friend and they get it right away.`)}</p>}
+          {recebidos.length > 0 && <details className="social-mobile-requests"><summary>{tr(`✉ ${recebidos.length} PEDIDOS DE AMIZADE`, `✉ ${recebidos.length} FRIEND REQUESTS`)}<small>{tr('Ver pedidos ↓', 'View requests ↓')}</small></summary>{pedidosRecebidos}</details>}
+          <div className="social-friend-columns"><div className="social-friend-main">
+        <div className="social-panel" style={caixa}>
           <p style={h3}>🟢 {tr('Online agora', 'Online now')} ({on.length})</p>
           {on.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nenhum amigo jogando agora.', 'No friends playing right now.')}</p>
             : on.map(x => linha(x, botaoSala(x), <span style={{ color: x.sala_status && x.sala_status !== 'waiting' ? '#7a4d00' : GREEN }}>{x.sala_status && x.sala_status !== 'waiting' ? `🎮 ${tr('jogando agora · a sala já começou', 'playing now · the room already started')}` : `● ${ondeEsta(x.tela)}`}</span>))}
         </div>
-        <div style={caixa}>
+        <div className="social-panel" style={caixa}>
           <p style={h3}>⚪ {tr('Offline', 'Offline')} ({off.length})</p>
           {off.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{amigos.length === 0 ? tr('Você ainda não tem amigos. Procure pelo nome aqui em cima, ou toque no nome de alguém numa sala ou no chat.', 'No friends yet. Search by name above, or tap someone’s name in a room or in the chat.') : tr('Todo mundo online!', 'Everyone is online!')}</p>
             : off.map(x => linha(x, null, <span style={{ color: '#888' }}>{vistoHa(x.visto_em)}</span>))}
         </div>
-        {enviados.length > 0 && <div style={caixa}>
-          <p style={h3}>⏳ {tr('Pedidos que você mandou', 'Requests you sent')} ({enviados.length})</p>
-          {enviados.map(x => linha(x, <button style={bt('#fff', INK)} onClick={() => void cancelar(x.outro)}>{tr('cancelar', 'cancel')}</button>, <span style={{ color: '#888' }}>{tr('esperando aceitar', 'waiting')}</span>))}
-        </div>}
-        <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '10px 2px 0', lineHeight: 1.4 }}>{tr('Amizade só vale com os dois lados aceitando, e dá pra desfazer quando quiser. Ninguém vê o seu e-mail.', 'A friendship needs both sides to accept, and you can undo it any time. Nobody sees your e-mail.')}</p>
-      </>}
-      {Array.isArray(lista) && <BotaoComunidade />}
+
+          </div><aside className="social-friend-secondary">{pedidosRecebidos}{pedidosEnviados}</aside></div>
+          <div className="social-mobile-sent">{pedidosEnviados}</div>
+        <p className="social-privacy" style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '10px 2px 0', lineHeight: 1.4 }}>{tr('Amizade só vale com os dois lados aceitando, e dá pra desfazer quando quiser. Ninguém vê o seu e-mail.', 'A friendship needs both sides to accept, and you can undo it any time. Nobody sees your e-mail.')}</p>
+
+        </>}
+        {Array.isArray(lista) && <div className="social-mobile-community"><BotaoComunidade /></div>}
+      </main>
+    </div>
       {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); carrega(); setRefaz(n => n + 1) }} onAbrirOutro={u => setPerfil(u)} />}
-    </Janela>
-  )
+  </Janela>
 }
 
 // botão "👥 Amigos" (com o número de pedidos esperando) — lê a lista UMA vez quando aparece
@@ -665,7 +664,7 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
   const responder = (id: number, sim: boolean) => responderAmizade(id, sim)
   const responderCla = async (id: number, sim: boolean, ehConvite = false) => { setMsgCla(''); setMsgCla(await responderClaAviso(id, sim, ehConvite)) }
   const linha = (uid: string, nome: string, txt: ReactNode, dir: ReactNode, k: string) => (
-    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: '1px dashed #d8ccaa' }}>
+    <div key={k} className="social-row" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderTop: '1px dashed #d8ccaa' }}>
       <button onClick={() => setPerfil(uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: INK, textAlign: 'left' }}>
         <Rosto uid={uid} nome={nome} size={34} />
         <span style={{ minWidth: 0, fontSize: 12.5, fontWeight: 700 }}><b>{nome}</b> {txt}</span>
@@ -679,17 +678,22 @@ export function SinoAmigos({ onAbrirAmigos }: { onAbrirAmigos: () => void }) {
       🔔
       {n > 0 && <span style={{ position: 'absolute', top: -8, right: -8, minWidth: 20, height: 20, borderRadius: 10, background: RED, color: '#fff', border: `2px solid ${INK}`, ...OSW, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{n}</span>}
     </button>
-    {aberto && <Janela titulo={tr('🔔 Avisos', '🔔 Notifications')} onClose={fechar}>
+    {aberto && <Janela tipo="avisos" titulo={tr('🔔 Avisos', '🔔 Notifications')} onClose={fechar}>
       <div style={caixa}>
         {convites.length + pedidos.length + todos.length + clas.length + claPedidos.length === 0 && <p style={{ fontSize: 12.5, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Nada novo por aqui. Quando um amigo te chamar pra sala ou te adicionar, aparece aqui.', 'Nothing new. When a friend invites you to a room or adds you, it shows up here.')}</p>}
+        {convites.length > 0 && <h2 className="social-notification-heading">{tr('Convites para salas', 'Room invitations')}</h2>}
         {convites.map(c => linha(c.de, c.nome, <>{tr('te chamou pra sala', 'invited you to room')} <b>{c.code}</b></>,
           salaEsperaAtual ? null : <button style={bt(GREEN, '#fff')} onClick={() => { void supabase.rpc('esc_convite_visto', { p_id: c.id }).then(() => {}, () => {}); fechar(); entrarNaSala(c.code) }}>🚪 {tr('Entrar', 'Join')}</button>, `c${c.id}`))}
+        {pedidos.length > 0 && <h2 className="social-notification-heading">{tr('Pedidos de amizade', 'Friend requests')}</h2>}
         {pedidos.map(x => linha(x.de, x.nome, tr('quer ser seu amigo', 'wants to be your friend'),
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responder(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responder(x.id, false)}>✕</button></span>, `p${x.id}`))}
+        {clas.length > 0 && <h2 className="social-notification-heading">{tr('Convites para clãs', 'Clan invitations')}</h2>}
         {clas.map(x => linha(x.de, x.nome, <>{tr('te chamou pro clã', 'invited you to the clan')} <b>⚔️ {x.cla_nome}</b></>,
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true, true)}>{tr('entrar', 'join')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `k${x.id}`))}
+        {claPedidos.length > 0 && <h2 className="social-notification-heading">{tr('Pedidos para seu clã', 'Clan requests')}</h2>}
         {claPedidos.map(x => linha(x.de, x.nome, <>{tr('quer entrar no seu clã', 'wants to join your clan')} <b>⚔️ {x.cla_nome}</b></>,
           <span style={{ display: 'flex', gap: 5 }}><button style={bt(GREEN, '#fff')} onClick={() => void responderCla(x.id, true)}>{tr('aceitar', 'accept')}</button><button style={bt('#fff', INK)} onClick={() => void responderCla(x.id, false)}>✕</button></span>, `q${x.id}`))}
+        {todos.length > 0 && <h2 className="social-notification-heading">{tr('Amizades confirmadas', 'Accepted friendships')}</h2>}
         {todos.map(x => linha(x.uid, x.nome, <>{tr('aceitou sua amizade', 'accepted your friend request')} 🤝</>, null, `a${x.uid}`))}
         {msgCla && <p style={{ fontSize: 12, fontWeight: 800, margin: '8px 0 0', color: msgCla.startsWith('⚠️') ? RED : GREEN }}>{msgCla}</p>}
       </div>
