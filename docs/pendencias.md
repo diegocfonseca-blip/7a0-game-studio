@@ -623,6 +623,13 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 08/11 (nada forte novo; não avisado)
+- Médios novos (só anotado): Carvalho × Carvalho (carvalho.marcosrp × mpereiradecarvalhoneto, 11 temp., 5×0, mas o perdedor jogou 5 salas cheias —
+  parece família) · Witzel × Witzel (ritawitzel08 criada 07/11 × miguelwitzel994, 10 temp., 0×6, perdedor 2 salas cheias) · juan.fcsilva × bryangemado
+  (ambas 06/11, logins 13 min, 8 temp., 0×3, perdedor 1 sala cheia) · erickgomes × gomesdasilvaenzo (ambas 05/11, logins 4 min, 7 temp., 0×3, perdedor
+  3 salas cheias — irmãos?) · martinsventura13 × luizfernandoop2 (contas de julho, 5 temp., 0×3, perdedor nunca em sala cheia, logins distantes).
+- Os fortes de 07/11 (Amaral, Goat × Fcsccp, Adadada × Arthur, Serventes) continuam iguais, esperando o OK do Diego.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 07/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **Amaral FC** (pedro.smeirelesamaral, criada 04/11) com DUAS contas de apoio criadas no dia seguinte, que nunca jogaram sala cheia:
   **Blue Lock** (danielriddick.dr) — 18 temporadas só os dois, 8 ligas × 0 · **FC Bbc** (matheusmiranda7dep) — 5 temporadas, 4 × 0. Soma 12 ligas.
