@@ -2333,8 +2333,14 @@ export function EscLobby() {
       const { data: ligasVivas } = await supabase.from('game_rooms').select(cols)
         .eq('status', 'started').eq('ls_mode', 'liga').eq('ls_tag', tagAtual()).gte('updated_at', desde)
         .order('updated_at', { ascending: false }).limit(30)
+      // 🔒 08/11 (Diego: *"permita aparecer nas salas abertas a sala, porém com senha pra entrar sempre"*): a liga ESPERANDO a
+      // turma também entra na lista (criada há dias, por isso busca à parte); entrar continua pedindo a senha (`enterRoom`).
+      const desdeEspera = new Date(Date.now() - 180_000).toISOString() // (o mesmo WAIT_STALE_MS de baixo)
+      const { data: ligasEspera } = await supabase.from('game_rooms').select(cols)
+        .eq('status', 'waiting').eq('ls_mode', 'liga').eq('ls_tag', tagAtual()).gte('updated_at', desdeEspera)
+        .order('updated_at', { ascending: false }).limit(30)
       const ja = new Set((rooms as { id: string }[]).map(x => x.id))
-      for (const lv of (ligasVivas ?? []) as unknown as { id: string }[]) if (!ja.has(lv.id)) (rooms as unknown[]).push(lv)
+      for (const lv of [...(ligasVivas ?? []), ...(ligasEspera ?? [])] as unknown as { id: string }[]) if (!ja.has(lv.id)) { ja.add(lv.id); (rooms as unknown[]).push(lv) }
     } catch { /* sem resposta: só as salas de sempre */ }
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null; gdraft?: string | null }
     // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
@@ -2443,7 +2449,7 @@ export function EscLobby() {
       .filter(r => {
         if (isCareer(r) || isBafo(r) || isMundo(r)) return false
         // 🏆 liga: SÓ com a partida rolando. ⚡ rápida: a regra de sempre.
-        if (ehLigaRow(r)) return ligaRolando(r)
+        if (ehLigaRow(r)) return ligaRolando(r) || (r.status === 'waiting' && r.count >= 1 && waitingAlive(r)) // 🔒 08/11: esperando a turma também (entra só com a senha)
         if ((r.game_state as GS & { ligaDraft?: boolean })?.ligaDraft) return false // 📋 draft que não é liga: nunca na lista
         return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
       })
