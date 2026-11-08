@@ -1028,6 +1028,9 @@ export function EscLobby() {
     && ((roomMode === 'liga' && ehDraft) || (rapidoCopaMode !== 'relampago' && rapidoCopaMode !== 'champions'))
   const turnoVale = turnoMostra && turnoUnicoSel
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
+  // 🎮 08/11 (Diego: *"no draft pode deixar já ativo o manual direto sem ter que apertar… no Liga da Turma mesma coisa"*): escolher
+  // Liga da Turma ou Liga Draft já marca o Manual (quem não tem Manual continua no Auto — o envio só grava com `hasManual`). Dá pra desmarcar.
+  useEffect(() => { if (roomMode === 'liga') setRoomManual(true) }, [roomMode])
   const hasManual = useHasManual() // ⭐ 26/10: criar sala no Manual (e com o 2D) é do plano — a mesma régua do Modo Manual
   const [manualAviso, setManualAviso] = useState(false), [aviso2d, setAviso2d] = useState(false)
   const troca2dConta = useTroca2DSala() // 📺⚡ 05/11: o dono troca 2D ↔ rápido DEPOIS de criar (por enquanto só a conta do Diego)

@@ -12827,3 +12827,5 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
 - Na home, no lugar da faixa "3 mil seguidores → Mapa virtual": faixa roxa "Indicou um streamer? Você e ele ganham um plano",
   botão "💬 Direct" que abre o direct do @leilaolegendscom (`banner-indicacao.tsx`). Tirar: `BANNER_INDICACAO_LIGADO = false`.
   A faixa velha (`banner-instagram.tsx`) ficou no repo, desligada da home.
+- 🎮 08/11: criar **Liga da Turma / Liga Draft** já vem com o **Manual marcado** (quem tem Manual; dá pra desmarcar). Ligas que já
+  estão rodando no Auto (ex.: "Eu e eu" JWKSLQ) NÃO mudam — trocar Auto→Manual no meio pararia a sala esperando o dono apertar.
