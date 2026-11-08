@@ -1,3 +1,4 @@
+import { CompromissoCarreira } from './compromissos-carreira-ui'
 // 📝 MESA DE RENOVAÇÃO (22/10, mockup scripts/mockups/carreira-renovacao-nova.png — Diego: *"perfeito pode
 // fazer"*). A janela de contratos encerrados virou uma mesa de CARTAS: cada pessoa (técnico, preparador,
 // jogador) é uma carta com quem é, o que fez NO SEU CLUBE, os prazos com preço e dois botões grandes —
@@ -138,6 +139,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
                 )
               })}
             </div>
+            <div style={{padding:'0 10px'}}><CompromissoCarreira custo={custo} manager={dono} /></div>
             <div style={{ display: 'flex', gap: 6, padding: '0 10px 10px' }}>
               <button onClick={() => { if (anos) renovar(c, dono, anos) }} style={btnGrande(GREEN, '#fff')}>✍️ {tr('Renovar', 'Renew')} {anos} {en ? (anos > 1 ? 'yrs' : 'yr') : `ano${anos > 1 ? 's' : ''}`}<small style={{ display: 'block', fontFamily: 'system-ui', fontSize: 9.5, fontWeight: 700, textTransform: 'none', opacity: .9 }}>{custo} 🪙{saldo < custo ? tr(' · cheque especial', ' · overdraft') : ''}</small></button>
               <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...btnGrande('#fff', RED), flex: .75 }}>👋 {tr('Deixar ir', 'Let go')}</button>

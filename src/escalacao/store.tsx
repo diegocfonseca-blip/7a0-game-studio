@@ -1,3 +1,4 @@
+import { iniciarCriteriosDaTemporada } from './criterios-carreira'
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
@@ -36,7 +37,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
-import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
+import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
@@ -324,6 +325,12 @@ function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam
   logFin(s, 'sell', `🕴️ Parte da venda do técnico ${nomeTec}`, parte, undefined, ex.id)
 }
 
+/** Folha conhecida do clube, sem empréstimos compartilhados da SAF. Mesma base da cobrança. */
+export function folhaBaseDoClube(s: EscState, m: Manager): number {
+  const tecnico=s.careerTecnicos?.[m.teamName]
+  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
+}
+
 function chargeSalaries(s: EscState) {
   // 🔓 só a partir da 4ª temporada (fôlego: T1 monta o time, T2 reservas, T3 vender).
   // Roda ANTES do seasonNo++, então s.seasonNo aqui = a temporada que ACABOU de rolar.
@@ -331,13 +338,7 @@ function chargeSalaries(s: EscState) {
   const cc = { ...(s.careerCoins ?? {}) }
   for (const m of s.managers) {
     if (!m.isHuman) continue
-    let folha = squadPayroll(m.squad as WonCard[])
-    // 🧢 salário do TÉCNICO (27/08): valor/10 por temporada, igual jogador
-    const nomeTec = s.careerTecnicos?.[m.teamName]
-    if (nomeTec) folha += Math.round((s.careerTecnicoPago?.[nomeTec] ?? 0) / 10)
-    // 🏋️ salário do PREPARADOR FÍSICO (15/09): a MESMA conta do técnico — 10% do
-    // preço, por temporada. Ele mora no Departamento Técnico e pesa na folha junto.
-    folha += salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
+    const folha = folhaBaseDoClube(s, m)
     if (folha > 0) cc[m.id] = (cc[m.id] ?? 0) - folha // folha REAL, pode negativar (dívida)
   }
   if (saf2On(s)) folhaEmprestimosSaf2(s, cc) // 🏢➡️⚽ empréstimo paga METADE do salário pra cada lado (13/10, só com a chave)
@@ -686,6 +687,11 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
 function ligaCondicaoSeCabe(s: EscState): void {
   if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return
   const divAgora = divisaoDaCarreira(s)
+  // Antes do desbloqueio o histórico esportivo existe, mas o desgaste não.
+  // O primeiro jogo da primeira temporada com gás também começa inteiro.
+  if (s.condicaoDesde == null || (s.condicaoDesde === s.seasonNo && (s.round ?? 0) === 0)) {
+    if (s.condicaoCarry) s.condicaoCarry = Object.fromEntries(Object.entries(s.condicaoCarry).map(([k, v]) => [k, { ...v, g: 100 }]))
+  }
   if (s.condicaoDesde === s.seasonNo && s.condicaoDesdeR != null && !DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = undefined; s.condicaoDesdeR = undefined }
   if (s.condicaoDesde == null && DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
 }
@@ -1506,7 +1512,7 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     for (const c of squad) if (!c.fake) novo[chave(c)] = {
       // 🏃 + os jogos de Copa e de Copa do Mundo (26/09) — a liga vem das escalações,
       // as copas vêm da tela (quem sabe quantas fases o time jogou é ela)
-      g: Math.round(gas[c.id] ?? 100), j: (jogos[c.id] ?? 0) + (jogosCard?.[c.id] ?? 0),
+      g: condicaoAtiva(s) ? Math.round(gas[c.id] ?? 100) : 100, j: (jogos[c.id] ?? 0) + (jogosCard?.[c.id] ?? 0),
       gl: (inicioGl[c.id] ?? 0) + (golsCard?.[c.id] ?? 0),
       as: (inicioAs[c.id] ?? 0) + (assCard?.[c.id] ?? 0),
     }
@@ -7708,7 +7714,7 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
 export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
-  'motor2Desde', 'motor2RecepcaoDesde', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
+  'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
   'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev'] as const satisfies readonly (keyof EscState)[]
@@ -8960,6 +8966,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.criaDeEvento = undefined
+      s.criteriosCarreiraDesde = undefined; s.criteriosCarreiraAte = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: carreira nova NÃO herda jogos/gols/assistências/gás da anterior ("mal começou e já tinha gol")
       // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
@@ -9015,6 +9022,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
       s.careerCoins = cc
       s.seasonNo = 1
+      iniciarCriteriosDaTemporada(s)
       // 🧾 carreira nova: zera o livro-caixa e registra o SALDO INICIAL de 100, pra
       // somar o Extrato dar exatamente a Caixa (era o único dinheiro fora do extrato).
       s.careerLedger = []
@@ -9081,6 +9089,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
+      s.criteriosCarreiraDesde = undefined; s.criteriosCarreiraAte = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: idem — nada da carreira anterior
       // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
@@ -9103,6 +9112,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const m of s.managers) if (m.isHuman) { ccQ[m.id] = 100; m.money = 100 }
       s.careerCoins = ccQ
       s.seasonNo = 1
+      iniciarCriteriosDaTemporada(s)
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
@@ -10746,7 +10756,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) if (cards.filter(c => c.pos === pos).length !== need[pos]) return s // 11 não batem com a formação
       }
       const hh = { ...(s.careerHalftime ?? {}) }
-      hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { xi2: ids, formation: action.formation, tactic: action.tactic } }
+      hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { xi2: ids, formation: action.formation, tactic: action.tactic, revisao:(hh[action.mgrId]?.[action.round]?.revisao ?? (hh[action.mgrId]?.[action.round] ? 1 : 0))+1 } }
       s.careerHalftime = hh
       return s
     }
@@ -11662,7 +11672,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // receita de fundo para de oferecê-la (ela casa por nome|clube|ano).
         const alvo = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === action.cardId))?.squad.find(c => c.id === action.cardId)
           ?? (action.clube && action.card && action.card.id === action.cardId ? action.card : null)
-        if (!alvo || alvo.fake || alvo.emprestado) return s
+        if (!alvo || ehFake(alvo) || alvo.cria || alvo.emprestado) return s
         if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
         s.aliciarJogadores = [action.cardId]
         s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card, squad: action.squad ?? [] } : undefined
@@ -12031,6 +12041,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
+      iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // campanha da temporada encerrada; o histórico permanece
       s.careerPlacements = action.placements
       escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
@@ -12131,6 +12142,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) voltaCriaSeSobrou(s, m, pos)
       }
       s.seasonNo++
+      iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // libera o save da campanha encerrada; preserva careerInternationalHistory
       s.round = 0; s.champion = null
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
@@ -12758,6 +12770,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
         s.fixtures = calendarioDaLiga(s)
         s.seasonNo++
+        iniciarCriteriosDaTemporada(s)
         s.screen = 'season'
         return s
       }
@@ -12772,6 +12785,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.submitted = []; s.pendingEnvelopes = {}
       s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.seasonNo++
+      iniciarCriteriosDaTemporada(s)
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -13880,7 +13894,12 @@ function sincronizaNiveis(save: EscState): EscState {
       }
       return // carta não tem carta dentro
     }
-    for (const k of Object.keys(o)) anda(o[k], prof + 1)
+    for (const k of Object.keys(o)) {
+      // Fotografias oficiais não são fichas do elenco atual. Reaplicar o catálogo
+      // aqui retirava o desconto de condição e reescrevia o jogo ao reabrir.
+      if (prof === 0 && k === 'm2Res') continue
+      anda(o[k], prof + 1)
+    }
   }
   try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
   // 💰 o livro de preços segue a carta que mudou de clube (fica o MAIOR, mesma

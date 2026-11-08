@@ -1,3 +1,14 @@
+## ⚖️ 08/11 — Critérios da carreira corrigidos (IMPLEMENTADO EM BRANCH, NÃO PUBLICADO)
+
+- Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Branch `fix/carreira-criterios-20261108`, base `14e82a72`; sem escrita nova na conta, sem deploy. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).
+- Cache por identidade completa da carta; leitura compatível de resultados antigos; fotografias compactas de jogos oficiais, sem persistir prévias. Sincronização do catálogo preserva essas fotografias. Decisão legítima de intervalo usa revisão numerada, muda só o segundo tempo e sobrevive à ordem JSON.
+- Gás não acumula antes da Série C; estatísticas continuam. Primeiro desbloqueio inteiro; rebaixamento posterior conserva condição. Versão nova tira a segunda penalidade na entrada do Motor 2 e usa recuperação real do preparador.
+- Simulação leve dos bots calibrada pelo perfil do Motor 2 (480 partidas de ajuste + 120 separadas de validação), sem escolher vencedor. Controle de 20 temporadas com elencos equivalentes aproximou gols: usuário 23,4/bots 47,69 → usuário 25,8/bots 24,68. Sem mudar catálogo, categorias, prêmios, preços ou dar vantagem ao dono.
+- Adesão na próxima temporada; partidas antigas mantidas. Novos detalhes expansíveis de regras, acesso/queda e leitura do XI; custos de aquisição/salário/reserva da folha/renovação antes do clique. Direitos dos olheiros e stream preservados. Sondagem recusa preenchimentos/crias/emprestados.
+- Testes: identidade/histórico/intervalo; reducer sintético; condição, pirâmide, A/B, armazenamento; três temporadas futuras em cópia T48–T50; salvar/reabrir com tabelas idênticas. T50 3º/60, 37 GF/27 GA, caixa3502; conta real segue T47/caixa2044. Visual em320/393/1440px e renovação efetiva conforme o valor mostrado. Build de produção passou.
+- Não muda online/co2/NBA nem gates privados de mapa/2D/3D/recepção. Reversão antes do lançamento = reverter commit. Após lançar, manter leitores/versionamento: desligar `CRITERIOS_CARREIRA_LIBERADOS` só encerra adesão na próxima virada, com `criteriosCarreiraAte`. Não remover versões de saves já criados.
+- Limites: calibração é aproximação; histórico antigo sem entradas completas não permite reconstruir com certeza toda reprodução. Sem anúncio de bugfix em novidades. Evidências locais em `/workspace/shared/carreira-correcoes-20261108/`; não commitar arquivos privados da conta nem harness `qa-carreira-*`.
+
 ## ⭐ 08/11 — Craque Salas ativado NA MÃO (Vendria falhou)
 - didico (diegoferocha22@gmail.com): linha em `esc_assinatura_mensal` com `vendria_sub = 'manual-diego-08nov'`, válido até 08/12/2026.
   Quando a Vendria voltar e cobrar a renovação, conferir se não ficou duplicado. Se ele não renovar, vence sozinho.

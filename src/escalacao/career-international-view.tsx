@@ -1,3 +1,4 @@
+import { criteriosDaTemporada, versaoComCriterios } from './criterios-carreira'
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {idPartidaInternacional} from './presidencia-complexo-final-regras'
@@ -601,7 +602,7 @@ export function CareerInternationalView(p: Props) {
   const m2Intl = state.co2 ? co2M2 != null && (state.seasonNo ?? 1) >= co2M2 : m2Liberado && !!state.motor2Desde
   const begin = (representedClub: string | null, xi: Card[]) => {
     let c: InternationalCampaign
-    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl, versaoM2: recepcaoM2Desde(state, loggedEmail()) !== undefined ? VERSAO_RECEPCAO_M2 : undefined }) }
+    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl, versaoM2: versaoComCriterios(recepcaoM2Desde(state, loggedEmail()) !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state)) }) }
     catch { apagaEscolha(); setClubRaw(null); setComp(null); setRecusado('campanha'); return }
     // ✉️ guarda os convites que ficaram na mesa — o jornal cobra se um deles levantar a taça
     const recusados = representedClub ? convites.filter(cv => cv.club !== representedClub).map(cv => cv.club) : []

@@ -1,3 +1,7 @@
+import { climaDoJogo } from './campo2d-clima'
+import { expectativaBotsCarreira } from './calibracao-bots-carreira'
+import { LeituraDoTime, RegrasDaTemporada } from './criterios-carreira-ui'
+import { criteriosDaTemporada, versaoComCriterios } from './criterios-carreira'
 import { minutoAtrasado } from './relogio-sala'
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import { disputaRolandoNaTela } from './penaltis-na-tela'
@@ -844,7 +848,7 @@ function botXI(t: SimTeam, r: number, plans?: BotPlans): PoolCard[] {
 // 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
-export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac }>>
+export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac; revisao?: number }>>
 // 🧢 técnicos ATIVOS na simulação (por NOME de time): faixa lo–hi + a partir de
 // qual rodada o efeito vale nesta temporada (0 = desde o começo). Ausente/vazio
 // = simulação byte a byte como sempre foi (ninguém sem técnico muda NADA).
@@ -879,7 +883,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -1005,7 +1009,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // de baixo (várzea) não inflam a artilharia com nomes de brincadeira.
     const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
     const G = realGoals ? GOAL_TUNE.v3 : GOAL_TUNE.v2
-    const lh = Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk)), la = Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
+    const esperado=regrasM2?.criterios ? expectativaBotsCarreira({seed:sementeM2(seed,div,r,hi,ai),casa:hxi,fora:axi,fCasa:H.formation,fFora:A.formation,tatica:[taticaM2(th),taticaM2(ta)],bots:[!H.human,!A.human],tecnico:[lvlH,lvlA],evento:[mh,ma],clima:climaDoJogo(sementeM2(seed,div,r,hi,ai))}) : undefined
+    const lh = esperado?.[0] ?? Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk)), la = esperado?.[1] ?? Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hev = scoreGoals(H, hxi, hg), aev = scoreGoals(A, axi, ag)
     // resultado do jogo (pode ser reescrito SÓ no 2º tempo se o humano trocou no intervalo)
@@ -1058,7 +1063,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // com os MESMOS 11 na MESMA ordem do campinho, a tática, o gás, a formação e a troca do intervalo. Só a partir de `m2Desde`.
     let m2e: EntradaM2 | undefined
     if (m2Desde != null && r >= m2Desde && (H.human || A.human)) {
-      m2e = entradaM2({ versao:versaoRecepcaoNaRodada(r,recepcaoDesde), seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
+      m2e = entradaM2({ versao:versaoComCriterios(versaoRecepcaoNaRodada(r,recepcaoDesde), !!regrasM2?.criterios), preservarGuardado:r < (regrasM2?.disputadas ?? round), partidaId:`liga:${seed}:${div}:${r}:${hi}:${ai}`,
+        atualizarIntervalo:!!regrasM2?.intervaloAberto && r === (regrasM2?.disputadas ?? round)-1,
+        intervaloRevisao:hd?.revisao ?? (hd?.xi2?.length ? 1 : 0),
+        tatica2:regrasM2?.criterios && hd ? [taticaM2(H.human ? hd.tactic ?? th : th),taticaM2(A.human ? hd.tactic ?? ta : ta)] : undefined, seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
         tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human], tecnico: [lvlH, lvlA], evento: [mh, ma],
         casa2: hxi2 as never, fora2: axi2 as never, fCasa2: hxi2 ? hd?.formation ?? H.formation : undefined, fFora2: axi2 ? hd?.formation ?? A.formation : undefined })
       const res = resultadoM2(m2e)
@@ -1108,7 +1116,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -1116,7 +1124,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde, recepcaoDesde)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde, recepcaoDesde, regrasM2)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -1267,7 +1275,7 @@ const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 }
 // dois). Os gols voltam já com a CARTA do autor e do garçom; perna-de-pau e gol contra não levam crédito (id vazio).
 export interface GolCopaM2 { name: string; min: number; id: string; assist?: string; assistId?: string; carta?: PoolCard; garcom?: PoolCard }
 export function jogoCopaM2(seed: number, seasonNo: number, tag: string, jogo: number, H: SimTeam, A: SimTeam, th: Tac, ta: Tac, versao?: VersaoM2): { e: EntradaM2; hg: number; ag: number; h: GolCopaM2[]; a: GolCopaM2[] } {
-  const e = entradaM2({ versao, seed: sementeM2((seed ^ Math.imul(seasonNo, 0x9E3779B1)) >>> 0, tag, jogo, 0, 0), casa: H.xi as never, fora: A.xi as never, fCasa: H.formation, fFora: A.formation,
+  const e = entradaM2({ versao, preservarGuardado:true, somenteConsulta:true, partidaId:`copa:${seed}:${seasonNo}:${tag}:${jogo}:${H.name}:${A.name}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 0x9E3779B1)) >>> 0, tag, jogo, 0, 0), casa: H.xi as never, fora: A.xi as never, fCasa: H.formation, fFora: A.formation,
     tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human] })
   const res = resultadoM2(e)
   const out: { h: GolCopaM2[]; a: GolCopaM2[] } = { h: [], a: [] }
@@ -3304,6 +3312,10 @@ export function LiveScoreCard({ neutro, pausado, homeName, awayName, homeColor, 
   /** 📢 frases próprias do apito final (vitória · derrota · empate), pra jogo que NÃO é de liga —
    *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
   apitoFrases?: { win: string[]; lose: string[]; draw: string[] }; stadiumMatch?:ContextoPartidaEstadio }) {
+  // O chaveamento simula fases futuras. Só a partida apresentada passa a
+  // oficializar sua fotografia; mudar o XI antes da próxima fase continua válido.
+  const entradaDaTela=elencos?.m2
+  useEffect(()=>{if(enhancedCareer&&entradaDaTela?.somenteConsulta)resultadoM2({...entradaDaTela,somenteConsulta:false})},[enhancedCareer,entradaDaTela])
   const privatePreview = useOnlinePreview()
   // 📺 Campo 2D (20/10): ligado, o campinho aparece EM CIMA deste placar em qualquer competição (liga, copas, Liberta,
   // Champions, Mundial, Copa do Mundo, regionais, online e offline) e o mascote grande do gol sai de lá — por isso o
@@ -5817,7 +5829,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   const jogs: LinhaJog[] = []
   let escondidos = 0
   if (jogadorOn) for (const c of clubes) for (const x of c.squad) {
-    if (x.fake || x.emprestado) continue
+    if (ehFake(x) || x.cria || x.emprestado) continue
     if (!marcadosJ.includes(x.id) && !sondarLiberado(x, olheiroTier)) { escondidos++; continue }
     jogs.push({ card: x, clube: c, falta: contratoCpuFalta(x.id, state.seed, state.seasonNo) })
   }
@@ -6205,6 +6217,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
             senão a leitura de relance se perderia. */}
         {resumoGas && <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: resumoGas.cor }}>{resumoGas.pct}%</span>{!atalhoGas && resumoGas.esg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {resumoGas.esg} 🚑</span> : null}{!atalhoGas && resumoGas.lim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {resumoGas.lim} 🥵</span> : null}{resumoGas.can ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {resumoGas.can} 😓</span> : null}</span>}
       </div>
+      {elenco&&<LeituraDoTime squad={mgr.squad as WonCard[]} ids={xiIds} gas={condicao?.gas} />}
       {/* 🚑 ATALHO PRO ELENCO (Diego 15/09: *"o cara tem q descer lá em baixo p ver o
           elenco... os cansados e etc"*). Entre o cabeçalho do clube e a lista mora um
           monte de coisa (formação, banners, modo de troca, campinho). Em vez de MEXER
@@ -8051,7 +8064,8 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
           <div style={{ position: 'relative' }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', margin: 0 }}>{tr(`TEMPORADA ${temporada} ENCERRADA`, `SEASON ${temporada} OVER`)}</p>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: tipo === 'ficou' ? 27 : 42, lineHeight: 1, margin: '5px 0 0', color: d.cor, textShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{d.titulo}</p>
-            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{d.sub(pos)}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{tipo==='campeao'&&!mudou?tr(`Campeão da ${de}. Continua na ${para}.`,`Champion of ${de}. Stays in ${para}.`):mudou?tr(`${pos}º lugar na ${de}: ${tipo==='queda'?'rebaixado':'promovido'} para a ${para}.`,`${ordinal(pos)} in ${de}: ${tipo==='queda'?'relegated':'promoted'} to ${para}.`):tr(`${pos}º lugar na ${de}. Continua na ${para}.`,`${ordinal(pos)} in ${de}. Stays in ${para}.`)}</p>
+            {mudou&&<p style={{fontSize:11,fontWeight:700,color:'#fff',margin:'6px 0 0'}}>{tipo==='queda'?tr('Os quatro últimos são rebaixados.','The bottom four are relegated.'):tr('Os quatro primeiros conquistam o acesso.','The top four earn promotion.')}</p>}
             {mudou ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, margin: '14px 0 4px' }}>
                 <span style={{ border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, padding: '6px 13px', ...OSWALD, fontWeight: 900, fontSize: 14, color: 'rgba(255,255,255,.6)' }}>{de}</span>
@@ -8582,9 +8596,9 @@ export function PyramidSeasonScreen() {
     if (!condOn) return {}
     const me = state.managers[state.youIdx]
     if (!me) return {}
-    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g)
+    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g, criteriosDaTemporada(state) ? preparadorDe(state.careerPreparador?.[me.teamName])?.banco : undefined)
     return Object.keys(mods).length ? { [me.id]: mods } : {}
-  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR])
+  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR, condInicio, state.careerPreparador, state.criteriosCarreiraDesde, state.criteriosCarreiraAte])
   // 🧮 UMA HISTÓRIA SÓ (conserto 14/09). A tela precisa da temporada em duas
   // alturas: a rodada ATUAL (`live`) e a rodada já REVELADA (`shown`, usada
   // enquanto a partida anima, pra tabela não entregar o resultado antes do apito).
@@ -8677,9 +8691,9 @@ export function PyramidSeasonScreen() {
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
   // 📅 com a Copa no meio da Liga ela começa cedo (1ª quarta ≥ rodada 5): o motor novo só vale se ligou antes da rodada 5
   const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
-  const recepcaoCopa = versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38)
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde),
-    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde])
+  const recepcaoCopa = versaoComCriterios(versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38), criteriosDaTemporada(state))
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, { criterios:criteriosDaTemporada(state), disputadas:round, intervaloAberto:state.booksSeason !== state.seasonNo }),
+    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
   carregaGuardados(state.m2Res, state.seasonNo ?? 1, `${loggedEmail() ?? 'local'}:${state.seed}`)
   useEffect(() => { const n = tiraNovos(); if (n && state.careerOnline && state.onlineMode !== 'online') dispatch({ type: 'GUARDA_M2', novos: n }) })
@@ -9088,6 +9102,15 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaRoundMid.current !== copaRound) { copaRoundMid.current = copaRound; setCopaMidOn(false) } }, [copaRound])
   const copaPlaying = done ? !!copa && nCopaRounds > 0 && copaRound < nCopaRounds : copaMid && copaMidOn && !!copa && copaRound < nCopaBase
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  useEffect(()=>{
+    if(!m2Ok||!copa)return
+    // Pular uma fase também oficializa seus jogos, mas nunca os próximos.
+    for(const fase of copa.rounds.slice(0,copaFinished?copa.rounds.length:copaRound))
+      for(const tie of fase.ties)for(const e of tie.legM2??[])
+        if(e?.somenteConsulta)resultadoM2({...e,somenteConsulta:false})
+    const novos=tiraNovos()
+    if(novos)dispatch({type:'GUARDA_M2',novos})
+  },[m2Ok,copa,copaRound,copaFinished,dispatch])
   // ⚽🅰️ GOL DE COPA SÓ CONTA DEPOIS DE JOGADO (02/11, print do Fabulous: começo de temporada e o elenco já com gol e
   // assistência). Com o calendário a Copa inteira já nasce calculada na rodada 0 (`copaMid`), e o `copa.goalsByCard` somava
   // TODAS as fases de uma vez — gol de jogo que ainda não aconteceu (e spoiler). Agora soma fase por fase, a mesma régua do
@@ -12093,7 +12116,7 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined}
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
@@ -13043,6 +13066,7 @@ export function ReserveListScreen() {
         )}
         {/* 📝 MESA DE RENOVAÇÃO (22/10): técnico, preparador e jogadores com contrato encerrado, em cartas
             — mesmas ações e preços de antes, só a tela mudou (renovacao-mesa.tsx) */}
+        <RegrasDaTemporada />
         <MesaRenovacao tecnicoOn={quinzeRL} />
         {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
         {state.escadaOn && escLib && !state.escadaLivre && (() => {
