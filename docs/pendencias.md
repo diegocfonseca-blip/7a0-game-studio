@@ -1,6 +1,6 @@
-## ⚖️ 08/11 — Critérios da carreira corrigidos (IMPLEMENTADO EM BRANCH, NÃO PUBLICADO)
+## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
 
-- Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Branch `fix/carreira-criterios-20261108`, base `14e82a72`; sem escrita nova na conta, sem deploy. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).
+- Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Publicação para todos autorizada depois com “Pode fazer tudo e publicar p todos já”. Branch `fix/carreira-criterios-20261108`, integrada à base `50f60ad0` (inclui a correção posterior das salas online); sem escrita nova na conta. Confirmar workflow de publicação antes de anunciar conclusão. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).
 - Cache por identidade completa da carta; leitura compatível de resultados antigos; fotografias compactas de jogos oficiais, sem persistir prévias. Sincronização do catálogo preserva essas fotografias. Decisão legítima de intervalo usa revisão numerada, muda só o segundo tempo e sobrevive à ordem JSON.
 - Gás não acumula antes da Série C; estatísticas continuam. Primeiro desbloqueio inteiro; rebaixamento posterior conserva condição. Versão nova tira a segunda penalidade na entrada do Motor 2 e usa recuperação real do preparador.
 - Simulação leve dos bots calibrada pelo perfil do Motor 2 (480 partidas de ajuste + 120 separadas de validação), sem escolher vencedor. Controle de 20 temporadas com elencos equivalentes aproximou gols: usuário 23,4/bots 47,69 → usuário 25,8/bots 24,68. Sem mudar catálogo, categorias, prêmios, preços ou dar vantagem ao dono.

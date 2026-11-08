@@ -1,6 +1,6 @@
 # Critérios da carreira — correções aprovadas em 08/11/2026
 
-Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Implementação em branch isolada, sem publicação e sem nova gravação na conta. O teste integrado usa cópias locais; o avanço de teste T48–T50 não deve ser enviado à nuvem.
+Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Implementação em branch isolada, sem nova gravação na conta. Depois, autorizou publicar para todos: “Pode fazer tudo e publicar p todos já”. A entrega integra a main `50f60ad0`; a publicação deve ser confirmada no GitHub Actions antes de anunciar conclusão. O teste integrado usa cópias locais; o avanço de teste T48–T50 não deve ser enviado à nuvem.
 
 ## O que foi corrigido
 
