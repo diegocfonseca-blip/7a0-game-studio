@@ -12,6 +12,19 @@
 - Campo 2D no mapa (regra 21): marcadores e bola com tamanho mínimo de TELA (número legível no celular) e o nome dos times atrás de cada gol.
 - PC: na aba Clube o mapa usa a largura de 1320px também antes/depois da temporada (antes caía pra 900px). Data "📅" do placar com fundo.
 - Falta: o Diego VER as fotos e aprovar o visual (regra 2). Fotos antes/depois no scratchpad da sessão (`mapa-ui/`).
+## 🗺️ 08/11 — Mapa 3D: arrumação da CENA antes de lançar (branch de worktree, sem push; mapa segue só na conta do Diego)
+- Auditoria do mapa (fotos da QA) → consertos só da cena 3D (a interface por cima ficou com outra sessão):
+  · Letreiros de cabeça pra baixo: "LOJA DO CLUBE" do teto (vistas Loja/Agência) e "ÔNIBUS / TÁXI · APP / CARGA" pintados na pista.
+  · 🚌 Ônibus dos TIMES saiu da avenida: chega e sai pelo bairro do oeste (rua x −186 → ramal → rua interna oeste → baia), porque
+    desde a pista paralela (04/11) a linha pública roda a avenida inteira e as duas rotas se cruzavam (`test-public-bus-coaches`, 30 m de folga).
+  · Vistas reenquadradas (PC e celular): Hotel (prédio inteiro + letreiro HOTEL novo na fachada), Metrô (do alto, ao longo da estação),
+    Entrada da torcida (fachada até o chão), Banco e área técnica (banco agora existe sempre, fora do dia de jogo também; no celular
+    a câmera olha ao comprido do banco), Presidente (olhar pelo meio do vidro, sem o montante preto no centro), Shopping (PC inclui a Vadico).
+  · Árvore do quarteirão do boteco saiu da roda de conversa dos moradores (gente dentro do tronco no Oswaldo e no Bar da Esquina).
+  · Praça de Alimentação com 10 pessoas sentadas nas mesas do terraço; estacionamento com carros parados (cenário) e o circular numa
+    baia amarela própria, sem faixa de vaga embaixo; placa "Arena Legends · Salas online" apoiada num caixote sobre a cúpula.
+  · `test-club-map-navigation` atualizado pra regra de 07/11 (jogo FORA mostra o SEU estádio).
+- Fotos antes/depois: pasta `mapa-3d` do scratchpad da sessão (não versionadas). Reverter = reverter o commit.
 
 ## 🚩📸📺 07/11 — Campo 2D: bandeirinhas, fotógrafos e telão (FEITO, liberado pra TODOS)
 - Diego escolheu da lista de ideias (*"Ok faça p todos"*): bandeirinhas na lateral (linha do penúltimo defensor, cada um numa metade, bandeira

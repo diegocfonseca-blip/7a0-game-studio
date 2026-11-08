@@ -23,7 +23,8 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
  }
  if(state.extras.loja){
   const {x,z,height,heading}=LOJA_CLUBE_3D
-  sign(['LOJA DO CLUBE',clubName??''],14,9,x,height+.285,z,true,0)
+  // 08/11: o topo do letreiro do teto aponta pra avenida (+z): as vistas da Loja e da Agência olham do lado do estádio e liam ele de cabeça pra baixo
+  sign(['LOJA DO CLUBE',clubName??''],14,9,x,height+.285,z,true,Math.PI)
   // faixa da fachada: na frente da vitrine, seja qual for o lado pra onde a loja olha
   sign([`LOJA DO CLUBE · ${clubName??''}`],14,.8,x+Math.sin(heading)*10.23,4.36,z+Math.cos(heading)*10.23,false,heading)
 
@@ -37,6 +38,9 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
   box(glass,5,3.2,.14,a.x,1.76,a.z+9.08)
   for(const side of[-1,1]){box(gold,.4,4.2,.4,a.x+side*3,2.26,a.z+9);box(glass,2.6,1.7,.14,a.x+side*5.1,2.4,a.z+7.25)}
   sign(['ARENA LEGENDS'],13,1.55,a.x,4.55,a.z+8.92)
+  // 08/11: a placa do teto ficava solta no ar (a cúpula é baixa nas pontas). Um caixote embaixo dela desce até dentro da
+  // cúpula: no meio fica escondido, nas pontas fecha o vão — a placa passa a estar APOIADA no teto.
+  box(ink,11.6,1.4,5.6,a.x,8.05,a.z)
   box(ink,12,.12,6,a.x,8.78,a.z)
   sign(['ARENA LEGENDS','SALAS ONLINE'],12,6,a.x,8.9,a.z,true)
   solids.push({id:a.id,minX:a.x-9,maxX:a.x+9,minZ:a.z-9,maxZ:a.z+9,base:.16,top:9,footprint:[{x:a.x-9,z:a.z-9},{x:a.x+9,z:a.z-9},{x:a.x+9,z:a.z+9},{x:a.x-9,z:a.z+9}]})
