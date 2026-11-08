@@ -6723,12 +6723,13 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   const { state } = useEsc()
   const t = useT()
   // 💳 o 2D vem junto do Manual (o mesmo direito): conferido aqui, lembrado no aparelho (`marcaPago2D`)
-  const temDireito = useTem2D() // 05/11: do ⭐ Craque Salas pra cima (o Manual é só do Completo pra cima)
+  const pagou2d = useTem2D() // 05/11: do ⭐ Craque Salas pra cima (o Manual é só do Completo pra cima)
+  const temDireito = pagou2d || !!state.careerOnline // 🏆 07/11: na carreira o 2D é de graça (o Manual segue pago)
   useEffect(() => {
-    if (temDireito) { marcaPago2D(true); return }
+    if (pagou2d) { marcaPago2D(true); return }
     const tm = setTimeout(() => marcaPago2D(false), 6000) // (a resposta do banco demora: só tira depois de ter certeza)
     return () => clearTimeout(tm)
-  }, [temDireito])
+  }, [pagou2d])
   if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
   if (!liberado || state.sport === 'basquete') return null
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
@@ -6759,7 +6760,8 @@ export function TrocaCampo2DSala() {
   if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || ehKings(state)) return null
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
-  return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && temDireito}
+  const salaRapida = !state.ligaMode && !state.careerOnline // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
+  return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && (temDireito || salaRapida)}
     onTroca={on => dispatch({ type: 'SET_CAMPO2D', on, by: state.youUid })} />
 }
 /** o desenho do botão (separado pra bancada `scripts/teste-troca-2d` mostrar os 3 estados sem conta logada) */

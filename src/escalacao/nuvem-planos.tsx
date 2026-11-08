@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { tr } from './lang'
 import { PixMP } from './pix-mp'
-import { PRECOS_UNICO } from './planos-regras'
+import { MENSAIS, PRECOS_UNICO } from './planos-regras'
 import { usePixMp } from './sport'
 import { logApoio } from './apoio'
 import { assinarMensal } from './vendria-checkout'
@@ -42,7 +42,12 @@ export function JanelaNuvemPlanos({ onClose, aviso7, travado }: { onClose: () =>
           <span>{travado ? <>🔒 {tr('SALVAR CARREIRA', 'SAVE CAREER')}</> : aviso7 ? <>✅ {tr('SALVO NA NUVEM', 'SAVED TO THE CLOUD')}</> : <>☁️ {tr('SALVAR NA NUVEM', 'SAVE TO THE CLOUD')}</>}</span>
           <button onClick={onClose} aria-label={tr('Fechar', 'Close')} style={{ all: 'unset', cursor: 'pointer', color: GOLD, fontSize: 18 }}>✕</button>
         </div>
-        {aviso7 ? <p style={{ fontSize: 14, fontWeight: 700, margin: '12px 2px 10px', lineHeight: 1.35 }}>{tr('Sua carreira está salva! Sem plano, ela fica guardada por ', 'Your career is saved! Without a plan it stays saved for ')}<b>{tr('7 dias sem salvar', '7 days without saving')}</b>{tr(' — passou disso, sai da nuvem (no aparelho continua). Quem apoia guarda ', ' — after that it leaves the cloud (it stays on this device). Supporters keep it ')}<b>{tr('pra sempre', 'forever')}</b>{tr(' e pode ter mais de uma carreira:', ' and can have more than one career:')}</p>
+        {aviso7 ? <div style={{ fontSize: 13.5, fontWeight: 700, margin: '12px 2px 10px', lineHeight: 1.4 }}>{/* 💛 07/11: a história do jogo, curta (Diego) */}
+          <p style={{ margin: '0 0 8px' }}>{tr('✅ Sua carreira está salva!', '✅ Your career is saved!')}</p>
+          <p style={{ margin: '0 0 8px', fontWeight: 600 }}>{tr('Criei o Leilão Legends pro meu filho. Quanto mais gente chega, mais caro fica manter o jogo no ar.', 'I made Leilão Legends for my son. The more people arrive, the more it costs to keep the game online.')}</p>
+          <p style={{ margin: '0 0 8px', background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '8px 10px' }}><b>{tr('Sem plano', 'Without a plan')}</b>{tr(': 1 carreira só, e ', ': only 1 career, and ')}<b>{tr('1 dia sem você salvar', '1 day without you saving')}</b>{tr(' ela é apagada da nuvem.', ' it is deleted from the cloud.')}</p>
+          <p style={{ margin: 0, fontWeight: 600 }}>{tr('Com plano ela fica guardada ', 'With a plan it stays saved ')}<b>{tr('pra sempre', 'forever')}</b>{tr('. 💛 Diego', '. 💛 Diego')}</p>
+        </div>
           : travado ? <>
             <p style={{ fontSize: 14, fontWeight: 700, margin: '12px 2px 10px', lineHeight: 1.35 }}>{tr('Sem plano, a carreira não fica salva. Escolha um plano e não perca nada do que você jogou:', 'Without a plan your career is not saved. Pick a plan and lose nothing you played:')}</p>
             <div style={{ marginBottom: 9 }}>
@@ -53,10 +58,16 @@ export function JanelaNuvemPlanos({ onClose, aviso7, travado }: { onClose: () =>
             </div>
           </>
           : <p style={{ fontSize: 14, fontWeight: 700, margin: '12px 2px 10px' }}>{tr('Pra salvar a sua carreira na nuvem, escolha um plano:', 'To save your career to the cloud, pick a plan:')}</p>}
+        {aviso7 ? <div style={{ marginBottom: 9 }}>{/* 07/11 (Diego): só o Craque Completo (é o que traz o Manual) e embaixo todos os planos */}
+          <button onClick={() => { logApoio('☁️ 1º salvar grátis → Craque Completo (Vendria)'); void assinarMensal('craque_completo', tr) }} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, textAlign: 'left', border: `3px solid ${INK}`, borderRadius: 14, padding: '10px 12px', background: 'linear-gradient(160deg,#F4F7FB,#CBD4DE 52%,#9BA7B5)', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', color: INK }}>
+            <span><b style={{ ...OSW, fontSize: 17, display: 'block', textTransform: 'uppercase' }}>{tr('⭐ Craque Completo', '⭐ Craque Completo')}</b><small style={{ fontSize: 11.5, fontWeight: 700, opacity: .8 }}>{tr('carreira guardada · Modo Manual · velocidade', 'career kept · Manual Mode · speed')}</small></span>
+            <span style={{ ...OSW, fontSize: 16, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 10px', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>R$ {MENSAIS.craque_completo.preco.toFixed(2).replace('.', ',')}{tr('/mês', '/mo')}</span>
+          </button>
+        </div> : <>
         <Plano p="craque" nome={tr('⭐ Craque', '⭐ Star')} sub={tr('nuvem · Modo Manual · cor prata', 'cloud · Manual Mode · silver colour')} grad="linear-gradient(160deg,#F4F7FB,#CBD4DE 52%,#9BA7B5)" />
-        <Plano p="lenda" nome={tr('👑 Lenda', '👑 Legend')} sub={tr('tudo do Craque + salas à vontade · cor ouro', 'everything in Star + unlimited rooms · gold colour')} grad="linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)" />
+        <Plano p="lenda" nome={tr('👑 Lenda', '👑 Legend')} sub={tr('tudo do Craque + salas à vontade · cor ouro', 'everything in Star + unlimited rooms · gold colour')} grad="linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)" /></>}
         <button onClick={() => { logApoio('☁️ salvar sem plano → todos os planos'); abre('nuvem') }} style={{ all: 'unset', display: 'block', width: '100%', textAlign: 'center', cursor: 'pointer', ...OSW, fontSize: 15, color: ROXO, textDecoration: 'underline', marginTop: 4 }}>
-          {tr('Conheça todos os planos →', 'See all the plans →')}
+          {aviso7 ? tr('Ver todos os planos →', 'See all the plans →') : tr('Conheça todos os planos →', 'See all the plans →')}
         </button>
       </div>
     </div>,

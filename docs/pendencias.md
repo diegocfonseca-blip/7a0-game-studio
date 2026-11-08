@@ -6,6 +6,23 @@
 - Ficou pra depois, se ele pedir: no celular o selo do placar cobre os 2 fotógrafos de cima à esquerda; telão do celular é bem pequeno.
 - Ideias da lista que ele NÃO escolheu (não repropor sem ele pedir): ola, torcida indo embora, sinalizador, gestos do juiz, gandulas, banco/técnico reagindo, placas LED.
 
+
+
+## 💾 07/11 — Grátis volta a SALVAR + 2D grátis na carreira + carreira a 1,5× (PUBLICADO 07/11 + banco aplicado)
+- Diego: *"acho que a gente tem que liberar novamente salvar… ficou um dia sem jogar, quem não tem plano pode apagar o save… só tem direito
+  a um save… o campo 2D liberado… botão manual continuar com a travinha… no modo carreira deixa 1,5"*. REVOGA o "sem plano não salva" de 04/11.
+- Feito no código: `SALVAR_SO_COM_PLANO = false`; 1º salvamento sem plano abre o aviso CURTO (o filho, "mais gente = mais caro"; sem falar de "ficar rico", ordem dele) só com o ⭐ Craque Completo (14,90/mês, é o que tem o Manual) + "Ver todos os planos" (antes: "se o jogo se pagar já
+  tá ótimo", 1 carreira só, 1 dia sem salvar = apagada da nuvem) + planos — foto `scripts/mockups/salvar-gratis-aviso.png`, fecha uma vez
+  (`nuvem-1d`); 2D grátis na CARREIRA (`useCampo2DLigado`/`Botao2D` com `careerOnline`; o cadeado vira só do Manual; Partida Rápida segue
+  paga); 2D da carreira padrão **1,5×** (`VEL2D_CARREIRA_PADRAO`), sem Manual cravado em 1,5× (`vel2dDoContexto`).
+- ⏳ BANCO (só depois do OK): `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
+  hora. Apaga só a NUVEM (o aparelho guarda e sobe de novo no próximo Salvar). Ficha grátis já era 1 (`careerSlotLimit`, quem tinha mais ficou).
+
+## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (PUBLICADO 07/11)
+- Diego: *"ele pode criar uma sala de graça pra ele, pra teste… já pode ter opção de 2D… só o Liga Draft que o cara já tem que ter plano"*.
+  `pode2d` (lobby.tsx) libera quando `roomMode === 'rapido'` e o botão do dono na sala (`TrocaCampo2DSala`) liga o 2D em sala que não é
+  liga nem carreira. Liga Draft/Liga da Turma/carreira em sala continuam do plano. O banco não confere plano pro 2D (nada a mudar lá).
+
 ## 🅰️ 07/11 — Copa da carreira caía no placar cinema em vez do campinho (Diego, quarta de copa na Várzea)
 - Causa: a conferência do replay oficial (`prepararReplayOficial`) exigia a ASSISTÊNCIA igual, mas o save não guarda assistência
   de jogador de mentira (regra de 19/09) e o motor sim → reprovava → `replayOficialBloqueado` → sem 2D. Na Várzea (filler) quase sempre.
@@ -21,7 +38,7 @@
   passa por cima de quem estava colado em quem tocou (ou do goleiro, na cavadinha): 😳 + "CHAPÉU!" em cima dele 1,4 s (some na festa
   do gol) · 🎯 **onde a bola cai** = sombra + anel tracejado com X no gramado que aperta conforme a bola desce (lançamento alto).
   Foto: `scripts/mockups/campo2d-efeitos.png`. Trava: `npm run efeitos-2d`. Bancada: `scripts/teste-campo2d/?efeitos=1&rk=3`.
-- ⏳ Liberar pra todos = trocar `useCampo2DTester()` por liberado geral no `campo2d.tsx` (linha do `efeitosLance`) quando ele mandar.
+- 🟢 LIBERADO PRA TODOS em 07/11 (*"publique tudo que falamos sobre o campo 2D"*): `EFEITOS_LANCE_GERAL = true` no `campo2d.tsx` (false = volta só pra conta dele). Os efeitos do MAPA seguem com o mapa (só a conta dele).
 - 🔁 **2ª leva (07/11)**: *"N quero fogo no chute"* → o rastro de fogo SAIU (fica a rede balançando mais no gol de longe). Entraram no
   campinho: 🧤 **goleiro voando** na defesa difícil (corpo esticado + luva amarela, o boneco vai junto) · ⚽ **bola quicando** (2 quiquinhos
   quando a bola alta cai sem ninguém dominar) · 🟫 **risco no gramado** onde teve carrinho/desarme na dividida (até o fim do TEMPO; ⚠️ é
@@ -597,6 +614,15 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Kombi dos ambulantes (`cidade3d/vendor-delivery.mjs`): chega parada na vaga de carga, entra pelo portão de serviço e sai pela pista.
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 07/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **Amaral FC** (pedro.smeirelesamaral, criada 04/11) com DUAS contas de apoio criadas no dia seguinte, que nunca jogaram sala cheia:
+  **Blue Lock** (danielriddick.dr) — 18 temporadas só os dois, 8 ligas × 0 · **FC Bbc** (matheusmiranda7dep) — 5 temporadas, 4 × 0. Soma 12 ligas.
+- NOVO (forte): **Goat** (ezequiassival870) × **Fcsccp** (lucasaparecidola9166) — as duas criadas 05/11, logins com 6 min, 14 temporadas, 5 × 0, a de apoio nunca jogou sala cheia.
+- NOVO (forte): **Adadada** (fflindao0101) × **Arthur FC** (mulequi530) — as duas criadas 06/11, logins com 1 min, 7 temporadas, 3 × 0, apoio nunca jogou sala cheia.
+- Médios (só anotado): Visca Barça × Hala Madrid (os dois "Danilson", logins 3 min, 3×0, mas o perdedor jogou 3 salas cheias) · Mini Messers ×
+  Marlimbos (8 temp., 0×3, logins 13 min) · Quebrador d cama box × Pipiuzudinho (6 temp., 5×0, perdedor nunca jogou sala cheia, contas de set/25) ·
+  Ferdca × Real (de 05/11) segue igual. Roseira FC × Cholismo continua (5 temp., 4×0) — já avisado.
 
 ## 🕵️ VIGIA DE CONTA DUPLA — 05/11 (avisado ao Diego, esperando OK pra ligar)
 - PIOROU: **Serventes FC** (wallacethiago424) ganhou uma 2ª conta de apoio: **Gustavo** (gusta.ghost.lindo, criada 03/11) — 6 temporadas só os dois, 3 ligas × 0, nunca jogou sala cheia. Junto com a Safiel (gustavodelimafrias2), as duas "gusta…", o Serventes já soma 8 ligas em 14 temporadas.
