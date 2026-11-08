@@ -526,10 +526,14 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const roofFurniture=(polygonPoints:readonly PontoComplexo[],y:number,step=6)=>{
     const minX=Math.min(...polygonPoints.map(p=>p.x)),maxX=Math.max(...polygonPoints.map(p=>p.x))
     const minZ=Math.min(...polygonPoints.map(p=>p.z)),maxZ=Math.max(...polygonPoints.map(p=>p.z))
+    const placed:PontoComplexo[]=[]
     for(let x=minX+3;x<maxX-2;x+=step)for(let z=minZ+3;z<maxZ-2;z+=step){
-      const p={x,z};if(inside(p,polygonPoints)&&polygonPoints.every((b,i)=>distanceToSegment(p,polygonPoints[(i+polygonPoints.length-1)%polygonPoints.length],b)>2.6))table(p,y,true)
+      const p={x,z};if(inside(p,polygonPoints)&&polygonPoints.every((b,i)=>distanceToSegment(p,polygonPoints[(i+polygonPoints.length-1)%polygonPoints.length],b)>2.6)){table(p,y,true);placed.push(p)}
     }
+    return placed
   }
+  /** 🍔 08/11: mesas do terraço da Praça de Alimentação (a vista dela estava vazia; `presidencia-locais-vida` senta gente nelas) */
+  let pracaMesas:{x:number;z:number;y:number}[]=[]
   const nearestDoorEdge=(points:readonly PontoComplexo[],door:PortaComplexo)=>{
     let best=0,distance=Infinity
     points.forEach((a,i)=>{const d=distanceToSegment(door.threshold,a,points[(i+1)%points.length]);if(d<distance){distance=d;best=i}})
@@ -633,6 +637,21 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     const a=footprint[5],b=footprint[4],length=Math.hypot(b.x-a.x,b.z-a.z),dx=(b.x-a.x)/length,dz=(b.z-a.z)/length
     const hotel=[a,b,{x:b.x+dz*33,z:b.z-dx*33},{x:a.x+dz*33,z:a.z-dx*33}]
     building('hotel',hotel,22,undefined,7)
+    // 🏨 08/11: letreiro "HOTEL" no alto da fachada da recepção (a vista do Hotel olhava um prédio sem nome)
+    if(typeof document!=='undefined'){
+      const c=document.createElement('canvas');c.width=1024;c.height=200
+      const g=c.getContext('2d')
+      if(g){
+        g.fillStyle='#0c0c0c';g.fillRect(0,0,c.width,c.height);g.fillStyle='#ffc400';g.fillRect(10,10,c.width-20,c.height-20);g.fillStyle='#0c0c0c';g.fillRect(22,22,c.width-44,c.height-44)
+        g.fillStyle='#f4ecd6';g.font='900 128px Oswald, Impact, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('HOTEL',c.width/2,c.height/2+6,c.width-80)
+        const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;textures.add(tex)
+        const m=new THREE.MeshBasicMaterial({map:tex,toneMapped:false});materials.add(m)
+        const c2=hotel[2],nx=dx,nz=dz,mid={x:(b.x+c2.x)/2,z:(b.z+c2.z)/2}
+        // a face b→c olha pra fora na direção (dx,dz): é ela que dá pro portão de entrada e pra recepção
+        const sign=add(new THREE.PlaneGeometry(19,3.7),m);sign.name='hotel-letreiro';sign.castShadow=false
+        sign.position.set(mid.x+nx*.3,18.9,mid.z+nz*.3);sign.rotation.y=Math.atan2(nx,nz)
+      }
+    }
     const portal=PLANTA_COMPLEXO.doors.hotel,heading=portal.heading
     const annexCenter=localPoint(portal.x,portal.z,0,-4.8,heading)
     const annex=rectangles(annexCenter.x,annexCenter.z,12,9.6,heading)
@@ -656,7 +675,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     const endpoint=PLANTA_COMPLEXO.routes.food.points.at(-1)!
     const portal:PortaComplexo={id:'praca',approach:endpoint,threshold:endpoint,inside:lot.center,stay:30,heading:lot.heading,x:endpoint.x,z:endpoint.z}
     building('praca',lot.footprint,5.4,portal)
-    roofFurniture(lot.footprint,5.57,7.5)
+    pracaMesas=roofFurniture(lot.footprint,5.57,7.5).map(p=>({x:p.x,z:p.z,y:5.57}))
     for(const t of [.22,.5,.75]){
       const a=lot.footprint[0],b=lot.footprint[2],p={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t}
       box('praca-quiosque',wood,6,2.8,4,p.x,7.0,p.z,lot.heading)
@@ -725,7 +744,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;textures.add(tex)
       const m=new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:.9,depthWrite:false});materials.add(m)
       const geo=new THREE.PlaneGeometry(largura,largura/4);geo.rotateX(-Math.PI/2)
-      const mesh=add(geo,m),p=pista.naPista(x,lado);mesh.name=id;mesh.position.set(p.x,.035,p.z);mesh.rotation.y=ang(x)-Math.PI/2;mesh.renderOrder=2
+      const mesh=add(geo,m),p=pista.naPista(x,lado);mesh.name=id;mesh.position.set(p.x,.035,p.z);mesh.rotation.y=ang(x)+Math.PI/2;mesh.renderOrder=2 // 08/11: lido da calçada do terreno (de onde a vista do ônibus olha), não de cabeça pra baixo
     }
     pintura('pista-letreiro-onibus','ÔNIBUS',-36,-1.2,5.2);pintura('pista-letreiro-taxi','TÁXI · APP',-12.5,-1.2,5.6);pintura('pista-letreiro-carga','CARGA',27.5,-1.2,4.4)
     for(const [x0,x1] of [[-2.4,14.6],[15.4,26.6]] as const)for(let x=x0;x<x1;x+=1.6){const p=pista.naPista(x,-.2);box('pista-vaga-tracejado',paint,.12,.02,.8,p.x,.03,p.z,ang(x)+Math.PI/2)}
@@ -826,10 +845,27 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
 
   if(state.extras.estac){
     entered.add('estac')
+    // 🅿️ 08/11: carros parados nas vagas (o estacionamento comprado parecia abandonado) e o ponto do circular SEM faixa de vaga
+    // embaixo — ele encosta numa baia amarela de embarque. Carro parado é cenário: não anda, não entra em conta nem em save.
+    const fy=transport.parking.floor,stopAt=transport.parking.slot
+    const carPaint=['#c2452f','#1f5fa8','#e9e5d9','#3d4448','#7d8a8f','#1b7a3d'].map(c=>material(c,.45,.2)),carGlass=material('#41575b',.25,.3),tyre=material('#1e2220',.7),bayYellow=material('#f2c230',.7)
+    const parkedCar=(id:string,x:number,z:number,h:number,paint:THREE.Material)=>{
+      const at=(f:number,s=0)=>localPoint(x,z,s,f,h)
+      box(id+'-corpo',paint,1.82,.62,4.3,x,fy+.62,z,h)
+      const cab=at(-.2);box(id+'-cabine',carGlass,1.6,.5,2.1,cab.x,fy+1.18,cab.z,h);box(id+'-teto',paint,1.62,.08,1.9,cab.x,fy+1.46,cab.z,h)
+      for(const f of [-1.3,1.3])for(const sd of [-.86,.86]){const w=at(f,sd);box(id+'-roda',tyre,.24,.6,.6,w.x,fy+.3,w.z,h)}
+    }
     for(const lot of transport.parkingPlants.filter(lot=>lot.stage<=transport.parking.stage)){
       polygon(`estacionamento-${lot.id}`,lot.polygon,transport.parking.floor,state.extras.asfalto?asphalt:dirt)
       for(const slot of lot.slots){
         const {center,heading,width,length}=slot
+        if(Math.hypot(center.x-stopAt.x,center.z-stopAt.z)<1){
+          // baia do circular: contorno amarelo tracejado no lugar da vaga branca
+          for(const side of [-1,1])for(let f=-length/2+.4;f<length/2;f+=.9){const p=localPoint(center.x,center.z,side*width/2,f,heading);box('baia-circular',bayYellow,.1,.012,.5,p.x,fy+.013,p.z,heading)}
+          continue
+        }
+        const r=hash(center.x*.7,center.z*1.3)
+        if(r<.55)parkedCar('carro-parado',center.x,center.z,heading+(r<.27?Math.PI:0),carPaint[Math.floor(r*97)%carPaint.length])
         for(const side of [-1,1]){
           const p=localPoint(center.x,center.z,side*width/2,0,heading)
           box('linha-vaga',white,.07,.012,length,p.x,transport.parking.floor+.012,p.z,heading)
@@ -1032,7 +1068,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       const x=p.x+side*5.6,z=p.z-2,choice=hash(x,z)
       const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else{const r=residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0);casasBairro.push({x,z,w:r.w,d:r.d,h:r.h,andares:r.floors})}
     }
-    plant({x:p.x,z:p.z+8.6},4.6,false,true,.08)
+    // 🌳 08/11: no quarteirão do boteco a árvore sai do meio da calçada — ali é a roda de conversa dos moradores (`residentHotspots`,
+    // x = boteco − 5,3) e a gente aparecia dentro do tronco. Vai pro jardim da casa vizinha, a 7 m da roda.
+    plant({x:pubBlocks.includes(p)?p.x-7:p.x,z:p.z+8.6},4.6,false,true,.08)
   }
   const ruasCortadas=new Set(quadraCasaLuca&&quadraCasaLucaSul?RUAS_CORTADAS_CASA_LUCA:[])
   const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
@@ -1396,6 +1434,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     regionalTrees++
   }
   root.userData.landscape={publicParks:publicParks.length,beltTrees,clubTrees,regionalTrees,roads:streetNetwork.length,architecture:{types:architectureCounts,detailedHomes,examples:architectureExamples}}
+  root.userData.pracaMesas=pracaMesas
   root.userData.transport={station:transport.station.enabled,stationFloor:transport.station.floor,railY:transport.station.railY,stairs:transport.station.enabled?transport.station.accesses.reduce((count,access)=>count+access.stair.count,0):0,stationAccesses:transport.station.accesses.map(access=>access.id),railExtent:transport.station.railExtent,railWidth:transport.station.railWidth,busStops:2,parkingStage:transport.parking.stage,parkingCapacity:transport.parking.capacity,parkingLots:transport.parkingPlants.filter(lot=>lot.stage<=transport.parking.stage).map(lot=>({id:lot.id,capacity:lot.slots.length,access:lot.access}))}
 
   // Batch by material and by the four distant forest regions after transforms,

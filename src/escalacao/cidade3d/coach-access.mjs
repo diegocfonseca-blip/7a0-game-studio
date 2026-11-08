@@ -19,10 +19,14 @@ export function roundCoachRoute(vertices,radius=9){
  return dense;
 }
 export function teamCoachAccess(){
- const inbound=roundCoachRoute([{x:85,z:200},{x:49,z:211},{x:30,z:211},{x:30,z:120},{x:-56,z:120},{x:-72,z:86},{x:-97,z:48},{x:-94,z:26},COACH_BAY]);
+ // 🚌 08/11: o ônibus dos times chega e sai pelo BAIRRO DO OESTE (rua de cima → rua x −186 → ramal de serviço → rua
+ // interna oeste), nunca pela avenida. Desde a pista paralela de 04/11 a linha pública de ônibus roda a avenida inteira,
+ // ida e volta; o caminho antigo (avenida → portão x 30 → frente do estádio) cruzava a linha dela na tela.
+ const viaOeste=[{x:-240,z:-112},{x:-186,z:-112},{x:-186,z:-1},{x:-124,z:0},{x:-121,z:45},{x:-97,z:48}];
+ const inbound=roundCoachRoute([...viaOeste,{x:-94,z:26},COACH_BAY]);
  const manoeuvre=roundCoachRoute([COACH_BAY,{x:-94,z:-32},{x:-107.6,z:-42},{x:-107.6,z:-60}],7.8);
  const turn=Array.from({length:80},(_,i)=>{const a=Math.PI+Math.PI*(i+1)/80;return{x:-99.8+Math.cos(a)*7.8,z:-60+Math.sin(a)*7.8,y:0}});
- const leave=roundCoachRoute([{x:-92,z:-60},{x:-94,z:26},{x:-97,z:48},{x:-72,z:86},{x:-56,z:120},{x:30,z:120},{x:30,z:211},{x:49,z:211}]);
+ const leave=roundCoachRoute([{x:-92,z:-60},{x:-94,z:26},...[...viaOeste].reverse()]);
  const outbound=[...manoeuvre,...turn,...leave.slice(1)];
  const passenger=[{x:-93.2,z:-19.35,y:1.10},{x:-92.92,z:-19.35,y:.83},{x:-92.64,z:-19.35,y:.56},{x:-92.36,z:-19.35,y:.29},{x:-91.94,z:-19.35,y:0},{x:-91.94,z:-5,y:0},{x:-94,z:-5,y:0},{...STADIUM_SERVICE_GATE.approach,y:.16},{...STADIUM_SERVICE_GATE.threshold,y:.16},{...STADIUM_SERVICE_GATE.inside,y:.16}];
  return{bay:COACH_BAY,inbound,outbound,passenger,publicTerminalUsed:false,minimumWallClearance:COACH_BAY.wallX-(COACH_BAY.x+TEAM_COACH.width/2)};

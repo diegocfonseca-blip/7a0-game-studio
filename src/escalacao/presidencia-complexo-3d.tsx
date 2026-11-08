@@ -282,7 +282,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
   // 🪧 03/11: placa do Patrocinador Master (fachada + telão, só com contrato ativo) e as placas de patrocínio em volta do gramado.
   // Ela sai junto com o campo (mesmo ciclo de vida), sem mexer na lista de limpeza do mapa.
   const placasEstadio=criarPlacasComplexo(scene,state,()=>wake.current()),soltaCampo=game.dispose;game.dispose=()=>{placasEstadio.dispose();soltaCampo()}
-  const localLife=criarVidaLocais(scene,surround.root,surround.solids,managementEnabled&&!ajuste.leve,()=>wake.current())
+  const localLife=criarVidaLocais(scene,surround.root,surround.solids,managementEnabled&&!ajuste.leve,()=>wake.current(),!isOffice&&!isWindow)
   const stadiumAccess=criarAcessosEstadio(scene,state)
   const stadiumStaff=criarEquipeApoioEstadio(scene,()=>wake.current(),matchPresentation==='3d')
   const stadiumPreparation=criarPreparacaoEstadio(scene,state,architecture.seatAccess,()=>wake.current())
@@ -614,7 +614,7 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    if(isOffice&&!['room','office','president','shelf'].includes(next))next='room'
    if(isOffice){controls.enabled=next!=='office';camera.fov=next==='president'?32:48;camera.updateProjectionMatrix()}
    else{camera.fov=38;camera.updateProjectionMatrix()}
-   navigation.beginView({fitOnResize:['casa-luca','arena-online','casa-usuario','original','region','field','estacao','loja','shopping','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['casa-luca','arena-online','casa-usuario','original','region','estacao','loja','shopping','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
+   navigation.beginView({fitOnResize:['casa-luca','arena-online','casa-usuario','original','region','field','estacao','loja','hotel','shopping','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['casa-luca','arena-online','casa-usuario','original','region','estacao','loja','hotel','shopping','vadico','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
    setSelectedView(next);setCartaoFechado(null)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
    if(next==='original')fit(-190,managementEnabled?214:190,-140,175,32,stationFrame)
@@ -634,7 +634,8 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     controls.target.set(p.x,p.y+1,p.z)
     camera.position.set(p.x+Math.sin(seat.heading)*8,p.y+3,p.z+Math.cos(seat.heading)*8)
    }
-   else if(next==='entrance'){const gate=PLANTA_COMPLEXO.gates.home;controls.target.set(gate.threshold.x,2,gate.threshold.z);camera.position.set(18,12,116)}
+   // 🏟️ 08/11: mais alto e mais longe — a fachada inteira até o chão; de perto só aparecia a laje de cima "flutuando" sobre o túnel
+   else if(next==='entrance'){const gate=PLANTA_COMPLEXO.gates.home;controls.target.set(gate.threshold.x,5,gate.threshold.z-4);if(camera.aspect<.85)camera.position.set(26,40,176);else camera.position.set(30,27,146)}
    else if(next==='away-entrance'){const gate=PLANTA_COMPLEXO.gates.away;controls.target.set(gate.threshold.x,2,gate.threshold.z);camera.position.set(138,12,24)}
    else if(next==='visit-home'||next==='visit-away'){
     const side=next==='visit-home'?'home':'away',access=selectedAccess(side)
@@ -657,8 +658,10 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
    }
    else if(next==='president'){
     const body=presidentBody.inspect().president,seat=body?.seated
-    const x=seat?-6.4:-4.5,z=seat?69.7:70,y=PLANTA_COMPLEXO.presidentBox.floor+(seat?1.1:1.4)
-    controls.target.set(x,y,z);camera.position.set(x+.65,y+.35,z+3.2)
+    const z=seat?69.7:70,y=PLANTA_COMPLEXO.presidentBox.floor+(seat?1.1:1.4)
+    // 🪟 08/11: a cadeira fica bem atrás do montante preto do vidro (x −7) e a vista antiga, de trás dela, cortava o campo no meio.
+    // Agora o olhar sai de pé, à direita da cadeira, e passa pelo MEIO do vidro central (entre os montantes −7 e 7) até o campo
+    controls.target.set(-2,1,10);camera.position.set(-2.4,y+.85,z+3)
    }
    else if(next==='shelf'){controls.target.set(-12.5,10.3,78.2);camera.position.set(-10.7,11.4,73.5)}
    else if(next==='office'){
@@ -685,7 +688,9 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     controls.target.set(-92.3,1.7,-19.35);camera.position.set(-91,3,-30)
    }
    else if(next==='technical-area'){
-    controls.target.set(-18,1,-35.8);camera.position.set(-12,3,-27)
+    // 🪑 08/11: o banco inteiro (10 m) e o técnico na frente dele, visto do gramado. No celular (em pé) a câmera fica na ponta do
+    // banco olhando ao comprido dele — de frente, pra caber os 10 m, ela ficava tão longe que o banco virava um risco
+    if(camera.aspect<.85){controls.target.set(-20,.7,-36.6);camera.position.set(-8.6,3.3,-30.2)}else{controls.target.set(-18,.8,-36.4);camera.position.set(-10.5,3.4,-26.5)}
    }
    else if(next==='team-entrance'){
     controls.target.set(-90.4,1.4,0);camera.position.set(-103,4,9)
@@ -703,12 +708,20 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     const p=PLANTA_COMPLEXO.lots.loja,h=p.door?.heading??p.heading
     fit(Math.min(...p.footprint.map(p=>p.x))-3,Math.max(...p.footprint.map(p=>p.x))+3,Math.min(...p.footprint.map(p=>p.z))-3,Math.max(...p.footprint.map(p=>p.z))+3,6,[],new THREE.Vector3(Math.sin(h)*1.1+Math.cos(h)*.9,.75,Math.cos(h)*1.1-Math.sin(h)*.9))
    }
+   else if(next==='hotel'){
+    // 🏨 08/11: o prédio inteiro (torre + recepção), de frente pra fachada do letreiro; antes a câmera colava na porta e a torre cortava meia tela
+    const p=PLANTA_COMPLEXO.lots.hotel,xs=p.footprint.map(q=>q.x),zs=p.footprint.map(q=>q.z)
+    // no celular (em pé) a torre é olhada de frente pela fachada estreita, com o comprido dela indo pro fundo — cabe de perto
+    if(camera.aspect<.85){const d=new THREE.Vector3(.8,.62,.6).normalize();controls.target.set(-118,8,93);camera.position.copy(controls.target).addScaledVector(d,camera.aspect<.6?150:125)}
+    else fit(Math.min(...xs)-2,Math.max(...xs)+2,Math.min(...zs)-2,Math.max(...zs)+2,23,[],new THREE.Vector3(1.05,.55,.62))
+   }
    else if(next==='vadico'){
     // 🚗 05/11: a Vadico mudou pro lado do Shopping do Clube (prédio próprio + pátio); a velha saiu do mapa
     const v=PLANTA_SHOPPING.vadico,b={minX:v.minX,maxX:v.maxX,minZ:v.minZ,maxZ:v.patio.maxZ}
     fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,12,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
    }
-   else if(next==='shopping'){const b=PLANTA_SHOPPING.building,pk=PLANTA_SHOPPING.parking;fit(b.minX-2,b.maxX+2,b.minZ-1,pk.maxZ+2,PLANTA_SHOPPING.height+4,[],camera.aspect<.85?new THREE.Vector3(-.2,1.05,1.3):new THREE.Vector3(.15,.62,1.3))}
+   // 🛍️ 08/11: no computador o quadro vai até o fim da Vadico, do lado — antes a logo dela entrava cortada na borda
+   else if(next==='shopping'){const b=PLANTA_SHOPPING.building,pk=PLANTA_SHOPPING.parking;fit(b.minX-2,camera.aspect<.85?b.maxX+2:PLANTA_SHOPPING.vadico.maxX+2,b.minZ-1,pk.maxZ+2,PLANTA_SHOPPING.height+4,[],camera.aspect<.85?new THREE.Vector3(-.2,1.05,1.3):new THREE.Vector3(.15,.62,1.3))}
    else if(next==='casa-luca'){const c=LIMITES_COMPLEXO_CASA_LUCA;fit(c.minX-1,c.maxX+1,c.minZ-1,c.maxZ+2,6,[],new THREE.Vector3(-.25,1.05,1.3))} // 💙 06/11: o complexo inteiro (prédio, jardim, piquenique e quadra)
    else if(next==='agencia-clube'){const b=LOTE_AGENCIA_CLUBE.building;fit(b.minX-1.5,b.maxX+1.5,b.minZ-8,b.maxZ,LOTE_AGENCIA_CLUBE.height+3,[],new THREE.Vector3(.5,.62,-1.3))}
    else if(next==='patrocinadores')fit(-482,-144,-314,-69,36,[],new THREE.Vector3(.12,2.1,1.25))
@@ -729,9 +742,12 @@ export default function PresidenciaComplexo3D({cidadeViva,stadium,cityStadium,cl
     if(kind==='metro'){
      // Stand inside the platform at human height. A high aerial camera sees
      // the canopy instead of the person crossing the train doorway.
-     const door=service.width/2+.075,lateral=5.8*portrait,forward=3.2*portrait
-     controls.target.set(p.x+Math.cos(h)*side*door,p.y+service.floorHeight+1,p.z-Math.sin(h)*side*door)
-     camera.position.set(p.x+Math.cos(h)*side*lateral+Math.sin(h)*forward,p.y+service.floorHeight+1.7,p.z-Math.sin(h)*side*lateral+Math.cos(h)*forward)
+     // 🚇 08/11: de dentro da plataforma, na altura do olho, a vista era só trilho (sem o trem, sobrava a via). Agora a câmera
+     // fica alta, além da ponta da estação, olhando AO LONGO dela: as duas plataformas, as coberturas, a via e o trem (quando
+     // está) aparecem juntos — e a estação comprida cabe em pé no celular.
+     const floor=p.y+service.floorHeight,back=portrait>1?36:52,up=portrait>1?8:8.5
+     controls.target.set(p.x-Math.sin(h)*6,floor+1,p.z-Math.cos(h)*6)
+     camera.position.set(p.x+Math.sin(h)*back-Math.cos(h)*side*3,floor+up,p.z+Math.cos(h)*back+Math.sin(h)*side*3)
     }else{
      const distance=(kind==='bus'?17:12)*portrait
      controls.target.set(p.x,p.y+service.floorHeight+1,p.z)

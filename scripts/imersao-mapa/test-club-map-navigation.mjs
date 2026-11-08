@@ -12,7 +12,9 @@ const own={inv:{geral:40},ext:['loja']},host={inv:{},ext:['hotel']}
 const state={careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:0,managers:[{id:17,isHuman:true,teamName:'Neymarzetti'},{id:42,isHuman:true,teamName:'Visitante'}],stadiums:{17:own,42:host},careerCoins:{17:200}}
 const original=JSON.stringify(state),match={context:{id:'away-read-only',homeClubId:42,awayClubId:17},minute:20,paused:false,finished:false,homeScore:0,awayScore:0},input={enabled:true,state,mgrId:17,day:{division:'V',support:60},match}
 const result=adapt(input)
-assert(result);assert.deepEqual(result.complexo.stadium,host);assert.deepEqual(result.complexo.cityStadium,own)
+// 🏟️ 07/11 (Diego: "pode deixar todos com meu estádio mesmo"): jogo FORA desenha o SEU estádio, nunca o do dono da casa
+assert(result);assert.deepEqual(result.complexo.stadium,own);assert.notDeepEqual(result.complexo.stadium,host,'jogo fora não troca pelo estádio do anfitrião');assert.deepEqual(result.complexo.cityStadium,own)
+assert.equal(result.complexo.fora,true);assert.deepEqual(result.complexo.awayStadium,own)
 assert.strictEqual(result.complexo.match,match,'Never create another match/clock for navigation')
 assert.equal(result.complexo.clubName,'Neymarzetti');assert.equal(JSON.stringify(state),original)
 result.complexo.cityStadium.ext.push('chopp');assert.equal(JSON.stringify(state),original,'Own city is a read-only snapshot')
