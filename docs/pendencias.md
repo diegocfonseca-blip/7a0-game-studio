@@ -12854,3 +12854,5 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   salvamento com o texto do Diego e só "Conhecer os planos". Foto `scripts/mockups/salvar-teste-5-dias.png`.
   ⚠️ NA HORA DE PUBLICAR: desligar o cron `esc-nuvem-gratis-1d` (senão, sem poder salvar, a carreira seria apagada 1 dia depois).
   ⚠️ Brecha conhecida: quem NUNCA aperta Salvar continua com o salvamento automático do aparelho (o teste só começa no toque).
+- 🕵️ 08/11: **Ice Nugets × Gabiru FC LIGADOS** (grupo `icenugets`, desde 08/11 06:58 UTC, não retroativo) — ordem do Diego. Gabiru criado 07/11,
+  100 temporadas só os dois na Liga Draft "Eu e eu" (94 × 5). Título deles jogando só os dois não conta mais pro ranking; os de antes ficam.
