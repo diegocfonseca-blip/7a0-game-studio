@@ -12,6 +12,7 @@ import { flagOf } from './copa-mundo'
 import { seloDoClube } from './selo-clube'
 import type { Card, Sector, Manager } from './types'
 import { EscalacaoMinha } from './minha-escalacao'
+import { ListaFavoritos, EstrelaFav, useFavoritosDraft } from './draft-favoritos'
 import {
   podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
@@ -277,6 +278,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   const LIMITE_LISTA = 250
   const lista = filtradas.slice(0, LIMITE_LISTA)
   const [sondando, setSondando] = useState(!!comecaSondando)
+  const favs = useFavoritosDraft() // ⭐ 08/11: os favoritos marcados na temporada aparecem em cima (só conveniência do aparelho)
   if (!you) return null
   // 📋🏆 Minha Liga Draft: com vaga (menos de 22) ninguém sai; cheio = sai quem ele escolher, sem furar posição
   const temVaga = !!minha && you.squad.length < MLD_ELENCO_MAX
@@ -293,6 +295,13 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
         <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> {minha ? t('pra escolher · acabou o tempo, você perde a vez', 'to pick · if time runs out, you lose the turn') : t('pra escolher · acabou o tempo, o jogo pega o melhor livre pra você', 'to pick · if time runs out, the game takes the best free player for you')}</p>
       </div>
       {!carta ? (<>
+        {favs.length > 0 && (
+          <div>
+            <p className="uppercase text-[13px] mb-1" style={OSW}>⭐ {t('Seus favoritos', 'Your favourites')}</p>
+            <ListaFavoritos deck={state.minhaLigaDraft ? state.deckLeague : undefined} donoDe={donoDe} favs={favs}
+              onPegar={c => { if (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)) { setCarta(c); setSai(null) } }} />
+          </div>
+        )}
         <input value={busca} onChange={e => setBusca(e.target.value)} placeholder={t('🔎 buscar jogador ou clube…', '🔎 search player or club…')}
           className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold text-[14px] bg-white" />
         <div className="flex gap-1.5">
@@ -316,6 +325,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
                 <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#F4ECD6' }}>{c.pos}</span>
                 <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
                 <span className="shrink-0 text-[10.5px] font-black text-black/40" style={OSW}>{t('livre', 'free')}</span>
+                <EstrelaFav chave={chaveCarta(c)} favs={favs} dentroDeBotao />
               </button>
             )
           })}

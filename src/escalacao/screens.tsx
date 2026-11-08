@@ -85,7 +85,10 @@ import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
-import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto' // 🆚 retrospecto entre amigos (13/10)
+import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto'
+import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
+import { CaminhoDraft } from './draft-favoritos'
+import { chaveNome as chaveNomeDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
@@ -4311,8 +4314,8 @@ export function EscAuction() {
 // `duplaPodeAgir` — a mesma que o reducer usa pra recusar (regra contra botão mudo).
 function HolandesDupla({ pos, posName }: { pos: Sector; posName: string }) {
   const v = useDuplaVez(pos)
-  if (v.minhaVez) return null
-  return <div className="mt-2"><CaixaDuplaTrava quem={v.quem} parceiroSumiu={v.parceiroSumiu} assumir={v.assumir}
+  if (v.minhaVez) return <div className="mt-2"><PainelDupla destaque={pos} /></div>
+  return <div className="mt-2"><PainelDupla destaque={pos} /><div className="h-2" /><CaixaDuplaTrava quem={v.quem} parceiroSumiu={v.parceiroSumiu} assumir={v.assumir}
     titulo={tr(`🔒 Quem pega ${posName.toUpperCase()} é ${v.quem || 'seu parceiro'}`, `🔒 ${v.quem || 'Your partner'} takes the ${posName.toUpperCase()}`)}
     texto={tr('⏳ Você vê o preço caindo, mas nesta leva quem aperta PEGAR é ele. Na leva da SUA posição é você que manda.', '⏳ You see the price dropping, but in this round your partner is the one who taps TAKE. In YOUR position\'s round, you call the shots.')} /></div>
 }
@@ -4326,6 +4329,46 @@ export function useDuplaVez(cat: DuplaCat) {
   const parceiroSumiu = !!donoUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoUid)
   const assumir = () => { if (you) dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' }) }
   return { minhaVez, quem, parceiroSumiu, assumir }
+}
+// 🤝 08/11 (mockup aprovado, Diego: *"pode fazer tudo"*): PAINEL DA DUPLA no leilão — quem cuida de cada posição (e do Monte) e o
+// que ainda falta no time, dizendo de quem é. Só lê `duplas[].cats` e `openSlots` (as MESMAS réguas do motor); não muda regra nenhuma.
+export function PainelDupla({ destaque }: { destaque?: Sector }) {
+  const { state } = useEsc()
+  const you = state.managers[state.youIdx]
+  const d = you ? state.duplas?.[you.id] : undefined
+  if (!you || !d || !d.partnerUid || state.espectador) return null
+  const eu = state.youUid
+  const nomeDe = (uid?: string) => stripEmoji((uid === d.ownerUid ? d.ownerName : d.partnerName) ?? '').trim()
+  const parceiroUid = eu === d.ownerUid ? d.partnerUid : d.ownerUid
+  const donoDa = (c: DuplaCat) => d.soloUid ?? d.cats?.[c]
+  const minhas = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE'] as DuplaCat[]).filter(c => donoDa(c) === eu)
+  const dele = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE'] as DuplaCat[]).filter(c => donoDa(c) && donoDa(c) !== eu)
+  const falta = SECTORS.map(p => ({ p, n: openSlots(you, p) })).filter(x => x.n > 0)
+  const completos = SECTORS.filter(p => openSlots(you, p) === 0)
+  const nomeP = (p: Sector, n: number) => { const pt: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goleiros'], LAT: ['lateral', 'laterais'], ZAG: ['zagueiro', 'zagueiros'], MEI: ['meia', 'meias'], ATA: ['atacante', 'atacantes'] }; const en: Record<Sector, [string, string]> = { GOL: ['keeper', 'keepers'], LAT: ['full-back', 'full-backs'], ZAG: ['centre-back', 'centre-backs'], MEI: ['midfielder', 'midfielders'], ATA: ['forward', 'forwards'] }; return tr(`${n} ${pt[p][n > 1 ? 1 : 0]}`, `${n} ${en[p][n > 1 ? 1 : 0]}`) }
+  const chip = (c: DuplaCat) => <span key={c} className="text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSWALD, fontWeight: 900, background: c === destaque ? GOLD : '#fff' }}>{c === 'MONTE' ? tr('MONTE', 'PILE') : c}</span>
+  return (
+    <Box className="p-3 space-y-2">
+      <p className="font-black text-xs uppercase" style={OSWALD}>🤝 {tr('Quem cuida de quê', 'Who handles what')}{d.soloUid ? tr(' · você assumiu tudo', ' · you took over everything') : ''}</p>
+      {!d.soloUid && <>
+        <div className="flex items-center gap-1.5 flex-wrap"><b className="text-[12px] mr-1" style={OSWALD}>🫵 {tr('Você', 'You')}</b>{minhas.length ? minhas.map(chip) : <span className="text-[11px] font-bold text-black/50">{tr('ainda não dividiram', 'not split yet')}</span>}</div>
+        <div className="flex items-center gap-1.5 flex-wrap"><b className="text-[12px] mr-1" style={OSWALD}>🤝 {nomeDe(parceiroUid) || tr('Parceiro', 'Partner')}</b>{dele.length ? dele.map(chip) : <span className="text-[11px] font-bold text-black/50">—</span>}</div>
+      </>}
+      <div className="space-y-1 pt-1 border-t-2 border-black/10">
+        {falta.map(({ p, n }) => {
+          const meu = donoDa(p) === eu || !donoDa(p)
+          return (
+            <div key={p} className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1" style={{ background: meu ? '#FFE3DD' : '#FFF3CF' }}>
+              <span>{meu ? '🔴' : '🟡'}</span>
+              <span className="flex-1 text-[12px] font-black" style={OSWALD}>{tr(`Falta${n > 1 ? 'm' : ''} ${nomeP(p, n)}`, `${nomeP(p, n)} missing`)}</span>
+              <span className="text-[11px] font-bold text-black/60">{meu ? tr('é com você', "it's on you") : tr(`é com ${nomeDe(donoDa(p))}`, `on ${nomeDe(donoDa(p))}`)}</span>
+            </div>
+          )
+        })}
+        {completos.length > 0 && <div className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1" style={{ background: '#DFF6E8' }}><span>🟢</span><span className="text-[12px] font-black" style={OSWALD}>{completos.join(' · ')} {tr(completos.length > 1 ? 'completos' : 'completo', 'done')}</span></div>}
+      </div>
+    </Box>
+  )
 }
 export function CaixaDuplaTrava({ titulo, texto, quem, parceiroSumiu, assumir }: { titulo: string; texto: string; quem: string; parceiroSumiu: boolean; assumir: () => void }) {
   return (
@@ -5186,6 +5229,8 @@ function Envelope() {
         </AuctionSlot>
       </div>
       </AuctionSlot>
+
+      <PainelDupla destaque={pos} />{/* 🤝 08/11: quem cuida de quê + o que falta (só aparece em dupla) */}
 
       {!canBid && (
         <Box bg={state.espectador ? '#E7E1F7' : !minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
@@ -8163,6 +8208,34 @@ export function EscSeason() {
               Copa nunca teve isso e ficava mais poluído aqui). */}
         </Box>
       )}
+
+      {/* 🆚 08/11: PRATELEIRA DE RIVALIDADES (mockup aprovado) — próximo encontro com um AMIGO + retrospecto contra cada amigo da sala */}
+      {retroOn && !copaLive && (() => {
+        const amigos: AmigoRival[] = state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => ({ m, uid: uidDo(m.id) })).filter((x): x is { m: typeof x.m; uid: string } => !!x.uid && x.uid !== meuUidRetro)
+          .map(({ m, uid }) => ({ uid, nome: m.name, time: m.teamName || m.name, temporada: (() => { const r = rivalryOf(state.rivalries, you.id, m.id); return { w: r.w, d: r.d, l: r.l } })(), id: m.id }))
+        if (amigos.length === 0) return null
+        let proximo: ProximoEncontro | null = null
+        for (let r = state.round; r < totalRounds && !proximo; r++) {
+          const f = state.fixtures[r]?.find(([h, a]) => h === you.id || a === you.id)
+          if (!f) continue
+          const oppId = f[0] === you.id ? f[1] : f[0]
+          const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
+          if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
+        }
+        return naDireita(<PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />)
+      })()}
+
+      {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}
+      {(state.ligaDraft || state.minhaLigaDraft) && state.onlineMode === 'online' && !copaLive && state.round < totalRounds && (() => {
+        const humanos = table.filter(t => state.managers.some(m => m.id === t.id && m.isHuman))
+        const idx = humanos.findIndex(t => t.id === you.id)
+        const temCopa = !!state.copaMode && state.copaMode !== 'liga'
+        const etapas = [{ id: 'liga', pt: 'Liga', en: 'League' }, ...(temCopa ? [{ id: 'copa', pt: 'Copa', en: 'Cup' }] : []), { id: 'draft', pt: '📋 Draft', en: '📋 Draft' }, { id: 'prox', pt: `Temp. ${(state.seasonNo ?? 1) + 1}`, en: `Season ${(state.seasonNo ?? 1) + 1}` }]
+        const donoDe = new Map<string, { time: string; bot: boolean }>()
+        for (const m of state.managers) for (const c of m.squad) if (!c.fake) donoDe.set(chaveNomeDraft(c.name), { time: m.teamName, bot: !m.isHuman })
+        return naDireita(<CaminhoDraft etapas={etapas} atual="liga" faltam={totalRounds - state.round} minhaVez={idx >= 0 ? idx + 1 : null} total={humanos.length}
+          temporadaQueVem={(state.seasonNo ?? 1) + 1} deck={state.minhaLigaDraft ? state.deckLeague : undefined} regras={state.minhaLigaDraft ? state.draftRegras : undefined} donoDe={donoDe} />)
+      })()}
 
       {/* 🛋️ FOLGA: liga com nº ímpar de times — nesta rodada você não tem jogo. Só
           aparece na Liga Fechada ímpar (numa tabela par todo mundo joga toda rodada). */}

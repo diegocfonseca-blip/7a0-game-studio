@@ -12834,3 +12834,9 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   Copa do Mundo, Eurocopa e regionais JÁ mostravam a final grande pra todos. Depois (mesmo dia, *"são todas competições"*): Copa do
   Brasil/Legends e Supercopa da carreira (em sala e solo) também — `MyCopaMatch neutro`, sem estádio e sem segurar o avanço. Pênaltis da final no campinho 2D valem pra quem assiste também.
   Foto: `scripts/mockups/final-neutra.png`. Aguardando OK do Diego.
+- 🆚⭐🤝 08/11 (mockup `scripts/mockups/rivalidade-draft-duplas.png`, *"pode fazer tudo"*):
+  · **Rivalidades** (`rivalidades-sala.tsx`): próximo encontro com amigo + V·E·D de sempre + sequência; banco ganhou a coluna
+    `esc_retrospecto.ultimos` (últimos 10, `docs/sql/retrospecto-sequencia.sql`, APLICADO 08/11). Sequência só conta jogos de 08/11 em diante.
+  · **Liga Draft** (`draft-favoritos.tsx`): faixa Liga → (Copa) → Draft → Temp. N+1, faltam N rodadas, sua vez pela tabela; ⭐ favoritos
+    (aparelho, chave única `esc-draft-favs`, máx 30) aparecem em cima na noite do draft.
+  · **Duplas** (`PainelDupla`, screens.tsx): quem cuida de cada posição + o que falta e de quem é (envelope e Tocaia).
