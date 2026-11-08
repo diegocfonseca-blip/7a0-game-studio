@@ -62,7 +62,7 @@ export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime }: { amig
             <div key={a.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '7px 10px', marginBottom: 6 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <b style={{ ...OSWALD, fontWeight: 800, fontSize: 14, textTransform: 'uppercase', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.time}</b>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{a.nome}{temp.w + temp.d + temp.l > 0 ? t(` · nesta temporada ${temp.w}V ${temp.d}E ${temp.l}D`, ` · this season ${temp.w}W ${temp.d}D ${temp.l}L`) : ''}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{a.nome}{temp.w + temp.d + temp.l > 0 ? t(` · nesta sala ${temp.w}V ${temp.d}E ${temp.l}D`, ` · in this room ${temp.w}W ${temp.d}D ${temp.l}L`) : ''}</span>
               </div>
               <span style={{ ...OSWALD, fontWeight: 800, fontSize: 14, whiteSpace: 'nowrap' }}>{r ? `${r.v} · ${r.e} · ${r.d}` : '—'}</span>
               {tag && <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, borderRadius: 999, padding: '2px 8px', color: '#fff', background: tag.cor, whiteSpace: 'nowrap' }}>{tag.txt}</span>}
