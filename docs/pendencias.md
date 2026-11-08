@@ -1,3 +1,7 @@
+## ⭐ 08/11 — Craque Salas ativado NA MÃO (Vendria falhou)
+- didico (diegoferocha22@gmail.com): linha em `esc_assinatura_mensal` com `vendria_sub = 'manual-diego-08nov'`, válido até 08/12/2026.
+  Quando a Vendria voltar e cobrar a renovação, conferir se não ficou duplicado. Se ele não renovar, vence sozinho.
+
 ## 🗺️ 08/11 — Mapa 3D da carreira: a INTERFACE por cima do mapa arrumada antes de lançar (branch, esperando OK; mapa segue só na conta dele)
 - Replay ("Rever jogo salvo no mapa"): selo "🔁 Replay · jogo encerrado", minuto com 🔁 (sem bolinha vermelha), sem "Substituir/tática" e sem
   o painel de Controles (eles mexem no jogo de verdade). `MapaHud replay`.
