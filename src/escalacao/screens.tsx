@@ -7524,7 +7524,10 @@ export function EscSeason() {
   // (Copa dos 8, Liberta, Champions/repescão, Relâmpago, copa da Liga da Turma/Draft, Partida Rápida, revanche) acontece no
   // campinho. Sai SÓ do que já está no estado (placar + `pensSeq` + nomes): todo aparelho da sala vê a mesma sequência. A cena cabe
   // no tempo que a fase já segura pra disputa (`pensRevealDelay`) — relógio, motor e canal não mudam.
-  const meuTiePen = c2d && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
+  // 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*): quem
+  // já caiu (ou nem entrou) vê a FINAL no placar grande, igual a quem joga. Só a final — nas outras fases segue a lista dos jogos.
+  const finalAlheiaQ = copaLive && qc && qc.phase === 'final' && qc.ties.length === 1 && !qc.ties.some(t => t.aId === you.id || t.bId === you.id) ? qc.ties[0] : undefined
+  const meuTiePen = c2d && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id || t === finalAlheiaQ) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
   const penCampo = usePenaltisCampo(meuTiePen?.pens ? {
     id: `copa:${qc?.phase}:${meuTiePen.aId}:${meuTiePen.bId}:${meuTiePen.legs.length}`, pens: meuTiePen.pens, seqReal: meuTiePen.pensSeq,
     aName: meuTiePen.aName, bName: meuTiePen.bName, invertido: meuTiePen.legs.length === 2,
@@ -7918,7 +7921,22 @@ export function EscSeason() {
                   <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
                 </Box>
               )
-            ) : (
+            ) : finalAlheiaQ && finalAlheiaQ.legs.length > 0 ? (() => {
+              // 🏆 a FINAL de quem não está nela: o mesmo placar grande/2D, sem lado "você" (neutro). Dono humano = nome e cor do tier
+              // dele; bot = o azul neutro. Jogo único em campo neutro: casa = a, fora = b (igual à linha da lista).
+              const ft = finalAlheiaQ
+              const corDe = (id: number) => state.managers.some(m => m.id === id && m.isHuman) ? (perkFromSelo(state.managers.find(m => m.id === id)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+              const donoDe = (id: number) => { const m = state.managers.find(mm => mm.id === id && mm.isHuman); return m ? (m.name || m.teamName) : LS('FINALISTA', 'FINALIST') }
+              const lastIdx = ft.legs.length - 1
+              const hId = lastIdx === 0 ? ft.aId : ft.bId, aId = lastIdx === 0 ? ft.bId : ft.aId
+              const goals = (ft.lastHighlights ?? []).filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === hId }))
+              return (
+                <LiveScoreCard neutro enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
+                  homeName={nameOf(hId)} awayName={nameOf(aId)} homeColor={corDe(hId)} awayColor={corDe(aId)} homeOwner={donoDe(hId)} awayOwner={donoDe(aId)}
+                  youIsHome={false} goals={goals} roundKey={ft.legs.length + 20} roundMs={Math.round(copaLegMs / copaSf)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+                  footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === hId)?.squad, fora: state.managers.find(m => m.id === aId)?.squad, fCasa: state.managers.find(m => m.id === hId)?.formation, fFora: state.managers.find(m => m.id === aId)?.formation }} />
+              )
+            })() : (
               <Box bg="#fff" className="p-4" shadow={6}>
                 <p className="text-center font-black text-sm" style={OSWALD}>{chS && qc.phase === 'repescao' && state.champions ? ((championsTabela(state.champions).findIndex(tt => tt.id === you.id) + 1) <= 8 && championsTabela(state.champions).some(tt => tt.id === you.id)
                   ? LS('✅ Você já está nas OITAVAS — não joga o repescão, está aguardando saber quem te pega.', '✅ You are already in the ROUND OF 16 — you skip the playoff and wait to see who you get.')

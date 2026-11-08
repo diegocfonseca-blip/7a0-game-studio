@@ -12829,3 +12829,7 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   A faixa velha (`banner-instagram.tsx`) ficou no repo, desligada da home.
 - 🎮 08/11: criar **Liga da Turma / Liga Draft** já vem com o **Manual marcado** (quem tem Manual; dá pra desmarcar). Ligas que já
   estão rodando no Auto (ex.: "Eu e eu" JWKSLQ) NÃO mudam — trocar Auto→Manual no meio pararia a sala esperando o dono apertar.
+- 🏆 08/11: **a FINAL aparece no placar grande/2D pra quem já caiu** (Copa dos 8, Liberta, Champions, Relâmpago, Kings — `finalAlheiaQ`
+  em screens.tsx; `LiveScoreCard neutro`: sem "você", dono humano no lugar de VOCÊ/RIVAL, bot = "FINALISTA", sem apito de vitória/derrota).
+  Copa do Mundo e regionais JÁ mostravam a final grande pra todos. Pênaltis da final no campinho 2D valem pra quem assiste também.
+  Foto: `scripts/mockups/final-neutra.png`. Aguardando OK do Diego.
